@@ -5,7 +5,7 @@
     "minAppVersion": "0.15.0",
     "description": "Tracks and highlights changed lines in the editor",
     "author": "B@RT",
-    "authorUrl": "https://github.com/BARTlab/obsidian-local-history",
+    "authorUrl": "https://github.com/BARTlab",
     "fundingUrl": "",
     "isDesktopOnly": false
 }

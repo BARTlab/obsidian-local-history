@@ -1,3 +1,4 @@
+import { DiffOutputFormatType } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { DomHelper } from '@/helpers/dom.helper';
 import type LineChangeTrackerPlugin from '@/main';
@@ -7,7 +8,6 @@ import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FunctionVoid, HTMLElementWithScrollSync } from '@/types';
 import * as Diff from 'diff';
 import * as Diff2Html from 'diff2html';
-import type { OutputFormatType } from 'diff2html/lib/types';
 import { type App, type ButtonComponent, Modal, Notice, Setting, type TFile } from 'obsidian';
 
 /**
@@ -36,20 +36,20 @@ export class HistoryModal extends Modal {
    * Reference to the current diff container element.
    * Used for cleanup operations when switching between diff modes.
    */
-  private currentDiffContainer?: HTMLElement;
+  protected diffContainerEl?: HTMLElementWithScrollSync;
 
   /**
    * The current display mode for the diff view.
    * Can be 'patch', 'line-by-line', or 'side-by-side'.
    * Defaults to 'side-by-side'.
    */
-  private currentDisplayMode: 'patch' | 'line-by-line' | 'side-by-side' = 'side-by-side';
+  protected currentDisplayMode: 'patch' | 'line-by-line' | 'side-by-side' = 'side-by-side';
 
   /**
    * References to the mode toggle buttons.
    * Used to update the active state when switching between diff modes.
    */
-  private modeButtons: {
+  protected modeButtons: {
     /** Button for patch mode */
     patch?: HTMLElement;
     /** Button for line-by-line mode */
@@ -71,6 +71,8 @@ export class HistoryModal extends Modal {
     protected snapshot: FileSnapshot,
   ) {
     super(app);
+
+    this.diffContainerEl = this.contentEl.createDiv('diff-container');
   }
 
   /**
@@ -86,16 +88,17 @@ export class HistoryModal extends Modal {
       return;
     }
 
-    const subTitle: string = this.snapshot.isStateSameOriginal()
-      ? 'no changes'
-      : `last change at ${new Date(this.snapshot.timestamp).toLocaleString()}`;
+    // Make modal UI
+    this.makeUI();
 
     // Increasing the size of the modal window
-    this.modalEl.addClass('lct-diff-modal');
-    this.setTitle(`History (${subTitle})`);
+    DomHelper.update(
+      this.modalEl,
+      { classes: { add: 'lct-diff-modal' } }
+    );
 
     // Generate and display diff
-    this.renderDiff(this.makeUI());
+    this.renderDiff();
   }
 
   /**
@@ -115,7 +118,7 @@ export class HistoryModal extends Modal {
    *
    * @return {HTMLElement | null} The active button element, or null if no mode is active
    */
-  private getActiveButton(): HTMLElement | null {
+  protected getActiveButton(): HTMLElement | null {
     switch (this.currentDisplayMode) {
       case 'patch':
         return this.modeButtons.patch;
@@ -131,56 +134,64 @@ export class HistoryModal extends Modal {
   /**
    * Updates the active state of mode buttons based on the current display mode.
    */
-  private updateButtonActiveStates(): void {
+  protected updateButtonActiveStates(): void {
     Object.values(this.modeButtons).forEach((button: HTMLElement): void => {
-      button?.removeClass('mod-cta');
+      DomHelper.update(
+        button,
+        { classes: { remove: 'mod-cta' } }
+      );
     });
 
     const activeButton: HTMLElement = this.getActiveButton();
 
-    activeButton?.addClass('mod-cta');
+    if (!activeButton) {
+      return;
+    }
+
+    DomHelper.update(
+      activeButton,
+      { classes: { add: 'mod-cta' } }
+    );
   }
 
   /**
    * Restores the file to its original state and resets the history tracking.
    * Writes the original content back to the file and clears the snapshot.
    */
-  private async restoreOriginalFile(): Promise<void> {
+  protected async restoreOriginalFile(): Promise<void> {
+    if (!this.snapshot) {
+      return;
+    }
+
     try {
       const originalContent: string = this.snapshot.getOriginalState();
-      const file: TFile = (this.snapshot as FileSnapshot).file;
+      const file: TFile = this.snapshot.file;
 
-      // Write original content back to the file
       await this.app.vault.modify(file, originalContent);
-
-      // Reset the snapshot history
       this.snapshotsService.wipeOne(file);
 
-      // Show success notification
       new Notice('File restored to original state');
 
-      // Close the modal
       this.close();
-    } catch (error) {
-      console.error('Failed to restore original file:', error);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_error) {
       new Notice('Failed to restore file to original state');
     }
   }
 
   /**
    * Creates the UI elements for the diff view.
-   * Creates a container for the diff and adds buttons for different actions:
-   * - Remove file history: Deletes the snapshot and closes the modal
-   * - Line by line: Switches to line-by-line diff view
-   * - Side by side: Switches to side-by-side diff view
-   *
-   * @return {HTMLElement} The container element for the diff view
    */
-  protected makeUI(): HTMLElement {
-    const diffContainer: HTMLElement = this.contentEl.createDiv('diff-container');
+  protected makeUI(): void {
+    const isOrigin: boolean = this.snapshot?.isStateSameOriginal();
+    const changeDateTime: string = this.snapshot?.getLastChangedDateTime();
 
-    // All buttons in a single row
+    this.setTitle('History');
+
+    // action buttons in a single row
     new Setting(this.contentEl)
+      .setName('Last modified')
+      .setDesc(isOrigin ? 'No changes' : changeDateTime)
       .addButton((btn: ButtonComponent): ButtonComponent =>
         btn
           .setButtonText('Remove file history')
@@ -194,7 +205,7 @@ export class HistoryModal extends Modal {
             });
 
             if (confirmed) {
-              this.snapshotsService.wipeOne((this.snapshot as FileSnapshot).file);
+              this.snapshotsService?.wipeOne(this.snapshot.file);
               this.close();
             }
           }))
@@ -219,7 +230,7 @@ export class HistoryModal extends Modal {
 
         return btn
           .setButtonText('Show patch')
-          .onClick(() => {
+          .onClick((): void => {
             this.showCleanPatch();
           });
       })
@@ -228,8 +239,8 @@ export class HistoryModal extends Modal {
 
         return btn
           .setButtonText('Line by line')
-          .onClick(() => {
-            this.renderDiff(diffContainer, 'line-by-line');
+          .onClick((): void => {
+            this.renderDiff(DiffOutputFormatType.line);
           });
       })
       .addButton((btn: ButtonComponent): ButtonComponent => {
@@ -238,14 +249,12 @@ export class HistoryModal extends Modal {
         return btn
           .setButtonText('side-by-side')
           .onClick((): void => {
-            this.renderDiff(diffContainer, 'side-by-side');
+            this.renderDiff(DiffOutputFormatType.side);
           });
       });
 
     // Set the initial active state
     this.updateButtonActiveStates();
-
-    return diffContainer;
   }
 
   /**
@@ -256,7 +265,11 @@ export class HistoryModal extends Modal {
    * @return {string} A string containing the unified diff
    */
   protected getDiffLines(): string {
-    const filePath: string = (this.snapshot as FileSnapshot).file.path;
+    if (!this.snapshot?.file?.path) {
+      return '';
+    }
+
+    const filePath: string = this.snapshot.file.path;
     const original: string = this.snapshot.getOriginalState();
     const current: string = this.snapshot.getLastState();
 
@@ -294,7 +307,11 @@ export class HistoryModal extends Modal {
    * @return {string} A string containing the clean patch
    */
   protected getCleanPatch(): string {
-    const filePath: string = (this.snapshot as FileSnapshot).file.path;
+    if (!this.snapshot?.file?.path) {
+      return '';
+    }
+
+    const filePath: string = this.snapshot.file.path;
     const original: string = this.snapshot.getOriginalState();
     const current: string = this.snapshot.getLastState();
 
@@ -321,49 +338,48 @@ export class HistoryModal extends Modal {
    * Displays the patch with context size 0 in a pre-formatted text element.
    */
   protected showCleanPatch(): void {
-    const diffContainer = this.contentEl.querySelector('.diff-container') as HTMLElement;
-
-    if (!diffContainer) {
-      return;
-    }
-
-    // Update current mode and button states
+    // Update current mode and button states,
+    // clean up previous scroll synchronization
     this.currentDisplayMode = 'patch';
     this.updateButtonActiveStates();
-
-    // Clean up previous scroll synchronization
     this.cleanupScrollSync();
 
-    const patch = this.getCleanPatch();
+    const patch: string = this.getCleanPatch();
+
+    const handlerClick: FunctionVoid = (): void => {
+      navigator.clipboard.writeText(patch).then(() => {
+        new Notice('Copied!');
+      });
+    }
 
     // Create a patch display container
-    diffContainer.innerHTML = '';
-
-    // Create a patch display using DomHelper with a container parameter
-    DomHelper.create({
-      tag: 'div',
-      classes: 'lct-patch-container',
-      container: diffContainer,
-      children: [
-        {
-          tag: 'pre',
-          classes: 'lct-patch-text',
-          text: patch
-        },
-        {
-          tag: 'button',
-          text: 'Copy',
-          classes: ['lct-patch-copy-button', 'mod-outline'],
-          events: {
-            click: () => {
-              navigator.clipboard.writeText(patch).then(() => {
-                new Notice('Copied!');
-              });
-            }
+    DomHelper.update(
+      this.diffContainerEl,
+      {
+        text: null,
+        children: [
+          {
+            tag: 'div',
+            classes: 'lct-patch-container',
+            children: [
+              {
+                tag: 'pre',
+                classes: 'lct-patch-text',
+                text: patch
+              },
+              {
+                tag: 'button',
+                text: 'Copy',
+                classes: ['lct-patch-copy-button', 'mod-outline'],
+                events: {
+                  click: handlerClick
+                }
+              }
+            ]
           }
-        }
-      ]
-    });
+        ]
+      }
+    );
   }
 
   /**
@@ -372,21 +388,16 @@ export class HistoryModal extends Modal {
    * Supports two formats: 'line-by-line' and 'side-by-side'.
    * Use custom templates to control the HTML structure and styling.
    *
-   * @param {HTMLElement} container - The HTML element to render the diff into
-   * @param {OutputFormatType} format - The format of the diff view (defaults to 'side-by-side')
+   * @param {DiffOutputFormatType} format - The format of the diff view (defaults to 'side-by-side')
    */
-  protected renderDiff(container: HTMLElement, format: OutputFormatType = 'side-by-side'): void {
-    const suffix = format === 'line-by-line' ? 'line' : 'side';
-
-    // Update current mode and button states
+  protected renderDiff(format: DiffOutputFormatType = DiffOutputFormatType.side): void {
+    // Update current mode and button states,
+    // clean up previous scroll synchronization
     this.currentDisplayMode = format;
     this.updateButtonActiveStates();
-
-    // Clean up previous scroll synchronization
     this.cleanupScrollSync();
-    this.currentDiffContainer = container;
 
-    container.innerHTML = Diff2Html.html(this.getDiffLines(), {
+    const diffHtml: string = Diff2Html.html(this.getDiffLines(), {
       drawFileList: false,
       matching: 'lines',
       outputFormat: format,
@@ -412,7 +423,7 @@ export class HistoryModal extends Modal {
           </div>
         `,
         'generic-wrapper': `
-          <div class="d2h-wrapper d2h-${suffix}">
+          <div class="d2h-wrapper d2h-${format === DiffOutputFormatType.line ? 'line' : 'side'}">
             <div class="d2h-container">
                 {{{content}}}
             </div>
@@ -457,10 +468,15 @@ export class HistoryModal extends Modal {
       },
     });
 
-    // scroll synchronization for a side-by-side diff view
+    DomHelper.update(
+      this.diffContainerEl,
+      { html: diffHtml }
+    );
+
+    // Scroll synchronization for a side-by-side diff view,
+    // uses setTimeout to ensure DOM elements are rendered
     if (format === 'side-by-side') {
-      // Use setTimeout to ensure DOM elements are rendered
-      setTimeout(() => this.setupScrollSynchronization(container), 0);
+      setTimeout(() => this.setupScrollSynchronization(), 0);
     }
   }
 
@@ -468,11 +484,9 @@ export class HistoryModal extends Modal {
    * Sets up scroll synchronization for a side-by-side diff view.
    * Finds the scrollable wrapper elements for both columns and adds event listeners
    * to synchronize both vertical and horizontal scroll positions.
-   *
-   * @param {HTMLElement} container - The container element containing the diff
    */
-  private setupScrollSynchronization(container: HTMLElement): void {
-    const wrappers = container.querySelectorAll('.d2h-side-column-wrapper') as NodeListOf<HTMLElement>;
+  protected setupScrollSynchronization(): void {
+    const wrappers = this.diffContainerEl.querySelectorAll('.d2h-side-column-wrapper') as NodeListOf<HTMLElement>;
 
     if (wrappers?.length !== 2) {
       return;
@@ -491,7 +505,7 @@ export class HistoryModal extends Modal {
       rightWrapper.scrollTop = leftWrapper.scrollTop;
       rightWrapper.scrollLeft = leftWrapper.scrollLeft;
 
-      requestAnimationFrame(() => {
+      requestAnimationFrame((): void => {
         isScrolling = false;
       });
     };
@@ -506,7 +520,7 @@ export class HistoryModal extends Modal {
       leftWrapper.scrollTop = rightWrapper.scrollTop;
       leftWrapper.scrollLeft = rightWrapper.scrollLeft;
 
-      requestAnimationFrame(() => {
+      requestAnimationFrame((): void => {
         isScrolling = false;
       });
     };
@@ -516,7 +530,7 @@ export class HistoryModal extends Modal {
     rightWrapper.addEventListener('scroll', syncRightToLeft);
 
     // Store references for cleanup (if needed later)
-    (container as HTMLElementWithScrollSync)._scrollSyncCleanup = (): void => {
+    this.diffContainerEl._scrollSyncCleanup = (): void => {
       leftWrapper.removeEventListener('scroll', syncLeftToRight);
       rightWrapper.removeEventListener('scroll', syncRightToLeft);
     };
@@ -526,10 +540,13 @@ export class HistoryModal extends Modal {
    * Cleans up scroll synchronization event listeners.
    * Called when switching between diff modes or closing the modal.
    */
-  private cleanupScrollSync(): void {
-    if ((this.currentDiffContainer as HTMLElementWithScrollSync)?._scrollSyncCleanup) {
-      (this.currentDiffContainer as HTMLElementWithScrollSync)._scrollSyncCleanup();
-      delete (this.currentDiffContainer as HTMLElementWithScrollSync)._scrollSyncCleanup;
+  protected cleanupScrollSync(): void {
+    const container: HTMLElementWithScrollSync = this.diffContainerEl;
+
+    if (container?._scrollSyncCleanup) {
+      container._scrollSyncCleanup();
+
+      delete container._scrollSyncCleanup;
     }
   }
 }

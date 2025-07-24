@@ -1,5 +1,5 @@
-import type { DomElementConfig, DomUpdateConfig } from '@/types';
-import { entries, isArray, isUndefined } from 'lodash-es';
+import type { DomElementConfig, DomUpdateConfig, DomUpdateConfigClasses } from '@/types';
+import { castArray, entries, isArray, isPlainObject, isString, isUndefined } from 'lodash-es';
 
 /**
  * Utility class for creating and updating DOM elements with type safety.
@@ -16,50 +16,10 @@ export class DomHelper {
   ): HTMLElementTagNameMap[K] {
     const element: HTMLElementTagNameMap[K] = document.createElement(config.tag);
 
-    // Add classes
-    if (config.classes) {
-      const classes: string[] = isArray(config.classes) ? config.classes : [config.classes];
-      element.classList.add(...classes);
-    }
+    // apply config to a new element
+    this.update(element, config);
 
-    // Set text content
-    if (!isUndefined(config.text)) {
-      element.textContent = config.text;
-    }
-
-    // Set attributes
-    if (config.attributes) {
-      entries(config.attributes).forEach(([key, value]) => {
-        element.setAttribute(key, value);
-      });
-    }
-
-    // Apply styles - Fixed TypeScript error
-    if (config.styles) {
-      entries(config.styles).forEach(([key, value]) => {
-        if (!isUndefined(value)) {
-          // Fix: Use proper type assertion to avoid conversion error
-          (element.style as unknown as Record<string, string>)[key] = String(value);
-        }
-      });
-    }
-
-    // Add event listeners
-    if (config.events) {
-      entries(config.events).forEach(([eventType, handler]) => {
-        element.addEventListener(eventType, handler);
-      });
-    }
-
-    // Add child elements
-    if (config.children) {
-      config.children.forEach((childConfig) => {
-        const childElement = DomHelper.create(childConfig);
-        element.appendChild(childElement);
-      });
-    }
-
-    // Append to container if provided
+    // append to container if provided
     if (config.container) {
       config.container.appendChild(element);
     }
@@ -75,9 +35,9 @@ export class DomHelper {
   public static createFragment(children: DomElementConfig[]): DocumentFragment {
     const fragment: DocumentFragment = document.createDocumentFragment();
 
+    // create and append child to new fragment
     children.forEach((childConfig: DomElementConfig): void => {
-      const childElement: HTMLElement = DomHelper.create(childConfig);
-      fragment.appendChild(childElement);
+      fragment.appendChild(DomHelper.create(childConfig));
     });
 
     return fragment;
@@ -90,10 +50,27 @@ export class DomHelper {
    * @return {void}
    */
   public static update(element: HTMLElement, config: DomUpdateConfig): void {
-    // Add classes
+    if (!element) {
+      return;
+    }
+
+    // classes
     if (config.classes) {
-      const classes: string[] = isArray(config.classes) ? config.classes : [config.classes];
-      element.classList.add(...classes);
+      if (isArray(config.classes) || isString(config.classes)) {
+        element.classList.add(
+          ...castArray(config.classes)
+        );
+      }
+
+      if (isPlainObject(config.classes)) {
+        element.classList.add(
+          ...castArray((config.classes as DomUpdateConfigClasses).add ?? [])
+        );
+
+        element.classList.remove(
+          ...castArray((config.classes as DomUpdateConfigClasses).remove ?? [])
+        );
+      }
     }
 
     // Set text content
@@ -101,19 +78,42 @@ export class DomHelper {
       element.textContent = config.text;
     }
 
+    // Set html content
+    if (!isUndefined(config.html)) {
+      const parser: DOMParser = new DOMParser();
+      const doc: Document = parser.parseFromString(config.html, 'text/html');
+
+      element.empty();
+
+      Array.from(doc.body.childNodes).forEach((child: ChildNode): void => {
+        element.appendChild(child);
+      });
+    }
+
     // Set attributes
     if (config.attributes) {
       entries(config.attributes).forEach(([key, value]: [string, string]): void => {
-        element.setAttribute(key, value);
+        try {
+          element.setAttribute(key, value);
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (_error) {
+          // empty
+        }
       });
     }
 
     // Apply styles
     if (config.styles) {
       entries(config.styles).forEach(([key, value]): void => {
-        if (!isUndefined(value)) {
-          // Use proper type assertion to avoid conversion error
-          (element.style as unknown as Record<string, string>)[key] = String(value);
+        if (isUndefined(value)) {
+          return;
+        }
+
+        try {
+          element.style.setProperty(key, String(value));
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (_error) {
+          // empty
         }
       });
     }
@@ -128,8 +128,7 @@ export class DomHelper {
     // Add child elements
     if (config.children) {
       config.children.forEach((childConfig: DomElementConfig): void => {
-        const childElement = DomHelper.create(childConfig);
-        element.appendChild(childElement);
+        element.appendChild(DomHelper.create(childConfig));
       });
     }
   }

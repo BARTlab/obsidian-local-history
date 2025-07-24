@@ -31,6 +31,14 @@ export enum ChangeType {
 }
 
 /**
+ * Enum representing the available output formats for displaying differences.
+ */
+export enum DiffOutputFormatType {
+  line = 'line-by-line',
+  side = 'side-by-side',
+}
+
+/**
  * Default settings for the Line Change Tracker plugin.
  * Defines initial values for all configurable options including
  * - Indicator type (line or dot)

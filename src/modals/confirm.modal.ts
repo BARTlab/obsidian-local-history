@@ -14,33 +14,33 @@ export class ConfirmModal extends Modal {
    * The result of the user's choice.
    * True if confirmed, false if canceled.
    */
-  private result: boolean = false;
+  protected result: boolean = false;
 
   /**
    * Promise resolver function to return the user's choice.
    * Called when the modal is closed.
    */
-  private resolvePromise: ((value: boolean) => void) | undefined;
+  protected resolvePromise: ((value: boolean) => void) | undefined;
 
   /**
    * The title text displayed in the modal header.
    */
-  private readonly title: string;
+  protected readonly title: string;
 
   /**
    * The message text displayed in the modal body.
    */
-  private readonly message: string;
+  protected readonly message: string;
 
   /**
    * The text displayed on the confirmation button.
    */
-  private readonly confirmText: string;
+  protected readonly confirmText: string;
 
   /**
    * The text displayed on the cancel button.
    */
-  private readonly cancelText: string;
+  protected readonly cancelText: string;
 
   /**
    * Creates a new instance of ConfirmModal.
@@ -68,59 +68,60 @@ export class ConfirmModal extends Modal {
    * @override
    */
   public onOpen(): void {
-    const { contentEl } = this;
-    contentEl.empty();
-
-    DomHelper.create({
-      tag: 'div',
-      container: contentEl,
+    DomHelper.update(this.contentEl, {
+      text: null,
       children: [
         {
-          tag: 'h2',
-          text: this.title
-        },
-        {
-          tag: 'p',
-          text: this.message
-        },
-        {
           tag: 'div',
-          classes: 'modal-button-container',
-          styles: {
-            display: 'flex',
-            justifyContent: 'flex-end',
-            gap: '10px',
-            marginTop: '20px'
-          },
           children: [
             {
-              tag: 'button',
-              text: this.cancelText,
-              events: {
-                click: (): void => {
-                  this.result = false;
-                  this.close();
-                }
-              }
+              tag: 'h2',
+              text: this.title
             },
             {
-              tag: 'button',
-              text: this.confirmText,
-              classes: 'mod-warning',
-              events: {
-                click: (): void => {
-                  this.result = true;
-                  this.close();
+              tag: 'p',
+              text: this.message
+            },
+            {
+              tag: 'div',
+              classes: 'modal-button-container',
+              styles: {
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: '10px',
+                marginTop: '20px'
+              },
+              children: [
+                {
+                  tag: 'button',
+                  text: this.cancelText,
+                  events: {
+                    click: (): void => {
+                      this.result = false;
+                      this.close();
+                    }
+                  }
+                },
+                {
+                  tag: 'button',
+                  text: this.confirmText,
+                  classes: 'mod-warning',
+                  events: {
+                    click: (): void => {
+                      this.result = true;
+                      this.close();
+                    }
+                  }
                 }
-              }
+              ]
             }
           ]
         }
       ]
-    });
+    })
 
     // Focus the confirmation button
-    const confirmButton = contentEl.querySelector('button.mod-warning') as HTMLButtonElement;
+    const confirmButton: HTMLButtonElement = this.contentEl.querySelector('button.mod-warning');
 
     confirmButton?.focus();
   }

@@ -3,7 +3,7 @@ import { Inject } from '@/decorators/inject.decorator';
 import { BaseEvent } from '@/events/base.event';
 import type { ModalsService } from '@/services/modals.service';
 import type { ObsidianEventName } from '@/types';
-import type { Menu, MenuItem, TAbstractFile, TFile, WorkspaceLeaf } from 'obsidian';
+import { type Menu, type MenuItem, type TAbstractFile, TFile, type WorkspaceLeaf } from 'obsidian';
 import { Notice } from 'obsidian';
 
 /**
@@ -38,7 +38,7 @@ export class WorkspaceFilesMenuEvent extends BaseEvent {
    * @param {WorkspaceLeaf} _leaf - The workspace leaf (not used in this handler)
    */
   public handler(menu: Menu, file: TAbstractFile, _source: string, _leaf?: WorkspaceLeaf): void {
-    if (!file || !(file as TFile).stat || !(file as TFile).extension || !(file as TFile).basename) {
+    if (!(file instanceof TFile)) {
       return;
     }
 
@@ -47,7 +47,7 @@ export class WorkspaceFilesMenuEvent extends BaseEvent {
         .setTitle('Local history')
         .setIcon('file-diff')
         .onClick((): void => {
-          if (!this.modalService.diff(file as TFile)) {
+          if (!this.modalService.diff(file)) {
             new Notice('There is no saved history for this file.');
           }
         });

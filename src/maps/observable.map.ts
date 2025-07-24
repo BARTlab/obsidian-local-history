@@ -14,7 +14,7 @@ export class ObservableMap<K, V> extends Map<K, V> {
    * Set of change handler functions that are notified when the map changes.
    * Each handler is called with the action type and relevant key/value.
    */
-  private listeners: Set<ChangeHandler<K, V>> = new Set();
+  protected listeners: Set<ChangeHandler<K, V>> = new Set();
 
   /**
    * Subscribes a handler function to be called when the map changes.

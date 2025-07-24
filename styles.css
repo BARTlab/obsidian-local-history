@@ -16,16 +16,16 @@
   position: relative;
   overflow: hidden;
   border: 1px solid var(--background-modifier-border);
-}
-.modal.lct-diff-modal .d2h-wrapper {
-  position: absolute;
-  inset: 0;
-  display: flex;
   white-space: nowrap;
   font-family: var(--font-text);
   font-size: var(--font-text-size);
   line-height: var(--line-height-normal);
   background-color: var(--background-secondary);
+}
+.modal.lct-diff-modal .d2h-wrapper {
+  position: absolute;
+  inset: 0;
+  display: flex;
 }
 .modal.lct-diff-modal .d2h-wrapper .d2h-code-row-wrapper {
   display: flex;
@@ -246,9 +246,9 @@
 }
 .lct-patch-container .lct-patch-text {
   margin: 0;
-  font-size: 12px;
   white-space: pre-wrap;
   word-break: break-all;
+  user-select: text;
 }
 .lct-patch-container .lct-patch-copy-button {
   position: absolute;

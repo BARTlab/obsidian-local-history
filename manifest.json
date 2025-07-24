@@ -1,7 +1,7 @@
 {
     "id": "local-history",
     "name": "Local history",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "minAppVersion": "0.15.0",
     "description": "Tracks and highlights changed lines in the editor",
     "author": "B@RT",

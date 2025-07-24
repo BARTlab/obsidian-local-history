@@ -9,7 +9,7 @@ import type { TFile } from 'obsidian';
 
 /**
  * Represents a snapshot of a file's content with change tracking capabilities.
- * Tracks line additions, modifications, removals, and restorations over time.
+ * Track line additions, modifications, removals, and restorations over time.
  * Provides methods to query and manipulate the state of a file's content.
  */
 export class FileSnapshot {
@@ -204,6 +204,15 @@ export class FileSnapshot {
    */
   public getChangesLinesCount(): number {
     return this.getChanges([ChangeType.changed, ChangeType.added, ChangeType.removed]).size;
+  }
+
+  /**
+   * Retrieves the last modified date and time as a localized string.
+   *
+   * @return {string} The date and time of the last change in a localized string format.
+   */
+  public getLastChangedDateTime(): string {
+    return new Date(this.timestamp).toLocaleString();
   }
 
   /**

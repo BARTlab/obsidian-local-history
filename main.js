@@ -2468,6 +2468,7 @@ __decorateClass([
 
 // src/events/workspace/files-menu.event.ts
 var import_obsidian4 = require("obsidian");
+var import_obsidian5 = require("obsidian");
 var WorkspaceFilesMenuEvent = class extends BaseEvent {
   constructor() {
     super(...arguments);
@@ -2488,13 +2489,13 @@ var WorkspaceFilesMenuEvent = class extends BaseEvent {
    * @param {WorkspaceLeaf} _leaf - The workspace leaf (not used in this handler)
    */
   handler(menu, file, _source, _leaf) {
-    if (!file || !file.stat || !file.extension || !file.basename) {
+    if (!(file instanceof import_obsidian4.TFile)) {
       return;
     }
     menu.addItem((item) => {
       item.setTitle("Local history").setIcon("file-diff").onClick(() => {
         if (!this.modalService.diff(file)) {
-          new import_obsidian4.Notice("There is no saved history for this file.");
+          new import_obsidian5.Notice("There is no saved history for this file.");
         }
       });
     });
@@ -3899,6 +3900,40 @@ function get(object, path, defaultValue) {
 }
 var get_default = get;
 
+// node_modules/lodash-es/_getPrototype.js
+var getPrototype = overArg_default(Object.getPrototypeOf, Object);
+var getPrototype_default = getPrototype;
+
+// node_modules/lodash-es/isPlainObject.js
+var objectTag2 = "[object Object]";
+var funcProto3 = Function.prototype;
+var objectProto11 = Object.prototype;
+var funcToString3 = funcProto3.toString;
+var hasOwnProperty9 = objectProto11.hasOwnProperty;
+var objectCtorString = funcToString3.call(Object);
+function isPlainObject(value) {
+  if (!isObjectLike_default(value) || baseGetTag_default(value) != objectTag2) {
+    return false;
+  }
+  var proto = getPrototype_default(value);
+  if (proto === null) {
+    return true;
+  }
+  var Ctor = hasOwnProperty9.call(proto, "constructor") && proto.constructor;
+  return typeof Ctor == "function" && Ctor instanceof Ctor && funcToString3.call(Ctor) == objectCtorString;
+}
+var isPlainObject_default = isPlainObject;
+
+// node_modules/lodash-es/castArray.js
+function castArray() {
+  if (!arguments.length) {
+    return [];
+  }
+  var value = arguments[0];
+  return isArray_default(value) ? value : [value];
+}
+var castArray_default = castArray;
+
 // node_modules/lodash-es/_DataView.js
 var DataView = getNative_default(root_default, "DataView");
 var DataView_default = DataView;
@@ -3913,7 +3948,7 @@ var Set_default = Set2;
 
 // node_modules/lodash-es/_getTag.js
 var mapTag2 = "[object Map]";
-var objectTag2 = "[object Object]";
+var objectTag3 = "[object Object]";
 var promiseTag = "[object Promise]";
 var setTag2 = "[object Set]";
 var weakMapTag2 = "[object WeakMap]";
@@ -3926,7 +3961,7 @@ var weakMapCtorString = toSource_default(WeakMap_default);
 var getTag = baseGetTag_default;
 if (DataView_default && getTag(new DataView_default(new ArrayBuffer(1))) != dataViewTag2 || Map_default && getTag(new Map_default()) != mapTag2 || Promise_default && getTag(Promise_default.resolve()) != promiseTag || Set_default && getTag(new Set_default()) != setTag2 || WeakMap_default && getTag(new WeakMap_default()) != weakMapTag2) {
   getTag = function(value) {
-    var result = baseGetTag_default(value), Ctor = result == objectTag2 ? value.constructor : void 0, ctorString = Ctor ? toSource_default(Ctor) : "";
+    var result = baseGetTag_default(value), Ctor = result == objectTag3 ? value.constructor : void 0, ctorString = Ctor ? toSource_default(Ctor) : "";
     if (ctorString) {
       switch (ctorString) {
         case dataViewCtorString:
@@ -4056,36 +4091,7 @@ var DomHelper = class {
    */
   static create(config) {
     const element = document.createElement(config.tag);
-    if (config.classes) {
-      const classes = isArray_default(config.classes) ? config.classes : [config.classes];
-      element.classList.add(...classes);
-    }
-    if (!isUndefined_default(config.text)) {
-      element.textContent = config.text;
-    }
-    if (config.attributes) {
-      toPairs_default(config.attributes).forEach(([key2, value]) => {
-        element.setAttribute(key2, value);
-      });
-    }
-    if (config.styles) {
-      toPairs_default(config.styles).forEach(([key2, value]) => {
-        if (!isUndefined_default(value)) {
-          element.style[key2] = String(value);
-        }
-      });
-    }
-    if (config.events) {
-      toPairs_default(config.events).forEach(([eventType, handler]) => {
-        element.addEventListener(eventType, handler);
-      });
-    }
-    if (config.children) {
-      config.children.forEach((childConfig) => {
-        const childElement = DomHelper.create(childConfig);
-        element.appendChild(childElement);
-      });
-    }
+    this.update(element, config);
     if (config.container) {
       config.container.appendChild(element);
     }
@@ -4099,8 +4105,7 @@ var DomHelper = class {
   static createFragment(children) {
     const fragment = document.createDocumentFragment();
     children.forEach((childConfig) => {
-      const childElement = DomHelper.create(childConfig);
-      fragment.appendChild(childElement);
+      fragment.appendChild(DomHelper.create(childConfig));
     });
     return fragment;
   }
@@ -4111,22 +4116,52 @@ var DomHelper = class {
    * @return {void}
    */
   static update(element, config) {
+    var _a, _b;
+    if (!element) {
+      return;
+    }
     if (config.classes) {
-      const classes = isArray_default(config.classes) ? config.classes : [config.classes];
-      element.classList.add(...classes);
+      if (isArray_default(config.classes) || isString_default(config.classes)) {
+        element.classList.add(
+          ...castArray_default(config.classes)
+        );
+      }
+      if (isPlainObject_default(config.classes)) {
+        element.classList.add(
+          ...castArray_default((_a = config.classes.add) != null ? _a : [])
+        );
+        element.classList.remove(
+          ...castArray_default((_b = config.classes.remove) != null ? _b : [])
+        );
+      }
     }
     if (!isUndefined_default(config.text)) {
       element.textContent = config.text;
     }
+    if (!isUndefined_default(config.html)) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(config.html, "text/html");
+      element.empty();
+      Array.from(doc.body.childNodes).forEach((child) => {
+        element.appendChild(child);
+      });
+    }
     if (config.attributes) {
       toPairs_default(config.attributes).forEach(([key2, value]) => {
-        element.setAttribute(key2, value);
+        try {
+          element.setAttribute(key2, value);
+        } catch (_error) {
+        }
       });
     }
     if (config.styles) {
       toPairs_default(config.styles).forEach(([key2, value]) => {
-        if (!isUndefined_default(value)) {
-          element.style[key2] = String(value);
+        if (isUndefined_default(value)) {
+          return;
+        }
+        try {
+          element.style.setProperty(key2, String(value));
+        } catch (_error) {
         }
       });
     }
@@ -4137,16 +4172,15 @@ var DomHelper = class {
     }
     if (config.children) {
       config.children.forEach((childConfig) => {
-        const childElement = DomHelper.create(childConfig);
-        element.appendChild(childElement);
+        element.appendChild(DomHelper.create(childConfig));
       });
     }
   }
 };
 
 // src/modals/confirm.modal.ts
-var import_obsidian5 = require("obsidian");
-var ConfirmModal = class extends import_obsidian5.Modal {
+var import_obsidian6 = require("obsidian");
+var ConfirmModal = class extends import_obsidian6.Modal {
   /**
    * Creates a new instance of ConfirmModal.
    *
@@ -4174,56 +4208,58 @@ var ConfirmModal = class extends import_obsidian5.Modal {
    * @override
    */
   onOpen() {
-    const { contentEl } = this;
-    contentEl.empty();
-    DomHelper.create({
-      tag: "div",
-      container: contentEl,
+    DomHelper.update(this.contentEl, {
+      text: null,
       children: [
         {
-          tag: "h2",
-          text: this.title
-        },
-        {
-          tag: "p",
-          text: this.message
-        },
-        {
           tag: "div",
-          classes: "modal-button-container",
-          styles: {
-            display: "flex",
-            justifyContent: "flex-end",
-            gap: "10px",
-            marginTop: "20px"
-          },
           children: [
             {
-              tag: "button",
-              text: this.cancelText,
-              events: {
-                click: () => {
-                  this.result = false;
-                  this.close();
-                }
-              }
+              tag: "h2",
+              text: this.title
             },
             {
-              tag: "button",
-              text: this.confirmText,
-              classes: "mod-warning",
-              events: {
-                click: () => {
-                  this.result = true;
-                  this.close();
+              tag: "p",
+              text: this.message
+            },
+            {
+              tag: "div",
+              classes: "modal-button-container",
+              styles: {
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: "10px",
+                marginTop: "20px"
+              },
+              children: [
+                {
+                  tag: "button",
+                  text: this.cancelText,
+                  events: {
+                    click: () => {
+                      this.result = false;
+                      this.close();
+                    }
+                  }
+                },
+                {
+                  tag: "button",
+                  text: this.confirmText,
+                  classes: "mod-warning",
+                  events: {
+                    click: () => {
+                      this.result = true;
+                      this.close();
+                    }
+                  }
                 }
-              }
+              ]
             }
           ]
         }
       ]
     });
-    const confirmButton = contentEl.querySelector("button.mod-warning");
+    const confirmButton = this.contentEl.querySelector("button.mod-warning");
     confirmButton == null ? void 0 : confirmButton.focus();
   }
   /**
@@ -6686,8 +6722,8 @@ function html(diffInput, configuration = {}) {
 }
 
 // src/modals/history.modal.ts
-var import_obsidian6 = require("obsidian");
-var HistoryModal = class extends import_obsidian6.Modal {
+var import_obsidian7 = require("obsidian");
+var HistoryModal = class extends import_obsidian7.Modal {
   /**
    * Creates a new instance of HistoryModal.
    *
@@ -6711,6 +6747,7 @@ var HistoryModal = class extends import_obsidian6.Modal {
      * Used to update the active state when switching between diff modes.
      */
     this.modeButtons = {};
+    this.diffContainerEl = this.contentEl.createDiv("diff-container");
   }
   /**
    * Lifecycle method called when the modal is opened.
@@ -6724,10 +6761,12 @@ var HistoryModal = class extends import_obsidian6.Modal {
     if (!this.snapshot) {
       return;
     }
-    const subTitle = this.snapshot.isStateSameOriginal() ? "no changes" : `last change at ${new Date(this.snapshot.timestamp).toLocaleString()}`;
-    this.modalEl.addClass("lct-diff-modal");
-    this.setTitle(`History (${subTitle})`);
-    this.renderDiff(this.makeUI());
+    this.makeUI();
+    DomHelper.update(
+      this.modalEl,
+      { classes: { add: "lct-diff-modal" } }
+    );
+    this.renderDiff();
   }
   /**
    * Lifecycle method called when the modal is closed.
@@ -6762,40 +6801,49 @@ var HistoryModal = class extends import_obsidian6.Modal {
    */
   updateButtonActiveStates() {
     Object.values(this.modeButtons).forEach((button) => {
-      button == null ? void 0 : button.removeClass("mod-cta");
+      DomHelper.update(
+        button,
+        { classes: { remove: "mod-cta" } }
+      );
     });
     const activeButton = this.getActiveButton();
-    activeButton == null ? void 0 : activeButton.addClass("mod-cta");
+    if (!activeButton) {
+      return;
+    }
+    DomHelper.update(
+      activeButton,
+      { classes: { add: "mod-cta" } }
+    );
   }
   /**
    * Restores the file to its original state and resets the history tracking.
    * Writes the original content back to the file and clears the snapshot.
    */
   async restoreOriginalFile() {
+    if (!this.snapshot) {
+      return;
+    }
     try {
       const originalContent = this.snapshot.getOriginalState();
       const file = this.snapshot.file;
       await this.app.vault.modify(file, originalContent);
       this.snapshotsService.wipeOne(file);
-      new import_obsidian6.Notice("File restored to original state");
+      new import_obsidian7.Notice("File restored to original state");
       this.close();
-    } catch (error) {
-      console.error("Failed to restore original file:", error);
-      new import_obsidian6.Notice("Failed to restore file to original state");
+    } catch (_error) {
+      new import_obsidian7.Notice("Failed to restore file to original state");
     }
   }
   /**
    * Creates the UI elements for the diff view.
-   * Creates a container for the diff and adds buttons for different actions:
-   * - Remove file history: Deletes the snapshot and closes the modal
-   * - Line by line: Switches to line-by-line diff view
-   * - Side by side: Switches to side-by-side diff view
-   *
-   * @return {HTMLElement} The container element for the diff view
    */
   makeUI() {
-    const diffContainer = this.contentEl.createDiv("diff-container");
-    new import_obsidian6.Setting(this.contentEl).addButton((btn) => btn.setButtonText("Remove file history").setWarning().onClick(async () => {
+    var _a, _b;
+    const isOrigin = (_a = this.snapshot) == null ? void 0 : _a.isStateSameOriginal();
+    const changeDateTime = (_b = this.snapshot) == null ? void 0 : _b.getLastChangedDateTime();
+    this.setTitle("History");
+    new import_obsidian7.Setting(this.contentEl).setName("Last modified").setDesc(isOrigin ? "No changes" : changeDateTime).addButton((btn) => btn.setButtonText("Remove file history").setWarning().onClick(async () => {
+      var _a2;
       const confirmed = await this.modalsService.confirm({
         title: "Remove File History",
         // eslint-disable-next-line max-len
@@ -6803,7 +6851,7 @@ var HistoryModal = class extends import_obsidian6.Modal {
         confirmText: "Remove History"
       });
       if (confirmed) {
-        this.snapshotsService.wipeOne(this.snapshot.file);
+        (_a2 = this.snapshotsService) == null ? void 0 : _a2.wipeOne(this.snapshot.file);
         this.close();
       }
     })).addButton((btn) => btn.setButtonText("Restore original").setWarning().onClick(async () => {
@@ -6824,16 +6872,15 @@ var HistoryModal = class extends import_obsidian6.Modal {
     }).addButton((btn) => {
       this.modeButtons.lineByLine = btn.buttonEl;
       return btn.setButtonText("Line by line").onClick(() => {
-        this.renderDiff(diffContainer, "line-by-line");
+        this.renderDiff("line-by-line" /* line */);
       });
     }).addButton((btn) => {
       this.modeButtons.sideBySide = btn.buttonEl;
       return btn.setButtonText("side-by-side").onClick(() => {
-        this.renderDiff(diffContainer, "side-by-side");
+        this.renderDiff("side-by-side" /* side */);
       });
     });
     this.updateButtonActiveStates();
-    return diffContainer;
   }
   /**
    * Generates a unified diff between the original and current state of the file.
@@ -6843,6 +6890,10 @@ var HistoryModal = class extends import_obsidian6.Modal {
    * @return {string} A string containing the unified diff
    */
   getDiffLines() {
+    var _a, _b;
+    if (!((_b = (_a = this.snapshot) == null ? void 0 : _a.file) == null ? void 0 : _b.path)) {
+      return "";
+    }
     const filePath = this.snapshot.file.path;
     const original = this.snapshot.getOriginalState();
     const current = this.snapshot.getLastState();
@@ -6875,6 +6926,10 @@ var HistoryModal = class extends import_obsidian6.Modal {
    * @return {string} A string containing the clean patch
    */
   getCleanPatch() {
+    var _a, _b;
+    if (!((_b = (_a = this.snapshot) == null ? void 0 : _a.file) == null ? void 0 : _b.path)) {
+      return "";
+    }
     const filePath = this.snapshot.file.path;
     const original = this.snapshot.getOriginalState();
     const current = this.snapshot.getLastState();
@@ -6900,39 +6955,42 @@ var HistoryModal = class extends import_obsidian6.Modal {
    * Displays the patch with context size 0 in a pre-formatted text element.
    */
   showCleanPatch() {
-    const diffContainer = this.contentEl.querySelector(".diff-container");
-    if (!diffContainer) {
-      return;
-    }
     this.currentDisplayMode = "patch";
     this.updateButtonActiveStates();
     this.cleanupScrollSync();
     const patch = this.getCleanPatch();
-    diffContainer.innerHTML = "";
-    DomHelper.create({
-      tag: "div",
-      classes: "lct-patch-container",
-      container: diffContainer,
-      children: [
-        {
-          tag: "pre",
-          classes: "lct-patch-text",
-          text: patch
-        },
-        {
-          tag: "button",
-          text: "Copy",
-          classes: ["lct-patch-copy-button", "mod-outline"],
-          events: {
-            click: () => {
-              navigator.clipboard.writeText(patch).then(() => {
-                new import_obsidian6.Notice("Copied!");
-              });
-            }
+    const handlerClick = () => {
+      navigator.clipboard.writeText(patch).then(() => {
+        new import_obsidian7.Notice("Copied!");
+      });
+    };
+    DomHelper.update(
+      this.diffContainerEl,
+      {
+        text: null,
+        children: [
+          {
+            tag: "div",
+            classes: "lct-patch-container",
+            children: [
+              {
+                tag: "pre",
+                classes: "lct-patch-text",
+                text: patch
+              },
+              {
+                tag: "button",
+                text: "Copy",
+                classes: ["lct-patch-copy-button", "mod-outline"],
+                events: {
+                  click: handlerClick
+                }
+              }
+            ]
           }
-        }
-      ]
-    });
+        ]
+      }
+    );
   }
   /**
    * Renders the diff view in the specified container.
@@ -6940,16 +6998,13 @@ var HistoryModal = class extends import_obsidian6.Modal {
    * Supports two formats: 'line-by-line' and 'side-by-side'.
    * Use custom templates to control the HTML structure and styling.
    *
-   * @param {HTMLElement} container - The HTML element to render the diff into
-   * @param {OutputFormatType} format - The format of the diff view (defaults to 'side-by-side')
+   * @param {DiffOutputFormatType} format - The format of the diff view (defaults to 'side-by-side')
    */
-  renderDiff(container, format = "side-by-side") {
-    const suffix = format === "line-by-line" ? "line" : "side";
+  renderDiff(format = "side-by-side" /* side */) {
     this.currentDisplayMode = format;
     this.updateButtonActiveStates();
     this.cleanupScrollSync();
-    this.currentDiffContainer = container;
-    container.innerHTML = html(this.getDiffLines(), {
+    const diffHtml = html(this.getDiffLines(), {
       drawFileList: false,
       matching: "lines",
       outputFormat: format,
@@ -6975,7 +7030,7 @@ var HistoryModal = class extends import_obsidian6.Modal {
           </div>
         `,
         "generic-wrapper": `
-          <div class="d2h-wrapper d2h-${suffix}">
+          <div class="d2h-wrapper d2h-${format === "line-by-line" /* line */ ? "line" : "side"}">
             <div class="d2h-container">
                 {{{content}}}
             </div>
@@ -7019,19 +7074,21 @@ var HistoryModal = class extends import_obsidian6.Modal {
         `
       }
     });
+    DomHelper.update(
+      this.diffContainerEl,
+      { html: diffHtml }
+    );
     if (format === "side-by-side") {
-      setTimeout(() => this.setupScrollSynchronization(container), 0);
+      setTimeout(() => this.setupScrollSynchronization(), 0);
     }
   }
   /**
    * Sets up scroll synchronization for a side-by-side diff view.
    * Finds the scrollable wrapper elements for both columns and adds event listeners
    * to synchronize both vertical and horizontal scroll positions.
-   *
-   * @param {HTMLElement} container - The container element containing the diff
    */
-  setupScrollSynchronization(container) {
-    const wrappers = container.querySelectorAll(".d2h-side-column-wrapper");
+  setupScrollSynchronization() {
+    const wrappers = this.diffContainerEl.querySelectorAll(".d2h-side-column-wrapper");
     if ((wrappers == null ? void 0 : wrappers.length) !== 2) {
       return;
     }
@@ -7061,7 +7118,7 @@ var HistoryModal = class extends import_obsidian6.Modal {
     };
     leftWrapper.addEventListener("scroll", syncLeftToRight);
     rightWrapper.addEventListener("scroll", syncRightToLeft);
-    container._scrollSyncCleanup = () => {
+    this.diffContainerEl._scrollSyncCleanup = () => {
       leftWrapper.removeEventListener("scroll", syncLeftToRight);
       rightWrapper.removeEventListener("scroll", syncRightToLeft);
     };
@@ -7071,10 +7128,10 @@ var HistoryModal = class extends import_obsidian6.Modal {
    * Called when switching between diff modes or closing the modal.
    */
   cleanupScrollSync() {
-    var _a;
-    if ((_a = this.currentDiffContainer) == null ? void 0 : _a._scrollSyncCleanup) {
-      this.currentDiffContainer._scrollSyncCleanup();
-      delete this.currentDiffContainer._scrollSyncCleanup;
+    const container = this.diffContainerEl;
+    if (container == null ? void 0 : container._scrollSyncCleanup) {
+      container._scrollSyncCleanup();
+      delete container._scrollSyncCleanup;
     }
   }
 };
@@ -7134,8 +7191,8 @@ __decorateClass([
 ], ModalsService.prototype, "snapshotsService", 2);
 
 // src/settings/main.setting.ts
-var import_obsidian7 = require("obsidian");
-var MainSetting = class extends import_obsidian7.PluginSettingTab {
+var import_obsidian8 = require("obsidian");
+var MainSetting = class extends import_obsidian8.PluginSettingTab {
   /**
    * Renders the settings UI.
    * Creates and configures all settings elements in the settings tab.
@@ -7152,12 +7209,12 @@ var MainSetting = class extends import_obsidian7.PluginSettingTab {
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    new import_obsidian7.Setting(containerEl).setName("Type").setDesc("Choose between a vertical line or a dot in the gutter.").addDropdown(
+    new import_obsidian8.Setting(containerEl).setName("Type").setDesc("Choose between a vertical line or a dot in the gutter.").addDropdown(
       (dropdown) => dropdown.addOption("line" /* line */, "Vertical Line").addOption("dot" /* dot */, "Char in Gutter").setValue(this.settingsService.value("type")).onChange((value) => {
         this.settingsService.update("type", value);
       })
     );
-    new import_obsidian7.Setting(containerEl).setName("Allowed file extensions").setDesc("Comma-separated list of file extensions to track for changes (e.g., md, txt, csv, json, yaml)").addText(
+    new import_obsidian8.Setting(containerEl).setName("Allowed file extensions").setDesc("Comma-separated list of file extensions to track for changes (e.g., md, txt, csv, json, yaml)").addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.allowedExtensions).setValue(this.settingsService.value("allowedExtensions")).onChange((value) => {
         this.settingsService.update(
           "allowedExtensions",
@@ -7165,44 +7222,44 @@ var MainSetting = class extends import_obsidian7.PluginSettingTab {
         );
       })
     );
-    new import_obsidian7.Setting(containerEl).setName("Keep history until").setDesc("Strategy for cleaning up revision history").addDropdown(
+    new import_obsidian8.Setting(containerEl).setName("Keep history until").setDesc("Strategy for cleaning up revision history").addDropdown(
       (dropdown) => dropdown.addOption("app" /* app */, "App close").addOption("file" /* file */, "File close").setValue(this.settingsService.value("keep")).onChange((value) => {
         this.settingsService.update("keep", value);
       })
     );
-    new import_obsidian7.Setting(containerEl).setName("Ignore new files").setDesc("Don't track changes in files created after tracking started").addToggle(
+    new import_obsidian8.Setting(containerEl).setName("Ignore new files").setDesc("Don't track changes in files created after tracking started").addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("ignoreNewFiles")).onChange((value) => {
         this.settingsService.update("ignoreNewFiles", value);
       })
     );
-    new import_obsidian7.Setting(containerEl).setName("Show indicator for").setHeading();
-    new import_obsidian7.Setting(containerEl).setName("Changed").addToggle(
+    new import_obsidian8.Setting(containerEl).setName("Show indicator for").setHeading();
+    new import_obsidian8.Setting(containerEl).setName("Changed").addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("show.changed")).onChange((value) => {
         this.settingsService.update("show.changed", value);
       })
     );
-    new import_obsidian7.Setting(containerEl).setName("Restored").addToggle(
+    new import_obsidian8.Setting(containerEl).setName("Restored").addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("show.restored")).onChange((value) => {
         this.settingsService.update("show.restored", value);
       })
     );
-    new import_obsidian7.Setting(containerEl).setName("Added").addToggle(
+    new import_obsidian8.Setting(containerEl).setName("Added").addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("show.added")).onChange((value) => {
         this.settingsService.update("show.added", value);
       })
     );
-    new import_obsidian7.Setting(containerEl).setName("Removed").addToggle(
+    new import_obsidian8.Setting(containerEl).setName("Removed").addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("show.removed")).onChange((value) => {
         this.settingsService.update("show.removed", value);
       })
     );
-    new import_obsidian7.Setting(containerEl).setName("Line indicator").setHeading();
-    new import_obsidian7.Setting(containerEl).setName("Width").setDesc("Width of the vertical line indicator (in pixels).").addSlider(
+    new import_obsidian8.Setting(containerEl).setName("Line indicator").setHeading();
+    new import_obsidian8.Setting(containerEl).setName("Width").setDesc("Width of the vertical line indicator (in pixels).").addSlider(
       (slider) => slider.setLimits(1, 5, 1).setValue(this.settingsService.value("line.width")).setDynamicTooltip().onChange((value) => {
         this.settingsService.update("line.width", value);
       })
     );
-    new import_obsidian7.Setting(containerEl).setName("Gutter indicator").setDesc((() => {
+    new import_obsidian8.Setting(containerEl).setName("Gutter indicator").setDesc((() => {
       return DomHelper.createFragment([
         {
           tag: "div",
@@ -7227,22 +7284,22 @@ var MainSetting = class extends import_obsidian7.PluginSettingTab {
         }
       ]);
     })()).setHeading();
-    new import_obsidian7.Setting(containerEl).setName("Change char").addText(
+    new import_obsidian8.Setting(containerEl).setName("Change char").addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.gutter.changed).setValue(this.settingsService.value("gutter.changed")).onChange((value) => {
         this.settingsService.update("gutter.changed", value || DEFAULT_SETTINGS.gutter.changed);
       })
     );
-    new import_obsidian7.Setting(containerEl).setName("Added char").addText(
+    new import_obsidian8.Setting(containerEl).setName("Added char").addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.gutter.added).setValue(this.settingsService.value("gutter.added")).onChange((value) => {
         this.settingsService.update("gutter.added", value || DEFAULT_SETTINGS.gutter.added);
       })
     );
-    new import_obsidian7.Setting(containerEl).setName("Restore char").addText(
+    new import_obsidian8.Setting(containerEl).setName("Restore char").addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.gutter.restored).setValue(this.settingsService.value("gutter.restored")).onChange((value) => {
         this.settingsService.update("gutter.restored", value || DEFAULT_SETTINGS.gutter.restored);
       })
     );
-    new import_obsidian7.Setting(containerEl).setName("Removed char").addText(
+    new import_obsidian8.Setting(containerEl).setName("Removed char").addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.gutter.removed).setValue(this.settingsService.value("gutter.removed")).onChange((value) => {
         this.settingsService.update("gutter.removed", value || DEFAULT_SETTINGS.gutter.removed);
       })
@@ -8144,6 +8201,14 @@ var FileSnapshot = class {
     return this.getChanges(["changed" /* changed */, "added" /* added */, "removed" /* removed */]).size;
   }
   /**
+   * Retrieves the last modified date and time as a localized string.
+   *
+   * @return {string} The date and time of the last change in a localized string format.
+   */
+  getLastChangedDateTime() {
+    return new Date(this.timestamp).toLocaleString();
+  }
+  /**
    * Performs a self-test on the snapshot to verify its integrity.
    * Checks various aspects of the snapshot's state and returns diagnostic information.
    * Used for debugging purposes.
@@ -8754,7 +8819,7 @@ var On = (name) => {
 };
 
 // src/services/statusbar.service.ts
-var import_obsidian8 = require("obsidian");
+var import_obsidian9 = require("obsidian");
 var StatusbarService = class {
   /**
    * Creates a new instance of StatusbarService.
@@ -8786,7 +8851,7 @@ var StatusbarService = class {
     var _a, _b;
     const view = (_a = this.plugin.app.workspace.getMostRecentLeaf()) == null ? void 0 : _a.view;
     const snapshot = this.snapshotsService.getOne();
-    if (!view || !(view instanceof import_obsidian8.MarkdownView) || !snapshot) {
+    if (!view || !(view instanceof import_obsidian9.MarkdownView) || !snapshot) {
       this.clear();
       return;
     }
@@ -8948,8 +9013,8 @@ var import_index = __toESM(require_eventemitter3(), 1);
 var eventemitter3_default = import_index.default;
 
 // src/main.ts
-var import_obsidian9 = require("obsidian");
-var LineChangeTrackerPlugin = class extends import_obsidian9.Plugin {
+var import_obsidian10 = require("obsidian");
+var LineChangeTrackerPlugin = class extends import_obsidian10.Plugin {
   /**
    * Creates a new instance of the LineChangeTrackerPlugin.
    * Registers all required services during initialization.
@@ -9121,7 +9186,7 @@ var LineChangeTrackerPlugin = class extends import_obsidian9.Plugin {
    * @return {MarkdownView | null} The active markdown view, or null if none is active
    */
   getActiveViewOfType() {
-    return this.app.workspace.getActiveViewOfType(import_obsidian9.MarkdownView);
+    return this.app.workspace.getActiveViewOfType(import_obsidian10.MarkdownView);
   }
   /**
    * Gets the active file.

@@ -315,31 +315,29 @@ export interface HTMLElementWithScrollSync extends HTMLElement {
 /**
  * Configuration object for creating DOM elements with DomHelper.
  */
-export interface DomElementConfig {
+export interface DomElementConfig extends DomUpdateConfig {
   /** The tag name of the element to create */
   tag: keyof HTMLElementTagNameMap;
-  /** CSS classes to add to the element */
-  classes?: string | string[];
-  /** Text content for the element */
-  text?: string;
-  /** HTML attributes to set on the element */
-  attributes?: Record<string, string>;
-  /** CSS styles to apply to the element */
-  styles?: Partial<CSSStyleDeclaration>;
-  /** Event listeners to attach to the element */
-  events?: Record<string, (event: Event) => void>;
-  /** Child elements to append */
-  children?: DomElementConfig[];
   /** Optional container to append the element to */
   container?: HTMLElement;
+}
+
+/**
+ * Represents the configuration for updating DOM element class attributes.
+ * - `add` specifies the classes to be added.
+ * - `remove` specifies the classes to be removed.
+ */
+export interface DomUpdateConfigClasses {
+  add?: string | string[];
+  remove?: string | string[];
 }
 
 /**
  * Configuration object for updating DOM elements with DomHelper.
  */
 export interface DomUpdateConfig {
-  /** CSS classes to add to the element */
-  classes?: string | string[];
+  /** CSS classes for the element */
+  classes?: string | string[] | DomUpdateConfigClasses;
   /** Text content for the element */
   text?: string;
   /** HTML attributes to set on the element */
@@ -350,6 +348,8 @@ export interface DomUpdateConfig {
   events?: Record<string, (event: Event) => void>;
   /** Child elements to append */
   children?: DomElementConfig[];
+  /** HTML content for the element */
+  html?: string;
 }
 
 /**

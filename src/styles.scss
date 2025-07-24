@@ -21,6 +21,12 @@
       position: relative;
       overflow: hidden;
       border: 1px solid var(--background-modifier-border);
+
+      white-space: nowrap;
+      font-family: var(--font-text);
+      font-size: var(--font-text-size);
+      line-height: var(--line-height-normal);
+      background-color: var(--background-secondary);
     }
 
     // general
@@ -29,11 +35,11 @@
       inset: 0;
       display: flex;
 
-      white-space: nowrap;
-      font-family: var(--font-text);
-      font-size: var(--font-text-size);
-      line-height: var(--line-height-normal);
-      background-color: var(--background-secondary);
+      //white-space: nowrap;
+      //font-family: var(--font-text);
+      //font-size: var(--font-text-size);
+      //line-height: var(--line-height-normal);
+      //background-color: var(--background-secondary);
 
       .d2h-container {
         //min-width: max-content;
@@ -380,9 +386,10 @@
   .lct-patch-text {
     margin: 0;
     //font-family: var(--font-monospace);
-    font-size: 12px;
+    //font-size: 12px;
     white-space: pre-wrap;
     word-break: break-all;
+    user-select: text;
   }
 
   .lct-patch-copy-button {

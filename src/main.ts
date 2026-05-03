@@ -203,7 +203,7 @@ export default class LineChangeTrackerPlugin extends Plugin {
    * Dispatches an empty transaction to trigger a refresh.
    */
   public forceUpdateEditor(): void {
-    this.getResentEditorView()?.dispatch({
+    this.getRecentEditorView()?.dispatch({
       effects: [],
       changes: [],
     });
@@ -223,7 +223,7 @@ export default class LineChangeTrackerPlugin extends Plugin {
    *
    * @return {EditorView | null} The most recent CodeMirror editor view, or null if none exists
    */
-  public getResentEditorView(): EditorView | null {
+  public getRecentEditorView(): EditorView | null {
     const view: MarkdownView = this.app.workspace.getMostRecentLeaf()?.view as MarkdownView;
 
     return (view?.editor as Editor & { cm?: EditorView })?.cm ?? null;

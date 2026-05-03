@@ -13,7 +13,6 @@ import type { TFile } from 'obsidian';
  * Provides methods to query and manipulate the state of a file's content.
  */
 export class FileSnapshot {
-  // todo: make everything protected
   /**
    * Unique identifier for this snapshot.
    * Generated randomly when the snapshot is created.
@@ -216,57 +215,6 @@ export class FileSnapshot {
   }
 
   /**
-   * Performs a self-test on the snapshot to verify its integrity.
-   * Checks various aspects of the snapshot's state and returns diagnostic information.
-   * Used for debugging purposes.
-   *
-   * @return {object} An object containing diagnostic information about the snapshot
-   */
-  public selfTest(): object {
-    return {
-      equal: this.isStateSameOriginal(),
-      // changesCountToState: this.getChanges().size <= this.getLastStateLines().length,
-      tracker: this.getTracker().simplify(),
-      trackerLinesToState: this.getLastStateLines().map((_value, index) => {
-        return this.findCurrentLine(index);
-      }),
-      trackerLinesToOrigin: this.getOriginalStateLines().map((_value, index) => {
-        return this.findOriginalLine(index, null, false);
-      }),
-      stateMissingLines: this.getLastStateLines().reduce((acc, _value, index) => {
-        return !this.findCurrentLine(index) ? [...acc, index] : acc;
-      }, []),
-      originMissingLines: this.getOriginalStateLines().reduce((acc, _value, index) => {
-        return !this.findOriginalLine(index, null, false) ? [...acc, index] : acc;
-      }, []),
-      trackerDuplicatesLines: Object.entries(
-        this.getTracker().reduce((acc: Record<number, TrackerLine[]>, value: TrackerLine) => {
-          return {
-            ...acc,
-            [value.currentPosition]: [...acc[value.currentPosition] ?? [], value],
-          };
-        }, {} as Record<number, TrackerLine[]>)
-      ).filter(([_line, trackers]: [string, TrackerLine[]]) => trackers.length > 1),
-      trackerChangedLines: this.getTracker().filter(
-        (value, _index) => value.isStateChanged()
-      ).length,
-      trackerToRemovedLines: this.getTracker({ ordering: 'removedTimeStamp' }).filter(
-        (value, _index) => value.isStateRemoved()
-      ).length,
-      trackerToAddedLines: this.getTracker().filter(
-        (value, _index) => value.isStateAdded()
-      ).length,
-      trackerToRestoredLines: this.getTracker().filter(
-        (value, _index) => value.isStateRestored()
-      ).length,
-      trackerToGhostLines: this.getTracker().filter(
-        (value, _index) => value.isStateGhost()
-      ).length,
-      changes: this.getChanges(),
-    };
-  }
-
-  /**
    * Updates the change map based on the current state of tracker lines.
    * Iterates through all tracker lines and adds appropriate change types
    * (added, removed, restored, changed) to the change map.
@@ -297,10 +245,6 @@ export class FileSnapshot {
 
         return;
       }
-
-      // if (lineTracker.isStateGhost()) {
-      //   return;
-      // }
 
       if (lineTracker.isStateAdded()) {
         line.add(ChangeType.added);
@@ -333,7 +277,6 @@ export class FileSnapshot {
   public findCurrentLine(line: number, to?: number): TrackerLine | null {
     // Find the logical line currently at the desired position
     return this.getTracker().find((tracker: TrackerLine): boolean =>
-      // todo: possibly some checks are redundant
       tracker.isCurrentAt(line) && tracker.isCurrentInRange(0, to)
     ) ?? null;
   }
@@ -350,7 +293,6 @@ export class FileSnapshot {
   public findOriginalLine(line: number, to?: number, visible: boolean = true): TrackerLine | null {
     // We find the logical line currently at the desired position
     return this.getTracker().find((tracker: TrackerLine): boolean =>
-      // todo: possibly some checks are redundant
       (visible ? tracker.isCurrentAt(line) : tracker.isOriginAt(line)) &&
       tracker.existedInOriginal &&
       tracker.isOriginalInRange(0, to)

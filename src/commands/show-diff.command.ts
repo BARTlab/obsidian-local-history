@@ -4,7 +4,6 @@ import type { ModalsService } from '@/services/modals.service';
 import type { FunctionVoid } from '@/types';
 import type { Command } from 'obsidian';
 
-// todo: need command "add current file to history"
 /**
  * Command that shows a diff view of all changes in the current document.
  * Opens a modal dialog displaying the history of changes for the active file.

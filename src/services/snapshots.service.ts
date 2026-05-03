@@ -259,13 +259,7 @@ export class SnapshotsService implements Service {
 
     try {
       const content: string = await this.plugin.app.vault.read(currentFile);
-      // const lineBreak: string = this.plugin.getActiveEditorView()?.state.lineBreak;
-
-      // todo: remove lines store?
-      // const snapshot: FileSnapshot = new FileSnapshot(content, lineBreak, currentFile);
-
-      // this.fileSnapshots.set(currentFile.path, snapshot);
-      this.add(currentFile, content)
+      this.add(currentFile, content);
     } catch (error) {
       console.error('Error capturing file snapshot:', error);
     }

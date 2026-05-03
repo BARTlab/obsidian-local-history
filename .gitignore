@@ -83,6 +83,7 @@ public
 # Temporary folders
 tmp/
 temp/
+.plan/
 
 # Editors
 .vscode/

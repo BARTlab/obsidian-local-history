@@ -38,13 +38,36 @@ export class EventsService implements Service {
   /**
    * Initializes the service by registering all plugin events.
    * Called during plugin initialization.
+   *
+   * Workspace events are registered immediately. Vault events are deferred to
+   * `onLayoutReady` so the startup `create` burst Obsidian fires for existing
+   * files does not reach the create handler and push real files into the
+   * ignore list (which would silently stop tracking them after a restart).
    */
   public init(): void {
+    this.registerWorkspaceEvents();
+    this.plugin.app.workspace.onLayoutReady((): void => this.registerVaultEvents());
+  }
+
+  /**
+   * Registers the workspace event handlers.
+   * Safe to register during `onload`; these do not react to the startup file
+   * scan in a way that corrupts plugin state.
+   */
+  protected registerWorkspaceEvents(): void {
     this.register(WorkspaceActiveLeafChangeEvent);
     this.register(WorkspaceFileOpenEvent);
     this.register(WorkspaceLayoutChangeEvent);
     this.register(WorkspaceEditorMenuEvent);
     this.register(WorkspaceFilesMenuEvent);
+  }
+
+  /**
+   * Registers the vault event handlers.
+   * Deferred to `onLayoutReady` so the initial `create` events Obsidian emits
+   * for pre-existing files are not handled on a cold start (see {@link init}).
+   */
+  protected registerVaultEvents(): void {
     this.register(VaultModifyEvent);
     this.register(VaultCreateEvent);
     this.register(VaultRenameEvent);

@@ -57,8 +57,8 @@ export class MainSetting extends PluginSettingTab {
       .setDesc('Choose between a vertical line or a dot in the gutter.')
       .addDropdown((dropdown) =>
         dropdown
-          .addOption(IndicatorType.line, 'Vertical Line')
-          .addOption(IndicatorType.dot, 'Char in Gutter')
+          .addOption(IndicatorType.line, 'Vertical line')
+          .addOption(IndicatorType.dot, 'Char in gutter')
           .setValue(this.settingsService.value('type'))
           .onChange((value: IndicatorType): void => {
             this.settingsService.update('type', value);

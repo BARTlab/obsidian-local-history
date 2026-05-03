@@ -392,7 +392,7 @@ export class FileSnapshot {
     } = params ?? {};
 
     const sort: KeysMatching<TrackerLine, number | string> = isArray(ordering) ? ordering[0] : ordering;
-    const direction: string = isArray(ordering) ? ordering[1] : 'acs';
+    const direction: string = isArray(ordering) ? ordering[1] : 'asc';
     const list: TrackerLine[] = [...this.tracker];
 
     list.sort((a: TrackerLine, b: TrackerLine): number => {

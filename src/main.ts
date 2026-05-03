@@ -224,7 +224,7 @@ export default class LineChangeTrackerPlugin extends Plugin {
    * @return {EditorView | null} The most recent CodeMirror editor view, or null if none exists
    */
   public getResentEditorView(): EditorView | null {
-    const view: MarkdownView = this.app.workspace.getMostRecentLeaf().view as MarkdownView;
+    const view: MarkdownView = this.app.workspace.getMostRecentLeaf()?.view as MarkdownView;
 
     return (view?.editor as Editor & { cm?: EditorView })?.cm ?? null;
   }

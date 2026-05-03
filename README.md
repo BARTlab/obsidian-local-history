@@ -3,289 +3,265 @@
 [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/bartlab/obsidian-local-history?style=for-the-badge&sort=semver)](https://github.com/bartlab/obsidian-local-history/releases/latest)
 [![GitHub All Releases](https://img.shields.io/github/downloads/bartlab/obsidian-local-history/total?style=for-the-badge)](https://github.com/bartlab/obsidian-local-history/releases)
 
-A powerful Obsidian plugin that tracks and visually highlights changed lines in your documents, providing real-time feedback on your editing progress with intuitive visual indicators.
+An Obsidian plugin that tracks and visually highlights changed lines in your documents, giving you real-time feedback on your editing progress with unobtrusive visual indicators.
 
-### Philosophy
+## Philosophy
 
-Plugin is built with the philosophy of **minimal interference and maximum informativeness**. Follows the principle of "show, but don't interfere" — it provides valuable information about your changes while remaining unobtrusive and not disrupting your familiar workflow.
+The plugin is built around minimal interference and maximum informativeness. It follows the principle of "show, but don't interfere": it surfaces useful information about your changes while staying out of the way and not disrupting your usual workflow.
 
-### Reasons for Creation
+## Why use it
 
-When working with large documents or during lengthy editing sessions, it's easy to lose track of what exactly has been changed. This is especially relevant when:
+During long editing sessions or while working with large documents, it is easy to lose track of what exactly has changed. This is especially helpful when:
 
-- **Refactoring large notes** — when you need to restructure content without losing important details
-- **Collaborative work** — when multiple people edit documents and you need to track each person's contribution
-- **Text experiments** — when trying different formulations and wanting to easily return to previous versions
-- **Long editing sessions** — when many small changes accumulate over several hours of work
+- Refactoring large notes, where you restructure content without losing important details.
+- Reviewing contributions, where several people edit a document and you want to see what changed.
+- Experimenting with text, where you try different wordings and want to return to a previous version.
+- Running long editing sessions, where many small changes accumulate over hours of work.
 
+## How it compares to Obsidian Sync version history
 
-## ✨ Features
+Obsidian Sync provides a built-in [version history](https://obsidian.md/help/sync/version-history) feature. The two solutions solve different problems and can be used together:
 
-### 🎯 **Smart Change Detection**
-- **Source Mode Only**: Activates exclusively when files are open in Source mode for precise tracking
-- **Existing Files Focus**: Works only with previously saved files, ignoring new unsaved documents
-- **Real-time Tracking**: Monitors changes as you type using CodeMirror 6 API
+| Aspect | Local History (this plugin) | Obsidian Sync version history |
+| --- | --- | --- |
+| Cost | Free, no account | Paid, part of Obsidian Sync |
+| Scope | Live, in-editor session tracking | Periodic server-side snapshots |
+| Granularity | Per-line highlighting as you type | Per-snapshot file versions |
+| Diff view | Built-in side-by-side, line-by-line and patch | Version contents, no line-level diff |
+| Storage | In memory for the current session | Cloud, retained for 1 to 12 months by plan |
+| Network | Fully local, no network access | Requires sync to Obsidian servers |
 
-### 🎨 **Visual Indicators**
-- **Line Markers**: Highlights changed lines with customizable colored indicators
-- **Gutter Dots**: Alternative display mode with character indicators in the editor gutter
-- **Auto-removal**: Markers automatically disappear when lines return to their original state
-- **Multiple Change Types**: Different colors for added, modified, restored, and removed lines
+In short, this plugin focuses on immediate, in-session visual feedback while you edit, whereas Sync version history is a long-term cloud backup of file versions.
 
-### 📊 **Advanced History Features**
-- **Original Content Preservation**: Stores the initial file state for accurate comparison
-- **Diff Viewer**: Built-in modal with side-by-side and line-by-line diff views
-- **Clean Patch Export**: Generate and copy clean patches with zero context
-- **Smart Deletion Handling**: Properly tracks removed lines without affecting subsequent content
+## Features
 
-## 📸 Screenshots
+### Change detection
+
+- Activates in Source mode for precise tracking.
+- Works with previously saved files and can ignore newly created ones.
+- Monitors changes as you type using the CodeMirror 6 API.
+
+### Visual indicators
+
+- Highlights changed lines with customizable colored markers.
+- Optional gutter mode with character indicators instead of line markers.
+- Markers disappear automatically when a line returns to its original state.
+- Separate styles for changed, added, removed and restored lines.
+
+### History and diff
+
+- Preserves the original file state for accurate comparison.
+- Built-in diff modal with side-by-side and line-by-line views.
+- Clean patch export with zero context that you can copy to the clipboard.
+- Restore the file back to its original state from the diff modal.
+
+## Screenshots
 
 [<img src="screenshots/editor-lines.png" alt="editor-lines" width="300">](screenshots/editor-lines.png)
 [<img src="screenshots/editor-gutters.png" alt="editor-gutters" width="300">](screenshots/editor-gutters.png)
 
-*The plugin highlighting changed lines in the editor*
+The plugin highlighting changed lines in the editor.
 
 [<img src="screenshots/diff-line-by-line.png" alt="diff-line-by-line" width="300">](screenshots/diff-line-by-line.png)
 [<img src="screenshots/diff-side-by-side.png" alt="diff-side-by-side" width="300">](screenshots/diff-side-by-side.png)
 [<img src="screenshots/diff-patch.png" alt="diff-patch" width="300">](screenshots/diff-patch.png)
 
-*Built-in diff viewer showing changes side-by-side*
+The built-in diff viewer showing changes.
 
 [<img src="screenshots/settings.png" alt="settings" width="300">](screenshots/settings.png)
 
-*Customizable settings for different indicator types*
+Settings for the different indicator types.
 
-## 🚀 Installation
+## Installation
 
-### Automatic Installation (Recommended)
+### From Community Plugins
 
-1. Open Obsidian
-2. Go to **Settings** → **Community plugins**
-3. Disable **Safe mode** if it's enabled
-4. Click **Browse** and search for "Local history" or "Line Change Tracker"
-5. Click **Install** and then **Enable**
+1. Open Obsidian.
+2. Go to Settings, then Community plugins.
+3. Turn off Restricted mode if it is enabled.
+4. Click Browse and search for "Local history".
+5. Click Install, then Enable.
 
-### Manual Installation
+### Manual installation
 
-1. Download the latest release from the [GitHub releases page](https://github.com/bartlab/obsidian-local-history/releases)
-2. Extract the files to your vault's plugins folder: `VaultFolder/.obsidian/plugins/local-history/`
-3. Reload Obsidian
-4. Enable the plugin in **Settings** → **Community plugins**
+1. Download the latest release from the [releases page](https://github.com/bartlab/obsidian-local-history/releases).
+2. Copy `main.js`, `manifest.json` and `styles.css` into `VaultFolder/.obsidian/plugins/local-history/`.
+3. Reload Obsidian.
+4. Enable the plugin in Settings, then Community plugins.
 
-## 🎮 Usage
+## Usage
 
-### Basic Operation
+1. Open an existing file in Source mode. The plugin captures the original state automatically.
+2. Start editing. Changed lines are highlighted as you type:
+   - Changed lines use the blue indicator.
+   - Added lines use the orange indicator.
+   - Removed lines use the base indicator.
+   - Restored lines use the faint indicator.
+3. Open the diff modal to review all changes for the current file.
 
-1. **Open an existing file** in Source mode
-2. **Start editing** - the plugin automatically captures the original state
-3. **See visual feedback** as you make changes:
-   - <span style="color:DodgerBlue">⚪</span> **Blue**: Modified lines
-   - <span style="color:orange">⚪</span> **Orange**: Added lines  
-   - <span style="color:white">⚪</span> **Base**: Removed lines
-   - <span style="color:gray">⚪</span> **Gray**: Restored lines
+### Opening the diff view
 
-### Viewing Change History
+- Click the "lines changed" item in the status bar.
+- Right-click in the editor or on a file and choose "Local history".
+- Run the "Show all changes of current document" command from the command palette.
 
-- Use the command palette (`Ctrl/Cmd + P`) and search for "Show all changes"
-- Or access via the plugin's commands to open the diff viewer modal
+### Commands
 
-### Diff Viewer Features
+- Show all changes of current document.
+- Reset lines tracker snapshot of current document.
+- Reset all lines tracker snapshots.
 
-- **Side-by-side view**: Compare original and current versions
-- **Line-by-line view**: Unified diff format
-- **Patch export**: Generate clean patches for external use
-- **Synchronized scrolling**: Both panels scroll together in side-by-side mode
+### Diff view
 
-## ⚙️ Configuration
+- Side-by-side view to compare the original and current versions.
+- Line-by-line unified view.
+- Patch export with zero context that you can copy to the clipboard.
+- Synchronized scrolling for both panels in side-by-side mode.
 
-Access plugin settings via **Settings** → **Plugin Options** → **Local History**
+## Configuration
 
-### Display Options
+Open Settings, then Community plugins, then the Local history options.
 
-- **Indicator Type**: Choose between line markers or gutter dots
-- **Show Indicators For**: Toggle visibility for different change types
-  - Changed lines
-  - Added lines
-  - Removed lines
-  - Restored lines
+### Display
 
-### History Management
+- Indicator type: a vertical line or a character in the gutter.
+- Toggle indicators per change type: changed, added, removed and restored.
 
-- **Keep History Until**: Choose when to clear tracking data
-  - App close: Clear when Obsidian closes
-  - File close: Clear when file tab closes
+### History
 
-### Customization
+- Allowed file extensions: a comma-separated list of extensions to track.
+- Keep history until: clear tracking data when the app closes or when the file closes.
+- Ignore new files: do not track files created after tracking has started.
 
-- **Line Width**: Adjust the width of line indicators
-- **Gutter Character**: Customize the character used in gutter mode
-- **Colors**: Modify indicator colors via CSS snippets
+### Appearance
 
-#### Custom CSS Example
+- Line width: the width of the vertical line indicator.
+- Gutter characters: the characters used in gutter mode.
+- Colors: override indicator colors with a CSS snippet.
+
+#### Custom CSS example
 
 ```css
-/* Customize line change colors */
 .lct-line.lct-changed:not(.mk-placeholder)::before {
-    background-color: #ff6b35; /* Orange for changed lines */
+    background-color: #ff6b35;
 }
 
 .lct-line.lct-added:not(.mk-placeholder)::before {
-    background-color: #4ecdc4; /* Teal for added lines */
+    background-color: #4ecdc4;
 }
 
 .lct-line.lct-restored:not(.mk-placeholder)::after {
-    background-color: #fcdb89; /* Yellow for restored lines */
+    background-color: #fcdb89;
 }
 
 .lct-line.lct-removed:not(.mk-placeholder)::after {
-    background-color: #b6b6b6; /* Gray for removed lines */
+    background-color: #b6b6b6;
 }
 ```
 
-## 🔧 Compatibility
+## Privacy
 
-- **Minimum Obsidian Version**: 0.15.0
-- **Platform Support**: Desktop and Mobile
-- **File Types**: Plain text files (`.md`, `.txt`, `.csv`, `.json`, `.yaml`)
+This plugin runs entirely on your device. It does not connect to the network, does not collect telemetry, and does not require an account. Tracked changes are kept in memory for the current session and are cleared according to the "Keep history until" setting. The plugin reads file contents from your vault only to compute diffs and never sends them anywhere.
 
-## 💖 Support the Development
+## Compatibility
 
-If you find this plugin helpful, consider supporting its development:
+- Minimum Obsidian version: 0.15.0.
+- Platforms: desktop and mobile.
+- File types: plain text files such as `.md`, `.txt`, `.csv`, `.json` and `.yaml`.
+
+## Support
+
+If you find this plugin useful, you can support its development:
 
 [![Buy Me A Coffee](https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow.svg?style=for-the-badge&logo=buy-me-a-coffee)](https://coff.ee/bartlaba)
 
-Your support helps maintain and improve the plugin with new features and bug fixes!
+## Issues and feedback
 
-## 🐛 Issues and Feedback
+Found a bug or have a feature request? Open an issue on [GitHub](https://github.com/bartlab/obsidian-local-history/issues) and include:
 
-Found a bug or have a feature request? Please help improve the plugin:
+- A clear description of the problem.
+- Steps to reproduce.
+- Your Obsidian version and operating system.
+- Screenshots if applicable.
 
-1. **Check existing issues** on [GitHub Issues](https://github.com/bartlab/obsidian-local-history/issues)
-2. **Create a new issue** with:
-   - Detailed description of the problem
-   - Steps to reproduce
-   - Your Obsidian version
-   - Your operating system
-   - Screenshots if applicable
+## License
 
-## 📄 License
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## For developers
 
----
+### Prerequisites
 
-## 🛠️ For Developers
+- Node.js 18 or higher.
+- npm.
+- Git.
 
-### Development Setup
+### Getting started
 
-#### Prerequisites
+```bash
+git clone https://github.com/bartlab/obsidian-local-history.git
+cd obsidian-local-history
+npm install
+npm run dev
+```
 
-- **Node.js** (version 18 or higher)
-- **npm** or **yarn**
-- **Git**
+Build for production:
 
-#### Getting Started
+```bash
+npm run build
+```
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/bartlab/obsidian-local-history.git
-   cd obsidian-local-history
-   ```
+### Available scripts
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+- `npm run dev`: build in watch mode.
+- `npm run build`: type-check and build for production.
+- `npm run lint`: run ESLint over the source.
+- `npm run type-check`: run the TypeScript compiler without emitting output.
 
-3. **Start development mode**
-   ```bash
-   npm run dev
-   ```
-
-4. **Build for production**
-   ```bash
-   npm run build
-   ```
-
-### Project Structure
+### Project structure
 
 ```
 obsidian-local-history/
-├── src/                          # Source code
-│   ├── commands/                 # Command definitions
-│   ├── decorators/              # TypeScript decorators
-│   ├── events/                  # Event handlers
-│   ├── extensions/              # CodeMirror extensions
-│   ├── helpers/                 # Utility functions
-│   ├── lines/                   # Line tracking logic
-│   ├── maps/                    # Data structures
-│   ├── modals/                  # UI modals
-│   ├── services/                # Core services
-│   ├── settings/                # Settings management
-│   ├── snapshots/               # File snapshot handling
-│   ├── main.ts                  # Plugin entry point
-│   └── types.ts                 # TypeScript type definitions
-├── styles.css                   # Plugin styles
-├── manifest.json                # Plugin manifest
-├── package.json                 # Dependencies and scripts
-├── tsconfig.json               # TypeScript configuration
-├── esbuild.config.mjs          # Build configuration
-└── README.md                   # This file
+├── src/
+│   ├── commands/      # Command palette integrations
+│   ├── decorators/    # Inject and event decorators
+│   ├── events/        # Workspace and vault event handlers
+│   ├── extensions/    # CodeMirror 6 editor and gutter extensions
+│   ├── helpers/       # DOM and text utilities
+│   ├── lines/         # Line tracking model
+│   ├── maps/          # Data structures
+│   ├── modals/        # Diff and confirmation modals
+│   ├── services/      # Core services
+│   ├── settings/      # Settings tab
+│   ├── snapshots/     # File snapshot model
+│   ├── main.ts        # Plugin entry point
+│   └── types.ts       # Shared type definitions
+├── styles.scss        # Plugin styles source
+├── manifest.json      # Plugin manifest
+└── esbuild.config.mjs # Build configuration
 ```
 
-### Architecture Overview
+### Architecture
 
-The plugin follows a service-oriented architecture with dependency injection:
+The plugin uses a service-oriented architecture with a small dependency injection container:
 
-- **Services**: Core functionality (snapshots, settings, events)
-- **Extensions**: CodeMirror 6 integrations for editor features
-- **Commands**: Obsidian command palette integrations
-- **Modals**: UI components for diff viewing
-- **Helpers**: Utility functions and DOM manipulation
+- Services hold the core functionality such as snapshots, settings and events.
+- Extensions integrate with CodeMirror 6 for editor decorations and gutters.
+- Commands expose actions through the command palette.
+- Modals render the diff and confirmation dialogs.
+- Helpers provide DOM and text utilities.
 
-### Key Technologies
+### Key technologies
 
-- **TypeScript**: Type-safe development
-- **CodeMirror 6**: Editor integration and decorations
-- **diff**: Text comparison and patch generation
-- **diff2html**: HTML diff rendering
-- **Obsidian API**: Plugin framework integration
+- TypeScript.
+- CodeMirror 6 for editor integration and decorations.
+- `diff` for text comparison and patch generation.
+- `diff2html` for diff rendering.
+- The Obsidian plugin API.
 
-### Contributing
+### Releasing
 
-1. **Fork the repository**
-2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
-3. **Make your changes** following the existing code style
-4. **Add tests** if applicable
-5. **Commit your changes**: `git commit -m 'Add amazing feature'`
-6. **Push to the branch**: `git push origin feature/amazing-feature`
-7. **Open a Pull Request**
-
-### Code Style
-
-This project follows the [Google TypeScript Style Guide](https://google.github.io/styleguide/tsguide.html). Please ensure your contributions adhere to these standards.
-
-### Testing
-
-```bash
-# Run tests (when available)
-npm test
-
-# Run linting
-npm run lint
-
-# Type checking
-npm run type-check
-```
-
-### Release Process
-
-1. Update version in `manifest.json` and `package.json`
-2. Update `versions.json` with compatibility info
-3. Create a git tag: `git tag -a 1.0.0 -m "Release 1.0.0"`
-4. Push tags: `git push origin --tags`
-5. GitHub Actions will automatically create a release
-
----
-
-*Made with ❤️ for the Obsidian community*
+1. Update the version in `manifest.json` and `package.json`.
+2. Add the new version to `versions.json` with its minimum app version.
+3. Create a git tag that matches the version, for example `1.0.1`.
+4. Push the tag. The release workflow builds and publishes the release.

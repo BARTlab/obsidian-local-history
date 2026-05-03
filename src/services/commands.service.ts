@@ -1,5 +1,4 @@
 import type { BaseCommand } from '@/commands/base.command';
-import { DebugCommand } from '@/commands/debug.command';
 import { ResetLinesAllCommand } from '@/commands/reset-lines-all.command';
 import { ResetLinesCommand } from '@/commands/reset-lines.command';
 import { ShowDiffCommand } from '@/commands/show-diff.command';
@@ -39,7 +38,6 @@ export class CommandsService implements Service {
     this.register(ResetLinesCommand);
     this.register(ResetLinesAllCommand);
     this.register(ShowDiffCommand);
-    this.register(DebugCommand);
   }
 
   /**
@@ -54,7 +52,7 @@ export class CommandsService implements Service {
   protected register<T extends BaseCommand & Command>(ClsCConstructor: ClassConstructor<T>): void {
     const command: BaseCommand & Command = this.factory<T>(ClsCConstructor);
 
-    if (this.instances.has(command.name)) {
+    if (this.instances.has(command.id)) {
       return;
     }
 

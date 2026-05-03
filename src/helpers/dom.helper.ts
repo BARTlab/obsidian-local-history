@@ -1,5 +1,6 @@
 import type { DomElementConfig, DomUpdateConfig, DomUpdateConfigClasses } from '@/types';
 import { castArray, entries, isArray, isPlainObject, isString, isUndefined } from 'lodash-es';
+import { sanitizeHTMLToDom } from 'obsidian';
 
 /**
  * Utility class for creating and updating DOM elements with type safety.
@@ -80,14 +81,8 @@ export class DomHelper {
 
     // Set html content
     if (!isUndefined(config.html)) {
-      const parser: DOMParser = new DOMParser();
-      const doc: Document = parser.parseFromString(config.html, 'text/html');
-
       element.empty();
-
-      Array.from(doc.body.childNodes).forEach((child: ChildNode): void => {
-        element.appendChild(child);
-      });
+      element.appendChild(sanitizeHTMLToDom(config.html));
     }
 
     // Set attributes

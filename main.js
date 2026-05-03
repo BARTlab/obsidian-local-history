@@ -1952,120 +1952,6 @@ var Inject = (cls) => {
   };
 };
 
-// src/helpers/debug.helper.ts
-var styles = {
-  log: "background: #444; color: #0f0; font-weight: bold; padding: 2px 6px; border-radius: 4px;",
-  success: "background: #155724; color: #d4edda; font-weight: bold; padding: 2px 6px; border-radius: 4px;",
-  error: "background: #721c24; color: #f8d7da; font-weight: bold; padding: 2px 6px; border-radius: 4px;",
-  warn: "background: #856404; color: #fff3cd; font-weight: bold; padding: 2px 6px; border-radius: 4px;",
-  info: "background: #046385; color: #d4fff9; font-weight: bold; padding: 2px 6px; border-radius: 4px;"
-};
-var DebugHelper = class {
-  /**
-   * Logs a success message with green styling.
-   *
-   * @param {string} label - The message to display
-   * @param {Record<string, unknown>} vars - Optional variables to log along with the message
-   * @return {void}
-   */
-  static success(label, vars) {
-    this.log(label, vars, "success");
-  }
-  /**
-   * Logs an error message with red styling.
-   *
-   * @param {string} label - The message to display
-   * @param {Record<string, unknown>} vars - Optional variables to log along with the message
-   * @return {void}
-   */
-  static error(label, vars) {
-    this.log(label, vars, "error");
-  }
-  /**
-   * Logs a warning message with yellow styling.
-   *
-   * @param {string} label - The message to display
-   * @param {Record<string, unknown>} vars - Optional variables to log along with the message
-   * @return {void}
-   */
-  static warn(label, vars) {
-    this.log(label, vars, "warn");
-  }
-  /**
-   * Logs an informational message with blue styling.
-   *
-   * @param {string} label - The message to display
-   * @param {Record<string, unknown>} vars - Optional variables to log along with the message
-   * @return {void}
-   */
-  static info(label, vars) {
-    this.log(label, vars, "info");
-  }
-  /**
-   * Main logging method that all other methods call.
-   * Creates a collapsible console group with styled header and displays variables if provided.
-   * Includes a stack trace for debugging.
-   *
-   * @param {string} label - The message to display
-   * @param {Record<string, unknown>} vars - Optional variables to log along with the message
-   * @param {DebugTheme} theme - The theme to use for styling (defaults to 'log')
-   * @return {void}
-   */
-  static log(label, vars, theme = "log") {
-    const timestamp = new Date().toLocaleString();
-    const fullLabel = `${label}  [${timestamp}]`;
-    console.groupCollapsed(`%c${fullLabel}`, styles[theme]);
-    if (vars && Object.keys(vars).length > 0) {
-      console.log(vars);
-    } else {
-      console.log("(no variables)");
-    }
-    console.trace("Trace");
-    console.groupEnd();
-  }
-};
-var debug = Object.assign(
-  (...args) => DebugHelper.log(...args),
-  {
-    log: DebugHelper.log,
-    success: DebugHelper.success,
-    error: DebugHelper.error,
-    warn: DebugHelper.warn,
-    info: DebugHelper.info
-  }
-);
-
-// src/commands/debug.command.ts
-var DebugCommand = class extends BaseCommand {
-  constructor() {
-    super(...arguments);
-    /**
-     * Unique identifier for this command.
-     * Used by Obsidian to register and reference the command.
-     */
-    this.id = "tracker-debug";
-    /**
-     * Display name for this command.
-     * Shown in the Obsidian command palette.
-     */
-    this.name = "Log to console debug information";
-    /**
-     * Callback function executed when the command is triggered.
-     * Logs plugin information to the console for debugging.
-     */
-    this.callback = () => {
-      var _a, _b;
-      debug.info("Tracker debug information", {
-        plugin: this.plugin,
-        test: (_b = (_a = this.snapshotsService.getOne()) == null ? void 0 : _a.selfTest()) != null ? _b : null
-      });
-    };
-  }
-};
-__decorateClass([
-  Inject("SnapshotsService")
-], DebugCommand.prototype, "snapshotsService", 2);
-
 // src/commands/reset-lines-all.command.ts
 var import_obsidian = require("obsidian");
 var ResetLinesAllCommand = class extends BaseCommand {
@@ -2174,7 +2060,6 @@ var CommandsService = class {
     this.register(ResetLinesCommand);
     this.register(ResetLinesAllCommand);
     this.register(ShowDiffCommand);
-    this.register(DebugCommand);
   }
   /**
    * Registers a command with Obsidian.
@@ -2187,7 +2072,7 @@ var CommandsService = class {
    */
   register(ClsCConstructor) {
     const command = this.factory(ClsCConstructor);
-    if (this.instances.has(command.name)) {
+    if (this.instances.has(command.id)) {
       return;
     }
     this.instances.set(command.id, command);
@@ -4083,6 +3968,7 @@ function set(object, path, value) {
 var set_default = set;
 
 // src/helpers/dom.helper.ts
+var import_obsidian6 = require("obsidian");
 var DomHelper = class {
   /**
    * Creates a DOM element based on the provided configuration.
@@ -4139,12 +4025,8 @@ var DomHelper = class {
       element.textContent = config.text;
     }
     if (!isUndefined_default(config.html)) {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(config.html, "text/html");
       element.empty();
-      Array.from(doc.body.childNodes).forEach((child) => {
-        element.appendChild(child);
-      });
+      element.appendChild((0, import_obsidian6.sanitizeHTMLToDom)(config.html));
     }
     if (config.attributes) {
       toPairs_default(config.attributes).forEach(([key2, value]) => {
@@ -4179,8 +4061,8 @@ var DomHelper = class {
 };
 
 // src/modals/confirm.modal.ts
-var import_obsidian6 = require("obsidian");
-var ConfirmModal = class extends import_obsidian6.Modal {
+var import_obsidian7 = require("obsidian");
+var ConfirmModal = class extends import_obsidian7.Modal {
   /**
    * Creates a new instance of ConfirmModal.
    *
@@ -4225,12 +4107,6 @@ var ConfirmModal = class extends import_obsidian6.Modal {
             {
               tag: "div",
               classes: "modal-button-container",
-              styles: {
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: "10px",
-                marginTop: "20px"
-              },
               children: [
                 {
                   tag: "button",
@@ -6722,8 +6598,8 @@ function html(diffInput, configuration = {}) {
 }
 
 // src/modals/history.modal.ts
-var import_obsidian7 = require("obsidian");
-var HistoryModal = class extends import_obsidian7.Modal {
+var import_obsidian8 = require("obsidian");
+var HistoryModal = class extends import_obsidian8.Modal {
   /**
    * Creates a new instance of HistoryModal.
    *
@@ -6828,10 +6704,10 @@ var HistoryModal = class extends import_obsidian7.Modal {
       const file = this.snapshot.file;
       await this.app.vault.modify(file, originalContent);
       this.snapshotsService.wipeOne(file);
-      new import_obsidian7.Notice("File restored to original state");
+      new import_obsidian8.Notice("File restored to original state");
       this.close();
     } catch (_error) {
-      new import_obsidian7.Notice("Failed to restore file to original state");
+      new import_obsidian8.Notice("Failed to restore file to original state");
     }
   }
   /**
@@ -6842,13 +6718,13 @@ var HistoryModal = class extends import_obsidian7.Modal {
     const isOrigin = (_a = this.snapshot) == null ? void 0 : _a.isStateSameOriginal();
     const changeDateTime = (_b = this.snapshot) == null ? void 0 : _b.getLastChangedDateTime();
     this.setTitle("History");
-    new import_obsidian7.Setting(this.contentEl).setName("Last modified").setDesc(isOrigin ? "No changes" : changeDateTime).addButton((btn) => btn.setButtonText("Remove file history").setWarning().onClick(async () => {
+    new import_obsidian8.Setting(this.contentEl).setName("Last modified").setDesc(isOrigin ? "No changes" : changeDateTime).addButton((btn) => btn.setButtonText("Remove file history").setWarning().onClick(async () => {
       var _a2;
       const confirmed = await this.modalsService.confirm({
-        title: "Remove File History",
+        title: "Remove file history",
         // eslint-disable-next-line max-len
         message: "Are you sure you want to remove the change tracking history for this file? This action cannot be undone.",
-        confirmText: "Remove History"
+        confirmText: "Remove history"
       });
       if (confirmed) {
         (_a2 = this.snapshotsService) == null ? void 0 : _a2.wipeOne(this.snapshot.file);
@@ -6856,10 +6732,10 @@ var HistoryModal = class extends import_obsidian7.Modal {
       }
     })).addButton((btn) => btn.setButtonText("Restore original").setWarning().onClick(async () => {
       const confirmed = await this.modalsService.confirm({
-        title: "Restore Original File",
+        title: "Restore original file",
         // eslint-disable-next-line max-len
         message: "Are you sure you want to restore this file to its original state? All current changes will be lost and the change tracking history will be reset. This action cannot be undone.",
-        confirmText: "Restore File"
+        confirmText: "Restore file"
       });
       if (confirmed) {
         await this.restoreOriginalFile();
@@ -6876,7 +6752,7 @@ var HistoryModal = class extends import_obsidian7.Modal {
       });
     }).addButton((btn) => {
       this.modeButtons.sideBySide = btn.buttonEl;
-      return btn.setButtonText("side-by-side").onClick(() => {
+      return btn.setButtonText("Side by side").onClick(() => {
         this.renderDiff("side-by-side" /* side */);
       });
     });
@@ -6961,7 +6837,7 @@ var HistoryModal = class extends import_obsidian7.Modal {
     const patch = this.getCleanPatch();
     const handlerClick = () => {
       navigator.clipboard.writeText(patch).then(() => {
-        new import_obsidian7.Notice("Copied!");
+        new import_obsidian8.Notice("Copied!");
       });
     };
     DomHelper.update(
@@ -7191,8 +7067,8 @@ __decorateClass([
 ], ModalsService.prototype, "snapshotsService", 2);
 
 // src/settings/main.setting.ts
-var import_obsidian8 = require("obsidian");
-var MainSetting = class extends import_obsidian8.PluginSettingTab {
+var import_obsidian9 = require("obsidian");
+var MainSetting = class extends import_obsidian9.PluginSettingTab {
   /**
    * Renders the settings UI.
    * Creates and configures all settings elements in the settings tab.
@@ -7209,12 +7085,12 @@ var MainSetting = class extends import_obsidian8.PluginSettingTab {
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    new import_obsidian8.Setting(containerEl).setName("Type").setDesc("Choose between a vertical line or a dot in the gutter.").addDropdown(
-      (dropdown) => dropdown.addOption("line" /* line */, "Vertical Line").addOption("dot" /* dot */, "Char in Gutter").setValue(this.settingsService.value("type")).onChange((value) => {
+    new import_obsidian9.Setting(containerEl).setName("Type").setDesc("Choose between a vertical line or a dot in the gutter.").addDropdown(
+      (dropdown) => dropdown.addOption("line" /* line */, "Vertical line").addOption("dot" /* dot */, "Char in gutter").setValue(this.settingsService.value("type")).onChange((value) => {
         this.settingsService.update("type", value);
       })
     );
-    new import_obsidian8.Setting(containerEl).setName("Allowed file extensions").setDesc("Comma-separated list of file extensions to track for changes (e.g., md, txt, csv, json, yaml)").addText(
+    new import_obsidian9.Setting(containerEl).setName("Allowed file extensions").setDesc("Comma-separated list of file extensions to track for changes (e.g., md, txt, csv, json, yaml)").addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.allowedExtensions).setValue(this.settingsService.value("allowedExtensions")).onChange((value) => {
         this.settingsService.update(
           "allowedExtensions",
@@ -7222,44 +7098,44 @@ var MainSetting = class extends import_obsidian8.PluginSettingTab {
         );
       })
     );
-    new import_obsidian8.Setting(containerEl).setName("Keep history until").setDesc("Strategy for cleaning up revision history").addDropdown(
+    new import_obsidian9.Setting(containerEl).setName("Keep history until").setDesc("Strategy for cleaning up revision history").addDropdown(
       (dropdown) => dropdown.addOption("app" /* app */, "App close").addOption("file" /* file */, "File close").setValue(this.settingsService.value("keep")).onChange((value) => {
         this.settingsService.update("keep", value);
       })
     );
-    new import_obsidian8.Setting(containerEl).setName("Ignore new files").setDesc("Don't track changes in files created after tracking started").addToggle(
+    new import_obsidian9.Setting(containerEl).setName("Ignore new files").setDesc("Don't track changes in files created after tracking started").addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("ignoreNewFiles")).onChange((value) => {
         this.settingsService.update("ignoreNewFiles", value);
       })
     );
-    new import_obsidian8.Setting(containerEl).setName("Show indicator for").setHeading();
-    new import_obsidian8.Setting(containerEl).setName("Changed").addToggle(
+    new import_obsidian9.Setting(containerEl).setName("Show indicator for").setHeading();
+    new import_obsidian9.Setting(containerEl).setName("Changed").addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("show.changed")).onChange((value) => {
         this.settingsService.update("show.changed", value);
       })
     );
-    new import_obsidian8.Setting(containerEl).setName("Restored").addToggle(
+    new import_obsidian9.Setting(containerEl).setName("Restored").addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("show.restored")).onChange((value) => {
         this.settingsService.update("show.restored", value);
       })
     );
-    new import_obsidian8.Setting(containerEl).setName("Added").addToggle(
+    new import_obsidian9.Setting(containerEl).setName("Added").addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("show.added")).onChange((value) => {
         this.settingsService.update("show.added", value);
       })
     );
-    new import_obsidian8.Setting(containerEl).setName("Removed").addToggle(
+    new import_obsidian9.Setting(containerEl).setName("Removed").addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("show.removed")).onChange((value) => {
         this.settingsService.update("show.removed", value);
       })
     );
-    new import_obsidian8.Setting(containerEl).setName("Line indicator").setHeading();
-    new import_obsidian8.Setting(containerEl).setName("Width").setDesc("Width of the vertical line indicator (in pixels).").addSlider(
+    new import_obsidian9.Setting(containerEl).setName("Line indicator").setHeading();
+    new import_obsidian9.Setting(containerEl).setName("Width").setDesc("Width of the vertical line indicator (in pixels).").addSlider(
       (slider) => slider.setLimits(1, 5, 1).setValue(this.settingsService.value("line.width")).setDynamicTooltip().onChange((value) => {
         this.settingsService.update("line.width", value);
       })
     );
-    new import_obsidian8.Setting(containerEl).setName("Gutter indicator").setDesc((() => {
+    new import_obsidian9.Setting(containerEl).setName("Gutter indicator").setDesc((() => {
       return DomHelper.createFragment([
         {
           tag: "div",
@@ -7284,22 +7160,22 @@ var MainSetting = class extends import_obsidian8.PluginSettingTab {
         }
       ]);
     })()).setHeading();
-    new import_obsidian8.Setting(containerEl).setName("Change char").addText(
+    new import_obsidian9.Setting(containerEl).setName("Change char").addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.gutter.changed).setValue(this.settingsService.value("gutter.changed")).onChange((value) => {
         this.settingsService.update("gutter.changed", value || DEFAULT_SETTINGS.gutter.changed);
       })
     );
-    new import_obsidian8.Setting(containerEl).setName("Added char").addText(
+    new import_obsidian9.Setting(containerEl).setName("Added char").addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.gutter.added).setValue(this.settingsService.value("gutter.added")).onChange((value) => {
         this.settingsService.update("gutter.added", value || DEFAULT_SETTINGS.gutter.added);
       })
     );
-    new import_obsidian8.Setting(containerEl).setName("Restore char").addText(
+    new import_obsidian9.Setting(containerEl).setName("Restore char").addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.gutter.restored).setValue(this.settingsService.value("gutter.restored")).onChange((value) => {
         this.settingsService.update("gutter.restored", value || DEFAULT_SETTINGS.gutter.restored);
       })
     );
-    new import_obsidian8.Setting(containerEl).setName("Removed char").addText(
+    new import_obsidian9.Setting(containerEl).setName("Removed char").addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.gutter.removed).setValue(this.settingsService.value("gutter.removed")).onChange((value) => {
         this.settingsService.update("gutter.removed", value || DEFAULT_SETTINGS.gutter.removed);
       })
@@ -8358,7 +8234,7 @@ var FileSnapshot = class {
       ordering = "key"
     } = params != null ? params : {};
     const sort = isArray_default(ordering) ? ordering[0] : ordering;
-    const direction = isArray_default(ordering) ? ordering[1] : "acs";
+    const direction = isArray_default(ordering) ? ordering[1] : "asc";
     const list = [...this.tracker];
     list.sort((a, b) => {
       const va = a[sort];
@@ -8819,7 +8695,7 @@ var On = (name) => {
 };
 
 // src/services/statusbar.service.ts
-var import_obsidian9 = require("obsidian");
+var import_obsidian10 = require("obsidian");
 var StatusbarService = class {
   /**
    * Creates a new instance of StatusbarService.
@@ -8851,7 +8727,7 @@ var StatusbarService = class {
     var _a, _b;
     const view = (_a = this.plugin.app.workspace.getMostRecentLeaf()) == null ? void 0 : _a.view;
     const snapshot = this.snapshotsService.getOne();
-    if (!view || !(view instanceof import_obsidian9.MarkdownView) || !snapshot) {
+    if (!view || !(view instanceof import_obsidian10.MarkdownView) || !snapshot) {
       this.clear();
       return;
     }
@@ -9013,8 +8889,8 @@ var import_index = __toESM(require_eventemitter3(), 1);
 var eventemitter3_default = import_index.default;
 
 // src/main.ts
-var import_obsidian10 = require("obsidian");
-var LineChangeTrackerPlugin = class extends import_obsidian10.Plugin {
+var import_obsidian11 = require("obsidian");
+var LineChangeTrackerPlugin = class extends import_obsidian11.Plugin {
   /**
    * Creates a new instance of the LineChangeTrackerPlugin.
    * Registers all required services during initialization.
@@ -9176,9 +9052,9 @@ var LineChangeTrackerPlugin = class extends import_obsidian10.Plugin {
    * @return {EditorView | null} The most recent CodeMirror editor view, or null if none exists
    */
   getResentEditorView() {
-    var _a, _b;
-    const view = this.app.workspace.getMostRecentLeaf().view;
-    return (_b = (_a = view == null ? void 0 : view.editor) == null ? void 0 : _a.cm) != null ? _b : null;
+    var _a, _b, _c;
+    const view = (_a = this.app.workspace.getMostRecentLeaf()) == null ? void 0 : _a.view;
+    return (_c = (_b = view == null ? void 0 : view.editor) == null ? void 0 : _b.cm) != null ? _c : null;
   }
   /**
    * Gets the active Markdown view.
@@ -9186,7 +9062,7 @@ var LineChangeTrackerPlugin = class extends import_obsidian10.Plugin {
    * @return {MarkdownView | null} The active markdown view, or null if none is active
    */
   getActiveViewOfType() {
-    return this.app.workspace.getActiveViewOfType(import_obsidian10.MarkdownView);
+    return this.app.workspace.getActiveViewOfType(import_obsidian11.MarkdownView);
   }
   /**
    * Gets the active file.

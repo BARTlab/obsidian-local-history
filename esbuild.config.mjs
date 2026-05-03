@@ -2,7 +2,6 @@ import esbuild from 'esbuild';
 import process from 'process';
 import builtins from 'builtin-modules';
 import { sassPlugin } from '@shellscape/esbuild-sass-plugin';
-// import esbuildPluginTsc from 'esbuild-plugin-tsc';
 
 const banner =
   `/*
@@ -22,12 +21,10 @@ const context = await esbuild.context({
     './src/styles.scss'
   ],
   bundle: true,
-  // watch: process.argv.includes('--watch'),
   external: [
     'obsidian',
     'electron',
     'tslib',
-    // 'reflect-metadata',
     '@codemirror/collab',
     '@codemirror/commands',
     '@codemirror/language',
@@ -48,14 +45,12 @@ const context = await esbuild.context({
   plugins: [sassPlugin({
     basedir: './',
     cssOutfile: './styles.css',
-    type: 'css', // по умолчанию — добавлять отдельно, не inline
+    type: 'css',
   })],
   outdir: './',
-  // outfile: './main.js',
 });
 
 if (prod) {
-  // todo: проверить сжатие css
   await context.rebuild();
   process.exit(0);
 } else {

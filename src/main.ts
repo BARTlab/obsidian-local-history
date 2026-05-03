@@ -51,7 +51,6 @@ export default class LineChangeTrackerPlugin extends Plugin {
   public constructor(app: App, manifest: PluginManifest) {
     super(app, manifest);
 
-    // todo: implement a dependency system?
     this.registerService(SettingsService);
     this.registerService(StylesService);
     this.registerService(ModalsService);

@@ -74,7 +74,6 @@ export class TrackerLine {
    */
   public changedTimeStamp: number = -1;
 
-  // todo: remove or use it
   /**
    * Timestamp when the line was added
    * Used for sorting and tracking addition order
@@ -368,8 +367,6 @@ export class TrackerLine {
 
     this.currentPosition = line;
     this.changeAtPosition = line;
-    // todo: not sure if it's needed here
-    // this.removedAtPosition = -1;
   }
 
   /**

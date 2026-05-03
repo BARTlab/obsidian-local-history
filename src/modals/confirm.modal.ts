@@ -85,12 +85,6 @@ export class ConfirmModal extends Modal {
             {
               tag: 'div',
               classes: 'modal-button-container',
-              styles: {
-                display: 'flex',
-                justifyContent: 'flex-end',
-                gap: '10px',
-                marginTop: '20px'
-              },
               children: [
                 {
                   tag: 'button',

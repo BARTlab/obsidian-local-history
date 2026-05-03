@@ -198,10 +198,10 @@ export class HistoryModal extends Modal {
           .setWarning()
           .onClick(async (): Promise<void> => {
             const confirmed: boolean = await this.modalsService.confirm({
-              title: 'Remove File History',
+              title: 'Remove file history',
               // eslint-disable-next-line max-len
               message: 'Are you sure you want to remove the change tracking history for this file? This action cannot be undone.',
-              confirmText: 'Remove History'
+              confirmText: 'Remove history'
             });
 
             if (confirmed) {
@@ -215,10 +215,10 @@ export class HistoryModal extends Modal {
           .setWarning()
           .onClick(async (): Promise<void> => {
             const confirmed: boolean = await this.modalsService.confirm({
-              title: 'Restore Original File',
+              title: 'Restore original file',
               // eslint-disable-next-line max-len
               message: 'Are you sure you want to restore this file to its original state? All current changes will be lost and the change tracking history will be reset. This action cannot be undone.',
-              confirmText: 'Restore File'
+              confirmText: 'Restore file'
             });
 
             if (confirmed) {
@@ -247,7 +247,7 @@ export class HistoryModal extends Modal {
         this.modeButtons.sideBySide = btn.buttonEl;
 
         return btn
-          .setButtonText('side-by-side')
+          .setButtonText('Side by side')
           .onClick((): void => {
             this.renderDiff(DiffOutputFormatType.side);
           });

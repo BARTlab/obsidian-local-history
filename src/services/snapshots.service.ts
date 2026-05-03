@@ -119,6 +119,31 @@ export class SnapshotsService implements Service {
   }
 
   /**
+   * Re-keys a snapshot after its file was renamed or moved.
+   * Moves the snapshot from the old path to the file's current path and updates
+   * the stored file reference, preserving the tracked history across the rename.
+   *
+   * @param {string} oldPath - The path the snapshot was previously keyed by
+   * @param {TFile} file - The file in its renamed state (holding the new path)
+   */
+  public rename(oldPath: string, file: TFile): void {
+    if (!oldPath || !file || oldPath === file.path) {
+      return;
+    }
+
+    const snapshot: FileSnapshot | undefined = this.fileSnapshots.get(oldPath);
+
+    if (!snapshot) {
+      return;
+    }
+
+    snapshot.file = file;
+
+    this.fileSnapshots.delete(oldPath);
+    this.fileSnapshots.set(file.path, snapshot);
+  }
+
+  /**
    * Clears all snapshots from the service.
    * Removes all stored file snapshots.
    */

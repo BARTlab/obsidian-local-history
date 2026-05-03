@@ -1,6 +1,8 @@
 import type { BaseEvent } from '@/events/base.event';
 import { VaultCreateEvent } from '@/events/vault/create.event';
+import { VaultDeleteEvent } from '@/events/vault/delete.event';
 import { VaultModifyEvent } from '@/events/vault/modify.event';
+import { VaultRenameEvent } from '@/events/vault/rename.event';
 import { WorkspaceActiveLeafChangeEvent } from '@/events/workspace/active-leaf-change.event';
 import { WorkspaceEditorMenuEvent } from '@/events/workspace/editor-menu.event';
 import { WorkspaceFileOpenEvent } from '@/events/workspace/file-open.event';
@@ -45,6 +47,8 @@ export class EventsService implements Service {
     this.register(WorkspaceFilesMenuEvent);
     this.register(VaultModifyEvent);
     this.register(VaultCreateEvent);
+    this.register(VaultRenameEvent);
+    this.register(VaultDeleteEvent);
   }
 
   /**

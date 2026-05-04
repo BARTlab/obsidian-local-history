@@ -4,7 +4,7 @@ import type { TrackerLine } from '@/lines/tracker.line';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { EditorExtension } from '@/types';
-import { type ChangeSet, type EditorState, Text } from '@codemirror/state';
+import { type EditorState, type Text } from '@codemirror/state';
 import { Decoration, type DecorationSet, type ViewUpdate } from '@codemirror/view';
 
 /**
@@ -49,7 +49,7 @@ export class ChangeDetectorExtension extends BaseExtension implements EditorExte
    * @param {ViewUpdate} update - The view update event from CodeMirror
    */
   protected processIncrementalChanges(update: ViewUpdate): void {
-    const currentContent: string = this.view?.state.doc.toString();
+    const currentContent: string = update.state.doc.toString();
     const snapshot: FileSnapshot = this.snapshotsService.getOne();
 
     if (!snapshot || !currentContent) {
@@ -61,25 +61,31 @@ export class ChangeDetectorExtension extends BaseExtension implements EditorExte
       return;
     }
 
-    this.computeIncrementalChanges(update.changes);
+    this.computeIncrementalChanges(update);
     this.snapshotsService.forceUpdate();
   }
 
   /**
-   * Computes incremental changes in the document based on the ChangeSet.
+   * Computes incremental changes in the document based on the ViewUpdate.
    * Tracks line additions, modifications, and removals to maintain change history.
    * Updates the file snapshot with the new state after processing all changes.
    *
-   * @param {ChangeSet} changes - The ChangeSet from CodeMirror containing all document changes
+   * The old-document side of the ChangeSet (fromA/toA) is mapped against
+   * update.startState, which is by construction the editor state those positions
+   * index into. Deriving the previous text from the update (not the snapshot's
+   * cached state) keeps line mapping correct even when an earlier update was
+   * skipped by the hash guard and left the cached state stale.
+   *
+   * @param {ViewUpdate} update - The view update event from CodeMirror
    * @return {void}
    */
-  public computeIncrementalChanges(changes: ChangeSet): void {
-    const state: EditorState = this.view?.state;
+  public computeIncrementalChanges(update: ViewUpdate): void {
+    const state: EditorState = update.state;
     const currentLines: string[] = state.doc.toString().split(state.lineBreak) || [];
     const snapshot: FileSnapshot = this.snapshotsService.getOne();
-    const prev: Text = Text.of(snapshot.getLastStateLines() || currentLines);
+    const prev: Text = update.startState.doc;
 
-    changes.iterChanges((fromA: number, toA: number, fromB: number, toB: number): void => {
+    update.changes.iterChanges((fromA: number, toA: number, fromB: number, toB: number): void => {
       // Line numbers (0-based) touched by this change in the old and new docs.
       const fromOldLine: number = prev.lineAt(fromA).number - 1;
       const toOldLine: number = prev.lineAt(toA).number - 1;

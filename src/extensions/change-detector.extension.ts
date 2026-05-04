@@ -4,7 +4,7 @@ import type { TrackerLine } from '@/lines/tracker.line';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { EditorExtension } from '@/types';
-import { type ChangeSet, type EditorState, Text, type TextIterator } from '@codemirror/state';
+import { type ChangeSet, type EditorState, Text } from '@codemirror/state';
 import { Decoration, type DecorationSet, type ViewUpdate } from '@codemirror/view';
 
 /**
@@ -79,49 +79,74 @@ export class ChangeDetectorExtension extends BaseExtension implements EditorExte
     const snapshot: FileSnapshot = this.snapshotsService.getOne();
     const prev: Text = Text.of(snapshot.getLastStateLines() || currentLines);
 
-    // eslint-disable-next-line max-params
-    changes.iterChanges((fromA: number, toA: number, fromB: number, toB: number, inserted: Text): void => {
+    changes.iterChanges((fromA: number, toA: number, fromB: number, toB: number): void => {
+      // Line numbers (0-based) touched by this change in the old and new docs.
+      const fromOldLine: number = prev.lineAt(fromA).number - 1;
+      const toOldLine: number = prev.lineAt(toA).number - 1;
       const fromNewLine: number = state.doc.lineAt(fromB).number - 1;
       const toNewLine: number = state.doc.lineAt(toB).number - 1;
 
-      const fromOldLine: number = prev.lineAt(fromA).number - 1;
-      const toOldLine: number = prev.lineAt(toA).number - 1;
+      // A boundary line survives when the edit keeps part of it: a preserved
+      // prefix (edit starts after the line start) or suffix (edit ends before
+      // the line end). The preserved span has equal length in both docs, so the
+      // new-doc positions decide it for both sides.
+      const prefixShared: boolean = fromB > state.doc.lineAt(fromB).from;
+      const suffixShared: boolean = toB < state.doc.lineAt(toB).to;
 
-      const start: number = Math.min(fromNewLine, toNewLine);
-      const line: TextIterator = inserted.iterLines();
-      let offset: number = 0;
-      const linesDiffCount: number = ((fromOldLine - toOldLine) + (toNewLine - fromNewLine)); //  + inserted.lines;
+      // The "core" lines are the ones wholly replaced: every old core line is
+      // gone and every new core line is brand new.
+      const oldCoreStart: number = fromOldLine + (prefixShared ? 1 : 0);
+      const oldCoreEnd: number = toOldLine - (suffixShared ? 1 : 0);
+      const newCoreStart: number = fromNewLine + (prefixShared ? 1 : 0);
+      const newCoreEnd: number = toNewLine - (suffixShared ? 1 : 0);
 
-      // removed
-      if (linesDiffCount < 0) {
-        for (let i = 0; i <= Math.abs(linesDiffCount) - 1; i++) {
-          const index = toOldLine - i;
+      const oldCoreCount: number = Math.max(0, oldCoreEnd - oldCoreStart + 1);
+      const newCoreCount: number = Math.max(0, newCoreEnd - newCoreStart + 1);
 
-          snapshot.removeTrackerOrLine(index);
+      if (oldCoreCount === newCoreCount && oldCoreCount > 0) {
+        // Same number of lines in and out: each core line was edited in place.
+        for (let i: number = 0; i < newCoreCount; i++) {
+          const tracker: TrackerLine | null = snapshot.findCurrentLine(newCoreStart + i);
+
+          tracker?.change(currentLines[newCoreStart + i]);
         }
+      } else {
+        // Counts differ: treat the block as delete + insert so destroyed
+        // originals are removed and the replacements are added (no mismapping).
+        // Capture the doomed originals first, insert the new lines, then remove
+        // the originals by reference. Removing only after the inserts means the
+        // originals are not yet in a removed state, so a same-transaction insert
+        // adds a fresh line instead of resurrecting them.
+        const doomed: TrackerLine[] = [];
+
+        for (let index: number = oldCoreStart; index <= oldCoreEnd; index++) {
+          const tracker: TrackerLine | null = snapshot.findCurrentLine(index);
+
+          if (tracker) {
+            doomed.push(tracker);
+          }
+        }
+
+        for (let index: number = newCoreStart; index <= newCoreEnd; index++) {
+          const added: TrackerLine = snapshot.restoreOrAddTracker(index);
+
+          added?.change(currentLines[index]);
+        }
+
+        doomed.forEach((tracker: TrackerLine): void => {
+          snapshot.removeTrackerOrLine(tracker);
+        });
       }
 
-      // added
-      if (linesDiffCount > 0) {
-        for (let i: number = 1; i <= Math.abs(linesDiffCount); i++) {
-          const index: number = fromNewLine + i;
-
-          snapshot.restoreOrAddTracker(index);
-        }
+      // Update the content of the surviving boundary lines. The suffix line is
+      // read after add/remove shifts, so it sits at its final new position.
+      if (prefixShared) {
+        snapshot.findCurrentLine(fromNewLine)?.change(currentLines[fromNewLine]);
       }
 
-      do {
-        const lineNumber: number = offset + start;
-        const tracker: TrackerLine = snapshot.findCurrentLine(lineNumber);
-
-        if (offset >= inserted.lines) {
-          continue;
-        }
-
-        tracker?.change(currentLines[lineNumber]);
-
-        offset++;
-      } while (!line.next().done);
+      if (suffixShared && toNewLine !== fromNewLine) {
+        snapshot.findCurrentLine(toNewLine)?.change(currentLines[toNewLine]);
+      }
     }, true);
 
     snapshot.updateState(currentLines);

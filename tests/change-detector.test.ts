@@ -40,7 +40,12 @@ const step = (snapshot: FileSnapshot, currentDoc: string, changes: ChangeSpec): 
   const plugin = { get: (): unknown => ({ getOne: (): FileSnapshot => snapshot, forceUpdate: (): void => undefined }) };
   const ext = new ChangeDetectorExtension({ state: tr.state } as unknown as ViewArg, plugin as unknown as PluginArg);
 
-  ext.update({ docChanged: true, changes: tr.changes } as unknown as UpdateArg);
+  ext.update({
+    docChanged: true,
+    changes: tr.changes,
+    startState: tr.startState,
+    state: tr.state,
+  } as unknown as UpdateArg);
 
   return tr.state.doc.toString();
 };
@@ -190,11 +195,64 @@ describe('ChangeDetectorExtension line replacement (T2.2 off-by-one)', () => {
 });
 
 describe('ChangeDetectorExtension prev-state desync (T2.3)', () => {
-  // The hash-skip guard in processIncrementalChanges returns before refreshing
-  // the snapshot's last state, so a skipped update can leave `prev` (the basis
-  // for prev.lineAt(fromA)) stale for the next ChangeSet. A deterministic unit
-  // repro needs a contrived batched/hash-matched update; T2.3 derives `prev`
-  // from the update's startState and adds the regression here. Placeholder
-  // until then.
-  it.todo('keeps prev-state aligned across a skipped (hash-matched) update');
+  // The old-document side of a ChangeSet (fromA/toA) must be mapped against the
+  // editor state those positions index into, i.e. update.startState. Earlier the
+  // engine mapped them against the snapshot's cached state, which the weak hash
+  // guard (TextHelper.hash, abs of a 32-bit rolling hash) can leave stale after a
+  // skipped update. The fix derives `prev` from update.startState so mapping no
+  // longer depends on the cached state staying in sync.
+  it('maps the old-document side from update.startState, not a stale cached state', () => {
+    const snapshot = new FileSnapshot('a\nb\nc\nd');
+
+    // Simulate the desync: a prior update was hash-skipped, so the cached state
+    // no longer mirrors the editor doc (here it has a different line layout).
+    // With prev sourced from this stale cache, lineAt(toA) would collapse the
+    // removed range to zero lines and drop the deletion entirely.
+    snapshot.updateState(['aaaaaa', 'x']);
+
+    // Delete lines "b" and "c": a, b, c, d -> a, d.
+    step(snapshot, 'a\nb\nc\nd', {
+      from: lineRange('a\nb\nc\nd', 1).to,
+      to: lineRange('a\nb\nc\nd', 3).to,
+      insert: '',
+    });
+
+    expect(removedTrackerCount(snapshot)).toBe(2);
+    expect(positions(snapshot, ChangeType.added)).toEqual([]);
+    expect(positions(snapshot, ChangeType.changed)).toEqual([]);
+    // The surviving original "d" sits at index 1 with no change marker.
+    expect(snapshot.findCurrentLine(1)?.isStateOriginal()).toBe(true);
+  });
+
+  it('keeps line mapping correct across a rapid edit/undo sequence', () => {
+    const snapshot = new FileSnapshot('a\nb\nc');
+
+    // Edit line "b" twice, then undo back to the original content step by step.
+    const s1: string = step(snapshot, 'a\nb\nc', {
+      from: lineRange('a\nb\nc', 2).from,
+      to: lineRange('a\nb\nc', 2).to,
+      insert: 'B',
+    });
+    const s2: string = step(snapshot, s1, {
+      from: lineRange(s1, 2).from,
+      to: lineRange(s1, 2).to,
+      insert: 'BB',
+    });
+    const s3: string = step(snapshot, s2, {
+      from: lineRange(s2, 2).from,
+      to: lineRange(s2, 2).to,
+      insert: 'B',
+    });
+    step(snapshot, s3, {
+      from: lineRange(s3, 2).from,
+      to: lineRange(s3, 2).to,
+      insert: 'b',
+    });
+
+    // Mapping never drifts off line index 1, and the round trip ends restored.
+    expect(positions(snapshot, ChangeType.restored)).toEqual([1]);
+    expect(positions(snapshot, ChangeType.changed)).toEqual([]);
+    expect(positions(snapshot, ChangeType.added)).toEqual([]);
+    expect(positions(snapshot, ChangeType.removed)).toEqual([]);
+  });
 });

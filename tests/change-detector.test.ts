@@ -164,19 +164,11 @@ describe('ChangeDetectorExtension restore', () => {
 });
 
 describe('ChangeDetectorExtension line replacement (T2.2 off-by-one)', () => {
-  // Known-failing: exposes the off-by-one in computeIncrementalChanges when a
-  // block of lines is replaced by a different number of lines. The hand-rolled
-  // net "linesDiffCount" only accounts for the net line delta, so it never
-  // removes the obliterated originals and mismaps the survivors.
-  //
-  // Current (buggy) output for replacing "b\nc" with "X\nY\nZ":
-  //   changed = [1, 3]   (original "c" mislabeled as changed into the new "Z")
-  //   added   = [2]
-  //   removed = []        (the destroyed originals "b" and "c" are lost)
-  //
-  // T2.2 should treat the replacement as delete + insert, consistent with the
-  // engine's pure-delete and pure-paste behavior. Un-skip once T2.2 lands.
-  it.skip('maps a 2-line block replaced by 3 lines as remove + add', () => {
+  // A block of lines replaced by a different number of lines is treated as
+  // delete + insert, consistent with the engine's pure-delete and pure-paste
+  // behavior: the destroyed originals are removed and the replacements are
+  // added, instead of mismapping survivors as "changed".
+  it('maps a 2-line block replaced by 3 lines as remove + add', () => {
     const snapshot = new FileSnapshot('a\nb\nc\nd');
 
     // Replace lines "b" and "c" with "X\nY\nZ" -> a, X, Y, Z, d.

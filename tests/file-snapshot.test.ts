@@ -16,6 +16,14 @@ const positionsWithType = (snapshot: FileSnapshot, type: ChangeType): number[] =
     .map((change): number => change.getLine())
     .sort((a: number, b: number): number => a - b);
 
+// Ground-truth lookup of the live line at a position by scanning the tracker
+// directly (first match in array order), used to assert the cached
+// current-position index never drifts from the tracker it indexes.
+const liveAt = (snapshot: FileSnapshot, pos: number): TrackerLine | null =>
+  snapshot.tracker.find(
+    (line: TrackerLine): boolean => line.existedInCurrent && line.currentPosition === pos
+  ) ?? null;
+
 describe('FileSnapshot construction', () => {
   it('seeds one original tracker per line', () => {
     const snapshot = new FileSnapshot('a\nb\nc');
@@ -116,5 +124,63 @@ describe('FileSnapshot shift helpers', () => {
 
     expect(lineA?.currentPosition).toBe(1);
     expect(lineC?.currentPosition).toBe(3);
+  });
+});
+
+describe('FileSnapshot current-position index (T3.2)', () => {
+  it('resolves findCurrentLine to the line living at the position', () => {
+    const snapshot = new FileSnapshot('a\nb\nc');
+
+    expect(snapshot.findCurrentLine(0)?.current).toBe('a');
+    expect(snapshot.findCurrentLine(2)?.current).toBe('c');
+    expect(snapshot.findCurrentLine(3)).toBeNull();
+  });
+
+  it('still honors the optional upper-bound guard', () => {
+    const snapshot = new FileSnapshot('a\nb\nc');
+
+    // The line is at position 2, so a range capped at 1 must miss it.
+    expect(snapshot.findCurrentLine(2, 1)).toBeNull();
+    expect(snapshot.findCurrentLine(2, 2)?.current).toBe('c');
+  });
+
+  it('rebuilds the index after a raw shift invalidates it', () => {
+    const snapshot = new FileSnapshot('a\nb\nc');
+
+    // Warm the lazy index, then shift every line up so cached positions go stale.
+    snapshot.findCurrentLine(0);
+    snapshot.shiftUp(0);
+
+    // a@1, b@2, c@3 after the shift; nothing remains at 0.
+    expect(snapshot.findCurrentLine(0)).toBeNull();
+    expect(snapshot.findCurrentLine(1)?.current).toBe('a');
+    expect(snapshot.findCurrentLine(3)?.current).toBe('c');
+
+    for (let pos = -1; pos <= 4; pos++) {
+      expect(snapshot.findCurrentLine(pos)).toBe(liveAt(snapshot, pos));
+    }
+  });
+
+  it('matches a direct tracker scan after a mix of mutations', () => {
+    const snapshot = new FileSnapshot('a\nb\nc\nd\ne');
+
+    // Warm the index, then run mutations that each must invalidate it.
+    snapshot.findCurrentLine(0);
+    snapshot.moveTo(0, 2);
+    snapshot.removeTrackerOrLine(1);
+    snapshot.restoreOrAddTracker(0);
+    snapshot.findCurrentLine(3)?.change('E2');
+
+    for (let pos = -1; pos <= 6; pos++) {
+      expect(snapshot.findCurrentLine(pos)).toBe(liveAt(snapshot, pos));
+    }
+  });
+
+  it('finds a freshly added line through the index', () => {
+    const snapshot = new FileSnapshot('a\nb');
+
+    const added: TrackerLine = snapshot.restoreOrAddTracker(1);
+
+    expect(snapshot.findCurrentLine(1)).toBe(added);
   });
 });

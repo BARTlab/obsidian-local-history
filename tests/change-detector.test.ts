@@ -256,3 +256,41 @@ describe('ChangeDetectorExtension prev-state desync (T2.3)', () => {
     expect(positions(snapshot, ChangeType.removed)).toEqual([]);
   });
 });
+
+describe('ChangeDetectorExtension scale (T3.2 hot path)', () => {
+  // Pastes then deletes a large block in single transactions. The old tracker
+  // hot path sorted and rebuilt an ArrayMap for every shifted line (and per
+  // findCurrentLine), which is O(n^2 log n) on a block this size; the indexed
+  // path is linear per line. The result must stay correct and finish well under
+  // the budget below, which the pre-T3.2 code would blow past.
+  it('handles a 5000-line paste and delete correctly and fast', () => {
+    const lineCount = 5000;
+    const base = 'a\nb';
+    const snapshot = new FileSnapshot(base);
+    const pasted: string = Array.from({ length: lineCount }, (_value, i: number): string => `line ${i}`).join('\n');
+
+    const started: number = Date.now();
+
+    // Paste the block after the first line, then delete exactly that block.
+    const afterPaste: string = step(snapshot, base, { from: lineRange(base, 1).to, insert: `\n${pasted}` });
+
+    step(snapshot, afterPaste, {
+      from: lineRange(afterPaste, 1).to,
+      to: lineRange(afterPaste, 1 + lineCount).to,
+      insert: '',
+    });
+
+    const elapsed: number = Date.now() - started;
+
+    // The pasted lines never existed in the original, so deleting them leaves no
+    // trace: the document is back to its original two original lines.
+    expect(snapshot.getChangesLinesCount()).toBe(0);
+    expect(snapshot.tracker.filter((line): boolean => line.existedInCurrent)).toHaveLength(2);
+    expect(snapshot.findCurrentLine(0)?.isStateOriginal()).toBe(true);
+    expect(snapshot.findCurrentLine(1)?.isStateOriginal()).toBe(true);
+
+    // Generous bound to stay stable on slow CI while still catching a regression
+    // to the per-line sort/copy path (which runs into tens of seconds here).
+    expect(elapsed).toBeLessThan(8000);
+  }, 30000);
+});

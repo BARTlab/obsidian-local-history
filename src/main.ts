@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import { refreshDecorationsEffect } from '@/extensions/refresh.effect';
 import { CommandsService } from '@/services/commands.service';
 import { EventsService } from '@/services/events.service';
 import { ExtensionsService } from '@/services/extensions.service';
@@ -199,12 +200,12 @@ export default class LineChangeTrackerPlugin extends Plugin {
 
   /**
    * Forces an update of the current editor view.
-   * Dispatches an empty transaction to trigger a refresh.
+   * Dispatches a refresh effect so decoration extensions rebuild even though
+   * the document did not change.
    */
   public forceUpdateEditor(): void {
     this.getRecentEditorView()?.dispatch({
-      effects: [],
-      changes: [],
+      effects: [refreshDecorationsEffect.of(null)],
     });
   }
 

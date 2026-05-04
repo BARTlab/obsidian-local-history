@@ -1,14 +1,16 @@
 import { ChangeType, IndicatorType } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { BaseExtension } from '@/extensions/base.extension';
+import { refreshDecorationsEffect } from '@/extensions/refresh.effect';
 import type { ChangeLine } from '@/lines/change.line';
 import type { ArrayMap } from '@/maps/array.map';
+import type LineChangeTrackerPlugin from '@/main';
 import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { EditorExtension } from '@/types';
-import { type Line, RangeSetBuilder } from '@codemirror/state';
-import type { DecorationSet, ViewUpdate } from '@codemirror/view';
+import { type Line, RangeSetBuilder, type Transaction } from '@codemirror/state';
+import type { DecorationSet, EditorView, ViewUpdate } from '@codemirror/view';
 import { Decoration } from '@codemirror/view';
 
 /**
@@ -39,21 +41,46 @@ export class EditorCommonExtension extends BaseExtension implements EditorExtens
    */
   public decorations: DecorationSet = Decoration.none;
 
-  // todo remember hash to avoid restarting re-render
+  /**
+   * Creates a new instance of EditorCommonExtension.
+   * Builds the initial decoration set so a freshly opened view already
+   * reflects the current snapshot without waiting for the first update.
+   *
+   * @param {EditorView | null} view - The CodeMirror editor view
+   * @param {LineChangeTrackerPlugin} plugin - The plugin instance
+   */
+  public constructor(view: EditorView | null, plugin: LineChangeTrackerPlugin) {
+    super(view, plugin);
+
+    this.updateDecorations();
+  }
 
   /**
    * Handles updates to the editor view.
-   * Updates decorations when the document changes.
+   * Rebuilds decorations only when the document changed, the viewport
+   * scrolled to new lines, or a refresh effect signalled that the snapshot or
+   * settings changed. Cursor-only and selection updates are ignored.
    *
    * @param {ViewUpdate} update - The view update event from CodeMirror
    * @return {void}
    */
   public update(update: ViewUpdate): void {
-    if (!update.docChanged) {
-      //   return;
+    if (this.needsRebuild(update)) {
+      this.updateDecorations();
     }
+  }
 
-    this.updateDecorations();
+  /**
+   * Decides whether the decoration set must be rebuilt for this update.
+   *
+   * @param {ViewUpdate} update - The view update event from CodeMirror
+   * @return {boolean} True if decorations need to be rebuilt
+   */
+  protected needsRebuild(update: ViewUpdate): boolean {
+    return update.docChanged
+      || update.viewportChanged
+      || update.transactions.some((transaction: Transaction): boolean =>
+        transaction.effects.some((effect): boolean => effect.is(refreshDecorationsEffect)));
   }
 
   /**
@@ -74,7 +101,9 @@ export class EditorCommonExtension extends BaseExtension implements EditorExtens
 
   /**
    * Builds the decoration set based on the changes in the snapshot.
-   * Creates line decorations for each line that has changes of enabled types.
+   * Creates line decorations only for changed lines inside the currently
+   * visible ranges, so the work scales with the viewport rather than the
+   * whole document.
    *
    * @return {DecorationSet} The built decoration set
    */
@@ -84,26 +113,29 @@ export class EditorCommonExtension extends BaseExtension implements EditorExtens
     const snapshot: FileSnapshot | null = this.snapshotsService.getOne();
     const changes: ArrayMap<ChangeLine> = snapshot?.getChanges(enable);
 
-    for (let i: number = 0; i <= this.view.state.doc.lines - 1; i++) {
-      const line: Line = this.view.state.doc.line(i + 1);
-      const change: ChangeLine = changes?.get(i) ?? null;
-      const classNames: string[] = ['lct', `lct-${IndicatorType.line}`];
+    for (const { from, to } of this.view.visibleRanges) {
+      let pos: number = from;
 
-      if (!change) {
-        continue;
+      while (pos <= to) {
+        const line: Line = this.view.state.doc.lineAt(pos);
+        const change: ChangeLine = changes?.get(line.number - 1) ?? null;
+
+        if (change) {
+          const classNames: string[] = ['lct', `lct-${IndicatorType.line}`];
+
+          change.getTypes().forEach((type: ChangeType): void => {
+            classNames.push(`lct-${type}`);
+          });
+
+          builder.add(line.from, line.from, Decoration.line({
+            attributes: {
+              class: classNames.join(' '),
+            },
+          }));
+        }
+
+        pos = line.to + 1;
       }
-
-      change.getTypes().forEach((type: ChangeType): void => {
-        classNames.push(`lct-${type}`);
-      });
-
-      const decoration: Decoration = Decoration.line({
-        attributes: {
-          class: classNames.join(' '),
-        },
-      });
-
-      builder.add(line.from, line.from, decoration);
     }
 
     this.decorations = builder.finish();

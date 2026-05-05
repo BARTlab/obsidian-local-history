@@ -1,4 +1,10 @@
 /**
+ * Monotonic, module-level counter backing {@link TextHelper.rndId}. Guarantees
+ * every generated id is unique and non-empty for the lifetime of the module.
+ */
+let idCounter: number = 0;
+
+/**
  * Helper class for text-related operations.
  * Provides utility methods for working with strings and generating identifiers.
  */
@@ -22,14 +28,17 @@ export class TextHelper {
   }
 
   /**
-   * Generates a random alphanumeric identifier.
-   * Converts a random number to base 36 (alphanumeric) and optionally adds a prefix.
+   * Generates a unique alphanumeric identifier.
+   * Increments a monotonic counter and renders it in base 36 (alphanumeric),
+   * optionally prefixed. Unlike a Math.random scheme it never yields empty,
+   * truncated, or colliding ids, which TrackerLine.isEq and key rely on.
    *
    * @param {string} prefix - Optional prefix to add to the beginning of the ID
-   * @return {string} A random alphanumeric string that can be used as an identifier
+   * @return {string} A unique alphanumeric string that can be used as an identifier
    */
   public static rndId(prefix?: string): string {
-    // return Math.random() * 1000000 | 0;
-    return Math.random().toString(36).replace('0.', prefix || '');
+    idCounter += 1;
+
+    return `${prefix ?? ''}${idCounter.toString(36)}`;
   }
 }

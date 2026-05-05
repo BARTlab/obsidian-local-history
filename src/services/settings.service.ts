@@ -2,7 +2,7 @@ import { DEFAULT_SETTINGS, PluginEvent } from '@/consts';
 import type LineChangeTrackerPlugin from '@/main';
 import { MainSetting } from '@/settings/main.setting';
 import type { DeepValue, LineChangeTrackerSettings, PathTo, PathValue, Service } from '@/types';
-import { get, set } from 'lodash-es';
+import { get, merge, set } from 'lodash-es';
 
 /**
  * Service responsible for managing plugin settings.
@@ -14,9 +14,10 @@ import { get, set } from 'lodash-es';
 export class SettingsService implements Service {
   /**
    * The plugin settings data.
-   * Initialized with default settings and updated from saved data during initialization.
+   * Initialized with a deep clone of the defaults so updates never mutate the
+   * shared DEFAULT_SETTINGS object; replaced with merged saved data on init.
    */
-  protected data: LineChangeTrackerSettings = DEFAULT_SETTINGS;
+  protected data: LineChangeTrackerSettings = merge({}, DEFAULT_SETTINGS);
 
   /**
    * Creates a new instance of SettingsService.
@@ -33,7 +34,10 @@ export class SettingsService implements Service {
    * Loads saved settings data and added the settings tab to the plugin.
    */
   public async init(): Promise<void> {
-    this.data = Object.assign({}, DEFAULT_SETTINGS, await this.plugin.loadData());
+    // Deep-merge into a fresh clone so partial saved data keeps nested defaults
+    // (e.g. a saved `show.changed` does not drop the other `show.*` keys) and
+    // DEFAULT_SETTINGS stays untouched.
+    this.data = merge({}, DEFAULT_SETTINGS, await this.plugin.loadData());
     this.plugin.addSettingTab(new MainSetting(this.plugin.app, this.plugin));
   }
 

@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { ChangeType, PluginEvent, STYLE_ID } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { On as _On } from '@/decorators/on.decorator';

@@ -22,25 +22,26 @@
   "license": "MIT",
   "devDependencies": {
     "@shellscape/esbuild-sass-plugin": "^2.4.4-patch.2",
-    "@types/node": "^16.11.6",
     "@types/lodash-es": "^4.17.12",
-    "@typescript-eslint/eslint-plugin": "^8.15.0",
-    "@typescript-eslint/parser": "^8.15.0",
-    "builtin-modules": "3.3.0",
-    "diff": "^8.0.2",
-    "diff2html": "^3.4.51",
-    "esbuild": "0.17.3",
+    "@types/node": "^25.9.1",
+    "@typescript-eslint/eslint-plugin": "^8.60.0",
+    "@typescript-eslint/parser": "^8.60.0",
+    "builtin-modules": "^5.2.0",
+    "diff": "^9.0.0",
+    "diff2html": "^3.4.56",
+    "esbuild": "^0.28.0",
     "eslint": "^8.57.1",
     "eslint-config-google": "^0.14.0",
-    "jest": "^29.7.0",
-    "obsidian": "latest",
-    "ts-jest": "^29.1.2",
+    "eventemitter3": "^5.0.4",
+    "jest": "^30.4.2",
+    "lodash-es": "^4.18.1",
+    "obsidian": "^1.13.0",
+    "reflect-metadata": "^0.2.2",
+    "ts-jest": "^29.4.11",
     "tslib": "2.8.1",
-    "typescript": "5.8.3",
-    "eventemitter3": "^5.0.1",
-    "lodash-es": "^4.17.21",
-    "reflect-metadata": "^0.2.2"
+    "typescript": "^5.9.3"
   },
-  "dependencies": {
+  "overrides": {
+    "esbuild": "$esbuild"
   }
 }

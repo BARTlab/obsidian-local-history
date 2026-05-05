@@ -23,18 +23,13 @@ export class DotMarker extends GutterMarker {
    * Map of change types to their corresponding gutter characters.
    * Characters are retrieved from plugin settings.
    */
-  protected char: { [key: string]: string } = {
-    [ChangeType.changed]: this.settingsService.value('gutter.changed'),
-    [ChangeType.added]: this.settingsService.value('gutter.added'),
-    [ChangeType.restored]: this.settingsService.value('gutter.restored'),
-  };
-  // protected char: string = this.settingsService.value('gutterChar');
+  protected char: { [key: string]: string };
 
   /**
    * CSS class applied to the gutter marker element.
    * Combines the dot indicator type with the specific change type.
    */
-  public elementClass = `lct-${IndicatorType.dot} lct-${this.changes}`;
+  public elementClass: string;
 
   /**
    * Creates a new instance of DotMarker.
@@ -47,6 +42,17 @@ export class DotMarker extends GutterMarker {
     protected plugin: LineChangeTrackerPlugin,
   ) {
     super();
+
+    // Resolve settings-derived state in the constructor body, after the
+    // parameter properties are assigned. As field initializers this would read
+    // the injected settingsService (which needs this.plugin) and this.changes
+    // before they exist under useDefineForClassFields, breaking injection.
+    this.char = {
+      [ChangeType.changed]: this.settingsService.value('gutter.changed'),
+      [ChangeType.added]: this.settingsService.value('gutter.added'),
+      [ChangeType.restored]: this.settingsService.value('gutter.restored'),
+    };
+    this.elementClass = `lct-${IndicatorType.dot} lct-${this.changes}`;
   }
 
   /**

@@ -1,7 +1,6 @@
 import type { BaseEvent } from '@/events/base.event';
 import { VaultCreateEvent } from '@/events/vault/create.event';
 import { VaultDeleteEvent } from '@/events/vault/delete.event';
-import { VaultModifyEvent } from '@/events/vault/modify.event';
 import { VaultRenameEvent } from '@/events/vault/rename.event';
 import { WorkspaceActiveLeafChangeEvent } from '@/events/workspace/active-leaf-change.event';
 import { WorkspaceEditorMenuEvent } from '@/events/workspace/editor-menu.event';
@@ -68,7 +67,6 @@ export class EventsService implements Service {
    * for pre-existing files are not handled on a cold start (see {@link init}).
    */
   protected registerVaultEvents(): void {
-    this.register(VaultModifyEvent);
     this.register(VaultCreateEvent);
     this.register(VaultRenameEvent);
     this.register(VaultDeleteEvent);

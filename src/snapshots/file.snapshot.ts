@@ -394,6 +394,29 @@ export class FileSnapshot {
   }
 
   /**
+   * Gets the 0-based positions of every currently changed line, ascending.
+   * These are the same positions the line decorations are keyed by (the change
+   * map keys), so navigating across them lands the cursor exactly on the
+   * highlighted lines. Used by the "go to next/previous change" commands.
+   *
+   * @param {ChangeType | ChangeType[]} type - Optional change types to include;
+   *   defaults to changed, added, restored and removed
+   * @return {number[]} The unique changed line positions in ascending order
+   */
+  public getChangedPositions(type?: ChangeType | ChangeType[]): number[] {
+    const types: ChangeType | ChangeType[] = type ?? [
+      ChangeType.changed,
+      ChangeType.added,
+      ChangeType.restored,
+      ChangeType.removed,
+    ];
+
+    return [...this.getChanges(types).keys()]
+      .filter((line): line is number => isNumber(line))
+      .sort((a: number, b: number): number => a - b);
+  }
+
+  /**
    * Retrieves the last modified date and time as a localized string.
    *
    * @return {string} The date and time of the last change in a localized string format.

@@ -4,7 +4,7 @@ import type LineChangeTrackerPlugin from '@/main';
 import { ObservableMap } from '@/maps/observable.map';
 import type { SettingsService } from '@/services/settings.service';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
-import type { Service } from '@/types';
+import type { SerializedFileSnapshot, SerializedHistory, Service } from '@/types';
 import type { TFile } from 'obsidian';
 
 /**
@@ -149,6 +149,64 @@ export class SnapshotsService implements Service {
    */
   public clear(): void {
     this.fileSnapshots.clear();
+  }
+
+  /**
+   * Serializes all tracked snapshots into a plain, persistable structure.
+   * Only snapshots that carry actual history (a tracker with changes) and a
+   * known file path are included, so pristine files do not bloat the store.
+   *
+   * @return {SerializedHistory} The versioned, serializable history payload
+   */
+  public serialize(): SerializedHistory {
+    const snapshots: SerializedFileSnapshot[] = [];
+
+    for (const snapshot of this.fileSnapshots.values()) {
+      if (!snapshot.file?.path || snapshot.getChangesLinesCount() === 0) {
+        continue;
+      }
+
+      snapshots.push(snapshot.toJSON());
+    }
+
+    return { version: 1, snapshots };
+  }
+
+  /**
+   * Restores snapshots from a previously serialized history payload.
+   * Each entry is rebuilt and keyed by its stored path, attaching the live file
+   * reference when the file still exists in the vault. Entries whose file is
+   * gone are skipped (the file was deleted while the plugin was off). A path
+   * that was already captured is only overwritten when its current snapshot is
+   * pristine (no tracked changes), so a restore reinstates lost history without
+   * clobbering edits the user already made in this session.
+   *
+   * @param {SerializedFileSnapshot[]} snapshots - The serialized snapshots
+   */
+  public restore(snapshots: SerializedFileSnapshot[]): void {
+    if (!Array.isArray(snapshots)) {
+      return;
+    }
+
+    for (const data of snapshots) {
+      if (!data?.path) {
+        continue;
+      }
+
+      const existing: FileSnapshot | undefined = this.fileSnapshots.get(data.path);
+
+      if (existing && existing.getChangesLinesCount() > 0) {
+        continue;
+      }
+
+      const file: TFile | null = this.plugin.getFileByPath(data.path);
+
+      if (!file) {
+        continue;
+      }
+
+      this.fileSnapshots.set(data.path, FileSnapshot.fromJSON(data, file));
+    }
   }
 
   /**

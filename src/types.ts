@@ -75,10 +75,20 @@ export interface LineChangeTrackerSettings {
     removed: string;
   };
 
+  /** Configuration for on-disk history retention caps */
+  retention: {
+    /** Maximum number of file histories kept on disk (size cap, 0 disables) */
+    maxEntries: number;
+    /** Maximum age in days for a persisted history (age cap, 0 disables) */
+    maxAgeDays: number;
+  };
+
   /** Type of indicator to use for showing changes */
   type: IndicatorType;
   /** History retention policy */
   keep: KeepHistory;
+  /** Persist history to disk so it survives an app restart */
+  persist: boolean;
   /** File extensions that are allowed for tracking (comma-separated) */
   allowedExtensions: string;
   /** Whether to ignore newly created files */
@@ -350,6 +360,49 @@ export interface DomUpdateConfig {
   children?: DomElementConfig[];
   /** HTML content for the element */
   html?: string;
+}
+
+/**
+ * Serialized form of a single TrackerLine, persisted to disk and restored on
+ * load. Only the fields needed to rebuild the line's state are stored; the id
+ * is intentionally omitted so a fresh, collision-free id is assigned on load.
+ */
+export interface SerializedTrackerLine {
+  originalPosition: number;
+  currentPosition: number;
+  removedAtPosition: number;
+  changeAtPosition: number;
+  contentSameOriginal: boolean;
+  hash: string | null;
+  original: string | null;
+  current: string | null;
+  removedTimeStamp: number;
+  changedTimeStamp: number;
+  addedTimeStamp: number;
+}
+
+/**
+ * Serialized form of a FileSnapshot. Holds the original baseline, the current
+ * state, and the full tracker so highlights can be restored verbatim after a
+ * restart. The change map is not stored because it is recomputed from the
+ * tracker on load.
+ */
+export interface SerializedFileSnapshot {
+  path: string;
+  lineBreak: string;
+  timestamp: number;
+  lines: string[];
+  state: string[];
+  tracker: SerializedTrackerLine[];
+}
+
+/**
+ * On-disk shape of the persisted history file. Versioned so the format can
+ * evolve without misreading older data.
+ */
+export interface SerializedHistory {
+  version: number;
+  snapshots: SerializedFileSnapshot[];
 }
 
 /**

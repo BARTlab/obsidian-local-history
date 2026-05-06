@@ -4,6 +4,7 @@ import { CommandsService } from '@/services/commands.service';
 import { EventsService } from '@/services/events.service';
 import { ExtensionsService } from '@/services/extensions.service';
 import { ModalsService } from '@/services/modals.service';
+import { PersistenceService } from '@/services/persistence.service';
 import { SettingsService } from '@/services/settings.service';
 import { SnapshotsService } from '@/services/snapshots.service';
 import { StatusbarService } from '@/services/statusbar.service';
@@ -18,7 +19,7 @@ import {
   MarkdownView,
   Plugin,
   type PluginManifest,
-  type TFile,
+  TFile,
   type WorkspaceLeaf
 } from 'obsidian';
 
@@ -60,6 +61,7 @@ export default class LineChangeTrackerPlugin extends Plugin {
     this.registerService(CommandsService);
     this.registerService(EventsService);
     this.registerService(SnapshotsService);
+    this.registerService(PersistenceService);
   }
 
   /**
@@ -245,6 +247,21 @@ export default class LineChangeTrackerPlugin extends Plugin {
    */
   public getActiveFile(): TFile | null {
     return this.app.workspace.getActiveFile();
+  }
+
+  /**
+   * Resolves a vault file by its path.
+   * Returns null when nothing exists at the path or the entry is a folder, so
+   * callers can safely skip stale references (e.g. after a file was deleted
+   * while the plugin was unloaded).
+   *
+   * @param {string} path - The vault-relative path to resolve
+   * @return {TFile | null} The matching file, or null if none
+   */
+  public getFileByPath(path: string): TFile | null {
+    const file = this.app.vault.getAbstractFileByPath(path);
+
+    return file instanceof TFile ? file : null;
   }
 
   /**

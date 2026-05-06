@@ -1,0 +1,90 @@
+import * as Diff from 'diff';
+
+/**
+ * Marker line emitted by the diff library to flag a missing trailing newline.
+ * It carries no content and must be ignored when reconstructing line text.
+ */
+const NO_NEWLINE_MARKER: string = '\\ No newline at end of file';
+
+/**
+ * Helper for line-level diff hunks and single-hunk reverts.
+ *
+ * A "hunk" is one contiguous block of changes between a base text and the
+ * current text, as produced by the diff library. Reverting a single hunk means
+ * writing only that block back to the base, leaving every other change in the
+ * current text intact. All methods are pure and operate on arrays of lines, so
+ * they are independent of the editor and the Obsidian runtime and can be unit
+ * tested directly.
+ */
+export class HunkHelper {
+  /**
+   * Computes the line-level hunks between a base text and the current text.
+   * Uses zero context so each hunk covers only the changed lines, which keeps
+   * a per-hunk revert scoped to exactly that block.
+   *
+   * @param {string[]} baseLines - The base content as an array of lines
+   * @param {string[]} currentLines - The current content as an array of lines
+   * @param {string} lineBreak - The line break used to join lines for diffing
+   * @return {Diff.StructuredPatchHunk[]} The hunks, ordered from top to bottom
+   */
+  public static diff(
+    baseLines: string[],
+    currentLines: string[],
+    lineBreak: string = '\n',
+  ): Diff.StructuredPatchHunk[] {
+    const base: string = (baseLines ?? []).join(lineBreak);
+    const current: string = (currentLines ?? []).join(lineBreak);
+
+    if (base === current) {
+      return [];
+    }
+
+    return Diff.structuredPatch('', '', base, current, '', '', { context: 0 }).hunks;
+  }
+
+  /**
+   * Extracts the base-side lines of a hunk (the context and removed lines),
+   * with their diff prefixes stripped and the no-newline marker dropped. These
+   * are exactly the lines that must replace the hunk's region in the current
+   * text to revert it.
+   *
+   * @param {Diff.StructuredPatchHunk} hunk - The hunk to read
+   * @return {string[]} The base-side line contents of the hunk
+   */
+  public static baseLinesForHunk(hunk: Diff.StructuredPatchHunk): string[] {
+    return (hunk?.lines ?? [])
+      .filter((line: string): boolean => line !== NO_NEWLINE_MARKER && (line[0] === ' ' || line[0] === '-'))
+      .map((line: string): string => line.slice(1));
+  }
+
+  /**
+   * Reverts a single hunk against the current lines and returns the resulting
+   * lines. Only the region this hunk occupies in the current text is replaced
+   * by the hunk's base-side lines; every line outside the region is preserved
+   * verbatim.
+   *
+   * The replacement is positional against the live current text (via newStart
+   * and newLines), not against stale indices, so the offsets of all other hunks
+   * stay correct: reverting hunk N never disturbs hunk N+1, because the slice
+   * lengths of a single block edit cancel out for the untouched lines around it.
+   *
+   * @param {string[]} currentLines - The current content as an array of lines
+   * @param {Diff.StructuredPatchHunk} hunk - The hunk to revert
+   * @return {string[]} A new array of lines with only this hunk reverted
+   */
+  public static revertHunk(currentLines: string[], hunk: Diff.StructuredPatchHunk): string[] {
+    const lines: string[] = [...(currentLines ?? [])];
+
+    if (!hunk) {
+      return lines;
+    }
+
+    // newStart is 1-based; clamp into range so a hunk at the very end (where
+    // newStart can point one past the last line) still splices safely.
+    const start: number = Math.max(0, Math.min(lines.length, hunk.newStart - 1));
+
+    lines.splice(start, Math.max(0, hunk.newLines), ...HunkHelper.baseLinesForHunk(hunk));
+
+    return lines;
+  }
+}

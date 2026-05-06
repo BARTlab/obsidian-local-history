@@ -1,6 +1,7 @@
 import { DiffOutputFormatType } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { DomHelper } from '@/helpers/dom.helper';
+import { HunkHelper } from '@/helpers/hunk.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ModalsService } from '@/services/modals.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
@@ -51,6 +52,12 @@ export class HistoryModal extends Modal {
    * selected base.
    */
   protected versionsEl?: HTMLElement;
+
+  /**
+   * Container element holding the per-hunk revert controls, rebuilt whenever the
+   * diff between the selected base and the current state changes.
+   */
+  protected hunksEl?: HTMLElement;
 
   /**
    * Id of the currently selected diff base. Defaults to the original baseline;
@@ -279,12 +286,19 @@ export class HistoryModal extends Modal {
 
     // Version timeline, placed above the diff output.
     this.versionsEl = this.contentEl.createDiv('lct-versions');
+    // Per-hunk revert controls, placed between the timeline and the diff output.
+    this.hunksEl = this.contentEl.createDiv('lct-hunks');
 
     if (this.diffContainerEl && this.versionsEl.parentElement === this.contentEl) {
       this.contentEl.insertBefore(this.versionsEl, this.diffContainerEl);
     }
 
+    if (this.diffContainerEl && this.hunksEl.parentElement === this.contentEl) {
+      this.contentEl.insertBefore(this.hunksEl, this.diffContainerEl);
+    }
+
     this.renderVersions();
+    this.renderHunks();
   }
 
   /**
@@ -370,6 +384,7 @@ export class HistoryModal extends Modal {
 
     this.selectedBaseId = id;
     this.renderVersions();
+    this.renderHunks();
 
     if (this.currentDisplayMode === 'patch') {
       this.showCleanPatch();
@@ -410,6 +425,165 @@ export class HistoryModal extends Modal {
    */
   protected isBaseSameCurrent(): boolean {
     return this.getBaseContent() === this.snapshot.getLastState();
+  }
+
+  /**
+   * Computes the line-level hunks between the selected base and the current
+   * state. These back the per-hunk revert controls and are recomputed on demand
+   * so the offsets always reflect the live content.
+   *
+   * @return {Diff.StructuredPatchHunk[]} The hunks, ordered top to bottom
+   */
+  protected getHunks(): Diff.StructuredPatchHunk[] {
+    return HunkHelper.diff(
+      this.getBaseContent().split(this.snapshot.lineBreak),
+      this.snapshot.getLastStateLines(),
+      this.snapshot.lineBreak,
+    );
+  }
+
+  /**
+   * Renders the per-hunk revert list for the current diff. Each entry describes
+   * one changed block against the selected base and offers a control that writes
+   * only that block back to the base, leaving every other change intact. The
+   * block is hidden when the current state already equals the selected base.
+   */
+  protected renderHunks(): void {
+    if (!this.hunksEl) {
+      return;
+    }
+
+    const hunks: Diff.StructuredPatchHunk[] = this.getHunks();
+
+    if (hunks.length === 0) {
+      DomHelper.update(this.hunksEl, { text: null, classes: { add: 'lct-hunks-empty' } });
+
+      return;
+    }
+
+    DomHelper.update(this.hunksEl, { classes: { remove: 'lct-hunks-empty' } });
+
+    const items: DomElementConfig[] = hunks.map((hunk: Diff.StructuredPatchHunk, index: number): DomElementConfig => ({
+      tag: 'div',
+      classes: 'lct-hunk-item',
+      children: [
+        { tag: 'span', classes: 'lct-hunk-label', text: this.getHunkLabel(hunk) },
+        {
+          tag: 'button',
+          classes: ['lct-hunk-revert-button', 'mod-outline'],
+          text: 'Revert hunk',
+          events: {
+            click: (): void => {
+              void this.revertHunk(index);
+            },
+          },
+        },
+      ],
+    }));
+
+    DomHelper.update(this.hunksEl, {
+      text: null,
+      children: [
+        { tag: 'div', classes: 'lct-hunks-title', text: 'Revert individual changes' },
+        { tag: 'div', classes: 'lct-hunks-list', children: items },
+      ],
+    });
+  }
+
+  /**
+   * Builds a short, human-readable label for a hunk describing where it sits in
+   * the current document and what kind of change it is.
+   *
+   * @param {Diff.StructuredPatchHunk} hunk - The hunk to describe
+   * @return {string} A sentence-case label for the hunk
+   */
+  protected getHunkLabel(hunk: Diff.StructuredPatchHunk): string {
+    // Pure deletion: nothing occupies the region in the current document.
+    if (hunk.newLines === 0) {
+      return `Removed before line ${hunk.newStart + 1}`;
+    }
+
+    const start: number = hunk.newStart;
+    const end: number = hunk.newStart + hunk.newLines - 1;
+    const where: string = start === end ? `line ${start}` : `lines ${start}-${end}`;
+
+    if (hunk.oldLines === 0) {
+      return `Added ${where}`;
+    }
+
+    return `Changed ${where}`;
+  }
+
+  /**
+   * Reverts a single hunk back to the selected base, leaving all other changes
+   * intact, then refreshes the timeline, the revert list, and the active diff.
+   *
+   * The hunks are recomputed against the live content before resolving the
+   * target, so a stale index from a previous render cannot apply the wrong
+   * block. The revert targets whichever base is currently selected in the
+   * timeline (the original baseline by default, or a picked version), matching
+   * exactly what the diff above shows.
+   *
+   * @param {number} index - The index of the hunk in the current diff
+   * @return {Promise<void>}
+   */
+  protected async revertHunk(index: number): Promise<void> {
+    if (!this.snapshot?.file) {
+      return;
+    }
+
+    const hunks: Diff.StructuredPatchHunk[] = this.getHunks();
+    const hunk: Diff.StructuredPatchHunk | undefined = hunks[index];
+
+    if (!hunk) {
+      return;
+    }
+
+    const confirmed: boolean = await this.modalsService.confirm({
+      title: 'Revert change',
+      message: 'Revert this change back to the selected version? Other changes are kept.',
+      confirmText: 'Revert',
+    });
+
+    if (!confirmed) {
+      return;
+    }
+
+    const currentLines: string[] = this.snapshot.getLastStateLines();
+    const revertedLines: string[] = HunkHelper.revertHunk(currentLines, hunk);
+    const start: number = Math.max(0, Math.min(currentLines.length, hunk.newStart - 1));
+
+    const applied: boolean = await this.snapshotsService.applyContent(
+      this.snapshot.file,
+      revertedLines,
+      {
+        start,
+        removeCount: hunk.newLines,
+        newLines: HunkHelper.baseLinesForHunk(hunk),
+      },
+    );
+
+    if (!applied) {
+      new Notice('Failed to revert change');
+
+      return;
+    }
+
+    new Notice('Change reverted');
+
+    // Refresh every view that depends on the current state.
+    this.renderVersions();
+    this.renderHunks();
+
+    if (this.currentDisplayMode === 'patch') {
+      this.showCleanPatch();
+
+      return;
+    }
+
+    this.renderDiff(
+      this.currentDisplayMode === 'line-by-line' ? DiffOutputFormatType.line : DiffOutputFormatType.side
+    );
   }
 
   /**

@@ -376,6 +376,52 @@ export class SnapshotsService implements Service {
   }
 
   /**
+   * Applies an out-of-editor content change to a file and keeps its snapshot in
+   * sync, preserving the original baseline and the version timeline. Used by the
+   * history modal to revert a single hunk: the block is rewritten in the tracker
+   * (so highlights stay correct even for a file that is not the active editor),
+   * the cached state is set to the written content, and the file is modified on
+   * disk.
+   *
+   * The snapshot is updated before the file write so that, when the file is the
+   * active editor, the change detector sees a matching content hash and skips
+   * reprocessing the resulting editor update (no double application).
+   *
+   * @param {TFile} file - The file to rewrite
+   * @param {string[]} lines - The full new content of the file as lines
+   * @param {object} block - The single block that changed, in tracker terms
+   * @param {number} block.start - The 0-based current line where the block begins
+   * @param {number} block.removeCount - How many current lines the block spans
+   * @param {string[]} block.newLines - The content the block should hold afterwards
+   * @return {Promise<boolean>} True if the change was applied, false otherwise
+   */
+  public async applyContent(
+    file: TFile | null,
+    lines: string[],
+    block: { start: number; removeCount: number; newLines: string[] },
+  ): Promise<boolean> {
+    const snapshot: FileSnapshot | null = this.getOne(file);
+
+    if (!file || !snapshot || !Array.isArray(lines)) {
+      return false;
+    }
+
+    snapshot.replaceBlock(block.start, block.removeCount, block.newLines);
+    snapshot.updateState(lines);
+    snapshot.updateChanges();
+
+    await this.plugin.app.vault.modify(file, lines.join(snapshot.lineBreak));
+
+    if (this.plugin.getActiveViewOfType()) {
+      this.plugin.forceUpdateEditor();
+    }
+
+    this.forceUpdate();
+
+    return true;
+  }
+
+  /**
    * Removes all snapshots.
    * Forces an editor update and captures the active file.
    */

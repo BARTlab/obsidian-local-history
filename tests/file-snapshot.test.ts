@@ -262,3 +262,61 @@ describe('FileSnapshot.replaceBlock (per-hunk revert, T5.3)', () => {
     expect(snapshot.findCurrentLine(3)?.current).toBe('D');
   });
 });
+
+describe('FileSnapshot.getChangedPositions (navigation source, T5.4)', () => {
+  it('returns no positions for a pristine snapshot', () => {
+    const snapshot = new FileSnapshot('a\nb\nc');
+
+    expect(snapshot.getChangedPositions()).toEqual([]);
+  });
+
+  it('collects changed, added and removed positions in ascending order', () => {
+    const snapshot = new FileSnapshot('a\nb\nc\nd\ne');
+
+    // Change line 0, change line 3, and remove line 1 (which leaves a removed
+    // marker at position 1 and shifts the lines below it up).
+    snapshot.findCurrentLine(0)?.change('A');
+    snapshot.findCurrentLine(3)?.change('D');
+    snapshot.removeTrackerOrLine(1);
+    snapshot.updateState(['A', 'c', 'D', 'e']);
+    snapshot.updateChanges();
+
+    // Navigation offers exactly the highlighted lines: line 0 changed, line 1
+    // (the removal marker), line 2 changed. The same set the decorations draw,
+    // ascending, with no entry for the untouched trailing line.
+    expect(snapshot.getChangedPositions()).toEqual([0, 1, 2]);
+    expect(positionsWithType(snapshot, ChangeType.changed)).toEqual([0, 2]);
+    expect(positionsWithType(snapshot, ChangeType.removed)).toEqual([1]);
+  });
+
+  it('reflects the current state and includes restored lines like the highlights', () => {
+    const snapshot = new FileSnapshot('a\nb\nc');
+
+    snapshot.findCurrentLine(0)?.change('A');
+    snapshot.findCurrentLine(2)?.change('C');
+    snapshot.updateChanges();
+    expect(snapshot.getChangedPositions()).toEqual([0, 2]);
+
+    // Edit line 0 back to its original: it becomes a restored line, which is
+    // still highlighted, so navigation keeps offering it. Line 2 stays changed.
+    snapshot.findCurrentLine(0)?.change('a');
+    snapshot.updateChanges();
+
+    expect(snapshot.getChangedPositions()).toEqual([0, 2]);
+    expect(positionsWithType(snapshot, ChangeType.restored)).toEqual([0]);
+    expect(positionsWithType(snapshot, ChangeType.changed)).toEqual([2]);
+  });
+
+  it('can scope navigation to a subset of change types', () => {
+    const snapshot = new FileSnapshot('a\nb\nc');
+
+    // One restored line (0) and one changed line (2).
+    snapshot.findCurrentLine(0)?.change('A');
+    snapshot.findCurrentLine(0)?.change('a');
+    snapshot.findCurrentLine(2)?.change('C');
+    snapshot.updateChanges();
+
+    // Restricting to "changed" drops the restored line from the navigation set.
+    expect(snapshot.getChangedPositions(ChangeType.changed)).toEqual([2]);
+  });
+});

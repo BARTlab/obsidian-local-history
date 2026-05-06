@@ -38,6 +38,20 @@ describe('SettingsService init', () => {
     expect(service.value('gutter.changed')).toBe(DEFAULT_SETTINGS.gutter.changed);
     expect(service.value('line.width')).toBe(DEFAULT_SETTINGS.line.width);
     expect(service.value('type')).toBe(DEFAULT_SETTINGS.type);
+
+    // The intermediate-snapshot group keeps its defaults too.
+    expect(service.value('snapshots.enabled')).toBe(DEFAULT_SETTINGS.snapshots.enabled);
+    expect(service.value('snapshots.maxVersions')).toBe(DEFAULT_SETTINGS.snapshots.maxVersions);
+  });
+
+  it('deep-merges a partial snapshots group and keeps sibling snapshot defaults', async () => {
+    const service = makeService({ snapshots: { editThreshold: 7 } });
+    await service.init();
+
+    expect(service.value('snapshots.editThreshold')).toBe(7);
+    expect(service.value('snapshots.enabled')).toBe(DEFAULT_SETTINGS.snapshots.enabled);
+    expect(service.value('snapshots.intervalMs')).toBe(DEFAULT_SETTINGS.snapshots.intervalMs);
+    expect(service.value('snapshots.maxVersions')).toBe(DEFAULT_SETTINGS.snapshots.maxVersions);
   });
 
   it('loads a clone of the defaults when there is no saved data', async () => {

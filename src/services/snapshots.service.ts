@@ -153,8 +153,10 @@ export class SnapshotsService implements Service {
 
   /**
    * Serializes all tracked snapshots into a plain, persistable structure.
-   * Only snapshots that carry actual history (a tracker with changes) and a
-   * known file path are included, so pristine files do not bloat the store.
+   * Includes snapshots that carry actual history (a tracker with changes) or a
+   * non-empty intermediate-version timeline, and that have a known file path,
+   * so pristine files do not bloat the store but a timeline is never lost just
+   * because the current state happens to match the original.
    *
    * @return {SerializedHistory} The versioned, serializable history payload
    */
@@ -162,7 +164,9 @@ export class SnapshotsService implements Service {
     const snapshots: SerializedFileSnapshot[] = [];
 
     for (const snapshot of this.fileSnapshots.values()) {
-      if (!snapshot.file?.path || snapshot.getChangesLinesCount() === 0) {
+      const hasHistory: boolean = snapshot.getChangesLinesCount() > 0 || snapshot.hasVersions();
+
+      if (!snapshot.file?.path || !hasHistory) {
         continue;
       }
 

@@ -1,9 +1,10 @@
 import { Inject } from '@/decorators/inject.decorator';
 import { BaseExtension } from '@/extensions/base.extension';
 import type { TrackerLine } from '@/lines/tracker.line';
+import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
-import type { EditorExtension } from '@/types';
+import type { EditorExtension, SnapshotCaptureOptions } from '@/types';
 import { type EditorState, type Text } from '@codemirror/state';
 import { Decoration, type DecorationSet, type ViewUpdate } from '@codemirror/view';
 
@@ -21,6 +22,13 @@ export class ChangeDetectorExtension extends BaseExtension implements EditorExte
    */
   @Inject('SnapshotsService')
   protected snapshotsService: SnapshotsService;
+
+  /**
+   * Service for reading the intermediate-snapshot cadence settings.
+   * Injected using the @Inject decorator.
+   */
+  @Inject('SettingsService')
+  protected settingsService: SettingsService;
 
   /**
    * Set of decorations to be applied to the editor.
@@ -155,7 +163,27 @@ export class ChangeDetectorExtension extends BaseExtension implements EditorExte
       }
     }, true);
 
+    // Freeze the pre-edit state on the timeline before recording the new state,
+    // so a captured version preserves the earlier point. Cadence gating lives
+    // in the snapshot, so this stays cheap on the keystroke path.
+    snapshot.captureVersion(snapshot.getLastStateLines(), this.getCaptureOptions());
+
     snapshot.updateState(currentLines);
     snapshot.updateChanges();
+  }
+
+  /**
+   * Reads the current intermediate-snapshot cadence settings into a plain
+   * options object for the snapshot model.
+   *
+   * @return {SnapshotCaptureOptions} The capture cadence configuration
+   */
+  protected getCaptureOptions(): SnapshotCaptureOptions {
+    return {
+      enabled: this.settingsService.value('snapshots.enabled'),
+      intervalMs: this.settingsService.value('snapshots.intervalMs'),
+      editThreshold: this.settingsService.value('snapshots.editThreshold'),
+      maxVersions: this.settingsService.value('snapshots.maxVersions'),
+    };
   }
 }

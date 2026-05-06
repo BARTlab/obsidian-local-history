@@ -59,6 +59,13 @@ export const DEFAULT_SETTINGS: LineChangeTrackerSettings = {
     maxAgeDays: 30,
   },
 
+  snapshots: {
+    enabled: true,
+    intervalMs: 5 * 60 * 1000,
+    editThreshold: 30,
+    maxVersions: 20,
+  },
+
   line: {
     width: 2
   },

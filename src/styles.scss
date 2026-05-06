@@ -16,6 +16,48 @@
       }
     }
 
+    .lct-versions {
+      &.lct-versions-empty {
+        display: none;
+      }
+
+      .lct-versions-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 8px 0;
+      }
+
+      .lct-version-item {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 6px;
+        padding: 4px 10px;
+        border: 1px solid var(--background-modifier-border);
+        border-radius: var(--radius-s);
+        background-color: var(--background-secondary);
+        cursor: pointer;
+
+        &:hover {
+          background-color: var(--background-modifier-hover);
+        }
+
+        &.is-active {
+          border-color: var(--interactive-accent);
+          background-color: var(--background-modifier-active-hover);
+        }
+
+        .lct-version-label {
+          font-weight: var(--font-medium);
+        }
+
+        .lct-version-meta {
+          color: var(--text-muted);
+          font-size: var(--font-ui-smaller);
+        }
+      }
+    }
+
     .diff-container {
       flex: 1;
       position: relative;

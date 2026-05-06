@@ -83,6 +83,18 @@ export interface LineChangeTrackerSettings {
     maxAgeDays: number;
   };
 
+  /** Configuration for periodic intermediate snapshots (the timeline) */
+  snapshots: {
+    /** Whether to capture intermediate versions while editing */
+    enabled: boolean;
+    /** Minimum time (ms) between captured versions (0 disables the time gate) */
+    intervalMs: number;
+    /** Minimum number of edits between captured versions (0 disables it) */
+    editThreshold: number;
+    /** Maximum number of intermediate versions kept per file (oldest evicted) */
+    maxVersions: number;
+  };
+
   /** Type of indicator to use for showing changes */
   type: IndicatorType;
   /** History retention policy */
@@ -382,10 +394,20 @@ export interface SerializedTrackerLine {
 }
 
 /**
+ * Serialized form of a single intermediate version (timeline entry). Holds the
+ * captured content and its timestamp; the id is omitted so a fresh one is
+ * assigned on restore.
+ */
+export interface SerializedFileVersion {
+  timestamp: number;
+  lines: string[];
+}
+
+/**
  * Serialized form of a FileSnapshot. Holds the original baseline, the current
- * state, and the full tracker so highlights can be restored verbatim after a
- * restart. The change map is not stored because it is recomputed from the
- * tracker on load.
+ * state, the full tracker, and the intermediate version timeline so highlights
+ * and history can be restored verbatim after a restart. The change map is not
+ * stored because it is recomputed from the tracker on load.
  */
 export interface SerializedFileSnapshot {
   path: string;
@@ -394,6 +416,7 @@ export interface SerializedFileSnapshot {
   lines: string[];
   state: string[];
   tracker: SerializedTrackerLine[];
+  versions?: SerializedFileVersion[];
 }
 
 /**
@@ -403,6 +426,23 @@ export interface SerializedFileSnapshot {
 export interface SerializedHistory {
   version: number;
   snapshots: SerializedFileSnapshot[];
+}
+
+/**
+ * Options that govern when an intermediate version is captured on the timeline.
+ * Mirrors the user-facing `snapshots` settings and is passed to
+ * FileSnapshot.captureVersion so the model stays decoupled from the settings
+ * service.
+ */
+export interface SnapshotCaptureOptions {
+  /** Whether intermediate version capture is enabled at all */
+  enabled: boolean;
+  /** Minimum time (ms) between captures (0 disables the time gate) */
+  intervalMs: number;
+  /** Minimum number of edits between captures (0 disables the edit gate) */
+  editThreshold: number;
+  /** Maximum number of versions kept (oldest evicted past this cap) */
+  maxVersions: number;
 }
 
 /**

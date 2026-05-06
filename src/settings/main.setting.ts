@@ -143,6 +143,67 @@ export class MainSetting extends PluginSettingTab {
           })
       );
 
+    // ----- intermediate snapshots (timeline) -----
+
+    new Setting(containerEl)
+      .setName('Timeline snapshots')
+      .setHeading();
+
+    new Setting(containerEl)
+      .setName('Capture intermediate versions')
+      .setDesc('Keep a timeline of earlier versions so you can diff against a point in between, not just the original.')
+      .addToggle((toggle: ToggleComponent): ToggleComponent =>
+        toggle
+          .setValue(this.settingsService.value('snapshots.enabled'))
+          .onChange((value: boolean): void => {
+            this.settingsService.update('snapshots.enabled', value);
+          })
+      );
+
+    new Setting(containerEl)
+      .setName('Capture every (edits)')
+      .setDesc('Take a version after this many edits. Set to 0 to disable the edit trigger.')
+      .addText((text: TextComponent): TextComponent =>
+        text
+          .setPlaceholder(String(DEFAULT_SETTINGS.snapshots.editThreshold))
+          .setValue(String(this.settingsService.value('snapshots.editThreshold')))
+          .onChange((value: string): void => {
+            this.settingsService.update(
+              'snapshots.editThreshold',
+              this.toCount(value, DEFAULT_SETTINGS.snapshots.editThreshold)
+            );
+          })
+      );
+
+    new Setting(containerEl)
+      .setName('Capture every (minutes)')
+      .setDesc('Take a version after this many minutes of editing. Set to 0 to disable the time trigger.')
+      .addText((text: TextComponent): TextComponent =>
+        text
+          .setPlaceholder(String(DEFAULT_SETTINGS.snapshots.intervalMs / 60000))
+          .setValue(String(this.settingsService.value('snapshots.intervalMs') / 60000))
+          .onChange((value: string): void => {
+            const minutes: number = this.toCount(value, DEFAULT_SETTINGS.snapshots.intervalMs / 60000);
+
+            this.settingsService.update('snapshots.intervalMs', minutes * 60000);
+          })
+      );
+
+    new Setting(containerEl)
+      .setName('Max versions per file')
+      .setDesc('Cap on intermediate versions kept per file. Oldest are evicted first. Set to 0 to disable.')
+      .addText((text: TextComponent): TextComponent =>
+        text
+          .setPlaceholder(String(DEFAULT_SETTINGS.snapshots.maxVersions))
+          .setValue(String(this.settingsService.value('snapshots.maxVersions')))
+          .onChange((value: string): void => {
+            this.settingsService.update(
+              'snapshots.maxVersions',
+              this.toCount(value, DEFAULT_SETTINGS.snapshots.maxVersions)
+            );
+          })
+      );
+
     // ----- changed -----
 
     new Setting(containerEl)

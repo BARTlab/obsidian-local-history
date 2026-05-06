@@ -58,6 +58,47 @@
       }
     }
 
+    .lct-hunks {
+      &.lct-hunks-empty {
+        display: none;
+      }
+
+      .lct-hunks-title {
+        font-weight: var(--font-medium);
+        padding: 4px 0;
+      }
+
+      .lct-hunks-list {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        max-height: 20vh;
+        overflow-y: auto;
+        padding-bottom: 8px;
+      }
+
+      .lct-hunk-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 4px 10px;
+        border: 1px solid var(--background-modifier-border);
+        border-radius: var(--radius-s);
+        background-color: var(--background-secondary);
+
+        .lct-hunk-label {
+          color: var(--text-normal);
+          font-size: var(--font-ui-smaller);
+        }
+
+        .lct-hunk-revert-button {
+          flex: none;
+          cursor: pointer;
+        }
+      }
+    }
+
     .diff-container {
       flex: 1;
       position: relative;

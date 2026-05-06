@@ -184,3 +184,81 @@ describe('FileSnapshot current-position index (T3.2)', () => {
     expect(snapshot.findCurrentLine(1)).toBe(added);
   });
 });
+
+describe('FileSnapshot.replaceBlock (per-hunk revert, T5.3)', () => {
+  it('clears a changed line when its block is reverted to the original', () => {
+    const snapshot = new FileSnapshot('a\nb\nc');
+
+    // Two independent edits, then revert only the first back to the original.
+    snapshot.findCurrentLine(0)?.change('A');
+    snapshot.findCurrentLine(2)?.change('C');
+    snapshot.updateChanges();
+    expect(snapshot.getChangesLinesCount()).toBe(2);
+
+    snapshot.replaceBlock(0, 1, ['a']);
+    snapshot.updateState(['a', 'b', 'C']);
+    snapshot.updateChanges();
+
+    // The reverted line is no longer changed; the untouched edit survives.
+    expect(positionsWithType(snapshot, ChangeType.changed)).toEqual([2]);
+    expect(snapshot.findCurrentLine(0)?.isStateChanged()).toBe(false);
+    expect(snapshot.getLastStateLines()).toEqual(['a', 'b', 'C']);
+  });
+
+  it('removes an added line when its insertion block is reverted', () => {
+    const snapshot = new FileSnapshot('a\nb');
+
+    // Insert a line, then revert that insertion (replace one current line with none).
+    snapshot.restoreOrAddTracker(1)?.change('NEW');
+    snapshot.updateState(['a', 'NEW', 'b']);
+    snapshot.updateChanges();
+    expect(positionsWithType(snapshot, ChangeType.added)).toEqual([1]);
+
+    snapshot.replaceBlock(1, 1, []);
+    snapshot.updateState(['a', 'b']);
+    snapshot.updateChanges();
+
+    expect(snapshot.getChangesLinesCount()).toBe(0);
+    expect(snapshot.getLastStateLines()).toEqual(['a', 'b']);
+  });
+
+  it('re-inserts a removed original line when its deletion block is reverted', () => {
+    const snapshot = new FileSnapshot('a\nb\nc');
+
+    // Remove the middle line, then revert the deletion by inserting it back.
+    snapshot.removeTrackerOrLine(1);
+    snapshot.updateState(['a', 'c']);
+    snapshot.updateChanges();
+    expect(positionsWithType(snapshot, ChangeType.removed)).toEqual([1]);
+
+    snapshot.replaceBlock(1, 0, ['b']);
+    snapshot.updateState(['a', 'b', 'c']);
+    snapshot.updateChanges();
+
+    // The original line is back and the snapshot reports no pending changes.
+    expect(snapshot.getChangesLinesCount()).toBe(0);
+    expect(snapshot.getLastStateLines()).toEqual(['a', 'b', 'c']);
+  });
+
+  it('keeps later edits intact and correctly positioned when an earlier block is reverted', () => {
+    const snapshot = new FileSnapshot('a\nb\nc\nd');
+
+    // Insert a block early and edit a later line, then revert only the insertion.
+    snapshot.restoreOrAddTracker(1)?.change('INS');
+    snapshot.updateState(['a', 'INS', 'b', 'c', 'd']);
+    snapshot.findCurrentLine(4)?.change('D');
+    snapshot.updateState(['a', 'INS', 'b', 'c', 'D']);
+    snapshot.updateChanges();
+    expect(positionsWithType(snapshot, ChangeType.added)).toEqual([1]);
+    expect(positionsWithType(snapshot, ChangeType.changed)).toEqual([4]);
+
+    // Revert the insertion at position 1; the later edit must shift to line 3.
+    snapshot.replaceBlock(1, 1, []);
+    snapshot.updateState(['a', 'b', 'c', 'D']);
+    snapshot.updateChanges();
+
+    expect(positionsWithType(snapshot, ChangeType.added)).toEqual([]);
+    expect(positionsWithType(snapshot, ChangeType.changed)).toEqual([3]);
+    expect(snapshot.findCurrentLine(3)?.current).toBe('D');
+  });
+});

@@ -834,4 +834,64 @@ export class FileSnapshot {
     this.tracker.splice(index, 1);
     this.invalidateCurrentIndex();
   }
+
+  /**
+   * Replaces a contiguous block of current lines in the tracker with new content,
+   * keeping the original baseline intact. This is the model-level counterpart of
+   * a single-block edit: it is used when a region of the document is rewritten
+   * outside the editor (for example a per-hunk revert from the history modal),
+   * so the tracker and its highlights stay consistent with the new content even
+   * when the change did not flow through the CodeMirror change detector.
+   *
+   * The block spanning [startLine, startLine + removeCount) is mapped onto
+   * newLines. When the counts match, each line is edited in place so a revert to
+   * the original content correctly clears or restores its highlight. When they
+   * differ, the block is treated as a delete plus insert (mirroring the change
+   * detector), which keeps positions correct for every line after the block.
+   *
+   * The caller is responsible for updating the cached state and the change map
+   * afterwards (updateState then updateChanges), so the written file content
+   * stays the single source of truth for the diff view.
+   *
+   * @param {number} startLine - The 0-based current position where the block begins
+   * @param {number} removeCount - How many current lines the block currently spans
+   * @param {string[]} newLines - The content the block should hold afterwards
+   */
+  public replaceBlock(startLine: number, removeCount: number, newLines: string[]): void {
+    const start: number = Math.max(0, startLine);
+    const count: number = Math.max(0, removeCount);
+    const replacement: string[] = newLines ?? [];
+
+    if (count === replacement.length && count > 0) {
+      // Same line count in and out: edit each line in place. Editing back to the
+      // original content flips contentSameOriginal, so the highlight clears.
+      for (let i: number = 0; i < count; i++) {
+        this.findCurrentLine(start + i)?.change(replacement[i]);
+      }
+
+      return;
+    }
+
+    // Counts differ: delete the old block and insert the replacement, matching
+    // the change detector so destroyed originals are removed and replacements
+    // added without mismapping. Capture the doomed lines first, insert the new
+    // ones, then remove the originals by reference.
+    const doomed: TrackerLine[] = [];
+
+    for (let index: number = start; index < start + count; index++) {
+      const tracker: TrackerLine | null = this.findCurrentLine(index);
+
+      if (tracker) {
+        doomed.push(tracker);
+      }
+    }
+
+    replacement.forEach((content: string, offset: number): void => {
+      this.restoreOrAddTracker(start + offset)?.change(content);
+    });
+
+    doomed.forEach((tracker: TrackerLine): void => {
+      this.removeTrackerOrLine(tracker);
+    });
+  }
 }

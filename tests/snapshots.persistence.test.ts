@@ -51,6 +51,34 @@ describe('SnapshotsService.serialize', () => {
     expect(payload.snapshots).toHaveLength(1);
     expect(payload.snapshots[0].path).toBe('dirty.md');
   });
+
+  it('serializes a snapshot that has versions even with no current changes', () => {
+    const service = makeService(['timeline.md']);
+    const file = makeFile('timeline.md');
+
+    service.add(file, 'a\nb');
+    const snapshot: FileSnapshot = service.getOne(file);
+
+    // Capture an intermediate version, then return the state to the original so
+    // there are no tracked changes but the timeline still holds history.
+    snapshot.captureVersion(['a', 'edited'], {
+      enabled: true,
+      intervalMs: 0,
+      editThreshold: 1,
+      maxVersions: 0,
+    });
+    expect(snapshot.getChangesLinesCount()).toBe(0);
+    expect(snapshot.hasVersions()).toBe(true);
+
+    const payload = service.serialize();
+    expect(payload.snapshots).toHaveLength(1);
+    expect(payload.snapshots[0].versions).toHaveLength(1);
+
+    // Round-trips back through restore with the timeline intact.
+    const fresh = makeService(['timeline.md']);
+    fresh.restore(payload.snapshots);
+    expect(fresh.getOne(file)?.getVersions()).toHaveLength(1);
+  });
 });
 
 describe('SnapshotsService.restore', () => {

@@ -3,7 +3,8 @@ import { TextHelper } from '@/helpers/text.helper';
 import { ChangeLine } from '@/lines/change.line';
 import { TrackerLine } from '@/lines/tracker.line';
 import { ArrayMap } from '@/maps/array.map';
-import type { KeysMatching, SerializedFileSnapshot, TrackerLineParams } from '@/types';
+import { FileVersion } from '@/snapshots/file.version';
+import type { KeysMatching, SerializedFileSnapshot, SnapshotCaptureOptions, TrackerLineParams } from '@/types';
 import { isArray, isNumber, isString } from 'lodash-es';
 import type { TFile } from 'obsidian';
 
@@ -67,6 +68,27 @@ export class FileSnapshot {
   public state: string[] = [];
 
   /**
+   * Ordered timeline of intermediate versions, oldest first. Each entry is a
+   * frozen copy of the file content at the moment it was captured. The original
+   * baseline (lines) and the live state are not stored here; the timeline holds
+   * only the points in between, which the history modal can diff against.
+   */
+  public versions: FileVersion[] = [];
+
+  /**
+   * Number of state updates accumulated since the last captured version.
+   * Drives the edit-count gate of the capture cadence so versions are taken
+   * every N edits rather than on every keystroke-driven update.
+   */
+  protected editsSinceVersion: number = 0;
+
+  /**
+   * Timestamp (ms) of the last captured version, or the snapshot creation time
+   * when no version has been captured yet. Drives the time gate of the cadence.
+   */
+  protected lastVersionAt: number = Date.now();
+
+  /**
    * Line break character used in the file.
    * Defaults to '\n' but can be specified during construction.
    */
@@ -125,6 +147,7 @@ export class FileSnapshot {
       lines: [...this.lines],
       state: [...this.state],
       tracker: this.tracker.map((tracker: TrackerLine): ReturnType<TrackerLine['toJSON']> => tracker.toJSON()),
+      versions: this.versions.map((version: FileVersion): ReturnType<FileVersion['toJSON']> => version.toJSON()),
     };
   }
 
@@ -148,6 +171,9 @@ export class FileSnapshot {
 
     snapshot.timestamp = data.timestamp;
     snapshot.tracker = data.tracker.map((line): TrackerLine => TrackerLine.fromJSON(line));
+    snapshot.versions = Array.isArray(data.versions)
+      ? data.versions.map((version): FileVersion => FileVersion.fromJSON(version))
+      : [];
     snapshot.invalidateCurrentIndex();
     snapshot.updateState(data.state);
     snapshot.updateChanges();
@@ -175,6 +201,112 @@ export class FileSnapshot {
   public updateState(content: string | string[]): void {
     this.state = isArray(content) ? [...content] : content.split(this.lineBreak);
     this.lastHash = TextHelper.hash(this.state.join(this.lineBreak));
+  }
+
+  /**
+   * Records that the document changed since the last captured version and,
+   * when the configured cadence is met, freezes the previous state as a new
+   * intermediate version on the timeline.
+   *
+   * IMPORTANT: this must be called with the state BEFORE the latest edit was
+   * applied (typically the snapshot's current state right before updateState),
+   * so the captured version preserves the earlier point rather than the new
+   * one. The current (newest) state is never stored as a version: the history
+   * modal always has the live state available separately.
+   *
+   * Cadence: a version is captured when capture is enabled and either the edit
+   * count since the last version reached editThreshold, or intervalMs elapsed
+   * since the last version. A gate set to 0 is treated as disabled; when both
+   * gates are 0 only the explicit force path captures. The timeline is bounded
+   * by maxVersions, evicting the oldest entries first so it cannot grow without
+   * limit.
+   *
+   * @param {string[]} previousLines - The content to freeze (pre-edit state)
+   * @param {SnapshotCaptureOptions} options - The capture cadence configuration
+   * @param {boolean} force - Capture regardless of the cadence gates
+   * @return {FileVersion | null} The captured version, or null if none was taken
+   */
+  public captureVersion(
+    previousLines: string[],
+    options: SnapshotCaptureOptions,
+    force: boolean = false,
+  ): FileVersion | null {
+    if (!options?.enabled || !isArray(previousLines)) {
+      return null;
+    }
+
+    this.editsSinceVersion += 1;
+
+    if (!force && !this.isVersionDue(options)) {
+      return null;
+    }
+
+    return this.pushVersion(new FileVersion(previousLines), options.maxVersions);
+  }
+
+  /**
+   * Decides whether the cadence gates allow a new version right now.
+   * Either gate (edit count or elapsed time) can trigger a capture; a gate set
+   * to 0 is disabled and never triggers on its own.
+   *
+   * @param {SnapshotCaptureOptions} options - The capture cadence configuration
+   * @return {boolean} True if a version should be captured
+   */
+  protected isVersionDue(options: SnapshotCaptureOptions): boolean {
+    const byEdits: boolean = options.editThreshold > 0 && this.editsSinceVersion >= options.editThreshold;
+    const byTime: boolean = options.intervalMs > 0 && (Date.now() - this.lastVersionAt) >= options.intervalMs;
+
+    return byEdits || byTime;
+  }
+
+  /**
+   * Appends a version to the timeline, resets the cadence counters, and trims
+   * the timeline to the size cap by evicting the oldest entries.
+   *
+   * @param {FileVersion} version - The version to append
+   * @param {number} maxVersions - The size cap (oldest evicted past this)
+   * @return {FileVersion} The appended version
+   */
+  protected pushVersion(version: FileVersion, maxVersions: number): FileVersion {
+    this.versions.push(version);
+
+    this.editsSinceVersion = 0;
+    this.lastVersionAt = version.timestamp;
+
+    if (isNumber(maxVersions) && maxVersions > 0 && this.versions.length > maxVersions) {
+      this.versions.splice(0, this.versions.length - maxVersions);
+    }
+
+    return version;
+  }
+
+  /**
+   * Returns the intermediate versions, newest first, as a copy so callers
+   * cannot mutate the timeline.
+   *
+   * @return {FileVersion[]} The timeline versions, newest first
+   */
+  public getVersions(): FileVersion[] {
+    return [...this.versions].reverse();
+  }
+
+  /**
+   * Finds an intermediate version by its id.
+   *
+   * @param {string} id - The version id to look up
+   * @return {FileVersion | null} The matching version, or null if absent
+   */
+  public getVersion(id: string): FileVersion | null {
+    return this.versions.find((version: FileVersion): boolean => version.id === id) ?? null;
+  }
+
+  /**
+   * Whether the snapshot has any intermediate versions on its timeline.
+   *
+   * @return {boolean} True when at least one version exists
+   */
+  public hasVersions(): boolean {
+    return this.versions.length > 0;
   }
 
   /**

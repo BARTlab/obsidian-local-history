@@ -5,10 +5,18 @@ import type LineChangeTrackerPlugin from '@/main';
 import type { ModalsService } from '@/services/modals.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
-import type { FunctionVoid, HTMLElementWithScrollSync } from '@/types';
+import type { FileVersion } from '@/snapshots/file.version';
+import type { DomElementConfig, FunctionVoid, HTMLElementWithScrollSync } from '@/types';
 import * as Diff from 'diff';
 import * as Diff2Html from 'diff2html';
 import { type App, type ButtonComponent, Modal, Notice, Setting, type TFile } from 'obsidian';
+
+/**
+ * Sentinel id for the original baseline entry in the version list. Picking it
+ * diffs the current state against the file's original captured content. Real
+ * versions are keyed by their own id, which is never this value.
+ */
+const ORIGINAL_BASE_ID: string = 'original';
 
 /**
  * Modal dialog that displays the history of changes for a file.
@@ -37,6 +45,19 @@ export class HistoryModal extends Modal {
    * Used for cleanup operations when switching between diff modes.
    */
   protected diffContainerEl?: HTMLElementWithScrollSync;
+
+  /**
+   * Container element holding the version timeline list, rebuilt to reflect the
+   * selected base.
+   */
+  protected versionsEl?: HTMLElement;
+
+  /**
+   * Id of the currently selected diff base. Defaults to the original baseline;
+   * may be set to an intermediate version's id to diff the current state against
+   * that earlier point instead.
+   */
+  protected selectedBaseId: string = ORIGINAL_BASE_ID;
 
   /**
    * The current display mode for the diff view.
@@ -255,12 +276,146 @@ export class HistoryModal extends Modal {
 
     // Set the initial active state
     this.updateButtonActiveStates();
+
+    // Version timeline, placed above the diff output.
+    this.versionsEl = this.contentEl.createDiv('lct-versions');
+
+    if (this.diffContainerEl && this.versionsEl.parentElement === this.contentEl) {
+      this.contentEl.insertBefore(this.versionsEl, this.diffContainerEl);
+    }
+
+    this.renderVersions();
   }
 
   /**
-   * Generates a unified diff between the original and current state of the file.
-   * If the file has changes, use the diff library to create a patch.
-   * If the file has no changes, create a simple diff header with the file content.
+   * Renders the version timeline as a list of selectable bases. The list always
+   * starts with the original baseline, followed by intermediate versions newest
+   * first. The whole block is hidden when no intermediate versions exist, so a
+   * file without a timeline keeps the simple original-vs-current view.
+   * Selecting an entry sets it as the diff base and re-renders the active view.
+   */
+  protected renderVersions(): void {
+    if (!this.versionsEl) {
+      return;
+    }
+
+    const versions: FileVersion[] = this.snapshot.getVersions();
+
+    if (versions.length === 0) {
+      DomHelper.update(this.versionsEl, { text: null, classes: { add: 'lct-versions-empty' } });
+
+      return;
+    }
+
+    DomHelper.update(this.versionsEl, { classes: { remove: 'lct-versions-empty' } });
+
+    const items: DomElementConfig[] = [
+      this.makeVersionItem(ORIGINAL_BASE_ID, 'Original', ''),
+      ...versions.map((version: FileVersion, index: number): DomElementConfig =>
+        this.makeVersionItem(version.id, `Version ${versions.length - index}`, version.getDateTime())
+      ),
+    ];
+
+    DomHelper.update(this.versionsEl, {
+      text: null,
+      children: [
+        {
+          tag: 'div',
+          classes: 'lct-versions-list',
+          children: items,
+        },
+      ],
+    });
+  }
+
+  /**
+   * Builds a single selectable version list entry config.
+   * The active entry carries a highlight class; clicking selects that base.
+   *
+   * @param {string} id - The base id (original sentinel or a version id)
+   * @param {string} label - The primary label to show
+   * @param {string} meta - Secondary text (capture time), empty for the original
+   * @return {DomElementConfig} A DomHelper element config for the entry
+   */
+  protected makeVersionItem(id: string, label: string, meta: string): DomElementConfig {
+    const active: boolean = this.selectedBaseId === id;
+    const children: DomElementConfig[] = [{ tag: 'span', classes: 'lct-version-label', text: label }];
+
+    if (meta) {
+      children.push({ tag: 'span', classes: 'lct-version-meta', text: meta });
+    }
+
+    return {
+      tag: 'div',
+      classes: active ? ['lct-version-item', 'is-active'] : ['lct-version-item'],
+      events: {
+        click: (): void => {
+          this.selectBase(id);
+        },
+      },
+      children,
+    };
+  }
+
+  /**
+   * Selects a new diff base and refreshes the version list and active diff view.
+   * No-op when the base is already selected.
+   *
+   * @param {string} id - The base id to select
+   */
+  protected selectBase(id: string): void {
+    if (this.selectedBaseId === id) {
+      return;
+    }
+
+    this.selectedBaseId = id;
+    this.renderVersions();
+
+    if (this.currentDisplayMode === 'patch') {
+      this.showCleanPatch();
+
+      return;
+    }
+
+    this.renderDiff(
+      this.currentDisplayMode === 'line-by-line' ? DiffOutputFormatType.line : DiffOutputFormatType.side
+    );
+  }
+
+  /**
+   * Resolves the content of the currently selected diff base.
+   * Returns the original baseline when the original is selected (or the selected
+   * version no longer exists), otherwise the picked version's captured content.
+   *
+   * @return {string} The base content to diff the current state against
+   */
+  protected getBaseContent(): string {
+    if (this.selectedBaseId !== ORIGINAL_BASE_ID) {
+      const version: FileVersion | null = this.snapshot.getVersion(this.selectedBaseId);
+
+      if (version) {
+        return version.getContent(this.snapshot.lineBreak);
+      }
+    }
+
+    return this.snapshot.getOriginalState();
+  }
+
+  /**
+   * Whether the current state is identical to the selected diff base.
+   * Used to render the "no changes" placeholder when the picked base matches
+   * the live content.
+   *
+   * @return {boolean} True when base and current content are equal
+   */
+  protected isBaseSameCurrent(): boolean {
+    return this.getBaseContent() === this.snapshot.getLastState();
+  }
+
+  /**
+   * Generates a unified diff between the selected base and the current state.
+   * If they differ, use the diff library to create a patch.
+   * If they are identical, create a simple diff header with the file content.
    *
    * @return {string} A string containing the unified diff
    */
@@ -270,14 +425,14 @@ export class HistoryModal extends Modal {
     }
 
     const filePath: string = this.snapshot.file.path;
-    const original: string = this.snapshot.getOriginalState();
+    const base: string = this.getBaseContent();
     const current: string = this.snapshot.getLastState();
 
-    if (!this.snapshot.isStateSameOriginal()) {
+    if (!this.isBaseSameCurrent()) {
       return Diff.createTwoFilesPatch(
         filePath,
         filePath,
-        original ?? '',
+        base ?? '',
         current ?? '',
         '',
         '',
@@ -291,7 +446,7 @@ export class HistoryModal extends Modal {
       '===================================================================',
       `--- ${filePath}\t`,
       `+++ ${filePath}\t`,
-      `@@ -1,${original.length} +1,${current.length} @@`,
+      `@@ -1,${base.length} +1,${current.length} @@`,
       this.snapshot
         .getLastStateLines()
         .map((content) => ` ${content}`)
@@ -312,14 +467,14 @@ export class HistoryModal extends Modal {
     }
 
     const filePath: string = this.snapshot.file.path;
-    const original: string = this.snapshot.getOriginalState();
+    const base: string = this.getBaseContent();
     const current: string = this.snapshot.getLastState();
 
-    if (!this.snapshot.isStateSameOriginal()) {
+    if (!this.isBaseSameCurrent()) {
       return Diff.createTwoFilesPatch(
         filePath,
         filePath,
-        original ?? '',
+        base ?? '',
         current ?? '',
         '',
         '',

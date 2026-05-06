@@ -37,7 +37,14 @@ const removedTrackerCount = (snapshot: FileSnapshot): number =>
 const step = (snapshot: FileSnapshot, currentDoc: string, changes: ChangeSpec): string => {
   const start: EditorState = EditorState.create({ doc: currentDoc });
   const tr = start.update({ changes });
-  const plugin = { get: (): unknown => ({ getOne: (): FileSnapshot => snapshot, forceUpdate: (): void => undefined }) };
+  // Resolve services by name: the detector injects both SnapshotsService and
+  // SettingsService. Intermediate-version capture is disabled here so these
+  // engine assertions stay focused on change detection, not the timeline.
+  const snapshotsService = { getOne: (): FileSnapshot => snapshot, forceUpdate: (): void => undefined };
+  const settingsService = { value: (): unknown => false };
+  const plugin = {
+    get: (name: string): unknown => (name === 'SettingsService' ? settingsService : snapshotsService),
+  };
   const ext = new ChangeDetectorExtension({ state: tr.state } as unknown as ViewArg, plugin as unknown as PluginArg);
 
   ext.update({

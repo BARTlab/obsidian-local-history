@@ -1,5 +1,5 @@
 import { TextHelper } from '@/helpers/text.helper';
-import type { TrackerLineParams } from '@/types';
+import type { SerializedTrackerLine, TrackerLineParams } from '@/types';
 import { isNumber, isString } from 'lodash-es';
 
 /**
@@ -476,5 +476,54 @@ export class TrackerLine {
     if (this.existedInOriginal && this.wasExplicitlyRemoved) {
       this.removedAtPosition -= offset;
     }
+  }
+
+  /**
+   * Serializes this tracker line into a plain object for persistence.
+   * The id is intentionally excluded: a fresh one is assigned on restore so
+   * ids never collide across sessions.
+   *
+   * @return {SerializedTrackerLine} The plain serialized representation
+   */
+  public toJSON(): SerializedTrackerLine {
+    return {
+      originalPosition: this.originalPosition,
+      currentPosition: this.currentPosition,
+      removedAtPosition: this.removedAtPosition,
+      changeAtPosition: this.changeAtPosition,
+      contentSameOriginal: this.contentSameOriginal,
+      hash: this.hash,
+      original: this.original,
+      current: this.current,
+      removedTimeStamp: this.removedTimeStamp,
+      changedTimeStamp: this.changedTimeStamp,
+      addedTimeStamp: this.addedTimeStamp,
+    };
+  }
+
+  /**
+   * Rebuilds a tracker line from its serialized form.
+   * Creates a new instance (so a fresh, collision-free id is generated) and
+   * restores every persisted state field verbatim.
+   *
+   * @param {SerializedTrackerLine} data - The serialized tracker line
+   * @return {TrackerLine} The reconstructed tracker line
+   */
+  public static fromJSON(data: SerializedTrackerLine): TrackerLine {
+    const tracker: TrackerLine = new TrackerLine();
+
+    tracker.originalPosition = data.originalPosition;
+    tracker.currentPosition = data.currentPosition;
+    tracker.removedAtPosition = data.removedAtPosition;
+    tracker.changeAtPosition = data.changeAtPosition;
+    tracker.contentSameOriginal = data.contentSameOriginal;
+    tracker.hash = data.hash;
+    tracker.original = data.original;
+    tracker.current = data.current;
+    tracker.removedTimeStamp = data.removedTimeStamp;
+    tracker.changedTimeStamp = data.changedTimeStamp;
+    tracker.addedTimeStamp = data.addedTimeStamp;
+
+    return tracker;
   }
 }

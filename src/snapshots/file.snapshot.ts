@@ -3,7 +3,7 @@ import { TextHelper } from '@/helpers/text.helper';
 import { ChangeLine } from '@/lines/change.line';
 import { TrackerLine } from '@/lines/tracker.line';
 import { ArrayMap } from '@/maps/array.map';
-import type { KeysMatching, TrackerLineParams } from '@/types';
+import type { KeysMatching, SerializedFileSnapshot, TrackerLineParams } from '@/types';
 import { isArray, isNumber, isString } from 'lodash-es';
 import type { TFile } from 'obsidian';
 
@@ -107,6 +107,52 @@ export class FileSnapshot {
 
     // save current content as last doc state
     this.updateState(this.lines);
+  }
+
+  /**
+   * Serializes this snapshot into a plain object for on-disk persistence.
+   * Stores the original baseline, the current state, and the full tracker so
+   * the highlights can be restored verbatim. The change map is omitted because
+   * it is recomputed from the tracker on restore.
+   *
+   * @return {SerializedFileSnapshot} The plain serialized representation
+   */
+  public toJSON(): SerializedFileSnapshot {
+    return {
+      path: this.file?.path ?? '',
+      lineBreak: this.lineBreak,
+      timestamp: this.timestamp,
+      lines: [...this.lines],
+      state: [...this.state],
+      tracker: this.tracker.map((tracker: TrackerLine): ReturnType<TrackerLine['toJSON']> => tracker.toJSON()),
+    };
+  }
+
+  /**
+   * Rebuilds a snapshot from its serialized form.
+   * Reconstructs the original baseline through the constructor, then replaces
+   * the auto-generated tracker and current state with the persisted ones and
+   * recomputes the change map. The file reference is attached separately by the
+   * caller since serialized data only carries the path.
+   *
+   * @param {SerializedFileSnapshot} data - The serialized snapshot
+   * @param {TFile | null} file - The file this snapshot belongs to, if known
+   * @return {FileSnapshot} The reconstructed snapshot
+   */
+  public static fromJSON(data: SerializedFileSnapshot, file?: TFile | null): FileSnapshot {
+    const snapshot: FileSnapshot = new FileSnapshot(
+      data.lines.join(data.lineBreak),
+      data.lineBreak,
+      file,
+    );
+
+    snapshot.timestamp = data.timestamp;
+    snapshot.tracker = data.tracker.map((line): TrackerLine => TrackerLine.fromJSON(line));
+    snapshot.invalidateCurrentIndex();
+    snapshot.updateState(data.state);
+    snapshot.updateChanges();
+
+    return snapshot;
   }
 
   /**

@@ -104,6 +104,45 @@ export class MainSetting extends PluginSettingTab {
           })
       );
 
+    new Setting(containerEl)
+      .setName('Persist history across restarts')
+      .setDesc('Save history to disk so highlights survive a restart. Requires "keep history until" set to app close.')
+      .addToggle((toggle: ToggleComponent): ToggleComponent =>
+        toggle
+          .setValue(this.settingsService.value('persist'))
+          .onChange((value: boolean): void => {
+            this.settingsService.update('persist', value);
+          })
+      );
+
+    new Setting(containerEl)
+      .setName('Max stored files')
+      .setDesc('Cap on how many file histories are kept on disk. Oldest are evicted first. Set to 0 to disable.')
+      .addText((text: TextComponent): TextComponent =>
+        text
+          .setPlaceholder(String(DEFAULT_SETTINGS.retention.maxEntries))
+          .setValue(String(this.settingsService.value('retention.maxEntries')))
+          .onChange((value: string): void => {
+            const count: number = this.toCount(value, DEFAULT_SETTINGS.retention.maxEntries);
+
+            this.settingsService.update('retention.maxEntries', count);
+          })
+      );
+
+    new Setting(containerEl)
+      .setName('Max history age (days)')
+      .setDesc('Drop persisted history older than this many days. Set to 0 to disable.')
+      .addText((text: TextComponent): TextComponent =>
+        text
+          .setPlaceholder(String(DEFAULT_SETTINGS.retention.maxAgeDays))
+          .setValue(String(this.settingsService.value('retention.maxAgeDays')))
+          .onChange((value: string): void => {
+            const days: number = this.toCount(value, DEFAULT_SETTINGS.retention.maxAgeDays);
+
+            this.settingsService.update('retention.maxAgeDays', days);
+          })
+      );
+
     // ----- changed -----
 
     new Setting(containerEl)
@@ -247,5 +286,24 @@ export class MainSetting extends PluginSettingTab {
             this.settingsService.update('gutter.removed', value || DEFAULT_SETTINGS.gutter.removed);
           })
       );
+  }
+
+  /**
+   * Parses a user-entered retention count into a non-negative integer.
+   * Falls back to the provided default when the input is empty or not a valid
+   * number, and clamps negatives to zero (zero disables the cap).
+   *
+   * @param {string} value - The raw text input
+   * @param {number} fallback - The value to use when input is invalid
+   * @return {number} A non-negative integer count
+   */
+  protected toCount(value: string, fallback: number): number {
+    const parsed: number = Number.parseInt(value, 10);
+
+    if (Number.isNaN(parsed)) {
+      return fallback;
+    }
+
+    return Math.max(0, parsed);
   }
 }

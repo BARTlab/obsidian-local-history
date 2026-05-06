@@ -50,8 +50,14 @@ export enum DiffOutputFormatType {
 export const DEFAULT_SETTINGS: LineChangeTrackerSettings = {
   type: IndicatorType.line,
   keep: KeepHistory.file,
+  persist: false,
   allowedExtensions: 'md, txt, csv, json, yaml',
   ignoreNewFiles: true,
+
+  retention: {
+    maxEntries: 200,
+    maxAgeDays: 30,
+  },
 
   line: {
     width: 2

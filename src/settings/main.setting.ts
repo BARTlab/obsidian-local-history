@@ -228,6 +228,14 @@ export class MainSetting extends PluginSettingTab {
       .setHeading();
 
     new Setting(containerEl)
+      .setDesc(
+        'Line indicators are shown only in editing (source and live preview) modes. '
+        + 'In reading mode there are no inline indicators, but the change history is '
+        + 'still reachable: run the "Show all changes of current document" command or '
+        + 'use the file context menu in the file explorer.'
+      );
+
+    new Setting(containerEl)
       .setName('Changed')
       .addToggle((toggle: ToggleComponent): ToggleComponent =>
         toggle

@@ -6,7 +6,7 @@ import { ObservableMap } from '@/maps/observable.map';
 import type { SettingsService } from '@/services/settings.service';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { SerializedFileSnapshot, SerializedHistory, Service } from '@/types';
-import type { TFile } from 'obsidian';
+import { Notice, type TFile } from 'obsidian';
 
 /**
  * Service responsible for managing file snapshots.
@@ -33,6 +33,14 @@ export class SnapshotsService implements Service {
    * Files in this list will not have any changes tracked.
    */
   protected ignoreList: Set<TFile> = new Set();
+
+  /**
+   * The last exclude pattern a user was warned about for being invalid. Keeps
+   * the "invalid regexp" Notice from firing on every captured file: the warning
+   * shows once per distinct bad pattern until the user edits the field to a
+   * valid one (or to a different bad one).
+   */
+  protected lastWarnedExcludePattern: string | null = null;
 
   /**
    * Creates a new instance of SnapshotsService.
@@ -298,11 +306,12 @@ export class SnapshotsService implements Service {
   }
 
   /**
-   * Checks whether a file path matches any configured exclude pattern.
+   * Checks whether a file path matches the configured exclude pattern.
    * Excluded paths (for example a templates or daily-notes folder) are never
-   * tracked, on top of the extension filter. The patterns are matched against
-   * the vault-relative path with forward slashes; an empty pattern list excludes
-   * nothing.
+   * tracked, on top of the extension filter. The pattern is a single
+   * case-insensitive regexp matched against the vault-relative path; an empty
+   * pattern excludes nothing. An invalid pattern excludes nothing and warns the
+   * user once so a typo cannot silently disable all tracking.
    *
    * @param {TFile} file - The file to check
    * @return {boolean} True if the file path is excluded from tracking
@@ -312,9 +321,35 @@ export class SnapshotsService implements Service {
       return false;
     }
 
-    const patterns: string[] = PathExcludeHelper.parse(this.settingsService.value('excludePaths'));
+    const pattern: string = this.settingsService.value('excludePaths');
 
-    return PathExcludeHelper.isExcluded(file.path, patterns);
+    this.warnOnInvalidExcludePattern(pattern);
+
+    return PathExcludeHelper.isExcluded(file.path, pattern);
+  }
+
+  /**
+   * Shows a one-time Notice when the exclude pattern does not compile, so the
+   * user learns their regexp is ignored without being spammed once per file.
+   * Resets the guard when the pattern becomes valid again, so a later mistake is
+   * surfaced afresh.
+   *
+   * @param {string} pattern - The raw exclude pattern from settings
+   */
+  protected warnOnInvalidExcludePattern(pattern: string): void {
+    if (PathExcludeHelper.isValid(pattern)) {
+      this.lastWarnedExcludePattern = null;
+
+      return;
+    }
+
+    if (this.lastWarnedExcludePattern === pattern) {
+      return;
+    }
+
+    this.lastWarnedExcludePattern = pattern;
+
+    new Notice('Local history: the excluded-paths pattern is not a valid regular expression and is being ignored.');
   }
 
   /**

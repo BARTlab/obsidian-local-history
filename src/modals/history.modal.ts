@@ -2,6 +2,7 @@ import { DiffOutputFormatType } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { DomHelper } from '@/helpers/dom.helper';
 import { HunkHelper } from '@/helpers/hunk.helper';
+import { type InlineDiffLine, WordDiffHelper } from '@/helpers/word-diff.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ModalsService } from '@/services/modals.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
@@ -68,10 +69,10 @@ export class HistoryModal extends Modal {
 
   /**
    * The current display mode for the diff view.
-   * Can be 'patch', 'line-by-line', or 'side-by-side'.
+   * Can be 'patch', 'inline', 'line-by-line', or 'side-by-side'.
    * Defaults to 'side-by-side'.
    */
-  protected currentDisplayMode: 'patch' | 'line-by-line' | 'side-by-side' = 'side-by-side';
+  protected currentDisplayMode: 'patch' | 'inline' | 'line-by-line' | 'side-by-side' = 'side-by-side';
 
   /**
    * References to the mode toggle buttons.
@@ -80,6 +81,8 @@ export class HistoryModal extends Modal {
   protected modeButtons: {
     /** Button for patch mode */
     patch?: HTMLElement;
+    /** Button for inline word-diff mode */
+    inline?: HTMLElement;
     /** Button for line-by-line mode */
     lineByLine?: HTMLElement;
     /** Button for side-by-side mode */
@@ -150,6 +153,8 @@ export class HistoryModal extends Modal {
     switch (this.currentDisplayMode) {
       case 'patch':
         return this.modeButtons.patch;
+      case 'inline':
+        return this.modeButtons.inline;
       case 'line-by-line':
         return this.modeButtons.lineByLine;
       case 'side-by-side':
@@ -260,6 +265,15 @@ export class HistoryModal extends Modal {
           .setButtonText('Show patch')
           .onClick((): void => {
             this.showCleanPatch();
+          });
+      })
+      .addButton((btn: ButtonComponent): ButtonComponent => {
+        this.modeButtons.inline = btn.buttonEl;
+
+        return btn
+          .setButtonText('Inline')
+          .onClick((): void => {
+            this.renderInlineDiff();
           });
       })
       .addButton((btn: ButtonComponent): ButtonComponent => {
@@ -385,16 +399,31 @@ export class HistoryModal extends Modal {
     this.selectedBaseId = id;
     this.renderVersions();
     this.renderHunks();
+    this.refreshActiveView();
+  }
 
-    if (this.currentDisplayMode === 'patch') {
-      this.showCleanPatch();
+  /**
+   * Re-renders whichever diff view is currently active. Used after the diff
+   * base or the file content changes so the visible output stays in sync with
+   * the selected mode without duplicating the mode dispatch at every call site.
+   */
+  protected refreshActiveView(): void {
+    switch (this.currentDisplayMode) {
+      case 'patch':
+        this.showCleanPatch();
 
-      return;
+        return;
+      case 'inline':
+        this.renderInlineDiff();
+
+        return;
+      case 'line-by-line':
+        this.renderDiff(DiffOutputFormatType.line);
+
+        return;
+      default:
+        this.renderDiff(DiffOutputFormatType.side);
     }
-
-    this.renderDiff(
-      this.currentDisplayMode === 'line-by-line' ? DiffOutputFormatType.line : DiffOutputFormatType.side
-    );
   }
 
   /**
@@ -574,16 +603,7 @@ export class HistoryModal extends Modal {
     // Refresh every view that depends on the current state.
     this.renderVersions();
     this.renderHunks();
-
-    if (this.currentDisplayMode === 'patch') {
-      this.showCleanPatch();
-
-      return;
-    }
-
-    this.renderDiff(
-      this.currentDisplayMode === 'line-by-line' ? DiffOutputFormatType.line : DiffOutputFormatType.side
-    );
+    this.refreshActiveView();
   }
 
   /**
@@ -709,6 +729,124 @@ export class HistoryModal extends Modal {
         ]
       }
     );
+  }
+
+  /**
+   * Renders an inline diff between the selected base and the current state,
+   * highlighting changed words inside modified lines instead of marking the
+   * whole line. Context lines are shown plain, pure additions and removals are
+   * shown whole in their colour, and a modified line is shown as its old text
+   * (with removed words highlighted) above its new text (with added words
+   * highlighted). The whole view is built with safe DOM nodes (no raw HTML);
+   * each word span carries a class the stylesheet colours.
+   */
+  protected renderInlineDiff(): void {
+    // Update current mode and button states,
+    // clean up previous scroll synchronization.
+    this.currentDisplayMode = 'inline';
+    this.updateButtonActiveStates();
+    this.cleanupScrollSync();
+
+    if (this.isBaseSameCurrent()) {
+      DomHelper.update(this.diffContainerEl, {
+        text: null,
+        children: [{ tag: 'div', classes: 'lct-inline-empty', text: 'No changes' }],
+      });
+
+      return;
+    }
+
+    const diffLines: InlineDiffLine[] = WordDiffHelper.lines(this.getBaseContent(), this.snapshot.getLastState());
+    const rows: DomElementConfig[] = [];
+
+    diffLines.forEach((line: InlineDiffLine): void => {
+      if (line.type === 'context') {
+        rows.push(this.makeInlineRow('context', ' ', [{ tag: 'span', text: line.oldText ?? '' }]));
+
+        return;
+      }
+
+      if (line.type === 'added') {
+        rows.push(this.makeInlineRow('added', '+', [
+          { tag: 'span', classes: 'lct-word-added', text: line.newText ?? '' },
+        ]));
+
+        return;
+      }
+
+      if (line.type === 'removed') {
+        rows.push(this.makeInlineRow('removed', '-', [
+          { tag: 'span', classes: 'lct-word-removed', text: line.oldText ?? '' },
+        ]));
+
+        return;
+      }
+
+      // Modified: old text with removed words, then new text with added words.
+      rows.push(this.makeInlineRow('removed', '-', this.makeWordSpans(line.oldText ?? '', line.newText ?? '', 'old')));
+      rows.push(this.makeInlineRow('added', '+', this.makeWordSpans(line.oldText ?? '', line.newText ?? '', 'new')));
+    });
+
+    DomHelper.update(this.diffContainerEl, {
+      text: null,
+      children: [{ tag: 'div', classes: 'lct-inline-container', children: rows }],
+    });
+  }
+
+  /**
+   * Builds one inline diff row: a sign gutter (a space, plus, or minus) and the
+   * line content made of the provided spans.
+   *
+   * @param {string} kind - The row kind, used as a modifier class
+   * @param {string} sign - The leading sign character for the row
+   * @param {DomElementConfig[]} content - The content spans for the line
+   * @return {DomElementConfig} The row element config
+   */
+  protected makeInlineRow(kind: string, sign: string, content: DomElementConfig[]): DomElementConfig {
+    return {
+      tag: 'div',
+      classes: ['lct-inline-row', `lct-inline-${kind}`],
+      children: [
+        { tag: 'span', classes: 'lct-inline-sign', text: sign },
+        { tag: 'span', classes: 'lct-inline-content', children: content },
+      ],
+    };
+  }
+
+  /**
+   * Computes the word-level spans for one side of a modified line. The old side
+   * keeps unchanged and removed words (removed words highlighted); the new side
+   * keeps unchanged and added words (added words highlighted). An empty side
+   * yields no spans.
+   *
+   * @param {string} oldText - The old (base) line text
+   * @param {string} newText - The new (current) line text
+   * @param {'old' | 'new'} side - Which side of the modification to render
+   * @return {DomElementConfig[]} The span configs for that side
+   */
+  protected makeWordSpans(oldText: string, newText: string, side: 'old' | 'new'): DomElementConfig[] {
+    const spans: DomElementConfig[] = [];
+
+    WordDiffHelper.segments(oldText, newText).forEach((segment: Diff.Change): void => {
+      // Skip the segments that do not belong on this side.
+      if (side === 'old' && segment.added) {
+        return;
+      }
+
+      if (side === 'new' && segment.removed) {
+        return;
+      }
+
+      const classes: string | undefined = segment.added
+        ? 'lct-word-added'
+        : segment.removed
+          ? 'lct-word-removed'
+          : undefined;
+
+      spans.push(classes ? { tag: 'span', classes, text: segment.value } : { tag: 'span', text: segment.value });
+    });
+
+    return spans;
   }
 
   /**

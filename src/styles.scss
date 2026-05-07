@@ -112,6 +112,66 @@
       background-color: var(--background-secondary);
     }
 
+    // inline word diff
+    .lct-inline-empty {
+      padding: 10px;
+      color: var(--text-muted);
+    }
+
+    .lct-inline-container {
+      position: absolute;
+      inset: 0;
+      overflow: auto;
+      padding: 8px 0;
+      user-select: text;
+
+      .lct-inline-row {
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+        padding: 0 10px;
+        white-space: pre-wrap;
+        word-break: break-word;
+
+        &.lct-inline-added {
+          background: linear-gradient(
+                          rgba(var(--color-green-rgb), 0.12),
+                          rgba(var(--color-green-rgb), 0.12)
+          ), var(--background-secondary);
+        }
+
+        &.lct-inline-removed {
+          background: linear-gradient(
+                          rgba(var(--color-red-rgb), 0.12),
+                          rgba(var(--color-red-rgb), 0.12)
+          ), var(--background-secondary);
+        }
+
+        .lct-inline-sign {
+          flex: none;
+          width: 10px;
+          text-align: center;
+          color: var(--text-faint);
+          user-select: none;
+        }
+
+        .lct-inline-content {
+          flex: 1;
+          min-width: 0;
+        }
+      }
+
+      .lct-word-added {
+        background-color: rgba(var(--color-green-rgb), 0.4);
+        border-radius: var(--radius-s);
+      }
+
+      .lct-word-removed {
+        background-color: rgba(var(--color-red-rgb), 0.4);
+        border-radius: var(--radius-s);
+      }
+    }
+
     // general
     .d2h-wrapper {
       position: absolute;

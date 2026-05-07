@@ -56,12 +56,12 @@ describe('SettingsService init', () => {
 
   it('backfills excludePaths from defaults for data saved before the setting existed', async () => {
     // Saved data from an older version has no excludePaths key; the deep-merge
-    // must supply the default so the setting reads as "exclude nothing".
+    // must supply the default exclude regexp instead of leaving the key unset.
     const service = makeService({ show: { changed: false } });
     await service.init();
 
     expect(service.value('excludePaths')).toBe(DEFAULT_SETTINGS.excludePaths);
-    expect(service.value('excludePaths')).toBe('');
+    expect(service.value('excludePaths')).not.toBe('');
   });
 
   it('keeps a saved excludePaths value over the default', async () => {

@@ -52,7 +52,7 @@ export const DEFAULT_SETTINGS: LineChangeTrackerSettings = {
   keep: KeepHistory.file,
   persist: false,
   allowedExtensions: 'md, txt, csv, json, yaml',
-  excludePaths: '',
+  excludePaths: '(^|/)templates/|\\.excalidraw\\.md$',
   ignoreNewFiles: true,
 
   retention: {
@@ -63,7 +63,7 @@ export const DEFAULT_SETTINGS: LineChangeTrackerSettings = {
   snapshots: {
     enabled: true,
     intervalMs: 5 * 60 * 1000,
-    editThreshold: 30,
+    editThreshold: 10,
     maxVersions: 20,
   },
 

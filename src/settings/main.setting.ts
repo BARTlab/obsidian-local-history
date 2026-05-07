@@ -85,12 +85,13 @@ export class MainSetting extends PluginSettingTab {
       .setDesc(
         'A case-insensitive regular expression matched against the '
         + 'vault-relative path. Any file whose path matches is never tracked '
-        + '(e.g. \\.excalidraw\\.md$ or (^|/)Templates/). Leave empty to track '
+        + '(e.g. \\.excalidraw\\.md$ or (^|/)Templates/). The default excludes '
+        + 'Templates folders and Excalidraw drawings. Leave empty to track '
         + 'everything.'
       )
       .addText((text: TextComponent): TextComponent =>
         text
-          .setPlaceholder(DEFAULT_SETTINGS.excludePaths || '\\.excalidraw\\.md$')
+          .setPlaceholder(DEFAULT_SETTINGS.excludePaths)
           .setValue(this.settingsService.value('excludePaths'))
           .onChange((value: string): void => {
             this.settingsService.update('excludePaths', value);

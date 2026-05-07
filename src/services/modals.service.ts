@@ -40,8 +40,25 @@ export class ModalsService implements Service {
   }
 
   /**
+   * Checks whether a diff/history modal can be opened for a file.
+   * The modal only carries value when a snapshot exists; this is the predicate a
+   * command's `checkCallback` uses to decide if it should be enabled. It does not
+   * depend on an active editor, so it is true in reading mode as well, as long as
+   * the file (active file by default) has tracked history.
+   *
+   * @param {TFile} file - The file to check, or null to use the active file
+   * @return {boolean} True if a snapshot exists and the modal can be opened
+   */
+  public canDiff(file?: TFile | null): boolean {
+    return this.snapshotsService.getOne(file) !== null;
+  }
+
+  /**
    * Opens a diff/history modal for a file.
    * Retrieves the file snapshot and opens a HistoryModal if the snapshot exists.
+   * The modal itself is editor-independent, so it opens the same way in reading
+   * (preview) mode as in source mode; only the inline line highlights are
+   * editor-only.
    *
    * @param {TFile} file - The file to show diff for, or null to use the active file
    * @return {boolean} True if the modal was opened successfully, false if no snapshot exists

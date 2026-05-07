@@ -54,6 +54,25 @@ describe('SettingsService init', () => {
     expect(service.value('snapshots.maxVersions')).toBe(DEFAULT_SETTINGS.snapshots.maxVersions);
   });
 
+  it('backfills excludePaths from defaults for data saved before the setting existed', async () => {
+    // Saved data from an older version has no excludePaths key; the deep-merge
+    // must supply the default so the setting reads as "exclude nothing".
+    const service = makeService({ show: { changed: false } });
+    await service.init();
+
+    expect(service.value('excludePaths')).toBe(DEFAULT_SETTINGS.excludePaths);
+    expect(service.value('excludePaths')).toBe('');
+  });
+
+  it('keeps a saved excludePaths value over the default', async () => {
+    const service = makeService({ excludePaths: 'Templates\nDaily/**' });
+    await service.init();
+
+    expect(service.value('excludePaths')).toBe('Templates\nDaily/**');
+    // Sibling defaults survive the partial save.
+    expect(service.value('allowedExtensions')).toBe(DEFAULT_SETTINGS.allowedExtensions);
+  });
+
   it('loads a clone of the defaults when there is no saved data', async () => {
     const service = makeService(null);
     await service.init();

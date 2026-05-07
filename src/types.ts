@@ -103,6 +103,8 @@ export interface LineChangeTrackerSettings {
   persist: boolean;
   /** File extensions that are allowed for tracking (comma-separated) */
   allowedExtensions: string;
+  /** Path/glob patterns to exclude from tracking (comma- or newline-separated) */
+  excludePaths: string;
   /** Whether to ignore newly created files */
   ignoreNewFiles: boolean;
 }

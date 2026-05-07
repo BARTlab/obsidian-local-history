@@ -21,12 +21,34 @@ import type { TFile } from 'obsidian';
 
 type PluginArg = ConstructorParameters<typeof SnapshotsService>[0];
 
-const makeFile = (path: string): TFile =>
-  ({ path, name: path.split('/').pop() ?? path } as unknown as TFile);
+const makeFile = (path: string): TFile => {
+  const name: string = path.split('/').pop() ?? path;
+  const extension: string = name.includes('.') ? name.split('.').pop() ?? '' : '';
+
+  return { path, name, extension } as unknown as TFile;
+};
 
 const makeService = (): SnapshotsService => {
   const plugin = {
     getActiveEditorView: (): undefined => undefined,
+  } as unknown as PluginArg;
+
+  return new SnapshotsService(plugin);
+};
+
+/**
+ * Builds a service whose injected SettingsService returns the given allowed
+ * extensions and exclude patterns, so the trackable decision (canCapture /
+ * isExcludedPath) can be exercised without a real DI container.
+ */
+const makeServiceWithSettings = (settings: Record<string, string>): SnapshotsService => {
+  const settingsService = {
+    value: (path: string): string => settings[path] ?? '',
+  };
+
+  const plugin = {
+    getActiveEditorView: (): undefined => undefined,
+    get: (): unknown => settingsService,
   } as unknown as PluginArg;
 
   return new SnapshotsService(plugin);
@@ -66,6 +88,40 @@ describe('SnapshotsService rename', () => {
     service.rename('missing.md', after);
 
     expect(service.getOne(after)).toBeNull();
+  });
+});
+
+describe('SnapshotsService path excludes', () => {
+  it('flags an excluded path and keeps it out of canCapture', () => {
+    const service = makeServiceWithSettings({
+      allowedExtensions: 'md',
+      excludePaths: 'Templates\nDaily/**',
+    });
+
+    const excluded = makeFile('Templates/note.md');
+    const nested = makeFile('Daily/2026/05/31.md');
+    const tracked = makeFile('notes/keep.md');
+
+    expect(service.isExcludedPath(excluded)).toBe(true);
+    expect(service.isExcludedPath(nested)).toBe(true);
+    expect(service.isExcludedPath(tracked)).toBe(false);
+
+    // The exclude must veto capture even though the extension is allowed.
+    expect(service.canCapture(excluded)).toBe(false);
+    expect(service.canCapture(nested)).toBe(false);
+    expect(service.canCapture(tracked)).toBe(true);
+  });
+
+  it('excludes nothing when the pattern list is empty', () => {
+    const service = makeServiceWithSettings({
+      allowedExtensions: 'md',
+      excludePaths: '',
+    });
+
+    const file = makeFile('Templates/note.md');
+
+    expect(service.isExcludedPath(file)).toBe(false);
+    expect(service.canCapture(file)).toBe(true);
   });
 });
 

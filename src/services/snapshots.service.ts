@@ -1,5 +1,6 @@
 import { PluginEvent } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
+import { PathExcludeHelper } from '@/helpers/path-exclude.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import { ObservableMap } from '@/maps/observable.map';
 import type { SettingsService } from '@/services/settings.service';
@@ -297,6 +298,26 @@ export class SnapshotsService implements Service {
   }
 
   /**
+   * Checks whether a file path matches any configured exclude pattern.
+   * Excluded paths (for example a templates or daily-notes folder) are never
+   * tracked, on top of the extension filter. The patterns are matched against
+   * the vault-relative path with forward slashes; an empty pattern list excludes
+   * nothing.
+   *
+   * @param {TFile} file - The file to check
+   * @return {boolean} True if the file path is excluded from tracking
+   */
+  public isExcludedPath(file: TFile): boolean {
+    if (!file) {
+      return false;
+    }
+
+    const patterns: string[] = PathExcludeHelper.parse(this.settingsService.value('excludePaths'));
+
+    return PathExcludeHelper.isExcluded(file.path, patterns);
+  }
+
+  /**
    * Checks if a file has already been captured (has a snapshot).
    *
    * @param {TFile} file - The file to check
@@ -312,8 +333,9 @@ export class SnapshotsService implements Service {
 
   /**
    * Determines if a file can be captured for change tracking.
-   * A file can be captured if it has an allowed extension, hasn't been captured yet,
-   * and is not in the ignore list.
+   * A file can be captured if it has an allowed extension, its path is not
+   * excluded by a configured pattern, it hasn't been captured yet, and it is not
+   * in the ignore list.
    *
    * @param {TFile} file - The file to check
    * @return {boolean} True if the file can be captured, false otherwise
@@ -324,10 +346,11 @@ export class SnapshotsService implements Service {
     }
 
     const isExtensionAllowed: boolean = this.isInAllowedExtensions(file);
+    const isExcluded: boolean = this.isExcludedPath(file);
     const isHasInList: boolean = this.isCaptured(file);
     const isIgnored: boolean = this.isInIgnoreList(file);
 
-    return isExtensionAllowed && !isHasInList && !isIgnored;
+    return isExtensionAllowed && !isExcluded && !isHasInList && !isIgnored;
   }
 
   /**

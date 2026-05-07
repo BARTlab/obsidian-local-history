@@ -8,6 +8,7 @@ import {
   PluginSettingTab,
   Setting,
   type SliderComponent,
+  type TextAreaComponent,
   type TextComponent,
   type ToggleComponent
 } from 'obsidian';
@@ -77,6 +78,22 @@ export class MainSetting extends PluginSettingTab {
               'allowedExtensions',
               value || DEFAULT_SETTINGS.allowedExtensions
             );
+          })
+      );
+
+    new Setting(containerEl)
+      .setName('Excluded paths')
+      .setDesc(
+        'Paths or glob patterns to never track, one per line or comma-separated '
+        + '(e.g. Templates, Daily/**, *.excalidraw.md). Matched against the '
+        + 'vault-relative path.'
+      )
+      .addTextArea((text: TextAreaComponent): TextAreaComponent =>
+        text
+          .setPlaceholder('Templates\nDaily/**')
+          .setValue(this.settingsService.value('excludePaths'))
+          .onChange((value: string): void => {
+            this.settingsService.update('excludePaths', value);
           })
       );
 

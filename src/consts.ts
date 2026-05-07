@@ -52,6 +52,7 @@ export const DEFAULT_SETTINGS: LineChangeTrackerSettings = {
   keep: KeepHistory.file,
   persist: false,
   allowedExtensions: 'md, txt, csv, json, yaml',
+  excludePaths: '',
   ignoreNewFiles: true,
 
   retention: {

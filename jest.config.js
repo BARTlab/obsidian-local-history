@@ -8,6 +8,10 @@ module.exports = {
     // lodash-es is ESM only; route it to a CommonJS-friendly stub so the engine
     // model files can be imported directly under the CommonJS Jest runtime.
     '^lodash-es$': '<rootDir>/tests/stubs/lodash-es.ts',
+    // The obsidian package ships type declarations only (no runtime value), so
+    // any source file importing a runtime value from it (e.g. Notice) cannot be
+    // resolved under Jest. Route it to an inert stub.
+    '^obsidian$': '<rootDir>/tests/stubs/obsidian.ts',
   },
   transform: {
     '^.+\\.ts$': [

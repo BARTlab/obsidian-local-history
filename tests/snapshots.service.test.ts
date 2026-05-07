@@ -17,6 +17,7 @@ jest.mock('@/snapshots/file.snapshot', () => ({
 }));
 
 import { SnapshotsService } from '@/services/snapshots.service';
+import * as obsidian from 'obsidian';
 import type { TFile } from 'obsidian';
 
 type PluginArg = ConstructorParameters<typeof SnapshotsService>[0];
@@ -92,14 +93,14 @@ describe('SnapshotsService rename', () => {
 });
 
 describe('SnapshotsService path excludes', () => {
-  it('flags an excluded path and keeps it out of canCapture', () => {
+  it('flags a path matched by the exclude regexp and keeps it out of canCapture', () => {
     const service = makeServiceWithSettings({
       allowedExtensions: 'md',
-      excludePaths: 'Templates\nDaily/**',
+      excludePaths: '(^|/)Templates/|(^|/)Daily/',
     });
 
     const excluded = makeFile('Templates/note.md');
-    const nested = makeFile('Daily/2026/05/31.md');
+    const nested = makeFile('areas/Daily/2026/05/31.md');
     const tracked = makeFile('notes/keep.md');
 
     expect(service.isExcludedPath(excluded)).toBe(true);
@@ -112,7 +113,7 @@ describe('SnapshotsService path excludes', () => {
     expect(service.canCapture(tracked)).toBe(true);
   });
 
-  it('excludes nothing when the pattern list is empty', () => {
+  it('excludes nothing when the pattern is empty', () => {
     const service = makeServiceWithSettings({
       allowedExtensions: 'md',
       excludePaths: '',
@@ -122,6 +123,33 @@ describe('SnapshotsService path excludes', () => {
 
     expect(service.isExcludedPath(file)).toBe(false);
     expect(service.canCapture(file)).toBe(true);
+  });
+
+  it('excludes nothing on an invalid regexp so tracking continues', () => {
+    const notice = jest.spyOn(obsidian, 'Notice').mockImplementation(
+      function (this: unknown): void {
+        // Inert: swallow construction so the "new Notice(...)" call is counted
+        // without needing a real Obsidian toast.
+      } as unknown as () => obsidian.Notice
+    );
+    const service = makeServiceWithSettings({
+      allowedExtensions: 'md',
+      excludePaths: '[unclosed',
+    });
+
+    const file = makeFile('Templates/note.md');
+
+    expect(service.isExcludedPath(file)).toBe(false);
+    expect(service.canCapture(file)).toBe(true);
+
+    // The malformed-pattern warning is shown, but only once for the same
+    // pattern even when several files are evaluated.
+    service.isExcludedPath(makeFile('Templates/another.md'));
+    service.isExcludedPath(makeFile('Daily/x.md'));
+
+    expect(notice).toHaveBeenCalledTimes(1);
+
+    notice.mockRestore();
   });
 });
 

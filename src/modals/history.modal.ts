@@ -322,33 +322,21 @@ export class HistoryModal extends Modal {
   }
 
   /**
-   * Builds the top toolbar controls: the destructive actions (remove history,
-   * restore original) and the four view-mode toggles. The buttons keep their
-   * current textual form here; turning them into icon buttons is a later task.
+   * Builds the top toolbar controls as icon buttons grouped by purpose: the
+   * destructive actions (restore original, remove history) on the left and the
+   * four view-mode toggles on the right. Every button is icon-only on screen but
+   * carries a text label through its tooltip and aria-label so it stays usable by
+   * keyboard and screen readers. The view-mode buttons keep the active-mode
+   * highlight driven by updateButtonActiveStates; the destructive actions still
+   * confirm before acting.
    */
   protected makeToolbar(): void {
+    // Destructive actions: each still asks for confirmation before acting.
     new Setting(this.toolbarEl)
+      .setClass('lct-modal-toolbar-group')
       .setClass('lct-modal-toolbar-actions')
       .addButton((btn: ButtonComponent): ButtonComponent =>
-        btn
-          .setButtonText('Remove file history')
-          .setWarning()
-          .onClick(async (): Promise<void> => {
-            const confirmed: boolean = await this.modalsService.confirm({
-              title: 'Remove file history',
-              // eslint-disable-next-line @stylistic/max-len
-              message: 'Are you sure you want to remove the change tracking history for this file? This action cannot be undone.',
-              confirmText: 'Remove history'
-            });
-
-            if (confirmed) {
-              this.snapshotsService?.wipeOne(this.snapshot.file);
-              this.close();
-            }
-          }))
-      .addButton((btn: ButtonComponent): ButtonComponent =>
-        btn
-          .setButtonText('Restore original')
+        this.decorateButton(btn, 'rotate-ccw', 'Restore original')
           .setWarning()
           .onClick(async (): Promise<void> => {
             const confirmed: boolean = await this.modalsService.confirm({
@@ -362,11 +350,31 @@ export class HistoryModal extends Modal {
               await this.restoreOriginalFile();
             }
           }))
+      .addButton((btn: ButtonComponent): ButtonComponent =>
+        this.decorateButton(btn, 'trash-2', 'Remove file history')
+          .setWarning()
+          .onClick(async (): Promise<void> => {
+            const confirmed: boolean = await this.modalsService.confirm({
+              title: 'Remove file history',
+              // eslint-disable-next-line @stylistic/max-len
+              message: 'Are you sure you want to remove the change tracking history for this file? This action cannot be undone.',
+              confirmText: 'Remove history'
+            });
+
+            if (confirmed) {
+              this.snapshotsService?.wipeOne(this.snapshot.file);
+              this.close();
+            }
+          }));
+
+    // View-mode toggles: the active mode is highlighted via mod-cta.
+    new Setting(this.toolbarEl)
+      .setClass('lct-modal-toolbar-group')
+      .setClass('lct-modal-toolbar-modes')
       .addButton((btn: ButtonComponent): ButtonComponent => {
         this.modeButtons.patch = btn.buttonEl;
 
-        return btn
-          .setButtonText('Show patch')
+        return this.decorateButton(btn, 'file-text', 'Show patch')
           .onClick((): void => {
             this.showCleanPatch();
           });
@@ -374,8 +382,7 @@ export class HistoryModal extends Modal {
       .addButton((btn: ButtonComponent): ButtonComponent => {
         this.modeButtons.inline = btn.buttonEl;
 
-        return btn
-          .setButtonText('Inline')
+        return this.decorateButton(btn, 'pilcrow', 'Inline')
           .onClick((): void => {
             this.renderInlineDiff();
           });
@@ -383,8 +390,7 @@ export class HistoryModal extends Modal {
       .addButton((btn: ButtonComponent): ButtonComponent => {
         this.modeButtons.lineByLine = btn.buttonEl;
 
-        return btn
-          .setButtonText('Line by line')
+        return this.decorateButton(btn, 'align-justify', 'Line by line')
           .onClick((): void => {
             this.renderDiff(DiffOutputFormatType.line);
           });
@@ -392,8 +398,7 @@ export class HistoryModal extends Modal {
       .addButton((btn: ButtonComponent): ButtonComponent => {
         this.modeButtons.sideBySide = btn.buttonEl;
 
-        return btn
-          .setButtonText('Side by side')
+        return this.decorateButton(btn, 'columns-2', 'Side by side')
           .onClick((): void => {
             this.renderDiff(DiffOutputFormatType.side);
           });
@@ -401,6 +406,26 @@ export class HistoryModal extends Modal {
 
     // Set the initial active state.
     this.updateButtonActiveStates();
+  }
+
+  /**
+   * Turns a toolbar button into an accessible icon button: it shows only the
+   * icon but exposes the label as both a hover tooltip and an aria-label, so the
+   * control is never a label-less icon for keyboard or screen-reader users.
+   *
+   * @param {ButtonComponent} btn - The button to decorate
+   * @param {string} icon - The Obsidian (Lucide) icon id to render
+   * @param {string} label - The text label exposed via tooltip and aria-label
+   * @return {ButtonComponent} The same button, for chaining
+   */
+  protected decorateButton(btn: ButtonComponent, icon: string, label: string): ButtonComponent {
+    btn
+      .setIcon(icon)
+      .setTooltip(label);
+
+    btn.buttonEl.setAttribute('aria-label', label);
+
+    return btn;
   }
 
   /**

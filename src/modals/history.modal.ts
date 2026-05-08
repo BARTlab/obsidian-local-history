@@ -2,6 +2,7 @@ import { DiffOutputFormatType } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { DomHelper } from '@/helpers/dom.helper';
 import { HunkHelper } from '@/helpers/hunk.helper';
+import { type SearchableVersion, VersionSearchHelper } from '@/helpers/version-search.helper';
 import { type InlineDiffLine, WordDiffHelper } from '@/helpers/word-diff.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ModalsService } from '@/services/modals.service';
@@ -11,7 +12,7 @@ import type { FileVersion } from '@/snapshots/file.version';
 import type { DomElementConfig, FunctionVoid, HTMLElementWithScrollSync } from '@/types';
 import * as Diff from 'diff';
 import * as Diff2Html from 'diff2html';
-import { type App, type ButtonComponent, Modal, Notice, Setting, type TFile } from 'obsidian';
+import { type App, type ButtonComponent, Modal, Notice, SearchComponent, Setting, type TFile } from 'obsidian';
 
 /**
  * Sentinel id for the original baseline entry in the version list. Picking it
@@ -67,6 +68,12 @@ export class HistoryModal extends Modal {
   protected mainEl?: HTMLElement;
 
   /**
+   * Container element holding the content-search box above the version list in
+   * the left rail.
+   */
+  protected searchEl?: HTMLElement;
+
+  /**
    * Container element holding the version timeline list, rebuilt to reflect the
    * selected base.
    */
@@ -84,6 +91,13 @@ export class HistoryModal extends Modal {
    * that earlier point instead.
    */
   protected selectedBaseId: string = ORIGINAL_BASE_ID;
+
+  /**
+   * Current content-search query for the version rail. An empty string shows
+   * every version; a non-empty query keeps only versions whose captured content
+   * contains it (case-insensitive). It never affects the selected diff base.
+   */
+  protected searchQuery: string = '';
 
   /**
    * The current display mode for the diff view.
@@ -275,7 +289,14 @@ export class HistoryModal extends Modal {
 
     this.makeToolbar();
 
-    // Version timeline lives in the left rail.
+    // Content search sits above the version timeline in the left rail.
+    this.searchEl = DomHelper.create({
+      tag: 'div',
+      classes: 'lct-rail-search',
+      container: this.railEl,
+    });
+
+    // Version timeline lives in the left rail, under the search box.
     this.versionsEl = DomHelper.create({
       tag: 'div',
       classes: 'lct-versions',
@@ -295,6 +316,7 @@ export class HistoryModal extends Modal {
       container: this.mainEl,
     });
 
+    this.renderSearch();
     this.renderVersions();
     this.renderHunks();
   }
@@ -382,11 +404,42 @@ export class HistoryModal extends Modal {
   }
 
   /**
+   * Renders the content-search box above the version list. The box filters the
+   * versions in the rail by their captured content; it is hidden when the file
+   * has no intermediate versions, so a timeline-less file keeps a clean rail.
+   * Typing re-renders only the version list (not the diff or the selection).
+   */
+  protected renderSearch(): void {
+    if (!this.searchEl) {
+      return;
+    }
+
+    if (this.snapshot.getVersions().length === 0) {
+      DomHelper.update(this.searchEl, { text: null, classes: { add: 'lct-rail-search-empty' } });
+
+      return;
+    }
+
+    DomHelper.update(this.searchEl, { text: null, classes: { remove: 'lct-rail-search-empty' } });
+
+    new SearchComponent(this.searchEl)
+      .setPlaceholder('Search versions')
+      .setValue(this.searchQuery)
+      .onChange((value: string): void => {
+        this.searchQuery = value;
+        this.renderVersions();
+      });
+  }
+
+  /**
    * Renders the version timeline as a list of selectable bases. The list always
    * starts with the original baseline, followed by intermediate versions newest
-   * first. The whole block is hidden when no intermediate versions exist, so a
-   * file without a timeline keeps the simple original-vs-current view.
-   * Selecting an entry sets it as the diff base and re-renders the active view.
+   * first that match the current search query. The whole block is hidden when no
+   * intermediate versions exist, so a file without a timeline keeps the simple
+   * original-vs-current view. When a query matches no version, the original
+   * still shows and an empty-results hint replaces the version entries, leaving
+   * the current selection untouched. Selecting an entry sets it as the diff base
+   * and re-renders the active view.
    */
   protected renderVersions(): void {
     if (!this.versionsEl) {
@@ -403,12 +456,31 @@ export class HistoryModal extends Modal {
 
     DomHelper.update(this.versionsEl, { classes: { remove: 'lct-versions-empty' } });
 
+    const visibleIds: Set<string> = VersionSearchHelper.match(
+      versions.map((version: FileVersion): SearchableVersion => ({
+        id: version.id,
+        content: version.getContent(this.snapshot.lineBreak),
+      })),
+      this.searchQuery,
+    );
+
+    const matched: FileVersion[] = versions.filter((version: FileVersion): boolean => visibleIds.has(version.id));
+
+    // The original baseline is a timeline anchor, not a searchable version, so
+    // it always heads the list regardless of the query. Version numbers stay
+    // tied to the full timeline position so they do not shift while filtering.
     const items: DomElementConfig[] = [
       this.makeVersionItem(ORIGINAL_BASE_ID, 'Original', ''),
-      ...versions.map((version: FileVersion, index: number): DomElementConfig =>
-        this.makeVersionItem(version.id, `Version ${versions.length - index}`, version.getDateTime())
-      ),
+      ...matched.map((version: FileVersion): DomElementConfig => {
+        const number: number = versions.length - versions.indexOf(version);
+
+        return this.makeVersionItem(version.id, `Version ${number}`, version.getDateTime());
+      }),
     ];
+
+    if (matched.length === 0) {
+      items.push({ tag: 'div', classes: 'lct-versions-no-results', text: 'No versions match the search' });
+    }
 
     DomHelper.update(this.versionsEl, {
       text: null,

@@ -60,6 +60,19 @@
       min-height: 0;
     }
 
+    .lct-rail-search {
+      flex: none;
+      padding-bottom: 8px;
+
+      &.lct-rail-search-empty {
+        display: none;
+      }
+
+      .search-input-container {
+        width: 100%;
+      }
+    }
+
     .lct-versions {
       &.lct-versions-empty {
         display: none;
@@ -70,6 +83,12 @@
         flex-direction: column;
         gap: 6px;
         padding: 0 0 8px;
+      }
+
+      .lct-versions-no-results {
+        color: var(--text-muted);
+        font-size: var(--font-ui-smaller);
+        padding: 4px 2px;
       }
 
       .lct-version-item {

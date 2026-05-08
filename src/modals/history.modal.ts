@@ -49,6 +49,24 @@ export class HistoryModal extends Modal {
   protected diffContainerEl?: HTMLElementWithScrollSync;
 
   /**
+   * Left rail container of the three-pane shell. Hosts the version timeline
+   * (and, in a later task, the content search above it).
+   */
+  protected railEl?: HTMLElement;
+
+  /**
+   * Top toolbar container of the three-pane shell. Hosts the view-mode and
+   * action controls above the diff.
+   */
+  protected toolbarEl?: HTMLElement;
+
+  /**
+   * Main pane container of the three-pane shell. Hosts the diff output (and the
+   * per-hunk revert list until it moves to the gutter).
+   */
+  protected mainEl?: HTMLElement;
+
+  /**
    * Container element holding the version timeline list, rebuilt to reflect the
    * selected base.
    */
@@ -102,8 +120,6 @@ export class HistoryModal extends Modal {
     protected snapshot: FileSnapshot,
   ) {
     super(app);
-
-    this.diffContainerEl = this.contentEl.createDiv('diff-container');
   }
 
   /**
@@ -221,10 +237,76 @@ export class HistoryModal extends Modal {
 
     this.setTitle('History');
 
-    // action buttons in a single row
-    new Setting(this.contentEl)
-      .setName('Last modified')
-      .setDesc(isOrigin ? 'No changes' : changeDateTime)
+    // Modification date, shown under the title instead of in a bottom panel.
+    DomHelper.create({
+      tag: 'div',
+      classes: 'lct-modal-subtitle',
+      text: isOrigin ? 'No changes' : changeDateTime,
+      container: this.contentEl,
+    });
+
+    // Three-pane shell: top toolbar, then a body split into a left rail and a
+    // main diff pane. The toolbar and rail are populated as scaffolding here;
+    // later tasks turn the toolbar into icon buttons (T07) and add search to
+    // the rail (T06).
+    this.toolbarEl = DomHelper.create({
+      tag: 'div',
+      classes: 'lct-modal-toolbar',
+      container: this.contentEl,
+    });
+
+    const bodyEl: HTMLElement = DomHelper.create({
+      tag: 'div',
+      classes: 'lct-modal-body',
+      container: this.contentEl,
+    });
+
+    this.railEl = DomHelper.create({
+      tag: 'div',
+      classes: 'lct-modal-rail',
+      container: bodyEl,
+    });
+
+    this.mainEl = DomHelper.create({
+      tag: 'div',
+      classes: 'lct-modal-main',
+      container: bodyEl,
+    });
+
+    this.makeToolbar();
+
+    // Version timeline lives in the left rail.
+    this.versionsEl = DomHelper.create({
+      tag: 'div',
+      classes: 'lct-versions',
+      container: this.railEl,
+    });
+
+    // Per-hunk revert controls and the diff output share the main pane.
+    this.hunksEl = DomHelper.create({
+      tag: 'div',
+      classes: 'lct-hunks',
+      container: this.mainEl,
+    });
+
+    this.diffContainerEl = DomHelper.create({
+      tag: 'div',
+      classes: 'diff-container',
+      container: this.mainEl,
+    });
+
+    this.renderVersions();
+    this.renderHunks();
+  }
+
+  /**
+   * Builds the top toolbar controls: the destructive actions (remove history,
+   * restore original) and the four view-mode toggles. The buttons keep their
+   * current textual form here; turning them into icon buttons is a later task.
+   */
+  protected makeToolbar(): void {
+    new Setting(this.toolbarEl)
+      .setClass('lct-modal-toolbar-actions')
       .addButton((btn: ButtonComponent): ButtonComponent =>
         btn
           .setButtonText('Remove file history')
@@ -295,24 +377,8 @@ export class HistoryModal extends Modal {
           });
       });
 
-    // Set the initial active state
+    // Set the initial active state.
     this.updateButtonActiveStates();
-
-    // Version timeline, placed above the diff output.
-    this.versionsEl = this.contentEl.createDiv('lct-versions');
-    // Per-hunk revert controls, placed between the timeline and the diff output.
-    this.hunksEl = this.contentEl.createDiv('lct-hunks');
-
-    if (this.diffContainerEl && this.versionsEl.parentElement === this.contentEl) {
-      this.contentEl.insertBefore(this.versionsEl, this.diffContainerEl);
-    }
-
-    if (this.diffContainerEl && this.hunksEl.parentElement === this.contentEl) {
-      this.contentEl.insertBefore(this.hunksEl, this.diffContainerEl);
-    }
-
-    this.renderVersions();
-    this.renderHunks();
   }
 
   /**

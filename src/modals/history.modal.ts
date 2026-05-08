@@ -457,6 +457,19 @@ export class HistoryModal extends Modal {
   }
 
   /**
+   * Picks the placeholder text shown when the selected base equals the current
+   * state. A picked intermediate version that matches the live content reads
+   * "Identical to current" so the user understands the chosen base holds the
+   * same text, distinguishing it from the original-vs-current "No changes" case
+   * where the file simply was never modified.
+   *
+   * @return {string} The empty-diff placeholder text for the current base
+   */
+  protected getEmptyDiffText(): string {
+    return this.selectedBaseId === ORIGINAL_BASE_ID ? 'No changes' : 'Identical to current';
+  }
+
+  /**
    * Computes the line-level hunks between the selected base and the current
    * state. These back the per-hunk revert controls and are recomputed on demand
    * so the offsets always reflect the live content.
@@ -750,7 +763,7 @@ export class HistoryModal extends Modal {
     if (this.isBaseSameCurrent()) {
       DomHelper.update(this.diffContainerEl, {
         text: null,
-        children: [{ tag: 'div', classes: 'lct-inline-empty', text: 'No changes' }],
+        children: [{ tag: 'div', classes: 'lct-inline-empty', text: this.getEmptyDiffText() }],
       });
 
       return;

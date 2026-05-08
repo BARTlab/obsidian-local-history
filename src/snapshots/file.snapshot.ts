@@ -221,6 +221,12 @@ export class FileSnapshot {
    * by maxVersions, evicting the oldest entries first so it cannot grow without
    * limit.
    *
+   * A no-op capture is skipped: when the content to freeze equals the most
+   * recent stored version (or the original baseline when none exist), no version
+   * is pushed. This keeps the timeline from holding adjacent duplicate entries
+   * or a first version identical to the original, which would otherwise diff
+   * identically and make switching the base appear to change nothing.
+   *
    * @param {string[]} previousLines - The content to freeze (pre-edit state)
    * @param {SnapshotCaptureOptions} options - The capture cadence configuration
    * @param {boolean} force - Capture regardless of the cadence gates
@@ -241,7 +247,32 @@ export class FileSnapshot {
       return null;
     }
 
+    // Skip a capture that would duplicate the latest stored version, or the
+    // original baseline when the timeline is still empty. The cadence counters
+    // are intentionally left untouched so the next genuinely diverging edit is
+    // captured immediately rather than waiting out the gate again.
+    if (this.isDuplicateOfLatest(previousLines)) {
+      return null;
+    }
+
     return this.pushVersion(new FileVersion(previousLines), options.maxVersions);
+  }
+
+  /**
+   * Whether the given content equals the latest stored version, or the original
+   * baseline when no version exists yet. Used to skip a no-op capture so the
+   * timeline never holds an adjacent duplicate or a first version identical to
+   * the original.
+   *
+   * @param {string[]} lines - The candidate content to freeze
+   * @return {boolean} True when the candidate duplicates the latest base
+   */
+  protected isDuplicateOfLatest(lines: string[]): boolean {
+    const candidate: string = lines.join(this.lineBreak);
+    const latest: FileVersion | undefined = this.versions[this.versions.length - 1];
+    const reference: string = latest ? latest.getContent(this.lineBreak) : this.getOriginalState();
+
+    return candidate === reference;
   }
 
   /**

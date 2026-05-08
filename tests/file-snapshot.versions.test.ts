@@ -109,6 +109,51 @@ describe('FileSnapshot.captureVersion guards', () => {
   });
 });
 
+describe('FileSnapshot.captureVersion no-op dedup', () => {
+  it('does not store a first version identical to the original baseline', () => {
+    const snapshot = new FileSnapshot('a\nb', '\n');
+    const opts = options({ editThreshold: 1, maxVersions: 0 });
+
+    // The first qualifying capture freezes the pre-edit state, which still
+    // equals the original here, so nothing should be stored.
+    expect(snapshot.captureVersion(['a', 'b'], opts)).toBeNull();
+    expect(snapshot.hasVersions()).toBe(false);
+
+    // Once the content diverges from the original it is captured normally.
+    const captured: FileVersion | null = snapshot.captureVersion(['a', 'B'], opts);
+    expect(captured).not.toBeNull();
+    expect(snapshot.getVersions()).toHaveLength(1);
+    expect(captured?.getLines()).toEqual(['a', 'B']);
+  });
+
+  it('skips a capture whose content equals the most recent stored version', () => {
+    const snapshot = new FileSnapshot('a', '\n');
+    const opts = options({ editThreshold: 1, maxVersions: 0 });
+
+    expect(snapshot.captureVersion(['v1'], opts)).not.toBeNull();
+    // Same content as the latest version: no adjacent duplicate is stored.
+    expect(snapshot.captureVersion(['v1'], opts)).toBeNull();
+    expect(snapshot.getVersions()).toHaveLength(1);
+
+    // A genuinely different edit right after the skipped no-op is captured at
+    // once, since the cadence counters were not consumed by the skip.
+    expect(snapshot.captureVersion(['v2'], opts)).not.toBeNull();
+    expect(snapshot.getVersions().map((v: FileVersion): string[] => v.getLines())).toEqual([
+      ['v2'],
+      ['v1'],
+    ]);
+  });
+
+  it('skips a forced capture that duplicates the latest base', () => {
+    const snapshot = new FileSnapshot('a', '\n');
+
+    // Forcing bypasses the cadence gates but not the no-op dedup: the original
+    // baseline still equals the candidate, so no version is stored.
+    expect(snapshot.captureVersion(['a'], options(), true)).toBeNull();
+    expect(snapshot.hasVersions()).toBe(false);
+  });
+});
+
 describe('FileSnapshot timeline bound', () => {
   it('evicts the oldest versions past maxVersions', () => {
     const snapshot = new FileSnapshot('a');
@@ -162,7 +207,9 @@ describe('FileSnapshot timeline persistence round-trip', () => {
     const snapshot = new FileSnapshot('a\nb', '\n');
     const opts = options({ editThreshold: 1, maxVersions: 0 });
 
-    snapshot.captureVersion(['a', 'b'], opts);
+    // Both captures diverge from the original baseline and from each other, so
+    // neither is skipped by the no-op dedup guard.
+    snapshot.captureVersion(['a', 'b1'], opts);
     snapshot.captureVersion(['a', 'B'], opts);
     snapshot.updateState(['a', 'B2']);
 
@@ -176,7 +223,7 @@ describe('FileSnapshot timeline persistence round-trip', () => {
     expect(restoredVersions).toHaveLength(2);
     // Newest first: the second captured version leads.
     expect(restoredVersions[0].getLines()).toEqual(['a', 'B']);
-    expect(restoredVersions[1].getLines()).toEqual(['a', 'b']);
+    expect(restoredVersions[1].getLines()).toEqual(['a', 'b1']);
 
     // Ids are regenerated and unique across the restored timeline.
     const ids: string[] = restoredVersions.map((version: FileVersion): string => version.id);

@@ -9,11 +9,55 @@
     .modal-content {
       display: flex;
       flex-direction: column;
+      min-height: 0;
 
       .setting-item {
         border: 0;
         padding-bottom: 0;
       }
+    }
+
+    // Modification date under the title.
+    .lct-modal-subtitle {
+      color: var(--text-muted);
+      font-size: var(--font-ui-small);
+      padding-bottom: 8px;
+    }
+
+    // Top toolbar region: view modes and actions sit here above the body.
+    .lct-modal-toolbar {
+      flex: none;
+
+      .lct-modal-toolbar-actions {
+        flex-wrap: wrap;
+      }
+    }
+
+    // Body splits into a fixed left rail and a flexible main diff pane.
+    .lct-modal-body {
+      flex: 1;
+      display: flex;
+      flex-direction: row;
+      gap: 10px;
+      min-height: 0;
+      padding-top: 8px;
+    }
+
+    .lct-modal-rail {
+      flex: none;
+      width: 220px;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow-y: auto;
+    }
+
+    .lct-modal-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      min-height: 0;
     }
 
     .lct-versions {
@@ -23,15 +67,16 @@
 
       .lct-versions-list {
         display: flex;
-        flex-wrap: wrap;
+        flex-direction: column;
         gap: 6px;
-        padding: 8px 0;
+        padding: 0 0 8px;
       }
 
       .lct-version-item {
-        display: inline-flex;
-        align-items: baseline;
-        gap: 6px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
         padding: 4px 10px;
         border: 1px solid var(--background-modifier-border);
         border-radius: var(--radius-s);

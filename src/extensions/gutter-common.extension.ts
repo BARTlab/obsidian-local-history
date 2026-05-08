@@ -1,13 +1,16 @@
 import { ChangeType, IndicatorType } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { BaseExtension } from '@/extensions/base.extension';
+import { HunkHelper } from '@/helpers/hunk.helper';
 import type { ChangeLine } from '@/lines/change.line';
 import type { ArrayMap } from '@/maps/array.map';
 import { DotMarker } from '@/markers/char.marker';
+import type { ModalsService } from '@/services/modals.service';
 import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { GutterConfig } from '@/types';
+import type * as Diff from 'diff';
 import type { Line, RangeSet } from '@codemirror/state';
 import { RangeSetBuilder } from '@codemirror/state';
 import { type EditorView } from '@codemirror/view';
@@ -33,6 +36,13 @@ export class GutterCommonExtension extends BaseExtension implements GutterConfig
    */
   @Inject('SnapshotsService')
   protected snapshotsService: SnapshotsService;
+
+  /**
+   * Service for confirmation dialogs.
+   * Injected using the @Inject decorator.
+   */
+  @Inject('ModalsService')
+  protected modalsService: ModalsService;
 
   /**
    * CSS class for the gutter element.
@@ -68,12 +78,73 @@ export class GutterCommonExtension extends BaseExtension implements GutterConfig
       const change: ChangeLine = changes.get(i);
 
       if (change) {
-        builder.add(line.from, line.from, new DotMarker(change.getModify(), this.plugin));
+        builder.add(line.from, line.from, new DotMarker(
+          change.getModify(),
+          this.plugin,
+          i,
+          (target: number): void => {
+            void this.revertBlockAt(target);
+          },
+        ));
       }
     }
 
     return builder.finish();
   };
+
+  /**
+   * Reverts the single changed block sitting at the given 0-based current line
+   * back to the original baseline, leaving every other change intact. The hunks
+   * are recomputed against the live content so the resolved block is never stale,
+   * the user confirms before the write, and the revert reuses the same plumbing
+   * as the history modal (HunkHelper to scope the block, SnapshotsService to
+   * apply it), which refreshes the editor highlights.
+   *
+   * @param {number} line - The 0-based current line the affordance was clicked on
+   * @return {Promise<void>}
+   */
+  protected async revertBlockAt(line: number): Promise<void> {
+    const snapshot: FileSnapshot | null = this.snapshotsService.getOne();
+
+    if (!snapshot?.file) {
+      return;
+    }
+
+    const currentLines: string[] = snapshot.getLastStateLines();
+    const hunks: Diff.StructuredPatchHunk[] = HunkHelper.diff(
+      snapshot.getOriginalStateLines(),
+      currentLines,
+      snapshot.lineBreak,
+    );
+
+    const hunk: Diff.StructuredPatchHunk | null = HunkHelper.hunkAtLine(hunks, line);
+
+    if (!hunk) {
+      return;
+    }
+
+    const confirmed: boolean = await this.modalsService.confirm({
+      title: 'Revert change',
+      message: 'Revert this change back to the original? Other changes are kept.',
+      confirmText: 'Revert',
+    });
+
+    if (!confirmed) {
+      return;
+    }
+
+    const start: number = Math.max(0, Math.min(currentLines.length, hunk.newStart - 1));
+
+    await this.snapshotsService.applyContent(
+      snapshot.file,
+      HunkHelper.revertHunk(currentLines, hunk),
+      {
+        start,
+        removeCount: hunk.newLines,
+        newLines: HunkHelper.baseLinesForHunk(hunk),
+      },
+    );
+  }
 
   /**
    * Checks if the indicator type is set to 'dot'.

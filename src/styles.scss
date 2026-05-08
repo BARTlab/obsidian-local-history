@@ -24,12 +24,34 @@
       padding-bottom: 8px;
     }
 
-    // Top toolbar region: view modes and actions sit here above the body.
+    // Top toolbar region: destructive actions on the left, view-mode toggles on
+    // the right, both as rows of icon buttons. Each group is an Obsidian Setting
+    // row, so they are laid out side by side and wrap on a narrow modal.
     .lct-modal-toolbar {
       flex: none;
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
 
-      .lct-modal-toolbar-actions {
-        flex-wrap: wrap;
+      .lct-modal-toolbar-group {
+        width: auto;
+
+        .setting-item-control {
+          flex-wrap: wrap;
+          gap: 4px;
+        }
+
+        // Icon buttons: compact, square, icon-only on screen (the label lives in
+        // the tooltip and aria-label). The active view mode is marked with the
+        // standard mod-cta accent.
+        button {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+        }
       }
     }
 

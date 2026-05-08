@@ -515,6 +515,39 @@
     &.lct-added {
       color: var(--lct-color-added);
     }
+
+    // Revert affordance: the change glyph and a click-to-revert button share the
+    // gutter cell. The button stays hidden until the cell is hovered or the
+    // button itself is focused, so it does not clutter the gutter yet remains
+    // reachable by keyboard.
+    .lct-gutter-marker {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .lct-gutter-revert {
+      display: none;
+      padding: 0;
+      width: auto;
+      height: auto;
+      box-shadow: none;
+      background: transparent;
+      border: 0;
+      color: var(--text-muted);
+      cursor: pointer;
+      line-height: 1;
+
+      &:hover,
+      &:focus-visible {
+        color: var(--text-normal);
+      }
+    }
+
+    &:hover .lct-gutter-revert,
+    .lct-gutter-revert:focus-visible {
+      display: inline-flex;
+    }
   }
 }
 

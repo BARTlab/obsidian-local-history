@@ -116,6 +116,13 @@ export interface LineChangeTrackerSettings {
 export type FunctionVoid = () => void;
 
 /**
+ * Callback that reverts the single changed block sitting at a given 0-based
+ * current line back to the base. Wired from the gutter revert affordance to the
+ * snapshots service so the marker stays free of revert plumbing.
+ */
+export type RevertLine = (line: number) => void;
+
+/**
  * Interface for elements that can trigger events and manage event listeners.
  * Provides methods for subscribing to and unsubscribing from events.
  */

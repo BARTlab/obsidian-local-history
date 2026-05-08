@@ -58,6 +58,34 @@ export class HunkHelper {
   }
 
   /**
+   * Finds the hunk whose current-side region contains the given line, so a
+   * revert affordance placed on that line maps back to exactly one changed
+   * block. Only hunks that occupy at least one current line are considered (a
+   * pure deletion occupies none, so it has no line to click on the gutter and is
+   * skipped here). The region is the 0-based half-open interval
+   * [newStart - 1, newStart - 1 + newLines).
+   *
+   * @param {Diff.StructuredPatchHunk[]} hunks - The hunks to search, top to bottom
+   * @param {number} line - The 0-based current line to resolve
+   * @return {Diff.StructuredPatchHunk | null} The covering hunk, or null if none
+   */
+  public static hunkAtLine(hunks: Diff.StructuredPatchHunk[], line: number): Diff.StructuredPatchHunk | null {
+    if (!Array.isArray(hunks)) {
+      return null;
+    }
+
+    return hunks.find((hunk: Diff.StructuredPatchHunk): boolean => {
+      if (!hunk || hunk.newLines <= 0) {
+        return false;
+      }
+
+      const start: number = hunk.newStart - 1;
+
+      return line >= start && line < start + hunk.newLines;
+    }) ?? null;
+  }
+
+  /**
    * Reverts a single hunk against the current lines and returns the resulting
    * lines. Only the region this hunk occupies in the current text is replaced
    * by the hunk's base-side lines; every line outside the region is preserved

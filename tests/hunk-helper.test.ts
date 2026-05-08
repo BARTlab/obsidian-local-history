@@ -140,3 +140,60 @@ describe('HunkHelper.revertHunk', () => {
     expect(HunkHelper.revertHunk(current, undefined as never)).toEqual(['a', 'b']);
   });
 });
+
+describe('HunkHelper.hunkAtLine', () => {
+  it('resolves the hunk covering a changed line', () => {
+    const base = ['a', 'b', 'c'];
+    const current = ['a', 'B', 'c'];
+    const hunks = HunkHelper.diff(base, current);
+
+    // The change is on the 2nd line (0-based index 1).
+    expect(HunkHelper.hunkAtLine(hunks, 1)).toBe(hunks[0]);
+  });
+
+  it('resolves the hunk covering any line of a multi-line added block', () => {
+    const base = ['a', 'd'];
+    const current = ['a', 'b', 'c', 'd'];
+    const hunks = HunkHelper.diff(base, current);
+
+    // The inserted block spans current indices 1 and 2; both map to that hunk.
+    expect(HunkHelper.hunkAtLine(hunks, 1)).toBe(hunks[0]);
+    expect(HunkHelper.hunkAtLine(hunks, 2)).toBe(hunks[0]);
+  });
+
+  it('returns null for a line outside every changed block', () => {
+    const base = ['a', 'b', 'c'];
+    const current = ['a', 'B', 'c'];
+    const hunks = HunkHelper.diff(base, current);
+
+    // The unchanged 1st and 3rd lines have no revert target.
+    expect(HunkHelper.hunkAtLine(hunks, 0)).toBeNull();
+    expect(HunkHelper.hunkAtLine(hunks, 2)).toBeNull();
+  });
+
+  it('skips a pure deletion since it occupies no current line', () => {
+    const base = ['a', 'GONE', 'c'];
+    const current = ['a', 'c'];
+    const [hunk] = HunkHelper.diff(base, current);
+
+    expect(hunk.newLines).toBe(0);
+    // No current line belongs to the deletion, so no line resolves to it.
+    expect(HunkHelper.hunkAtLine([hunk], 0)).toBeNull();
+    expect(HunkHelper.hunkAtLine([hunk], 1)).toBeNull();
+  });
+
+  it('picks the correct block when several changes coexist', () => {
+    const base = ['l1', 'l2', 'l3', 'l4', 'l5'];
+    const current = ['l1', 'L2X', 'l3', 'l4', 'L5Y'];
+    const [first, second] = HunkHelper.diff(base, current);
+
+    expect(HunkHelper.hunkAtLine([first, second], 1)).toBe(first);
+    expect(HunkHelper.hunkAtLine([first, second], 4)).toBe(second);
+    // The gap between the two changes resolves to neither.
+    expect(HunkHelper.hunkAtLine([first, second], 2)).toBeNull();
+  });
+
+  it('returns null for non-array input', () => {
+    expect(HunkHelper.hunkAtLine(undefined as never, 0)).toBeNull();
+  });
+});

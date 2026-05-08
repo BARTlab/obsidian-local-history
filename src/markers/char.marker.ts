@@ -2,7 +2,15 @@ import { ChangeType, IndicatorType } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import type LineChangeTrackerPlugin from '@/main';
 import type { SettingsService } from '@/services/settings.service';
+import type { RevertLine } from '@/types';
 import { GutterMarker } from '@codemirror/view';
+
+/**
+ * Glyph rendered for the gutter revert affordance: a left arrow that reads as
+ * "send this block back to the base". Kept as a constant so the visual and its
+ * accessible label stay in one place.
+ */
+const REVERT_GLYPH: string = '↩';
 
 /**
  * Marker class for displaying character indicators in the editor gutter.
@@ -36,10 +44,14 @@ export class DotMarker extends GutterMarker {
    *
    * @param {ChangeType} changes - The type of change this marker represents
    * @param {LineChangeTrackerPlugin} plugin - The plugin instance
+   * @param {number} line - The 0-based current line this marker sits on (-1 when unknown)
+   * @param {RevertLine | null} revert - Callback to revert the block at this line, or null for no affordance
    */
   public constructor(
     protected changes: ChangeType,
     protected plugin: LineChangeTrackerPlugin,
+    protected line: number = -1,
+    protected revert: RevertLine | null = null,
   ) {
     super();
 
@@ -57,18 +69,51 @@ export class DotMarker extends GutterMarker {
 
   /**
    * Creates a DOM node for the gutter marker.
-   * Returns a text node containing the character for this marker's change type.
+   * Renders the change-type character and, when a revert callback is set, a
+   * clickable revert affordance for the block at this line. The affordance is an
+   * accessible button (text label via aria-label and title) whose click reverts
+   * only this block and is stopped from reaching the editor so the caret does
+   * not jump. The click listener lives on this node, which CodeMirror discards
+   * together with the marker when the gutter is rebuilt or the view is
+   * destroyed, so no listener is leaked.
    *
-   * @return {Node} A DOM text node with the appropriate character
+   * @return {Node} A DOM node with the change character and optional revert affordance
    * @override
    */
   public toDOM(): Node {
-    return document.createTextNode(this.char[this.changes]);
+    const wrapper: HTMLSpanElement = document.createElement('span');
+
+    wrapper.addClass('lct-gutter-marker');
+    wrapper.createSpan({ cls: 'lct-gutter-char', text: this.char[this.changes] });
+
+    if (!this.revert) {
+      return wrapper;
+    }
+
+    const button: HTMLButtonElement = wrapper.createEl('button', {
+      cls: 'lct-gutter-revert',
+      text: REVERT_GLYPH,
+      attr: { 'aria-label': 'Revert this change', 'title': 'Revert this change', 'type': 'button' },
+    });
+
+    button.addEventListener('click', (event: MouseEvent): void => {
+      // Stop the gutter click from moving the caret or selecting the line.
+      event.preventDefault();
+      event.stopPropagation();
+
+      this.revert?.(this.line);
+    });
+
+    return wrapper;
   }
 
   /**
    * Checks if this marker is equal to another marker.
-   * Markers are considered equal if they have the same change type and character.
+   * Markers are equal when they share the change type, the character, the line
+   * they sit on, and whether they carry a revert affordance. The line is part of
+   * the identity so CodeMirror rebuilds the DOM node (and its line-bound revert
+   * handler) when a marker shifts to another line, keeping the affordance wired
+   * to the correct block.
    *
    * @param {DotMarker} other - The marker to compare with
    * @return {boolean} True if the markers are equal, false otherwise
@@ -79,7 +124,10 @@ export class DotMarker extends GutterMarker {
       return false;
     }
 
-    return this.getChangeType() === other.getChangeType() && this.getChar() === other.getChar();
+    return this.getChangeType() === other.getChangeType()
+      && this.getChar() === other.getChar()
+      && this.line === other.line
+      && (this.revert === null) === (other.revert === null);
   }
 
   /**

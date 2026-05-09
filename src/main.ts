@@ -3,6 +3,7 @@ import { refreshDecorationsEffect } from '@/extensions/refresh.effect';
 import { CommandsService } from '@/services/commands.service';
 import { EventsService } from '@/services/events.service';
 import { ExtensionsService } from '@/services/extensions.service';
+import { I18nService } from '@/services/i18n.service';
 import { ModalsService } from '@/services/modals.service';
 import { PersistenceService } from '@/services/persistence.service';
 import { SettingsService } from '@/services/settings.service';
@@ -54,6 +55,7 @@ export default class LineChangeTrackerPlugin extends Plugin {
     super(app, manifest);
 
     this.registerService(SettingsService);
+    this.registerService(I18nService);
     this.registerService(StylesService);
     this.registerService(ModalsService);
     this.registerService(ExtensionsService);

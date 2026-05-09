@@ -29,10 +29,10 @@ export class GoToPreviousChangeCommand extends BaseCommand implements Command {
   public id: string = 'tracker-go-to-previous-change';
 
   /**
-   * Display name for this command.
+   * Display name for this command, localized through the plugin translator.
    * Shown in the Obsidian command palette.
    */
-  public name: string = 'Go to previous change';
+  public name: string = this.plugin.t('command.go-to-previous-change');
 
   /**
    * Callback executed when the command runs in an editor context.
@@ -46,7 +46,7 @@ export class GoToPreviousChangeCommand extends BaseCommand implements Command {
     const positions: number[] = snapshot?.getChangedPositions() ?? [];
 
     if (positions.length === 0) {
-      new Notice('No changes to navigate');
+      new Notice(this.plugin.t('notice.no-changes-to-navigate'));
 
       return;
     }

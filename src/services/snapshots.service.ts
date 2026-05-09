@@ -349,7 +349,7 @@ export class SnapshotsService implements Service {
 
     this.lastWarnedExcludePattern = pattern;
 
-    new Notice('Local history: the excluded-paths pattern is not a valid regular expression and is being ignored.');
+    new Notice(this.plugin.t('notice.invalid-exclude-pattern'));
   }
 
   /**

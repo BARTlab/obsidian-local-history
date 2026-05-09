@@ -32,6 +32,7 @@ const makeFile = (path: string): TFile => {
 const makeService = (): SnapshotsService => {
   const plugin = {
     getActiveEditorView: (): undefined => undefined,
+    t: (key: string): string => key,
   } as unknown as PluginArg;
 
   return new SnapshotsService(plugin);
@@ -50,6 +51,7 @@ const makeServiceWithSettings = (settings: Record<string, string>): SnapshotsSer
   const plugin = {
     getActiveEditorView: (): undefined => undefined,
     get: (): unknown => settingsService,
+    t: (key: string): string => key,
   } as unknown as PluginArg;
 
   return new SnapshotsService(plugin);

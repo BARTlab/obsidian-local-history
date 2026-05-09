@@ -8,6 +8,7 @@
     "strict": false,
     "noImplicitAny": true,
     "moduleResolution": "bundler",
+    "resolveJsonModule": true,
     "importHelpers": true,
     "declaration": true,
     "declarationMap": true,

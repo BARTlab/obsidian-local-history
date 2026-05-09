@@ -255,12 +255,12 @@ export class HistoryModal extends Modal {
       await this.app.vault.modify(file, originalContent);
       this.snapshotsService.wipeOne(file);
 
-      new Notice('File restored to original state');
+      new Notice(this.plugin.t('notice.file-restored'));
 
       this.close();
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_error) {
-      new Notice('Failed to restore file to original state');
+      new Notice(this.plugin.t('notice.file-restore-failed'));
     }
   }
 
@@ -271,13 +271,13 @@ export class HistoryModal extends Modal {
     const isOrigin: boolean = this.snapshot?.isStateSameOriginal();
     const changeDateTime: string = this.snapshot?.getLastChangedDateTime();
 
-    this.setTitle('History');
+    this.setTitle(this.plugin.t('modal.title'));
 
     // Modification date, shown under the title instead of in a bottom panel.
     DomHelper.create({
       tag: 'div',
       classes: 'lct-modal-subtitle',
-      text: isOrigin ? 'No changes' : changeDateTime,
+      text: isOrigin ? this.plugin.t('modal.no-changes') : changeDateTime,
       container: this.contentEl,
     });
 
@@ -359,14 +359,14 @@ export class HistoryModal extends Modal {
       .setClass('lct-modal-toolbar-group')
       .setClass('lct-modal-toolbar-actions')
       .addButton((btn: ButtonComponent): ButtonComponent =>
-        this.decorateButton(btn, 'rotate-ccw', 'Restore original')
+        this.decorateButton(btn, 'rotate-ccw', this.plugin.t('modal.restore-original'))
           .setWarning()
           .onClick(async (): Promise<void> => {
             const confirmed: boolean = await this.modalsService.confirm({
-              title: 'Restore original file',
-              // eslint-disable-next-line @stylistic/max-len
-              message: 'Are you sure you want to restore this file to its original state? All current changes will be lost and the change tracking history will be reset. This action cannot be undone.',
-              confirmText: 'Restore file'
+              title: this.plugin.t('modal.confirm.restore.title'),
+              message: this.plugin.t('modal.confirm.restore.message'),
+              confirmText: this.plugin.t('modal.confirm.restore.button'),
+              cancelText: this.plugin.t('modal.confirm.cancel')
             });
 
             if (confirmed) {
@@ -374,14 +374,14 @@ export class HistoryModal extends Modal {
             }
           }))
       .addButton((btn: ButtonComponent): ButtonComponent =>
-        this.decorateButton(btn, 'trash-2', 'Remove file history')
+        this.decorateButton(btn, 'trash-2', this.plugin.t('modal.remove-history'))
           .setWarning()
           .onClick(async (): Promise<void> => {
             const confirmed: boolean = await this.modalsService.confirm({
-              title: 'Remove file history',
-              // eslint-disable-next-line @stylistic/max-len
-              message: 'Are you sure you want to remove the change tracking history for this file? This action cannot be undone.',
-              confirmText: 'Remove history'
+              title: this.plugin.t('modal.confirm.remove.title'),
+              message: this.plugin.t('modal.confirm.remove.message'),
+              confirmText: this.plugin.t('modal.confirm.remove.button'),
+              cancelText: this.plugin.t('modal.confirm.cancel')
             });
 
             if (confirmed) {
@@ -398,7 +398,7 @@ export class HistoryModal extends Modal {
       .addButton((btn: ButtonComponent): ButtonComponent => {
         this.navButtons.previous = btn.buttonEl;
 
-        return this.decorateButton(btn, 'chevron-up', 'Previous difference')
+        return this.decorateButton(btn, 'chevron-up', this.plugin.t('modal.previous-difference'))
           .onClick((): void => {
             this.goToDifference('previous');
           });
@@ -406,7 +406,7 @@ export class HistoryModal extends Modal {
       .addButton((btn: ButtonComponent): ButtonComponent => {
         this.navButtons.next = btn.buttonEl;
 
-        return this.decorateButton(btn, 'chevron-down', 'Next difference')
+        return this.decorateButton(btn, 'chevron-down', this.plugin.t('modal.next-difference'))
           .onClick((): void => {
             this.goToDifference('next');
           });
@@ -419,7 +419,7 @@ export class HistoryModal extends Modal {
       .addButton((btn: ButtonComponent): ButtonComponent => {
         this.modeButtons.patch = btn.buttonEl;
 
-        return this.decorateButton(btn, 'file-text', 'Show patch')
+        return this.decorateButton(btn, 'file-text', this.plugin.t('modal.mode.patch'))
           .onClick((): void => {
             this.showCleanPatch();
           });
@@ -427,7 +427,7 @@ export class HistoryModal extends Modal {
       .addButton((btn: ButtonComponent): ButtonComponent => {
         this.modeButtons.inline = btn.buttonEl;
 
-        return this.decorateButton(btn, 'pilcrow', 'Inline')
+        return this.decorateButton(btn, 'pilcrow', this.plugin.t('modal.mode.inline'))
           .onClick((): void => {
             this.renderInlineDiff();
           });
@@ -435,7 +435,7 @@ export class HistoryModal extends Modal {
       .addButton((btn: ButtonComponent): ButtonComponent => {
         this.modeButtons.lineByLine = btn.buttonEl;
 
-        return this.decorateButton(btn, 'align-justify', 'Line by line')
+        return this.decorateButton(btn, 'align-justify', this.plugin.t('modal.mode.line-by-line'))
           .onClick((): void => {
             this.renderDiff(DiffOutputFormatType.line);
           });
@@ -443,7 +443,7 @@ export class HistoryModal extends Modal {
       .addButton((btn: ButtonComponent): ButtonComponent => {
         this.modeButtons.sideBySide = btn.buttonEl;
 
-        return this.decorateButton(btn, 'columns-2', 'Side by side')
+        return this.decorateButton(btn, 'columns-2', this.plugin.t('modal.mode.side-by-side'))
           .onClick((): void => {
             this.renderDiff(DiffOutputFormatType.side);
           });
@@ -569,7 +569,7 @@ export class HistoryModal extends Modal {
     DomHelper.update(this.searchEl, { text: null, classes: { remove: 'lct-rail-search-empty' } });
 
     new SearchComponent(this.searchEl)
-      .setPlaceholder('Search versions')
+      .setPlaceholder(this.plugin.t('modal.search-versions'))
       .setValue(this.searchQuery)
       .onChange((value: string): void => {
         this.searchQuery = value;
@@ -616,16 +616,24 @@ export class HistoryModal extends Modal {
     // it always heads the list regardless of the query. Version numbers stay
     // tied to the full timeline position so they do not shift while filtering.
     const items: DomElementConfig[] = [
-      this.makeVersionItem(ORIGINAL_BASE_ID, 'Original', ''),
+      this.makeVersionItem(ORIGINAL_BASE_ID, this.plugin.t('modal.version.original'), ''),
       ...matched.map((version: FileVersion): DomElementConfig => {
         const number: number = versions.length - versions.indexOf(version);
 
-        return this.makeVersionItem(version.id, `Version ${number}`, version.getDateTime());
+        return this.makeVersionItem(
+          version.id,
+          this.plugin.t('modal.version.numbered', { number }),
+          version.getDateTime(),
+        );
       }),
     ];
 
     if (matched.length === 0) {
-      items.push({ tag: 'div', classes: 'lct-versions-no-results', text: 'No versions match the search' });
+      items.push({
+        tag: 'div',
+        classes: 'lct-versions-no-results',
+        text: this.plugin.t('modal.no-versions-match'),
+      });
     }
 
     DomHelper.update(this.versionsEl, {
@@ -750,7 +758,9 @@ export class HistoryModal extends Modal {
    * @return {string} The empty-diff placeholder text for the current base
    */
   protected getEmptyDiffText(): string {
-    return this.selectedBaseId === ORIGINAL_BASE_ID ? 'No changes' : 'Identical to current';
+    return this.selectedBaseId === ORIGINAL_BASE_ID
+      ? this.plugin.t('modal.no-changes')
+      : this.plugin.t('modal.identical-to-current');
   }
 
   /**
@@ -808,7 +818,7 @@ export class HistoryModal extends Modal {
     DomHelper.update(this.hunksEl, {
       text: null,
       children: [
-        { tag: 'div', classes: 'lct-hunks-title', text: 'Differences (revert from the editor gutter)' },
+        { tag: 'div', classes: 'lct-hunks-title', text: this.plugin.t('modal.differences-title') },
         { tag: 'div', classes: 'lct-hunks-list', children: items },
       ],
     });
@@ -826,18 +836,22 @@ export class HistoryModal extends Modal {
   protected getHunkLabel(hunk: Diff.StructuredPatchHunk): string {
     // Pure deletion: nothing occupies the region in the current document.
     if (hunk.newLines === 0) {
-      return `Removed before line ${hunk.newStart + 1}`;
+      return this.plugin.t('modal.hunk.removed-before-line', { line: hunk.newStart + 1 });
     }
 
     const start: number = hunk.newStart;
     const end: number = hunk.newStart + hunk.newLines - 1;
-    const where: string = start === end ? `line ${start}` : `lines ${start}-${end}`;
+    const single: boolean = start === end;
 
     if (hunk.oldLines === 0) {
-      return `Added ${where}`;
+      return single
+        ? this.plugin.t('modal.hunk.added-line', { line: start })
+        : this.plugin.t('modal.hunk.added-lines', { start, end });
     }
 
-    return `Changed ${where}`;
+    return single
+      ? this.plugin.t('modal.hunk.changed-line', { line: start })
+      : this.plugin.t('modal.hunk.changed-lines', { start, end });
   }
 
   /**
@@ -931,7 +945,7 @@ export class HistoryModal extends Modal {
 
     const handlerClick: FunctionVoid = (): void => {
       navigator.clipboard.writeText(patch).then(() => {
-        new Notice('Copied!');
+        new Notice(this.plugin.t('notice.copied'));
       });
     }
 
@@ -952,7 +966,7 @@ export class HistoryModal extends Modal {
               },
               {
                 tag: 'button',
-                text: 'Copy',
+                text: this.plugin.t('modal.copy'),
                 classes: ['lct-patch-copy-button', 'mod-outline'],
                 events: {
                   click: handlerClick

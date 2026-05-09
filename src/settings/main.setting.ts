@@ -53,12 +53,12 @@ export class MainSetting extends PluginSettingTab {
     containerEl.empty();
 
     new Setting(containerEl)
-      .setName('Type')
-      .setDesc('Choose between a vertical line or a dot in the gutter.')
+      .setName(this.plugin.t('setting.type.name'))
+      .setDesc(this.plugin.t('setting.type.desc'))
       .addDropdown((dropdown) =>
         dropdown
-          .addOption(IndicatorType.line, 'Vertical line')
-          .addOption(IndicatorType.dot, 'Char in gutter')
+          .addOption(IndicatorType.line, this.plugin.t('setting.type.option.line'))
+          .addOption(IndicatorType.dot, this.plugin.t('setting.type.option.dot'))
           .setValue(this.settingsService.value('type'))
           .onChange((value: IndicatorType): void => {
             this.settingsService.update('type', value);
@@ -66,8 +66,8 @@ export class MainSetting extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName('Allowed file extensions')
-      .setDesc('Comma-separated list of file extensions to track for changes (e.g., md, txt, csv, json, yaml)')
+      .setName(this.plugin.t('setting.allowed-extensions.name'))
+      .setDesc(this.plugin.t('setting.allowed-extensions.desc'))
       .addText((text: TextComponent): TextComponent =>
         text
           .setPlaceholder(DEFAULT_SETTINGS.allowedExtensions)
@@ -81,14 +81,8 @@ export class MainSetting extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName('Excluded paths')
-      .setDesc(
-        'A case-insensitive regular expression matched against the '
-        + 'vault-relative path. Any file whose path matches is never tracked '
-        + '(e.g. \\.excalidraw\\.md$ or (^|/)Templates/). The default excludes '
-        + 'Templates folders and Excalidraw drawings. Leave empty to track '
-        + 'everything.'
-      )
+      .setName(this.plugin.t('setting.exclude-paths.name'))
+      .setDesc(this.plugin.t('setting.exclude-paths.desc'))
       .addText((text: TextComponent): TextComponent =>
         text
           .setPlaceholder(DEFAULT_SETTINGS.excludePaths)
@@ -99,12 +93,12 @@ export class MainSetting extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName('Keep history until')
-      .setDesc('Strategy for cleaning up revision history')
+      .setName(this.plugin.t('setting.keep.name'))
+      .setDesc(this.plugin.t('setting.keep.desc'))
       .addDropdown((dropdown: DropdownComponent): DropdownComponent =>
         dropdown
-          .addOption(KeepHistory.app, 'App close')
-          .addOption(KeepHistory.file, 'File close')
+          .addOption(KeepHistory.app, this.plugin.t('setting.keep.option.app'))
+          .addOption(KeepHistory.file, this.plugin.t('setting.keep.option.file'))
           .setValue(this.settingsService.value('keep'))
           .onChange((value: KeepHistory): void => {
             this.settingsService.update('keep', value);
@@ -112,8 +106,8 @@ export class MainSetting extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName('Ignore new files')
-      .setDesc('Don\'t track changes in files created after tracking started')
+      .setName(this.plugin.t('setting.ignore-new-files.name'))
+      .setDesc(this.plugin.t('setting.ignore-new-files.desc'))
       .addToggle((toggle: ToggleComponent): ToggleComponent =>
         toggle
           .setValue(this.settingsService.value('ignoreNewFiles'))
@@ -123,8 +117,8 @@ export class MainSetting extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName('Persist history across restarts')
-      .setDesc('Save history to disk so highlights survive a restart. Requires "keep history until" set to app close.')
+      .setName(this.plugin.t('setting.persist.name'))
+      .setDesc(this.plugin.t('setting.persist.desc'))
       .addToggle((toggle: ToggleComponent): ToggleComponent =>
         toggle
           .setValue(this.settingsService.value('persist'))
@@ -134,8 +128,8 @@ export class MainSetting extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName('Max stored files')
-      .setDesc('Cap on how many file histories are kept on disk. Oldest are evicted first. Set to 0 to disable.')
+      .setName(this.plugin.t('setting.max-entries.name'))
+      .setDesc(this.plugin.t('setting.max-entries.desc'))
       .addText((text: TextComponent): TextComponent =>
         text
           .setPlaceholder(String(DEFAULT_SETTINGS.retention.maxEntries))
@@ -148,8 +142,8 @@ export class MainSetting extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName('Max history age (days)')
-      .setDesc('Drop persisted history older than this many days. Set to 0 to disable.')
+      .setName(this.plugin.t('setting.max-age-days.name'))
+      .setDesc(this.plugin.t('setting.max-age-days.desc'))
       .addText((text: TextComponent): TextComponent =>
         text
           .setPlaceholder(String(DEFAULT_SETTINGS.retention.maxAgeDays))
@@ -164,12 +158,12 @@ export class MainSetting extends PluginSettingTab {
     // ----- intermediate snapshots (timeline) -----
 
     new Setting(containerEl)
-      .setName('Timeline snapshots')
+      .setName(this.plugin.t('setting.snapshots-heading'))
       .setHeading();
 
     new Setting(containerEl)
-      .setName('Capture intermediate versions')
-      .setDesc('Keep a timeline of earlier versions so you can diff against a point in between, not just the original.')
+      .setName(this.plugin.t('setting.snapshots-enabled.name'))
+      .setDesc(this.plugin.t('setting.snapshots-enabled.desc'))
       .addToggle((toggle: ToggleComponent): ToggleComponent =>
         toggle
           .setValue(this.settingsService.value('snapshots.enabled'))
@@ -179,8 +173,8 @@ export class MainSetting extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName('Capture every (edits)')
-      .setDesc('Take a version after this many edits. Set to 0 to disable the edit trigger.')
+      .setName(this.plugin.t('setting.snapshots-edit-threshold.name'))
+      .setDesc(this.plugin.t('setting.snapshots-edit-threshold.desc'))
       .addText((text: TextComponent): TextComponent =>
         text
           .setPlaceholder(String(DEFAULT_SETTINGS.snapshots.editThreshold))
@@ -194,8 +188,8 @@ export class MainSetting extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName('Capture every (minutes)')
-      .setDesc('Take a version after this many minutes of editing. Set to 0 to disable the time trigger.')
+      .setName(this.plugin.t('setting.snapshots-interval.name'))
+      .setDesc(this.plugin.t('setting.snapshots-interval.desc'))
       .addText((text: TextComponent): TextComponent =>
         text
           .setPlaceholder(String(DEFAULT_SETTINGS.snapshots.intervalMs / 60000))
@@ -208,8 +202,8 @@ export class MainSetting extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName('Max version age (days)')
-      .setDesc('Drop intermediate versions older than this many days (the primary bound). Set to 0 to disable.')
+      .setName(this.plugin.t('setting.max-version-age-days.name'))
+      .setDesc(this.plugin.t('setting.max-version-age-days.desc'))
       .addText((text: TextComponent): TextComponent =>
         text
           .setPlaceholder(String(DEFAULT_SETTINGS.snapshots.maxVersionAgeDays))
@@ -223,8 +217,8 @@ export class MainSetting extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName('Max versions per file')
-      .setDesc('Safety cap on intermediate versions kept per file. Oldest are evicted first. Set to 0 to disable.')
+      .setName(this.plugin.t('setting.max-versions.name'))
+      .setDesc(this.plugin.t('setting.max-versions.desc'))
       .addText((text: TextComponent): TextComponent =>
         text
           .setPlaceholder(String(DEFAULT_SETTINGS.snapshots.maxVersions))
@@ -240,19 +234,14 @@ export class MainSetting extends PluginSettingTab {
     // ----- changed -----
 
     new Setting(containerEl)
-      .setName('Show indicator for')
+      .setName(this.plugin.t('setting.show-heading'))
       .setHeading();
 
     new Setting(containerEl)
-      .setDesc(
-        'Line indicators are shown only in editing (source and live preview) modes. '
-        + 'In reading mode there are no inline indicators, but the change history is '
-        + 'still reachable: run the "Show all changes of current document" command or '
-        + 'use the file context menu in the file explorer.'
-      );
+      .setDesc(this.plugin.t('setting.show.desc'));
 
     new Setting(containerEl)
-      .setName('Changed')
+      .setName(this.plugin.t('setting.show.changed'))
       .addToggle((toggle: ToggleComponent): ToggleComponent =>
         toggle
           .setValue(this.settingsService.value('show.changed'))
@@ -264,7 +253,7 @@ export class MainSetting extends PluginSettingTab {
     // ----- restored -----
 
     new Setting(containerEl)
-      .setName('Restored')
+      .setName(this.plugin.t('setting.show.restored'))
       .addToggle((toggle: ToggleComponent): ToggleComponent =>
         toggle
           .setValue(this.settingsService.value('show.restored'))
@@ -276,7 +265,7 @@ export class MainSetting extends PluginSettingTab {
     // ----- added -----
 
     new Setting(containerEl)
-      .setName('Added')
+      .setName(this.plugin.t('setting.show.added'))
       .addToggle((toggle: ToggleComponent): ToggleComponent =>
         toggle
           .setValue(this.settingsService.value('show.added'))
@@ -288,7 +277,7 @@ export class MainSetting extends PluginSettingTab {
     // ----- removed -----
 
     new Setting(containerEl)
-      .setName('Removed')
+      .setName(this.plugin.t('setting.show.removed'))
       .addToggle((toggle: ToggleComponent): ToggleComponent =>
         toggle
           .setValue(this.settingsService.value('show.removed'))
@@ -300,12 +289,12 @@ export class MainSetting extends PluginSettingTab {
     // ----- line -----
 
     new Setting(containerEl)
-      .setName('Line indicator')
+      .setName(this.plugin.t('setting.line-heading'))
       .setHeading();
 
     new Setting(containerEl)
-      .setName('Width')
-      .setDesc('Width of the vertical line indicator (in pixels).')
+      .setName(this.plugin.t('setting.line-width.name'))
+      .setDesc(this.plugin.t('setting.line-width.desc'))
       .addSlider((slider: SliderComponent): SliderComponent =>
         slider
           .setLimits(1, 5, 1)
@@ -317,7 +306,7 @@ export class MainSetting extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName('Gutter indicator')
+      .setName(this.plugin.t('setting.gutter-heading.name'))
       .setDesc(((): DocumentFragment => {
         return DomHelper.createFragment([
           {
@@ -325,7 +314,7 @@ export class MainSetting extends PluginSettingTab {
             children: [
               {
                 tag: 'span',
-                text: 'Chars of the gutter type indicator ('
+                text: this.plugin.t('setting.gutter-heading.prefix')
               },
               {
                 tag: 'a',
@@ -337,7 +326,7 @@ export class MainSetting extends PluginSettingTab {
               },
               {
                 tag: 'span',
-                text: ').'
+                text: this.plugin.t('setting.gutter-heading.suffix')
               }
             ]
           }
@@ -346,7 +335,7 @@ export class MainSetting extends PluginSettingTab {
       .setHeading();
 
     new Setting(containerEl)
-      .setName('Change char')
+      .setName(this.plugin.t('setting.gutter-changed.name'))
       .addText((text: TextComponent): TextComponent =>
         text
           .setPlaceholder(DEFAULT_SETTINGS.gutter.changed)
@@ -357,7 +346,7 @@ export class MainSetting extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName('Added char')
+      .setName(this.plugin.t('setting.gutter-added.name'))
       .addText((text: TextComponent): TextComponent =>
         text
           .setPlaceholder(DEFAULT_SETTINGS.gutter.added)
@@ -368,7 +357,7 @@ export class MainSetting extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName('Restore char')
+      .setName(this.plugin.t('setting.gutter-restored.name'))
       .addText((text: TextComponent): TextComponent =>
         text
           .setPlaceholder(DEFAULT_SETTINGS.gutter.restored)
@@ -379,7 +368,7 @@ export class MainSetting extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName('Removed char')
+      .setName(this.plugin.t('setting.gutter-removed.name'))
       .addText((text: TextComponent): TextComponent =>
         text
           .setPlaceholder(DEFAULT_SETTINGS.gutter.removed)

@@ -51,6 +51,14 @@
           display: inline-flex;
           align-items: center;
           justify-content: center;
+
+          // A disabled navigation button (no hunks to walk) reads as inactive
+          // and ignores clicks.
+          &:disabled,
+          &.is-disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+          }
         }
       }
     }
@@ -172,6 +180,12 @@
         border: 1px solid var(--background-modifier-border);
         border-radius: var(--radius-s);
         background-color: var(--background-secondary);
+
+        // The hunk the next/previous difference navigation last moved to.
+        &.is-active {
+          border-color: var(--interactive-accent);
+          background-color: var(--background-modifier-active-hover);
+        }
 
         .lct-hunk-label {
           color: var(--text-normal);

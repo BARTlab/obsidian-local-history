@@ -2,6 +2,7 @@ import { DiffOutputFormatType } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { DomHelper } from '@/helpers/dom.helper';
 import { HunkHelper } from '@/helpers/hunk.helper';
+import { type NavigationDirection, NavigationHelper } from '@/helpers/navigation.helper';
 import { type SearchableVersion, VersionSearchHelper } from '@/helpers/version-search.helper';
 import { type InlineDiffLine, WordDiffHelper } from '@/helpers/word-diff.helper';
 import type LineChangeTrackerPlugin from '@/main';
@@ -120,6 +121,25 @@ export class HistoryModal extends Modal {
     /** Button for side-by-side mode */
     sideBySide?: HTMLElement;
   } = {};
+
+  /**
+   * References to the next/previous difference navigation buttons, kept so they
+   * can be disabled when the current diff has no hunks to walk.
+   */
+  protected navButtons: {
+    /** Button that jumps to the previous difference */
+    previous?: HTMLElement;
+    /** Button that jumps to the next difference */
+    next?: HTMLElement;
+  } = {};
+
+  /**
+   * Index of the difference currently focused by the next/previous navigation,
+   * or -1 when none is focused yet. It indexes into the hunks computed for the
+   * selected base, and is reset whenever the diff changes (base switch, revert,
+   * or content change) so a stale index can never highlight the wrong block.
+   */
+  protected activeHunkIndex: number = -1;
 
   /**
    * Creates a new instance of HistoryModal.
@@ -367,6 +387,28 @@ export class HistoryModal extends Modal {
             }
           }));
 
+    // Difference navigation: step between the diff hunks with wrap-around. The
+    // buttons are disabled when the current diff has no hunks.
+    new Setting(this.toolbarEl)
+      .setClass('lct-modal-toolbar-group')
+      .setClass('lct-modal-toolbar-nav')
+      .addButton((btn: ButtonComponent): ButtonComponent => {
+        this.navButtons.previous = btn.buttonEl;
+
+        return this.decorateButton(btn, 'chevron-up', 'Previous difference')
+          .onClick((): void => {
+            this.goToDifference('previous');
+          });
+      })
+      .addButton((btn: ButtonComponent): ButtonComponent => {
+        this.navButtons.next = btn.buttonEl;
+
+        return this.decorateButton(btn, 'chevron-down', 'Next difference')
+          .onClick((): void => {
+            this.goToDifference('next');
+          });
+      });
+
     // View-mode toggles: the active mode is highlighted via mod-cta.
     new Setting(this.toolbarEl)
       .setClass('lct-modal-toolbar-group')
@@ -426,6 +468,82 @@ export class HistoryModal extends Modal {
     btn.buttonEl.setAttribute('aria-label', label);
 
     return btn;
+  }
+
+  /**
+   * Moves the difference focus to the next or previous hunk and brings it into
+   * view. The target index is resolved by the same pure NavigationHelper.target
+   * used by the editor change-navigation commands, fed the hunk indices as the
+   * "changed lines" and the current active index as the cursor, so the walk
+   * wraps around at both ends (past the last hunk returns to the first, before
+   * the first returns to the last). With no hunks it is a safe no-op.
+   *
+   * @param {NavigationDirection} direction - Which way to step through the hunks
+   */
+  protected goToDifference(direction: NavigationDirection): void {
+    const count: number = this.getHunks().length;
+
+    if (count === 0) {
+      return;
+    }
+
+    // Hunk indices are 0..count-1; reuse the cursor-based target picker over
+    // them so the wrap-around behaviour matches the editor navigation exactly.
+    const indices: number[] = Array.from({ length: count }, (_unused: unknown, index: number): number => index);
+    const target: number | null = NavigationHelper.target(indices, this.activeHunkIndex, direction);
+
+    if (target === null) {
+      return;
+    }
+
+    this.activeHunkIndex = target;
+    this.focusHunk(target);
+  }
+
+  /**
+   * Highlights the hunk at the given index in the revert list and scrolls it
+   * into view, so the difference the navigation buttons moved to is visible and
+   * marked active. Every other hunk entry loses the active marker first.
+   *
+   * @param {number} index - The hunk index to focus
+   */
+  protected focusHunk(index: number): void {
+    if (!this.hunksEl) {
+      return;
+    }
+
+    const items: HTMLElement[] = Array.from(this.hunksEl.querySelectorAll<HTMLElement>('.lct-hunk-item'));
+
+    items.forEach((item: HTMLElement, itemIndex: number): void => {
+      DomHelper.update(item, { classes: itemIndex === index ? { add: 'is-active' } : { remove: 'is-active' } });
+    });
+
+    items[index]?.scrollIntoView({ block: 'nearest' });
+  }
+
+  /**
+   * Enables or disables the next/previous difference buttons based on whether
+   * the current diff has any hunks to walk, and drops a stale active index when
+   * the diff no longer has that many hunks. A diff with zero hunks leaves both
+   * buttons disabled so a click is an ignored no-op.
+   */
+  protected updateNavButtonsState(): void {
+    const count: number = this.getHunks().length;
+    const disabled: boolean = count === 0;
+
+    [this.navButtons.previous, this.navButtons.next].forEach((button: HTMLElement | undefined): void => {
+      if (!button) {
+        return;
+      }
+
+      (button as HTMLButtonElement).disabled = disabled;
+      DomHelper.update(button, { classes: disabled ? { add: 'is-disabled' } : { remove: 'is-disabled' } });
+    });
+
+    // Forget a focus that no longer points at an existing hunk.
+    if (this.activeHunkIndex >= count) {
+      this.activeHunkIndex = -1;
+    }
   }
 
   /**
@@ -658,10 +776,15 @@ export class HistoryModal extends Modal {
       return;
     }
 
+    // The diff is being rebuilt, so any difference the navigation had focused is
+    // stale: drop it before drawing the new list.
+    this.activeHunkIndex = -1;
+
     const hunks: Diff.StructuredPatchHunk[] = this.getHunks();
 
     if (hunks.length === 0) {
       DomHelper.update(this.hunksEl, { text: null, classes: { add: 'lct-hunks-empty' } });
+      this.updateNavButtonsState();
 
       return;
     }
@@ -693,6 +816,8 @@ export class HistoryModal extends Modal {
         { tag: 'div', classes: 'lct-hunks-list', children: items },
       ],
     });
+
+    this.updateNavButtonsState();
   }
 
   /**

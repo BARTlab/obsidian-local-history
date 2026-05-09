@@ -208,8 +208,23 @@ export class MainSetting extends PluginSettingTab {
       );
 
     new Setting(containerEl)
+      .setName('Max version age (days)')
+      .setDesc('Drop intermediate versions older than this many days (the primary bound). Set to 0 to disable.')
+      .addText((text: TextComponent): TextComponent =>
+        text
+          .setPlaceholder(String(DEFAULT_SETTINGS.snapshots.maxVersionAgeDays))
+          .setValue(String(this.settingsService.value('snapshots.maxVersionAgeDays')))
+          .onChange((value: string): void => {
+            this.settingsService.update(
+              'snapshots.maxVersionAgeDays',
+              this.toCount(value, DEFAULT_SETTINGS.snapshots.maxVersionAgeDays)
+            );
+          })
+      );
+
+    new Setting(containerEl)
       .setName('Max versions per file')
-      .setDesc('Cap on intermediate versions kept per file. Oldest are evicted first. Set to 0 to disable.')
+      .setDesc('Safety cap on intermediate versions kept per file. Oldest are evicted first. Set to 0 to disable.')
       .addText((text: TextComponent): TextComponent =>
         text
           .setPlaceholder(String(DEFAULT_SETTINGS.snapshots.maxVersions))

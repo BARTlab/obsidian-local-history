@@ -16,6 +16,7 @@ const options = (overrides: Partial<SnapshotCaptureOptions> = {}): SnapshotCaptu
   intervalMs: 0,
   editThreshold: 0,
   maxVersions: 0,
+  maxVersionAgeDays: 0,
   ...overrides,
 });
 
@@ -182,6 +183,94 @@ describe('FileSnapshot timeline bound', () => {
     }
 
     expect(snapshot.getVersions()).toHaveLength(10);
+  });
+});
+
+describe('FileSnapshot timeline age bound', () => {
+  const DAY: number = 24 * 60 * 60 * 1000;
+
+  it('evicts versions older than maxVersionAgeDays on the next capture', () => {
+    const base: number = 10_000_000_000;
+    const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(base);
+
+    const snapshot = new FileSnapshot('a');
+    const opts = options({ editThreshold: 1, maxVersionAgeDays: 14 });
+
+    // Two captures land 20 days in the past, so they fall outside the 14-day
+    // window once "now" advances below.
+    nowSpy.mockReturnValue(base - (20 * DAY));
+    snapshot.captureVersion(['old-1'], opts);
+    snapshot.captureVersion(['old-2'], opts);
+    expect(snapshot.getVersions()).toHaveLength(2);
+
+    // A fresh capture at the present time evicts both stale versions (older
+    // than 14 days) while keeping the new one.
+    nowSpy.mockReturnValue(base);
+    const captured: FileVersion | null = snapshot.captureVersion(['fresh'], opts);
+
+    expect(captured).not.toBeNull();
+    expect(snapshot.getVersions().map((v: FileVersion): string[] => v.getLines())).toEqual([['fresh']]);
+  });
+
+  it('keeps versions within the age window', () => {
+    const base: number = 10_000_000_000;
+    const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(base);
+
+    const snapshot = new FileSnapshot('a');
+    const opts = options({ editThreshold: 1, maxVersionAgeDays: 14 });
+
+    // One version 10 days old (inside the window), one at the present time.
+    nowSpy.mockReturnValue(base - (10 * DAY));
+    snapshot.captureVersion(['recent'], opts);
+
+    nowSpy.mockReturnValue(base);
+    snapshot.captureVersion(['newest'], opts);
+
+    // Both are within 14 days, so neither is evicted (newest first).
+    expect(snapshot.getVersions().map((v: FileVersion): string[] => v.getLines())).toEqual([
+      ['newest'],
+      ['recent'],
+    ]);
+  });
+
+  it('disables the age rule when maxVersionAgeDays is 0', () => {
+    const base: number = 10_000_000_000;
+    const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(base);
+
+    const snapshot = new FileSnapshot('a');
+    const opts = options({ editThreshold: 1, maxVersions: 0, maxVersionAgeDays: 0 });
+
+    // An ancient version stays because the age cap is disabled.
+    nowSpy.mockReturnValue(base - (365 * DAY));
+    snapshot.captureVersion(['ancient'], opts);
+
+    nowSpy.mockReturnValue(base);
+    snapshot.captureVersion(['now'], opts);
+
+    expect(snapshot.getVersions()).toHaveLength(2);
+  });
+
+  it('applies age first then the count cap', () => {
+    const base: number = 10_000_000_000;
+    const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(base);
+
+    const snapshot = new FileSnapshot('a');
+    const opts = options({ editThreshold: 1, maxVersions: 2, maxVersionAgeDays: 14 });
+
+    // One stale version (evicted by age) plus three fresh ones; after age
+    // eviction the count cap of 2 keeps only the two newest fresh versions.
+    nowSpy.mockReturnValue(base - (30 * DAY));
+    snapshot.captureVersion(['stale'], opts);
+
+    nowSpy.mockReturnValue(base);
+    snapshot.captureVersion(['fresh-1'], opts);
+    snapshot.captureVersion(['fresh-2'], opts);
+    snapshot.captureVersion(['fresh-3'], opts);
+
+    expect(snapshot.getVersions().map((v: FileVersion): string[] => v.getLines())).toEqual([
+      ['fresh-3'],
+      ['fresh-2'],
+    ]);
   });
 });
 

@@ -64,7 +64,8 @@ export const DEFAULT_SETTINGS: LineChangeTrackerSettings = {
     enabled: true,
     intervalMs: 5 * 60 * 1000,
     editThreshold: 10,
-    maxVersions: 20,
+    maxVersions: 50,
+    maxVersionAgeDays: 14,
   },
 
   line: {

@@ -9,6 +9,12 @@ import { isArray, isNumber, isString } from 'lodash-es';
 import type { TFile } from 'obsidian';
 
 /**
+ * Number of milliseconds in a day, used to translate the version age cap (in
+ * days) from settings into a timestamp comparison when evicting old versions.
+ */
+const MS_PER_DAY: number = 24 * 60 * 60 * 1000;
+
+/**
  * Represents a snapshot of a file's content with change tracking capabilities.
  * Track line additions, modifications, removals, and restorations over time.
  * Provides methods to query and manipulate the state of a file's content.
@@ -218,8 +224,8 @@ export class FileSnapshot {
    * count since the last version reached editThreshold, or intervalMs elapsed
    * since the last version. A gate set to 0 is treated as disabled; when both
    * gates are 0 only the explicit force path captures. The timeline is bounded
-   * by maxVersions, evicting the oldest entries first so it cannot grow without
-   * limit.
+   * primarily by age (maxVersionAgeDays) and secondarily by count (maxVersions),
+   * evicting the oldest entries first so it cannot grow without limit.
    *
    * A no-op capture is skipped: when the content to freeze equals the most
    * recent stored version (or the original baseline when none exist), no version
@@ -255,7 +261,7 @@ export class FileSnapshot {
       return null;
     }
 
-    return this.pushVersion(new FileVersion(previousLines), options.maxVersions);
+    return this.pushVersion(new FileVersion(previousLines), options);
   }
 
   /**
@@ -292,23 +298,47 @@ export class FileSnapshot {
 
   /**
    * Appends a version to the timeline, resets the cadence counters, and trims
-   * the timeline to the size cap by evicting the oldest entries.
+   * the timeline by evicting expired then excess entries.
    *
    * @param {FileVersion} version - The version to append
-   * @param {number} maxVersions - The size cap (oldest evicted past this)
+   * @param {SnapshotCaptureOptions} options - The capture cadence and retention caps
    * @return {FileVersion} The appended version
    */
-  protected pushVersion(version: FileVersion, maxVersions: number): FileVersion {
+  protected pushVersion(version: FileVersion, options: SnapshotCaptureOptions): FileVersion {
     this.versions.push(version);
 
     this.editsSinceVersion = 0;
     this.lastVersionAt = version.timestamp;
 
+    this.evictVersions(options);
+
+    return version;
+  }
+
+  /**
+   * Trims the timeline to its retention caps, age first then count, mirroring
+   * the JetBrains Local History model where age is the primary bound and the
+   * count is a safety cap. Versions older than maxVersionAgeDays are dropped
+   * regardless of count, then any beyond maxVersions are dropped regardless of
+   * age. A cap of 0 disables that dimension. Because versions are appended
+   * oldest-first, both passes evict from the front of the array.
+   *
+   * @param {SnapshotCaptureOptions} options - The retention caps to apply
+   */
+  protected evictVersions(options: SnapshotCaptureOptions): void {
+    const maxAgeDays: number = options?.maxVersionAgeDays;
+
+    if (isNumber(maxAgeDays) && maxAgeDays > 0) {
+      const oldest: number = Date.now() - (maxAgeDays * MS_PER_DAY);
+
+      this.versions = this.versions.filter((version: FileVersion): boolean => version.timestamp >= oldest);
+    }
+
+    const maxVersions: number = options?.maxVersions;
+
     if (isNumber(maxVersions) && maxVersions > 0 && this.versions.length > maxVersions) {
       this.versions.splice(0, this.versions.length - maxVersions);
     }
-
-    return version;
   }
 
   /**

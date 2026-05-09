@@ -102,9 +102,10 @@
   "modal.confirm.remove.button": "Remove history",
 
   "modal.search-versions": "Search versions",
-  "modal.version.original": "Original",
+  "modal.version.baseline": "Original → Current",
   "modal.version.numbered": "Version {number}",
   "modal.no-versions-match": "No versions match the search",
+  "modal.no-snapshots-yet": "No intermediate snapshots yet",
 
   "modal.differences-title": "Differences (revert from the editor gutter)",
   "modal.hunk.removed-before-line": "Removed before line {line}",

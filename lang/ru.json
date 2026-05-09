@@ -102,9 +102,10 @@
   "modal.confirm.remove.button": "Удалить историю",
 
   "modal.search-versions": "Поиск по версиям",
-  "modal.version.original": "Оригинал",
+  "modal.version.baseline": "Оригинал → Текущий",
   "modal.version.numbered": "Версия {number}",
   "modal.no-versions-match": "Нет версий, соответствующих поиску",
+  "modal.no-snapshots-yet": "Промежуточных снимков пока нет",
 
   "modal.differences-title": "Отличия (откат с полей редактора)",
   "modal.hunk.removed-before-line": "Удалено перед строкой {line}",

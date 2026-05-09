@@ -118,6 +118,24 @@ export interface LineChangeTrackerSettings {
 export type FunctionVoid = () => void;
 
 /**
+ * A single language catalog: a flat map from a dotted translation key to its
+ * user-facing string for one language.
+ */
+export type TranslationCatalog = Record<string, string>;
+
+/**
+ * All translation catalogs keyed by language code (for example `en`, `ru`). The
+ * `en` catalog is the universal fallback every key is guaranteed to exist in.
+ */
+export type TranslationCatalogs = Record<string, TranslationCatalog>;
+
+/**
+ * Values substituted into `{name}` placeholders when translating a string. Each
+ * key matches a placeholder name; numbers are stringified on interpolation.
+ */
+export type TranslationVars = Record<string, string | number>;
+
+/**
  * Callback that reverts the single changed block sitting at a given 0-based
  * current line back to the base. Wired from the gutter revert affordance to the
  * snapshots service so the marker stays free of revert plumbing.

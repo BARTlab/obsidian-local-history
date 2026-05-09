@@ -26,10 +26,10 @@ export class ResetLinesCommand extends BaseCommand implements Command {
   public id: string = 'tracker-reset-lines';
 
   /**
-   * Display name for this command.
+   * Display name for this command, localized through the plugin translator.
    * Shown in the Obsidian command palette.
    */
-  public name: string = 'Reset lines tracker snapshot of current document';
+  public name: string = this.plugin.t('command.reset-lines');
 
   /**
    * Callback function executed when the command is triggered in an editor context.
@@ -38,6 +38,6 @@ export class ResetLinesCommand extends BaseCommand implements Command {
   public editorCallback: FunctionVoid = (): void => {
     this.snapshotsService.wipeOne();
 
-    new Notice('Current snapshot data deleted');
+    new Notice(this.plugin.t('notice.current-snapshot-deleted'));
   };
 }

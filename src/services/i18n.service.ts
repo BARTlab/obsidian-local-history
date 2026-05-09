@@ -1,5 +1,19 @@
 import type LineChangeTrackerPlugin from '@/main';
 import type { Service, TranslationCatalog, TranslationCatalogs, TranslationVars } from '@/types';
+import en from '../../lang/en.json';
+import ru from '../../lang/ru.json';
+
+/**
+ * The catalogs bundled with the plugin, keyed by language code. They are statically
+ * imported (not loaded at runtime) so esbuild includes them in the main bundle:
+ * esbuild only bundles the `main.ts` import graph, so a dynamic file read would not
+ * ship the JSON. English is the universal fallback every key is guaranteed to exist
+ * in (see {@link FALLBACK_LANGUAGE}).
+ */
+const BUNDLED_CATALOGS: TranslationCatalogs = {
+  en,
+  ru,
+};
 
 /**
  * The language code used as the universal fallback. Every key is guaranteed to
@@ -28,20 +42,19 @@ const PLACEHOLDER_PATTERN = /\{(\w+)\}/g;
  * translated language never surfaces a raw key in production. Placeholders of the
  * form `{name}` are interpolated from the supplied vars.
  *
- * The catalogs themselves are filled in a later task (T12 ships the en/ru JSON
- * and wires every UI surface through `t`); this task provides the translator,
- * the language detection, and the fallback/interpolation behaviour. The pure
- * resolution logic lives in the static {@link I18nService.resolve} so it is unit
- * tested directly without an Obsidian window.
+ * The bundled en and ru catalogs are registered on init from the statically
+ * imported `lang/<code>.json` files; the pure resolution logic lives in the
+ * static {@link I18nService.resolve} so it is unit tested directly without an
+ * Obsidian window.
  *
  * @implements {Service}
  */
 export class I18nService implements Service {
   /**
-   * The language-code-keyed catalogs available at runtime. Populated from the
-   * bundled `lang/<code>.json` files when string extraction lands (T12); kept as
-   * an injectable map so the resolver stays decoupled from how catalogs are
-   * loaded and can be unit tested with fixtures.
+   * The language-code-keyed catalogs available at runtime. Populated on init from
+   * the bundled `lang/<code>.json` files; kept as an injectable map so the
+   * resolver stays decoupled from how catalogs are loaded and can be unit tested
+   * with fixtures.
    */
   protected catalogs: TranslationCatalogs = {};
 
@@ -68,20 +81,20 @@ export class I18nService implements Service {
   }
 
   /**
-   * Initializes the service by detecting the active language and the dev flag.
-   * Catalog registration happens here too once the bundled catalogs exist; until
-   * then this only resolves the language so `t` can run with an empty registry
-   * and fall back gracefully.
+   * Initializes the service by registering the bundled catalogs and detecting the
+   * active language and the dev flag. Registration runs before any `t` call so a
+   * key resolves to its translation rather than falling back to the raw key.
    */
   public init(): void {
+    this.register(BUNDLED_CATALOGS);
     this.language = I18nService.detectLanguage();
     this.warnOnMissing = I18nService.isDevBuild();
   }
 
   /**
-   * Registers the available translation catalogs. Called once during setup with
-   * the bundled catalogs (T12); exposed as a method so the loading strategy is
-   * separate from resolution and so tests can seed fixtures directly.
+   * Registers the available translation catalogs. Called once during init with the
+   * bundled catalogs; exposed as a method so the loading strategy is separate from
+   * resolution and so tests can seed fixtures directly.
    *
    * @param {TranslationCatalogs} catalogs - Map of language code to its catalog
    */

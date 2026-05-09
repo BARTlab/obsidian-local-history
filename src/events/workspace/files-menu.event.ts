@@ -44,11 +44,11 @@ export class WorkspaceFilesMenuEvent extends BaseEvent {
 
     menu.addItem((item: MenuItem): void => {
       item
-        .setTitle('Local history')
+        .setTitle(this.plugin.t('menu.local-history'))
         .setIcon('file-diff')
         .onClick((): void => {
           if (!this.modalService.diff(file)) {
-            new Notice('There is no saved history for this file.');
+            new Notice(this.plugin.t('notice.no-saved-history'));
           }
         });
     });

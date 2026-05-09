@@ -32,10 +32,10 @@ export class ShowDiffCommand extends BaseCommand implements Command {
   public id: string = 'tracker-show-diff';
 
   /**
-   * Display name for this command.
+   * Display name for this command, localized through the plugin translator.
    * Shown in the Obsidian command palette.
    */
-  public name: string = 'Show all changes of current document';
+  public name: string = this.plugin.t('command.show-diff');
 
   /**
    * Callback that both gates and runs the command.

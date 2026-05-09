@@ -37,6 +37,7 @@ class ModalsServiceDouble {
 const makeCommand = (modals: ModalsServiceDouble): ShowDiffCommand => {
   const plugin = {
     get: (): unknown => modals,
+    t: (key: string): string => key,
   } as unknown as PluginArg;
 
   return new ShowDiffCommand(plugin);

@@ -10,7 +10,7 @@ import { SettingsService } from '@/services/settings.service';
 import { SnapshotsService } from '@/services/snapshots.service';
 import { StatusbarService } from '@/services/statusbar.service';
 import { StylesService } from '@/services/styles.service';
-import { type ClassConstructor, type Service } from '@/types';
+import { type ClassConstructor, type Service, type TranslationVars } from '@/types';
 import type { EditorView } from '@codemirror/view';
 import EventEmitter from 'eventemitter3';
 import { isFunction, isString } from 'lodash-es';
@@ -121,6 +121,20 @@ export default class LineChangeTrackerPlugin extends Plugin {
     }
 
     return service;
+  }
+
+  /**
+   * Translates a dotted localization key to a user-facing string in Obsidian's
+   * selected language, falling back to English. A thin delegate to I18nService so
+   * every surface (settings, modal, commands, notices) can localize through the
+   * plugin it already holds without injecting the service itself.
+   *
+   * @param {string} key - The dotted translation key (e.g. `modal.restore-original`)
+   * @param {TranslationVars} [vars] - Values for `{name}` placeholders
+   * @return {string} The localized, interpolated string
+   */
+  public t(key: string, vars?: TranslationVars): string {
+    return this.get(I18nService).t(key, vars);
   }
 
   /**

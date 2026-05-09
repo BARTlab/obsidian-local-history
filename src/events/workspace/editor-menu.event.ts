@@ -37,7 +37,7 @@ export class WorkspaceEditorMenuEvent extends BaseEvent {
   public handler(menu: Menu, _editor: Editor, _view: MarkdownView): void {
     menu.addItem((item: MenuItem): void => {
       item
-        .setTitle('Local history')
+        .setTitle(this.plugin.t('menu.local-history'))
         .setIcon('file-diff')
         .onClick((): void => {
           this.modalService.diff();

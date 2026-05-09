@@ -1,0 +1,117 @@
+{
+  "command.go-to-next-change": "Перейти к следующему изменению",
+  "command.go-to-previous-change": "Перейти к предыдущему изменению",
+  "command.reset-lines-all": "Сбросить снимки трекера для всех файлов",
+  "command.reset-lines": "Сбросить снимок трекера текущего документа",
+  "command.show-diff": "Показать все изменения текущего документа",
+
+  "notice.no-changes-to-navigate": "Нет изменений для навигации",
+  "notice.all-snapshots-deleted": "Все данные снимков удалены",
+  "notice.current-snapshot-deleted": "Данные текущего снимка удалены",
+  "notice.file-restored": "Файл восстановлен до исходного состояния",
+  "notice.file-restore-failed": "Не удалось восстановить файл до исходного состояния",
+  "notice.copied": "Скопировано!",
+  "notice.no-saved-history": "Для этого файла нет сохранённой истории.",
+  "notice.invalid-exclude-pattern": "Local history: шаблон исключённых путей не является корректным регулярным выражением и игнорируется.",
+
+  "menu.local-history": "Локальная история",
+
+  "setting.type.name": "Тип",
+  "setting.type.desc": "Выберите вертикальную линию или символ на полях.",
+  "setting.type.option.line": "Вертикальная линия",
+  "setting.type.option.dot": "Символ на полях",
+
+  "setting.allowed-extensions.name": "Отслеживаемые расширения файлов",
+  "setting.allowed-extensions.desc": "Список расширений файлов через запятую, изменения в которых отслеживаются (например, md, txt, csv, json, yaml)",
+
+  "setting.exclude-paths.name": "Исключённые пути",
+  "setting.exclude-paths.desc": "Регулярное выражение без учёта регистра, сопоставляемое с путём относительно хранилища. Любой файл, путь которого совпадает, никогда не отслеживается (например, \\.excalidraw\\.md$ или (^|/)Templates/). По умолчанию исключаются папки Templates и рисунки Excalidraw. Оставьте пустым, чтобы отслеживать всё.",
+
+  "setting.keep.name": "Хранить историю до",
+  "setting.keep.desc": "Стратегия очистки истории ревизий",
+  "setting.keep.option.app": "Закрытия приложения",
+  "setting.keep.option.file": "Закрытия файла",
+
+  "setting.ignore-new-files.name": "Игнорировать новые файлы",
+  "setting.ignore-new-files.desc": "Не отслеживать изменения в файлах, созданных после начала отслеживания",
+
+  "setting.persist.name": "Сохранять историю между перезапусками",
+  "setting.persist.desc": "Сохранять историю на диск, чтобы подсветки переживали перезапуск. Требует, чтобы параметр \"Хранить историю до\" был установлен на закрытие приложения.",
+
+  "setting.max-entries.name": "Максимум хранимых файлов",
+  "setting.max-entries.desc": "Ограничение на количество историй файлов, хранимых на диске. Сначала удаляются самые старые. Установите 0, чтобы отключить.",
+
+  "setting.max-age-days.name": "Максимальный возраст истории (дни)",
+  "setting.max-age-days.desc": "Удалять сохранённую историю старше указанного числа дней. Установите 0, чтобы отключить.",
+
+  "setting.snapshots-heading": "Снимки таймлайна",
+
+  "setting.snapshots-enabled.name": "Захватывать промежуточные версии",
+  "setting.snapshots-enabled.desc": "Хранить таймлайн ранних версий, чтобы сравнивать с промежуточной точкой, а не только с оригиналом.",
+
+  "setting.snapshots-edit-threshold.name": "Захватывать каждые (правки)",
+  "setting.snapshots-edit-threshold.desc": "Делать версию после указанного числа правок. Установите 0, чтобы отключить триггер по правкам.",
+
+  "setting.snapshots-interval.name": "Захватывать каждые (минуты)",
+  "setting.snapshots-interval.desc": "Делать версию после указанного числа минут редактирования. Установите 0, чтобы отключить триггер по времени.",
+
+  "setting.max-version-age-days.name": "Максимальный возраст версии (дни)",
+  "setting.max-version-age-days.desc": "Удалять промежуточные версии старше указанного числа дней (основное ограничение). Установите 0, чтобы отключить.",
+
+  "setting.max-versions.name": "Максимум версий на файл",
+  "setting.max-versions.desc": "Защитное ограничение на число промежуточных версий, хранимых для файла. Сначала удаляются самые старые. Установите 0, чтобы отключить.",
+
+  "setting.show-heading": "Показывать индикатор для",
+  "setting.show.desc": "Индикаторы строк показываются только в режимах редактирования (исходный код и живой просмотр). В режиме чтения встроенных индикаторов нет, но история изменений всё равно доступна: выполните команду \"Показать все изменения текущего документа\" или используйте контекстное меню файла в проводнике.",
+  "setting.show.changed": "Изменённые",
+  "setting.show.restored": "Восстановленные",
+  "setting.show.added": "Добавленные",
+  "setting.show.removed": "Удалённые",
+
+  "setting.line-heading": "Линейный индикатор",
+  "setting.line-width.name": "Ширина",
+  "setting.line-width.desc": "Ширина вертикального линейного индикатора (в пикселях).",
+
+  "setting.gutter-heading.name": "Индикатор на полях",
+  "setting.gutter-heading.prefix": "Символы индикатора типа на полях (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Символ изменения",
+  "setting.gutter-added.name": "Символ добавления",
+  "setting.gutter-restored.name": "Символ восстановления",
+  "setting.gutter-removed.name": "Символ удаления",
+
+  "modal.title": "История",
+  "modal.no-changes": "Нет изменений",
+  "modal.identical-to-current": "Идентично текущему",
+
+  "modal.restore-original": "Восстановить оригинал",
+  "modal.remove-history": "Удалить историю файла",
+  "modal.previous-difference": "Предыдущее отличие",
+  "modal.next-difference": "Следующее отличие",
+  "modal.mode.patch": "Показать патч",
+  "modal.mode.inline": "Встроенный",
+  "modal.mode.line-by-line": "Построчно",
+  "modal.mode.side-by-side": "Бок о бок",
+
+  "modal.confirm.cancel": "Отмена",
+  "modal.confirm.restore.title": "Восстановить исходный файл",
+  "modal.confirm.restore.message": "Вы уверены, что хотите восстановить этот файл до исходного состояния? Все текущие изменения будут потеряны, а история отслеживания изменений будет сброшена. Это действие нельзя отменить.",
+  "modal.confirm.restore.button": "Восстановить файл",
+  "modal.confirm.remove.title": "Удалить историю файла",
+  "modal.confirm.remove.message": "Вы уверены, что хотите удалить историю отслеживания изменений для этого файла? Это действие нельзя отменить.",
+  "modal.confirm.remove.button": "Удалить историю",
+
+  "modal.search-versions": "Поиск по версиям",
+  "modal.version.original": "Оригинал",
+  "modal.version.numbered": "Версия {number}",
+  "modal.no-versions-match": "Нет версий, соответствующих поиску",
+
+  "modal.differences-title": "Отличия (откат с полей редактора)",
+  "modal.hunk.removed-before-line": "Удалено перед строкой {line}",
+  "modal.hunk.added-line": "Добавлена строка {line}",
+  "modal.hunk.added-lines": "Добавлены строки {start}-{end}",
+  "modal.hunk.changed-line": "Изменена строка {line}",
+  "modal.hunk.changed-lines": "Изменены строки {start}-{end}",
+
+  "modal.copy": "Копировать"
+}

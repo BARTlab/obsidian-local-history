@@ -63,8 +63,8 @@ export class HistoryModal extends Modal {
   protected toolbarEl?: HTMLElement;
 
   /**
-   * Main pane container of the three-pane shell. Hosts the diff output (and the
-   * per-hunk revert list until it moves to the gutter).
+   * Main pane container of the three-pane shell. Hosts the diff output and the
+   * read-only per-hunk difference list the next/previous navigation walks.
    */
   protected mainEl?: HTMLElement;
 
@@ -81,8 +81,10 @@ export class HistoryModal extends Modal {
   protected versionsEl?: HTMLElement;
 
   /**
-   * Container element holding the per-hunk revert controls, rebuilt whenever the
-   * diff between the selected base and the current state changes.
+   * Container element holding the read-only per-hunk difference list, rebuilt
+   * whenever the diff between the selected base and the current state changes.
+   * It is the scroll/highlight target the next/previous navigation walks; revert
+   * itself is performed from the editor gutter, not here.
    */
   protected hunksEl?: HTMLElement;
 
@@ -323,7 +325,8 @@ export class HistoryModal extends Modal {
       container: this.railEl,
     });
 
-    // Per-hunk revert controls and the diff output share the main pane.
+    // The read-only per-hunk difference list and the diff output share the main
+    // pane; reverting a single block is done from the editor gutter, not here.
     this.hunksEl = DomHelper.create({
       tag: 'div',
       classes: 'lct-hunks',
@@ -501,7 +504,7 @@ export class HistoryModal extends Modal {
   }
 
   /**
-   * Highlights the hunk at the given index in the revert list and scrolls it
+   * Highlights the hunk at the given index in the difference list and scrolls it
    * into view, so the difference the navigation buttons moved to is visible and
    * marked active. Every other hunk entry loses the active marker first.
    *
@@ -752,8 +755,9 @@ export class HistoryModal extends Modal {
 
   /**
    * Computes the line-level hunks between the selected base and the current
-   * state. These back the per-hunk revert controls and are recomputed on demand
-   * so the offsets always reflect the live content.
+   * state. These back the read-only per-hunk difference list and the
+   * next/previous navigation, and are recomputed on demand so the offsets always
+   * reflect the live content.
    *
    * @return {Diff.StructuredPatchHunk[]} The hunks, ordered top to bottom
    */
@@ -766,10 +770,12 @@ export class HistoryModal extends Modal {
   }
 
   /**
-   * Renders the per-hunk revert list for the current diff. Each entry describes
-   * one changed block against the selected base and offers a control that writes
-   * only that block back to the base, leaving every other change intact. The
-   * block is hidden when the current state already equals the selected base.
+   * Renders the per-hunk difference list for the current diff. Each entry labels
+   * one changed block against the selected base and is the scroll/highlight
+   * target the next/previous difference navigation (T08) moves between; the list
+   * is read-only and carries no revert control, because reverting a single block
+   * now lives on the editor gutter. The list is hidden when the current state
+   * already equals the selected base.
    */
   protected renderHunks(): void {
     if (!this.hunksEl) {
@@ -791,28 +797,18 @@ export class HistoryModal extends Modal {
 
     DomHelper.update(this.hunksEl, { classes: { remove: 'lct-hunks-empty' } });
 
-    const items: DomElementConfig[] = hunks.map((hunk: Diff.StructuredPatchHunk, index: number): DomElementConfig => ({
+    const items: DomElementConfig[] = hunks.map((hunk: Diff.StructuredPatchHunk): DomElementConfig => ({
       tag: 'div',
       classes: 'lct-hunk-item',
       children: [
         { tag: 'span', classes: 'lct-hunk-label', text: this.getHunkLabel(hunk) },
-        {
-          tag: 'button',
-          classes: ['lct-hunk-revert-button', 'mod-outline'],
-          text: 'Revert hunk',
-          events: {
-            click: (): void => {
-              void this.revertHunk(index);
-            },
-          },
-        },
       ],
     }));
 
     DomHelper.update(this.hunksEl, {
       text: null,
       children: [
-        { tag: 'div', classes: 'lct-hunks-title', text: 'Revert individual changes' },
+        { tag: 'div', classes: 'lct-hunks-title', text: 'Differences (revert from the editor gutter)' },
         { tag: 'div', classes: 'lct-hunks-list', children: items },
       ],
     });
@@ -842,69 +838,6 @@ export class HistoryModal extends Modal {
     }
 
     return `Changed ${where}`;
-  }
-
-  /**
-   * Reverts a single hunk back to the selected base, leaving all other changes
-   * intact, then refreshes the timeline, the revert list, and the active diff.
-   *
-   * The hunks are recomputed against the live content before resolving the
-   * target, so a stale index from a previous render cannot apply the wrong
-   * block. The revert targets whichever base is currently selected in the
-   * timeline (the original baseline by default, or a picked version), matching
-   * exactly what the diff above shows.
-   *
-   * @param {number} index - The index of the hunk in the current diff
-   * @return {Promise<void>}
-   */
-  protected async revertHunk(index: number): Promise<void> {
-    if (!this.snapshot?.file) {
-      return;
-    }
-
-    const hunks: Diff.StructuredPatchHunk[] = this.getHunks();
-    const hunk: Diff.StructuredPatchHunk | undefined = hunks[index];
-
-    if (!hunk) {
-      return;
-    }
-
-    const confirmed: boolean = await this.modalsService.confirm({
-      title: 'Revert change',
-      message: 'Revert this change back to the selected version? Other changes are kept.',
-      confirmText: 'Revert',
-    });
-
-    if (!confirmed) {
-      return;
-    }
-
-    const currentLines: string[] = this.snapshot.getLastStateLines();
-    const revertedLines: string[] = HunkHelper.revertHunk(currentLines, hunk);
-    const start: number = Math.max(0, Math.min(currentLines.length, hunk.newStart - 1));
-
-    const applied: boolean = await this.snapshotsService.applyContent(
-      this.snapshot.file,
-      revertedLines,
-      {
-        start,
-        removeCount: hunk.newLines,
-        newLines: HunkHelper.baseLinesForHunk(hunk),
-      },
-    );
-
-    if (!applied) {
-      new Notice('Failed to revert change');
-
-      return;
-    }
-
-    new Notice('Change reverted');
-
-    // Refresh every view that depends on the current state.
-    this.renderVersions();
-    this.renderHunks();
-    this.refreshActiveView();
   }
 
   /**

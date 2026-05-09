@@ -171,10 +171,11 @@
         padding-bottom: 8px;
       }
 
+      // A read-only difference entry the next/previous navigation walks; it no
+      // longer carries a revert control (revert moved to the editor gutter).
       .lct-hunk-item {
         display: flex;
         align-items: center;
-        justify-content: space-between;
         gap: 8px;
         padding: 4px 10px;
         border: 1px solid var(--background-modifier-border);
@@ -190,11 +191,6 @@
         .lct-hunk-label {
           color: var(--text-normal);
           font-size: var(--font-ui-smaller);
-        }
-
-        .lct-hunk-revert-button {
-          flex: none;
-          cursor: pointer;
         }
       }
     }

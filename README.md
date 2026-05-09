@@ -259,6 +259,36 @@ The plugin uses a service-oriented architecture with a small dependency injectio
 - `diff2html` for diff rendering.
 - The Obsidian plugin API.
 
+### Localization
+
+The plugin follows Obsidian's own UI language. It ships a built-in dictionary per
+language under `lang/<code>.json`, selected by the `language` value Obsidian
+stores in `localStorage`. English (`lang/en.json`) is the universal fallback:
+every key is guaranteed to exist there, so any language without its own catalog,
+or a catalog missing a key, resolves to the English string rather than a raw key.
+English and Russian ship complete; every other Obsidian language code is
+supported through the English fallback until a community catalog is added.
+
+#### Adding a translation
+
+1. Copy `lang/en.json` to `lang/<code>.json`, where `<code>` is the Obsidian
+   language code (for example `de`, `fr`, `pt-BR`, `zh`). Use the exact code from
+   Obsidian's [translations list](https://github.com/obsidianmd/obsidian-translations);
+   it is the value Obsidian writes to the `language` key in `localStorage`.
+2. Translate every value, keeping the keys and any `{name}` placeholders (such as
+   `{number}`, `{line}`, `{start}`, `{end}`) unchanged so interpolation still
+   works.
+3. Register the new catalog in `src/services/i18n.service.ts`: import the file and
+   add it to `BUNDLED_CATALOGS` (esbuild only bundles what `main.ts` imports, so a
+   static import is required for the catalog to ship in `main.js`).
+4. Add the catalog to `tests/i18n-catalog-parity.test.ts` and run `npm test`. The
+   parity check enforces that a listed catalog has the exact same key set as
+   `en.json` with no empty values, so it fails if a key is missing, extra, or
+   blank.
+
+The set of language codes Obsidian can select lives in `OBSIDIAN_LANGUAGES` in
+`src/services/i18n.service.ts`.
+
 ### Releasing
 
 1. Update the version in `manifest.json` and `package.json`.

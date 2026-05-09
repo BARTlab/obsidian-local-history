@@ -30,6 +30,92 @@ const FALLBACK_LANGUAGE = 'en';
 const LANGUAGE_STORAGE_KEY = 'language';
 
 /**
+ * The full set of UI language codes Obsidian ships, taken verbatim from the
+ * official obsidian-translations catalog (the values Obsidian writes into the
+ * `language` localStorage key). Every code is supported by this plugin: a code
+ * with its own bundled catalog resolves to that catalog, and every other code
+ * resolves through the English fallback (see {@link FALLBACK_LANGUAGE}), so the
+ * plugin never surfaces a raw key or an error for any Obsidian language. New
+ * catalogs are added by dropping a `lang/<code>.json` file (see the contributor
+ * guide in README.md) and registering it; no change here is required for a code
+ * already in this set.
+ */
+export const OBSIDIAN_LANGUAGES: readonly string[] = [
+  'en',
+  'af',
+  'am',
+  'ar',
+  'az',
+  'be',
+  'bg',
+  'bn',
+  'ca',
+  'cs',
+  'da',
+  'de',
+  'dv',
+  'el',
+  'en-GB',
+  'eo',
+  'es',
+  'eu',
+  'fa',
+  'fi',
+  'fr',
+  'ga',
+  'gl',
+  'he',
+  'hi',
+  'hr',
+  'hu',
+  'id',
+  'it',
+  'ja',
+  'ka',
+  'kh',
+  'kn',
+  'ko',
+  'ky',
+  'la',
+  'lt',
+  'lv',
+  'ml',
+  'ms',
+  'nan-TW',
+  'ne',
+  'nl',
+  'nn',
+  'no',
+  'oc',
+  'or',
+  'pl',
+  'pt',
+  'pt-BR',
+  'ro',
+  'ru',
+  'sa',
+  'si',
+  'sk',
+  'sl',
+  'sq',
+  'sr',
+  'sv',
+  'sw',
+  'ta',
+  'te',
+  'th',
+  'tl',
+  'tr',
+  'tt',
+  'uk',
+  'ur',
+  'uz',
+  'vi',
+  'zh',
+  'zh-TW',
+];
+
+/**
  * Matches a `{name}` placeholder inside a translated string. The captured group
  * is the variable name looked up in the interpolation vars.
  */
@@ -100,6 +186,37 @@ export class I18nService implements Service {
    */
   public register(catalogs: TranslationCatalogs): void {
     this.catalogs = catalogs ?? {};
+  }
+
+  /**
+   * Reports whether a language code is one Obsidian can set, so the plugin
+   * recognizes it as a supported UI language. Every supported code resolves to a
+   * catalog: its own when bundled, otherwise the English fallback. Codes outside
+   * this set still resolve (through English) but are not part of Obsidian's UI
+   * language list.
+   *
+   * @param {string} language - The language code to check (e.g. `pt-BR`)
+   * @return {boolean} True when the code is in Obsidian's UI language set
+   */
+  public static isSupportedLanguage(language: string): boolean {
+    return OBSIDIAN_LANGUAGES.includes(language);
+  }
+
+  /**
+   * Maps a language code to the catalog language actually used to resolve its
+   * strings: the code itself when a catalog is bundled for it, otherwise the
+   * English fallback. This makes the "every Obsidian language resolves a catalog
+   * or cleanly falls back to English" guarantee explicit and unit-testable
+   * without driving a full `t` call. Pure and Obsidian-free.
+   *
+   * @param {TranslationCatalogs} catalogs - The available catalogs by language
+   * @param {string} language - The active language code
+   * @return {string} The code whose catalog backs the strings (the input or `en`)
+   */
+  public static resolveCatalogLanguage(catalogs: TranslationCatalogs, language: string): string {
+    const all: TranslationCatalogs = catalogs ?? {};
+
+    return all[language] ? language : FALLBACK_LANGUAGE;
   }
 
   /**

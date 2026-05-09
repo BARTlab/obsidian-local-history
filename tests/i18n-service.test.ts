@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
-import { I18nService } from '@/services/i18n.service';
+import { I18nService, OBSIDIAN_LANGUAGES } from '@/services/i18n.service';
 import type { TranslationCatalogs } from '@/types';
 
 /**
@@ -177,5 +177,60 @@ describe('I18nService.t', () => {
     // Last-resort fallback: a key absent from every catalog returns itself so the
     // UI is never blank.
     expect(makeService('ru').t('missing.key')).toBe('missing.key');
+  });
+});
+
+describe('I18nService.isSupportedLanguage', () => {
+  it('recognizes a plain Obsidian language code', () => {
+    expect(I18nService.isSupportedLanguage('ru')).toBe(true);
+  });
+
+  it('recognizes a regional Obsidian language code', () => {
+    expect(I18nService.isSupportedLanguage('pt-BR')).toBe(true);
+    expect(I18nService.isSupportedLanguage('zh-TW')).toBe(true);
+  });
+
+  it('rejects a code outside the Obsidian set', () => {
+    expect(I18nService.isSupportedLanguage('xx')).toBe(false);
+  });
+
+  it('exposes a de-duplicated, non-empty language set', () => {
+    expect(OBSIDIAN_LANGUAGES.length).toBeGreaterThan(0);
+    expect(new Set(OBSIDIAN_LANGUAGES).size).toBe(OBSIDIAN_LANGUAGES.length);
+    expect(OBSIDIAN_LANGUAGES).toContain('en');
+  });
+});
+
+describe('I18nService.resolveCatalogLanguage', () => {
+  it('keeps the language when a catalog is bundled for it', () => {
+    expect(I18nService.resolveCatalogLanguage(catalogs, 'ru')).toBe('ru');
+  });
+
+  it('falls back to English when no catalog is bundled for the language', () => {
+    expect(I18nService.resolveCatalogLanguage(catalogs, 'fr')).toBe('en');
+  });
+
+  it('tolerates nullish catalogs', () => {
+    expect(
+      I18nService.resolveCatalogLanguage(undefined as unknown as TranslationCatalogs, 'ru'),
+    ).toBe('en');
+  });
+});
+
+describe('every Obsidian language resolves without error', () => {
+  // T13: any code Obsidian can set must resolve a catalog (its own when bundled,
+  // otherwise the English fallback) and never surface a raw key or throw.
+  it.each(OBSIDIAN_LANGUAGES)('resolves a real string for %s', (language: string) => {
+    const result = makeService(language).t('modal.restore');
+
+    expect(result).not.toBe('modal.restore');
+    expect(result.trim()).not.toBe('');
+
+    // A code without its own bundled catalog resolves through English; ru is the
+    // only non-English catalog in the fixtures, so every other code yields the
+    // English string.
+    if (language !== 'ru') {
+      expect(result).toBe('Restore original');
+    }
   });
 });

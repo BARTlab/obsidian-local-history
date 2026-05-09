@@ -184,6 +184,7 @@ export class ChangeDetectorExtension extends BaseExtension implements EditorExte
       intervalMs: this.settingsService.value('snapshots.intervalMs'),
       editThreshold: this.settingsService.value('snapshots.editThreshold'),
       maxVersions: this.settingsService.value('snapshots.maxVersions'),
+      maxVersionAgeDays: this.settingsService.value('snapshots.maxVersionAgeDays'),
     };
   }
 }

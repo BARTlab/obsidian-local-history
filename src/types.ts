@@ -91,8 +91,10 @@ export interface LineChangeTrackerSettings {
     intervalMs: number;
     /** Minimum number of edits between captured versions (0 disables it) */
     editThreshold: number;
-    /** Maximum number of intermediate versions kept per file (oldest evicted) */
+    /** Maximum number of intermediate versions kept per file (count cap, oldest evicted, 0 disables) */
     maxVersions: number;
+    /** Maximum age in days for an intermediate version (age cap, oldest evicted, 0 disables) */
+    maxVersionAgeDays: number;
   };
 
   /** Type of indicator to use for showing changes */
@@ -450,8 +452,10 @@ export interface SnapshotCaptureOptions {
   intervalMs: number;
   /** Minimum number of edits between captures (0 disables the edit gate) */
   editThreshold: number;
-  /** Maximum number of versions kept (oldest evicted past this cap) */
+  /** Maximum number of versions kept (count cap, oldest evicted past this, 0 disables) */
   maxVersions: number;
+  /** Maximum age in days for a kept version (age cap, evicted first, 0 disables) */
+  maxVersionAgeDays: number;
 }
 
 /**

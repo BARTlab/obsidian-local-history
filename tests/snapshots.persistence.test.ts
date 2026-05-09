@@ -66,6 +66,7 @@ describe('SnapshotsService.serialize', () => {
       intervalMs: 0,
       editThreshold: 1,
       maxVersions: 0,
+      maxVersionAgeDays: 0,
     });
     expect(snapshot.getChangesLinesCount()).toBe(0);
     expect(snapshot.hasVersions()).toBe(true);

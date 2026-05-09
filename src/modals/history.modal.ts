@@ -551,18 +551,13 @@ export class HistoryModal extends Modal {
 
   /**
    * Renders the content-search box above the version list. The box filters the
-   * versions in the rail by their captured content; it is hidden when the file
-   * has no intermediate versions, so a timeline-less file keeps a clean rail.
-   * Typing re-renders only the version list (not the diff or the selection).
+   * intermediate versions in the rail by their captured content. It is always
+   * shown so the rail stays consistent even before any version exists; with no
+   * versions a query simply matches nothing. Typing re-renders only the version
+   * list (not the diff or the selection).
    */
   protected renderSearch(): void {
     if (!this.searchEl) {
-      return;
-    }
-
-    if (this.snapshot.getVersions().length === 0) {
-      DomHelper.update(this.searchEl, { text: null, classes: { add: 'lct-rail-search-empty' } });
-
       return;
     }
 
@@ -578,14 +573,15 @@ export class HistoryModal extends Modal {
   }
 
   /**
-   * Renders the version timeline as a list of selectable bases. The list always
-   * starts with the original baseline, followed by intermediate versions newest
-   * first that match the current search query. The whole block is hidden when no
-   * intermediate versions exist, so a file without a timeline keeps the simple
-   * original-vs-current view. When a query matches no version, the original
-   * still shows and an empty-results hint replaces the version entries, leaving
-   * the current selection untouched. Selecting an entry sets it as the diff base
-   * and re-renders the active view.
+   * Renders the version timeline as a list of selectable diff bases. The list
+   * always starts with the baseline entry (the original compared against the
+   * current state), which carries the file's last-changed time, followed by
+   * intermediate versions newest first that match the current search query. The
+   * rail is never hidden: with no intermediate versions it shows the baseline
+   * plus a hint that none were captured yet; when a query matches no version it
+   * shows the baseline plus a no-results hint, leaving the current selection
+   * untouched. Selecting an entry sets it as the diff base and re-renders the
+   * active view.
    */
   protected renderVersions(): void {
     if (!this.versionsEl) {
@@ -594,12 +590,8 @@ export class HistoryModal extends Modal {
 
     const versions: FileVersion[] = this.snapshot.getVersions();
 
-    if (versions.length === 0) {
-      DomHelper.update(this.versionsEl, { text: null, classes: { add: 'lct-versions-empty' } });
-
-      return;
-    }
-
+    // The rail is always visible: even a timeline-less file offers the baseline
+    // (original vs current) entry, so the block is never collapsed.
     DomHelper.update(this.versionsEl, { classes: { remove: 'lct-versions-empty' } });
 
     const visibleIds: Set<string> = VersionSearchHelper.match(
@@ -612,11 +604,16 @@ export class HistoryModal extends Modal {
 
     const matched: FileVersion[] = versions.filter((version: FileVersion): boolean => visibleIds.has(version.id));
 
-    // The original baseline is a timeline anchor, not a searchable version, so
-    // it always heads the list regardless of the query. Version numbers stay
-    // tied to the full timeline position so they do not shift while filtering.
+    // The baseline entry compares the original against the current state and
+    // always heads the list, carrying the file's last-changed time. Version
+    // numbers stay tied to the full timeline position so they do not shift while
+    // filtering.
     const items: DomElementConfig[] = [
-      this.makeVersionItem(ORIGINAL_BASE_ID, this.plugin.t('modal.version.original'), ''),
+      this.makeVersionItem(
+        ORIGINAL_BASE_ID,
+        this.plugin.t('modal.version.baseline'),
+        this.snapshot.getLastChangedDateTime(),
+      ),
       ...matched.map((version: FileVersion): DomElementConfig => {
         const number: number = versions.length - versions.indexOf(version);
 
@@ -628,7 +625,15 @@ export class HistoryModal extends Modal {
       }),
     ];
 
-    if (matched.length === 0) {
+    // Informative empty states under the baseline: no intermediate snapshots
+    // captured at all, or a search that excluded every existing version.
+    if (versions.length === 0) {
+      items.push({
+        tag: 'div',
+        classes: 'lct-versions-no-results',
+        text: this.plugin.t('modal.no-snapshots-yet'),
+      });
+    } else if (matched.length === 0) {
       items.push({
         tag: 'div',
         classes: 'lct-versions-no-results',

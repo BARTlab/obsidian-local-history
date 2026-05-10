@@ -68,6 +68,8 @@
     }
 
     // Left navigation column: the version rail, running the full body height.
+    // A full-height vertical divider on its trailing edge separates the nav
+    // from the right content column, matching an Obsidian Settings pane.
     .lct-modal-rail {
       flex: none;
       width: 220px;
@@ -75,6 +77,8 @@
       flex-direction: column;
       min-height: 0;
       overflow-y: auto;
+      padding-inline-end: 10px;
+      border-inline-end: var(--border-width) solid var(--divider-color);
     }
 
     // Right content column: stacks the toolbar above the diff output.

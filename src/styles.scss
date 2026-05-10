@@ -19,15 +19,15 @@
 
     // Toolbar region at the top of the right content column: destructive
     // actions, difference navigation, and the view-mode toggles, all as rows of
-    // icon buttons. Each group is an Obsidian Setting row, so they sit side by
-    // side and wrap on a narrow modal.
+    // icon buttons. Each group is an Obsidian Setting row; they are right-aligned
+    // (justify-content: flex-end) and wrap on a narrow modal.
     .lct-modal-toolbar {
       flex: none;
       display: flex;
       flex-direction: row;
       flex-wrap: wrap;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-end;
       gap: 8px;
 
       .lct-modal-toolbar-group {

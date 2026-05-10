@@ -336,12 +336,12 @@ export class HistoryModal extends Modal {
 
   /**
    * Builds the top toolbar controls as icon buttons grouped by purpose: the
-   * destructive actions (restore original, remove history) on the left and the
-   * four view-mode toggles on the right. Every button is icon-only on screen but
-   * carries a text label through its tooltip and aria-label so it stays usable by
-   * keyboard and screen readers. The view-mode buttons keep the active-mode
-   * highlight driven by updateButtonActiveStates; the destructive actions still
-   * confirm before acting.
+   * destructive actions (restore original, remove history), the difference
+   * navigation, and the four view-mode toggles, all right-aligned in the toolbar.
+   * Every button is icon-only on screen but carries a text label through its
+   * tooltip and aria-label so it stays usable by keyboard and screen readers. The
+   * view-mode buttons keep the active-mode highlight driven by
+   * updateButtonActiveStates; the destructive actions still confirm before acting.
    */
   protected makeToolbar(): void {
     // Destructive actions: each still asks for confirmation before acting.

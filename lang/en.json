@@ -100,6 +100,9 @@
   "modal.confirm.remove.title": "Remove file history",
   "modal.confirm.remove.message": "Are you sure you want to remove the change tracking history for this file? This action cannot be undone.",
   "modal.confirm.remove.button": "Remove history",
+  "modal.confirm.revert.title": "Revert this change",
+  "modal.confirm.revert.message": "Revert this change back to the selected base? Other changes are kept.",
+  "modal.confirm.revert.button": "Revert",
 
   "modal.search-versions": "Search versions",
   "modal.version.baseline": "Current",
@@ -107,12 +110,7 @@
   "modal.no-versions-match": "No versions match the search",
   "modal.no-snapshots-yet": "No intermediate snapshots yet",
 
-  "modal.differences-title": "Differences (revert from the editor gutter)",
-  "modal.hunk.removed-before-line": "Removed before line {line}",
-  "modal.hunk.added-line": "Added line {line}",
-  "modal.hunk.added-lines": "Added lines {start}-{end}",
-  "modal.hunk.changed-line": "Changed line {line}",
-  "modal.hunk.changed-lines": "Changed lines {start}-{end}",
+  "modal.revert-hunk": "Revert this change",
 
   "modal.copy": "Copy"
 }

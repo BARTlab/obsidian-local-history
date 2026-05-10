@@ -100,6 +100,9 @@
   "modal.confirm.remove.title": "Удалить историю файла",
   "modal.confirm.remove.message": "Вы уверены, что хотите удалить историю отслеживания изменений для этого файла? Это действие нельзя отменить.",
   "modal.confirm.remove.button": "Удалить историю",
+  "modal.confirm.revert.title": "Откатить это изменение",
+  "modal.confirm.revert.message": "Откатить это изменение к выбранной базе? Остальные изменения сохранятся.",
+  "modal.confirm.revert.button": "Откатить",
 
   "modal.search-versions": "Поиск по версиям",
   "modal.version.baseline": "Текущий",
@@ -107,12 +110,7 @@
   "modal.no-versions-match": "Нет версий, соответствующих поиску",
   "modal.no-snapshots-yet": "Промежуточных снимков пока нет",
 
-  "modal.differences-title": "Отличия (откат с полей редактора)",
-  "modal.hunk.removed-before-line": "Удалено перед строкой {line}",
-  "modal.hunk.added-line": "Добавлена строка {line}",
-  "modal.hunk.added-lines": "Добавлены строки {start}-{end}",
-  "modal.hunk.changed-line": "Изменена строка {line}",
-  "modal.hunk.changed-lines": "Изменены строки {start}-{end}",
+  "modal.revert-hunk": "Откатить это изменение",
 
   "modal.copy": "Копировать"
 }

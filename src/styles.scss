@@ -159,6 +159,7 @@
       position: relative;
       overflow: hidden;
       border: 1px solid var(--background-modifier-border);
+      border-radius: var(--setting-items-radius);
 
       white-space: nowrap;
       font-family: var(--font-text);

@@ -270,19 +270,6 @@ export class HistoryModal extends Modal {
    * Creates the UI elements for the diff view.
    */
   protected makeUI(): void {
-    const isOrigin: boolean = this.snapshot?.isStateSameOriginal();
-    const changeDateTime: string = this.snapshot?.getLastChangedDateTime();
-
-    this.setTitle(this.plugin.t('modal.title'));
-
-    // Modification date, shown under the title instead of in a bottom panel.
-    DomHelper.create({
-      tag: 'div',
-      classes: 'lct-modal-subtitle',
-      text: isOrigin ? this.plugin.t('modal.no-changes') : changeDateTime,
-      container: this.contentEl,
-    });
-
     // Three-pane shell: top toolbar, then a body split into a left rail and a
     // main diff pane. The toolbar and rail are populated as scaffolding here;
     // later tasks turn the toolbar into icon buttons (T07) and add search to

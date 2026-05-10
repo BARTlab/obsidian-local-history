@@ -17,13 +17,6 @@
       }
     }
 
-    // Modification date under the title.
-    .lct-modal-subtitle {
-      color: var(--text-muted);
-      font-size: var(--font-ui-small);
-      padding-bottom: 8px;
-    }
-
     // Top toolbar region: destructive actions on the left, view-mode toggles on
     // the right, both as rows of icon buttons. Each group is an Obsidian Setting
     // row, so they are laid out side by side and wrap on a narrow modal.

@@ -102,7 +102,7 @@
   "modal.confirm.remove.button": "Удалить историю",
 
   "modal.search-versions": "Поиск по версиям",
-  "modal.version.baseline": "Оригинал → Текущий",
+  "modal.version.baseline": "Текущий",
   "modal.version.numbered": "Версия {number}",
   "modal.no-versions-match": "Нет версий, соответствующих поиску",
   "modal.no-snapshots-yet": "Промежуточных снимков пока нет",

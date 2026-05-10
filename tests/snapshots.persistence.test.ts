@@ -111,16 +111,27 @@ describe('SnapshotsService.restore', () => {
     expect(service.getOne(makeFile('gone.md'))).toBeNull();
   });
 
-  it('overwrites a pristine in-memory snapshot with restored history', () => {
+  it('keeps a pristine session marker baseline and adopts only the history baseline (D2)', () => {
     const service = makeService(['a.md']);
 
-    // Pristine capture already in memory (no changes).
-    service.add(makeFile('a.md'), 'a\nb\nc');
-    expect(service.getOne(makeFile('a.md'))?.getChangesLinesCount()).toBe(0);
+    // Pristine session capture: the marker baseline is this open's content.
+    service.add(makeFile('a.md'), 'x\ny\nz');
+    const live: FileSnapshot = service.getOne(makeFile('a.md'));
+    expect(live.getChangesLinesCount()).toBe(0);
 
+    // The persisted history carries a different original ("a\nb\nc") and an edit.
     service.restore([dirtySerialized('a.md')]);
 
-    expect(service.getOne(makeFile('a.md'))?.getChangesLinesCount()).toBe(1);
+    const restored: FileSnapshot | null = service.getOne(makeFile('a.md'));
+
+    // Markers stay session-scoped: the marker baseline and tracker are untouched,
+    // so the gutter shows no change against this open's content.
+    expect(restored?.getChangesLinesCount()).toBe(0);
+    expect(restored?.getOriginalStateLines()).toEqual(['x', 'y', 'z']);
+    expect(restored?.getLastStateLines()).toEqual(['x', 'y', 'z']);
+
+    // The modal regains the persisted history baseline (the original birth state).
+    expect(restored?.getHistoryOriginalStateLines()).toEqual(['a', 'b', 'c']);
   });
 
   it('does not clobber an in-memory snapshot that already has changes', () => {
@@ -134,8 +145,9 @@ describe('SnapshotsService.restore', () => {
 
     service.restore([dirtySerialized('a.md')]);
 
-    // The session edit wins; restored history is discarded for this path.
+    // The session state and marker baseline win; only history is adopted.
     expect(service.getOne(makeFile('a.md'))?.getLastStateLines()).toEqual(['Z', 'b', 'c']);
+    expect(service.getOne(makeFile('a.md'))?.getOriginalStateLines()).toEqual(['a', 'b', 'c']);
   });
 
   it('ignores malformed input', () => {

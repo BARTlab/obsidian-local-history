@@ -49,8 +49,8 @@ export enum DiffOutputFormatType {
  */
 export const DEFAULT_SETTINGS: LineChangeTrackerSettings = {
   type: IndicatorType.line,
-  keep: KeepHistory.file,
-  persist: false,
+  keep: KeepHistory.app,
+  persist: true,
   allowedExtensions: 'md, txt, csv, json, yaml',
   excludePaths: '(^|/)templates/|\\.excalidraw\\.md$',
   ignoreNewFiles: true,

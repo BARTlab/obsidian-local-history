@@ -118,3 +118,43 @@ describe('FileSnapshot serialize/deserialize round-trip', () => {
     expect(json.tracker[0]).not.toHaveProperty('id');
   });
 });
+
+describe('FileSnapshot marker/history baseline split (T08, D2)', () => {
+  it('defaults the history baseline to the marker baseline on capture', () => {
+    const snapshot = new FileSnapshot('a\nb\nc');
+
+    expect(snapshot.getOriginalStateLines()).toEqual(['a', 'b', 'c']);
+    expect(snapshot.getHistoryOriginalStateLines()).toEqual(['a', 'b', 'c']);
+  });
+
+  it('persists the history baseline (not the marker baseline) in toJSON', () => {
+    const snapshot = new FileSnapshot('m1\nm2', '\n', makeFile('a.md'));
+
+    snapshot.adoptHistory(['h1', 'h2', 'h3'], []);
+
+    // The on-disk lines carry the history baseline so the modal can diff against
+    // the persisted original after a restart; the session marker baseline is not
+    // persisted.
+    expect(snapshot.toJSON().lines).toEqual(['h1', 'h2', 'h3']);
+  });
+
+  it('adoptHistory overrides only the history baseline and versions', () => {
+    const snapshot = new FileSnapshot('m1\nm2\nm3');
+
+    snapshot.findCurrentLine(1)?.change('M2');
+    snapshot.updateState(['m1', 'M2', 'm3']);
+    snapshot.updateChanges();
+
+    const before: number = snapshot.getChangesLinesCount();
+
+    snapshot.adoptHistory(['h1', 'h2'], []);
+
+    // The marker baseline, tracker, state, and change count are untouched.
+    expect(snapshot.getOriginalStateLines()).toEqual(['m1', 'm2', 'm3']);
+    expect(snapshot.getLastStateLines()).toEqual(['m1', 'M2', 'm3']);
+    expect(snapshot.getChangesLinesCount()).toBe(before);
+
+    // Only the history baseline moved.
+    expect(snapshot.getHistoryOriginalStateLines()).toEqual(['h1', 'h2']);
+  });
+});

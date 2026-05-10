@@ -270,16 +270,10 @@ export class HistoryModal extends Modal {
    * Creates the UI elements for the diff view.
    */
   protected makeUI(): void {
-    // Three-pane shell: top toolbar, then a body split into a left rail and a
-    // main diff pane. The toolbar and rail are populated as scaffolding here;
-    // later tasks turn the toolbar into icon buttons (T07) and add search to
-    // the rail (T06).
-    this.toolbarEl = DomHelper.create({
-      tag: 'div',
-      classes: 'lct-modal-toolbar',
-      container: this.contentEl,
-    });
-
+    // Obsidian Settings-style shell: the body splits into a left navigation
+    // column (the version rail) and a right content column. The content column
+    // stacks the toolbar above the diff, so the rail runs full height on the
+    // left and the toolbar plus diff fill the right.
     const bodyEl: HTMLElement = DomHelper.create({
       tag: 'div',
       classes: 'lct-modal-body',
@@ -296,6 +290,13 @@ export class HistoryModal extends Modal {
       tag: 'div',
       classes: 'lct-modal-main',
       container: bodyEl,
+    });
+
+    // The toolbar lives at the top of the right content column, above the diff.
+    this.toolbarEl = DomHelper.create({
+      tag: 'div',
+      classes: 'lct-modal-toolbar',
+      container: this.mainEl,
     });
 
     this.makeToolbar();

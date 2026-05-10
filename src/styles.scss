@@ -17,9 +17,10 @@
       }
     }
 
-    // Top toolbar region: destructive actions on the left, view-mode toggles on
-    // the right, both as rows of icon buttons. Each group is an Obsidian Setting
-    // row, so they are laid out side by side and wrap on a narrow modal.
+    // Toolbar region at the top of the right content column: destructive
+    // actions, difference navigation, and the view-mode toggles, all as rows of
+    // icon buttons. Each group is an Obsidian Setting row, so they sit side by
+    // side and wrap on a narrow modal.
     .lct-modal-toolbar {
       flex: none;
       display: flex;
@@ -56,16 +57,17 @@
       }
     }
 
-    // Body splits into a fixed left rail and a flexible main diff pane.
+    // Body fills the modal and splits into a left navigation column (the version
+    // rail) and a right content column, like an Obsidian Settings pane.
     .lct-modal-body {
       flex: 1;
       display: flex;
       flex-direction: row;
       gap: 10px;
       min-height: 0;
-      padding-top: 8px;
     }
 
+    // Left navigation column: the version rail, running the full body height.
     .lct-modal-rail {
       flex: none;
       width: 220px;
@@ -75,10 +77,12 @@
       overflow-y: auto;
     }
 
+    // Right content column: stacks the toolbar above the diff output.
     .lct-modal-main {
       flex: 1;
       display: flex;
       flex-direction: column;
+      gap: 8px;
       min-width: 0;
       min-height: 0;
     }

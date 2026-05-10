@@ -27,10 +27,22 @@ export class FileSnapshot {
   public id: string = TextHelper.rndId();
 
   /**
-   * Original content of the file as an array of lines.
-   * This represents the initial state of the file when the snapshot was created.
+   * Marker baseline: the file content the change tracker measures against. This
+   * is the file state at the moment the snapshot was created in the current app
+   * run, so the gutter markers stay session-scoped (see D2). The tracker is
+   * built from these lines and they never change for the life of the snapshot.
    */
   public lines: string[] = [];
+
+  /**
+   * History baseline: the persisted original the history modal diffs against
+   * (see D2). Defaults to the marker baseline (`lines`) so a freshly captured
+   * file has a single coherent origin. Restoring persisted history overrides
+   * only this baseline (and the version timeline) through adoptHistory, leaving
+   * the session marker baseline intact so the gutter does not mark the whole
+   * file after a restart.
+   */
+  public historyLines: string[] = [];
 
   /**
    * Timestamp when this snapshot was created.
@@ -126,6 +138,10 @@ export class FileSnapshot {
 
     this.lines = content?.split(this.lineBreak) ?? [];
 
+    // The history baseline starts equal to the marker baseline; a restore can
+    // later override it independently via adoptHistory.
+    this.historyLines = [...this.lines];
+
     this.tracker = this.lines.map((line: string, index: number): TrackerLine => new TrackerLine({
       content: line,
       originalPosition: index,
@@ -139,9 +155,12 @@ export class FileSnapshot {
 
   /**
    * Serializes this snapshot into a plain object for on-disk persistence.
-   * Stores the original baseline, the current state, and the full tracker so
-   * the highlights can be restored verbatim. The change map is omitted because
-   * it is recomputed from the tracker on restore.
+   * Persists the HISTORY baseline (so the modal can diff against the original
+   * across restarts), the current state, and the full tracker so the highlights
+   * can be restored verbatim. The session-scoped marker baseline is intentionally
+   * not persisted: it is re-established from the file content on the next open
+   * (see D2). The change map is omitted because it is recomputed from the tracker
+   * on restore.
    *
    * @return {SerializedFileSnapshot} The plain serialized representation
    */
@@ -150,7 +169,7 @@ export class FileSnapshot {
       path: this.file?.path ?? '',
       lineBreak: this.lineBreak,
       timestamp: this.timestamp,
-      lines: [...this.lines],
+      lines: [...this.historyLines],
       state: [...this.state],
       tracker: this.tracker.map((tracker: TrackerLine): ReturnType<TrackerLine['toJSON']> => tracker.toJSON()),
       versions: this.versions.map((version: FileVersion): ReturnType<FileVersion['toJSON']> => version.toJSON()),
@@ -276,7 +295,9 @@ export class FileSnapshot {
   protected isDuplicateOfLatest(lines: string[]): boolean {
     const candidate: string = lines.join(this.lineBreak);
     const latest: FileVersion | undefined = this.versions[this.versions.length - 1];
-    const reference: string = latest ? latest.getContent(this.lineBreak) : this.getOriginalState();
+    // The timeline belongs to the history side, so the empty-timeline reference
+    // is the history baseline (the persisted original), not the marker baseline.
+    const reference: string = latest ? latest.getContent(this.lineBreak) : this.getHistoryOriginalState();
 
     return candidate === reference;
   }
@@ -401,23 +422,61 @@ export class FileSnapshot {
   }
 
   /**
-   * Gets the original state of the file as a string.
-   * Joins the lines of the original state with the line break character.
+   * Gets the marker baseline as a string (the session origin the gutter markers
+   * measure against). Joins the marker baseline lines with the line break.
    *
-   * @return {string} The original state of the file as a string
+   * @return {string} The marker baseline of the file as a string
    */
   public getOriginalState(): string {
     return [...this.lines].join(this.lineBreak);
   }
 
   /**
-   * Gets the original state of the file as an array of lines.
-   * Returns a copy of the lines array to prevent direct modification.
+   * Gets the marker baseline as an array of lines (the session origin the gutter
+   * markers measure against). Returns a copy to prevent direct modification.
    *
-   * @return {string[]} The original state of the file as an array of lines
+   * @return {string[]} The marker baseline of the file as an array of lines
    */
   public getOriginalStateLines(): string[] {
     return [...this.lines];
+  }
+
+  /**
+   * Gets the HISTORY baseline as a string (the persisted original the history
+   * modal diffs against). Distinct from the marker baseline so a restored file
+   * keeps a stable origin for the time machine while the gutter stays
+   * session-scoped (see D2).
+   *
+   * @return {string} The history baseline of the file as a string
+   */
+  public getHistoryOriginalState(): string {
+    return [...this.historyLines].join(this.lineBreak);
+  }
+
+  /**
+   * Gets the HISTORY baseline as an array of lines (the persisted original the
+   * history modal diffs against). Returns a copy to prevent direct modification.
+   *
+   * @return {string[]} The history baseline of the file as an array of lines
+   */
+  public getHistoryOriginalStateLines(): string[] {
+    return [...this.historyLines];
+  }
+
+  /**
+   * Adopts a persisted HISTORY baseline and version timeline into this
+   * (session-captured) snapshot without touching the marker baseline, the
+   * tracker, or the current state (see D2). Used by the restore path so reopening
+   * a file in a new app run keeps the gutter markers session-scoped (measured
+   * against the file content at this open) while the history modal still diffs
+   * against the persisted original and its captured versions.
+   *
+   * @param {string[]} historyLines - The persisted original (history baseline)
+   * @param {FileVersion[]} versions - The persisted version timeline, oldest first
+   */
+  public adoptHistory(historyLines: string[], versions: FileVersion[]): void {
+    this.historyLines = Array.isArray(historyLines) ? [...historyLines] : [];
+    this.versions = Array.isArray(versions) ? [...versions] : [];
   }
 
   /**

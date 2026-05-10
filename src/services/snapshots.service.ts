@@ -186,13 +186,20 @@ export class SnapshotsService implements Service {
   }
 
   /**
-   * Restores snapshots from a previously serialized history payload.
-   * Each entry is rebuilt and keyed by its stored path, attaching the live file
-   * reference when the file still exists in the vault. Entries whose file is
-   * gone are skipped (the file was deleted while the plugin was off). A path
-   * that was already captured is only overwritten when its current snapshot is
-   * pristine (no tracked changes), so a restore reinstates lost history without
-   * clobbering edits the user already made in this session.
+   * Restores snapshots from a previously serialized history payload, keeping the
+   * marker and history baselines separate (D2).
+   *
+   * When the file was already captured this session, its session snapshot owns
+   * the MARKER baseline (the file content at this open) plus the live tracker and
+   * state, which must stay session-scoped so the gutter does not mark the whole
+   * file after a restart. The persisted HISTORY baseline and version timeline are
+   * adopted into that session snapshot, so the modal still diffs against the
+   * original and its captured versions without touching the markers.
+   *
+   * When the file is not open this session there is no session marker baseline to
+   * preserve, so the snapshot is rebuilt verbatim (marker and history baselines
+   * coincide). Entries whose file is gone are skipped (deleted while the plugin
+   * was off).
    *
    * @param {SerializedFileSnapshot[]} snapshots - The serialized snapshots
    */
@@ -206,15 +213,23 @@ export class SnapshotsService implements Service {
         continue;
       }
 
-      const existing: FileSnapshot | undefined = this.fileSnapshots.get(data.path);
-
-      if (existing && existing.getChangesLinesCount() > 0) {
-        continue;
-      }
-
       const file: TFile | null = this.plugin.getFileByPath(data.path);
 
       if (!file) {
+        continue;
+      }
+
+      const existing: FileSnapshot | undefined = this.fileSnapshots.get(data.path);
+
+      if (existing) {
+        // Preserve the session marker baseline, tracker, and state; adopt only
+        // the persisted history baseline and versions so the modal regains its
+        // time machine while the gutter stays session-scoped.
+        const persisted: FileSnapshot = FileSnapshot.fromJSON(data, file);
+
+        existing.adoptHistory(persisted.getHistoryOriginalStateLines(), persisted.versions);
+        this.forceUpdate();
+
         continue;
       }
 

@@ -243,7 +243,7 @@ export class HistoryModal extends Modal {
     }
 
     try {
-      const originalContent: string = this.snapshot.getOriginalState();
+      const originalContent: string = this.snapshot.getHistoryOriginalState();
       const file: TFile = this.snapshot.file;
 
       await this.app.vault.modify(file, originalContent);
@@ -722,7 +722,7 @@ export class HistoryModal extends Modal {
       versions: this.snapshot
         .getVersions()
         .map((version: FileVersion): string => version.getContent(this.snapshot.lineBreak)),
-      original: this.snapshot.getOriginalState(),
+      original: this.snapshot.getHistoryOriginalState(),
       versionContent: (id: string): string | null =>
         this.snapshot.getVersion(id)?.getContent(this.snapshot.lineBreak) ?? null,
     });

@@ -102,7 +102,7 @@
   "modal.confirm.remove.button": "Remove history",
 
   "modal.search-versions": "Search versions",
-  "modal.version.baseline": "Original → Current",
+  "modal.version.baseline": "Current",
   "modal.version.numbered": "Version {number}",
   "modal.no-versions-match": "No versions match the search",
   "modal.no-snapshots-yet": "No intermediate snapshots yet",

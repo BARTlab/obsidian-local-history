@@ -1,5 +1,6 @@
 import { DiffOutputFormatType } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
+import { BaseContentHelper } from '@/helpers/base-content.helper';
 import { DomHelper } from '@/helpers/dom.helper';
 import { HunkHelper } from '@/helpers/hunk.helper';
 import { type NavigationDirection, NavigationHelper } from '@/helpers/navigation.helper';
@@ -16,8 +17,9 @@ import * as Diff2Html from 'diff2html';
 import { type App, type ButtonComponent, Modal, Notice, SearchComponent, Setting, type TFile } from 'obsidian';
 
 /**
- * Sentinel id for the original baseline entry in the version list. Picking it
- * diffs the current state against the file's original captured content. Real
+ * Sentinel id for the synthetic baseline entry in the version list. Picking it
+ * diffs the current state against the LATEST captured snapshot, falling back to
+ * the file's original captured content only when no snapshot exists (D1). Real
  * versions are keyed by their own id, which is never this value.
  */
 const ORIGINAL_BASE_ID: string = 'original';
@@ -724,22 +726,24 @@ export class HistoryModal extends Modal {
   }
 
   /**
-   * Resolves the content of the currently selected diff base.
-   * Returns the original baseline when the original is selected (or the selected
-   * version no longer exists), otherwise the picked version's captured content.
+   * Resolves the content of the currently selected diff base. A picked
+   * intermediate version resolves to that version's captured content. The
+   * synthetic baseline entry (or a stale id whose version no longer exists)
+   * resolves to the LATEST captured snapshot, falling back to the original only
+   * when no snapshot exists (D1). The branch logic lives in the pure
+   * BaseContentHelper so it can be unit-tested without the modal DOM.
    *
    * @return {string} The base content to diff the current state against
    */
   protected getBaseContent(): string {
-    if (this.selectedBaseId !== ORIGINAL_BASE_ID) {
-      const version: FileVersion | null = this.snapshot.getVersion(this.selectedBaseId);
-
-      if (version) {
-        return version.getContent(this.snapshot.lineBreak);
-      }
-    }
-
-    return this.snapshot.getOriginalState();
+    return BaseContentHelper.resolve(this.selectedBaseId, ORIGINAL_BASE_ID, {
+      versions: this.snapshot
+        .getVersions()
+        .map((version: FileVersion): string => version.getContent(this.snapshot.lineBreak)),
+      original: this.snapshot.getOriginalState(),
+      versionContent: (id: string): string | null =>
+        this.snapshot.getVersion(id)?.getContent(this.snapshot.lineBreak) ?? null,
+    });
   }
 
   /**

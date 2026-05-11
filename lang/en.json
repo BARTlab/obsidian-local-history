@@ -15,6 +15,7 @@
   "notice.invalid-exclude-pattern": "Local history: the excluded-paths pattern is not a valid regular expression and is being ignored.",
 
   "menu.local-history": "Local history",
+  "menu.show-changes": "Show changes",
 
   "setting.type.name": "Type",
   "setting.type.desc": "Choose between a vertical line or a dot in the gutter.",

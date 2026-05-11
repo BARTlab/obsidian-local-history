@@ -110,7 +110,7 @@ const FALLBACK_LANGUAGE = 'en';
 /**
  * The localStorage key Obsidian writes the selected UI language into. Reading it
  * is the documented community approach to follow Obsidian's own language without
- * a public i18n API (see DECISIONS.md D5).
+ * a public i18n API.
  */
 const LANGUAGE_STORAGE_KEY = 'language';
 

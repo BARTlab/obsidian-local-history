@@ -71,6 +71,14 @@ export class HistoryModal extends Modal {
   protected mainEl?: HTMLElement;
 
   /**
+   * Trailing narrow column of the shell. Hosts the relocated modal close
+   * button, top-aligned. Its width matches the inter-column gap so the shell
+   * reads as a symmetric three-column settings pane and the content can start
+   * flush at the top with no padding reserved for a floating close button.
+   */
+  protected asideEl?: HTMLElement;
+
+  /**
    * Container element holding the content-search box above the version list in
    * the left rail.
    */
@@ -283,6 +291,22 @@ export class HistoryModal extends Modal {
       classes: 'lct-modal-main',
       container: bodyEl,
     });
+
+    // Trailing narrow column: the modal close button, pulled out of its default
+    // floating position into the normal column flow so it sits top-aligned in
+    // its own column. The column width matches the inter-column gap, which lets
+    // the content start flush at the top with no reserved top padding.
+    this.asideEl = DomHelper.create({
+      tag: 'div',
+      classes: 'lct-modal-aside',
+      container: bodyEl,
+    });
+
+    const closeButtonEl: HTMLElement | null = this.modalEl.querySelector<HTMLElement>('.modal-close-button');
+
+    if (closeButtonEl) {
+      this.asideEl.appendChild(closeButtonEl);
+    }
 
     // The toolbar lives at the top of the right content column, above the diff.
     this.toolbarEl = DomHelper.create({

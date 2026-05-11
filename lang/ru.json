@@ -15,6 +15,7 @@
   "notice.invalid-exclude-pattern": "Local history: шаблон исключённых путей не является корректным регулярным выражением и игнорируется.",
 
   "menu.local-history": "Локальная история",
+  "menu.show-changes": "Показывать изменения",
 
   "setting.type.name": "Тип",
   "setting.type.desc": "Выберите вертикальную линию или символ на полях.",

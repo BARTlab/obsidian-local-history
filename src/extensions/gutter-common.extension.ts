@@ -9,11 +9,19 @@ import type { ModalsService } from '@/services/modals.service';
 import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
-import type { GutterConfig } from '@/types';
+import type { GutterConfig, Handlers } from '@/types';
 import type * as Diff from 'diff';
+import { Menu } from 'obsidian';
+import type { BlockInfo } from '@codemirror/view';
 import type { Line, RangeSet } from '@codemirror/state';
 import { RangeSetBuilder } from '@codemirror/state';
 import { type EditorView } from '@codemirror/view';
+
+/**
+ * The `show.*` setting flags toggled together by the gutter "show changes"
+ * menu item. Listing them here keeps the composite toggle and its read in sync.
+ */
+const SHOW_CHANGE_KEYS = ['show.changed', 'show.restored', 'show.added', 'show.removed'] as const;
 
 /**
  * Extension that adds dot markers to the editor gutter based on change status.
@@ -55,6 +63,21 @@ export class GutterCommonExtension extends BaseExtension implements GutterConfig
    * Set too false to only show markers for lines with changes.
    */
   public renderEmptyElements: boolean = false;
+
+  /**
+   * DOM event handlers for this gutter. Obsidian exposes no gutter-specific
+   * context-menu event, so the gutter `contextmenu` is captured here (it fires
+   * only on the gutter DOM, leaving the general editor menu untouched) to open a
+   * gutter-specific Obsidian menu. CodeMirror owns the listener lifecycle, so it
+   * is removed automatically when the registered editor extension unloads.
+   */
+  public domEventHandlers: Handlers = {
+    contextmenu: (_view: EditorView, _line: BlockInfo, event: Event): boolean => {
+      this.openGutterMenu(event as MouseEvent);
+
+      return true;
+    },
+  };
 
   /**
    * Creates markers for the gutter-based online changes.
@@ -144,6 +167,56 @@ export class GutterCommonExtension extends BaseExtension implements GutterConfig
         newLines: HunkHelper.baseLinesForHunk(hunk),
       },
     );
+  }
+
+  /**
+   * Opens the gutter-specific context menu at the click position, prevents the
+   * native browser menu, and adds a single "show changes" toggle bound to the
+   * `show.*` settings. Built by hand because Obsidian has no gutter context-menu
+   * API.
+   *
+   * @param {MouseEvent} event - The captured gutter `contextmenu` event
+   * @return {void}
+   */
+  protected openGutterMenu(event: MouseEvent): void {
+    event.preventDefault();
+
+    const menu: Menu = new Menu();
+    const shown: boolean = this.isShowChangesEnabled();
+
+    menu.addItem((item): void => {
+      item
+        .setTitle(this.plugin.t('menu.show-changes'))
+        .setIcon('eye')
+        .setChecked(shown)
+        .onClick((): void => {
+          this.toggleShowChanges(!shown);
+        });
+    });
+
+    menu.showAtMouseEvent(event);
+  }
+
+  /**
+   * Whether the gutter "show changes" toggle reads as on: true only when every
+   * tracked `show.*` flag is enabled, so the single toggle reflects a fully
+   * visible gutter.
+   *
+   * @return {boolean} True if all tracked change types are shown
+   */
+  protected isShowChangesEnabled(): boolean {
+    return SHOW_CHANGE_KEYS.every((key) => this.settingsService.value(key));
+  }
+
+  /**
+   * Sets every tracked `show.*` flag at once, so the gutter "show changes"
+   * toggle turns all change indicators on or off together.
+   *
+   * @param {boolean} value - The new visibility for all tracked change types
+   * @return {void}
+   */
+  protected toggleShowChanges(value: boolean): void {
+    SHOW_CHANGE_KEYS.forEach((key) => this.settingsService.update(key, value));
   }
 
   /**

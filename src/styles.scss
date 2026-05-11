@@ -6,10 +6,18 @@
     height: 80vh;
     //max-width: 1200px;
 
+    // Shared inter-column spacing: the body uses it as the gap between the three
+    // columns, and the trailing close-button column uses it as its width, so the
+    // shell stays symmetric and the close button column equals the gap.
+    --lct-modal-gap: 32px;
+
     .modal-content {
       display: flex;
       flex-direction: column;
       min-height: 0;
+      // The close button now lives in its own top-aligned column, so the content
+      // no longer needs reserved top padding to clear a floating close button.
+      padding-top: 0;
 
       .setting-item {
         border: 0;
@@ -63,7 +71,7 @@
       flex: 1;
       display: flex;
       flex-direction: row;
-      gap: 10px;
+      gap: var(--lct-modal-gap);
       min-height: 0;
     }
 
@@ -89,6 +97,24 @@
       gap: 8px;
       min-width: 0;
       min-height: 0;
+    }
+
+    // Trailing narrow column: the relocated modal close button, top-aligned. Its
+    // width matches the body gap so the shell stays a symmetric three-column
+    // settings pane. The close button is pulled out of its default floating
+    // (absolute) position back into the normal column flow.
+    .lct-modal-aside {
+      flex: none;
+      width: var(--lct-modal-gap);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      .modal-close-button {
+        position: static;
+        inset: auto;
+        flex: none;
+      }
     }
 
     .lct-rail-search {

@@ -17,6 +17,8 @@
   "menu.local-history": "Локальная история",
   "menu.show-changes": "Показывать изменения",
 
+  "status.lines-changed": "Изменено строк: {count}",
+
   "setting.type.name": "Тип",
   "setting.type.desc": "Выберите вертикальную линию или символ на полях.",
   "setting.type.option.line": "Вертикальная линия",
@@ -108,6 +110,8 @@
   "modal.search-versions": "Поиск по версиям",
   "modal.version.baseline": "Текущий",
   "modal.version.numbered": "Версия {number}",
+  "modal.version.current": "Текущая",
+  "modal.version.original": "Оригинал",
   "modal.no-versions-match": "Нет версий, соответствующих поиску",
   "modal.no-snapshots-yet": "Промежуточных снимков пока нет",
 

@@ -14,7 +14,7 @@ import type { FileVersion } from '@/snapshots/file.version';
 import type { DomElementConfig, FunctionVoid, HTMLElementWithScrollSync } from '@/types';
 import * as Diff from 'diff';
 import * as Diff2Html from 'diff2html';
-import { type App, type ButtonComponent, Modal, Notice, SearchComponent, Setting, type TFile } from 'obsidian';
+import { type App, type ButtonComponent, Modal, Notice, SearchComponent, setIcon, Setting, type TFile } from 'obsidian';
 
 /**
  * Sentinel id for the synthetic baseline entry in the version list. Picking it
@@ -71,12 +71,18 @@ export class HistoryModal extends Modal {
   protected mainEl?: HTMLElement;
 
   /**
-   * Trailing narrow column of the shell. Hosts the relocated modal close
-   * button, top-aligned. Its width matches the inter-column gap so the shell
-   * reads as a symmetric three-column settings pane and the content can start
-   * flush at the top with no padding reserved for a floating close button.
+   * Banner shown above the diff when the selected base resolves to the same
+   * content as the current state, so every view mode (including the blank
+   * diff2html output) explains why no changes are rendered.
    */
-  protected asideEl?: HTMLElement;
+  protected noticeEl?: HTMLElement;
+
+  /**
+   * Header above the side-by-side diff that labels which version each column
+   * shows: the picked base on the left, the current state on the right. Hidden
+   * in the other view modes, which are single-column.
+   */
+  protected columnsHeaderEl?: HTMLElement;
 
   /**
    * Container element holding the content-search box above the version list in
@@ -292,20 +298,13 @@ export class HistoryModal extends Modal {
       container: bodyEl,
     });
 
-    // Trailing narrow column: the modal close button, pulled out of its default
-    // floating position into the normal column flow so it sits top-aligned in
-    // its own column. The column width matches the inter-column gap, which lets
-    // the content start flush at the top with no reserved top padding.
-    this.asideEl = DomHelper.create({
-      tag: 'div',
-      classes: 'lct-modal-aside',
-      container: bodyEl,
-    });
-
+    // Match the Obsidian Settings modal: the close button keeps its native
+    // floating top-right position and only gains the raised round look, so the
+    // body below holds just the version rail and the content column.
     const closeButtonEl: HTMLElement | null = this.modalEl.querySelector<HTMLElement>('.modal-close-button');
 
     if (closeButtonEl) {
-      this.asideEl.appendChild(closeButtonEl);
+      closeButtonEl.classList.add('mod-raised', 'clickable-icon');
     }
 
     // The toolbar lives at the top of the right content column, above the diff.
@@ -331,16 +330,118 @@ export class HistoryModal extends Modal {
       container: this.railEl,
     });
 
-    // The diff output fills the rest of the right content column. Per-hunk
-    // revert lives inline inside the diff rows, not in a separate panel.
+    // Notice above the diff, hidden until the selected base equals the current
+    // state. It gives a single, mode-independent message so a blank diff is
+    // never left unexplained.
+    this.noticeEl = DomHelper.create({
+      tag: 'div',
+      classes: ['lct-diff-notice', 'lct-diff-notice-hidden'],
+      container: this.mainEl,
+    });
+
+    // The diff block bundles the side-by-side column header and the diff output
+    // in one bordered box, so the header reads as part of the diff: it sits as a
+    // fixed row at the top of the block and the diff fills the rest below it.
+    const blockEl: HTMLElement = DomHelper.create({
+      tag: 'div',
+      classes: 'lct-diff-block',
+      container: this.mainEl,
+    });
+
+    // Column header for the side-by-side mode, hidden in the single-column
+    // modes. It names the version each column shows (picked base vs current).
+    this.columnsHeaderEl = DomHelper.create({
+      tag: 'div',
+      classes: ['lct-diff-columns', 'lct-diff-columns-hidden'],
+      container: blockEl,
+    });
+
+    // The diff output fills the rest of the block. Per-hunk revert lives inline
+    // inside the diff rows, not in a separate panel.
     this.diffContainerEl = DomHelper.create({
       tag: 'div',
       classes: 'diff-container',
-      container: this.mainEl,
+      container: blockEl,
     });
 
     this.renderSearch();
     this.renderVersions();
+  }
+
+  /**
+   * Shows or hides the above-diff notice. It is revealed, with the same text the
+   * empty-diff placeholder uses, whenever the selected base resolves to the
+   * current content (the original-vs-current "no changes" case or a picked
+   * version identical to current); otherwise it is hidden. Called by every
+   * render path so the banner stays in sync with the visible diff.
+   */
+  protected updateDiffNotice(): void {
+    if (!this.noticeEl) {
+      return;
+    }
+
+    const identical: boolean = this.isBaseSameCurrent();
+
+    DomHelper.update(this.noticeEl, {
+      text: identical ? this.getEmptyDiffText() : null,
+      classes: identical ? { remove: 'lct-diff-notice-hidden' } : { add: 'lct-diff-notice-hidden' },
+    });
+  }
+
+  /**
+   * Resolves the label for the diff's base (left) side, matching the version
+   * names used in the rail. A picked intermediate version shows its number; the
+   * baseline shows the latest captured version (the snapshot it diffs against),
+   * or the original when the timeline is empty.
+   *
+   * @return {string} The base-side label
+   */
+  protected getBaseLabel(): string {
+    const versions: FileVersion[] = this.snapshot.getVersions();
+
+    if (this.selectedBaseId !== ORIGINAL_BASE_ID) {
+      const version: FileVersion | null = this.snapshot.getVersion(this.selectedBaseId);
+
+      if (version) {
+        return this.plugin.t('modal.version.numbered', { number: versions.length - versions.indexOf(version) });
+      }
+    }
+
+    // Baseline (or a stale id): the latest snapshot heads the timeline, so its
+    // number is the count; with no versions the base is the original content.
+    return versions.length > 0
+      ? this.plugin.t('modal.version.numbered', { number: versions.length })
+      : this.plugin.t('modal.version.original');
+  }
+
+  /**
+   * Shows or hides the side-by-side column header and, when shown, labels the
+   * left column with the picked base and the right column with the current
+   * state. It is shown for the two-column side-by-side mode (including the
+   * identical-content case, so the header does not vanish when the diff is
+   * empty) and hidden in the single-column modes.
+   */
+  protected updateColumnsHeader(): void {
+    if (!this.columnsHeaderEl) {
+      return;
+    }
+
+    const visible: boolean = this.currentDisplayMode === 'side-by-side';
+
+    if (!visible) {
+      DomHelper.update(this.columnsHeaderEl, { text: null, classes: { add: 'lct-diff-columns-hidden' } });
+
+      return;
+    }
+
+    DomHelper.update(this.columnsHeaderEl, {
+      text: null,
+      classes: { remove: 'lct-diff-columns-hidden' },
+      children: [
+        { tag: 'div', classes: 'lct-diff-column-title', text: this.getBaseLabel() },
+        { tag: 'div', classes: 'lct-diff-column-title', text: this.plugin.t('modal.version.current') },
+      ],
+    });
   }
 
   /**
@@ -582,15 +683,15 @@ export class HistoryModal extends Modal {
   }
 
   /**
-   * Renders the version timeline as a list of selectable diff bases. The list
-   * always starts with the baseline entry (the original compared against the
-   * current state), which carries the file's last-changed time, followed by
-   * intermediate versions newest first that match the current search query. The
-   * rail is never hidden: with no intermediate versions it shows the baseline
-   * plus a hint that none were captured yet; when a query matches no version it
-   * shows the baseline plus a no-results hint, leaving the current selection
-   * untouched. Selecting an entry sets it as the diff base and re-renders the
-   * active view.
+   * Renders the version timeline as a list of selectable diff bases, grouped
+   * under a heading per day. The baseline entry (the original compared against
+   * the current state) heads the list and is placed in the day group of the
+   * file's last update; the matching intermediate versions follow, newest first,
+   * each in its capture day's group. The rail is never hidden: with no
+   * intermediate versions it shows the baseline plus a hint that none were
+   * captured yet; when a query matches no version it shows the baseline plus a
+   * no-results hint, leaving the current selection untouched. Selecting an entry
+   * sets it as the diff base and re-renders the active view.
    */
   protected renderVersions(): void {
     if (!this.versionsEl) {
@@ -613,26 +714,51 @@ export class HistoryModal extends Modal {
 
     const matched: FileVersion[] = versions.filter((version: FileVersion): boolean => visibleIds.has(version.id));
 
-    // The baseline entry compares the original against the current state and
-    // always heads the list, carrying the file's last-changed time. Version
+    // Every entry, including the baseline, is grouped by day. The baseline
+    // (original vs current) heads the list and takes its day and time from the
+    // file's last update, so it sits in the day group of the most recent change;
+    // the intermediate versions follow, keyed by their capture day. Each entry
+    // shows only the time of day, since the date lives in the group heading. The
+    // entries are already newest-first and time-ordered, so same-day entries are
+    // contiguous and a new group starts only when the day changes. Version
     // numbers stay tied to the full timeline position so they do not shift while
     // filtering.
-    const items: DomElementConfig[] = [
-      this.makeVersionItem(
-        ORIGINAL_BASE_ID,
-        this.plugin.t('modal.version.baseline'),
-        this.snapshot.getLastChangedDateTime(),
-      ),
-      ...matched.map((version: FileVersion): DomElementConfig => {
-        const number: number = versions.length - versions.indexOf(version);
-
-        return this.makeVersionItem(
-          version.id,
-          this.plugin.t('modal.version.numbered', { number }),
-          version.getDateTime(),
-        );
-      }),
+    const entries: { id: string; label: string; day: string; time: string }[] = [
+      {
+        id: ORIGINAL_BASE_ID,
+        label: this.plugin.t('modal.version.baseline'),
+        day: this.snapshot.getLastChangedDate(),
+        time: this.snapshot.getLastChangedTime(),
+      },
+      ...matched.map((version: FileVersion): { id: string; label: string; day: string; time: string } => ({
+        id: version.id,
+        label: this.plugin.t('modal.version.numbered', { number: versions.length - versions.indexOf(version) }),
+        day: version.getDate(),
+        time: version.getTime(),
+      })),
     ];
+
+    const groups: { label: string; entries: typeof entries }[] = [];
+
+    entries.forEach((entry: (typeof entries)[number]): void => {
+      let group: { label: string; entries: typeof entries } | undefined = groups[groups.length - 1];
+
+      if (!group || group.label !== entry.day) {
+        group = { label: entry.day, entries: [] };
+        groups.push(group);
+      }
+
+      group.entries.push(entry);
+    });
+
+    const items: DomElementConfig[] = [];
+
+    groups.forEach((group: { label: string; entries: typeof entries }): void => {
+      items.push({ tag: 'div', classes: 'lct-versions-day', text: group.label });
+      group.entries.forEach((entry: (typeof entries)[number]): void => {
+        items.push(this.makeVersionItem(entry.id, entry.label, entry.time));
+      });
+    });
 
     // Informative empty states under the baseline: no intermediate snapshots
     // captured at all, or a search that excluded every existing version.
@@ -877,12 +1003,27 @@ export class HistoryModal extends Modal {
       anchor.classList.add('lct-hunk-anchor');
       anchor.dataset.lctHunk = String(index);
 
-      DomHelper.update(anchor, {
-        children: [this.makeRevertAffordance(index)],
-      });
+      // Host the revert affordance in the row's gutter (the sticky line-number
+      // cell) so it stays pinned to the gutter while the diff scrolls
+      // horizontally; the inline mode has no gutter and falls back to the row.
+      this.makeRevertAffordance(this.resolveHunkGutter(anchor), index);
     });
 
     this.updateNavButtonsState();
+  }
+
+  /**
+   * Resolves the element that hosts the inline revert affordance for an anchor
+   * row. The diff2html modes (line-by-line, side-by-side) carry a sticky
+   * line-number cell, which keeps the affordance pinned to the gutter while the
+   * diff scrolls horizontally. The inline mode has no such cell, so the row
+   * itself hosts the affordance.
+   *
+   * @param {HTMLElement} anchor - The hunk anchor row
+   * @return {HTMLElement} The element the revert affordance is appended to
+   */
+  protected resolveHunkGutter(anchor: HTMLElement): HTMLElement {
+    return anchor.querySelector<HTMLElement>('.d2h-code-linenumber') ?? anchor;
   }
 
   /**
@@ -918,22 +1059,23 @@ export class HistoryModal extends Modal {
       this.diffContainerEl.querySelectorAll<HTMLElement>('.lct-inline-row'),
     );
 
-    // Walk the rows tracking the current-side line number: a context or added
-    // row advances it, a removed row does not. The anchor is the first changed
-    // row whose current-side position reaches the hunk's newStart. A pure
-    // deletion (newLines === 0) sits between current lines, so it anchors on the
-    // first changed row at or after newStart.
+    // Walk the rows tracking the current-side line number: every row that holds
+    // a current-side line advances it (context, a whole addition, or a modified
+    // line), while a pure removal does not. The anchor is the first changed row
+    // whose current-side position reaches the hunk's newStart. A pure deletion
+    // (newLines === 0) sits between current lines, so it anchors on the first
+    // changed row at or after newStart.
     let currentLine: number = 0;
 
     for (const row of rows) {
       const changed: boolean = !row.classList.contains('lct-inline-context');
-      const added: boolean = row.classList.contains('lct-inline-added');
+      const hasNewLine: boolean = !row.classList.contains('lct-inline-removed');
 
       if (changed && currentLine + 1 >= hunk.newStart) {
         return row;
       }
 
-      if (!changed || added) {
+      if (hasNewLine) {
         currentLine++;
       }
     }
@@ -1028,20 +1170,24 @@ export class HistoryModal extends Modal {
   }
 
   /**
-   * Builds the inline revert affordance for a hunk: an accessible icon button
-   * carrying a tooltip and aria-label, which reverts only that hunk on click.
+   * Builds the inline revert affordance for a hunk inside the given gutter cell:
+   * an accessible icon button that reverts only that hunk on click. It carries a
+   * single tooltip via aria-label (Obsidian renders it), with no native title so
+   * the hover hint is not shown twice, and a Lucide undo glyph set through
+   * Obsidian so it matches the app's icon set instead of an emoji.
    *
+   * @param {HTMLElement} gutter - The element to host the affordance
    * @param {number} index - The hunk index the affordance reverts
-   * @return {DomElementConfig} The affordance element config
+   * @return {void}
    */
-  protected makeRevertAffordance(index: number): DomElementConfig {
+  protected makeRevertAffordance(gutter: HTMLElement, index: number): void {
     const label: string = this.plugin.t('modal.revert-hunk');
 
-    return {
+    const button: HTMLButtonElement = DomHelper.create({
       tag: 'button',
       classes: ['lct-hunk-revert', 'clickable-icon'],
-      attributes: { 'aria-label': label, 'title': label, 'type': 'button' },
-      children: [{ tag: 'span', classes: 'lct-hunk-revert-icon', text: '↩' }],
+      attributes: { 'aria-label': label, 'type': 'button' },
+      container: gutter,
       events: {
         click: (event: Event): void => {
           event.preventDefault();
@@ -1049,7 +1195,9 @@ export class HistoryModal extends Modal {
           void this.revertHunk(index);
         },
       },
-    };
+    });
+
+    setIcon(button, 'undo-2');
   }
 
   /**
@@ -1138,6 +1286,8 @@ export class HistoryModal extends Modal {
     this.currentDisplayMode = 'patch';
     this.updateButtonActiveStates();
     this.cleanupScrollSync();
+    this.updateDiffNotice();
+    this.updateColumnsHeader();
 
     const patch: string = this.getCleanPatch();
 
@@ -1196,19 +1346,13 @@ export class HistoryModal extends Modal {
     this.currentDisplayMode = 'inline';
     this.updateButtonActiveStates();
     this.cleanupScrollSync();
+    this.updateDiffNotice();
+    this.updateColumnsHeader();
 
-    if (this.isBaseSameCurrent()) {
-      DomHelper.update(this.diffContainerEl, {
-        text: null,
-        children: [{ tag: 'div', classes: 'lct-inline-empty', text: this.getEmptyDiffText() }],
-      });
-
-      // No diff, so no hunks: the navigation buttons stay disabled.
-      this.updateNavButtonsState();
-
-      return;
-    }
-
+    // When the base equals the current content the diff has no changes, but the
+    // file is still rendered as plain context lines so the view shows the
+    // content instead of a blank area; the above-diff notice flags that nothing
+    // changed.
     const diffLines: InlineDiffLine[] = WordDiffHelper.lines(this.getBaseContent(), this.snapshot.getLastState());
     const rows: DomElementConfig[] = [];
 
@@ -1219,25 +1363,24 @@ export class HistoryModal extends Modal {
         return;
       }
 
+      // Whole added/removed lines rely on the row tint, so the text is plain.
       if (line.type === 'added') {
-        rows.push(this.makeInlineRow('added', '+', [
-          { tag: 'span', classes: 'lct-word-added', text: line.newText ?? '' },
-        ]));
+        rows.push(this.makeInlineRow('added', '+', [{ tag: 'span', text: line.newText ?? '' }]));
 
         return;
       }
 
       if (line.type === 'removed') {
-        rows.push(this.makeInlineRow('removed', '-', [
-          { tag: 'span', classes: 'lct-word-removed', text: line.oldText ?? '' },
-        ]));
+        rows.push(this.makeInlineRow('removed', '-', [{ tag: 'span', text: line.oldText ?? '' }]));
 
         return;
       }
 
-      // Modified: old text with removed words, then new text with added words.
-      rows.push(this.makeInlineRow('removed', '-', this.makeWordSpans(line.oldText ?? '', line.newText ?? '', 'old')));
-      rows.push(this.makeInlineRow('added', '+', this.makeWordSpans(line.oldText ?? '', line.newText ?? '', 'new')));
+      // Modified: a single flowing line with the word-level changes shown in
+      // place - unchanged words plain, removed words struck through, added words
+      // highlighted - so a wording edit reads as one line, not a before/after
+      // pair. This is what makes the inline mode distinct from line-by-line.
+      rows.push(this.makeInlineRow('modified', '~', this.makeInlineWordSpans(line.oldText ?? '', line.newText ?? '')));
     });
 
     DomHelper.update(this.diffContainerEl, {
@@ -1271,39 +1414,26 @@ export class HistoryModal extends Modal {
   }
 
   /**
-   * Computes the word-level spans for one side of a modified line. The old side
-   * keeps unchanged and removed words (removed words highlighted); the new side
-   * keeps unchanged and added words (added words highlighted). An empty side
-   * yields no spans.
+   * Computes the word-level spans for a modified line as one flowing sequence:
+   * unchanged words plain, removed words marked for deletion, added words marked
+   * for insertion, all kept in their original order. This is what lets the
+   * inline mode show a wording change as a single line instead of a before/after
+   * pair.
    *
    * @param {string} oldText - The old (base) line text
    * @param {string} newText - The new (current) line text
-   * @param {'old' | 'new'} side - Which side of the modification to render
-   * @return {DomElementConfig[]} The span configs for that side
+   * @return {DomElementConfig[]} The ordered span configs for the merged line
    */
-  protected makeWordSpans(oldText: string, newText: string, side: 'old' | 'new'): DomElementConfig[] {
-    const spans: DomElementConfig[] = [];
-
-    WordDiffHelper.segments(oldText, newText).forEach((segment: Diff.Change): void => {
-      // Skip the segments that do not belong on this side.
-      if (side === 'old' && segment.added) {
-        return;
-      }
-
-      if (side === 'new' && segment.removed) {
-        return;
-      }
-
+  protected makeInlineWordSpans(oldText: string, newText: string): DomElementConfig[] {
+    return WordDiffHelper.segments(oldText, newText).map((segment: Diff.Change): DomElementConfig => {
       const classes: string | undefined = segment.added
         ? 'lct-word-added'
         : segment.removed
           ? 'lct-word-removed'
           : undefined;
 
-      spans.push(classes ? { tag: 'span', classes, text: segment.value } : { tag: 'span', text: segment.value });
+      return classes ? { tag: 'span', classes, text: segment.value } : { tag: 'span', text: segment.value };
     });
-
-    return spans;
   }
 
   /**
@@ -1320,6 +1450,8 @@ export class HistoryModal extends Modal {
     this.currentDisplayMode = format;
     this.updateButtonActiveStates();
     this.cleanupScrollSync();
+    this.updateDiffNotice();
+    this.updateColumnsHeader();
 
     const diffHtml: string = Diff2Html.html(this.getDiffLines(), {
       drawFileList: false,

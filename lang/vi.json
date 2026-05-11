@@ -1,0 +1,121 @@
+{
+  "command.go-to-next-change": "Đi tới thay đổi tiếp theo",
+  "command.go-to-previous-change": "Đi tới thay đổi trước đó",
+  "command.reset-lines-all": "Đặt lại tất cả ảnh chụp của trình theo dõi dòng",
+  "command.reset-lines": "Đặt lại ảnh chụp của trình theo dõi dòng cho tài liệu hiện tại",
+  "command.show-diff": "Hiển thị tất cả thay đổi của tài liệu hiện tại",
+
+  "notice.no-changes-to-navigate": "Không có thay đổi nào để di chuyển tới",
+  "notice.all-snapshots-deleted": "Đã xóa toàn bộ dữ liệu ảnh chụp",
+  "notice.current-snapshot-deleted": "Đã xóa dữ liệu ảnh chụp hiện tại",
+  "notice.file-restored": "Đã khôi phục tệp về trạng thái ban đầu",
+  "notice.file-restore-failed": "Không thể khôi phục tệp về trạng thái ban đầu",
+  "notice.copied": "Đã sao chép!",
+  "notice.no-saved-history": "Không có lịch sử nào được lưu cho tệp này.",
+  "notice.invalid-exclude-pattern": "Lịch sử cục bộ: mẫu đường dẫn loại trừ không phải là biểu thức chính quy hợp lệ nên bị bỏ qua.",
+
+  "menu.local-history": "Lịch sử cục bộ",
+  "menu.show-changes": "Hiển thị thay đổi",
+
+  "status.lines-changed": "{count} dòng đã thay đổi",
+
+  "setting.type.name": "Kiểu",
+  "setting.type.desc": "Chọn giữa đường kẻ dọc hoặc dấu chấm ở lề.",
+  "setting.type.option.line": "Đường kẻ dọc",
+  "setting.type.option.dot": "Ký tự ở lề",
+
+  "setting.allowed-extensions.name": "Phần mở rộng tệp được phép",
+  "setting.allowed-extensions.desc": "Danh sách các phần mở rộng tệp cần theo dõi thay đổi, phân tách bằng dấu phẩy (ví dụ: md, txt, csv, json, yaml)",
+
+  "setting.exclude-paths.name": "Đường dẫn loại trừ",
+  "setting.exclude-paths.desc": "Một biểu thức chính quy không phân biệt chữ hoa chữ thường, được so khớp với đường dẫn tương đối so với kho lưu trữ. Mọi tệp có đường dẫn khớp sẽ không bao giờ được theo dõi (ví dụ: \\.excalidraw\\.md$ hoặc (^|/)Templates/). Mặc định loại trừ các thư mục Templates và bản vẽ Excalidraw. Để trống để theo dõi mọi thứ.",
+
+  "setting.keep.name": "Giữ lịch sử cho đến khi",
+  "setting.keep.desc": "Chiến lược dọn dẹp lịch sử chỉnh sửa",
+  "setting.keep.option.app": "Đóng ứng dụng",
+  "setting.keep.option.file": "Đóng tệp",
+
+  "setting.ignore-new-files.name": "Bỏ qua tệp mới",
+  "setting.ignore-new-files.desc": "Không theo dõi thay đổi trong các tệp được tạo sau khi bắt đầu theo dõi",
+
+  "setting.persist.name": "Giữ lịch sử qua các lần khởi động lại",
+  "setting.persist.desc": "Lưu lịch sử vào đĩa để các điểm đánh dấu vẫn còn sau khi khởi động lại. Yêu cầu \"Giữ lịch sử cho đến khi\" được đặt thành đóng ứng dụng.",
+
+  "setting.max-entries.name": "Số tệp lưu trữ tối đa",
+  "setting.max-entries.desc": "Giới hạn số lượng lịch sử tệp được giữ trên đĩa. Tệp cũ nhất bị loại bỏ trước. Đặt thành 0 để tắt.",
+
+  "setting.max-age-days.name": "Tuổi lịch sử tối đa (ngày)",
+  "setting.max-age-days.desc": "Loại bỏ lịch sử đã lưu cũ hơn số ngày này. Đặt thành 0 để tắt.",
+
+  "setting.snapshots-heading": "Ảnh chụp dòng thời gian",
+
+  "setting.snapshots-enabled.name": "Ghi lại các phiên bản trung gian",
+  "setting.snapshots-enabled.desc": "Giữ một dòng thời gian gồm các phiên bản trước đó để bạn có thể so sánh với một thời điểm ở giữa, không chỉ với bản gốc.",
+
+  "setting.snapshots-edit-threshold.name": "Ghi lại sau mỗi (lần chỉnh sửa)",
+  "setting.snapshots-edit-threshold.desc": "Ghi lại một phiên bản sau số lần chỉnh sửa này. Đặt thành 0 để tắt kích hoạt theo số lần chỉnh sửa.",
+
+  "setting.snapshots-interval.name": "Ghi lại sau mỗi (phút)",
+  "setting.snapshots-interval.desc": "Ghi lại một phiên bản sau số phút chỉnh sửa này. Đặt thành 0 để tắt kích hoạt theo thời gian.",
+
+  "setting.max-version-age-days.name": "Tuổi phiên bản tối đa (ngày)",
+  "setting.max-version-age-days.desc": "Loại bỏ các phiên bản trung gian cũ hơn số ngày này (giới hạn chính). Đặt thành 0 để tắt.",
+
+  "setting.max-versions.name": "Số phiên bản tối đa mỗi tệp",
+  "setting.max-versions.desc": "Giới hạn an toàn cho số phiên bản trung gian được giữ cho mỗi tệp. Phiên bản cũ nhất bị loại bỏ trước. Đặt thành 0 để tắt.",
+
+  "setting.show-heading": "Hiển thị chỉ báo cho",
+  "setting.show.desc": "Chỉ báo dòng chỉ hiển thị ở chế độ chỉnh sửa (mã nguồn và xem trực tiếp). Ở chế độ đọc không có chỉ báo nội tuyến, nhưng vẫn có thể truy cập lịch sử thay đổi: chạy lệnh \"Hiển thị tất cả thay đổi của tài liệu hiện tại\" hoặc dùng menu ngữ cảnh của tệp trong trình quản lý tệp.",
+  "setting.show.changed": "Đã thay đổi",
+  "setting.show.restored": "Đã khôi phục",
+  "setting.show.added": "Đã thêm",
+  "setting.show.removed": "Đã xóa",
+
+  "setting.line-heading": "Chỉ báo dòng",
+  "setting.line-width.name": "Độ rộng",
+  "setting.line-width.desc": "Độ rộng của chỉ báo đường kẻ dọc (tính bằng pixel).",
+
+  "setting.gutter-heading.name": "Chỉ báo ở lề",
+  "setting.gutter-heading.prefix": "Ký tự của chỉ báo kiểu ở lề (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Ký tự thay đổi",
+  "setting.gutter-added.name": "Ký tự đã thêm",
+  "setting.gutter-restored.name": "Ký tự khôi phục",
+  "setting.gutter-removed.name": "Ký tự đã xóa",
+
+  "modal.title": "Lịch sử",
+  "modal.no-changes": "Không có thay đổi",
+  "modal.identical-to-current": "Giống với bản hiện tại",
+
+  "modal.restore-original": "Khôi phục bản gốc",
+  "modal.remove-history": "Xóa lịch sử tệp",
+  "modal.previous-difference": "Khác biệt trước đó",
+  "modal.next-difference": "Khác biệt tiếp theo",
+  "modal.mode.patch": "Hiển thị bản vá",
+  "modal.mode.inline": "Nội tuyến",
+  "modal.mode.line-by-line": "Từng dòng",
+  "modal.mode.side-by-side": "Cạnh nhau",
+
+  "modal.confirm.cancel": "Hủy",
+  "modal.confirm.restore.title": "Khôi phục tệp gốc",
+  "modal.confirm.restore.message": "Bạn có chắc muốn khôi phục tệp này về trạng thái ban đầu không? Tất cả thay đổi hiện tại sẽ bị mất và lịch sử theo dõi thay đổi sẽ được đặt lại. Hành động này không thể hoàn tác.",
+  "modal.confirm.restore.button": "Khôi phục tệp",
+  "modal.confirm.remove.title": "Xóa lịch sử tệp",
+  "modal.confirm.remove.message": "Bạn có chắc muốn xóa lịch sử theo dõi thay đổi của tệp này không? Hành động này không thể hoàn tác.",
+  "modal.confirm.remove.button": "Xóa lịch sử",
+  "modal.confirm.revert.title": "Hoàn nguyên thay đổi này",
+  "modal.confirm.revert.message": "Hoàn nguyên thay đổi này về bản nền đã chọn? Các thay đổi khác được giữ nguyên.",
+  "modal.confirm.revert.button": "Hoàn nguyên",
+
+  "modal.search-versions": "Tìm kiếm phiên bản",
+  "modal.version.baseline": "Hiện tại",
+  "modal.version.numbered": "Phiên bản {number}",
+  "modal.version.current": "Hiện tại",
+  "modal.version.original": "Bản gốc",
+  "modal.no-versions-match": "Không có phiên bản nào khớp với tìm kiếm",
+  "modal.no-snapshots-yet": "Chưa có ảnh chụp trung gian nào",
+
+  "modal.revert-hunk": "Hoàn nguyên thay đổi này",
+
+  "modal.copy": "Sao chép"
+}

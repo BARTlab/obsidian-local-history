@@ -1,0 +1,121 @@
+{
+  "command.go-to-next-change": "अर्को परिवर्तनमा जानुहोस्",
+  "command.go-to-previous-change": "अघिल्लो परिवर्तनमा जानुहोस्",
+  "command.reset-lines-all": "सबै लाइन ट्र्याकर स्न्यापसटहरू रिसेट गर्नुहोस्",
+  "command.reset-lines": "हालको कागजातको लाइन ट्र्याकर स्न्यापसट रिसेट गर्नुहोस्",
+  "command.show-diff": "हालको कागजातका सबै परिवर्तनहरू देखाउनुहोस्",
+
+  "notice.no-changes-to-navigate": "नेभिगेट गर्नका लागि कुनै परिवर्तन छैन",
+  "notice.all-snapshots-deleted": "सबै स्न्यापसट डेटा मेटाइयो",
+  "notice.current-snapshot-deleted": "हालको स्न्यापसट डेटा मेटाइयो",
+  "notice.file-restored": "फाइल मूल अवस्थामा पुनर्स्थापना गरियो",
+  "notice.file-restore-failed": "फाइललाई मूल अवस्थामा पुनर्स्थापना गर्न असफल भयो",
+  "notice.copied": "प्रतिलिपि गरियो!",
+  "notice.no-saved-history": "यस फाइलको लागि कुनै सुरक्षित इतिहास छैन।",
+  "notice.invalid-exclude-pattern": "स्थानीय इतिहास: बहिष्कृत-पथ ढाँचा वैध नियमित अभिव्यक्ति होइन र बेवास्ता गरिँदैछ।",
+
+  "menu.local-history": "स्थानीय इतिहास",
+  "menu.show-changes": "परिवर्तनहरू देखाउनुहोस्",
+
+  "status.lines-changed": "{count} लाइन परिवर्तन भयो",
+
+  "setting.type.name": "प्रकार",
+  "setting.type.desc": "गटरमा ठाडो रेखा वा थोप्लोमध्ये छनोट गर्नुहोस्।",
+  "setting.type.option.line": "ठाडो रेखा",
+  "setting.type.option.dot": "गटरमा अक्षर",
+
+  "setting.allowed-extensions.name": "अनुमति दिइएका फाइल एक्सटेन्सनहरू",
+  "setting.allowed-extensions.desc": "परिवर्तनहरू ट्र्याक गर्न अल्पविरामले छुट्याइएको फाइल एक्सटेन्सनहरूको सूची (जस्तै, md, txt, csv, json, yaml)",
+
+  "setting.exclude-paths.name": "बहिष्कृत पथहरू",
+  "setting.exclude-paths.desc": "भल्ट-सापेक्ष पथसँग मिलाइने केस-असंवेदनशील नियमित अभिव्यक्ति। जुनसुकै फाइलको पथ मिल्छ भने त्यो कहिल्यै ट्र्याक गरिँदैन (जस्तै \\.excalidraw\\.md$ वा (^|/)Templates/)। पूर्वनिर्धारित रूपमा Templates फोल्डरहरू र Excalidraw चित्रहरू बहिष्कृत हुन्छन्। सबै कुरा ट्र्याक गर्न खाली छोड्नुहोस्।",
+
+  "setting.keep.name": "इतिहास राख्ने अवधि",
+  "setting.keep.desc": "संशोधन इतिहास सफा गर्ने रणनीति",
+  "setting.keep.option.app": "एप बन्द",
+  "setting.keep.option.file": "फाइल बन्द",
+
+  "setting.ignore-new-files.name": "नयाँ फाइलहरू बेवास्ता गर्नुहोस्",
+  "setting.ignore-new-files.desc": "ट्र्याकिङ सुरु भएपछि सिर्जना गरिएका फाइलहरूमा परिवर्तन ट्र्याक नगर्नुहोस्",
+
+  "setting.persist.name": "पुनः सुरु भएपछि पनि इतिहास राख्नुहोस्",
+  "setting.persist.desc": "हाइलाइटहरू पुनः सुरुपछि पनि रहून् भनेर इतिहास डिस्कमा सुरक्षित गर्नुहोस्। \"इतिहास राख्ने अवधि\" एप बन्दमा सेट गर्न आवश्यक छ।",
+
+  "setting.max-entries.name": "अधिकतम सुरक्षित फाइलहरू",
+  "setting.max-entries.desc": "डिस्कमा कति फाइल इतिहास राख्ने भन्ने सीमा। सबैभन्दा पुरानाहरू पहिले हटाइन्छन्। असक्षम पार्न 0 सेट गर्नुहोस्।",
+
+  "setting.max-age-days.name": "अधिकतम इतिहास उमेर (दिन)",
+  "setting.max-age-days.desc": "यति दिनभन्दा पुरानो सुरक्षित इतिहास हटाउनुहोस्। असक्षम पार्न 0 सेट गर्नुहोस्।",
+
+  "setting.snapshots-heading": "टाइमलाइन स्न्यापसटहरू",
+
+  "setting.snapshots-enabled.name": "बीचका संस्करणहरू कैद गर्नुहोस्",
+  "setting.snapshots-enabled.desc": "अघिल्ला संस्करणहरूको टाइमलाइन राख्नुहोस् ताकि तपाईं मूलसँग मात्र होइन, बीचको कुनै बिन्दुसँग पनि भिन्नता हेर्न सक्नुहोस्।",
+
+  "setting.snapshots-edit-threshold.name": "प्रत्येक (सम्पादन) कैद गर्नुहोस्",
+  "setting.snapshots-edit-threshold.desc": "यति सम्पादनपछि एउटा संस्करण लिनुहोस्। सम्पादन ट्रिगर असक्षम पार्न 0 सेट गर्नुहोस्।",
+
+  "setting.snapshots-interval.name": "प्रत्येक (मिनेट) कैद गर्नुहोस्",
+  "setting.snapshots-interval.desc": "यति मिनेट सम्पादनपछि एउटा संस्करण लिनुहोस्। समय ट्रिगर असक्षम पार्न 0 सेट गर्नुहोस्।",
+
+  "setting.max-version-age-days.name": "अधिकतम संस्करण उमेर (दिन)",
+  "setting.max-version-age-days.desc": "यति दिनभन्दा पुराना बीचका संस्करणहरू हटाउनुहोस् (मुख्य सीमा)। असक्षम पार्न 0 सेट गर्नुहोस्।",
+
+  "setting.max-versions.name": "प्रति फाइल अधिकतम संस्करण",
+  "setting.max-versions.desc": "प्रति फाइल राखिने बीचका संस्करणहरूको सुरक्षा सीमा। सबैभन्दा पुरानाहरू पहिले हटाइन्छन्। असक्षम पार्न 0 सेट गर्नुहोस्।",
+
+  "setting.show-heading": "यसका लागि सूचक देखाउनुहोस्",
+  "setting.show.desc": "लाइन सूचकहरू सम्पादन (स्रोत र लाइभ प्रिभ्यू) मोडमा मात्र देखाइन्छन्। पठन मोडमा कुनै इनलाइन सूचक हुँदैन, तर परिवर्तन इतिहास अझै पहुँचयोग्य छ: \"हालको कागजातका सबै परिवर्तनहरू देखाउनुहोस्\" आदेश चलाउनुहोस् वा फाइल एक्सप्लोररमा फाइल सन्दर्भ मेनु प्रयोग गर्नुहोस्।",
+  "setting.show.changed": "परिवर्तित",
+  "setting.show.restored": "पुनर्स्थापित",
+  "setting.show.added": "थपिएको",
+  "setting.show.removed": "हटाइएको",
+
+  "setting.line-heading": "लाइन सूचक",
+  "setting.line-width.name": "चौडाइ",
+  "setting.line-width.desc": "ठाडो रेखा सूचकको चौडाइ (पिक्सेलमा)।",
+
+  "setting.gutter-heading.name": "गटर सूचक",
+  "setting.gutter-heading.prefix": "गटर प्रकार सूचकका अक्षरहरू (",
+  "setting.gutter-heading.suffix": ")।",
+  "setting.gutter-changed.name": "परिवर्तन अक्षर",
+  "setting.gutter-added.name": "थप अक्षर",
+  "setting.gutter-restored.name": "पुनर्स्थापना अक्षर",
+  "setting.gutter-removed.name": "हटाउने अक्षर",
+
+  "modal.title": "इतिहास",
+  "modal.no-changes": "कुनै परिवर्तन छैन",
+  "modal.identical-to-current": "हालको सँग समान",
+
+  "modal.restore-original": "मूल पुनर्स्थापना गर्नुहोस्",
+  "modal.remove-history": "फाइल इतिहास हटाउनुहोस्",
+  "modal.previous-difference": "अघिल्लो भिन्नता",
+  "modal.next-difference": "अर्को भिन्नता",
+  "modal.mode.patch": "प्याच देखाउनुहोस्",
+  "modal.mode.inline": "इनलाइन",
+  "modal.mode.line-by-line": "लाइनदेखि लाइन",
+  "modal.mode.side-by-side": "छेउछाउ",
+
+  "modal.confirm.cancel": "रद्द गर्नुहोस्",
+  "modal.confirm.restore.title": "मूल फाइल पुनर्स्थापना गर्नुहोस्",
+  "modal.confirm.restore.message": "के तपाईं यो फाइललाई यसको मूल अवस्थामा पुनर्स्थापना गर्न निश्चित हुनुहुन्छ? सबै हालका परिवर्तनहरू हराउनेछन् र परिवर्तन ट्र्याकिङ इतिहास रिसेट हुनेछ। यो कार्य पूर्ववत गर्न सकिँदैन।",
+  "modal.confirm.restore.button": "फाइल पुनर्स्थापना गर्नुहोस्",
+  "modal.confirm.remove.title": "फाइल इतिहास हटाउनुहोस्",
+  "modal.confirm.remove.message": "के तपाईं यस फाइलको परिवर्तन ट्र्याकिङ इतिहास हटाउन निश्चित हुनुहुन्छ? यो कार्य पूर्ववत गर्न सकिँदैन।",
+  "modal.confirm.remove.button": "इतिहास हटाउनुहोस्",
+  "modal.confirm.revert.title": "यो परिवर्तन फिर्ता गर्नुहोस्",
+  "modal.confirm.revert.message": "यो परिवर्तनलाई चयन गरिएको आधारमा फिर्ता गर्ने? अन्य परिवर्तनहरू राखिन्छन्।",
+  "modal.confirm.revert.button": "फिर्ता गर्नुहोस्",
+
+  "modal.search-versions": "संस्करणहरू खोज्नुहोस्",
+  "modal.version.baseline": "हालको",
+  "modal.version.numbered": "संस्करण {number}",
+  "modal.version.current": "हालको",
+  "modal.version.original": "मूल",
+  "modal.no-versions-match": "खोजसँग कुनै संस्करण मेल खाँदैन",
+  "modal.no-snapshots-yet": "अहिलेसम्म कुनै बीचको स्न्यापसट छैन",
+
+  "modal.revert-hunk": "यो परिवर्तन फिर्ता गर्नुहोस्",
+
+  "modal.copy": "प्रतिलिपि गर्नुहोस्"
+}

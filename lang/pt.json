@@ -1,0 +1,121 @@
+{
+  "command.go-to-next-change": "Ir para a alteração seguinte",
+  "command.go-to-previous-change": "Ir para a alteração anterior",
+  "command.reset-lines-all": "Repor todas as capturas do rastreador de linhas",
+  "command.reset-lines": "Repor a captura do rastreador de linhas do documento atual",
+  "command.show-diff": "Mostrar todas as alterações do documento atual",
+
+  "notice.no-changes-to-navigate": "Não há alterações para navegar",
+  "notice.all-snapshots-deleted": "Todos os dados de capturas eliminados",
+  "notice.current-snapshot-deleted": "Dados da captura atual eliminados",
+  "notice.file-restored": "Ficheiro restaurado ao estado original",
+  "notice.file-restore-failed": "Não foi possível restaurar o ficheiro ao estado original",
+  "notice.copied": "Copiado!",
+  "notice.no-saved-history": "Não existe histórico guardado para este ficheiro.",
+  "notice.invalid-exclude-pattern": "Histórico local: o padrão de caminhos excluídos não é uma expressão regular válida e está a ser ignorado.",
+
+  "menu.local-history": "Histórico local",
+  "menu.show-changes": "Mostrar alterações",
+
+  "status.lines-changed": "{count} linhas alteradas",
+
+  "setting.type.name": "Tipo",
+  "setting.type.desc": "Escolha entre uma linha vertical e um ponto na margem.",
+  "setting.type.option.line": "Linha vertical",
+  "setting.type.option.dot": "Carácter na margem",
+
+  "setting.allowed-extensions.name": "Extensões de ficheiro permitidas",
+  "setting.allowed-extensions.desc": "Lista de extensões de ficheiro separadas por vírgulas cujas alterações são rastreadas (por ex., md, txt, csv, json, yaml)",
+
+  "setting.exclude-paths.name": "Caminhos excluídos",
+  "setting.exclude-paths.desc": "Uma expressão regular que não distingue maiúsculas de minúsculas comparada com o caminho relativo ao cofre. Qualquer ficheiro cujo caminho corresponda nunca é rastreado (por ex. \\.excalidraw\\.md$ ou (^|/)Templates/). Por predefinição são excluídas as pastas Templates e os desenhos Excalidraw. Deixe vazio para rastrear tudo.",
+
+  "setting.keep.name": "Manter o histórico até",
+  "setting.keep.desc": "Estratégia de limpeza do histórico de revisões",
+  "setting.keep.option.app": "Fecho da aplicação",
+  "setting.keep.option.file": "Fecho do ficheiro",
+
+  "setting.ignore-new-files.name": "Ignorar ficheiros novos",
+  "setting.ignore-new-files.desc": "Não rastrear alterações em ficheiros criados depois de o rastreio começar",
+
+  "setting.persist.name": "Manter o histórico entre reinícios",
+  "setting.persist.desc": "Guardar o histórico no disco para que os destaques sobrevivam a um reinício. Requer que \"Manter o histórico até\" esteja definido como fecho da aplicação.",
+
+  "setting.max-entries.name": "Máximo de ficheiros armazenados",
+  "setting.max-entries.desc": "Limite de quantos históricos de ficheiros são mantidos no disco. Os mais antigos são removidos primeiro. Defina como 0 para desativar.",
+
+  "setting.max-age-days.name": "Idade máxima do histórico (dias)",
+  "setting.max-age-days.desc": "Descartar o histórico guardado com mais dias do que este valor. Defina como 0 para desativar.",
+
+  "setting.snapshots-heading": "Capturas da cronologia",
+
+  "setting.snapshots-enabled.name": "Capturar versões intermédias",
+  "setting.snapshots-enabled.desc": "Manter uma cronologia das versões anteriores para poder comparar com um ponto intermédio, não apenas com o original.",
+
+  "setting.snapshots-edit-threshold.name": "Capturar a cada (edições)",
+  "setting.snapshots-edit-threshold.desc": "Criar uma versão após este número de edições. Defina como 0 para desativar o acionador por edições.",
+
+  "setting.snapshots-interval.name": "Capturar a cada (minutos)",
+  "setting.snapshots-interval.desc": "Criar uma versão após este número de minutos de edição. Defina como 0 para desativar o acionador temporal.",
+
+  "setting.max-version-age-days.name": "Idade máxima das versões (dias)",
+  "setting.max-version-age-days.desc": "Descartar as versões intermédias com mais dias do que este valor (o limite principal). Defina como 0 para desativar.",
+
+  "setting.max-versions.name": "Máximo de versões por ficheiro",
+  "setting.max-versions.desc": "Limite de segurança das versões intermédias mantidas por ficheiro. As mais antigas são removidas primeiro. Defina como 0 para desativar.",
+
+  "setting.show-heading": "Mostrar indicador para",
+  "setting.show.desc": "Os indicadores de linha são mostrados apenas nos modos de edição (código-fonte e pré-visualização em direto). No modo de leitura não há indicadores em linha, mas o histórico de alterações continua acessível: execute o comando \"Mostrar todas as alterações do documento atual\" ou use o menu de contexto do ficheiro no explorador de ficheiros.",
+  "setting.show.changed": "Alterado",
+  "setting.show.restored": "Restaurado",
+  "setting.show.added": "Adicionado",
+  "setting.show.removed": "Removido",
+
+  "setting.line-heading": "Indicador de linha",
+  "setting.line-width.name": "Largura",
+  "setting.line-width.desc": "Largura do indicador de linha vertical (em píxeis).",
+
+  "setting.gutter-heading.name": "Indicador na margem",
+  "setting.gutter-heading.prefix": "Caracteres do indicador de tipo na margem (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Carácter de alteração",
+  "setting.gutter-added.name": "Carácter de adição",
+  "setting.gutter-restored.name": "Carácter de restauro",
+  "setting.gutter-removed.name": "Carácter de remoção",
+
+  "modal.title": "Histórico",
+  "modal.no-changes": "Sem alterações",
+  "modal.identical-to-current": "Idêntico ao atual",
+
+  "modal.restore-original": "Restaurar original",
+  "modal.remove-history": "Remover o histórico do ficheiro",
+  "modal.previous-difference": "Diferença anterior",
+  "modal.next-difference": "Diferença seguinte",
+  "modal.mode.patch": "Mostrar patch",
+  "modal.mode.inline": "Em linha",
+  "modal.mode.line-by-line": "Linha a linha",
+  "modal.mode.side-by-side": "Lado a lado",
+
+  "modal.confirm.cancel": "Cancelar",
+  "modal.confirm.restore.title": "Restaurar o ficheiro original",
+  "modal.confirm.restore.message": "Tem a certeza de que quer restaurar este ficheiro ao seu estado original? Todas as alterações atuais serão perdidas e o histórico de rastreio de alterações será reposto. Esta ação não pode ser anulada.",
+  "modal.confirm.restore.button": "Restaurar ficheiro",
+  "modal.confirm.remove.title": "Remover o histórico do ficheiro",
+  "modal.confirm.remove.message": "Tem a certeza de que quer remover o histórico de rastreio de alterações deste ficheiro? Esta ação não pode ser anulada.",
+  "modal.confirm.remove.button": "Remover histórico",
+  "modal.confirm.revert.title": "Reverter esta alteração",
+  "modal.confirm.revert.message": "Reverter esta alteração para a base selecionada? As outras alterações são mantidas.",
+  "modal.confirm.revert.button": "Reverter",
+
+  "modal.search-versions": "Pesquisar versões",
+  "modal.version.baseline": "Atual",
+  "modal.version.numbered": "Versão {number}",
+  "modal.version.current": "Atual",
+  "modal.version.original": "Original",
+  "modal.no-versions-match": "Nenhuma versão corresponde à pesquisa",
+  "modal.no-snapshots-yet": "Ainda não há capturas intermédias",
+
+  "modal.revert-hunk": "Reverter esta alteração",
+
+  "modal.copy": "Copiar"
+}

@@ -1,0 +1,121 @@
+{
+  "command.go-to-next-change": "Przejdź do następnej zmiany",
+  "command.go-to-previous-change": "Przejdź do poprzedniej zmiany",
+  "command.reset-lines-all": "Zresetuj migawki śledzenia linii dla wszystkich plików",
+  "command.reset-lines": "Zresetuj migawkę śledzenia linii bieżącego dokumentu",
+  "command.show-diff": "Pokaż wszystkie zmiany bieżącego dokumentu",
+
+  "notice.no-changes-to-navigate": "Brak zmian do nawigacji",
+  "notice.all-snapshots-deleted": "Usunięto wszystkie dane migawek",
+  "notice.current-snapshot-deleted": "Usunięto dane bieżącej migawki",
+  "notice.file-restored": "Przywrócono plik do stanu pierwotnego",
+  "notice.file-restore-failed": "Nie udało się przywrócić pliku do stanu pierwotnego",
+  "notice.copied": "Skopiowano!",
+  "notice.no-saved-history": "Dla tego pliku nie ma zapisanej historii.",
+  "notice.invalid-exclude-pattern": "Local history: wzorzec wykluczonych ścieżek nie jest prawidłowym wyrażeniem regularnym i zostanie zignorowany.",
+
+  "menu.local-history": "Historia lokalna",
+  "menu.show-changes": "Pokaż zmiany",
+
+  "status.lines-changed": "Zmienione linie: {count}",
+
+  "setting.type.name": "Typ",
+  "setting.type.desc": "Wybierz pionową linię lub kropkę na marginesie.",
+  "setting.type.option.line": "Pionowa linia",
+  "setting.type.option.dot": "Znak na marginesie",
+
+  "setting.allowed-extensions.name": "Dozwolone rozszerzenia plików",
+  "setting.allowed-extensions.desc": "Lista rozszerzeń plików oddzielonych przecinkami, których zmiany są śledzone (np. md, txt, csv, json, yaml)",
+
+  "setting.exclude-paths.name": "Wykluczone ścieżki",
+  "setting.exclude-paths.desc": "Wyrażenie regularne bez rozróżniania wielkości liter, dopasowywane do ścieżki względem skarbca. Każdy plik, którego ścieżka pasuje, nigdy nie jest śledzony (np. \\.excalidraw\\.md$ lub (^|/)Templates/). Domyślnie wykluczane są foldery Templates i rysunki Excalidraw. Pozostaw puste, aby śledzić wszystko.",
+
+  "setting.keep.name": "Przechowuj historię do",
+  "setting.keep.desc": "Strategia czyszczenia historii wersji",
+  "setting.keep.option.app": "Zamknięcia aplikacji",
+  "setting.keep.option.file": "Zamknięcia pliku",
+
+  "setting.ignore-new-files.name": "Ignoruj nowe pliki",
+  "setting.ignore-new-files.desc": "Nie śledź zmian w plikach utworzonych po rozpoczęciu śledzenia",
+
+  "setting.persist.name": "Zachowuj historię między ponownymi uruchomieniami",
+  "setting.persist.desc": "Zapisuj historię na dysku, aby podświetlenia przetrwały ponowne uruchomienie. Wymaga ustawienia opcji \"Przechowuj historię do\" na zamknięcie aplikacji.",
+
+  "setting.max-entries.name": "Maksymalna liczba przechowywanych plików",
+  "setting.max-entries.desc": "Limit liczby historii plików przechowywanych na dysku. Najstarsze są usuwane jako pierwsze. Ustaw 0, aby wyłączyć.",
+
+  "setting.max-age-days.name": "Maksymalny wiek historii (dni)",
+  "setting.max-age-days.desc": "Usuwaj zapisaną historię starszą niż podana liczba dni. Ustaw 0, aby wyłączyć.",
+
+  "setting.snapshots-heading": "Migawki osi czasu",
+
+  "setting.snapshots-enabled.name": "Przechwytuj wersje pośrednie",
+  "setting.snapshots-enabled.desc": "Przechowuj oś czasu wcześniejszych wersji, aby porównywać z punktem pośrednim, a nie tylko z oryginałem.",
+
+  "setting.snapshots-edit-threshold.name": "Przechwytuj co (edycje)",
+  "setting.snapshots-edit-threshold.desc": "Twórz wersję po tylu edycjach. Ustaw 0, aby wyłączyć wyzwalacz edycji.",
+
+  "setting.snapshots-interval.name": "Przechwytuj co (minuty)",
+  "setting.snapshots-interval.desc": "Twórz wersję po tylu minutach edytowania. Ustaw 0, aby wyłączyć wyzwalacz czasowy.",
+
+  "setting.max-version-age-days.name": "Maksymalny wiek wersji (dni)",
+  "setting.max-version-age-days.desc": "Usuwaj wersje pośrednie starsze niż podana liczba dni (główne ograniczenie). Ustaw 0, aby wyłączyć.",
+
+  "setting.max-versions.name": "Maksymalna liczba wersji na plik",
+  "setting.max-versions.desc": "Zabezpieczający limit liczby wersji pośrednich przechowywanych dla pliku. Najstarsze są usuwane jako pierwsze. Ustaw 0, aby wyłączyć.",
+
+  "setting.show-heading": "Pokaż wskaźnik dla",
+  "setting.show.desc": "Wskaźniki linii są pokazywane tylko w trybach edycji (kod źródłowy i podgląd na żywo). W trybie czytania nie ma wskaźników w treści, ale historia zmian jest nadal dostępna: uruchom polecenie \"Pokaż wszystkie zmiany bieżącego dokumentu\" lub skorzystaj z menu kontekstowego pliku w eksploratorze plików.",
+  "setting.show.changed": "Zmienione",
+  "setting.show.restored": "Przywrócone",
+  "setting.show.added": "Dodane",
+  "setting.show.removed": "Usunięte",
+
+  "setting.line-heading": "Wskaźnik liniowy",
+  "setting.line-width.name": "Szerokość",
+  "setting.line-width.desc": "Szerokość pionowego wskaźnika liniowego (w pikselach).",
+
+  "setting.gutter-heading.name": "Wskaźnik na marginesie",
+  "setting.gutter-heading.prefix": "Znaki wskaźnika typu na marginesie (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Znak zmiany",
+  "setting.gutter-added.name": "Znak dodania",
+  "setting.gutter-restored.name": "Znak przywrócenia",
+  "setting.gutter-removed.name": "Znak usunięcia",
+
+  "modal.title": "Historia",
+  "modal.no-changes": "Brak zmian",
+  "modal.identical-to-current": "Identyczne z bieżącą",
+
+  "modal.restore-original": "Przywróć oryginał",
+  "modal.remove-history": "Usuń historię pliku",
+  "modal.previous-difference": "Poprzednia różnica",
+  "modal.next-difference": "Następna różnica",
+  "modal.mode.patch": "Pokaż łatkę",
+  "modal.mode.inline": "W treści",
+  "modal.mode.line-by-line": "Linia po linii",
+  "modal.mode.side-by-side": "Obok siebie",
+
+  "modal.confirm.cancel": "Anuluj",
+  "modal.confirm.restore.title": "Przywróć oryginalny plik",
+  "modal.confirm.restore.message": "Czy na pewno chcesz przywrócić ten plik do stanu pierwotnego? Wszystkie bieżące zmiany zostaną utracone, a historia śledzenia zmian zostanie zresetowana. Tej operacji nie można cofnąć.",
+  "modal.confirm.restore.button": "Przywróć plik",
+  "modal.confirm.remove.title": "Usuń historię pliku",
+  "modal.confirm.remove.message": "Czy na pewno chcesz usunąć historię śledzenia zmian tego pliku? Tej operacji nie można cofnąć.",
+  "modal.confirm.remove.button": "Usuń historię",
+  "modal.confirm.revert.title": "Wycofaj tę zmianę",
+  "modal.confirm.revert.message": "Wycofać tę zmianę do wybranej bazy? Pozostałe zmiany zostaną zachowane.",
+  "modal.confirm.revert.button": "Wycofaj",
+
+  "modal.search-versions": "Szukaj wersji",
+  "modal.version.baseline": "Bieżąca",
+  "modal.version.numbered": "Wersja {number}",
+  "modal.version.current": "Bieżąca",
+  "modal.version.original": "Oryginał",
+  "modal.no-versions-match": "Brak wersji pasujących do wyszukiwania",
+  "modal.no-snapshots-yet": "Brak na razie wersji pośrednich",
+
+  "modal.revert-hunk": "Wycofaj tę zmianę",
+
+  "modal.copy": "Kopiuj"
+}

@@ -1,0 +1,121 @@
+{
+  "command.go-to-next-change": "Иди на следећу измену",
+  "command.go-to-previous-change": "Иди на претходну измену",
+  "command.reset-lines-all": "Ресетуј снимке пратиоца линија за све фајлове",
+  "command.reset-lines": "Ресетуј снимак пратиоца линија текућег документа",
+  "command.show-diff": "Прикажи све измене текућег документа",
+
+  "notice.no-changes-to-navigate": "Нема измена за навигацију",
+  "notice.all-snapshots-deleted": "Сви подаци снимака су обрисани",
+  "notice.current-snapshot-deleted": "Подаци текућег снимка су обрисани",
+  "notice.file-restored": "Фајл је враћен у првобитно стање",
+  "notice.file-restore-failed": "Враћање фајла у првобитно стање није успело",
+  "notice.copied": "Копирано!",
+  "notice.no-saved-history": "За овај фајл нема сачуване историје.",
+  "notice.invalid-exclude-pattern": "Local history: образац искључених путања није исправан регуларни израз и биће занемарен.",
+
+  "menu.local-history": "Локална историја",
+  "menu.show-changes": "Прикажи измене",
+
+  "status.lines-changed": "Измењено линија: {count}",
+
+  "setting.type.name": "Тип",
+  "setting.type.desc": "Изаберите вертикалну линију или тачку на маргини.",
+  "setting.type.option.line": "Вертикална линија",
+  "setting.type.option.dot": "Знак на маргини",
+
+  "setting.allowed-extensions.name": "Дозвољене екстензије фајлова",
+  "setting.allowed-extensions.desc": "Списак екстензија фајлова раздвојених зарезима, чије се измене прате (нпр. md, txt, csv, json, yaml)",
+
+  "setting.exclude-paths.name": "Искључене путање",
+  "setting.exclude-paths.desc": "Регуларни израз који не разликује велика и мала слова, упоређује се са путањом релативном у односу на трезор. Сваки фајл чија се путања подудара никада се не прати (нпр. \\.excalidraw\\.md$ или (^|/)Templates/). Подразумевано се искључују фасцикле Templates и Excalidraw цртежи. Оставите празно да бисте пратили све.",
+
+  "setting.keep.name": "Чувај историју до",
+  "setting.keep.desc": "Стратегија чишћења историје ревизија",
+  "setting.keep.option.app": "Затварања апликације",
+  "setting.keep.option.file": "Затварања фајла",
+
+  "setting.ignore-new-files.name": "Занемари нове фајлове",
+  "setting.ignore-new-files.desc": "Не прати измене у фајловима направљеним након почетка праћења",
+
+  "setting.persist.name": "Задржи историју између поновних покретања",
+  "setting.persist.desc": "Чувај историју на диску да би истицања преживела поновно покретање. Захтева да опција \"Чувај историју до\" буде подешена на затварање апликације.",
+
+  "setting.max-entries.name": "Највише сачуваних фајлова",
+  "setting.max-entries.desc": "Ограничење броја историја фајлова које се чувају на диску. Прво се уклањају најстарије. Поставите на 0 да искључите.",
+
+  "setting.max-age-days.name": "Највећа старост историје (дани)",
+  "setting.max-age-days.desc": "Одбаци сачувану историју старију од оволико дана. Поставите на 0 да искључите.",
+
+  "setting.snapshots-heading": "Снимци временске осе",
+
+  "setting.snapshots-enabled.name": "Хватај међуверзије",
+  "setting.snapshots-enabled.desc": "Чувај временску осу ранијих верзија да бисте могли да упоредите са међутачком, а не само са оригиналом.",
+
+  "setting.snapshots-edit-threshold.name": "Хватај на сваких (измене)",
+  "setting.snapshots-edit-threshold.desc": "Направи верзију после оволико измена. Поставите на 0 да искључите окидач по изменама.",
+
+  "setting.snapshots-interval.name": "Хватај на сваких (минути)",
+  "setting.snapshots-interval.desc": "Направи верзију после оволико минута уређивања. Поставите на 0 да искључите временски окидач.",
+
+  "setting.max-version-age-days.name": "Највећа старост верзије (дани)",
+  "setting.max-version-age-days.desc": "Одбаци међуверзије старије од оволико дана (главно ограничење). Поставите на 0 да искључите.",
+
+  "setting.max-versions.name": "Највише верзија по фајлу",
+  "setting.max-versions.desc": "Сигурносно ограничење броја међуверзија које се чувају по фајлу. Прво се уклањају најстарије. Поставите на 0 да искључите.",
+
+  "setting.show-heading": "Прикажи индикатор за",
+  "setting.show.desc": "Индикатори линија приказују се само у режимима уређивања (изворни код и живи преглед). У режиму читања нема уграђених индикатора, али је историја измена и даље доступна: покрените команду \"Прикажи све измене текућег документа\" или употребите контекстни мени фајла у прегледачу фајлова.",
+  "setting.show.changed": "Измењено",
+  "setting.show.restored": "Враћено",
+  "setting.show.added": "Додато",
+  "setting.show.removed": "Уклоњено",
+
+  "setting.line-heading": "Линијски индикатор",
+  "setting.line-width.name": "Ширина",
+  "setting.line-width.desc": "Ширина вертикалног линијског индикатора (у пикселима).",
+
+  "setting.gutter-heading.name": "Индикатор на маргини",
+  "setting.gutter-heading.prefix": "Знаци индикатора типа на маргини (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Знак измене",
+  "setting.gutter-added.name": "Знак додавања",
+  "setting.gutter-restored.name": "Знак враћања",
+  "setting.gutter-removed.name": "Знак уклањања",
+
+  "modal.title": "Историја",
+  "modal.no-changes": "Нема измена",
+  "modal.identical-to-current": "Идентично текућем",
+
+  "modal.restore-original": "Врати оригинал",
+  "modal.remove-history": "Уклони историју фајла",
+  "modal.previous-difference": "Претходна разлика",
+  "modal.next-difference": "Следећа разлика",
+  "modal.mode.patch": "Прикажи закрпу",
+  "modal.mode.inline": "Уграђено",
+  "modal.mode.line-by-line": "Линија по линија",
+  "modal.mode.side-by-side": "Једно поред другог",
+
+  "modal.confirm.cancel": "Откажи",
+  "modal.confirm.restore.title": "Врати оригинални фајл",
+  "modal.confirm.restore.message": "Да ли сте сигурни да желите да вратите овај фајл у првобитно стање? Све текуће измене биће изгубљене, а историја праћења измена биће ресетована. Ова радња се не може опозвати.",
+  "modal.confirm.restore.button": "Врати фајл",
+  "modal.confirm.remove.title": "Уклони историју фајла",
+  "modal.confirm.remove.message": "Да ли сте сигурни да желите да уклоните историју праћења измена за овај фајл? Ова радња се не може опозвати.",
+  "modal.confirm.remove.button": "Уклони историју",
+  "modal.confirm.revert.title": "Опозови ову измену",
+  "modal.confirm.revert.message": "Опозвати ову измену на изабрану основу? Остале измене се задржавају.",
+  "modal.confirm.revert.button": "Опозови",
+
+  "modal.search-versions": "Претражи верзије",
+  "modal.version.baseline": "Текућа",
+  "modal.version.numbered": "Верзија {number}",
+  "modal.version.current": "Текућа",
+  "modal.version.original": "Оригинал",
+  "modal.no-versions-match": "Ниједна верзија не одговара претрази",
+  "modal.no-snapshots-yet": "Још нема међуснимака",
+
+  "modal.revert-hunk": "Опозови ову измену",
+
+  "modal.copy": "Копирај"
+}

@@ -537,12 +537,44 @@ export class FileSnapshot {
   }
 
   /**
+   * Resolves the timestamp of the file's last update. Prefers the file's
+   * modification time (the real last-change moment of the live content), and
+   * falls back to the snapshot's creation time when no file stat is available
+   * (for example a detached snapshot in tests).
+   *
+   * @return {number} The last-change timestamp in milliseconds
+   */
+  public getLastChangedTimestamp(): number {
+    return this.file?.stat?.mtime ?? this.timestamp;
+  }
+
+  /**
    * Retrieves the last modified date and time as a localized string.
    *
    * @return {string} The date and time of the last change in a localized string format.
    */
   public getLastChangedDateTime(): string {
-    return new Date(this.timestamp).toLocaleString();
+    return new Date(this.getLastChangedTimestamp()).toLocaleString();
+  }
+
+  /**
+   * Retrieves the last modified day as a localized date string (no time), used
+   * as the day-group key and label for the baseline entry in the history modal.
+   *
+   * @return {string} The localized last-change date
+   */
+  public getLastChangedDate(): string {
+    return new Date(this.getLastChangedTimestamp()).toLocaleDateString();
+  }
+
+  /**
+   * Retrieves the last modified time of day as a localized string, shown as the
+   * baseline entry's meta once its day lives in the group heading.
+   *
+   * @return {string} The localized last-change time
+   */
+  public getLastChangedTime(): string {
+    return new Date(this.getLastChangedTimestamp()).toLocaleTimeString();
   }
 
   /**

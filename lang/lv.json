@@ -1,0 +1,121 @@
+{
+  "command.go-to-next-change": "Pāriet uz nākamo izmaiņu",
+  "command.go-to-previous-change": "Pāriet uz iepriekšējo izmaiņu",
+  "command.reset-lines-all": "Atiestatīt visus rindu izsekošanas momentuzņēmumus",
+  "command.reset-lines": "Atiestatīt pašreizējā dokumenta rindu izsekošanas momentuzņēmumu",
+  "command.show-diff": "Rādīt visas pašreizējā dokumenta izmaiņas",
+
+  "notice.no-changes-to-navigate": "Nav izmaiņu, starp kurām pārvietoties",
+  "notice.all-snapshots-deleted": "Visi momentuzņēmumu dati dzēsti",
+  "notice.current-snapshot-deleted": "Pašreizējie momentuzņēmuma dati dzēsti",
+  "notice.file-restored": "Fails atjaunots sākotnējā stāvoklī",
+  "notice.file-restore-failed": "Neizdevās atjaunot failu sākotnējā stāvoklī",
+  "notice.copied": "Nokopēts!",
+  "notice.no-saved-history": "Šim failam nav saglabātas vēstures.",
+  "notice.invalid-exclude-pattern": "Vietējā vēsture: izslēgto ceļu raksts nav derīga regulārā izteiksme un tiek ignorēts.",
+
+  "menu.local-history": "Vietējā vēsture",
+  "menu.show-changes": "Rādīt izmaiņas",
+
+  "status.lines-changed": "Mainītas {count} rindas",
+
+  "setting.type.name": "Veids",
+  "setting.type.desc": "Izvēlieties starp vertikālu līniju vai punktu malā.",
+  "setting.type.option.line": "Vertikāla līnija",
+  "setting.type.option.dot": "Rakstzīme malā",
+
+  "setting.allowed-extensions.name": "Atļautie failu paplašinājumi",
+  "setting.allowed-extensions.desc": "Ar komatiem atdalīts failu paplašinājumu saraksts, kuru izmaiņas tiek izsekotas (piem., md, txt, csv, json, yaml)",
+
+  "setting.exclude-paths.name": "Izslēgtie ceļi",
+  "setting.exclude-paths.desc": "Regulārā izteiksme (neatkarīga no reģistra), kas tiek salīdzināta ar ceļu attiecībā pret glabātavu. Jebkurš fails, kura ceļš atbilst, nekad netiek izsekots (piem., \\.excalidraw\\.md$ vai (^|/)Templates/). Pēc noklusējuma tiek izslēgtas Templates mapes un Excalidraw zīmējumi. Atstājiet tukšu, lai izsekotu visu.",
+
+  "setting.keep.name": "Saglabāt vēsturi līdz",
+  "setting.keep.desc": "Stratēģija pārskatu vēstures tīrīšanai",
+  "setting.keep.option.app": "Lietotnes aizvēršanai",
+  "setting.keep.option.file": "Faila aizvēršanai",
+
+  "setting.ignore-new-files.name": "Ignorēt jaunus failus",
+  "setting.ignore-new-files.desc": "Neizsekot izmaiņas failos, kas izveidoti pēc izsekošanas sākšanas",
+
+  "setting.persist.name": "Saglabāt vēsturi starp restartiem",
+  "setting.persist.desc": "Saglabāt vēsturi diskā, lai izcēlumi saglabātos pēc restarta. Nepieciešams, lai \"Saglabāt vēsturi līdz\" būtu iestatīts uz Lietotnes aizvēršanai.",
+
+  "setting.max-entries.name": "Maks. saglabāto failu skaits",
+  "setting.max-entries.desc": "Ierobežojums tam, cik failu vēstures tiek glabātas diskā. Vecākās tiek dzēstas vispirms. Iestatiet uz 0, lai atspējotu.",
+
+  "setting.max-age-days.name": "Maks. vēstures vecums (dienas)",
+  "setting.max-age-days.desc": "Atmest saglabāto vēsturi, kas vecāka par tik dienām. Iestatiet uz 0, lai atspējotu.",
+
+  "setting.snapshots-heading": "Laika līnijas momentuzņēmumi",
+
+  "setting.snapshots-enabled.name": "Tvert starpversijas",
+  "setting.snapshots-enabled.desc": "Saglabāt agrāko versiju laika līniju, lai varētu salīdzināt ar starpposma punktu, ne tikai ar oriģinālu.",
+
+  "setting.snapshots-edit-threshold.name": "Tvert ik pēc (rediģējumiem)",
+  "setting.snapshots-edit-threshold.desc": "Saglabāt versiju pēc tik rediģējumiem. Iestatiet uz 0, lai atspējotu rediģēšanas izraisītāju.",
+
+  "setting.snapshots-interval.name": "Tvert ik pēc (minūtēm)",
+  "setting.snapshots-interval.desc": "Saglabāt versiju pēc tik rediģēšanas minūtēm. Iestatiet uz 0, lai atspējotu laika izraisītāju.",
+
+  "setting.max-version-age-days.name": "Maks. versijas vecums (dienas)",
+  "setting.max-version-age-days.desc": "Atmest starpversijas, kas vecākas par tik dienām (galvenais ierobežojums). Iestatiet uz 0, lai atspējotu.",
+
+  "setting.max-versions.name": "Maks. versiju skaits failā",
+  "setting.max-versions.desc": "Drošības ierobežojums starpversiju skaitam, kas tiek glabāts katram failam. Vecākās tiek dzēstas vispirms. Iestatiet uz 0, lai atspējotu.",
+
+  "setting.show-heading": "Rādīt indikatoru priekš",
+  "setting.show.desc": "Rindu indikatori tiek rādīti tikai rediģēšanas režīmos (pirmkods un tiešā priekšskatīšana). Lasīšanas režīmā iekļauto indikatoru nav, bet izmaiņu vēsture joprojām ir pieejama: izpildiet komandu \"Rādīt visas pašreizējā dokumenta izmaiņas\" vai izmantojiet faila konteksta izvēlni failu pārlūkā.",
+  "setting.show.changed": "Mainīts",
+  "setting.show.restored": "Atjaunots",
+  "setting.show.added": "Pievienots",
+  "setting.show.removed": "Noņemts",
+
+  "setting.line-heading": "Rindas indikators",
+  "setting.line-width.name": "Platums",
+  "setting.line-width.desc": "Vertikālā rindas indikatora platums (pikseļos).",
+
+  "setting.gutter-heading.name": "Malas indikators",
+  "setting.gutter-heading.prefix": "Malas tipa indikatora rakstzīmes (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Izmaiņas rakstzīme",
+  "setting.gutter-added.name": "Pievienotā rakstzīme",
+  "setting.gutter-restored.name": "Atjaunotā rakstzīme",
+  "setting.gutter-removed.name": "Noņemtā rakstzīme",
+
+  "modal.title": "Vēsture",
+  "modal.no-changes": "Nav izmaiņu",
+  "modal.identical-to-current": "Identisks pašreizējam",
+
+  "modal.restore-original": "Atjaunot oriģinālu",
+  "modal.remove-history": "Noņemt faila vēsturi",
+  "modal.previous-difference": "Iepriekšējā atšķirība",
+  "modal.next-difference": "Nākamā atšķirība",
+  "modal.mode.patch": "Rādīt ielāpu",
+  "modal.mode.inline": "Iekļauts",
+  "modal.mode.line-by-line": "Rindu pa rindai",
+  "modal.mode.side-by-side": "Blakus",
+
+  "modal.confirm.cancel": "Atcelt",
+  "modal.confirm.restore.title": "Atjaunot oriģinālo failu",
+  "modal.confirm.restore.message": "Vai tiešām vēlaties atjaunot šo failu sākotnējā stāvoklī? Visas pašreizējās izmaiņas tiks zaudētas, un izmaiņu izsekošanas vēsture tiks atiestatīta. Šo darbību nevar atsaukt.",
+  "modal.confirm.restore.button": "Atjaunot failu",
+  "modal.confirm.remove.title": "Noņemt faila vēsturi",
+  "modal.confirm.remove.message": "Vai tiešām vēlaties noņemt šī faila izmaiņu izsekošanas vēsturi? Šo darbību nevar atsaukt.",
+  "modal.confirm.remove.button": "Noņemt vēsturi",
+  "modal.confirm.revert.title": "Atsaukt šo izmaiņu",
+  "modal.confirm.revert.message": "Atsaukt šo izmaiņu atpakaļ uz izvēlēto bāzi? Pārējās izmaiņas tiek saglabātas.",
+  "modal.confirm.revert.button": "Atsaukt",
+
+  "modal.search-versions": "Meklēt versijās",
+  "modal.version.baseline": "Pašreizējais",
+  "modal.version.numbered": "Versija {number}",
+  "modal.version.current": "Pašreizējais",
+  "modal.version.original": "Oriģināls",
+  "modal.no-versions-match": "Neviena versija neatbilst meklējumam",
+  "modal.no-snapshots-yet": "Vēl nav starpposma momentuzņēmumu",
+
+  "modal.revert-hunk": "Atsaukt šo izmaiņu",
+
+  "modal.copy": "Kopēt"
+}

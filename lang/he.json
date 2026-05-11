@@ -1,0 +1,121 @@
+{
+  "command.go-to-next-change": "מעבר לשינוי הבא",
+  "command.go-to-previous-change": "מעבר לשינוי הקודם",
+  "command.reset-lines-all": "איפוס כל תצלומי מעקב השורות",
+  "command.reset-lines": "איפוס תצלום מעקב השורות של המסמך הנוכחי",
+  "command.show-diff": "הצגת כל השינויים במסמך הנוכחי",
+
+  "notice.no-changes-to-navigate": "אין שינויים לניווט",
+  "notice.all-snapshots-deleted": "כל נתוני התצלומים נמחקו",
+  "notice.current-snapshot-deleted": "נתוני התצלום הנוכחי נמחקו",
+  "notice.file-restored": "הקובץ שוחזר למצבו המקורי",
+  "notice.file-restore-failed": "שחזור הקובץ למצבו המקורי נכשל",
+  "notice.copied": "הועתק!",
+  "notice.no-saved-history": "אין היסטוריה שמורה לקובץ זה.",
+  "notice.invalid-exclude-pattern": "היסטוריה מקומית: תבנית הנתיבים המוחרגים אינה ביטוי רגולרי תקין והיא תתעלם.",
+
+  "menu.local-history": "היסטוריה מקומית",
+  "menu.show-changes": "הצגת שינויים",
+
+  "status.lines-changed": "{count} שורות שונו",
+
+  "setting.type.name": "סוג",
+  "setting.type.desc": "בחירה בין קו אנכי לבין נקודה בשוליים.",
+  "setting.type.option.line": "קו אנכי",
+  "setting.type.option.dot": "תו בשוליים",
+
+  "setting.allowed-extensions.name": "סיומות קבצים מותרות",
+  "setting.allowed-extensions.desc": "רשימת סיומות קבצים מופרדות בפסיקים שיש לעקוב אחר שינויים בהן (למשל md, txt, csv, json, yaml)",
+
+  "setting.exclude-paths.name": "נתיבים מוחרגים",
+  "setting.exclude-paths.desc": "ביטוי רגולרי שאינו תלוי רישיות המושווה אל הנתיב היחסי לכספת. כל קובץ שהנתיב שלו תואם לעולם אינו נמצא במעקב (למשל \\.excalidraw\\.md$ או (^|/)Templates/). ברירת המחדל מחריגה תיקיות Templates ושרטוטי Excalidraw. השאר ריק כדי לעקוב אחר הכול.",
+
+  "setting.keep.name": "שמירת היסטוריה עד",
+  "setting.keep.desc": "אסטרטגיה לניקוי היסטוריית הגרסאות",
+  "setting.keep.option.app": "סגירת היישום",
+  "setting.keep.option.file": "סגירת הקובץ",
+
+  "setting.ignore-new-files.name": "התעלמות מקבצים חדשים",
+  "setting.ignore-new-files.desc": "אל תעקוב אחר שינויים בקבצים שנוצרו לאחר תחילת המעקב",
+
+  "setting.persist.name": "שמירת היסטוריה בין הפעלות מחדש",
+  "setting.persist.desc": "שמור את ההיסטוריה לדיסק כדי שההדגשות ישרדו הפעלה מחדש. דורש הגדרת \"שמירת היסטוריה עד\" לסגירת היישום.",
+
+  "setting.max-entries.name": "מקסימום קבצים שמורים",
+  "setting.max-entries.desc": "מגבלה על מספר היסטוריות הקבצים הנשמרות בדיסק. הישנים ביותר מפונים תחילה. הגדר ל-0 לביטול.",
+
+  "setting.max-age-days.name": "גיל היסטוריה מרבי (ימים)",
+  "setting.max-age-days.desc": "מחק היסטוריה שמורה ישנה ממספר ימים זה. הגדר ל-0 לביטול.",
+
+  "setting.snapshots-heading": "תצלומי ציר הזמן",
+
+  "setting.snapshots-enabled.name": "לכידת גרסאות ביניים",
+  "setting.snapshots-enabled.desc": "שמור ציר זמן של גרסאות קודמות כדי שתוכל להשוות מול נקודה ביניים, ולא רק מול המקור.",
+
+  "setting.snapshots-edit-threshold.name": "לכידה בכל (עריכות)",
+  "setting.snapshots-edit-threshold.desc": "צלם גרסה לאחר מספר זה של עריכות. הגדר ל-0 לביטול טריגר העריכות.",
+
+  "setting.snapshots-interval.name": "לכידה בכל (דקות)",
+  "setting.snapshots-interval.desc": "צלם גרסה לאחר מספר זה של דקות עריכה. הגדר ל-0 לביטול הטריגר הזמני.",
+
+  "setting.max-version-age-days.name": "גיל גרסה מרבי (ימים)",
+  "setting.max-version-age-days.desc": "מחק גרסאות ביניים ישנות ממספר ימים זה (החסם העיקרי). הגדר ל-0 לביטול.",
+
+  "setting.max-versions.name": "מקסימום גרסאות לכל קובץ",
+  "setting.max-versions.desc": "מגבלת בטיחות על גרסאות הביניים הנשמרות לכל קובץ. הישנים ביותר מפונים תחילה. הגדר ל-0 לביטול.",
+
+  "setting.show-heading": "הצגת מחוון עבור",
+  "setting.show.desc": "מחווני שורות מוצגים רק במצבי העריכה (קוד מקור ותצוגה מקדימה חיה). במצב קריאה אין מחוונים מוטמעים, אך היסטוריית השינויים עדיין נגישה: הרץ את הפקודה \"הצגת כל השינויים במסמך הנוכחי\" או השתמש בתפריט ההקשר של הקובץ בסייר הקבצים.",
+  "setting.show.changed": "שונה",
+  "setting.show.restored": "שוחזר",
+  "setting.show.added": "נוסף",
+  "setting.show.removed": "הוסר",
+
+  "setting.line-heading": "מחוון שורה",
+  "setting.line-width.name": "רוחב",
+  "setting.line-width.desc": "רוחב מחוון הקו האנכי (בפיקסלים).",
+
+  "setting.gutter-heading.name": "מחוון שוליים",
+  "setting.gutter-heading.prefix": "תווי מחוון הסוג בשוליים (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "תו שינוי",
+  "setting.gutter-added.name": "תו הוספה",
+  "setting.gutter-restored.name": "תו שחזור",
+  "setting.gutter-removed.name": "תו הסרה",
+
+  "modal.title": "היסטוריה",
+  "modal.no-changes": "אין שינויים",
+  "modal.identical-to-current": "זהה לנוכחי",
+
+  "modal.restore-original": "שחזור המקור",
+  "modal.remove-history": "הסרת היסטוריית הקובץ",
+  "modal.previous-difference": "ההבדל הקודם",
+  "modal.next-difference": "ההבדל הבא",
+  "modal.mode.patch": "הצגת טלאי",
+  "modal.mode.inline": "מוטמע",
+  "modal.mode.line-by-line": "שורה אחר שורה",
+  "modal.mode.side-by-side": "זה לצד זה",
+
+  "modal.confirm.cancel": "ביטול",
+  "modal.confirm.restore.title": "שחזור הקובץ המקורי",
+  "modal.confirm.restore.message": "האם אתה בטוח שברצונך לשחזר קובץ זה למצבו המקורי? כל השינויים הנוכחיים יאבדו והיסטוריית מעקב השינויים תאופס. לא ניתן לבטל פעולה זו.",
+  "modal.confirm.restore.button": "שחזור הקובץ",
+  "modal.confirm.remove.title": "הסרת היסטוריית הקובץ",
+  "modal.confirm.remove.message": "האם אתה בטוח שברצונך להסיר את היסטוריית מעקב השינויים לקובץ זה? לא ניתן לבטל פעולה זו.",
+  "modal.confirm.remove.button": "הסרת היסטוריה",
+  "modal.confirm.revert.title": "ביטול שינוי זה",
+  "modal.confirm.revert.message": "לבטל שינוי זה ולחזור לבסיס הנבחר? שינויים אחרים נשמרים.",
+  "modal.confirm.revert.button": "ביטול שינוי",
+
+  "modal.search-versions": "חיפוש גרסאות",
+  "modal.version.baseline": "נוכחי",
+  "modal.version.numbered": "גרסה {number}",
+  "modal.version.current": "נוכחי",
+  "modal.version.original": "מקורי",
+  "modal.no-versions-match": "אין גרסאות התואמות לחיפוש",
+  "modal.no-snapshots-yet": "אין עדיין תצלומי ביניים",
+
+  "modal.revert-hunk": "ביטול שינוי זה",
+
+  "modal.copy": "העתקה"
+}

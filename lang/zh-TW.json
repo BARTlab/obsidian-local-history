@@ -1,0 +1,121 @@
+{
+  "command.go-to-next-change": "跳至下一處變更",
+  "command.go-to-previous-change": "跳至上一處變更",
+  "command.reset-lines-all": "重設所有行追蹤快照",
+  "command.reset-lines": "重設目前文件的行追蹤快照",
+  "command.show-diff": "顯示目前文件的所有變更",
+
+  "notice.no-changes-to-navigate": "沒有可跳至的變更",
+  "notice.all-snapshots-deleted": "已刪除所有快照資料",
+  "notice.current-snapshot-deleted": "已刪除目前快照資料",
+  "notice.file-restored": "檔案已還原為原始狀態",
+  "notice.file-restore-failed": "無法將檔案還原為原始狀態",
+  "notice.copied": "已複製！",
+  "notice.no-saved-history": "此檔案沒有已儲存的歷史記錄。",
+  "notice.invalid-exclude-pattern": "本機歷史：排除路徑的模式不是有效的正規表示式，已被忽略。",
+
+  "menu.local-history": "本機歷史",
+  "menu.show-changes": "顯示變更",
+
+  "status.lines-changed": "已變更 {count} 行",
+
+  "setting.type.name": "類型",
+  "setting.type.desc": "在邊欄中選擇顯示垂直線或圓點。",
+  "setting.type.option.line": "垂直線",
+  "setting.type.option.dot": "邊欄字元",
+
+  "setting.allowed-extensions.name": "允許的檔案副檔名",
+  "setting.allowed-extensions.desc": "用於追蹤變更的檔案副檔名清單，以逗號分隔（例如 md, txt, csv, json, yaml）",
+
+  "setting.exclude-paths.name": "排除的路徑",
+  "setting.exclude-paths.desc": "一個不分大小寫的正規表示式，用於比對相對於保管庫的路徑。路徑相符的任何檔案都不會被追蹤（例如 \\.excalidraw\\.md$ 或 (^|/)Templates/）。預設會排除 Templates 資料夾與 Excalidraw 繪圖。留空則追蹤所有內容。",
+
+  "setting.keep.name": "保留歷史記錄直到",
+  "setting.keep.desc": "清理修訂歷史的策略",
+  "setting.keep.option.app": "關閉應用程式時",
+  "setting.keep.option.file": "關閉檔案時",
+
+  "setting.ignore-new-files.name": "忽略新檔案",
+  "setting.ignore-new-files.desc": "不追蹤在開始追蹤後建立的檔案中的變更",
+
+  "setting.persist.name": "重新啟動後保留歷史記錄",
+  "setting.persist.desc": "將歷史記錄儲存至磁碟，使醒目提示在重新啟動後依然保留。需要將「保留歷史記錄直到」設定為關閉應用程式時。",
+
+  "setting.max-entries.name": "最多儲存的檔案數",
+  "setting.max-entries.desc": "磁碟上保留的檔案歷史記錄數量上限。最舊的會被優先清除。設為 0 可停用。",
+
+  "setting.max-age-days.name": "歷史記錄最長保留天數（天）",
+  "setting.max-age-days.desc": "刪除超過此天數的已儲存歷史記錄。設為 0 可停用。",
+
+  "setting.snapshots-heading": "時間軸快照",
+
+  "setting.snapshots-enabled.name": "擷取中間版本",
+  "setting.snapshots-enabled.desc": "保留早期版本的時間軸，讓你不僅能與原始狀態比對，還能與中間某個時點比對。",
+
+  "setting.snapshots-edit-threshold.name": "擷取間隔（編輯次數）",
+  "setting.snapshots-edit-threshold.desc": "每編輯這麼多次後擷取一個版本。設為 0 可停用編輯次數觸發。",
+
+  "setting.snapshots-interval.name": "擷取間隔（分鐘）",
+  "setting.snapshots-interval.desc": "每編輯這麼多分鐘後擷取一個版本。設為 0 可停用時間觸發。",
+
+  "setting.max-version-age-days.name": "版本最長保留天數（天）",
+  "setting.max-version-age-days.desc": "刪除超過此天數的中間版本（主要限制）。設為 0 可停用。",
+
+  "setting.max-versions.name": "每個檔案的最大版本數",
+  "setting.max-versions.desc": "每個檔案保留中間版本數量的安全上限。最舊的會被優先清除。設為 0 可停用。",
+
+  "setting.show-heading": "顯示指示器的對象",
+  "setting.show.desc": "行指示器僅在編輯（原始碼與即時預覽）模式下顯示。閱讀模式下沒有內嵌指示器，但仍可存取變更歷史：執行「顯示目前文件的所有變更」命令，或在檔案總管中使用檔案的右鍵選單。",
+  "setting.show.changed": "已變更",
+  "setting.show.restored": "已還原",
+  "setting.show.added": "已新增",
+  "setting.show.removed": "已刪除",
+
+  "setting.line-heading": "行指示器",
+  "setting.line-width.name": "寬度",
+  "setting.line-width.desc": "垂直線指示器的寬度（以像素為單位）。",
+
+  "setting.gutter-heading.name": "邊欄指示器",
+  "setting.gutter-heading.prefix": "邊欄類型指示器的字元（",
+  "setting.gutter-heading.suffix": "）。",
+  "setting.gutter-changed.name": "變更字元",
+  "setting.gutter-added.name": "新增字元",
+  "setting.gutter-restored.name": "還原字元",
+  "setting.gutter-removed.name": "刪除字元",
+
+  "modal.title": "歷史記錄",
+  "modal.no-changes": "無變更",
+  "modal.identical-to-current": "與目前內容相同",
+
+  "modal.restore-original": "還原原始內容",
+  "modal.remove-history": "移除檔案歷史記錄",
+  "modal.previous-difference": "上一處差異",
+  "modal.next-difference": "下一處差異",
+  "modal.mode.patch": "顯示修補檔",
+  "modal.mode.inline": "內嵌",
+  "modal.mode.line-by-line": "逐行",
+  "modal.mode.side-by-side": "並排",
+
+  "modal.confirm.cancel": "取消",
+  "modal.confirm.restore.title": "還原原始檔案",
+  "modal.confirm.restore.message": "確定要將此檔案還原為原始狀態嗎？所有目前變更都將遺失，變更追蹤歷史也將被重設。此操作無法復原。",
+  "modal.confirm.restore.button": "還原檔案",
+  "modal.confirm.remove.title": "移除檔案歷史記錄",
+  "modal.confirm.remove.message": "確定要移除此檔案的變更追蹤歷史嗎？此操作無法復原。",
+  "modal.confirm.remove.button": "移除歷史記錄",
+  "modal.confirm.revert.title": "還原此變更",
+  "modal.confirm.revert.message": "將此變更還原至所選基準？其他變更將保留。",
+  "modal.confirm.revert.button": "還原",
+
+  "modal.search-versions": "搜尋版本",
+  "modal.version.baseline": "目前",
+  "modal.version.numbered": "版本 {number}",
+  "modal.version.current": "目前",
+  "modal.version.original": "原始",
+  "modal.no-versions-match": "沒有符合搜尋的版本",
+  "modal.no-snapshots-yet": "尚無中間快照",
+
+  "modal.revert-hunk": "還原此變更",
+
+  "modal.copy": "複製"
+}

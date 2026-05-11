@@ -1,0 +1,121 @@
+{
+  "command.go-to-next-change": "Pergi ke perubahan seterusnya",
+  "command.go-to-previous-change": "Pergi ke perubahan sebelumnya",
+  "command.reset-lines-all": "Tetapkan semula semua snapshot penjejak baris",
+  "command.reset-lines": "Tetapkan semula snapshot penjejak baris dokumen semasa",
+  "command.show-diff": "Tunjukkan semua perubahan dokumen semasa",
+
+  "notice.no-changes-to-navigate": "Tiada perubahan untuk dilayari",
+  "notice.all-snapshots-deleted": "Semua data snapshot dipadamkan",
+  "notice.current-snapshot-deleted": "Data snapshot semasa dipadamkan",
+  "notice.file-restored": "Fail dipulihkan kepada keadaan asal",
+  "notice.file-restore-failed": "Gagal memulihkan fail kepada keadaan asal",
+  "notice.copied": "Disalin!",
+  "notice.no-saved-history": "Tiada sejarah tersimpan untuk fail ini.",
+  "notice.invalid-exclude-pattern": "Sejarah tempatan: corak laluan yang dikecualikan bukan ungkapan biasa yang sah dan diabaikan.",
+
+  "menu.local-history": "Sejarah tempatan",
+  "menu.show-changes": "Tunjukkan perubahan",
+
+  "status.lines-changed": "{count} baris diubah",
+
+  "setting.type.name": "Jenis",
+  "setting.type.desc": "Pilih antara garisan menegak atau titik dalam parit.",
+  "setting.type.option.line": "Garisan menegak",
+  "setting.type.option.dot": "Aksara dalam parit",
+
+  "setting.allowed-extensions.name": "Sambungan fail yang dibenarkan",
+  "setting.allowed-extensions.desc": "Senarai sambungan fail dipisahkan koma untuk dijejak perubahannya (cth. md, txt, csv, json, yaml)",
+
+  "setting.exclude-paths.name": "Laluan yang dikecualikan",
+  "setting.exclude-paths.desc": "Ungkapan biasa yang tidak peka huruf besar-kecil, dipadankan dengan laluan relatif kepada vault. Mana-mana fail yang laluannya sepadan tidak akan dijejak (cth. \\.excalidraw\\.md$ atau (^|/)Templates/). Lalai mengecualikan folder Templates dan lukisan Excalidraw. Biarkan kosong untuk menjejak semuanya.",
+
+  "setting.keep.name": "Simpan sejarah sehingga",
+  "setting.keep.desc": "Strategi untuk membersihkan sejarah semakan",
+  "setting.keep.option.app": "Apl ditutup",
+  "setting.keep.option.file": "Fail ditutup",
+
+  "setting.ignore-new-files.name": "Abaikan fail baharu",
+  "setting.ignore-new-files.desc": "Jangan jejak perubahan pada fail yang dicipta selepas penjejakan bermula",
+
+  "setting.persist.name": "Kekalkan sejarah merentas mula semula",
+  "setting.persist.desc": "Simpan sejarah ke cakera supaya sorotan kekal selepas mula semula. Memerlukan \"simpan sejarah sehingga\" ditetapkan kepada apl ditutup.",
+
+  "setting.max-entries.name": "Maks fail tersimpan",
+  "setting.max-entries.desc": "Had bilangan sejarah fail yang disimpan dalam cakera. Yang terlama dibuang dahulu. Tetapkan kepada 0 untuk lumpuhkan.",
+
+  "setting.max-age-days.name": "Usia maks sejarah (hari)",
+  "setting.max-age-days.desc": "Buang sejarah tersimpan yang lebih lama daripada bilangan hari ini. Tetapkan kepada 0 untuk lumpuhkan.",
+
+  "setting.snapshots-heading": "Snapshot garis masa",
+
+  "setting.snapshots-enabled.name": "Tangkap versi pertengahan",
+  "setting.snapshots-enabled.desc": "Simpan garis masa versi terdahulu supaya anda boleh membezakan dengan titik di antaranya, bukan hanya versi asal.",
+
+  "setting.snapshots-edit-threshold.name": "Tangkap setiap (suntingan)",
+  "setting.snapshots-edit-threshold.desc": "Ambil versi selepas bilangan suntingan ini. Tetapkan kepada 0 untuk lumpuhkan pencetus suntingan.",
+
+  "setting.snapshots-interval.name": "Tangkap setiap (minit)",
+  "setting.snapshots-interval.desc": "Ambil versi selepas bilangan minit penyuntingan ini. Tetapkan kepada 0 untuk lumpuhkan pencetus masa.",
+
+  "setting.max-version-age-days.name": "Usia maks versi (hari)",
+  "setting.max-version-age-days.desc": "Buang versi pertengahan yang lebih lama daripada bilangan hari ini (had utama). Tetapkan kepada 0 untuk lumpuhkan.",
+
+  "setting.max-versions.name": "Maks versi setiap fail",
+  "setting.max-versions.desc": "Had keselamatan versi pertengahan yang disimpan setiap fail. Yang terlama dibuang dahulu. Tetapkan kepada 0 untuk lumpuhkan.",
+
+  "setting.show-heading": "Tunjukkan penunjuk untuk",
+  "setting.show.desc": "Penunjuk baris hanya ditunjukkan dalam mod penyuntingan (sumber dan pratonton langsung). Dalam mod baca tiada penunjuk dalam baris, tetapi sejarah perubahan masih boleh dicapai: jalankan perintah \"Tunjukkan semua perubahan dokumen semasa\" atau guna menu konteks fail dalam penjelajah fail.",
+  "setting.show.changed": "Diubah",
+  "setting.show.restored": "Dipulihkan",
+  "setting.show.added": "Ditambah",
+  "setting.show.removed": "Dibuang",
+
+  "setting.line-heading": "Penunjuk baris",
+  "setting.line-width.name": "Lebar",
+  "setting.line-width.desc": "Lebar penunjuk garisan menegak (dalam piksel).",
+
+  "setting.gutter-heading.name": "Penunjuk parit",
+  "setting.gutter-heading.prefix": "Aksara penunjuk jenis parit (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Aksara perubahan",
+  "setting.gutter-added.name": "Aksara tambahan",
+  "setting.gutter-restored.name": "Aksara pulihan",
+  "setting.gutter-removed.name": "Aksara buangan",
+
+  "modal.title": "Sejarah",
+  "modal.no-changes": "Tiada perubahan",
+  "modal.identical-to-current": "Sama dengan yang semasa",
+
+  "modal.restore-original": "Pulihkan versi asal",
+  "modal.remove-history": "Buang sejarah fail",
+  "modal.previous-difference": "Perbezaan sebelumnya",
+  "modal.next-difference": "Perbezaan seterusnya",
+  "modal.mode.patch": "Tunjukkan patch",
+  "modal.mode.inline": "Dalam baris",
+  "modal.mode.line-by-line": "Baris demi baris",
+  "modal.mode.side-by-side": "Bersebelahan",
+
+  "modal.confirm.cancel": "Batal",
+  "modal.confirm.restore.title": "Pulihkan fail asal",
+  "modal.confirm.restore.message": "Adakah anda pasti mahu memulihkan fail ini kepada keadaan asalnya? Semua perubahan semasa akan hilang dan sejarah penjejakan perubahan akan ditetapkan semula. Tindakan ini tidak boleh dibatalkan.",
+  "modal.confirm.restore.button": "Pulihkan fail",
+  "modal.confirm.remove.title": "Buang sejarah fail",
+  "modal.confirm.remove.message": "Adakah anda pasti mahu membuang sejarah penjejakan perubahan untuk fail ini? Tindakan ini tidak boleh dibatalkan.",
+  "modal.confirm.remove.button": "Buang sejarah",
+  "modal.confirm.revert.title": "Patah balik perubahan ini",
+  "modal.confirm.revert.message": "Patah balik perubahan ini kepada asas yang dipilih? Perubahan lain dikekalkan.",
+  "modal.confirm.revert.button": "Patah balik",
+
+  "modal.search-versions": "Cari versi",
+  "modal.version.baseline": "Semasa",
+  "modal.version.numbered": "Versi {number}",
+  "modal.version.current": "Semasa",
+  "modal.version.original": "Asal",
+  "modal.no-versions-match": "Tiada versi sepadan dengan carian",
+  "modal.no-snapshots-yet": "Belum ada snapshot pertengahan",
+
+  "modal.revert-hunk": "Patah balik perubahan ini",
+
+  "modal.copy": "Salin"
+}

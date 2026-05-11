@@ -1,0 +1,121 @@
+{
+  "command.go-to-next-change": "পরবর্তী পরিবর্তনে যান",
+  "command.go-to-previous-change": "পূর্ববর্তী পরিবর্তনে যান",
+  "command.reset-lines-all": "সমস্ত লাইন ট্র্যাকার স্ন্যাপশট রিসেট করুন",
+  "command.reset-lines": "বর্তমান নথির লাইন ট্র্যাকার স্ন্যাপশট রিসেট করুন",
+  "command.show-diff": "বর্তমান নথির সমস্ত পরিবর্তন দেখান",
+
+  "notice.no-changes-to-navigate": "নেভিগেট করার মতো কোনো পরিবর্তন নেই",
+  "notice.all-snapshots-deleted": "সমস্ত স্ন্যাপশট ডেটা মুছে ফেলা হয়েছে",
+  "notice.current-snapshot-deleted": "বর্তমান স্ন্যাপশট ডেটা মুছে ফেলা হয়েছে",
+  "notice.file-restored": "ফাইল মূল অবস্থায় পুনরুদ্ধার করা হয়েছে",
+  "notice.file-restore-failed": "ফাইল মূল অবস্থায় পুনরুদ্ধার করা যায়নি",
+  "notice.copied": "অনুলিপি করা হয়েছে!",
+  "notice.no-saved-history": "এই ফাইলের জন্য কোনো সংরক্ষিত ইতিহাস নেই।",
+  "notice.invalid-exclude-pattern": "স্থানীয় ইতিহাস: বাদ-দেওয়া-পাথ প্যাটার্নটি বৈধ রেগুলার এক্সপ্রেশন নয় এবং উপেক্ষা করা হচ্ছে।",
+
+  "menu.local-history": "স্থানীয় ইতিহাস",
+  "menu.show-changes": "পরিবর্তন দেখান",
+
+  "status.lines-changed": "{count}টি লাইন পরিবর্তিত হয়েছে",
+
+  "setting.type.name": "ধরন",
+  "setting.type.desc": "গাটারে একটি উল্লম্ব রেখা বা একটি বিন্দুর মধ্যে বেছে নিন।",
+  "setting.type.option.line": "উল্লম্ব রেখা",
+  "setting.type.option.dot": "গাটারে অক্ষর",
+
+  "setting.allowed-extensions.name": "অনুমোদিত ফাইল এক্সটেনশন",
+  "setting.allowed-extensions.desc": "পরিবর্তন ট্র্যাক করার জন্য কমা দিয়ে পৃথক করা ফাইল এক্সটেনশনের তালিকা (যেমন, md, txt, csv, json, yaml)",
+
+  "setting.exclude-paths.name": "বাদ দেওয়া পাথ",
+  "setting.exclude-paths.desc": "ভল্ট-সাপেক্ষ পাথের বিপরীতে মিলানো একটি কেস-অসংবেদনশীল রেগুলার এক্সপ্রেশন। যে কোনো ফাইলের পাথ মিলে গেলে তা কখনো ট্র্যাক করা হয় না (যেমন \\.excalidraw\\.md$ অথবা (^|/)Templates/)। ডিফল্ট হিসেবে Templates ফোল্ডার এবং Excalidraw অঙ্কন বাদ দেওয়া হয়। সবকিছু ট্র্যাক করতে খালি রাখুন।",
+
+  "setting.keep.name": "ইতিহাস রাখুন যতক্ষণ",
+  "setting.keep.desc": "সংশোধন ইতিহাস পরিষ্কার করার কৌশল",
+  "setting.keep.option.app": "অ্যাপ বন্ধ",
+  "setting.keep.option.file": "ফাইল বন্ধ",
+
+  "setting.ignore-new-files.name": "নতুন ফাইল উপেক্ষা করুন",
+  "setting.ignore-new-files.desc": "ট্র্যাকিং শুরু হওয়ার পরে তৈরি ফাইলের পরিবর্তন ট্র্যাক করবেন না",
+
+  "setting.persist.name": "রিস্টার্টের পরেও ইতিহাস ধরে রাখুন",
+  "setting.persist.desc": "ডিস্কে ইতিহাস সংরক্ষণ করুন যাতে হাইলাইটগুলো রিস্টার্টের পরেও থাকে। \"ইতিহাস রাখুন যতক্ষণ\" অ্যাপ বন্ধে সেট করা প্রয়োজন।",
+
+  "setting.max-entries.name": "সর্বাধিক সংরক্ষিত ফাইল",
+  "setting.max-entries.desc": "ডিস্কে কতগুলো ফাইল ইতিহাস রাখা হবে তার সীমা। সবচেয়ে পুরোনোগুলো আগে সরানো হয়। নিষ্ক্রিয় করতে 0 সেট করুন।",
+
+  "setting.max-age-days.name": "সর্বাধিক ইতিহাসের বয়স (দিন)",
+  "setting.max-age-days.desc": "এত দিনের চেয়ে পুরোনো সংরক্ষিত ইতিহাস বাদ দিন। নিষ্ক্রিয় করতে 0 সেট করুন।",
+
+  "setting.snapshots-heading": "টাইমলাইন স্ন্যাপশট",
+
+  "setting.snapshots-enabled.name": "মধ্যবর্তী সংস্করণ ধারণ করুন",
+  "setting.snapshots-enabled.desc": "পূর্ববর্তী সংস্করণগুলোর একটি টাইমলাইন রাখুন যাতে আপনি কেবল মূলটির সাথে নয়, মাঝের কোনো বিন্দুর সাথেও পার্থক্য দেখতে পারেন।",
+
+  "setting.snapshots-edit-threshold.name": "প্রতি (সম্পাদনা) ধারণ করুন",
+  "setting.snapshots-edit-threshold.desc": "এতগুলো সম্পাদনার পরে একটি সংস্করণ নিন। সম্পাদনা ট্রিগার নিষ্ক্রিয় করতে 0 সেট করুন।",
+
+  "setting.snapshots-interval.name": "প্রতি (মিনিট) ধারণ করুন",
+  "setting.snapshots-interval.desc": "এতগুলো মিনিট সম্পাদনার পরে একটি সংস্করণ নিন। সময় ট্রিগার নিষ্ক্রিয় করতে 0 সেট করুন।",
+
+  "setting.max-version-age-days.name": "সর্বাধিক সংস্করণের বয়স (দিন)",
+  "setting.max-version-age-days.desc": "এত দিনের চেয়ে পুরোনো মধ্যবর্তী সংস্করণ বাদ দিন (প্রধান সীমা)। নিষ্ক্রিয় করতে 0 সেট করুন।",
+
+  "setting.max-versions.name": "প্রতি ফাইলে সর্বাধিক সংস্করণ",
+  "setting.max-versions.desc": "প্রতি ফাইলে রাখা মধ্যবর্তী সংস্করণের নিরাপত্তা সীমা। সবচেয়ে পুরোনোগুলো আগে সরানো হয়। নিষ্ক্রিয় করতে 0 সেট করুন।",
+
+  "setting.show-heading": "এর জন্য নির্দেশক দেখান",
+  "setting.show.desc": "লাইন নির্দেশকগুলো কেবল সম্পাদনা (সোর্স এবং লাইভ প্রিভিউ) মোডে দেখানো হয়। পঠন মোডে কোনো ইনলাইন নির্দেশক নেই, তবে পরিবর্তন ইতিহাস এখনও পাওয়া যায়: \"বর্তমান নথির সমস্ত পরিবর্তন দেখান\" কমান্ডটি চালান অথবা ফাইল এক্সপ্লোরারে ফাইল কনটেক্সট মেনু ব্যবহার করুন।",
+  "setting.show.changed": "পরিবর্তিত",
+  "setting.show.restored": "পুনরুদ্ধারকৃত",
+  "setting.show.added": "যোগকৃত",
+  "setting.show.removed": "অপসারিত",
+
+  "setting.line-heading": "লাইন নির্দেশক",
+  "setting.line-width.name": "প্রস্থ",
+  "setting.line-width.desc": "উল্লম্ব রেখা নির্দেশকের প্রস্থ (পিক্সেলে)।",
+
+  "setting.gutter-heading.name": "গাটার নির্দেশক",
+  "setting.gutter-heading.prefix": "গাটার ধরন নির্দেশকের অক্ষর (",
+  "setting.gutter-heading.suffix": ")।",
+  "setting.gutter-changed.name": "পরিবর্তনের অক্ষর",
+  "setting.gutter-added.name": "যোগের অক্ষর",
+  "setting.gutter-restored.name": "পুনরুদ্ধারের অক্ষর",
+  "setting.gutter-removed.name": "অপসারণের অক্ষর",
+
+  "modal.title": "ইতিহাস",
+  "modal.no-changes": "কোনো পরিবর্তন নেই",
+  "modal.identical-to-current": "বর্তমানের সাথে অভিন্ন",
+
+  "modal.restore-original": "মূলটি পুনরুদ্ধার করুন",
+  "modal.remove-history": "ফাইলের ইতিহাস সরান",
+  "modal.previous-difference": "পূর্ববর্তী পার্থক্য",
+  "modal.next-difference": "পরবর্তী পার্থক্য",
+  "modal.mode.patch": "প্যাচ দেখান",
+  "modal.mode.inline": "ইনলাইন",
+  "modal.mode.line-by-line": "লাইন বাই লাইন",
+  "modal.mode.side-by-side": "পাশাপাশি",
+
+  "modal.confirm.cancel": "বাতিল",
+  "modal.confirm.restore.title": "মূল ফাইল পুনরুদ্ধার করুন",
+  "modal.confirm.restore.message": "আপনি কি নিশ্চিত যে এই ফাইলটিকে তার মূল অবস্থায় পুনরুদ্ধার করতে চান? সমস্ত বর্তমান পরিবর্তন হারিয়ে যাবে এবং পরিবর্তন ট্র্যাকিং ইতিহাস রিসেট হবে। এই ক্রিয়াটি পূর্বাবস্থায় ফেরানো যাবে না।",
+  "modal.confirm.restore.button": "ফাইল পুনরুদ্ধার করুন",
+  "modal.confirm.remove.title": "ফাইলের ইতিহাস সরান",
+  "modal.confirm.remove.message": "আপনি কি নিশ্চিত যে এই ফাইলের পরিবর্তন ট্র্যাকিং ইতিহাস সরাতে চান? এই ক্রিয়াটি পূর্বাবস্থায় ফেরানো যাবে না।",
+  "modal.confirm.remove.button": "ইতিহাস সরান",
+  "modal.confirm.revert.title": "এই পরিবর্তন প্রত্যাবর্তন করুন",
+  "modal.confirm.revert.message": "এই পরিবর্তনটি নির্বাচিত ভিত্তিতে প্রত্যাবর্তন করবেন? অন্যান্য পরিবর্তন রাখা হবে।",
+  "modal.confirm.revert.button": "প্রত্যাবর্তন",
+
+  "modal.search-versions": "সংস্করণ অনুসন্ধান করুন",
+  "modal.version.baseline": "বর্তমান",
+  "modal.version.numbered": "সংস্করণ {number}",
+  "modal.version.current": "বর্তমান",
+  "modal.version.original": "মূল",
+  "modal.no-versions-match": "অনুসন্ধানের সাথে কোনো সংস্করণ মেলে না",
+  "modal.no-snapshots-yet": "এখনও কোনো মধ্যবর্তী স্ন্যাপশট নেই",
+
+  "modal.revert-hunk": "এই পরিবর্তন প্রত্যাবর্তন করুন",
+
+  "modal.copy": "অনুলিপি"
+}

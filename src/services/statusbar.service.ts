@@ -76,7 +76,7 @@ export class StatusbarService implements Service {
       return;
     }
 
-    this.update(`${snapshot.getChangesLinesCount() ?? 0} lines changed`);
+    this.update(this.plugin.t('status.lines-changed', { count: snapshot.getChangesLinesCount() ?? 0 }));
   }
 
   /**

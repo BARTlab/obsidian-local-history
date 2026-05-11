@@ -1,0 +1,121 @@
+{
+  "command.go-to-next-change": "Ga naar volgende wijziging",
+  "command.go-to-previous-change": "Ga naar vorige wijziging",
+  "command.reset-lines-all": "Alle momentopnamen van de regeltracker opnieuw instellen",
+  "command.reset-lines": "Momentopname van de regeltracker van het huidige document opnieuw instellen",
+  "command.show-diff": "Alle wijzigingen van het huidige document tonen",
+
+  "notice.no-changes-to-navigate": "Geen wijzigingen om doorheen te navigeren",
+  "notice.all-snapshots-deleted": "Alle momentopnamegegevens verwijderd",
+  "notice.current-snapshot-deleted": "Gegevens van huidige momentopname verwijderd",
+  "notice.file-restored": "Bestand hersteld naar oorspronkelijke staat",
+  "notice.file-restore-failed": "Kan bestand niet herstellen naar oorspronkelijke staat",
+  "notice.copied": "Gekopieerd!",
+  "notice.no-saved-history": "Er is geen opgeslagen geschiedenis voor dit bestand.",
+  "notice.invalid-exclude-pattern": "Lokale geschiedenis: het patroon voor uitgesloten paden is geen geldige reguliere expressie en wordt genegeerd.",
+
+  "menu.local-history": "Lokale geschiedenis",
+  "menu.show-changes": "Wijzigingen tonen",
+
+  "status.lines-changed": "{count} regels gewijzigd",
+
+  "setting.type.name": "Type",
+  "setting.type.desc": "Kies tussen een verticale lijn en een stip in de kantlijn.",
+  "setting.type.option.line": "Verticale lijn",
+  "setting.type.option.dot": "Teken in de kantlijn",
+
+  "setting.allowed-extensions.name": "Toegestane bestandsextensies",
+  "setting.allowed-extensions.desc": "Door komma's gescheiden lijst van bestandsextensies waarvan wijzigingen worden bijgehouden (bijv. md, txt, csv, json, yaml)",
+
+  "setting.exclude-paths.name": "Uitgesloten paden",
+  "setting.exclude-paths.desc": "Een hoofdletterongevoelige reguliere expressie die wordt vergeleken met het pad relatief aan de kluis. Elk bestand waarvan het pad overeenkomt, wordt nooit bijgehouden (bijv. \\.excalidraw\\.md$ of (^|/)Templates/). Standaard worden Templates-mappen en Excalidraw-tekeningen uitgesloten. Laat leeg om alles bij te houden.",
+
+  "setting.keep.name": "Geschiedenis bewaren tot",
+  "setting.keep.desc": "Strategie voor het opschonen van de revisiegeschiedenis",
+  "setting.keep.option.app": "App sluiten",
+  "setting.keep.option.file": "Bestand sluiten",
+
+  "setting.ignore-new-files.name": "Nieuwe bestanden negeren",
+  "setting.ignore-new-files.desc": "Wijzigingen niet bijhouden in bestanden die zijn aangemaakt nadat het bijhouden is gestart",
+
+  "setting.persist.name": "Geschiedenis behouden na herstart",
+  "setting.persist.desc": "Geschiedenis op schijf opslaan zodat markeringen een herstart overleven. Vereist dat \"Geschiedenis bewaren tot\" is ingesteld op app sluiten.",
+
+  "setting.max-entries.name": "Maximaal opgeslagen bestanden",
+  "setting.max-entries.desc": "Limiet voor hoeveel bestandsgeschiedenissen op schijf worden bewaard. De oudste worden als eerste verwijderd. Stel in op 0 om uit te schakelen.",
+
+  "setting.max-age-days.name": "Maximale leeftijd geschiedenis (dagen)",
+  "setting.max-age-days.desc": "Opgeslagen geschiedenis ouder dan dit aantal dagen verwijderen. Stel in op 0 om uit te schakelen.",
+
+  "setting.snapshots-heading": "Tijdlijnmomentopnamen",
+
+  "setting.snapshots-enabled.name": "Tussenliggende versies vastleggen",
+  "setting.snapshots-enabled.desc": "Bewaar een tijdlijn van eerdere versies zodat je kunt vergelijken met een tussenliggend punt, niet alleen met het origineel.",
+
+  "setting.snapshots-edit-threshold.name": "Vastleggen na elke (bewerkingen)",
+  "setting.snapshots-edit-threshold.desc": "Leg een versie vast na dit aantal bewerkingen. Stel in op 0 om de bewerkingstrigger uit te schakelen.",
+
+  "setting.snapshots-interval.name": "Vastleggen na elke (minuten)",
+  "setting.snapshots-interval.desc": "Leg een versie vast na dit aantal minuten bewerken. Stel in op 0 om de tijdtrigger uit te schakelen.",
+
+  "setting.max-version-age-days.name": "Maximale leeftijd versies (dagen)",
+  "setting.max-version-age-days.desc": "Tussenliggende versies ouder dan dit aantal dagen verwijderen (de primaire grens). Stel in op 0 om uit te schakelen.",
+
+  "setting.max-versions.name": "Maximaal aantal versies per bestand",
+  "setting.max-versions.desc": "Veiligheidslimiet voor tussenliggende versies die per bestand worden bewaard. De oudste worden als eerste verwijderd. Stel in op 0 om uit te schakelen.",
+
+  "setting.show-heading": "Indicator tonen voor",
+  "setting.show.desc": "Regelindicatoren worden alleen getoond in de bewerkingsmodi (bron en live voorbeeld). In de leesmodus zijn er geen inline-indicatoren, maar de wijzigingsgeschiedenis blijft bereikbaar: voer de opdracht \"Alle wijzigingen van het huidige document tonen\" uit of gebruik het contextmenu van het bestand in de bestandsverkenner.",
+  "setting.show.changed": "Gewijzigd",
+  "setting.show.restored": "Hersteld",
+  "setting.show.added": "Toegevoegd",
+  "setting.show.removed": "Verwijderd",
+
+  "setting.line-heading": "Regelindicator",
+  "setting.line-width.name": "Breedte",
+  "setting.line-width.desc": "Breedte van de verticale lijnindicator (in pixels).",
+
+  "setting.gutter-heading.name": "Kantlijnindicator",
+  "setting.gutter-heading.prefix": "Tekens van de type-indicator in de kantlijn (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Teken voor wijziging",
+  "setting.gutter-added.name": "Teken voor toegevoegd",
+  "setting.gutter-restored.name": "Teken voor hersteld",
+  "setting.gutter-removed.name": "Teken voor verwijderd",
+
+  "modal.title": "Geschiedenis",
+  "modal.no-changes": "Geen wijzigingen",
+  "modal.identical-to-current": "Identiek aan huidige",
+
+  "modal.restore-original": "Origineel herstellen",
+  "modal.remove-history": "Bestandsgeschiedenis verwijderen",
+  "modal.previous-difference": "Vorig verschil",
+  "modal.next-difference": "Volgend verschil",
+  "modal.mode.patch": "Patch tonen",
+  "modal.mode.inline": "Inline",
+  "modal.mode.line-by-line": "Regel voor regel",
+  "modal.mode.side-by-side": "Naast elkaar",
+
+  "modal.confirm.cancel": "Annuleren",
+  "modal.confirm.restore.title": "Origineel bestand herstellen",
+  "modal.confirm.restore.message": "Weet je zeker dat je dit bestand wilt herstellen naar de oorspronkelijke staat? Alle huidige wijzigingen gaan verloren en de geschiedenis van het bijhouden van wijzigingen wordt opnieuw ingesteld. Deze actie kan niet ongedaan worden gemaakt.",
+  "modal.confirm.restore.button": "Bestand herstellen",
+  "modal.confirm.remove.title": "Bestandsgeschiedenis verwijderen",
+  "modal.confirm.remove.message": "Weet je zeker dat je de geschiedenis van het bijhouden van wijzigingen voor dit bestand wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
+  "modal.confirm.remove.button": "Geschiedenis verwijderen",
+  "modal.confirm.revert.title": "Deze wijziging terugdraaien",
+  "modal.confirm.revert.message": "Deze wijziging terugdraaien naar de geselecteerde basis? Andere wijzigingen blijven behouden.",
+  "modal.confirm.revert.button": "Terugdraaien",
+
+  "modal.search-versions": "Versies zoeken",
+  "modal.version.baseline": "Huidig",
+  "modal.version.numbered": "Versie {number}",
+  "modal.version.current": "Huidig",
+  "modal.version.original": "Origineel",
+  "modal.no-versions-match": "Geen versies komen overeen met de zoekopdracht",
+  "modal.no-snapshots-yet": "Nog geen tussenliggende momentopnamen",
+
+  "modal.revert-hunk": "Deze wijziging terugdraaien",
+
+  "modal.copy": "Kopiëren"
+}

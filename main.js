@@ -38,8 +38,7 @@ var __decorateClass = (decorators, target, key2, kind) => {
   for (var i = decorators.length - 1, decorator; i >= 0; i--)
     if (decorator = decorators[i])
       result = (kind ? decorator(target, key2, result) : decorator(result)) || result;
-  if (kind && result)
-    __defProp(target, key2, result);
+  if (kind && result) __defProp(target, key2, result);
   return result;
 };
 
@@ -112,7 +111,7 @@ var require_Reflect = __commonJS({
         var _Map = typeof Map === "function" && typeof Map.prototype.entries === "function" ? Map : CreateMapPolyfill();
         var _Set = typeof Set === "function" && typeof Set.prototype.entries === "function" ? Set : CreateSetPolyfill();
         var _WeakMap = typeof WeakMap === "function" ? WeakMap : CreateWeakMapPolyfill();
-        var registrySymbol = supportsSymbol ? Symbol.for("@reflect-metadata:registry") : void 0;
+        var registrySymbol = supportsSymbol ? /* @__PURE__ */ Symbol.for("@reflect-metadata:registry") : void 0;
         var metadataRegistry = GetOrCreateMetadataRegistry();
         var metadataProvider = CreateMetadataProvider(metadataRegistry);
         function decorate(decorators, target, propertyKey, attributes) {
@@ -811,7 +810,7 @@ var require_Reflect = __commonJS({
           var arraySentinel = [];
           var MapIterator = (
             /** @class */
-            function() {
+            (function() {
               function MapIterator2(keys2, values, selector) {
                 this._index = 0;
                 this._keys = keys2;
@@ -856,11 +855,11 @@ var require_Reflect = __commonJS({
                 return { value, done: true };
               };
               return MapIterator2;
-            }()
+            })()
           );
           var Map3 = (
             /** @class */
-            function() {
+            (function() {
               function Map4() {
                 this._keys = [];
                 this._values = [];
@@ -959,7 +958,7 @@ var require_Reflect = __commonJS({
                 return this._cacheIndex;
               };
               return Map4;
-            }()
+            })()
           );
           return Map3;
           function getKey(key2, _) {
@@ -975,7 +974,7 @@ var require_Reflect = __commonJS({
         function CreateSetPolyfill() {
           var Set3 = (
             /** @class */
-            function() {
+            (function() {
               function Set4() {
                 this._map = new _Map();
               }
@@ -1014,7 +1013,7 @@ var require_Reflect = __commonJS({
                 return this.keys();
               };
               return Set4;
-            }()
+            })()
           );
           return Set3;
         }
@@ -1024,7 +1023,7 @@ var require_Reflect = __commonJS({
           var rootKey = CreateUniqueKey();
           return (
             /** @class */
-            function() {
+            (function() {
               function WeakMap3() {
                 this._key = CreateUniqueKey();
               }
@@ -1065,7 +1064,7 @@ var require_Reflect = __commonJS({
                 this._key = CreateUniqueKey();
               };
               return WeakMap3;
-            }()
+            })()
           );
           function CreateUniqueKey() {
             var key2;
@@ -1128,9 +1127,9 @@ var require_Reflect = __commonJS({
   }
 });
 
-// node_modules/hogan.js/lib/compiler.js
+// node_modules/@profoundlogic/hogan/lib/compiler.js
 var require_compiler = __commonJS({
-  "node_modules/hogan.js/lib/compiler.js"(exports2) {
+  "node_modules/@profoundlogic/hogan/lib/compiler.js"(exports2) {
     (function(Hogan4) {
       var rIsWhitespace = /\S/, rQuot = /\"/g, rNewline = /\n/g, rCr = /\r/g, rSlash = /\\/g, rLineSep = /\u2028/, rParagraphSep = /\u2029/;
       Hogan4.tags = {
@@ -1456,9 +1455,9 @@ var require_compiler = __commonJS({
   }
 });
 
-// node_modules/hogan.js/lib/template.js
+// node_modules/@profoundlogic/hogan/lib/template.js
 var require_template = __commonJS({
-  "node_modules/hogan.js/lib/template.js"(exports2) {
+  "node_modules/@profoundlogic/hogan/lib/template.js"(exports2) {
     var Hogan4 = {};
     (function(Hogan5) {
       Hogan5.Template = function(codeObj, text, compiler, options) {
@@ -1505,8 +1504,7 @@ var require_template = __commonJS({
           }
           this.partials[symbol].base = template;
           if (partial.subs) {
-            if (!partials.stackText)
-              partials.stackText = {};
+            if (!partials.stackText) partials.stackText = {};
             for (key in partial.subs) {
               if (!partials.stackText[key]) {
                 partials.stackText[key] = this.activeSub !== void 0 && partials.stackText[this.activeSub] ? partials.stackText[this.activeSub] : this.text;
@@ -1606,10 +1604,10 @@ var require_template = __commonJS({
           return val;
         },
         // higher order templates
-        ls: function(func, cx, partials, text, tags) {
+        ls: function(func, cx, ctx, partials, text, tags) {
           var oldTags = this.options.delimiters;
           this.options.delimiters = tags;
-          this.b(this.ct(coerceToString(func.call(cx, text)), cx, partials));
+          this.b(this.ct(coerceToString(func.call(cx, text, ctx)), cx, partials));
           this.options.delimiters = oldTags;
           return false;
         },
@@ -1637,7 +1635,7 @@ var require_template = __commonJS({
               return true;
             } else {
               textSource = this.activeSub && this.subsText && this.subsText[this.activeSub] ? this.subsText[this.activeSub] : this.text;
-              return this.ls(result, cx, partials, textSource.substring(start, end), tags);
+              return this.ls(result, cx, ctx, partials, textSource.substring(start, end), tags);
             }
           }
           return result;
@@ -1689,8 +1687,7 @@ var require_template = __commonJS({
         partial.stackSubs = stackSubs;
         partial.subsText = stackText;
         for (key2 in subs) {
-          if (!stackSubs[key2])
-            stackSubs[key2] = subs[key2];
+          if (!stackSubs[key2]) stackSubs[key2] = subs[key2];
         }
         for (key2 in stackSubs) {
           partial.subs[key2] = stackSubs[key2];
@@ -1698,8 +1695,7 @@ var require_template = __commonJS({
         stackPartials = stackPartials || {};
         partial.stackPartials = stackPartials;
         for (key2 in partials) {
-          if (!stackPartials[key2])
-            stackPartials[key2] = partials[key2];
+          if (!stackPartials[key2]) stackPartials[key2] = partials[key2];
         }
         for (key2 in stackPartials) {
           partial.partials[key2] = stackPartials[key2];
@@ -1721,9 +1717,9 @@ var require_template = __commonJS({
   }
 });
 
-// node_modules/hogan.js/lib/hogan.js
+// node_modules/@profoundlogic/hogan/lib/hogan.js
 var require_hogan = __commonJS({
-  "node_modules/hogan.js/lib/hogan.js"(exports2, module2) {
+  "node_modules/@profoundlogic/hogan/lib/hogan.js"(exports2, module2) {
     var Hogan4 = require_compiler();
     Hogan4.Template = require_template().Template;
     Hogan4.template = Hogan4.Template;
@@ -1741,8 +1737,7 @@ var require_eventemitter3 = __commonJS({
     }
     if (Object.create) {
       Events.prototype = /* @__PURE__ */ Object.create(null);
-      if (!new Events().__proto__)
-        prefix = false;
+      if (!new Events().__proto__) prefix = false;
     }
     function EE(fn, context, once) {
       this.fn = fn;
@@ -1754,19 +1749,14 @@ var require_eventemitter3 = __commonJS({
         throw new TypeError("The listener must be a function");
       }
       var listener = new EE(fn, context || emitter, once), evt = prefix ? prefix + event : event;
-      if (!emitter._events[evt])
-        emitter._events[evt] = listener, emitter._eventsCount++;
-      else if (!emitter._events[evt].fn)
-        emitter._events[evt].push(listener);
-      else
-        emitter._events[evt] = [emitter._events[evt], listener];
+      if (!emitter._events[evt]) emitter._events[evt] = listener, emitter._eventsCount++;
+      else if (!emitter._events[evt].fn) emitter._events[evt].push(listener);
+      else emitter._events[evt] = [emitter._events[evt], listener];
       return emitter;
     }
     function clearEvent(emitter, evt) {
-      if (--emitter._eventsCount === 0)
-        emitter._events = new Events();
-      else
-        delete emitter._events[evt];
+      if (--emitter._eventsCount === 0) emitter._events = new Events();
+      else delete emitter._events[evt];
     }
     function EventEmitter2() {
       this._events = new Events();
@@ -1774,11 +1764,9 @@ var require_eventemitter3 = __commonJS({
     }
     EventEmitter2.prototype.eventNames = function eventNames() {
       var names = [], events, name;
-      if (this._eventsCount === 0)
-        return names;
+      if (this._eventsCount === 0) return names;
       for (name in events = this._events) {
-        if (has.call(events, name))
-          names.push(prefix ? name.slice(1) : name);
+        if (has.call(events, name)) names.push(prefix ? name.slice(1) : name);
       }
       if (Object.getOwnPropertySymbols) {
         return names.concat(Object.getOwnPropertySymbols(events));
@@ -1787,10 +1775,8 @@ var require_eventemitter3 = __commonJS({
     };
     EventEmitter2.prototype.listeners = function listeners(event) {
       var evt = prefix ? prefix + event : event, handlers = this._events[evt];
-      if (!handlers)
-        return [];
-      if (handlers.fn)
-        return [handlers.fn];
+      if (!handlers) return [];
+      if (handlers.fn) return [handlers.fn];
       for (var i = 0, l = handlers.length, ee = new Array(l); i < l; i++) {
         ee[i] = handlers[i].fn;
       }
@@ -1798,20 +1784,16 @@ var require_eventemitter3 = __commonJS({
     };
     EventEmitter2.prototype.listenerCount = function listenerCount(event) {
       var evt = prefix ? prefix + event : event, listeners = this._events[evt];
-      if (!listeners)
-        return 0;
-      if (listeners.fn)
-        return 1;
+      if (!listeners) return 0;
+      if (listeners.fn) return 1;
       return listeners.length;
     };
     EventEmitter2.prototype.emit = function emit(event, a1, a2, a3, a4, a5) {
       var evt = prefix ? prefix + event : event;
-      if (!this._events[evt])
-        return false;
+      if (!this._events[evt]) return false;
       var listeners = this._events[evt], len = arguments.length, args, i;
       if (listeners.fn) {
-        if (listeners.once)
-          this.removeListener(event, listeners.fn, void 0, true);
+        if (listeners.once) this.removeListener(event, listeners.fn, void 0, true);
         switch (len) {
           case 1:
             return listeners.fn.call(listeners.context), true;
@@ -1833,8 +1815,7 @@ var require_eventemitter3 = __commonJS({
       } else {
         var length = listeners.length, j;
         for (i = 0; i < length; i++) {
-          if (listeners[i].once)
-            this.removeListener(event, listeners[i].fn, void 0, true);
+          if (listeners[i].once) this.removeListener(event, listeners[i].fn, void 0, true);
           switch (len) {
             case 1:
               listeners[i].fn.call(listeners[i].context);
@@ -1849,10 +1830,9 @@ var require_eventemitter3 = __commonJS({
               listeners[i].fn.call(listeners[i].context, a1, a2, a3);
               break;
             default:
-              if (!args)
-                for (j = 1, args = new Array(len - 1); j < len; j++) {
-                  args[j - 1] = arguments[j];
-                }
+              if (!args) for (j = 1, args = new Array(len - 1); j < len; j++) {
+                args[j - 1] = arguments[j];
+              }
               listeners[i].fn.apply(listeners[i].context, args);
           }
         }
@@ -1867,8 +1847,7 @@ var require_eventemitter3 = __commonJS({
     };
     EventEmitter2.prototype.removeListener = function removeListener(event, fn, context, once) {
       var evt = prefix ? prefix + event : event;
-      if (!this._events[evt])
-        return this;
+      if (!this._events[evt]) return this;
       if (!fn) {
         clearEvent(this, evt);
         return this;
@@ -1884,10 +1863,8 @@ var require_eventemitter3 = __commonJS({
             events.push(listeners[i]);
           }
         }
-        if (events.length)
-          this._events[evt] = events.length === 1 ? events[0] : events;
-        else
-          clearEvent(this, evt);
+        if (events.length) this._events[evt] = events.length === 1 ? events[0] : events;
+        else clearEvent(this, evt);
       }
       return this;
     };
@@ -1895,8 +1872,7 @@ var require_eventemitter3 = __commonJS({
       var evt;
       if (event) {
         evt = prefix ? prefix + event : event;
-        if (this._events[evt])
-          clearEvent(this, evt);
+        if (this._events[evt]) clearEvent(this, evt);
       } else {
         this._events = new Events();
         this._eventsCount = 0;
@@ -1920,6 +1896,10 @@ __export(main_exports, {
 });
 module.exports = __toCommonJS(main_exports);
 var import_reflect_metadata = __toESM(require_Reflect());
+
+// src/extensions/refresh.effect.ts
+var import_state = require("@codemirror/state");
+var refreshDecorationsEffect = import_state.StateEffect.define();
 
 // src/commands/base.command.ts
 var BaseCommand = class {
@@ -1952,8 +1932,152 @@ var Inject = (cls) => {
   };
 };
 
-// src/commands/reset-lines-all.command.ts
+// src/helpers/navigation.helper.ts
+var NavigationHelper = class _NavigationHelper {
+  /**
+   * Resolves the changed line to navigate to from the current cursor line.
+   * Targets are strictly after (for 'next') or strictly before (for
+   * 'previous') the cursor, so a cursor already sitting on a changed line still
+   * advances to a different one. With nothing strictly in the requested
+   * direction the search wraps to the opposite end of the set.
+   *
+   * @param {number[]} changedLines - The 0-based changed line positions, in any
+   *   order and possibly with duplicates
+   * @param {number} cursorLine - The 0-based line the cursor is currently on
+   * @param {NavigationDirection} direction - Which way to walk the set
+   * @return {number | null} The 0-based target line, or null when there are no
+   *   changed lines to navigate to
+   */
+  static target(changedLines, cursorLine, direction) {
+    const sorted = _NavigationHelper.normalize(changedLines);
+    if (sorted.length === 0) {
+      return null;
+    }
+    if (direction === "next") {
+      const ahead = sorted.find((line) => line > cursorLine);
+      return ahead != null ? ahead : sorted[0];
+    }
+    const before = [...sorted].reverse().find((line) => line < cursorLine);
+    return before != null ? before : sorted[sorted.length - 1];
+  }
+  /**
+   * Moves the editor cursor to the start of a 0-based target line and scrolls
+   * it into view. The line is clamped into the document's range and the column
+   * to that line's length, so a stale target (for example a changed line that
+   * no longer exists) can never throw or land off the document.
+   *
+   * @param {Editor} editor - The editor to move the cursor in
+   * @param {number} line - The 0-based line to place the cursor on
+   */
+  static moveCursor(editor, line) {
+    const lastLine = editor.lastLine();
+    const targetLine = Math.max(0, Math.min(lastLine, line));
+    const column = editor.getLine(targetLine).length;
+    editor.setCursor({ line: targetLine, ch: 0 });
+    editor.scrollIntoView({
+      from: { line: targetLine, ch: 0 },
+      to: { line: targetLine, ch: column }
+    }, true);
+  }
+  /**
+   * Sorts the changed line positions ascending and drops duplicates and any
+   * non-finite entries, yielding the canonical ordered set the target search
+   * relies on.
+   *
+   * @param {number[]} changedLines - The raw changed line positions
+   * @return {number[]} The unique, ascending, finite line positions
+   */
+  static normalize(changedLines) {
+    return [...new Set(changedLines != null ? changedLines : [])].filter((line) => Number.isFinite(line)).sort((a, b) => a - b);
+  }
+};
+
+// src/commands/go-to-next-change.command.ts
 var import_obsidian = require("obsidian");
+var GoToNextChangeCommand = class extends BaseCommand {
+  constructor() {
+    super(...arguments);
+    /**
+     * Unique identifier for this command.
+     * Used by Obsidian to register and reference the command.
+     */
+    this.id = "tracker-go-to-next-change";
+    /**
+     * Display name for this command, localized through the plugin translator.
+     * Shown in the Obsidian command palette.
+     */
+    this.name = this.plugin.t("command.go-to-next-change");
+    /**
+     * Callback executed when the command runs in an editor context.
+     * Resolves the next changed line from the current snapshot and moves the
+     * cursor there. No default hotkey is assigned, per Obsidian policy.
+     *
+     * @param {Editor} editor - The active editor the command runs against
+     */
+    this.editorCallback = (editor) => {
+      var _a;
+      const snapshot = this.snapshotsService.getOne();
+      const positions = (_a = snapshot == null ? void 0 : snapshot.getChangedPositions()) != null ? _a : [];
+      if (positions.length === 0) {
+        new import_obsidian.Notice(this.plugin.t("notice.no-changes-to-navigate"));
+        return;
+      }
+      const target = NavigationHelper.target(positions, editor.getCursor().line, "next");
+      if (target === null) {
+        return;
+      }
+      NavigationHelper.moveCursor(editor, target);
+    };
+  }
+};
+__decorateClass([
+  Inject("SnapshotsService")
+], GoToNextChangeCommand.prototype, "snapshotsService", 2);
+
+// src/commands/go-to-previous-change.command.ts
+var import_obsidian2 = require("obsidian");
+var GoToPreviousChangeCommand = class extends BaseCommand {
+  constructor() {
+    super(...arguments);
+    /**
+     * Unique identifier for this command.
+     * Used by Obsidian to register and reference the command.
+     */
+    this.id = "tracker-go-to-previous-change";
+    /**
+     * Display name for this command, localized through the plugin translator.
+     * Shown in the Obsidian command palette.
+     */
+    this.name = this.plugin.t("command.go-to-previous-change");
+    /**
+     * Callback executed when the command runs in an editor context.
+     * Resolves the previous changed line from the current snapshot and moves the
+     * cursor there. No default hotkey is assigned, per Obsidian policy.
+     *
+     * @param {Editor} editor - The active editor the command runs against
+     */
+    this.editorCallback = (editor) => {
+      var _a;
+      const snapshot = this.snapshotsService.getOne();
+      const positions = (_a = snapshot == null ? void 0 : snapshot.getChangedPositions()) != null ? _a : [];
+      if (positions.length === 0) {
+        new import_obsidian2.Notice(this.plugin.t("notice.no-changes-to-navigate"));
+        return;
+      }
+      const target = NavigationHelper.target(positions, editor.getCursor().line, "previous");
+      if (target === null) {
+        return;
+      }
+      NavigationHelper.moveCursor(editor, target);
+    };
+  }
+};
+__decorateClass([
+  Inject("SnapshotsService")
+], GoToPreviousChangeCommand.prototype, "snapshotsService", 2);
+
+// src/commands/reset-lines-all.command.ts
+var import_obsidian3 = require("obsidian");
 var ResetLinesAllCommand = class extends BaseCommand {
   constructor() {
     super(...arguments);
@@ -1963,17 +2087,17 @@ var ResetLinesAllCommand = class extends BaseCommand {
      */
     this.id = "tracker-reset-lines-all";
     /**
-     * Display name for this command.
+     * Display name for this command, localized through the plugin translator.
      * Shown in the Obsidian command palette.
      */
-    this.name = "Reset all lines tracker snapshots";
+    this.name = this.plugin.t("command.reset-lines-all");
     /**
      * Callback function executed when the command is triggered.
      * Deletes all snapshots and shows a notification.
      */
     this.callback = () => {
       this.snapshotsService.wipe();
-      new import_obsidian.Notice("All snapshot data deleted");
+      new import_obsidian3.Notice(this.plugin.t("notice.all-snapshots-deleted"));
     };
   }
 };
@@ -1982,7 +2106,7 @@ __decorateClass([
 ], ResetLinesAllCommand.prototype, "snapshotsService", 2);
 
 // src/commands/reset-lines.command.ts
-var import_obsidian2 = require("obsidian");
+var import_obsidian4 = require("obsidian");
 var ResetLinesCommand = class extends BaseCommand {
   constructor() {
     super(...arguments);
@@ -1992,17 +2116,17 @@ var ResetLinesCommand = class extends BaseCommand {
      */
     this.id = "tracker-reset-lines";
     /**
-     * Display name for this command.
+     * Display name for this command, localized through the plugin translator.
      * Shown in the Obsidian command palette.
      */
-    this.name = "Reset lines tracker snapshot of current document";
+    this.name = this.plugin.t("command.reset-lines");
     /**
      * Callback function executed when the command is triggered in an editor context.
      * Deletes the snapshot for the current document and shows a notification.
      */
     this.editorCallback = () => {
       this.snapshotsService.wipeOne();
-      new import_obsidian2.Notice("Current snapshot data deleted");
+      new import_obsidian4.Notice(this.plugin.t("notice.current-snapshot-deleted"));
     };
   }
 };
@@ -2020,16 +2144,26 @@ var ShowDiffCommand = class extends BaseCommand {
      */
     this.id = "tracker-show-diff";
     /**
-     * Display name for this command.
+     * Display name for this command, localized through the plugin translator.
      * Shown in the Obsidian command palette.
      */
-    this.name = "Show all changes of current document";
+    this.name = this.plugin.t("command.show-diff");
     /**
-     * Callback function executed when the command is triggered in an editor context.
-     * Opens a diff modal showing all changes in the current document.
+     * Callback that both gates and runs the command.
+     * When `checking` is true it reports whether the command is available (the
+     * active file has a snapshot), which lets Obsidian show it in reading mode too.
+     * When `checking` is false it opens the diff modal for the active file. Returns
+     * the availability either way so Obsidian can enable or hide the entry.
+     *
+     * @param {boolean} checking - True when Obsidian is only querying availability
+     * @return {boolean} True if the command is available for the active file
      */
-    this.editorCallback = () => {
-      this.modalService.diff();
+    this.checkCallback = (checking) => {
+      const canDiff = this.modalService.canDiff();
+      if (checking) {
+        return canDiff;
+      }
+      return this.modalService.diff();
     };
   }
 };
@@ -2060,6 +2194,8 @@ var CommandsService = class {
     this.register(ResetLinesCommand);
     this.register(ResetLinesAllCommand);
     this.register(ShowDiffCommand);
+    this.register(GoToNextChangeCommand);
+    this.register(GoToPreviousChangeCommand);
   }
   /**
    * Registers a command with Obsidian.
@@ -2094,9 +2230,22 @@ var CommandsService = class {
 // src/consts.ts
 var DEFAULT_SETTINGS = {
   type: "line" /* line */,
-  keep: "file" /* file */,
+  keep: "app" /* app */,
+  persist: true,
   allowedExtensions: "md, txt, csv, json, yaml",
+  excludePaths: "(^|/)templates/|\\.excalidraw\\.md$",
   ignoreNewFiles: true,
+  retention: {
+    maxEntries: 200,
+    maxAgeDays: 30
+  },
+  snapshots: {
+    enabled: true,
+    intervalMs: 5 * 60 * 1e3,
+    editThreshold: 10,
+    maxVersions: 50,
+    maxVersionAgeDays: 14
+  },
   line: {
     width: 2
   },
@@ -2215,7 +2364,7 @@ var BaseEvent = class {
 };
 
 // src/events/vault/create.event.ts
-var import_obsidian3 = require("obsidian");
+var import_obsidian5 = require("obsidian");
 var VaultCreateEvent = class extends BaseEvent {
   constructor() {
     super(...arguments);
@@ -2233,7 +2382,7 @@ var VaultCreateEvent = class extends BaseEvent {
    * @param {TAbstractFile} file - The file that was created in the vault
    */
   handler(file) {
-    if (!(file instanceof import_obsidian3.TFile)) {
+    if (!(file instanceof import_obsidian5.TFile)) {
       return;
     }
     if (this.settingsService.value("ignoreNewFiles") && this.snapshotsService.isInAllowedExtensions(file)) {
@@ -2248,26 +2397,63 @@ __decorateClass([
   Inject("SnapshotsService")
 ], VaultCreateEvent.prototype, "snapshotsService", 2);
 
-// src/events/vault/modify.event.ts
-var VaultModifyEvent = class extends BaseEvent {
+// src/events/vault/delete.event.ts
+var import_obsidian6 = require("obsidian");
+var VaultDeleteEvent = class extends BaseEvent {
   constructor() {
     super(...arguments);
     /**
      * The name of the Obsidian event to handle.
-     * Set to the vault.modify event.
+     * Set to the vault.delete event.
      */
-    this.name = ObsidianEvent.vault.modify;
+    this.name = ObsidianEvent.vault.delete;
   }
   /**
-   * Handles the vault modify event.
-   * Processes the front matter of the modified file.
-   * Currently, doesn't perform any actions with the processed front matter.
+   * Handles the vault delete event by removing the snapshot and ignore entry.
+   * Skips non-file entries (folders).
    *
-   * @param {...any} _args - Arguments passed by the event, containing the modified file
+   * @param {TAbstractFile} file - The file that was deleted from the vault
    */
-  handler(..._args) {
+  handler(file) {
+    if (!(file instanceof import_obsidian6.TFile)) {
+      return;
+    }
+    this.snapshotsService.remove(file);
+    this.snapshotsService.removeFromIgnoreList(file);
   }
 };
+__decorateClass([
+  Inject("SnapshotsService")
+], VaultDeleteEvent.prototype, "snapshotsService", 2);
+
+// src/events/vault/rename.event.ts
+var import_obsidian7 = require("obsidian");
+var VaultRenameEvent = class extends BaseEvent {
+  constructor() {
+    super(...arguments);
+    /**
+     * The name of the Obsidian event to handle.
+     * Set to the vault.rename event.
+     */
+    this.name = ObsidianEvent.vault.rename;
+  }
+  /**
+   * Handles the vault rename event by moving the snapshot to the new path.
+   * Skips non-file entries (folders).
+   *
+   * @param {TAbstractFile} file - The file in its renamed state (new path)
+   * @param {string} oldPath - The path the file had before the rename
+   */
+  handler(file, oldPath) {
+    if (!(file instanceof import_obsidian7.TFile)) {
+      return;
+    }
+    this.snapshotsService.rename(oldPath, file);
+  }
+};
+__decorateClass([
+  Inject("SnapshotsService")
+], VaultRenameEvent.prototype, "snapshotsService", 2);
 
 // src/events/workspace/active-leaf-change.event.ts
 var WorkspaceActiveLeafChangeEvent = class extends BaseEvent {
@@ -2285,8 +2471,7 @@ var WorkspaceActiveLeafChangeEvent = class extends BaseEvent {
    *
    * @param {...any} args - Arguments passed by the event (not used in this handler)
    */
-  handler(...args) {
-    const [] = args;
+  handler(..._args) {
     this.snapshotsService.forceUpdate();
   }
 };
@@ -2314,7 +2499,7 @@ var WorkspaceEditorMenuEvent = class extends BaseEvent {
    */
   handler(menu, _editor, _view) {
     menu.addItem((item) => {
-      item.setTitle("Local history").setIcon("file-diff").onClick(() => {
+      item.setTitle(this.plugin.t("menu.local-history")).setIcon("file-diff").onClick(() => {
         this.modalService.diff();
       });
     });
@@ -2352,8 +2537,8 @@ __decorateClass([
 ], WorkspaceFileOpenEvent.prototype, "snapshotsService", 2);
 
 // src/events/workspace/files-menu.event.ts
-var import_obsidian4 = require("obsidian");
-var import_obsidian5 = require("obsidian");
+var import_obsidian8 = require("obsidian");
+var import_obsidian9 = require("obsidian");
 var WorkspaceFilesMenuEvent = class extends BaseEvent {
   constructor() {
     super(...arguments);
@@ -2374,13 +2559,13 @@ var WorkspaceFilesMenuEvent = class extends BaseEvent {
    * @param {WorkspaceLeaf} _leaf - The workspace leaf (not used in this handler)
    */
   handler(menu, file, _source, _leaf) {
-    if (!(file instanceof import_obsidian4.TFile)) {
+    if (!(file instanceof import_obsidian8.TFile)) {
       return;
     }
     menu.addItem((item) => {
-      item.setTitle("Local history").setIcon("file-diff").onClick(() => {
+      item.setTitle(this.plugin.t("menu.local-history")).setIcon("file-diff").onClick(() => {
         if (!this.modalService.diff(file)) {
-          new import_obsidian5.Notice("There is no saved history for this file.");
+          new import_obsidian9.Notice(this.plugin.t("notice.no-saved-history"));
         }
       });
     });
@@ -2461,15 +2646,37 @@ var EventsService = class {
   /**
    * Initializes the service by registering all plugin events.
    * Called during plugin initialization.
+   *
+   * Workspace events are registered immediately. Vault events are deferred to
+   * `onLayoutReady` so the startup `create` burst Obsidian fires for existing
+   * files does not reach the create handler and push real files into the
+   * ignore list (which would silently stop tracking them after a restart).
    */
   init() {
+    this.registerWorkspaceEvents();
+    this.plugin.app.workspace.onLayoutReady(() => this.registerVaultEvents());
+  }
+  /**
+   * Registers the workspace event handlers.
+   * Safe to register during `onload`; these do not react to the startup file
+   * scan in a way that corrupts plugin state.
+   */
+  registerWorkspaceEvents() {
     this.register(WorkspaceActiveLeafChangeEvent);
     this.register(WorkspaceFileOpenEvent);
     this.register(WorkspaceLayoutChangeEvent);
     this.register(WorkspaceEditorMenuEvent);
     this.register(WorkspaceFilesMenuEvent);
-    this.register(VaultModifyEvent);
+  }
+  /**
+   * Registers the vault event handlers.
+   * Deferred to `onLayoutReady` so the initial `create` events Obsidian emits
+   * for pre-existing files are not handled on a cold start (see {@link init}).
+   */
+  registerVaultEvents() {
     this.register(VaultCreateEvent);
+    this.register(VaultRenameEvent);
+    this.register(VaultDeleteEvent);
   }
   /**
    * Registers an event with Obsidian.
@@ -2516,7 +2723,6 @@ var BaseExtension = class {
 };
 
 // src/extensions/change-detector.extension.ts
-var import_state = require("@codemirror/state");
 var import_view = require("@codemirror/view");
 var ChangeDetectorExtension = class extends BaseExtension {
   constructor() {
@@ -2546,8 +2752,7 @@ var ChangeDetectorExtension = class extends BaseExtension {
    * @param {ViewUpdate} update - The view update event from CodeMirror
    */
   processIncrementalChanges(update) {
-    var _a;
-    const currentContent = (_a = this.view) == null ? void 0 : _a.state.doc.toString();
+    const currentContent = update.state.doc.toString();
     const snapshot = this.snapshotsService.getOne();
     if (!snapshot || !currentContent) {
       return;
@@ -2555,86 +2760,140 @@ var ChangeDetectorExtension = class extends BaseExtension {
     if (!snapshot.isNeedUpdate(currentContent)) {
       return;
     }
-    this.computeIncrementalChanges(update.changes);
+    this.computeIncrementalChanges(update);
     this.snapshotsService.forceUpdate();
   }
   /**
-   * Computes incremental changes in the document based on the ChangeSet.
+   * Computes incremental changes in the document based on the ViewUpdate.
    * Tracks line additions, modifications, and removals to maintain change history.
    * Updates the file snapshot with the new state after processing all changes.
    *
-   * @param {ChangeSet} changes - The ChangeSet from CodeMirror containing all document changes
+   * The old-document side of the ChangeSet (fromA/toA) is mapped against
+   * update.startState, which is by construction the editor state those positions
+   * index into. Deriving the previous text from the update (not the snapshot's
+   * cached state) keeps line mapping correct even when an earlier update was
+   * skipped by the hash guard and left the cached state stale.
+   *
+   * @param {ViewUpdate} update - The view update event from CodeMirror
    * @return {void}
    */
-  computeIncrementalChanges(changes) {
-    var _a;
-    const state = (_a = this.view) == null ? void 0 : _a.state;
+  computeIncrementalChanges(update) {
+    const state = update.state;
     const currentLines = state.doc.toString().split(state.lineBreak) || [];
     const snapshot = this.snapshotsService.getOne();
-    const prev = import_state.Text.of(snapshot.getLastStateLines() || currentLines);
-    changes.iterChanges((fromA, toA, fromB, toB, inserted) => {
-      const fromNewLine = state.doc.lineAt(fromB).number - 1;
-      const toNewLine = state.doc.lineAt(toB).number - 1;
+    const prev = update.startState.doc;
+    update.changes.iterChanges((fromA, toA, fromB, toB) => {
+      var _a, _b;
       const fromOldLine = prev.lineAt(fromA).number - 1;
       const toOldLine = prev.lineAt(toA).number - 1;
-      const start = Math.min(fromNewLine, toNewLine);
-      const line = inserted.iterLines();
-      let offset = 0;
-      const linesDiffCount = fromOldLine - toOldLine + (toNewLine - fromNewLine);
-      if (linesDiffCount < 0) {
-        for (let i = 0; i <= Math.abs(linesDiffCount) - 1; i++) {
-          const index = toOldLine - i;
-          snapshot.removeTrackerOrLine(index);
+      const fromNewLine = state.doc.lineAt(fromB).number - 1;
+      const toNewLine = state.doc.lineAt(toB).number - 1;
+      const prefixShared = fromB > state.doc.lineAt(fromB).from;
+      const suffixShared = toB < state.doc.lineAt(toB).to;
+      const oldCoreStart = fromOldLine + (prefixShared ? 1 : 0);
+      const oldCoreEnd = toOldLine - (suffixShared ? 1 : 0);
+      const newCoreStart = fromNewLine + (prefixShared ? 1 : 0);
+      const newCoreEnd = toNewLine - (suffixShared ? 1 : 0);
+      const oldCoreCount = Math.max(0, oldCoreEnd - oldCoreStart + 1);
+      const newCoreCount = Math.max(0, newCoreEnd - newCoreStart + 1);
+      if (oldCoreCount === newCoreCount && oldCoreCount > 0) {
+        for (let i = 0; i < newCoreCount; i++) {
+          const tracker = snapshot.findCurrentLine(newCoreStart + i);
+          tracker == null ? void 0 : tracker.change(currentLines[newCoreStart + i]);
         }
+      } else {
+        const doomed = [];
+        for (let index = oldCoreStart; index <= oldCoreEnd; index++) {
+          const tracker = snapshot.findCurrentLine(index);
+          if (tracker) {
+            doomed.push(tracker);
+          }
+        }
+        for (let index = newCoreStart; index <= newCoreEnd; index++) {
+          const added = snapshot.restoreOrAddTracker(index);
+          added == null ? void 0 : added.change(currentLines[index]);
+        }
+        doomed.forEach((tracker) => {
+          snapshot.removeTrackerOrLine(tracker);
+        });
       }
-      if (linesDiffCount > 0) {
-        for (let i = 1; i <= Math.abs(linesDiffCount); i++) {
-          const index = fromNewLine + i;
-          snapshot.restoreOrAddTracker(index);
-        }
+      if (prefixShared) {
+        (_a = snapshot.findCurrentLine(fromNewLine)) == null ? void 0 : _a.change(currentLines[fromNewLine]);
       }
-      do {
-        const lineNumber = offset + start;
-        const tracker = snapshot.findCurrentLine(lineNumber);
-        if (offset >= inserted.lines) {
-          continue;
-        }
-        tracker == null ? void 0 : tracker.change(currentLines[lineNumber]);
-        offset++;
-      } while (!line.next().done);
+      if (suffixShared && toNewLine !== fromNewLine) {
+        (_b = snapshot.findCurrentLine(toNewLine)) == null ? void 0 : _b.change(currentLines[toNewLine]);
+      }
     }, true);
+    snapshot.captureVersion(snapshot.getLastStateLines(), this.getCaptureOptions());
     snapshot.updateState(currentLines);
     snapshot.updateChanges();
+  }
+  /**
+   * Reads the current intermediate-snapshot cadence settings into a plain
+   * options object for the snapshot model.
+   *
+   * @return {SnapshotCaptureOptions} The capture cadence configuration
+   */
+  getCaptureOptions() {
+    return {
+      enabled: this.settingsService.value("snapshots.enabled"),
+      intervalMs: this.settingsService.value("snapshots.intervalMs"),
+      editThreshold: this.settingsService.value("snapshots.editThreshold"),
+      maxVersions: this.settingsService.value("snapshots.maxVersions"),
+      maxVersionAgeDays: this.settingsService.value("snapshots.maxVersionAgeDays")
+    };
   }
 };
 __decorateClass([
   Inject("SnapshotsService")
 ], ChangeDetectorExtension.prototype, "snapshotsService", 2);
+__decorateClass([
+  Inject("SettingsService")
+], ChangeDetectorExtension.prototype, "settingsService", 2);
 
 // src/extensions/editor-common.extension.ts
 var import_state2 = require("@codemirror/state");
 var import_view2 = require("@codemirror/view");
 var EditorCommonExtension = class extends BaseExtension {
-  constructor() {
-    super(...arguments);
+  /**
+   * Creates a new instance of EditorCommonExtension.
+   * Builds the initial decoration set so a freshly opened view already
+   * reflects the current snapshot without waiting for the first update.
+   *
+   * @param {EditorView | null} view - The CodeMirror editor view
+   * @param {LineChangeTrackerPlugin} plugin - The plugin instance
+   */
+  constructor(view, plugin) {
+    super(view, plugin);
     /**
      * Set of decorations to be applied to the editor.
      * Initialized with an empty decoration set.
      */
     this.decorations = import_view2.Decoration.none;
+    this.updateDecorations();
   }
-  // todo remember hash to avoid restarting re-render
   /**
    * Handles updates to the editor view.
-   * Updates decorations when the document changes.
+   * Rebuilds decorations only when the document changed, the viewport
+   * scrolled to new lines, or a refresh effect signalled that the snapshot or
+   * settings changed. Cursor-only and selection updates are ignored.
    *
    * @param {ViewUpdate} update - The view update event from CodeMirror
    * @return {void}
    */
   update(update) {
-    if (!update.docChanged) {
+    if (this.needsRebuild(update)) {
+      this.updateDecorations();
     }
-    this.updateDecorations();
+  }
+  /**
+   * Decides whether the decoration set must be rebuilt for this update.
+   *
+   * @param {ViewUpdate} update - The view update event from CodeMirror
+   * @return {boolean} True if decorations need to be rebuilt
+   */
+  needsRebuild(update) {
+    return update.docChanged || update.viewportChanged || update.transactions.some((transaction) => transaction.effects.some((effect) => effect.is(refreshDecorationsEffect)));
   }
   /**
    * Updates the decorations based on the current snapshot.
@@ -2650,7 +2909,9 @@ var EditorCommonExtension = class extends BaseExtension {
   }
   /**
    * Builds the decoration set based on the changes in the snapshot.
-   * Creates line decorations for each line that has changes of enabled types.
+   * Creates line decorations only for changed lines inside the currently
+   * visible ranges, so the work scales with the viewport rather than the
+   * whole document.
    *
    * @return {DecorationSet} The built decoration set
    */
@@ -2660,22 +2921,24 @@ var EditorCommonExtension = class extends BaseExtension {
     const enable = this.getEnableTypes();
     const snapshot = this.snapshotsService.getOne();
     const changes = snapshot == null ? void 0 : snapshot.getChanges(enable);
-    for (let i = 0; i <= this.view.state.doc.lines - 1; i++) {
-      const line = this.view.state.doc.line(i + 1);
-      const change = (_a = changes == null ? void 0 : changes.get(i)) != null ? _a : null;
-      const classNames = ["lct", `lct-${"line" /* line */}`];
-      if (!change) {
-        continue;
-      }
-      change.getTypes().forEach((type) => {
-        classNames.push(`lct-${type}`);
-      });
-      const decoration = import_view2.Decoration.line({
-        attributes: {
-          class: classNames.join(" ")
+    for (const { from, to } of this.view.visibleRanges) {
+      let pos = from;
+      while (pos <= to) {
+        const line = this.view.state.doc.lineAt(pos);
+        const change = (_a = changes == null ? void 0 : changes.get(line.number - 1)) != null ? _a : null;
+        if (change) {
+          const classNames = ["lct", `lct-${"line" /* line */}`];
+          change.getTypes().forEach((type) => {
+            classNames.push(`lct-${type}`);
+          });
+          builder.add(line.from, line.from, import_view2.Decoration.line({
+            attributes: {
+              class: classNames.join(" ")
+            }
+          }));
         }
-      });
-      builder.add(line.from, line.from, decoration);
+        pos = line.to + 1;
+      }
     }
     this.decorations = builder.finish();
     return this.decorations;
@@ -2710,48 +2973,936 @@ __decorateClass([
   Inject("SnapshotsService")
 ], EditorCommonExtension.prototype, "snapshotsService", 2);
 
+// node_modules/diff/libesm/diff/base.js
+var Diff = class {
+  diff(oldStr, newStr, options = {}) {
+    let callback;
+    if (typeof options === "function") {
+      callback = options;
+      options = {};
+    } else if ("callback" in options) {
+      callback = options.callback;
+    }
+    const oldString = this.castInput(oldStr, options);
+    const newString = this.castInput(newStr, options);
+    const oldTokens = this.removeEmpty(this.tokenize(oldString, options));
+    const newTokens = this.removeEmpty(this.tokenize(newString, options));
+    return this.diffWithOptionsObj(oldTokens, newTokens, options, callback);
+  }
+  diffWithOptionsObj(oldTokens, newTokens, options, callback) {
+    var _a;
+    const done = (value) => {
+      value = this.postProcess(value, options);
+      if (callback) {
+        setTimeout(function() {
+          callback(value);
+        }, 0);
+        return void 0;
+      } else {
+        return value;
+      }
+    };
+    const newLen = newTokens.length, oldLen = oldTokens.length;
+    let editLength = 1;
+    let maxEditLength = newLen + oldLen;
+    if (options.maxEditLength != null) {
+      maxEditLength = Math.min(maxEditLength, options.maxEditLength);
+    }
+    const maxExecutionTime = (_a = options.timeout) !== null && _a !== void 0 ? _a : Infinity;
+    const abortAfterTimestamp = Date.now() + maxExecutionTime;
+    const bestPath = [{ oldPos: -1, lastComponent: void 0 }];
+    let newPos = this.extractCommon(bestPath[0], newTokens, oldTokens, 0, options);
+    if (bestPath[0].oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
+      return done(this.buildValues(bestPath[0].lastComponent, newTokens, oldTokens));
+    }
+    let minDiagonalToConsider = -Infinity, maxDiagonalToConsider = Infinity;
+    const execEditLength = () => {
+      for (let diagonalPath = Math.max(minDiagonalToConsider, -editLength); diagonalPath <= Math.min(maxDiagonalToConsider, editLength); diagonalPath += 2) {
+        let basePath;
+        const removePath = bestPath[diagonalPath - 1], addPath = bestPath[diagonalPath + 1];
+        if (removePath) {
+          bestPath[diagonalPath - 1] = void 0;
+        }
+        let canAdd = false;
+        if (addPath) {
+          const addPathNewPos = addPath.oldPos - diagonalPath;
+          canAdd = addPath && 0 <= addPathNewPos && addPathNewPos < newLen;
+        }
+        const canRemove = removePath && removePath.oldPos + 1 < oldLen;
+        if (!canAdd && !canRemove) {
+          bestPath[diagonalPath] = void 0;
+          continue;
+        }
+        if (!canRemove || canAdd && removePath.oldPos < addPath.oldPos) {
+          basePath = this.addToPath(addPath, true, false, 0, options);
+        } else {
+          basePath = this.addToPath(removePath, false, true, 1, options);
+        }
+        newPos = this.extractCommon(basePath, newTokens, oldTokens, diagonalPath, options);
+        if (basePath.oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
+          return done(this.buildValues(basePath.lastComponent, newTokens, oldTokens)) || true;
+        } else {
+          bestPath[diagonalPath] = basePath;
+          if (basePath.oldPos + 1 >= oldLen) {
+            maxDiagonalToConsider = Math.min(maxDiagonalToConsider, diagonalPath - 1);
+          }
+          if (newPos + 1 >= newLen) {
+            minDiagonalToConsider = Math.max(minDiagonalToConsider, diagonalPath + 1);
+          }
+        }
+      }
+      editLength++;
+    };
+    if (callback) {
+      (function exec() {
+        setTimeout(function() {
+          if (editLength > maxEditLength || Date.now() > abortAfterTimestamp) {
+            return callback(void 0);
+          }
+          if (!execEditLength()) {
+            exec();
+          }
+        }, 0);
+      })();
+    } else {
+      while (editLength <= maxEditLength && Date.now() <= abortAfterTimestamp) {
+        const ret = execEditLength();
+        if (ret) {
+          return ret;
+        }
+      }
+    }
+  }
+  addToPath(path, added, removed, oldPosInc, options) {
+    const last = path.lastComponent;
+    if (last && !options.oneChangePerToken && last.added === added && last.removed === removed) {
+      return {
+        oldPos: path.oldPos + oldPosInc,
+        lastComponent: { count: last.count + 1, added, removed, previousComponent: last.previousComponent }
+      };
+    } else {
+      return {
+        oldPos: path.oldPos + oldPosInc,
+        lastComponent: { count: 1, added, removed, previousComponent: last }
+      };
+    }
+  }
+  extractCommon(basePath, newTokens, oldTokens, diagonalPath, options) {
+    const newLen = newTokens.length, oldLen = oldTokens.length;
+    let oldPos = basePath.oldPos, newPos = oldPos - diagonalPath, commonCount = 0;
+    while (newPos + 1 < newLen && oldPos + 1 < oldLen && this.equals(oldTokens[oldPos + 1], newTokens[newPos + 1], options)) {
+      newPos++;
+      oldPos++;
+      commonCount++;
+      if (options.oneChangePerToken) {
+        basePath.lastComponent = { count: 1, previousComponent: basePath.lastComponent, added: false, removed: false };
+      }
+    }
+    if (commonCount && !options.oneChangePerToken) {
+      basePath.lastComponent = { count: commonCount, previousComponent: basePath.lastComponent, added: false, removed: false };
+    }
+    basePath.oldPos = oldPos;
+    return newPos;
+  }
+  equals(left, right, options) {
+    if (options.comparator) {
+      return options.comparator(left, right);
+    } else {
+      return left === right || !!options.ignoreCase && left.toLowerCase() === right.toLowerCase();
+    }
+  }
+  removeEmpty(array) {
+    const ret = [];
+    for (let i = 0; i < array.length; i++) {
+      if (array[i]) {
+        ret.push(array[i]);
+      }
+    }
+    return ret;
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  castInput(value, options) {
+    return value;
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  tokenize(value, options) {
+    return Array.from(value);
+  }
+  join(chars) {
+    return chars.join("");
+  }
+  postProcess(changeObjects, options) {
+    return changeObjects;
+  }
+  get useLongestToken() {
+    return false;
+  }
+  buildValues(lastComponent, newTokens, oldTokens) {
+    const components = [];
+    let nextComponent;
+    while (lastComponent) {
+      components.push(lastComponent);
+      nextComponent = lastComponent.previousComponent;
+      delete lastComponent.previousComponent;
+      lastComponent = nextComponent;
+    }
+    components.reverse();
+    const componentLen = components.length;
+    let componentPos = 0, newPos = 0, oldPos = 0;
+    for (; componentPos < componentLen; componentPos++) {
+      const component = components[componentPos];
+      if (!component.removed) {
+        if (!component.added && this.useLongestToken) {
+          let value = newTokens.slice(newPos, newPos + component.count);
+          value = value.map(function(value2, i) {
+            const oldValue = oldTokens[oldPos + i];
+            return oldValue.length > value2.length ? oldValue : value2;
+          });
+          component.value = this.join(value);
+        } else {
+          component.value = this.join(newTokens.slice(newPos, newPos + component.count));
+        }
+        newPos += component.count;
+        if (!component.added) {
+          oldPos += component.count;
+        }
+      } else {
+        component.value = this.join(oldTokens.slice(oldPos, oldPos + component.count));
+        oldPos += component.count;
+      }
+    }
+    return components;
+  }
+};
+
+// node_modules/diff/libesm/util/string.js
+function longestCommonPrefix(str1, str2) {
+  let i;
+  for (i = 0; i < str1.length && i < str2.length; i++) {
+    if (str1[i] != str2[i]) {
+      return str1.slice(0, i);
+    }
+  }
+  return str1.slice(0, i);
+}
+function longestCommonSuffix(str1, str2) {
+  let i;
+  if (!str1 || !str2 || str1[str1.length - 1] != str2[str2.length - 1]) {
+    return "";
+  }
+  for (i = 0; i < str1.length && i < str2.length; i++) {
+    if (str1[str1.length - (i + 1)] != str2[str2.length - (i + 1)]) {
+      return str1.slice(-i);
+    }
+  }
+  return str1.slice(-i);
+}
+function replacePrefix(string, oldPrefix, newPrefix) {
+  if (string.slice(0, oldPrefix.length) != oldPrefix) {
+    throw Error(`string ${JSON.stringify(string)} doesn't start with prefix ${JSON.stringify(oldPrefix)}; this is a bug`);
+  }
+  return newPrefix + string.slice(oldPrefix.length);
+}
+function replaceSuffix(string, oldSuffix, newSuffix) {
+  if (!oldSuffix) {
+    return string + newSuffix;
+  }
+  if (string.slice(-oldSuffix.length) != oldSuffix) {
+    throw Error(`string ${JSON.stringify(string)} doesn't end with suffix ${JSON.stringify(oldSuffix)}; this is a bug`);
+  }
+  return string.slice(0, -oldSuffix.length) + newSuffix;
+}
+function removePrefix(string, oldPrefix) {
+  return replacePrefix(string, oldPrefix, "");
+}
+function removeSuffix(string, oldSuffix) {
+  return replaceSuffix(string, oldSuffix, "");
+}
+function maximumOverlap(string1, string2) {
+  return string2.slice(0, overlapCount(string1, string2));
+}
+function overlapCount(a, b) {
+  let startA = 0;
+  if (a.length > b.length) {
+    startA = a.length - b.length;
+  }
+  let endB = b.length;
+  if (a.length < b.length) {
+    endB = a.length;
+  }
+  const map = Array(endB);
+  let k = 0;
+  map[0] = 0;
+  for (let j = 1; j < endB; j++) {
+    if (b[j] == b[k]) {
+      map[j] = map[k];
+    } else {
+      map[j] = k;
+    }
+    while (k > 0 && b[j] != b[k]) {
+      k = map[k];
+    }
+    if (b[j] == b[k]) {
+      k++;
+    }
+  }
+  k = 0;
+  for (let i = startA; i < a.length; i++) {
+    while (k > 0 && a[i] != b[k]) {
+      k = map[k];
+    }
+    if (a[i] == b[k]) {
+      k++;
+    }
+  }
+  return k;
+}
+function segment(string, segmenter) {
+  const parts = [];
+  for (const segmentObj of Array.from(segmenter.segment(string))) {
+    const segment3 = segmentObj.segment;
+    if (parts.length && /\s/.test(parts[parts.length - 1]) && /\s/.test(segment3)) {
+      parts[parts.length - 1] += segment3;
+    } else {
+      parts.push(segment3);
+    }
+  }
+  return parts;
+}
+function trailingWs(string, segmenter) {
+  if (segmenter) {
+    return leadingAndTrailingWs(string, segmenter)[1];
+  }
+  let i;
+  for (i = string.length - 1; i >= 0; i--) {
+    if (!string[i].match(/\s/)) {
+      break;
+    }
+  }
+  return string.substring(i + 1);
+}
+function leadingWs(string, segmenter) {
+  if (segmenter) {
+    return leadingAndTrailingWs(string, segmenter)[0];
+  }
+  const match = string.match(/^\s*/);
+  return match ? match[0] : "";
+}
+function leadingAndTrailingWs(string, segmenter) {
+  if (!segmenter) {
+    return [leadingWs(string), trailingWs(string)];
+  }
+  if (segmenter.resolvedOptions().granularity != "word") {
+    throw new Error('The segmenter passed must have a granularity of "word"');
+  }
+  const segments = segment(string, segmenter);
+  const firstSeg = segments[0];
+  const lastSeg = segments[segments.length - 1];
+  const head = /\s/.test(firstSeg) ? firstSeg : "";
+  const tail = /\s/.test(lastSeg) ? lastSeg : "";
+  return [head, tail];
+}
+
+// node_modules/diff/libesm/diff/word.js
+var extendedWordChars = "a-zA-Z0-9_\\u{AD}\\u{C0}-\\u{D6}\\u{D8}-\\u{F6}\\u{F8}-\\u{2C6}\\u{2C8}-\\u{2D7}\\u{2DE}-\\u{2FF}\\u{1E00}-\\u{1EFF}";
+var tokenizeIncludingWhitespace = new RegExp(`[${extendedWordChars}]+|\\s+|[^${extendedWordChars}]`, "ug");
+var WordDiff = class extends Diff {
+  equals(left, right, options) {
+    if (options.ignoreCase) {
+      left = left.toLowerCase();
+      right = right.toLowerCase();
+    }
+    return left.trim() === right.trim();
+  }
+  tokenize(value, options = {}) {
+    let parts;
+    if (options.intlSegmenter) {
+      const segmenter = options.intlSegmenter;
+      if (segmenter.resolvedOptions().granularity != "word") {
+        throw new Error('The segmenter passed must have a granularity of "word"');
+      }
+      parts = segment(value, segmenter);
+    } else {
+      parts = value.match(tokenizeIncludingWhitespace) || [];
+    }
+    const tokens = [];
+    let prevPart = null;
+    parts.forEach((part) => {
+      if (/\s/.test(part)) {
+        if (prevPart == null) {
+          tokens.push(part);
+        } else {
+          tokens.push(tokens.pop() + part);
+        }
+      } else if (prevPart != null && /\s/.test(prevPart)) {
+        if (tokens[tokens.length - 1] == prevPart) {
+          tokens.push(tokens.pop() + part);
+        } else {
+          tokens.push(prevPart + part);
+        }
+      } else {
+        tokens.push(part);
+      }
+      prevPart = part;
+    });
+    return tokens;
+  }
+  join(tokens) {
+    return tokens.map((token, i) => {
+      if (i == 0) {
+        return token;
+      } else {
+        return token.replace(/^\s+/, "");
+      }
+    }).join("");
+  }
+  postProcess(changes, options) {
+    if (!changes || options.oneChangePerToken) {
+      return changes;
+    }
+    let lastKeep = null;
+    let insertion = null;
+    let deletion = null;
+    changes.forEach((change) => {
+      if (change.added) {
+        insertion = change;
+      } else if (change.removed) {
+        deletion = change;
+      } else {
+        if (insertion || deletion) {
+          dedupeWhitespaceInChangeObjects(lastKeep, deletion, insertion, change, options.intlSegmenter);
+        }
+        lastKeep = change;
+        insertion = null;
+        deletion = null;
+      }
+    });
+    if (insertion || deletion) {
+      dedupeWhitespaceInChangeObjects(lastKeep, deletion, insertion, null, options.intlSegmenter);
+    }
+    return changes;
+  }
+};
+var wordDiff = new WordDiff();
+function diffWords(oldStr, newStr, options) {
+  if ((options === null || options === void 0 ? void 0 : options.ignoreWhitespace) != null && !options.ignoreWhitespace) {
+    return diffWordsWithSpace(oldStr, newStr, options);
+  }
+  return wordDiff.diff(oldStr, newStr, options);
+}
+function dedupeWhitespaceInChangeObjects(startKeep, deletion, insertion, endKeep, segmenter) {
+  if (deletion && insertion) {
+    const [oldWsPrefix, oldWsSuffix] = leadingAndTrailingWs(deletion.value, segmenter);
+    const [newWsPrefix, newWsSuffix] = leadingAndTrailingWs(insertion.value, segmenter);
+    if (startKeep) {
+      const commonWsPrefix = longestCommonPrefix(oldWsPrefix, newWsPrefix);
+      startKeep.value = replaceSuffix(startKeep.value, newWsPrefix, commonWsPrefix);
+      deletion.value = removePrefix(deletion.value, commonWsPrefix);
+      insertion.value = removePrefix(insertion.value, commonWsPrefix);
+    }
+    if (endKeep) {
+      const commonWsSuffix = longestCommonSuffix(oldWsSuffix, newWsSuffix);
+      endKeep.value = replacePrefix(endKeep.value, newWsSuffix, commonWsSuffix);
+      deletion.value = removeSuffix(deletion.value, commonWsSuffix);
+      insertion.value = removeSuffix(insertion.value, commonWsSuffix);
+    }
+  } else if (insertion) {
+    if (startKeep) {
+      const ws = leadingWs(insertion.value, segmenter);
+      insertion.value = insertion.value.substring(ws.length);
+    }
+    if (endKeep) {
+      const ws = leadingWs(endKeep.value, segmenter);
+      endKeep.value = endKeep.value.substring(ws.length);
+    }
+  } else if (startKeep && endKeep) {
+    const newWsFull = leadingWs(endKeep.value, segmenter), [delWsStart, delWsEnd] = leadingAndTrailingWs(deletion.value, segmenter);
+    const newWsStart = longestCommonPrefix(newWsFull, delWsStart);
+    deletion.value = removePrefix(deletion.value, newWsStart);
+    const newWsEnd = longestCommonSuffix(removePrefix(newWsFull, newWsStart), delWsEnd);
+    deletion.value = removeSuffix(deletion.value, newWsEnd);
+    endKeep.value = replacePrefix(endKeep.value, newWsFull, newWsEnd);
+    startKeep.value = replaceSuffix(startKeep.value, newWsFull, newWsFull.slice(0, newWsFull.length - newWsEnd.length));
+  } else if (endKeep) {
+    const endKeepWsPrefix = leadingWs(endKeep.value, segmenter);
+    const deletionWsSuffix = trailingWs(deletion.value, segmenter);
+    const overlap = maximumOverlap(deletionWsSuffix, endKeepWsPrefix);
+    deletion.value = removeSuffix(deletion.value, overlap);
+  } else if (startKeep) {
+    const startKeepWsSuffix = trailingWs(startKeep.value, segmenter);
+    const deletionWsPrefix = leadingWs(deletion.value, segmenter);
+    const overlap = maximumOverlap(startKeepWsSuffix, deletionWsPrefix);
+    deletion.value = removePrefix(deletion.value, overlap);
+  }
+}
+var WordsWithSpaceDiff = class extends Diff {
+  tokenize(value) {
+    const regex2 = new RegExp(`(\\r?\\n)|[${extendedWordChars}]+|[^\\S\\n\\r]+|[^${extendedWordChars}]`, "ug");
+    return value.match(regex2) || [];
+  }
+};
+var wordsWithSpaceDiff = new WordsWithSpaceDiff();
+function diffWordsWithSpace(oldStr, newStr, options) {
+  return wordsWithSpaceDiff.diff(oldStr, newStr, options);
+}
+
+// node_modules/diff/libesm/diff/line.js
+var LineDiff = class extends Diff {
+  constructor() {
+    super(...arguments);
+    this.tokenize = tokenize;
+  }
+  equals(left, right, options) {
+    if (options.ignoreWhitespace) {
+      if (!options.newlineIsToken || !left.includes("\n")) {
+        left = left.trim();
+      }
+      if (!options.newlineIsToken || !right.includes("\n")) {
+        right = right.trim();
+      }
+    } else if (options.ignoreNewlineAtEof && !options.newlineIsToken) {
+      if (left.endsWith("\n")) {
+        left = left.slice(0, -1);
+      }
+      if (right.endsWith("\n")) {
+        right = right.slice(0, -1);
+      }
+    }
+    return super.equals(left, right, options);
+  }
+};
+var lineDiff = new LineDiff();
+function diffLines(oldStr, newStr, options) {
+  return lineDiff.diff(oldStr, newStr, options);
+}
+function tokenize(value, options) {
+  if (options.stripTrailingCr) {
+    value = value.replace(/\r\n/g, "\n");
+  }
+  const retLines = [], linesAndNewlines = value.split(/(\n|\r\n)/);
+  if (!linesAndNewlines[linesAndNewlines.length - 1]) {
+    linesAndNewlines.pop();
+  }
+  for (let i = 0; i < linesAndNewlines.length; i++) {
+    const line = linesAndNewlines[i];
+    if (i % 2 && !options.newlineIsToken) {
+      retLines[retLines.length - 1] += line;
+    } else {
+      retLines.push(line);
+    }
+  }
+  return retLines;
+}
+
+// node_modules/diff/libesm/patch/create.js
+function needsQuoting(s) {
+  for (let i = 0; i < s.length; i++) {
+    if (s[i] < " " || s[i] > "~" || s[i] === '"' || s[i] === "\\") {
+      return true;
+    }
+  }
+  return false;
+}
+function quoteFileNameIfNeeded(s) {
+  if (!needsQuoting(s)) {
+    return s;
+  }
+  let result = '"';
+  const bytes = new TextEncoder().encode(s);
+  let i = 0;
+  while (i < bytes.length) {
+    const b = bytes[i];
+    if (b === 7) {
+      result += "\\a";
+    } else if (b === 8) {
+      result += "\\b";
+    } else if (b === 9) {
+      result += "\\t";
+    } else if (b === 10) {
+      result += "\\n";
+    } else if (b === 11) {
+      result += "\\v";
+    } else if (b === 12) {
+      result += "\\f";
+    } else if (b === 13) {
+      result += "\\r";
+    } else if (b === 34) {
+      result += '\\"';
+    } else if (b === 92) {
+      result += "\\\\";
+    } else if (b >= 32 && b <= 126) {
+      result += String.fromCharCode(b);
+    } else {
+      result += "\\" + b.toString(8).padStart(3, "0");
+    }
+    i++;
+  }
+  result += '"';
+  return result;
+}
+var INCLUDE_HEADERS = {
+  includeIndex: true,
+  includeUnderline: true,
+  includeFileHeaders: true
+};
+function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options) {
+  let optionsObj;
+  if (!options) {
+    optionsObj = {};
+  } else if (typeof options === "function") {
+    optionsObj = { callback: options };
+  } else {
+    optionsObj = options;
+  }
+  if (typeof optionsObj.context === "undefined") {
+    optionsObj.context = 4;
+  }
+  const context = optionsObj.context;
+  if (optionsObj.newlineIsToken) {
+    throw new Error("newlineIsToken may not be used with patch-generation functions, only with diffing functions");
+  }
+  if (!optionsObj.callback) {
+    return diffLinesResultToPatch(diffLines(oldStr, newStr, optionsObj));
+  } else {
+    const { callback } = optionsObj;
+    diffLines(oldStr, newStr, Object.assign(Object.assign({}, optionsObj), { callback: (diff) => {
+      const patch = diffLinesResultToPatch(diff);
+      callback(patch);
+    } }));
+  }
+  function diffLinesResultToPatch(diff) {
+    if (!diff) {
+      return;
+    }
+    diff.push({ value: "", lines: [] });
+    function contextLines(lines) {
+      return lines.map(function(entry) {
+        return " " + entry;
+      });
+    }
+    const hunks = [];
+    let oldRangeStart = 0, newRangeStart = 0, curRange = [], oldLine = 1, newLine = 1;
+    for (let i = 0; i < diff.length; i++) {
+      const current = diff[i], lines = current.lines || splitLines(current.value);
+      current.lines = lines;
+      if (current.added || current.removed) {
+        if (!oldRangeStart) {
+          const prev = diff[i - 1];
+          oldRangeStart = oldLine;
+          newRangeStart = newLine;
+          if (prev) {
+            curRange = context > 0 ? contextLines(prev.lines.slice(-context)) : [];
+            oldRangeStart -= curRange.length;
+            newRangeStart -= curRange.length;
+          }
+        }
+        for (const line of lines) {
+          curRange.push((current.added ? "+" : "-") + line);
+        }
+        if (current.added) {
+          newLine += lines.length;
+        } else {
+          oldLine += lines.length;
+        }
+      } else {
+        if (oldRangeStart) {
+          if (lines.length <= context * 2 && i < diff.length - 2) {
+            for (const line of contextLines(lines)) {
+              curRange.push(line);
+            }
+          } else {
+            const contextSize = Math.min(lines.length, context);
+            for (const line of contextLines(lines.slice(0, contextSize))) {
+              curRange.push(line);
+            }
+            const hunk = {
+              oldStart: oldRangeStart,
+              oldLines: oldLine - oldRangeStart + contextSize,
+              newStart: newRangeStart,
+              newLines: newLine - newRangeStart + contextSize,
+              lines: curRange
+            };
+            hunks.push(hunk);
+            oldRangeStart = 0;
+            newRangeStart = 0;
+            curRange = [];
+          }
+        }
+        oldLine += lines.length;
+        newLine += lines.length;
+      }
+    }
+    for (const hunk of hunks) {
+      for (let i = 0; i < hunk.lines.length; i++) {
+        if (hunk.lines[i].endsWith("\n")) {
+          hunk.lines[i] = hunk.lines[i].slice(0, -1);
+        } else {
+          hunk.lines.splice(i + 1, 0, "\\ No newline at end of file");
+          i++;
+        }
+      }
+    }
+    return {
+      oldFileName,
+      newFileName,
+      oldHeader,
+      newHeader,
+      hunks
+    };
+  }
+}
+function formatPatch(patch, headerOptions) {
+  var _a, _b, _c, _d, _e, _f;
+  if (!headerOptions) {
+    headerOptions = INCLUDE_HEADERS;
+  }
+  if (Array.isArray(patch)) {
+    if (patch.length > 1 && !headerOptions.includeFileHeaders && !patch.every((p) => p.isGit)) {
+      throw new Error("Cannot omit file headers on a multi-file patch. (The result would be unparseable; how would a tool trying to apply the patch know which changes are to which file?)");
+    }
+    return patch.map((p) => formatPatch(p, headerOptions)).join("\n");
+  }
+  const ret = [];
+  if (patch.isGit) {
+    headerOptions = INCLUDE_HEADERS;
+    if (!patch.oldFileName) {
+      throw new Error("oldFileName must be specified for Git patches");
+    }
+    if (!patch.newFileName) {
+      throw new Error("newFileName must be specified for Git patches");
+    }
+    let gitOldName = patch.oldFileName;
+    let gitNewName = patch.newFileName;
+    if (patch.isCreate && gitOldName === "/dev/null") {
+      gitOldName = gitNewName.replace(/^b\//, "a/");
+    } else if (patch.isDelete && gitNewName === "/dev/null") {
+      gitNewName = gitOldName.replace(/^a\//, "b/");
+    }
+    ret.push("diff --git " + quoteFileNameIfNeeded(gitOldName) + " " + quoteFileNameIfNeeded(gitNewName));
+    if (patch.isDelete) {
+      ret.push("deleted file mode " + ((_a = patch.oldMode) !== null && _a !== void 0 ? _a : "100644"));
+    }
+    if (patch.isCreate) {
+      ret.push("new file mode " + ((_b = patch.newMode) !== null && _b !== void 0 ? _b : "100644"));
+    }
+    if (patch.oldMode && patch.newMode && !patch.isDelete && !patch.isCreate) {
+      ret.push("old mode " + patch.oldMode);
+      ret.push("new mode " + patch.newMode);
+    }
+    if (patch.isRename) {
+      ret.push("rename from " + quoteFileNameIfNeeded(((_c = patch.oldFileName) !== null && _c !== void 0 ? _c : "").replace(/^a\//, "")));
+      ret.push("rename to " + quoteFileNameIfNeeded(((_d = patch.newFileName) !== null && _d !== void 0 ? _d : "").replace(/^b\//, "")));
+    }
+    if (patch.isCopy) {
+      ret.push("copy from " + quoteFileNameIfNeeded(((_e = patch.oldFileName) !== null && _e !== void 0 ? _e : "").replace(/^a\//, "")));
+      ret.push("copy to " + quoteFileNameIfNeeded(((_f = patch.newFileName) !== null && _f !== void 0 ? _f : "").replace(/^b\//, "")));
+    }
+  } else {
+    if (headerOptions.includeIndex && patch.oldFileName == patch.newFileName && patch.oldFileName !== void 0) {
+      ret.push("Index: " + patch.oldFileName);
+    }
+    if (headerOptions.includeUnderline) {
+      ret.push("===================================================================");
+    }
+  }
+  const hasHunks = patch.hunks.length > 0;
+  if (headerOptions.includeFileHeaders && patch.oldFileName !== void 0 && patch.newFileName !== void 0 && (!patch.isGit || hasHunks)) {
+    ret.push("--- " + quoteFileNameIfNeeded(patch.oldFileName) + (patch.oldHeader ? "	" + patch.oldHeader : ""));
+    ret.push("+++ " + quoteFileNameIfNeeded(patch.newFileName) + (patch.newHeader ? "	" + patch.newHeader : ""));
+  }
+  for (let i = 0; i < patch.hunks.length; i++) {
+    const hunk = patch.hunks[i];
+    const oldStart = hunk.oldLines === 0 ? hunk.oldStart - 1 : hunk.oldStart;
+    const newStart = hunk.newLines === 0 ? hunk.newStart - 1 : hunk.newStart;
+    ret.push("@@ -" + oldStart + "," + hunk.oldLines + " +" + newStart + "," + hunk.newLines + " @@");
+    for (const line of hunk.lines) {
+      ret.push(line);
+    }
+  }
+  return ret.join("\n") + "\n";
+}
+function createTwoFilesPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options) {
+  if (typeof options === "function") {
+    options = { callback: options };
+  }
+  if (!(options === null || options === void 0 ? void 0 : options.callback)) {
+    const patchObj = structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options);
+    if (!patchObj) {
+      return;
+    }
+    return formatPatch(patchObj, options === null || options === void 0 ? void 0 : options.headerOptions);
+  } else {
+    const { callback } = options;
+    structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, Object.assign(Object.assign({}, options), { callback: (patchObj) => {
+      if (!patchObj) {
+        callback(void 0);
+      } else {
+        callback(formatPatch(patchObj, options.headerOptions));
+      }
+    } }));
+  }
+}
+function splitLines(text) {
+  const hasTrailingNl = text.endsWith("\n");
+  const result = text.split("\n").map((line) => line + "\n");
+  if (hasTrailingNl) {
+    result.pop();
+  } else {
+    result.push(result.pop().slice(0, -1));
+  }
+  return result;
+}
+
+// src/helpers/hunk.helper.ts
+var NO_NEWLINE_MARKER = "\\ No newline at end of file";
+var HunkHelper = class _HunkHelper {
+  /**
+   * Computes the line-level hunks between a base text and the current text.
+   * Uses zero context so each hunk covers only the changed lines, which keeps
+   * a per-hunk revert scoped to exactly that block.
+   *
+   * @param {string[]} baseLines - The base content as an array of lines
+   * @param {string[]} currentLines - The current content as an array of lines
+   * @param {string} lineBreak - The line break used to join lines for diffing
+   * @return {Diff.StructuredPatchHunk[]} The hunks, ordered from top to bottom
+   */
+  static diff(baseLines, currentLines, lineBreak = "\n") {
+    const base = (baseLines != null ? baseLines : []).join(lineBreak);
+    const current = (currentLines != null ? currentLines : []).join(lineBreak);
+    if (base === current) {
+      return [];
+    }
+    return structuredPatch("", "", base, current, "", "", { context: 0 }).hunks;
+  }
+  /**
+   * Extracts the base-side lines of a hunk (the context and removed lines),
+   * with their diff prefixes stripped and the no-newline marker dropped. These
+   * are exactly the lines that must replace the hunk's region in the current
+   * text to revert it.
+   *
+   * @param {Diff.StructuredPatchHunk} hunk - The hunk to read
+   * @return {string[]} The base-side line contents of the hunk
+   */
+  static baseLinesForHunk(hunk) {
+    var _a;
+    return ((_a = hunk == null ? void 0 : hunk.lines) != null ? _a : []).filter((line) => line !== NO_NEWLINE_MARKER && (line[0] === " " || line[0] === "-")).map((line) => line.slice(1));
+  }
+  /**
+   * Finds the hunk whose current-side region contains the given line, so a
+   * revert affordance placed on that line maps back to exactly one changed
+   * block. Only hunks that occupy at least one current line are considered (a
+   * pure deletion occupies none, so it has no line to click on the gutter and is
+   * skipped here). The region is the 0-based half-open interval
+   * [newStart - 1, newStart - 1 + newLines).
+   *
+   * @param {Diff.StructuredPatchHunk[]} hunks - The hunks to search, top to bottom
+   * @param {number} line - The 0-based current line to resolve
+   * @return {Diff.StructuredPatchHunk | null} The covering hunk, or null if none
+   */
+  static hunkAtLine(hunks, line) {
+    var _a;
+    if (!Array.isArray(hunks)) {
+      return null;
+    }
+    return (_a = hunks.find((hunk) => {
+      if (!hunk || hunk.newLines <= 0) {
+        return false;
+      }
+      const start = hunk.newStart - 1;
+      return line >= start && line < start + hunk.newLines;
+    })) != null ? _a : null;
+  }
+  /**
+   * Reverts a single hunk against the current lines and returns the resulting
+   * lines. Only the region this hunk occupies in the current text is replaced
+   * by the hunk's base-side lines; every line outside the region is preserved
+   * verbatim.
+   *
+   * The replacement is positional against the live current text (via newStart
+   * and newLines), not against stale indices, so the offsets of all other hunks
+   * stay correct: reverting hunk N never disturbs hunk N+1, because the slice
+   * lengths of a single block edit cancel out for the untouched lines around it.
+   *
+   * @param {string[]} currentLines - The current content as an array of lines
+   * @param {Diff.StructuredPatchHunk} hunk - The hunk to revert
+   * @return {string[]} A new array of lines with only this hunk reverted
+   */
+  static revertHunk(currentLines, hunk) {
+    const lines = [...currentLines != null ? currentLines : []];
+    if (!hunk) {
+      return lines;
+    }
+    const start = Math.max(0, Math.min(lines.length, hunk.newStart - 1));
+    lines.splice(start, Math.max(0, hunk.newLines), ..._HunkHelper.baseLinesForHunk(hunk));
+    return lines;
+  }
+};
+
 // src/markers/char.marker.ts
 var import_view3 = require("@codemirror/view");
-var _DotMarker = class extends import_view3.GutterMarker {
+var REVERT_GLYPH = "\u21A9";
+var _DotMarker = class _DotMarker extends import_view3.GutterMarker {
   /**
    * Creates a new instance of DotMarker.
    *
    * @param {ChangeType} changes - The type of change this marker represents
    * @param {LineChangeTrackerPlugin} plugin - The plugin instance
+   * @param {number} line - The 0-based current line this marker sits on (-1 when unknown)
+   * @param {RevertLine | null} revert - Callback to revert the block at this line, or null for no affordance
    */
-  constructor(changes, plugin) {
+  constructor(changes, plugin, line = -1, revert = null) {
     super();
     this.changes = changes;
     this.plugin = plugin;
-    /**
-     * Map of change types to their corresponding gutter characters.
-     * Characters are retrieved from plugin settings.
-     */
+    this.line = line;
+    this.revert = revert;
     this.char = {
       ["changed" /* changed */]: this.settingsService.value("gutter.changed"),
       ["added" /* added */]: this.settingsService.value("gutter.added"),
       ["restored" /* restored */]: this.settingsService.value("gutter.restored")
     };
-    // protected char: string = this.settingsService.value('gutterChar');
-    /**
-     * CSS class applied to the gutter marker element.
-     * Combines the dot indicator type with the specific change type.
-     */
     this.elementClass = `lct-${"dot" /* dot */} lct-${this.changes}`;
   }
   /**
    * Creates a DOM node for the gutter marker.
-   * Returns a text node containing the character for this marker's change type.
+   * Renders the change-type character and, when a revert callback is set, a
+   * clickable revert affordance for the block at this line. The affordance is an
+   * accessible button (text label via aria-label and title) whose click reverts
+   * only this block and is stopped from reaching the editor so the caret does
+   * not jump. The click listener lives on this node, which CodeMirror discards
+   * together with the marker when the gutter is rebuilt or the view is
+   * destroyed, so no listener is leaked.
    *
-   * @return {Node} A DOM text node with the appropriate character
+   * @return {Node} A DOM node with the change character and optional revert affordance
    * @override
    */
   toDOM() {
-    return document.createTextNode(this.char[this.changes]);
+    const wrapper = document.createElement("span");
+    wrapper.addClass("lct-gutter-marker");
+    wrapper.createSpan({ cls: "lct-gutter-char", text: this.char[this.changes] });
+    if (!this.revert) {
+      return wrapper;
+    }
+    const button = wrapper.createEl("button", {
+      cls: "lct-gutter-revert",
+      text: REVERT_GLYPH,
+      attr: { "aria-label": "Revert this change", "title": "Revert this change", "type": "button" }
+    });
+    button.addEventListener("click", (event) => {
+      var _a;
+      event.preventDefault();
+      event.stopPropagation();
+      (_a = this.revert) == null ? void 0 : _a.call(this, this.line);
+    });
+    return wrapper;
   }
   /**
    * Checks if this marker is equal to another marker.
-   * Markers are considered equal if they have the same change type and character.
+   * Markers are equal when they share the change type, the character, the line
+   * they sit on, and whether they carry a revert affordance. The line is part of
+   * the identity so CodeMirror rebuilds the DOM node (and its line-bound revert
+   * handler) when a marker shifts to another line, keeping the affordance wired
+   * to the correct block.
    *
    * @param {DotMarker} other - The marker to compare with
    * @return {boolean} True if the markers are equal, false otherwise
@@ -2761,7 +3912,7 @@ var _DotMarker = class extends import_view3.GutterMarker {
     if (!(other instanceof _DotMarker)) {
       return false;
     }
-    return this.getChangeType() === other.getChangeType() && this.getChar() === other.getChar();
+    return this.getChangeType() === other.getChangeType() && this.getChar() === other.getChar() && this.line === other.line && this.revert === null === (other.revert === null);
   }
   /**
    * Gets the change type of this marker.
@@ -2780,13 +3931,15 @@ var _DotMarker = class extends import_view3.GutterMarker {
     return this.char[this.changes];
   }
 };
-var DotMarker = _DotMarker;
 __decorateClass([
   Inject("SettingsService")
-], DotMarker.prototype, "settingsService", 2);
+], _DotMarker.prototype, "settingsService", 2);
+var DotMarker = _DotMarker;
 
 // src/extensions/gutter-common.extension.ts
+var import_obsidian10 = require("obsidian");
 var import_state3 = require("@codemirror/state");
+var SHOW_CHANGE_KEYS = ["show.changed", "show.restored", "show.added", "show.removed"];
 var GutterCommonExtension = class extends BaseExtension {
   constructor() {
     super(...arguments);
@@ -2800,6 +3953,19 @@ var GutterCommonExtension = class extends BaseExtension {
      * Set too false to only show markers for lines with changes.
      */
     this.renderEmptyElements = false;
+    /**
+     * DOM event handlers for this gutter. Obsidian exposes no gutter-specific
+     * context-menu event, so the gutter `contextmenu` is captured here (it fires
+     * only on the gutter DOM, leaving the general editor menu untouched) to open a
+     * gutter-specific Obsidian menu. CodeMirror owns the listener lifecycle, so it
+     * is removed automatically when the registered editor extension unloads.
+     */
+    this.domEventHandlers = {
+      contextmenu: (_view, _line, event) => {
+        this.openGutterMenu(event);
+        return true;
+      }
+    };
     /**
      * Creates markers for the gutter-based online changes.
      * Returns a RangeSet of DotMarker instances for lines with changes.
@@ -2820,11 +3986,103 @@ var GutterCommonExtension = class extends BaseExtension {
         const line = view.state.doc.line(i + 1);
         const change = changes.get(i);
         if (change) {
-          builder.add(line.from, line.from, new DotMarker(change.getModify(), this.plugin));
+          builder.add(line.from, line.from, new DotMarker(
+            change.getModify(),
+            this.plugin,
+            i,
+            (target) => {
+              void this.revertBlockAt(target);
+            }
+          ));
         }
       }
       return builder.finish();
     };
+  }
+  /**
+   * Reverts the single changed block sitting at the given 0-based current line
+   * back to the original baseline, leaving every other change intact. The hunks
+   * are recomputed against the live content so the resolved block is never stale,
+   * the user confirms before the write, and the revert reuses the same plumbing
+   * as the history modal (HunkHelper to scope the block, SnapshotsService to
+   * apply it), which refreshes the editor highlights.
+   *
+   * @param {number} line - The 0-based current line the affordance was clicked on
+   * @return {Promise<void>}
+   */
+  async revertBlockAt(line) {
+    const snapshot = this.snapshotsService.getOne();
+    if (!(snapshot == null ? void 0 : snapshot.file)) {
+      return;
+    }
+    const currentLines = snapshot.getLastStateLines();
+    const hunks = HunkHelper.diff(
+      snapshot.getOriginalStateLines(),
+      currentLines,
+      snapshot.lineBreak
+    );
+    const hunk = HunkHelper.hunkAtLine(hunks, line);
+    if (!hunk) {
+      return;
+    }
+    const confirmed = await this.modalsService.confirm({
+      title: "Revert change",
+      message: "Revert this change back to the original? Other changes are kept.",
+      confirmText: "Revert"
+    });
+    if (!confirmed) {
+      return;
+    }
+    const start = Math.max(0, Math.min(currentLines.length, hunk.newStart - 1));
+    await this.snapshotsService.applyContent(
+      snapshot.file,
+      HunkHelper.revertHunk(currentLines, hunk),
+      {
+        start,
+        removeCount: hunk.newLines,
+        newLines: HunkHelper.baseLinesForHunk(hunk)
+      }
+    );
+  }
+  /**
+   * Opens the gutter-specific context menu at the click position, prevents the
+   * native browser menu, and adds a single "show changes" toggle bound to the
+   * `show.*` settings. Built by hand because Obsidian has no gutter context-menu
+   * API.
+   *
+   * @param {MouseEvent} event - The captured gutter `contextmenu` event
+   * @return {void}
+   */
+  openGutterMenu(event) {
+    event.preventDefault();
+    const menu = new import_obsidian10.Menu();
+    const shown = this.isShowChangesEnabled();
+    menu.addItem((item) => {
+      item.setTitle(this.plugin.t("menu.show-changes")).setIcon("eye").setChecked(shown).onClick(() => {
+        this.toggleShowChanges(!shown);
+      });
+    });
+    menu.showAtMouseEvent(event);
+  }
+  /**
+   * Whether the gutter "show changes" toggle reads as on: true only when every
+   * tracked `show.*` flag is enabled, so the single toggle reflects a fully
+   * visible gutter.
+   *
+   * @return {boolean} True if all tracked change types are shown
+   */
+  isShowChangesEnabled() {
+    return SHOW_CHANGE_KEYS.every((key2) => this.settingsService.value(key2));
+  }
+  /**
+   * Sets every tracked `show.*` flag at once, so the gutter "show changes"
+   * toggle turns all change indicators on or off together.
+   *
+   * @param {boolean} value - The new visibility for all tracked change types
+   * @return {void}
+   */
+  toggleShowChanges(value) {
+    SHOW_CHANGE_KEYS.forEach((key2) => this.settingsService.update(key2, value));
   }
   /**
    * Checks if the indicator type is set to 'dot'.
@@ -2856,6 +4114,9 @@ __decorateClass([
 __decorateClass([
   Inject("SnapshotsService")
 ], GutterCommonExtension.prototype, "snapshotsService", 2);
+__decorateClass([
+  Inject("ModalsService")
+], GutterCommonExtension.prototype, "modalsService", 2);
 
 // src/markers/removed.marker.ts
 var import_view4 = require("@codemirror/view");
@@ -3029,6 +4290,4576 @@ var ExtensionsService = class {
   }
 };
 
+// lang/am.json
+var am_default = {
+  "command.go-to-next-change": "\u12C8\u12F0 \u1240\u1323\u12E9 \u1208\u12CD\u1325 \u1202\u12F5",
+  "command.go-to-previous-change": "\u12C8\u12F0 \u1240\u12F3\u121A\u12CD \u1208\u12CD\u1325 \u1202\u12F5",
+  "command.reset-lines-all": "\u1201\u1209\u1295\u121D \u12E8\u1218\u1235\u1218\u122D \u1218\u12A8\u1273\u1270\u12EB \u1245\u133D\u1260\u1273\u12CA \u1245\u1302\u12CE\u127D \u12F3\u130D\u121D \u12A0\u1235\u1300\u121D\u122D",
+  "command.reset-lines": "\u12E8\u12A0\u1201\u1291\u1295 \u1230\u1290\u12F5 \u12E8\u1218\u1235\u1218\u122D \u1218\u12A8\u1273\u1270\u12EB \u1245\u133D\u1260\u1273\u12CA \u1245\u1302 \u12F3\u130D\u121D \u12A0\u1235\u1300\u121D\u122D",
+  "command.show-diff": "\u12E8\u12A0\u1201\u1291\u1295 \u1230\u1290\u12F5 \u1201\u1209\u1295\u121D \u1208\u12CD\u1326\u127D \u12A0\u1233\u12ED",
+  "notice.no-changes-to-navigate": "\u1208\u1218\u12F3\u1230\u1235 \u121D\u1295\u121D \u1208\u12CD\u1326\u127D \u12E8\u1209\u121D",
+  "notice.all-snapshots-deleted": "\u1201\u1209\u121D \u12E8\u1245\u133D\u1260\u1273\u12CA \u1245\u1302 \u12CD\u1202\u1265 \u1270\u1230\u122D\u12DF\u120D",
+  "notice.current-snapshot-deleted": "\u12E8\u12A0\u1201\u1291 \u12E8\u1245\u133D\u1260\u1273\u12CA \u1245\u1302 \u12CD\u1202\u1265 \u1270\u1230\u122D\u12DF\u120D",
+  "notice.file-restored": "\u134B\u12ED\u1209 \u12C8\u12F0 \u1218\u1290\u123B \u1201\u1294\u1273\u12CD \u1270\u1218\u120D\u1237\u120D",
+  "notice.file-restore-failed": "\u134B\u12ED\u1209\u1295 \u12C8\u12F0 \u1218\u1290\u123B \u1201\u1294\u1273\u12CD \u1218\u1218\u1208\u1235 \u12A0\u120D\u1270\u1233\u12AB\u121D",
+  "notice.copied": "\u1270\u1240\u12F5\u1277\u120D!",
+  "notice.no-saved-history": "\u1208\u12DA\u1205 \u134B\u12ED\u120D \u12E8\u1270\u1240\u1218\u1320 \u1273\u122A\u12AD \u12E8\u1208\u121D\u1362",
+  "notice.invalid-exclude-pattern": "\u12A0\u12AB\u1263\u1262\u12EB\u12CA \u1273\u122A\u12AD: \u12E8\u1270\u1308\u1208\u1209 \u1218\u1295\u1308\u12F6\u127D \u1235\u122D\u12D3\u1270 \u1325\u1208\u1275 \u1275\u12AD\u12AD\u1208\u129B \u1218\u12F0\u1260\u129B \u1218\u130D\u1208\u132B \u12A0\u12ED\u12F0\u1208\u121D \u12A5\u1293 \u127D\u120B \u12ED\u1263\u120B\u120D\u1362",
+  "menu.local-history": "\u12A0\u12AB\u1263\u1262\u12EB\u12CA \u1273\u122A\u12AD",
+  "menu.show-changes": "\u1208\u12CD\u1326\u127D\u1295 \u12A0\u1233\u12ED",
+  "status.lines-changed": "{count} \u1218\u1235\u1218\u122E\u127D \u1270\u1208\u12CD\u1320\u12CB\u120D",
+  "setting.type.name": "\u12D3\u12ED\u1290\u1275",
+  "setting.type.desc": "\u1260\u12F3\u122D\u127B\u12CD \u120B\u12ED \u1240\u1325 \u12EB\u1208 \u1218\u1235\u1218\u122D \u12C8\u12ED\u121D \u1290\u1325\u1265 \u1218\u12AB\u12A8\u120D \u12ED\u121D\u1228\u1321\u1362",
+  "setting.type.option.line": "\u1240\u1325 \u12EB\u1208 \u1218\u1235\u1218\u122D",
+  "setting.type.option.dot": "\u1260\u12F3\u122D\u127B\u12CD \u12CD\u1235\u1325 \u1241\u121D\u134A",
+  "setting.allowed-extensions.name": "\u12E8\u1270\u1348\u1240\u12F1 \u12E8\u134B\u12ED\u120D \u1245\u1325\u12EB\u12CE\u127D",
+  "setting.allowed-extensions.desc": "\u1208\u12CD\u1326\u127B\u1278\u12CD \u12E8\u121A\u12A8\u1273\u1270\u1209 \u12E8\u134B\u12ED\u120D \u1245\u1325\u12EB\u12CE\u127D \u1260\u12AE\u121B \u12E8\u1270\u1208\u12E9 \u12DD\u122D\u12DD\u122D (\u1208\u121D\u1233\u120C md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "\u12E8\u1270\u1308\u1208\u1209 \u1218\u1295\u1308\u12F6\u127D",
+  "setting.exclude-paths.desc": "\u12A8\u1218\u12EB\u12E3\u12CD (vault) \u12A0\u1295\u133B\u122B\u12CA \u1218\u1295\u1308\u12F5 \u130B\u122D \u12E8\u121A\u1290\u133B\u1338\u122D\u1363 \u1208\u134A\u12F0\u120D \u1218\u1320\u1295 \u130D\u12F5 \u12E8\u121B\u12ED\u1230\u1320\u12CD \u1218\u12F0\u1260\u129B \u1218\u130D\u1208\u132B\u1362 \u1218\u1295\u1308\u12F1 \u12E8\u121A\u12DB\u1218\u12F5 \u121B\u1295\u129B\u12CD\u121D \u134B\u12ED\u120D \u1348\u133D\u121E \u12A0\u12ED\u12A8\u1273\u1270\u120D\u121D (\u1208\u121D\u1233\u120C \\.excalidraw\\.md$ \u12C8\u12ED\u121D (^|/)Templates/)\u1362 \u1290\u1263\u122A\u12CD \u1245\u1295\u1265\u122D \u12E8Templates \u12A0\u1243\u134A\u12CE\u127D\u1295 \u12A5\u1293 \u12E8Excalidraw \u1235\u12D5\u120E\u127D\u1295 \u12ED\u1308\u120B\u120D\u1362 \u1201\u1209\u1295\u121D \u1208\u1218\u12A8\u1273\u1270\u120D \u1263\u12F6 \u12ED\u1270\u12C9\u1275\u1362",
+  "setting.keep.name": "\u1273\u122A\u12AD\u1295 \u12A5\u1235\u12A8\u1218\u127C \u121B\u1246\u12E8\u1275",
+  "setting.keep.desc": "\u12E8\u12AD\u1208\u1233 \u1273\u122A\u12AD\u1295 \u12E8\u121B\u133D\u12F3\u1275 \u1235\u120D\u1275",
+  "setting.keep.option.app": "\u1218\u1270\u130D\u1260\u122A\u12EB \u1218\u12D8\u130B\u1275",
+  "setting.keep.option.file": "\u134B\u12ED\u120D \u1218\u12D8\u130B\u1275",
+  "setting.ignore-new-files.name": "\u12A0\u12F2\u1235 \u134B\u12ED\u120E\u127D\u1295 \u127D\u120B \u1260\u120D",
+  "setting.ignore-new-files.desc": "\u12AD\u1275\u1275\u120D \u12A8\u1270\u1300\u1218\u1228 \u1260\u128B\u120B \u12E8\u1270\u1348\u1320\u1229 \u134B\u12ED\u120E\u127D \u12CD\u1235\u1325 \u1208\u12CD\u1326\u127D\u1295 \u12A0\u1275\u12A8\u1273\u1270\u120D",
+  "setting.persist.name": "\u1273\u122A\u12AD\u1295 \u1260\u12F3\u130D\u121D \u121B\u1235\u1300\u1218\u122E\u127D \u1218\u12AB\u12A8\u120D \u12A0\u1246\u12ED",
+  "setting.persist.desc": '\u121D\u120D\u12AD\u1276\u127D \u12F3\u130D\u121D \u121B\u1235\u1300\u1218\u122D\u1295 \u12A5\u1295\u12F2\u1270\u122D\u1349 \u1273\u122A\u12AD\u1295 \u12C8\u12F0 \u12F2\u1235\u12AD \u12A0\u1235\u1240\u121D\u1325\u1362 "\u1273\u122A\u12AD\u1295 \u12A5\u1235\u12A8\u1218\u127C \u121B\u1246\u12E8\u1275" \u12C8\u12F0 \u1218\u1270\u130D\u1260\u122A\u12EB \u1218\u12D8\u130B\u1275 \u1218\u12CB\u1240\u122D \u12ED\u1320\u12ED\u1243\u120D\u1362',
+  "setting.max-entries.name": "\u12A8\u134D\u1270\u129B \u12E8\u1270\u12A8\u121B\u1279 \u134B\u12ED\u120E\u127D",
+  "setting.max-entries.desc": "\u1260\u12F2\u1235\u12AD \u120B\u12ED \u121D\u1295 \u12EB\u1205\u120D \u12E8\u134B\u12ED\u120D \u1273\u122A\u12AE\u127D \u12A5\u1295\u12F0\u121A\u1246\u12E9 \u12C8\u1230\u1295\u1362 \u1260\u1218\u1300\u1218\u122A\u12EB \u1260\u1323\u121D \u12A0\u122E\u130C\u12CE\u1279 \u12ED\u12C8\u1308\u12F3\u1209\u1362 \u1208\u121B\u1230\u1293\u12A8\u120D \u12C8\u12F0 0 \u12EB\u1240\u1293\u1265\u1229\u1362",
+  "setting.max-age-days.name": "\u12A8\u134D\u1270\u129B \u12E8\u1273\u122A\u12AD \u12D5\u12F5\u121C (\u1240\u1293\u1275)",
+  "setting.max-age-days.desc": "\u12A8\u12DA\u1205 \u1240\u1293\u1275 \u1265\u12DB\u1275 \u1260\u120B\u12ED \u12E8\u1246\u12E8 \u12E8\u1270\u1240\u1218\u1320 \u1273\u122A\u12AD\u1295 \u12A0\u1235\u12C8\u130D\u12F5\u1362 \u1208\u121B\u1230\u1293\u12A8\u120D \u12C8\u12F0 0 \u12EB\u1240\u1293\u1265\u1229\u1362",
+  "setting.snapshots-heading": "\u12E8\u130A\u12DC \u1218\u1235\u1218\u122D \u1245\u133D\u1260\u1273\u12CA \u1245\u1302\u12CE\u127D",
+  "setting.snapshots-enabled.name": "\u1218\u12AB\u12A8\u1208\u129B \u1235\u122A\u1276\u127D\u1295 \u12EB\u12DD",
+  "setting.snapshots-enabled.desc": "\u12A8\u1218\u1290\u123B\u12CD \u130B\u122D \u1265\u127B \u1233\u12ED\u1206\u1295 \u12A8\u1218\u12AB\u12A8\u1208\u129B \u1290\u1325\u1265 \u130B\u122D \u121B\u1290\u133B\u1338\u122D \u12A5\u1295\u12F5\u1275\u127D\u120D \u12E8\u1240\u12F0\u1219 \u1235\u122A\u1276\u127D\u1295 \u12E8\u130A\u12DC \u1218\u1235\u1218\u122D \u12A0\u1246\u12ED\u1362",
+  "setting.snapshots-edit-threshold.name": "\u1260\u12E8 (\u12A0\u122D\u1275\u12D6\u1276\u127D) \u12EB\u12DD",
+  "setting.snapshots-edit-threshold.desc": "\u12A8\u12DA\u1205 \u1265\u12DB\u1275 \u12A0\u122D\u1275\u12D6\u1276\u127D \u1260\u128B\u120B \u1235\u122A\u1275 \u12A0\u1295\u1233\u1362 \u12E8\u12A0\u122D\u1275\u12D6\u1275 \u1240\u1235\u1243\u123D\u1295 \u1208\u121B\u1230\u1293\u12A8\u120D \u12C8\u12F0 0 \u12EB\u1240\u1293\u1265\u1229\u1362",
+  "setting.snapshots-interval.name": "\u1260\u12E8 (\u12F0\u1242\u1243\u12CE\u127D) \u12EB\u12DD",
+  "setting.snapshots-interval.desc": "\u12A8\u12DA\u1205 \u1265\u12DB\u1275 \u12F0\u1242\u1243 \u12A0\u122D\u1275\u12D6\u1275 \u1260\u128B\u120B \u1235\u122A\u1275 \u12A0\u1295\u1233\u1362 \u12E8\u130A\u12DC \u1240\u1235\u1243\u123D\u1295 \u1208\u121B\u1230\u1293\u12A8\u120D \u12C8\u12F0 0 \u12EB\u1240\u1293\u1265\u1229\u1362",
+  "setting.max-version-age-days.name": "\u12A8\u134D\u1270\u129B \u12E8\u1235\u122A\u1275 \u12D5\u12F5\u121C (\u1240\u1293\u1275)",
+  "setting.max-version-age-days.desc": "\u12A8\u12DA\u1205 \u1240\u1293\u1275 \u1265\u12DB\u1275 \u1260\u120B\u12ED \u12E8\u1246\u12E9 \u1218\u12AB\u12A8\u1208\u129B \u1235\u122A\u1276\u127D\u1295 \u12A0\u1235\u12C8\u130D\u12F5 (\u12CB\u1293\u12CD \u12C8\u1230\u1295)\u1362 \u1208\u121B\u1230\u1293\u12A8\u120D \u12C8\u12F0 0 \u12EB\u1240\u1293\u1265\u1229\u1362",
+  "setting.max-versions.name": "\u1260\u134B\u12ED\u120D \u12A8\u134D\u1270\u129B \u1235\u122A\u1276\u127D",
+  "setting.max-versions.desc": "\u1260\u134B\u12ED\u120D \u12E8\u121A\u1246\u12E9 \u1218\u12AB\u12A8\u1208\u129B \u1235\u122A\u1276\u127D \u12E8\u12F0\u1205\u1295\u1290\u1275 \u12C8\u1230\u1295\u1362 \u1260\u1218\u1300\u1218\u122A\u12EB \u1260\u1323\u121D \u12A0\u122E\u130C\u12CE\u1279 \u12ED\u12C8\u1308\u12F3\u1209\u1362 \u1208\u121B\u1230\u1293\u12A8\u120D \u12C8\u12F0 0 \u12EB\u1240\u1293\u1265\u1229\u1362",
+  "setting.show-heading": "\u12A0\u1218\u120D\u12AB\u127D \u12A0\u1233\u12ED \u1208",
+  "setting.show.desc": '\u12E8\u1218\u1235\u1218\u122D \u12A0\u1218\u120D\u12AB\u127E\u127D \u12E8\u121A\u1273\u12E9\u1275 \u1260\u12A0\u122D\u1275\u12D6\u1275 (\u121D\u1295\u132D \u12A5\u1293 \u1240\u1325\u1273 \u1245\u12F5\u1218-\u12A5\u12ED\u1273) \u1201\u1290\u1273\u12CE\u127D \u1265\u127B \u1290\u12CD\u1362 \u1260\u1295\u1263\u1265 \u1201\u1290\u1273 \u12CD\u1235\u1325 \u12E8\u1270\u12AB\u1270\u1271 \u12A0\u1218\u120D\u12AB\u127E\u127D \u12E8\u1209\u121D\u1363 \u1290\u1308\u122D \u130D\u1295 \u12E8\u1208\u12CD\u1325 \u1273\u122A\u12AD \u12A0\u1201\u1295\u121D \u12ED\u12F0\u1228\u1235\u1260\u1273\u120D: "\u12E8\u12A0\u1201\u1291\u1295 \u1230\u1290\u12F5 \u1201\u1209\u1295\u121D \u1208\u12CD\u1326\u127D \u12A0\u1233\u12ED" \u1275\u12D5\u12DB\u12D9\u1295 \u12EB\u1202\u12F1 \u12C8\u12ED\u121D \u1260\u134B\u12ED\u120D \u12A0\u1233\u123D \u12CD\u1235\u1325 \u12E8\u134B\u12ED\u120D \u12A0\u12CD\u12F5 \u121D\u1293\u120C\u1295 \u12ED\u1320\u1240\u1219\u1362',
+  "setting.show.changed": "\u1270\u1208\u12CD\u1327\u120D",
+  "setting.show.restored": "\u1270\u1218\u120D\u1237\u120D",
+  "setting.show.added": "\u1270\u1328\u121D\u122F\u120D",
+  "setting.show.removed": "\u1270\u12C8\u130D\u12F7\u120D",
+  "setting.line-heading": "\u12E8\u1218\u1235\u1218\u122D \u12A0\u1218\u120D\u12AB\u127D",
+  "setting.line-width.name": "\u1235\u134B\u1275",
+  "setting.line-width.desc": "\u12E8\u1240\u1325\u1273 \u1218\u1235\u1218\u122D \u12A0\u1218\u120D\u12AB\u127D \u1235\u134B\u1275 (\u1260\u1352\u12AD\u1230\u120E\u127D)\u1362",
+  "setting.gutter-heading.name": "\u12E8\u12F3\u122D\u127B \u12A0\u1218\u120D\u12AB\u127D",
+  "setting.gutter-heading.prefix": "\u12E8\u12F3\u122D\u127B \u12D3\u12ED\u1290\u1275 \u12A0\u1218\u120D\u12AB\u127D \u1241\u121D\u134A\u12CE\u127D (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "\u12E8\u1208\u12CD\u1325 \u1241\u121D\u134A",
+  "setting.gutter-added.name": "\u12E8\u1218\u1328\u1218\u122D \u1241\u121D\u134A",
+  "setting.gutter-restored.name": "\u12E8\u1218\u1218\u1208\u1235 \u1241\u121D\u134A",
+  "setting.gutter-removed.name": "\u12E8\u121B\u1235\u12C8\u1308\u12F5 \u1241\u121D\u134A",
+  "modal.title": "\u1273\u122A\u12AD",
+  "modal.no-changes": "\u121D\u1295\u121D \u1208\u12CD\u1326\u127D \u12E8\u1209\u121D",
+  "modal.identical-to-current": "\u12A8\u12A0\u1201\u1291 \u130B\u122D \u1270\u1218\u1233\u1233\u12ED",
+  "modal.restore-original": "\u1218\u1290\u123B\u12CD\u1295 \u1218\u120D\u1235",
+  "modal.remove-history": "\u12E8\u134B\u12ED\u120D \u1273\u122A\u12AD\u1295 \u12A0\u1235\u12C8\u130D\u12F5",
+  "modal.previous-difference": "\u1240\u12F3\u121A \u120D\u12E9\u1290\u1275",
+  "modal.next-difference": "\u1240\u1323\u12ED \u120D\u12E9\u1290\u1275",
+  "modal.mode.patch": "\u1325\u1308\u1293\u1295 \u12A0\u1233\u12ED",
+  "modal.mode.inline": "\u1260\u1218\u1235\u1218\u122D \u12CD\u1235\u1325",
+  "modal.mode.line-by-line": "\u1218\u1235\u1218\u122D \u1260\u1218\u1235\u1218\u122D",
+  "modal.mode.side-by-side": "\u130E\u1295 \u1208\u130E\u1295",
+  "modal.confirm.cancel": "\u1230\u122D\u12DD",
+  "modal.confirm.restore.title": "\u1218\u1290\u123B \u134B\u12ED\u120D\u1295 \u1218\u120D\u1235",
+  "modal.confirm.restore.message": "\u12ED\u1205\u1295 \u134B\u12ED\u120D \u12C8\u12F0 \u1218\u1290\u123B \u1201\u1294\u1273\u12CD \u1218\u1218\u1208\u1235 \u12A5\u1295\u12F0\u121A\u1348\u120D\u1309 \u12A5\u122D\u130D\u1320\u129B \u1290\u12CE\u1275? \u1201\u1209\u121D \u12E8\u12A0\u1201\u1291 \u1208\u12CD\u1326\u127D \u12ED\u1320\u134B\u1209 \u12A5\u1293 \u12E8\u1208\u12CD\u1325 \u12AD\u1275\u1275\u120D \u1273\u122A\u12AD \u12F3\u130D\u121D \u12ED\u1300\u1218\u122B\u120D\u1362 \u12ED\u1205 \u12F5\u122D\u130A\u1275 \u120A\u1240\u1208\u1260\u1235 \u12A0\u12ED\u127D\u120D\u121D\u1362",
+  "modal.confirm.restore.button": "\u134B\u12ED\u120D\u1295 \u1218\u120D\u1235",
+  "modal.confirm.remove.title": "\u12E8\u134B\u12ED\u120D \u1273\u122A\u12AD\u1295 \u12A0\u1235\u12C8\u130D\u12F5",
+  "modal.confirm.remove.message": "\u1208\u12DA\u1205 \u134B\u12ED\u120D \u12E8\u1208\u12CD\u1325 \u12AD\u1275\u1275\u120D \u1273\u122A\u12AD\u1295 \u121B\u1235\u12C8\u1308\u12F5 \u12A5\u1295\u12F0\u121A\u1348\u120D\u1309 \u12A5\u122D\u130D\u1320\u129B \u1290\u12CE\u1275? \u12ED\u1205 \u12F5\u122D\u130A\u1275 \u120A\u1240\u1208\u1260\u1235 \u12A0\u12ED\u127D\u120D\u121D\u1362",
+  "modal.confirm.remove.button": "\u1273\u122A\u12AD\u1295 \u12A0\u1235\u12C8\u130D\u12F5",
+  "modal.confirm.revert.title": "\u12ED\u1205\u1295 \u1208\u12CD\u1325 \u1218\u120D\u1235",
+  "modal.confirm.revert.message": "\u12ED\u1205\u1295 \u1208\u12CD\u1325 \u12C8\u12F0 \u1270\u1218\u1228\u1320\u12CD \u1218\u1230\u1228\u1275 \u12ED\u1218\u1208\u1235? \u120C\u120E\u127D \u1208\u12CD\u1326\u127D \u12ED\u1246\u12EB\u1209\u1362",
+  "modal.confirm.revert.button": "\u1218\u120D\u1235",
+  "modal.search-versions": "\u1235\u122A\u1276\u127D\u1295 \u1348\u120D\u130D",
+  "modal.version.baseline": "\u12E8\u12A0\u1201\u1291",
+  "modal.version.numbered": "\u1235\u122A\u1275 {number}",
+  "modal.version.current": "\u12E8\u12A0\u1201\u1291",
+  "modal.version.original": "\u1218\u1290\u123B",
+  "modal.no-versions-match": "\u12A8\u134D\u1208\u130B\u12CD \u130B\u122D \u12E8\u121A\u12DB\u1218\u12F1 \u1235\u122A\u1276\u127D \u12E8\u1209\u121D",
+  "modal.no-snapshots-yet": "\u1308\u1293 \u1218\u12AB\u12A8\u1208\u129B \u1245\u133D\u1260\u1273\u12CA \u1245\u1302\u12CE\u127D \u12E8\u1209\u121D",
+  "modal.revert-hunk": "\u12ED\u1205\u1295 \u1208\u12CD\u1325 \u1218\u120D\u1235",
+  "modal.copy": "\u1245\u12F3"
+};
+
+// lang/ar.json
+var ar_default = {
+  "command.go-to-next-change": "\u0627\u0644\u0627\u0646\u062A\u0642\u0627\u0644 \u0625\u0644\u0649 \u0627\u0644\u062A\u063A\u064A\u064A\u0631 \u0627\u0644\u062A\u0627\u0644\u064A",
+  "command.go-to-previous-change": "\u0627\u0644\u0627\u0646\u062A\u0642\u0627\u0644 \u0625\u0644\u0649 \u0627\u0644\u062A\u063A\u064A\u064A\u0631 \u0627\u0644\u0633\u0627\u0628\u0642",
+  "command.reset-lines-all": "\u0625\u0639\u0627\u062F\u0629 \u062A\u0639\u064A\u064A\u0646 \u062C\u0645\u064A\u0639 \u0644\u0642\u0637\u0627\u062A \u0645\u062A\u062A\u0628\u0651\u0639 \u0627\u0644\u0623\u0633\u0637\u0631",
+  "command.reset-lines": "\u0625\u0639\u0627\u062F\u0629 \u062A\u0639\u064A\u064A\u0646 \u0644\u0642\u0637\u0629 \u0645\u062A\u062A\u0628\u0651\u0639 \u0627\u0644\u0623\u0633\u0637\u0631 \u0644\u0644\u0645\u0633\u062A\u0646\u062F \u0627\u0644\u062D\u0627\u0644\u064A",
+  "command.show-diff": "\u0639\u0631\u0636 \u062C\u0645\u064A\u0639 \u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0627\u0644\u0645\u0633\u062A\u0646\u062F \u0627\u0644\u062D\u0627\u0644\u064A",
+  "notice.no-changes-to-navigate": "\u0644\u0627 \u062A\u0648\u062C\u062F \u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0644\u0644\u062A\u0646\u0642\u0644 \u0628\u064A\u0646\u0647\u0627",
+  "notice.all-snapshots-deleted": "\u062A\u0645 \u062D\u0630\u0641 \u062C\u0645\u064A\u0639 \u0628\u064A\u0627\u0646\u0627\u062A \u0627\u0644\u0644\u0642\u0637\u0627\u062A",
+  "notice.current-snapshot-deleted": "\u062A\u0645 \u062D\u0630\u0641 \u0628\u064A\u0627\u0646\u0627\u062A \u0627\u0644\u0644\u0642\u0637\u0629 \u0627\u0644\u062D\u0627\u0644\u064A\u0629",
+  "notice.file-restored": "\u062A\u0645\u062A \u0627\u0633\u062A\u0639\u0627\u062F\u0629 \u0627\u0644\u0645\u0644\u0641 \u0625\u0644\u0649 \u062D\u0627\u0644\u062A\u0647 \u0627\u0644\u0623\u0635\u0644\u064A\u0629",
+  "notice.file-restore-failed": "\u062A\u0639\u0630\u0651\u0631\u062A \u0627\u0633\u062A\u0639\u0627\u062F\u0629 \u0627\u0644\u0645\u0644\u0641 \u0625\u0644\u0649 \u062D\u0627\u0644\u062A\u0647 \u0627\u0644\u0623\u0635\u0644\u064A\u0629",
+  "notice.copied": "\u062A\u0645 \u0627\u0644\u0646\u0633\u062E!",
+  "notice.no-saved-history": "\u0644\u0627 \u064A\u0648\u062C\u062F \u0633\u062C\u0644 \u0645\u062D\u0641\u0648\u0638 \u0644\u0647\u0630\u0627 \u0627\u0644\u0645\u0644\u0641.",
+  "notice.invalid-exclude-pattern": "\u0627\u0644\u0633\u062C\u0644 \u0627\u0644\u0645\u062D\u0644\u064A: \u0646\u0645\u0637 \u0627\u0644\u0645\u0633\u0627\u0631\u0627\u062A \u0627\u0644\u0645\u0633\u062A\u062B\u0646\u0627\u0629 \u0644\u064A\u0633 \u062A\u0639\u0628\u064A\u0631\u064B\u0627 \u0646\u0645\u0637\u064A\u064B\u0627 \u0635\u0627\u0644\u062D\u064B\u0627 \u0648\u0633\u064A\u062A\u0645 \u062A\u062C\u0627\u0647\u0644\u0647.",
+  "menu.local-history": "\u0627\u0644\u0633\u062C\u0644 \u0627\u0644\u0645\u062D\u0644\u064A",
+  "menu.show-changes": "\u0639\u0631\u0636 \u0627\u0644\u062A\u063A\u064A\u064A\u0631\u0627\u062A",
+  "status.lines-changed": "\u062A\u0645 \u062A\u063A\u064A\u064A\u0631 {count} \u0633\u0637\u0631\u064B\u0627",
+  "setting.type.name": "\u0627\u0644\u0646\u0648\u0639",
+  "setting.type.desc": "\u0627\u062E\u062A\u0631 \u0628\u064A\u0646 \u062E\u0637 \u0639\u0645\u0648\u062F\u064A \u0623\u0648 \u0646\u0642\u0637\u0629 \u0641\u064A \u0627\u0644\u0647\u0627\u0645\u0634.",
+  "setting.type.option.line": "\u062E\u0637 \u0639\u0645\u0648\u062F\u064A",
+  "setting.type.option.dot": "\u062D\u0631\u0641 \u0641\u064A \u0627\u0644\u0647\u0627\u0645\u0634",
+  "setting.allowed-extensions.name": "\u0627\u0645\u062A\u062F\u0627\u062F\u0627\u062A \u0627\u0644\u0645\u0644\u0641\u0627\u062A \u0627\u0644\u0645\u0633\u0645\u0648\u062D \u0628\u0647\u0627",
+  "setting.allowed-extensions.desc": "\u0642\u0627\u0626\u0645\u0629 \u0628\u0627\u0645\u062A\u062F\u0627\u062F\u0627\u062A \u0627\u0644\u0645\u0644\u0641\u0627\u062A \u0645\u0641\u0635\u0648\u0644\u0629 \u0628\u0641\u0648\u0627\u0635\u0644 \u0644\u062A\u062A\u0628\u0651\u0639 \u0627\u0644\u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0641\u064A\u0647\u0627 (\u0645\u062B\u0644 md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "\u0627\u0644\u0645\u0633\u0627\u0631\u0627\u062A \u0627\u0644\u0645\u0633\u062A\u062B\u0646\u0627\u0629",
+  "setting.exclude-paths.desc": "\u062A\u0639\u0628\u064A\u0631 \u0646\u0645\u0637\u064A \u063A\u064A\u0631 \u062D\u0633\u0627\u0633 \u0644\u062D\u0627\u0644\u0629 \u0627\u0644\u0623\u062D\u0631\u0641 \u064A\u064F\u0637\u0627\u0628\u064E\u0642 \u0645\u0639 \u0627\u0644\u0645\u0633\u0627\u0631 \u0627\u0644\u0646\u0633\u0628\u064A \u0644\u0644\u0642\u0628\u0648. \u0623\u064A \u0645\u0644\u0641 \u064A\u062A\u0637\u0627\u0628\u0642 \u0645\u0633\u0627\u0631\u0647 \u0644\u0627 \u064A\u064F\u062A\u062A\u0628\u0651\u0639 \u0623\u0628\u062F\u064B\u0627 (\u0645\u062B\u0644 \\.excalidraw\\.md$ \u0623\u0648 (^|/)Templates/). \u064A\u0633\u062A\u062B\u0646\u064A \u0627\u0644\u0625\u0639\u062F\u0627\u062F \u0627\u0644\u0627\u0641\u062A\u0631\u0627\u0636\u064A \u0645\u062C\u0644\u062F\u0627\u062A Templates \u0648\u0631\u0633\u0648\u0645\u0627\u062A Excalidraw. \u0627\u062A\u0631\u0643\u0647 \u0641\u0627\u0631\u063A\u064B\u0627 \u0644\u062A\u062A\u0628\u0651\u0639 \u0643\u0644 \u0634\u064A\u0621.",
+  "setting.keep.name": "\u0627\u0644\u0627\u062D\u062A\u0641\u0627\u0638 \u0628\u0627\u0644\u0633\u062C\u0644 \u062D\u062A\u0649",
+  "setting.keep.desc": "\u0627\u0633\u062A\u0631\u0627\u062A\u064A\u062C\u064A\u0629 \u062A\u0646\u0638\u064A\u0641 \u0633\u062C\u0644 \u0627\u0644\u0645\u0631\u0627\u062C\u0639\u0627\u062A",
+  "setting.keep.option.app": "\u0625\u063A\u0644\u0627\u0642 \u0627\u0644\u062A\u0637\u0628\u064A\u0642",
+  "setting.keep.option.file": "\u0625\u063A\u0644\u0627\u0642 \u0627\u0644\u0645\u0644\u0641",
+  "setting.ignore-new-files.name": "\u062A\u062C\u0627\u0647\u0644 \u0627\u0644\u0645\u0644\u0641\u0627\u062A \u0627\u0644\u062C\u062F\u064A\u062F\u0629",
+  "setting.ignore-new-files.desc": "\u0639\u062F\u0645 \u062A\u062A\u0628\u0651\u0639 \u0627\u0644\u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0641\u064A \u0627\u0644\u0645\u0644\u0641\u0627\u062A \u0627\u0644\u0645\u064F\u0646\u0634\u0623\u0629 \u0628\u0639\u062F \u0628\u062F\u0621 \u0627\u0644\u062A\u062A\u0628\u0651\u0639",
+  "setting.persist.name": "\u0627\u0644\u0627\u062D\u062A\u0641\u0627\u0638 \u0628\u0627\u0644\u0633\u062C\u0644 \u0639\u0628\u0631 \u0639\u0645\u0644\u064A\u0627\u062A \u0625\u0639\u0627\u062F\u0629 \u0627\u0644\u062A\u0634\u063A\u064A\u0644",
+  "setting.persist.desc": '\u0627\u062D\u0641\u0638 \u0627\u0644\u0633\u062C\u0644 \u0639\u0644\u0649 \u0627\u0644\u0642\u0631\u0635 \u0644\u062A\u0628\u0642\u0649 \u0627\u0644\u0625\u0628\u0631\u0627\u0632\u0627\u062A \u0628\u0639\u062F \u0625\u0639\u0627\u062F\u0629 \u0627\u0644\u062A\u0634\u063A\u064A\u0644. \u064A\u062A\u0637\u0644\u0628 \u0636\u0628\u0637 "\u0627\u0644\u0627\u062D\u062A\u0641\u0627\u0638 \u0628\u0627\u0644\u0633\u062C\u0644 \u062D\u062A\u0649" \u0639\u0644\u0649 \u0625\u063A\u0644\u0627\u0642 \u0627\u0644\u062A\u0637\u0628\u064A\u0642.',
+  "setting.max-entries.name": "\u0627\u0644\u062D\u062F \u0627\u0644\u0623\u0642\u0635\u0649 \u0644\u0644\u0645\u0644\u0641\u0627\u062A \u0627\u0644\u0645\u062E\u0632\u064E\u0651\u0646\u0629",
+  "setting.max-entries.desc": "\u062D\u062F \u0623\u0642\u0635\u0649 \u0644\u0639\u062F\u062F \u0633\u062C\u0644\u0627\u062A \u0627\u0644\u0645\u0644\u0641\u0627\u062A \u0627\u0644\u0645\u062D\u0641\u0648\u0638\u0629 \u0639\u0644\u0649 \u0627\u0644\u0642\u0631\u0635. \u062A\u064F\u062D\u0630\u0641 \u0627\u0644\u0623\u0642\u062F\u0645 \u0623\u0648\u0644\u064B\u0627. \u0627\u0636\u0628\u0637\u0647 \u0639\u0644\u0649 0 \u0644\u0644\u062A\u0639\u0637\u064A\u0644.",
+  "setting.max-age-days.name": "\u0623\u0642\u0635\u0649 \u0639\u0645\u0631 \u0644\u0644\u0633\u062C\u0644 (\u0623\u064A\u0627\u0645)",
+  "setting.max-age-days.desc": "\u0627\u062D\u0630\u0641 \u0627\u0644\u0633\u062C\u0644 \u0627\u0644\u0645\u062D\u0641\u0648\u0638 \u0627\u0644\u0623\u0642\u062F\u0645 \u0645\u0646 \u0647\u0630\u0627 \u0627\u0644\u0639\u062F\u062F \u0645\u0646 \u0627\u0644\u0623\u064A\u0627\u0645. \u0627\u0636\u0628\u0637\u0647 \u0639\u0644\u0649 0 \u0644\u0644\u062A\u0639\u0637\u064A\u0644.",
+  "setting.snapshots-heading": "\u0644\u0642\u0637\u0627\u062A \u0627\u0644\u062E\u0637 \u0627\u0644\u0632\u0645\u0646\u064A",
+  "setting.snapshots-enabled.name": "\u0627\u0644\u062A\u0642\u0627\u0637 \u0627\u0644\u0625\u0635\u062F\u0627\u0631\u0627\u062A \u0627\u0644\u0648\u0633\u064A\u0637\u0629",
+  "setting.snapshots-enabled.desc": "\u0627\u062D\u062A\u0641\u0638 \u0628\u062E\u0637 \u0632\u0645\u0646\u064A \u0644\u0644\u0625\u0635\u062F\u0627\u0631\u0627\u062A \u0627\u0644\u0633\u0627\u0628\u0642\u0629 \u0644\u062A\u062A\u0645\u0643\u0646 \u0645\u0646 \u0627\u0644\u0645\u0642\u0627\u0631\u0646\u0629 \u0645\u0639 \u0646\u0642\u0637\u0629 \u0648\u0633\u0637\u064A\u0629\u060C \u0648\u0644\u064A\u0633 \u0641\u0642\u0637 \u0645\u0639 \u0627\u0644\u0646\u0633\u062E\u0629 \u0627\u0644\u0623\u0635\u0644\u064A\u0629.",
+  "setting.snapshots-edit-threshold.name": "\u0627\u0644\u0627\u0644\u062A\u0642\u0627\u0637 \u0643\u0644 (\u062A\u0639\u062F\u064A\u0644\u0627\u062A)",
+  "setting.snapshots-edit-threshold.desc": "\u0627\u0644\u062A\u0642\u0637 \u0625\u0635\u062F\u0627\u0631\u064B\u0627 \u0628\u0639\u062F \u0647\u0630\u0627 \u0627\u0644\u0639\u062F\u062F \u0645\u0646 \u0627\u0644\u062A\u0639\u062F\u064A\u0644\u0627\u062A. \u0627\u0636\u0628\u0637\u0647 \u0639\u0644\u0649 0 \u0644\u062A\u0639\u0637\u064A\u0644 \u0645\u064F\u0634\u063A\u0651\u0644 \u0627\u0644\u062A\u0639\u062F\u064A\u0644\u0627\u062A.",
+  "setting.snapshots-interval.name": "\u0627\u0644\u0627\u0644\u062A\u0642\u0627\u0637 \u0643\u0644 (\u062F\u0642\u0627\u0626\u0642)",
+  "setting.snapshots-interval.desc": "\u0627\u0644\u062A\u0642\u0637 \u0625\u0635\u062F\u0627\u0631\u064B\u0627 \u0628\u0639\u062F \u0647\u0630\u0627 \u0627\u0644\u0639\u062F\u062F \u0645\u0646 \u062F\u0642\u0627\u0626\u0642 \u0627\u0644\u062A\u062D\u0631\u064A\u0631. \u0627\u0636\u0628\u0637\u0647 \u0639\u0644\u0649 0 \u0644\u062A\u0639\u0637\u064A\u0644 \u0627\u0644\u0645\u064F\u0634\u063A\u0651\u0644 \u0627\u0644\u0632\u0645\u0646\u064A.",
+  "setting.max-version-age-days.name": "\u0623\u0642\u0635\u0649 \u0639\u0645\u0631 \u0644\u0644\u0625\u0635\u062F\u0627\u0631 (\u0623\u064A\u0627\u0645)",
+  "setting.max-version-age-days.desc": "\u0627\u062D\u0630\u0641 \u0627\u0644\u0625\u0635\u062F\u0627\u0631\u0627\u062A \u0627\u0644\u0648\u0633\u064A\u0637\u0629 \u0627\u0644\u0623\u0642\u062F\u0645 \u0645\u0646 \u0647\u0630\u0627 \u0627\u0644\u0639\u062F\u062F \u0645\u0646 \u0627\u0644\u0623\u064A\u0627\u0645 (\u0627\u0644\u062D\u062F \u0627\u0644\u0623\u0633\u0627\u0633\u064A). \u0627\u0636\u0628\u0637\u0647 \u0639\u0644\u0649 0 \u0644\u0644\u062A\u0639\u0637\u064A\u0644.",
+  "setting.max-versions.name": "\u0627\u0644\u062D\u062F \u0627\u0644\u0623\u0642\u0635\u0649 \u0644\u0644\u0625\u0635\u062F\u0627\u0631\u0627\u062A \u0644\u0643\u0644 \u0645\u0644\u0641",
+  "setting.max-versions.desc": "\u062D\u062F \u0623\u0645\u0627\u0646 \u0644\u0639\u062F\u062F \u0627\u0644\u0625\u0635\u062F\u0627\u0631\u0627\u062A \u0627\u0644\u0648\u0633\u064A\u0637\u0629 \u0627\u0644\u0645\u062D\u0641\u0648\u0638\u0629 \u0644\u0643\u0644 \u0645\u0644\u0641. \u062A\u064F\u062D\u0630\u0641 \u0627\u0644\u0623\u0642\u062F\u0645 \u0623\u0648\u0644\u064B\u0627. \u0627\u0636\u0628\u0637\u0647 \u0639\u0644\u0649 0 \u0644\u0644\u062A\u0639\u0637\u064A\u0644.",
+  "setting.show-heading": "\u0625\u0638\u0647\u0627\u0631 \u0627\u0644\u0645\u0624\u0634\u0631 \u0644\u0640",
+  "setting.show.desc": '\u062A\u0638\u0647\u0631 \u0645\u0624\u0634\u0631\u0627\u062A \u0627\u0644\u0623\u0633\u0637\u0631 \u0641\u0642\u0637 \u0641\u064A \u0648\u0636\u0639\u064E\u064A \u0627\u0644\u062A\u062D\u0631\u064A\u0631 (\u0627\u0644\u0645\u0635\u062F\u0631 \u0648\u0627\u0644\u0645\u0639\u0627\u064A\u0646\u0629 \u0627\u0644\u062D\u064A\u0629). \u0641\u064A \u0648\u0636\u0639 \u0627\u0644\u0642\u0631\u0627\u0621\u0629 \u0644\u0627 \u062A\u0648\u062C\u062F \u0645\u0624\u0634\u0631\u0627\u062A \u0645\u0636\u0645\u064E\u0651\u0646\u0629\u060C \u0644\u0643\u0646 \u0633\u062C\u0644 \u0627\u0644\u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0644\u0627 \u064A\u0632\u0627\u0644 \u0645\u062A\u0627\u062D\u064B\u0627: \u0634\u063A\u0651\u0644 \u0623\u0645\u0631 "\u0639\u0631\u0636 \u062C\u0645\u064A\u0639 \u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0627\u0644\u0645\u0633\u062A\u0646\u062F \u0627\u0644\u062D\u0627\u0644\u064A" \u0623\u0648 \u0627\u0633\u062A\u062E\u062F\u0645 \u0642\u0627\u0626\u0645\u0629 \u0633\u064A\u0627\u0642 \u0627\u0644\u0645\u0644\u0641 \u0641\u064A \u0645\u0633\u062A\u0643\u0634\u0641 \u0627\u0644\u0645\u0644\u0641\u0627\u062A.',
+  "setting.show.changed": "\u0645\u064F\u063A\u064A\u064E\u0651\u0631",
+  "setting.show.restored": "\u0645\u064F\u0633\u062A\u0639\u0627\u062F",
+  "setting.show.added": "\u0645\u064F\u0636\u0627\u0641",
+  "setting.show.removed": "\u0645\u062D\u0630\u0648\u0641",
+  "setting.line-heading": "\u0645\u0624\u0634\u0631 \u0627\u0644\u062E\u0637",
+  "setting.line-width.name": "\u0627\u0644\u0639\u0631\u0636",
+  "setting.line-width.desc": "\u0639\u0631\u0636 \u0645\u0624\u0634\u0631 \u0627\u0644\u062E\u0637 \u0627\u0644\u0639\u0645\u0648\u062F\u064A (\u0628\u0627\u0644\u0628\u0643\u0633\u0644).",
+  "setting.gutter-heading.name": "\u0645\u0624\u0634\u0631 \u0627\u0644\u0647\u0627\u0645\u0634",
+  "setting.gutter-heading.prefix": "\u0623\u062D\u0631\u0641 \u0645\u0624\u0634\u0631 \u0627\u0644\u0646\u0648\u0639 \u0641\u064A \u0627\u0644\u0647\u0627\u0645\u0634 (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "\u062D\u0631\u0641 \u0627\u0644\u062A\u063A\u064A\u064A\u0631",
+  "setting.gutter-added.name": "\u062D\u0631\u0641 \u0627\u0644\u0625\u0636\u0627\u0641\u0629",
+  "setting.gutter-restored.name": "\u062D\u0631\u0641 \u0627\u0644\u0627\u0633\u062A\u0639\u0627\u062F\u0629",
+  "setting.gutter-removed.name": "\u062D\u0631\u0641 \u0627\u0644\u062D\u0630\u0641",
+  "modal.title": "\u0627\u0644\u0633\u062C\u0644",
+  "modal.no-changes": "\u0644\u0627 \u062A\u0648\u062C\u062F \u062A\u063A\u064A\u064A\u0631\u0627\u062A",
+  "modal.identical-to-current": "\u0645\u0637\u0627\u0628\u0642 \u0644\u0644\u0646\u0633\u062E\u0629 \u0627\u0644\u062D\u0627\u0644\u064A\u0629",
+  "modal.restore-original": "\u0627\u0633\u062A\u0639\u0627\u062F\u0629 \u0627\u0644\u0646\u0633\u062E\u0629 \u0627\u0644\u0623\u0635\u0644\u064A\u0629",
+  "modal.remove-history": "\u0625\u0632\u0627\u0644\u0629 \u0633\u062C\u0644 \u0627\u0644\u0645\u0644\u0641",
+  "modal.previous-difference": "\u0627\u0644\u0627\u062E\u062A\u0644\u0627\u0641 \u0627\u0644\u0633\u0627\u0628\u0642",
+  "modal.next-difference": "\u0627\u0644\u0627\u062E\u062A\u0644\u0627\u0641 \u0627\u0644\u062A\u0627\u0644\u064A",
+  "modal.mode.patch": "\u0639\u0631\u0636 \u0627\u0644\u062A\u0635\u062D\u064A\u062D",
+  "modal.mode.inline": "\u0645\u0636\u0645\u064E\u0651\u0646",
+  "modal.mode.line-by-line": "\u0633\u0637\u0631\u064B\u0627 \u0628\u0633\u0637\u0631",
+  "modal.mode.side-by-side": "\u062C\u0646\u0628\u064B\u0627 \u0625\u0644\u0649 \u062C\u0646\u0628",
+  "modal.confirm.cancel": "\u0625\u0644\u063A\u0627\u0621",
+  "modal.confirm.restore.title": "\u0627\u0633\u062A\u0639\u0627\u062F\u0629 \u0627\u0644\u0645\u0644\u0641 \u0627\u0644\u0623\u0635\u0644\u064A",
+  "modal.confirm.restore.message": "\u0647\u0644 \u0623\u0646\u062A \u0645\u062A\u0623\u0643\u062F \u0645\u0646 \u0631\u063A\u0628\u062A\u0643 \u0641\u064A \u0627\u0633\u062A\u0639\u0627\u062F\u0629 \u0647\u0630\u0627 \u0627\u0644\u0645\u0644\u0641 \u0625\u0644\u0649 \u062D\u0627\u0644\u062A\u0647 \u0627\u0644\u0623\u0635\u0644\u064A\u0629\u061F \u0633\u062A\u0641\u0642\u062F \u062C\u0645\u064A\u0639 \u0627\u0644\u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0627\u0644\u062D\u0627\u0644\u064A\u0629 \u0648\u0633\u062A\u062A\u0645 \u0625\u0639\u0627\u062F\u0629 \u062A\u0639\u064A\u064A\u0646 \u0633\u062C\u0644 \u062A\u062A\u0628\u0651\u0639 \u0627\u0644\u062A\u063A\u064A\u064A\u0631\u0627\u062A. \u0644\u0627 \u064A\u0645\u0643\u0646 \u0627\u0644\u062A\u0631\u0627\u062C\u0639 \u0639\u0646 \u0647\u0630\u0627 \u0627\u0644\u0625\u062C\u0631\u0627\u0621.",
+  "modal.confirm.restore.button": "\u0627\u0633\u062A\u0639\u0627\u062F\u0629 \u0627\u0644\u0645\u0644\u0641",
+  "modal.confirm.remove.title": "\u0625\u0632\u0627\u0644\u0629 \u0633\u062C\u0644 \u0627\u0644\u0645\u0644\u0641",
+  "modal.confirm.remove.message": "\u0647\u0644 \u0623\u0646\u062A \u0645\u062A\u0623\u0643\u062F \u0645\u0646 \u0631\u063A\u0628\u062A\u0643 \u0641\u064A \u0625\u0632\u0627\u0644\u0629 \u0633\u062C\u0644 \u062A\u062A\u0628\u0651\u0639 \u0627\u0644\u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0644\u0647\u0630\u0627 \u0627\u0644\u0645\u0644\u0641\u061F \u0644\u0627 \u064A\u0645\u0643\u0646 \u0627\u0644\u062A\u0631\u0627\u062C\u0639 \u0639\u0646 \u0647\u0630\u0627 \u0627\u0644\u0625\u062C\u0631\u0627\u0621.",
+  "modal.confirm.remove.button": "\u0625\u0632\u0627\u0644\u0629 \u0627\u0644\u0633\u062C\u0644",
+  "modal.confirm.revert.title": "\u0627\u0644\u062A\u0631\u0627\u062C\u0639 \u0639\u0646 \u0647\u0630\u0627 \u0627\u0644\u062A\u063A\u064A\u064A\u0631",
+  "modal.confirm.revert.message": "\u0647\u0644 \u062A\u0631\u064A\u062F \u0627\u0644\u062A\u0631\u0627\u062C\u0639 \u0639\u0646 \u0647\u0630\u0627 \u0627\u0644\u062A\u063A\u064A\u064A\u0631 \u0625\u0644\u0649 \u0627\u0644\u0623\u0633\u0627\u0633 \u0627\u0644\u0645\u062D\u062F\u062F\u061F \u064A\u062A\u0645 \u0627\u0644\u0627\u062D\u062A\u0641\u0627\u0638 \u0628\u0627\u0644\u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0627\u0644\u0623\u062E\u0631\u0649.",
+  "modal.confirm.revert.button": "\u062A\u0631\u0627\u062C\u0639",
+  "modal.search-versions": "\u0627\u0644\u0628\u062D\u062B \u0641\u064A \u0627\u0644\u0625\u0635\u062F\u0627\u0631\u0627\u062A",
+  "modal.version.baseline": "\u0627\u0644\u062D\u0627\u0644\u064A",
+  "modal.version.numbered": "\u0627\u0644\u0625\u0635\u062F\u0627\u0631 {number}",
+  "modal.version.current": "\u0627\u0644\u062D\u0627\u0644\u064A",
+  "modal.version.original": "\u0627\u0644\u0623\u0635\u0644\u064A",
+  "modal.no-versions-match": "\u0644\u0627 \u062A\u0648\u062C\u062F \u0625\u0635\u062F\u0627\u0631\u0627\u062A \u062A\u0637\u0627\u0628\u0642 \u0627\u0644\u0628\u062D\u062B",
+  "modal.no-snapshots-yet": "\u0644\u0627 \u062A\u0648\u062C\u062F \u0644\u0642\u0637\u0627\u062A \u0648\u0633\u064A\u0637\u0629 \u0628\u0639\u062F",
+  "modal.revert-hunk": "\u0627\u0644\u062A\u0631\u0627\u062C\u0639 \u0639\u0646 \u0647\u0630\u0627 \u0627\u0644\u062A\u063A\u064A\u064A\u0631",
+  "modal.copy": "\u0646\u0633\u062E"
+};
+
+// lang/be.json
+var be_default = {
+  "command.go-to-next-change": "\u041F\u0435\u0440\u0430\u0439\u0441\u0446\u0456 \u0434\u0430 \u043D\u0430\u0441\u0442\u0443\u043F\u043D\u0430\u0439 \u0437\u043C\u0435\u043D\u044B",
+  "command.go-to-previous-change": "\u041F\u0435\u0440\u0430\u0439\u0441\u0446\u0456 \u0434\u0430 \u043F\u0430\u043F\u044F\u0440\u044D\u0434\u043D\u044F\u0439 \u0437\u043C\u0435\u043D\u044B",
+  "command.reset-lines-all": "\u0421\u043A\u0456\u043D\u0443\u0446\u044C \u0437\u0434\u044B\u043C\u043A\u0456 \u0442\u0440\u044D\u043A\u0435\u0440\u0430 \u0440\u0430\u0434\u043A\u043E\u045E \u0434\u043B\u044F \u045E\u0441\u0456\u0445 \u0444\u0430\u0439\u043B\u0430\u045E",
+  "command.reset-lines": "\u0421\u043A\u0456\u043D\u0443\u0446\u044C \u0437\u0434\u044B\u043C\u0430\u043A \u0442\u0440\u044D\u043A\u0435\u0440\u0430 \u0440\u0430\u0434\u043A\u043E\u045E \u0431\u044F\u0433\u0443\u0447\u0430\u0433\u0430 \u0434\u0430\u043A\u0443\u043C\u0435\u043D\u0442\u0430",
+  "command.show-diff": "\u041F\u0430\u043A\u0430\u0437\u0430\u0446\u044C \u0443\u0441\u0435 \u0437\u043C\u0435\u043D\u044B \u0431\u044F\u0433\u0443\u0447\u0430\u0433\u0430 \u0434\u0430\u043A\u0443\u043C\u0435\u043D\u0442\u0430",
+  "notice.no-changes-to-navigate": "\u041D\u044F\u043C\u0430 \u0437\u043C\u0435\u043D \u0434\u043B\u044F \u043D\u0430\u0432\u0456\u0433\u0430\u0446\u044B\u0456",
+  "notice.all-snapshots-deleted": "\u0423\u0441\u0435 \u0434\u0430\u0434\u0437\u0435\u043D\u044B\u044F \u0437\u0434\u044B\u043C\u043A\u0430\u045E \u0432\u044B\u0434\u0430\u043B\u0435\u043D\u044B",
+  "notice.current-snapshot-deleted": "\u0414\u0430\u0434\u0437\u0435\u043D\u044B\u044F \u0431\u044F\u0433\u0443\u0447\u0430\u0433\u0430 \u0437\u0434\u044B\u043C\u043A\u0430 \u0432\u044B\u0434\u0430\u043B\u0435\u043D\u044B",
+  "notice.file-restored": "\u0424\u0430\u0439\u043B \u0430\u0434\u043D\u043E\u045E\u043B\u0435\u043D\u044B \u0434\u0430 \u0437\u044B\u0445\u043E\u0434\u043D\u0430\u0433\u0430 \u0441\u0442\u0430\u043D\u0443",
+  "notice.file-restore-failed": "\u041D\u0435 \u045E\u0434\u0430\u043B\u043E\u0441\u044F \u0430\u0434\u043D\u0430\u0432\u0456\u0446\u044C \u0444\u0430\u0439\u043B \u0434\u0430 \u0437\u044B\u0445\u043E\u0434\u043D\u0430\u0433\u0430 \u0441\u0442\u0430\u043D\u0443",
+  "notice.copied": "\u0421\u043A\u0430\u043F\u0456\u044F\u0432\u0430\u043D\u0430!",
+  "notice.no-saved-history": "\u0414\u043B\u044F \u0433\u044D\u0442\u0430\u0433\u0430 \u0444\u0430\u0439\u043B\u0430 \u043D\u044F\u043C\u0430 \u0437\u0430\u0445\u0430\u0432\u0430\u043D\u0430\u0439 \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u0456.",
+  "notice.invalid-exclude-pattern": "Local history: \u0448\u0430\u0431\u043B\u043E\u043D \u0432\u044B\u043A\u043B\u044E\u0447\u0430\u043D\u044B\u0445 \u0448\u043B\u044F\u0445\u043E\u045E \u043D\u0435 \u0437'\u044F\u045E\u043B\u044F\u0435\u0446\u0446\u0430 \u043A\u0430\u0440\u044D\u043A\u0442\u043D\u044B\u043C \u0440\u044D\u0433\u0443\u043B\u044F\u0440\u043D\u044B\u043C \u0432\u044B\u0440\u0430\u0437\u0430\u043C \u0456 \u0456\u0433\u043D\u0430\u0440\u0443\u0435\u0446\u0446\u0430.",
+  "menu.local-history": "\u041B\u0430\u043A\u0430\u043B\u044C\u043D\u0430\u044F \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044F",
+  "menu.show-changes": "\u041F\u0430\u043A\u0430\u0437\u0432\u0430\u0446\u044C \u0437\u043C\u0435\u043D\u044B",
+  "status.lines-changed": "\u0417\u043C\u0435\u043D\u0435\u043D\u0430 \u0440\u0430\u0434\u043A\u043E\u045E: {count}",
+  "setting.type.name": "\u0422\u044B\u043F",
+  "setting.type.desc": "\u0412\u044B\u0431\u0435\u0440\u044B\u0446\u0435 \u0432\u0435\u0440\u0442\u044B\u043A\u0430\u043B\u044C\u043D\u0443\u044E \u043B\u0456\u043D\u0456\u044E \u0430\u0431\u043E \u043A\u0440\u043E\u043F\u043A\u0443 \u043D\u0430 \u043F\u0430\u043B\u044F\u0445.",
+  "setting.type.option.line": "\u0412\u0435\u0440\u0442\u044B\u043A\u0430\u043B\u044C\u043D\u0430\u044F \u043B\u0456\u043D\u0456\u044F",
+  "setting.type.option.dot": "\u0421\u0456\u043C\u0432\u0430\u043B \u043D\u0430 \u043F\u0430\u043B\u044F\u0445",
+  "setting.allowed-extensions.name": "\u0414\u0430\u0437\u0432\u043E\u043B\u0435\u043D\u044B\u044F \u043F\u0430\u0448\u044B\u0440\u044D\u043D\u043D\u0456 \u0444\u0430\u0439\u043B\u0430\u045E",
+  "setting.allowed-extensions.desc": "\u0421\u043F\u0456\u0441 \u043F\u0430\u0448\u044B\u0440\u044D\u043D\u043D\u044F\u045E \u0444\u0430\u0439\u043B\u0430\u045E \u043F\u0440\u0430\u0437 \u043A\u043E\u0441\u043A\u0443, \u0437\u043C\u0435\u043D\u044B \u045E \u044F\u043A\u0456\u0445 \u0430\u0434\u0441\u043E\u0447\u0432\u0430\u044E\u0446\u0446\u0430 (\u043D\u0430\u043F\u0440\u044B\u043A\u043B\u0430\u0434, md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "\u0412\u044B\u043A\u043B\u044E\u0447\u0430\u043D\u044B\u044F \u0448\u043B\u044F\u0445\u0456",
+  "setting.exclude-paths.desc": "\u0420\u044D\u0433\u0443\u043B\u044F\u0440\u043D\u044B \u0432\u044B\u0440\u0430\u0437 \u0431\u0435\u0437 \u0443\u043B\u0456\u043A\u0443 \u0440\u044D\u0433\u0456\u0441\u0442\u0440\u0430, \u044F\u043A\u0456 \u0441\u0443\u043F\u0430\u0441\u0442\u0430\u045E\u043B\u044F\u0435\u0446\u0446\u0430 \u0441\u0430 \u0448\u043B\u044F\u0445\u0430\u043C \u0430\u0434\u043D\u043E\u0441\u043D\u0430 \u0441\u0445\u043E\u0432\u0456\u0448\u0447\u0430. \u041B\u044E\u0431\u044B \u0444\u0430\u0439\u043B, \u0448\u043B\u044F\u0445 \u044F\u043A\u043E\u0433\u0430 \u0441\u0443\u043F\u0430\u0434\u0430\u0435, \u043D\u0456\u043A\u043E\u043B\u0456 \u043D\u0435 \u0430\u0434\u0441\u043E\u0447\u0432\u0430\u0435\u0446\u0446\u0430 (\u043D\u0430\u043F\u0440\u044B\u043A\u043B\u0430\u0434, \\.excalidraw\\.md$ \u0430\u0431\u043E (^|/)Templates/). \u041F\u0430 \u0437\u043C\u0430\u045E\u0447\u0430\u043D\u043D\u0456 \u0432\u044B\u043A\u043B\u044E\u0447\u0430\u044E\u0446\u0446\u0430 \u043F\u0430\u043F\u043A\u0456 Templates \u0456 \u043C\u0430\u043B\u044E\u043D\u043A\u0456 Excalidraw. \u041F\u0430\u043A\u0456\u043D\u044C\u0446\u0435 \u043F\u0443\u0441\u0442\u044B\u043C, \u043A\u0430\u0431 \u0430\u0434\u0441\u043E\u0447\u0432\u0430\u0446\u044C \u0443\u0441\u0451.",
+  "setting.keep.name": "\u0417\u0430\u0445\u043E\u045E\u0432\u0430\u0446\u044C \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044E \u0434\u0430",
+  "setting.keep.desc": "\u0421\u0442\u0440\u0430\u0442\u044D\u0433\u0456\u044F \u0430\u0447\u044B\u0441\u0442\u043A\u0456 \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u0456 \u0440\u044D\u0432\u0456\u0437\u0456\u0439",
+  "setting.keep.option.app": "\u0417\u0430\u043A\u0440\u044B\u0446\u0446\u044F \u043F\u0440\u0430\u0433\u0440\u0430\u043C\u044B",
+  "setting.keep.option.file": "\u0417\u0430\u043A\u0440\u044B\u0446\u0446\u044F \u0444\u0430\u0439\u043B\u0430",
+  "setting.ignore-new-files.name": "\u0406\u0433\u043D\u0430\u0440\u0430\u0432\u0430\u0446\u044C \u043D\u043E\u0432\u044B\u044F \u0444\u0430\u0439\u043B\u044B",
+  "setting.ignore-new-files.desc": "\u041D\u0435 \u0430\u0434\u0441\u043E\u0447\u0432\u0430\u0446\u044C \u0437\u043C\u0435\u043D\u044B \u045E \u0444\u0430\u0439\u043B\u0430\u0445, \u0441\u0442\u0432\u043E\u0440\u0430\u043D\u044B\u0445 \u043F\u0430\u0441\u043B\u044F \u043F\u0430\u0447\u0430\u0442\u043A\u0443 \u0430\u0434\u0441\u043E\u0447\u0432\u0430\u043D\u043D\u044F",
+  "setting.persist.name": "\u0417\u0430\u0445\u043E\u045E\u0432\u0430\u0446\u044C \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044E \u043F\u0430\u043C\u0456\u0436 \u043F\u0435\u0440\u0430\u0437\u0430\u043F\u0443\u0441\u043A\u0430\u043C\u0456",
+  "setting.persist.desc": '\u0417\u0430\u0445\u043E\u045E\u0432\u0430\u0446\u044C \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044E \u043D\u0430 \u0434\u044B\u0441\u043A, \u043A\u0430\u0431 \u043F\u0430\u0434\u0441\u0432\u0435\u0442\u043A\u0456 \u043F\u0435\u0440\u0430\u0436\u044B\u0432\u0430\u043B\u0456 \u043F\u0435\u0440\u0430\u0437\u0430\u043F\u0443\u0441\u043A. \u041F\u0430\u0442\u0440\u0430\u0431\u0443\u0435, \u043A\u0430\u0431 \u043F\u0430\u0440\u0430\u043C\u0435\u0442\u0440 "\u0417\u0430\u0445\u043E\u045E\u0432\u0430\u0446\u044C \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044E \u0434\u0430" \u0431\u044B\u045E \u0443\u0441\u0442\u0430\u043B\u044F\u0432\u0430\u043D\u044B \u043D\u0430 \u0437\u0430\u043A\u0440\u044B\u0446\u0446\u0451 \u043F\u0440\u0430\u0433\u0440\u0430\u043C\u044B.',
+  "setting.max-entries.name": "\u041C\u0430\u043A\u0441\u0456\u043C\u0443\u043C \u0437\u0430\u0445\u0430\u0432\u0430\u043D\u044B\u0445 \u0444\u0430\u0439\u043B\u0430\u045E",
+  "setting.max-entries.desc": "\u0410\u0431\u043C\u0435\u0436\u0430\u0432\u0430\u043D\u043D\u0435 \u043A\u043E\u043B\u044C\u043A\u0430\u0441\u0446\u0456 \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u0439 \u0444\u0430\u0439\u043B\u0430\u045E, \u0448\u0442\u043E \u0437\u0430\u0445\u043E\u045E\u0432\u0430\u044E\u0446\u0446\u0430 \u043D\u0430 \u0434\u044B\u0441\u043A\u0443. \u0421\u043F\u0430\u0447\u0430\u0442\u043A\u0443 \u0432\u044B\u0434\u0430\u043B\u044F\u044E\u0446\u0446\u0430 \u043D\u0430\u0439\u0441\u0442\u0430\u0440\u044D\u0439\u0448\u044B\u044F. \u0423\u0441\u0442\u0430\u043B\u044E\u0439\u0446\u0435 0, \u043A\u0430\u0431 \u0430\u0434\u043A\u043B\u044E\u0447\u044B\u0446\u044C.",
+  "setting.max-age-days.name": "\u041C\u0430\u043A\u0441\u0456\u043C\u0430\u043B\u044C\u043D\u044B \u045E\u0437\u0440\u043E\u0441\u0442 \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u0456 (\u0434\u043D\u0456)",
+  "setting.max-age-days.desc": "\u0412\u044B\u0434\u0430\u043B\u044F\u0446\u044C \u0437\u0430\u0445\u0430\u0432\u0430\u043D\u0443\u044E \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044E \u0441\u0442\u0430\u0440\u044D\u0439\u0448\u0443\u044E \u0437\u0430 \u0432\u044B\u0437\u043D\u0430\u0447\u0430\u043D\u0443\u044E \u043A\u043E\u043B\u044C\u043A\u0430\u0441\u0446\u044C \u0434\u0437\u0451\u043D. \u0423\u0441\u0442\u0430\u043B\u044E\u0439\u0446\u0435 0, \u043A\u0430\u0431 \u0430\u0434\u043A\u043B\u044E\u0447\u044B\u0446\u044C.",
+  "setting.snapshots-heading": "\u0417\u0434\u044B\u043C\u043A\u0456 \u0447\u0430\u0441\u0430\u0432\u0430\u0439 \u0448\u043A\u0430\u043B\u044B",
+  "setting.snapshots-enabled.name": "\u0417\u0430\u0445\u043E\u043F\u043B\u0456\u0432\u0430\u0446\u044C \u043F\u0440\u0430\u043C\u0435\u0436\u043A\u0430\u0432\u044B\u044F \u0432\u0435\u0440\u0441\u0456\u0456",
+  "setting.snapshots-enabled.desc": "\u0417\u0430\u0445\u043E\u045E\u0432\u0430\u0446\u044C \u0447\u0430\u0441\u0430\u0432\u0443\u044E \u0448\u043A\u0430\u043B\u0443 \u0440\u0430\u043D\u0435\u0439\u0448\u044B\u0445 \u0432\u0435\u0440\u0441\u0456\u0439, \u043A\u0430\u0431 \u043F\u0430\u0440\u0430\u045E\u043D\u043E\u045E\u0432\u0430\u0446\u044C \u0437 \u043F\u0440\u0430\u043C\u0435\u0436\u043A\u0430\u0432\u0430\u0439 \u043A\u0440\u043E\u043F\u043A\u0430\u0439, \u0430 \u043D\u0435 \u0442\u043E\u043B\u044C\u043A\u0456 \u0437 \u0430\u0440\u044B\u0433\u0456\u043D\u0430\u043B\u0430\u043C.",
+  "setting.snapshots-edit-threshold.name": "\u0417\u0430\u0445\u043E\u043F\u043B\u0456\u0432\u0430\u0446\u044C \u043A\u043E\u0436\u043D\u044B\u044F (\u043F\u0440\u0430\u045E\u043A\u0456)",
+  "setting.snapshots-edit-threshold.desc": "\u0421\u0442\u0432\u0430\u0440\u0430\u0446\u044C \u0432\u0435\u0440\u0441\u0456\u044E \u043F\u0430\u0441\u043B\u044F \u0432\u044B\u0437\u043D\u0430\u0447\u0430\u043D\u0430\u0439 \u043A\u043E\u043B\u044C\u043A\u0430\u0441\u0446\u0456 \u043F\u0440\u0430\u0432\u0430\u043A. \u0423\u0441\u0442\u0430\u043B\u044E\u0439\u0446\u0435 0, \u043A\u0430\u0431 \u0430\u0434\u043A\u043B\u044E\u0447\u044B\u0446\u044C \u0442\u0440\u044B\u0433\u0435\u0440 \u043F\u0430 \u043F\u0440\u0430\u045E\u043A\u0430\u0445.",
+  "setting.snapshots-interval.name": "\u0417\u0430\u0445\u043E\u043F\u043B\u0456\u0432\u0430\u0446\u044C \u043A\u043E\u0436\u043D\u044B\u044F (\u0445\u0432\u0456\u043B\u0456\u043D\u044B)",
+  "setting.snapshots-interval.desc": "\u0421\u0442\u0432\u0430\u0440\u0430\u0446\u044C \u0432\u0435\u0440\u0441\u0456\u044E \u043F\u0430\u0441\u043B\u044F \u0432\u044B\u0437\u043D\u0430\u0447\u0430\u043D\u0430\u0439 \u043A\u043E\u043B\u044C\u043A\u0430\u0441\u0446\u0456 \u0445\u0432\u0456\u043B\u0456\u043D \u0440\u044D\u0434\u0430\u0433\u0430\u0432\u0430\u043D\u043D\u044F. \u0423\u0441\u0442\u0430\u043B\u044E\u0439\u0446\u0435 0, \u043A\u0430\u0431 \u0430\u0434\u043A\u043B\u044E\u0447\u044B\u0446\u044C \u0442\u0440\u044B\u0433\u0435\u0440 \u043F\u0430 \u0447\u0430\u0441\u0435.",
+  "setting.max-version-age-days.name": "\u041C\u0430\u043A\u0441\u0456\u043C\u0430\u043B\u044C\u043D\u044B \u045E\u0437\u0440\u043E\u0441\u0442 \u0432\u0435\u0440\u0441\u0456\u0456 (\u0434\u043D\u0456)",
+  "setting.max-version-age-days.desc": "\u0412\u044B\u0434\u0430\u043B\u044F\u0446\u044C \u043F\u0440\u0430\u043C\u0435\u0436\u043A\u0430\u0432\u044B\u044F \u0432\u0435\u0440\u0441\u0456\u0456 \u0441\u0442\u0430\u0440\u044D\u0439\u0448\u044B\u044F \u0437\u0430 \u0432\u044B\u0437\u043D\u0430\u0447\u0430\u043D\u0443\u044E \u043A\u043E\u043B\u044C\u043A\u0430\u0441\u0446\u044C \u0434\u0437\u0451\u043D (\u0430\u0441\u043D\u043E\u045E\u043D\u0430\u0435 \u0430\u0431\u043C\u0435\u0436\u0430\u0432\u0430\u043D\u043D\u0435). \u0423\u0441\u0442\u0430\u043B\u044E\u0439\u0446\u0435 0, \u043A\u0430\u0431 \u0430\u0434\u043A\u043B\u044E\u0447\u044B\u0446\u044C.",
+  "setting.max-versions.name": "\u041C\u0430\u043A\u0441\u0456\u043C\u0443\u043C \u0432\u0435\u0440\u0441\u0456\u0439 \u043D\u0430 \u0444\u0430\u0439\u043B",
+  "setting.max-versions.desc": "\u0410\u0445\u043E\u045E\u043D\u0430\u0435 \u0430\u0431\u043C\u0435\u0436\u0430\u0432\u0430\u043D\u043D\u0435 \u043A\u043E\u043B\u044C\u043A\u0430\u0441\u0446\u0456 \u043F\u0440\u0430\u043C\u0435\u0436\u043A\u0430\u0432\u044B\u0445 \u0432\u0435\u0440\u0441\u0456\u0439, \u0448\u0442\u043E \u0437\u0430\u0445\u043E\u045E\u0432\u0430\u044E\u0446\u0446\u0430 \u0434\u043B\u044F \u0444\u0430\u0439\u043B\u0430. \u0421\u043F\u0430\u0447\u0430\u0442\u043A\u0443 \u0432\u044B\u0434\u0430\u043B\u044F\u044E\u0446\u0446\u0430 \u043D\u0430\u0439\u0441\u0442\u0430\u0440\u044D\u0439\u0448\u044B\u044F. \u0423\u0441\u0442\u0430\u043B\u044E\u0439\u0446\u0435 0, \u043A\u0430\u0431 \u0430\u0434\u043A\u043B\u044E\u0447\u044B\u0446\u044C.",
+  "setting.show-heading": "\u041F\u0430\u043A\u0430\u0437\u0432\u0430\u0446\u044C \u0456\u043D\u0434\u044B\u043A\u0430\u0442\u0430\u0440 \u0434\u043B\u044F",
+  "setting.show.desc": '\u0406\u043D\u0434\u044B\u043A\u0430\u0442\u0430\u0440\u044B \u0440\u0430\u0434\u043A\u043E\u045E \u043F\u0430\u043A\u0430\u0437\u0432\u0430\u044E\u0446\u0446\u0430 \u0442\u043E\u043B\u044C\u043A\u0456 \u045E \u0440\u044D\u0436\u044B\u043C\u0430\u0445 \u0440\u044D\u0434\u0430\u0433\u0430\u0432\u0430\u043D\u043D\u044F (\u0437\u044B\u0445\u043E\u0434\u043D\u044B \u043A\u043E\u0434 \u0456 \u0436\u044B\u0432\u044B \u043F\u0440\u0430\u0433\u043B\u044F\u0434). \u0423 \u0440\u044D\u0436\u044B\u043C\u0435 \u0447\u044B\u0442\u0430\u043D\u043D\u044F \u045E\u0431\u0443\u0434\u0430\u0432\u0430\u043D\u044B\u0445 \u0456\u043D\u0434\u044B\u043A\u0430\u0442\u0430\u0440\u0430\u045E \u043D\u044F\u043C\u0430, \u0430\u043B\u0435 \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044F \u0437\u043C\u0435\u043D \u0443\u0441\u0451 \u0440\u043E\u045E\u043D\u0430 \u0434\u0430\u0441\u0442\u0443\u043F\u043D\u0430\u044F: \u0432\u044B\u043A\u0430\u043D\u0430\u0439\u0446\u0435 \u043A\u0430\u043C\u0430\u043D\u0434\u0443 "\u041F\u0430\u043A\u0430\u0437\u0430\u0446\u044C \u0443\u0441\u0435 \u0437\u043C\u0435\u043D\u044B \u0431\u044F\u0433\u0443\u0447\u0430\u0433\u0430 \u0434\u0430\u043A\u0443\u043C\u0435\u043D\u0442\u0430" \u0430\u0431\u043E \u0441\u043A\u0430\u0440\u044B\u0441\u0442\u0430\u0439\u0446\u0435\u0441\u044F \u043A\u0430\u043D\u0442\u044D\u043A\u0441\u0442\u043D\u044B\u043C \u043C\u0435\u043D\u044E \u0444\u0430\u0439\u043B\u0430 \u045E \u043F\u0440\u0430\u0432\u0430\u0434\u043D\u0456\u043A\u0443 \u0444\u0430\u0439\u043B\u0430\u045E.',
+  "setting.show.changed": "\u0417\u043C\u0435\u043D\u0435\u043D\u044B\u044F",
+  "setting.show.restored": "\u0410\u0434\u043D\u043E\u045E\u043B\u0435\u043D\u044B\u044F",
+  "setting.show.added": "\u0414\u0430\u0434\u0430\u0434\u0437\u0435\u043D\u044B\u044F",
+  "setting.show.removed": "\u0412\u044B\u0434\u0430\u043B\u0435\u043D\u044B\u044F",
+  "setting.line-heading": "\u041B\u0456\u043D\u0435\u0439\u043D\u044B \u0456\u043D\u0434\u044B\u043A\u0430\u0442\u0430\u0440",
+  "setting.line-width.name": "\u0428\u044B\u0440\u044B\u043D\u044F",
+  "setting.line-width.desc": "\u0428\u044B\u0440\u044B\u043D\u044F \u0432\u0435\u0440\u0442\u044B\u043A\u0430\u043B\u044C\u043D\u0430\u0433\u0430 \u043B\u0456\u043D\u0435\u0439\u043D\u0430\u0433\u0430 \u0456\u043D\u0434\u044B\u043A\u0430\u0442\u0430\u0440\u0430 (\u0443 \u043F\u0456\u043A\u0441\u0435\u043B\u044F\u0445).",
+  "setting.gutter-heading.name": "\u0406\u043D\u0434\u044B\u043A\u0430\u0442\u0430\u0440 \u043D\u0430 \u043F\u0430\u043B\u044F\u0445",
+  "setting.gutter-heading.prefix": "\u0421\u0456\u043C\u0432\u0430\u043B\u044B \u0456\u043D\u0434\u044B\u043A\u0430\u0442\u0430\u0440\u0430 \u0442\u044B\u043F\u0443 \u043D\u0430 \u043F\u0430\u043B\u044F\u0445 (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "\u0421\u0456\u043C\u0432\u0430\u043B \u0437\u043C\u0435\u043D\u044B",
+  "setting.gutter-added.name": "\u0421\u0456\u043C\u0432\u0430\u043B \u0434\u0430\u0434\u0430\u043D\u043D\u044F",
+  "setting.gutter-restored.name": "\u0421\u0456\u043C\u0432\u0430\u043B \u0430\u0434\u043D\u0430\u045E\u043B\u0435\u043D\u043D\u044F",
+  "setting.gutter-removed.name": "\u0421\u0456\u043C\u0432\u0430\u043B \u0432\u044B\u0434\u0430\u043B\u0435\u043D\u043D\u044F",
+  "modal.title": "\u0413\u0456\u0441\u0442\u043E\u0440\u044B\u044F",
+  "modal.no-changes": "\u041D\u044F\u043C\u0430 \u0437\u043C\u0435\u043D",
+  "modal.identical-to-current": "\u0406\u0434\u044D\u043D\u0442\u044B\u0447\u043D\u0430 \u0431\u044F\u0433\u0443\u0447\u0430\u043C\u0443",
+  "modal.restore-original": "\u0410\u0434\u043D\u0430\u0432\u0456\u0446\u044C \u0430\u0440\u044B\u0433\u0456\u043D\u0430\u043B",
+  "modal.remove-history": "\u0412\u044B\u0434\u0430\u043B\u0456\u0446\u044C \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044E \u0444\u0430\u0439\u043B\u0430",
+  "modal.previous-difference": "\u041F\u0430\u043F\u044F\u0440\u044D\u0434\u043D\u044F\u0435 \u0430\u0434\u0440\u043E\u0437\u043D\u0435\u043D\u043D\u0435",
+  "modal.next-difference": "\u041D\u0430\u0441\u0442\u0443\u043F\u043D\u0430\u0435 \u0430\u0434\u0440\u043E\u0437\u043D\u0435\u043D\u043D\u0435",
+  "modal.mode.patch": "\u041F\u0430\u043A\u0430\u0437\u0430\u0446\u044C \u043F\u0430\u0442\u0447",
+  "modal.mode.inline": "\u0423\u0431\u0443\u0434\u0430\u0432\u0430\u043D\u044B",
+  "modal.mode.line-by-line": "\u0420\u0430\u0434\u043E\u043A \u0437\u0430 \u0440\u0430\u0434\u043A\u043E\u043C",
+  "modal.mode.side-by-side": "\u041F\u043E\u0431\u0430\u0447",
+  "modal.confirm.cancel": "\u0421\u043A\u0430\u0441\u0430\u0432\u0430\u0446\u044C",
+  "modal.confirm.restore.title": "\u0410\u0434\u043D\u0430\u0432\u0456\u0446\u044C \u0437\u044B\u0445\u043E\u0434\u043D\u044B \u0444\u0430\u0439\u043B",
+  "modal.confirm.restore.message": "\u0412\u044B \u045E\u043F\u044D\u045E\u043D\u0435\u043D\u044B, \u0448\u0442\u043E \u0445\u043E\u0447\u0430\u0446\u0435 \u0430\u0434\u043D\u0430\u0432\u0456\u0446\u044C \u0433\u044D\u0442\u044B \u0444\u0430\u0439\u043B \u0434\u0430 \u0437\u044B\u0445\u043E\u0434\u043D\u0430\u0433\u0430 \u0441\u0442\u0430\u043D\u0443? \u0423\u0441\u0435 \u0431\u044F\u0433\u0443\u0447\u044B\u044F \u0437\u043C\u0435\u043D\u044B \u0431\u0443\u0434\u0443\u0446\u044C \u0441\u0442\u0440\u0430\u0447\u0430\u043D\u044B, \u0430 \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044F \u0430\u0434\u0441\u043E\u0447\u0432\u0430\u043D\u043D\u044F \u0437\u043C\u0435\u043D \u0431\u0443\u0434\u0437\u0435 \u0441\u043A\u0456\u043D\u0443\u0442\u0430. \u0413\u044D\u0442\u0430 \u0434\u0437\u0435\u044F\u043D\u043D\u0435 \u043D\u0435\u043B\u044C\u0433\u0430 \u0430\u0434\u043C\u044F\u043D\u0456\u0446\u044C.",
+  "modal.confirm.restore.button": "\u0410\u0434\u043D\u0430\u0432\u0456\u0446\u044C \u0444\u0430\u0439\u043B",
+  "modal.confirm.remove.title": "\u0412\u044B\u0434\u0430\u043B\u0456\u0446\u044C \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044E \u0444\u0430\u0439\u043B\u0430",
+  "modal.confirm.remove.message": "\u0412\u044B \u045E\u043F\u044D\u045E\u043D\u0435\u043D\u044B, \u0448\u0442\u043E \u0445\u043E\u0447\u0430\u0446\u0435 \u0432\u044B\u0434\u0430\u043B\u0456\u0446\u044C \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044E \u0430\u0434\u0441\u043E\u0447\u0432\u0430\u043D\u043D\u044F \u0437\u043C\u0435\u043D \u0434\u043B\u044F \u0433\u044D\u0442\u0430\u0433\u0430 \u0444\u0430\u0439\u043B\u0430? \u0413\u044D\u0442\u0430 \u0434\u0437\u0435\u044F\u043D\u043D\u0435 \u043D\u0435\u043B\u044C\u0433\u0430 \u0430\u0434\u043C\u044F\u043D\u0456\u0446\u044C.",
+  "modal.confirm.remove.button": "\u0412\u044B\u0434\u0430\u043B\u0456\u0446\u044C \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044E",
+  "modal.confirm.revert.title": "\u0410\u0434\u043A\u0430\u0446\u0456\u0446\u044C \u0433\u044D\u0442\u0443\u044E \u0437\u043C\u0435\u043D\u0443",
+  "modal.confirm.revert.message": "\u0410\u0434\u043A\u0430\u0446\u0456\u0446\u044C \u0433\u044D\u0442\u0443\u044E \u0437\u043C\u0435\u043D\u0443 \u0434\u0430 \u0432\u044B\u0431\u0440\u0430\u043D\u0430\u0439 \u0431\u0430\u0437\u044B? \u0410\u0441\u0442\u0430\u0442\u043D\u0456\u044F \u0437\u043C\u0435\u043D\u044B \u0437\u0430\u0445\u0430\u0432\u0430\u044E\u0446\u0446\u0430.",
+  "modal.confirm.revert.button": "\u0410\u0434\u043A\u0430\u0446\u0456\u0446\u044C",
+  "modal.search-versions": "\u041F\u043E\u0448\u0443\u043A \u0432\u0435\u0440\u0441\u0456\u0439",
+  "modal.version.baseline": "\u0411\u044F\u0433\u0443\u0447\u0430\u044F",
+  "modal.version.numbered": "\u0412\u0435\u0440\u0441\u0456\u044F {number}",
+  "modal.version.current": "\u0411\u044F\u0433\u0443\u0447\u0430\u044F",
+  "modal.version.original": "\u0410\u0440\u044B\u0433\u0456\u043D\u0430\u043B",
+  "modal.no-versions-match": "\u041D\u044F\u043C\u0430 \u0432\u0435\u0440\u0441\u0456\u0439, \u0448\u0442\u043E \u0430\u0434\u043F\u0430\u0432\u044F\u0434\u0430\u044E\u0446\u044C \u043F\u043E\u0448\u0443\u043A\u0443",
+  "modal.no-snapshots-yet": "\u041F\u0440\u0430\u043C\u0435\u0436\u043A\u0430\u0432\u044B\u0445 \u0437\u0434\u044B\u043C\u043A\u0430\u045E \u043F\u0430\u043A\u0443\u043B\u044C \u043D\u044F\u043C\u0430",
+  "modal.revert-hunk": "\u0410\u0434\u043A\u0430\u0446\u0456\u0446\u044C \u0433\u044D\u0442\u0443\u044E \u0437\u043C\u0435\u043D\u0443",
+  "modal.copy": "\u041A\u0430\u043F\u0456\u044F\u0432\u0430\u0446\u044C"
+};
+
+// lang/bn.json
+var bn_default = {
+  "command.go-to-next-change": "\u09AA\u09B0\u09AC\u09B0\u09CD\u09A4\u09C0 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8\u09C7 \u09AF\u09BE\u09A8",
+  "command.go-to-previous-change": "\u09AA\u09C2\u09B0\u09CD\u09AC\u09AC\u09B0\u09CD\u09A4\u09C0 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8\u09C7 \u09AF\u09BE\u09A8",
+  "command.reset-lines-all": "\u09B8\u09AE\u09B8\u09CD\u09A4 \u09B2\u09BE\u0987\u09A8 \u099F\u09CD\u09B0\u09CD\u09AF\u09BE\u0995\u09BE\u09B0 \u09B8\u09CD\u09A8\u09CD\u09AF\u09BE\u09AA\u09B6\u099F \u09B0\u09BF\u09B8\u09C7\u099F \u0995\u09B0\u09C1\u09A8",
+  "command.reset-lines": "\u09AC\u09B0\u09CD\u09A4\u09AE\u09BE\u09A8 \u09A8\u09A5\u09BF\u09B0 \u09B2\u09BE\u0987\u09A8 \u099F\u09CD\u09B0\u09CD\u09AF\u09BE\u0995\u09BE\u09B0 \u09B8\u09CD\u09A8\u09CD\u09AF\u09BE\u09AA\u09B6\u099F \u09B0\u09BF\u09B8\u09C7\u099F \u0995\u09B0\u09C1\u09A8",
+  "command.show-diff": "\u09AC\u09B0\u09CD\u09A4\u09AE\u09BE\u09A8 \u09A8\u09A5\u09BF\u09B0 \u09B8\u09AE\u09B8\u09CD\u09A4 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u09A6\u09C7\u0996\u09BE\u09A8",
+  "notice.no-changes-to-navigate": "\u09A8\u09C7\u09AD\u09BF\u0997\u09C7\u099F \u0995\u09B0\u09BE\u09B0 \u09AE\u09A4\u09CB \u0995\u09CB\u09A8\u09CB \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u09A8\u09C7\u0987",
+  "notice.all-snapshots-deleted": "\u09B8\u09AE\u09B8\u09CD\u09A4 \u09B8\u09CD\u09A8\u09CD\u09AF\u09BE\u09AA\u09B6\u099F \u09A1\u09C7\u099F\u09BE \u09AE\u09C1\u099B\u09C7 \u09AB\u09C7\u09B2\u09BE \u09B9\u09AF\u09BC\u09C7\u099B\u09C7",
+  "notice.current-snapshot-deleted": "\u09AC\u09B0\u09CD\u09A4\u09AE\u09BE\u09A8 \u09B8\u09CD\u09A8\u09CD\u09AF\u09BE\u09AA\u09B6\u099F \u09A1\u09C7\u099F\u09BE \u09AE\u09C1\u099B\u09C7 \u09AB\u09C7\u09B2\u09BE \u09B9\u09AF\u09BC\u09C7\u099B\u09C7",
+  "notice.file-restored": "\u09AB\u09BE\u0987\u09B2 \u09AE\u09C2\u09B2 \u0985\u09AC\u09B8\u09CD\u09A5\u09BE\u09AF\u09BC \u09AA\u09C1\u09A8\u09B0\u09C1\u09A6\u09CD\u09A7\u09BE\u09B0 \u0995\u09B0\u09BE \u09B9\u09AF\u09BC\u09C7\u099B\u09C7",
+  "notice.file-restore-failed": "\u09AB\u09BE\u0987\u09B2 \u09AE\u09C2\u09B2 \u0985\u09AC\u09B8\u09CD\u09A5\u09BE\u09AF\u09BC \u09AA\u09C1\u09A8\u09B0\u09C1\u09A6\u09CD\u09A7\u09BE\u09B0 \u0995\u09B0\u09BE \u09AF\u09BE\u09AF\u09BC\u09A8\u09BF",
+  "notice.copied": "\u0985\u09A8\u09C1\u09B2\u09BF\u09AA\u09BF \u0995\u09B0\u09BE \u09B9\u09AF\u09BC\u09C7\u099B\u09C7!",
+  "notice.no-saved-history": "\u098F\u0987 \u09AB\u09BE\u0987\u09B2\u09C7\u09B0 \u099C\u09A8\u09CD\u09AF \u0995\u09CB\u09A8\u09CB \u09B8\u0982\u09B0\u0995\u09CD\u09B7\u09BF\u09A4 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09A8\u09C7\u0987\u0964",
+  "notice.invalid-exclude-pattern": "\u09B8\u09CD\u09A5\u09BE\u09A8\u09C0\u09AF\u09BC \u0987\u09A4\u09BF\u09B9\u09BE\u09B8: \u09AC\u09BE\u09A6-\u09A6\u09C7\u0993\u09AF\u09BC\u09BE-\u09AA\u09BE\u09A5 \u09AA\u09CD\u09AF\u09BE\u099F\u09BE\u09B0\u09CD\u09A8\u099F\u09BF \u09AC\u09C8\u09A7 \u09B0\u09C7\u0997\u09C1\u09B2\u09BE\u09B0 \u098F\u0995\u09CD\u09B8\u09AA\u09CD\u09B0\u09C7\u09B6\u09A8 \u09A8\u09AF\u09BC \u098F\u09AC\u0982 \u0989\u09AA\u09C7\u0995\u09CD\u09B7\u09BE \u0995\u09B0\u09BE \u09B9\u099A\u09CD\u099B\u09C7\u0964",
+  "menu.local-history": "\u09B8\u09CD\u09A5\u09BE\u09A8\u09C0\u09AF\u09BC \u0987\u09A4\u09BF\u09B9\u09BE\u09B8",
+  "menu.show-changes": "\u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u09A6\u09C7\u0996\u09BE\u09A8",
+  "status.lines-changed": "{count}\u099F\u09BF \u09B2\u09BE\u0987\u09A8 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09BF\u09A4 \u09B9\u09AF\u09BC\u09C7\u099B\u09C7",
+  "setting.type.name": "\u09A7\u09B0\u09A8",
+  "setting.type.desc": "\u0997\u09BE\u099F\u09BE\u09B0\u09C7 \u098F\u0995\u099F\u09BF \u0989\u09B2\u09CD\u09B2\u09AE\u09CD\u09AC \u09B0\u09C7\u0996\u09BE \u09AC\u09BE \u098F\u0995\u099F\u09BF \u09AC\u09BF\u09A8\u09CD\u09A6\u09C1\u09B0 \u09AE\u09A7\u09CD\u09AF\u09C7 \u09AC\u09C7\u099B\u09C7 \u09A8\u09BF\u09A8\u0964",
+  "setting.type.option.line": "\u0989\u09B2\u09CD\u09B2\u09AE\u09CD\u09AC \u09B0\u09C7\u0996\u09BE",
+  "setting.type.option.dot": "\u0997\u09BE\u099F\u09BE\u09B0\u09C7 \u0985\u0995\u09CD\u09B7\u09B0",
+  "setting.allowed-extensions.name": "\u0985\u09A8\u09C1\u09AE\u09CB\u09A6\u09BF\u09A4 \u09AB\u09BE\u0987\u09B2 \u098F\u0995\u09CD\u09B8\u099F\u09C7\u09A8\u09B6\u09A8",
+  "setting.allowed-extensions.desc": "\u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u099F\u09CD\u09B0\u09CD\u09AF\u09BE\u0995 \u0995\u09B0\u09BE\u09B0 \u099C\u09A8\u09CD\u09AF \u0995\u09AE\u09BE \u09A6\u09BF\u09AF\u09BC\u09C7 \u09AA\u09C3\u09A5\u0995 \u0995\u09B0\u09BE \u09AB\u09BE\u0987\u09B2 \u098F\u0995\u09CD\u09B8\u099F\u09C7\u09A8\u09B6\u09A8\u09C7\u09B0 \u09A4\u09BE\u09B2\u09BF\u0995\u09BE (\u09AF\u09C7\u09AE\u09A8, md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "\u09AC\u09BE\u09A6 \u09A6\u09C7\u0993\u09AF\u09BC\u09BE \u09AA\u09BE\u09A5",
+  "setting.exclude-paths.desc": "\u09AD\u09B2\u09CD\u099F-\u09B8\u09BE\u09AA\u09C7\u0995\u09CD\u09B7 \u09AA\u09BE\u09A5\u09C7\u09B0 \u09AC\u09BF\u09AA\u09B0\u09C0\u09A4\u09C7 \u09AE\u09BF\u09B2\u09BE\u09A8\u09CB \u098F\u0995\u099F\u09BF \u0995\u09C7\u09B8-\u0985\u09B8\u0982\u09AC\u09C7\u09A6\u09A8\u09B6\u09C0\u09B2 \u09B0\u09C7\u0997\u09C1\u09B2\u09BE\u09B0 \u098F\u0995\u09CD\u09B8\u09AA\u09CD\u09B0\u09C7\u09B6\u09A8\u0964 \u09AF\u09C7 \u0995\u09CB\u09A8\u09CB \u09AB\u09BE\u0987\u09B2\u09C7\u09B0 \u09AA\u09BE\u09A5 \u09AE\u09BF\u09B2\u09C7 \u0997\u09C7\u09B2\u09C7 \u09A4\u09BE \u0995\u0996\u09A8\u09CB \u099F\u09CD\u09B0\u09CD\u09AF\u09BE\u0995 \u0995\u09B0\u09BE \u09B9\u09AF\u09BC \u09A8\u09BE (\u09AF\u09C7\u09AE\u09A8 \\.excalidraw\\.md$ \u0985\u09A5\u09AC\u09BE (^|/)Templates/)\u0964 \u09A1\u09BF\u09AB\u09B2\u09CD\u099F \u09B9\u09BF\u09B8\u09C7\u09AC\u09C7 Templates \u09AB\u09CB\u09B2\u09CD\u09A1\u09BE\u09B0 \u098F\u09AC\u0982 Excalidraw \u0985\u0999\u09CD\u0995\u09A8 \u09AC\u09BE\u09A6 \u09A6\u09C7\u0993\u09AF\u09BC\u09BE \u09B9\u09AF\u09BC\u0964 \u09B8\u09AC\u0995\u09BF\u099B\u09C1 \u099F\u09CD\u09B0\u09CD\u09AF\u09BE\u0995 \u0995\u09B0\u09A4\u09C7 \u0996\u09BE\u09B2\u09BF \u09B0\u09BE\u0996\u09C1\u09A8\u0964",
+  "setting.keep.name": "\u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09B0\u09BE\u0996\u09C1\u09A8 \u09AF\u09A4\u0995\u09CD\u09B7\u09A3",
+  "setting.keep.desc": "\u09B8\u0982\u09B6\u09CB\u09A7\u09A8 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09AA\u09B0\u09BF\u09B7\u09CD\u0995\u09BE\u09B0 \u0995\u09B0\u09BE\u09B0 \u0995\u09CC\u09B6\u09B2",
+  "setting.keep.option.app": "\u0985\u09CD\u09AF\u09BE\u09AA \u09AC\u09A8\u09CD\u09A7",
+  "setting.keep.option.file": "\u09AB\u09BE\u0987\u09B2 \u09AC\u09A8\u09CD\u09A7",
+  "setting.ignore-new-files.name": "\u09A8\u09A4\u09C1\u09A8 \u09AB\u09BE\u0987\u09B2 \u0989\u09AA\u09C7\u0995\u09CD\u09B7\u09BE \u0995\u09B0\u09C1\u09A8",
+  "setting.ignore-new-files.desc": "\u099F\u09CD\u09B0\u09CD\u09AF\u09BE\u0995\u09BF\u0982 \u09B6\u09C1\u09B0\u09C1 \u09B9\u0993\u09AF\u09BC\u09BE\u09B0 \u09AA\u09B0\u09C7 \u09A4\u09C8\u09B0\u09BF \u09AB\u09BE\u0987\u09B2\u09C7\u09B0 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u099F\u09CD\u09B0\u09CD\u09AF\u09BE\u0995 \u0995\u09B0\u09AC\u09C7\u09A8 \u09A8\u09BE",
+  "setting.persist.name": "\u09B0\u09BF\u09B8\u09CD\u099F\u09BE\u09B0\u09CD\u099F\u09C7\u09B0 \u09AA\u09B0\u09C7\u0993 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09A7\u09B0\u09C7 \u09B0\u09BE\u0996\u09C1\u09A8",
+  "setting.persist.desc": '\u09A1\u09BF\u09B8\u09CD\u0995\u09C7 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09B8\u0982\u09B0\u0995\u09CD\u09B7\u09A3 \u0995\u09B0\u09C1\u09A8 \u09AF\u09BE\u09A4\u09C7 \u09B9\u09BE\u0987\u09B2\u09BE\u0987\u099F\u0997\u09C1\u09B2\u09CB \u09B0\u09BF\u09B8\u09CD\u099F\u09BE\u09B0\u09CD\u099F\u09C7\u09B0 \u09AA\u09B0\u09C7\u0993 \u09A5\u09BE\u0995\u09C7\u0964 "\u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09B0\u09BE\u0996\u09C1\u09A8 \u09AF\u09A4\u0995\u09CD\u09B7\u09A3" \u0985\u09CD\u09AF\u09BE\u09AA \u09AC\u09A8\u09CD\u09A7\u09C7 \u09B8\u09C7\u099F \u0995\u09B0\u09BE \u09AA\u09CD\u09B0\u09AF\u09BC\u09CB\u099C\u09A8\u0964',
+  "setting.max-entries.name": "\u09B8\u09B0\u09CD\u09AC\u09BE\u09A7\u09BF\u0995 \u09B8\u0982\u09B0\u0995\u09CD\u09B7\u09BF\u09A4 \u09AB\u09BE\u0987\u09B2",
+  "setting.max-entries.desc": "\u09A1\u09BF\u09B8\u09CD\u0995\u09C7 \u0995\u09A4\u0997\u09C1\u09B2\u09CB \u09AB\u09BE\u0987\u09B2 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09B0\u09BE\u0996\u09BE \u09B9\u09AC\u09C7 \u09A4\u09BE\u09B0 \u09B8\u09C0\u09AE\u09BE\u0964 \u09B8\u09AC\u099A\u09C7\u09AF\u09BC\u09C7 \u09AA\u09C1\u09B0\u09CB\u09A8\u09CB\u0997\u09C1\u09B2\u09CB \u0986\u0997\u09C7 \u09B8\u09B0\u09BE\u09A8\u09CB \u09B9\u09AF\u09BC\u0964 \u09A8\u09BF\u09B7\u09CD\u0995\u09CD\u09B0\u09BF\u09AF\u09BC \u0995\u09B0\u09A4\u09C7 0 \u09B8\u09C7\u099F \u0995\u09B0\u09C1\u09A8\u0964",
+  "setting.max-age-days.name": "\u09B8\u09B0\u09CD\u09AC\u09BE\u09A7\u09BF\u0995 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8\u09C7\u09B0 \u09AC\u09AF\u09BC\u09B8 (\u09A6\u09BF\u09A8)",
+  "setting.max-age-days.desc": "\u098F\u09A4 \u09A6\u09BF\u09A8\u09C7\u09B0 \u099A\u09C7\u09AF\u09BC\u09C7 \u09AA\u09C1\u09B0\u09CB\u09A8\u09CB \u09B8\u0982\u09B0\u0995\u09CD\u09B7\u09BF\u09A4 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09AC\u09BE\u09A6 \u09A6\u09BF\u09A8\u0964 \u09A8\u09BF\u09B7\u09CD\u0995\u09CD\u09B0\u09BF\u09AF\u09BC \u0995\u09B0\u09A4\u09C7 0 \u09B8\u09C7\u099F \u0995\u09B0\u09C1\u09A8\u0964",
+  "setting.snapshots-heading": "\u099F\u09BE\u0987\u09AE\u09B2\u09BE\u0987\u09A8 \u09B8\u09CD\u09A8\u09CD\u09AF\u09BE\u09AA\u09B6\u099F",
+  "setting.snapshots-enabled.name": "\u09AE\u09A7\u09CD\u09AF\u09AC\u09B0\u09CD\u09A4\u09C0 \u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3 \u09A7\u09BE\u09B0\u09A3 \u0995\u09B0\u09C1\u09A8",
+  "setting.snapshots-enabled.desc": "\u09AA\u09C2\u09B0\u09CD\u09AC\u09AC\u09B0\u09CD\u09A4\u09C0 \u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3\u0997\u09C1\u09B2\u09CB\u09B0 \u098F\u0995\u099F\u09BF \u099F\u09BE\u0987\u09AE\u09B2\u09BE\u0987\u09A8 \u09B0\u09BE\u0996\u09C1\u09A8 \u09AF\u09BE\u09A4\u09C7 \u0986\u09AA\u09A8\u09BF \u0995\u09C7\u09AC\u09B2 \u09AE\u09C2\u09B2\u099F\u09BF\u09B0 \u09B8\u09BE\u09A5\u09C7 \u09A8\u09AF\u09BC, \u09AE\u09BE\u099D\u09C7\u09B0 \u0995\u09CB\u09A8\u09CB \u09AC\u09BF\u09A8\u09CD\u09A6\u09C1\u09B0 \u09B8\u09BE\u09A5\u09C7\u0993 \u09AA\u09BE\u09B0\u09CD\u09A5\u0995\u09CD\u09AF \u09A6\u09C7\u0996\u09A4\u09C7 \u09AA\u09BE\u09B0\u09C7\u09A8\u0964",
+  "setting.snapshots-edit-threshold.name": "\u09AA\u09CD\u09B0\u09A4\u09BF (\u09B8\u09AE\u09CD\u09AA\u09BE\u09A6\u09A8\u09BE) \u09A7\u09BE\u09B0\u09A3 \u0995\u09B0\u09C1\u09A8",
+  "setting.snapshots-edit-threshold.desc": "\u098F\u09A4\u0997\u09C1\u09B2\u09CB \u09B8\u09AE\u09CD\u09AA\u09BE\u09A6\u09A8\u09BE\u09B0 \u09AA\u09B0\u09C7 \u098F\u0995\u099F\u09BF \u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3 \u09A8\u09BF\u09A8\u0964 \u09B8\u09AE\u09CD\u09AA\u09BE\u09A6\u09A8\u09BE \u099F\u09CD\u09B0\u09BF\u0997\u09BE\u09B0 \u09A8\u09BF\u09B7\u09CD\u0995\u09CD\u09B0\u09BF\u09AF\u09BC \u0995\u09B0\u09A4\u09C7 0 \u09B8\u09C7\u099F \u0995\u09B0\u09C1\u09A8\u0964",
+  "setting.snapshots-interval.name": "\u09AA\u09CD\u09B0\u09A4\u09BF (\u09AE\u09BF\u09A8\u09BF\u099F) \u09A7\u09BE\u09B0\u09A3 \u0995\u09B0\u09C1\u09A8",
+  "setting.snapshots-interval.desc": "\u098F\u09A4\u0997\u09C1\u09B2\u09CB \u09AE\u09BF\u09A8\u09BF\u099F \u09B8\u09AE\u09CD\u09AA\u09BE\u09A6\u09A8\u09BE\u09B0 \u09AA\u09B0\u09C7 \u098F\u0995\u099F\u09BF \u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3 \u09A8\u09BF\u09A8\u0964 \u09B8\u09AE\u09AF\u09BC \u099F\u09CD\u09B0\u09BF\u0997\u09BE\u09B0 \u09A8\u09BF\u09B7\u09CD\u0995\u09CD\u09B0\u09BF\u09AF\u09BC \u0995\u09B0\u09A4\u09C7 0 \u09B8\u09C7\u099F \u0995\u09B0\u09C1\u09A8\u0964",
+  "setting.max-version-age-days.name": "\u09B8\u09B0\u09CD\u09AC\u09BE\u09A7\u09BF\u0995 \u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3\u09C7\u09B0 \u09AC\u09AF\u09BC\u09B8 (\u09A6\u09BF\u09A8)",
+  "setting.max-version-age-days.desc": "\u098F\u09A4 \u09A6\u09BF\u09A8\u09C7\u09B0 \u099A\u09C7\u09AF\u09BC\u09C7 \u09AA\u09C1\u09B0\u09CB\u09A8\u09CB \u09AE\u09A7\u09CD\u09AF\u09AC\u09B0\u09CD\u09A4\u09C0 \u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3 \u09AC\u09BE\u09A6 \u09A6\u09BF\u09A8 (\u09AA\u09CD\u09B0\u09A7\u09BE\u09A8 \u09B8\u09C0\u09AE\u09BE)\u0964 \u09A8\u09BF\u09B7\u09CD\u0995\u09CD\u09B0\u09BF\u09AF\u09BC \u0995\u09B0\u09A4\u09C7 0 \u09B8\u09C7\u099F \u0995\u09B0\u09C1\u09A8\u0964",
+  "setting.max-versions.name": "\u09AA\u09CD\u09B0\u09A4\u09BF \u09AB\u09BE\u0987\u09B2\u09C7 \u09B8\u09B0\u09CD\u09AC\u09BE\u09A7\u09BF\u0995 \u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3",
+  "setting.max-versions.desc": "\u09AA\u09CD\u09B0\u09A4\u09BF \u09AB\u09BE\u0987\u09B2\u09C7 \u09B0\u09BE\u0996\u09BE \u09AE\u09A7\u09CD\u09AF\u09AC\u09B0\u09CD\u09A4\u09C0 \u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3\u09C7\u09B0 \u09A8\u09BF\u09B0\u09BE\u09AA\u09A4\u09CD\u09A4\u09BE \u09B8\u09C0\u09AE\u09BE\u0964 \u09B8\u09AC\u099A\u09C7\u09AF\u09BC\u09C7 \u09AA\u09C1\u09B0\u09CB\u09A8\u09CB\u0997\u09C1\u09B2\u09CB \u0986\u0997\u09C7 \u09B8\u09B0\u09BE\u09A8\u09CB \u09B9\u09AF\u09BC\u0964 \u09A8\u09BF\u09B7\u09CD\u0995\u09CD\u09B0\u09BF\u09AF\u09BC \u0995\u09B0\u09A4\u09C7 0 \u09B8\u09C7\u099F \u0995\u09B0\u09C1\u09A8\u0964",
+  "setting.show-heading": "\u098F\u09B0 \u099C\u09A8\u09CD\u09AF \u09A8\u09BF\u09B0\u09CD\u09A6\u09C7\u09B6\u0995 \u09A6\u09C7\u0996\u09BE\u09A8",
+  "setting.show.desc": '\u09B2\u09BE\u0987\u09A8 \u09A8\u09BF\u09B0\u09CD\u09A6\u09C7\u09B6\u0995\u0997\u09C1\u09B2\u09CB \u0995\u09C7\u09AC\u09B2 \u09B8\u09AE\u09CD\u09AA\u09BE\u09A6\u09A8\u09BE (\u09B8\u09CB\u09B0\u09CD\u09B8 \u098F\u09AC\u0982 \u09B2\u09BE\u0987\u09AD \u09AA\u09CD\u09B0\u09BF\u09AD\u09BF\u0989) \u09AE\u09CB\u09A1\u09C7 \u09A6\u09C7\u0996\u09BE\u09A8\u09CB \u09B9\u09AF\u09BC\u0964 \u09AA\u09A0\u09A8 \u09AE\u09CB\u09A1\u09C7 \u0995\u09CB\u09A8\u09CB \u0987\u09A8\u09B2\u09BE\u0987\u09A8 \u09A8\u09BF\u09B0\u09CD\u09A6\u09C7\u09B6\u0995 \u09A8\u09C7\u0987, \u09A4\u09AC\u09C7 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u098F\u0996\u09A8\u0993 \u09AA\u09BE\u0993\u09AF\u09BC\u09BE \u09AF\u09BE\u09AF\u09BC: "\u09AC\u09B0\u09CD\u09A4\u09AE\u09BE\u09A8 \u09A8\u09A5\u09BF\u09B0 \u09B8\u09AE\u09B8\u09CD\u09A4 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u09A6\u09C7\u0996\u09BE\u09A8" \u0995\u09AE\u09BE\u09A8\u09CD\u09A1\u099F\u09BF \u099A\u09BE\u09B2\u09BE\u09A8 \u0985\u09A5\u09AC\u09BE \u09AB\u09BE\u0987\u09B2 \u098F\u0995\u09CD\u09B8\u09AA\u09CD\u09B2\u09CB\u09B0\u09BE\u09B0\u09C7 \u09AB\u09BE\u0987\u09B2 \u0995\u09A8\u099F\u09C7\u0995\u09CD\u09B8\u099F \u09AE\u09C7\u09A8\u09C1 \u09AC\u09CD\u09AF\u09AC\u09B9\u09BE\u09B0 \u0995\u09B0\u09C1\u09A8\u0964',
+  "setting.show.changed": "\u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09BF\u09A4",
+  "setting.show.restored": "\u09AA\u09C1\u09A8\u09B0\u09C1\u09A6\u09CD\u09A7\u09BE\u09B0\u0995\u09C3\u09A4",
+  "setting.show.added": "\u09AF\u09CB\u0997\u0995\u09C3\u09A4",
+  "setting.show.removed": "\u0985\u09AA\u09B8\u09BE\u09B0\u09BF\u09A4",
+  "setting.line-heading": "\u09B2\u09BE\u0987\u09A8 \u09A8\u09BF\u09B0\u09CD\u09A6\u09C7\u09B6\u0995",
+  "setting.line-width.name": "\u09AA\u09CD\u09B0\u09B8\u09CD\u09A5",
+  "setting.line-width.desc": "\u0989\u09B2\u09CD\u09B2\u09AE\u09CD\u09AC \u09B0\u09C7\u0996\u09BE \u09A8\u09BF\u09B0\u09CD\u09A6\u09C7\u09B6\u0995\u09C7\u09B0 \u09AA\u09CD\u09B0\u09B8\u09CD\u09A5 (\u09AA\u09BF\u0995\u09CD\u09B8\u09C7\u09B2\u09C7)\u0964",
+  "setting.gutter-heading.name": "\u0997\u09BE\u099F\u09BE\u09B0 \u09A8\u09BF\u09B0\u09CD\u09A6\u09C7\u09B6\u0995",
+  "setting.gutter-heading.prefix": "\u0997\u09BE\u099F\u09BE\u09B0 \u09A7\u09B0\u09A8 \u09A8\u09BF\u09B0\u09CD\u09A6\u09C7\u09B6\u0995\u09C7\u09B0 \u0985\u0995\u09CD\u09B7\u09B0 (",
+  "setting.gutter-heading.suffix": ")\u0964",
+  "setting.gutter-changed.name": "\u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8\u09C7\u09B0 \u0985\u0995\u09CD\u09B7\u09B0",
+  "setting.gutter-added.name": "\u09AF\u09CB\u0997\u09C7\u09B0 \u0985\u0995\u09CD\u09B7\u09B0",
+  "setting.gutter-restored.name": "\u09AA\u09C1\u09A8\u09B0\u09C1\u09A6\u09CD\u09A7\u09BE\u09B0\u09C7\u09B0 \u0985\u0995\u09CD\u09B7\u09B0",
+  "setting.gutter-removed.name": "\u0985\u09AA\u09B8\u09BE\u09B0\u09A3\u09C7\u09B0 \u0985\u0995\u09CD\u09B7\u09B0",
+  "modal.title": "\u0987\u09A4\u09BF\u09B9\u09BE\u09B8",
+  "modal.no-changes": "\u0995\u09CB\u09A8\u09CB \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u09A8\u09C7\u0987",
+  "modal.identical-to-current": "\u09AC\u09B0\u09CD\u09A4\u09AE\u09BE\u09A8\u09C7\u09B0 \u09B8\u09BE\u09A5\u09C7 \u0985\u09AD\u09BF\u09A8\u09CD\u09A8",
+  "modal.restore-original": "\u09AE\u09C2\u09B2\u099F\u09BF \u09AA\u09C1\u09A8\u09B0\u09C1\u09A6\u09CD\u09A7\u09BE\u09B0 \u0995\u09B0\u09C1\u09A8",
+  "modal.remove-history": "\u09AB\u09BE\u0987\u09B2\u09C7\u09B0 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09B8\u09B0\u09BE\u09A8",
+  "modal.previous-difference": "\u09AA\u09C2\u09B0\u09CD\u09AC\u09AC\u09B0\u09CD\u09A4\u09C0 \u09AA\u09BE\u09B0\u09CD\u09A5\u0995\u09CD\u09AF",
+  "modal.next-difference": "\u09AA\u09B0\u09AC\u09B0\u09CD\u09A4\u09C0 \u09AA\u09BE\u09B0\u09CD\u09A5\u0995\u09CD\u09AF",
+  "modal.mode.patch": "\u09AA\u09CD\u09AF\u09BE\u099A \u09A6\u09C7\u0996\u09BE\u09A8",
+  "modal.mode.inline": "\u0987\u09A8\u09B2\u09BE\u0987\u09A8",
+  "modal.mode.line-by-line": "\u09B2\u09BE\u0987\u09A8 \u09AC\u09BE\u0987 \u09B2\u09BE\u0987\u09A8",
+  "modal.mode.side-by-side": "\u09AA\u09BE\u09B6\u09BE\u09AA\u09BE\u09B6\u09BF",
+  "modal.confirm.cancel": "\u09AC\u09BE\u09A4\u09BF\u09B2",
+  "modal.confirm.restore.title": "\u09AE\u09C2\u09B2 \u09AB\u09BE\u0987\u09B2 \u09AA\u09C1\u09A8\u09B0\u09C1\u09A6\u09CD\u09A7\u09BE\u09B0 \u0995\u09B0\u09C1\u09A8",
+  "modal.confirm.restore.message": "\u0986\u09AA\u09A8\u09BF \u0995\u09BF \u09A8\u09BF\u09B6\u09CD\u099A\u09BF\u09A4 \u09AF\u09C7 \u098F\u0987 \u09AB\u09BE\u0987\u09B2\u099F\u09BF\u0995\u09C7 \u09A4\u09BE\u09B0 \u09AE\u09C2\u09B2 \u0985\u09AC\u09B8\u09CD\u09A5\u09BE\u09AF\u09BC \u09AA\u09C1\u09A8\u09B0\u09C1\u09A6\u09CD\u09A7\u09BE\u09B0 \u0995\u09B0\u09A4\u09C7 \u099A\u09BE\u09A8? \u09B8\u09AE\u09B8\u09CD\u09A4 \u09AC\u09B0\u09CD\u09A4\u09AE\u09BE\u09A8 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u09B9\u09BE\u09B0\u09BF\u09AF\u09BC\u09C7 \u09AF\u09BE\u09AC\u09C7 \u098F\u09AC\u0982 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u099F\u09CD\u09B0\u09CD\u09AF\u09BE\u0995\u09BF\u0982 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09B0\u09BF\u09B8\u09C7\u099F \u09B9\u09AC\u09C7\u0964 \u098F\u0987 \u0995\u09CD\u09B0\u09BF\u09AF\u09BC\u09BE\u099F\u09BF \u09AA\u09C2\u09B0\u09CD\u09AC\u09BE\u09AC\u09B8\u09CD\u09A5\u09BE\u09AF\u09BC \u09AB\u09C7\u09B0\u09BE\u09A8\u09CB \u09AF\u09BE\u09AC\u09C7 \u09A8\u09BE\u0964",
+  "modal.confirm.restore.button": "\u09AB\u09BE\u0987\u09B2 \u09AA\u09C1\u09A8\u09B0\u09C1\u09A6\u09CD\u09A7\u09BE\u09B0 \u0995\u09B0\u09C1\u09A8",
+  "modal.confirm.remove.title": "\u09AB\u09BE\u0987\u09B2\u09C7\u09B0 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09B8\u09B0\u09BE\u09A8",
+  "modal.confirm.remove.message": "\u0986\u09AA\u09A8\u09BF \u0995\u09BF \u09A8\u09BF\u09B6\u09CD\u099A\u09BF\u09A4 \u09AF\u09C7 \u098F\u0987 \u09AB\u09BE\u0987\u09B2\u09C7\u09B0 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u099F\u09CD\u09B0\u09CD\u09AF\u09BE\u0995\u09BF\u0982 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09B8\u09B0\u09BE\u09A4\u09C7 \u099A\u09BE\u09A8? \u098F\u0987 \u0995\u09CD\u09B0\u09BF\u09AF\u09BC\u09BE\u099F\u09BF \u09AA\u09C2\u09B0\u09CD\u09AC\u09BE\u09AC\u09B8\u09CD\u09A5\u09BE\u09AF\u09BC \u09AB\u09C7\u09B0\u09BE\u09A8\u09CB \u09AF\u09BE\u09AC\u09C7 \u09A8\u09BE\u0964",
+  "modal.confirm.remove.button": "\u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09B8\u09B0\u09BE\u09A8",
+  "modal.confirm.revert.title": "\u098F\u0987 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u09AA\u09CD\u09B0\u09A4\u09CD\u09AF\u09BE\u09AC\u09B0\u09CD\u09A4\u09A8 \u0995\u09B0\u09C1\u09A8",
+  "modal.confirm.revert.message": "\u098F\u0987 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8\u099F\u09BF \u09A8\u09BF\u09B0\u09CD\u09AC\u09BE\u099A\u09BF\u09A4 \u09AD\u09BF\u09A4\u09CD\u09A4\u09BF\u09A4\u09C7 \u09AA\u09CD\u09B0\u09A4\u09CD\u09AF\u09BE\u09AC\u09B0\u09CD\u09A4\u09A8 \u0995\u09B0\u09AC\u09C7\u09A8? \u0985\u09A8\u09CD\u09AF\u09BE\u09A8\u09CD\u09AF \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u09B0\u09BE\u0996\u09BE \u09B9\u09AC\u09C7\u0964",
+  "modal.confirm.revert.button": "\u09AA\u09CD\u09B0\u09A4\u09CD\u09AF\u09BE\u09AC\u09B0\u09CD\u09A4\u09A8",
+  "modal.search-versions": "\u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3 \u0985\u09A8\u09C1\u09B8\u09A8\u09CD\u09A7\u09BE\u09A8 \u0995\u09B0\u09C1\u09A8",
+  "modal.version.baseline": "\u09AC\u09B0\u09CD\u09A4\u09AE\u09BE\u09A8",
+  "modal.version.numbered": "\u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3 {number}",
+  "modal.version.current": "\u09AC\u09B0\u09CD\u09A4\u09AE\u09BE\u09A8",
+  "modal.version.original": "\u09AE\u09C2\u09B2",
+  "modal.no-versions-match": "\u0985\u09A8\u09C1\u09B8\u09A8\u09CD\u09A7\u09BE\u09A8\u09C7\u09B0 \u09B8\u09BE\u09A5\u09C7 \u0995\u09CB\u09A8\u09CB \u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3 \u09AE\u09C7\u09B2\u09C7 \u09A8\u09BE",
+  "modal.no-snapshots-yet": "\u098F\u0996\u09A8\u0993 \u0995\u09CB\u09A8\u09CB \u09AE\u09A7\u09CD\u09AF\u09AC\u09B0\u09CD\u09A4\u09C0 \u09B8\u09CD\u09A8\u09CD\u09AF\u09BE\u09AA\u09B6\u099F \u09A8\u09C7\u0987",
+  "modal.revert-hunk": "\u098F\u0987 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u09AA\u09CD\u09B0\u09A4\u09CD\u09AF\u09BE\u09AC\u09B0\u09CD\u09A4\u09A8 \u0995\u09B0\u09C1\u09A8",
+  "modal.copy": "\u0985\u09A8\u09C1\u09B2\u09BF\u09AA\u09BF"
+};
+
+// lang/ca.json
+var ca_default = {
+  "command.go-to-next-change": "Ves al canvi seg\xFCent",
+  "command.go-to-previous-change": "Ves al canvi anterior",
+  "command.reset-lines-all": "Reinicia totes les instant\xE0nies del seguidor de l\xEDnies",
+  "command.reset-lines": "Reinicia la instant\xE0nia del seguidor de l\xEDnies del document actual",
+  "command.show-diff": "Mostra tots els canvis del document actual",
+  "notice.no-changes-to-navigate": "No hi ha canvis per navegar",
+  "notice.all-snapshots-deleted": "S'han eliminat totes les dades d'instant\xE0nies",
+  "notice.current-snapshot-deleted": "S'han eliminat les dades de la instant\xE0nia actual",
+  "notice.file-restored": "S'ha restaurat el fitxer a l'estat original",
+  "notice.file-restore-failed": "No s'ha pogut restaurar el fitxer a l'estat original",
+  "notice.copied": "S'ha copiat!",
+  "notice.no-saved-history": "No hi ha cap historial desat per a aquest fitxer.",
+  "notice.invalid-exclude-pattern": "Historial local: el patr\xF3 de camins exclosos no \xE9s una expressi\xF3 regular v\xE0lida i s'ignora.",
+  "menu.local-history": "Historial local",
+  "menu.show-changes": "Mostra els canvis",
+  "status.lines-changed": "{count} l\xEDnies canviades",
+  "setting.type.name": "Tipus",
+  "setting.type.desc": "Tria entre una l\xEDnia vertical o un punt al marge.",
+  "setting.type.option.line": "L\xEDnia vertical",
+  "setting.type.option.dot": "Car\xE0cter al marge",
+  "setting.allowed-extensions.name": "Extensions de fitxer permeses",
+  "setting.allowed-extensions.desc": "Llista d'extensions de fitxer separades per comes per fer-ne el seguiment dels canvis (p. ex., md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "Camins exclosos",
+  "setting.exclude-paths.desc": "Una expressi\xF3 regular sense distinci\xF3 de maj\xFAscules i min\xFAscules comparada amb el cam\xED relatiu al magatzem. Qualsevol fitxer el cam\xED del qual coincideixi no se'n fa mai el seguiment (p. ex. \\.excalidraw\\.md$ o (^|/)Templates/). El valor per defecte exclou les carpetes Templates i els dibuixos d'Excalidraw. Deixa-ho buit per fer el seguiment de tot.",
+  "setting.keep.name": "Conserva l'historial fins a",
+  "setting.keep.desc": "Estrat\xE8gia per netejar l'historial de revisions",
+  "setting.keep.option.app": "Tancar l'aplicaci\xF3",
+  "setting.keep.option.file": "Tancar el fitxer",
+  "setting.ignore-new-files.name": "Ignora els fitxers nous",
+  "setting.ignore-new-files.desc": "No facis el seguiment dels canvis en fitxers creats despr\xE9s d'iniciar el seguiment",
+  "setting.persist.name": "Conserva l'historial entre reinicis",
+  "setting.persist.desc": "Desa l'historial al disc perqu\xE8 els ressaltats sobrevisquin a un reinici. Cal que \xABconserva l'historial fins a\xBB estigui definit a tancar l'aplicaci\xF3.",
+  "setting.max-entries.name": "M\xE0xim de fitxers emmagatzemats",
+  "setting.max-entries.desc": "L\xEDmit de quants historials de fitxers es conserven al disc. Els m\xE9s antics s'eliminen primer. Defineix-ho a 0 per desactivar-ho.",
+  "setting.max-age-days.name": "Antiguitat m\xE0xima de l'historial (dies)",
+  "setting.max-age-days.desc": "Descarta l'historial desat m\xE9s antic que aquest nombre de dies. Defineix-ho a 0 per desactivar-ho.",
+  "setting.snapshots-heading": "Instant\xE0nies de la cronologia",
+  "setting.snapshots-enabled.name": "Captura versions interm\xE8dies",
+  "setting.snapshots-enabled.desc": "Conserva una cronologia de versions anteriors perqu\xE8 puguis comparar amb un punt intermedi, no nom\xE9s amb l'original.",
+  "setting.snapshots-edit-threshold.name": "Captura cada (edicions)",
+  "setting.snapshots-edit-threshold.desc": "Pren una versi\xF3 despr\xE9s d'aquest nombre d'edicions. Defineix-ho a 0 per desactivar el desencadenant d'edicions.",
+  "setting.snapshots-interval.name": "Captura cada (minuts)",
+  "setting.snapshots-interval.desc": "Pren una versi\xF3 despr\xE9s d'aquest nombre de minuts d'edici\xF3. Defineix-ho a 0 per desactivar el desencadenant de temps.",
+  "setting.max-version-age-days.name": "Antiguitat m\xE0xima de versi\xF3 (dies)",
+  "setting.max-version-age-days.desc": "Descarta les versions interm\xE8dies m\xE9s antigues que aquest nombre de dies (el l\xEDmit principal). Defineix-ho a 0 per desactivar-ho.",
+  "setting.max-versions.name": "M\xE0xim de versions per fitxer",
+  "setting.max-versions.desc": "L\xEDmit de seguretat de les versions interm\xE8dies conservades per fitxer. Les m\xE9s antigues s'eliminen primer. Defineix-ho a 0 per desactivar-ho.",
+  "setting.show-heading": "Mostra l'indicador per a",
+  "setting.show.desc": "Els indicadors de l\xEDnia nom\xE9s es mostren en els modes d'edici\xF3 (codi font i previsualitzaci\xF3 en directe). En el mode de lectura no hi ha indicadors en l\xEDnia, per\xF2 l'historial de canvis encara \xE9s accessible: executa l'ordre \xABMostra tots els canvis del document actual\xBB o utilitza el men\xFA contextual del fitxer a l'explorador de fitxers.",
+  "setting.show.changed": "Canviat",
+  "setting.show.restored": "Restaurat",
+  "setting.show.added": "Afegit",
+  "setting.show.removed": "Eliminat",
+  "setting.line-heading": "Indicador de l\xEDnia",
+  "setting.line-width.name": "Amplada",
+  "setting.line-width.desc": "Amplada de l'indicador de l\xEDnia vertical (en p\xEDxels).",
+  "setting.gutter-heading.name": "Indicador del marge",
+  "setting.gutter-heading.prefix": "Car\xE0cters de l'indicador de tipus del marge (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Car\xE0cter de canvi",
+  "setting.gutter-added.name": "Car\xE0cter d'afegit",
+  "setting.gutter-restored.name": "Car\xE0cter de restauraci\xF3",
+  "setting.gutter-removed.name": "Car\xE0cter d'eliminaci\xF3",
+  "modal.title": "Historial",
+  "modal.no-changes": "Cap canvi",
+  "modal.identical-to-current": "Id\xE8ntic a l'actual",
+  "modal.restore-original": "Restaura l'original",
+  "modal.remove-history": "Elimina l'historial del fitxer",
+  "modal.previous-difference": "Difer\xE8ncia anterior",
+  "modal.next-difference": "Difer\xE8ncia seg\xFCent",
+  "modal.mode.patch": "Mostra el peda\xE7",
+  "modal.mode.inline": "En l\xEDnia",
+  "modal.mode.line-by-line": "L\xEDnia per l\xEDnia",
+  "modal.mode.side-by-side": "Costat a costat",
+  "modal.confirm.cancel": "Cancel\xB7la",
+  "modal.confirm.restore.title": "Restaura el fitxer original",
+  "modal.confirm.restore.message": "Segur que vols restaurar aquest fitxer al seu estat original? Es perdran tots els canvis actuals i es reiniciar\xE0 l'historial de seguiment de canvis. Aquesta acci\xF3 no es pot desfer.",
+  "modal.confirm.restore.button": "Restaura el fitxer",
+  "modal.confirm.remove.title": "Elimina l'historial del fitxer",
+  "modal.confirm.remove.message": "Segur que vols eliminar l'historial de seguiment de canvis d'aquest fitxer? Aquesta acci\xF3 no es pot desfer.",
+  "modal.confirm.remove.button": "Elimina l'historial",
+  "modal.confirm.revert.title": "Reverteix aquest canvi",
+  "modal.confirm.revert.message": "Vols revertir aquest canvi a la base seleccionada? Es conserven la resta de canvis.",
+  "modal.confirm.revert.button": "Reverteix",
+  "modal.search-versions": "Cerca versions",
+  "modal.version.baseline": "Actual",
+  "modal.version.numbered": "Versi\xF3 {number}",
+  "modal.version.current": "Actual",
+  "modal.version.original": "Original",
+  "modal.no-versions-match": "Cap versi\xF3 coincideix amb la cerca",
+  "modal.no-snapshots-yet": "Encara no hi ha instant\xE0nies interm\xE8dies",
+  "modal.revert-hunk": "Reverteix aquest canvi",
+  "modal.copy": "Copia"
+};
+
+// lang/cs.json
+var cs_default = {
+  "command.go-to-next-change": "P\u0159ej\xEDt na dal\u0161\xED zm\u011Bnu",
+  "command.go-to-previous-change": "P\u0159ej\xEDt na p\u0159edchoz\xED zm\u011Bnu",
+  "command.reset-lines-all": "Resetovat sn\xEDmky sledov\xE1n\xED \u0159\xE1dk\u016F u v\u0161ech soubor\u016F",
+  "command.reset-lines": "Resetovat sn\xEDmek sledov\xE1n\xED \u0159\xE1dk\u016F aktu\xE1ln\xEDho dokumentu",
+  "command.show-diff": "Zobrazit v\u0161echny zm\u011Bny aktu\xE1ln\xEDho dokumentu",
+  "notice.no-changes-to-navigate": "\u017D\xE1dn\xE9 zm\u011Bny k proch\xE1zen\xED",
+  "notice.all-snapshots-deleted": "V\u0161echna data sn\xEDmk\u016F byla smaz\xE1na",
+  "notice.current-snapshot-deleted": "Data aktu\xE1ln\xEDho sn\xEDmku byla smaz\xE1na",
+  "notice.file-restored": "Soubor byl obnoven do p\u016Fvodn\xEDho stavu",
+  "notice.file-restore-failed": "Nepoda\u0159ilo se obnovit soubor do p\u016Fvodn\xEDho stavu",
+  "notice.copied": "Zkop\xEDrov\xE1no!",
+  "notice.no-saved-history": "Pro tento soubor nen\xED ulo\u017Eena \u017E\xE1dn\xE1 historie.",
+  "notice.invalid-exclude-pattern": "Local history: vzor vylou\u010Den\xFDch cest nen\xED platn\xFD regul\xE1rn\xED v\xFDraz a bude ignorov\xE1n.",
+  "menu.local-history": "M\xEDstn\xED historie",
+  "menu.show-changes": "Zobrazit zm\u011Bny",
+  "status.lines-changed": "Zm\u011Bn\u011Bn\xE9 \u0159\xE1dky: {count}",
+  "setting.type.name": "Typ",
+  "setting.type.desc": "Zvolte mezi svislou \u010D\xE1rou a te\u010Dkou na okraji.",
+  "setting.type.option.line": "Svisl\xE1 \u010D\xE1ra",
+  "setting.type.option.dot": "Znak na okraji",
+  "setting.allowed-extensions.name": "Povolen\xE9 p\u0159\xEDpony soubor\u016F",
+  "setting.allowed-extensions.desc": "Seznam p\u0159\xEDpon soubor\u016F odd\u011Blen\xFDch \u010D\xE1rkami, jejich\u017E zm\u011Bny se sleduj\xED (nap\u0159. md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "Vylou\u010Den\xE9 cesty",
+  "setting.exclude-paths.desc": "Regul\xE1rn\xED v\xFDraz nerozli\u0161uj\xEDc\xED velikost p\xEDsmen, porovn\xE1van\xFD s cestou relativn\xED k trezoru. \u017D\xE1dn\xFD soubor, jeho\u017E cesta odpov\xEDd\xE1, se nikdy nesleduje (nap\u0159. \\.excalidraw\\.md$ nebo (^|/)Templates/). V\xFDchoz\xED nastaven\xED vylu\u010Duje slo\u017Eky Templates a kresby Excalidraw. Ponechte pr\xE1zdn\xE9 pro sledov\xE1n\xED v\u0161eho.",
+  "setting.keep.name": "Uchov\xE1vat historii do",
+  "setting.keep.desc": "Strategie \u010Di\u0161t\u011Bn\xED historie reviz\xED",
+  "setting.keep.option.app": "Zav\u0159en\xED aplikace",
+  "setting.keep.option.file": "Zav\u0159en\xED souboru",
+  "setting.ignore-new-files.name": "Ignorovat nov\xE9 soubory",
+  "setting.ignore-new-files.desc": "Nesledovat zm\u011Bny v souborech vytvo\u0159en\xFDch po zah\xE1jen\xED sledov\xE1n\xED",
+  "setting.persist.name": "Zachovat historii mezi restarty",
+  "setting.persist.desc": 'Ukl\xE1dat historii na disk, aby zv\xFDrazn\u011Bn\xED p\u0159e\u010Dkala restart. Vy\u017Eaduje nastaven\xED "Uchov\xE1vat historii do" na zav\u0159en\xED aplikace.',
+  "setting.max-entries.name": "Maximum ulo\u017Een\xFDch soubor\u016F",
+  "setting.max-entries.desc": "Limit po\u010Dtu histori\xED soubor\u016F uchov\xE1van\xFDch na disku. Nejstar\u0161\xED se odstra\u0148uj\xED jako prvn\xED. Nastavte 0 pro vypnut\xED.",
+  "setting.max-age-days.name": "Maxim\xE1ln\xED st\xE1\u0159\xED historie (dny)",
+  "setting.max-age-days.desc": "Zahodit ulo\u017Eenou historii star\u0161\xED ne\u017E tento po\u010Det dn\xED. Nastavte 0 pro vypnut\xED.",
+  "setting.snapshots-heading": "Sn\xEDmky \u010Dasov\xE9 osy",
+  "setting.snapshots-enabled.name": "Zachyt\xE1vat pr\u016Fb\u011B\u017En\xE9 verze",
+  "setting.snapshots-enabled.desc": "Uchov\xE1vat \u010Dasovou osu d\u0159\xEDv\u011Bj\u0161\xEDch verz\xED, abyste mohli porovn\xE1vat s mezilehl\xFDm bodem, nejen s origin\xE1lem.",
+  "setting.snapshots-edit-threshold.name": "Zachyt\xE1vat ka\u017Ed\xFDch (\xFApravy)",
+  "setting.snapshots-edit-threshold.desc": "Vytvo\u0159it verzi po tomto po\u010Dtu \xFAprav. Nastavte 0 pro vypnut\xED spou\u0161t\u011B\u010De podle \xFAprav.",
+  "setting.snapshots-interval.name": "Zachyt\xE1vat ka\u017Ed\xFDch (minuty)",
+  "setting.snapshots-interval.desc": "Vytvo\u0159it verzi po tomto po\u010Dtu minut \xFAprav. Nastavte 0 pro vypnut\xED \u010Dasov\xE9ho spou\u0161t\u011B\u010De.",
+  "setting.max-version-age-days.name": "Maxim\xE1ln\xED st\xE1\u0159\xED verze (dny)",
+  "setting.max-version-age-days.desc": "Zahodit pr\u016Fb\u011B\u017En\xE9 verze star\u0161\xED ne\u017E tento po\u010Det dn\xED (hlavn\xED omezen\xED). Nastavte 0 pro vypnut\xED.",
+  "setting.max-versions.name": "Maximum verz\xED na soubor",
+  "setting.max-versions.desc": "Pojistn\xFD limit po\u010Dtu pr\u016Fb\u011B\u017En\xFDch verz\xED uchov\xE1van\xFDch pro soubor. Nejstar\u0161\xED se odstra\u0148uj\xED jako prvn\xED. Nastavte 0 pro vypnut\xED.",
+  "setting.show-heading": "Zobrazit indik\xE1tor pro",
+  "setting.show.desc": 'Indik\xE1tory \u0159\xE1dk\u016F se zobrazuj\xED pouze v re\u017Eimech \xFAprav (zdrojov\xFD k\xF3d a \u017Eiv\xFD n\xE1hled). V re\u017Eimu \u010Dten\xED nejsou \u017E\xE1dn\xE9 vlo\u017Een\xE9 indik\xE1tory, ale historie zm\u011Bn je st\xE1le dostupn\xE1: spus\u0165te p\u0159\xEDkaz "Zobrazit v\u0161echny zm\u011Bny aktu\xE1ln\xEDho dokumentu" nebo pou\u017Eijte kontextovou nab\xEDdku souboru v pr\u016Fzkumn\xEDku soubor\u016F.',
+  "setting.show.changed": "Zm\u011Bn\u011Bn\xE9",
+  "setting.show.restored": "Obnoven\xE9",
+  "setting.show.added": "P\u0159idan\xE9",
+  "setting.show.removed": "Odebran\xE9",
+  "setting.line-heading": "\u0158\xE1dkov\xFD indik\xE1tor",
+  "setting.line-width.name": "\u0160\xED\u0159ka",
+  "setting.line-width.desc": "\u0160\xED\u0159ka svisl\xE9ho \u0159\xE1dkov\xE9ho indik\xE1toru (v pixelech).",
+  "setting.gutter-heading.name": "Indik\xE1tor na okraji",
+  "setting.gutter-heading.prefix": "Znaky indik\xE1toru typu na okraji (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Znak zm\u011Bny",
+  "setting.gutter-added.name": "Znak p\u0159id\xE1n\xED",
+  "setting.gutter-restored.name": "Znak obnoven\xED",
+  "setting.gutter-removed.name": "Znak odebr\xE1n\xED",
+  "modal.title": "Historie",
+  "modal.no-changes": "\u017D\xE1dn\xE9 zm\u011Bny",
+  "modal.identical-to-current": "Shodn\xE9 s aktu\xE1ln\xED",
+  "modal.restore-original": "Obnovit origin\xE1l",
+  "modal.remove-history": "Odstranit historii souboru",
+  "modal.previous-difference": "P\u0159edchoz\xED rozd\xEDl",
+  "modal.next-difference": "Dal\u0161\xED rozd\xEDl",
+  "modal.mode.patch": "Zobrazit patch",
+  "modal.mode.inline": "Vlo\u017Een\xE9",
+  "modal.mode.line-by-line": "\u0158\xE1dek po \u0159\xE1dku",
+  "modal.mode.side-by-side": "Vedle sebe",
+  "modal.confirm.cancel": "Zru\u0161it",
+  "modal.confirm.restore.title": "Obnovit p\u016Fvodn\xED soubor",
+  "modal.confirm.restore.message": "Opravdu chcete obnovit tento soubor do p\u016Fvodn\xEDho stavu? V\u0161echny aktu\xE1ln\xED zm\u011Bny budou ztraceny a historie sledov\xE1n\xED zm\u011Bn bude resetov\xE1na. Tuto akci nelze vr\xE1tit zp\u011Bt.",
+  "modal.confirm.restore.button": "Obnovit soubor",
+  "modal.confirm.remove.title": "Odstranit historii souboru",
+  "modal.confirm.remove.message": "Opravdu chcete odstranit historii sledov\xE1n\xED zm\u011Bn tohoto souboru? Tuto akci nelze vr\xE1tit zp\u011Bt.",
+  "modal.confirm.remove.button": "Odstranit historii",
+  "modal.confirm.revert.title": "Vr\xE1tit tuto zm\u011Bnu",
+  "modal.confirm.revert.message": "Vr\xE1tit tuto zm\u011Bnu zp\u011Bt na vybran\xFD z\xE1klad? Ostatn\xED zm\u011Bny z\u016Fstanou zachov\xE1ny.",
+  "modal.confirm.revert.button": "Vr\xE1tit",
+  "modal.search-versions": "Hledat verze",
+  "modal.version.baseline": "Aktu\xE1ln\xED",
+  "modal.version.numbered": "Verze {number}",
+  "modal.version.current": "Aktu\xE1ln\xED",
+  "modal.version.original": "Origin\xE1l",
+  "modal.no-versions-match": "\u017D\xE1dn\xE9 verze neodpov\xEDdaj\xED hled\xE1n\xED",
+  "modal.no-snapshots-yet": "Zat\xEDm \u017E\xE1dn\xE9 pr\u016Fb\u011B\u017En\xE9 sn\xEDmky",
+  "modal.revert-hunk": "Vr\xE1tit tuto zm\u011Bnu",
+  "modal.copy": "Kop\xEDrovat"
+};
+
+// lang/da.json
+var da_default = {
+  "command.go-to-next-change": "G\xE5 til n\xE6ste \xE6ndring",
+  "command.go-to-previous-change": "G\xE5 til forrige \xE6ndring",
+  "command.reset-lines-all": "Nulstil alle linjesporings-\xF8jebliksbilleder",
+  "command.reset-lines": "Nulstil linjesporings-\xF8jebliksbillede for aktuelt dokument",
+  "command.show-diff": "Vis alle \xE6ndringer i aktuelt dokument",
+  "notice.no-changes-to-navigate": "Ingen \xE6ndringer at navigere",
+  "notice.all-snapshots-deleted": "Alle \xF8jebliksbilleder slettet",
+  "notice.current-snapshot-deleted": "Aktuelt \xF8jebliksbillede slettet",
+  "notice.file-restored": "Filen gendannet til oprindelig tilstand",
+  "notice.file-restore-failed": "Filen kunne ikke gendannes til oprindelig tilstand",
+  "notice.copied": "Kopieret!",
+  "notice.no-saved-history": "Der er ingen gemt historik for denne fil.",
+  "notice.invalid-exclude-pattern": "Lokal historik: m\xF8nstret for ekskluderede stier er ikke et gyldigt regul\xE6rt udtryk og ignoreres.",
+  "menu.local-history": "Lokal historik",
+  "menu.show-changes": "Vis \xE6ndringer",
+  "status.lines-changed": "{count} linjer \xE6ndret",
+  "setting.type.name": "Type",
+  "setting.type.desc": "V\xE6lg mellem en lodret linje eller en prik i margenen.",
+  "setting.type.option.line": "Lodret linje",
+  "setting.type.option.dot": "Tegn i margenen",
+  "setting.allowed-extensions.name": "Tilladte filtypenavne",
+  "setting.allowed-extensions.desc": "Kommasepareret liste over filtypenavne, hvis \xE6ndringer skal spores (f.eks. md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "Ekskluderede stier",
+  "setting.exclude-paths.desc": "Et regul\xE6rt udtryk (uafh\xE6ngigt af store og sm\xE5 bogstaver), der matches mod stien relativt til boksen. Enhver fil, hvis sti matcher, spores aldrig (f.eks. \\.excalidraw\\.md$ eller (^|/)Templates/). Standardv\xE6rdien ekskluderer Templates-mapper og Excalidraw-tegninger. Lad feltet v\xE6re tomt for at spore alt.",
+  "setting.keep.name": "Behold historik indtil",
+  "setting.keep.desc": "Strategi for oprydning af revisionshistorik",
+  "setting.keep.option.app": "Appen lukkes",
+  "setting.keep.option.file": "Filen lukkes",
+  "setting.ignore-new-files.name": "Ignorer nye filer",
+  "setting.ignore-new-files.desc": "Spor ikke \xE6ndringer i filer, der er oprettet, efter sporingen blev startet",
+  "setting.persist.name": "Bevar historik p\xE5 tv\xE6rs af genstarter",
+  "setting.persist.desc": 'Gem historik p\xE5 disken, s\xE5 fremh\xE6vninger overlever en genstart. Kr\xE6ver, at "Behold historik indtil" er sat til Appen lukkes.',
+  "setting.max-entries.name": "Maks. gemte filer",
+  "setting.max-entries.desc": "Gr\xE6nse for, hvor mange filhistorikker der beholdes p\xE5 disken. De \xE6ldste fjernes f\xF8rst. S\xE6t til 0 for at deaktivere.",
+  "setting.max-age-days.name": "Maks. historikalder (dage)",
+  "setting.max-age-days.desc": "Fjern gemt historik, der er \xE6ldre end s\xE5 mange dage. S\xE6t til 0 for at deaktivere.",
+  "setting.snapshots-heading": "Tidslinje-\xF8jebliksbilleder",
+  "setting.snapshots-enabled.name": "Optag mellemliggende versioner",
+  "setting.snapshots-enabled.desc": "Behold en tidslinje over tidligere versioner, s\xE5 du kan sammenligne med et punkt indimellem og ikke kun originalen.",
+  "setting.snapshots-edit-threshold.name": "Optag hver (\xE6ndringer)",
+  "setting.snapshots-edit-threshold.desc": "Gem en version efter s\xE5 mange \xE6ndringer. S\xE6t til 0 for at deaktivere \xE6ndringsudl\xF8seren.",
+  "setting.snapshots-interval.name": "Optag hver (minutter)",
+  "setting.snapshots-interval.desc": "Gem en version efter s\xE5 mange minutters redigering. S\xE6t til 0 for at deaktivere tidsudl\xF8seren.",
+  "setting.max-version-age-days.name": "Maks. versionsalder (dage)",
+  "setting.max-version-age-days.desc": "Fjern mellemliggende versioner, der er \xE6ldre end s\xE5 mange dage (den prim\xE6re gr\xE6nse). S\xE6t til 0 for at deaktivere.",
+  "setting.max-versions.name": "Maks. versioner pr. fil",
+  "setting.max-versions.desc": "Sikkerhedsgr\xE6nse for antal mellemliggende versioner, der beholdes pr. fil. De \xE6ldste fjernes f\xF8rst. S\xE6t til 0 for at deaktivere.",
+  "setting.show-heading": "Vis indikator for",
+  "setting.show.desc": 'Linjeindikatorer vises kun i redigeringstilstand (kildekode og live-forh\xE5ndsvisning). I l\xE6setilstand er der ingen indlejrede indikatorer, men \xE6ndringshistorikken er stadig tilg\xE6ngelig: k\xF8r kommandoen "Vis alle \xE6ndringer i aktuelt dokument", eller brug filens genvejsmenu i filstifinderen.',
+  "setting.show.changed": "\xC6ndret",
+  "setting.show.restored": "Gendannet",
+  "setting.show.added": "Tilf\xF8jet",
+  "setting.show.removed": "Fjernet",
+  "setting.line-heading": "Linjeindikator",
+  "setting.line-width.name": "Bredde",
+  "setting.line-width.desc": "Bredde p\xE5 den lodrette linjeindikator (i pixels).",
+  "setting.gutter-heading.name": "Margenindikator",
+  "setting.gutter-heading.prefix": "Tegn for margentypeindikatoren (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Tegn for \xE6ndring",
+  "setting.gutter-added.name": "Tegn for tilf\xF8jet",
+  "setting.gutter-restored.name": "Tegn for gendannet",
+  "setting.gutter-removed.name": "Tegn for fjernet",
+  "modal.title": "Historik",
+  "modal.no-changes": "Ingen \xE6ndringer",
+  "modal.identical-to-current": "Identisk med aktuel version",
+  "modal.restore-original": "Gendan original",
+  "modal.remove-history": "Fjern filhistorik",
+  "modal.previous-difference": "Forrige forskel",
+  "modal.next-difference": "N\xE6ste forskel",
+  "modal.mode.patch": "Vis patch",
+  "modal.mode.inline": "Indlejret",
+  "modal.mode.line-by-line": "Linje for linje",
+  "modal.mode.side-by-side": "Side om side",
+  "modal.confirm.cancel": "Annuller",
+  "modal.confirm.restore.title": "Gendan originalfil",
+  "modal.confirm.restore.message": "Er du sikker p\xE5, at du vil gendanne denne fil til dens oprindelige tilstand? Alle aktuelle \xE6ndringer g\xE5r tabt, og \xE6ndringshistorikken nulstilles. Denne handling kan ikke fortrydes.",
+  "modal.confirm.restore.button": "Gendan fil",
+  "modal.confirm.remove.title": "Fjern filhistorik",
+  "modal.confirm.remove.message": "Er du sikker p\xE5, at du vil fjerne \xE6ndringshistorikken for denne fil? Denne handling kan ikke fortrydes.",
+  "modal.confirm.remove.button": "Fjern historik",
+  "modal.confirm.revert.title": "Tilbagef\xF8r denne \xE6ndring",
+  "modal.confirm.revert.message": "Vil du tilbagef\xF8re denne \xE6ndring til den valgte base? \xD8vrige \xE6ndringer bevares.",
+  "modal.confirm.revert.button": "Tilbagef\xF8r",
+  "modal.search-versions": "S\xF8g i versioner",
+  "modal.version.baseline": "Aktuel",
+  "modal.version.numbered": "Version {number}",
+  "modal.version.current": "Aktuel",
+  "modal.version.original": "Original",
+  "modal.no-versions-match": "Ingen versioner matcher s\xF8gningen",
+  "modal.no-snapshots-yet": "Endnu ingen mellemliggende \xF8jebliksbilleder",
+  "modal.revert-hunk": "Tilbagef\xF8r denne \xE6ndring",
+  "modal.copy": "Kopier"
+};
+
+// lang/de.json
+var de_default = {
+  "command.go-to-next-change": "Zur n\xE4chsten \xC4nderung springen",
+  "command.go-to-previous-change": "Zur vorherigen \xC4nderung springen",
+  "command.reset-lines-all": "Alle Zeilen-Tracker-Snapshots zur\xFCcksetzen",
+  "command.reset-lines": "Zeilen-Tracker-Snapshot des aktuellen Dokuments zur\xFCcksetzen",
+  "command.show-diff": "Alle \xC4nderungen des aktuellen Dokuments anzeigen",
+  "notice.no-changes-to-navigate": "Keine \xC4nderungen zum Navigieren",
+  "notice.all-snapshots-deleted": "Alle Snapshot-Daten gel\xF6scht",
+  "notice.current-snapshot-deleted": "Aktuelle Snapshot-Daten gel\xF6scht",
+  "notice.file-restored": "Datei in den Originalzustand zur\xFCckgesetzt",
+  "notice.file-restore-failed": "Datei konnte nicht in den Originalzustand zur\xFCckgesetzt werden",
+  "notice.copied": "Kopiert!",
+  "notice.no-saved-history": "F\xFCr diese Datei ist kein Verlauf gespeichert.",
+  "notice.invalid-exclude-pattern": "Lokaler Verlauf: Das Muster f\xFCr ausgeschlossene Pfade ist kein g\xFCltiger regul\xE4rer Ausdruck und wird ignoriert.",
+  "menu.local-history": "Lokaler Verlauf",
+  "menu.show-changes": "\xC4nderungen anzeigen",
+  "status.lines-changed": "{count} Zeilen ge\xE4ndert",
+  "setting.type.name": "Typ",
+  "setting.type.desc": "W\xE4hle zwischen einer vertikalen Linie und einem Punkt am Rand.",
+  "setting.type.option.line": "Vertikale Linie",
+  "setting.type.option.dot": "Zeichen am Rand",
+  "setting.allowed-extensions.name": "Erlaubte Dateierweiterungen",
+  "setting.allowed-extensions.desc": "Kommagetrennte Liste von Dateierweiterungen, deren \xC4nderungen erfasst werden (z. B. md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "Ausgeschlossene Pfade",
+  "setting.exclude-paths.desc": "Ein nicht zwischen Gro\xDF- und Kleinschreibung unterscheidender regul\xE4rer Ausdruck, der mit dem Pfad relativ zum Tresor abgeglichen wird. Jede Datei, deren Pfad \xFCbereinstimmt, wird nie erfasst (z. B. \\.excalidraw\\.md$ oder (^|/)Templates/). Standardm\xE4\xDFig werden Templates-Ordner und Excalidraw-Zeichnungen ausgeschlossen. Leer lassen, um alles zu erfassen.",
+  "setting.keep.name": "Verlauf behalten bis",
+  "setting.keep.desc": "Strategie zum Bereinigen des Revisionsverlaufs",
+  "setting.keep.option.app": "App schlie\xDFen",
+  "setting.keep.option.file": "Datei schlie\xDFen",
+  "setting.ignore-new-files.name": "Neue Dateien ignorieren",
+  "setting.ignore-new-files.desc": "\xC4nderungen in Dateien, die nach dem Start der Erfassung erstellt wurden, nicht erfassen",
+  "setting.persist.name": "Verlauf \xFCber Neustarts hinweg beibehalten",
+  "setting.persist.desc": 'Verlauf auf der Festplatte speichern, damit Hervorhebungen einen Neustart \xFCberdauern. Erfordert, dass "Verlauf behalten bis" auf App schlie\xDFen gesetzt ist.',
+  "setting.max-entries.name": "Maximal gespeicherte Dateien",
+  "setting.max-entries.desc": "Obergrenze f\xFCr die Anzahl der auf der Festplatte gespeicherten Dateiverl\xE4ufe. Die \xE4ltesten werden zuerst entfernt. Auf 0 setzen, um zu deaktivieren.",
+  "setting.max-age-days.name": "Maximales Verlaufsalter (Tage)",
+  "setting.max-age-days.desc": "Gespeicherten Verlauf verwerfen, der \xE4lter als so viele Tage ist. Auf 0 setzen, um zu deaktivieren.",
+  "setting.snapshots-heading": "Zeitleisten-Snapshots",
+  "setting.snapshots-enabled.name": "Zwischenversionen erfassen",
+  "setting.snapshots-enabled.desc": "Eine Zeitleiste fr\xFCherer Versionen behalten, damit du nicht nur gegen das Original, sondern auch gegen einen Zwischenstand vergleichen kannst.",
+  "setting.snapshots-edit-threshold.name": "Erfassen alle (\xC4nderungen)",
+  "setting.snapshots-edit-threshold.desc": "Nach so vielen \xC4nderungen eine Version erfassen. Auf 0 setzen, um den \xC4nderungsausl\xF6ser zu deaktivieren.",
+  "setting.snapshots-interval.name": "Erfassen alle (Minuten)",
+  "setting.snapshots-interval.desc": "Nach so vielen Minuten Bearbeitung eine Version erfassen. Auf 0 setzen, um den Zeitausl\xF6ser zu deaktivieren.",
+  "setting.max-version-age-days.name": "Maximales Versionsalter (Tage)",
+  "setting.max-version-age-days.desc": "Zwischenversionen verwerfen, die \xE4lter als so viele Tage sind (die prim\xE4re Grenze). Auf 0 setzen, um zu deaktivieren.",
+  "setting.max-versions.name": "Maximale Versionen pro Datei",
+  "setting.max-versions.desc": "Sicherheitsgrenze f\xFCr pro Datei behaltene Zwischenversionen. Die \xE4ltesten werden zuerst entfernt. Auf 0 setzen, um zu deaktivieren.",
+  "setting.show-heading": "Indikator anzeigen f\xFCr",
+  "setting.show.desc": 'Zeilenindikatoren werden nur in den Bearbeitungsmodi (Quelltext und Live-Vorschau) angezeigt. Im Lesemodus gibt es keine Inline-Indikatoren, der \xC4nderungsverlauf ist aber weiterhin erreichbar: F\xFChre den Befehl "Alle \xC4nderungen des aktuellen Dokuments anzeigen" aus oder verwende das Kontextmen\xFC der Datei im Datei-Explorer.',
+  "setting.show.changed": "Ge\xE4ndert",
+  "setting.show.restored": "Wiederhergestellt",
+  "setting.show.added": "Hinzugef\xFCgt",
+  "setting.show.removed": "Entfernt",
+  "setting.line-heading": "Zeilenindikator",
+  "setting.line-width.name": "Breite",
+  "setting.line-width.desc": "Breite des vertikalen Linienindikators (in Pixeln).",
+  "setting.gutter-heading.name": "Randindikator",
+  "setting.gutter-heading.prefix": "Zeichen des Rand-Typindikators (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Zeichen f\xFCr \xC4nderung",
+  "setting.gutter-added.name": "Zeichen f\xFCr Hinzugef\xFCgt",
+  "setting.gutter-restored.name": "Zeichen f\xFCr Wiederhergestellt",
+  "setting.gutter-removed.name": "Zeichen f\xFCr Entfernt",
+  "modal.title": "Verlauf",
+  "modal.no-changes": "Keine \xC4nderungen",
+  "modal.identical-to-current": "Identisch mit aktueller Version",
+  "modal.restore-original": "Original wiederherstellen",
+  "modal.remove-history": "Dateiverlauf entfernen",
+  "modal.previous-difference": "Vorheriger Unterschied",
+  "modal.next-difference": "N\xE4chster Unterschied",
+  "modal.mode.patch": "Patch anzeigen",
+  "modal.mode.inline": "Inline",
+  "modal.mode.line-by-line": "Zeile f\xFCr Zeile",
+  "modal.mode.side-by-side": "Nebeneinander",
+  "modal.confirm.cancel": "Abbrechen",
+  "modal.confirm.restore.title": "Originaldatei wiederherstellen",
+  "modal.confirm.restore.message": "M\xF6chtest du diese Datei wirklich in ihren Originalzustand zur\xFCcksetzen? Alle aktuellen \xC4nderungen gehen verloren und der \xC4nderungsverlauf wird zur\xFCckgesetzt. Diese Aktion kann nicht r\xFCckg\xE4ngig gemacht werden.",
+  "modal.confirm.restore.button": "Datei wiederherstellen",
+  "modal.confirm.remove.title": "Dateiverlauf entfernen",
+  "modal.confirm.remove.message": "M\xF6chtest du den \xC4nderungsverlauf f\xFCr diese Datei wirklich entfernen? Diese Aktion kann nicht r\xFCckg\xE4ngig gemacht werden.",
+  "modal.confirm.remove.button": "Verlauf entfernen",
+  "modal.confirm.revert.title": "Diese \xC4nderung zur\xFCcknehmen",
+  "modal.confirm.revert.message": "Diese \xC4nderung auf die ausgew\xE4hlte Basis zur\xFCcknehmen? Andere \xC4nderungen bleiben erhalten.",
+  "modal.confirm.revert.button": "Zur\xFCcknehmen",
+  "modal.search-versions": "Versionen durchsuchen",
+  "modal.version.baseline": "Aktuell",
+  "modal.version.numbered": "Version {number}",
+  "modal.version.current": "Aktuell",
+  "modal.version.original": "Original",
+  "modal.no-versions-match": "Keine Versionen entsprechen der Suche",
+  "modal.no-snapshots-yet": "Noch keine Zwischen-Snapshots",
+  "modal.revert-hunk": "Diese \xC4nderung zur\xFCcknehmen",
+  "modal.copy": "Kopieren"
+};
+
+// lang/en.json
+var en_default = {
+  "command.go-to-next-change": "Go to next change",
+  "command.go-to-previous-change": "Go to previous change",
+  "command.reset-lines-all": "Reset all lines tracker snapshots",
+  "command.reset-lines": "Reset lines tracker snapshot of current document",
+  "command.show-diff": "Show all changes of current document",
+  "notice.no-changes-to-navigate": "No changes to navigate",
+  "notice.all-snapshots-deleted": "All snapshot data deleted",
+  "notice.current-snapshot-deleted": "Current snapshot data deleted",
+  "notice.file-restored": "File restored to original state",
+  "notice.file-restore-failed": "Failed to restore file to original state",
+  "notice.copied": "Copied!",
+  "notice.no-saved-history": "There is no saved history for this file.",
+  "notice.invalid-exclude-pattern": "Local history: the excluded-paths pattern is not a valid regular expression and is being ignored.",
+  "menu.local-history": "Local history",
+  "menu.show-changes": "Show changes",
+  "status.lines-changed": "{count} lines changed",
+  "setting.type.name": "Type",
+  "setting.type.desc": "Choose between a vertical line or a dot in the gutter.",
+  "setting.type.option.line": "Vertical line",
+  "setting.type.option.dot": "Char in gutter",
+  "setting.allowed-extensions.name": "Allowed file extensions",
+  "setting.allowed-extensions.desc": "Comma-separated list of file extensions to track for changes (e.g., md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "Excluded paths",
+  "setting.exclude-paths.desc": "A case-insensitive regular expression matched against the vault-relative path. Any file whose path matches is never tracked (e.g. \\.excalidraw\\.md$ or (^|/)Templates/). The default excludes Templates folders and Excalidraw drawings. Leave empty to track everything.",
+  "setting.keep.name": "Keep history until",
+  "setting.keep.desc": "Strategy for cleaning up revision history",
+  "setting.keep.option.app": "App close",
+  "setting.keep.option.file": "File close",
+  "setting.ignore-new-files.name": "Ignore new files",
+  "setting.ignore-new-files.desc": "Don't track changes in files created after tracking started",
+  "setting.persist.name": "Persist history across restarts",
+  "setting.persist.desc": 'Save history to disk so highlights survive a restart. Requires "keep history until" set to app close.',
+  "setting.max-entries.name": "Max stored files",
+  "setting.max-entries.desc": "Cap on how many file histories are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-age-days.name": "Max history age (days)",
+  "setting.max-age-days.desc": "Drop persisted history older than this many days. Set to 0 to disable.",
+  "setting.snapshots-heading": "Timeline snapshots",
+  "setting.snapshots-enabled.name": "Capture intermediate versions",
+  "setting.snapshots-enabled.desc": "Keep a timeline of earlier versions so you can diff against a point in between, not just the original.",
+  "setting.snapshots-edit-threshold.name": "Capture every (edits)",
+  "setting.snapshots-edit-threshold.desc": "Take a version after this many edits. Set to 0 to disable the edit trigger.",
+  "setting.snapshots-interval.name": "Capture every (minutes)",
+  "setting.snapshots-interval.desc": "Take a version after this many minutes of editing. Set to 0 to disable the time trigger.",
+  "setting.max-version-age-days.name": "Max version age (days)",
+  "setting.max-version-age-days.desc": "Drop intermediate versions older than this many days (the primary bound). Set to 0 to disable.",
+  "setting.max-versions.name": "Max versions per file",
+  "setting.max-versions.desc": "Safety cap on intermediate versions kept per file. Oldest are evicted first. Set to 0 to disable.",
+  "setting.show-heading": "Show indicator for",
+  "setting.show.desc": 'Line indicators are shown only in editing (source and live preview) modes. In reading mode there are no inline indicators, but the change history is still reachable: run the "Show all changes of current document" command or use the file context menu in the file explorer.',
+  "setting.show.changed": "Changed",
+  "setting.show.restored": "Restored",
+  "setting.show.added": "Added",
+  "setting.show.removed": "Removed",
+  "setting.line-heading": "Line indicator",
+  "setting.line-width.name": "Width",
+  "setting.line-width.desc": "Width of the vertical line indicator (in pixels).",
+  "setting.gutter-heading.name": "Gutter indicator",
+  "setting.gutter-heading.prefix": "Chars of the gutter type indicator (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Change char",
+  "setting.gutter-added.name": "Added char",
+  "setting.gutter-restored.name": "Restore char",
+  "setting.gutter-removed.name": "Removed char",
+  "modal.title": "History",
+  "modal.no-changes": "No changes",
+  "modal.identical-to-current": "Identical to current",
+  "modal.restore-original": "Restore original",
+  "modal.remove-history": "Remove file history",
+  "modal.previous-difference": "Previous difference",
+  "modal.next-difference": "Next difference",
+  "modal.mode.patch": "Show patch",
+  "modal.mode.inline": "Inline",
+  "modal.mode.line-by-line": "Line by line",
+  "modal.mode.side-by-side": "Side by side",
+  "modal.confirm.cancel": "Cancel",
+  "modal.confirm.restore.title": "Restore original file",
+  "modal.confirm.restore.message": "Are you sure you want to restore this file to its original state? All current changes will be lost and the change tracking history will be reset. This action cannot be undone.",
+  "modal.confirm.restore.button": "Restore file",
+  "modal.confirm.remove.title": "Remove file history",
+  "modal.confirm.remove.message": "Are you sure you want to remove the change tracking history for this file? This action cannot be undone.",
+  "modal.confirm.remove.button": "Remove history",
+  "modal.confirm.revert.title": "Revert this change",
+  "modal.confirm.revert.message": "Revert this change back to the selected base? Other changes are kept.",
+  "modal.confirm.revert.button": "Revert",
+  "modal.search-versions": "Search versions",
+  "modal.version.baseline": "Current",
+  "modal.version.numbered": "Version {number}",
+  "modal.version.current": "Current",
+  "modal.version.original": "Original",
+  "modal.no-versions-match": "No versions match the search",
+  "modal.no-snapshots-yet": "No intermediate snapshots yet",
+  "modal.revert-hunk": "Revert this change",
+  "modal.copy": "Copy"
+};
+
+// lang/en-GB.json
+var en_GB_default = {
+  "command.go-to-next-change": "Go to next change",
+  "command.go-to-previous-change": "Go to previous change",
+  "command.reset-lines-all": "Reset all lines tracker snapshots",
+  "command.reset-lines": "Reset lines tracker snapshot of current document",
+  "command.show-diff": "Show all changes of current document",
+  "notice.no-changes-to-navigate": "No changes to navigate",
+  "notice.all-snapshots-deleted": "All snapshot data deleted",
+  "notice.current-snapshot-deleted": "Current snapshot data deleted",
+  "notice.file-restored": "File restored to original state",
+  "notice.file-restore-failed": "Failed to restore file to original state",
+  "notice.copied": "Copied!",
+  "notice.no-saved-history": "There is no saved history for this file.",
+  "notice.invalid-exclude-pattern": "Local history: the excluded-paths pattern is not a valid regular expression and is being ignored.",
+  "menu.local-history": "Local history",
+  "menu.show-changes": "Show changes",
+  "status.lines-changed": "{count} lines changed",
+  "setting.type.name": "Type",
+  "setting.type.desc": "Choose between a vertical line or a dot in the gutter.",
+  "setting.type.option.line": "Vertical line",
+  "setting.type.option.dot": "Char in gutter",
+  "setting.allowed-extensions.name": "Allowed file extensions",
+  "setting.allowed-extensions.desc": "Comma-separated list of file extensions to track for changes (e.g., md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "Excluded paths",
+  "setting.exclude-paths.desc": "A case-insensitive regular expression matched against the vault-relative path. Any file whose path matches is never tracked (e.g. \\.excalidraw\\.md$ or (^|/)Templates/). The default excludes Templates folders and Excalidraw drawings. Leave empty to track everything.",
+  "setting.keep.name": "Keep history until",
+  "setting.keep.desc": "Strategy for cleaning up revision history",
+  "setting.keep.option.app": "App close",
+  "setting.keep.option.file": "File close",
+  "setting.ignore-new-files.name": "Ignore new files",
+  "setting.ignore-new-files.desc": "Don't track changes in files created after tracking started",
+  "setting.persist.name": "Persist history across restarts",
+  "setting.persist.desc": 'Save history to disk so highlights survive a restart. Requires "keep history until" set to app close.',
+  "setting.max-entries.name": "Max stored files",
+  "setting.max-entries.desc": "Cap on how many file histories are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-age-days.name": "Max history age (days)",
+  "setting.max-age-days.desc": "Drop persisted history older than this many days. Set to 0 to disable.",
+  "setting.snapshots-heading": "Timeline snapshots",
+  "setting.snapshots-enabled.name": "Capture intermediate versions",
+  "setting.snapshots-enabled.desc": "Keep a timeline of earlier versions so you can diff against a point in between, not just the original.",
+  "setting.snapshots-edit-threshold.name": "Capture every (edits)",
+  "setting.snapshots-edit-threshold.desc": "Take a version after this many edits. Set to 0 to disable the edit trigger.",
+  "setting.snapshots-interval.name": "Capture every (minutes)",
+  "setting.snapshots-interval.desc": "Take a version after this many minutes of editing. Set to 0 to disable the time trigger.",
+  "setting.max-version-age-days.name": "Max version age (days)",
+  "setting.max-version-age-days.desc": "Drop intermediate versions older than this many days (the primary bound). Set to 0 to disable.",
+  "setting.max-versions.name": "Max versions per file",
+  "setting.max-versions.desc": "Safety cap on intermediate versions kept per file. Oldest are evicted first. Set to 0 to disable.",
+  "setting.show-heading": "Show indicator for",
+  "setting.show.desc": 'Line indicators are shown only in editing (source and live preview) modes. In reading mode there are no inline indicators, but the change history is still reachable: run the "Show all changes of current document" command or use the file context menu in the file explorer.',
+  "setting.show.changed": "Changed",
+  "setting.show.restored": "Restored",
+  "setting.show.added": "Added",
+  "setting.show.removed": "Removed",
+  "setting.line-heading": "Line indicator",
+  "setting.line-width.name": "Width",
+  "setting.line-width.desc": "Width of the vertical line indicator (in pixels).",
+  "setting.gutter-heading.name": "Gutter indicator",
+  "setting.gutter-heading.prefix": "Chars of the gutter type indicator (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Change char",
+  "setting.gutter-added.name": "Added char",
+  "setting.gutter-restored.name": "Restore char",
+  "setting.gutter-removed.name": "Removed char",
+  "modal.title": "History",
+  "modal.no-changes": "No changes",
+  "modal.identical-to-current": "Identical to current",
+  "modal.restore-original": "Restore original",
+  "modal.remove-history": "Remove file history",
+  "modal.previous-difference": "Previous difference",
+  "modal.next-difference": "Next difference",
+  "modal.mode.patch": "Show patch",
+  "modal.mode.inline": "Inline",
+  "modal.mode.line-by-line": "Line by line",
+  "modal.mode.side-by-side": "Side by side",
+  "modal.confirm.cancel": "Cancel",
+  "modal.confirm.restore.title": "Restore original file",
+  "modal.confirm.restore.message": "Are you sure you want to restore this file to its original state? All current changes will be lost and the change tracking history will be reset. This action cannot be undone.",
+  "modal.confirm.restore.button": "Restore file",
+  "modal.confirm.remove.title": "Remove file history",
+  "modal.confirm.remove.message": "Are you sure you want to remove the change tracking history for this file? This action cannot be undone.",
+  "modal.confirm.remove.button": "Remove history",
+  "modal.confirm.revert.title": "Revert this change",
+  "modal.confirm.revert.message": "Revert this change back to the selected base? Other changes are kept.",
+  "modal.confirm.revert.button": "Revert",
+  "modal.search-versions": "Search versions",
+  "modal.version.baseline": "Current",
+  "modal.version.numbered": "Version {number}",
+  "modal.version.current": "Current",
+  "modal.version.original": "Original",
+  "modal.no-versions-match": "No versions match the search",
+  "modal.no-snapshots-yet": "No intermediate snapshots yet",
+  "modal.revert-hunk": "Revert this change",
+  "modal.copy": "Copy"
+};
+
+// lang/es.json
+var es_default = {
+  "command.go-to-next-change": "Ir al siguiente cambio",
+  "command.go-to-previous-change": "Ir al cambio anterior",
+  "command.reset-lines-all": "Restablecer todas las instant\xE1neas del rastreador de l\xEDneas",
+  "command.reset-lines": "Restablecer la instant\xE1nea del rastreador de l\xEDneas del documento actual",
+  "command.show-diff": "Mostrar todos los cambios del documento actual",
+  "notice.no-changes-to-navigate": "No hay cambios para navegar",
+  "notice.all-snapshots-deleted": "Se eliminaron todos los datos de instant\xE1neas",
+  "notice.current-snapshot-deleted": "Se eliminaron los datos de la instant\xE1nea actual",
+  "notice.file-restored": "Archivo restaurado a su estado original",
+  "notice.file-restore-failed": "No se pudo restaurar el archivo a su estado original",
+  "notice.copied": "\xA1Copiado!",
+  "notice.no-saved-history": "No hay historial guardado para este archivo.",
+  "notice.invalid-exclude-pattern": "Historial local: el patr\xF3n de rutas excluidas no es una expresi\xF3n regular v\xE1lida y se ignora.",
+  "menu.local-history": "Historial local",
+  "menu.show-changes": "Mostrar cambios",
+  "status.lines-changed": "{count} l\xEDneas cambiadas",
+  "setting.type.name": "Tipo",
+  "setting.type.desc": "Elige entre una l\xEDnea vertical y un punto en el margen.",
+  "setting.type.option.line": "L\xEDnea vertical",
+  "setting.type.option.dot": "Car\xE1cter en el margen",
+  "setting.allowed-extensions.name": "Extensiones de archivo permitidas",
+  "setting.allowed-extensions.desc": "Lista de extensiones de archivo separadas por comas cuyos cambios se rastrean (p. ej., md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "Rutas excluidas",
+  "setting.exclude-paths.desc": "Una expresi\xF3n regular que no distingue may\xFAsculas de min\xFAsculas comparada con la ruta relativa al almac\xE9n. Cualquier archivo cuya ruta coincida nunca se rastrea (p. ej. \\.excalidraw\\.md$ o (^|/)Templates/). De forma predeterminada se excluyen las carpetas Templates y los dibujos de Excalidraw. D\xE9jalo vac\xEDo para rastrear todo.",
+  "setting.keep.name": "Conservar el historial hasta",
+  "setting.keep.desc": "Estrategia para limpiar el historial de revisiones",
+  "setting.keep.option.app": "Cerrar la aplicaci\xF3n",
+  "setting.keep.option.file": "Cerrar el archivo",
+  "setting.ignore-new-files.name": "Ignorar archivos nuevos",
+  "setting.ignore-new-files.desc": "No rastrear cambios en archivos creados despu\xE9s de iniciar el rastreo",
+  "setting.persist.name": "Conservar el historial entre reinicios",
+  "setting.persist.desc": 'Guardar el historial en el disco para que los resaltados sobrevivan a un reinicio. Requiere que "Conservar el historial hasta" est\xE9 en cerrar la aplicaci\xF3n.',
+  "setting.max-entries.name": "M\xE1ximo de archivos almacenados",
+  "setting.max-entries.desc": "L\xEDmite de cu\xE1ntos historiales de archivos se conservan en el disco. Los m\xE1s antiguos se eliminan primero. Ponlo en 0 para desactivar.",
+  "setting.max-age-days.name": "Antig\xFCedad m\xE1xima del historial (d\xEDas)",
+  "setting.max-age-days.desc": "Descartar el historial guardado con m\xE1s d\xEDas de antig\xFCedad que este valor. Ponlo en 0 para desactivar.",
+  "setting.snapshots-heading": "Instant\xE1neas de la cronolog\xEDa",
+  "setting.snapshots-enabled.name": "Capturar versiones intermedias",
+  "setting.snapshots-enabled.desc": "Conserva una cronolog\xEDa de versiones anteriores para poder comparar con un punto intermedio, no solo con el original.",
+  "setting.snapshots-edit-threshold.name": "Capturar cada (ediciones)",
+  "setting.snapshots-edit-threshold.desc": "Tomar una versi\xF3n despu\xE9s de esta cantidad de ediciones. Ponlo en 0 para desactivar el disparador por ediciones.",
+  "setting.snapshots-interval.name": "Capturar cada (minutos)",
+  "setting.snapshots-interval.desc": "Tomar una versi\xF3n despu\xE9s de esta cantidad de minutos de edici\xF3n. Ponlo en 0 para desactivar el disparador temporal.",
+  "setting.max-version-age-days.name": "Antig\xFCedad m\xE1xima de las versiones (d\xEDas)",
+  "setting.max-version-age-days.desc": "Descartar las versiones intermedias con m\xE1s d\xEDas de antig\xFCedad que este valor (el l\xEDmite principal). Ponlo en 0 para desactivar.",
+  "setting.max-versions.name": "M\xE1ximo de versiones por archivo",
+  "setting.max-versions.desc": "L\xEDmite de seguridad de versiones intermedias conservadas por archivo. Las m\xE1s antiguas se eliminan primero. Ponlo en 0 para desactivar.",
+  "setting.show-heading": "Mostrar indicador para",
+  "setting.show.desc": 'Los indicadores de l\xEDnea solo se muestran en los modos de edici\xF3n (c\xF3digo fuente y vista previa en vivo). En el modo lectura no hay indicadores en l\xEDnea, pero el historial de cambios sigue siendo accesible: ejecuta el comando "Mostrar todos los cambios del documento actual" o usa el men\xFA contextual del archivo en el explorador de archivos.',
+  "setting.show.changed": "Cambiado",
+  "setting.show.restored": "Restaurado",
+  "setting.show.added": "A\xF1adido",
+  "setting.show.removed": "Eliminado",
+  "setting.line-heading": "Indicador de l\xEDnea",
+  "setting.line-width.name": "Ancho",
+  "setting.line-width.desc": "Ancho del indicador de l\xEDnea vertical (en p\xEDxeles).",
+  "setting.gutter-heading.name": "Indicador de margen",
+  "setting.gutter-heading.prefix": "Caracteres del indicador de tipo del margen (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Car\xE1cter de cambio",
+  "setting.gutter-added.name": "Car\xE1cter de a\xF1adido",
+  "setting.gutter-restored.name": "Car\xE1cter de restauraci\xF3n",
+  "setting.gutter-removed.name": "Car\xE1cter de eliminaci\xF3n",
+  "modal.title": "Historial",
+  "modal.no-changes": "Sin cambios",
+  "modal.identical-to-current": "Id\xE9ntico al actual",
+  "modal.restore-original": "Restaurar el original",
+  "modal.remove-history": "Eliminar el historial del archivo",
+  "modal.previous-difference": "Diferencia anterior",
+  "modal.next-difference": "Diferencia siguiente",
+  "modal.mode.patch": "Mostrar parche",
+  "modal.mode.inline": "En l\xEDnea",
+  "modal.mode.line-by-line": "L\xEDnea por l\xEDnea",
+  "modal.mode.side-by-side": "Lado a lado",
+  "modal.confirm.cancel": "Cancelar",
+  "modal.confirm.restore.title": "Restaurar el archivo original",
+  "modal.confirm.restore.message": "\xBFSeguro que quieres restaurar este archivo a su estado original? Se perder\xE1n todos los cambios actuales y se restablecer\xE1 el historial de seguimiento de cambios. Esta acci\xF3n no se puede deshacer.",
+  "modal.confirm.restore.button": "Restaurar archivo",
+  "modal.confirm.remove.title": "Eliminar el historial del archivo",
+  "modal.confirm.remove.message": "\xBFSeguro que quieres eliminar el historial de seguimiento de cambios de este archivo? Esta acci\xF3n no se puede deshacer.",
+  "modal.confirm.remove.button": "Eliminar historial",
+  "modal.confirm.revert.title": "Revertir este cambio",
+  "modal.confirm.revert.message": "\xBFRevertir este cambio a la base seleccionada? Los dem\xE1s cambios se conservan.",
+  "modal.confirm.revert.button": "Revertir",
+  "modal.search-versions": "Buscar versiones",
+  "modal.version.baseline": "Actual",
+  "modal.version.numbered": "Versi\xF3n {number}",
+  "modal.version.current": "Actual",
+  "modal.version.original": "Original",
+  "modal.no-versions-match": "Ninguna versi\xF3n coincide con la b\xFAsqueda",
+  "modal.no-snapshots-yet": "A\xFAn no hay instant\xE1neas intermedias",
+  "modal.revert-hunk": "Revertir este cambio",
+  "modal.copy": "Copiar"
+};
+
+// lang/fa.json
+var fa_default = {
+  "command.go-to-next-change": "\u0631\u0641\u062A\u0646 \u0628\u0647 \u062A\u063A\u06CC\u06CC\u0631 \u0628\u0639\u062F\u06CC",
+  "command.go-to-previous-change": "\u0631\u0641\u062A\u0646 \u0628\u0647 \u062A\u063A\u06CC\u06CC\u0631 \u0642\u0628\u0644\u06CC",
+  "command.reset-lines-all": "\u0628\u0627\u0632\u0646\u0634\u0627\u0646\u06CC \u0647\u0645\u0647 \u0639\u06A9\u0633\u200C\u0647\u0627\u06CC \u0641\u0648\u0631\u06CC \u0631\u062F\u06CC\u0627\u0628 \u062E\u0637\u0648\u0637",
+  "command.reset-lines": "\u0628\u0627\u0632\u0646\u0634\u0627\u0646\u06CC \u0639\u06A9\u0633 \u0641\u0648\u0631\u06CC \u0631\u062F\u06CC\u0627\u0628 \u062E\u0637\u0648\u0637 \u0633\u0646\u062F \u0641\u0639\u0644\u06CC",
+  "command.show-diff": "\u0646\u0645\u0627\u06CC\u0634 \u0647\u0645\u0647 \u062A\u063A\u06CC\u06CC\u0631\u0627\u062A \u0633\u0646\u062F \u0641\u0639\u0644\u06CC",
+  "notice.no-changes-to-navigate": "\u062A\u063A\u06CC\u06CC\u0631\u06CC \u0628\u0631\u0627\u06CC \u067E\u06CC\u0645\u0627\u06CC\u0634 \u0648\u062C\u0648\u062F \u0646\u062F\u0627\u0631\u062F",
+  "notice.all-snapshots-deleted": "\u0647\u0645\u0647 \u062F\u0627\u062F\u0647\u200C\u0647\u0627\u06CC \u0639\u06A9\u0633 \u0641\u0648\u0631\u06CC \u062D\u0630\u0641 \u0634\u062F",
+  "notice.current-snapshot-deleted": "\u062F\u0627\u062F\u0647\u200C\u0647\u0627\u06CC \u0639\u06A9\u0633 \u0641\u0648\u0631\u06CC \u0641\u0639\u0644\u06CC \u062D\u0630\u0641 \u0634\u062F",
+  "notice.file-restored": "\u067E\u0631\u0648\u0646\u062F\u0647 \u0628\u0647 \u0648\u0636\u0639\u06CC\u062A \u0627\u0635\u0644\u06CC \u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u062F\u0647 \u0634\u062F",
+  "notice.file-restore-failed": "\u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u062F\u0646 \u067E\u0631\u0648\u0646\u062F\u0647 \u0628\u0647 \u0648\u0636\u0639\u06CC\u062A \u0627\u0635\u0644\u06CC \u0646\u0627\u0645\u0648\u0641\u0642 \u0628\u0648\u062F",
+  "notice.copied": "\u06A9\u067E\u06CC \u0634\u062F!",
+  "notice.no-saved-history": "\u0647\u06CC\u0686 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u0630\u062E\u06CC\u0631\u0647\u200C\u0634\u062F\u0647\u200C\u0627\u06CC \u0628\u0631\u0627\u06CC \u0627\u06CC\u0646 \u067E\u0631\u0648\u0646\u062F\u0647 \u0648\u062C\u0648\u062F \u0646\u062F\u0627\u0631\u062F.",
+  "notice.invalid-exclude-pattern": "\u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u0645\u062D\u0644\u06CC: \u0627\u0644\u06AF\u0648\u06CC \u0645\u0633\u06CC\u0631\u0647\u0627\u06CC \u0645\u0633\u062A\u062B\u0646\u0627\u0634\u062F\u0647 \u06CC\u06A9 \u0639\u0628\u0627\u0631\u062A \u0628\u0627\u0642\u0627\u0639\u062F\u0647 \u0645\u0639\u062A\u0628\u0631 \u0646\u06CC\u0633\u062A \u0648 \u0646\u0627\u062F\u06CC\u062F\u0647 \u06AF\u0631\u0641\u062A\u0647 \u0645\u06CC\u200C\u0634\u0648\u062F.",
+  "menu.local-history": "\u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u0645\u062D\u0644\u06CC",
+  "menu.show-changes": "\u0646\u0645\u0627\u06CC\u0634 \u062A\u063A\u06CC\u06CC\u0631\u0627\u062A",
+  "status.lines-changed": "{count} \u062E\u0637 \u062A\u063A\u06CC\u06CC\u0631 \u06A9\u0631\u062F",
+  "setting.type.name": "\u0646\u0648\u0639",
+  "setting.type.desc": "\u0628\u06CC\u0646 \u06CC\u06A9 \u062E\u0637 \u0639\u0645\u0648\u062F\u06CC \u06CC\u0627 \u06CC\u06A9 \u0646\u0642\u0637\u0647 \u062F\u0631 \u062D\u0627\u0634\u06CC\u0647 \u0627\u0646\u062A\u062E\u0627\u0628 \u06A9\u0646\u06CC\u062F.",
+  "setting.type.option.line": "\u062E\u0637 \u0639\u0645\u0648\u062F\u06CC",
+  "setting.type.option.dot": "\u0646\u0648\u06CC\u0633\u0647 \u062F\u0631 \u062D\u0627\u0634\u06CC\u0647",
+  "setting.allowed-extensions.name": "\u067E\u0633\u0648\u0646\u062F\u0647\u0627\u06CC \u0645\u062C\u0627\u0632 \u067E\u0631\u0648\u0646\u062F\u0647",
+  "setting.allowed-extensions.desc": "\u0641\u0647\u0631\u0633\u062A\u06CC \u0627\u0632 \u067E\u0633\u0648\u0646\u062F\u0647\u0627\u06CC \u067E\u0631\u0648\u0646\u062F\u0647 \u06A9\u0647 \u0628\u0627 \u06A9\u0627\u0645\u0627 \u062C\u062F\u0627 \u0634\u062F\u0647\u200C\u0627\u0646\u062F \u062A\u0627 \u062A\u063A\u06CC\u06CC\u0631\u0627\u062A\u0634\u0627\u0646 \u0631\u062F\u06CC\u0627\u0628\u06CC \u0634\u0648\u062F (\u0645\u062B\u0644\u0627\u064B md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "\u0645\u0633\u06CC\u0631\u0647\u0627\u06CC \u0645\u0633\u062A\u062B\u0646\u0627\u0634\u062F\u0647",
+  "setting.exclude-paths.desc": "\u06CC\u06A9 \u0639\u0628\u0627\u0631\u062A \u0628\u0627\u0642\u0627\u0639\u062F\u0647 \u063A\u06CC\u0631\u062D\u0633\u0627\u0633 \u0628\u0647 \u062D\u0631\u0648\u0641 \u0628\u0632\u0631\u06AF \u0648 \u06A9\u0648\u0686\u06A9 \u06A9\u0647 \u0628\u0627 \u0645\u0633\u06CC\u0631 \u0646\u0633\u0628\u06CC \u0628\u0647 \u0627\u0646\u0628\u0627\u0631 \u0645\u0637\u0627\u0628\u0642\u062A \u062F\u0627\u062F\u0647 \u0645\u06CC\u200C\u0634\u0648\u062F. \u0647\u0631 \u067E\u0631\u0648\u0646\u062F\u0647\u200C\u0627\u06CC \u06A9\u0647 \u0645\u0633\u06CC\u0631\u0634 \u0645\u0637\u0627\u0628\u0642\u062A \u06A9\u0646\u062F \u0647\u0631\u06AF\u0632 \u0631\u062F\u06CC\u0627\u0628\u06CC \u0646\u0645\u06CC\u200C\u0634\u0648\u062F (\u0645\u062B\u0644\u0627\u064B \\.excalidraw\\.md$ \u06CC\u0627 (^|/)Templates/). \u062A\u0646\u0638\u06CC\u0645 \u067E\u06CC\u0634\u200C\u0641\u0631\u0636 \u067E\u0648\u0634\u0647\u200C\u0647\u0627\u06CC Templates \u0648 \u0637\u0631\u062D\u200C\u0647\u0627\u06CC Excalidraw \u0631\u0627 \u0645\u0633\u062A\u062B\u0646\u0627 \u0645\u06CC\u200C\u06A9\u0646\u062F. \u0628\u0631\u0627\u06CC \u0631\u062F\u06CC\u0627\u0628\u06CC \u0647\u0645\u0647\u200C\u0686\u06CC\u0632 \u0622\u0646 \u0631\u0627 \u062E\u0627\u0644\u06CC \u0628\u06AF\u0630\u0627\u0631\u06CC\u062F.",
+  "setting.keep.name": "\u0646\u06AF\u0647\u062F\u0627\u0631\u06CC \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u062A\u0627",
+  "setting.keep.desc": "\u0631\u0627\u0647\u0628\u0631\u062F \u067E\u0627\u06A9\u200C\u0633\u0627\u0632\u06CC \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u0628\u0627\u0632\u0646\u06AF\u0631\u06CC\u200C\u0647\u0627",
+  "setting.keep.option.app": "\u0628\u0633\u062A\u0646 \u0628\u0631\u0646\u0627\u0645\u0647",
+  "setting.keep.option.file": "\u0628\u0633\u062A\u0646 \u067E\u0631\u0648\u0646\u062F\u0647",
+  "setting.ignore-new-files.name": "\u0646\u0627\u062F\u06CC\u062F\u0647\u200C\u06AF\u0631\u0641\u062A\u0646 \u067E\u0631\u0648\u0646\u062F\u0647\u200C\u0647\u0627\u06CC \u062C\u062F\u06CC\u062F",
+  "setting.ignore-new-files.desc": "\u062A\u063A\u06CC\u06CC\u0631\u0627\u062A \u062F\u0631 \u067E\u0631\u0648\u0646\u062F\u0647\u200C\u0647\u0627\u06CC\u06CC \u06A9\u0647 \u067E\u0633 \u0627\u0632 \u0622\u063A\u0627\u0632 \u0631\u062F\u06CC\u0627\u0628\u06CC \u0633\u0627\u062E\u062A\u0647 \u0634\u062F\u0647\u200C\u0627\u0646\u062F \u0631\u0627 \u0631\u062F\u06CC\u0627\u0628\u06CC \u0646\u06A9\u0646",
+  "setting.persist.name": "\u062D\u0641\u0638 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u067E\u0633 \u0627\u0632 \u0631\u0627\u0647\u200C\u0627\u0646\u062F\u0627\u0632\u06CC \u0645\u062C\u062F\u062F",
+  "setting.persist.desc": '\u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u0631\u0627 \u0631\u0648\u06CC \u062F\u06CC\u0633\u06A9 \u0630\u062E\u06CC\u0631\u0647 \u06A9\u0646 \u062A\u0627 \u0628\u0631\u062C\u0633\u062A\u0647\u200C\u0633\u0627\u0632\u06CC\u200C\u0647\u0627 \u067E\u0633 \u0627\u0632 \u0631\u0627\u0647\u200C\u0627\u0646\u062F\u0627\u0632\u06CC \u0645\u062C\u062F\u062F \u0628\u0627\u0642\u06CC \u0628\u0645\u0627\u0646\u0646\u062F. \u0628\u0647 \u062A\u0646\u0638\u06CC\u0645 "\u0646\u06AF\u0647\u062F\u0627\u0631\u06CC \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u062A\u0627" \u0631\u0648\u06CC \u0628\u0633\u062A\u0646 \u0628\u0631\u0646\u0627\u0645\u0647 \u0646\u06CC\u0627\u0632 \u062F\u0627\u0631\u062F.',
+  "setting.max-entries.name": "\u0628\u06CC\u0634\u06CC\u0646\u0647 \u067E\u0631\u0648\u0646\u062F\u0647\u200C\u0647\u0627\u06CC \u0630\u062E\u06CC\u0631\u0647\u200C\u0634\u062F\u0647",
+  "setting.max-entries.desc": "\u0633\u0642\u0641 \u062A\u0639\u062F\u0627\u062F \u062A\u0627\u0631\u06CC\u062E\u0686\u0647\u200C\u0647\u0627\u06CC \u067E\u0631\u0648\u0646\u062F\u0647 \u06A9\u0647 \u0631\u0648\u06CC \u062F\u06CC\u0633\u06A9 \u0646\u06AF\u0647 \u062F\u0627\u0634\u062A\u0647 \u0645\u06CC\u200C\u0634\u0648\u0646\u062F. \u0642\u062F\u06CC\u0645\u06CC\u200C\u062A\u0631\u06CC\u0646\u200C\u0647\u0627 \u0627\u0628\u062A\u062F\u0627 \u062D\u0630\u0641 \u0645\u06CC\u200C\u0634\u0648\u0646\u062F. \u0628\u0631\u0627\u06CC \u063A\u06CC\u0631\u0641\u0639\u0627\u0644\u200C\u06A9\u0631\u062F\u0646 \u0631\u0648\u06CC 0 \u062A\u0646\u0638\u06CC\u0645 \u06A9\u0646\u06CC\u062F.",
+  "setting.max-age-days.name": "\u0628\u06CC\u0634\u06CC\u0646\u0647 \u0639\u0645\u0631 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 (\u0631\u0648\u0632)",
+  "setting.max-age-days.desc": "\u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u0630\u062E\u06CC\u0631\u0647\u200C\u0634\u062F\u0647\u200C\u0627\u06CC \u0631\u0627 \u06A9\u0647 \u0627\u0632 \u0627\u06CC\u0646 \u062A\u0639\u062F\u0627\u062F \u0631\u0648\u0632 \u0642\u062F\u06CC\u0645\u06CC\u200C\u062A\u0631 \u0627\u0633\u062A \u062D\u0630\u0641 \u06A9\u0646. \u0628\u0631\u0627\u06CC \u063A\u06CC\u0631\u0641\u0639\u0627\u0644\u200C\u06A9\u0631\u062F\u0646 \u0631\u0648\u06CC 0 \u062A\u0646\u0638\u06CC\u0645 \u06A9\u0646\u06CC\u062F.",
+  "setting.snapshots-heading": "\u0639\u06A9\u0633\u200C\u0647\u0627\u06CC \u0641\u0648\u0631\u06CC \u062E\u0637 \u0632\u0645\u0627\u0646\u06CC",
+  "setting.snapshots-enabled.name": "\u062B\u0628\u062A \u0646\u0633\u062E\u0647\u200C\u0647\u0627\u06CC \u0645\u06CC\u0627\u0646\u06CC",
+  "setting.snapshots-enabled.desc": "\u062E\u0637 \u0632\u0645\u0627\u0646\u06CC\u200C\u0627\u06CC \u0627\u0632 \u0646\u0633\u062E\u0647\u200C\u0647\u0627\u06CC \u067E\u06CC\u0634\u06CC\u0646 \u0646\u06AF\u0647 \u062F\u0627\u0631 \u062A\u0627 \u0628\u062A\u0648\u0627\u0646\u06CC \u0628\u0627 \u06CC\u06A9 \u0646\u0642\u0637\u0647 \u0645\u06CC\u0627\u0646\u06CC \u0645\u0642\u0627\u06CC\u0633\u0647 \u06A9\u0646\u06CC\u060C \u0646\u0647 \u0641\u0642\u0637 \u0628\u0627 \u0646\u0633\u062E\u0647 \u0627\u0635\u0644\u06CC.",
+  "setting.snapshots-edit-threshold.name": "\u062B\u0628\u062A \u062F\u0631 \u0647\u0631 (\u0648\u06CC\u0631\u0627\u06CC\u0634)",
+  "setting.snapshots-edit-threshold.desc": "\u067E\u0633 \u0627\u0632 \u0627\u06CC\u0646 \u062A\u0639\u062F\u0627\u062F \u0648\u06CC\u0631\u0627\u06CC\u0634 \u06CC\u06A9 \u0646\u0633\u062E\u0647 \u0628\u06AF\u06CC\u0631. \u0628\u0631\u0627\u06CC \u063A\u06CC\u0631\u0641\u0639\u0627\u0644\u200C\u06A9\u0631\u062F\u0646 \u0645\u062D\u0631\u06A9 \u0648\u06CC\u0631\u0627\u06CC\u0634 \u0631\u0648\u06CC 0 \u062A\u0646\u0638\u06CC\u0645 \u06A9\u0646\u06CC\u062F.",
+  "setting.snapshots-interval.name": "\u062B\u0628\u062A \u062F\u0631 \u0647\u0631 (\u062F\u0642\u06CC\u0642\u0647)",
+  "setting.snapshots-interval.desc": "\u067E\u0633 \u0627\u0632 \u0627\u06CC\u0646 \u062A\u0639\u062F\u0627\u062F \u062F\u0642\u06CC\u0642\u0647 \u0648\u06CC\u0631\u0627\u06CC\u0634 \u06CC\u06A9 \u0646\u0633\u062E\u0647 \u0628\u06AF\u06CC\u0631. \u0628\u0631\u0627\u06CC \u063A\u06CC\u0631\u0641\u0639\u0627\u0644\u200C\u06A9\u0631\u062F\u0646 \u0645\u062D\u0631\u06A9 \u0632\u0645\u0627\u0646\u06CC \u0631\u0648\u06CC 0 \u062A\u0646\u0638\u06CC\u0645 \u06A9\u0646\u06CC\u062F.",
+  "setting.max-version-age-days.name": "\u0628\u06CC\u0634\u06CC\u0646\u0647 \u0639\u0645\u0631 \u0646\u0633\u062E\u0647 (\u0631\u0648\u0632)",
+  "setting.max-version-age-days.desc": "\u0646\u0633\u062E\u0647\u200C\u0647\u0627\u06CC \u0645\u06CC\u0627\u0646\u06CC \u0642\u062F\u06CC\u0645\u06CC\u200C\u062A\u0631 \u0627\u0632 \u0627\u06CC\u0646 \u062A\u0639\u062F\u0627\u062F \u0631\u0648\u0632 \u0631\u0627 \u062D\u0630\u0641 \u06A9\u0646 (\u06A9\u0631\u0627\u0646 \u0627\u0635\u0644\u06CC). \u0628\u0631\u0627\u06CC \u063A\u06CC\u0631\u0641\u0639\u0627\u0644\u200C\u06A9\u0631\u062F\u0646 \u0631\u0648\u06CC 0 \u062A\u0646\u0638\u06CC\u0645 \u06A9\u0646\u06CC\u062F.",
+  "setting.max-versions.name": "\u0628\u06CC\u0634\u06CC\u0646\u0647 \u0646\u0633\u062E\u0647\u200C\u0647\u0627 \u0628\u0631\u0627\u06CC \u0647\u0631 \u067E\u0631\u0648\u0646\u062F\u0647",
+  "setting.max-versions.desc": "\u0633\u0642\u0641 \u0627\u06CC\u0645\u0646\u06CC \u0628\u0631\u0627\u06CC \u0646\u0633\u062E\u0647\u200C\u0647\u0627\u06CC \u0645\u06CC\u0627\u0646\u06CC \u0646\u06AF\u0647\u200C\u062F\u0627\u0634\u062A\u0647\u200C\u0634\u062F\u0647 \u0628\u0631\u0627\u06CC \u0647\u0631 \u067E\u0631\u0648\u0646\u062F\u0647. \u0642\u062F\u06CC\u0645\u06CC\u200C\u062A\u0631\u06CC\u0646\u200C\u0647\u0627 \u0627\u0628\u062A\u062F\u0627 \u062D\u0630\u0641 \u0645\u06CC\u200C\u0634\u0648\u0646\u062F. \u0628\u0631\u0627\u06CC \u063A\u06CC\u0631\u0641\u0639\u0627\u0644\u200C\u06A9\u0631\u062F\u0646 \u0631\u0648\u06CC 0 \u062A\u0646\u0638\u06CC\u0645 \u06A9\u0646\u06CC\u062F.",
+  "setting.show-heading": "\u0646\u0645\u0627\u06CC\u0634 \u0646\u0634\u0627\u0646\u06AF\u0631 \u0628\u0631\u0627\u06CC",
+  "setting.show.desc": '\u0646\u0634\u0627\u0646\u06AF\u0631\u0647\u0627\u06CC \u062E\u0637 \u0641\u0642\u0637 \u062F\u0631 \u062D\u0627\u0644\u062A\u200C\u0647\u0627\u06CC \u0648\u06CC\u0631\u0627\u06CC\u0634 (\u0645\u0646\u0628\u0639 \u0648 \u067E\u06CC\u0634\u200C\u0646\u0645\u0627\u06CC\u0634 \u0632\u0646\u062F\u0647) \u0646\u0634\u0627\u0646 \u062F\u0627\u062F\u0647 \u0645\u06CC\u200C\u0634\u0648\u0646\u062F. \u062F\u0631 \u062D\u0627\u0644\u062A \u062E\u0648\u0627\u0646\u062F\u0646 \u0646\u0634\u0627\u0646\u06AF\u0631 \u062F\u0631\u0648\u0646\u200C\u062E\u0637\u06CC \u0648\u062C\u0648\u062F \u0646\u062F\u0627\u0631\u062F\u060C \u0627\u0645\u0627 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u062A\u063A\u06CC\u06CC\u0631\u0627\u062A \u0647\u0645\u0686\u0646\u0627\u0646 \u062F\u0631 \u062F\u0633\u062A\u0631\u0633 \u0627\u0633\u062A: \u0641\u0631\u0645\u0627\u0646 "\u0646\u0645\u0627\u06CC\u0634 \u0647\u0645\u0647 \u062A\u063A\u06CC\u06CC\u0631\u0627\u062A \u0633\u0646\u062F \u0641\u0639\u0644\u06CC" \u0631\u0627 \u0627\u062C\u0631\u0627 \u06A9\u0646\u06CC\u062F \u06CC\u0627 \u0627\u0632 \u0645\u0646\u0648\u06CC \u0632\u0645\u06CC\u0646\u0647 \u067E\u0631\u0648\u0646\u062F\u0647 \u062F\u0631 \u06A9\u0627\u0648\u0634\u06AF\u0631 \u067E\u0631\u0648\u0646\u062F\u0647 \u0627\u0633\u062A\u0641\u0627\u062F\u0647 \u06A9\u0646\u06CC\u062F.',
+  "setting.show.changed": "\u062A\u063A\u06CC\u06CC\u0631\u06CC\u0627\u0641\u062A\u0647",
+  "setting.show.restored": "\u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u062F\u0647\u200C\u0634\u062F\u0647",
+  "setting.show.added": "\u0627\u0641\u0632\u0648\u062F\u0647\u200C\u0634\u062F\u0647",
+  "setting.show.removed": "\u062D\u0630\u0641\u200C\u0634\u062F\u0647",
+  "setting.line-heading": "\u0646\u0634\u0627\u0646\u06AF\u0631 \u062E\u0637",
+  "setting.line-width.name": "\u067E\u0647\u0646\u0627",
+  "setting.line-width.desc": "\u067E\u0647\u0646\u0627\u06CC \u0646\u0634\u0627\u0646\u06AF\u0631 \u062E\u0637 \u0639\u0645\u0648\u062F\u06CC (\u0628\u0647 \u067E\u06CC\u06A9\u0633\u0644).",
+  "setting.gutter-heading.name": "\u0646\u0634\u0627\u0646\u06AF\u0631 \u062D\u0627\u0634\u06CC\u0647",
+  "setting.gutter-heading.prefix": "\u0646\u0648\u06CC\u0633\u0647\u200C\u0647\u0627\u06CC \u0646\u0634\u0627\u0646\u06AF\u0631 \u0646\u0648\u0639 \u062F\u0631 \u062D\u0627\u0634\u06CC\u0647 (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "\u0646\u0648\u06CC\u0633\u0647 \u062A\u063A\u06CC\u06CC\u0631",
+  "setting.gutter-added.name": "\u0646\u0648\u06CC\u0633\u0647 \u0627\u0641\u0632\u0648\u062F\u0646",
+  "setting.gutter-restored.name": "\u0646\u0648\u06CC\u0633\u0647 \u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u06CC",
+  "setting.gutter-removed.name": "\u0646\u0648\u06CC\u0633\u0647 \u062D\u0630\u0641",
+  "modal.title": "\u062A\u0627\u0631\u06CC\u062E\u0686\u0647",
+  "modal.no-changes": "\u0628\u062F\u0648\u0646 \u062A\u063A\u06CC\u06CC\u0631",
+  "modal.identical-to-current": "\u0647\u0645\u0633\u0627\u0646 \u0628\u0627 \u0646\u0633\u062E\u0647 \u0641\u0639\u0644\u06CC",
+  "modal.restore-original": "\u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u062F\u0646 \u0646\u0633\u062E\u0647 \u0627\u0635\u0644\u06CC",
+  "modal.remove-history": "\u062D\u0630\u0641 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u067E\u0631\u0648\u0646\u062F\u0647",
+  "modal.previous-difference": "\u062A\u0641\u0627\u0648\u062A \u0642\u0628\u0644\u06CC",
+  "modal.next-difference": "\u062A\u0641\u0627\u0648\u062A \u0628\u0639\u062F\u06CC",
+  "modal.mode.patch": "\u0646\u0645\u0627\u06CC\u0634 \u0648\u0635\u0644\u0647",
+  "modal.mode.inline": "\u062F\u0631\u0648\u0646\u200C\u062E\u0637\u06CC",
+  "modal.mode.line-by-line": "\u062E\u0637\u200C\u0628\u0647\u200C\u062E\u0637",
+  "modal.mode.side-by-side": "\u06A9\u0646\u0627\u0631 \u0647\u0645",
+  "modal.confirm.cancel": "\u0644\u063A\u0648",
+  "modal.confirm.restore.title": "\u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u062F\u0646 \u067E\u0631\u0648\u0646\u062F\u0647 \u0627\u0635\u0644\u06CC",
+  "modal.confirm.restore.message": "\u0622\u06CC\u0627 \u0645\u0637\u0645\u0626\u0646\u06CC\u062F \u06A9\u0647 \u0645\u06CC\u200C\u062E\u0648\u0627\u0647\u06CC\u062F \u0627\u06CC\u0646 \u067E\u0631\u0648\u0646\u062F\u0647 \u0631\u0627 \u0628\u0647 \u0648\u0636\u0639\u06CC\u062A \u0627\u0635\u0644\u06CC\u200C\u0627\u0634 \u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u06CC\u062F\u061F \u0647\u0645\u0647 \u062A\u063A\u06CC\u06CC\u0631\u0627\u062A \u0641\u0639\u0644\u06CC \u0627\u0632 \u062F\u0633\u062A \u0645\u06CC\u200C\u0631\u0648\u062F \u0648 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u0631\u062F\u06CC\u0627\u0628\u06CC \u062A\u063A\u06CC\u06CC\u0631\u0627\u062A \u0628\u0627\u0632\u0646\u0634\u0627\u0646\u06CC \u0645\u06CC\u200C\u0634\u0648\u062F. \u0627\u06CC\u0646 \u06A9\u0646\u0634 \u0642\u0627\u0628\u0644 \u0628\u0627\u0632\u06AF\u0634\u062A \u0646\u06CC\u0633\u062A.",
+  "modal.confirm.restore.button": "\u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u062F\u0646 \u067E\u0631\u0648\u0646\u062F\u0647",
+  "modal.confirm.remove.title": "\u062D\u0630\u0641 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u067E\u0631\u0648\u0646\u062F\u0647",
+  "modal.confirm.remove.message": "\u0622\u06CC\u0627 \u0645\u0637\u0645\u0626\u0646\u06CC\u062F \u06A9\u0647 \u0645\u06CC\u200C\u062E\u0648\u0627\u0647\u06CC\u062F \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u0631\u062F\u06CC\u0627\u0628\u06CC \u062A\u063A\u06CC\u06CC\u0631\u0627\u062A \u0627\u06CC\u0646 \u067E\u0631\u0648\u0646\u062F\u0647 \u0631\u0627 \u062D\u0630\u0641 \u06A9\u0646\u06CC\u062F\u061F \u0627\u06CC\u0646 \u06A9\u0646\u0634 \u0642\u0627\u0628\u0644 \u0628\u0627\u0632\u06AF\u0634\u062A \u0646\u06CC\u0633\u062A.",
+  "modal.confirm.remove.button": "\u062D\u0630\u0641 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647",
+  "modal.confirm.revert.title": "\u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u06CC \u0627\u06CC\u0646 \u062A\u063A\u06CC\u06CC\u0631",
+  "modal.confirm.revert.message": "\u0627\u06CC\u0646 \u062A\u063A\u06CC\u06CC\u0631 \u0628\u0647 \u067E\u0627\u06CC\u0647 \u0627\u0646\u062A\u062E\u0627\u0628\u200C\u0634\u062F\u0647 \u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u062F\u0647 \u0634\u0648\u062F\u061F \u0633\u0627\u06CC\u0631 \u062A\u063A\u06CC\u06CC\u0631\u0627\u062A \u062D\u0641\u0638 \u0645\u06CC\u200C\u0634\u0648\u0646\u062F.",
+  "modal.confirm.revert.button": "\u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u06CC",
+  "modal.search-versions": "\u062C\u0633\u062A\u200C\u0648\u062C\u0648\u06CC \u0646\u0633\u062E\u0647\u200C\u0647\u0627",
+  "modal.version.baseline": "\u0641\u0639\u0644\u06CC",
+  "modal.version.numbered": "\u0646\u0633\u062E\u0647 {number}",
+  "modal.version.current": "\u0641\u0639\u0644\u06CC",
+  "modal.version.original": "\u0627\u0635\u0644\u06CC",
+  "modal.no-versions-match": "\u0647\u06CC\u0686 \u0646\u0633\u062E\u0647\u200C\u0627\u06CC \u0628\u0627 \u062C\u0633\u062A\u200C\u0648\u062C\u0648 \u0645\u0637\u0627\u0628\u0642\u062A \u0646\u062F\u0627\u0631\u062F",
+  "modal.no-snapshots-yet": "\u0647\u0646\u0648\u0632 \u0639\u06A9\u0633 \u0641\u0648\u0631\u06CC \u0645\u06CC\u0627\u0646\u06CC\u200C\u0627\u06CC \u0648\u062C\u0648\u062F \u0646\u062F\u0627\u0631\u062F",
+  "modal.revert-hunk": "\u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u06CC \u0627\u06CC\u0646 \u062A\u063A\u06CC\u06CC\u0631",
+  "modal.copy": "\u06A9\u067E\u06CC"
+};
+
+// lang/fi.json
+var fi_default = {
+  "command.go-to-next-change": "Siirry seuraavaan muutokseen",
+  "command.go-to-previous-change": "Siirry edelliseen muutokseen",
+  "command.reset-lines-all": "Nollaa kaikki riviseurannan tilannevedokset",
+  "command.reset-lines": "Nollaa nykyisen asiakirjan riviseurannan tilannevedos",
+  "command.show-diff": "N\xE4yt\xE4 nykyisen asiakirjan kaikki muutokset",
+  "notice.no-changes-to-navigate": "Ei muutoksia, joiden v\xE4lill\xE4 liikkua",
+  "notice.all-snapshots-deleted": "Kaikki tilannevedostiedot poistettu",
+  "notice.current-snapshot-deleted": "Nykyiset tilannevedostiedot poistettu",
+  "notice.file-restored": "Tiedosto palautettu alkuper\xE4iseen tilaan",
+  "notice.file-restore-failed": "Tiedoston palauttaminen alkuper\xE4iseen tilaan ep\xE4onnistui",
+  "notice.copied": "Kopioitu!",
+  "notice.no-saved-history": "T\xE4lle tiedostolle ei ole tallennettua historiaa.",
+  "notice.invalid-exclude-pattern": "Paikallinen historia: poissuljettujen polkujen kuvio ei ole kelvollinen s\xE4\xE4nn\xF6llinen lauseke, ja se ohitetaan.",
+  "menu.local-history": "Paikallinen historia",
+  "menu.show-changes": "N\xE4yt\xE4 muutokset",
+  "status.lines-changed": "{count} rivi\xE4 muutettu",
+  "setting.type.name": "Tyyppi",
+  "setting.type.desc": "Valitse pystyviivan ja reunuksessa olevan pisteen v\xE4lill\xE4.",
+  "setting.type.option.line": "Pystyviiva",
+  "setting.type.option.dot": "Merkki reunuksessa",
+  "setting.allowed-extensions.name": "Sallitut tiedostotyypit",
+  "setting.allowed-extensions.desc": "Pilkuilla erotettu luettelo tiedostotyypeist\xE4, joiden muutoksia seurataan (esim. md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "Poissuljetut polut",
+  "setting.exclude-paths.desc": "S\xE4\xE4nn\xF6llinen lauseke (kirjainkoosta riippumaton), jota verrataan holviin n\xE4hden suhteelliseen polkuun. Mit\xE4\xE4n tiedostoa, jonka polku t\xE4sm\xE4\xE4, ei koskaan seurata (esim. \\.excalidraw\\.md$ tai (^|/)Templates/). Oletusarvo sulkee pois Templates-kansiot ja Excalidraw-piirrokset. J\xE4t\xE4 tyhj\xE4ksi, jos haluat seurata kaikkea.",
+  "setting.keep.name": "S\xE4ilyt\xE4 historiaa kunnes",
+  "setting.keep.desc": "Versiohistorian siivoamisstrategia",
+  "setting.keep.option.app": "Sovellus suljetaan",
+  "setting.keep.option.file": "Tiedosto suljetaan",
+  "setting.ignore-new-files.name": "Ohita uudet tiedostot",
+  "setting.ignore-new-files.desc": "\xC4l\xE4 seuraa muutoksia tiedostoissa, jotka on luotu seurannan aloittamisen j\xE4lkeen",
+  "setting.persist.name": "S\xE4ilyt\xE4 historia uudelleenk\xE4ynnistysten yli",
+  "setting.persist.desc": 'Tallenna historia levylle, jotta korostukset s\xE4ilyv\xE4t uudelleenk\xE4ynnistyksen yli. Edellytt\xE4\xE4, ett\xE4 "S\xE4ilyt\xE4 historiaa kunnes" on asetettu arvoon Sovellus suljetaan.',
+  "setting.max-entries.name": "Tallennettujen tiedostojen enimm\xE4ism\xE4\xE4r\xE4",
+  "setting.max-entries.desc": "Yl\xE4raja sille, kuinka monta tiedostohistoriaa levylle s\xE4ilytet\xE4\xE4n. Vanhimmat poistetaan ensin. Aseta arvoon 0 poistaaksesi k\xE4yt\xF6st\xE4.",
+  "setting.max-age-days.name": "Historian enimm\xE4isik\xE4 (p\xE4iv\xE4\xE4)",
+  "setting.max-age-days.desc": "Poista tallennettu historia, joka on t\xE4t\xE4 useampia p\xE4ivi\xE4 vanhaa. Aseta arvoon 0 poistaaksesi k\xE4yt\xF6st\xE4.",
+  "setting.snapshots-heading": "Aikajanan tilannevedokset",
+  "setting.snapshots-enabled.name": "Tallenna v\xE4livaiheen versiot",
+  "setting.snapshots-enabled.desc": "S\xE4ilyt\xE4 aiempien versioiden aikajana, jotta voit verrata v\xE4livaiheen pisteeseen etk\xE4 vain alkuper\xE4iseen.",
+  "setting.snapshots-edit-threshold.name": "Tallenna joka (muokkaus)",
+  "setting.snapshots-edit-threshold.desc": "Tallenna versio t\xE4m\xE4n monen muokkauksen j\xE4lkeen. Aseta arvoon 0 poistaaksesi muokkauslaukaisimen k\xE4yt\xF6st\xE4.",
+  "setting.snapshots-interval.name": "Tallenna joka (minuutti)",
+  "setting.snapshots-interval.desc": "Tallenna versio t\xE4m\xE4n monen muokkausminuutin j\xE4lkeen. Aseta arvoon 0 poistaaksesi aikalaukaisimen k\xE4yt\xF6st\xE4.",
+  "setting.max-version-age-days.name": "Version enimm\xE4isik\xE4 (p\xE4iv\xE4\xE4)",
+  "setting.max-version-age-days.desc": "Poista v\xE4livaiheen versiot, jotka ovat t\xE4t\xE4 useampia p\xE4ivi\xE4 vanhoja (ensisijainen raja). Aseta arvoon 0 poistaaksesi k\xE4yt\xF6st\xE4.",
+  "setting.max-versions.name": "Versioiden enimm\xE4ism\xE4\xE4r\xE4 tiedostoa kohti",
+  "setting.max-versions.desc": "Turvaraja tiedostoa kohti s\xE4ilytett\xE4ville v\xE4livaiheen versioille. Vanhimmat poistetaan ensin. Aseta arvoon 0 poistaaksesi k\xE4yt\xF6st\xE4.",
+  "setting.show-heading": "N\xE4yt\xE4 ilmaisin kohteelle",
+  "setting.show.desc": 'Riviloilmaisimet n\xE4kyv\xE4t vain muokkaustiloissa (l\xE4hdekoodi ja reaaliaikainen esikatselu). Lukutilassa ei ole tekstinsis\xE4isi\xE4 ilmaisimia, mutta muutoshistoria on silti k\xE4ytett\xE4viss\xE4: suorita komento "N\xE4yt\xE4 nykyisen asiakirjan kaikki muutokset" tai k\xE4yt\xE4 tiedoston pikavalikkoa tiedostoselaimessa.',
+  "setting.show.changed": "Muutettu",
+  "setting.show.restored": "Palautettu",
+  "setting.show.added": "Lis\xE4tty",
+  "setting.show.removed": "Poistettu",
+  "setting.line-heading": "Riviloilmaisin",
+  "setting.line-width.name": "Leveys",
+  "setting.line-width.desc": "Pystysuoran riviloilmaisimen leveys (pikselein\xE4).",
+  "setting.gutter-heading.name": "Reunusilmaisin",
+  "setting.gutter-heading.prefix": "Reunustyyppi-ilmaisimen merkit (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Muutoksen merkki",
+  "setting.gutter-added.name": "Lis\xE4tyn merkki",
+  "setting.gutter-restored.name": "Palautetun merkki",
+  "setting.gutter-removed.name": "Poistetun merkki",
+  "modal.title": "Historia",
+  "modal.no-changes": "Ei muutoksia",
+  "modal.identical-to-current": "Identtinen nykyisen kanssa",
+  "modal.restore-original": "Palauta alkuper\xE4inen",
+  "modal.remove-history": "Poista tiedoston historia",
+  "modal.previous-difference": "Edellinen ero",
+  "modal.next-difference": "Seuraava ero",
+  "modal.mode.patch": "N\xE4yt\xE4 korjaus",
+  "modal.mode.inline": "Tekstinsis\xE4inen",
+  "modal.mode.line-by-line": "Rivi rivilt\xE4",
+  "modal.mode.side-by-side": "Vierekk\xE4in",
+  "modal.confirm.cancel": "Peruuta",
+  "modal.confirm.restore.title": "Palauta alkuper\xE4inen tiedosto",
+  "modal.confirm.restore.message": "Haluatko varmasti palauttaa t\xE4m\xE4n tiedoston alkuper\xE4iseen tilaansa? Kaikki nykyiset muutokset menetet\xE4\xE4n ja muutoshistoria nollataan. T\xE4t\xE4 toimintoa ei voi kumota.",
+  "modal.confirm.restore.button": "Palauta tiedosto",
+  "modal.confirm.remove.title": "Poista tiedoston historia",
+  "modal.confirm.remove.message": "Haluatko varmasti poistaa t\xE4m\xE4n tiedoston muutoshistorian? T\xE4t\xE4 toimintoa ei voi kumota.",
+  "modal.confirm.remove.button": "Poista historia",
+  "modal.confirm.revert.title": "Peru t\xE4m\xE4 muutos",
+  "modal.confirm.revert.message": "Perutaanko t\xE4m\xE4 muutos takaisin valittuun perustaan? Muut muutokset s\xE4ilytet\xE4\xE4n.",
+  "modal.confirm.revert.button": "Peru",
+  "modal.search-versions": "Hae versioista",
+  "modal.version.baseline": "Nykyinen",
+  "modal.version.numbered": "Versio {number}",
+  "modal.version.current": "Nykyinen",
+  "modal.version.original": "Alkuper\xE4inen",
+  "modal.no-versions-match": "Mik\xE4\xE4n versio ei vastaa hakua",
+  "modal.no-snapshots-yet": "Ei viel\xE4 v\xE4livaiheen tilannevedoksia",
+  "modal.revert-hunk": "Peru t\xE4m\xE4 muutos",
+  "modal.copy": "Kopioi"
+};
+
+// lang/fr.json
+var fr_default = {
+  "command.go-to-next-change": "Aller \xE0 la modification suivante",
+  "command.go-to-previous-change": "Aller \xE0 la modification pr\xE9c\xE9dente",
+  "command.reset-lines-all": "R\xE9initialiser tous les instantan\xE9s du suivi des lignes",
+  "command.reset-lines": "R\xE9initialiser l'instantan\xE9 du suivi des lignes du document actuel",
+  "command.show-diff": "Afficher toutes les modifications du document actuel",
+  "notice.no-changes-to-navigate": "Aucune modification \xE0 parcourir",
+  "notice.all-snapshots-deleted": "Toutes les donn\xE9es d'instantan\xE9 supprim\xE9es",
+  "notice.current-snapshot-deleted": "Donn\xE9es de l'instantan\xE9 actuel supprim\xE9es",
+  "notice.file-restored": "Fichier restaur\xE9 \xE0 son \xE9tat d'origine",
+  "notice.file-restore-failed": "\xC9chec de la restauration du fichier \xE0 son \xE9tat d'origine",
+  "notice.copied": "Copi\xE9 !",
+  "notice.no-saved-history": "Aucun historique enregistr\xE9 pour ce fichier.",
+  "notice.invalid-exclude-pattern": "Historique local : le motif des chemins exclus n'est pas une expression r\xE9guli\xE8re valide et est ignor\xE9.",
+  "menu.local-history": "Historique local",
+  "menu.show-changes": "Afficher les modifications",
+  "status.lines-changed": "{count} lignes modifi\xE9es",
+  "setting.type.name": "Type",
+  "setting.type.desc": "Choisissez entre une ligne verticale et un point dans la goutti\xE8re.",
+  "setting.type.option.line": "Ligne verticale",
+  "setting.type.option.dot": "Caract\xE8re dans la goutti\xE8re",
+  "setting.allowed-extensions.name": "Extensions de fichier autoris\xE9es",
+  "setting.allowed-extensions.desc": "Liste d'extensions de fichier s\xE9par\xE9es par des virgules dont les modifications sont suivies (par ex. md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "Chemins exclus",
+  "setting.exclude-paths.desc": "Une expression r\xE9guli\xE8re insensible \xE0 la casse compar\xE9e au chemin relatif au coffre. Tout fichier dont le chemin correspond n'est jamais suivi (par ex. \\.excalidraw\\.md$ ou (^|/)Templates/). Par d\xE9faut, les dossiers Templates et les dessins Excalidraw sont exclus. Laissez vide pour tout suivre.",
+  "setting.keep.name": "Conserver l'historique jusqu'\xE0",
+  "setting.keep.desc": "Strat\xE9gie de nettoyage de l'historique des r\xE9visions",
+  "setting.keep.option.app": "Fermeture de l'application",
+  "setting.keep.option.file": "Fermeture du fichier",
+  "setting.ignore-new-files.name": "Ignorer les nouveaux fichiers",
+  "setting.ignore-new-files.desc": "Ne pas suivre les modifications des fichiers cr\xE9\xE9s apr\xE8s le d\xE9marrage du suivi",
+  "setting.persist.name": "Conserver l'historique entre les red\xE9marrages",
+  "setting.persist.desc": `Enregistrer l'historique sur le disque pour que les surlignages survivent \xE0 un red\xE9marrage. N\xE9cessite que "Conserver l'historique jusqu'\xE0" soit r\xE9gl\xE9 sur la fermeture de l'application.`,
+  "setting.max-entries.name": "Nombre maximal de fichiers stock\xE9s",
+  "setting.max-entries.desc": "Limite du nombre d'historiques de fichiers conserv\xE9s sur le disque. Les plus anciens sont supprim\xE9s en premier. R\xE9glez sur 0 pour d\xE9sactiver.",
+  "setting.max-age-days.name": "\xC2ge maximal de l'historique (jours)",
+  "setting.max-age-days.desc": "Supprimer l'historique conserv\xE9 plus ancien que ce nombre de jours. R\xE9glez sur 0 pour d\xE9sactiver.",
+  "setting.snapshots-heading": "Instantan\xE9s de la chronologie",
+  "setting.snapshots-enabled.name": "Capturer les versions interm\xE9diaires",
+  "setting.snapshots-enabled.desc": "Conserver une chronologie des versions ant\xE9rieures pour pouvoir comparer avec un point interm\xE9diaire, pas seulement avec l'original.",
+  "setting.snapshots-edit-threshold.name": "Capturer toutes les (modifications)",
+  "setting.snapshots-edit-threshold.desc": "Prendre une version apr\xE8s ce nombre de modifications. R\xE9glez sur 0 pour d\xE9sactiver le d\xE9clencheur par modification.",
+  "setting.snapshots-interval.name": "Capturer toutes les (minutes)",
+  "setting.snapshots-interval.desc": "Prendre une version apr\xE8s ce nombre de minutes d'\xE9dition. R\xE9glez sur 0 pour d\xE9sactiver le d\xE9clencheur temporel.",
+  "setting.max-version-age-days.name": "\xC2ge maximal des versions (jours)",
+  "setting.max-version-age-days.desc": "Supprimer les versions interm\xE9diaires plus anciennes que ce nombre de jours (la limite principale). R\xE9glez sur 0 pour d\xE9sactiver.",
+  "setting.max-versions.name": "Nombre maximal de versions par fichier",
+  "setting.max-versions.desc": "Limite de s\xE9curit\xE9 sur les versions interm\xE9diaires conserv\xE9es par fichier. Les plus anciennes sont supprim\xE9es en premier. R\xE9glez sur 0 pour d\xE9sactiver.",
+  "setting.show-heading": "Afficher l'indicateur pour",
+  "setting.show.desc": `Les indicateurs de ligne ne s'affichent qu'en modes \xE9dition (source et aper\xE7u en direct). En mode lecture, il n'y a pas d'indicateurs en ligne, mais l'historique des modifications reste accessible : ex\xE9cutez la commande "Afficher toutes les modifications du document actuel" ou utilisez le menu contextuel du fichier dans l'explorateur de fichiers.`,
+  "setting.show.changed": "Modifi\xE9",
+  "setting.show.restored": "Restaur\xE9",
+  "setting.show.added": "Ajout\xE9",
+  "setting.show.removed": "Supprim\xE9",
+  "setting.line-heading": "Indicateur de ligne",
+  "setting.line-width.name": "Largeur",
+  "setting.line-width.desc": "Largeur de l'indicateur en ligne verticale (en pixels).",
+  "setting.gutter-heading.name": "Indicateur de goutti\xE8re",
+  "setting.gutter-heading.prefix": "Caract\xE8res de l'indicateur de type dans la goutti\xE8re (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Caract\xE8re de modification",
+  "setting.gutter-added.name": "Caract\xE8re d'ajout",
+  "setting.gutter-restored.name": "Caract\xE8re de restauration",
+  "setting.gutter-removed.name": "Caract\xE8re de suppression",
+  "modal.title": "Historique",
+  "modal.no-changes": "Aucune modification",
+  "modal.identical-to-current": "Identique \xE0 la version actuelle",
+  "modal.restore-original": "Restaurer l'original",
+  "modal.remove-history": "Supprimer l'historique du fichier",
+  "modal.previous-difference": "Diff\xE9rence pr\xE9c\xE9dente",
+  "modal.next-difference": "Diff\xE9rence suivante",
+  "modal.mode.patch": "Afficher le patch",
+  "modal.mode.inline": "En ligne",
+  "modal.mode.line-by-line": "Ligne par ligne",
+  "modal.mode.side-by-side": "C\xF4te \xE0 c\xF4te",
+  "modal.confirm.cancel": "Annuler",
+  "modal.confirm.restore.title": "Restaurer le fichier d'origine",
+  "modal.confirm.restore.message": "Voulez-vous vraiment restaurer ce fichier \xE0 son \xE9tat d'origine ? Toutes les modifications actuelles seront perdues et l'historique de suivi des modifications sera r\xE9initialis\xE9. Cette action est irr\xE9versible.",
+  "modal.confirm.restore.button": "Restaurer le fichier",
+  "modal.confirm.remove.title": "Supprimer l'historique du fichier",
+  "modal.confirm.remove.message": "Voulez-vous vraiment supprimer l'historique de suivi des modifications de ce fichier ? Cette action est irr\xE9versible.",
+  "modal.confirm.remove.button": "Supprimer l'historique",
+  "modal.confirm.revert.title": "Annuler cette modification",
+  "modal.confirm.revert.message": "Annuler cette modification pour revenir \xE0 la base s\xE9lectionn\xE9e ? Les autres modifications sont conserv\xE9es.",
+  "modal.confirm.revert.button": "Annuler la modification",
+  "modal.search-versions": "Rechercher des versions",
+  "modal.version.baseline": "Actuelle",
+  "modal.version.numbered": "Version {number}",
+  "modal.version.current": "Actuelle",
+  "modal.version.original": "Original",
+  "modal.no-versions-match": "Aucune version ne correspond \xE0 la recherche",
+  "modal.no-snapshots-yet": "Aucun instantan\xE9 interm\xE9diaire pour le moment",
+  "modal.revert-hunk": "Annuler cette modification",
+  "modal.copy": "Copier"
+};
+
+// lang/ga.json
+var ga_default = {
+  "command.go-to-next-change": "T\xE9igh go dt\xED an ch\xE9ad athr\xFA eile",
+  "command.go-to-previous-change": "T\xE9igh go dt\xED an t-athr\xFA roimhe seo",
+  "command.reset-lines-all": "Athshocraigh gach roghbhl\xFAire de lorgaire na l\xEDnte",
+  "command.reset-lines": "Athshocraigh roghbhl\xFAire lorgaire l\xEDnte na c\xE1ip\xE9ise reatha",
+  "command.show-diff": "Taispe\xE1in gach athr\xFA sa ch\xE1ip\xE9is reatha",
+  "notice.no-changes-to-navigate": "N\xEDl aon athr\xFA le nasclean\xFAint",
+  "notice.all-snapshots-deleted": "Scriosadh gach sonra roghbhl\xFAire",
+  "notice.current-snapshot-deleted": "Scriosadh sonra\xED an roghbhl\xFAire reatha",
+  "notice.file-restored": "Cuireadh an comhad ar ais ina staid bhunaidh",
+  "notice.file-restore-failed": "Theip ar an gcomhad a chur ar ais ina staid bhunaidh",
+  "notice.copied": "C\xF3ipe\xE1ilte!",
+  "notice.no-saved-history": "N\xEDl aon stair sh\xE1bh\xE1ilte ann don chomhad seo.",
+  "notice.invalid-exclude-pattern": "Stair \xE1iti\xFAil: n\xED slonn rialta bail\xED \xE9 patr\xFAn na gconair\xED eisiata agus d\xE9antar neamhaird de.",
+  "menu.local-history": "Stair \xE1iti\xFAil",
+  "menu.show-changes": "Taispe\xE1in athruithe",
+  "status.lines-changed": "{count} l\xEDne athraithe",
+  "setting.type.name": "Cine\xE1l",
+  "setting.type.desc": "Roghnaigh idir l\xEDne inghearach n\xF3 ponc san imeall.",
+  "setting.type.option.line": "L\xEDne inghearach",
+  "setting.type.option.dot": "Carachtar san imeall",
+  "setting.allowed-extensions.name": "Iarmh\xEDreanna comhaid ceadaithe",
+  "setting.allowed-extensions.desc": "Liosta iarmh\xEDreanna comhaid scartha le cam\xF3ga le hathruithe a lorg (m.sh., md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "Conair\xED eisiata",
+  "setting.exclude-paths.desc": "Slonn rialta at\xE1 neamh\xEDogair do ch\xE1s na litreacha, compar\xE1idte leis an gconair choibhneasta sa taisce. N\xED lorga\xEDtear riamh aon chomhad a mheaitse\xE1lann a chonair (m.sh. \\.excalidraw\\.md$ n\xF3 (^|/)Templates/). Eisiann an r\xE9amhshocr\xFA fillte\xE1in Templates agus l\xEDn\xEDochta\xED Excalidraw. F\xE1g folamh \xE9 chun gach rud a lorg.",
+  "setting.keep.name": "Coinnigh an stair go dt\xED",
+  "setting.keep.desc": "Strait\xE9is chun stair na leasuithe a ghlanadh",
+  "setting.keep.option.app": "D\xFAnadh an aip",
+  "setting.keep.option.file": "D\xFAnadh an comhad",
+  "setting.ignore-new-files.name": "D\xE9an neamhaird de chomhaid nua",
+  "setting.ignore-new-files.desc": "N\xE1 lorg athruithe i gcomhaid a crutha\xEDodh tar \xE9is don lorg tos\xFA",
+  "setting.persist.name": "Coinnigh an stair tr\xED atosuithe",
+  "setting.persist.desc": 'S\xE1bh\xE1il an stair ar an diosca ionas go maireann na haibhsithe tr\xED atos\xFA. N\xED m\xF3r "coinnigh an stair go dt\xED" a shocr\xFA ar dh\xFAnadh an aip.',
+  "setting.max-entries.name": "Uasmh\xE9id comhad st\xF3r\xE1ilte",
+  "setting.max-entries.desc": "Teorainn ar l\xEDon na staireanna comhaid a choinn\xEDtear ar an diosca. D\xEDbr\xEDtear na cinn is sine ar dt\xFAs. Socraigh ar 0 lena dh\xEDchumas\xFA.",
+  "setting.max-age-days.name": "Uasaois staire (laethanta)",
+  "setting.max-age-days.desc": "Caith amach stair sh\xE1bh\xE1ilte at\xE1 n\xEDos sine n\xE1 an l\xEDon laethanta seo. Socraigh ar 0 lena dh\xEDchumas\xFA.",
+  "setting.snapshots-heading": "Roghbhl\xFAir\xED aml\xEDne",
+  "setting.snapshots-enabled.name": "Gabh leaganacha idirmhe\xE1nacha",
+  "setting.snapshots-enabled.desc": "Coinnigh aml\xEDne de leaganacha n\xEDos luaithe ionas gur f\xE9idir leat compar\xE1id a dh\xE9anamh le pointe idir eatarthu, n\xED leis an mbunleagan amh\xE1in.",
+  "setting.snapshots-edit-threshold.name": "Gabh gach (eagarth\xF3ireacht)",
+  "setting.snapshots-edit-threshold.desc": "Glac leagan tar \xE9is an l\xEDon eagarth\xF3ireachta\xED seo. Socraigh ar 0 chun truicear na heagarth\xF3ireachta a dh\xEDchumas\xFA.",
+  "setting.snapshots-interval.name": "Gabh gach (n\xF3im\xE9ad)",
+  "setting.snapshots-interval.desc": "Glac leagan tar \xE9is an l\xEDon n\xF3im\xE9ad eagarth\xF3ireachta seo. Socraigh ar 0 chun truicear an ama a dh\xEDchumas\xFA.",
+  "setting.max-version-age-days.name": "Uasaois leagain (laethanta)",
+  "setting.max-version-age-days.desc": "Caith amach leaganacha idirmhe\xE1nacha at\xE1 n\xEDos sine n\xE1 an l\xEDon laethanta seo (an phr\xEDomhtheorainn). Socraigh ar 0 lena dh\xEDchumas\xFA.",
+  "setting.max-versions.name": "Uasmh\xE9id leaganacha in aghaidh an chomhaid",
+  "setting.max-versions.desc": "Teorainn sh\xE1bh\xE1ilteachta ar leaganacha idirmhe\xE1nacha a choinn\xEDtear in aghaidh an chomhaid. D\xEDbr\xEDtear na cinn is sine ar dt\xFAs. Socraigh ar 0 lena dh\xEDchumas\xFA.",
+  "setting.show-heading": "Taispe\xE1in t\xE1scaire le haghaidh",
+  "setting.show.desc": 'N\xED thaispe\xE1ntar t\xE1scair\xED l\xEDne ach amh\xE1in sna m\xF3id eagarth\xF3ireachta (foinse agus r\xE9amhamharc beo). Sa mh\xF3d l\xE9itheoireachta n\xEDl aon t\xE1scair\xED inl\xEDne ann, ach t\xE1 stair na n-athruithe f\xF3s inrochtana: rith an t-ord\xFA "Taispe\xE1in gach athr\xFA sa ch\xE1ip\xE9is reatha" n\xF3 \xFAs\xE1id roghchl\xE1r comhth\xE9acs an chomhaid sa taisc\xE9ala\xED comhad.',
+  "setting.show.changed": "Athraithe",
+  "setting.show.restored": "Athch\xF3irithe",
+  "setting.show.added": "Curtha leis",
+  "setting.show.removed": "Bainte",
+  "setting.line-heading": "T\xE1scaire l\xEDne",
+  "setting.line-width.name": "Leithead",
+  "setting.line-width.desc": "Leithead an t\xE1scaire l\xEDne ingheara\xED (i bpicteil\xEDn\xED).",
+  "setting.gutter-heading.name": "T\xE1scaire imill",
+  "setting.gutter-heading.prefix": "Carachtair de th\xE1scaire cine\xE1il an imill (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Carachtar athraithe",
+  "setting.gutter-added.name": "Carachtar curtha leis",
+  "setting.gutter-restored.name": "Carachtar athch\xF3irithe",
+  "setting.gutter-removed.name": "Carachtar bainte",
+  "modal.title": "Stair",
+  "modal.no-changes": "Gan athruithe",
+  "modal.identical-to-current": "Comhionann leis an gceann reatha",
+  "modal.restore-original": "Athch\xF3irigh an bunleagan",
+  "modal.remove-history": "Bain stair an chomhaid",
+  "modal.previous-difference": "An difr\xEDocht roimhe seo",
+  "modal.next-difference": "An ch\xE9ad difr\xEDocht eile",
+  "modal.mode.patch": "Taispe\xE1in an paiste",
+  "modal.mode.inline": "Inl\xEDne",
+  "modal.mode.line-by-line": "L\xEDne ar l\xEDne",
+  "modal.mode.side-by-side": "Taobh le taobh",
+  "modal.confirm.cancel": "Cealaigh",
+  "modal.confirm.restore.title": "Athch\xF3irigh an comhad bunaidh",
+  "modal.confirm.restore.message": "An bhfuil t\xFA cinnte gur mhaith leat an comhad seo a chur ar ais ina staid bhunaidh? Caillfear gach athr\xFA reatha agus athshocr\xF3far stair lorgtha na n-athruithe. N\xED f\xE9idir an gn\xEDomh seo a cheal\xFA.",
+  "modal.confirm.restore.button": "Athch\xF3irigh an comhad",
+  "modal.confirm.remove.title": "Bain stair an chomhaid",
+  "modal.confirm.remove.message": "An bhfuil t\xFA cinnte gur mhaith leat stair lorgtha na n-athruithe don chomhad seo a bhaint? N\xED f\xE9idir an gn\xEDomh seo a cheal\xFA.",
+  "modal.confirm.remove.button": "Bain an stair",
+  "modal.confirm.revert.title": "Fill an t-athr\xFA seo",
+  "modal.confirm.revert.message": "Fill an t-athr\xFA seo ar ais go dt\xED an bonn roghnaithe? Coinn\xEDtear na hathruithe eile.",
+  "modal.confirm.revert.button": "Fill",
+  "modal.search-versions": "Cuardaigh leaganacha",
+  "modal.version.baseline": "Reatha",
+  "modal.version.numbered": "Leagan {number}",
+  "modal.version.current": "Reatha",
+  "modal.version.original": "Bunleagan",
+  "modal.no-versions-match": "N\xEDl aon leagan ag meaitse\xE1il an chuardaigh",
+  "modal.no-snapshots-yet": "N\xEDl aon roghbhl\xFAire idirmhe\xE1nach ann f\xF3s",
+  "modal.revert-hunk": "Fill an t-athr\xFA seo",
+  "modal.copy": "C\xF3ipe\xE1il"
+};
+
+// lang/he.json
+var he_default = {
+  "command.go-to-next-change": "\u05DE\u05E2\u05D1\u05E8 \u05DC\u05E9\u05D9\u05E0\u05D5\u05D9 \u05D4\u05D1\u05D0",
+  "command.go-to-previous-change": "\u05DE\u05E2\u05D1\u05E8 \u05DC\u05E9\u05D9\u05E0\u05D5\u05D9 \u05D4\u05E7\u05D5\u05D3\u05DD",
+  "command.reset-lines-all": "\u05D0\u05D9\u05E4\u05D5\u05E1 \u05DB\u05DC \u05EA\u05E6\u05DC\u05D5\u05DE\u05D9 \u05DE\u05E2\u05E7\u05D1 \u05D4\u05E9\u05D5\u05E8\u05D5\u05EA",
+  "command.reset-lines": "\u05D0\u05D9\u05E4\u05D5\u05E1 \u05EA\u05E6\u05DC\u05D5\u05DD \u05DE\u05E2\u05E7\u05D1 \u05D4\u05E9\u05D5\u05E8\u05D5\u05EA \u05E9\u05DC \u05D4\u05DE\u05E1\u05DE\u05DA \u05D4\u05E0\u05D5\u05DB\u05D7\u05D9",
+  "command.show-diff": "\u05D4\u05E6\u05D2\u05EA \u05DB\u05DC \u05D4\u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05D1\u05DE\u05E1\u05DE\u05DA \u05D4\u05E0\u05D5\u05DB\u05D7\u05D9",
+  "notice.no-changes-to-navigate": "\u05D0\u05D9\u05DF \u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05DC\u05E0\u05D9\u05D5\u05D5\u05D8",
+  "notice.all-snapshots-deleted": "\u05DB\u05DC \u05E0\u05EA\u05D5\u05E0\u05D9 \u05D4\u05EA\u05E6\u05DC\u05D5\u05DE\u05D9\u05DD \u05E0\u05DE\u05D7\u05E7\u05D5",
+  "notice.current-snapshot-deleted": "\u05E0\u05EA\u05D5\u05E0\u05D9 \u05D4\u05EA\u05E6\u05DC\u05D5\u05DD \u05D4\u05E0\u05D5\u05DB\u05D7\u05D9 \u05E0\u05DE\u05D7\u05E7\u05D5",
+  "notice.file-restored": "\u05D4\u05E7\u05D5\u05D1\u05E5 \u05E9\u05D5\u05D7\u05D6\u05E8 \u05DC\u05DE\u05E6\u05D1\u05D5 \u05D4\u05DE\u05E7\u05D5\u05E8\u05D9",
+  "notice.file-restore-failed": "\u05E9\u05D7\u05D6\u05D5\u05E8 \u05D4\u05E7\u05D5\u05D1\u05E5 \u05DC\u05DE\u05E6\u05D1\u05D5 \u05D4\u05DE\u05E7\u05D5\u05E8\u05D9 \u05E0\u05DB\u05E9\u05DC",
+  "notice.copied": "\u05D4\u05D5\u05E2\u05EA\u05E7!",
+  "notice.no-saved-history": "\u05D0\u05D9\u05DF \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05E9\u05DE\u05D5\u05E8\u05D4 \u05DC\u05E7\u05D5\u05D1\u05E5 \u05D6\u05D4.",
+  "notice.invalid-exclude-pattern": "\u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05DE\u05E7\u05D5\u05DE\u05D9\u05EA: \u05EA\u05D1\u05E0\u05D9\u05EA \u05D4\u05E0\u05EA\u05D9\u05D1\u05D9\u05DD \u05D4\u05DE\u05D5\u05D7\u05E8\u05D2\u05D9\u05DD \u05D0\u05D9\u05E0\u05D4 \u05D1\u05D9\u05D8\u05D5\u05D9 \u05E8\u05D2\u05D5\u05DC\u05E8\u05D9 \u05EA\u05E7\u05D9\u05DF \u05D5\u05D4\u05D9\u05D0 \u05EA\u05EA\u05E2\u05DC\u05DD.",
+  "menu.local-history": "\u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05DE\u05E7\u05D5\u05DE\u05D9\u05EA",
+  "menu.show-changes": "\u05D4\u05E6\u05D2\u05EA \u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD",
+  "status.lines-changed": "{count} \u05E9\u05D5\u05E8\u05D5\u05EA \u05E9\u05D5\u05E0\u05D5",
+  "setting.type.name": "\u05E1\u05D5\u05D2",
+  "setting.type.desc": "\u05D1\u05D7\u05D9\u05E8\u05D4 \u05D1\u05D9\u05DF \u05E7\u05D5 \u05D0\u05E0\u05DB\u05D9 \u05DC\u05D1\u05D9\u05DF \u05E0\u05E7\u05D5\u05D3\u05D4 \u05D1\u05E9\u05D5\u05DC\u05D9\u05D9\u05DD.",
+  "setting.type.option.line": "\u05E7\u05D5 \u05D0\u05E0\u05DB\u05D9",
+  "setting.type.option.dot": "\u05EA\u05D5 \u05D1\u05E9\u05D5\u05DC\u05D9\u05D9\u05DD",
+  "setting.allowed-extensions.name": "\u05E1\u05D9\u05D5\u05DE\u05D5\u05EA \u05E7\u05D1\u05E6\u05D9\u05DD \u05DE\u05D5\u05EA\u05E8\u05D5\u05EA",
+  "setting.allowed-extensions.desc": "\u05E8\u05E9\u05D9\u05DE\u05EA \u05E1\u05D9\u05D5\u05DE\u05D5\u05EA \u05E7\u05D1\u05E6\u05D9\u05DD \u05DE\u05D5\u05E4\u05E8\u05D3\u05D5\u05EA \u05D1\u05E4\u05E1\u05D9\u05E7\u05D9\u05DD \u05E9\u05D9\u05E9 \u05DC\u05E2\u05E7\u05D5\u05D1 \u05D0\u05D7\u05E8 \u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05D1\u05D4\u05DF (\u05DC\u05DE\u05E9\u05DC md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "\u05E0\u05EA\u05D9\u05D1\u05D9\u05DD \u05DE\u05D5\u05D7\u05E8\u05D2\u05D9\u05DD",
+  "setting.exclude-paths.desc": "\u05D1\u05D9\u05D8\u05D5\u05D9 \u05E8\u05D2\u05D5\u05DC\u05E8\u05D9 \u05E9\u05D0\u05D9\u05E0\u05D5 \u05EA\u05DC\u05D5\u05D9 \u05E8\u05D9\u05E9\u05D9\u05D5\u05EA \u05D4\u05DE\u05D5\u05E9\u05D5\u05D5\u05D4 \u05D0\u05DC \u05D4\u05E0\u05EA\u05D9\u05D1 \u05D4\u05D9\u05D7\u05E1\u05D9 \u05DC\u05DB\u05E1\u05E4\u05EA. \u05DB\u05DC \u05E7\u05D5\u05D1\u05E5 \u05E9\u05D4\u05E0\u05EA\u05D9\u05D1 \u05E9\u05DC\u05D5 \u05EA\u05D5\u05D0\u05DD \u05DC\u05E2\u05D5\u05DC\u05DD \u05D0\u05D9\u05E0\u05D5 \u05E0\u05DE\u05E6\u05D0 \u05D1\u05DE\u05E2\u05E7\u05D1 (\u05DC\u05DE\u05E9\u05DC \\.excalidraw\\.md$ \u05D0\u05D5 (^|/)Templates/). \u05D1\u05E8\u05D9\u05E8\u05EA \u05D4\u05DE\u05D7\u05D3\u05DC \u05DE\u05D7\u05E8\u05D9\u05D2\u05D4 \u05EA\u05D9\u05E7\u05D9\u05D5\u05EA Templates \u05D5\u05E9\u05E8\u05D8\u05D5\u05D8\u05D9 Excalidraw. \u05D4\u05E9\u05D0\u05E8 \u05E8\u05D9\u05E7 \u05DB\u05D3\u05D9 \u05DC\u05E2\u05E7\u05D5\u05D1 \u05D0\u05D7\u05E8 \u05D4\u05DB\u05D5\u05DC.",
+  "setting.keep.name": "\u05E9\u05DE\u05D9\u05E8\u05EA \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05E2\u05D3",
+  "setting.keep.desc": "\u05D0\u05E1\u05D8\u05E8\u05D8\u05D2\u05D9\u05D4 \u05DC\u05E0\u05D9\u05E7\u05D5\u05D9 \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D9\u05EA \u05D4\u05D2\u05E8\u05E1\u05D0\u05D5\u05EA",
+  "setting.keep.option.app": "\u05E1\u05D2\u05D9\u05E8\u05EA \u05D4\u05D9\u05D9\u05E9\u05D5\u05DD",
+  "setting.keep.option.file": "\u05E1\u05D2\u05D9\u05E8\u05EA \u05D4\u05E7\u05D5\u05D1\u05E5",
+  "setting.ignore-new-files.name": "\u05D4\u05EA\u05E2\u05DC\u05DE\u05D5\u05EA \u05DE\u05E7\u05D1\u05E6\u05D9\u05DD \u05D7\u05D3\u05E9\u05D9\u05DD",
+  "setting.ignore-new-files.desc": "\u05D0\u05DC \u05EA\u05E2\u05E7\u05D5\u05D1 \u05D0\u05D7\u05E8 \u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05D1\u05E7\u05D1\u05E6\u05D9\u05DD \u05E9\u05E0\u05D5\u05E6\u05E8\u05D5 \u05DC\u05D0\u05D7\u05E8 \u05EA\u05D7\u05D9\u05DC\u05EA \u05D4\u05DE\u05E2\u05E7\u05D1",
+  "setting.persist.name": "\u05E9\u05DE\u05D9\u05E8\u05EA \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05D1\u05D9\u05DF \u05D4\u05E4\u05E2\u05DC\u05D5\u05EA \u05DE\u05D7\u05D3\u05E9",
+  "setting.persist.desc": '\u05E9\u05DE\u05D5\u05E8 \u05D0\u05EA \u05D4\u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05DC\u05D3\u05D9\u05E1\u05E7 \u05DB\u05D3\u05D9 \u05E9\u05D4\u05D4\u05D3\u05D2\u05E9\u05D5\u05EA \u05D9\u05E9\u05E8\u05D3\u05D5 \u05D4\u05E4\u05E2\u05DC\u05D4 \u05DE\u05D7\u05D3\u05E9. \u05D3\u05D5\u05E8\u05E9 \u05D4\u05D2\u05D3\u05E8\u05EA "\u05E9\u05DE\u05D9\u05E8\u05EA \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05E2\u05D3" \u05DC\u05E1\u05D2\u05D9\u05E8\u05EA \u05D4\u05D9\u05D9\u05E9\u05D5\u05DD.',
+  "setting.max-entries.name": "\u05DE\u05E7\u05E1\u05D9\u05DE\u05D5\u05DD \u05E7\u05D1\u05E6\u05D9\u05DD \u05E9\u05DE\u05D5\u05E8\u05D9\u05DD",
+  "setting.max-entries.desc": "\u05DE\u05D2\u05D1\u05DC\u05D4 \u05E2\u05DC \u05DE\u05E1\u05E4\u05E8 \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D5\u05EA \u05D4\u05E7\u05D1\u05E6\u05D9\u05DD \u05D4\u05E0\u05E9\u05DE\u05E8\u05D5\u05EA \u05D1\u05D3\u05D9\u05E1\u05E7. \u05D4\u05D9\u05E9\u05E0\u05D9\u05DD \u05D1\u05D9\u05D5\u05EA\u05E8 \u05DE\u05E4\u05D5\u05E0\u05D9\u05DD \u05EA\u05D7\u05D9\u05DC\u05D4. \u05D4\u05D2\u05D3\u05E8 \u05DC-0 \u05DC\u05D1\u05D9\u05D8\u05D5\u05DC.",
+  "setting.max-age-days.name": "\u05D2\u05D9\u05DC \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05DE\u05E8\u05D1\u05D9 (\u05D9\u05DE\u05D9\u05DD)",
+  "setting.max-age-days.desc": "\u05DE\u05D7\u05E7 \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05E9\u05DE\u05D5\u05E8\u05D4 \u05D9\u05E9\u05E0\u05D4 \u05DE\u05DE\u05E1\u05E4\u05E8 \u05D9\u05DE\u05D9\u05DD \u05D6\u05D4. \u05D4\u05D2\u05D3\u05E8 \u05DC-0 \u05DC\u05D1\u05D9\u05D8\u05D5\u05DC.",
+  "setting.snapshots-heading": "\u05EA\u05E6\u05DC\u05D5\u05DE\u05D9 \u05E6\u05D9\u05E8 \u05D4\u05D6\u05DE\u05DF",
+  "setting.snapshots-enabled.name": "\u05DC\u05DB\u05D9\u05D3\u05EA \u05D2\u05E8\u05E1\u05D0\u05D5\u05EA \u05D1\u05D9\u05E0\u05D9\u05D9\u05DD",
+  "setting.snapshots-enabled.desc": "\u05E9\u05DE\u05D5\u05E8 \u05E6\u05D9\u05E8 \u05D6\u05DE\u05DF \u05E9\u05DC \u05D2\u05E8\u05E1\u05D0\u05D5\u05EA \u05E7\u05D5\u05D3\u05DE\u05D5\u05EA \u05DB\u05D3\u05D9 \u05E9\u05EA\u05D5\u05DB\u05DC \u05DC\u05D4\u05E9\u05D5\u05D5\u05EA \u05DE\u05D5\u05DC \u05E0\u05E7\u05D5\u05D3\u05D4 \u05D1\u05D9\u05E0\u05D9\u05D9\u05DD, \u05D5\u05DC\u05D0 \u05E8\u05E7 \u05DE\u05D5\u05DC \u05D4\u05DE\u05E7\u05D5\u05E8.",
+  "setting.snapshots-edit-threshold.name": "\u05DC\u05DB\u05D9\u05D3\u05D4 \u05D1\u05DB\u05DC (\u05E2\u05E8\u05D9\u05DB\u05D5\u05EA)",
+  "setting.snapshots-edit-threshold.desc": "\u05E6\u05DC\u05DD \u05D2\u05E8\u05E1\u05D4 \u05DC\u05D0\u05D7\u05E8 \u05DE\u05E1\u05E4\u05E8 \u05D6\u05D4 \u05E9\u05DC \u05E2\u05E8\u05D9\u05DB\u05D5\u05EA. \u05D4\u05D2\u05D3\u05E8 \u05DC-0 \u05DC\u05D1\u05D9\u05D8\u05D5\u05DC \u05D8\u05E8\u05D9\u05D2\u05E8 \u05D4\u05E2\u05E8\u05D9\u05DB\u05D5\u05EA.",
+  "setting.snapshots-interval.name": "\u05DC\u05DB\u05D9\u05D3\u05D4 \u05D1\u05DB\u05DC (\u05D3\u05E7\u05D5\u05EA)",
+  "setting.snapshots-interval.desc": "\u05E6\u05DC\u05DD \u05D2\u05E8\u05E1\u05D4 \u05DC\u05D0\u05D7\u05E8 \u05DE\u05E1\u05E4\u05E8 \u05D6\u05D4 \u05E9\u05DC \u05D3\u05E7\u05D5\u05EA \u05E2\u05E8\u05D9\u05DB\u05D4. \u05D4\u05D2\u05D3\u05E8 \u05DC-0 \u05DC\u05D1\u05D9\u05D8\u05D5\u05DC \u05D4\u05D8\u05E8\u05D9\u05D2\u05E8 \u05D4\u05D6\u05DE\u05E0\u05D9.",
+  "setting.max-version-age-days.name": "\u05D2\u05D9\u05DC \u05D2\u05E8\u05E1\u05D4 \u05DE\u05E8\u05D1\u05D9 (\u05D9\u05DE\u05D9\u05DD)",
+  "setting.max-version-age-days.desc": "\u05DE\u05D7\u05E7 \u05D2\u05E8\u05E1\u05D0\u05D5\u05EA \u05D1\u05D9\u05E0\u05D9\u05D9\u05DD \u05D9\u05E9\u05E0\u05D5\u05EA \u05DE\u05DE\u05E1\u05E4\u05E8 \u05D9\u05DE\u05D9\u05DD \u05D6\u05D4 (\u05D4\u05D7\u05E1\u05DD \u05D4\u05E2\u05D9\u05E7\u05E8\u05D9). \u05D4\u05D2\u05D3\u05E8 \u05DC-0 \u05DC\u05D1\u05D9\u05D8\u05D5\u05DC.",
+  "setting.max-versions.name": "\u05DE\u05E7\u05E1\u05D9\u05DE\u05D5\u05DD \u05D2\u05E8\u05E1\u05D0\u05D5\u05EA \u05DC\u05DB\u05DC \u05E7\u05D5\u05D1\u05E5",
+  "setting.max-versions.desc": "\u05DE\u05D2\u05D1\u05DC\u05EA \u05D1\u05D8\u05D9\u05D7\u05D5\u05EA \u05E2\u05DC \u05D2\u05E8\u05E1\u05D0\u05D5\u05EA \u05D4\u05D1\u05D9\u05E0\u05D9\u05D9\u05DD \u05D4\u05E0\u05E9\u05DE\u05E8\u05D5\u05EA \u05DC\u05DB\u05DC \u05E7\u05D5\u05D1\u05E5. \u05D4\u05D9\u05E9\u05E0\u05D9\u05DD \u05D1\u05D9\u05D5\u05EA\u05E8 \u05DE\u05E4\u05D5\u05E0\u05D9\u05DD \u05EA\u05D7\u05D9\u05DC\u05D4. \u05D4\u05D2\u05D3\u05E8 \u05DC-0 \u05DC\u05D1\u05D9\u05D8\u05D5\u05DC.",
+  "setting.show-heading": "\u05D4\u05E6\u05D2\u05EA \u05DE\u05D7\u05D5\u05D5\u05DF \u05E2\u05D1\u05D5\u05E8",
+  "setting.show.desc": '\u05DE\u05D7\u05D5\u05D5\u05E0\u05D9 \u05E9\u05D5\u05E8\u05D5\u05EA \u05DE\u05D5\u05E6\u05D2\u05D9\u05DD \u05E8\u05E7 \u05D1\u05DE\u05E6\u05D1\u05D9 \u05D4\u05E2\u05E8\u05D9\u05DB\u05D4 (\u05E7\u05D5\u05D3 \u05DE\u05E7\u05D5\u05E8 \u05D5\u05EA\u05E6\u05D5\u05D2\u05D4 \u05DE\u05E7\u05D3\u05D9\u05DE\u05D4 \u05D7\u05D9\u05D4). \u05D1\u05DE\u05E6\u05D1 \u05E7\u05E8\u05D9\u05D0\u05D4 \u05D0\u05D9\u05DF \u05DE\u05D7\u05D5\u05D5\u05E0\u05D9\u05DD \u05DE\u05D5\u05D8\u05DE\u05E2\u05D9\u05DD, \u05D0\u05DA \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D9\u05EA \u05D4\u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05E2\u05D3\u05D9\u05D9\u05DF \u05E0\u05D2\u05D9\u05E9\u05D4: \u05D4\u05E8\u05E5 \u05D0\u05EA \u05D4\u05E4\u05E7\u05D5\u05D3\u05D4 "\u05D4\u05E6\u05D2\u05EA \u05DB\u05DC \u05D4\u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05D1\u05DE\u05E1\u05DE\u05DA \u05D4\u05E0\u05D5\u05DB\u05D7\u05D9" \u05D0\u05D5 \u05D4\u05E9\u05EA\u05DE\u05E9 \u05D1\u05EA\u05E4\u05E8\u05D9\u05D8 \u05D4\u05D4\u05E7\u05E9\u05E8 \u05E9\u05DC \u05D4\u05E7\u05D5\u05D1\u05E5 \u05D1\u05E1\u05D9\u05D9\u05E8 \u05D4\u05E7\u05D1\u05E6\u05D9\u05DD.',
+  "setting.show.changed": "\u05E9\u05D5\u05E0\u05D4",
+  "setting.show.restored": "\u05E9\u05D5\u05D7\u05D6\u05E8",
+  "setting.show.added": "\u05E0\u05D5\u05E1\u05E3",
+  "setting.show.removed": "\u05D4\u05D5\u05E1\u05E8",
+  "setting.line-heading": "\u05DE\u05D7\u05D5\u05D5\u05DF \u05E9\u05D5\u05E8\u05D4",
+  "setting.line-width.name": "\u05E8\u05D5\u05D7\u05D1",
+  "setting.line-width.desc": "\u05E8\u05D5\u05D7\u05D1 \u05DE\u05D7\u05D5\u05D5\u05DF \u05D4\u05E7\u05D5 \u05D4\u05D0\u05E0\u05DB\u05D9 (\u05D1\u05E4\u05D9\u05E7\u05E1\u05DC\u05D9\u05DD).",
+  "setting.gutter-heading.name": "\u05DE\u05D7\u05D5\u05D5\u05DF \u05E9\u05D5\u05DC\u05D9\u05D9\u05DD",
+  "setting.gutter-heading.prefix": "\u05EA\u05D5\u05D5\u05D9 \u05DE\u05D7\u05D5\u05D5\u05DF \u05D4\u05E1\u05D5\u05D2 \u05D1\u05E9\u05D5\u05DC\u05D9\u05D9\u05DD (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "\u05EA\u05D5 \u05E9\u05D9\u05E0\u05D5\u05D9",
+  "setting.gutter-added.name": "\u05EA\u05D5 \u05D4\u05D5\u05E1\u05E4\u05D4",
+  "setting.gutter-restored.name": "\u05EA\u05D5 \u05E9\u05D7\u05D6\u05D5\u05E8",
+  "setting.gutter-removed.name": "\u05EA\u05D5 \u05D4\u05E1\u05E8\u05D4",
+  "modal.title": "\u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4",
+  "modal.no-changes": "\u05D0\u05D9\u05DF \u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD",
+  "modal.identical-to-current": "\u05D6\u05D4\u05D4 \u05DC\u05E0\u05D5\u05DB\u05D7\u05D9",
+  "modal.restore-original": "\u05E9\u05D7\u05D6\u05D5\u05E8 \u05D4\u05DE\u05E7\u05D5\u05E8",
+  "modal.remove-history": "\u05D4\u05E1\u05E8\u05EA \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D9\u05EA \u05D4\u05E7\u05D5\u05D1\u05E5",
+  "modal.previous-difference": "\u05D4\u05D4\u05D1\u05D3\u05DC \u05D4\u05E7\u05D5\u05D3\u05DD",
+  "modal.next-difference": "\u05D4\u05D4\u05D1\u05D3\u05DC \u05D4\u05D1\u05D0",
+  "modal.mode.patch": "\u05D4\u05E6\u05D2\u05EA \u05D8\u05DC\u05D0\u05D9",
+  "modal.mode.inline": "\u05DE\u05D5\u05D8\u05DE\u05E2",
+  "modal.mode.line-by-line": "\u05E9\u05D5\u05E8\u05D4 \u05D0\u05D7\u05E8 \u05E9\u05D5\u05E8\u05D4",
+  "modal.mode.side-by-side": "\u05D6\u05D4 \u05DC\u05E6\u05D3 \u05D6\u05D4",
+  "modal.confirm.cancel": "\u05D1\u05D9\u05D8\u05D5\u05DC",
+  "modal.confirm.restore.title": "\u05E9\u05D7\u05D6\u05D5\u05E8 \u05D4\u05E7\u05D5\u05D1\u05E5 \u05D4\u05DE\u05E7\u05D5\u05E8\u05D9",
+  "modal.confirm.restore.message": "\u05D4\u05D0\u05DD \u05D0\u05EA\u05D4 \u05D1\u05D8\u05D5\u05D7 \u05E9\u05D1\u05E8\u05E6\u05D5\u05E0\u05DA \u05DC\u05E9\u05D7\u05D6\u05E8 \u05E7\u05D5\u05D1\u05E5 \u05D6\u05D4 \u05DC\u05DE\u05E6\u05D1\u05D5 \u05D4\u05DE\u05E7\u05D5\u05E8\u05D9? \u05DB\u05DC \u05D4\u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05D4\u05E0\u05D5\u05DB\u05D7\u05D9\u05D9\u05DD \u05D9\u05D0\u05D1\u05D3\u05D5 \u05D5\u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D9\u05EA \u05DE\u05E2\u05E7\u05D1 \u05D4\u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05EA\u05D0\u05D5\u05E4\u05E1. \u05DC\u05D0 \u05E0\u05D9\u05EA\u05DF \u05DC\u05D1\u05D8\u05DC \u05E4\u05E2\u05D5\u05DC\u05D4 \u05D6\u05D5.",
+  "modal.confirm.restore.button": "\u05E9\u05D7\u05D6\u05D5\u05E8 \u05D4\u05E7\u05D5\u05D1\u05E5",
+  "modal.confirm.remove.title": "\u05D4\u05E1\u05E8\u05EA \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D9\u05EA \u05D4\u05E7\u05D5\u05D1\u05E5",
+  "modal.confirm.remove.message": "\u05D4\u05D0\u05DD \u05D0\u05EA\u05D4 \u05D1\u05D8\u05D5\u05D7 \u05E9\u05D1\u05E8\u05E6\u05D5\u05E0\u05DA \u05DC\u05D4\u05E1\u05D9\u05E8 \u05D0\u05EA \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D9\u05EA \u05DE\u05E2\u05E7\u05D1 \u05D4\u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05DC\u05E7\u05D5\u05D1\u05E5 \u05D6\u05D4? \u05DC\u05D0 \u05E0\u05D9\u05EA\u05DF \u05DC\u05D1\u05D8\u05DC \u05E4\u05E2\u05D5\u05DC\u05D4 \u05D6\u05D5.",
+  "modal.confirm.remove.button": "\u05D4\u05E1\u05E8\u05EA \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4",
+  "modal.confirm.revert.title": "\u05D1\u05D9\u05D8\u05D5\u05DC \u05E9\u05D9\u05E0\u05D5\u05D9 \u05D6\u05D4",
+  "modal.confirm.revert.message": "\u05DC\u05D1\u05D8\u05DC \u05E9\u05D9\u05E0\u05D5\u05D9 \u05D6\u05D4 \u05D5\u05DC\u05D7\u05D6\u05D5\u05E8 \u05DC\u05D1\u05E1\u05D9\u05E1 \u05D4\u05E0\u05D1\u05D7\u05E8? \u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05D0\u05D7\u05E8\u05D9\u05DD \u05E0\u05E9\u05DE\u05E8\u05D9\u05DD.",
+  "modal.confirm.revert.button": "\u05D1\u05D9\u05D8\u05D5\u05DC \u05E9\u05D9\u05E0\u05D5\u05D9",
+  "modal.search-versions": "\u05D7\u05D9\u05E4\u05D5\u05E9 \u05D2\u05E8\u05E1\u05D0\u05D5\u05EA",
+  "modal.version.baseline": "\u05E0\u05D5\u05DB\u05D7\u05D9",
+  "modal.version.numbered": "\u05D2\u05E8\u05E1\u05D4 {number}",
+  "modal.version.current": "\u05E0\u05D5\u05DB\u05D7\u05D9",
+  "modal.version.original": "\u05DE\u05E7\u05D5\u05E8\u05D9",
+  "modal.no-versions-match": "\u05D0\u05D9\u05DF \u05D2\u05E8\u05E1\u05D0\u05D5\u05EA \u05D4\u05EA\u05D5\u05D0\u05DE\u05D5\u05EA \u05DC\u05D7\u05D9\u05E4\u05D5\u05E9",
+  "modal.no-snapshots-yet": "\u05D0\u05D9\u05DF \u05E2\u05D3\u05D9\u05D9\u05DF \u05EA\u05E6\u05DC\u05D5\u05DE\u05D9 \u05D1\u05D9\u05E0\u05D9\u05D9\u05DD",
+  "modal.revert-hunk": "\u05D1\u05D9\u05D8\u05D5\u05DC \u05E9\u05D9\u05E0\u05D5\u05D9 \u05D6\u05D4",
+  "modal.copy": "\u05D4\u05E2\u05EA\u05E7\u05D4"
+};
+
+// lang/hu.json
+var hu_default = {
+  "command.go-to-next-change": "Ugr\xE1s a k\xF6vetkez\u0151 m\xF3dos\xEDt\xE1sra",
+  "command.go-to-previous-change": "Ugr\xE1s az el\u0151z\u0151 m\xF3dos\xEDt\xE1sra",
+  "command.reset-lines-all": "\xD6sszes sork\xF6vet\xE9si pillanatk\xE9p vissza\xE1ll\xEDt\xE1sa",
+  "command.reset-lines": "Az aktu\xE1lis dokumentum sork\xF6vet\xE9si pillanatk\xE9p\xE9nek vissza\xE1ll\xEDt\xE1sa",
+  "command.show-diff": "Az aktu\xE1lis dokumentum \xF6sszes m\xF3dos\xEDt\xE1s\xE1nak megjelen\xEDt\xE9se",
+  "notice.no-changes-to-navigate": "Nincs m\xF3dos\xEDt\xE1s, amelyek k\xF6z\xF6tt l\xE9pkedni lehetne",
+  "notice.all-snapshots-deleted": "Az \xF6sszes pillanatk\xE9p-adat t\xF6r\xF6lve",
+  "notice.current-snapshot-deleted": "Az aktu\xE1lis pillanatk\xE9p-adatok t\xF6r\xF6lve",
+  "notice.file-restored": "A f\xE1jl vissza\xE1ll\xEDtva az eredeti \xE1llapot\xE1ba",
+  "notice.file-restore-failed": "Nem siker\xFClt vissza\xE1ll\xEDtani a f\xE1jlt az eredeti \xE1llapot\xE1ba",
+  "notice.copied": "M\xE1solva!",
+  "notice.no-saved-history": "Ehhez a f\xE1jlhoz nincs mentett el\u0151zm\xE9ny.",
+  "notice.invalid-exclude-pattern": "Helyi el\u0151zm\xE9nyek: a kiz\xE1rt \xFAtvonalak mint\xE1ja nem \xE9rv\xE9nyes regul\xE1ris kifejez\xE9s, ez\xE9rt figyelmen k\xEDv\xFCl marad.",
+  "menu.local-history": "Helyi el\u0151zm\xE9nyek",
+  "menu.show-changes": "M\xF3dos\xEDt\xE1sok megjelen\xEDt\xE9se",
+  "status.lines-changed": "{count} sor m\xF3dosult",
+  "setting.type.name": "T\xEDpus",
+  "setting.type.desc": "V\xE1lasszon a f\xFCgg\u0151leges vonal \xE9s a marg\xF3n megjelen\u0151 pont k\xF6z\xF6tt.",
+  "setting.type.option.line": "F\xFCgg\u0151leges vonal",
+  "setting.type.option.dot": "Karakter a marg\xF3n",
+  "setting.allowed-extensions.name": "Enged\xE9lyezett f\xE1jlkiterjeszt\xE9sek",
+  "setting.allowed-extensions.desc": "Vessz\u0151vel elv\xE1lasztott lista azokr\xF3l a f\xE1jlkiterjeszt\xE9sekr\u0151l, amelyek m\xF3dos\xEDt\xE1sait k\xF6vetni kell (pl. md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "Kiz\xE1rt \xFAtvonalak",
+  "setting.exclude-paths.desc": "Kis- \xE9s nagybet\u0171kre nem \xE9rz\xE9keny regul\xE1ris kifejez\xE9s, amelyet a t\xE1rol\xF3hoz viszony\xEDtott \xFAtvonalra illeszt. Minden f\xE1jl, amelynek \xFAtvonala illeszkedik, soha nem lesz k\xF6vetve (pl. \\.excalidraw\\.md$ vagy (^|/)Templates/). Az alap\xE9rtelmezett be\xE1ll\xEDt\xE1s kiz\xE1rja a Templates mapp\xE1kat \xE9s az Excalidraw rajzokat. Hagyja \xFCresen az \xF6sszes k\xF6vet\xE9s\xE9hez.",
+  "setting.keep.name": "El\u0151zm\xE9nyek meg\u0151rz\xE9se eddig",
+  "setting.keep.desc": "A rev\xEDzi\xF3s el\u0151zm\xE9nyek tiszt\xEDt\xE1s\xE1nak strat\xE9gi\xE1ja",
+  "setting.keep.option.app": "Alkalmaz\xE1s bez\xE1r\xE1sa",
+  "setting.keep.option.file": "F\xE1jl bez\xE1r\xE1sa",
+  "setting.ignore-new-files.name": "\xDAj f\xE1jlok mell\u0151z\xE9se",
+  "setting.ignore-new-files.desc": "Ne k\xF6vesse a k\xF6vet\xE9s ind\xEDt\xE1sa ut\xE1n l\xE9trehozott f\xE1jlok m\xF3dos\xEDt\xE1sait",
+  "setting.persist.name": "El\u0151zm\xE9nyek meg\u0151rz\xE9se \xFAjraind\xEDt\xE1sokon \xE1t",
+  "setting.persist.desc": 'Mentse az el\u0151zm\xE9nyeket lemezre, hogy a kiemel\xE9sek t\xFAl\xE9ljenek egy \xFAjraind\xEDt\xE1st. Ehhez az "El\u0151zm\xE9nyek meg\u0151rz\xE9se eddig" be\xE1ll\xEDt\xE1snak az Alkalmaz\xE1s bez\xE1r\xE1sa \xE9rt\xE9ken kell \xE1llnia.',
+  "setting.max-entries.name": "T\xE1rolt f\xE1jlok maxim\xE1lis sz\xE1ma",
+  "setting.max-entries.desc": "Korl\xE1t arra, h\xE1ny f\xE1jl el\u0151zm\xE9nye marad meg a lemezen. A legr\xE9gebbiek t\xF6rl\u0151dnek el\u0151sz\xF6r. \xC1ll\xEDtsa 0-ra a kikapcsol\xE1shoz.",
+  "setting.max-age-days.name": "El\u0151zm\xE9nyek maxim\xE1lis kora (nap)",
+  "setting.max-age-days.desc": "A megadott napn\xE1l r\xE9gebbi mentett el\u0151zm\xE9nyek eldob\xE1sa. \xC1ll\xEDtsa 0-ra a kikapcsol\xE1shoz.",
+  "setting.snapshots-heading": "Id\u0151vonal-pillanatk\xE9pek",
+  "setting.snapshots-enabled.name": "K\xF6ztes verzi\xF3k r\xF6gz\xEDt\xE9se",
+  "setting.snapshots-enabled.desc": "Tartson fenn egy id\u0151vonalat a kor\xE1bbi verzi\xF3kr\xF3l, hogy ne csak az eredetihez, hanem egy k\xF6ztes ponthoz is hasonl\xEDthasson.",
+  "setting.snapshots-edit-threshold.name": "R\xF6gz\xEDt\xE9s ennyink\xE9nt (m\xF3dos\xEDt\xE1s)",
+  "setting.snapshots-edit-threshold.desc": "Verzi\xF3 ment\xE9se ennyi m\xF3dos\xEDt\xE1s ut\xE1n. \xC1ll\xEDtsa 0-ra a m\xF3dos\xEDt\xE1si kiv\xE1lt\xF3 kikapcsol\xE1s\xE1hoz.",
+  "setting.snapshots-interval.name": "R\xF6gz\xEDt\xE9s ennyink\xE9nt (perc)",
+  "setting.snapshots-interval.desc": "Verzi\xF3 ment\xE9se ennyi perc szerkeszt\xE9s ut\xE1n. \xC1ll\xEDtsa 0-ra az id\u0151 alap\xFA kiv\xE1lt\xF3 kikapcsol\xE1s\xE1hoz.",
+  "setting.max-version-age-days.name": "Verzi\xF3k maxim\xE1lis kora (nap)",
+  "setting.max-version-age-days.desc": "A megadott napn\xE1l r\xE9gebbi k\xF6ztes verzi\xF3k eldob\xE1sa (ez az els\u0151dleges korl\xE1t). \xC1ll\xEDtsa 0-ra a kikapcsol\xE1shoz.",
+  "setting.max-versions.name": "Verzi\xF3k maxim\xE1lis sz\xE1ma f\xE1jlonk\xE9nt",
+  "setting.max-versions.desc": "Biztons\xE1gi korl\xE1t a f\xE1jlonk\xE9nt meg\u0151rz\xF6tt k\xF6ztes verzi\xF3k sz\xE1m\xE1ra. A legr\xE9gebbiek t\xF6rl\u0151dnek el\u0151sz\xF6r. \xC1ll\xEDtsa 0-ra a kikapcsol\xE1shoz.",
+  "setting.show-heading": "Jelz\u0151 megjelen\xEDt\xE9se ehhez",
+  "setting.show.desc": 'A sorjelz\u0151k csak szerkeszt\xE9si m\xF3dban (forr\xE1s \xE9s \xE9l\u0151 el\u0151n\xE9zet) jelennek meg. Olvas\xE1si m\xF3dban nincsenek be\xE1gyazott jelz\u0151k, de a m\xF3dos\xEDt\xE1si el\u0151zm\xE9nyek tov\xE1bbra is el\xE9rhet\u0151k: futtassa az "Az aktu\xE1lis dokumentum \xF6sszes m\xF3dos\xEDt\xE1s\xE1nak megjelen\xEDt\xE9se" parancsot, vagy haszn\xE1lja a f\xE1jl helyi men\xFCj\xE9t a f\xE1jlkezel\u0151ben.',
+  "setting.show.changed": "M\xF3dos\xEDtva",
+  "setting.show.restored": "Vissza\xE1ll\xEDtva",
+  "setting.show.added": "Hozz\xE1adva",
+  "setting.show.removed": "Elt\xE1vol\xEDtva",
+  "setting.line-heading": "Sorjelz\u0151",
+  "setting.line-width.name": "Sz\xE9less\xE9g",
+  "setting.line-width.desc": "A f\xFCgg\u0151leges sorjelz\u0151 sz\xE9less\xE9ge (k\xE9ppontban).",
+  "setting.gutter-heading.name": "Marg\xF3jelz\u0151",
+  "setting.gutter-heading.prefix": "A marg\xF3t\xEDpus-jelz\u0151 karakterei (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "M\xF3dos\xEDt\xE1s karaktere",
+  "setting.gutter-added.name": "Hozz\xE1ad\xE1s karaktere",
+  "setting.gutter-restored.name": "Vissza\xE1ll\xEDt\xE1s karaktere",
+  "setting.gutter-removed.name": "Elt\xE1vol\xEDt\xE1s karaktere",
+  "modal.title": "El\u0151zm\xE9nyek",
+  "modal.no-changes": "Nincs m\xF3dos\xEDt\xE1s",
+  "modal.identical-to-current": "Megegyezik a jelenlegivel",
+  "modal.restore-original": "Eredeti vissza\xE1ll\xEDt\xE1sa",
+  "modal.remove-history": "F\xE1jlel\u0151zm\xE9nyek elt\xE1vol\xEDt\xE1sa",
+  "modal.previous-difference": "El\u0151z\u0151 elt\xE9r\xE9s",
+  "modal.next-difference": "K\xF6vetkez\u0151 elt\xE9r\xE9s",
+  "modal.mode.patch": "Folt megjelen\xEDt\xE9se",
+  "modal.mode.inline": "Be\xE1gyazott",
+  "modal.mode.line-by-line": "Soronk\xE9nt",
+  "modal.mode.side-by-side": "Egym\xE1s mellett",
+  "modal.confirm.cancel": "M\xE9gse",
+  "modal.confirm.restore.title": "Eredeti f\xE1jl vissza\xE1ll\xEDt\xE1sa",
+  "modal.confirm.restore.message": "Biztosan vissza szeretn\xE9 \xE1ll\xEDtani ezt a f\xE1jlt az eredeti \xE1llapot\xE1ba? Minden jelenlegi m\xF3dos\xEDt\xE1s elveszik, \xE9s a m\xF3dos\xEDt\xE1sk\xF6vet\xE9si el\u0151zm\xE9nyek vissza\xE1llnak. Ez a m\u0171velet nem vonhat\xF3 vissza.",
+  "modal.confirm.restore.button": "F\xE1jl vissza\xE1ll\xEDt\xE1sa",
+  "modal.confirm.remove.title": "F\xE1jlel\u0151zm\xE9nyek elt\xE1vol\xEDt\xE1sa",
+  "modal.confirm.remove.message": "Biztosan el szeretn\xE9 t\xE1vol\xEDtani ennek a f\xE1jlnak a m\xF3dos\xEDt\xE1sk\xF6vet\xE9si el\u0151zm\xE9nyeit? Ez a m\u0171velet nem vonhat\xF3 vissza.",
+  "modal.confirm.remove.button": "El\u0151zm\xE9nyek elt\xE1vol\xEDt\xE1sa",
+  "modal.confirm.revert.title": "M\xF3dos\xEDt\xE1s visszavon\xE1sa",
+  "modal.confirm.revert.message": "Visszavonja ezt a m\xF3dos\xEDt\xE1st a kijel\xF6lt alaphoz? A t\xF6bbi m\xF3dos\xEDt\xE1s megmarad.",
+  "modal.confirm.revert.button": "Visszavon\xE1s",
+  "modal.search-versions": "Verzi\xF3k keres\xE9se",
+  "modal.version.baseline": "Jelenlegi",
+  "modal.version.numbered": "{number}. verzi\xF3",
+  "modal.version.current": "Jelenlegi",
+  "modal.version.original": "Eredeti",
+  "modal.no-versions-match": "Nincs a keres\xE9snek megfelel\u0151 verzi\xF3",
+  "modal.no-snapshots-yet": "M\xE9g nincsenek k\xF6ztes pillanatk\xE9pek",
+  "modal.revert-hunk": "M\xF3dos\xEDt\xE1s visszavon\xE1sa",
+  "modal.copy": "M\xE1sol\xE1s"
+};
+
+// lang/id.json
+var id_default = {
+  "command.go-to-next-change": "Buka perubahan berikutnya",
+  "command.go-to-previous-change": "Buka perubahan sebelumnya",
+  "command.reset-lines-all": "Setel ulang semua snapshot pelacak baris",
+  "command.reset-lines": "Setel ulang snapshot pelacak baris dokumen saat ini",
+  "command.show-diff": "Tampilkan semua perubahan dokumen saat ini",
+  "notice.no-changes-to-navigate": "Tidak ada perubahan untuk dijelajahi",
+  "notice.all-snapshots-deleted": "Semua data snapshot dihapus",
+  "notice.current-snapshot-deleted": "Data snapshot saat ini dihapus",
+  "notice.file-restored": "Berkas dipulihkan ke keadaan semula",
+  "notice.file-restore-failed": "Gagal memulihkan berkas ke keadaan semula",
+  "notice.copied": "Disalin!",
+  "notice.no-saved-history": "Tidak ada riwayat tersimpan untuk berkas ini.",
+  "notice.invalid-exclude-pattern": "Riwayat lokal: pola jalur yang dikecualikan bukan ekspresi reguler yang valid dan diabaikan.",
+  "menu.local-history": "Riwayat lokal",
+  "menu.show-changes": "Tampilkan perubahan",
+  "status.lines-changed": "{count} baris diubah",
+  "setting.type.name": "Tipe",
+  "setting.type.desc": "Pilih antara garis vertikal atau titik di selokan.",
+  "setting.type.option.line": "Garis vertikal",
+  "setting.type.option.dot": "Karakter di selokan",
+  "setting.allowed-extensions.name": "Ekstensi berkas yang diizinkan",
+  "setting.allowed-extensions.desc": "Daftar ekstensi berkas yang dipisahkan koma untuk dilacak perubahannya (mis. md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "Jalur yang dikecualikan",
+  "setting.exclude-paths.desc": "Ekspresi reguler yang tidak peka huruf besar-kecil, dicocokkan dengan jalur relatif terhadap vault. Berkas mana pun yang jalurnya cocok tidak akan pernah dilacak (mis. \\.excalidraw\\.md$ atau (^|/)Templates/). Bawaan mengecualikan folder Templates dan gambar Excalidraw. Biarkan kosong untuk melacak semuanya.",
+  "setting.keep.name": "Simpan riwayat hingga",
+  "setting.keep.desc": "Strategi untuk membersihkan riwayat revisi",
+  "setting.keep.option.app": "Aplikasi ditutup",
+  "setting.keep.option.file": "Berkas ditutup",
+  "setting.ignore-new-files.name": "Abaikan berkas baru",
+  "setting.ignore-new-files.desc": "Jangan lacak perubahan pada berkas yang dibuat setelah pelacakan dimulai",
+  "setting.persist.name": "Pertahankan riwayat setelah dimulai ulang",
+  "setting.persist.desc": 'Simpan riwayat ke disk agar sorotan bertahan setelah dimulai ulang. Memerlukan "simpan riwayat hingga" disetel ke aplikasi ditutup.',
+  "setting.max-entries.name": "Maks berkas tersimpan",
+  "setting.max-entries.desc": "Batas jumlah riwayat berkas yang disimpan di disk. Yang terlama dihapus lebih dahulu. Setel ke 0 untuk menonaktifkan.",
+  "setting.max-age-days.name": "Usia maks riwayat (hari)",
+  "setting.max-age-days.desc": "Buang riwayat tersimpan yang lebih lama dari jumlah hari ini. Setel ke 0 untuk menonaktifkan.",
+  "setting.snapshots-heading": "Snapshot lini masa",
+  "setting.snapshots-enabled.name": "Ambil versi antara",
+  "setting.snapshots-enabled.desc": "Simpan lini masa versi sebelumnya agar Anda dapat membandingkan dengan titik di antaranya, bukan hanya versi asli.",
+  "setting.snapshots-edit-threshold.name": "Ambil setiap (suntingan)",
+  "setting.snapshots-edit-threshold.desc": "Ambil versi setelah sejumlah suntingan ini. Setel ke 0 untuk menonaktifkan pemicu suntingan.",
+  "setting.snapshots-interval.name": "Ambil setiap (menit)",
+  "setting.snapshots-interval.desc": "Ambil versi setelah sejumlah menit penyuntingan ini. Setel ke 0 untuk menonaktifkan pemicu waktu.",
+  "setting.max-version-age-days.name": "Usia maks versi (hari)",
+  "setting.max-version-age-days.desc": "Buang versi antara yang lebih lama dari jumlah hari ini (batas utama). Setel ke 0 untuk menonaktifkan.",
+  "setting.max-versions.name": "Maks versi per berkas",
+  "setting.max-versions.desc": "Batas pengaman versi antara yang disimpan per berkas. Yang terlama dihapus lebih dahulu. Setel ke 0 untuk menonaktifkan.",
+  "setting.show-heading": "Tampilkan indikator untuk",
+  "setting.show.desc": 'Indikator baris hanya ditampilkan dalam mode penyuntingan (sumber dan pratinjau langsung). Dalam mode baca tidak ada indikator sebaris, tetapi riwayat perubahan tetap dapat diakses: jalankan perintah "Tampilkan semua perubahan dokumen saat ini" atau gunakan menu konteks berkas di penjelajah berkas.',
+  "setting.show.changed": "Diubah",
+  "setting.show.restored": "Dipulihkan",
+  "setting.show.added": "Ditambahkan",
+  "setting.show.removed": "Dihapus",
+  "setting.line-heading": "Indikator baris",
+  "setting.line-width.name": "Lebar",
+  "setting.line-width.desc": "Lebar indikator garis vertikal (dalam piksel).",
+  "setting.gutter-heading.name": "Indikator selokan",
+  "setting.gutter-heading.prefix": "Karakter indikator tipe selokan (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Karakter perubahan",
+  "setting.gutter-added.name": "Karakter tambahan",
+  "setting.gutter-restored.name": "Karakter pulihan",
+  "setting.gutter-removed.name": "Karakter hapusan",
+  "modal.title": "Riwayat",
+  "modal.no-changes": "Tidak ada perubahan",
+  "modal.identical-to-current": "Sama dengan yang saat ini",
+  "modal.restore-original": "Pulihkan versi asli",
+  "modal.remove-history": "Hapus riwayat berkas",
+  "modal.previous-difference": "Perbedaan sebelumnya",
+  "modal.next-difference": "Perbedaan berikutnya",
+  "modal.mode.patch": "Tampilkan patch",
+  "modal.mode.inline": "Sebaris",
+  "modal.mode.line-by-line": "Baris demi baris",
+  "modal.mode.side-by-side": "Berdampingan",
+  "modal.confirm.cancel": "Batal",
+  "modal.confirm.restore.title": "Pulihkan berkas asli",
+  "modal.confirm.restore.message": "Anda yakin ingin memulihkan berkas ini ke keadaan semula? Semua perubahan saat ini akan hilang dan riwayat pelacakan perubahan akan disetel ulang. Tindakan ini tidak dapat dibatalkan.",
+  "modal.confirm.restore.button": "Pulihkan berkas",
+  "modal.confirm.remove.title": "Hapus riwayat berkas",
+  "modal.confirm.remove.message": "Anda yakin ingin menghapus riwayat pelacakan perubahan untuk berkas ini? Tindakan ini tidak dapat dibatalkan.",
+  "modal.confirm.remove.button": "Hapus riwayat",
+  "modal.confirm.revert.title": "Kembalikan perubahan ini",
+  "modal.confirm.revert.message": "Kembalikan perubahan ini ke basis yang dipilih? Perubahan lain tetap dipertahankan.",
+  "modal.confirm.revert.button": "Kembalikan",
+  "modal.search-versions": "Cari versi",
+  "modal.version.baseline": "Saat ini",
+  "modal.version.numbered": "Versi {number}",
+  "modal.version.current": "Saat ini",
+  "modal.version.original": "Asli",
+  "modal.no-versions-match": "Tidak ada versi yang cocok dengan pencarian",
+  "modal.no-snapshots-yet": "Belum ada snapshot antara",
+  "modal.revert-hunk": "Kembalikan perubahan ini",
+  "modal.copy": "Salin"
+};
+
+// lang/it.json
+var it_default = {
+  "command.go-to-next-change": "Vai alla modifica successiva",
+  "command.go-to-previous-change": "Vai alla modifica precedente",
+  "command.reset-lines-all": "Reimposta tutte le istantanee del tracker delle righe",
+  "command.reset-lines": "Reimposta l'istantanea del tracker delle righe del documento corrente",
+  "command.show-diff": "Mostra tutte le modifiche del documento corrente",
+  "notice.no-changes-to-navigate": "Nessuna modifica da scorrere",
+  "notice.all-snapshots-deleted": "Tutti i dati delle istantanee eliminati",
+  "notice.current-snapshot-deleted": "Dati dell'istantanea corrente eliminati",
+  "notice.file-restored": "File ripristinato allo stato originale",
+  "notice.file-restore-failed": "Impossibile ripristinare il file allo stato originale",
+  "notice.copied": "Copiato!",
+  "notice.no-saved-history": "Non c'\xE8 una cronologia salvata per questo file.",
+  "notice.invalid-exclude-pattern": "Cronologia locale: il pattern dei percorsi esclusi non \xE8 un'espressione regolare valida e viene ignorato.",
+  "menu.local-history": "Cronologia locale",
+  "menu.show-changes": "Mostra modifiche",
+  "status.lines-changed": "{count} righe modificate",
+  "setting.type.name": "Tipo",
+  "setting.type.desc": "Scegli tra una linea verticale e un punto nel margine.",
+  "setting.type.option.line": "Linea verticale",
+  "setting.type.option.dot": "Carattere nel margine",
+  "setting.allowed-extensions.name": "Estensioni di file consentite",
+  "setting.allowed-extensions.desc": "Elenco di estensioni di file separate da virgole di cui tracciare le modifiche (es. md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "Percorsi esclusi",
+  "setting.exclude-paths.desc": "Un'espressione regolare senza distinzione tra maiuscole e minuscole confrontata con il percorso relativo al vault. Qualsiasi file il cui percorso corrisponde non viene mai tracciato (es. \\.excalidraw\\.md$ o (^|/)Templates/). Per impostazione predefinita vengono esclusi le cartelle Templates e i disegni Excalidraw. Lascia vuoto per tracciare tutto.",
+  "setting.keep.name": "Conserva la cronologia fino a",
+  "setting.keep.desc": "Strategia per la pulizia della cronologia delle revisioni",
+  "setting.keep.option.app": "Chiusura dell'app",
+  "setting.keep.option.file": "Chiusura del file",
+  "setting.ignore-new-files.name": "Ignora i nuovi file",
+  "setting.ignore-new-files.desc": "Non tracciare le modifiche nei file creati dopo l'avvio del tracciamento",
+  "setting.persist.name": "Mantieni la cronologia tra i riavvii",
+  "setting.persist.desc": `Salva la cronologia su disco in modo che le evidenziazioni sopravvivano a un riavvio. Richiede che "Conserva la cronologia fino a" sia impostato sulla chiusura dell'app.`,
+  "setting.max-entries.name": "Numero massimo di file memorizzati",
+  "setting.max-entries.desc": "Limite di quante cronologie di file vengono conservate su disco. Le pi\xF9 vecchie vengono rimosse per prime. Imposta su 0 per disattivare.",
+  "setting.max-age-days.name": "Et\xE0 massima della cronologia (giorni)",
+  "setting.max-age-days.desc": "Scarta la cronologia salvata pi\xF9 vecchia di questo numero di giorni. Imposta su 0 per disattivare.",
+  "setting.snapshots-heading": "Istantanee della cronologia temporale",
+  "setting.snapshots-enabled.name": "Acquisisci versioni intermedie",
+  "setting.snapshots-enabled.desc": "Mantieni una cronologia temporale delle versioni precedenti per poter confrontare con un punto intermedio, non solo con l'originale.",
+  "setting.snapshots-edit-threshold.name": "Acquisisci ogni (modifiche)",
+  "setting.snapshots-edit-threshold.desc": "Acquisisci una versione dopo questo numero di modifiche. Imposta su 0 per disattivare l'attivazione in base alle modifiche.",
+  "setting.snapshots-interval.name": "Acquisisci ogni (minuti)",
+  "setting.snapshots-interval.desc": "Acquisisci una versione dopo questo numero di minuti di modifica. Imposta su 0 per disattivare l'attivazione in base al tempo.",
+  "setting.max-version-age-days.name": "Et\xE0 massima delle versioni (giorni)",
+  "setting.max-version-age-days.desc": "Scarta le versioni intermedie pi\xF9 vecchie di questo numero di giorni (il limite principale). Imposta su 0 per disattivare.",
+  "setting.max-versions.name": "Numero massimo di versioni per file",
+  "setting.max-versions.desc": "Limite di sicurezza sulle versioni intermedie conservate per file. Le pi\xF9 vecchie vengono rimosse per prime. Imposta su 0 per disattivare.",
+  "setting.show-heading": "Mostra l'indicatore per",
+  "setting.show.desc": `Gli indicatori di riga vengono mostrati solo nelle modalit\xE0 di modifica (sorgente e anteprima dal vivo). In modalit\xE0 lettura non ci sono indicatori in linea, ma la cronologia delle modifiche resta raggiungibile: esegui il comando "Mostra tutte le modifiche del documento corrente" oppure usa il menu contestuale del file nell'esplora file.`,
+  "setting.show.changed": "Modificato",
+  "setting.show.restored": "Ripristinato",
+  "setting.show.added": "Aggiunto",
+  "setting.show.removed": "Rimosso",
+  "setting.line-heading": "Indicatore di riga",
+  "setting.line-width.name": "Larghezza",
+  "setting.line-width.desc": "Larghezza dell'indicatore a linea verticale (in pixel).",
+  "setting.gutter-heading.name": "Indicatore nel margine",
+  "setting.gutter-heading.prefix": "Caratteri dell'indicatore di tipo nel margine (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Carattere di modifica",
+  "setting.gutter-added.name": "Carattere di aggiunta",
+  "setting.gutter-restored.name": "Carattere di ripristino",
+  "setting.gutter-removed.name": "Carattere di rimozione",
+  "modal.title": "Cronologia",
+  "modal.no-changes": "Nessuna modifica",
+  "modal.identical-to-current": "Identico all'attuale",
+  "modal.restore-original": "Ripristina l'originale",
+  "modal.remove-history": "Rimuovi la cronologia del file",
+  "modal.previous-difference": "Differenza precedente",
+  "modal.next-difference": "Differenza successiva",
+  "modal.mode.patch": "Mostra patch",
+  "modal.mode.inline": "In linea",
+  "modal.mode.line-by-line": "Riga per riga",
+  "modal.mode.side-by-side": "Affiancato",
+  "modal.confirm.cancel": "Annulla",
+  "modal.confirm.restore.title": "Ripristina il file originale",
+  "modal.confirm.restore.message": "Vuoi davvero ripristinare questo file al suo stato originale? Tutte le modifiche correnti andranno perse e la cronologia di tracciamento delle modifiche verr\xE0 reimpostata. Questa azione non pu\xF2 essere annullata.",
+  "modal.confirm.restore.button": "Ripristina file",
+  "modal.confirm.remove.title": "Rimuovi la cronologia del file",
+  "modal.confirm.remove.message": "Vuoi davvero rimuovere la cronologia di tracciamento delle modifiche per questo file? Questa azione non pu\xF2 essere annullata.",
+  "modal.confirm.remove.button": "Rimuovi cronologia",
+  "modal.confirm.revert.title": "Ripristina questa modifica",
+  "modal.confirm.revert.message": "Ripristinare questa modifica alla base selezionata? Le altre modifiche vengono mantenute.",
+  "modal.confirm.revert.button": "Ripristina",
+  "modal.search-versions": "Cerca versioni",
+  "modal.version.baseline": "Attuale",
+  "modal.version.numbered": "Versione {number}",
+  "modal.version.current": "Attuale",
+  "modal.version.original": "Originale",
+  "modal.no-versions-match": "Nessuna versione corrisponde alla ricerca",
+  "modal.no-snapshots-yet": "Ancora nessuna istantanea intermedia",
+  "modal.revert-hunk": "Ripristina questa modifica",
+  "modal.copy": "Copia"
+};
+
+// lang/ja.json
+var ja_default = {
+  "command.go-to-next-change": "\u6B21\u306E\u5909\u66F4\u3078\u79FB\u52D5",
+  "command.go-to-previous-change": "\u524D\u306E\u5909\u66F4\u3078\u79FB\u52D5",
+  "command.reset-lines-all": "\u3059\u3079\u3066\u306E\u884C\u30C8\u30E9\u30C3\u30AB\u30FC\u30B9\u30CA\u30C3\u30D7\u30B7\u30E7\u30C3\u30C8\u3092\u30EA\u30BB\u30C3\u30C8",
+  "command.reset-lines": "\u73FE\u5728\u306E\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\u306E\u884C\u30C8\u30E9\u30C3\u30AB\u30FC\u30B9\u30CA\u30C3\u30D7\u30B7\u30E7\u30C3\u30C8\u3092\u30EA\u30BB\u30C3\u30C8",
+  "command.show-diff": "\u73FE\u5728\u306E\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\u306E\u3059\u3079\u3066\u306E\u5909\u66F4\u3092\u8868\u793A",
+  "notice.no-changes-to-navigate": "\u79FB\u52D5\u3067\u304D\u308B\u5909\u66F4\u304C\u3042\u308A\u307E\u305B\u3093",
+  "notice.all-snapshots-deleted": "\u3059\u3079\u3066\u306E\u30B9\u30CA\u30C3\u30D7\u30B7\u30E7\u30C3\u30C8\u30C7\u30FC\u30BF\u3092\u524A\u9664\u3057\u307E\u3057\u305F",
+  "notice.current-snapshot-deleted": "\u73FE\u5728\u306E\u30B9\u30CA\u30C3\u30D7\u30B7\u30E7\u30C3\u30C8\u30C7\u30FC\u30BF\u3092\u524A\u9664\u3057\u307E\u3057\u305F",
+  "notice.file-restored": "\u30D5\u30A1\u30A4\u30EB\u3092\u5143\u306E\u72B6\u614B\u306B\u5FA9\u5143\u3057\u307E\u3057\u305F",
+  "notice.file-restore-failed": "\u30D5\u30A1\u30A4\u30EB\u3092\u5143\u306E\u72B6\u614B\u306B\u5FA9\u5143\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F",
+  "notice.copied": "\u30B3\u30D4\u30FC\u3057\u307E\u3057\u305F\uFF01",
+  "notice.no-saved-history": "\u3053\u306E\u30D5\u30A1\u30A4\u30EB\u306B\u306F\u4FDD\u5B58\u3055\u308C\u305F\u5C65\u6B74\u304C\u3042\u308A\u307E\u305B\u3093\u3002",
+  "notice.invalid-exclude-pattern": "\u30ED\u30FC\u30AB\u30EB\u5C65\u6B74: \u9664\u5916\u30D1\u30B9\u306E\u30D1\u30BF\u30FC\u30F3\u304C\u6709\u52B9\u306A\u6B63\u898F\u8868\u73FE\u3067\u306F\u306A\u3044\u305F\u3081\u3001\u7121\u8996\u3055\u308C\u307E\u3059\u3002",
+  "menu.local-history": "\u30ED\u30FC\u30AB\u30EB\u5C65\u6B74",
+  "menu.show-changes": "\u5909\u66F4\u3092\u8868\u793A",
+  "status.lines-changed": "{count} \u884C\u304C\u5909\u66F4\u3055\u308C\u307E\u3057\u305F",
+  "setting.type.name": "\u7A2E\u985E",
+  "setting.type.desc": "\u30AC\u30BF\u30FC\uFF08\u884C\u756A\u53F7\u8107\u306E\u4F59\u767D\uFF09\u306B\u7E26\u7DDA\u3092\u8868\u793A\u3059\u308B\u304B\u70B9\u3092\u8868\u793A\u3059\u308B\u304B\u3092\u9078\u629E\u3057\u307E\u3059\u3002",
+  "setting.type.option.line": "\u7E26\u7DDA",
+  "setting.type.option.dot": "\u30AC\u30BF\u30FC\u306E\u6587\u5B57",
+  "setting.allowed-extensions.name": "\u5BFE\u8C61\u3068\u3059\u308B\u30D5\u30A1\u30A4\u30EB\u62E1\u5F35\u5B50",
+  "setting.allowed-extensions.desc": "\u5909\u66F4\u3092\u8FFD\u8DE1\u3059\u308B\u30D5\u30A1\u30A4\u30EB\u62E1\u5F35\u5B50\u306E\u30AB\u30F3\u30DE\u533A\u5207\u308A\u30EA\u30B9\u30C8\uFF08\u4F8B: md, txt, csv, json, yaml\uFF09",
+  "setting.exclude-paths.name": "\u9664\u5916\u3059\u308B\u30D1\u30B9",
+  "setting.exclude-paths.desc": "Vault \u304B\u3089\u306E\u76F8\u5BFE\u30D1\u30B9\u306B\u5BFE\u3057\u3066\u7167\u5408\u3055\u308C\u308B\u3001\u5927\u6587\u5B57\u3068\u5C0F\u6587\u5B57\u3092\u533A\u5225\u3057\u306A\u3044\u6B63\u898F\u8868\u73FE\u3067\u3059\u3002\u30D1\u30B9\u304C\u4E00\u81F4\u3059\u308B\u30D5\u30A1\u30A4\u30EB\u306F\u4E00\u5207\u8FFD\u8DE1\u3055\u308C\u307E\u305B\u3093\uFF08\u4F8B: \\.excalidraw\\.md$ \u307E\u305F\u306F (^|/)Templates/\uFF09\u3002\u30C7\u30D5\u30A9\u30EB\u30C8\u3067\u306F Templates \u30D5\u30A9\u30EB\u30C0\u3068 Excalidraw \u306E\u63CF\u753B\u3092\u9664\u5916\u3057\u307E\u3059\u3002\u3059\u3079\u3066\u3092\u8FFD\u8DE1\u3059\u308B\u306B\u306F\u7A7A\u306E\u307E\u307E\u306B\u3057\u307E\u3059\u3002",
+  "setting.keep.name": "\u5C65\u6B74\u3092\u4FDD\u6301\u3059\u308B\u671F\u9593",
+  "setting.keep.desc": "\u30EA\u30D3\u30B8\u30E7\u30F3\u5C65\u6B74\u3092\u6574\u7406\u3059\u308B\u65B9\u6CD5",
+  "setting.keep.option.app": "\u30A2\u30D7\u30EA\u3092\u9589\u3058\u308B\u307E\u3067",
+  "setting.keep.option.file": "\u30D5\u30A1\u30A4\u30EB\u3092\u9589\u3058\u308B\u307E\u3067",
+  "setting.ignore-new-files.name": "\u65B0\u898F\u30D5\u30A1\u30A4\u30EB\u3092\u7121\u8996",
+  "setting.ignore-new-files.desc": "\u8FFD\u8DE1\u958B\u59CB\u5F8C\u306B\u4F5C\u6210\u3055\u308C\u305F\u30D5\u30A1\u30A4\u30EB\u306E\u5909\u66F4\u3092\u8FFD\u8DE1\u3057\u307E\u305B\u3093",
+  "setting.persist.name": "\u518D\u8D77\u52D5\u5F8C\u3082\u5C65\u6B74\u3092\u4FDD\u6301",
+  "setting.persist.desc": "\u5C65\u6B74\u3092\u30C7\u30A3\u30B9\u30AF\u306B\u4FDD\u5B58\u3057\u3001\u518D\u8D77\u52D5\u5F8C\u3082\u30CF\u30A4\u30E9\u30A4\u30C8\u304C\u6B8B\u308B\u3088\u3046\u306B\u3057\u307E\u3059\u3002\u300C\u5C65\u6B74\u3092\u4FDD\u6301\u3059\u308B\u671F\u9593\u300D\u3092\u30A2\u30D7\u30EA\u3092\u9589\u3058\u308B\u307E\u3067\u306B\u8A2D\u5B9A\u3059\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059\u3002",
+  "setting.max-entries.name": "\u4FDD\u5B58\u3059\u308B\u30D5\u30A1\u30A4\u30EB\u306E\u6700\u5927\u6570",
+  "setting.max-entries.desc": "\u30C7\u30A3\u30B9\u30AF\u306B\u4FDD\u6301\u3059\u308B\u30D5\u30A1\u30A4\u30EB\u5C65\u6B74\u306E\u6570\u306E\u4E0A\u9650\u3067\u3059\u3002\u53E4\u3044\u3082\u306E\u304B\u3089\u9806\u306B\u524A\u9664\u3055\u308C\u307E\u3059\u30020 \u306B\u8A2D\u5B9A\u3059\u308B\u3068\u7121\u52B9\u306B\u306A\u308A\u307E\u3059\u3002",
+  "setting.max-age-days.name": "\u5C65\u6B74\u306E\u6700\u5927\u4FDD\u6301\u65E5\u6570\uFF08\u65E5\uFF09",
+  "setting.max-age-days.desc": "\u3053\u306E\u65E5\u6570\u3088\u308A\u53E4\u3044\u4FDD\u5B58\u6E08\u307F\u5C65\u6B74\u3092\u524A\u9664\u3057\u307E\u3059\u30020 \u306B\u8A2D\u5B9A\u3059\u308B\u3068\u7121\u52B9\u306B\u306A\u308A\u307E\u3059\u3002",
+  "setting.snapshots-heading": "\u30BF\u30A4\u30E0\u30E9\u30A4\u30F3\u306E\u30B9\u30CA\u30C3\u30D7\u30B7\u30E7\u30C3\u30C8",
+  "setting.snapshots-enabled.name": "\u4E2D\u9593\u30D0\u30FC\u30B8\u30E7\u30F3\u3092\u8A18\u9332",
+  "setting.snapshots-enabled.desc": "\u4EE5\u524D\u306E\u30D0\u30FC\u30B8\u30E7\u30F3\u306E\u30BF\u30A4\u30E0\u30E9\u30A4\u30F3\u3092\u4FDD\u6301\u3057\u3001\u5143\u306E\u72B6\u614B\u3060\u3051\u3067\u306A\u304F\u9014\u4E2D\u306E\u6642\u70B9\u3068\u3082\u5DEE\u5206\u3092\u6BD4\u8F03\u3067\u304D\u308B\u3088\u3046\u306B\u3057\u307E\u3059\u3002",
+  "setting.snapshots-edit-threshold.name": "\u8A18\u9332\u3059\u308B\u9593\u9694\uFF08\u7DE8\u96C6\u56DE\u6570\uFF09",
+  "setting.snapshots-edit-threshold.desc": "\u3053\u306E\u56DE\u6570\u3060\u3051\u7DE8\u96C6\u3059\u308B\u3054\u3068\u306B\u30D0\u30FC\u30B8\u30E7\u30F3\u3092\u8A18\u9332\u3057\u307E\u3059\u30020 \u306B\u8A2D\u5B9A\u3059\u308B\u3068\u7DE8\u96C6\u56DE\u6570\u306B\u3088\u308B\u30C8\u30EA\u30AC\u30FC\u304C\u7121\u52B9\u306B\u306A\u308A\u307E\u3059\u3002",
+  "setting.snapshots-interval.name": "\u8A18\u9332\u3059\u308B\u9593\u9694\uFF08\u5206\uFF09",
+  "setting.snapshots-interval.desc": "\u3053\u306E\u5206\u6570\u3060\u3051\u7DE8\u96C6\u3092\u7D9A\u3051\u308B\u3054\u3068\u306B\u30D0\u30FC\u30B8\u30E7\u30F3\u3092\u8A18\u9332\u3057\u307E\u3059\u30020 \u306B\u8A2D\u5B9A\u3059\u308B\u3068\u6642\u9593\u306B\u3088\u308B\u30C8\u30EA\u30AC\u30FC\u304C\u7121\u52B9\u306B\u306A\u308A\u307E\u3059\u3002",
+  "setting.max-version-age-days.name": "\u30D0\u30FC\u30B8\u30E7\u30F3\u306E\u6700\u5927\u4FDD\u6301\u65E5\u6570\uFF08\u65E5\uFF09",
+  "setting.max-version-age-days.desc": "\u3053\u306E\u65E5\u6570\u3088\u308A\u53E4\u3044\u4E2D\u9593\u30D0\u30FC\u30B8\u30E7\u30F3\u3092\u524A\u9664\u3057\u307E\u3059\uFF08\u4E3B\u8981\u306A\u4E0A\u9650\uFF09\u30020 \u306B\u8A2D\u5B9A\u3059\u308B\u3068\u7121\u52B9\u306B\u306A\u308A\u307E\u3059\u3002",
+  "setting.max-versions.name": "\u30D5\u30A1\u30A4\u30EB\u3054\u3068\u306E\u6700\u5927\u30D0\u30FC\u30B8\u30E7\u30F3\u6570",
+  "setting.max-versions.desc": "\u30D5\u30A1\u30A4\u30EB\u3054\u3068\u306B\u4FDD\u6301\u3059\u308B\u4E2D\u9593\u30D0\u30FC\u30B8\u30E7\u30F3\u306E\u5B89\u5168\u4E0A\u9650\u3067\u3059\u3002\u53E4\u3044\u3082\u306E\u304B\u3089\u9806\u306B\u524A\u9664\u3055\u308C\u307E\u3059\u30020 \u306B\u8A2D\u5B9A\u3059\u308B\u3068\u7121\u52B9\u306B\u306A\u308A\u307E\u3059\u3002",
+  "setting.show-heading": "\u30A4\u30F3\u30B8\u30B1\u30FC\u30BF\u30FC\u3092\u8868\u793A\u3059\u308B\u5BFE\u8C61",
+  "setting.show.desc": "\u884C\u30A4\u30F3\u30B8\u30B1\u30FC\u30BF\u30FC\u306F\u7DE8\u96C6\uFF08\u30BD\u30FC\u30B9\u304A\u3088\u3073\u30E9\u30A4\u30D6\u30D7\u30EC\u30D3\u30E5\u30FC\uFF09\u30E2\u30FC\u30C9\u3067\u306E\u307F\u8868\u793A\u3055\u308C\u307E\u3059\u3002\u95B2\u89A7\u30E2\u30FC\u30C9\u3067\u306F\u30A4\u30F3\u30E9\u30A4\u30F3\u306E\u30A4\u30F3\u30B8\u30B1\u30FC\u30BF\u30FC\u306F\u8868\u793A\u3055\u308C\u307E\u305B\u3093\u304C\u3001\u5909\u66F4\u5C65\u6B74\u306B\u306F\u5F15\u304D\u7D9A\u304D\u30A2\u30AF\u30BB\u30B9\u3067\u304D\u307E\u3059\u3002\u300C\u73FE\u5728\u306E\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\u306E\u3059\u3079\u3066\u306E\u5909\u66F4\u3092\u8868\u793A\u300D\u30B3\u30DE\u30F3\u30C9\u3092\u5B9F\u884C\u3059\u308B\u304B\u3001\u30D5\u30A1\u30A4\u30EB\u30A8\u30AF\u30B9\u30D7\u30ED\u30FC\u30E9\u30FC\u3067\u30D5\u30A1\u30A4\u30EB\u306E\u30B3\u30F3\u30C6\u30AD\u30B9\u30C8\u30E1\u30CB\u30E5\u30FC\u3092\u4F7F\u7528\u3057\u3066\u304F\u3060\u3055\u3044\u3002",
+  "setting.show.changed": "\u5909\u66F4",
+  "setting.show.restored": "\u5FA9\u5143",
+  "setting.show.added": "\u8FFD\u52A0",
+  "setting.show.removed": "\u524A\u9664",
+  "setting.line-heading": "\u884C\u30A4\u30F3\u30B8\u30B1\u30FC\u30BF\u30FC",
+  "setting.line-width.name": "\u5E45",
+  "setting.line-width.desc": "\u7E26\u7DDA\u30A4\u30F3\u30B8\u30B1\u30FC\u30BF\u30FC\u306E\u5E45\uFF08\u30D4\u30AF\u30BB\u30EB\u5358\u4F4D\uFF09\u3002",
+  "setting.gutter-heading.name": "\u30AC\u30BF\u30FC\u30A4\u30F3\u30B8\u30B1\u30FC\u30BF\u30FC",
+  "setting.gutter-heading.prefix": "\u30AC\u30BF\u30FC\u306E\u7A2E\u985E\u30A4\u30F3\u30B8\u30B1\u30FC\u30BF\u30FC\u306E\u6587\u5B57\uFF08",
+  "setting.gutter-heading.suffix": "\uFF09\u3002",
+  "setting.gutter-changed.name": "\u5909\u66F4\u306E\u6587\u5B57",
+  "setting.gutter-added.name": "\u8FFD\u52A0\u306E\u6587\u5B57",
+  "setting.gutter-restored.name": "\u5FA9\u5143\u306E\u6587\u5B57",
+  "setting.gutter-removed.name": "\u524A\u9664\u306E\u6587\u5B57",
+  "modal.title": "\u5C65\u6B74",
+  "modal.no-changes": "\u5909\u66F4\u306A\u3057",
+  "modal.identical-to-current": "\u73FE\u5728\u306E\u5185\u5BB9\u3068\u540C\u4E00",
+  "modal.restore-original": "\u5143\u306E\u72B6\u614B\u306B\u5FA9\u5143",
+  "modal.remove-history": "\u30D5\u30A1\u30A4\u30EB\u5C65\u6B74\u3092\u524A\u9664",
+  "modal.previous-difference": "\u524D\u306E\u76F8\u9055\u70B9",
+  "modal.next-difference": "\u6B21\u306E\u76F8\u9055\u70B9",
+  "modal.mode.patch": "\u30D1\u30C3\u30C1\u3092\u8868\u793A",
+  "modal.mode.inline": "\u30A4\u30F3\u30E9\u30A4\u30F3",
+  "modal.mode.line-by-line": "\u884C\u5358\u4F4D",
+  "modal.mode.side-by-side": "\u5DE6\u53F3\u306B\u4E26\u3079\u3066\u8868\u793A",
+  "modal.confirm.cancel": "\u30AD\u30E3\u30F3\u30BB\u30EB",
+  "modal.confirm.restore.title": "\u5143\u306E\u30D5\u30A1\u30A4\u30EB\u3092\u5FA9\u5143",
+  "modal.confirm.restore.message": "\u3053\u306E\u30D5\u30A1\u30A4\u30EB\u3092\u5143\u306E\u72B6\u614B\u306B\u5FA9\u5143\u3057\u3066\u3082\u3088\u308D\u3057\u3044\u3067\u3059\u304B\uFF1F\u73FE\u5728\u306E\u5909\u66F4\u306F\u3059\u3079\u3066\u5931\u308F\u308C\u3001\u5909\u66F4\u8FFD\u8DE1\u306E\u5C65\u6B74\u306F\u30EA\u30BB\u30C3\u30C8\u3055\u308C\u307E\u3059\u3002\u3053\u306E\u64CD\u4F5C\u306F\u53D6\u308A\u6D88\u305B\u307E\u305B\u3093\u3002",
+  "modal.confirm.restore.button": "\u30D5\u30A1\u30A4\u30EB\u3092\u5FA9\u5143",
+  "modal.confirm.remove.title": "\u30D5\u30A1\u30A4\u30EB\u5C65\u6B74\u3092\u524A\u9664",
+  "modal.confirm.remove.message": "\u3053\u306E\u30D5\u30A1\u30A4\u30EB\u306E\u5909\u66F4\u8FFD\u8DE1\u5C65\u6B74\u3092\u524A\u9664\u3057\u3066\u3082\u3088\u308D\u3057\u3044\u3067\u3059\u304B\uFF1F\u3053\u306E\u64CD\u4F5C\u306F\u53D6\u308A\u6D88\u305B\u307E\u305B\u3093\u3002",
+  "modal.confirm.remove.button": "\u5C65\u6B74\u3092\u524A\u9664",
+  "modal.confirm.revert.title": "\u3053\u306E\u5909\u66F4\u3092\u5143\u306B\u623B\u3059",
+  "modal.confirm.revert.message": "\u3053\u306E\u5909\u66F4\u3092\u9078\u629E\u3057\u305F\u30D9\u30FC\u30B9\u306B\u623B\u3057\u307E\u3059\u304B\uFF1F\u4ED6\u306E\u5909\u66F4\u306F\u4FDD\u6301\u3055\u308C\u307E\u3059\u3002",
+  "modal.confirm.revert.button": "\u5143\u306B\u623B\u3059",
+  "modal.search-versions": "\u30D0\u30FC\u30B8\u30E7\u30F3\u3092\u691C\u7D22",
+  "modal.version.baseline": "\u73FE\u5728",
+  "modal.version.numbered": "\u30D0\u30FC\u30B8\u30E7\u30F3 {number}",
+  "modal.version.current": "\u73FE\u5728",
+  "modal.version.original": "\u5143\u306E\u72B6\u614B",
+  "modal.no-versions-match": "\u691C\u7D22\u306B\u4E00\u81F4\u3059\u308B\u30D0\u30FC\u30B8\u30E7\u30F3\u304C\u3042\u308A\u307E\u305B\u3093",
+  "modal.no-snapshots-yet": "\u4E2D\u9593\u30B9\u30CA\u30C3\u30D7\u30B7\u30E7\u30C3\u30C8\u306F\u307E\u3060\u3042\u308A\u307E\u305B\u3093",
+  "modal.revert-hunk": "\u3053\u306E\u5909\u66F4\u3092\u5143\u306B\u623B\u3059",
+  "modal.copy": "\u30B3\u30D4\u30FC"
+};
+
+// lang/ka.json
+var ka_default = {
+  "command.go-to-next-change": "\u10E8\u10D4\u10DB\u10D3\u10D4\u10D2 \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D0\u10D6\u10D4 \u10D2\u10D0\u10D3\u10D0\u10E1\u10D5\u10DA\u10D0",
+  "command.go-to-previous-change": "\u10EC\u10D8\u10DC\u10D0 \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D0\u10D6\u10D4 \u10D2\u10D0\u10D3\u10D0\u10E1\u10D5\u10DA\u10D0",
+  "command.reset-lines-all": "\u10EE\u10D0\u10D6\u10D4\u10D1\u10D8\u10E1 \u10DB\u10D7\u10D5\u10D0\u10DA\u10D7\u10D5\u10D0\u10DA\u10D8\u10E1 \u10E7\u10D5\u10D4\u10DA\u10D0 \u10E1\u10EC\u10E0\u10D0\u10E4\u10D8 \u10D0\u10E1\u10DA\u10D8\u10E1 \u10D2\u10D0\u10D3\u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D5\u10D0",
+  "command.reset-lines": "\u10DB\u10D8\u10DB\u10D3\u10D8\u10DC\u10D0\u10E0\u10D4 \u10D3\u10DD\u10D9\u10E3\u10DB\u10D4\u10DC\u10E2\u10D8\u10E1 \u10EE\u10D0\u10D6\u10D4\u10D1\u10D8\u10E1 \u10DB\u10D7\u10D5\u10D0\u10DA\u10D7\u10D5\u10D0\u10DA\u10D8\u10E1 \u10E1\u10EC\u10E0\u10D0\u10E4\u10D8 \u10D0\u10E1\u10DA\u10D8\u10E1 \u10D2\u10D0\u10D3\u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D5\u10D0",
+  "command.show-diff": "\u10DB\u10D8\u10DB\u10D3\u10D8\u10DC\u10D0\u10E0\u10D4 \u10D3\u10DD\u10D9\u10E3\u10DB\u10D4\u10DC\u10E2\u10D8\u10E1 \u10E7\u10D5\u10D4\u10DA\u10D0 \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10E9\u10D5\u10D4\u10DC\u10D4\u10D1\u10D0",
+  "notice.no-changes-to-navigate": "\u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10D8 \u10DC\u10D0\u10D5\u10D8\u10D2\u10D0\u10EA\u10D8\u10D8\u10E1\u10D7\u10D5\u10D8\u10E1 \u10D0\u10E0 \u10D0\u10E0\u10D8\u10E1",
+  "notice.all-snapshots-deleted": "\u10E1\u10EC\u10E0\u10D0\u10E4\u10D8 \u10D0\u10E1\u10DA\u10D4\u10D1\u10D8\u10E1 \u10E7\u10D5\u10D4\u10DA\u10D0 \u10DB\u10DD\u10DC\u10D0\u10EA\u10D4\u10DB\u10D8 \u10EC\u10D0\u10D8\u10E8\u10D0\u10DA\u10D0",
+  "notice.current-snapshot-deleted": "\u10DB\u10D8\u10DB\u10D3\u10D8\u10DC\u10D0\u10E0\u10D4 \u10E1\u10EC\u10E0\u10D0\u10E4\u10D8 \u10D0\u10E1\u10DA\u10D8\u10E1 \u10DB\u10DD\u10DC\u10D0\u10EA\u10D4\u10DB\u10D4\u10D1\u10D8 \u10EC\u10D0\u10D8\u10E8\u10D0\u10DA\u10D0",
+  "notice.file-restored": "\u10E4\u10D0\u10D8\u10DA\u10D8 \u10D0\u10E6\u10D3\u10D2\u10D0 \u10E1\u10D0\u10EC\u10E7\u10D8\u10E1 \u10DB\u10D3\u10D2\u10DD\u10DB\u10D0\u10E0\u10D4\u10DD\u10D1\u10D0\u10DB\u10D3\u10D4",
+  "notice.file-restore-failed": "\u10E4\u10D0\u10D8\u10DA\u10D8\u10E1 \u10E1\u10D0\u10EC\u10E7\u10D8\u10E1 \u10DB\u10D3\u10D2\u10DD\u10DB\u10D0\u10E0\u10D4\u10DD\u10D1\u10D0\u10DB\u10D3\u10D4 \u10D0\u10E6\u10D3\u10D2\u10D4\u10DC\u10D0 \u10D5\u10D4\u10E0 \u10DB\u10DD\u10EE\u10D4\u10E0\u10EE\u10D3\u10D0",
+  "notice.copied": "\u10D3\u10D0\u10D9\u10DD\u10DE\u10D8\u10E0\u10D3\u10D0!",
+  "notice.no-saved-history": "\u10D0\u10DB \u10E4\u10D0\u10D8\u10DA\u10D8\u10E1\u10D7\u10D5\u10D8\u10E1 \u10E8\u10D4\u10DC\u10D0\u10EE\u10E3\u10DA\u10D8 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D0 \u10D0\u10E0 \u10D0\u10E0\u10D8\u10E1.",
+  "notice.invalid-exclude-pattern": "\u10DA\u10DD\u10D9\u10D0\u10DA\u10E3\u10E0\u10D8 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D0: \u10D2\u10D0\u10DB\u10DD\u10E0\u10D8\u10EA\u10EE\u10E3\u10DA\u10D8 \u10D2\u10D6\u10D4\u10D1\u10D8\u10E1 \u10E8\u10D0\u10D1\u10DA\u10DD\u10DC\u10D8 \u10D0\u10E0 \u10D0\u10E0\u10D8\u10E1 \u10D5\u10D0\u10DA\u10D8\u10D3\u10E3\u10E0\u10D8 \u10E0\u10D4\u10D2\u10E3\u10DA\u10D0\u10E0\u10E3\u10DA\u10D8 \u10D2\u10D0\u10DB\u10DD\u10E1\u10D0\u10EE\u10E3\u10DA\u10D4\u10D1\u10D0 \u10D3\u10D0 \u10D8\u10D2\u10DC\u10DD\u10E0\u10D8\u10E0\u10D3\u10D4\u10D1\u10D0.",
+  "menu.local-history": "\u10DA\u10DD\u10D9\u10D0\u10DA\u10E3\u10E0\u10D8 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D0",
+  "menu.show-changes": "\u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10D8\u10E1 \u10E9\u10D5\u10D4\u10DC\u10D4\u10D1\u10D0",
+  "status.lines-changed": "{count} \u10EE\u10D0\u10D6\u10D8 \u10E8\u10D4\u10D8\u10EA\u10D5\u10D0\u10DA\u10D0",
+  "setting.type.name": "\u10E2\u10D8\u10DE\u10D8",
+  "setting.type.desc": "\u10D0\u10D8\u10E0\u10E9\u10D8\u10D4\u10D7 \u10D5\u10D4\u10E0\u10E2\u10D8\u10D9\u10D0\u10DA\u10E3\u10E0 \u10EE\u10D0\u10D6\u10E1\u10D0 \u10D3\u10D0 \u10D2\u10D5\u10D4\u10E0\u10D3\u10D8\u10D7 \u10D5\u10D4\u10DA\u10D8\u10E1 \u10EC\u10D4\u10E0\u10E2\u10D8\u10DA\u10E1 \u10E8\u10DD\u10E0\u10D8\u10E1.",
+  "setting.type.option.line": "\u10D5\u10D4\u10E0\u10E2\u10D8\u10D9\u10D0\u10DA\u10E3\u10E0\u10D8 \u10EE\u10D0\u10D6\u10D8",
+  "setting.type.option.dot": "\u10E1\u10D8\u10DB\u10D1\u10DD\u10DA\u10DD \u10D2\u10D5\u10D4\u10E0\u10D3\u10D8\u10D7 \u10D5\u10D4\u10DA\u10E8\u10D8",
+  "setting.allowed-extensions.name": "\u10D3\u10D0\u10E8\u10D5\u10D4\u10D1\u10E3\u10DA\u10D8 \u10E4\u10D0\u10D8\u10DA\u10D8\u10E1 \u10D2\u10D0\u10E4\u10D0\u10E0\u10D7\u10DD\u10D4\u10D1\u10D4\u10D1\u10D8",
+  "setting.allowed-extensions.desc": "\u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10D6\u10D4 \u10E1\u10D0\u10D7\u10D5\u10D0\u10DA\u10D7\u10D5\u10D0\u10DA\u10DD \u10E4\u10D0\u10D8\u10DA\u10D8\u10E1 \u10D2\u10D0\u10E4\u10D0\u10E0\u10D7\u10DD\u10D4\u10D1\u10D4\u10D1\u10D8\u10E1 \u10DB\u10EB\u10D8\u10DB\u10D8\u10D7 \u10D2\u10D0\u10DB\u10DD\u10E7\u10DD\u10E4\u10D8\u10DA\u10D8 \u10E1\u10D8\u10D0 (\u10DB\u10D0\u10D2. md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "\u10D2\u10D0\u10DB\u10DD\u10E0\u10D8\u10EA\u10EE\u10E3\u10DA\u10D8 \u10D2\u10D6\u10D4\u10D1\u10D8",
+  "setting.exclude-paths.desc": "\u10E0\u10D4\u10D2\u10D8\u10E1\u10E2\u10E0\u10D8\u10E1\u10D0\u10D3\u10DB\u10D8 \u10D0\u10E0\u10D0\u10DB\u10D2\u10E0\u10EB\u10DC\u10DD\u10D1\u10D8\u10D0\u10E0\u10D4 \u10E0\u10D4\u10D2\u10E3\u10DA\u10D0\u10E0\u10E3\u10DA\u10D8 \u10D2\u10D0\u10DB\u10DD\u10E1\u10D0\u10EE\u10E3\u10DA\u10D4\u10D1\u10D0, \u10E0\u10DD\u10DB\u10D4\u10DA\u10D8\u10EA \u10D4\u10D3\u10D0\u10E0\u10D4\u10D1\u10D0 \u10E1\u10D0\u10EA\u10D0\u10D5\u10D8\u10E1 \u10E4\u10D0\u10E0\u10D3\u10DD\u10D1\u10D8\u10D7 \u10D2\u10D6\u10D0\u10E1. \u10DC\u10D4\u10D1\u10D8\u10E1\u10DB\u10D8\u10D4\u10E0\u10D8 \u10E4\u10D0\u10D8\u10DA\u10D8, \u10E0\u10DD\u10DB\u10DA\u10D8\u10E1 \u10D2\u10D6\u10D0\u10EA \u10D4\u10DB\u10D7\u10EE\u10D5\u10D4\u10D5\u10D0, \u10D0\u10E0\u10D0\u10E1\u10DD\u10D3\u10D4\u10E1 \u10D7\u10D5\u10D0\u10DA\u10D3\u10D4\u10D5\u10DC\u10D4\u10D1\u10D0 (\u10DB\u10D0\u10D2. \\.excalidraw\\.md$ \u10D0\u10DC (^|/)Templates/). \u10DC\u10D0\u10D2\u10E3\u10DA\u10D8\u10E1\u10EE\u10DB\u10D4\u10D5\u10D8 \u10DE\u10D0\u10E0\u10D0\u10DB\u10D4\u10E2\u10E0\u10D8 \u10D2\u10D0\u10DB\u10DD\u10E0\u10D8\u10EA\u10EE\u10D0\u10D5\u10E1 Templates \u10E1\u10D0\u10E5\u10D0\u10E6\u10D0\u10DA\u10D3\u10D4\u10D4\u10D1\u10E1\u10D0 \u10D3\u10D0 Excalidraw \u10DC\u10D0\u10EE\u10D0\u10D6\u10D4\u10D1\u10E1. \u10D3\u10D0\u10E2\u10DD\u10D5\u10D4\u10D7 \u10EA\u10D0\u10E0\u10D8\u10D4\u10DA\u10D8 \u10E7\u10D5\u10D4\u10DA\u10D0\u10E4\u10E0\u10D8\u10E1 \u10D7\u10D5\u10D0\u10DA\u10D3\u10D0\u10E1\u10D0\u10D3\u10D4\u10D5\u10DC\u10D4\u10D1\u10DA\u10D0\u10D3.",
+  "setting.keep.name": "\u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D8\u10E1 \u10E8\u10D4\u10DC\u10D0\u10EE\u10D5\u10D0 \u10D5\u10D8\u10D3\u10E0\u10D4",
+  "setting.keep.desc": "\u10D2\u10D0\u10D3\u10D0\u10E1\u10D8\u10DC\u10EF\u10D5\u10D4\u10D1\u10D8\u10E1 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D8\u10E1 \u10D2\u10D0\u10E1\u10E3\u10E4\u10D7\u10D0\u10D5\u10D4\u10D1\u10D8\u10E1 \u10E1\u10E2\u10E0\u10D0\u10E2\u10D4\u10D2\u10D8\u10D0",
+  "setting.keep.option.app": "\u10D0\u10DE\u10DA\u10D8\u10D9\u10D0\u10EA\u10D8\u10D8\u10E1 \u10D3\u10D0\u10EE\u10E3\u10E0\u10D5\u10D0",
+  "setting.keep.option.file": "\u10E4\u10D0\u10D8\u10DA\u10D8\u10E1 \u10D3\u10D0\u10EE\u10E3\u10E0\u10D5\u10D0",
+  "setting.ignore-new-files.name": "\u10D0\u10EE\u10D0\u10DA\u10D8 \u10E4\u10D0\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10D8\u10D2\u10DC\u10DD\u10E0\u10D8\u10E0\u10D4\u10D1\u10D0",
+  "setting.ignore-new-files.desc": "\u10DC\u10E3 \u10D7\u10D5\u10D0\u10DA\u10E7\u10E3\u10E0\u10E1 \u10D0\u10D3\u10D4\u10D5\u10DC\u10D4\u10D1 \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10E1 \u10E4\u10D0\u10D8\u10DA\u10D4\u10D1\u10E8\u10D8, \u10E0\u10DD\u10DB\u10DA\u10D4\u10D1\u10D8\u10EA \u10D7\u10D5\u10D0\u10DA\u10D3\u10D4\u10D5\u10DC\u10D4\u10D1\u10D8\u10E1 \u10D3\u10D0\u10EC\u10E7\u10D4\u10D1\u10D8\u10E1 \u10E8\u10D4\u10DB\u10D3\u10D4\u10D2 \u10E8\u10D4\u10D8\u10E5\u10DB\u10DC\u10D0",
+  "setting.persist.name": "\u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D8\u10E1 \u10E8\u10D4\u10DC\u10D0\u10E0\u10E9\u10E3\u10DC\u10D4\u10D1\u10D0 \u10D2\u10D0\u10D3\u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D5\u10D4\u10D1\u10E1 \u10E8\u10DD\u10E0\u10D8\u10E1",
+  "setting.persist.desc": '\u10E8\u10D4\u10D8\u10DC\u10D0\u10EE\u10D4\u10D7 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D0 \u10D3\u10D8\u10E1\u10D9\u10D6\u10D4, \u10E0\u10D0\u10D7\u10D0 \u10D2\u10D0\u10DB\u10DD\u10E7\u10DD\u10E4\u10D4\u10D1\u10D8 \u10D2\u10D0\u10D3\u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D5\u10D0\u10E1 \u10D2\u10D0\u10D3\u10D0\u10E3\u10E0\u10E9\u10D4\u10E1. \u10DB\u10DD\u10D8\u10D7\u10EE\u10DD\u10D5\u10E1, \u10E0\u10DD\u10DB "\u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D8\u10E1 \u10E8\u10D4\u10DC\u10D0\u10EE\u10D5\u10D0 \u10D5\u10D8\u10D3\u10E0\u10D4" \u10D3\u10D0\u10E7\u10D4\u10DC\u10D4\u10D1\u10E3\u10DA\u10D8 \u10D8\u10E7\u10DD\u10E1 \u10D0\u10DE\u10DA\u10D8\u10D9\u10D0\u10EA\u10D8\u10D8\u10E1 \u10D3\u10D0\u10EE\u10E3\u10E0\u10D5\u10D0\u10D6\u10D4.',
+  "setting.max-entries.name": "\u10E8\u10D4\u10DC\u10D0\u10EE\u10E3\u10DA\u10D8 \u10E4\u10D0\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10DB\u10D0\u10E5\u10E1\u10D8\u10DB\u10E3\u10DB\u10D8",
+  "setting.max-entries.desc": "\u10D6\u10E6\u10D5\u10D0\u10E0\u10D8 \u10D8\u10DB\u10D8\u10E1\u10D0, \u10D7\u10E3 \u10E0\u10D0\u10DB\u10D3\u10D4\u10DC\u10D8 \u10E4\u10D0\u10D8\u10DA\u10D8\u10E1 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D0 \u10D8\u10DC\u10D0\u10EE\u10D4\u10D1\u10D0 \u10D3\u10D8\u10E1\u10D9\u10D6\u10D4. \u10EF\u10D4\u10E0 \u10E3\u10EB\u10D5\u10D4\u10DA\u10D4\u10E1\u10D4\u10D1\u10D8 \u10D8\u10E8\u10DA\u10D4\u10D1\u10D0. \u10D2\u10D0\u10E1\u10D0\u10D7\u10D8\u10E8\u10D0\u10D3 \u10D3\u10D0\u10D0\u10E7\u10D4\u10DC\u10D4\u10D7 0-\u10D6\u10D4.",
+  "setting.max-age-days.name": "\u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D8\u10E1 \u10DB\u10D0\u10E5\u10E1\u10D8\u10DB\u10D0\u10DA\u10E3\u10E0\u10D8 \u10D0\u10E1\u10D0\u10D9\u10D8 (\u10D3\u10E6\u10D4)",
+  "setting.max-age-days.desc": "\u10EC\u10D0\u10E8\u10D0\u10DA\u10D4\u10D7 \u10E8\u10D4\u10DC\u10D0\u10EE\u10E3\u10DA\u10D8 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D0, \u10E0\u10DD\u10DB\u10D4\u10DA\u10D8\u10EA \u10D0\u10DB\u10D3\u10D4\u10DC \u10D3\u10E6\u10D4\u10D6\u10D4 \u10EB\u10D5\u10D4\u10DA\u10D8\u10D0. \u10D2\u10D0\u10E1\u10D0\u10D7\u10D8\u10E8\u10D0\u10D3 \u10D3\u10D0\u10D0\u10E7\u10D4\u10DC\u10D4\u10D7 0-\u10D6\u10D4.",
+  "setting.snapshots-heading": "\u10E5\u10E0\u10DD\u10DC\u10DD\u10DA\u10DD\u10D2\u10D8\u10D8\u10E1 \u10E1\u10EC\u10E0\u10D0\u10E4\u10D8 \u10D0\u10E1\u10DA\u10D4\u10D1\u10D8",
+  "setting.snapshots-enabled.name": "\u10E8\u10E3\u10D0\u10DA\u10D4\u10D3\u10E3\u10E0\u10D8 \u10D5\u10D4\u10E0\u10E1\u10D8\u10D4\u10D1\u10D8\u10E1 \u10E9\u10D0\u10EC\u10D4\u10E0\u10D0",
+  "setting.snapshots-enabled.desc": "\u10E8\u10D4\u10D8\u10DC\u10D0\u10EE\u10D4\u10D7 \u10D0\u10D3\u10E0\u10D8\u10DC\u10D3\u10D4\u10DA\u10D8 \u10D5\u10D4\u10E0\u10E1\u10D8\u10D4\u10D1\u10D8\u10E1 \u10E5\u10E0\u10DD\u10DC\u10DD\u10DA\u10DD\u10D2\u10D8\u10D0, \u10E0\u10D0\u10D7\u10D0 \u10E8\u10D4\u10D0\u10D3\u10D0\u10E0\u10DD\u10D7 \u10E8\u10E3\u10D0\u10DA\u10D4\u10D3\u10E3\u10E0 \u10EC\u10D4\u10E0\u10E2\u10D8\u10DA\u10E1 \u10D3\u10D0 \u10D0\u10E0\u10D0 \u10DB\u10EE\u10DD\u10DA\u10DD\u10D3 \u10DD\u10E0\u10D8\u10D2\u10D8\u10DC\u10D0\u10DA\u10E1.",
+  "setting.snapshots-edit-threshold.name": "\u10E9\u10D0\u10EC\u10D4\u10E0\u10D0 \u10E7\u10DD\u10D5\u10D4\u10DA (\u10E0\u10D4\u10D3\u10D0\u10E5\u10E2\u10D8\u10E0\u10D4\u10D1\u10D0)",
+  "setting.snapshots-edit-threshold.desc": "\u10D2\u10D0\u10D3\u10D0\u10D8\u10E6\u10D4\u10D7 \u10D5\u10D4\u10E0\u10E1\u10D8\u10D0 \u10D0\u10DB\u10D3\u10D4\u10DC\u10D8 \u10E0\u10D4\u10D3\u10D0\u10E5\u10E2\u10D8\u10E0\u10D4\u10D1\u10D8\u10E1 \u10E8\u10D4\u10DB\u10D3\u10D4\u10D2. \u10E0\u10D4\u10D3\u10D0\u10E5\u10E2\u10D8\u10E0\u10D4\u10D1\u10D8\u10E1 \u10E2\u10E0\u10D8\u10D2\u10D4\u10E0\u10D8\u10E1 \u10D2\u10D0\u10E1\u10D0\u10D7\u10D8\u10E8\u10D0\u10D3 \u10D3\u10D0\u10D0\u10E7\u10D4\u10DC\u10D4\u10D7 0-\u10D6\u10D4.",
+  "setting.snapshots-interval.name": "\u10E9\u10D0\u10EC\u10D4\u10E0\u10D0 \u10E7\u10DD\u10D5\u10D4\u10DA (\u10EC\u10E3\u10D7\u10D8)",
+  "setting.snapshots-interval.desc": "\u10D2\u10D0\u10D3\u10D0\u10D8\u10E6\u10D4\u10D7 \u10D5\u10D4\u10E0\u10E1\u10D8\u10D0 \u10D0\u10DB\u10D3\u10D4\u10DC\u10D8 \u10EC\u10E3\u10D7\u10D8\u10D0\u10DC\u10D8 \u10E0\u10D4\u10D3\u10D0\u10E5\u10E2\u10D8\u10E0\u10D4\u10D1\u10D8\u10E1 \u10E8\u10D4\u10DB\u10D3\u10D4\u10D2. \u10D3\u10E0\u10DD\u10D8\u10E1 \u10E2\u10E0\u10D8\u10D2\u10D4\u10E0\u10D8\u10E1 \u10D2\u10D0\u10E1\u10D0\u10D7\u10D8\u10E8\u10D0\u10D3 \u10D3\u10D0\u10D0\u10E7\u10D4\u10DC\u10D4\u10D7 0-\u10D6\u10D4.",
+  "setting.max-version-age-days.name": "\u10D5\u10D4\u10E0\u10E1\u10D8\u10D8\u10E1 \u10DB\u10D0\u10E5\u10E1\u10D8\u10DB\u10D0\u10DA\u10E3\u10E0\u10D8 \u10D0\u10E1\u10D0\u10D9\u10D8 (\u10D3\u10E6\u10D4)",
+  "setting.max-version-age-days.desc": "\u10EC\u10D0\u10E8\u10D0\u10DA\u10D4\u10D7 \u10E8\u10E3\u10D0\u10DA\u10D4\u10D3\u10E3\u10E0\u10D8 \u10D5\u10D4\u10E0\u10E1\u10D8\u10D4\u10D1\u10D8, \u10E0\u10DD\u10DB\u10DA\u10D4\u10D1\u10D8\u10EA \u10D0\u10DB\u10D3\u10D4\u10DC \u10D3\u10E6\u10D4\u10D6\u10D4 \u10EB\u10D5\u10D4\u10DA\u10D8\u10D0 (\u10EB\u10D8\u10E0\u10D8\u10D7\u10D0\u10D3\u10D8 \u10D6\u10E6\u10D5\u10D0\u10E0\u10D8). \u10D2\u10D0\u10E1\u10D0\u10D7\u10D8\u10E8\u10D0\u10D3 \u10D3\u10D0\u10D0\u10E7\u10D4\u10DC\u10D4\u10D7 0-\u10D6\u10D4.",
+  "setting.max-versions.name": "\u10D5\u10D4\u10E0\u10E1\u10D8\u10D4\u10D1\u10D8\u10E1 \u10DB\u10D0\u10E5\u10E1\u10D8\u10DB\u10E3\u10DB\u10D8 \u10E4\u10D0\u10D8\u10DA\u10D6\u10D4",
+  "setting.max-versions.desc": "\u10E3\u10E1\u10D0\u10E4\u10E0\u10D7\u10EE\u10DD\u10D4\u10D1\u10D8\u10E1 \u10D6\u10E6\u10D5\u10D0\u10E0\u10D8 \u10E4\u10D0\u10D8\u10DA\u10D6\u10D4 \u10E8\u10D4\u10DC\u10D0\u10EE\u10E3\u10DA \u10E8\u10E3\u10D0\u10DA\u10D4\u10D3\u10E3\u10E0 \u10D5\u10D4\u10E0\u10E1\u10D8\u10D4\u10D1\u10D6\u10D4. \u10EF\u10D4\u10E0 \u10E3\u10EB\u10D5\u10D4\u10DA\u10D4\u10E1\u10D4\u10D1\u10D8 \u10D8\u10E8\u10DA\u10D4\u10D1\u10D0. \u10D2\u10D0\u10E1\u10D0\u10D7\u10D8\u10E8\u10D0\u10D3 \u10D3\u10D0\u10D0\u10E7\u10D4\u10DC\u10D4\u10D7 0-\u10D6\u10D4.",
+  "setting.show-heading": "\u10D8\u10DC\u10D3\u10D8\u10D9\u10D0\u10E2\u10DD\u10E0\u10D8\u10E1 \u10E9\u10D5\u10D4\u10DC\u10D4\u10D1\u10D0 \u10D0\u10DB\u10D8\u10E1\u10D7\u10D5\u10D8\u10E1",
+  "setting.show.desc": '\u10EE\u10D0\u10D6\u10D4\u10D1\u10D8\u10E1 \u10D8\u10DC\u10D3\u10D8\u10D9\u10D0\u10E2\u10DD\u10E0\u10D4\u10D1\u10D8 \u10DC\u10D0\u10E9\u10D5\u10D4\u10DC\u10D4\u10D1\u10D8\u10D0 \u10DB\u10EE\u10DD\u10DA\u10DD\u10D3 \u10E0\u10D4\u10D3\u10D0\u10E5\u10E2\u10D8\u10E0\u10D4\u10D1\u10D8\u10E1 (\u10EC\u10E7\u10D0\u10E0\u10DD\u10E1\u10D0 \u10D3\u10D0 \u10EA\u10DD\u10EA\u10EE\u10D0\u10DA\u10D8 \u10D2\u10D0\u10D3\u10D0\u10EE\u10D4\u10D3\u10D5\u10D8\u10E1) \u10E0\u10D4\u10DF\u10D8\u10DB\u10D4\u10D1\u10E8\u10D8. \u10D9\u10D8\u10D7\u10EE\u10D5\u10D8\u10E1 \u10E0\u10D4\u10DF\u10D8\u10DB\u10E8\u10D8 \u10E9\u10D0\u10E8\u10D4\u10DC\u10D4\u10D1\u10E3\u10DA\u10D8 \u10D8\u10DC\u10D3\u10D8\u10D9\u10D0\u10E2\u10DD\u10E0\u10D4\u10D1\u10D8 \u10D0\u10E0 \u10D0\u10E0\u10D8\u10E1, \u10D7\u10E3\u10DB\u10EA\u10D0 \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10D8\u10E1 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D0 \u10DB\u10D0\u10D8\u10DC\u10EA \u10EE\u10D4\u10DA\u10DB\u10D8\u10E1\u10D0\u10EC\u10D5\u10D3\u10DD\u10DB\u10D8\u10D0: \u10D2\u10D0\u10E3\u10E8\u10D5\u10D8\u10D7 \u10D1\u10E0\u10EB\u10D0\u10DC\u10D4\u10D1\u10D0 "\u10DB\u10D8\u10DB\u10D3\u10D8\u10DC\u10D0\u10E0\u10D4 \u10D3\u10DD\u10D9\u10E3\u10DB\u10D4\u10DC\u10E2\u10D8\u10E1 \u10E7\u10D5\u10D4\u10DA\u10D0 \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10E9\u10D5\u10D4\u10DC\u10D4\u10D1\u10D0" \u10D0\u10DC \u10D2\u10D0\u10DB\u10DD\u10D8\u10E7\u10D4\u10DC\u10D4\u10D7 \u10E4\u10D0\u10D8\u10DA\u10D8\u10E1 \u10D9\u10DD\u10DC\u10E2\u10D4\u10E5\u10E1\u10E2\u10E3\u10E0\u10D8 \u10DB\u10D4\u10DC\u10D8\u10E3 \u10E4\u10D0\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10DB\u10D9\u10D5\u10DA\u10D4\u10D5\u10D0\u10E0\u10E8\u10D8.',
+  "setting.show.changed": "\u10E8\u10D4\u10EA\u10D5\u10DA\u10D8\u10DA\u10D8",
+  "setting.show.restored": "\u10D0\u10E6\u10D3\u10D2\u10D4\u10DC\u10D8\u10DA\u10D8",
+  "setting.show.added": "\u10D3\u10D0\u10DB\u10D0\u10E2\u10D4\u10D1\u10E3\u10DA\u10D8",
+  "setting.show.removed": "\u10EC\u10D0\u10E8\u10DA\u10D8\u10DA\u10D8",
+  "setting.line-heading": "\u10EE\u10D0\u10D6\u10D8\u10E1 \u10D8\u10DC\u10D3\u10D8\u10D9\u10D0\u10E2\u10DD\u10E0\u10D8",
+  "setting.line-width.name": "\u10E1\u10D8\u10D2\u10D0\u10DC\u10D4",
+  "setting.line-width.desc": "\u10D5\u10D4\u10E0\u10E2\u10D8\u10D9\u10D0\u10DA\u10E3\u10E0\u10D8 \u10EE\u10D0\u10D6\u10D8\u10E1 \u10D8\u10DC\u10D3\u10D8\u10D9\u10D0\u10E2\u10DD\u10E0\u10D8\u10E1 \u10E1\u10D8\u10D2\u10D0\u10DC\u10D4 (\u10DE\u10D8\u10E5\u10E1\u10D4\u10DA\u10D4\u10D1\u10E8\u10D8).",
+  "setting.gutter-heading.name": "\u10D2\u10D5\u10D4\u10E0\u10D3\u10D8\u10D7\u10D8 \u10D5\u10D4\u10DA\u10D8\u10E1 \u10D8\u10DC\u10D3\u10D8\u10D9\u10D0\u10E2\u10DD\u10E0\u10D8",
+  "setting.gutter-heading.prefix": "\u10D2\u10D5\u10D4\u10E0\u10D3\u10D8\u10D7\u10D8 \u10D5\u10D4\u10DA\u10D8\u10E1 \u10E2\u10D8\u10DE\u10D8\u10E1 \u10D8\u10DC\u10D3\u10D8\u10D9\u10D0\u10E2\u10DD\u10E0\u10D8\u10E1 \u10E1\u10D8\u10DB\u10D1\u10DD\u10DA\u10DD\u10D4\u10D1\u10D8 (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "\u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10E1\u10D8\u10DB\u10D1\u10DD\u10DA\u10DD",
+  "setting.gutter-added.name": "\u10D3\u10D0\u10DB\u10D0\u10E2\u10D4\u10D1\u10D8\u10E1 \u10E1\u10D8\u10DB\u10D1\u10DD\u10DA\u10DD",
+  "setting.gutter-restored.name": "\u10D0\u10E6\u10D3\u10D2\u10D4\u10DC\u10D8\u10E1 \u10E1\u10D8\u10DB\u10D1\u10DD\u10DA\u10DD",
+  "setting.gutter-removed.name": "\u10EC\u10D0\u10E8\u10DA\u10D8\u10E1 \u10E1\u10D8\u10DB\u10D1\u10DD\u10DA\u10DD",
+  "modal.title": "\u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D0",
+  "modal.no-changes": "\u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10D8 \u10D0\u10E0 \u10D0\u10E0\u10D8\u10E1",
+  "modal.identical-to-current": "\u10DB\u10D8\u10DB\u10D3\u10D8\u10DC\u10D0\u10E0\u10D8\u10E1 \u10D8\u10D3\u10D4\u10DC\u10E2\u10E3\u10E0\u10D8",
+  "modal.restore-original": "\u10DD\u10E0\u10D8\u10D2\u10D8\u10DC\u10D0\u10DA\u10D8\u10E1 \u10D0\u10E6\u10D3\u10D2\u10D4\u10DC\u10D0",
+  "modal.remove-history": "\u10E4\u10D0\u10D8\u10DA\u10D8\u10E1 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D8\u10E1 \u10EC\u10D0\u10E8\u10DA\u10D0",
+  "modal.previous-difference": "\u10EC\u10D8\u10DC\u10D0 \u10D2\u10D0\u10DC\u10E1\u10EE\u10D5\u10D0\u10D5\u10D4\u10D1\u10D0",
+  "modal.next-difference": "\u10E8\u10D4\u10DB\u10D3\u10D4\u10D2\u10D8 \u10D2\u10D0\u10DC\u10E1\u10EE\u10D5\u10D0\u10D5\u10D4\u10D1\u10D0",
+  "modal.mode.patch": "\u10DE\u10D0\u10E2\u10E9\u10D8\u10E1 \u10E9\u10D5\u10D4\u10DC\u10D4\u10D1\u10D0",
+  "modal.mode.inline": "\u10E9\u10D0\u10E8\u10D4\u10DC\u10D4\u10D1\u10E3\u10DA\u10D8",
+  "modal.mode.line-by-line": "\u10EE\u10D0\u10D6-\u10EE\u10D0\u10D6\u10DD\u10D1\u10E0\u10D8\u10D5\u10D0\u10D3",
+  "modal.mode.side-by-side": "\u10D2\u10D5\u10D4\u10E0\u10D3\u10D8\u10D2\u10D5\u10D4\u10E0\u10D3",
+  "modal.confirm.cancel": "\u10D2\u10D0\u10E3\u10E5\u10DB\u10D4\u10D1\u10D0",
+  "modal.confirm.restore.title": "\u10DD\u10E0\u10D8\u10D2\u10D8\u10DC\u10D0\u10DA\u10D8 \u10E4\u10D0\u10D8\u10DA\u10D8\u10E1 \u10D0\u10E6\u10D3\u10D2\u10D4\u10DC\u10D0",
+  "modal.confirm.restore.message": "\u10D3\u10D0\u10E0\u10EC\u10DB\u10E3\u10DC\u10D4\u10D1\u10E3\u10DA\u10D8 \u10EE\u10D0\u10E0\u10D7, \u10E0\u10DD\u10DB \u10D2\u10E1\u10E3\u10E0\u10D7 \u10D0\u10DB \u10E4\u10D0\u10D8\u10DA\u10D8\u10E1 \u10E1\u10D0\u10EC\u10E7\u10D8\u10E1 \u10DB\u10D3\u10D2\u10DD\u10DB\u10D0\u10E0\u10D4\u10DD\u10D1\u10D0\u10DB\u10D3\u10D4 \u10D0\u10E6\u10D3\u10D2\u10D4\u10DC\u10D0? \u10E7\u10D5\u10D4\u10DA\u10D0 \u10DB\u10D8\u10DB\u10D3\u10D8\u10DC\u10D0\u10E0\u10D4 \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D0 \u10D3\u10D0\u10D8\u10D9\u10D0\u10E0\u10D2\u10D4\u10D1\u10D0 \u10D3\u10D0 \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10D8\u10E1 \u10D7\u10D5\u10D0\u10DA\u10D3\u10D4\u10D5\u10DC\u10D4\u10D1\u10D8\u10E1 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D0 \u10D2\u10D0\u10D3\u10D0\u10D8\u10E2\u10D5\u10D8\u10E0\u10D7\u10D4\u10D1\u10D0. \u10D0\u10DB \u10DB\u10DD\u10E5\u10DB\u10D4\u10D3\u10D4\u10D1\u10D8\u10E1 \u10D2\u10D0\u10E3\u10E5\u10DB\u10D4\u10D1\u10D0 \u10E8\u10D4\u10E3\u10EB\u10DA\u10D4\u10D1\u10D4\u10DA\u10D8\u10D0.",
+  "modal.confirm.restore.button": "\u10E4\u10D0\u10D8\u10DA\u10D8\u10E1 \u10D0\u10E6\u10D3\u10D2\u10D4\u10DC\u10D0",
+  "modal.confirm.remove.title": "\u10E4\u10D0\u10D8\u10DA\u10D8\u10E1 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D8\u10E1 \u10EC\u10D0\u10E8\u10DA\u10D0",
+  "modal.confirm.remove.message": "\u10D3\u10D0\u10E0\u10EC\u10DB\u10E3\u10DC\u10D4\u10D1\u10E3\u10DA\u10D8 \u10EE\u10D0\u10E0\u10D7, \u10E0\u10DD\u10DB \u10D2\u10E1\u10E3\u10E0\u10D7 \u10D0\u10DB \u10E4\u10D0\u10D8\u10DA\u10D8\u10E1 \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10D8\u10E1 \u10D7\u10D5\u10D0\u10DA\u10D3\u10D4\u10D5\u10DC\u10D4\u10D1\u10D8\u10E1 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D8\u10E1 \u10EC\u10D0\u10E8\u10DA\u10D0? \u10D0\u10DB \u10DB\u10DD\u10E5\u10DB\u10D4\u10D3\u10D4\u10D1\u10D8\u10E1 \u10D2\u10D0\u10E3\u10E5\u10DB\u10D4\u10D1\u10D0 \u10E8\u10D4\u10E3\u10EB\u10DA\u10D4\u10D1\u10D4\u10DA\u10D8\u10D0.",
+  "modal.confirm.remove.button": "\u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D8\u10E1 \u10EC\u10D0\u10E8\u10DA\u10D0",
+  "modal.confirm.revert.title": "\u10D0\u10DB \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10D3\u10D0\u10D1\u10E0\u10E3\u10DC\u10D4\u10D1\u10D0",
+  "modal.confirm.revert.message": "\u10D3\u10D0\u10D1\u10E0\u10E3\u10DC\u10D3\u10D4\u10E1 \u10D4\u10E1 \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D0 \u10D0\u10E0\u10E9\u10D4\u10E3\u10DA \u10D1\u10D0\u10D6\u10D0\u10DB\u10D3\u10D4? \u10E1\u10EE\u10D5\u10D0 \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10D8 \u10E8\u10D4\u10DC\u10D0\u10E0\u10E9\u10E3\u10DC\u10D3\u10D4\u10D1\u10D0.",
+  "modal.confirm.revert.button": "\u10D3\u10D0\u10D1\u10E0\u10E3\u10DC\u10D4\u10D1\u10D0",
+  "modal.search-versions": "\u10D5\u10D4\u10E0\u10E1\u10D8\u10D4\u10D1\u10D8\u10E1 \u10EB\u10D8\u10D4\u10D1\u10D0",
+  "modal.version.baseline": "\u10DB\u10D8\u10DB\u10D3\u10D8\u10DC\u10D0\u10E0\u10D4",
+  "modal.version.numbered": "\u10D5\u10D4\u10E0\u10E1\u10D8\u10D0 {number}",
+  "modal.version.current": "\u10DB\u10D8\u10DB\u10D3\u10D8\u10DC\u10D0\u10E0\u10D4",
+  "modal.version.original": "\u10DD\u10E0\u10D8\u10D2\u10D8\u10DC\u10D0\u10DA\u10D8",
+  "modal.no-versions-match": "\u10EB\u10D8\u10D4\u10D1\u10D0\u10E1 \u10D5\u10D4\u10E0\u10E1\u10D8\u10D4\u10D1\u10D8 \u10D0\u10E0 \u10D4\u10DB\u10D7\u10EE\u10D5\u10D4\u10D5\u10D0",
+  "modal.no-snapshots-yet": "\u10EF\u10D4\u10E0 \u10E8\u10E3\u10D0\u10DA\u10D4\u10D3\u10E3\u10E0\u10D8 \u10E1\u10EC\u10E0\u10D0\u10E4\u10D8 \u10D0\u10E1\u10DA\u10D4\u10D1\u10D8 \u10D0\u10E0 \u10D0\u10E0\u10D8\u10E1",
+  "modal.revert-hunk": "\u10D0\u10DB \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10D3\u10D0\u10D1\u10E0\u10E3\u10DC\u10D4\u10D1\u10D0",
+  "modal.copy": "\u10D9\u10DD\u10DE\u10D8\u10E0\u10D4\u10D1\u10D0"
+};
+
+// lang/kh.json
+var kh_default = {
+  "command.go-to-next-change": "\u1791\u17C5\u1780\u17B6\u1793\u17CB\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1794\u1793\u17D2\u1791\u17B6\u1794\u17CB",
+  "command.go-to-previous-change": "\u1791\u17C5\u1780\u17B6\u1793\u17CB\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1798\u17BB\u1793",
+  "command.reset-lines-all": "\u1780\u17C6\u178E\u178F\u17CB\u17A1\u17BE\u1784\u179C\u17B7\u1789\u1793\u17BC\u179C\u179A\u17BC\u1794\u1790\u178F\u178F\u17B6\u1798\u178A\u17B6\u1793\u1794\u1793\u17D2\u1791\u17B6\u178F\u17CB\u1791\u17B6\u17C6\u1784\u17A2\u179F\u17CB",
+  "command.reset-lines": "\u1780\u17C6\u178E\u178F\u17CB\u17A1\u17BE\u1784\u179C\u17B7\u1789\u1793\u17BC\u179C\u179A\u17BC\u1794\u1790\u178F\u178F\u17B6\u1798\u178A\u17B6\u1793\u1794\u1793\u17D2\u1791\u17B6\u178F\u17CB\u1793\u17C3\u17AF\u1780\u179F\u17B6\u179A\u1794\u1785\u17D2\u1785\u17BB\u1794\u17D2\u1794\u1793\u17D2\u1793",
+  "command.show-diff": "\u1794\u1784\u17D2\u17A0\u17B6\u1789\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1791\u17B6\u17C6\u1784\u17A2\u179F\u17CB\u1793\u17C3\u17AF\u1780\u179F\u17B6\u179A\u1794\u1785\u17D2\u1785\u17BB\u1794\u17D2\u1794\u1793\u17D2\u1793",
+  "notice.no-changes-to-navigate": "\u1782\u17D2\u1798\u17B6\u1793\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u179F\u1798\u17D2\u179A\u17B6\u1794\u17CB\u1791\u17C5\u1780\u17B6\u1793\u17CB\u1791\u17C1",
+  "notice.all-snapshots-deleted": "\u1794\u17B6\u1793\u179B\u17BB\u1794\u1791\u17B7\u1793\u17D2\u1793\u1793\u17D0\u1799\u179A\u17BC\u1794\u1790\u178F\u1791\u17B6\u17C6\u1784\u17A2\u179F\u17CB",
+  "notice.current-snapshot-deleted": "\u1794\u17B6\u1793\u179B\u17BB\u1794\u1791\u17B7\u1793\u17D2\u1793\u1793\u17D0\u1799\u179A\u17BC\u1794\u1790\u178F\u1794\u1785\u17D2\u1785\u17BB\u1794\u17D2\u1794\u1793\u17D2\u1793",
+  "notice.file-restored": "\u1794\u17B6\u1793\u179F\u17D2\u178A\u17B6\u179A\u17AF\u1780\u179F\u17B6\u179A\u1791\u17C5\u179F\u17D2\u1790\u17B6\u1793\u1797\u17B6\u1796\u178A\u17BE\u1798\u179C\u17B7\u1789",
+  "notice.file-restore-failed": "\u1798\u17B7\u1793\u17A2\u17B6\u1785\u179F\u17D2\u178A\u17B6\u179A\u17AF\u1780\u179F\u17B6\u179A\u1791\u17C5\u179F\u17D2\u1790\u17B6\u1793\u1797\u17B6\u1796\u178A\u17BE\u1798\u179C\u17B7\u1789\u1794\u17B6\u1793\u1791\u17C1",
+  "notice.copied": "\u1794\u17B6\u1793\u1785\u1798\u17D2\u179B\u1784!",
+  "notice.no-saved-history": "\u1782\u17D2\u1798\u17B6\u1793\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u178A\u17C2\u179B\u1794\u17B6\u1793\u179A\u1780\u17D2\u179F\u17B6\u1791\u17BB\u1780\u179F\u1798\u17D2\u179A\u17B6\u1794\u17CB\u17AF\u1780\u179F\u17B6\u179A\u1793\u17C1\u17C7\u1791\u17C1\u17D4",
+  "notice.invalid-exclude-pattern": "\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u1780\u17D2\u1793\u17BB\u1784\u1798\u17C9\u17B6\u179F\u17CA\u17B8\u1793\u17D6 \u179B\u17C6\u1793\u17B6\u17C6\u1795\u17D2\u179B\u17BC\u179C\u178A\u17C2\u179B\u178A\u1780\u1785\u17C1\u1789\u1798\u17B7\u1793\u1798\u17C2\u1793\u1787\u17B6 Regular Expression \u178F\u17D2\u179A\u17B9\u1798\u178F\u17D2\u179A\u17BC\u179C\u1791\u17C1 \u178A\u17BC\u1785\u17D2\u1793\u17C1\u17C7\u179C\u17B6\u178F\u17D2\u179A\u17BC\u179C\u1794\u17B6\u1793\u179A\u17C6\u179B\u1784\u17D4",
+  "menu.local-history": "\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u1780\u17D2\u1793\u17BB\u1784\u1798\u17C9\u17B6\u179F\u17CA\u17B8\u1793",
+  "menu.show-changes": "\u1794\u1784\u17D2\u17A0\u17B6\u1789\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A",
+  "status.lines-changed": "\u1794\u17B6\u1793\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A {count} \u1794\u1793\u17D2\u1791\u17B6\u178F\u17CB",
+  "setting.type.name": "\u1794\u17D2\u179A\u1797\u17C1\u1791",
+  "setting.type.desc": "\u1787\u17D2\u179A\u17BE\u179F\u179A\u17BE\u179F\u179A\u179C\u17B6\u1784\u1794\u1793\u17D2\u1791\u17B6\u178F\u17CB\u1794\u1789\u17D2\u1788\u179A \u17AC\u1785\u17C6\u178E\u17BB\u1785\u1793\u17C5\u1782\u17C2\u1798\u17D4",
+  "setting.type.option.line": "\u1794\u1793\u17D2\u1791\u17B6\u178F\u17CB\u1794\u1789\u17D2\u1788\u179A",
+  "setting.type.option.dot": "\u178F\u17BD\u17A2\u1780\u17D2\u179F\u179A\u1793\u17C5\u1782\u17C2\u1798",
+  "setting.allowed-extensions.name": "\u1780\u1793\u17D2\u1791\u17BB\u1799\u17AF\u1780\u179F\u17B6\u179A\u178A\u17C2\u179B\u17A2\u1793\u17BB\u1789\u17D2\u1789\u17B6\u178F",
+  "setting.allowed-extensions.desc": "\u1794\u1789\u17D2\u1787\u17B8\u1780\u1793\u17D2\u1791\u17BB\u1799\u17AF\u1780\u179F\u17B6\u179A\u178A\u17C2\u179B\u178F\u17D2\u179A\u17BC\u179C\u178F\u17B6\u1798\u178A\u17B6\u1793\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A \u1794\u17C6\u1794\u17C2\u1780\u178A\u17C4\u1799\u1780\u17D2\u1794\u17C0\u179F (\u17A7. md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "\u1795\u17D2\u179B\u17BC\u179C\u178A\u17C2\u179B\u178A\u1780\u1785\u17C1\u1789",
+  "setting.exclude-paths.desc": "Regular Expression \u178A\u17C2\u179B\u1798\u17B7\u1793\u1794\u17D2\u179A\u1780\u17B6\u1793\u17CB\u17A2\u1780\u17D2\u179F\u179A\u1792\u17C6\u178F\u17BC\u1785 \u1794\u17D2\u179A\u17C0\u1794\u1792\u17C0\u1794\u1787\u17B6\u1798\u17BD\u1799\u1795\u17D2\u179B\u17BC\u179C\u178A\u17C2\u179B\u1791\u17B6\u1780\u17CB\u1791\u1784\u1793\u17B9\u1784 vault\u17D4 \u17AF\u1780\u179F\u17B6\u179A\u178E\u17B6\u178A\u17C2\u179B\u1795\u17D2\u179B\u17BC\u179C\u179A\u1794\u179F\u17CB\u179C\u17B6\u178F\u17D2\u179A\u17BC\u179C\u1782\u17D2\u1793\u17B6 \u1793\u17B9\u1784\u1798\u17B7\u1793\u178F\u17D2\u179A\u17BC\u179C\u1794\u17B6\u1793\u178F\u17B6\u1798\u178A\u17B6\u1793\u17A1\u17BE\u1799 (\u17A7. \\.excalidraw\\.md$ \u17AC (^|/)Templates/)\u17D4 \u178F\u1798\u17D2\u179B\u17C3\u179B\u17C6\u1793\u17B6\u17C6\u178A\u17BE\u1798\u178A\u1780\u1785\u17C1\u1789\u1790\u178F Templates \u1793\u17B7\u1784\u1782\u17C6\u1793\u17BC\u179A Excalidraw\u17D4 \u1791\u17BB\u1780\u17B1\u17D2\u1799\u1791\u1791\u17C1\u178A\u17BE\u1798\u17D2\u1794\u17B8\u178F\u17B6\u1798\u178A\u17B6\u1793\u1782\u17D2\u179A\u1794\u17CB\u1799\u17C9\u17B6\u1784\u17D4",
+  "setting.keep.name": "\u179A\u1780\u17D2\u179F\u17B6\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u179A\u17A0\u17BC\u178F\u178A\u179B\u17CB",
+  "setting.keep.desc": "\u1799\u17BB\u1791\u17D2\u1792\u179F\u17B6\u179F\u17D2\u178F\u17D2\u179A\u179F\u1798\u17D2\u179A\u17B6\u1794\u17CB\u179F\u1798\u17D2\u17A2\u17B6\u178F\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u1780\u17C6\u178E\u17C2",
+  "setting.keep.option.app": "\u1794\u17B7\u1791\u1780\u1798\u17D2\u1798\u179C\u17B7\u1792\u17B8",
+  "setting.keep.option.file": "\u1794\u17B7\u1791\u17AF\u1780\u179F\u17B6\u179A",
+  "setting.ignore-new-files.name": "\u1798\u17B7\u1793\u179A\u17B6\u1794\u17CB\u1794\u1789\u17D2\u1785\u17BC\u179B\u17AF\u1780\u179F\u17B6\u179A\u1790\u17D2\u1798\u17B8",
+  "setting.ignore-new-files.desc": "\u1780\u17BB\u17C6\u178F\u17B6\u1798\u178A\u17B6\u1793\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1793\u17C5\u1780\u17D2\u1793\u17BB\u1784\u17AF\u1780\u179F\u17B6\u179A\u178A\u17C2\u179B\u1794\u1784\u17D2\u1780\u17BE\u178F\u17A1\u17BE\u1784\u1794\u1793\u17D2\u1791\u17B6\u1794\u17CB\u1796\u17B8\u1780\u17B6\u179A\u178F\u17B6\u1798\u178A\u17B6\u1793\u1794\u17B6\u1793\u1785\u17B6\u1794\u17CB\u1795\u17D2\u178A\u17BE\u1798",
+  "setting.persist.name": "\u179A\u1780\u17D2\u179F\u17B6\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u1794\u1793\u17D2\u1791\u17B6\u1794\u17CB\u1796\u17B8\u1780\u17B6\u179A\u1785\u17B6\u1794\u17CB\u1795\u17D2\u178A\u17BE\u1798\u17A1\u17BE\u1784\u179C\u17B7\u1789",
+  "setting.persist.desc": '\u179A\u1780\u17D2\u179F\u17B6\u1791\u17BB\u1780\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u1791\u17C5\u1790\u17B6\u179F\u178A\u17BE\u1798\u17D2\u1794\u17B8\u17B1\u17D2\u1799\u1780\u17B6\u179A\u1794\u1793\u17D2\u179B\u17B7\u1785\u1793\u17C5\u178F\u17C2\u1798\u17B6\u1793\u1794\u1793\u17D2\u1791\u17B6\u1794\u17CB\u1796\u17B8\u1780\u17B6\u179A\u1785\u17B6\u1794\u17CB\u1795\u17D2\u178A\u17BE\u1798\u17A1\u17BE\u1784\u179C\u17B7\u1789\u17D4 \u1791\u17B6\u1798\u1791\u17B6\u179A\u17B1\u17D2\u1799 "\u179A\u1780\u17D2\u179F\u17B6\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u179A\u17A0\u17BC\u178F\u178A\u179B\u17CB" \u1780\u17C6\u178E\u178F\u17CB\u1791\u17C5\u1794\u17B7\u1791\u1780\u1798\u17D2\u1798\u179C\u17B7\u1792\u17B8\u17D4',
+  "setting.max-entries.name": "\u1785\u17C6\u1793\u17BD\u1793\u17AF\u1780\u179F\u17B6\u179A\u178A\u17C2\u179B\u179A\u1780\u17D2\u179F\u17B6\u1791\u17BB\u1780\u17A2\u178F\u17B7\u1794\u179A\u1798\u17B6",
+  "setting.max-entries.desc": "\u1780\u1798\u17D2\u179A\u17B7\u178F\u1780\u17C6\u178E\u178F\u17CB\u1793\u17C3\u1785\u17C6\u1793\u17BD\u1793\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u17AF\u1780\u179F\u17B6\u179A\u178A\u17C2\u179B\u179A\u1780\u17D2\u179F\u17B6\u1791\u17BB\u1780\u1793\u17C5\u179B\u17BE\u1790\u17B6\u179F\u17D4 \u17AF\u1780\u179F\u17B6\u179A\u1785\u17B6\u179F\u17CB\u1794\u17C6\u1795\u17BB\u178F\u178F\u17D2\u179A\u17BC\u179C\u179B\u17BB\u1794\u1785\u17C1\u1789\u1798\u17BB\u1793\u17D4 \u1780\u17C6\u178E\u178F\u17CB\u1791\u17C5 0 \u178A\u17BE\u1798\u17D2\u1794\u17B8\u1794\u17B7\u1791\u17D4",
+  "setting.max-age-days.name": "\u17A2\u17B6\u1799\u17BB\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u17A2\u178F\u17B7\u1794\u179A\u1798\u17B6 (\u1790\u17D2\u1784\u17C3)",
+  "setting.max-age-days.desc": "\u179B\u17BB\u1794\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u178A\u17C2\u179B\u179A\u1780\u17D2\u179F\u17B6\u1791\u17BB\u1780\u1785\u17B6\u179F\u17CB\u1787\u17B6\u1784\u1785\u17C6\u1793\u17BD\u1793\u1790\u17D2\u1784\u17C3\u1793\u17C1\u17C7\u17D4 \u1780\u17C6\u178E\u178F\u17CB\u1791\u17C5 0 \u178A\u17BE\u1798\u17D2\u1794\u17B8\u1794\u17B7\u1791\u17D4",
+  "setting.snapshots-heading": "\u179A\u17BC\u1794\u1790\u178F\u1794\u1793\u17D2\u1791\u17B6\u178F\u17CB\u1796\u17C1\u179B\u179C\u17C1\u179B\u17B6",
+  "setting.snapshots-enabled.name": "\u1790\u178F\u1780\u17C6\u178E\u17C2\u1780\u178E\u17D2\u178A\u17B6\u179B",
+  "setting.snapshots-enabled.desc": "\u179A\u1780\u17D2\u179F\u17B6\u1794\u1793\u17D2\u1791\u17B6\u178F\u17CB\u1796\u17C1\u179B\u179C\u17C1\u179B\u17B6\u1793\u17C3\u1780\u17C6\u178E\u17C2\u1798\u17BB\u1793\u17D7 \u178A\u17BE\u1798\u17D2\u1794\u17B8\u17B1\u17D2\u1799\u17A2\u17D2\u1793\u1780\u17A2\u17B6\u1785\u1794\u17D2\u179A\u17C0\u1794\u1792\u17C0\u1794\u1787\u17B6\u1798\u17BD\u1799\u1785\u17C6\u178E\u17BB\u1785\u178E\u17B6\u1798\u17BD\u1799\u1793\u17C5\u1780\u178E\u17D2\u178A\u17B6\u179B \u1798\u17B7\u1793\u1798\u17C2\u1793\u178F\u17D2\u179A\u17B9\u1798\u178F\u17C2\u17AF\u1780\u179F\u17B6\u179A\u178A\u17BE\u1798\u17A1\u17BE\u1799\u17D4",
+  "setting.snapshots-edit-threshold.name": "\u1790\u178F\u179A\u17C0\u1784\u179A\u17B6\u179B\u17CB (\u1780\u17B6\u179A\u1780\u17C2)",
+  "setting.snapshots-edit-threshold.desc": "\u1790\u178F\u1780\u17C6\u178E\u17C2\u1798\u17BD\u1799\u1794\u1793\u17D2\u1791\u17B6\u1794\u17CB\u1796\u17B8\u1780\u17B6\u179A\u1780\u17C2\u1785\u17C6\u1793\u17BD\u1793\u1793\u17C1\u17C7\u17D4 \u1780\u17C6\u178E\u178F\u17CB\u1791\u17C5 0 \u178A\u17BE\u1798\u17D2\u1794\u17B8\u1794\u17B7\u1791\u1780\u1798\u17D2\u1798\u179C\u178F\u17D2\u1790\u17BB\u1794\u1784\u17D2\u1780\u178F\u17B6\u1798\u1780\u17B6\u179A\u1780\u17C2\u17D4",
+  "setting.snapshots-interval.name": "\u1790\u178F\u179A\u17C0\u1784\u179A\u17B6\u179B\u17CB (\u1793\u17B6\u1791\u17B8)",
+  "setting.snapshots-interval.desc": "\u1790\u178F\u1780\u17C6\u178E\u17C2\u1798\u17BD\u1799\u1794\u1793\u17D2\u1791\u17B6\u1794\u17CB\u1796\u17B8\u1780\u17B6\u179A\u1780\u17C2\u1785\u17C6\u1793\u17BD\u1793\u1793\u17B6\u1791\u17B8\u1793\u17C1\u17C7\u17D4 \u1780\u17C6\u178E\u178F\u17CB\u1791\u17C5 0 \u178A\u17BE\u1798\u17D2\u1794\u17B8\u1794\u17B7\u1791\u1780\u1798\u17D2\u1798\u179C\u178F\u17D2\u1790\u17BB\u1794\u1784\u17D2\u1780\u178F\u17B6\u1798\u1796\u17C1\u179B\u179C\u17C1\u179B\u17B6\u17D4",
+  "setting.max-version-age-days.name": "\u17A2\u17B6\u1799\u17BB\u1780\u17C6\u178E\u17C2\u17A2\u178F\u17B7\u1794\u179A\u1798\u17B6 (\u1790\u17D2\u1784\u17C3)",
+  "setting.max-version-age-days.desc": "\u179B\u17BB\u1794\u1780\u17C6\u178E\u17C2\u1780\u178E\u17D2\u178A\u17B6\u179B\u178A\u17C2\u179B\u1785\u17B6\u179F\u17CB\u1787\u17B6\u1784\u1785\u17C6\u1793\u17BD\u1793\u1790\u17D2\u1784\u17C3\u1793\u17C1\u17C7 (\u1796\u17D2\u179A\u17C6\u178A\u17C2\u1793\u1785\u1798\u17D2\u1794\u1784)\u17D4 \u1780\u17C6\u178E\u178F\u17CB\u1791\u17C5 0 \u178A\u17BE\u1798\u17D2\u1794\u17B8\u1794\u17B7\u1791\u17D4",
+  "setting.max-versions.name": "\u1785\u17C6\u1793\u17BD\u1793\u1780\u17C6\u178E\u17C2\u17A2\u178F\u17B7\u1794\u179A\u1798\u17B6\u1780\u17D2\u1793\u17BB\u1784\u1798\u17BD\u1799\u17AF\u1780\u179F\u17B6\u179A",
+  "setting.max-versions.desc": "\u1780\u1798\u17D2\u179A\u17B7\u178F\u1780\u17C6\u178E\u178F\u17CB\u179F\u17BB\u179C\u178F\u17D2\u1790\u17B7\u1797\u17B6\u1796\u1793\u17C3\u1780\u17C6\u178E\u17C2\u1780\u178E\u17D2\u178A\u17B6\u179B\u178A\u17C2\u179B\u179A\u1780\u17D2\u179F\u17B6\u1791\u17BB\u1780\u1780\u17D2\u1793\u17BB\u1784\u1798\u17BD\u1799\u17AF\u1780\u179F\u17B6\u179A\u17D4 \u1780\u17C6\u178E\u17C2\u1785\u17B6\u179F\u17CB\u1794\u17C6\u1795\u17BB\u178F\u178F\u17D2\u179A\u17BC\u179C\u179B\u17BB\u1794\u1785\u17C1\u1789\u1798\u17BB\u1793\u17D4 \u1780\u17C6\u178E\u178F\u17CB\u1791\u17C5 0 \u178A\u17BE\u1798\u17D2\u1794\u17B8\u1794\u17B7\u1791\u17D4",
+  "setting.show-heading": "\u1794\u1784\u17D2\u17A0\u17B6\u1789\u179F\u1789\u17D2\u1789\u17B6\u179F\u1798\u17D2\u1782\u17B6\u179B\u17CB\u179F\u1798\u17D2\u179A\u17B6\u1794\u17CB",
+  "setting.show.desc": '\u179F\u1789\u17D2\u1789\u17B6\u179F\u1798\u17D2\u1782\u17B6\u179B\u17CB\u1794\u1793\u17D2\u1791\u17B6\u178F\u17CB\u178F\u17D2\u179A\u17BC\u179C\u1794\u1784\u17D2\u17A0\u17B6\u1789\u178F\u17C2\u1793\u17C5\u1780\u17D2\u1793\u17BB\u1784\u179A\u1794\u17C0\u1794\u1780\u17C2 (source \u1793\u17B7\u1784 live preview) \u1794\u17C9\u17BB\u178E\u17D2\u178E\u17C4\u17C7\u17D4 \u1793\u17C5\u1780\u17D2\u1793\u17BB\u1784\u179A\u1794\u17C0\u1794\u17A2\u17B6\u1793 \u1782\u17D2\u1798\u17B6\u1793\u179F\u1789\u17D2\u1789\u17B6\u179F\u1798\u17D2\u1782\u17B6\u179B\u17CB\u1780\u17D2\u1793\u17BB\u1784\u1794\u1793\u17D2\u1791\u17B6\u178F\u17CB\u1791\u17C1 \u1794\u17C9\u17BB\u1793\u17D2\u178F\u17C2\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1793\u17C5\u178F\u17C2\u17A2\u17B6\u1785\u1785\u17BC\u179B\u178A\u17C6\u178E\u17BE\u179A\u1780\u17B6\u179A\u1794\u17B6\u1793\u17D6 \u178A\u17C6\u178E\u17BE\u179A\u1780\u17B6\u179A\u1796\u17B6\u1780\u17D2\u1799\u1794\u1789\u17D2\u1787\u17B6 "\u1794\u1784\u17D2\u17A0\u17B6\u1789\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1791\u17B6\u17C6\u1784\u17A2\u179F\u17CB\u1793\u17C3\u17AF\u1780\u179F\u17B6\u179A\u1794\u1785\u17D2\u1785\u17BB\u1794\u17D2\u1794\u1793\u17D2\u1793" \u17AC\u1794\u17D2\u179A\u17BE\u1798\u17C9\u17BA\u1793\u17BB\u1799\u1794\u179A\u17B7\u1794\u1791\u179A\u1794\u179F\u17CB\u17AF\u1780\u179F\u17B6\u179A\u1793\u17C5\u1780\u17D2\u1793\u17BB\u1784\u1780\u1798\u17D2\u1798\u179C\u17B7\u1792\u17B8\u179A\u17BB\u1780\u179A\u1780\u17AF\u1780\u179F\u17B6\u179A\u17D4',
+  "setting.show.changed": "\u1794\u17B6\u1793\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A",
+  "setting.show.restored": "\u1794\u17B6\u1793\u179F\u17D2\u178A\u17B6\u179A",
+  "setting.show.added": "\u1794\u17B6\u1793\u1794\u1793\u17D2\u1790\u17C2\u1798",
+  "setting.show.removed": "\u1794\u17B6\u1793\u178A\u1780",
+  "setting.line-heading": "\u179F\u1789\u17D2\u1789\u17B6\u179F\u1798\u17D2\u1782\u17B6\u179B\u17CB\u1794\u1793\u17D2\u1791\u17B6\u178F\u17CB",
+  "setting.line-width.name": "\u1791\u1791\u17B9\u1784",
+  "setting.line-width.desc": "\u1791\u1791\u17B9\u1784\u1793\u17C3\u179F\u1789\u17D2\u1789\u17B6\u179F\u1798\u17D2\u1782\u17B6\u179B\u17CB\u1794\u1793\u17D2\u1791\u17B6\u178F\u17CB\u1794\u1789\u17D2\u1788\u179A (\u1782\u17B7\u178F\u1787\u17B6\u1797\u17B8\u1780\u179F\u17C2\u179B)\u17D4",
+  "setting.gutter-heading.name": "\u179F\u1789\u17D2\u1789\u17B6\u179F\u1798\u17D2\u1782\u17B6\u179B\u17CB\u1793\u17C5\u1782\u17C2\u1798",
+  "setting.gutter-heading.prefix": "\u178F\u17BD\u17A2\u1780\u17D2\u179F\u179A\u1793\u17C3\u179F\u1789\u17D2\u1789\u17B6\u179F\u1798\u17D2\u1782\u17B6\u179B\u17CB\u1794\u17D2\u179A\u1797\u17C1\u1791\u1793\u17C5\u1782\u17C2\u1798 (",
+  "setting.gutter-heading.suffix": ")\u17D4",
+  "setting.gutter-changed.name": "\u178F\u17BD\u17A2\u1780\u17D2\u179F\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A",
+  "setting.gutter-added.name": "\u178F\u17BD\u17A2\u1780\u17D2\u179F\u179A\u1794\u1793\u17D2\u1790\u17C2\u1798",
+  "setting.gutter-restored.name": "\u178F\u17BD\u17A2\u1780\u17D2\u179F\u179A\u179F\u17D2\u178A\u17B6\u179A",
+  "setting.gutter-removed.name": "\u178F\u17BD\u17A2\u1780\u17D2\u179F\u179A\u178A\u1780",
+  "modal.title": "\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7",
+  "modal.no-changes": "\u1782\u17D2\u1798\u17B6\u1793\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A",
+  "modal.identical-to-current": "\u178A\u17BC\u1785\u1782\u17D2\u1793\u17B6\u1793\u17B9\u1784\u1794\u1785\u17D2\u1785\u17BB\u1794\u17D2\u1794\u1793\u17D2\u1793",
+  "modal.restore-original": "\u179F\u17D2\u178A\u17B6\u179A\u17AF\u1780\u179F\u17B6\u179A\u178A\u17BE\u1798",
+  "modal.remove-history": "\u178A\u1780\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u17AF\u1780\u179F\u17B6\u179A",
+  "modal.previous-difference": "\u1797\u17B6\u1796\u1781\u17BB\u179F\u1782\u17D2\u1793\u17B6\u1798\u17BB\u1793",
+  "modal.next-difference": "\u1797\u17B6\u1796\u1781\u17BB\u179F\u1782\u17D2\u1793\u17B6\u1794\u1793\u17D2\u1791\u17B6\u1794\u17CB",
+  "modal.mode.patch": "\u1794\u1784\u17D2\u17A0\u17B6\u1789 patch",
+  "modal.mode.inline": "\u1780\u17D2\u1793\u17BB\u1784\u1794\u1793\u17D2\u1791\u17B6\u178F\u17CB",
+  "modal.mode.line-by-line": "\u1794\u1793\u17D2\u1791\u17B6\u178F\u17CB\u1798\u17BD\u1799\u17D7",
+  "modal.mode.side-by-side": "\u1785\u17C6\u17A0\u17C0\u1784\u1782\u17D2\u1793\u17B6",
+  "modal.confirm.cancel": "\u1794\u17C4\u17C7\u1794\u1784\u17CB",
+  "modal.confirm.restore.title": "\u179F\u17D2\u178A\u17B6\u179A\u17AF\u1780\u179F\u17B6\u179A\u178A\u17BE\u1798",
+  "modal.confirm.restore.message": "\u178F\u17BE\u17A2\u17D2\u1793\u1780\u1794\u17D2\u179A\u17B6\u1780\u178A\u1790\u17B6\u1785\u1784\u17CB\u179F\u17D2\u178A\u17B6\u179A\u17AF\u1780\u179F\u17B6\u179A\u1793\u17C1\u17C7\u1791\u17C5\u179F\u17D2\u1790\u17B6\u1793\u1797\u17B6\u1796\u178A\u17BE\u1798\u179C\u17B7\u1789\u17AC? \u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1794\u1785\u17D2\u1785\u17BB\u1794\u17D2\u1794\u1793\u17D2\u1793\u1791\u17B6\u17C6\u1784\u17A2\u179F\u17CB\u1793\u17B9\u1784\u1794\u17B6\u178F\u17CB\u1794\u1784\u17CB \u17A0\u17BE\u1799\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u178F\u17B6\u1798\u178A\u17B6\u1793\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1793\u17B9\u1784\u178F\u17D2\u179A\u17BC\u179C\u1780\u17C6\u178E\u178F\u17CB\u17A1\u17BE\u1784\u179C\u17B7\u1789\u17D4 \u179F\u1780\u1798\u17D2\u1798\u1797\u17B6\u1796\u1793\u17C1\u17C7\u1798\u17B7\u1793\u17A2\u17B6\u1785\u1798\u17B7\u1793\u1792\u17D2\u179C\u17BE\u179C\u17B7\u1789\u1794\u17B6\u1793\u1791\u17C1\u17D4",
+  "modal.confirm.restore.button": "\u179F\u17D2\u178A\u17B6\u179A\u17AF\u1780\u179F\u17B6\u179A",
+  "modal.confirm.remove.title": "\u178A\u1780\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u17AF\u1780\u179F\u17B6\u179A",
+  "modal.confirm.remove.message": "\u178F\u17BE\u17A2\u17D2\u1793\u1780\u1794\u17D2\u179A\u17B6\u1780\u178A\u1790\u17B6\u1785\u1784\u17CB\u178A\u1780\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u178F\u17B6\u1798\u178A\u17B6\u1793\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u179F\u1798\u17D2\u179A\u17B6\u1794\u17CB\u17AF\u1780\u179F\u17B6\u179A\u1793\u17C1\u17C7\u17AC? \u179F\u1780\u1798\u17D2\u1798\u1797\u17B6\u1796\u1793\u17C1\u17C7\u1798\u17B7\u1793\u17A2\u17B6\u1785\u1798\u17B7\u1793\u1792\u17D2\u179C\u17BE\u179C\u17B7\u1789\u1794\u17B6\u1793\u1791\u17C1\u17D4",
+  "modal.confirm.remove.button": "\u178A\u1780\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7",
+  "modal.confirm.revert.title": "\u178F\u17D2\u179A\u17A1\u1794\u17CB\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1793\u17C1\u17C7\u179C\u17B7\u1789",
+  "modal.confirm.revert.message": "\u178F\u17D2\u179A\u17A1\u1794\u17CB\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1793\u17C1\u17C7\u1791\u17C5\u1798\u17BC\u179B\u178A\u17D2\u178B\u17B6\u1793\u178A\u17C2\u179B\u1794\u17B6\u1793\u1787\u17D2\u179A\u17BE\u179F\u179C\u17B7\u1789? \u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1795\u17D2\u179F\u17C1\u1784\u1791\u17C0\u178F\u178F\u17D2\u179A\u17BC\u179C\u179A\u1780\u17D2\u179F\u17B6\u1791\u17BB\u1780\u17D4",
+  "modal.confirm.revert.button": "\u178F\u17D2\u179A\u17A1\u1794\u17CB\u179C\u17B7\u1789",
+  "modal.search-versions": "\u179F\u17D2\u179C\u17C2\u1784\u179A\u1780\u1780\u17C6\u178E\u17C2",
+  "modal.version.baseline": "\u1794\u1785\u17D2\u1785\u17BB\u1794\u17D2\u1794\u1793\u17D2\u1793",
+  "modal.version.numbered": "\u1780\u17C6\u178E\u17C2 {number}",
+  "modal.version.current": "\u1794\u1785\u17D2\u1785\u17BB\u1794\u17D2\u1794\u1793\u17D2\u1793",
+  "modal.version.original": "\u178A\u17BE\u1798",
+  "modal.no-versions-match": "\u1782\u17D2\u1798\u17B6\u1793\u1780\u17C6\u178E\u17C2\u178A\u17C2\u179B\u178F\u17D2\u179A\u17BC\u179C\u1793\u17B9\u1784\u1780\u17B6\u179A\u179F\u17D2\u179C\u17C2\u1784\u179A\u1780\u1791\u17C1",
+  "modal.no-snapshots-yet": "\u1798\u17B7\u1793\u1791\u17B6\u1793\u17CB\u1798\u17B6\u1793\u179A\u17BC\u1794\u1790\u178F\u1780\u178E\u17D2\u178A\u17B6\u179B\u1793\u17C5\u17A1\u17BE\u1799\u1791\u17C1",
+  "modal.revert-hunk": "\u178F\u17D2\u179A\u17A1\u1794\u17CB\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1793\u17C1\u17C7\u179C\u17B7\u1789",
+  "modal.copy": "\u1785\u1798\u17D2\u179B\u1784"
+};
+
+// lang/ko.json
+var ko_default = {
+  "command.go-to-next-change": "\uB2E4\uC74C \uBCC0\uACBD\uC73C\uB85C \uC774\uB3D9",
+  "command.go-to-previous-change": "\uC774\uC804 \uBCC0\uACBD\uC73C\uB85C \uC774\uB3D9",
+  "command.reset-lines-all": "\uBAA8\uB4E0 \uC904 \uCD94\uC801 \uC2A4\uB0C5\uC0F7 \uCD08\uAE30\uD654",
+  "command.reset-lines": "\uD604\uC7AC \uBB38\uC11C\uC758 \uC904 \uCD94\uC801 \uC2A4\uB0C5\uC0F7 \uCD08\uAE30\uD654",
+  "command.show-diff": "\uD604\uC7AC \uBB38\uC11C\uC758 \uBAA8\uB4E0 \uBCC0\uACBD \uC0AC\uD56D \uD45C\uC2DC",
+  "notice.no-changes-to-navigate": "\uC774\uB3D9\uD560 \uBCC0\uACBD \uC0AC\uD56D\uC774 \uC5C6\uC2B5\uB2C8\uB2E4",
+  "notice.all-snapshots-deleted": "\uBAA8\uB4E0 \uC2A4\uB0C5\uC0F7 \uB370\uC774\uD130\uB97C \uC0AD\uC81C\uD588\uC2B5\uB2C8\uB2E4",
+  "notice.current-snapshot-deleted": "\uD604\uC7AC \uC2A4\uB0C5\uC0F7 \uB370\uC774\uD130\uB97C \uC0AD\uC81C\uD588\uC2B5\uB2C8\uB2E4",
+  "notice.file-restored": "\uD30C\uC77C\uC744 \uC6D0\uB798 \uC0C1\uD0DC\uB85C \uBCF5\uC6D0\uD588\uC2B5\uB2C8\uB2E4",
+  "notice.file-restore-failed": "\uD30C\uC77C\uC744 \uC6D0\uB798 \uC0C1\uD0DC\uB85C \uBCF5\uC6D0\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4",
+  "notice.copied": "\uBCF5\uC0AC\uD588\uC2B5\uB2C8\uB2E4!",
+  "notice.no-saved-history": "\uC774 \uD30C\uC77C\uC5D0 \uC800\uC7A5\uB41C \uAE30\uB85D\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.",
+  "notice.invalid-exclude-pattern": "\uB85C\uCEEC \uAE30\uB85D: \uC81C\uC678 \uACBD\uB85C \uD328\uD134\uC774 \uC62C\uBC14\uB978 \uC815\uADDC\uC2DD\uC774 \uC544\uB2C8\uBBC0\uB85C \uBB34\uC2DC\uB429\uB2C8\uB2E4.",
+  "menu.local-history": "\uB85C\uCEEC \uAE30\uB85D",
+  "menu.show-changes": "\uBCC0\uACBD \uC0AC\uD56D \uD45C\uC2DC",
+  "status.lines-changed": "{count}\uAC1C \uC904 \uBCC0\uACBD\uB428",
+  "setting.type.name": "\uC720\uD615",
+  "setting.type.desc": "\uC5EC\uBC31\uC5D0 \uC138\uB85C\uC120\uACFC \uC810 \uC911 \uBB34\uC5C7\uC744 \uD45C\uC2DC\uD560\uC9C0 \uC120\uD0DD\uD569\uB2C8\uB2E4.",
+  "setting.type.option.line": "\uC138\uB85C\uC120",
+  "setting.type.option.dot": "\uC5EC\uBC31 \uBB38\uC790",
+  "setting.allowed-extensions.name": "\uD5C8\uC6A9\uB41C \uD30C\uC77C \uD655\uC7A5\uC790",
+  "setting.allowed-extensions.desc": "\uBCC0\uACBD\uC744 \uCD94\uC801\uD560 \uD30C\uC77C \uD655\uC7A5\uC790\uC758 \uC27C\uD45C\uB85C \uAD6C\uBD84\uB41C \uBAA9\uB85D (\uC608: md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "\uC81C\uC678\uD560 \uACBD\uB85C",
+  "setting.exclude-paths.desc": "\uBCF4\uAD00\uD568 \uAE30\uC900 \uC0C1\uB300 \uACBD\uB85C\uC640 \uB300\uC870\uB418\uB294 \uB300\uC18C\uBB38\uC790 \uAD6C\uBD84 \uC5C6\uB294 \uC815\uADDC\uC2DD\uC785\uB2C8\uB2E4. \uACBD\uB85C\uAC00 \uC77C\uCE58\uD558\uB294 \uD30C\uC77C\uC740 \uC808\uB300 \uCD94\uC801\uB418\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4 (\uC608: \\.excalidraw\\.md$ \uB610\uB294 (^|/)Templates/). \uAE30\uBCF8\uAC12\uC740 Templates \uD3F4\uB354\uC640 Excalidraw \uADF8\uB9BC\uC744 \uC81C\uC678\uD569\uB2C8\uB2E4. \uBAA8\uB4E0 \uAC83\uC744 \uCD94\uC801\uD558\uB824\uBA74 \uBE44\uC6CC \uB450\uC138\uC694.",
+  "setting.keep.name": "\uAE30\uB85D \uBCF4\uAD00 \uAE30\uC900",
+  "setting.keep.desc": "\uC218\uC815 \uAE30\uB85D\uC744 \uC815\uB9AC\uD558\uB294 \uBC29\uC2DD",
+  "setting.keep.option.app": "\uC571 \uC885\uB8CC \uC2DC",
+  "setting.keep.option.file": "\uD30C\uC77C \uB2EB\uC744 \uB54C",
+  "setting.ignore-new-files.name": "\uC0C8 \uD30C\uC77C \uBB34\uC2DC",
+  "setting.ignore-new-files.desc": "\uCD94\uC801\uC774 \uC2DC\uC791\uB41C \uD6C4 \uC0DD\uC131\uB41C \uD30C\uC77C\uC758 \uBCC0\uACBD\uC740 \uCD94\uC801\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4",
+  "setting.persist.name": "\uC7AC\uC2DC\uC791 \uD6C4\uC5D0\uB3C4 \uAE30\uB85D \uC720\uC9C0",
+  "setting.persist.desc": '\uC7AC\uC2DC\uC791 \uD6C4\uC5D0\uB3C4 \uAC15\uC870 \uD45C\uC2DC\uAC00 \uC720\uC9C0\uB418\uB3C4\uB85D \uAE30\uB85D\uC744 \uB514\uC2A4\uD06C\uC5D0 \uC800\uC7A5\uD569\uB2C8\uB2E4. "\uAE30\uB85D \uBCF4\uAD00 \uAE30\uC900"\uC774 \uC571 \uC885\uB8CC \uC2DC\uB85C \uC124\uC815\uB418\uC5B4 \uC788\uC5B4\uC57C \uD569\uB2C8\uB2E4.',
+  "setting.max-entries.name": "\uCD5C\uB300 \uC800\uC7A5 \uD30C\uC77C \uC218",
+  "setting.max-entries.desc": "\uB514\uC2A4\uD06C\uC5D0 \uBCF4\uAD00\uD560 \uD30C\uC77C \uAE30\uB85D \uC218\uC758 \uC0C1\uD55C\uC785\uB2C8\uB2E4. \uC624\uB798\uB41C \uAC83\uBD80\uD130 \uBA3C\uC800 \uC81C\uAC70\uB429\uB2C8\uB2E4. 0\uC73C\uB85C \uC124\uC815\uD558\uBA74 \uBE44\uD65C\uC131\uD654\uB429\uB2C8\uB2E4.",
+  "setting.max-age-days.name": "\uCD5C\uB300 \uAE30\uB85D \uBCF4\uAD00 \uAE30\uAC04(\uC77C)",
+  "setting.max-age-days.desc": "\uC774 \uC77C\uC218\uBCF4\uB2E4 \uC624\uB798\uB41C \uC800\uC7A5 \uAE30\uB85D\uC744 \uC0AD\uC81C\uD569\uB2C8\uB2E4. 0\uC73C\uB85C \uC124\uC815\uD558\uBA74 \uBE44\uD65C\uC131\uD654\uB429\uB2C8\uB2E4.",
+  "setting.snapshots-heading": "\uD0C0\uC784\uB77C\uC778 \uC2A4\uB0C5\uC0F7",
+  "setting.snapshots-enabled.name": "\uC911\uAC04 \uBC84\uC804 \uAE30\uB85D",
+  "setting.snapshots-enabled.desc": "\uC774\uC804 \uBC84\uC804\uC758 \uD0C0\uC784\uB77C\uC778\uC744 \uBCF4\uAD00\uD558\uC5EC \uC6D0\uBCF8\uBFD0 \uC544\uB2C8\uB77C \uC911\uAC04 \uC2DC\uC810\uACFC\uB3C4 \uBE44\uAD50\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.",
+  "setting.snapshots-edit-threshold.name": "\uAE30\uB85D \uC8FC\uAE30(\uD3B8\uC9D1 \uD69F\uC218)",
+  "setting.snapshots-edit-threshold.desc": "\uC774 \uD69F\uC218\uB9CC\uD07C \uD3B8\uC9D1\uD560 \uB54C\uB9C8\uB2E4 \uBC84\uC804\uC744 \uAE30\uB85D\uD569\uB2C8\uB2E4. 0\uC73C\uB85C \uC124\uC815\uD558\uBA74 \uD3B8\uC9D1 \uD69F\uC218 \uD2B8\uB9AC\uAC70\uAC00 \uBE44\uD65C\uC131\uD654\uB429\uB2C8\uB2E4.",
+  "setting.snapshots-interval.name": "\uAE30\uB85D \uC8FC\uAE30(\uBD84)",
+  "setting.snapshots-interval.desc": "\uC774 \uBD84 \uC218\uB9CC\uD07C \uD3B8\uC9D1\uD560 \uB54C\uB9C8\uB2E4 \uBC84\uC804\uC744 \uAE30\uB85D\uD569\uB2C8\uB2E4. 0\uC73C\uB85C \uC124\uC815\uD558\uBA74 \uC2DC\uAC04 \uD2B8\uB9AC\uAC70\uAC00 \uBE44\uD65C\uC131\uD654\uB429\uB2C8\uB2E4.",
+  "setting.max-version-age-days.name": "\uCD5C\uB300 \uBC84\uC804 \uBCF4\uAD00 \uAE30\uAC04(\uC77C)",
+  "setting.max-version-age-days.desc": "\uC774 \uC77C\uC218\uBCF4\uB2E4 \uC624\uB798\uB41C \uC911\uAC04 \uBC84\uC804\uC744 \uC0AD\uC81C\uD569\uB2C8\uB2E4(\uAE30\uBCF8 \uAE30\uC900). 0\uC73C\uB85C \uC124\uC815\uD558\uBA74 \uBE44\uD65C\uC131\uD654\uB429\uB2C8\uB2E4.",
+  "setting.max-versions.name": "\uD30C\uC77C\uB2F9 \uCD5C\uB300 \uBC84\uC804 \uC218",
+  "setting.max-versions.desc": "\uD30C\uC77C\uB2F9 \uBCF4\uAD00\uD558\uB294 \uC911\uAC04 \uBC84\uC804\uC758 \uC548\uC804 \uC0C1\uD55C\uC785\uB2C8\uB2E4. \uC624\uB798\uB41C \uAC83\uBD80\uD130 \uBA3C\uC800 \uC81C\uAC70\uB429\uB2C8\uB2E4. 0\uC73C\uB85C \uC124\uC815\uD558\uBA74 \uBE44\uD65C\uC131\uD654\uB429\uB2C8\uB2E4.",
+  "setting.show-heading": "\uD45C\uC2DC \uB300\uC0C1",
+  "setting.show.desc": '\uC904 \uD45C\uC2DC\uAE30\uB294 \uD3B8\uC9D1(\uC18C\uC2A4 \uBC0F \uB77C\uC774\uBE0C \uBBF8\uB9AC\uBCF4\uAE30) \uBAA8\uB4DC\uC5D0\uC11C\uB9CC \uD45C\uC2DC\uB429\uB2C8\uB2E4. \uC77D\uAE30 \uBAA8\uB4DC\uC5D0\uC11C\uB294 \uC778\uB77C\uC778 \uD45C\uC2DC\uAE30\uAC00 \uC5C6\uC9C0\uB9CC \uBCC0\uACBD \uAE30\uB85D\uC5D0\uB294 \uC5EC\uC804\uD788 \uC811\uADFC\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4. "\uD604\uC7AC \uBB38\uC11C\uC758 \uBAA8\uB4E0 \uBCC0\uACBD \uC0AC\uD56D \uD45C\uC2DC" \uBA85\uB839\uC744 \uC2E4\uD589\uD558\uAC70\uB098 \uD30C\uC77C \uD0D0\uC0C9\uAE30\uC5D0\uC11C \uD30C\uC77C \uCEE8\uD14D\uC2A4\uD2B8 \uBA54\uB274\uB97C \uC0AC\uC6A9\uD558\uC138\uC694.',
+  "setting.show.changed": "\uBCC0\uACBD\uB428",
+  "setting.show.restored": "\uBCF5\uC6D0\uB428",
+  "setting.show.added": "\uCD94\uAC00\uB428",
+  "setting.show.removed": "\uC0AD\uC81C\uB428",
+  "setting.line-heading": "\uC904 \uD45C\uC2DC\uAE30",
+  "setting.line-width.name": "\uB108\uBE44",
+  "setting.line-width.desc": "\uC138\uB85C\uC120 \uD45C\uC2DC\uAE30\uC758 \uB108\uBE44(\uD53D\uC140 \uB2E8\uC704).",
+  "setting.gutter-heading.name": "\uC5EC\uBC31 \uD45C\uC2DC\uAE30",
+  "setting.gutter-heading.prefix": "\uC5EC\uBC31 \uC720\uD615 \uD45C\uC2DC\uAE30 \uBB38\uC790 (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "\uBCC0\uACBD \uBB38\uC790",
+  "setting.gutter-added.name": "\uCD94\uAC00 \uBB38\uC790",
+  "setting.gutter-restored.name": "\uBCF5\uC6D0 \uBB38\uC790",
+  "setting.gutter-removed.name": "\uC0AD\uC81C \uBB38\uC790",
+  "modal.title": "\uAE30\uB85D",
+  "modal.no-changes": "\uBCC0\uACBD \uC0AC\uD56D \uC5C6\uC74C",
+  "modal.identical-to-current": "\uD604\uC7AC \uB0B4\uC6A9\uACFC \uB3D9\uC77C",
+  "modal.restore-original": "\uC6D0\uBCF8 \uBCF5\uC6D0",
+  "modal.remove-history": "\uD30C\uC77C \uAE30\uB85D \uC81C\uAC70",
+  "modal.previous-difference": "\uC774\uC804 \uCC28\uC774\uC810",
+  "modal.next-difference": "\uB2E4\uC74C \uCC28\uC774\uC810",
+  "modal.mode.patch": "\uD328\uCE58 \uD45C\uC2DC",
+  "modal.mode.inline": "\uC778\uB77C\uC778",
+  "modal.mode.line-by-line": "\uC904 \uB2E8\uC704",
+  "modal.mode.side-by-side": "\uB098\uB780\uD788 \uBCF4\uAE30",
+  "modal.confirm.cancel": "\uCDE8\uC18C",
+  "modal.confirm.restore.title": "\uC6D0\uBCF8 \uD30C\uC77C \uBCF5\uC6D0",
+  "modal.confirm.restore.message": "\uC774 \uD30C\uC77C\uC744 \uC6D0\uB798 \uC0C1\uD0DC\uB85C \uBCF5\uC6D0\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C? \uD604\uC7AC \uBCC0\uACBD \uC0AC\uD56D\uC774 \uBAA8\uB450 \uC0AC\uB77C\uC9C0\uACE0 \uBCC0\uACBD \uCD94\uC801 \uAE30\uB85D\uC774 \uCD08\uAE30\uD654\uB429\uB2C8\uB2E4. \uC774 \uC791\uC5C5\uC740 \uCDE8\uC18C\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.",
+  "modal.confirm.restore.button": "\uD30C\uC77C \uBCF5\uC6D0",
+  "modal.confirm.remove.title": "\uD30C\uC77C \uAE30\uB85D \uC81C\uAC70",
+  "modal.confirm.remove.message": "\uC774 \uD30C\uC77C\uC758 \uBCC0\uACBD \uCD94\uC801 \uAE30\uB85D\uC744 \uC81C\uAC70\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C? \uC774 \uC791\uC5C5\uC740 \uCDE8\uC18C\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.",
+  "modal.confirm.remove.button": "\uAE30\uB85D \uC81C\uAC70",
+  "modal.confirm.revert.title": "\uC774 \uBCC0\uACBD \uB418\uB3CC\uB9AC\uAE30",
+  "modal.confirm.revert.message": "\uC774 \uBCC0\uACBD\uC744 \uC120\uD0DD\uD55C \uAE30\uC900\uC73C\uB85C \uB418\uB3CC\uB9AC\uC2DC\uACA0\uC2B5\uB2C8\uAE4C? \uB2E4\uB978 \uBCC0\uACBD \uC0AC\uD56D\uC740 \uC720\uC9C0\uB429\uB2C8\uB2E4.",
+  "modal.confirm.revert.button": "\uB418\uB3CC\uB9AC\uAE30",
+  "modal.search-versions": "\uBC84\uC804 \uAC80\uC0C9",
+  "modal.version.baseline": "\uD604\uC7AC",
+  "modal.version.numbered": "\uBC84\uC804 {number}",
+  "modal.version.current": "\uD604\uC7AC",
+  "modal.version.original": "\uC6D0\uBCF8",
+  "modal.no-versions-match": "\uAC80\uC0C9\uACFC \uC77C\uCE58\uD558\uB294 \uBC84\uC804\uC774 \uC5C6\uC2B5\uB2C8\uB2E4",
+  "modal.no-snapshots-yet": "\uC544\uC9C1 \uC911\uAC04 \uC2A4\uB0C5\uC0F7\uC774 \uC5C6\uC2B5\uB2C8\uB2E4",
+  "modal.revert-hunk": "\uC774 \uBCC0\uACBD \uB418\uB3CC\uB9AC\uAE30",
+  "modal.copy": "\uBCF5\uC0AC"
+};
+
+// lang/lv.json
+var lv_default = {
+  "command.go-to-next-change": "P\u0101riet uz n\u0101kamo izmai\u0146u",
+  "command.go-to-previous-change": "P\u0101riet uz iepriek\u0161\u0113jo izmai\u0146u",
+  "command.reset-lines-all": "Atiestat\u012Bt visus rindu izseko\u0161anas momentuz\u0146\u0113mumus",
+  "command.reset-lines": "Atiestat\u012Bt pa\u0161reiz\u0113j\u0101 dokumenta rindu izseko\u0161anas momentuz\u0146\u0113mumu",
+  "command.show-diff": "R\u0101d\u012Bt visas pa\u0161reiz\u0113j\u0101 dokumenta izmai\u0146as",
+  "notice.no-changes-to-navigate": "Nav izmai\u0146u, starp kur\u0101m p\u0101rvietoties",
+  "notice.all-snapshots-deleted": "Visi momentuz\u0146\u0113mumu dati dz\u0113sti",
+  "notice.current-snapshot-deleted": "Pa\u0161reiz\u0113jie momentuz\u0146\u0113muma dati dz\u0113sti",
+  "notice.file-restored": "Fails atjaunots s\u0101kotn\u0113j\u0101 st\u0101vokl\u012B",
+  "notice.file-restore-failed": "Neizdev\u0101s atjaunot failu s\u0101kotn\u0113j\u0101 st\u0101vokl\u012B",
+  "notice.copied": "Nokop\u0113ts!",
+  "notice.no-saved-history": "\u0160im failam nav saglab\u0101tas v\u0113stures.",
+  "notice.invalid-exclude-pattern": "Viet\u0113j\u0101 v\u0113sture: izsl\u0113gto ce\u013Cu raksts nav der\u012Bga regul\u0101r\u0101 izteiksme un tiek ignor\u0113ts.",
+  "menu.local-history": "Viet\u0113j\u0101 v\u0113sture",
+  "menu.show-changes": "R\u0101d\u012Bt izmai\u0146as",
+  "status.lines-changed": "Main\u012Btas {count} rindas",
+  "setting.type.name": "Veids",
+  "setting.type.desc": "Izv\u0113lieties starp vertik\u0101lu l\u012Bniju vai punktu mal\u0101.",
+  "setting.type.option.line": "Vertik\u0101la l\u012Bnija",
+  "setting.type.option.dot": "Rakstz\u012Bme mal\u0101",
+  "setting.allowed-extensions.name": "At\u013Cautie failu papla\u0161in\u0101jumi",
+  "setting.allowed-extensions.desc": "Ar komatiem atdal\u012Bts failu papla\u0161in\u0101jumu saraksts, kuru izmai\u0146as tiek izsekotas (piem., md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "Izsl\u0113gtie ce\u013Ci",
+  "setting.exclude-paths.desc": "Regul\u0101r\u0101 izteiksme (neatkar\u012Bga no re\u0123istra), kas tiek sal\u012Bdzin\u0101ta ar ce\u013Cu attiec\u012Bb\u0101 pret glab\u0101tavu. Jebkur\u0161 fails, kura ce\u013C\u0161 atbilst, nekad netiek izsekots (piem., \\.excalidraw\\.md$ vai (^|/)Templates/). P\u0113c noklus\u0113juma tiek izsl\u0113gtas Templates mapes un Excalidraw z\u012Bm\u0113jumi. Atst\u0101jiet tuk\u0161u, lai izsekotu visu.",
+  "setting.keep.name": "Saglab\u0101t v\u0113sturi l\u012Bdz",
+  "setting.keep.desc": "Strat\u0113\u0123ija p\u0101rskatu v\u0113stures t\u012Br\u012B\u0161anai",
+  "setting.keep.option.app": "Lietotnes aizv\u0113r\u0161anai",
+  "setting.keep.option.file": "Faila aizv\u0113r\u0161anai",
+  "setting.ignore-new-files.name": "Ignor\u0113t jaunus failus",
+  "setting.ignore-new-files.desc": "Neizsekot izmai\u0146as failos, kas izveidoti p\u0113c izseko\u0161anas s\u0101k\u0161anas",
+  "setting.persist.name": "Saglab\u0101t v\u0113sturi starp restartiem",
+  "setting.persist.desc": 'Saglab\u0101t v\u0113sturi disk\u0101, lai izc\u0113lumi saglab\u0101tos p\u0113c restarta. Nepiecie\u0161ams, lai "Saglab\u0101t v\u0113sturi l\u012Bdz" b\u016Btu iestat\u012Bts uz Lietotnes aizv\u0113r\u0161anai.',
+  "setting.max-entries.name": "Maks. saglab\u0101to failu skaits",
+  "setting.max-entries.desc": "Ierobe\u017Eojums tam, cik failu v\u0113stures tiek glab\u0101tas disk\u0101. Vec\u0101k\u0101s tiek dz\u0113stas vispirms. Iestatiet uz 0, lai atsp\u0113jotu.",
+  "setting.max-age-days.name": "Maks. v\u0113stures vecums (dienas)",
+  "setting.max-age-days.desc": "Atmest saglab\u0101to v\u0113sturi, kas vec\u0101ka par tik dien\u0101m. Iestatiet uz 0, lai atsp\u0113jotu.",
+  "setting.snapshots-heading": "Laika l\u012Bnijas momentuz\u0146\u0113mumi",
+  "setting.snapshots-enabled.name": "Tvert starpversijas",
+  "setting.snapshots-enabled.desc": "Saglab\u0101t agr\u0101ko versiju laika l\u012Bniju, lai var\u0113tu sal\u012Bdzin\u0101t ar starpposma punktu, ne tikai ar ori\u0123in\u0101lu.",
+  "setting.snapshots-edit-threshold.name": "Tvert ik p\u0113c (redi\u0123\u0113jumiem)",
+  "setting.snapshots-edit-threshold.desc": "Saglab\u0101t versiju p\u0113c tik redi\u0123\u0113jumiem. Iestatiet uz 0, lai atsp\u0113jotu redi\u0123\u0113\u0161anas izrais\u012Bt\u0101ju.",
+  "setting.snapshots-interval.name": "Tvert ik p\u0113c (min\u016Bt\u0113m)",
+  "setting.snapshots-interval.desc": "Saglab\u0101t versiju p\u0113c tik redi\u0123\u0113\u0161anas min\u016Bt\u0113m. Iestatiet uz 0, lai atsp\u0113jotu laika izrais\u012Bt\u0101ju.",
+  "setting.max-version-age-days.name": "Maks. versijas vecums (dienas)",
+  "setting.max-version-age-days.desc": "Atmest starpversijas, kas vec\u0101kas par tik dien\u0101m (galvenais ierobe\u017Eojums). Iestatiet uz 0, lai atsp\u0113jotu.",
+  "setting.max-versions.name": "Maks. versiju skaits fail\u0101",
+  "setting.max-versions.desc": "Dro\u0161\u012Bbas ierobe\u017Eojums starpversiju skaitam, kas tiek glab\u0101ts katram failam. Vec\u0101k\u0101s tiek dz\u0113stas vispirms. Iestatiet uz 0, lai atsp\u0113jotu.",
+  "setting.show-heading": "R\u0101d\u012Bt indikatoru priek\u0161",
+  "setting.show.desc": 'Rindu indikatori tiek r\u0101d\u012Bti tikai redi\u0123\u0113\u0161anas re\u017E\u012Bmos (pirmkods un tie\u0161\u0101 priek\u0161skat\u012B\u0161ana). Las\u012B\u0161anas re\u017E\u012Bm\u0101 iek\u013Cauto indikatoru nav, bet izmai\u0146u v\u0113sture joproj\u0101m ir pieejama: izpildiet komandu "R\u0101d\u012Bt visas pa\u0161reiz\u0113j\u0101 dokumenta izmai\u0146as" vai izmantojiet faila konteksta izv\u0113lni failu p\u0101rl\u016Bk\u0101.',
+  "setting.show.changed": "Main\u012Bts",
+  "setting.show.restored": "Atjaunots",
+  "setting.show.added": "Pievienots",
+  "setting.show.removed": "No\u0146emts",
+  "setting.line-heading": "Rindas indikators",
+  "setting.line-width.name": "Platums",
+  "setting.line-width.desc": "Vertik\u0101l\u0101 rindas indikatora platums (pikse\u013Cos).",
+  "setting.gutter-heading.name": "Malas indikators",
+  "setting.gutter-heading.prefix": "Malas tipa indikatora rakstz\u012Bmes (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Izmai\u0146as rakstz\u012Bme",
+  "setting.gutter-added.name": "Pievienot\u0101 rakstz\u012Bme",
+  "setting.gutter-restored.name": "Atjaunot\u0101 rakstz\u012Bme",
+  "setting.gutter-removed.name": "No\u0146emt\u0101 rakstz\u012Bme",
+  "modal.title": "V\u0113sture",
+  "modal.no-changes": "Nav izmai\u0146u",
+  "modal.identical-to-current": "Identisks pa\u0161reiz\u0113jam",
+  "modal.restore-original": "Atjaunot ori\u0123in\u0101lu",
+  "modal.remove-history": "No\u0146emt faila v\u0113sturi",
+  "modal.previous-difference": "Iepriek\u0161\u0113j\u0101 at\u0161\u0137ir\u012Bba",
+  "modal.next-difference": "N\u0101kam\u0101 at\u0161\u0137ir\u012Bba",
+  "modal.mode.patch": "R\u0101d\u012Bt iel\u0101pu",
+  "modal.mode.inline": "Iek\u013Cauts",
+  "modal.mode.line-by-line": "Rindu pa rindai",
+  "modal.mode.side-by-side": "Blakus",
+  "modal.confirm.cancel": "Atcelt",
+  "modal.confirm.restore.title": "Atjaunot ori\u0123in\u0101lo failu",
+  "modal.confirm.restore.message": "Vai tie\u0161\u0101m v\u0113laties atjaunot \u0161o failu s\u0101kotn\u0113j\u0101 st\u0101vokl\u012B? Visas pa\u0161reiz\u0113j\u0101s izmai\u0146as tiks zaud\u0113tas, un izmai\u0146u izseko\u0161anas v\u0113sture tiks atiestat\u012Bta. \u0160o darb\u012Bbu nevar atsaukt.",
+  "modal.confirm.restore.button": "Atjaunot failu",
+  "modal.confirm.remove.title": "No\u0146emt faila v\u0113sturi",
+  "modal.confirm.remove.message": "Vai tie\u0161\u0101m v\u0113laties no\u0146emt \u0161\u012B faila izmai\u0146u izseko\u0161anas v\u0113sturi? \u0160o darb\u012Bbu nevar atsaukt.",
+  "modal.confirm.remove.button": "No\u0146emt v\u0113sturi",
+  "modal.confirm.revert.title": "Atsaukt \u0161o izmai\u0146u",
+  "modal.confirm.revert.message": "Atsaukt \u0161o izmai\u0146u atpaka\u013C uz izv\u0113l\u0113to b\u0101zi? P\u0101r\u0113j\u0101s izmai\u0146as tiek saglab\u0101tas.",
+  "modal.confirm.revert.button": "Atsaukt",
+  "modal.search-versions": "Mekl\u0113t versij\u0101s",
+  "modal.version.baseline": "Pa\u0161reiz\u0113jais",
+  "modal.version.numbered": "Versija {number}",
+  "modal.version.current": "Pa\u0161reiz\u0113jais",
+  "modal.version.original": "Ori\u0123in\u0101ls",
+  "modal.no-versions-match": "Neviena versija neatbilst mekl\u0113jumam",
+  "modal.no-snapshots-yet": "V\u0113l nav starpposma momentuz\u0146\u0113mumu",
+  "modal.revert-hunk": "Atsaukt \u0161o izmai\u0146u",
+  "modal.copy": "Kop\u0113t"
+};
+
+// lang/ms.json
+var ms_default = {
+  "command.go-to-next-change": "Pergi ke perubahan seterusnya",
+  "command.go-to-previous-change": "Pergi ke perubahan sebelumnya",
+  "command.reset-lines-all": "Tetapkan semula semua snapshot penjejak baris",
+  "command.reset-lines": "Tetapkan semula snapshot penjejak baris dokumen semasa",
+  "command.show-diff": "Tunjukkan semua perubahan dokumen semasa",
+  "notice.no-changes-to-navigate": "Tiada perubahan untuk dilayari",
+  "notice.all-snapshots-deleted": "Semua data snapshot dipadamkan",
+  "notice.current-snapshot-deleted": "Data snapshot semasa dipadamkan",
+  "notice.file-restored": "Fail dipulihkan kepada keadaan asal",
+  "notice.file-restore-failed": "Gagal memulihkan fail kepada keadaan asal",
+  "notice.copied": "Disalin!",
+  "notice.no-saved-history": "Tiada sejarah tersimpan untuk fail ini.",
+  "notice.invalid-exclude-pattern": "Sejarah tempatan: corak laluan yang dikecualikan bukan ungkapan biasa yang sah dan diabaikan.",
+  "menu.local-history": "Sejarah tempatan",
+  "menu.show-changes": "Tunjukkan perubahan",
+  "status.lines-changed": "{count} baris diubah",
+  "setting.type.name": "Jenis",
+  "setting.type.desc": "Pilih antara garisan menegak atau titik dalam parit.",
+  "setting.type.option.line": "Garisan menegak",
+  "setting.type.option.dot": "Aksara dalam parit",
+  "setting.allowed-extensions.name": "Sambungan fail yang dibenarkan",
+  "setting.allowed-extensions.desc": "Senarai sambungan fail dipisahkan koma untuk dijejak perubahannya (cth. md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "Laluan yang dikecualikan",
+  "setting.exclude-paths.desc": "Ungkapan biasa yang tidak peka huruf besar-kecil, dipadankan dengan laluan relatif kepada vault. Mana-mana fail yang laluannya sepadan tidak akan dijejak (cth. \\.excalidraw\\.md$ atau (^|/)Templates/). Lalai mengecualikan folder Templates dan lukisan Excalidraw. Biarkan kosong untuk menjejak semuanya.",
+  "setting.keep.name": "Simpan sejarah sehingga",
+  "setting.keep.desc": "Strategi untuk membersihkan sejarah semakan",
+  "setting.keep.option.app": "Apl ditutup",
+  "setting.keep.option.file": "Fail ditutup",
+  "setting.ignore-new-files.name": "Abaikan fail baharu",
+  "setting.ignore-new-files.desc": "Jangan jejak perubahan pada fail yang dicipta selepas penjejakan bermula",
+  "setting.persist.name": "Kekalkan sejarah merentas mula semula",
+  "setting.persist.desc": 'Simpan sejarah ke cakera supaya sorotan kekal selepas mula semula. Memerlukan "simpan sejarah sehingga" ditetapkan kepada apl ditutup.',
+  "setting.max-entries.name": "Maks fail tersimpan",
+  "setting.max-entries.desc": "Had bilangan sejarah fail yang disimpan dalam cakera. Yang terlama dibuang dahulu. Tetapkan kepada 0 untuk lumpuhkan.",
+  "setting.max-age-days.name": "Usia maks sejarah (hari)",
+  "setting.max-age-days.desc": "Buang sejarah tersimpan yang lebih lama daripada bilangan hari ini. Tetapkan kepada 0 untuk lumpuhkan.",
+  "setting.snapshots-heading": "Snapshot garis masa",
+  "setting.snapshots-enabled.name": "Tangkap versi pertengahan",
+  "setting.snapshots-enabled.desc": "Simpan garis masa versi terdahulu supaya anda boleh membezakan dengan titik di antaranya, bukan hanya versi asal.",
+  "setting.snapshots-edit-threshold.name": "Tangkap setiap (suntingan)",
+  "setting.snapshots-edit-threshold.desc": "Ambil versi selepas bilangan suntingan ini. Tetapkan kepada 0 untuk lumpuhkan pencetus suntingan.",
+  "setting.snapshots-interval.name": "Tangkap setiap (minit)",
+  "setting.snapshots-interval.desc": "Ambil versi selepas bilangan minit penyuntingan ini. Tetapkan kepada 0 untuk lumpuhkan pencetus masa.",
+  "setting.max-version-age-days.name": "Usia maks versi (hari)",
+  "setting.max-version-age-days.desc": "Buang versi pertengahan yang lebih lama daripada bilangan hari ini (had utama). Tetapkan kepada 0 untuk lumpuhkan.",
+  "setting.max-versions.name": "Maks versi setiap fail",
+  "setting.max-versions.desc": "Had keselamatan versi pertengahan yang disimpan setiap fail. Yang terlama dibuang dahulu. Tetapkan kepada 0 untuk lumpuhkan.",
+  "setting.show-heading": "Tunjukkan penunjuk untuk",
+  "setting.show.desc": 'Penunjuk baris hanya ditunjukkan dalam mod penyuntingan (sumber dan pratonton langsung). Dalam mod baca tiada penunjuk dalam baris, tetapi sejarah perubahan masih boleh dicapai: jalankan perintah "Tunjukkan semua perubahan dokumen semasa" atau guna menu konteks fail dalam penjelajah fail.',
+  "setting.show.changed": "Diubah",
+  "setting.show.restored": "Dipulihkan",
+  "setting.show.added": "Ditambah",
+  "setting.show.removed": "Dibuang",
+  "setting.line-heading": "Penunjuk baris",
+  "setting.line-width.name": "Lebar",
+  "setting.line-width.desc": "Lebar penunjuk garisan menegak (dalam piksel).",
+  "setting.gutter-heading.name": "Penunjuk parit",
+  "setting.gutter-heading.prefix": "Aksara penunjuk jenis parit (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Aksara perubahan",
+  "setting.gutter-added.name": "Aksara tambahan",
+  "setting.gutter-restored.name": "Aksara pulihan",
+  "setting.gutter-removed.name": "Aksara buangan",
+  "modal.title": "Sejarah",
+  "modal.no-changes": "Tiada perubahan",
+  "modal.identical-to-current": "Sama dengan yang semasa",
+  "modal.restore-original": "Pulihkan versi asal",
+  "modal.remove-history": "Buang sejarah fail",
+  "modal.previous-difference": "Perbezaan sebelumnya",
+  "modal.next-difference": "Perbezaan seterusnya",
+  "modal.mode.patch": "Tunjukkan patch",
+  "modal.mode.inline": "Dalam baris",
+  "modal.mode.line-by-line": "Baris demi baris",
+  "modal.mode.side-by-side": "Bersebelahan",
+  "modal.confirm.cancel": "Batal",
+  "modal.confirm.restore.title": "Pulihkan fail asal",
+  "modal.confirm.restore.message": "Adakah anda pasti mahu memulihkan fail ini kepada keadaan asalnya? Semua perubahan semasa akan hilang dan sejarah penjejakan perubahan akan ditetapkan semula. Tindakan ini tidak boleh dibatalkan.",
+  "modal.confirm.restore.button": "Pulihkan fail",
+  "modal.confirm.remove.title": "Buang sejarah fail",
+  "modal.confirm.remove.message": "Adakah anda pasti mahu membuang sejarah penjejakan perubahan untuk fail ini? Tindakan ini tidak boleh dibatalkan.",
+  "modal.confirm.remove.button": "Buang sejarah",
+  "modal.confirm.revert.title": "Patah balik perubahan ini",
+  "modal.confirm.revert.message": "Patah balik perubahan ini kepada asas yang dipilih? Perubahan lain dikekalkan.",
+  "modal.confirm.revert.button": "Patah balik",
+  "modal.search-versions": "Cari versi",
+  "modal.version.baseline": "Semasa",
+  "modal.version.numbered": "Versi {number}",
+  "modal.version.current": "Semasa",
+  "modal.version.original": "Asal",
+  "modal.no-versions-match": "Tiada versi sepadan dengan carian",
+  "modal.no-snapshots-yet": "Belum ada snapshot pertengahan",
+  "modal.revert-hunk": "Patah balik perubahan ini",
+  "modal.copy": "Salin"
+};
+
+// lang/ne.json
+var ne_default = {
+  "command.go-to-next-change": "\u0905\u0930\u094D\u0915\u094B \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928\u092E\u093E \u091C\u093E\u0928\u0941\u0939\u094B\u0938\u094D",
+  "command.go-to-previous-change": "\u0905\u0918\u093F\u0932\u094D\u0932\u094B \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928\u092E\u093E \u091C\u093E\u0928\u0941\u0939\u094B\u0938\u094D",
+  "command.reset-lines-all": "\u0938\u092C\u0948 \u0932\u093E\u0907\u0928 \u091F\u094D\u0930\u094D\u092F\u093E\u0915\u0930 \u0938\u094D\u0928\u094D\u092F\u093E\u092A\u0938\u091F\u0939\u0930\u0942 \u0930\u093F\u0938\u0947\u091F \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "command.reset-lines": "\u0939\u093E\u0932\u0915\u094B \u0915\u093E\u0917\u091C\u093E\u0924\u0915\u094B \u0932\u093E\u0907\u0928 \u091F\u094D\u0930\u094D\u092F\u093E\u0915\u0930 \u0938\u094D\u0928\u094D\u092F\u093E\u092A\u0938\u091F \u0930\u093F\u0938\u0947\u091F \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "command.show-diff": "\u0939\u093E\u0932\u0915\u094B \u0915\u093E\u0917\u091C\u093E\u0924\u0915\u093E \u0938\u092C\u0948 \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928\u0939\u0930\u0942 \u0926\u0947\u0916\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D",
+  "notice.no-changes-to-navigate": "\u0928\u0947\u092D\u093F\u0917\u0947\u091F \u0917\u0930\u094D\u0928\u0915\u093E \u0932\u093E\u0917\u093F \u0915\u0941\u0928\u0948 \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u091B\u0948\u0928",
+  "notice.all-snapshots-deleted": "\u0938\u092C\u0948 \u0938\u094D\u0928\u094D\u092F\u093E\u092A\u0938\u091F \u0921\u0947\u091F\u093E \u092E\u0947\u091F\u093E\u0907\u092F\u094B",
+  "notice.current-snapshot-deleted": "\u0939\u093E\u0932\u0915\u094B \u0938\u094D\u0928\u094D\u092F\u093E\u092A\u0938\u091F \u0921\u0947\u091F\u093E \u092E\u0947\u091F\u093E\u0907\u092F\u094B",
+  "notice.file-restored": "\u092B\u093E\u0907\u0932 \u092E\u0942\u0932 \u0905\u0935\u0938\u094D\u0925\u093E\u092E\u093E \u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u0928\u093E \u0917\u0930\u093F\u092F\u094B",
+  "notice.file-restore-failed": "\u092B\u093E\u0907\u0932\u0932\u093E\u0908 \u092E\u0942\u0932 \u0905\u0935\u0938\u094D\u0925\u093E\u092E\u093E \u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u0928\u093E \u0917\u0930\u094D\u0928 \u0905\u0938\u092B\u0932 \u092D\u092F\u094B",
+  "notice.copied": "\u092A\u094D\u0930\u0924\u093F\u0932\u093F\u092A\u093F \u0917\u0930\u093F\u092F\u094B!",
+  "notice.no-saved-history": "\u092F\u0938 \u092B\u093E\u0907\u0932\u0915\u094B \u0932\u093E\u0917\u093F \u0915\u0941\u0928\u0948 \u0938\u0941\u0930\u0915\u094D\u0937\u093F\u0924 \u0907\u0924\u093F\u0939\u093E\u0938 \u091B\u0948\u0928\u0964",
+  "notice.invalid-exclude-pattern": "\u0938\u094D\u0925\u093E\u0928\u0940\u092F \u0907\u0924\u093F\u0939\u093E\u0938: \u092C\u0939\u093F\u0937\u094D\u0915\u0943\u0924-\u092A\u0925 \u0922\u093E\u0901\u091A\u093E \u0935\u0948\u0927 \u0928\u093F\u092F\u092E\u093F\u0924 \u0905\u092D\u093F\u0935\u094D\u092F\u0915\u094D\u0924\u093F \u0939\u094B\u0907\u0928 \u0930 \u092C\u0947\u0935\u093E\u0938\u094D\u0924\u093E \u0917\u0930\u093F\u0901\u0926\u0948\u091B\u0964",
+  "menu.local-history": "\u0938\u094D\u0925\u093E\u0928\u0940\u092F \u0907\u0924\u093F\u0939\u093E\u0938",
+  "menu.show-changes": "\u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928\u0939\u0930\u0942 \u0926\u0947\u0916\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D",
+  "status.lines-changed": "{count} \u0932\u093E\u0907\u0928 \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u092D\u092F\u094B",
+  "setting.type.name": "\u092A\u094D\u0930\u0915\u093E\u0930",
+  "setting.type.desc": "\u0917\u091F\u0930\u092E\u093E \u0920\u093E\u0921\u094B \u0930\u0947\u0916\u093E \u0935\u093E \u0925\u094B\u092A\u094D\u0932\u094B\u092E\u0927\u094D\u092F\u0947 \u091B\u0928\u094B\u091F \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
+  "setting.type.option.line": "\u0920\u093E\u0921\u094B \u0930\u0947\u0916\u093E",
+  "setting.type.option.dot": "\u0917\u091F\u0930\u092E\u093E \u0905\u0915\u094D\u0937\u0930",
+  "setting.allowed-extensions.name": "\u0905\u0928\u0941\u092E\u0924\u093F \u0926\u093F\u0907\u090F\u0915\u093E \u092B\u093E\u0907\u0932 \u090F\u0915\u094D\u0938\u091F\u0947\u0928\u094D\u0938\u0928\u0939\u0930\u0942",
+  "setting.allowed-extensions.desc": "\u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928\u0939\u0930\u0942 \u091F\u094D\u0930\u094D\u092F\u093E\u0915 \u0917\u0930\u094D\u0928 \u0905\u0932\u094D\u092A\u0935\u093F\u0930\u093E\u092E\u0932\u0947 \u091B\u0941\u091F\u094D\u092F\u093E\u0907\u090F\u0915\u094B \u092B\u093E\u0907\u0932 \u090F\u0915\u094D\u0938\u091F\u0947\u0928\u094D\u0938\u0928\u0939\u0930\u0942\u0915\u094B \u0938\u0942\u091A\u0940 (\u091C\u0938\u094D\u0924\u0948, md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "\u092C\u0939\u093F\u0937\u094D\u0915\u0943\u0924 \u092A\u0925\u0939\u0930\u0942",
+  "setting.exclude-paths.desc": "\u092D\u0932\u094D\u091F-\u0938\u093E\u092A\u0947\u0915\u094D\u0937 \u092A\u0925\u0938\u0901\u0917 \u092E\u093F\u0932\u093E\u0907\u0928\u0947 \u0915\u0947\u0938-\u0905\u0938\u0902\u0935\u0947\u0926\u0928\u0936\u0940\u0932 \u0928\u093F\u092F\u092E\u093F\u0924 \u0905\u092D\u093F\u0935\u094D\u092F\u0915\u094D\u0924\u093F\u0964 \u091C\u0941\u0928\u0938\u0941\u0915\u0948 \u092B\u093E\u0907\u0932\u0915\u094B \u092A\u0925 \u092E\u093F\u0932\u094D\u091B \u092D\u0928\u0947 \u0924\u094D\u092F\u094B \u0915\u0939\u093F\u0932\u094D\u092F\u0948 \u091F\u094D\u0930\u094D\u092F\u093E\u0915 \u0917\u0930\u093F\u0901\u0926\u0948\u0928 (\u091C\u0938\u094D\u0924\u0948 \\.excalidraw\\.md$ \u0935\u093E (^|/)Templates/)\u0964 \u092A\u0942\u0930\u094D\u0935\u0928\u093F\u0930\u094D\u0927\u093E\u0930\u093F\u0924 \u0930\u0942\u092A\u092E\u093E Templates \u092B\u094B\u0932\u094D\u0921\u0930\u0939\u0930\u0942 \u0930 Excalidraw \u091A\u093F\u0924\u094D\u0930\u0939\u0930\u0942 \u092C\u0939\u093F\u0937\u094D\u0915\u0943\u0924 \u0939\u0941\u0928\u094D\u091B\u0928\u094D\u0964 \u0938\u092C\u0948 \u0915\u0941\u0930\u093E \u091F\u094D\u0930\u094D\u092F\u093E\u0915 \u0917\u0930\u094D\u0928 \u0916\u093E\u0932\u0940 \u091B\u094B\u0921\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
+  "setting.keep.name": "\u0907\u0924\u093F\u0939\u093E\u0938 \u0930\u093E\u0916\u094D\u0928\u0947 \u0905\u0935\u0927\u093F",
+  "setting.keep.desc": "\u0938\u0902\u0936\u094B\u0927\u0928 \u0907\u0924\u093F\u0939\u093E\u0938 \u0938\u092B\u093E \u0917\u0930\u094D\u0928\u0947 \u0930\u0923\u0928\u0940\u0924\u093F",
+  "setting.keep.option.app": "\u090F\u092A \u092C\u0928\u094D\u0926",
+  "setting.keep.option.file": "\u092B\u093E\u0907\u0932 \u092C\u0928\u094D\u0926",
+  "setting.ignore-new-files.name": "\u0928\u092F\u093E\u0901 \u092B\u093E\u0907\u0932\u0939\u0930\u0942 \u092C\u0947\u0935\u093E\u0938\u094D\u0924\u093E \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "setting.ignore-new-files.desc": "\u091F\u094D\u0930\u094D\u092F\u093E\u0915\u093F\u0919 \u0938\u0941\u0930\u0941 \u092D\u090F\u092A\u091B\u093F \u0938\u093F\u0930\u094D\u091C\u0928\u093E \u0917\u0930\u093F\u090F\u0915\u093E \u092B\u093E\u0907\u0932\u0939\u0930\u0942\u092E\u093E \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u091F\u094D\u0930\u094D\u092F\u093E\u0915 \u0928\u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "setting.persist.name": "\u092A\u0941\u0928\u0903 \u0938\u0941\u0930\u0941 \u092D\u090F\u092A\u091B\u093F \u092A\u0928\u093F \u0907\u0924\u093F\u0939\u093E\u0938 \u0930\u093E\u0916\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "setting.persist.desc": '\u0939\u093E\u0907\u0932\u093E\u0907\u091F\u0939\u0930\u0942 \u092A\u0941\u0928\u0903 \u0938\u0941\u0930\u0941\u092A\u091B\u093F \u092A\u0928\u093F \u0930\u0939\u0942\u0928\u094D \u092D\u0928\u0947\u0930 \u0907\u0924\u093F\u0939\u093E\u0938 \u0921\u093F\u0938\u094D\u0915\u092E\u093E \u0938\u0941\u0930\u0915\u094D\u0937\u093F\u0924 \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964 "\u0907\u0924\u093F\u0939\u093E\u0938 \u0930\u093E\u0916\u094D\u0928\u0947 \u0905\u0935\u0927\u093F" \u090F\u092A \u092C\u0928\u094D\u0926\u092E\u093E \u0938\u0947\u091F \u0917\u0930\u094D\u0928 \u0906\u0935\u0936\u094D\u092F\u0915 \u091B\u0964',
+  "setting.max-entries.name": "\u0905\u0927\u093F\u0915\u0924\u092E \u0938\u0941\u0930\u0915\u094D\u0937\u093F\u0924 \u092B\u093E\u0907\u0932\u0939\u0930\u0942",
+  "setting.max-entries.desc": "\u0921\u093F\u0938\u094D\u0915\u092E\u093E \u0915\u0924\u093F \u092B\u093E\u0907\u0932 \u0907\u0924\u093F\u0939\u093E\u0938 \u0930\u093E\u0916\u094D\u0928\u0947 \u092D\u0928\u094D\u0928\u0947 \u0938\u0940\u092E\u093E\u0964 \u0938\u092C\u0948\u092D\u0928\u094D\u0926\u093E \u092A\u0941\u0930\u093E\u0928\u093E\u0939\u0930\u0942 \u092A\u0939\u093F\u0932\u0947 \u0939\u091F\u093E\u0907\u0928\u094D\u091B\u0928\u094D\u0964 \u0905\u0938\u0915\u094D\u0937\u092E \u092A\u093E\u0930\u094D\u0928 0 \u0938\u0947\u091F \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
+  "setting.max-age-days.name": "\u0905\u0927\u093F\u0915\u0924\u092E \u0907\u0924\u093F\u0939\u093E\u0938 \u0909\u092E\u0947\u0930 (\u0926\u093F\u0928)",
+  "setting.max-age-days.desc": "\u092F\u0924\u093F \u0926\u093F\u0928\u092D\u0928\u094D\u0926\u093E \u092A\u0941\u0930\u093E\u0928\u094B \u0938\u0941\u0930\u0915\u094D\u0937\u093F\u0924 \u0907\u0924\u093F\u0939\u093E\u0938 \u0939\u091F\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D\u0964 \u0905\u0938\u0915\u094D\u0937\u092E \u092A\u093E\u0930\u094D\u0928 0 \u0938\u0947\u091F \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
+  "setting.snapshots-heading": "\u091F\u093E\u0907\u092E\u0932\u093E\u0907\u0928 \u0938\u094D\u0928\u094D\u092F\u093E\u092A\u0938\u091F\u0939\u0930\u0942",
+  "setting.snapshots-enabled.name": "\u092C\u0940\u091A\u0915\u093E \u0938\u0902\u0938\u094D\u0915\u0930\u0923\u0939\u0930\u0942 \u0915\u0948\u0926 \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "setting.snapshots-enabled.desc": "\u0905\u0918\u093F\u0932\u094D\u0932\u093E \u0938\u0902\u0938\u094D\u0915\u0930\u0923\u0939\u0930\u0942\u0915\u094B \u091F\u093E\u0907\u092E\u0932\u093E\u0907\u0928 \u0930\u093E\u0916\u094D\u0928\u0941\u0939\u094B\u0938\u094D \u0924\u093E\u0915\u093F \u0924\u092A\u093E\u0908\u0902 \u092E\u0942\u0932\u0938\u0901\u0917 \u092E\u093E\u0924\u094D\u0930 \u0939\u094B\u0907\u0928, \u092C\u0940\u091A\u0915\u094B \u0915\u0941\u0928\u0948 \u092C\u093F\u0928\u094D\u0926\u0941\u0938\u0901\u0917 \u092A\u0928\u093F \u092D\u093F\u0928\u094D\u0928\u0924\u093E \u0939\u0947\u0930\u094D\u0928 \u0938\u0915\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
+  "setting.snapshots-edit-threshold.name": "\u092A\u094D\u0930\u0924\u094D\u092F\u0947\u0915 (\u0938\u092E\u094D\u092A\u093E\u0926\u0928) \u0915\u0948\u0926 \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "setting.snapshots-edit-threshold.desc": "\u092F\u0924\u093F \u0938\u092E\u094D\u092A\u093E\u0926\u0928\u092A\u091B\u093F \u090F\u0909\u091F\u093E \u0938\u0902\u0938\u094D\u0915\u0930\u0923 \u0932\u093F\u0928\u0941\u0939\u094B\u0938\u094D\u0964 \u0938\u092E\u094D\u092A\u093E\u0926\u0928 \u091F\u094D\u0930\u093F\u0917\u0930 \u0905\u0938\u0915\u094D\u0937\u092E \u092A\u093E\u0930\u094D\u0928 0 \u0938\u0947\u091F \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
+  "setting.snapshots-interval.name": "\u092A\u094D\u0930\u0924\u094D\u092F\u0947\u0915 (\u092E\u093F\u0928\u0947\u091F) \u0915\u0948\u0926 \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "setting.snapshots-interval.desc": "\u092F\u0924\u093F \u092E\u093F\u0928\u0947\u091F \u0938\u092E\u094D\u092A\u093E\u0926\u0928\u092A\u091B\u093F \u090F\u0909\u091F\u093E \u0938\u0902\u0938\u094D\u0915\u0930\u0923 \u0932\u093F\u0928\u0941\u0939\u094B\u0938\u094D\u0964 \u0938\u092E\u092F \u091F\u094D\u0930\u093F\u0917\u0930 \u0905\u0938\u0915\u094D\u0937\u092E \u092A\u093E\u0930\u094D\u0928 0 \u0938\u0947\u091F \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
+  "setting.max-version-age-days.name": "\u0905\u0927\u093F\u0915\u0924\u092E \u0938\u0902\u0938\u094D\u0915\u0930\u0923 \u0909\u092E\u0947\u0930 (\u0926\u093F\u0928)",
+  "setting.max-version-age-days.desc": "\u092F\u0924\u093F \u0926\u093F\u0928\u092D\u0928\u094D\u0926\u093E \u092A\u0941\u0930\u093E\u0928\u093E \u092C\u0940\u091A\u0915\u093E \u0938\u0902\u0938\u094D\u0915\u0930\u0923\u0939\u0930\u0942 \u0939\u091F\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D (\u092E\u0941\u0916\u094D\u092F \u0938\u0940\u092E\u093E)\u0964 \u0905\u0938\u0915\u094D\u0937\u092E \u092A\u093E\u0930\u094D\u0928 0 \u0938\u0947\u091F \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
+  "setting.max-versions.name": "\u092A\u094D\u0930\u0924\u093F \u092B\u093E\u0907\u0932 \u0905\u0927\u093F\u0915\u0924\u092E \u0938\u0902\u0938\u094D\u0915\u0930\u0923",
+  "setting.max-versions.desc": "\u092A\u094D\u0930\u0924\u093F \u092B\u093E\u0907\u0932 \u0930\u093E\u0916\u093F\u0928\u0947 \u092C\u0940\u091A\u0915\u093E \u0938\u0902\u0938\u094D\u0915\u0930\u0923\u0939\u0930\u0942\u0915\u094B \u0938\u0941\u0930\u0915\u094D\u0937\u093E \u0938\u0940\u092E\u093E\u0964 \u0938\u092C\u0948\u092D\u0928\u094D\u0926\u093E \u092A\u0941\u0930\u093E\u0928\u093E\u0939\u0930\u0942 \u092A\u0939\u093F\u0932\u0947 \u0939\u091F\u093E\u0907\u0928\u094D\u091B\u0928\u094D\u0964 \u0905\u0938\u0915\u094D\u0937\u092E \u092A\u093E\u0930\u094D\u0928 0 \u0938\u0947\u091F \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
+  "setting.show-heading": "\u092F\u0938\u0915\u093E \u0932\u093E\u0917\u093F \u0938\u0942\u091A\u0915 \u0926\u0947\u0916\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D",
+  "setting.show.desc": '\u0932\u093E\u0907\u0928 \u0938\u0942\u091A\u0915\u0939\u0930\u0942 \u0938\u092E\u094D\u092A\u093E\u0926\u0928 (\u0938\u094D\u0930\u094B\u0924 \u0930 \u0932\u093E\u0907\u092D \u092A\u094D\u0930\u093F\u092D\u094D\u092F\u0942) \u092E\u094B\u0921\u092E\u093E \u092E\u093E\u0924\u094D\u0930 \u0926\u0947\u0916\u093E\u0907\u0928\u094D\u091B\u0928\u094D\u0964 \u092A\u0920\u0928 \u092E\u094B\u0921\u092E\u093E \u0915\u0941\u0928\u0948 \u0907\u0928\u0932\u093E\u0907\u0928 \u0938\u0942\u091A\u0915 \u0939\u0941\u0901\u0926\u0948\u0928, \u0924\u0930 \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u0907\u0924\u093F\u0939\u093E\u0938 \u0905\u091D\u0948 \u092A\u0939\u0941\u0901\u091A\u092F\u094B\u0917\u094D\u092F \u091B: "\u0939\u093E\u0932\u0915\u094B \u0915\u093E\u0917\u091C\u093E\u0924\u0915\u093E \u0938\u092C\u0948 \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928\u0939\u0930\u0942 \u0926\u0947\u0916\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D" \u0906\u0926\u0947\u0936 \u091A\u0932\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D \u0935\u093E \u092B\u093E\u0907\u0932 \u090F\u0915\u094D\u0938\u092A\u094D\u0932\u094B\u0930\u0930\u092E\u093E \u092B\u093E\u0907\u0932 \u0938\u0928\u094D\u0926\u0930\u094D\u092D \u092E\u0947\u0928\u0941 \u092A\u094D\u0930\u092F\u094B\u0917 \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964',
+  "setting.show.changed": "\u092A\u0930\u093F\u0935\u0930\u094D\u0924\u093F\u0924",
+  "setting.show.restored": "\u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u093F\u0924",
+  "setting.show.added": "\u0925\u092A\u093F\u090F\u0915\u094B",
+  "setting.show.removed": "\u0939\u091F\u093E\u0907\u090F\u0915\u094B",
+  "setting.line-heading": "\u0932\u093E\u0907\u0928 \u0938\u0942\u091A\u0915",
+  "setting.line-width.name": "\u091A\u094C\u0921\u093E\u0907",
+  "setting.line-width.desc": "\u0920\u093E\u0921\u094B \u0930\u0947\u0916\u093E \u0938\u0942\u091A\u0915\u0915\u094B \u091A\u094C\u0921\u093E\u0907 (\u092A\u093F\u0915\u094D\u0938\u0947\u0932\u092E\u093E)\u0964",
+  "setting.gutter-heading.name": "\u0917\u091F\u0930 \u0938\u0942\u091A\u0915",
+  "setting.gutter-heading.prefix": "\u0917\u091F\u0930 \u092A\u094D\u0930\u0915\u093E\u0930 \u0938\u0942\u091A\u0915\u0915\u093E \u0905\u0915\u094D\u0937\u0930\u0939\u0930\u0942 (",
+  "setting.gutter-heading.suffix": ")\u0964",
+  "setting.gutter-changed.name": "\u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u0905\u0915\u094D\u0937\u0930",
+  "setting.gutter-added.name": "\u0925\u092A \u0905\u0915\u094D\u0937\u0930",
+  "setting.gutter-restored.name": "\u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u0928\u093E \u0905\u0915\u094D\u0937\u0930",
+  "setting.gutter-removed.name": "\u0939\u091F\u093E\u0909\u0928\u0947 \u0905\u0915\u094D\u0937\u0930",
+  "modal.title": "\u0907\u0924\u093F\u0939\u093E\u0938",
+  "modal.no-changes": "\u0915\u0941\u0928\u0948 \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u091B\u0948\u0928",
+  "modal.identical-to-current": "\u0939\u093E\u0932\u0915\u094B \u0938\u0901\u0917 \u0938\u092E\u093E\u0928",
+  "modal.restore-original": "\u092E\u0942\u0932 \u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u0928\u093E \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "modal.remove-history": "\u092B\u093E\u0907\u0932 \u0907\u0924\u093F\u0939\u093E\u0938 \u0939\u091F\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D",
+  "modal.previous-difference": "\u0905\u0918\u093F\u0932\u094D\u0932\u094B \u092D\u093F\u0928\u094D\u0928\u0924\u093E",
+  "modal.next-difference": "\u0905\u0930\u094D\u0915\u094B \u092D\u093F\u0928\u094D\u0928\u0924\u093E",
+  "modal.mode.patch": "\u092A\u094D\u092F\u093E\u091A \u0926\u0947\u0916\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D",
+  "modal.mode.inline": "\u0907\u0928\u0932\u093E\u0907\u0928",
+  "modal.mode.line-by-line": "\u0932\u093E\u0907\u0928\u0926\u0947\u0916\u093F \u0932\u093E\u0907\u0928",
+  "modal.mode.side-by-side": "\u091B\u0947\u0909\u091B\u093E\u0909",
+  "modal.confirm.cancel": "\u0930\u0926\u094D\u0926 \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "modal.confirm.restore.title": "\u092E\u0942\u0932 \u092B\u093E\u0907\u0932 \u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u0928\u093E \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "modal.confirm.restore.message": "\u0915\u0947 \u0924\u092A\u093E\u0908\u0902 \u092F\u094B \u092B\u093E\u0907\u0932\u0932\u093E\u0908 \u092F\u0938\u0915\u094B \u092E\u0942\u0932 \u0905\u0935\u0938\u094D\u0925\u093E\u092E\u093E \u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u0928\u093E \u0917\u0930\u094D\u0928 \u0928\u093F\u0936\u094D\u091A\u093F\u0924 \u0939\u0941\u0928\u0941\u0939\u0941\u0928\u094D\u091B? \u0938\u092C\u0948 \u0939\u093E\u0932\u0915\u093E \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928\u0939\u0930\u0942 \u0939\u0930\u093E\u0909\u0928\u0947\u091B\u0928\u094D \u0930 \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u091F\u094D\u0930\u094D\u092F\u093E\u0915\u093F\u0919 \u0907\u0924\u093F\u0939\u093E\u0938 \u0930\u093F\u0938\u0947\u091F \u0939\u0941\u0928\u0947\u091B\u0964 \u092F\u094B \u0915\u093E\u0930\u094D\u092F \u092A\u0942\u0930\u094D\u0935\u0935\u0924 \u0917\u0930\u094D\u0928 \u0938\u0915\u093F\u0901\u0926\u0948\u0928\u0964",
+  "modal.confirm.restore.button": "\u092B\u093E\u0907\u0932 \u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u0928\u093E \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "modal.confirm.remove.title": "\u092B\u093E\u0907\u0932 \u0907\u0924\u093F\u0939\u093E\u0938 \u0939\u091F\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D",
+  "modal.confirm.remove.message": "\u0915\u0947 \u0924\u092A\u093E\u0908\u0902 \u092F\u0938 \u092B\u093E\u0907\u0932\u0915\u094B \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u091F\u094D\u0930\u094D\u092F\u093E\u0915\u093F\u0919 \u0907\u0924\u093F\u0939\u093E\u0938 \u0939\u091F\u093E\u0909\u0928 \u0928\u093F\u0936\u094D\u091A\u093F\u0924 \u0939\u0941\u0928\u0941\u0939\u0941\u0928\u094D\u091B? \u092F\u094B \u0915\u093E\u0930\u094D\u092F \u092A\u0942\u0930\u094D\u0935\u0935\u0924 \u0917\u0930\u094D\u0928 \u0938\u0915\u093F\u0901\u0926\u0948\u0928\u0964",
+  "modal.confirm.remove.button": "\u0907\u0924\u093F\u0939\u093E\u0938 \u0939\u091F\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D",
+  "modal.confirm.revert.title": "\u092F\u094B \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u092B\u093F\u0930\u094D\u0924\u093E \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "modal.confirm.revert.message": "\u092F\u094B \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928\u0932\u093E\u0908 \u091A\u092F\u0928 \u0917\u0930\u093F\u090F\u0915\u094B \u0906\u0927\u093E\u0930\u092E\u093E \u092B\u093F\u0930\u094D\u0924\u093E \u0917\u0930\u094D\u0928\u0947? \u0905\u0928\u094D\u092F \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928\u0939\u0930\u0942 \u0930\u093E\u0916\u093F\u0928\u094D\u091B\u0928\u094D\u0964",
+  "modal.confirm.revert.button": "\u092B\u093F\u0930\u094D\u0924\u093E \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "modal.search-versions": "\u0938\u0902\u0938\u094D\u0915\u0930\u0923\u0939\u0930\u0942 \u0916\u094B\u091C\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "modal.version.baseline": "\u0939\u093E\u0932\u0915\u094B",
+  "modal.version.numbered": "\u0938\u0902\u0938\u094D\u0915\u0930\u0923 {number}",
+  "modal.version.current": "\u0939\u093E\u0932\u0915\u094B",
+  "modal.version.original": "\u092E\u0942\u0932",
+  "modal.no-versions-match": "\u0916\u094B\u091C\u0938\u0901\u0917 \u0915\u0941\u0928\u0948 \u0938\u0902\u0938\u094D\u0915\u0930\u0923 \u092E\u0947\u0932 \u0916\u093E\u0901\u0926\u0948\u0928",
+  "modal.no-snapshots-yet": "\u0905\u0939\u093F\u0932\u0947\u0938\u092E\u094D\u092E \u0915\u0941\u0928\u0948 \u092C\u0940\u091A\u0915\u094B \u0938\u094D\u0928\u094D\u092F\u093E\u092A\u0938\u091F \u091B\u0948\u0928",
+  "modal.revert-hunk": "\u092F\u094B \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u092B\u093F\u0930\u094D\u0924\u093E \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "modal.copy": "\u092A\u094D\u0930\u0924\u093F\u0932\u093F\u092A\u093F \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D"
+};
+
+// lang/nl.json
+var nl_default = {
+  "command.go-to-next-change": "Ga naar volgende wijziging",
+  "command.go-to-previous-change": "Ga naar vorige wijziging",
+  "command.reset-lines-all": "Alle momentopnamen van de regeltracker opnieuw instellen",
+  "command.reset-lines": "Momentopname van de regeltracker van het huidige document opnieuw instellen",
+  "command.show-diff": "Alle wijzigingen van het huidige document tonen",
+  "notice.no-changes-to-navigate": "Geen wijzigingen om doorheen te navigeren",
+  "notice.all-snapshots-deleted": "Alle momentopnamegegevens verwijderd",
+  "notice.current-snapshot-deleted": "Gegevens van huidige momentopname verwijderd",
+  "notice.file-restored": "Bestand hersteld naar oorspronkelijke staat",
+  "notice.file-restore-failed": "Kan bestand niet herstellen naar oorspronkelijke staat",
+  "notice.copied": "Gekopieerd!",
+  "notice.no-saved-history": "Er is geen opgeslagen geschiedenis voor dit bestand.",
+  "notice.invalid-exclude-pattern": "Lokale geschiedenis: het patroon voor uitgesloten paden is geen geldige reguliere expressie en wordt genegeerd.",
+  "menu.local-history": "Lokale geschiedenis",
+  "menu.show-changes": "Wijzigingen tonen",
+  "status.lines-changed": "{count} regels gewijzigd",
+  "setting.type.name": "Type",
+  "setting.type.desc": "Kies tussen een verticale lijn en een stip in de kantlijn.",
+  "setting.type.option.line": "Verticale lijn",
+  "setting.type.option.dot": "Teken in de kantlijn",
+  "setting.allowed-extensions.name": "Toegestane bestandsextensies",
+  "setting.allowed-extensions.desc": "Door komma's gescheiden lijst van bestandsextensies waarvan wijzigingen worden bijgehouden (bijv. md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "Uitgesloten paden",
+  "setting.exclude-paths.desc": "Een hoofdletterongevoelige reguliere expressie die wordt vergeleken met het pad relatief aan de kluis. Elk bestand waarvan het pad overeenkomt, wordt nooit bijgehouden (bijv. \\.excalidraw\\.md$ of (^|/)Templates/). Standaard worden Templates-mappen en Excalidraw-tekeningen uitgesloten. Laat leeg om alles bij te houden.",
+  "setting.keep.name": "Geschiedenis bewaren tot",
+  "setting.keep.desc": "Strategie voor het opschonen van de revisiegeschiedenis",
+  "setting.keep.option.app": "App sluiten",
+  "setting.keep.option.file": "Bestand sluiten",
+  "setting.ignore-new-files.name": "Nieuwe bestanden negeren",
+  "setting.ignore-new-files.desc": "Wijzigingen niet bijhouden in bestanden die zijn aangemaakt nadat het bijhouden is gestart",
+  "setting.persist.name": "Geschiedenis behouden na herstart",
+  "setting.persist.desc": 'Geschiedenis op schijf opslaan zodat markeringen een herstart overleven. Vereist dat "Geschiedenis bewaren tot" is ingesteld op app sluiten.',
+  "setting.max-entries.name": "Maximaal opgeslagen bestanden",
+  "setting.max-entries.desc": "Limiet voor hoeveel bestandsgeschiedenissen op schijf worden bewaard. De oudste worden als eerste verwijderd. Stel in op 0 om uit te schakelen.",
+  "setting.max-age-days.name": "Maximale leeftijd geschiedenis (dagen)",
+  "setting.max-age-days.desc": "Opgeslagen geschiedenis ouder dan dit aantal dagen verwijderen. Stel in op 0 om uit te schakelen.",
+  "setting.snapshots-heading": "Tijdlijnmomentopnamen",
+  "setting.snapshots-enabled.name": "Tussenliggende versies vastleggen",
+  "setting.snapshots-enabled.desc": "Bewaar een tijdlijn van eerdere versies zodat je kunt vergelijken met een tussenliggend punt, niet alleen met het origineel.",
+  "setting.snapshots-edit-threshold.name": "Vastleggen na elke (bewerkingen)",
+  "setting.snapshots-edit-threshold.desc": "Leg een versie vast na dit aantal bewerkingen. Stel in op 0 om de bewerkingstrigger uit te schakelen.",
+  "setting.snapshots-interval.name": "Vastleggen na elke (minuten)",
+  "setting.snapshots-interval.desc": "Leg een versie vast na dit aantal minuten bewerken. Stel in op 0 om de tijdtrigger uit te schakelen.",
+  "setting.max-version-age-days.name": "Maximale leeftijd versies (dagen)",
+  "setting.max-version-age-days.desc": "Tussenliggende versies ouder dan dit aantal dagen verwijderen (de primaire grens). Stel in op 0 om uit te schakelen.",
+  "setting.max-versions.name": "Maximaal aantal versies per bestand",
+  "setting.max-versions.desc": "Veiligheidslimiet voor tussenliggende versies die per bestand worden bewaard. De oudste worden als eerste verwijderd. Stel in op 0 om uit te schakelen.",
+  "setting.show-heading": "Indicator tonen voor",
+  "setting.show.desc": 'Regelindicatoren worden alleen getoond in de bewerkingsmodi (bron en live voorbeeld). In de leesmodus zijn er geen inline-indicatoren, maar de wijzigingsgeschiedenis blijft bereikbaar: voer de opdracht "Alle wijzigingen van het huidige document tonen" uit of gebruik het contextmenu van het bestand in de bestandsverkenner.',
+  "setting.show.changed": "Gewijzigd",
+  "setting.show.restored": "Hersteld",
+  "setting.show.added": "Toegevoegd",
+  "setting.show.removed": "Verwijderd",
+  "setting.line-heading": "Regelindicator",
+  "setting.line-width.name": "Breedte",
+  "setting.line-width.desc": "Breedte van de verticale lijnindicator (in pixels).",
+  "setting.gutter-heading.name": "Kantlijnindicator",
+  "setting.gutter-heading.prefix": "Tekens van de type-indicator in de kantlijn (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Teken voor wijziging",
+  "setting.gutter-added.name": "Teken voor toegevoegd",
+  "setting.gutter-restored.name": "Teken voor hersteld",
+  "setting.gutter-removed.name": "Teken voor verwijderd",
+  "modal.title": "Geschiedenis",
+  "modal.no-changes": "Geen wijzigingen",
+  "modal.identical-to-current": "Identiek aan huidige",
+  "modal.restore-original": "Origineel herstellen",
+  "modal.remove-history": "Bestandsgeschiedenis verwijderen",
+  "modal.previous-difference": "Vorig verschil",
+  "modal.next-difference": "Volgend verschil",
+  "modal.mode.patch": "Patch tonen",
+  "modal.mode.inline": "Inline",
+  "modal.mode.line-by-line": "Regel voor regel",
+  "modal.mode.side-by-side": "Naast elkaar",
+  "modal.confirm.cancel": "Annuleren",
+  "modal.confirm.restore.title": "Origineel bestand herstellen",
+  "modal.confirm.restore.message": "Weet je zeker dat je dit bestand wilt herstellen naar de oorspronkelijke staat? Alle huidige wijzigingen gaan verloren en de geschiedenis van het bijhouden van wijzigingen wordt opnieuw ingesteld. Deze actie kan niet ongedaan worden gemaakt.",
+  "modal.confirm.restore.button": "Bestand herstellen",
+  "modal.confirm.remove.title": "Bestandsgeschiedenis verwijderen",
+  "modal.confirm.remove.message": "Weet je zeker dat je de geschiedenis van het bijhouden van wijzigingen voor dit bestand wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
+  "modal.confirm.remove.button": "Geschiedenis verwijderen",
+  "modal.confirm.revert.title": "Deze wijziging terugdraaien",
+  "modal.confirm.revert.message": "Deze wijziging terugdraaien naar de geselecteerde basis? Andere wijzigingen blijven behouden.",
+  "modal.confirm.revert.button": "Terugdraaien",
+  "modal.search-versions": "Versies zoeken",
+  "modal.version.baseline": "Huidig",
+  "modal.version.numbered": "Versie {number}",
+  "modal.version.current": "Huidig",
+  "modal.version.original": "Origineel",
+  "modal.no-versions-match": "Geen versies komen overeen met de zoekopdracht",
+  "modal.no-snapshots-yet": "Nog geen tussenliggende momentopnamen",
+  "modal.revert-hunk": "Deze wijziging terugdraaien",
+  "modal.copy": "Kopi\xEBren"
+};
+
+// lang/no.json
+var no_default = {
+  "command.go-to-next-change": "G\xE5 til neste endring",
+  "command.go-to-previous-change": "G\xE5 til forrige endring",
+  "command.reset-lines-all": "Tilbakestill alle linjesporings-\xF8yeblikksbilder",
+  "command.reset-lines": "Tilbakestill linjesporings-\xF8yeblikksbilde for gjeldende dokument",
+  "command.show-diff": "Vis alle endringer i gjeldende dokument",
+  "notice.no-changes-to-navigate": "Ingen endringer \xE5 navigere",
+  "notice.all-snapshots-deleted": "Alle \xF8yeblikksbilder slettet",
+  "notice.current-snapshot-deleted": "Gjeldende \xF8yeblikksbilde slettet",
+  "notice.file-restored": "Filen gjenopprettet til opprinnelig tilstand",
+  "notice.file-restore-failed": "Klarte ikke \xE5 gjenopprette filen til opprinnelig tilstand",
+  "notice.copied": "Kopiert!",
+  "notice.no-saved-history": "Det finnes ingen lagret historikk for denne filen.",
+  "notice.invalid-exclude-pattern": "Lokal historikk: m\xF8nsteret for ekskluderte stier er ikke et gyldig regul\xE6rt uttrykk og blir ignorert.",
+  "menu.local-history": "Lokal historikk",
+  "menu.show-changes": "Vis endringer",
+  "status.lines-changed": "{count} linjer endret",
+  "setting.type.name": "Type",
+  "setting.type.desc": "Velg mellom en vertikal linje eller en prikk i margen.",
+  "setting.type.option.line": "Vertikal linje",
+  "setting.type.option.dot": "Tegn i margen",
+  "setting.allowed-extensions.name": "Tillatte filtyper",
+  "setting.allowed-extensions.desc": "Kommaseparert liste over filendelser som skal spores for endringer (f.eks. md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "Ekskluderte stier",
+  "setting.exclude-paths.desc": "Et regul\xE6rt uttrykk (uavhengig av store og sm\xE5 bokstaver) som sammenlignes mot stien relativt til hvelvet. Enhver fil hvis sti samsvarer, spores aldri (f.eks. \\.excalidraw\\.md$ eller (^|/)Templates/). Standardverdien ekskluderer Templates-mapper og Excalidraw-tegninger. La feltet st\xE5 tomt for \xE5 spore alt.",
+  "setting.keep.name": "Behold historikk til",
+  "setting.keep.desc": "Strategi for opprydding av revisjonshistorikk",
+  "setting.keep.option.app": "Appen lukkes",
+  "setting.keep.option.file": "Filen lukkes",
+  "setting.ignore-new-files.name": "Ignorer nye filer",
+  "setting.ignore-new-files.desc": "Ikke spor endringer i filer som er opprettet etter at sporingen startet",
+  "setting.persist.name": "Behold historikk p\xE5 tvers av omstarter",
+  "setting.persist.desc": 'Lagre historikk p\xE5 disk slik at uthevinger overlever en omstart. Krever at "Behold historikk til" er satt til Appen lukkes.',
+  "setting.max-entries.name": "Maks. lagrede filer",
+  "setting.max-entries.desc": "Grense for hvor mange filhistorikker som beholdes p\xE5 disk. De eldste fjernes f\xF8rst. Sett til 0 for \xE5 deaktivere.",
+  "setting.max-age-days.name": "Maks. historikkalder (dager)",
+  "setting.max-age-days.desc": "Fjern lagret historikk som er eldre enn s\xE5 mange dager. Sett til 0 for \xE5 deaktivere.",
+  "setting.snapshots-heading": "Tidslinje-\xF8yeblikksbilder",
+  "setting.snapshots-enabled.name": "Fang opp mellomliggende versjoner",
+  "setting.snapshots-enabled.desc": "Behold en tidslinje over tidligere versjoner slik at du kan sammenligne med et punkt underveis, ikke bare originalen.",
+  "setting.snapshots-edit-threshold.name": "Fang opp hver (endringer)",
+  "setting.snapshots-edit-threshold.desc": "Lagre en versjon etter s\xE5 mange endringer. Sett til 0 for \xE5 deaktivere endringsutl\xF8seren.",
+  "setting.snapshots-interval.name": "Fang opp hver (minutter)",
+  "setting.snapshots-interval.desc": "Lagre en versjon etter s\xE5 mange minutters redigering. Sett til 0 for \xE5 deaktivere tidsutl\xF8seren.",
+  "setting.max-version-age-days.name": "Maks. versjonsalder (dager)",
+  "setting.max-version-age-days.desc": "Fjern mellomliggende versjoner som er eldre enn s\xE5 mange dager (den prim\xE6re grensen). Sett til 0 for \xE5 deaktivere.",
+  "setting.max-versions.name": "Maks. versjoner per fil",
+  "setting.max-versions.desc": "Sikkerhetsgrense for antall mellomliggende versjoner som beholdes per fil. De eldste fjernes f\xF8rst. Sett til 0 for \xE5 deaktivere.",
+  "setting.show-heading": "Vis indikator for",
+  "setting.show.desc": 'Linjeindikatorer vises bare i redigeringsmodus (kildekode og direkte forh\xE5ndsvisning). I lesemodus finnes det ingen innebygde indikatorer, men endringshistorikken er fortsatt tilgjengelig: kj\xF8r kommandoen "Vis alle endringer i gjeldende dokument" eller bruk filens hurtigmeny i filutforskeren.',
+  "setting.show.changed": "Endret",
+  "setting.show.restored": "Gjenopprettet",
+  "setting.show.added": "Lagt til",
+  "setting.show.removed": "Fjernet",
+  "setting.line-heading": "Linjeindikator",
+  "setting.line-width.name": "Bredde",
+  "setting.line-width.desc": "Bredde p\xE5 den vertikale linjeindikatoren (i piksler).",
+  "setting.gutter-heading.name": "Margindikator",
+  "setting.gutter-heading.prefix": "Tegn for margtypeindikatoren (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Tegn for endring",
+  "setting.gutter-added.name": "Tegn for lagt til",
+  "setting.gutter-restored.name": "Tegn for gjenopprettet",
+  "setting.gutter-removed.name": "Tegn for fjernet",
+  "modal.title": "Historikk",
+  "modal.no-changes": "Ingen endringer",
+  "modal.identical-to-current": "Identisk med gjeldende versjon",
+  "modal.restore-original": "Gjenopprett original",
+  "modal.remove-history": "Fjern filhistorikk",
+  "modal.previous-difference": "Forrige forskjell",
+  "modal.next-difference": "Neste forskjell",
+  "modal.mode.patch": "Vis patch",
+  "modal.mode.inline": "Innebygd",
+  "modal.mode.line-by-line": "Linje for linje",
+  "modal.mode.side-by-side": "Side ved side",
+  "modal.confirm.cancel": "Avbryt",
+  "modal.confirm.restore.title": "Gjenopprett originalfil",
+  "modal.confirm.restore.message": "Er du sikker p\xE5 at du vil gjenopprette denne filen til opprinnelig tilstand? Alle gjeldende endringer g\xE5r tapt, og endringshistorikken tilbakestilles. Denne handlingen kan ikke angres.",
+  "modal.confirm.restore.button": "Gjenopprett fil",
+  "modal.confirm.remove.title": "Fjern filhistorikk",
+  "modal.confirm.remove.message": "Er du sikker p\xE5 at du vil fjerne endringshistorikken for denne filen? Denne handlingen kan ikke angres.",
+  "modal.confirm.remove.button": "Fjern historikk",
+  "modal.confirm.revert.title": "Tilbakestill denne endringen",
+  "modal.confirm.revert.message": "Vil du tilbakestille denne endringen til den valgte basen? \xD8vrige endringer beholdes.",
+  "modal.confirm.revert.button": "Tilbakestill",
+  "modal.search-versions": "S\xF8k i versjoner",
+  "modal.version.baseline": "Gjeldende",
+  "modal.version.numbered": "Versjon {number}",
+  "modal.version.current": "Gjeldende",
+  "modal.version.original": "Original",
+  "modal.no-versions-match": "Ingen versjoner samsvarer med s\xF8ket",
+  "modal.no-snapshots-yet": "Ingen mellomliggende \xF8yeblikksbilder enn\xE5",
+  "modal.revert-hunk": "Tilbakestill denne endringen",
+  "modal.copy": "Kopier"
+};
+
+// lang/pl.json
+var pl_default = {
+  "command.go-to-next-change": "Przejd\u017A do nast\u0119pnej zmiany",
+  "command.go-to-previous-change": "Przejd\u017A do poprzedniej zmiany",
+  "command.reset-lines-all": "Zresetuj migawki \u015Bledzenia linii dla wszystkich plik\xF3w",
+  "command.reset-lines": "Zresetuj migawk\u0119 \u015Bledzenia linii bie\u017C\u0105cego dokumentu",
+  "command.show-diff": "Poka\u017C wszystkie zmiany bie\u017C\u0105cego dokumentu",
+  "notice.no-changes-to-navigate": "Brak zmian do nawigacji",
+  "notice.all-snapshots-deleted": "Usuni\u0119to wszystkie dane migawek",
+  "notice.current-snapshot-deleted": "Usuni\u0119to dane bie\u017C\u0105cej migawki",
+  "notice.file-restored": "Przywr\xF3cono plik do stanu pierwotnego",
+  "notice.file-restore-failed": "Nie uda\u0142o si\u0119 przywr\xF3ci\u0107 pliku do stanu pierwotnego",
+  "notice.copied": "Skopiowano!",
+  "notice.no-saved-history": "Dla tego pliku nie ma zapisanej historii.",
+  "notice.invalid-exclude-pattern": "Local history: wzorzec wykluczonych \u015Bcie\u017Cek nie jest prawid\u0142owym wyra\u017Ceniem regularnym i zostanie zignorowany.",
+  "menu.local-history": "Historia lokalna",
+  "menu.show-changes": "Poka\u017C zmiany",
+  "status.lines-changed": "Zmienione linie: {count}",
+  "setting.type.name": "Typ",
+  "setting.type.desc": "Wybierz pionow\u0105 lini\u0119 lub kropk\u0119 na marginesie.",
+  "setting.type.option.line": "Pionowa linia",
+  "setting.type.option.dot": "Znak na marginesie",
+  "setting.allowed-extensions.name": "Dozwolone rozszerzenia plik\xF3w",
+  "setting.allowed-extensions.desc": "Lista rozszerze\u0144 plik\xF3w oddzielonych przecinkami, kt\xF3rych zmiany s\u0105 \u015Bledzone (np. md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "Wykluczone \u015Bcie\u017Cki",
+  "setting.exclude-paths.desc": "Wyra\u017Cenie regularne bez rozr\xF3\u017Cniania wielko\u015Bci liter, dopasowywane do \u015Bcie\u017Cki wzgl\u0119dem skarbca. Ka\u017Cdy plik, kt\xF3rego \u015Bcie\u017Cka pasuje, nigdy nie jest \u015Bledzony (np. \\.excalidraw\\.md$ lub (^|/)Templates/). Domy\u015Blnie wykluczane s\u0105 foldery Templates i rysunki Excalidraw. Pozostaw puste, aby \u015Bledzi\u0107 wszystko.",
+  "setting.keep.name": "Przechowuj histori\u0119 do",
+  "setting.keep.desc": "Strategia czyszczenia historii wersji",
+  "setting.keep.option.app": "Zamkni\u0119cia aplikacji",
+  "setting.keep.option.file": "Zamkni\u0119cia pliku",
+  "setting.ignore-new-files.name": "Ignoruj nowe pliki",
+  "setting.ignore-new-files.desc": "Nie \u015Bled\u017A zmian w plikach utworzonych po rozpocz\u0119ciu \u015Bledzenia",
+  "setting.persist.name": "Zachowuj histori\u0119 mi\u0119dzy ponownymi uruchomieniami",
+  "setting.persist.desc": 'Zapisuj histori\u0119 na dysku, aby pod\u015Bwietlenia przetrwa\u0142y ponowne uruchomienie. Wymaga ustawienia opcji "Przechowuj histori\u0119 do" na zamkni\u0119cie aplikacji.',
+  "setting.max-entries.name": "Maksymalna liczba przechowywanych plik\xF3w",
+  "setting.max-entries.desc": "Limit liczby historii plik\xF3w przechowywanych na dysku. Najstarsze s\u0105 usuwane jako pierwsze. Ustaw 0, aby wy\u0142\u0105czy\u0107.",
+  "setting.max-age-days.name": "Maksymalny wiek historii (dni)",
+  "setting.max-age-days.desc": "Usuwaj zapisan\u0105 histori\u0119 starsz\u0105 ni\u017C podana liczba dni. Ustaw 0, aby wy\u0142\u0105czy\u0107.",
+  "setting.snapshots-heading": "Migawki osi czasu",
+  "setting.snapshots-enabled.name": "Przechwytuj wersje po\u015Brednie",
+  "setting.snapshots-enabled.desc": "Przechowuj o\u015B czasu wcze\u015Bniejszych wersji, aby por\xF3wnywa\u0107 z punktem po\u015Brednim, a nie tylko z orygina\u0142em.",
+  "setting.snapshots-edit-threshold.name": "Przechwytuj co (edycje)",
+  "setting.snapshots-edit-threshold.desc": "Tw\xF3rz wersj\u0119 po tylu edycjach. Ustaw 0, aby wy\u0142\u0105czy\u0107 wyzwalacz edycji.",
+  "setting.snapshots-interval.name": "Przechwytuj co (minuty)",
+  "setting.snapshots-interval.desc": "Tw\xF3rz wersj\u0119 po tylu minutach edytowania. Ustaw 0, aby wy\u0142\u0105czy\u0107 wyzwalacz czasowy.",
+  "setting.max-version-age-days.name": "Maksymalny wiek wersji (dni)",
+  "setting.max-version-age-days.desc": "Usuwaj wersje po\u015Brednie starsze ni\u017C podana liczba dni (g\u0142\xF3wne ograniczenie). Ustaw 0, aby wy\u0142\u0105czy\u0107.",
+  "setting.max-versions.name": "Maksymalna liczba wersji na plik",
+  "setting.max-versions.desc": "Zabezpieczaj\u0105cy limit liczby wersji po\u015Brednich przechowywanych dla pliku. Najstarsze s\u0105 usuwane jako pierwsze. Ustaw 0, aby wy\u0142\u0105czy\u0107.",
+  "setting.show-heading": "Poka\u017C wska\u017Anik dla",
+  "setting.show.desc": 'Wska\u017Aniki linii s\u0105 pokazywane tylko w trybach edycji (kod \u017Ar\xF3d\u0142owy i podgl\u0105d na \u017Cywo). W trybie czytania nie ma wska\u017Anik\xF3w w tre\u015Bci, ale historia zmian jest nadal dost\u0119pna: uruchom polecenie "Poka\u017C wszystkie zmiany bie\u017C\u0105cego dokumentu" lub skorzystaj z menu kontekstowego pliku w eksploratorze plik\xF3w.',
+  "setting.show.changed": "Zmienione",
+  "setting.show.restored": "Przywr\xF3cone",
+  "setting.show.added": "Dodane",
+  "setting.show.removed": "Usuni\u0119te",
+  "setting.line-heading": "Wska\u017Anik liniowy",
+  "setting.line-width.name": "Szeroko\u015B\u0107",
+  "setting.line-width.desc": "Szeroko\u015B\u0107 pionowego wska\u017Anika liniowego (w pikselach).",
+  "setting.gutter-heading.name": "Wska\u017Anik na marginesie",
+  "setting.gutter-heading.prefix": "Znaki wska\u017Anika typu na marginesie (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Znak zmiany",
+  "setting.gutter-added.name": "Znak dodania",
+  "setting.gutter-restored.name": "Znak przywr\xF3cenia",
+  "setting.gutter-removed.name": "Znak usuni\u0119cia",
+  "modal.title": "Historia",
+  "modal.no-changes": "Brak zmian",
+  "modal.identical-to-current": "Identyczne z bie\u017C\u0105c\u0105",
+  "modal.restore-original": "Przywr\xF3\u0107 orygina\u0142",
+  "modal.remove-history": "Usu\u0144 histori\u0119 pliku",
+  "modal.previous-difference": "Poprzednia r\xF3\u017Cnica",
+  "modal.next-difference": "Nast\u0119pna r\xF3\u017Cnica",
+  "modal.mode.patch": "Poka\u017C \u0142atk\u0119",
+  "modal.mode.inline": "W tre\u015Bci",
+  "modal.mode.line-by-line": "Linia po linii",
+  "modal.mode.side-by-side": "Obok siebie",
+  "modal.confirm.cancel": "Anuluj",
+  "modal.confirm.restore.title": "Przywr\xF3\u0107 oryginalny plik",
+  "modal.confirm.restore.message": "Czy na pewno chcesz przywr\xF3ci\u0107 ten plik do stanu pierwotnego? Wszystkie bie\u017C\u0105ce zmiany zostan\u0105 utracone, a historia \u015Bledzenia zmian zostanie zresetowana. Tej operacji nie mo\u017Cna cofn\u0105\u0107.",
+  "modal.confirm.restore.button": "Przywr\xF3\u0107 plik",
+  "modal.confirm.remove.title": "Usu\u0144 histori\u0119 pliku",
+  "modal.confirm.remove.message": "Czy na pewno chcesz usun\u0105\u0107 histori\u0119 \u015Bledzenia zmian tego pliku? Tej operacji nie mo\u017Cna cofn\u0105\u0107.",
+  "modal.confirm.remove.button": "Usu\u0144 histori\u0119",
+  "modal.confirm.revert.title": "Wycofaj t\u0119 zmian\u0119",
+  "modal.confirm.revert.message": "Wycofa\u0107 t\u0119 zmian\u0119 do wybranej bazy? Pozosta\u0142e zmiany zostan\u0105 zachowane.",
+  "modal.confirm.revert.button": "Wycofaj",
+  "modal.search-versions": "Szukaj wersji",
+  "modal.version.baseline": "Bie\u017C\u0105ca",
+  "modal.version.numbered": "Wersja {number}",
+  "modal.version.current": "Bie\u017C\u0105ca",
+  "modal.version.original": "Orygina\u0142",
+  "modal.no-versions-match": "Brak wersji pasuj\u0105cych do wyszukiwania",
+  "modal.no-snapshots-yet": "Brak na razie wersji po\u015Brednich",
+  "modal.revert-hunk": "Wycofaj t\u0119 zmian\u0119",
+  "modal.copy": "Kopiuj"
+};
+
+// lang/pt.json
+var pt_default = {
+  "command.go-to-next-change": "Ir para a altera\xE7\xE3o seguinte",
+  "command.go-to-previous-change": "Ir para a altera\xE7\xE3o anterior",
+  "command.reset-lines-all": "Repor todas as capturas do rastreador de linhas",
+  "command.reset-lines": "Repor a captura do rastreador de linhas do documento atual",
+  "command.show-diff": "Mostrar todas as altera\xE7\xF5es do documento atual",
+  "notice.no-changes-to-navigate": "N\xE3o h\xE1 altera\xE7\xF5es para navegar",
+  "notice.all-snapshots-deleted": "Todos os dados de capturas eliminados",
+  "notice.current-snapshot-deleted": "Dados da captura atual eliminados",
+  "notice.file-restored": "Ficheiro restaurado ao estado original",
+  "notice.file-restore-failed": "N\xE3o foi poss\xEDvel restaurar o ficheiro ao estado original",
+  "notice.copied": "Copiado!",
+  "notice.no-saved-history": "N\xE3o existe hist\xF3rico guardado para este ficheiro.",
+  "notice.invalid-exclude-pattern": "Hist\xF3rico local: o padr\xE3o de caminhos exclu\xEDdos n\xE3o \xE9 uma express\xE3o regular v\xE1lida e est\xE1 a ser ignorado.",
+  "menu.local-history": "Hist\xF3rico local",
+  "menu.show-changes": "Mostrar altera\xE7\xF5es",
+  "status.lines-changed": "{count} linhas alteradas",
+  "setting.type.name": "Tipo",
+  "setting.type.desc": "Escolha entre uma linha vertical e um ponto na margem.",
+  "setting.type.option.line": "Linha vertical",
+  "setting.type.option.dot": "Car\xE1cter na margem",
+  "setting.allowed-extensions.name": "Extens\xF5es de ficheiro permitidas",
+  "setting.allowed-extensions.desc": "Lista de extens\xF5es de ficheiro separadas por v\xEDrgulas cujas altera\xE7\xF5es s\xE3o rastreadas (por ex., md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "Caminhos exclu\xEDdos",
+  "setting.exclude-paths.desc": "Uma express\xE3o regular que n\xE3o distingue mai\xFAsculas de min\xFAsculas comparada com o caminho relativo ao cofre. Qualquer ficheiro cujo caminho corresponda nunca \xE9 rastreado (por ex. \\.excalidraw\\.md$ ou (^|/)Templates/). Por predefini\xE7\xE3o s\xE3o exclu\xEDdas as pastas Templates e os desenhos Excalidraw. Deixe vazio para rastrear tudo.",
+  "setting.keep.name": "Manter o hist\xF3rico at\xE9",
+  "setting.keep.desc": "Estrat\xE9gia de limpeza do hist\xF3rico de revis\xF5es",
+  "setting.keep.option.app": "Fecho da aplica\xE7\xE3o",
+  "setting.keep.option.file": "Fecho do ficheiro",
+  "setting.ignore-new-files.name": "Ignorar ficheiros novos",
+  "setting.ignore-new-files.desc": "N\xE3o rastrear altera\xE7\xF5es em ficheiros criados depois de o rastreio come\xE7ar",
+  "setting.persist.name": "Manter o hist\xF3rico entre rein\xEDcios",
+  "setting.persist.desc": 'Guardar o hist\xF3rico no disco para que os destaques sobrevivam a um rein\xEDcio. Requer que "Manter o hist\xF3rico at\xE9" esteja definido como fecho da aplica\xE7\xE3o.',
+  "setting.max-entries.name": "M\xE1ximo de ficheiros armazenados",
+  "setting.max-entries.desc": "Limite de quantos hist\xF3ricos de ficheiros s\xE3o mantidos no disco. Os mais antigos s\xE3o removidos primeiro. Defina como 0 para desativar.",
+  "setting.max-age-days.name": "Idade m\xE1xima do hist\xF3rico (dias)",
+  "setting.max-age-days.desc": "Descartar o hist\xF3rico guardado com mais dias do que este valor. Defina como 0 para desativar.",
+  "setting.snapshots-heading": "Capturas da cronologia",
+  "setting.snapshots-enabled.name": "Capturar vers\xF5es interm\xE9dias",
+  "setting.snapshots-enabled.desc": "Manter uma cronologia das vers\xF5es anteriores para poder comparar com um ponto interm\xE9dio, n\xE3o apenas com o original.",
+  "setting.snapshots-edit-threshold.name": "Capturar a cada (edi\xE7\xF5es)",
+  "setting.snapshots-edit-threshold.desc": "Criar uma vers\xE3o ap\xF3s este n\xFAmero de edi\xE7\xF5es. Defina como 0 para desativar o acionador por edi\xE7\xF5es.",
+  "setting.snapshots-interval.name": "Capturar a cada (minutos)",
+  "setting.snapshots-interval.desc": "Criar uma vers\xE3o ap\xF3s este n\xFAmero de minutos de edi\xE7\xE3o. Defina como 0 para desativar o acionador temporal.",
+  "setting.max-version-age-days.name": "Idade m\xE1xima das vers\xF5es (dias)",
+  "setting.max-version-age-days.desc": "Descartar as vers\xF5es interm\xE9dias com mais dias do que este valor (o limite principal). Defina como 0 para desativar.",
+  "setting.max-versions.name": "M\xE1ximo de vers\xF5es por ficheiro",
+  "setting.max-versions.desc": "Limite de seguran\xE7a das vers\xF5es interm\xE9dias mantidas por ficheiro. As mais antigas s\xE3o removidas primeiro. Defina como 0 para desativar.",
+  "setting.show-heading": "Mostrar indicador para",
+  "setting.show.desc": 'Os indicadores de linha s\xE3o mostrados apenas nos modos de edi\xE7\xE3o (c\xF3digo-fonte e pr\xE9-visualiza\xE7\xE3o em direto). No modo de leitura n\xE3o h\xE1 indicadores em linha, mas o hist\xF3rico de altera\xE7\xF5es continua acess\xEDvel: execute o comando "Mostrar todas as altera\xE7\xF5es do documento atual" ou use o menu de contexto do ficheiro no explorador de ficheiros.',
+  "setting.show.changed": "Alterado",
+  "setting.show.restored": "Restaurado",
+  "setting.show.added": "Adicionado",
+  "setting.show.removed": "Removido",
+  "setting.line-heading": "Indicador de linha",
+  "setting.line-width.name": "Largura",
+  "setting.line-width.desc": "Largura do indicador de linha vertical (em p\xEDxeis).",
+  "setting.gutter-heading.name": "Indicador na margem",
+  "setting.gutter-heading.prefix": "Caracteres do indicador de tipo na margem (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Car\xE1cter de altera\xE7\xE3o",
+  "setting.gutter-added.name": "Car\xE1cter de adi\xE7\xE3o",
+  "setting.gutter-restored.name": "Car\xE1cter de restauro",
+  "setting.gutter-removed.name": "Car\xE1cter de remo\xE7\xE3o",
+  "modal.title": "Hist\xF3rico",
+  "modal.no-changes": "Sem altera\xE7\xF5es",
+  "modal.identical-to-current": "Id\xEAntico ao atual",
+  "modal.restore-original": "Restaurar original",
+  "modal.remove-history": "Remover o hist\xF3rico do ficheiro",
+  "modal.previous-difference": "Diferen\xE7a anterior",
+  "modal.next-difference": "Diferen\xE7a seguinte",
+  "modal.mode.patch": "Mostrar patch",
+  "modal.mode.inline": "Em linha",
+  "modal.mode.line-by-line": "Linha a linha",
+  "modal.mode.side-by-side": "Lado a lado",
+  "modal.confirm.cancel": "Cancelar",
+  "modal.confirm.restore.title": "Restaurar o ficheiro original",
+  "modal.confirm.restore.message": "Tem a certeza de que quer restaurar este ficheiro ao seu estado original? Todas as altera\xE7\xF5es atuais ser\xE3o perdidas e o hist\xF3rico de rastreio de altera\xE7\xF5es ser\xE1 reposto. Esta a\xE7\xE3o n\xE3o pode ser anulada.",
+  "modal.confirm.restore.button": "Restaurar ficheiro",
+  "modal.confirm.remove.title": "Remover o hist\xF3rico do ficheiro",
+  "modal.confirm.remove.message": "Tem a certeza de que quer remover o hist\xF3rico de rastreio de altera\xE7\xF5es deste ficheiro? Esta a\xE7\xE3o n\xE3o pode ser anulada.",
+  "modal.confirm.remove.button": "Remover hist\xF3rico",
+  "modal.confirm.revert.title": "Reverter esta altera\xE7\xE3o",
+  "modal.confirm.revert.message": "Reverter esta altera\xE7\xE3o para a base selecionada? As outras altera\xE7\xF5es s\xE3o mantidas.",
+  "modal.confirm.revert.button": "Reverter",
+  "modal.search-versions": "Pesquisar vers\xF5es",
+  "modal.version.baseline": "Atual",
+  "modal.version.numbered": "Vers\xE3o {number}",
+  "modal.version.current": "Atual",
+  "modal.version.original": "Original",
+  "modal.no-versions-match": "Nenhuma vers\xE3o corresponde \xE0 pesquisa",
+  "modal.no-snapshots-yet": "Ainda n\xE3o h\xE1 capturas interm\xE9dias",
+  "modal.revert-hunk": "Reverter esta altera\xE7\xE3o",
+  "modal.copy": "Copiar"
+};
+
+// lang/pt-BR.json
+var pt_BR_default = {
+  "command.go-to-next-change": "Ir para a pr\xF3xima altera\xE7\xE3o",
+  "command.go-to-previous-change": "Ir para a altera\xE7\xE3o anterior",
+  "command.reset-lines-all": "Redefinir todos os instant\xE2neos do rastreador de linhas",
+  "command.reset-lines": "Redefinir o instant\xE2neo do rastreador de linhas do documento atual",
+  "command.show-diff": "Mostrar todas as altera\xE7\xF5es do documento atual",
+  "notice.no-changes-to-navigate": "N\xE3o h\xE1 altera\xE7\xF5es para navegar",
+  "notice.all-snapshots-deleted": "Todos os dados de instant\xE2neos exclu\xEDdos",
+  "notice.current-snapshot-deleted": "Dados do instant\xE2neo atual exclu\xEDdos",
+  "notice.file-restored": "Arquivo restaurado ao estado original",
+  "notice.file-restore-failed": "N\xE3o foi poss\xEDvel restaurar o arquivo ao estado original",
+  "notice.copied": "Copiado!",
+  "notice.no-saved-history": "N\xE3o h\xE1 hist\xF3rico salvo para este arquivo.",
+  "notice.invalid-exclude-pattern": "Hist\xF3rico local: o padr\xE3o de caminhos exclu\xEDdos n\xE3o \xE9 uma express\xE3o regular v\xE1lida e est\xE1 sendo ignorado.",
+  "menu.local-history": "Hist\xF3rico local",
+  "menu.show-changes": "Mostrar altera\xE7\xF5es",
+  "status.lines-changed": "{count} linhas alteradas",
+  "setting.type.name": "Tipo",
+  "setting.type.desc": "Escolha entre uma linha vertical e um ponto na margem.",
+  "setting.type.option.line": "Linha vertical",
+  "setting.type.option.dot": "Caractere na margem",
+  "setting.allowed-extensions.name": "Extens\xF5es de arquivo permitidas",
+  "setting.allowed-extensions.desc": "Lista de extens\xF5es de arquivo separadas por v\xEDrgulas cujas altera\xE7\xF5es s\xE3o rastreadas (por ex., md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "Caminhos exclu\xEDdos",
+  "setting.exclude-paths.desc": "Uma express\xE3o regular que n\xE3o diferencia mai\xFAsculas de min\xFAsculas comparada com o caminho relativo ao cofre. Qualquer arquivo cujo caminho corresponda nunca \xE9 rastreado (por ex. \\.excalidraw\\.md$ ou (^|/)Templates/). Por padr\xE3o s\xE3o exclu\xEDdas as pastas Templates e os desenhos Excalidraw. Deixe em branco para rastrear tudo.",
+  "setting.keep.name": "Manter o hist\xF3rico at\xE9",
+  "setting.keep.desc": "Estrat\xE9gia de limpeza do hist\xF3rico de revis\xF5es",
+  "setting.keep.option.app": "Fechamento do aplicativo",
+  "setting.keep.option.file": "Fechamento do arquivo",
+  "setting.ignore-new-files.name": "Ignorar arquivos novos",
+  "setting.ignore-new-files.desc": "N\xE3o rastrear altera\xE7\xF5es em arquivos criados depois que o rastreamento come\xE7ou",
+  "setting.persist.name": "Manter o hist\xF3rico entre reinicializa\xE7\xF5es",
+  "setting.persist.desc": 'Salvar o hist\xF3rico no disco para que os destaques sobrevivam a uma reinicializa\xE7\xE3o. Requer que "Manter o hist\xF3rico at\xE9" esteja definido como fechamento do aplicativo.',
+  "setting.max-entries.name": "M\xE1ximo de arquivos armazenados",
+  "setting.max-entries.desc": "Limite de quantos hist\xF3ricos de arquivos s\xE3o mantidos no disco. Os mais antigos s\xE3o removidos primeiro. Defina como 0 para desativar.",
+  "setting.max-age-days.name": "Idade m\xE1xima do hist\xF3rico (dias)",
+  "setting.max-age-days.desc": "Descartar o hist\xF3rico salvo com mais dias do que esse valor. Defina como 0 para desativar.",
+  "setting.snapshots-heading": "Instant\xE2neos da linha do tempo",
+  "setting.snapshots-enabled.name": "Capturar vers\xF5es intermedi\xE1rias",
+  "setting.snapshots-enabled.desc": "Manter uma linha do tempo das vers\xF5es anteriores para poder comparar com um ponto intermedi\xE1rio, n\xE3o apenas com o original.",
+  "setting.snapshots-edit-threshold.name": "Capturar a cada (edi\xE7\xF5es)",
+  "setting.snapshots-edit-threshold.desc": "Criar uma vers\xE3o ap\xF3s esse n\xFAmero de edi\xE7\xF5es. Defina como 0 para desativar o gatilho por edi\xE7\xF5es.",
+  "setting.snapshots-interval.name": "Capturar a cada (minutos)",
+  "setting.snapshots-interval.desc": "Criar uma vers\xE3o ap\xF3s esse n\xFAmero de minutos de edi\xE7\xE3o. Defina como 0 para desativar o gatilho temporal.",
+  "setting.max-version-age-days.name": "Idade m\xE1xima das vers\xF5es (dias)",
+  "setting.max-version-age-days.desc": "Descartar as vers\xF5es intermedi\xE1rias com mais dias do que esse valor (o limite principal). Defina como 0 para desativar.",
+  "setting.max-versions.name": "M\xE1ximo de vers\xF5es por arquivo",
+  "setting.max-versions.desc": "Limite de seguran\xE7a das vers\xF5es intermedi\xE1rias mantidas por arquivo. As mais antigas s\xE3o removidas primeiro. Defina como 0 para desativar.",
+  "setting.show-heading": "Mostrar indicador para",
+  "setting.show.desc": 'Os indicadores de linha s\xE3o mostrados apenas nos modos de edi\xE7\xE3o (c\xF3digo-fonte e visualiza\xE7\xE3o ao vivo). No modo de leitura n\xE3o h\xE1 indicadores embutidos, mas o hist\xF3rico de altera\xE7\xF5es continua acess\xEDvel: execute o comando "Mostrar todas as altera\xE7\xF5es do documento atual" ou use o menu de contexto do arquivo no explorador de arquivos.',
+  "setting.show.changed": "Alterado",
+  "setting.show.restored": "Restaurado",
+  "setting.show.added": "Adicionado",
+  "setting.show.removed": "Removido",
+  "setting.line-heading": "Indicador de linha",
+  "setting.line-width.name": "Largura",
+  "setting.line-width.desc": "Largura do indicador de linha vertical (em pixels).",
+  "setting.gutter-heading.name": "Indicador na margem",
+  "setting.gutter-heading.prefix": "Caracteres do indicador de tipo na margem (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Caractere de altera\xE7\xE3o",
+  "setting.gutter-added.name": "Caractere de adi\xE7\xE3o",
+  "setting.gutter-restored.name": "Caractere de restaura\xE7\xE3o",
+  "setting.gutter-removed.name": "Caractere de remo\xE7\xE3o",
+  "modal.title": "Hist\xF3rico",
+  "modal.no-changes": "Sem altera\xE7\xF5es",
+  "modal.identical-to-current": "Id\xEAntico ao atual",
+  "modal.restore-original": "Restaurar original",
+  "modal.remove-history": "Remover o hist\xF3rico do arquivo",
+  "modal.previous-difference": "Diferen\xE7a anterior",
+  "modal.next-difference": "Pr\xF3xima diferen\xE7a",
+  "modal.mode.patch": "Mostrar patch",
+  "modal.mode.inline": "Embutido",
+  "modal.mode.line-by-line": "Linha por linha",
+  "modal.mode.side-by-side": "Lado a lado",
+  "modal.confirm.cancel": "Cancelar",
+  "modal.confirm.restore.title": "Restaurar o arquivo original",
+  "modal.confirm.restore.message": "Tem certeza de que deseja restaurar este arquivo ao seu estado original? Todas as altera\xE7\xF5es atuais ser\xE3o perdidas e o hist\xF3rico de rastreamento de altera\xE7\xF5es ser\xE1 redefinido. Esta a\xE7\xE3o n\xE3o pode ser desfeita.",
+  "modal.confirm.restore.button": "Restaurar arquivo",
+  "modal.confirm.remove.title": "Remover o hist\xF3rico do arquivo",
+  "modal.confirm.remove.message": "Tem certeza de que deseja remover o hist\xF3rico de rastreamento de altera\xE7\xF5es deste arquivo? Esta a\xE7\xE3o n\xE3o pode ser desfeita.",
+  "modal.confirm.remove.button": "Remover hist\xF3rico",
+  "modal.confirm.revert.title": "Reverter esta altera\xE7\xE3o",
+  "modal.confirm.revert.message": "Reverter esta altera\xE7\xE3o para a base selecionada? As outras altera\xE7\xF5es s\xE3o mantidas.",
+  "modal.confirm.revert.button": "Reverter",
+  "modal.search-versions": "Pesquisar vers\xF5es",
+  "modal.version.baseline": "Atual",
+  "modal.version.numbered": "Vers\xE3o {number}",
+  "modal.version.current": "Atual",
+  "modal.version.original": "Original",
+  "modal.no-versions-match": "Nenhuma vers\xE3o corresponde \xE0 pesquisa",
+  "modal.no-snapshots-yet": "Ainda n\xE3o h\xE1 instant\xE2neos intermedi\xE1rios",
+  "modal.revert-hunk": "Reverter esta altera\xE7\xE3o",
+  "modal.copy": "Copiar"
+};
+
+// lang/ro.json
+var ro_default = {
+  "command.go-to-next-change": "Mergi la modificarea urm\u0103toare",
+  "command.go-to-previous-change": "Mergi la modificarea anterioar\u0103",
+  "command.reset-lines-all": "Reseteaz\u0103 instantaneele de urm\u0103rire a liniilor pentru toate fi\u0219ierele",
+  "command.reset-lines": "Reseteaz\u0103 instantaneul de urm\u0103rire a liniilor pentru documentul curent",
+  "command.show-diff": "Afi\u0219eaz\u0103 toate modific\u0103rile documentului curent",
+  "notice.no-changes-to-navigate": "Nicio modificare de parcurs",
+  "notice.all-snapshots-deleted": "Toate datele instantaneelor au fost \u0219terse",
+  "notice.current-snapshot-deleted": "Datele instantaneului curent au fost \u0219terse",
+  "notice.file-restored": "Fi\u0219ierul a fost restabilit la starea ini\u021Bial\u0103",
+  "notice.file-restore-failed": "Restabilirea fi\u0219ierului la starea ini\u021Bial\u0103 a e\u0219uat",
+  "notice.copied": "Copiat!",
+  "notice.no-saved-history": "Nu exist\u0103 istoric salvat pentru acest fi\u0219ier.",
+  "notice.invalid-exclude-pattern": "Local history: tiparul c\u0103ilor excluse nu este o expresie regulat\u0103 valid\u0103 \u0219i este ignorat.",
+  "menu.local-history": "Istoric local",
+  "menu.show-changes": "Afi\u0219eaz\u0103 modific\u0103rile",
+  "status.lines-changed": "Linii modificate: {count}",
+  "setting.type.name": "Tip",
+  "setting.type.desc": "Alege\u021Bi \xEEntre o linie vertical\u0103 sau un punct \xEEn margine.",
+  "setting.type.option.line": "Linie vertical\u0103",
+  "setting.type.option.dot": "Caracter \xEEn margine",
+  "setting.allowed-extensions.name": "Extensii de fi\u0219iere permise",
+  "setting.allowed-extensions.desc": "List\u0103 de extensii de fi\u0219iere separate prin virgul\u0103 ale c\u0103ror modific\u0103ri sunt urm\u0103rite (de ex. md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "C\u0103i excluse",
+  "setting.exclude-paths.desc": "O expresie regulat\u0103 care nu \u021Bine cont de majuscule, potrivit\u0103 cu calea relativ\u0103 la seif. Orice fi\u0219ier a c\u0103rui cale se potrive\u0219te nu este urm\u0103rit niciodat\u0103 (de ex. \\.excalidraw\\.md$ sau (^|/)Templates/). \xCEn mod implicit sunt excluse folderele Templates \u0219i desenele Excalidraw. L\u0103sa\u021Bi gol pentru a urm\u0103ri totul.",
+  "setting.keep.name": "P\u0103streaz\u0103 istoricul p\xE2n\u0103 la",
+  "setting.keep.desc": "Strategie de cur\u0103\u021Bare a istoricului de revizii",
+  "setting.keep.option.app": "\xCEnchiderea aplica\u021Biei",
+  "setting.keep.option.file": "\xCEnchiderea fi\u0219ierului",
+  "setting.ignore-new-files.name": "Ignor\u0103 fi\u0219ierele noi",
+  "setting.ignore-new-files.desc": "Nu urm\u0103ri modific\u0103rile din fi\u0219ierele create dup\u0103 \xEEnceperea urm\u0103ririi",
+  "setting.persist.name": "P\u0103streaz\u0103 istoricul \xEEntre reporniri",
+  "setting.persist.desc": 'Salveaz\u0103 istoricul pe disc, astfel \xEEnc\xE2t eviden\u021Bierile s\u0103 supravie\u021Buiasc\u0103 unei reporniri. Necesit\u0103 ca op\u021Biunea "P\u0103streaz\u0103 istoricul p\xE2n\u0103 la" s\u0103 fie setat\u0103 la \xEEnchiderea aplica\u021Biei.',
+  "setting.max-entries.name": "Num\u0103r maxim de fi\u0219iere stocate",
+  "setting.max-entries.desc": "Limita num\u0103rului de istorice de fi\u0219iere p\u0103strate pe disc. Cele mai vechi sunt eliminate primele. Seta\u021Bi la 0 pentru a dezactiva.",
+  "setting.max-age-days.name": "Vechimea maxim\u0103 a istoricului (zile)",
+  "setting.max-age-days.desc": "Elimin\u0103 istoricul salvat mai vechi de acest num\u0103r de zile. Seta\u021Bi la 0 pentru a dezactiva.",
+  "setting.snapshots-heading": "Instantanee pe cronologie",
+  "setting.snapshots-enabled.name": "Captureaz\u0103 versiuni intermediare",
+  "setting.snapshots-enabled.desc": "P\u0103streaz\u0103 o cronologie a versiunilor anterioare pentru a putea compara cu un punct intermediar, nu doar cu originalul.",
+  "setting.snapshots-edit-threshold.name": "Captureaz\u0103 la fiecare (modific\u0103ri)",
+  "setting.snapshots-edit-threshold.desc": "Creeaz\u0103 o versiune dup\u0103 acest num\u0103r de modific\u0103ri. Seta\u021Bi la 0 pentru a dezactiva declan\u0219atorul pe modific\u0103ri.",
+  "setting.snapshots-interval.name": "Captureaz\u0103 la fiecare (minute)",
+  "setting.snapshots-interval.desc": "Creeaz\u0103 o versiune dup\u0103 acest num\u0103r de minute de editare. Seta\u021Bi la 0 pentru a dezactiva declan\u0219atorul pe timp.",
+  "setting.max-version-age-days.name": "Vechimea maxim\u0103 a versiunii (zile)",
+  "setting.max-version-age-days.desc": "Elimin\u0103 versiunile intermediare mai vechi de acest num\u0103r de zile (limita principal\u0103). Seta\u021Bi la 0 pentru a dezactiva.",
+  "setting.max-versions.name": "Num\u0103r maxim de versiuni pe fi\u0219ier",
+  "setting.max-versions.desc": "Limit\u0103 de siguran\u021B\u0103 pentru num\u0103rul de versiuni intermediare p\u0103strate pe fi\u0219ier. Cele mai vechi sunt eliminate primele. Seta\u021Bi la 0 pentru a dezactiva.",
+  "setting.show-heading": "Afi\u0219eaz\u0103 indicatorul pentru",
+  "setting.show.desc": 'Indicatorii de linie sunt afi\u0219a\u021Bi doar \xEEn modurile de editare (cod surs\u0103 \u0219i previzualizare live). \xCEn modul de citire nu exist\u0103 indicatori \xEEn text, dar istoricul modific\u0103rilor r\u0103m\xE2ne accesibil: rula\u021Bi comanda "Afi\u0219eaz\u0103 toate modific\u0103rile documentului curent" sau folosi\u021Bi meniul contextual al fi\u0219ierului din exploratorul de fi\u0219iere.',
+  "setting.show.changed": "Modificate",
+  "setting.show.restored": "Restabilite",
+  "setting.show.added": "Ad\u0103ugate",
+  "setting.show.removed": "Eliminate",
+  "setting.line-heading": "Indicator de linie",
+  "setting.line-width.name": "L\u0103\u021Bime",
+  "setting.line-width.desc": "L\u0103\u021Bimea indicatorului de linie vertical\u0103 (\xEEn pixeli).",
+  "setting.gutter-heading.name": "Indicator \xEEn margine",
+  "setting.gutter-heading.prefix": "Caracterele indicatorului de tip din margine (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Caracter modificare",
+  "setting.gutter-added.name": "Caracter ad\u0103ugare",
+  "setting.gutter-restored.name": "Caracter restabilire",
+  "setting.gutter-removed.name": "Caracter eliminare",
+  "modal.title": "Istoric",
+  "modal.no-changes": "Nicio modificare",
+  "modal.identical-to-current": "Identic cu cel curent",
+  "modal.restore-original": "Restabile\u0219te originalul",
+  "modal.remove-history": "Elimin\u0103 istoricul fi\u0219ierului",
+  "modal.previous-difference": "Diferen\u021Ba anterioar\u0103",
+  "modal.next-difference": "Diferen\u021Ba urm\u0103toare",
+  "modal.mode.patch": "Afi\u0219eaz\u0103 patch-ul",
+  "modal.mode.inline": "\xCEn linie",
+  "modal.mode.line-by-line": "Linie cu linie",
+  "modal.mode.side-by-side": "Unul l\xE2ng\u0103 altul",
+  "modal.confirm.cancel": "Anuleaz\u0103",
+  "modal.confirm.restore.title": "Restabile\u0219te fi\u0219ierul original",
+  "modal.confirm.restore.message": "Sigur dori\u021Bi s\u0103 restabili\u021Bi acest fi\u0219ier la starea ini\u021Bial\u0103? Toate modific\u0103rile curente vor fi pierdute, iar istoricul de urm\u0103rire a modific\u0103rilor va fi resetat. Aceast\u0103 ac\u021Biune nu poate fi anulat\u0103.",
+  "modal.confirm.restore.button": "Restabile\u0219te fi\u0219ierul",
+  "modal.confirm.remove.title": "Elimin\u0103 istoricul fi\u0219ierului",
+  "modal.confirm.remove.message": "Sigur dori\u021Bi s\u0103 elimina\u021Bi istoricul de urm\u0103rire a modific\u0103rilor pentru acest fi\u0219ier? Aceast\u0103 ac\u021Biune nu poate fi anulat\u0103.",
+  "modal.confirm.remove.button": "Elimin\u0103 istoricul",
+  "modal.confirm.revert.title": "Revino asupra acestei modific\u0103ri",
+  "modal.confirm.revert.message": "Revii asupra acestei modific\u0103ri la baza selectat\u0103? Celelalte modific\u0103ri sunt p\u0103strate.",
+  "modal.confirm.revert.button": "Revino",
+  "modal.search-versions": "Caut\u0103 versiuni",
+  "modal.version.baseline": "Curent\u0103",
+  "modal.version.numbered": "Versiunea {number}",
+  "modal.version.current": "Curent\u0103",
+  "modal.version.original": "Original",
+  "modal.no-versions-match": "Nicio versiune nu corespunde c\u0103ut\u0103rii",
+  "modal.no-snapshots-yet": "\xCEnc\u0103 nu exist\u0103 instantanee intermediare",
+  "modal.revert-hunk": "Revino asupra acestei modific\u0103ri",
+  "modal.copy": "Copiaz\u0103"
+};
+
+// lang/ru.json
+var ru_default = {
+  "command.go-to-next-change": "\u041F\u0435\u0440\u0435\u0439\u0442\u0438 \u043A \u0441\u043B\u0435\u0434\u0443\u044E\u0449\u0435\u043C\u0443 \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044E",
+  "command.go-to-previous-change": "\u041F\u0435\u0440\u0435\u0439\u0442\u0438 \u043A \u043F\u0440\u0435\u0434\u044B\u0434\u0443\u0449\u0435\u043C\u0443 \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044E",
+  "command.reset-lines-all": "\u0421\u0431\u0440\u043E\u0441\u0438\u0442\u044C \u0441\u043D\u0438\u043C\u043A\u0438 \u0442\u0440\u0435\u043A\u0435\u0440\u0430 \u0434\u043B\u044F \u0432\u0441\u0435\u0445 \u0444\u0430\u0439\u043B\u043E\u0432",
+  "command.reset-lines": "\u0421\u0431\u0440\u043E\u0441\u0438\u0442\u044C \u0441\u043D\u0438\u043C\u043E\u043A \u0442\u0440\u0435\u043A\u0435\u0440\u0430 \u0442\u0435\u043A\u0443\u0449\u0435\u0433\u043E \u0434\u043E\u043A\u0443\u043C\u0435\u043D\u0442\u0430",
+  "command.show-diff": "\u041F\u043E\u043A\u0430\u0437\u0430\u0442\u044C \u0432\u0441\u0435 \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044F \u0442\u0435\u043A\u0443\u0449\u0435\u0433\u043E \u0434\u043E\u043A\u0443\u043C\u0435\u043D\u0442\u0430",
+  "notice.no-changes-to-navigate": "\u041D\u0435\u0442 \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0439 \u0434\u043B\u044F \u043D\u0430\u0432\u0438\u0433\u0430\u0446\u0438\u0438",
+  "notice.all-snapshots-deleted": "\u0412\u0441\u0435 \u0434\u0430\u043D\u043D\u044B\u0435 \u0441\u043D\u0438\u043C\u043A\u043E\u0432 \u0443\u0434\u0430\u043B\u0435\u043D\u044B",
+  "notice.current-snapshot-deleted": "\u0414\u0430\u043D\u043D\u044B\u0435 \u0442\u0435\u043A\u0443\u0449\u0435\u0433\u043E \u0441\u043D\u0438\u043C\u043A\u0430 \u0443\u0434\u0430\u043B\u0435\u043D\u044B",
+  "notice.file-restored": "\u0424\u0430\u0439\u043B \u0432\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D \u0434\u043E \u0438\u0441\u0445\u043E\u0434\u043D\u043E\u0433\u043E \u0441\u043E\u0441\u0442\u043E\u044F\u043D\u0438\u044F",
+  "notice.file-restore-failed": "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0432\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C \u0444\u0430\u0439\u043B \u0434\u043E \u0438\u0441\u0445\u043E\u0434\u043D\u043E\u0433\u043E \u0441\u043E\u0441\u0442\u043E\u044F\u043D\u0438\u044F",
+  "notice.copied": "\u0421\u043A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u043D\u043E!",
+  "notice.no-saved-history": "\u0414\u043B\u044F \u044D\u0442\u043E\u0433\u043E \u0444\u0430\u0439\u043B\u0430 \u043D\u0435\u0442 \u0441\u043E\u0445\u0440\u0430\u043D\u0451\u043D\u043D\u043E\u0439 \u0438\u0441\u0442\u043E\u0440\u0438\u0438.",
+  "notice.invalid-exclude-pattern": "Local history: \u0448\u0430\u0431\u043B\u043E\u043D \u0438\u0441\u043A\u043B\u044E\u0447\u0451\u043D\u043D\u044B\u0445 \u043F\u0443\u0442\u0435\u0439 \u043D\u0435 \u044F\u0432\u043B\u044F\u0435\u0442\u0441\u044F \u043A\u043E\u0440\u0440\u0435\u043A\u0442\u043D\u044B\u043C \u0440\u0435\u0433\u0443\u043B\u044F\u0440\u043D\u044B\u043C \u0432\u044B\u0440\u0430\u0436\u0435\u043D\u0438\u0435\u043C \u0438 \u0438\u0433\u043D\u043E\u0440\u0438\u0440\u0443\u0435\u0442\u0441\u044F.",
+  "menu.local-history": "\u041B\u043E\u043A\u0430\u043B\u044C\u043D\u0430\u044F \u0438\u0441\u0442\u043E\u0440\u0438\u044F",
+  "menu.show-changes": "\u041F\u043E\u043A\u0430\u0437\u044B\u0432\u0430\u0442\u044C \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044F",
+  "status.lines-changed": "\u0418\u0437\u043C\u0435\u043D\u0435\u043D\u043E \u0441\u0442\u0440\u043E\u043A: {count}",
+  "setting.type.name": "\u0422\u0438\u043F",
+  "setting.type.desc": "\u0412\u044B\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0442\u0438\u043A\u0430\u043B\u044C\u043D\u0443\u044E \u043B\u0438\u043D\u0438\u044E \u0438\u043B\u0438 \u0441\u0438\u043C\u0432\u043E\u043B \u043D\u0430 \u043F\u043E\u043B\u044F\u0445.",
+  "setting.type.option.line": "\u0412\u0435\u0440\u0442\u0438\u043A\u0430\u043B\u044C\u043D\u0430\u044F \u043B\u0438\u043D\u0438\u044F",
+  "setting.type.option.dot": "\u0421\u0438\u043C\u0432\u043E\u043B \u043D\u0430 \u043F\u043E\u043B\u044F\u0445",
+  "setting.allowed-extensions.name": "\u041E\u0442\u0441\u043B\u0435\u0436\u0438\u0432\u0430\u0435\u043C\u044B\u0435 \u0440\u0430\u0441\u0448\u0438\u0440\u0435\u043D\u0438\u044F \u0444\u0430\u0439\u043B\u043E\u0432",
+  "setting.allowed-extensions.desc": "\u0421\u043F\u0438\u0441\u043E\u043A \u0440\u0430\u0441\u0448\u0438\u0440\u0435\u043D\u0438\u0439 \u0444\u0430\u0439\u043B\u043E\u0432 \u0447\u0435\u0440\u0435\u0437 \u0437\u0430\u043F\u044F\u0442\u0443\u044E, \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044F \u0432 \u043A\u043E\u0442\u043E\u0440\u044B\u0445 \u043E\u0442\u0441\u043B\u0435\u0436\u0438\u0432\u0430\u044E\u0442\u0441\u044F (\u043D\u0430\u043F\u0440\u0438\u043C\u0435\u0440, md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "\u0418\u0441\u043A\u043B\u044E\u0447\u0451\u043D\u043D\u044B\u0435 \u043F\u0443\u0442\u0438",
+  "setting.exclude-paths.desc": "\u0420\u0435\u0433\u0443\u043B\u044F\u0440\u043D\u043E\u0435 \u0432\u044B\u0440\u0430\u0436\u0435\u043D\u0438\u0435 \u0431\u0435\u0437 \u0443\u0447\u0451\u0442\u0430 \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430, \u0441\u043E\u043F\u043E\u0441\u0442\u0430\u0432\u043B\u044F\u0435\u043C\u043E\u0435 \u0441 \u043F\u0443\u0442\u0451\u043C \u043E\u0442\u043D\u043E\u0441\u0438\u0442\u0435\u043B\u044C\u043D\u043E \u0445\u0440\u0430\u043D\u0438\u043B\u0438\u0449\u0430. \u041B\u044E\u0431\u043E\u0439 \u0444\u0430\u0439\u043B, \u043F\u0443\u0442\u044C \u043A\u043E\u0442\u043E\u0440\u043E\u0433\u043E \u0441\u043E\u0432\u043F\u0430\u0434\u0430\u0435\u0442, \u043D\u0438\u043A\u043E\u0433\u0434\u0430 \u043D\u0435 \u043E\u0442\u0441\u043B\u0435\u0436\u0438\u0432\u0430\u0435\u0442\u0441\u044F (\u043D\u0430\u043F\u0440\u0438\u043C\u0435\u0440, \\.excalidraw\\.md$ \u0438\u043B\u0438 (^|/)Templates/). \u041F\u043E \u0443\u043C\u043E\u043B\u0447\u0430\u043D\u0438\u044E \u0438\u0441\u043A\u043B\u044E\u0447\u0430\u044E\u0442\u0441\u044F \u043F\u0430\u043F\u043A\u0438 Templates \u0438 \u0440\u0438\u0441\u0443\u043D\u043A\u0438 Excalidraw. \u041E\u0441\u0442\u0430\u0432\u044C\u0442\u0435 \u043F\u0443\u0441\u0442\u044B\u043C, \u0447\u0442\u043E\u0431\u044B \u043E\u0442\u0441\u043B\u0435\u0436\u0438\u0432\u0430\u0442\u044C \u0432\u0441\u0451.",
+  "setting.keep.name": "\u0425\u0440\u0430\u043D\u0438\u0442\u044C \u0438\u0441\u0442\u043E\u0440\u0438\u044E \u0434\u043E",
+  "setting.keep.desc": "\u0421\u0442\u0440\u0430\u0442\u0435\u0433\u0438\u044F \u043E\u0447\u0438\u0441\u0442\u043A\u0438 \u0438\u0441\u0442\u043E\u0440\u0438\u0438 \u0440\u0435\u0432\u0438\u0437\u0438\u0439",
+  "setting.keep.option.app": "\u0417\u0430\u043A\u0440\u044B\u0442\u0438\u044F \u043F\u0440\u0438\u043B\u043E\u0436\u0435\u043D\u0438\u044F",
+  "setting.keep.option.file": "\u0417\u0430\u043A\u0440\u044B\u0442\u0438\u044F \u0444\u0430\u0439\u043B\u0430",
+  "setting.ignore-new-files.name": "\u0418\u0433\u043D\u043E\u0440\u0438\u0440\u043E\u0432\u0430\u0442\u044C \u043D\u043E\u0432\u044B\u0435 \u0444\u0430\u0439\u043B\u044B",
+  "setting.ignore-new-files.desc": "\u041D\u0435 \u043E\u0442\u0441\u043B\u0435\u0436\u0438\u0432\u0430\u0442\u044C \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044F \u0432 \u0444\u0430\u0439\u043B\u0430\u0445, \u0441\u043E\u0437\u0434\u0430\u043D\u043D\u044B\u0445 \u043F\u043E\u0441\u043B\u0435 \u043D\u0430\u0447\u0430\u043B\u0430 \u043E\u0442\u0441\u043B\u0435\u0436\u0438\u0432\u0430\u043D\u0438\u044F",
+  "setting.persist.name": "\u0421\u043E\u0445\u0440\u0430\u043D\u044F\u0442\u044C \u0438\u0441\u0442\u043E\u0440\u0438\u044E \u043C\u0435\u0436\u0434\u0443 \u043F\u0435\u0440\u0435\u0437\u0430\u043F\u0443\u0441\u043A\u0430\u043C\u0438",
+  "setting.persist.desc": '\u0421\u043E\u0445\u0440\u0430\u043D\u044F\u0442\u044C \u0438\u0441\u0442\u043E\u0440\u0438\u044E \u043D\u0430 \u0434\u0438\u0441\u043A, \u0447\u0442\u043E\u0431\u044B \u043F\u043E\u0434\u0441\u0432\u0435\u0442\u043A\u0438 \u043F\u0435\u0440\u0435\u0436\u0438\u0432\u0430\u043B\u0438 \u043F\u0435\u0440\u0435\u0437\u0430\u043F\u0443\u0441\u043A. \u0422\u0440\u0435\u0431\u0443\u0435\u0442, \u0447\u0442\u043E\u0431\u044B \u043F\u0430\u0440\u0430\u043C\u0435\u0442\u0440 "\u0425\u0440\u0430\u043D\u0438\u0442\u044C \u0438\u0441\u0442\u043E\u0440\u0438\u044E \u0434\u043E" \u0431\u044B\u043B \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D \u043D\u0430 \u0437\u0430\u043A\u0440\u044B\u0442\u0438\u0435 \u043F\u0440\u0438\u043B\u043E\u0436\u0435\u043D\u0438\u044F.',
+  "setting.max-entries.name": "\u041C\u0430\u043A\u0441\u0438\u043C\u0443\u043C \u0445\u0440\u0430\u043D\u0438\u043C\u044B\u0445 \u0444\u0430\u0439\u043B\u043E\u0432",
+  "setting.max-entries.desc": "\u041E\u0433\u0440\u0430\u043D\u0438\u0447\u0435\u043D\u0438\u0435 \u043D\u0430 \u043A\u043E\u043B\u0438\u0447\u0435\u0441\u0442\u0432\u043E \u0438\u0441\u0442\u043E\u0440\u0438\u0439 \u0444\u0430\u0439\u043B\u043E\u0432, \u0445\u0440\u0430\u043D\u0438\u043C\u044B\u0445 \u043D\u0430 \u0434\u0438\u0441\u043A\u0435. \u0421\u043D\u0430\u0447\u0430\u043B\u0430 \u0443\u0434\u0430\u043B\u044F\u044E\u0442\u0441\u044F \u0441\u0430\u043C\u044B\u0435 \u0441\u0442\u0430\u0440\u044B\u0435. \u0423\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u0435 0, \u0447\u0442\u043E\u0431\u044B \u043E\u0442\u043A\u043B\u044E\u0447\u0438\u0442\u044C.",
+  "setting.max-age-days.name": "\u041C\u0430\u043A\u0441\u0438\u043C\u0430\u043B\u044C\u043D\u044B\u0439 \u0432\u043E\u0437\u0440\u0430\u0441\u0442 \u0438\u0441\u0442\u043E\u0440\u0438\u0438 (\u0434\u043D\u0438)",
+  "setting.max-age-days.desc": "\u0423\u0434\u0430\u043B\u044F\u0442\u044C \u0441\u043E\u0445\u0440\u0430\u043D\u0451\u043D\u043D\u0443\u044E \u0438\u0441\u0442\u043E\u0440\u0438\u044E \u0441\u0442\u0430\u0440\u0448\u0435 \u0443\u043A\u0430\u0437\u0430\u043D\u043D\u043E\u0433\u043E \u0447\u0438\u0441\u043B\u0430 \u0434\u043D\u0435\u0439. \u0423\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u0435 0, \u0447\u0442\u043E\u0431\u044B \u043E\u0442\u043A\u043B\u044E\u0447\u0438\u0442\u044C.",
+  "setting.snapshots-heading": "\u0421\u043D\u0438\u043C\u043A\u0438 \u0442\u0430\u0439\u043C\u043B\u0430\u0439\u043D\u0430",
+  "setting.snapshots-enabled.name": "\u0417\u0430\u0445\u0432\u0430\u0442\u044B\u0432\u0430\u0442\u044C \u043F\u0440\u043E\u043C\u0435\u0436\u0443\u0442\u043E\u0447\u043D\u044B\u0435 \u0432\u0435\u0440\u0441\u0438\u0438",
+  "setting.snapshots-enabled.desc": "\u0425\u0440\u0430\u043D\u0438\u0442\u044C \u0442\u0430\u0439\u043C\u043B\u0430\u0439\u043D \u0440\u0430\u043D\u043D\u0438\u0445 \u0432\u0435\u0440\u0441\u0438\u0439, \u0447\u0442\u043E\u0431\u044B \u0441\u0440\u0430\u0432\u043D\u0438\u0432\u0430\u0442\u044C \u0441 \u043F\u0440\u043E\u043C\u0435\u0436\u0443\u0442\u043E\u0447\u043D\u043E\u0439 \u0442\u043E\u0447\u043A\u043E\u0439, \u0430 \u043D\u0435 \u0442\u043E\u043B\u044C\u043A\u043E \u0441 \u043E\u0440\u0438\u0433\u0438\u043D\u0430\u043B\u043E\u043C.",
+  "setting.snapshots-edit-threshold.name": "\u0417\u0430\u0445\u0432\u0430\u0442\u044B\u0432\u0430\u0442\u044C \u043A\u0430\u0436\u0434\u044B\u0435 (\u043F\u0440\u0430\u0432\u043A\u0438)",
+  "setting.snapshots-edit-threshold.desc": "\u0414\u0435\u043B\u0430\u0442\u044C \u0432\u0435\u0440\u0441\u0438\u044E \u043F\u043E\u0441\u043B\u0435 \u0443\u043A\u0430\u0437\u0430\u043D\u043D\u043E\u0433\u043E \u0447\u0438\u0441\u043B\u0430 \u043F\u0440\u0430\u0432\u043E\u043A. \u0423\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u0435 0, \u0447\u0442\u043E\u0431\u044B \u043E\u0442\u043A\u043B\u044E\u0447\u0438\u0442\u044C \u0442\u0440\u0438\u0433\u0433\u0435\u0440 \u043F\u043E \u043F\u0440\u0430\u0432\u043A\u0430\u043C.",
+  "setting.snapshots-interval.name": "\u0417\u0430\u0445\u0432\u0430\u0442\u044B\u0432\u0430\u0442\u044C \u043A\u0430\u0436\u0434\u044B\u0435 (\u043C\u0438\u043D\u0443\u0442\u044B)",
+  "setting.snapshots-interval.desc": "\u0414\u0435\u043B\u0430\u0442\u044C \u0432\u0435\u0440\u0441\u0438\u044E \u043F\u043E\u0441\u043B\u0435 \u0443\u043A\u0430\u0437\u0430\u043D\u043D\u043E\u0433\u043E \u0447\u0438\u0441\u043B\u0430 \u043C\u0438\u043D\u0443\u0442 \u0440\u0435\u0434\u0430\u043A\u0442\u0438\u0440\u043E\u0432\u0430\u043D\u0438\u044F. \u0423\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u0435 0, \u0447\u0442\u043E\u0431\u044B \u043E\u0442\u043A\u043B\u044E\u0447\u0438\u0442\u044C \u0442\u0440\u0438\u0433\u0433\u0435\u0440 \u043F\u043E \u0432\u0440\u0435\u043C\u0435\u043D\u0438.",
+  "setting.max-version-age-days.name": "\u041C\u0430\u043A\u0441\u0438\u043C\u0430\u043B\u044C\u043D\u044B\u0439 \u0432\u043E\u0437\u0440\u0430\u0441\u0442 \u0432\u0435\u0440\u0441\u0438\u0438 (\u0434\u043D\u0438)",
+  "setting.max-version-age-days.desc": "\u0423\u0434\u0430\u043B\u044F\u0442\u044C \u043F\u0440\u043E\u043C\u0435\u0436\u0443\u0442\u043E\u0447\u043D\u044B\u0435 \u0432\u0435\u0440\u0441\u0438\u0438 \u0441\u0442\u0430\u0440\u0448\u0435 \u0443\u043A\u0430\u0437\u0430\u043D\u043D\u043E\u0433\u043E \u0447\u0438\u0441\u043B\u0430 \u0434\u043D\u0435\u0439 (\u043E\u0441\u043D\u043E\u0432\u043D\u043E\u0435 \u043E\u0433\u0440\u0430\u043D\u0438\u0447\u0435\u043D\u0438\u0435). \u0423\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u0435 0, \u0447\u0442\u043E\u0431\u044B \u043E\u0442\u043A\u043B\u044E\u0447\u0438\u0442\u044C.",
+  "setting.max-versions.name": "\u041C\u0430\u043A\u0441\u0438\u043C\u0443\u043C \u0432\u0435\u0440\u0441\u0438\u0439 \u043D\u0430 \u0444\u0430\u0439\u043B",
+  "setting.max-versions.desc": "\u0417\u0430\u0449\u0438\u0442\u043D\u043E\u0435 \u043E\u0433\u0440\u0430\u043D\u0438\u0447\u0435\u043D\u0438\u0435 \u043D\u0430 \u0447\u0438\u0441\u043B\u043E \u043F\u0440\u043E\u043C\u0435\u0436\u0443\u0442\u043E\u0447\u043D\u044B\u0445 \u0432\u0435\u0440\u0441\u0438\u0439, \u0445\u0440\u0430\u043D\u0438\u043C\u044B\u0445 \u0434\u043B\u044F \u0444\u0430\u0439\u043B\u0430. \u0421\u043D\u0430\u0447\u0430\u043B\u0430 \u0443\u0434\u0430\u043B\u044F\u044E\u0442\u0441\u044F \u0441\u0430\u043C\u044B\u0435 \u0441\u0442\u0430\u0440\u044B\u0435. \u0423\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u0435 0, \u0447\u0442\u043E\u0431\u044B \u043E\u0442\u043A\u043B\u044E\u0447\u0438\u0442\u044C.",
+  "setting.show-heading": "\u041F\u043E\u043A\u0430\u0437\u044B\u0432\u0430\u0442\u044C \u0438\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440 \u0434\u043B\u044F",
+  "setting.show.desc": '\u0418\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u044B \u0441\u0442\u0440\u043E\u043A \u043F\u043E\u043A\u0430\u0437\u044B\u0432\u0430\u044E\u0442\u0441\u044F \u0442\u043E\u043B\u044C\u043A\u043E \u0432 \u0440\u0435\u0436\u0438\u043C\u0430\u0445 \u0440\u0435\u0434\u0430\u043A\u0442\u0438\u0440\u043E\u0432\u0430\u043D\u0438\u044F (\u0438\u0441\u0445\u043E\u0434\u043D\u044B\u0439 \u043A\u043E\u0434 \u0438 \u0436\u0438\u0432\u043E\u0439 \u043F\u0440\u043E\u0441\u043C\u043E\u0442\u0440). \u0412 \u0440\u0435\u0436\u0438\u043C\u0435 \u0447\u0442\u0435\u043D\u0438\u044F \u0432\u0441\u0442\u0440\u043E\u0435\u043D\u043D\u044B\u0445 \u0438\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u043E\u0432 \u043D\u0435\u0442, \u043D\u043E \u0438\u0441\u0442\u043E\u0440\u0438\u044F \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0439 \u0432\u0441\u0451 \u0440\u0430\u0432\u043D\u043E \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u0430: \u0432\u044B\u043F\u043E\u043B\u043D\u0438\u0442\u0435 \u043A\u043E\u043C\u0430\u043D\u0434\u0443 "\u041F\u043E\u043A\u0430\u0437\u0430\u0442\u044C \u0432\u0441\u0435 \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044F \u0442\u0435\u043A\u0443\u0449\u0435\u0433\u043E \u0434\u043E\u043A\u0443\u043C\u0435\u043D\u0442\u0430" \u0438\u043B\u0438 \u0438\u0441\u043F\u043E\u043B\u044C\u0437\u0443\u0439\u0442\u0435 \u043A\u043E\u043D\u0442\u0435\u043A\u0441\u0442\u043D\u043E\u0435 \u043C\u0435\u043D\u044E \u0444\u0430\u0439\u043B\u0430 \u0432 \u043F\u0440\u043E\u0432\u043E\u0434\u043D\u0438\u043A\u0435.',
+  "setting.show.changed": "\u0418\u0437\u043C\u0435\u043D\u0451\u043D\u043D\u044B\u0435",
+  "setting.show.restored": "\u0412\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u043D\u044B\u0435",
+  "setting.show.added": "\u0414\u043E\u0431\u0430\u0432\u043B\u0435\u043D\u043D\u044B\u0435",
+  "setting.show.removed": "\u0423\u0434\u0430\u043B\u0451\u043D\u043D\u044B\u0435",
+  "setting.line-heading": "\u041B\u0438\u043D\u0435\u0439\u043D\u044B\u0439 \u0438\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440",
+  "setting.line-width.name": "\u0428\u0438\u0440\u0438\u043D\u0430",
+  "setting.line-width.desc": "\u0428\u0438\u0440\u0438\u043D\u0430 \u0432\u0435\u0440\u0442\u0438\u043A\u0430\u043B\u044C\u043D\u043E\u0433\u043E \u043B\u0438\u043D\u0435\u0439\u043D\u043E\u0433\u043E \u0438\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u0430 (\u0432 \u043F\u0438\u043A\u0441\u0435\u043B\u044F\u0445).",
+  "setting.gutter-heading.name": "\u0418\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440 \u043D\u0430 \u043F\u043E\u043B\u044F\u0445",
+  "setting.gutter-heading.prefix": "\u0421\u0438\u043C\u0432\u043E\u043B\u044B \u0438\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u0430 \u0442\u0438\u043F\u0430 \u043D\u0430 \u043F\u043E\u043B\u044F\u0445 (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "\u0421\u0438\u043C\u0432\u043E\u043B \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044F",
+  "setting.gutter-added.name": "\u0421\u0438\u043C\u0432\u043E\u043B \u0434\u043E\u0431\u0430\u0432\u043B\u0435\u043D\u0438\u044F",
+  "setting.gutter-restored.name": "\u0421\u0438\u043C\u0432\u043E\u043B \u0432\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u0438\u044F",
+  "setting.gutter-removed.name": "\u0421\u0438\u043C\u0432\u043E\u043B \u0443\u0434\u0430\u043B\u0435\u043D\u0438\u044F",
+  "modal.title": "\u0418\u0441\u0442\u043E\u0440\u0438\u044F",
+  "modal.no-changes": "\u041D\u0435\u0442 \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0439",
+  "modal.identical-to-current": "\u0418\u0434\u0435\u043D\u0442\u0438\u0447\u043D\u043E \u0442\u0435\u043A\u0443\u0449\u0435\u043C\u0443",
+  "modal.restore-original": "\u0412\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C \u043E\u0440\u0438\u0433\u0438\u043D\u0430\u043B",
+  "modal.remove-history": "\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u0438\u0441\u0442\u043E\u0440\u0438\u044E \u0444\u0430\u0439\u043B\u0430",
+  "modal.previous-difference": "\u041F\u0440\u0435\u0434\u044B\u0434\u0443\u0449\u0435\u0435 \u043E\u0442\u043B\u0438\u0447\u0438\u0435",
+  "modal.next-difference": "\u0421\u043B\u0435\u0434\u0443\u044E\u0449\u0435\u0435 \u043E\u0442\u043B\u0438\u0447\u0438\u0435",
+  "modal.mode.patch": "\u041F\u043E\u043A\u0430\u0437\u0430\u0442\u044C \u043F\u0430\u0442\u0447",
+  "modal.mode.inline": "\u0412\u0441\u0442\u0440\u043E\u0435\u043D\u043D\u044B\u0439",
+  "modal.mode.line-by-line": "\u041F\u043E\u0441\u0442\u0440\u043E\u0447\u043D\u043E",
+  "modal.mode.side-by-side": "\u0411\u043E\u043A \u043E \u0431\u043E\u043A",
+  "modal.confirm.cancel": "\u041E\u0442\u043C\u0435\u043D\u0430",
+  "modal.confirm.restore.title": "\u0412\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C \u0438\u0441\u0445\u043E\u0434\u043D\u044B\u0439 \u0444\u0430\u0439\u043B",
+  "modal.confirm.restore.message": "\u0412\u044B \u0443\u0432\u0435\u0440\u0435\u043D\u044B, \u0447\u0442\u043E \u0445\u043E\u0442\u0438\u0442\u0435 \u0432\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C \u044D\u0442\u043E\u0442 \u0444\u0430\u0439\u043B \u0434\u043E \u0438\u0441\u0445\u043E\u0434\u043D\u043E\u0433\u043E \u0441\u043E\u0441\u0442\u043E\u044F\u043D\u0438\u044F? \u0412\u0441\u0435 \u0442\u0435\u043A\u0443\u0449\u0438\u0435 \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044F \u0431\u0443\u0434\u0443\u0442 \u043F\u043E\u0442\u0435\u0440\u044F\u043D\u044B, \u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u044F \u043E\u0442\u0441\u043B\u0435\u0436\u0438\u0432\u0430\u043D\u0438\u044F \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0439 \u0431\u0443\u0434\u0435\u0442 \u0441\u0431\u0440\u043E\u0448\u0435\u043D\u0430. \u042D\u0442\u043E \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435 \u043D\u0435\u043B\u044C\u0437\u044F \u043E\u0442\u043C\u0435\u043D\u0438\u0442\u044C.",
+  "modal.confirm.restore.button": "\u0412\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C \u0444\u0430\u0439\u043B",
+  "modal.confirm.remove.title": "\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u0438\u0441\u0442\u043E\u0440\u0438\u044E \u0444\u0430\u0439\u043B\u0430",
+  "modal.confirm.remove.message": "\u0412\u044B \u0443\u0432\u0435\u0440\u0435\u043D\u044B, \u0447\u0442\u043E \u0445\u043E\u0442\u0438\u0442\u0435 \u0443\u0434\u0430\u043B\u0438\u0442\u044C \u0438\u0441\u0442\u043E\u0440\u0438\u044E \u043E\u0442\u0441\u043B\u0435\u0436\u0438\u0432\u0430\u043D\u0438\u044F \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0439 \u0434\u043B\u044F \u044D\u0442\u043E\u0433\u043E \u0444\u0430\u0439\u043B\u0430? \u042D\u0442\u043E \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435 \u043D\u0435\u043B\u044C\u0437\u044F \u043E\u0442\u043C\u0435\u043D\u0438\u0442\u044C.",
+  "modal.confirm.remove.button": "\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u0438\u0441\u0442\u043E\u0440\u0438\u044E",
+  "modal.confirm.revert.title": "\u041E\u0442\u043A\u0430\u0442\u0438\u0442\u044C \u044D\u0442\u043E \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0435",
+  "modal.confirm.revert.message": "\u041E\u0442\u043A\u0430\u0442\u0438\u0442\u044C \u044D\u0442\u043E \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0435 \u043A \u0432\u044B\u0431\u0440\u0430\u043D\u043D\u043E\u0439 \u0431\u0430\u0437\u0435? \u041E\u0441\u0442\u0430\u043B\u044C\u043D\u044B\u0435 \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044F \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u0442\u0441\u044F.",
+  "modal.confirm.revert.button": "\u041E\u0442\u043A\u0430\u0442\u0438\u0442\u044C",
+  "modal.search-versions": "\u041F\u043E\u0438\u0441\u043A \u043F\u043E \u0432\u0435\u0440\u0441\u0438\u044F\u043C",
+  "modal.version.baseline": "\u0422\u0435\u043A\u0443\u0449\u0438\u0439",
+  "modal.version.numbered": "\u0412\u0435\u0440\u0441\u0438\u044F {number}",
+  "modal.version.current": "\u0422\u0435\u043A\u0443\u0449\u0430\u044F",
+  "modal.version.original": "\u041E\u0440\u0438\u0433\u0438\u043D\u0430\u043B",
+  "modal.no-versions-match": "\u041D\u0435\u0442 \u0432\u0435\u0440\u0441\u0438\u0439, \u0441\u043E\u043E\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0443\u044E\u0449\u0438\u0445 \u043F\u043E\u0438\u0441\u043A\u0443",
+  "modal.no-snapshots-yet": "\u041F\u0440\u043E\u043C\u0435\u0436\u0443\u0442\u043E\u0447\u043D\u044B\u0445 \u0441\u043D\u0438\u043C\u043A\u043E\u0432 \u043F\u043E\u043A\u0430 \u043D\u0435\u0442",
+  "modal.revert-hunk": "\u041E\u0442\u043A\u0430\u0442\u0438\u0442\u044C \u044D\u0442\u043E \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0435",
+  "modal.copy": "\u041A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u0442\u044C"
+};
+
+// lang/sk.json
+var sk_default = {
+  "command.go-to-next-change": "Prejs\u0165 na nasleduj\xFAcu zmenu",
+  "command.go-to-previous-change": "Prejs\u0165 na predch\xE1dzaj\xFAcu zmenu",
+  "command.reset-lines-all": "Resetova\u0165 sn\xEDmky sledovania riadkov pre v\u0161etky s\xFAbory",
+  "command.reset-lines": "Resetova\u0165 sn\xEDmku sledovania riadkov aktu\xE1lneho dokumentu",
+  "command.show-diff": "Zobrazi\u0165 v\u0161etky zmeny aktu\xE1lneho dokumentu",
+  "notice.no-changes-to-navigate": "\u017Diadne zmeny na prech\xE1dzanie",
+  "notice.all-snapshots-deleted": "V\u0161etky d\xE1ta sn\xEDmok boli odstr\xE1nen\xE9",
+  "notice.current-snapshot-deleted": "D\xE1ta aktu\xE1lnej sn\xEDmky boli odstr\xE1nen\xE9",
+  "notice.file-restored": "S\xFAbor bol obnoven\xFD do p\xF4vodn\xE9ho stavu",
+  "notice.file-restore-failed": "Nepodarilo sa obnovi\u0165 s\xFAbor do p\xF4vodn\xE9ho stavu",
+  "notice.copied": "Skop\xEDrovan\xE9!",
+  "notice.no-saved-history": "Pre tento s\xFAbor nie je ulo\u017Een\xE1 \u017Eiadna hist\xF3ria.",
+  "notice.invalid-exclude-pattern": "Local history: vzor vyl\xFA\u010Den\xFDch ciest nie je platn\xFD regul\xE1rny v\xFDraz a bude ignorovan\xFD.",
+  "menu.local-history": "Lok\xE1lna hist\xF3ria",
+  "menu.show-changes": "Zobrazi\u0165 zmeny",
+  "status.lines-changed": "Zmenen\xE9 riadky: {count}",
+  "setting.type.name": "Typ",
+  "setting.type.desc": "Vyberte medzi zvislou \u010Diarou a bodkou na okraji.",
+  "setting.type.option.line": "Zvisl\xE1 \u010Diara",
+  "setting.type.option.dot": "Znak na okraji",
+  "setting.allowed-extensions.name": "Povolen\xE9 pr\xEDpony s\xFAborov",
+  "setting.allowed-extensions.desc": "Zoznam pr\xEDpon s\xFAborov oddelen\xFDch \u010Diarkami, ktor\xFDch zmeny sa sleduj\xFA (napr. md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "Vyl\xFA\u010Den\xE9 cesty",
+  "setting.exclude-paths.desc": "Regul\xE1rny v\xFDraz nerozli\u0161uj\xFAci ve\u013Ekos\u0165 p\xEDsmen, porovn\xE1van\xFD s cestou relat\xEDvnou k trezoru. \u017Diadny s\xFAbor, ktor\xE9ho cesta zodpoved\xE1, sa nikdy nesleduje (napr. \\.excalidraw\\.md$ alebo (^|/)Templates/). Predvolen\xE9 nastavenie vylu\u010Duje prie\u010Dinky Templates a kresby Excalidraw. Ponechajte pr\xE1zdne pre sledovanie v\u0161etk\xE9ho.",
+  "setting.keep.name": "Uchov\xE1va\u0165 hist\xF3riu do",
+  "setting.keep.desc": "Strat\xE9gia \u010Distenia hist\xF3rie rev\xEDzi\xED",
+  "setting.keep.option.app": "Zatvorenia aplik\xE1cie",
+  "setting.keep.option.file": "Zatvorenia s\xFAboru",
+  "setting.ignore-new-files.name": "Ignorova\u0165 nov\xE9 s\xFAbory",
+  "setting.ignore-new-files.desc": "Nesledova\u0165 zmeny v s\xFAboroch vytvoren\xFDch po za\u010Dat\xED sledovania",
+  "setting.persist.name": "Zachova\u0165 hist\xF3riu medzi re\u0161tartmi",
+  "setting.persist.desc": 'Uklada\u0165 hist\xF3riu na disk, aby zv\xFDraznenia pre\u017Eili re\u0161tart. Vy\u017Eaduje nastavenie "Uchov\xE1va\u0165 hist\xF3riu do" na zatvorenie aplik\xE1cie.',
+  "setting.max-entries.name": "Maximum ulo\u017Een\xFDch s\xFAborov",
+  "setting.max-entries.desc": "Limit po\u010Dtu hist\xF3ri\xED s\xFAborov uchov\xE1van\xFDch na disku. Najstar\u0161ie sa odstra\u0148uj\xFA ako prv\xE9. Nastavte 0 na vypnutie.",
+  "setting.max-age-days.name": "Maxim\xE1lny vek hist\xF3rie (dni)",
+  "setting.max-age-days.desc": "Zahodi\u0165 ulo\u017Een\xFA hist\xF3riu star\u0161iu ako tento po\u010Det dn\xED. Nastavte 0 na vypnutie.",
+  "setting.snapshots-heading": "Sn\xEDmky \u010Dasovej osi",
+  "setting.snapshots-enabled.name": "Zachyt\xE1va\u0165 priebe\u017En\xE9 verzie",
+  "setting.snapshots-enabled.desc": "Uchov\xE1va\u0165 \u010Dasov\xFA os skor\u0161\xEDch verzi\xED, aby ste mohli porovn\xE1va\u0165 s medzi\u013Eahl\xFDm bodom, nielen s origin\xE1lom.",
+  "setting.snapshots-edit-threshold.name": "Zachyt\xE1va\u0165 ka\u017Ed\xFDch (\xFApravy)",
+  "setting.snapshots-edit-threshold.desc": "Vytvori\u0165 verziu po tomto po\u010Dte \xFAprav. Nastavte 0 na vypnutie sp\xFA\u0161\u0165a\u010Da pod\u013Ea \xFAprav.",
+  "setting.snapshots-interval.name": "Zachyt\xE1va\u0165 ka\u017Ed\xFDch (min\xFAty)",
+  "setting.snapshots-interval.desc": "Vytvori\u0165 verziu po tomto po\u010Dte min\xFAt \xFAprav. Nastavte 0 na vypnutie \u010Dasov\xE9ho sp\xFA\u0161\u0165a\u010Da.",
+  "setting.max-version-age-days.name": "Maxim\xE1lny vek verzie (dni)",
+  "setting.max-version-age-days.desc": "Zahodi\u0165 priebe\u017En\xE9 verzie star\u0161ie ako tento po\u010Det dn\xED (hlavn\xE9 obmedzenie). Nastavte 0 na vypnutie.",
+  "setting.max-versions.name": "Maximum verzi\xED na s\xFAbor",
+  "setting.max-versions.desc": "Poistn\xFD limit po\u010Dtu priebe\u017En\xFDch verzi\xED uchov\xE1van\xFDch pre s\xFAbor. Najstar\u0161ie sa odstra\u0148uj\xFA ako prv\xE9. Nastavte 0 na vypnutie.",
+  "setting.show-heading": "Zobrazi\u0165 indik\xE1tor pre",
+  "setting.show.desc": 'Indik\xE1tory riadkov sa zobrazuj\xFA iba v re\u017Eimoch \xFAprav (zdrojov\xFD k\xF3d a \u017Eiv\xFD n\xE1h\u013Ead). V re\u017Eime \u010D\xEDtania nie s\xFA \u017Eiadne vlo\u017Een\xE9 indik\xE1tory, ale hist\xF3ria zmien je st\xE1le dostupn\xE1: spustite pr\xEDkaz "Zobrazi\u0165 v\u0161etky zmeny aktu\xE1lneho dokumentu" alebo pou\u017Eite kontextov\xFA ponuku s\xFAboru v prieskumn\xEDkovi s\xFAborov.',
+  "setting.show.changed": "Zmenen\xE9",
+  "setting.show.restored": "Obnoven\xE9",
+  "setting.show.added": "Pridan\xE9",
+  "setting.show.removed": "Odstr\xE1nen\xE9",
+  "setting.line-heading": "Riadkov\xFD indik\xE1tor",
+  "setting.line-width.name": "\u0160\xEDrka",
+  "setting.line-width.desc": "\u0160\xEDrka zvisl\xE9ho riadkov\xE9ho indik\xE1tora (v pixeloch).",
+  "setting.gutter-heading.name": "Indik\xE1tor na okraji",
+  "setting.gutter-heading.prefix": "Znaky indik\xE1tora typu na okraji (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Znak zmeny",
+  "setting.gutter-added.name": "Znak pridania",
+  "setting.gutter-restored.name": "Znak obnovenia",
+  "setting.gutter-removed.name": "Znak odstr\xE1nenia",
+  "modal.title": "Hist\xF3ria",
+  "modal.no-changes": "\u017Diadne zmeny",
+  "modal.identical-to-current": "Zhodn\xE9 s aktu\xE1lnou",
+  "modal.restore-original": "Obnovi\u0165 origin\xE1l",
+  "modal.remove-history": "Odstr\xE1ni\u0165 hist\xF3riu s\xFAboru",
+  "modal.previous-difference": "Predch\xE1dzaj\xFAci rozdiel",
+  "modal.next-difference": "\u010Eal\u0161\xED rozdiel",
+  "modal.mode.patch": "Zobrazi\u0165 patch",
+  "modal.mode.inline": "Vlo\u017Een\xE9",
+  "modal.mode.line-by-line": "Riadok po riadku",
+  "modal.mode.side-by-side": "Ved\u013Ea seba",
+  "modal.confirm.cancel": "Zru\u0161i\u0165",
+  "modal.confirm.restore.title": "Obnovi\u0165 p\xF4vodn\xFD s\xFAbor",
+  "modal.confirm.restore.message": "Naozaj chcete obnovi\u0165 tento s\xFAbor do p\xF4vodn\xE9ho stavu? V\u0161etky aktu\xE1lne zmeny sa stratia a hist\xF3ria sledovania zmien sa resetuje. T\xFAto akciu nemo\u017Eno vr\xE1ti\u0165 sp\xE4\u0165.",
+  "modal.confirm.restore.button": "Obnovi\u0165 s\xFAbor",
+  "modal.confirm.remove.title": "Odstr\xE1ni\u0165 hist\xF3riu s\xFAboru",
+  "modal.confirm.remove.message": "Naozaj chcete odstr\xE1ni\u0165 hist\xF3riu sledovania zmien tohto s\xFAboru? T\xFAto akciu nemo\u017Eno vr\xE1ti\u0165 sp\xE4\u0165.",
+  "modal.confirm.remove.button": "Odstr\xE1ni\u0165 hist\xF3riu",
+  "modal.confirm.revert.title": "Vr\xE1ti\u0165 t\xFAto zmenu",
+  "modal.confirm.revert.message": "Vr\xE1ti\u0165 t\xFAto zmenu sp\xE4\u0165 na vybran\xFD z\xE1klad? Ostatn\xE9 zmeny zostan\xFA zachovan\xE9.",
+  "modal.confirm.revert.button": "Vr\xE1ti\u0165",
+  "modal.search-versions": "H\u013Eada\u0165 verzie",
+  "modal.version.baseline": "Aktu\xE1lna",
+  "modal.version.numbered": "Verzia {number}",
+  "modal.version.current": "Aktu\xE1lna",
+  "modal.version.original": "Origin\xE1l",
+  "modal.no-versions-match": "\u017Diadne verzie nezodpovedaj\xFA h\u013Eadaniu",
+  "modal.no-snapshots-yet": "Zatia\u013E \u017Eiadne priebe\u017En\xE9 sn\xEDmky",
+  "modal.revert-hunk": "Vr\xE1ti\u0165 t\xFAto zmenu",
+  "modal.copy": "Kop\xEDrova\u0165"
+};
+
+// lang/sq.json
+var sq_default = {
+  "command.go-to-next-change": "Shko te ndryshimi tjet\xEBr",
+  "command.go-to-previous-change": "Shko te ndryshimi i m\xEBparsh\xEBm",
+  "command.reset-lines-all": "Rivendos t\xEB gjitha fotot e ndjekjes s\xEB rreshtave",
+  "command.reset-lines": "Rivendos foton e ndjekjes s\xEB rreshtave t\xEB dokumentit aktual",
+  "command.show-diff": "Shfaq t\xEB gjitha ndryshimet e dokumentit aktual",
+  "notice.no-changes-to-navigate": "Nuk ka ndryshime p\xEBr t\xEB l\xEBvizur",
+  "notice.all-snapshots-deleted": "U fshin\xEB t\xEB gjitha t\xEB dh\xEBnat e fotove",
+  "notice.current-snapshot-deleted": "U fshin\xEB t\xEB dh\xEBnat e fotos aktuale",
+  "notice.file-restored": "Skedari u rikthye n\xEB gjendjen origjinale",
+  "notice.file-restore-failed": "D\xEBshtoi rikthimi i skedarit n\xEB gjendjen origjinale",
+  "notice.copied": "U kopjua!",
+  "notice.no-saved-history": "Nuk ka histori t\xEB ruajtur p\xEBr k\xEBt\xEB skedar.",
+  "notice.invalid-exclude-pattern": "Historia lokale: modeli i shtigjeve t\xEB p\xEBrjashtuara nuk \xEBsht\xEB nj\xEB shprehje e rregullt e vlefshme dhe po shp\xEBrfillet.",
+  "menu.local-history": "Historia lokale",
+  "menu.show-changes": "Shfaq ndryshimet",
+  "status.lines-changed": "{count} rreshta t\xEB ndryshuar",
+  "setting.type.name": "Lloji",
+  "setting.type.desc": "Zgjidh midis nj\xEB vije vertikale ose nj\xEB pike n\xEB an\xEB.",
+  "setting.type.option.line": "Vij\xEB vertikale",
+  "setting.type.option.dot": "Shenj\xEB n\xEB an\xEB",
+  "setting.allowed-extensions.name": "Zgjerimet e lejuara t\xEB skedar\xEBve",
+  "setting.allowed-extensions.desc": "List\xEB e ndar\xEB me presje e zgjerimeve t\xEB skedar\xEBve, ndryshimet e t\xEB cil\xEBve ndiqen (p.sh. md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "Shtigjet e p\xEBrjashtuara",
+  "setting.exclude-paths.desc": "Nj\xEB shprehje e rregullt (q\xEB nuk dallon shkronjat e m\xEBdha nga t\xEB voglat) q\xEB krahasohet me shtegun relativ ndaj kasafort\xEBs. \xC7do skedar shtegu i t\xEB cilit p\xEBrputhet nuk ndiqet kurr\xEB (p.sh. \\.excalidraw\\.md$ ose (^|/)Templates/). Vlera e parazgjedhur p\xEBrjashton dosjet Templates dhe vizatimet Excalidraw. L\xEBre bosh p\xEBr t\xEB ndjekur gjith\xE7ka.",
+  "setting.keep.name": "Ruaj historin\xEB deri",
+  "setting.keep.desc": "Strategjia p\xEBr pastrimin e historis\xEB s\xEB rishikimeve",
+  "setting.keep.option.app": "Mbyllja e aplikacionit",
+  "setting.keep.option.file": "Mbyllja e skedarit",
+  "setting.ignore-new-files.name": "Shp\xEBrfill skedar\xEBt e rinj",
+  "setting.ignore-new-files.desc": "Mos i ndiq ndryshimet n\xEB skedar\xEBt e krijuar pasi filloi ndjekja",
+  "setting.persist.name": "Ruaj historin\xEB gjat\xEB rinisjeve",
+  "setting.persist.desc": 'Ruaj historin\xEB n\xEB disk q\xEB theksimet t\xEB mbijetojn\xEB nj\xEB rinisje. K\xEBrkon q\xEB "Ruaj historin\xEB deri" t\xEB jet\xEB vendosur te Mbyllja e aplikacionit.',
+  "setting.max-entries.name": "Maks. skedar\xEB t\xEB ruajtur",
+  "setting.max-entries.desc": "Kufiri se sa histori skedar\xEBsh mbahen n\xEB disk. M\xEB t\xEB vjetrat hiqen t\xEB parat. Vendos te 0 p\xEBr ta \xE7aktivizuar.",
+  "setting.max-age-days.name": "Mosha maks. e historis\xEB (dit\xEB)",
+  "setting.max-age-days.desc": "Hidh historin\xEB e ruajtur m\xEB t\xEB vjet\xEBr se kaq dit\xEB. Vendos te 0 p\xEBr ta \xE7aktivizuar.",
+  "setting.snapshots-heading": "Fotot e koh\xEBvij\xEBs",
+  "setting.snapshots-enabled.name": "Kap versionet e nd\xEBrmjetme",
+  "setting.snapshots-enabled.desc": "Mbaj nj\xEB koh\xEBvij\xEB t\xEB versioneve t\xEB m\xEBparshme q\xEB t\xEB mund t\xEB krahasosh me nj\xEB pik\xEB n\xEB mes, jo vet\xEBm me origjinalin.",
+  "setting.snapshots-edit-threshold.name": "Kap \xE7do (ndryshime)",
+  "setting.snapshots-edit-threshold.desc": "Ruaj nj\xEB version pas kaq ndryshimesh. Vendos te 0 p\xEBr t\xEB \xE7aktivizuar nxit\xEBsin e ndryshimeve.",
+  "setting.snapshots-interval.name": "Kap \xE7do (minuta)",
+  "setting.snapshots-interval.desc": "Ruaj nj\xEB version pas kaq minutash redaktimi. Vendos te 0 p\xEBr t\xEB \xE7aktivizuar nxit\xEBsin e koh\xEBs.",
+  "setting.max-version-age-days.name": "Mosha maks. e versionit (dit\xEB)",
+  "setting.max-version-age-days.desc": "Hidh versionet e nd\xEBrmjetme m\xEB t\xEB vjetra se kaq dit\xEB (kufiri par\xEBsor). Vendos te 0 p\xEBr ta \xE7aktivizuar.",
+  "setting.max-versions.name": "Maks. versione p\xEBr skedar",
+  "setting.max-versions.desc": "Kufi sigurie p\xEBr versionet e nd\xEBrmjetme q\xEB mbahen p\xEBr \xE7do skedar. M\xEB t\xEB vjetrat hiqen t\xEB parat. Vendos te 0 p\xEBr ta \xE7aktivizuar.",
+  "setting.show-heading": "Shfaq treguesin p\xEBr",
+  "setting.show.desc": 'Treguesit e rreshtave shfaqen vet\xEBm n\xEB modalitetet e redaktimit (burimi dhe parapamja e drejtp\xEBrdrejt\xEB). N\xEB modalitetin e leximit nuk ka tregues t\xEB brendsh\xEBm, por historia e ndryshimeve mbetet e arritshme: ekzekuto komand\xEBn "Shfaq t\xEB gjitha ndryshimet e dokumentit aktual" ose p\xEBrdor menyn\xEB e kontekstit t\xEB skedarit n\xEB eksploruesin e skedar\xEBve.',
+  "setting.show.changed": "Ndryshuar",
+  "setting.show.restored": "Rikthyer",
+  "setting.show.added": "Shtuar",
+  "setting.show.removed": "Hequr",
+  "setting.line-heading": "Treguesi i rreshtit",
+  "setting.line-width.name": "Gjer\xEBsia",
+  "setting.line-width.desc": "Gjer\xEBsia e treguesit vertikal t\xEB rreshtit (n\xEB piksele).",
+  "setting.gutter-heading.name": "Treguesi an\xEBsor",
+  "setting.gutter-heading.prefix": "Shenjat e treguesit t\xEB llojit an\xEBsor (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Shenja e ndryshimit",
+  "setting.gutter-added.name": "Shenja e shtuar",
+  "setting.gutter-restored.name": "Shenja e rikthimit",
+  "setting.gutter-removed.name": "Shenja e hequr",
+  "modal.title": "Historia",
+  "modal.no-changes": "Pa ndryshime",
+  "modal.identical-to-current": "Identik me aktualin",
+  "modal.restore-original": "Rikthe origjinalin",
+  "modal.remove-history": "Hiq historin\xEB e skedarit",
+  "modal.previous-difference": "Dallimi i m\xEBparsh\xEBm",
+  "modal.next-difference": "Dallimi tjet\xEBr",
+  "modal.mode.patch": "Shfaq arnimin",
+  "modal.mode.inline": "I brendsh\xEBm",
+  "modal.mode.line-by-line": "Rresht p\xEBr rresht",
+  "modal.mode.side-by-side": "Krah p\xEBr krah",
+  "modal.confirm.cancel": "Anulo",
+  "modal.confirm.restore.title": "Rikthe skedarin origjinal",
+  "modal.confirm.restore.message": "Je i sigurt q\xEB d\xEBshiron ta rikthesh k\xEBt\xEB skedar n\xEB gjendjen e tij origjinale? T\xEB gjitha ndryshimet aktuale do t\xEB humbasin dhe historia e ndjekjes s\xEB ndryshimeve do t\xEB rivendoset. Ky veprim nuk mund t\xEB zhb\xEBhet.",
+  "modal.confirm.restore.button": "Rikthe skedarin",
+  "modal.confirm.remove.title": "Hiq historin\xEB e skedarit",
+  "modal.confirm.remove.message": "Je i sigurt q\xEB d\xEBshiron t\xEB heq\xEBsh historin\xEB e ndjekjes s\xEB ndryshimeve p\xEBr k\xEBt\xEB skedar? Ky veprim nuk mund t\xEB zhb\xEBhet.",
+  "modal.confirm.remove.button": "Hiq historin\xEB",
+  "modal.confirm.revert.title": "Ktheje k\xEBt\xEB ndryshim",
+  "modal.confirm.revert.message": "Ta kthesh k\xEBt\xEB ndryshim te baza e zgjedhur? Ndryshimet e tjera ruhen.",
+  "modal.confirm.revert.button": "Ktheje",
+  "modal.search-versions": "K\xEBrko versionet",
+  "modal.version.baseline": "Aktuali",
+  "modal.version.numbered": "Versioni {number}",
+  "modal.version.current": "Aktuali",
+  "modal.version.original": "Origjinali",
+  "modal.no-versions-match": "Asnj\xEB version nuk p\xEBrputhet me k\xEBrkimin",
+  "modal.no-snapshots-yet": "Ende pa foto t\xEB nd\xEBrmjetme",
+  "modal.revert-hunk": "Ktheje k\xEBt\xEB ndryshim",
+  "modal.copy": "Kopjo"
+};
+
+// lang/sr.json
+var sr_default = {
+  "command.go-to-next-change": "\u0418\u0434\u0438 \u043D\u0430 \u0441\u043B\u0435\u0434\u0435\u045B\u0443 \u0438\u0437\u043C\u0435\u043D\u0443",
+  "command.go-to-previous-change": "\u0418\u0434\u0438 \u043D\u0430 \u043F\u0440\u0435\u0442\u0445\u043E\u0434\u043D\u0443 \u0438\u0437\u043C\u0435\u043D\u0443",
+  "command.reset-lines-all": "\u0420\u0435\u0441\u0435\u0442\u0443\u0458 \u0441\u043D\u0438\u043C\u043A\u0435 \u043F\u0440\u0430\u0442\u0438\u043E\u0446\u0430 \u043B\u0438\u043D\u0438\u0458\u0430 \u0437\u0430 \u0441\u0432\u0435 \u0444\u0430\u0458\u043B\u043E\u0432\u0435",
+  "command.reset-lines": "\u0420\u0435\u0441\u0435\u0442\u0443\u0458 \u0441\u043D\u0438\u043C\u0430\u043A \u043F\u0440\u0430\u0442\u0438\u043E\u0446\u0430 \u043B\u0438\u043D\u0438\u0458\u0430 \u0442\u0435\u043A\u0443\u045B\u0435\u0433 \u0434\u043E\u043A\u0443\u043C\u0435\u043D\u0442\u0430",
+  "command.show-diff": "\u041F\u0440\u0438\u043A\u0430\u0436\u0438 \u0441\u0432\u0435 \u0438\u0437\u043C\u0435\u043D\u0435 \u0442\u0435\u043A\u0443\u045B\u0435\u0433 \u0434\u043E\u043A\u0443\u043C\u0435\u043D\u0442\u0430",
+  "notice.no-changes-to-navigate": "\u041D\u0435\u043C\u0430 \u0438\u0437\u043C\u0435\u043D\u0430 \u0437\u0430 \u043D\u0430\u0432\u0438\u0433\u0430\u0446\u0438\u0458\u0443",
+  "notice.all-snapshots-deleted": "\u0421\u0432\u0438 \u043F\u043E\u0434\u0430\u0446\u0438 \u0441\u043D\u0438\u043C\u0430\u043A\u0430 \u0441\u0443 \u043E\u0431\u0440\u0438\u0441\u0430\u043D\u0438",
+  "notice.current-snapshot-deleted": "\u041F\u043E\u0434\u0430\u0446\u0438 \u0442\u0435\u043A\u0443\u045B\u0435\u0433 \u0441\u043D\u0438\u043C\u043A\u0430 \u0441\u0443 \u043E\u0431\u0440\u0438\u0441\u0430\u043D\u0438",
+  "notice.file-restored": "\u0424\u0430\u0458\u043B \u0458\u0435 \u0432\u0440\u0430\u045B\u0435\u043D \u0443 \u043F\u0440\u0432\u043E\u0431\u0438\u0442\u043D\u043E \u0441\u0442\u0430\u045A\u0435",
+  "notice.file-restore-failed": "\u0412\u0440\u0430\u045B\u0430\u045A\u0435 \u0444\u0430\u0458\u043B\u0430 \u0443 \u043F\u0440\u0432\u043E\u0431\u0438\u0442\u043D\u043E \u0441\u0442\u0430\u045A\u0435 \u043D\u0438\u0458\u0435 \u0443\u0441\u043F\u0435\u043B\u043E",
+  "notice.copied": "\u041A\u043E\u043F\u0438\u0440\u0430\u043D\u043E!",
+  "notice.no-saved-history": "\u0417\u0430 \u043E\u0432\u0430\u0458 \u0444\u0430\u0458\u043B \u043D\u0435\u043C\u0430 \u0441\u0430\u0447\u0443\u0432\u0430\u043D\u0435 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0435.",
+  "notice.invalid-exclude-pattern": "Local history: \u043E\u0431\u0440\u0430\u0437\u0430\u0446 \u0438\u0441\u043A\u0459\u0443\u0447\u0435\u043D\u0438\u0445 \u043F\u0443\u0442\u0430\u045A\u0430 \u043D\u0438\u0458\u0435 \u0438\u0441\u043F\u0440\u0430\u0432\u0430\u043D \u0440\u0435\u0433\u0443\u043B\u0430\u0440\u043D\u0438 \u0438\u0437\u0440\u0430\u0437 \u0438 \u0431\u0438\u045B\u0435 \u0437\u0430\u043D\u0435\u043C\u0430\u0440\u0435\u043D.",
+  "menu.local-history": "\u041B\u043E\u043A\u0430\u043B\u043D\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0430",
+  "menu.show-changes": "\u041F\u0440\u0438\u043A\u0430\u0436\u0438 \u0438\u0437\u043C\u0435\u043D\u0435",
+  "status.lines-changed": "\u0418\u0437\u043C\u0435\u045A\u0435\u043D\u043E \u043B\u0438\u043D\u0438\u0458\u0430: {count}",
+  "setting.type.name": "\u0422\u0438\u043F",
+  "setting.type.desc": "\u0418\u0437\u0430\u0431\u0435\u0440\u0438\u0442\u0435 \u0432\u0435\u0440\u0442\u0438\u043A\u0430\u043B\u043D\u0443 \u043B\u0438\u043D\u0438\u0458\u0443 \u0438\u043B\u0438 \u0442\u0430\u0447\u043A\u0443 \u043D\u0430 \u043C\u0430\u0440\u0433\u0438\u043D\u0438.",
+  "setting.type.option.line": "\u0412\u0435\u0440\u0442\u0438\u043A\u0430\u043B\u043D\u0430 \u043B\u0438\u043D\u0438\u0458\u0430",
+  "setting.type.option.dot": "\u0417\u043D\u0430\u043A \u043D\u0430 \u043C\u0430\u0440\u0433\u0438\u043D\u0438",
+  "setting.allowed-extensions.name": "\u0414\u043E\u0437\u0432\u043E\u0459\u0435\u043D\u0435 \u0435\u043A\u0441\u0442\u0435\u043D\u0437\u0438\u0458\u0435 \u0444\u0430\u0458\u043B\u043E\u0432\u0430",
+  "setting.allowed-extensions.desc": "\u0421\u043F\u0438\u0441\u0430\u043A \u0435\u043A\u0441\u0442\u0435\u043D\u0437\u0438\u0458\u0430 \u0444\u0430\u0458\u043B\u043E\u0432\u0430 \u0440\u0430\u0437\u0434\u0432\u043E\u0458\u0435\u043D\u0438\u0445 \u0437\u0430\u0440\u0435\u0437\u0438\u043C\u0430, \u0447\u0438\u0458\u0435 \u0441\u0435 \u0438\u0437\u043C\u0435\u043D\u0435 \u043F\u0440\u0430\u0442\u0435 (\u043D\u043F\u0440. md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "\u0418\u0441\u043A\u0459\u0443\u0447\u0435\u043D\u0435 \u043F\u0443\u0442\u0430\u045A\u0435",
+  "setting.exclude-paths.desc": "\u0420\u0435\u0433\u0443\u043B\u0430\u0440\u043D\u0438 \u0438\u0437\u0440\u0430\u0437 \u043A\u043E\u0458\u0438 \u043D\u0435 \u0440\u0430\u0437\u043B\u0438\u043A\u0443\u0458\u0435 \u0432\u0435\u043B\u0438\u043A\u0430 \u0438 \u043C\u0430\u043B\u0430 \u0441\u043B\u043E\u0432\u0430, \u0443\u043F\u043E\u0440\u0435\u0452\u0443\u0458\u0435 \u0441\u0435 \u0441\u0430 \u043F\u0443\u0442\u0430\u045A\u043E\u043C \u0440\u0435\u043B\u0430\u0442\u0438\u0432\u043D\u043E\u043C \u0443 \u043E\u0434\u043D\u043E\u0441\u0443 \u043D\u0430 \u0442\u0440\u0435\u0437\u043E\u0440. \u0421\u0432\u0430\u043A\u0438 \u0444\u0430\u0458\u043B \u0447\u0438\u0458\u0430 \u0441\u0435 \u043F\u0443\u0442\u0430\u045A\u0430 \u043F\u043E\u0434\u0443\u0434\u0430\u0440\u0430 \u043D\u0438\u043A\u0430\u0434\u0430 \u0441\u0435 \u043D\u0435 \u043F\u0440\u0430\u0442\u0438 (\u043D\u043F\u0440. \\.excalidraw\\.md$ \u0438\u043B\u0438 (^|/)Templates/). \u041F\u043E\u0434\u0440\u0430\u0437\u0443\u043C\u0435\u0432\u0430\u043D\u043E \u0441\u0435 \u0438\u0441\u043A\u0459\u0443\u0447\u0443\u0458\u0443 \u0444\u0430\u0441\u0446\u0438\u043A\u043B\u0435 Templates \u0438 Excalidraw \u0446\u0440\u0442\u0435\u0436\u0438. \u041E\u0441\u0442\u0430\u0432\u0438\u0442\u0435 \u043F\u0440\u0430\u0437\u043D\u043E \u0434\u0430 \u0431\u0438\u0441\u0442\u0435 \u043F\u0440\u0430\u0442\u0438\u043B\u0438 \u0441\u0432\u0435.",
+  "setting.keep.name": "\u0427\u0443\u0432\u0430\u0458 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0443 \u0434\u043E",
+  "setting.keep.desc": "\u0421\u0442\u0440\u0430\u0442\u0435\u0433\u0438\u0458\u0430 \u0447\u0438\u0448\u045B\u0435\u045A\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0435 \u0440\u0435\u0432\u0438\u0437\u0438\u0458\u0430",
+  "setting.keep.option.app": "\u0417\u0430\u0442\u0432\u0430\u0440\u0430\u045A\u0430 \u0430\u043F\u043B\u0438\u043A\u0430\u0446\u0438\u0458\u0435",
+  "setting.keep.option.file": "\u0417\u0430\u0442\u0432\u0430\u0440\u0430\u045A\u0430 \u0444\u0430\u0458\u043B\u0430",
+  "setting.ignore-new-files.name": "\u0417\u0430\u043D\u0435\u043C\u0430\u0440\u0438 \u043D\u043E\u0432\u0435 \u0444\u0430\u0458\u043B\u043E\u0432\u0435",
+  "setting.ignore-new-files.desc": "\u041D\u0435 \u043F\u0440\u0430\u0442\u0438 \u0438\u0437\u043C\u0435\u043D\u0435 \u0443 \u0444\u0430\u0458\u043B\u043E\u0432\u0438\u043C\u0430 \u043D\u0430\u043F\u0440\u0430\u0432\u0459\u0435\u043D\u0438\u043C \u043D\u0430\u043A\u043E\u043D \u043F\u043E\u0447\u0435\u0442\u043A\u0430 \u043F\u0440\u0430\u045B\u0435\u045A\u0430",
+  "setting.persist.name": "\u0417\u0430\u0434\u0440\u0436\u0438 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0443 \u0438\u0437\u043C\u0435\u0452\u0443 \u043F\u043E\u043D\u043E\u0432\u043D\u0438\u0445 \u043F\u043E\u043A\u0440\u0435\u0442\u0430\u045A\u0430",
+  "setting.persist.desc": '\u0427\u0443\u0432\u0430\u0458 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0443 \u043D\u0430 \u0434\u0438\u0441\u043A\u0443 \u0434\u0430 \u0431\u0438 \u0438\u0441\u0442\u0438\u0446\u0430\u045A\u0430 \u043F\u0440\u0435\u0436\u0438\u0432\u0435\u043B\u0430 \u043F\u043E\u043D\u043E\u0432\u043D\u043E \u043F\u043E\u043A\u0440\u0435\u0442\u0430\u045A\u0435. \u0417\u0430\u0445\u0442\u0435\u0432\u0430 \u0434\u0430 \u043E\u043F\u0446\u0438\u0458\u0430 "\u0427\u0443\u0432\u0430\u0458 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0443 \u0434\u043E" \u0431\u0443\u0434\u0435 \u043F\u043E\u0434\u0435\u0448\u0435\u043D\u0430 \u043D\u0430 \u0437\u0430\u0442\u0432\u0430\u0440\u0430\u045A\u0435 \u0430\u043F\u043B\u0438\u043A\u0430\u0446\u0438\u0458\u0435.',
+  "setting.max-entries.name": "\u041D\u0430\u0458\u0432\u0438\u0448\u0435 \u0441\u0430\u0447\u0443\u0432\u0430\u043D\u0438\u0445 \u0444\u0430\u0458\u043B\u043E\u0432\u0430",
+  "setting.max-entries.desc": "\u041E\u0433\u0440\u0430\u043D\u0438\u0447\u0435\u045A\u0435 \u0431\u0440\u043E\u0458\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0430 \u0444\u0430\u0458\u043B\u043E\u0432\u0430 \u043A\u043E\u0458\u0435 \u0441\u0435 \u0447\u0443\u0432\u0430\u0458\u0443 \u043D\u0430 \u0434\u0438\u0441\u043A\u0443. \u041F\u0440\u0432\u043E \u0441\u0435 \u0443\u043A\u043B\u0430\u045A\u0430\u0458\u0443 \u043D\u0430\u0458\u0441\u0442\u0430\u0440\u0438\u0458\u0435. \u041F\u043E\u0441\u0442\u0430\u0432\u0438\u0442\u0435 \u043D\u0430 0 \u0434\u0430 \u0438\u0441\u043A\u0459\u0443\u0447\u0438\u0442\u0435.",
+  "setting.max-age-days.name": "\u041D\u0430\u0458\u0432\u0435\u045B\u0430 \u0441\u0442\u0430\u0440\u043E\u0441\u0442 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0435 (\u0434\u0430\u043D\u0438)",
+  "setting.max-age-days.desc": "\u041E\u0434\u0431\u0430\u0446\u0438 \u0441\u0430\u0447\u0443\u0432\u0430\u043D\u0443 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0443 \u0441\u0442\u0430\u0440\u0438\u0458\u0443 \u043E\u0434 \u043E\u0432\u043E\u043B\u0438\u043A\u043E \u0434\u0430\u043D\u0430. \u041F\u043E\u0441\u0442\u0430\u0432\u0438\u0442\u0435 \u043D\u0430 0 \u0434\u0430 \u0438\u0441\u043A\u0459\u0443\u0447\u0438\u0442\u0435.",
+  "setting.snapshots-heading": "\u0421\u043D\u0438\u043C\u0446\u0438 \u0432\u0440\u0435\u043C\u0435\u043D\u0441\u043A\u0435 \u043E\u0441\u0435",
+  "setting.snapshots-enabled.name": "\u0425\u0432\u0430\u0442\u0430\u0458 \u043C\u0435\u0452\u0443\u0432\u0435\u0440\u0437\u0438\u0458\u0435",
+  "setting.snapshots-enabled.desc": "\u0427\u0443\u0432\u0430\u0458 \u0432\u0440\u0435\u043C\u0435\u043D\u0441\u043A\u0443 \u043E\u0441\u0443 \u0440\u0430\u043D\u0438\u0458\u0438\u0445 \u0432\u0435\u0440\u0437\u0438\u0458\u0430 \u0434\u0430 \u0431\u0438\u0441\u0442\u0435 \u043C\u043E\u0433\u043B\u0438 \u0434\u0430 \u0443\u043F\u043E\u0440\u0435\u0434\u0438\u0442\u0435 \u0441\u0430 \u043C\u0435\u0452\u0443\u0442\u0430\u0447\u043A\u043E\u043C, \u0430 \u043D\u0435 \u0441\u0430\u043C\u043E \u0441\u0430 \u043E\u0440\u0438\u0433\u0438\u043D\u0430\u043B\u043E\u043C.",
+  "setting.snapshots-edit-threshold.name": "\u0425\u0432\u0430\u0442\u0430\u0458 \u043D\u0430 \u0441\u0432\u0430\u043A\u0438\u0445 (\u0438\u0437\u043C\u0435\u043D\u0435)",
+  "setting.snapshots-edit-threshold.desc": "\u041D\u0430\u043F\u0440\u0430\u0432\u0438 \u0432\u0435\u0440\u0437\u0438\u0458\u0443 \u043F\u043E\u0441\u043B\u0435 \u043E\u0432\u043E\u043B\u0438\u043A\u043E \u0438\u0437\u043C\u0435\u043D\u0430. \u041F\u043E\u0441\u0442\u0430\u0432\u0438\u0442\u0435 \u043D\u0430 0 \u0434\u0430 \u0438\u0441\u043A\u0459\u0443\u0447\u0438\u0442\u0435 \u043E\u043A\u0438\u0434\u0430\u0447 \u043F\u043E \u0438\u0437\u043C\u0435\u043D\u0430\u043C\u0430.",
+  "setting.snapshots-interval.name": "\u0425\u0432\u0430\u0442\u0430\u0458 \u043D\u0430 \u0441\u0432\u0430\u043A\u0438\u0445 (\u043C\u0438\u043D\u0443\u0442\u0438)",
+  "setting.snapshots-interval.desc": "\u041D\u0430\u043F\u0440\u0430\u0432\u0438 \u0432\u0435\u0440\u0437\u0438\u0458\u0443 \u043F\u043E\u0441\u043B\u0435 \u043E\u0432\u043E\u043B\u0438\u043A\u043E \u043C\u0438\u043D\u0443\u0442\u0430 \u0443\u0440\u0435\u0452\u0438\u0432\u0430\u045A\u0430. \u041F\u043E\u0441\u0442\u0430\u0432\u0438\u0442\u0435 \u043D\u0430 0 \u0434\u0430 \u0438\u0441\u043A\u0459\u0443\u0447\u0438\u0442\u0435 \u0432\u0440\u0435\u043C\u0435\u043D\u0441\u043A\u0438 \u043E\u043A\u0438\u0434\u0430\u0447.",
+  "setting.max-version-age-days.name": "\u041D\u0430\u0458\u0432\u0435\u045B\u0430 \u0441\u0442\u0430\u0440\u043E\u0441\u0442 \u0432\u0435\u0440\u0437\u0438\u0458\u0435 (\u0434\u0430\u043D\u0438)",
+  "setting.max-version-age-days.desc": "\u041E\u0434\u0431\u0430\u0446\u0438 \u043C\u0435\u0452\u0443\u0432\u0435\u0440\u0437\u0438\u0458\u0435 \u0441\u0442\u0430\u0440\u0438\u0458\u0435 \u043E\u0434 \u043E\u0432\u043E\u043B\u0438\u043A\u043E \u0434\u0430\u043D\u0430 (\u0433\u043B\u0430\u0432\u043D\u043E \u043E\u0433\u0440\u0430\u043D\u0438\u0447\u0435\u045A\u0435). \u041F\u043E\u0441\u0442\u0430\u0432\u0438\u0442\u0435 \u043D\u0430 0 \u0434\u0430 \u0438\u0441\u043A\u0459\u0443\u0447\u0438\u0442\u0435.",
+  "setting.max-versions.name": "\u041D\u0430\u0458\u0432\u0438\u0448\u0435 \u0432\u0435\u0440\u0437\u0438\u0458\u0430 \u043F\u043E \u0444\u0430\u0458\u043B\u0443",
+  "setting.max-versions.desc": "\u0421\u0438\u0433\u0443\u0440\u043D\u043E\u0441\u043D\u043E \u043E\u0433\u0440\u0430\u043D\u0438\u0447\u0435\u045A\u0435 \u0431\u0440\u043E\u0458\u0430 \u043C\u0435\u0452\u0443\u0432\u0435\u0440\u0437\u0438\u0458\u0430 \u043A\u043E\u0458\u0435 \u0441\u0435 \u0447\u0443\u0432\u0430\u0458\u0443 \u043F\u043E \u0444\u0430\u0458\u043B\u0443. \u041F\u0440\u0432\u043E \u0441\u0435 \u0443\u043A\u043B\u0430\u045A\u0430\u0458\u0443 \u043D\u0430\u0458\u0441\u0442\u0430\u0440\u0438\u0458\u0435. \u041F\u043E\u0441\u0442\u0430\u0432\u0438\u0442\u0435 \u043D\u0430 0 \u0434\u0430 \u0438\u0441\u043A\u0459\u0443\u0447\u0438\u0442\u0435.",
+  "setting.show-heading": "\u041F\u0440\u0438\u043A\u0430\u0436\u0438 \u0438\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440 \u0437\u0430",
+  "setting.show.desc": '\u0418\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u0438 \u043B\u0438\u043D\u0438\u0458\u0430 \u043F\u0440\u0438\u043A\u0430\u0437\u0443\u0458\u0443 \u0441\u0435 \u0441\u0430\u043C\u043E \u0443 \u0440\u0435\u0436\u0438\u043C\u0438\u043C\u0430 \u0443\u0440\u0435\u0452\u0438\u0432\u0430\u045A\u0430 (\u0438\u0437\u0432\u043E\u0440\u043D\u0438 \u043A\u043E\u0434 \u0438 \u0436\u0438\u0432\u0438 \u043F\u0440\u0435\u0433\u043B\u0435\u0434). \u0423 \u0440\u0435\u0436\u0438\u043C\u0443 \u0447\u0438\u0442\u0430\u045A\u0430 \u043D\u0435\u043C\u0430 \u0443\u0433\u0440\u0430\u0452\u0435\u043D\u0438\u0445 \u0438\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u0430, \u0430\u043B\u0438 \u0458\u0435 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0430 \u0438\u0437\u043C\u0435\u043D\u0430 \u0438 \u0434\u0430\u0459\u0435 \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u0430: \u043F\u043E\u043A\u0440\u0435\u043D\u0438\u0442\u0435 \u043A\u043E\u043C\u0430\u043D\u0434\u0443 "\u041F\u0440\u0438\u043A\u0430\u0436\u0438 \u0441\u0432\u0435 \u0438\u0437\u043C\u0435\u043D\u0435 \u0442\u0435\u043A\u0443\u045B\u0435\u0433 \u0434\u043E\u043A\u0443\u043C\u0435\u043D\u0442\u0430" \u0438\u043B\u0438 \u0443\u043F\u043E\u0442\u0440\u0435\u0431\u0438\u0442\u0435 \u043A\u043E\u043D\u0442\u0435\u043A\u0441\u0442\u043D\u0438 \u043C\u0435\u043D\u0438 \u0444\u0430\u0458\u043B\u0430 \u0443 \u043F\u0440\u0435\u0433\u043B\u0435\u0434\u0430\u0447\u0443 \u0444\u0430\u0458\u043B\u043E\u0432\u0430.',
+  "setting.show.changed": "\u0418\u0437\u043C\u0435\u045A\u0435\u043D\u043E",
+  "setting.show.restored": "\u0412\u0440\u0430\u045B\u0435\u043D\u043E",
+  "setting.show.added": "\u0414\u043E\u0434\u0430\u0442\u043E",
+  "setting.show.removed": "\u0423\u043A\u043B\u043E\u045A\u0435\u043D\u043E",
+  "setting.line-heading": "\u041B\u0438\u043D\u0438\u0458\u0441\u043A\u0438 \u0438\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440",
+  "setting.line-width.name": "\u0428\u0438\u0440\u0438\u043D\u0430",
+  "setting.line-width.desc": "\u0428\u0438\u0440\u0438\u043D\u0430 \u0432\u0435\u0440\u0442\u0438\u043A\u0430\u043B\u043D\u043E\u0433 \u043B\u0438\u043D\u0438\u0458\u0441\u043A\u043E\u0433 \u0438\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u0430 (\u0443 \u043F\u0438\u043A\u0441\u0435\u043B\u0438\u043C\u0430).",
+  "setting.gutter-heading.name": "\u0418\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440 \u043D\u0430 \u043C\u0430\u0440\u0433\u0438\u043D\u0438",
+  "setting.gutter-heading.prefix": "\u0417\u043D\u0430\u0446\u0438 \u0438\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u0430 \u0442\u0438\u043F\u0430 \u043D\u0430 \u043C\u0430\u0440\u0433\u0438\u043D\u0438 (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "\u0417\u043D\u0430\u043A \u0438\u0437\u043C\u0435\u043D\u0435",
+  "setting.gutter-added.name": "\u0417\u043D\u0430\u043A \u0434\u043E\u0434\u0430\u0432\u0430\u045A\u0430",
+  "setting.gutter-restored.name": "\u0417\u043D\u0430\u043A \u0432\u0440\u0430\u045B\u0430\u045A\u0430",
+  "setting.gutter-removed.name": "\u0417\u043D\u0430\u043A \u0443\u043A\u043B\u0430\u045A\u0430\u045A\u0430",
+  "modal.title": "\u0418\u0441\u0442\u043E\u0440\u0438\u0458\u0430",
+  "modal.no-changes": "\u041D\u0435\u043C\u0430 \u0438\u0437\u043C\u0435\u043D\u0430",
+  "modal.identical-to-current": "\u0418\u0434\u0435\u043D\u0442\u0438\u0447\u043D\u043E \u0442\u0435\u043A\u0443\u045B\u0435\u043C",
+  "modal.restore-original": "\u0412\u0440\u0430\u0442\u0438 \u043E\u0440\u0438\u0433\u0438\u043D\u0430\u043B",
+  "modal.remove-history": "\u0423\u043A\u043B\u043E\u043D\u0438 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0443 \u0444\u0430\u0458\u043B\u0430",
+  "modal.previous-difference": "\u041F\u0440\u0435\u0442\u0445\u043E\u0434\u043D\u0430 \u0440\u0430\u0437\u043B\u0438\u043A\u0430",
+  "modal.next-difference": "\u0421\u043B\u0435\u0434\u0435\u045B\u0430 \u0440\u0430\u0437\u043B\u0438\u043A\u0430",
+  "modal.mode.patch": "\u041F\u0440\u0438\u043A\u0430\u0436\u0438 \u0437\u0430\u043A\u0440\u043F\u0443",
+  "modal.mode.inline": "\u0423\u0433\u0440\u0430\u0452\u0435\u043D\u043E",
+  "modal.mode.line-by-line": "\u041B\u0438\u043D\u0438\u0458\u0430 \u043F\u043E \u043B\u0438\u043D\u0438\u0458\u0430",
+  "modal.mode.side-by-side": "\u0408\u0435\u0434\u043D\u043E \u043F\u043E\u0440\u0435\u0434 \u0434\u0440\u0443\u0433\u043E\u0433",
+  "modal.confirm.cancel": "\u041E\u0442\u043A\u0430\u0436\u0438",
+  "modal.confirm.restore.title": "\u0412\u0440\u0430\u0442\u0438 \u043E\u0440\u0438\u0433\u0438\u043D\u0430\u043B\u043D\u0438 \u0444\u0430\u0458\u043B",
+  "modal.confirm.restore.message": "\u0414\u0430 \u043B\u0438 \u0441\u0442\u0435 \u0441\u0438\u0433\u0443\u0440\u043D\u0438 \u0434\u0430 \u0436\u0435\u043B\u0438\u0442\u0435 \u0434\u0430 \u0432\u0440\u0430\u0442\u0438\u0442\u0435 \u043E\u0432\u0430\u0458 \u0444\u0430\u0458\u043B \u0443 \u043F\u0440\u0432\u043E\u0431\u0438\u0442\u043D\u043E \u0441\u0442\u0430\u045A\u0435? \u0421\u0432\u0435 \u0442\u0435\u043A\u0443\u045B\u0435 \u0438\u0437\u043C\u0435\u043D\u0435 \u0431\u0438\u045B\u0435 \u0438\u0437\u0433\u0443\u0431\u0459\u0435\u043D\u0435, \u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0430 \u043F\u0440\u0430\u045B\u0435\u045A\u0430 \u0438\u0437\u043C\u0435\u043D\u0430 \u0431\u0438\u045B\u0435 \u0440\u0435\u0441\u0435\u0442\u043E\u0432\u0430\u043D\u0430. \u041E\u0432\u0430 \u0440\u0430\u0434\u045A\u0430 \u0441\u0435 \u043D\u0435 \u043C\u043E\u0436\u0435 \u043E\u043F\u043E\u0437\u0432\u0430\u0442\u0438.",
+  "modal.confirm.restore.button": "\u0412\u0440\u0430\u0442\u0438 \u0444\u0430\u0458\u043B",
+  "modal.confirm.remove.title": "\u0423\u043A\u043B\u043E\u043D\u0438 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0443 \u0444\u0430\u0458\u043B\u0430",
+  "modal.confirm.remove.message": "\u0414\u0430 \u043B\u0438 \u0441\u0442\u0435 \u0441\u0438\u0433\u0443\u0440\u043D\u0438 \u0434\u0430 \u0436\u0435\u043B\u0438\u0442\u0435 \u0434\u0430 \u0443\u043A\u043B\u043E\u043D\u0438\u0442\u0435 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0443 \u043F\u0440\u0430\u045B\u0435\u045A\u0430 \u0438\u0437\u043C\u0435\u043D\u0430 \u0437\u0430 \u043E\u0432\u0430\u0458 \u0444\u0430\u0458\u043B? \u041E\u0432\u0430 \u0440\u0430\u0434\u045A\u0430 \u0441\u0435 \u043D\u0435 \u043C\u043E\u0436\u0435 \u043E\u043F\u043E\u0437\u0432\u0430\u0442\u0438.",
+  "modal.confirm.remove.button": "\u0423\u043A\u043B\u043E\u043D\u0438 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0443",
+  "modal.confirm.revert.title": "\u041E\u043F\u043E\u0437\u043E\u0432\u0438 \u043E\u0432\u0443 \u0438\u0437\u043C\u0435\u043D\u0443",
+  "modal.confirm.revert.message": "\u041E\u043F\u043E\u0437\u0432\u0430\u0442\u0438 \u043E\u0432\u0443 \u0438\u0437\u043C\u0435\u043D\u0443 \u043D\u0430 \u0438\u0437\u0430\u0431\u0440\u0430\u043D\u0443 \u043E\u0441\u043D\u043E\u0432\u0443? \u041E\u0441\u0442\u0430\u043B\u0435 \u0438\u0437\u043C\u0435\u043D\u0435 \u0441\u0435 \u0437\u0430\u0434\u0440\u0436\u0430\u0432\u0430\u0458\u0443.",
+  "modal.confirm.revert.button": "\u041E\u043F\u043E\u0437\u043E\u0432\u0438",
+  "modal.search-versions": "\u041F\u0440\u0435\u0442\u0440\u0430\u0436\u0438 \u0432\u0435\u0440\u0437\u0438\u0458\u0435",
+  "modal.version.baseline": "\u0422\u0435\u043A\u0443\u045B\u0430",
+  "modal.version.numbered": "\u0412\u0435\u0440\u0437\u0438\u0458\u0430 {number}",
+  "modal.version.current": "\u0422\u0435\u043A\u0443\u045B\u0430",
+  "modal.version.original": "\u041E\u0440\u0438\u0433\u0438\u043D\u0430\u043B",
+  "modal.no-versions-match": "\u041D\u0438\u0458\u0435\u0434\u043D\u0430 \u0432\u0435\u0440\u0437\u0438\u0458\u0430 \u043D\u0435 \u043E\u0434\u0433\u043E\u0432\u0430\u0440\u0430 \u043F\u0440\u0435\u0442\u0440\u0430\u0437\u0438",
+  "modal.no-snapshots-yet": "\u0408\u043E\u0448 \u043D\u0435\u043C\u0430 \u043C\u0435\u0452\u0443\u0441\u043D\u0438\u043C\u0430\u043A\u0430",
+  "modal.revert-hunk": "\u041E\u043F\u043E\u0437\u043E\u0432\u0438 \u043E\u0432\u0443 \u0438\u0437\u043C\u0435\u043D\u0443",
+  "modal.copy": "\u041A\u043E\u043F\u0438\u0440\u0430\u0458"
+};
+
+// lang/sv.json
+var sv_default = {
+  "command.go-to-next-change": "G\xE5 till n\xE4sta \xE4ndring",
+  "command.go-to-previous-change": "G\xE5 till f\xF6reg\xE5ende \xE4ndring",
+  "command.reset-lines-all": "\xC5terst\xE4ll alla radsp\xE5rnings\xF6gonblicksbilder",
+  "command.reset-lines": "\xC5terst\xE4ll radsp\xE5rnings\xF6gonblicksbild f\xF6r aktuellt dokument",
+  "command.show-diff": "Visa alla \xE4ndringar i aktuellt dokument",
+  "notice.no-changes-to-navigate": "Inga \xE4ndringar att navigera",
+  "notice.all-snapshots-deleted": "Alla \xF6gonblicksbilder borttagna",
+  "notice.current-snapshot-deleted": "Aktuell \xF6gonblicksbild borttagen",
+  "notice.file-restored": "Filen \xE5terst\xE4lld till ursprungligt skick",
+  "notice.file-restore-failed": "Det gick inte att \xE5terst\xE4lla filen till ursprungligt skick",
+  "notice.copied": "Kopierat!",
+  "notice.no-saved-history": "Det finns ingen sparad historik f\xF6r den h\xE4r filen.",
+  "notice.invalid-exclude-pattern": "Lokal historik: m\xF6nstret f\xF6r uteslutna s\xF6kv\xE4gar \xE4r inte ett giltigt regulj\xE4rt uttryck och ignoreras.",
+  "menu.local-history": "Lokal historik",
+  "menu.show-changes": "Visa \xE4ndringar",
+  "status.lines-changed": "{count} rader \xE4ndrade",
+  "setting.type.name": "Typ",
+  "setting.type.desc": "V\xE4lj mellan en vertikal linje eller en punkt i marginalen.",
+  "setting.type.option.line": "Vertikal linje",
+  "setting.type.option.dot": "Tecken i marginalen",
+  "setting.allowed-extensions.name": "Till\xE5tna fil\xE4ndelser",
+  "setting.allowed-extensions.desc": "Kommaseparerad lista \xF6ver fil\xE4ndelser vars \xE4ndringar ska sp\xE5ras (t.ex. md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "Uteslutna s\xF6kv\xE4gar",
+  "setting.exclude-paths.desc": "Ett regulj\xE4rt uttryck (utan skillnad p\xE5 stora och sm\xE5 bokst\xE4ver) som matchas mot s\xF6kv\xE4gen relativt valvet. Alla filer vars s\xF6kv\xE4g matchar sp\xE5ras aldrig (t.ex. \\.excalidraw\\.md$ eller (^|/)Templates/). Standardv\xE4rdet utesluter Templates-mappar och Excalidraw-ritningar. L\xE4mna tomt f\xF6r att sp\xE5ra allt.",
+  "setting.keep.name": "Beh\xE5ll historik tills",
+  "setting.keep.desc": "Strategi f\xF6r att rensa revisionshistorik",
+  "setting.keep.option.app": "Appen st\xE4ngs",
+  "setting.keep.option.file": "Filen st\xE4ngs",
+  "setting.ignore-new-files.name": "Ignorera nya filer",
+  "setting.ignore-new-files.desc": "Sp\xE5ra inte \xE4ndringar i filer som skapats efter att sp\xE5rningen startade",
+  "setting.persist.name": "Beh\xE5ll historik mellan omstarter",
+  "setting.persist.desc": 'Spara historik p\xE5 disk s\xE5 att markeringar \xF6verlever en omstart. Kr\xE4ver att "Beh\xE5ll historik tills" \xE4r inst\xE4llt p\xE5 Appen st\xE4ngs.',
+  "setting.max-entries.name": "Max antal sparade filer",
+  "setting.max-entries.desc": "Gr\xE4ns f\xF6r hur m\xE5nga filhistoriker som beh\xE5lls p\xE5 disk. De \xE4ldsta tas bort f\xF6rst. St\xE4ll in p\xE5 0 f\xF6r att inaktivera.",
+  "setting.max-age-days.name": "Maximal historik\xE5lder (dagar)",
+  "setting.max-age-days.desc": "Ta bort sparad historik som \xE4r \xE4ldre \xE4n s\xE5 h\xE4r m\xE5nga dagar. St\xE4ll in p\xE5 0 f\xF6r att inaktivera.",
+  "setting.snapshots-heading": "Tidslinje\xF6gonblicksbilder",
+  "setting.snapshots-enabled.name": "F\xE5nga mellanliggande versioner",
+  "setting.snapshots-enabled.desc": "Beh\xE5ll en tidslinje \xF6ver tidigare versioner s\xE5 att du kan j\xE4mf\xF6ra mot en mellanliggande punkt, inte bara originalet.",
+  "setting.snapshots-edit-threshold.name": "F\xE5nga var (\xE4ndringar)",
+  "setting.snapshots-edit-threshold.desc": "Spara en version efter s\xE5 h\xE4r m\xE5nga \xE4ndringar. St\xE4ll in p\xE5 0 f\xF6r att inaktivera \xE4ndringsutl\xF6saren.",
+  "setting.snapshots-interval.name": "F\xE5nga var (minuter)",
+  "setting.snapshots-interval.desc": "Spara en version efter s\xE5 h\xE4r m\xE5nga minuters redigering. St\xE4ll in p\xE5 0 f\xF6r att inaktivera tidsutl\xF6saren.",
+  "setting.max-version-age-days.name": "Maximal versions\xE5lder (dagar)",
+  "setting.max-version-age-days.desc": "Ta bort mellanliggande versioner som \xE4r \xE4ldre \xE4n s\xE5 h\xE4r m\xE5nga dagar (den prim\xE4ra gr\xE4nsen). St\xE4ll in p\xE5 0 f\xF6r att inaktivera.",
+  "setting.max-versions.name": "Max versioner per fil",
+  "setting.max-versions.desc": "S\xE4kerhetsgr\xE4ns f\xF6r antal mellanliggande versioner som beh\xE5lls per fil. De \xE4ldsta tas bort f\xF6rst. St\xE4ll in p\xE5 0 f\xF6r att inaktivera.",
+  "setting.show-heading": "Visa indikator f\xF6r",
+  "setting.show.desc": 'Radindikatorer visas endast i redigeringsl\xE4ge (k\xE4llkod och live-f\xF6rhandsvisning). I l\xE4sl\xE4ge finns inga infogade indikatorer, men \xE4ndringshistoriken \xE4r fortfarande tillg\xE4nglig: k\xF6r kommandot "Visa alla \xE4ndringar i aktuellt dokument" eller anv\xE4nd filens snabbmeny i filutforskaren.',
+  "setting.show.changed": "\xC4ndrad",
+  "setting.show.restored": "\xC5terst\xE4lld",
+  "setting.show.added": "Tillagd",
+  "setting.show.removed": "Borttagen",
+  "setting.line-heading": "Radindikator",
+  "setting.line-width.name": "Bredd",
+  "setting.line-width.desc": "Bredd p\xE5 den vertikala linjeindikatorn (i pixlar).",
+  "setting.gutter-heading.name": "Marginalindikator",
+  "setting.gutter-heading.prefix": "Tecken f\xF6r marginaltypsindikatorn (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Tecken f\xF6r \xE4ndring",
+  "setting.gutter-added.name": "Tecken f\xF6r tillagd",
+  "setting.gutter-restored.name": "Tecken f\xF6r \xE5terst\xE4lld",
+  "setting.gutter-removed.name": "Tecken f\xF6r borttagen",
+  "modal.title": "Historik",
+  "modal.no-changes": "Inga \xE4ndringar",
+  "modal.identical-to-current": "Identisk med aktuell version",
+  "modal.restore-original": "\xC5terst\xE4ll original",
+  "modal.remove-history": "Ta bort filhistorik",
+  "modal.previous-difference": "F\xF6reg\xE5ende skillnad",
+  "modal.next-difference": "N\xE4sta skillnad",
+  "modal.mode.patch": "Visa patch",
+  "modal.mode.inline": "Infogad",
+  "modal.mode.line-by-line": "Rad f\xF6r rad",
+  "modal.mode.side-by-side": "Sida vid sida",
+  "modal.confirm.cancel": "Avbryt",
+  "modal.confirm.restore.title": "\xC5terst\xE4ll originalfil",
+  "modal.confirm.restore.message": "\xC4r du s\xE4ker p\xE5 att du vill \xE5terst\xE4lla den h\xE4r filen till sitt ursprungliga skick? Alla aktuella \xE4ndringar g\xE5r f\xF6rlorade och \xE4ndringshistoriken nollst\xE4lls. Den h\xE4r \xE5tg\xE4rden kan inte \xE5ngras.",
+  "modal.confirm.restore.button": "\xC5terst\xE4ll fil",
+  "modal.confirm.remove.title": "Ta bort filhistorik",
+  "modal.confirm.remove.message": "\xC4r du s\xE4ker p\xE5 att du vill ta bort \xE4ndringshistoriken f\xF6r den h\xE4r filen? Den h\xE4r \xE5tg\xE4rden kan inte \xE5ngras.",
+  "modal.confirm.remove.button": "Ta bort historik",
+  "modal.confirm.revert.title": "\xC5terst\xE4ll den h\xE4r \xE4ndringen",
+  "modal.confirm.revert.message": "Vill du \xE5terst\xE4lla den h\xE4r \xE4ndringen till den valda basen? \xD6vriga \xE4ndringar beh\xE5lls.",
+  "modal.confirm.revert.button": "\xC5terst\xE4ll",
+  "modal.search-versions": "S\xF6k versioner",
+  "modal.version.baseline": "Aktuell",
+  "modal.version.numbered": "Version {number}",
+  "modal.version.current": "Aktuell",
+  "modal.version.original": "Original",
+  "modal.no-versions-match": "Inga versioner matchar s\xF6kningen",
+  "modal.no-snapshots-yet": "Inga mellanliggande \xF6gonblicksbilder \xE4n",
+  "modal.revert-hunk": "\xC5terst\xE4ll den h\xE4r \xE4ndringen",
+  "modal.copy": "Kopiera"
+};
+
+// lang/th.json
+var th_default = {
+  "command.go-to-next-change": "\u0E44\u0E1B\u0E22\u0E31\u0E07\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E16\u0E31\u0E14\u0E44\u0E1B",
+  "command.go-to-previous-change": "\u0E44\u0E1B\u0E22\u0E31\u0E07\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E01\u0E48\u0E2D\u0E19\u0E2B\u0E19\u0E49\u0E32",
+  "command.reset-lines-all": "\u0E23\u0E35\u0E40\u0E0B\u0E47\u0E15\u0E2A\u0E41\u0E19\u0E47\u0E1B\u0E0A\u0E47\u0E2D\u0E15\u0E02\u0E2D\u0E07\u0E15\u0E31\u0E27\u0E15\u0E34\u0E14\u0E15\u0E32\u0E21\u0E1A\u0E23\u0E23\u0E17\u0E31\u0E14\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14",
+  "command.reset-lines": "\u0E23\u0E35\u0E40\u0E0B\u0E47\u0E15\u0E2A\u0E41\u0E19\u0E47\u0E1B\u0E0A\u0E47\u0E2D\u0E15\u0E02\u0E2D\u0E07\u0E15\u0E31\u0E27\u0E15\u0E34\u0E14\u0E15\u0E32\u0E21\u0E1A\u0E23\u0E23\u0E17\u0E31\u0E14\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E40\u0E2D\u0E01\u0E2A\u0E32\u0E23\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19",
+  "command.show-diff": "\u0E41\u0E2A\u0E14\u0E07\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14\u0E02\u0E2D\u0E07\u0E40\u0E2D\u0E01\u0E2A\u0E32\u0E23\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19",
+  "notice.no-changes-to-navigate": "\u0E44\u0E21\u0E48\u0E21\u0E35\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E43\u0E2B\u0E49\u0E44\u0E1B\u0E22\u0E31\u0E07",
+  "notice.all-snapshots-deleted": "\u0E25\u0E1A\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E2A\u0E41\u0E19\u0E47\u0E1B\u0E0A\u0E47\u0E2D\u0E15\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14\u0E41\u0E25\u0E49\u0E27",
+  "notice.current-snapshot-deleted": "\u0E25\u0E1A\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E2A\u0E41\u0E19\u0E47\u0E1B\u0E0A\u0E47\u0E2D\u0E15\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19\u0E41\u0E25\u0E49\u0E27",
+  "notice.file-restored": "\u0E04\u0E37\u0E19\u0E04\u0E48\u0E32\u0E44\u0E1F\u0E25\u0E4C\u0E01\u0E25\u0E31\u0E1A\u0E2A\u0E39\u0E48\u0E2A\u0E16\u0E32\u0E19\u0E30\u0E40\u0E14\u0E34\u0E21\u0E41\u0E25\u0E49\u0E27",
+  "notice.file-restore-failed": "\u0E44\u0E21\u0E48\u0E2A\u0E32\u0E21\u0E32\u0E23\u0E16\u0E04\u0E37\u0E19\u0E04\u0E48\u0E32\u0E44\u0E1F\u0E25\u0E4C\u0E01\u0E25\u0E31\u0E1A\u0E2A\u0E39\u0E48\u0E2A\u0E16\u0E32\u0E19\u0E30\u0E40\u0E14\u0E34\u0E21\u0E44\u0E14\u0E49",
+  "notice.copied": "\u0E04\u0E31\u0E14\u0E25\u0E2D\u0E01\u0E41\u0E25\u0E49\u0E27!",
+  "notice.no-saved-history": "\u0E44\u0E21\u0E48\u0E21\u0E35\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E17\u0E35\u0E48\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E44\u0E27\u0E49\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E44\u0E1F\u0E25\u0E4C\u0E19\u0E35\u0E49",
+  "notice.invalid-exclude-pattern": "\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E43\u0E19\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07: \u0E23\u0E39\u0E1B\u0E41\u0E1A\u0E1A\u0E1E\u0E32\u0E18\u0E17\u0E35\u0E48\u0E22\u0E01\u0E40\u0E27\u0E49\u0E19\u0E44\u0E21\u0E48\u0E43\u0E0A\u0E48\u0E19\u0E34\u0E1E\u0E08\u0E19\u0E4C\u0E17\u0E31\u0E48\u0E27\u0E44\u0E1B\u0E17\u0E35\u0E48\u0E16\u0E39\u0E01\u0E15\u0E49\u0E2D\u0E07 \u0E08\u0E36\u0E07\u0E16\u0E39\u0E01\u0E25\u0E30\u0E40\u0E27\u0E49\u0E19",
+  "menu.local-history": "\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E43\u0E19\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07",
+  "menu.show-changes": "\u0E41\u0E2A\u0E14\u0E07\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07",
+  "status.lines-changed": "\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07 {count} \u0E1A\u0E23\u0E23\u0E17\u0E31\u0E14",
+  "setting.type.name": "\u0E0A\u0E19\u0E34\u0E14",
+  "setting.type.desc": "\u0E40\u0E25\u0E37\u0E2D\u0E01\u0E23\u0E30\u0E2B\u0E27\u0E48\u0E32\u0E07\u0E40\u0E2A\u0E49\u0E19\u0E41\u0E19\u0E27\u0E15\u0E31\u0E49\u0E07\u0E2B\u0E23\u0E37\u0E2D\u0E08\u0E38\u0E14\u0E43\u0E19\u0E41\u0E16\u0E1A\u0E02\u0E2D\u0E1A",
+  "setting.type.option.line": "\u0E40\u0E2A\u0E49\u0E19\u0E41\u0E19\u0E27\u0E15\u0E31\u0E49\u0E07",
+  "setting.type.option.dot": "\u0E2D\u0E31\u0E01\u0E02\u0E23\u0E30\u0E43\u0E19\u0E41\u0E16\u0E1A\u0E02\u0E2D\u0E1A",
+  "setting.allowed-extensions.name": "\u0E19\u0E32\u0E21\u0E2A\u0E01\u0E38\u0E25\u0E44\u0E1F\u0E25\u0E4C\u0E17\u0E35\u0E48\u0E2D\u0E19\u0E38\u0E0D\u0E32\u0E15",
+  "setting.allowed-extensions.desc": "\u0E23\u0E32\u0E22\u0E01\u0E32\u0E23\u0E19\u0E32\u0E21\u0E2A\u0E01\u0E38\u0E25\u0E44\u0E1F\u0E25\u0E4C\u0E17\u0E35\u0E48\u0E08\u0E30\u0E15\u0E34\u0E14\u0E15\u0E32\u0E21\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07 \u0E04\u0E31\u0E48\u0E19\u0E14\u0E49\u0E27\u0E22\u0E08\u0E38\u0E25\u0E20\u0E32\u0E04 (\u0E40\u0E0A\u0E48\u0E19 md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "\u0E1E\u0E32\u0E18\u0E17\u0E35\u0E48\u0E22\u0E01\u0E40\u0E27\u0E49\u0E19",
+  "setting.exclude-paths.desc": "\u0E19\u0E34\u0E1E\u0E08\u0E19\u0E4C\u0E17\u0E31\u0E48\u0E27\u0E44\u0E1B\u0E17\u0E35\u0E48\u0E44\u0E21\u0E48\u0E04\u0E33\u0E19\u0E36\u0E07\u0E16\u0E36\u0E07\u0E15\u0E31\u0E27\u0E1E\u0E34\u0E21\u0E1E\u0E4C\u0E43\u0E2B\u0E0D\u0E48\u0E40\u0E25\u0E47\u0E01 \u0E43\u0E0A\u0E49\u0E08\u0E31\u0E1A\u0E04\u0E39\u0E48\u0E01\u0E31\u0E1A\u0E1E\u0E32\u0E18\u0E17\u0E35\u0E48\u0E2A\u0E31\u0E21\u0E1E\u0E31\u0E19\u0E18\u0E4C\u0E01\u0E31\u0E1A vault \u0E44\u0E1F\u0E25\u0E4C\u0E43\u0E14\u0E01\u0E47\u0E15\u0E32\u0E21\u0E17\u0E35\u0E48\u0E1E\u0E32\u0E18\u0E15\u0E23\u0E07\u0E01\u0E31\u0E19\u0E08\u0E30\u0E44\u0E21\u0E48\u0E16\u0E39\u0E01\u0E15\u0E34\u0E14\u0E15\u0E32\u0E21\u0E40\u0E25\u0E22 (\u0E40\u0E0A\u0E48\u0E19 \\.excalidraw\\.md$ \u0E2B\u0E23\u0E37\u0E2D (^|/)Templates/) \u0E04\u0E48\u0E32\u0E40\u0E23\u0E34\u0E48\u0E21\u0E15\u0E49\u0E19\u0E08\u0E30\u0E22\u0E01\u0E40\u0E27\u0E49\u0E19\u0E42\u0E1F\u0E25\u0E40\u0E14\u0E2D\u0E23\u0E4C Templates \u0E41\u0E25\u0E30\u0E20\u0E32\u0E1E\u0E27\u0E32\u0E14 Excalidraw \u0E40\u0E27\u0E49\u0E19\u0E27\u0E48\u0E32\u0E07\u0E44\u0E27\u0E49\u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E15\u0E34\u0E14\u0E15\u0E32\u0E21\u0E17\u0E38\u0E01\u0E2D\u0E22\u0E48\u0E32\u0E07",
+  "setting.keep.name": "\u0E40\u0E01\u0E47\u0E1A\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E44\u0E27\u0E49\u0E08\u0E19\u0E16\u0E36\u0E07",
+  "setting.keep.desc": "\u0E01\u0E25\u0E22\u0E38\u0E17\u0E18\u0E4C\u0E43\u0E19\u0E01\u0E32\u0E23\u0E25\u0E49\u0E32\u0E07\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E01\u0E32\u0E23\u0E41\u0E01\u0E49\u0E44\u0E02",
+  "setting.keep.option.app": "\u0E1B\u0E34\u0E14\u0E41\u0E2D\u0E1B",
+  "setting.keep.option.file": "\u0E1B\u0E34\u0E14\u0E44\u0E1F\u0E25\u0E4C",
+  "setting.ignore-new-files.name": "\u0E25\u0E30\u0E40\u0E27\u0E49\u0E19\u0E44\u0E1F\u0E25\u0E4C\u0E43\u0E2B\u0E21\u0E48",
+  "setting.ignore-new-files.desc": "\u0E44\u0E21\u0E48\u0E15\u0E34\u0E14\u0E15\u0E32\u0E21\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E43\u0E19\u0E44\u0E1F\u0E25\u0E4C\u0E17\u0E35\u0E48\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E02\u0E36\u0E49\u0E19\u0E2B\u0E25\u0E31\u0E07\u0E08\u0E32\u0E01\u0E40\u0E23\u0E34\u0E48\u0E21\u0E01\u0E32\u0E23\u0E15\u0E34\u0E14\u0E15\u0E32\u0E21",
+  "setting.persist.name": "\u0E04\u0E07\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E44\u0E27\u0E49\u0E41\u0E21\u0E49\u0E23\u0E35\u0E2A\u0E15\u0E32\u0E23\u0E4C\u0E17",
+  "setting.persist.desc": '\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E25\u0E07\u0E14\u0E34\u0E2A\u0E01\u0E4C\u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E43\u0E2B\u0E49\u0E44\u0E2E\u0E44\u0E25\u0E15\u0E4C\u0E22\u0E31\u0E07\u0E04\u0E07\u0E2D\u0E22\u0E39\u0E48\u0E2B\u0E25\u0E31\u0E07\u0E23\u0E35\u0E2A\u0E15\u0E32\u0E23\u0E4C\u0E17 \u0E15\u0E49\u0E2D\u0E07\u0E15\u0E31\u0E49\u0E07 "\u0E40\u0E01\u0E47\u0E1A\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E44\u0E27\u0E49\u0E08\u0E19\u0E16\u0E36\u0E07" \u0E40\u0E1B\u0E47\u0E19\u0E1B\u0E34\u0E14\u0E41\u0E2D\u0E1B',
+  "setting.max-entries.name": "\u0E08\u0E33\u0E19\u0E27\u0E19\u0E44\u0E1F\u0E25\u0E4C\u0E17\u0E35\u0E48\u0E08\u0E31\u0E14\u0E40\u0E01\u0E47\u0E1A\u0E2A\u0E39\u0E07\u0E2A\u0E38\u0E14",
+  "setting.max-entries.desc": "\u0E02\u0E35\u0E14\u0E08\u0E33\u0E01\u0E31\u0E14\u0E08\u0E33\u0E19\u0E27\u0E19\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E44\u0E1F\u0E25\u0E4C\u0E17\u0E35\u0E48\u0E40\u0E01\u0E47\u0E1A\u0E44\u0E27\u0E49\u0E43\u0E19\u0E14\u0E34\u0E2A\u0E01\u0E4C \u0E44\u0E1F\u0E25\u0E4C\u0E40\u0E01\u0E48\u0E32\u0E2A\u0E38\u0E14\u0E08\u0E30\u0E16\u0E39\u0E01\u0E25\u0E1A\u0E2D\u0E2D\u0E01\u0E01\u0E48\u0E2D\u0E19 \u0E15\u0E31\u0E49\u0E07\u0E40\u0E1B\u0E47\u0E19 0 \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E1B\u0E34\u0E14\u0E43\u0E0A\u0E49\u0E07\u0E32\u0E19",
+  "setting.max-age-days.name": "\u0E2D\u0E32\u0E22\u0E38\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E2A\u0E39\u0E07\u0E2A\u0E38\u0E14 (\u0E27\u0E31\u0E19)",
+  "setting.max-age-days.desc": "\u0E25\u0E1A\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E17\u0E35\u0E48\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E44\u0E27\u0E49\u0E0B\u0E36\u0E48\u0E07\u0E40\u0E01\u0E48\u0E32\u0E01\u0E27\u0E48\u0E32\u0E08\u0E33\u0E19\u0E27\u0E19\u0E27\u0E31\u0E19\u0E19\u0E35\u0E49 \u0E15\u0E31\u0E49\u0E07\u0E40\u0E1B\u0E47\u0E19 0 \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E1B\u0E34\u0E14\u0E43\u0E0A\u0E49\u0E07\u0E32\u0E19",
+  "setting.snapshots-heading": "\u0E2A\u0E41\u0E19\u0E47\u0E1B\u0E0A\u0E47\u0E2D\u0E15\u0E02\u0E2D\u0E07\u0E44\u0E17\u0E21\u0E4C\u0E44\u0E25\u0E19\u0E4C",
+  "setting.snapshots-enabled.name": "\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19\u0E23\u0E30\u0E2B\u0E27\u0E48\u0E32\u0E07\u0E01\u0E25\u0E32\u0E07",
+  "setting.snapshots-enabled.desc": "\u0E40\u0E01\u0E47\u0E1A\u0E44\u0E17\u0E21\u0E4C\u0E44\u0E25\u0E19\u0E4C\u0E02\u0E2D\u0E07\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19\u0E01\u0E48\u0E2D\u0E19\u0E2B\u0E19\u0E49\u0E32\u0E44\u0E27\u0E49 \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E43\u0E2B\u0E49\u0E04\u0E38\u0E13\u0E40\u0E1B\u0E23\u0E35\u0E22\u0E1A\u0E40\u0E17\u0E35\u0E22\u0E1A\u0E01\u0E31\u0E1A\u0E0A\u0E48\u0E27\u0E07\u0E40\u0E27\u0E25\u0E32\u0E15\u0E23\u0E07\u0E01\u0E25\u0E32\u0E07\u0E44\u0E14\u0E49 \u0E44\u0E21\u0E48\u0E43\u0E0A\u0E48\u0E41\u0E04\u0E48\u0E01\u0E31\u0E1A\u0E15\u0E49\u0E19\u0E09\u0E1A\u0E31\u0E1A",
+  "setting.snapshots-edit-threshold.name": "\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E17\u0E38\u0E01 (\u0E08\u0E33\u0E19\u0E27\u0E19\u0E01\u0E32\u0E23\u0E41\u0E01\u0E49\u0E44\u0E02)",
+  "setting.snapshots-edit-threshold.desc": "\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19\u0E2B\u0E25\u0E31\u0E07\u0E08\u0E32\u0E01\u0E41\u0E01\u0E49\u0E44\u0E02\u0E04\u0E23\u0E1A\u0E08\u0E33\u0E19\u0E27\u0E19\u0E19\u0E35\u0E49 \u0E15\u0E31\u0E49\u0E07\u0E40\u0E1B\u0E47\u0E19 0 \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E1B\u0E34\u0E14\u0E17\u0E23\u0E34\u0E01\u0E40\u0E01\u0E2D\u0E23\u0E4C\u0E15\u0E32\u0E21\u0E08\u0E33\u0E19\u0E27\u0E19\u0E01\u0E32\u0E23\u0E41\u0E01\u0E49\u0E44\u0E02",
+  "setting.snapshots-interval.name": "\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E17\u0E38\u0E01 (\u0E19\u0E32\u0E17\u0E35)",
+  "setting.snapshots-interval.desc": "\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19\u0E2B\u0E25\u0E31\u0E07\u0E08\u0E32\u0E01\u0E41\u0E01\u0E49\u0E44\u0E02\u0E04\u0E23\u0E1A\u0E08\u0E33\u0E19\u0E27\u0E19\u0E19\u0E32\u0E17\u0E35\u0E19\u0E35\u0E49 \u0E15\u0E31\u0E49\u0E07\u0E40\u0E1B\u0E47\u0E19 0 \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E1B\u0E34\u0E14\u0E17\u0E23\u0E34\u0E01\u0E40\u0E01\u0E2D\u0E23\u0E4C\u0E15\u0E32\u0E21\u0E40\u0E27\u0E25\u0E32",
+  "setting.max-version-age-days.name": "\u0E2D\u0E32\u0E22\u0E38\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19\u0E2A\u0E39\u0E07\u0E2A\u0E38\u0E14 (\u0E27\u0E31\u0E19)",
+  "setting.max-version-age-days.desc": "\u0E25\u0E1A\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19\u0E23\u0E30\u0E2B\u0E27\u0E48\u0E32\u0E07\u0E01\u0E25\u0E32\u0E07\u0E17\u0E35\u0E48\u0E40\u0E01\u0E48\u0E32\u0E01\u0E27\u0E48\u0E32\u0E08\u0E33\u0E19\u0E27\u0E19\u0E27\u0E31\u0E19\u0E19\u0E35\u0E49 (\u0E02\u0E2D\u0E1A\u0E40\u0E02\u0E15\u0E2B\u0E25\u0E31\u0E01) \u0E15\u0E31\u0E49\u0E07\u0E40\u0E1B\u0E47\u0E19 0 \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E1B\u0E34\u0E14\u0E43\u0E0A\u0E49\u0E07\u0E32\u0E19",
+  "setting.max-versions.name": "\u0E08\u0E33\u0E19\u0E27\u0E19\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19\u0E2A\u0E39\u0E07\u0E2A\u0E38\u0E14\u0E15\u0E48\u0E2D\u0E44\u0E1F\u0E25\u0E4C",
+  "setting.max-versions.desc": "\u0E02\u0E35\u0E14\u0E08\u0E33\u0E01\u0E31\u0E14\u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E04\u0E27\u0E32\u0E21\u0E1B\u0E25\u0E2D\u0E14\u0E20\u0E31\u0E22\u0E02\u0E2D\u0E07\u0E08\u0E33\u0E19\u0E27\u0E19\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19\u0E23\u0E30\u0E2B\u0E27\u0E48\u0E32\u0E07\u0E01\u0E25\u0E32\u0E07\u0E17\u0E35\u0E48\u0E40\u0E01\u0E47\u0E1A\u0E44\u0E27\u0E49\u0E15\u0E48\u0E2D\u0E44\u0E1F\u0E25\u0E4C \u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19\u0E40\u0E01\u0E48\u0E32\u0E2A\u0E38\u0E14\u0E08\u0E30\u0E16\u0E39\u0E01\u0E25\u0E1A\u0E2D\u0E2D\u0E01\u0E01\u0E48\u0E2D\u0E19 \u0E15\u0E31\u0E49\u0E07\u0E40\u0E1B\u0E47\u0E19 0 \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E1B\u0E34\u0E14\u0E43\u0E0A\u0E49\u0E07\u0E32\u0E19",
+  "setting.show-heading": "\u0E41\u0E2A\u0E14\u0E07\u0E15\u0E31\u0E27\u0E1A\u0E48\u0E07\u0E0A\u0E35\u0E49\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A",
+  "setting.show.desc": '\u0E15\u0E31\u0E27\u0E1A\u0E48\u0E07\u0E0A\u0E35\u0E49\u0E1A\u0E23\u0E23\u0E17\u0E31\u0E14\u0E08\u0E30\u0E41\u0E2A\u0E14\u0E07\u0E40\u0E09\u0E1E\u0E32\u0E30\u0E43\u0E19\u0E42\u0E2B\u0E21\u0E14\u0E41\u0E01\u0E49\u0E44\u0E02 (\u0E0B\u0E2D\u0E23\u0E4C\u0E2A\u0E41\u0E25\u0E30\u0E41\u0E2A\u0E14\u0E07\u0E15\u0E31\u0E27\u0E2D\u0E22\u0E48\u0E32\u0E07\u0E2A\u0E14) \u0E40\u0E17\u0E48\u0E32\u0E19\u0E31\u0E49\u0E19 \u0E43\u0E19\u0E42\u0E2B\u0E21\u0E14\u0E2D\u0E48\u0E32\u0E19\u0E08\u0E30\u0E44\u0E21\u0E48\u0E21\u0E35\u0E15\u0E31\u0E27\u0E1A\u0E48\u0E07\u0E0A\u0E35\u0E49\u0E41\u0E1A\u0E1A\u0E2D\u0E34\u0E19\u0E44\u0E25\u0E19\u0E4C \u0E41\u0E15\u0E48\u0E22\u0E31\u0E07\u0E40\u0E02\u0E49\u0E32\u0E16\u0E36\u0E07\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E44\u0E14\u0E49: \u0E40\u0E23\u0E35\u0E22\u0E01\u0E43\u0E0A\u0E49\u0E04\u0E33\u0E2A\u0E31\u0E48\u0E07 "\u0E41\u0E2A\u0E14\u0E07\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14\u0E02\u0E2D\u0E07\u0E40\u0E2D\u0E01\u0E2A\u0E32\u0E23\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19" \u0E2B\u0E23\u0E37\u0E2D\u0E43\u0E0A\u0E49\u0E40\u0E21\u0E19\u0E39\u0E04\u0E25\u0E34\u0E01\u0E02\u0E27\u0E32\u0E02\u0E2D\u0E07\u0E44\u0E1F\u0E25\u0E4C\u0E43\u0E19\u0E15\u0E31\u0E27\u0E08\u0E31\u0E14\u0E01\u0E32\u0E23\u0E44\u0E1F\u0E25\u0E4C',
+  "setting.show.changed": "\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07",
+  "setting.show.restored": "\u0E04\u0E37\u0E19\u0E04\u0E48\u0E32",
+  "setting.show.added": "\u0E40\u0E1E\u0E34\u0E48\u0E21",
+  "setting.show.removed": "\u0E25\u0E1A",
+  "setting.line-heading": "\u0E15\u0E31\u0E27\u0E1A\u0E48\u0E07\u0E0A\u0E35\u0E49\u0E1A\u0E23\u0E23\u0E17\u0E31\u0E14",
+  "setting.line-width.name": "\u0E04\u0E27\u0E32\u0E21\u0E01\u0E27\u0E49\u0E32\u0E07",
+  "setting.line-width.desc": "\u0E04\u0E27\u0E32\u0E21\u0E01\u0E27\u0E49\u0E32\u0E07\u0E02\u0E2D\u0E07\u0E15\u0E31\u0E27\u0E1A\u0E48\u0E07\u0E0A\u0E35\u0E49\u0E40\u0E2A\u0E49\u0E19\u0E41\u0E19\u0E27\u0E15\u0E31\u0E49\u0E07 (\u0E40\u0E1B\u0E47\u0E19\u0E1E\u0E34\u0E01\u0E40\u0E0B\u0E25)",
+  "setting.gutter-heading.name": "\u0E15\u0E31\u0E27\u0E1A\u0E48\u0E07\u0E0A\u0E35\u0E49\u0E43\u0E19\u0E41\u0E16\u0E1A\u0E02\u0E2D\u0E1A",
+  "setting.gutter-heading.prefix": "\u0E2D\u0E31\u0E01\u0E02\u0E23\u0E30\u0E02\u0E2D\u0E07\u0E15\u0E31\u0E27\u0E1A\u0E48\u0E07\u0E0A\u0E35\u0E49\u0E0A\u0E19\u0E34\u0E14\u0E43\u0E19\u0E41\u0E16\u0E1A\u0E02\u0E2D\u0E1A (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "\u0E2D\u0E31\u0E01\u0E02\u0E23\u0E30\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07",
+  "setting.gutter-added.name": "\u0E2D\u0E31\u0E01\u0E02\u0E23\u0E30\u0E01\u0E32\u0E23\u0E40\u0E1E\u0E34\u0E48\u0E21",
+  "setting.gutter-restored.name": "\u0E2D\u0E31\u0E01\u0E02\u0E23\u0E30\u0E01\u0E32\u0E23\u0E04\u0E37\u0E19\u0E04\u0E48\u0E32",
+  "setting.gutter-removed.name": "\u0E2D\u0E31\u0E01\u0E02\u0E23\u0E30\u0E01\u0E32\u0E23\u0E25\u0E1A",
+  "modal.title": "\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34",
+  "modal.no-changes": "\u0E44\u0E21\u0E48\u0E21\u0E35\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07",
+  "modal.identical-to-current": "\u0E40\u0E2B\u0E21\u0E37\u0E2D\u0E19\u0E01\u0E31\u0E1A\u0E09\u0E1A\u0E31\u0E1A\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19",
+  "modal.restore-original": "\u0E04\u0E37\u0E19\u0E04\u0E48\u0E32\u0E15\u0E49\u0E19\u0E09\u0E1A\u0E31\u0E1A",
+  "modal.remove-history": "\u0E25\u0E1A\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E44\u0E1F\u0E25\u0E4C",
+  "modal.previous-difference": "\u0E04\u0E27\u0E32\u0E21\u0E41\u0E15\u0E01\u0E15\u0E48\u0E32\u0E07\u0E01\u0E48\u0E2D\u0E19\u0E2B\u0E19\u0E49\u0E32",
+  "modal.next-difference": "\u0E04\u0E27\u0E32\u0E21\u0E41\u0E15\u0E01\u0E15\u0E48\u0E32\u0E07\u0E16\u0E31\u0E14\u0E44\u0E1B",
+  "modal.mode.patch": "\u0E41\u0E2A\u0E14\u0E07\u0E41\u0E1E\u0E15\u0E0A\u0E4C",
+  "modal.mode.inline": "\u0E2D\u0E34\u0E19\u0E44\u0E25\u0E19\u0E4C",
+  "modal.mode.line-by-line": "\u0E17\u0E35\u0E25\u0E30\u0E1A\u0E23\u0E23\u0E17\u0E31\u0E14",
+  "modal.mode.side-by-side": "\u0E40\u0E04\u0E35\u0E22\u0E07\u0E02\u0E49\u0E32\u0E07\u0E01\u0E31\u0E19",
+  "modal.confirm.cancel": "\u0E22\u0E01\u0E40\u0E25\u0E34\u0E01",
+  "modal.confirm.restore.title": "\u0E04\u0E37\u0E19\u0E04\u0E48\u0E32\u0E44\u0E1F\u0E25\u0E4C\u0E15\u0E49\u0E19\u0E09\u0E1A\u0E31\u0E1A",
+  "modal.confirm.restore.message": "\u0E04\u0E38\u0E13\u0E41\u0E19\u0E48\u0E43\u0E08\u0E2B\u0E23\u0E37\u0E2D\u0E44\u0E21\u0E48\u0E27\u0E48\u0E32\u0E15\u0E49\u0E2D\u0E07\u0E01\u0E32\u0E23\u0E04\u0E37\u0E19\u0E04\u0E48\u0E32\u0E44\u0E1F\u0E25\u0E4C\u0E19\u0E35\u0E49\u0E01\u0E25\u0E31\u0E1A\u0E2A\u0E39\u0E48\u0E2A\u0E16\u0E32\u0E19\u0E30\u0E40\u0E14\u0E34\u0E21 \u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14\u0E08\u0E30\u0E2A\u0E39\u0E0D\u0E2B\u0E32\u0E22 \u0E41\u0E25\u0E30\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E01\u0E32\u0E23\u0E15\u0E34\u0E14\u0E15\u0E32\u0E21\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E08\u0E30\u0E16\u0E39\u0E01\u0E23\u0E35\u0E40\u0E0B\u0E47\u0E15 \u0E01\u0E32\u0E23\u0E01\u0E23\u0E30\u0E17\u0E33\u0E19\u0E35\u0E49\u0E44\u0E21\u0E48\u0E2A\u0E32\u0E21\u0E32\u0E23\u0E16\u0E22\u0E49\u0E2D\u0E19\u0E01\u0E25\u0E31\u0E1A\u0E44\u0E14\u0E49",
+  "modal.confirm.restore.button": "\u0E04\u0E37\u0E19\u0E04\u0E48\u0E32\u0E44\u0E1F\u0E25\u0E4C",
+  "modal.confirm.remove.title": "\u0E25\u0E1A\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E44\u0E1F\u0E25\u0E4C",
+  "modal.confirm.remove.message": "\u0E04\u0E38\u0E13\u0E41\u0E19\u0E48\u0E43\u0E08\u0E2B\u0E23\u0E37\u0E2D\u0E44\u0E21\u0E48\u0E27\u0E48\u0E32\u0E15\u0E49\u0E2D\u0E07\u0E01\u0E32\u0E23\u0E25\u0E1A\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E01\u0E32\u0E23\u0E15\u0E34\u0E14\u0E15\u0E32\u0E21\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E02\u0E2D\u0E07\u0E44\u0E1F\u0E25\u0E4C\u0E19\u0E35\u0E49 \u0E01\u0E32\u0E23\u0E01\u0E23\u0E30\u0E17\u0E33\u0E19\u0E35\u0E49\u0E44\u0E21\u0E48\u0E2A\u0E32\u0E21\u0E32\u0E23\u0E16\u0E22\u0E49\u0E2D\u0E19\u0E01\u0E25\u0E31\u0E1A\u0E44\u0E14\u0E49",
+  "modal.confirm.remove.button": "\u0E25\u0E1A\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34",
+  "modal.confirm.revert.title": "\u0E22\u0E49\u0E2D\u0E19\u0E01\u0E25\u0E31\u0E1A\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E19\u0E35\u0E49",
+  "modal.confirm.revert.message": "\u0E22\u0E49\u0E2D\u0E19\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E19\u0E35\u0E49\u0E01\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E22\u0E31\u0E07\u0E10\u0E32\u0E19\u0E17\u0E35\u0E48\u0E40\u0E25\u0E37\u0E2D\u0E01\u0E2B\u0E23\u0E37\u0E2D\u0E44\u0E21\u0E48 \u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E2D\u0E37\u0E48\u0E19\u0E08\u0E30\u0E16\u0E39\u0E01\u0E40\u0E01\u0E47\u0E1A\u0E44\u0E27\u0E49",
+  "modal.confirm.revert.button": "\u0E22\u0E49\u0E2D\u0E19\u0E01\u0E25\u0E31\u0E1A",
+  "modal.search-versions": "\u0E04\u0E49\u0E19\u0E2B\u0E32\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19",
+  "modal.version.baseline": "\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19",
+  "modal.version.numbered": "\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19 {number}",
+  "modal.version.current": "\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19",
+  "modal.version.original": "\u0E15\u0E49\u0E19\u0E09\u0E1A\u0E31\u0E1A",
+  "modal.no-versions-match": "\u0E44\u0E21\u0E48\u0E21\u0E35\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19\u0E17\u0E35\u0E48\u0E15\u0E23\u0E07\u0E01\u0E31\u0E1A\u0E01\u0E32\u0E23\u0E04\u0E49\u0E19\u0E2B\u0E32",
+  "modal.no-snapshots-yet": "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E2A\u0E41\u0E19\u0E47\u0E1B\u0E0A\u0E47\u0E2D\u0E15\u0E23\u0E30\u0E2B\u0E27\u0E48\u0E32\u0E07\u0E01\u0E25\u0E32\u0E07",
+  "modal.revert-hunk": "\u0E22\u0E49\u0E2D\u0E19\u0E01\u0E25\u0E31\u0E1A\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E19\u0E35\u0E49",
+  "modal.copy": "\u0E04\u0E31\u0E14\u0E25\u0E2D\u0E01"
+};
+
+// lang/tr.json
+var tr_default = {
+  "command.go-to-next-change": "Sonraki de\u011Fi\u015Fikli\u011Fe git",
+  "command.go-to-previous-change": "\xD6nceki de\u011Fi\u015Fikli\u011Fe git",
+  "command.reset-lines-all": "T\xFCm sat\u0131r izleyici anl\u0131k g\xF6r\xFCnt\xFClerini s\u0131f\u0131rla",
+  "command.reset-lines": "Ge\xE7erli belgenin sat\u0131r izleyici anl\u0131k g\xF6r\xFCnt\xFCs\xFCn\xFC s\u0131f\u0131rla",
+  "command.show-diff": "Ge\xE7erli belgenin t\xFCm de\u011Fi\u015Fikliklerini g\xF6ster",
+  "notice.no-changes-to-navigate": "Gezilecek de\u011Fi\u015Fiklik yok",
+  "notice.all-snapshots-deleted": "T\xFCm anl\u0131k g\xF6r\xFCnt\xFC verileri silindi",
+  "notice.current-snapshot-deleted": "Ge\xE7erli anl\u0131k g\xF6r\xFCnt\xFC verileri silindi",
+  "notice.file-restored": "Dosya \xF6zg\xFCn durumuna geri y\xFCklendi",
+  "notice.file-restore-failed": "Dosya \xF6zg\xFCn durumuna geri y\xFCklenemedi",
+  "notice.copied": "Kopyaland\u0131!",
+  "notice.no-saved-history": "Bu dosya i\xE7in kay\u0131tl\u0131 bir ge\xE7mi\u015F yok.",
+  "notice.invalid-exclude-pattern": "Yerel ge\xE7mi\u015F: d\u0131\u015Flanan yollar deseni ge\xE7erli bir d\xFCzenli ifade de\u011Fil ve yok say\u0131l\u0131yor.",
+  "menu.local-history": "Yerel ge\xE7mi\u015F",
+  "menu.show-changes": "De\u011Fi\u015Fiklikleri g\xF6ster",
+  "status.lines-changed": "{count} sat\u0131r de\u011Fi\u015Fti",
+  "setting.type.name": "T\xFCr",
+  "setting.type.desc": "Oluk i\xE7inde dikey \xE7izgi veya nokta aras\u0131nda se\xE7im yap\u0131n.",
+  "setting.type.option.line": "Dikey \xE7izgi",
+  "setting.type.option.dot": "Olukta karakter",
+  "setting.allowed-extensions.name": "\u0130zin verilen dosya uzant\u0131lar\u0131",
+  "setting.allowed-extensions.desc": "De\u011Fi\u015Fiklikleri izlenecek dosya uzant\u0131lar\u0131n\u0131n virg\xFClle ayr\u0131lm\u0131\u015F listesi (\xF6r. md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "D\u0131\u015Flanan yollar",
+  "setting.exclude-paths.desc": "Kasaya g\xF6reli yolla e\u015Fle\u015Ftirilen, b\xFCy\xFCk/k\xFC\xE7\xFCk harfe duyarl\u0131 olmayan bir d\xFCzenli ifade. Yolu e\u015Fle\u015Fen hi\xE7bir dosya izlenmez (\xF6r. \\.excalidraw\\.md$ veya (^|/)Templates/). Varsay\u0131lan ayar Templates klas\xF6rlerini ve Excalidraw \xE7izimlerini d\u0131\u015Flar. Her \u015Feyi izlemek i\xE7in bo\u015F b\u0131rak\u0131n.",
+  "setting.keep.name": "Ge\xE7mi\u015Fi \u015Fu zamana kadar tut",
+  "setting.keep.desc": "D\xFCzeltme ge\xE7mi\u015Fini temizleme stratejisi",
+  "setting.keep.option.app": "Uygulama kapan\u0131\u015F\u0131",
+  "setting.keep.option.file": "Dosya kapan\u0131\u015F\u0131",
+  "setting.ignore-new-files.name": "Yeni dosyalar\u0131 yok say",
+  "setting.ignore-new-files.desc": "\u0130zleme ba\u015Flad\u0131ktan sonra olu\u015Fturulan dosyalardaki de\u011Fi\u015Fiklikleri izleme",
+  "setting.persist.name": "Ge\xE7mi\u015Fi yeniden ba\u015Flatmalar aras\u0131nda koru",
+  "setting.persist.desc": 'Vurgular yeniden ba\u015Flatmadan sonra da kals\u0131n diye ge\xE7mi\u015Fi diske kaydet. "Ge\xE7mi\u015Fi \u015Fu zamana kadar tut" ayar\u0131n\u0131n uygulama kapan\u0131\u015F\u0131na ayarlanmas\u0131n\u0131 gerektirir.',
+  "setting.max-entries.name": "Saklanan en fazla dosya",
+  "setting.max-entries.desc": "Diskte tutulan dosya ge\xE7mi\u015Fi say\u0131s\u0131n\u0131n \xFCst s\u0131n\u0131r\u0131. En eskiler \xF6nce \xE7\u0131kar\u0131l\u0131r. Devre d\u0131\u015F\u0131 b\u0131rakmak i\xE7in 0 olarak ayarlay\u0131n.",
+  "setting.max-age-days.name": "En fazla ge\xE7mi\u015F ya\u015F\u0131 (g\xFCn)",
+  "setting.max-age-days.desc": "Bu g\xFCn say\u0131s\u0131ndan daha eski kal\u0131c\u0131 ge\xE7mi\u015Fi sil. Devre d\u0131\u015F\u0131 b\u0131rakmak i\xE7in 0 olarak ayarlay\u0131n.",
+  "setting.snapshots-heading": "Zaman \xE7izelgesi anl\u0131k g\xF6r\xFCnt\xFCleri",
+  "setting.snapshots-enabled.name": "Ara s\xFCr\xFCmleri yakala",
+  "setting.snapshots-enabled.desc": "Yaln\u0131zca \xF6zg\xFCn haliyle de\u011Fil, aradaki bir noktayla da kar\u015F\u0131la\u015Ft\u0131rabilmek i\xE7in \xF6nceki s\xFCr\xFCmlerin bir zaman \xE7izelgesini tut.",
+  "setting.snapshots-edit-threshold.name": "\u015Eu kadarda bir yakala (d\xFCzenleme)",
+  "setting.snapshots-edit-threshold.desc": "Bu kadar d\xFCzenlemeden sonra bir s\xFCr\xFCm al. D\xFCzenleme tetikleyicisini devre d\u0131\u015F\u0131 b\u0131rakmak i\xE7in 0 olarak ayarlay\u0131n.",
+  "setting.snapshots-interval.name": "\u015Eu kadarda bir yakala (dakika)",
+  "setting.snapshots-interval.desc": "Bu kadar dakikal\u0131k d\xFCzenlemeden sonra bir s\xFCr\xFCm al. Zaman tetikleyicisini devre d\u0131\u015F\u0131 b\u0131rakmak i\xE7in 0 olarak ayarlay\u0131n.",
+  "setting.max-version-age-days.name": "En fazla s\xFCr\xFCm ya\u015F\u0131 (g\xFCn)",
+  "setting.max-version-age-days.desc": "Bu g\xFCn say\u0131s\u0131ndan daha eski ara s\xFCr\xFCmleri sil (birincil s\u0131n\u0131r). Devre d\u0131\u015F\u0131 b\u0131rakmak i\xE7in 0 olarak ayarlay\u0131n.",
+  "setting.max-versions.name": "Dosya ba\u015F\u0131na en fazla s\xFCr\xFCm",
+  "setting.max-versions.desc": "Dosya ba\u015F\u0131na tutulan ara s\xFCr\xFCmler i\xE7in g\xFCvenlik s\u0131n\u0131r\u0131. En eskiler \xF6nce \xE7\u0131kar\u0131l\u0131r. Devre d\u0131\u015F\u0131 b\u0131rakmak i\xE7in 0 olarak ayarlay\u0131n.",
+  "setting.show-heading": "G\xF6stergeyi \u015Funun i\xE7in g\xF6ster",
+  "setting.show.desc": 'Sat\u0131r g\xF6stergeleri yaln\u0131zca d\xFCzenleme (kaynak ve canl\u0131 \xF6nizleme) modlar\u0131nda g\xF6sterilir. Okuma modunda sat\u0131r i\xE7i g\xF6sterge bulunmaz, ancak de\u011Fi\u015Fiklik ge\xE7mi\u015Fine yine de ula\u015F\u0131labilir: "Ge\xE7erli belgenin t\xFCm de\u011Fi\u015Fikliklerini g\xF6ster" komutunu \xE7al\u0131\u015Ft\u0131r\u0131n veya dosya gezgininde dosya ba\u011Flam men\xFCs\xFCn\xFC kullan\u0131n.',
+  "setting.show.changed": "De\u011Fi\u015Ftirildi",
+  "setting.show.restored": "Geri y\xFCklendi",
+  "setting.show.added": "Eklendi",
+  "setting.show.removed": "Kald\u0131r\u0131ld\u0131",
+  "setting.line-heading": "Sat\u0131r g\xF6stergesi",
+  "setting.line-width.name": "Geni\u015Flik",
+  "setting.line-width.desc": "Dikey \xE7izgi g\xF6stergesinin geni\u015Fli\u011Fi (piksel cinsinden).",
+  "setting.gutter-heading.name": "Oluk g\xF6stergesi",
+  "setting.gutter-heading.prefix": "Oluk t\xFCr g\xF6stergesinin karakterleri (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "De\u011Fi\u015Fiklik karakteri",
+  "setting.gutter-added.name": "Ekleme karakteri",
+  "setting.gutter-restored.name": "Geri y\xFCkleme karakteri",
+  "setting.gutter-removed.name": "Kald\u0131rma karakteri",
+  "modal.title": "Ge\xE7mi\u015F",
+  "modal.no-changes": "De\u011Fi\u015Fiklik yok",
+  "modal.identical-to-current": "Ge\xE7erli s\xFCr\xFCmle ayn\u0131",
+  "modal.restore-original": "\xD6zg\xFCn halini geri y\xFCkle",
+  "modal.remove-history": "Dosya ge\xE7mi\u015Fini kald\u0131r",
+  "modal.previous-difference": "\xD6nceki fark",
+  "modal.next-difference": "Sonraki fark",
+  "modal.mode.patch": "Yamay\u0131 g\xF6ster",
+  "modal.mode.inline": "Sat\u0131r i\xE7i",
+  "modal.mode.line-by-line": "Sat\u0131r sat\u0131r",
+  "modal.mode.side-by-side": "Yan yana",
+  "modal.confirm.cancel": "\u0130ptal",
+  "modal.confirm.restore.title": "\xD6zg\xFCn dosyay\u0131 geri y\xFCkle",
+  "modal.confirm.restore.message": "Bu dosyay\u0131 \xF6zg\xFCn durumuna geri y\xFCklemek istedi\u011Finizden emin misiniz? T\xFCm ge\xE7erli de\u011Fi\u015Fiklikler kaybolacak ve de\u011Fi\u015Fiklik izleme ge\xE7mi\u015Fi s\u0131f\u0131rlanacak. Bu i\u015Flem geri al\u0131namaz.",
+  "modal.confirm.restore.button": "Dosyay\u0131 geri y\xFCkle",
+  "modal.confirm.remove.title": "Dosya ge\xE7mi\u015Fini kald\u0131r",
+  "modal.confirm.remove.message": "Bu dosyan\u0131n de\u011Fi\u015Fiklik izleme ge\xE7mi\u015Fini kald\u0131rmak istedi\u011Finizden emin misiniz? Bu i\u015Flem geri al\u0131namaz.",
+  "modal.confirm.remove.button": "Ge\xE7mi\u015Fi kald\u0131r",
+  "modal.confirm.revert.title": "Bu de\u011Fi\u015Fikli\u011Fi geri al",
+  "modal.confirm.revert.message": "Bu de\u011Fi\u015Fikli\u011Fi se\xE7ilen temele geri almak istiyor musunuz? Di\u011Fer de\u011Fi\u015Fiklikler korunur.",
+  "modal.confirm.revert.button": "Geri al",
+  "modal.search-versions": "S\xFCr\xFCmlerde ara",
+  "modal.version.baseline": "Ge\xE7erli",
+  "modal.version.numbered": "S\xFCr\xFCm {number}",
+  "modal.version.current": "Ge\xE7erli",
+  "modal.version.original": "\xD6zg\xFCn",
+  "modal.no-versions-match": "Aramayla e\u015Fle\u015Fen s\xFCr\xFCm yok",
+  "modal.no-snapshots-yet": "Hen\xFCz ara anl\u0131k g\xF6r\xFCnt\xFC yok",
+  "modal.revert-hunk": "Bu de\u011Fi\u015Fikli\u011Fi geri al",
+  "modal.copy": "Kopyala"
+};
+
+// lang/uk.json
+var uk_default = {
+  "command.go-to-next-change": "\u041F\u0435\u0440\u0435\u0439\u0442\u0438 \u0434\u043E \u043D\u0430\u0441\u0442\u0443\u043F\u043D\u043E\u0457 \u0437\u043C\u0456\u043D\u0438",
+  "command.go-to-previous-change": "\u041F\u0435\u0440\u0435\u0439\u0442\u0438 \u0434\u043E \u043F\u043E\u043F\u0435\u0440\u0435\u0434\u043D\u044C\u043E\u0457 \u0437\u043C\u0456\u043D\u0438",
+  "command.reset-lines-all": "\u0421\u043A\u0438\u043D\u0443\u0442\u0438 \u0437\u043D\u0456\u043C\u043A\u0438 \u0442\u0440\u0435\u043A\u0435\u0440\u0430 \u0440\u044F\u0434\u043A\u0456\u0432 \u0434\u043B\u044F \u0432\u0441\u0456\u0445 \u0444\u0430\u0439\u043B\u0456\u0432",
+  "command.reset-lines": "\u0421\u043A\u0438\u043D\u0443\u0442\u0438 \u0437\u043D\u0456\u043C\u043E\u043A \u0442\u0440\u0435\u043A\u0435\u0440\u0430 \u0440\u044F\u0434\u043A\u0456\u0432 \u043F\u043E\u0442\u043E\u0447\u043D\u043E\u0433\u043E \u0434\u043E\u043A\u0443\u043C\u0435\u043D\u0442\u0430",
+  "command.show-diff": "\u041F\u043E\u043A\u0430\u0437\u0430\u0442\u0438 \u0432\u0441\u0456 \u0437\u043C\u0456\u043D\u0438 \u043F\u043E\u0442\u043E\u0447\u043D\u043E\u0433\u043E \u0434\u043E\u043A\u0443\u043C\u0435\u043D\u0442\u0430",
+  "notice.no-changes-to-navigate": "\u041D\u0435\u043C\u0430\u0454 \u0437\u043C\u0456\u043D \u0434\u043B\u044F \u043D\u0430\u0432\u0456\u0433\u0430\u0446\u0456\u0457",
+  "notice.all-snapshots-deleted": "\u0423\u0441\u0456 \u0434\u0430\u043D\u0456 \u0437\u043D\u0456\u043C\u043A\u0456\u0432 \u0432\u0438\u0434\u0430\u043B\u0435\u043D\u043E",
+  "notice.current-snapshot-deleted": "\u0414\u0430\u043D\u0456 \u043F\u043E\u0442\u043E\u0447\u043D\u043E\u0433\u043E \u0437\u043D\u0456\u043C\u043A\u0430 \u0432\u0438\u0434\u0430\u043B\u0435\u043D\u043E",
+  "notice.file-restored": "\u0424\u0430\u0439\u043B \u0432\u0456\u0434\u043D\u043E\u0432\u043B\u0435\u043D\u043E \u0434\u043E \u043F\u043E\u0447\u0430\u0442\u043A\u043E\u0432\u043E\u0433\u043E \u0441\u0442\u0430\u043D\u0443",
+  "notice.file-restore-failed": "\u041D\u0435 \u0432\u0434\u0430\u043B\u043E\u0441\u044F \u0432\u0456\u0434\u043D\u043E\u0432\u0438\u0442\u0438 \u0444\u0430\u0439\u043B \u0434\u043E \u043F\u043E\u0447\u0430\u0442\u043A\u043E\u0432\u043E\u0433\u043E \u0441\u0442\u0430\u043D\u0443",
+  "notice.copied": "\u0421\u043A\u043E\u043F\u0456\u0439\u043E\u0432\u0430\u043D\u043E!",
+  "notice.no-saved-history": "\u0414\u043B\u044F \u0446\u044C\u043E\u0433\u043E \u0444\u0430\u0439\u043B\u0443 \u043D\u0435\u043C\u0430\u0454 \u0437\u0431\u0435\u0440\u0435\u0436\u0435\u043D\u043E\u0457 \u0456\u0441\u0442\u043E\u0440\u0456\u0457.",
+  "notice.invalid-exclude-pattern": "Local history: \u0448\u0430\u0431\u043B\u043E\u043D \u0432\u0438\u043A\u043B\u044E\u0447\u0435\u043D\u0438\u0445 \u0448\u043B\u044F\u0445\u0456\u0432 \u043D\u0435 \u0454 \u043A\u043E\u0440\u0435\u043A\u0442\u043D\u0438\u043C \u0440\u0435\u0433\u0443\u043B\u044F\u0440\u043D\u0438\u043C \u0432\u0438\u0440\u0430\u0437\u043E\u043C \u0456 \u0456\u0433\u043D\u043E\u0440\u0443\u0454\u0442\u044C\u0441\u044F.",
+  "menu.local-history": "\u041B\u043E\u043A\u0430\u043B\u044C\u043D\u0430 \u0456\u0441\u0442\u043E\u0440\u0456\u044F",
+  "menu.show-changes": "\u041F\u043E\u043A\u0430\u0437\u0443\u0432\u0430\u0442\u0438 \u0437\u043C\u0456\u043D\u0438",
+  "status.lines-changed": "\u0417\u043C\u0456\u043D\u0435\u043D\u043E \u0440\u044F\u0434\u043A\u0456\u0432: {count}",
+  "setting.type.name": "\u0422\u0438\u043F",
+  "setting.type.desc": "\u0412\u0438\u0431\u0435\u0440\u0456\u0442\u044C \u0432\u0435\u0440\u0442\u0438\u043A\u0430\u043B\u044C\u043D\u0443 \u043B\u0456\u043D\u0456\u044E \u0430\u0431\u043E \u043A\u0440\u0430\u043F\u043A\u0443 \u043D\u0430 \u043F\u043E\u043B\u044F\u0445.",
+  "setting.type.option.line": "\u0412\u0435\u0440\u0442\u0438\u043A\u0430\u043B\u044C\u043D\u0430 \u043B\u0456\u043D\u0456\u044F",
+  "setting.type.option.dot": "\u0421\u0438\u043C\u0432\u043E\u043B \u043D\u0430 \u043F\u043E\u043B\u044F\u0445",
+  "setting.allowed-extensions.name": "\u0414\u043E\u0437\u0432\u043E\u043B\u0435\u043D\u0456 \u0440\u043E\u0437\u0448\u0438\u0440\u0435\u043D\u043D\u044F \u0444\u0430\u0439\u043B\u0456\u0432",
+  "setting.allowed-extensions.desc": "\u0421\u043F\u0438\u0441\u043E\u043A \u0440\u043E\u0437\u0448\u0438\u0440\u0435\u043D\u044C \u0444\u0430\u0439\u043B\u0456\u0432 \u0447\u0435\u0440\u0435\u0437 \u043A\u043E\u043C\u0443, \u0437\u043C\u0456\u043D\u0438 \u0432 \u044F\u043A\u0438\u0445 \u0432\u0456\u0434\u0441\u0442\u0435\u0436\u0443\u044E\u0442\u044C\u0441\u044F (\u043D\u0430\u043F\u0440\u0438\u043A\u043B\u0430\u0434, md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "\u0412\u0438\u043A\u043B\u044E\u0447\u0435\u043D\u0456 \u0448\u043B\u044F\u0445\u0438",
+  "setting.exclude-paths.desc": "\u0420\u0435\u0433\u0443\u043B\u044F\u0440\u043D\u0438\u0439 \u0432\u0438\u0440\u0430\u0437 \u0431\u0435\u0437 \u0443\u0440\u0430\u0445\u0443\u0432\u0430\u043D\u043D\u044F \u0440\u0435\u0433\u0456\u0441\u0442\u0440\u0443, \u044F\u043A\u0438\u0439 \u0437\u0456\u0441\u0442\u0430\u0432\u043B\u044F\u0454\u0442\u044C\u0441\u044F \u0437\u0456 \u0448\u043B\u044F\u0445\u043E\u043C \u0432\u0456\u0434\u043D\u043E\u0441\u043D\u043E \u0441\u0445\u043E\u0432\u0438\u0449\u0430. \u0411\u0443\u0434\u044C-\u044F\u043A\u0438\u0439 \u0444\u0430\u0439\u043B, \u0448\u043B\u044F\u0445 \u044F\u043A\u043E\u0433\u043E \u0437\u0431\u0456\u0433\u0430\u0454\u0442\u044C\u0441\u044F, \u043D\u0456\u043A\u043E\u043B\u0438 \u043D\u0435 \u0432\u0456\u0434\u0441\u0442\u0435\u0436\u0443\u0454\u0442\u044C\u0441\u044F (\u043D\u0430\u043F\u0440\u0438\u043A\u043B\u0430\u0434, \\.excalidraw\\.md$ \u0430\u0431\u043E (^|/)Templates/). \u0417\u0430 \u0437\u0430\u043C\u043E\u0432\u0447\u0443\u0432\u0430\u043D\u043D\u044F\u043C \u0432\u0438\u043A\u043B\u044E\u0447\u0430\u044E\u0442\u044C\u0441\u044F \u0442\u0435\u043A\u0438 Templates \u0442\u0430 \u043C\u0430\u043B\u044E\u043D\u043A\u0438 Excalidraw. \u0417\u0430\u043B\u0438\u0448\u0442\u0435 \u043F\u043E\u0440\u043E\u0436\u043D\u0456\u043C, \u0449\u043E\u0431 \u0432\u0456\u0434\u0441\u0442\u0435\u0436\u0443\u0432\u0430\u0442\u0438 \u0432\u0441\u0435.",
+  "setting.keep.name": "\u0417\u0431\u0435\u0440\u0456\u0433\u0430\u0442\u0438 \u0456\u0441\u0442\u043E\u0440\u0456\u044E \u0434\u043E",
+  "setting.keep.desc": "\u0421\u0442\u0440\u0430\u0442\u0435\u0433\u0456\u044F \u043E\u0447\u0438\u0449\u0435\u043D\u043D\u044F \u0456\u0441\u0442\u043E\u0440\u0456\u0457 \u0440\u0435\u0432\u0456\u0437\u0456\u0439",
+  "setting.keep.option.app": "\u0417\u0430\u043A\u0440\u0438\u0442\u0442\u044F \u0437\u0430\u0441\u0442\u043E\u0441\u0443\u043D\u043A\u0443",
+  "setting.keep.option.file": "\u0417\u0430\u043A\u0440\u0438\u0442\u0442\u044F \u0444\u0430\u0439\u043B\u0443",
+  "setting.ignore-new-files.name": "\u0406\u0433\u043D\u043E\u0440\u0443\u0432\u0430\u0442\u0438 \u043D\u043E\u0432\u0456 \u0444\u0430\u0439\u043B\u0438",
+  "setting.ignore-new-files.desc": "\u041D\u0435 \u0432\u0456\u0434\u0441\u0442\u0435\u0436\u0443\u0432\u0430\u0442\u0438 \u0437\u043C\u0456\u043D\u0438 \u0443 \u0444\u0430\u0439\u043B\u0430\u0445, \u0441\u0442\u0432\u043E\u0440\u0435\u043D\u0438\u0445 \u043F\u0456\u0441\u043B\u044F \u043F\u043E\u0447\u0430\u0442\u043A\u0443 \u0432\u0456\u0434\u0441\u0442\u0435\u0436\u0435\u043D\u043D\u044F",
+  "setting.persist.name": "\u0417\u0431\u0435\u0440\u0456\u0433\u0430\u0442\u0438 \u0456\u0441\u0442\u043E\u0440\u0456\u044E \u043C\u0456\u0436 \u043F\u0435\u0440\u0435\u0437\u0430\u043F\u0443\u0441\u043A\u0430\u043C\u0438",
+  "setting.persist.desc": '\u0417\u0431\u0435\u0440\u0456\u0433\u0430\u0442\u0438 \u0456\u0441\u0442\u043E\u0440\u0456\u044E \u043D\u0430 \u0434\u0438\u0441\u043A, \u0449\u043E\u0431 \u043F\u0456\u0434\u0441\u0432\u0456\u0447\u0443\u0432\u0430\u043D\u043D\u044F \u043F\u0435\u0440\u0435\u0436\u0438\u0432\u0430\u043B\u0438 \u043F\u0435\u0440\u0435\u0437\u0430\u043F\u0443\u0441\u043A. \u041F\u043E\u0442\u0440\u0435\u0431\u0443\u0454, \u0449\u043E\u0431 \u043F\u0430\u0440\u0430\u043C\u0435\u0442\u0440 "\u0417\u0431\u0435\u0440\u0456\u0433\u0430\u0442\u0438 \u0456\u0441\u0442\u043E\u0440\u0456\u044E \u0434\u043E" \u0431\u0443\u043B\u043E \u0432\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u043E \u043D\u0430 \u0437\u0430\u043A\u0440\u0438\u0442\u0442\u044F \u0437\u0430\u0441\u0442\u043E\u0441\u0443\u043D\u043A\u0443.',
+  "setting.max-entries.name": "\u041C\u0430\u043A\u0441\u0438\u043C\u0443\u043C \u0437\u0431\u0435\u0440\u0435\u0436\u0435\u043D\u0438\u0445 \u0444\u0430\u0439\u043B\u0456\u0432",
+  "setting.max-entries.desc": "\u041E\u0431\u043C\u0435\u0436\u0435\u043D\u043D\u044F \u043A\u0456\u043B\u044C\u043A\u043E\u0441\u0442\u0456 \u0456\u0441\u0442\u043E\u0440\u0456\u0439 \u0444\u0430\u0439\u043B\u0456\u0432, \u0449\u043E \u0437\u0431\u0435\u0440\u0456\u0433\u0430\u044E\u0442\u044C\u0441\u044F \u043D\u0430 \u0434\u0438\u0441\u043A\u0443. \u0421\u043F\u043E\u0447\u0430\u0442\u043A\u0443 \u0432\u0438\u0434\u0430\u043B\u044F\u044E\u0442\u044C\u0441\u044F \u043D\u0430\u0439\u0441\u0442\u0430\u0440\u0456\u0448\u0456. \u0412\u0441\u0442\u0430\u043D\u043E\u0432\u0456\u0442\u044C 0, \u0449\u043E\u0431 \u0432\u0438\u043C\u043A\u043D\u0443\u0442\u0438.",
+  "setting.max-age-days.name": "\u041C\u0430\u043A\u0441\u0438\u043C\u0430\u043B\u044C\u043D\u0438\u0439 \u0432\u0456\u043A \u0456\u0441\u0442\u043E\u0440\u0456\u0457 (\u0434\u043D\u0456)",
+  "setting.max-age-days.desc": "\u0412\u0438\u0434\u0430\u043B\u044F\u0442\u0438 \u0437\u0431\u0435\u0440\u0435\u0436\u0435\u043D\u0443 \u0456\u0441\u0442\u043E\u0440\u0456\u044E, \u0441\u0442\u0430\u0440\u0448\u0443 \u0437\u0430 \u0432\u043A\u0430\u0437\u0430\u043D\u0443 \u043A\u0456\u043B\u044C\u043A\u0456\u0441\u0442\u044C \u0434\u043D\u0456\u0432. \u0412\u0441\u0442\u0430\u043D\u043E\u0432\u0456\u0442\u044C 0, \u0449\u043E\u0431 \u0432\u0438\u043C\u043A\u043D\u0443\u0442\u0438.",
+  "setting.snapshots-heading": "\u0417\u043D\u0456\u043C\u043A\u0438 \u0447\u0430\u0441\u043E\u0432\u043E\u0457 \u0448\u043A\u0430\u043B\u0438",
+  "setting.snapshots-enabled.name": "\u0417\u0430\u0445\u043E\u043F\u043B\u044E\u0432\u0430\u0442\u0438 \u043F\u0440\u043E\u043C\u0456\u0436\u043D\u0456 \u0432\u0435\u0440\u0441\u0456\u0457",
+  "setting.snapshots-enabled.desc": "\u0417\u0431\u0435\u0440\u0456\u0433\u0430\u0442\u0438 \u0447\u0430\u0441\u043E\u0432\u0443 \u0448\u043A\u0430\u043B\u0443 \u0440\u0430\u043D\u043D\u0456\u0445 \u0432\u0435\u0440\u0441\u0456\u0439, \u0449\u043E\u0431 \u043F\u043E\u0440\u0456\u0432\u043D\u044E\u0432\u0430\u0442\u0438 \u0437 \u043F\u0440\u043E\u043C\u0456\u0436\u043D\u043E\u044E \u0442\u043E\u0447\u043A\u043E\u044E, \u0430 \u043D\u0435 \u043B\u0438\u0448\u0435 \u0437 \u043E\u0440\u0438\u0433\u0456\u043D\u0430\u043B\u043E\u043C.",
+  "setting.snapshots-edit-threshold.name": "\u0417\u0430\u0445\u043E\u043F\u043B\u044E\u0432\u0430\u0442\u0438 \u043A\u043E\u0436\u043D\u0456 (\u043F\u0440\u0430\u0432\u043A\u0438)",
+  "setting.snapshots-edit-threshold.desc": "\u0421\u0442\u0432\u043E\u0440\u044E\u0432\u0430\u0442\u0438 \u0432\u0435\u0440\u0441\u0456\u044E \u043F\u0456\u0441\u043B\u044F \u0432\u043A\u0430\u0437\u0430\u043D\u043E\u0457 \u043A\u0456\u043B\u044C\u043A\u043E\u0441\u0442\u0456 \u043F\u0440\u0430\u0432\u043E\u043A. \u0412\u0441\u0442\u0430\u043D\u043E\u0432\u0456\u0442\u044C 0, \u0449\u043E\u0431 \u0432\u0438\u043C\u043A\u043D\u0443\u0442\u0438 \u0442\u0440\u0438\u0433\u0435\u0440 \u0437\u0430 \u043F\u0440\u0430\u0432\u043A\u0430\u043C\u0438.",
+  "setting.snapshots-interval.name": "\u0417\u0430\u0445\u043E\u043F\u043B\u044E\u0432\u0430\u0442\u0438 \u043A\u043E\u0436\u043D\u0456 (\u0445\u0432\u0438\u043B\u0438\u043D\u0438)",
+  "setting.snapshots-interval.desc": "\u0421\u0442\u0432\u043E\u0440\u044E\u0432\u0430\u0442\u0438 \u0432\u0435\u0440\u0441\u0456\u044E \u043F\u0456\u0441\u043B\u044F \u0432\u043A\u0430\u0437\u0430\u043D\u043E\u0457 \u043A\u0456\u043B\u044C\u043A\u043E\u0441\u0442\u0456 \u0445\u0432\u0438\u043B\u0438\u043D \u0440\u0435\u0434\u0430\u0433\u0443\u0432\u0430\u043D\u043D\u044F. \u0412\u0441\u0442\u0430\u043D\u043E\u0432\u0456\u0442\u044C 0, \u0449\u043E\u0431 \u0432\u0438\u043C\u043A\u043D\u0443\u0442\u0438 \u0442\u0440\u0438\u0433\u0435\u0440 \u0437\u0430 \u0447\u0430\u0441\u043E\u043C.",
+  "setting.max-version-age-days.name": "\u041C\u0430\u043A\u0441\u0438\u043C\u0430\u043B\u044C\u043D\u0438\u0439 \u0432\u0456\u043A \u0432\u0435\u0440\u0441\u0456\u0457 (\u0434\u043D\u0456)",
+  "setting.max-version-age-days.desc": "\u0412\u0438\u0434\u0430\u043B\u044F\u0442\u0438 \u043F\u0440\u043E\u043C\u0456\u0436\u043D\u0456 \u0432\u0435\u0440\u0441\u0456\u0457, \u0441\u0442\u0430\u0440\u0448\u0456 \u0437\u0430 \u0432\u043A\u0430\u0437\u0430\u043D\u0443 \u043A\u0456\u043B\u044C\u043A\u0456\u0441\u0442\u044C \u0434\u043D\u0456\u0432 (\u043E\u0441\u043D\u043E\u0432\u043D\u0435 \u043E\u0431\u043C\u0435\u0436\u0435\u043D\u043D\u044F). \u0412\u0441\u0442\u0430\u043D\u043E\u0432\u0456\u0442\u044C 0, \u0449\u043E\u0431 \u0432\u0438\u043C\u043A\u043D\u0443\u0442\u0438.",
+  "setting.max-versions.name": "\u041C\u0430\u043A\u0441\u0438\u043C\u0443\u043C \u0432\u0435\u0440\u0441\u0456\u0439 \u043D\u0430 \u0444\u0430\u0439\u043B",
+  "setting.max-versions.desc": "\u0417\u0430\u0445\u0438\u0441\u043D\u0435 \u043E\u0431\u043C\u0435\u0436\u0435\u043D\u043D\u044F \u043A\u0456\u043B\u044C\u043A\u043E\u0441\u0442\u0456 \u043F\u0440\u043E\u043C\u0456\u0436\u043D\u0438\u0445 \u0432\u0435\u0440\u0441\u0456\u0439, \u0449\u043E \u0437\u0431\u0435\u0440\u0456\u0433\u0430\u044E\u0442\u044C\u0441\u044F \u0434\u043B\u044F \u0444\u0430\u0439\u043B\u0443. \u0421\u043F\u043E\u0447\u0430\u0442\u043A\u0443 \u0432\u0438\u0434\u0430\u043B\u044F\u044E\u0442\u044C\u0441\u044F \u043D\u0430\u0439\u0441\u0442\u0430\u0440\u0456\u0448\u0456. \u0412\u0441\u0442\u0430\u043D\u043E\u0432\u0456\u0442\u044C 0, \u0449\u043E\u0431 \u0432\u0438\u043C\u043A\u043D\u0443\u0442\u0438.",
+  "setting.show-heading": "\u041F\u043E\u043A\u0430\u0437\u0443\u0432\u0430\u0442\u0438 \u0456\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440 \u0434\u043B\u044F",
+  "setting.show.desc": '\u0406\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u0438 \u0440\u044F\u0434\u043A\u0456\u0432 \u043F\u043E\u043A\u0430\u0437\u0443\u044E\u0442\u044C\u0441\u044F \u043B\u0438\u0448\u0435 \u0432 \u0440\u0435\u0436\u0438\u043C\u0430\u0445 \u0440\u0435\u0434\u0430\u0433\u0443\u0432\u0430\u043D\u043D\u044F (\u0432\u0438\u0445\u0456\u0434\u043D\u0438\u0439 \u043A\u043E\u0434 \u0456 \u0436\u0438\u0432\u0438\u0439 \u043F\u0435\u0440\u0435\u0433\u043B\u044F\u0434). \u0423 \u0440\u0435\u0436\u0438\u043C\u0456 \u0447\u0438\u0442\u0430\u043D\u043D\u044F \u0432\u0431\u0443\u0434\u043E\u0432\u0430\u043D\u0438\u0445 \u0456\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u0456\u0432 \u043D\u0435\u043C\u0430\u0454, \u0430\u043B\u0435 \u0456\u0441\u0442\u043E\u0440\u0456\u044F \u0437\u043C\u0456\u043D \u0443\u0441\u0435 \u043E\u0434\u043D\u043E \u0434\u043E\u0441\u0442\u0443\u043F\u043D\u0430: \u0432\u0438\u043A\u043E\u043D\u0430\u0439\u0442\u0435 \u043A\u043E\u043C\u0430\u043D\u0434\u0443 "\u041F\u043E\u043A\u0430\u0437\u0430\u0442\u0438 \u0432\u0441\u0456 \u0437\u043C\u0456\u043D\u0438 \u043F\u043E\u0442\u043E\u0447\u043D\u043E\u0433\u043E \u0434\u043E\u043A\u0443\u043C\u0435\u043D\u0442\u0430" \u0430\u0431\u043E \u0441\u043A\u043E\u0440\u0438\u0441\u0442\u0430\u0439\u0442\u0435\u0441\u044F \u043A\u043E\u043D\u0442\u0435\u043A\u0441\u0442\u043D\u0438\u043C \u043C\u0435\u043D\u044E \u0444\u0430\u0439\u043B\u0443 \u0432 \u043F\u0440\u043E\u0432\u0456\u0434\u043D\u0438\u043A\u0443 \u0444\u0430\u0439\u043B\u0456\u0432.',
+  "setting.show.changed": "\u0417\u043C\u0456\u043D\u0435\u043D\u0456",
+  "setting.show.restored": "\u0412\u0456\u0434\u043D\u043E\u0432\u043B\u0435\u043D\u0456",
+  "setting.show.added": "\u0414\u043E\u0434\u0430\u043D\u0456",
+  "setting.show.removed": "\u0412\u0438\u0434\u0430\u043B\u0435\u043D\u0456",
+  "setting.line-heading": "\u041B\u0456\u043D\u0456\u0439\u043D\u0438\u0439 \u0456\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440",
+  "setting.line-width.name": "\u0428\u0438\u0440\u0438\u043D\u0430",
+  "setting.line-width.desc": "\u0428\u0438\u0440\u0438\u043D\u0430 \u0432\u0435\u0440\u0442\u0438\u043A\u0430\u043B\u044C\u043D\u043E\u0433\u043E \u043B\u0456\u043D\u0456\u0439\u043D\u043E\u0433\u043E \u0456\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u0430 (\u0443 \u043F\u0456\u043A\u0441\u0435\u043B\u044F\u0445).",
+  "setting.gutter-heading.name": "\u0406\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440 \u043D\u0430 \u043F\u043E\u043B\u044F\u0445",
+  "setting.gutter-heading.prefix": "\u0421\u0438\u043C\u0432\u043E\u043B\u0438 \u0456\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u0430 \u0442\u0438\u043F\u0443 \u043D\u0430 \u043F\u043E\u043B\u044F\u0445 (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "\u0421\u0438\u043C\u0432\u043E\u043B \u0437\u043C\u0456\u043D\u0438",
+  "setting.gutter-added.name": "\u0421\u0438\u043C\u0432\u043E\u043B \u0434\u043E\u0434\u0430\u0432\u0430\u043D\u043D\u044F",
+  "setting.gutter-restored.name": "\u0421\u0438\u043C\u0432\u043E\u043B \u0432\u0456\u0434\u043D\u043E\u0432\u043B\u0435\u043D\u043D\u044F",
+  "setting.gutter-removed.name": "\u0421\u0438\u043C\u0432\u043E\u043B \u0432\u0438\u0434\u0430\u043B\u0435\u043D\u043D\u044F",
+  "modal.title": "\u0406\u0441\u0442\u043E\u0440\u0456\u044F",
+  "modal.no-changes": "\u041D\u0435\u043C\u0430\u0454 \u0437\u043C\u0456\u043D",
+  "modal.identical-to-current": "\u0406\u0434\u0435\u043D\u0442\u0438\u0447\u043D\u043E \u043F\u043E\u0442\u043E\u0447\u043D\u043E\u043C\u0443",
+  "modal.restore-original": "\u0412\u0456\u0434\u043D\u043E\u0432\u0438\u0442\u0438 \u043E\u0440\u0438\u0433\u0456\u043D\u0430\u043B",
+  "modal.remove-history": "\u0412\u0438\u0434\u0430\u043B\u0438\u0442\u0438 \u0456\u0441\u0442\u043E\u0440\u0456\u044E \u0444\u0430\u0439\u043B\u0443",
+  "modal.previous-difference": "\u041F\u043E\u043F\u0435\u0440\u0435\u0434\u043D\u044F \u0432\u0456\u0434\u043C\u0456\u043D\u043D\u0456\u0441\u0442\u044C",
+  "modal.next-difference": "\u041D\u0430\u0441\u0442\u0443\u043F\u043D\u0430 \u0432\u0456\u0434\u043C\u0456\u043D\u043D\u0456\u0441\u0442\u044C",
+  "modal.mode.patch": "\u041F\u043E\u043A\u0430\u0437\u0430\u0442\u0438 \u043F\u0430\u0442\u0447",
+  "modal.mode.inline": "\u0412\u0431\u0443\u0434\u043E\u0432\u0430\u043D\u0438\u0439",
+  "modal.mode.line-by-line": "\u0420\u044F\u0434\u043E\u043A \u0437\u0430 \u0440\u044F\u0434\u043A\u043E\u043C",
+  "modal.mode.side-by-side": "\u041F\u043E\u0440\u0443\u0447",
+  "modal.confirm.cancel": "\u0421\u043A\u0430\u0441\u0443\u0432\u0430\u0442\u0438",
+  "modal.confirm.restore.title": "\u0412\u0456\u0434\u043D\u043E\u0432\u0438\u0442\u0438 \u043F\u043E\u0447\u0430\u0442\u043A\u043E\u0432\u0438\u0439 \u0444\u0430\u0439\u043B",
+  "modal.confirm.restore.message": "\u0412\u0438 \u0432\u043F\u0435\u0432\u043D\u0435\u043D\u0456, \u0449\u043E \u0445\u043E\u0447\u0435\u0442\u0435 \u0432\u0456\u0434\u043D\u043E\u0432\u0438\u0442\u0438 \u0446\u0435\u0439 \u0444\u0430\u0439\u043B \u0434\u043E \u043F\u043E\u0447\u0430\u0442\u043A\u043E\u0432\u043E\u0433\u043E \u0441\u0442\u0430\u043D\u0443? \u0423\u0441\u0456 \u043F\u043E\u0442\u043E\u0447\u043D\u0456 \u0437\u043C\u0456\u043D\u0438 \u0431\u0443\u0434\u0435 \u0432\u0442\u0440\u0430\u0447\u0435\u043D\u043E, \u0430 \u0456\u0441\u0442\u043E\u0440\u0456\u044E \u0432\u0456\u0434\u0441\u0442\u0435\u0436\u0435\u043D\u043D\u044F \u0437\u043C\u0456\u043D \u0431\u0443\u0434\u0435 \u0441\u043A\u0438\u043D\u0443\u0442\u043E. \u0426\u044E \u0434\u0456\u044E \u043D\u0435 \u043C\u043E\u0436\u043D\u0430 \u0441\u043A\u0430\u0441\u0443\u0432\u0430\u0442\u0438.",
+  "modal.confirm.restore.button": "\u0412\u0456\u0434\u043D\u043E\u0432\u0438\u0442\u0438 \u0444\u0430\u0439\u043B",
+  "modal.confirm.remove.title": "\u0412\u0438\u0434\u0430\u043B\u0438\u0442\u0438 \u0456\u0441\u0442\u043E\u0440\u0456\u044E \u0444\u0430\u0439\u043B\u0443",
+  "modal.confirm.remove.message": "\u0412\u0438 \u0432\u043F\u0435\u0432\u043D\u0435\u043D\u0456, \u0449\u043E \u0445\u043E\u0447\u0435\u0442\u0435 \u0432\u0438\u0434\u0430\u043B\u0438\u0442\u0438 \u0456\u0441\u0442\u043E\u0440\u0456\u044E \u0432\u0456\u0434\u0441\u0442\u0435\u0436\u0435\u043D\u043D\u044F \u0437\u043C\u0456\u043D \u0434\u043B\u044F \u0446\u044C\u043E\u0433\u043E \u0444\u0430\u0439\u043B\u0443? \u0426\u044E \u0434\u0456\u044E \u043D\u0435 \u043C\u043E\u0436\u043D\u0430 \u0441\u043A\u0430\u0441\u0443\u0432\u0430\u0442\u0438.",
+  "modal.confirm.remove.button": "\u0412\u0438\u0434\u0430\u043B\u0438\u0442\u0438 \u0456\u0441\u0442\u043E\u0440\u0456\u044E",
+  "modal.confirm.revert.title": "\u0412\u0456\u0434\u043A\u043E\u0442\u0438\u0442\u0438 \u0446\u044E \u0437\u043C\u0456\u043D\u0443",
+  "modal.confirm.revert.message": "\u0412\u0456\u0434\u043A\u043E\u0442\u0438\u0442\u0438 \u0446\u044E \u0437\u043C\u0456\u043D\u0443 \u0434\u043E \u0432\u0438\u0431\u0440\u0430\u043D\u043E\u0457 \u0431\u0430\u0437\u0438? \u0406\u043D\u0448\u0456 \u0437\u043C\u0456\u043D\u0438 \u0431\u0443\u0434\u0435 \u0437\u0431\u0435\u0440\u0435\u0436\u0435\u043D\u043E.",
+  "modal.confirm.revert.button": "\u0412\u0456\u0434\u043A\u043E\u0442\u0438\u0442\u0438",
+  "modal.search-versions": "\u041F\u043E\u0448\u0443\u043A \u0432\u0435\u0440\u0441\u0456\u0439",
+  "modal.version.baseline": "\u041F\u043E\u0442\u043E\u0447\u043D\u0430",
+  "modal.version.numbered": "\u0412\u0435\u0440\u0441\u0456\u044F {number}",
+  "modal.version.current": "\u041F\u043E\u0442\u043E\u0447\u043D\u0430",
+  "modal.version.original": "\u041E\u0440\u0438\u0433\u0456\u043D\u0430\u043B",
+  "modal.no-versions-match": "\u041D\u0435\u043C\u0430\u0454 \u0432\u0435\u0440\u0441\u0456\u0439, \u0449\u043E \u0432\u0456\u0434\u043F\u043E\u0432\u0456\u0434\u0430\u044E\u0442\u044C \u043F\u043E\u0448\u0443\u043A\u0443",
+  "modal.no-snapshots-yet": "\u041F\u0440\u043E\u043C\u0456\u0436\u043D\u0438\u0445 \u0437\u043D\u0456\u043C\u043A\u0456\u0432 \u043F\u043E\u043A\u0438 \u043D\u0435\u043C\u0430\u0454",
+  "modal.revert-hunk": "\u0412\u0456\u0434\u043A\u043E\u0442\u0438\u0442\u0438 \u0446\u044E \u0437\u043C\u0456\u043D\u0443",
+  "modal.copy": "\u041A\u043E\u043F\u0456\u044E\u0432\u0430\u0442\u0438"
+};
+
+// lang/uz.json
+var uz_default = {
+  "command.go-to-next-change": "Keyingi o\u02BBzgarishga o\u02BBtish",
+  "command.go-to-previous-change": "Oldingi o\u02BBzgarishga o\u02BBtish",
+  "command.reset-lines-all": "Barcha qatorlar kuzatuvchisi suratlarini tiklash",
+  "command.reset-lines": "Joriy hujjatning qatorlar kuzatuvchisi suratini tiklash",
+  "command.show-diff": "Joriy hujjatning barcha o\u02BBzgarishlarini ko\u02BBrsatish",
+  "notice.no-changes-to-navigate": "Harakatlanish uchun o\u02BBzgarishlar yo\u02BBq",
+  "notice.all-snapshots-deleted": "Barcha surat ma\u02BClumotlari o\u02BBchirildi",
+  "notice.current-snapshot-deleted": "Joriy surat ma\u02BClumotlari o\u02BBchirildi",
+  "notice.file-restored": "Fayl asl holatiga tiklandi",
+  "notice.file-restore-failed": "Faylni asl holatiga tiklab bo\u02BBlmadi",
+  "notice.copied": "Nusxalandi!",
+  "notice.no-saved-history": "Bu fayl uchun saqlangan tarix yo\u02BBq.",
+  "notice.invalid-exclude-pattern": "Mahalliy tarix: istisno qilinadigan yo\u02BBllar shabloni yaroqli muntazam ifoda emas va e\u02BCtiborga olinmaydi.",
+  "menu.local-history": "Mahalliy tarix",
+  "menu.show-changes": "O\u02BBzgarishlarni ko\u02BBrsatish",
+  "status.lines-changed": "{count} qator o\u02BBzgardi",
+  "setting.type.name": "Turi",
+  "setting.type.desc": "Hoshiyada vertikal chiziq yoki nuqta orasidan tanlang.",
+  "setting.type.option.line": "Vertikal chiziq",
+  "setting.type.option.dot": "Hoshiyadagi belgi",
+  "setting.allowed-extensions.name": "Ruxsat etilgan fayl kengaytmalari",
+  "setting.allowed-extensions.desc": "O\u02BBzgarishlari kuzatiladigan fayl kengaytmalarining vergul bilan ajratilgan ro\u02BByxati (masalan, md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "Istisno qilingan yo\u02BBllar",
+  "setting.exclude-paths.desc": "Ombor (vault) ga nisbatan yo\u02BBlga moslashtiriladigan, katta-kichik harfga sezgir bo\u02BBlmagan muntazam ifoda. Yo\u02BBli mos kelgan har qanday fayl hech qachon kuzatilmaydi (masalan, \\.excalidraw\\.md$ yoki (^|/)Templates/). Standart sozlama Templates papkalari va Excalidraw chizmalarini istisno qiladi. Hammasini kuzatish uchun bo\u02BBsh qoldiring.",
+  "setting.keep.name": "Tarixni saqlash muddati",
+  "setting.keep.desc": "Tahrirlar tarixini tozalash strategiyasi",
+  "setting.keep.option.app": "Ilova yopilgunicha",
+  "setting.keep.option.file": "Fayl yopilgunicha",
+  "setting.ignore-new-files.name": "Yangi fayllarni e\u02BCtiborsiz qoldirish",
+  "setting.ignore-new-files.desc": "Kuzatuv boshlangach yaratilgan fayllardagi o\u02BBzgarishlarni kuzatmaslik",
+  "setting.persist.name": "Tarixni qayta ishga tushirishlar orasida saqlash",
+  "setting.persist.desc": 'Belgilashlar qayta ishga tushirishdan keyin ham saqlanishi uchun tarixni diskka saqlang. "Tarixni saqlash muddati" sozlamasini ilova yopilgunicha qilib qo\u02BByishni talab qiladi.',
+  "setting.max-entries.name": "Saqlanadigan maksimal fayllar",
+  "setting.max-entries.desc": "Diskda saqlanadigan fayl tarixlari soni chegarasi. Eng eskilari birinchi bo\u02BBlib o\u02BBchiriladi. O\u02BBchirish uchun 0 ga sozlang.",
+  "setting.max-age-days.name": "Tarixning maksimal yoshi (kun)",
+  "setting.max-age-days.desc": "Shu kunlar sonidan eski saqlangan tarixni o\u02BBchiring. O\u02BBchirish uchun 0 ga sozlang.",
+  "setting.snapshots-heading": "Vaqt jadvali suratlari",
+  "setting.snapshots-enabled.name": "Oraliq versiyalarni saqlash",
+  "setting.snapshots-enabled.desc": "Faqat asl nusxa bilan emas, oraliqdagi nuqta bilan ham solishtira olishingiz uchun avvalgi versiyalarning vaqt jadvalini saqlang.",
+  "setting.snapshots-edit-threshold.name": "Har (tahrir)da saqlash",
+  "setting.snapshots-edit-threshold.desc": "Shuncha tahrirdan keyin versiya oling. Tahrir triggerini o\u02BBchirish uchun 0 ga sozlang.",
+  "setting.snapshots-interval.name": "Har (daqiqa)da saqlash",
+  "setting.snapshots-interval.desc": "Shuncha daqiqa tahrirdan keyin versiya oling. Vaqt triggerini o\u02BBchirish uchun 0 ga sozlang.",
+  "setting.max-version-age-days.name": "Versiyaning maksimal yoshi (kun)",
+  "setting.max-version-age-days.desc": "Shu kunlar sonidan eski oraliq versiyalarni o\u02BBchiring (asosiy chegara). O\u02BBchirish uchun 0 ga sozlang.",
+  "setting.max-versions.name": "Har fayl uchun maksimal versiyalar",
+  "setting.max-versions.desc": "Har fayl uchun saqlanadigan oraliq versiyalar uchun xavfsizlik chegarasi. Eng eskilari birinchi bo\u02BBlib o\u02BBchiriladi. O\u02BBchirish uchun 0 ga sozlang.",
+  "setting.show-heading": "Indikatorni ko\u02BBrsatish",
+  "setting.show.desc": 'Qator indikatorlari faqat tahrirlash (manba va jonli ko\u02BBrish) rejimlarida ko\u02BBrsatiladi. O\u02BBqish rejimida ichki indikatorlar bo\u02BBlmaydi, lekin o\u02BBzgarishlar tarixi baribir mavjud: "Joriy hujjatning barcha o\u02BBzgarishlarini ko\u02BBrsatish" buyrug\u02BBini ishga tushiring yoki fayl tadqiqotchisida fayl kontekst menyusidan foydalaning.',
+  "setting.show.changed": "O\u02BBzgartirilgan",
+  "setting.show.restored": "Tiklangan",
+  "setting.show.added": "Qo\u02BBshilgan",
+  "setting.show.removed": "Olib tashlangan",
+  "setting.line-heading": "Qator indikatori",
+  "setting.line-width.name": "Kengligi",
+  "setting.line-width.desc": "Vertikal chiziq indikatorining kengligi (piksellarda).",
+  "setting.gutter-heading.name": "Hoshiya indikatori",
+  "setting.gutter-heading.prefix": "Hoshiya tur indikatorining belgilari (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "O\u02BBzgartirish belgisi",
+  "setting.gutter-added.name": "Qo\u02BBshish belgisi",
+  "setting.gutter-restored.name": "Tiklash belgisi",
+  "setting.gutter-removed.name": "Olib tashlash belgisi",
+  "modal.title": "Tarix",
+  "modal.no-changes": "O\u02BBzgarishlar yo\u02BBq",
+  "modal.identical-to-current": "Joriy nusxaga bir xil",
+  "modal.restore-original": "Asl nusxani tiklash",
+  "modal.remove-history": "Fayl tarixini olib tashlash",
+  "modal.previous-difference": "Oldingi farq",
+  "modal.next-difference": "Keyingi farq",
+  "modal.mode.patch": "Yamoqni ko\u02BBrsatish",
+  "modal.mode.inline": "Ichki",
+  "modal.mode.line-by-line": "Qatorma-qator",
+  "modal.mode.side-by-side": "Yonma-yon",
+  "modal.confirm.cancel": "Bekor qilish",
+  "modal.confirm.restore.title": "Asl faylni tiklash",
+  "modal.confirm.restore.message": "Bu faylni asl holatiga tiklamoqchimisiz? Barcha joriy o\u02BBzgarishlar yo\u02BBqoladi va o\u02BBzgarishlarni kuzatish tarixi tiklanadi. Bu amalni ortga qaytarib bo\u02BBlmaydi.",
+  "modal.confirm.restore.button": "Faylni tiklash",
+  "modal.confirm.remove.title": "Fayl tarixini olib tashlash",
+  "modal.confirm.remove.message": "Bu fayl uchun o\u02BBzgarishlarni kuzatish tarixini olib tashlamoqchimisiz? Bu amalni ortga qaytarib bo\u02BBlmaydi.",
+  "modal.confirm.remove.button": "Tarixni olib tashlash",
+  "modal.confirm.revert.title": "Bu o\u02BBzgarishni qaytarish",
+  "modal.confirm.revert.message": "Bu o\u02BBzgarishni tanlangan asosga qaytarilsinmi? Boshqa o\u02BBzgarishlar saqlanadi.",
+  "modal.confirm.revert.button": "Qaytarish",
+  "modal.search-versions": "Versiyalarni qidirish",
+  "modal.version.baseline": "Joriy",
+  "modal.version.numbered": "Versiya {number}",
+  "modal.version.current": "Joriy",
+  "modal.version.original": "Asl",
+  "modal.no-versions-match": "Qidiruvga mos versiyalar yo\u02BBq",
+  "modal.no-snapshots-yet": "Hali oraliq suratlar yo\u02BBq",
+  "modal.revert-hunk": "Bu o\u02BBzgarishni qaytarish",
+  "modal.copy": "Nusxalash"
+};
+
+// lang/vi.json
+var vi_default = {
+  "command.go-to-next-change": "\u0110i t\u1EDBi thay \u0111\u1ED5i ti\u1EBFp theo",
+  "command.go-to-previous-change": "\u0110i t\u1EDBi thay \u0111\u1ED5i tr\u01B0\u1EDBc \u0111\xF3",
+  "command.reset-lines-all": "\u0110\u1EB7t l\u1EA1i t\u1EA5t c\u1EA3 \u1EA3nh ch\u1EE5p c\u1EE7a tr\xECnh theo d\xF5i d\xF2ng",
+  "command.reset-lines": "\u0110\u1EB7t l\u1EA1i \u1EA3nh ch\u1EE5p c\u1EE7a tr\xECnh theo d\xF5i d\xF2ng cho t\xE0i li\u1EC7u hi\u1EC7n t\u1EA1i",
+  "command.show-diff": "Hi\u1EC3n th\u1ECB t\u1EA5t c\u1EA3 thay \u0111\u1ED5i c\u1EE7a t\xE0i li\u1EC7u hi\u1EC7n t\u1EA1i",
+  "notice.no-changes-to-navigate": "Kh\xF4ng c\xF3 thay \u0111\u1ED5i n\xE0o \u0111\u1EC3 di chuy\u1EC3n t\u1EDBi",
+  "notice.all-snapshots-deleted": "\u0110\xE3 x\xF3a to\xE0n b\u1ED9 d\u1EEF li\u1EC7u \u1EA3nh ch\u1EE5p",
+  "notice.current-snapshot-deleted": "\u0110\xE3 x\xF3a d\u1EEF li\u1EC7u \u1EA3nh ch\u1EE5p hi\u1EC7n t\u1EA1i",
+  "notice.file-restored": "\u0110\xE3 kh\xF4i ph\u1EE5c t\u1EC7p v\u1EC1 tr\u1EA1ng th\xE1i ban \u0111\u1EA7u",
+  "notice.file-restore-failed": "Kh\xF4ng th\u1EC3 kh\xF4i ph\u1EE5c t\u1EC7p v\u1EC1 tr\u1EA1ng th\xE1i ban \u0111\u1EA7u",
+  "notice.copied": "\u0110\xE3 sao ch\xE9p!",
+  "notice.no-saved-history": "Kh\xF4ng c\xF3 l\u1ECBch s\u1EED n\xE0o \u0111\u01B0\u1EE3c l\u01B0u cho t\u1EC7p n\xE0y.",
+  "notice.invalid-exclude-pattern": "L\u1ECBch s\u1EED c\u1EE5c b\u1ED9: m\u1EABu \u0111\u01B0\u1EDDng d\u1EABn lo\u1EA1i tr\u1EEB kh\xF4ng ph\u1EA3i l\xE0 bi\u1EC3u th\u1EE9c ch\xEDnh quy h\u1EE3p l\u1EC7 n\xEAn b\u1ECB b\u1ECF qua.",
+  "menu.local-history": "L\u1ECBch s\u1EED c\u1EE5c b\u1ED9",
+  "menu.show-changes": "Hi\u1EC3n th\u1ECB thay \u0111\u1ED5i",
+  "status.lines-changed": "{count} d\xF2ng \u0111\xE3 thay \u0111\u1ED5i",
+  "setting.type.name": "Ki\u1EC3u",
+  "setting.type.desc": "Ch\u1ECDn gi\u1EEFa \u0111\u01B0\u1EDDng k\u1EBB d\u1ECDc ho\u1EB7c d\u1EA5u ch\u1EA5m \u1EDF l\u1EC1.",
+  "setting.type.option.line": "\u0110\u01B0\u1EDDng k\u1EBB d\u1ECDc",
+  "setting.type.option.dot": "K\xFD t\u1EF1 \u1EDF l\u1EC1",
+  "setting.allowed-extensions.name": "Ph\u1EA7n m\u1EDF r\u1ED9ng t\u1EC7p \u0111\u01B0\u1EE3c ph\xE9p",
+  "setting.allowed-extensions.desc": "Danh s\xE1ch c\xE1c ph\u1EA7n m\u1EDF r\u1ED9ng t\u1EC7p c\u1EA7n theo d\xF5i thay \u0111\u1ED5i, ph\xE2n t\xE1ch b\u1EB1ng d\u1EA5u ph\u1EA9y (v\xED d\u1EE5: md, txt, csv, json, yaml)",
+  "setting.exclude-paths.name": "\u0110\u01B0\u1EDDng d\u1EABn lo\u1EA1i tr\u1EEB",
+  "setting.exclude-paths.desc": "M\u1ED9t bi\u1EC3u th\u1EE9c ch\xEDnh quy kh\xF4ng ph\xE2n bi\u1EC7t ch\u1EEF hoa ch\u1EEF th\u01B0\u1EDDng, \u0111\u01B0\u1EE3c so kh\u1EDBp v\u1EDBi \u0111\u01B0\u1EDDng d\u1EABn t\u01B0\u01A1ng \u0111\u1ED1i so v\u1EDBi kho l\u01B0u tr\u1EEF. M\u1ECDi t\u1EC7p c\xF3 \u0111\u01B0\u1EDDng d\u1EABn kh\u1EDBp s\u1EBD kh\xF4ng bao gi\u1EDD \u0111\u01B0\u1EE3c theo d\xF5i (v\xED d\u1EE5: \\.excalidraw\\.md$ ho\u1EB7c (^|/)Templates/). M\u1EB7c \u0111\u1ECBnh lo\u1EA1i tr\u1EEB c\xE1c th\u01B0 m\u1EE5c Templates v\xE0 b\u1EA3n v\u1EBD Excalidraw. \u0110\u1EC3 tr\u1ED1ng \u0111\u1EC3 theo d\xF5i m\u1ECDi th\u1EE9.",
+  "setting.keep.name": "Gi\u1EEF l\u1ECBch s\u1EED cho \u0111\u1EBFn khi",
+  "setting.keep.desc": "Chi\u1EBFn l\u01B0\u1EE3c d\u1ECDn d\u1EB9p l\u1ECBch s\u1EED ch\u1EC9nh s\u1EEDa",
+  "setting.keep.option.app": "\u0110\xF3ng \u1EE9ng d\u1EE5ng",
+  "setting.keep.option.file": "\u0110\xF3ng t\u1EC7p",
+  "setting.ignore-new-files.name": "B\u1ECF qua t\u1EC7p m\u1EDBi",
+  "setting.ignore-new-files.desc": "Kh\xF4ng theo d\xF5i thay \u0111\u1ED5i trong c\xE1c t\u1EC7p \u0111\u01B0\u1EE3c t\u1EA1o sau khi b\u1EAFt \u0111\u1EA7u theo d\xF5i",
+  "setting.persist.name": "Gi\u1EEF l\u1ECBch s\u1EED qua c\xE1c l\u1EA7n kh\u1EDFi \u0111\u1ED9ng l\u1EA1i",
+  "setting.persist.desc": 'L\u01B0u l\u1ECBch s\u1EED v\xE0o \u0111\u0129a \u0111\u1EC3 c\xE1c \u0111i\u1EC3m \u0111\xE1nh d\u1EA5u v\u1EABn c\xF2n sau khi kh\u1EDFi \u0111\u1ED9ng l\u1EA1i. Y\xEAu c\u1EA7u "Gi\u1EEF l\u1ECBch s\u1EED cho \u0111\u1EBFn khi" \u0111\u01B0\u1EE3c \u0111\u1EB7t th\xE0nh \u0111\xF3ng \u1EE9ng d\u1EE5ng.',
+  "setting.max-entries.name": "S\u1ED1 t\u1EC7p l\u01B0u tr\u1EEF t\u1ED1i \u0111a",
+  "setting.max-entries.desc": "Gi\u1EDBi h\u1EA1n s\u1ED1 l\u01B0\u1EE3ng l\u1ECBch s\u1EED t\u1EC7p \u0111\u01B0\u1EE3c gi\u1EEF tr\xEAn \u0111\u0129a. T\u1EC7p c\u0169 nh\u1EA5t b\u1ECB lo\u1EA1i b\u1ECF tr\u01B0\u1EDBc. \u0110\u1EB7t th\xE0nh 0 \u0111\u1EC3 t\u1EAFt.",
+  "setting.max-age-days.name": "Tu\u1ED5i l\u1ECBch s\u1EED t\u1ED1i \u0111a (ng\xE0y)",
+  "setting.max-age-days.desc": "Lo\u1EA1i b\u1ECF l\u1ECBch s\u1EED \u0111\xE3 l\u01B0u c\u0169 h\u01A1n s\u1ED1 ng\xE0y n\xE0y. \u0110\u1EB7t th\xE0nh 0 \u0111\u1EC3 t\u1EAFt.",
+  "setting.snapshots-heading": "\u1EA2nh ch\u1EE5p d\xF2ng th\u1EDDi gian",
+  "setting.snapshots-enabled.name": "Ghi l\u1EA1i c\xE1c phi\xEAn b\u1EA3n trung gian",
+  "setting.snapshots-enabled.desc": "Gi\u1EEF m\u1ED9t d\xF2ng th\u1EDDi gian g\u1ED3m c\xE1c phi\xEAn b\u1EA3n tr\u01B0\u1EDBc \u0111\xF3 \u0111\u1EC3 b\u1EA1n c\xF3 th\u1EC3 so s\xE1nh v\u1EDBi m\u1ED9t th\u1EDDi \u0111i\u1EC3m \u1EDF gi\u1EEFa, kh\xF4ng ch\u1EC9 v\u1EDBi b\u1EA3n g\u1ED1c.",
+  "setting.snapshots-edit-threshold.name": "Ghi l\u1EA1i sau m\u1ED7i (l\u1EA7n ch\u1EC9nh s\u1EEDa)",
+  "setting.snapshots-edit-threshold.desc": "Ghi l\u1EA1i m\u1ED9t phi\xEAn b\u1EA3n sau s\u1ED1 l\u1EA7n ch\u1EC9nh s\u1EEDa n\xE0y. \u0110\u1EB7t th\xE0nh 0 \u0111\u1EC3 t\u1EAFt k\xEDch ho\u1EA1t theo s\u1ED1 l\u1EA7n ch\u1EC9nh s\u1EEDa.",
+  "setting.snapshots-interval.name": "Ghi l\u1EA1i sau m\u1ED7i (ph\xFAt)",
+  "setting.snapshots-interval.desc": "Ghi l\u1EA1i m\u1ED9t phi\xEAn b\u1EA3n sau s\u1ED1 ph\xFAt ch\u1EC9nh s\u1EEDa n\xE0y. \u0110\u1EB7t th\xE0nh 0 \u0111\u1EC3 t\u1EAFt k\xEDch ho\u1EA1t theo th\u1EDDi gian.",
+  "setting.max-version-age-days.name": "Tu\u1ED5i phi\xEAn b\u1EA3n t\u1ED1i \u0111a (ng\xE0y)",
+  "setting.max-version-age-days.desc": "Lo\u1EA1i b\u1ECF c\xE1c phi\xEAn b\u1EA3n trung gian c\u0169 h\u01A1n s\u1ED1 ng\xE0y n\xE0y (gi\u1EDBi h\u1EA1n ch\xEDnh). \u0110\u1EB7t th\xE0nh 0 \u0111\u1EC3 t\u1EAFt.",
+  "setting.max-versions.name": "S\u1ED1 phi\xEAn b\u1EA3n t\u1ED1i \u0111a m\u1ED7i t\u1EC7p",
+  "setting.max-versions.desc": "Gi\u1EDBi h\u1EA1n an to\xE0n cho s\u1ED1 phi\xEAn b\u1EA3n trung gian \u0111\u01B0\u1EE3c gi\u1EEF cho m\u1ED7i t\u1EC7p. Phi\xEAn b\u1EA3n c\u0169 nh\u1EA5t b\u1ECB lo\u1EA1i b\u1ECF tr\u01B0\u1EDBc. \u0110\u1EB7t th\xE0nh 0 \u0111\u1EC3 t\u1EAFt.",
+  "setting.show-heading": "Hi\u1EC3n th\u1ECB ch\u1EC9 b\xE1o cho",
+  "setting.show.desc": 'Ch\u1EC9 b\xE1o d\xF2ng ch\u1EC9 hi\u1EC3n th\u1ECB \u1EDF ch\u1EBF \u0111\u1ED9 ch\u1EC9nh s\u1EEDa (m\xE3 ngu\u1ED3n v\xE0 xem tr\u1EF1c ti\u1EBFp). \u1EDE ch\u1EBF \u0111\u1ED9 \u0111\u1ECDc kh\xF4ng c\xF3 ch\u1EC9 b\xE1o n\u1ED9i tuy\u1EBFn, nh\u01B0ng v\u1EABn c\xF3 th\u1EC3 truy c\u1EADp l\u1ECBch s\u1EED thay \u0111\u1ED5i: ch\u1EA1y l\u1EC7nh "Hi\u1EC3n th\u1ECB t\u1EA5t c\u1EA3 thay \u0111\u1ED5i c\u1EE7a t\xE0i li\u1EC7u hi\u1EC7n t\u1EA1i" ho\u1EB7c d\xF9ng menu ng\u1EEF c\u1EA3nh c\u1EE7a t\u1EC7p trong tr\xECnh qu\u1EA3n l\xFD t\u1EC7p.',
+  "setting.show.changed": "\u0110\xE3 thay \u0111\u1ED5i",
+  "setting.show.restored": "\u0110\xE3 kh\xF4i ph\u1EE5c",
+  "setting.show.added": "\u0110\xE3 th\xEAm",
+  "setting.show.removed": "\u0110\xE3 x\xF3a",
+  "setting.line-heading": "Ch\u1EC9 b\xE1o d\xF2ng",
+  "setting.line-width.name": "\u0110\u1ED9 r\u1ED9ng",
+  "setting.line-width.desc": "\u0110\u1ED9 r\u1ED9ng c\u1EE7a ch\u1EC9 b\xE1o \u0111\u01B0\u1EDDng k\u1EBB d\u1ECDc (t\xEDnh b\u1EB1ng pixel).",
+  "setting.gutter-heading.name": "Ch\u1EC9 b\xE1o \u1EDF l\u1EC1",
+  "setting.gutter-heading.prefix": "K\xFD t\u1EF1 c\u1EE7a ch\u1EC9 b\xE1o ki\u1EC3u \u1EDF l\u1EC1 (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "K\xFD t\u1EF1 thay \u0111\u1ED5i",
+  "setting.gutter-added.name": "K\xFD t\u1EF1 \u0111\xE3 th\xEAm",
+  "setting.gutter-restored.name": "K\xFD t\u1EF1 kh\xF4i ph\u1EE5c",
+  "setting.gutter-removed.name": "K\xFD t\u1EF1 \u0111\xE3 x\xF3a",
+  "modal.title": "L\u1ECBch s\u1EED",
+  "modal.no-changes": "Kh\xF4ng c\xF3 thay \u0111\u1ED5i",
+  "modal.identical-to-current": "Gi\u1ED1ng v\u1EDBi b\u1EA3n hi\u1EC7n t\u1EA1i",
+  "modal.restore-original": "Kh\xF4i ph\u1EE5c b\u1EA3n g\u1ED1c",
+  "modal.remove-history": "X\xF3a l\u1ECBch s\u1EED t\u1EC7p",
+  "modal.previous-difference": "Kh\xE1c bi\u1EC7t tr\u01B0\u1EDBc \u0111\xF3",
+  "modal.next-difference": "Kh\xE1c bi\u1EC7t ti\u1EBFp theo",
+  "modal.mode.patch": "Hi\u1EC3n th\u1ECB b\u1EA3n v\xE1",
+  "modal.mode.inline": "N\u1ED9i tuy\u1EBFn",
+  "modal.mode.line-by-line": "T\u1EEBng d\xF2ng",
+  "modal.mode.side-by-side": "C\u1EA1nh nhau",
+  "modal.confirm.cancel": "H\u1EE7y",
+  "modal.confirm.restore.title": "Kh\xF4i ph\u1EE5c t\u1EC7p g\u1ED1c",
+  "modal.confirm.restore.message": "B\u1EA1n c\xF3 ch\u1EAFc mu\u1ED1n kh\xF4i ph\u1EE5c t\u1EC7p n\xE0y v\u1EC1 tr\u1EA1ng th\xE1i ban \u0111\u1EA7u kh\xF4ng? T\u1EA5t c\u1EA3 thay \u0111\u1ED5i hi\u1EC7n t\u1EA1i s\u1EBD b\u1ECB m\u1EA5t v\xE0 l\u1ECBch s\u1EED theo d\xF5i thay \u0111\u1ED5i s\u1EBD \u0111\u01B0\u1EE3c \u0111\u1EB7t l\u1EA1i. H\xE0nh \u0111\u1ED9ng n\xE0y kh\xF4ng th\u1EC3 ho\xE0n t\xE1c.",
+  "modal.confirm.restore.button": "Kh\xF4i ph\u1EE5c t\u1EC7p",
+  "modal.confirm.remove.title": "X\xF3a l\u1ECBch s\u1EED t\u1EC7p",
+  "modal.confirm.remove.message": "B\u1EA1n c\xF3 ch\u1EAFc mu\u1ED1n x\xF3a l\u1ECBch s\u1EED theo d\xF5i thay \u0111\u1ED5i c\u1EE7a t\u1EC7p n\xE0y kh\xF4ng? H\xE0nh \u0111\u1ED9ng n\xE0y kh\xF4ng th\u1EC3 ho\xE0n t\xE1c.",
+  "modal.confirm.remove.button": "X\xF3a l\u1ECBch s\u1EED",
+  "modal.confirm.revert.title": "Ho\xE0n nguy\xEAn thay \u0111\u1ED5i n\xE0y",
+  "modal.confirm.revert.message": "Ho\xE0n nguy\xEAn thay \u0111\u1ED5i n\xE0y v\u1EC1 b\u1EA3n n\u1EC1n \u0111\xE3 ch\u1ECDn? C\xE1c thay \u0111\u1ED5i kh\xE1c \u0111\u01B0\u1EE3c gi\u1EEF nguy\xEAn.",
+  "modal.confirm.revert.button": "Ho\xE0n nguy\xEAn",
+  "modal.search-versions": "T\xECm ki\u1EBFm phi\xEAn b\u1EA3n",
+  "modal.version.baseline": "Hi\u1EC7n t\u1EA1i",
+  "modal.version.numbered": "Phi\xEAn b\u1EA3n {number}",
+  "modal.version.current": "Hi\u1EC7n t\u1EA1i",
+  "modal.version.original": "B\u1EA3n g\u1ED1c",
+  "modal.no-versions-match": "Kh\xF4ng c\xF3 phi\xEAn b\u1EA3n n\xE0o kh\u1EDBp v\u1EDBi t\xECm ki\u1EBFm",
+  "modal.no-snapshots-yet": "Ch\u01B0a c\xF3 \u1EA3nh ch\u1EE5p trung gian n\xE0o",
+  "modal.revert-hunk": "Ho\xE0n nguy\xEAn thay \u0111\u1ED5i n\xE0y",
+  "modal.copy": "Sao ch\xE9p"
+};
+
+// lang/zh.json
+var zh_default = {
+  "command.go-to-next-change": "\u8DF3\u8F6C\u5230\u4E0B\u4E00\u5904\u66F4\u6539",
+  "command.go-to-previous-change": "\u8DF3\u8F6C\u5230\u4E0A\u4E00\u5904\u66F4\u6539",
+  "command.reset-lines-all": "\u91CD\u7F6E\u6240\u6709\u884C\u8FFD\u8E2A\u5FEB\u7167",
+  "command.reset-lines": "\u91CD\u7F6E\u5F53\u524D\u6587\u6863\u7684\u884C\u8FFD\u8E2A\u5FEB\u7167",
+  "command.show-diff": "\u663E\u793A\u5F53\u524D\u6587\u6863\u7684\u6240\u6709\u66F4\u6539",
+  "notice.no-changes-to-navigate": "\u6CA1\u6709\u53EF\u8DF3\u8F6C\u7684\u66F4\u6539",
+  "notice.all-snapshots-deleted": "\u5DF2\u5220\u9664\u6240\u6709\u5FEB\u7167\u6570\u636E",
+  "notice.current-snapshot-deleted": "\u5DF2\u5220\u9664\u5F53\u524D\u5FEB\u7167\u6570\u636E",
+  "notice.file-restored": "\u6587\u4EF6\u5DF2\u6062\u590D\u5230\u539F\u59CB\u72B6\u6001",
+  "notice.file-restore-failed": "\u65E0\u6CD5\u5C06\u6587\u4EF6\u6062\u590D\u5230\u539F\u59CB\u72B6\u6001",
+  "notice.copied": "\u5DF2\u590D\u5236\uFF01",
+  "notice.no-saved-history": "\u6B64\u6587\u4EF6\u6CA1\u6709\u5DF2\u4FDD\u5B58\u7684\u5386\u53F2\u8BB0\u5F55\u3002",
+  "notice.invalid-exclude-pattern": "\u672C\u5730\u5386\u53F2\uFF1A\u6392\u9664\u8DEF\u5F84\u7684\u6A21\u5F0F\u4E0D\u662F\u6709\u6548\u7684\u6B63\u5219\u8868\u8FBE\u5F0F\uFF0C\u5DF2\u88AB\u5FFD\u7565\u3002",
+  "menu.local-history": "\u672C\u5730\u5386\u53F2",
+  "menu.show-changes": "\u663E\u793A\u66F4\u6539",
+  "status.lines-changed": "\u5DF2\u66F4\u6539 {count} \u884C",
+  "setting.type.name": "\u7C7B\u578B",
+  "setting.type.desc": "\u5728\u8FB9\u680F\u4E2D\u9009\u62E9\u663E\u793A\u7AD6\u7EBF\u8FD8\u662F\u5706\u70B9\u3002",
+  "setting.type.option.line": "\u7AD6\u7EBF",
+  "setting.type.option.dot": "\u8FB9\u680F\u5B57\u7B26",
+  "setting.allowed-extensions.name": "\u5141\u8BB8\u7684\u6587\u4EF6\u6269\u5C55\u540D",
+  "setting.allowed-extensions.desc": "\u7528\u4E8E\u8FFD\u8E2A\u66F4\u6539\u7684\u6587\u4EF6\u6269\u5C55\u540D\u5217\u8868\uFF0C\u4EE5\u9017\u53F7\u5206\u9694\uFF08\u4F8B\u5982 md, txt, csv, json, yaml\uFF09",
+  "setting.exclude-paths.name": "\u6392\u9664\u7684\u8DEF\u5F84",
+  "setting.exclude-paths.desc": "\u4E00\u4E2A\u4E0D\u533A\u5206\u5927\u5C0F\u5199\u7684\u6B63\u5219\u8868\u8FBE\u5F0F\uFF0C\u7528\u4E8E\u5339\u914D\u76F8\u5BF9\u4E8E\u5E93\u7684\u8DEF\u5F84\u3002\u8DEF\u5F84\u5339\u914D\u7684\u4EFB\u4F55\u6587\u4EF6\u90FD\u4E0D\u4F1A\u88AB\u8FFD\u8E2A\uFF08\u4F8B\u5982 \\.excalidraw\\.md$ \u6216 (^|/)Templates/\uFF09\u3002\u9ED8\u8BA4\u6392\u9664 Templates \u6587\u4EF6\u5939\u548C Excalidraw \u7ED8\u56FE\u3002\u7559\u7A7A\u5219\u8FFD\u8E2A\u6240\u6709\u5185\u5BB9\u3002",
+  "setting.keep.name": "\u4FDD\u7559\u5386\u53F2\u8BB0\u5F55\u76F4\u5230",
+  "setting.keep.desc": "\u6E05\u7406\u4FEE\u8BA2\u5386\u53F2\u7684\u7B56\u7565",
+  "setting.keep.option.app": "\u5173\u95ED\u5E94\u7528\u65F6",
+  "setting.keep.option.file": "\u5173\u95ED\u6587\u4EF6\u65F6",
+  "setting.ignore-new-files.name": "\u5FFD\u7565\u65B0\u6587\u4EF6",
+  "setting.ignore-new-files.desc": "\u4E0D\u8FFD\u8E2A\u5728\u5F00\u59CB\u8FFD\u8E2A\u540E\u521B\u5EFA\u7684\u6587\u4EF6\u4E2D\u7684\u66F4\u6539",
+  "setting.persist.name": "\u91CD\u542F\u540E\u4FDD\u7559\u5386\u53F2\u8BB0\u5F55",
+  "setting.persist.desc": "\u5C06\u5386\u53F2\u8BB0\u5F55\u4FDD\u5B58\u5230\u78C1\u76D8\uFF0C\u4F7F\u9AD8\u4EAE\u5728\u91CD\u542F\u540E\u4F9D\u7136\u4FDD\u7559\u3002\u9700\u8981\u5C06\u201C\u4FDD\u7559\u5386\u53F2\u8BB0\u5F55\u76F4\u5230\u201D\u8BBE\u7F6E\u4E3A\u5173\u95ED\u5E94\u7528\u65F6\u3002",
+  "setting.max-entries.name": "\u6700\u591A\u5B58\u50A8\u7684\u6587\u4EF6\u6570",
+  "setting.max-entries.desc": "\u78C1\u76D8\u4E0A\u4FDD\u7559\u7684\u6587\u4EF6\u5386\u53F2\u8BB0\u5F55\u6570\u91CF\u4E0A\u9650\u3002\u6700\u65E7\u7684\u4F1A\u88AB\u4F18\u5148\u6E05\u9664\u3002\u8BBE\u4E3A 0 \u53EF\u7981\u7528\u3002",
+  "setting.max-age-days.name": "\u5386\u53F2\u8BB0\u5F55\u6700\u957F\u4FDD\u7559\u5929\u6570\uFF08\u5929\uFF09",
+  "setting.max-age-days.desc": "\u5220\u9664\u8D85\u8FC7\u6B64\u5929\u6570\u7684\u5DF2\u4FDD\u5B58\u5386\u53F2\u8BB0\u5F55\u3002\u8BBE\u4E3A 0 \u53EF\u7981\u7528\u3002",
+  "setting.snapshots-heading": "\u65F6\u95F4\u7EBF\u5FEB\u7167",
+  "setting.snapshots-enabled.name": "\u6355\u83B7\u4E2D\u95F4\u7248\u672C",
+  "setting.snapshots-enabled.desc": "\u4FDD\u7559\u65E9\u671F\u7248\u672C\u7684\u65F6\u95F4\u7EBF\uFF0C\u8BA9\u4F60\u4E0D\u4EC5\u80FD\u4E0E\u539F\u59CB\u72B6\u6001\u5BF9\u6BD4\uFF0C\u8FD8\u80FD\u4E0E\u4E2D\u95F4\u67D0\u4E2A\u65F6\u70B9\u5BF9\u6BD4\u3002",
+  "setting.snapshots-edit-threshold.name": "\u6355\u83B7\u95F4\u9694\uFF08\u7F16\u8F91\u6B21\u6570\uFF09",
+  "setting.snapshots-edit-threshold.desc": "\u6BCF\u7F16\u8F91\u8FD9\u4E48\u591A\u6B21\u540E\u6355\u83B7\u4E00\u4E2A\u7248\u672C\u3002\u8BBE\u4E3A 0 \u53EF\u7981\u7528\u7F16\u8F91\u6B21\u6570\u89E6\u53D1\u3002",
+  "setting.snapshots-interval.name": "\u6355\u83B7\u95F4\u9694\uFF08\u5206\u949F\uFF09",
+  "setting.snapshots-interval.desc": "\u6BCF\u7F16\u8F91\u8FD9\u4E48\u591A\u5206\u949F\u540E\u6355\u83B7\u4E00\u4E2A\u7248\u672C\u3002\u8BBE\u4E3A 0 \u53EF\u7981\u7528\u65F6\u95F4\u89E6\u53D1\u3002",
+  "setting.max-version-age-days.name": "\u7248\u672C\u6700\u957F\u4FDD\u7559\u5929\u6570\uFF08\u5929\uFF09",
+  "setting.max-version-age-days.desc": "\u5220\u9664\u8D85\u8FC7\u6B64\u5929\u6570\u7684\u4E2D\u95F4\u7248\u672C\uFF08\u4E3B\u8981\u9650\u5236\uFF09\u3002\u8BBE\u4E3A 0 \u53EF\u7981\u7528\u3002",
+  "setting.max-versions.name": "\u6BCF\u4E2A\u6587\u4EF6\u7684\u6700\u5927\u7248\u672C\u6570",
+  "setting.max-versions.desc": "\u6BCF\u4E2A\u6587\u4EF6\u4FDD\u7559\u4E2D\u95F4\u7248\u672C\u6570\u91CF\u7684\u5B89\u5168\u4E0A\u9650\u3002\u6700\u65E7\u7684\u4F1A\u88AB\u4F18\u5148\u6E05\u9664\u3002\u8BBE\u4E3A 0 \u53EF\u7981\u7528\u3002",
+  "setting.show-heading": "\u663E\u793A\u6307\u793A\u5668\u7684\u5BF9\u8C61",
+  "setting.show.desc": "\u884C\u6307\u793A\u5668\u4EC5\u5728\u7F16\u8F91\uFF08\u6E90\u7801\u548C\u5B9E\u65F6\u9884\u89C8\uFF09\u6A21\u5F0F\u4E0B\u663E\u793A\u3002\u9605\u8BFB\u6A21\u5F0F\u4E0B\u6CA1\u6709\u5185\u8054\u6307\u793A\u5668\uFF0C\u4F46\u4ECD\u53EF\u8BBF\u95EE\u66F4\u6539\u5386\u53F2\uFF1A\u8FD0\u884C\u201C\u663E\u793A\u5F53\u524D\u6587\u6863\u7684\u6240\u6709\u66F4\u6539\u201D\u547D\u4EE4\uFF0C\u6216\u5728\u6587\u4EF6\u6D4F\u89C8\u5668\u4E2D\u4F7F\u7528\u6587\u4EF6\u7684\u53F3\u952E\u83DC\u5355\u3002",
+  "setting.show.changed": "\u5DF2\u66F4\u6539",
+  "setting.show.restored": "\u5DF2\u6062\u590D",
+  "setting.show.added": "\u5DF2\u6DFB\u52A0",
+  "setting.show.removed": "\u5DF2\u5220\u9664",
+  "setting.line-heading": "\u884C\u6307\u793A\u5668",
+  "setting.line-width.name": "\u5BBD\u5EA6",
+  "setting.line-width.desc": "\u7AD6\u7EBF\u6307\u793A\u5668\u7684\u5BBD\u5EA6\uFF08\u4EE5\u50CF\u7D20\u4E3A\u5355\u4F4D\uFF09\u3002",
+  "setting.gutter-heading.name": "\u8FB9\u680F\u6307\u793A\u5668",
+  "setting.gutter-heading.prefix": "\u8FB9\u680F\u7C7B\u578B\u6307\u793A\u5668\u7684\u5B57\u7B26\uFF08",
+  "setting.gutter-heading.suffix": "\uFF09\u3002",
+  "setting.gutter-changed.name": "\u66F4\u6539\u5B57\u7B26",
+  "setting.gutter-added.name": "\u6DFB\u52A0\u5B57\u7B26",
+  "setting.gutter-restored.name": "\u6062\u590D\u5B57\u7B26",
+  "setting.gutter-removed.name": "\u5220\u9664\u5B57\u7B26",
+  "modal.title": "\u5386\u53F2\u8BB0\u5F55",
+  "modal.no-changes": "\u65E0\u66F4\u6539",
+  "modal.identical-to-current": "\u4E0E\u5F53\u524D\u5185\u5BB9\u76F8\u540C",
+  "modal.restore-original": "\u6062\u590D\u539F\u59CB\u5185\u5BB9",
+  "modal.remove-history": "\u79FB\u9664\u6587\u4EF6\u5386\u53F2\u8BB0\u5F55",
+  "modal.previous-difference": "\u4E0A\u4E00\u5904\u5DEE\u5F02",
+  "modal.next-difference": "\u4E0B\u4E00\u5904\u5DEE\u5F02",
+  "modal.mode.patch": "\u663E\u793A\u8865\u4E01",
+  "modal.mode.inline": "\u5185\u8054",
+  "modal.mode.line-by-line": "\u9010\u884C",
+  "modal.mode.side-by-side": "\u5E76\u6392",
+  "modal.confirm.cancel": "\u53D6\u6D88",
+  "modal.confirm.restore.title": "\u6062\u590D\u539F\u59CB\u6587\u4EF6",
+  "modal.confirm.restore.message": "\u786E\u5B9A\u8981\u5C06\u6B64\u6587\u4EF6\u6062\u590D\u5230\u539F\u59CB\u72B6\u6001\u5417\uFF1F\u6240\u6709\u5F53\u524D\u66F4\u6539\u90FD\u5C06\u4E22\u5931\uFF0C\u66F4\u6539\u8FFD\u8E2A\u5386\u53F2\u4E5F\u5C06\u88AB\u91CD\u7F6E\u3002\u6B64\u64CD\u4F5C\u65E0\u6CD5\u64A4\u9500\u3002",
+  "modal.confirm.restore.button": "\u6062\u590D\u6587\u4EF6",
+  "modal.confirm.remove.title": "\u79FB\u9664\u6587\u4EF6\u5386\u53F2\u8BB0\u5F55",
+  "modal.confirm.remove.message": "\u786E\u5B9A\u8981\u79FB\u9664\u6B64\u6587\u4EF6\u7684\u66F4\u6539\u8FFD\u8E2A\u5386\u53F2\u5417\uFF1F\u6B64\u64CD\u4F5C\u65E0\u6CD5\u64A4\u9500\u3002",
+  "modal.confirm.remove.button": "\u79FB\u9664\u5386\u53F2\u8BB0\u5F55",
+  "modal.confirm.revert.title": "\u8FD8\u539F\u6B64\u66F4\u6539",
+  "modal.confirm.revert.message": "\u5C06\u6B64\u66F4\u6539\u8FD8\u539F\u5230\u6240\u9009\u57FA\u51C6\uFF1F\u5176\u4ED6\u66F4\u6539\u5C06\u4FDD\u7559\u3002",
+  "modal.confirm.revert.button": "\u8FD8\u539F",
+  "modal.search-versions": "\u641C\u7D22\u7248\u672C",
+  "modal.version.baseline": "\u5F53\u524D",
+  "modal.version.numbered": "\u7248\u672C {number}",
+  "modal.version.current": "\u5F53\u524D",
+  "modal.version.original": "\u539F\u59CB",
+  "modal.no-versions-match": "\u6CA1\u6709\u5339\u914D\u641C\u7D22\u7684\u7248\u672C",
+  "modal.no-snapshots-yet": "\u5C1A\u65E0\u4E2D\u95F4\u5FEB\u7167",
+  "modal.revert-hunk": "\u8FD8\u539F\u6B64\u66F4\u6539",
+  "modal.copy": "\u590D\u5236"
+};
+
+// lang/zh-TW.json
+var zh_TW_default = {
+  "command.go-to-next-change": "\u8DF3\u81F3\u4E0B\u4E00\u8655\u8B8A\u66F4",
+  "command.go-to-previous-change": "\u8DF3\u81F3\u4E0A\u4E00\u8655\u8B8A\u66F4",
+  "command.reset-lines-all": "\u91CD\u8A2D\u6240\u6709\u884C\u8FFD\u8E64\u5FEB\u7167",
+  "command.reset-lines": "\u91CD\u8A2D\u76EE\u524D\u6587\u4EF6\u7684\u884C\u8FFD\u8E64\u5FEB\u7167",
+  "command.show-diff": "\u986F\u793A\u76EE\u524D\u6587\u4EF6\u7684\u6240\u6709\u8B8A\u66F4",
+  "notice.no-changes-to-navigate": "\u6C92\u6709\u53EF\u8DF3\u81F3\u7684\u8B8A\u66F4",
+  "notice.all-snapshots-deleted": "\u5DF2\u522A\u9664\u6240\u6709\u5FEB\u7167\u8CC7\u6599",
+  "notice.current-snapshot-deleted": "\u5DF2\u522A\u9664\u76EE\u524D\u5FEB\u7167\u8CC7\u6599",
+  "notice.file-restored": "\u6A94\u6848\u5DF2\u9084\u539F\u70BA\u539F\u59CB\u72C0\u614B",
+  "notice.file-restore-failed": "\u7121\u6CD5\u5C07\u6A94\u6848\u9084\u539F\u70BA\u539F\u59CB\u72C0\u614B",
+  "notice.copied": "\u5DF2\u8907\u88FD\uFF01",
+  "notice.no-saved-history": "\u6B64\u6A94\u6848\u6C92\u6709\u5DF2\u5132\u5B58\u7684\u6B77\u53F2\u8A18\u9304\u3002",
+  "notice.invalid-exclude-pattern": "\u672C\u6A5F\u6B77\u53F2\uFF1A\u6392\u9664\u8DEF\u5F91\u7684\u6A21\u5F0F\u4E0D\u662F\u6709\u6548\u7684\u6B63\u898F\u8868\u793A\u5F0F\uFF0C\u5DF2\u88AB\u5FFD\u7565\u3002",
+  "menu.local-history": "\u672C\u6A5F\u6B77\u53F2",
+  "menu.show-changes": "\u986F\u793A\u8B8A\u66F4",
+  "status.lines-changed": "\u5DF2\u8B8A\u66F4 {count} \u884C",
+  "setting.type.name": "\u985E\u578B",
+  "setting.type.desc": "\u5728\u908A\u6B04\u4E2D\u9078\u64C7\u986F\u793A\u5782\u76F4\u7DDA\u6216\u5713\u9EDE\u3002",
+  "setting.type.option.line": "\u5782\u76F4\u7DDA",
+  "setting.type.option.dot": "\u908A\u6B04\u5B57\u5143",
+  "setting.allowed-extensions.name": "\u5141\u8A31\u7684\u6A94\u6848\u526F\u6A94\u540D",
+  "setting.allowed-extensions.desc": "\u7528\u65BC\u8FFD\u8E64\u8B8A\u66F4\u7684\u6A94\u6848\u526F\u6A94\u540D\u6E05\u55AE\uFF0C\u4EE5\u9017\u865F\u5206\u9694\uFF08\u4F8B\u5982 md, txt, csv, json, yaml\uFF09",
+  "setting.exclude-paths.name": "\u6392\u9664\u7684\u8DEF\u5F91",
+  "setting.exclude-paths.desc": "\u4E00\u500B\u4E0D\u5206\u5927\u5C0F\u5BEB\u7684\u6B63\u898F\u8868\u793A\u5F0F\uFF0C\u7528\u65BC\u6BD4\u5C0D\u76F8\u5C0D\u65BC\u4FDD\u7BA1\u5EAB\u7684\u8DEF\u5F91\u3002\u8DEF\u5F91\u76F8\u7B26\u7684\u4EFB\u4F55\u6A94\u6848\u90FD\u4E0D\u6703\u88AB\u8FFD\u8E64\uFF08\u4F8B\u5982 \\.excalidraw\\.md$ \u6216 (^|/)Templates/\uFF09\u3002\u9810\u8A2D\u6703\u6392\u9664 Templates \u8CC7\u6599\u593E\u8207 Excalidraw \u7E6A\u5716\u3002\u7559\u7A7A\u5247\u8FFD\u8E64\u6240\u6709\u5167\u5BB9\u3002",
+  "setting.keep.name": "\u4FDD\u7559\u6B77\u53F2\u8A18\u9304\u76F4\u5230",
+  "setting.keep.desc": "\u6E05\u7406\u4FEE\u8A02\u6B77\u53F2\u7684\u7B56\u7565",
+  "setting.keep.option.app": "\u95DC\u9589\u61C9\u7528\u7A0B\u5F0F\u6642",
+  "setting.keep.option.file": "\u95DC\u9589\u6A94\u6848\u6642",
+  "setting.ignore-new-files.name": "\u5FFD\u7565\u65B0\u6A94\u6848",
+  "setting.ignore-new-files.desc": "\u4E0D\u8FFD\u8E64\u5728\u958B\u59CB\u8FFD\u8E64\u5F8C\u5EFA\u7ACB\u7684\u6A94\u6848\u4E2D\u7684\u8B8A\u66F4",
+  "setting.persist.name": "\u91CD\u65B0\u555F\u52D5\u5F8C\u4FDD\u7559\u6B77\u53F2\u8A18\u9304",
+  "setting.persist.desc": "\u5C07\u6B77\u53F2\u8A18\u9304\u5132\u5B58\u81F3\u78C1\u789F\uFF0C\u4F7F\u9192\u76EE\u63D0\u793A\u5728\u91CD\u65B0\u555F\u52D5\u5F8C\u4F9D\u7136\u4FDD\u7559\u3002\u9700\u8981\u5C07\u300C\u4FDD\u7559\u6B77\u53F2\u8A18\u9304\u76F4\u5230\u300D\u8A2D\u5B9A\u70BA\u95DC\u9589\u61C9\u7528\u7A0B\u5F0F\u6642\u3002",
+  "setting.max-entries.name": "\u6700\u591A\u5132\u5B58\u7684\u6A94\u6848\u6578",
+  "setting.max-entries.desc": "\u78C1\u789F\u4E0A\u4FDD\u7559\u7684\u6A94\u6848\u6B77\u53F2\u8A18\u9304\u6578\u91CF\u4E0A\u9650\u3002\u6700\u820A\u7684\u6703\u88AB\u512A\u5148\u6E05\u9664\u3002\u8A2D\u70BA 0 \u53EF\u505C\u7528\u3002",
+  "setting.max-age-days.name": "\u6B77\u53F2\u8A18\u9304\u6700\u9577\u4FDD\u7559\u5929\u6578\uFF08\u5929\uFF09",
+  "setting.max-age-days.desc": "\u522A\u9664\u8D85\u904E\u6B64\u5929\u6578\u7684\u5DF2\u5132\u5B58\u6B77\u53F2\u8A18\u9304\u3002\u8A2D\u70BA 0 \u53EF\u505C\u7528\u3002",
+  "setting.snapshots-heading": "\u6642\u9593\u8EF8\u5FEB\u7167",
+  "setting.snapshots-enabled.name": "\u64F7\u53D6\u4E2D\u9593\u7248\u672C",
+  "setting.snapshots-enabled.desc": "\u4FDD\u7559\u65E9\u671F\u7248\u672C\u7684\u6642\u9593\u8EF8\uFF0C\u8B93\u4F60\u4E0D\u50C5\u80FD\u8207\u539F\u59CB\u72C0\u614B\u6BD4\u5C0D\uFF0C\u9084\u80FD\u8207\u4E2D\u9593\u67D0\u500B\u6642\u9EDE\u6BD4\u5C0D\u3002",
+  "setting.snapshots-edit-threshold.name": "\u64F7\u53D6\u9593\u9694\uFF08\u7DE8\u8F2F\u6B21\u6578\uFF09",
+  "setting.snapshots-edit-threshold.desc": "\u6BCF\u7DE8\u8F2F\u9019\u9EBC\u591A\u6B21\u5F8C\u64F7\u53D6\u4E00\u500B\u7248\u672C\u3002\u8A2D\u70BA 0 \u53EF\u505C\u7528\u7DE8\u8F2F\u6B21\u6578\u89F8\u767C\u3002",
+  "setting.snapshots-interval.name": "\u64F7\u53D6\u9593\u9694\uFF08\u5206\u9418\uFF09",
+  "setting.snapshots-interval.desc": "\u6BCF\u7DE8\u8F2F\u9019\u9EBC\u591A\u5206\u9418\u5F8C\u64F7\u53D6\u4E00\u500B\u7248\u672C\u3002\u8A2D\u70BA 0 \u53EF\u505C\u7528\u6642\u9593\u89F8\u767C\u3002",
+  "setting.max-version-age-days.name": "\u7248\u672C\u6700\u9577\u4FDD\u7559\u5929\u6578\uFF08\u5929\uFF09",
+  "setting.max-version-age-days.desc": "\u522A\u9664\u8D85\u904E\u6B64\u5929\u6578\u7684\u4E2D\u9593\u7248\u672C\uFF08\u4E3B\u8981\u9650\u5236\uFF09\u3002\u8A2D\u70BA 0 \u53EF\u505C\u7528\u3002",
+  "setting.max-versions.name": "\u6BCF\u500B\u6A94\u6848\u7684\u6700\u5927\u7248\u672C\u6578",
+  "setting.max-versions.desc": "\u6BCF\u500B\u6A94\u6848\u4FDD\u7559\u4E2D\u9593\u7248\u672C\u6578\u91CF\u7684\u5B89\u5168\u4E0A\u9650\u3002\u6700\u820A\u7684\u6703\u88AB\u512A\u5148\u6E05\u9664\u3002\u8A2D\u70BA 0 \u53EF\u505C\u7528\u3002",
+  "setting.show-heading": "\u986F\u793A\u6307\u793A\u5668\u7684\u5C0D\u8C61",
+  "setting.show.desc": "\u884C\u6307\u793A\u5668\u50C5\u5728\u7DE8\u8F2F\uFF08\u539F\u59CB\u78BC\u8207\u5373\u6642\u9810\u89BD\uFF09\u6A21\u5F0F\u4E0B\u986F\u793A\u3002\u95B1\u8B80\u6A21\u5F0F\u4E0B\u6C92\u6709\u5167\u5D4C\u6307\u793A\u5668\uFF0C\u4F46\u4ECD\u53EF\u5B58\u53D6\u8B8A\u66F4\u6B77\u53F2\uFF1A\u57F7\u884C\u300C\u986F\u793A\u76EE\u524D\u6587\u4EF6\u7684\u6240\u6709\u8B8A\u66F4\u300D\u547D\u4EE4\uFF0C\u6216\u5728\u6A94\u6848\u7E3D\u7BA1\u4E2D\u4F7F\u7528\u6A94\u6848\u7684\u53F3\u9375\u9078\u55AE\u3002",
+  "setting.show.changed": "\u5DF2\u8B8A\u66F4",
+  "setting.show.restored": "\u5DF2\u9084\u539F",
+  "setting.show.added": "\u5DF2\u65B0\u589E",
+  "setting.show.removed": "\u5DF2\u522A\u9664",
+  "setting.line-heading": "\u884C\u6307\u793A\u5668",
+  "setting.line-width.name": "\u5BEC\u5EA6",
+  "setting.line-width.desc": "\u5782\u76F4\u7DDA\u6307\u793A\u5668\u7684\u5BEC\u5EA6\uFF08\u4EE5\u50CF\u7D20\u70BA\u55AE\u4F4D\uFF09\u3002",
+  "setting.gutter-heading.name": "\u908A\u6B04\u6307\u793A\u5668",
+  "setting.gutter-heading.prefix": "\u908A\u6B04\u985E\u578B\u6307\u793A\u5668\u7684\u5B57\u5143\uFF08",
+  "setting.gutter-heading.suffix": "\uFF09\u3002",
+  "setting.gutter-changed.name": "\u8B8A\u66F4\u5B57\u5143",
+  "setting.gutter-added.name": "\u65B0\u589E\u5B57\u5143",
+  "setting.gutter-restored.name": "\u9084\u539F\u5B57\u5143",
+  "setting.gutter-removed.name": "\u522A\u9664\u5B57\u5143",
+  "modal.title": "\u6B77\u53F2\u8A18\u9304",
+  "modal.no-changes": "\u7121\u8B8A\u66F4",
+  "modal.identical-to-current": "\u8207\u76EE\u524D\u5167\u5BB9\u76F8\u540C",
+  "modal.restore-original": "\u9084\u539F\u539F\u59CB\u5167\u5BB9",
+  "modal.remove-history": "\u79FB\u9664\u6A94\u6848\u6B77\u53F2\u8A18\u9304",
+  "modal.previous-difference": "\u4E0A\u4E00\u8655\u5DEE\u7570",
+  "modal.next-difference": "\u4E0B\u4E00\u8655\u5DEE\u7570",
+  "modal.mode.patch": "\u986F\u793A\u4FEE\u88DC\u6A94",
+  "modal.mode.inline": "\u5167\u5D4C",
+  "modal.mode.line-by-line": "\u9010\u884C",
+  "modal.mode.side-by-side": "\u4E26\u6392",
+  "modal.confirm.cancel": "\u53D6\u6D88",
+  "modal.confirm.restore.title": "\u9084\u539F\u539F\u59CB\u6A94\u6848",
+  "modal.confirm.restore.message": "\u78BA\u5B9A\u8981\u5C07\u6B64\u6A94\u6848\u9084\u539F\u70BA\u539F\u59CB\u72C0\u614B\u55CE\uFF1F\u6240\u6709\u76EE\u524D\u8B8A\u66F4\u90FD\u5C07\u907A\u5931\uFF0C\u8B8A\u66F4\u8FFD\u8E64\u6B77\u53F2\u4E5F\u5C07\u88AB\u91CD\u8A2D\u3002\u6B64\u64CD\u4F5C\u7121\u6CD5\u5FA9\u539F\u3002",
+  "modal.confirm.restore.button": "\u9084\u539F\u6A94\u6848",
+  "modal.confirm.remove.title": "\u79FB\u9664\u6A94\u6848\u6B77\u53F2\u8A18\u9304",
+  "modal.confirm.remove.message": "\u78BA\u5B9A\u8981\u79FB\u9664\u6B64\u6A94\u6848\u7684\u8B8A\u66F4\u8FFD\u8E64\u6B77\u53F2\u55CE\uFF1F\u6B64\u64CD\u4F5C\u7121\u6CD5\u5FA9\u539F\u3002",
+  "modal.confirm.remove.button": "\u79FB\u9664\u6B77\u53F2\u8A18\u9304",
+  "modal.confirm.revert.title": "\u9084\u539F\u6B64\u8B8A\u66F4",
+  "modal.confirm.revert.message": "\u5C07\u6B64\u8B8A\u66F4\u9084\u539F\u81F3\u6240\u9078\u57FA\u6E96\uFF1F\u5176\u4ED6\u8B8A\u66F4\u5C07\u4FDD\u7559\u3002",
+  "modal.confirm.revert.button": "\u9084\u539F",
+  "modal.search-versions": "\u641C\u5C0B\u7248\u672C",
+  "modal.version.baseline": "\u76EE\u524D",
+  "modal.version.numbered": "\u7248\u672C {number}",
+  "modal.version.current": "\u76EE\u524D",
+  "modal.version.original": "\u539F\u59CB",
+  "modal.no-versions-match": "\u6C92\u6709\u7B26\u5408\u641C\u5C0B\u7684\u7248\u672C",
+  "modal.no-snapshots-yet": "\u5C1A\u7121\u4E2D\u9593\u5FEB\u7167",
+  "modal.revert-hunk": "\u9084\u539F\u6B64\u8B8A\u66F4",
+  "modal.copy": "\u8907\u88FD"
+};
+
+// src/services/i18n.service.ts
+var BUNDLED_CATALOGS = {
+  am: am_default,
+  ar: ar_default,
+  be: be_default,
+  bn: bn_default,
+  ca: ca_default,
+  cs: cs_default,
+  da: da_default,
+  de: de_default,
+  en: en_default,
+  "en-GB": en_GB_default,
+  es: es_default,
+  fa: fa_default,
+  fi: fi_default,
+  fr: fr_default,
+  ga: ga_default,
+  he: he_default,
+  hu: hu_default,
+  id: id_default,
+  it: it_default,
+  ja: ja_default,
+  ka: ka_default,
+  kh: kh_default,
+  ko: ko_default,
+  lv: lv_default,
+  ms: ms_default,
+  ne: ne_default,
+  nl: nl_default,
+  no: no_default,
+  pl: pl_default,
+  pt: pt_default,
+  "pt-BR": pt_BR_default,
+  ro: ro_default,
+  ru: ru_default,
+  sk: sk_default,
+  sq: sq_default,
+  sr: sr_default,
+  sv: sv_default,
+  th: th_default,
+  tr: tr_default,
+  uk: uk_default,
+  uz: uz_default,
+  vi: vi_default,
+  zh: zh_default,
+  "zh-TW": zh_TW_default
+};
+var FALLBACK_LANGUAGE = "en";
+var LANGUAGE_STORAGE_KEY = "language";
+var OBSIDIAN_LANGUAGES = [
+  "en",
+  "af",
+  "am",
+  "ar",
+  "az",
+  "be",
+  "bg",
+  "bn",
+  "ca",
+  "cs",
+  "da",
+  "de",
+  "dv",
+  "el",
+  "en-GB",
+  "eo",
+  "es",
+  "eu",
+  "fa",
+  "fi",
+  "fr",
+  "ga",
+  "gl",
+  "he",
+  "hi",
+  "hr",
+  "hu",
+  "id",
+  "it",
+  "ja",
+  "ka",
+  "kh",
+  "kn",
+  "ko",
+  "ky",
+  "la",
+  "lt",
+  "lv",
+  "ml",
+  "ms",
+  "nan-TW",
+  "ne",
+  "nl",
+  "nn",
+  "no",
+  "oc",
+  "or",
+  "pl",
+  "pt",
+  "pt-BR",
+  "ro",
+  "ru",
+  "sa",
+  "si",
+  "sk",
+  "sl",
+  "sq",
+  "sr",
+  "sv",
+  "sw",
+  "ta",
+  "te",
+  "th",
+  "tl",
+  "tr",
+  "tt",
+  "uk",
+  "ur",
+  "uz",
+  "vi",
+  "zh",
+  "zh-TW"
+];
+var PLACEHOLDER_PATTERN = /\{(\w+)\}/g;
+var I18nService = class _I18nService {
+  /**
+   * Creates a new instance of I18nService.
+   *
+   * @param {LineChangeTrackerPlugin} plugin - The plugin instance
+   */
+  constructor(plugin) {
+    this.plugin = plugin;
+    /**
+     * The language-code-keyed catalogs available at runtime. Populated on init from
+     * the bundled `lang/<code>.json` files; kept as an injectable map so the
+     * resolver stays decoupled from how catalogs are loaded and can be unit tested
+     * with fixtures.
+     */
+    this.catalogs = {};
+    /**
+     * The active language code, detected from Obsidian's localStorage on init and
+     * defaulting to English when absent or unreadable.
+     */
+    this.language = FALLBACK_LANGUAGE;
+    /**
+     * Whether to warn about a missing key. True only outside a production build so
+     * the warning helps translators in development without spamming end users.
+     */
+    this.warnOnMissing = false;
+  }
+  /**
+   * Initializes the service by registering the bundled catalogs and detecting the
+   * active language and the dev flag. Registration runs before any `t` call so a
+   * key resolves to its translation rather than falling back to the raw key.
+   */
+  init() {
+    this.register(BUNDLED_CATALOGS);
+    this.language = _I18nService.detectLanguage();
+    this.warnOnMissing = _I18nService.isDevBuild();
+  }
+  /**
+   * Registers the available translation catalogs. Called once during init with the
+   * bundled catalogs; exposed as a method so the loading strategy is separate from
+   * resolution and so tests can seed fixtures directly.
+   *
+   * @param {TranslationCatalogs} catalogs - Map of language code to its catalog
+   */
+  register(catalogs) {
+    this.catalogs = catalogs != null ? catalogs : {};
+  }
+  /**
+   * Reports whether a language code is one Obsidian can set, so the plugin
+   * recognizes it as a supported UI language. Every supported code resolves to a
+   * catalog: its own when bundled, otherwise the English fallback. Codes outside
+   * this set still resolve (through English) but are not part of Obsidian's UI
+   * language list.
+   *
+   * @param {string} language - The language code to check (e.g. `pt-BR`)
+   * @return {boolean} True when the code is in Obsidian's UI language set
+   */
+  static isSupportedLanguage(language) {
+    return OBSIDIAN_LANGUAGES.includes(language);
+  }
+  /**
+   * Maps a language code to the catalog language actually used to resolve its
+   * strings: the code itself when a catalog is bundled for it, otherwise the
+   * English fallback. This makes the "every Obsidian language resolves a catalog
+   * or cleanly falls back to English" guarantee explicit and unit-testable
+   * without driving a full `t` call. Pure and Obsidian-free.
+   *
+   * @param {TranslationCatalogs} catalogs - The available catalogs by language
+   * @param {string} language - The active language code
+   * @return {string} The code whose catalog backs the strings (the input or `en`)
+   */
+  static resolveCatalogLanguage(catalogs, language) {
+    const all = catalogs != null ? catalogs : {};
+    return all[language] ? language : FALLBACK_LANGUAGE;
+  }
+  /**
+   * Translates a dotted key to a user-facing string in the active language,
+   * falling back to English when the active language lacks the key, and
+   * interpolating any `{name}` placeholders from the supplied vars.
+   *
+   * @param {string} key - The dotted translation key (e.g. `modal.restore`)
+   * @param {TranslationVars} [vars] - Values for `{name}` placeholders
+   * @return {string} The localized, interpolated string
+   */
+  t(key2, vars) {
+    const resolved = _I18nService.resolve(this.catalogs, this.language, key2);
+    if (resolved === null && this.warnOnMissing) {
+      console.warn(`[i18n] missing translation key: ${key2}`);
+    }
+    return _I18nService.interpolate(resolved != null ? resolved : key2, vars);
+  }
+  /**
+   * Resolves the raw (un-interpolated) string for a key, trying the active
+   * language first and then the English fallback. Returns null when no catalog
+   * provides the key, so the caller can log a miss and degrade to the raw key.
+   * Pure and Obsidian-free so it is unit tested directly.
+   *
+   * @param {TranslationCatalogs} catalogs - The available catalogs by language
+   * @param {string} language - The active language code
+   * @param {string} key - The dotted translation key
+   * @return {string | null} The matched string, or null when no catalog has it
+   */
+  static resolve(catalogs, language, key2) {
+    const all = catalogs != null ? catalogs : {};
+    const active = all[language];
+    if (active && typeof active[key2] === "string") {
+      return active[key2];
+    }
+    const fallback = all[FALLBACK_LANGUAGE];
+    if (fallback && typeof fallback[key2] === "string") {
+      return fallback[key2];
+    }
+    return null;
+  }
+  /**
+   * Replaces every `{name}` placeholder in a template with the matching value
+   * from vars. An unmatched placeholder is left intact so a missing var is
+   * visible rather than silently blanked. Pure so it is unit tested directly.
+   *
+   * @param {string} template - The string possibly containing `{name}` tokens
+   * @param {TranslationVars} [vars] - The values to substitute
+   * @return {string} The interpolated string
+   */
+  static interpolate(template, vars) {
+    if (!vars) {
+      return template;
+    }
+    return template.replace(PLACEHOLDER_PATTERN, (match, name) => {
+      const value = vars[name];
+      return value === void 0 ? match : String(value);
+    });
+  }
+  /**
+   * Detects the active language. It prefers Obsidian's `language` localStorage
+   * hint, then falls back to the global moment locale (which Obsidian sets to the
+   * UI language), and finally to English. The moment fallback matters because the
+   * `language` key is only written when the language is explicitly chosen, so an
+   * OS-auto-detected language would otherwise be missed and resolve to English.
+   *
+   * @return {string} The detected language code, or `en` as a fallback
+   */
+  static detectLanguage() {
+    var _a;
+    try {
+      const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+      if (stored && stored.trim() !== "") {
+        return stored;
+      }
+    } catch (e) {
+    }
+    try {
+      const moment = globalThis.moment;
+      const locale = (_a = moment == null ? void 0 : moment.locale) == null ? void 0 : _a.call(moment);
+      if (locale && locale.trim() !== "") {
+        return locale;
+      }
+    } catch (e) {
+    }
+    return FALLBACK_LANGUAGE;
+  }
+  /**
+   * Reports whether this is a non-production build, used to gate the missing-key
+   * warning. Reads `process.env.NODE_ENV` defensively through globalThis because
+   * the Obsidian runtime does not guarantee a `process` global and the project
+   * does not pull in Node type definitions.
+   *
+   * @return {boolean} True when not built for production
+   */
+  static isDevBuild() {
+    var _a;
+    try {
+      const proc = globalThis.process;
+      return ((_a = proc == null ? void 0 : proc.env) == null ? void 0 : _a.NODE_ENV) !== "production";
+    } catch (e) {
+      return false;
+    }
+  }
+};
+
 // node_modules/lodash-es/_freeGlobal.js
 var freeGlobal = typeof global == "object" && global && global.Object === Object && global;
 var freeGlobal_default = freeGlobal;
@@ -3139,6 +8970,12 @@ function isObject(value) {
 }
 var isObject_default = isObject;
 
+// node_modules/lodash-es/identity.js
+function identity(value) {
+  return value;
+}
+var identity_default = identity;
+
 // node_modules/lodash-es/isFunction.js
 var asyncTag = "[object AsyncFunction]";
 var funcTag = "[object Function]";
@@ -3158,10 +8995,10 @@ var coreJsData = root_default["__core-js_shared__"];
 var coreJsData_default = coreJsData;
 
 // node_modules/lodash-es/_isMasked.js
-var maskSrcKey = function() {
+var maskSrcKey = (function() {
   var uid = /[^.]+$/.exec(coreJsData_default && coreJsData_default.keys && coreJsData_default.keys.IE_PROTO || "");
   return uid ? "Symbol(src)_1." + uid : "";
-}();
+})();
 function isMasked(func) {
   return !!maskSrcKey && maskSrcKey in func;
 }
@@ -3221,16 +9058,107 @@ var getNative_default = getNative;
 var WeakMap2 = getNative_default(root_default, "WeakMap");
 var WeakMap_default = WeakMap2;
 
+// node_modules/lodash-es/_baseCreate.js
+var objectCreate = Object.create;
+var baseCreate = /* @__PURE__ */ (function() {
+  function object() {
+  }
+  return function(proto) {
+    if (!isObject_default(proto)) {
+      return {};
+    }
+    if (objectCreate) {
+      return objectCreate(proto);
+    }
+    object.prototype = proto;
+    var result = new object();
+    object.prototype = void 0;
+    return result;
+  };
+})();
+var baseCreate_default = baseCreate;
+
+// node_modules/lodash-es/_apply.js
+function apply(func, thisArg, args) {
+  switch (args.length) {
+    case 0:
+      return func.call(thisArg);
+    case 1:
+      return func.call(thisArg, args[0]);
+    case 2:
+      return func.call(thisArg, args[0], args[1]);
+    case 3:
+      return func.call(thisArg, args[0], args[1], args[2]);
+  }
+  return func.apply(thisArg, args);
+}
+var apply_default = apply;
+
+// node_modules/lodash-es/_copyArray.js
+function copyArray(source, array) {
+  var index = -1, length = source.length;
+  array || (array = Array(length));
+  while (++index < length) {
+    array[index] = source[index];
+  }
+  return array;
+}
+var copyArray_default = copyArray;
+
+// node_modules/lodash-es/_shortOut.js
+var HOT_COUNT = 800;
+var HOT_SPAN = 16;
+var nativeNow = Date.now;
+function shortOut(func) {
+  var count = 0, lastCalled = 0;
+  return function() {
+    var stamp = nativeNow(), remaining = HOT_SPAN - (stamp - lastCalled);
+    lastCalled = stamp;
+    if (remaining > 0) {
+      if (++count >= HOT_COUNT) {
+        return arguments[0];
+      }
+    } else {
+      count = 0;
+    }
+    return func.apply(void 0, arguments);
+  };
+}
+var shortOut_default = shortOut;
+
+// node_modules/lodash-es/constant.js
+function constant(value) {
+  return function() {
+    return value;
+  };
+}
+var constant_default = constant;
+
 // node_modules/lodash-es/_defineProperty.js
-var defineProperty = function() {
+var defineProperty = (function() {
   try {
     var func = getNative_default(Object, "defineProperty");
     func({}, "", {});
     return func;
   } catch (e) {
   }
-}();
+})();
 var defineProperty_default = defineProperty;
+
+// node_modules/lodash-es/_baseSetToString.js
+var baseSetToString = !defineProperty_default ? identity_default : function(func, string) {
+  return defineProperty_default(func, "toString", {
+    "configurable": true,
+    "enumerable": false,
+    "value": constant_default(string),
+    "writable": true
+  });
+};
+var baseSetToString_default = baseSetToString;
+
+// node_modules/lodash-es/_setToString.js
+var setToString = shortOut_default(baseSetToString_default);
+var setToString_default = setToString;
 
 // node_modules/lodash-es/_isIndex.js
 var MAX_SAFE_INTEGER = 9007199254740991;
@@ -3274,6 +9202,53 @@ function assignValue(object, key2, value) {
 }
 var assignValue_default = assignValue;
 
+// node_modules/lodash-es/_copyObject.js
+function copyObject(source, props, object, customizer) {
+  var isNew = !object;
+  object || (object = {});
+  var index = -1, length = props.length;
+  while (++index < length) {
+    var key2 = props[index];
+    var newValue = customizer ? customizer(object[key2], source[key2], key2, object, source) : void 0;
+    if (newValue === void 0) {
+      newValue = source[key2];
+    }
+    if (isNew) {
+      baseAssignValue_default(object, key2, newValue);
+    } else {
+      assignValue_default(object, key2, newValue);
+    }
+  }
+  return object;
+}
+var copyObject_default = copyObject;
+
+// node_modules/lodash-es/_overRest.js
+var nativeMax = Math.max;
+function overRest(func, start, transform) {
+  start = nativeMax(start === void 0 ? func.length - 1 : start, 0);
+  return function() {
+    var args = arguments, index = -1, length = nativeMax(args.length - start, 0), array = Array(length);
+    while (++index < length) {
+      array[index] = args[start + index];
+    }
+    index = -1;
+    var otherArgs = Array(start + 1);
+    while (++index < start) {
+      otherArgs[index] = args[index];
+    }
+    otherArgs[start] = transform(array);
+    return apply_default(func, this, otherArgs);
+  };
+}
+var overRest_default = overRest;
+
+// node_modules/lodash-es/_baseRest.js
+function baseRest(func, start) {
+  return setToString_default(overRest_default(func, start, identity_default), func + "");
+}
+var baseRest_default = baseRest;
+
 // node_modules/lodash-es/isLength.js
 var MAX_SAFE_INTEGER2 = 9007199254740991;
 function isLength(value) {
@@ -3286,6 +9261,40 @@ function isArrayLike(value) {
   return value != null && isLength_default(value.length) && !isFunction_default(value);
 }
 var isArrayLike_default = isArrayLike;
+
+// node_modules/lodash-es/_isIterateeCall.js
+function isIterateeCall(value, index, object) {
+  if (!isObject_default(object)) {
+    return false;
+  }
+  var type = typeof index;
+  if (type == "number" ? isArrayLike_default(object) && isIndex_default(index, object.length) : type == "string" && index in object) {
+    return eq_default(object[index], value);
+  }
+  return false;
+}
+var isIterateeCall_default = isIterateeCall;
+
+// node_modules/lodash-es/_createAssigner.js
+function createAssigner(assigner) {
+  return baseRest_default(function(object, sources) {
+    var index = -1, length = sources.length, customizer = length > 1 ? sources[length - 1] : void 0, guard = length > 2 ? sources[2] : void 0;
+    customizer = assigner.length > 3 && typeof customizer == "function" ? (length--, customizer) : void 0;
+    if (guard && isIterateeCall_default(sources[0], sources[1], guard)) {
+      customizer = length < 3 ? void 0 : customizer;
+      length = 1;
+    }
+    object = Object(object);
+    while (++index < length) {
+      var source = sources[index];
+      if (source) {
+        assigner(object, source, index, customizer);
+      }
+    }
+    return object;
+  });
+}
+var createAssigner_default = createAssigner;
 
 // node_modules/lodash-es/_isPrototype.js
 var objectProto5 = Object.prototype;
@@ -3316,9 +9325,9 @@ var baseIsArguments_default = baseIsArguments;
 var objectProto6 = Object.prototype;
 var hasOwnProperty4 = objectProto6.hasOwnProperty;
 var propertyIsEnumerable = objectProto6.propertyIsEnumerable;
-var isArguments = baseIsArguments_default(function() {
+var isArguments = baseIsArguments_default(/* @__PURE__ */ (function() {
   return arguments;
-}()) ? baseIsArguments_default : function(value) {
+})()) ? baseIsArguments_default : function(value) {
   return isObjectLike_default(value) && hasOwnProperty4.call(value, "callee") && !propertyIsEnumerable.call(value, "callee");
 };
 var isArguments_default = isArguments;
@@ -3384,7 +9393,7 @@ var freeExports2 = typeof exports == "object" && exports && !exports.nodeType &&
 var freeModule2 = freeExports2 && typeof module == "object" && module && !module.nodeType && module;
 var moduleExports2 = freeModule2 && freeModule2.exports === freeExports2;
 var freeProcess = moduleExports2 && freeGlobal_default.process;
-var nodeUtil = function() {
+var nodeUtil = (function() {
   try {
     var types = freeModule2 && freeModule2.require && freeModule2.require("util").types;
     if (types) {
@@ -3393,7 +9402,7 @@ var nodeUtil = function() {
     return freeProcess && freeProcess.binding && freeProcess.binding("util");
   } catch (e) {
   }
-}();
+})();
 var nodeUtil_default = nodeUtil;
 
 // node_modules/lodash-es/isTypedArray.js
@@ -3454,6 +9463,41 @@ function keys(object) {
 }
 var keys_default = keys;
 
+// node_modules/lodash-es/_nativeKeysIn.js
+function nativeKeysIn(object) {
+  var result = [];
+  if (object != null) {
+    for (var key2 in Object(object)) {
+      result.push(key2);
+    }
+  }
+  return result;
+}
+var nativeKeysIn_default = nativeKeysIn;
+
+// node_modules/lodash-es/_baseKeysIn.js
+var objectProto9 = Object.prototype;
+var hasOwnProperty7 = objectProto9.hasOwnProperty;
+function baseKeysIn(object) {
+  if (!isObject_default(object)) {
+    return nativeKeysIn_default(object);
+  }
+  var isProto = isPrototype_default(object), result = [];
+  for (var key2 in object) {
+    if (!(key2 == "constructor" && (isProto || !hasOwnProperty7.call(object, key2)))) {
+      result.push(key2);
+    }
+  }
+  return result;
+}
+var baseKeysIn_default = baseKeysIn;
+
+// node_modules/lodash-es/keysIn.js
+function keysIn(object) {
+  return isArrayLike_default(object) ? arrayLikeKeys_default(object, true) : baseKeysIn_default(object);
+}
+var keysIn_default = keysIn;
+
 // node_modules/lodash-es/_isKey.js
 var reIsDeepProp = /\.|\[(?:[^[\]]*|(["'])(?:(?!\1)[^\\]|\\.)*?\1)\]/;
 var reIsPlainProp = /^\w*$/;
@@ -3490,24 +9534,24 @@ var hashDelete_default = hashDelete;
 
 // node_modules/lodash-es/_hashGet.js
 var HASH_UNDEFINED = "__lodash_hash_undefined__";
-var objectProto9 = Object.prototype;
-var hasOwnProperty7 = objectProto9.hasOwnProperty;
+var objectProto10 = Object.prototype;
+var hasOwnProperty8 = objectProto10.hasOwnProperty;
 function hashGet(key2) {
   var data = this.__data__;
   if (nativeCreate_default) {
     var result = data[key2];
     return result === HASH_UNDEFINED ? void 0 : result;
   }
-  return hasOwnProperty7.call(data, key2) ? data[key2] : void 0;
+  return hasOwnProperty8.call(data, key2) ? data[key2] : void 0;
 }
 var hashGet_default = hashGet;
 
 // node_modules/lodash-es/_hashHas.js
-var objectProto10 = Object.prototype;
-var hasOwnProperty8 = objectProto10.hasOwnProperty;
+var objectProto11 = Object.prototype;
+var hasOwnProperty9 = objectProto11.hasOwnProperty;
 function hashHas(key2) {
   var data = this.__data__;
-  return nativeCreate_default ? data[key2] !== void 0 : hasOwnProperty8.call(data, key2);
+  return nativeCreate_default ? data[key2] !== void 0 : hasOwnProperty9.call(data, key2);
 }
 var hashHas_default = hashHas;
 
@@ -3792,9 +9836,9 @@ var getPrototype_default = getPrototype;
 // node_modules/lodash-es/isPlainObject.js
 var objectTag2 = "[object Object]";
 var funcProto3 = Function.prototype;
-var objectProto11 = Object.prototype;
+var objectProto12 = Object.prototype;
 var funcToString3 = funcProto3.toString;
-var hasOwnProperty9 = objectProto11.hasOwnProperty;
+var hasOwnProperty10 = objectProto12.hasOwnProperty;
 var objectCtorString = funcToString3.call(Object);
 function isPlainObject(value) {
   if (!isObjectLike_default(value) || baseGetTag_default(value) != objectTag2) {
@@ -3804,7 +9848,7 @@ function isPlainObject(value) {
   if (proto === null) {
     return true;
   }
-  var Ctor = hasOwnProperty9.call(proto, "constructor") && proto.constructor;
+  var Ctor = hasOwnProperty10.call(proto, "constructor") && proto.constructor;
   return typeof Ctor == "function" && Ctor instanceof Ctor && funcToString3.call(Ctor) == objectCtorString;
 }
 var isPlainObject_default = isPlainObject;
@@ -3818,6 +9862,80 @@ function castArray() {
   return isArray_default(value) ? value : [value];
 }
 var castArray_default = castArray;
+
+// node_modules/lodash-es/_stackClear.js
+function stackClear() {
+  this.__data__ = new ListCache_default();
+  this.size = 0;
+}
+var stackClear_default = stackClear;
+
+// node_modules/lodash-es/_stackDelete.js
+function stackDelete(key2) {
+  var data = this.__data__, result = data["delete"](key2);
+  this.size = data.size;
+  return result;
+}
+var stackDelete_default = stackDelete;
+
+// node_modules/lodash-es/_stackGet.js
+function stackGet(key2) {
+  return this.__data__.get(key2);
+}
+var stackGet_default = stackGet;
+
+// node_modules/lodash-es/_stackHas.js
+function stackHas(key2) {
+  return this.__data__.has(key2);
+}
+var stackHas_default = stackHas;
+
+// node_modules/lodash-es/_stackSet.js
+var LARGE_ARRAY_SIZE = 200;
+function stackSet(key2, value) {
+  var data = this.__data__;
+  if (data instanceof ListCache_default) {
+    var pairs = data.__data__;
+    if (!Map_default || pairs.length < LARGE_ARRAY_SIZE - 1) {
+      pairs.push([key2, value]);
+      this.size = ++data.size;
+      return this;
+    }
+    data = this.__data__ = new MapCache_default(pairs);
+  }
+  data.set(key2, value);
+  this.size = data.size;
+  return this;
+}
+var stackSet_default = stackSet;
+
+// node_modules/lodash-es/_Stack.js
+function Stack(entries) {
+  var data = this.__data__ = new ListCache_default(entries);
+  this.size = data.size;
+}
+Stack.prototype.clear = stackClear_default;
+Stack.prototype["delete"] = stackDelete_default;
+Stack.prototype.get = stackGet_default;
+Stack.prototype.has = stackHas_default;
+Stack.prototype.set = stackSet_default;
+var Stack_default = Stack;
+
+// node_modules/lodash-es/_cloneBuffer.js
+var freeExports3 = typeof exports == "object" && exports && !exports.nodeType && exports;
+var freeModule3 = freeExports3 && typeof module == "object" && module && !module.nodeType && module;
+var moduleExports3 = freeModule3 && freeModule3.exports === freeExports3;
+var Buffer3 = moduleExports3 ? root_default.Buffer : void 0;
+var allocUnsafe = Buffer3 ? Buffer3.allocUnsafe : void 0;
+function cloneBuffer(buffer, isDeep) {
+  if (isDeep) {
+    return buffer.slice();
+  }
+  var length = buffer.length, result = allocUnsafe ? allocUnsafe(length) : new buffer.constructor(length);
+  buffer.copy(result);
+  return result;
+}
+var cloneBuffer_default = cloneBuffer;
 
 // node_modules/lodash-es/_DataView.js
 var DataView = getNative_default(root_default, "DataView");
@@ -3866,6 +9984,31 @@ if (DataView_default && getTag(new DataView_default(new ArrayBuffer(1))) != data
 }
 var getTag_default = getTag;
 
+// node_modules/lodash-es/_Uint8Array.js
+var Uint8Array2 = root_default.Uint8Array;
+var Uint8Array_default = Uint8Array2;
+
+// node_modules/lodash-es/_cloneArrayBuffer.js
+function cloneArrayBuffer(arrayBuffer) {
+  var result = new arrayBuffer.constructor(arrayBuffer.byteLength);
+  new Uint8Array_default(result).set(new Uint8Array_default(arrayBuffer));
+  return result;
+}
+var cloneArrayBuffer_default = cloneArrayBuffer;
+
+// node_modules/lodash-es/_cloneTypedArray.js
+function cloneTypedArray(typedArray, isDeep) {
+  var buffer = isDeep ? cloneArrayBuffer_default(typedArray.buffer) : typedArray.buffer;
+  return new typedArray.constructor(buffer, typedArray.byteOffset, typedArray.length);
+}
+var cloneTypedArray_default = cloneTypedArray;
+
+// node_modules/lodash-es/_initCloneObject.js
+function initCloneObject(object) {
+  return typeof object.constructor == "function" && !isPrototype_default(object) ? baseCreate_default(getPrototype_default(object)) : {};
+}
+var initCloneObject_default = initCloneObject;
+
 // node_modules/lodash-es/_mapToArray.js
 function mapToArray(map) {
   var index = -1, result = Array(map.size);
@@ -3875,6 +10018,123 @@ function mapToArray(map) {
   return result;
 }
 var mapToArray_default = mapToArray;
+
+// node_modules/lodash-es/_createBaseFor.js
+function createBaseFor(fromRight) {
+  return function(object, iteratee, keysFunc) {
+    var index = -1, iterable = Object(object), props = keysFunc(object), length = props.length;
+    while (length--) {
+      var key2 = props[fromRight ? length : ++index];
+      if (iteratee(iterable[key2], key2, iterable) === false) {
+        break;
+      }
+    }
+    return object;
+  };
+}
+var createBaseFor_default = createBaseFor;
+
+// node_modules/lodash-es/_baseFor.js
+var baseFor = createBaseFor_default();
+var baseFor_default = baseFor;
+
+// node_modules/lodash-es/_assignMergeValue.js
+function assignMergeValue(object, key2, value) {
+  if (value !== void 0 && !eq_default(object[key2], value) || value === void 0 && !(key2 in object)) {
+    baseAssignValue_default(object, key2, value);
+  }
+}
+var assignMergeValue_default = assignMergeValue;
+
+// node_modules/lodash-es/isArrayLikeObject.js
+function isArrayLikeObject(value) {
+  return isObjectLike_default(value) && isArrayLike_default(value);
+}
+var isArrayLikeObject_default = isArrayLikeObject;
+
+// node_modules/lodash-es/_safeGet.js
+function safeGet(object, key2) {
+  if (key2 === "constructor" && typeof object[key2] === "function") {
+    return;
+  }
+  if (key2 == "__proto__") {
+    return;
+  }
+  return object[key2];
+}
+var safeGet_default = safeGet;
+
+// node_modules/lodash-es/toPlainObject.js
+function toPlainObject(value) {
+  return copyObject_default(value, keysIn_default(value));
+}
+var toPlainObject_default = toPlainObject;
+
+// node_modules/lodash-es/_baseMergeDeep.js
+function baseMergeDeep(object, source, key2, srcIndex, mergeFunc, customizer, stack) {
+  var objValue = safeGet_default(object, key2), srcValue = safeGet_default(source, key2), stacked = stack.get(srcValue);
+  if (stacked) {
+    assignMergeValue_default(object, key2, stacked);
+    return;
+  }
+  var newValue = customizer ? customizer(objValue, srcValue, key2 + "", object, source, stack) : void 0;
+  var isCommon = newValue === void 0;
+  if (isCommon) {
+    var isArr = isArray_default(srcValue), isBuff = !isArr && isBuffer_default(srcValue), isTyped = !isArr && !isBuff && isTypedArray_default(srcValue);
+    newValue = srcValue;
+    if (isArr || isBuff || isTyped) {
+      if (isArray_default(objValue)) {
+        newValue = objValue;
+      } else if (isArrayLikeObject_default(objValue)) {
+        newValue = copyArray_default(objValue);
+      } else if (isBuff) {
+        isCommon = false;
+        newValue = cloneBuffer_default(srcValue, true);
+      } else if (isTyped) {
+        isCommon = false;
+        newValue = cloneTypedArray_default(srcValue, true);
+      } else {
+        newValue = [];
+      }
+    } else if (isPlainObject_default(srcValue) || isArguments_default(srcValue)) {
+      newValue = objValue;
+      if (isArguments_default(objValue)) {
+        newValue = toPlainObject_default(objValue);
+      } else if (!isObject_default(objValue) || isFunction_default(objValue)) {
+        newValue = initCloneObject_default(srcValue);
+      }
+    } else {
+      isCommon = false;
+    }
+  }
+  if (isCommon) {
+    stack.set(srcValue, newValue);
+    mergeFunc(newValue, srcValue, srcIndex, customizer, stack);
+    stack["delete"](srcValue);
+  }
+  assignMergeValue_default(object, key2, newValue);
+}
+var baseMergeDeep_default = baseMergeDeep;
+
+// node_modules/lodash-es/_baseMerge.js
+function baseMerge(object, source, srcIndex, customizer, stack) {
+  if (object === source) {
+    return;
+  }
+  baseFor_default(source, function(srcValue, key2) {
+    stack || (stack = new Stack_default());
+    if (isObject_default(srcValue)) {
+      baseMergeDeep_default(object, source, key2, srcIndex, baseMerge, customizer, stack);
+    } else {
+      var newValue = customizer ? customizer(safeGet_default(object, key2), srcValue, key2 + "", object, source, stack) : void 0;
+      if (newValue === void 0) {
+        newValue = srcValue;
+      }
+      assignMergeValue_default(object, key2, newValue);
+    }
+  }, keysIn_default);
+}
+var baseMerge_default = baseMerge;
 
 // node_modules/lodash-es/_baseToPairs.js
 function baseToPairs(object, props) {
@@ -3935,6 +10195,12 @@ function isUndefined(value) {
 }
 var isUndefined_default = isUndefined;
 
+// node_modules/lodash-es/merge.js
+var merge = createAssigner_default(function(object, source, srcIndex) {
+  baseMerge_default(object, source, srcIndex);
+});
+var merge_default = merge;
+
 // node_modules/lodash-es/_baseSet.js
 function baseSet(object, path, value, customizer) {
   if (!isObject_default(object)) {
@@ -3968,8 +10234,8 @@ function set(object, path, value) {
 var set_default = set;
 
 // src/helpers/dom.helper.ts
-var import_obsidian6 = require("obsidian");
-var DomHelper = class {
+var import_obsidian11 = require("obsidian");
+var DomHelper = class _DomHelper {
   /**
    * Creates a DOM element based on the provided configuration.
    * @param {DomElementConfig} config - Configuration object for the element
@@ -3991,7 +10257,7 @@ var DomHelper = class {
   static createFragment(children) {
     const fragment = document.createDocumentFragment();
     children.forEach((childConfig) => {
-      fragment.appendChild(DomHelper.create(childConfig));
+      fragment.appendChild(_DomHelper.create(childConfig));
     });
     return fragment;
   }
@@ -4026,7 +10292,7 @@ var DomHelper = class {
     }
     if (!isUndefined_default(config.html)) {
       element.empty();
-      element.appendChild((0, import_obsidian6.sanitizeHTMLToDom)(config.html));
+      element.appendChild((0, import_obsidian11.sanitizeHTMLToDom)(config.html));
     }
     if (config.attributes) {
       toPairs_default(config.attributes).forEach(([key2, value]) => {
@@ -4054,15 +10320,15 @@ var DomHelper = class {
     }
     if (config.children) {
       config.children.forEach((childConfig) => {
-        element.appendChild(DomHelper.create(childConfig));
+        element.appendChild(_DomHelper.create(childConfig));
       });
     }
   }
 };
 
 // src/modals/confirm.modal.ts
-var import_obsidian7 = require("obsidian");
-var ConfirmModal = class extends import_obsidian7.Modal {
+var import_obsidian12 = require("obsidian");
+var ConfirmModal = class extends import_obsidian12.Modal {
   /**
    * Creates a new instance of ConfirmModal.
    *
@@ -4090,6 +10356,7 @@ var ConfirmModal = class extends import_obsidian7.Modal {
    * @override
    */
   onOpen() {
+    DomHelper.update(this.modalEl, { classes: { add: "lct-confirm-modal" } });
     DomHelper.update(this.contentEl, {
       text: null,
       children: [
@@ -4164,420 +10431,141 @@ var ConfirmModal = class extends import_obsidian7.Modal {
   }
 };
 
-// node_modules/diff/libesm/diff/base.js
-var Diff = class {
-  diff(oldStr, newStr, options = {}) {
-    let callback;
-    if (typeof options === "function") {
-      callback = options;
-      options = {};
-    } else if ("callback" in options) {
-      callback = options.callback;
-    }
-    const oldString = this.castInput(oldStr, options);
-    const newString = this.castInput(newStr, options);
-    const oldTokens = this.removeEmpty(this.tokenize(oldString, options));
-    const newTokens = this.removeEmpty(this.tokenize(newString, options));
-    return this.diffWithOptionsObj(oldTokens, newTokens, options, callback);
-  }
-  diffWithOptionsObj(oldTokens, newTokens, options, callback) {
-    var _a;
-    const done = (value) => {
-      value = this.postProcess(value, options);
-      if (callback) {
-        setTimeout(function() {
-          callback(value);
-        }, 0);
-        return void 0;
-      } else {
-        return value;
+// src/helpers/base-content.helper.ts
+var BaseContentHelper = class {
+  /**
+   * Resolves the base content to diff the current state against.
+   *
+   * @param {string} selectedBaseId - The picked base id (the synthetic baseline
+   *   sentinel or an intermediate version id)
+   * @param {string} baselineId - The sentinel id that marks the synthetic
+   *   baseline entry
+   * @param {BaseContentSnapshot} snapshot - The reduced snapshot view to read
+   * @return {string} The base content for the diff
+   */
+  static resolve(selectedBaseId, baselineId, snapshot) {
+    if (selectedBaseId !== baselineId) {
+      const content = snapshot.versionContent(selectedBaseId);
+      if (content !== null) {
+        return content;
       }
-    };
-    const newLen = newTokens.length, oldLen = oldTokens.length;
-    let editLength = 1;
-    let maxEditLength = newLen + oldLen;
-    if (options.maxEditLength != null) {
-      maxEditLength = Math.min(maxEditLength, options.maxEditLength);
     }
-    const maxExecutionTime = (_a = options.timeout) !== null && _a !== void 0 ? _a : Infinity;
-    const abortAfterTimestamp = Date.now() + maxExecutionTime;
-    const bestPath = [{ oldPos: -1, lastComponent: void 0 }];
-    let newPos = this.extractCommon(bestPath[0], newTokens, oldTokens, 0, options);
-    if (bestPath[0].oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
-      return done(this.buildValues(bestPath[0].lastComponent, newTokens, oldTokens));
+    const latest = snapshot.versions[0];
+    return latest != null ? latest : snapshot.original;
+  }
+};
+
+// src/helpers/version-search.helper.ts
+var VersionSearchHelper = class {
+  /**
+   * Resolves the ids of the versions visible for a given search query.
+   *
+   * @param {SearchableVersion[]} versions - The timeline versions to filter
+   * @param {string} query - The raw search query (trimmed and lower-cased here)
+   * @return {Set<string>} The ids of the matching versions; every version's id
+   *   when the query is empty
+   */
+  static match(versions, query) {
+    const list = versions != null ? versions : [];
+    const needle = (query != null ? query : "").trim().toLowerCase();
+    if (needle === "") {
+      return new Set(list.map((version) => version.id));
     }
-    let minDiagonalToConsider = -Infinity, maxDiagonalToConsider = Infinity;
-    const execEditLength = () => {
-      for (let diagonalPath = Math.max(minDiagonalToConsider, -editLength); diagonalPath <= Math.min(maxDiagonalToConsider, editLength); diagonalPath += 2) {
-        let basePath;
-        const removePath = bestPath[diagonalPath - 1], addPath = bestPath[diagonalPath + 1];
-        if (removePath) {
-          bestPath[diagonalPath - 1] = void 0;
-        }
-        let canAdd = false;
-        if (addPath) {
-          const addPathNewPos = addPath.oldPos - diagonalPath;
-          canAdd = addPath && 0 <= addPathNewPos && addPathNewPos < newLen;
-        }
-        const canRemove = removePath && removePath.oldPos + 1 < oldLen;
-        if (!canAdd && !canRemove) {
-          bestPath[diagonalPath] = void 0;
+    return new Set(
+      list.filter((version) => {
+        var _a;
+        return ((_a = version.content) != null ? _a : "").toLowerCase().includes(needle);
+      }).map((version) => version.id)
+    );
+  }
+};
+
+// src/helpers/word-diff.helper.ts
+var WordDiffHelper = class _WordDiffHelper {
+  /**
+   * Splits a pair of lines into word-level segments. Each segment carries its
+   * text and whether it was added (present only in the new line), removed
+   * (present only in the old line), or unchanged (shared by both). An empty
+   * side yields a single added or removed segment for the non-empty side, and
+   * two identical lines yield a single unchanged segment.
+   *
+   * @param {string} oldText - The old (base) line text
+   * @param {string} newText - The new (current) line text
+   * @return {Diff.Change[]} Ordered word-level segments
+   */
+  static segments(oldText, newText) {
+    return diffWords(oldText != null ? oldText : "", newText != null ? newText : "");
+  }
+  /**
+   * Turns a base text and a current text into an ordered list of inline diff
+   * lines. A removed block immediately followed by an added block is treated as
+   * a modification: the lines are paired by position so each pair can be word
+   * diffed later. Any surplus old lines in the block become pure removals and
+   * any surplus new lines become pure additions. A removed block with no added
+   * block after it stays a pure removal, and an added block with no removed
+   * block before it stays a pure addition.
+   *
+   * @param {string} base - The base (older) content
+   * @param {string} current - The current (newer) content
+   * @return {InlineDiffLine[]} The inline diff lines, ordered top to bottom
+   */
+  static lines(base, current) {
+    const changes = diffLines(base != null ? base : "", current != null ? current : "");
+    const result = [];
+    for (let index = 0; index < changes.length; index++) {
+      const change = changes[index];
+      if (!change.added && !change.removed) {
+        _WordDiffHelper.splitLines(change.value).forEach((text) => {
+          result.push({ type: "context", oldText: text, newText: text });
+        });
+        continue;
+      }
+      if (change.removed) {
+        const next = changes[index + 1];
+        const removedLines = _WordDiffHelper.splitLines(change.value);
+        if (next == null ? void 0 : next.added) {
+          const addedLines = _WordDiffHelper.splitLines(next.value);
+          const paired = Math.min(removedLines.length, addedLines.length);
+          for (let i = 0; i < paired; i++) {
+            result.push({ type: "modified", oldText: removedLines[i], newText: addedLines[i] });
+          }
+          for (let i = paired; i < removedLines.length; i++) {
+            result.push({ type: "removed", oldText: removedLines[i] });
+          }
+          for (let i = paired; i < addedLines.length; i++) {
+            result.push({ type: "added", newText: addedLines[i] });
+          }
+          index++;
           continue;
         }
-        if (!canRemove || canAdd && removePath.oldPos < addPath.oldPos) {
-          basePath = this.addToPath(addPath, true, false, 0, options);
-        } else {
-          basePath = this.addToPath(removePath, false, true, 1, options);
-        }
-        newPos = this.extractCommon(basePath, newTokens, oldTokens, diagonalPath, options);
-        if (basePath.oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
-          return done(this.buildValues(basePath.lastComponent, newTokens, oldTokens)) || true;
-        } else {
-          bestPath[diagonalPath] = basePath;
-          if (basePath.oldPos + 1 >= oldLen) {
-            maxDiagonalToConsider = Math.min(maxDiagonalToConsider, diagonalPath - 1);
-          }
-          if (newPos + 1 >= newLen) {
-            minDiagonalToConsider = Math.max(minDiagonalToConsider, diagonalPath + 1);
-          }
-        }
+        removedLines.forEach((text) => {
+          result.push({ type: "removed", oldText: text });
+        });
+        continue;
       }
-      editLength++;
-    };
-    if (callback) {
-      (function exec() {
-        setTimeout(function() {
-          if (editLength > maxEditLength || Date.now() > abortAfterTimestamp) {
-            return callback(void 0);
-          }
-          if (!execEditLength()) {
-            exec();
-          }
-        }, 0);
-      })();
-    } else {
-      while (editLength <= maxEditLength && Date.now() <= abortAfterTimestamp) {
-        const ret = execEditLength();
-        if (ret) {
-          return ret;
-        }
-      }
-    }
-  }
-  addToPath(path, added, removed, oldPosInc, options) {
-    const last = path.lastComponent;
-    if (last && !options.oneChangePerToken && last.added === added && last.removed === removed) {
-      return {
-        oldPos: path.oldPos + oldPosInc,
-        lastComponent: { count: last.count + 1, added, removed, previousComponent: last.previousComponent }
-      };
-    } else {
-      return {
-        oldPos: path.oldPos + oldPosInc,
-        lastComponent: { count: 1, added, removed, previousComponent: last }
-      };
-    }
-  }
-  extractCommon(basePath, newTokens, oldTokens, diagonalPath, options) {
-    const newLen = newTokens.length, oldLen = oldTokens.length;
-    let oldPos = basePath.oldPos, newPos = oldPos - diagonalPath, commonCount = 0;
-    while (newPos + 1 < newLen && oldPos + 1 < oldLen && this.equals(oldTokens[oldPos + 1], newTokens[newPos + 1], options)) {
-      newPos++;
-      oldPos++;
-      commonCount++;
-      if (options.oneChangePerToken) {
-        basePath.lastComponent = { count: 1, previousComponent: basePath.lastComponent, added: false, removed: false };
-      }
-    }
-    if (commonCount && !options.oneChangePerToken) {
-      basePath.lastComponent = { count: commonCount, previousComponent: basePath.lastComponent, added: false, removed: false };
-    }
-    basePath.oldPos = oldPos;
-    return newPos;
-  }
-  equals(left, right, options) {
-    if (options.comparator) {
-      return options.comparator(left, right);
-    } else {
-      return left === right || !!options.ignoreCase && left.toLowerCase() === right.toLowerCase();
-    }
-  }
-  removeEmpty(array) {
-    const ret = [];
-    for (let i = 0; i < array.length; i++) {
-      if (array[i]) {
-        ret.push(array[i]);
-      }
-    }
-    return ret;
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  castInput(value, options) {
-    return value;
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  tokenize(value, options) {
-    return Array.from(value);
-  }
-  join(chars) {
-    return chars.join("");
-  }
-  postProcess(changeObjects, options) {
-    return changeObjects;
-  }
-  get useLongestToken() {
-    return false;
-  }
-  buildValues(lastComponent, newTokens, oldTokens) {
-    const components = [];
-    let nextComponent;
-    while (lastComponent) {
-      components.push(lastComponent);
-      nextComponent = lastComponent.previousComponent;
-      delete lastComponent.previousComponent;
-      lastComponent = nextComponent;
-    }
-    components.reverse();
-    const componentLen = components.length;
-    let componentPos = 0, newPos = 0, oldPos = 0;
-    for (; componentPos < componentLen; componentPos++) {
-      const component = components[componentPos];
-      if (!component.removed) {
-        if (!component.added && this.useLongestToken) {
-          let value = newTokens.slice(newPos, newPos + component.count);
-          value = value.map(function(value2, i) {
-            const oldValue = oldTokens[oldPos + i];
-            return oldValue.length > value2.length ? oldValue : value2;
-          });
-          component.value = this.join(value);
-        } else {
-          component.value = this.join(newTokens.slice(newPos, newPos + component.count));
-        }
-        newPos += component.count;
-        if (!component.added) {
-          oldPos += component.count;
-        }
-      } else {
-        component.value = this.join(oldTokens.slice(oldPos, oldPos + component.count));
-        oldPos += component.count;
-      }
-    }
-    return components;
-  }
-};
-
-// node_modules/diff/libesm/diff/line.js
-var LineDiff = class extends Diff {
-  constructor() {
-    super(...arguments);
-    this.tokenize = tokenize;
-  }
-  equals(left, right, options) {
-    if (options.ignoreWhitespace) {
-      if (!options.newlineIsToken || !left.includes("\n")) {
-        left = left.trim();
-      }
-      if (!options.newlineIsToken || !right.includes("\n")) {
-        right = right.trim();
-      }
-    } else if (options.ignoreNewlineAtEof && !options.newlineIsToken) {
-      if (left.endsWith("\n")) {
-        left = left.slice(0, -1);
-      }
-      if (right.endsWith("\n")) {
-        right = right.slice(0, -1);
-      }
-    }
-    return super.equals(left, right, options);
-  }
-};
-var lineDiff = new LineDiff();
-function diffLines(oldStr, newStr, options) {
-  return lineDiff.diff(oldStr, newStr, options);
-}
-function tokenize(value, options) {
-  if (options.stripTrailingCr) {
-    value = value.replace(/\r\n/g, "\n");
-  }
-  const retLines = [], linesAndNewlines = value.split(/(\n|\r\n)/);
-  if (!linesAndNewlines[linesAndNewlines.length - 1]) {
-    linesAndNewlines.pop();
-  }
-  for (let i = 0; i < linesAndNewlines.length; i++) {
-    const line = linesAndNewlines[i];
-    if (i % 2 && !options.newlineIsToken) {
-      retLines[retLines.length - 1] += line;
-    } else {
-      retLines.push(line);
-    }
-  }
-  return retLines;
-}
-
-// node_modules/diff/libesm/patch/create.js
-function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options) {
-  let optionsObj;
-  if (!options) {
-    optionsObj = {};
-  } else if (typeof options === "function") {
-    optionsObj = { callback: options };
-  } else {
-    optionsObj = options;
-  }
-  if (typeof optionsObj.context === "undefined") {
-    optionsObj.context = 4;
-  }
-  const context = optionsObj.context;
-  if (optionsObj.newlineIsToken) {
-    throw new Error("newlineIsToken may not be used with patch-generation functions, only with diffing functions");
-  }
-  if (!optionsObj.callback) {
-    return diffLinesResultToPatch(diffLines(oldStr, newStr, optionsObj));
-  } else {
-    const { callback } = optionsObj;
-    diffLines(oldStr, newStr, Object.assign(Object.assign({}, optionsObj), { callback: (diff2) => {
-      const patch = diffLinesResultToPatch(diff2);
-      callback(patch);
-    } }));
-  }
-  function diffLinesResultToPatch(diff2) {
-    if (!diff2) {
-      return;
-    }
-    diff2.push({ value: "", lines: [] });
-    function contextLines(lines) {
-      return lines.map(function(entry) {
-        return " " + entry;
+      _WordDiffHelper.splitLines(change.value).forEach((text) => {
+        result.push({ type: "added", newText: text });
       });
     }
-    const hunks = [];
-    let oldRangeStart = 0, newRangeStart = 0, curRange = [], oldLine = 1, newLine = 1;
-    for (let i = 0; i < diff2.length; i++) {
-      const current = diff2[i], lines = current.lines || splitLines(current.value);
-      current.lines = lines;
-      if (current.added || current.removed) {
-        if (!oldRangeStart) {
-          const prev = diff2[i - 1];
-          oldRangeStart = oldLine;
-          newRangeStart = newLine;
-          if (prev) {
-            curRange = context > 0 ? contextLines(prev.lines.slice(-context)) : [];
-            oldRangeStart -= curRange.length;
-            newRangeStart -= curRange.length;
-          }
-        }
-        for (const line of lines) {
-          curRange.push((current.added ? "+" : "-") + line);
-        }
-        if (current.added) {
-          newLine += lines.length;
-        } else {
-          oldLine += lines.length;
-        }
-      } else {
-        if (oldRangeStart) {
-          if (lines.length <= context * 2 && i < diff2.length - 2) {
-            for (const line of contextLines(lines)) {
-              curRange.push(line);
-            }
-          } else {
-            const contextSize = Math.min(lines.length, context);
-            for (const line of contextLines(lines.slice(0, contextSize))) {
-              curRange.push(line);
-            }
-            const hunk = {
-              oldStart: oldRangeStart,
-              oldLines: oldLine - oldRangeStart + contextSize,
-              newStart: newRangeStart,
-              newLines: newLine - newRangeStart + contextSize,
-              lines: curRange
-            };
-            hunks.push(hunk);
-            oldRangeStart = 0;
-            newRangeStart = 0;
-            curRange = [];
-          }
-        }
-        oldLine += lines.length;
-        newLine += lines.length;
-      }
+    return result;
+  }
+  /**
+   * Splits a diff block value into its constituent lines. The diff library
+   * appends a trailing newline to every block, which would otherwise yield a
+   * spurious empty final line, so a single trailing newline is dropped before
+   * splitting.
+   *
+   * @param {string} value - The raw block value from the diff library
+   * @return {string[]} The lines of the block
+   */
+  static splitLines(value) {
+    if (value === "") {
+      return [];
     }
-    for (const hunk of hunks) {
-      for (let i = 0; i < hunk.lines.length; i++) {
-        if (hunk.lines[i].endsWith("\n")) {
-          hunk.lines[i] = hunk.lines[i].slice(0, -1);
-        } else {
-          hunk.lines.splice(i + 1, 0, "\\ No newline at end of file");
-          i++;
-        }
-      }
-    }
-    return {
-      oldFileName,
-      newFileName,
-      oldHeader,
-      newHeader,
-      hunks
-    };
+    const normalized = value.endsWith("\n") ? value.slice(0, -1) : value;
+    return normalized.split("\n");
   }
-}
-function formatPatch(patch) {
-  if (Array.isArray(patch)) {
-    return patch.map(formatPatch).join("\n");
-  }
-  const ret = [];
-  if (patch.oldFileName == patch.newFileName) {
-    ret.push("Index: " + patch.oldFileName);
-  }
-  ret.push("===================================================================");
-  ret.push("--- " + patch.oldFileName + (typeof patch.oldHeader === "undefined" ? "" : "	" + patch.oldHeader));
-  ret.push("+++ " + patch.newFileName + (typeof patch.newHeader === "undefined" ? "" : "	" + patch.newHeader));
-  for (let i = 0; i < patch.hunks.length; i++) {
-    const hunk = patch.hunks[i];
-    if (hunk.oldLines === 0) {
-      hunk.oldStart -= 1;
-    }
-    if (hunk.newLines === 0) {
-      hunk.newStart -= 1;
-    }
-    ret.push("@@ -" + hunk.oldStart + "," + hunk.oldLines + " +" + hunk.newStart + "," + hunk.newLines + " @@");
-    for (const line of hunk.lines) {
-      ret.push(line);
-    }
-  }
-  return ret.join("\n") + "\n";
-}
-function createTwoFilesPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options) {
-  if (typeof options === "function") {
-    options = { callback: options };
-  }
-  if (!(options === null || options === void 0 ? void 0 : options.callback)) {
-    const patchObj = structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options);
-    if (!patchObj) {
-      return;
-    }
-    return formatPatch(patchObj);
-  } else {
-    const { callback } = options;
-    structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, Object.assign(Object.assign({}, options), { callback: (patchObj) => {
-      if (!patchObj) {
-        callback(void 0);
-      } else {
-        callback(formatPatch(patchObj));
-      }
-    } }));
-  }
-}
-function splitLines(text) {
-  const hasTrailingNl = text.endsWith("\n");
-  const result = text.split("\n").map((line) => line + "\n");
-  if (hasTrailingNl) {
-    result.pop();
-  } else {
-    result.push(result.pop().slice(0, -1));
-  }
-  return result;
-}
+};
 
 // node_modules/diff2html/lib-esm/types.js
 var LineType;
@@ -4641,6 +10629,14 @@ function hashCode(text) {
     hash |= 0;
   }
   return hash;
+}
+function max(arr) {
+  const length = arr.length;
+  let max2 = -Infinity;
+  for (let i = 0; i < length; i++) {
+    max2 = Math.max(max2, arr[i]);
+  }
+  return max2;
 }
 
 // node_modules/diff2html/lib-esm/diff-parser.js
@@ -4935,76 +10931,74 @@ function parse(diffInput, config = {}) {
   return files;
 }
 
-// node_modules/diff2html/node_modules/diff/lib/index.mjs
-function Diff2() {
-}
-Diff2.prototype = {
-  diff: function diff(oldString, newString) {
-    var _options$timeout;
-    var options = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : {};
-    var callback = options.callback;
+// node_modules/diff2html/node_modules/diff/libesm/diff/base.js
+var Diff2 = class {
+  diff(oldStr, newStr, options = {}) {
+    let callback;
     if (typeof options === "function") {
       callback = options;
       options = {};
+    } else if ("callback" in options) {
+      callback = options.callback;
     }
-    var self2 = this;
-    function done(value) {
-      value = self2.postProcess(value, options);
+    const oldString = this.castInput(oldStr, options);
+    const newString = this.castInput(newStr, options);
+    const oldTokens = this.removeEmpty(this.tokenize(oldString, options));
+    const newTokens = this.removeEmpty(this.tokenize(newString, options));
+    return this.diffWithOptionsObj(oldTokens, newTokens, options, callback);
+  }
+  diffWithOptionsObj(oldTokens, newTokens, options, callback) {
+    var _a;
+    const done = (value) => {
+      value = this.postProcess(value, options);
       if (callback) {
         setTimeout(function() {
           callback(value);
         }, 0);
-        return true;
+        return void 0;
       } else {
         return value;
       }
-    }
-    oldString = this.castInput(oldString, options);
-    newString = this.castInput(newString, options);
-    oldString = this.removeEmpty(this.tokenize(oldString, options));
-    newString = this.removeEmpty(this.tokenize(newString, options));
-    var newLen = newString.length, oldLen = oldString.length;
-    var editLength = 1;
-    var maxEditLength = newLen + oldLen;
+    };
+    const newLen = newTokens.length, oldLen = oldTokens.length;
+    let editLength = 1;
+    let maxEditLength = newLen + oldLen;
     if (options.maxEditLength != null) {
       maxEditLength = Math.min(maxEditLength, options.maxEditLength);
     }
-    var maxExecutionTime = (_options$timeout = options.timeout) !== null && _options$timeout !== void 0 ? _options$timeout : Infinity;
-    var abortAfterTimestamp = Date.now() + maxExecutionTime;
-    var bestPath = [{
-      oldPos: -1,
-      lastComponent: void 0
-    }];
-    var newPos = this.extractCommon(bestPath[0], newString, oldString, 0, options);
+    const maxExecutionTime = (_a = options.timeout) !== null && _a !== void 0 ? _a : Infinity;
+    const abortAfterTimestamp = Date.now() + maxExecutionTime;
+    const bestPath = [{ oldPos: -1, lastComponent: void 0 }];
+    let newPos = this.extractCommon(bestPath[0], newTokens, oldTokens, 0, options);
     if (bestPath[0].oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
-      return done(buildValues(self2, bestPath[0].lastComponent, newString, oldString, self2.useLongestToken));
+      return done(this.buildValues(bestPath[0].lastComponent, newTokens, oldTokens));
     }
-    var minDiagonalToConsider = -Infinity, maxDiagonalToConsider = Infinity;
-    function execEditLength() {
-      for (var diagonalPath = Math.max(minDiagonalToConsider, -editLength); diagonalPath <= Math.min(maxDiagonalToConsider, editLength); diagonalPath += 2) {
-        var basePath = void 0;
-        var removePath = bestPath[diagonalPath - 1], addPath = bestPath[diagonalPath + 1];
+    let minDiagonalToConsider = -Infinity, maxDiagonalToConsider = Infinity;
+    const execEditLength = () => {
+      for (let diagonalPath = Math.max(minDiagonalToConsider, -editLength); diagonalPath <= Math.min(maxDiagonalToConsider, editLength); diagonalPath += 2) {
+        let basePath;
+        const removePath = bestPath[diagonalPath - 1], addPath = bestPath[diagonalPath + 1];
         if (removePath) {
           bestPath[diagonalPath - 1] = void 0;
         }
-        var canAdd = false;
+        let canAdd = false;
         if (addPath) {
-          var addPathNewPos = addPath.oldPos - diagonalPath;
+          const addPathNewPos = addPath.oldPos - diagonalPath;
           canAdd = addPath && 0 <= addPathNewPos && addPathNewPos < newLen;
         }
-        var canRemove = removePath && removePath.oldPos + 1 < oldLen;
+        const canRemove = removePath && removePath.oldPos + 1 < oldLen;
         if (!canAdd && !canRemove) {
           bestPath[diagonalPath] = void 0;
           continue;
         }
         if (!canRemove || canAdd && removePath.oldPos < addPath.oldPos) {
-          basePath = self2.addToPath(addPath, true, false, 0, options);
+          basePath = this.addToPath(addPath, true, false, 0, options);
         } else {
-          basePath = self2.addToPath(removePath, false, true, 1, options);
+          basePath = this.addToPath(removePath, false, true, 1, options);
         }
-        newPos = self2.extractCommon(basePath, newString, oldString, diagonalPath, options);
+        newPos = this.extractCommon(basePath, newTokens, oldTokens, diagonalPath, options);
         if (basePath.oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
-          return done(buildValues(self2, basePath.lastComponent, newString, oldString, self2.useLongestToken));
+          return done(this.buildValues(basePath.lastComponent, newTokens, oldTokens)) || true;
         } else {
           bestPath[diagonalPath] = basePath;
           if (basePath.oldPos + 1 >= oldLen) {
@@ -5016,12 +11010,12 @@ Diff2.prototype = {
         }
       }
       editLength++;
-    }
+    };
     if (callback) {
       (function exec() {
         setTimeout(function() {
           if (editLength > maxEditLength || Date.now() > abortAfterTimestamp) {
-            return callback();
+            return callback(void 0);
           }
           if (!execEditLength()) {
             exec();
@@ -5030,133 +11024,126 @@ Diff2.prototype = {
       })();
     } else {
       while (editLength <= maxEditLength && Date.now() <= abortAfterTimestamp) {
-        var ret = execEditLength();
+        const ret = execEditLength();
         if (ret) {
           return ret;
         }
       }
     }
-  },
-  addToPath: function addToPath(path, added, removed, oldPosInc, options) {
-    var last = path.lastComponent;
+  }
+  addToPath(path, added, removed, oldPosInc, options) {
+    const last = path.lastComponent;
     if (last && !options.oneChangePerToken && last.added === added && last.removed === removed) {
       return {
         oldPos: path.oldPos + oldPosInc,
-        lastComponent: {
-          count: last.count + 1,
-          added,
-          removed,
-          previousComponent: last.previousComponent
-        }
+        lastComponent: { count: last.count + 1, added, removed, previousComponent: last.previousComponent }
       };
     } else {
       return {
         oldPos: path.oldPos + oldPosInc,
-        lastComponent: {
-          count: 1,
-          added,
-          removed,
-          previousComponent: last
-        }
+        lastComponent: { count: 1, added, removed, previousComponent: last }
       };
     }
-  },
-  extractCommon: function extractCommon(basePath, newString, oldString, diagonalPath, options) {
-    var newLen = newString.length, oldLen = oldString.length, oldPos = basePath.oldPos, newPos = oldPos - diagonalPath, commonCount = 0;
-    while (newPos + 1 < newLen && oldPos + 1 < oldLen && this.equals(oldString[oldPos + 1], newString[newPos + 1], options)) {
+  }
+  extractCommon(basePath, newTokens, oldTokens, diagonalPath, options) {
+    const newLen = newTokens.length, oldLen = oldTokens.length;
+    let oldPos = basePath.oldPos, newPos = oldPos - diagonalPath, commonCount = 0;
+    while (newPos + 1 < newLen && oldPos + 1 < oldLen && this.equals(oldTokens[oldPos + 1], newTokens[newPos + 1], options)) {
       newPos++;
       oldPos++;
       commonCount++;
       if (options.oneChangePerToken) {
-        basePath.lastComponent = {
-          count: 1,
-          previousComponent: basePath.lastComponent,
-          added: false,
-          removed: false
-        };
+        basePath.lastComponent = { count: 1, previousComponent: basePath.lastComponent, added: false, removed: false };
       }
     }
     if (commonCount && !options.oneChangePerToken) {
-      basePath.lastComponent = {
-        count: commonCount,
-        previousComponent: basePath.lastComponent,
-        added: false,
-        removed: false
-      };
+      basePath.lastComponent = { count: commonCount, previousComponent: basePath.lastComponent, added: false, removed: false };
     }
     basePath.oldPos = oldPos;
     return newPos;
-  },
-  equals: function equals(left, right, options) {
+  }
+  equals(left, right, options) {
     if (options.comparator) {
       return options.comparator(left, right);
     } else {
-      return left === right || options.ignoreCase && left.toLowerCase() === right.toLowerCase();
+      return left === right || !!options.ignoreCase && left.toLowerCase() === right.toLowerCase();
     }
-  },
-  removeEmpty: function removeEmpty(array) {
-    var ret = [];
-    for (var i = 0; i < array.length; i++) {
+  }
+  removeEmpty(array) {
+    const ret = [];
+    for (let i = 0; i < array.length; i++) {
       if (array[i]) {
         ret.push(array[i]);
       }
     }
     return ret;
-  },
-  castInput: function castInput(value) {
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  castInput(value, options) {
     return value;
-  },
-  tokenize: function tokenize2(value) {
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  tokenize(value, options) {
     return Array.from(value);
-  },
-  join: function join(chars) {
+  }
+  join(chars) {
     return chars.join("");
-  },
-  postProcess: function postProcess(changeObjects) {
+  }
+  postProcess(changeObjects, options) {
     return changeObjects;
   }
-};
-function buildValues(diff2, lastComponent, newString, oldString, useLongestToken) {
-  var components = [];
-  var nextComponent;
-  while (lastComponent) {
-    components.push(lastComponent);
-    nextComponent = lastComponent.previousComponent;
-    delete lastComponent.previousComponent;
-    lastComponent = nextComponent;
+  get useLongestToken() {
+    return false;
   }
-  components.reverse();
-  var componentPos = 0, componentLen = components.length, newPos = 0, oldPos = 0;
-  for (; componentPos < componentLen; componentPos++) {
-    var component = components[componentPos];
-    if (!component.removed) {
-      if (!component.added && useLongestToken) {
-        var value = newString.slice(newPos, newPos + component.count);
-        value = value.map(function(value2, i) {
-          var oldValue = oldString[oldPos + i];
-          return oldValue.length > value2.length ? oldValue : value2;
-        });
-        component.value = diff2.join(value);
+  buildValues(lastComponent, newTokens, oldTokens) {
+    const components = [];
+    let nextComponent;
+    while (lastComponent) {
+      components.push(lastComponent);
+      nextComponent = lastComponent.previousComponent;
+      delete lastComponent.previousComponent;
+      lastComponent = nextComponent;
+    }
+    components.reverse();
+    const componentLen = components.length;
+    let componentPos = 0, newPos = 0, oldPos = 0;
+    for (; componentPos < componentLen; componentPos++) {
+      const component = components[componentPos];
+      if (!component.removed) {
+        if (!component.added && this.useLongestToken) {
+          let value = newTokens.slice(newPos, newPos + component.count);
+          value = value.map(function(value2, i) {
+            const oldValue = oldTokens[oldPos + i];
+            return oldValue.length > value2.length ? oldValue : value2;
+          });
+          component.value = this.join(value);
+        } else {
+          component.value = this.join(newTokens.slice(newPos, newPos + component.count));
+        }
+        newPos += component.count;
+        if (!component.added) {
+          oldPos += component.count;
+        }
       } else {
-        component.value = diff2.join(newString.slice(newPos, newPos + component.count));
-      }
-      newPos += component.count;
-      if (!component.added) {
+        component.value = this.join(oldTokens.slice(oldPos, oldPos + component.count));
         oldPos += component.count;
       }
-    } else {
-      component.value = diff2.join(oldString.slice(oldPos, oldPos + component.count));
-      oldPos += component.count;
     }
+    return components;
   }
-  return components;
-}
-var characterDiff = new Diff2();
+};
+
+// node_modules/diff2html/node_modules/diff/libesm/diff/character.js
+var CharacterDiff = class extends Diff2 {
+};
+var characterDiff = new CharacterDiff();
 function diffChars(oldStr, newStr, options) {
   return characterDiff.diff(oldStr, newStr, options);
 }
-function longestCommonPrefix(str1, str2) {
-  var i;
+
+// node_modules/diff2html/node_modules/diff/libesm/util/string.js
+function longestCommonPrefix2(str1, str2) {
+  let i;
   for (i = 0; i < str1.length && i < str2.length; i++) {
     if (str1[i] != str2[i]) {
       return str1.slice(0, i);
@@ -5164,8 +11151,8 @@ function longestCommonPrefix(str1, str2) {
   }
   return str1.slice(0, i);
 }
-function longestCommonSuffix(str1, str2) {
-  var i;
+function longestCommonSuffix2(str1, str2) {
+  let i;
   if (!str1 || !str2 || str1[str1.length - 1] != str2[str2.length - 1]) {
     return "";
   }
@@ -5176,43 +11163,43 @@ function longestCommonSuffix(str1, str2) {
   }
   return str1.slice(-i);
 }
-function replacePrefix(string, oldPrefix, newPrefix) {
+function replacePrefix2(string, oldPrefix, newPrefix) {
   if (string.slice(0, oldPrefix.length) != oldPrefix) {
-    throw Error("string ".concat(JSON.stringify(string), " doesn't start with prefix ").concat(JSON.stringify(oldPrefix), "; this is a bug"));
+    throw Error(`string ${JSON.stringify(string)} doesn't start with prefix ${JSON.stringify(oldPrefix)}; this is a bug`);
   }
   return newPrefix + string.slice(oldPrefix.length);
 }
-function replaceSuffix(string, oldSuffix, newSuffix) {
+function replaceSuffix2(string, oldSuffix, newSuffix) {
   if (!oldSuffix) {
     return string + newSuffix;
   }
   if (string.slice(-oldSuffix.length) != oldSuffix) {
-    throw Error("string ".concat(JSON.stringify(string), " doesn't end with suffix ").concat(JSON.stringify(oldSuffix), "; this is a bug"));
+    throw Error(`string ${JSON.stringify(string)} doesn't end with suffix ${JSON.stringify(oldSuffix)}; this is a bug`);
   }
   return string.slice(0, -oldSuffix.length) + newSuffix;
 }
-function removePrefix(string, oldPrefix) {
-  return replacePrefix(string, oldPrefix, "");
+function removePrefix2(string, oldPrefix) {
+  return replacePrefix2(string, oldPrefix, "");
 }
-function removeSuffix(string, oldSuffix) {
-  return replaceSuffix(string, oldSuffix, "");
+function removeSuffix2(string, oldSuffix) {
+  return replaceSuffix2(string, oldSuffix, "");
 }
-function maximumOverlap(string1, string2) {
-  return string2.slice(0, overlapCount(string1, string2));
+function maximumOverlap2(string1, string2) {
+  return string2.slice(0, overlapCount2(string1, string2));
 }
-function overlapCount(a, b) {
-  var startA = 0;
+function overlapCount2(a, b) {
+  let startA = 0;
   if (a.length > b.length) {
     startA = a.length - b.length;
   }
-  var endB = b.length;
+  let endB = b.length;
   if (a.length < b.length) {
     endB = a.length;
   }
-  var map = Array(endB);
-  var k = 0;
+  const map = Array(endB);
+  let k = 0;
   map[0] = 0;
-  for (var j = 1; j < endB; j++) {
+  for (let j = 1; j < endB; j++) {
     if (b[j] == b[k]) {
       map[j] = map[k];
     } else {
@@ -5226,7 +11213,7 @@ function overlapCount(a, b) {
     }
   }
   k = 0;
-  for (var i = startA; i < a.length; i++) {
+  for (let i = startA; i < a.length; i++) {
     while (k > 0 && a[i] != b[k]) {
       k = map[k];
     }
@@ -5236,260 +11223,188 @@ function overlapCount(a, b) {
   }
   return k;
 }
-var extendedWordChars = "a-zA-Z0-9_\\u{C0}-\\u{FF}\\u{D8}-\\u{F6}\\u{F8}-\\u{2C6}\\u{2C8}-\\u{2D7}\\u{2DE}-\\u{2FF}\\u{1E00}-\\u{1EFF}";
-var tokenizeIncludingWhitespace = new RegExp("[".concat(extendedWordChars, "]+|\\s+|[^").concat(extendedWordChars, "]"), "ug");
-var wordDiff = new Diff2();
-wordDiff.equals = function(left, right, options) {
-  if (options.ignoreCase) {
-    left = left.toLowerCase();
-    right = right.toLowerCase();
-  }
-  return left.trim() === right.trim();
-};
-wordDiff.tokenize = function(value) {
-  var options = arguments.length > 1 && arguments[1] !== void 0 ? arguments[1] : {};
-  var parts;
-  if (options.intlSegmenter) {
-    if (options.intlSegmenter.resolvedOptions().granularity != "word") {
-      throw new Error('The segmenter passed must have a granularity of "word"');
+function segment2(string, segmenter) {
+  const parts = [];
+  for (const segmentObj of Array.from(segmenter.segment(string))) {
+    const segment3 = segmentObj.segment;
+    if (parts.length && /\s/.test(parts[parts.length - 1]) && /\s/.test(segment3)) {
+      parts[parts.length - 1] += segment3;
+    } else {
+      parts.push(segment3);
     }
-    parts = Array.from(options.intlSegmenter.segment(value), function(segment) {
-      return segment.segment;
-    });
-  } else {
-    parts = value.match(tokenizeIncludingWhitespace) || [];
   }
-  var tokens = [];
-  var prevPart = null;
-  parts.forEach(function(part) {
-    if (/\s/.test(part)) {
-      if (prevPart == null) {
+  return parts;
+}
+function trailingWs2(string, segmenter) {
+  if (segmenter) {
+    return leadingAndTrailingWs2(string, segmenter)[1];
+  }
+  let i;
+  for (i = string.length - 1; i >= 0; i--) {
+    if (!string[i].match(/\s/)) {
+      break;
+    }
+  }
+  return string.substring(i + 1);
+}
+function leadingWs2(string, segmenter) {
+  if (segmenter) {
+    return leadingAndTrailingWs2(string, segmenter)[0];
+  }
+  const match = string.match(/^\s*/);
+  return match ? match[0] : "";
+}
+function leadingAndTrailingWs2(string, segmenter) {
+  if (!segmenter) {
+    return [leadingWs2(string), trailingWs2(string)];
+  }
+  if (segmenter.resolvedOptions().granularity != "word") {
+    throw new Error('The segmenter passed must have a granularity of "word"');
+  }
+  const segments = segment2(string, segmenter);
+  const firstSeg = segments[0];
+  const lastSeg = segments[segments.length - 1];
+  const head = /\s/.test(firstSeg) ? firstSeg : "";
+  const tail = /\s/.test(lastSeg) ? lastSeg : "";
+  return [head, tail];
+}
+
+// node_modules/diff2html/node_modules/diff/libesm/diff/word.js
+var extendedWordChars2 = "a-zA-Z0-9_\\u{AD}\\u{C0}-\\u{D6}\\u{D8}-\\u{F6}\\u{F8}-\\u{2C6}\\u{2C8}-\\u{2D7}\\u{2DE}-\\u{2FF}\\u{1E00}-\\u{1EFF}";
+var tokenizeIncludingWhitespace2 = new RegExp(`[${extendedWordChars2}]+|\\s+|[^${extendedWordChars2}]`, "ug");
+var WordDiff2 = class extends Diff2 {
+  equals(left, right, options) {
+    if (options.ignoreCase) {
+      left = left.toLowerCase();
+      right = right.toLowerCase();
+    }
+    return left.trim() === right.trim();
+  }
+  tokenize(value, options = {}) {
+    let parts;
+    if (options.intlSegmenter) {
+      const segmenter = options.intlSegmenter;
+      if (segmenter.resolvedOptions().granularity != "word") {
+        throw new Error('The segmenter passed must have a granularity of "word"');
+      }
+      parts = segment2(value, segmenter);
+    } else {
+      parts = value.match(tokenizeIncludingWhitespace2) || [];
+    }
+    const tokens = [];
+    let prevPart = null;
+    parts.forEach((part) => {
+      if (/\s/.test(part)) {
+        if (prevPart == null) {
+          tokens.push(part);
+        } else {
+          tokens.push(tokens.pop() + part);
+        }
+      } else if (prevPart != null && /\s/.test(prevPart)) {
+        if (tokens[tokens.length - 1] == prevPart) {
+          tokens.push(tokens.pop() + part);
+        } else {
+          tokens.push(prevPart + part);
+        }
+      } else {
         tokens.push(part);
-      } else {
-        tokens.push(tokens.pop() + part);
       }
-    } else if (/\s/.test(prevPart)) {
-      if (tokens[tokens.length - 1] == prevPart) {
-        tokens.push(tokens.pop() + part);
+      prevPart = part;
+    });
+    return tokens;
+  }
+  join(tokens) {
+    return tokens.map((token, i) => {
+      if (i == 0) {
+        return token;
       } else {
-        tokens.push(prevPart + part);
+        return token.replace(/^\s+/, "");
       }
-    } else {
-      tokens.push(part);
+    }).join("");
+  }
+  postProcess(changes, options) {
+    if (!changes || options.oneChangePerToken) {
+      return changes;
     }
-    prevPart = part;
-  });
-  return tokens;
-};
-wordDiff.join = function(tokens) {
-  return tokens.map(function(token, i) {
-    if (i == 0) {
-      return token;
-    } else {
-      return token.replace(/^\s+/, "");
+    let lastKeep = null;
+    let insertion = null;
+    let deletion = null;
+    changes.forEach((change) => {
+      if (change.added) {
+        insertion = change;
+      } else if (change.removed) {
+        deletion = change;
+      } else {
+        if (insertion || deletion) {
+          dedupeWhitespaceInChangeObjects2(lastKeep, deletion, insertion, change, options.intlSegmenter);
+        }
+        lastKeep = change;
+        insertion = null;
+        deletion = null;
+      }
+    });
+    if (insertion || deletion) {
+      dedupeWhitespaceInChangeObjects2(lastKeep, deletion, insertion, null, options.intlSegmenter);
     }
-  }).join("");
-};
-wordDiff.postProcess = function(changes, options) {
-  if (!changes || options.oneChangePerToken) {
     return changes;
   }
-  var lastKeep = null;
-  var insertion = null;
-  var deletion = null;
-  changes.forEach(function(change) {
-    if (change.added) {
-      insertion = change;
-    } else if (change.removed) {
-      deletion = change;
-    } else {
-      if (insertion || deletion) {
-        dedupeWhitespaceInChangeObjects(lastKeep, deletion, insertion, change);
-      }
-      lastKeep = change;
-      insertion = null;
-      deletion = null;
-    }
-  });
-  if (insertion || deletion) {
-    dedupeWhitespaceInChangeObjects(lastKeep, deletion, insertion, null);
-  }
-  return changes;
 };
-function dedupeWhitespaceInChangeObjects(startKeep, deletion, insertion, endKeep) {
+var wordDiff2 = new WordDiff2();
+function dedupeWhitespaceInChangeObjects2(startKeep, deletion, insertion, endKeep, segmenter) {
   if (deletion && insertion) {
-    var oldWsPrefix = deletion.value.match(/^\s*/)[0];
-    var oldWsSuffix = deletion.value.match(/\s*$/)[0];
-    var newWsPrefix = insertion.value.match(/^\s*/)[0];
-    var newWsSuffix = insertion.value.match(/\s*$/)[0];
+    const [oldWsPrefix, oldWsSuffix] = leadingAndTrailingWs2(deletion.value, segmenter);
+    const [newWsPrefix, newWsSuffix] = leadingAndTrailingWs2(insertion.value, segmenter);
     if (startKeep) {
-      var commonWsPrefix = longestCommonPrefix(oldWsPrefix, newWsPrefix);
-      startKeep.value = replaceSuffix(startKeep.value, newWsPrefix, commonWsPrefix);
-      deletion.value = removePrefix(deletion.value, commonWsPrefix);
-      insertion.value = removePrefix(insertion.value, commonWsPrefix);
+      const commonWsPrefix = longestCommonPrefix2(oldWsPrefix, newWsPrefix);
+      startKeep.value = replaceSuffix2(startKeep.value, newWsPrefix, commonWsPrefix);
+      deletion.value = removePrefix2(deletion.value, commonWsPrefix);
+      insertion.value = removePrefix2(insertion.value, commonWsPrefix);
     }
     if (endKeep) {
-      var commonWsSuffix = longestCommonSuffix(oldWsSuffix, newWsSuffix);
-      endKeep.value = replacePrefix(endKeep.value, newWsSuffix, commonWsSuffix);
-      deletion.value = removeSuffix(deletion.value, commonWsSuffix);
-      insertion.value = removeSuffix(insertion.value, commonWsSuffix);
+      const commonWsSuffix = longestCommonSuffix2(oldWsSuffix, newWsSuffix);
+      endKeep.value = replacePrefix2(endKeep.value, newWsSuffix, commonWsSuffix);
+      deletion.value = removeSuffix2(deletion.value, commonWsSuffix);
+      insertion.value = removeSuffix2(insertion.value, commonWsSuffix);
     }
   } else if (insertion) {
     if (startKeep) {
-      insertion.value = insertion.value.replace(/^\s*/, "");
+      const ws = leadingWs2(insertion.value, segmenter);
+      insertion.value = insertion.value.substring(ws.length);
     }
     if (endKeep) {
-      endKeep.value = endKeep.value.replace(/^\s*/, "");
+      const ws = leadingWs2(endKeep.value, segmenter);
+      endKeep.value = endKeep.value.substring(ws.length);
     }
   } else if (startKeep && endKeep) {
-    var newWsFull = endKeep.value.match(/^\s*/)[0], delWsStart = deletion.value.match(/^\s*/)[0], delWsEnd = deletion.value.match(/\s*$/)[0];
-    var newWsStart = longestCommonPrefix(newWsFull, delWsStart);
-    deletion.value = removePrefix(deletion.value, newWsStart);
-    var newWsEnd = longestCommonSuffix(removePrefix(newWsFull, newWsStart), delWsEnd);
-    deletion.value = removeSuffix(deletion.value, newWsEnd);
-    endKeep.value = replacePrefix(endKeep.value, newWsFull, newWsEnd);
-    startKeep.value = replaceSuffix(startKeep.value, newWsFull, newWsFull.slice(0, newWsFull.length - newWsEnd.length));
+    const newWsFull = leadingWs2(endKeep.value, segmenter), [delWsStart, delWsEnd] = leadingAndTrailingWs2(deletion.value, segmenter);
+    const newWsStart = longestCommonPrefix2(newWsFull, delWsStart);
+    deletion.value = removePrefix2(deletion.value, newWsStart);
+    const newWsEnd = longestCommonSuffix2(removePrefix2(newWsFull, newWsStart), delWsEnd);
+    deletion.value = removeSuffix2(deletion.value, newWsEnd);
+    endKeep.value = replacePrefix2(endKeep.value, newWsFull, newWsEnd);
+    startKeep.value = replaceSuffix2(startKeep.value, newWsFull, newWsFull.slice(0, newWsFull.length - newWsEnd.length));
   } else if (endKeep) {
-    var endKeepWsPrefix = endKeep.value.match(/^\s*/)[0];
-    var deletionWsSuffix = deletion.value.match(/\s*$/)[0];
-    var overlap = maximumOverlap(deletionWsSuffix, endKeepWsPrefix);
-    deletion.value = removeSuffix(deletion.value, overlap);
+    const endKeepWsPrefix = leadingWs2(endKeep.value, segmenter);
+    const deletionWsSuffix = trailingWs2(deletion.value, segmenter);
+    const overlap = maximumOverlap2(deletionWsSuffix, endKeepWsPrefix);
+    deletion.value = removeSuffix2(deletion.value, overlap);
   } else if (startKeep) {
-    var startKeepWsSuffix = startKeep.value.match(/\s*$/)[0];
-    var deletionWsPrefix = deletion.value.match(/^\s*/)[0];
-    var _overlap = maximumOverlap(startKeepWsSuffix, deletionWsPrefix);
-    deletion.value = removePrefix(deletion.value, _overlap);
+    const startKeepWsSuffix = trailingWs2(startKeep.value, segmenter);
+    const deletionWsPrefix = leadingWs2(deletion.value, segmenter);
+    const overlap = maximumOverlap2(startKeepWsSuffix, deletionWsPrefix);
+    deletion.value = removePrefix2(deletion.value, overlap);
   }
 }
-var wordWithSpaceDiff = new Diff2();
-wordWithSpaceDiff.tokenize = function(value) {
-  var regex2 = new RegExp("(\\r?\\n)|[".concat(extendedWordChars, "]+|[^\\S\\n\\r]+|[^").concat(extendedWordChars, "]"), "ug");
-  return value.match(regex2) || [];
+var WordsWithSpaceDiff2 = class extends Diff2 {
+  tokenize(value) {
+    const regex2 = new RegExp(`(\\r?\\n)|[${extendedWordChars2}]+|[^\\S\\n\\r]+|[^${extendedWordChars2}]`, "ug");
+    return value.match(regex2) || [];
+  }
 };
-function diffWordsWithSpace(oldStr, newStr, options) {
-  return wordWithSpaceDiff.diff(oldStr, newStr, options);
+var wordsWithSpaceDiff2 = new WordsWithSpaceDiff2();
+function diffWordsWithSpace2(oldStr, newStr, options) {
+  return wordsWithSpaceDiff2.diff(oldStr, newStr, options);
 }
-var lineDiff2 = new Diff2();
-lineDiff2.tokenize = function(value, options) {
-  if (options.stripTrailingCr) {
-    value = value.replace(/\r\n/g, "\n");
-  }
-  var retLines = [], linesAndNewlines = value.split(/(\n|\r\n)/);
-  if (!linesAndNewlines[linesAndNewlines.length - 1]) {
-    linesAndNewlines.pop();
-  }
-  for (var i = 0; i < linesAndNewlines.length; i++) {
-    var line = linesAndNewlines[i];
-    if (i % 2 && !options.newlineIsToken) {
-      retLines[retLines.length - 1] += line;
-    } else {
-      retLines.push(line);
-    }
-  }
-  return retLines;
-};
-lineDiff2.equals = function(left, right, options) {
-  if (options.ignoreWhitespace) {
-    if (!options.newlineIsToken || !left.includes("\n")) {
-      left = left.trim();
-    }
-    if (!options.newlineIsToken || !right.includes("\n")) {
-      right = right.trim();
-    }
-  } else if (options.ignoreNewlineAtEof && !options.newlineIsToken) {
-    if (left.endsWith("\n")) {
-      left = left.slice(0, -1);
-    }
-    if (right.endsWith("\n")) {
-      right = right.slice(0, -1);
-    }
-  }
-  return Diff2.prototype.equals.call(this, left, right, options);
-};
-var sentenceDiff = new Diff2();
-sentenceDiff.tokenize = function(value) {
-  return value.split(/(\S.+?[.!?])(?=\s+|$)/);
-};
-var cssDiff = new Diff2();
-cssDiff.tokenize = function(value) {
-  return value.split(/([{}:;,]|\s+)/);
-};
-function _typeof(o) {
-  "@babel/helpers - typeof";
-  return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function(o2) {
-    return typeof o2;
-  } : function(o2) {
-    return o2 && "function" == typeof Symbol && o2.constructor === Symbol && o2 !== Symbol.prototype ? "symbol" : typeof o2;
-  }, _typeof(o);
-}
-var jsonDiff = new Diff2();
-jsonDiff.useLongestToken = true;
-jsonDiff.tokenize = lineDiff2.tokenize;
-jsonDiff.castInput = function(value, options) {
-  var undefinedReplacement = options.undefinedReplacement, _options$stringifyRep = options.stringifyReplacer, stringifyReplacer = _options$stringifyRep === void 0 ? function(k, v) {
-    return typeof v === "undefined" ? undefinedReplacement : v;
-  } : _options$stringifyRep;
-  return typeof value === "string" ? value : JSON.stringify(canonicalize(value, null, null, stringifyReplacer), stringifyReplacer, "  ");
-};
-jsonDiff.equals = function(left, right, options) {
-  return Diff2.prototype.equals.call(jsonDiff, left.replace(/,([\r\n])/g, "$1"), right.replace(/,([\r\n])/g, "$1"), options);
-};
-function canonicalize(obj, stack, replacementStack, replacer, key2) {
-  stack = stack || [];
-  replacementStack = replacementStack || [];
-  if (replacer) {
-    obj = replacer(key2, obj);
-  }
-  var i;
-  for (i = 0; i < stack.length; i += 1) {
-    if (stack[i] === obj) {
-      return replacementStack[i];
-    }
-  }
-  var canonicalizedObj;
-  if ("[object Array]" === Object.prototype.toString.call(obj)) {
-    stack.push(obj);
-    canonicalizedObj = new Array(obj.length);
-    replacementStack.push(canonicalizedObj);
-    for (i = 0; i < obj.length; i += 1) {
-      canonicalizedObj[i] = canonicalize(obj[i], stack, replacementStack, replacer, key2);
-    }
-    stack.pop();
-    replacementStack.pop();
-    return canonicalizedObj;
-  }
-  if (obj && obj.toJSON) {
-    obj = obj.toJSON();
-  }
-  if (_typeof(obj) === "object" && obj !== null) {
-    stack.push(obj);
-    canonicalizedObj = {};
-    replacementStack.push(canonicalizedObj);
-    var sortedKeys = [], _key;
-    for (_key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, _key)) {
-        sortedKeys.push(_key);
-      }
-    }
-    sortedKeys.sort();
-    for (i = 0; i < sortedKeys.length; i += 1) {
-      _key = sortedKeys[i];
-      canonicalizedObj[_key] = canonicalize(obj[_key], stack, replacementStack, replacer, _key);
-    }
-    stack.pop();
-    replacementStack.pop();
-  } else {
-    canonicalizedObj = obj;
-  }
-  return canonicalizedObj;
-}
-var arrayDiff = new Diff2();
-arrayDiff.tokenize = function(value) {
-  return value.slice();
-};
-arrayDiff.join = arrayDiff.removeEmpty = function(value) {
-  return value;
-};
 
 // node_modules/diff2html/lib-esm/rematch.js
 function levenshtein(a, b) {
@@ -5719,11 +11634,11 @@ function diffHighlight(diffLine1, diffLine2, isCombined, config = {}) {
       }
     };
   }
-  const diff2 = diffStyle === "char" ? diffChars(line1.content, line2.content) : diffWordsWithSpace(line1.content, line2.content);
+  const diff = diffStyle === "char" ? diffChars(line1.content, line2.content) : diffWordsWithSpace2(line1.content, line2.content);
   const changedWords = [];
   if (diffStyle === "word" && matching === "words") {
-    const removed = diff2.filter((element) => element.removed);
-    const added = diff2.filter((element) => element.added);
+    const removed = diff.filter((element) => element.removed);
+    const added = diff.filter((element) => element.added);
     const chunks = matcher(added, removed);
     chunks.forEach((chunk) => {
       if (chunk[0].length === 1 && chunk[1].length === 1) {
@@ -5735,7 +11650,7 @@ function diffHighlight(diffLine1, diffLine2, isCombined, config = {}) {
       }
     });
   }
-  const highlightedLine = diff2.reduce((highlightedLine2, part) => {
+  const highlightedLine = diff.reduce((highlightedLine2, part) => {
     const elemType = part.added ? "ins" : part.removed ? "del" : null;
     const addClass = changedWords.indexOf(part) > -1 ? ' class="d2h-change"' : "";
     const escapedValue = escapeForHtml(part.value);
@@ -5902,7 +11817,7 @@ var LineByLineRenderer = class {
   }
   applyRematchMatching(oldLines, newLines, matcher2) {
     const comparisons = oldLines.length * newLines.length;
-    const maxLineSizeInBlock = Math.max.apply(null, [0].concat(oldLines.concat(newLines).map((elem) => elem.content.length)));
+    const maxLineSizeInBlock = max(oldLines.concat(newLines).map((elem) => elem.content.length));
     const doMatching = comparisons < this.config.matchingMaxComparisons && maxLineSizeInBlock < this.config.maxLineSizeInBlockForComparison && (this.config.matching === "lines" || this.config.matching === "words");
     return doMatching ? matcher2(oldLines, newLines) : [[oldLines, newLines]];
   }
@@ -5915,15 +11830,15 @@ var LineByLineRenderer = class {
     for (let i = 0; i < maxLinesNumber; i++) {
       const oldLine = oldLines[i];
       const newLine = newLines[i];
-      const diff2 = oldLine !== void 0 && newLine !== void 0 ? diffHighlight(oldLine.content, newLine.content, isCombined, this.config) : void 0;
-      const preparedOldLine = oldLine !== void 0 && oldLine.oldNumber !== void 0 ? Object.assign(Object.assign({}, diff2 !== void 0 ? {
-        prefix: diff2.oldLine.prefix,
-        content: diff2.oldLine.content,
+      const diff = oldLine !== void 0 && newLine !== void 0 ? diffHighlight(oldLine.content, newLine.content, isCombined, this.config) : void 0;
+      const preparedOldLine = oldLine !== void 0 && oldLine.oldNumber !== void 0 ? Object.assign(Object.assign({}, diff !== void 0 ? {
+        prefix: diff.oldLine.prefix,
+        content: diff.oldLine.content,
         type: CSSLineClass.DELETE_CHANGES
       } : Object.assign(Object.assign({}, deconstructLine(oldLine.content, isCombined)), { type: toCSSClass(oldLine.type) })), { oldNumber: oldLine.oldNumber, newNumber: oldLine.newNumber }) : void 0;
-      const preparedNewLine = newLine !== void 0 && newLine.newNumber !== void 0 ? Object.assign(Object.assign({}, diff2 !== void 0 ? {
-        prefix: diff2.newLine.prefix,
-        content: diff2.newLine.content,
+      const preparedNewLine = newLine !== void 0 && newLine.newNumber !== void 0 ? Object.assign(Object.assign({}, diff !== void 0 ? {
+        prefix: diff.newLine.prefix,
+        content: diff.newLine.content,
         type: CSSLineClass.INSERT_CHANGES
       } : Object.assign(Object.assign({}, deconstructLine(newLine.content, isCombined)), { type: toCSSClass(newLine.type) })), { oldNumber: newLine.oldNumber, newNumber: newLine.newNumber }) : void 0;
       const { left, right } = this.generateLineHtml(file, preparedOldLine, preparedNewLine);
@@ -6086,7 +12001,7 @@ var SideBySideRenderer = class {
   }
   applyRematchMatching(oldLines, newLines, matcher2) {
     const comparisons = oldLines.length * newLines.length;
-    const maxLineSizeInBlock = Math.max.apply(null, [0].concat(oldLines.concat(newLines).map((elem) => elem.content.length)));
+    const maxLineSizeInBlock = max(oldLines.concat(newLines).map((elem) => elem.content.length));
     const doMatching = comparisons < this.config.matchingMaxComparisons && maxLineSizeInBlock < this.config.maxLineSizeInBlockForComparison && (this.config.matching === "lines" || this.config.matching === "words");
     return doMatching ? matcher2(oldLines, newLines) : [[oldLines, newLines]];
   }
@@ -6107,15 +12022,15 @@ var SideBySideRenderer = class {
     for (let i = 0; i < maxLinesNumber; i++) {
       const oldLine = oldLines[i];
       const newLine = newLines[i];
-      const diff2 = oldLine !== void 0 && newLine !== void 0 ? diffHighlight(oldLine.content, newLine.content, isCombined, this.config) : void 0;
-      const preparedOldLine = oldLine !== void 0 && oldLine.oldNumber !== void 0 ? Object.assign(Object.assign({}, diff2 !== void 0 ? {
-        prefix: diff2.oldLine.prefix,
-        content: diff2.oldLine.content,
+      const diff = oldLine !== void 0 && newLine !== void 0 ? diffHighlight(oldLine.content, newLine.content, isCombined, this.config) : void 0;
+      const preparedOldLine = oldLine !== void 0 && oldLine.oldNumber !== void 0 ? Object.assign(Object.assign({}, diff !== void 0 ? {
+        prefix: diff.oldLine.prefix,
+        content: diff.oldLine.content,
         type: CSSLineClass.DELETE_CHANGES
       } : Object.assign(Object.assign({}, deconstructLine(oldLine.content, isCombined)), { type: toCSSClass(oldLine.type) })), { number: oldLine.oldNumber }) : void 0;
-      const preparedNewLine = newLine !== void 0 && newLine.newNumber !== void 0 ? Object.assign(Object.assign({}, diff2 !== void 0 ? {
-        prefix: diff2.newLine.prefix,
-        content: diff2.newLine.content,
+      const preparedNewLine = newLine !== void 0 && newLine.newNumber !== void 0 ? Object.assign(Object.assign({}, diff !== void 0 ? {
+        prefix: diff.newLine.prefix,
+        content: diff.newLine.content,
         type: CSSLineClass.INSERT_CHANGES
       } : Object.assign(Object.assign({}, deconstructLine(newLine.content, isCombined)), { type: toCSSClass(newLine.type) })), { number: newLine.newNumber }) : void 0;
       const { left, right } = this.generateLineHtml(preparedOldLine, preparedNewLine);
@@ -6598,8 +12513,9 @@ function html(diffInput, configuration = {}) {
 }
 
 // src/modals/history.modal.ts
-var import_obsidian8 = require("obsidian");
-var HistoryModal = class extends import_obsidian8.Modal {
+var import_obsidian13 = require("obsidian");
+var ORIGINAL_BASE_ID = "original";
+var HistoryModal = class extends import_obsidian13.Modal {
   /**
    * Creates a new instance of HistoryModal.
    *
@@ -6613,8 +12529,20 @@ var HistoryModal = class extends import_obsidian8.Modal {
     this.plugin = plugin;
     this.snapshot = snapshot;
     /**
+     * Id of the currently selected diff base. Defaults to the original baseline;
+     * may be set to an intermediate version's id to diff the current state against
+     * that earlier point instead.
+     */
+    this.selectedBaseId = ORIGINAL_BASE_ID;
+    /**
+     * Current content-search query for the version rail. An empty string shows
+     * every version; a non-empty query keeps only versions whose captured content
+     * contains it (case-insensitive). It never affects the selected diff base.
+     */
+    this.searchQuery = "";
+    /**
      * The current display mode for the diff view.
-     * Can be 'patch', 'line-by-line', or 'side-by-side'.
+     * Can be 'patch', 'inline', 'line-by-line', or 'side-by-side'.
      * Defaults to 'side-by-side'.
      */
     this.currentDisplayMode = "side-by-side";
@@ -6623,7 +12551,18 @@ var HistoryModal = class extends import_obsidian8.Modal {
      * Used to update the active state when switching between diff modes.
      */
     this.modeButtons = {};
-    this.diffContainerEl = this.contentEl.createDiv("diff-container");
+    /**
+     * References to the next/previous difference navigation buttons, kept so they
+     * can be disabled when the current diff has no hunks to walk.
+     */
+    this.navButtons = {};
+    /**
+     * Index of the difference currently focused by the next/previous navigation,
+     * or -1 when none is focused yet. It indexes into the hunks computed for the
+     * selected base, and is reset whenever the diff changes (base switch, revert,
+     * or content change) so a stale index can never highlight the wrong block.
+     */
+    this.activeHunkIndex = -1;
   }
   /**
    * Lifecycle method called when the modal is opened.
@@ -6664,6 +12603,8 @@ var HistoryModal = class extends import_obsidian8.Modal {
     switch (this.currentDisplayMode) {
       case "patch":
         return this.modeButtons.patch;
+      case "inline":
+        return this.modeButtons.inline;
       case "line-by-line":
         return this.modeButtons.lineByLine;
       case "side-by-side":
@@ -6700,68 +12641,733 @@ var HistoryModal = class extends import_obsidian8.Modal {
       return;
     }
     try {
-      const originalContent = this.snapshot.getOriginalState();
+      const originalContent = this.snapshot.getHistoryOriginalState();
       const file = this.snapshot.file;
       await this.app.vault.modify(file, originalContent);
       this.snapshotsService.wipeOne(file);
-      new import_obsidian8.Notice("File restored to original state");
+      new import_obsidian13.Notice(this.plugin.t("notice.file-restored"));
       this.close();
     } catch (_error) {
-      new import_obsidian8.Notice("Failed to restore file to original state");
+      new import_obsidian13.Notice(this.plugin.t("notice.file-restore-failed"));
     }
   }
   /**
    * Creates the UI elements for the diff view.
    */
   makeUI() {
-    var _a, _b;
-    const isOrigin = (_a = this.snapshot) == null ? void 0 : _a.isStateSameOriginal();
-    const changeDateTime = (_b = this.snapshot) == null ? void 0 : _b.getLastChangedDateTime();
-    this.setTitle("History");
-    new import_obsidian8.Setting(this.contentEl).setName("Last modified").setDesc(isOrigin ? "No changes" : changeDateTime).addButton((btn) => btn.setButtonText("Remove file history").setWarning().onClick(async () => {
-      var _a2;
-      const confirmed = await this.modalsService.confirm({
-        title: "Remove file history",
-        // eslint-disable-next-line max-len
-        message: "Are you sure you want to remove the change tracking history for this file? This action cannot be undone.",
-        confirmText: "Remove history"
-      });
-      if (confirmed) {
-        (_a2 = this.snapshotsService) == null ? void 0 : _a2.wipeOne(this.snapshot.file);
-        this.close();
+    const bodyEl = DomHelper.create({
+      tag: "div",
+      classes: "lct-modal-body",
+      container: this.contentEl
+    });
+    this.railEl = DomHelper.create({
+      tag: "div",
+      classes: "lct-modal-rail",
+      container: bodyEl
+    });
+    this.mainEl = DomHelper.create({
+      tag: "div",
+      classes: "lct-modal-main",
+      container: bodyEl
+    });
+    const closeButtonEl = this.modalEl.querySelector(".modal-close-button");
+    if (closeButtonEl) {
+      closeButtonEl.classList.add("mod-raised", "clickable-icon");
+    }
+    this.toolbarEl = DomHelper.create({
+      tag: "div",
+      classes: "lct-modal-toolbar",
+      container: this.mainEl
+    });
+    this.makeToolbar();
+    this.searchEl = DomHelper.create({
+      tag: "div",
+      classes: "lct-rail-search",
+      container: this.railEl
+    });
+    this.versionsEl = DomHelper.create({
+      tag: "div",
+      classes: "lct-versions",
+      container: this.railEl
+    });
+    this.noticeEl = DomHelper.create({
+      tag: "div",
+      classes: ["lct-diff-notice", "lct-diff-notice-hidden"],
+      container: this.mainEl
+    });
+    const blockEl = DomHelper.create({
+      tag: "div",
+      classes: "lct-diff-block",
+      container: this.mainEl
+    });
+    this.columnsHeaderEl = DomHelper.create({
+      tag: "div",
+      classes: ["lct-diff-columns", "lct-diff-columns-hidden"],
+      container: blockEl
+    });
+    this.diffContainerEl = DomHelper.create({
+      tag: "div",
+      classes: "diff-container",
+      container: blockEl
+    });
+    this.renderSearch();
+    this.renderVersions();
+  }
+  /**
+   * Shows or hides the above-diff notice. It is revealed, with the same text the
+   * empty-diff placeholder uses, whenever the selected base resolves to the
+   * current content (the original-vs-current "no changes" case or a picked
+   * version identical to current); otherwise it is hidden. Called by every
+   * render path so the banner stays in sync with the visible diff.
+   */
+  updateDiffNotice() {
+    if (!this.noticeEl) {
+      return;
+    }
+    const identical = this.isBaseSameCurrent();
+    DomHelper.update(this.noticeEl, {
+      text: identical ? this.getEmptyDiffText() : null,
+      classes: identical ? { remove: "lct-diff-notice-hidden" } : { add: "lct-diff-notice-hidden" }
+    });
+  }
+  /**
+   * Resolves the label for the diff's base (left) side, matching the version
+   * names used in the rail. A picked intermediate version shows its number; the
+   * baseline shows the latest captured version (the snapshot it diffs against),
+   * or the original when the timeline is empty.
+   *
+   * @return {string} The base-side label
+   */
+  getBaseLabel() {
+    const versions = this.snapshot.getVersions();
+    if (this.selectedBaseId !== ORIGINAL_BASE_ID) {
+      const version = this.snapshot.getVersion(this.selectedBaseId);
+      if (version) {
+        return this.plugin.t("modal.version.numbered", { number: versions.length - versions.indexOf(version) });
       }
-    })).addButton((btn) => btn.setButtonText("Restore original").setWarning().onClick(async () => {
+    }
+    return versions.length > 0 ? this.plugin.t("modal.version.numbered", { number: versions.length }) : this.plugin.t("modal.version.original");
+  }
+  /**
+   * Shows or hides the side-by-side column header and, when shown, labels the
+   * left column with the picked base and the right column with the current
+   * state. It is shown for the two-column side-by-side mode (including the
+   * identical-content case, so the header does not vanish when the diff is
+   * empty) and hidden in the single-column modes.
+   */
+  updateColumnsHeader() {
+    if (!this.columnsHeaderEl) {
+      return;
+    }
+    const visible = this.currentDisplayMode === "side-by-side";
+    if (!visible) {
+      DomHelper.update(this.columnsHeaderEl, { text: null, classes: { add: "lct-diff-columns-hidden" } });
+      return;
+    }
+    DomHelper.update(this.columnsHeaderEl, {
+      text: null,
+      classes: { remove: "lct-diff-columns-hidden" },
+      children: [
+        { tag: "div", classes: "lct-diff-column-title", text: this.getBaseLabel() },
+        { tag: "div", classes: "lct-diff-column-title", text: this.plugin.t("modal.version.current") }
+      ]
+    });
+  }
+  /**
+   * Builds the top toolbar controls as icon buttons grouped by purpose: the
+   * destructive actions (restore original, remove history), the difference
+   * navigation, and the four view-mode toggles, all right-aligned in the toolbar.
+   * Every button is icon-only on screen but carries a text label through its
+   * tooltip and aria-label so it stays usable by keyboard and screen readers. The
+   * view-mode buttons keep the active-mode highlight driven by
+   * updateButtonActiveStates; the destructive actions still confirm before acting.
+   */
+  makeToolbar() {
+    new import_obsidian13.Setting(this.toolbarEl).setClass("lct-modal-toolbar-group").setClass("lct-modal-toolbar-actions").addButton((btn) => this.decorateButton(btn, "rotate-ccw", this.plugin.t("modal.restore-original")).setWarning().onClick(async () => {
       const confirmed = await this.modalsService.confirm({
-        title: "Restore original file",
-        // eslint-disable-next-line max-len
-        message: "Are you sure you want to restore this file to its original state? All current changes will be lost and the change tracking history will be reset. This action cannot be undone.",
-        confirmText: "Restore file"
+        title: this.plugin.t("modal.confirm.restore.title"),
+        message: this.plugin.t("modal.confirm.restore.message"),
+        confirmText: this.plugin.t("modal.confirm.restore.button"),
+        cancelText: this.plugin.t("modal.confirm.cancel")
       });
       if (confirmed) {
         await this.restoreOriginalFile();
       }
-    })).addButton((btn) => {
+    })).addButton((btn) => this.decorateButton(btn, "trash-2", this.plugin.t("modal.remove-history")).setWarning().onClick(async () => {
+      var _a;
+      const confirmed = await this.modalsService.confirm({
+        title: this.plugin.t("modal.confirm.remove.title"),
+        message: this.plugin.t("modal.confirm.remove.message"),
+        confirmText: this.plugin.t("modal.confirm.remove.button"),
+        cancelText: this.plugin.t("modal.confirm.cancel")
+      });
+      if (confirmed) {
+        (_a = this.snapshotsService) == null ? void 0 : _a.wipeOne(this.snapshot.file);
+        this.close();
+      }
+    }));
+    new import_obsidian13.Setting(this.toolbarEl).setClass("lct-modal-toolbar-group").setClass("lct-modal-toolbar-nav").addButton((btn) => {
+      this.navButtons.previous = btn.buttonEl;
+      return this.decorateButton(btn, "chevron-up", this.plugin.t("modal.previous-difference")).onClick(() => {
+        this.goToDifference("previous");
+      });
+    }).addButton((btn) => {
+      this.navButtons.next = btn.buttonEl;
+      return this.decorateButton(btn, "chevron-down", this.plugin.t("modal.next-difference")).onClick(() => {
+        this.goToDifference("next");
+      });
+    });
+    new import_obsidian13.Setting(this.toolbarEl).setClass("lct-modal-toolbar-group").setClass("lct-modal-toolbar-modes").addButton((btn) => {
       this.modeButtons.patch = btn.buttonEl;
-      return btn.setButtonText("Show patch").onClick(() => {
+      return this.decorateButton(btn, "file-text", this.plugin.t("modal.mode.patch")).onClick(() => {
         this.showCleanPatch();
       });
     }).addButton((btn) => {
+      this.modeButtons.inline = btn.buttonEl;
+      return this.decorateButton(btn, "pilcrow", this.plugin.t("modal.mode.inline")).onClick(() => {
+        this.renderInlineDiff();
+      });
+    }).addButton((btn) => {
       this.modeButtons.lineByLine = btn.buttonEl;
-      return btn.setButtonText("Line by line").onClick(() => {
+      return this.decorateButton(btn, "align-justify", this.plugin.t("modal.mode.line-by-line")).onClick(() => {
         this.renderDiff("line-by-line" /* line */);
       });
     }).addButton((btn) => {
       this.modeButtons.sideBySide = btn.buttonEl;
-      return btn.setButtonText("Side by side").onClick(() => {
+      return this.decorateButton(btn, "columns-2", this.plugin.t("modal.mode.side-by-side")).onClick(() => {
         this.renderDiff("side-by-side" /* side */);
       });
     });
     this.updateButtonActiveStates();
   }
   /**
-   * Generates a unified diff between the original and current state of the file.
-   * If the file has changes, use the diff library to create a patch.
-   * If the file has no changes, create a simple diff header with the file content.
+   * Turns a toolbar button into an accessible icon button: it shows only the
+   * icon but exposes the label as both a hover tooltip and an aria-label, so the
+   * control is never a label-less icon for keyboard or screen-reader users.
+   *
+   * @param {ButtonComponent} btn - The button to decorate
+   * @param {string} icon - The Obsidian (Lucide) icon id to render
+   * @param {string} label - The text label exposed via tooltip and aria-label
+   * @return {ButtonComponent} The same button, for chaining
+   */
+  decorateButton(btn, icon, label) {
+    btn.setIcon(icon).setTooltip(label);
+    btn.buttonEl.setAttribute("aria-label", label);
+    return btn;
+  }
+  /**
+   * Moves the difference focus to the next or previous hunk and brings it into
+   * view. The target index is resolved by the same pure NavigationHelper.target
+   * used by the editor change-navigation commands, fed the hunk indices as the
+   * "changed lines" and the current active index as the cursor, so the walk
+   * wraps around at both ends (past the last hunk returns to the first, before
+   * the first returns to the last). With no hunks it is a safe no-op.
+   *
+   * @param {NavigationDirection} direction - Which way to step through the hunks
+   */
+  goToDifference(direction) {
+    const count = this.getHunks().length;
+    if (count === 0) {
+      return;
+    }
+    const indices = Array.from({ length: count }, (_unused, index) => index);
+    const target = NavigationHelper.target(indices, this.activeHunkIndex, direction);
+    if (target === null) {
+      return;
+    }
+    this.activeHunkIndex = target;
+    this.focusHunk(target);
+  }
+  /**
+   * Highlights the hunk at the given index inside the diff and scrolls it into
+   * view, so the difference the navigation buttons moved to is visible and
+   * marked active. The target is the hunk's anchor row inside the rendered diff
+   * (the same row that carries the inline revert affordance), so navigation
+   * works against the diff itself now that the separate difference panel is
+   * gone. Every other anchor row loses the active marker first. Patch mode has
+   * no per-row anchors, so this is a safe no-op there.
+   *
+   * @param {number} index - The hunk index to focus
+   */
+  focusHunk(index) {
+    var _a;
+    if (!this.diffContainerEl) {
+      return;
+    }
+    const anchors = Array.from(
+      this.diffContainerEl.querySelectorAll(".lct-hunk-anchor")
+    );
+    anchors.forEach((anchor) => {
+      const anchorIndex = Number(anchor.dataset.lctHunk);
+      DomHelper.update(anchor, { classes: anchorIndex === index ? { add: "is-active" } : { remove: "is-active" } });
+    });
+    (_a = anchors.find((anchor) => Number(anchor.dataset.lctHunk) === index)) == null ? void 0 : _a.scrollIntoView({ block: "nearest" });
+  }
+  /**
+   * Enables or disables the next/previous difference buttons based on whether
+   * the current diff has any hunks to walk, and drops a stale active index when
+   * the diff no longer has that many hunks. A diff with zero hunks leaves both
+   * buttons disabled so a click is an ignored no-op.
+   */
+  updateNavButtonsState() {
+    const count = this.getHunks().length;
+    const disabled = count === 0;
+    [this.navButtons.previous, this.navButtons.next].forEach((button) => {
+      if (!button) {
+        return;
+      }
+      button.disabled = disabled;
+      DomHelper.update(button, { classes: disabled ? { add: "is-disabled" } : { remove: "is-disabled" } });
+    });
+    if (this.activeHunkIndex >= count) {
+      this.activeHunkIndex = -1;
+    }
+  }
+  /**
+   * Renders the content-search box above the version list. The box filters the
+   * intermediate versions in the rail by their captured content. It is always
+   * shown so the rail stays consistent even before any version exists; with no
+   * versions a query simply matches nothing. Typing re-renders only the version
+   * list (not the diff or the selection).
+   */
+  renderSearch() {
+    if (!this.searchEl) {
+      return;
+    }
+    DomHelper.update(this.searchEl, { text: null, classes: { remove: "lct-rail-search-empty" } });
+    new import_obsidian13.SearchComponent(this.searchEl).setPlaceholder(this.plugin.t("modal.search-versions")).setValue(this.searchQuery).onChange((value) => {
+      this.searchQuery = value;
+      this.renderVersions();
+    });
+  }
+  /**
+   * Renders the version timeline as a list of selectable diff bases, grouped
+   * under a heading per day. The baseline entry (the original compared against
+   * the current state) heads the list and is placed in the day group of the
+   * file's last update; the matching intermediate versions follow, newest first,
+   * each in its capture day's group. The rail is never hidden: with no
+   * intermediate versions it shows the baseline plus a hint that none were
+   * captured yet; when a query matches no version it shows the baseline plus a
+   * no-results hint, leaving the current selection untouched. Selecting an entry
+   * sets it as the diff base and re-renders the active view.
+   */
+  renderVersions() {
+    if (!this.versionsEl) {
+      return;
+    }
+    const versions = this.snapshot.getVersions();
+    DomHelper.update(this.versionsEl, { classes: { remove: "lct-versions-empty" } });
+    const visibleIds = VersionSearchHelper.match(
+      versions.map((version) => ({
+        id: version.id,
+        content: version.getContent(this.snapshot.lineBreak)
+      })),
+      this.searchQuery
+    );
+    const matched = versions.filter((version) => visibleIds.has(version.id));
+    const entries = [
+      {
+        id: ORIGINAL_BASE_ID,
+        label: this.plugin.t("modal.version.baseline"),
+        day: this.snapshot.getLastChangedDate(),
+        time: this.snapshot.getLastChangedTime()
+      },
+      ...matched.map((version) => ({
+        id: version.id,
+        label: this.plugin.t("modal.version.numbered", { number: versions.length - versions.indexOf(version) }),
+        day: version.getDate(),
+        time: version.getTime()
+      }))
+    ];
+    const groups = [];
+    entries.forEach((entry) => {
+      let group = groups[groups.length - 1];
+      if (!group || group.label !== entry.day) {
+        group = { label: entry.day, entries: [] };
+        groups.push(group);
+      }
+      group.entries.push(entry);
+    });
+    const items = [];
+    groups.forEach((group) => {
+      items.push({ tag: "div", classes: "lct-versions-day", text: group.label });
+      group.entries.forEach((entry) => {
+        items.push(this.makeVersionItem(entry.id, entry.label, entry.time));
+      });
+    });
+    if (versions.length === 0) {
+      items.push({
+        tag: "div",
+        classes: "lct-versions-no-results",
+        text: this.plugin.t("modal.no-snapshots-yet")
+      });
+    } else if (matched.length === 0) {
+      items.push({
+        tag: "div",
+        classes: "lct-versions-no-results",
+        text: this.plugin.t("modal.no-versions-match")
+      });
+    }
+    DomHelper.update(this.versionsEl, {
+      text: null,
+      children: [
+        {
+          tag: "div",
+          classes: "lct-versions-list",
+          children: items
+        }
+      ]
+    });
+  }
+  /**
+   * Builds a single selectable version list entry config.
+   * The active entry carries a highlight class; clicking selects that base.
+   *
+   * @param {string} id - The base id (original sentinel or a version id)
+   * @param {string} label - The primary label to show
+   * @param {string} meta - Secondary text (capture time), empty for the original
+   * @return {DomElementConfig} A DomHelper element config for the entry
+   */
+  makeVersionItem(id, label, meta) {
+    const active = this.selectedBaseId === id;
+    const children = [{ tag: "span", classes: "lct-version-label", text: label }];
+    if (meta) {
+      children.push({ tag: "span", classes: "lct-version-meta", text: meta });
+    }
+    return {
+      tag: "div",
+      classes: active ? ["lct-version-item", "is-active"] : ["lct-version-item"],
+      events: {
+        click: () => {
+          this.selectBase(id);
+        }
+      },
+      children
+    };
+  }
+  /**
+   * Selects a new diff base and refreshes the version list and active diff view.
+   * No-op when the base is already selected.
+   *
+   * @param {string} id - The base id to select
+   */
+  selectBase(id) {
+    if (this.selectedBaseId === id) {
+      return;
+    }
+    this.selectedBaseId = id;
+    this.renderVersions();
+    this.refreshActiveView();
+  }
+  /**
+   * Re-renders whichever diff view is currently active. Used after the diff
+   * base or the file content changes so the visible output stays in sync with
+   * the selected mode without duplicating the mode dispatch at every call site.
+   */
+  refreshActiveView() {
+    switch (this.currentDisplayMode) {
+      case "patch":
+        this.showCleanPatch();
+        return;
+      case "inline":
+        this.renderInlineDiff();
+        return;
+      case "line-by-line":
+        this.renderDiff("line-by-line" /* line */);
+        return;
+      default:
+        this.renderDiff("side-by-side" /* side */);
+    }
+  }
+  /**
+   * Resolves the content of the currently selected diff base. A picked
+   * intermediate version resolves to that version's captured content. The
+   * synthetic baseline entry (or a stale id whose version no longer exists)
+   * resolves to the LATEST captured snapshot, falling back to the original only
+   * when no snapshot exists (D1). The branch logic lives in the pure
+   * BaseContentHelper so it can be unit-tested without the modal DOM.
+   *
+   * @return {string} The base content to diff the current state against
+   */
+  getBaseContent() {
+    return BaseContentHelper.resolve(this.selectedBaseId, ORIGINAL_BASE_ID, {
+      versions: this.snapshot.getVersions().map((version) => version.getContent(this.snapshot.lineBreak)),
+      original: this.snapshot.getHistoryOriginalState(),
+      versionContent: (id) => {
+        var _a, _b;
+        return (_b = (_a = this.snapshot.getVersion(id)) == null ? void 0 : _a.getContent(this.snapshot.lineBreak)) != null ? _b : null;
+      }
+    });
+  }
+  /**
+   * Whether the current state is identical to the selected diff base.
+   * Used to render the "no changes" placeholder when the picked base matches
+   * the live content.
+   *
+   * @return {boolean} True when base and current content are equal
+   */
+  isBaseSameCurrent() {
+    return this.getBaseContent() === this.snapshot.getLastState();
+  }
+  /**
+   * Picks the placeholder text shown when the selected base equals the current
+   * state. A picked intermediate version that matches the live content reads
+   * "Identical to current" so the user understands the chosen base holds the
+   * same text, distinguishing it from the original-vs-current "No changes" case
+   * where the file simply was never modified.
+   *
+   * @return {string} The empty-diff placeholder text for the current base
+   */
+  getEmptyDiffText() {
+    return this.selectedBaseId === ORIGINAL_BASE_ID ? this.plugin.t("modal.no-changes") : this.plugin.t("modal.identical-to-current");
+  }
+  /**
+   * Computes the line-level hunks between the selected base and the current
+   * state. These back the inline per-hunk revert affordances and the
+   * next/previous navigation, and are recomputed on demand so the offsets always
+   * reflect the live content.
+   *
+   * @return {Diff.StructuredPatchHunk[]} The hunks, ordered top to bottom
+   */
+  getHunks() {
+    return HunkHelper.diff(
+      this.getBaseContent().split(this.snapshot.lineBreak),
+      this.snapshot.getLastStateLines(),
+      this.snapshot.lineBreak
+    );
+  }
+  /**
+   * Reverts a single hunk of the current diff back to the selected base and
+   * leaves every other change intact. The hunk is resolved fresh from getHunks
+   * (against the live content) by its index, the user confirms before the write,
+   * and the revert reuses the same plumbing the editor gutter uses: HunkHelper to
+   * scope the block, SnapshotsService.applyContent to write it and refresh the
+   * highlights. The active view is then re-rendered so the diff reflects the new
+   * content. A stale index (the diff changed under the click) is a safe no-op.
+   *
+   * @param {number} index - The index of the hunk to revert in the current diff
+   * @return {Promise<void>}
+   */
+  async revertHunk(index) {
+    var _a;
+    const file = (_a = this.snapshot) == null ? void 0 : _a.file;
+    if (!file) {
+      return;
+    }
+    const hunk = this.getHunks()[index];
+    if (!hunk) {
+      return;
+    }
+    const confirmed = await this.modalsService.confirm({
+      title: this.plugin.t("modal.confirm.revert.title"),
+      message: this.plugin.t("modal.confirm.revert.message"),
+      confirmText: this.plugin.t("modal.confirm.revert.button"),
+      cancelText: this.plugin.t("modal.confirm.cancel")
+    });
+    if (!confirmed) {
+      return;
+    }
+    const currentLines = this.snapshot.getLastStateLines();
+    const start = Math.max(0, Math.min(currentLines.length, hunk.newStart - 1));
+    await this.snapshotsService.applyContent(
+      file,
+      HunkHelper.revertHunk(currentLines, hunk),
+      {
+        start,
+        removeCount: hunk.newLines,
+        newLines: HunkHelper.baseLinesForHunk(hunk)
+      }
+    );
+    this.activeHunkIndex = -1;
+    this.refreshActiveView();
+  }
+  /**
+   * Post-processes the rendered diff to place one inline revert affordance at
+   * the anchor row of each hunk, JetBrains style: a small revert arrow that
+   * reverts only that block. It maps the rendered rows back to getHunks by their
+   * current-side line number and marks each anchor with its hunk index, so the
+   * next/previous navigation can scroll and highlight the same rows. Patch mode
+   * renders a plain <pre> with no per-row structure, so it carries no affordance
+   * and is skipped (handled by the caller). The nav button state is refreshed
+   * here because the hunk set is now known.
+   */
+  attachInlineReverts() {
+    if (!this.diffContainerEl) {
+      return;
+    }
+    const hunks = this.getHunks();
+    hunks.forEach((hunk, index) => {
+      const anchor = this.resolveHunkAnchor(hunk);
+      if (!anchor) {
+        return;
+      }
+      anchor.classList.add("lct-hunk-anchor");
+      anchor.dataset.lctHunk = String(index);
+      this.makeRevertAffordance(this.resolveHunkGutter(anchor), index);
+    });
+    this.updateNavButtonsState();
+  }
+  /**
+   * Resolves the element that hosts the inline revert affordance for an anchor
+   * row. The diff2html modes (line-by-line, side-by-side) carry a sticky
+   * line-number cell, which keeps the affordance pinned to the gutter while the
+   * diff scrolls horizontally. The inline mode has no such cell, so the row
+   * itself hosts the affordance.
+   *
+   * @param {HTMLElement} anchor - The hunk anchor row
+   * @return {HTMLElement} The element the revert affordance is appended to
+   */
+  resolveHunkGutter(anchor) {
+    var _a;
+    return (_a = anchor.querySelector(".d2h-code-linenumber")) != null ? _a : anchor;
+  }
+  /**
+   * Resolves the rendered diff row that anchors a hunk, across the three diff
+   * modes that carry per-row structure. The anchor is the first current-side row
+   * of the hunk (the hunk's newStart). A pure deletion (newLines === 0) has no
+   * current-side row, so it anchors on the base-side row of its first removed
+   * line instead, which is the row the user sees the deletion on.
+   *
+   * @param {Diff.StructuredPatchHunk} hunk - The hunk to anchor
+   * @return {HTMLElement | null} The anchor row, or null when no row matches
+   */
+  resolveHunkAnchor(hunk) {
+    if (this.currentDisplayMode === "inline") {
+      return this.resolveInlineAnchor(hunk);
+    }
+    return this.resolveDiff2HtmlAnchor(hunk);
+  }
+  /**
+   * Resolves the anchor row inside the plugin-rendered inline diff. The inline
+   * rows have no line numbers, so the anchor is found positionally: the inline
+   * diff lists context and changed rows in document order, so the Nth changed
+   * row group maps to the Nth hunk. The first row of the hunk's changed run is
+   * the anchor.
+   *
+   * @param {Diff.StructuredPatchHunk} hunk - The hunk to anchor
+   * @return {HTMLElement | null} The anchor row, or null when none matches
+   */
+  resolveInlineAnchor(hunk) {
+    const rows = Array.from(
+      this.diffContainerEl.querySelectorAll(".lct-inline-row")
+    );
+    let currentLine = 0;
+    for (const row of rows) {
+      const changed = !row.classList.contains("lct-inline-context");
+      const hasNewLine = !row.classList.contains("lct-inline-removed");
+      if (changed && currentLine + 1 >= hunk.newStart) {
+        return row;
+      }
+      if (hasNewLine) {
+        currentLine++;
+      }
+    }
+    return null;
+  }
+  /**
+   * Resolves the anchor row inside a diff2html render (line-by-line or
+   * side-by-side). Both share the same .d2h-code-row-wrapper rows; for a hunk
+   * that occupies current lines the anchor is the row whose current-side line
+   * number equals the hunk's newStart (in side-by-side that number lives in the
+   * right column, so only the right column's rows are searched). A pure deletion
+   * has no current-side row: in line-by-line it shows as a d2h-del row in the
+   * single stream; in side-by-side the deleted text sits in the left column,
+   * keyed by the hunk's oldStart. Both are anchored accordingly.
+   *
+   * @param {Diff.StructuredPatchHunk} hunk - The hunk to anchor
+   * @return {HTMLElement | null} The anchor row, or null when none matches
+   */
+  resolveDiff2HtmlAnchor(hunk) {
+    var _a, _b, _c, _d;
+    const sideBySide = this.currentDisplayMode === "side-by-side";
+    const columns = sideBySide ? Array.from(this.diffContainerEl.querySelectorAll(".d2h-side-column")) : [];
+    if (hunk.newLines > 0) {
+      const newScope = sideBySide ? (_a = columns[1]) != null ? _a : this.diffContainerEl : this.diffContainerEl;
+      return this.rowAtLine(newScope, hunk.newStart);
+    }
+    if (sideBySide) {
+      return this.rowAtLine((_b = columns[0]) != null ? _b : this.diffContainerEl, hunk.oldStart);
+    }
+    const rows = this.codeRows(this.diffContainerEl);
+    return (_d = (_c = rows.find((row) => {
+      const line = this.rowLine(row);
+      return row.classList.contains("d2h-del") && (line === null || line >= hunk.newStart);
+    })) != null ? _c : rows.find((row) => row.classList.contains("d2h-del"))) != null ? _d : null;
+  }
+  /**
+   * Finds the code row inside a scope whose line-number cell carries the given
+   * line number. Used to anchor a hunk on the row at its current-side (or, for a
+   * side-by-side deletion, base-side) start line.
+   *
+   * @param {ParentNode} scope - The container (or column) to search
+   * @param {number} line - The 1-based line number to match
+   * @return {HTMLElement | null} The matching row, or null when none matches
+   */
+  rowAtLine(scope, line) {
+    var _a;
+    return (_a = this.codeRows(scope).find((row) => this.rowLine(row) === line)) != null ? _a : null;
+  }
+  /**
+   * Collects the content code rows inside a scope, skipping the block headers.
+   *
+   * @param {ParentNode} scope - The container (or column) to search
+   * @return {HTMLElement[]} The content rows, top to bottom
+   */
+  codeRows(scope) {
+    return Array.from(
+      scope.querySelectorAll(".d2h-code-row-wrapper:not(.d2h-code-header-wrapper)")
+    );
+  }
+  /**
+   * Reads the line number a diff2html row carries, or null when the row has none
+   * (an empty placeholder). The number is the last numeric token in the row's
+   * line-number cell: line-by-line packs both the old and the new number there
+   * (the new one last), and each side-by-side column carries a single number.
+   *
+   * @param {HTMLElement} row - The .d2h-code-row-wrapper to read
+   * @return {number | null} The 1-based line number, or null
+   */
+  rowLine(row) {
+    var _a, _b;
+    const cell = row.querySelector(".d2h-code-linenumber");
+    const numbers = (_b = (_a = cell == null ? void 0 : cell.textContent) == null ? void 0 : _a.match(/\d+/g)) != null ? _b : null;
+    if (!numbers || numbers.length === 0) {
+      return null;
+    }
+    return Number(numbers[numbers.length - 1]);
+  }
+  /**
+   * Builds the inline revert affordance for a hunk inside the given gutter cell:
+   * an accessible icon button that reverts only that hunk on click. It carries a
+   * single tooltip via aria-label (Obsidian renders it), with no native title so
+   * the hover hint is not shown twice, and a Lucide undo glyph set through
+   * Obsidian so it matches the app's icon set instead of an emoji.
+   *
+   * @param {HTMLElement} gutter - The element to host the affordance
+   * @param {number} index - The hunk index the affordance reverts
+   * @return {void}
+   */
+  makeRevertAffordance(gutter2, index) {
+    const label = this.plugin.t("modal.revert-hunk");
+    const button = DomHelper.create({
+      tag: "button",
+      classes: ["lct-hunk-revert", "clickable-icon"],
+      attributes: { "aria-label": label, "type": "button" },
+      container: gutter2,
+      events: {
+        click: (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          void this.revertHunk(index);
+        }
+      }
+    });
+    (0, import_obsidian13.setIcon)(button, "undo-2");
+  }
+  /**
+   * Generates a unified diff between the selected base and the current state.
+   * If they differ, use the diff library to create a patch.
+   * If they are identical, create a simple diff header with the file content.
    *
    * @return {string} A string containing the unified diff
    */
@@ -6771,13 +13377,13 @@ var HistoryModal = class extends import_obsidian8.Modal {
       return "";
     }
     const filePath = this.snapshot.file.path;
-    const original = this.snapshot.getOriginalState();
+    const base = this.getBaseContent();
     const current = this.snapshot.getLastState();
-    if (!this.snapshot.isStateSameOriginal()) {
+    if (!this.isBaseSameCurrent()) {
       return createTwoFilesPatch(
         filePath,
         filePath,
-        original != null ? original : "",
+        base != null ? base : "",
         current != null ? current : "",
         "",
         "",
@@ -6790,7 +13396,7 @@ var HistoryModal = class extends import_obsidian8.Modal {
       "===================================================================",
       `--- ${filePath}	`,
       `+++ ${filePath}	`,
-      `@@ -1,${original.length} +1,${current.length} @@`,
+      `@@ -1,${base.length} +1,${current.length} @@`,
       this.snapshot.getLastStateLines().map((content) => ` ${content}`).join("\n"),
       "\\ No newline at end of file"
     ].join("\n");
@@ -6807,13 +13413,13 @@ var HistoryModal = class extends import_obsidian8.Modal {
       return "";
     }
     const filePath = this.snapshot.file.path;
-    const original = this.snapshot.getOriginalState();
+    const base = this.getBaseContent();
     const current = this.snapshot.getLastState();
-    if (!this.snapshot.isStateSameOriginal()) {
+    if (!this.isBaseSameCurrent()) {
       return createTwoFilesPatch(
         filePath,
         filePath,
-        original != null ? original : "",
+        base != null ? base : "",
         current != null ? current : "",
         "",
         "",
@@ -6834,10 +13440,12 @@ var HistoryModal = class extends import_obsidian8.Modal {
     this.currentDisplayMode = "patch";
     this.updateButtonActiveStates();
     this.cleanupScrollSync();
+    this.updateDiffNotice();
+    this.updateColumnsHeader();
     const patch = this.getCleanPatch();
     const handlerClick = () => {
       navigator.clipboard.writeText(patch).then(() => {
-        new import_obsidian8.Notice("Copied!");
+        new import_obsidian13.Notice(this.plugin.t("notice.copied"));
       });
     };
     DomHelper.update(
@@ -6856,7 +13464,7 @@ var HistoryModal = class extends import_obsidian8.Modal {
               },
               {
                 tag: "button",
-                text: "Copy",
+                text: this.plugin.t("modal.copy"),
                 classes: ["lct-patch-copy-button", "mod-outline"],
                 events: {
                   click: handlerClick
@@ -6867,6 +13475,82 @@ var HistoryModal = class extends import_obsidian8.Modal {
         ]
       }
     );
+    this.updateNavButtonsState();
+  }
+  /**
+   * Renders an inline diff between the selected base and the current state,
+   * highlighting changed words inside modified lines instead of marking the
+   * whole line. Context lines are shown plain, pure additions and removals are
+   * shown whole in their colour, and a modified line is shown as its old text
+   * (with removed words highlighted) above its new text (with added words
+   * highlighted). The whole view is built with safe DOM nodes (no raw HTML);
+   * each word span carries a class the stylesheet colours.
+   */
+  renderInlineDiff() {
+    this.currentDisplayMode = "inline";
+    this.updateButtonActiveStates();
+    this.cleanupScrollSync();
+    this.updateDiffNotice();
+    this.updateColumnsHeader();
+    const diffLines2 = WordDiffHelper.lines(this.getBaseContent(), this.snapshot.getLastState());
+    const rows = [];
+    diffLines2.forEach((line) => {
+      var _a, _b, _c, _d, _e;
+      if (line.type === "context") {
+        rows.push(this.makeInlineRow("context", " ", [{ tag: "span", text: (_a = line.oldText) != null ? _a : "" }]));
+        return;
+      }
+      if (line.type === "added") {
+        rows.push(this.makeInlineRow("added", "+", [{ tag: "span", text: (_b = line.newText) != null ? _b : "" }]));
+        return;
+      }
+      if (line.type === "removed") {
+        rows.push(this.makeInlineRow("removed", "-", [{ tag: "span", text: (_c = line.oldText) != null ? _c : "" }]));
+        return;
+      }
+      rows.push(this.makeInlineRow("modified", "~", this.makeInlineWordSpans((_d = line.oldText) != null ? _d : "", (_e = line.newText) != null ? _e : "")));
+    });
+    DomHelper.update(this.diffContainerEl, {
+      text: null,
+      children: [{ tag: "div", classes: "lct-inline-container", children: rows }]
+    });
+    this.attachInlineReverts();
+  }
+  /**
+   * Builds one inline diff row: a sign gutter (a space, plus, or minus) and the
+   * line content made of the provided spans.
+   *
+   * @param {string} kind - The row kind, used as a modifier class
+   * @param {string} sign - The leading sign character for the row
+   * @param {DomElementConfig[]} content - The content spans for the line
+   * @return {DomElementConfig} The row element config
+   */
+  makeInlineRow(kind, sign, content) {
+    return {
+      tag: "div",
+      classes: ["lct-inline-row", `lct-inline-${kind}`],
+      children: [
+        { tag: "span", classes: "lct-inline-sign", text: sign },
+        { tag: "span", classes: "lct-inline-content", children: content }
+      ]
+    };
+  }
+  /**
+   * Computes the word-level spans for a modified line as one flowing sequence:
+   * unchanged words plain, removed words marked for deletion, added words marked
+   * for insertion, all kept in their original order. This is what lets the
+   * inline mode show a wording change as a single line instead of a before/after
+   * pair.
+   *
+   * @param {string} oldText - The old (base) line text
+   * @param {string} newText - The new (current) line text
+   * @return {DomElementConfig[]} The ordered span configs for the merged line
+   */
+  makeInlineWordSpans(oldText, newText) {
+    return WordDiffHelper.segments(oldText, newText).map((segment3) => {
+      const classes = segment3.added ? "lct-word-added" : segment3.removed ? "lct-word-removed" : void 0;
+      return classes ? { tag: "span", classes, text: segment3.value } : { tag: "span", text: segment3.value };
+    });
   }
   /**
    * Renders the diff view in the specified container.
@@ -6880,6 +13564,8 @@ var HistoryModal = class extends import_obsidian8.Modal {
     this.currentDisplayMode = format;
     this.updateButtonActiveStates();
     this.cleanupScrollSync();
+    this.updateDiffNotice();
+    this.updateColumnsHeader();
     const diffHtml = html(this.getDiffLines(), {
       drawFileList: false,
       matching: "lines",
@@ -6954,6 +13640,7 @@ var HistoryModal = class extends import_obsidian8.Modal {
       this.diffContainerEl,
       { html: diffHtml }
     );
+    this.attachInlineReverts();
     if (format === "side-by-side") {
       setTimeout(() => this.setupScrollSynchronization(), 0);
     }
@@ -7036,8 +13723,24 @@ var ModalsService = class {
   init() {
   }
   /**
+   * Checks whether a diff/history modal can be opened for a file.
+   * The modal only carries value when a snapshot exists; this is the predicate a
+   * command's `checkCallback` uses to decide if it should be enabled. It does not
+   * depend on an active editor, so it is true in reading mode as well, as long as
+   * the file (active file by default) has tracked history.
+   *
+   * @param {TFile} file - The file to check, or null to use the active file
+   * @return {boolean} True if a snapshot exists and the modal can be opened
+   */
+  canDiff(file) {
+    return this.snapshotsService.getOne(file) !== null;
+  }
+  /**
    * Opens a diff/history modal for a file.
    * Retrieves the file snapshot and opens a HistoryModal if the snapshot exists.
+   * The modal itself is editor-independent, so it opens the same way in reading
+   * (preview) mode as in source mode; only the inline line highlights are
+   * editor-only.
    *
    * @param {TFile} file - The file to show diff for, or null to use the active file
    * @return {boolean} True if the modal was opened successfully, false if no snapshot exists
@@ -7066,9 +13769,244 @@ __decorateClass([
   Inject("SnapshotsService")
 ], ModalsService.prototype, "snapshotsService", 2);
 
+// src/decorators/on.decorator.ts
+var On = (name) => {
+  return (target, propertyKey) => {
+    return Reflect.defineMetadata("ON_EVENT", { name }, target, propertyKey);
+  };
+};
+
+// src/services/persistence.service.ts
+var MS_PER_DAY = 24 * 60 * 60 * 1e3;
+var SAVE_DEBOUNCE_MS = 1500;
+var PersistenceService = class {
+  /**
+   * Creates a new instance of PersistenceService.
+   *
+   * @param {LineChangeTrackerPlugin} plugin - The plugin instance
+   */
+  constructor(plugin) {
+    this.plugin = plugin;
+    /**
+     * Pending debounced save timer handle, or null when no save is scheduled.
+     */
+    this.saveTimer = null;
+    /**
+     * Guards restore so it runs at most once and never while a save is mid-flight
+     * before the initial load has populated state.
+     */
+    this.restored = false;
+  }
+  /**
+   * Loads persisted history once the workspace layout is ready.
+   * Deferring to onLayoutReady guarantees the vault file index is populated, so
+   * stored paths can be resolved to live files, and it runs after the plugin's
+   * own onload wiring without racing the startup file scan.
+   */
+  load() {
+    this.plugin.app.workspace.onLayoutReady(() => {
+      void this.restoreFromDisk();
+    });
+  }
+  /**
+   * Flushes any pending history to disk when the plugin unloads.
+   * Cancels the debounce timer and performs a final synchronous-style save so
+   * the latest state is not lost on disable or app quit.
+   *
+   * @return {Promise<void>} Resolves when the final save completes
+   */
+  async unload() {
+    if (this.saveTimer) {
+      clearTimeout(this.saveTimer);
+      this.saveTimer = null;
+    }
+    await this.saveToDisk();
+  }
+  onSnapshotsUpdate() {
+    if (!this.restored || !this.isPersistEnabled()) {
+      return;
+    }
+    this.scheduleSave();
+  }
+  onSettingsUpdate() {
+    if (!this.isPersistEnabled()) {
+      void this.clearDisk();
+      return;
+    }
+    this.scheduleSave();
+  }
+  /**
+   * Reads, prunes, and restores the persisted history.
+   * Respects the persist flag and retention policy, applies the size and age
+   * caps before handing entries to the snapshots service, and triggers an
+   * editor refresh so restored highlights render immediately.
+   *
+   * @return {Promise<void>} Resolves when restore finishes
+   */
+  async restoreFromDisk() {
+    try {
+      if (!this.isPersistEnabled()) {
+        await this.clearDisk();
+        return;
+      }
+      const history = await this.readDisk();
+      if (!history) {
+        return;
+      }
+      const kept = this.applyRetention(history.snapshots);
+      this.snapshotsService.restore(kept);
+      if (kept.length > 0) {
+        this.plugin.forceUpdateEditor();
+      }
+      if (kept.length !== history.snapshots.length) {
+        await this.saveToDisk();
+      }
+    } finally {
+      this.restored = true;
+    }
+  }
+  /**
+   * Applies the size and age caps to a list of serialized snapshots.
+   * Drops entries older than the age cap, then keeps only the most recently
+   * touched entries up to the size cap. A cap of 0 disables that dimension.
+   *
+   * @param {SerializedFileSnapshot[]} snapshots - The raw persisted snapshots
+   * @return {SerializedFileSnapshot[]} The retained subset, newest first
+   */
+  applyRetention(snapshots) {
+    if (!Array.isArray(snapshots)) {
+      return [];
+    }
+    const maxEntries = this.settingsService.value("retention.maxEntries");
+    const maxAgeDays = this.settingsService.value("retention.maxAgeDays");
+    const oldest = maxAgeDays > 0 ? Date.now() - maxAgeDays * MS_PER_DAY : 0;
+    let kept = snapshots.filter(
+      (item) => !!item && (oldest === 0 || item.timestamp >= oldest)
+    );
+    kept.sort((a, b) => b.timestamp - a.timestamp);
+    if (maxEntries > 0 && kept.length > maxEntries) {
+      kept = kept.slice(0, maxEntries);
+    }
+    return kept;
+  }
+  /**
+   * Schedules a debounced write to disk, collapsing rapid updates into one.
+   */
+  scheduleSave() {
+    if (this.saveTimer) {
+      clearTimeout(this.saveTimer);
+    }
+    this.saveTimer = setTimeout(() => {
+      this.saveTimer = null;
+      void this.saveToDisk();
+    }, SAVE_DEBOUNCE_MS);
+  }
+  /**
+   * Serializes the current snapshots and writes them to the history file.
+   * Applies retention before writing so the on-disk set stays within caps, and
+   * removes the file entirely when persistence is disabled or nothing is left.
+   *
+   * @return {Promise<void>} Resolves when the write completes
+   */
+  async saveToDisk() {
+    if (!this.isPersistEnabled()) {
+      await this.clearDisk();
+      return;
+    }
+    const payload = this.snapshotsService.serialize();
+    const kept = this.applyRetention(payload.snapshots);
+    if (kept.length === 0) {
+      await this.clearDisk();
+      return;
+    }
+    try {
+      await this.plugin.app.vault.adapter.write(
+        this.getHistoryPath(),
+        JSON.stringify({ version: payload.version, snapshots: kept })
+      );
+    } catch (error) {
+      console.error("Local history: failed to persist history", error);
+    }
+  }
+  /**
+   * Reads and parses the on-disk history file.
+   * Returns null when the file is absent or unreadable so callers can treat a
+   * missing or corrupt store as "no history" rather than throwing.
+   *
+   * @return {Promise<SerializedHistory | null>} The parsed history, or null
+   */
+  async readDisk() {
+    const path = this.getHistoryPath();
+    try {
+      if (!await this.plugin.app.vault.adapter.exists(path)) {
+        return null;
+      }
+      const raw = await this.plugin.app.vault.adapter.read(path);
+      const parsed = JSON.parse(raw);
+      if (!parsed || !Array.isArray(parsed.snapshots)) {
+        return null;
+      }
+      return parsed;
+    } catch (error) {
+      console.error("Local history: failed to read persisted history", error);
+      return null;
+    }
+  }
+  /**
+   * Removes the on-disk history file if it exists.
+   * Used when persistence is disabled or there is nothing left to keep.
+   *
+   * @return {Promise<void>} Resolves when the file is removed (or was absent)
+   */
+  async clearDisk() {
+    const path = this.getHistoryPath();
+    try {
+      if (await this.plugin.app.vault.adapter.exists(path)) {
+        await this.plugin.app.vault.adapter.remove(path);
+      }
+    } catch (error) {
+      console.error("Local history: failed to clear persisted history", error);
+    }
+  }
+  /**
+   * Resolves the absolute (vault-relative) path of the history file inside the
+   * plugin folder. Falls back to a sane default if the manifest dir is missing.
+   *
+   * @return {string} The vault-relative path to the history file
+   */
+  getHistoryPath() {
+    var _a;
+    const dir = (_a = this.plugin.manifest.dir) != null ? _a : `${this.plugin.app.vault.configDir}/plugins/${this.plugin.manifest.id}`;
+    return `${dir}/history.json`;
+  }
+  /**
+   * Whether history should be persisted to disk right now.
+   * Requires the explicit persist toggle and a retention policy that keeps
+   * history beyond a single file close (file-scoped history is never persisted
+   * since it is meant to vanish when the file is closed).
+   *
+   * @return {boolean} True when persistence is active
+   */
+  isPersistEnabled() {
+    return this.settingsService.value("persist") && this.settingsService.value("keep") === "app" /* app */;
+  }
+};
+__decorateClass([
+  Inject("SettingsService")
+], PersistenceService.prototype, "settingsService", 2);
+__decorateClass([
+  Inject("SnapshotsService")
+], PersistenceService.prototype, "snapshotsService", 2);
+__decorateClass([
+  On("snapshots:update" /* snapshotsUpdate */)
+], PersistenceService.prototype, "onSnapshotsUpdate", 1);
+__decorateClass([
+  On("settings:update" /* settingsUpdate */)
+], PersistenceService.prototype, "onSettingsUpdate", 1);
+
 // src/settings/main.setting.ts
-var import_obsidian9 = require("obsidian");
-var MainSetting = class extends import_obsidian9.PluginSettingTab {
+var import_obsidian14 = require("obsidian");
+var MainSetting = class extends import_obsidian14.PluginSettingTab {
   /**
    * Renders the settings UI.
    * Creates and configures all settings elements in the settings tab.
@@ -7085,12 +14023,12 @@ var MainSetting = class extends import_obsidian9.PluginSettingTab {
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    new import_obsidian9.Setting(containerEl).setName("Type").setDesc("Choose between a vertical line or a dot in the gutter.").addDropdown(
-      (dropdown) => dropdown.addOption("line" /* line */, "Vertical line").addOption("dot" /* dot */, "Char in gutter").setValue(this.settingsService.value("type")).onChange((value) => {
+    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.type.name")).setDesc(this.plugin.t("setting.type.desc")).addDropdown(
+      (dropdown) => dropdown.addOption("line" /* line */, this.plugin.t("setting.type.option.line")).addOption("dot" /* dot */, this.plugin.t("setting.type.option.dot")).setValue(this.settingsService.value("type")).onChange((value) => {
         this.settingsService.update("type", value);
       })
     );
-    new import_obsidian9.Setting(containerEl).setName("Allowed file extensions").setDesc("Comma-separated list of file extensions to track for changes (e.g., md, txt, csv, json, yaml)").addText(
+    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.allowed-extensions.name")).setDesc(this.plugin.t("setting.allowed-extensions.desc")).addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.allowedExtensions).setValue(this.settingsService.value("allowedExtensions")).onChange((value) => {
         this.settingsService.update(
           "allowedExtensions",
@@ -7098,51 +14036,110 @@ var MainSetting = class extends import_obsidian9.PluginSettingTab {
         );
       })
     );
-    new import_obsidian9.Setting(containerEl).setName("Keep history until").setDesc("Strategy for cleaning up revision history").addDropdown(
-      (dropdown) => dropdown.addOption("app" /* app */, "App close").addOption("file" /* file */, "File close").setValue(this.settingsService.value("keep")).onChange((value) => {
+    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.exclude-paths.name")).setDesc(this.plugin.t("setting.exclude-paths.desc")).addText(
+      (text) => text.setPlaceholder(DEFAULT_SETTINGS.excludePaths).setValue(this.settingsService.value("excludePaths")).onChange((value) => {
+        this.settingsService.update("excludePaths", value);
+      })
+    );
+    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.keep.name")).setDesc(this.plugin.t("setting.keep.desc")).addDropdown(
+      (dropdown) => dropdown.addOption("app" /* app */, this.plugin.t("setting.keep.option.app")).addOption("file" /* file */, this.plugin.t("setting.keep.option.file")).setValue(this.settingsService.value("keep")).onChange((value) => {
         this.settingsService.update("keep", value);
       })
     );
-    new import_obsidian9.Setting(containerEl).setName("Ignore new files").setDesc("Don't track changes in files created after tracking started").addToggle(
+    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.ignore-new-files.name")).setDesc(this.plugin.t("setting.ignore-new-files.desc")).addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("ignoreNewFiles")).onChange((value) => {
         this.settingsService.update("ignoreNewFiles", value);
       })
     );
-    new import_obsidian9.Setting(containerEl).setName("Show indicator for").setHeading();
-    new import_obsidian9.Setting(containerEl).setName("Changed").addToggle(
+    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.persist.name")).setDesc(this.plugin.t("setting.persist.desc")).addToggle(
+      (toggle) => toggle.setValue(this.settingsService.value("persist")).onChange((value) => {
+        this.settingsService.update("persist", value);
+      })
+    );
+    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.max-entries.name")).setDesc(this.plugin.t("setting.max-entries.desc")).addText(
+      (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.retention.maxEntries)).setValue(String(this.settingsService.value("retention.maxEntries"))).onChange((value) => {
+        const count = this.toCount(value, DEFAULT_SETTINGS.retention.maxEntries);
+        this.settingsService.update("retention.maxEntries", count);
+      })
+    );
+    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.max-age-days.name")).setDesc(this.plugin.t("setting.max-age-days.desc")).addText(
+      (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.retention.maxAgeDays)).setValue(String(this.settingsService.value("retention.maxAgeDays"))).onChange((value) => {
+        const days = this.toCount(value, DEFAULT_SETTINGS.retention.maxAgeDays);
+        this.settingsService.update("retention.maxAgeDays", days);
+      })
+    );
+    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.snapshots-heading")).setHeading();
+    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.snapshots-enabled.name")).setDesc(this.plugin.t("setting.snapshots-enabled.desc")).addToggle(
+      (toggle) => toggle.setValue(this.settingsService.value("snapshots.enabled")).onChange((value) => {
+        this.settingsService.update("snapshots.enabled", value);
+      })
+    );
+    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.snapshots-edit-threshold.name")).setDesc(this.plugin.t("setting.snapshots-edit-threshold.desc")).addText(
+      (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.snapshots.editThreshold)).setValue(String(this.settingsService.value("snapshots.editThreshold"))).onChange((value) => {
+        this.settingsService.update(
+          "snapshots.editThreshold",
+          this.toCount(value, DEFAULT_SETTINGS.snapshots.editThreshold)
+        );
+      })
+    );
+    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.snapshots-interval.name")).setDesc(this.plugin.t("setting.snapshots-interval.desc")).addText(
+      (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.snapshots.intervalMs / 6e4)).setValue(String(this.settingsService.value("snapshots.intervalMs") / 6e4)).onChange((value) => {
+        const minutes = this.toCount(value, DEFAULT_SETTINGS.snapshots.intervalMs / 6e4);
+        this.settingsService.update("snapshots.intervalMs", minutes * 6e4);
+      })
+    );
+    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.max-version-age-days.name")).setDesc(this.plugin.t("setting.max-version-age-days.desc")).addText(
+      (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.snapshots.maxVersionAgeDays)).setValue(String(this.settingsService.value("snapshots.maxVersionAgeDays"))).onChange((value) => {
+        this.settingsService.update(
+          "snapshots.maxVersionAgeDays",
+          this.toCount(value, DEFAULT_SETTINGS.snapshots.maxVersionAgeDays)
+        );
+      })
+    );
+    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.max-versions.name")).setDesc(this.plugin.t("setting.max-versions.desc")).addText(
+      (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.snapshots.maxVersions)).setValue(String(this.settingsService.value("snapshots.maxVersions"))).onChange((value) => {
+        this.settingsService.update(
+          "snapshots.maxVersions",
+          this.toCount(value, DEFAULT_SETTINGS.snapshots.maxVersions)
+        );
+      })
+    );
+    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.show-heading")).setHeading();
+    new import_obsidian14.Setting(containerEl).setDesc(this.plugin.t("setting.show.desc"));
+    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.show.changed")).addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("show.changed")).onChange((value) => {
         this.settingsService.update("show.changed", value);
       })
     );
-    new import_obsidian9.Setting(containerEl).setName("Restored").addToggle(
+    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.show.restored")).addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("show.restored")).onChange((value) => {
         this.settingsService.update("show.restored", value);
       })
     );
-    new import_obsidian9.Setting(containerEl).setName("Added").addToggle(
+    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.show.added")).addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("show.added")).onChange((value) => {
         this.settingsService.update("show.added", value);
       })
     );
-    new import_obsidian9.Setting(containerEl).setName("Removed").addToggle(
+    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.show.removed")).addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("show.removed")).onChange((value) => {
         this.settingsService.update("show.removed", value);
       })
     );
-    new import_obsidian9.Setting(containerEl).setName("Line indicator").setHeading();
-    new import_obsidian9.Setting(containerEl).setName("Width").setDesc("Width of the vertical line indicator (in pixels).").addSlider(
+    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.line-heading")).setHeading();
+    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.line-width.name")).setDesc(this.plugin.t("setting.line-width.desc")).addSlider(
       (slider) => slider.setLimits(1, 5, 1).setValue(this.settingsService.value("line.width")).setDynamicTooltip().onChange((value) => {
         this.settingsService.update("line.width", value);
       })
     );
-    new import_obsidian9.Setting(containerEl).setName("Gutter indicator").setDesc((() => {
+    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.gutter-heading.name")).setDesc((() => {
       return DomHelper.createFragment([
         {
           tag: "div",
           children: [
             {
               tag: "span",
-              text: "Chars of the gutter type indicator ("
+              text: this.plugin.t("setting.gutter-heading.prefix")
             },
             {
               tag: "a",
@@ -7154,32 +14151,48 @@ var MainSetting = class extends import_obsidian9.PluginSettingTab {
             },
             {
               tag: "span",
-              text: ")."
+              text: this.plugin.t("setting.gutter-heading.suffix")
             }
           ]
         }
       ]);
     })()).setHeading();
-    new import_obsidian9.Setting(containerEl).setName("Change char").addText(
+    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.gutter-changed.name")).addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.gutter.changed).setValue(this.settingsService.value("gutter.changed")).onChange((value) => {
         this.settingsService.update("gutter.changed", value || DEFAULT_SETTINGS.gutter.changed);
       })
     );
-    new import_obsidian9.Setting(containerEl).setName("Added char").addText(
+    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.gutter-added.name")).addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.gutter.added).setValue(this.settingsService.value("gutter.added")).onChange((value) => {
         this.settingsService.update("gutter.added", value || DEFAULT_SETTINGS.gutter.added);
       })
     );
-    new import_obsidian9.Setting(containerEl).setName("Restore char").addText(
+    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.gutter-restored.name")).addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.gutter.restored).setValue(this.settingsService.value("gutter.restored")).onChange((value) => {
         this.settingsService.update("gutter.restored", value || DEFAULT_SETTINGS.gutter.restored);
       })
     );
-    new import_obsidian9.Setting(containerEl).setName("Removed char").addText(
+    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.gutter-removed.name")).addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.gutter.removed).setValue(this.settingsService.value("gutter.removed")).onChange((value) => {
         this.settingsService.update("gutter.removed", value || DEFAULT_SETTINGS.gutter.removed);
       })
     );
+  }
+  /**
+   * Parses a user-entered retention count into a non-negative integer.
+   * Falls back to the provided default when the input is empty or not a valid
+   * number, and clamps negatives to zero (zero disables the cap).
+   *
+   * @param {string} value - The raw text input
+   * @param {number} fallback - The value to use when input is invalid
+   * @return {number} A non-negative integer count
+   */
+  toCount(value, fallback) {
+    const parsed = Number.parseInt(value, 10);
+    if (Number.isNaN(parsed)) {
+      return fallback;
+    }
+    return Math.max(0, parsed);
   }
 };
 __decorateClass([
@@ -7197,16 +14210,17 @@ var SettingsService = class {
     this.plugin = plugin;
     /**
      * The plugin settings data.
-     * Initialized with default settings and updated from saved data during initialization.
+     * Initialized with a deep clone of the defaults so updates never mutate the
+     * shared DEFAULT_SETTINGS object; replaced with merged saved data on init.
      */
-    this.data = DEFAULT_SETTINGS;
+    this.data = merge_default({}, DEFAULT_SETTINGS);
   }
   /**
    * Initializes the service.
    * Loads saved settings data and added the settings tab to the plugin.
    */
   async init() {
-    this.data = Object.assign({}, DEFAULT_SETTINGS, await this.plugin.loadData());
+    this.data = merge_default({}, DEFAULT_SETTINGS, await this.plugin.loadData());
     this.plugin.addSettingTab(new MainSetting(this.plugin.app, this.plugin));
   }
   /**
@@ -7243,6 +14257,82 @@ var SettingsService = class {
    */
   value(path) {
     return get_default(this.data, path);
+  }
+};
+
+// src/helpers/path-exclude.helper.ts
+var PathExcludeHelper = class _PathExcludeHelper {
+  /**
+   * Decides whether a file path is excluded by the given pattern. The path is
+   * normalized to forward slashes before matching so a pattern written with
+   * `/` works regardless of the host path separator. An empty pattern, an
+   * empty path, or a pattern that fails to compile all return false (nothing
+   * excluded).
+   *
+   * @param {string} path - The vault-relative file path to test
+   * @param {string} pattern - The raw exclude pattern from the settings field
+   * @return {boolean} True when the path matches the compiled pattern
+   */
+  static isExcluded(path, pattern) {
+    if (!path) {
+      return false;
+    }
+    const regExp = _PathExcludeHelper.compile(pattern);
+    if (!regExp) {
+      return false;
+    }
+    return regExp.test(_PathExcludeHelper.normalize(path));
+  }
+  /**
+   * Reports whether a pattern is usable: blank patterns are valid (they simply
+   * exclude nothing), and a non-blank pattern is valid only when it compiles to
+   * a regular expression. Callers use this to warn the user once about a
+   * malformed pattern without coupling to the matching logic.
+   *
+   * @param {string} pattern - The raw exclude pattern from the settings field
+   * @return {boolean} True when the pattern is blank or compiles successfully
+   */
+  static isValid(pattern) {
+    if (!pattern || !pattern.trim()) {
+      return true;
+    }
+    return _PathExcludeHelper.compile(pattern) !== null;
+  }
+  /**
+   * Safe-compiles the raw pattern into a case-insensitive regular expression.
+   * A blank pattern yields null (matches nothing) and an invalid pattern is
+   * caught and also yields null, so compilation never throws.
+   *
+   * @param {string} pattern - The raw exclude pattern from the settings field
+   * @return {RegExp|null} The compiled regex, or null when blank or invalid
+   */
+  static compile(pattern) {
+    if (!pattern || !pattern.trim()) {
+      return null;
+    }
+    try {
+      return new RegExp(pattern.trim(), "i");
+    } catch (e) {
+      return null;
+    }
+  }
+  /**
+   * Normalizes a path for matching: converts backslashes to forward slashes and
+   * drops a leading `./` or `/` so the value aligns with the vault-relative
+   * paths the user writes patterns against.
+   *
+   * @param {string} value - The raw path
+   * @return {string} The normalized path
+   */
+  static normalize(value) {
+    let result = value.replace(/\\/g, "/");
+    if (result.startsWith("./")) {
+      result = result.slice(2);
+    }
+    if (result.startsWith("/")) {
+      result = result.slice(1);
+    }
+    return result;
   }
 };
 
@@ -7347,6 +14437,7 @@ var ObservableMap = class extends Map {
 };
 
 // src/helpers/text.helper.ts
+var idCounter = 0;
 var TextHelper = class {
   /**
    * Generates a hash from a string content.
@@ -7364,14 +14455,17 @@ var TextHelper = class {
     return Math.abs(hash).toString();
   }
   /**
-   * Generates a random alphanumeric identifier.
-   * Converts a random number to base 36 (alphanumeric) and optionally adds a prefix.
+   * Generates a unique alphanumeric identifier.
+   * Increments a monotonic counter and renders it in base 36 (alphanumeric),
+   * optionally prefixed. Unlike a Math.random scheme it never yields empty,
+   * truncated, or colliding ids, which TrackerLine.isEq and key rely on.
    *
    * @param {string} prefix - Optional prefix to add to the beginning of the ID
-   * @return {string} A random alphanumeric string that can be used as an identifier
+   * @return {string} A unique alphanumeric string that can be used as an identifier
    */
   static rndId(prefix) {
-    return Math.random().toString(36).replace("0.", prefix || "");
+    idCounter += 1;
+    return `${prefix != null ? prefix : ""}${idCounter.toString(36)}`;
   }
 };
 
@@ -7439,7 +14533,7 @@ var ChangeLine = class {
 };
 
 // src/lines/tracker.line.ts
-var TrackerLine = class {
+var TrackerLine = class _TrackerLine {
   /**
    * Creates a new instance of TrackerLine.
    * Initializes the line tracker with optional parameters for content and position.
@@ -7501,7 +14595,6 @@ var TrackerLine = class {
      * Value of -1 indicates the line hasn't been changed
      */
     this.changedTimeStamp = -1;
-    // todo: remove or use it
     /**
      * Timestamp when the line was added
      * Used for sorting and tracking addition order
@@ -7843,6 +14936,51 @@ var TrackerLine = class {
       this.removedAtPosition -= offset;
     }
   }
+  /**
+   * Serializes this tracker line into a plain object for persistence.
+   * The id is intentionally excluded: a fresh one is assigned on restore so
+   * ids never collide across sessions.
+   *
+   * @return {SerializedTrackerLine} The plain serialized representation
+   */
+  toJSON() {
+    return {
+      originalPosition: this.originalPosition,
+      currentPosition: this.currentPosition,
+      removedAtPosition: this.removedAtPosition,
+      changeAtPosition: this.changeAtPosition,
+      contentSameOriginal: this.contentSameOriginal,
+      hash: this.hash,
+      original: this.original,
+      current: this.current,
+      removedTimeStamp: this.removedTimeStamp,
+      changedTimeStamp: this.changedTimeStamp,
+      addedTimeStamp: this.addedTimeStamp
+    };
+  }
+  /**
+   * Rebuilds a tracker line from its serialized form.
+   * Creates a new instance (so a fresh, collision-free id is generated) and
+   * restores every persisted state field verbatim.
+   *
+   * @param {SerializedTrackerLine} data - The serialized tracker line
+   * @return {TrackerLine} The reconstructed tracker line
+   */
+  static fromJSON(data) {
+    const tracker = new _TrackerLine();
+    tracker.originalPosition = data.originalPosition;
+    tracker.currentPosition = data.currentPosition;
+    tracker.removedAtPosition = data.removedAtPosition;
+    tracker.changeAtPosition = data.changeAtPosition;
+    tracker.contentSameOriginal = data.contentSameOriginal;
+    tracker.hash = data.hash;
+    tracker.original = data.original;
+    tracker.current = data.current;
+    tracker.removedTimeStamp = data.removedTimeStamp;
+    tracker.changedTimeStamp = data.changedTimeStamp;
+    tracker.addedTimeStamp = data.addedTimeStamp;
+    return tracker;
+  }
 };
 
 // src/maps/array.map.ts
@@ -7913,8 +15051,105 @@ var ArrayMap = class extends Map {
   }
 };
 
+// src/snapshots/file.version.ts
+var FileVersion = class _FileVersion {
+  /**
+   * Creates a new immutable version from a content snapshot.
+   *
+   * @param {string[]} lines - The file content at capture time, split into lines
+   * @param {number} timestamp - Optional capture timestamp (defaults to now)
+   */
+  constructor(lines, timestamp) {
+    /**
+     * Unique identifier for this version, generated on creation. Used as a stable
+     * key for the version list in the UI and to address a picked diff base.
+     */
+    this.id = TextHelper.rndId();
+    /**
+     * Timestamp (ms) when this version was captured.
+     */
+    this.timestamp = Date.now();
+    /**
+     * The file content at capture time, as an array of lines.
+     */
+    this.lines = [];
+    this.lines = [...lines != null ? lines : []];
+    if (typeof timestamp === "number") {
+      this.timestamp = timestamp;
+    }
+  }
+  /**
+   * Gets the captured content as a string joined by the given line break.
+   *
+   * @param {string} lineBreak - The line break to join lines with
+   * @return {string} The captured content as a single string
+   */
+  getContent(lineBreak) {
+    return this.lines.join(lineBreak);
+  }
+  /**
+   * Gets a copy of the captured lines so callers cannot mutate the version.
+   *
+   * @return {string[]} A copy of the captured content lines
+   */
+  getLines() {
+    return [...this.lines];
+  }
+  /**
+   * Gets the capture date and time as a localized string for display.
+   *
+   * @return {string} The localized capture date and time
+   */
+  getDateTime() {
+    return new Date(this.timestamp).toLocaleString();
+  }
+  /**
+   * Gets the capture day as a localized date string, used both as the label and
+   * the grouping key for the day-grouped version list. Two versions captured on
+   * the same calendar day yield the same string.
+   *
+   * @return {string} The localized capture date (no time)
+   */
+  getDate() {
+    return new Date(this.timestamp).toLocaleDateString();
+  }
+  /**
+   * Gets the capture time of day as a localized string. Shown as the per-version
+   * meta once the day lives in the group heading, so the time is not repeated
+   * with a redundant date.
+   *
+   * @return {string} The localized capture time
+   */
+  getTime() {
+    return new Date(this.timestamp).toLocaleTimeString();
+  }
+  /**
+   * Serializes this version into a plain object for on-disk persistence.
+   * The id is intentionally omitted so a fresh, collision-free id is assigned
+   * on restore (matching how tracker lines are persisted).
+   *
+   * @return {SerializedFileVersion} The plain serialized representation
+   */
+  toJSON() {
+    return {
+      timestamp: this.timestamp,
+      lines: [...this.lines]
+    };
+  }
+  /**
+   * Rebuilds a version from its serialized form, assigning a fresh id.
+   *
+   * @param {SerializedFileVersion} data - The serialized version
+   * @return {FileVersion} The reconstructed version
+   */
+  static fromJSON(data) {
+    return new _FileVersion(Array.isArray(data == null ? void 0 : data.lines) ? data.lines : [], data == null ? void 0 : data.timestamp);
+  }
+};
+
 // src/snapshots/file.snapshot.ts
-var FileSnapshot = class {
+var MS_PER_DAY2 = 24 * 60 * 60 * 1e3;
+var FileSnapshot = class _FileSnapshot {
   /**
    * Creates a new instance of FileSnapshot.
    * Initializes the snapshot with the provided content, splits it into lines,
@@ -7925,17 +15160,27 @@ var FileSnapshot = class {
    * @param {TFile | null} file - The Obsidian file object this snapshot belongs to
    */
   constructor(content, lineBreak, file) {
-    // todo: make everything protected
     /**
      * Unique identifier for this snapshot.
      * Generated randomly when the snapshot is created.
      */
     this.id = TextHelper.rndId();
     /**
-     * Original content of the file as an array of lines.
-     * This represents the initial state of the file when the snapshot was created.
+     * Marker baseline: the file content the change tracker measures against. This
+     * is the file state at the moment the snapshot was created in the current app
+     * run, so the gutter markers stay session-scoped (see D2). The tracker is
+     * built from these lines and they never change for the life of the snapshot.
      */
     this.lines = [];
+    /**
+     * History baseline: the persisted original the history modal diffs against
+     * (see D2). Defaults to the marker baseline (`lines`) so a freshly captured
+     * file has a single coherent origin. Restoring persisted history overrides
+     * only this baseline (and the version timeline) through adoptHistory, leaving
+     * the session marker baseline intact so the gutter does not mark the whole
+     * file after a restart.
+     */
+    this.historyLines = [];
     /**
      * Timestamp when this snapshot was created.
      * Used for tracking when changes occurred.
@@ -7953,6 +15198,15 @@ var FileSnapshot = class {
      */
     this.tracker = [];
     /**
+     * Lazily built index from a current line position to the tracker living there.
+     * Covers only lines present in the current document and lets findCurrentLine
+     * resolve in O(1) on the change-detection hot path instead of sorting and
+     * copying the whole tracker each call. Null means stale: it is rebuilt on the
+     * next lookup. Any mutation of a current position or of the tracker set must
+     * call invalidateCurrentIndex().
+     */
+    this.currentIndex = null;
+    /**
      * Hash of the last known state of the file.
      * Used to determine if the file has changed since the last update.
      */
@@ -7962,6 +15216,24 @@ var FileSnapshot = class {
      * This represents the most recent state of the file.
      */
     this.state = [];
+    /**
+     * Ordered timeline of intermediate versions, oldest first. Each entry is a
+     * frozen copy of the file content at the moment it was captured. The original
+     * baseline (lines) and the live state are not stored here; the timeline holds
+     * only the points in between, which the history modal can diff against.
+     */
+    this.versions = [];
+    /**
+     * Number of state updates accumulated since the last captured version.
+     * Drives the edit-count gate of the capture cadence so versions are taken
+     * every N edits rather than on every keystroke-driven update.
+     */
+    this.editsSinceVersion = 0;
+    /**
+     * Timestamp (ms) of the last captured version, or the snapshot creation time
+     * when no version has been captured yet. Drives the time gate of the cadence.
+     */
+    this.lastVersionAt = Date.now();
     /**
      * Line break character used in the file.
      * Defaults to '\n' but can be specified during construction.
@@ -7975,6 +15247,7 @@ var FileSnapshot = class {
       this.file = file;
     }
     this.lines = (_a = content == null ? void 0 : content.split(this.lineBreak)) != null ? _a : [];
+    this.historyLines = [...this.lines];
     this.tracker = this.lines.map((line, index) => new TrackerLine({
       content: line,
       originalPosition: index,
@@ -7982,6 +15255,54 @@ var FileSnapshot = class {
       contentSameOriginal: true
     }));
     this.updateState(this.lines);
+  }
+  /**
+   * Serializes this snapshot into a plain object for on-disk persistence.
+   * Persists the HISTORY baseline (so the modal can diff against the original
+   * across restarts), the current state, and the full tracker so the highlights
+   * can be restored verbatim. The session-scoped marker baseline is intentionally
+   * not persisted: it is re-established from the file content on the next open
+   * (see D2). The change map is omitted because it is recomputed from the tracker
+   * on restore.
+   *
+   * @return {SerializedFileSnapshot} The plain serialized representation
+   */
+  toJSON() {
+    var _a, _b;
+    return {
+      path: (_b = (_a = this.file) == null ? void 0 : _a.path) != null ? _b : "",
+      lineBreak: this.lineBreak,
+      timestamp: this.timestamp,
+      lines: [...this.historyLines],
+      state: [...this.state],
+      tracker: this.tracker.map((tracker) => tracker.toJSON()),
+      versions: this.versions.map((version) => version.toJSON())
+    };
+  }
+  /**
+   * Rebuilds a snapshot from its serialized form.
+   * Reconstructs the original baseline through the constructor, then replaces
+   * the auto-generated tracker and current state with the persisted ones and
+   * recomputes the change map. The file reference is attached separately by the
+   * caller since serialized data only carries the path.
+   *
+   * @param {SerializedFileSnapshot} data - The serialized snapshot
+   * @param {TFile | null} file - The file this snapshot belongs to, if known
+   * @return {FileSnapshot} The reconstructed snapshot
+   */
+  static fromJSON(data, file) {
+    const snapshot = new _FileSnapshot(
+      data.lines.join(data.lineBreak),
+      data.lineBreak,
+      file
+    );
+    snapshot.timestamp = data.timestamp;
+    snapshot.tracker = data.tracker.map((line) => TrackerLine.fromJSON(line));
+    snapshot.versions = Array.isArray(data.versions) ? data.versions.map((version) => FileVersion.fromJSON(version)) : [];
+    snapshot.invalidateCurrentIndex();
+    snapshot.updateState(data.state);
+    snapshot.updateChanges();
+    return snapshot;
   }
   /**
    * Checks if the file content has changed since the last update.
@@ -8002,6 +15323,139 @@ var FileSnapshot = class {
   updateState(content) {
     this.state = isArray_default(content) ? [...content] : content.split(this.lineBreak);
     this.lastHash = TextHelper.hash(this.state.join(this.lineBreak));
+  }
+  /**
+   * Records that the document changed since the last captured version and,
+   * when the configured cadence is met, freezes the previous state as a new
+   * intermediate version on the timeline.
+   *
+   * IMPORTANT: this must be called with the state BEFORE the latest edit was
+   * applied (typically the snapshot's current state right before updateState),
+   * so the captured version preserves the earlier point rather than the new
+   * one. The current (newest) state is never stored as a version: the history
+   * modal always has the live state available separately.
+   *
+   * Cadence: a version is captured when capture is enabled and either the edit
+   * count since the last version reached editThreshold, or intervalMs elapsed
+   * since the last version. A gate set to 0 is treated as disabled; when both
+   * gates are 0 only the explicit force path captures. The timeline is bounded
+   * primarily by age (maxVersionAgeDays) and secondarily by count (maxVersions),
+   * evicting the oldest entries first so it cannot grow without limit.
+   *
+   * A no-op capture is skipped: when the content to freeze equals the most
+   * recent stored version (or the original baseline when none exist), no version
+   * is pushed. This keeps the timeline from holding adjacent duplicate entries
+   * or a first version identical to the original, which would otherwise diff
+   * identically and make switching the base appear to change nothing.
+   *
+   * @param {string[]} previousLines - The content to freeze (pre-edit state)
+   * @param {SnapshotCaptureOptions} options - The capture cadence configuration
+   * @param {boolean} force - Capture regardless of the cadence gates
+   * @return {FileVersion | null} The captured version, or null if none was taken
+   */
+  captureVersion(previousLines, options, force = false) {
+    if (!(options == null ? void 0 : options.enabled) || !isArray_default(previousLines)) {
+      return null;
+    }
+    this.editsSinceVersion += 1;
+    if (!force && !this.isVersionDue(options)) {
+      return null;
+    }
+    if (this.isDuplicateOfLatest(previousLines)) {
+      return null;
+    }
+    return this.pushVersion(new FileVersion(previousLines), options);
+  }
+  /**
+   * Whether the given content equals the latest stored version, or the original
+   * baseline when no version exists yet. Used to skip a no-op capture so the
+   * timeline never holds an adjacent duplicate or a first version identical to
+   * the original.
+   *
+   * @param {string[]} lines - The candidate content to freeze
+   * @return {boolean} True when the candidate duplicates the latest base
+   */
+  isDuplicateOfLatest(lines) {
+    const candidate = lines.join(this.lineBreak);
+    const latest = this.versions[this.versions.length - 1];
+    const reference = latest ? latest.getContent(this.lineBreak) : this.getHistoryOriginalState();
+    return candidate === reference;
+  }
+  /**
+   * Decides whether the cadence gates allow a new version right now.
+   * Either gate (edit count or elapsed time) can trigger a capture; a gate set
+   * to 0 is disabled and never triggers on its own.
+   *
+   * @param {SnapshotCaptureOptions} options - The capture cadence configuration
+   * @return {boolean} True if a version should be captured
+   */
+  isVersionDue(options) {
+    const byEdits = options.editThreshold > 0 && this.editsSinceVersion >= options.editThreshold;
+    const byTime = options.intervalMs > 0 && Date.now() - this.lastVersionAt >= options.intervalMs;
+    return byEdits || byTime;
+  }
+  /**
+   * Appends a version to the timeline, resets the cadence counters, and trims
+   * the timeline by evicting expired then excess entries.
+   *
+   * @param {FileVersion} version - The version to append
+   * @param {SnapshotCaptureOptions} options - The capture cadence and retention caps
+   * @return {FileVersion} The appended version
+   */
+  pushVersion(version, options) {
+    this.versions.push(version);
+    this.editsSinceVersion = 0;
+    this.lastVersionAt = version.timestamp;
+    this.evictVersions(options);
+    return version;
+  }
+  /**
+   * Trims the timeline to its retention caps, age first then count, mirroring
+   * the JetBrains Local History model where age is the primary bound and the
+   * count is a safety cap. Versions older than maxVersionAgeDays are dropped
+   * regardless of count, then any beyond maxVersions are dropped regardless of
+   * age. A cap of 0 disables that dimension. Because versions are appended
+   * oldest-first, both passes evict from the front of the array.
+   *
+   * @param {SnapshotCaptureOptions} options - The retention caps to apply
+   */
+  evictVersions(options) {
+    const maxAgeDays = options == null ? void 0 : options.maxVersionAgeDays;
+    if (isNumber_default(maxAgeDays) && maxAgeDays > 0) {
+      const oldest = Date.now() - maxAgeDays * MS_PER_DAY2;
+      this.versions = this.versions.filter((version) => version.timestamp >= oldest);
+    }
+    const maxVersions = options == null ? void 0 : options.maxVersions;
+    if (isNumber_default(maxVersions) && maxVersions > 0 && this.versions.length > maxVersions) {
+      this.versions.splice(0, this.versions.length - maxVersions);
+    }
+  }
+  /**
+   * Returns the intermediate versions, newest first, as a copy so callers
+   * cannot mutate the timeline.
+   *
+   * @return {FileVersion[]} The timeline versions, newest first
+   */
+  getVersions() {
+    return [...this.versions].reverse();
+  }
+  /**
+   * Finds an intermediate version by its id.
+   *
+   * @param {string} id - The version id to look up
+   * @return {FileVersion | null} The matching version, or null if absent
+   */
+  getVersion(id) {
+    var _a;
+    return (_a = this.versions.find((version) => version.id === id)) != null ? _a : null;
+  }
+  /**
+   * Whether the snapshot has any intermediate versions on its timeline.
+   *
+   * @return {boolean} True when at least one version exists
+   */
+  hasVersions() {
+    return this.versions.length > 0;
   }
   /**
    * Checks if the current state is the same as the original state.
@@ -8031,22 +15485,57 @@ var FileSnapshot = class {
     return [...this.state];
   }
   /**
-   * Gets the original state of the file as a string.
-   * Joins the lines of the original state with the line break character.
+   * Gets the marker baseline as a string (the session origin the gutter markers
+   * measure against). Joins the marker baseline lines with the line break.
    *
-   * @return {string} The original state of the file as a string
+   * @return {string} The marker baseline of the file as a string
    */
   getOriginalState() {
     return [...this.lines].join(this.lineBreak);
   }
   /**
-   * Gets the original state of the file as an array of lines.
-   * Returns a copy of the lines array to prevent direct modification.
+   * Gets the marker baseline as an array of lines (the session origin the gutter
+   * markers measure against). Returns a copy to prevent direct modification.
    *
-   * @return {string[]} The original state of the file as an array of lines
+   * @return {string[]} The marker baseline of the file as an array of lines
    */
   getOriginalStateLines() {
     return [...this.lines];
+  }
+  /**
+   * Gets the HISTORY baseline as a string (the persisted original the history
+   * modal diffs against). Distinct from the marker baseline so a restored file
+   * keeps a stable origin for the time machine while the gutter stays
+   * session-scoped (see D2).
+   *
+   * @return {string} The history baseline of the file as a string
+   */
+  getHistoryOriginalState() {
+    return [...this.historyLines].join(this.lineBreak);
+  }
+  /**
+   * Gets the HISTORY baseline as an array of lines (the persisted original the
+   * history modal diffs against). Returns a copy to prevent direct modification.
+   *
+   * @return {string[]} The history baseline of the file as an array of lines
+   */
+  getHistoryOriginalStateLines() {
+    return [...this.historyLines];
+  }
+  /**
+   * Adopts a persisted HISTORY baseline and version timeline into this
+   * (session-captured) snapshot without touching the marker baseline, the
+   * tracker, or the current state (see D2). Used by the restore path so reopening
+   * a file in a new app run keeps the gutter markers session-scoped (measured
+   * against the file content at this open) while the history modal still diffs
+   * against the persisted original and its captured versions.
+   *
+   * @param {string[]} historyLines - The persisted original (history baseline)
+   * @param {FileVersion[]} versions - The persisted version timeline, oldest first
+   */
+  adoptHistory(historyLines, versions) {
+    this.historyLines = Array.isArray(historyLines) ? [...historyLines] : [];
+    this.versions = Array.isArray(versions) ? [...versions] : [];
   }
   /**
    * Gets the changes for the specified change types.
@@ -8077,63 +15566,61 @@ var FileSnapshot = class {
     return this.getChanges(["changed" /* changed */, "added" /* added */, "removed" /* removed */]).size;
   }
   /**
+   * Gets the 0-based positions of every currently changed line, ascending.
+   * These are the same positions the line decorations are keyed by (the change
+   * map keys), so navigating across them lands the cursor exactly on the
+   * highlighted lines. Used by the "go to next/previous change" commands.
+   *
+   * @param {ChangeType | ChangeType[]} type - Optional change types to include;
+   *   defaults to changed, added, restored and removed
+   * @return {number[]} The unique changed line positions in ascending order
+   */
+  getChangedPositions(type) {
+    const types = type != null ? type : [
+      "changed" /* changed */,
+      "added" /* added */,
+      "restored" /* restored */,
+      "removed" /* removed */
+    ];
+    return [...this.getChanges(types).keys()].filter((line) => isNumber_default(line)).sort((a, b) => a - b);
+  }
+  /**
+   * Resolves the timestamp of the file's last update. Prefers the file's
+   * modification time (the real last-change moment of the live content), and
+   * falls back to the snapshot's creation time when no file stat is available
+   * (for example a detached snapshot in tests).
+   *
+   * @return {number} The last-change timestamp in milliseconds
+   */
+  getLastChangedTimestamp() {
+    var _a, _b, _c;
+    return (_c = (_b = (_a = this.file) == null ? void 0 : _a.stat) == null ? void 0 : _b.mtime) != null ? _c : this.timestamp;
+  }
+  /**
    * Retrieves the last modified date and time as a localized string.
    *
    * @return {string} The date and time of the last change in a localized string format.
    */
   getLastChangedDateTime() {
-    return new Date(this.timestamp).toLocaleString();
+    return new Date(this.getLastChangedTimestamp()).toLocaleString();
   }
   /**
-   * Performs a self-test on the snapshot to verify its integrity.
-   * Checks various aspects of the snapshot's state and returns diagnostic information.
-   * Used for debugging purposes.
+   * Retrieves the last modified day as a localized date string (no time), used
+   * as the day-group key and label for the baseline entry in the history modal.
    *
-   * @return {object} An object containing diagnostic information about the snapshot
+   * @return {string} The localized last-change date
    */
-  selfTest() {
-    return {
-      equal: this.isStateSameOriginal(),
-      // changesCountToState: this.getChanges().size <= this.getLastStateLines().length,
-      tracker: this.getTracker().simplify(),
-      trackerLinesToState: this.getLastStateLines().map((_value, index) => {
-        return this.findCurrentLine(index);
-      }),
-      trackerLinesToOrigin: this.getOriginalStateLines().map((_value, index) => {
-        return this.findOriginalLine(index, null, false);
-      }),
-      stateMissingLines: this.getLastStateLines().reduce((acc, _value, index) => {
-        return !this.findCurrentLine(index) ? [...acc, index] : acc;
-      }, []),
-      originMissingLines: this.getOriginalStateLines().reduce((acc, _value, index) => {
-        return !this.findOriginalLine(index, null, false) ? [...acc, index] : acc;
-      }, []),
-      trackerDuplicatesLines: Object.entries(
-        this.getTracker().reduce((acc, value) => {
-          var _a;
-          return {
-            ...acc,
-            [value.currentPosition]: [...(_a = acc[value.currentPosition]) != null ? _a : [], value]
-          };
-        }, {})
-      ).filter(([_line, trackers]) => trackers.length > 1),
-      trackerChangedLines: this.getTracker().filter(
-        (value, _index) => value.isStateChanged()
-      ).length,
-      trackerToRemovedLines: this.getTracker({ ordering: "removedTimeStamp" }).filter(
-        (value, _index) => value.isStateRemoved()
-      ).length,
-      trackerToAddedLines: this.getTracker().filter(
-        (value, _index) => value.isStateAdded()
-      ).length,
-      trackerToRestoredLines: this.getTracker().filter(
-        (value, _index) => value.isStateRestored()
-      ).length,
-      trackerToGhostLines: this.getTracker().filter(
-        (value, _index) => value.isStateGhost()
-      ).length,
-      changes: this.getChanges()
-    };
+  getLastChangedDate() {
+    return new Date(this.getLastChangedTimestamp()).toLocaleDateString();
+  }
+  /**
+   * Retrieves the last modified time of day as a localized string, shown as the
+   * baseline entry's meta once its day lives in the group heading.
+   *
+   * @return {string} The localized last-change time
+   */
+  getLastChangedTime() {
+    return new Date(this.getLastChangedTimestamp()).toLocaleTimeString();
   }
   /**
    * Updates the change map based on the current state of tracker lines.
@@ -8172,6 +15659,34 @@ var FileSnapshot = class {
     });
   }
   /**
+   * Marks the current-position index as stale so it is rebuilt on next lookup.
+   * Called by every mutation that can change a current position or the tracker set.
+   */
+  invalidateCurrentIndex() {
+    this.currentIndex = null;
+  }
+  /**
+   * Returns the current-position index, building it lazily when stale.
+   * Maps each current line position to the tracker present there; lines absent
+   * from the current document are skipped. On a position collision the first
+   * tracker in array order wins, keeping the result deterministic.
+   *
+   * @return {Map<number, TrackerLine>} Index from current position to tracker
+   */
+  getCurrentIndex() {
+    if (this.currentIndex) {
+      return this.currentIndex;
+    }
+    const index = /* @__PURE__ */ new Map();
+    for (const tracker of this.tracker) {
+      if (tracker.existedInCurrent && !index.has(tracker.currentPosition)) {
+        index.set(tracker.currentPosition, tracker);
+      }
+    }
+    this.currentIndex = index;
+    return index;
+  }
+  /**
    * Finds a tracker line at the specified current position.
    * Searches for a tracker line that is currently at the given line number.
    *
@@ -8180,13 +15695,11 @@ var FileSnapshot = class {
    * @return {TrackerLine | null} The tracker line at the specified position, or null if not found
    */
   findCurrentLine(line, to) {
-    var _a;
-    return (_a = this.getTracker().find(
-      (tracker) => (
-        // todo: possibly some checks are redundant
-        tracker.isCurrentAt(line) && tracker.isCurrentInRange(0, to)
-      )
-    )) != null ? _a : null;
+    const tracker = this.getCurrentIndex().get(line);
+    if (!tracker) {
+      return null;
+    }
+    return tracker.isCurrentInRange(0, to) ? tracker : null;
   }
   /**
    * Finds a tracker line originally at the specified position.
@@ -8200,10 +15713,7 @@ var FileSnapshot = class {
   findOriginalLine(line, to, visible = true) {
     var _a;
     return (_a = this.getTracker().find(
-      (tracker) => (
-        // todo: possibly some checks are redundant
-        (visible ? tracker.isCurrentAt(line) : tracker.isOriginAt(line)) && tracker.existedInOriginal && tracker.isOriginalInRange(0, to)
-      )
+      (tracker) => (visible ? tracker.isCurrentAt(line) : tracker.isOriginAt(line)) && tracker.existedInOriginal && tracker.isOriginalInRange(0, to)
     )) != null ? _a : null;
   }
   /**
@@ -8214,10 +15724,13 @@ var FileSnapshot = class {
    * @return {TrackerLine | null} The tracker line that was removed at the specified position, or null if not found
    */
   findRemovedAt(line) {
-    var _a;
-    return (_a = this.getTracker({ ordering: ["removedTimeStamp", "dsc"] }).find(
-      (tracker) => tracker.isStateRemovedAt(line)
-    )) != null ? _a : null;
+    let found = null;
+    for (const tracker of this.tracker) {
+      if (tracker.isStateRemovedAt(line) && (!found || tracker.removedTimeStamp > found.removedTimeStamp)) {
+        found = tracker;
+      }
+    }
+    return found;
   }
   /**
    * Gets the tracker lines with optional sorting and key mapping.
@@ -8283,6 +15796,7 @@ var FileSnapshot = class {
       this.shiftDown(line, tracker.getCurrentPositionOffset(position));
     }
     tracker.moveTo(position);
+    this.invalidateCurrentIndex();
     return tracker;
   }
   /**
@@ -8296,7 +15810,8 @@ var FileSnapshot = class {
    */
   shiftUp(line, to, offset) {
     const positions = {};
-    this.getTracker({ keyBy: "id" }).forEach((tracker) => {
+    this.invalidateCurrentIndex();
+    this.tracker.forEach((tracker) => {
       if (tracker.isCurrentInRange(line, to)) {
         tracker.shiftUp(offset);
         (positions[tracker.currentPosition] || (positions[tracker.currentPosition] = [])).push(tracker);
@@ -8315,7 +15830,7 @@ var FileSnapshot = class {
    */
   shiftUpRemoved(line, to, offset) {
     const positions = {};
-    this.getTracker({ keyBy: "id" }).forEach((tracker) => {
+    this.tracker.forEach((tracker) => {
       if (tracker.isRemoveInRange(line, to)) {
         tracker.shiftUp(offset);
         (positions[tracker.removedAtPosition] || (positions[tracker.removedAtPosition] = [])).push(tracker);
@@ -8334,7 +15849,8 @@ var FileSnapshot = class {
    */
   shiftDown(line, to, offset) {
     const positions = {};
-    this.getTracker({ keyBy: "id" }).forEach((tracker) => {
+    this.invalidateCurrentIndex();
+    this.tracker.forEach((tracker) => {
       if (tracker.isCurrentInRange(line, to)) {
         tracker.shiftDown(offset);
         (positions[tracker.currentPosition] || (positions[tracker.currentPosition] = [])).push(tracker);
@@ -8353,7 +15869,7 @@ var FileSnapshot = class {
    */
   shiftDownRemoved(line, to, offset) {
     const positions = {};
-    this.getTracker({ keyBy: "id" }).forEach((tracker) => {
+    this.tracker.forEach((tracker) => {
       if (tracker.isRemoveInRange(line, to)) {
         tracker.shiftDown(offset);
         (positions[tracker.removedAtPosition] || (positions[tracker.removedAtPosition] = [])).push(tracker);
@@ -8378,6 +15894,7 @@ var FileSnapshot = class {
     }
     if (removed) {
       removed.restore(index);
+      this.invalidateCurrentIndex();
     }
     if (shift) {
       this.shiftUpRemoved(index);
@@ -8409,6 +15926,7 @@ var FileSnapshot = class {
     } else {
       this.removeTrackerLine(tracker);
     }
+    this.invalidateCurrentIndex();
     return tracker;
   }
   /**
@@ -8421,6 +15939,7 @@ var FileSnapshot = class {
   addTrackerLine(params) {
     const tracker = new TrackerLine(params);
     this.tracker.push(tracker);
+    this.invalidateCurrentIndex();
     return tracker;
   }
   /**
@@ -8437,10 +15956,60 @@ var FileSnapshot = class {
       return;
     }
     this.tracker.splice(index, 1);
+    this.invalidateCurrentIndex();
+  }
+  /**
+   * Replaces a contiguous block of current lines in the tracker with new content,
+   * keeping the original baseline intact. This is the model-level counterpart of
+   * a single-block edit: it is used when a region of the document is rewritten
+   * outside the editor (for example a per-hunk revert from the history modal),
+   * so the tracker and its highlights stay consistent with the new content even
+   * when the change did not flow through the CodeMirror change detector.
+   *
+   * The block spanning [startLine, startLine + removeCount) is mapped onto
+   * newLines. When the counts match, each line is edited in place so a revert to
+   * the original content correctly clears or restores its highlight. When they
+   * differ, the block is treated as a delete plus insert (mirroring the change
+   * detector), which keeps positions correct for every line after the block.
+   *
+   * The caller is responsible for updating the cached state and the change map
+   * afterwards (updateState then updateChanges), so the written file content
+   * stays the single source of truth for the diff view.
+   *
+   * @param {number} startLine - The 0-based current position where the block begins
+   * @param {number} removeCount - How many current lines the block currently spans
+   * @param {string[]} newLines - The content the block should hold afterwards
+   */
+  replaceBlock(startLine, removeCount, newLines) {
+    var _a;
+    const start = Math.max(0, startLine);
+    const count = Math.max(0, removeCount);
+    const replacement = newLines != null ? newLines : [];
+    if (count === replacement.length && count > 0) {
+      for (let i = 0; i < count; i++) {
+        (_a = this.findCurrentLine(start + i)) == null ? void 0 : _a.change(replacement[i]);
+      }
+      return;
+    }
+    const doomed = [];
+    for (let index = start; index < start + count; index++) {
+      const tracker = this.findCurrentLine(index);
+      if (tracker) {
+        doomed.push(tracker);
+      }
+    }
+    replacement.forEach((content, offset) => {
+      var _a2;
+      (_a2 = this.restoreOrAddTracker(start + offset)) == null ? void 0 : _a2.change(content);
+    });
+    doomed.forEach((tracker) => {
+      this.removeTrackerOrLine(tracker);
+    });
   }
 };
 
 // src/services/snapshots.service.ts
+var import_obsidian15 = require("obsidian");
 var SnapshotsService = class {
   /**
    * Creates a new instance of SnapshotsService.
@@ -8459,6 +16028,13 @@ var SnapshotsService = class {
      * Files in this list will not have any changes tracked.
      */
     this.ignoreList = /* @__PURE__ */ new Set();
+    /**
+     * The last exclude pattern a user was warned about for being invalid. Keeps
+     * the "invalid regexp" Notice from firing on every captured file: the warning
+     * shows once per distinct bad pattern until the user edits the field to a
+     * valid one (or to a different bad one).
+     */
+    this.lastWarnedExcludePattern = null;
   }
   /**
    * Initializes the service.
@@ -8528,11 +16104,92 @@ var SnapshotsService = class {
     this.fileSnapshots.delete(file.path);
   }
   /**
+   * Re-keys a snapshot after its file was renamed or moved.
+   * Moves the snapshot from the old path to the file's current path and updates
+   * the stored file reference, preserving the tracked history across the rename.
+   *
+   * @param {string} oldPath - The path the snapshot was previously keyed by
+   * @param {TFile} file - The file in its renamed state (holding the new path)
+   */
+  rename(oldPath, file) {
+    if (!oldPath || !file || oldPath === file.path) {
+      return;
+    }
+    const snapshot = this.fileSnapshots.get(oldPath);
+    if (!snapshot) {
+      return;
+    }
+    snapshot.file = file;
+    this.fileSnapshots.delete(oldPath);
+    this.fileSnapshots.set(file.path, snapshot);
+  }
+  /**
    * Clears all snapshots from the service.
    * Removes all stored file snapshots.
    */
   clear() {
     this.fileSnapshots.clear();
+  }
+  /**
+   * Serializes all tracked snapshots into a plain, persistable structure.
+   * Includes snapshots that carry actual history (a tracker with changes) or a
+   * non-empty intermediate-version timeline, and that have a known file path,
+   * so pristine files do not bloat the store but a timeline is never lost just
+   * because the current state happens to match the original.
+   *
+   * @return {SerializedHistory} The versioned, serializable history payload
+   */
+  serialize() {
+    var _a;
+    const snapshots = [];
+    for (const snapshot of this.fileSnapshots.values()) {
+      const hasHistory = snapshot.getChangesLinesCount() > 0 || snapshot.hasVersions();
+      if (!((_a = snapshot.file) == null ? void 0 : _a.path) || !hasHistory) {
+        continue;
+      }
+      snapshots.push(snapshot.toJSON());
+    }
+    return { version: 1, snapshots };
+  }
+  /**
+   * Restores snapshots from a previously serialized history payload, keeping the
+   * marker and history baselines separate (D2).
+   *
+   * When the file was already captured this session, its session snapshot owns
+   * the MARKER baseline (the file content at this open) plus the live tracker and
+   * state, which must stay session-scoped so the gutter does not mark the whole
+   * file after a restart. The persisted HISTORY baseline and version timeline are
+   * adopted into that session snapshot, so the modal still diffs against the
+   * original and its captured versions without touching the markers.
+   *
+   * When the file is not open this session there is no session marker baseline to
+   * preserve, so the snapshot is rebuilt verbatim (marker and history baselines
+   * coincide). Entries whose file is gone are skipped (deleted while the plugin
+   * was off).
+   *
+   * @param {SerializedFileSnapshot[]} snapshots - The serialized snapshots
+   */
+  restore(snapshots) {
+    if (!Array.isArray(snapshots)) {
+      return;
+    }
+    for (const data of snapshots) {
+      if (!(data == null ? void 0 : data.path)) {
+        continue;
+      }
+      const file = this.plugin.getFileByPath(data.path);
+      if (!file) {
+        continue;
+      }
+      const existing = this.fileSnapshots.get(data.path);
+      if (existing) {
+        const persisted = FileSnapshot.fromJSON(data, file);
+        existing.adoptHistory(persisted.getHistoryOriginalStateLines(), persisted.versions);
+        this.forceUpdate();
+        continue;
+      }
+      this.fileSnapshots.set(data.path, FileSnapshot.fromJSON(data, file));
+    }
   }
   /**
    * Forces an update of the snapshots.
@@ -8605,6 +16262,44 @@ var SnapshotsService = class {
     return this.settingsService.value("allowedExtensions").split(",").map((ext) => ext.trim().toLowerCase()).includes(file.extension.toLowerCase());
   }
   /**
+   * Checks whether a file path matches the configured exclude pattern.
+   * Excluded paths (for example a templates or daily-notes folder) are never
+   * tracked, on top of the extension filter. The pattern is a single
+   * case-insensitive regexp matched against the vault-relative path; an empty
+   * pattern excludes nothing. An invalid pattern excludes nothing and warns the
+   * user once so a typo cannot silently disable all tracking.
+   *
+   * @param {TFile} file - The file to check
+   * @return {boolean} True if the file path is excluded from tracking
+   */
+  isExcludedPath(file) {
+    if (!file) {
+      return false;
+    }
+    const pattern = this.settingsService.value("excludePaths");
+    this.warnOnInvalidExcludePattern(pattern);
+    return PathExcludeHelper.isExcluded(file.path, pattern);
+  }
+  /**
+   * Shows a one-time Notice when the exclude pattern does not compile, so the
+   * user learns their regexp is ignored without being spammed once per file.
+   * Resets the guard when the pattern becomes valid again, so a later mistake is
+   * surfaced afresh.
+   *
+   * @param {string} pattern - The raw exclude pattern from settings
+   */
+  warnOnInvalidExcludePattern(pattern) {
+    if (PathExcludeHelper.isValid(pattern)) {
+      this.lastWarnedExcludePattern = null;
+      return;
+    }
+    if (this.lastWarnedExcludePattern === pattern) {
+      return;
+    }
+    this.lastWarnedExcludePattern = pattern;
+    new import_obsidian15.Notice(this.plugin.t("notice.invalid-exclude-pattern"));
+  }
+  /**
    * Checks if a file has already been captured (has a snapshot).
    *
    * @param {TFile} file - The file to check
@@ -8618,8 +16313,9 @@ var SnapshotsService = class {
   }
   /**
    * Determines if a file can be captured for change tracking.
-   * A file can be captured if it has an allowed extension, hasn't been captured yet,
-   * and is not in the ignore list.
+   * A file can be captured if it has an allowed extension, its path is not
+   * excluded by a configured pattern, it hasn't been captured yet, and it is not
+   * in the ignore list.
    *
    * @param {TFile} file - The file to check
    * @return {boolean} True if the file can be captured, false otherwise
@@ -8629,9 +16325,10 @@ var SnapshotsService = class {
       return false;
     }
     const isExtensionAllowed = this.isInAllowedExtensions(file);
+    const isExcluded = this.isExcludedPath(file);
     const isHasInList = this.isCaptured(file);
     const isIgnored = this.isInIgnoreList(file);
-    return isExtensionAllowed && !isHasInList && !isIgnored;
+    return isExtensionAllowed && !isExcluded && !isHasInList && !isIgnored;
   }
   /**
    * Creates a snapshot for a file.
@@ -8671,6 +16368,41 @@ var SnapshotsService = class {
     }
   }
   /**
+   * Applies an out-of-editor content change to a file and keeps its snapshot in
+   * sync, preserving the original baseline and the version timeline. Used by the
+   * history modal to revert a single hunk: the block is rewritten in the tracker
+   * (so highlights stay correct even for a file that is not the active editor),
+   * the cached state is set to the written content, and the file is modified on
+   * disk.
+   *
+   * The snapshot is updated before the file write so that, when the file is the
+   * active editor, the change detector sees a matching content hash and skips
+   * reprocessing the resulting editor update (no double application).
+   *
+   * @param {TFile} file - The file to rewrite
+   * @param {string[]} lines - The full new content of the file as lines
+   * @param {object} block - The single block that changed, in tracker terms
+   * @param {number} block.start - The 0-based current line where the block begins
+   * @param {number} block.removeCount - How many current lines the block spans
+   * @param {string[]} block.newLines - The content the block should hold afterwards
+   * @return {Promise<boolean>} True if the change was applied, false otherwise
+   */
+  async applyContent(file, lines, block) {
+    const snapshot = this.getOne(file);
+    if (!file || !snapshot || !Array.isArray(lines)) {
+      return false;
+    }
+    snapshot.replaceBlock(block.start, block.removeCount, block.newLines);
+    snapshot.updateState(lines);
+    snapshot.updateChanges();
+    await this.plugin.app.vault.modify(file, lines.join(snapshot.lineBreak));
+    if (this.plugin.getActiveViewOfType()) {
+      this.plugin.forceUpdateEditor();
+    }
+    this.forceUpdate();
+    return true;
+  }
+  /**
    * Removes all snapshots.
    * Forces an editor update and captures the active file.
    */
@@ -8687,15 +16419,8 @@ __decorateClass([
   Inject("SettingsService")
 ], SnapshotsService.prototype, "settingsService", 2);
 
-// src/decorators/on.decorator.ts
-var On = (name) => {
-  return (target, propertyKey) => {
-    return Reflect.defineMetadata("ON_EVENT", { name }, target, propertyKey);
-  };
-};
-
 // src/services/statusbar.service.ts
-var import_obsidian10 = require("obsidian");
+var import_obsidian16 = require("obsidian");
 var StatusbarService = class {
   /**
    * Creates a new instance of StatusbarService.
@@ -8727,11 +16452,11 @@ var StatusbarService = class {
     var _a, _b;
     const view = (_a = this.plugin.app.workspace.getMostRecentLeaf()) == null ? void 0 : _a.view;
     const snapshot = this.snapshotsService.getOne();
-    if (!view || !(view instanceof import_obsidian10.MarkdownView) || !snapshot) {
+    if (!view || !(view instanceof import_obsidian16.MarkdownView) || !snapshot) {
       this.clear();
       return;
     }
-    this.update(`${(_b = snapshot.getChangesLinesCount()) != null ? _b : 0} lines changed`);
+    this.update(this.plugin.t("status.lines-changed", { count: (_b = snapshot.getChangesLinesCount()) != null ? _b : 0 }));
   }
   /**
    * Clears a status bar item by hiding it and removing its text.
@@ -8889,8 +16614,8 @@ var import_index = __toESM(require_eventemitter3(), 1);
 var eventemitter3_default = import_index.default;
 
 // src/main.ts
-var import_obsidian11 = require("obsidian");
-var LineChangeTrackerPlugin = class extends import_obsidian11.Plugin {
+var import_obsidian17 = require("obsidian");
+var LineChangeTrackerPlugin = class extends import_obsidian17.Plugin {
   /**
    * Creates a new instance of the LineChangeTrackerPlugin.
    * Registers all required services during initialization.
@@ -8911,6 +16636,7 @@ var LineChangeTrackerPlugin = class extends import_obsidian11.Plugin {
      */
     this.container = /* @__PURE__ */ new Map();
     this.registerService(SettingsService);
+    this.registerService(I18nService);
     this.registerService(StylesService);
     this.registerService(ModalsService);
     this.registerService(ExtensionsService);
@@ -8918,6 +16644,7 @@ var LineChangeTrackerPlugin = class extends import_obsidian11.Plugin {
     this.registerService(CommandsService);
     this.registerService(EventsService);
     this.registerService(SnapshotsService);
+    this.registerService(PersistenceService);
   }
   /**
    * Registers a service with the plugin.
@@ -8960,6 +16687,19 @@ var LineChangeTrackerPlugin = class extends import_obsidian11.Plugin {
       throw new Error(`Service '${type.name}' not registered`);
     }
     return service;
+  }
+  /**
+   * Translates a dotted localization key to a user-facing string in Obsidian's
+   * selected language, falling back to English. A thin delegate to I18nService so
+   * every surface (settings, modal, commands, notices) can localize through the
+   * plugin it already holds without injecting the service itself.
+   *
+   * @param {string} key - The dotted translation key (e.g. `modal.restore-original`)
+   * @param {TranslationVars} [vars] - Values for `{name}` placeholders
+   * @return {string} The localized, interpolated string
+   */
+  t(key2, vars) {
+    return this.get(I18nService).t(key2, vars);
   }
   /**
    * Lifecycle method called when the plugin is loaded.
@@ -9028,13 +16768,13 @@ var LineChangeTrackerPlugin = class extends import_obsidian11.Plugin {
   }
   /**
    * Forces an update of the current editor view.
-   * Dispatches an empty transaction to trigger a refresh.
+   * Dispatches a refresh effect so decoration extensions rebuild even though
+   * the document did not change.
    */
   forceUpdateEditor() {
     var _a;
-    (_a = this.getResentEditorView()) == null ? void 0 : _a.dispatch({
-      effects: [],
-      changes: []
+    (_a = this.getRecentEditorView()) == null ? void 0 : _a.dispatch({
+      effects: [refreshDecorationsEffect.of(null)]
     });
   }
   /**
@@ -9051,7 +16791,7 @@ var LineChangeTrackerPlugin = class extends import_obsidian11.Plugin {
    *
    * @return {EditorView | null} The most recent CodeMirror editor view, or null if none exists
    */
-  getResentEditorView() {
+  getRecentEditorView() {
     var _a, _b, _c;
     const view = (_a = this.app.workspace.getMostRecentLeaf()) == null ? void 0 : _a.view;
     return (_c = (_b = view == null ? void 0 : view.editor) == null ? void 0 : _b.cm) != null ? _c : null;
@@ -9062,7 +16802,7 @@ var LineChangeTrackerPlugin = class extends import_obsidian11.Plugin {
    * @return {MarkdownView | null} The active markdown view, or null if none is active
    */
   getActiveViewOfType() {
-    return this.app.workspace.getActiveViewOfType(import_obsidian11.MarkdownView);
+    return this.app.workspace.getActiveViewOfType(import_obsidian17.MarkdownView);
   }
   /**
    * Gets the active file.
@@ -9071,6 +16811,19 @@ var LineChangeTrackerPlugin = class extends import_obsidian11.Plugin {
    */
   getActiveFile() {
     return this.app.workspace.getActiveFile();
+  }
+  /**
+   * Resolves a vault file by its path.
+   * Returns null when nothing exists at the path or the entry is a folder, so
+   * callers can safely skip stale references (e.g. after a file was deleted
+   * while the plugin was unloaded).
+   *
+   * @param {string} path - The vault-relative path to resolve
+   * @return {TFile | null} The matching file, or null if none
+   */
+  getFileByPath(path) {
+    const file = this.app.vault.getAbstractFileByPath(path);
+    return file instanceof import_obsidian17.TFile ? file : null;
   }
   /**
    * Gets all Markdown files currently open in the workspace.
@@ -9108,7 +16861,7 @@ lodash-es/lodash.js:
   (**
    * @license
    * Lodash (Custom Build) <https://lodash.com/>
-   * Build: `lodash modularize exports="es" -o ./`
+   * Build: `lodash modularize exports="es" --repo lodash/lodash#4.18.1 -o ./`
    * Copyright OpenJS Foundation and other contributors <https://openjsf.org/>
    * Released under MIT license <https://lodash.com/license>
    * Based on Underscore.js 1.8.3 <http://underscorejs.org/LICENSE>

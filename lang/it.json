@@ -1,0 +1,121 @@
+{
+  "command.go-to-next-change": "Vai alla modifica successiva",
+  "command.go-to-previous-change": "Vai alla modifica precedente",
+  "command.reset-lines-all": "Reimposta tutte le istantanee del tracker delle righe",
+  "command.reset-lines": "Reimposta l'istantanea del tracker delle righe del documento corrente",
+  "command.show-diff": "Mostra tutte le modifiche del documento corrente",
+
+  "notice.no-changes-to-navigate": "Nessuna modifica da scorrere",
+  "notice.all-snapshots-deleted": "Tutti i dati delle istantanee eliminati",
+  "notice.current-snapshot-deleted": "Dati dell'istantanea corrente eliminati",
+  "notice.file-restored": "File ripristinato allo stato originale",
+  "notice.file-restore-failed": "Impossibile ripristinare il file allo stato originale",
+  "notice.copied": "Copiato!",
+  "notice.no-saved-history": "Non c'è una cronologia salvata per questo file.",
+  "notice.invalid-exclude-pattern": "Cronologia locale: il pattern dei percorsi esclusi non è un'espressione regolare valida e viene ignorato.",
+
+  "menu.local-history": "Cronologia locale",
+  "menu.show-changes": "Mostra modifiche",
+
+  "status.lines-changed": "{count} righe modificate",
+
+  "setting.type.name": "Tipo",
+  "setting.type.desc": "Scegli tra una linea verticale e un punto nel margine.",
+  "setting.type.option.line": "Linea verticale",
+  "setting.type.option.dot": "Carattere nel margine",
+
+  "setting.allowed-extensions.name": "Estensioni di file consentite",
+  "setting.allowed-extensions.desc": "Elenco di estensioni di file separate da virgole di cui tracciare le modifiche (es. md, txt, csv, json, yaml)",
+
+  "setting.exclude-paths.name": "Percorsi esclusi",
+  "setting.exclude-paths.desc": "Un'espressione regolare senza distinzione tra maiuscole e minuscole confrontata con il percorso relativo al vault. Qualsiasi file il cui percorso corrisponde non viene mai tracciato (es. \\.excalidraw\\.md$ o (^|/)Templates/). Per impostazione predefinita vengono esclusi le cartelle Templates e i disegni Excalidraw. Lascia vuoto per tracciare tutto.",
+
+  "setting.keep.name": "Conserva la cronologia fino a",
+  "setting.keep.desc": "Strategia per la pulizia della cronologia delle revisioni",
+  "setting.keep.option.app": "Chiusura dell'app",
+  "setting.keep.option.file": "Chiusura del file",
+
+  "setting.ignore-new-files.name": "Ignora i nuovi file",
+  "setting.ignore-new-files.desc": "Non tracciare le modifiche nei file creati dopo l'avvio del tracciamento",
+
+  "setting.persist.name": "Mantieni la cronologia tra i riavvii",
+  "setting.persist.desc": "Salva la cronologia su disco in modo che le evidenziazioni sopravvivano a un riavvio. Richiede che \"Conserva la cronologia fino a\" sia impostato sulla chiusura dell'app.",
+
+  "setting.max-entries.name": "Numero massimo di file memorizzati",
+  "setting.max-entries.desc": "Limite di quante cronologie di file vengono conservate su disco. Le più vecchie vengono rimosse per prime. Imposta su 0 per disattivare.",
+
+  "setting.max-age-days.name": "Età massima della cronologia (giorni)",
+  "setting.max-age-days.desc": "Scarta la cronologia salvata più vecchia di questo numero di giorni. Imposta su 0 per disattivare.",
+
+  "setting.snapshots-heading": "Istantanee della cronologia temporale",
+
+  "setting.snapshots-enabled.name": "Acquisisci versioni intermedie",
+  "setting.snapshots-enabled.desc": "Mantieni una cronologia temporale delle versioni precedenti per poter confrontare con un punto intermedio, non solo con l'originale.",
+
+  "setting.snapshots-edit-threshold.name": "Acquisisci ogni (modifiche)",
+  "setting.snapshots-edit-threshold.desc": "Acquisisci una versione dopo questo numero di modifiche. Imposta su 0 per disattivare l'attivazione in base alle modifiche.",
+
+  "setting.snapshots-interval.name": "Acquisisci ogni (minuti)",
+  "setting.snapshots-interval.desc": "Acquisisci una versione dopo questo numero di minuti di modifica. Imposta su 0 per disattivare l'attivazione in base al tempo.",
+
+  "setting.max-version-age-days.name": "Età massima delle versioni (giorni)",
+  "setting.max-version-age-days.desc": "Scarta le versioni intermedie più vecchie di questo numero di giorni (il limite principale). Imposta su 0 per disattivare.",
+
+  "setting.max-versions.name": "Numero massimo di versioni per file",
+  "setting.max-versions.desc": "Limite di sicurezza sulle versioni intermedie conservate per file. Le più vecchie vengono rimosse per prime. Imposta su 0 per disattivare.",
+
+  "setting.show-heading": "Mostra l'indicatore per",
+  "setting.show.desc": "Gli indicatori di riga vengono mostrati solo nelle modalità di modifica (sorgente e anteprima dal vivo). In modalità lettura non ci sono indicatori in linea, ma la cronologia delle modifiche resta raggiungibile: esegui il comando \"Mostra tutte le modifiche del documento corrente\" oppure usa il menu contestuale del file nell'esplora file.",
+  "setting.show.changed": "Modificato",
+  "setting.show.restored": "Ripristinato",
+  "setting.show.added": "Aggiunto",
+  "setting.show.removed": "Rimosso",
+
+  "setting.line-heading": "Indicatore di riga",
+  "setting.line-width.name": "Larghezza",
+  "setting.line-width.desc": "Larghezza dell'indicatore a linea verticale (in pixel).",
+
+  "setting.gutter-heading.name": "Indicatore nel margine",
+  "setting.gutter-heading.prefix": "Caratteri dell'indicatore di tipo nel margine (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Carattere di modifica",
+  "setting.gutter-added.name": "Carattere di aggiunta",
+  "setting.gutter-restored.name": "Carattere di ripristino",
+  "setting.gutter-removed.name": "Carattere di rimozione",
+
+  "modal.title": "Cronologia",
+  "modal.no-changes": "Nessuna modifica",
+  "modal.identical-to-current": "Identico all'attuale",
+
+  "modal.restore-original": "Ripristina l'originale",
+  "modal.remove-history": "Rimuovi la cronologia del file",
+  "modal.previous-difference": "Differenza precedente",
+  "modal.next-difference": "Differenza successiva",
+  "modal.mode.patch": "Mostra patch",
+  "modal.mode.inline": "In linea",
+  "modal.mode.line-by-line": "Riga per riga",
+  "modal.mode.side-by-side": "Affiancato",
+
+  "modal.confirm.cancel": "Annulla",
+  "modal.confirm.restore.title": "Ripristina il file originale",
+  "modal.confirm.restore.message": "Vuoi davvero ripristinare questo file al suo stato originale? Tutte le modifiche correnti andranno perse e la cronologia di tracciamento delle modifiche verrà reimpostata. Questa azione non può essere annullata.",
+  "modal.confirm.restore.button": "Ripristina file",
+  "modal.confirm.remove.title": "Rimuovi la cronologia del file",
+  "modal.confirm.remove.message": "Vuoi davvero rimuovere la cronologia di tracciamento delle modifiche per questo file? Questa azione non può essere annullata.",
+  "modal.confirm.remove.button": "Rimuovi cronologia",
+  "modal.confirm.revert.title": "Ripristina questa modifica",
+  "modal.confirm.revert.message": "Ripristinare questa modifica alla base selezionata? Le altre modifiche vengono mantenute.",
+  "modal.confirm.revert.button": "Ripristina",
+
+  "modal.search-versions": "Cerca versioni",
+  "modal.version.baseline": "Attuale",
+  "modal.version.numbered": "Versione {number}",
+  "modal.version.current": "Attuale",
+  "modal.version.original": "Originale",
+  "modal.no-versions-match": "Nessuna versione corrisponde alla ricerca",
+  "modal.no-snapshots-yet": "Ancora nessuna istantanea intermedia",
+
+  "modal.revert-hunk": "Ripristina questa modifica",
+
+  "modal.copy": "Copia"
+}

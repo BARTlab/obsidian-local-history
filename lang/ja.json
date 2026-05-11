@@ -1,0 +1,121 @@
+{
+  "command.go-to-next-change": "次の変更へ移動",
+  "command.go-to-previous-change": "前の変更へ移動",
+  "command.reset-lines-all": "すべての行トラッカースナップショットをリセット",
+  "command.reset-lines": "現在のドキュメントの行トラッカースナップショットをリセット",
+  "command.show-diff": "現在のドキュメントのすべての変更を表示",
+
+  "notice.no-changes-to-navigate": "移動できる変更がありません",
+  "notice.all-snapshots-deleted": "すべてのスナップショットデータを削除しました",
+  "notice.current-snapshot-deleted": "現在のスナップショットデータを削除しました",
+  "notice.file-restored": "ファイルを元の状態に復元しました",
+  "notice.file-restore-failed": "ファイルを元の状態に復元できませんでした",
+  "notice.copied": "コピーしました！",
+  "notice.no-saved-history": "このファイルには保存された履歴がありません。",
+  "notice.invalid-exclude-pattern": "ローカル履歴: 除外パスのパターンが有効な正規表現ではないため、無視されます。",
+
+  "menu.local-history": "ローカル履歴",
+  "menu.show-changes": "変更を表示",
+
+  "status.lines-changed": "{count} 行が変更されました",
+
+  "setting.type.name": "種類",
+  "setting.type.desc": "ガター（行番号脇の余白）に縦線を表示するか点を表示するかを選択します。",
+  "setting.type.option.line": "縦線",
+  "setting.type.option.dot": "ガターの文字",
+
+  "setting.allowed-extensions.name": "対象とするファイル拡張子",
+  "setting.allowed-extensions.desc": "変更を追跡するファイル拡張子のカンマ区切りリスト（例: md, txt, csv, json, yaml）",
+
+  "setting.exclude-paths.name": "除外するパス",
+  "setting.exclude-paths.desc": "Vault からの相対パスに対して照合される、大文字と小文字を区別しない正規表現です。パスが一致するファイルは一切追跡されません（例: \\.excalidraw\\.md$ または (^|/)Templates/）。デフォルトでは Templates フォルダと Excalidraw の描画を除外します。すべてを追跡するには空のままにします。",
+
+  "setting.keep.name": "履歴を保持する期間",
+  "setting.keep.desc": "リビジョン履歴を整理する方法",
+  "setting.keep.option.app": "アプリを閉じるまで",
+  "setting.keep.option.file": "ファイルを閉じるまで",
+
+  "setting.ignore-new-files.name": "新規ファイルを無視",
+  "setting.ignore-new-files.desc": "追跡開始後に作成されたファイルの変更を追跡しません",
+
+  "setting.persist.name": "再起動後も履歴を保持",
+  "setting.persist.desc": "履歴をディスクに保存し、再起動後もハイライトが残るようにします。「履歴を保持する期間」をアプリを閉じるまでに設定する必要があります。",
+
+  "setting.max-entries.name": "保存するファイルの最大数",
+  "setting.max-entries.desc": "ディスクに保持するファイル履歴の数の上限です。古いものから順に削除されます。0 に設定すると無効になります。",
+
+  "setting.max-age-days.name": "履歴の最大保持日数（日）",
+  "setting.max-age-days.desc": "この日数より古い保存済み履歴を削除します。0 に設定すると無効になります。",
+
+  "setting.snapshots-heading": "タイムラインのスナップショット",
+
+  "setting.snapshots-enabled.name": "中間バージョンを記録",
+  "setting.snapshots-enabled.desc": "以前のバージョンのタイムラインを保持し、元の状態だけでなく途中の時点とも差分を比較できるようにします。",
+
+  "setting.snapshots-edit-threshold.name": "記録する間隔（編集回数）",
+  "setting.snapshots-edit-threshold.desc": "この回数だけ編集するごとにバージョンを記録します。0 に設定すると編集回数によるトリガーが無効になります。",
+
+  "setting.snapshots-interval.name": "記録する間隔（分）",
+  "setting.snapshots-interval.desc": "この分数だけ編集を続けるごとにバージョンを記録します。0 に設定すると時間によるトリガーが無効になります。",
+
+  "setting.max-version-age-days.name": "バージョンの最大保持日数（日）",
+  "setting.max-version-age-days.desc": "この日数より古い中間バージョンを削除します（主要な上限）。0 に設定すると無効になります。",
+
+  "setting.max-versions.name": "ファイルごとの最大バージョン数",
+  "setting.max-versions.desc": "ファイルごとに保持する中間バージョンの安全上限です。古いものから順に削除されます。0 に設定すると無効になります。",
+
+  "setting.show-heading": "インジケーターを表示する対象",
+  "setting.show.desc": "行インジケーターは編集（ソースおよびライブプレビュー）モードでのみ表示されます。閲覧モードではインラインのインジケーターは表示されませんが、変更履歴には引き続きアクセスできます。「現在のドキュメントのすべての変更を表示」コマンドを実行するか、ファイルエクスプローラーでファイルのコンテキストメニューを使用してください。",
+  "setting.show.changed": "変更",
+  "setting.show.restored": "復元",
+  "setting.show.added": "追加",
+  "setting.show.removed": "削除",
+
+  "setting.line-heading": "行インジケーター",
+  "setting.line-width.name": "幅",
+  "setting.line-width.desc": "縦線インジケーターの幅（ピクセル単位）。",
+
+  "setting.gutter-heading.name": "ガターインジケーター",
+  "setting.gutter-heading.prefix": "ガターの種類インジケーターの文字（",
+  "setting.gutter-heading.suffix": "）。",
+  "setting.gutter-changed.name": "変更の文字",
+  "setting.gutter-added.name": "追加の文字",
+  "setting.gutter-restored.name": "復元の文字",
+  "setting.gutter-removed.name": "削除の文字",
+
+  "modal.title": "履歴",
+  "modal.no-changes": "変更なし",
+  "modal.identical-to-current": "現在の内容と同一",
+
+  "modal.restore-original": "元の状態に復元",
+  "modal.remove-history": "ファイル履歴を削除",
+  "modal.previous-difference": "前の相違点",
+  "modal.next-difference": "次の相違点",
+  "modal.mode.patch": "パッチを表示",
+  "modal.mode.inline": "インライン",
+  "modal.mode.line-by-line": "行単位",
+  "modal.mode.side-by-side": "左右に並べて表示",
+
+  "modal.confirm.cancel": "キャンセル",
+  "modal.confirm.restore.title": "元のファイルを復元",
+  "modal.confirm.restore.message": "このファイルを元の状態に復元してもよろしいですか？現在の変更はすべて失われ、変更追跡の履歴はリセットされます。この操作は取り消せません。",
+  "modal.confirm.restore.button": "ファイルを復元",
+  "modal.confirm.remove.title": "ファイル履歴を削除",
+  "modal.confirm.remove.message": "このファイルの変更追跡履歴を削除してもよろしいですか？この操作は取り消せません。",
+  "modal.confirm.remove.button": "履歴を削除",
+  "modal.confirm.revert.title": "この変更を元に戻す",
+  "modal.confirm.revert.message": "この変更を選択したベースに戻しますか？他の変更は保持されます。",
+  "modal.confirm.revert.button": "元に戻す",
+
+  "modal.search-versions": "バージョンを検索",
+  "modal.version.baseline": "現在",
+  "modal.version.numbered": "バージョン {number}",
+  "modal.version.current": "現在",
+  "modal.version.original": "元の状態",
+  "modal.no-versions-match": "検索に一致するバージョンがありません",
+  "modal.no-snapshots-yet": "中間スナップショットはまだありません",
+
+  "modal.revert-hunk": "この変更を元に戻す",
+
+  "modal.copy": "コピー"
+}

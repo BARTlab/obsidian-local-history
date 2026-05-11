@@ -1,0 +1,121 @@
+{
+  "command.go-to-next-change": "ไปยังการเปลี่ยนแปลงถัดไป",
+  "command.go-to-previous-change": "ไปยังการเปลี่ยนแปลงก่อนหน้า",
+  "command.reset-lines-all": "รีเซ็ตสแน็ปช็อตของตัวติดตามบรรทัดทั้งหมด",
+  "command.reset-lines": "รีเซ็ตสแน็ปช็อตของตัวติดตามบรรทัดสำหรับเอกสารปัจจุบัน",
+  "command.show-diff": "แสดงการเปลี่ยนแปลงทั้งหมดของเอกสารปัจจุบัน",
+
+  "notice.no-changes-to-navigate": "ไม่มีการเปลี่ยนแปลงให้ไปยัง",
+  "notice.all-snapshots-deleted": "ลบข้อมูลสแน็ปช็อตทั้งหมดแล้ว",
+  "notice.current-snapshot-deleted": "ลบข้อมูลสแน็ปช็อตปัจจุบันแล้ว",
+  "notice.file-restored": "คืนค่าไฟล์กลับสู่สถานะเดิมแล้ว",
+  "notice.file-restore-failed": "ไม่สามารถคืนค่าไฟล์กลับสู่สถานะเดิมได้",
+  "notice.copied": "คัดลอกแล้ว!",
+  "notice.no-saved-history": "ไม่มีประวัติที่บันทึกไว้สำหรับไฟล์นี้",
+  "notice.invalid-exclude-pattern": "ประวัติในเครื่อง: รูปแบบพาธที่ยกเว้นไม่ใช่นิพจน์ทั่วไปที่ถูกต้อง จึงถูกละเว้น",
+
+  "menu.local-history": "ประวัติในเครื่อง",
+  "menu.show-changes": "แสดงการเปลี่ยนแปลง",
+
+  "status.lines-changed": "เปลี่ยนแปลง {count} บรรทัด",
+
+  "setting.type.name": "ชนิด",
+  "setting.type.desc": "เลือกระหว่างเส้นแนวตั้งหรือจุดในแถบขอบ",
+  "setting.type.option.line": "เส้นแนวตั้ง",
+  "setting.type.option.dot": "อักขระในแถบขอบ",
+
+  "setting.allowed-extensions.name": "นามสกุลไฟล์ที่อนุญาต",
+  "setting.allowed-extensions.desc": "รายการนามสกุลไฟล์ที่จะติดตามการเปลี่ยนแปลง คั่นด้วยจุลภาค (เช่น md, txt, csv, json, yaml)",
+
+  "setting.exclude-paths.name": "พาธที่ยกเว้น",
+  "setting.exclude-paths.desc": "นิพจน์ทั่วไปที่ไม่คำนึงถึงตัวพิมพ์ใหญ่เล็ก ใช้จับคู่กับพาธที่สัมพันธ์กับ vault ไฟล์ใดก็ตามที่พาธตรงกันจะไม่ถูกติดตามเลย (เช่น \\.excalidraw\\.md$ หรือ (^|/)Templates/) ค่าเริ่มต้นจะยกเว้นโฟลเดอร์ Templates และภาพวาด Excalidraw เว้นว่างไว้เพื่อติดตามทุกอย่าง",
+
+  "setting.keep.name": "เก็บประวัติไว้จนถึง",
+  "setting.keep.desc": "กลยุทธ์ในการล้างประวัติการแก้ไข",
+  "setting.keep.option.app": "ปิดแอป",
+  "setting.keep.option.file": "ปิดไฟล์",
+
+  "setting.ignore-new-files.name": "ละเว้นไฟล์ใหม่",
+  "setting.ignore-new-files.desc": "ไม่ติดตามการเปลี่ยนแปลงในไฟล์ที่สร้างขึ้นหลังจากเริ่มการติดตาม",
+
+  "setting.persist.name": "คงประวัติไว้แม้รีสตาร์ท",
+  "setting.persist.desc": "บันทึกประวัติลงดิสก์เพื่อให้ไฮไลต์ยังคงอยู่หลังรีสตาร์ท ต้องตั้ง \"เก็บประวัติไว้จนถึง\" เป็นปิดแอป",
+
+  "setting.max-entries.name": "จำนวนไฟล์ที่จัดเก็บสูงสุด",
+  "setting.max-entries.desc": "ขีดจำกัดจำนวนประวัติไฟล์ที่เก็บไว้ในดิสก์ ไฟล์เก่าสุดจะถูกลบออกก่อน ตั้งเป็น 0 เพื่อปิดใช้งาน",
+
+  "setting.max-age-days.name": "อายุประวัติสูงสุด (วัน)",
+  "setting.max-age-days.desc": "ลบประวัติที่บันทึกไว้ซึ่งเก่ากว่าจำนวนวันนี้ ตั้งเป็น 0 เพื่อปิดใช้งาน",
+
+  "setting.snapshots-heading": "สแน็ปช็อตของไทม์ไลน์",
+
+  "setting.snapshots-enabled.name": "บันทึกเวอร์ชันระหว่างกลาง",
+  "setting.snapshots-enabled.desc": "เก็บไทม์ไลน์ของเวอร์ชันก่อนหน้าไว้ เพื่อให้คุณเปรียบเทียบกับช่วงเวลาตรงกลางได้ ไม่ใช่แค่กับต้นฉบับ",
+
+  "setting.snapshots-edit-threshold.name": "บันทึกทุก (จำนวนการแก้ไข)",
+  "setting.snapshots-edit-threshold.desc": "บันทึกเวอร์ชันหลังจากแก้ไขครบจำนวนนี้ ตั้งเป็น 0 เพื่อปิดทริกเกอร์ตามจำนวนการแก้ไข",
+
+  "setting.snapshots-interval.name": "บันทึกทุก (นาที)",
+  "setting.snapshots-interval.desc": "บันทึกเวอร์ชันหลังจากแก้ไขครบจำนวนนาทีนี้ ตั้งเป็น 0 เพื่อปิดทริกเกอร์ตามเวลา",
+
+  "setting.max-version-age-days.name": "อายุเวอร์ชันสูงสุด (วัน)",
+  "setting.max-version-age-days.desc": "ลบเวอร์ชันระหว่างกลางที่เก่ากว่าจำนวนวันนี้ (ขอบเขตหลัก) ตั้งเป็น 0 เพื่อปิดใช้งาน",
+
+  "setting.max-versions.name": "จำนวนเวอร์ชันสูงสุดต่อไฟล์",
+  "setting.max-versions.desc": "ขีดจำกัดเพื่อความปลอดภัยของจำนวนเวอร์ชันระหว่างกลางที่เก็บไว้ต่อไฟล์ เวอร์ชันเก่าสุดจะถูกลบออกก่อน ตั้งเป็น 0 เพื่อปิดใช้งาน",
+
+  "setting.show-heading": "แสดงตัวบ่งชี้สำหรับ",
+  "setting.show.desc": "ตัวบ่งชี้บรรทัดจะแสดงเฉพาะในโหมดแก้ไข (ซอร์สและแสดงตัวอย่างสด) เท่านั้น ในโหมดอ่านจะไม่มีตัวบ่งชี้แบบอินไลน์ แต่ยังเข้าถึงประวัติการเปลี่ยนแปลงได้: เรียกใช้คำสั่ง \"แสดงการเปลี่ยนแปลงทั้งหมดของเอกสารปัจจุบัน\" หรือใช้เมนูคลิกขวาของไฟล์ในตัวจัดการไฟล์",
+  "setting.show.changed": "เปลี่ยนแปลง",
+  "setting.show.restored": "คืนค่า",
+  "setting.show.added": "เพิ่ม",
+  "setting.show.removed": "ลบ",
+
+  "setting.line-heading": "ตัวบ่งชี้บรรทัด",
+  "setting.line-width.name": "ความกว้าง",
+  "setting.line-width.desc": "ความกว้างของตัวบ่งชี้เส้นแนวตั้ง (เป็นพิกเซล)",
+
+  "setting.gutter-heading.name": "ตัวบ่งชี้ในแถบขอบ",
+  "setting.gutter-heading.prefix": "อักขระของตัวบ่งชี้ชนิดในแถบขอบ (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "อักขระการเปลี่ยนแปลง",
+  "setting.gutter-added.name": "อักขระการเพิ่ม",
+  "setting.gutter-restored.name": "อักขระการคืนค่า",
+  "setting.gutter-removed.name": "อักขระการลบ",
+
+  "modal.title": "ประวัติ",
+  "modal.no-changes": "ไม่มีการเปลี่ยนแปลง",
+  "modal.identical-to-current": "เหมือนกับฉบับปัจจุบัน",
+
+  "modal.restore-original": "คืนค่าต้นฉบับ",
+  "modal.remove-history": "ลบประวัติไฟล์",
+  "modal.previous-difference": "ความแตกต่างก่อนหน้า",
+  "modal.next-difference": "ความแตกต่างถัดไป",
+  "modal.mode.patch": "แสดงแพตช์",
+  "modal.mode.inline": "อินไลน์",
+  "modal.mode.line-by-line": "ทีละบรรทัด",
+  "modal.mode.side-by-side": "เคียงข้างกัน",
+
+  "modal.confirm.cancel": "ยกเลิก",
+  "modal.confirm.restore.title": "คืนค่าไฟล์ต้นฉบับ",
+  "modal.confirm.restore.message": "คุณแน่ใจหรือไม่ว่าต้องการคืนค่าไฟล์นี้กลับสู่สถานะเดิม การเปลี่ยนแปลงปัจจุบันทั้งหมดจะสูญหาย และประวัติการติดตามการเปลี่ยนแปลงจะถูกรีเซ็ต การกระทำนี้ไม่สามารถย้อนกลับได้",
+  "modal.confirm.restore.button": "คืนค่าไฟล์",
+  "modal.confirm.remove.title": "ลบประวัติไฟล์",
+  "modal.confirm.remove.message": "คุณแน่ใจหรือไม่ว่าต้องการลบประวัติการติดตามการเปลี่ยนแปลงของไฟล์นี้ การกระทำนี้ไม่สามารถย้อนกลับได้",
+  "modal.confirm.remove.button": "ลบประวัติ",
+  "modal.confirm.revert.title": "ย้อนกลับการเปลี่ยนแปลงนี้",
+  "modal.confirm.revert.message": "ย้อนการเปลี่ยนแปลงนี้กลับไปยังฐานที่เลือกหรือไม่ การเปลี่ยนแปลงอื่นจะถูกเก็บไว้",
+  "modal.confirm.revert.button": "ย้อนกลับ",
+
+  "modal.search-versions": "ค้นหาเวอร์ชัน",
+  "modal.version.baseline": "ปัจจุบัน",
+  "modal.version.numbered": "เวอร์ชัน {number}",
+  "modal.version.current": "ปัจจุบัน",
+  "modal.version.original": "ต้นฉบับ",
+  "modal.no-versions-match": "ไม่มีเวอร์ชันที่ตรงกับการค้นหา",
+  "modal.no-snapshots-yet": "ยังไม่มีสแน็ปช็อตระหว่างกลาง",
+
+  "modal.revert-hunk": "ย้อนกลับการเปลี่ยนแปลงนี้",
+
+  "modal.copy": "คัดลอก"
+}

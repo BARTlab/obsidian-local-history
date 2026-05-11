@@ -266,8 +266,9 @@ language under `lang/<code>.json`, selected by the `language` value Obsidian
 stores in `localStorage`. English (`lang/en.json`) is the universal fallback:
 every key is guaranteed to exist there, so any language without its own catalog,
 or a catalog missing a key, resolves to the English string rather than a raw key.
-English and Russian ship complete; every other Obsidian language code is
-supported through the English fallback until a community catalog is added.
+All of Obsidian's default UI languages ship with a complete catalog; the few
+remaining codes Obsidian can be set to are supported through the English fallback
+until a catalog is added.
 
 #### Adding a translation
 

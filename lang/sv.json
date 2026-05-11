@@ -1,0 +1,121 @@
+{
+  "command.go-to-next-change": "Gå till nästa ändring",
+  "command.go-to-previous-change": "Gå till föregående ändring",
+  "command.reset-lines-all": "Återställ alla radspårningsögonblicksbilder",
+  "command.reset-lines": "Återställ radspårningsögonblicksbild för aktuellt dokument",
+  "command.show-diff": "Visa alla ändringar i aktuellt dokument",
+
+  "notice.no-changes-to-navigate": "Inga ändringar att navigera",
+  "notice.all-snapshots-deleted": "Alla ögonblicksbilder borttagna",
+  "notice.current-snapshot-deleted": "Aktuell ögonblicksbild borttagen",
+  "notice.file-restored": "Filen återställd till ursprungligt skick",
+  "notice.file-restore-failed": "Det gick inte att återställa filen till ursprungligt skick",
+  "notice.copied": "Kopierat!",
+  "notice.no-saved-history": "Det finns ingen sparad historik för den här filen.",
+  "notice.invalid-exclude-pattern": "Lokal historik: mönstret för uteslutna sökvägar är inte ett giltigt reguljärt uttryck och ignoreras.",
+
+  "menu.local-history": "Lokal historik",
+  "menu.show-changes": "Visa ändringar",
+
+  "status.lines-changed": "{count} rader ändrade",
+
+  "setting.type.name": "Typ",
+  "setting.type.desc": "Välj mellan en vertikal linje eller en punkt i marginalen.",
+  "setting.type.option.line": "Vertikal linje",
+  "setting.type.option.dot": "Tecken i marginalen",
+
+  "setting.allowed-extensions.name": "Tillåtna filändelser",
+  "setting.allowed-extensions.desc": "Kommaseparerad lista över filändelser vars ändringar ska spåras (t.ex. md, txt, csv, json, yaml)",
+
+  "setting.exclude-paths.name": "Uteslutna sökvägar",
+  "setting.exclude-paths.desc": "Ett reguljärt uttryck (utan skillnad på stora och små bokstäver) som matchas mot sökvägen relativt valvet. Alla filer vars sökväg matchar spåras aldrig (t.ex. \\.excalidraw\\.md$ eller (^|/)Templates/). Standardvärdet utesluter Templates-mappar och Excalidraw-ritningar. Lämna tomt för att spåra allt.",
+
+  "setting.keep.name": "Behåll historik tills",
+  "setting.keep.desc": "Strategi för att rensa revisionshistorik",
+  "setting.keep.option.app": "Appen stängs",
+  "setting.keep.option.file": "Filen stängs",
+
+  "setting.ignore-new-files.name": "Ignorera nya filer",
+  "setting.ignore-new-files.desc": "Spåra inte ändringar i filer som skapats efter att spårningen startade",
+
+  "setting.persist.name": "Behåll historik mellan omstarter",
+  "setting.persist.desc": "Spara historik på disk så att markeringar överlever en omstart. Kräver att \"Behåll historik tills\" är inställt på Appen stängs.",
+
+  "setting.max-entries.name": "Max antal sparade filer",
+  "setting.max-entries.desc": "Gräns för hur många filhistoriker som behålls på disk. De äldsta tas bort först. Ställ in på 0 för att inaktivera.",
+
+  "setting.max-age-days.name": "Maximal historikålder (dagar)",
+  "setting.max-age-days.desc": "Ta bort sparad historik som är äldre än så här många dagar. Ställ in på 0 för att inaktivera.",
+
+  "setting.snapshots-heading": "Tidslinjeögonblicksbilder",
+
+  "setting.snapshots-enabled.name": "Fånga mellanliggande versioner",
+  "setting.snapshots-enabled.desc": "Behåll en tidslinje över tidigare versioner så att du kan jämföra mot en mellanliggande punkt, inte bara originalet.",
+
+  "setting.snapshots-edit-threshold.name": "Fånga var (ändringar)",
+  "setting.snapshots-edit-threshold.desc": "Spara en version efter så här många ändringar. Ställ in på 0 för att inaktivera ändringsutlösaren.",
+
+  "setting.snapshots-interval.name": "Fånga var (minuter)",
+  "setting.snapshots-interval.desc": "Spara en version efter så här många minuters redigering. Ställ in på 0 för att inaktivera tidsutlösaren.",
+
+  "setting.max-version-age-days.name": "Maximal versionsålder (dagar)",
+  "setting.max-version-age-days.desc": "Ta bort mellanliggande versioner som är äldre än så här många dagar (den primära gränsen). Ställ in på 0 för att inaktivera.",
+
+  "setting.max-versions.name": "Max versioner per fil",
+  "setting.max-versions.desc": "Säkerhetsgräns för antal mellanliggande versioner som behålls per fil. De äldsta tas bort först. Ställ in på 0 för att inaktivera.",
+
+  "setting.show-heading": "Visa indikator för",
+  "setting.show.desc": "Radindikatorer visas endast i redigeringsläge (källkod och live-förhandsvisning). I läsläge finns inga infogade indikatorer, men ändringshistoriken är fortfarande tillgänglig: kör kommandot \"Visa alla ändringar i aktuellt dokument\" eller använd filens snabbmeny i filutforskaren.",
+  "setting.show.changed": "Ändrad",
+  "setting.show.restored": "Återställd",
+  "setting.show.added": "Tillagd",
+  "setting.show.removed": "Borttagen",
+
+  "setting.line-heading": "Radindikator",
+  "setting.line-width.name": "Bredd",
+  "setting.line-width.desc": "Bredd på den vertikala linjeindikatorn (i pixlar).",
+
+  "setting.gutter-heading.name": "Marginalindikator",
+  "setting.gutter-heading.prefix": "Tecken för marginaltypsindikatorn (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Tecken för ändring",
+  "setting.gutter-added.name": "Tecken för tillagd",
+  "setting.gutter-restored.name": "Tecken för återställd",
+  "setting.gutter-removed.name": "Tecken för borttagen",
+
+  "modal.title": "Historik",
+  "modal.no-changes": "Inga ändringar",
+  "modal.identical-to-current": "Identisk med aktuell version",
+
+  "modal.restore-original": "Återställ original",
+  "modal.remove-history": "Ta bort filhistorik",
+  "modal.previous-difference": "Föregående skillnad",
+  "modal.next-difference": "Nästa skillnad",
+  "modal.mode.patch": "Visa patch",
+  "modal.mode.inline": "Infogad",
+  "modal.mode.line-by-line": "Rad för rad",
+  "modal.mode.side-by-side": "Sida vid sida",
+
+  "modal.confirm.cancel": "Avbryt",
+  "modal.confirm.restore.title": "Återställ originalfil",
+  "modal.confirm.restore.message": "Är du säker på att du vill återställa den här filen till sitt ursprungliga skick? Alla aktuella ändringar går förlorade och ändringshistoriken nollställs. Den här åtgärden kan inte ångras.",
+  "modal.confirm.restore.button": "Återställ fil",
+  "modal.confirm.remove.title": "Ta bort filhistorik",
+  "modal.confirm.remove.message": "Är du säker på att du vill ta bort ändringshistoriken för den här filen? Den här åtgärden kan inte ångras.",
+  "modal.confirm.remove.button": "Ta bort historik",
+  "modal.confirm.revert.title": "Återställ den här ändringen",
+  "modal.confirm.revert.message": "Vill du återställa den här ändringen till den valda basen? Övriga ändringar behålls.",
+  "modal.confirm.revert.button": "Återställ",
+
+  "modal.search-versions": "Sök versioner",
+  "modal.version.baseline": "Aktuell",
+  "modal.version.numbered": "Version {number}",
+  "modal.version.current": "Aktuell",
+  "modal.version.original": "Original",
+  "modal.no-versions-match": "Inga versioner matchar sökningen",
+  "modal.no-snapshots-yet": "Inga mellanliggande ögonblicksbilder än",
+
+  "modal.revert-hunk": "Återställ den här ändringen",
+
+  "modal.copy": "Kopiera"
+}

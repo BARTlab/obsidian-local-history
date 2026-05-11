@@ -1,18 +1,103 @@
 import type LineChangeTrackerPlugin from '@/main';
 import type { Service, TranslationCatalog, TranslationCatalogs, TranslationVars } from '@/types';
+import am from '../../lang/am.json';
+import ar from '../../lang/ar.json';
+import be from '../../lang/be.json';
+import bn from '../../lang/bn.json';
+import ca from '../../lang/ca.json';
+import cs from '../../lang/cs.json';
+import da from '../../lang/da.json';
+import de from '../../lang/de.json';
 import en from '../../lang/en.json';
+import enGB from '../../lang/en-GB.json';
+import es from '../../lang/es.json';
+import fa from '../../lang/fa.json';
+import fi from '../../lang/fi.json';
+import fr from '../../lang/fr.json';
+import ga from '../../lang/ga.json';
+import he from '../../lang/he.json';
+import hu from '../../lang/hu.json';
+import id from '../../lang/id.json';
+import it from '../../lang/it.json';
+import ja from '../../lang/ja.json';
+import ka from '../../lang/ka.json';
+import kh from '../../lang/kh.json';
+import ko from '../../lang/ko.json';
+import lv from '../../lang/lv.json';
+import ms from '../../lang/ms.json';
+import ne from '../../lang/ne.json';
+import nl from '../../lang/nl.json';
+import no from '../../lang/no.json';
+import pl from '../../lang/pl.json';
+import pt from '../../lang/pt.json';
+import ptBR from '../../lang/pt-BR.json';
+import ro from '../../lang/ro.json';
 import ru from '../../lang/ru.json';
+import sk from '../../lang/sk.json';
+import sq from '../../lang/sq.json';
+import sr from '../../lang/sr.json';
+import sv from '../../lang/sv.json';
+import th from '../../lang/th.json';
+import tr from '../../lang/tr.json';
+import uk from '../../lang/uk.json';
+import uz from '../../lang/uz.json';
+import vi from '../../lang/vi.json';
+import zh from '../../lang/zh.json';
+import zhTW from '../../lang/zh-TW.json';
 
 /**
  * The catalogs bundled with the plugin, keyed by language code. They are statically
  * imported (not loaded at runtime) so esbuild includes them in the main bundle:
  * esbuild only bundles the `main.ts` import graph, so a dynamic file read would not
  * ship the JSON. English is the universal fallback every key is guaranteed to exist
- * in (see {@link FALLBACK_LANGUAGE}).
+ * in (see {@link FALLBACK_LANGUAGE}). The hyphenated codes (`en-GB`, `pt-BR`,
+ * `zh-TW`) are quoted keys because the language code is not a valid identifier.
  */
 const BUNDLED_CATALOGS: TranslationCatalogs = {
+  am,
+  ar,
+  be,
+  bn,
+  ca,
+  cs,
+  da,
+  de,
   en,
+  'en-GB': enGB,
+  es,
+  fa,
+  fi,
+  fr,
+  ga,
+  he,
+  hu,
+  id,
+  it,
+  ja,
+  ka,
+  kh,
+  ko,
+  lv,
+  ms,
+  ne,
+  nl,
+  no,
+  pl,
+  pt,
+  'pt-BR': ptBR,
+  ro,
   ru,
+  sk,
+  sq,
+  sr,
+  sv,
+  th,
+  tr,
+  uk,
+  uz,
+  vi,
+  zh,
+  'zh-TW': zhTW,
 };
 
 /**
@@ -128,8 +213,8 @@ const PLACEHOLDER_PATTERN = /\{(\w+)\}/g;
  * translated language never surfaces a raw key in production. Placeholders of the
  * form `{name}` are interpolated from the supplied vars.
  *
- * The bundled en and ru catalogs are registered on init from the statically
- * imported `lang/<code>.json` files; the pure resolution logic lives in the
+ * The bundled catalogs are registered on init from the statically imported
+ * `lang/<code>.json` files; the pure resolution logic lives in the
  * static {@link I18nService.resolve} so it is unit tested directly without an
  * Obsidian window.
  *
@@ -288,9 +373,11 @@ export class I18nService implements Service {
   }
 
   /**
-   * Detects the active language from Obsidian's localStorage, defaulting to
-   * English when the value is absent or storage is unavailable (e.g. under a
-   * test runner without a window).
+   * Detects the active language. It prefers Obsidian's `language` localStorage
+   * hint, then falls back to the global moment locale (which Obsidian sets to the
+   * UI language), and finally to English. The moment fallback matters because the
+   * `language` key is only written when the language is explicitly chosen, so an
+   * OS-auto-detected language would otherwise be missed and resolve to English.
    *
    * @return {string} The detected language code, or `en` as a fallback
    */
@@ -298,10 +385,27 @@ export class I18nService implements Service {
     try {
       const stored: string | null = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
 
-      return stored && stored.trim() !== '' ? stored : FALLBACK_LANGUAGE;
+      if (stored && stored.trim() !== '') {
+        return stored;
+      }
     } catch {
-      return FALLBACK_LANGUAGE;
+      // localStorage may be unavailable (e.g. a test runner without a window);
+      // fall through to the moment locale.
     }
+
+    try {
+      const moment: { locale?: () => string } | undefined =
+        (globalThis as { moment?: { locale?: () => string } }).moment;
+      const locale: string | undefined = moment?.locale?.();
+
+      if (locale && locale.trim() !== '') {
+        return locale;
+      }
+    } catch {
+      // moment may be absent; fall through to the English default.
+    }
+
+    return FALLBACK_LANGUAGE;
   }
 
   /**

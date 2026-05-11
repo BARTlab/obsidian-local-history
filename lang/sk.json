@@ -1,0 +1,121 @@
+{
+  "command.go-to-next-change": "Prejsť na nasledujúcu zmenu",
+  "command.go-to-previous-change": "Prejsť na predchádzajúcu zmenu",
+  "command.reset-lines-all": "Resetovať snímky sledovania riadkov pre všetky súbory",
+  "command.reset-lines": "Resetovať snímku sledovania riadkov aktuálneho dokumentu",
+  "command.show-diff": "Zobraziť všetky zmeny aktuálneho dokumentu",
+
+  "notice.no-changes-to-navigate": "Žiadne zmeny na prechádzanie",
+  "notice.all-snapshots-deleted": "Všetky dáta snímok boli odstránené",
+  "notice.current-snapshot-deleted": "Dáta aktuálnej snímky boli odstránené",
+  "notice.file-restored": "Súbor bol obnovený do pôvodného stavu",
+  "notice.file-restore-failed": "Nepodarilo sa obnoviť súbor do pôvodného stavu",
+  "notice.copied": "Skopírované!",
+  "notice.no-saved-history": "Pre tento súbor nie je uložená žiadna história.",
+  "notice.invalid-exclude-pattern": "Local history: vzor vylúčených ciest nie je platný regulárny výraz a bude ignorovaný.",
+
+  "menu.local-history": "Lokálna história",
+  "menu.show-changes": "Zobraziť zmeny",
+
+  "status.lines-changed": "Zmenené riadky: {count}",
+
+  "setting.type.name": "Typ",
+  "setting.type.desc": "Vyberte medzi zvislou čiarou a bodkou na okraji.",
+  "setting.type.option.line": "Zvislá čiara",
+  "setting.type.option.dot": "Znak na okraji",
+
+  "setting.allowed-extensions.name": "Povolené prípony súborov",
+  "setting.allowed-extensions.desc": "Zoznam prípon súborov oddelených čiarkami, ktorých zmeny sa sledujú (napr. md, txt, csv, json, yaml)",
+
+  "setting.exclude-paths.name": "Vylúčené cesty",
+  "setting.exclude-paths.desc": "Regulárny výraz nerozlišujúci veľkosť písmen, porovnávaný s cestou relatívnou k trezoru. Žiadny súbor, ktorého cesta zodpovedá, sa nikdy nesleduje (napr. \\.excalidraw\\.md$ alebo (^|/)Templates/). Predvolené nastavenie vylučuje priečinky Templates a kresby Excalidraw. Ponechajte prázdne pre sledovanie všetkého.",
+
+  "setting.keep.name": "Uchovávať históriu do",
+  "setting.keep.desc": "Stratégia čistenia histórie revízií",
+  "setting.keep.option.app": "Zatvorenia aplikácie",
+  "setting.keep.option.file": "Zatvorenia súboru",
+
+  "setting.ignore-new-files.name": "Ignorovať nové súbory",
+  "setting.ignore-new-files.desc": "Nesledovať zmeny v súboroch vytvorených po začatí sledovania",
+
+  "setting.persist.name": "Zachovať históriu medzi reštartmi",
+  "setting.persist.desc": "Ukladať históriu na disk, aby zvýraznenia prežili reštart. Vyžaduje nastavenie \"Uchovávať históriu do\" na zatvorenie aplikácie.",
+
+  "setting.max-entries.name": "Maximum uložených súborov",
+  "setting.max-entries.desc": "Limit počtu histórií súborov uchovávaných na disku. Najstaršie sa odstraňujú ako prvé. Nastavte 0 na vypnutie.",
+
+  "setting.max-age-days.name": "Maximálny vek histórie (dni)",
+  "setting.max-age-days.desc": "Zahodiť uloženú históriu staršiu ako tento počet dní. Nastavte 0 na vypnutie.",
+
+  "setting.snapshots-heading": "Snímky časovej osi",
+
+  "setting.snapshots-enabled.name": "Zachytávať priebežné verzie",
+  "setting.snapshots-enabled.desc": "Uchovávať časovú os skorších verzií, aby ste mohli porovnávať s medziľahlým bodom, nielen s originálom.",
+
+  "setting.snapshots-edit-threshold.name": "Zachytávať každých (úpravy)",
+  "setting.snapshots-edit-threshold.desc": "Vytvoriť verziu po tomto počte úprav. Nastavte 0 na vypnutie spúšťača podľa úprav.",
+
+  "setting.snapshots-interval.name": "Zachytávať každých (minúty)",
+  "setting.snapshots-interval.desc": "Vytvoriť verziu po tomto počte minút úprav. Nastavte 0 na vypnutie časového spúšťača.",
+
+  "setting.max-version-age-days.name": "Maximálny vek verzie (dni)",
+  "setting.max-version-age-days.desc": "Zahodiť priebežné verzie staršie ako tento počet dní (hlavné obmedzenie). Nastavte 0 na vypnutie.",
+
+  "setting.max-versions.name": "Maximum verzií na súbor",
+  "setting.max-versions.desc": "Poistný limit počtu priebežných verzií uchovávaných pre súbor. Najstaršie sa odstraňujú ako prvé. Nastavte 0 na vypnutie.",
+
+  "setting.show-heading": "Zobraziť indikátor pre",
+  "setting.show.desc": "Indikátory riadkov sa zobrazujú iba v režimoch úprav (zdrojový kód a živý náhľad). V režime čítania nie sú žiadne vložené indikátory, ale história zmien je stále dostupná: spustite príkaz \"Zobraziť všetky zmeny aktuálneho dokumentu\" alebo použite kontextovú ponuku súboru v prieskumníkovi súborov.",
+  "setting.show.changed": "Zmenené",
+  "setting.show.restored": "Obnovené",
+  "setting.show.added": "Pridané",
+  "setting.show.removed": "Odstránené",
+
+  "setting.line-heading": "Riadkový indikátor",
+  "setting.line-width.name": "Šírka",
+  "setting.line-width.desc": "Šírka zvislého riadkového indikátora (v pixeloch).",
+
+  "setting.gutter-heading.name": "Indikátor na okraji",
+  "setting.gutter-heading.prefix": "Znaky indikátora typu na okraji (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Znak zmeny",
+  "setting.gutter-added.name": "Znak pridania",
+  "setting.gutter-restored.name": "Znak obnovenia",
+  "setting.gutter-removed.name": "Znak odstránenia",
+
+  "modal.title": "História",
+  "modal.no-changes": "Žiadne zmeny",
+  "modal.identical-to-current": "Zhodné s aktuálnou",
+
+  "modal.restore-original": "Obnoviť originál",
+  "modal.remove-history": "Odstrániť históriu súboru",
+  "modal.previous-difference": "Predchádzajúci rozdiel",
+  "modal.next-difference": "Ďalší rozdiel",
+  "modal.mode.patch": "Zobraziť patch",
+  "modal.mode.inline": "Vložené",
+  "modal.mode.line-by-line": "Riadok po riadku",
+  "modal.mode.side-by-side": "Vedľa seba",
+
+  "modal.confirm.cancel": "Zrušiť",
+  "modal.confirm.restore.title": "Obnoviť pôvodný súbor",
+  "modal.confirm.restore.message": "Naozaj chcete obnoviť tento súbor do pôvodného stavu? Všetky aktuálne zmeny sa stratia a história sledovania zmien sa resetuje. Túto akciu nemožno vrátiť späť.",
+  "modal.confirm.restore.button": "Obnoviť súbor",
+  "modal.confirm.remove.title": "Odstrániť históriu súboru",
+  "modal.confirm.remove.message": "Naozaj chcete odstrániť históriu sledovania zmien tohto súboru? Túto akciu nemožno vrátiť späť.",
+  "modal.confirm.remove.button": "Odstrániť históriu",
+  "modal.confirm.revert.title": "Vrátiť túto zmenu",
+  "modal.confirm.revert.message": "Vrátiť túto zmenu späť na vybraný základ? Ostatné zmeny zostanú zachované.",
+  "modal.confirm.revert.button": "Vrátiť",
+
+  "modal.search-versions": "Hľadať verzie",
+  "modal.version.baseline": "Aktuálna",
+  "modal.version.numbered": "Verzia {number}",
+  "modal.version.current": "Aktuálna",
+  "modal.version.original": "Originál",
+  "modal.no-versions-match": "Žiadne verzie nezodpovedajú hľadaniu",
+  "modal.no-snapshots-yet": "Zatiaľ žiadne priebežné snímky",
+
+  "modal.revert-hunk": "Vrátiť túto zmenu",
+
+  "modal.copy": "Kopírovať"
+}

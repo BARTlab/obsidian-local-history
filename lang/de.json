@@ -1,0 +1,121 @@
+{
+  "command.go-to-next-change": "Zur nächsten Änderung springen",
+  "command.go-to-previous-change": "Zur vorherigen Änderung springen",
+  "command.reset-lines-all": "Alle Zeilen-Tracker-Snapshots zurücksetzen",
+  "command.reset-lines": "Zeilen-Tracker-Snapshot des aktuellen Dokuments zurücksetzen",
+  "command.show-diff": "Alle Änderungen des aktuellen Dokuments anzeigen",
+
+  "notice.no-changes-to-navigate": "Keine Änderungen zum Navigieren",
+  "notice.all-snapshots-deleted": "Alle Snapshot-Daten gelöscht",
+  "notice.current-snapshot-deleted": "Aktuelle Snapshot-Daten gelöscht",
+  "notice.file-restored": "Datei in den Originalzustand zurückgesetzt",
+  "notice.file-restore-failed": "Datei konnte nicht in den Originalzustand zurückgesetzt werden",
+  "notice.copied": "Kopiert!",
+  "notice.no-saved-history": "Für diese Datei ist kein Verlauf gespeichert.",
+  "notice.invalid-exclude-pattern": "Lokaler Verlauf: Das Muster für ausgeschlossene Pfade ist kein gültiger regulärer Ausdruck und wird ignoriert.",
+
+  "menu.local-history": "Lokaler Verlauf",
+  "menu.show-changes": "Änderungen anzeigen",
+
+  "status.lines-changed": "{count} Zeilen geändert",
+
+  "setting.type.name": "Typ",
+  "setting.type.desc": "Wähle zwischen einer vertikalen Linie und einem Punkt am Rand.",
+  "setting.type.option.line": "Vertikale Linie",
+  "setting.type.option.dot": "Zeichen am Rand",
+
+  "setting.allowed-extensions.name": "Erlaubte Dateierweiterungen",
+  "setting.allowed-extensions.desc": "Kommagetrennte Liste von Dateierweiterungen, deren Änderungen erfasst werden (z. B. md, txt, csv, json, yaml)",
+
+  "setting.exclude-paths.name": "Ausgeschlossene Pfade",
+  "setting.exclude-paths.desc": "Ein nicht zwischen Groß- und Kleinschreibung unterscheidender regulärer Ausdruck, der mit dem Pfad relativ zum Tresor abgeglichen wird. Jede Datei, deren Pfad übereinstimmt, wird nie erfasst (z. B. \\.excalidraw\\.md$ oder (^|/)Templates/). Standardmäßig werden Templates-Ordner und Excalidraw-Zeichnungen ausgeschlossen. Leer lassen, um alles zu erfassen.",
+
+  "setting.keep.name": "Verlauf behalten bis",
+  "setting.keep.desc": "Strategie zum Bereinigen des Revisionsverlaufs",
+  "setting.keep.option.app": "App schließen",
+  "setting.keep.option.file": "Datei schließen",
+
+  "setting.ignore-new-files.name": "Neue Dateien ignorieren",
+  "setting.ignore-new-files.desc": "Änderungen in Dateien, die nach dem Start der Erfassung erstellt wurden, nicht erfassen",
+
+  "setting.persist.name": "Verlauf über Neustarts hinweg beibehalten",
+  "setting.persist.desc": "Verlauf auf der Festplatte speichern, damit Hervorhebungen einen Neustart überdauern. Erfordert, dass \"Verlauf behalten bis\" auf App schließen gesetzt ist.",
+
+  "setting.max-entries.name": "Maximal gespeicherte Dateien",
+  "setting.max-entries.desc": "Obergrenze für die Anzahl der auf der Festplatte gespeicherten Dateiverläufe. Die ältesten werden zuerst entfernt. Auf 0 setzen, um zu deaktivieren.",
+
+  "setting.max-age-days.name": "Maximales Verlaufsalter (Tage)",
+  "setting.max-age-days.desc": "Gespeicherten Verlauf verwerfen, der älter als so viele Tage ist. Auf 0 setzen, um zu deaktivieren.",
+
+  "setting.snapshots-heading": "Zeitleisten-Snapshots",
+
+  "setting.snapshots-enabled.name": "Zwischenversionen erfassen",
+  "setting.snapshots-enabled.desc": "Eine Zeitleiste früherer Versionen behalten, damit du nicht nur gegen das Original, sondern auch gegen einen Zwischenstand vergleichen kannst.",
+
+  "setting.snapshots-edit-threshold.name": "Erfassen alle (Änderungen)",
+  "setting.snapshots-edit-threshold.desc": "Nach so vielen Änderungen eine Version erfassen. Auf 0 setzen, um den Änderungsauslöser zu deaktivieren.",
+
+  "setting.snapshots-interval.name": "Erfassen alle (Minuten)",
+  "setting.snapshots-interval.desc": "Nach so vielen Minuten Bearbeitung eine Version erfassen. Auf 0 setzen, um den Zeitauslöser zu deaktivieren.",
+
+  "setting.max-version-age-days.name": "Maximales Versionsalter (Tage)",
+  "setting.max-version-age-days.desc": "Zwischenversionen verwerfen, die älter als so viele Tage sind (die primäre Grenze). Auf 0 setzen, um zu deaktivieren.",
+
+  "setting.max-versions.name": "Maximale Versionen pro Datei",
+  "setting.max-versions.desc": "Sicherheitsgrenze für pro Datei behaltene Zwischenversionen. Die ältesten werden zuerst entfernt. Auf 0 setzen, um zu deaktivieren.",
+
+  "setting.show-heading": "Indikator anzeigen für",
+  "setting.show.desc": "Zeilenindikatoren werden nur in den Bearbeitungsmodi (Quelltext und Live-Vorschau) angezeigt. Im Lesemodus gibt es keine Inline-Indikatoren, der Änderungsverlauf ist aber weiterhin erreichbar: Führe den Befehl \"Alle Änderungen des aktuellen Dokuments anzeigen\" aus oder verwende das Kontextmenü der Datei im Datei-Explorer.",
+  "setting.show.changed": "Geändert",
+  "setting.show.restored": "Wiederhergestellt",
+  "setting.show.added": "Hinzugefügt",
+  "setting.show.removed": "Entfernt",
+
+  "setting.line-heading": "Zeilenindikator",
+  "setting.line-width.name": "Breite",
+  "setting.line-width.desc": "Breite des vertikalen Linienindikators (in Pixeln).",
+
+  "setting.gutter-heading.name": "Randindikator",
+  "setting.gutter-heading.prefix": "Zeichen des Rand-Typindikators (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Zeichen für Änderung",
+  "setting.gutter-added.name": "Zeichen für Hinzugefügt",
+  "setting.gutter-restored.name": "Zeichen für Wiederhergestellt",
+  "setting.gutter-removed.name": "Zeichen für Entfernt",
+
+  "modal.title": "Verlauf",
+  "modal.no-changes": "Keine Änderungen",
+  "modal.identical-to-current": "Identisch mit aktueller Version",
+
+  "modal.restore-original": "Original wiederherstellen",
+  "modal.remove-history": "Dateiverlauf entfernen",
+  "modal.previous-difference": "Vorheriger Unterschied",
+  "modal.next-difference": "Nächster Unterschied",
+  "modal.mode.patch": "Patch anzeigen",
+  "modal.mode.inline": "Inline",
+  "modal.mode.line-by-line": "Zeile für Zeile",
+  "modal.mode.side-by-side": "Nebeneinander",
+
+  "modal.confirm.cancel": "Abbrechen",
+  "modal.confirm.restore.title": "Originaldatei wiederherstellen",
+  "modal.confirm.restore.message": "Möchtest du diese Datei wirklich in ihren Originalzustand zurücksetzen? Alle aktuellen Änderungen gehen verloren und der Änderungsverlauf wird zurückgesetzt. Diese Aktion kann nicht rückgängig gemacht werden.",
+  "modal.confirm.restore.button": "Datei wiederherstellen",
+  "modal.confirm.remove.title": "Dateiverlauf entfernen",
+  "modal.confirm.remove.message": "Möchtest du den Änderungsverlauf für diese Datei wirklich entfernen? Diese Aktion kann nicht rückgängig gemacht werden.",
+  "modal.confirm.remove.button": "Verlauf entfernen",
+  "modal.confirm.revert.title": "Diese Änderung zurücknehmen",
+  "modal.confirm.revert.message": "Diese Änderung auf die ausgewählte Basis zurücknehmen? Andere Änderungen bleiben erhalten.",
+  "modal.confirm.revert.button": "Zurücknehmen",
+
+  "modal.search-versions": "Versionen durchsuchen",
+  "modal.version.baseline": "Aktuell",
+  "modal.version.numbered": "Version {number}",
+  "modal.version.current": "Aktuell",
+  "modal.version.original": "Original",
+  "modal.no-versions-match": "Keine Versionen entsprechen der Suche",
+  "modal.no-snapshots-yet": "Noch keine Zwischen-Snapshots",
+
+  "modal.revert-hunk": "Diese Änderung zurücknehmen",
+
+  "modal.copy": "Kopieren"
+}

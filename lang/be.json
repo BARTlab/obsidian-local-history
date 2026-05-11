@@ -1,0 +1,121 @@
+{
+  "command.go-to-next-change": "Перайсці да наступнай змены",
+  "command.go-to-previous-change": "Перайсці да папярэдняй змены",
+  "command.reset-lines-all": "Скінуць здымкі трэкера радкоў для ўсіх файлаў",
+  "command.reset-lines": "Скінуць здымак трэкера радкоў бягучага дакумента",
+  "command.show-diff": "Паказаць усе змены бягучага дакумента",
+
+  "notice.no-changes-to-navigate": "Няма змен для навігацыі",
+  "notice.all-snapshots-deleted": "Усе дадзеныя здымкаў выдалены",
+  "notice.current-snapshot-deleted": "Дадзеныя бягучага здымка выдалены",
+  "notice.file-restored": "Файл адноўлены да зыходнага стану",
+  "notice.file-restore-failed": "Не ўдалося аднавіць файл да зыходнага стану",
+  "notice.copied": "Скапіявана!",
+  "notice.no-saved-history": "Для гэтага файла няма захаванай гісторыі.",
+  "notice.invalid-exclude-pattern": "Local history: шаблон выключаных шляхоў не з'яўляецца карэктным рэгулярным выразам і ігнаруецца.",
+
+  "menu.local-history": "Лакальная гісторыя",
+  "menu.show-changes": "Паказваць змены",
+
+  "status.lines-changed": "Зменена радкоў: {count}",
+
+  "setting.type.name": "Тып",
+  "setting.type.desc": "Выберыце вертыкальную лінію або кропку на палях.",
+  "setting.type.option.line": "Вертыкальная лінія",
+  "setting.type.option.dot": "Сімвал на палях",
+
+  "setting.allowed-extensions.name": "Дазволеныя пашырэнні файлаў",
+  "setting.allowed-extensions.desc": "Спіс пашырэнняў файлаў праз коску, змены ў якіх адсочваюцца (напрыклад, md, txt, csv, json, yaml)",
+
+  "setting.exclude-paths.name": "Выключаныя шляхі",
+  "setting.exclude-paths.desc": "Рэгулярны выраз без уліку рэгістра, які супастаўляецца са шляхам адносна сховішча. Любы файл, шлях якога супадае, ніколі не адсочваецца (напрыклад, \\.excalidraw\\.md$ або (^|/)Templates/). Па змаўчанні выключаюцца папкі Templates і малюнкі Excalidraw. Пакіньце пустым, каб адсочваць усё.",
+
+  "setting.keep.name": "Захоўваць гісторыю да",
+  "setting.keep.desc": "Стратэгія ачысткі гісторыі рэвізій",
+  "setting.keep.option.app": "Закрыцця праграмы",
+  "setting.keep.option.file": "Закрыцця файла",
+
+  "setting.ignore-new-files.name": "Ігнараваць новыя файлы",
+  "setting.ignore-new-files.desc": "Не адсочваць змены ў файлах, створаных пасля пачатку адсочвання",
+
+  "setting.persist.name": "Захоўваць гісторыю паміж перазапускамі",
+  "setting.persist.desc": "Захоўваць гісторыю на дыск, каб падсветкі перажывалі перазапуск. Патрабуе, каб параметр \"Захоўваць гісторыю да\" быў усталяваны на закрыццё праграмы.",
+
+  "setting.max-entries.name": "Максімум захаваных файлаў",
+  "setting.max-entries.desc": "Абмежаванне колькасці гісторый файлаў, што захоўваюцца на дыску. Спачатку выдаляюцца найстарэйшыя. Усталюйце 0, каб адключыць.",
+
+  "setting.max-age-days.name": "Максімальны ўзрост гісторыі (дні)",
+  "setting.max-age-days.desc": "Выдаляць захаваную гісторыю старэйшую за вызначаную колькасць дзён. Усталюйце 0, каб адключыць.",
+
+  "setting.snapshots-heading": "Здымкі часавай шкалы",
+
+  "setting.snapshots-enabled.name": "Захопліваць прамежкавыя версіі",
+  "setting.snapshots-enabled.desc": "Захоўваць часавую шкалу ранейшых версій, каб параўноўваць з прамежкавай кропкай, а не толькі з арыгіналам.",
+
+  "setting.snapshots-edit-threshold.name": "Захопліваць кожныя (праўкі)",
+  "setting.snapshots-edit-threshold.desc": "Ствараць версію пасля вызначанай колькасці правак. Усталюйце 0, каб адключыць трыгер па праўках.",
+
+  "setting.snapshots-interval.name": "Захопліваць кожныя (хвіліны)",
+  "setting.snapshots-interval.desc": "Ствараць версію пасля вызначанай колькасці хвілін рэдагавання. Усталюйце 0, каб адключыць трыгер па часе.",
+
+  "setting.max-version-age-days.name": "Максімальны ўзрост версіі (дні)",
+  "setting.max-version-age-days.desc": "Выдаляць прамежкавыя версіі старэйшыя за вызначаную колькасць дзён (асноўнае абмежаванне). Усталюйце 0, каб адключыць.",
+
+  "setting.max-versions.name": "Максімум версій на файл",
+  "setting.max-versions.desc": "Ахоўнае абмежаванне колькасці прамежкавых версій, што захоўваюцца для файла. Спачатку выдаляюцца найстарэйшыя. Усталюйце 0, каб адключыць.",
+
+  "setting.show-heading": "Паказваць індыкатар для",
+  "setting.show.desc": "Індыкатары радкоў паказваюцца толькі ў рэжымах рэдагавання (зыходны код і жывы прагляд). У рэжыме чытання ўбудаваных індыкатараў няма, але гісторыя змен усё роўна даступная: выканайце каманду \"Паказаць усе змены бягучага дакумента\" або скарыстайцеся кантэкстным меню файла ў правадніку файлаў.",
+  "setting.show.changed": "Змененыя",
+  "setting.show.restored": "Адноўленыя",
+  "setting.show.added": "Дададзеныя",
+  "setting.show.removed": "Выдаленыя",
+
+  "setting.line-heading": "Лінейны індыкатар",
+  "setting.line-width.name": "Шырыня",
+  "setting.line-width.desc": "Шырыня вертыкальнага лінейнага індыкатара (у пікселях).",
+
+  "setting.gutter-heading.name": "Індыкатар на палях",
+  "setting.gutter-heading.prefix": "Сімвалы індыкатара тыпу на палях (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Сімвал змены",
+  "setting.gutter-added.name": "Сімвал дадання",
+  "setting.gutter-restored.name": "Сімвал аднаўлення",
+  "setting.gutter-removed.name": "Сімвал выдалення",
+
+  "modal.title": "Гісторыя",
+  "modal.no-changes": "Няма змен",
+  "modal.identical-to-current": "Ідэнтычна бягучаму",
+
+  "modal.restore-original": "Аднавіць арыгінал",
+  "modal.remove-history": "Выдаліць гісторыю файла",
+  "modal.previous-difference": "Папярэдняе адрозненне",
+  "modal.next-difference": "Наступнае адрозненне",
+  "modal.mode.patch": "Паказаць патч",
+  "modal.mode.inline": "Убудаваны",
+  "modal.mode.line-by-line": "Радок за радком",
+  "modal.mode.side-by-side": "Побач",
+
+  "modal.confirm.cancel": "Скасаваць",
+  "modal.confirm.restore.title": "Аднавіць зыходны файл",
+  "modal.confirm.restore.message": "Вы ўпэўнены, што хочаце аднавіць гэты файл да зыходнага стану? Усе бягучыя змены будуць страчаны, а гісторыя адсочвання змен будзе скінута. Гэта дзеянне нельга адмяніць.",
+  "modal.confirm.restore.button": "Аднавіць файл",
+  "modal.confirm.remove.title": "Выдаліць гісторыю файла",
+  "modal.confirm.remove.message": "Вы ўпэўнены, што хочаце выдаліць гісторыю адсочвання змен для гэтага файла? Гэта дзеянне нельга адмяніць.",
+  "modal.confirm.remove.button": "Выдаліць гісторыю",
+  "modal.confirm.revert.title": "Адкаціць гэтую змену",
+  "modal.confirm.revert.message": "Адкаціць гэтую змену да выбранай базы? Астатнія змены захаваюцца.",
+  "modal.confirm.revert.button": "Адкаціць",
+
+  "modal.search-versions": "Пошук версій",
+  "modal.version.baseline": "Бягучая",
+  "modal.version.numbered": "Версія {number}",
+  "modal.version.current": "Бягучая",
+  "modal.version.original": "Арыгінал",
+  "modal.no-versions-match": "Няма версій, што адпавядаюць пошуку",
+  "modal.no-snapshots-yet": "Прамежкавых здымкаў пакуль няма",
+
+  "modal.revert-hunk": "Адкаціць гэтую змену",
+
+  "modal.copy": "Капіяваць"
+}

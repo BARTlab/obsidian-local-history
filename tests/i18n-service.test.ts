@@ -135,6 +135,40 @@ describe('I18nService.detectLanguage', () => {
     }
   });
 
+  it('falls back to the moment locale when localStorage is empty', () => {
+    const originalWindow = (globalThis as { window?: unknown }).window;
+    const originalMoment = (globalThis as { moment?: unknown }).moment;
+
+    (globalThis as { window?: unknown }).window = {
+      localStorage: { getItem: (): string | null => null },
+    };
+    (globalThis as { moment?: unknown }).moment = { locale: (): string => 'ru' };
+
+    try {
+      expect(I18nService.detectLanguage()).toBe('ru');
+    } finally {
+      (globalThis as { window?: unknown }).window = originalWindow;
+      (globalThis as { moment?: unknown }).moment = originalMoment;
+    }
+  });
+
+  it('prefers the localStorage language over the moment locale', () => {
+    const originalWindow = (globalThis as { window?: unknown }).window;
+    const originalMoment = (globalThis as { moment?: unknown }).moment;
+
+    (globalThis as { window?: unknown }).window = {
+      localStorage: { getItem: (): string => 'ru' },
+    };
+    (globalThis as { moment?: unknown }).moment = { locale: (): string => 'de' };
+
+    try {
+      expect(I18nService.detectLanguage()).toBe('ru');
+    } finally {
+      (globalThis as { window?: unknown }).window = originalWindow;
+      (globalThis as { moment?: unknown }).moment = originalMoment;
+    }
+  });
+
   it('falls back to en when no window is available', () => {
     // Under the node test runner there is no window, so the read throws and the
     // service degrades to English.

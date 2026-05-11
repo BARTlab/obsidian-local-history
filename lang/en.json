@@ -17,6 +17,8 @@
   "menu.local-history": "Local history",
   "menu.show-changes": "Show changes",
 
+  "status.lines-changed": "{count} lines changed",
+
   "setting.type.name": "Type",
   "setting.type.desc": "Choose between a vertical line or a dot in the gutter.",
   "setting.type.option.line": "Vertical line",
@@ -108,6 +110,8 @@
   "modal.search-versions": "Search versions",
   "modal.version.baseline": "Current",
   "modal.version.numbered": "Version {number}",
+  "modal.version.current": "Current",
+  "modal.version.original": "Original",
   "modal.no-versions-match": "No versions match the search",
   "modal.no-snapshots-yet": "No intermediate snapshots yet",
 

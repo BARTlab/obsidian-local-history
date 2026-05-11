@@ -1,0 +1,121 @@
+{
+  "command.go-to-next-change": "Keyingi oʻzgarishga oʻtish",
+  "command.go-to-previous-change": "Oldingi oʻzgarishga oʻtish",
+  "command.reset-lines-all": "Barcha qatorlar kuzatuvchisi suratlarini tiklash",
+  "command.reset-lines": "Joriy hujjatning qatorlar kuzatuvchisi suratini tiklash",
+  "command.show-diff": "Joriy hujjatning barcha oʻzgarishlarini koʻrsatish",
+
+  "notice.no-changes-to-navigate": "Harakatlanish uchun oʻzgarishlar yoʻq",
+  "notice.all-snapshots-deleted": "Barcha surat maʼlumotlari oʻchirildi",
+  "notice.current-snapshot-deleted": "Joriy surat maʼlumotlari oʻchirildi",
+  "notice.file-restored": "Fayl asl holatiga tiklandi",
+  "notice.file-restore-failed": "Faylni asl holatiga tiklab boʻlmadi",
+  "notice.copied": "Nusxalandi!",
+  "notice.no-saved-history": "Bu fayl uchun saqlangan tarix yoʻq.",
+  "notice.invalid-exclude-pattern": "Mahalliy tarix: istisno qilinadigan yoʻllar shabloni yaroqli muntazam ifoda emas va eʼtiborga olinmaydi.",
+
+  "menu.local-history": "Mahalliy tarix",
+  "menu.show-changes": "Oʻzgarishlarni koʻrsatish",
+
+  "status.lines-changed": "{count} qator oʻzgardi",
+
+  "setting.type.name": "Turi",
+  "setting.type.desc": "Hoshiyada vertikal chiziq yoki nuqta orasidan tanlang.",
+  "setting.type.option.line": "Vertikal chiziq",
+  "setting.type.option.dot": "Hoshiyadagi belgi",
+
+  "setting.allowed-extensions.name": "Ruxsat etilgan fayl kengaytmalari",
+  "setting.allowed-extensions.desc": "Oʻzgarishlari kuzatiladigan fayl kengaytmalarining vergul bilan ajratilgan roʻyxati (masalan, md, txt, csv, json, yaml)",
+
+  "setting.exclude-paths.name": "Istisno qilingan yoʻllar",
+  "setting.exclude-paths.desc": "Ombor (vault) ga nisbatan yoʻlga moslashtiriladigan, katta-kichik harfga sezgir boʻlmagan muntazam ifoda. Yoʻli mos kelgan har qanday fayl hech qachon kuzatilmaydi (masalan, \\.excalidraw\\.md$ yoki (^|/)Templates/). Standart sozlama Templates papkalari va Excalidraw chizmalarini istisno qiladi. Hammasini kuzatish uchun boʻsh qoldiring.",
+
+  "setting.keep.name": "Tarixni saqlash muddati",
+  "setting.keep.desc": "Tahrirlar tarixini tozalash strategiyasi",
+  "setting.keep.option.app": "Ilova yopilgunicha",
+  "setting.keep.option.file": "Fayl yopilgunicha",
+
+  "setting.ignore-new-files.name": "Yangi fayllarni eʼtiborsiz qoldirish",
+  "setting.ignore-new-files.desc": "Kuzatuv boshlangach yaratilgan fayllardagi oʻzgarishlarni kuzatmaslik",
+
+  "setting.persist.name": "Tarixni qayta ishga tushirishlar orasida saqlash",
+  "setting.persist.desc": "Belgilashlar qayta ishga tushirishdan keyin ham saqlanishi uchun tarixni diskka saqlang. \"Tarixni saqlash muddati\" sozlamasini ilova yopilgunicha qilib qoʻyishni talab qiladi.",
+
+  "setting.max-entries.name": "Saqlanadigan maksimal fayllar",
+  "setting.max-entries.desc": "Diskda saqlanadigan fayl tarixlari soni chegarasi. Eng eskilari birinchi boʻlib oʻchiriladi. Oʻchirish uchun 0 ga sozlang.",
+
+  "setting.max-age-days.name": "Tarixning maksimal yoshi (kun)",
+  "setting.max-age-days.desc": "Shu kunlar sonidan eski saqlangan tarixni oʻchiring. Oʻchirish uchun 0 ga sozlang.",
+
+  "setting.snapshots-heading": "Vaqt jadvali suratlari",
+
+  "setting.snapshots-enabled.name": "Oraliq versiyalarni saqlash",
+  "setting.snapshots-enabled.desc": "Faqat asl nusxa bilan emas, oraliqdagi nuqta bilan ham solishtira olishingiz uchun avvalgi versiyalarning vaqt jadvalini saqlang.",
+
+  "setting.snapshots-edit-threshold.name": "Har (tahrir)da saqlash",
+  "setting.snapshots-edit-threshold.desc": "Shuncha tahrirdan keyin versiya oling. Tahrir triggerini oʻchirish uchun 0 ga sozlang.",
+
+  "setting.snapshots-interval.name": "Har (daqiqa)da saqlash",
+  "setting.snapshots-interval.desc": "Shuncha daqiqa tahrirdan keyin versiya oling. Vaqt triggerini oʻchirish uchun 0 ga sozlang.",
+
+  "setting.max-version-age-days.name": "Versiyaning maksimal yoshi (kun)",
+  "setting.max-version-age-days.desc": "Shu kunlar sonidan eski oraliq versiyalarni oʻchiring (asosiy chegara). Oʻchirish uchun 0 ga sozlang.",
+
+  "setting.max-versions.name": "Har fayl uchun maksimal versiyalar",
+  "setting.max-versions.desc": "Har fayl uchun saqlanadigan oraliq versiyalar uchun xavfsizlik chegarasi. Eng eskilari birinchi boʻlib oʻchiriladi. Oʻchirish uchun 0 ga sozlang.",
+
+  "setting.show-heading": "Indikatorni koʻrsatish",
+  "setting.show.desc": "Qator indikatorlari faqat tahrirlash (manba va jonli koʻrish) rejimlarida koʻrsatiladi. Oʻqish rejimida ichki indikatorlar boʻlmaydi, lekin oʻzgarishlar tarixi baribir mavjud: \"Joriy hujjatning barcha oʻzgarishlarini koʻrsatish\" buyrugʻini ishga tushiring yoki fayl tadqiqotchisida fayl kontekst menyusidan foydalaning.",
+  "setting.show.changed": "Oʻzgartirilgan",
+  "setting.show.restored": "Tiklangan",
+  "setting.show.added": "Qoʻshilgan",
+  "setting.show.removed": "Olib tashlangan",
+
+  "setting.line-heading": "Qator indikatori",
+  "setting.line-width.name": "Kengligi",
+  "setting.line-width.desc": "Vertikal chiziq indikatorining kengligi (piksellarda).",
+
+  "setting.gutter-heading.name": "Hoshiya indikatori",
+  "setting.gutter-heading.prefix": "Hoshiya tur indikatorining belgilari (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Oʻzgartirish belgisi",
+  "setting.gutter-added.name": "Qoʻshish belgisi",
+  "setting.gutter-restored.name": "Tiklash belgisi",
+  "setting.gutter-removed.name": "Olib tashlash belgisi",
+
+  "modal.title": "Tarix",
+  "modal.no-changes": "Oʻzgarishlar yoʻq",
+  "modal.identical-to-current": "Joriy nusxaga bir xil",
+
+  "modal.restore-original": "Asl nusxani tiklash",
+  "modal.remove-history": "Fayl tarixini olib tashlash",
+  "modal.previous-difference": "Oldingi farq",
+  "modal.next-difference": "Keyingi farq",
+  "modal.mode.patch": "Yamoqni koʻrsatish",
+  "modal.mode.inline": "Ichki",
+  "modal.mode.line-by-line": "Qatorma-qator",
+  "modal.mode.side-by-side": "Yonma-yon",
+
+  "modal.confirm.cancel": "Bekor qilish",
+  "modal.confirm.restore.title": "Asl faylni tiklash",
+  "modal.confirm.restore.message": "Bu faylni asl holatiga tiklamoqchimisiz? Barcha joriy oʻzgarishlar yoʻqoladi va oʻzgarishlarni kuzatish tarixi tiklanadi. Bu amalni ortga qaytarib boʻlmaydi.",
+  "modal.confirm.restore.button": "Faylni tiklash",
+  "modal.confirm.remove.title": "Fayl tarixini olib tashlash",
+  "modal.confirm.remove.message": "Bu fayl uchun oʻzgarishlarni kuzatish tarixini olib tashlamoqchimisiz? Bu amalni ortga qaytarib boʻlmaydi.",
+  "modal.confirm.remove.button": "Tarixni olib tashlash",
+  "modal.confirm.revert.title": "Bu oʻzgarishni qaytarish",
+  "modal.confirm.revert.message": "Bu oʻzgarishni tanlangan asosga qaytarilsinmi? Boshqa oʻzgarishlar saqlanadi.",
+  "modal.confirm.revert.button": "Qaytarish",
+
+  "modal.search-versions": "Versiyalarni qidirish",
+  "modal.version.baseline": "Joriy",
+  "modal.version.numbered": "Versiya {number}",
+  "modal.version.current": "Joriy",
+  "modal.version.original": "Asl",
+  "modal.no-versions-match": "Qidiruvga mos versiyalar yoʻq",
+  "modal.no-snapshots-yet": "Hali oraliq suratlar yoʻq",
+
+  "modal.revert-hunk": "Bu oʻzgarishni qaytarish",
+
+  "modal.copy": "Nusxalash"
+}

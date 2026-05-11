@@ -1,0 +1,121 @@
+{
+  "command.go-to-next-change": "Shko te ndryshimi tjetër",
+  "command.go-to-previous-change": "Shko te ndryshimi i mëparshëm",
+  "command.reset-lines-all": "Rivendos të gjitha fotot e ndjekjes së rreshtave",
+  "command.reset-lines": "Rivendos foton e ndjekjes së rreshtave të dokumentit aktual",
+  "command.show-diff": "Shfaq të gjitha ndryshimet e dokumentit aktual",
+
+  "notice.no-changes-to-navigate": "Nuk ka ndryshime për të lëvizur",
+  "notice.all-snapshots-deleted": "U fshinë të gjitha të dhënat e fotove",
+  "notice.current-snapshot-deleted": "U fshinë të dhënat e fotos aktuale",
+  "notice.file-restored": "Skedari u rikthye në gjendjen origjinale",
+  "notice.file-restore-failed": "Dështoi rikthimi i skedarit në gjendjen origjinale",
+  "notice.copied": "U kopjua!",
+  "notice.no-saved-history": "Nuk ka histori të ruajtur për këtë skedar.",
+  "notice.invalid-exclude-pattern": "Historia lokale: modeli i shtigjeve të përjashtuara nuk është një shprehje e rregullt e vlefshme dhe po shpërfillet.",
+
+  "menu.local-history": "Historia lokale",
+  "menu.show-changes": "Shfaq ndryshimet",
+
+  "status.lines-changed": "{count} rreshta të ndryshuar",
+
+  "setting.type.name": "Lloji",
+  "setting.type.desc": "Zgjidh midis një vije vertikale ose një pike në anë.",
+  "setting.type.option.line": "Vijë vertikale",
+  "setting.type.option.dot": "Shenjë në anë",
+
+  "setting.allowed-extensions.name": "Zgjerimet e lejuara të skedarëve",
+  "setting.allowed-extensions.desc": "Listë e ndarë me presje e zgjerimeve të skedarëve, ndryshimet e të cilëve ndiqen (p.sh. md, txt, csv, json, yaml)",
+
+  "setting.exclude-paths.name": "Shtigjet e përjashtuara",
+  "setting.exclude-paths.desc": "Një shprehje e rregullt (që nuk dallon shkronjat e mëdha nga të voglat) që krahasohet me shtegun relativ ndaj kasafortës. Çdo skedar shtegu i të cilit përputhet nuk ndiqet kurrë (p.sh. \\.excalidraw\\.md$ ose (^|/)Templates/). Vlera e parazgjedhur përjashton dosjet Templates dhe vizatimet Excalidraw. Lëre bosh për të ndjekur gjithçka.",
+
+  "setting.keep.name": "Ruaj historinë deri",
+  "setting.keep.desc": "Strategjia për pastrimin e historisë së rishikimeve",
+  "setting.keep.option.app": "Mbyllja e aplikacionit",
+  "setting.keep.option.file": "Mbyllja e skedarit",
+
+  "setting.ignore-new-files.name": "Shpërfill skedarët e rinj",
+  "setting.ignore-new-files.desc": "Mos i ndiq ndryshimet në skedarët e krijuar pasi filloi ndjekja",
+
+  "setting.persist.name": "Ruaj historinë gjatë rinisjeve",
+  "setting.persist.desc": "Ruaj historinë në disk që theksimet të mbijetojnë një rinisje. Kërkon që \"Ruaj historinë deri\" të jetë vendosur te Mbyllja e aplikacionit.",
+
+  "setting.max-entries.name": "Maks. skedarë të ruajtur",
+  "setting.max-entries.desc": "Kufiri se sa histori skedarësh mbahen në disk. Më të vjetrat hiqen të parat. Vendos te 0 për ta çaktivizuar.",
+
+  "setting.max-age-days.name": "Mosha maks. e historisë (ditë)",
+  "setting.max-age-days.desc": "Hidh historinë e ruajtur më të vjetër se kaq ditë. Vendos te 0 për ta çaktivizuar.",
+
+  "setting.snapshots-heading": "Fotot e kohëvijës",
+
+  "setting.snapshots-enabled.name": "Kap versionet e ndërmjetme",
+  "setting.snapshots-enabled.desc": "Mbaj një kohëvijë të versioneve të mëparshme që të mund të krahasosh me një pikë në mes, jo vetëm me origjinalin.",
+
+  "setting.snapshots-edit-threshold.name": "Kap çdo (ndryshime)",
+  "setting.snapshots-edit-threshold.desc": "Ruaj një version pas kaq ndryshimesh. Vendos te 0 për të çaktivizuar nxitësin e ndryshimeve.",
+
+  "setting.snapshots-interval.name": "Kap çdo (minuta)",
+  "setting.snapshots-interval.desc": "Ruaj një version pas kaq minutash redaktimi. Vendos te 0 për të çaktivizuar nxitësin e kohës.",
+
+  "setting.max-version-age-days.name": "Mosha maks. e versionit (ditë)",
+  "setting.max-version-age-days.desc": "Hidh versionet e ndërmjetme më të vjetra se kaq ditë (kufiri parësor). Vendos te 0 për ta çaktivizuar.",
+
+  "setting.max-versions.name": "Maks. versione për skedar",
+  "setting.max-versions.desc": "Kufi sigurie për versionet e ndërmjetme që mbahen për çdo skedar. Më të vjetrat hiqen të parat. Vendos te 0 për ta çaktivizuar.",
+
+  "setting.show-heading": "Shfaq treguesin për",
+  "setting.show.desc": "Treguesit e rreshtave shfaqen vetëm në modalitetet e redaktimit (burimi dhe parapamja e drejtpërdrejtë). Në modalitetin e leximit nuk ka tregues të brendshëm, por historia e ndryshimeve mbetet e arritshme: ekzekuto komandën \"Shfaq të gjitha ndryshimet e dokumentit aktual\" ose përdor menynë e kontekstit të skedarit në eksploruesin e skedarëve.",
+  "setting.show.changed": "Ndryshuar",
+  "setting.show.restored": "Rikthyer",
+  "setting.show.added": "Shtuar",
+  "setting.show.removed": "Hequr",
+
+  "setting.line-heading": "Treguesi i rreshtit",
+  "setting.line-width.name": "Gjerësia",
+  "setting.line-width.desc": "Gjerësia e treguesit vertikal të rreshtit (në piksele).",
+
+  "setting.gutter-heading.name": "Treguesi anësor",
+  "setting.gutter-heading.prefix": "Shenjat e treguesit të llojit anësor (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Shenja e ndryshimit",
+  "setting.gutter-added.name": "Shenja e shtuar",
+  "setting.gutter-restored.name": "Shenja e rikthimit",
+  "setting.gutter-removed.name": "Shenja e hequr",
+
+  "modal.title": "Historia",
+  "modal.no-changes": "Pa ndryshime",
+  "modal.identical-to-current": "Identik me aktualin",
+
+  "modal.restore-original": "Rikthe origjinalin",
+  "modal.remove-history": "Hiq historinë e skedarit",
+  "modal.previous-difference": "Dallimi i mëparshëm",
+  "modal.next-difference": "Dallimi tjetër",
+  "modal.mode.patch": "Shfaq arnimin",
+  "modal.mode.inline": "I brendshëm",
+  "modal.mode.line-by-line": "Rresht për rresht",
+  "modal.mode.side-by-side": "Krah për krah",
+
+  "modal.confirm.cancel": "Anulo",
+  "modal.confirm.restore.title": "Rikthe skedarin origjinal",
+  "modal.confirm.restore.message": "Je i sigurt që dëshiron ta rikthesh këtë skedar në gjendjen e tij origjinale? Të gjitha ndryshimet aktuale do të humbasin dhe historia e ndjekjes së ndryshimeve do të rivendoset. Ky veprim nuk mund të zhbëhet.",
+  "modal.confirm.restore.button": "Rikthe skedarin",
+  "modal.confirm.remove.title": "Hiq historinë e skedarit",
+  "modal.confirm.remove.message": "Je i sigurt që dëshiron të heqësh historinë e ndjekjes së ndryshimeve për këtë skedar? Ky veprim nuk mund të zhbëhet.",
+  "modal.confirm.remove.button": "Hiq historinë",
+  "modal.confirm.revert.title": "Ktheje këtë ndryshim",
+  "modal.confirm.revert.message": "Ta kthesh këtë ndryshim te baza e zgjedhur? Ndryshimet e tjera ruhen.",
+  "modal.confirm.revert.button": "Ktheje",
+
+  "modal.search-versions": "Kërko versionet",
+  "modal.version.baseline": "Aktuali",
+  "modal.version.numbered": "Versioni {number}",
+  "modal.version.current": "Aktuali",
+  "modal.version.original": "Origjinali",
+  "modal.no-versions-match": "Asnjë version nuk përputhet me kërkimin",
+  "modal.no-snapshots-yet": "Ende pa foto të ndërmjetme",
+
+  "modal.revert-hunk": "Ktheje këtë ndryshim",
+
+  "modal.copy": "Kopjo"
+}

@@ -5,23 +5,29 @@
     width: 90vw;
     height: 80vh;
     //max-width: 1200px;
+    // The columns own their spacing (like the Settings modal), so the shell
+    // itself needs no outer padding.
+    padding: 0;
 
-    // Shared inter-column spacing: the body uses it as the gap between the three
-    // columns, and the trailing close-button column uses it as its width, so the
-    // shell stays symmetric and the close button column equals the gap.
-    --lct-modal-gap: 32px;
+    // The Settings modal hides its header and keeps only the floating close
+    // button, so the body starts flush at the top.
+    .modal-header {
+      display: none;
+    }
 
     .modal-content {
       display: flex;
       flex-direction: column;
       min-height: 0;
-      // The close button now lives in its own top-aligned column, so the content
-      // no longer needs reserved top padding to clear a floating close button.
-      padding-top: 0;
+      // No content padding: the rail and the main column supply their own
+      // spacing, matching the Settings modal.
+      padding: 0;
 
-      .setting-item {
+      // Kill the default non-settings setting-item padding so the toolbar rows
+      // stay compact (Obsidian pads .setting-item in non-settings modals).
+      .setting-item:not(.setting-item-heading) {
         border: 0;
-        padding-bottom: 0;
+        padding: 0;
       }
     }
 
@@ -71,7 +77,7 @@
       flex: 1;
       display: flex;
       flex-direction: row;
-      gap: var(--lct-modal-gap);
+      gap: 10px;
       min-height: 0;
     }
 
@@ -79,17 +85,22 @@
     // A full-height vertical divider on its trailing edge separates the nav
     // from the right content column, matching an Obsidian Settings pane.
     .lct-modal-rail {
-      flex: none;
-      width: 220px;
+      flex: 0 0 25%;
+      min-width: 180px;
+      max-width: 250px;
       display: flex;
       flex-direction: column;
       min-height: 0;
-      overflow-y: auto;
-      padding-inline-end: 10px;
+      overflow: auto;
+      padding: var(--size-4-3);
+      padding-top: var(--size-4-8);
+      padding-bottom: var(--size-4-8);
       border-inline-end: var(--border-width) solid var(--divider-color);
     }
 
-    // Right content column: stacks the toolbar above the diff output.
+    // Right content column: stacks the toolbar above the diff output. Padded
+    // and primary-backed like the Settings tab content (.vertical-tab-content);
+    // the generous trailing padding also clears the floating close button.
     .lct-modal-main {
       flex: 1;
       display: flex;
@@ -97,24 +108,11 @@
       gap: 8px;
       min-width: 0;
       min-height: 0;
-    }
-
-    // Trailing narrow column: the relocated modal close button, top-aligned. Its
-    // width matches the body gap so the shell stays a symmetric three-column
-    // settings pane. The close button is pulled out of its default floating
-    // (absolute) position back into the normal column flow.
-    .lct-modal-aside {
-      flex: none;
-      width: var(--lct-modal-gap);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-
-      .modal-close-button {
-        position: static;
-        inset: auto;
-        flex: none;
-      }
+      padding-top: var(--size-4-8);
+      padding-bottom: var(--size-4-8);
+      padding-inline-start: var(--size-4-12);
+      padding-inline-end: var(--size-4-12);
+      background-color: var(--background-primary);
     }
 
     .lct-rail-search {
@@ -146,6 +144,16 @@
         color: var(--text-muted);
         font-size: var(--font-ui-smaller);
         padding: 4px 2px;
+      }
+
+      // Heading for a day group: a quiet separator above the versions captured
+      // that day.
+      .lct-versions-day {
+        font-size: var(--font-ui-smaller);
+        color: var(--text-faint);
+        font-weight: var(--font-semibold);
+        padding: var(--size-4-2);
+        user-select: none;
       }
 
       .lct-version-item {
@@ -180,12 +188,77 @@
       }
     }
 
+    // Notice above the diff, shown when the selected base equals the current
+    // state. It reads as a calm info callout so the absence of a diff is
+    // explained rather than looking broken.
+    .lct-diff-notice {
+      flex: none;
+      padding: var(--size-4-2) var(--size-4-3);
+      border: var(--border-width) solid var(--background-modifier-border);
+      border-radius: var(--radius-s);
+      background-color: var(--background-secondary);
+      color: var(--text-muted);
+      font-size: var(--font-ui-small);
+      text-align: center;
+
+      &.lct-diff-notice-hidden {
+        display: none;
+      }
+    }
+
+    // The diff block bundles the column header and the diff output in one
+    // bordered, rounded box so the header reads as part of the diff. It clips its
+    // children to the radius, the header is a fixed top row, and the diff fills
+    // the rest.
+    .lct-diff-block {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+      border: var(--border-width) solid var(--background-modifier-border);
+      border-radius: var(--radius-s);
+    }
+
+    // Header above the side-by-side columns, naming the version each shows. Two
+    // equal cells split by a hairline, mirroring the diff's column divider, so
+    // the labels line up over their columns. It is the top row of the diff block,
+    // divided from the diff below by a hairline.
+    .lct-diff-columns {
+      flex: none;
+      display: flex;
+      flex-direction: row;
+      gap: var(--border-width);
+      border-bottom: var(--border-width) solid var(--background-modifier-border);
+      background-color: var(--background-modifier-border);
+
+      &.lct-diff-columns-hidden {
+        display: none;
+      }
+
+      .lct-diff-column-title {
+        flex: 1;
+        min-width: 0;
+        padding: var(--size-4-1) var(--size-4-2);
+        background-color: var(--background-secondary);
+        color: var(--text-muted);
+        font-size: var(--font-ui-smaller);
+        font-weight: var(--font-semibold);
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        user-select: none;
+      }
+    }
+
+    // The diff output region inside the block. The border and radius live on the
+    // block now, so this only fills the space below the header and clips its
+    // absolutely positioned diff content.
     .diff-container {
       flex: 1;
       position: relative;
       overflow: hidden;
-      border: 1px solid var(--background-modifier-border);
-      border-radius: var(--setting-items-radius);
 
       white-space: nowrap;
       font-family: var(--font-text);
@@ -193,10 +266,12 @@
       line-height: var(--line-height-normal);
       background-color: var(--background-secondary);
 
-      // The first row of each hunk carries the inline revert affordance and is
-      // the scroll/highlight target the next/previous navigation walks. The
-      // affordance is revealed on hover or when the row is the active difference,
-      // JetBrains style, so it never clutters an unchanged diff.
+      // The first row of each hunk is the scroll/highlight target the
+      // next/previous navigation walks, and it hosts the inline revert
+      // affordance. The affordance lives in that row's gutter (the sticky
+      // line-number cell), revealed on hover or when the row is the active
+      // difference, JetBrains style, so it never clutters an unchanged diff. The
+      // inline mode has no gutter, so it falls back to the row's trailing edge.
       .lct-hunk-anchor {
         position: relative;
 
@@ -205,43 +280,42 @@
           outline-offset: calc(-1 * var(--border-width));
         }
 
+        // The affordance sits at the leading edge of the gutter (where the
+        // right-aligned line number leaves room), JetBrains style, so it never
+        // covers the number, and stays visible on every hunk.
         .lct-hunk-revert {
           position: absolute;
-          inset-block-start: 0;
-          inset-inline-end: 4px;
           z-index: 20;
+          inset-block: 0;
+          inset-inline-start: 0;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
           width: auto;
           height: auto;
-          padding: 0 4px;
-          opacity: 0;
+          min-height: 0;
+          padding: 0 2px;
+          border: 0;
+          border-radius: 0;
+          box-shadow: none;
+          background-color: transparent;
           color: var(--text-muted);
-          background-color: var(--background-secondary);
           cursor: pointer;
-        }
 
-        &:hover .lct-hunk-revert,
-        &.is-active .lct-hunk-revert,
-        .lct-hunk-revert:focus-visible {
-          opacity: 1;
+          .svg-icon {
+            width: 14px;
+            height: 14px;
+          }
         }
 
         .lct-hunk-revert:hover {
           color: var(--text-normal);
-        }
-
-        .lct-hunk-revert-icon {
-          font-size: var(--font-ui-small);
-          line-height: 1;
+          background-color: var(--background-modifier-hover);
         }
       }
     }
 
     // inline word diff
-    .lct-inline-empty {
-      padding: 10px;
-      color: var(--text-muted);
-    }
-
     .lct-inline-container {
       position: absolute;
       inset: 0;
@@ -254,6 +328,10 @@
         flex-direction: row;
         gap: 10px;
         padding: 0 10px;
+        // Reserve a left gutter so the always-visible revert affordance gets its
+        // own column (it is absolutely positioned in this padding) instead of
+        // overlapping the first words of a changed line.
+        padding-inline-start: var(--size-4-6);
         white-space: pre-wrap;
         word-break: break-word;
 
@@ -271,12 +349,10 @@
           ), var(--background-secondary);
         }
 
+        // The colour of the row already conveys add/remove, so the +/- sign
+        // gutter is hidden.
         .lct-inline-sign {
-          flex: none;
-          width: 10px;
-          text-align: center;
-          color: var(--text-faint);
-          user-select: none;
+          display: none;
         }
 
         .lct-inline-content {
@@ -290,9 +366,12 @@
         border-radius: var(--radius-s);
       }
 
+      // Removed words live inline next to their replacement on a modified line,
+      // so a strikethrough keeps them readable as the deleted text.
       .lct-word-removed {
         background-color: rgba(var(--color-red-rgb), 0.4);
         border-radius: var(--radius-s);
+        text-decoration: line-through;
       }
     }
 
@@ -440,13 +519,10 @@
             flex-direction: row;
             gap: 20px;
 
+            // The colour of the line already conveys add/remove, so the +/-
+            // prefix is hidden.
             .d2h-code-line-prefix {
-              width: 10px;
-              text-align: center;
-              color: var(--text-normal);
-              font-size: var(--font-ui-small);
-              align-content: center;
-              user-select: none;
+              display: none;
             }
 
             .d2h-code-line-ctn {
@@ -549,6 +625,15 @@
         }
       }
     }
+  }
+}
+
+/* ---- confirm modal ---- */
+.modal.lct-confirm-modal {
+  // A bare Modal leaves its content flush against the edges; restore a
+  // comfortable, native-feeling padding around the title, message and buttons.
+  .modal-content {
+    padding: var(--size-4-4) var(--size-4-6);
   }
 }
 

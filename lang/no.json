@@ -1,0 +1,121 @@
+{
+  "command.go-to-next-change": "Gå til neste endring",
+  "command.go-to-previous-change": "Gå til forrige endring",
+  "command.reset-lines-all": "Tilbakestill alle linjesporings-øyeblikksbilder",
+  "command.reset-lines": "Tilbakestill linjesporings-øyeblikksbilde for gjeldende dokument",
+  "command.show-diff": "Vis alle endringer i gjeldende dokument",
+
+  "notice.no-changes-to-navigate": "Ingen endringer å navigere",
+  "notice.all-snapshots-deleted": "Alle øyeblikksbilder slettet",
+  "notice.current-snapshot-deleted": "Gjeldende øyeblikksbilde slettet",
+  "notice.file-restored": "Filen gjenopprettet til opprinnelig tilstand",
+  "notice.file-restore-failed": "Klarte ikke å gjenopprette filen til opprinnelig tilstand",
+  "notice.copied": "Kopiert!",
+  "notice.no-saved-history": "Det finnes ingen lagret historikk for denne filen.",
+  "notice.invalid-exclude-pattern": "Lokal historikk: mønsteret for ekskluderte stier er ikke et gyldig regulært uttrykk og blir ignorert.",
+
+  "menu.local-history": "Lokal historikk",
+  "menu.show-changes": "Vis endringer",
+
+  "status.lines-changed": "{count} linjer endret",
+
+  "setting.type.name": "Type",
+  "setting.type.desc": "Velg mellom en vertikal linje eller en prikk i margen.",
+  "setting.type.option.line": "Vertikal linje",
+  "setting.type.option.dot": "Tegn i margen",
+
+  "setting.allowed-extensions.name": "Tillatte filtyper",
+  "setting.allowed-extensions.desc": "Kommaseparert liste over filendelser som skal spores for endringer (f.eks. md, txt, csv, json, yaml)",
+
+  "setting.exclude-paths.name": "Ekskluderte stier",
+  "setting.exclude-paths.desc": "Et regulært uttrykk (uavhengig av store og små bokstaver) som sammenlignes mot stien relativt til hvelvet. Enhver fil hvis sti samsvarer, spores aldri (f.eks. \\.excalidraw\\.md$ eller (^|/)Templates/). Standardverdien ekskluderer Templates-mapper og Excalidraw-tegninger. La feltet stå tomt for å spore alt.",
+
+  "setting.keep.name": "Behold historikk til",
+  "setting.keep.desc": "Strategi for opprydding av revisjonshistorikk",
+  "setting.keep.option.app": "Appen lukkes",
+  "setting.keep.option.file": "Filen lukkes",
+
+  "setting.ignore-new-files.name": "Ignorer nye filer",
+  "setting.ignore-new-files.desc": "Ikke spor endringer i filer som er opprettet etter at sporingen startet",
+
+  "setting.persist.name": "Behold historikk på tvers av omstarter",
+  "setting.persist.desc": "Lagre historikk på disk slik at uthevinger overlever en omstart. Krever at \"Behold historikk til\" er satt til Appen lukkes.",
+
+  "setting.max-entries.name": "Maks. lagrede filer",
+  "setting.max-entries.desc": "Grense for hvor mange filhistorikker som beholdes på disk. De eldste fjernes først. Sett til 0 for å deaktivere.",
+
+  "setting.max-age-days.name": "Maks. historikkalder (dager)",
+  "setting.max-age-days.desc": "Fjern lagret historikk som er eldre enn så mange dager. Sett til 0 for å deaktivere.",
+
+  "setting.snapshots-heading": "Tidslinje-øyeblikksbilder",
+
+  "setting.snapshots-enabled.name": "Fang opp mellomliggende versjoner",
+  "setting.snapshots-enabled.desc": "Behold en tidslinje over tidligere versjoner slik at du kan sammenligne med et punkt underveis, ikke bare originalen.",
+
+  "setting.snapshots-edit-threshold.name": "Fang opp hver (endringer)",
+  "setting.snapshots-edit-threshold.desc": "Lagre en versjon etter så mange endringer. Sett til 0 for å deaktivere endringsutløseren.",
+
+  "setting.snapshots-interval.name": "Fang opp hver (minutter)",
+  "setting.snapshots-interval.desc": "Lagre en versjon etter så mange minutters redigering. Sett til 0 for å deaktivere tidsutløseren.",
+
+  "setting.max-version-age-days.name": "Maks. versjonsalder (dager)",
+  "setting.max-version-age-days.desc": "Fjern mellomliggende versjoner som er eldre enn så mange dager (den primære grensen). Sett til 0 for å deaktivere.",
+
+  "setting.max-versions.name": "Maks. versjoner per fil",
+  "setting.max-versions.desc": "Sikkerhetsgrense for antall mellomliggende versjoner som beholdes per fil. De eldste fjernes først. Sett til 0 for å deaktivere.",
+
+  "setting.show-heading": "Vis indikator for",
+  "setting.show.desc": "Linjeindikatorer vises bare i redigeringsmodus (kildekode og direkte forhåndsvisning). I lesemodus finnes det ingen innebygde indikatorer, men endringshistorikken er fortsatt tilgjengelig: kjør kommandoen \"Vis alle endringer i gjeldende dokument\" eller bruk filens hurtigmeny i filutforskeren.",
+  "setting.show.changed": "Endret",
+  "setting.show.restored": "Gjenopprettet",
+  "setting.show.added": "Lagt til",
+  "setting.show.removed": "Fjernet",
+
+  "setting.line-heading": "Linjeindikator",
+  "setting.line-width.name": "Bredde",
+  "setting.line-width.desc": "Bredde på den vertikale linjeindikatoren (i piksler).",
+
+  "setting.gutter-heading.name": "Margindikator",
+  "setting.gutter-heading.prefix": "Tegn for margtypeindikatoren (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Tegn for endring",
+  "setting.gutter-added.name": "Tegn for lagt til",
+  "setting.gutter-restored.name": "Tegn for gjenopprettet",
+  "setting.gutter-removed.name": "Tegn for fjernet",
+
+  "modal.title": "Historikk",
+  "modal.no-changes": "Ingen endringer",
+  "modal.identical-to-current": "Identisk med gjeldende versjon",
+
+  "modal.restore-original": "Gjenopprett original",
+  "modal.remove-history": "Fjern filhistorikk",
+  "modal.previous-difference": "Forrige forskjell",
+  "modal.next-difference": "Neste forskjell",
+  "modal.mode.patch": "Vis patch",
+  "modal.mode.inline": "Innebygd",
+  "modal.mode.line-by-line": "Linje for linje",
+  "modal.mode.side-by-side": "Side ved side",
+
+  "modal.confirm.cancel": "Avbryt",
+  "modal.confirm.restore.title": "Gjenopprett originalfil",
+  "modal.confirm.restore.message": "Er du sikker på at du vil gjenopprette denne filen til opprinnelig tilstand? Alle gjeldende endringer går tapt, og endringshistorikken tilbakestilles. Denne handlingen kan ikke angres.",
+  "modal.confirm.restore.button": "Gjenopprett fil",
+  "modal.confirm.remove.title": "Fjern filhistorikk",
+  "modal.confirm.remove.message": "Er du sikker på at du vil fjerne endringshistorikken for denne filen? Denne handlingen kan ikke angres.",
+  "modal.confirm.remove.button": "Fjern historikk",
+  "modal.confirm.revert.title": "Tilbakestill denne endringen",
+  "modal.confirm.revert.message": "Vil du tilbakestille denne endringen til den valgte basen? Øvrige endringer beholdes.",
+  "modal.confirm.revert.button": "Tilbakestill",
+
+  "modal.search-versions": "Søk i versjoner",
+  "modal.version.baseline": "Gjeldende",
+  "modal.version.numbered": "Versjon {number}",
+  "modal.version.current": "Gjeldende",
+  "modal.version.original": "Original",
+  "modal.no-versions-match": "Ingen versjoner samsvarer med søket",
+  "modal.no-snapshots-yet": "Ingen mellomliggende øyeblikksbilder ennå",
+
+  "modal.revert-hunk": "Tilbakestill denne endringen",
+
+  "modal.copy": "Kopier"
+}

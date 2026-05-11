@@ -70,6 +70,28 @@ export class FileVersion {
   }
 
   /**
+   * Gets the capture day as a localized date string, used both as the label and
+   * the grouping key for the day-grouped version list. Two versions captured on
+   * the same calendar day yield the same string.
+   *
+   * @return {string} The localized capture date (no time)
+   */
+  public getDate(): string {
+    return new Date(this.timestamp).toLocaleDateString();
+  }
+
+  /**
+   * Gets the capture time of day as a localized string. Shown as the per-version
+   * meta once the day lives in the group heading, so the time is not repeated
+   * with a redundant date.
+   *
+   * @return {string} The localized capture time
+   */
+  public getTime(): string {
+    return new Date(this.timestamp).toLocaleTimeString();
+  }
+
+  /**
    * Serializes this version into a plain object for on-disk persistence.
    * The id is intentionally omitted so a fresh, collision-free id is assigned
    * on restore (matching how tracker lines are persisted).

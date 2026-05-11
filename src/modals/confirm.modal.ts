@@ -68,6 +68,10 @@ export class ConfirmModal extends Modal {
    * @override
    */
   public onOpen(): void {
+    // Tag the modal so the stylesheet can restore the content padding; a bare
+    // Modal's content otherwise sits flush against the edges.
+    DomHelper.update(this.modalEl, { classes: { add: 'lct-confirm-modal' } });
+
     DomHelper.update(this.contentEl, {
       text: null,
       children: [

@@ -1,0 +1,121 @@
+{
+  "command.go-to-next-change": "Buka perubahan berikutnya",
+  "command.go-to-previous-change": "Buka perubahan sebelumnya",
+  "command.reset-lines-all": "Setel ulang semua snapshot pelacak baris",
+  "command.reset-lines": "Setel ulang snapshot pelacak baris dokumen saat ini",
+  "command.show-diff": "Tampilkan semua perubahan dokumen saat ini",
+
+  "notice.no-changes-to-navigate": "Tidak ada perubahan untuk dijelajahi",
+  "notice.all-snapshots-deleted": "Semua data snapshot dihapus",
+  "notice.current-snapshot-deleted": "Data snapshot saat ini dihapus",
+  "notice.file-restored": "Berkas dipulihkan ke keadaan semula",
+  "notice.file-restore-failed": "Gagal memulihkan berkas ke keadaan semula",
+  "notice.copied": "Disalin!",
+  "notice.no-saved-history": "Tidak ada riwayat tersimpan untuk berkas ini.",
+  "notice.invalid-exclude-pattern": "Riwayat lokal: pola jalur yang dikecualikan bukan ekspresi reguler yang valid dan diabaikan.",
+
+  "menu.local-history": "Riwayat lokal",
+  "menu.show-changes": "Tampilkan perubahan",
+
+  "status.lines-changed": "{count} baris diubah",
+
+  "setting.type.name": "Tipe",
+  "setting.type.desc": "Pilih antara garis vertikal atau titik di selokan.",
+  "setting.type.option.line": "Garis vertikal",
+  "setting.type.option.dot": "Karakter di selokan",
+
+  "setting.allowed-extensions.name": "Ekstensi berkas yang diizinkan",
+  "setting.allowed-extensions.desc": "Daftar ekstensi berkas yang dipisahkan koma untuk dilacak perubahannya (mis. md, txt, csv, json, yaml)",
+
+  "setting.exclude-paths.name": "Jalur yang dikecualikan",
+  "setting.exclude-paths.desc": "Ekspresi reguler yang tidak peka huruf besar-kecil, dicocokkan dengan jalur relatif terhadap vault. Berkas mana pun yang jalurnya cocok tidak akan pernah dilacak (mis. \\.excalidraw\\.md$ atau (^|/)Templates/). Bawaan mengecualikan folder Templates dan gambar Excalidraw. Biarkan kosong untuk melacak semuanya.",
+
+  "setting.keep.name": "Simpan riwayat hingga",
+  "setting.keep.desc": "Strategi untuk membersihkan riwayat revisi",
+  "setting.keep.option.app": "Aplikasi ditutup",
+  "setting.keep.option.file": "Berkas ditutup",
+
+  "setting.ignore-new-files.name": "Abaikan berkas baru",
+  "setting.ignore-new-files.desc": "Jangan lacak perubahan pada berkas yang dibuat setelah pelacakan dimulai",
+
+  "setting.persist.name": "Pertahankan riwayat setelah dimulai ulang",
+  "setting.persist.desc": "Simpan riwayat ke disk agar sorotan bertahan setelah dimulai ulang. Memerlukan \"simpan riwayat hingga\" disetel ke aplikasi ditutup.",
+
+  "setting.max-entries.name": "Maks berkas tersimpan",
+  "setting.max-entries.desc": "Batas jumlah riwayat berkas yang disimpan di disk. Yang terlama dihapus lebih dahulu. Setel ke 0 untuk menonaktifkan.",
+
+  "setting.max-age-days.name": "Usia maks riwayat (hari)",
+  "setting.max-age-days.desc": "Buang riwayat tersimpan yang lebih lama dari jumlah hari ini. Setel ke 0 untuk menonaktifkan.",
+
+  "setting.snapshots-heading": "Snapshot lini masa",
+
+  "setting.snapshots-enabled.name": "Ambil versi antara",
+  "setting.snapshots-enabled.desc": "Simpan lini masa versi sebelumnya agar Anda dapat membandingkan dengan titik di antaranya, bukan hanya versi asli.",
+
+  "setting.snapshots-edit-threshold.name": "Ambil setiap (suntingan)",
+  "setting.snapshots-edit-threshold.desc": "Ambil versi setelah sejumlah suntingan ini. Setel ke 0 untuk menonaktifkan pemicu suntingan.",
+
+  "setting.snapshots-interval.name": "Ambil setiap (menit)",
+  "setting.snapshots-interval.desc": "Ambil versi setelah sejumlah menit penyuntingan ini. Setel ke 0 untuk menonaktifkan pemicu waktu.",
+
+  "setting.max-version-age-days.name": "Usia maks versi (hari)",
+  "setting.max-version-age-days.desc": "Buang versi antara yang lebih lama dari jumlah hari ini (batas utama). Setel ke 0 untuk menonaktifkan.",
+
+  "setting.max-versions.name": "Maks versi per berkas",
+  "setting.max-versions.desc": "Batas pengaman versi antara yang disimpan per berkas. Yang terlama dihapus lebih dahulu. Setel ke 0 untuk menonaktifkan.",
+
+  "setting.show-heading": "Tampilkan indikator untuk",
+  "setting.show.desc": "Indikator baris hanya ditampilkan dalam mode penyuntingan (sumber dan pratinjau langsung). Dalam mode baca tidak ada indikator sebaris, tetapi riwayat perubahan tetap dapat diakses: jalankan perintah \"Tampilkan semua perubahan dokumen saat ini\" atau gunakan menu konteks berkas di penjelajah berkas.",
+  "setting.show.changed": "Diubah",
+  "setting.show.restored": "Dipulihkan",
+  "setting.show.added": "Ditambahkan",
+  "setting.show.removed": "Dihapus",
+
+  "setting.line-heading": "Indikator baris",
+  "setting.line-width.name": "Lebar",
+  "setting.line-width.desc": "Lebar indikator garis vertikal (dalam piksel).",
+
+  "setting.gutter-heading.name": "Indikator selokan",
+  "setting.gutter-heading.prefix": "Karakter indikator tipe selokan (",
+  "setting.gutter-heading.suffix": ").",
+  "setting.gutter-changed.name": "Karakter perubahan",
+  "setting.gutter-added.name": "Karakter tambahan",
+  "setting.gutter-restored.name": "Karakter pulihan",
+  "setting.gutter-removed.name": "Karakter hapusan",
+
+  "modal.title": "Riwayat",
+  "modal.no-changes": "Tidak ada perubahan",
+  "modal.identical-to-current": "Sama dengan yang saat ini",
+
+  "modal.restore-original": "Pulihkan versi asli",
+  "modal.remove-history": "Hapus riwayat berkas",
+  "modal.previous-difference": "Perbedaan sebelumnya",
+  "modal.next-difference": "Perbedaan berikutnya",
+  "modal.mode.patch": "Tampilkan patch",
+  "modal.mode.inline": "Sebaris",
+  "modal.mode.line-by-line": "Baris demi baris",
+  "modal.mode.side-by-side": "Berdampingan",
+
+  "modal.confirm.cancel": "Batal",
+  "modal.confirm.restore.title": "Pulihkan berkas asli",
+  "modal.confirm.restore.message": "Anda yakin ingin memulihkan berkas ini ke keadaan semula? Semua perubahan saat ini akan hilang dan riwayat pelacakan perubahan akan disetel ulang. Tindakan ini tidak dapat dibatalkan.",
+  "modal.confirm.restore.button": "Pulihkan berkas",
+  "modal.confirm.remove.title": "Hapus riwayat berkas",
+  "modal.confirm.remove.message": "Anda yakin ingin menghapus riwayat pelacakan perubahan untuk berkas ini? Tindakan ini tidak dapat dibatalkan.",
+  "modal.confirm.remove.button": "Hapus riwayat",
+  "modal.confirm.revert.title": "Kembalikan perubahan ini",
+  "modal.confirm.revert.message": "Kembalikan perubahan ini ke basis yang dipilih? Perubahan lain tetap dipertahankan.",
+  "modal.confirm.revert.button": "Kembalikan",
+
+  "modal.search-versions": "Cari versi",
+  "modal.version.baseline": "Saat ini",
+  "modal.version.numbered": "Versi {number}",
+  "modal.version.current": "Saat ini",
+  "modal.version.original": "Asli",
+  "modal.no-versions-match": "Tidak ada versi yang cocok dengan pencarian",
+  "modal.no-snapshots-yet": "Belum ada snapshot antara",
+
+  "modal.revert-hunk": "Kembalikan perubahan ini",
+
+  "modal.copy": "Salin"
+}

@@ -31,9 +31,10 @@
       }
     }
 
-    // Toolbar region at the top of the right content column: destructive
-    // actions, difference navigation, and the view-mode toggles, all as rows of
-    // icon buttons. Each group is an Obsidian Setting row; they are right-aligned
+    // Toolbar region at the top of the right content column: the destructive
+    // actions lead on the left, then the rail filter, difference navigation, and
+    // the view-mode toggles, all as rows of icon buttons. Each group is an
+    // Obsidian Setting row; the trailing groups are right-aligned
     // (justify-content: flex-end) and wrap on a narrow modal.
     .lct-modal-toolbar {
       flex: none;
@@ -42,14 +43,35 @@
       flex-wrap: wrap;
       align-items: center;
       justify-content: flex-end;
-      gap: 8px;
+      gap: var(--size-4-2);
+
+      // Each group is an Obsidian Setting, which always renders an info column
+      // (name + description) to the LEFT of its controls. Ours are label-less
+      // button rows, so that column is empty but still reserves space and pushes
+      // the buttons off the left edge. Hiding it makes the toolbar gap the only
+      // horizontal spacing, so the left group sits flush at the edge.
+      .setting-item-info {
+        display: none;
+      }
+
+      // Destructive actions are pinned to the left edge: the auto inline-end
+      // margin eats the free space after them, pushing every later group to the
+      // right so the pair reads as visually separate from the view controls.
+      .lct-modal-toolbar-actions {
+        margin-inline-end: auto;
+      }
 
       .lct-modal-toolbar-group {
         width: auto;
 
+        // Strip the Setting control's default grow and margins so the row is
+        // exactly as wide as its buttons (no stray inset), and space the buttons
+        // with the smaller step on the same scale as the inter-group gap.
         .setting-item-control {
+          flex: 0 0 auto;
+          margin: 0;
           flex-wrap: wrap;
-          gap: 4px;
+          gap: var(--size-4-1);
         }
 
         // Icon buttons: compact, square, icon-only on screen (the label lives in
@@ -152,7 +174,7 @@
         font-size: var(--font-ui-smaller);
         color: var(--text-faint);
         font-weight: var(--font-semibold);
-        padding: var(--size-4-2);
+        padding: var(--size-4-3) 0 0;
         user-select: none;
       }
 
@@ -782,10 +804,13 @@
     top: 10px;
     right: 10px;
     z-index: 10;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     background-color: var(--modal-background);
     border: 1px solid var(--background-modifier-border);
     box-shadow: none;
-    padding: 6px 12px;
+    padding: var(--size-4-2);
     border-radius: var(--button-radius);
     color: var(--text-normal);
     cursor: pointer;

@@ -4359,17 +4359,26 @@ var am_default = {
   "modal.no-changes": "\u121D\u1295\u121D \u1208\u12CD\u1326\u127D \u12E8\u1209\u121D",
   "modal.identical-to-current": "\u12A8\u12A0\u1201\u1291 \u130B\u122D \u1270\u1218\u1233\u1233\u12ED",
   "modal.restore-original": "\u1218\u1290\u123B\u12CD\u1295 \u1218\u120D\u1235",
-  "modal.remove-history": "\u12E8\u134B\u12ED\u120D \u1273\u122A\u12AD\u1295 \u12A0\u1235\u12C8\u130D\u12F5",
+  "modal.restore-selected": "\u12E8\u1270\u1218\u1228\u1320\u12CD\u1295 \u1235\u122A\u1275 \u1218\u120D\u1235",
+  "modal.remove-selected": "\u12E8\u1270\u1218\u1228\u1320\u12CD\u1295 \u1235\u122A\u1275 \u1230\u122D\u12DD",
+  "modal.remove-history": "\u1219\u1209 \u12E8\u134B\u12ED\u120D \u1273\u122A\u12AD\u1295 \u12A0\u1235\u12C8\u130D\u12F5",
   "modal.previous-difference": "\u1240\u12F3\u121A \u120D\u12E9\u1290\u1275",
   "modal.next-difference": "\u1240\u1323\u12ED \u120D\u12E9\u1290\u1275",
   "modal.mode.patch": "\u1325\u1308\u1293\u1295 \u12A0\u1233\u12ED",
   "modal.mode.inline": "\u1260\u1218\u1235\u1218\u122D \u12CD\u1235\u1325",
   "modal.mode.line-by-line": "\u1218\u1235\u1218\u122D \u1260\u1218\u1235\u1218\u122D",
   "modal.mode.side-by-side": "\u130E\u1295 \u1208\u130E\u1295",
+  "modal.hide-identical": "\u12A8\u12A0\u1201\u1291 \u130B\u122D \u1270\u1218\u1233\u1233\u12ED \u1235\u122A\u1276\u127D\u1295 \u12F0\u1265\u1245",
   "modal.confirm.cancel": "\u1230\u122D\u12DD",
   "modal.confirm.restore.title": "\u1218\u1290\u123B \u134B\u12ED\u120D\u1295 \u1218\u120D\u1235",
   "modal.confirm.restore.message": "\u12ED\u1205\u1295 \u134B\u12ED\u120D \u12C8\u12F0 \u1218\u1290\u123B \u1201\u1294\u1273\u12CD \u1218\u1218\u1208\u1235 \u12A5\u1295\u12F0\u121A\u1348\u120D\u1309 \u12A5\u122D\u130D\u1320\u129B \u1290\u12CE\u1275? \u1201\u1209\u121D \u12E8\u12A0\u1201\u1291 \u1208\u12CD\u1326\u127D \u12ED\u1320\u134B\u1209 \u12A5\u1293 \u12E8\u1208\u12CD\u1325 \u12AD\u1275\u1275\u120D \u1273\u122A\u12AD \u12F3\u130D\u121D \u12ED\u1300\u1218\u122B\u120D\u1362 \u12ED\u1205 \u12F5\u122D\u130A\u1275 \u120A\u1240\u1208\u1260\u1235 \u12A0\u12ED\u127D\u120D\u121D\u1362",
   "modal.confirm.restore.button": "\u134B\u12ED\u120D\u1295 \u1218\u120D\u1235",
+  "modal.confirm.restore-version.title": "\u12E8\u1270\u1218\u1228\u1320\u12CD\u1295 \u1235\u122A\u1275 \u1218\u120D\u1235",
+  "modal.confirm.restore-version.message": "\u134B\u12ED\u1209\u1295 \u12C8\u12F0 \u1270\u1218\u1228\u1320\u12CD \u1235\u122A\u1275 \u12ED\u1218\u1208\u1235? \u12E8\u12A0\u1201\u1291 \u1208\u12CD\u1326\u127D \u12ED\u1320\u134B\u1209\u1363 \u130D\u1295 \u12E8\u1235\u122A\u1275 \u1273\u122A\u12AD \u12ED\u1246\u12EB\u120D\u1362",
+  "modal.confirm.restore-version.button": "\u1235\u122A\u1275 \u1218\u120D\u1235",
+  "modal.confirm.remove-version.title": "\u12E8\u1270\u1218\u1228\u1320\u12CD\u1295 \u1235\u122A\u1275 \u1230\u122D\u12DD",
+  "modal.confirm.remove-version.message": "\u12E8\u1270\u1218\u1228\u1320\u12CD\u1295 \u1235\u122A\u1275 \u12A8\u1273\u122A\u12AD \u12ED\u1230\u1228\u12DD? \u12E8\u134B\u12ED\u1209 \u12ED\u12D8\u1275\u1293 \u12E8\u1240\u1229\u1275 \u1235\u122A\u1276\u127D \u12ED\u1246\u12EB\u1209\u1362 \u12ED\u1205 \u12A5\u122D\u121D\u1303 \u1218\u1240\u120D\u1260\u1235 \u12A0\u12ED\u127B\u120D\u121D\u1362",
+  "modal.confirm.remove-version.button": "\u1235\u122A\u1275 \u1230\u122D\u12DD",
   "modal.confirm.remove.title": "\u12E8\u134B\u12ED\u120D \u1273\u122A\u12AD\u1295 \u12A0\u1235\u12C8\u130D\u12F5",
   "modal.confirm.remove.message": "\u1208\u12DA\u1205 \u134B\u12ED\u120D \u12E8\u1208\u12CD\u1325 \u12AD\u1275\u1275\u120D \u1273\u122A\u12AD\u1295 \u121B\u1235\u12C8\u1308\u12F5 \u12A5\u1295\u12F0\u121A\u1348\u120D\u1309 \u12A5\u122D\u130D\u1320\u129B \u1290\u12CE\u1275? \u12ED\u1205 \u12F5\u122D\u130A\u1275 \u120A\u1240\u1208\u1260\u1235 \u12A0\u12ED\u127D\u120D\u121D\u1362",
   "modal.confirm.remove.button": "\u1273\u122A\u12AD\u1295 \u12A0\u1235\u12C8\u130D\u12F5",
@@ -4456,17 +4465,26 @@ var ar_default = {
   "modal.no-changes": "\u0644\u0627 \u062A\u0648\u062C\u062F \u062A\u063A\u064A\u064A\u0631\u0627\u062A",
   "modal.identical-to-current": "\u0645\u0637\u0627\u0628\u0642 \u0644\u0644\u0646\u0633\u062E\u0629 \u0627\u0644\u062D\u0627\u0644\u064A\u0629",
   "modal.restore-original": "\u0627\u0633\u062A\u0639\u0627\u062F\u0629 \u0627\u0644\u0646\u0633\u062E\u0629 \u0627\u0644\u0623\u0635\u0644\u064A\u0629",
-  "modal.remove-history": "\u0625\u0632\u0627\u0644\u0629 \u0633\u062C\u0644 \u0627\u0644\u0645\u0644\u0641",
+  "modal.restore-selected": "\u0627\u0633\u062A\u0639\u0627\u062F\u0629 \u0627\u0644\u0646\u0633\u062E\u0629 \u0627\u0644\u0645\u062D\u062F\u062F\u0629",
+  "modal.remove-selected": "\u062D\u0630\u0641 \u0627\u0644\u0646\u0633\u062E\u0629 \u0627\u0644\u0645\u062D\u062F\u062F\u0629",
+  "modal.remove-history": "\u0625\u0632\u0627\u0644\u0629 \u0643\u0644 \u0633\u062C\u0644 \u0627\u0644\u0645\u0644\u0641",
   "modal.previous-difference": "\u0627\u0644\u0627\u062E\u062A\u0644\u0627\u0641 \u0627\u0644\u0633\u0627\u0628\u0642",
   "modal.next-difference": "\u0627\u0644\u0627\u062E\u062A\u0644\u0627\u0641 \u0627\u0644\u062A\u0627\u0644\u064A",
   "modal.mode.patch": "\u0639\u0631\u0636 \u0627\u0644\u062A\u0635\u062D\u064A\u062D",
   "modal.mode.inline": "\u0645\u0636\u0645\u064E\u0651\u0646",
   "modal.mode.line-by-line": "\u0633\u0637\u0631\u064B\u0627 \u0628\u0633\u0637\u0631",
   "modal.mode.side-by-side": "\u062C\u0646\u0628\u064B\u0627 \u0625\u0644\u0649 \u062C\u0646\u0628",
+  "modal.hide-identical": "\u0625\u062E\u0641\u0627\u0621 \u0627\u0644\u0625\u0635\u062F\u0627\u0631\u0627\u062A \u0627\u0644\u0645\u0637\u0627\u0628\u0642\u0629 \u0644\u0644\u0646\u0633\u062E\u0629 \u0627\u0644\u062D\u0627\u0644\u064A\u0629",
   "modal.confirm.cancel": "\u0625\u0644\u063A\u0627\u0621",
   "modal.confirm.restore.title": "\u0627\u0633\u062A\u0639\u0627\u062F\u0629 \u0627\u0644\u0645\u0644\u0641 \u0627\u0644\u0623\u0635\u0644\u064A",
   "modal.confirm.restore.message": "\u0647\u0644 \u0623\u0646\u062A \u0645\u062A\u0623\u0643\u062F \u0645\u0646 \u0631\u063A\u0628\u062A\u0643 \u0641\u064A \u0627\u0633\u062A\u0639\u0627\u062F\u0629 \u0647\u0630\u0627 \u0627\u0644\u0645\u0644\u0641 \u0625\u0644\u0649 \u062D\u0627\u0644\u062A\u0647 \u0627\u0644\u0623\u0635\u0644\u064A\u0629\u061F \u0633\u062A\u0641\u0642\u062F \u062C\u0645\u064A\u0639 \u0627\u0644\u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0627\u0644\u062D\u0627\u0644\u064A\u0629 \u0648\u0633\u062A\u062A\u0645 \u0625\u0639\u0627\u062F\u0629 \u062A\u0639\u064A\u064A\u0646 \u0633\u062C\u0644 \u062A\u062A\u0628\u0651\u0639 \u0627\u0644\u062A\u063A\u064A\u064A\u0631\u0627\u062A. \u0644\u0627 \u064A\u0645\u0643\u0646 \u0627\u0644\u062A\u0631\u0627\u062C\u0639 \u0639\u0646 \u0647\u0630\u0627 \u0627\u0644\u0625\u062C\u0631\u0627\u0621.",
   "modal.confirm.restore.button": "\u0627\u0633\u062A\u0639\u0627\u062F\u0629 \u0627\u0644\u0645\u0644\u0641",
+  "modal.confirm.restore-version.title": "\u0627\u0633\u062A\u0639\u0627\u062F\u0629 \u0627\u0644\u0646\u0633\u062E\u0629 \u0627\u0644\u0645\u062D\u062F\u062F\u0629",
+  "modal.confirm.restore-version.message": "\u0627\u0633\u062A\u0639\u0627\u062F\u0629 \u0627\u0644\u0645\u0644\u0641 \u0625\u0644\u0649 \u0627\u0644\u0646\u0633\u062E\u0629 \u0627\u0644\u0645\u062D\u062F\u062F\u0629\u061F \u064A\u062A\u0645 \u062A\u062C\u0627\u0647\u0644 \u0627\u0644\u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0627\u0644\u062D\u0627\u0644\u064A\u0629\u060C \u0644\u0643\u0646 \u064A\u062A\u0645 \u0627\u0644\u0627\u062D\u062A\u0641\u0627\u0638 \u0628\u0633\u062C\u0644 \u0627\u0644\u0625\u0635\u062F\u0627\u0631\u0627\u062A.",
+  "modal.confirm.restore-version.button": "\u0627\u0633\u062A\u0639\u0627\u062F\u0629 \u0627\u0644\u0646\u0633\u062E\u0629",
+  "modal.confirm.remove-version.title": "\u062D\u0630\u0641 \u0627\u0644\u0646\u0633\u062E\u0629 \u0627\u0644\u0645\u062D\u062F\u062F\u0629",
+  "modal.confirm.remove-version.message": "\u062D\u0630\u0641 \u0627\u0644\u0646\u0633\u062E\u0629 \u0627\u0644\u0645\u062D\u062F\u062F\u0629 \u0645\u0646 \u0627\u0644\u0633\u062C\u0644\u061F \u064A\u062A\u0645 \u0627\u0644\u0627\u062D\u062A\u0641\u0627\u0638 \u0628\u0645\u062D\u062A\u0648\u0649 \u0627\u0644\u0645\u0644\u0641 \u0648\u0628\u0642\u064A\u0629 \u0627\u0644\u0633\u062C\u0644. \u0644\u0627 \u064A\u0645\u0643\u0646 \u0627\u0644\u062A\u0631\u0627\u062C\u0639 \u0639\u0646 \u0647\u0630\u0627 \u0627\u0644\u0625\u062C\u0631\u0627\u0621.",
+  "modal.confirm.remove-version.button": "\u062D\u0630\u0641 \u0627\u0644\u0646\u0633\u062E\u0629",
   "modal.confirm.remove.title": "\u0625\u0632\u0627\u0644\u0629 \u0633\u062C\u0644 \u0627\u0644\u0645\u0644\u0641",
   "modal.confirm.remove.message": "\u0647\u0644 \u0623\u0646\u062A \u0645\u062A\u0623\u0643\u062F \u0645\u0646 \u0631\u063A\u0628\u062A\u0643 \u0641\u064A \u0625\u0632\u0627\u0644\u0629 \u0633\u062C\u0644 \u062A\u062A\u0628\u0651\u0639 \u0627\u0644\u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0644\u0647\u0630\u0627 \u0627\u0644\u0645\u0644\u0641\u061F \u0644\u0627 \u064A\u0645\u0643\u0646 \u0627\u0644\u062A\u0631\u0627\u062C\u0639 \u0639\u0646 \u0647\u0630\u0627 \u0627\u0644\u0625\u062C\u0631\u0627\u0621.",
   "modal.confirm.remove.button": "\u0625\u0632\u0627\u0644\u0629 \u0627\u0644\u0633\u062C\u0644",
@@ -4553,17 +4571,26 @@ var be_default = {
   "modal.no-changes": "\u041D\u044F\u043C\u0430 \u0437\u043C\u0435\u043D",
   "modal.identical-to-current": "\u0406\u0434\u044D\u043D\u0442\u044B\u0447\u043D\u0430 \u0431\u044F\u0433\u0443\u0447\u0430\u043C\u0443",
   "modal.restore-original": "\u0410\u0434\u043D\u0430\u0432\u0456\u0446\u044C \u0430\u0440\u044B\u0433\u0456\u043D\u0430\u043B",
-  "modal.remove-history": "\u0412\u044B\u0434\u0430\u043B\u0456\u0446\u044C \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044E \u0444\u0430\u0439\u043B\u0430",
+  "modal.restore-selected": "\u0410\u0434\u043D\u0430\u0432\u0456\u0446\u044C \u0432\u044B\u0431\u0440\u0430\u043D\u0443\u044E \u0432\u0435\u0440\u0441\u0456\u044E",
+  "modal.remove-selected": "\u0412\u044B\u0434\u0430\u043B\u0456\u0446\u044C \u0432\u044B\u0431\u0440\u0430\u043D\u0443\u044E \u0432\u0435\u0440\u0441\u0456\u044E",
+  "modal.remove-history": "\u0412\u044B\u0434\u0430\u043B\u0456\u0446\u044C \u0443\u0441\u044E \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044E \u0444\u0430\u0439\u043B\u0430",
   "modal.previous-difference": "\u041F\u0430\u043F\u044F\u0440\u044D\u0434\u043D\u044F\u0435 \u0430\u0434\u0440\u043E\u0437\u043D\u0435\u043D\u043D\u0435",
   "modal.next-difference": "\u041D\u0430\u0441\u0442\u0443\u043F\u043D\u0430\u0435 \u0430\u0434\u0440\u043E\u0437\u043D\u0435\u043D\u043D\u0435",
   "modal.mode.patch": "\u041F\u0430\u043A\u0430\u0437\u0430\u0446\u044C \u043F\u0430\u0442\u0447",
   "modal.mode.inline": "\u0423\u0431\u0443\u0434\u0430\u0432\u0430\u043D\u044B",
   "modal.mode.line-by-line": "\u0420\u0430\u0434\u043E\u043A \u0437\u0430 \u0440\u0430\u0434\u043A\u043E\u043C",
   "modal.mode.side-by-side": "\u041F\u043E\u0431\u0430\u0447",
+  "modal.hide-identical": "\u0421\u0445\u0430\u0432\u0430\u0446\u044C \u0432\u0435\u0440\u0441\u0456\u0456, \u0456\u0434\u044D\u043D\u0442\u044B\u0447\u043D\u044B\u044F \u0431\u044F\u0433\u0443\u0447\u0430\u0439",
   "modal.confirm.cancel": "\u0421\u043A\u0430\u0441\u0430\u0432\u0430\u0446\u044C",
   "modal.confirm.restore.title": "\u0410\u0434\u043D\u0430\u0432\u0456\u0446\u044C \u0437\u044B\u0445\u043E\u0434\u043D\u044B \u0444\u0430\u0439\u043B",
   "modal.confirm.restore.message": "\u0412\u044B \u045E\u043F\u044D\u045E\u043D\u0435\u043D\u044B, \u0448\u0442\u043E \u0445\u043E\u0447\u0430\u0446\u0435 \u0430\u0434\u043D\u0430\u0432\u0456\u0446\u044C \u0433\u044D\u0442\u044B \u0444\u0430\u0439\u043B \u0434\u0430 \u0437\u044B\u0445\u043E\u0434\u043D\u0430\u0433\u0430 \u0441\u0442\u0430\u043D\u0443? \u0423\u0441\u0435 \u0431\u044F\u0433\u0443\u0447\u044B\u044F \u0437\u043C\u0435\u043D\u044B \u0431\u0443\u0434\u0443\u0446\u044C \u0441\u0442\u0440\u0430\u0447\u0430\u043D\u044B, \u0430 \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044F \u0430\u0434\u0441\u043E\u0447\u0432\u0430\u043D\u043D\u044F \u0437\u043C\u0435\u043D \u0431\u0443\u0434\u0437\u0435 \u0441\u043A\u0456\u043D\u0443\u0442\u0430. \u0413\u044D\u0442\u0430 \u0434\u0437\u0435\u044F\u043D\u043D\u0435 \u043D\u0435\u043B\u044C\u0433\u0430 \u0430\u0434\u043C\u044F\u043D\u0456\u0446\u044C.",
   "modal.confirm.restore.button": "\u0410\u0434\u043D\u0430\u0432\u0456\u0446\u044C \u0444\u0430\u0439\u043B",
+  "modal.confirm.restore-version.title": "\u0410\u0434\u043D\u0430\u0432\u0456\u0446\u044C \u0432\u044B\u0431\u0440\u0430\u043D\u0443\u044E \u0432\u0435\u0440\u0441\u0456\u044E",
+  "modal.confirm.restore-version.message": "\u0410\u0434\u043D\u0430\u0432\u0456\u0446\u044C \u0444\u0430\u0439\u043B \u0434\u0430 \u0432\u044B\u0431\u0440\u0430\u043D\u0430\u0439 \u0432\u0435\u0440\u0441\u0456\u0456? \u0411\u044F\u0433\u0443\u0447\u044B\u044F \u0437\u043C\u0435\u043D\u044B \u0431\u0443\u0434\u0443\u0446\u044C \u0441\u0442\u0440\u0430\u0447\u0430\u043D\u044B, \u0430\u043B\u0435 \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044F \u0432\u0435\u0440\u0441\u0456\u0439 \u0437\u0430\u0445\u0430\u0432\u0430\u0435\u0446\u0446\u0430.",
+  "modal.confirm.restore-version.button": "\u0410\u0434\u043D\u0430\u0432\u0456\u0446\u044C \u0432\u0435\u0440\u0441\u0456\u044E",
+  "modal.confirm.remove-version.title": "\u0412\u044B\u0434\u0430\u043B\u0456\u0446\u044C \u0432\u044B\u0431\u0440\u0430\u043D\u0443\u044E \u0432\u0435\u0440\u0441\u0456\u044E",
+  "modal.confirm.remove-version.message": "\u0412\u044B\u0434\u0430\u043B\u0456\u0446\u044C \u0432\u044B\u0431\u0440\u0430\u043D\u0443\u044E \u0432\u0435\u0440\u0441\u0456\u044E \u0437 \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u0456? \u0417\u043C\u0435\u0441\u0446\u0456\u0432\u0430 \u0444\u0430\u0439\u043B\u0430 \u0456 \u0430\u0441\u0442\u0430\u0442\u043D\u0456\u044F \u0432\u0435\u0440\u0441\u0456\u0456 \u0437\u0430\u0445\u0430\u0432\u0430\u044E\u0446\u0446\u0430. \u0413\u044D\u0442\u0430 \u0434\u0437\u0435\u044F\u043D\u043D\u0435 \u043D\u0435\u043B\u044C\u0433\u0430 \u0430\u0434\u043C\u044F\u043D\u0456\u0446\u044C.",
+  "modal.confirm.remove-version.button": "\u0412\u044B\u0434\u0430\u043B\u0456\u0446\u044C \u0432\u0435\u0440\u0441\u0456\u044E",
   "modal.confirm.remove.title": "\u0412\u044B\u0434\u0430\u043B\u0456\u0446\u044C \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044E \u0444\u0430\u0439\u043B\u0430",
   "modal.confirm.remove.message": "\u0412\u044B \u045E\u043F\u044D\u045E\u043D\u0435\u043D\u044B, \u0448\u0442\u043E \u0445\u043E\u0447\u0430\u0446\u0435 \u0432\u044B\u0434\u0430\u043B\u0456\u0446\u044C \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044E \u0430\u0434\u0441\u043E\u0447\u0432\u0430\u043D\u043D\u044F \u0437\u043C\u0435\u043D \u0434\u043B\u044F \u0433\u044D\u0442\u0430\u0433\u0430 \u0444\u0430\u0439\u043B\u0430? \u0413\u044D\u0442\u0430 \u0434\u0437\u0435\u044F\u043D\u043D\u0435 \u043D\u0435\u043B\u044C\u0433\u0430 \u0430\u0434\u043C\u044F\u043D\u0456\u0446\u044C.",
   "modal.confirm.remove.button": "\u0412\u044B\u0434\u0430\u043B\u0456\u0446\u044C \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044E",
@@ -4650,17 +4677,26 @@ var bn_default = {
   "modal.no-changes": "\u0995\u09CB\u09A8\u09CB \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u09A8\u09C7\u0987",
   "modal.identical-to-current": "\u09AC\u09B0\u09CD\u09A4\u09AE\u09BE\u09A8\u09C7\u09B0 \u09B8\u09BE\u09A5\u09C7 \u0985\u09AD\u09BF\u09A8\u09CD\u09A8",
   "modal.restore-original": "\u09AE\u09C2\u09B2\u099F\u09BF \u09AA\u09C1\u09A8\u09B0\u09C1\u09A6\u09CD\u09A7\u09BE\u09B0 \u0995\u09B0\u09C1\u09A8",
-  "modal.remove-history": "\u09AB\u09BE\u0987\u09B2\u09C7\u09B0 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09B8\u09B0\u09BE\u09A8",
+  "modal.restore-selected": "\u09A8\u09BF\u09B0\u09CD\u09AC\u09BE\u099A\u09BF\u09A4 \u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3 \u09AA\u09C1\u09A8\u09B0\u09C1\u09A6\u09CD\u09A7\u09BE\u09B0 \u0995\u09B0\u09C1\u09A8",
+  "modal.remove-selected": "\u09A8\u09BF\u09B0\u09CD\u09AC\u09BE\u099A\u09BF\u09A4 \u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3 \u09AE\u09C1\u099B\u09C1\u09A8",
+  "modal.remove-history": "\u09AB\u09BE\u0987\u09B2\u09C7\u09B0 \u09B8\u09AE\u09CD\u09AA\u09C2\u09B0\u09CD\u09A3 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09B8\u09B0\u09BE\u09A8",
   "modal.previous-difference": "\u09AA\u09C2\u09B0\u09CD\u09AC\u09AC\u09B0\u09CD\u09A4\u09C0 \u09AA\u09BE\u09B0\u09CD\u09A5\u0995\u09CD\u09AF",
   "modal.next-difference": "\u09AA\u09B0\u09AC\u09B0\u09CD\u09A4\u09C0 \u09AA\u09BE\u09B0\u09CD\u09A5\u0995\u09CD\u09AF",
   "modal.mode.patch": "\u09AA\u09CD\u09AF\u09BE\u099A \u09A6\u09C7\u0996\u09BE\u09A8",
   "modal.mode.inline": "\u0987\u09A8\u09B2\u09BE\u0987\u09A8",
   "modal.mode.line-by-line": "\u09B2\u09BE\u0987\u09A8 \u09AC\u09BE\u0987 \u09B2\u09BE\u0987\u09A8",
   "modal.mode.side-by-side": "\u09AA\u09BE\u09B6\u09BE\u09AA\u09BE\u09B6\u09BF",
+  "modal.hide-identical": "\u09AC\u09B0\u09CD\u09A4\u09AE\u09BE\u09A8\u09C7\u09B0 \u09B8\u09BE\u09A5\u09C7 \u0985\u09AD\u09BF\u09A8\u09CD\u09A8 \u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3\u0997\u09C1\u09B2\u09BF \u09B2\u09C1\u0995\u09BE\u09A8",
   "modal.confirm.cancel": "\u09AC\u09BE\u09A4\u09BF\u09B2",
   "modal.confirm.restore.title": "\u09AE\u09C2\u09B2 \u09AB\u09BE\u0987\u09B2 \u09AA\u09C1\u09A8\u09B0\u09C1\u09A6\u09CD\u09A7\u09BE\u09B0 \u0995\u09B0\u09C1\u09A8",
   "modal.confirm.restore.message": "\u0986\u09AA\u09A8\u09BF \u0995\u09BF \u09A8\u09BF\u09B6\u09CD\u099A\u09BF\u09A4 \u09AF\u09C7 \u098F\u0987 \u09AB\u09BE\u0987\u09B2\u099F\u09BF\u0995\u09C7 \u09A4\u09BE\u09B0 \u09AE\u09C2\u09B2 \u0985\u09AC\u09B8\u09CD\u09A5\u09BE\u09AF\u09BC \u09AA\u09C1\u09A8\u09B0\u09C1\u09A6\u09CD\u09A7\u09BE\u09B0 \u0995\u09B0\u09A4\u09C7 \u099A\u09BE\u09A8? \u09B8\u09AE\u09B8\u09CD\u09A4 \u09AC\u09B0\u09CD\u09A4\u09AE\u09BE\u09A8 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u09B9\u09BE\u09B0\u09BF\u09AF\u09BC\u09C7 \u09AF\u09BE\u09AC\u09C7 \u098F\u09AC\u0982 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u099F\u09CD\u09B0\u09CD\u09AF\u09BE\u0995\u09BF\u0982 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09B0\u09BF\u09B8\u09C7\u099F \u09B9\u09AC\u09C7\u0964 \u098F\u0987 \u0995\u09CD\u09B0\u09BF\u09AF\u09BC\u09BE\u099F\u09BF \u09AA\u09C2\u09B0\u09CD\u09AC\u09BE\u09AC\u09B8\u09CD\u09A5\u09BE\u09AF\u09BC \u09AB\u09C7\u09B0\u09BE\u09A8\u09CB \u09AF\u09BE\u09AC\u09C7 \u09A8\u09BE\u0964",
   "modal.confirm.restore.button": "\u09AB\u09BE\u0987\u09B2 \u09AA\u09C1\u09A8\u09B0\u09C1\u09A6\u09CD\u09A7\u09BE\u09B0 \u0995\u09B0\u09C1\u09A8",
+  "modal.confirm.restore-version.title": "\u09A8\u09BF\u09B0\u09CD\u09AC\u09BE\u099A\u09BF\u09A4 \u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3 \u09AA\u09C1\u09A8\u09B0\u09C1\u09A6\u09CD\u09A7\u09BE\u09B0 \u0995\u09B0\u09C1\u09A8",
+  "modal.confirm.restore-version.message": "\u09AB\u09BE\u0987\u09B2\u099F\u09BF \u09A8\u09BF\u09B0\u09CD\u09AC\u09BE\u099A\u09BF\u09A4 \u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3\u09C7 \u09AA\u09C1\u09A8\u09B0\u09C1\u09A6\u09CD\u09A7\u09BE\u09B0 \u0995\u09B0\u09AC\u09C7\u09A8? \u09AC\u09B0\u09CD\u09A4\u09AE\u09BE\u09A8 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8\u0997\u09C1\u09B2\u09BF \u09AC\u09BE\u09A4\u09BF\u09B2 \u09B9\u09AC\u09C7, \u09A4\u09AC\u09C7 \u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09B0\u09BE\u0996\u09BE \u09B9\u09AC\u09C7\u0964",
+  "modal.confirm.restore-version.button": "\u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3 \u09AA\u09C1\u09A8\u09B0\u09C1\u09A6\u09CD\u09A7\u09BE\u09B0 \u0995\u09B0\u09C1\u09A8",
+  "modal.confirm.remove-version.title": "\u09A8\u09BF\u09B0\u09CD\u09AC\u09BE\u099A\u09BF\u09A4 \u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3 \u09AE\u09C1\u099B\u09C1\u09A8",
+  "modal.confirm.remove-version.message": "\u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09A5\u09C7\u0995\u09C7 \u09A8\u09BF\u09B0\u09CD\u09AC\u09BE\u099A\u09BF\u09A4 \u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3 \u09AE\u09C1\u099B\u09AC\u09C7\u09A8? \u09AB\u09BE\u0987\u09B2\u09C7\u09B0 \u09AC\u09BF\u09B7\u09AF\u09BC\u09AC\u09B8\u09CD\u09A4\u09C1 \u098F\u09AC\u0982 \u09AC\u09BE\u0995\u09BF \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09B0\u09BE\u0996\u09BE \u09B9\u09AC\u09C7\u0964 \u098F\u0987 \u0995\u09CD\u09B0\u09BF\u09AF\u09BC\u09BE\u099F\u09BF \u09AA\u09C2\u09B0\u09CD\u09AC\u09BE\u09AC\u09B8\u09CD\u09A5\u09BE\u09AF\u09BC \u09AB\u09C7\u09B0\u09BE\u09A8\u09CB \u09AF\u09BE\u09AC\u09C7 \u09A8\u09BE\u0964",
+  "modal.confirm.remove-version.button": "\u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3 \u09AE\u09C1\u099B\u09C1\u09A8",
   "modal.confirm.remove.title": "\u09AB\u09BE\u0987\u09B2\u09C7\u09B0 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09B8\u09B0\u09BE\u09A8",
   "modal.confirm.remove.message": "\u0986\u09AA\u09A8\u09BF \u0995\u09BF \u09A8\u09BF\u09B6\u09CD\u099A\u09BF\u09A4 \u09AF\u09C7 \u098F\u0987 \u09AB\u09BE\u0987\u09B2\u09C7\u09B0 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u099F\u09CD\u09B0\u09CD\u09AF\u09BE\u0995\u09BF\u0982 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09B8\u09B0\u09BE\u09A4\u09C7 \u099A\u09BE\u09A8? \u098F\u0987 \u0995\u09CD\u09B0\u09BF\u09AF\u09BC\u09BE\u099F\u09BF \u09AA\u09C2\u09B0\u09CD\u09AC\u09BE\u09AC\u09B8\u09CD\u09A5\u09BE\u09AF\u09BC \u09AB\u09C7\u09B0\u09BE\u09A8\u09CB \u09AF\u09BE\u09AC\u09C7 \u09A8\u09BE\u0964",
   "modal.confirm.remove.button": "\u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09B8\u09B0\u09BE\u09A8",
@@ -4747,17 +4783,26 @@ var ca_default = {
   "modal.no-changes": "Cap canvi",
   "modal.identical-to-current": "Id\xE8ntic a l'actual",
   "modal.restore-original": "Restaura l'original",
-  "modal.remove-history": "Elimina l'historial del fitxer",
+  "modal.restore-selected": "Restaura la versi\xF3 seleccionada",
+  "modal.remove-selected": "Elimina la versi\xF3 seleccionada",
+  "modal.remove-history": "Elimina tot l'historial del fitxer",
   "modal.previous-difference": "Difer\xE8ncia anterior",
   "modal.next-difference": "Difer\xE8ncia seg\xFCent",
   "modal.mode.patch": "Mostra el peda\xE7",
   "modal.mode.inline": "En l\xEDnia",
   "modal.mode.line-by-line": "L\xEDnia per l\xEDnia",
   "modal.mode.side-by-side": "Costat a costat",
+  "modal.hide-identical": "Amaga les versions id\xE8ntiques a l'actual",
   "modal.confirm.cancel": "Cancel\xB7la",
   "modal.confirm.restore.title": "Restaura el fitxer original",
   "modal.confirm.restore.message": "Segur que vols restaurar aquest fitxer al seu estat original? Es perdran tots els canvis actuals i es reiniciar\xE0 l'historial de seguiment de canvis. Aquesta acci\xF3 no es pot desfer.",
   "modal.confirm.restore.button": "Restaura el fitxer",
+  "modal.confirm.restore-version.title": "Restaura la versi\xF3 seleccionada",
+  "modal.confirm.restore-version.message": "Vols restaurar el fitxer a la versi\xF3 seleccionada? Els canvis actuals es descarten, per\xF2 es conserva l'historial de versions.",
+  "modal.confirm.restore-version.button": "Restaura la versi\xF3",
+  "modal.confirm.remove-version.title": "Elimina la versi\xF3 seleccionada",
+  "modal.confirm.remove-version.message": "Vols eliminar la versi\xF3 seleccionada de l'historial? Es conserven el contingut del fitxer i la resta de l'historial. Aquesta acci\xF3 no es pot desfer.",
+  "modal.confirm.remove-version.button": "Elimina la versi\xF3",
   "modal.confirm.remove.title": "Elimina l'historial del fitxer",
   "modal.confirm.remove.message": "Segur que vols eliminar l'historial de seguiment de canvis d'aquest fitxer? Aquesta acci\xF3 no es pot desfer.",
   "modal.confirm.remove.button": "Elimina l'historial",
@@ -4844,17 +4889,26 @@ var cs_default = {
   "modal.no-changes": "\u017D\xE1dn\xE9 zm\u011Bny",
   "modal.identical-to-current": "Shodn\xE9 s aktu\xE1ln\xED",
   "modal.restore-original": "Obnovit origin\xE1l",
-  "modal.remove-history": "Odstranit historii souboru",
+  "modal.restore-selected": "Obnovit vybranou verzi",
+  "modal.remove-selected": "Odstranit vybranou verzi",
+  "modal.remove-history": "Odstranit celou historii souboru",
   "modal.previous-difference": "P\u0159edchoz\xED rozd\xEDl",
   "modal.next-difference": "Dal\u0161\xED rozd\xEDl",
   "modal.mode.patch": "Zobrazit patch",
   "modal.mode.inline": "Vlo\u017Een\xE9",
   "modal.mode.line-by-line": "\u0158\xE1dek po \u0159\xE1dku",
   "modal.mode.side-by-side": "Vedle sebe",
+  "modal.hide-identical": "Skr\xFDt verze shodn\xE9 s aktu\xE1ln\xED",
   "modal.confirm.cancel": "Zru\u0161it",
   "modal.confirm.restore.title": "Obnovit p\u016Fvodn\xED soubor",
   "modal.confirm.restore.message": "Opravdu chcete obnovit tento soubor do p\u016Fvodn\xEDho stavu? V\u0161echny aktu\xE1ln\xED zm\u011Bny budou ztraceny a historie sledov\xE1n\xED zm\u011Bn bude resetov\xE1na. Tuto akci nelze vr\xE1tit zp\u011Bt.",
   "modal.confirm.restore.button": "Obnovit soubor",
+  "modal.confirm.restore-version.title": "Obnovit vybranou verzi",
+  "modal.confirm.restore-version.message": "Obnovit soubor na vybranou verzi? Aktu\xE1ln\xED zm\u011Bny budou zahozeny, ale historie verz\xED z\u016Fstane zachov\xE1na.",
+  "modal.confirm.restore-version.button": "Obnovit verzi",
+  "modal.confirm.remove-version.title": "Odstranit vybranou verzi",
+  "modal.confirm.remove-version.message": "Odstranit vybranou verzi z historie? Obsah souboru a zbytek historie z\u016Fstanou zachov\xE1ny. Tuto akci nelze vr\xE1tit zp\u011Bt.",
+  "modal.confirm.remove-version.button": "Odstranit verzi",
   "modal.confirm.remove.title": "Odstranit historii souboru",
   "modal.confirm.remove.message": "Opravdu chcete odstranit historii sledov\xE1n\xED zm\u011Bn tohoto souboru? Tuto akci nelze vr\xE1tit zp\u011Bt.",
   "modal.confirm.remove.button": "Odstranit historii",
@@ -4941,17 +4995,26 @@ var da_default = {
   "modal.no-changes": "Ingen \xE6ndringer",
   "modal.identical-to-current": "Identisk med aktuel version",
   "modal.restore-original": "Gendan original",
-  "modal.remove-history": "Fjern filhistorik",
+  "modal.restore-selected": "Gendan valgt version",
+  "modal.remove-selected": "Slet valgt version",
+  "modal.remove-history": "Fjern al filhistorik",
   "modal.previous-difference": "Forrige forskel",
   "modal.next-difference": "N\xE6ste forskel",
   "modal.mode.patch": "Vis patch",
   "modal.mode.inline": "Indlejret",
   "modal.mode.line-by-line": "Linje for linje",
   "modal.mode.side-by-side": "Side om side",
+  "modal.hide-identical": "Skjul versioner identiske med den aktuelle",
   "modal.confirm.cancel": "Annuller",
   "modal.confirm.restore.title": "Gendan originalfil",
   "modal.confirm.restore.message": "Er du sikker p\xE5, at du vil gendanne denne fil til dens oprindelige tilstand? Alle aktuelle \xE6ndringer g\xE5r tabt, og \xE6ndringshistorikken nulstilles. Denne handling kan ikke fortrydes.",
   "modal.confirm.restore.button": "Gendan fil",
+  "modal.confirm.restore-version.title": "Gendan valgt version",
+  "modal.confirm.restore-version.message": "Vil du gendanne filen til den valgte version? De aktuelle \xE6ndringer kasseres, men versionshistorikken bevares.",
+  "modal.confirm.restore-version.button": "Gendan version",
+  "modal.confirm.remove-version.title": "Slet valgt version",
+  "modal.confirm.remove-version.message": "Slet den valgte version fra historikken? Filens indhold og resten af historikken bevares. Denne handling kan ikke fortrydes.",
+  "modal.confirm.remove-version.button": "Slet version",
   "modal.confirm.remove.title": "Fjern filhistorik",
   "modal.confirm.remove.message": "Er du sikker p\xE5, at du vil fjerne \xE6ndringshistorikken for denne fil? Denne handling kan ikke fortrydes.",
   "modal.confirm.remove.button": "Fjern historik",
@@ -5038,17 +5101,26 @@ var de_default = {
   "modal.no-changes": "Keine \xC4nderungen",
   "modal.identical-to-current": "Identisch mit aktueller Version",
   "modal.restore-original": "Original wiederherstellen",
-  "modal.remove-history": "Dateiverlauf entfernen",
+  "modal.restore-selected": "Ausgew\xE4hlte Version wiederherstellen",
+  "modal.remove-selected": "Ausgew\xE4hlte Version l\xF6schen",
+  "modal.remove-history": "Gesamten Dateiverlauf entfernen",
   "modal.previous-difference": "Vorheriger Unterschied",
   "modal.next-difference": "N\xE4chster Unterschied",
   "modal.mode.patch": "Patch anzeigen",
   "modal.mode.inline": "Inline",
   "modal.mode.line-by-line": "Zeile f\xFCr Zeile",
   "modal.mode.side-by-side": "Nebeneinander",
+  "modal.hide-identical": "Versionen ausblenden, die mit der aktuellen identisch sind",
   "modal.confirm.cancel": "Abbrechen",
   "modal.confirm.restore.title": "Originaldatei wiederherstellen",
   "modal.confirm.restore.message": "M\xF6chtest du diese Datei wirklich in ihren Originalzustand zur\xFCcksetzen? Alle aktuellen \xC4nderungen gehen verloren und der \xC4nderungsverlauf wird zur\xFCckgesetzt. Diese Aktion kann nicht r\xFCckg\xE4ngig gemacht werden.",
   "modal.confirm.restore.button": "Datei wiederherstellen",
+  "modal.confirm.restore-version.title": "Ausgew\xE4hlte Version wiederherstellen",
+  "modal.confirm.restore-version.message": "Die Datei auf die ausgew\xE4hlte Version zur\xFCcksetzen? Die aktuellen \xC4nderungen werden verworfen, der Versionsverlauf bleibt jedoch erhalten.",
+  "modal.confirm.restore-version.button": "Version wiederherstellen",
+  "modal.confirm.remove-version.title": "Ausgew\xE4hlte Version l\xF6schen",
+  "modal.confirm.remove-version.message": "Die ausgew\xE4hlte Version aus dem Verlauf l\xF6schen? Der Dateiinhalt und der \xFCbrige Verlauf bleiben erhalten. Diese Aktion kann nicht r\xFCckg\xE4ngig gemacht werden.",
+  "modal.confirm.remove-version.button": "Version l\xF6schen",
   "modal.confirm.remove.title": "Dateiverlauf entfernen",
   "modal.confirm.remove.message": "M\xF6chtest du den \xC4nderungsverlauf f\xFCr diese Datei wirklich entfernen? Diese Aktion kann nicht r\xFCckg\xE4ngig gemacht werden.",
   "modal.confirm.remove.button": "Verlauf entfernen",
@@ -5134,18 +5206,27 @@ var en_default = {
   "modal.title": "History",
   "modal.no-changes": "No changes",
   "modal.identical-to-current": "Identical to current",
+  "modal.restore-selected": "Restore selected version",
+  "modal.remove-selected": "Delete selected version",
   "modal.restore-original": "Restore original",
-  "modal.remove-history": "Remove file history",
+  "modal.remove-history": "Remove all file history",
   "modal.previous-difference": "Previous difference",
   "modal.next-difference": "Next difference",
   "modal.mode.patch": "Show patch",
   "modal.mode.inline": "Inline",
   "modal.mode.line-by-line": "Line by line",
   "modal.mode.side-by-side": "Side by side",
+  "modal.hide-identical": "Hide versions identical to current",
   "modal.confirm.cancel": "Cancel",
   "modal.confirm.restore.title": "Restore original file",
   "modal.confirm.restore.message": "Are you sure you want to restore this file to its original state? All current changes will be lost and the change tracking history will be reset. This action cannot be undone.",
   "modal.confirm.restore.button": "Restore file",
+  "modal.confirm.restore-version.title": "Restore selected version",
+  "modal.confirm.restore-version.message": "Replace the current file content with the selected version? Other current changes are discarded, but the version history is kept.",
+  "modal.confirm.restore-version.button": "Restore version",
+  "modal.confirm.remove-version.title": "Delete selected version",
+  "modal.confirm.remove-version.message": "Delete the selected version from the timeline? The file content and the rest of the history are kept. This action cannot be undone.",
+  "modal.confirm.remove-version.button": "Delete version",
   "modal.confirm.remove.title": "Remove file history",
   "modal.confirm.remove.message": "Are you sure you want to remove the change tracking history for this file? This action cannot be undone.",
   "modal.confirm.remove.button": "Remove history",
@@ -5232,17 +5313,26 @@ var en_GB_default = {
   "modal.no-changes": "No changes",
   "modal.identical-to-current": "Identical to current",
   "modal.restore-original": "Restore original",
-  "modal.remove-history": "Remove file history",
+  "modal.restore-selected": "Restore selected version",
+  "modal.remove-selected": "Delete selected version",
+  "modal.remove-history": "Remove all file history",
   "modal.previous-difference": "Previous difference",
   "modal.next-difference": "Next difference",
   "modal.mode.patch": "Show patch",
   "modal.mode.inline": "Inline",
   "modal.mode.line-by-line": "Line by line",
   "modal.mode.side-by-side": "Side by side",
+  "modal.hide-identical": "Hide versions identical to current",
   "modal.confirm.cancel": "Cancel",
   "modal.confirm.restore.title": "Restore original file",
   "modal.confirm.restore.message": "Are you sure you want to restore this file to its original state? All current changes will be lost and the change tracking history will be reset. This action cannot be undone.",
   "modal.confirm.restore.button": "Restore file",
+  "modal.confirm.restore-version.title": "Restore selected version",
+  "modal.confirm.restore-version.message": "Replace the current file content with the selected version? Other current changes are discarded, but the version history is kept.",
+  "modal.confirm.restore-version.button": "Restore version",
+  "modal.confirm.remove-version.title": "Delete selected version",
+  "modal.confirm.remove-version.message": "Delete the selected version from the timeline? The file content and the rest of the history are kept. This action cannot be undone.",
+  "modal.confirm.remove-version.button": "Delete version",
   "modal.confirm.remove.title": "Remove file history",
   "modal.confirm.remove.message": "Are you sure you want to remove the change tracking history for this file? This action cannot be undone.",
   "modal.confirm.remove.button": "Remove history",
@@ -5329,17 +5419,26 @@ var es_default = {
   "modal.no-changes": "Sin cambios",
   "modal.identical-to-current": "Id\xE9ntico al actual",
   "modal.restore-original": "Restaurar el original",
-  "modal.remove-history": "Eliminar el historial del archivo",
+  "modal.restore-selected": "Restaurar la versi\xF3n seleccionada",
+  "modal.remove-selected": "Eliminar la versi\xF3n seleccionada",
+  "modal.remove-history": "Eliminar todo el historial del archivo",
   "modal.previous-difference": "Diferencia anterior",
   "modal.next-difference": "Diferencia siguiente",
   "modal.mode.patch": "Mostrar parche",
   "modal.mode.inline": "En l\xEDnea",
   "modal.mode.line-by-line": "L\xEDnea por l\xEDnea",
   "modal.mode.side-by-side": "Lado a lado",
+  "modal.hide-identical": "Ocultar versiones id\xE9nticas a la actual",
   "modal.confirm.cancel": "Cancelar",
   "modal.confirm.restore.title": "Restaurar el archivo original",
   "modal.confirm.restore.message": "\xBFSeguro que quieres restaurar este archivo a su estado original? Se perder\xE1n todos los cambios actuales y se restablecer\xE1 el historial de seguimiento de cambios. Esta acci\xF3n no se puede deshacer.",
   "modal.confirm.restore.button": "Restaurar archivo",
+  "modal.confirm.restore-version.title": "Restaurar la versi\xF3n seleccionada",
+  "modal.confirm.restore-version.message": "\xBFRestaurar el archivo a la versi\xF3n seleccionada? Los cambios actuales se descartan, pero se conserva el historial de versiones.",
+  "modal.confirm.restore-version.button": "Restaurar versi\xF3n",
+  "modal.confirm.remove-version.title": "Eliminar la versi\xF3n seleccionada",
+  "modal.confirm.remove-version.message": "\xBFEliminar la versi\xF3n seleccionada del historial? Se conservan el contenido del archivo y el resto del historial. Esta acci\xF3n no se puede deshacer.",
+  "modal.confirm.remove-version.button": "Eliminar versi\xF3n",
   "modal.confirm.remove.title": "Eliminar el historial del archivo",
   "modal.confirm.remove.message": "\xBFSeguro que quieres eliminar el historial de seguimiento de cambios de este archivo? Esta acci\xF3n no se puede deshacer.",
   "modal.confirm.remove.button": "Eliminar historial",
@@ -5426,17 +5525,26 @@ var fa_default = {
   "modal.no-changes": "\u0628\u062F\u0648\u0646 \u062A\u063A\u06CC\u06CC\u0631",
   "modal.identical-to-current": "\u0647\u0645\u0633\u0627\u0646 \u0628\u0627 \u0646\u0633\u062E\u0647 \u0641\u0639\u0644\u06CC",
   "modal.restore-original": "\u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u062F\u0646 \u0646\u0633\u062E\u0647 \u0627\u0635\u0644\u06CC",
-  "modal.remove-history": "\u062D\u0630\u0641 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u067E\u0631\u0648\u0646\u062F\u0647",
+  "modal.restore-selected": "\u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u062F\u0646 \u0646\u0633\u062E\u0647 \u0627\u0646\u062A\u062E\u0627\u0628\u200C\u0634\u062F\u0647",
+  "modal.remove-selected": "\u062D\u0630\u0641 \u0646\u0633\u062E\u0647 \u0627\u0646\u062A\u062E\u0627\u0628\u200C\u0634\u062F\u0647",
+  "modal.remove-history": "\u062D\u0630\u0641 \u06A9\u0644 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u067E\u0631\u0648\u0646\u062F\u0647",
   "modal.previous-difference": "\u062A\u0641\u0627\u0648\u062A \u0642\u0628\u0644\u06CC",
   "modal.next-difference": "\u062A\u0641\u0627\u0648\u062A \u0628\u0639\u062F\u06CC",
   "modal.mode.patch": "\u0646\u0645\u0627\u06CC\u0634 \u0648\u0635\u0644\u0647",
   "modal.mode.inline": "\u062F\u0631\u0648\u0646\u200C\u062E\u0637\u06CC",
   "modal.mode.line-by-line": "\u062E\u0637\u200C\u0628\u0647\u200C\u062E\u0637",
   "modal.mode.side-by-side": "\u06A9\u0646\u0627\u0631 \u0647\u0645",
+  "modal.hide-identical": "\u067E\u0646\u0647\u0627\u0646 \u06A9\u0631\u062F\u0646 \u0646\u0633\u062E\u0647\u200C\u0647\u0627\u06CC \u0647\u0645\u0633\u0627\u0646 \u0628\u0627 \u0646\u0633\u062E\u0647 \u0641\u0639\u0644\u06CC",
   "modal.confirm.cancel": "\u0644\u063A\u0648",
   "modal.confirm.restore.title": "\u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u062F\u0646 \u067E\u0631\u0648\u0646\u062F\u0647 \u0627\u0635\u0644\u06CC",
   "modal.confirm.restore.message": "\u0622\u06CC\u0627 \u0645\u0637\u0645\u0626\u0646\u06CC\u062F \u06A9\u0647 \u0645\u06CC\u200C\u062E\u0648\u0627\u0647\u06CC\u062F \u0627\u06CC\u0646 \u067E\u0631\u0648\u0646\u062F\u0647 \u0631\u0627 \u0628\u0647 \u0648\u0636\u0639\u06CC\u062A \u0627\u0635\u0644\u06CC\u200C\u0627\u0634 \u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u06CC\u062F\u061F \u0647\u0645\u0647 \u062A\u063A\u06CC\u06CC\u0631\u0627\u062A \u0641\u0639\u0644\u06CC \u0627\u0632 \u062F\u0633\u062A \u0645\u06CC\u200C\u0631\u0648\u062F \u0648 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u0631\u062F\u06CC\u0627\u0628\u06CC \u062A\u063A\u06CC\u06CC\u0631\u0627\u062A \u0628\u0627\u0632\u0646\u0634\u0627\u0646\u06CC \u0645\u06CC\u200C\u0634\u0648\u062F. \u0627\u06CC\u0646 \u06A9\u0646\u0634 \u0642\u0627\u0628\u0644 \u0628\u0627\u0632\u06AF\u0634\u062A \u0646\u06CC\u0633\u062A.",
   "modal.confirm.restore.button": "\u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u062F\u0646 \u067E\u0631\u0648\u0646\u062F\u0647",
+  "modal.confirm.restore-version.title": "\u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u062F\u0646 \u0646\u0633\u062E\u0647 \u0627\u0646\u062A\u062E\u0627\u0628\u200C\u0634\u062F\u0647",
+  "modal.confirm.restore-version.message": "\u067E\u0631\u0648\u0646\u062F\u0647 \u0628\u0647 \u0646\u0633\u062E\u0647 \u0627\u0646\u062A\u062E\u0627\u0628\u200C\u0634\u062F\u0647 \u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u062F\u0647 \u0634\u0648\u062F\u061F \u062A\u063A\u06CC\u06CC\u0631\u0627\u062A \u0641\u0639\u0644\u06CC \u0646\u0627\u062F\u06CC\u062F\u0647 \u06AF\u0631\u0641\u062A\u0647 \u0645\u06CC\u200C\u0634\u0648\u0646\u062F\u060C \u0627\u0645\u0627 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u0646\u0633\u062E\u0647\u200C\u0647\u0627 \u062D\u0641\u0638 \u0645\u06CC\u200C\u0634\u0648\u062F.",
+  "modal.confirm.restore-version.button": "\u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u062F\u0646 \u0646\u0633\u062E\u0647",
+  "modal.confirm.remove-version.title": "\u062D\u0630\u0641 \u0646\u0633\u062E\u0647 \u0627\u0646\u062A\u062E\u0627\u0628\u200C\u0634\u062F\u0647",
+  "modal.confirm.remove-version.message": "\u0646\u0633\u062E\u0647 \u0627\u0646\u062A\u062E\u0627\u0628\u200C\u0634\u062F\u0647 \u0627\u0632 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u062D\u0630\u0641 \u0634\u0648\u062F\u061F \u0645\u062D\u062A\u0648\u0627\u06CC \u067E\u0631\u0648\u0646\u062F\u0647 \u0648 \u0628\u0642\u06CC\u0647 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u062D\u0641\u0638 \u0645\u06CC\u200C\u0634\u0648\u0646\u062F. \u0627\u06CC\u0646 \u0639\u0645\u0644 \u0642\u0627\u0628\u0644 \u0628\u0627\u0632\u06AF\u0634\u062A \u0646\u06CC\u0633\u062A.",
+  "modal.confirm.remove-version.button": "\u062D\u0630\u0641 \u0646\u0633\u062E\u0647",
   "modal.confirm.remove.title": "\u062D\u0630\u0641 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u067E\u0631\u0648\u0646\u062F\u0647",
   "modal.confirm.remove.message": "\u0622\u06CC\u0627 \u0645\u0637\u0645\u0626\u0646\u06CC\u062F \u06A9\u0647 \u0645\u06CC\u200C\u062E\u0648\u0627\u0647\u06CC\u062F \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u0631\u062F\u06CC\u0627\u0628\u06CC \u062A\u063A\u06CC\u06CC\u0631\u0627\u062A \u0627\u06CC\u0646 \u067E\u0631\u0648\u0646\u062F\u0647 \u0631\u0627 \u062D\u0630\u0641 \u06A9\u0646\u06CC\u062F\u061F \u0627\u06CC\u0646 \u06A9\u0646\u0634 \u0642\u0627\u0628\u0644 \u0628\u0627\u0632\u06AF\u0634\u062A \u0646\u06CC\u0633\u062A.",
   "modal.confirm.remove.button": "\u062D\u0630\u0641 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647",
@@ -5523,17 +5631,26 @@ var fi_default = {
   "modal.no-changes": "Ei muutoksia",
   "modal.identical-to-current": "Identtinen nykyisen kanssa",
   "modal.restore-original": "Palauta alkuper\xE4inen",
-  "modal.remove-history": "Poista tiedoston historia",
+  "modal.restore-selected": "Palauta valittu versio",
+  "modal.remove-selected": "Poista valittu versio",
+  "modal.remove-history": "Poista tiedoston koko historia",
   "modal.previous-difference": "Edellinen ero",
   "modal.next-difference": "Seuraava ero",
   "modal.mode.patch": "N\xE4yt\xE4 korjaus",
   "modal.mode.inline": "Tekstinsis\xE4inen",
   "modal.mode.line-by-line": "Rivi rivilt\xE4",
   "modal.mode.side-by-side": "Vierekk\xE4in",
+  "modal.hide-identical": "Piilota nykyisen kanssa identtiset versiot",
   "modal.confirm.cancel": "Peruuta",
   "modal.confirm.restore.title": "Palauta alkuper\xE4inen tiedosto",
   "modal.confirm.restore.message": "Haluatko varmasti palauttaa t\xE4m\xE4n tiedoston alkuper\xE4iseen tilaansa? Kaikki nykyiset muutokset menetet\xE4\xE4n ja muutoshistoria nollataan. T\xE4t\xE4 toimintoa ei voi kumota.",
   "modal.confirm.restore.button": "Palauta tiedosto",
+  "modal.confirm.restore-version.title": "Palauta valittu versio",
+  "modal.confirm.restore-version.message": "Palautetaanko tiedosto valittuun versioon? Nykyiset muutokset hyl\xE4t\xE4\xE4n, mutta versiohistoria s\xE4ilytet\xE4\xE4n.",
+  "modal.confirm.restore-version.button": "Palauta versio",
+  "modal.confirm.remove-version.title": "Poista valittu versio",
+  "modal.confirm.remove-version.message": "Poistetaanko valittu versio historiasta? Tiedoston sis\xE4lt\xF6 ja muu historia s\xE4ilytet\xE4\xE4n. T\xE4t\xE4 toimintoa ei voi kumota.",
+  "modal.confirm.remove-version.button": "Poista versio",
   "modal.confirm.remove.title": "Poista tiedoston historia",
   "modal.confirm.remove.message": "Haluatko varmasti poistaa t\xE4m\xE4n tiedoston muutoshistorian? T\xE4t\xE4 toimintoa ei voi kumota.",
   "modal.confirm.remove.button": "Poista historia",
@@ -5620,17 +5737,26 @@ var fr_default = {
   "modal.no-changes": "Aucune modification",
   "modal.identical-to-current": "Identique \xE0 la version actuelle",
   "modal.restore-original": "Restaurer l'original",
-  "modal.remove-history": "Supprimer l'historique du fichier",
+  "modal.restore-selected": "Restaurer la version s\xE9lectionn\xE9e",
+  "modal.remove-selected": "Supprimer la version s\xE9lectionn\xE9e",
+  "modal.remove-history": "Supprimer tout l'historique du fichier",
   "modal.previous-difference": "Diff\xE9rence pr\xE9c\xE9dente",
   "modal.next-difference": "Diff\xE9rence suivante",
   "modal.mode.patch": "Afficher le patch",
   "modal.mode.inline": "En ligne",
   "modal.mode.line-by-line": "Ligne par ligne",
   "modal.mode.side-by-side": "C\xF4te \xE0 c\xF4te",
+  "modal.hide-identical": "Masquer les versions identiques \xE0 la version actuelle",
   "modal.confirm.cancel": "Annuler",
   "modal.confirm.restore.title": "Restaurer le fichier d'origine",
   "modal.confirm.restore.message": "Voulez-vous vraiment restaurer ce fichier \xE0 son \xE9tat d'origine ? Toutes les modifications actuelles seront perdues et l'historique de suivi des modifications sera r\xE9initialis\xE9. Cette action est irr\xE9versible.",
   "modal.confirm.restore.button": "Restaurer le fichier",
+  "modal.confirm.restore-version.title": "Restaurer la version s\xE9lectionn\xE9e",
+  "modal.confirm.restore-version.message": "Restaurer le fichier \xE0 la version s\xE9lectionn\xE9e ? Les modifications actuelles sont abandonn\xE9es, mais l'historique des versions est conserv\xE9.",
+  "modal.confirm.restore-version.button": "Restaurer la version",
+  "modal.confirm.remove-version.title": "Supprimer la version s\xE9lectionn\xE9e",
+  "modal.confirm.remove-version.message": "Supprimer la version s\xE9lectionn\xE9e de l'historique ? Le contenu du fichier et le reste de l'historique sont conserv\xE9s. Cette action est irr\xE9versible.",
+  "modal.confirm.remove-version.button": "Supprimer la version",
   "modal.confirm.remove.title": "Supprimer l'historique du fichier",
   "modal.confirm.remove.message": "Voulez-vous vraiment supprimer l'historique de suivi des modifications de ce fichier ? Cette action est irr\xE9versible.",
   "modal.confirm.remove.button": "Supprimer l'historique",
@@ -5717,17 +5843,26 @@ var ga_default = {
   "modal.no-changes": "Gan athruithe",
   "modal.identical-to-current": "Comhionann leis an gceann reatha",
   "modal.restore-original": "Athch\xF3irigh an bunleagan",
-  "modal.remove-history": "Bain stair an chomhaid",
+  "modal.restore-selected": "Athch\xF3irigh an leagan roghnaithe",
+  "modal.remove-selected": "Scrios an leagan roghnaithe",
+  "modal.remove-history": "Bain stair ioml\xE1n an chomhaid",
   "modal.previous-difference": "An difr\xEDocht roimhe seo",
   "modal.next-difference": "An ch\xE9ad difr\xEDocht eile",
   "modal.mode.patch": "Taispe\xE1in an paiste",
   "modal.mode.inline": "Inl\xEDne",
   "modal.mode.line-by-line": "L\xEDne ar l\xEDne",
   "modal.mode.side-by-side": "Taobh le taobh",
+  "modal.hide-identical": "Folaigh leaganacha comhionann leis an gceann reatha",
   "modal.confirm.cancel": "Cealaigh",
   "modal.confirm.restore.title": "Athch\xF3irigh an comhad bunaidh",
   "modal.confirm.restore.message": "An bhfuil t\xFA cinnte gur mhaith leat an comhad seo a chur ar ais ina staid bhunaidh? Caillfear gach athr\xFA reatha agus athshocr\xF3far stair lorgtha na n-athruithe. N\xED f\xE9idir an gn\xEDomh seo a cheal\xFA.",
   "modal.confirm.restore.button": "Athch\xF3irigh an comhad",
+  "modal.confirm.restore-version.title": "Athch\xF3irigh an leagan roghnaithe",
+  "modal.confirm.restore-version.message": "Athch\xF3irigh an comhad go dt\xED an leagan roghnaithe? Caitear na hathruithe reatha i leataobh, ach coinn\xEDtear stair na leaganacha.",
+  "modal.confirm.restore-version.button": "Athch\xF3irigh an leagan",
+  "modal.confirm.remove-version.title": "Scrios an leagan roghnaithe",
+  "modal.confirm.remove-version.message": "Scrios an leagan roghnaithe \xF3n stair? Coinn\xEDtear \xE1bhar an chomhaid agus an chuid eile den stair. N\xED f\xE9idir an gn\xEDomh seo a chur ar ais.",
+  "modal.confirm.remove-version.button": "Scrios an leagan",
   "modal.confirm.remove.title": "Bain stair an chomhaid",
   "modal.confirm.remove.message": "An bhfuil t\xFA cinnte gur mhaith leat stair lorgtha na n-athruithe don chomhad seo a bhaint? N\xED f\xE9idir an gn\xEDomh seo a cheal\xFA.",
   "modal.confirm.remove.button": "Bain an stair",
@@ -5814,17 +5949,26 @@ var he_default = {
   "modal.no-changes": "\u05D0\u05D9\u05DF \u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD",
   "modal.identical-to-current": "\u05D6\u05D4\u05D4 \u05DC\u05E0\u05D5\u05DB\u05D7\u05D9",
   "modal.restore-original": "\u05E9\u05D7\u05D6\u05D5\u05E8 \u05D4\u05DE\u05E7\u05D5\u05E8",
-  "modal.remove-history": "\u05D4\u05E1\u05E8\u05EA \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D9\u05EA \u05D4\u05E7\u05D5\u05D1\u05E5",
+  "modal.restore-selected": "\u05E9\u05D7\u05D6\u05D5\u05E8 \u05D4\u05D2\u05E8\u05E1\u05D4 \u05D4\u05E0\u05D1\u05D7\u05E8\u05EA",
+  "modal.remove-selected": "\u05DE\u05D7\u05D9\u05E7\u05EA \u05D4\u05D2\u05E8\u05E1\u05D4 \u05D4\u05E0\u05D1\u05D7\u05E8\u05EA",
+  "modal.remove-history": "\u05D4\u05E1\u05E8\u05EA \u05DB\u05DC \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D9\u05EA \u05D4\u05E7\u05D5\u05D1\u05E5",
   "modal.previous-difference": "\u05D4\u05D4\u05D1\u05D3\u05DC \u05D4\u05E7\u05D5\u05D3\u05DD",
   "modal.next-difference": "\u05D4\u05D4\u05D1\u05D3\u05DC \u05D4\u05D1\u05D0",
   "modal.mode.patch": "\u05D4\u05E6\u05D2\u05EA \u05D8\u05DC\u05D0\u05D9",
   "modal.mode.inline": "\u05DE\u05D5\u05D8\u05DE\u05E2",
   "modal.mode.line-by-line": "\u05E9\u05D5\u05E8\u05D4 \u05D0\u05D7\u05E8 \u05E9\u05D5\u05E8\u05D4",
   "modal.mode.side-by-side": "\u05D6\u05D4 \u05DC\u05E6\u05D3 \u05D6\u05D4",
+  "modal.hide-identical": "\u05D4\u05E1\u05EA\u05E8 \u05D2\u05E8\u05E1\u05D0\u05D5\u05EA \u05D6\u05D4\u05D5\u05EA \u05DC\u05E0\u05D5\u05DB\u05D7\u05D9",
   "modal.confirm.cancel": "\u05D1\u05D9\u05D8\u05D5\u05DC",
   "modal.confirm.restore.title": "\u05E9\u05D7\u05D6\u05D5\u05E8 \u05D4\u05E7\u05D5\u05D1\u05E5 \u05D4\u05DE\u05E7\u05D5\u05E8\u05D9",
   "modal.confirm.restore.message": "\u05D4\u05D0\u05DD \u05D0\u05EA\u05D4 \u05D1\u05D8\u05D5\u05D7 \u05E9\u05D1\u05E8\u05E6\u05D5\u05E0\u05DA \u05DC\u05E9\u05D7\u05D6\u05E8 \u05E7\u05D5\u05D1\u05E5 \u05D6\u05D4 \u05DC\u05DE\u05E6\u05D1\u05D5 \u05D4\u05DE\u05E7\u05D5\u05E8\u05D9? \u05DB\u05DC \u05D4\u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05D4\u05E0\u05D5\u05DB\u05D7\u05D9\u05D9\u05DD \u05D9\u05D0\u05D1\u05D3\u05D5 \u05D5\u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D9\u05EA \u05DE\u05E2\u05E7\u05D1 \u05D4\u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05EA\u05D0\u05D5\u05E4\u05E1. \u05DC\u05D0 \u05E0\u05D9\u05EA\u05DF \u05DC\u05D1\u05D8\u05DC \u05E4\u05E2\u05D5\u05DC\u05D4 \u05D6\u05D5.",
   "modal.confirm.restore.button": "\u05E9\u05D7\u05D6\u05D5\u05E8 \u05D4\u05E7\u05D5\u05D1\u05E5",
+  "modal.confirm.restore-version.title": "\u05E9\u05D7\u05D6\u05D5\u05E8 \u05D4\u05D2\u05E8\u05E1\u05D4 \u05D4\u05E0\u05D1\u05D7\u05E8\u05EA",
+  "modal.confirm.restore-version.message": "\u05DC\u05E9\u05D7\u05D6\u05E8 \u05D0\u05EA \u05D4\u05E7\u05D5\u05D1\u05E5 \u05DC\u05D2\u05E8\u05E1\u05D4 \u05D4\u05E0\u05D1\u05D7\u05E8\u05EA? \u05D4\u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05D4\u05E0\u05D5\u05DB\u05D7\u05D9\u05D9\u05DD \u05D9\u05D1\u05D5\u05D8\u05DC\u05D5, \u05D0\u05DA \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D9\u05EA \u05D4\u05D2\u05E8\u05E1\u05D0\u05D5\u05EA \u05EA\u05D9\u05E9\u05DE\u05E8.",
+  "modal.confirm.restore-version.button": "\u05E9\u05D7\u05D6\u05D5\u05E8 \u05D2\u05E8\u05E1\u05D4",
+  "modal.confirm.remove-version.title": "\u05DE\u05D7\u05D9\u05E7\u05EA \u05D4\u05D2\u05E8\u05E1\u05D4 \u05D4\u05E0\u05D1\u05D7\u05E8\u05EA",
+  "modal.confirm.remove-version.message": "\u05DC\u05DE\u05D7\u05D5\u05E7 \u05D0\u05EA \u05D4\u05D2\u05E8\u05E1\u05D4 \u05D4\u05E0\u05D1\u05D7\u05E8\u05EA \u05DE\u05D4\u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4? \u05EA\u05D5\u05DB\u05DF \u05D4\u05E7\u05D5\u05D1\u05E5 \u05D5\u05E9\u05D0\u05E8 \u05D4\u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05D9\u05D9\u05E9\u05DE\u05E8\u05D5. \u05DC\u05D0 \u05E0\u05D9\u05EA\u05DF \u05DC\u05D1\u05D8\u05DC \u05E4\u05E2\u05D5\u05DC\u05D4 \u05D6\u05D5.",
+  "modal.confirm.remove-version.button": "\u05DE\u05D7\u05E7 \u05D2\u05E8\u05E1\u05D4",
   "modal.confirm.remove.title": "\u05D4\u05E1\u05E8\u05EA \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D9\u05EA \u05D4\u05E7\u05D5\u05D1\u05E5",
   "modal.confirm.remove.message": "\u05D4\u05D0\u05DD \u05D0\u05EA\u05D4 \u05D1\u05D8\u05D5\u05D7 \u05E9\u05D1\u05E8\u05E6\u05D5\u05E0\u05DA \u05DC\u05D4\u05E1\u05D9\u05E8 \u05D0\u05EA \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D9\u05EA \u05DE\u05E2\u05E7\u05D1 \u05D4\u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05DC\u05E7\u05D5\u05D1\u05E5 \u05D6\u05D4? \u05DC\u05D0 \u05E0\u05D9\u05EA\u05DF \u05DC\u05D1\u05D8\u05DC \u05E4\u05E2\u05D5\u05DC\u05D4 \u05D6\u05D5.",
   "modal.confirm.remove.button": "\u05D4\u05E1\u05E8\u05EA \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4",
@@ -5911,17 +6055,26 @@ var hu_default = {
   "modal.no-changes": "Nincs m\xF3dos\xEDt\xE1s",
   "modal.identical-to-current": "Megegyezik a jelenlegivel",
   "modal.restore-original": "Eredeti vissza\xE1ll\xEDt\xE1sa",
-  "modal.remove-history": "F\xE1jlel\u0151zm\xE9nyek elt\xE1vol\xEDt\xE1sa",
+  "modal.restore-selected": "Kijel\xF6lt verzi\xF3 vissza\xE1ll\xEDt\xE1sa",
+  "modal.remove-selected": "Kijel\xF6lt verzi\xF3 t\xF6rl\xE9se",
+  "modal.remove-history": "A f\xE1jl teljes el\u0151zm\xE9nyeinek elt\xE1vol\xEDt\xE1sa",
   "modal.previous-difference": "El\u0151z\u0151 elt\xE9r\xE9s",
   "modal.next-difference": "K\xF6vetkez\u0151 elt\xE9r\xE9s",
   "modal.mode.patch": "Folt megjelen\xEDt\xE9se",
   "modal.mode.inline": "Be\xE1gyazott",
   "modal.mode.line-by-line": "Soronk\xE9nt",
   "modal.mode.side-by-side": "Egym\xE1s mellett",
+  "modal.hide-identical": "A jelenlegivel megegyez\u0151 verzi\xF3k elrejt\xE9se",
   "modal.confirm.cancel": "M\xE9gse",
   "modal.confirm.restore.title": "Eredeti f\xE1jl vissza\xE1ll\xEDt\xE1sa",
   "modal.confirm.restore.message": "Biztosan vissza szeretn\xE9 \xE1ll\xEDtani ezt a f\xE1jlt az eredeti \xE1llapot\xE1ba? Minden jelenlegi m\xF3dos\xEDt\xE1s elveszik, \xE9s a m\xF3dos\xEDt\xE1sk\xF6vet\xE9si el\u0151zm\xE9nyek vissza\xE1llnak. Ez a m\u0171velet nem vonhat\xF3 vissza.",
   "modal.confirm.restore.button": "F\xE1jl vissza\xE1ll\xEDt\xE1sa",
+  "modal.confirm.restore-version.title": "Kijel\xF6lt verzi\xF3 vissza\xE1ll\xEDt\xE1sa",
+  "modal.confirm.restore-version.message": "Vissza\xE1ll\xEDtja a f\xE1jlt a kijel\xF6lt verzi\xF3ra? A jelenlegi m\xF3dos\xEDt\xE1sok elvesznek, de a verzi\xF3el\u0151zm\xE9nyek megmaradnak.",
+  "modal.confirm.restore-version.button": "Verzi\xF3 vissza\xE1ll\xEDt\xE1sa",
+  "modal.confirm.remove-version.title": "Kijel\xF6lt verzi\xF3 t\xF6rl\xE9se",
+  "modal.confirm.remove-version.message": "T\xF6rli a kijel\xF6lt verzi\xF3t az el\u0151zm\xE9nyekb\u0151l? A f\xE1jl tartalma \xE9s az el\u0151zm\xE9nyek t\xF6bbi r\xE9sze megmarad. A m\u0171velet nem vonhat\xF3 vissza.",
+  "modal.confirm.remove-version.button": "Verzi\xF3 t\xF6rl\xE9se",
   "modal.confirm.remove.title": "F\xE1jlel\u0151zm\xE9nyek elt\xE1vol\xEDt\xE1sa",
   "modal.confirm.remove.message": "Biztosan el szeretn\xE9 t\xE1vol\xEDtani ennek a f\xE1jlnak a m\xF3dos\xEDt\xE1sk\xF6vet\xE9si el\u0151zm\xE9nyeit? Ez a m\u0171velet nem vonhat\xF3 vissza.",
   "modal.confirm.remove.button": "El\u0151zm\xE9nyek elt\xE1vol\xEDt\xE1sa",
@@ -6008,17 +6161,26 @@ var id_default = {
   "modal.no-changes": "Tidak ada perubahan",
   "modal.identical-to-current": "Sama dengan yang saat ini",
   "modal.restore-original": "Pulihkan versi asli",
-  "modal.remove-history": "Hapus riwayat berkas",
+  "modal.restore-selected": "Pulihkan versi terpilih",
+  "modal.remove-selected": "Hapus versi terpilih",
+  "modal.remove-history": "Hapus semua riwayat berkas",
   "modal.previous-difference": "Perbedaan sebelumnya",
   "modal.next-difference": "Perbedaan berikutnya",
   "modal.mode.patch": "Tampilkan patch",
   "modal.mode.inline": "Sebaris",
   "modal.mode.line-by-line": "Baris demi baris",
   "modal.mode.side-by-side": "Berdampingan",
+  "modal.hide-identical": "Sembunyikan versi yang sama dengan yang saat ini",
   "modal.confirm.cancel": "Batal",
   "modal.confirm.restore.title": "Pulihkan berkas asli",
   "modal.confirm.restore.message": "Anda yakin ingin memulihkan berkas ini ke keadaan semula? Semua perubahan saat ini akan hilang dan riwayat pelacakan perubahan akan disetel ulang. Tindakan ini tidak dapat dibatalkan.",
   "modal.confirm.restore.button": "Pulihkan berkas",
+  "modal.confirm.restore-version.title": "Pulihkan versi terpilih",
+  "modal.confirm.restore-version.message": "Pulihkan berkas ke versi terpilih? Perubahan saat ini dibuang, tetapi riwayat versi tetap dipertahankan.",
+  "modal.confirm.restore-version.button": "Pulihkan versi",
+  "modal.confirm.remove-version.title": "Hapus versi terpilih",
+  "modal.confirm.remove-version.message": "Hapus versi terpilih dari riwayat? Konten berkas dan sisa riwayat tetap dipertahankan. Tindakan ini tidak dapat dibatalkan.",
+  "modal.confirm.remove-version.button": "Hapus versi",
   "modal.confirm.remove.title": "Hapus riwayat berkas",
   "modal.confirm.remove.message": "Anda yakin ingin menghapus riwayat pelacakan perubahan untuk berkas ini? Tindakan ini tidak dapat dibatalkan.",
   "modal.confirm.remove.button": "Hapus riwayat",
@@ -6105,17 +6267,26 @@ var it_default = {
   "modal.no-changes": "Nessuna modifica",
   "modal.identical-to-current": "Identico all'attuale",
   "modal.restore-original": "Ripristina l'originale",
-  "modal.remove-history": "Rimuovi la cronologia del file",
+  "modal.restore-selected": "Ripristina la versione selezionata",
+  "modal.remove-selected": "Elimina la versione selezionata",
+  "modal.remove-history": "Rimuovi tutta la cronologia del file",
   "modal.previous-difference": "Differenza precedente",
   "modal.next-difference": "Differenza successiva",
   "modal.mode.patch": "Mostra patch",
   "modal.mode.inline": "In linea",
   "modal.mode.line-by-line": "Riga per riga",
   "modal.mode.side-by-side": "Affiancato",
+  "modal.hide-identical": "Nascondi le versioni identiche all'attuale",
   "modal.confirm.cancel": "Annulla",
   "modal.confirm.restore.title": "Ripristina il file originale",
   "modal.confirm.restore.message": "Vuoi davvero ripristinare questo file al suo stato originale? Tutte le modifiche correnti andranno perse e la cronologia di tracciamento delle modifiche verr\xE0 reimpostata. Questa azione non pu\xF2 essere annullata.",
   "modal.confirm.restore.button": "Ripristina file",
+  "modal.confirm.restore-version.title": "Ripristina la versione selezionata",
+  "modal.confirm.restore-version.message": "Ripristinare il file alla versione selezionata? Le modifiche attuali vengono scartate, ma la cronologia delle versioni viene mantenuta.",
+  "modal.confirm.restore-version.button": "Ripristina versione",
+  "modal.confirm.remove-version.title": "Elimina la versione selezionata",
+  "modal.confirm.remove-version.message": "Eliminare la versione selezionata dalla cronologia? Il contenuto del file e il resto della cronologia vengono mantenuti. Questa azione non pu\xF2 essere annullata.",
+  "modal.confirm.remove-version.button": "Elimina versione",
   "modal.confirm.remove.title": "Rimuovi la cronologia del file",
   "modal.confirm.remove.message": "Vuoi davvero rimuovere la cronologia di tracciamento delle modifiche per questo file? Questa azione non pu\xF2 essere annullata.",
   "modal.confirm.remove.button": "Rimuovi cronologia",
@@ -6202,17 +6373,26 @@ var ja_default = {
   "modal.no-changes": "\u5909\u66F4\u306A\u3057",
   "modal.identical-to-current": "\u73FE\u5728\u306E\u5185\u5BB9\u3068\u540C\u4E00",
   "modal.restore-original": "\u5143\u306E\u72B6\u614B\u306B\u5FA9\u5143",
-  "modal.remove-history": "\u30D5\u30A1\u30A4\u30EB\u5C65\u6B74\u3092\u524A\u9664",
+  "modal.restore-selected": "\u9078\u629E\u3057\u305F\u30D0\u30FC\u30B8\u30E7\u30F3\u306B\u5FA9\u5143",
+  "modal.remove-selected": "\u9078\u629E\u3057\u305F\u30D0\u30FC\u30B8\u30E7\u30F3\u3092\u524A\u9664",
+  "modal.remove-history": "\u30D5\u30A1\u30A4\u30EB\u5C65\u6B74\u3092\u3059\u3079\u3066\u524A\u9664",
   "modal.previous-difference": "\u524D\u306E\u76F8\u9055\u70B9",
   "modal.next-difference": "\u6B21\u306E\u76F8\u9055\u70B9",
   "modal.mode.patch": "\u30D1\u30C3\u30C1\u3092\u8868\u793A",
   "modal.mode.inline": "\u30A4\u30F3\u30E9\u30A4\u30F3",
   "modal.mode.line-by-line": "\u884C\u5358\u4F4D",
   "modal.mode.side-by-side": "\u5DE6\u53F3\u306B\u4E26\u3079\u3066\u8868\u793A",
+  "modal.hide-identical": "\u73FE\u5728\u306E\u5185\u5BB9\u3068\u540C\u4E00\u306E\u30D0\u30FC\u30B8\u30E7\u30F3\u3092\u975E\u8868\u793A",
   "modal.confirm.cancel": "\u30AD\u30E3\u30F3\u30BB\u30EB",
   "modal.confirm.restore.title": "\u5143\u306E\u30D5\u30A1\u30A4\u30EB\u3092\u5FA9\u5143",
   "modal.confirm.restore.message": "\u3053\u306E\u30D5\u30A1\u30A4\u30EB\u3092\u5143\u306E\u72B6\u614B\u306B\u5FA9\u5143\u3057\u3066\u3082\u3088\u308D\u3057\u3044\u3067\u3059\u304B\uFF1F\u73FE\u5728\u306E\u5909\u66F4\u306F\u3059\u3079\u3066\u5931\u308F\u308C\u3001\u5909\u66F4\u8FFD\u8DE1\u306E\u5C65\u6B74\u306F\u30EA\u30BB\u30C3\u30C8\u3055\u308C\u307E\u3059\u3002\u3053\u306E\u64CD\u4F5C\u306F\u53D6\u308A\u6D88\u305B\u307E\u305B\u3093\u3002",
   "modal.confirm.restore.button": "\u30D5\u30A1\u30A4\u30EB\u3092\u5FA9\u5143",
+  "modal.confirm.restore-version.title": "\u9078\u629E\u3057\u305F\u30D0\u30FC\u30B8\u30E7\u30F3\u306B\u5FA9\u5143",
+  "modal.confirm.restore-version.message": "\u30D5\u30A1\u30A4\u30EB\u3092\u9078\u629E\u3057\u305F\u30D0\u30FC\u30B8\u30E7\u30F3\u306B\u5FA9\u5143\u3057\u307E\u3059\u304B\uFF1F\u73FE\u5728\u306E\u5909\u66F4\u306F\u7834\u68C4\u3055\u308C\u307E\u3059\u304C\u3001\u30D0\u30FC\u30B8\u30E7\u30F3\u5C65\u6B74\u306F\u4FDD\u6301\u3055\u308C\u307E\u3059\u3002",
+  "modal.confirm.restore-version.button": "\u30D0\u30FC\u30B8\u30E7\u30F3\u3092\u5FA9\u5143",
+  "modal.confirm.remove-version.title": "\u9078\u629E\u3057\u305F\u30D0\u30FC\u30B8\u30E7\u30F3\u3092\u524A\u9664",
+  "modal.confirm.remove-version.message": "\u9078\u629E\u3057\u305F\u30D0\u30FC\u30B8\u30E7\u30F3\u3092\u5C65\u6B74\u304B\u3089\u524A\u9664\u3057\u307E\u3059\u304B\uFF1F\u30D5\u30A1\u30A4\u30EB\u306E\u5185\u5BB9\u3068\u6B8B\u308A\u306E\u5C65\u6B74\u306F\u4FDD\u6301\u3055\u308C\u307E\u3059\u3002\u3053\u306E\u64CD\u4F5C\u306F\u5143\u306B\u623B\u305B\u307E\u305B\u3093\u3002",
+  "modal.confirm.remove-version.button": "\u30D0\u30FC\u30B8\u30E7\u30F3\u3092\u524A\u9664",
   "modal.confirm.remove.title": "\u30D5\u30A1\u30A4\u30EB\u5C65\u6B74\u3092\u524A\u9664",
   "modal.confirm.remove.message": "\u3053\u306E\u30D5\u30A1\u30A4\u30EB\u306E\u5909\u66F4\u8FFD\u8DE1\u5C65\u6B74\u3092\u524A\u9664\u3057\u3066\u3082\u3088\u308D\u3057\u3044\u3067\u3059\u304B\uFF1F\u3053\u306E\u64CD\u4F5C\u306F\u53D6\u308A\u6D88\u305B\u307E\u305B\u3093\u3002",
   "modal.confirm.remove.button": "\u5C65\u6B74\u3092\u524A\u9664",
@@ -6299,17 +6479,26 @@ var ka_default = {
   "modal.no-changes": "\u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10D8 \u10D0\u10E0 \u10D0\u10E0\u10D8\u10E1",
   "modal.identical-to-current": "\u10DB\u10D8\u10DB\u10D3\u10D8\u10DC\u10D0\u10E0\u10D8\u10E1 \u10D8\u10D3\u10D4\u10DC\u10E2\u10E3\u10E0\u10D8",
   "modal.restore-original": "\u10DD\u10E0\u10D8\u10D2\u10D8\u10DC\u10D0\u10DA\u10D8\u10E1 \u10D0\u10E6\u10D3\u10D2\u10D4\u10DC\u10D0",
-  "modal.remove-history": "\u10E4\u10D0\u10D8\u10DA\u10D8\u10E1 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D8\u10E1 \u10EC\u10D0\u10E8\u10DA\u10D0",
+  "modal.restore-selected": "\u10D0\u10E0\u10E9\u10D4\u10E3\u10DA\u10D8 \u10D5\u10D4\u10E0\u10E1\u10D8\u10D8\u10E1 \u10D0\u10E6\u10D3\u10D2\u10D4\u10DC\u10D0",
+  "modal.remove-selected": "\u10D0\u10E0\u10E9\u10D4\u10E3\u10DA\u10D8 \u10D5\u10D4\u10E0\u10E1\u10D8\u10D8\u10E1 \u10EC\u10D0\u10E8\u10DA\u10D0",
+  "modal.remove-history": "\u10E4\u10D0\u10D8\u10DA\u10D8\u10E1 \u10DB\u10D7\u10D4\u10DA\u10D8 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D8\u10E1 \u10EC\u10D0\u10E8\u10DA\u10D0",
   "modal.previous-difference": "\u10EC\u10D8\u10DC\u10D0 \u10D2\u10D0\u10DC\u10E1\u10EE\u10D5\u10D0\u10D5\u10D4\u10D1\u10D0",
   "modal.next-difference": "\u10E8\u10D4\u10DB\u10D3\u10D4\u10D2\u10D8 \u10D2\u10D0\u10DC\u10E1\u10EE\u10D5\u10D0\u10D5\u10D4\u10D1\u10D0",
   "modal.mode.patch": "\u10DE\u10D0\u10E2\u10E9\u10D8\u10E1 \u10E9\u10D5\u10D4\u10DC\u10D4\u10D1\u10D0",
   "modal.mode.inline": "\u10E9\u10D0\u10E8\u10D4\u10DC\u10D4\u10D1\u10E3\u10DA\u10D8",
   "modal.mode.line-by-line": "\u10EE\u10D0\u10D6-\u10EE\u10D0\u10D6\u10DD\u10D1\u10E0\u10D8\u10D5\u10D0\u10D3",
   "modal.mode.side-by-side": "\u10D2\u10D5\u10D4\u10E0\u10D3\u10D8\u10D2\u10D5\u10D4\u10E0\u10D3",
+  "modal.hide-identical": "\u10DB\u10D8\u10DB\u10D3\u10D8\u10DC\u10D0\u10E0\u10D8\u10E1 \u10D8\u10D3\u10D4\u10DC\u10E2\u10E3\u10E0\u10D8 \u10D5\u10D4\u10E0\u10E1\u10D8\u10D4\u10D1\u10D8\u10E1 \u10D3\u10D0\u10DB\u10D0\u10DA\u10D5\u10D0",
   "modal.confirm.cancel": "\u10D2\u10D0\u10E3\u10E5\u10DB\u10D4\u10D1\u10D0",
   "modal.confirm.restore.title": "\u10DD\u10E0\u10D8\u10D2\u10D8\u10DC\u10D0\u10DA\u10D8 \u10E4\u10D0\u10D8\u10DA\u10D8\u10E1 \u10D0\u10E6\u10D3\u10D2\u10D4\u10DC\u10D0",
   "modal.confirm.restore.message": "\u10D3\u10D0\u10E0\u10EC\u10DB\u10E3\u10DC\u10D4\u10D1\u10E3\u10DA\u10D8 \u10EE\u10D0\u10E0\u10D7, \u10E0\u10DD\u10DB \u10D2\u10E1\u10E3\u10E0\u10D7 \u10D0\u10DB \u10E4\u10D0\u10D8\u10DA\u10D8\u10E1 \u10E1\u10D0\u10EC\u10E7\u10D8\u10E1 \u10DB\u10D3\u10D2\u10DD\u10DB\u10D0\u10E0\u10D4\u10DD\u10D1\u10D0\u10DB\u10D3\u10D4 \u10D0\u10E6\u10D3\u10D2\u10D4\u10DC\u10D0? \u10E7\u10D5\u10D4\u10DA\u10D0 \u10DB\u10D8\u10DB\u10D3\u10D8\u10DC\u10D0\u10E0\u10D4 \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D0 \u10D3\u10D0\u10D8\u10D9\u10D0\u10E0\u10D2\u10D4\u10D1\u10D0 \u10D3\u10D0 \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10D8\u10E1 \u10D7\u10D5\u10D0\u10DA\u10D3\u10D4\u10D5\u10DC\u10D4\u10D1\u10D8\u10E1 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D0 \u10D2\u10D0\u10D3\u10D0\u10D8\u10E2\u10D5\u10D8\u10E0\u10D7\u10D4\u10D1\u10D0. \u10D0\u10DB \u10DB\u10DD\u10E5\u10DB\u10D4\u10D3\u10D4\u10D1\u10D8\u10E1 \u10D2\u10D0\u10E3\u10E5\u10DB\u10D4\u10D1\u10D0 \u10E8\u10D4\u10E3\u10EB\u10DA\u10D4\u10D1\u10D4\u10DA\u10D8\u10D0.",
   "modal.confirm.restore.button": "\u10E4\u10D0\u10D8\u10DA\u10D8\u10E1 \u10D0\u10E6\u10D3\u10D2\u10D4\u10DC\u10D0",
+  "modal.confirm.restore-version.title": "\u10D0\u10E0\u10E9\u10D4\u10E3\u10DA\u10D8 \u10D5\u10D4\u10E0\u10E1\u10D8\u10D8\u10E1 \u10D0\u10E6\u10D3\u10D2\u10D4\u10DC\u10D0",
+  "modal.confirm.restore-version.message": "\u10D0\u10E6\u10D3\u10D2\u10D4\u10E1 \u10E4\u10D0\u10D8\u10DA\u10D8 \u10D0\u10E0\u10E9\u10D4\u10E3\u10DA \u10D5\u10D4\u10E0\u10E1\u10D8\u10D0\u10DB\u10D3\u10D4? \u10DB\u10D8\u10DB\u10D3\u10D8\u10DC\u10D0\u10E0\u10D4 \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10D8 \u10D2\u10D0\u10E3\u10E5\u10DB\u10D3\u10D4\u10D1\u10D0, \u10DB\u10D0\u10D2\u10E0\u10D0\u10DB \u10D5\u10D4\u10E0\u10E1\u10D8\u10D4\u10D1\u10D8\u10E1 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D0 \u10E8\u10D4\u10DC\u10D0\u10E0\u10E9\u10E3\u10DC\u10D3\u10D4\u10D1\u10D0.",
+  "modal.confirm.restore-version.button": "\u10D5\u10D4\u10E0\u10E1\u10D8\u10D8\u10E1 \u10D0\u10E6\u10D3\u10D2\u10D4\u10DC\u10D0",
+  "modal.confirm.remove-version.title": "\u10D0\u10E0\u10E9\u10D4\u10E3\u10DA\u10D8 \u10D5\u10D4\u10E0\u10E1\u10D8\u10D8\u10E1 \u10EC\u10D0\u10E8\u10DA\u10D0",
+  "modal.confirm.remove-version.message": "\u10EC\u10D0\u10D8\u10E8\u10D0\u10DA\u10DD\u10E1 \u10D0\u10E0\u10E9\u10D4\u10E3\u10DA\u10D8 \u10D5\u10D4\u10E0\u10E1\u10D8\u10D0 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D8\u10D3\u10D0\u10DC? \u10E4\u10D0\u10D8\u10DA\u10D8\u10E1 \u10E8\u10D8\u10D2\u10D7\u10D0\u10D5\u10E1\u10D8 \u10D3\u10D0 \u10D3\u10D0\u10DC\u10D0\u10E0\u10E9\u10D4\u10DC\u10D8 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D0 \u10E8\u10D4\u10DC\u10D0\u10E0\u10E9\u10E3\u10DC\u10D3\u10D4\u10D1\u10D0. \u10D0\u10DB \u10DB\u10DD\u10E5\u10DB\u10D4\u10D3\u10D4\u10D1\u10D8\u10E1 \u10D2\u10D0\u10E3\u10E5\u10DB\u10D4\u10D1\u10D0 \u10E8\u10D4\u10E3\u10EB\u10DA\u10D4\u10D1\u10D4\u10DA\u10D8\u10D0.",
+  "modal.confirm.remove-version.button": "\u10D5\u10D4\u10E0\u10E1\u10D8\u10D8\u10E1 \u10EC\u10D0\u10E8\u10DA\u10D0",
   "modal.confirm.remove.title": "\u10E4\u10D0\u10D8\u10DA\u10D8\u10E1 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D8\u10E1 \u10EC\u10D0\u10E8\u10DA\u10D0",
   "modal.confirm.remove.message": "\u10D3\u10D0\u10E0\u10EC\u10DB\u10E3\u10DC\u10D4\u10D1\u10E3\u10DA\u10D8 \u10EE\u10D0\u10E0\u10D7, \u10E0\u10DD\u10DB \u10D2\u10E1\u10E3\u10E0\u10D7 \u10D0\u10DB \u10E4\u10D0\u10D8\u10DA\u10D8\u10E1 \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10D8\u10E1 \u10D7\u10D5\u10D0\u10DA\u10D3\u10D4\u10D5\u10DC\u10D4\u10D1\u10D8\u10E1 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D8\u10E1 \u10EC\u10D0\u10E8\u10DA\u10D0? \u10D0\u10DB \u10DB\u10DD\u10E5\u10DB\u10D4\u10D3\u10D4\u10D1\u10D8\u10E1 \u10D2\u10D0\u10E3\u10E5\u10DB\u10D4\u10D1\u10D0 \u10E8\u10D4\u10E3\u10EB\u10DA\u10D4\u10D1\u10D4\u10DA\u10D8\u10D0.",
   "modal.confirm.remove.button": "\u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D8\u10E1 \u10EC\u10D0\u10E8\u10DA\u10D0",
@@ -6396,17 +6585,26 @@ var kh_default = {
   "modal.no-changes": "\u1782\u17D2\u1798\u17B6\u1793\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A",
   "modal.identical-to-current": "\u178A\u17BC\u1785\u1782\u17D2\u1793\u17B6\u1793\u17B9\u1784\u1794\u1785\u17D2\u1785\u17BB\u1794\u17D2\u1794\u1793\u17D2\u1793",
   "modal.restore-original": "\u179F\u17D2\u178A\u17B6\u179A\u17AF\u1780\u179F\u17B6\u179A\u178A\u17BE\u1798",
-  "modal.remove-history": "\u178A\u1780\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u17AF\u1780\u179F\u17B6\u179A",
+  "modal.restore-selected": "\u179F\u17D2\u178A\u17B6\u179A\u1780\u17C6\u178E\u17C2\u178A\u17C2\u179B\u1794\u17B6\u1793\u1787\u17D2\u179A\u17BE\u179F",
+  "modal.remove-selected": "\u179B\u17BB\u1794\u1780\u17C6\u178E\u17C2\u178A\u17C2\u179B\u1794\u17B6\u1793\u1787\u17D2\u179A\u17BE\u179F",
+  "modal.remove-history": "\u178A\u1780\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u17AF\u1780\u179F\u17B6\u179A\u1791\u17B6\u17C6\u1784\u17A2\u179F\u17CB",
   "modal.previous-difference": "\u1797\u17B6\u1796\u1781\u17BB\u179F\u1782\u17D2\u1793\u17B6\u1798\u17BB\u1793",
   "modal.next-difference": "\u1797\u17B6\u1796\u1781\u17BB\u179F\u1782\u17D2\u1793\u17B6\u1794\u1793\u17D2\u1791\u17B6\u1794\u17CB",
   "modal.mode.patch": "\u1794\u1784\u17D2\u17A0\u17B6\u1789 patch",
   "modal.mode.inline": "\u1780\u17D2\u1793\u17BB\u1784\u1794\u1793\u17D2\u1791\u17B6\u178F\u17CB",
   "modal.mode.line-by-line": "\u1794\u1793\u17D2\u1791\u17B6\u178F\u17CB\u1798\u17BD\u1799\u17D7",
   "modal.mode.side-by-side": "\u1785\u17C6\u17A0\u17C0\u1784\u1782\u17D2\u1793\u17B6",
+  "modal.hide-identical": "\u179B\u17B6\u1780\u17CB\u1780\u17C6\u178E\u17C2\u178A\u17C2\u179B\u178A\u17BC\u1785\u1782\u17D2\u1793\u17B6\u1793\u17B9\u1784\u1794\u1785\u17D2\u1785\u17BB\u1794\u17D2\u1794\u1793\u17D2\u1793",
   "modal.confirm.cancel": "\u1794\u17C4\u17C7\u1794\u1784\u17CB",
   "modal.confirm.restore.title": "\u179F\u17D2\u178A\u17B6\u179A\u17AF\u1780\u179F\u17B6\u179A\u178A\u17BE\u1798",
   "modal.confirm.restore.message": "\u178F\u17BE\u17A2\u17D2\u1793\u1780\u1794\u17D2\u179A\u17B6\u1780\u178A\u1790\u17B6\u1785\u1784\u17CB\u179F\u17D2\u178A\u17B6\u179A\u17AF\u1780\u179F\u17B6\u179A\u1793\u17C1\u17C7\u1791\u17C5\u179F\u17D2\u1790\u17B6\u1793\u1797\u17B6\u1796\u178A\u17BE\u1798\u179C\u17B7\u1789\u17AC? \u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1794\u1785\u17D2\u1785\u17BB\u1794\u17D2\u1794\u1793\u17D2\u1793\u1791\u17B6\u17C6\u1784\u17A2\u179F\u17CB\u1793\u17B9\u1784\u1794\u17B6\u178F\u17CB\u1794\u1784\u17CB \u17A0\u17BE\u1799\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u178F\u17B6\u1798\u178A\u17B6\u1793\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1793\u17B9\u1784\u178F\u17D2\u179A\u17BC\u179C\u1780\u17C6\u178E\u178F\u17CB\u17A1\u17BE\u1784\u179C\u17B7\u1789\u17D4 \u179F\u1780\u1798\u17D2\u1798\u1797\u17B6\u1796\u1793\u17C1\u17C7\u1798\u17B7\u1793\u17A2\u17B6\u1785\u1798\u17B7\u1793\u1792\u17D2\u179C\u17BE\u179C\u17B7\u1789\u1794\u17B6\u1793\u1791\u17C1\u17D4",
   "modal.confirm.restore.button": "\u179F\u17D2\u178A\u17B6\u179A\u17AF\u1780\u179F\u17B6\u179A",
+  "modal.confirm.restore-version.title": "\u179F\u17D2\u178A\u17B6\u179A\u1780\u17C6\u178E\u17C2\u178A\u17C2\u179B\u1794\u17B6\u1793\u1787\u17D2\u179A\u17BE\u179F",
+  "modal.confirm.restore-version.message": "\u179F\u17D2\u178A\u17B6\u179A\u17AF\u1780\u179F\u17B6\u179A\u1791\u17C5\u1780\u17C6\u178E\u17C2\u178A\u17C2\u179B\u1794\u17B6\u1793\u1787\u17D2\u179A\u17BE\u179F? \u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1794\u1785\u17D2\u1785\u17BB\u1794\u17D2\u1794\u1793\u17D2\u1793\u178F\u17D2\u179A\u17BC\u179C\u1794\u17C4\u17C7\u1794\u1784\u17CB \u1794\u17C9\u17BB\u1793\u17D2\u178F\u17C2\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u1780\u17C6\u178E\u17C2\u178F\u17D2\u179A\u17BC\u179C\u179A\u1780\u17D2\u179F\u17B6\u1791\u17BB\u1780\u17D4",
+  "modal.confirm.restore-version.button": "\u179F\u17D2\u178A\u17B6\u179A\u1780\u17C6\u178E\u17C2",
+  "modal.confirm.remove-version.title": "\u179B\u17BB\u1794\u1780\u17C6\u178E\u17C2\u178A\u17C2\u179B\u1794\u17B6\u1793\u1787\u17D2\u179A\u17BE\u179F",
+  "modal.confirm.remove-version.message": "\u179B\u17BB\u1794\u1780\u17C6\u178E\u17C2\u178A\u17C2\u179B\u1794\u17B6\u1793\u1787\u17D2\u179A\u17BE\u179F\u1785\u17C1\u1789\u1796\u17B8\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7? \u1781\u17D2\u179B\u17B9\u1798\u179F\u17B6\u179A\u17AF\u1780\u179F\u17B6\u179A \u1793\u17B7\u1784\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u178A\u17C2\u179B\u1793\u17C5\u179F\u179B\u17CB\u178F\u17D2\u179A\u17BC\u179C\u179A\u1780\u17D2\u179F\u17B6\u1791\u17BB\u1780\u17D4 \u179F\u1780\u1798\u17D2\u1798\u1797\u17B6\u1796\u1793\u17C1\u17C7\u1798\u17B7\u1793\u17A2\u17B6\u1785\u178F\u17D2\u179A\u17A1\u1794\u17CB\u179C\u17B7\u1789\u1794\u17B6\u1793\u1791\u17C1\u17D4",
+  "modal.confirm.remove-version.button": "\u179B\u17BB\u1794\u1780\u17C6\u178E\u17C2",
   "modal.confirm.remove.title": "\u178A\u1780\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u17AF\u1780\u179F\u17B6\u179A",
   "modal.confirm.remove.message": "\u178F\u17BE\u17A2\u17D2\u1793\u1780\u1794\u17D2\u179A\u17B6\u1780\u178A\u1790\u17B6\u1785\u1784\u17CB\u178A\u1780\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u178F\u17B6\u1798\u178A\u17B6\u1793\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u179F\u1798\u17D2\u179A\u17B6\u1794\u17CB\u17AF\u1780\u179F\u17B6\u179A\u1793\u17C1\u17C7\u17AC? \u179F\u1780\u1798\u17D2\u1798\u1797\u17B6\u1796\u1793\u17C1\u17C7\u1798\u17B7\u1793\u17A2\u17B6\u1785\u1798\u17B7\u1793\u1792\u17D2\u179C\u17BE\u179C\u17B7\u1789\u1794\u17B6\u1793\u1791\u17C1\u17D4",
   "modal.confirm.remove.button": "\u178A\u1780\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7",
@@ -6493,17 +6691,26 @@ var ko_default = {
   "modal.no-changes": "\uBCC0\uACBD \uC0AC\uD56D \uC5C6\uC74C",
   "modal.identical-to-current": "\uD604\uC7AC \uB0B4\uC6A9\uACFC \uB3D9\uC77C",
   "modal.restore-original": "\uC6D0\uBCF8 \uBCF5\uC6D0",
-  "modal.remove-history": "\uD30C\uC77C \uAE30\uB85D \uC81C\uAC70",
+  "modal.restore-selected": "\uC120\uD0DD\uD55C \uBC84\uC804 \uBCF5\uC6D0",
+  "modal.remove-selected": "\uC120\uD0DD\uD55C \uBC84\uC804 \uC0AD\uC81C",
+  "modal.remove-history": "\uD30C\uC77C \uAE30\uB85D \uBAA8\uB450 \uC81C\uAC70",
   "modal.previous-difference": "\uC774\uC804 \uCC28\uC774\uC810",
   "modal.next-difference": "\uB2E4\uC74C \uCC28\uC774\uC810",
   "modal.mode.patch": "\uD328\uCE58 \uD45C\uC2DC",
   "modal.mode.inline": "\uC778\uB77C\uC778",
   "modal.mode.line-by-line": "\uC904 \uB2E8\uC704",
   "modal.mode.side-by-side": "\uB098\uB780\uD788 \uBCF4\uAE30",
+  "modal.hide-identical": "\uD604\uC7AC \uB0B4\uC6A9\uACFC \uB3D9\uC77C\uD55C \uBC84\uC804 \uC228\uAE30\uAE30",
   "modal.confirm.cancel": "\uCDE8\uC18C",
   "modal.confirm.restore.title": "\uC6D0\uBCF8 \uD30C\uC77C \uBCF5\uC6D0",
   "modal.confirm.restore.message": "\uC774 \uD30C\uC77C\uC744 \uC6D0\uB798 \uC0C1\uD0DC\uB85C \uBCF5\uC6D0\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C? \uD604\uC7AC \uBCC0\uACBD \uC0AC\uD56D\uC774 \uBAA8\uB450 \uC0AC\uB77C\uC9C0\uACE0 \uBCC0\uACBD \uCD94\uC801 \uAE30\uB85D\uC774 \uCD08\uAE30\uD654\uB429\uB2C8\uB2E4. \uC774 \uC791\uC5C5\uC740 \uCDE8\uC18C\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.",
   "modal.confirm.restore.button": "\uD30C\uC77C \uBCF5\uC6D0",
+  "modal.confirm.restore-version.title": "\uC120\uD0DD\uD55C \uBC84\uC804 \uBCF5\uC6D0",
+  "modal.confirm.restore-version.message": "\uD30C\uC77C\uC744 \uC120\uD0DD\uD55C \uBC84\uC804\uC73C\uB85C \uBCF5\uC6D0\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C? \uD604\uC7AC \uBCC0\uACBD \uC0AC\uD56D\uC740 \uC0AD\uC81C\uB418\uC9C0\uB9CC \uBC84\uC804 \uAE30\uB85D\uC740 \uC720\uC9C0\uB429\uB2C8\uB2E4.",
+  "modal.confirm.restore-version.button": "\uBC84\uC804 \uBCF5\uC6D0",
+  "modal.confirm.remove-version.title": "\uC120\uD0DD\uD55C \uBC84\uC804 \uC0AD\uC81C",
+  "modal.confirm.remove-version.message": "\uC120\uD0DD\uD55C \uBC84\uC804\uC744 \uAE30\uB85D\uC5D0\uC11C \uC0AD\uC81C\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C? \uD30C\uC77C \uB0B4\uC6A9\uACFC \uB098\uBA38\uC9C0 \uAE30\uB85D\uC740 \uC720\uC9C0\uB429\uB2C8\uB2E4. \uC774 \uC791\uC5C5\uC740 \uCDE8\uC18C\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.",
+  "modal.confirm.remove-version.button": "\uBC84\uC804 \uC0AD\uC81C",
   "modal.confirm.remove.title": "\uD30C\uC77C \uAE30\uB85D \uC81C\uAC70",
   "modal.confirm.remove.message": "\uC774 \uD30C\uC77C\uC758 \uBCC0\uACBD \uCD94\uC801 \uAE30\uB85D\uC744 \uC81C\uAC70\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C? \uC774 \uC791\uC5C5\uC740 \uCDE8\uC18C\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.",
   "modal.confirm.remove.button": "\uAE30\uB85D \uC81C\uAC70",
@@ -6590,17 +6797,26 @@ var lv_default = {
   "modal.no-changes": "Nav izmai\u0146u",
   "modal.identical-to-current": "Identisks pa\u0161reiz\u0113jam",
   "modal.restore-original": "Atjaunot ori\u0123in\u0101lu",
-  "modal.remove-history": "No\u0146emt faila v\u0113sturi",
+  "modal.restore-selected": "Atjaunot izv\u0113l\u0113to versiju",
+  "modal.remove-selected": "Dz\u0113st izv\u0113l\u0113to versiju",
+  "modal.remove-history": "No\u0146emt visu faila v\u0113sturi",
   "modal.previous-difference": "Iepriek\u0161\u0113j\u0101 at\u0161\u0137ir\u012Bba",
   "modal.next-difference": "N\u0101kam\u0101 at\u0161\u0137ir\u012Bba",
   "modal.mode.patch": "R\u0101d\u012Bt iel\u0101pu",
   "modal.mode.inline": "Iek\u013Cauts",
   "modal.mode.line-by-line": "Rindu pa rindai",
   "modal.mode.side-by-side": "Blakus",
+  "modal.hide-identical": "Sl\u0113pt pa\u0161reiz\u0113jam identisk\u0101s versijas",
   "modal.confirm.cancel": "Atcelt",
   "modal.confirm.restore.title": "Atjaunot ori\u0123in\u0101lo failu",
   "modal.confirm.restore.message": "Vai tie\u0161\u0101m v\u0113laties atjaunot \u0161o failu s\u0101kotn\u0113j\u0101 st\u0101vokl\u012B? Visas pa\u0161reiz\u0113j\u0101s izmai\u0146as tiks zaud\u0113tas, un izmai\u0146u izseko\u0161anas v\u0113sture tiks atiestat\u012Bta. \u0160o darb\u012Bbu nevar atsaukt.",
   "modal.confirm.restore.button": "Atjaunot failu",
+  "modal.confirm.restore-version.title": "Atjaunot izv\u0113l\u0113to versiju",
+  "modal.confirm.restore-version.message": "Atjaunot failu uz izv\u0113l\u0113to versiju? Pa\u0161reiz\u0113j\u0101s izmai\u0146as tiks atmestas, bet versiju v\u0113sture tiks saglab\u0101ta.",
+  "modal.confirm.restore-version.button": "Atjaunot versiju",
+  "modal.confirm.remove-version.title": "Dz\u0113st izv\u0113l\u0113to versiju",
+  "modal.confirm.remove-version.message": "Dz\u0113st izv\u0113l\u0113to versiju no v\u0113stures? Faila saturs un p\u0101r\u0113j\u0101 v\u0113sture tiek saglab\u0101ti. \u0160o darb\u012Bbu nevar atsaukt.",
+  "modal.confirm.remove-version.button": "Dz\u0113st versiju",
   "modal.confirm.remove.title": "No\u0146emt faila v\u0113sturi",
   "modal.confirm.remove.message": "Vai tie\u0161\u0101m v\u0113laties no\u0146emt \u0161\u012B faila izmai\u0146u izseko\u0161anas v\u0113sturi? \u0160o darb\u012Bbu nevar atsaukt.",
   "modal.confirm.remove.button": "No\u0146emt v\u0113sturi",
@@ -6687,17 +6903,26 @@ var ms_default = {
   "modal.no-changes": "Tiada perubahan",
   "modal.identical-to-current": "Sama dengan yang semasa",
   "modal.restore-original": "Pulihkan versi asal",
-  "modal.remove-history": "Buang sejarah fail",
+  "modal.restore-selected": "Pulihkan versi dipilih",
+  "modal.remove-selected": "Padam versi dipilih",
+  "modal.remove-history": "Buang semua sejarah fail",
   "modal.previous-difference": "Perbezaan sebelumnya",
   "modal.next-difference": "Perbezaan seterusnya",
   "modal.mode.patch": "Tunjukkan patch",
   "modal.mode.inline": "Dalam baris",
   "modal.mode.line-by-line": "Baris demi baris",
   "modal.mode.side-by-side": "Bersebelahan",
+  "modal.hide-identical": "Sembunyikan versi yang sama dengan yang semasa",
   "modal.confirm.cancel": "Batal",
   "modal.confirm.restore.title": "Pulihkan fail asal",
   "modal.confirm.restore.message": "Adakah anda pasti mahu memulihkan fail ini kepada keadaan asalnya? Semua perubahan semasa akan hilang dan sejarah penjejakan perubahan akan ditetapkan semula. Tindakan ini tidak boleh dibatalkan.",
   "modal.confirm.restore.button": "Pulihkan fail",
+  "modal.confirm.restore-version.title": "Pulihkan versi dipilih",
+  "modal.confirm.restore-version.message": "Pulihkan fail kepada versi dipilih? Perubahan semasa dibuang, tetapi sejarah versi dikekalkan.",
+  "modal.confirm.restore-version.button": "Pulihkan versi",
+  "modal.confirm.remove-version.title": "Padam versi dipilih",
+  "modal.confirm.remove-version.message": "Padam versi dipilih daripada sejarah? Kandungan fail dan baki sejarah dikekalkan. Tindakan ini tidak boleh dibatalkan.",
+  "modal.confirm.remove-version.button": "Padam versi",
   "modal.confirm.remove.title": "Buang sejarah fail",
   "modal.confirm.remove.message": "Adakah anda pasti mahu membuang sejarah penjejakan perubahan untuk fail ini? Tindakan ini tidak boleh dibatalkan.",
   "modal.confirm.remove.button": "Buang sejarah",
@@ -6784,17 +7009,26 @@ var ne_default = {
   "modal.no-changes": "\u0915\u0941\u0928\u0948 \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u091B\u0948\u0928",
   "modal.identical-to-current": "\u0939\u093E\u0932\u0915\u094B \u0938\u0901\u0917 \u0938\u092E\u093E\u0928",
   "modal.restore-original": "\u092E\u0942\u0932 \u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u0928\u093E \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
-  "modal.remove-history": "\u092B\u093E\u0907\u0932 \u0907\u0924\u093F\u0939\u093E\u0938 \u0939\u091F\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D",
+  "modal.restore-selected": "\u091A\u092F\u0928 \u0917\u0930\u093F\u090F\u0915\u094B \u0938\u0902\u0938\u094D\u0915\u0930\u0923 \u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u0928\u093E \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "modal.remove-selected": "\u091A\u092F\u0928 \u0917\u0930\u093F\u090F\u0915\u094B \u0938\u0902\u0938\u094D\u0915\u0930\u0923 \u092E\u0947\u091F\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D",
+  "modal.remove-history": "\u092B\u093E\u0907\u0932\u0915\u094B \u0938\u092E\u094D\u092A\u0942\u0930\u094D\u0923 \u0907\u0924\u093F\u0939\u093E\u0938 \u0939\u091F\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D",
   "modal.previous-difference": "\u0905\u0918\u093F\u0932\u094D\u0932\u094B \u092D\u093F\u0928\u094D\u0928\u0924\u093E",
   "modal.next-difference": "\u0905\u0930\u094D\u0915\u094B \u092D\u093F\u0928\u094D\u0928\u0924\u093E",
   "modal.mode.patch": "\u092A\u094D\u092F\u093E\u091A \u0926\u0947\u0916\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D",
   "modal.mode.inline": "\u0907\u0928\u0932\u093E\u0907\u0928",
   "modal.mode.line-by-line": "\u0932\u093E\u0907\u0928\u0926\u0947\u0916\u093F \u0932\u093E\u0907\u0928",
   "modal.mode.side-by-side": "\u091B\u0947\u0909\u091B\u093E\u0909",
+  "modal.hide-identical": "\u0939\u093E\u0932\u0915\u094B \u0938\u0901\u0917 \u0938\u092E\u093E\u0928 \u0938\u0902\u0938\u094D\u0915\u0930\u0923\u0939\u0930\u0942 \u0932\u0941\u0915\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D",
   "modal.confirm.cancel": "\u0930\u0926\u094D\u0926 \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
   "modal.confirm.restore.title": "\u092E\u0942\u0932 \u092B\u093E\u0907\u0932 \u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u0928\u093E \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
   "modal.confirm.restore.message": "\u0915\u0947 \u0924\u092A\u093E\u0908\u0902 \u092F\u094B \u092B\u093E\u0907\u0932\u0932\u093E\u0908 \u092F\u0938\u0915\u094B \u092E\u0942\u0932 \u0905\u0935\u0938\u094D\u0925\u093E\u092E\u093E \u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u0928\u093E \u0917\u0930\u094D\u0928 \u0928\u093F\u0936\u094D\u091A\u093F\u0924 \u0939\u0941\u0928\u0941\u0939\u0941\u0928\u094D\u091B? \u0938\u092C\u0948 \u0939\u093E\u0932\u0915\u093E \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928\u0939\u0930\u0942 \u0939\u0930\u093E\u0909\u0928\u0947\u091B\u0928\u094D \u0930 \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u091F\u094D\u0930\u094D\u092F\u093E\u0915\u093F\u0919 \u0907\u0924\u093F\u0939\u093E\u0938 \u0930\u093F\u0938\u0947\u091F \u0939\u0941\u0928\u0947\u091B\u0964 \u092F\u094B \u0915\u093E\u0930\u094D\u092F \u092A\u0942\u0930\u094D\u0935\u0935\u0924 \u0917\u0930\u094D\u0928 \u0938\u0915\u093F\u0901\u0926\u0948\u0928\u0964",
   "modal.confirm.restore.button": "\u092B\u093E\u0907\u0932 \u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u0928\u093E \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "modal.confirm.restore-version.title": "\u091A\u092F\u0928 \u0917\u0930\u093F\u090F\u0915\u094B \u0938\u0902\u0938\u094D\u0915\u0930\u0923 \u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u0928\u093E \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "modal.confirm.restore-version.message": "\u092B\u093E\u0907\u0932\u0932\u093E\u0908 \u091A\u092F\u0928 \u0917\u0930\u093F\u090F\u0915\u094B \u0938\u0902\u0938\u094D\u0915\u0930\u0923\u092E\u093E \u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u0928\u093E \u0917\u0930\u094D\u0928\u0947? \u0939\u093E\u0932\u0915\u093E \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928\u0939\u0930\u0942 \u0939\u091F\u093E\u0907\u0928\u094D\u091B\u0928\u094D, \u0924\u0930 \u0938\u0902\u0938\u094D\u0915\u0930\u0923 \u0907\u0924\u093F\u0939\u093E\u0938 \u0930\u093E\u0916\u093F\u0928\u094D\u091B\u0964",
+  "modal.confirm.restore-version.button": "\u0938\u0902\u0938\u094D\u0915\u0930\u0923 \u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u0928\u093E \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "modal.confirm.remove-version.title": "\u091A\u092F\u0928 \u0917\u0930\u093F\u090F\u0915\u094B \u0938\u0902\u0938\u094D\u0915\u0930\u0923 \u092E\u0947\u091F\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D",
+  "modal.confirm.remove-version.message": "\u091A\u092F\u0928 \u0917\u0930\u093F\u090F\u0915\u094B \u0938\u0902\u0938\u094D\u0915\u0930\u0923 \u0907\u0924\u093F\u0939\u093E\u0938\u092C\u093E\u091F \u092E\u0947\u091F\u093E\u0909\u0928\u0947? \u092B\u093E\u0907\u0932\u0915\u094B \u0938\u093E\u092E\u0917\u094D\u0930\u0940 \u0930 \u092C\u093E\u0901\u0915\u0940 \u0907\u0924\u093F\u0939\u093E\u0938 \u0930\u093E\u0916\u093F\u0928\u094D\u091B\u0964 \u092F\u094B \u0915\u093E\u0930\u094D\u092F \u092A\u0942\u0930\u094D\u0935\u0935\u0924\u094D \u0917\u0930\u094D\u0928 \u0938\u0915\u093F\u0901\u0926\u0948\u0928\u0964",
+  "modal.confirm.remove-version.button": "\u0938\u0902\u0938\u094D\u0915\u0930\u0923 \u092E\u0947\u091F\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D",
   "modal.confirm.remove.title": "\u092B\u093E\u0907\u0932 \u0907\u0924\u093F\u0939\u093E\u0938 \u0939\u091F\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D",
   "modal.confirm.remove.message": "\u0915\u0947 \u0924\u092A\u093E\u0908\u0902 \u092F\u0938 \u092B\u093E\u0907\u0932\u0915\u094B \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u091F\u094D\u0930\u094D\u092F\u093E\u0915\u093F\u0919 \u0907\u0924\u093F\u0939\u093E\u0938 \u0939\u091F\u093E\u0909\u0928 \u0928\u093F\u0936\u094D\u091A\u093F\u0924 \u0939\u0941\u0928\u0941\u0939\u0941\u0928\u094D\u091B? \u092F\u094B \u0915\u093E\u0930\u094D\u092F \u092A\u0942\u0930\u094D\u0935\u0935\u0924 \u0917\u0930\u094D\u0928 \u0938\u0915\u093F\u0901\u0926\u0948\u0928\u0964",
   "modal.confirm.remove.button": "\u0907\u0924\u093F\u0939\u093E\u0938 \u0939\u091F\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D",
@@ -6881,17 +7115,26 @@ var nl_default = {
   "modal.no-changes": "Geen wijzigingen",
   "modal.identical-to-current": "Identiek aan huidige",
   "modal.restore-original": "Origineel herstellen",
-  "modal.remove-history": "Bestandsgeschiedenis verwijderen",
+  "modal.restore-selected": "Geselecteerde versie herstellen",
+  "modal.remove-selected": "Geselecteerde versie verwijderen",
+  "modal.remove-history": "Volledige bestandsgeschiedenis verwijderen",
   "modal.previous-difference": "Vorig verschil",
   "modal.next-difference": "Volgend verschil",
   "modal.mode.patch": "Patch tonen",
   "modal.mode.inline": "Inline",
   "modal.mode.line-by-line": "Regel voor regel",
   "modal.mode.side-by-side": "Naast elkaar",
+  "modal.hide-identical": "Versies identiek aan huidige verbergen",
   "modal.confirm.cancel": "Annuleren",
   "modal.confirm.restore.title": "Origineel bestand herstellen",
   "modal.confirm.restore.message": "Weet je zeker dat je dit bestand wilt herstellen naar de oorspronkelijke staat? Alle huidige wijzigingen gaan verloren en de geschiedenis van het bijhouden van wijzigingen wordt opnieuw ingesteld. Deze actie kan niet ongedaan worden gemaakt.",
   "modal.confirm.restore.button": "Bestand herstellen",
+  "modal.confirm.restore-version.title": "Geselecteerde versie herstellen",
+  "modal.confirm.restore-version.message": "Het bestand herstellen naar de geselecteerde versie? De huidige wijzigingen worden verwijderd, maar de versiegeschiedenis blijft behouden.",
+  "modal.confirm.restore-version.button": "Versie herstellen",
+  "modal.confirm.remove-version.title": "Geselecteerde versie verwijderen",
+  "modal.confirm.remove-version.message": "De geselecteerde versie uit de geschiedenis verwijderen? De bestandsinhoud en de rest van de geschiedenis blijven behouden. Deze actie kan niet ongedaan worden gemaakt.",
+  "modal.confirm.remove-version.button": "Versie verwijderen",
   "modal.confirm.remove.title": "Bestandsgeschiedenis verwijderen",
   "modal.confirm.remove.message": "Weet je zeker dat je de geschiedenis van het bijhouden van wijzigingen voor dit bestand wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
   "modal.confirm.remove.button": "Geschiedenis verwijderen",
@@ -6978,17 +7221,26 @@ var no_default = {
   "modal.no-changes": "Ingen endringer",
   "modal.identical-to-current": "Identisk med gjeldende versjon",
   "modal.restore-original": "Gjenopprett original",
-  "modal.remove-history": "Fjern filhistorikk",
+  "modal.restore-selected": "Gjenopprett valgt versjon",
+  "modal.remove-selected": "Slett valgt versjon",
+  "modal.remove-history": "Fjern all filhistorikk",
   "modal.previous-difference": "Forrige forskjell",
   "modal.next-difference": "Neste forskjell",
   "modal.mode.patch": "Vis patch",
   "modal.mode.inline": "Innebygd",
   "modal.mode.line-by-line": "Linje for linje",
   "modal.mode.side-by-side": "Side ved side",
+  "modal.hide-identical": "Skjul versjoner identiske med gjeldende",
   "modal.confirm.cancel": "Avbryt",
   "modal.confirm.restore.title": "Gjenopprett originalfil",
   "modal.confirm.restore.message": "Er du sikker p\xE5 at du vil gjenopprette denne filen til opprinnelig tilstand? Alle gjeldende endringer g\xE5r tapt, og endringshistorikken tilbakestilles. Denne handlingen kan ikke angres.",
   "modal.confirm.restore.button": "Gjenopprett fil",
+  "modal.confirm.restore-version.title": "Gjenopprett valgt versjon",
+  "modal.confirm.restore-version.message": "Vil du gjenopprette filen til den valgte versjonen? De gjeldende endringene forkastes, men versjonshistorikken beholdes.",
+  "modal.confirm.restore-version.button": "Gjenopprett versjon",
+  "modal.confirm.remove-version.title": "Slett valgt versjon",
+  "modal.confirm.remove-version.message": "Slett den valgte versjonen fra historikken? Filinnholdet og resten av historikken beholdes. Denne handlingen kan ikke angres.",
+  "modal.confirm.remove-version.button": "Slett versjon",
   "modal.confirm.remove.title": "Fjern filhistorikk",
   "modal.confirm.remove.message": "Er du sikker p\xE5 at du vil fjerne endringshistorikken for denne filen? Denne handlingen kan ikke angres.",
   "modal.confirm.remove.button": "Fjern historikk",
@@ -7075,17 +7327,26 @@ var pl_default = {
   "modal.no-changes": "Brak zmian",
   "modal.identical-to-current": "Identyczne z bie\u017C\u0105c\u0105",
   "modal.restore-original": "Przywr\xF3\u0107 orygina\u0142",
-  "modal.remove-history": "Usu\u0144 histori\u0119 pliku",
+  "modal.restore-selected": "Przywr\xF3\u0107 wybran\u0105 wersj\u0119",
+  "modal.remove-selected": "Usu\u0144 wybran\u0105 wersj\u0119",
+  "modal.remove-history": "Usu\u0144 ca\u0142\u0105 histori\u0119 pliku",
   "modal.previous-difference": "Poprzednia r\xF3\u017Cnica",
   "modal.next-difference": "Nast\u0119pna r\xF3\u017Cnica",
   "modal.mode.patch": "Poka\u017C \u0142atk\u0119",
   "modal.mode.inline": "W tre\u015Bci",
   "modal.mode.line-by-line": "Linia po linii",
   "modal.mode.side-by-side": "Obok siebie",
+  "modal.hide-identical": "Ukryj wersje identyczne z bie\u017C\u0105c\u0105",
   "modal.confirm.cancel": "Anuluj",
   "modal.confirm.restore.title": "Przywr\xF3\u0107 oryginalny plik",
   "modal.confirm.restore.message": "Czy na pewno chcesz przywr\xF3ci\u0107 ten plik do stanu pierwotnego? Wszystkie bie\u017C\u0105ce zmiany zostan\u0105 utracone, a historia \u015Bledzenia zmian zostanie zresetowana. Tej operacji nie mo\u017Cna cofn\u0105\u0107.",
   "modal.confirm.restore.button": "Przywr\xF3\u0107 plik",
+  "modal.confirm.restore-version.title": "Przywr\xF3\u0107 wybran\u0105 wersj\u0119",
+  "modal.confirm.restore-version.message": "Przywr\xF3ci\u0107 plik do wybranej wersji? Bie\u017C\u0105ce zmiany zostan\u0105 odrzucone, ale historia wersji zostanie zachowana.",
+  "modal.confirm.restore-version.button": "Przywr\xF3\u0107 wersj\u0119",
+  "modal.confirm.remove-version.title": "Usu\u0144 wybran\u0105 wersj\u0119",
+  "modal.confirm.remove-version.message": "Usun\u0105\u0107 wybran\u0105 wersj\u0119 z historii? Zawarto\u015B\u0107 pliku i reszta historii zostan\u0105 zachowane. Tej operacji nie mo\u017Cna cofn\u0105\u0107.",
+  "modal.confirm.remove-version.button": "Usu\u0144 wersj\u0119",
   "modal.confirm.remove.title": "Usu\u0144 histori\u0119 pliku",
   "modal.confirm.remove.message": "Czy na pewno chcesz usun\u0105\u0107 histori\u0119 \u015Bledzenia zmian tego pliku? Tej operacji nie mo\u017Cna cofn\u0105\u0107.",
   "modal.confirm.remove.button": "Usu\u0144 histori\u0119",
@@ -7172,17 +7433,26 @@ var pt_default = {
   "modal.no-changes": "Sem altera\xE7\xF5es",
   "modal.identical-to-current": "Id\xEAntico ao atual",
   "modal.restore-original": "Restaurar original",
-  "modal.remove-history": "Remover o hist\xF3rico do ficheiro",
+  "modal.restore-selected": "Restaurar vers\xE3o selecionada",
+  "modal.remove-selected": "Eliminar vers\xE3o selecionada",
+  "modal.remove-history": "Remover todo o hist\xF3rico do ficheiro",
   "modal.previous-difference": "Diferen\xE7a anterior",
   "modal.next-difference": "Diferen\xE7a seguinte",
   "modal.mode.patch": "Mostrar patch",
   "modal.mode.inline": "Em linha",
   "modal.mode.line-by-line": "Linha a linha",
   "modal.mode.side-by-side": "Lado a lado",
+  "modal.hide-identical": "Ocultar vers\xF5es id\xEAnticas \xE0 atual",
   "modal.confirm.cancel": "Cancelar",
   "modal.confirm.restore.title": "Restaurar o ficheiro original",
   "modal.confirm.restore.message": "Tem a certeza de que quer restaurar este ficheiro ao seu estado original? Todas as altera\xE7\xF5es atuais ser\xE3o perdidas e o hist\xF3rico de rastreio de altera\xE7\xF5es ser\xE1 reposto. Esta a\xE7\xE3o n\xE3o pode ser anulada.",
   "modal.confirm.restore.button": "Restaurar ficheiro",
+  "modal.confirm.restore-version.title": "Restaurar vers\xE3o selecionada",
+  "modal.confirm.restore-version.message": "Restaurar o ficheiro para a vers\xE3o selecionada? As altera\xE7\xF5es atuais s\xE3o descartadas, mas o hist\xF3rico de vers\xF5es \xE9 mantido.",
+  "modal.confirm.restore-version.button": "Restaurar vers\xE3o",
+  "modal.confirm.remove-version.title": "Eliminar vers\xE3o selecionada",
+  "modal.confirm.remove-version.message": "Eliminar a vers\xE3o selecionada do hist\xF3rico? O conte\xFAdo do ficheiro e o restante do hist\xF3rico s\xE3o mantidos. Esta a\xE7\xE3o n\xE3o pode ser anulada.",
+  "modal.confirm.remove-version.button": "Eliminar vers\xE3o",
   "modal.confirm.remove.title": "Remover o hist\xF3rico do ficheiro",
   "modal.confirm.remove.message": "Tem a certeza de que quer remover o hist\xF3rico de rastreio de altera\xE7\xF5es deste ficheiro? Esta a\xE7\xE3o n\xE3o pode ser anulada.",
   "modal.confirm.remove.button": "Remover hist\xF3rico",
@@ -7269,17 +7539,26 @@ var pt_BR_default = {
   "modal.no-changes": "Sem altera\xE7\xF5es",
   "modal.identical-to-current": "Id\xEAntico ao atual",
   "modal.restore-original": "Restaurar original",
-  "modal.remove-history": "Remover o hist\xF3rico do arquivo",
+  "modal.restore-selected": "Restaurar vers\xE3o selecionada",
+  "modal.remove-selected": "Excluir vers\xE3o selecionada",
+  "modal.remove-history": "Remover todo o hist\xF3rico do arquivo",
   "modal.previous-difference": "Diferen\xE7a anterior",
   "modal.next-difference": "Pr\xF3xima diferen\xE7a",
   "modal.mode.patch": "Mostrar patch",
   "modal.mode.inline": "Embutido",
   "modal.mode.line-by-line": "Linha por linha",
   "modal.mode.side-by-side": "Lado a lado",
+  "modal.hide-identical": "Ocultar vers\xF5es id\xEAnticas \xE0 atual",
   "modal.confirm.cancel": "Cancelar",
   "modal.confirm.restore.title": "Restaurar o arquivo original",
   "modal.confirm.restore.message": "Tem certeza de que deseja restaurar este arquivo ao seu estado original? Todas as altera\xE7\xF5es atuais ser\xE3o perdidas e o hist\xF3rico de rastreamento de altera\xE7\xF5es ser\xE1 redefinido. Esta a\xE7\xE3o n\xE3o pode ser desfeita.",
   "modal.confirm.restore.button": "Restaurar arquivo",
+  "modal.confirm.restore-version.title": "Restaurar vers\xE3o selecionada",
+  "modal.confirm.restore-version.message": "Restaurar o arquivo para a vers\xE3o selecionada? As altera\xE7\xF5es atuais s\xE3o descartadas, mas o hist\xF3rico de vers\xF5es \xE9 mantido.",
+  "modal.confirm.restore-version.button": "Restaurar vers\xE3o",
+  "modal.confirm.remove-version.title": "Excluir vers\xE3o selecionada",
+  "modal.confirm.remove-version.message": "Excluir a vers\xE3o selecionada do hist\xF3rico? O conte\xFAdo do arquivo e o restante do hist\xF3rico s\xE3o mantidos. Esta a\xE7\xE3o n\xE3o pode ser desfeita.",
+  "modal.confirm.remove-version.button": "Excluir vers\xE3o",
   "modal.confirm.remove.title": "Remover o hist\xF3rico do arquivo",
   "modal.confirm.remove.message": "Tem certeza de que deseja remover o hist\xF3rico de rastreamento de altera\xE7\xF5es deste arquivo? Esta a\xE7\xE3o n\xE3o pode ser desfeita.",
   "modal.confirm.remove.button": "Remover hist\xF3rico",
@@ -7366,17 +7645,26 @@ var ro_default = {
   "modal.no-changes": "Nicio modificare",
   "modal.identical-to-current": "Identic cu cel curent",
   "modal.restore-original": "Restabile\u0219te originalul",
-  "modal.remove-history": "Elimin\u0103 istoricul fi\u0219ierului",
+  "modal.restore-selected": "Restabile\u0219te versiunea selectat\u0103",
+  "modal.remove-selected": "\u0218terge versiunea selectat\u0103",
+  "modal.remove-history": "Elimin\u0103 tot istoricul fi\u0219ierului",
   "modal.previous-difference": "Diferen\u021Ba anterioar\u0103",
   "modal.next-difference": "Diferen\u021Ba urm\u0103toare",
   "modal.mode.patch": "Afi\u0219eaz\u0103 patch-ul",
   "modal.mode.inline": "\xCEn linie",
   "modal.mode.line-by-line": "Linie cu linie",
   "modal.mode.side-by-side": "Unul l\xE2ng\u0103 altul",
+  "modal.hide-identical": "Ascunde versiunile identice cu cea curent\u0103",
   "modal.confirm.cancel": "Anuleaz\u0103",
   "modal.confirm.restore.title": "Restabile\u0219te fi\u0219ierul original",
   "modal.confirm.restore.message": "Sigur dori\u021Bi s\u0103 restabili\u021Bi acest fi\u0219ier la starea ini\u021Bial\u0103? Toate modific\u0103rile curente vor fi pierdute, iar istoricul de urm\u0103rire a modific\u0103rilor va fi resetat. Aceast\u0103 ac\u021Biune nu poate fi anulat\u0103.",
   "modal.confirm.restore.button": "Restabile\u0219te fi\u0219ierul",
+  "modal.confirm.restore-version.title": "Restabile\u0219te versiunea selectat\u0103",
+  "modal.confirm.restore-version.message": "Restabili\u021Bi fi\u0219ierul la versiunea selectat\u0103? Modific\u0103rile curente sunt eliminate, dar istoricul versiunilor este p\u0103strat.",
+  "modal.confirm.restore-version.button": "Restabile\u0219te versiunea",
+  "modal.confirm.remove-version.title": "\u0218terge versiunea selectat\u0103",
+  "modal.confirm.remove-version.message": "\u0218terge\u021Bi versiunea selectat\u0103 din istoric? Con\u021Binutul fi\u0219ierului \u0219i restul istoricului sunt p\u0103strate. Aceast\u0103 ac\u021Biune nu poate fi anulat\u0103.",
+  "modal.confirm.remove-version.button": "\u0218terge versiunea",
   "modal.confirm.remove.title": "Elimin\u0103 istoricul fi\u0219ierului",
   "modal.confirm.remove.message": "Sigur dori\u021Bi s\u0103 elimina\u021Bi istoricul de urm\u0103rire a modific\u0103rilor pentru acest fi\u0219ier? Aceast\u0103 ac\u021Biune nu poate fi anulat\u0103.",
   "modal.confirm.remove.button": "Elimin\u0103 istoricul",
@@ -7462,18 +7750,27 @@ var ru_default = {
   "modal.title": "\u0418\u0441\u0442\u043E\u0440\u0438\u044F",
   "modal.no-changes": "\u041D\u0435\u0442 \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0439",
   "modal.identical-to-current": "\u0418\u0434\u0435\u043D\u0442\u0438\u0447\u043D\u043E \u0442\u0435\u043A\u0443\u0449\u0435\u043C\u0443",
+  "modal.restore-selected": "\u0412\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C \u0432\u044B\u0431\u0440\u0430\u043D\u043D\u0443\u044E \u0432\u0435\u0440\u0441\u0438\u044E",
+  "modal.remove-selected": "\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u0432\u044B\u0431\u0440\u0430\u043D\u043D\u0443\u044E \u0432\u0435\u0440\u0441\u0438\u044E",
   "modal.restore-original": "\u0412\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C \u043E\u0440\u0438\u0433\u0438\u043D\u0430\u043B",
-  "modal.remove-history": "\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u0438\u0441\u0442\u043E\u0440\u0438\u044E \u0444\u0430\u0439\u043B\u0430",
+  "modal.remove-history": "\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u0432\u0441\u044E \u0438\u0441\u0442\u043E\u0440\u0438\u044E \u0444\u0430\u0439\u043B\u0430",
   "modal.previous-difference": "\u041F\u0440\u0435\u0434\u044B\u0434\u0443\u0449\u0435\u0435 \u043E\u0442\u043B\u0438\u0447\u0438\u0435",
   "modal.next-difference": "\u0421\u043B\u0435\u0434\u0443\u044E\u0449\u0435\u0435 \u043E\u0442\u043B\u0438\u0447\u0438\u0435",
   "modal.mode.patch": "\u041F\u043E\u043A\u0430\u0437\u0430\u0442\u044C \u043F\u0430\u0442\u0447",
   "modal.mode.inline": "\u0412\u0441\u0442\u0440\u043E\u0435\u043D\u043D\u044B\u0439",
   "modal.mode.line-by-line": "\u041F\u043E\u0441\u0442\u0440\u043E\u0447\u043D\u043E",
   "modal.mode.side-by-side": "\u0411\u043E\u043A \u043E \u0431\u043E\u043A",
+  "modal.hide-identical": "\u0421\u043A\u0440\u044B\u0442\u044C \u0432\u0435\u0440\u0441\u0438\u0438, \u0438\u0434\u0435\u043D\u0442\u0438\u0447\u043D\u044B\u0435 \u0442\u0435\u043A\u0443\u0449\u0435\u0439",
   "modal.confirm.cancel": "\u041E\u0442\u043C\u0435\u043D\u0430",
   "modal.confirm.restore.title": "\u0412\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C \u0438\u0441\u0445\u043E\u0434\u043D\u044B\u0439 \u0444\u0430\u0439\u043B",
   "modal.confirm.restore.message": "\u0412\u044B \u0443\u0432\u0435\u0440\u0435\u043D\u044B, \u0447\u0442\u043E \u0445\u043E\u0442\u0438\u0442\u0435 \u0432\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C \u044D\u0442\u043E\u0442 \u0444\u0430\u0439\u043B \u0434\u043E \u0438\u0441\u0445\u043E\u0434\u043D\u043E\u0433\u043E \u0441\u043E\u0441\u0442\u043E\u044F\u043D\u0438\u044F? \u0412\u0441\u0435 \u0442\u0435\u043A\u0443\u0449\u0438\u0435 \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044F \u0431\u0443\u0434\u0443\u0442 \u043F\u043E\u0442\u0435\u0440\u044F\u043D\u044B, \u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u044F \u043E\u0442\u0441\u043B\u0435\u0436\u0438\u0432\u0430\u043D\u0438\u044F \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0439 \u0431\u0443\u0434\u0435\u0442 \u0441\u0431\u0440\u043E\u0448\u0435\u043D\u0430. \u042D\u0442\u043E \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435 \u043D\u0435\u043B\u044C\u0437\u044F \u043E\u0442\u043C\u0435\u043D\u0438\u0442\u044C.",
   "modal.confirm.restore.button": "\u0412\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C \u0444\u0430\u0439\u043B",
+  "modal.confirm.restore-version.title": "\u0412\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C \u0432\u044B\u0431\u0440\u0430\u043D\u043D\u0443\u044E \u0432\u0435\u0440\u0441\u0438\u044E",
+  "modal.confirm.restore-version.message": "\u0417\u0430\u043C\u0435\u043D\u0438\u0442\u044C \u0442\u0435\u043A\u0443\u0449\u0435\u0435 \u0441\u043E\u0434\u0435\u0440\u0436\u0438\u043C\u043E\u0435 \u0444\u0430\u0439\u043B\u0430 \u0432\u044B\u0431\u0440\u0430\u043D\u043D\u043E\u0439 \u0432\u0435\u0440\u0441\u0438\u0435\u0439? \u041E\u0441\u0442\u0430\u043B\u044C\u043D\u044B\u0435 \u0442\u0435\u043A\u0443\u0449\u0438\u0435 \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044F \u0431\u0443\u0434\u0443\u0442 \u043E\u0442\u0431\u0440\u043E\u0448\u0435\u043D\u044B, \u043D\u043E \u0438\u0441\u0442\u043E\u0440\u0438\u044F \u0432\u0435\u0440\u0441\u0438\u0439 \u0441\u043E\u0445\u0440\u0430\u043D\u0438\u0442\u0441\u044F.",
+  "modal.confirm.restore-version.button": "\u0412\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C \u0432\u0435\u0440\u0441\u0438\u044E",
+  "modal.confirm.remove-version.title": "\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u0432\u044B\u0431\u0440\u0430\u043D\u043D\u0443\u044E \u0432\u0435\u0440\u0441\u0438\u044E",
+  "modal.confirm.remove-version.message": "\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u0432\u044B\u0431\u0440\u0430\u043D\u043D\u0443\u044E \u0432\u0435\u0440\u0441\u0438\u044E \u0438\u0437 \u0438\u0441\u0442\u043E\u0440\u0438\u0438? \u0421\u043E\u0434\u0435\u0440\u0436\u0438\u043C\u043E\u0435 \u0444\u0430\u0439\u043B\u0430 \u0438 \u043E\u0441\u0442\u0430\u043B\u044C\u043D\u044B\u0435 \u0432\u0435\u0440\u0441\u0438\u0438 \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u0442\u0441\u044F. \u042D\u0442\u043E \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435 \u043D\u0435\u043B\u044C\u0437\u044F \u043E\u0442\u043C\u0435\u043D\u0438\u0442\u044C.",
+  "modal.confirm.remove-version.button": "\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u0432\u0435\u0440\u0441\u0438\u044E",
   "modal.confirm.remove.title": "\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u0438\u0441\u0442\u043E\u0440\u0438\u044E \u0444\u0430\u0439\u043B\u0430",
   "modal.confirm.remove.message": "\u0412\u044B \u0443\u0432\u0435\u0440\u0435\u043D\u044B, \u0447\u0442\u043E \u0445\u043E\u0442\u0438\u0442\u0435 \u0443\u0434\u0430\u043B\u0438\u0442\u044C \u0438\u0441\u0442\u043E\u0440\u0438\u044E \u043E\u0442\u0441\u043B\u0435\u0436\u0438\u0432\u0430\u043D\u0438\u044F \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0439 \u0434\u043B\u044F \u044D\u0442\u043E\u0433\u043E \u0444\u0430\u0439\u043B\u0430? \u042D\u0442\u043E \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435 \u043D\u0435\u043B\u044C\u0437\u044F \u043E\u0442\u043C\u0435\u043D\u0438\u0442\u044C.",
   "modal.confirm.remove.button": "\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u0438\u0441\u0442\u043E\u0440\u0438\u044E",
@@ -7560,17 +7857,26 @@ var sk_default = {
   "modal.no-changes": "\u017Diadne zmeny",
   "modal.identical-to-current": "Zhodn\xE9 s aktu\xE1lnou",
   "modal.restore-original": "Obnovi\u0165 origin\xE1l",
-  "modal.remove-history": "Odstr\xE1ni\u0165 hist\xF3riu s\xFAboru",
+  "modal.restore-selected": "Obnovi\u0165 vybran\xFA verziu",
+  "modal.remove-selected": "Odstr\xE1ni\u0165 vybran\xFA verziu",
+  "modal.remove-history": "Odstr\xE1ni\u0165 cel\xFA hist\xF3riu s\xFAboru",
   "modal.previous-difference": "Predch\xE1dzaj\xFAci rozdiel",
   "modal.next-difference": "\u010Eal\u0161\xED rozdiel",
   "modal.mode.patch": "Zobrazi\u0165 patch",
   "modal.mode.inline": "Vlo\u017Een\xE9",
   "modal.mode.line-by-line": "Riadok po riadku",
   "modal.mode.side-by-side": "Ved\u013Ea seba",
+  "modal.hide-identical": "Skry\u0165 verzie zhodn\xE9 s aktu\xE1lnou",
   "modal.confirm.cancel": "Zru\u0161i\u0165",
   "modal.confirm.restore.title": "Obnovi\u0165 p\xF4vodn\xFD s\xFAbor",
   "modal.confirm.restore.message": "Naozaj chcete obnovi\u0165 tento s\xFAbor do p\xF4vodn\xE9ho stavu? V\u0161etky aktu\xE1lne zmeny sa stratia a hist\xF3ria sledovania zmien sa resetuje. T\xFAto akciu nemo\u017Eno vr\xE1ti\u0165 sp\xE4\u0165.",
   "modal.confirm.restore.button": "Obnovi\u0165 s\xFAbor",
+  "modal.confirm.restore-version.title": "Obnovi\u0165 vybran\xFA verziu",
+  "modal.confirm.restore-version.message": "Obnovi\u0165 s\xFAbor na vybran\xFA verziu? Aktu\xE1lne zmeny sa zahodia, ale hist\xF3ria verzi\xED zostane zachovan\xE1.",
+  "modal.confirm.restore-version.button": "Obnovi\u0165 verziu",
+  "modal.confirm.remove-version.title": "Odstr\xE1ni\u0165 vybran\xFA verziu",
+  "modal.confirm.remove-version.message": "Odstr\xE1ni\u0165 vybran\xFA verziu z hist\xF3rie? Obsah s\xFAboru a zvy\u0161ok hist\xF3rie zostan\xFA zachovan\xE9. T\xFAto akciu nie je mo\u017En\xE9 vr\xE1ti\u0165 sp\xE4\u0165.",
+  "modal.confirm.remove-version.button": "Odstr\xE1ni\u0165 verziu",
   "modal.confirm.remove.title": "Odstr\xE1ni\u0165 hist\xF3riu s\xFAboru",
   "modal.confirm.remove.message": "Naozaj chcete odstr\xE1ni\u0165 hist\xF3riu sledovania zmien tohto s\xFAboru? T\xFAto akciu nemo\u017Eno vr\xE1ti\u0165 sp\xE4\u0165.",
   "modal.confirm.remove.button": "Odstr\xE1ni\u0165 hist\xF3riu",
@@ -7657,17 +7963,26 @@ var sq_default = {
   "modal.no-changes": "Pa ndryshime",
   "modal.identical-to-current": "Identik me aktualin",
   "modal.restore-original": "Rikthe origjinalin",
-  "modal.remove-history": "Hiq historin\xEB e skedarit",
+  "modal.restore-selected": "Rikthe versionin e zgjedhur",
+  "modal.remove-selected": "Fshi versionin e zgjedhur",
+  "modal.remove-history": "Hiq t\xEB gjith\xEB historin\xEB e skedarit",
   "modal.previous-difference": "Dallimi i m\xEBparsh\xEBm",
   "modal.next-difference": "Dallimi tjet\xEBr",
   "modal.mode.patch": "Shfaq arnimin",
   "modal.mode.inline": "I brendsh\xEBm",
   "modal.mode.line-by-line": "Rresht p\xEBr rresht",
   "modal.mode.side-by-side": "Krah p\xEBr krah",
+  "modal.hide-identical": "Fshih versionet identike me aktualin",
   "modal.confirm.cancel": "Anulo",
   "modal.confirm.restore.title": "Rikthe skedarin origjinal",
   "modal.confirm.restore.message": "Je i sigurt q\xEB d\xEBshiron ta rikthesh k\xEBt\xEB skedar n\xEB gjendjen e tij origjinale? T\xEB gjitha ndryshimet aktuale do t\xEB humbasin dhe historia e ndjekjes s\xEB ndryshimeve do t\xEB rivendoset. Ky veprim nuk mund t\xEB zhb\xEBhet.",
   "modal.confirm.restore.button": "Rikthe skedarin",
+  "modal.confirm.restore-version.title": "Rikthe versionin e zgjedhur",
+  "modal.confirm.restore-version.message": "Ta rikthesh skedarin te versioni i zgjedhur? Ndryshimet aktuale hidhen posht\xEB, por historiku i versioneve ruhet.",
+  "modal.confirm.restore-version.button": "Rikthe versionin",
+  "modal.confirm.remove-version.title": "Fshi versionin e zgjedhur",
+  "modal.confirm.remove-version.message": "T\xEB fshihet versioni i zgjedhur nga historiku? P\xEBrmbajtja e skedarit dhe pjesa tjet\xEBr e historikut ruhen. Ky veprim nuk mund t\xEB zhb\xEBhet.",
+  "modal.confirm.remove-version.button": "Fshi versionin",
   "modal.confirm.remove.title": "Hiq historin\xEB e skedarit",
   "modal.confirm.remove.message": "Je i sigurt q\xEB d\xEBshiron t\xEB heq\xEBsh historin\xEB e ndjekjes s\xEB ndryshimeve p\xEBr k\xEBt\xEB skedar? Ky veprim nuk mund t\xEB zhb\xEBhet.",
   "modal.confirm.remove.button": "Hiq historin\xEB",
@@ -7754,17 +8069,26 @@ var sr_default = {
   "modal.no-changes": "\u041D\u0435\u043C\u0430 \u0438\u0437\u043C\u0435\u043D\u0430",
   "modal.identical-to-current": "\u0418\u0434\u0435\u043D\u0442\u0438\u0447\u043D\u043E \u0442\u0435\u043A\u0443\u045B\u0435\u043C",
   "modal.restore-original": "\u0412\u0440\u0430\u0442\u0438 \u043E\u0440\u0438\u0433\u0438\u043D\u0430\u043B",
-  "modal.remove-history": "\u0423\u043A\u043B\u043E\u043D\u0438 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0443 \u0444\u0430\u0458\u043B\u0430",
+  "modal.restore-selected": "\u0412\u0440\u0430\u0442\u0438 \u0438\u0437\u0430\u0431\u0440\u0430\u043D\u0443 \u0432\u0435\u0440\u0437\u0438\u0458\u0443",
+  "modal.remove-selected": "\u041E\u0431\u0440\u0438\u0448\u0438 \u0438\u0437\u0430\u0431\u0440\u0430\u043D\u0443 \u0432\u0435\u0440\u0437\u0438\u0458\u0443",
+  "modal.remove-history": "\u0423\u043A\u043B\u043E\u043D\u0438 \u0446\u0435\u043B\u0443 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0443 \u0444\u0430\u0458\u043B\u0430",
   "modal.previous-difference": "\u041F\u0440\u0435\u0442\u0445\u043E\u0434\u043D\u0430 \u0440\u0430\u0437\u043B\u0438\u043A\u0430",
   "modal.next-difference": "\u0421\u043B\u0435\u0434\u0435\u045B\u0430 \u0440\u0430\u0437\u043B\u0438\u043A\u0430",
   "modal.mode.patch": "\u041F\u0440\u0438\u043A\u0430\u0436\u0438 \u0437\u0430\u043A\u0440\u043F\u0443",
   "modal.mode.inline": "\u0423\u0433\u0440\u0430\u0452\u0435\u043D\u043E",
   "modal.mode.line-by-line": "\u041B\u0438\u043D\u0438\u0458\u0430 \u043F\u043E \u043B\u0438\u043D\u0438\u0458\u0430",
   "modal.mode.side-by-side": "\u0408\u0435\u0434\u043D\u043E \u043F\u043E\u0440\u0435\u0434 \u0434\u0440\u0443\u0433\u043E\u0433",
+  "modal.hide-identical": "\u0421\u0430\u043A\u0440\u0438\u0458 \u0432\u0435\u0440\u0437\u0438\u0458\u0435 \u0438\u0434\u0435\u043D\u0442\u0438\u0447\u043D\u0435 \u0442\u0435\u043A\u0443\u045B\u0435\u043C",
   "modal.confirm.cancel": "\u041E\u0442\u043A\u0430\u0436\u0438",
   "modal.confirm.restore.title": "\u0412\u0440\u0430\u0442\u0438 \u043E\u0440\u0438\u0433\u0438\u043D\u0430\u043B\u043D\u0438 \u0444\u0430\u0458\u043B",
   "modal.confirm.restore.message": "\u0414\u0430 \u043B\u0438 \u0441\u0442\u0435 \u0441\u0438\u0433\u0443\u0440\u043D\u0438 \u0434\u0430 \u0436\u0435\u043B\u0438\u0442\u0435 \u0434\u0430 \u0432\u0440\u0430\u0442\u0438\u0442\u0435 \u043E\u0432\u0430\u0458 \u0444\u0430\u0458\u043B \u0443 \u043F\u0440\u0432\u043E\u0431\u0438\u0442\u043D\u043E \u0441\u0442\u0430\u045A\u0435? \u0421\u0432\u0435 \u0442\u0435\u043A\u0443\u045B\u0435 \u0438\u0437\u043C\u0435\u043D\u0435 \u0431\u0438\u045B\u0435 \u0438\u0437\u0433\u0443\u0431\u0459\u0435\u043D\u0435, \u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0430 \u043F\u0440\u0430\u045B\u0435\u045A\u0430 \u0438\u0437\u043C\u0435\u043D\u0430 \u0431\u0438\u045B\u0435 \u0440\u0435\u0441\u0435\u0442\u043E\u0432\u0430\u043D\u0430. \u041E\u0432\u0430 \u0440\u0430\u0434\u045A\u0430 \u0441\u0435 \u043D\u0435 \u043C\u043E\u0436\u0435 \u043E\u043F\u043E\u0437\u0432\u0430\u0442\u0438.",
   "modal.confirm.restore.button": "\u0412\u0440\u0430\u0442\u0438 \u0444\u0430\u0458\u043B",
+  "modal.confirm.restore-version.title": "\u0412\u0440\u0430\u0442\u0438 \u0438\u0437\u0430\u0431\u0440\u0430\u043D\u0443 \u0432\u0435\u0440\u0437\u0438\u0458\u0443",
+  "modal.confirm.restore-version.message": "\u0412\u0440\u0430\u0442\u0438\u0442\u0438 \u0444\u0430\u0458\u043B \u043D\u0430 \u0438\u0437\u0430\u0431\u0440\u0430\u043D\u0443 \u0432\u0435\u0440\u0437\u0438\u0458\u0443? \u0422\u0440\u0435\u043D\u0443\u0442\u043D\u0435 \u0438\u0437\u043C\u0435\u043D\u0435 \u0441\u0435 \u043E\u0434\u0431\u0430\u0446\u0443\u0458\u0443, \u0430\u043B\u0438 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0430 \u0432\u0435\u0440\u0437\u0438\u0458\u0430 \u0441\u0435 \u0437\u0430\u0434\u0440\u0436\u0430\u0432\u0430.",
+  "modal.confirm.restore-version.button": "\u0412\u0440\u0430\u0442\u0438 \u0432\u0435\u0440\u0437\u0438\u0458\u0443",
+  "modal.confirm.remove-version.title": "\u041E\u0431\u0440\u0438\u0448\u0438 \u0438\u0437\u0430\u0431\u0440\u0430\u043D\u0443 \u0432\u0435\u0440\u0437\u0438\u0458\u0443",
+  "modal.confirm.remove-version.message": "\u041E\u0431\u0440\u0438\u0441\u0430\u0442\u0438 \u0438\u0437\u0430\u0431\u0440\u0430\u043D\u0443 \u0432\u0435\u0440\u0437\u0438\u0458\u0443 \u0438\u0437 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0435? \u0421\u0430\u0434\u0440\u0436\u0430\u0458 \u0444\u0430\u0458\u043B\u0430 \u0438 \u043E\u0441\u0442\u0430\u0442\u0430\u043A \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0435 \u0441\u0435 \u0437\u0430\u0434\u0440\u0436\u0430\u0432\u0430\u0458\u0443. \u041E\u0432\u0430 \u0440\u0430\u0434\u045A\u0430 \u0441\u0435 \u043D\u0435 \u043C\u043E\u0436\u0435 \u043E\u043F\u043E\u0437\u0432\u0430\u0442\u0438.",
+  "modal.confirm.remove-version.button": "\u041E\u0431\u0440\u0438\u0448\u0438 \u0432\u0435\u0440\u0437\u0438\u0458\u0443",
   "modal.confirm.remove.title": "\u0423\u043A\u043B\u043E\u043D\u0438 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0443 \u0444\u0430\u0458\u043B\u0430",
   "modal.confirm.remove.message": "\u0414\u0430 \u043B\u0438 \u0441\u0442\u0435 \u0441\u0438\u0433\u0443\u0440\u043D\u0438 \u0434\u0430 \u0436\u0435\u043B\u0438\u0442\u0435 \u0434\u0430 \u0443\u043A\u043B\u043E\u043D\u0438\u0442\u0435 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0443 \u043F\u0440\u0430\u045B\u0435\u045A\u0430 \u0438\u0437\u043C\u0435\u043D\u0430 \u0437\u0430 \u043E\u0432\u0430\u0458 \u0444\u0430\u0458\u043B? \u041E\u0432\u0430 \u0440\u0430\u0434\u045A\u0430 \u0441\u0435 \u043D\u0435 \u043C\u043E\u0436\u0435 \u043E\u043F\u043E\u0437\u0432\u0430\u0442\u0438.",
   "modal.confirm.remove.button": "\u0423\u043A\u043B\u043E\u043D\u0438 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0443",
@@ -7851,17 +8175,26 @@ var sv_default = {
   "modal.no-changes": "Inga \xE4ndringar",
   "modal.identical-to-current": "Identisk med aktuell version",
   "modal.restore-original": "\xC5terst\xE4ll original",
-  "modal.remove-history": "Ta bort filhistorik",
+  "modal.restore-selected": "\xC5terst\xE4ll vald version",
+  "modal.remove-selected": "Ta bort vald version",
+  "modal.remove-history": "Ta bort all filhistorik",
   "modal.previous-difference": "F\xF6reg\xE5ende skillnad",
   "modal.next-difference": "N\xE4sta skillnad",
   "modal.mode.patch": "Visa patch",
   "modal.mode.inline": "Infogad",
   "modal.mode.line-by-line": "Rad f\xF6r rad",
   "modal.mode.side-by-side": "Sida vid sida",
+  "modal.hide-identical": "D\xF6lj versioner identiska med aktuell",
   "modal.confirm.cancel": "Avbryt",
   "modal.confirm.restore.title": "\xC5terst\xE4ll originalfil",
   "modal.confirm.restore.message": "\xC4r du s\xE4ker p\xE5 att du vill \xE5terst\xE4lla den h\xE4r filen till sitt ursprungliga skick? Alla aktuella \xE4ndringar g\xE5r f\xF6rlorade och \xE4ndringshistoriken nollst\xE4lls. Den h\xE4r \xE5tg\xE4rden kan inte \xE5ngras.",
   "modal.confirm.restore.button": "\xC5terst\xE4ll fil",
+  "modal.confirm.restore-version.title": "\xC5terst\xE4ll vald version",
+  "modal.confirm.restore-version.message": "Vill du \xE5terst\xE4lla filen till den valda versionen? De aktuella \xE4ndringarna kasseras, men versionshistoriken beh\xE5lls.",
+  "modal.confirm.restore-version.button": "\xC5terst\xE4ll version",
+  "modal.confirm.remove-version.title": "Ta bort vald version",
+  "modal.confirm.remove-version.message": "Ta bort den valda versionen fr\xE5n historiken? Filens inneh\xE5ll och resten av historiken beh\xE5lls. Den h\xE4r \xE5tg\xE4rden kan inte \xE5ngras.",
+  "modal.confirm.remove-version.button": "Ta bort version",
   "modal.confirm.remove.title": "Ta bort filhistorik",
   "modal.confirm.remove.message": "\xC4r du s\xE4ker p\xE5 att du vill ta bort \xE4ndringshistoriken f\xF6r den h\xE4r filen? Den h\xE4r \xE5tg\xE4rden kan inte \xE5ngras.",
   "modal.confirm.remove.button": "Ta bort historik",
@@ -7948,17 +8281,26 @@ var th_default = {
   "modal.no-changes": "\u0E44\u0E21\u0E48\u0E21\u0E35\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07",
   "modal.identical-to-current": "\u0E40\u0E2B\u0E21\u0E37\u0E2D\u0E19\u0E01\u0E31\u0E1A\u0E09\u0E1A\u0E31\u0E1A\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19",
   "modal.restore-original": "\u0E04\u0E37\u0E19\u0E04\u0E48\u0E32\u0E15\u0E49\u0E19\u0E09\u0E1A\u0E31\u0E1A",
-  "modal.remove-history": "\u0E25\u0E1A\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E44\u0E1F\u0E25\u0E4C",
+  "modal.restore-selected": "\u0E04\u0E37\u0E19\u0E04\u0E48\u0E32\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19\u0E17\u0E35\u0E48\u0E40\u0E25\u0E37\u0E2D\u0E01",
+  "modal.remove-selected": "\u0E25\u0E1A\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19\u0E17\u0E35\u0E48\u0E40\u0E25\u0E37\u0E2D\u0E01",
+  "modal.remove-history": "\u0E25\u0E1A\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E44\u0E1F\u0E25\u0E4C\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14",
   "modal.previous-difference": "\u0E04\u0E27\u0E32\u0E21\u0E41\u0E15\u0E01\u0E15\u0E48\u0E32\u0E07\u0E01\u0E48\u0E2D\u0E19\u0E2B\u0E19\u0E49\u0E32",
   "modal.next-difference": "\u0E04\u0E27\u0E32\u0E21\u0E41\u0E15\u0E01\u0E15\u0E48\u0E32\u0E07\u0E16\u0E31\u0E14\u0E44\u0E1B",
   "modal.mode.patch": "\u0E41\u0E2A\u0E14\u0E07\u0E41\u0E1E\u0E15\u0E0A\u0E4C",
   "modal.mode.inline": "\u0E2D\u0E34\u0E19\u0E44\u0E25\u0E19\u0E4C",
   "modal.mode.line-by-line": "\u0E17\u0E35\u0E25\u0E30\u0E1A\u0E23\u0E23\u0E17\u0E31\u0E14",
   "modal.mode.side-by-side": "\u0E40\u0E04\u0E35\u0E22\u0E07\u0E02\u0E49\u0E32\u0E07\u0E01\u0E31\u0E19",
+  "modal.hide-identical": "\u0E0B\u0E48\u0E2D\u0E19\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19\u0E17\u0E35\u0E48\u0E40\u0E2B\u0E21\u0E37\u0E2D\u0E19\u0E01\u0E31\u0E1A\u0E09\u0E1A\u0E31\u0E1A\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19",
   "modal.confirm.cancel": "\u0E22\u0E01\u0E40\u0E25\u0E34\u0E01",
   "modal.confirm.restore.title": "\u0E04\u0E37\u0E19\u0E04\u0E48\u0E32\u0E44\u0E1F\u0E25\u0E4C\u0E15\u0E49\u0E19\u0E09\u0E1A\u0E31\u0E1A",
   "modal.confirm.restore.message": "\u0E04\u0E38\u0E13\u0E41\u0E19\u0E48\u0E43\u0E08\u0E2B\u0E23\u0E37\u0E2D\u0E44\u0E21\u0E48\u0E27\u0E48\u0E32\u0E15\u0E49\u0E2D\u0E07\u0E01\u0E32\u0E23\u0E04\u0E37\u0E19\u0E04\u0E48\u0E32\u0E44\u0E1F\u0E25\u0E4C\u0E19\u0E35\u0E49\u0E01\u0E25\u0E31\u0E1A\u0E2A\u0E39\u0E48\u0E2A\u0E16\u0E32\u0E19\u0E30\u0E40\u0E14\u0E34\u0E21 \u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14\u0E08\u0E30\u0E2A\u0E39\u0E0D\u0E2B\u0E32\u0E22 \u0E41\u0E25\u0E30\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E01\u0E32\u0E23\u0E15\u0E34\u0E14\u0E15\u0E32\u0E21\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E08\u0E30\u0E16\u0E39\u0E01\u0E23\u0E35\u0E40\u0E0B\u0E47\u0E15 \u0E01\u0E32\u0E23\u0E01\u0E23\u0E30\u0E17\u0E33\u0E19\u0E35\u0E49\u0E44\u0E21\u0E48\u0E2A\u0E32\u0E21\u0E32\u0E23\u0E16\u0E22\u0E49\u0E2D\u0E19\u0E01\u0E25\u0E31\u0E1A\u0E44\u0E14\u0E49",
   "modal.confirm.restore.button": "\u0E04\u0E37\u0E19\u0E04\u0E48\u0E32\u0E44\u0E1F\u0E25\u0E4C",
+  "modal.confirm.restore-version.title": "\u0E04\u0E37\u0E19\u0E04\u0E48\u0E32\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19\u0E17\u0E35\u0E48\u0E40\u0E25\u0E37\u0E2D\u0E01",
+  "modal.confirm.restore-version.message": "\u0E04\u0E37\u0E19\u0E04\u0E48\u0E32\u0E44\u0E1F\u0E25\u0E4C\u0E40\u0E1B\u0E47\u0E19\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19\u0E17\u0E35\u0E48\u0E40\u0E25\u0E37\u0E2D\u0E01\u0E2B\u0E23\u0E37\u0E2D\u0E44\u0E21\u0E48 \u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19\u0E08\u0E30\u0E16\u0E39\u0E01\u0E17\u0E34\u0E49\u0E07 \u0E41\u0E15\u0E48\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19\u0E08\u0E30\u0E16\u0E39\u0E01\u0E40\u0E01\u0E47\u0E1A\u0E44\u0E27\u0E49",
+  "modal.confirm.restore-version.button": "\u0E04\u0E37\u0E19\u0E04\u0E48\u0E32\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19",
+  "modal.confirm.remove-version.title": "\u0E25\u0E1A\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19\u0E17\u0E35\u0E48\u0E40\u0E25\u0E37\u0E2D\u0E01",
+  "modal.confirm.remove-version.message": "\u0E25\u0E1A\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19\u0E17\u0E35\u0E48\u0E40\u0E25\u0E37\u0E2D\u0E01\u0E2D\u0E2D\u0E01\u0E08\u0E32\u0E01\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E2B\u0E23\u0E37\u0E2D\u0E44\u0E21\u0E48 \u0E40\u0E19\u0E37\u0E49\u0E2D\u0E2B\u0E32\u0E44\u0E1F\u0E25\u0E4C\u0E41\u0E25\u0E30\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E17\u0E35\u0E48\u0E40\u0E2B\u0E25\u0E37\u0E2D\u0E08\u0E30\u0E16\u0E39\u0E01\u0E40\u0E01\u0E47\u0E1A\u0E44\u0E27\u0E49 \u0E01\u0E32\u0E23\u0E01\u0E23\u0E30\u0E17\u0E33\u0E19\u0E35\u0E49\u0E44\u0E21\u0E48\u0E2A\u0E32\u0E21\u0E32\u0E23\u0E16\u0E22\u0E01\u0E40\u0E25\u0E34\u0E01\u0E44\u0E14\u0E49",
+  "modal.confirm.remove-version.button": "\u0E25\u0E1A\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19",
   "modal.confirm.remove.title": "\u0E25\u0E1A\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E44\u0E1F\u0E25\u0E4C",
   "modal.confirm.remove.message": "\u0E04\u0E38\u0E13\u0E41\u0E19\u0E48\u0E43\u0E08\u0E2B\u0E23\u0E37\u0E2D\u0E44\u0E21\u0E48\u0E27\u0E48\u0E32\u0E15\u0E49\u0E2D\u0E07\u0E01\u0E32\u0E23\u0E25\u0E1A\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E01\u0E32\u0E23\u0E15\u0E34\u0E14\u0E15\u0E32\u0E21\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E02\u0E2D\u0E07\u0E44\u0E1F\u0E25\u0E4C\u0E19\u0E35\u0E49 \u0E01\u0E32\u0E23\u0E01\u0E23\u0E30\u0E17\u0E33\u0E19\u0E35\u0E49\u0E44\u0E21\u0E48\u0E2A\u0E32\u0E21\u0E32\u0E23\u0E16\u0E22\u0E49\u0E2D\u0E19\u0E01\u0E25\u0E31\u0E1A\u0E44\u0E14\u0E49",
   "modal.confirm.remove.button": "\u0E25\u0E1A\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34",
@@ -8045,17 +8387,26 @@ var tr_default = {
   "modal.no-changes": "De\u011Fi\u015Fiklik yok",
   "modal.identical-to-current": "Ge\xE7erli s\xFCr\xFCmle ayn\u0131",
   "modal.restore-original": "\xD6zg\xFCn halini geri y\xFCkle",
-  "modal.remove-history": "Dosya ge\xE7mi\u015Fini kald\u0131r",
+  "modal.restore-selected": "Se\xE7ili s\xFCr\xFCm\xFC geri y\xFCkle",
+  "modal.remove-selected": "Se\xE7ili s\xFCr\xFCm\xFC sil",
+  "modal.remove-history": "T\xFCm dosya ge\xE7mi\u015Fini kald\u0131r",
   "modal.previous-difference": "\xD6nceki fark",
   "modal.next-difference": "Sonraki fark",
   "modal.mode.patch": "Yamay\u0131 g\xF6ster",
   "modal.mode.inline": "Sat\u0131r i\xE7i",
   "modal.mode.line-by-line": "Sat\u0131r sat\u0131r",
   "modal.mode.side-by-side": "Yan yana",
+  "modal.hide-identical": "Ge\xE7erli s\xFCr\xFCmle ayn\u0131 s\xFCr\xFCmleri gizle",
   "modal.confirm.cancel": "\u0130ptal",
   "modal.confirm.restore.title": "\xD6zg\xFCn dosyay\u0131 geri y\xFCkle",
   "modal.confirm.restore.message": "Bu dosyay\u0131 \xF6zg\xFCn durumuna geri y\xFCklemek istedi\u011Finizden emin misiniz? T\xFCm ge\xE7erli de\u011Fi\u015Fiklikler kaybolacak ve de\u011Fi\u015Fiklik izleme ge\xE7mi\u015Fi s\u0131f\u0131rlanacak. Bu i\u015Flem geri al\u0131namaz.",
   "modal.confirm.restore.button": "Dosyay\u0131 geri y\xFCkle",
+  "modal.confirm.restore-version.title": "Se\xE7ili s\xFCr\xFCm\xFC geri y\xFCkle",
+  "modal.confirm.restore-version.message": "Dosyay\u0131 se\xE7ili s\xFCr\xFCme geri y\xFCklemek istiyor musunuz? Ge\xE7erli de\u011Fi\u015Fiklikler at\u0131l\u0131r, ancak s\xFCr\xFCm ge\xE7mi\u015Fi korunur.",
+  "modal.confirm.restore-version.button": "S\xFCr\xFCm\xFC geri y\xFCkle",
+  "modal.confirm.remove-version.title": "Se\xE7ili s\xFCr\xFCm\xFC sil",
+  "modal.confirm.remove-version.message": "Se\xE7ili s\xFCr\xFCm\xFC ge\xE7mi\u015Ften silmek istiyor musunuz? Dosya i\xE7eri\u011Fi ve ge\xE7mi\u015Fin geri kalan\u0131 korunur. Bu i\u015Flem geri al\u0131namaz.",
+  "modal.confirm.remove-version.button": "S\xFCr\xFCm\xFC sil",
   "modal.confirm.remove.title": "Dosya ge\xE7mi\u015Fini kald\u0131r",
   "modal.confirm.remove.message": "Bu dosyan\u0131n de\u011Fi\u015Fiklik izleme ge\xE7mi\u015Fini kald\u0131rmak istedi\u011Finizden emin misiniz? Bu i\u015Flem geri al\u0131namaz.",
   "modal.confirm.remove.button": "Ge\xE7mi\u015Fi kald\u0131r",
@@ -8142,17 +8493,26 @@ var uk_default = {
   "modal.no-changes": "\u041D\u0435\u043C\u0430\u0454 \u0437\u043C\u0456\u043D",
   "modal.identical-to-current": "\u0406\u0434\u0435\u043D\u0442\u0438\u0447\u043D\u043E \u043F\u043E\u0442\u043E\u0447\u043D\u043E\u043C\u0443",
   "modal.restore-original": "\u0412\u0456\u0434\u043D\u043E\u0432\u0438\u0442\u0438 \u043E\u0440\u0438\u0433\u0456\u043D\u0430\u043B",
-  "modal.remove-history": "\u0412\u0438\u0434\u0430\u043B\u0438\u0442\u0438 \u0456\u0441\u0442\u043E\u0440\u0456\u044E \u0444\u0430\u0439\u043B\u0443",
+  "modal.restore-selected": "\u0412\u0456\u0434\u043D\u043E\u0432\u0438\u0442\u0438 \u0432\u0438\u0431\u0440\u0430\u043D\u0443 \u0432\u0435\u0440\u0441\u0456\u044E",
+  "modal.remove-selected": "\u0412\u0438\u0434\u0430\u043B\u0438\u0442\u0438 \u0432\u0438\u0431\u0440\u0430\u043D\u0443 \u0432\u0435\u0440\u0441\u0456\u044E",
+  "modal.remove-history": "\u0412\u0438\u0434\u0430\u043B\u0438\u0442\u0438 \u0432\u0441\u044E \u0456\u0441\u0442\u043E\u0440\u0456\u044E \u0444\u0430\u0439\u043B\u0443",
   "modal.previous-difference": "\u041F\u043E\u043F\u0435\u0440\u0435\u0434\u043D\u044F \u0432\u0456\u0434\u043C\u0456\u043D\u043D\u0456\u0441\u0442\u044C",
   "modal.next-difference": "\u041D\u0430\u0441\u0442\u0443\u043F\u043D\u0430 \u0432\u0456\u0434\u043C\u0456\u043D\u043D\u0456\u0441\u0442\u044C",
   "modal.mode.patch": "\u041F\u043E\u043A\u0430\u0437\u0430\u0442\u0438 \u043F\u0430\u0442\u0447",
   "modal.mode.inline": "\u0412\u0431\u0443\u0434\u043E\u0432\u0430\u043D\u0438\u0439",
   "modal.mode.line-by-line": "\u0420\u044F\u0434\u043E\u043A \u0437\u0430 \u0440\u044F\u0434\u043A\u043E\u043C",
   "modal.mode.side-by-side": "\u041F\u043E\u0440\u0443\u0447",
+  "modal.hide-identical": "\u0421\u0445\u043E\u0432\u0430\u0442\u0438 \u0432\u0435\u0440\u0441\u0456\u0457, \u0456\u0434\u0435\u043D\u0442\u0438\u0447\u043D\u0456 \u043F\u043E\u0442\u043E\u0447\u043D\u0456\u0439",
   "modal.confirm.cancel": "\u0421\u043A\u0430\u0441\u0443\u0432\u0430\u0442\u0438",
   "modal.confirm.restore.title": "\u0412\u0456\u0434\u043D\u043E\u0432\u0438\u0442\u0438 \u043F\u043E\u0447\u0430\u0442\u043A\u043E\u0432\u0438\u0439 \u0444\u0430\u0439\u043B",
   "modal.confirm.restore.message": "\u0412\u0438 \u0432\u043F\u0435\u0432\u043D\u0435\u043D\u0456, \u0449\u043E \u0445\u043E\u0447\u0435\u0442\u0435 \u0432\u0456\u0434\u043D\u043E\u0432\u0438\u0442\u0438 \u0446\u0435\u0439 \u0444\u0430\u0439\u043B \u0434\u043E \u043F\u043E\u0447\u0430\u0442\u043A\u043E\u0432\u043E\u0433\u043E \u0441\u0442\u0430\u043D\u0443? \u0423\u0441\u0456 \u043F\u043E\u0442\u043E\u0447\u043D\u0456 \u0437\u043C\u0456\u043D\u0438 \u0431\u0443\u0434\u0435 \u0432\u0442\u0440\u0430\u0447\u0435\u043D\u043E, \u0430 \u0456\u0441\u0442\u043E\u0440\u0456\u044E \u0432\u0456\u0434\u0441\u0442\u0435\u0436\u0435\u043D\u043D\u044F \u0437\u043C\u0456\u043D \u0431\u0443\u0434\u0435 \u0441\u043A\u0438\u043D\u0443\u0442\u043E. \u0426\u044E \u0434\u0456\u044E \u043D\u0435 \u043C\u043E\u0436\u043D\u0430 \u0441\u043A\u0430\u0441\u0443\u0432\u0430\u0442\u0438.",
   "modal.confirm.restore.button": "\u0412\u0456\u0434\u043D\u043E\u0432\u0438\u0442\u0438 \u0444\u0430\u0439\u043B",
+  "modal.confirm.restore-version.title": "\u0412\u0456\u0434\u043D\u043E\u0432\u0438\u0442\u0438 \u0432\u0438\u0431\u0440\u0430\u043D\u0443 \u0432\u0435\u0440\u0441\u0456\u044E",
+  "modal.confirm.restore-version.message": "\u0412\u0456\u0434\u043D\u043E\u0432\u0438\u0442\u0438 \u0444\u0430\u0439\u043B \u0434\u043E \u0432\u0438\u0431\u0440\u0430\u043D\u043E\u0457 \u0432\u0435\u0440\u0441\u0456\u0457? \u041F\u043E\u0442\u043E\u0447\u043D\u0456 \u0437\u043C\u0456\u043D\u0438 \u0431\u0443\u0434\u0435 \u0432\u0456\u0434\u043A\u0438\u043D\u0443\u0442\u043E, \u0430\u043B\u0435 \u0456\u0441\u0442\u043E\u0440\u0456\u044E \u0432\u0435\u0440\u0441\u0456\u0439 \u0431\u0443\u0434\u0435 \u0437\u0431\u0435\u0440\u0435\u0436\u0435\u043D\u043E.",
+  "modal.confirm.restore-version.button": "\u0412\u0456\u0434\u043D\u043E\u0432\u0438\u0442\u0438 \u0432\u0435\u0440\u0441\u0456\u044E",
+  "modal.confirm.remove-version.title": "\u0412\u0438\u0434\u0430\u043B\u0438\u0442\u0438 \u0432\u0438\u0431\u0440\u0430\u043D\u0443 \u0432\u0435\u0440\u0441\u0456\u044E",
+  "modal.confirm.remove-version.message": "\u0412\u0438\u0434\u0430\u043B\u0438\u0442\u0438 \u0432\u0438\u0431\u0440\u0430\u043D\u0443 \u0432\u0435\u0440\u0441\u0456\u044E \u0437 \u0456\u0441\u0442\u043E\u0440\u0456\u0457? \u0412\u043C\u0456\u0441\u0442 \u0444\u0430\u0439\u043B\u0443 \u0442\u0430 \u0440\u0435\u0448\u0442\u0430 \u0456\u0441\u0442\u043E\u0440\u0456\u0457 \u0437\u0431\u0435\u0440\u0435\u0436\u0443\u0442\u044C\u0441\u044F. \u0426\u044E \u0434\u0456\u044E \u043D\u0435 \u043C\u043E\u0436\u043D\u0430 \u0441\u043A\u0430\u0441\u0443\u0432\u0430\u0442\u0438.",
+  "modal.confirm.remove-version.button": "\u0412\u0438\u0434\u0430\u043B\u0438\u0442\u0438 \u0432\u0435\u0440\u0441\u0456\u044E",
   "modal.confirm.remove.title": "\u0412\u0438\u0434\u0430\u043B\u0438\u0442\u0438 \u0456\u0441\u0442\u043E\u0440\u0456\u044E \u0444\u0430\u0439\u043B\u0443",
   "modal.confirm.remove.message": "\u0412\u0438 \u0432\u043F\u0435\u0432\u043D\u0435\u043D\u0456, \u0449\u043E \u0445\u043E\u0447\u0435\u0442\u0435 \u0432\u0438\u0434\u0430\u043B\u0438\u0442\u0438 \u0456\u0441\u0442\u043E\u0440\u0456\u044E \u0432\u0456\u0434\u0441\u0442\u0435\u0436\u0435\u043D\u043D\u044F \u0437\u043C\u0456\u043D \u0434\u043B\u044F \u0446\u044C\u043E\u0433\u043E \u0444\u0430\u0439\u043B\u0443? \u0426\u044E \u0434\u0456\u044E \u043D\u0435 \u043C\u043E\u0436\u043D\u0430 \u0441\u043A\u0430\u0441\u0443\u0432\u0430\u0442\u0438.",
   "modal.confirm.remove.button": "\u0412\u0438\u0434\u0430\u043B\u0438\u0442\u0438 \u0456\u0441\u0442\u043E\u0440\u0456\u044E",
@@ -8239,17 +8599,26 @@ var uz_default = {
   "modal.no-changes": "O\u02BBzgarishlar yo\u02BBq",
   "modal.identical-to-current": "Joriy nusxaga bir xil",
   "modal.restore-original": "Asl nusxani tiklash",
-  "modal.remove-history": "Fayl tarixini olib tashlash",
+  "modal.restore-selected": "Tanlangan versiyani tiklash",
+  "modal.remove-selected": "Tanlangan versiyani o\u02BBchirish",
+  "modal.remove-history": "Faylning barcha tarixini olib tashlash",
   "modal.previous-difference": "Oldingi farq",
   "modal.next-difference": "Keyingi farq",
   "modal.mode.patch": "Yamoqni ko\u02BBrsatish",
   "modal.mode.inline": "Ichki",
   "modal.mode.line-by-line": "Qatorma-qator",
   "modal.mode.side-by-side": "Yonma-yon",
+  "modal.hide-identical": "Joriy nusxaga bir xil versiyalarni yashirish",
   "modal.confirm.cancel": "Bekor qilish",
   "modal.confirm.restore.title": "Asl faylni tiklash",
   "modal.confirm.restore.message": "Bu faylni asl holatiga tiklamoqchimisiz? Barcha joriy o\u02BBzgarishlar yo\u02BBqoladi va o\u02BBzgarishlarni kuzatish tarixi tiklanadi. Bu amalni ortga qaytarib bo\u02BBlmaydi.",
   "modal.confirm.restore.button": "Faylni tiklash",
+  "modal.confirm.restore-version.title": "Tanlangan versiyani tiklash",
+  "modal.confirm.restore-version.message": "Fayl tanlangan versiyaga tiklansinmi? Joriy o\u02BBzgarishlar bekor qilinadi, lekin versiyalar tarixi saqlanadi.",
+  "modal.confirm.restore-version.button": "Versiyani tiklash",
+  "modal.confirm.remove-version.title": "Tanlangan versiyani o\u02BBchirish",
+  "modal.confirm.remove-version.message": "Tanlangan versiya tarixdan o\u02BBchirilsinmi? Fayl mazmuni va qolgan tarix saqlanadi. Bu amalni bekor qilib bo\u02BBlmaydi.",
+  "modal.confirm.remove-version.button": "Versiyani o\u02BBchirish",
   "modal.confirm.remove.title": "Fayl tarixini olib tashlash",
   "modal.confirm.remove.message": "Bu fayl uchun o\u02BBzgarishlarni kuzatish tarixini olib tashlamoqchimisiz? Bu amalni ortga qaytarib bo\u02BBlmaydi.",
   "modal.confirm.remove.button": "Tarixni olib tashlash",
@@ -8336,17 +8705,26 @@ var vi_default = {
   "modal.no-changes": "Kh\xF4ng c\xF3 thay \u0111\u1ED5i",
   "modal.identical-to-current": "Gi\u1ED1ng v\u1EDBi b\u1EA3n hi\u1EC7n t\u1EA1i",
   "modal.restore-original": "Kh\xF4i ph\u1EE5c b\u1EA3n g\u1ED1c",
-  "modal.remove-history": "X\xF3a l\u1ECBch s\u1EED t\u1EC7p",
+  "modal.restore-selected": "Kh\xF4i ph\u1EE5c phi\xEAn b\u1EA3n \u0111\xE3 ch\u1ECDn",
+  "modal.remove-selected": "X\xF3a phi\xEAn b\u1EA3n \u0111\xE3 ch\u1ECDn",
+  "modal.remove-history": "X\xF3a to\xE0n b\u1ED9 l\u1ECBch s\u1EED t\u1EC7p",
   "modal.previous-difference": "Kh\xE1c bi\u1EC7t tr\u01B0\u1EDBc \u0111\xF3",
   "modal.next-difference": "Kh\xE1c bi\u1EC7t ti\u1EBFp theo",
   "modal.mode.patch": "Hi\u1EC3n th\u1ECB b\u1EA3n v\xE1",
   "modal.mode.inline": "N\u1ED9i tuy\u1EBFn",
   "modal.mode.line-by-line": "T\u1EEBng d\xF2ng",
   "modal.mode.side-by-side": "C\u1EA1nh nhau",
+  "modal.hide-identical": "\u1EA8n c\xE1c phi\xEAn b\u1EA3n gi\u1ED1ng v\u1EDBi b\u1EA3n hi\u1EC7n t\u1EA1i",
   "modal.confirm.cancel": "H\u1EE7y",
   "modal.confirm.restore.title": "Kh\xF4i ph\u1EE5c t\u1EC7p g\u1ED1c",
   "modal.confirm.restore.message": "B\u1EA1n c\xF3 ch\u1EAFc mu\u1ED1n kh\xF4i ph\u1EE5c t\u1EC7p n\xE0y v\u1EC1 tr\u1EA1ng th\xE1i ban \u0111\u1EA7u kh\xF4ng? T\u1EA5t c\u1EA3 thay \u0111\u1ED5i hi\u1EC7n t\u1EA1i s\u1EBD b\u1ECB m\u1EA5t v\xE0 l\u1ECBch s\u1EED theo d\xF5i thay \u0111\u1ED5i s\u1EBD \u0111\u01B0\u1EE3c \u0111\u1EB7t l\u1EA1i. H\xE0nh \u0111\u1ED9ng n\xE0y kh\xF4ng th\u1EC3 ho\xE0n t\xE1c.",
   "modal.confirm.restore.button": "Kh\xF4i ph\u1EE5c t\u1EC7p",
+  "modal.confirm.restore-version.title": "Kh\xF4i ph\u1EE5c phi\xEAn b\u1EA3n \u0111\xE3 ch\u1ECDn",
+  "modal.confirm.restore-version.message": "Kh\xF4i ph\u1EE5c t\u1EC7p v\u1EC1 phi\xEAn b\u1EA3n \u0111\xE3 ch\u1ECDn? C\xE1c thay \u0111\u1ED5i hi\u1EC7n t\u1EA1i b\u1ECB lo\u1EA1i b\u1ECF, nh\u01B0ng l\u1ECBch s\u1EED phi\xEAn b\u1EA3n \u0111\u01B0\u1EE3c gi\u1EEF l\u1EA1i.",
+  "modal.confirm.restore-version.button": "Kh\xF4i ph\u1EE5c phi\xEAn b\u1EA3n",
+  "modal.confirm.remove-version.title": "X\xF3a phi\xEAn b\u1EA3n \u0111\xE3 ch\u1ECDn",
+  "modal.confirm.remove-version.message": "X\xF3a phi\xEAn b\u1EA3n \u0111\xE3 ch\u1ECDn kh\u1ECFi l\u1ECBch s\u1EED? N\u1ED9i dung t\u1EC7p v\xE0 ph\u1EA7n l\u1ECBch s\u1EED c\xF2n l\u1EA1i \u0111\u01B0\u1EE3c gi\u1EEF nguy\xEAn. H\xE0nh \u0111\u1ED9ng n\xE0y kh\xF4ng th\u1EC3 ho\xE0n t\xE1c.",
+  "modal.confirm.remove-version.button": "X\xF3a phi\xEAn b\u1EA3n",
   "modal.confirm.remove.title": "X\xF3a l\u1ECBch s\u1EED t\u1EC7p",
   "modal.confirm.remove.message": "B\u1EA1n c\xF3 ch\u1EAFc mu\u1ED1n x\xF3a l\u1ECBch s\u1EED theo d\xF5i thay \u0111\u1ED5i c\u1EE7a t\u1EC7p n\xE0y kh\xF4ng? H\xE0nh \u0111\u1ED9ng n\xE0y kh\xF4ng th\u1EC3 ho\xE0n t\xE1c.",
   "modal.confirm.remove.button": "X\xF3a l\u1ECBch s\u1EED",
@@ -8433,17 +8811,26 @@ var zh_default = {
   "modal.no-changes": "\u65E0\u66F4\u6539",
   "modal.identical-to-current": "\u4E0E\u5F53\u524D\u5185\u5BB9\u76F8\u540C",
   "modal.restore-original": "\u6062\u590D\u539F\u59CB\u5185\u5BB9",
-  "modal.remove-history": "\u79FB\u9664\u6587\u4EF6\u5386\u53F2\u8BB0\u5F55",
+  "modal.restore-selected": "\u6062\u590D\u6240\u9009\u7248\u672C",
+  "modal.remove-selected": "\u5220\u9664\u6240\u9009\u7248\u672C",
+  "modal.remove-history": "\u79FB\u9664\u5168\u90E8\u6587\u4EF6\u5386\u53F2\u8BB0\u5F55",
   "modal.previous-difference": "\u4E0A\u4E00\u5904\u5DEE\u5F02",
   "modal.next-difference": "\u4E0B\u4E00\u5904\u5DEE\u5F02",
   "modal.mode.patch": "\u663E\u793A\u8865\u4E01",
   "modal.mode.inline": "\u5185\u8054",
   "modal.mode.line-by-line": "\u9010\u884C",
   "modal.mode.side-by-side": "\u5E76\u6392",
+  "modal.hide-identical": "\u9690\u85CF\u4E0E\u5F53\u524D\u5185\u5BB9\u76F8\u540C\u7684\u7248\u672C",
   "modal.confirm.cancel": "\u53D6\u6D88",
   "modal.confirm.restore.title": "\u6062\u590D\u539F\u59CB\u6587\u4EF6",
   "modal.confirm.restore.message": "\u786E\u5B9A\u8981\u5C06\u6B64\u6587\u4EF6\u6062\u590D\u5230\u539F\u59CB\u72B6\u6001\u5417\uFF1F\u6240\u6709\u5F53\u524D\u66F4\u6539\u90FD\u5C06\u4E22\u5931\uFF0C\u66F4\u6539\u8FFD\u8E2A\u5386\u53F2\u4E5F\u5C06\u88AB\u91CD\u7F6E\u3002\u6B64\u64CD\u4F5C\u65E0\u6CD5\u64A4\u9500\u3002",
   "modal.confirm.restore.button": "\u6062\u590D\u6587\u4EF6",
+  "modal.confirm.restore-version.title": "\u6062\u590D\u6240\u9009\u7248\u672C",
+  "modal.confirm.restore-version.message": "\u5C06\u6587\u4EF6\u6062\u590D\u5230\u6240\u9009\u7248\u672C\uFF1F\u5F53\u524D\u66F4\u6539\u5C06\u88AB\u4E22\u5F03\uFF0C\u4F46\u7248\u672C\u5386\u53F2\u5C06\u4FDD\u7559\u3002",
+  "modal.confirm.restore-version.button": "\u6062\u590D\u7248\u672C",
+  "modal.confirm.remove-version.title": "\u5220\u9664\u6240\u9009\u7248\u672C",
+  "modal.confirm.remove-version.message": "\u4ECE\u5386\u53F2\u8BB0\u5F55\u4E2D\u5220\u9664\u6240\u9009\u7248\u672C\uFF1F\u6587\u4EF6\u5185\u5BB9\u548C\u5176\u4F59\u5386\u53F2\u8BB0\u5F55\u5C06\u4FDD\u7559\u3002\u6B64\u64CD\u4F5C\u65E0\u6CD5\u64A4\u9500\u3002",
+  "modal.confirm.remove-version.button": "\u5220\u9664\u7248\u672C",
   "modal.confirm.remove.title": "\u79FB\u9664\u6587\u4EF6\u5386\u53F2\u8BB0\u5F55",
   "modal.confirm.remove.message": "\u786E\u5B9A\u8981\u79FB\u9664\u6B64\u6587\u4EF6\u7684\u66F4\u6539\u8FFD\u8E2A\u5386\u53F2\u5417\uFF1F\u6B64\u64CD\u4F5C\u65E0\u6CD5\u64A4\u9500\u3002",
   "modal.confirm.remove.button": "\u79FB\u9664\u5386\u53F2\u8BB0\u5F55",
@@ -8530,17 +8917,26 @@ var zh_TW_default = {
   "modal.no-changes": "\u7121\u8B8A\u66F4",
   "modal.identical-to-current": "\u8207\u76EE\u524D\u5167\u5BB9\u76F8\u540C",
   "modal.restore-original": "\u9084\u539F\u539F\u59CB\u5167\u5BB9",
-  "modal.remove-history": "\u79FB\u9664\u6A94\u6848\u6B77\u53F2\u8A18\u9304",
+  "modal.restore-selected": "\u9084\u539F\u6240\u9078\u7248\u672C",
+  "modal.remove-selected": "\u522A\u9664\u6240\u9078\u7248\u672C",
+  "modal.remove-history": "\u79FB\u9664\u5168\u90E8\u6A94\u6848\u6B77\u53F2\u8A18\u9304",
   "modal.previous-difference": "\u4E0A\u4E00\u8655\u5DEE\u7570",
   "modal.next-difference": "\u4E0B\u4E00\u8655\u5DEE\u7570",
   "modal.mode.patch": "\u986F\u793A\u4FEE\u88DC\u6A94",
   "modal.mode.inline": "\u5167\u5D4C",
   "modal.mode.line-by-line": "\u9010\u884C",
   "modal.mode.side-by-side": "\u4E26\u6392",
+  "modal.hide-identical": "\u96B1\u85CF\u8207\u76EE\u524D\u5167\u5BB9\u76F8\u540C\u7684\u7248\u672C",
   "modal.confirm.cancel": "\u53D6\u6D88",
   "modal.confirm.restore.title": "\u9084\u539F\u539F\u59CB\u6A94\u6848",
   "modal.confirm.restore.message": "\u78BA\u5B9A\u8981\u5C07\u6B64\u6A94\u6848\u9084\u539F\u70BA\u539F\u59CB\u72C0\u614B\u55CE\uFF1F\u6240\u6709\u76EE\u524D\u8B8A\u66F4\u90FD\u5C07\u907A\u5931\uFF0C\u8B8A\u66F4\u8FFD\u8E64\u6B77\u53F2\u4E5F\u5C07\u88AB\u91CD\u8A2D\u3002\u6B64\u64CD\u4F5C\u7121\u6CD5\u5FA9\u539F\u3002",
   "modal.confirm.restore.button": "\u9084\u539F\u6A94\u6848",
+  "modal.confirm.restore-version.title": "\u9084\u539F\u6240\u9078\u7248\u672C",
+  "modal.confirm.restore-version.message": "\u5C07\u6A94\u6848\u9084\u539F\u81F3\u6240\u9078\u7248\u672C\uFF1F\u76EE\u524D\u7684\u8B8A\u66F4\u5C07\u88AB\u6368\u68C4\uFF0C\u4F46\u7248\u672C\u6B77\u53F2\u5C07\u4FDD\u7559\u3002",
+  "modal.confirm.restore-version.button": "\u9084\u539F\u7248\u672C",
+  "modal.confirm.remove-version.title": "\u522A\u9664\u6240\u9078\u7248\u672C",
+  "modal.confirm.remove-version.message": "\u5F9E\u6B77\u53F2\u8A18\u9304\u4E2D\u522A\u9664\u6240\u9078\u7248\u672C\uFF1F\u6A94\u6848\u5167\u5BB9\u548C\u5176\u9918\u6B77\u53F2\u8A18\u9304\u5C07\u4FDD\u7559\u3002\u6B64\u64CD\u4F5C\u7121\u6CD5\u5FA9\u539F\u3002",
+  "modal.confirm.remove-version.button": "\u522A\u9664\u7248\u672C",
   "modal.confirm.remove.title": "\u79FB\u9664\u6A94\u6848\u6B77\u53F2\u8A18\u9304",
   "modal.confirm.remove.message": "\u78BA\u5B9A\u8981\u79FB\u9664\u6B64\u6A94\u6848\u7684\u8B8A\u66F4\u8FFD\u8E64\u6B77\u53F2\u55CE\uFF1F\u6B64\u64CD\u4F5C\u7121\u6CD5\u5FA9\u539F\u3002",
   "modal.confirm.remove.button": "\u79FB\u9664\u6B77\u53F2\u8A18\u9304",
@@ -12541,6 +12937,13 @@ var HistoryModal = class extends import_obsidian13.Modal {
      */
     this.searchQuery = "";
     /**
+     * Whether the rail hides intermediate versions whose captured content is
+     * identical to the current state. Off by default so the full timeline shows;
+     * toggled from the toolbar. It is a view-only filter over the rail list and
+     * never changes the selected diff base.
+     */
+    this.hideIdenticalVersions = false;
+    /**
      * The current display mode for the diff view.
      * Can be 'patch', 'inline', 'line-by-line', or 'side-by-side'.
      * Defaults to 'side-by-side'.
@@ -12652,6 +13055,60 @@ var HistoryModal = class extends import_obsidian13.Modal {
     }
   }
   /**
+   * Rewrites the whole file to the currently selected base (a picked version,
+   * the latest snapshot, or the original). Unlike restoreOriginalFile this keeps
+   * the history baseline and the version timeline intact, so it is a plain
+   * content revert to a chosen point rather than a reset: the prior content
+   * simply becomes the next captured version on the following edit. Reuses the
+   * same SnapshotsService.applyContent path the per-hunk revert uses, scoping the
+   * "block" to the entire file. A no-op when the base already equals the current
+   * state (the button is disabled in that case anyway). The modal stays open and
+   * the active view is re-rendered so the diff reflects the new content.
+   */
+  async restoreSelectedVersion() {
+    var _a;
+    const file = (_a = this.snapshot) == null ? void 0 : _a.file;
+    if (!file || this.isBaseSameCurrent()) {
+      return;
+    }
+    const baseLines = this.getBaseContent().split(this.snapshot.lineBreak);
+    const currentLines = this.snapshot.getLastStateLines();
+    await this.snapshotsService.applyContent(file, baseLines, {
+      start: 0,
+      removeCount: currentLines.length,
+      newLines: baseLines
+    });
+    this.activeHunkIndex = -1;
+    this.refreshActiveView();
+  }
+  /**
+   * Deletes the selected version from the timeline, leaving the history baseline
+   * and the file content untouched. Only a real captured version can be removed,
+   * so this is a no-op for the synthetic baseline (the button is disabled there
+   * anyway). The selection moves to the next visible version below the deleted
+   * one (the older neighbour), falling back to the one above it and then to the
+   * baseline when nothing is below. The change is persisted via the snapshots
+   * service, and the rail and active view are re-rendered so the dropped version
+   * no longer appears.
+   */
+  removeSelectedVersion() {
+    var _a, _b, _c, _d;
+    if (this.selectedBaseId === ORIGINAL_BASE_ID) {
+      return;
+    }
+    const visible = this.getVisibleVersions();
+    const index = visible.findIndex((version) => version.id === this.selectedBaseId);
+    const nextId = index === -1 ? ORIGINAL_BASE_ID : (_d = (_c = (_a = visible[index + 1]) == null ? void 0 : _a.id) != null ? _c : (_b = visible[index - 1]) == null ? void 0 : _b.id) != null ? _d : ORIGINAL_BASE_ID;
+    if (!this.snapshot.removeVersion(this.selectedBaseId)) {
+      return;
+    }
+    this.snapshotsService.forceUpdate();
+    this.selectedBaseId = nextId;
+    this.activeHunkIndex = -1;
+    this.renderVersions();
+    this.refreshActiveView();
+  }
+  /**
    * Creates the UI elements for the diff view.
    */
   makeUI() {
@@ -12714,17 +13171,35 @@ var HistoryModal = class extends import_obsidian13.Modal {
     this.renderVersions();
   }
   /**
-   * Shows or hides the above-diff notice. It is revealed, with the same text the
-   * empty-diff placeholder uses, whenever the selected base resolves to the
-   * current content (the original-vs-current "no changes" case or a picked
-   * version identical to current); otherwise it is hidden. Called by every
-   * render path so the banner stays in sync with the visible diff.
+   * Shows or hides the above-diff notice and syncs the restore-selected button's
+   * enabled state, both driven by whether the selected base resolves to the
+   * current content. The notice is revealed, with the same text the empty-diff
+   * placeholder uses, whenever the base equals current (the original-vs-current
+   * "no changes" case or a picked version identical to current); otherwise it is
+   * hidden. In that same identical case there is nothing to restore, so the
+   * restore-selected button is disabled. The remove-selected button is disabled
+   * whenever the synthetic baseline is selected, since only a real captured
+   * version can be deleted. Called by every render path so all stay in sync with
+   * the visible diff.
    */
   updateDiffNotice() {
+    const identical = this.isBaseSameCurrent();
+    if (this.restoreSelectedButton) {
+      this.restoreSelectedButton.disabled = identical;
+      DomHelper.update(this.restoreSelectedButton, {
+        classes: identical ? { add: "is-disabled" } : { remove: "is-disabled" }
+      });
+    }
+    if (this.removeSelectedButton) {
+      const noVersion = this.selectedBaseId === ORIGINAL_BASE_ID;
+      this.removeSelectedButton.disabled = noVersion;
+      DomHelper.update(this.removeSelectedButton, {
+        classes: noVersion ? { add: "is-disabled" } : { remove: "is-disabled" }
+      });
+    }
     if (!this.noticeEl) {
       return;
     }
-    const identical = this.isBaseSameCurrent();
     DomHelper.update(this.noticeEl, {
       text: identical ? this.getEmptyDiffText() : null,
       classes: identical ? { remove: "lct-diff-notice-hidden" } : { add: "lct-diff-notice-hidden" }
@@ -12775,8 +13250,10 @@ var HistoryModal = class extends import_obsidian13.Modal {
   }
   /**
    * Builds the top toolbar controls as icon buttons grouped by purpose: the
-   * destructive actions (restore original, remove history), the difference
-   * navigation, and the four view-mode toggles, all right-aligned in the toolbar.
+   * destructive actions (restore original, remove history) pinned to the left
+   * edge, then the version controls (restore selected version, remove selected
+   * version, then the hide-identical rail filter), the difference navigation,
+   * and the four view-mode toggles right-aligned after them.
    * Every button is icon-only on screen but carries a text label through its
    * tooltip and aria-label so it stays usable by keyboard and screen readers. The
    * view-mode buttons keep the active-mode highlight driven by
@@ -12806,6 +13283,38 @@ var HistoryModal = class extends import_obsidian13.Modal {
         this.close();
       }
     }));
+    new import_obsidian13.Setting(this.toolbarEl).setClass("lct-modal-toolbar-group").setClass("lct-modal-toolbar-filter").addButton((btn) => {
+      this.restoreSelectedButton = btn.buttonEl;
+      return this.decorateButton(btn, "history", this.plugin.t("modal.restore-selected")).onClick(async () => {
+        const confirmed = await this.modalsService.confirm({
+          title: this.plugin.t("modal.confirm.restore-version.title"),
+          message: this.plugin.t("modal.confirm.restore-version.message"),
+          confirmText: this.plugin.t("modal.confirm.restore-version.button"),
+          cancelText: this.plugin.t("modal.confirm.cancel")
+        });
+        if (confirmed) {
+          await this.restoreSelectedVersion();
+        }
+      });
+    }).addButton((btn) => {
+      this.removeSelectedButton = btn.buttonEl;
+      return this.decorateButton(btn, "list-x", this.plugin.t("modal.remove-selected")).onClick(async () => {
+        const confirmed = await this.modalsService.confirm({
+          title: this.plugin.t("modal.confirm.remove-version.title"),
+          message: this.plugin.t("modal.confirm.remove-version.message"),
+          confirmText: this.plugin.t("modal.confirm.remove-version.button"),
+          cancelText: this.plugin.t("modal.confirm.cancel")
+        });
+        if (confirmed) {
+          this.removeSelectedVersion();
+        }
+      });
+    }).addButton((btn) => {
+      this.hideIdenticalButton = btn.buttonEl;
+      return this.decorateButton(btn, "eye-off", this.plugin.t("modal.hide-identical")).onClick(() => {
+        this.toggleHideIdentical();
+      });
+    });
     new import_obsidian13.Setting(this.toolbarEl).setClass("lct-modal-toolbar-group").setClass("lct-modal-toolbar-nav").addButton((btn) => {
       this.navButtons.previous = btn.buttonEl;
       return this.decorateButton(btn, "chevron-up", this.plugin.t("modal.previous-difference")).onClick(() => {
@@ -12839,6 +13348,20 @@ var HistoryModal = class extends import_obsidian13.Modal {
       });
     });
     this.updateButtonActiveStates();
+  }
+  /**
+   * Flips the hide-identical rail filter, syncs the toggle button's active
+   * (mod-cta) accent, and re-renders the version list. Only the rail list is
+   * rebuilt: the selected diff base and the diff output are untouched.
+   */
+  toggleHideIdentical() {
+    this.hideIdenticalVersions = !this.hideIdenticalVersions;
+    if (this.hideIdenticalButton) {
+      DomHelper.update(this.hideIdenticalButton, {
+        classes: this.hideIdenticalVersions ? { add: "mod-cta" } : { remove: "mod-cta" }
+      });
+    }
+    this.renderVersions();
   }
   /**
    * Turns a toolbar button into an accessible icon button: it shows only the
@@ -12907,11 +13430,13 @@ var HistoryModal = class extends import_obsidian13.Modal {
    * Enables or disables the next/previous difference buttons based on whether
    * the current diff has any hunks to walk, and drops a stale active index when
    * the diff no longer has that many hunks. A diff with zero hunks leaves both
-   * buttons disabled so a click is an ignored no-op.
+   * buttons disabled so a click is an ignored no-op. Patch mode is also disabled:
+   * it renders a plain <pre> with no per-row anchors to scroll to, so stepping
+   * between differences has nothing to focus there.
    */
   updateNavButtonsState() {
     const count = this.getHunks().length;
-    const disabled = count === 0;
+    const disabled = count === 0 || this.currentDisplayMode === "patch";
     [this.navButtons.previous, this.navButtons.next].forEach((button) => {
       if (!button) {
         return;
@@ -12941,6 +13466,33 @@ var HistoryModal = class extends import_obsidian13.Modal {
     });
   }
   /**
+   * The intermediate versions currently shown in the rail, newest first, after
+   * the content search and the hide-identical filter. The hide-identical filter
+   * drops versions whose captured content equals the live state (picking one
+   * would diff to nothing); the search keeps only versions matching the query.
+   * Shared by the rail render and the post-delete selection so "the next visible
+   * version" means the same list in both.
+   *
+   * @return {FileVersion[]} The visible versions, newest first
+   */
+  getVisibleVersions() {
+    const versions = this.snapshot.getVersions();
+    const visibleIds = VersionSearchHelper.match(
+      versions.map((version) => ({
+        id: version.id,
+        content: version.getContent(this.snapshot.lineBreak)
+      })),
+      this.searchQuery
+    );
+    const currentContent = this.snapshot.getLastState();
+    return versions.filter((version) => {
+      if (!visibleIds.has(version.id)) {
+        return false;
+      }
+      return !this.hideIdenticalVersions || version.getContent(this.snapshot.lineBreak) !== currentContent;
+    });
+  }
+  /**
    * Renders the version timeline as a list of selectable diff bases, grouped
    * under a heading per day. The baseline entry (the original compared against
    * the current state) heads the list and is placed in the day group of the
@@ -12957,14 +13509,7 @@ var HistoryModal = class extends import_obsidian13.Modal {
     }
     const versions = this.snapshot.getVersions();
     DomHelper.update(this.versionsEl, { classes: { remove: "lct-versions-empty" } });
-    const visibleIds = VersionSearchHelper.match(
-      versions.map((version) => ({
-        id: version.id,
-        content: version.getContent(this.snapshot.lineBreak)
-      })),
-      this.searchQuery
-    );
-    const matched = versions.filter((version) => visibleIds.has(version.id));
+    const matched = this.getVisibleVersions();
     const entries = [
       {
         id: ORIGINAL_BASE_ID,
@@ -13437,6 +13982,7 @@ var HistoryModal = class extends import_obsidian13.Modal {
    * Displays the patch with context size 0 in a pre-formatted text element.
    */
   showCleanPatch() {
+    var _a;
     this.currentDisplayMode = "patch";
     this.updateButtonActiveStates();
     this.cleanupScrollSync();
@@ -13464,7 +14010,6 @@ var HistoryModal = class extends import_obsidian13.Modal {
               },
               {
                 tag: "button",
-                text: this.plugin.t("modal.copy"),
                 classes: ["lct-patch-copy-button", "mod-outline"],
                 events: {
                   click: handlerClick
@@ -13475,6 +14020,12 @@ var HistoryModal = class extends import_obsidian13.Modal {
         ]
       }
     );
+    const copyButton = (_a = this.diffContainerEl) == null ? void 0 : _a.querySelector(".lct-patch-copy-button");
+    if (copyButton) {
+      (0, import_obsidian13.setIcon)(copyButton, "copy");
+      copyButton.setAttribute("aria-label", this.plugin.t("modal.copy"));
+      copyButton.setAttribute("title", this.plugin.t("modal.copy"));
+    }
     this.updateNavButtonsState();
   }
   /**
@@ -15448,6 +15999,22 @@ var FileSnapshot = class _FileSnapshot {
   getVersion(id) {
     var _a;
     return (_a = this.versions.find((version) => version.id === id)) != null ? _a : null;
+  }
+  /**
+   * Removes a single intermediate version from the timeline by its id, leaving
+   * the history baseline and every other version untouched. Used by the history
+   * modal to prune one captured point without wiping the whole timeline.
+   *
+   * @param {string} id - The id of the version to remove
+   * @return {boolean} True if a version was removed, false if no id matched
+   */
+  removeVersion(id) {
+    const index = this.versions.findIndex((version) => version.id === id);
+    if (index === -1) {
+      return false;
+    }
+    this.versions.splice(index, 1);
+    return true;
   }
   /**
    * Whether the snapshot has any intermediate versions on its timeline.

@@ -383,6 +383,26 @@ export class FileSnapshot {
   }
 
   /**
+   * Removes a single intermediate version from the timeline by its id, leaving
+   * the history baseline and every other version untouched. Used by the history
+   * modal to prune one captured point without wiping the whole timeline.
+   *
+   * @param {string} id - The id of the version to remove
+   * @return {boolean} True if a version was removed, false if no id matched
+   */
+  public removeVersion(id: string): boolean {
+    const index: number = this.versions.findIndex((version: FileVersion): boolean => version.id === id);
+
+    if (index === -1) {
+      return false;
+    }
+
+    this.versions.splice(index, 1);
+
+    return true;
+  }
+
+  /**
    * Whether the snapshot has any intermediate versions on its timeline.
    *
    * @return {boolean} True when at least one version exists

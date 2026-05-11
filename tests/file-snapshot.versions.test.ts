@@ -332,6 +332,35 @@ describe('FileSnapshot timeline persistence round-trip', () => {
   });
 });
 
+describe('FileSnapshot.removeVersion', () => {
+  it('removes a single version by id and leaves the rest of the timeline', () => {
+    const snapshot = new FileSnapshot('a', '\n');
+    const opts = options({ editThreshold: 1 });
+
+    snapshot.captureVersion(['v1'], opts);
+    snapshot.captureVersion(['v2'], opts);
+    snapshot.captureVersion(['v3'], opts);
+
+    // getVersions is newest-first: [v3, v2, v1]. Drop the middle one.
+    const middleId: string = snapshot.getVersions()[1].id;
+
+    expect(snapshot.removeVersion(middleId)).toBe(true);
+    expect(snapshot.getVersions().map((v: FileVersion): string[] => v.getLines())).toEqual([
+      ['v3'],
+      ['v1'],
+    ]);
+    expect(snapshot.getVersion(middleId)).toBeNull();
+  });
+
+  it('returns false and changes nothing when no version matches the id', () => {
+    const snapshot = new FileSnapshot('a', '\n');
+    snapshot.captureVersion(['v1'], options({ editThreshold: 1 }));
+
+    expect(snapshot.removeVersion('does-not-exist')).toBe(false);
+    expect(snapshot.getVersions()).toHaveLength(1);
+  });
+});
+
 describe('FileVersion', () => {
   it('joins content with the given line break and copies its lines', () => {
     const version = new FileVersion(['x', 'y'], 42);

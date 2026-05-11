@@ -24,14 +24,22 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
+  gap: var(--size-4-2);
+}
+.modal.lct-diff-modal .lct-modal-toolbar .setting-item-info {
+  display: none;
+}
+.modal.lct-diff-modal .lct-modal-toolbar .lct-modal-toolbar-actions {
+  margin-inline-end: auto;
 }
 .modal.lct-diff-modal .lct-modal-toolbar .lct-modal-toolbar-group {
   width: auto;
 }
 .modal.lct-diff-modal .lct-modal-toolbar .lct-modal-toolbar-group .setting-item-control {
+  flex: 0 0 auto;
+  margin: 0;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: var(--size-4-1);
 }
 .modal.lct-diff-modal .lct-modal-toolbar .lct-modal-toolbar-group button {
   display: inline-flex;
@@ -104,7 +112,7 @@
   font-size: var(--font-ui-smaller);
   color: var(--text-faint);
   font-weight: var(--font-semibold);
-  padding: var(--size-4-2);
+  padding: var(--size-4-3) 0 0;
   user-select: none;
 }
 .modal.lct-diff-modal .lct-versions .lct-version-item {
@@ -518,10 +526,13 @@
   top: 10px;
   right: 10px;
   z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background-color: var(--modal-background);
   border: 1px solid var(--background-modifier-border);
   box-shadow: none;
-  padding: 6px 12px;
+  padding: var(--size-4-2);
   border-radius: var(--button-radius);
   color: var(--text-normal);
   cursor: pointer;

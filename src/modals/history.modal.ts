@@ -111,6 +111,34 @@ export class HistoryModal extends Modal {
   protected searchQuery: string = '';
 
   /**
+   * Whether the rail hides intermediate versions whose captured content is
+   * identical to the current state. Off by default so the full timeline shows;
+   * toggled from the toolbar. It is a view-only filter over the rail list and
+   * never changes the selected diff base.
+   */
+  protected hideIdenticalVersions: boolean = false;
+
+  /**
+   * Toolbar button toggling hideIdenticalVersions, kept so its active (mod-cta)
+   * state can be flipped when the filter changes.
+   */
+  protected hideIdenticalButton?: HTMLElement;
+
+  /**
+   * Toolbar button that rewrites the file to the selected base, kept so it can
+   * be disabled when the selected base already equals the current state (there
+   * is nothing to restore).
+   */
+  protected restoreSelectedButton?: HTMLElement;
+
+  /**
+   * Toolbar button that deletes the selected version from the timeline, kept so
+   * it can be disabled when the synthetic baseline is selected (only a real
+   * captured version can be removed).
+   */
+  protected removeSelectedButton?: HTMLElement;
+
+  /**
    * The current display mode for the diff view.
    * Can be 'patch', 'inline', 'line-by-line', or 'side-by-side'.
    * Defaults to 'side-by-side'.
@@ -273,6 +301,74 @@ export class HistoryModal extends Modal {
   }
 
   /**
+   * Rewrites the whole file to the currently selected base (a picked version,
+   * the latest snapshot, or the original). Unlike restoreOriginalFile this keeps
+   * the history baseline and the version timeline intact, so it is a plain
+   * content revert to a chosen point rather than a reset: the prior content
+   * simply becomes the next captured version on the following edit. Reuses the
+   * same SnapshotsService.applyContent path the per-hunk revert uses, scoping the
+   * "block" to the entire file. A no-op when the base already equals the current
+   * state (the button is disabled in that case anyway). The modal stays open and
+   * the active view is re-rendered so the diff reflects the new content.
+   */
+  protected async restoreSelectedVersion(): Promise<void> {
+    const file: TFile | undefined = this.snapshot?.file;
+
+    if (!file || this.isBaseSameCurrent()) {
+      return;
+    }
+
+    const baseLines: string[] = this.getBaseContent().split(this.snapshot.lineBreak);
+    const currentLines: string[] = this.snapshot.getLastStateLines();
+
+    await this.snapshotsService.applyContent(file, baseLines, {
+      start: 0,
+      removeCount: currentLines.length,
+      newLines: baseLines,
+    });
+
+    // The content changed, so the diff and its hunk indices are stale: drop the
+    // navigation focus and redraw the active view against the new content.
+    this.activeHunkIndex = -1;
+    this.refreshActiveView();
+  }
+
+  /**
+   * Deletes the selected version from the timeline, leaving the history baseline
+   * and the file content untouched. Only a real captured version can be removed,
+   * so this is a no-op for the synthetic baseline (the button is disabled there
+   * anyway). The selection moves to the next visible version below the deleted
+   * one (the older neighbour), falling back to the one above it and then to the
+   * baseline when nothing is below. The change is persisted via the snapshots
+   * service, and the rail and active view are re-rendered so the dropped version
+   * no longer appears.
+   */
+  protected removeSelectedVersion(): void {
+    if (this.selectedBaseId === ORIGINAL_BASE_ID) {
+      return;
+    }
+
+    // Resolve the next selection from the displayed list BEFORE removing, so
+    // "below" matches what the user sees: the list is newest-first, so the next
+    // row down is the next index. Fall back to the row above, then the baseline.
+    const visible: FileVersion[] = this.getVisibleVersions();
+    const index: number = visible.findIndex((version: FileVersion): boolean => version.id === this.selectedBaseId);
+    const nextId: string =
+      index === -1 ? ORIGINAL_BASE_ID : (visible[index + 1]?.id ?? visible[index - 1]?.id ?? ORIGINAL_BASE_ID);
+
+    if (!this.snapshot.removeVersion(this.selectedBaseId)) {
+      return;
+    }
+
+    this.snapshotsService.forceUpdate();
+
+    this.selectedBaseId = nextId;
+    this.activeHunkIndex = -1;
+    this.renderVersions();
+    this.refreshActiveView();
+  }
+
+  /**
    * Creates the UI elements for the diff view.
    */
   protected makeUI(): void {
@@ -369,18 +465,39 @@ export class HistoryModal extends Modal {
   }
 
   /**
-   * Shows or hides the above-diff notice. It is revealed, with the same text the
-   * empty-diff placeholder uses, whenever the selected base resolves to the
-   * current content (the original-vs-current "no changes" case or a picked
-   * version identical to current); otherwise it is hidden. Called by every
-   * render path so the banner stays in sync with the visible diff.
+   * Shows or hides the above-diff notice and syncs the restore-selected button's
+   * enabled state, both driven by whether the selected base resolves to the
+   * current content. The notice is revealed, with the same text the empty-diff
+   * placeholder uses, whenever the base equals current (the original-vs-current
+   * "no changes" case or a picked version identical to current); otherwise it is
+   * hidden. In that same identical case there is nothing to restore, so the
+   * restore-selected button is disabled. The remove-selected button is disabled
+   * whenever the synthetic baseline is selected, since only a real captured
+   * version can be deleted. Called by every render path so all stay in sync with
+   * the visible diff.
    */
   protected updateDiffNotice(): void {
+    const identical: boolean = this.isBaseSameCurrent();
+
+    if (this.restoreSelectedButton) {
+      (this.restoreSelectedButton as HTMLButtonElement).disabled = identical;
+      DomHelper.update(this.restoreSelectedButton, {
+        classes: identical ? { add: 'is-disabled' } : { remove: 'is-disabled' },
+      });
+    }
+
+    if (this.removeSelectedButton) {
+      const noVersion: boolean = this.selectedBaseId === ORIGINAL_BASE_ID;
+
+      (this.removeSelectedButton as HTMLButtonElement).disabled = noVersion;
+      DomHelper.update(this.removeSelectedButton, {
+        classes: noVersion ? { add: 'is-disabled' } : { remove: 'is-disabled' },
+      });
+    }
+
     if (!this.noticeEl) {
       return;
     }
-
-    const identical: boolean = this.isBaseSameCurrent();
 
     DomHelper.update(this.noticeEl, {
       text: identical ? this.getEmptyDiffText() : null,
@@ -446,15 +563,20 @@ export class HistoryModal extends Modal {
 
   /**
    * Builds the top toolbar controls as icon buttons grouped by purpose: the
-   * destructive actions (restore original, remove history), the difference
-   * navigation, and the four view-mode toggles, all right-aligned in the toolbar.
+   * destructive actions (restore original, remove history) pinned to the left
+   * edge, then the version controls (restore selected version, remove selected
+   * version, then the hide-identical rail filter), the difference navigation,
+   * and the four view-mode toggles right-aligned after them.
    * Every button is icon-only on screen but carries a text label through its
    * tooltip and aria-label so it stays usable by keyboard and screen readers. The
    * view-mode buttons keep the active-mode highlight driven by
    * updateButtonActiveStates; the destructive actions still confirm before acting.
    */
   protected makeToolbar(): void {
-    // Destructive actions: each still asks for confirmation before acting.
+    // Destructive actions: each still asks for confirmation before acting. This
+    // group leads the toolbar and is pushed to the left edge (its auto inline-end
+    // margin in CSS) so the destructive pair reads as separate from the view
+    // controls that follow on the right.
     new Setting(this.toolbarEl)
       .setClass('lct-modal-toolbar-group')
       .setClass('lct-modal-toolbar-actions')
@@ -489,6 +611,56 @@ export class HistoryModal extends Modal {
               this.close();
             }
           }));
+
+    // Version controls: restore the file to the picked version (constructive,
+    // the history is kept) and delete the picked version from the timeline, then
+    // the rail filter that hides versions identical to the current state. The
+    // filter is a toggle, so it carries the mod-cta accent while active.
+    new Setting(this.toolbarEl)
+      .setClass('lct-modal-toolbar-group')
+      .setClass('lct-modal-toolbar-filter')
+      .addButton((btn: ButtonComponent): ButtonComponent => {
+        this.restoreSelectedButton = btn.buttonEl;
+
+        return this.decorateButton(btn, 'history', this.plugin.t('modal.restore-selected'))
+          .onClick(async (): Promise<void> => {
+            const confirmed: boolean = await this.modalsService.confirm({
+              title: this.plugin.t('modal.confirm.restore-version.title'),
+              message: this.plugin.t('modal.confirm.restore-version.message'),
+              confirmText: this.plugin.t('modal.confirm.restore-version.button'),
+              cancelText: this.plugin.t('modal.confirm.cancel'),
+            });
+
+            if (confirmed) {
+              await this.restoreSelectedVersion();
+            }
+          });
+      })
+      .addButton((btn: ButtonComponent): ButtonComponent => {
+        this.removeSelectedButton = btn.buttonEl;
+
+        return this.decorateButton(btn, 'list-x', this.plugin.t('modal.remove-selected'))
+          .onClick(async (): Promise<void> => {
+            const confirmed: boolean = await this.modalsService.confirm({
+              title: this.plugin.t('modal.confirm.remove-version.title'),
+              message: this.plugin.t('modal.confirm.remove-version.message'),
+              confirmText: this.plugin.t('modal.confirm.remove-version.button'),
+              cancelText: this.plugin.t('modal.confirm.cancel'),
+            });
+
+            if (confirmed) {
+              this.removeSelectedVersion();
+            }
+          });
+      })
+      .addButton((btn: ButtonComponent): ButtonComponent => {
+        this.hideIdenticalButton = btn.buttonEl;
+
+        return this.decorateButton(btn, 'eye-off', this.plugin.t('modal.hide-identical'))
+          .onClick((): void => {
+            this.toggleHideIdentical();
+          });
+      });
 
     // Difference navigation: step between the diff hunks with wrap-around. The
     // buttons are disabled when the current diff has no hunks.
@@ -551,6 +723,23 @@ export class HistoryModal extends Modal {
 
     // Set the initial active state.
     this.updateButtonActiveStates();
+  }
+
+  /**
+   * Flips the hide-identical rail filter, syncs the toggle button's active
+   * (mod-cta) accent, and re-renders the version list. Only the rail list is
+   * rebuilt: the selected diff base and the diff output are untouched.
+   */
+  protected toggleHideIdentical(): void {
+    this.hideIdenticalVersions = !this.hideIdenticalVersions;
+
+    if (this.hideIdenticalButton) {
+      DomHelper.update(this.hideIdenticalButton, {
+        classes: this.hideIdenticalVersions ? { add: 'mod-cta' } : { remove: 'mod-cta' },
+      });
+    }
+
+    this.renderVersions();
   }
 
   /**
@@ -638,11 +827,13 @@ export class HistoryModal extends Modal {
    * Enables or disables the next/previous difference buttons based on whether
    * the current diff has any hunks to walk, and drops a stale active index when
    * the diff no longer has that many hunks. A diff with zero hunks leaves both
-   * buttons disabled so a click is an ignored no-op.
+   * buttons disabled so a click is an ignored no-op. Patch mode is also disabled:
+   * it renders a plain <pre> with no per-row anchors to scroll to, so stepping
+   * between differences has nothing to focus there.
    */
   protected updateNavButtonsState(): void {
     const count: number = this.getHunks().length;
-    const disabled: boolean = count === 0;
+    const disabled: boolean = count === 0 || this.currentDisplayMode === 'patch';
 
     [this.navButtons.previous, this.navButtons.next].forEach((button: HTMLElement | undefined): void => {
       if (!button) {
@@ -683,6 +874,38 @@ export class HistoryModal extends Modal {
   }
 
   /**
+   * The intermediate versions currently shown in the rail, newest first, after
+   * the content search and the hide-identical filter. The hide-identical filter
+   * drops versions whose captured content equals the live state (picking one
+   * would diff to nothing); the search keeps only versions matching the query.
+   * Shared by the rail render and the post-delete selection so "the next visible
+   * version" means the same list in both.
+   *
+   * @return {FileVersion[]} The visible versions, newest first
+   */
+  protected getVisibleVersions(): FileVersion[] {
+    const versions: FileVersion[] = this.snapshot.getVersions();
+
+    const visibleIds: Set<string> = VersionSearchHelper.match(
+      versions.map((version: FileVersion): SearchableVersion => ({
+        id: version.id,
+        content: version.getContent(this.snapshot.lineBreak),
+      })),
+      this.searchQuery,
+    );
+
+    const currentContent: string = this.snapshot.getLastState();
+
+    return versions.filter((version: FileVersion): boolean => {
+      if (!visibleIds.has(version.id)) {
+        return false;
+      }
+
+      return !this.hideIdenticalVersions || version.getContent(this.snapshot.lineBreak) !== currentContent;
+    });
+  }
+
+  /**
    * Renders the version timeline as a list of selectable diff bases, grouped
    * under a heading per day. The baseline entry (the original compared against
    * the current state) heads the list and is placed in the day group of the
@@ -704,15 +927,7 @@ export class HistoryModal extends Modal {
     // (original vs current) entry, so the block is never collapsed.
     DomHelper.update(this.versionsEl, { classes: { remove: 'lct-versions-empty' } });
 
-    const visibleIds: Set<string> = VersionSearchHelper.match(
-      versions.map((version: FileVersion): SearchableVersion => ({
-        id: version.id,
-        content: version.getContent(this.snapshot.lineBreak),
-      })),
-      this.searchQuery,
-    );
-
-    const matched: FileVersion[] = versions.filter((version: FileVersion): boolean => visibleIds.has(version.id));
+    const matched: FileVersion[] = this.getVisibleVersions();
 
     // Every entry, including the baseline, is grouped by day. The baseline
     // (original vs current) heads the list and takes its day and time from the
@@ -1314,7 +1529,6 @@ export class HistoryModal extends Modal {
               },
               {
                 tag: 'button',
-                text: this.plugin.t('modal.copy'),
                 classes: ['lct-patch-copy-button', 'mod-outline'],
                 events: {
                   click: handlerClick
@@ -1326,8 +1540,19 @@ export class HistoryModal extends Modal {
       }
     );
 
-    // Patch mode has no per-row structure for inline revert, but the navigation
-    // buttons still reflect whether the current diff has any hunks to walk.
+    // Icon-only copy button: the label lives in the tooltip and aria-label so it
+    // stays usable by keyboard and screen readers, matching the toolbar buttons.
+    const copyButton: HTMLButtonElement | null | undefined =
+      this.diffContainerEl?.querySelector<HTMLButtonElement>('.lct-patch-copy-button');
+
+    if (copyButton) {
+      setIcon(copyButton, 'copy');
+      copyButton.setAttribute('aria-label', this.plugin.t('modal.copy'));
+      copyButton.setAttribute('title', this.plugin.t('modal.copy'));
+    }
+
+    // Patch mode has no per-row structure for inline revert and disables the
+    // navigation buttons (no anchors to step through).
     this.updateNavButtonsState();
   }
 

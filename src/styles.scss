@@ -452,9 +452,16 @@
         }
 
         @mixin d2h-emptyplaceholder {
-          background: linear-gradient(
-                          rgba(var(--color-yellow-rgb), 0.2),
-                          rgba(var(--color-yellow-rgb), 0.2)
+          // The empty side of a pure add/remove: no content lives here, so use a
+          // faint diagonal hatch to read as absence rather than a solid change
+          // tint. The insertion point itself is marked by the accent line drawn
+          // at the top of each placeholder run (see d2h-emptyplaceholder marker).
+          background: repeating-linear-gradient(
+                          135deg,
+                          transparent 0,
+                          transparent 6px,
+                          rgba(var(--color-yellow-rgb), 0.1) 6px,
+                          rgba(var(--color-yellow-rgb), 0.1) 12px
           ), var(--background-secondary);
         }
 
@@ -528,7 +535,6 @@
 
           &.d2h-emptyplaceholder {
             @include d2h-emptyplaceholder;
-            border-color: var(--color-yellow) !important;
           }
         }
 
@@ -565,6 +571,39 @@
               }
             }
           }
+        }
+      }
+
+      // Insertion/deletion marker line (side-by-side). A pure add/remove leaves
+      // a run of empty placeholder rows on the opposite column to keep the two
+      // columns row-aligned. The first row of each run is where the change
+      // happened, so mark its top edge with a thin accent line, JetBrains style.
+      // The line is an absolutely positioned overlay (not a border) so the fixed
+      // 24px row height, and thus the cross-column alignment, is preserved; its
+      // z-index sits above the sticky line-number gutter so the line spans the
+      // full row width including the gutter.
+      .d2h-code-row-wrapper:not(.d2h-emptyplaceholder) + .d2h-code-row-wrapper.d2h-emptyplaceholder {
+        position: relative;
+
+        &::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 2px;
+          background-color: var(--color-yellow);
+          z-index: 11;
+          pointer-events: none;
+        }
+
+        // Echo the JetBrains chevron at the insertion point, pinned to the start
+        // of the otherwise empty line-number gutter.
+        .d2h-code-linenumber::before {
+          content: '\00BB';
+          margin-right: auto;
+          color: var(--color-yellow);
+          font-weight: var(--font-bold);
         }
       }
 

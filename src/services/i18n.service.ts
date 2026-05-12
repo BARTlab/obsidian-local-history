@@ -396,6 +396,7 @@ export class I18nService implements Service {
     try {
       const moment: { locale?: () => string } | undefined =
         (globalThis as { moment?: { locale?: () => string } }).moment;
+
       const locale: string | undefined = moment?.locale?.();
 
       if (locale && locale.trim() !== '') {

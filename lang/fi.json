@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "Peru",
 
   "modal.search-versions": "Hae versioista",
-  "modal.version.baseline": "Nykyinen",
   "modal.version.numbered": "Versio {number}",
   "modal.version.current": "Nykyinen",
   "modal.version.original": "Alkuperäinen",
   "modal.no-versions-match": "Mikään versio ei vastaa hakua",
-  "modal.no-snapshots-yet": "Ei vielä välivaiheen tilannevedoksia",
 
   "modal.revert-hunk": "Peru tämä muutos",
 

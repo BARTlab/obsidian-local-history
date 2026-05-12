@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "Qaytarish",
 
   "modal.search-versions": "Versiyalarni qidirish",
-  "modal.version.baseline": "Joriy",
   "modal.version.numbered": "Versiya {number}",
   "modal.version.current": "Joriy",
   "modal.version.original": "Asl",
   "modal.no-versions-match": "Qidiruvga mos versiyalar yoʻq",
-  "modal.no-snapshots-yet": "Hali oraliq suratlar yoʻq",
 
   "modal.revert-hunk": "Bu oʻzgarishni qaytarish",
 

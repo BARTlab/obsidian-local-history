@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "फिर्ता गर्नुहोस्",
 
   "modal.search-versions": "संस्करणहरू खोज्नुहोस्",
-  "modal.version.baseline": "हालको",
   "modal.version.numbered": "संस्करण {number}",
   "modal.version.current": "हालको",
   "modal.version.original": "मूल",
   "modal.no-versions-match": "खोजसँग कुनै संस्करण मेल खाँदैन",
-  "modal.no-snapshots-yet": "अहिलेसम्म कुनै बीचको स्न्यापसट छैन",
 
   "modal.revert-hunk": "यो परिवर्तन फिर्ता गर्नुहोस्",
 

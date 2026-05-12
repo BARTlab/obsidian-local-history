@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "Reverter",
 
   "modal.search-versions": "Pesquisar versões",
-  "modal.version.baseline": "Atual",
   "modal.version.numbered": "Versão {number}",
   "modal.version.current": "Atual",
   "modal.version.original": "Original",
   "modal.no-versions-match": "Nenhuma versão corresponde à pesquisa",
-  "modal.no-snapshots-yet": "Ainda não há instantâneos intermediários",
 
   "modal.revert-hunk": "Reverter esta alteração",
 

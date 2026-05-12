@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "Vrátiť",
 
   "modal.search-versions": "Hľadať verzie",
-  "modal.version.baseline": "Aktuálna",
   "modal.version.numbered": "Verzia {number}",
   "modal.version.current": "Aktuálna",
   "modal.version.original": "Originál",
   "modal.no-versions-match": "Žiadne verzie nezodpovedajú hľadaniu",
-  "modal.no-snapshots-yet": "Zatiaľ žiadne priebežné snímky",
 
   "modal.revert-hunk": "Vrátiť túto zmenu",
 

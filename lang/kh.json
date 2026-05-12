@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "ត្រឡប់វិញ",
 
   "modal.search-versions": "ស្វែងរកកំណែ",
-  "modal.version.baseline": "បច្ចុប្បន្ន",
   "modal.version.numbered": "កំណែ {number}",
   "modal.version.current": "បច្ចុប្បន្ន",
   "modal.version.original": "ដើម",
   "modal.no-versions-match": "គ្មានកំណែដែលត្រូវនឹងការស្វែងរកទេ",
-  "modal.no-snapshots-yet": "មិនទាន់មានរូបថតកណ្ដាលនៅឡើយទេ",
 
   "modal.revert-hunk": "ត្រឡប់ការផ្លាស់ប្ដូរនេះវិញ",
 

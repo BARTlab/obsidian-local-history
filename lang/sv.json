@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "Återställ",
 
   "modal.search-versions": "Sök versioner",
-  "modal.version.baseline": "Aktuell",
   "modal.version.numbered": "Version {number}",
   "modal.version.current": "Aktuell",
   "modal.version.original": "Original",
   "modal.no-versions-match": "Inga versioner matchar sökningen",
-  "modal.no-snapshots-yet": "Inga mellanliggande ögonblicksbilder än",
 
   "modal.revert-hunk": "Återställ den här ändringen",
 

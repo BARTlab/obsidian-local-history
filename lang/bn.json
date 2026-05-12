@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "প্রত্যাবর্তন",
 
   "modal.search-versions": "সংস্করণ অনুসন্ধান করুন",
-  "modal.version.baseline": "বর্তমান",
   "modal.version.numbered": "সংস্করণ {number}",
   "modal.version.current": "বর্তমান",
   "modal.version.original": "মূল",
   "modal.no-versions-match": "অনুসন্ধানের সাথে কোনো সংস্করণ মেলে না",
-  "modal.no-snapshots-yet": "এখনও কোনো মধ্যবর্তী স্ন্যাপশট নেই",
 
   "modal.revert-hunk": "এই পরিবর্তন প্রত্যাবর্তন করুন",
 

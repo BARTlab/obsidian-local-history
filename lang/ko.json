@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "되돌리기",
 
   "modal.search-versions": "버전 검색",
-  "modal.version.baseline": "현재",
   "modal.version.numbered": "버전 {number}",
   "modal.version.current": "현재",
   "modal.version.original": "원본",
   "modal.no-versions-match": "검색과 일치하는 버전이 없습니다",
-  "modal.no-snapshots-yet": "아직 중간 스냅샷이 없습니다",
 
   "modal.revert-hunk": "이 변경 되돌리기",
 

@@ -2262,6 +2262,7 @@ var DEFAULT_SETTINGS = {
     removed: "\u290E"
   }
 };
+var SHOW_CHANGE_KEYS = ["show.changed", "show.restored", "show.added", "show.removed"];
 var STYLE_ID = "line-change-tracker-styles";
 var STATUSBAR_ITEM_ID = "default";
 var ObsidianVaultEvent = /* @__PURE__ */ ((ObsidianVaultEvent2) => {
@@ -2276,6 +2277,7 @@ var ObsidianWorkspaceEvent = /* @__PURE__ */ ((ObsidianWorkspaceEvent2) => {
   ObsidianWorkspaceEvent2["layoutChange"] = "workspace.layout-change";
   ObsidianWorkspaceEvent2["fileOpen"] = "workspace.file-open";
   ObsidianWorkspaceEvent2["editorMenu"] = "workspace.editor-menu";
+  ObsidianWorkspaceEvent2["viewportMenu"] = "workspace.markdown-viewport-menu";
   ObsidianWorkspaceEvent2["fileMenu"] = "workspace.file-menu";
   ObsidianWorkspaceEvent2["quit"] = "workspace.quit";
   ObsidianWorkspaceEvent2["resize"] = "workspace.resize";
@@ -2628,6 +2630,39 @@ __decorateClass([
   Inject("SettingsService")
 ], WorkspaceLayoutChangeEvent.prototype, "settingsService", 2);
 
+// src/events/workspace/viewport-menu.event.ts
+var WorkspaceViewportMenuEvent = class extends BaseEvent {
+  constructor() {
+    super(...arguments);
+    /**
+     * The name of the Obsidian event to handle.
+     * Set to the workspace.markdown-viewport-menu event.
+     */
+    this.name = ObsidianEvent.workspace.viewportMenu;
+  }
+  /**
+   * Handles the viewport menu event by adding the "Show changes" toggle (checked
+   * when every tracked change type is shown) to the native "view" section, so it
+   * lines up with Obsidian's own gutter view toggles.
+   *
+   * @param {Menu} menu - The menu to add items to
+   * @param {MarkdownView} _view - The markdown view (not used in this handler)
+   * @param {string} _mode - The view mode ("source" or "preview"); not used here
+   * @param {string} _source - Where the menu was opened from (e.g. "gutter")
+   */
+  handler(menu, _view, _mode, _source) {
+    const shown = this.settingsService.isShowChangesEnabled();
+    menu.addItem((item) => {
+      item.setSection("view").setTitle(this.plugin.t("menu.show-changes")).setIcon("eye").setChecked(shown).onClick(() => {
+        this.settingsService.toggleShowChanges(!shown);
+      });
+    });
+  }
+};
+__decorateClass([
+  Inject("SettingsService")
+], WorkspaceViewportMenuEvent.prototype, "settingsService", 2);
+
 // src/services/events.service.ts
 var EventsService = class {
   /**
@@ -2666,6 +2701,7 @@ var EventsService = class {
     this.register(WorkspaceFileOpenEvent);
     this.register(WorkspaceLayoutChangeEvent);
     this.register(WorkspaceEditorMenuEvent);
+    this.register(WorkspaceViewportMenuEvent);
     this.register(WorkspaceFilesMenuEvent);
   }
   /**
@@ -3939,7 +3975,6 @@ var DotMarker = _DotMarker;
 // src/extensions/gutter-common.extension.ts
 var import_obsidian10 = require("obsidian");
 var import_state3 = require("@codemirror/state");
-var SHOW_CHANGE_KEYS = ["show.changed", "show.restored", "show.added", "show.removed"];
 var GutterCommonExtension = class extends BaseExtension {
   constructor() {
     super(...arguments);
@@ -4056,33 +4091,13 @@ var GutterCommonExtension = class extends BaseExtension {
   openGutterMenu(event) {
     event.preventDefault();
     const menu = new import_obsidian10.Menu();
-    const shown = this.isShowChangesEnabled();
+    const shown = this.settingsService.isShowChangesEnabled();
     menu.addItem((item) => {
       item.setTitle(this.plugin.t("menu.show-changes")).setIcon("eye").setChecked(shown).onClick(() => {
-        this.toggleShowChanges(!shown);
+        this.settingsService.toggleShowChanges(!shown);
       });
     });
     menu.showAtMouseEvent(event);
-  }
-  /**
-   * Whether the gutter "show changes" toggle reads as on: true only when every
-   * tracked `show.*` flag is enabled, so the single toggle reflects a fully
-   * visible gutter.
-   *
-   * @return {boolean} True if all tracked change types are shown
-   */
-  isShowChangesEnabled() {
-    return SHOW_CHANGE_KEYS.every((key2) => this.settingsService.value(key2));
-  }
-  /**
-   * Sets every tracked `show.*` flag at once, so the gutter "show changes"
-   * toggle turns all change indicators on or off together.
-   *
-   * @param {boolean} value - The new visibility for all tracked change types
-   * @return {void}
-   */
-  toggleShowChanges(value) {
-    SHOW_CHANGE_KEYS.forEach((key2) => this.settingsService.update(key2, value));
   }
   /**
    * Checks if the indicator type is set to 'dot'.
@@ -4386,12 +4401,10 @@ var am_default = {
   "modal.confirm.revert.message": "\u12ED\u1205\u1295 \u1208\u12CD\u1325 \u12C8\u12F0 \u1270\u1218\u1228\u1320\u12CD \u1218\u1230\u1228\u1275 \u12ED\u1218\u1208\u1235? \u120C\u120E\u127D \u1208\u12CD\u1326\u127D \u12ED\u1246\u12EB\u1209\u1362",
   "modal.confirm.revert.button": "\u1218\u120D\u1235",
   "modal.search-versions": "\u1235\u122A\u1276\u127D\u1295 \u1348\u120D\u130D",
-  "modal.version.baseline": "\u12E8\u12A0\u1201\u1291",
   "modal.version.numbered": "\u1235\u122A\u1275 {number}",
   "modal.version.current": "\u12E8\u12A0\u1201\u1291",
   "modal.version.original": "\u1218\u1290\u123B",
   "modal.no-versions-match": "\u12A8\u134D\u1208\u130B\u12CD \u130B\u122D \u12E8\u121A\u12DB\u1218\u12F1 \u1235\u122A\u1276\u127D \u12E8\u1209\u121D",
-  "modal.no-snapshots-yet": "\u1308\u1293 \u1218\u12AB\u12A8\u1208\u129B \u1245\u133D\u1260\u1273\u12CA \u1245\u1302\u12CE\u127D \u12E8\u1209\u121D",
   "modal.revert-hunk": "\u12ED\u1205\u1295 \u1208\u12CD\u1325 \u1218\u120D\u1235",
   "modal.copy": "\u1245\u12F3"
 };
@@ -4492,12 +4505,10 @@ var ar_default = {
   "modal.confirm.revert.message": "\u0647\u0644 \u062A\u0631\u064A\u062F \u0627\u0644\u062A\u0631\u0627\u062C\u0639 \u0639\u0646 \u0647\u0630\u0627 \u0627\u0644\u062A\u063A\u064A\u064A\u0631 \u0625\u0644\u0649 \u0627\u0644\u0623\u0633\u0627\u0633 \u0627\u0644\u0645\u062D\u062F\u062F\u061F \u064A\u062A\u0645 \u0627\u0644\u0627\u062D\u062A\u0641\u0627\u0638 \u0628\u0627\u0644\u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0627\u0644\u0623\u062E\u0631\u0649.",
   "modal.confirm.revert.button": "\u062A\u0631\u0627\u062C\u0639",
   "modal.search-versions": "\u0627\u0644\u0628\u062D\u062B \u0641\u064A \u0627\u0644\u0625\u0635\u062F\u0627\u0631\u0627\u062A",
-  "modal.version.baseline": "\u0627\u0644\u062D\u0627\u0644\u064A",
   "modal.version.numbered": "\u0627\u0644\u0625\u0635\u062F\u0627\u0631 {number}",
   "modal.version.current": "\u0627\u0644\u062D\u0627\u0644\u064A",
   "modal.version.original": "\u0627\u0644\u0623\u0635\u0644\u064A",
   "modal.no-versions-match": "\u0644\u0627 \u062A\u0648\u062C\u062F \u0625\u0635\u062F\u0627\u0631\u0627\u062A \u062A\u0637\u0627\u0628\u0642 \u0627\u0644\u0628\u062D\u062B",
-  "modal.no-snapshots-yet": "\u0644\u0627 \u062A\u0648\u062C\u062F \u0644\u0642\u0637\u0627\u062A \u0648\u0633\u064A\u0637\u0629 \u0628\u0639\u062F",
   "modal.revert-hunk": "\u0627\u0644\u062A\u0631\u0627\u062C\u0639 \u0639\u0646 \u0647\u0630\u0627 \u0627\u0644\u062A\u063A\u064A\u064A\u0631",
   "modal.copy": "\u0646\u0633\u062E"
 };
@@ -4598,12 +4609,10 @@ var be_default = {
   "modal.confirm.revert.message": "\u0410\u0434\u043A\u0430\u0446\u0456\u0446\u044C \u0433\u044D\u0442\u0443\u044E \u0437\u043C\u0435\u043D\u0443 \u0434\u0430 \u0432\u044B\u0431\u0440\u0430\u043D\u0430\u0439 \u0431\u0430\u0437\u044B? \u0410\u0441\u0442\u0430\u0442\u043D\u0456\u044F \u0437\u043C\u0435\u043D\u044B \u0437\u0430\u0445\u0430\u0432\u0430\u044E\u0446\u0446\u0430.",
   "modal.confirm.revert.button": "\u0410\u0434\u043A\u0430\u0446\u0456\u0446\u044C",
   "modal.search-versions": "\u041F\u043E\u0448\u0443\u043A \u0432\u0435\u0440\u0441\u0456\u0439",
-  "modal.version.baseline": "\u0411\u044F\u0433\u0443\u0447\u0430\u044F",
   "modal.version.numbered": "\u0412\u0435\u0440\u0441\u0456\u044F {number}",
   "modal.version.current": "\u0411\u044F\u0433\u0443\u0447\u0430\u044F",
   "modal.version.original": "\u0410\u0440\u044B\u0433\u0456\u043D\u0430\u043B",
   "modal.no-versions-match": "\u041D\u044F\u043C\u0430 \u0432\u0435\u0440\u0441\u0456\u0439, \u0448\u0442\u043E \u0430\u0434\u043F\u0430\u0432\u044F\u0434\u0430\u044E\u0446\u044C \u043F\u043E\u0448\u0443\u043A\u0443",
-  "modal.no-snapshots-yet": "\u041F\u0440\u0430\u043C\u0435\u0436\u043A\u0430\u0432\u044B\u0445 \u0437\u0434\u044B\u043C\u043A\u0430\u045E \u043F\u0430\u043A\u0443\u043B\u044C \u043D\u044F\u043C\u0430",
   "modal.revert-hunk": "\u0410\u0434\u043A\u0430\u0446\u0456\u0446\u044C \u0433\u044D\u0442\u0443\u044E \u0437\u043C\u0435\u043D\u0443",
   "modal.copy": "\u041A\u0430\u043F\u0456\u044F\u0432\u0430\u0446\u044C"
 };
@@ -4704,12 +4713,10 @@ var bn_default = {
   "modal.confirm.revert.message": "\u098F\u0987 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8\u099F\u09BF \u09A8\u09BF\u09B0\u09CD\u09AC\u09BE\u099A\u09BF\u09A4 \u09AD\u09BF\u09A4\u09CD\u09A4\u09BF\u09A4\u09C7 \u09AA\u09CD\u09B0\u09A4\u09CD\u09AF\u09BE\u09AC\u09B0\u09CD\u09A4\u09A8 \u0995\u09B0\u09AC\u09C7\u09A8? \u0985\u09A8\u09CD\u09AF\u09BE\u09A8\u09CD\u09AF \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u09B0\u09BE\u0996\u09BE \u09B9\u09AC\u09C7\u0964",
   "modal.confirm.revert.button": "\u09AA\u09CD\u09B0\u09A4\u09CD\u09AF\u09BE\u09AC\u09B0\u09CD\u09A4\u09A8",
   "modal.search-versions": "\u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3 \u0985\u09A8\u09C1\u09B8\u09A8\u09CD\u09A7\u09BE\u09A8 \u0995\u09B0\u09C1\u09A8",
-  "modal.version.baseline": "\u09AC\u09B0\u09CD\u09A4\u09AE\u09BE\u09A8",
   "modal.version.numbered": "\u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3 {number}",
   "modal.version.current": "\u09AC\u09B0\u09CD\u09A4\u09AE\u09BE\u09A8",
   "modal.version.original": "\u09AE\u09C2\u09B2",
   "modal.no-versions-match": "\u0985\u09A8\u09C1\u09B8\u09A8\u09CD\u09A7\u09BE\u09A8\u09C7\u09B0 \u09B8\u09BE\u09A5\u09C7 \u0995\u09CB\u09A8\u09CB \u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3 \u09AE\u09C7\u09B2\u09C7 \u09A8\u09BE",
-  "modal.no-snapshots-yet": "\u098F\u0996\u09A8\u0993 \u0995\u09CB\u09A8\u09CB \u09AE\u09A7\u09CD\u09AF\u09AC\u09B0\u09CD\u09A4\u09C0 \u09B8\u09CD\u09A8\u09CD\u09AF\u09BE\u09AA\u09B6\u099F \u09A8\u09C7\u0987",
   "modal.revert-hunk": "\u098F\u0987 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u09AA\u09CD\u09B0\u09A4\u09CD\u09AF\u09BE\u09AC\u09B0\u09CD\u09A4\u09A8 \u0995\u09B0\u09C1\u09A8",
   "modal.copy": "\u0985\u09A8\u09C1\u09B2\u09BF\u09AA\u09BF"
 };
@@ -4810,12 +4817,10 @@ var ca_default = {
   "modal.confirm.revert.message": "Vols revertir aquest canvi a la base seleccionada? Es conserven la resta de canvis.",
   "modal.confirm.revert.button": "Reverteix",
   "modal.search-versions": "Cerca versions",
-  "modal.version.baseline": "Actual",
   "modal.version.numbered": "Versi\xF3 {number}",
   "modal.version.current": "Actual",
   "modal.version.original": "Original",
   "modal.no-versions-match": "Cap versi\xF3 coincideix amb la cerca",
-  "modal.no-snapshots-yet": "Encara no hi ha instant\xE0nies interm\xE8dies",
   "modal.revert-hunk": "Reverteix aquest canvi",
   "modal.copy": "Copia"
 };
@@ -4916,12 +4921,10 @@ var cs_default = {
   "modal.confirm.revert.message": "Vr\xE1tit tuto zm\u011Bnu zp\u011Bt na vybran\xFD z\xE1klad? Ostatn\xED zm\u011Bny z\u016Fstanou zachov\xE1ny.",
   "modal.confirm.revert.button": "Vr\xE1tit",
   "modal.search-versions": "Hledat verze",
-  "modal.version.baseline": "Aktu\xE1ln\xED",
   "modal.version.numbered": "Verze {number}",
   "modal.version.current": "Aktu\xE1ln\xED",
   "modal.version.original": "Origin\xE1l",
   "modal.no-versions-match": "\u017D\xE1dn\xE9 verze neodpov\xEDdaj\xED hled\xE1n\xED",
-  "modal.no-snapshots-yet": "Zat\xEDm \u017E\xE1dn\xE9 pr\u016Fb\u011B\u017En\xE9 sn\xEDmky",
   "modal.revert-hunk": "Vr\xE1tit tuto zm\u011Bnu",
   "modal.copy": "Kop\xEDrovat"
 };
@@ -5022,12 +5025,10 @@ var da_default = {
   "modal.confirm.revert.message": "Vil du tilbagef\xF8re denne \xE6ndring til den valgte base? \xD8vrige \xE6ndringer bevares.",
   "modal.confirm.revert.button": "Tilbagef\xF8r",
   "modal.search-versions": "S\xF8g i versioner",
-  "modal.version.baseline": "Aktuel",
   "modal.version.numbered": "Version {number}",
   "modal.version.current": "Aktuel",
   "modal.version.original": "Original",
   "modal.no-versions-match": "Ingen versioner matcher s\xF8gningen",
-  "modal.no-snapshots-yet": "Endnu ingen mellemliggende \xF8jebliksbilleder",
   "modal.revert-hunk": "Tilbagef\xF8r denne \xE6ndring",
   "modal.copy": "Kopier"
 };
@@ -5128,12 +5129,10 @@ var de_default = {
   "modal.confirm.revert.message": "Diese \xC4nderung auf die ausgew\xE4hlte Basis zur\xFCcknehmen? Andere \xC4nderungen bleiben erhalten.",
   "modal.confirm.revert.button": "Zur\xFCcknehmen",
   "modal.search-versions": "Versionen durchsuchen",
-  "modal.version.baseline": "Aktuell",
   "modal.version.numbered": "Version {number}",
   "modal.version.current": "Aktuell",
   "modal.version.original": "Original",
   "modal.no-versions-match": "Keine Versionen entsprechen der Suche",
-  "modal.no-snapshots-yet": "Noch keine Zwischen-Snapshots",
   "modal.revert-hunk": "Diese \xC4nderung zur\xFCcknehmen",
   "modal.copy": "Kopieren"
 };
@@ -5234,12 +5233,10 @@ var en_default = {
   "modal.confirm.revert.message": "Revert this change back to the selected base? Other changes are kept.",
   "modal.confirm.revert.button": "Revert",
   "modal.search-versions": "Search versions",
-  "modal.version.baseline": "Current",
   "modal.version.numbered": "Version {number}",
   "modal.version.current": "Current",
   "modal.version.original": "Original",
   "modal.no-versions-match": "No versions match the search",
-  "modal.no-snapshots-yet": "No intermediate snapshots yet",
   "modal.revert-hunk": "Revert this change",
   "modal.copy": "Copy"
 };
@@ -5340,12 +5337,10 @@ var en_GB_default = {
   "modal.confirm.revert.message": "Revert this change back to the selected base? Other changes are kept.",
   "modal.confirm.revert.button": "Revert",
   "modal.search-versions": "Search versions",
-  "modal.version.baseline": "Current",
   "modal.version.numbered": "Version {number}",
   "modal.version.current": "Current",
   "modal.version.original": "Original",
   "modal.no-versions-match": "No versions match the search",
-  "modal.no-snapshots-yet": "No intermediate snapshots yet",
   "modal.revert-hunk": "Revert this change",
   "modal.copy": "Copy"
 };
@@ -5446,12 +5441,10 @@ var es_default = {
   "modal.confirm.revert.message": "\xBFRevertir este cambio a la base seleccionada? Los dem\xE1s cambios se conservan.",
   "modal.confirm.revert.button": "Revertir",
   "modal.search-versions": "Buscar versiones",
-  "modal.version.baseline": "Actual",
   "modal.version.numbered": "Versi\xF3n {number}",
   "modal.version.current": "Actual",
   "modal.version.original": "Original",
   "modal.no-versions-match": "Ninguna versi\xF3n coincide con la b\xFAsqueda",
-  "modal.no-snapshots-yet": "A\xFAn no hay instant\xE1neas intermedias",
   "modal.revert-hunk": "Revertir este cambio",
   "modal.copy": "Copiar"
 };
@@ -5552,12 +5545,10 @@ var fa_default = {
   "modal.confirm.revert.message": "\u0627\u06CC\u0646 \u062A\u063A\u06CC\u06CC\u0631 \u0628\u0647 \u067E\u0627\u06CC\u0647 \u0627\u0646\u062A\u062E\u0627\u0628\u200C\u0634\u062F\u0647 \u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u062F\u0647 \u0634\u0648\u062F\u061F \u0633\u0627\u06CC\u0631 \u062A\u063A\u06CC\u06CC\u0631\u0627\u062A \u062D\u0641\u0638 \u0645\u06CC\u200C\u0634\u0648\u0646\u062F.",
   "modal.confirm.revert.button": "\u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u06CC",
   "modal.search-versions": "\u062C\u0633\u062A\u200C\u0648\u062C\u0648\u06CC \u0646\u0633\u062E\u0647\u200C\u0647\u0627",
-  "modal.version.baseline": "\u0641\u0639\u0644\u06CC",
   "modal.version.numbered": "\u0646\u0633\u062E\u0647 {number}",
   "modal.version.current": "\u0641\u0639\u0644\u06CC",
   "modal.version.original": "\u0627\u0635\u0644\u06CC",
   "modal.no-versions-match": "\u0647\u06CC\u0686 \u0646\u0633\u062E\u0647\u200C\u0627\u06CC \u0628\u0627 \u062C\u0633\u062A\u200C\u0648\u062C\u0648 \u0645\u0637\u0627\u0628\u0642\u062A \u0646\u062F\u0627\u0631\u062F",
-  "modal.no-snapshots-yet": "\u0647\u0646\u0648\u0632 \u0639\u06A9\u0633 \u0641\u0648\u0631\u06CC \u0645\u06CC\u0627\u0646\u06CC\u200C\u0627\u06CC \u0648\u062C\u0648\u062F \u0646\u062F\u0627\u0631\u062F",
   "modal.revert-hunk": "\u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u06CC \u0627\u06CC\u0646 \u062A\u063A\u06CC\u06CC\u0631",
   "modal.copy": "\u06A9\u067E\u06CC"
 };
@@ -5658,12 +5649,10 @@ var fi_default = {
   "modal.confirm.revert.message": "Perutaanko t\xE4m\xE4 muutos takaisin valittuun perustaan? Muut muutokset s\xE4ilytet\xE4\xE4n.",
   "modal.confirm.revert.button": "Peru",
   "modal.search-versions": "Hae versioista",
-  "modal.version.baseline": "Nykyinen",
   "modal.version.numbered": "Versio {number}",
   "modal.version.current": "Nykyinen",
   "modal.version.original": "Alkuper\xE4inen",
   "modal.no-versions-match": "Mik\xE4\xE4n versio ei vastaa hakua",
-  "modal.no-snapshots-yet": "Ei viel\xE4 v\xE4livaiheen tilannevedoksia",
   "modal.revert-hunk": "Peru t\xE4m\xE4 muutos",
   "modal.copy": "Kopioi"
 };
@@ -5764,12 +5753,10 @@ var fr_default = {
   "modal.confirm.revert.message": "Annuler cette modification pour revenir \xE0 la base s\xE9lectionn\xE9e ? Les autres modifications sont conserv\xE9es.",
   "modal.confirm.revert.button": "Annuler la modification",
   "modal.search-versions": "Rechercher des versions",
-  "modal.version.baseline": "Actuelle",
   "modal.version.numbered": "Version {number}",
   "modal.version.current": "Actuelle",
   "modal.version.original": "Original",
   "modal.no-versions-match": "Aucune version ne correspond \xE0 la recherche",
-  "modal.no-snapshots-yet": "Aucun instantan\xE9 interm\xE9diaire pour le moment",
   "modal.revert-hunk": "Annuler cette modification",
   "modal.copy": "Copier"
 };
@@ -5870,12 +5857,10 @@ var ga_default = {
   "modal.confirm.revert.message": "Fill an t-athr\xFA seo ar ais go dt\xED an bonn roghnaithe? Coinn\xEDtear na hathruithe eile.",
   "modal.confirm.revert.button": "Fill",
   "modal.search-versions": "Cuardaigh leaganacha",
-  "modal.version.baseline": "Reatha",
   "modal.version.numbered": "Leagan {number}",
   "modal.version.current": "Reatha",
   "modal.version.original": "Bunleagan",
   "modal.no-versions-match": "N\xEDl aon leagan ag meaitse\xE1il an chuardaigh",
-  "modal.no-snapshots-yet": "N\xEDl aon roghbhl\xFAire idirmhe\xE1nach ann f\xF3s",
   "modal.revert-hunk": "Fill an t-athr\xFA seo",
   "modal.copy": "C\xF3ipe\xE1il"
 };
@@ -5976,12 +5961,10 @@ var he_default = {
   "modal.confirm.revert.message": "\u05DC\u05D1\u05D8\u05DC \u05E9\u05D9\u05E0\u05D5\u05D9 \u05D6\u05D4 \u05D5\u05DC\u05D7\u05D6\u05D5\u05E8 \u05DC\u05D1\u05E1\u05D9\u05E1 \u05D4\u05E0\u05D1\u05D7\u05E8? \u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05D0\u05D7\u05E8\u05D9\u05DD \u05E0\u05E9\u05DE\u05E8\u05D9\u05DD.",
   "modal.confirm.revert.button": "\u05D1\u05D9\u05D8\u05D5\u05DC \u05E9\u05D9\u05E0\u05D5\u05D9",
   "modal.search-versions": "\u05D7\u05D9\u05E4\u05D5\u05E9 \u05D2\u05E8\u05E1\u05D0\u05D5\u05EA",
-  "modal.version.baseline": "\u05E0\u05D5\u05DB\u05D7\u05D9",
   "modal.version.numbered": "\u05D2\u05E8\u05E1\u05D4 {number}",
   "modal.version.current": "\u05E0\u05D5\u05DB\u05D7\u05D9",
   "modal.version.original": "\u05DE\u05E7\u05D5\u05E8\u05D9",
   "modal.no-versions-match": "\u05D0\u05D9\u05DF \u05D2\u05E8\u05E1\u05D0\u05D5\u05EA \u05D4\u05EA\u05D5\u05D0\u05DE\u05D5\u05EA \u05DC\u05D7\u05D9\u05E4\u05D5\u05E9",
-  "modal.no-snapshots-yet": "\u05D0\u05D9\u05DF \u05E2\u05D3\u05D9\u05D9\u05DF \u05EA\u05E6\u05DC\u05D5\u05DE\u05D9 \u05D1\u05D9\u05E0\u05D9\u05D9\u05DD",
   "modal.revert-hunk": "\u05D1\u05D9\u05D8\u05D5\u05DC \u05E9\u05D9\u05E0\u05D5\u05D9 \u05D6\u05D4",
   "modal.copy": "\u05D4\u05E2\u05EA\u05E7\u05D4"
 };
@@ -6082,12 +6065,10 @@ var hu_default = {
   "modal.confirm.revert.message": "Visszavonja ezt a m\xF3dos\xEDt\xE1st a kijel\xF6lt alaphoz? A t\xF6bbi m\xF3dos\xEDt\xE1s megmarad.",
   "modal.confirm.revert.button": "Visszavon\xE1s",
   "modal.search-versions": "Verzi\xF3k keres\xE9se",
-  "modal.version.baseline": "Jelenlegi",
   "modal.version.numbered": "{number}. verzi\xF3",
   "modal.version.current": "Jelenlegi",
   "modal.version.original": "Eredeti",
   "modal.no-versions-match": "Nincs a keres\xE9snek megfelel\u0151 verzi\xF3",
-  "modal.no-snapshots-yet": "M\xE9g nincsenek k\xF6ztes pillanatk\xE9pek",
   "modal.revert-hunk": "M\xF3dos\xEDt\xE1s visszavon\xE1sa",
   "modal.copy": "M\xE1sol\xE1s"
 };
@@ -6188,12 +6169,10 @@ var id_default = {
   "modal.confirm.revert.message": "Kembalikan perubahan ini ke basis yang dipilih? Perubahan lain tetap dipertahankan.",
   "modal.confirm.revert.button": "Kembalikan",
   "modal.search-versions": "Cari versi",
-  "modal.version.baseline": "Saat ini",
   "modal.version.numbered": "Versi {number}",
   "modal.version.current": "Saat ini",
   "modal.version.original": "Asli",
   "modal.no-versions-match": "Tidak ada versi yang cocok dengan pencarian",
-  "modal.no-snapshots-yet": "Belum ada snapshot antara",
   "modal.revert-hunk": "Kembalikan perubahan ini",
   "modal.copy": "Salin"
 };
@@ -6294,12 +6273,10 @@ var it_default = {
   "modal.confirm.revert.message": "Ripristinare questa modifica alla base selezionata? Le altre modifiche vengono mantenute.",
   "modal.confirm.revert.button": "Ripristina",
   "modal.search-versions": "Cerca versioni",
-  "modal.version.baseline": "Attuale",
   "modal.version.numbered": "Versione {number}",
   "modal.version.current": "Attuale",
   "modal.version.original": "Originale",
   "modal.no-versions-match": "Nessuna versione corrisponde alla ricerca",
-  "modal.no-snapshots-yet": "Ancora nessuna istantanea intermedia",
   "modal.revert-hunk": "Ripristina questa modifica",
   "modal.copy": "Copia"
 };
@@ -6400,12 +6377,10 @@ var ja_default = {
   "modal.confirm.revert.message": "\u3053\u306E\u5909\u66F4\u3092\u9078\u629E\u3057\u305F\u30D9\u30FC\u30B9\u306B\u623B\u3057\u307E\u3059\u304B\uFF1F\u4ED6\u306E\u5909\u66F4\u306F\u4FDD\u6301\u3055\u308C\u307E\u3059\u3002",
   "modal.confirm.revert.button": "\u5143\u306B\u623B\u3059",
   "modal.search-versions": "\u30D0\u30FC\u30B8\u30E7\u30F3\u3092\u691C\u7D22",
-  "modal.version.baseline": "\u73FE\u5728",
   "modal.version.numbered": "\u30D0\u30FC\u30B8\u30E7\u30F3 {number}",
   "modal.version.current": "\u73FE\u5728",
   "modal.version.original": "\u5143\u306E\u72B6\u614B",
   "modal.no-versions-match": "\u691C\u7D22\u306B\u4E00\u81F4\u3059\u308B\u30D0\u30FC\u30B8\u30E7\u30F3\u304C\u3042\u308A\u307E\u305B\u3093",
-  "modal.no-snapshots-yet": "\u4E2D\u9593\u30B9\u30CA\u30C3\u30D7\u30B7\u30E7\u30C3\u30C8\u306F\u307E\u3060\u3042\u308A\u307E\u305B\u3093",
   "modal.revert-hunk": "\u3053\u306E\u5909\u66F4\u3092\u5143\u306B\u623B\u3059",
   "modal.copy": "\u30B3\u30D4\u30FC"
 };
@@ -6506,12 +6481,10 @@ var ka_default = {
   "modal.confirm.revert.message": "\u10D3\u10D0\u10D1\u10E0\u10E3\u10DC\u10D3\u10D4\u10E1 \u10D4\u10E1 \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D0 \u10D0\u10E0\u10E9\u10D4\u10E3\u10DA \u10D1\u10D0\u10D6\u10D0\u10DB\u10D3\u10D4? \u10E1\u10EE\u10D5\u10D0 \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10D8 \u10E8\u10D4\u10DC\u10D0\u10E0\u10E9\u10E3\u10DC\u10D3\u10D4\u10D1\u10D0.",
   "modal.confirm.revert.button": "\u10D3\u10D0\u10D1\u10E0\u10E3\u10DC\u10D4\u10D1\u10D0",
   "modal.search-versions": "\u10D5\u10D4\u10E0\u10E1\u10D8\u10D4\u10D1\u10D8\u10E1 \u10EB\u10D8\u10D4\u10D1\u10D0",
-  "modal.version.baseline": "\u10DB\u10D8\u10DB\u10D3\u10D8\u10DC\u10D0\u10E0\u10D4",
   "modal.version.numbered": "\u10D5\u10D4\u10E0\u10E1\u10D8\u10D0 {number}",
   "modal.version.current": "\u10DB\u10D8\u10DB\u10D3\u10D8\u10DC\u10D0\u10E0\u10D4",
   "modal.version.original": "\u10DD\u10E0\u10D8\u10D2\u10D8\u10DC\u10D0\u10DA\u10D8",
   "modal.no-versions-match": "\u10EB\u10D8\u10D4\u10D1\u10D0\u10E1 \u10D5\u10D4\u10E0\u10E1\u10D8\u10D4\u10D1\u10D8 \u10D0\u10E0 \u10D4\u10DB\u10D7\u10EE\u10D5\u10D4\u10D5\u10D0",
-  "modal.no-snapshots-yet": "\u10EF\u10D4\u10E0 \u10E8\u10E3\u10D0\u10DA\u10D4\u10D3\u10E3\u10E0\u10D8 \u10E1\u10EC\u10E0\u10D0\u10E4\u10D8 \u10D0\u10E1\u10DA\u10D4\u10D1\u10D8 \u10D0\u10E0 \u10D0\u10E0\u10D8\u10E1",
   "modal.revert-hunk": "\u10D0\u10DB \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10D3\u10D0\u10D1\u10E0\u10E3\u10DC\u10D4\u10D1\u10D0",
   "modal.copy": "\u10D9\u10DD\u10DE\u10D8\u10E0\u10D4\u10D1\u10D0"
 };
@@ -6612,12 +6585,10 @@ var kh_default = {
   "modal.confirm.revert.message": "\u178F\u17D2\u179A\u17A1\u1794\u17CB\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1793\u17C1\u17C7\u1791\u17C5\u1798\u17BC\u179B\u178A\u17D2\u178B\u17B6\u1793\u178A\u17C2\u179B\u1794\u17B6\u1793\u1787\u17D2\u179A\u17BE\u179F\u179C\u17B7\u1789? \u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1795\u17D2\u179F\u17C1\u1784\u1791\u17C0\u178F\u178F\u17D2\u179A\u17BC\u179C\u179A\u1780\u17D2\u179F\u17B6\u1791\u17BB\u1780\u17D4",
   "modal.confirm.revert.button": "\u178F\u17D2\u179A\u17A1\u1794\u17CB\u179C\u17B7\u1789",
   "modal.search-versions": "\u179F\u17D2\u179C\u17C2\u1784\u179A\u1780\u1780\u17C6\u178E\u17C2",
-  "modal.version.baseline": "\u1794\u1785\u17D2\u1785\u17BB\u1794\u17D2\u1794\u1793\u17D2\u1793",
   "modal.version.numbered": "\u1780\u17C6\u178E\u17C2 {number}",
   "modal.version.current": "\u1794\u1785\u17D2\u1785\u17BB\u1794\u17D2\u1794\u1793\u17D2\u1793",
   "modal.version.original": "\u178A\u17BE\u1798",
   "modal.no-versions-match": "\u1782\u17D2\u1798\u17B6\u1793\u1780\u17C6\u178E\u17C2\u178A\u17C2\u179B\u178F\u17D2\u179A\u17BC\u179C\u1793\u17B9\u1784\u1780\u17B6\u179A\u179F\u17D2\u179C\u17C2\u1784\u179A\u1780\u1791\u17C1",
-  "modal.no-snapshots-yet": "\u1798\u17B7\u1793\u1791\u17B6\u1793\u17CB\u1798\u17B6\u1793\u179A\u17BC\u1794\u1790\u178F\u1780\u178E\u17D2\u178A\u17B6\u179B\u1793\u17C5\u17A1\u17BE\u1799\u1791\u17C1",
   "modal.revert-hunk": "\u178F\u17D2\u179A\u17A1\u1794\u17CB\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1793\u17C1\u17C7\u179C\u17B7\u1789",
   "modal.copy": "\u1785\u1798\u17D2\u179B\u1784"
 };
@@ -6718,12 +6689,10 @@ var ko_default = {
   "modal.confirm.revert.message": "\uC774 \uBCC0\uACBD\uC744 \uC120\uD0DD\uD55C \uAE30\uC900\uC73C\uB85C \uB418\uB3CC\uB9AC\uC2DC\uACA0\uC2B5\uB2C8\uAE4C? \uB2E4\uB978 \uBCC0\uACBD \uC0AC\uD56D\uC740 \uC720\uC9C0\uB429\uB2C8\uB2E4.",
   "modal.confirm.revert.button": "\uB418\uB3CC\uB9AC\uAE30",
   "modal.search-versions": "\uBC84\uC804 \uAC80\uC0C9",
-  "modal.version.baseline": "\uD604\uC7AC",
   "modal.version.numbered": "\uBC84\uC804 {number}",
   "modal.version.current": "\uD604\uC7AC",
   "modal.version.original": "\uC6D0\uBCF8",
   "modal.no-versions-match": "\uAC80\uC0C9\uACFC \uC77C\uCE58\uD558\uB294 \uBC84\uC804\uC774 \uC5C6\uC2B5\uB2C8\uB2E4",
-  "modal.no-snapshots-yet": "\uC544\uC9C1 \uC911\uAC04 \uC2A4\uB0C5\uC0F7\uC774 \uC5C6\uC2B5\uB2C8\uB2E4",
   "modal.revert-hunk": "\uC774 \uBCC0\uACBD \uB418\uB3CC\uB9AC\uAE30",
   "modal.copy": "\uBCF5\uC0AC"
 };
@@ -6824,12 +6793,10 @@ var lv_default = {
   "modal.confirm.revert.message": "Atsaukt \u0161o izmai\u0146u atpaka\u013C uz izv\u0113l\u0113to b\u0101zi? P\u0101r\u0113j\u0101s izmai\u0146as tiek saglab\u0101tas.",
   "modal.confirm.revert.button": "Atsaukt",
   "modal.search-versions": "Mekl\u0113t versij\u0101s",
-  "modal.version.baseline": "Pa\u0161reiz\u0113jais",
   "modal.version.numbered": "Versija {number}",
   "modal.version.current": "Pa\u0161reiz\u0113jais",
   "modal.version.original": "Ori\u0123in\u0101ls",
   "modal.no-versions-match": "Neviena versija neatbilst mekl\u0113jumam",
-  "modal.no-snapshots-yet": "V\u0113l nav starpposma momentuz\u0146\u0113mumu",
   "modal.revert-hunk": "Atsaukt \u0161o izmai\u0146u",
   "modal.copy": "Kop\u0113t"
 };
@@ -6930,12 +6897,10 @@ var ms_default = {
   "modal.confirm.revert.message": "Patah balik perubahan ini kepada asas yang dipilih? Perubahan lain dikekalkan.",
   "modal.confirm.revert.button": "Patah balik",
   "modal.search-versions": "Cari versi",
-  "modal.version.baseline": "Semasa",
   "modal.version.numbered": "Versi {number}",
   "modal.version.current": "Semasa",
   "modal.version.original": "Asal",
   "modal.no-versions-match": "Tiada versi sepadan dengan carian",
-  "modal.no-snapshots-yet": "Belum ada snapshot pertengahan",
   "modal.revert-hunk": "Patah balik perubahan ini",
   "modal.copy": "Salin"
 };
@@ -7036,12 +7001,10 @@ var ne_default = {
   "modal.confirm.revert.message": "\u092F\u094B \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928\u0932\u093E\u0908 \u091A\u092F\u0928 \u0917\u0930\u093F\u090F\u0915\u094B \u0906\u0927\u093E\u0930\u092E\u093E \u092B\u093F\u0930\u094D\u0924\u093E \u0917\u0930\u094D\u0928\u0947? \u0905\u0928\u094D\u092F \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928\u0939\u0930\u0942 \u0930\u093E\u0916\u093F\u0928\u094D\u091B\u0928\u094D\u0964",
   "modal.confirm.revert.button": "\u092B\u093F\u0930\u094D\u0924\u093E \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
   "modal.search-versions": "\u0938\u0902\u0938\u094D\u0915\u0930\u0923\u0939\u0930\u0942 \u0916\u094B\u091C\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
-  "modal.version.baseline": "\u0939\u093E\u0932\u0915\u094B",
   "modal.version.numbered": "\u0938\u0902\u0938\u094D\u0915\u0930\u0923 {number}",
   "modal.version.current": "\u0939\u093E\u0932\u0915\u094B",
   "modal.version.original": "\u092E\u0942\u0932",
   "modal.no-versions-match": "\u0916\u094B\u091C\u0938\u0901\u0917 \u0915\u0941\u0928\u0948 \u0938\u0902\u0938\u094D\u0915\u0930\u0923 \u092E\u0947\u0932 \u0916\u093E\u0901\u0926\u0948\u0928",
-  "modal.no-snapshots-yet": "\u0905\u0939\u093F\u0932\u0947\u0938\u092E\u094D\u092E \u0915\u0941\u0928\u0948 \u092C\u0940\u091A\u0915\u094B \u0938\u094D\u0928\u094D\u092F\u093E\u092A\u0938\u091F \u091B\u0948\u0928",
   "modal.revert-hunk": "\u092F\u094B \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u092B\u093F\u0930\u094D\u0924\u093E \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
   "modal.copy": "\u092A\u094D\u0930\u0924\u093F\u0932\u093F\u092A\u093F \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D"
 };
@@ -7142,12 +7105,10 @@ var nl_default = {
   "modal.confirm.revert.message": "Deze wijziging terugdraaien naar de geselecteerde basis? Andere wijzigingen blijven behouden.",
   "modal.confirm.revert.button": "Terugdraaien",
   "modal.search-versions": "Versies zoeken",
-  "modal.version.baseline": "Huidig",
   "modal.version.numbered": "Versie {number}",
   "modal.version.current": "Huidig",
   "modal.version.original": "Origineel",
   "modal.no-versions-match": "Geen versies komen overeen met de zoekopdracht",
-  "modal.no-snapshots-yet": "Nog geen tussenliggende momentopnamen",
   "modal.revert-hunk": "Deze wijziging terugdraaien",
   "modal.copy": "Kopi\xEBren"
 };
@@ -7248,12 +7209,10 @@ var no_default = {
   "modal.confirm.revert.message": "Vil du tilbakestille denne endringen til den valgte basen? \xD8vrige endringer beholdes.",
   "modal.confirm.revert.button": "Tilbakestill",
   "modal.search-versions": "S\xF8k i versjoner",
-  "modal.version.baseline": "Gjeldende",
   "modal.version.numbered": "Versjon {number}",
   "modal.version.current": "Gjeldende",
   "modal.version.original": "Original",
   "modal.no-versions-match": "Ingen versjoner samsvarer med s\xF8ket",
-  "modal.no-snapshots-yet": "Ingen mellomliggende \xF8yeblikksbilder enn\xE5",
   "modal.revert-hunk": "Tilbakestill denne endringen",
   "modal.copy": "Kopier"
 };
@@ -7354,12 +7313,10 @@ var pl_default = {
   "modal.confirm.revert.message": "Wycofa\u0107 t\u0119 zmian\u0119 do wybranej bazy? Pozosta\u0142e zmiany zostan\u0105 zachowane.",
   "modal.confirm.revert.button": "Wycofaj",
   "modal.search-versions": "Szukaj wersji",
-  "modal.version.baseline": "Bie\u017C\u0105ca",
   "modal.version.numbered": "Wersja {number}",
   "modal.version.current": "Bie\u017C\u0105ca",
   "modal.version.original": "Orygina\u0142",
   "modal.no-versions-match": "Brak wersji pasuj\u0105cych do wyszukiwania",
-  "modal.no-snapshots-yet": "Brak na razie wersji po\u015Brednich",
   "modal.revert-hunk": "Wycofaj t\u0119 zmian\u0119",
   "modal.copy": "Kopiuj"
 };
@@ -7460,12 +7417,10 @@ var pt_default = {
   "modal.confirm.revert.message": "Reverter esta altera\xE7\xE3o para a base selecionada? As outras altera\xE7\xF5es s\xE3o mantidas.",
   "modal.confirm.revert.button": "Reverter",
   "modal.search-versions": "Pesquisar vers\xF5es",
-  "modal.version.baseline": "Atual",
   "modal.version.numbered": "Vers\xE3o {number}",
   "modal.version.current": "Atual",
   "modal.version.original": "Original",
   "modal.no-versions-match": "Nenhuma vers\xE3o corresponde \xE0 pesquisa",
-  "modal.no-snapshots-yet": "Ainda n\xE3o h\xE1 capturas interm\xE9dias",
   "modal.revert-hunk": "Reverter esta altera\xE7\xE3o",
   "modal.copy": "Copiar"
 };
@@ -7566,12 +7521,10 @@ var pt_BR_default = {
   "modal.confirm.revert.message": "Reverter esta altera\xE7\xE3o para a base selecionada? As outras altera\xE7\xF5es s\xE3o mantidas.",
   "modal.confirm.revert.button": "Reverter",
   "modal.search-versions": "Pesquisar vers\xF5es",
-  "modal.version.baseline": "Atual",
   "modal.version.numbered": "Vers\xE3o {number}",
   "modal.version.current": "Atual",
   "modal.version.original": "Original",
   "modal.no-versions-match": "Nenhuma vers\xE3o corresponde \xE0 pesquisa",
-  "modal.no-snapshots-yet": "Ainda n\xE3o h\xE1 instant\xE2neos intermedi\xE1rios",
   "modal.revert-hunk": "Reverter esta altera\xE7\xE3o",
   "modal.copy": "Copiar"
 };
@@ -7672,12 +7625,10 @@ var ro_default = {
   "modal.confirm.revert.message": "Revii asupra acestei modific\u0103ri la baza selectat\u0103? Celelalte modific\u0103ri sunt p\u0103strate.",
   "modal.confirm.revert.button": "Revino",
   "modal.search-versions": "Caut\u0103 versiuni",
-  "modal.version.baseline": "Curent\u0103",
   "modal.version.numbered": "Versiunea {number}",
   "modal.version.current": "Curent\u0103",
   "modal.version.original": "Original",
   "modal.no-versions-match": "Nicio versiune nu corespunde c\u0103ut\u0103rii",
-  "modal.no-snapshots-yet": "\xCEnc\u0103 nu exist\u0103 instantanee intermediare",
   "modal.revert-hunk": "Revino asupra acestei modific\u0103ri",
   "modal.copy": "Copiaz\u0103"
 };
@@ -7778,12 +7729,10 @@ var ru_default = {
   "modal.confirm.revert.message": "\u041E\u0442\u043A\u0430\u0442\u0438\u0442\u044C \u044D\u0442\u043E \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0435 \u043A \u0432\u044B\u0431\u0440\u0430\u043D\u043D\u043E\u0439 \u0431\u0430\u0437\u0435? \u041E\u0441\u0442\u0430\u043B\u044C\u043D\u044B\u0435 \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044F \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u0442\u0441\u044F.",
   "modal.confirm.revert.button": "\u041E\u0442\u043A\u0430\u0442\u0438\u0442\u044C",
   "modal.search-versions": "\u041F\u043E\u0438\u0441\u043A \u043F\u043E \u0432\u0435\u0440\u0441\u0438\u044F\u043C",
-  "modal.version.baseline": "\u0422\u0435\u043A\u0443\u0449\u0438\u0439",
   "modal.version.numbered": "\u0412\u0435\u0440\u0441\u0438\u044F {number}",
   "modal.version.current": "\u0422\u0435\u043A\u0443\u0449\u0430\u044F",
   "modal.version.original": "\u041E\u0440\u0438\u0433\u0438\u043D\u0430\u043B",
   "modal.no-versions-match": "\u041D\u0435\u0442 \u0432\u0435\u0440\u0441\u0438\u0439, \u0441\u043E\u043E\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0443\u044E\u0449\u0438\u0445 \u043F\u043E\u0438\u0441\u043A\u0443",
-  "modal.no-snapshots-yet": "\u041F\u0440\u043E\u043C\u0435\u0436\u0443\u0442\u043E\u0447\u043D\u044B\u0445 \u0441\u043D\u0438\u043C\u043A\u043E\u0432 \u043F\u043E\u043A\u0430 \u043D\u0435\u0442",
   "modal.revert-hunk": "\u041E\u0442\u043A\u0430\u0442\u0438\u0442\u044C \u044D\u0442\u043E \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0435",
   "modal.copy": "\u041A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u0442\u044C"
 };
@@ -7884,12 +7833,10 @@ var sk_default = {
   "modal.confirm.revert.message": "Vr\xE1ti\u0165 t\xFAto zmenu sp\xE4\u0165 na vybran\xFD z\xE1klad? Ostatn\xE9 zmeny zostan\xFA zachovan\xE9.",
   "modal.confirm.revert.button": "Vr\xE1ti\u0165",
   "modal.search-versions": "H\u013Eada\u0165 verzie",
-  "modal.version.baseline": "Aktu\xE1lna",
   "modal.version.numbered": "Verzia {number}",
   "modal.version.current": "Aktu\xE1lna",
   "modal.version.original": "Origin\xE1l",
   "modal.no-versions-match": "\u017Diadne verzie nezodpovedaj\xFA h\u013Eadaniu",
-  "modal.no-snapshots-yet": "Zatia\u013E \u017Eiadne priebe\u017En\xE9 sn\xEDmky",
   "modal.revert-hunk": "Vr\xE1ti\u0165 t\xFAto zmenu",
   "modal.copy": "Kop\xEDrova\u0165"
 };
@@ -7990,12 +7937,10 @@ var sq_default = {
   "modal.confirm.revert.message": "Ta kthesh k\xEBt\xEB ndryshim te baza e zgjedhur? Ndryshimet e tjera ruhen.",
   "modal.confirm.revert.button": "Ktheje",
   "modal.search-versions": "K\xEBrko versionet",
-  "modal.version.baseline": "Aktuali",
   "modal.version.numbered": "Versioni {number}",
   "modal.version.current": "Aktuali",
   "modal.version.original": "Origjinali",
   "modal.no-versions-match": "Asnj\xEB version nuk p\xEBrputhet me k\xEBrkimin",
-  "modal.no-snapshots-yet": "Ende pa foto t\xEB nd\xEBrmjetme",
   "modal.revert-hunk": "Ktheje k\xEBt\xEB ndryshim",
   "modal.copy": "Kopjo"
 };
@@ -8096,12 +8041,10 @@ var sr_default = {
   "modal.confirm.revert.message": "\u041E\u043F\u043E\u0437\u0432\u0430\u0442\u0438 \u043E\u0432\u0443 \u0438\u0437\u043C\u0435\u043D\u0443 \u043D\u0430 \u0438\u0437\u0430\u0431\u0440\u0430\u043D\u0443 \u043E\u0441\u043D\u043E\u0432\u0443? \u041E\u0441\u0442\u0430\u043B\u0435 \u0438\u0437\u043C\u0435\u043D\u0435 \u0441\u0435 \u0437\u0430\u0434\u0440\u0436\u0430\u0432\u0430\u0458\u0443.",
   "modal.confirm.revert.button": "\u041E\u043F\u043E\u0437\u043E\u0432\u0438",
   "modal.search-versions": "\u041F\u0440\u0435\u0442\u0440\u0430\u0436\u0438 \u0432\u0435\u0440\u0437\u0438\u0458\u0435",
-  "modal.version.baseline": "\u0422\u0435\u043A\u0443\u045B\u0430",
   "modal.version.numbered": "\u0412\u0435\u0440\u0437\u0438\u0458\u0430 {number}",
   "modal.version.current": "\u0422\u0435\u043A\u0443\u045B\u0430",
   "modal.version.original": "\u041E\u0440\u0438\u0433\u0438\u043D\u0430\u043B",
   "modal.no-versions-match": "\u041D\u0438\u0458\u0435\u0434\u043D\u0430 \u0432\u0435\u0440\u0437\u0438\u0458\u0430 \u043D\u0435 \u043E\u0434\u0433\u043E\u0432\u0430\u0440\u0430 \u043F\u0440\u0435\u0442\u0440\u0430\u0437\u0438",
-  "modal.no-snapshots-yet": "\u0408\u043E\u0448 \u043D\u0435\u043C\u0430 \u043C\u0435\u0452\u0443\u0441\u043D\u0438\u043C\u0430\u043A\u0430",
   "modal.revert-hunk": "\u041E\u043F\u043E\u0437\u043E\u0432\u0438 \u043E\u0432\u0443 \u0438\u0437\u043C\u0435\u043D\u0443",
   "modal.copy": "\u041A\u043E\u043F\u0438\u0440\u0430\u0458"
 };
@@ -8202,12 +8145,10 @@ var sv_default = {
   "modal.confirm.revert.message": "Vill du \xE5terst\xE4lla den h\xE4r \xE4ndringen till den valda basen? \xD6vriga \xE4ndringar beh\xE5lls.",
   "modal.confirm.revert.button": "\xC5terst\xE4ll",
   "modal.search-versions": "S\xF6k versioner",
-  "modal.version.baseline": "Aktuell",
   "modal.version.numbered": "Version {number}",
   "modal.version.current": "Aktuell",
   "modal.version.original": "Original",
   "modal.no-versions-match": "Inga versioner matchar s\xF6kningen",
-  "modal.no-snapshots-yet": "Inga mellanliggande \xF6gonblicksbilder \xE4n",
   "modal.revert-hunk": "\xC5terst\xE4ll den h\xE4r \xE4ndringen",
   "modal.copy": "Kopiera"
 };
@@ -8308,12 +8249,10 @@ var th_default = {
   "modal.confirm.revert.message": "\u0E22\u0E49\u0E2D\u0E19\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E19\u0E35\u0E49\u0E01\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E22\u0E31\u0E07\u0E10\u0E32\u0E19\u0E17\u0E35\u0E48\u0E40\u0E25\u0E37\u0E2D\u0E01\u0E2B\u0E23\u0E37\u0E2D\u0E44\u0E21\u0E48 \u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E2D\u0E37\u0E48\u0E19\u0E08\u0E30\u0E16\u0E39\u0E01\u0E40\u0E01\u0E47\u0E1A\u0E44\u0E27\u0E49",
   "modal.confirm.revert.button": "\u0E22\u0E49\u0E2D\u0E19\u0E01\u0E25\u0E31\u0E1A",
   "modal.search-versions": "\u0E04\u0E49\u0E19\u0E2B\u0E32\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19",
-  "modal.version.baseline": "\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19",
   "modal.version.numbered": "\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19 {number}",
   "modal.version.current": "\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19",
   "modal.version.original": "\u0E15\u0E49\u0E19\u0E09\u0E1A\u0E31\u0E1A",
   "modal.no-versions-match": "\u0E44\u0E21\u0E48\u0E21\u0E35\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19\u0E17\u0E35\u0E48\u0E15\u0E23\u0E07\u0E01\u0E31\u0E1A\u0E01\u0E32\u0E23\u0E04\u0E49\u0E19\u0E2B\u0E32",
-  "modal.no-snapshots-yet": "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E2A\u0E41\u0E19\u0E47\u0E1B\u0E0A\u0E47\u0E2D\u0E15\u0E23\u0E30\u0E2B\u0E27\u0E48\u0E32\u0E07\u0E01\u0E25\u0E32\u0E07",
   "modal.revert-hunk": "\u0E22\u0E49\u0E2D\u0E19\u0E01\u0E25\u0E31\u0E1A\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E19\u0E35\u0E49",
   "modal.copy": "\u0E04\u0E31\u0E14\u0E25\u0E2D\u0E01"
 };
@@ -8414,12 +8353,10 @@ var tr_default = {
   "modal.confirm.revert.message": "Bu de\u011Fi\u015Fikli\u011Fi se\xE7ilen temele geri almak istiyor musunuz? Di\u011Fer de\u011Fi\u015Fiklikler korunur.",
   "modal.confirm.revert.button": "Geri al",
   "modal.search-versions": "S\xFCr\xFCmlerde ara",
-  "modal.version.baseline": "Ge\xE7erli",
   "modal.version.numbered": "S\xFCr\xFCm {number}",
   "modal.version.current": "Ge\xE7erli",
   "modal.version.original": "\xD6zg\xFCn",
   "modal.no-versions-match": "Aramayla e\u015Fle\u015Fen s\xFCr\xFCm yok",
-  "modal.no-snapshots-yet": "Hen\xFCz ara anl\u0131k g\xF6r\xFCnt\xFC yok",
   "modal.revert-hunk": "Bu de\u011Fi\u015Fikli\u011Fi geri al",
   "modal.copy": "Kopyala"
 };
@@ -8520,12 +8457,10 @@ var uk_default = {
   "modal.confirm.revert.message": "\u0412\u0456\u0434\u043A\u043E\u0442\u0438\u0442\u0438 \u0446\u044E \u0437\u043C\u0456\u043D\u0443 \u0434\u043E \u0432\u0438\u0431\u0440\u0430\u043D\u043E\u0457 \u0431\u0430\u0437\u0438? \u0406\u043D\u0448\u0456 \u0437\u043C\u0456\u043D\u0438 \u0431\u0443\u0434\u0435 \u0437\u0431\u0435\u0440\u0435\u0436\u0435\u043D\u043E.",
   "modal.confirm.revert.button": "\u0412\u0456\u0434\u043A\u043E\u0442\u0438\u0442\u0438",
   "modal.search-versions": "\u041F\u043E\u0448\u0443\u043A \u0432\u0435\u0440\u0441\u0456\u0439",
-  "modal.version.baseline": "\u041F\u043E\u0442\u043E\u0447\u043D\u0430",
   "modal.version.numbered": "\u0412\u0435\u0440\u0441\u0456\u044F {number}",
   "modal.version.current": "\u041F\u043E\u0442\u043E\u0447\u043D\u0430",
   "modal.version.original": "\u041E\u0440\u0438\u0433\u0456\u043D\u0430\u043B",
   "modal.no-versions-match": "\u041D\u0435\u043C\u0430\u0454 \u0432\u0435\u0440\u0441\u0456\u0439, \u0449\u043E \u0432\u0456\u0434\u043F\u043E\u0432\u0456\u0434\u0430\u044E\u0442\u044C \u043F\u043E\u0448\u0443\u043A\u0443",
-  "modal.no-snapshots-yet": "\u041F\u0440\u043E\u043C\u0456\u0436\u043D\u0438\u0445 \u0437\u043D\u0456\u043C\u043A\u0456\u0432 \u043F\u043E\u043A\u0438 \u043D\u0435\u043C\u0430\u0454",
   "modal.revert-hunk": "\u0412\u0456\u0434\u043A\u043E\u0442\u0438\u0442\u0438 \u0446\u044E \u0437\u043C\u0456\u043D\u0443",
   "modal.copy": "\u041A\u043E\u043F\u0456\u044E\u0432\u0430\u0442\u0438"
 };
@@ -8626,12 +8561,10 @@ var uz_default = {
   "modal.confirm.revert.message": "Bu o\u02BBzgarishni tanlangan asosga qaytarilsinmi? Boshqa o\u02BBzgarishlar saqlanadi.",
   "modal.confirm.revert.button": "Qaytarish",
   "modal.search-versions": "Versiyalarni qidirish",
-  "modal.version.baseline": "Joriy",
   "modal.version.numbered": "Versiya {number}",
   "modal.version.current": "Joriy",
   "modal.version.original": "Asl",
   "modal.no-versions-match": "Qidiruvga mos versiyalar yo\u02BBq",
-  "modal.no-snapshots-yet": "Hali oraliq suratlar yo\u02BBq",
   "modal.revert-hunk": "Bu o\u02BBzgarishni qaytarish",
   "modal.copy": "Nusxalash"
 };
@@ -8732,12 +8665,10 @@ var vi_default = {
   "modal.confirm.revert.message": "Ho\xE0n nguy\xEAn thay \u0111\u1ED5i n\xE0y v\u1EC1 b\u1EA3n n\u1EC1n \u0111\xE3 ch\u1ECDn? C\xE1c thay \u0111\u1ED5i kh\xE1c \u0111\u01B0\u1EE3c gi\u1EEF nguy\xEAn.",
   "modal.confirm.revert.button": "Ho\xE0n nguy\xEAn",
   "modal.search-versions": "T\xECm ki\u1EBFm phi\xEAn b\u1EA3n",
-  "modal.version.baseline": "Hi\u1EC7n t\u1EA1i",
   "modal.version.numbered": "Phi\xEAn b\u1EA3n {number}",
   "modal.version.current": "Hi\u1EC7n t\u1EA1i",
   "modal.version.original": "B\u1EA3n g\u1ED1c",
   "modal.no-versions-match": "Kh\xF4ng c\xF3 phi\xEAn b\u1EA3n n\xE0o kh\u1EDBp v\u1EDBi t\xECm ki\u1EBFm",
-  "modal.no-snapshots-yet": "Ch\u01B0a c\xF3 \u1EA3nh ch\u1EE5p trung gian n\xE0o",
   "modal.revert-hunk": "Ho\xE0n nguy\xEAn thay \u0111\u1ED5i n\xE0y",
   "modal.copy": "Sao ch\xE9p"
 };
@@ -8838,12 +8769,10 @@ var zh_default = {
   "modal.confirm.revert.message": "\u5C06\u6B64\u66F4\u6539\u8FD8\u539F\u5230\u6240\u9009\u57FA\u51C6\uFF1F\u5176\u4ED6\u66F4\u6539\u5C06\u4FDD\u7559\u3002",
   "modal.confirm.revert.button": "\u8FD8\u539F",
   "modal.search-versions": "\u641C\u7D22\u7248\u672C",
-  "modal.version.baseline": "\u5F53\u524D",
   "modal.version.numbered": "\u7248\u672C {number}",
   "modal.version.current": "\u5F53\u524D",
   "modal.version.original": "\u539F\u59CB",
   "modal.no-versions-match": "\u6CA1\u6709\u5339\u914D\u641C\u7D22\u7684\u7248\u672C",
-  "modal.no-snapshots-yet": "\u5C1A\u65E0\u4E2D\u95F4\u5FEB\u7167",
   "modal.revert-hunk": "\u8FD8\u539F\u6B64\u66F4\u6539",
   "modal.copy": "\u590D\u5236"
 };
@@ -8944,12 +8873,10 @@ var zh_TW_default = {
   "modal.confirm.revert.message": "\u5C07\u6B64\u8B8A\u66F4\u9084\u539F\u81F3\u6240\u9078\u57FA\u6E96\uFF1F\u5176\u4ED6\u8B8A\u66F4\u5C07\u4FDD\u7559\u3002",
   "modal.confirm.revert.button": "\u9084\u539F",
   "modal.search-versions": "\u641C\u5C0B\u7248\u672C",
-  "modal.version.baseline": "\u76EE\u524D",
   "modal.version.numbered": "\u7248\u672C {number}",
   "modal.version.current": "\u76EE\u524D",
   "modal.version.original": "\u539F\u59CB",
   "modal.no-versions-match": "\u6C92\u6709\u7B26\u5408\u641C\u5C0B\u7684\u7248\u672C",
-  "modal.no-snapshots-yet": "\u5C1A\u7121\u4E2D\u9593\u5FEB\u7167",
   "modal.revert-hunk": "\u9084\u539F\u6B64\u8B8A\u66F4",
   "modal.copy": "\u8907\u88FD"
 };
@@ -10848,6 +10775,29 @@ var BaseContentHelper = class {
     }
     const latest = snapshot.versions[0];
     return latest != null ? latest : snapshot.original;
+  }
+};
+
+// src/helpers/list-selection.helper.ts
+var ListSelectionHelper = class {
+  /**
+   * Resolves the id the selection moves to when an arrow key is pressed.
+   *
+   * @param {string[]} ids - The selectable ids in their displayed order
+   * @param {string} currentId - The currently selected id
+   * @param {ListSelectionDirection} direction - Which way to step
+   * @return {string | null} The new selected id, the same id at a list edge, or
+   *   null when the list is empty
+   */
+  static step(ids, currentId, direction) {
+    const list = ids != null ? ids : [];
+    if (list.length === 0) {
+      return null;
+    }
+    const found = list.indexOf(currentId);
+    const start = found === -1 ? 0 : found;
+    const next = Math.max(0, Math.min(list.length - 1, start + (direction === "down" ? 1 : -1)));
+    return list[next];
   }
 };
 
@@ -12911,6 +12861,7 @@ function html(diffInput, configuration = {}) {
 // src/modals/history.modal.ts
 var import_obsidian13 = require("obsidian");
 var ORIGINAL_BASE_ID = "original";
+var DIFF_SCROLL_STEP_PX = 48;
 var HistoryModal = class extends import_obsidian13.Modal {
   /**
    * Creates a new instance of HistoryModal.
@@ -12925,9 +12876,10 @@ var HistoryModal = class extends import_obsidian13.Modal {
     this.plugin = plugin;
     this.snapshot = snapshot;
     /**
-     * Id of the currently selected diff base. Defaults to the original baseline;
-     * may be set to an intermediate version's id to diff the current state against
-     * that earlier point instead.
+     * Id of the currently selected diff base. Set on open to the latest captured
+     * version (so the modal opens on "what changed since the last save"), or to
+     * the Original entry when the file has no snapshots yet. May be changed to any
+     * other version's id to diff the current state against that earlier point.
      */
     this.selectedBaseId = ORIGINAL_BASE_ID;
     /**
@@ -12979,6 +12931,7 @@ var HistoryModal = class extends import_obsidian13.Modal {
     if (!this.snapshot) {
       return;
     }
+    this.selectedBaseId = this.getInitialBaseId();
     this.makeUI();
     DomHelper.update(
       this.modalEl,
@@ -13023,7 +12976,7 @@ var HistoryModal = class extends import_obsidian13.Modal {
     Object.values(this.modeButtons).forEach((button) => {
       DomHelper.update(
         button,
-        { classes: { remove: "mod-cta" } }
+        { classes: { remove: "is-active" } }
       );
     });
     const activeButton = this.getActiveButton();
@@ -13032,7 +12985,7 @@ var HistoryModal = class extends import_obsidian13.Modal {
     }
     DomHelper.update(
       activeButton,
-      { classes: { add: "mod-cta" } }
+      { classes: { add: "is-active" } }
     );
   }
   /**
@@ -13109,6 +13062,194 @@ var HistoryModal = class extends import_obsidian13.Modal {
     this.refreshActiveView();
   }
   /**
+   * Asks for confirmation and, if granted, deletes the selected version, then
+   * returns focus to the version list so further arrow/Delete keys keep working.
+   * Shared by the toolbar remove button and the Delete key on the focused list,
+   * so both follow the same confirm-before-delete flow. A no-op for the
+   * synthetic baseline, which has no captured version to remove.
+   *
+   * @return {Promise<void>}
+   */
+  async confirmRemoveSelectedVersion() {
+    var _a;
+    if (this.selectedBaseId === ORIGINAL_BASE_ID) {
+      return;
+    }
+    const confirmed = await this.modalsService.confirm({
+      title: this.plugin.t("modal.confirm.remove-version.title"),
+      message: this.plugin.t("modal.confirm.remove-version.message"),
+      confirmText: this.plugin.t("modal.confirm.remove-version.button"),
+      cancelText: this.plugin.t("modal.confirm.cancel")
+    });
+    if (confirmed) {
+      this.removeSelectedVersion();
+      (_a = this.versionsEl) == null ? void 0 : _a.focus();
+    }
+  }
+  /**
+   * Handles a key press while the version list holds focus. The up/down arrows
+   * move the selection between snapshots (clamping at the ends), Home/End jump to
+   * the first/last snapshot, and Delete (or Backspace, the primary delete key on
+   * macOS) drops the selected snapshot through the same confirm flow as the
+   * toolbar button. Other keys are left alone so default behaviour (Tab, typing
+   * into the search box, the modal's own Escape) is untouched.
+   *
+   * @param {KeyboardEvent} event - The key event from the version list
+   */
+  handleVersionsKeydown(event) {
+    switch (event.key) {
+      case "ArrowDown":
+        event.preventDefault();
+        this.moveVersionSelection("down");
+        return;
+      case "ArrowUp":
+        event.preventDefault();
+        this.moveVersionSelection("up");
+        return;
+      case "Home":
+        event.preventDefault();
+        this.moveVersionSelectionToEdge("first");
+        return;
+      case "End":
+        event.preventDefault();
+        this.moveVersionSelectionToEdge("last");
+        return;
+      case "Delete":
+      case "Backspace":
+        event.preventDefault();
+        void this.confirmRemoveSelectedVersion();
+        return;
+      default:
+        return;
+    }
+  }
+  /**
+   * Handles a key press while the diff pane holds focus, scrolling the active
+   * diff scroller: the up/down arrows nudge it a step, PageUp/PageDown move it
+   * by almost a full pane (a small overlap is kept for context), and Home/End
+   * jump to the top/bottom. So the same keys that walk the snapshots in the list
+   * instead move through the diff content here. The browser clamps scrollTop, so
+   * an over-scroll at either end is a safe no-op. Delete is intentionally
+   * ignored: removing a snapshot only makes sense from the list.
+   *
+   * @param {KeyboardEvent} event - The key event from the diff pane
+   */
+  handleDiffKeydown(event) {
+    const scroller = this.getDiffScroller();
+    if (!scroller) {
+      return;
+    }
+    const page = Math.max(DIFF_SCROLL_STEP_PX, scroller.clientHeight - DIFF_SCROLL_STEP_PX);
+    switch (event.key) {
+      case "ArrowDown":
+        event.preventDefault();
+        scroller.scrollTop += DIFF_SCROLL_STEP_PX;
+        return;
+      case "ArrowUp":
+        event.preventDefault();
+        scroller.scrollTop -= DIFF_SCROLL_STEP_PX;
+        return;
+      case "PageDown":
+        event.preventDefault();
+        scroller.scrollTop += page;
+        return;
+      case "PageUp":
+        event.preventDefault();
+        scroller.scrollTop -= page;
+        return;
+      case "Home":
+        event.preventDefault();
+        scroller.scrollTop = 0;
+        return;
+      case "End":
+        event.preventDefault();
+        scroller.scrollTop = scroller.scrollHeight;
+        return;
+      default:
+        return;
+    }
+  }
+  /**
+   * Moves the rail selection one entry up or down and keeps it in view. The
+   * order matches the rendered list (the baseline on top, then the visible
+   * versions newest-first), so down moves toward older snapshots. The walk is
+   * delegated to the pure ListSelectionHelper and clamps at both ends. A move
+   * that resolves to the already-selected entry (an edge) is a no-op.
+   *
+   * @param {ListSelectionDirection} direction - Which way to move the selection
+   */
+  moveVersionSelection(direction) {
+    const next = ListSelectionHelper.step(this.getSelectableIds(), this.selectedBaseId, direction);
+    if (next === null || next === this.selectedBaseId) {
+      return;
+    }
+    this.selectBase(next);
+    this.scrollActiveVersionIntoView();
+  }
+  /**
+   * Jumps the rail selection to the first (baseline) or last (oldest visible
+   * version) entry, backing the Home/End keys. A no-op when that edge is already
+   * selected or the list is empty.
+   *
+   * @param {'first' | 'last'} edge - Which end of the list to select
+   */
+  moveVersionSelectionToEdge(edge) {
+    const ids = this.getSelectableIds();
+    const target = edge === "first" ? ids[0] : ids[ids.length - 1];
+    if (!target || target === this.selectedBaseId) {
+      return;
+    }
+    this.selectBase(target);
+    this.scrollActiveVersionIntoView();
+  }
+  /**
+   * The ids selectable in the rail, in rendered order. With captured snapshots
+   * these are the currently visible versions (after the search and
+   * hide-identical filters) newest-first; with no snapshots it is the single
+   * Original entry. This is the list the arrow keys walk.
+   *
+   * @return {string[]} The selectable base ids, top to bottom
+   */
+  getSelectableIds() {
+    if (this.snapshot.getVersions().length === 0) {
+      return [ORIGINAL_BASE_ID];
+    }
+    return this.getVisibleVersions().map((version) => version.id);
+  }
+  /**
+   * Resolves the base to select when the modal opens: the latest captured
+   * version (the top of the rail, showing what changed since the last save), or
+   * the Original entry when the file has no snapshots yet.
+   *
+   * @return {string} The initial selected base id
+   */
+  getInitialBaseId() {
+    const versions = this.snapshot.getVersions();
+    return versions.length > 0 ? versions[0].id : ORIGINAL_BASE_ID;
+  }
+  /**
+   * Scrolls the currently selected version entry into view inside the rail, so
+   * an arrow-key move that lands on an off-screen snapshot brings it into sight.
+   */
+  scrollActiveVersionIntoView() {
+    var _a, _b;
+    (_b = (_a = this.versionsEl) == null ? void 0 : _a.querySelector(".lct-version-item.is-active")) == null ? void 0 : _b.scrollIntoView({ block: "nearest" });
+  }
+  /**
+   * Resolves the scrollable element of the diff pane for the active view mode:
+   * the patch container, the inline container, the line-by-line wrapper, or the
+   * first side-by-side column wrapper (its scroll is mirrored to the other
+   * column by the scroll-sync). Returns null before any diff is rendered.
+   *
+   * @return {HTMLElement | null} The diff scroll container, or null
+   */
+  getDiffScroller() {
+    var _a, _b;
+    return (_b = (_a = this.diffContainerEl) == null ? void 0 : _a.querySelector(
+      ".lct-patch-container, .lct-inline-container, .d2h-wrapper.d2h-line, .d2h-side-column-wrapper"
+    )) != null ? _b : null;
+  }
+  /**
    * Creates the UI elements for the diff view.
    */
   makeUI() {
@@ -13127,16 +13268,18 @@ var HistoryModal = class extends import_obsidian13.Modal {
       classes: "lct-modal-main",
       container: bodyEl
     });
-    const closeButtonEl = this.modalEl.querySelector(".modal-close-button");
-    if (closeButtonEl) {
-      closeButtonEl.classList.add("mod-raised", "clickable-icon");
-    }
     this.toolbarEl = DomHelper.create({
       tag: "div",
       classes: "lct-modal-toolbar",
       container: this.mainEl
     });
     this.makeToolbar();
+    const closeButtonEl = this.modalEl.querySelector(".modal-close-button");
+    if (closeButtonEl) {
+      closeButtonEl.classList.remove("mod-raised");
+      closeButtonEl.classList.add("clickable-icon");
+      this.toolbarEl.appendChild(closeButtonEl);
+    }
     this.searchEl = DomHelper.create({
       tag: "div",
       classes: "lct-rail-search",
@@ -13145,7 +13288,11 @@ var HistoryModal = class extends import_obsidian13.Modal {
     this.versionsEl = DomHelper.create({
       tag: "div",
       classes: "lct-versions",
-      container: this.railEl
+      container: this.railEl,
+      attributes: { tabindex: "0" },
+      events: {
+        keydown: (event) => this.handleVersionsKeydown(event)
+      }
     });
     this.noticeEl = DomHelper.create({
       tag: "div",
@@ -13165,7 +13312,11 @@ var HistoryModal = class extends import_obsidian13.Modal {
     this.diffContainerEl = DomHelper.create({
       tag: "div",
       classes: "diff-container",
-      container: blockEl
+      container: blockEl,
+      attributes: { tabindex: "0" },
+      events: {
+        keydown: (event) => this.handleDiffKeydown(event)
+      }
     });
     this.renderSearch();
     this.renderVersions();
@@ -13207,21 +13358,20 @@ var HistoryModal = class extends import_obsidian13.Modal {
   }
   /**
    * Resolves the label for the diff's base (left) side, matching the version
-   * names used in the rail. A picked intermediate version shows its number; the
-   * baseline shows the latest captured version (the snapshot it diffs against),
-   * or the original when the timeline is empty.
+   * names used in the rail. A picked version shows its number; the Original
+   * entry (the only base when no snapshots exist) shows "Original".
    *
    * @return {string} The base-side label
    */
   getBaseLabel() {
-    const versions = this.snapshot.getVersions();
     if (this.selectedBaseId !== ORIGINAL_BASE_ID) {
+      const versions = this.snapshot.getVersions();
       const version = this.snapshot.getVersion(this.selectedBaseId);
       if (version) {
         return this.plugin.t("modal.version.numbered", { number: versions.length - versions.indexOf(version) });
       }
     }
-    return versions.length > 0 ? this.plugin.t("modal.version.numbered", { number: versions.length }) : this.plugin.t("modal.version.original");
+    return this.plugin.t("modal.version.original");
   }
   /**
    * Shows or hides the side-by-side column header and, when shown, labels the
@@ -13260,32 +13410,46 @@ var HistoryModal = class extends import_obsidian13.Modal {
    * updateButtonActiveStates; the destructive actions still confirm before acting.
    */
   makeToolbar() {
-    new import_obsidian13.Setting(this.toolbarEl).setClass("lct-modal-toolbar-group").setClass("lct-modal-toolbar-actions").addButton((btn) => this.decorateButton(btn, "rotate-ccw", this.plugin.t("modal.restore-original")).setWarning().onClick(async () => {
-      const confirmed = await this.modalsService.confirm({
-        title: this.plugin.t("modal.confirm.restore.title"),
-        message: this.plugin.t("modal.confirm.restore.message"),
-        confirmText: this.plugin.t("modal.confirm.restore.button"),
-        cancelText: this.plugin.t("modal.confirm.cancel")
-      });
-      if (confirmed) {
-        await this.restoreOriginalFile();
+    const actionsGroup = this.makeToolbarGroup("lct-modal-toolbar-actions");
+    this.makeToolbarButton(actionsGroup, {
+      icon: "rotate-ccw",
+      label: this.plugin.t("modal.restore-original"),
+      warning: true,
+      onClick: async () => {
+        const confirmed = await this.modalsService.confirm({
+          title: this.plugin.t("modal.confirm.restore.title"),
+          message: this.plugin.t("modal.confirm.restore.message"),
+          confirmText: this.plugin.t("modal.confirm.restore.button"),
+          cancelText: this.plugin.t("modal.confirm.cancel")
+        });
+        if (confirmed) {
+          await this.restoreOriginalFile();
+        }
       }
-    })).addButton((btn) => this.decorateButton(btn, "trash-2", this.plugin.t("modal.remove-history")).setWarning().onClick(async () => {
-      var _a;
-      const confirmed = await this.modalsService.confirm({
-        title: this.plugin.t("modal.confirm.remove.title"),
-        message: this.plugin.t("modal.confirm.remove.message"),
-        confirmText: this.plugin.t("modal.confirm.remove.button"),
-        cancelText: this.plugin.t("modal.confirm.cancel")
-      });
-      if (confirmed) {
-        (_a = this.snapshotsService) == null ? void 0 : _a.wipeOne(this.snapshot.file);
-        this.close();
+    });
+    this.makeToolbarButton(actionsGroup, {
+      icon: "trash-2",
+      label: this.plugin.t("modal.remove-history"),
+      warning: true,
+      onClick: async () => {
+        var _a;
+        const confirmed = await this.modalsService.confirm({
+          title: this.plugin.t("modal.confirm.remove.title"),
+          message: this.plugin.t("modal.confirm.remove.message"),
+          confirmText: this.plugin.t("modal.confirm.remove.button"),
+          cancelText: this.plugin.t("modal.confirm.cancel")
+        });
+        if (confirmed) {
+          (_a = this.snapshotsService) == null ? void 0 : _a.wipeOne(this.snapshot.file);
+          this.close();
+        }
       }
-    }));
-    new import_obsidian13.Setting(this.toolbarEl).setClass("lct-modal-toolbar-group").setClass("lct-modal-toolbar-filter").addButton((btn) => {
-      this.restoreSelectedButton = btn.buttonEl;
-      return this.decorateButton(btn, "history", this.plugin.t("modal.restore-selected")).onClick(async () => {
+    });
+    const filterGroup = this.makeToolbarGroup("lct-modal-toolbar-filter");
+    this.restoreSelectedButton = this.makeToolbarButton(filterGroup, {
+      icon: "history",
+      label: this.plugin.t("modal.restore-selected"),
+      onClick: async () => {
         const confirmed = await this.modalsService.confirm({
           title: this.plugin.t("modal.confirm.restore-version.title"),
           message: this.plugin.t("modal.confirm.restore-version.message"),
@@ -13295,88 +13459,128 @@ var HistoryModal = class extends import_obsidian13.Modal {
         if (confirmed) {
           await this.restoreSelectedVersion();
         }
-      });
-    }).addButton((btn) => {
-      this.removeSelectedButton = btn.buttonEl;
-      return this.decorateButton(btn, "list-x", this.plugin.t("modal.remove-selected")).onClick(async () => {
-        const confirmed = await this.modalsService.confirm({
-          title: this.plugin.t("modal.confirm.remove-version.title"),
-          message: this.plugin.t("modal.confirm.remove-version.message"),
-          confirmText: this.plugin.t("modal.confirm.remove-version.button"),
-          cancelText: this.plugin.t("modal.confirm.cancel")
-        });
-        if (confirmed) {
-          this.removeSelectedVersion();
-        }
-      });
-    }).addButton((btn) => {
-      this.hideIdenticalButton = btn.buttonEl;
-      return this.decorateButton(btn, "eye-off", this.plugin.t("modal.hide-identical")).onClick(() => {
+      }
+    });
+    this.removeSelectedButton = this.makeToolbarButton(filterGroup, {
+      icon: "list-x",
+      label: this.plugin.t("modal.remove-selected"),
+      onClick: () => {
+        void this.confirmRemoveSelectedVersion();
+      }
+    });
+    this.hideIdenticalButton = this.makeToolbarButton(filterGroup, {
+      icon: "eye-off",
+      label: this.plugin.t("modal.hide-identical"),
+      onClick: () => {
         this.toggleHideIdentical();
-      });
+      }
     });
-    new import_obsidian13.Setting(this.toolbarEl).setClass("lct-modal-toolbar-group").setClass("lct-modal-toolbar-nav").addButton((btn) => {
-      this.navButtons.previous = btn.buttonEl;
-      return this.decorateButton(btn, "chevron-up", this.plugin.t("modal.previous-difference")).onClick(() => {
+    const navGroup = this.makeToolbarGroup("lct-modal-toolbar-nav");
+    this.navButtons.previous = this.makeToolbarButton(navGroup, {
+      icon: "chevron-up",
+      label: this.plugin.t("modal.previous-difference"),
+      onClick: () => {
         this.goToDifference("previous");
-      });
-    }).addButton((btn) => {
-      this.navButtons.next = btn.buttonEl;
-      return this.decorateButton(btn, "chevron-down", this.plugin.t("modal.next-difference")).onClick(() => {
-        this.goToDifference("next");
-      });
+      }
     });
-    new import_obsidian13.Setting(this.toolbarEl).setClass("lct-modal-toolbar-group").setClass("lct-modal-toolbar-modes").addButton((btn) => {
-      this.modeButtons.patch = btn.buttonEl;
-      return this.decorateButton(btn, "file-text", this.plugin.t("modal.mode.patch")).onClick(() => {
+    this.navButtons.next = this.makeToolbarButton(navGroup, {
+      icon: "chevron-down",
+      label: this.plugin.t("modal.next-difference"),
+      onClick: () => {
+        this.goToDifference("next");
+      }
+    });
+    const modesGroup = this.makeToolbarGroup("lct-modal-toolbar-modes");
+    this.modeButtons.patch = this.makeToolbarButton(modesGroup, {
+      icon: "file-text",
+      label: this.plugin.t("modal.mode.patch"),
+      onClick: () => {
         this.showCleanPatch();
-      });
-    }).addButton((btn) => {
-      this.modeButtons.inline = btn.buttonEl;
-      return this.decorateButton(btn, "pilcrow", this.plugin.t("modal.mode.inline")).onClick(() => {
+      }
+    });
+    this.modeButtons.inline = this.makeToolbarButton(modesGroup, {
+      icon: "pilcrow",
+      label: this.plugin.t("modal.mode.inline"),
+      onClick: () => {
         this.renderInlineDiff();
-      });
-    }).addButton((btn) => {
-      this.modeButtons.lineByLine = btn.buttonEl;
-      return this.decorateButton(btn, "align-justify", this.plugin.t("modal.mode.line-by-line")).onClick(() => {
+      }
+    });
+    this.modeButtons.lineByLine = this.makeToolbarButton(modesGroup, {
+      icon: "align-justify",
+      label: this.plugin.t("modal.mode.line-by-line"),
+      onClick: () => {
         this.renderDiff("line-by-line" /* line */);
-      });
-    }).addButton((btn) => {
-      this.modeButtons.sideBySide = btn.buttonEl;
-      return this.decorateButton(btn, "columns-2", this.plugin.t("modal.mode.side-by-side")).onClick(() => {
+      }
+    });
+    this.modeButtons.sideBySide = this.makeToolbarButton(modesGroup, {
+      icon: "columns-2",
+      label: this.plugin.t("modal.mode.side-by-side"),
+      onClick: () => {
         this.renderDiff("side-by-side" /* side */);
-      });
+      }
     });
     this.updateButtonActiveStates();
   }
   /**
+   * Creates one toolbar group: a flat row of icon buttons. The modifier class
+   * controls the group's placement (the destructive actions are pinned to the
+   * left edge, the rest are right-aligned) and is the only per-group styling
+   * hook now that the toolbar is built from plain elements rather than Setting
+   * rows.
+   *
+   * @param {string} modifier - The group's modifier class
+   * @return {HTMLElement} The created group container
+   */
+  makeToolbarGroup(modifier) {
+    return DomHelper.create({
+      tag: "div",
+      classes: ["lct-modal-toolbar-group", modifier],
+      container: this.toolbarEl
+    });
+  }
+  /**
    * Flips the hide-identical rail filter, syncs the toggle button's active
-   * (mod-cta) accent, and re-renders the version list. Only the rail list is
+   * (is-active) accent, and re-renders the version list. Only the rail list is
    * rebuilt: the selected diff base and the diff output are untouched.
    */
   toggleHideIdentical() {
     this.hideIdenticalVersions = !this.hideIdenticalVersions;
     if (this.hideIdenticalButton) {
       DomHelper.update(this.hideIdenticalButton, {
-        classes: this.hideIdenticalVersions ? { add: "mod-cta" } : { remove: "mod-cta" }
+        classes: this.hideIdenticalVersions ? { add: "is-active" } : { remove: "is-active" }
       });
     }
     this.renderVersions();
   }
   /**
-   * Turns a toolbar button into an accessible icon button: it shows only the
-   * icon but exposes the label as both a hover tooltip and an aria-label, so the
-   * control is never a label-less icon for keyboard or screen-reader users.
+   * Builds one accessible icon button inside a toolbar group, the same way the
+   * inline revert affordance is built: a native button carrying Obsidian's
+   * .clickable-icon look (hover background, size, and radius come from the
+   * theme), an aria-label that doubles as the hover tooltip, and a click
+   * handler. It shows only the icon but is never a label-less control for
+   * keyboard or screen-reader users. The warning option adds the destructive
+   * accent (.lct-toolbar-warning) for the restore-original and remove-history
+   * actions; the built-in mod-warning is avoided because on a button it paints a
+   * solid error fill that hides the icon.
    *
-   * @param {ButtonComponent} btn - The button to decorate
-   * @param {string} icon - The Obsidian (Lucide) icon id to render
-   * @param {string} label - The text label exposed via tooltip and aria-label
-   * @return {ButtonComponent} The same button, for chaining
+   * @param {HTMLElement} group - The toolbar group to append the button to
+   * @param {ToolbarButtonConfig} config - The button's icon, label, handler, and flags
+   * @return {HTMLButtonElement} The created button
    */
-  decorateButton(btn, icon, label) {
-    btn.setIcon(icon).setTooltip(label);
-    btn.buttonEl.setAttribute("aria-label", label);
-    return btn;
+  makeToolbarButton(group, config) {
+    const button = DomHelper.create({
+      tag: "button",
+      classes: config.warning ? ["clickable-icon", "lct-toolbar-warning"] : ["clickable-icon"],
+      attributes: { "aria-label": config.label, "type": "button" },
+      container: group,
+      events: {
+        click: () => {
+          void config.onClick();
+        }
+      }
+    });
+    (0, import_obsidian13.setIcon)(button, config.icon);
+    return button;
   }
   /**
    * Moves the difference focus to the next or previous hunk and brings it into
@@ -13494,14 +13698,15 @@ var HistoryModal = class extends import_obsidian13.Modal {
   }
   /**
    * Renders the version timeline as a list of selectable diff bases, grouped
-   * under a heading per day. The baseline entry (the original compared against
-   * the current state) heads the list and is placed in the day group of the
-   * file's last update; the matching intermediate versions follow, newest first,
-   * each in its capture day's group. The rail is never hidden: with no
-   * intermediate versions it shows the baseline plus a hint that none were
-   * captured yet; when a query matches no version it shows the baseline plus a
-   * no-results hint, leaving the current selection untouched. Selecting an entry
-   * sets it as the diff base and re-renders the active view.
+   * under a heading per day. With captured snapshots the list is the real
+   * versions, newest first, each in its capture day's group; the topmost
+   * (the latest snapshot) is the default base and shows what changed since the
+   * last save. With no snapshots yet the list is a single Original entry (the
+   * file's birth state vs the current content), placed in the day group of the
+   * file's last update. The rail is never hidden: when a query matches no
+   * version it shows just a no-results hint, leaving the current selection
+   * untouched. Selecting an entry sets it as the diff base and re-renders the
+   * active view.
    */
   renderVersions() {
     if (!this.versionsEl) {
@@ -13510,20 +13715,19 @@ var HistoryModal = class extends import_obsidian13.Modal {
     const versions = this.snapshot.getVersions();
     DomHelper.update(this.versionsEl, { classes: { remove: "lct-versions-empty" } });
     const matched = this.getVisibleVersions();
-    const entries = [
+    const entries = versions.length === 0 ? [
       {
         id: ORIGINAL_BASE_ID,
-        label: this.plugin.t("modal.version.baseline"),
+        label: this.plugin.t("modal.version.original"),
         day: this.snapshot.getLastChangedDate(),
         time: this.snapshot.getLastChangedTime()
-      },
-      ...matched.map((version) => ({
-        id: version.id,
-        label: this.plugin.t("modal.version.numbered", { number: versions.length - versions.indexOf(version) }),
-        day: version.getDate(),
-        time: version.getTime()
-      }))
-    ];
+      }
+    ] : matched.map((version) => ({
+      id: version.id,
+      label: this.plugin.t("modal.version.numbered", { number: versions.length - versions.indexOf(version) }),
+      day: version.getDate(),
+      time: version.getTime()
+    }));
     const groups = [];
     entries.forEach((entry) => {
       let group = groups[groups.length - 1];
@@ -13540,13 +13744,7 @@ var HistoryModal = class extends import_obsidian13.Modal {
         items.push(this.makeVersionItem(entry.id, entry.label, entry.time));
       });
     });
-    if (versions.length === 0) {
-      items.push({
-        tag: "div",
-        classes: "lct-versions-no-results",
-        text: this.plugin.t("modal.no-snapshots-yet")
-      });
-    } else if (matched.length === 0) {
+    if (versions.length > 0 && matched.length === 0) {
       items.push({
         tag: "div",
         classes: "lct-versions-no-results",
@@ -14808,6 +15006,27 @@ var SettingsService = class {
    */
   value(path) {
     return get_default(this.data, path);
+  }
+  /**
+   * Whether the gutter "show changes" toggle reads as on: true only when every
+   * tracked `show.*` flag is enabled, so the single toggle reflects a fully
+   * visible gutter.
+   *
+   * @return {boolean} True if all tracked change types are shown
+   */
+  isShowChangesEnabled() {
+    return SHOW_CHANGE_KEYS.every((key2) => this.value(key2));
+  }
+  /**
+   * Sets every tracked `show.*` flag at once, so the gutter "show changes"
+   * toggle turns all change indicators on or off together. Each update saves,
+   * refreshes the editor, and emits a settings-update event.
+   *
+   * @param {boolean} value - The new visibility for all tracked change types
+   * @return {void}
+   */
+  toggleShowChanges(value) {
+    SHOW_CHANGE_KEYS.forEach((key2) => this.update(key2, value));
   }
 };
 

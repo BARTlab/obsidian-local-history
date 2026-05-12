@@ -9,6 +9,8 @@ import type { Editor, MarkdownView, Menu, MenuItem } from 'obsidian';
  * Event handler for Obsidian's editor menu event.
  * Adds a "Local history" menu item to the editor's context menu.
  * Provides quick access to the file's change history through the context menu.
+ * The "Show changes" gutter toggle lives in the viewport (gutter) menu instead,
+ * next to Obsidian's own view toggles (see WorkspaceViewportMenuEvent).
  *
  * @extends {BaseEvent}
  */

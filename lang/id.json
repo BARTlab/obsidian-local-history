@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "Kembalikan",
 
   "modal.search-versions": "Cari versi",
-  "modal.version.baseline": "Saat ini",
   "modal.version.numbered": "Versi {number}",
   "modal.version.current": "Saat ini",
   "modal.version.original": "Asli",
   "modal.no-versions-match": "Tidak ada versi yang cocok dengan pencarian",
-  "modal.no-snapshots-yet": "Belum ada snapshot antara",
 
   "modal.revert-hunk": "Kembalikan perubahan ini",
 

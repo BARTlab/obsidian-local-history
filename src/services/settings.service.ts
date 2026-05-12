@@ -1,4 +1,4 @@
-import { DEFAULT_SETTINGS, PluginEvent } from '@/consts';
+import { DEFAULT_SETTINGS, PluginEvent, SHOW_CHANGE_KEYS } from '@/consts';
 import type LineChangeTrackerPlugin from '@/main';
 import { MainSetting } from '@/settings/main.setting';
 import type { DeepValue, LineChangeTrackerSettings, PathTo, PathValue, Service } from '@/types';
@@ -83,5 +83,28 @@ export class SettingsService implements Service {
     Path extends PathTo<LineChangeTrackerSettings>
   >(path: Path): DeepValue<LineChangeTrackerSettings, Path> {
     return get(this.data, path) as DeepValue<LineChangeTrackerSettings, Path>;
+  }
+
+  /**
+   * Whether the gutter "show changes" toggle reads as on: true only when every
+   * tracked `show.*` flag is enabled, so the single toggle reflects a fully
+   * visible gutter.
+   *
+   * @return {boolean} True if all tracked change types are shown
+   */
+  public isShowChangesEnabled(): boolean {
+    return SHOW_CHANGE_KEYS.every((key): boolean => this.value(key));
+  }
+
+  /**
+   * Sets every tracked `show.*` flag at once, so the gutter "show changes"
+   * toggle turns all change indicators on or off together. Each update saves,
+   * refreshes the editor, and emits a settings-update event.
+   *
+   * @param {boolean} value - The new visibility for all tracked change types
+   * @return {void}
+   */
+  public toggleShowChanges(value: boolean): void {
+    SHOW_CHANGE_KEYS.forEach((key): void => this.update(key, value));
   }
 }

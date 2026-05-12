@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "Revino",
 
   "modal.search-versions": "Caută versiuni",
-  "modal.version.baseline": "Curentă",
   "modal.version.numbered": "Versiunea {number}",
   "modal.version.current": "Curentă",
   "modal.version.original": "Original",
   "modal.no-versions-match": "Nicio versiune nu corespunde căutării",
-  "modal.no-snapshots-yet": "Încă nu există instantanee intermediare",
 
   "modal.revert-hunk": "Revino asupra acestei modificări",
 

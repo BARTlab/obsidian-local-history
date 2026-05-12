@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "დაბრუნება",
 
   "modal.search-versions": "ვერსიების ძიება",
-  "modal.version.baseline": "მიმდინარე",
   "modal.version.numbered": "ვერსია {number}",
   "modal.version.current": "მიმდინარე",
   "modal.version.original": "ორიგინალი",
   "modal.no-versions-match": "ძიებას ვერსიები არ ემთხვევა",
-  "modal.no-snapshots-yet": "ჯერ შუალედური სწრაფი ასლები არ არის",
 
   "modal.revert-hunk": "ამ ცვლილების დაბრუნება",
 

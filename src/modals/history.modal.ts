@@ -3,6 +3,7 @@ import { Inject } from '@/decorators/inject.decorator';
 import { BaseContentHelper } from '@/helpers/base-content.helper';
 import { DomHelper } from '@/helpers/dom.helper';
 import { HunkHelper } from '@/helpers/hunk.helper';
+import { type ListSelectionDirection, ListSelectionHelper } from '@/helpers/list-selection.helper';
 import { type NavigationDirection, NavigationHelper } from '@/helpers/navigation.helper';
 import { type SearchableVersion, VersionSearchHelper } from '@/helpers/version-search.helper';
 import { type InlineDiffLine, WordDiffHelper } from '@/helpers/word-diff.helper';
@@ -14,15 +15,42 @@ import type { FileVersion } from '@/snapshots/file.version';
 import type { DomElementConfig, FunctionVoid, HTMLElementWithScrollSync } from '@/types';
 import * as Diff from 'diff';
 import * as Diff2Html from 'diff2html';
-import { type App, type ButtonComponent, Modal, Notice, SearchComponent, setIcon, Setting, type TFile } from 'obsidian';
+import { type App, Modal, Notice, SearchComponent, setIcon, type TFile } from 'obsidian';
 
 /**
- * Sentinel id for the synthetic baseline entry in the version list. Picking it
- * diffs the current state against the LATEST captured snapshot, falling back to
- * the file's original captured content only when no snapshot exists (D1). Real
- * versions are keyed by their own id, which is never this value.
+ * Sentinel id for the Original entry in the version list. It is the only base
+ * shown when the file has no captured snapshots yet, and it diffs the current
+ * state against the file's original captured content. Once snapshots exist the
+ * rail lists the real versions instead (the latest one already shows "what
+ * changed since the last save"), so this id is no longer offered for selection;
+ * a stale version id still routes here and falls back to the latest snapshot.
+ * Real versions are keyed by their own id, which is never this value.
  */
 const ORIGINAL_BASE_ID: string = 'original';
+
+/**
+ * Pixels the diff pane scrolls per up/down arrow press when it holds focus.
+ * Roughly two diff rows (each ~24px tall), so an arrow nudges the content a
+ * line or two at a time, matching a native focused-scroll-container feel.
+ */
+const DIFF_SCROLL_STEP_PX: number = 48;
+
+/**
+ * Shape of a single toolbar icon button: the Lucide icon id, the label exposed
+ * via tooltip and aria-label, the click handler (sync or async), and an
+ * optional destructive accent for the restore-original and remove-history
+ * actions.
+ */
+interface ToolbarButtonConfig {
+  /** The Obsidian (Lucide) icon id to render */
+  icon: string;
+  /** The text label exposed via tooltip and aria-label */
+  label: string;
+  /** The click handler, awaited when it returns a promise */
+  onClick: FunctionVoid | (() => Promise<void>);
+  /** Whether to add the destructive (error-tinted) accent */
+  warning?: boolean;
+}
 
 /**
  * Modal dialog that displays the history of changes for a file.
@@ -97,9 +125,10 @@ export class HistoryModal extends Modal {
   protected versionsEl?: HTMLElement;
 
   /**
-   * Id of the currently selected diff base. Defaults to the original baseline;
-   * may be set to an intermediate version's id to diff the current state against
-   * that earlier point instead.
+   * Id of the currently selected diff base. Set on open to the latest captured
+   * version (so the modal opens on "what changed since the last save"), or to
+   * the Original entry when the file has no snapshots yet. May be changed to any
+   * other version's id to diff the current state against that earlier point.
    */
   protected selectedBaseId: string = ORIGINAL_BASE_ID;
 
@@ -119,7 +148,7 @@ export class HistoryModal extends Modal {
   protected hideIdenticalVersions: boolean = false;
 
   /**
-   * Toolbar button toggling hideIdenticalVersions, kept so its active (mod-cta)
+   * Toolbar button toggling hideIdenticalVersions, kept so its active (is-active)
    * state can be flipped when the filter changes.
    */
   protected hideIdenticalButton?: HTMLElement;
@@ -207,6 +236,10 @@ export class HistoryModal extends Modal {
       return;
     }
 
+    // Open on the latest captured version ("what changed since the last save"),
+    // or on the Original entry when no snapshots exist yet.
+    this.selectedBaseId = this.getInitialBaseId();
+
     // Make modal UI
     this.makeUI();
 
@@ -259,7 +292,7 @@ export class HistoryModal extends Modal {
     Object.values(this.modeButtons).forEach((button: HTMLElement): void => {
       DomHelper.update(
         button,
-        { classes: { remove: 'mod-cta' } }
+        { classes: { remove: 'is-active' } }
       );
     });
 
@@ -271,7 +304,7 @@ export class HistoryModal extends Modal {
 
     DomHelper.update(
       activeButton,
-      { classes: { add: 'mod-cta' } }
+      { classes: { add: 'is-active' } }
     );
   }
 
@@ -369,6 +402,226 @@ export class HistoryModal extends Modal {
   }
 
   /**
+   * Asks for confirmation and, if granted, deletes the selected version, then
+   * returns focus to the version list so further arrow/Delete keys keep working.
+   * Shared by the toolbar remove button and the Delete key on the focused list,
+   * so both follow the same confirm-before-delete flow. A no-op for the
+   * synthetic baseline, which has no captured version to remove.
+   *
+   * @return {Promise<void>}
+   */
+  protected async confirmRemoveSelectedVersion(): Promise<void> {
+    if (this.selectedBaseId === ORIGINAL_BASE_ID) {
+      return;
+    }
+
+    const confirmed: boolean = await this.modalsService.confirm({
+      title: this.plugin.t('modal.confirm.remove-version.title'),
+      message: this.plugin.t('modal.confirm.remove-version.message'),
+      confirmText: this.plugin.t('modal.confirm.remove-version.button'),
+      cancelText: this.plugin.t('modal.confirm.cancel'),
+    });
+
+    if (confirmed) {
+      this.removeSelectedVersion();
+      this.versionsEl?.focus();
+    }
+  }
+
+  /**
+   * Handles a key press while the version list holds focus. The up/down arrows
+   * move the selection between snapshots (clamping at the ends), Home/End jump to
+   * the first/last snapshot, and Delete (or Backspace, the primary delete key on
+   * macOS) drops the selected snapshot through the same confirm flow as the
+   * toolbar button. Other keys are left alone so default behaviour (Tab, typing
+   * into the search box, the modal's own Escape) is untouched.
+   *
+   * @param {KeyboardEvent} event - The key event from the version list
+   */
+  protected handleVersionsKeydown(event: KeyboardEvent): void {
+    switch (event.key) {
+      case 'ArrowDown':
+        event.preventDefault();
+        this.moveVersionSelection('down');
+
+        return;
+      case 'ArrowUp':
+        event.preventDefault();
+        this.moveVersionSelection('up');
+
+        return;
+      case 'Home':
+        event.preventDefault();
+        this.moveVersionSelectionToEdge('first');
+
+        return;
+      case 'End':
+        event.preventDefault();
+        this.moveVersionSelectionToEdge('last');
+
+        return;
+      case 'Delete':
+      case 'Backspace':
+        event.preventDefault();
+        void this.confirmRemoveSelectedVersion();
+
+        return;
+      default:
+        return;
+    }
+  }
+
+  /**
+   * Handles a key press while the diff pane holds focus, scrolling the active
+   * diff scroller: the up/down arrows nudge it a step, PageUp/PageDown move it
+   * by almost a full pane (a small overlap is kept for context), and Home/End
+   * jump to the top/bottom. So the same keys that walk the snapshots in the list
+   * instead move through the diff content here. The browser clamps scrollTop, so
+   * an over-scroll at either end is a safe no-op. Delete is intentionally
+   * ignored: removing a snapshot only makes sense from the list.
+   *
+   * @param {KeyboardEvent} event - The key event from the diff pane
+   */
+  protected handleDiffKeydown(event: KeyboardEvent): void {
+    const scroller: HTMLElement | null = this.getDiffScroller();
+
+    if (!scroller) {
+      return;
+    }
+
+    // A page keeps a small overlap so the line the user was reading stays on
+    // screen, with a floor so a very short pane still advances.
+    const page: number = Math.max(DIFF_SCROLL_STEP_PX, scroller.clientHeight - DIFF_SCROLL_STEP_PX);
+
+    switch (event.key) {
+      case 'ArrowDown':
+        event.preventDefault();
+        scroller.scrollTop += DIFF_SCROLL_STEP_PX;
+
+        return;
+      case 'ArrowUp':
+        event.preventDefault();
+        scroller.scrollTop -= DIFF_SCROLL_STEP_PX;
+
+        return;
+      case 'PageDown':
+        event.preventDefault();
+        scroller.scrollTop += page;
+
+        return;
+      case 'PageUp':
+        event.preventDefault();
+        scroller.scrollTop -= page;
+
+        return;
+      case 'Home':
+        event.preventDefault();
+        scroller.scrollTop = 0;
+
+        return;
+      case 'End':
+        event.preventDefault();
+        scroller.scrollTop = scroller.scrollHeight;
+
+        return;
+      default:
+        return;
+    }
+  }
+
+  /**
+   * Moves the rail selection one entry up or down and keeps it in view. The
+   * order matches the rendered list (the baseline on top, then the visible
+   * versions newest-first), so down moves toward older snapshots. The walk is
+   * delegated to the pure ListSelectionHelper and clamps at both ends. A move
+   * that resolves to the already-selected entry (an edge) is a no-op.
+   *
+   * @param {ListSelectionDirection} direction - Which way to move the selection
+   */
+  protected moveVersionSelection(direction: ListSelectionDirection): void {
+    const next: string | null = ListSelectionHelper.step(this.getSelectableIds(), this.selectedBaseId, direction);
+
+    if (next === null || next === this.selectedBaseId) {
+      return;
+    }
+
+    this.selectBase(next);
+    this.scrollActiveVersionIntoView();
+  }
+
+  /**
+   * Jumps the rail selection to the first (baseline) or last (oldest visible
+   * version) entry, backing the Home/End keys. A no-op when that edge is already
+   * selected or the list is empty.
+   *
+   * @param {'first' | 'last'} edge - Which end of the list to select
+   */
+  protected moveVersionSelectionToEdge(edge: 'first' | 'last'): void {
+    const ids: string[] = this.getSelectableIds();
+    const target: string | undefined = edge === 'first' ? ids[0] : ids[ids.length - 1];
+
+    if (!target || target === this.selectedBaseId) {
+      return;
+    }
+
+    this.selectBase(target);
+    this.scrollActiveVersionIntoView();
+  }
+
+  /**
+   * The ids selectable in the rail, in rendered order. With captured snapshots
+   * these are the currently visible versions (after the search and
+   * hide-identical filters) newest-first; with no snapshots it is the single
+   * Original entry. This is the list the arrow keys walk.
+   *
+   * @return {string[]} The selectable base ids, top to bottom
+   */
+  protected getSelectableIds(): string[] {
+    if (this.snapshot.getVersions().length === 0) {
+      return [ORIGINAL_BASE_ID];
+    }
+
+    return this.getVisibleVersions().map((version: FileVersion): string => version.id);
+  }
+
+  /**
+   * Resolves the base to select when the modal opens: the latest captured
+   * version (the top of the rail, showing what changed since the last save), or
+   * the Original entry when the file has no snapshots yet.
+   *
+   * @return {string} The initial selected base id
+   */
+  protected getInitialBaseId(): string {
+    const versions: FileVersion[] = this.snapshot.getVersions();
+
+    return versions.length > 0 ? versions[0].id : ORIGINAL_BASE_ID;
+  }
+
+  /**
+   * Scrolls the currently selected version entry into view inside the rail, so
+   * an arrow-key move that lands on an off-screen snapshot brings it into sight.
+   */
+  protected scrollActiveVersionIntoView(): void {
+    this.versionsEl
+      ?.querySelector<HTMLElement>('.lct-version-item.is-active')
+      ?.scrollIntoView({ block: 'nearest' });
+  }
+
+  /**
+   * Resolves the scrollable element of the diff pane for the active view mode:
+   * the patch container, the inline container, the line-by-line wrapper, or the
+   * first side-by-side column wrapper (its scroll is mirrored to the other
+   * column by the scroll-sync). Returns null before any diff is rendered.
+   *
+   * @return {HTMLElement | null} The diff scroll container, or null
+   */
+  protected getDiffScroller(): HTMLElement | null {
+    return this.diffContainerEl?.querySelector<HTMLElement>(
+      '.lct-patch-container, .lct-inline-container, .d2h-wrapper.d2h-line, .d2h-side-column-wrapper',
+    ) ?? null;
+  }
+
+  /**
    * Creates the UI elements for the diff view.
    */
   protected makeUI(): void {
@@ -394,15 +647,6 @@ export class HistoryModal extends Modal {
       container: bodyEl,
     });
 
-    // Match the Obsidian Settings modal: the close button keeps its native
-    // floating top-right position and only gains the raised round look, so the
-    // body below holds just the version rail and the content column.
-    const closeButtonEl: HTMLElement | null = this.modalEl.querySelector<HTMLElement>('.modal-close-button');
-
-    if (closeButtonEl) {
-      closeButtonEl.classList.add('mod-raised', 'clickable-icon');
-    }
-
     // The toolbar lives at the top of the right content column, above the diff.
     this.toolbarEl = DomHelper.create({
       tag: 'div',
@@ -412,6 +656,19 @@ export class HistoryModal extends Modal {
 
     this.makeToolbar();
 
+    // Pull the modal's native close button out of its floating top-right corner
+    // and append it as the last control in the toolbar, so it lines up with the
+    // other icon buttons instead of hovering apart. It drops the raised round
+    // look and wears the plain .clickable-icon look the rest of the row uses;
+    // the static position is restored in CSS.
+    const closeButtonEl: HTMLElement | null = this.modalEl.querySelector<HTMLElement>('.modal-close-button');
+
+    if (closeButtonEl) {
+      closeButtonEl.classList.remove('mod-raised');
+      closeButtonEl.classList.add('clickable-icon');
+      this.toolbarEl.appendChild(closeButtonEl);
+    }
+
     // Content search sits above the version timeline in the left rail.
     this.searchEl = DomHelper.create({
       tag: 'div',
@@ -419,11 +676,17 @@ export class HistoryModal extends Modal {
       container: this.railEl,
     });
 
-    // Version timeline lives in the left rail, under the search box.
+    // Version timeline lives in the left rail, under the search box. It is a
+    // focusable region (tabindex 0) so the arrow keys can walk the snapshots and
+    // Delete can drop the selected one while the list, not the diff, has focus.
     this.versionsEl = DomHelper.create({
       tag: 'div',
       classes: 'lct-versions',
       container: this.railEl,
+      attributes: { tabindex: '0' },
+      events: {
+        keydown: (event: Event): void => this.handleVersionsKeydown(event as KeyboardEvent),
+      },
     });
 
     // Notice above the diff, hidden until the selected base equals the current
@@ -453,11 +716,17 @@ export class HistoryModal extends Modal {
     });
 
     // The diff output fills the rest of the block. Per-hunk revert lives inline
-    // inside the diff rows, not in a separate panel.
+    // inside the diff rows, not in a separate panel. It is focusable (tabindex 0)
+    // so the arrow keys scroll the diff while it holds focus; Delete is ignored
+    // here, since deleting a snapshot only makes sense from the version list.
     this.diffContainerEl = DomHelper.create({
       tag: 'div',
       classes: 'diff-container',
       container: blockEl,
+      attributes: { tabindex: '0' },
+      events: {
+        keydown: (event: Event): void => this.handleDiffKeydown(event as KeyboardEvent),
+      },
     });
 
     this.renderSearch();
@@ -507,16 +776,14 @@ export class HistoryModal extends Modal {
 
   /**
    * Resolves the label for the diff's base (left) side, matching the version
-   * names used in the rail. A picked intermediate version shows its number; the
-   * baseline shows the latest captured version (the snapshot it diffs against),
-   * or the original when the timeline is empty.
+   * names used in the rail. A picked version shows its number; the Original
+   * entry (the only base when no snapshots exist) shows "Original".
    *
    * @return {string} The base-side label
    */
   protected getBaseLabel(): string {
-    const versions: FileVersion[] = this.snapshot.getVersions();
-
     if (this.selectedBaseId !== ORIGINAL_BASE_ID) {
+      const versions: FileVersion[] = this.snapshot.getVersions();
       const version: FileVersion | null = this.snapshot.getVersion(this.selectedBaseId);
 
       if (version) {
@@ -524,11 +791,7 @@ export class HistoryModal extends Modal {
       }
     }
 
-    // Baseline (or a stale id): the latest snapshot heads the timeline, so its
-    // number is the count; with no versions the base is the original content.
-    return versions.length > 0
-      ? this.plugin.t('modal.version.numbered', { number: versions.length })
-      : this.plugin.t('modal.version.original');
+    return this.plugin.t('modal.version.original');
   }
 
   /**
@@ -577,157 +840,164 @@ export class HistoryModal extends Modal {
     // group leads the toolbar and is pushed to the left edge (its auto inline-end
     // margin in CSS) so the destructive pair reads as separate from the view
     // controls that follow on the right.
-    new Setting(this.toolbarEl)
-      .setClass('lct-modal-toolbar-group')
-      .setClass('lct-modal-toolbar-actions')
-      .addButton((btn: ButtonComponent): ButtonComponent =>
-        this.decorateButton(btn, 'rotate-ccw', this.plugin.t('modal.restore-original'))
-          .setWarning()
-          .onClick(async (): Promise<void> => {
-            const confirmed: boolean = await this.modalsService.confirm({
-              title: this.plugin.t('modal.confirm.restore.title'),
-              message: this.plugin.t('modal.confirm.restore.message'),
-              confirmText: this.plugin.t('modal.confirm.restore.button'),
-              cancelText: this.plugin.t('modal.confirm.cancel')
-            });
+    const actionsGroup: HTMLElement = this.makeToolbarGroup('lct-modal-toolbar-actions');
 
-            if (confirmed) {
-              await this.restoreOriginalFile();
-            }
-          }))
-      .addButton((btn: ButtonComponent): ButtonComponent =>
-        this.decorateButton(btn, 'trash-2', this.plugin.t('modal.remove-history'))
-          .setWarning()
-          .onClick(async (): Promise<void> => {
-            const confirmed: boolean = await this.modalsService.confirm({
-              title: this.plugin.t('modal.confirm.remove.title'),
-              message: this.plugin.t('modal.confirm.remove.message'),
-              confirmText: this.plugin.t('modal.confirm.remove.button'),
-              cancelText: this.plugin.t('modal.confirm.cancel')
-            });
+    this.makeToolbarButton(actionsGroup, {
+      icon: 'rotate-ccw',
+      label: this.plugin.t('modal.restore-original'),
+      warning: true,
+      onClick: async (): Promise<void> => {
+        const confirmed: boolean = await this.modalsService.confirm({
+          title: this.plugin.t('modal.confirm.restore.title'),
+          message: this.plugin.t('modal.confirm.restore.message'),
+          confirmText: this.plugin.t('modal.confirm.restore.button'),
+          cancelText: this.plugin.t('modal.confirm.cancel'),
+        });
 
-            if (confirmed) {
-              this.snapshotsService?.wipeOne(this.snapshot.file);
-              this.close();
-            }
-          }));
+        if (confirmed) {
+          await this.restoreOriginalFile();
+        }
+      },
+    });
+
+    this.makeToolbarButton(actionsGroup, {
+      icon: 'trash-2',
+      label: this.plugin.t('modal.remove-history'),
+      warning: true,
+      onClick: async (): Promise<void> => {
+        const confirmed: boolean = await this.modalsService.confirm({
+          title: this.plugin.t('modal.confirm.remove.title'),
+          message: this.plugin.t('modal.confirm.remove.message'),
+          confirmText: this.plugin.t('modal.confirm.remove.button'),
+          cancelText: this.plugin.t('modal.confirm.cancel'),
+        });
+
+        if (confirmed) {
+          this.snapshotsService?.wipeOne(this.snapshot.file);
+          this.close();
+        }
+      },
+    });
 
     // Version controls: restore the file to the picked version (constructive,
     // the history is kept) and delete the picked version from the timeline, then
     // the rail filter that hides versions identical to the current state. The
-    // filter is a toggle, so it carries the mod-cta accent while active.
-    new Setting(this.toolbarEl)
-      .setClass('lct-modal-toolbar-group')
-      .setClass('lct-modal-toolbar-filter')
-      .addButton((btn: ButtonComponent): ButtonComponent => {
-        this.restoreSelectedButton = btn.buttonEl;
+    // filter is a toggle, so it carries the is-active accent while active.
+    const filterGroup: HTMLElement = this.makeToolbarGroup('lct-modal-toolbar-filter');
 
-        return this.decorateButton(btn, 'history', this.plugin.t('modal.restore-selected'))
-          .onClick(async (): Promise<void> => {
-            const confirmed: boolean = await this.modalsService.confirm({
-              title: this.plugin.t('modal.confirm.restore-version.title'),
-              message: this.plugin.t('modal.confirm.restore-version.message'),
-              confirmText: this.plugin.t('modal.confirm.restore-version.button'),
-              cancelText: this.plugin.t('modal.confirm.cancel'),
-            });
+    this.restoreSelectedButton = this.makeToolbarButton(filterGroup, {
+      icon: 'history',
+      label: this.plugin.t('modal.restore-selected'),
+      onClick: async (): Promise<void> => {
+        const confirmed: boolean = await this.modalsService.confirm({
+          title: this.plugin.t('modal.confirm.restore-version.title'),
+          message: this.plugin.t('modal.confirm.restore-version.message'),
+          confirmText: this.plugin.t('modal.confirm.restore-version.button'),
+          cancelText: this.plugin.t('modal.confirm.cancel'),
+        });
 
-            if (confirmed) {
-              await this.restoreSelectedVersion();
-            }
-          });
-      })
-      .addButton((btn: ButtonComponent): ButtonComponent => {
-        this.removeSelectedButton = btn.buttonEl;
+        if (confirmed) {
+          await this.restoreSelectedVersion();
+        }
+      },
+    });
 
-        return this.decorateButton(btn, 'list-x', this.plugin.t('modal.remove-selected'))
-          .onClick(async (): Promise<void> => {
-            const confirmed: boolean = await this.modalsService.confirm({
-              title: this.plugin.t('modal.confirm.remove-version.title'),
-              message: this.plugin.t('modal.confirm.remove-version.message'),
-              confirmText: this.plugin.t('modal.confirm.remove-version.button'),
-              cancelText: this.plugin.t('modal.confirm.cancel'),
-            });
+    this.removeSelectedButton = this.makeToolbarButton(filterGroup, {
+      icon: 'list-x',
+      label: this.plugin.t('modal.remove-selected'),
+      onClick: (): void => {
+        void this.confirmRemoveSelectedVersion();
+      },
+    });
 
-            if (confirmed) {
-              this.removeSelectedVersion();
-            }
-          });
-      })
-      .addButton((btn: ButtonComponent): ButtonComponent => {
-        this.hideIdenticalButton = btn.buttonEl;
-
-        return this.decorateButton(btn, 'eye-off', this.plugin.t('modal.hide-identical'))
-          .onClick((): void => {
-            this.toggleHideIdentical();
-          });
-      });
+    this.hideIdenticalButton = this.makeToolbarButton(filterGroup, {
+      icon: 'eye-off',
+      label: this.plugin.t('modal.hide-identical'),
+      onClick: (): void => {
+        this.toggleHideIdentical();
+      },
+    });
 
     // Difference navigation: step between the diff hunks with wrap-around. The
     // buttons are disabled when the current diff has no hunks.
-    new Setting(this.toolbarEl)
-      .setClass('lct-modal-toolbar-group')
-      .setClass('lct-modal-toolbar-nav')
-      .addButton((btn: ButtonComponent): ButtonComponent => {
-        this.navButtons.previous = btn.buttonEl;
+    const navGroup: HTMLElement = this.makeToolbarGroup('lct-modal-toolbar-nav');
 
-        return this.decorateButton(btn, 'chevron-up', this.plugin.t('modal.previous-difference'))
-          .onClick((): void => {
-            this.goToDifference('previous');
-          });
-      })
-      .addButton((btn: ButtonComponent): ButtonComponent => {
-        this.navButtons.next = btn.buttonEl;
+    this.navButtons.previous = this.makeToolbarButton(navGroup, {
+      icon: 'chevron-up',
+      label: this.plugin.t('modal.previous-difference'),
+      onClick: (): void => {
+        this.goToDifference('previous');
+      },
+    });
 
-        return this.decorateButton(btn, 'chevron-down', this.plugin.t('modal.next-difference'))
-          .onClick((): void => {
-            this.goToDifference('next');
-          });
-      });
+    this.navButtons.next = this.makeToolbarButton(navGroup, {
+      icon: 'chevron-down',
+      label: this.plugin.t('modal.next-difference'),
+      onClick: (): void => {
+        this.goToDifference('next');
+      },
+    });
 
-    // View-mode toggles: the active mode is highlighted via mod-cta.
-    new Setting(this.toolbarEl)
-      .setClass('lct-modal-toolbar-group')
-      .setClass('lct-modal-toolbar-modes')
-      .addButton((btn: ButtonComponent): ButtonComponent => {
-        this.modeButtons.patch = btn.buttonEl;
+    // View-mode toggles: the active mode is highlighted via is-active.
+    const modesGroup: HTMLElement = this.makeToolbarGroup('lct-modal-toolbar-modes');
 
-        return this.decorateButton(btn, 'file-text', this.plugin.t('modal.mode.patch'))
-          .onClick((): void => {
-            this.showCleanPatch();
-          });
-      })
-      .addButton((btn: ButtonComponent): ButtonComponent => {
-        this.modeButtons.inline = btn.buttonEl;
+    this.modeButtons.patch = this.makeToolbarButton(modesGroup, {
+      icon: 'file-text',
+      label: this.plugin.t('modal.mode.patch'),
+      onClick: (): void => {
+        this.showCleanPatch();
+      },
+    });
 
-        return this.decorateButton(btn, 'pilcrow', this.plugin.t('modal.mode.inline'))
-          .onClick((): void => {
-            this.renderInlineDiff();
-          });
-      })
-      .addButton((btn: ButtonComponent): ButtonComponent => {
-        this.modeButtons.lineByLine = btn.buttonEl;
+    this.modeButtons.inline = this.makeToolbarButton(modesGroup, {
+      icon: 'pilcrow',
+      label: this.plugin.t('modal.mode.inline'),
+      onClick: (): void => {
+        this.renderInlineDiff();
+      },
+    });
 
-        return this.decorateButton(btn, 'align-justify', this.plugin.t('modal.mode.line-by-line'))
-          .onClick((): void => {
-            this.renderDiff(DiffOutputFormatType.line);
-          });
-      })
-      .addButton((btn: ButtonComponent): ButtonComponent => {
-        this.modeButtons.sideBySide = btn.buttonEl;
+    this.modeButtons.lineByLine = this.makeToolbarButton(modesGroup, {
+      icon: 'align-justify',
+      label: this.plugin.t('modal.mode.line-by-line'),
+      onClick: (): void => {
+        this.renderDiff(DiffOutputFormatType.line);
+      },
+    });
 
-        return this.decorateButton(btn, 'columns-2', this.plugin.t('modal.mode.side-by-side'))
-          .onClick((): void => {
-            this.renderDiff(DiffOutputFormatType.side);
-          });
-      });
+    this.modeButtons.sideBySide = this.makeToolbarButton(modesGroup, {
+      icon: 'columns-2',
+      label: this.plugin.t('modal.mode.side-by-side'),
+      onClick: (): void => {
+        this.renderDiff(DiffOutputFormatType.side);
+      },
+    });
 
     // Set the initial active state.
     this.updateButtonActiveStates();
   }
 
   /**
+   * Creates one toolbar group: a flat row of icon buttons. The modifier class
+   * controls the group's placement (the destructive actions are pinned to the
+   * left edge, the rest are right-aligned) and is the only per-group styling
+   * hook now that the toolbar is built from plain elements rather than Setting
+   * rows.
+   *
+   * @param {string} modifier - The group's modifier class
+   * @return {HTMLElement} The created group container
+   */
+  protected makeToolbarGroup(modifier: string): HTMLElement {
+    return DomHelper.create({
+      tag: 'div',
+      classes: ['lct-modal-toolbar-group', modifier],
+      container: this.toolbarEl,
+    });
+  }
+
+  /**
    * Flips the hide-identical rail filter, syncs the toggle button's active
-   * (mod-cta) accent, and re-renders the version list. Only the rail list is
+   * (is-active) accent, and re-renders the version list. Only the rail list is
    * rebuilt: the selected diff base and the diff output are untouched.
    */
   protected toggleHideIdentical(): void {
@@ -735,7 +1005,7 @@ export class HistoryModal extends Modal {
 
     if (this.hideIdenticalButton) {
       DomHelper.update(this.hideIdenticalButton, {
-        classes: this.hideIdenticalVersions ? { add: 'mod-cta' } : { remove: 'mod-cta' },
+        classes: this.hideIdenticalVersions ? { add: 'is-active' } : { remove: 'is-active' },
       });
     }
 
@@ -743,23 +1013,36 @@ export class HistoryModal extends Modal {
   }
 
   /**
-   * Turns a toolbar button into an accessible icon button: it shows only the
-   * icon but exposes the label as both a hover tooltip and an aria-label, so the
-   * control is never a label-less icon for keyboard or screen-reader users.
+   * Builds one accessible icon button inside a toolbar group, the same way the
+   * inline revert affordance is built: a native button carrying Obsidian's
+   * .clickable-icon look (hover background, size, and radius come from the
+   * theme), an aria-label that doubles as the hover tooltip, and a click
+   * handler. It shows only the icon but is never a label-less control for
+   * keyboard or screen-reader users. The warning option adds the destructive
+   * accent (.lct-toolbar-warning) for the restore-original and remove-history
+   * actions; the built-in mod-warning is avoided because on a button it paints a
+   * solid error fill that hides the icon.
    *
-   * @param {ButtonComponent} btn - The button to decorate
-   * @param {string} icon - The Obsidian (Lucide) icon id to render
-   * @param {string} label - The text label exposed via tooltip and aria-label
-   * @return {ButtonComponent} The same button, for chaining
+   * @param {HTMLElement} group - The toolbar group to append the button to
+   * @param {ToolbarButtonConfig} config - The button's icon, label, handler, and flags
+   * @return {HTMLButtonElement} The created button
    */
-  protected decorateButton(btn: ButtonComponent, icon: string, label: string): ButtonComponent {
-    btn
-      .setIcon(icon)
-      .setTooltip(label);
+  protected makeToolbarButton(group: HTMLElement, config: ToolbarButtonConfig): HTMLButtonElement {
+    const button: HTMLButtonElement = DomHelper.create({
+      tag: 'button',
+      classes: config.warning ? ['clickable-icon', 'lct-toolbar-warning'] : ['clickable-icon'],
+      attributes: { 'aria-label': config.label, 'type': 'button' },
+      container: group,
+      events: {
+        click: (): void => {
+          void config.onClick();
+        },
+      },
+    });
 
-    btn.buttonEl.setAttribute('aria-label', label);
+    setIcon(button, config.icon);
 
-    return btn;
+    return button;
   }
 
   /**
@@ -907,14 +1190,15 @@ export class HistoryModal extends Modal {
 
   /**
    * Renders the version timeline as a list of selectable diff bases, grouped
-   * under a heading per day. The baseline entry (the original compared against
-   * the current state) heads the list and is placed in the day group of the
-   * file's last update; the matching intermediate versions follow, newest first,
-   * each in its capture day's group. The rail is never hidden: with no
-   * intermediate versions it shows the baseline plus a hint that none were
-   * captured yet; when a query matches no version it shows the baseline plus a
-   * no-results hint, leaving the current selection untouched. Selecting an entry
-   * sets it as the diff base and re-renders the active view.
+   * under a heading per day. With captured snapshots the list is the real
+   * versions, newest first, each in its capture day's group; the topmost
+   * (the latest snapshot) is the default base and shows what changed since the
+   * last save. With no snapshots yet the list is a single Original entry (the
+   * file's birth state vs the current content), placed in the day group of the
+   * file's last update. The rail is never hidden: when a query matches no
+   * version it shows just a no-results hint, leaving the current selection
+   * untouched. Selecting an entry sets it as the diff base and re-renders the
+   * active view.
    */
   protected renderVersions(): void {
     if (!this.versionsEl) {
@@ -923,35 +1207,35 @@ export class HistoryModal extends Modal {
 
     const versions: FileVersion[] = this.snapshot.getVersions();
 
-    // The rail is always visible: even a timeline-less file offers the baseline
-    // (original vs current) entry, so the block is never collapsed.
+    // The rail is always visible: even a timeline-less file offers the single
+    // Original entry (original vs current), so the block is never collapsed.
     DomHelper.update(this.versionsEl, { classes: { remove: 'lct-versions-empty' } });
 
     const matched: FileVersion[] = this.getVisibleVersions();
 
-    // Every entry, including the baseline, is grouped by day. The baseline
-    // (original vs current) heads the list and takes its day and time from the
-    // file's last update, so it sits in the day group of the most recent change;
-    // the intermediate versions follow, keyed by their capture day. Each entry
-    // shows only the time of day, since the date lives in the group heading. The
-    // entries are already newest-first and time-ordered, so same-day entries are
-    // contiguous and a new group starts only when the day changes. Version
-    // numbers stay tied to the full timeline position so they do not shift while
-    // filtering.
-    const entries: { id: string; label: string; day: string; time: string }[] = [
-      {
-        id: ORIGINAL_BASE_ID,
-        label: this.plugin.t('modal.version.baseline'),
-        day: this.snapshot.getLastChangedDate(),
-        time: this.snapshot.getLastChangedTime(),
-      },
-      ...matched.map((version: FileVersion): { id: string; label: string; day: string; time: string } => ({
-        id: version.id,
-        label: this.plugin.t('modal.version.numbered', { number: versions.length - versions.indexOf(version) }),
-        day: version.getDate(),
-        time: version.getTime(),
-      })),
-    ];
+    // Each entry is grouped by day and shows only the time of day, since the
+    // date lives in the group heading. With snapshots the entries are the
+    // visible versions, already newest-first and time-ordered, so same-day
+    // entries are contiguous and a new group starts only when the day changes;
+    // version numbers stay tied to the full timeline position so they do not
+    // shift while filtering. With no snapshots the single Original entry takes
+    // its day and time from the file's last update.
+    const entries: { id: string; label: string; day: string; time: string }[] =
+      versions.length === 0
+        ? [
+            {
+              id: ORIGINAL_BASE_ID,
+              label: this.plugin.t('modal.version.original'),
+              day: this.snapshot.getLastChangedDate(),
+              time: this.snapshot.getLastChangedTime(),
+            },
+          ]
+        : matched.map((version: FileVersion): { id: string; label: string; day: string; time: string } => ({
+            id: version.id,
+            label: this.plugin.t('modal.version.numbered', { number: versions.length - versions.indexOf(version) }),
+            day: version.getDate(),
+            time: version.getTime(),
+          }));
 
     const groups: { label: string; entries: typeof entries }[] = [];
 
@@ -975,15 +1259,11 @@ export class HistoryModal extends Modal {
       });
     });
 
-    // Informative empty states under the baseline: no intermediate snapshots
-    // captured at all, or a search that excluded every existing version.
-    if (versions.length === 0) {
-      items.push({
-        tag: 'div',
-        classes: 'lct-versions-no-results',
-        text: this.plugin.t('modal.no-snapshots-yet'),
-      });
-    } else if (matched.length === 0) {
+    // A search that excluded every captured version leaves the version groups
+    // empty, so surface a no-results hint. (With no snapshots at all the
+    // Original entry is shown instead, so this only applies once versions
+    // exist.)
+    if (versions.length > 0 && matched.length === 0) {
       items.push({
         tag: 'div',
         classes: 'lct-versions-no-results',

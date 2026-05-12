@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "Відкотити",
 
   "modal.search-versions": "Пошук версій",
-  "modal.version.baseline": "Поточна",
   "modal.version.numbered": "Версія {number}",
   "modal.version.current": "Поточна",
   "modal.version.original": "Оригінал",
   "modal.no-versions-match": "Немає версій, що відповідають пошуку",
-  "modal.no-snapshots-yet": "Проміжних знімків поки немає",
 
   "modal.revert-hunk": "Відкотити цю зміну",
 

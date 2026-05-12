@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "Geri al",
 
   "modal.search-versions": "Sürümlerde ara",
-  "modal.version.baseline": "Geçerli",
   "modal.version.numbered": "Sürüm {number}",
   "modal.version.current": "Geçerli",
   "modal.version.original": "Özgün",
   "modal.no-versions-match": "Aramayla eşleşen sürüm yok",
-  "modal.no-snapshots-yet": "Henüz ara anlık görüntü yok",
 
   "modal.revert-hunk": "Bu değişikliği geri al",
 

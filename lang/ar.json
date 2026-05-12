@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "تراجع",
 
   "modal.search-versions": "البحث في الإصدارات",
-  "modal.version.baseline": "الحالي",
   "modal.version.numbered": "الإصدار {number}",
   "modal.version.current": "الحالي",
   "modal.version.original": "الأصلي",
   "modal.no-versions-match": "لا توجد إصدارات تطابق البحث",
-  "modal.no-snapshots-yet": "لا توجد لقطات وسيطة بعد",
 
   "modal.revert-hunk": "التراجع عن هذا التغيير",
 

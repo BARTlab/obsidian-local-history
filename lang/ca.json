@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "Reverteix",
 
   "modal.search-versions": "Cerca versions",
-  "modal.version.baseline": "Actual",
   "modal.version.numbered": "Versió {number}",
   "modal.version.current": "Actual",
   "modal.version.original": "Original",
   "modal.no-versions-match": "Cap versió coincideix amb la cerca",
-  "modal.no-snapshots-yet": "Encara no hi ha instantànies intermèdies",
 
   "modal.revert-hunk": "Reverteix aquest canvi",
 

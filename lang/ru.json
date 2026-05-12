@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "Откатить",
 
   "modal.search-versions": "Поиск по версиям",
-  "modal.version.baseline": "Текущий",
   "modal.version.numbered": "Версия {number}",
   "modal.version.current": "Текущая",
   "modal.version.original": "Оригинал",
   "modal.no-versions-match": "Нет версий, соответствующих поиску",
-  "modal.no-snapshots-yet": "Промежуточных снимков пока нет",
 
   "modal.revert-hunk": "Откатить это изменение",
 

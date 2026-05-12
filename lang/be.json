@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "Адкаціць",
 
   "modal.search-versions": "Пошук версій",
-  "modal.version.baseline": "Бягучая",
   "modal.version.numbered": "Версія {number}",
   "modal.version.current": "Бягучая",
   "modal.version.original": "Арыгінал",
   "modal.no-versions-match": "Няма версій, што адпавядаюць пошуку",
-  "modal.no-snapshots-yet": "Прамежкавых здымкаў пакуль няма",
 
   "modal.revert-hunk": "Адкаціць гэтую змену",
 

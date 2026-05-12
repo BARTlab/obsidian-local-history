@@ -252,19 +252,27 @@ export class FileSnapshot {
    * or a first version identical to the original, which would otherwise diff
    * identically and make switching the base appear to change nothing.
    *
+   * A label-carrying capture is treated as a pinned marker (D6): it bypasses
+   * the duplicate-skip so the user-supplied tag is always recorded, and the
+   * resulting version is exempt from eviction in evictVersions.
+   *
    * @param {string[]} previousLines - The content to freeze (pre-edit state)
    * @param {SnapshotCaptureOptions} options - The capture cadence configuration
    * @param {boolean} force - Capture regardless of the cadence gates
+   * @param {string} label - Optional user-supplied tag that pins the version
    * @return {FileVersion | null} The captured version, or null if none was taken
    */
   public captureVersion(
     previousLines: string[],
     options: SnapshotCaptureOptions,
     force: boolean = false,
+    label?: string,
   ): FileVersion | null {
     if (!options?.enabled || !isArray(previousLines)) {
       return null;
     }
+
+    const labeled: boolean = typeof label === 'string' && label.length > 0;
 
     this.editsSinceVersion += 1;
 
@@ -275,12 +283,13 @@ export class FileSnapshot {
     // Skip a capture that would duplicate the latest stored version, or the
     // original baseline when the timeline is still empty. The cadence counters
     // are intentionally left untouched so the next genuinely diverging edit is
-    // captured immediately rather than waiting out the gate again.
-    if (this.isDuplicateOfLatest(previousLines)) {
+    // captured immediately rather than waiting out the gate again. A label
+    // bypasses the dedup: an intentional marker must land even on no-op content.
+    if (!labeled && this.isDuplicateOfLatest(previousLines)) {
       return null;
     }
 
-    return this.pushVersion(new FileVersion(previousLines), options);
+    return this.pushVersion(new FileVersion(previousLines, undefined, label), options);
   }
 
   /**
@@ -344,6 +353,11 @@ export class FileSnapshot {
    * age. A cap of 0 disables that dimension. Because versions are appended
    * oldest-first, both passes evict from the front of the array.
    *
+   * Labeled versions are pinned (D6): they are never dropped by either pass, so
+   * an intentional user marker survives both the age window and the count cap.
+   * The count cap counts only unlabeled entries, so a labeled version does not
+   * push an unlabeled one out either.
+   *
    * @param {SnapshotCaptureOptions} options - The retention caps to apply
    */
   protected evictVersions(options: SnapshotCaptureOptions): void {
@@ -352,13 +366,32 @@ export class FileSnapshot {
     if (isNumber(maxAgeDays) && maxAgeDays > 0) {
       const oldest: number = Date.now() - (maxAgeDays * MS_PER_DAY);
 
-      this.versions = this.versions.filter((version: FileVersion): boolean => version.timestamp >= oldest);
+      this.versions = this.versions.filter(
+        (version: FileVersion): boolean => version.isLabeled() || version.timestamp >= oldest,
+      );
     }
 
     const maxVersions: number = options?.maxVersions;
 
-    if (isNumber(maxVersions) && maxVersions > 0 && this.versions.length > maxVersions) {
-      this.versions.splice(0, this.versions.length - maxVersions);
+    if (isNumber(maxVersions) && maxVersions > 0) {
+      const unlabeled: number = this.versions.reduce(
+        (count: number, version: FileVersion): number => count + (version.isLabeled() ? 0 : 1),
+        0,
+      );
+
+      let toDrop: number = unlabeled - maxVersions;
+
+      if (toDrop > 0) {
+        this.versions = this.versions.filter((version: FileVersion): boolean => {
+          if (toDrop <= 0 || version.isLabeled()) {
+            return true;
+          }
+
+          toDrop -= 1;
+
+          return false;
+        });
+      }
     }
   }
 

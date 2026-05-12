@@ -28,17 +28,40 @@ export class FileVersion {
   public lines: string[] = [];
 
   /**
+   * Optional user-supplied tag that turns this version into a pinned marker.
+   * When set, the version is exempt from the duplicate-skip on capture and from
+   * the age/count eviction passes, so an intentionally labeled point cannot
+   * silently vanish from the timeline (see D6).
+   */
+  public label?: string;
+
+  /**
    * Creates a new immutable version from a content snapshot.
    *
    * @param {string[]} lines - The file content at capture time, split into lines
    * @param {number} timestamp - Optional capture timestamp (defaults to now)
+   * @param {string} label - Optional user-supplied tag pinning this version
    */
-  public constructor(lines: string[], timestamp?: number) {
+  public constructor(lines: string[], timestamp?: number, label?: string) {
     this.lines = [...(lines ?? [])];
 
     if (typeof timestamp === 'number') {
       this.timestamp = timestamp;
     }
+
+    if (typeof label === 'string' && label.length > 0) {
+      this.label = label;
+    }
+  }
+
+  /**
+   * Whether this version carries a user-supplied label and is therefore pinned
+   * (exempt from the duplicate-skip and eviction).
+   *
+   * @return {boolean} True when a non-empty label is set
+   */
+  public isLabeled(): boolean {
+    return typeof this.label === 'string' && this.label.length > 0;
   }
 
   /**
@@ -99,10 +122,16 @@ export class FileVersion {
    * @return {SerializedFileVersion} The plain serialized representation
    */
   public toJSON(): SerializedFileVersion {
-    return {
+    const data: SerializedFileVersion = {
       timestamp: this.timestamp,
       lines: [...this.lines],
     };
+
+    if (this.isLabeled()) {
+      data.label = this.label;
+    }
+
+    return data;
   }
 
   /**
@@ -112,6 +141,10 @@ export class FileVersion {
    * @return {FileVersion} The reconstructed version
    */
   public static fromJSON(data: SerializedFileVersion): FileVersion {
-    return new FileVersion(Array.isArray(data?.lines) ? data.lines : [], data?.timestamp);
+    return new FileVersion(
+      Array.isArray(data?.lines) ? data.lines : [],
+      data?.timestamp,
+      typeof data?.label === 'string' ? data.label : undefined,
+    );
   }
 }

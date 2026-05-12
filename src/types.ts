@@ -432,11 +432,13 @@ export interface SerializedTrackerLine {
 /**
  * Serialized form of a single intermediate version (timeline entry). Holds the
  * captured content and its timestamp; the id is omitted so a fresh one is
- * assigned on restore.
+ * assigned on restore. The optional `label` is the user-supplied tag that turns
+ * a version into a pinned marker (exempt from dedup and eviction).
  */
 export interface SerializedFileVersion {
   timestamp: number;
   lines: string[];
+  label?: string;
 }
 
 /**

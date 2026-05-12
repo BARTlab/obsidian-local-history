@@ -88,6 +88,13 @@ export const DEFAULT_SETTINGS: LineChangeTrackerSettings = {
 };
 
 /**
+ * The `show.*` setting flags toggled together by the gutter "show changes" menu
+ * item. Listing them in one place keeps the composite toggle and its read in
+ * sync.
+ */
+export const SHOW_CHANGE_KEYS = ['show.changed', 'show.restored', 'show.added', 'show.removed'] as const;
+
+/**
  * ID for the plugin's style element in the DOM.
  * Used to identify and manipulate the CSS styles for line change indicators.
  */
@@ -120,6 +127,7 @@ export enum ObsidianWorkspaceEvent {
   layoutChange = 'workspace.layout-change',
   fileOpen = 'workspace.file-open',
   editorMenu = 'workspace.editor-menu',
+  viewportMenu = 'workspace.markdown-viewport-menu',
   fileMenu = 'workspace.file-menu',
   quit = 'workspace.quit',
   resize = 'workspace.resize',

@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "Wycofaj",
 
   "modal.search-versions": "Szukaj wersji",
-  "modal.version.baseline": "Bieżąca",
   "modal.version.numbered": "Wersja {number}",
   "modal.version.current": "Bieżąca",
   "modal.version.original": "Oryginał",
   "modal.no-versions-match": "Brak wersji pasujących do wyszukiwania",
-  "modal.no-snapshots-yet": "Brak na razie wersji pośrednich",
 
   "modal.revert-hunk": "Wycofaj tę zmianę",
 

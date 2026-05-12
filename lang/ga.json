@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "Fill",
 
   "modal.search-versions": "Cuardaigh leaganacha",
-  "modal.version.baseline": "Reatha",
   "modal.version.numbered": "Leagan {number}",
   "modal.version.current": "Reatha",
   "modal.version.original": "Bunleagan",
   "modal.no-versions-match": "Níl aon leagan ag meaitseáil an chuardaigh",
-  "modal.no-snapshots-yet": "Níl aon roghbhlúire idirmheánach ann fós",
 
   "modal.revert-hunk": "Fill an t-athrú seo",
 

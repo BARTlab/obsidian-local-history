@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "Terugdraaien",
 
   "modal.search-versions": "Versies zoeken",
-  "modal.version.baseline": "Huidig",
   "modal.version.numbered": "Versie {number}",
   "modal.version.current": "Huidig",
   "modal.version.original": "Origineel",
   "modal.no-versions-match": "Geen versies komen overeen met de zoekopdracht",
-  "modal.no-snapshots-yet": "Nog geen tussenliggende momentopnamen",
 
   "modal.revert-hunk": "Deze wijziging terugdraaien",
 

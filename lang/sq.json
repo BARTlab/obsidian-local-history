@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "Ktheje",
 
   "modal.search-versions": "Kërko versionet",
-  "modal.version.baseline": "Aktuali",
   "modal.version.numbered": "Versioni {number}",
   "modal.version.current": "Aktuali",
   "modal.version.original": "Origjinali",
   "modal.no-versions-match": "Asnjë version nuk përputhet me kërkimin",
-  "modal.no-snapshots-yet": "Ende pa foto të ndërmjetme",
 
   "modal.revert-hunk": "Ktheje këtë ndryshim",
 

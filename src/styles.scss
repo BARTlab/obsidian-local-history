@@ -33,8 +33,8 @@
 
     // Toolbar region at the top of the right content column: the destructive
     // actions lead on the left, then the rail filter, difference navigation, and
-    // the view-mode toggles, all as rows of icon buttons. Each group is an
-    // Obsidian Setting row; the trailing groups are right-aligned
+    // the view-mode toggles, all as rows of icon buttons. Each group is a flat
+    // row of .clickable-icon buttons; the trailing groups are right-aligned
     // (justify-content: flex-end) and wrap on a narrow modal.
     .lct-modal-toolbar {
       flex: none;
@@ -45,15 +45,6 @@
       justify-content: flex-end;
       gap: var(--size-4-2);
 
-      // Each group is an Obsidian Setting, which always renders an info column
-      // (name + description) to the LEFT of its controls. Ours are label-less
-      // button rows, so that column is empty but still reserves space and pushes
-      // the buttons off the left edge. Hiding it makes the toolbar gap the only
-      // horizontal spacing, so the left group sits flush at the edge.
-      .setting-item-info {
-        display: none;
-      }
-
       // Destructive actions are pinned to the left edge: the auto inline-end
       // margin eats the free space after them, pushing every later group to the
       // right so the pair reads as visually separate from the view controls.
@@ -61,35 +52,65 @@
         margin-inline-end: auto;
       }
 
+      // A group is a flat row of icon buttons, spaced with the smaller step on
+      // the same scale as the inter-group gap.
       .lct-modal-toolbar-group {
-        width: auto;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: var(--size-4-1);
+      }
 
-        // Strip the Setting control's default grow and margins so the row is
-        // exactly as wide as its buttons (no stray inset), and space the buttons
-        // with the smaller step on the same scale as the inter-group gap.
-        .setting-item-control {
-          flex: 0 0 auto;
-          margin: 0;
-          flex-wrap: wrap;
-          gap: var(--size-4-1);
-        }
+      // Icon buttons reuse Obsidian's .clickable-icon look (hover background,
+      // size, and radius come from the theme), so only the state accents are
+      // set here.
+      .clickable-icon {
+        // The active view mode and the active hide-identical toggle are marked
+        // the way Obsidian marks active toolbar icons: the icon takes the accent
+        // colour over a subtle hover-tint background, not a solid accent fill.
+        // A solid fill (mod-cta) reads as a primary call-to-action button rather
+        // than a pressed toggle, so it is intentionally avoided here.
+        &.is-active {
+          color: var(--text-accent);
+          background-color: var(--background-modifier-hover);
 
-        // Icon buttons: compact, square, icon-only on screen (the label lives in
-        // the tooltip and aria-label). The active view mode is marked with the
-        // standard mod-cta accent.
-        button {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-
-          // A disabled navigation button (no hunks to walk) reads as inactive
-          // and ignores clicks.
-          &:disabled,
-          &.is-disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
+          &:hover {
+            color: var(--text-accent);
           }
         }
+
+        // Destructive actions (restore original, remove history) tint only their
+        // icon with the error colour and keep the theme's neutral hover
+        // background. The built-in mod-warning is intentionally avoided: on a
+        // <button> it paints a solid error fill that swallows the icon, leaving a
+        // blank red square. An error-tinted hover background is avoided for the
+        // same reason: the error icon would vanish into it on hover.
+        &.lct-toolbar-warning {
+          color: var(--text-error);
+
+          &:hover {
+            color: var(--text-error);
+          }
+        }
+
+        // A disabled control (no hunks to walk, nothing to restore or remove)
+        // reads as inactive and ignores clicks.
+        &:disabled,
+        &.is-disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+        }
+      }
+
+      // The native close button is relocated into the toolbar (see makeUI), so
+      // drop its absolute top-right placement and let it flow as the trailing
+      // icon button, aligned with the rest of the row. The toolbar gap is the
+      // only spacing around it.
+      .modal-close-button {
+        position: static;
+        inset: auto;
+        margin: 0;
       }
     }
 
@@ -114,26 +135,23 @@
       flex-direction: column;
       min-height: 0;
       overflow: auto;
-      padding: var(--size-4-3);
-      padding-top: var(--size-4-8);
-      padding-bottom: var(--size-4-8);
+      padding: var(--size-4-4);
       border-inline-end: var(--border-width) solid var(--divider-color);
     }
 
-    // Right content column: stacks the toolbar above the diff output. Padded
-    // and primary-backed like the Settings tab content (.vertical-tab-content);
-    // the generous trailing padding also clears the floating close button.
+    // Right content column: stacks the toolbar above the diff output. A compact
+    // even padding keeps the diff wide (the whole point of this modal); the
+    // floating close button is cleared by a trailing reserve on the toolbar
+    // alone (see .lct-modal-toolbar) rather than by padding the whole column, so
+    // the diff itself reaches close to the right edge.
     .lct-modal-main {
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: var(--size-4-2);
       min-width: 0;
       min-height: 0;
-      padding-top: var(--size-4-8);
-      padding-bottom: var(--size-4-8);
-      padding-inline-start: var(--size-4-12);
-      padding-inline-end: var(--size-4-12);
+      padding: var(--size-4-4);
       background-color: var(--background-primary);
     }
 
@@ -151,6 +169,15 @@
     }
 
     .lct-versions {
+      // Focusable region: a focus ring marks when the arrow keys steer the
+      // snapshot selection (and Delete drops it) rather than scrolling the diff.
+      border-radius: var(--radius-s);
+
+      &:focus-visible {
+        outline: var(--border-width) solid var(--interactive-accent);
+        outline-offset: var(--size-4-1);
+      }
+
       &.lct-versions-empty {
         display: none;
       }
@@ -287,6 +314,14 @@
       font-size: var(--font-text-size);
       line-height: var(--line-height-normal);
       background-color: var(--background-secondary);
+
+      // Focusable region: a focus ring marks when the arrow keys scroll the diff
+      // rather than steering the snapshot selection in the rail. The ring is
+      // inset so it is not clipped by the block's overflow: hidden.
+      &:focus-visible {
+        outline: var(--border-width) solid var(--interactive-accent);
+        outline-offset: calc(-1 * var(--border-width));
+      }
 
       // The first row of each hunk is the scroll/highlight target the
       // next/previous navigation walks, and it hosts the inline revert

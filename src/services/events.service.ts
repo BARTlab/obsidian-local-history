@@ -7,6 +7,7 @@ import { WorkspaceEditorMenuEvent } from '@/events/workspace/editor-menu.event';
 import { WorkspaceFileOpenEvent } from '@/events/workspace/file-open.event';
 import { WorkspaceFilesMenuEvent } from '@/events/workspace/files-menu.event';
 import { WorkspaceLayoutChangeEvent } from '@/events/workspace/layout-change.event';
+import { WorkspaceViewportMenuEvent } from '@/events/workspace/viewport-menu.event';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ClassConstructor, Service } from '@/types';
 
@@ -58,6 +59,7 @@ export class EventsService implements Service {
     this.register(WorkspaceFileOpenEvent);
     this.register(WorkspaceLayoutChangeEvent);
     this.register(WorkspaceEditorMenuEvent);
+    this.register(WorkspaceViewportMenuEvent);
     this.register(WorkspaceFilesMenuEvent);
   }
 

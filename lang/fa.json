@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "بازگردانی",
 
   "modal.search-versions": "جست‌وجوی نسخه‌ها",
-  "modal.version.baseline": "فعلی",
   "modal.version.numbered": "نسخه {number}",
   "modal.version.current": "فعلی",
   "modal.version.original": "اصلی",
   "modal.no-versions-match": "هیچ نسخه‌ای با جست‌وجو مطابقت ندارد",
-  "modal.no-snapshots-yet": "هنوز عکس فوری میانی‌ای وجود ندارد",
 
   "modal.revert-hunk": "بازگردانی این تغییر",
 

@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "Hoàn nguyên",
 
   "modal.search-versions": "Tìm kiếm phiên bản",
-  "modal.version.baseline": "Hiện tại",
   "modal.version.numbered": "Phiên bản {number}",
   "modal.version.current": "Hiện tại",
   "modal.version.original": "Bản gốc",
   "modal.no-versions-match": "Không có phiên bản nào khớp với tìm kiếm",
-  "modal.no-snapshots-yet": "Chưa có ảnh chụp trung gian nào",
 
   "modal.revert-hunk": "Hoàn nguyên thay đổi này",
 

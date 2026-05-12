@@ -1,3 +1,5 @@
+@charset "UTF-8";
+
 /* src/styles.scss */
 .modal.lct-diff-modal {
   width: 90vw;
@@ -26,30 +28,38 @@
   justify-content: flex-end;
   gap: var(--size-4-2);
 }
-.modal.lct-diff-modal .lct-modal-toolbar .setting-item-info {
-  display: none;
-}
 .modal.lct-diff-modal .lct-modal-toolbar .lct-modal-toolbar-actions {
   margin-inline-end: auto;
 }
 .modal.lct-diff-modal .lct-modal-toolbar .lct-modal-toolbar-group {
-  width: auto;
-}
-.modal.lct-diff-modal .lct-modal-toolbar .lct-modal-toolbar-group .setting-item-control {
-  flex: 0 0 auto;
-  margin: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
   flex-wrap: wrap;
   gap: var(--size-4-1);
 }
-.modal.lct-diff-modal .lct-modal-toolbar .lct-modal-toolbar-group button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+.modal.lct-diff-modal .lct-modal-toolbar .clickable-icon.is-active {
+  color: var(--text-accent);
+  background-color: var(--background-modifier-hover);
 }
-.modal.lct-diff-modal .lct-modal-toolbar .lct-modal-toolbar-group button:disabled,
-.modal.lct-diff-modal .lct-modal-toolbar .lct-modal-toolbar-group button.is-disabled {
+.modal.lct-diff-modal .lct-modal-toolbar .clickable-icon.is-active:hover {
+  color: var(--text-accent);
+}
+.modal.lct-diff-modal .lct-modal-toolbar .clickable-icon.lct-toolbar-warning {
+  color: var(--text-error);
+}
+.modal.lct-diff-modal .lct-modal-toolbar .clickable-icon.lct-toolbar-warning:hover {
+  color: var(--text-error);
+}
+.modal.lct-diff-modal .lct-modal-toolbar .clickable-icon:disabled,
+.modal.lct-diff-modal .lct-modal-toolbar .clickable-icon.is-disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+.modal.lct-diff-modal .lct-modal-toolbar .modal-close-button {
+  position: static;
+  inset: auto;
+  margin: 0;
 }
 .modal.lct-diff-modal .lct-modal-body {
   flex: 1;
@@ -66,22 +76,17 @@
   flex-direction: column;
   min-height: 0;
   overflow: auto;
-  padding: var(--size-4-3);
-  padding-top: var(--size-4-8);
-  padding-bottom: var(--size-4-8);
+  padding: var(--size-4-4);
   border-inline-end: var(--border-width) solid var(--divider-color);
 }
 .modal.lct-diff-modal .lct-modal-main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--size-4-2);
   min-width: 0;
   min-height: 0;
-  padding-top: var(--size-4-8);
-  padding-bottom: var(--size-4-8);
-  padding-inline-start: var(--size-4-12);
-  padding-inline-end: var(--size-4-12);
+  padding: var(--size-4-4);
   background-color: var(--background-primary);
 }
 .modal.lct-diff-modal .lct-rail-search {
@@ -93,6 +98,13 @@
 }
 .modal.lct-diff-modal .lct-rail-search .search-input-container {
   width: 100%;
+}
+.modal.lct-diff-modal .lct-versions {
+  border-radius: var(--radius-s);
+}
+.modal.lct-diff-modal .lct-versions:focus-visible {
+  outline: var(--border-width) solid var(--interactive-accent);
+  outline-offset: var(--size-4-1);
 }
 .modal.lct-diff-modal .lct-versions.lct-versions-empty {
   display: none;
@@ -197,6 +209,10 @@
   font-size: var(--font-text-size);
   line-height: var(--line-height-normal);
   background-color: var(--background-secondary);
+}
+.modal.lct-diff-modal .diff-container:focus-visible {
+  outline: var(--border-width) solid var(--interactive-accent);
+  outline-offset: calc(-1 * var(--border-width));
 }
 .modal.lct-diff-modal .diff-container .lct-hunk-anchor {
   position: relative;

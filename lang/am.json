@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "መልስ",
 
   "modal.search-versions": "ስሪቶችን ፈልግ",
-  "modal.version.baseline": "የአሁኑ",
   "modal.version.numbered": "ስሪት {number}",
   "modal.version.current": "የአሁኑ",
   "modal.version.original": "መነሻ",
   "modal.no-versions-match": "ከፍለጋው ጋር የሚዛመዱ ስሪቶች የሉም",
-  "modal.no-snapshots-yet": "ገና መካከለኛ ቅጽበታዊ ቅጂዎች የሉም",
 
   "modal.revert-hunk": "ይህን ለውጥ መልስ",
 

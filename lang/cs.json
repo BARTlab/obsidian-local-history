@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "Vrátit",
 
   "modal.search-versions": "Hledat verze",
-  "modal.version.baseline": "Aktuální",
   "modal.version.numbered": "Verze {number}",
   "modal.version.current": "Aktuální",
   "modal.version.original": "Originál",
   "modal.no-versions-match": "Žádné verze neodpovídají hledání",
-  "modal.no-snapshots-yet": "Zatím žádné průběžné snímky",
 
   "modal.revert-hunk": "Vrátit tuto změnu",
 

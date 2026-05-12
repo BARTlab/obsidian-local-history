@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "Опозови",
 
   "modal.search-versions": "Претражи верзије",
-  "modal.version.baseline": "Текућа",
   "modal.version.numbered": "Верзија {number}",
   "modal.version.current": "Текућа",
   "modal.version.original": "Оригинал",
   "modal.no-versions-match": "Ниједна верзија не одговара претрази",
-  "modal.no-snapshots-yet": "Још нема међуснимака",
 
   "modal.revert-hunk": "Опозови ову измену",
 

@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "元に戻す",
 
   "modal.search-versions": "バージョンを検索",
-  "modal.version.baseline": "現在",
   "modal.version.numbered": "バージョン {number}",
   "modal.version.current": "現在",
   "modal.version.original": "元の状態",
   "modal.no-versions-match": "検索に一致するバージョンがありません",
-  "modal.no-snapshots-yet": "中間スナップショットはまだありません",
 
   "modal.revert-hunk": "この変更を元に戻す",
 

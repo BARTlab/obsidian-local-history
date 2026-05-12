@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "Patah balik",
 
   "modal.search-versions": "Cari versi",
-  "modal.version.baseline": "Semasa",
   "modal.version.numbered": "Versi {number}",
   "modal.version.current": "Semasa",
   "modal.version.original": "Asal",
   "modal.no-versions-match": "Tiada versi sepadan dengan carian",
-  "modal.no-snapshots-yet": "Belum ada snapshot pertengahan",
 
   "modal.revert-hunk": "Patah balik perubahan ini",
 

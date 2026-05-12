@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "Visszavonás",
 
   "modal.search-versions": "Verziók keresése",
-  "modal.version.baseline": "Jelenlegi",
   "modal.version.numbered": "{number}. verzió",
   "modal.version.current": "Jelenlegi",
   "modal.version.original": "Eredeti",
   "modal.no-versions-match": "Nincs a keresésnek megfelelő verzió",
-  "modal.no-snapshots-yet": "Még nincsenek köztes pillanatképek",
 
   "modal.revert-hunk": "Módosítás visszavonása",
 

@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "Tilbakestill",
 
   "modal.search-versions": "Søk i versjoner",
-  "modal.version.baseline": "Gjeldende",
   "modal.version.numbered": "Versjon {number}",
   "modal.version.current": "Gjeldende",
   "modal.version.original": "Original",
   "modal.no-versions-match": "Ingen versjoner samsvarer med søket",
-  "modal.no-snapshots-yet": "Ingen mellomliggende øyeblikksbilder ennå",
 
   "modal.revert-hunk": "Tilbakestill denne endringen",
 

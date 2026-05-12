@@ -18,12 +18,6 @@ import { RangeSetBuilder } from '@codemirror/state';
 import { type EditorView } from '@codemirror/view';
 
 /**
- * The `show.*` setting flags toggled together by the gutter "show changes"
- * menu item. Listing them here keeps the composite toggle and its read in sync.
- */
-const SHOW_CHANGE_KEYS = ['show.changed', 'show.restored', 'show.added', 'show.removed'] as const;
-
-/**
  * Extension that adds dot markers to the editor gutter based on change status.
  * Shows dots in the gutter for lines that have been added, modified, or restored.
  *
@@ -182,7 +176,7 @@ export class GutterCommonExtension extends BaseExtension implements GutterConfig
     event.preventDefault();
 
     const menu: Menu = new Menu();
-    const shown: boolean = this.isShowChangesEnabled();
+    const shown: boolean = this.settingsService.isShowChangesEnabled();
 
     menu.addItem((item): void => {
       item
@@ -190,33 +184,11 @@ export class GutterCommonExtension extends BaseExtension implements GutterConfig
         .setIcon('eye')
         .setChecked(shown)
         .onClick((): void => {
-          this.toggleShowChanges(!shown);
+          this.settingsService.toggleShowChanges(!shown);
         });
     });
 
     menu.showAtMouseEvent(event);
-  }
-
-  /**
-   * Whether the gutter "show changes" toggle reads as on: true only when every
-   * tracked `show.*` flag is enabled, so the single toggle reflects a fully
-   * visible gutter.
-   *
-   * @return {boolean} True if all tracked change types are shown
-   */
-  protected isShowChangesEnabled(): boolean {
-    return SHOW_CHANGE_KEYS.every((key) => this.settingsService.value(key));
-  }
-
-  /**
-   * Sets every tracked `show.*` flag at once, so the gutter "show changes"
-   * toggle turns all change indicators on or off together.
-   *
-   * @param {boolean} value - The new visibility for all tracked change types
-   * @return {void}
-   */
-  protected toggleShowChanges(value: boolean): void {
-    SHOW_CHANGE_KEYS.forEach((key) => this.settingsService.update(key, value));
   }
 
   /**

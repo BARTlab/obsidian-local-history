@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "Atsaukt",
 
   "modal.search-versions": "Meklēt versijās",
-  "modal.version.baseline": "Pašreizējais",
   "modal.version.numbered": "Versija {number}",
   "modal.version.current": "Pašreizējais",
   "modal.version.original": "Oriģināls",
   "modal.no-versions-match": "Neviena versija neatbilst meklējumam",
-  "modal.no-snapshots-yet": "Vēl nav starpposma momentuzņēmumu",
 
   "modal.revert-hunk": "Atsaukt šo izmaiņu",
 

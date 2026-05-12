@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "ביטול שינוי",
 
   "modal.search-versions": "חיפוש גרסאות",
-  "modal.version.baseline": "נוכחי",
   "modal.version.numbered": "גרסה {number}",
   "modal.version.current": "נוכחי",
   "modal.version.original": "מקורי",
   "modal.no-versions-match": "אין גרסאות התואמות לחיפוש",
-  "modal.no-snapshots-yet": "אין עדיין תצלומי ביניים",
 
   "modal.revert-hunk": "ביטול שינוי זה",
 

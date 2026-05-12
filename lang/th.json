@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "ย้อนกลับ",
 
   "modal.search-versions": "ค้นหาเวอร์ชัน",
-  "modal.version.baseline": "ปัจจุบัน",
   "modal.version.numbered": "เวอร์ชัน {number}",
   "modal.version.current": "ปัจจุบัน",
   "modal.version.original": "ต้นฉบับ",
   "modal.no-versions-match": "ไม่มีเวอร์ชันที่ตรงกับการค้นหา",
-  "modal.no-snapshots-yet": "ยังไม่มีสแน็ปช็อตระหว่างกลาง",
 
   "modal.revert-hunk": "ย้อนกลับการเปลี่ยนแปลงนี้",
 

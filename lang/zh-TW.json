@@ -117,12 +117,10 @@
   "modal.confirm.revert.button": "還原",
 
   "modal.search-versions": "搜尋版本",
-  "modal.version.baseline": "目前",
   "modal.version.numbered": "版本 {number}",
   "modal.version.current": "目前",
   "modal.version.original": "原始",
   "modal.no-versions-match": "沒有符合搜尋的版本",
-  "modal.no-snapshots-yet": "尚無中間快照",
 
   "modal.revert-hunk": "還原此變更",
 

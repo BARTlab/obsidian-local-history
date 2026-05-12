@@ -190,6 +190,13 @@ export interface ObsidianWorkspaceEventsHandles {
   [ObsidianWorkspaceEvent.fileOpen]: (file: TFile) => void;
   /** Handler for editor context menu events */
   [ObsidianWorkspaceEvent.editorMenu]: (menu: Menu, editor: Editor, view: MarkdownView) => void;
+  /**
+   * Handler for the markdown viewport context menu (the menu Obsidian opens on a
+   * right click in the gutter, e.g. the line numbers, carrying the view toggles
+   * like "Readable line length"). Undocumented event; the args mirror Obsidian's
+   * own `trigger("markdown-viewport-menu", menu, view, mode, source)`.
+   */
+  [ObsidianWorkspaceEvent.viewportMenu]: (menu: Menu, view: MarkdownView, mode: string, source: string) => void;
   /** Handler for file context menu events */
   [ObsidianWorkspaceEvent.fileMenu]: (menu: Menu, files: TAbstractFile, source: string, leaf?: WorkspaceLeaf) => void;
   /** Handler for application quit events */

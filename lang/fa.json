@@ -4,7 +4,6 @@
   "command.reset-lines-all": "بازنشانی همه عکس‌های فوری ردیاب خطوط",
   "command.reset-lines": "بازنشانی عکس فوری ردیاب خطوط سند فعلی",
   "command.show-diff": "نمایش همه تغییرات سند فعلی",
-
   "notice.no-changes-to-navigate": "تغییری برای پیمایش وجود ندارد",
   "notice.all-snapshots-deleted": "همه داده‌های عکس فوری حذف شد",
   "notice.current-snapshot-deleted": "داده‌های عکس فوری فعلی حذف شد",
@@ -13,68 +12,49 @@
   "notice.copied": "کپی شد!",
   "notice.no-saved-history": "هیچ تاریخچه ذخیره‌شده‌ای برای این پرونده وجود ندارد.",
   "notice.invalid-exclude-pattern": "تاریخچه محلی: الگوی مسیرهای مستثناشده یک عبارت باقاعده معتبر نیست و نادیده گرفته می‌شود.",
-
   "menu.local-history": "تاریخچه محلی",
   "menu.show-changes": "نمایش تغییرات",
-
   "status.lines-changed": "{count} خط تغییر کرد",
-
   "setting.type.name": "نوع",
   "setting.type.desc": "بین یک خط عمودی یا یک نقطه در حاشیه انتخاب کنید.",
   "setting.type.option.line": "خط عمودی",
   "setting.type.option.dot": "نویسه در حاشیه",
-
   "setting.allowed-extensions.name": "پسوندهای مجاز پرونده",
   "setting.allowed-extensions.desc": "فهرستی از پسوندهای پرونده که با کاما جدا شده‌اند تا تغییراتشان ردیابی شود (مثلاً md, txt, csv, json, yaml)",
-
   "setting.exclude-paths.name": "مسیرهای مستثناشده",
   "setting.exclude-paths.desc": "یک عبارت باقاعده غیرحساس به حروف بزرگ و کوچک که با مسیر نسبی به انبار مطابقت داده می‌شود. هر پرونده‌ای که مسیرش مطابقت کند هرگز ردیابی نمی‌شود (مثلاً \\.excalidraw\\.md$ یا (^|/)Templates/). تنظیم پیش‌فرض پوشه‌های Templates و طرح‌های Excalidraw را مستثنا می‌کند. برای ردیابی همه‌چیز آن را خالی بگذارید.",
-
   "setting.keep.name": "نگهداری تاریخچه تا",
   "setting.keep.desc": "راهبرد پاک‌سازی تاریخچه بازنگری‌ها",
   "setting.keep.option.app": "بستن برنامه",
   "setting.keep.option.file": "بستن پرونده",
-
   "setting.ignore-new-files.name": "نادیده‌گرفتن پرونده‌های جدید",
   "setting.ignore-new-files.desc": "تغییرات در پرونده‌هایی که پس از آغاز ردیابی ساخته شده‌اند را ردیابی نکن",
-
   "setting.persist.name": "حفظ تاریخچه پس از راه‌اندازی مجدد",
   "setting.persist.desc": "تاریخچه را روی دیسک ذخیره کن تا برجسته‌سازی‌ها پس از راه‌اندازی مجدد باقی بمانند. به تنظیم \"نگهداری تاریخچه تا\" روی بستن برنامه نیاز دارد.",
-
   "setting.max-entries.name": "بیشینه پرونده‌های ذخیره‌شده",
   "setting.max-entries.desc": "سقف تعداد تاریخچه‌های پرونده که روی دیسک نگه داشته می‌شوند. قدیمی‌ترین‌ها ابتدا حذف می‌شوند. برای غیرفعال‌کردن روی 0 تنظیم کنید.",
-
   "setting.max-age-days.name": "بیشینه عمر تاریخچه (روز)",
   "setting.max-age-days.desc": "تاریخچه ذخیره‌شده‌ای را که از این تعداد روز قدیمی‌تر است حذف کن. برای غیرفعال‌کردن روی 0 تنظیم کنید.",
-
   "setting.snapshots-heading": "عکس‌های فوری خط زمانی",
-
   "setting.snapshots-enabled.name": "ثبت نسخه‌های میانی",
   "setting.snapshots-enabled.desc": "خط زمانی‌ای از نسخه‌های پیشین نگه دار تا بتوانی با یک نقطه میانی مقایسه کنی، نه فقط با نسخه اصلی.",
-
   "setting.snapshots-edit-threshold.name": "ثبت در هر (ویرایش)",
   "setting.snapshots-edit-threshold.desc": "پس از این تعداد ویرایش یک نسخه بگیر. برای غیرفعال‌کردن محرک ویرایش روی 0 تنظیم کنید.",
-
   "setting.snapshots-interval.name": "ثبت در هر (دقیقه)",
   "setting.snapshots-interval.desc": "پس از این تعداد دقیقه ویرایش یک نسخه بگیر. برای غیرفعال‌کردن محرک زمانی روی 0 تنظیم کنید.",
-
   "setting.max-version-age-days.name": "بیشینه عمر نسخه (روز)",
   "setting.max-version-age-days.desc": "نسخه‌های میانی قدیمی‌تر از این تعداد روز را حذف کن (کران اصلی). برای غیرفعال‌کردن روی 0 تنظیم کنید.",
-
   "setting.max-versions.name": "بیشینه نسخه‌ها برای هر پرونده",
   "setting.max-versions.desc": "سقف ایمنی برای نسخه‌های میانی نگه‌داشته‌شده برای هر پرونده. قدیمی‌ترین‌ها ابتدا حذف می‌شوند. برای غیرفعال‌کردن روی 0 تنظیم کنید.",
-
   "setting.show-heading": "نمایش نشانگر برای",
   "setting.show.desc": "نشانگرهای خط فقط در حالت‌های ویرایش (منبع و پیش‌نمایش زنده) نشان داده می‌شوند. در حالت خواندن نشانگر درون‌خطی وجود ندارد، اما تاریخچه تغییرات همچنان در دسترس است: فرمان \"نمایش همه تغییرات سند فعلی\" را اجرا کنید یا از منوی زمینه پرونده در کاوشگر پرونده استفاده کنید.",
   "setting.show.changed": "تغییریافته",
   "setting.show.restored": "بازگردانده‌شده",
   "setting.show.added": "افزوده‌شده",
   "setting.show.removed": "حذف‌شده",
-
   "setting.line-heading": "نشانگر خط",
   "setting.line-width.name": "پهنا",
   "setting.line-width.desc": "پهنای نشانگر خط عمودی (به پیکسل).",
-
   "setting.gutter-heading.name": "نشانگر حاشیه",
   "setting.gutter-heading.prefix": "نویسه‌های نشانگر نوع در حاشیه (",
   "setting.gutter-heading.suffix": ").",
@@ -82,11 +62,9 @@
   "setting.gutter-added.name": "نویسه افزودن",
   "setting.gutter-restored.name": "نویسه بازگردانی",
   "setting.gutter-removed.name": "نویسه حذف",
-
   "modal.title": "تاریخچه",
   "modal.no-changes": "بدون تغییر",
   "modal.identical-to-current": "همسان با نسخه فعلی",
-
   "modal.restore-original": "بازگرداندن نسخه اصلی",
   "modal.restore-selected": "بازگرداندن نسخه انتخاب‌شده",
   "modal.remove-selected": "حذف نسخه انتخاب‌شده",
@@ -98,7 +76,6 @@
   "modal.mode.line-by-line": "خط‌به‌خط",
   "modal.mode.side-by-side": "کنار هم",
   "modal.hide-identical": "پنهان کردن نسخه‌های همسان با نسخه فعلی",
-
   "modal.confirm.cancel": "لغو",
   "modal.confirm.restore.title": "بازگرداندن پرونده اصلی",
   "modal.confirm.restore.message": "آیا مطمئنید که می‌خواهید این پرونده را به وضعیت اصلی‌اش بازگردانید؟ همه تغییرات فعلی از دست می‌رود و تاریخچه ردیابی تغییرات بازنشانی می‌شود. این کنش قابل بازگشت نیست.",
@@ -115,14 +92,14 @@
   "modal.confirm.revert.title": "بازگردانی این تغییر",
   "modal.confirm.revert.message": "این تغییر به پایه انتخاب‌شده بازگردانده شود؟ سایر تغییرات حفظ می‌شوند.",
   "modal.confirm.revert.button": "بازگردانی",
-
   "modal.search-versions": "جست‌وجوی نسخه‌ها",
-  "modal.version.numbered": "نسخه {number}",
   "modal.version.current": "فعلی",
   "modal.version.original": "اصلی",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "هیچ نسخه‌ای با جست‌وجو مطابقت ندارد",
-
   "modal.revert-hunk": "بازگردانی این تغییر",
-
   "modal.copy": "کپی"
 }

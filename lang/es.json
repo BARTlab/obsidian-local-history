@@ -4,7 +4,6 @@
   "command.reset-lines-all": "Restablecer todas las instantáneas del rastreador de líneas",
   "command.reset-lines": "Restablecer la instantánea del rastreador de líneas del documento actual",
   "command.show-diff": "Mostrar todos los cambios del documento actual",
-
   "notice.no-changes-to-navigate": "No hay cambios para navegar",
   "notice.all-snapshots-deleted": "Se eliminaron todos los datos de instantáneas",
   "notice.current-snapshot-deleted": "Se eliminaron los datos de la instantánea actual",
@@ -13,68 +12,49 @@
   "notice.copied": "¡Copiado!",
   "notice.no-saved-history": "No hay historial guardado para este archivo.",
   "notice.invalid-exclude-pattern": "Historial local: el patrón de rutas excluidas no es una expresión regular válida y se ignora.",
-
   "menu.local-history": "Historial local",
   "menu.show-changes": "Mostrar cambios",
-
   "status.lines-changed": "{count} líneas cambiadas",
-
   "setting.type.name": "Tipo",
   "setting.type.desc": "Elige entre una línea vertical y un punto en el margen.",
   "setting.type.option.line": "Línea vertical",
   "setting.type.option.dot": "Carácter en el margen",
-
   "setting.allowed-extensions.name": "Extensiones de archivo permitidas",
   "setting.allowed-extensions.desc": "Lista de extensiones de archivo separadas por comas cuyos cambios se rastrean (p. ej., md, txt, csv, json, yaml)",
-
   "setting.exclude-paths.name": "Rutas excluidas",
   "setting.exclude-paths.desc": "Una expresión regular que no distingue mayúsculas de minúsculas comparada con la ruta relativa al almacén. Cualquier archivo cuya ruta coincida nunca se rastrea (p. ej. \\.excalidraw\\.md$ o (^|/)Templates/). De forma predeterminada se excluyen las carpetas Templates y los dibujos de Excalidraw. Déjalo vacío para rastrear todo.",
-
   "setting.keep.name": "Conservar el historial hasta",
   "setting.keep.desc": "Estrategia para limpiar el historial de revisiones",
   "setting.keep.option.app": "Cerrar la aplicación",
   "setting.keep.option.file": "Cerrar el archivo",
-
   "setting.ignore-new-files.name": "Ignorar archivos nuevos",
   "setting.ignore-new-files.desc": "No rastrear cambios en archivos creados después de iniciar el rastreo",
-
   "setting.persist.name": "Conservar el historial entre reinicios",
   "setting.persist.desc": "Guardar el historial en el disco para que los resaltados sobrevivan a un reinicio. Requiere que \"Conservar el historial hasta\" esté en cerrar la aplicación.",
-
   "setting.max-entries.name": "Máximo de archivos almacenados",
   "setting.max-entries.desc": "Límite de cuántos historiales de archivos se conservan en el disco. Los más antiguos se eliminan primero. Ponlo en 0 para desactivar.",
-
   "setting.max-age-days.name": "Antigüedad máxima del historial (días)",
   "setting.max-age-days.desc": "Descartar el historial guardado con más días de antigüedad que este valor. Ponlo en 0 para desactivar.",
-
   "setting.snapshots-heading": "Instantáneas de la cronología",
-
   "setting.snapshots-enabled.name": "Capturar versiones intermedias",
   "setting.snapshots-enabled.desc": "Conserva una cronología de versiones anteriores para poder comparar con un punto intermedio, no solo con el original.",
-
   "setting.snapshots-edit-threshold.name": "Capturar cada (ediciones)",
   "setting.snapshots-edit-threshold.desc": "Tomar una versión después de esta cantidad de ediciones. Ponlo en 0 para desactivar el disparador por ediciones.",
-
   "setting.snapshots-interval.name": "Capturar cada (minutos)",
   "setting.snapshots-interval.desc": "Tomar una versión después de esta cantidad de minutos de edición. Ponlo en 0 para desactivar el disparador temporal.",
-
   "setting.max-version-age-days.name": "Antigüedad máxima de las versiones (días)",
   "setting.max-version-age-days.desc": "Descartar las versiones intermedias con más días de antigüedad que este valor (el límite principal). Ponlo en 0 para desactivar.",
-
   "setting.max-versions.name": "Máximo de versiones por archivo",
   "setting.max-versions.desc": "Límite de seguridad de versiones intermedias conservadas por archivo. Las más antiguas se eliminan primero. Ponlo en 0 para desactivar.",
-
   "setting.show-heading": "Mostrar indicador para",
   "setting.show.desc": "Los indicadores de línea solo se muestran en los modos de edición (código fuente y vista previa en vivo). En el modo lectura no hay indicadores en línea, pero el historial de cambios sigue siendo accesible: ejecuta el comando \"Mostrar todos los cambios del documento actual\" o usa el menú contextual del archivo en el explorador de archivos.",
   "setting.show.changed": "Cambiado",
   "setting.show.restored": "Restaurado",
   "setting.show.added": "Añadido",
   "setting.show.removed": "Eliminado",
-
   "setting.line-heading": "Indicador de línea",
   "setting.line-width.name": "Ancho",
   "setting.line-width.desc": "Ancho del indicador de línea vertical (en píxeles).",
-
   "setting.gutter-heading.name": "Indicador de margen",
   "setting.gutter-heading.prefix": "Caracteres del indicador de tipo del margen (",
   "setting.gutter-heading.suffix": ").",
@@ -82,11 +62,9 @@
   "setting.gutter-added.name": "Carácter de añadido",
   "setting.gutter-restored.name": "Carácter de restauración",
   "setting.gutter-removed.name": "Carácter de eliminación",
-
   "modal.title": "Historial",
   "modal.no-changes": "Sin cambios",
   "modal.identical-to-current": "Idéntico al actual",
-
   "modal.restore-original": "Restaurar el original",
   "modal.restore-selected": "Restaurar la versión seleccionada",
   "modal.remove-selected": "Eliminar la versión seleccionada",
@@ -98,7 +76,6 @@
   "modal.mode.line-by-line": "Línea por línea",
   "modal.mode.side-by-side": "Lado a lado",
   "modal.hide-identical": "Ocultar versiones idénticas a la actual",
-
   "modal.confirm.cancel": "Cancelar",
   "modal.confirm.restore.title": "Restaurar el archivo original",
   "modal.confirm.restore.message": "¿Seguro que quieres restaurar este archivo a su estado original? Se perderán todos los cambios actuales y se restablecerá el historial de seguimiento de cambios. Esta acción no se puede deshacer.",
@@ -115,14 +92,14 @@
   "modal.confirm.revert.title": "Revertir este cambio",
   "modal.confirm.revert.message": "¿Revertir este cambio a la base seleccionada? Los demás cambios se conservan.",
   "modal.confirm.revert.button": "Revertir",
-
   "modal.search-versions": "Buscar versiones",
-  "modal.version.numbered": "Versión {number}",
   "modal.version.current": "Actual",
   "modal.version.original": "Original",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Ninguna versión coincide con la búsqueda",
-
   "modal.revert-hunk": "Revertir este cambio",
-
   "modal.copy": "Copiar"
 }

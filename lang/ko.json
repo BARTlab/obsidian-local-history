@@ -4,7 +4,6 @@
   "command.reset-lines-all": "모든 줄 추적 스냅샷 초기화",
   "command.reset-lines": "현재 문서의 줄 추적 스냅샷 초기화",
   "command.show-diff": "현재 문서의 모든 변경 사항 표시",
-
   "notice.no-changes-to-navigate": "이동할 변경 사항이 없습니다",
   "notice.all-snapshots-deleted": "모든 스냅샷 데이터를 삭제했습니다",
   "notice.current-snapshot-deleted": "현재 스냅샷 데이터를 삭제했습니다",
@@ -13,68 +12,49 @@
   "notice.copied": "복사했습니다!",
   "notice.no-saved-history": "이 파일에 저장된 기록이 없습니다.",
   "notice.invalid-exclude-pattern": "로컬 기록: 제외 경로 패턴이 올바른 정규식이 아니므로 무시됩니다.",
-
   "menu.local-history": "로컬 기록",
   "menu.show-changes": "변경 사항 표시",
-
   "status.lines-changed": "{count}개 줄 변경됨",
-
   "setting.type.name": "유형",
   "setting.type.desc": "여백에 세로선과 점 중 무엇을 표시할지 선택합니다.",
   "setting.type.option.line": "세로선",
   "setting.type.option.dot": "여백 문자",
-
   "setting.allowed-extensions.name": "허용된 파일 확장자",
   "setting.allowed-extensions.desc": "변경을 추적할 파일 확장자의 쉼표로 구분된 목록 (예: md, txt, csv, json, yaml)",
-
   "setting.exclude-paths.name": "제외할 경로",
   "setting.exclude-paths.desc": "보관함 기준 상대 경로와 대조되는 대소문자 구분 없는 정규식입니다. 경로가 일치하는 파일은 절대 추적되지 않습니다 (예: \\.excalidraw\\.md$ 또는 (^|/)Templates/). 기본값은 Templates 폴더와 Excalidraw 그림을 제외합니다. 모든 것을 추적하려면 비워 두세요.",
-
   "setting.keep.name": "기록 보관 기준",
   "setting.keep.desc": "수정 기록을 정리하는 방식",
   "setting.keep.option.app": "앱 종료 시",
   "setting.keep.option.file": "파일 닫을 때",
-
   "setting.ignore-new-files.name": "새 파일 무시",
   "setting.ignore-new-files.desc": "추적이 시작된 후 생성된 파일의 변경은 추적하지 않습니다",
-
   "setting.persist.name": "재시작 후에도 기록 유지",
   "setting.persist.desc": "재시작 후에도 강조 표시가 유지되도록 기록을 디스크에 저장합니다. \"기록 보관 기준\"이 앱 종료 시로 설정되어 있어야 합니다.",
-
   "setting.max-entries.name": "최대 저장 파일 수",
   "setting.max-entries.desc": "디스크에 보관할 파일 기록 수의 상한입니다. 오래된 것부터 먼저 제거됩니다. 0으로 설정하면 비활성화됩니다.",
-
   "setting.max-age-days.name": "최대 기록 보관 기간(일)",
   "setting.max-age-days.desc": "이 일수보다 오래된 저장 기록을 삭제합니다. 0으로 설정하면 비활성화됩니다.",
-
   "setting.snapshots-heading": "타임라인 스냅샷",
-
   "setting.snapshots-enabled.name": "중간 버전 기록",
   "setting.snapshots-enabled.desc": "이전 버전의 타임라인을 보관하여 원본뿐 아니라 중간 시점과도 비교할 수 있습니다.",
-
   "setting.snapshots-edit-threshold.name": "기록 주기(편집 횟수)",
   "setting.snapshots-edit-threshold.desc": "이 횟수만큼 편집할 때마다 버전을 기록합니다. 0으로 설정하면 편집 횟수 트리거가 비활성화됩니다.",
-
   "setting.snapshots-interval.name": "기록 주기(분)",
   "setting.snapshots-interval.desc": "이 분 수만큼 편집할 때마다 버전을 기록합니다. 0으로 설정하면 시간 트리거가 비활성화됩니다.",
-
   "setting.max-version-age-days.name": "최대 버전 보관 기간(일)",
   "setting.max-version-age-days.desc": "이 일수보다 오래된 중간 버전을 삭제합니다(기본 기준). 0으로 설정하면 비활성화됩니다.",
-
   "setting.max-versions.name": "파일당 최대 버전 수",
   "setting.max-versions.desc": "파일당 보관하는 중간 버전의 안전 상한입니다. 오래된 것부터 먼저 제거됩니다. 0으로 설정하면 비활성화됩니다.",
-
   "setting.show-heading": "표시 대상",
   "setting.show.desc": "줄 표시기는 편집(소스 및 라이브 미리보기) 모드에서만 표시됩니다. 읽기 모드에서는 인라인 표시기가 없지만 변경 기록에는 여전히 접근할 수 있습니다. \"현재 문서의 모든 변경 사항 표시\" 명령을 실행하거나 파일 탐색기에서 파일 컨텍스트 메뉴를 사용하세요.",
   "setting.show.changed": "변경됨",
   "setting.show.restored": "복원됨",
   "setting.show.added": "추가됨",
   "setting.show.removed": "삭제됨",
-
   "setting.line-heading": "줄 표시기",
   "setting.line-width.name": "너비",
   "setting.line-width.desc": "세로선 표시기의 너비(픽셀 단위).",
-
   "setting.gutter-heading.name": "여백 표시기",
   "setting.gutter-heading.prefix": "여백 유형 표시기 문자 (",
   "setting.gutter-heading.suffix": ").",
@@ -82,11 +62,9 @@
   "setting.gutter-added.name": "추가 문자",
   "setting.gutter-restored.name": "복원 문자",
   "setting.gutter-removed.name": "삭제 문자",
-
   "modal.title": "기록",
   "modal.no-changes": "변경 사항 없음",
   "modal.identical-to-current": "현재 내용과 동일",
-
   "modal.restore-original": "원본 복원",
   "modal.restore-selected": "선택한 버전 복원",
   "modal.remove-selected": "선택한 버전 삭제",
@@ -98,7 +76,6 @@
   "modal.mode.line-by-line": "줄 단위",
   "modal.mode.side-by-side": "나란히 보기",
   "modal.hide-identical": "현재 내용과 동일한 버전 숨기기",
-
   "modal.confirm.cancel": "취소",
   "modal.confirm.restore.title": "원본 파일 복원",
   "modal.confirm.restore.message": "이 파일을 원래 상태로 복원하시겠습니까? 현재 변경 사항이 모두 사라지고 변경 추적 기록이 초기화됩니다. 이 작업은 취소할 수 없습니다.",
@@ -115,14 +92,14 @@
   "modal.confirm.revert.title": "이 변경 되돌리기",
   "modal.confirm.revert.message": "이 변경을 선택한 기준으로 되돌리시겠습니까? 다른 변경 사항은 유지됩니다.",
   "modal.confirm.revert.button": "되돌리기",
-
   "modal.search-versions": "버전 검색",
-  "modal.version.numbered": "버전 {number}",
   "modal.version.current": "현재",
   "modal.version.original": "원본",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "검색과 일치하는 버전이 없습니다",
-
   "modal.revert-hunk": "이 변경 되돌리기",
-
   "modal.copy": "복사"
 }

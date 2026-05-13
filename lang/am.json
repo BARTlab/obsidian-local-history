@@ -4,7 +4,6 @@
   "command.reset-lines-all": "ሁሉንም የመስመር መከታተያ ቅጽበታዊ ቅጂዎች ዳግም አስጀምር",
   "command.reset-lines": "የአሁኑን ሰነድ የመስመር መከታተያ ቅጽበታዊ ቅጂ ዳግም አስጀምር",
   "command.show-diff": "የአሁኑን ሰነድ ሁሉንም ለውጦች አሳይ",
-
   "notice.no-changes-to-navigate": "ለመዳሰስ ምንም ለውጦች የሉም",
   "notice.all-snapshots-deleted": "ሁሉም የቅጽበታዊ ቅጂ ውሂብ ተሰርዟል",
   "notice.current-snapshot-deleted": "የአሁኑ የቅጽበታዊ ቅጂ ውሂብ ተሰርዟል",
@@ -13,68 +12,49 @@
   "notice.copied": "ተቀድቷል!",
   "notice.no-saved-history": "ለዚህ ፋይል የተቀመጠ ታሪክ የለም።",
   "notice.invalid-exclude-pattern": "አካባቢያዊ ታሪክ: የተገለሉ መንገዶች ስርዓተ ጥለት ትክክለኛ መደበኛ መግለጫ አይደለም እና ችላ ይባላል።",
-
   "menu.local-history": "አካባቢያዊ ታሪክ",
   "menu.show-changes": "ለውጦችን አሳይ",
-
   "status.lines-changed": "{count} መስመሮች ተለውጠዋል",
-
   "setting.type.name": "ዓይነት",
   "setting.type.desc": "በዳርቻው ላይ ቀጥ ያለ መስመር ወይም ነጥብ መካከል ይምረጡ።",
   "setting.type.option.line": "ቀጥ ያለ መስመር",
   "setting.type.option.dot": "በዳርቻው ውስጥ ቁምፊ",
-
   "setting.allowed-extensions.name": "የተፈቀዱ የፋይል ቅጥያዎች",
   "setting.allowed-extensions.desc": "ለውጦቻቸው የሚከታተሉ የፋይል ቅጥያዎች በኮማ የተለዩ ዝርዝር (ለምሳሌ md, txt, csv, json, yaml)",
-
   "setting.exclude-paths.name": "የተገለሉ መንገዶች",
   "setting.exclude-paths.desc": "ከመያዣው (vault) አንጻራዊ መንገድ ጋር የሚነጻጸር፣ ለፊደል መጠን ግድ የማይሰጠው መደበኛ መግለጫ። መንገዱ የሚዛመድ ማንኛውም ፋይል ፈጽሞ አይከታተልም (ለምሳሌ \\.excalidraw\\.md$ ወይም (^|/)Templates/)። ነባሪው ቅንብር የTemplates አቃፊዎችን እና የExcalidraw ስዕሎችን ይገላል። ሁሉንም ለመከታተል ባዶ ይተዉት።",
-
   "setting.keep.name": "ታሪክን እስከመቼ ማቆየት",
   "setting.keep.desc": "የክለሳ ታሪክን የማጽዳት ስልት",
   "setting.keep.option.app": "መተግበሪያ መዘጋት",
   "setting.keep.option.file": "ፋይል መዘጋት",
-
   "setting.ignore-new-files.name": "አዲስ ፋይሎችን ችላ በል",
   "setting.ignore-new-files.desc": "ክትትል ከተጀመረ በኋላ የተፈጠሩ ፋይሎች ውስጥ ለውጦችን አትከታተል",
-
   "setting.persist.name": "ታሪክን በዳግም ማስጀመሮች መካከል አቆይ",
   "setting.persist.desc": "ምልክቶች ዳግም ማስጀመርን እንዲተርፉ ታሪክን ወደ ዲስክ አስቀምጥ። \"ታሪክን እስከመቼ ማቆየት\" ወደ መተግበሪያ መዘጋት መዋቀር ይጠይቃል።",
-
   "setting.max-entries.name": "ከፍተኛ የተከማቹ ፋይሎች",
   "setting.max-entries.desc": "በዲስክ ላይ ምን ያህል የፋይል ታሪኮች እንደሚቆዩ ወሰን። በመጀመሪያ በጣም አሮጌዎቹ ይወገዳሉ። ለማሰናከል ወደ 0 ያቀናብሩ።",
-
   "setting.max-age-days.name": "ከፍተኛ የታሪክ ዕድሜ (ቀናት)",
   "setting.max-age-days.desc": "ከዚህ ቀናት ብዛት በላይ የቆየ የተቀመጠ ታሪክን አስወግድ። ለማሰናከል ወደ 0 ያቀናብሩ።",
-
   "setting.snapshots-heading": "የጊዜ መስመር ቅጽበታዊ ቅጂዎች",
-
   "setting.snapshots-enabled.name": "መካከለኛ ስሪቶችን ያዝ",
   "setting.snapshots-enabled.desc": "ከመነሻው ጋር ብቻ ሳይሆን ከመካከለኛ ነጥብ ጋር ማነጻጸር እንድትችል የቀደሙ ስሪቶችን የጊዜ መስመር አቆይ።",
-
   "setting.snapshots-edit-threshold.name": "በየ (አርትዖቶች) ያዝ",
   "setting.snapshots-edit-threshold.desc": "ከዚህ ብዛት አርትዖቶች በኋላ ስሪት አንሳ። የአርትዖት ቀስቃሽን ለማሰናከል ወደ 0 ያቀናብሩ።",
-
   "setting.snapshots-interval.name": "በየ (ደቂቃዎች) ያዝ",
   "setting.snapshots-interval.desc": "ከዚህ ብዛት ደቂቃ አርትዖት በኋላ ስሪት አንሳ። የጊዜ ቀስቃሽን ለማሰናከል ወደ 0 ያቀናብሩ።",
-
   "setting.max-version-age-days.name": "ከፍተኛ የስሪት ዕድሜ (ቀናት)",
   "setting.max-version-age-days.desc": "ከዚህ ቀናት ብዛት በላይ የቆዩ መካከለኛ ስሪቶችን አስወግድ (ዋናው ወሰን)። ለማሰናከል ወደ 0 ያቀናብሩ።",
-
   "setting.max-versions.name": "በፋይል ከፍተኛ ስሪቶች",
   "setting.max-versions.desc": "በፋይል የሚቆዩ መካከለኛ ስሪቶች የደህንነት ወሰን። በመጀመሪያ በጣም አሮጌዎቹ ይወገዳሉ። ለማሰናከል ወደ 0 ያቀናብሩ።",
-
   "setting.show-heading": "አመልካች አሳይ ለ",
   "setting.show.desc": "የመስመር አመልካቾች የሚታዩት በአርትዖት (ምንጭ እና ቀጥታ ቅድመ-እይታ) ሁነታዎች ብቻ ነው። በንባብ ሁነታ ውስጥ የተካተቱ አመልካቾች የሉም፣ ነገር ግን የለውጥ ታሪክ አሁንም ይደረስበታል: \"የአሁኑን ሰነድ ሁሉንም ለውጦች አሳይ\" ትዕዛዙን ያሂዱ ወይም በፋይል አሳሽ ውስጥ የፋይል አውድ ምናሌን ይጠቀሙ።",
   "setting.show.changed": "ተለውጧል",
   "setting.show.restored": "ተመልሷል",
   "setting.show.added": "ተጨምሯል",
   "setting.show.removed": "ተወግዷል",
-
   "setting.line-heading": "የመስመር አመልካች",
   "setting.line-width.name": "ስፋት",
   "setting.line-width.desc": "የቀጥታ መስመር አመልካች ስፋት (በፒክሰሎች)።",
-
   "setting.gutter-heading.name": "የዳርቻ አመልካች",
   "setting.gutter-heading.prefix": "የዳርቻ ዓይነት አመልካች ቁምፊዎች (",
   "setting.gutter-heading.suffix": ").",
@@ -82,11 +62,9 @@
   "setting.gutter-added.name": "የመጨመር ቁምፊ",
   "setting.gutter-restored.name": "የመመለስ ቁምፊ",
   "setting.gutter-removed.name": "የማስወገድ ቁምፊ",
-
   "modal.title": "ታሪክ",
   "modal.no-changes": "ምንም ለውጦች የሉም",
   "modal.identical-to-current": "ከአሁኑ ጋር ተመሳሳይ",
-
   "modal.restore-original": "መነሻውን መልስ",
   "modal.restore-selected": "የተመረጠውን ስሪት መልስ",
   "modal.remove-selected": "የተመረጠውን ስሪት ሰርዝ",
@@ -98,7 +76,6 @@
   "modal.mode.line-by-line": "መስመር በመስመር",
   "modal.mode.side-by-side": "ጎን ለጎን",
   "modal.hide-identical": "ከአሁኑ ጋር ተመሳሳይ ስሪቶችን ደብቅ",
-
   "modal.confirm.cancel": "ሰርዝ",
   "modal.confirm.restore.title": "መነሻ ፋይልን መልስ",
   "modal.confirm.restore.message": "ይህን ፋይል ወደ መነሻ ሁኔታው መመለስ እንደሚፈልጉ እርግጠኛ ነዎት? ሁሉም የአሁኑ ለውጦች ይጠፋሉ እና የለውጥ ክትትል ታሪክ ዳግም ይጀመራል። ይህ ድርጊት ሊቀለበስ አይችልም።",
@@ -115,14 +92,14 @@
   "modal.confirm.revert.title": "ይህን ለውጥ መልስ",
   "modal.confirm.revert.message": "ይህን ለውጥ ወደ ተመረጠው መሰረት ይመለስ? ሌሎች ለውጦች ይቆያሉ።",
   "modal.confirm.revert.button": "መልስ",
-
   "modal.search-versions": "ስሪቶችን ፈልግ",
-  "modal.version.numbered": "ስሪት {number}",
   "modal.version.current": "የአሁኑ",
   "modal.version.original": "መነሻ",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "ከፍለጋው ጋር የሚዛመዱ ስሪቶች የሉም",
-
   "modal.revert-hunk": "ይህን ለውጥ መልስ",
-
   "modal.copy": "ቅዳ"
 }

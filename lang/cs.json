@@ -4,7 +4,6 @@
   "command.reset-lines-all": "Resetovat snímky sledování řádků u všech souborů",
   "command.reset-lines": "Resetovat snímek sledování řádků aktuálního dokumentu",
   "command.show-diff": "Zobrazit všechny změny aktuálního dokumentu",
-
   "notice.no-changes-to-navigate": "Žádné změny k procházení",
   "notice.all-snapshots-deleted": "Všechna data snímků byla smazána",
   "notice.current-snapshot-deleted": "Data aktuálního snímku byla smazána",
@@ -13,68 +12,49 @@
   "notice.copied": "Zkopírováno!",
   "notice.no-saved-history": "Pro tento soubor není uložena žádná historie.",
   "notice.invalid-exclude-pattern": "Local history: vzor vyloučených cest není platný regulární výraz a bude ignorován.",
-
   "menu.local-history": "Místní historie",
   "menu.show-changes": "Zobrazit změny",
-
   "status.lines-changed": "Změněné řádky: {count}",
-
   "setting.type.name": "Typ",
   "setting.type.desc": "Zvolte mezi svislou čárou a tečkou na okraji.",
   "setting.type.option.line": "Svislá čára",
   "setting.type.option.dot": "Znak na okraji",
-
   "setting.allowed-extensions.name": "Povolené přípony souborů",
   "setting.allowed-extensions.desc": "Seznam přípon souborů oddělených čárkami, jejichž změny se sledují (např. md, txt, csv, json, yaml)",
-
   "setting.exclude-paths.name": "Vyloučené cesty",
   "setting.exclude-paths.desc": "Regulární výraz nerozlišující velikost písmen, porovnávaný s cestou relativní k trezoru. Žádný soubor, jehož cesta odpovídá, se nikdy nesleduje (např. \\.excalidraw\\.md$ nebo (^|/)Templates/). Výchozí nastavení vylučuje složky Templates a kresby Excalidraw. Ponechte prázdné pro sledování všeho.",
-
   "setting.keep.name": "Uchovávat historii do",
   "setting.keep.desc": "Strategie čištění historie revizí",
   "setting.keep.option.app": "Zavření aplikace",
   "setting.keep.option.file": "Zavření souboru",
-
   "setting.ignore-new-files.name": "Ignorovat nové soubory",
   "setting.ignore-new-files.desc": "Nesledovat změny v souborech vytvořených po zahájení sledování",
-
   "setting.persist.name": "Zachovat historii mezi restarty",
   "setting.persist.desc": "Ukládat historii na disk, aby zvýraznění přečkala restart. Vyžaduje nastavení \"Uchovávat historii do\" na zavření aplikace.",
-
   "setting.max-entries.name": "Maximum uložených souborů",
   "setting.max-entries.desc": "Limit počtu historií souborů uchovávaných na disku. Nejstarší se odstraňují jako první. Nastavte 0 pro vypnutí.",
-
   "setting.max-age-days.name": "Maximální stáří historie (dny)",
   "setting.max-age-days.desc": "Zahodit uloženou historii starší než tento počet dní. Nastavte 0 pro vypnutí.",
-
   "setting.snapshots-heading": "Snímky časové osy",
-
   "setting.snapshots-enabled.name": "Zachytávat průběžné verze",
   "setting.snapshots-enabled.desc": "Uchovávat časovou osu dřívějších verzí, abyste mohli porovnávat s mezilehlým bodem, nejen s originálem.",
-
   "setting.snapshots-edit-threshold.name": "Zachytávat každých (úpravy)",
   "setting.snapshots-edit-threshold.desc": "Vytvořit verzi po tomto počtu úprav. Nastavte 0 pro vypnutí spouštěče podle úprav.",
-
   "setting.snapshots-interval.name": "Zachytávat každých (minuty)",
   "setting.snapshots-interval.desc": "Vytvořit verzi po tomto počtu minut úprav. Nastavte 0 pro vypnutí časového spouštěče.",
-
   "setting.max-version-age-days.name": "Maximální stáří verze (dny)",
   "setting.max-version-age-days.desc": "Zahodit průběžné verze starší než tento počet dní (hlavní omezení). Nastavte 0 pro vypnutí.",
-
   "setting.max-versions.name": "Maximum verzí na soubor",
   "setting.max-versions.desc": "Pojistný limit počtu průběžných verzí uchovávaných pro soubor. Nejstarší se odstraňují jako první. Nastavte 0 pro vypnutí.",
-
   "setting.show-heading": "Zobrazit indikátor pro",
   "setting.show.desc": "Indikátory řádků se zobrazují pouze v režimech úprav (zdrojový kód a živý náhled). V režimu čtení nejsou žádné vložené indikátory, ale historie změn je stále dostupná: spusťte příkaz \"Zobrazit všechny změny aktuálního dokumentu\" nebo použijte kontextovou nabídku souboru v průzkumníku souborů.",
   "setting.show.changed": "Změněné",
   "setting.show.restored": "Obnovené",
   "setting.show.added": "Přidané",
   "setting.show.removed": "Odebrané",
-
   "setting.line-heading": "Řádkový indikátor",
   "setting.line-width.name": "Šířka",
   "setting.line-width.desc": "Šířka svislého řádkového indikátoru (v pixelech).",
-
   "setting.gutter-heading.name": "Indikátor na okraji",
   "setting.gutter-heading.prefix": "Znaky indikátoru typu na okraji (",
   "setting.gutter-heading.suffix": ").",
@@ -82,11 +62,9 @@
   "setting.gutter-added.name": "Znak přidání",
   "setting.gutter-restored.name": "Znak obnovení",
   "setting.gutter-removed.name": "Znak odebrání",
-
   "modal.title": "Historie",
   "modal.no-changes": "Žádné změny",
   "modal.identical-to-current": "Shodné s aktuální",
-
   "modal.restore-original": "Obnovit originál",
   "modal.restore-selected": "Obnovit vybranou verzi",
   "modal.remove-selected": "Odstranit vybranou verzi",
@@ -98,7 +76,6 @@
   "modal.mode.line-by-line": "Řádek po řádku",
   "modal.mode.side-by-side": "Vedle sebe",
   "modal.hide-identical": "Skrýt verze shodné s aktuální",
-
   "modal.confirm.cancel": "Zrušit",
   "modal.confirm.restore.title": "Obnovit původní soubor",
   "modal.confirm.restore.message": "Opravdu chcete obnovit tento soubor do původního stavu? Všechny aktuální změny budou ztraceny a historie sledování změn bude resetována. Tuto akci nelze vrátit zpět.",
@@ -115,14 +92,14 @@
   "modal.confirm.revert.title": "Vrátit tuto změnu",
   "modal.confirm.revert.message": "Vrátit tuto změnu zpět na vybraný základ? Ostatní změny zůstanou zachovány.",
   "modal.confirm.revert.button": "Vrátit",
-
   "modal.search-versions": "Hledat verze",
-  "modal.version.numbered": "Verze {number}",
   "modal.version.current": "Aktuální",
   "modal.version.original": "Originál",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Žádné verze neodpovídají hledání",
-
   "modal.revert-hunk": "Vrátit tuto změnu",
-
   "modal.copy": "Kopírovat"
 }

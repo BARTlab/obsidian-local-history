@@ -4,7 +4,6 @@
   "command.reset-lines-all": "Réinitialiser tous les instantanés du suivi des lignes",
   "command.reset-lines": "Réinitialiser l'instantané du suivi des lignes du document actuel",
   "command.show-diff": "Afficher toutes les modifications du document actuel",
-
   "notice.no-changes-to-navigate": "Aucune modification à parcourir",
   "notice.all-snapshots-deleted": "Toutes les données d'instantané supprimées",
   "notice.current-snapshot-deleted": "Données de l'instantané actuel supprimées",
@@ -13,68 +12,49 @@
   "notice.copied": "Copié !",
   "notice.no-saved-history": "Aucun historique enregistré pour ce fichier.",
   "notice.invalid-exclude-pattern": "Historique local : le motif des chemins exclus n'est pas une expression régulière valide et est ignoré.",
-
   "menu.local-history": "Historique local",
   "menu.show-changes": "Afficher les modifications",
-
   "status.lines-changed": "{count} lignes modifiées",
-
   "setting.type.name": "Type",
   "setting.type.desc": "Choisissez entre une ligne verticale et un point dans la gouttière.",
   "setting.type.option.line": "Ligne verticale",
   "setting.type.option.dot": "Caractère dans la gouttière",
-
   "setting.allowed-extensions.name": "Extensions de fichier autorisées",
   "setting.allowed-extensions.desc": "Liste d'extensions de fichier séparées par des virgules dont les modifications sont suivies (par ex. md, txt, csv, json, yaml)",
-
   "setting.exclude-paths.name": "Chemins exclus",
   "setting.exclude-paths.desc": "Une expression régulière insensible à la casse comparée au chemin relatif au coffre. Tout fichier dont le chemin correspond n'est jamais suivi (par ex. \\.excalidraw\\.md$ ou (^|/)Templates/). Par défaut, les dossiers Templates et les dessins Excalidraw sont exclus. Laissez vide pour tout suivre.",
-
   "setting.keep.name": "Conserver l'historique jusqu'à",
   "setting.keep.desc": "Stratégie de nettoyage de l'historique des révisions",
   "setting.keep.option.app": "Fermeture de l'application",
   "setting.keep.option.file": "Fermeture du fichier",
-
   "setting.ignore-new-files.name": "Ignorer les nouveaux fichiers",
   "setting.ignore-new-files.desc": "Ne pas suivre les modifications des fichiers créés après le démarrage du suivi",
-
   "setting.persist.name": "Conserver l'historique entre les redémarrages",
   "setting.persist.desc": "Enregistrer l'historique sur le disque pour que les surlignages survivent à un redémarrage. Nécessite que \"Conserver l'historique jusqu'à\" soit réglé sur la fermeture de l'application.",
-
   "setting.max-entries.name": "Nombre maximal de fichiers stockés",
   "setting.max-entries.desc": "Limite du nombre d'historiques de fichiers conservés sur le disque. Les plus anciens sont supprimés en premier. Réglez sur 0 pour désactiver.",
-
   "setting.max-age-days.name": "Âge maximal de l'historique (jours)",
   "setting.max-age-days.desc": "Supprimer l'historique conservé plus ancien que ce nombre de jours. Réglez sur 0 pour désactiver.",
-
   "setting.snapshots-heading": "Instantanés de la chronologie",
-
   "setting.snapshots-enabled.name": "Capturer les versions intermédiaires",
   "setting.snapshots-enabled.desc": "Conserver une chronologie des versions antérieures pour pouvoir comparer avec un point intermédiaire, pas seulement avec l'original.",
-
   "setting.snapshots-edit-threshold.name": "Capturer toutes les (modifications)",
   "setting.snapshots-edit-threshold.desc": "Prendre une version après ce nombre de modifications. Réglez sur 0 pour désactiver le déclencheur par modification.",
-
   "setting.snapshots-interval.name": "Capturer toutes les (minutes)",
   "setting.snapshots-interval.desc": "Prendre une version après ce nombre de minutes d'édition. Réglez sur 0 pour désactiver le déclencheur temporel.",
-
   "setting.max-version-age-days.name": "Âge maximal des versions (jours)",
   "setting.max-version-age-days.desc": "Supprimer les versions intermédiaires plus anciennes que ce nombre de jours (la limite principale). Réglez sur 0 pour désactiver.",
-
   "setting.max-versions.name": "Nombre maximal de versions par fichier",
   "setting.max-versions.desc": "Limite de sécurité sur les versions intermédiaires conservées par fichier. Les plus anciennes sont supprimées en premier. Réglez sur 0 pour désactiver.",
-
   "setting.show-heading": "Afficher l'indicateur pour",
   "setting.show.desc": "Les indicateurs de ligne ne s'affichent qu'en modes édition (source et aperçu en direct). En mode lecture, il n'y a pas d'indicateurs en ligne, mais l'historique des modifications reste accessible : exécutez la commande \"Afficher toutes les modifications du document actuel\" ou utilisez le menu contextuel du fichier dans l'explorateur de fichiers.",
   "setting.show.changed": "Modifié",
   "setting.show.restored": "Restauré",
   "setting.show.added": "Ajouté",
   "setting.show.removed": "Supprimé",
-
   "setting.line-heading": "Indicateur de ligne",
   "setting.line-width.name": "Largeur",
   "setting.line-width.desc": "Largeur de l'indicateur en ligne verticale (en pixels).",
-
   "setting.gutter-heading.name": "Indicateur de gouttière",
   "setting.gutter-heading.prefix": "Caractères de l'indicateur de type dans la gouttière (",
   "setting.gutter-heading.suffix": ").",
@@ -82,11 +62,9 @@
   "setting.gutter-added.name": "Caractère d'ajout",
   "setting.gutter-restored.name": "Caractère de restauration",
   "setting.gutter-removed.name": "Caractère de suppression",
-
   "modal.title": "Historique",
   "modal.no-changes": "Aucune modification",
   "modal.identical-to-current": "Identique à la version actuelle",
-
   "modal.restore-original": "Restaurer l'original",
   "modal.restore-selected": "Restaurer la version sélectionnée",
   "modal.remove-selected": "Supprimer la version sélectionnée",
@@ -98,7 +76,6 @@
   "modal.mode.line-by-line": "Ligne par ligne",
   "modal.mode.side-by-side": "Côte à côte",
   "modal.hide-identical": "Masquer les versions identiques à la version actuelle",
-
   "modal.confirm.cancel": "Annuler",
   "modal.confirm.restore.title": "Restaurer le fichier d'origine",
   "modal.confirm.restore.message": "Voulez-vous vraiment restaurer ce fichier à son état d'origine ? Toutes les modifications actuelles seront perdues et l'historique de suivi des modifications sera réinitialisé. Cette action est irréversible.",
@@ -115,14 +92,14 @@
   "modal.confirm.revert.title": "Annuler cette modification",
   "modal.confirm.revert.message": "Annuler cette modification pour revenir à la base sélectionnée ? Les autres modifications sont conservées.",
   "modal.confirm.revert.button": "Annuler la modification",
-
   "modal.search-versions": "Rechercher des versions",
-  "modal.version.numbered": "Version {number}",
   "modal.version.current": "Actuelle",
   "modal.version.original": "Original",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Aucune version ne correspond à la recherche",
-
   "modal.revert-hunk": "Annuler cette modification",
-
   "modal.copy": "Copier"
 }

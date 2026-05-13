@@ -4,7 +4,6 @@
   "command.reset-lines-all": "ხაზების მთვალთვალის ყველა სწრაფი ასლის გადატვირთვა",
   "command.reset-lines": "მიმდინარე დოკუმენტის ხაზების მთვალთვალის სწრაფი ასლის გადატვირთვა",
   "command.show-diff": "მიმდინარე დოკუმენტის ყველა ცვლილების ჩვენება",
-
   "notice.no-changes-to-navigate": "ცვლილებები ნავიგაციისთვის არ არის",
   "notice.all-snapshots-deleted": "სწრაფი ასლების ყველა მონაცემი წაიშალა",
   "notice.current-snapshot-deleted": "მიმდინარე სწრაფი ასლის მონაცემები წაიშალა",
@@ -13,68 +12,49 @@
   "notice.copied": "დაკოპირდა!",
   "notice.no-saved-history": "ამ ფაილისთვის შენახული ისტორია არ არის.",
   "notice.invalid-exclude-pattern": "ლოკალური ისტორია: გამორიცხული გზების შაბლონი არ არის ვალიდური რეგულარული გამოსახულება და იგნორირდება.",
-
   "menu.local-history": "ლოკალური ისტორია",
   "menu.show-changes": "ცვლილებების ჩვენება",
-
   "status.lines-changed": "{count} ხაზი შეიცვალა",
-
   "setting.type.name": "ტიპი",
   "setting.type.desc": "აირჩიეთ ვერტიკალურ ხაზსა და გვერდით ველის წერტილს შორის.",
   "setting.type.option.line": "ვერტიკალური ხაზი",
   "setting.type.option.dot": "სიმბოლო გვერდით ველში",
-
   "setting.allowed-extensions.name": "დაშვებული ფაილის გაფართოებები",
   "setting.allowed-extensions.desc": "ცვლილებებზე სათვალთვალო ფაილის გაფართოებების მძიმით გამოყოფილი სია (მაგ. md, txt, csv, json, yaml)",
-
   "setting.exclude-paths.name": "გამორიცხული გზები",
   "setting.exclude-paths.desc": "რეგისტრისადმი არამგრძნობიარე რეგულარული გამოსახულება, რომელიც ედარება საცავის ფარდობით გზას. ნებისმიერი ფაილი, რომლის გზაც ემთხვევა, არასოდეს თვალდევნება (მაგ. \\.excalidraw\\.md$ ან (^|/)Templates/). ნაგულისხმევი პარამეტრი გამორიცხავს Templates საქაღალდეებსა და Excalidraw ნახაზებს. დატოვეთ ცარიელი ყველაფრის თვალდასადევნებლად.",
-
   "setting.keep.name": "ისტორიის შენახვა ვიდრე",
   "setting.keep.desc": "გადასინჯვების ისტორიის გასუფთავების სტრატეგია",
   "setting.keep.option.app": "აპლიკაციის დახურვა",
   "setting.keep.option.file": "ფაილის დახურვა",
-
   "setting.ignore-new-files.name": "ახალი ფაილების იგნორირება",
   "setting.ignore-new-files.desc": "ნუ თვალყურს ადევნებ ცვლილებებს ფაილებში, რომლებიც თვალდევნების დაწყების შემდეგ შეიქმნა",
-
   "setting.persist.name": "ისტორიის შენარჩუნება გადატვირთვებს შორის",
   "setting.persist.desc": "შეინახეთ ისტორია დისკზე, რათა გამოყოფები გადატვირთვას გადაურჩეს. მოითხოვს, რომ \"ისტორიის შენახვა ვიდრე\" დაყენებული იყოს აპლიკაციის დახურვაზე.",
-
   "setting.max-entries.name": "შენახული ფაილების მაქსიმუმი",
   "setting.max-entries.desc": "ზღვარი იმისა, თუ რამდენი ფაილის ისტორია ინახება დისკზე. ჯერ უძველესები იშლება. გასათიშად დააყენეთ 0-ზე.",
-
   "setting.max-age-days.name": "ისტორიის მაქსიმალური ასაკი (დღე)",
   "setting.max-age-days.desc": "წაშალეთ შენახული ისტორია, რომელიც ამდენ დღეზე ძველია. გასათიშად დააყენეთ 0-ზე.",
-
   "setting.snapshots-heading": "ქრონოლოგიის სწრაფი ასლები",
-
   "setting.snapshots-enabled.name": "შუალედური ვერსიების ჩაწერა",
   "setting.snapshots-enabled.desc": "შეინახეთ ადრინდელი ვერსიების ქრონოლოგია, რათა შეადაროთ შუალედურ წერტილს და არა მხოლოდ ორიგინალს.",
-
   "setting.snapshots-edit-threshold.name": "ჩაწერა ყოველ (რედაქტირება)",
   "setting.snapshots-edit-threshold.desc": "გადაიღეთ ვერსია ამდენი რედაქტირების შემდეგ. რედაქტირების ტრიგერის გასათიშად დააყენეთ 0-ზე.",
-
   "setting.snapshots-interval.name": "ჩაწერა ყოველ (წუთი)",
   "setting.snapshots-interval.desc": "გადაიღეთ ვერსია ამდენი წუთიანი რედაქტირების შემდეგ. დროის ტრიგერის გასათიშად დააყენეთ 0-ზე.",
-
   "setting.max-version-age-days.name": "ვერსიის მაქსიმალური ასაკი (დღე)",
   "setting.max-version-age-days.desc": "წაშალეთ შუალედური ვერსიები, რომლებიც ამდენ დღეზე ძველია (ძირითადი ზღვარი). გასათიშად დააყენეთ 0-ზე.",
-
   "setting.max-versions.name": "ვერსიების მაქსიმუმი ფაილზე",
   "setting.max-versions.desc": "უსაფრთხოების ზღვარი ფაილზე შენახულ შუალედურ ვერსიებზე. ჯერ უძველესები იშლება. გასათიშად დააყენეთ 0-ზე.",
-
   "setting.show-heading": "ინდიკატორის ჩვენება ამისთვის",
   "setting.show.desc": "ხაზების ინდიკატორები ნაჩვენებია მხოლოდ რედაქტირების (წყაროსა და ცოცხალი გადახედვის) რეჟიმებში. კითხვის რეჟიმში ჩაშენებული ინდიკატორები არ არის, თუმცა ცვლილებების ისტორია მაინც ხელმისაწვდომია: გაუშვით ბრძანება \"მიმდინარე დოკუმენტის ყველა ცვლილების ჩვენება\" ან გამოიყენეთ ფაილის კონტექსტური მენიუ ფაილების მკვლევარში.",
   "setting.show.changed": "შეცვლილი",
   "setting.show.restored": "აღდგენილი",
   "setting.show.added": "დამატებული",
   "setting.show.removed": "წაშლილი",
-
   "setting.line-heading": "ხაზის ინდიკატორი",
   "setting.line-width.name": "სიგანე",
   "setting.line-width.desc": "ვერტიკალური ხაზის ინდიკატორის სიგანე (პიქსელებში).",
-
   "setting.gutter-heading.name": "გვერდითი ველის ინდიკატორი",
   "setting.gutter-heading.prefix": "გვერდითი ველის ტიპის ინდიკატორის სიმბოლოები (",
   "setting.gutter-heading.suffix": ").",
@@ -82,11 +62,9 @@
   "setting.gutter-added.name": "დამატების სიმბოლო",
   "setting.gutter-restored.name": "აღდგენის სიმბოლო",
   "setting.gutter-removed.name": "წაშლის სიმბოლო",
-
   "modal.title": "ისტორია",
   "modal.no-changes": "ცვლილებები არ არის",
   "modal.identical-to-current": "მიმდინარის იდენტური",
-
   "modal.restore-original": "ორიგინალის აღდგენა",
   "modal.restore-selected": "არჩეული ვერსიის აღდგენა",
   "modal.remove-selected": "არჩეული ვერსიის წაშლა",
@@ -98,7 +76,6 @@
   "modal.mode.line-by-line": "ხაზ-ხაზობრივად",
   "modal.mode.side-by-side": "გვერდიგვერდ",
   "modal.hide-identical": "მიმდინარის იდენტური ვერსიების დამალვა",
-
   "modal.confirm.cancel": "გაუქმება",
   "modal.confirm.restore.title": "ორიგინალი ფაილის აღდგენა",
   "modal.confirm.restore.message": "დარწმუნებული ხართ, რომ გსურთ ამ ფაილის საწყის მდგომარეობამდე აღდგენა? ყველა მიმდინარე ცვლილება დაიკარგება და ცვლილებების თვალდევნების ისტორია გადაიტვირთება. ამ მოქმედების გაუქმება შეუძლებელია.",
@@ -115,14 +92,14 @@
   "modal.confirm.revert.title": "ამ ცვლილების დაბრუნება",
   "modal.confirm.revert.message": "დაბრუნდეს ეს ცვლილება არჩეულ ბაზამდე? სხვა ცვლილებები შენარჩუნდება.",
   "modal.confirm.revert.button": "დაბრუნება",
-
   "modal.search-versions": "ვერსიების ძიება",
-  "modal.version.numbered": "ვერსია {number}",
   "modal.version.current": "მიმდინარე",
   "modal.version.original": "ორიგინალი",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "ძიებას ვერსიები არ ემთხვევა",
-
   "modal.revert-hunk": "ამ ცვლილების დაბრუნება",
-
   "modal.copy": "კოპირება"
 }

@@ -4,7 +4,6 @@
   "command.reset-lines-all": "重置所有行追踪快照",
   "command.reset-lines": "重置当前文档的行追踪快照",
   "command.show-diff": "显示当前文档的所有更改",
-
   "notice.no-changes-to-navigate": "没有可跳转的更改",
   "notice.all-snapshots-deleted": "已删除所有快照数据",
   "notice.current-snapshot-deleted": "已删除当前快照数据",
@@ -13,68 +12,49 @@
   "notice.copied": "已复制！",
   "notice.no-saved-history": "此文件没有已保存的历史记录。",
   "notice.invalid-exclude-pattern": "本地历史：排除路径的模式不是有效的正则表达式，已被忽略。",
-
   "menu.local-history": "本地历史",
   "menu.show-changes": "显示更改",
-
   "status.lines-changed": "已更改 {count} 行",
-
   "setting.type.name": "类型",
   "setting.type.desc": "在边栏中选择显示竖线还是圆点。",
   "setting.type.option.line": "竖线",
   "setting.type.option.dot": "边栏字符",
-
   "setting.allowed-extensions.name": "允许的文件扩展名",
   "setting.allowed-extensions.desc": "用于追踪更改的文件扩展名列表，以逗号分隔（例如 md, txt, csv, json, yaml）",
-
   "setting.exclude-paths.name": "排除的路径",
   "setting.exclude-paths.desc": "一个不区分大小写的正则表达式，用于匹配相对于库的路径。路径匹配的任何文件都不会被追踪（例如 \\.excalidraw\\.md$ 或 (^|/)Templates/）。默认排除 Templates 文件夹和 Excalidraw 绘图。留空则追踪所有内容。",
-
   "setting.keep.name": "保留历史记录直到",
   "setting.keep.desc": "清理修订历史的策略",
   "setting.keep.option.app": "关闭应用时",
   "setting.keep.option.file": "关闭文件时",
-
   "setting.ignore-new-files.name": "忽略新文件",
   "setting.ignore-new-files.desc": "不追踪在开始追踪后创建的文件中的更改",
-
   "setting.persist.name": "重启后保留历史记录",
   "setting.persist.desc": "将历史记录保存到磁盘，使高亮在重启后依然保留。需要将“保留历史记录直到”设置为关闭应用时。",
-
   "setting.max-entries.name": "最多存储的文件数",
   "setting.max-entries.desc": "磁盘上保留的文件历史记录数量上限。最旧的会被优先清除。设为 0 可禁用。",
-
   "setting.max-age-days.name": "历史记录最长保留天数（天）",
   "setting.max-age-days.desc": "删除超过此天数的已保存历史记录。设为 0 可禁用。",
-
   "setting.snapshots-heading": "时间线快照",
-
   "setting.snapshots-enabled.name": "捕获中间版本",
   "setting.snapshots-enabled.desc": "保留早期版本的时间线，让你不仅能与原始状态对比，还能与中间某个时点对比。",
-
   "setting.snapshots-edit-threshold.name": "捕获间隔（编辑次数）",
   "setting.snapshots-edit-threshold.desc": "每编辑这么多次后捕获一个版本。设为 0 可禁用编辑次数触发。",
-
   "setting.snapshots-interval.name": "捕获间隔（分钟）",
   "setting.snapshots-interval.desc": "每编辑这么多分钟后捕获一个版本。设为 0 可禁用时间触发。",
-
   "setting.max-version-age-days.name": "版本最长保留天数（天）",
   "setting.max-version-age-days.desc": "删除超过此天数的中间版本（主要限制）。设为 0 可禁用。",
-
   "setting.max-versions.name": "每个文件的最大版本数",
   "setting.max-versions.desc": "每个文件保留中间版本数量的安全上限。最旧的会被优先清除。设为 0 可禁用。",
-
   "setting.show-heading": "显示指示器的对象",
   "setting.show.desc": "行指示器仅在编辑（源码和实时预览）模式下显示。阅读模式下没有内联指示器，但仍可访问更改历史：运行“显示当前文档的所有更改”命令，或在文件浏览器中使用文件的右键菜单。",
   "setting.show.changed": "已更改",
   "setting.show.restored": "已恢复",
   "setting.show.added": "已添加",
   "setting.show.removed": "已删除",
-
   "setting.line-heading": "行指示器",
   "setting.line-width.name": "宽度",
   "setting.line-width.desc": "竖线指示器的宽度（以像素为单位）。",
-
   "setting.gutter-heading.name": "边栏指示器",
   "setting.gutter-heading.prefix": "边栏类型指示器的字符（",
   "setting.gutter-heading.suffix": "）。",
@@ -82,11 +62,9 @@
   "setting.gutter-added.name": "添加字符",
   "setting.gutter-restored.name": "恢复字符",
   "setting.gutter-removed.name": "删除字符",
-
   "modal.title": "历史记录",
   "modal.no-changes": "无更改",
   "modal.identical-to-current": "与当前内容相同",
-
   "modal.restore-original": "恢复原始内容",
   "modal.restore-selected": "恢复所选版本",
   "modal.remove-selected": "删除所选版本",
@@ -98,7 +76,6 @@
   "modal.mode.line-by-line": "逐行",
   "modal.mode.side-by-side": "并排",
   "modal.hide-identical": "隐藏与当前内容相同的版本",
-
   "modal.confirm.cancel": "取消",
   "modal.confirm.restore.title": "恢复原始文件",
   "modal.confirm.restore.message": "确定要将此文件恢复到原始状态吗？所有当前更改都将丢失，更改追踪历史也将被重置。此操作无法撤销。",
@@ -115,14 +92,14 @@
   "modal.confirm.revert.title": "还原此更改",
   "modal.confirm.revert.message": "将此更改还原到所选基准？其他更改将保留。",
   "modal.confirm.revert.button": "还原",
-
   "modal.search-versions": "搜索版本",
-  "modal.version.numbered": "版本 {number}",
   "modal.version.current": "当前",
   "modal.version.original": "原始",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "没有匹配搜索的版本",
-
   "modal.revert-hunk": "还原此更改",
-
   "modal.copy": "复制"
 }

@@ -4,7 +4,6 @@
   "command.reset-lines-all": "Összes sorkövetési pillanatkép visszaállítása",
   "command.reset-lines": "Az aktuális dokumentum sorkövetési pillanatképének visszaállítása",
   "command.show-diff": "Az aktuális dokumentum összes módosításának megjelenítése",
-
   "notice.no-changes-to-navigate": "Nincs módosítás, amelyek között lépkedni lehetne",
   "notice.all-snapshots-deleted": "Az összes pillanatkép-adat törölve",
   "notice.current-snapshot-deleted": "Az aktuális pillanatkép-adatok törölve",
@@ -13,68 +12,49 @@
   "notice.copied": "Másolva!",
   "notice.no-saved-history": "Ehhez a fájlhoz nincs mentett előzmény.",
   "notice.invalid-exclude-pattern": "Helyi előzmények: a kizárt útvonalak mintája nem érvényes reguláris kifejezés, ezért figyelmen kívül marad.",
-
   "menu.local-history": "Helyi előzmények",
   "menu.show-changes": "Módosítások megjelenítése",
-
   "status.lines-changed": "{count} sor módosult",
-
   "setting.type.name": "Típus",
   "setting.type.desc": "Válasszon a függőleges vonal és a margón megjelenő pont között.",
   "setting.type.option.line": "Függőleges vonal",
   "setting.type.option.dot": "Karakter a margón",
-
   "setting.allowed-extensions.name": "Engedélyezett fájlkiterjesztések",
   "setting.allowed-extensions.desc": "Vesszővel elválasztott lista azokról a fájlkiterjesztésekről, amelyek módosításait követni kell (pl. md, txt, csv, json, yaml)",
-
   "setting.exclude-paths.name": "Kizárt útvonalak",
   "setting.exclude-paths.desc": "Kis- és nagybetűkre nem érzékeny reguláris kifejezés, amelyet a tárolóhoz viszonyított útvonalra illeszt. Minden fájl, amelynek útvonala illeszkedik, soha nem lesz követve (pl. \\.excalidraw\\.md$ vagy (^|/)Templates/). Az alapértelmezett beállítás kizárja a Templates mappákat és az Excalidraw rajzokat. Hagyja üresen az összes követéséhez.",
-
   "setting.keep.name": "Előzmények megőrzése eddig",
   "setting.keep.desc": "A revíziós előzmények tisztításának stratégiája",
   "setting.keep.option.app": "Alkalmazás bezárása",
   "setting.keep.option.file": "Fájl bezárása",
-
   "setting.ignore-new-files.name": "Új fájlok mellőzése",
   "setting.ignore-new-files.desc": "Ne kövesse a követés indítása után létrehozott fájlok módosításait",
-
   "setting.persist.name": "Előzmények megőrzése újraindításokon át",
   "setting.persist.desc": "Mentse az előzményeket lemezre, hogy a kiemelések túléljenek egy újraindítást. Ehhez az \"Előzmények megőrzése eddig\" beállításnak az Alkalmazás bezárása értéken kell állnia.",
-
   "setting.max-entries.name": "Tárolt fájlok maximális száma",
   "setting.max-entries.desc": "Korlát arra, hány fájl előzménye marad meg a lemezen. A legrégebbiek törlődnek először. Állítsa 0-ra a kikapcsoláshoz.",
-
   "setting.max-age-days.name": "Előzmények maximális kora (nap)",
   "setting.max-age-days.desc": "A megadott napnál régebbi mentett előzmények eldobása. Állítsa 0-ra a kikapcsoláshoz.",
-
   "setting.snapshots-heading": "Idővonal-pillanatképek",
-
   "setting.snapshots-enabled.name": "Köztes verziók rögzítése",
   "setting.snapshots-enabled.desc": "Tartson fenn egy idővonalat a korábbi verziókról, hogy ne csak az eredetihez, hanem egy köztes ponthoz is hasonlíthasson.",
-
   "setting.snapshots-edit-threshold.name": "Rögzítés ennyinként (módosítás)",
   "setting.snapshots-edit-threshold.desc": "Verzió mentése ennyi módosítás után. Állítsa 0-ra a módosítási kiváltó kikapcsolásához.",
-
   "setting.snapshots-interval.name": "Rögzítés ennyinként (perc)",
   "setting.snapshots-interval.desc": "Verzió mentése ennyi perc szerkesztés után. Állítsa 0-ra az idő alapú kiváltó kikapcsolásához.",
-
   "setting.max-version-age-days.name": "Verziók maximális kora (nap)",
   "setting.max-version-age-days.desc": "A megadott napnál régebbi köztes verziók eldobása (ez az elsődleges korlát). Állítsa 0-ra a kikapcsoláshoz.",
-
   "setting.max-versions.name": "Verziók maximális száma fájlonként",
   "setting.max-versions.desc": "Biztonsági korlát a fájlonként megőrzött köztes verziók számára. A legrégebbiek törlődnek először. Állítsa 0-ra a kikapcsoláshoz.",
-
   "setting.show-heading": "Jelző megjelenítése ehhez",
   "setting.show.desc": "A sorjelzők csak szerkesztési módban (forrás és élő előnézet) jelennek meg. Olvasási módban nincsenek beágyazott jelzők, de a módosítási előzmények továbbra is elérhetők: futtassa az \"Az aktuális dokumentum összes módosításának megjelenítése\" parancsot, vagy használja a fájl helyi menüjét a fájlkezelőben.",
   "setting.show.changed": "Módosítva",
   "setting.show.restored": "Visszaállítva",
   "setting.show.added": "Hozzáadva",
   "setting.show.removed": "Eltávolítva",
-
   "setting.line-heading": "Sorjelző",
   "setting.line-width.name": "Szélesség",
   "setting.line-width.desc": "A függőleges sorjelző szélessége (képpontban).",
-
   "setting.gutter-heading.name": "Margójelző",
   "setting.gutter-heading.prefix": "A margótípus-jelző karakterei (",
   "setting.gutter-heading.suffix": ").",
@@ -82,11 +62,9 @@
   "setting.gutter-added.name": "Hozzáadás karaktere",
   "setting.gutter-restored.name": "Visszaállítás karaktere",
   "setting.gutter-removed.name": "Eltávolítás karaktere",
-
   "modal.title": "Előzmények",
   "modal.no-changes": "Nincs módosítás",
   "modal.identical-to-current": "Megegyezik a jelenlegivel",
-
   "modal.restore-original": "Eredeti visszaállítása",
   "modal.restore-selected": "Kijelölt verzió visszaállítása",
   "modal.remove-selected": "Kijelölt verzió törlése",
@@ -98,7 +76,6 @@
   "modal.mode.line-by-line": "Soronként",
   "modal.mode.side-by-side": "Egymás mellett",
   "modal.hide-identical": "A jelenlegivel megegyező verziók elrejtése",
-
   "modal.confirm.cancel": "Mégse",
   "modal.confirm.restore.title": "Eredeti fájl visszaállítása",
   "modal.confirm.restore.message": "Biztosan vissza szeretné állítani ezt a fájlt az eredeti állapotába? Minden jelenlegi módosítás elveszik, és a módosításkövetési előzmények visszaállnak. Ez a művelet nem vonható vissza.",
@@ -115,14 +92,14 @@
   "modal.confirm.revert.title": "Módosítás visszavonása",
   "modal.confirm.revert.message": "Visszavonja ezt a módosítást a kijelölt alaphoz? A többi módosítás megmarad.",
   "modal.confirm.revert.button": "Visszavonás",
-
   "modal.search-versions": "Verziók keresése",
-  "modal.version.numbered": "{number}. verzió",
   "modal.version.current": "Jelenlegi",
   "modal.version.original": "Eredeti",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Nincs a keresésnek megfelelő verzió",
-
   "modal.revert-hunk": "Módosítás visszavonása",
-
   "modal.copy": "Másolás"
 }

@@ -4,7 +4,6 @@
   "command.reset-lines-all": "Nulstil alle linjesporings-øjebliksbilleder",
   "command.reset-lines": "Nulstil linjesporings-øjebliksbillede for aktuelt dokument",
   "command.show-diff": "Vis alle ændringer i aktuelt dokument",
-
   "notice.no-changes-to-navigate": "Ingen ændringer at navigere",
   "notice.all-snapshots-deleted": "Alle øjebliksbilleder slettet",
   "notice.current-snapshot-deleted": "Aktuelt øjebliksbillede slettet",
@@ -13,68 +12,49 @@
   "notice.copied": "Kopieret!",
   "notice.no-saved-history": "Der er ingen gemt historik for denne fil.",
   "notice.invalid-exclude-pattern": "Lokal historik: mønstret for ekskluderede stier er ikke et gyldigt regulært udtryk og ignoreres.",
-
   "menu.local-history": "Lokal historik",
   "menu.show-changes": "Vis ændringer",
-
   "status.lines-changed": "{count} linjer ændret",
-
   "setting.type.name": "Type",
   "setting.type.desc": "Vælg mellem en lodret linje eller en prik i margenen.",
   "setting.type.option.line": "Lodret linje",
   "setting.type.option.dot": "Tegn i margenen",
-
   "setting.allowed-extensions.name": "Tilladte filtypenavne",
   "setting.allowed-extensions.desc": "Kommasepareret liste over filtypenavne, hvis ændringer skal spores (f.eks. md, txt, csv, json, yaml)",
-
   "setting.exclude-paths.name": "Ekskluderede stier",
   "setting.exclude-paths.desc": "Et regulært udtryk (uafhængigt af store og små bogstaver), der matches mod stien relativt til boksen. Enhver fil, hvis sti matcher, spores aldrig (f.eks. \\.excalidraw\\.md$ eller (^|/)Templates/). Standardværdien ekskluderer Templates-mapper og Excalidraw-tegninger. Lad feltet være tomt for at spore alt.",
-
   "setting.keep.name": "Behold historik indtil",
   "setting.keep.desc": "Strategi for oprydning af revisionshistorik",
   "setting.keep.option.app": "Appen lukkes",
   "setting.keep.option.file": "Filen lukkes",
-
   "setting.ignore-new-files.name": "Ignorer nye filer",
   "setting.ignore-new-files.desc": "Spor ikke ændringer i filer, der er oprettet, efter sporingen blev startet",
-
   "setting.persist.name": "Bevar historik på tværs af genstarter",
   "setting.persist.desc": "Gem historik på disken, så fremhævninger overlever en genstart. Kræver, at \"Behold historik indtil\" er sat til Appen lukkes.",
-
   "setting.max-entries.name": "Maks. gemte filer",
   "setting.max-entries.desc": "Grænse for, hvor mange filhistorikker der beholdes på disken. De ældste fjernes først. Sæt til 0 for at deaktivere.",
-
   "setting.max-age-days.name": "Maks. historikalder (dage)",
   "setting.max-age-days.desc": "Fjern gemt historik, der er ældre end så mange dage. Sæt til 0 for at deaktivere.",
-
   "setting.snapshots-heading": "Tidslinje-øjebliksbilleder",
-
   "setting.snapshots-enabled.name": "Optag mellemliggende versioner",
   "setting.snapshots-enabled.desc": "Behold en tidslinje over tidligere versioner, så du kan sammenligne med et punkt indimellem og ikke kun originalen.",
-
   "setting.snapshots-edit-threshold.name": "Optag hver (ændringer)",
   "setting.snapshots-edit-threshold.desc": "Gem en version efter så mange ændringer. Sæt til 0 for at deaktivere ændringsudløseren.",
-
   "setting.snapshots-interval.name": "Optag hver (minutter)",
   "setting.snapshots-interval.desc": "Gem en version efter så mange minutters redigering. Sæt til 0 for at deaktivere tidsudløseren.",
-
   "setting.max-version-age-days.name": "Maks. versionsalder (dage)",
   "setting.max-version-age-days.desc": "Fjern mellemliggende versioner, der er ældre end så mange dage (den primære grænse). Sæt til 0 for at deaktivere.",
-
   "setting.max-versions.name": "Maks. versioner pr. fil",
   "setting.max-versions.desc": "Sikkerhedsgrænse for antal mellemliggende versioner, der beholdes pr. fil. De ældste fjernes først. Sæt til 0 for at deaktivere.",
-
   "setting.show-heading": "Vis indikator for",
   "setting.show.desc": "Linjeindikatorer vises kun i redigeringstilstand (kildekode og live-forhåndsvisning). I læsetilstand er der ingen indlejrede indikatorer, men ændringshistorikken er stadig tilgængelig: kør kommandoen \"Vis alle ændringer i aktuelt dokument\", eller brug filens genvejsmenu i filstifinderen.",
   "setting.show.changed": "Ændret",
   "setting.show.restored": "Gendannet",
   "setting.show.added": "Tilføjet",
   "setting.show.removed": "Fjernet",
-
   "setting.line-heading": "Linjeindikator",
   "setting.line-width.name": "Bredde",
   "setting.line-width.desc": "Bredde på den lodrette linjeindikator (i pixels).",
-
   "setting.gutter-heading.name": "Margenindikator",
   "setting.gutter-heading.prefix": "Tegn for margentypeindikatoren (",
   "setting.gutter-heading.suffix": ").",
@@ -82,11 +62,9 @@
   "setting.gutter-added.name": "Tegn for tilføjet",
   "setting.gutter-restored.name": "Tegn for gendannet",
   "setting.gutter-removed.name": "Tegn for fjernet",
-
   "modal.title": "Historik",
   "modal.no-changes": "Ingen ændringer",
   "modal.identical-to-current": "Identisk med aktuel version",
-
   "modal.restore-original": "Gendan original",
   "modal.restore-selected": "Gendan valgt version",
   "modal.remove-selected": "Slet valgt version",
@@ -98,7 +76,6 @@
   "modal.mode.line-by-line": "Linje for linje",
   "modal.mode.side-by-side": "Side om side",
   "modal.hide-identical": "Skjul versioner identiske med den aktuelle",
-
   "modal.confirm.cancel": "Annuller",
   "modal.confirm.restore.title": "Gendan originalfil",
   "modal.confirm.restore.message": "Er du sikker på, at du vil gendanne denne fil til dens oprindelige tilstand? Alle aktuelle ændringer går tabt, og ændringshistorikken nulstilles. Denne handling kan ikke fortrydes.",
@@ -115,14 +92,14 @@
   "modal.confirm.revert.title": "Tilbagefør denne ændring",
   "modal.confirm.revert.message": "Vil du tilbageføre denne ændring til den valgte base? Øvrige ændringer bevares.",
   "modal.confirm.revert.button": "Tilbagefør",
-
   "modal.search-versions": "Søg i versioner",
-  "modal.version.numbered": "Version {number}",
   "modal.version.current": "Aktuel",
   "modal.version.original": "Original",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Ingen versioner matcher søgningen",
-
   "modal.revert-hunk": "Tilbagefør denne ændring",
-
   "modal.copy": "Kopier"
 }

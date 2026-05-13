@@ -4,7 +4,6 @@
   "command.reset-lines-all": "Nollaa kaikki riviseurannan tilannevedokset",
   "command.reset-lines": "Nollaa nykyisen asiakirjan riviseurannan tilannevedos",
   "command.show-diff": "Näytä nykyisen asiakirjan kaikki muutokset",
-
   "notice.no-changes-to-navigate": "Ei muutoksia, joiden välillä liikkua",
   "notice.all-snapshots-deleted": "Kaikki tilannevedostiedot poistettu",
   "notice.current-snapshot-deleted": "Nykyiset tilannevedostiedot poistettu",
@@ -13,68 +12,49 @@
   "notice.copied": "Kopioitu!",
   "notice.no-saved-history": "Tälle tiedostolle ei ole tallennettua historiaa.",
   "notice.invalid-exclude-pattern": "Paikallinen historia: poissuljettujen polkujen kuvio ei ole kelvollinen säännöllinen lauseke, ja se ohitetaan.",
-
   "menu.local-history": "Paikallinen historia",
   "menu.show-changes": "Näytä muutokset",
-
   "status.lines-changed": "{count} riviä muutettu",
-
   "setting.type.name": "Tyyppi",
   "setting.type.desc": "Valitse pystyviivan ja reunuksessa olevan pisteen välillä.",
   "setting.type.option.line": "Pystyviiva",
   "setting.type.option.dot": "Merkki reunuksessa",
-
   "setting.allowed-extensions.name": "Sallitut tiedostotyypit",
   "setting.allowed-extensions.desc": "Pilkuilla erotettu luettelo tiedostotyypeistä, joiden muutoksia seurataan (esim. md, txt, csv, json, yaml)",
-
   "setting.exclude-paths.name": "Poissuljetut polut",
   "setting.exclude-paths.desc": "Säännöllinen lauseke (kirjainkoosta riippumaton), jota verrataan holviin nähden suhteelliseen polkuun. Mitään tiedostoa, jonka polku täsmää, ei koskaan seurata (esim. \\.excalidraw\\.md$ tai (^|/)Templates/). Oletusarvo sulkee pois Templates-kansiot ja Excalidraw-piirrokset. Jätä tyhjäksi, jos haluat seurata kaikkea.",
-
   "setting.keep.name": "Säilytä historiaa kunnes",
   "setting.keep.desc": "Versiohistorian siivoamisstrategia",
   "setting.keep.option.app": "Sovellus suljetaan",
   "setting.keep.option.file": "Tiedosto suljetaan",
-
   "setting.ignore-new-files.name": "Ohita uudet tiedostot",
   "setting.ignore-new-files.desc": "Älä seuraa muutoksia tiedostoissa, jotka on luotu seurannan aloittamisen jälkeen",
-
   "setting.persist.name": "Säilytä historia uudelleenkäynnistysten yli",
   "setting.persist.desc": "Tallenna historia levylle, jotta korostukset säilyvät uudelleenkäynnistyksen yli. Edellyttää, että \"Säilytä historiaa kunnes\" on asetettu arvoon Sovellus suljetaan.",
-
   "setting.max-entries.name": "Tallennettujen tiedostojen enimmäismäärä",
   "setting.max-entries.desc": "Yläraja sille, kuinka monta tiedostohistoriaa levylle säilytetään. Vanhimmat poistetaan ensin. Aseta arvoon 0 poistaaksesi käytöstä.",
-
   "setting.max-age-days.name": "Historian enimmäisikä (päivää)",
   "setting.max-age-days.desc": "Poista tallennettu historia, joka on tätä useampia päiviä vanhaa. Aseta arvoon 0 poistaaksesi käytöstä.",
-
   "setting.snapshots-heading": "Aikajanan tilannevedokset",
-
   "setting.snapshots-enabled.name": "Tallenna välivaiheen versiot",
   "setting.snapshots-enabled.desc": "Säilytä aiempien versioiden aikajana, jotta voit verrata välivaiheen pisteeseen etkä vain alkuperäiseen.",
-
   "setting.snapshots-edit-threshold.name": "Tallenna joka (muokkaus)",
   "setting.snapshots-edit-threshold.desc": "Tallenna versio tämän monen muokkauksen jälkeen. Aseta arvoon 0 poistaaksesi muokkauslaukaisimen käytöstä.",
-
   "setting.snapshots-interval.name": "Tallenna joka (minuutti)",
   "setting.snapshots-interval.desc": "Tallenna versio tämän monen muokkausminuutin jälkeen. Aseta arvoon 0 poistaaksesi aikalaukaisimen käytöstä.",
-
   "setting.max-version-age-days.name": "Version enimmäisikä (päivää)",
   "setting.max-version-age-days.desc": "Poista välivaiheen versiot, jotka ovat tätä useampia päiviä vanhoja (ensisijainen raja). Aseta arvoon 0 poistaaksesi käytöstä.",
-
   "setting.max-versions.name": "Versioiden enimmäismäärä tiedostoa kohti",
   "setting.max-versions.desc": "Turvaraja tiedostoa kohti säilytettäville välivaiheen versioille. Vanhimmat poistetaan ensin. Aseta arvoon 0 poistaaksesi käytöstä.",
-
   "setting.show-heading": "Näytä ilmaisin kohteelle",
   "setting.show.desc": "Riviloilmaisimet näkyvät vain muokkaustiloissa (lähdekoodi ja reaaliaikainen esikatselu). Lukutilassa ei ole tekstinsisäisiä ilmaisimia, mutta muutoshistoria on silti käytettävissä: suorita komento \"Näytä nykyisen asiakirjan kaikki muutokset\" tai käytä tiedoston pikavalikkoa tiedostoselaimessa.",
   "setting.show.changed": "Muutettu",
   "setting.show.restored": "Palautettu",
   "setting.show.added": "Lisätty",
   "setting.show.removed": "Poistettu",
-
   "setting.line-heading": "Riviloilmaisin",
   "setting.line-width.name": "Leveys",
   "setting.line-width.desc": "Pystysuoran riviloilmaisimen leveys (pikseleinä).",
-
   "setting.gutter-heading.name": "Reunusilmaisin",
   "setting.gutter-heading.prefix": "Reunustyyppi-ilmaisimen merkit (",
   "setting.gutter-heading.suffix": ").",
@@ -82,11 +62,9 @@
   "setting.gutter-added.name": "Lisätyn merkki",
   "setting.gutter-restored.name": "Palautetun merkki",
   "setting.gutter-removed.name": "Poistetun merkki",
-
   "modal.title": "Historia",
   "modal.no-changes": "Ei muutoksia",
   "modal.identical-to-current": "Identtinen nykyisen kanssa",
-
   "modal.restore-original": "Palauta alkuperäinen",
   "modal.restore-selected": "Palauta valittu versio",
   "modal.remove-selected": "Poista valittu versio",
@@ -98,7 +76,6 @@
   "modal.mode.line-by-line": "Rivi riviltä",
   "modal.mode.side-by-side": "Vierekkäin",
   "modal.hide-identical": "Piilota nykyisen kanssa identtiset versiot",
-
   "modal.confirm.cancel": "Peruuta",
   "modal.confirm.restore.title": "Palauta alkuperäinen tiedosto",
   "modal.confirm.restore.message": "Haluatko varmasti palauttaa tämän tiedoston alkuperäiseen tilaansa? Kaikki nykyiset muutokset menetetään ja muutoshistoria nollataan. Tätä toimintoa ei voi kumota.",
@@ -115,14 +92,14 @@
   "modal.confirm.revert.title": "Peru tämä muutos",
   "modal.confirm.revert.message": "Perutaanko tämä muutos takaisin valittuun perustaan? Muut muutokset säilytetään.",
   "modal.confirm.revert.button": "Peru",
-
   "modal.search-versions": "Hae versioista",
-  "modal.version.numbered": "Versio {number}",
   "modal.version.current": "Nykyinen",
   "modal.version.original": "Alkuperäinen",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Mikään versio ei vastaa hakua",
-
   "modal.revert-hunk": "Peru tämä muutos",
-
   "modal.copy": "Kopioi"
 }

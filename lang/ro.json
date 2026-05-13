@@ -4,7 +4,6 @@
   "command.reset-lines-all": "Resetează instantaneele de urmărire a liniilor pentru toate fișierele",
   "command.reset-lines": "Resetează instantaneul de urmărire a liniilor pentru documentul curent",
   "command.show-diff": "Afișează toate modificările documentului curent",
-
   "notice.no-changes-to-navigate": "Nicio modificare de parcurs",
   "notice.all-snapshots-deleted": "Toate datele instantaneelor au fost șterse",
   "notice.current-snapshot-deleted": "Datele instantaneului curent au fost șterse",
@@ -13,68 +12,49 @@
   "notice.copied": "Copiat!",
   "notice.no-saved-history": "Nu există istoric salvat pentru acest fișier.",
   "notice.invalid-exclude-pattern": "Local history: tiparul căilor excluse nu este o expresie regulată validă și este ignorat.",
-
   "menu.local-history": "Istoric local",
   "menu.show-changes": "Afișează modificările",
-
   "status.lines-changed": "Linii modificate: {count}",
-
   "setting.type.name": "Tip",
   "setting.type.desc": "Alegeți între o linie verticală sau un punct în margine.",
   "setting.type.option.line": "Linie verticală",
   "setting.type.option.dot": "Caracter în margine",
-
   "setting.allowed-extensions.name": "Extensii de fișiere permise",
   "setting.allowed-extensions.desc": "Listă de extensii de fișiere separate prin virgulă ale căror modificări sunt urmărite (de ex. md, txt, csv, json, yaml)",
-
   "setting.exclude-paths.name": "Căi excluse",
   "setting.exclude-paths.desc": "O expresie regulată care nu ține cont de majuscule, potrivită cu calea relativă la seif. Orice fișier a cărui cale se potrivește nu este urmărit niciodată (de ex. \\.excalidraw\\.md$ sau (^|/)Templates/). În mod implicit sunt excluse folderele Templates și desenele Excalidraw. Lăsați gol pentru a urmări totul.",
-
   "setting.keep.name": "Păstrează istoricul până la",
   "setting.keep.desc": "Strategie de curățare a istoricului de revizii",
   "setting.keep.option.app": "Închiderea aplicației",
   "setting.keep.option.file": "Închiderea fișierului",
-
   "setting.ignore-new-files.name": "Ignoră fișierele noi",
   "setting.ignore-new-files.desc": "Nu urmări modificările din fișierele create după începerea urmăririi",
-
   "setting.persist.name": "Păstrează istoricul între reporniri",
   "setting.persist.desc": "Salvează istoricul pe disc, astfel încât evidențierile să supraviețuiască unei reporniri. Necesită ca opțiunea \"Păstrează istoricul până la\" să fie setată la închiderea aplicației.",
-
   "setting.max-entries.name": "Număr maxim de fișiere stocate",
   "setting.max-entries.desc": "Limita numărului de istorice de fișiere păstrate pe disc. Cele mai vechi sunt eliminate primele. Setați la 0 pentru a dezactiva.",
-
   "setting.max-age-days.name": "Vechimea maximă a istoricului (zile)",
   "setting.max-age-days.desc": "Elimină istoricul salvat mai vechi de acest număr de zile. Setați la 0 pentru a dezactiva.",
-
   "setting.snapshots-heading": "Instantanee pe cronologie",
-
   "setting.snapshots-enabled.name": "Capturează versiuni intermediare",
   "setting.snapshots-enabled.desc": "Păstrează o cronologie a versiunilor anterioare pentru a putea compara cu un punct intermediar, nu doar cu originalul.",
-
   "setting.snapshots-edit-threshold.name": "Capturează la fiecare (modificări)",
   "setting.snapshots-edit-threshold.desc": "Creează o versiune după acest număr de modificări. Setați la 0 pentru a dezactiva declanșatorul pe modificări.",
-
   "setting.snapshots-interval.name": "Capturează la fiecare (minute)",
   "setting.snapshots-interval.desc": "Creează o versiune după acest număr de minute de editare. Setați la 0 pentru a dezactiva declanșatorul pe timp.",
-
   "setting.max-version-age-days.name": "Vechimea maximă a versiunii (zile)",
   "setting.max-version-age-days.desc": "Elimină versiunile intermediare mai vechi de acest număr de zile (limita principală). Setați la 0 pentru a dezactiva.",
-
   "setting.max-versions.name": "Număr maxim de versiuni pe fișier",
   "setting.max-versions.desc": "Limită de siguranță pentru numărul de versiuni intermediare păstrate pe fișier. Cele mai vechi sunt eliminate primele. Setați la 0 pentru a dezactiva.",
-
   "setting.show-heading": "Afișează indicatorul pentru",
   "setting.show.desc": "Indicatorii de linie sunt afișați doar în modurile de editare (cod sursă și previzualizare live). În modul de citire nu există indicatori în text, dar istoricul modificărilor rămâne accesibil: rulați comanda \"Afișează toate modificările documentului curent\" sau folosiți meniul contextual al fișierului din exploratorul de fișiere.",
   "setting.show.changed": "Modificate",
   "setting.show.restored": "Restabilite",
   "setting.show.added": "Adăugate",
   "setting.show.removed": "Eliminate",
-
   "setting.line-heading": "Indicator de linie",
   "setting.line-width.name": "Lățime",
   "setting.line-width.desc": "Lățimea indicatorului de linie verticală (în pixeli).",
-
   "setting.gutter-heading.name": "Indicator în margine",
   "setting.gutter-heading.prefix": "Caracterele indicatorului de tip din margine (",
   "setting.gutter-heading.suffix": ").",
@@ -82,11 +62,9 @@
   "setting.gutter-added.name": "Caracter adăugare",
   "setting.gutter-restored.name": "Caracter restabilire",
   "setting.gutter-removed.name": "Caracter eliminare",
-
   "modal.title": "Istoric",
   "modal.no-changes": "Nicio modificare",
   "modal.identical-to-current": "Identic cu cel curent",
-
   "modal.restore-original": "Restabilește originalul",
   "modal.restore-selected": "Restabilește versiunea selectată",
   "modal.remove-selected": "Șterge versiunea selectată",
@@ -98,7 +76,6 @@
   "modal.mode.line-by-line": "Linie cu linie",
   "modal.mode.side-by-side": "Unul lângă altul",
   "modal.hide-identical": "Ascunde versiunile identice cu cea curentă",
-
   "modal.confirm.cancel": "Anulează",
   "modal.confirm.restore.title": "Restabilește fișierul original",
   "modal.confirm.restore.message": "Sigur doriți să restabiliți acest fișier la starea inițială? Toate modificările curente vor fi pierdute, iar istoricul de urmărire a modificărilor va fi resetat. Această acțiune nu poate fi anulată.",
@@ -115,14 +92,14 @@
   "modal.confirm.revert.title": "Revino asupra acestei modificări",
   "modal.confirm.revert.message": "Revii asupra acestei modificări la baza selectată? Celelalte modificări sunt păstrate.",
   "modal.confirm.revert.button": "Revino",
-
   "modal.search-versions": "Caută versiuni",
-  "modal.version.numbered": "Versiunea {number}",
   "modal.version.current": "Curentă",
   "modal.version.original": "Original",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Nicio versiune nu corespunde căutării",
-
   "modal.revert-hunk": "Revino asupra acestei modificări",
-
   "modal.copy": "Copiază"
 }

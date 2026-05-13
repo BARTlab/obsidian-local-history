@@ -1,0 +1,304 @@
+import 'reflect-metadata';
+import { describe, expect, it, jest } from '@jest/globals';
+
+// Replace the FileSnapshot with a thin in-memory double. The service only needs
+// getOne -> snapshot.file, getLastStateLines, lineBreak, captureVersion,
+// getVersion, getVersions, removeVersion, and we want to assert the modes
+// (force/labeled) the put-label path uses without pulling lodash-es ESM into
+// the CommonJS Jest runtime.
+jest.mock('@/snapshots/file.snapshot', () => ({
+  FileSnapshot: class {
+    public file: unknown;
+    public lineBreak: string = '\n';
+    public state: string[] = [];
+    public captured: { lines: string[]; force: boolean; label?: string }[] = [];
+    public removed: string[] = [];
+    public versionsList: { id: string; lines: string[]; label?: string }[] = [];
+
+    public constructor(file: unknown, state: string[], versions: { id: string; lines: string[]; label?: string }[] = []) {
+      this.file = file;
+      this.state = state;
+      this.versionsList = versions;
+    }
+
+    public getLastStateLines(): string[] {
+      return [...this.state];
+    }
+
+    public getVersion(
+      id: string,
+    ): { id: string; lines: string[]; getLines: () => string[] } | null {
+      const entry = this.versionsList.find((v) => v.id === id);
+      if (!entry) {
+        return null;
+      }
+      return { ...entry, getLines: (): string[] => [...entry.lines] };
+    }
+
+    public getVersions(): { id: string; lines: string[]; label?: string }[] {
+      // Mirror the real snapshot: newest first.
+      return [...this.versionsList].reverse();
+    }
+
+    public removeVersion(id: string): boolean {
+      const index: number = this.versionsList.findIndex((v) => v.id === id);
+      if (index === -1) {
+        return false;
+      }
+      this.versionsList.splice(index, 1);
+      this.removed.push(id);
+      return true;
+    }
+
+    public captureVersion(
+      lines: string[],
+      _options: unknown,
+      force: boolean = false,
+      label?: string,
+    ): { id: string; lines: string[]; label?: string } | null {
+      const entry = { id: `v-${this.captured.length + 1}`, lines: [...lines], label };
+      this.captured.push({ lines: [...lines], force, label });
+      if (label) {
+        this.versionsList.push(entry);
+      }
+      return entry;
+    }
+  },
+}));
+
+import { FileSnapshot } from '@/snapshots/file.snapshot';
+import { VersionActionsService } from '@/services/version-actions.service';
+import type { TFile } from 'obsidian';
+
+interface ServiceHarness {
+  service: VersionActionsService;
+  applyContent: jest.Mock;
+  forceUpdate: jest.Mock;
+  snapshot: {
+    file: TFile;
+    captured: { lines: string[]; force: boolean; label?: string }[];
+    removed: string[];
+    versionsList: { id: string; lines: string[]; label?: string }[];
+    getLastStateLines: () => string[];
+  } | null;
+}
+
+const makeFile = (path: string): TFile => ({ path, name: path, extension: 'md' }) as unknown as TFile;
+
+const makeHarness = (snapshotInit?: {
+  file: TFile;
+  state: string[];
+  versions?: { id: string; lines: string[]; label?: string }[];
+} | null): ServiceHarness => {
+  const applyContent: jest.Mock = jest.fn(async (): Promise<boolean> => true) as unknown as jest.Mock;
+  const forceUpdate: jest.Mock = jest.fn();
+
+  // FileSnapshot is mocked above to a thin double; the constructor signature
+  // matches the mock, not the real class.
+  const SnapshotCtor = FileSnapshot as unknown as new (
+    file: TFile,
+    state: string[],
+    versions?: { id: string; lines: string[]; label?: string }[],
+  ) => ServiceHarness['snapshot'];
+  const snapshot = snapshotInit
+    ? new SnapshotCtor(snapshotInit.file, snapshotInit.state, snapshotInit.versions ?? [])
+    : null;
+
+  const snapshotsService = {
+    getOne: (_file?: TFile | null): unknown => snapshot,
+    applyContent,
+    forceUpdate,
+  };
+
+  const settingsService = {
+    value: (path: string): unknown => {
+      switch (path) {
+        case 'snapshots.enabled':
+          return false; // proves the put-label path forces enabled internally
+        case 'snapshots.intervalMs':
+          return 60000;
+        case 'snapshots.editThreshold':
+          return 10;
+        case 'snapshots.maxVersions':
+          return 50;
+        case 'snapshots.maxVersionAgeDays':
+          return 14;
+        default:
+          return undefined;
+      }
+    },
+  };
+
+  const plugin = {
+    get: (key: string): unknown => {
+      if (key === 'SnapshotsService') {
+        return snapshotsService;
+      }
+      if (key === 'SettingsService') {
+        return settingsService;
+      }
+      throw new Error(`Unknown service: ${key}`);
+    },
+  } as unknown as ConstructorParameters<typeof VersionActionsService>[0];
+
+  const service = new VersionActionsService(plugin);
+
+  return { service, applyContent, forceUpdate, snapshot };
+};
+
+describe('VersionActionsService.restoreSelected', () => {
+  it('rewrites the file content to the picked version via SnapshotsService.applyContent', async () => {
+    const file = makeFile('a.md');
+    const harness = makeHarness({
+      file,
+      state: ['current'],
+      versions: [{ id: 'v1', lines: ['old', 'lines'] }],
+    });
+
+    const result = await harness.service.restoreSelected(file, 'v1');
+
+    expect(result.applied).toBe(true);
+    expect(harness.applyContent).toHaveBeenCalledTimes(1);
+    expect(harness.applyContent).toHaveBeenCalledWith(file, ['old', 'lines'], {
+      start: 0,
+      removeCount: 1,
+      newLines: ['old', 'lines'],
+    });
+  });
+
+  it('returns applied=false and does not write when the version content equals the current state', async () => {
+    const file = makeFile('a.md');
+    const harness = makeHarness({
+      file,
+      state: ['same'],
+      versions: [{ id: 'v1', lines: ['same'] }],
+    });
+
+    const result = await harness.service.restoreSelected(file, 'v1');
+
+    expect(result.applied).toBe(false);
+    expect(harness.applyContent).not.toHaveBeenCalled();
+  });
+
+  it('returns applied=false when the snapshot or the version is missing', async () => {
+    const noSnapshot = makeHarness(null);
+    expect((await noSnapshot.service.restoreSelected(makeFile('a.md'), 'v1')).applied).toBe(false);
+    expect(noSnapshot.applyContent).not.toHaveBeenCalled();
+
+    const unknownVersion = makeHarness({ file: makeFile('a.md'), state: ['x'], versions: [] });
+    expect((await unknownVersion.service.restoreSelected(makeFile('a.md'), 'missing')).applied).toBe(false);
+    expect(unknownVersion.applyContent).not.toHaveBeenCalled();
+  });
+});
+
+describe('VersionActionsService.removeSelected', () => {
+  it('removes the version, calls forceUpdate, and points next at the older neighbour', () => {
+    const file = makeFile('a.md');
+    // Stored oldest-first, surfaced newest-first by getVersions (so reversed).
+    const harness = makeHarness({
+      file,
+      state: ['x'],
+      versions: [
+        { id: 'old', lines: ['o'] },
+        { id: 'mid', lines: ['m'] },
+        { id: 'new', lines: ['n'] },
+      ],
+    });
+
+    const result = harness.service.removeSelected(file, 'mid');
+
+    expect(result.removed).toBe(true);
+    expect(result.nextId).toBe('old');
+    expect(harness.forceUpdate).toHaveBeenCalledTimes(1);
+    expect(harness.snapshot?.removed).toEqual(['mid']);
+  });
+
+  it('falls back to the newer neighbour when removing the oldest entry', () => {
+    const file = makeFile('a.md');
+    const harness = makeHarness({
+      file,
+      state: ['x'],
+      versions: [
+        { id: 'old', lines: ['o'] },
+        { id: 'new', lines: ['n'] },
+      ],
+    });
+
+    const result = harness.service.removeSelected(file, 'old');
+
+    expect(result.removed).toBe(true);
+    // Newest-first list: [new, old]; old is the last entry, so the fallback is
+    // its newer neighbour (new), which sits at index - 1.
+    expect(result.nextId).toBe('new');
+  });
+
+  it('returns nextId=null when the timeline is left empty after the remove', () => {
+    const file = makeFile('a.md');
+    const harness = makeHarness({
+      file,
+      state: ['x'],
+      versions: [{ id: 'only', lines: ['o'] }],
+    });
+
+    const result = harness.service.removeSelected(file, 'only');
+
+    expect(result.removed).toBe(true);
+    expect(result.nextId).toBeNull();
+  });
+
+  it('is a no-op when the snapshot is missing or the version id is unknown', () => {
+    const noSnapshot = makeHarness(null);
+    const empty = noSnapshot.service.removeSelected(makeFile('a.md'), 'v1');
+    expect(empty.removed).toBe(false);
+    expect(empty.nextId).toBeNull();
+    expect(noSnapshot.forceUpdate).not.toHaveBeenCalled();
+
+    const unknown = makeHarness({ file: makeFile('a.md'), state: ['x'], versions: [] });
+    const result = unknown.service.removeSelected(makeFile('a.md'), 'missing');
+    expect(result.removed).toBe(false);
+    expect(unknown.forceUpdate).not.toHaveBeenCalled();
+  });
+});
+
+describe('VersionActionsService.putLabel', () => {
+  it('captures a labeled, forced version of the current state and notifies subscribers', () => {
+    const file = makeFile('a.md');
+    const harness = makeHarness({ file, state: ['current'] });
+
+    const captured = harness.service.putLabel(file, ' milestone ');
+
+    expect(captured).not.toBeNull();
+    expect(captured?.label).toBe('milestone'); // trimmed
+    expect(harness.snapshot?.captured).toEqual([
+      { lines: ['current'], force: true, label: 'milestone' },
+    ]);
+    expect(harness.forceUpdate).toHaveBeenCalledTimes(1);
+  });
+
+  it('forces the cadence-enabled gate so a labeled marker still lands when snapshots are disabled in settings', () => {
+    const file = makeFile('a.md');
+    const harness = makeHarness({ file, state: ['x'] });
+
+    // The settings stub returns enabled=false, but the service flips it on for
+    // the labeled capture so the intentional marker is not silently dropped.
+    const captured = harness.service.putLabel(file, 'tag');
+
+    expect(captured).not.toBeNull();
+    expect(harness.snapshot?.captured[0].label).toBe('tag');
+    expect(harness.snapshot?.captured[0].force).toBe(true);
+  });
+
+  it('is a no-op when the label is empty, whitespace, or no snapshot exists', () => {
+    const file = makeFile('a.md');
+    const harness = makeHarness({ file, state: ['x'] });
+
+    expect(harness.service.putLabel(file, '')).toBeNull();
+    expect(harness.service.putLabel(file, '   ')).toBeNull();
+    expect(harness.snapshot?.captured).toEqual([]);
+    expect(harness.forceUpdate).not.toHaveBeenCalled();
+
+    const noSnapshot = makeHarness(null);
+    expect(noSnapshot.service.putLabel(file, 'tag')).toBeNull();
+    expect(noSnapshot.forceUpdate).not.toHaveBeenCalled();
+  });
+});

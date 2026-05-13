@@ -10,6 +10,7 @@ import { type InlineDiffLine, WordDiffHelper } from '@/helpers/word-diff.helper'
 import type LineChangeTrackerPlugin from '@/main';
 import type { ModalsService } from '@/services/modals.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
+import type { VersionActionsService, VersionRemoveResult } from '@/services/version-actions.service';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FileVersion } from '@/snapshots/file.version';
 import type { DomElementConfig, FunctionVoid, HTMLElementWithScrollSync } from '@/types';
@@ -73,6 +74,14 @@ export class HistoryModal extends Modal {
    */
   @Inject('ModalsService')
   protected modalsService: ModalsService;
+
+  /**
+   * Shared owner of restore/remove/put-label actions on the version timeline.
+   * The modal routes these through the service so the panel (and any future
+   * surface) executes the same implementation (D5).
+   */
+  @Inject('VersionActionsService')
+  protected versionActionsService: VersionActionsService;
 
   /**
    * Reference to the current diff container element.
@@ -351,14 +360,22 @@ export class HistoryModal extends Modal {
       return;
     }
 
-    const baseLines: string[] = this.getBaseContent().split(this.snapshot.lineBreak);
-    const currentLines: string[] = this.snapshot.getLastStateLines();
+    // A picked captured version routes through the shared service (D5); the
+    // synthetic baseline (the latest snapshot or the history original) stays on
+    // the modal's local path because the service models real captured versions
+    // only and the baseline content is resolved by the modal's BaseContentHelper.
+    if (this.selectedBaseId !== ORIGINAL_BASE_ID) {
+      await this.versionActionsService.restoreSelected(file, this.selectedBaseId);
+    } else {
+      const baseLines: string[] = this.getBaseContent().split(this.snapshot.lineBreak);
+      const currentLines: string[] = this.snapshot.getLastStateLines();
 
-    await this.snapshotsService.applyContent(file, baseLines, {
-      start: 0,
-      removeCount: currentLines.length,
-      newLines: baseLines,
-    });
+      await this.snapshotsService.applyContent(file, baseLines, {
+        start: 0,
+        removeCount: currentLines.length,
+        newLines: baseLines,
+      });
+    }
 
     // The content changed, so the diff and its hunk indices are stale: drop the
     // navigation focus and redraw the active view against the new content.
@@ -381,19 +398,26 @@ export class HistoryModal extends Modal {
       return;
     }
 
-    // Resolve the next selection from the displayed list BEFORE removing, so
-    // "below" matches what the user sees: the list is newest-first, so the next
-    // row down is the next index. Fall back to the row above, then the baseline.
-    const visible: FileVersion[] = this.getVisibleVersions();
-    const index: number = visible.findIndex((version: FileVersion): boolean => version.id === this.selectedBaseId);
-    const nextId: string =
-      index === -1 ? ORIGINAL_BASE_ID : (visible[index + 1]?.id ?? visible[index - 1]?.id ?? ORIGINAL_BASE_ID);
+    // Route through the shared service (D5). The service resolves the next
+    // selection against the FULL timeline (its visible list); the modal's
+    // search/hide-identical filter may exclude that fallback, so the result is
+    // narrowed to ids the rail still shows before applying it. The synthetic
+    // baseline is the final fallback.
+    const result: VersionRemoveResult = this.versionActionsService.removeSelected(
+      this.snapshot?.file ?? null,
+      this.selectedBaseId,
+    );
 
-    if (!this.snapshot.removeVersion(this.selectedBaseId)) {
+    if (!result.removed) {
       return;
     }
 
-    this.snapshotsService.forceUpdate();
+    const visibleIds: Set<string> = new Set(
+      this.getVisibleVersions().map((version: FileVersion): string => version.id),
+    );
+
+    const nextId: string =
+      result.nextId && visibleIds.has(result.nextId) ? result.nextId : ORIGINAL_BASE_ID;
 
     this.selectedBaseId = nextId;
     this.activeHunkIndex = -1;

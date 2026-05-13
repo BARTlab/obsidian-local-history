@@ -2,9 +2,10 @@ import { Inject } from '@/decorators/inject.decorator';
 import type LineChangeTrackerPlugin from '@/main';
 import { ConfirmModal } from '@/modals/confirm.modal';
 import { HistoryModal } from '@/modals/history.modal';
+import { PromptModal } from '@/modals/prompt.modal';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
-import type { ConfirmModalConfig, Service } from '@/types';
+import type { ConfirmModalConfig, PromptModalConfig, Service } from '@/types';
 import type { TFile } from 'obsidian';
 
 /**
@@ -110,5 +111,21 @@ export class ModalsService implements Service {
     const modal: ConfirmModal = new ConfirmModal(this.plugin.app, config);
 
     return await modal.confirm();
+  }
+
+  /**
+   * Shows a single-input prompt dialog with the specified configuration (D8).
+   * Creates a PromptModal instance and returns a promise that resolves to the
+   * entered text, or `null` when the user cancels or otherwise closes the
+   * modal without confirming. Used by "Put label" to collect a free-text
+   * version tag.
+   *
+   * @param {PromptModalConfig} config - Configuration object for the prompt dialog
+   * @return {Promise<string | null>} Promise that resolves to the entered text or null on cancel
+   */
+  public async prompt(config: PromptModalConfig): Promise<string | null> {
+    const modal: PromptModal = new PromptModal(this.plugin.app, config);
+
+    return await modal.prompt();
   }
 }

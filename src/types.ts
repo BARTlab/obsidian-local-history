@@ -518,6 +518,27 @@ export interface ConfirmModalConfig {
   cancelText?: string;
 }
 
+/**
+ * Configuration object for PromptModal parameters. A prompt asks the user for a
+ * single short string (for example a custom version label) and resolves to the
+ * entered text or null on cancel. All fields are optional with sensible
+ * defaults so a caller can open a minimal prompt by passing an empty config.
+ */
+export interface PromptModalConfig {
+  /** The title of the prompt dialog */
+  title?: string;
+  /** Optional message rendered above the input */
+  message?: string;
+  /** Placeholder text shown inside the empty input */
+  placeholder?: string;
+  /** Initial value pre-filled in the input */
+  initialValue?: string;
+  /** Text for the confirm button (defaults to 'Confirm') */
+  confirmText?: string;
+  /** Text for the cancel button (defaults to 'Cancel') */
+  cancelText?: string;
+}
+
 // --- COPY FROM CODEMIRROR ---
 
 /**

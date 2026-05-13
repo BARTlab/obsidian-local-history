@@ -9,7 +9,7 @@ import { type SearchableVersion, VersionSearchHelper } from '@/helpers/version-s
 import { type VersionDescription, VersionLabelHelper } from '@/helpers/version-label.helper';
 import { type InlineDiffLine, WordDiffHelper } from '@/helpers/word-diff.helper';
 import type LineChangeTrackerPlugin from '@/main';
-import type { ModalsService } from '@/services/modals.service';
+import type { HistoryModalOpenOptions, ModalsService } from '@/services/modals.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import type { VersionActionsService, VersionRemoveResult } from '@/services/version-actions.service';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
@@ -219,18 +219,29 @@ export class HistoryModal extends Modal {
   protected activeHunkIndex: number = -1;
 
   /**
+   * Open options applied on the next onOpen call: an optional `initialBaseId`
+   * to pre-select on open and an optional `hideRail` to render in rail-less
+   * mode (D4). With no options the modal behaves exactly as before.
+   */
+  protected readonly options: HistoryModalOpenOptions;
+
+  /**
    * Creates a new instance of HistoryModal.
    *
    * @param {App} app - The Obsidian app instance
    * @param {LineChangeTrackerPlugin} plugin - The plugin instance
    * @param {FileSnapshot} snapshot - The file snapshot to display history for
+   * @param {HistoryModalOpenOptions} options - Optional open options (initialBaseId, hideRail)
    */
   public constructor(
     public app: App,
     protected plugin: LineChangeTrackerPlugin,
     protected snapshot: FileSnapshot,
+    options?: HistoryModalOpenOptions,
   ) {
     super(app);
+
+    this.options = options ?? {};
   }
 
   /**
@@ -610,14 +621,23 @@ export class HistoryModal extends Modal {
   }
 
   /**
-   * Resolves the base to select when the modal opens: the latest captured
-   * version (the top of the rail, showing what changed since the last save), or
-   * the Original entry when the file has no snapshots yet.
+   * Resolves the base to select when the modal opens. With an open option
+   * `initialBaseId` naming a real version the modal opens focused on that
+   * version (D4); otherwise it defaults to the latest captured version (the top
+   * of the rail, showing what changed since the last save), or the Original
+   * entry when the file has no snapshots yet. An unknown `initialBaseId` falls
+   * back to the default so a stale id never leaves the modal pointing at
+   * nothing.
    *
    * @return {string} The initial selected base id
    */
   protected getInitialBaseId(): string {
     const versions: FileVersion[] = this.snapshot.getVersions();
+    const requested: string | undefined = this.options.initialBaseId;
+
+    if (requested && versions.some((version: FileVersion): boolean => version.id === requested)) {
+      return requested;
+    }
 
     return versions.length > 0 ? versions[0].id : ORIGINAL_BASE_ID;
   }
@@ -648,6 +668,11 @@ export class HistoryModal extends Modal {
 
   /**
    * Creates the UI elements for the diff view.
+   *
+   * With the `hideRail` open option the left rail (search + version list) is
+   * not rendered and the diff/toolbar fill the modal (D4). The panel uses this
+   * mode so it stays the sole navigator and there are no two competing version
+   * lists side by side. Without the option the rail is built as before.
    */
   protected makeUI(): void {
     // Obsidian Settings-style shell: the body splits into a left navigation
@@ -660,11 +685,15 @@ export class HistoryModal extends Modal {
       container: this.contentEl,
     });
 
-    this.railEl = DomHelper.create({
-      tag: 'div',
-      classes: 'lct-modal-rail',
-      container: bodyEl,
-    });
+    const hideRail: boolean = this.options.hideRail === true;
+
+    if (!hideRail) {
+      this.railEl = DomHelper.create({
+        tag: 'div',
+        classes: 'lct-modal-rail',
+        container: bodyEl,
+      });
+    }
 
     this.mainEl = DomHelper.create({
       tag: 'div',
@@ -694,25 +723,31 @@ export class HistoryModal extends Modal {
       this.toolbarEl.appendChild(closeButtonEl);
     }
 
-    // Content search sits above the version timeline in the left rail.
-    this.searchEl = DomHelper.create({
-      tag: 'div',
-      classes: 'lct-rail-search',
-      container: this.railEl,
-    });
+    // The rail (search + version list) is built only when not hidden. In
+    // rail-less mode the panel is the navigator and the modal acts as a pure
+    // viewer focused on the chosen version.
+    if (this.railEl) {
+      // Content search sits above the version timeline in the left rail.
+      this.searchEl = DomHelper.create({
+        tag: 'div',
+        classes: 'lct-rail-search',
+        container: this.railEl,
+      });
 
-    // Version timeline lives in the left rail, under the search box. It is a
-    // focusable region (tabindex 0) so the arrow keys can walk the snapshots and
-    // Delete can drop the selected one while the list, not the diff, has focus.
-    this.versionsEl = DomHelper.create({
-      tag: 'div',
-      classes: 'lct-versions',
-      container: this.railEl,
-      attributes: { tabindex: '0' },
-      events: {
-        keydown: (event: Event): void => this.handleVersionsKeydown(event as KeyboardEvent),
-      },
-    });
+      // Version timeline lives in the left rail, under the search box. It is a
+      // focusable region (tabindex 0) so the arrow keys can walk the snapshots
+      // and Delete can drop the selected one while the list, not the diff, has
+      // focus.
+      this.versionsEl = DomHelper.create({
+        tag: 'div',
+        classes: 'lct-versions',
+        container: this.railEl,
+        attributes: { tabindex: '0' },
+        events: {
+          keydown: (event: Event): void => this.handleVersionsKeydown(event as KeyboardEvent),
+        },
+      });
+    }
 
     // Notice above the diff, hidden until the selected base equals the current
     // state. It gives a single, mode-independent message so a blank diff is

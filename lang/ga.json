@@ -4,7 +4,6 @@
   "command.reset-lines-all": "Athshocraigh gach roghbhlúire de lorgaire na línte",
   "command.reset-lines": "Athshocraigh roghbhlúire lorgaire línte na cáipéise reatha",
   "command.show-diff": "Taispeáin gach athrú sa cháipéis reatha",
-
   "notice.no-changes-to-navigate": "Níl aon athrú le nascleanúint",
   "notice.all-snapshots-deleted": "Scriosadh gach sonra roghbhlúire",
   "notice.current-snapshot-deleted": "Scriosadh sonraí an roghbhlúire reatha",
@@ -13,68 +12,49 @@
   "notice.copied": "Cóipeáilte!",
   "notice.no-saved-history": "Níl aon stair shábháilte ann don chomhad seo.",
   "notice.invalid-exclude-pattern": "Stair áitiúil: ní slonn rialta bailí é patrún na gconairí eisiata agus déantar neamhaird de.",
-
   "menu.local-history": "Stair áitiúil",
   "menu.show-changes": "Taispeáin athruithe",
-
   "status.lines-changed": "{count} líne athraithe",
-
   "setting.type.name": "Cineál",
   "setting.type.desc": "Roghnaigh idir líne inghearach nó ponc san imeall.",
   "setting.type.option.line": "Líne inghearach",
   "setting.type.option.dot": "Carachtar san imeall",
-
   "setting.allowed-extensions.name": "Iarmhíreanna comhaid ceadaithe",
   "setting.allowed-extensions.desc": "Liosta iarmhíreanna comhaid scartha le camóga le hathruithe a lorg (m.sh., md, txt, csv, json, yaml)",
-
   "setting.exclude-paths.name": "Conairí eisiata",
   "setting.exclude-paths.desc": "Slonn rialta atá neamhíogair do chás na litreacha, comparáidte leis an gconair choibhneasta sa taisce. Ní lorgaítear riamh aon chomhad a mheaitseálann a chonair (m.sh. \\.excalidraw\\.md$ nó (^|/)Templates/). Eisiann an réamhshocrú fillteáin Templates agus líníochtaí Excalidraw. Fág folamh é chun gach rud a lorg.",
-
   "setting.keep.name": "Coinnigh an stair go dtí",
   "setting.keep.desc": "Straitéis chun stair na leasuithe a ghlanadh",
   "setting.keep.option.app": "Dúnadh an aip",
   "setting.keep.option.file": "Dúnadh an comhad",
-
   "setting.ignore-new-files.name": "Déan neamhaird de chomhaid nua",
   "setting.ignore-new-files.desc": "Ná lorg athruithe i gcomhaid a cruthaíodh tar éis don lorg tosú",
-
   "setting.persist.name": "Coinnigh an stair trí atosuithe",
   "setting.persist.desc": "Sábháil an stair ar an diosca ionas go maireann na haibhsithe trí atosú. Ní mór \"coinnigh an stair go dtí\" a shocrú ar dhúnadh an aip.",
-
   "setting.max-entries.name": "Uasmhéid comhad stóráilte",
   "setting.max-entries.desc": "Teorainn ar líon na staireanna comhaid a choinnítear ar an diosca. Díbrítear na cinn is sine ar dtús. Socraigh ar 0 lena dhíchumasú.",
-
   "setting.max-age-days.name": "Uasaois staire (laethanta)",
   "setting.max-age-days.desc": "Caith amach stair shábháilte atá níos sine ná an líon laethanta seo. Socraigh ar 0 lena dhíchumasú.",
-
   "setting.snapshots-heading": "Roghbhlúirí amlíne",
-
   "setting.snapshots-enabled.name": "Gabh leaganacha idirmheánacha",
   "setting.snapshots-enabled.desc": "Coinnigh amlíne de leaganacha níos luaithe ionas gur féidir leat comparáid a dhéanamh le pointe idir eatarthu, ní leis an mbunleagan amháin.",
-
   "setting.snapshots-edit-threshold.name": "Gabh gach (eagarthóireacht)",
   "setting.snapshots-edit-threshold.desc": "Glac leagan tar éis an líon eagarthóireachtaí seo. Socraigh ar 0 chun truicear na heagarthóireachta a dhíchumasú.",
-
   "setting.snapshots-interval.name": "Gabh gach (nóiméad)",
   "setting.snapshots-interval.desc": "Glac leagan tar éis an líon nóiméad eagarthóireachta seo. Socraigh ar 0 chun truicear an ama a dhíchumasú.",
-
   "setting.max-version-age-days.name": "Uasaois leagain (laethanta)",
   "setting.max-version-age-days.desc": "Caith amach leaganacha idirmheánacha atá níos sine ná an líon laethanta seo (an phríomhtheorainn). Socraigh ar 0 lena dhíchumasú.",
-
   "setting.max-versions.name": "Uasmhéid leaganacha in aghaidh an chomhaid",
   "setting.max-versions.desc": "Teorainn shábháilteachta ar leaganacha idirmheánacha a choinnítear in aghaidh an chomhaid. Díbrítear na cinn is sine ar dtús. Socraigh ar 0 lena dhíchumasú.",
-
   "setting.show-heading": "Taispeáin táscaire le haghaidh",
   "setting.show.desc": "Ní thaispeántar táscairí líne ach amháin sna móid eagarthóireachta (foinse agus réamhamharc beo). Sa mhód léitheoireachta níl aon táscairí inlíne ann, ach tá stair na n-athruithe fós inrochtana: rith an t-ordú \"Taispeáin gach athrú sa cháipéis reatha\" nó úsáid roghchlár comhthéacs an chomhaid sa taiscéalaí comhad.",
   "setting.show.changed": "Athraithe",
   "setting.show.restored": "Athchóirithe",
   "setting.show.added": "Curtha leis",
   "setting.show.removed": "Bainte",
-
   "setting.line-heading": "Táscaire líne",
   "setting.line-width.name": "Leithead",
   "setting.line-width.desc": "Leithead an táscaire líne inghearaí (i bpicteilíní).",
-
   "setting.gutter-heading.name": "Táscaire imill",
   "setting.gutter-heading.prefix": "Carachtair de tháscaire cineáil an imill (",
   "setting.gutter-heading.suffix": ").",
@@ -82,11 +62,9 @@
   "setting.gutter-added.name": "Carachtar curtha leis",
   "setting.gutter-restored.name": "Carachtar athchóirithe",
   "setting.gutter-removed.name": "Carachtar bainte",
-
   "modal.title": "Stair",
   "modal.no-changes": "Gan athruithe",
   "modal.identical-to-current": "Comhionann leis an gceann reatha",
-
   "modal.restore-original": "Athchóirigh an bunleagan",
   "modal.restore-selected": "Athchóirigh an leagan roghnaithe",
   "modal.remove-selected": "Scrios an leagan roghnaithe",
@@ -98,7 +76,6 @@
   "modal.mode.line-by-line": "Líne ar líne",
   "modal.mode.side-by-side": "Taobh le taobh",
   "modal.hide-identical": "Folaigh leaganacha comhionann leis an gceann reatha",
-
   "modal.confirm.cancel": "Cealaigh",
   "modal.confirm.restore.title": "Athchóirigh an comhad bunaidh",
   "modal.confirm.restore.message": "An bhfuil tú cinnte gur mhaith leat an comhad seo a chur ar ais ina staid bhunaidh? Caillfear gach athrú reatha agus athshocrófar stair lorgtha na n-athruithe. Ní féidir an gníomh seo a chealú.",
@@ -115,14 +92,14 @@
   "modal.confirm.revert.title": "Fill an t-athrú seo",
   "modal.confirm.revert.message": "Fill an t-athrú seo ar ais go dtí an bonn roghnaithe? Coinnítear na hathruithe eile.",
   "modal.confirm.revert.button": "Fill",
-
   "modal.search-versions": "Cuardaigh leaganacha",
-  "modal.version.numbered": "Leagan {number}",
   "modal.version.current": "Reatha",
   "modal.version.original": "Bunleagan",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Níl aon leagan ag meaitseáil an chuardaigh",
-
   "modal.revert-hunk": "Fill an t-athrú seo",
-
   "modal.copy": "Cóipeáil"
 }

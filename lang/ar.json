@@ -4,7 +4,6 @@
   "command.reset-lines-all": "إعادة تعيين جميع لقطات متتبّع الأسطر",
   "command.reset-lines": "إعادة تعيين لقطة متتبّع الأسطر للمستند الحالي",
   "command.show-diff": "عرض جميع تغييرات المستند الحالي",
-
   "notice.no-changes-to-navigate": "لا توجد تغييرات للتنقل بينها",
   "notice.all-snapshots-deleted": "تم حذف جميع بيانات اللقطات",
   "notice.current-snapshot-deleted": "تم حذف بيانات اللقطة الحالية",
@@ -13,68 +12,49 @@
   "notice.copied": "تم النسخ!",
   "notice.no-saved-history": "لا يوجد سجل محفوظ لهذا الملف.",
   "notice.invalid-exclude-pattern": "السجل المحلي: نمط المسارات المستثناة ليس تعبيرًا نمطيًا صالحًا وسيتم تجاهله.",
-
   "menu.local-history": "السجل المحلي",
   "menu.show-changes": "عرض التغييرات",
-
   "status.lines-changed": "تم تغيير {count} سطرًا",
-
   "setting.type.name": "النوع",
   "setting.type.desc": "اختر بين خط عمودي أو نقطة في الهامش.",
   "setting.type.option.line": "خط عمودي",
   "setting.type.option.dot": "حرف في الهامش",
-
   "setting.allowed-extensions.name": "امتدادات الملفات المسموح بها",
   "setting.allowed-extensions.desc": "قائمة بامتدادات الملفات مفصولة بفواصل لتتبّع التغييرات فيها (مثل md, txt, csv, json, yaml)",
-
   "setting.exclude-paths.name": "المسارات المستثناة",
   "setting.exclude-paths.desc": "تعبير نمطي غير حساس لحالة الأحرف يُطابَق مع المسار النسبي للقبو. أي ملف يتطابق مساره لا يُتتبّع أبدًا (مثل \\.excalidraw\\.md$ أو (^|/)Templates/). يستثني الإعداد الافتراضي مجلدات Templates ورسومات Excalidraw. اتركه فارغًا لتتبّع كل شيء.",
-
   "setting.keep.name": "الاحتفاظ بالسجل حتى",
   "setting.keep.desc": "استراتيجية تنظيف سجل المراجعات",
   "setting.keep.option.app": "إغلاق التطبيق",
   "setting.keep.option.file": "إغلاق الملف",
-
   "setting.ignore-new-files.name": "تجاهل الملفات الجديدة",
   "setting.ignore-new-files.desc": "عدم تتبّع التغييرات في الملفات المُنشأة بعد بدء التتبّع",
-
   "setting.persist.name": "الاحتفاظ بالسجل عبر عمليات إعادة التشغيل",
   "setting.persist.desc": "احفظ السجل على القرص لتبقى الإبرازات بعد إعادة التشغيل. يتطلب ضبط \"الاحتفاظ بالسجل حتى\" على إغلاق التطبيق.",
-
   "setting.max-entries.name": "الحد الأقصى للملفات المخزَّنة",
   "setting.max-entries.desc": "حد أقصى لعدد سجلات الملفات المحفوظة على القرص. تُحذف الأقدم أولًا. اضبطه على 0 للتعطيل.",
-
   "setting.max-age-days.name": "أقصى عمر للسجل (أيام)",
   "setting.max-age-days.desc": "احذف السجل المحفوظ الأقدم من هذا العدد من الأيام. اضبطه على 0 للتعطيل.",
-
   "setting.snapshots-heading": "لقطات الخط الزمني",
-
   "setting.snapshots-enabled.name": "التقاط الإصدارات الوسيطة",
   "setting.snapshots-enabled.desc": "احتفظ بخط زمني للإصدارات السابقة لتتمكن من المقارنة مع نقطة وسطية، وليس فقط مع النسخة الأصلية.",
-
   "setting.snapshots-edit-threshold.name": "الالتقاط كل (تعديلات)",
   "setting.snapshots-edit-threshold.desc": "التقط إصدارًا بعد هذا العدد من التعديلات. اضبطه على 0 لتعطيل مُشغّل التعديلات.",
-
   "setting.snapshots-interval.name": "الالتقاط كل (دقائق)",
   "setting.snapshots-interval.desc": "التقط إصدارًا بعد هذا العدد من دقائق التحرير. اضبطه على 0 لتعطيل المُشغّل الزمني.",
-
   "setting.max-version-age-days.name": "أقصى عمر للإصدار (أيام)",
   "setting.max-version-age-days.desc": "احذف الإصدارات الوسيطة الأقدم من هذا العدد من الأيام (الحد الأساسي). اضبطه على 0 للتعطيل.",
-
   "setting.max-versions.name": "الحد الأقصى للإصدارات لكل ملف",
   "setting.max-versions.desc": "حد أمان لعدد الإصدارات الوسيطة المحفوظة لكل ملف. تُحذف الأقدم أولًا. اضبطه على 0 للتعطيل.",
-
   "setting.show-heading": "إظهار المؤشر لـ",
   "setting.show.desc": "تظهر مؤشرات الأسطر فقط في وضعَي التحرير (المصدر والمعاينة الحية). في وضع القراءة لا توجد مؤشرات مضمَّنة، لكن سجل التغييرات لا يزال متاحًا: شغّل أمر \"عرض جميع تغييرات المستند الحالي\" أو استخدم قائمة سياق الملف في مستكشف الملفات.",
   "setting.show.changed": "مُغيَّر",
   "setting.show.restored": "مُستعاد",
   "setting.show.added": "مُضاف",
   "setting.show.removed": "محذوف",
-
   "setting.line-heading": "مؤشر الخط",
   "setting.line-width.name": "العرض",
   "setting.line-width.desc": "عرض مؤشر الخط العمودي (بالبكسل).",
-
   "setting.gutter-heading.name": "مؤشر الهامش",
   "setting.gutter-heading.prefix": "أحرف مؤشر النوع في الهامش (",
   "setting.gutter-heading.suffix": ").",
@@ -82,11 +62,9 @@
   "setting.gutter-added.name": "حرف الإضافة",
   "setting.gutter-restored.name": "حرف الاستعادة",
   "setting.gutter-removed.name": "حرف الحذف",
-
   "modal.title": "السجل",
   "modal.no-changes": "لا توجد تغييرات",
   "modal.identical-to-current": "مطابق للنسخة الحالية",
-
   "modal.restore-original": "استعادة النسخة الأصلية",
   "modal.restore-selected": "استعادة النسخة المحددة",
   "modal.remove-selected": "حذف النسخة المحددة",
@@ -98,7 +76,6 @@
   "modal.mode.line-by-line": "سطرًا بسطر",
   "modal.mode.side-by-side": "جنبًا إلى جنب",
   "modal.hide-identical": "إخفاء الإصدارات المطابقة للنسخة الحالية",
-
   "modal.confirm.cancel": "إلغاء",
   "modal.confirm.restore.title": "استعادة الملف الأصلي",
   "modal.confirm.restore.message": "هل أنت متأكد من رغبتك في استعادة هذا الملف إلى حالته الأصلية؟ ستفقد جميع التغييرات الحالية وستتم إعادة تعيين سجل تتبّع التغييرات. لا يمكن التراجع عن هذا الإجراء.",
@@ -115,14 +92,14 @@
   "modal.confirm.revert.title": "التراجع عن هذا التغيير",
   "modal.confirm.revert.message": "هل تريد التراجع عن هذا التغيير إلى الأساس المحدد؟ يتم الاحتفاظ بالتغييرات الأخرى.",
   "modal.confirm.revert.button": "تراجع",
-
   "modal.search-versions": "البحث في الإصدارات",
-  "modal.version.numbered": "الإصدار {number}",
   "modal.version.current": "الحالي",
   "modal.version.original": "الأصلي",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "لا توجد إصدارات تطابق البحث",
-
   "modal.revert-hunk": "التراجع عن هذا التغيير",
-
   "modal.copy": "نسخ"
 }

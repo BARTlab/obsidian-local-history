@@ -4,7 +4,6 @@
   "command.reset-lines-all": "Reinicia totes les instantànies del seguidor de línies",
   "command.reset-lines": "Reinicia la instantània del seguidor de línies del document actual",
   "command.show-diff": "Mostra tots els canvis del document actual",
-
   "notice.no-changes-to-navigate": "No hi ha canvis per navegar",
   "notice.all-snapshots-deleted": "S'han eliminat totes les dades d'instantànies",
   "notice.current-snapshot-deleted": "S'han eliminat les dades de la instantània actual",
@@ -13,68 +12,49 @@
   "notice.copied": "S'ha copiat!",
   "notice.no-saved-history": "No hi ha cap historial desat per a aquest fitxer.",
   "notice.invalid-exclude-pattern": "Historial local: el patró de camins exclosos no és una expressió regular vàlida i s'ignora.",
-
   "menu.local-history": "Historial local",
   "menu.show-changes": "Mostra els canvis",
-
   "status.lines-changed": "{count} línies canviades",
-
   "setting.type.name": "Tipus",
   "setting.type.desc": "Tria entre una línia vertical o un punt al marge.",
   "setting.type.option.line": "Línia vertical",
   "setting.type.option.dot": "Caràcter al marge",
-
   "setting.allowed-extensions.name": "Extensions de fitxer permeses",
   "setting.allowed-extensions.desc": "Llista d'extensions de fitxer separades per comes per fer-ne el seguiment dels canvis (p. ex., md, txt, csv, json, yaml)",
-
   "setting.exclude-paths.name": "Camins exclosos",
   "setting.exclude-paths.desc": "Una expressió regular sense distinció de majúscules i minúscules comparada amb el camí relatiu al magatzem. Qualsevol fitxer el camí del qual coincideixi no se'n fa mai el seguiment (p. ex. \\.excalidraw\\.md$ o (^|/)Templates/). El valor per defecte exclou les carpetes Templates i els dibuixos d'Excalidraw. Deixa-ho buit per fer el seguiment de tot.",
-
   "setting.keep.name": "Conserva l'historial fins a",
   "setting.keep.desc": "Estratègia per netejar l'historial de revisions",
   "setting.keep.option.app": "Tancar l'aplicació",
   "setting.keep.option.file": "Tancar el fitxer",
-
   "setting.ignore-new-files.name": "Ignora els fitxers nous",
   "setting.ignore-new-files.desc": "No facis el seguiment dels canvis en fitxers creats després d'iniciar el seguiment",
-
   "setting.persist.name": "Conserva l'historial entre reinicis",
   "setting.persist.desc": "Desa l'historial al disc perquè els ressaltats sobrevisquin a un reinici. Cal que «conserva l'historial fins a» estigui definit a tancar l'aplicació.",
-
   "setting.max-entries.name": "Màxim de fitxers emmagatzemats",
   "setting.max-entries.desc": "Límit de quants historials de fitxers es conserven al disc. Els més antics s'eliminen primer. Defineix-ho a 0 per desactivar-ho.",
-
   "setting.max-age-days.name": "Antiguitat màxima de l'historial (dies)",
   "setting.max-age-days.desc": "Descarta l'historial desat més antic que aquest nombre de dies. Defineix-ho a 0 per desactivar-ho.",
-
   "setting.snapshots-heading": "Instantànies de la cronologia",
-
   "setting.snapshots-enabled.name": "Captura versions intermèdies",
   "setting.snapshots-enabled.desc": "Conserva una cronologia de versions anteriors perquè puguis comparar amb un punt intermedi, no només amb l'original.",
-
   "setting.snapshots-edit-threshold.name": "Captura cada (edicions)",
   "setting.snapshots-edit-threshold.desc": "Pren una versió després d'aquest nombre d'edicions. Defineix-ho a 0 per desactivar el desencadenant d'edicions.",
-
   "setting.snapshots-interval.name": "Captura cada (minuts)",
   "setting.snapshots-interval.desc": "Pren una versió després d'aquest nombre de minuts d'edició. Defineix-ho a 0 per desactivar el desencadenant de temps.",
-
   "setting.max-version-age-days.name": "Antiguitat màxima de versió (dies)",
   "setting.max-version-age-days.desc": "Descarta les versions intermèdies més antigues que aquest nombre de dies (el límit principal). Defineix-ho a 0 per desactivar-ho.",
-
   "setting.max-versions.name": "Màxim de versions per fitxer",
   "setting.max-versions.desc": "Límit de seguretat de les versions intermèdies conservades per fitxer. Les més antigues s'eliminen primer. Defineix-ho a 0 per desactivar-ho.",
-
   "setting.show-heading": "Mostra l'indicador per a",
   "setting.show.desc": "Els indicadors de línia només es mostren en els modes d'edició (codi font i previsualització en directe). En el mode de lectura no hi ha indicadors en línia, però l'historial de canvis encara és accessible: executa l'ordre «Mostra tots els canvis del document actual» o utilitza el menú contextual del fitxer a l'explorador de fitxers.",
   "setting.show.changed": "Canviat",
   "setting.show.restored": "Restaurat",
   "setting.show.added": "Afegit",
   "setting.show.removed": "Eliminat",
-
   "setting.line-heading": "Indicador de línia",
   "setting.line-width.name": "Amplada",
   "setting.line-width.desc": "Amplada de l'indicador de línia vertical (en píxels).",
-
   "setting.gutter-heading.name": "Indicador del marge",
   "setting.gutter-heading.prefix": "Caràcters de l'indicador de tipus del marge (",
   "setting.gutter-heading.suffix": ").",
@@ -82,11 +62,9 @@
   "setting.gutter-added.name": "Caràcter d'afegit",
   "setting.gutter-restored.name": "Caràcter de restauració",
   "setting.gutter-removed.name": "Caràcter d'eliminació",
-
   "modal.title": "Historial",
   "modal.no-changes": "Cap canvi",
   "modal.identical-to-current": "Idèntic a l'actual",
-
   "modal.restore-original": "Restaura l'original",
   "modal.restore-selected": "Restaura la versió seleccionada",
   "modal.remove-selected": "Elimina la versió seleccionada",
@@ -98,7 +76,6 @@
   "modal.mode.line-by-line": "Línia per línia",
   "modal.mode.side-by-side": "Costat a costat",
   "modal.hide-identical": "Amaga les versions idèntiques a l'actual",
-
   "modal.confirm.cancel": "Cancel·la",
   "modal.confirm.restore.title": "Restaura el fitxer original",
   "modal.confirm.restore.message": "Segur que vols restaurar aquest fitxer al seu estat original? Es perdran tots els canvis actuals i es reiniciarà l'historial de seguiment de canvis. Aquesta acció no es pot desfer.",
@@ -115,14 +92,14 @@
   "modal.confirm.revert.title": "Reverteix aquest canvi",
   "modal.confirm.revert.message": "Vols revertir aquest canvi a la base seleccionada? Es conserven la resta de canvis.",
   "modal.confirm.revert.button": "Reverteix",
-
   "modal.search-versions": "Cerca versions",
-  "modal.version.numbered": "Versió {number}",
   "modal.version.current": "Actual",
   "modal.version.original": "Original",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Cap versió coincideix amb la cerca",
-
   "modal.revert-hunk": "Reverteix aquest canvi",
-
   "modal.copy": "Copia"
 }

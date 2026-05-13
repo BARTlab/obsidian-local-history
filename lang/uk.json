@@ -4,7 +4,6 @@
   "command.reset-lines-all": "Скинути знімки трекера рядків для всіх файлів",
   "command.reset-lines": "Скинути знімок трекера рядків поточного документа",
   "command.show-diff": "Показати всі зміни поточного документа",
-
   "notice.no-changes-to-navigate": "Немає змін для навігації",
   "notice.all-snapshots-deleted": "Усі дані знімків видалено",
   "notice.current-snapshot-deleted": "Дані поточного знімка видалено",
@@ -13,68 +12,49 @@
   "notice.copied": "Скопійовано!",
   "notice.no-saved-history": "Для цього файлу немає збереженої історії.",
   "notice.invalid-exclude-pattern": "Local history: шаблон виключених шляхів не є коректним регулярним виразом і ігнорується.",
-
   "menu.local-history": "Локальна історія",
   "menu.show-changes": "Показувати зміни",
-
   "status.lines-changed": "Змінено рядків: {count}",
-
   "setting.type.name": "Тип",
   "setting.type.desc": "Виберіть вертикальну лінію або крапку на полях.",
   "setting.type.option.line": "Вертикальна лінія",
   "setting.type.option.dot": "Символ на полях",
-
   "setting.allowed-extensions.name": "Дозволені розширення файлів",
   "setting.allowed-extensions.desc": "Список розширень файлів через кому, зміни в яких відстежуються (наприклад, md, txt, csv, json, yaml)",
-
   "setting.exclude-paths.name": "Виключені шляхи",
   "setting.exclude-paths.desc": "Регулярний вираз без урахування регістру, який зіставляється зі шляхом відносно сховища. Будь-який файл, шлях якого збігається, ніколи не відстежується (наприклад, \\.excalidraw\\.md$ або (^|/)Templates/). За замовчуванням виключаються теки Templates та малюнки Excalidraw. Залиште порожнім, щоб відстежувати все.",
-
   "setting.keep.name": "Зберігати історію до",
   "setting.keep.desc": "Стратегія очищення історії ревізій",
   "setting.keep.option.app": "Закриття застосунку",
   "setting.keep.option.file": "Закриття файлу",
-
   "setting.ignore-new-files.name": "Ігнорувати нові файли",
   "setting.ignore-new-files.desc": "Не відстежувати зміни у файлах, створених після початку відстеження",
-
   "setting.persist.name": "Зберігати історію між перезапусками",
   "setting.persist.desc": "Зберігати історію на диск, щоб підсвічування переживали перезапуск. Потребує, щоб параметр \"Зберігати історію до\" було встановлено на закриття застосунку.",
-
   "setting.max-entries.name": "Максимум збережених файлів",
   "setting.max-entries.desc": "Обмеження кількості історій файлів, що зберігаються на диску. Спочатку видаляються найстаріші. Встановіть 0, щоб вимкнути.",
-
   "setting.max-age-days.name": "Максимальний вік історії (дні)",
   "setting.max-age-days.desc": "Видаляти збережену історію, старшу за вказану кількість днів. Встановіть 0, щоб вимкнути.",
-
   "setting.snapshots-heading": "Знімки часової шкали",
-
   "setting.snapshots-enabled.name": "Захоплювати проміжні версії",
   "setting.snapshots-enabled.desc": "Зберігати часову шкалу ранніх версій, щоб порівнювати з проміжною точкою, а не лише з оригіналом.",
-
   "setting.snapshots-edit-threshold.name": "Захоплювати кожні (правки)",
   "setting.snapshots-edit-threshold.desc": "Створювати версію після вказаної кількості правок. Встановіть 0, щоб вимкнути тригер за правками.",
-
   "setting.snapshots-interval.name": "Захоплювати кожні (хвилини)",
   "setting.snapshots-interval.desc": "Створювати версію після вказаної кількості хвилин редагування. Встановіть 0, щоб вимкнути тригер за часом.",
-
   "setting.max-version-age-days.name": "Максимальний вік версії (дні)",
   "setting.max-version-age-days.desc": "Видаляти проміжні версії, старші за вказану кількість днів (основне обмеження). Встановіть 0, щоб вимкнути.",
-
   "setting.max-versions.name": "Максимум версій на файл",
   "setting.max-versions.desc": "Захисне обмеження кількості проміжних версій, що зберігаються для файлу. Спочатку видаляються найстаріші. Встановіть 0, щоб вимкнути.",
-
   "setting.show-heading": "Показувати індикатор для",
   "setting.show.desc": "Індикатори рядків показуються лише в режимах редагування (вихідний код і живий перегляд). У режимі читання вбудованих індикаторів немає, але історія змін усе одно доступна: виконайте команду \"Показати всі зміни поточного документа\" або скористайтеся контекстним меню файлу в провіднику файлів.",
   "setting.show.changed": "Змінені",
   "setting.show.restored": "Відновлені",
   "setting.show.added": "Додані",
   "setting.show.removed": "Видалені",
-
   "setting.line-heading": "Лінійний індикатор",
   "setting.line-width.name": "Ширина",
   "setting.line-width.desc": "Ширина вертикального лінійного індикатора (у пікселях).",
-
   "setting.gutter-heading.name": "Індикатор на полях",
   "setting.gutter-heading.prefix": "Символи індикатора типу на полях (",
   "setting.gutter-heading.suffix": ").",
@@ -82,11 +62,9 @@
   "setting.gutter-added.name": "Символ додавання",
   "setting.gutter-restored.name": "Символ відновлення",
   "setting.gutter-removed.name": "Символ видалення",
-
   "modal.title": "Історія",
   "modal.no-changes": "Немає змін",
   "modal.identical-to-current": "Ідентично поточному",
-
   "modal.restore-original": "Відновити оригінал",
   "modal.restore-selected": "Відновити вибрану версію",
   "modal.remove-selected": "Видалити вибрану версію",
@@ -98,7 +76,6 @@
   "modal.mode.line-by-line": "Рядок за рядком",
   "modal.mode.side-by-side": "Поруч",
   "modal.hide-identical": "Сховати версії, ідентичні поточній",
-
   "modal.confirm.cancel": "Скасувати",
   "modal.confirm.restore.title": "Відновити початковий файл",
   "modal.confirm.restore.message": "Ви впевнені, що хочете відновити цей файл до початкового стану? Усі поточні зміни буде втрачено, а історію відстеження змін буде скинуто. Цю дію не можна скасувати.",
@@ -115,14 +92,14 @@
   "modal.confirm.revert.title": "Відкотити цю зміну",
   "modal.confirm.revert.message": "Відкотити цю зміну до вибраної бази? Інші зміни буде збережено.",
   "modal.confirm.revert.button": "Відкотити",
-
   "modal.search-versions": "Пошук версій",
-  "modal.version.numbered": "Версія {number}",
   "modal.version.current": "Поточна",
   "modal.version.original": "Оригінал",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Немає версій, що відповідають пошуку",
-
   "modal.revert-hunk": "Відкотити цю зміну",
-
   "modal.copy": "Копіювати"
 }

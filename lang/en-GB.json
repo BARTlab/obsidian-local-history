@@ -4,7 +4,6 @@
   "command.reset-lines-all": "Reset all lines tracker snapshots",
   "command.reset-lines": "Reset lines tracker snapshot of current document",
   "command.show-diff": "Show all changes of current document",
-
   "notice.no-changes-to-navigate": "No changes to navigate",
   "notice.all-snapshots-deleted": "All snapshot data deleted",
   "notice.current-snapshot-deleted": "Current snapshot data deleted",
@@ -13,68 +12,49 @@
   "notice.copied": "Copied!",
   "notice.no-saved-history": "There is no saved history for this file.",
   "notice.invalid-exclude-pattern": "Local history: the excluded-paths pattern is not a valid regular expression and is being ignored.",
-
   "menu.local-history": "Local history",
   "menu.show-changes": "Show changes",
-
   "status.lines-changed": "{count} lines changed",
-
   "setting.type.name": "Type",
   "setting.type.desc": "Choose between a vertical line or a dot in the gutter.",
   "setting.type.option.line": "Vertical line",
   "setting.type.option.dot": "Char in gutter",
-
   "setting.allowed-extensions.name": "Allowed file extensions",
   "setting.allowed-extensions.desc": "Comma-separated list of file extensions to track for changes (e.g., md, txt, csv, json, yaml)",
-
   "setting.exclude-paths.name": "Excluded paths",
   "setting.exclude-paths.desc": "A case-insensitive regular expression matched against the vault-relative path. Any file whose path matches is never tracked (e.g. \\.excalidraw\\.md$ or (^|/)Templates/). The default excludes Templates folders and Excalidraw drawings. Leave empty to track everything.",
-
   "setting.keep.name": "Keep history until",
   "setting.keep.desc": "Strategy for cleaning up revision history",
   "setting.keep.option.app": "App close",
   "setting.keep.option.file": "File close",
-
   "setting.ignore-new-files.name": "Ignore new files",
   "setting.ignore-new-files.desc": "Don't track changes in files created after tracking started",
-
   "setting.persist.name": "Persist history across restarts",
   "setting.persist.desc": "Save history to disk so highlights survive a restart. Requires \"keep history until\" set to app close.",
-
   "setting.max-entries.name": "Max stored files",
   "setting.max-entries.desc": "Cap on how many file histories are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-
   "setting.max-age-days.name": "Max history age (days)",
   "setting.max-age-days.desc": "Drop persisted history older than this many days. Set to 0 to disable.",
-
   "setting.snapshots-heading": "Timeline snapshots",
-
   "setting.snapshots-enabled.name": "Capture intermediate versions",
   "setting.snapshots-enabled.desc": "Keep a timeline of earlier versions so you can diff against a point in between, not just the original.",
-
   "setting.snapshots-edit-threshold.name": "Capture every (edits)",
   "setting.snapshots-edit-threshold.desc": "Take a version after this many edits. Set to 0 to disable the edit trigger.",
-
   "setting.snapshots-interval.name": "Capture every (minutes)",
   "setting.snapshots-interval.desc": "Take a version after this many minutes of editing. Set to 0 to disable the time trigger.",
-
   "setting.max-version-age-days.name": "Max version age (days)",
   "setting.max-version-age-days.desc": "Drop intermediate versions older than this many days (the primary bound). Set to 0 to disable.",
-
   "setting.max-versions.name": "Max versions per file",
   "setting.max-versions.desc": "Safety cap on intermediate versions kept per file. Oldest are evicted first. Set to 0 to disable.",
-
   "setting.show-heading": "Show indicator for",
   "setting.show.desc": "Line indicators are shown only in editing (source and live preview) modes. In reading mode there are no inline indicators, but the change history is still reachable: run the \"Show all changes of current document\" command or use the file context menu in the file explorer.",
   "setting.show.changed": "Changed",
   "setting.show.restored": "Restored",
   "setting.show.added": "Added",
   "setting.show.removed": "Removed",
-
   "setting.line-heading": "Line indicator",
   "setting.line-width.name": "Width",
   "setting.line-width.desc": "Width of the vertical line indicator (in pixels).",
-
   "setting.gutter-heading.name": "Gutter indicator",
   "setting.gutter-heading.prefix": "Chars of the gutter type indicator (",
   "setting.gutter-heading.suffix": ").",
@@ -82,11 +62,9 @@
   "setting.gutter-added.name": "Added char",
   "setting.gutter-restored.name": "Restore char",
   "setting.gutter-removed.name": "Removed char",
-
   "modal.title": "History",
   "modal.no-changes": "No changes",
   "modal.identical-to-current": "Identical to current",
-
   "modal.restore-original": "Restore original",
   "modal.restore-selected": "Restore selected version",
   "modal.remove-selected": "Delete selected version",
@@ -98,7 +76,6 @@
   "modal.mode.line-by-line": "Line by line",
   "modal.mode.side-by-side": "Side by side",
   "modal.hide-identical": "Hide versions identical to current",
-
   "modal.confirm.cancel": "Cancel",
   "modal.confirm.restore.title": "Restore original file",
   "modal.confirm.restore.message": "Are you sure you want to restore this file to its original state? All current changes will be lost and the change tracking history will be reset. This action cannot be undone.",
@@ -115,14 +92,14 @@
   "modal.confirm.revert.title": "Revert this change",
   "modal.confirm.revert.message": "Revert this change back to the selected base? Other changes are kept.",
   "modal.confirm.revert.button": "Revert",
-
   "modal.search-versions": "Search versions",
-  "modal.version.numbered": "Version {number}",
   "modal.version.current": "Current",
   "modal.version.original": "Original",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "No versions match the search",
-
   "modal.revert-hunk": "Revert this change",
-
   "modal.copy": "Copy"
 }

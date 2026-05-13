@@ -4,7 +4,6 @@
   "command.reset-lines-all": "Tüm satır izleyici anlık görüntülerini sıfırla",
   "command.reset-lines": "Geçerli belgenin satır izleyici anlık görüntüsünü sıfırla",
   "command.show-diff": "Geçerli belgenin tüm değişikliklerini göster",
-
   "notice.no-changes-to-navigate": "Gezilecek değişiklik yok",
   "notice.all-snapshots-deleted": "Tüm anlık görüntü verileri silindi",
   "notice.current-snapshot-deleted": "Geçerli anlık görüntü verileri silindi",
@@ -13,68 +12,49 @@
   "notice.copied": "Kopyalandı!",
   "notice.no-saved-history": "Bu dosya için kayıtlı bir geçmiş yok.",
   "notice.invalid-exclude-pattern": "Yerel geçmiş: dışlanan yollar deseni geçerli bir düzenli ifade değil ve yok sayılıyor.",
-
   "menu.local-history": "Yerel geçmiş",
   "menu.show-changes": "Değişiklikleri göster",
-
   "status.lines-changed": "{count} satır değişti",
-
   "setting.type.name": "Tür",
   "setting.type.desc": "Oluk içinde dikey çizgi veya nokta arasında seçim yapın.",
   "setting.type.option.line": "Dikey çizgi",
   "setting.type.option.dot": "Olukta karakter",
-
   "setting.allowed-extensions.name": "İzin verilen dosya uzantıları",
   "setting.allowed-extensions.desc": "Değişiklikleri izlenecek dosya uzantılarının virgülle ayrılmış listesi (ör. md, txt, csv, json, yaml)",
-
   "setting.exclude-paths.name": "Dışlanan yollar",
   "setting.exclude-paths.desc": "Kasaya göreli yolla eşleştirilen, büyük/küçük harfe duyarlı olmayan bir düzenli ifade. Yolu eşleşen hiçbir dosya izlenmez (ör. \\.excalidraw\\.md$ veya (^|/)Templates/). Varsayılan ayar Templates klasörlerini ve Excalidraw çizimlerini dışlar. Her şeyi izlemek için boş bırakın.",
-
   "setting.keep.name": "Geçmişi şu zamana kadar tut",
   "setting.keep.desc": "Düzeltme geçmişini temizleme stratejisi",
   "setting.keep.option.app": "Uygulama kapanışı",
   "setting.keep.option.file": "Dosya kapanışı",
-
   "setting.ignore-new-files.name": "Yeni dosyaları yok say",
   "setting.ignore-new-files.desc": "İzleme başladıktan sonra oluşturulan dosyalardaki değişiklikleri izleme",
-
   "setting.persist.name": "Geçmişi yeniden başlatmalar arasında koru",
   "setting.persist.desc": "Vurgular yeniden başlatmadan sonra da kalsın diye geçmişi diske kaydet. \"Geçmişi şu zamana kadar tut\" ayarının uygulama kapanışına ayarlanmasını gerektirir.",
-
   "setting.max-entries.name": "Saklanan en fazla dosya",
   "setting.max-entries.desc": "Diskte tutulan dosya geçmişi sayısının üst sınırı. En eskiler önce çıkarılır. Devre dışı bırakmak için 0 olarak ayarlayın.",
-
   "setting.max-age-days.name": "En fazla geçmiş yaşı (gün)",
   "setting.max-age-days.desc": "Bu gün sayısından daha eski kalıcı geçmişi sil. Devre dışı bırakmak için 0 olarak ayarlayın.",
-
   "setting.snapshots-heading": "Zaman çizelgesi anlık görüntüleri",
-
   "setting.snapshots-enabled.name": "Ara sürümleri yakala",
   "setting.snapshots-enabled.desc": "Yalnızca özgün haliyle değil, aradaki bir noktayla da karşılaştırabilmek için önceki sürümlerin bir zaman çizelgesini tut.",
-
   "setting.snapshots-edit-threshold.name": "Şu kadarda bir yakala (düzenleme)",
   "setting.snapshots-edit-threshold.desc": "Bu kadar düzenlemeden sonra bir sürüm al. Düzenleme tetikleyicisini devre dışı bırakmak için 0 olarak ayarlayın.",
-
   "setting.snapshots-interval.name": "Şu kadarda bir yakala (dakika)",
   "setting.snapshots-interval.desc": "Bu kadar dakikalık düzenlemeden sonra bir sürüm al. Zaman tetikleyicisini devre dışı bırakmak için 0 olarak ayarlayın.",
-
   "setting.max-version-age-days.name": "En fazla sürüm yaşı (gün)",
   "setting.max-version-age-days.desc": "Bu gün sayısından daha eski ara sürümleri sil (birincil sınır). Devre dışı bırakmak için 0 olarak ayarlayın.",
-
   "setting.max-versions.name": "Dosya başına en fazla sürüm",
   "setting.max-versions.desc": "Dosya başına tutulan ara sürümler için güvenlik sınırı. En eskiler önce çıkarılır. Devre dışı bırakmak için 0 olarak ayarlayın.",
-
   "setting.show-heading": "Göstergeyi şunun için göster",
   "setting.show.desc": "Satır göstergeleri yalnızca düzenleme (kaynak ve canlı önizleme) modlarında gösterilir. Okuma modunda satır içi gösterge bulunmaz, ancak değişiklik geçmişine yine de ulaşılabilir: \"Geçerli belgenin tüm değişikliklerini göster\" komutunu çalıştırın veya dosya gezgininde dosya bağlam menüsünü kullanın.",
   "setting.show.changed": "Değiştirildi",
   "setting.show.restored": "Geri yüklendi",
   "setting.show.added": "Eklendi",
   "setting.show.removed": "Kaldırıldı",
-
   "setting.line-heading": "Satır göstergesi",
   "setting.line-width.name": "Genişlik",
   "setting.line-width.desc": "Dikey çizgi göstergesinin genişliği (piksel cinsinden).",
-
   "setting.gutter-heading.name": "Oluk göstergesi",
   "setting.gutter-heading.prefix": "Oluk tür göstergesinin karakterleri (",
   "setting.gutter-heading.suffix": ").",
@@ -82,11 +62,9 @@
   "setting.gutter-added.name": "Ekleme karakteri",
   "setting.gutter-restored.name": "Geri yükleme karakteri",
   "setting.gutter-removed.name": "Kaldırma karakteri",
-
   "modal.title": "Geçmiş",
   "modal.no-changes": "Değişiklik yok",
   "modal.identical-to-current": "Geçerli sürümle aynı",
-
   "modal.restore-original": "Özgün halini geri yükle",
   "modal.restore-selected": "Seçili sürümü geri yükle",
   "modal.remove-selected": "Seçili sürümü sil",
@@ -98,7 +76,6 @@
   "modal.mode.line-by-line": "Satır satır",
   "modal.mode.side-by-side": "Yan yana",
   "modal.hide-identical": "Geçerli sürümle aynı sürümleri gizle",
-
   "modal.confirm.cancel": "İptal",
   "modal.confirm.restore.title": "Özgün dosyayı geri yükle",
   "modal.confirm.restore.message": "Bu dosyayı özgün durumuna geri yüklemek istediğinizden emin misiniz? Tüm geçerli değişiklikler kaybolacak ve değişiklik izleme geçmişi sıfırlanacak. Bu işlem geri alınamaz.",
@@ -115,14 +92,14 @@
   "modal.confirm.revert.title": "Bu değişikliği geri al",
   "modal.confirm.revert.message": "Bu değişikliği seçilen temele geri almak istiyor musunuz? Diğer değişiklikler korunur.",
   "modal.confirm.revert.button": "Geri al",
-
   "modal.search-versions": "Sürümlerde ara",
-  "modal.version.numbered": "Sürüm {number}",
   "modal.version.current": "Geçerli",
   "modal.version.original": "Özgün",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Aramayla eşleşen sürüm yok",
-
   "modal.revert-hunk": "Bu değişikliği geri al",
-
   "modal.copy": "Kopyala"
 }

@@ -6,6 +6,7 @@ import { HunkHelper } from '@/helpers/hunk.helper';
 import { type ListSelectionDirection, ListSelectionHelper } from '@/helpers/list-selection.helper';
 import { type NavigationDirection, NavigationHelper } from '@/helpers/navigation.helper';
 import { type SearchableVersion, VersionSearchHelper } from '@/helpers/version-search.helper';
+import { type VersionDescription, VersionLabelHelper } from '@/helpers/version-label.helper';
 import { type InlineDiffLine, WordDiffHelper } from '@/helpers/word-diff.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ModalsService } from '@/services/modals.service';
@@ -800,7 +801,8 @@ export class HistoryModal extends Modal {
 
   /**
    * Resolves the label for the diff's base (left) side, matching the version
-   * names used in the rail. A picked version shows its number; the Original
+   * names used in the rail. A picked version shows its custom label or, when
+   * unlabeled, its derived action (created/modified/cleared); the Original
    * entry (the only base when no snapshots exist) shows "Original".
    *
    * @return {string} The base-side label
@@ -811,11 +813,70 @@ export class HistoryModal extends Modal {
       const version: FileVersion | null = this.snapshot.getVersion(this.selectedBaseId);
 
       if (version) {
-        return this.plugin.t('modal.version.numbered', { number: versions.length - versions.indexOf(version) });
+        return this.resolveVersionPrimaryLabel(version, versions);
       }
     }
 
     return this.plugin.t('modal.version.original');
+  }
+
+  /**
+   * Returns the primary label shown for a captured version: the user's custom
+   * label when present (D1), otherwise the derived action text translated from
+   * VersionLabelHelper.describe against the version's previous neighbour. For
+   * the oldest version on the timeline the previous neighbour is the history
+   * baseline.
+   *
+   * @param {FileVersion} version - The version to label
+   * @param {FileVersion[]} versions - The full timeline, newest first
+   * @return {string} The primary label string
+   */
+  protected resolveVersionPrimaryLabel(version: FileVersion, versions: FileVersion[]): string {
+    if (version.isLabeled()) {
+      return version.label as string;
+    }
+
+    const description: VersionDescription = this.describeVersion(version, versions);
+
+    return this.plugin.t(`modal.version.action.${description.kind}`);
+  }
+
+  /**
+   * Computes the derived action description for a version against its previous
+   * neighbour. The neighbour is the next-older captured version, or the file's
+   * history baseline when the version is the oldest one on the timeline. The
+   * result drives both the rail primary label (when no custom label is set) and
+   * the inline line delta shown on the row.
+   *
+   * @param {FileVersion} version - The version to describe
+   * @param {FileVersion[]} versions - The full timeline, newest first
+   * @return {VersionDescription} The action kind plus the added/removed counts
+   */
+  protected describeVersion(version: FileVersion, versions: FileVersion[]): VersionDescription {
+    const index: number = versions.indexOf(version);
+    const previous: FileVersion | undefined = index >= 0 ? versions[index + 1] : undefined;
+    const previousLines: string[] = previous ? previous.getLines() : this.snapshot.getHistoryOriginalStateLines();
+
+    return VersionLabelHelper.describe(previousLines, version.getLines());
+  }
+
+  /**
+   * Formats the inline line delta shown on a rail row. Returns an empty string
+   * when both added and removed are zero so the row stays clean for no-op
+   * captures (e.g. a labeled version pinned at unchanged content).
+   *
+   * @param {VersionDescription} description - The describe result
+   * @return {string} The formatted delta or empty string
+   */
+  protected formatVersionDelta(description: VersionDescription): string {
+    if (description.added === 0 && description.removed === 0) {
+      return '';
+    }
+
+    return this.plugin.t('modal.version.delta', {
+      added: String(description.added),
+      removed: String(description.removed),
+    });
   }
 
   /**
@@ -1237,34 +1298,44 @@ export class HistoryModal extends Modal {
 
     const matched: FileVersion[] = this.getVisibleVersions();
 
-    // Each entry is grouped by day and shows only the time of day, since the
-    // date lives in the group heading. With snapshots the entries are the
-    // visible versions, already newest-first and time-ordered, so same-day
-    // entries are contiguous and a new group starts only when the day changes;
-    // version numbers stay tied to the full timeline position so they do not
-    // shift while filtering. With no snapshots the single Original entry takes
-    // its day and time from the file's last update.
-    const entries: { id: string; label: string; day: string; time: string }[] =
+    // Each entry is grouped by day; the row shows the action (or the user's
+    // custom label) as the primary text, with the capture date+time and the
+    // line-level delta inline as secondary metadata (the date is duplicated on
+    // the row, not only in the group heading, so the AC is met without relying
+    // on hover or external context). With snapshots the entries are the visible
+    // versions, already newest-first and time-ordered, so same-day entries are
+    // contiguous and a new group starts only when the day changes. With no
+    // snapshots the single Original entry takes its day and time from the
+    // file's last update and has no inline delta.
+    type RailEntry = { id: string; label: string; day: string; meta: string; delta: string };
+
+    const entries: RailEntry[] =
       versions.length === 0
         ? [
             {
               id: ORIGINAL_BASE_ID,
               label: this.plugin.t('modal.version.original'),
               day: this.snapshot.getLastChangedDate(),
-              time: this.snapshot.getLastChangedTime(),
+              meta: this.snapshot.getLastChangedDateTime(),
+              delta: '',
             },
           ]
-        : matched.map((version: FileVersion): { id: string; label: string; day: string; time: string } => ({
-            id: version.id,
-            label: this.plugin.t('modal.version.numbered', { number: versions.length - versions.indexOf(version) }),
-            day: version.getDate(),
-            time: version.getTime(),
-          }));
+        : matched.map((version: FileVersion): RailEntry => {
+            const description: VersionDescription = this.describeVersion(version, versions);
 
-    const groups: { label: string; entries: typeof entries }[] = [];
+            return {
+              id: version.id,
+              label: this.resolveVersionPrimaryLabel(version, versions),
+              day: version.getDate(),
+              meta: version.getDateTime(),
+              delta: this.formatVersionDelta(description),
+            };
+          });
 
-    entries.forEach((entry: (typeof entries)[number]): void => {
-      let group: { label: string; entries: typeof entries } | undefined = groups[groups.length - 1];
+    const groups: { label: string; entries: RailEntry[] }[] = [];
+
+    entries.forEach((entry: RailEntry): void => {
+      let group: { label: string; entries: RailEntry[] } | undefined = groups[groups.length - 1];
 
       if (!group || group.label !== entry.day) {
         group = { label: entry.day, entries: [] };
@@ -1276,10 +1347,10 @@ export class HistoryModal extends Modal {
 
     const items: DomElementConfig[] = [];
 
-    groups.forEach((group: { label: string; entries: typeof entries }): void => {
+    groups.forEach((group: { label: string; entries: RailEntry[] }): void => {
       items.push({ tag: 'div', classes: 'lct-versions-day', text: group.label });
-      group.entries.forEach((entry: (typeof entries)[number]): void => {
-        items.push(this.makeVersionItem(entry.id, entry.label, entry.time));
+      group.entries.forEach((entry: RailEntry): void => {
+        items.push(this.makeVersionItem(entry.id, entry.label, entry.meta, entry.delta));
       });
     });
 
@@ -1312,16 +1383,21 @@ export class HistoryModal extends Modal {
    * The active entry carries a highlight class; clicking selects that base.
    *
    * @param {string} id - The base id (original sentinel or a version id)
-   * @param {string} label - The primary label to show
-   * @param {string} meta - Secondary text (capture time), empty for the original
+   * @param {string} label - The primary label to show (action or custom label)
+   * @param {string} meta - Inline date+time text, empty when none
+   * @param {string} delta - Inline line delta text, empty when not applicable
    * @return {DomElementConfig} A DomHelper element config for the entry
    */
-  protected makeVersionItem(id: string, label: string, meta: string): DomElementConfig {
+  protected makeVersionItem(id: string, label: string, meta: string, delta: string): DomElementConfig {
     const active: boolean = this.selectedBaseId === id;
     const children: DomElementConfig[] = [{ tag: 'span', classes: 'lct-version-label', text: label }];
 
     if (meta) {
       children.push({ tag: 'span', classes: 'lct-version-meta', text: meta });
+    }
+
+    if (delta) {
+      children.push({ tag: 'span', classes: 'lct-version-delta', text: delta });
     }
 
     return {

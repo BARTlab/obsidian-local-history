@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import { RECENT_CHANGES_VIEW_TYPE } from '@/consts';
 import { refreshDecorationsEffect } from '@/extensions/refresh.effect';
 import { CommandsService } from '@/services/commands.service';
 import { EventsService } from '@/services/events.service';
@@ -12,6 +13,7 @@ import { StatusbarService } from '@/services/statusbar.service';
 import { StylesService } from '@/services/styles.service';
 import { VersionActionsService } from '@/services/version-actions.service';
 import { type ClassConstructor, type Service, type TranslationVars } from '@/types';
+import { RecentChangesView } from '@/views/recent-changes.view';
 import type { EditorView } from '@codemirror/view';
 import EventEmitter from 'eventemitter3';
 import { isFunction, isString } from 'lodash-es';
@@ -148,6 +150,11 @@ export default class LineChangeTrackerPlugin extends Plugin {
   public async onload(): Promise<void> {
     await this.exec('init');
     await this.exec('load');
+
+    this.registerView(
+      RECENT_CHANGES_VIEW_TYPE,
+      (leaf: WorkspaceLeaf): RecentChangesView => new RecentChangesView(leaf, this),
+    );
   }
 
   /**
@@ -280,6 +287,36 @@ export default class LineChangeTrackerPlugin extends Plugin {
     const file = this.app.vault.getAbstractFileByPath(path);
 
     return file instanceof TFile ? file : null;
+  }
+
+  /**
+   * Reveals the Recent changes panel in the right sidebar (D3).
+   *
+   * Reuses an existing leaf when one is already open so a second invocation
+   * focuses the panel rather than spawning a duplicate. Falls back to creating
+   * a fresh right-sidebar leaf when none exists; if the right sidebar is
+   * unavailable (no leaf granted), the call resolves silently without an
+   * error so menu and command entry points stay safe.
+   *
+   * @return {Promise<void>} Resolves once the leaf is created and revealed
+   */
+  public async revealRecentChanges(): Promise<void> {
+    const existing: WorkspaceLeaf[] = this.app.workspace.getLeavesOfType(RECENT_CHANGES_VIEW_TYPE);
+
+    if (existing.length > 0) {
+      await this.app.workspace.revealLeaf(existing[0]);
+
+      return;
+    }
+
+    const leaf: WorkspaceLeaf | null = this.app.workspace.getRightLeaf(false);
+
+    if (!leaf) {
+      return;
+    }
+
+    await leaf.setViewState({ type: RECENT_CHANGES_VIEW_TYPE, active: true });
+    await this.app.workspace.revealLeaf(leaf);
   }
 
   /**

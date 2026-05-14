@@ -1,4 +1,5 @@
 import { Inject } from '@/decorators/inject.decorator';
+import { type SelectableVersion, SelectionHistoryHelper } from '@/helpers/selection-history.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import { ConfirmModal } from '@/modals/confirm.modal';
 import { HistoryModal } from '@/modals/history.modal';
@@ -27,6 +28,15 @@ export interface HistoryModalOpenOptions {
   initialBaseId?: string;
   /** Whether to hide the left rail (search + version list) */
   hideRail?: boolean;
+  /**
+   * Optional set of version ids the rail must restrict itself to: when present,
+   * only versions whose id is in the set survive the rail filters. Used by
+   * "Show History for Selection" (D7/T09) to narrow the rail to versions where
+   * the editor selection was added or removed. `undefined` means no selection
+   * filter is active (the rail behaves as before); an empty set means a filter
+   * is active but matched nothing, so the rail shows its no-results hint.
+   */
+  selectionFilterIds?: ReadonlySet<string>;
 }
 
 /**
@@ -107,6 +117,61 @@ export class ModalsService implements Service {
     }
 
     new HistoryModal(this.plugin.app, this.plugin, snapshot, options).open();
+
+    return true;
+  }
+
+  /**
+   * Opens the history modal filtered to versions where the supplied selection
+   * text was added or removed at that point on the timeline (D7/T09). The
+   * filter is precomputed via the pure SelectionHistoryHelper so the modal
+   * just applies the resulting id set as a rail filter.
+   *
+   * A null/empty/whitespace selection has no precision to offer, so this falls
+   * back to the plain Show History path (the normal modal with no selection
+   * filter), keeping the entry safe to wire as a generic command without an
+   * upstream emptiness gate. A missing snapshot returns false, mirroring
+   * `diff`.
+   *
+   * @param {TFile} file - The file to show diff for, or null to use the active file
+   * @param {string} selection - The selection text to filter versions by
+   * @return {boolean} True if the modal was opened, false if no snapshot exists
+   */
+  public diffForSelection(file?: TFile | null, selection?: string | null): boolean {
+    const snapshot: FileSnapshot = this.snapshotsService.getOne(file);
+
+    if (!snapshot) {
+      return false;
+    }
+
+    const needle: string = (selection ?? '').trim();
+
+    if (needle.length === 0) {
+      // Empty selection has nothing to filter by; fall back to the plain Show
+      // History modal so the entry is a safe no-op rather than an error.
+      new HistoryModal(this.plugin.app, this.plugin, snapshot).open();
+
+      return true;
+    }
+
+    // SelectionHistoryHelper expects versions oldest-first; getVersions() is
+    // newest-first, so reverse before handing them off.
+    const selectable: SelectableVersion[] = snapshot
+      .getVersions()
+      .slice()
+      .reverse()
+      .map((version: FileVersion): SelectableVersion => ({
+        id: version.id,
+        lines: version.getLines(),
+      }));
+
+    const matched: Set<string> = SelectionHistoryHelper.match(
+      selectable,
+      snapshot.getHistoryOriginalStateLines(),
+      needle,
+    );
+
+    new HistoryModal(this.plugin.app, this.plugin, snapshot, { selectionFilterIds: matched }).open();
 
     return true;
   }

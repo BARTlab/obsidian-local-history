@@ -639,6 +639,24 @@ export class HistoryModal extends Modal {
       return requested;
     }
 
+    // With a selection filter active (T09/D7) the default selection should land
+    // on the first version that survives the filter, not on the unconditional
+    // latest snapshot which may be filtered out. The filter list is newest-first
+    // (matches getVersions()), so the first hit is also the newest match. An
+    // empty matched set falls through to the baseline.
+    const selectionIds: ReadonlySet<string> | undefined = this.options.selectionFilterIds;
+
+    if (selectionIds !== undefined) {
+      const firstMatch: FileVersion | undefined = versions
+        .find((version: FileVersion): boolean => selectionIds.has(version.id));
+
+      if (firstMatch) {
+        return firstMatch.id;
+      }
+
+      return ORIGINAL_BASE_ID;
+    }
+
     return versions.length > 0 ? versions[0].id : ORIGINAL_BASE_ID;
   }
 
@@ -1299,8 +1317,18 @@ export class HistoryModal extends Modal {
 
     const currentContent: string = this.snapshot.getLastState();
 
+    const selectionIds: ReadonlySet<string> | undefined = this.options.selectionFilterIds;
+
     return versions.filter((version: FileVersion): boolean => {
       if (!visibleIds.has(version.id)) {
+        return false;
+      }
+
+      // When a selection filter is active (T09/D7) the rail only shows versions
+      // whose neighbour-diff touched the selection. An empty set means the
+      // filter is active but matched nothing, so the rail collapses to its
+      // no-results hint without us short-circuiting the visibility logic.
+      if (selectionIds !== undefined && !selectionIds.has(version.id)) {
         return false;
       }
 

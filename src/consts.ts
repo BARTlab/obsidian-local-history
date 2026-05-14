@@ -101,6 +101,14 @@ export const SHOW_CHANGE_KEYS = ['show.changed', 'show.restored', 'show.added', 
 export const STYLE_ID = 'line-change-tracker-styles';
 
 /**
+ * Stable view type id for the Recent changes side panel (D3). Registered with
+ * Obsidian once at plugin load so the right sidebar can host one navigator
+ * leaf at a time, and used by the reveal entry point to look up the existing
+ * leaf instead of spawning duplicates.
+ */
+export const RECENT_CHANGES_VIEW_TYPE: string = 'line-change-tracker-recent-changes';
+
+/**
  * Default ID for the plugin's status bar item.
  * Used when creating and referencing the status bar element that displays change information.
  */

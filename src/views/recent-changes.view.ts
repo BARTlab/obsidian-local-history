@@ -1,36 +1,57 @@
-import { RECENT_CHANGES_VIEW_TYPE } from '@/consts';
+import { PluginEvent, RECENT_CHANGES_VIEW_TYPE } from '@/consts';
+import { DomHelper } from '@/helpers/dom.helper';
+import { type VersionDescription, VersionLabelHelper } from '@/helpers/version-label.helper';
 import type LineChangeTrackerPlugin from '@/main';
-import { type IconName, ItemView, type WorkspaceLeaf } from 'obsidian';
+import type { ModalsService } from '@/services/modals.service';
+import type { SnapshotsService } from '@/services/snapshots.service';
+import type { FileSnapshot } from '@/snapshots/file.snapshot';
+import type { FileVersion } from '@/snapshots/file.version';
+import type { DomElementConfig } from '@/types';
+import { type IconName, ItemView, type TFile, type WorkspaceLeaf } from 'obsidian';
 
 /**
  * Default user-facing title for the right-sidebar tab. Kept inline (matching
- * the T06 precedent) so T10 stays within its declared files; T15 replaces the
- * literal with a `plugin.t('view.recent-changes.title')` call along with the
- * matching `lang/` keys and the parity test pass.
+ * the T06 precedent) so T10/T11 stay within their declared files; T15 replaces
+ * the literal with a `plugin.t('view.recent-changes.title')` call along with
+ * the matching `lang/` keys and the parity test pass.
  */
 const RECENT_CHANGES_DEFAULT_TITLE: string = 'Recent changes';
 
 /**
+ * Empty-state hint shown when no file is active or the active file has no
+ * tracked snapshot yet. Inline English for the same reason as the title; T15
+ * will swap it for a localized key.
+ */
+const RECENT_CHANGES_EMPTY_HINT: string = 'No version history for the active file.';
+
+/**
  * Right-sidebar navigator for the active file's version timeline (D3).
  *
- * T10 introduces the registration and lifecycle skeleton only: a stable view
- * type, the icon, the display text, and a single-leaf reveal contract. The
- * actual timeline rows, the active-leaf reaction, and the row context menu are
- * wired in T11 and T12, which fill `contentEl` with the navigator UI.
- *
- * The view is mutually exclusive with the modal's left rail (D4): launching
- * the history modal from this panel opens it in rail-less mode so a single
- * navigator drives the session.
+ * T11 fills the lifecycle skeleton from T10 with the timeline rows: each row
+ * shows the action label (or the user's custom label), the capture date, and
+ * the line delta inline, newest first. The panel reacts to active-leaf-change
+ * so switching files re-renders against the new file's timeline, and a
+ * snapshot update (capture, restore, remove, put-label) is mirrored so the
+ * panel never lags behind the rail. Double-clicking a row opens the history
+ * modal in rail-less mode focused on that version (D4), so the panel stays
+ * the sole navigator in that session.
  *
  * @extends {ItemView}
  */
 export class RecentChangesView extends ItemView {
   /**
+   * Container that holds the timeline rows for the active file. Built once on
+   * onOpen and re-filled on every render so the wrapper class survives between
+   * re-renders for stable CSS targeting.
+   */
+  protected listEl?: HTMLElement;
+
+  /**
    * Creates a new instance of RecentChangesView.
    *
    * @param {WorkspaceLeaf} leaf - The workspace leaf hosting this view
    * @param {LineChangeTrackerPlugin} plugin - The plugin instance, retained so
-   *   later tasks (T11/T12) can reach services through the DI container
+   *   the view can reach services through the DI container
    */
   public constructor(
     leaf: WorkspaceLeaf,
@@ -83,11 +104,11 @@ export class RecentChangesView extends ItemView {
   /**
    * Lifecycle hook called when Obsidian opens the view.
    *
-   * Prepares the content host with a stable class so T11's renderer can attach
-   * timeline rows without re-applying the wrapper on every active-leaf change.
-   * No listeners or intervals are registered here: T10 owns the skeleton only,
-   * and any future subscription must use `registerEvent`/`registerDomEvent`
-   * (inherited from Component) so detaching the leaf releases them.
+   * Prepares the content host, mounts the timeline list container, subscribes
+   * to active-leaf-change and the internal snapshots-update event, and renders
+   * the initial state against the active file. Subscriptions go through
+   * `registerEvent` and the Component `register` cleanup so a detach of the
+   * leaf tears them down with no leaks (T10's AC3 contract).
    *
    * @return {Promise<void>} Resolves once the host is prepared
    * @override
@@ -95,6 +116,32 @@ export class RecentChangesView extends ItemView {
   protected async onOpen(): Promise<void> {
     this.contentEl.empty();
     this.contentEl.addClass('lct-recent-changes-view');
+
+    this.listEl = DomHelper.create({
+      tag: 'div',
+      classes: 'lct-recent-changes-list',
+      container: this.contentEl,
+    });
+
+    // Active-leaf-change is a native Obsidian event; routed through
+    // registerEvent so the ref releases with the view.
+    this.registerEvent(
+      this.app.workspace.on('active-leaf-change', (): void => {
+        this.render();
+      }),
+    );
+
+    // Internal snapshot updates (capture, restore, remove, put-label) flow
+    // through the plugin emitter, not the workspace, so subscribe directly and
+    // detach on close via the Component `register` hook.
+    const onSnapshotUpdate = (): void => this.render();
+
+    this.plugin.on(PluginEvent.snapshotsUpdate, onSnapshotUpdate, this);
+    this.register((): void => {
+      this.plugin.off(PluginEvent.snapshotsUpdate, onSnapshotUpdate, this);
+    });
+
+    this.render();
   }
 
   /**
@@ -109,5 +156,192 @@ export class RecentChangesView extends ItemView {
    */
   protected async onClose(): Promise<void> {
     this.contentEl.empty();
+    this.listEl = undefined;
+  }
+
+  /**
+   * Renders the timeline rows for the active file into the list container.
+   *
+   * With no active file or no snapshot the panel shows a single muted hint,
+   * keeping the AC for "react to the active file" intact (an empty render IS
+   * the reaction). With a snapshot the rows mirror the modal rail format
+   * (action or custom label, capture date inline, line delta inline) but
+   * without the rail's grouping and search, since the panel is a thin
+   * navigator (D3).
+   */
+  protected render(): void {
+    if (!this.listEl) {
+      return;
+    }
+
+    const file: TFile | null = this.plugin.getActiveFile();
+    const snapshot: FileSnapshot | null = this.plugin
+      .get<SnapshotsService>('SnapshotsService')
+      .getOne(file);
+
+    if (!file || !snapshot) {
+      DomHelper.update(this.listEl, {
+        text: null,
+        children: [
+          {
+            tag: 'div',
+            classes: 'lct-recent-changes-empty',
+            text: RECENT_CHANGES_EMPTY_HINT,
+          },
+        ],
+      });
+
+      return;
+    }
+
+    const versions: FileVersion[] = snapshot.getVersions();
+
+    if (versions.length === 0) {
+      DomHelper.update(this.listEl, {
+        text: null,
+        children: [
+          {
+            tag: 'div',
+            classes: 'lct-recent-changes-empty',
+            text: RECENT_CHANGES_EMPTY_HINT,
+          },
+        ],
+      });
+
+      return;
+    }
+
+    DomHelper.update(this.listEl, {
+      text: null,
+      children: versions.map((version: FileVersion): DomElementConfig =>
+        this.makeRow(version, versions, snapshot, file),
+      ),
+    });
+  }
+
+  /**
+   * Builds the DomHelper config for a single timeline row. Mirrors the modal
+   * rail's primary label (custom label or derived action), the inline capture
+   * date+time, and the `+A -B` line delta. Double-click opens the history
+   * modal in rail-less mode focused on this version (D4): the panel stays the
+   * sole navigator, the modal acts as a pure viewer.
+   *
+   * @param {FileVersion} version - The version this row represents
+   * @param {FileVersion[]} versions - The full timeline, newest first
+   * @param {FileSnapshot} snapshot - The snapshot the timeline belongs to
+   * @param {TFile} file - The file the snapshot belongs to (captured at render
+   *   time so a later active-file switch cannot retarget the click)
+   * @return {DomElementConfig} The DomHelper config for the row
+   */
+  protected makeRow(
+    version: FileVersion,
+    versions: FileVersion[],
+    snapshot: FileSnapshot,
+    file: TFile,
+  ): DomElementConfig {
+    const description: VersionDescription = this.describeVersion(version, versions, snapshot);
+    const label: string = this.resolveLabel(version, description);
+    const delta: string = this.formatDelta(description);
+
+    const children: DomElementConfig[] = [
+      { tag: 'span', classes: 'lct-recent-changes-label', text: label },
+      { tag: 'span', classes: 'lct-recent-changes-meta', text: version.getDateTime() },
+    ];
+
+    if (delta) {
+      children.push({ tag: 'span', classes: 'lct-recent-changes-delta', text: delta });
+    }
+
+    return {
+      tag: 'div',
+      classes: 'lct-recent-changes-item',
+      events: {
+        dblclick: (): void => {
+          this.openInModal(file, version.id);
+        },
+      },
+      children,
+    };
+  }
+
+  /**
+   * Returns the primary label shown on a row: the user's custom label when
+   * present (D1), otherwise the derived action text translated from
+   * VersionLabelHelper.describe against the version's previous neighbour. The
+   * oldest version's previous neighbour is the history baseline.
+   *
+   * @param {FileVersion} version - The version to label
+   * @param {VersionDescription} description - The cached describe result
+   * @return {string} The primary label string
+   */
+  protected resolveLabel(version: FileVersion, description: VersionDescription): string {
+    if (version.isLabeled()) {
+      return version.label as string;
+    }
+
+    return this.plugin.t(`modal.version.action.${description.kind}`);
+  }
+
+  /**
+   * Computes the derived action description for a version against its previous
+   * neighbour. The neighbour is the next-older captured version, or the file's
+   * history baseline when the version is the oldest one on the timeline.
+   * Mirrors HistoryModal.describeVersion so the panel and the rail label the
+   * same content identically.
+   *
+   * @param {FileVersion} version - The version to describe
+   * @param {FileVersion[]} versions - The full timeline, newest first
+   * @param {FileSnapshot} snapshot - The snapshot the timeline belongs to
+   * @return {VersionDescription} The action kind plus the added/removed counts
+   */
+  protected describeVersion(
+    version: FileVersion,
+    versions: FileVersion[],
+    snapshot: FileSnapshot,
+  ): VersionDescription {
+    const index: number = versions.indexOf(version);
+    const previous: FileVersion | undefined = index >= 0 ? versions[index + 1] : undefined;
+    const previousLines: string[] = previous
+      ? previous.getLines()
+      : snapshot.getHistoryOriginalStateLines();
+
+    return VersionLabelHelper.describe(previousLines, version.getLines());
+  }
+
+  /**
+   * Formats the inline line delta shown on a row. Returns an empty string when
+   * both added and removed are zero so the row stays clean for no-op captures
+   * (e.g. a labeled version pinned at unchanged content).
+   *
+   * @param {VersionDescription} description - The describe result
+   * @return {string} The formatted delta or empty string
+   */
+  protected formatDelta(description: VersionDescription): string {
+    if (description.added === 0 && description.removed === 0) {
+      return '';
+    }
+
+    return this.plugin.t('modal.version.delta', {
+      added: String(description.added),
+      removed: String(description.removed),
+    });
+  }
+
+  /**
+   * Opens the history modal in rail-less mode focused on the given version, so
+   * the panel is the sole navigator in that session (D4). The file is the one
+   * captured at row render time so an active-file switch between render and
+   * double-click cannot retarget the modal at a different timeline. A missing
+   * snapshot is treated as a no-op by ModalsService.diff (returns false), so
+   * the call is safe even on a transient state.
+   *
+   * @param {TFile} file - The file the version belongs to
+   * @param {string} versionId - The version id to focus on open
+   */
+  protected openInModal(file: TFile, versionId: string): void {
+    this.plugin.get<ModalsService>('ModalsService').diff(file, {
+      initialBaseId: versionId,
+      hideRail: true,
+    });
   }
 }

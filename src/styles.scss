@@ -795,6 +795,20 @@
   }
 }
 
+/* ---- prompt modal ---- */
+.modal.lct-prompt-modal {
+  // Mirror the confirm modal's comfortable padding.
+  .modal-content {
+    padding: var(--size-4-4) var(--size-4-6);
+  }
+
+  // A native text input defaults to its intrinsic size; stretch it so the
+  // field fills the modal width instead of sitting at a narrow default.
+  .lct-prompt-input {
+    width: 100%;
+  }
+}
+
 /* ---- lines ----  */
 .cm-line {
   &.lct-line {

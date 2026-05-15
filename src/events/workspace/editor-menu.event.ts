@@ -1,16 +1,35 @@
 import { ObsidianEvent } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { BaseEvent } from '@/events/base.event';
+import { MenuHelper } from '@/helpers/menu.helper';
 import type { ModalsService } from '@/services/modals.service';
 import { type ObsidianEventName } from '@/types';
 import type { Editor, MarkdownView, Menu, MenuItem } from 'obsidian';
 
 /**
  * Event handler for Obsidian's editor menu event.
- * Adds a "Local history" menu item to the editor's context menu.
- * Provides quick access to the file's change history through the context menu.
- * The "Show changes" gutter toggle lives in the viewport (gutter) menu instead,
- * next to Obsidian's own view toggles (see WorkspaceViewportMenuEvent).
+ *
+ * Adds a "Local history" PhpStorm-style submenu (D2/T14) to the editor's
+ * context menu with four entries:
+ *
+ * 1. Show History: opens the full history modal (rail visible).
+ * 2. Show History for Selection: opens the modal pre-filtered to versions where
+ *    the editor selection was added or removed at that point on the timeline.
+ *    With an empty selection ModalsService.diffForSelection falls back to the
+ *    plain Show History modal (T09), so the entry is always live and never a
+ *    dead handler.
+ * 3. Put label: prompts for a label and captures a pinned labeled version of
+ *    the active file's current content via VersionActionsService.
+ * 4. Recent changes: reveals the right-sidebar Recent changes panel.
+ *
+ * The "Show changes" gutter toggle lives in the viewport (gutter) menu (epic 03
+ * D3) and is intentionally NOT mirrored here (D9): scope is the editor context
+ * menu only.
+ *
+ * Submenu titles use inline English defaults for now; T15 will introduce
+ * dedicated `menu.local-history.*` i18n keys across every bundled catalog so
+ * the parity guard stays intact (the same approach T06/T10/T11 used for their
+ * brand-new strings).
  *
  * @extends {BaseEvent}
  */
@@ -29,21 +48,62 @@ export class WorkspaceEditorMenuEvent extends BaseEvent {
   public name: ObsidianEventName = ObsidianEvent.workspace.editorMenu;
 
   /**
-   * Handles the editor menu event by adding a custom menu item.
-   * Adds a "Local history" item that opens the diff modal when clicked.
+   * Handles the editor menu event by adding the "Local history" parent item
+   * whose submenu carries the four PhpStorm-style entries (D2).
    *
    * @param {Menu} menu - The menu to add items to
-   * @param {Editor} _editor - The editor instance (not used in this handler)
+   * @param {Editor} editor - The active editor (used for the current selection)
    * @param {MarkdownView} _view - The Markdown view (not used in this handler)
    */
-  public handler(menu: Menu, _editor: Editor, _view: MarkdownView): void {
-    menu.addItem((item: MenuItem): void => {
-      item
+  public handler(menu: Menu, editor: Editor, _view: MarkdownView): void {
+    menu.addItem((parent: MenuItem): void => {
+      parent
         .setTitle(this.plugin.t('menu.local-history'))
-        .setIcon('file-diff')
-        .onClick((): void => {
-          this.modalService.diff();
-        });
+        .setIcon('file-diff');
+
+      const submenu: Menu = MenuHelper.setSubmenu(parent);
+
+      submenu.addItem((item: MenuItem): void => {
+        item
+          .setTitle('Show History')
+          .setIcon('history')
+          .onClick((): void => {
+            this.modalService.diff();
+          });
+      });
+
+      const selection: string = editor.getSelection();
+
+      submenu.addItem((item: MenuItem): void => {
+        item
+          .setTitle('Show History for Selection')
+          .setIcon('text-select')
+          .onClick((): void => {
+            // ModalsService.diffForSelection gracefully falls back to plain
+            // Show History when the selection is empty/whitespace (T09), so
+            // the entry stays live even with no selection rather than being a
+            // dead row.
+            this.modalService.diffForSelection(null, selection);
+          });
+      });
+
+      submenu.addItem((item: MenuItem): void => {
+        item
+          .setTitle('Put label')
+          .setIcon('tag')
+          .onClick((): void => {
+            void this.modalService.putLabel();
+          });
+      });
+
+      submenu.addItem((item: MenuItem): void => {
+        item
+          .setTitle('Recent changes')
+          .setIcon('clock')
+          .onClick((): void => {
+            void this.plugin.revealRecentChanges();
+          });
+      });
     });
   };
 }

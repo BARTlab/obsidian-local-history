@@ -4,10 +4,11 @@ import { type VersionDescription, VersionLabelHelper } from '@/helpers/version-l
 import type LineChangeTrackerPlugin from '@/main';
 import type { ModalsService } from '@/services/modals.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
+import type { VersionActionsService } from '@/services/version-actions.service';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FileVersion } from '@/snapshots/file.version';
 import type { DomElementConfig } from '@/types';
-import { type IconName, ItemView, type TFile, type WorkspaceLeaf } from 'obsidian';
+import { type IconName, ItemView, Menu, type MenuItem, type TFile, type WorkspaceLeaf } from 'obsidian';
 
 /**
  * Default user-facing title for the right-sidebar tab. Kept inline (matching
@@ -259,9 +260,102 @@ export class RecentChangesView extends ItemView {
         dblclick: (): void => {
           this.openInModal(file, version.id);
         },
+        contextmenu: (event: Event): void => {
+          this.openRowMenu(event as MouseEvent, file, version);
+        },
       },
       children,
     };
+  }
+
+  /**
+   * Opens the per-row context menu (T12). Mirrors the modal toolbar wiring so
+   * the panel and the modal share one behaviour for restore/delete/put-label
+   * (D5): "Show diff" opens the rail-less viewer focused on this version, the
+   * destructive actions confirm through the same prompts the modal uses, and
+   * Put label routes through the prompt+VersionActionsService entry point on
+   * ModalsService so an empty/cancel input is a silent no-op (T06). The native
+   * browser menu is suppressed so only the plugin menu shows up.
+   *
+   * The captured `file` is the one resolved at row render time, so a later
+   * active-file switch cannot retarget the action at the wrong timeline (same
+   * guarantee the double-click handler relies on).
+   *
+   * @param {MouseEvent} event - The captured `contextmenu` event from the row
+   * @param {TFile} file - The file the version belongs to
+   * @param {FileVersion} version - The version this row represents
+   */
+  protected openRowMenu(event: MouseEvent, file: TFile, version: FileVersion): void {
+    event.preventDefault();
+
+    const menu: Menu = new Menu();
+    const modalsService: ModalsService = this.plugin.get<ModalsService>('ModalsService');
+    const versionActionsService: VersionActionsService =
+      this.plugin.get<VersionActionsService>('VersionActionsService');
+
+    menu.addItem((item: MenuItem): void => {
+      item
+        .setTitle('Show diff')
+        .setIcon('file-diff')
+        .onClick((): void => {
+          this.openInModal(file, version.id);
+        });
+    });
+
+    menu.addItem((item: MenuItem): void => {
+      item
+        .setTitle('Restore this version')
+        .setIcon('history')
+        .onClick(async (): Promise<void> => {
+          const confirmed: boolean = await modalsService.confirm({
+            title: this.plugin.t('modal.confirm.restore-version.title'),
+            message: this.plugin.t('modal.confirm.restore-version.message'),
+            confirmText: this.plugin.t('modal.confirm.restore-version.button'),
+            cancelText: this.plugin.t('modal.confirm.cancel'),
+          });
+
+          if (!confirmed) {
+            return;
+          }
+
+          await versionActionsService.restoreSelected(file, version.id);
+        });
+    });
+
+    menu.addItem((item: MenuItem): void => {
+      item
+        .setTitle('Delete version')
+        .setIcon('list-x')
+        .onClick(async (): Promise<void> => {
+          const confirmed: boolean = await modalsService.confirm({
+            title: this.plugin.t('modal.confirm.remove-version.title'),
+            message: this.plugin.t('modal.confirm.remove-version.message'),
+            confirmText: this.plugin.t('modal.confirm.remove-version.button'),
+            cancelText: this.plugin.t('modal.confirm.cancel'),
+          });
+
+          if (!confirmed) {
+            return;
+          }
+
+          versionActionsService.removeSelected(file, version.id);
+        });
+    });
+
+    menu.addItem((item: MenuItem): void => {
+      item
+        .setTitle('Put label')
+        .setIcon('tag')
+        .onClick((): void => {
+          // Route through ModalsService.putLabel so the prompt strings and the
+          // empty/cancel no-op stay aligned with the editor-submenu entry (T06).
+          // Pass the row's file so an active-file switch between right-click
+          // and confirm cannot retarget the label at a different timeline.
+          void modalsService.putLabel(file);
+        });
+    });
+
+    menu.showAtMouseEvent(event);
   }
 
   /**

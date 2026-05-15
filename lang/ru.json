@@ -101,5 +101,19 @@
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Нет версий, соответствующих поиску",
   "modal.revert-hunk": "Откатить это изменение",
-  "modal.copy": "Копировать"
+  "modal.copy": "Копировать",
+  "modal.put-label.title": "Поставить метку",
+  "modal.put-label.message": "Отметьте текущее содержимое короткой меткой.",
+  "modal.put-label.placeholder": "Метка",
+  "modal.put-label.confirm": "Сохранить",
+  "menu.local-history.show-history": "Показать историю",
+  "menu.local-history.show-history-selection": "Показать историю для выделения",
+  "menu.local-history.put-label": "Поставить метку",
+  "menu.local-history.recent-changes": "Недавние изменения",
+  "view.recent-changes.title": "Недавние изменения",
+  "view.recent-changes.empty": "Для активного файла нет истории версий.",
+  "view.recent-changes.menu.show-diff": "Показать различия",
+  "view.recent-changes.menu.restore": "Восстановить эту версию",
+  "view.recent-changes.menu.delete": "Удалить версию",
+  "view.recent-changes.menu.put-label": "Поставить метку"
 }

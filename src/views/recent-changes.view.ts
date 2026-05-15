@@ -11,21 +11,6 @@ import type { DomElementConfig } from '@/types';
 import { type IconName, ItemView, Menu, type MenuItem, type TFile, type WorkspaceLeaf } from 'obsidian';
 
 /**
- * Default user-facing title for the right-sidebar tab. Kept inline (matching
- * the T06 precedent) so T10/T11 stay within their declared files; T15 replaces
- * the literal with a `plugin.t('view.recent-changes.title')` call along with
- * the matching `lang/` keys and the parity test pass.
- */
-const RECENT_CHANGES_DEFAULT_TITLE: string = 'Recent changes';
-
-/**
- * Empty-state hint shown when no file is active or the active file has no
- * tracked snapshot yet. Inline English for the same reason as the title; T15
- * will swap it for a localized key.
- */
-const RECENT_CHANGES_EMPTY_HINT: string = 'No version history for the active file.';
-
-/**
  * Right-sidebar navigator for the active file's version timeline (D3).
  *
  * T11 fills the lifecycle skeleton from T10 with the timeline rows: each row
@@ -78,7 +63,7 @@ export class RecentChangesView extends ItemView {
    * @override
    */
   public getDisplayText(): string {
-    return RECENT_CHANGES_DEFAULT_TITLE;
+    return this.plugin.t('view.recent-changes.title');
   }
 
   /**
@@ -187,7 +172,7 @@ export class RecentChangesView extends ItemView {
           {
             tag: 'div',
             classes: 'lct-recent-changes-empty',
-            text: RECENT_CHANGES_EMPTY_HINT,
+            text: this.plugin.t('view.recent-changes.empty'),
           },
         ],
       });
@@ -204,7 +189,7 @@ export class RecentChangesView extends ItemView {
           {
             tag: 'div',
             classes: 'lct-recent-changes-empty',
-            text: RECENT_CHANGES_EMPTY_HINT,
+            text: this.plugin.t('view.recent-changes.empty'),
           },
         ],
       });
@@ -295,7 +280,7 @@ export class RecentChangesView extends ItemView {
 
     menu.addItem((item: MenuItem): void => {
       item
-        .setTitle('Show diff')
+        .setTitle(this.plugin.t('view.recent-changes.menu.show-diff'))
         .setIcon('file-diff')
         .onClick((): void => {
           this.openInModal(file, version.id);
@@ -304,7 +289,7 @@ export class RecentChangesView extends ItemView {
 
     menu.addItem((item: MenuItem): void => {
       item
-        .setTitle('Restore this version')
+        .setTitle(this.plugin.t('view.recent-changes.menu.restore'))
         .setIcon('history')
         .onClick(async (): Promise<void> => {
           const confirmed: boolean = await modalsService.confirm({
@@ -324,7 +309,7 @@ export class RecentChangesView extends ItemView {
 
     menu.addItem((item: MenuItem): void => {
       item
-        .setTitle('Delete version')
+        .setTitle(this.plugin.t('view.recent-changes.menu.delete'))
         .setIcon('list-x')
         .onClick(async (): Promise<void> => {
           const confirmed: boolean = await modalsService.confirm({
@@ -344,7 +329,7 @@ export class RecentChangesView extends ItemView {
 
     menu.addItem((item: MenuItem): void => {
       item
-        .setTitle('Put label')
+        .setTitle(this.plugin.t('view.recent-changes.menu.put-label'))
         .setIcon('tag')
         .onClick((): void => {
           // Route through ModalsService.putLabel so the prompt strings and the

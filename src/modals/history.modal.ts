@@ -178,6 +178,13 @@ export class HistoryModal extends Modal {
   protected removeSelectedButton?: HTMLElement;
 
   /**
+   * Toolbar button that labels the selected version, kept so it can be disabled
+   * when the synthetic baseline is selected (only a real captured version can
+   * carry a custom label).
+   */
+  protected labelSelectedButton?: HTMLElement;
+
+  /**
    * The current display mode for the diff view.
    * Can be 'patch', 'inline', 'line-by-line', or 'side-by-side'.
    * Defaults to 'side-by-side'.
@@ -433,6 +440,36 @@ export class HistoryModal extends Modal {
 
     this.selectedBaseId = nextId;
     this.activeHunkIndex = -1;
+    this.renderVersions();
+    this.refreshActiveView();
+  }
+
+  /**
+   * Labels the selected version in place: prompts for a tag through the shared
+   * ModalsService.labelVersion entry point and, on a non-empty result, marks
+   * that captured version (D1/D6). Unlike the editor-submenu Put label, which
+   * pins the current content as a new version, this tags the slice the user is
+   * looking at in the rail. A no-op for the synthetic baseline (the button is
+   * disabled there anyway) and for a cancelled/blank prompt. On success the
+   * rail and the active diff are re-rendered so the new label shows on the row
+   * and in the side-by-side column header.
+   *
+   * @return {Promise<void>}
+   */
+  protected async labelSelectedVersion(): Promise<void> {
+    if (this.selectedBaseId === ORIGINAL_BASE_ID) {
+      return;
+    }
+
+    const labeled: FileVersion | null = await this.modalsService.labelVersion(
+      this.snapshot?.file ?? null,
+      this.selectedBaseId,
+    );
+
+    if (!labeled) {
+      return;
+    }
+
     this.renderVersions();
     this.refreshActiveView();
   }
@@ -842,6 +879,17 @@ export class HistoryModal extends Modal {
       });
     }
 
+    if (this.labelSelectedButton) {
+      // Only a real captured version can carry a label; the synthetic baseline
+      // has no version to tag, so the action is disabled there.
+      const noVersion: boolean = this.selectedBaseId === ORIGINAL_BASE_ID;
+
+      (this.labelSelectedButton as HTMLButtonElement).disabled = noVersion;
+      DomHelper.update(this.labelSelectedButton, {
+        classes: noVersion ? { add: 'is-disabled' } : { remove: 'is-disabled' },
+      });
+    }
+
     if (!this.noticeEl) {
       return;
     }
@@ -1045,6 +1093,14 @@ export class HistoryModal extends Modal {
       label: this.plugin.t('modal.remove-selected'),
       onClick: (): void => {
         void this.confirmRemoveSelectedVersion();
+      },
+    });
+
+    this.labelSelectedButton = this.makeToolbarButton(filterGroup, {
+      icon: 'tag',
+      label: this.plugin.t('modal.label-selected'),
+      onClick: async (): Promise<void> => {
+        await this.labelSelectedVersion();
       },
     });
 

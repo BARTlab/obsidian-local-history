@@ -256,4 +256,59 @@ export class ModalsService implements Service {
 
     return this.versionActionsService.putLabel(target, entered);
   }
+
+  /**
+   * Labels an EXISTING captured version: asks for a tag through the PromptModal
+   * (D8) and forwards the trimmed result to
+   * VersionActionsService.labelVersion. Unlike {@link putLabel}, which pins the
+   * file's CURRENT content as a new version, this marks the version the caller
+   * picked (a Recent changes row, or the modal's selected base), so the label
+   * lands on the slice the user pointed at instead of on the latest state. The
+   * prompt is pre-filled with the version's current label so an existing marker
+   * can be edited rather than retyped. A cancel or a blank/whitespace input is
+   * a silent no-op; a missing snapshot or an unknown version id is a no-op too.
+   *
+   * @param {TFile} file - The file the version belongs to, or null for the active file
+   * @param {string} versionId - The id of the existing version to label
+   * @param {PromptModalConfig} configOverride - Optional overrides for the prompt strings
+   * @return {Promise<FileVersion | null>} The labeled version, or null on a no-op
+   */
+  public async labelVersion(
+    file: TFile | null,
+    versionId: string,
+    configOverride?: PromptModalConfig,
+  ): Promise<FileVersion | null> {
+    const target: TFile | null = file ?? this.plugin.getActiveFile();
+    const snapshot: FileSnapshot | null = this.snapshotsService.getOne(target);
+
+    if (!snapshot) {
+      return null;
+    }
+
+    const existing: FileVersion | null = snapshot.getVersion(versionId);
+
+    if (!existing) {
+      return null;
+    }
+
+    const config: PromptModalConfig = {
+      title: this.plugin.t('modal.put-label.title'),
+      message: this.plugin.t('modal.label-version.message'),
+      placeholder: this.plugin.t('modal.put-label.placeholder'),
+      initialValue: existing.isLabeled() ? (existing.label as string) : '',
+      confirmText: this.plugin.t('modal.put-label.confirm'),
+      cancelText: this.plugin.t('modal.confirm.cancel'),
+      ...configOverride,
+    };
+
+    const entered: string | null = await this.prompt(config);
+
+    // Same cancel/blank no-op contract as putLabel: a user backing out must not
+    // wipe or alter the version's existing label.
+    if (entered === null || entered.trim().length === 0) {
+      return null;
+    }
+
+    return this.versionActionsService.labelVersion(target, versionId, entered);
+  }
 }

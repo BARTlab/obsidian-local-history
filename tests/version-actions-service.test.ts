@@ -27,12 +27,15 @@ jest.mock('@/snapshots/file.snapshot', () => ({
 
     public getVersion(
       id: string,
-    ): { id: string; lines: string[]; getLines: () => string[] } | null {
+    ): { id: string; lines: string[]; label?: string; getLines: () => string[] } | null {
       const entry = this.versionsList.find((v) => v.id === id);
       if (!entry) {
         return null;
       }
-      return { ...entry, getLines: (): string[] => [...entry.lines] };
+      // Return the STORED reference (augmented with getLines), mirroring the
+      // real FileSnapshot.getVersion: a caller that sets .label must persist it
+      // onto the timeline entry, which labelVersion relies on.
+      return Object.assign(entry, { getLines: (): string[] => [...entry.lines] });
     }
 
     public getVersions(): { id: string; lines: string[]; label?: string }[] {
@@ -299,6 +302,49 @@ describe('VersionActionsService.putLabel', () => {
 
     const noSnapshot = makeHarness(null);
     expect(noSnapshot.service.putLabel(file, 'tag')).toBeNull();
+    expect(noSnapshot.forceUpdate).not.toHaveBeenCalled();
+  });
+});
+
+describe('VersionActionsService.labelVersion', () => {
+  it('labels the EXISTING picked version in place (not a new capture) and notifies subscribers', () => {
+    const file = makeFile('a.md');
+    const harness = makeHarness({
+      file,
+      state: ['current'],
+      versions: [
+        { id: 'v1', lines: ['one'] },
+        { id: 'v2', lines: ['two'] },
+      ],
+    });
+
+    const labeled = harness.service.labelVersion(file, 'v1', '  milestone  ');
+
+    expect(labeled).not.toBeNull();
+    expect(labeled?.id).toBe('v1');
+    expect(labeled?.label).toBe('milestone'); // trimmed
+    // The label landed on the stored timeline entry, not on a fresh capture.
+    expect(harness.snapshot?.versionsList.find((v) => v.id === 'v1')?.label).toBe('milestone');
+    expect(harness.snapshot?.captured).toEqual([]);
+    expect(harness.forceUpdate).toHaveBeenCalledTimes(1);
+  });
+
+  it('is a no-op when the label is empty/whitespace, the version id is unknown, or no snapshot exists', () => {
+    const file = makeFile('a.md');
+    const harness = makeHarness({
+      file,
+      state: ['x'],
+      versions: [{ id: 'v1', lines: ['one'] }],
+    });
+
+    expect(harness.service.labelVersion(file, 'v1', '')).toBeNull();
+    expect(harness.service.labelVersion(file, 'v1', '   ')).toBeNull();
+    expect(harness.service.labelVersion(file, 'missing', 'tag')).toBeNull();
+    expect(harness.snapshot?.versionsList.find((v) => v.id === 'v1')?.label).toBeUndefined();
+    expect(harness.forceUpdate).not.toHaveBeenCalled();
+
+    const noSnapshot = makeHarness(null);
+    expect(noSnapshot.service.labelVersion(file, 'v1', 'tag')).toBeNull();
     expect(noSnapshot.forceUpdate).not.toHaveBeenCalled();
   });
 });

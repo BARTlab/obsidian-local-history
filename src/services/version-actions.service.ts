@@ -197,6 +197,44 @@ export class VersionActionsService implements Service {
   }
 
   /**
+   * Sets a custom label on an EXISTING captured version, turning that version
+   * into a pinned marker in place (D1/D6). This is distinct from
+   * {@link putLabel}, which pins the file's CURRENT content as a NEW version:
+   * here the label lands on the version the caller picked (a panel row, or the
+   * modal's selected base), so the marker tags the slice the user pointed at
+   * rather than the latest state. The label is trimmed; an empty result is a
+   * no-op so a cancel-equivalent input cannot blank out a version. Labeling
+   * pins the version against the duplicate-skip and the age/count eviction
+   * passes (isLabeled). The mutation is persisted and subscribers are notified
+   * through forceUpdate. A no-op when the snapshot is missing or the version id
+   * is unknown.
+   *
+   * @param {TFile | null} file - The file whose snapshot owns the version
+   * @param {string} versionId - The id of the existing version to label
+   * @param {string} label - The user-supplied tag
+   * @return {FileVersion | null} The labeled version, or null on a no-op
+   */
+  public labelVersion(file: TFile | null, versionId: string, label: string): FileVersion | null {
+    const snapshot: FileSnapshot | null = this.snapshotsService.getOne(file);
+    const trimmed: string = typeof label === 'string' ? label.trim() : '';
+
+    if (!snapshot || trimmed.length === 0) {
+      return null;
+    }
+
+    const version: FileVersion | null = snapshot.getVersion(versionId);
+
+    if (!version) {
+      return null;
+    }
+
+    version.label = trimmed;
+    this.snapshotsService.forceUpdate();
+
+    return version;
+  }
+
+  /**
    * Reads the current intermediate-snapshot cadence settings into a plain
    * options object for the snapshot model. Mirrors the change-detector's
    * helper so eviction caps stay aligned across both capture sources; the

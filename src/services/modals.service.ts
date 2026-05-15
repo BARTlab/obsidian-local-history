@@ -236,11 +236,11 @@ export class ModalsService implements Service {
     }
 
     const config: PromptModalConfig = {
-      title: 'Put label',
-      message: 'Tag the current content with a short label.',
-      placeholder: 'Label',
-      confirmText: 'Save',
-      cancelText: 'Cancel',
+      title: this.plugin.t('modal.put-label.title'),
+      message: this.plugin.t('modal.put-label.message'),
+      placeholder: this.plugin.t('modal.put-label.placeholder'),
+      confirmText: this.plugin.t('modal.put-label.confirm'),
+      cancelText: this.plugin.t('modal.confirm.cancel'),
       ...configOverride,
     };
 

@@ -101,5 +101,19 @@
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "検索に一致するバージョンがありません",
   "modal.revert-hunk": "この変更を元に戻す",
-  "modal.copy": "コピー"
+  "modal.copy": "コピー",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label"
 }

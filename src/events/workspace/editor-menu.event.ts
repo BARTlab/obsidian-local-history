@@ -26,10 +26,10 @@ import type { Editor, MarkdownView, Menu, MenuItem } from 'obsidian';
  * D3) and is intentionally NOT mirrored here (D9): scope is the editor context
  * menu only.
  *
- * Submenu titles use inline English defaults for now; T15 will introduce
- * dedicated `menu.local-history.*` i18n keys across every bundled catalog so
- * the parity guard stays intact (the same approach T06/T10/T11 used for their
- * brand-new strings).
+ * Submenu titles resolve through `plugin.t('menu.local-history.*')` against
+ * every bundled catalog (T15); a non-English catalog without a translation
+ * falls back to the English string via the i18n service's standard fallback
+ * so the parity guard stays intact and no surface degrades to a raw key.
  *
  * @extends {BaseEvent}
  */
@@ -65,7 +65,7 @@ export class WorkspaceEditorMenuEvent extends BaseEvent {
 
       submenu.addItem((item: MenuItem): void => {
         item
-          .setTitle('Show History')
+          .setTitle(this.plugin.t('menu.local-history.show-history'))
           .setIcon('history')
           .onClick((): void => {
             this.modalService.diff();
@@ -76,7 +76,7 @@ export class WorkspaceEditorMenuEvent extends BaseEvent {
 
       submenu.addItem((item: MenuItem): void => {
         item
-          .setTitle('Show History for Selection')
+          .setTitle(this.plugin.t('menu.local-history.show-history-selection'))
           .setIcon('text-select')
           .onClick((): void => {
             // ModalsService.diffForSelection gracefully falls back to plain
@@ -89,7 +89,7 @@ export class WorkspaceEditorMenuEvent extends BaseEvent {
 
       submenu.addItem((item: MenuItem): void => {
         item
-          .setTitle('Put label')
+          .setTitle(this.plugin.t('menu.local-history.put-label'))
           .setIcon('tag')
           .onClick((): void => {
             void this.modalService.putLabel();
@@ -98,7 +98,7 @@ export class WorkspaceEditorMenuEvent extends BaseEvent {
 
       submenu.addItem((item: MenuItem): void => {
         item
-          .setTitle('Recent changes')
+          .setTitle(this.plugin.t('menu.local-history.recent-changes'))
           .setIcon('clock')
           .onClick((): void => {
             void this.plugin.revealRecentChanges();

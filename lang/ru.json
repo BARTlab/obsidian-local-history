@@ -115,5 +115,7 @@
   "view.recent-changes.menu.show-diff": "Показать различия",
   "view.recent-changes.menu.restore": "Восстановить эту версию",
   "view.recent-changes.menu.delete": "Удалить версию",
-  "view.recent-changes.menu.put-label": "Поставить метку"
+  "view.recent-changes.menu.put-label": "Поставить метку",
+  "modal.label-selected": "Поставить метку на выбранную версию",
+  "modal.label-version.message": "Отметьте эту версию короткой меткой."
 }

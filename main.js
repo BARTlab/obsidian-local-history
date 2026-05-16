@@ -1897,6 +1897,74 @@ __export(main_exports, {
 module.exports = __toCommonJS(main_exports);
 var import_reflect_metadata = __toESM(require_Reflect());
 
+// src/consts.ts
+var DEFAULT_SETTINGS = {
+  type: "line" /* line */,
+  keep: "app" /* app */,
+  persist: true,
+  allowedExtensions: "md, txt, csv, json, yaml",
+  excludePaths: "(^|/)templates/|\\.excalidraw\\.md$",
+  ignoreNewFiles: true,
+  retention: {
+    maxEntries: 200,
+    maxAgeDays: 30
+  },
+  snapshots: {
+    enabled: true,
+    intervalMs: 5 * 60 * 1e3,
+    editThreshold: 10,
+    maxVersions: 50,
+    maxVersionAgeDays: 14
+  },
+  line: {
+    width: 2
+  },
+  show: {
+    changed: true,
+    restored: true,
+    added: true,
+    removed: true
+  },
+  gutter: {
+    changed: "\u2942",
+    added: "\u2937",
+    restored: "\u293A",
+    removed: "\u290E"
+  }
+};
+var SHOW_CHANGE_KEYS = ["show.changed", "show.restored", "show.added", "show.removed"];
+var STYLE_ID = "line-change-tracker-styles";
+var RECENT_CHANGES_VIEW_TYPE = "line-change-tracker-recent-changes";
+var STATUSBAR_ITEM_ID = "default";
+var ObsidianVaultEvent = /* @__PURE__ */ ((ObsidianVaultEvent2) => {
+  ObsidianVaultEvent2["create"] = "vault.create";
+  ObsidianVaultEvent2["modify"] = "vault.modify";
+  ObsidianVaultEvent2["delete"] = "vault.delete";
+  ObsidianVaultEvent2["rename"] = "vault.rename";
+  return ObsidianVaultEvent2;
+})(ObsidianVaultEvent || {});
+var ObsidianWorkspaceEvent = /* @__PURE__ */ ((ObsidianWorkspaceEvent2) => {
+  ObsidianWorkspaceEvent2["activeLeafChange"] = "workspace.active-leaf-change";
+  ObsidianWorkspaceEvent2["layoutChange"] = "workspace.layout-change";
+  ObsidianWorkspaceEvent2["fileOpen"] = "workspace.file-open";
+  ObsidianWorkspaceEvent2["editorMenu"] = "workspace.editor-menu";
+  ObsidianWorkspaceEvent2["viewportMenu"] = "workspace.markdown-viewport-menu";
+  ObsidianWorkspaceEvent2["fileMenu"] = "workspace.file-menu";
+  ObsidianWorkspaceEvent2["quit"] = "workspace.quit";
+  ObsidianWorkspaceEvent2["resize"] = "workspace.resize";
+  ObsidianWorkspaceEvent2["cssChange"] = "workspace.css-change";
+  ObsidianWorkspaceEvent2["editorChange"] = "workspace.editor-change";
+  ObsidianWorkspaceEvent2["editorPaste"] = "workspace.editor-paste";
+  ObsidianWorkspaceEvent2["editorDrop"] = "workspace.editor-drop";
+  ObsidianWorkspaceEvent2["windowOpen"] = "workspace.window-open";
+  ObsidianWorkspaceEvent2["windowClose"] = "workspace.window-close";
+  return ObsidianWorkspaceEvent2;
+})(ObsidianWorkspaceEvent || {});
+var ObsidianEvent = {
+  vault: ObsidianVaultEvent,
+  workspace: ObsidianWorkspaceEvent
+};
+
 // src/extensions/refresh.effect.ts
 var import_state = require("@codemirror/state");
 var refreshDecorationsEffect = import_state.StateEffect.define();
@@ -2227,73 +2295,6 @@ var CommandsService = class {
   }
 };
 
-// src/consts.ts
-var DEFAULT_SETTINGS = {
-  type: "line" /* line */,
-  keep: "app" /* app */,
-  persist: true,
-  allowedExtensions: "md, txt, csv, json, yaml",
-  excludePaths: "(^|/)templates/|\\.excalidraw\\.md$",
-  ignoreNewFiles: true,
-  retention: {
-    maxEntries: 200,
-    maxAgeDays: 30
-  },
-  snapshots: {
-    enabled: true,
-    intervalMs: 5 * 60 * 1e3,
-    editThreshold: 10,
-    maxVersions: 50,
-    maxVersionAgeDays: 14
-  },
-  line: {
-    width: 2
-  },
-  show: {
-    changed: true,
-    restored: true,
-    added: true,
-    removed: true
-  },
-  gutter: {
-    changed: "\u2942",
-    added: "\u2937",
-    restored: "\u293A",
-    removed: "\u290E"
-  }
-};
-var SHOW_CHANGE_KEYS = ["show.changed", "show.restored", "show.added", "show.removed"];
-var STYLE_ID = "line-change-tracker-styles";
-var STATUSBAR_ITEM_ID = "default";
-var ObsidianVaultEvent = /* @__PURE__ */ ((ObsidianVaultEvent2) => {
-  ObsidianVaultEvent2["create"] = "vault.create";
-  ObsidianVaultEvent2["modify"] = "vault.modify";
-  ObsidianVaultEvent2["delete"] = "vault.delete";
-  ObsidianVaultEvent2["rename"] = "vault.rename";
-  return ObsidianVaultEvent2;
-})(ObsidianVaultEvent || {});
-var ObsidianWorkspaceEvent = /* @__PURE__ */ ((ObsidianWorkspaceEvent2) => {
-  ObsidianWorkspaceEvent2["activeLeafChange"] = "workspace.active-leaf-change";
-  ObsidianWorkspaceEvent2["layoutChange"] = "workspace.layout-change";
-  ObsidianWorkspaceEvent2["fileOpen"] = "workspace.file-open";
-  ObsidianWorkspaceEvent2["editorMenu"] = "workspace.editor-menu";
-  ObsidianWorkspaceEvent2["viewportMenu"] = "workspace.markdown-viewport-menu";
-  ObsidianWorkspaceEvent2["fileMenu"] = "workspace.file-menu";
-  ObsidianWorkspaceEvent2["quit"] = "workspace.quit";
-  ObsidianWorkspaceEvent2["resize"] = "workspace.resize";
-  ObsidianWorkspaceEvent2["cssChange"] = "workspace.css-change";
-  ObsidianWorkspaceEvent2["editorChange"] = "workspace.editor-change";
-  ObsidianWorkspaceEvent2["editorPaste"] = "workspace.editor-paste";
-  ObsidianWorkspaceEvent2["editorDrop"] = "workspace.editor-drop";
-  ObsidianWorkspaceEvent2["windowOpen"] = "workspace.window-open";
-  ObsidianWorkspaceEvent2["windowClose"] = "workspace.window-close";
-  return ObsidianWorkspaceEvent2;
-})(ObsidianWorkspaceEvent || {});
-var ObsidianEvent = {
-  vault: ObsidianVaultEvent,
-  workspace: ObsidianWorkspaceEvent
-};
-
 // src/events/base.event.ts
 var BaseEvent = class {
   /**
@@ -2481,6 +2482,22 @@ __decorateClass([
   Inject("SnapshotsService")
 ], WorkspaceActiveLeafChangeEvent.prototype, "snapshotsService", 2);
 
+// src/helpers/menu.helper.ts
+var MenuHelper = class {
+  /**
+   * Attaches a child submenu to the given parent menu item and returns the
+   * resulting `Menu` instance, fully typed. The returned menu accepts the usual
+   * `addItem`/`addSeparator` API.
+   *
+   * @param {MenuItem} item - The parent menu item to convert into a submenu
+   *     anchor
+   * @return {Menu} The freshly created child menu that owns the submenu items
+   */
+  static setSubmenu(item) {
+    return item.setSubmenu();
+  }
+};
+
 // src/events/workspace/editor-menu.event.ts
 var WorkspaceEditorMenuEvent = class extends BaseEvent {
   constructor() {
@@ -2492,17 +2509,37 @@ var WorkspaceEditorMenuEvent = class extends BaseEvent {
     this.name = ObsidianEvent.workspace.editorMenu;
   }
   /**
-   * Handles the editor menu event by adding a custom menu item.
-   * Adds a "Local history" item that opens the diff modal when clicked.
+   * Handles the editor menu event by adding the "Local history" parent item
+   * whose submenu carries the four PhpStorm-style entries (D2).
    *
    * @param {Menu} menu - The menu to add items to
-   * @param {Editor} _editor - The editor instance (not used in this handler)
+   * @param {Editor} editor - The active editor (used for the current selection)
    * @param {MarkdownView} _view - The Markdown view (not used in this handler)
    */
-  handler(menu, _editor, _view) {
-    menu.addItem((item) => {
-      item.setTitle(this.plugin.t("menu.local-history")).setIcon("file-diff").onClick(() => {
-        this.modalService.diff();
+  handler(menu, editor, _view) {
+    menu.addItem((parent) => {
+      parent.setTitle(this.plugin.t("menu.local-history")).setIcon("file-diff");
+      const submenu = MenuHelper.setSubmenu(parent);
+      submenu.addItem((item) => {
+        item.setTitle(this.plugin.t("menu.local-history.show-history")).setIcon("history").onClick(() => {
+          this.modalService.diff();
+        });
+      });
+      const selection = editor.getSelection();
+      submenu.addItem((item) => {
+        item.setTitle(this.plugin.t("menu.local-history.show-history-selection")).setIcon("text-select").onClick(() => {
+          this.modalService.diffForSelection(null, selection);
+        });
+      });
+      submenu.addItem((item) => {
+        item.setTitle(this.plugin.t("menu.local-history.put-label")).setIcon("tag").onClick(() => {
+          void this.modalService.putLabel();
+        });
+      });
+      submenu.addItem((item) => {
+        item.setTitle(this.plugin.t("menu.local-history.recent-changes")).setIcon("clock").onClick(() => {
+          void this.plugin.revealRecentChanges();
+        });
       });
     });
   }
@@ -4401,12 +4438,31 @@ var am_default = {
   "modal.confirm.revert.message": "\u12ED\u1205\u1295 \u1208\u12CD\u1325 \u12C8\u12F0 \u1270\u1218\u1228\u1320\u12CD \u1218\u1230\u1228\u1275 \u12ED\u1218\u1208\u1235? \u120C\u120E\u127D \u1208\u12CD\u1326\u127D \u12ED\u1246\u12EB\u1209\u1362",
   "modal.confirm.revert.button": "\u1218\u120D\u1235",
   "modal.search-versions": "\u1235\u122A\u1276\u127D\u1295 \u1348\u120D\u130D",
-  "modal.version.numbered": "\u1235\u122A\u1275 {number}",
   "modal.version.current": "\u12E8\u12A0\u1201\u1291",
   "modal.version.original": "\u1218\u1290\u123B",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u12A8\u134D\u1208\u130B\u12CD \u130B\u122D \u12E8\u121A\u12DB\u1218\u12F1 \u1235\u122A\u1276\u127D \u12E8\u1209\u121D",
   "modal.revert-hunk": "\u12ED\u1205\u1295 \u1208\u12CD\u1325 \u1218\u120D\u1235",
-  "modal.copy": "\u1245\u12F3"
+  "modal.copy": "\u1245\u12F3",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/ar.json
@@ -4505,12 +4561,31 @@ var ar_default = {
   "modal.confirm.revert.message": "\u0647\u0644 \u062A\u0631\u064A\u062F \u0627\u0644\u062A\u0631\u0627\u062C\u0639 \u0639\u0646 \u0647\u0630\u0627 \u0627\u0644\u062A\u063A\u064A\u064A\u0631 \u0625\u0644\u0649 \u0627\u0644\u0623\u0633\u0627\u0633 \u0627\u0644\u0645\u062D\u062F\u062F\u061F \u064A\u062A\u0645 \u0627\u0644\u0627\u062D\u062A\u0641\u0627\u0638 \u0628\u0627\u0644\u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0627\u0644\u0623\u062E\u0631\u0649.",
   "modal.confirm.revert.button": "\u062A\u0631\u0627\u062C\u0639",
   "modal.search-versions": "\u0627\u0644\u0628\u062D\u062B \u0641\u064A \u0627\u0644\u0625\u0635\u062F\u0627\u0631\u0627\u062A",
-  "modal.version.numbered": "\u0627\u0644\u0625\u0635\u062F\u0627\u0631 {number}",
   "modal.version.current": "\u0627\u0644\u062D\u0627\u0644\u064A",
   "modal.version.original": "\u0627\u0644\u0623\u0635\u0644\u064A",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u0644\u0627 \u062A\u0648\u062C\u062F \u0625\u0635\u062F\u0627\u0631\u0627\u062A \u062A\u0637\u0627\u0628\u0642 \u0627\u0644\u0628\u062D\u062B",
   "modal.revert-hunk": "\u0627\u0644\u062A\u0631\u0627\u062C\u0639 \u0639\u0646 \u0647\u0630\u0627 \u0627\u0644\u062A\u063A\u064A\u064A\u0631",
-  "modal.copy": "\u0646\u0633\u062E"
+  "modal.copy": "\u0646\u0633\u062E",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/be.json
@@ -4609,12 +4684,31 @@ var be_default = {
   "modal.confirm.revert.message": "\u0410\u0434\u043A\u0430\u0446\u0456\u0446\u044C \u0433\u044D\u0442\u0443\u044E \u0437\u043C\u0435\u043D\u0443 \u0434\u0430 \u0432\u044B\u0431\u0440\u0430\u043D\u0430\u0439 \u0431\u0430\u0437\u044B? \u0410\u0441\u0442\u0430\u0442\u043D\u0456\u044F \u0437\u043C\u0435\u043D\u044B \u0437\u0430\u0445\u0430\u0432\u0430\u044E\u0446\u0446\u0430.",
   "modal.confirm.revert.button": "\u0410\u0434\u043A\u0430\u0446\u0456\u0446\u044C",
   "modal.search-versions": "\u041F\u043E\u0448\u0443\u043A \u0432\u0435\u0440\u0441\u0456\u0439",
-  "modal.version.numbered": "\u0412\u0435\u0440\u0441\u0456\u044F {number}",
   "modal.version.current": "\u0411\u044F\u0433\u0443\u0447\u0430\u044F",
   "modal.version.original": "\u0410\u0440\u044B\u0433\u0456\u043D\u0430\u043B",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u041D\u044F\u043C\u0430 \u0432\u0435\u0440\u0441\u0456\u0439, \u0448\u0442\u043E \u0430\u0434\u043F\u0430\u0432\u044F\u0434\u0430\u044E\u0446\u044C \u043F\u043E\u0448\u0443\u043A\u0443",
   "modal.revert-hunk": "\u0410\u0434\u043A\u0430\u0446\u0456\u0446\u044C \u0433\u044D\u0442\u0443\u044E \u0437\u043C\u0435\u043D\u0443",
-  "modal.copy": "\u041A\u0430\u043F\u0456\u044F\u0432\u0430\u0446\u044C"
+  "modal.copy": "\u041A\u0430\u043F\u0456\u044F\u0432\u0430\u0446\u044C",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/bn.json
@@ -4713,12 +4807,31 @@ var bn_default = {
   "modal.confirm.revert.message": "\u098F\u0987 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8\u099F\u09BF \u09A8\u09BF\u09B0\u09CD\u09AC\u09BE\u099A\u09BF\u09A4 \u09AD\u09BF\u09A4\u09CD\u09A4\u09BF\u09A4\u09C7 \u09AA\u09CD\u09B0\u09A4\u09CD\u09AF\u09BE\u09AC\u09B0\u09CD\u09A4\u09A8 \u0995\u09B0\u09AC\u09C7\u09A8? \u0985\u09A8\u09CD\u09AF\u09BE\u09A8\u09CD\u09AF \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u09B0\u09BE\u0996\u09BE \u09B9\u09AC\u09C7\u0964",
   "modal.confirm.revert.button": "\u09AA\u09CD\u09B0\u09A4\u09CD\u09AF\u09BE\u09AC\u09B0\u09CD\u09A4\u09A8",
   "modal.search-versions": "\u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3 \u0985\u09A8\u09C1\u09B8\u09A8\u09CD\u09A7\u09BE\u09A8 \u0995\u09B0\u09C1\u09A8",
-  "modal.version.numbered": "\u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3 {number}",
   "modal.version.current": "\u09AC\u09B0\u09CD\u09A4\u09AE\u09BE\u09A8",
   "modal.version.original": "\u09AE\u09C2\u09B2",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u0985\u09A8\u09C1\u09B8\u09A8\u09CD\u09A7\u09BE\u09A8\u09C7\u09B0 \u09B8\u09BE\u09A5\u09C7 \u0995\u09CB\u09A8\u09CB \u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3 \u09AE\u09C7\u09B2\u09C7 \u09A8\u09BE",
   "modal.revert-hunk": "\u098F\u0987 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u09AA\u09CD\u09B0\u09A4\u09CD\u09AF\u09BE\u09AC\u09B0\u09CD\u09A4\u09A8 \u0995\u09B0\u09C1\u09A8",
-  "modal.copy": "\u0985\u09A8\u09C1\u09B2\u09BF\u09AA\u09BF"
+  "modal.copy": "\u0985\u09A8\u09C1\u09B2\u09BF\u09AA\u09BF",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/ca.json
@@ -4817,12 +4930,31 @@ var ca_default = {
   "modal.confirm.revert.message": "Vols revertir aquest canvi a la base seleccionada? Es conserven la resta de canvis.",
   "modal.confirm.revert.button": "Reverteix",
   "modal.search-versions": "Cerca versions",
-  "modal.version.numbered": "Versi\xF3 {number}",
   "modal.version.current": "Actual",
   "modal.version.original": "Original",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Cap versi\xF3 coincideix amb la cerca",
   "modal.revert-hunk": "Reverteix aquest canvi",
-  "modal.copy": "Copia"
+  "modal.copy": "Copia",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/cs.json
@@ -4921,12 +5053,31 @@ var cs_default = {
   "modal.confirm.revert.message": "Vr\xE1tit tuto zm\u011Bnu zp\u011Bt na vybran\xFD z\xE1klad? Ostatn\xED zm\u011Bny z\u016Fstanou zachov\xE1ny.",
   "modal.confirm.revert.button": "Vr\xE1tit",
   "modal.search-versions": "Hledat verze",
-  "modal.version.numbered": "Verze {number}",
   "modal.version.current": "Aktu\xE1ln\xED",
   "modal.version.original": "Origin\xE1l",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u017D\xE1dn\xE9 verze neodpov\xEDdaj\xED hled\xE1n\xED",
   "modal.revert-hunk": "Vr\xE1tit tuto zm\u011Bnu",
-  "modal.copy": "Kop\xEDrovat"
+  "modal.copy": "Kop\xEDrovat",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/da.json
@@ -5025,12 +5176,31 @@ var da_default = {
   "modal.confirm.revert.message": "Vil du tilbagef\xF8re denne \xE6ndring til den valgte base? \xD8vrige \xE6ndringer bevares.",
   "modal.confirm.revert.button": "Tilbagef\xF8r",
   "modal.search-versions": "S\xF8g i versioner",
-  "modal.version.numbered": "Version {number}",
   "modal.version.current": "Aktuel",
   "modal.version.original": "Original",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Ingen versioner matcher s\xF8gningen",
   "modal.revert-hunk": "Tilbagef\xF8r denne \xE6ndring",
-  "modal.copy": "Kopier"
+  "modal.copy": "Kopier",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/de.json
@@ -5129,12 +5299,31 @@ var de_default = {
   "modal.confirm.revert.message": "Diese \xC4nderung auf die ausgew\xE4hlte Basis zur\xFCcknehmen? Andere \xC4nderungen bleiben erhalten.",
   "modal.confirm.revert.button": "Zur\xFCcknehmen",
   "modal.search-versions": "Versionen durchsuchen",
-  "modal.version.numbered": "Version {number}",
   "modal.version.current": "Aktuell",
   "modal.version.original": "Original",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Keine Versionen entsprechen der Suche",
   "modal.revert-hunk": "Diese \xC4nderung zur\xFCcknehmen",
-  "modal.copy": "Kopieren"
+  "modal.copy": "Kopieren",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/en.json
@@ -5233,12 +5422,31 @@ var en_default = {
   "modal.confirm.revert.message": "Revert this change back to the selected base? Other changes are kept.",
   "modal.confirm.revert.button": "Revert",
   "modal.search-versions": "Search versions",
-  "modal.version.numbered": "Version {number}",
   "modal.version.current": "Current",
   "modal.version.original": "Original",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "No versions match the search",
   "modal.revert-hunk": "Revert this change",
-  "modal.copy": "Copy"
+  "modal.copy": "Copy",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/en-GB.json
@@ -5337,12 +5545,31 @@ var en_GB_default = {
   "modal.confirm.revert.message": "Revert this change back to the selected base? Other changes are kept.",
   "modal.confirm.revert.button": "Revert",
   "modal.search-versions": "Search versions",
-  "modal.version.numbered": "Version {number}",
   "modal.version.current": "Current",
   "modal.version.original": "Original",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "No versions match the search",
   "modal.revert-hunk": "Revert this change",
-  "modal.copy": "Copy"
+  "modal.copy": "Copy",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/es.json
@@ -5441,12 +5668,31 @@ var es_default = {
   "modal.confirm.revert.message": "\xBFRevertir este cambio a la base seleccionada? Los dem\xE1s cambios se conservan.",
   "modal.confirm.revert.button": "Revertir",
   "modal.search-versions": "Buscar versiones",
-  "modal.version.numbered": "Versi\xF3n {number}",
   "modal.version.current": "Actual",
   "modal.version.original": "Original",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Ninguna versi\xF3n coincide con la b\xFAsqueda",
   "modal.revert-hunk": "Revertir este cambio",
-  "modal.copy": "Copiar"
+  "modal.copy": "Copiar",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/fa.json
@@ -5545,12 +5791,31 @@ var fa_default = {
   "modal.confirm.revert.message": "\u0627\u06CC\u0646 \u062A\u063A\u06CC\u06CC\u0631 \u0628\u0647 \u067E\u0627\u06CC\u0647 \u0627\u0646\u062A\u062E\u0627\u0628\u200C\u0634\u062F\u0647 \u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u062F\u0647 \u0634\u0648\u062F\u061F \u0633\u0627\u06CC\u0631 \u062A\u063A\u06CC\u06CC\u0631\u0627\u062A \u062D\u0641\u0638 \u0645\u06CC\u200C\u0634\u0648\u0646\u062F.",
   "modal.confirm.revert.button": "\u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u06CC",
   "modal.search-versions": "\u062C\u0633\u062A\u200C\u0648\u062C\u0648\u06CC \u0646\u0633\u062E\u0647\u200C\u0647\u0627",
-  "modal.version.numbered": "\u0646\u0633\u062E\u0647 {number}",
   "modal.version.current": "\u0641\u0639\u0644\u06CC",
   "modal.version.original": "\u0627\u0635\u0644\u06CC",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u0647\u06CC\u0686 \u0646\u0633\u062E\u0647\u200C\u0627\u06CC \u0628\u0627 \u062C\u0633\u062A\u200C\u0648\u062C\u0648 \u0645\u0637\u0627\u0628\u0642\u062A \u0646\u062F\u0627\u0631\u062F",
   "modal.revert-hunk": "\u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u06CC \u0627\u06CC\u0646 \u062A\u063A\u06CC\u06CC\u0631",
-  "modal.copy": "\u06A9\u067E\u06CC"
+  "modal.copy": "\u06A9\u067E\u06CC",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/fi.json
@@ -5649,12 +5914,31 @@ var fi_default = {
   "modal.confirm.revert.message": "Perutaanko t\xE4m\xE4 muutos takaisin valittuun perustaan? Muut muutokset s\xE4ilytet\xE4\xE4n.",
   "modal.confirm.revert.button": "Peru",
   "modal.search-versions": "Hae versioista",
-  "modal.version.numbered": "Versio {number}",
   "modal.version.current": "Nykyinen",
   "modal.version.original": "Alkuper\xE4inen",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Mik\xE4\xE4n versio ei vastaa hakua",
   "modal.revert-hunk": "Peru t\xE4m\xE4 muutos",
-  "modal.copy": "Kopioi"
+  "modal.copy": "Kopioi",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/fr.json
@@ -5753,12 +6037,31 @@ var fr_default = {
   "modal.confirm.revert.message": "Annuler cette modification pour revenir \xE0 la base s\xE9lectionn\xE9e ? Les autres modifications sont conserv\xE9es.",
   "modal.confirm.revert.button": "Annuler la modification",
   "modal.search-versions": "Rechercher des versions",
-  "modal.version.numbered": "Version {number}",
   "modal.version.current": "Actuelle",
   "modal.version.original": "Original",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Aucune version ne correspond \xE0 la recherche",
   "modal.revert-hunk": "Annuler cette modification",
-  "modal.copy": "Copier"
+  "modal.copy": "Copier",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/ga.json
@@ -5857,12 +6160,31 @@ var ga_default = {
   "modal.confirm.revert.message": "Fill an t-athr\xFA seo ar ais go dt\xED an bonn roghnaithe? Coinn\xEDtear na hathruithe eile.",
   "modal.confirm.revert.button": "Fill",
   "modal.search-versions": "Cuardaigh leaganacha",
-  "modal.version.numbered": "Leagan {number}",
   "modal.version.current": "Reatha",
   "modal.version.original": "Bunleagan",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "N\xEDl aon leagan ag meaitse\xE1il an chuardaigh",
   "modal.revert-hunk": "Fill an t-athr\xFA seo",
-  "modal.copy": "C\xF3ipe\xE1il"
+  "modal.copy": "C\xF3ipe\xE1il",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/he.json
@@ -5961,12 +6283,31 @@ var he_default = {
   "modal.confirm.revert.message": "\u05DC\u05D1\u05D8\u05DC \u05E9\u05D9\u05E0\u05D5\u05D9 \u05D6\u05D4 \u05D5\u05DC\u05D7\u05D6\u05D5\u05E8 \u05DC\u05D1\u05E1\u05D9\u05E1 \u05D4\u05E0\u05D1\u05D7\u05E8? \u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05D0\u05D7\u05E8\u05D9\u05DD \u05E0\u05E9\u05DE\u05E8\u05D9\u05DD.",
   "modal.confirm.revert.button": "\u05D1\u05D9\u05D8\u05D5\u05DC \u05E9\u05D9\u05E0\u05D5\u05D9",
   "modal.search-versions": "\u05D7\u05D9\u05E4\u05D5\u05E9 \u05D2\u05E8\u05E1\u05D0\u05D5\u05EA",
-  "modal.version.numbered": "\u05D2\u05E8\u05E1\u05D4 {number}",
   "modal.version.current": "\u05E0\u05D5\u05DB\u05D7\u05D9",
   "modal.version.original": "\u05DE\u05E7\u05D5\u05E8\u05D9",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u05D0\u05D9\u05DF \u05D2\u05E8\u05E1\u05D0\u05D5\u05EA \u05D4\u05EA\u05D5\u05D0\u05DE\u05D5\u05EA \u05DC\u05D7\u05D9\u05E4\u05D5\u05E9",
   "modal.revert-hunk": "\u05D1\u05D9\u05D8\u05D5\u05DC \u05E9\u05D9\u05E0\u05D5\u05D9 \u05D6\u05D4",
-  "modal.copy": "\u05D4\u05E2\u05EA\u05E7\u05D4"
+  "modal.copy": "\u05D4\u05E2\u05EA\u05E7\u05D4",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/hu.json
@@ -6065,12 +6406,31 @@ var hu_default = {
   "modal.confirm.revert.message": "Visszavonja ezt a m\xF3dos\xEDt\xE1st a kijel\xF6lt alaphoz? A t\xF6bbi m\xF3dos\xEDt\xE1s megmarad.",
   "modal.confirm.revert.button": "Visszavon\xE1s",
   "modal.search-versions": "Verzi\xF3k keres\xE9se",
-  "modal.version.numbered": "{number}. verzi\xF3",
   "modal.version.current": "Jelenlegi",
   "modal.version.original": "Eredeti",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Nincs a keres\xE9snek megfelel\u0151 verzi\xF3",
   "modal.revert-hunk": "M\xF3dos\xEDt\xE1s visszavon\xE1sa",
-  "modal.copy": "M\xE1sol\xE1s"
+  "modal.copy": "M\xE1sol\xE1s",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/id.json
@@ -6169,12 +6529,31 @@ var id_default = {
   "modal.confirm.revert.message": "Kembalikan perubahan ini ke basis yang dipilih? Perubahan lain tetap dipertahankan.",
   "modal.confirm.revert.button": "Kembalikan",
   "modal.search-versions": "Cari versi",
-  "modal.version.numbered": "Versi {number}",
   "modal.version.current": "Saat ini",
   "modal.version.original": "Asli",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Tidak ada versi yang cocok dengan pencarian",
   "modal.revert-hunk": "Kembalikan perubahan ini",
-  "modal.copy": "Salin"
+  "modal.copy": "Salin",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/it.json
@@ -6273,12 +6652,31 @@ var it_default = {
   "modal.confirm.revert.message": "Ripristinare questa modifica alla base selezionata? Le altre modifiche vengono mantenute.",
   "modal.confirm.revert.button": "Ripristina",
   "modal.search-versions": "Cerca versioni",
-  "modal.version.numbered": "Versione {number}",
   "modal.version.current": "Attuale",
   "modal.version.original": "Originale",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Nessuna versione corrisponde alla ricerca",
   "modal.revert-hunk": "Ripristina questa modifica",
-  "modal.copy": "Copia"
+  "modal.copy": "Copia",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/ja.json
@@ -6377,12 +6775,31 @@ var ja_default = {
   "modal.confirm.revert.message": "\u3053\u306E\u5909\u66F4\u3092\u9078\u629E\u3057\u305F\u30D9\u30FC\u30B9\u306B\u623B\u3057\u307E\u3059\u304B\uFF1F\u4ED6\u306E\u5909\u66F4\u306F\u4FDD\u6301\u3055\u308C\u307E\u3059\u3002",
   "modal.confirm.revert.button": "\u5143\u306B\u623B\u3059",
   "modal.search-versions": "\u30D0\u30FC\u30B8\u30E7\u30F3\u3092\u691C\u7D22",
-  "modal.version.numbered": "\u30D0\u30FC\u30B8\u30E7\u30F3 {number}",
   "modal.version.current": "\u73FE\u5728",
   "modal.version.original": "\u5143\u306E\u72B6\u614B",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u691C\u7D22\u306B\u4E00\u81F4\u3059\u308B\u30D0\u30FC\u30B8\u30E7\u30F3\u304C\u3042\u308A\u307E\u305B\u3093",
   "modal.revert-hunk": "\u3053\u306E\u5909\u66F4\u3092\u5143\u306B\u623B\u3059",
-  "modal.copy": "\u30B3\u30D4\u30FC"
+  "modal.copy": "\u30B3\u30D4\u30FC",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/ka.json
@@ -6481,12 +6898,31 @@ var ka_default = {
   "modal.confirm.revert.message": "\u10D3\u10D0\u10D1\u10E0\u10E3\u10DC\u10D3\u10D4\u10E1 \u10D4\u10E1 \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D0 \u10D0\u10E0\u10E9\u10D4\u10E3\u10DA \u10D1\u10D0\u10D6\u10D0\u10DB\u10D3\u10D4? \u10E1\u10EE\u10D5\u10D0 \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10D8 \u10E8\u10D4\u10DC\u10D0\u10E0\u10E9\u10E3\u10DC\u10D3\u10D4\u10D1\u10D0.",
   "modal.confirm.revert.button": "\u10D3\u10D0\u10D1\u10E0\u10E3\u10DC\u10D4\u10D1\u10D0",
   "modal.search-versions": "\u10D5\u10D4\u10E0\u10E1\u10D8\u10D4\u10D1\u10D8\u10E1 \u10EB\u10D8\u10D4\u10D1\u10D0",
-  "modal.version.numbered": "\u10D5\u10D4\u10E0\u10E1\u10D8\u10D0 {number}",
   "modal.version.current": "\u10DB\u10D8\u10DB\u10D3\u10D8\u10DC\u10D0\u10E0\u10D4",
   "modal.version.original": "\u10DD\u10E0\u10D8\u10D2\u10D8\u10DC\u10D0\u10DA\u10D8",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u10EB\u10D8\u10D4\u10D1\u10D0\u10E1 \u10D5\u10D4\u10E0\u10E1\u10D8\u10D4\u10D1\u10D8 \u10D0\u10E0 \u10D4\u10DB\u10D7\u10EE\u10D5\u10D4\u10D5\u10D0",
   "modal.revert-hunk": "\u10D0\u10DB \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10D3\u10D0\u10D1\u10E0\u10E3\u10DC\u10D4\u10D1\u10D0",
-  "modal.copy": "\u10D9\u10DD\u10DE\u10D8\u10E0\u10D4\u10D1\u10D0"
+  "modal.copy": "\u10D9\u10DD\u10DE\u10D8\u10E0\u10D4\u10D1\u10D0",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/kh.json
@@ -6585,12 +7021,31 @@ var kh_default = {
   "modal.confirm.revert.message": "\u178F\u17D2\u179A\u17A1\u1794\u17CB\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1793\u17C1\u17C7\u1791\u17C5\u1798\u17BC\u179B\u178A\u17D2\u178B\u17B6\u1793\u178A\u17C2\u179B\u1794\u17B6\u1793\u1787\u17D2\u179A\u17BE\u179F\u179C\u17B7\u1789? \u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1795\u17D2\u179F\u17C1\u1784\u1791\u17C0\u178F\u178F\u17D2\u179A\u17BC\u179C\u179A\u1780\u17D2\u179F\u17B6\u1791\u17BB\u1780\u17D4",
   "modal.confirm.revert.button": "\u178F\u17D2\u179A\u17A1\u1794\u17CB\u179C\u17B7\u1789",
   "modal.search-versions": "\u179F\u17D2\u179C\u17C2\u1784\u179A\u1780\u1780\u17C6\u178E\u17C2",
-  "modal.version.numbered": "\u1780\u17C6\u178E\u17C2 {number}",
   "modal.version.current": "\u1794\u1785\u17D2\u1785\u17BB\u1794\u17D2\u1794\u1793\u17D2\u1793",
   "modal.version.original": "\u178A\u17BE\u1798",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u1782\u17D2\u1798\u17B6\u1793\u1780\u17C6\u178E\u17C2\u178A\u17C2\u179B\u178F\u17D2\u179A\u17BC\u179C\u1793\u17B9\u1784\u1780\u17B6\u179A\u179F\u17D2\u179C\u17C2\u1784\u179A\u1780\u1791\u17C1",
   "modal.revert-hunk": "\u178F\u17D2\u179A\u17A1\u1794\u17CB\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1793\u17C1\u17C7\u179C\u17B7\u1789",
-  "modal.copy": "\u1785\u1798\u17D2\u179B\u1784"
+  "modal.copy": "\u1785\u1798\u17D2\u179B\u1784",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/ko.json
@@ -6689,12 +7144,31 @@ var ko_default = {
   "modal.confirm.revert.message": "\uC774 \uBCC0\uACBD\uC744 \uC120\uD0DD\uD55C \uAE30\uC900\uC73C\uB85C \uB418\uB3CC\uB9AC\uC2DC\uACA0\uC2B5\uB2C8\uAE4C? \uB2E4\uB978 \uBCC0\uACBD \uC0AC\uD56D\uC740 \uC720\uC9C0\uB429\uB2C8\uB2E4.",
   "modal.confirm.revert.button": "\uB418\uB3CC\uB9AC\uAE30",
   "modal.search-versions": "\uBC84\uC804 \uAC80\uC0C9",
-  "modal.version.numbered": "\uBC84\uC804 {number}",
   "modal.version.current": "\uD604\uC7AC",
   "modal.version.original": "\uC6D0\uBCF8",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\uAC80\uC0C9\uACFC \uC77C\uCE58\uD558\uB294 \uBC84\uC804\uC774 \uC5C6\uC2B5\uB2C8\uB2E4",
   "modal.revert-hunk": "\uC774 \uBCC0\uACBD \uB418\uB3CC\uB9AC\uAE30",
-  "modal.copy": "\uBCF5\uC0AC"
+  "modal.copy": "\uBCF5\uC0AC",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/lv.json
@@ -6793,12 +7267,31 @@ var lv_default = {
   "modal.confirm.revert.message": "Atsaukt \u0161o izmai\u0146u atpaka\u013C uz izv\u0113l\u0113to b\u0101zi? P\u0101r\u0113j\u0101s izmai\u0146as tiek saglab\u0101tas.",
   "modal.confirm.revert.button": "Atsaukt",
   "modal.search-versions": "Mekl\u0113t versij\u0101s",
-  "modal.version.numbered": "Versija {number}",
   "modal.version.current": "Pa\u0161reiz\u0113jais",
   "modal.version.original": "Ori\u0123in\u0101ls",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Neviena versija neatbilst mekl\u0113jumam",
   "modal.revert-hunk": "Atsaukt \u0161o izmai\u0146u",
-  "modal.copy": "Kop\u0113t"
+  "modal.copy": "Kop\u0113t",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/ms.json
@@ -6897,12 +7390,31 @@ var ms_default = {
   "modal.confirm.revert.message": "Patah balik perubahan ini kepada asas yang dipilih? Perubahan lain dikekalkan.",
   "modal.confirm.revert.button": "Patah balik",
   "modal.search-versions": "Cari versi",
-  "modal.version.numbered": "Versi {number}",
   "modal.version.current": "Semasa",
   "modal.version.original": "Asal",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Tiada versi sepadan dengan carian",
   "modal.revert-hunk": "Patah balik perubahan ini",
-  "modal.copy": "Salin"
+  "modal.copy": "Salin",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/ne.json
@@ -7001,12 +7513,31 @@ var ne_default = {
   "modal.confirm.revert.message": "\u092F\u094B \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928\u0932\u093E\u0908 \u091A\u092F\u0928 \u0917\u0930\u093F\u090F\u0915\u094B \u0906\u0927\u093E\u0930\u092E\u093E \u092B\u093F\u0930\u094D\u0924\u093E \u0917\u0930\u094D\u0928\u0947? \u0905\u0928\u094D\u092F \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928\u0939\u0930\u0942 \u0930\u093E\u0916\u093F\u0928\u094D\u091B\u0928\u094D\u0964",
   "modal.confirm.revert.button": "\u092B\u093F\u0930\u094D\u0924\u093E \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
   "modal.search-versions": "\u0938\u0902\u0938\u094D\u0915\u0930\u0923\u0939\u0930\u0942 \u0916\u094B\u091C\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
-  "modal.version.numbered": "\u0938\u0902\u0938\u094D\u0915\u0930\u0923 {number}",
   "modal.version.current": "\u0939\u093E\u0932\u0915\u094B",
   "modal.version.original": "\u092E\u0942\u0932",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u0916\u094B\u091C\u0938\u0901\u0917 \u0915\u0941\u0928\u0948 \u0938\u0902\u0938\u094D\u0915\u0930\u0923 \u092E\u0947\u0932 \u0916\u093E\u0901\u0926\u0948\u0928",
   "modal.revert-hunk": "\u092F\u094B \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u092B\u093F\u0930\u094D\u0924\u093E \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
-  "modal.copy": "\u092A\u094D\u0930\u0924\u093F\u0932\u093F\u092A\u093F \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D"
+  "modal.copy": "\u092A\u094D\u0930\u0924\u093F\u0932\u093F\u092A\u093F \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/nl.json
@@ -7105,12 +7636,31 @@ var nl_default = {
   "modal.confirm.revert.message": "Deze wijziging terugdraaien naar de geselecteerde basis? Andere wijzigingen blijven behouden.",
   "modal.confirm.revert.button": "Terugdraaien",
   "modal.search-versions": "Versies zoeken",
-  "modal.version.numbered": "Versie {number}",
   "modal.version.current": "Huidig",
   "modal.version.original": "Origineel",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Geen versies komen overeen met de zoekopdracht",
   "modal.revert-hunk": "Deze wijziging terugdraaien",
-  "modal.copy": "Kopi\xEBren"
+  "modal.copy": "Kopi\xEBren",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/no.json
@@ -7209,12 +7759,31 @@ var no_default = {
   "modal.confirm.revert.message": "Vil du tilbakestille denne endringen til den valgte basen? \xD8vrige endringer beholdes.",
   "modal.confirm.revert.button": "Tilbakestill",
   "modal.search-versions": "S\xF8k i versjoner",
-  "modal.version.numbered": "Versjon {number}",
   "modal.version.current": "Gjeldende",
   "modal.version.original": "Original",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Ingen versjoner samsvarer med s\xF8ket",
   "modal.revert-hunk": "Tilbakestill denne endringen",
-  "modal.copy": "Kopier"
+  "modal.copy": "Kopier",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/pl.json
@@ -7313,12 +7882,31 @@ var pl_default = {
   "modal.confirm.revert.message": "Wycofa\u0107 t\u0119 zmian\u0119 do wybranej bazy? Pozosta\u0142e zmiany zostan\u0105 zachowane.",
   "modal.confirm.revert.button": "Wycofaj",
   "modal.search-versions": "Szukaj wersji",
-  "modal.version.numbered": "Wersja {number}",
   "modal.version.current": "Bie\u017C\u0105ca",
   "modal.version.original": "Orygina\u0142",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Brak wersji pasuj\u0105cych do wyszukiwania",
   "modal.revert-hunk": "Wycofaj t\u0119 zmian\u0119",
-  "modal.copy": "Kopiuj"
+  "modal.copy": "Kopiuj",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/pt.json
@@ -7417,12 +8005,31 @@ var pt_default = {
   "modal.confirm.revert.message": "Reverter esta altera\xE7\xE3o para a base selecionada? As outras altera\xE7\xF5es s\xE3o mantidas.",
   "modal.confirm.revert.button": "Reverter",
   "modal.search-versions": "Pesquisar vers\xF5es",
-  "modal.version.numbered": "Vers\xE3o {number}",
   "modal.version.current": "Atual",
   "modal.version.original": "Original",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Nenhuma vers\xE3o corresponde \xE0 pesquisa",
   "modal.revert-hunk": "Reverter esta altera\xE7\xE3o",
-  "modal.copy": "Copiar"
+  "modal.copy": "Copiar",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/pt-BR.json
@@ -7521,12 +8128,31 @@ var pt_BR_default = {
   "modal.confirm.revert.message": "Reverter esta altera\xE7\xE3o para a base selecionada? As outras altera\xE7\xF5es s\xE3o mantidas.",
   "modal.confirm.revert.button": "Reverter",
   "modal.search-versions": "Pesquisar vers\xF5es",
-  "modal.version.numbered": "Vers\xE3o {number}",
   "modal.version.current": "Atual",
   "modal.version.original": "Original",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Nenhuma vers\xE3o corresponde \xE0 pesquisa",
   "modal.revert-hunk": "Reverter esta altera\xE7\xE3o",
-  "modal.copy": "Copiar"
+  "modal.copy": "Copiar",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/ro.json
@@ -7625,12 +8251,31 @@ var ro_default = {
   "modal.confirm.revert.message": "Revii asupra acestei modific\u0103ri la baza selectat\u0103? Celelalte modific\u0103ri sunt p\u0103strate.",
   "modal.confirm.revert.button": "Revino",
   "modal.search-versions": "Caut\u0103 versiuni",
-  "modal.version.numbered": "Versiunea {number}",
   "modal.version.current": "Curent\u0103",
   "modal.version.original": "Original",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Nicio versiune nu corespunde c\u0103ut\u0103rii",
   "modal.revert-hunk": "Revino asupra acestei modific\u0103ri",
-  "modal.copy": "Copiaz\u0103"
+  "modal.copy": "Copiaz\u0103",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/ru.json
@@ -7729,12 +8374,31 @@ var ru_default = {
   "modal.confirm.revert.message": "\u041E\u0442\u043A\u0430\u0442\u0438\u0442\u044C \u044D\u0442\u043E \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0435 \u043A \u0432\u044B\u0431\u0440\u0430\u043D\u043D\u043E\u0439 \u0431\u0430\u0437\u0435? \u041E\u0441\u0442\u0430\u043B\u044C\u043D\u044B\u0435 \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044F \u0441\u043E\u0445\u0440\u0430\u043D\u044F\u0442\u0441\u044F.",
   "modal.confirm.revert.button": "\u041E\u0442\u043A\u0430\u0442\u0438\u0442\u044C",
   "modal.search-versions": "\u041F\u043E\u0438\u0441\u043A \u043F\u043E \u0432\u0435\u0440\u0441\u0438\u044F\u043C",
-  "modal.version.numbered": "\u0412\u0435\u0440\u0441\u0438\u044F {number}",
   "modal.version.current": "\u0422\u0435\u043A\u0443\u0449\u0430\u044F",
   "modal.version.original": "\u041E\u0440\u0438\u0433\u0438\u043D\u0430\u043B",
+  "modal.version.action.created": "\u0421\u043E\u0437\u0434\u0430\u043D\u0430",
+  "modal.version.action.modified": "\u0418\u0437\u043C\u0435\u043D\u0435\u043D\u0430",
+  "modal.version.action.cleared": "\u041E\u0447\u0438\u0449\u0435\u043D\u0430",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u041D\u0435\u0442 \u0432\u0435\u0440\u0441\u0438\u0439, \u0441\u043E\u043E\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0443\u044E\u0449\u0438\u0445 \u043F\u043E\u0438\u0441\u043A\u0443",
   "modal.revert-hunk": "\u041E\u0442\u043A\u0430\u0442\u0438\u0442\u044C \u044D\u0442\u043E \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0435",
-  "modal.copy": "\u041A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u0442\u044C"
+  "modal.copy": "\u041A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u0442\u044C",
+  "modal.put-label.title": "\u041F\u043E\u0441\u0442\u0430\u0432\u0438\u0442\u044C \u043C\u0435\u0442\u043A\u0443",
+  "modal.put-label.message": "\u041E\u0442\u043C\u0435\u0442\u044C\u0442\u0435 \u0442\u0435\u043A\u0443\u0449\u0435\u0435 \u0441\u043E\u0434\u0435\u0440\u0436\u0438\u043C\u043E\u0435 \u043A\u043E\u0440\u043E\u0442\u043A\u043E\u0439 \u043C\u0435\u0442\u043A\u043E\u0439.",
+  "modal.put-label.placeholder": "\u041C\u0435\u0442\u043A\u0430",
+  "modal.put-label.confirm": "\u0421\u043E\u0445\u0440\u0430\u043D\u0438\u0442\u044C",
+  "menu.local-history.show-history": "\u041F\u043E\u043A\u0430\u0437\u0430\u0442\u044C \u0438\u0441\u0442\u043E\u0440\u0438\u044E",
+  "menu.local-history.show-history-selection": "\u041F\u043E\u043A\u0430\u0437\u0430\u0442\u044C \u0438\u0441\u0442\u043E\u0440\u0438\u044E \u0434\u043B\u044F \u0432\u044B\u0434\u0435\u043B\u0435\u043D\u0438\u044F",
+  "menu.local-history.put-label": "\u041F\u043E\u0441\u0442\u0430\u0432\u0438\u0442\u044C \u043C\u0435\u0442\u043A\u0443",
+  "menu.local-history.recent-changes": "\u041D\u0435\u0434\u0430\u0432\u043D\u0438\u0435 \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044F",
+  "view.recent-changes.title": "\u041D\u0435\u0434\u0430\u0432\u043D\u0438\u0435 \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044F",
+  "view.recent-changes.empty": "\u0414\u043B\u044F \u0430\u043A\u0442\u0438\u0432\u043D\u043E\u0433\u043E \u0444\u0430\u0439\u043B\u0430 \u043D\u0435\u0442 \u0438\u0441\u0442\u043E\u0440\u0438\u0438 \u0432\u0435\u0440\u0441\u0438\u0439.",
+  "view.recent-changes.menu.show-diff": "\u041F\u043E\u043A\u0430\u0437\u0430\u0442\u044C \u0440\u0430\u0437\u043B\u0438\u0447\u0438\u044F",
+  "view.recent-changes.menu.restore": "\u0412\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C \u044D\u0442\u0443 \u0432\u0435\u0440\u0441\u0438\u044E",
+  "view.recent-changes.menu.delete": "\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u0432\u0435\u0440\u0441\u0438\u044E",
+  "view.recent-changes.menu.put-label": "\u041F\u043E\u0441\u0442\u0430\u0432\u0438\u0442\u044C \u043C\u0435\u0442\u043A\u0443",
+  "modal.label-selected": "\u041F\u043E\u0441\u0442\u0430\u0432\u0438\u0442\u044C \u043C\u0435\u0442\u043A\u0443 \u043D\u0430 \u0432\u044B\u0431\u0440\u0430\u043D\u043D\u0443\u044E \u0432\u0435\u0440\u0441\u0438\u044E",
+  "modal.label-version.message": "\u041E\u0442\u043C\u0435\u0442\u044C\u0442\u0435 \u044D\u0442\u0443 \u0432\u0435\u0440\u0441\u0438\u044E \u043A\u043E\u0440\u043E\u0442\u043A\u043E\u0439 \u043C\u0435\u0442\u043A\u043E\u0439."
 };
 
 // lang/sk.json
@@ -7833,12 +8497,31 @@ var sk_default = {
   "modal.confirm.revert.message": "Vr\xE1ti\u0165 t\xFAto zmenu sp\xE4\u0165 na vybran\xFD z\xE1klad? Ostatn\xE9 zmeny zostan\xFA zachovan\xE9.",
   "modal.confirm.revert.button": "Vr\xE1ti\u0165",
   "modal.search-versions": "H\u013Eada\u0165 verzie",
-  "modal.version.numbered": "Verzia {number}",
   "modal.version.current": "Aktu\xE1lna",
   "modal.version.original": "Origin\xE1l",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u017Diadne verzie nezodpovedaj\xFA h\u013Eadaniu",
   "modal.revert-hunk": "Vr\xE1ti\u0165 t\xFAto zmenu",
-  "modal.copy": "Kop\xEDrova\u0165"
+  "modal.copy": "Kop\xEDrova\u0165",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/sq.json
@@ -7937,12 +8620,31 @@ var sq_default = {
   "modal.confirm.revert.message": "Ta kthesh k\xEBt\xEB ndryshim te baza e zgjedhur? Ndryshimet e tjera ruhen.",
   "modal.confirm.revert.button": "Ktheje",
   "modal.search-versions": "K\xEBrko versionet",
-  "modal.version.numbered": "Versioni {number}",
   "modal.version.current": "Aktuali",
   "modal.version.original": "Origjinali",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Asnj\xEB version nuk p\xEBrputhet me k\xEBrkimin",
   "modal.revert-hunk": "Ktheje k\xEBt\xEB ndryshim",
-  "modal.copy": "Kopjo"
+  "modal.copy": "Kopjo",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/sr.json
@@ -8041,12 +8743,31 @@ var sr_default = {
   "modal.confirm.revert.message": "\u041E\u043F\u043E\u0437\u0432\u0430\u0442\u0438 \u043E\u0432\u0443 \u0438\u0437\u043C\u0435\u043D\u0443 \u043D\u0430 \u0438\u0437\u0430\u0431\u0440\u0430\u043D\u0443 \u043E\u0441\u043D\u043E\u0432\u0443? \u041E\u0441\u0442\u0430\u043B\u0435 \u0438\u0437\u043C\u0435\u043D\u0435 \u0441\u0435 \u0437\u0430\u0434\u0440\u0436\u0430\u0432\u0430\u0458\u0443.",
   "modal.confirm.revert.button": "\u041E\u043F\u043E\u0437\u043E\u0432\u0438",
   "modal.search-versions": "\u041F\u0440\u0435\u0442\u0440\u0430\u0436\u0438 \u0432\u0435\u0440\u0437\u0438\u0458\u0435",
-  "modal.version.numbered": "\u0412\u0435\u0440\u0437\u0438\u0458\u0430 {number}",
   "modal.version.current": "\u0422\u0435\u043A\u0443\u045B\u0430",
   "modal.version.original": "\u041E\u0440\u0438\u0433\u0438\u043D\u0430\u043B",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u041D\u0438\u0458\u0435\u0434\u043D\u0430 \u0432\u0435\u0440\u0437\u0438\u0458\u0430 \u043D\u0435 \u043E\u0434\u0433\u043E\u0432\u0430\u0440\u0430 \u043F\u0440\u0435\u0442\u0440\u0430\u0437\u0438",
   "modal.revert-hunk": "\u041E\u043F\u043E\u0437\u043E\u0432\u0438 \u043E\u0432\u0443 \u0438\u0437\u043C\u0435\u043D\u0443",
-  "modal.copy": "\u041A\u043E\u043F\u0438\u0440\u0430\u0458"
+  "modal.copy": "\u041A\u043E\u043F\u0438\u0440\u0430\u0458",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/sv.json
@@ -8145,12 +8866,31 @@ var sv_default = {
   "modal.confirm.revert.message": "Vill du \xE5terst\xE4lla den h\xE4r \xE4ndringen till den valda basen? \xD6vriga \xE4ndringar beh\xE5lls.",
   "modal.confirm.revert.button": "\xC5terst\xE4ll",
   "modal.search-versions": "S\xF6k versioner",
-  "modal.version.numbered": "Version {number}",
   "modal.version.current": "Aktuell",
   "modal.version.original": "Original",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Inga versioner matchar s\xF6kningen",
   "modal.revert-hunk": "\xC5terst\xE4ll den h\xE4r \xE4ndringen",
-  "modal.copy": "Kopiera"
+  "modal.copy": "Kopiera",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/th.json
@@ -8249,12 +8989,31 @@ var th_default = {
   "modal.confirm.revert.message": "\u0E22\u0E49\u0E2D\u0E19\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E19\u0E35\u0E49\u0E01\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E22\u0E31\u0E07\u0E10\u0E32\u0E19\u0E17\u0E35\u0E48\u0E40\u0E25\u0E37\u0E2D\u0E01\u0E2B\u0E23\u0E37\u0E2D\u0E44\u0E21\u0E48 \u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E2D\u0E37\u0E48\u0E19\u0E08\u0E30\u0E16\u0E39\u0E01\u0E40\u0E01\u0E47\u0E1A\u0E44\u0E27\u0E49",
   "modal.confirm.revert.button": "\u0E22\u0E49\u0E2D\u0E19\u0E01\u0E25\u0E31\u0E1A",
   "modal.search-versions": "\u0E04\u0E49\u0E19\u0E2B\u0E32\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19",
-  "modal.version.numbered": "\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19 {number}",
   "modal.version.current": "\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19",
   "modal.version.original": "\u0E15\u0E49\u0E19\u0E09\u0E1A\u0E31\u0E1A",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u0E44\u0E21\u0E48\u0E21\u0E35\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19\u0E17\u0E35\u0E48\u0E15\u0E23\u0E07\u0E01\u0E31\u0E1A\u0E01\u0E32\u0E23\u0E04\u0E49\u0E19\u0E2B\u0E32",
   "modal.revert-hunk": "\u0E22\u0E49\u0E2D\u0E19\u0E01\u0E25\u0E31\u0E1A\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E19\u0E35\u0E49",
-  "modal.copy": "\u0E04\u0E31\u0E14\u0E25\u0E2D\u0E01"
+  "modal.copy": "\u0E04\u0E31\u0E14\u0E25\u0E2D\u0E01",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/tr.json
@@ -8353,12 +9112,31 @@ var tr_default = {
   "modal.confirm.revert.message": "Bu de\u011Fi\u015Fikli\u011Fi se\xE7ilen temele geri almak istiyor musunuz? Di\u011Fer de\u011Fi\u015Fiklikler korunur.",
   "modal.confirm.revert.button": "Geri al",
   "modal.search-versions": "S\xFCr\xFCmlerde ara",
-  "modal.version.numbered": "S\xFCr\xFCm {number}",
   "modal.version.current": "Ge\xE7erli",
   "modal.version.original": "\xD6zg\xFCn",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Aramayla e\u015Fle\u015Fen s\xFCr\xFCm yok",
   "modal.revert-hunk": "Bu de\u011Fi\u015Fikli\u011Fi geri al",
-  "modal.copy": "Kopyala"
+  "modal.copy": "Kopyala",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/uk.json
@@ -8457,12 +9235,31 @@ var uk_default = {
   "modal.confirm.revert.message": "\u0412\u0456\u0434\u043A\u043E\u0442\u0438\u0442\u0438 \u0446\u044E \u0437\u043C\u0456\u043D\u0443 \u0434\u043E \u0432\u0438\u0431\u0440\u0430\u043D\u043E\u0457 \u0431\u0430\u0437\u0438? \u0406\u043D\u0448\u0456 \u0437\u043C\u0456\u043D\u0438 \u0431\u0443\u0434\u0435 \u0437\u0431\u0435\u0440\u0435\u0436\u0435\u043D\u043E.",
   "modal.confirm.revert.button": "\u0412\u0456\u0434\u043A\u043E\u0442\u0438\u0442\u0438",
   "modal.search-versions": "\u041F\u043E\u0448\u0443\u043A \u0432\u0435\u0440\u0441\u0456\u0439",
-  "modal.version.numbered": "\u0412\u0435\u0440\u0441\u0456\u044F {number}",
   "modal.version.current": "\u041F\u043E\u0442\u043E\u0447\u043D\u0430",
   "modal.version.original": "\u041E\u0440\u0438\u0433\u0456\u043D\u0430\u043B",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u041D\u0435\u043C\u0430\u0454 \u0432\u0435\u0440\u0441\u0456\u0439, \u0449\u043E \u0432\u0456\u0434\u043F\u043E\u0432\u0456\u0434\u0430\u044E\u0442\u044C \u043F\u043E\u0448\u0443\u043A\u0443",
   "modal.revert-hunk": "\u0412\u0456\u0434\u043A\u043E\u0442\u0438\u0442\u0438 \u0446\u044E \u0437\u043C\u0456\u043D\u0443",
-  "modal.copy": "\u041A\u043E\u043F\u0456\u044E\u0432\u0430\u0442\u0438"
+  "modal.copy": "\u041A\u043E\u043F\u0456\u044E\u0432\u0430\u0442\u0438",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/uz.json
@@ -8561,12 +9358,31 @@ var uz_default = {
   "modal.confirm.revert.message": "Bu o\u02BBzgarishni tanlangan asosga qaytarilsinmi? Boshqa o\u02BBzgarishlar saqlanadi.",
   "modal.confirm.revert.button": "Qaytarish",
   "modal.search-versions": "Versiyalarni qidirish",
-  "modal.version.numbered": "Versiya {number}",
   "modal.version.current": "Joriy",
   "modal.version.original": "Asl",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Qidiruvga mos versiyalar yo\u02BBq",
   "modal.revert-hunk": "Bu o\u02BBzgarishni qaytarish",
-  "modal.copy": "Nusxalash"
+  "modal.copy": "Nusxalash",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/vi.json
@@ -8665,12 +9481,31 @@ var vi_default = {
   "modal.confirm.revert.message": "Ho\xE0n nguy\xEAn thay \u0111\u1ED5i n\xE0y v\u1EC1 b\u1EA3n n\u1EC1n \u0111\xE3 ch\u1ECDn? C\xE1c thay \u0111\u1ED5i kh\xE1c \u0111\u01B0\u1EE3c gi\u1EEF nguy\xEAn.",
   "modal.confirm.revert.button": "Ho\xE0n nguy\xEAn",
   "modal.search-versions": "T\xECm ki\u1EBFm phi\xEAn b\u1EA3n",
-  "modal.version.numbered": "Phi\xEAn b\u1EA3n {number}",
   "modal.version.current": "Hi\u1EC7n t\u1EA1i",
   "modal.version.original": "B\u1EA3n g\u1ED1c",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Kh\xF4ng c\xF3 phi\xEAn b\u1EA3n n\xE0o kh\u1EDBp v\u1EDBi t\xECm ki\u1EBFm",
   "modal.revert-hunk": "Ho\xE0n nguy\xEAn thay \u0111\u1ED5i n\xE0y",
-  "modal.copy": "Sao ch\xE9p"
+  "modal.copy": "Sao ch\xE9p",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/zh.json
@@ -8769,12 +9604,31 @@ var zh_default = {
   "modal.confirm.revert.message": "\u5C06\u6B64\u66F4\u6539\u8FD8\u539F\u5230\u6240\u9009\u57FA\u51C6\uFF1F\u5176\u4ED6\u66F4\u6539\u5C06\u4FDD\u7559\u3002",
   "modal.confirm.revert.button": "\u8FD8\u539F",
   "modal.search-versions": "\u641C\u7D22\u7248\u672C",
-  "modal.version.numbered": "\u7248\u672C {number}",
   "modal.version.current": "\u5F53\u524D",
   "modal.version.original": "\u539F\u59CB",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u6CA1\u6709\u5339\u914D\u641C\u7D22\u7684\u7248\u672C",
   "modal.revert-hunk": "\u8FD8\u539F\u6B64\u66F4\u6539",
-  "modal.copy": "\u590D\u5236"
+  "modal.copy": "\u590D\u5236",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // lang/zh-TW.json
@@ -8873,12 +9727,31 @@ var zh_TW_default = {
   "modal.confirm.revert.message": "\u5C07\u6B64\u8B8A\u66F4\u9084\u539F\u81F3\u6240\u9078\u57FA\u6E96\uFF1F\u5176\u4ED6\u8B8A\u66F4\u5C07\u4FDD\u7559\u3002",
   "modal.confirm.revert.button": "\u9084\u539F",
   "modal.search-versions": "\u641C\u5C0B\u7248\u672C",
-  "modal.version.numbered": "\u7248\u672C {number}",
   "modal.version.current": "\u76EE\u524D",
   "modal.version.original": "\u539F\u59CB",
+  "modal.version.action.created": "Created",
+  "modal.version.action.modified": "Modified",
+  "modal.version.action.cleared": "Cleared",
+  "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u6C92\u6709\u7B26\u5408\u641C\u5C0B\u7684\u7248\u672C",
   "modal.revert-hunk": "\u9084\u539F\u6B64\u8B8A\u66F4",
-  "modal.copy": "\u8907\u88FD"
+  "modal.copy": "\u8907\u88FD",
+  "modal.put-label.title": "Put label",
+  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.placeholder": "Label",
+  "modal.put-label.confirm": "Save",
+  "menu.local-history.show-history": "Show History",
+  "menu.local-history.show-history-selection": "Show History for Selection",
+  "menu.local-history.put-label": "Put label",
+  "menu.local-history.recent-changes": "Recent changes",
+  "view.recent-changes.title": "Recent changes",
+  "view.recent-changes.empty": "No version history for the active file.",
+  "view.recent-changes.menu.show-diff": "Show diff",
+  "view.recent-changes.menu.restore": "Restore this version",
+  "view.recent-changes.menu.delete": "Delete version",
+  "view.recent-changes.menu.put-label": "Put label",
+  "modal.label-selected": "Label selected version",
+  "modal.label-version.message": "Tag this version with a short label."
 };
 
 // src/services/i18n.service.ts
@@ -9180,6 +10053,122 @@ var I18nService = class _I18nService {
     } catch (e) {
       return false;
     }
+  }
+};
+
+// src/helpers/selection-history.helper.ts
+var SelectionHistoryHelper = class _SelectionHistoryHelper {
+  /**
+   * Resolves the ids of the versions where the selection text was added or
+   * removed at that point on the timeline.
+   *
+   * Each version is diffed against its previous neighbour in the supplied
+   * order (the oldest entry is diffed against `baselineLines`). A version is
+   * included when any line added or removed by that neighbour-diff contains
+   * the selection text. For a multi-line selection, every non-empty selection
+   * line must appear in the added or removed lines of the same side, so the
+   * filter matches genuine block edits rather than coincidental single-line
+   * overlaps.
+   *
+   * The match is case-sensitive and substring-based on the changed lines,
+   * mirroring how a user reads the diff.
+   *
+   * @param {SelectableVersion[]} versions - The timeline versions in oldest-first order
+   * @param {string[]} baselineLines - The history baseline lines, used as the previous neighbour for the oldest version
+   * @param {string} selection - The selection text to look for in added/removed lines
+   * @return {Set<string>} The ids of the matching versions; empty when the selection is empty
+   */
+  static match(versions, baselineLines, selection) {
+    var _a;
+    const matched = /* @__PURE__ */ new Set();
+    const list = versions != null ? versions : [];
+    const needle = (selection != null ? selection : "").trim();
+    if (needle === "" || list.length === 0) {
+      return matched;
+    }
+    const selectionLines = _SelectionHistoryHelper.toSelectionLines(needle);
+    if (selectionLines.length === 0) {
+      return matched;
+    }
+    const baseline = baselineLines != null ? baselineLines : [];
+    let previous = baseline;
+    for (const version of list) {
+      const current = (_a = version == null ? void 0 : version.lines) != null ? _a : [];
+      const { added, removed } = _SelectionHistoryHelper.collectChangedLines(previous, current);
+      if (_SelectionHistoryHelper.allLinesPresent(selectionLines, added) || _SelectionHistoryHelper.allLinesPresent(selectionLines, removed)) {
+        matched.add(version.id);
+      }
+      previous = current;
+    }
+    return matched;
+  }
+  /**
+   * Splits the selection into non-empty trimmed lines. Empty lines inside the
+   * selection are dropped so a block selection ending on a blank line still
+   * matches when only the content lines appear in the diff. When the entire
+   * selection is whitespace the returned list is empty and the caller treats
+   * the selection as a no-op.
+   *
+   * @param {string} selection - The trimmed selection text
+   * @return {string[]} The selection split into non-empty lines
+   */
+  static toSelectionLines(selection) {
+    return selection.split(/\r?\n/).map((line) => line.trim()).filter((line) => line.length > 0);
+  }
+  /**
+   * Collects the added and removed lines between two contents using a
+   * structured patch with zero context, so each hunk's lines are exactly the
+   * changed lines on either side. A trailing newline is appended to both texts
+   * before diffing for the same reason as in VersionLabelHelper: without it the
+   * last "no-newline" run gets merged into a coarser block and inflates the
+   * counts.
+   *
+   * @param {string[]} previous - The previous content as lines
+   * @param {string[]} current - The current content as lines
+   * @return {{ added: string[]; removed: string[] }} The plain content of added/removed lines
+   */
+  static collectChangedLines(previous, current) {
+    const added = [];
+    const removed = [];
+    if (previous.length === 0 && current.length === 0) {
+      return { added, removed };
+    }
+    const previousText = `${previous.join("\n")}
+`;
+    const currentText = `${current.join("\n")}
+`;
+    if (previousText === currentText) {
+      return { added, removed };
+    }
+    const hunks = structuredPatch("", "", previousText, currentText, "", "", { context: 0 }).hunks;
+    for (const hunk of hunks) {
+      for (const line of hunk.lines) {
+        if (line.startsWith("+")) {
+          added.push(line.slice(1));
+        } else if (line.startsWith("-")) {
+          removed.push(line.slice(1));
+        }
+      }
+    }
+    return { added, removed };
+  }
+  /**
+   * Whether every selection line appears as a substring of at least one of the
+   * supplied changed lines. Used to keep multi-line selections from matching
+   * versions where only a single fragment overlaps; for single-line selections
+   * the check reduces to "at least one changed line contains the selection".
+   *
+   * @param {string[]} selectionLines - The non-empty selection lines to look for
+   * @param {string[]} changedLines - The added or removed lines from a single side
+   * @return {boolean} True when every selection line is found in at least one changed line
+   */
+  static allLinesPresent(selectionLines, changedLines) {
+    if (changedLines.length === 0) {
+      return false;
+    }
+    return selectionLines.every((selectionLine) => changedLines.some(
+      (changedLine) => changedLine.includes(selectionLine)
+    ));
   }
 };
 
@@ -10823,6 +11812,95 @@ var VersionSearchHelper = class {
         return ((_a = version.content) != null ? _a : "").toLowerCase().includes(needle);
       }).map((version) => version.id)
     );
+  }
+};
+
+// src/helpers/version-label.helper.ts
+var VersionLabelHelper = class _VersionLabelHelper {
+  /**
+   * Describes the transition from previous to current as an action plus the
+   * line-level delta. Symmetric in shape: both empty inputs are handled, and
+   * the result is well-defined even when the two contents are identical (kind
+   * is "modified" with zero added and zero removed, which the UI can render or
+   * suppress as it sees fit).
+   *
+   * @param {string[]} previousLines - The previous content as an array of lines
+   * @param {string[]} currentLines - The current content as an array of lines
+   * @return {VersionDescription} The action kind plus the added/removed counts
+   */
+  static describe(previousLines, currentLines) {
+    const previous = previousLines != null ? previousLines : [];
+    const current = currentLines != null ? currentLines : [];
+    const previousEmpty = _VersionLabelHelper.isEmpty(previous);
+    const currentEmpty = _VersionLabelHelper.isEmpty(current);
+    const { added, removed } = _VersionLabelHelper.countDelta(previous, current);
+    if (previousEmpty && !currentEmpty) {
+      return { kind: "created", added, removed };
+    }
+    if (!previousEmpty && currentEmpty) {
+      return { kind: "cleared", added, removed };
+    }
+    return { kind: "modified", added, removed };
+  }
+  /**
+   * Whether a line array represents empty content (no lines, or only empty
+   * lines). Treating a single empty-string line as empty matches how a brand
+   * new file is captured.
+   *
+   * @param {string[]} lines - The lines to inspect
+   * @return {boolean} True when there is no meaningful content
+   */
+  static isEmpty(lines) {
+    if (lines.length === 0) {
+      return true;
+    }
+    return lines.every((line) => line === "");
+  }
+  /**
+   * Counts added and removed lines between two contents using a structured
+   * patch with zero context, so each hunk's lines are exactly the changed
+   * lines on either side. A trailing newline is appended to both texts before
+   * diffing: without it the diff library merges the last "no-newline" run into
+   * a coarser block (e.g. a single-line edit can leak into the following
+   * unchanged line), inflating both counts. The newline is then ignored as a
+   * meta marker, leaving only true `+`/`-` lines counted.
+   *
+   * @param {string[]} previous - The previous content as lines
+   * @param {string[]} current - The current content as lines
+   * @return {{ added: number; removed: number }} The line delta
+   */
+  static countDelta(previous, current) {
+    const previousEmpty = _VersionLabelHelper.isEmpty(previous);
+    const currentEmpty = _VersionLabelHelper.isEmpty(current);
+    if (previousEmpty && currentEmpty) {
+      return { added: 0, removed: 0 };
+    }
+    if (previousEmpty) {
+      return { added: current.filter((line) => line !== "").length, removed: 0 };
+    }
+    if (currentEmpty) {
+      return { added: 0, removed: previous.filter((line) => line !== "").length };
+    }
+    const previousText = `${previous.join("\n")}
+`;
+    const currentText = `${current.join("\n")}
+`;
+    if (previousText === currentText) {
+      return { added: 0, removed: 0 };
+    }
+    const hunks = structuredPatch("", "", previousText, currentText, "", "", { context: 0 }).hunks;
+    let added = 0;
+    let removed = 0;
+    for (const hunk of hunks) {
+      for (const line of hunk.lines) {
+        if (line.startsWith("+")) {
+          added += 1;
+        } else if (line.startsWith("-")) {
+          removed += 1;
+        }
+      }
+    }
+    return { added, removed };
   }
 };
 
@@ -12869,8 +13947,9 @@ var HistoryModal = class extends import_obsidian13.Modal {
    * @param {App} app - The Obsidian app instance
    * @param {LineChangeTrackerPlugin} plugin - The plugin instance
    * @param {FileSnapshot} snapshot - The file snapshot to display history for
+   * @param {HistoryModalOpenOptions} options - Optional open options (initialBaseId, hideRail)
    */
-  constructor(app, plugin, snapshot) {
+  constructor(app, plugin, snapshot, options) {
     super(app);
     this.app = app;
     this.plugin = plugin;
@@ -12918,6 +13997,7 @@ var HistoryModal = class extends import_obsidian13.Modal {
      * or content change) so a stale index can never highlight the wrong block.
      */
     this.activeHunkIndex = -1;
+    this.options = options != null ? options : {};
   }
   /**
    * Lifecycle method called when the modal is opened.
@@ -13024,13 +14104,17 @@ var HistoryModal = class extends import_obsidian13.Modal {
     if (!file || this.isBaseSameCurrent()) {
       return;
     }
-    const baseLines = this.getBaseContent().split(this.snapshot.lineBreak);
-    const currentLines = this.snapshot.getLastStateLines();
-    await this.snapshotsService.applyContent(file, baseLines, {
-      start: 0,
-      removeCount: currentLines.length,
-      newLines: baseLines
-    });
+    if (this.selectedBaseId !== ORIGINAL_BASE_ID) {
+      await this.versionActionsService.restoreSelected(file, this.selectedBaseId);
+    } else {
+      const baseLines = this.getBaseContent().split(this.snapshot.lineBreak);
+      const currentLines = this.snapshot.getLastStateLines();
+      await this.snapshotsService.applyContent(file, baseLines, {
+        start: 0,
+        removeCount: currentLines.length,
+        newLines: baseLines
+      });
+    }
     this.activeHunkIndex = -1;
     this.refreshActiveView();
   }
@@ -13045,19 +14129,50 @@ var HistoryModal = class extends import_obsidian13.Modal {
    * no longer appears.
    */
   removeSelectedVersion() {
-    var _a, _b, _c, _d;
+    var _a, _b;
     if (this.selectedBaseId === ORIGINAL_BASE_ID) {
       return;
     }
-    const visible = this.getVisibleVersions();
-    const index = visible.findIndex((version) => version.id === this.selectedBaseId);
-    const nextId = index === -1 ? ORIGINAL_BASE_ID : (_d = (_c = (_a = visible[index + 1]) == null ? void 0 : _a.id) != null ? _c : (_b = visible[index - 1]) == null ? void 0 : _b.id) != null ? _d : ORIGINAL_BASE_ID;
-    if (!this.snapshot.removeVersion(this.selectedBaseId)) {
+    const result = this.versionActionsService.removeSelected(
+      (_b = (_a = this.snapshot) == null ? void 0 : _a.file) != null ? _b : null,
+      this.selectedBaseId
+    );
+    if (!result.removed) {
       return;
     }
-    this.snapshotsService.forceUpdate();
+    const visibleIds = new Set(
+      this.getVisibleVersions().map((version) => version.id)
+    );
+    const nextId = result.nextId && visibleIds.has(result.nextId) ? result.nextId : ORIGINAL_BASE_ID;
     this.selectedBaseId = nextId;
     this.activeHunkIndex = -1;
+    this.renderVersions();
+    this.refreshActiveView();
+  }
+  /**
+   * Labels the selected version in place: prompts for a tag through the shared
+   * ModalsService.labelVersion entry point and, on a non-empty result, marks
+   * that captured version (D1/D6). Unlike the editor-submenu Put label, which
+   * pins the current content as a new version, this tags the slice the user is
+   * looking at in the rail. A no-op for the synthetic baseline (the button is
+   * disabled there anyway) and for a cancelled/blank prompt. On success the
+   * rail and the active diff are re-rendered so the new label shows on the row
+   * and in the side-by-side column header.
+   *
+   * @return {Promise<void>}
+   */
+  async labelSelectedVersion() {
+    var _a, _b;
+    if (this.selectedBaseId === ORIGINAL_BASE_ID) {
+      return;
+    }
+    const labeled = await this.modalsService.labelVersion(
+      (_b = (_a = this.snapshot) == null ? void 0 : _a.file) != null ? _b : null,
+      this.selectedBaseId
+    );
+    if (!labeled) {
+      return;
+    }
     this.renderVersions();
     this.refreshActiveView();
   }
@@ -13217,14 +14332,30 @@ var HistoryModal = class extends import_obsidian13.Modal {
     return this.getVisibleVersions().map((version) => version.id);
   }
   /**
-   * Resolves the base to select when the modal opens: the latest captured
-   * version (the top of the rail, showing what changed since the last save), or
-   * the Original entry when the file has no snapshots yet.
+   * Resolves the base to select when the modal opens. With an open option
+   * `initialBaseId` naming a real version the modal opens focused on that
+   * version (D4); otherwise it defaults to the latest captured version (the top
+   * of the rail, showing what changed since the last save), or the Original
+   * entry when the file has no snapshots yet. An unknown `initialBaseId` falls
+   * back to the default so a stale id never leaves the modal pointing at
+   * nothing.
    *
    * @return {string} The initial selected base id
    */
   getInitialBaseId() {
     const versions = this.snapshot.getVersions();
+    const requested = this.options.initialBaseId;
+    if (requested && versions.some((version) => version.id === requested)) {
+      return requested;
+    }
+    const selectionIds = this.options.selectionFilterIds;
+    if (selectionIds !== void 0) {
+      const firstMatch = versions.find((version) => selectionIds.has(version.id));
+      if (firstMatch) {
+        return firstMatch.id;
+      }
+      return ORIGINAL_BASE_ID;
+    }
     return versions.length > 0 ? versions[0].id : ORIGINAL_BASE_ID;
   }
   /**
@@ -13251,6 +14382,11 @@ var HistoryModal = class extends import_obsidian13.Modal {
   }
   /**
    * Creates the UI elements for the diff view.
+   *
+   * With the `hideRail` open option the left rail (search + version list) is
+   * not rendered and the diff/toolbar fill the modal (D4). The panel uses this
+   * mode so it stays the sole navigator and there are no two competing version
+   * lists side by side. Without the option the rail is built as before.
    */
   makeUI() {
     const bodyEl = DomHelper.create({
@@ -13258,11 +14394,14 @@ var HistoryModal = class extends import_obsidian13.Modal {
       classes: "lct-modal-body",
       container: this.contentEl
     });
-    this.railEl = DomHelper.create({
-      tag: "div",
-      classes: "lct-modal-rail",
-      container: bodyEl
-    });
+    const hideRail = this.options.hideRail === true;
+    if (!hideRail) {
+      this.railEl = DomHelper.create({
+        tag: "div",
+        classes: "lct-modal-rail",
+        container: bodyEl
+      });
+    }
     this.mainEl = DomHelper.create({
       tag: "div",
       classes: "lct-modal-main",
@@ -13280,20 +14419,22 @@ var HistoryModal = class extends import_obsidian13.Modal {
       closeButtonEl.classList.add("clickable-icon");
       this.toolbarEl.appendChild(closeButtonEl);
     }
-    this.searchEl = DomHelper.create({
-      tag: "div",
-      classes: "lct-rail-search",
-      container: this.railEl
-    });
-    this.versionsEl = DomHelper.create({
-      tag: "div",
-      classes: "lct-versions",
-      container: this.railEl,
-      attributes: { tabindex: "0" },
-      events: {
-        keydown: (event) => this.handleVersionsKeydown(event)
-      }
-    });
+    if (this.railEl) {
+      this.searchEl = DomHelper.create({
+        tag: "div",
+        classes: "lct-rail-search",
+        container: this.railEl
+      });
+      this.versionsEl = DomHelper.create({
+        tag: "div",
+        classes: "lct-versions",
+        container: this.railEl,
+        attributes: { tabindex: "0" },
+        events: {
+          keydown: (event) => this.handleVersionsKeydown(event)
+        }
+      });
+    }
     this.noticeEl = DomHelper.create({
       tag: "div",
       classes: ["lct-diff-notice", "lct-diff-notice-hidden"],
@@ -13348,6 +14489,13 @@ var HistoryModal = class extends import_obsidian13.Modal {
         classes: noVersion ? { add: "is-disabled" } : { remove: "is-disabled" }
       });
     }
+    if (this.labelSelectedButton) {
+      const noVersion = this.selectedBaseId === ORIGINAL_BASE_ID;
+      this.labelSelectedButton.disabled = noVersion;
+      DomHelper.update(this.labelSelectedButton, {
+        classes: noVersion ? { add: "is-disabled" } : { remove: "is-disabled" }
+      });
+    }
     if (!this.noticeEl) {
       return;
     }
@@ -13358,7 +14506,8 @@ var HistoryModal = class extends import_obsidian13.Modal {
   }
   /**
    * Resolves the label for the diff's base (left) side, matching the version
-   * names used in the rail. A picked version shows its number; the Original
+   * names used in the rail. A picked version shows its custom label or, when
+   * unlabeled, its derived action (created/modified/cleared); the Original
    * entry (the only base when no snapshots exist) shows "Original".
    *
    * @return {string} The base-side label
@@ -13368,10 +14517,62 @@ var HistoryModal = class extends import_obsidian13.Modal {
       const versions = this.snapshot.getVersions();
       const version = this.snapshot.getVersion(this.selectedBaseId);
       if (version) {
-        return this.plugin.t("modal.version.numbered", { number: versions.length - versions.indexOf(version) });
+        return this.resolveVersionPrimaryLabel(version, versions);
       }
     }
     return this.plugin.t("modal.version.original");
+  }
+  /**
+   * Returns the primary label shown for a captured version: the user's custom
+   * label when present (D1), otherwise the derived action text translated from
+   * VersionLabelHelper.describe against the version's previous neighbour. For
+   * the oldest version on the timeline the previous neighbour is the history
+   * baseline.
+   *
+   * @param {FileVersion} version - The version to label
+   * @param {FileVersion[]} versions - The full timeline, newest first
+   * @return {string} The primary label string
+   */
+  resolveVersionPrimaryLabel(version, versions) {
+    if (version.isLabeled()) {
+      return version.label;
+    }
+    const description = this.describeVersion(version, versions);
+    return this.plugin.t(`modal.version.action.${description.kind}`);
+  }
+  /**
+   * Computes the derived action description for a version against its previous
+   * neighbour. The neighbour is the next-older captured version, or the file's
+   * history baseline when the version is the oldest one on the timeline. The
+   * result drives both the rail primary label (when no custom label is set) and
+   * the inline line delta shown on the row.
+   *
+   * @param {FileVersion} version - The version to describe
+   * @param {FileVersion[]} versions - The full timeline, newest first
+   * @return {VersionDescription} The action kind plus the added/removed counts
+   */
+  describeVersion(version, versions) {
+    const index = versions.indexOf(version);
+    const previous = index >= 0 ? versions[index + 1] : void 0;
+    const previousLines = previous ? previous.getLines() : this.snapshot.getHistoryOriginalStateLines();
+    return VersionLabelHelper.describe(previousLines, version.getLines());
+  }
+  /**
+   * Formats the inline line delta shown on a rail row. Returns an empty string
+   * when both added and removed are zero so the row stays clean for no-op
+   * captures (e.g. a labeled version pinned at unchanged content).
+   *
+   * @param {VersionDescription} description - The describe result
+   * @return {string} The formatted delta or empty string
+   */
+  formatVersionDelta(description) {
+    if (description.added === 0 && description.removed === 0) {
+      return "";
+    }
+    return this.plugin.t("modal.version.delta", {
+      added: String(description.added),
+      removed: String(description.removed)
+    });
   }
   /**
    * Shows or hides the side-by-side column header and, when shown, labels the
@@ -13466,6 +14667,13 @@ var HistoryModal = class extends import_obsidian13.Modal {
       label: this.plugin.t("modal.remove-selected"),
       onClick: () => {
         void this.confirmRemoveSelectedVersion();
+      }
+    });
+    this.labelSelectedButton = this.makeToolbarButton(filterGroup, {
+      icon: "tag",
+      label: this.plugin.t("modal.label-selected"),
+      onClick: async () => {
+        await this.labelSelectedVersion();
       }
     });
     this.hideIdenticalButton = this.makeToolbarButton(filterGroup, {
@@ -13689,8 +14897,12 @@ var HistoryModal = class extends import_obsidian13.Modal {
       this.searchQuery
     );
     const currentContent = this.snapshot.getLastState();
+    const selectionIds = this.options.selectionFilterIds;
     return versions.filter((version) => {
       if (!visibleIds.has(version.id)) {
+        return false;
+      }
+      if (selectionIds !== void 0 && !selectionIds.has(version.id)) {
         return false;
       }
       return !this.hideIdenticalVersions || version.getContent(this.snapshot.lineBreak) !== currentContent;
@@ -13720,14 +14932,19 @@ var HistoryModal = class extends import_obsidian13.Modal {
         id: ORIGINAL_BASE_ID,
         label: this.plugin.t("modal.version.original"),
         day: this.snapshot.getLastChangedDate(),
-        time: this.snapshot.getLastChangedTime()
+        meta: this.snapshot.getLastChangedDateTime(),
+        delta: ""
       }
-    ] : matched.map((version) => ({
-      id: version.id,
-      label: this.plugin.t("modal.version.numbered", { number: versions.length - versions.indexOf(version) }),
-      day: version.getDate(),
-      time: version.getTime()
-    }));
+    ] : matched.map((version) => {
+      const description = this.describeVersion(version, versions);
+      return {
+        id: version.id,
+        label: this.resolveVersionPrimaryLabel(version, versions),
+        day: version.getDate(),
+        meta: version.getDateTime(),
+        delta: this.formatVersionDelta(description)
+      };
+    });
     const groups = [];
     entries.forEach((entry) => {
       let group = groups[groups.length - 1];
@@ -13741,7 +14958,7 @@ var HistoryModal = class extends import_obsidian13.Modal {
     groups.forEach((group) => {
       items.push({ tag: "div", classes: "lct-versions-day", text: group.label });
       group.entries.forEach((entry) => {
-        items.push(this.makeVersionItem(entry.id, entry.label, entry.time));
+        items.push(this.makeVersionItem(entry.id, entry.label, entry.meta, entry.delta));
       });
     });
     if (versions.length > 0 && matched.length === 0) {
@@ -13767,15 +14984,19 @@ var HistoryModal = class extends import_obsidian13.Modal {
    * The active entry carries a highlight class; clicking selects that base.
    *
    * @param {string} id - The base id (original sentinel or a version id)
-   * @param {string} label - The primary label to show
-   * @param {string} meta - Secondary text (capture time), empty for the original
+   * @param {string} label - The primary label to show (action or custom label)
+   * @param {string} meta - Inline date+time text, empty when none
+   * @param {string} delta - Inline line delta text, empty when not applicable
    * @return {DomElementConfig} A DomHelper element config for the entry
    */
-  makeVersionItem(id, label, meta) {
+  makeVersionItem(id, label, meta, delta) {
     const active = this.selectedBaseId === id;
     const children = [{ tag: "span", classes: "lct-version-label", text: label }];
     if (meta) {
       children.push({ tag: "span", classes: "lct-version-meta", text: meta });
+    }
+    if (delta) {
+      children.push({ tag: "span", classes: "lct-version-delta", text: delta });
     }
     return {
       tag: "div",
@@ -14453,6 +15674,143 @@ __decorateClass([
 __decorateClass([
   Inject("ModalsService")
 ], HistoryModal.prototype, "modalsService", 2);
+__decorateClass([
+  Inject("VersionActionsService")
+], HistoryModal.prototype, "versionActionsService", 2);
+
+// src/modals/prompt.modal.ts
+var import_obsidian14 = require("obsidian");
+var PromptModal = class extends import_obsidian14.Modal {
+  /**
+   * Creates a new instance of PromptModal.
+   *
+   * @param {App} app - The Obsidian app instance
+   * @param {PromptModalConfig} config - Configuration object for the modal
+   */
+  constructor(app, config) {
+    var _a, _b, _c, _d, _e, _f;
+    super(app);
+    /**
+     * The text the user entered before confirming, or `null` when the modal was
+     * cancelled or closed without confirming. Initialized to `null` so any close
+     * path that does not flow through the confirm button resolves to a cancel.
+     */
+    this.result = null;
+    this.title = (_a = config.title) != null ? _a : "Prompt";
+    this.message = (_b = config.message) != null ? _b : "";
+    this.placeholder = (_c = config.placeholder) != null ? _c : "";
+    this.initialValue = (_d = config.initialValue) != null ? _d : "";
+    this.confirmText = (_e = config.confirmText) != null ? _e : "Confirm";
+    this.cancelText = (_f = config.cancelText) != null ? _f : "Cancel";
+  }
+  /**
+   * Called when the modal is opened.
+   * Builds the modal content with title, optional message, a text input, and
+   * action buttons. Wires Enter inside the input to the confirm path so the
+   * keyboard ergonomics match ConfirmModal.
+   *
+   * @override
+   */
+  onOpen() {
+    DomHelper.update(this.modalEl, { classes: { add: "lct-prompt-modal" } });
+    DomHelper.update(this.contentEl, {
+      text: null,
+      children: [
+        {
+          tag: "div",
+          children: [
+            {
+              tag: "h2",
+              text: this.title
+            },
+            ...this.message ? [{ tag: "p", text: this.message }] : [],
+            {
+              tag: "input",
+              classes: "lct-prompt-input",
+              attributes: {
+                type: "text",
+                placeholder: this.placeholder,
+                value: this.initialValue
+              },
+              events: {
+                keydown: (event) => {
+                  const keyboard = event;
+                  if (keyboard.key === "Enter") {
+                    keyboard.preventDefault();
+                    this.confirmResult();
+                  }
+                }
+              }
+            },
+            {
+              tag: "div",
+              classes: "modal-button-container",
+              children: [
+                {
+                  tag: "button",
+                  text: this.cancelText,
+                  events: {
+                    click: () => {
+                      this.result = null;
+                      this.close();
+                    }
+                  }
+                },
+                {
+                  tag: "button",
+                  text: this.confirmText,
+                  classes: "mod-cta",
+                  events: {
+                    click: () => this.confirmResult()
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    });
+    this.inputEl = this.contentEl.querySelector("input.lct-prompt-input");
+    if (this.inputEl) {
+      this.inputEl.value = this.initialValue;
+      this.inputEl.focus();
+      this.inputEl.select();
+    }
+  }
+  /**
+   * Called when the modal is closed.
+   * Resolves the prompt promise with the captured `result` (the entered text
+   * on confirm, `null` on cancel or any non-confirm close path).
+   *
+   * @override
+   */
+  onClose() {
+    if (this.resolvePromise) {
+      this.resolvePromise(this.result);
+    }
+  }
+  /**
+   * Opens the modal and returns a promise that resolves to the entered text
+   * on confirm, or `null` on cancel/close.
+   *
+   * @return {Promise<string | null>} Promise that resolves to the entered text or null
+   */
+  async prompt() {
+    return new Promise((resolve) => {
+      this.resolvePromise = resolve;
+      this.open();
+    });
+  }
+  /**
+   * Snapshots the current input value as the result and closes the modal.
+   * Shared by the confirm button click and the Enter keydown so both paths
+   * land in onClose with the same `result`.
+   */
+  confirmResult() {
+    this.result = this.inputEl ? this.inputEl.value : "";
+    this.close();
+  }
+};
 
 // src/services/modals.service.ts
 var ModalsService = class {
@@ -14491,15 +15849,58 @@ var ModalsService = class {
    * (preview) mode as in source mode; only the inline line highlights are
    * editor-only.
    *
+   * Optional open options (D4) let a caller pre-select a specific base version
+   * and hide the left rail. With no options the modal behaves exactly as
+   * before: the rail is visible and the latest captured version is selected.
+   *
    * @param {TFile} file - The file to show diff for, or null to use the active file
+   * @param {HistoryModalOpenOptions} options - Optional open options
    * @return {boolean} True if the modal was opened successfully, false if no snapshot exists
    */
-  diff(file) {
+  diff(file, options) {
     const snapshot = this.snapshotsService.getOne(file);
     if (!snapshot) {
       return false;
     }
-    new HistoryModal(this.plugin.app, this.plugin, snapshot).open();
+    new HistoryModal(this.plugin.app, this.plugin, snapshot, options).open();
+    return true;
+  }
+  /**
+   * Opens the history modal filtered to versions where the supplied selection
+   * text was added or removed at that point on the timeline (D7/T09). The
+   * filter is precomputed via the pure SelectionHistoryHelper so the modal
+   * just applies the resulting id set as a rail filter.
+   *
+   * A null/empty/whitespace selection has no precision to offer, so this falls
+   * back to the plain Show History path (the normal modal with no selection
+   * filter), keeping the entry safe to wire as a generic command without an
+   * upstream emptiness gate. A missing snapshot returns false, mirroring
+   * `diff`.
+   *
+   * @param {TFile} file - The file to show diff for, or null to use the active file
+   * @param {string} selection - The selection text to filter versions by
+   * @return {boolean} True if the modal was opened, false if no snapshot exists
+   */
+  diffForSelection(file, selection) {
+    const snapshot = this.snapshotsService.getOne(file);
+    if (!snapshot) {
+      return false;
+    }
+    const needle = (selection != null ? selection : "").trim();
+    if (needle.length === 0) {
+      new HistoryModal(this.plugin.app, this.plugin, snapshot).open();
+      return true;
+    }
+    const selectable = snapshot.getVersions().slice().reverse().map((version) => ({
+      id: version.id,
+      lines: version.getLines()
+    }));
+    const matched = SelectionHistoryHelper.match(
+      selectable,
+      snapshot.getHistoryOriginalStateLines(),
+      needle
+    );
+    new HistoryModal(this.plugin.app, this.plugin, snapshot, { selectionFilterIds: matched }).open();
     return true;
   }
   /**
@@ -14513,10 +15914,104 @@ var ModalsService = class {
     const modal = new ConfirmModal(this.plugin.app, config);
     return await modal.confirm();
   }
+  /**
+   * Shows a single-input prompt dialog with the specified configuration (D8).
+   * Creates a PromptModal instance and returns a promise that resolves to the
+   * entered text, or `null` when the user cancels or otherwise closes the
+   * modal without confirming. Used by "Put label" to collect a free-text
+   * version tag.
+   *
+   * @param {PromptModalConfig} config - Configuration object for the prompt dialog
+   * @return {Promise<string | null>} Promise that resolves to the entered text or null on cancel
+   */
+  async prompt(config) {
+    const modal = new PromptModal(this.plugin.app, config);
+    return await modal.prompt();
+  }
+  /**
+   * Captures a pinned labeled version of the file's current content by first
+   * asking the user for a label through the PromptModal (D8) and then handing
+   * the trimmed result to VersionActionsService.putLabel (D6). A cancelled
+   * prompt or an empty/whitespace label is a silent no-op so the user can back
+   * out without polluting the timeline; a missing snapshot is also a no-op so
+   * an untracked file does not surface a confusing error.
+   *
+   * Both gates (cancel and blank) are normalized to the same null path the
+   * service treats as a no-op, so the call site never has to repeat the trim.
+   * Returns the captured version on success and null on any no-op, mirroring
+   * the underlying service contract.
+   *
+   * @param {TFile} file - The file to label, or null to use the active file
+   * @param {PromptModalConfig} configOverride - Optional overrides for the prompt strings
+   * @return {Promise<FileVersion | null>} The captured version, or null on a no-op
+   */
+  async putLabel(file, configOverride) {
+    const target = file != null ? file : this.plugin.getActiveFile();
+    if (!this.snapshotsService.getOne(target)) {
+      return null;
+    }
+    const config = {
+      title: this.plugin.t("modal.put-label.title"),
+      message: this.plugin.t("modal.put-label.message"),
+      placeholder: this.plugin.t("modal.put-label.placeholder"),
+      confirmText: this.plugin.t("modal.put-label.confirm"),
+      cancelText: this.plugin.t("modal.confirm.cancel"),
+      ...configOverride
+    };
+    const entered = await this.prompt(config);
+    if (entered === null || entered.trim().length === 0) {
+      return null;
+    }
+    return this.versionActionsService.putLabel(target, entered);
+  }
+  /**
+   * Labels an EXISTING captured version: asks for a tag through the PromptModal
+   * (D8) and forwards the trimmed result to
+   * VersionActionsService.labelVersion. Unlike {@link putLabel}, which pins the
+   * file's CURRENT content as a new version, this marks the version the caller
+   * picked (a Recent changes row, or the modal's selected base), so the label
+   * lands on the slice the user pointed at instead of on the latest state. The
+   * prompt is pre-filled with the version's current label so an existing marker
+   * can be edited rather than retyped. A cancel or a blank/whitespace input is
+   * a silent no-op; a missing snapshot or an unknown version id is a no-op too.
+   *
+   * @param {TFile} file - The file the version belongs to, or null for the active file
+   * @param {string} versionId - The id of the existing version to label
+   * @param {PromptModalConfig} configOverride - Optional overrides for the prompt strings
+   * @return {Promise<FileVersion | null>} The labeled version, or null on a no-op
+   */
+  async labelVersion(file, versionId, configOverride) {
+    const target = file != null ? file : this.plugin.getActiveFile();
+    const snapshot = this.snapshotsService.getOne(target);
+    if (!snapshot) {
+      return null;
+    }
+    const existing = snapshot.getVersion(versionId);
+    if (!existing) {
+      return null;
+    }
+    const config = {
+      title: this.plugin.t("modal.put-label.title"),
+      message: this.plugin.t("modal.label-version.message"),
+      placeholder: this.plugin.t("modal.put-label.placeholder"),
+      initialValue: existing.isLabeled() ? existing.label : "",
+      confirmText: this.plugin.t("modal.put-label.confirm"),
+      cancelText: this.plugin.t("modal.confirm.cancel"),
+      ...configOverride
+    };
+    const entered = await this.prompt(config);
+    if (entered === null || entered.trim().length === 0) {
+      return null;
+    }
+    return this.versionActionsService.labelVersion(target, versionId, entered);
+  }
 };
 __decorateClass([
   Inject("SnapshotsService")
 ], ModalsService.prototype, "snapshotsService", 2);
+__decorateClass([
+  Inject("VersionActionsService")
+], ModalsService.prototype, "versionActionsService", 2);
 
 // src/decorators/on.decorator.ts
 var On = (name) => {
@@ -14754,8 +16249,8 @@ __decorateClass([
 ], PersistenceService.prototype, "onSettingsUpdate", 1);
 
 // src/settings/main.setting.ts
-var import_obsidian14 = require("obsidian");
-var MainSetting = class extends import_obsidian14.PluginSettingTab {
+var import_obsidian15 = require("obsidian");
+var MainSetting = class extends import_obsidian15.PluginSettingTab {
   /**
    * Renders the settings UI.
    * Creates and configures all settings elements in the settings tab.
@@ -14772,12 +16267,12 @@ var MainSetting = class extends import_obsidian14.PluginSettingTab {
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.type.name")).setDesc(this.plugin.t("setting.type.desc")).addDropdown(
+    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.type.name")).setDesc(this.plugin.t("setting.type.desc")).addDropdown(
       (dropdown) => dropdown.addOption("line" /* line */, this.plugin.t("setting.type.option.line")).addOption("dot" /* dot */, this.plugin.t("setting.type.option.dot")).setValue(this.settingsService.value("type")).onChange((value) => {
         this.settingsService.update("type", value);
       })
     );
-    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.allowed-extensions.name")).setDesc(this.plugin.t("setting.allowed-extensions.desc")).addText(
+    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.allowed-extensions.name")).setDesc(this.plugin.t("setting.allowed-extensions.desc")).addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.allowedExtensions).setValue(this.settingsService.value("allowedExtensions")).onChange((value) => {
         this.settingsService.update(
           "allowedExtensions",
@@ -14785,45 +16280,45 @@ var MainSetting = class extends import_obsidian14.PluginSettingTab {
         );
       })
     );
-    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.exclude-paths.name")).setDesc(this.plugin.t("setting.exclude-paths.desc")).addText(
+    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.exclude-paths.name")).setDesc(this.plugin.t("setting.exclude-paths.desc")).addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.excludePaths).setValue(this.settingsService.value("excludePaths")).onChange((value) => {
         this.settingsService.update("excludePaths", value);
       })
     );
-    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.keep.name")).setDesc(this.plugin.t("setting.keep.desc")).addDropdown(
+    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.keep.name")).setDesc(this.plugin.t("setting.keep.desc")).addDropdown(
       (dropdown) => dropdown.addOption("app" /* app */, this.plugin.t("setting.keep.option.app")).addOption("file" /* file */, this.plugin.t("setting.keep.option.file")).setValue(this.settingsService.value("keep")).onChange((value) => {
         this.settingsService.update("keep", value);
       })
     );
-    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.ignore-new-files.name")).setDesc(this.plugin.t("setting.ignore-new-files.desc")).addToggle(
+    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.ignore-new-files.name")).setDesc(this.plugin.t("setting.ignore-new-files.desc")).addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("ignoreNewFiles")).onChange((value) => {
         this.settingsService.update("ignoreNewFiles", value);
       })
     );
-    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.persist.name")).setDesc(this.plugin.t("setting.persist.desc")).addToggle(
+    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.persist.name")).setDesc(this.plugin.t("setting.persist.desc")).addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("persist")).onChange((value) => {
         this.settingsService.update("persist", value);
       })
     );
-    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.max-entries.name")).setDesc(this.plugin.t("setting.max-entries.desc")).addText(
+    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.max-entries.name")).setDesc(this.plugin.t("setting.max-entries.desc")).addText(
       (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.retention.maxEntries)).setValue(String(this.settingsService.value("retention.maxEntries"))).onChange((value) => {
         const count = this.toCount(value, DEFAULT_SETTINGS.retention.maxEntries);
         this.settingsService.update("retention.maxEntries", count);
       })
     );
-    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.max-age-days.name")).setDesc(this.plugin.t("setting.max-age-days.desc")).addText(
+    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.max-age-days.name")).setDesc(this.plugin.t("setting.max-age-days.desc")).addText(
       (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.retention.maxAgeDays)).setValue(String(this.settingsService.value("retention.maxAgeDays"))).onChange((value) => {
         const days = this.toCount(value, DEFAULT_SETTINGS.retention.maxAgeDays);
         this.settingsService.update("retention.maxAgeDays", days);
       })
     );
-    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.snapshots-heading")).setHeading();
-    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.snapshots-enabled.name")).setDesc(this.plugin.t("setting.snapshots-enabled.desc")).addToggle(
+    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.snapshots-heading")).setHeading();
+    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.snapshots-enabled.name")).setDesc(this.plugin.t("setting.snapshots-enabled.desc")).addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("snapshots.enabled")).onChange((value) => {
         this.settingsService.update("snapshots.enabled", value);
       })
     );
-    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.snapshots-edit-threshold.name")).setDesc(this.plugin.t("setting.snapshots-edit-threshold.desc")).addText(
+    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.snapshots-edit-threshold.name")).setDesc(this.plugin.t("setting.snapshots-edit-threshold.desc")).addText(
       (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.snapshots.editThreshold)).setValue(String(this.settingsService.value("snapshots.editThreshold"))).onChange((value) => {
         this.settingsService.update(
           "snapshots.editThreshold",
@@ -14831,13 +16326,13 @@ var MainSetting = class extends import_obsidian14.PluginSettingTab {
         );
       })
     );
-    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.snapshots-interval.name")).setDesc(this.plugin.t("setting.snapshots-interval.desc")).addText(
+    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.snapshots-interval.name")).setDesc(this.plugin.t("setting.snapshots-interval.desc")).addText(
       (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.snapshots.intervalMs / 6e4)).setValue(String(this.settingsService.value("snapshots.intervalMs") / 6e4)).onChange((value) => {
         const minutes = this.toCount(value, DEFAULT_SETTINGS.snapshots.intervalMs / 6e4);
         this.settingsService.update("snapshots.intervalMs", minutes * 6e4);
       })
     );
-    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.max-version-age-days.name")).setDesc(this.plugin.t("setting.max-version-age-days.desc")).addText(
+    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.max-version-age-days.name")).setDesc(this.plugin.t("setting.max-version-age-days.desc")).addText(
       (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.snapshots.maxVersionAgeDays)).setValue(String(this.settingsService.value("snapshots.maxVersionAgeDays"))).onChange((value) => {
         this.settingsService.update(
           "snapshots.maxVersionAgeDays",
@@ -14845,7 +16340,7 @@ var MainSetting = class extends import_obsidian14.PluginSettingTab {
         );
       })
     );
-    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.max-versions.name")).setDesc(this.plugin.t("setting.max-versions.desc")).addText(
+    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.max-versions.name")).setDesc(this.plugin.t("setting.max-versions.desc")).addText(
       (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.snapshots.maxVersions)).setValue(String(this.settingsService.value("snapshots.maxVersions"))).onChange((value) => {
         this.settingsService.update(
           "snapshots.maxVersions",
@@ -14853,35 +16348,35 @@ var MainSetting = class extends import_obsidian14.PluginSettingTab {
         );
       })
     );
-    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.show-heading")).setHeading();
-    new import_obsidian14.Setting(containerEl).setDesc(this.plugin.t("setting.show.desc"));
-    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.show.changed")).addToggle(
+    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.show-heading")).setHeading();
+    new import_obsidian15.Setting(containerEl).setDesc(this.plugin.t("setting.show.desc"));
+    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.show.changed")).addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("show.changed")).onChange((value) => {
         this.settingsService.update("show.changed", value);
       })
     );
-    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.show.restored")).addToggle(
+    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.show.restored")).addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("show.restored")).onChange((value) => {
         this.settingsService.update("show.restored", value);
       })
     );
-    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.show.added")).addToggle(
+    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.show.added")).addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("show.added")).onChange((value) => {
         this.settingsService.update("show.added", value);
       })
     );
-    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.show.removed")).addToggle(
+    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.show.removed")).addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("show.removed")).onChange((value) => {
         this.settingsService.update("show.removed", value);
       })
     );
-    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.line-heading")).setHeading();
-    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.line-width.name")).setDesc(this.plugin.t("setting.line-width.desc")).addSlider(
+    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.line-heading")).setHeading();
+    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.line-width.name")).setDesc(this.plugin.t("setting.line-width.desc")).addSlider(
       (slider) => slider.setLimits(1, 5, 1).setValue(this.settingsService.value("line.width")).setDynamicTooltip().onChange((value) => {
         this.settingsService.update("line.width", value);
       })
     );
-    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.gutter-heading.name")).setDesc((() => {
+    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.gutter-heading.name")).setDesc((() => {
       return DomHelper.createFragment([
         {
           tag: "div",
@@ -14906,22 +16401,22 @@ var MainSetting = class extends import_obsidian14.PluginSettingTab {
         }
       ]);
     })()).setHeading();
-    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.gutter-changed.name")).addText(
+    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.gutter-changed.name")).addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.gutter.changed).setValue(this.settingsService.value("gutter.changed")).onChange((value) => {
         this.settingsService.update("gutter.changed", value || DEFAULT_SETTINGS.gutter.changed);
       })
     );
-    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.gutter-added.name")).addText(
+    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.gutter-added.name")).addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.gutter.added).setValue(this.settingsService.value("gutter.added")).onChange((value) => {
         this.settingsService.update("gutter.added", value || DEFAULT_SETTINGS.gutter.added);
       })
     );
-    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.gutter-restored.name")).addText(
+    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.gutter-restored.name")).addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.gutter.restored).setValue(this.settingsService.value("gutter.restored")).onChange((value) => {
         this.settingsService.update("gutter.restored", value || DEFAULT_SETTINGS.gutter.restored);
       })
     );
-    new import_obsidian14.Setting(containerEl).setName(this.plugin.t("setting.gutter-removed.name")).addText(
+    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.gutter-removed.name")).addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.gutter.removed).setValue(this.settingsService.value("gutter.removed")).onChange((value) => {
         this.settingsService.update("gutter.removed", value || DEFAULT_SETTINGS.gutter.removed);
       })
@@ -15828,8 +17323,9 @@ var FileVersion = class _FileVersion {
    *
    * @param {string[]} lines - The file content at capture time, split into lines
    * @param {number} timestamp - Optional capture timestamp (defaults to now)
+   * @param {string} label - Optional user-supplied tag pinning this version
    */
-  constructor(lines, timestamp) {
+  constructor(lines, timestamp, label) {
     /**
      * Unique identifier for this version, generated on creation. Used as a stable
      * key for the version list in the UI and to address a picked diff base.
@@ -15847,6 +17343,18 @@ var FileVersion = class _FileVersion {
     if (typeof timestamp === "number") {
       this.timestamp = timestamp;
     }
+    if (typeof label === "string" && label.length > 0) {
+      this.label = label;
+    }
+  }
+  /**
+   * Whether this version carries a user-supplied label and is therefore pinned
+   * (exempt from the duplicate-skip and eviction).
+   *
+   * @return {boolean} True when a non-empty label is set
+   */
+  isLabeled() {
+    return typeof this.label === "string" && this.label.length > 0;
   }
   /**
    * Gets the captured content as a string joined by the given line break.
@@ -15901,10 +17409,14 @@ var FileVersion = class _FileVersion {
    * @return {SerializedFileVersion} The plain serialized representation
    */
   toJSON() {
-    return {
+    const data = {
       timestamp: this.timestamp,
       lines: [...this.lines]
     };
+    if (this.isLabeled()) {
+      data.label = this.label;
+    }
+    return data;
   }
   /**
    * Rebuilds a version from its serialized form, assigning a fresh id.
@@ -15913,7 +17425,11 @@ var FileVersion = class _FileVersion {
    * @return {FileVersion} The reconstructed version
    */
   static fromJSON(data) {
-    return new _FileVersion(Array.isArray(data == null ? void 0 : data.lines) ? data.lines : [], data == null ? void 0 : data.timestamp);
+    return new _FileVersion(
+      Array.isArray(data == null ? void 0 : data.lines) ? data.lines : [],
+      data == null ? void 0 : data.timestamp,
+      typeof (data == null ? void 0 : data.label) === "string" ? data.label : void 0
+    );
   }
 };
 
@@ -16118,23 +17634,29 @@ var FileSnapshot = class _FileSnapshot {
    * or a first version identical to the original, which would otherwise diff
    * identically and make switching the base appear to change nothing.
    *
+   * A label-carrying capture is treated as a pinned marker (D6): it bypasses
+   * the duplicate-skip so the user-supplied tag is always recorded, and the
+   * resulting version is exempt from eviction in evictVersions.
+   *
    * @param {string[]} previousLines - The content to freeze (pre-edit state)
    * @param {SnapshotCaptureOptions} options - The capture cadence configuration
    * @param {boolean} force - Capture regardless of the cadence gates
+   * @param {string} label - Optional user-supplied tag that pins the version
    * @return {FileVersion | null} The captured version, or null if none was taken
    */
-  captureVersion(previousLines, options, force = false) {
+  captureVersion(previousLines, options, force = false, label) {
     if (!(options == null ? void 0 : options.enabled) || !isArray_default(previousLines)) {
       return null;
     }
+    const labeled = typeof label === "string" && label.length > 0;
     this.editsSinceVersion += 1;
     if (!force && !this.isVersionDue(options)) {
       return null;
     }
-    if (this.isDuplicateOfLatest(previousLines)) {
+    if (!labeled && this.isDuplicateOfLatest(previousLines)) {
       return null;
     }
-    return this.pushVersion(new FileVersion(previousLines), options);
+    return this.pushVersion(new FileVersion(previousLines, void 0, label), options);
   }
   /**
    * Whether the given content equals the latest stored version, or the original
@@ -16187,17 +17709,37 @@ var FileSnapshot = class _FileSnapshot {
    * age. A cap of 0 disables that dimension. Because versions are appended
    * oldest-first, both passes evict from the front of the array.
    *
+   * Labeled versions are pinned (D6): they are never dropped by either pass, so
+   * an intentional user marker survives both the age window and the count cap.
+   * The count cap counts only unlabeled entries, so a labeled version does not
+   * push an unlabeled one out either.
+   *
    * @param {SnapshotCaptureOptions} options - The retention caps to apply
    */
   evictVersions(options) {
     const maxAgeDays = options == null ? void 0 : options.maxVersionAgeDays;
     if (isNumber_default(maxAgeDays) && maxAgeDays > 0) {
       const oldest = Date.now() - maxAgeDays * MS_PER_DAY2;
-      this.versions = this.versions.filter((version) => version.timestamp >= oldest);
+      this.versions = this.versions.filter(
+        (version) => version.isLabeled() || version.timestamp >= oldest
+      );
     }
     const maxVersions = options == null ? void 0 : options.maxVersions;
-    if (isNumber_default(maxVersions) && maxVersions > 0 && this.versions.length > maxVersions) {
-      this.versions.splice(0, this.versions.length - maxVersions);
+    if (isNumber_default(maxVersions) && maxVersions > 0) {
+      const unlabeled = this.versions.reduce(
+        (count, version) => count + (version.isLabeled() ? 0 : 1),
+        0
+      );
+      let toDrop = unlabeled - maxVersions;
+      if (toDrop > 0) {
+        this.versions = this.versions.filter((version) => {
+          if (toDrop <= 0 || version.isLabeled()) {
+            return true;
+          }
+          toDrop -= 1;
+          return false;
+        });
+      }
     }
   }
   /**
@@ -16795,7 +18337,7 @@ var FileSnapshot = class _FileSnapshot {
 };
 
 // src/services/snapshots.service.ts
-var import_obsidian15 = require("obsidian");
+var import_obsidian16 = require("obsidian");
 var SnapshotsService = class {
   /**
    * Creates a new instance of SnapshotsService.
@@ -17083,7 +18625,7 @@ var SnapshotsService = class {
       return;
     }
     this.lastWarnedExcludePattern = pattern;
-    new import_obsidian15.Notice(this.plugin.t("notice.invalid-exclude-pattern"));
+    new import_obsidian16.Notice(this.plugin.t("notice.invalid-exclude-pattern"));
   }
   /**
    * Checks if a file has already been captured (has a snapshot).
@@ -17206,7 +18748,7 @@ __decorateClass([
 ], SnapshotsService.prototype, "settingsService", 2);
 
 // src/services/statusbar.service.ts
-var import_obsidian16 = require("obsidian");
+var import_obsidian17 = require("obsidian");
 var StatusbarService = class {
   /**
    * Creates a new instance of StatusbarService.
@@ -17238,7 +18780,7 @@ var StatusbarService = class {
     var _a, _b;
     const view = (_a = this.plugin.app.workspace.getMostRecentLeaf()) == null ? void 0 : _a.view;
     const snapshot = this.snapshotsService.getOne();
-    if (!view || !(view instanceof import_obsidian16.MarkdownView) || !snapshot) {
+    if (!view || !(view instanceof import_obsidian17.MarkdownView) || !snapshot) {
       this.clear();
       return;
     }
@@ -17395,13 +18937,498 @@ __decorateClass([
   On("settings:update" /* settingsUpdate */)
 ], StylesService.prototype, "update", 1);
 
+// src/services/version-actions.service.ts
+var VersionActionsService = class {
+  /**
+   * Creates a new instance of VersionActionsService.
+   *
+   * @param {LineChangeTrackerPlugin} plugin - The plugin instance
+   */
+  constructor(plugin) {
+    this.plugin = plugin;
+  }
+  /**
+   * Lifecycle hook invoked during plugin init. The service is fully usable as
+   * soon as its dependencies resolve through the @Inject decorators, so nothing
+   * is set up here; the hook is kept so the class satisfies the Service shape
+   * the DI container expects, matching the other action-only services.
+   */
+  init() {
+  }
+  /**
+   * Rewrites the file backing the snapshot to the captured content of the given
+   * version, mirroring the modal's previous behaviour: the version timeline and
+   * the history baseline are kept (so the prior content simply becomes the next
+   * captured version on the following edit), and the write reuses
+   * SnapshotsService.applyContent so the tracker, the cached state, and the
+   * gutter highlights stay consistent. A no-op when the content already matches
+   * the version, the snapshot is missing, or the version id is unknown.
+   *
+   * @param {TFile | null} file - The file whose snapshot owns the version
+   * @param {string} versionId - The id of the version to restore
+   * @return {Promise<VersionRestoreResult>} Whether the write happened
+   */
+  async restoreSelected(file, versionId) {
+    var _a;
+    const snapshot = this.snapshotsService.getOne(file);
+    const target = (_a = snapshot == null ? void 0 : snapshot.file) != null ? _a : null;
+    if (!snapshot || !target) {
+      return { applied: false };
+    }
+    const version = snapshot.getVersion(versionId);
+    if (!version) {
+      return { applied: false };
+    }
+    const baseLines = version.getLines();
+    const currentLines = snapshot.getLastStateLines();
+    if (baseLines.join(snapshot.lineBreak) === currentLines.join(snapshot.lineBreak)) {
+      return { applied: false };
+    }
+    await this.snapshotsService.applyContent(target, baseLines, {
+      start: 0,
+      removeCount: currentLines.length,
+      newLines: baseLines
+    });
+    return { applied: true };
+  }
+  /**
+   * Drops the given version from the snapshot's timeline, leaving the history
+   * baseline and the file content untouched. Returns the id of the version the
+   * caller should focus next: the newer neighbour (toward the top of the rail),
+   * falling back to the older one, then null when the timeline becomes empty.
+   * A no-op when the snapshot is missing or the version id is unknown.
+   *
+   * @param {TFile | null} file - The file whose snapshot owns the version
+   * @param {string} versionId - The id of the version to remove
+   * @return {VersionRemoveResult} Whether a version was removed and the next id
+   */
+  removeSelected(file, versionId) {
+    var _a, _b, _c, _d;
+    const snapshot = this.snapshotsService.getOne(file);
+    if (!snapshot) {
+      return { removed: false, nextId: null };
+    }
+    const visible = snapshot.getVersions();
+    const index = visible.findIndex((version) => version.id === versionId);
+    const nextId = index === -1 ? null : (_d = (_c = (_a = visible[index + 1]) == null ? void 0 : _a.id) != null ? _c : (_b = visible[index - 1]) == null ? void 0 : _b.id) != null ? _d : null;
+    if (!snapshot.removeVersion(versionId)) {
+      return { removed: false, nextId: null };
+    }
+    this.snapshotsService.forceUpdate();
+    return { removed: true, nextId };
+  }
+  /**
+   * Captures a pinned, labeled version of the file's current content. The label
+   * is trimmed of surrounding whitespace; an empty result is a no-op so a
+   * cancel-equivalent input does not pollute the timeline. The capture forces
+   * past the cadence gates and the duplicate-skip (D6), so an intentional marker
+   * always lands even when nothing has changed since the latest version. The
+   * snapshot's existing retention caps still apply, but labeled entries are
+   * pinned against eviction (D6/D10).
+   *
+   * @param {TFile | null} file - The file to label
+   * @param {string} label - The user-supplied tag
+   * @return {FileVersion | null} The captured version, or null on a no-op
+   */
+  putLabel(file, label) {
+    const snapshot = this.snapshotsService.getOne(file);
+    const trimmed = typeof label === "string" ? label.trim() : "";
+    if (!snapshot || trimmed.length === 0) {
+      return null;
+    }
+    const captured = snapshot.captureVersion(
+      snapshot.getLastStateLines(),
+      { ...this.getCaptureOptions(), enabled: true },
+      true,
+      trimmed
+    );
+    if (captured) {
+      this.snapshotsService.forceUpdate();
+    }
+    return captured;
+  }
+  /**
+   * Sets a custom label on an EXISTING captured version, turning that version
+   * into a pinned marker in place (D1/D6). This is distinct from
+   * {@link putLabel}, which pins the file's CURRENT content as a NEW version:
+   * here the label lands on the version the caller picked (a panel row, or the
+   * modal's selected base), so the marker tags the slice the user pointed at
+   * rather than the latest state. The label is trimmed; an empty result is a
+   * no-op so a cancel-equivalent input cannot blank out a version. Labeling
+   * pins the version against the duplicate-skip and the age/count eviction
+   * passes (isLabeled). The mutation is persisted and subscribers are notified
+   * through forceUpdate. A no-op when the snapshot is missing or the version id
+   * is unknown.
+   *
+   * @param {TFile | null} file - The file whose snapshot owns the version
+   * @param {string} versionId - The id of the existing version to label
+   * @param {string} label - The user-supplied tag
+   * @return {FileVersion | null} The labeled version, or null on a no-op
+   */
+  labelVersion(file, versionId, label) {
+    const snapshot = this.snapshotsService.getOne(file);
+    const trimmed = typeof label === "string" ? label.trim() : "";
+    if (!snapshot || trimmed.length === 0) {
+      return null;
+    }
+    const version = snapshot.getVersion(versionId);
+    if (!version) {
+      return null;
+    }
+    version.label = trimmed;
+    this.snapshotsService.forceUpdate();
+    return version;
+  }
+  /**
+   * Reads the current intermediate-snapshot cadence settings into a plain
+   * options object for the snapshot model. Mirrors the change-detector's
+   * helper so eviction caps stay aligned across both capture sources; the
+   * cadence gates themselves do not affect a forced labeled capture.
+   *
+   * @return {SnapshotCaptureOptions} The capture cadence configuration
+   */
+  getCaptureOptions() {
+    return {
+      enabled: this.settingsService.value("snapshots.enabled"),
+      intervalMs: this.settingsService.value("snapshots.intervalMs"),
+      editThreshold: this.settingsService.value("snapshots.editThreshold"),
+      maxVersions: this.settingsService.value("snapshots.maxVersions"),
+      maxVersionAgeDays: this.settingsService.value("snapshots.maxVersionAgeDays")
+    };
+  }
+};
+__decorateClass([
+  Inject("SnapshotsService")
+], VersionActionsService.prototype, "snapshotsService", 2);
+__decorateClass([
+  Inject("SettingsService")
+], VersionActionsService.prototype, "settingsService", 2);
+
+// src/views/recent-changes.view.ts
+var import_obsidian18 = require("obsidian");
+var RecentChangesView = class extends import_obsidian18.ItemView {
+  /**
+   * Creates a new instance of RecentChangesView.
+   *
+   * @param {WorkspaceLeaf} leaf - The workspace leaf hosting this view
+   * @param {LineChangeTrackerPlugin} plugin - The plugin instance, retained so
+   *   the view can reach services through the DI container
+   */
+  constructor(leaf, plugin) {
+    super(leaf);
+    this.plugin = plugin;
+  }
+  /**
+   * Returns the stable view type id used to register and look up the view.
+   *
+   * @return {string} The view type id
+   * @override
+   */
+  getViewType() {
+    return RECENT_CHANGES_VIEW_TYPE;
+  }
+  /**
+   * Returns the user-facing title rendered in the sidebar tab.
+   *
+   * @return {string} The localized display text
+   * @override
+   */
+  getDisplayText() {
+    return this.plugin.t("view.recent-changes.title");
+  }
+  /**
+   * Returns the Lucide icon id rendered in the sidebar tab. Matches the
+   * `history` icon used by the modal's toolbar so the surface is recognisable.
+   *
+   * @return {IconName} The Lucide icon id
+   * @override
+   */
+  getIcon() {
+    return "history";
+  }
+  /**
+   * Resolves the view type id this view exposes. Convenience for the reveal
+   * entry point (and tests) so callers do not have to import the constant.
+   *
+   * @return {string} The view type id
+   */
+  static get viewType() {
+    return RECENT_CHANGES_VIEW_TYPE;
+  }
+  /**
+   * Lifecycle hook called when Obsidian opens the view.
+   *
+   * Prepares the content host, mounts the timeline list container, subscribes
+   * to active-leaf-change and the internal snapshots-update event, and renders
+   * the initial state against the active file. Subscriptions go through
+   * `registerEvent` and the Component `register` cleanup so a detach of the
+   * leaf tears them down with no leaks (T10's AC3 contract).
+   *
+   * @return {Promise<void>} Resolves once the host is prepared
+   * @override
+   */
+  async onOpen() {
+    this.contentEl.empty();
+    this.contentEl.addClass("lct-recent-changes-view");
+    this.listEl = DomHelper.create({
+      tag: "div",
+      classes: "lct-recent-changes-list",
+      container: this.contentEl
+    });
+    this.registerEvent(
+      this.app.workspace.on("active-leaf-change", () => {
+        this.render();
+      })
+    );
+    const onSnapshotUpdate = () => this.render();
+    this.plugin.on("snapshots:update" /* snapshotsUpdate */, onSnapshotUpdate, this);
+    this.register(() => {
+      this.plugin.off("snapshots:update" /* snapshotsUpdate */, onSnapshotUpdate, this);
+    });
+    this.render();
+  }
+  /**
+   * Lifecycle hook called when Obsidian closes the view.
+   *
+   * Empties the content host so a re-open starts from a clean DOM. Component
+   * lifetime handles any registered event refs and dom listeners, so no
+   * explicit detach is needed here.
+   *
+   * @return {Promise<void>} Resolves once the host is cleared
+   * @override
+   */
+  async onClose() {
+    this.contentEl.empty();
+    this.listEl = void 0;
+  }
+  /**
+   * Renders the timeline rows for the active file into the list container.
+   *
+   * With no active file or no snapshot the panel shows a single muted hint,
+   * keeping the AC for "react to the active file" intact (an empty render IS
+   * the reaction). With a snapshot the rows mirror the modal rail format
+   * (action or custom label, capture date inline, line delta inline) but
+   * without the rail's grouping and search, since the panel is a thin
+   * navigator (D3).
+   */
+  render() {
+    if (!this.listEl) {
+      return;
+    }
+    const file = this.plugin.getActiveFile();
+    const snapshot = this.plugin.get("SnapshotsService").getOne(file);
+    if (!file || !snapshot) {
+      DomHelper.update(this.listEl, {
+        text: null,
+        children: [
+          {
+            tag: "div",
+            classes: "lct-recent-changes-empty",
+            text: this.plugin.t("view.recent-changes.empty")
+          }
+        ]
+      });
+      return;
+    }
+    const versions = snapshot.getVersions();
+    if (versions.length === 0) {
+      DomHelper.update(this.listEl, {
+        text: null,
+        children: [
+          {
+            tag: "div",
+            classes: "lct-recent-changes-empty",
+            text: this.plugin.t("view.recent-changes.empty")
+          }
+        ]
+      });
+      return;
+    }
+    DomHelper.update(this.listEl, {
+      text: null,
+      children: versions.map(
+        (version) => this.makeRow(version, versions, snapshot, file)
+      )
+    });
+  }
+  /**
+   * Builds the DomHelper config for a single timeline row. Mirrors the modal
+   * rail's primary label (custom label or derived action), the inline capture
+   * date+time, and the `+A -B` line delta. Double-click opens the history
+   * modal in rail-less mode focused on this version (D4): the panel stays the
+   * sole navigator, the modal acts as a pure viewer.
+   *
+   * @param {FileVersion} version - The version this row represents
+   * @param {FileVersion[]} versions - The full timeline, newest first
+   * @param {FileSnapshot} snapshot - The snapshot the timeline belongs to
+   * @param {TFile} file - The file the snapshot belongs to (captured at render
+   *   time so a later active-file switch cannot retarget the click)
+   * @return {DomElementConfig} The DomHelper config for the row
+   */
+  makeRow(version, versions, snapshot, file) {
+    const description = this.describeVersion(version, versions, snapshot);
+    const label = this.resolveLabel(version, description);
+    const delta = this.formatDelta(description);
+    const children = [
+      { tag: "span", classes: "lct-recent-changes-label", text: label },
+      { tag: "span", classes: "lct-recent-changes-meta", text: version.getDateTime() }
+    ];
+    if (delta) {
+      children.push({ tag: "span", classes: "lct-recent-changes-delta", text: delta });
+    }
+    return {
+      tag: "div",
+      classes: "lct-recent-changes-item",
+      events: {
+        dblclick: () => {
+          this.openInModal(file, version.id);
+        },
+        contextmenu: (event) => {
+          this.openRowMenu(event, file, version);
+        }
+      },
+      children
+    };
+  }
+  /**
+   * Opens the per-row context menu (T12). Mirrors the modal toolbar wiring so
+   * the panel and the modal share one behaviour for restore/delete/put-label
+   * (D5): "Show diff" opens the rail-less viewer focused on this version, the
+   * destructive actions confirm through the same prompts the modal uses, and
+   * Put label routes through the prompt+VersionActionsService entry point on
+   * ModalsService so an empty/cancel input is a silent no-op (T06). The native
+   * browser menu is suppressed so only the plugin menu shows up.
+   *
+   * The captured `file` is the one resolved at row render time, so a later
+   * active-file switch cannot retarget the action at the wrong timeline (same
+   * guarantee the double-click handler relies on).
+   *
+   * @param {MouseEvent} event - The captured `contextmenu` event from the row
+   * @param {TFile} file - The file the version belongs to
+   * @param {FileVersion} version - The version this row represents
+   */
+  openRowMenu(event, file, version) {
+    event.preventDefault();
+    const menu = new import_obsidian18.Menu();
+    const modalsService = this.plugin.get("ModalsService");
+    const versionActionsService = this.plugin.get("VersionActionsService");
+    menu.addItem((item) => {
+      item.setTitle(this.plugin.t("view.recent-changes.menu.show-diff")).setIcon("file-diff").onClick(() => {
+        this.openInModal(file, version.id);
+      });
+    });
+    menu.addItem((item) => {
+      item.setTitle(this.plugin.t("view.recent-changes.menu.restore")).setIcon("history").onClick(async () => {
+        const confirmed = await modalsService.confirm({
+          title: this.plugin.t("modal.confirm.restore-version.title"),
+          message: this.plugin.t("modal.confirm.restore-version.message"),
+          confirmText: this.plugin.t("modal.confirm.restore-version.button"),
+          cancelText: this.plugin.t("modal.confirm.cancel")
+        });
+        if (!confirmed) {
+          return;
+        }
+        await versionActionsService.restoreSelected(file, version.id);
+      });
+    });
+    menu.addItem((item) => {
+      item.setTitle(this.plugin.t("view.recent-changes.menu.delete")).setIcon("list-x").onClick(async () => {
+        const confirmed = await modalsService.confirm({
+          title: this.plugin.t("modal.confirm.remove-version.title"),
+          message: this.plugin.t("modal.confirm.remove-version.message"),
+          confirmText: this.plugin.t("modal.confirm.remove-version.button"),
+          cancelText: this.plugin.t("modal.confirm.cancel")
+        });
+        if (!confirmed) {
+          return;
+        }
+        versionActionsService.removeSelected(file, version.id);
+      });
+    });
+    menu.addItem((item) => {
+      item.setTitle(this.plugin.t("view.recent-changes.menu.put-label")).setIcon("tag").onClick(() => {
+        void modalsService.labelVersion(file, version.id);
+      });
+    });
+    menu.showAtMouseEvent(event);
+  }
+  /**
+   * Returns the primary label shown on a row: the user's custom label when
+   * present (D1), otherwise the derived action text translated from
+   * VersionLabelHelper.describe against the version's previous neighbour. The
+   * oldest version's previous neighbour is the history baseline.
+   *
+   * @param {FileVersion} version - The version to label
+   * @param {VersionDescription} description - The cached describe result
+   * @return {string} The primary label string
+   */
+  resolveLabel(version, description) {
+    if (version.isLabeled()) {
+      return version.label;
+    }
+    return this.plugin.t(`modal.version.action.${description.kind}`);
+  }
+  /**
+   * Computes the derived action description for a version against its previous
+   * neighbour. The neighbour is the next-older captured version, or the file's
+   * history baseline when the version is the oldest one on the timeline.
+   * Mirrors HistoryModal.describeVersion so the panel and the rail label the
+   * same content identically.
+   *
+   * @param {FileVersion} version - The version to describe
+   * @param {FileVersion[]} versions - The full timeline, newest first
+   * @param {FileSnapshot} snapshot - The snapshot the timeline belongs to
+   * @return {VersionDescription} The action kind plus the added/removed counts
+   */
+  describeVersion(version, versions, snapshot) {
+    const index = versions.indexOf(version);
+    const previous = index >= 0 ? versions[index + 1] : void 0;
+    const previousLines = previous ? previous.getLines() : snapshot.getHistoryOriginalStateLines();
+    return VersionLabelHelper.describe(previousLines, version.getLines());
+  }
+  /**
+   * Formats the inline line delta shown on a row. Returns an empty string when
+   * both added and removed are zero so the row stays clean for no-op captures
+   * (e.g. a labeled version pinned at unchanged content).
+   *
+   * @param {VersionDescription} description - The describe result
+   * @return {string} The formatted delta or empty string
+   */
+  formatDelta(description) {
+    if (description.added === 0 && description.removed === 0) {
+      return "";
+    }
+    return this.plugin.t("modal.version.delta", {
+      added: String(description.added),
+      removed: String(description.removed)
+    });
+  }
+  /**
+   * Opens the history modal in rail-less mode focused on the given version, so
+   * the panel is the sole navigator in that session (D4). The file is the one
+   * captured at row render time so an active-file switch between render and
+   * double-click cannot retarget the modal at a different timeline. A missing
+   * snapshot is treated as a no-op by ModalsService.diff (returns false), so
+   * the call is safe even on a transient state.
+   *
+   * @param {TFile} file - The file the version belongs to
+   * @param {string} versionId - The version id to focus on open
+   */
+  openInModal(file, versionId) {
+    this.plugin.get("ModalsService").diff(file, {
+      initialBaseId: versionId,
+      hideRail: true
+    });
+  }
+};
+
 // node_modules/eventemitter3/index.mjs
 var import_index = __toESM(require_eventemitter3(), 1);
 var eventemitter3_default = import_index.default;
 
 // src/main.ts
-var import_obsidian17 = require("obsidian");
-var LineChangeTrackerPlugin = class extends import_obsidian17.Plugin {
+var import_obsidian19 = require("obsidian");
+var LineChangeTrackerPlugin = class extends import_obsidian19.Plugin {
   /**
    * Creates a new instance of the LineChangeTrackerPlugin.
    * Registers all required services during initialization.
@@ -17430,6 +19457,7 @@ var LineChangeTrackerPlugin = class extends import_obsidian17.Plugin {
     this.registerService(CommandsService);
     this.registerService(EventsService);
     this.registerService(SnapshotsService);
+    this.registerService(VersionActionsService);
     this.registerService(PersistenceService);
   }
   /**
@@ -17496,6 +19524,10 @@ var LineChangeTrackerPlugin = class extends import_obsidian17.Plugin {
   async onload() {
     await this.exec("init");
     await this.exec("load");
+    this.registerView(
+      RECENT_CHANGES_VIEW_TYPE,
+      (leaf) => new RecentChangesView(leaf, this)
+    );
   }
   /**
    * Lifecycle method called when the plugin is unloaded.
@@ -17588,7 +19620,7 @@ var LineChangeTrackerPlugin = class extends import_obsidian17.Plugin {
    * @return {MarkdownView | null} The active markdown view, or null if none is active
    */
   getActiveViewOfType() {
-    return this.app.workspace.getActiveViewOfType(import_obsidian17.MarkdownView);
+    return this.app.workspace.getActiveViewOfType(import_obsidian19.MarkdownView);
   }
   /**
    * Gets the active file.
@@ -17609,7 +19641,31 @@ var LineChangeTrackerPlugin = class extends import_obsidian17.Plugin {
    */
   getFileByPath(path) {
     const file = this.app.vault.getAbstractFileByPath(path);
-    return file instanceof import_obsidian17.TFile ? file : null;
+    return file instanceof import_obsidian19.TFile ? file : null;
+  }
+  /**
+   * Reveals the Recent changes panel in the right sidebar (D3).
+   *
+   * Reuses an existing leaf when one is already open so a second invocation
+   * focuses the panel rather than spawning a duplicate. Falls back to creating
+   * a fresh right-sidebar leaf when none exists; if the right sidebar is
+   * unavailable (no leaf granted), the call resolves silently without an
+   * error so menu and command entry points stay safe.
+   *
+   * @return {Promise<void>} Resolves once the leaf is created and revealed
+   */
+  async revealRecentChanges() {
+    const existing = this.app.workspace.getLeavesOfType(RECENT_CHANGES_VIEW_TYPE);
+    if (existing.length > 0) {
+      await this.app.workspace.revealLeaf(existing[0]);
+      return;
+    }
+    const leaf = this.app.workspace.getRightLeaf(false);
+    if (!leaf) {
+      return;
+    }
+    await leaf.setViewState({ type: RECENT_CHANGES_VIEW_TYPE, active: true });
+    await this.app.workspace.revealLeaf(leaf);
   }
   /**
    * Gets all Markdown files currently open in the workspace.

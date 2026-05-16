@@ -153,6 +153,11 @@
   color: var(--text-muted);
   font-size: var(--font-ui-smaller);
 }
+.modal.lct-diff-modal .lct-versions .lct-version-item .lct-version-delta {
+  color: var(--text-faint);
+  font-size: var(--font-ui-smaller);
+  font-family: var(--font-monospace);
+}
 .modal.lct-diff-modal .lct-diff-notice {
   flex: none;
   padding: var(--size-4-2) var(--size-4-3);
@@ -465,8 +470,55 @@
   padding: 0 20px 0 5px;
   align-items: center;
 }
+.workspace-leaf-content[data-type=line-change-tracker-recent-changes] .lct-recent-changes-view {
+  padding: var(--size-4-3) var(--size-4-2);
+}
+.workspace-leaf-content[data-type=line-change-tracker-recent-changes] .lct-recent-changes-view .lct-recent-changes-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-1);
+}
+.workspace-leaf-content[data-type=line-change-tracker-recent-changes] .lct-recent-changes-view .lct-recent-changes-empty {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  padding: var(--size-4-2);
+  text-align: center;
+}
+.workspace-leaf-content[data-type=line-change-tracker-recent-changes] .lct-recent-changes-view .lct-recent-changes-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: var(--size-4-1) var(--size-4-2);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-s);
+  background-color: var(--background-secondary);
+  user-select: none;
+}
+.workspace-leaf-content[data-type=line-change-tracker-recent-changes] .lct-recent-changes-view .lct-recent-changes-item:hover {
+  background-color: var(--background-modifier-hover);
+}
+.workspace-leaf-content[data-type=line-change-tracker-recent-changes] .lct-recent-changes-view .lct-recent-changes-item .lct-recent-changes-label {
+  color: var(--text-normal);
+  font-weight: var(--font-medium);
+}
+.workspace-leaf-content[data-type=line-change-tracker-recent-changes] .lct-recent-changes-view .lct-recent-changes-item .lct-recent-changes-meta {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+.workspace-leaf-content[data-type=line-change-tracker-recent-changes] .lct-recent-changes-view .lct-recent-changes-item .lct-recent-changes-delta {
+  color: var(--text-faint);
+  font-size: var(--font-ui-smaller);
+  font-family: var(--font-monospace);
+}
 .modal.lct-confirm-modal .modal-content {
   padding: var(--size-4-4) var(--size-4-6);
+}
+.modal.lct-prompt-modal .modal-content {
+  padding: var(--size-4-4) var(--size-4-6);
+}
+.modal.lct-prompt-modal .lct-prompt-input {
+  width: 100%;
 }
 .cm-line.lct-line {
   position: relative;

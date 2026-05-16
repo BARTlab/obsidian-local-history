@@ -119,6 +119,23 @@ export class FileSnapshot {
   public file?: TFile | null;
 
   /**
+   * Tombstone marker (D1): the timestamp (ms) at which the underlying file was
+   * deleted in the vault. While this is set, the snapshot represents a deleted
+   * file whose final state and history are preserved for inspection and restore;
+   * a live snapshot leaves the field `undefined`. The map keeps the entry under
+   * its last-known path so a folder view at that prefix can still surface it.
+   */
+  public deletedTimestamp?: number;
+
+  /**
+   * Cross-directory move marker (D2): the timestamp (ms) at which this snapshot
+   * was re-keyed to a new path because its file moved between directories. The
+   * field stays `undefined` for a snapshot that has never been moved across
+   * directories, and for the tombstone left behind in the source directory.
+   */
+  public movedIntoAt?: number;
+
+  /**
    * Creates a new instance of FileSnapshot.
    * Initializes the snapshot with the provided content, splits it into lines,
    * creates tracker objects for each line, and saves the initial state.
@@ -165,7 +182,7 @@ export class FileSnapshot {
    * @return {SerializedFileSnapshot} The plain serialized representation
    */
   public toJSON(): SerializedFileSnapshot {
-    return {
+    const payload: SerializedFileSnapshot = {
       path: this.file?.path ?? '',
       lineBreak: this.lineBreak,
       timestamp: this.timestamp,
@@ -174,6 +191,18 @@ export class FileSnapshot {
       tracker: this.tracker.map((tracker: TrackerLine): ReturnType<TrackerLine['toJSON']> => tracker.toJSON()),
       versions: this.versions.map((version: FileVersion): ReturnType<FileVersion['toJSON']> => version.toJSON()),
     };
+
+    // Optional markers are written only when present so existing live-snapshot
+    // payloads round-trip byte-identical and tombstones/moves are explicit.
+    if (isNumber(this.deletedTimestamp)) {
+      payload.deletedTimestamp = this.deletedTimestamp;
+    }
+
+    if (isNumber(this.movedIntoAt)) {
+      payload.movedIntoAt = this.movedIntoAt;
+    }
+
+    return payload;
   }
 
   /**
@@ -199,11 +228,40 @@ export class FileSnapshot {
     snapshot.versions = Array.isArray(data.versions)
       ? data.versions.map((version): FileVersion => FileVersion.fromJSON(version))
       : [];
+
+    if (isNumber(data.deletedTimestamp)) {
+      snapshot.deletedTimestamp = data.deletedTimestamp;
+    }
+
+    if (isNumber(data.movedIntoAt)) {
+      snapshot.movedIntoAt = data.movedIntoAt;
+    }
+
     snapshot.invalidateCurrentIndex();
     snapshot.updateState(data.state);
     snapshot.updateChanges();
 
     return snapshot;
+  }
+
+  /**
+   * Whether this snapshot is a tombstone for a deleted file (D1). True when
+   * `deletedTimestamp` is set; false for a live snapshot.
+   *
+   * @return {boolean} True when the snapshot represents a deleted file
+   */
+  public isTombstone(): boolean {
+    return isNumber(this.deletedTimestamp);
+  }
+
+  /**
+   * Whether this snapshot was re-keyed to a new path by a cross-directory move
+   * (D2). True when `movedIntoAt` is set; false otherwise.
+   *
+   * @return {boolean} True when the snapshot carries a move-in marker
+   */
+  public isMovedIn(): boolean {
+    return isNumber(this.movedIntoAt);
   }
 
   /**

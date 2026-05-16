@@ -446,6 +446,14 @@ export interface SerializedFileVersion {
  * state, the full tracker, and the intermediate version timeline so highlights
  * and history can be restored verbatim after a restart. The change map is not
  * stored because it is recomputed from the tracker on load.
+ *
+ * Optional `deletedTimestamp` flags a tombstone snapshot (D1): the file was
+ * deleted in the vault but the snapshot keeps its final state and history so the
+ * file remains recoverable. Optional `movedIntoAt` flags the destination side of
+ * a cross-directory move (D2): the live snapshot re-keyed to the new path
+ * carries this stamp so folder views can colour it as "added in the new folder"
+ * while its captured history travels with it. The fields are omitted from the
+ * payload when unset so existing histories round-trip unchanged.
  */
 export interface SerializedFileSnapshot {
   path: string;
@@ -455,6 +463,8 @@ export interface SerializedFileSnapshot {
   state: string[];
   tracker: SerializedTrackerLine[];
   versions?: SerializedFileVersion[];
+  deletedTimestamp?: number;
+  movedIntoAt?: number;
 }
 
 /**

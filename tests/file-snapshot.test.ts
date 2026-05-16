@@ -2,6 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { ChangeType } from '@/consts';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { TrackerLine } from '@/lines/tracker.line';
+import type { SerializedFileSnapshot } from '@/types';
 
 /**
  * Characterization tests for the FileSnapshot model (T2.1). They drive the
@@ -318,5 +319,116 @@ describe('FileSnapshot.getChangedPositions (navigation source, T5.4)', () => {
 
     // Restricting to "changed" drops the restored line from the navigation set.
     expect(snapshot.getChangedPositions(ChangeType.changed)).toEqual([2]);
+  });
+});
+
+describe('FileSnapshot tombstone and move markers (T01)', () => {
+  it('leaves deletedTimestamp and movedIntoAt undefined on a fresh snapshot', () => {
+    const snapshot = new FileSnapshot('a\nb');
+
+    expect(snapshot.deletedTimestamp).toBeUndefined();
+    expect(snapshot.movedIntoAt).toBeUndefined();
+    expect(snapshot.isTombstone()).toBe(false);
+    expect(snapshot.isMovedIn()).toBe(false);
+  });
+
+  it('reports isTombstone according to deletedTimestamp presence', () => {
+    const live = new FileSnapshot('a');
+    const tombstone = new FileSnapshot('a');
+
+    tombstone.deletedTimestamp = 42;
+
+    expect(live.isTombstone()).toBe(false);
+    expect(tombstone.isTombstone()).toBe(true);
+  });
+
+  it('reports isMovedIn according to movedIntoAt presence', () => {
+    const pristine = new FileSnapshot('a');
+    const moved = new FileSnapshot('a');
+
+    moved.movedIntoAt = 7;
+
+    expect(pristine.isMovedIn()).toBe(false);
+    expect(moved.isMovedIn()).toBe(true);
+  });
+
+  it('omits both fields from toJSON when unset', () => {
+    const snapshot = new FileSnapshot('a\nb');
+    const payload = snapshot.toJSON();
+
+    expect(Object.prototype.hasOwnProperty.call(payload, 'deletedTimestamp')).toBe(false);
+    expect(Object.prototype.hasOwnProperty.call(payload, 'movedIntoAt')).toBe(false);
+  });
+
+  it('serializes deletedTimestamp on a tombstone and omits movedIntoAt when unset', () => {
+    const snapshot = new FileSnapshot('a\nb');
+
+    snapshot.deletedTimestamp = 123456;
+
+    const payload = snapshot.toJSON();
+
+    expect(payload.deletedTimestamp).toBe(123456);
+    expect(Object.prototype.hasOwnProperty.call(payload, 'movedIntoAt')).toBe(false);
+  });
+
+  it('round-trips deletedTimestamp through fromJSON losslessly', () => {
+    const original = new FileSnapshot('a\nb');
+
+    original.deletedTimestamp = 999;
+
+    const restored = FileSnapshot.fromJSON(original.toJSON());
+
+    expect(restored.deletedTimestamp).toBe(999);
+    expect(restored.isTombstone()).toBe(true);
+    expect(restored.movedIntoAt).toBeUndefined();
+    expect(restored.isMovedIn()).toBe(false);
+  });
+
+  it('round-trips movedIntoAt through fromJSON losslessly', () => {
+    const original = new FileSnapshot('x');
+
+    original.movedIntoAt = 555;
+
+    const restored = FileSnapshot.fromJSON(original.toJSON());
+
+    expect(restored.movedIntoAt).toBe(555);
+    expect(restored.isMovedIn()).toBe(true);
+    expect(restored.deletedTimestamp).toBeUndefined();
+    expect(restored.isTombstone()).toBe(false);
+  });
+
+  it('round-trips both markers together through fromJSON', () => {
+    const original = new FileSnapshot('x\ny');
+
+    original.deletedTimestamp = 1;
+    original.movedIntoAt = 2;
+
+    const restored = FileSnapshot.fromJSON(original.toJSON());
+
+    expect(restored.isTombstone()).toBe(true);
+    expect(restored.isMovedIn()).toBe(true);
+    expect(restored.deletedTimestamp).toBe(1);
+    expect(restored.movedIntoAt).toBe(2);
+  });
+
+  it('rebuilds isTombstone/isMovedIn from a synthetic serialized payload', () => {
+    const payload: SerializedFileSnapshot = {
+      path: 'gone/x.md',
+      lineBreak: '\n',
+      timestamp: 100,
+      lines: ['a'],
+      state: ['a'],
+      tracker: [],
+      versions: [],
+      deletedTimestamp: 200,
+      movedIntoAt: 150,
+    };
+
+    const restored = FileSnapshot.fromJSON(payload);
+
+    expect(restored.isTombstone()).toBe(true);
+    expect(restored.isMovedIn()).toBe(true);
+    expect(restored.deletedTimestamp).toBe(200);
+    expect(restored.movedIntoAt).toBe(150);
   });
 });

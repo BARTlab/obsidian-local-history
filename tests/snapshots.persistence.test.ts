@@ -103,12 +103,21 @@ describe('SnapshotsService.restore', () => {
     expect(restored?.file?.path).toBe('a.md');
   });
 
-  it('skips entries whose file no longer exists', () => {
+  it('auto-tombstones entries whose live file no longer exists (T05 AC4)', () => {
+    // Pre-T05 the entry would have been silently dropped. T05 changes this:
+    // a serialized live snapshot whose file is gone on restore is rebuilt as
+    // a tombstone (deletedTimestamp = data.timestamp), so the deleted-file
+    // history survives a plugin-off deletion. The dedicated tombstone tests
+    // live in tests/persistence.service.tombstone.test.ts; this case stays
+    // here to pin the older contract's update.
     const service = makeService([]); // nothing resolves
 
     service.restore([dirtySerialized('gone.md')]);
 
-    expect(service.getOne(makeFile('gone.md'))).toBeNull();
+    const orphan: FileSnapshot | null = service.getOne(makeFile('gone.md'));
+
+    expect(orphan).not.toBeNull();
+    expect(orphan!.isTombstone()).toBe(true);
   });
 
   it('keeps a pristine session marker baseline and adopts only the history baseline (D2)', () => {

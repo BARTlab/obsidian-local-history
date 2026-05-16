@@ -169,8 +169,11 @@ export class PersistenceService implements Service {
 
   /**
    * Applies the size and age caps to a list of serialized snapshots.
-   * Drops entries older than the age cap, then keeps only the most recently
-   * touched entries up to the size cap. A cap of 0 disables that dimension.
+   * Runs two independent passes (D4): live snapshots are bounded by
+   * `retention.maxEntries` / `retention.maxAgeDays` and tombstones
+   * (entries with `deletedTimestamp` set) by
+   * `retention.maxDeletedEntries` / `retention.maxDeletedAgeDays`.
+   * A cap of 0 disables that dimension for its bucket, matching the live caps.
    *
    * @param {SerializedFileSnapshot[]} snapshots - The raw persisted snapshots
    * @return {SerializedFileSnapshot[]} The retained subset, newest first
@@ -180,16 +183,68 @@ export class PersistenceService implements Service {
       return [];
     }
 
-    const maxEntries: number = this.settingsService.value('retention.maxEntries');
-    const maxAgeDays: number = this.settingsService.value('retention.maxAgeDays');
-    const oldest: number = maxAgeDays > 0 ? Date.now() - (maxAgeDays * MS_PER_DAY) : 0;
+    const live: SerializedFileSnapshot[] = [];
+    const tombstones: SerializedFileSnapshot[] = [];
 
-    let kept: SerializedFileSnapshot[] = snapshots.filter((item: SerializedFileSnapshot): boolean =>
-      !!item && (oldest === 0 || item.timestamp >= oldest)
+    for (const item of snapshots) {
+      if (!item) {
+        continue;
+      }
+
+      if (typeof item.deletedTimestamp === 'number') {
+        tombstones.push(item);
+      } else {
+        live.push(item);
+      }
+    }
+
+    const keptLive: SerializedFileSnapshot[] = this.applyBucketRetention(
+      live,
+      this.settingsService.value('retention.maxEntries'),
+      this.settingsService.value('retention.maxAgeDays'),
+      (item: SerializedFileSnapshot): number => item.timestamp,
     );
 
-    // Newest first so the size cap evicts the stalest histories.
-    kept.sort((a: SerializedFileSnapshot, b: SerializedFileSnapshot): number => b.timestamp - a.timestamp);
+    const keptTombstones: SerializedFileSnapshot[] = this.applyBucketRetention(
+      tombstones,
+      this.settingsService.value('retention.maxDeletedEntries'),
+      this.settingsService.value('retention.maxDeletedAgeDays'),
+      // Age a tombstone by its deletion time so the policy answers "how long do
+      // we keep deleted-file recoverability" rather than "how stale was the file
+      // when it was deleted".
+      (item: SerializedFileSnapshot): number => item.deletedTimestamp ?? item.timestamp,
+    );
+
+    return [...keptLive, ...keptTombstones];
+  }
+
+  /**
+   * Runs a single retention pass on a bucket of serialized snapshots, dropping
+   * entries older than `maxAgeDays` (when > 0) and then capping by
+   * `maxEntries` (when > 0). The bucket's "age" is read through the supplied
+   * accessor so live snapshots can age by `timestamp` and tombstones by
+   * `deletedTimestamp`.
+   *
+   * @param {SerializedFileSnapshot[]} bucket - The bucket to prune (not mutated)
+   * @param {number} maxEntries - Size cap for this bucket (0 disables)
+   * @param {number} maxAgeDays - Age cap in days for this bucket (0 disables)
+   * @param {(item: SerializedFileSnapshot) => number} ageOf - Reads the age timestamp from an item
+   * @return {SerializedFileSnapshot[]} The retained subset, newest first
+   */
+  protected applyBucketRetention(
+    bucket: SerializedFileSnapshot[],
+    maxEntries: number,
+    maxAgeDays: number,
+    ageOf: (item: SerializedFileSnapshot) => number,
+  ): SerializedFileSnapshot[] {
+    const oldest: number = maxAgeDays > 0 ? Date.now() - (maxAgeDays * MS_PER_DAY) : 0;
+
+    let kept: SerializedFileSnapshot[] = bucket.filter((item: SerializedFileSnapshot): boolean =>
+      oldest === 0 || ageOf(item) >= oldest
+    );
+
+    // Newest first so the size cap evicts the stalest entries.
+    kept.sort((a: SerializedFileSnapshot, b: SerializedFileSnapshot): number => ageOf(b) - ageOf(a));
 
     if (maxEntries > 0 && kept.length > maxEntries) {
       kept = kept.slice(0, maxEntries);

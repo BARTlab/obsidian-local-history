@@ -155,6 +155,37 @@ export class MainSetting extends PluginSettingTab {
           })
       );
 
+    new Setting(containerEl)
+      .setName('Max stored deleted files')
+      .setDesc(
+        'Cap on how many tombstone histories (deleted files) are kept on disk. '
+        + 'Oldest are evicted first. Set to 0 to disable.',
+      )
+      .addText((text: TextComponent): TextComponent =>
+        text
+          .setPlaceholder(String(DEFAULT_SETTINGS.retention.maxDeletedEntries))
+          .setValue(String(this.settingsService.value('retention.maxDeletedEntries')))
+          .onChange((value: string): void => {
+            const count: number = this.toCount(value, DEFAULT_SETTINGS.retention.maxDeletedEntries);
+
+            this.settingsService.update('retention.maxDeletedEntries', count);
+          })
+      );
+
+    new Setting(containerEl)
+      .setName('Max deleted history age (days)')
+      .setDesc('Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.')
+      .addText((text: TextComponent): TextComponent =>
+        text
+          .setPlaceholder(String(DEFAULT_SETTINGS.retention.maxDeletedAgeDays))
+          .setValue(String(this.settingsService.value('retention.maxDeletedAgeDays')))
+          .onChange((value: string): void => {
+            const days: number = this.toCount(value, DEFAULT_SETTINGS.retention.maxDeletedAgeDays);
+
+            this.settingsService.update('retention.maxDeletedAgeDays', days);
+          })
+      );
+
     // ----- intermediate snapshots (timeline) -----
 
     new Setting(containerEl)

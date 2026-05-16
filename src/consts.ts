@@ -58,6 +58,8 @@ export const DEFAULT_SETTINGS: LineChangeTrackerSettings = {
   retention: {
     maxEntries: 200,
     maxAgeDays: 30,
+    maxDeletedEntries: 100,
+    maxDeletedAgeDays: 30,
   },
 
   snapshots: {

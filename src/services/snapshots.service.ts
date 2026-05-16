@@ -128,6 +128,42 @@ export class SnapshotsService implements Service {
   }
 
   /**
+   * Marks the snapshot for the given file as a tombstone (D1) instead of
+   * dropping it. The entry stays in the map under its current path so any
+   * folder view at that prefix can still surface it, and its `state`,
+   * `historyLines`, and `versions` are preserved so the file can be
+   * reconstructed from history. The session-only marker baseline (`lines`)
+   * and the live `tracker` are reset to empty arrays because they only
+   * carry meaning against a live editor view, and the file is gone.
+   *
+   * No-op when the file is missing or when no snapshot exists at the path
+   * (there is nothing to remember). Calling on an already-tombstoned entry
+   * is also a no-op: the existing `deletedTimestamp` is preserved so a
+   * later replay of the same delete signal cannot rewrite the original
+   * tombstone moment.
+   *
+   * @param {TFile} file - The file that was deleted in the vault
+   */
+  public markDeleted(file: TFile): void {
+    if (!file) {
+      return;
+    }
+
+    const snapshot: FileSnapshot | undefined = this.fileSnapshots.get(file.path);
+
+    if (!snapshot || snapshot.isTombstone()) {
+      return;
+    }
+
+    snapshot.deletedTimestamp = Date.now();
+    snapshot.lines = [];
+    snapshot.tracker = [];
+    snapshot.changes.clear();
+
+    this.forceUpdate();
+  }
+
+  /**
    * Re-keys a snapshot after its file was renamed or moved.
    * Moves the snapshot from the old path to the file's current path and updates
    * the stored file reference, preserving the tracked history across the rename.

@@ -7,8 +7,9 @@ import { type TAbstractFile, TFile } from 'obsidian';
 
 /**
  * Event handler for Obsidian's vault delete event.
- * Drops the file snapshot and its ignore-list entry when a tracked file is
- * deleted so stale state is not leaked for a file that no longer exists.
+ * Turns the live snapshot into a tombstone via `SnapshotsService.markDeleted`
+ * so the file's history survives the delete (epic 05 D1) and still drops the
+ * ignore-list entry so stale gating state is not leaked.
  *
  * @extends {BaseEvent}
  */
@@ -27,8 +28,8 @@ export class VaultDeleteEvent extends BaseEvent {
   public readonly name: ObsidianEventName = ObsidianEvent.vault.delete;
 
   /**
-   * Handles the vault delete event by removing the snapshot and ignore entry.
-   * Skips non-file entries (folders).
+   * Handles the vault delete event by tombstoning the snapshot and dropping
+   * the ignore entry. Skips non-file entries (folders).
    *
    * @param {TAbstractFile} file - The file that was deleted from the vault
    */
@@ -37,7 +38,7 @@ export class VaultDeleteEvent extends BaseEvent {
       return;
     }
 
-    this.snapshotsService.remove(file);
+    this.snapshotsService.markDeleted(file);
     this.snapshotsService.removeFromIgnoreList(file);
   }
 }

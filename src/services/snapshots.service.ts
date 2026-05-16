@@ -270,24 +270,44 @@ export class SnapshotsService implements Service {
 
   /**
    * Serializes all tracked snapshots into a plain, persistable structure.
-   * Includes snapshots that carry actual history (a tracker with changes) or a
-   * non-empty intermediate-version timeline, and that have a known file path,
-   * so pristine files do not bloat the store but a timeline is never lost just
-   * because the current state happens to match the original.
+   * Includes live snapshots that carry actual history (a tracker with changes
+   * or a non-empty intermediate-version timeline) so pristine files do not
+   * bloat the store but a timeline is never lost just because the current
+   * state happens to match the original. Tombstones (D1) are ALWAYS included
+   * regardless of tracker/timeline emptiness: their final state plus
+   * `deletedTimestamp` is the only record of a deleted file's content and must
+   * survive a restart even when the live tracker was reset on `markDeleted`.
+   *
+   * The serialized `path` is taken from the map key (not from `snapshot.file`)
+   * so tombstones whose `file` reference is null (cross-directory move leaves
+   * a detached tombstone, D2) still round-trip to disk under their last-known
+   * path.
    *
    * @return {SerializedHistory} The versioned, serializable history payload
    */
   public serialize(): SerializedHistory {
     const snapshots: SerializedFileSnapshot[] = [];
 
-    for (const snapshot of this.fileSnapshots.values()) {
-      const hasHistory: boolean = snapshot.getChangesLinesCount() > 0 || snapshot.hasVersions();
-
-      if (!snapshot.file?.path || !hasHistory) {
+    for (const [path, snapshot] of this.fileSnapshots.entries()) {
+      if (!path) {
         continue;
       }
 
-      snapshots.push(snapshot.toJSON());
+      const isTombstone: boolean = snapshot.isTombstone();
+      const hasHistory: boolean = snapshot.getChangesLinesCount() > 0 || snapshot.hasVersions();
+
+      // Tombstones are kept unconditionally; live snapshots only when they
+      // carry real history. The map key wins over snapshot.file?.path so a
+      // detached tombstone (file = null) still serializes under its path.
+      if (!isTombstone && !hasHistory) {
+        continue;
+      }
+
+      const payload: SerializedFileSnapshot = snapshot.toJSON();
+
+      payload.path = path;
+
+      snapshots.push(payload);
     }
 
     return { version: 1, snapshots };
@@ -306,8 +326,23 @@ export class SnapshotsService implements Service {
    *
    * When the file is not open this session there is no session marker baseline to
    * preserve, so the snapshot is rebuilt verbatim (marker and history baselines
-   * coincide). Entries whose file is gone are skipped (deleted while the plugin
-   * was off).
+   * coincide).
+   *
+   * When the live file is gone (deleted while the plugin was off, or the entry
+   * was already a tombstone on disk) the snapshot is reconstructed as a
+   * tombstone under its persisted path so deleted-file history is never silently
+   * dropped on restart:
+   *
+   *   - a payload that already carries `deletedTimestamp` is rebuilt as that
+   *     same tombstone (the original deletion moment is preserved);
+   *   - a live payload whose file no longer resolves is auto-tombstoned with
+   *     `deletedTimestamp = data.timestamp`, treating the offline disappearance
+   *     as a delete that happened at the snapshot's last-known moment.
+   *
+   * Auto-tombstoning runs from `restoreFromDisk`, which itself runs from
+   * `onLayoutReady`, so the vault file index is fully populated by the time
+   * `getFileByPath` is consulted; a null result is a real absence, not a
+   * transient indexing miss.
    *
    * @param {SerializedFileSnapshot[]} snapshots - The serialized snapshots
    */
@@ -324,6 +359,8 @@ export class SnapshotsService implements Service {
       const file: TFile | null = this.plugin.getFileByPath(data.path);
 
       if (!file) {
+        this.restoreOrphan(data);
+
         continue;
       }
 
@@ -343,6 +380,30 @@ export class SnapshotsService implements Service {
 
       this.fileSnapshots.set(data.path, FileSnapshot.fromJSON(data, file));
     }
+  }
+
+  /**
+   * Reconstructs a serialized entry whose live file is missing as a tombstone.
+   * A payload that already carries `deletedTimestamp` is rebuilt verbatim so
+   * the original deletion moment survives a restart; a live payload whose file
+   * is gone is auto-tombstoned with `deletedTimestamp = data.timestamp` (the
+   * snapshot's last-known moment), keeping deleted-file history accessible
+   * even when the delete happened while the plugin was off.
+   *
+   * @param {SerializedFileSnapshot} data - The serialized snapshot
+   */
+  protected restoreOrphan(data: SerializedFileSnapshot): void {
+    const snapshot: FileSnapshot = FileSnapshot.fromJSON(data, null);
+
+    if (!snapshot.isTombstone()) {
+      snapshot.deletedTimestamp = data.timestamp;
+    }
+
+    // Detach the file reference: the underlying TFile no longer exists, so the
+    // tombstone must not pretend to point at a live vault entry.
+    snapshot.file = null;
+
+    this.fileSnapshots.set(data.path, snapshot);
   }
 
   /**

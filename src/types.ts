@@ -81,6 +81,10 @@ export interface LineChangeTrackerSettings {
     maxEntries: number;
     /** Maximum age in days for a persisted history (age cap, 0 disables) */
     maxAgeDays: number;
+    /** Maximum number of tombstone (deleted-file) histories kept on disk (size cap, 0 disables) */
+    maxDeletedEntries: number;
+    /** Maximum age in days for a persisted tombstone history (age cap, 0 disables) */
+    maxDeletedAgeDays: number;
   };
 
   /** Configuration for periodic intermediate snapshots (the timeline) */

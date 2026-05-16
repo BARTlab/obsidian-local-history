@@ -1,10 +1,12 @@
 import { PluginEvent } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { PathExcludeHelper } from '@/helpers/path-exclude.helper';
+import { PathHelper } from '@/helpers/path.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import { ObservableMap } from '@/maps/observable.map';
 import type { SettingsService } from '@/services/settings.service';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
+import { FileVersion } from '@/snapshots/file.version';
 import type { SerializedFileSnapshot, SerializedHistory, Service } from '@/types';
 import { Notice, type TFile } from 'obsidian';
 
@@ -186,6 +188,76 @@ export class SnapshotsService implements Service {
 
     this.fileSnapshots.delete(oldPath);
     this.fileSnapshots.set(file.path, snapshot);
+  }
+
+  /**
+   * Handles a cross-directory move (D2): leaves a tombstone at `oldPath` and
+   * re-keys the live snapshot to the file's new path while stamping
+   * `movedIntoAt` with the call timestamp. The live snapshot's history baseline,
+   * version timeline, and current state travel with it so the file's captured
+   * history is continuous through the move; the tombstone left behind carries
+   * a full copy of those same fields so a folder view at the source prefix can
+   * still surface the file as deleted with its history intact.
+   *
+   * This method is the move-only entry point: it asserts that `oldPath` and the
+   * file's new path belong to different directories (per D3, an in-place rename
+   * stays a pure re-key through `rename`). Calling it without a directory
+   * change throws so a wiring bug surfaces immediately rather than littering a
+   * folder with phantom tombstones.
+   *
+   * No-op when `oldPath`, `file`, or the existing snapshot is missing: there is
+   * nothing to remember, and the move signal can be safely ignored.
+   *
+   * @param {string} oldPath - The path the snapshot was previously keyed by
+   * @param {TFile} file - The file in its moved state (holding the new path)
+   */
+  public markMoved(oldPath: string, file: TFile): void {
+    if (!oldPath || !file || oldPath === file.path) {
+      return;
+    }
+
+    if (PathHelper.dirname(oldPath) === PathHelper.dirname(file.path)) {
+      throw new Error(
+        `SnapshotsService.markMoved called without a directory change: ${oldPath} -> ${file.path}`,
+      );
+    }
+
+    const snapshot: FileSnapshot | undefined = this.fileSnapshots.get(oldPath);
+
+    if (!snapshot) {
+      return;
+    }
+
+    const now: number = Date.now();
+
+    // Build the tombstone first so its preserved fields capture the live state
+    // as it was before the move stamped movedIntoAt onto the migrating snapshot.
+    // Session-only marker baseline and tracker are dropped on the tombstone for
+    // the same reason markDeleted drops them: they carry meaning only against a
+    // live editor view, and the file is no longer there.
+    const tombstone: FileSnapshot = new FileSnapshot('', snapshot.lineBreak);
+
+    tombstone.file = null;
+    tombstone.lines = [];
+    tombstone.tracker = [];
+    tombstone.changes.clear();
+    tombstone.historyLines = snapshot.getHistoryOriginalStateLines();
+    tombstone.updateState(snapshot.getLastStateLines());
+    tombstone.versions = snapshot.versions.map(
+      (version: FileVersion): FileVersion => FileVersion.fromJSON(version.toJSON()),
+    );
+    tombstone.timestamp = snapshot.timestamp;
+    tombstone.deletedTimestamp = now;
+
+    // Re-key the live snapshot to the destination path and stamp the move
+    // marker so the folder UI can colour it as added in the new directory even
+    // though its captured history is older.
+    snapshot.file = file;
+    snapshot.movedIntoAt = now;
+
+    this.fileSnapshots.delete(oldPath);
+    this.fileSnapshots.set(file.path, snapshot);
+    this.fileSnapshots.set(oldPath, tombstone);
   }
 
   /**

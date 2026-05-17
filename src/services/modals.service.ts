@@ -9,7 +9,8 @@ import type { VersionActionsService } from '@/services/version-actions.service';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FileVersion } from '@/snapshots/file.version';
 import type { ConfirmModalConfig, PromptModalConfig, Service } from '@/types';
-import type { TFile } from 'obsidian';
+import type { TFile, TFolder } from 'obsidian';
+import { Notice } from 'obsidian';
 
 /**
  * Open options for the history/diff modal. Both fields are optional, so a call
@@ -174,6 +175,25 @@ export class ModalsService implements Service {
     new HistoryModal(this.plugin.app, this.plugin, snapshot, { selectionFilterIds: matched }).open();
 
     return true;
+  }
+
+  /**
+   * Opens the folder history modal for the given folder (D5/T07). This is the
+   * file-explorer submenu's "Show History" entry point on a TFolder; the real
+   * FolderHistoryModal lands in T12, so this placeholder keeps the menu safe
+   * to wire today: it surfaces an inline-English "no folder history yet"
+   * notice and returns false, mirroring the `diff()` contract for files
+   * without history. The notice string is intentionally an inline English
+   * literal so the i18n parity guard stays green; T15 propagates it across
+   * the 44 bundled catalogs together with every other epic-05 string.
+   *
+   * @param {TFolder} _folder - The folder whose history should be shown
+   * @return {boolean} False until T12 wires the real modal
+   */
+  public openFolderHistory(_folder?: TFolder | null): boolean {
+    new Notice('No folder history yet.');
+
+    return false;
   }
 
   /**

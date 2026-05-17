@@ -2,6 +2,7 @@ import { Inject } from '@/decorators/inject.decorator';
 import { type SelectableVersion, SelectionHistoryHelper } from '@/helpers/selection-history.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import { ConfirmModal } from '@/modals/confirm.modal';
+import { FolderHistoryModal } from '@/modals/folder-history.modal';
 import { HistoryModal } from '@/modals/history.modal';
 import { PromptModal } from '@/modals/prompt.modal';
 import type { SnapshotsService } from '@/services/snapshots.service';
@@ -178,22 +179,69 @@ export class ModalsService implements Service {
   }
 
   /**
-   * Opens the folder history modal for the given folder (D5/T07). This is the
-   * file-explorer submenu's "Show History" entry point on a TFolder; the real
-   * FolderHistoryModal lands in T12, so this placeholder keeps the menu safe
-   * to wire today: it surfaces an inline-English "no folder history yet"
-   * notice and returns false, mirroring the `diff()` contract for files
-   * without history. The notice string is intentionally an inline English
-   * literal so the i18n parity guard stays green; T15 propagates it across
-   * the 44 bundled catalogs together with every other epic-05 string.
+   * Opens the folder history modal for the given folder (D5/T12). Filters the
+   * service's snapshot map to the folder's prefix (live snapshots and
+   * tombstones alike: a deleted file still anchors at its last-known path),
+   * and opens {@link FolderHistoryModal} against that subtree. When no
+   * snapshot lives under the prefix the modal would have nothing to render,
+   * so the entry surfaces an inline-English "no folder history" notice and
+   * returns false, mirroring the `diff()` contract for files without history.
    *
-   * @param {TFolder} _folder - The folder whose history should be shown
-   * @return {boolean} False until T12 wires the real modal
+   * The notice string is intentionally an inline English literal so the i18n
+   * parity guard stays green; T15 propagates it across the 44 bundled catalogs
+   * together with every other epic-05 string.
+   *
+   * @param {TFolder} folder - The folder whose history should be shown
+   * @return {boolean} True when the modal was opened, false on an empty subtree
    */
-  public openFolderHistory(_folder?: TFolder | null): boolean {
-    new Notice('No folder history yet.');
+  public openFolderHistory(folder?: TFolder | null): boolean {
+    if (!folder) {
+      new Notice('No folder history yet.');
 
-    return false;
+      return false;
+    }
+
+    const rootPath: string = folder.path;
+    const snapshots: FileSnapshot[] = this.snapshotsService
+      .getList()
+      .filter((snapshot: FileSnapshot): boolean => this.isUnderFolder(snapshot, rootPath));
+
+    if (snapshots.length === 0) {
+      new Notice('No folder history yet.');
+
+      return false;
+    }
+
+    new FolderHistoryModal(this.plugin.app, this.plugin, rootPath, snapshots).open();
+
+    return true;
+  }
+
+  /**
+   * Whether a snapshot's path lies under the given folder prefix. Matches the
+   * same prefix rule {@link FolderTimelineHelper} uses (exact equality or a
+   * `${root}/` prefix) so the snapshot lookup in the modal and the timeline
+   * synthesis agree on what "under this folder" means. The vault-root case
+   * (empty `rootPath`) matches every snapshot, which is consistent but only
+   * reachable from a future caller that explicitly asks for whole-vault
+   * history.
+   *
+   * @param {FileSnapshot} snapshot - The snapshot under inspection
+   * @param {string} rootPath - The folder's vault-relative path
+   * @return {boolean} True when the snapshot lives under the folder
+   */
+  protected isUnderFolder(snapshot: FileSnapshot, rootPath: string): boolean {
+    const path: string = snapshot?.file?.path ?? '';
+
+    if (!path) {
+      return false;
+    }
+
+    if (!rootPath) {
+      return true;
+    }
+
+    return path === rootPath || path.startsWith(`${rootPath}/`);
   }
 
   /**

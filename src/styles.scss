@@ -995,6 +995,33 @@
   font-style: italic;
 }
 
+/* ---- folder history modal (T12) ---- */
+// Three-column shell for the folder-level history modal: a timeline rail on
+// the left, a tree of changed files in the middle, and the diff pane on the
+// right. The shell reuses the same .lct-modal-body / .lct-modal-rail /
+// .lct-modal-main flex policy the file modal uses, plus a dedicated middle
+// column for the tree. Concrete colour tokens for the tree rows live in T14;
+// this task ships the structural layout so the modal opens against a real
+// folder without a follow-up styling pass blocking T13.
+.modal.lct-diff-modal.lct-folder-history-modal {
+  // The middle column hosts the FolderTreeComponent (T11). The rail keeps its
+  // file-modal width (a narrow fixed column for the timeline). The tree column
+  // has its own scrollable viewport so a deep changes tree never pushes the
+  // diff column off screen. The diff column flexes to fill the remaining
+  // width, matching the file modal's main column.
+  .lct-folder-modal-tree {
+    flex: 0 0 22%;
+    min-width: 200px;
+    max-width: 320px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: auto;
+    padding: var(--size-4-2) var(--size-4-3);
+    border-inline-end: var(--border-width) solid var(--divider-color);
+  }
+}
+
 /* ---- patch display ---- */
 .lct-patch-container {
   position: relative;

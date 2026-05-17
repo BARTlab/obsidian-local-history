@@ -36,13 +36,23 @@ export class FileVersion {
   public label?: string;
 
   /**
+   * Optional flag marking this version as captured from an external-change event
+   * (git pull, sync, an external editor). Independent from `label`: an external
+   * version may also carry a user label, and the two surfaces do not affect each
+   * other. The flag drives a UI badge and is NOT a pin: external versions still
+   * obey the normal age/count retention like cadence versions (see D13).
+   */
+  public external?: boolean;
+
+  /**
    * Creates a new immutable version from a content snapshot.
    *
    * @param {string[]} lines - The file content at capture time, split into lines
    * @param {number} timestamp - Optional capture timestamp (defaults to now)
    * @param {string} label - Optional user-supplied tag pinning this version
+   * @param {boolean} external - Optional flag marking this version as an external change
    */
-  public constructor(lines: string[], timestamp?: number, label?: string) {
+  public constructor(lines: string[], timestamp?: number, label?: string, external?: boolean) {
     this.lines = [...(lines ?? [])];
 
     if (typeof timestamp === 'number') {
@@ -51,6 +61,10 @@ export class FileVersion {
 
     if (typeof label === 'string' && label.length > 0) {
       this.label = label;
+    }
+
+    if (external === true) {
+      this.external = true;
     }
   }
 
@@ -62,6 +76,17 @@ export class FileVersion {
    */
   public isLabeled(): boolean {
     return typeof this.label === 'string' && this.label.length > 0;
+  }
+
+  /**
+   * Whether this version was captured from an external-change event (git pull,
+   * sync, an external editor). Independent from `isLabeled()`: a version can be
+   * both labeled and external.
+   *
+   * @return {boolean} True when this version is flagged as external
+   */
+  public isExternal(): boolean {
+    return this.external === true;
   }
 
   /**
@@ -131,6 +156,10 @@ export class FileVersion {
       data.label = this.label;
     }
 
+    if (this.isExternal()) {
+      data.external = true;
+    }
+
     return data;
   }
 
@@ -145,6 +174,7 @@ export class FileVersion {
       Array.isArray(data?.lines) ? data.lines : [],
       data?.timestamp,
       typeof data?.label === 'string' ? data.label : undefined,
+      data?.external === true,
     );
   }
 }

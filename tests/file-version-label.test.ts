@@ -94,6 +94,73 @@ describe('FileSnapshot.captureVersion: label bypasses the duplicate-skip', () =>
   });
 });
 
+describe('FileVersion external flag round-trip', () => {
+  it('defaults to undefined/falsey with isExternal() returning false', () => {
+    const version = new FileVersion(['a'], 1);
+
+    expect(version.external).toBeUndefined();
+    expect(version.isExternal()).toBe(false);
+  });
+
+  it('reports isExternal() true when constructed as external', () => {
+    const version = new FileVersion(['a'], 1, undefined, true);
+
+    expect(version.external).toBe(true);
+    expect(version.isExternal()).toBe(true);
+  });
+
+  it('persists external=true through toJSON and rebuilds it via fromJSON', () => {
+    const version = new FileVersion(['a'], 42, undefined, true);
+
+    const json: SerializedFileVersion = version.toJSON();
+    expect(json.external).toBe(true);
+
+    const restored: FileVersion = FileVersion.fromJSON(json);
+    expect(restored.isExternal()).toBe(true);
+    expect(restored.external).toBe(true);
+    expect(restored.getLines()).toEqual(['a']);
+    expect(restored.timestamp).toBe(42);
+  });
+
+  it('omits the external field for a non-external version', () => {
+    const version = new FileVersion(['a'], 1);
+
+    const json: SerializedFileVersion = version.toJSON();
+    expect(json).not.toHaveProperty('external');
+
+    const restored: FileVersion = FileVersion.fromJSON(json);
+    expect(restored.external).toBeUndefined();
+    expect(restored.isExternal()).toBe(false);
+  });
+
+  it('keeps external and label independent on the same version', () => {
+    const version = new FileVersion(['a'], 5, 'pin', true);
+
+    expect(version.isLabeled()).toBe(true);
+    expect(version.isExternal()).toBe(true);
+    expect(version.label).toBe('pin');
+    expect(version.external).toBe(true);
+
+    const json: SerializedFileVersion = version.toJSON();
+    expect(json.label).toBe('pin');
+    expect(json.external).toBe(true);
+
+    const restored: FileVersion = FileVersion.fromJSON(json);
+    expect(restored.isLabeled()).toBe(true);
+    expect(restored.isExternal()).toBe(true);
+    expect(restored.label).toBe('pin');
+    expect(restored.external).toBe(true);
+  });
+
+  it('treats external=false as not external (no field in JSON)', () => {
+    const version = new FileVersion(['a'], 1, undefined, false);
+
+    expect(version.external).toBeUndefined();
+    expect(version.isExternal()).toBe(false);
+    expect(version.toJSON()).not.toHaveProperty('external');
+  });
+});
+
 describe('FileSnapshot.evictVersions: labeled versions are pinned', () => {
   const DAY: number = 24 * 60 * 60 * 1000;
 

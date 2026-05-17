@@ -437,12 +437,18 @@ export interface SerializedTrackerLine {
  * Serialized form of a single intermediate version (timeline entry). Holds the
  * captured content and its timestamp; the id is omitted so a fresh one is
  * assigned on restore. The optional `label` is the user-supplied tag that turns
- * a version into a pinned marker (exempt from dedup and eviction).
+ * a version into a pinned marker (exempt from dedup and eviction). The optional
+ * `external` flag marks versions captured from an external-change event (D13):
+ * they obey normal retention (not pinned) but get a UI badge so the user can
+ * tell git-pull / sync / external-editor states apart from in-editor edits.
+ * Both fields are omitted from the payload when unset so existing histories
+ * round-trip unchanged.
  */
 export interface SerializedFileVersion {
   timestamp: number;
   lines: string[];
   label?: string;
+  external?: boolean;
 }
 
 /**

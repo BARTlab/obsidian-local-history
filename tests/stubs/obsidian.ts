@@ -110,17 +110,51 @@ export class Setting {
 }
 
 /**
- * Inert replacement for Obsidian's `sanitizeHTMLToDom`. Returns an empty
- * fragment when a DOM is available (jsdom-based tests) and otherwise null, so
- * importing this stub never requires a DOM in the default node environment.
- * DOM-producing helpers are exercised in DOM-backed tests, not here.
+ * Inert replacement for Obsidian's `setIcon`. Records the requested icon name
+ * on the element so tests can assert on it; otherwise does nothing because the
+ * real implementation paints SVG markup from Lucide which is irrelevant under
+ * Jest.
  *
- * @return {DocumentFragment | null} An empty document fragment, or null without a DOM
+ * @param {HTMLElement | { dataset?: Record<string, string> }} element - The element to mark
+ * @param {string} iconName - The icon name to record
  */
-export function sanitizeHTMLToDom(): DocumentFragment | null {
+export function setIcon(element: HTMLElement | { dataset?: Record<string, string> }, iconName: string): void {
+  // Tag the element so a test can assert the icon name without depending on
+  // Obsidian's SVG output. Falls back to a property on plain objects.
+  if (element && typeof element === 'object' && 'dataset' in element && element.dataset) {
+    element.dataset.icon = iconName;
+  }
+}
+
+/**
+ * Inert replacement for Obsidian's `sanitizeHTMLToDom`. Parses the input HTML
+ * into a DocumentFragment when a DOM is available (jsdom-based tests) so
+ * helpers that hand raw HTML through this entry point (e.g. the diff2html
+ * renderer) produce real DOM nodes a test can query. Returns null when no DOM
+ * is available so importing this stub never requires a DOM in the default node
+ * environment.
+ *
+ * No sanitization is performed: tests run against trusted fixtures, and the
+ * real Obsidian implementation strips dangerous markup at the app level.
+ *
+ * @param {string} [html] - The HTML to parse
+ * @return {DocumentFragment | null} The parsed fragment, or null without a DOM
+ */
+export function sanitizeHTMLToDom(html?: string): DocumentFragment | null {
   if (typeof document === 'undefined') {
     return null;
   }
 
-  return document.createDocumentFragment();
+  const fragment: DocumentFragment = document.createDocumentFragment();
+
+  if (!html) {
+    return fragment;
+  }
+
+  const template: HTMLTemplateElement = document.createElement('template');
+
+  template.innerHTML = html;
+  fragment.appendChild(template.content);
+
+  return fragment;
 }

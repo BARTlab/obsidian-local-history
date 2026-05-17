@@ -13,8 +13,14 @@ export const isString = (value: unknown): value is string => typeof value === 's
 
 export const isFunction = (value: unknown): boolean => typeof value === 'function';
 
-const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+export const isUndefined = (value: unknown): value is undefined => value === undefined;
+
+export const isPlainObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
+
+export const castArray = <T>(value: T | T[]): T[] => (Array.isArray(value) ? value : [value]);
+
+export const entries = <T>(value: Record<string, T>): [string, T][] => Object.entries(value);
 
 export const get = (object: unknown, path: string): unknown => {
   let current: unknown = object;

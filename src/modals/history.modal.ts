@@ -1,13 +1,13 @@
 import { DiffOutputFormatType } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { BaseContentHelper } from '@/helpers/base-content.helper';
+import { DiffRenderHelper } from '@/helpers/diff-render.helper';
 import { DomHelper } from '@/helpers/dom.helper';
 import { HunkHelper } from '@/helpers/hunk.helper';
 import { type ListSelectionDirection, ListSelectionHelper } from '@/helpers/list-selection.helper';
 import { type NavigationDirection, NavigationHelper } from '@/helpers/navigation.helper';
 import { type SearchableVersion, VersionSearchHelper } from '@/helpers/version-search.helper';
 import { type VersionDescription, VersionLabelHelper } from '@/helpers/version-label.helper';
-import { type InlineDiffLine, WordDiffHelper } from '@/helpers/word-diff.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { HistoryModalOpenOptions, ModalsService } from '@/services/modals.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
@@ -15,8 +15,7 @@ import type { VersionActionsService, VersionRemoveResult } from '@/services/vers
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FileVersion } from '@/snapshots/file.version';
 import type { DomElementConfig, FunctionVoid, HTMLElementWithScrollSync } from '@/types';
-import * as Diff from 'diff';
-import * as Diff2Html from 'diff2html';
+import type * as Diff from 'diff';
 import { type App, Modal, Notice, SearchComponent, setIcon, type TFile } from 'obsidian';
 
 /**
@@ -1915,84 +1914,10 @@ export class HistoryModal extends Modal {
   }
 
   /**
-   * Generates a unified diff between the selected base and the current state.
-   * If they differ, use the diff library to create a patch.
-   * If they are identical, create a simple diff header with the file content.
-   *
-   * @return {string} A string containing the unified diff
-   */
-  protected getDiffLines(): string {
-    if (!this.snapshot?.file?.path) {
-      return '';
-    }
-
-    const filePath: string = this.snapshot.file.path;
-    const base: string = this.getBaseContent();
-    const current: string = this.snapshot.getLastState();
-
-    if (!this.isBaseSameCurrent()) {
-      return Diff.createTwoFilesPatch(
-        filePath,
-        filePath,
-        base ?? '',
-        current ?? '',
-        '',
-        '',
-        {
-          context: Number.MAX_SAFE_INTEGER,
-        }
-      );
-    }
-
-    return [
-      '===================================================================',
-      `--- ${filePath}\t`,
-      `+++ ${filePath}\t`,
-      `@@ -1,${base.length} +1,${current.length} @@`,
-      this.snapshot
-        .getLastStateLines()
-        .map((content) => ` ${content}`)
-        .join('\n'),
-      '\\ No newline at end of file'
-    ].join('\n');
-  }
-
-  /**
-   * Generates a clean patch with context size 0 between the original and current state of the file.
-   * Shows only the changed lines without surrounding context.
-   *
-   * @return {string} A string containing the clean patch
-   */
-  protected getCleanPatch(): string {
-    if (!this.snapshot?.file?.path) {
-      return '';
-    }
-
-    const filePath: string = this.snapshot.file.path;
-    const base: string = this.getBaseContent();
-    const current: string = this.snapshot.getLastState();
-
-    if (!this.isBaseSameCurrent()) {
-      return Diff.createTwoFilesPatch(
-        filePath,
-        filePath,
-        base ?? '',
-        current ?? '',
-        '',
-        '',
-        {
-          context: 0,
-        }
-      );
-    }
-
-    // If no changes, return an empty patch
-    return `--- ${filePath}\t\n+++ ${filePath}\t\n`;
-  }
-
-  /**
    * Shows the clean patch in a readable format.
-   * Displays the patch with context size 0 in a pre-formatted text element.
+   * Delegates the DOM rendering to {@link DiffRenderHelper}; the per-row revert
+   * affordances are skipped here because patch mode has no per-row structure to
+   * anchor them to, and the navigation buttons are refreshed at the end.
    */
   protected showCleanPatch(): void {
     // Update current mode and button states,
@@ -2003,51 +1928,16 @@ export class HistoryModal extends Modal {
     this.updateDiffNotice();
     this.updateColumnsHeader();
 
-    const patch: string = this.getCleanPatch();
-
-    const handlerClick: FunctionVoid = (): void => {
-      navigator.clipboard.writeText(patch).then(() => {
-        new Notice(this.plugin.t('notice.copied'));
+    if (this.diffContainerEl) {
+      DiffRenderHelper.render({
+        baseLines: this.getBaseContent().split(this.snapshot.lineBreak),
+        currentLines: this.snapshot.getLastStateLines(),
+        lineBreak: this.snapshot.lineBreak,
+        mode: 'patch',
+        container: this.diffContainerEl,
+        filePath: this.snapshot?.file?.path ?? '',
+        plugin: this.plugin,
       });
-    }
-
-    // Create a patch display container
-    DomHelper.update(
-      this.diffContainerEl,
-      {
-        text: null,
-        children: [
-          {
-            tag: 'div',
-            classes: 'lct-patch-container',
-            children: [
-              {
-                tag: 'pre',
-                classes: 'lct-patch-text',
-                text: patch
-              },
-              {
-                tag: 'button',
-                classes: ['lct-patch-copy-button', 'mod-outline'],
-                events: {
-                  click: handlerClick
-                }
-              }
-            ]
-          }
-        ]
-      }
-    );
-
-    // Icon-only copy button: the label lives in the tooltip and aria-label so it
-    // stays usable by keyboard and screen readers, matching the toolbar buttons.
-    const copyButton: HTMLButtonElement | null | undefined =
-      this.diffContainerEl?.querySelector<HTMLButtonElement>('.lct-patch-copy-button');
-
-    if (copyButton) {
-      setIcon(copyButton, 'copy');
-      copyButton.setAttribute('aria-label', this.plugin.t('modal.copy'));
-      copyButton.setAttribute('title', this.plugin.t('modal.copy'));
     }
 
     // Patch mode has no per-row structure for inline revert and disables the
@@ -2058,11 +1948,9 @@ export class HistoryModal extends Modal {
   /**
    * Renders an inline diff between the selected base and the current state,
    * highlighting changed words inside modified lines instead of marking the
-   * whole line. Context lines are shown plain, pure additions and removals are
-   * shown whole in their colour, and a modified line is shown as its old text
-   * (with removed words highlighted) above its new text (with added words
-   * highlighted). The whole view is built with safe DOM nodes (no raw HTML);
-   * each word span carries a class the stylesheet colours.
+   * whole line. Delegates the DOM rendering to {@link DiffRenderHelper}; the
+   * per-hunk revert affordances and the nav button refresh stay here because
+   * they are file-mode specific (they need a snapshot to write back to).
    */
   protected renderInlineDiff(): void {
     // Update current mode and button states,
@@ -2073,44 +1961,17 @@ export class HistoryModal extends Modal {
     this.updateDiffNotice();
     this.updateColumnsHeader();
 
-    // When the base equals the current content the diff has no changes, but the
-    // file is still rendered as plain context lines so the view shows the
-    // content instead of a blank area; the above-diff notice flags that nothing
-    // changed.
-    const diffLines: InlineDiffLine[] = WordDiffHelper.lines(this.getBaseContent(), this.snapshot.getLastState());
-    const rows: DomElementConfig[] = [];
-
-    diffLines.forEach((line: InlineDiffLine): void => {
-      if (line.type === 'context') {
-        rows.push(this.makeInlineRow('context', ' ', [{ tag: 'span', text: line.oldText ?? '' }]));
-
-        return;
-      }
-
-      // Whole added/removed lines rely on the row tint, so the text is plain.
-      if (line.type === 'added') {
-        rows.push(this.makeInlineRow('added', '+', [{ tag: 'span', text: line.newText ?? '' }]));
-
-        return;
-      }
-
-      if (line.type === 'removed') {
-        rows.push(this.makeInlineRow('removed', '-', [{ tag: 'span', text: line.oldText ?? '' }]));
-
-        return;
-      }
-
-      // Modified: a single flowing line with the word-level changes shown in
-      // place - unchanged words plain, removed words struck through, added words
-      // highlighted - so a wording edit reads as one line, not a before/after
-      // pair. This is what makes the inline mode distinct from line-by-line.
-      rows.push(this.makeInlineRow('modified', '~', this.makeInlineWordSpans(line.oldText ?? '', line.newText ?? '')));
-    });
-
-    DomHelper.update(this.diffContainerEl, {
-      text: null,
-      children: [{ tag: 'div', classes: 'lct-inline-container', children: rows }],
-    });
+    if (this.diffContainerEl) {
+      DiffRenderHelper.render({
+        baseLines: this.getBaseContent().split(this.snapshot.lineBreak),
+        currentLines: this.snapshot.getLastStateLines(),
+        lineBreak: this.snapshot.lineBreak,
+        mode: 'inline',
+        container: this.diffContainerEl,
+        filePath: this.snapshot?.file?.path ?? '',
+        plugin: this.plugin,
+      });
+    }
 
     // Map the rendered inline rows back to hunks and place the per-hunk revert
     // affordances; this also refreshes the navigation button state.
@@ -2118,53 +1979,10 @@ export class HistoryModal extends Modal {
   }
 
   /**
-   * Builds one inline diff row: a sign gutter (a space, plus, or minus) and the
-   * line content made of the provided spans.
-   *
-   * @param {string} kind - The row kind, used as a modifier class
-   * @param {string} sign - The leading sign character for the row
-   * @param {DomElementConfig[]} content - The content spans for the line
-   * @return {DomElementConfig} The row element config
-   */
-  protected makeInlineRow(kind: string, sign: string, content: DomElementConfig[]): DomElementConfig {
-    return {
-      tag: 'div',
-      classes: ['lct-inline-row', `lct-inline-${kind}`],
-      children: [
-        { tag: 'span', classes: 'lct-inline-sign', text: sign },
-        { tag: 'span', classes: 'lct-inline-content', children: content },
-      ],
-    };
-  }
-
-  /**
-   * Computes the word-level spans for a modified line as one flowing sequence:
-   * unchanged words plain, removed words marked for deletion, added words marked
-   * for insertion, all kept in their original order. This is what lets the
-   * inline mode show a wording change as a single line instead of a before/after
-   * pair.
-   *
-   * @param {string} oldText - The old (base) line text
-   * @param {string} newText - The new (current) line text
-   * @return {DomElementConfig[]} The ordered span configs for the merged line
-   */
-  protected makeInlineWordSpans(oldText: string, newText: string): DomElementConfig[] {
-    return WordDiffHelper.segments(oldText, newText).map((segment: Diff.Change): DomElementConfig => {
-      const classes: string | undefined = segment.added
-        ? 'lct-word-added'
-        : segment.removed
-          ? 'lct-word-removed'
-          : undefined;
-
-      return classes ? { tag: 'span', classes, text: segment.value } : { tag: 'span', text: segment.value };
-    });
-  }
-
-  /**
-   * Renders the diff view in the specified container.
-   * Converts the unified diff to HTML using the diff2html library.
-   * Supports two formats: 'line-by-line' and 'side-by-side'.
-   * Use custom templates to control the HTML structure and styling.
+   * Renders the diff view in the specified diff2html format (line-by-line or
+   * side-by-side). Delegates the DOM rendering to {@link DiffRenderHelper}; the
+   * per-hunk revert affordances and the side-by-side scroll sync stay here
+   * because they are file-mode specific.
    *
    * @param {DiffOutputFormatType} format - The format of the diff view (defaults to 'side-by-side')
    */
@@ -2177,81 +1995,17 @@ export class HistoryModal extends Modal {
     this.updateDiffNotice();
     this.updateColumnsHeader();
 
-    const diffHtml: string = Diff2Html.html(this.getDiffLines(), {
-      drawFileList: false,
-      matching: 'lines',
-      outputFormat: format,
-      renderNothingWhenEmpty: true,
-      rawTemplates: {
-        'line-by-line-file-diff': `
-           {{{diffs}}}
-        `,
-        'side-by-side-file-diff': `
-          <div class="d2h-side-column">
-            <div class="d2h-side-column-wrapper">
-                <div class="d2h-side-column-container">
-                  {{{diffs.left}}}
-              </div>
-            </div>
-          </div>
-          <div class="d2h-side-column">
-            <div class="d2h-side-column-wrapper">
-                <div class="d2h-side-column-container">
-                  {{{diffs.right}}}
-              </div>
-            </div>
-          </div>
-        `,
-        'generic-wrapper': `
-          <div class="d2h-wrapper d2h-${format === DiffOutputFormatType.line ? 'line' : 'side'}">
-            <div class="d2h-container">
-                {{{content}}}
-            </div>
-          </div>
-        `,
-        'generic-block-header': `
-          <div class="d2h-code-row-wrapper d2h-code-header-wrapper {{CSSLineClass.INFO}}">
-              <div class="d2h-code-linenumber {{CSSLineClass.INFO}}"></div>
-              <div class="d2h-code-linecontent {{CSSLineClass.INFO}}">
-                  <div class="d2h-code-line d2h-code-row">
-                    <span class="d2h-code-line-prefix">&nbsp;</span>
-                    <span class="d2h-code-line-ctn">
-                      {{#blockHeader}}{{{blockHeader}}}{{/blockHeader}}{{^blockHeader}}&nbsp;{{/blockHeader}}
-                    </span>
-                  </div>
-              </div>
-          </div>
-        `,
-        'generic-line': `
-          <div class="d2h-code-row-wrapper {{type}}">
-            <div class="d2h-code-linenumber {{type}}">
-              {{{lineNumber}}}
-            </div>
-            <div class="d2h-code-linecontent {{type}}">
-                <div class="d2h-code-line d2h-code-row">
-                  {{#prefix}}
-                      <span class="d2h-code-line-prefix">{{{prefix}}}</span>
-                  {{/prefix}}
-                  {{^prefix}}
-                      <span class="d2h-code-line-prefix">&nbsp;</span>
-                  {{/prefix}}
-                  {{#content}}
-                      <span class="d2h-code-line-ctn">{{{content}}}</span>
-                  {{/content}}
-                  {{^content}}
-                      <span class="d2h-code-line-ctn"><br></span>
-                  {{/content}}
-                </div>
-            </div>
-        </div>
-        `,
-      },
-    });
-
-    DomHelper.update(
-      this.diffContainerEl,
-      { html: diffHtml }
-    );
+    if (this.diffContainerEl) {
+      DiffRenderHelper.render({
+        baseLines: this.getBaseContent().split(this.snapshot.lineBreak),
+        currentLines: this.snapshot.getLastStateLines(),
+        lineBreak: this.snapshot.lineBreak,
+        mode: format,
+        container: this.diffContainerEl,
+        filePath: this.snapshot?.file?.path ?? '',
+        plugin: this.plugin,
+      });
+    }
 
     // Map the rendered diff2html rows back to hunks and place the per-hunk
     // revert affordances; this also refreshes the navigation button state.

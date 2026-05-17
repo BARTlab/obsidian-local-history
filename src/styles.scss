@@ -938,6 +938,63 @@
   }
 }
 
+/* ---- folder tree (T11) ---- */
+// Per-folder "changes since T" tree rendered in the middle column of the
+// folder modal. Only rows for files whose status is added / modified / deleted
+// show up; the ancestor folders that connect them to the root render too.
+// Status colour tokens (lct-tree-added / -modified / -deleted) are owned by
+// T14; this task ships the structural layout only so the component is wired
+// before the styling pass.
+.lct-folder-tree {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--font-ui-small);
+
+  .lct-folder-tree-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--size-4-1);
+    padding: var(--size-4-1) var(--size-4-2);
+    cursor: pointer;
+    border-radius: var(--radius-s);
+    user-select: none;
+
+    &:hover {
+      background-color: var(--background-modifier-hover);
+    }
+
+    &.is-active {
+      background-color: var(--background-modifier-active-hover);
+    }
+  }
+
+  .lct-folder-tree-chevron,
+  .lct-folder-tree-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: var(--icon-s);
+    height: var(--icon-s);
+    color: var(--text-muted);
+  }
+
+  .lct-folder-tree-name {
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.lct-folder-tree-empty {
+  padding: var(--size-4-3);
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+  font-style: italic;
+}
+
 /* ---- patch display ---- */
 .lct-patch-container {
   position: relative;

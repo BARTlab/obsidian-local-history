@@ -609,6 +609,74 @@
 .cm-gutterElement.lct-dot .lct-gutter-revert:focus-visible {
   display: inline-flex;
 }
+.lct-folder-tree {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--font-ui-small);
+}
+.lct-folder-tree .lct-folder-tree-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--size-4-1);
+  padding: var(--size-4-1) var(--size-4-2);
+  cursor: pointer;
+  border-radius: var(--radius-s);
+  user-select: none;
+}
+.lct-folder-tree .lct-folder-tree-row:hover {
+  background-color: var(--background-modifier-hover);
+}
+.lct-folder-tree .lct-folder-tree-row.is-active {
+  background-color: var(--background-modifier-active-hover);
+}
+.lct-folder-tree .lct-folder-tree-chevron,
+.lct-folder-tree .lct-folder-tree-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: var(--icon-s);
+  height: var(--icon-s);
+  color: var(--text-muted);
+}
+.lct-folder-tree .lct-folder-tree-name {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lct-folder-tree .lct-tree-added {
+  color: var(--color-green);
+}
+.lct-folder-tree .lct-tree-modified {
+  color: var(--text-warning);
+}
+.lct-folder-tree .lct-tree-deleted {
+  color: var(--color-red);
+  text-decoration: line-through;
+}
+.lct-folder-tree-empty {
+  padding: var(--size-4-3);
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+  font-style: italic;
+}
+.modal.lct-diff-modal.lct-folder-history-modal .lct-folder-modal-tree {
+  flex: 0 0 22%;
+  min-width: 180px;
+  max-width: 360px;
+  resize: horizontal;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--size-4-2) var(--size-4-3);
+  border-inline-end: var(--border-width) solid var(--divider-color);
+}
+.modal.lct-diff-modal.lct-folder-history-modal .lct-modal-main {
+  min-width: 320px;
+}
 .lct-patch-container {
   position: relative;
   height: 100%;

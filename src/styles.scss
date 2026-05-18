@@ -986,6 +986,28 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+
+  // Per-file delta colour tokens applied to .lct-folder-tree-row (T14, D8/D9).
+  // The component sets one of lct-tree-added / -modified / -deleted on every
+  // file row whose status is non-none; ancestor folders carry no token and
+  // stay in the default text colour so the changed files read against an
+  // inert tree backdrop. Colours resolve through Obsidian CSS variables so
+  // light and dark themes pick up the correct emphasis automatically.
+  .lct-tree-added {
+    color: var(--color-green);
+  }
+
+  .lct-tree-modified {
+    // --text-warning is the Obsidian-standard warning hue and reads as an
+    // amber/yellow in both themes; we use it (rather than --color-yellow
+    // directly) so the modified token tracks the theme's warning palette.
+    color: var(--text-warning);
+  }
+
+  .lct-tree-deleted {
+    color: var(--color-red);
+    text-decoration: line-through;
+  }
 }
 
 .lct-folder-tree-empty {
@@ -995,30 +1017,45 @@
   font-style: italic;
 }
 
-/* ---- folder history modal (T12) ---- */
+/* ---- folder history modal (T12 + T14) ---- */
 // Three-column shell for the folder-level history modal: a timeline rail on
 // the left, a tree of changed files in the middle, and the diff pane on the
 // right. The shell reuses the same .lct-modal-body / .lct-modal-rail /
 // .lct-modal-main flex policy the file modal uses, plus a dedicated middle
-// column for the tree. Concrete colour tokens for the tree rows live in T14;
-// this task ships the structural layout so the modal opens against a real
-// folder without a follow-up styling pass blocking T13.
+// column for the tree.
+//
+// Width policy (T14 AC1): rail is fixed (inherits the file-modal rail width
+// from .lct-modal-rail above), the tree is resizable (the user can drag its
+// trailing edge to widen or narrow it within a sensible range), and the diff
+// pane flexes to fill the remaining width. Each column owns its own
+// scrollable viewport so a deep tree or a long diff never pushes the others
+// off screen, and the diff column never collapses below readable.
 .modal.lct-diff-modal.lct-folder-history-modal {
-  // The middle column hosts the FolderTreeComponent (T11). The rail keeps its
-  // file-modal width (a narrow fixed column for the timeline). The tree column
-  // has its own scrollable viewport so a deep changes tree never pushes the
-  // diff column off screen. The diff column flexes to fill the remaining
-  // width, matching the file modal's main column.
   .lct-folder-modal-tree {
+    // Initial allocation: a narrow band wide enough for typical Markdown
+    // file names. flex-basis is the initial size; min/max width bound the
+    // user-driven resize so the tree can never starve the diff column nor
+    // grow past readable file-name width. resize: horizontal turns the
+    // trailing edge into a drag handle in browsers/Electron (Obsidian uses
+    // Electron, so this works in the desktop client).
     flex: 0 0 22%;
-    min-width: 200px;
-    max-width: 320px;
+    min-width: 180px;
+    max-width: 360px;
+    resize: horizontal;
     display: flex;
     flex-direction: column;
     min-height: 0;
     overflow: auto;
     padding: var(--size-4-2) var(--size-4-3);
     border-inline-end: var(--border-width) solid var(--divider-color);
+  }
+
+  // Diff column floor: keep the diff readable even when the tree is dragged
+  // to its max width. The file modal's .lct-modal-main already sets flex: 1
+  // and min-width: 0; adding an explicit floor here prevents the diff from
+  // shrinking past the point where side-by-side mode becomes unusable.
+  .lct-modal-main {
+    min-width: 320px;
   }
 }
 

@@ -2,8 +2,10 @@ import 'reflect-metadata';
 import { describe, expect, it, jest } from '@jest/globals';
 
 import { VaultDeleteEvent } from '@/events/vault/delete.event';
+import { VaultModifyEvent } from '@/events/vault/modify.event';
 import { VaultRenameEvent } from '@/events/vault/rename.event';
 import type LineChangeTrackerPlugin from '@/main';
+import { EventsService } from '@/services/events.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import { TFile, TFolder } from 'obsidian';
 import type { TAbstractFile } from 'obsidian';
@@ -19,12 +21,14 @@ const makeSnapshotsServiceMock = (): {
   rename: jest.Mock;
   remove: jest.Mock;
   removeFromIgnoreList: jest.Mock;
+  captureExternalChange: jest.Mock;
 } => ({
   markDeleted: jest.fn(),
   markMoved: jest.fn(),
   rename: jest.fn(),
   remove: jest.fn(),
   removeFromIgnoreList: jest.fn(),
+  captureExternalChange: jest.fn().mockReturnValue(Promise.resolve()),
 });
 
 const makePlugin = (
@@ -136,5 +140,82 @@ describe('VaultRenameEvent', () => {
 
     expect(service.rename).not.toHaveBeenCalled();
     expect(service.markMoved).not.toHaveBeenCalled();
+  });
+});
+
+describe('VaultModifyEvent', () => {
+  it('routes a tracked file modify to captureExternalChange', () => {
+    const service = makeSnapshotsServiceMock();
+    const event = new VaultModifyEvent(makePlugin(service));
+    const file: TFile = makeFile('notes/a.md');
+
+    event.handler(file);
+
+    expect(service.captureExternalChange).toHaveBeenCalledTimes(1);
+    expect(service.captureExternalChange).toHaveBeenCalledWith(file);
+  });
+
+  it('short-circuits for non-file abstract files (folders)', () => {
+    const service = makeSnapshotsServiceMock();
+    const event = new VaultModifyEvent(makePlugin(service));
+    const folder: TAbstractFile = new TFolder() as unknown as TAbstractFile;
+
+    event.handler(folder);
+
+    expect(service.captureExternalChange).not.toHaveBeenCalled();
+  });
+
+  it('declares the vault.modify event name', () => {
+    const service = makeSnapshotsServiceMock();
+    const event = new VaultModifyEvent(makePlugin(service));
+
+    expect(event.name).toBe('vault.modify');
+  });
+});
+
+describe('EventsService registration', () => {
+  it('registers VaultModifyEvent inside the deferred vault pass (onLayoutReady)', () => {
+    const service = makeSnapshotsServiceMock();
+    const registered: string[] = [];
+
+    let layoutReadyCallback: (() => void) | null = null;
+    const plugin = {
+      app: {
+        workspace: {
+          onLayoutReady: (cb: () => void): void => {
+            layoutReadyCallback = cb;
+          },
+          on: (name: string): { name: string } => {
+            registered.push(`workspace:${name}`);
+
+            return { name };
+          },
+        },
+        vault: {
+          on: (name: string): { name: string } => {
+            registered.push(`vault:${name}`);
+
+            return { name };
+          },
+        },
+      },
+      registerEvent: jest.fn(),
+      get: (key: string): unknown => (key === 'SnapshotsService' ? service : undefined),
+    } as unknown as LineChangeTrackerPlugin;
+
+    const events = new EventsService(plugin);
+
+    events.init();
+
+    // Workspace events register synchronously; vault events wait for layout-ready.
+    expect(registered.some((entry: string): boolean => entry.startsWith('vault:'))).toBe(false);
+    expect(layoutReadyCallback).not.toBeNull();
+
+    (layoutReadyCallback as unknown as () => void)();
+
+    expect(registered).toContain('vault:modify');
+    expect(registered).toContain('vault:create');
+    expect(registered).toContain('vault:rename');
+    expect(registered).toContain('vault:delete');
   });
 });

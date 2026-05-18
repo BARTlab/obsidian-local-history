@@ -1425,7 +1425,7 @@ export class HistoryModal extends Modal {
     // contiguous and a new group starts only when the day changes. With no
     // snapshots the single Original entry takes its day and time from the
     // file's last update and has no inline delta.
-    type RailEntry = { id: string; label: string; day: string; meta: string; delta: string };
+    type RailEntry = { id: string; label: string; day: string; meta: string; delta: string; external: boolean };
 
     const entries: RailEntry[] =
       versions.length === 0
@@ -1436,6 +1436,7 @@ export class HistoryModal extends Modal {
               day: this.snapshot.getLastChangedDate(),
               meta: this.snapshot.getLastChangedDateTime(),
               delta: '',
+              external: false,
             },
           ]
         : matched.map((version: FileVersion): RailEntry => {
@@ -1447,6 +1448,7 @@ export class HistoryModal extends Modal {
               day: version.getDate(),
               meta: version.getDateTime(),
               delta: this.formatVersionDelta(description),
+              external: version.isExternal(),
             };
           });
 
@@ -1468,7 +1470,7 @@ export class HistoryModal extends Modal {
     groups.forEach((group: { label: string; entries: RailEntry[] }): void => {
       items.push({ tag: 'div', classes: 'lct-versions-day', text: group.label });
       group.entries.forEach((entry: RailEntry): void => {
-        items.push(this.makeVersionItem(entry.id, entry.label, entry.meta, entry.delta));
+        items.push(this.makeVersionItem(entry));
       });
     });
 
@@ -1494,28 +1496,73 @@ export class HistoryModal extends Modal {
         },
       ],
     });
+
+    this.paintExternalBadges(this.versionsEl);
+  }
+
+  /**
+   * Walks the rendered subtree of `container` and applies Obsidian's `setIcon`
+   * to every external-badge icon slot the DomHelper config emitted. The badge
+   * config carries the icon id as `data-icon` on the wrapper so this pass is a
+   * one-liner per badge with no per-row imperative DOM building (the rail is
+   * still declarative). Re-running it on every render keeps the icon in sync
+   * when the rail filters or re-orders rows.
+   *
+   * @param {HTMLElement} container - The subtree to scan for badge slots
+   */
+  protected paintExternalBadges(container: HTMLElement): void {
+    const badges: NodeListOf<HTMLElement> = container.querySelectorAll<HTMLElement>(
+      '.lct-version-external-badge',
+    );
+
+    badges.forEach((badge: HTMLElement): void => {
+      const iconId: string | null = badge.getAttribute('data-icon');
+      const slot: HTMLElement | null = badge.querySelector<HTMLElement>('.lct-version-external-badge-icon');
+
+      if (iconId && slot) {
+        setIcon(slot, iconId);
+      }
+    });
   }
 
   /**
    * Builds a single selectable version list entry config.
-   * The active entry carries a highlight class; clicking selects that base.
+   * The active entry carries a highlight class; clicking selects that base. A
+   * version captured from an external change (D13, T18) renders a small badge
+   * next to the primary label so the user can tell external states apart from
+   * editor edits without opening the diff. The badge text is an inline English
+   * literal here and is propagated to every catalog in T15 (D13 pattern).
    *
-   * @param {string} id - The base id (original sentinel or a version id)
-   * @param {string} label - The primary label to show (action or custom label)
-   * @param {string} meta - Inline date+time text, empty when none
-   * @param {string} delta - Inline line delta text, empty when not applicable
+   * @param {{id: string, label: string, meta: string, delta: string, external: boolean}} entry -
+   *   The rail entry to render
    * @return {DomElementConfig} A DomHelper element config for the entry
    */
-  protected makeVersionItem(id: string, label: string, meta: string, delta: string): DomElementConfig {
-    const active: boolean = this.selectedBaseId === id;
-    const children: DomElementConfig[] = [{ tag: 'span', classes: 'lct-version-label', text: label }];
+  protected makeVersionItem(entry: {
+    id: string;
+    label: string;
+    meta: string;
+    delta: string;
+    external: boolean;
+  }): DomElementConfig {
+    const active: boolean = this.selectedBaseId === entry.id;
+    const labelChildren: DomElementConfig[] = [
+      { tag: 'span', classes: 'lct-version-label', text: entry.label },
+    ];
 
-    if (meta) {
-      children.push({ tag: 'span', classes: 'lct-version-meta', text: meta });
+    if (entry.external) {
+      labelChildren.push(this.makeExternalBadge());
     }
 
-    if (delta) {
-      children.push({ tag: 'span', classes: 'lct-version-delta', text: delta });
+    const children: DomElementConfig[] = [
+      { tag: 'span', classes: 'lct-version-label-row', children: labelChildren },
+    ];
+
+    if (entry.meta) {
+      children.push({ tag: 'span', classes: 'lct-version-meta', text: entry.meta });
+    }
+
+    if (entry.delta) {
+      children.push({ tag: 'span', classes: 'lct-version-delta', text: entry.delta });
     }
 
     return {
@@ -1523,10 +1570,36 @@ export class HistoryModal extends Modal {
       classes: active ? ['lct-version-item', 'is-active'] : ['lct-version-item'],
       events: {
         click: (): void => {
-          this.selectBase(id);
+          this.selectBase(entry.id);
         },
       },
       children,
+    };
+  }
+
+  /**
+   * Builds the inline external-change badge config (D13, T20): a small icon
+   * paired with a short text label and an accessible name on the wrapper so
+   * screen readers announce the marker. The icon is rendered post-DOM by the
+   * caller because `DomHelper.create` does not invoke Obsidian's `setIcon`
+   * during the config tree; emitting the icon node here keeps the structural
+   * markup colocated with the badge while the icon glyph is attached when the
+   * caller mounts the entry. The text ships as an inline English literal and
+   * is propagated across every catalog in T15.
+   *
+   * @return {DomElementConfig} The badge element config
+   */
+  protected makeExternalBadge(): DomElementConfig {
+    const text: string = 'external';
+
+    return {
+      tag: 'span',
+      classes: 'lct-version-external-badge',
+      attributes: { 'aria-label': text, 'title': text, 'data-icon': 'download-cloud' },
+      children: [
+        { tag: 'span', classes: 'lct-version-external-badge-icon' },
+        { tag: 'span', classes: 'lct-version-external-badge-text', text },
+      ],
     };
   }
 

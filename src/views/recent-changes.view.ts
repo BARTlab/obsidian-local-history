@@ -298,7 +298,7 @@ export class RecentChangesView extends ItemView {
    * @return {DomElementConfig} The badge element config
    */
   protected makeExternalBadge(): DomElementConfig {
-    const text: string = 'external';
+    const text: string = this.plugin.t('version.badge.external');
 
     return {
       tag: 'span',

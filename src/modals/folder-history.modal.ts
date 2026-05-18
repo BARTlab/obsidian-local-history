@@ -628,7 +628,7 @@ export class FolderHistoryModal extends Modal {
    * @return {DomElementConfig} The badge element config
    */
   protected makeExternalBadge(): DomElementConfig {
-    const text: string = 'external';
+    const text: string = this.plugin.t('version.badge.external');
 
     return {
       tag: 'span',
@@ -690,11 +690,11 @@ export class FolderHistoryModal extends Modal {
   protected kindLabel(kind: FolderTimelinePoint['kind']): string {
     switch (kind) {
       case 'capture':
-        return 'Captured';
+        return this.plugin.t('modal.folder.timeline.capture');
       case 'delete':
-        return 'Deleted';
+        return this.plugin.t('modal.folder.timeline.delete');
       case 'move-in':
-        return 'Moved in';
+        return this.plugin.t('modal.folder.timeline.move-in');
       default:
         return kind;
     }
@@ -1219,16 +1219,16 @@ export class FolderHistoryModal extends Modal {
    */
   protected resolveNoticeText(result: FolderDeltaResult | null): string | null {
     if (!result) {
-      return 'No file selected.';
+      return this.plugin.t('modal.folder.notice.no-file');
     }
 
     switch (result.status) {
       case 'added':
-        return 'File was added after this point.';
+        return this.plugin.t('modal.folder.notice.added');
       case 'deleted':
-        return 'File was deleted after this point.';
+        return this.plugin.t('modal.folder.notice.deleted');
       case 'none':
-        return 'No changes since this point.';
+        return this.plugin.t('modal.folder.notice.unchanged');
       default:
         return null;
     }

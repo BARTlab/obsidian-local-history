@@ -117,5 +117,19 @@
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 }

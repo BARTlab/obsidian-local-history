@@ -567,6 +567,78 @@ export class FolderHistoryModal extends Modal {
       text: null,
       children: [{ tag: 'div', classes: 'lct-versions-list', children: items }],
     });
+
+    this.paintExternalBadges(this.railEl);
+  }
+
+  /**
+   * Mirrors the rail / panel post-mount pass: after the DomHelper config tree
+   * is mounted, apply Obsidian's `setIcon` to every badge slot the timeline
+   * config declared. The icon id is carried as `data-icon` on the wrapper so
+   * each badge can be painted without rebuilding the rail imperatively.
+   *
+   * @param {HTMLElement} container - The rail container to scan
+   */
+  protected paintExternalBadges(container: HTMLElement): void {
+    const badges: NodeListOf<HTMLElement> = container.querySelectorAll<HTMLElement>(
+      '.lct-version-external-badge',
+    );
+
+    badges.forEach((badge: HTMLElement): void => {
+      const iconId: string | null = badge.getAttribute('data-icon');
+      const slot: HTMLElement | null = badge.querySelector<HTMLElement>('.lct-version-external-badge-icon');
+
+      if (iconId && slot) {
+        setIcon(slot, iconId);
+      }
+    });
+  }
+
+  /**
+   * Whether the given timeline point comes from an external-change capture
+   * (D13, T20). Only `'capture'` points map back to a `FileVersion` via
+   * `versionId`; `'delete'` and `'move-in'` markers stay non-external. A
+   * point whose path or version is no longer in the map (e.g. removed by a
+   * destructive action after resync) returns false defensively.
+   *
+   * @param {FolderTimelinePoint} point - The timeline point to inspect
+   * @return {boolean} True when the underlying version is flagged external
+   */
+  protected isExternalPoint(point: FolderTimelinePoint): boolean {
+    if (point.kind !== 'capture' || !point.versionId) {
+      return false;
+    }
+
+    const snapshot: FileSnapshot | undefined = this.snapshotsByPath.get(point.path);
+
+    if (!snapshot) {
+      return false;
+    }
+
+    const version: FileVersion | undefined = snapshot.getVersion(point.versionId);
+
+    return version?.isExternal() === true;
+  }
+
+  /**
+   * Builds the inline external-change badge config used by the timeline rail.
+   * Shape and i18n contract match the file modal rail and the recent-changes
+   * panel so the badge reads consistently across surfaces (T20 AC1/AC2/AC3).
+   *
+   * @return {DomElementConfig} The badge element config
+   */
+  protected makeExternalBadge(): DomElementConfig {
+    const text: string = 'external';
+
+    return {
+      tag: 'span',
+      classes: 'lct-version-external-badge',
+      attributes: { 'aria-label': text, 'title': text, 'data-icon': 'download-cloud' },
+      children: [
+        { tag: 'span', classes: 'lct-version-external-badge-icon' },
+        { tag: 'span', classes: 'lct-version-external-badge-text', text },
+      ],
+    };
   }
 
   /**
@@ -582,6 +654,15 @@ export class FolderHistoryModal extends Modal {
     const shortName: string = this.basename(point.path);
     const kindLabel: string = this.kindLabel(point.kind);
     const time: string = new Date(point.timestamp).toLocaleTimeString();
+    const external: boolean = this.isExternalPoint(point);
+
+    const labelChildren: DomElementConfig[] = [
+      { tag: 'span', classes: 'lct-version-label', text: `${kindLabel}: ${shortName}` },
+    ];
+
+    if (external) {
+      labelChildren.push(this.makeExternalBadge());
+    }
 
     return {
       tag: 'div',
@@ -592,7 +673,7 @@ export class FolderHistoryModal extends Modal {
         },
       },
       children: [
-        { tag: 'span', classes: 'lct-version-label', text: `${kindLabel}: ${shortName}` },
+        { tag: 'span', classes: 'lct-version-label-row', children: labelChildren },
         { tag: 'span', classes: 'lct-version-meta', text: time },
       ],
     };
@@ -663,8 +744,17 @@ export class FolderHistoryModal extends Modal {
 
     this.snapshotsByPath.forEach((snapshot: FileSnapshot, path: string): void => {
       const result: FolderDeltaResult = FolderDeltaHelper.compareAt(snapshot, this.selectedTimestamp);
+      const closest: FileVersion | null = this.resolveVersionAtT(snapshot);
 
-      entries.push({ path, status: result.status });
+      // The badge follows the version closest to T (D10): if that version was
+      // captured from an external change, the tree row carries the marker so
+      // the user can spot external states without opening the diff (T20 AC3).
+      // Ancestor folders never carry the flag; only file rows do.
+      entries.push({
+        path,
+        status: result.status,
+        external: closest?.isExternal() === true,
+      });
     });
 
     this.tree.update({ entries, rootPath: this.rootPath });

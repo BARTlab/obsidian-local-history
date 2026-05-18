@@ -16,6 +16,15 @@ import { setIcon } from 'obsidian';
 export interface FolderTreeEntry {
   path: string;
   status: FolderDeltaStatus;
+  /**
+   * Optional flag set when the file's latest delta point at the picked T is an
+   * external-change capture (D13, T20). The component renders a small badge on
+   * the file row when true so the user can spot external states without
+   * leaving the tree (AC3). The field is optional so unit tests and earlier
+   * callers can keep ignoring it; the rendered tree only depends on it for the
+   * badge, not for the row's visibility or its status colour token.
+   */
+  external?: boolean;
 }
 
 /**
@@ -59,6 +68,8 @@ interface FolderTreeNode {
   isFolder: boolean;
   /** Per-file delta status; undefined for folder nodes. */
   status?: FolderDeltaStatus;
+  /** Whether the file's delta point at T is an external-change capture (T20). */
+  external?: boolean;
   /** Child nodes (folders + files) when `isFolder` is true. */
   children: FolderTreeNode[];
 }
@@ -291,6 +302,7 @@ export class FolderTreeComponent {
         name: fileName,
         isFolder: false,
         status: entry.status,
+        external: entry.external === true,
         children: [],
       });
     });
@@ -590,6 +602,48 @@ export class FolderTreeComponent {
       classes: 'lct-folder-tree-name',
       text: node.name,
       container: row,
+    });
+
+    if (node.external) {
+      this.renderExternalBadge(row);
+    }
+  }
+
+  /**
+   * Renders the inline external-change badge on a file row (D13, T20): a
+   * Lucide `download-cloud` glyph plus a short text label, marked with an
+   * `aria-label` so assistive tech announces the badge. The text is an inline
+   * English literal here and is propagated to every catalog in T15 (D13
+   * pattern); until then it shows in English on every locale even when the
+   * translator is wired, matching the rest of the folder modal's inline
+   * literals (see FolderHistoryModal.kindLabel).
+   *
+   * @param {HTMLElement} row - The file row to append the badge to
+   * @return {void}
+   */
+  protected renderExternalBadge(row: HTMLElement): void {
+    const text: string = 'external';
+
+    const badge: HTMLElement = DomHelper.create({
+      tag: 'span',
+      classes: 'lct-version-external-badge',
+      attributes: { 'aria-label': text, 'title': text },
+      container: row,
+    });
+
+    const slot: HTMLElement = DomHelper.create({
+      tag: 'span',
+      classes: 'lct-version-external-badge-icon',
+      container: badge,
+    });
+
+    setIcon(slot, 'download-cloud');
+
+    DomHelper.create({
+      tag: 'span',
+      classes: 'lct-version-external-badge-text',
+      text,
+      container: badge,
     });
   }
 

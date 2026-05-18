@@ -1059,6 +1059,67 @@
   }
 }
 
+/* ---- external-change badge (T20) ---- */
+// Shared inline marker rendered next to a version's primary label on every
+// timeline surface (file modal rail, recent-changes panel, folder modal rail,
+// folder tree file rows). Two parts: a small Lucide glyph and a short text
+// label. Stays compact so it does not push other inline metadata (date, line
+// delta) off the row, and reads through Obsidian CSS variables so light and
+// dark themes pick up the correct emphasis automatically.
+//
+// The row wrappers that embed this badge group the primary label and the badge
+// on one flex line so the badge sits inline with the label rather than wrapping
+// to a new visual row.
+.lct-version-label-row,
+.lct-recent-changes-label-row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--size-4-1);
+  flex-wrap: wrap;
+}
+
+.lct-version-external-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 var(--size-4-1);
+  border-radius: var(--radius-s);
+  background-color: var(--background-modifier-active-hover);
+  color: var(--text-accent);
+  font-size: var(--font-ui-smaller);
+  line-height: var(--line-height-tight);
+  user-select: none;
+
+  .lct-version-external-badge-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--icon-xs, 12px);
+    height: var(--icon-xs, 12px);
+    color: inherit;
+
+    svg {
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  .lct-version-external-badge-text {
+    font-weight: var(--font-medium);
+    text-transform: lowercase;
+    letter-spacing: 0.02em;
+  }
+}
+
+// The folder tree mounts the file row as a flex row (icon + name + badge), so
+// the badge should not stretch the row's height. Resetting the badge's vertical
+// alignment keeps the file row's existing 1-line cadence.
+.lct-folder-tree .lct-folder-tree-row.lct-folder-tree-file {
+  .lct-version-external-badge {
+    margin-inline-start: var(--size-4-1);
+  }
+}
+
 /* ---- patch display ---- */
 .lct-patch-container {
   position: relative;

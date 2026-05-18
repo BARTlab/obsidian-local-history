@@ -7,7 +7,7 @@ import { ObservableMap } from '@/maps/observable.map';
 import type { SettingsService } from '@/services/settings.service';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import { FileVersion } from '@/snapshots/file.version';
-import type { SerializedFileSnapshot, SerializedHistory, Service } from '@/types';
+import type { SerializedFileSnapshot, SerializedHistory, Service, SnapshotCaptureOptions } from '@/types';
 import { Notice, type TFile } from 'obsidian';
 
 /**
@@ -592,6 +592,128 @@ export class SnapshotsService implements Service {
     } catch (error) {
       console.error('Error capturing file snapshot:', error);
     }
+  }
+
+  /**
+   * Captures an external (off-editor) change to a tracked file as a flagged
+   * version on its timeline (D12/D13). Reads the file from disk, compares its
+   * content hash to the snapshot's known `state`, and force-captures the new
+   * content as a `FileVersion` with `external = true` only when the hash
+   * diverges, then updates `state`/tracker/changes so further reads see the
+   * captured content as the new baseline.
+   *
+   * Gating mirrors the parts of `canCapture` that still apply when a snapshot
+   * already exists: a wrong-extension file, an excluded path, an ignored file,
+   * or a missing/folder TFile is a no-op. A hash match is also a no-op so
+   * editor-driven flushes and the plugin's own revert writes (which already
+   * synchronized `state` before/after the write) do not produce phantom
+   * external versions.
+   *
+   * A first-sight file (no snapshot yet) is captured as a normal snapshot via
+   * `capture`, without an `external` version: there is no prior state to diff
+   * against, so flagging the very first capture would mislabel a brand-new
+   * file as an external change.
+   *
+   * A tombstone entry is a no-op: a tombstone represents a deleted file at
+   * that path and `vault.modify` should not legitimately fire there; the
+   * resurrection flow belongs to a future `vault.create` handler, not here.
+   *
+   * The capture is forced past the cadence gates so every distinct external
+   * state lands as its own version (D13), but it is NOT pinned: the resulting
+   * version obeys the normal age/count retention exactly like a cadence one,
+   * so a chatty sync workflow cannot bloat `history.json` with un-evictable
+   * entries.
+   *
+   * @param {TFile | null} file - The file whose disk content changed
+   */
+  public async captureExternalChange(file?: TFile | null): Promise<void> {
+    if (!file) {
+      return;
+    }
+
+    if (!this.isInAllowedExtensions(file)) {
+      return;
+    }
+
+    if (this.isExcludedPath(file)) {
+      return;
+    }
+
+    if (this.isInIgnoreList(file)) {
+      return;
+    }
+
+    const snapshot: FileSnapshot | undefined = this.fileSnapshots.get(file.path);
+
+    if (!snapshot) {
+      await this.capture(file);
+
+      return;
+    }
+
+    // A tombstone at this path means our model thinks the file is gone; a
+    // legitimate modify should never reach this point, and a resurrection is
+    // not an "external change" semantically. Leave the tombstone alone so the
+    // history modal still surfaces the file's last-known state.
+    if (snapshot.isTombstone()) {
+      return;
+    }
+
+    let content: string;
+
+    try {
+      content = await this.plugin.app.vault.read(file);
+    } catch (error) {
+      console.error('Error reading file for external change capture:', error);
+
+      return;
+    }
+
+    if (!snapshot.isNeedUpdate(content)) {
+      return;
+    }
+
+    const newLines: string[] = content.split(snapshot.lineBreak);
+    const captured: FileVersion | null = snapshot.captureVersion(newLines, this.getCaptureOptions(), true);
+
+    if (captured) {
+      // The version captures the NEW disk content as a discrete point on the
+      // timeline (D13: every distinct external state lands as its own version).
+      // Setting the flag after capture keeps file.snapshot.ts free of an
+      // external-aware overload and still flows through the normal eviction
+      // pipeline, so external versions remain evictable like cadence ones.
+      captured.external = true;
+    }
+
+    // Bring the tracker in line with the new content the same way applyContent
+    // does for the per-hunk revert path: rewrite the whole current span as a
+    // single block, then refresh the cached state and change map. Without this,
+    // the tracker would still describe the pre-change content and the gutter
+    // markers would drift out of sync with what the user sees in the editor.
+    const previousLength: number = snapshot.state.length;
+
+    snapshot.replaceBlock(0, previousLength, newLines);
+    snapshot.updateState(newLines);
+    snapshot.updateChanges();
+
+    this.forceUpdate();
+  }
+
+  /**
+   * Reads the current capture cadence and retention caps into a plain options
+   * object for the snapshot model. Mirrors the helper in change-detector and
+   * version-actions so eviction stays aligned across every capture source.
+   *
+   * @return {SnapshotCaptureOptions} The capture cadence configuration
+   */
+  protected getCaptureOptions(): SnapshotCaptureOptions {
+    return {
+      enabled: this.settingsService.value('snapshots.enabled'),
+      intervalMs: this.settingsService.value('snapshots.intervalMs'),
+      editThreshold: this.settingsService.value('snapshots.editThreshold'),
+      maxVersions: this.settingsService.value('snapshots.maxVersions'),
+      maxVersionAgeDays: this.settingsService.value('snapshots.maxVersionAgeDays'),
+    };
   }
 
   /**

@@ -196,7 +196,7 @@ export class ModalsService implements Service {
    */
   public openFolderHistory(folder?: TFolder | null): boolean {
     if (!folder) {
-      new Notice('No folder history yet.');
+      new Notice(this.plugin.t('notice.no-folder-history'));
 
       return false;
     }
@@ -207,7 +207,7 @@ export class ModalsService implements Service {
       .filter((snapshot: FileSnapshot): boolean => this.isUnderFolder(snapshot, rootPath));
 
     if (snapshots.length === 0) {
-      new Notice('No folder history yet.');
+      new Notice(this.plugin.t('notice.no-folder-history'));
 
       return false;
     }

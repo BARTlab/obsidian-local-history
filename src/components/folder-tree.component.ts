@@ -457,22 +457,26 @@ export class FolderTreeComponent {
 
   /**
    * Renders the empty-state hint when the tree contains no changed files. The
-   * text is an inline English literal in this task; T15 propagates it to all
-   * 44 catalogs through `plugin.t`. Until then the message is rendered through
-   * the optional translator if one is wired (the catalog key resolves to the
-   * same text in the English catalog).
+   * text flows through `plugin.t('folder-tree.empty')` so every bundled catalog
+   * carries it (T15). Unit tests that mount the component without a translator
+   * see the bare key (the inert translator path), which is acceptable for an
+   * assertion that the empty branch was rendered.
    *
    * @param {HTMLElement} container - The host container to render into
    * @return {void}
    */
   protected renderEmpty(container: HTMLElement): void {
     const fallback: string = 'No changes in this folder for the selected point.';
-    const text: string = this.plugin ? this.plugin.t('folder-tree.empty') : fallback;
+    const resolved: string | null = this.plugin ? this.plugin.t('folder-tree.empty') : null;
+    // The catalog is the source of truth, but unit tests mount the component
+    // without a translator; fall back to the English literal so the empty
+    // branch renders a human-readable hint in either path.
+    const text: string = resolved && resolved !== 'folder-tree.empty' ? resolved : fallback;
 
     DomHelper.create({
       tag: 'div',
       classes: 'lct-folder-tree-empty',
-      text: text === 'folder-tree.empty' ? fallback : text,
+      text,
       container,
     });
   }
@@ -622,7 +626,11 @@ export class FolderTreeComponent {
    * @return {void}
    */
   protected renderExternalBadge(row: HTMLElement): void {
-    const text: string = 'external';
+    const fallback: string = 'external';
+    const resolved: string | null = this.plugin ? this.plugin.t('version.badge.external') : null;
+    // Same translator-fallback contract as renderEmpty: unit tests can mount
+    // the component without a translator and still see the English literal.
+    const text: string = resolved && resolved !== 'version.badge.external' ? resolved : fallback;
 
     const badge: HTMLElement = DomHelper.create({
       tag: 'span',

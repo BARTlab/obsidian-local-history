@@ -1,4 +1,4 @@
-import { DiffOutputFormatType } from '@/consts';
+import { DIFF_SCROLL_STEP_PX, DiffOutputFormatType, ORIGINAL_BASE_ID } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { BaseContentHelper } from '@/helpers/base-content.helper';
 import { DiffRenderHelper } from '@/helpers/diff-render.helper';
@@ -17,24 +17,6 @@ import type { FileVersion } from '@/snapshots/file.version';
 import type { DomElementConfig, FunctionVoid, HTMLElementWithScrollSync } from '@/types';
 import type * as Diff from 'diff';
 import { type App, Modal, Notice, SearchComponent, setIcon, type TFile } from 'obsidian';
-
-/**
- * Sentinel id for the Original entry in the version list. It is the only base
- * shown when the file has no captured snapshots yet, and it diffs the current
- * state against the file's original captured content. Once snapshots exist the
- * rail lists the real versions instead (the latest one already shows "what
- * changed since the last save"), so this id is no longer offered for selection;
- * a stale version id still routes here and falls back to the latest snapshot.
- * Real versions are keyed by their own id, which is never this value.
- */
-const ORIGINAL_BASE_ID: string = 'original';
-
-/**
- * Pixels the diff pane scrolls per up/down arrow press when it holds focus.
- * Roughly two diff rows (each ~24px tall), so an arrow nudges the content a
- * line or two at a time, matching a native focused-scroll-container feel.
- */
-const DIFF_SCROLL_STEP_PX: number = 48;
 
 /**
  * Shape of a single toolbar icon button: the Lucide icon id, the label exposed

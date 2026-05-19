@@ -1,22 +1,10 @@
-import { KeepHistory, PluginEvent } from '@/consts';
+import { KeepHistory, MS_PER_DAY, PluginEvent, SAVE_DEBOUNCE_MS } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { On } from '@/decorators/on.decorator';
 import type LineChangeTrackerPlugin from '@/main';
 import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import type { SerializedFileSnapshot, SerializedHistory, Service } from '@/types';
-
-/**
- * Number of milliseconds in a day, used to translate the age cap (in days)
- * from settings into a timestamp comparison.
- */
-const MS_PER_DAY: number = 24 * 60 * 60 * 1000;
-
-/**
- * Debounce window (ms) for disk writes so a burst of snapshot updates collapses
- * into a single save instead of writing on every keystroke-driven change.
- */
-const SAVE_DEBOUNCE_MS: number = 1500;
 
 /**
  * Service responsible for persisting file history to disk so it survives an

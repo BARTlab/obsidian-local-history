@@ -1,4 +1,4 @@
-import { ChangeType } from '@/consts';
+import { ChangeType, MS_PER_DAY } from '@/consts';
 import { TextHelper } from '@/helpers/text.helper';
 import { ChangeLine } from '@/lines/change.line';
 import { TrackerLine } from '@/lines/tracker.line';
@@ -7,12 +7,6 @@ import { FileVersion } from '@/snapshots/file.version';
 import type { KeysMatching, SerializedFileSnapshot, SnapshotCaptureOptions, TrackerLineParams } from '@/types';
 import { isArray, isNumber, isString } from 'lodash-es';
 import type { TFile } from 'obsidian';
-
-/**
- * Number of milliseconds in a day, used to translate the version age cap (in
- * days) from settings into a timestamp comparison when evicting old versions.
- */
-const MS_PER_DAY: number = 24 * 60 * 60 * 1000;
 
 /**
  * Represents a snapshot of a file's content with change tracking capabilities.

@@ -14,26 +14,9 @@ import type { SnapshotsService } from '@/services/snapshots.service';
 import type { VersionActionsService, VersionRemoveResult } from '@/services/version-actions.service';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FileVersion } from '@/snapshots/file.version';
-import type { DomElementConfig, FunctionVoid, HTMLElementWithScrollSync } from '@/types';
+import type { DomElementConfig, FunctionVoid, HTMLElementWithScrollSync, ToolbarButtonConfig } from '@/types';
 import type * as Diff from 'diff';
 import { type App, Modal, Notice, SearchComponent, setIcon, type TFile } from 'obsidian';
-
-/**
- * Shape of a single toolbar icon button: the Lucide icon id, the label exposed
- * via tooltip and aria-label, the click handler (sync or async), and an
- * optional destructive accent for the restore-original and remove-history
- * actions.
- */
-interface ToolbarButtonConfig {
-  /** The Obsidian (Lucide) icon id to render */
-  icon: string;
-  /** The text label exposed via tooltip and aria-label */
-  label: string;
-  /** The click handler, awaited when it returns a promise */
-  onClick: FunctionVoid | (() => Promise<void>);
-  /** Whether to add the destructive (error-tinted) accent */
-  warning?: boolean;
-}
 
 /**
  * Modal dialog that displays the history of changes for a file.

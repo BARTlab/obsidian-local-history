@@ -18,26 +18,8 @@ import type { SnapshotsService } from '@/services/snapshots.service';
 import type { VersionActionsService } from '@/services/version-actions.service';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FileVersion } from '@/snapshots/file.version';
-import type { DomElementConfig, FunctionVoid } from '@/types';
+import type { DomElementConfig, FolderToolbarButtonConfig } from '@/types';
 import { type App, Modal, Notice, SearchComponent, type TFile, setIcon } from 'obsidian';
-
-/**
- * Toolbar button config used by the folder modal toolbar. Mirrors the shape the
- * file modal uses (icon id + accessible label + click handler) so both modals
- * present a consistent control surface. The `warning` flag adds the destructive
- * accent (`.lct-toolbar-warning`) for the restore-original and remove-history
- * actions, matching the file modal's classification.
- */
-interface FolderToolbarButtonConfig {
-  /** The Obsidian (Lucide) icon id to render */
-  icon: string;
-  /** The text label exposed via tooltip and aria-label */
-  label: string;
-  /** The click handler */
-  onClick: FunctionVoid;
-  /** Whether to paint the destructive accent */
-  warning?: boolean;
-}
 
 /**
  * Modal dialog that displays a folder-level history view (D5). Three columns:

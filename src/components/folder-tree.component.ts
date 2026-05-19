@@ -121,6 +121,15 @@ export class FolderTreeComponent {
   /** Collapsed folder paths; absence in this set means "expanded" (initial). */
   protected collapsedFolders: Set<string> = new Set<string>();
 
+  /**
+   * Case-insensitive substring filter applied to file names at render time.
+   * Empty shows the whole tree. A view-only concern: it never rebuilds the
+   * node tree (so it survives across timeline picks) and does not touch the
+   * selection. When active, every folder is force-expanded so matches deep in
+   * a collapsed branch are still revealed.
+   */
+  protected nameFilter: string = '';
+
   /** Selection callback wired by the parent modal; no-op until set. */
   protected onSelect: FolderTreeSelectionHandler | null = null;
 
@@ -190,6 +199,25 @@ export class FolderTreeComponent {
   }
 
   /**
+   * Sets the case-insensitive file-name filter and re-renders. A no-op when the
+   * normalized query is unchanged so repeated keystrokes that collapse to the
+   * same value do not thrash the DOM.
+   *
+   * @param {string} query - The raw filter query
+   * @return {void}
+   */
+  public setNameFilter(query: string): void {
+    const normalized: string = (query ?? '').trim().toLowerCase();
+
+    if (normalized === this.nameFilter) {
+      return;
+    }
+
+    this.nameFilter = normalized;
+    this.render();
+  }
+
+  /**
    * Tears the component down: drops references and clears the container so
    * the modal can dispose without leaving stale DOM. The expand/collapse map
    * is cleared too, which is the documented lifetime boundary (AC4).
@@ -205,6 +233,7 @@ export class FolderTreeComponent {
     this.rootNode = null;
     this.selectedPath = null;
     this.collapsedFolders.clear();
+    this.nameFilter = '';
     this.onSelect = null;
     this.plugin = null;
   }
@@ -438,7 +467,11 @@ export class FolderTreeComponent {
 
     this.container.empty();
 
-    if (!this.rootNode || this.rootNode.children.length === 0) {
+    const visibleChildren: FolderTreeNode[] = this.rootNode
+      ? this.rootNode.children.filter((child: FolderTreeNode): boolean => this.nodeVisible(child))
+      : [];
+
+    if (visibleChildren.length === 0) {
       this.renderEmpty(this.container);
 
       return;
@@ -450,9 +483,30 @@ export class FolderTreeComponent {
       container: this.container,
     });
 
-    this.rootNode.children.forEach((child: FolderTreeNode): void => {
+    visibleChildren.forEach((child: FolderTreeNode): void => {
       this.renderNode(list, child, 0);
     });
+  }
+
+  /**
+   * Whether the node should render under the active name filter. A file matches
+   * when its name contains the filter substring; a folder matches when any of
+   * its descendant files match (so the ancestors of a hit stay visible). With
+   * an empty filter every node is visible.
+   *
+   * @param {FolderTreeNode} node - The node to test
+   * @return {boolean} True when the node (or its subtree) survives the filter
+   */
+  protected nodeVisible(node: FolderTreeNode): boolean {
+    if (!this.nameFilter) {
+      return true;
+    }
+
+    if (!node.isFolder) {
+      return node.name.toLowerCase().includes(this.nameFilter);
+    }
+
+    return node.children.some((child: FolderTreeNode): boolean => this.nodeVisible(child));
   }
 
   /**
@@ -511,13 +565,17 @@ export class FolderTreeComponent {
    * @return {void}
    */
   protected renderFolder(container: HTMLElement, node: FolderTreeNode, depth: number): void {
-    const isCollapsed: boolean = this.collapsedFolders.has(node.path);
+    // While a name filter is active, force every folder open so matches that
+    // live in an otherwise-collapsed branch are still revealed. The user's
+    // collapse choices are preserved (the set is untouched) and re-applied
+    // once the filter is cleared.
+    const isCollapsed: boolean = this.nameFilter ? false : this.collapsedFolders.has(node.path);
 
     const row: HTMLElement = DomHelper.create({
       tag: 'div',
       classes: ['lct-folder-tree-row', 'lct-folder-tree-folder'],
       attributes: { 'data-path': node.path },
-      styles: { paddingInlineStart: `${depth * 16}px` },
+      styles: { paddingInlineStart: `calc(var(--size-4-2) + ${depth * 16}px)` },
       events: {
         click: (event: Event): void => {
           event.preventDefault();
@@ -552,7 +610,9 @@ export class FolderTreeComponent {
 
     if (!isCollapsed) {
       node.children.forEach((child: FolderTreeNode): void => {
-        this.renderNode(container, child, depth + 1);
+        if (this.nodeVisible(child)) {
+          this.renderNode(container, child, depth + 1);
+        }
       });
     }
   }
@@ -581,7 +641,7 @@ export class FolderTreeComponent {
       tag: 'div',
       classes,
       attributes: { 'data-path': node.path },
-      styles: { paddingInlineStart: `${depth * 16}px` },
+      styles: { paddingInlineStart: `calc(var(--size-4-2) + ${depth * 16}px)` },
       events: {
         click: (event: Event): void => {
           event.preventDefault();

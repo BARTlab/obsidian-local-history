@@ -663,19 +663,63 @@
   font-style: italic;
 }
 .modal.lct-diff-modal.lct-folder-history-modal .lct-folder-modal-tree {
-  flex: 0 0 22%;
-  min-width: 180px;
-  max-width: 360px;
-  resize: horizontal;
+  flex: 0 0 220px;
   display: flex;
   flex-direction: column;
   min-height: 0;
-  overflow: auto;
+  overflow: hidden;
   padding: var(--size-4-2) var(--size-4-3);
   border-inline-end: var(--border-width) solid var(--divider-color);
 }
+.modal.lct-diff-modal.lct-folder-history-modal .lct-folder-tree-search {
+  flex: none;
+}
+.modal.lct-diff-modal.lct-folder-history-modal .lct-folder-tree-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
 .modal.lct-diff-modal.lct-folder-history-modal .lct-modal-main {
   min-width: 320px;
+}
+.lct-version-label-row,
+.lct-recent-changes-label-row {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--size-4-1);
+  flex-wrap: wrap;
+}
+.lct-version-external-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 var(--size-4-1);
+  border-radius: var(--radius-s);
+  background-color: var(--background-modifier-active-hover);
+  color: var(--text-accent);
+  font-size: var(--font-ui-smaller);
+  line-height: var(--line-height-tight);
+  user-select: none;
+}
+.lct-version-external-badge .lct-version-external-badge-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon-xs, 12px);
+  height: var(--icon-xs, 12px);
+  color: inherit;
+}
+.lct-version-external-badge .lct-version-external-badge-icon svg {
+  width: 100%;
+  height: 100%;
+}
+.lct-version-external-badge .lct-version-external-badge-text {
+  font-weight: var(--font-medium);
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+}
+.lct-folder-tree .lct-folder-tree-row.lct-folder-tree-file .lct-version-external-badge {
+  margin-inline-start: var(--size-4-1);
 }
 .lct-patch-container {
   position: relative;

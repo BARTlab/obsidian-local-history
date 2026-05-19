@@ -1024,36 +1024,42 @@
 // .lct-modal-main flex policy the file modal uses, plus a dedicated middle
 // column for the tree.
 //
-// Width policy (T14 AC1): rail is fixed (inherits the file-modal rail width
-// from .lct-modal-rail above), the tree is resizable (the user can drag its
-// trailing edge to widen or narrow it within a sensible range), and the diff
-// pane flexes to fill the remaining width. Each column owns its own
-// scrollable viewport so a deep tree or a long diff never pushes the others
-// off screen, and the diff column never collapses below readable.
+// Width policy: rail is fixed (inherits the file-modal rail width from
+// .lct-modal-rail above), the tree takes a fixed narrow band wide enough for
+// typical Markdown file names, and the diff pane flexes to fill the remaining
+// width. Each column owns its own scrollable viewport so a deep tree or a long
+// diff never pushes the others off screen, and the diff column never collapses
+// below readable.
 .modal.lct-diff-modal.lct-folder-history-modal {
   .lct-folder-modal-tree {
-    // Initial allocation: a narrow band wide enough for typical Markdown
-    // file names. flex-basis is the initial size; min/max width bound the
-    // user-driven resize so the tree can never starve the diff column nor
-    // grow past readable file-name width. resize: horizontal turns the
-    // trailing edge into a drag handle in browsers/Electron (Obsidian uses
-    // Electron, so this works in the desktop client).
-    flex: 0 0 22%;
-    min-width: 180px;
-    max-width: 360px;
-    resize: horizontal;
+    // Fixed allocation: a narrow band wide enough for typical Markdown file
+    // names. No flex grow/shrink so the tree width stays stable regardless of
+    // the modal width.
+    flex: 0 0 220px;
     display: flex;
     flex-direction: column;
     min-height: 0;
-    overflow: auto;
+    overflow: hidden;
     padding: var(--size-4-2) var(--size-4-3);
     border-inline-end: var(--border-width) solid var(--divider-color);
   }
 
-  // Diff column floor: keep the diff readable even when the tree is dragged
-  // to its max width. The file modal's .lct-modal-main already sets flex: 1
-  // and min-width: 0; adding an explicit floor here prevents the diff from
-  // shrinking past the point where side-by-side mode becomes unusable.
+  // The name filter stays pinned at the top of the tree column; only the tree
+  // list below it scrolls, so the filter is always reachable on a long tree.
+  .lct-folder-tree-search {
+    flex: none;
+  }
+
+  .lct-folder-tree-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+  }
+
+  // Diff column floor: keep the diff readable. The file modal's .lct-modal-main
+  // already sets flex: 1 and min-width: 0; adding an explicit floor here
+  // prevents the diff from shrinking past the point where side-by-side mode
+  // becomes unusable.
   .lct-modal-main {
     min-width: 320px;
   }

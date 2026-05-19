@@ -19,7 +19,7 @@ import type { VersionActionsService } from '@/services/version-actions.service';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FileVersion } from '@/snapshots/file.version';
 import type { DomElementConfig, FunctionVoid } from '@/types';
-import { type App, Modal, Notice, type TFile, setIcon } from 'obsidian';
+import { type App, Modal, Notice, SearchComponent, type TFile, setIcon } from 'obsidian';
 
 /**
  * Default line break used to render diffs in the folder modal. The snapshot
@@ -113,6 +113,12 @@ export class FolderHistoryModal extends Modal {
 
   /** Left rail container (timeline). */
   protected railEl?: HTMLElement;
+
+  /** Middle column wrapper holding the name filter above the scrollable tree. */
+  protected treeColumnEl?: HTMLElement;
+
+  /** Name-filter search box above the tree (filters file rows by name). */
+  protected treeSearchEl?: HTMLElement;
 
   /** Middle tree container, owned by {@link FolderTreeComponent}. */
   protected treeEl?: HTMLElement;
@@ -237,10 +243,22 @@ export class FolderHistoryModal extends Modal {
       container: bodyEl,
     });
 
-    this.treeEl = DomHelper.create({
+    this.treeColumnEl = DomHelper.create({
       tag: 'div',
       classes: 'lct-folder-modal-tree',
       container: bodyEl,
+    });
+
+    this.treeSearchEl = DomHelper.create({
+      tag: 'div',
+      classes: ['lct-rail-search', 'lct-folder-tree-search'],
+      container: this.treeColumnEl,
+    });
+
+    this.treeEl = DomHelper.create({
+      tag: 'div',
+      classes: 'lct-folder-tree-scroll',
+      container: this.treeColumnEl,
     });
 
     this.mainEl = DomHelper.create({
@@ -295,6 +313,33 @@ export class FolderHistoryModal extends Modal {
     this.tree.mount(this.treeEl, (path: string): void => {
       this.handleTreeSelection(path);
     }, this.plugin);
+
+    this.renderTreeSearch();
+  }
+
+  /**
+   * Renders the name-filter search box above the tree. Typing filters the tree
+   * file rows by name (case-insensitive substring) through
+   * {@link FolderTreeComponent.setNameFilter}; it never touches the timeline,
+   * the diff, or the selection. The placeholder flows through `plugin.t` with an
+   * inline-English fallback (D13 pattern) so it reads sensibly before the key is
+   * propagated to every catalog.
+   */
+  protected renderTreeSearch(): void {
+    if (!this.treeSearchEl) {
+      return;
+    }
+
+    const key: string = 'modal.folder.filter-files';
+    const resolved: string = this.plugin.t(key);
+    const placeholder: string = resolved && resolved !== key ? resolved : 'Filter files by name';
+
+    new SearchComponent(this.treeSearchEl)
+      .setPlaceholder(placeholder)
+      .setValue('')
+      .onChange((value: string): void => {
+        this.tree.setNameFilter(value);
+      });
   }
 
   /**
@@ -565,7 +610,13 @@ export class FolderHistoryModal extends Modal {
 
     DomHelper.update(this.railEl, {
       text: null,
-      children: [{ tag: 'div', classes: 'lct-versions-list', children: items }],
+      children: [
+        {
+          tag: 'div',
+          classes: 'lct-versions',
+          children: [{ tag: 'div', classes: 'lct-versions-list', children: items }],
+        },
+      ],
     });
 
     this.paintExternalBadges(this.railEl);
@@ -657,7 +708,7 @@ export class FolderHistoryModal extends Modal {
     const external: boolean = this.isExternalPoint(point);
 
     const labelChildren: DomElementConfig[] = [
-      { tag: 'span', classes: 'lct-version-label', text: `${kindLabel}: ${shortName}` },
+      { tag: 'span', classes: 'lct-version-label', text: shortName },
     ];
 
     if (external) {
@@ -674,7 +725,7 @@ export class FolderHistoryModal extends Modal {
       },
       children: [
         { tag: 'span', classes: 'lct-version-label-row', children: labelChildren },
-        { tag: 'span', classes: 'lct-version-meta', text: time },
+        { tag: 'span', classes: 'lct-version-meta', text: `${kindLabel}, ${time}` },
       ],
     };
   }

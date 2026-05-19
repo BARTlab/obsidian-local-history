@@ -210,3 +210,121 @@ export const NO_NEWLINE_MARKER: string = '\\ No newline at end of file';
  * accessible label stay in one place.
  */
 export const REVERT_GLYPH: string = '↩';
+
+/**
+ * Number of milliseconds in a day, used to translate an age cap (in days) from
+ * settings into a timestamp comparison when evicting old entries or versions.
+ */
+export const MS_PER_DAY: number = 24 * 60 * 60 * 1000;
+
+/**
+ * Debounce window (ms) for disk writes so a burst of snapshot updates collapses
+ * into a single save instead of writing on every keystroke-driven change.
+ */
+export const SAVE_DEBOUNCE_MS: number = 1500;
+
+/**
+ * The language code used as the universal fallback. Every key is guaranteed to
+ * exist in this catalog, so a missing translation in another language resolves
+ * to the English string rather than a raw key.
+ */
+export const FALLBACK_LANGUAGE: string = 'en';
+
+/**
+ * The localStorage key Obsidian writes the selected UI language into. Reading it
+ * is the documented community approach to follow Obsidian's own language without
+ * a public i18n API.
+ */
+export const LANGUAGE_STORAGE_KEY: string = 'language';
+
+/**
+ * The full set of UI language codes Obsidian ships, taken verbatim from the
+ * official obsidian-translations catalog (the values Obsidian writes into the
+ * `language` localStorage key). Every code is supported by this plugin: a code
+ * with its own bundled catalog resolves to that catalog, and every other code
+ * resolves through the English fallback (see {@link FALLBACK_LANGUAGE}), so the
+ * plugin never surfaces a raw key or an error for any Obsidian language. New
+ * catalogs are added by dropping a `lang/<code>.json` file (see the contributor
+ * guide in README.md) and registering it; no change here is required for a code
+ * already in this set.
+ */
+export const OBSIDIAN_LANGUAGES: readonly string[] = [
+  'en',
+  'af',
+  'am',
+  'ar',
+  'az',
+  'be',
+  'bg',
+  'bn',
+  'ca',
+  'cs',
+  'da',
+  'de',
+  'dv',
+  'el',
+  'en-GB',
+  'eo',
+  'es',
+  'eu',
+  'fa',
+  'fi',
+  'fr',
+  'ga',
+  'gl',
+  'he',
+  'hi',
+  'hr',
+  'hu',
+  'id',
+  'it',
+  'ja',
+  'ka',
+  'kh',
+  'kn',
+  'ko',
+  'ky',
+  'la',
+  'lt',
+  'lv',
+  'ml',
+  'ms',
+  'nan-TW',
+  'ne',
+  'nl',
+  'nn',
+  'no',
+  'oc',
+  'or',
+  'pl',
+  'pt',
+  'pt-BR',
+  'ro',
+  'ru',
+  'sa',
+  'si',
+  'sk',
+  'sl',
+  'sq',
+  'sr',
+  'sv',
+  'sw',
+  'ta',
+  'te',
+  'th',
+  'tl',
+  'tr',
+  'tt',
+  'uk',
+  'ur',
+  'uz',
+  'vi',
+  'zh',
+  'zh-TW',
+];
+
+/**
+ * Matches a `{name}` placeholder inside a translated string. The captured group
+ * is the variable name looked up in the interpolation vars.
+ */
+export const PLACEHOLDER_PATTERN: RegExp = /\{(\w+)\}/g;

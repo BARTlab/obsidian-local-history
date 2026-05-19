@@ -105,7 +105,15 @@ export class DomHelper {
         }
 
         try {
-          element.style.setProperty(key, String(value));
+          // CSSStyleDeclaration keys are camelCase (e.g. paddingInlineStart),
+          // but setProperty expects the CSS custom-property/kebab name. Convert
+          // camelCase to kebab-case so the value is actually applied; leave
+          // custom properties (--foo) untouched.
+          const cssName: string = key.startsWith('--')
+            ? key
+            : key.replace(/[A-Z]/g, (match: string): string => `-${match.toLowerCase()}`);
+
+          element.style.setProperty(cssName, String(value));
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (_error) {
           // empty

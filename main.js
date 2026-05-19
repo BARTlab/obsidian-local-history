@@ -1907,7 +1907,9 @@ var DEFAULT_SETTINGS = {
   ignoreNewFiles: true,
   retention: {
     maxEntries: 200,
-    maxAgeDays: 30
+    maxAgeDays: 30,
+    maxDeletedEntries: 100,
+    maxDeletedAgeDays: 30
   },
   snapshots: {
     enabled: true,
@@ -2412,8 +2414,8 @@ var VaultDeleteEvent = class extends BaseEvent {
     this.name = ObsidianEvent.vault.delete;
   }
   /**
-   * Handles the vault delete event by removing the snapshot and ignore entry.
-   * Skips non-file entries (folders).
+   * Handles the vault delete event by tombstoning the snapshot and dropping
+   * the ignore entry. Skips non-file entries (folders).
    *
    * @param {TAbstractFile} file - The file that was deleted from the vault
    */
@@ -2421,7 +2423,7 @@ var VaultDeleteEvent = class extends BaseEvent {
     if (!(file instanceof import_obsidian6.TFile)) {
       return;
     }
-    this.snapshotsService.remove(file);
+    this.snapshotsService.markDeleted(file);
     this.snapshotsService.removeFromIgnoreList(file);
   }
 };
@@ -2429,8 +2431,67 @@ __decorateClass([
   Inject("SnapshotsService")
 ], VaultDeleteEvent.prototype, "snapshotsService", 2);
 
-// src/events/vault/rename.event.ts
+// src/events/vault/modify.event.ts
 var import_obsidian7 = require("obsidian");
+var VaultModifyEvent = class extends BaseEvent {
+  constructor() {
+    super(...arguments);
+    /**
+     * The name of the Obsidian event to handle.
+     * Set to the vault.modify event.
+     */
+    this.name = ObsidianEvent.vault.modify;
+  }
+  /**
+   * Handles the vault modify event. Delegates to `captureExternalChange` for
+   * real files; the service decides via a content-hash diff whether the
+   * write was external or self-inflicted. Skips non-file entries (folders).
+   *
+   * @param {TAbstractFile} file - The file that was modified in the vault
+   */
+  handler(file) {
+    if (!(file instanceof import_obsidian7.TFile)) {
+      return;
+    }
+    void this.snapshotsService.captureExternalChange(file);
+  }
+};
+__decorateClass([
+  Inject("SnapshotsService")
+], VaultModifyEvent.prototype, "snapshotsService", 2);
+
+// src/helpers/path.helper.ts
+var PathHelper = class {
+  /**
+   * Returns the directory portion of a vault-relative path, without a trailing
+   * slash. A path with no slash (a file at the vault root) returns an empty
+   * string; an empty input returns an empty string too. The semantics mirror
+   * Node's `path.posix.dirname` for the cases this codebase uses, but stay
+   * inside a small explicit contract so a future change cannot drift.
+   *
+   * Examples:
+   * - `dirname('src/a.md')` returns `'src'`
+   * - `dirname('a.md')` returns `''`
+   * - `dirname('')` returns `''`
+   * - `dirname('a/b/c.md')` returns `'a/b'`
+   *
+   * @param {string} path - The vault-relative path
+   * @return {string} The directory portion, or an empty string for the root
+   */
+  static dirname(path) {
+    if (!path) {
+      return "";
+    }
+    const lastSlash = path.lastIndexOf("/");
+    if (lastSlash <= 0) {
+      return "";
+    }
+    return path.slice(0, lastSlash);
+  }
+};
+
+// src/events/vault/rename.event.ts
+var import_obsidian8 = require("obsidian");
 var VaultRenameEvent = class extends BaseEvent {
   constructor() {
     super(...arguments);
@@ -2441,17 +2502,22 @@ var VaultRenameEvent = class extends BaseEvent {
     this.name = ObsidianEvent.vault.rename;
   }
   /**
-   * Handles the vault rename event by moving the snapshot to the new path.
-   * Skips non-file entries (folders).
+   * Handles the vault rename event. Routes to `markMoved` when the directory
+   * changed (move) and to `rename` when it did not (in-place rename). Skips
+   * non-file entries (folders).
    *
    * @param {TAbstractFile} file - The file in its renamed state (new path)
    * @param {string} oldPath - The path the file had before the rename
    */
   handler(file, oldPath) {
-    if (!(file instanceof import_obsidian7.TFile)) {
+    if (!(file instanceof import_obsidian8.TFile)) {
       return;
     }
-    this.snapshotsService.rename(oldPath, file);
+    if (PathHelper.dirname(oldPath) === PathHelper.dirname(file.path)) {
+      this.snapshotsService.rename(oldPath, file);
+      return;
+    }
+    this.snapshotsService.markMoved(oldPath, file);
   }
 };
 __decorateClass([
@@ -2576,8 +2642,8 @@ __decorateClass([
 ], WorkspaceFileOpenEvent.prototype, "snapshotsService", 2);
 
 // src/events/workspace/files-menu.event.ts
-var import_obsidian8 = require("obsidian");
 var import_obsidian9 = require("obsidian");
+var import_obsidian10 = require("obsidian");
 var WorkspaceFilesMenuEvent = class extends BaseEvent {
   constructor() {
     super(...arguments);
@@ -2588,24 +2654,74 @@ var WorkspaceFilesMenuEvent = class extends BaseEvent {
     this.name = ObsidianEvent.workspace.fileMenu;
   }
   /**
-   * Handles the file menu event by adding a custom menu item.
-   * Adds a "Local history" item that opens the diff modal when clicked.
-   * Shows a notice if there's no history available for the file.
+   * Handles the file-menu event by adding the "Local history" parent and
+   * routing its submenu to the right entry list for files vs folders.
    *
    * @param {Menu} menu - The menu to add items to
-   * @param {TAbstractFile} file - The file the menu was opened for
-   * @param {string} _source - The source of the menu event (not used in this handler)
-   * @param {WorkspaceLeaf} _leaf - The workspace leaf (not used in this handler)
+   * @param {TAbstractFile} file - The vault entry the menu was opened for
+   * @param {string} _source - The source of the menu event (not used)
+   * @param {WorkspaceLeaf} _leaf - The workspace leaf (not used)
    */
   handler(menu, file, _source, _leaf) {
-    if (!(file instanceof import_obsidian8.TFile)) {
+    if (!(file instanceof import_obsidian9.TFile) && !(file instanceof import_obsidian9.TFolder)) {
       return;
     }
-    menu.addItem((item) => {
-      item.setTitle(this.plugin.t("menu.local-history")).setIcon("file-diff").onClick(() => {
+    menu.addItem((parent) => {
+      parent.setTitle(this.plugin.t("menu.local-history")).setIcon("file-diff");
+      const submenu = MenuHelper.setSubmenu(parent);
+      if (file instanceof import_obsidian9.TFile) {
+        this.buildFileSubmenu(submenu, file);
+        return;
+      }
+      this.buildFolderSubmenu(submenu, file);
+    });
+  }
+  /**
+   * Fills the submenu for a TFile target with Show History, Put label, and
+   * Recent changes (D11). Show History falls back to a "no saved history"
+   * notice when no snapshot exists, matching the previous flat-entry
+   * behaviour so an untracked file never silently no-ops.
+   *
+   * @param {Menu} submenu - The submenu to populate
+   * @param {TFile} file - The file the menu was opened for
+   */
+  buildFileSubmenu(submenu, file) {
+    submenu.addItem((item) => {
+      item.setTitle(this.plugin.t("menu.local-history.show-history")).setIcon("history").onClick(() => {
         if (!this.modalService.diff(file)) {
-          new import_obsidian9.Notice(this.plugin.t("notice.no-saved-history"));
+          new import_obsidian10.Notice(this.plugin.t("notice.no-saved-history"));
         }
+      });
+    });
+    submenu.addItem((item) => {
+      item.setTitle(this.plugin.t("menu.local-history.put-label")).setIcon("tag").onClick(() => {
+        void this.modalService.putLabel(file);
+      });
+    });
+    submenu.addItem((item) => {
+      item.setTitle(this.plugin.t("menu.local-history.recent-changes")).setIcon("clock").onClick(() => {
+        void this.plugin.revealRecentChanges();
+      });
+    });
+  }
+  /**
+   * Fills the submenu for a TFolder target with Show History and Recent
+   * changes (D11). Show History delegates to ModalsService.openFolderHistory,
+   * which is a safe placeholder until T12 wires the real FolderHistoryModal:
+   * today it surfaces a "no folder history yet" notice and returns false.
+   *
+   * @param {Menu} submenu - The submenu to populate
+   * @param {TFolder} folder - The folder the menu was opened for
+   */
+  buildFolderSubmenu(submenu, folder) {
+    submenu.addItem((item) => {
+      item.setTitle(this.plugin.t("menu.local-history.show-history")).setIcon("history").onClick(() => {
+        this.modalService.openFolderHistory(folder);
+      });
+    });
+    submenu.addItem((item) => {
+      item.setTitle(this.plugin.t("menu.local-history.recent-changes")).setIcon("clock").onClick(() => {
+        void this.plugin.revealRecentChanges();
       });
     });
   }
@@ -2750,6 +2866,7 @@ var EventsService = class {
     this.register(VaultCreateEvent);
     this.register(VaultRenameEvent);
     this.register(VaultDeleteEvent);
+    this.register(VaultModifyEvent);
   }
   /**
    * Registers an event with Obsidian.
@@ -4010,7 +4127,7 @@ __decorateClass([
 var DotMarker = _DotMarker;
 
 // src/extensions/gutter-common.extension.ts
-var import_obsidian10 = require("obsidian");
+var import_obsidian11 = require("obsidian");
 var import_state3 = require("@codemirror/state");
 var GutterCommonExtension = class extends BaseExtension {
   constructor() {
@@ -4127,7 +4244,7 @@ var GutterCommonExtension = class extends BaseExtension {
    */
   openGutterMenu(event) {
     event.preventDefault();
-    const menu = new import_obsidian10.Menu();
+    const menu = new import_obsidian11.Menu();
     const shown = this.settingsService.isShowChangesEnabled();
     menu.addItem((item) => {
       item.setTitle(this.plugin.t("menu.show-changes")).setIcon("eye").setChecked(shown).onClick(() => {
@@ -4462,7 +4579,22 @@ var am_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/ar.json
@@ -4585,7 +4717,22 @@ var ar_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/be.json
@@ -4708,7 +4855,22 @@ var be_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/bn.json
@@ -4831,7 +4993,22 @@ var bn_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/ca.json
@@ -4954,7 +5131,22 @@ var ca_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/cs.json
@@ -5077,7 +5269,22 @@ var cs_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/da.json
@@ -5200,7 +5407,22 @@ var da_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/de.json
@@ -5323,7 +5545,22 @@ var de_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/en.json
@@ -5446,7 +5683,22 @@ var en_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/en-GB.json
@@ -5569,7 +5821,22 @@ var en_GB_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/es.json
@@ -5692,7 +5959,22 @@ var es_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/fa.json
@@ -5815,7 +6097,22 @@ var fa_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/fi.json
@@ -5938,7 +6235,22 @@ var fi_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/fr.json
@@ -6061,7 +6373,22 @@ var fr_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/ga.json
@@ -6184,7 +6511,22 @@ var ga_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/he.json
@@ -6307,7 +6649,22 @@ var he_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/hu.json
@@ -6430,7 +6787,22 @@ var hu_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/id.json
@@ -6553,7 +6925,22 @@ var id_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/it.json
@@ -6676,7 +7063,22 @@ var it_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/ja.json
@@ -6799,7 +7201,22 @@ var ja_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/ka.json
@@ -6922,7 +7339,22 @@ var ka_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/kh.json
@@ -7045,7 +7477,22 @@ var kh_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/ko.json
@@ -7168,7 +7615,22 @@ var ko_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/lv.json
@@ -7291,7 +7753,22 @@ var lv_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/ms.json
@@ -7414,7 +7891,22 @@ var ms_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/ne.json
@@ -7537,7 +8029,22 @@ var ne_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/nl.json
@@ -7660,7 +8167,22 @@ var nl_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/no.json
@@ -7783,7 +8305,22 @@ var no_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/pl.json
@@ -7906,7 +8443,22 @@ var pl_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/pt.json
@@ -8029,7 +8581,22 @@ var pt_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/pt-BR.json
@@ -8152,7 +8719,22 @@ var pt_BR_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/ro.json
@@ -8275,7 +8857,22 @@ var ro_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/ru.json
@@ -8398,7 +8995,22 @@ var ru_default = {
   "view.recent-changes.menu.delete": "\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u0432\u0435\u0440\u0441\u0438\u044E",
   "view.recent-changes.menu.put-label": "\u041F\u043E\u0441\u0442\u0430\u0432\u0438\u0442\u044C \u043C\u0435\u0442\u043A\u0443",
   "modal.label-selected": "\u041F\u043E\u0441\u0442\u0430\u0432\u0438\u0442\u044C \u043C\u0435\u0442\u043A\u0443 \u043D\u0430 \u0432\u044B\u0431\u0440\u0430\u043D\u043D\u0443\u044E \u0432\u0435\u0440\u0441\u0438\u044E",
-  "modal.label-version.message": "\u041E\u0442\u043C\u0435\u0442\u044C\u0442\u0435 \u044D\u0442\u0443 \u0432\u0435\u0440\u0441\u0438\u044E \u043A\u043E\u0440\u043E\u0442\u043A\u043E\u0439 \u043C\u0435\u0442\u043A\u043E\u0439."
+  "modal.label-version.message": "\u041E\u0442\u043C\u0435\u0442\u044C\u0442\u0435 \u044D\u0442\u0443 \u0432\u0435\u0440\u0441\u0438\u044E \u043A\u043E\u0440\u043E\u0442\u043A\u043E\u0439 \u043C\u0435\u0442\u043A\u043E\u0439.",
+  "notice.no-folder-history": "\u0418\u0441\u0442\u043E\u0440\u0438\u0438 \u043F\u0430\u043F\u043A\u0438 \u043F\u043E\u043A\u0430 \u043D\u0435\u0442.",
+  "setting.max-deleted-entries.name": "\u041C\u0430\u043A\u0441. \u0447\u0438\u0441\u043B\u043E \u0443\u0434\u0430\u043B\u0451\u043D\u043D\u044B\u0445 \u0444\u0430\u0439\u043B\u043E\u0432 \u0432 \u0438\u0441\u0442\u043E\u0440\u0438\u0438",
+  "setting.max-deleted-entries.desc": "\u041E\u0433\u0440\u0430\u043D\u0438\u0447\u0435\u043D\u0438\u0435 \u043D\u0430 \u0447\u0438\u0441\u043B\u043E \u0445\u0440\u0430\u043D\u0438\u043C\u044B\u0445 \u0438\u0441\u0442\u043E\u0440\u0438\u0439 \u0443\u0434\u0430\u043B\u0451\u043D\u043D\u044B\u0445 \u0444\u0430\u0439\u043B\u043E\u0432. \u0421\u043D\u0430\u0447\u0430\u043B\u0430 \u0443\u0434\u0430\u043B\u044F\u044E\u0442\u0441\u044F \u0441\u0430\u043C\u044B\u0435 \u0441\u0442\u0430\u0440\u044B\u0435. \u0423\u043A\u0430\u0436\u0438\u0442\u0435 0, \u0447\u0442\u043E\u0431\u044B \u043E\u0442\u043A\u043B\u044E\u0447\u0438\u0442\u044C.",
+  "setting.max-deleted-age-days.name": "\u041C\u0430\u043A\u0441. \u0432\u043E\u0437\u0440\u0430\u0441\u0442 \u0438\u0441\u0442\u043E\u0440\u0438\u0438 \u0443\u0434\u0430\u043B\u0451\u043D\u043D\u044B\u0445 (\u0434\u043D\u0435\u0439)",
+  "setting.max-deleted-age-days.desc": "\u0423\u0434\u0430\u043B\u044F\u0442\u044C \u0438\u0441\u0442\u043E\u0440\u0438\u0438 \u0443\u0434\u0430\u043B\u0451\u043D\u043D\u044B\u0445 \u0444\u0430\u0439\u043B\u043E\u0432 \u0441\u0442\u0430\u0440\u0448\u0435 \u0443\u043A\u0430\u0437\u0430\u043D\u043D\u043E\u0433\u043E \u0447\u0438\u0441\u043B\u0430 \u0434\u043D\u0435\u0439. \u0423\u043A\u0430\u0436\u0438\u0442\u0435 0, \u0447\u0442\u043E\u0431\u044B \u043E\u0442\u043A\u043B\u044E\u0447\u0438\u0442\u044C.",
+  "folder-tree.empty": "\u041D\u0435\u0442 \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0439 \u0432 \u044D\u0442\u043E\u0439 \u043F\u0430\u043F\u043A\u0435 \u0434\u043B\u044F \u0432\u044B\u0431\u0440\u0430\u043D\u043D\u043E\u0439 \u0442\u043E\u0447\u043A\u0438.",
+  "modal.folder.filter-files": "\u0424\u0438\u043B\u044C\u0442\u0440 \u043F\u043E \u0438\u043C\u0435\u043D\u0438 \u0444\u0430\u0439\u043B\u0430",
+  "modal.folder.timeline.capture": "\u0421\u043E\u0445\u0440\u0430\u043D\u0435\u043D\u043E",
+  "modal.folder.timeline.delete": "\u0423\u0434\u0430\u043B\u0435\u043D\u043E",
+  "modal.folder.timeline.move-in": "\u041F\u0435\u0440\u0435\u043C\u0435\u0449\u0435\u043D\u043E",
+  "modal.folder.notice.no-file": "\u0424\u0430\u0439\u043B \u043D\u0435 \u0432\u044B\u0431\u0440\u0430\u043D.",
+  "modal.folder.notice.added": "\u0424\u0430\u0439\u043B \u0434\u043E\u0431\u0430\u0432\u043B\u0435\u043D \u043F\u043E\u0441\u043B\u0435 \u044D\u0442\u043E\u0439 \u0442\u043E\u0447\u043A\u0438.",
+  "modal.folder.notice.deleted": "\u0424\u0430\u0439\u043B \u0443\u0434\u0430\u043B\u0451\u043D \u043F\u043E\u0441\u043B\u0435 \u044D\u0442\u043E\u0439 \u0442\u043E\u0447\u043A\u0438.",
+  "modal.folder.notice.unchanged": "\u0411\u0435\u0437 \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0439 \u043F\u043E\u0441\u043B\u0435 \u044D\u0442\u043E\u0439 \u0442\u043E\u0447\u043A\u0438.",
+  "version.badge.external": "\u0432\u043D\u0435\u0448\u043D\u0435\u0435"
 };
 
 // lang/sk.json
@@ -8521,7 +9133,22 @@ var sk_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/sq.json
@@ -8644,7 +9271,22 @@ var sq_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/sr.json
@@ -8767,7 +9409,22 @@ var sr_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/sv.json
@@ -8890,7 +9547,22 @@ var sv_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/th.json
@@ -9013,7 +9685,22 @@ var th_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/tr.json
@@ -9136,7 +9823,22 @@ var tr_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/uk.json
@@ -9259,7 +9961,22 @@ var uk_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/uz.json
@@ -9382,7 +10099,22 @@ var uz_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/vi.json
@@ -9505,7 +10237,22 @@ var vi_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/zh.json
@@ -9628,7 +10375,22 @@ var zh_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // lang/zh-TW.json
@@ -9751,7 +10513,22 @@ var zh_TW_default = {
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
   "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label."
+  "modal.label-version.message": "Tag this version with a short label.",
+  "notice.no-folder-history": "No folder history yet.",
+  "setting.max-deleted-entries.name": "Max stored deleted files",
+  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
+  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
+  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
+  "folder-tree.empty": "No changes in this folder for the selected point.",
+  "modal.folder.filter-files": "Filter files by name",
+  "modal.folder.timeline.capture": "Captured",
+  "modal.folder.timeline.delete": "Deleted",
+  "modal.folder.timeline.move-in": "Moved in",
+  "modal.folder.notice.no-file": "No file selected.",
+  "modal.folder.notice.added": "File was added after this point.",
+  "modal.folder.notice.deleted": "File was deleted after this point.",
+  "modal.folder.notice.unchanged": "No changes since this point.",
+  "version.badge.external": "external"
 };
 
 // src/services/i18n.service.ts
@@ -11546,7 +12323,7 @@ function set(object, path, value) {
 var set_default = set;
 
 // src/helpers/dom.helper.ts
-var import_obsidian11 = require("obsidian");
+var import_obsidian12 = require("obsidian");
 var DomHelper = class _DomHelper {
   /**
    * Creates a DOM element based on the provided configuration.
@@ -11604,7 +12381,7 @@ var DomHelper = class _DomHelper {
     }
     if (!isUndefined_default(config.html)) {
       element.empty();
-      element.appendChild((0, import_obsidian11.sanitizeHTMLToDom)(config.html));
+      element.appendChild((0, import_obsidian12.sanitizeHTMLToDom)(config.html));
     }
     if (config.attributes) {
       toPairs_default(config.attributes).forEach(([key2, value]) => {
@@ -11620,7 +12397,8 @@ var DomHelper = class _DomHelper {
           return;
         }
         try {
-          element.style.setProperty(key2, String(value));
+          const cssName = key2.startsWith("--") ? key2 : key2.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`);
+          element.style.setProperty(cssName, String(value));
         } catch (_error) {
         }
       });
@@ -11639,8 +12417,8 @@ var DomHelper = class _DomHelper {
 };
 
 // src/modals/confirm.modal.ts
-var import_obsidian12 = require("obsidian");
-var ConfirmModal = class extends import_obsidian12.Modal {
+var import_obsidian13 = require("obsidian");
+var ConfirmModal = class extends import_obsidian13.Modal {
   /**
    * Creates a new instance of ConfirmModal.
    *
@@ -11743,164 +12521,558 @@ var ConfirmModal = class extends import_obsidian12.Modal {
   }
 };
 
-// src/helpers/base-content.helper.ts
-var BaseContentHelper = class {
+// src/components/folder-tree.component.ts
+var import_obsidian14 = require("obsidian");
+var FolderTreeComponent = class {
+  constructor() {
+    /** Container the component renders into; null between dispose / re-mount. */
+    this.container = null;
+    /** Last computed root from {@link update}, used to normalize child paths. */
+    this.rootPath = "";
+    /** Last computed root node, retained so re-renders do not need re-input. */
+    this.rootNode = null;
+    /** Currently-selected file path, or null when nothing is selected yet. */
+    this.selectedPath = null;
+    /** Collapsed folder paths; absence in this set means "expanded" (initial). */
+    this.collapsedFolders = /* @__PURE__ */ new Set();
+    /**
+     * Case-insensitive substring filter applied to file names at render time.
+     * Empty shows the whole tree. A view-only concern: it never rebuilds the
+     * node tree (so it survives across timeline picks) and does not touch the
+     * selection. When active, every folder is force-expanded so matches deep in
+     * a collapsed branch are still revealed.
+     */
+    this.nameFilter = "";
+    /** Selection callback wired by the parent modal; no-op until set. */
+    this.onSelect = null;
+    /** Translator used for the empty-state hint; echoes keys when unset. */
+    this.plugin = null;
+  }
   /**
-   * Resolves the base content to diff the current state against.
+   * Mounts the component into the given container. The component takes full
+   * ownership of the container's contents on each {@link update} call, so the
+   * caller must not append siblings into the same node.
    *
-   * @param {string} selectedBaseId - The picked base id (the synthetic baseline
-   *   sentinel or an intermediate version id)
-   * @param {string} baselineId - The sentinel id that marks the synthetic
-   *   baseline entry
-   * @param {BaseContentSnapshot} snapshot - The reduced snapshot view to read
-   * @return {string} The base content for the diff
+   * @param {HTMLElement} container - The host element the tree renders into
+   * @param {FolderTreeSelectionHandler} onSelect - Selection callback for file rows
+   * @param {FolderTreeTranslator} [plugin] - Optional translator; defaults to echo
+   * @return {void}
    */
-  static resolve(selectedBaseId, baselineId, snapshot) {
-    if (selectedBaseId !== baselineId) {
-      const content = snapshot.versionContent(selectedBaseId);
-      if (content !== null) {
-        return content;
+  mount(container, onSelect, plugin) {
+    this.container = container;
+    this.onSelect = onSelect;
+    this.plugin = plugin != null ? plugin : null;
+  }
+  /**
+   * Rebuilds the tree from the new `(entries, rootPath)` pair. The previous
+   * expand/collapse map is preserved by folder path; the previous selection
+   * is preserved when the file is still in the new tree, otherwise it falls
+   * back to the first file in render order so the diff pane has a sensible
+   * default to render.
+   *
+   * @param {FolderTreeUpdateParams} params - The new entries and root path
+   * @return {void}
+   */
+  update(params) {
+    if (!this.container) {
+      return;
+    }
+    this.rootPath = this.normalizeRoot(params.rootPath);
+    this.rootNode = this.buildTree(params.entries, this.rootPath);
+    if (this.selectedPath !== null && !this.containsFile(this.rootNode, this.selectedPath)) {
+      this.selectedPath = null;
+    }
+    if (this.selectedPath === null) {
+      this.selectedPath = this.firstFilePath(this.rootNode);
+    }
+    this.render();
+  }
+  /**
+   * Returns the currently-selected file path, or null when nothing has been
+   * selected yet (empty tree, or update has never been called).
+   *
+   * @return {string | null} The selected file path
+   */
+  getSelectedPath() {
+    return this.selectedPath;
+  }
+  /**
+   * Sets the case-insensitive file-name filter and re-renders. A no-op when the
+   * normalized query is unchanged so repeated keystrokes that collapse to the
+   * same value do not thrash the DOM.
+   *
+   * @param {string} query - The raw filter query
+   * @return {void}
+   */
+  setNameFilter(query) {
+    const normalized = (query != null ? query : "").trim().toLowerCase();
+    if (normalized === this.nameFilter) {
+      return;
+    }
+    this.nameFilter = normalized;
+    this.render();
+  }
+  /**
+   * Tears the component down: drops references and clears the container so
+   * the modal can dispose without leaving stale DOM. The expand/collapse map
+   * is cleared too, which is the documented lifetime boundary (AC4).
+   *
+   * @return {void}
+   */
+  dispose() {
+    if (this.container) {
+      this.container.empty();
+    }
+    this.container = null;
+    this.rootNode = null;
+    this.selectedPath = null;
+    this.collapsedFolders.clear();
+    this.nameFilter = "";
+    this.onSelect = null;
+    this.plugin = null;
+  }
+  /**
+   * Normalizes a root path by trimming a trailing slash. The vault root is
+   * passed as an empty string, which matches the prefix used everywhere else
+   * in the plugin (see `FolderTimelineHelper`).
+   *
+   * @param {string} rootPath - The raw root path
+   * @return {string} The normalized root path (no trailing slash)
+   */
+  normalizeRoot(rootPath) {
+    if (!rootPath) {
+      return "";
+    }
+    return rootPath.endsWith("/") ? rootPath.slice(0, -1) : rootPath;
+  }
+  /**
+   * Builds an in-memory tree from the changed-file entries. Entries whose
+   * status is `'none'` are skipped (D9: only changed files render). Paths
+   * outside the root are skipped too, matching `FolderTimelineHelper`'s prefix
+   * semantics so the component is robust to a caller passing the whole map.
+   *
+   * @param {FolderTreeEntry[]} entries - The changed-file entries to materialise
+   * @param {string} rootPath - The normalized root path
+   * @return {FolderTreeNode} The synthetic root node (its children are the
+   *   top-level entries of the tree, the root itself never renders).
+   */
+  buildTree(entries, rootPath) {
+    const root2 = {
+      path: rootPath,
+      name: "",
+      isFolder: true,
+      children: []
+    };
+    const folderIndex = /* @__PURE__ */ new Map();
+    folderIndex.set(rootPath, root2);
+    entries.forEach((entry) => {
+      if (!entry || typeof entry.path !== "string") {
+        return;
       }
-    }
-    const latest = snapshot.versions[0];
-    return latest != null ? latest : snapshot.original;
-  }
-};
-
-// src/helpers/list-selection.helper.ts
-var ListSelectionHelper = class {
-  /**
-   * Resolves the id the selection moves to when an arrow key is pressed.
-   *
-   * @param {string[]} ids - The selectable ids in their displayed order
-   * @param {string} currentId - The currently selected id
-   * @param {ListSelectionDirection} direction - Which way to step
-   * @return {string | null} The new selected id, the same id at a list edge, or
-   *   null when the list is empty
-   */
-  static step(ids, currentId, direction) {
-    const list = ids != null ? ids : [];
-    if (list.length === 0) {
-      return null;
-    }
-    const found = list.indexOf(currentId);
-    const start = found === -1 ? 0 : found;
-    const next = Math.max(0, Math.min(list.length - 1, start + (direction === "down" ? 1 : -1)));
-    return list[next];
-  }
-};
-
-// src/helpers/version-search.helper.ts
-var VersionSearchHelper = class {
-  /**
-   * Resolves the ids of the versions visible for a given search query.
-   *
-   * @param {SearchableVersion[]} versions - The timeline versions to filter
-   * @param {string} query - The raw search query (trimmed and lower-cased here)
-   * @return {Set<string>} The ids of the matching versions; every version's id
-   *   when the query is empty
-   */
-  static match(versions, query) {
-    const list = versions != null ? versions : [];
-    const needle = (query != null ? query : "").trim().toLowerCase();
-    if (needle === "") {
-      return new Set(list.map((version) => version.id));
-    }
-    return new Set(
-      list.filter((version) => {
-        var _a;
-        return ((_a = version.content) != null ? _a : "").toLowerCase().includes(needle);
-      }).map((version) => version.id)
-    );
-  }
-};
-
-// src/helpers/version-label.helper.ts
-var VersionLabelHelper = class _VersionLabelHelper {
-  /**
-   * Describes the transition from previous to current as an action plus the
-   * line-level delta. Symmetric in shape: both empty inputs are handled, and
-   * the result is well-defined even when the two contents are identical (kind
-   * is "modified" with zero added and zero removed, which the UI can render or
-   * suppress as it sees fit).
-   *
-   * @param {string[]} previousLines - The previous content as an array of lines
-   * @param {string[]} currentLines - The current content as an array of lines
-   * @return {VersionDescription} The action kind plus the added/removed counts
-   */
-  static describe(previousLines, currentLines) {
-    const previous = previousLines != null ? previousLines : [];
-    const current = currentLines != null ? currentLines : [];
-    const previousEmpty = _VersionLabelHelper.isEmpty(previous);
-    const currentEmpty = _VersionLabelHelper.isEmpty(current);
-    const { added, removed } = _VersionLabelHelper.countDelta(previous, current);
-    if (previousEmpty && !currentEmpty) {
-      return { kind: "created", added, removed };
-    }
-    if (!previousEmpty && currentEmpty) {
-      return { kind: "cleared", added, removed };
-    }
-    return { kind: "modified", added, removed };
+      if (entry.status !== "added" && entry.status !== "modified" && entry.status !== "deleted") {
+        return;
+      }
+      if (!this.isUnderRoot(entry.path, rootPath)) {
+        return;
+      }
+      const relative = this.relativeTo(entry.path, rootPath);
+      const segments = relative.split("/").filter((segment3) => segment3.length > 0);
+      if (segments.length === 0) {
+        return;
+      }
+      let parent = root2;
+      let accumulatedRelative = "";
+      for (let i = 0; i < segments.length - 1; i += 1) {
+        const segment3 = segments[i];
+        accumulatedRelative = accumulatedRelative ? `${accumulatedRelative}/${segment3}` : segment3;
+        const folderPath = rootPath ? `${rootPath}/${accumulatedRelative}` : accumulatedRelative;
+        let folder = folderIndex.get(folderPath);
+        if (!folder) {
+          folder = {
+            path: folderPath,
+            name: segment3,
+            isFolder: true,
+            children: []
+          };
+          parent.children.push(folder);
+          folderIndex.set(folderPath, folder);
+        }
+        parent = folder;
+      }
+      const fileName = segments[segments.length - 1];
+      parent.children.push({
+        path: entry.path,
+        name: fileName,
+        isFolder: false,
+        status: entry.status,
+        external: entry.external === true,
+        children: []
+      });
+    });
+    this.sortChildren(root2);
+    return root2;
   }
   /**
-   * Whether a line array represents empty content (no lines, or only empty
-   * lines). Treating a single empty-string line as empty matches how a brand
-   * new file is captured.
+   * Whether the given path lies under the root (`path === root` is excluded
+   * because the root itself is a folder, not a file we render). Mirrors the
+   * prefix check in `FolderTimelineHelper` so behaviour is consistent across
+   * the folder-modal surfaces.
    *
-   * @param {string[]} lines - The lines to inspect
-   * @return {boolean} True when there is no meaningful content
+   * @param {string} path - The candidate vault-relative path
+   * @param {string} rootPath - The normalized root path
+   * @return {boolean} True when `path` is strictly under `rootPath`
    */
-  static isEmpty(lines) {
-    if (lines.length === 0) {
+  isUnderRoot(path, rootPath) {
+    if (!rootPath) {
+      return path.length > 0;
+    }
+    return path.startsWith(`${rootPath}/`);
+  }
+  /**
+   * Returns the portion of `path` relative to `rootPath`. The vault root
+   * (empty `rootPath`) returns `path` as-is.
+   *
+   * @param {string} path - The vault-relative file path
+   * @param {string} rootPath - The normalized root path
+   * @return {string} The path stripped of the root prefix
+   */
+  relativeTo(path, rootPath) {
+    if (!rootPath) {
+      return path;
+    }
+    return path.slice(rootPath.length + 1);
+  }
+  /**
+   * Sorts a node's children recursively: folders before files, then by name
+   * alphabetically. The order is stable so two equal inputs render identically.
+   *
+   * @param {FolderTreeNode} node - The node whose children to sort
+   * @return {void}
+   */
+  sortChildren(node) {
+    node.children.sort((a, b) => {
+      if (a.isFolder !== b.isFolder) {
+        return a.isFolder ? -1 : 1;
+      }
+      return a.name.localeCompare(b.name);
+    });
+    node.children.forEach((child) => {
+      if (child.isFolder) {
+        this.sortChildren(child);
+      }
+    });
+  }
+  /**
+   * Whether the tree contains the given file path. Used to decide whether the
+   * previous selection survives a re-render.
+   *
+   * @param {FolderTreeNode} node - The root node to search under
+   * @param {string} path - The file path to look for
+   * @return {boolean} True when a file node with that path exists
+   */
+  containsFile(node, path) {
+    if (!node) {
+      return false;
+    }
+    if (!node.isFolder && node.path === path) {
       return true;
     }
-    return lines.every((line) => line === "");
-  }
-  /**
-   * Counts added and removed lines between two contents using a structured
-   * patch with zero context, so each hunk's lines are exactly the changed
-   * lines on either side. A trailing newline is appended to both texts before
-   * diffing: without it the diff library merges the last "no-newline" run into
-   * a coarser block (e.g. a single-line edit can leak into the following
-   * unchanged line), inflating both counts. The newline is then ignored as a
-   * meta marker, leaving only true `+`/`-` lines counted.
-   *
-   * @param {string[]} previous - The previous content as lines
-   * @param {string[]} current - The current content as lines
-   * @return {{ added: number; removed: number }} The line delta
-   */
-  static countDelta(previous, current) {
-    const previousEmpty = _VersionLabelHelper.isEmpty(previous);
-    const currentEmpty = _VersionLabelHelper.isEmpty(current);
-    if (previousEmpty && currentEmpty) {
-      return { added: 0, removed: 0 };
-    }
-    if (previousEmpty) {
-      return { added: current.filter((line) => line !== "").length, removed: 0 };
-    }
-    if (currentEmpty) {
-      return { added: 0, removed: previous.filter((line) => line !== "").length };
-    }
-    const previousText = `${previous.join("\n")}
-`;
-    const currentText = `${current.join("\n")}
-`;
-    if (previousText === currentText) {
-      return { added: 0, removed: 0 };
-    }
-    const hunks = structuredPatch("", "", previousText, currentText, "", "", { context: 0 }).hunks;
-    let added = 0;
-    let removed = 0;
-    for (const hunk of hunks) {
-      for (const line of hunk.lines) {
-        if (line.startsWith("+")) {
-          added += 1;
-        } else if (line.startsWith("-")) {
-          removed += 1;
-        }
+    for (const child of node.children) {
+      if (this.containsFile(child, path)) {
+        return true;
       }
     }
-    return { added, removed };
+    return false;
+  }
+  /**
+   * Returns the path of the first file in render order, or null when the tree
+   * has no files. Used to seed the default selection so the diff pane is not
+   * blank when changes exist.
+   *
+   * @param {FolderTreeNode} node - The root node
+   * @return {string | null} The first file path or null
+   */
+  firstFilePath(node) {
+    if (!node) {
+      return null;
+    }
+    for (const child of node.children) {
+      if (!child.isFolder) {
+        return child.path;
+      }
+      const nested = this.firstFilePath(child);
+      if (nested) {
+        return nested;
+      }
+    }
+    return null;
+  }
+  /**
+   * Renders the current tree state into the mounted container. The container
+   * is fully replaced on every render; the persistent state (selection, the
+   * collapsed-folders set) survives across renders because it lives on the
+   * component instance.
+   *
+   * @return {void}
+   */
+  render() {
+    if (!this.container) {
+      return;
+    }
+    this.container.empty();
+    const visibleChildren = this.rootNode ? this.rootNode.children.filter((child) => this.nodeVisible(child)) : [];
+    if (visibleChildren.length === 0) {
+      this.renderEmpty(this.container);
+      return;
+    }
+    const list = DomHelper.create({
+      tag: "div",
+      classes: "lct-folder-tree",
+      container: this.container
+    });
+    visibleChildren.forEach((child) => {
+      this.renderNode(list, child, 0);
+    });
+  }
+  /**
+   * Whether the node should render under the active name filter. A file matches
+   * when its name contains the filter substring; a folder matches when any of
+   * its descendant files match (so the ancestors of a hit stay visible). With
+   * an empty filter every node is visible.
+   *
+   * @param {FolderTreeNode} node - The node to test
+   * @return {boolean} True when the node (or its subtree) survives the filter
+   */
+  nodeVisible(node) {
+    if (!this.nameFilter) {
+      return true;
+    }
+    if (!node.isFolder) {
+      return node.name.toLowerCase().includes(this.nameFilter);
+    }
+    return node.children.some((child) => this.nodeVisible(child));
+  }
+  /**
+   * Renders the empty-state hint when the tree contains no changed files. The
+   * text flows through `plugin.t('folder-tree.empty')` so every bundled catalog
+   * carries it (T15). Unit tests that mount the component without a translator
+   * see the bare key (the inert translator path), which is acceptable for an
+   * assertion that the empty branch was rendered.
+   *
+   * @param {HTMLElement} container - The host container to render into
+   * @return {void}
+   */
+  renderEmpty(container) {
+    const fallback = "No changes in this folder for the selected point.";
+    const resolved = this.plugin ? this.plugin.t("folder-tree.empty") : null;
+    const text = resolved && resolved !== "folder-tree.empty" ? resolved : fallback;
+    DomHelper.create({
+      tag: "div",
+      classes: "lct-folder-tree-empty",
+      text,
+      container
+    });
+  }
+  /**
+   * Renders a single node (folder or file) and recurses into the children of
+   * an expanded folder. Indentation is implicit in nesting: each row carries
+   * a depth-based padding via inline style so the renderer does not have to
+   * spawn intermediate wrapper levels per depth.
+   *
+   * @param {HTMLElement} container - The host container for this node
+   * @param {FolderTreeNode} node - The node to render
+   * @param {number} depth - The depth from the visible root (0 for top-level)
+   * @return {void}
+   */
+  renderNode(container, node, depth) {
+    if (node.isFolder) {
+      this.renderFolder(container, node, depth);
+    } else {
+      this.renderFile(container, node, depth);
+    }
+  }
+  /**
+   * Renders a folder row plus, when the folder is expanded, its children.
+   * Clicking the row toggles the folder's collapsed state and triggers a
+   * re-render so the chevron and the children are kept in sync.
+   *
+   * @param {HTMLElement} container - The host container
+   * @param {FolderTreeNode} node - The folder node
+   * @param {number} depth - The depth from the visible root
+   * @return {void}
+   */
+  renderFolder(container, node, depth) {
+    const isCollapsed = this.nameFilter ? false : this.collapsedFolders.has(node.path);
+    const row = DomHelper.create({
+      tag: "div",
+      classes: ["lct-folder-tree-row", "lct-folder-tree-folder"],
+      attributes: { "data-path": node.path },
+      styles: { paddingInlineStart: `calc(var(--size-4-2) + ${depth * 16}px)` },
+      events: {
+        click: (event) => {
+          event.preventDefault();
+          this.toggleFolder(node.path);
+        }
+      },
+      container
+    });
+    const chevron = DomHelper.create({
+      tag: "span",
+      classes: "lct-folder-tree-chevron",
+      container: row
+    });
+    (0, import_obsidian14.setIcon)(chevron, isCollapsed ? "chevron-right" : "chevron-down");
+    const icon = DomHelper.create({
+      tag: "span",
+      classes: "lct-folder-tree-icon",
+      container: row
+    });
+    (0, import_obsidian14.setIcon)(icon, "folder");
+    DomHelper.create({
+      tag: "span",
+      classes: "lct-folder-tree-name",
+      text: node.name,
+      container: row
+    });
+    if (!isCollapsed) {
+      node.children.forEach((child) => {
+        if (this.nodeVisible(child)) {
+          this.renderNode(container, child, depth + 1);
+        }
+      });
+    }
+  }
+  /**
+   * Renders a file row coloured by its delta status. The row gets the
+   * `is-active` class when its path matches the current selection so the
+   * caller's CSS can style the active row without re-querying the DOM. The
+   * click handler emits the path and marks the row active without recomputing
+   * the whole tree, which keeps selection-only updates cheap.
+   *
+   * @param {HTMLElement} container - The host container
+   * @param {FolderTreeNode} node - The file node
+   * @param {number} depth - The depth from the visible root
+   * @return {void}
+   */
+  renderFile(container, node, depth) {
+    const statusClass = this.statusClassName(node.status);
+    const classes = ["lct-folder-tree-row", "lct-folder-tree-file", statusClass];
+    if (this.selectedPath === node.path) {
+      classes.push("is-active");
+    }
+    const config = {
+      tag: "div",
+      classes,
+      attributes: { "data-path": node.path },
+      styles: { paddingInlineStart: `calc(var(--size-4-2) + ${depth * 16}px)` },
+      events: {
+        click: (event) => {
+          event.preventDefault();
+          this.selectFile(node.path);
+        }
+      },
+      container
+    };
+    const row = DomHelper.create(config);
+    const icon = DomHelper.create({
+      tag: "span",
+      classes: "lct-folder-tree-icon",
+      container: row
+    });
+    (0, import_obsidian14.setIcon)(icon, "file");
+    DomHelper.create({
+      tag: "span",
+      classes: "lct-folder-tree-name",
+      text: node.name,
+      container: row
+    });
+    if (node.external) {
+      this.renderExternalBadge(row);
+    }
+  }
+  /**
+   * Renders the inline external-change badge on a file row (D13, T20): a
+   * Lucide `download-cloud` glyph plus a short text label, marked with an
+   * `aria-label` so assistive tech announces the badge. The text is an inline
+   * English literal here and is propagated to every catalog in T15 (D13
+   * pattern); until then it shows in English on every locale even when the
+   * translator is wired, matching the rest of the folder modal's inline
+   * literals (see FolderHistoryModal.kindLabel).
+   *
+   * @param {HTMLElement} row - The file row to append the badge to
+   * @return {void}
+   */
+  renderExternalBadge(row) {
+    const fallback = "external";
+    const resolved = this.plugin ? this.plugin.t("version.badge.external") : null;
+    const text = resolved && resolved !== "version.badge.external" ? resolved : fallback;
+    const badge = DomHelper.create({
+      tag: "span",
+      classes: "lct-version-external-badge",
+      attributes: { "aria-label": text, "title": text },
+      container: row
+    });
+    const slot = DomHelper.create({
+      tag: "span",
+      classes: "lct-version-external-badge-icon",
+      container: badge
+    });
+    (0, import_obsidian14.setIcon)(slot, "download-cloud");
+    DomHelper.create({
+      tag: "span",
+      classes: "lct-version-external-badge-text",
+      text,
+      container: badge
+    });
+  }
+  /**
+   * Maps the delta status to its row class. The three statuses are stable
+   * tokens the modal CSS hooks into (T14); rows with status `'none'` never
+   * reach this code path because they are filtered in {@link buildTree}.
+   *
+   * @param {FolderDeltaStatus} status - The per-file delta status
+   * @return {string} The CSS class for the row's colour token
+   */
+  statusClassName(status) {
+    if (status === "added") {
+      return "lct-tree-added";
+    }
+    if (status === "deleted") {
+      return "lct-tree-deleted";
+    }
+    return "lct-tree-modified";
+  }
+  /**
+   * Toggles a folder's collapsed state and re-renders. The set stores
+   * collapsed paths (not expanded ones) so an unknown folder defaults to
+   * expanded: a fresh tree shows every changed file without an extra click.
+   *
+   * @param {string} folderPath - The folder's vault-relative path
+   * @return {void}
+   */
+  toggleFolder(folderPath) {
+    if (this.collapsedFolders.has(folderPath)) {
+      this.collapsedFolders.delete(folderPath);
+    } else {
+      this.collapsedFolders.add(folderPath);
+    }
+    this.render();
+  }
+  /**
+   * Marks `path` as the active file and notifies the parent. The render is
+   * full (not incremental) because re-running it keeps every row's
+   * `is-active` class consistent without bespoke DOM queries; the tree's
+   * structure does not change so the cost is bounded.
+   *
+   * @param {string} path - The file's vault-relative path
+   * @return {void}
+   */
+  selectFile(path) {
+    this.selectedPath = path;
+    this.render();
+    if (this.onSelect) {
+      this.onSelect(path);
+    }
   }
 };
 
@@ -13936,11 +15108,1725 @@ function html(diffInput, configuration = {}) {
   return fileList + diffOutput;
 }
 
+// src/helpers/diff-render.helper.ts
+var import_obsidian15 = require("obsidian");
+var DiffRenderHelper = class _DiffRenderHelper {
+  /**
+   * Renders the diff in the requested mode into the supplied container. The
+   * container is fully replaced on every call (no incremental update), so the
+   * caller can re-render on a mode toggle or a content change without having
+   * to clear it first.
+   *
+   * @param {DiffRenderParams} params - The render parameters
+   * @return {{ hunks: Diff.StructuredPatchHunk[] }} The line-level hunks the
+   *   renderer used, in top-to-bottom order, so the caller can attach per-hunk
+   *   navigation and revert affordances against the same indices.
+   */
+  static render(params) {
+    const hunks = HunkHelper.diff(
+      params.baseLines,
+      params.currentLines,
+      params.lineBreak
+    );
+    switch (params.mode) {
+      case "patch":
+        _DiffRenderHelper.renderPatch(params);
+        break;
+      case "inline":
+        _DiffRenderHelper.renderInline(params);
+        break;
+      case "line-by-line" /* line */:
+      case "side-by-side" /* side */:
+        _DiffRenderHelper.renderDiff2Html(params, params.mode);
+        break;
+    }
+    return { hunks };
+  }
+  /**
+   * Builds the unified clean patch text (context size 0). When the base equals
+   * the current state the helper returns the minimal empty-patch shape the
+   * modal used to produce inline, so a no-change selection still renders a
+   * sensible header instead of an empty pane.
+   *
+   * @param {DiffRenderParams} params - The render parameters
+   * @return {string} The unified patch text
+   */
+  static buildCleanPatch(params) {
+    const base = params.baseLines.join(params.lineBreak);
+    const current = params.currentLines.join(params.lineBreak);
+    if (base !== current) {
+      return createTwoFilesPatch(
+        params.filePath,
+        params.filePath,
+        base != null ? base : "",
+        current != null ? current : "",
+        "",
+        "",
+        {
+          context: 0
+        }
+      );
+    }
+    return `--- ${params.filePath}	
++++ ${params.filePath}	
+`;
+  }
+  /**
+   * Builds the unified diff text with maximum context, which is what diff2html
+   * consumes. When the base equals the current state the helper returns a
+   * synthetic full-content header so diff2html still renders the file as
+   * unchanged context instead of producing nothing.
+   *
+   * @param {DiffRenderParams} params - The render parameters
+   * @return {string} The unified diff text consumed by diff2html
+   */
+  static buildDiff2HtmlInput(params) {
+    const base = params.baseLines.join(params.lineBreak);
+    const current = params.currentLines.join(params.lineBreak);
+    if (base !== current) {
+      return createTwoFilesPatch(
+        params.filePath,
+        params.filePath,
+        base != null ? base : "",
+        current != null ? current : "",
+        "",
+        "",
+        {
+          context: Number.MAX_SAFE_INTEGER
+        }
+      );
+    }
+    return [
+      "===================================================================",
+      `--- ${params.filePath}	`,
+      `+++ ${params.filePath}	`,
+      `@@ -1,${base.length} +1,${current.length} @@`,
+      params.currentLines.map((content) => ` ${content}`).join("\n"),
+      "\\ No newline at end of file"
+    ].join("\n");
+  }
+  /**
+   * Renders the patch mode into the container: a `<pre>` with the unified clean
+   * patch plus a copy-to-clipboard button.
+   *
+   * @param {DiffRenderParams} params - The render parameters
+   */
+  static renderPatch(params) {
+    const patch = _DiffRenderHelper.buildCleanPatch(params);
+    const handlerClick = () => {
+      navigator.clipboard.writeText(patch).then(() => {
+        new import_obsidian15.Notice(params.plugin.t("notice.copied"));
+      });
+    };
+    DomHelper.update(
+      params.container,
+      {
+        text: null,
+        children: [
+          {
+            tag: "div",
+            classes: "lct-patch-container",
+            children: [
+              {
+                tag: "pre",
+                classes: "lct-patch-text",
+                text: patch
+              },
+              {
+                tag: "button",
+                classes: ["lct-patch-copy-button", "mod-outline"],
+                events: {
+                  click: handlerClick
+                }
+              }
+            ]
+          }
+        ]
+      }
+    );
+    const copyButton = params.container.querySelector(".lct-patch-copy-button");
+    if (copyButton) {
+      (0, import_obsidian15.setIcon)(copyButton, "copy");
+      copyButton.setAttribute("aria-label", params.plugin.t("modal.copy"));
+      copyButton.setAttribute("title", params.plugin.t("modal.copy"));
+    }
+  }
+  /**
+   * Renders the inline mode into the container: one row per line, with
+   * word-level spans inside modified lines, plain text inside pure additions
+   * and removals, and a leading sign gutter to keep the row kind readable when
+   * the colours are not enough on their own.
+   *
+   * @param {DiffRenderParams} params - The render parameters
+   */
+  static renderInline(params) {
+    const base = params.baseLines.join(params.lineBreak);
+    const current = params.currentLines.join(params.lineBreak);
+    const diffLines2 = WordDiffHelper.lines(base, current);
+    const rows = [];
+    diffLines2.forEach((line) => {
+      var _a, _b, _c, _d, _e;
+      if (line.type === "context") {
+        rows.push(_DiffRenderHelper.makeInlineRow("context", " ", [{ tag: "span", text: (_a = line.oldText) != null ? _a : "" }]));
+        return;
+      }
+      if (line.type === "added") {
+        rows.push(_DiffRenderHelper.makeInlineRow("added", "+", [{ tag: "span", text: (_b = line.newText) != null ? _b : "" }]));
+        return;
+      }
+      if (line.type === "removed") {
+        rows.push(_DiffRenderHelper.makeInlineRow("removed", "-", [{ tag: "span", text: (_c = line.oldText) != null ? _c : "" }]));
+        return;
+      }
+      rows.push(_DiffRenderHelper.makeInlineRow(
+        "modified",
+        "~",
+        _DiffRenderHelper.makeInlineWordSpans((_d = line.oldText) != null ? _d : "", (_e = line.newText) != null ? _e : "")
+      ));
+    });
+    DomHelper.update(params.container, {
+      text: null,
+      children: [{ tag: "div", classes: "lct-inline-container", children: rows }]
+    });
+  }
+  /**
+   * Renders one of the two diff2html modes (line-by-line or side-by-side) into
+   * the container using the same custom templates the modal used before the
+   * extraction, so the resulting DOM is byte-for-byte identical.
+   *
+   * @param {DiffRenderParams} params - The render parameters
+   * @param {DiffOutputFormatType} format - The diff2html output format
+   */
+  static renderDiff2Html(params, format) {
+    const diffHtml = html(_DiffRenderHelper.buildDiff2HtmlInput(params), {
+      drawFileList: false,
+      matching: "lines",
+      outputFormat: format,
+      renderNothingWhenEmpty: true,
+      rawTemplates: {
+        "line-by-line-file-diff": `
+           {{{diffs}}}
+        `,
+        "side-by-side-file-diff": `
+          <div class="d2h-side-column">
+            <div class="d2h-side-column-wrapper">
+                <div class="d2h-side-column-container">
+                  {{{diffs.left}}}
+              </div>
+            </div>
+          </div>
+          <div class="d2h-side-column">
+            <div class="d2h-side-column-wrapper">
+                <div class="d2h-side-column-container">
+                  {{{diffs.right}}}
+              </div>
+            </div>
+          </div>
+        `,
+        "generic-wrapper": `
+          <div class="d2h-wrapper d2h-${format === "line-by-line" /* line */ ? "line" : "side"}">
+            <div class="d2h-container">
+                {{{content}}}
+            </div>
+          </div>
+        `,
+        "generic-block-header": `
+          <div class="d2h-code-row-wrapper d2h-code-header-wrapper {{CSSLineClass.INFO}}">
+              <div class="d2h-code-linenumber {{CSSLineClass.INFO}}"></div>
+              <div class="d2h-code-linecontent {{CSSLineClass.INFO}}">
+                  <div class="d2h-code-line d2h-code-row">
+                    <span class="d2h-code-line-prefix">&nbsp;</span>
+                    <span class="d2h-code-line-ctn">
+                      {{#blockHeader}}{{{blockHeader}}}{{/blockHeader}}{{^blockHeader}}&nbsp;{{/blockHeader}}
+                    </span>
+                  </div>
+              </div>
+          </div>
+        `,
+        "generic-line": `
+          <div class="d2h-code-row-wrapper {{type}}">
+            <div class="d2h-code-linenumber {{type}}">
+              {{{lineNumber}}}
+            </div>
+            <div class="d2h-code-linecontent {{type}}">
+                <div class="d2h-code-line d2h-code-row">
+                  {{#prefix}}
+                      <span class="d2h-code-line-prefix">{{{prefix}}}</span>
+                  {{/prefix}}
+                  {{^prefix}}
+                      <span class="d2h-code-line-prefix">&nbsp;</span>
+                  {{/prefix}}
+                  {{#content}}
+                      <span class="d2h-code-line-ctn">{{{content}}}</span>
+                  {{/content}}
+                  {{^content}}
+                      <span class="d2h-code-line-ctn"><br></span>
+                  {{/content}}
+                </div>
+            </div>
+        </div>
+        `
+      }
+    });
+    DomHelper.update(
+      params.container,
+      { html: diffHtml }
+    );
+  }
+  /**
+   * Builds one inline diff row: a sign gutter (a space, plus, minus, or tilde)
+   * and the line content made of the provided spans.
+   *
+   * @param {string} kind - The row kind, used as a modifier class
+   * @param {string} sign - The leading sign character for the row
+   * @param {DomElementConfig[]} content - The content spans for the line
+   * @return {DomElementConfig} The row element config
+   */
+  static makeInlineRow(kind, sign, content) {
+    return {
+      tag: "div",
+      classes: ["lct-inline-row", `lct-inline-${kind}`],
+      children: [
+        { tag: "span", classes: "lct-inline-sign", text: sign },
+        { tag: "span", classes: "lct-inline-content", children: content }
+      ]
+    };
+  }
+  /**
+   * Computes the word-level spans for a modified line as one flowing sequence:
+   * unchanged words plain, removed words marked for deletion, added words
+   * marked for insertion, all kept in their original order. This is what lets
+   * the inline mode show a wording change as a single line instead of a
+   * before/after pair.
+   *
+   * @param {string} oldText - The old (base) line text
+   * @param {string} newText - The new (current) line text
+   * @return {DomElementConfig[]} The ordered span configs for the merged line
+   */
+  static makeInlineWordSpans(oldText, newText) {
+    return WordDiffHelper.segments(oldText, newText).map((segment3) => {
+      const classes = segment3.added ? "lct-word-added" : segment3.removed ? "lct-word-removed" : void 0;
+      return classes ? { tag: "span", classes, text: segment3.value } : { tag: "span", text: segment3.value };
+    });
+  }
+};
+
+// src/helpers/folder-delta.helper.ts
+var FolderDeltaHelper = class _FolderDeltaHelper {
+  /**
+   * Compares the snapshot's state at the timeline point T to its current
+   * state. See the class docs for the full status grid and the resolution
+   * rules; see {@link FolderDeltaResult} for the returned shape.
+   *
+   * The helper is defensive about a missing snapshot (returns `'none'` with
+   * empty content) so callers iterating over a possibly-stale map can pass
+   * `undefined` without guarding every call site.
+   *
+   * @param {FileSnapshot} snapshot - The snapshot to inspect (live or tombstone)
+   * @param {number} timestamp - The chosen folder-timeline point T, in ms
+   * @return {FolderDeltaResult} The resolved base / current / status triple
+   */
+  static compareAt(snapshot, timestamp) {
+    var _a;
+    if (!snapshot) {
+      return { status: "none", base: [], current: [] };
+    }
+    const existedAtT = _FolderDeltaHelper.existedAtT(snapshot, timestamp);
+    const existsNow = !snapshot.isTombstone();
+    const current = existsNow ? [...(_a = snapshot.state) != null ? _a : []] : [];
+    if (!existsNow && !existedAtT) {
+      return { status: "none", base: [], current: [] };
+    }
+    if (!existedAtT) {
+      return { status: "added", base: [], current };
+    }
+    const base = _FolderDeltaHelper.resolveBaseAt(snapshot, timestamp);
+    if (!existsNow) {
+      return { status: "deleted", base, current: [] };
+    }
+    return {
+      status: _FolderDeltaHelper.contentEquals(base, current) ? "none" : "modified",
+      base,
+      current
+    };
+  }
+  /**
+   * Whether the snapshot represented a file that existed at T. A live snapshot
+   * existed at T when its creation `timestamp` is at or before T; a tombstone
+   * existed at T when it was deleted strictly AFTER T (`deletedTimestamp > T`).
+   * A tombstone whose deletion is at or before T is considered "already gone
+   * at T", so the resulting cell is `'none'` rather than `'deleted'`.
+   *
+   * The same rule applies to move-ins: `movedIntoAt` is not consulted directly
+   * because the snapshot's `timestamp` is set at construction time, which is
+   * earlier than (or equal to) the move-in stamp on a re-keyed snapshot; the
+   * earlier creation time is the correct existence boundary for the file
+   * across both folders.
+   *
+   * @param {FileSnapshot} snapshot - The snapshot under inspection
+   * @param {number} timestamp - The chosen timeline point T, in ms
+   * @return {boolean} True when the snapshot represented a file present at T
+   */
+  static existedAtT(snapshot, timestamp) {
+    if (typeof snapshot.timestamp === "number" && snapshot.timestamp > timestamp) {
+      return false;
+    }
+    if (snapshot.isTombstone()) {
+      return typeof snapshot.deletedTimestamp === "number" && snapshot.deletedTimestamp > timestamp;
+    }
+    return true;
+  }
+  /**
+   * Resolves the file's content at T as the captured version whose timestamp
+   * is the latest at or before T, falling back to the persisted history
+   * baseline when no version qualifies. The snapshot's `versions` array is
+   * stored oldest-first (by capture order), so scanning back from the end
+   * finds the qualifying version in one pass.
+   *
+   * Returns a copy of the lines so the caller cannot mutate the underlying
+   * version or the history baseline through the returned reference.
+   *
+   * @param {FileSnapshot} snapshot - The snapshot whose content to resolve
+   * @param {number} timestamp - The chosen timeline point T, in ms
+   * @return {string[]} The resolved base content as a fresh array of lines
+   */
+  static resolveBaseAt(snapshot, timestamp) {
+    const versions = Array.isArray(snapshot.versions) ? snapshot.versions : [];
+    for (let i = versions.length - 1; i >= 0; i -= 1) {
+      const version = versions[i];
+      if (version && typeof version.timestamp === "number" && version.timestamp <= timestamp) {
+        return version.getLines();
+      }
+    }
+    return Array.isArray(snapshot.historyLines) ? [...snapshot.historyLines] : [];
+  }
+  /**
+   * Line-by-line equality used to decide `modified` vs `none` for two live
+   * states. Cheaper than joining the arrays and comparing strings because the
+   * common case (identical) short-circuits on the first mismatching index.
+   *
+   * @param {string[]} a - First line array
+   * @param {string[]} b - Second line array
+   * @return {boolean} True when both arrays have the same length and contents
+   */
+  static contentEquals(a, b) {
+    if (a.length !== b.length) {
+      return false;
+    }
+    for (let i = 0; i < a.length; i += 1) {
+      if (a[i] !== b[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+};
+
+// src/helpers/folder-timeline.helper.ts
+var FolderTimelineHelper = class _FolderTimelineHelper {
+  /**
+   * Synthesises the folder timeline from the snapshots whose path starts with
+   * `rootPath`. See the class docs for the kinds emitted and the ordering
+   * contract; see {@link FolderTimelinePoint} for the per-point shape.
+   *
+   * An empty input or an empty subtree returns an empty array. A `rootPath`
+   * of `''` matches every snapshot, which is the natural "whole vault" case
+   * a future caller could use; today the folder modal always passes a real
+   * folder path.
+   *
+   * @param {Iterable<FileSnapshot>} snapshots - The snapshots to scan
+   * @param {string} rootPath - Vault-relative folder path (no trailing slash)
+   * @return {FolderTimelinePoint[]} Points sorted newest-first, stable on ties
+   */
+  static synthesize(snapshots, rootPath) {
+    var _a;
+    if (!snapshots) {
+      return [];
+    }
+    const normalizedRoot = _FolderTimelineHelper.normalizeRoot(rootPath);
+    const points = [];
+    for (const snapshot of snapshots) {
+      if (!snapshot) {
+        continue;
+      }
+      const path = _FolderTimelineHelper.pathOf(snapshot);
+      if (!_FolderTimelineHelper.isUnderRoot(path, normalizedRoot)) {
+        continue;
+      }
+      for (const version of (_a = snapshot.versions) != null ? _a : []) {
+        points.push({
+          timestamp: version.timestamp,
+          path,
+          kind: "capture",
+          dayKey: _FolderTimelineHelper.dayKeyOf(version.timestamp),
+          versionId: version.id
+        });
+      }
+      if (snapshot.isTombstone() && typeof snapshot.deletedTimestamp === "number") {
+        points.push({
+          timestamp: snapshot.deletedTimestamp,
+          path,
+          kind: "delete",
+          dayKey: _FolderTimelineHelper.dayKeyOf(snapshot.deletedTimestamp)
+        });
+      }
+      if (snapshot.isMovedIn() && typeof snapshot.movedIntoAt === "number") {
+        points.push({
+          timestamp: snapshot.movedIntoAt,
+          path,
+          kind: "move-in",
+          dayKey: _FolderTimelineHelper.dayKeyOf(snapshot.movedIntoAt)
+        });
+      }
+    }
+    points.sort(
+      (a, b) => b.timestamp - a.timestamp
+    );
+    return points;
+  }
+  /**
+   * Returns the day-group key for a timestamp the same way {@link FileVersion.getDate}
+   * does, so a folder modal rail using the same string can match a file modal
+   * rail group heading for any version on the same calendar day.
+   *
+   * @param {number} timestamp - Capture timestamp in milliseconds
+   * @return {string} Localized day key, identical to `new Date(ts).toLocaleDateString()`
+   */
+  static dayKeyOf(timestamp) {
+    return new Date(timestamp).toLocaleDateString();
+  }
+  /**
+   * Resolves the vault-relative path of a snapshot. Prefers the attached
+   * `file.path` (live snapshots own a `TFile`), and falls back to scanning the
+   * map key out of `file?.path` only - tombstones built by `markDeleted`/`markMoved`
+   * keep their pre-delete `TFile` reference, so the path stays correct without
+   * the caller having to pass the map key separately.
+   *
+   * A snapshot without any usable path (defensive: not expected in practice)
+   * contributes nothing to the timeline.
+   *
+   * @param {FileSnapshot} snapshot - The snapshot to inspect
+   * @return {string} The vault-relative path, or `''` when missing
+   */
+  static pathOf(snapshot) {
+    var _a, _b;
+    return (_b = (_a = snapshot == null ? void 0 : snapshot.file) == null ? void 0 : _a.path) != null ? _b : "";
+  }
+  /**
+   * Strips a trailing slash from the root prefix so the matcher does not have
+   * to special-case it. An empty root matches every path (whole-vault scope).
+   *
+   * @param {string} rootPath - Caller-supplied folder root
+   * @return {string} Normalized root, never ending in a slash
+   */
+  static normalizeRoot(rootPath) {
+    if (!rootPath) {
+      return "";
+    }
+    return rootPath.endsWith("/") ? rootPath.slice(0, -1) : rootPath;
+  }
+  /**
+   * Whether the given path is inside the root prefix. An empty root matches
+   * everything; an exact equality match is allowed (a snapshot keyed exactly at
+   * the root path is a degenerate but harmless case); otherwise the path must
+   * have `${root}/` as its prefix so `src/a.md` does not match the root `s`.
+   *
+   * @param {string} path - Vault-relative path to test
+   * @param {string} root - Normalized root prefix (no trailing slash)
+   * @return {boolean} True when `path` lives under `root`
+   */
+  static isUnderRoot(path, root2) {
+    if (!path) {
+      return false;
+    }
+    if (!root2) {
+      return true;
+    }
+    return path === root2 || path.startsWith(`${root2}/`);
+  }
+};
+
+// src/modals/folder-history.modal.ts
+var import_obsidian16 = require("obsidian");
+var DEFAULT_LINE_BREAK = "\n";
+var FolderHistoryModal = class extends import_obsidian16.Modal {
+  /**
+   * Builds a new folder history modal. The caller is expected to have filtered
+   * the snapshots to the folder root (see {@link ModalsService.openFolderHistory})
+   * and to bail out when the result is empty, so this constructor does not
+   * defensively handle an empty subtree.
+   *
+   * @param {App} app - The Obsidian app instance
+   * @param {LineChangeTrackerPlugin} plugin - The plugin instance
+   * @param {string} rootPath - The vault-relative folder path
+   * @param {FileSnapshot[]} snapshots - The snapshots under the root
+   */
+  constructor(app, plugin, rootPath, snapshots) {
+    super(app);
+    this.app = app;
+    this.plugin = plugin;
+    /** Currently selected display mode; same enum the file modal uses (D6). */
+    this.currentDisplayMode = "side-by-side" /* side */;
+    /** Mode toggle buttons, kept so the active accent can be flipped. */
+    this.modeButtons = {};
+    this.rootPath = rootPath;
+    this.snapshotsByPath = new Map(
+      snapshots.map((snapshot) => {
+        var _a, _b;
+        return [
+          (_b = (_a = snapshot == null ? void 0 : snapshot.file) == null ? void 0 : _a.path) != null ? _b : "",
+          snapshot
+        ];
+      })
+    );
+    this.timeline = FolderTimelineHelper.synthesize(snapshots, rootPath);
+    this.selectedTimestamp = this.timeline.length > 0 ? this.timeline[0].timestamp : Date.now();
+    this.tree = new FolderTreeComponent();
+  }
+  /**
+   * Lifecycle hook called when the modal opens. Builds the three-column shell,
+   * renders the timeline rail, mounts the tree against the current T, and
+   * renders the diff for the default-selected file.
+   *
+   * @override
+   */
+  onOpen() {
+    this.makeUI();
+    DomHelper.update(this.modalEl, { classes: { add: ["lct-diff-modal", "lct-folder-history-modal"] } });
+    this.renderTimeline();
+    this.refreshTree();
+    this.refreshDiff();
+  }
+  /**
+   * Lifecycle hook called when the modal closes. Disposes the tree component
+   * so it releases its DOM and references, then clears the modal content.
+   *
+   * @override
+   */
+  onClose() {
+    this.tree.dispose();
+    this.contentEl.empty();
+  }
+  /**
+   * Builds the three-column shell plus the toolbar inside the main column.
+   * Reuses the same `.lct-modal-body / .lct-modal-rail / .lct-modal-main`
+   * class structure the file modal uses, so the existing flex / scroll
+   * policies apply; folder-specific adjustments hang off the
+   * `.lct-folder-history-modal` modifier added on the modal element.
+   */
+  makeUI() {
+    const bodyEl = DomHelper.create({
+      tag: "div",
+      classes: ["lct-modal-body", "lct-folder-modal-body"],
+      container: this.contentEl
+    });
+    this.railEl = DomHelper.create({
+      tag: "div",
+      classes: ["lct-modal-rail", "lct-folder-modal-rail"],
+      container: bodyEl
+    });
+    this.treeColumnEl = DomHelper.create({
+      tag: "div",
+      classes: "lct-folder-modal-tree",
+      container: bodyEl
+    });
+    this.treeSearchEl = DomHelper.create({
+      tag: "div",
+      classes: ["lct-rail-search", "lct-folder-tree-search"],
+      container: this.treeColumnEl
+    });
+    this.treeEl = DomHelper.create({
+      tag: "div",
+      classes: "lct-folder-tree-scroll",
+      container: this.treeColumnEl
+    });
+    this.mainEl = DomHelper.create({
+      tag: "div",
+      classes: "lct-modal-main",
+      container: bodyEl
+    });
+    this.toolbarEl = DomHelper.create({
+      tag: "div",
+      classes: "lct-modal-toolbar",
+      container: this.mainEl
+    });
+    this.makeToolbar();
+    const closeButtonEl = this.modalEl.querySelector(".modal-close-button");
+    if (closeButtonEl) {
+      closeButtonEl.classList.remove("mod-raised");
+      closeButtonEl.classList.add("clickable-icon");
+      this.toolbarEl.appendChild(closeButtonEl);
+    }
+    this.noticeEl = DomHelper.create({
+      tag: "div",
+      classes: ["lct-diff-notice", "lct-diff-notice-hidden"],
+      container: this.mainEl
+    });
+    const blockEl = DomHelper.create({
+      tag: "div",
+      classes: "lct-diff-block",
+      container: this.mainEl
+    });
+    this.columnsHeaderEl = DomHelper.create({
+      tag: "div",
+      classes: ["lct-diff-columns", "lct-diff-columns-hidden"],
+      container: blockEl
+    });
+    this.diffContainerEl = DomHelper.create({
+      tag: "div",
+      classes: "diff-container",
+      container: blockEl
+    });
+    this.tree.mount(this.treeEl, (path) => {
+      this.handleTreeSelection(path);
+    }, this.plugin);
+    this.renderTreeSearch();
+  }
+  /**
+   * Renders the name-filter search box above the tree. Typing filters the tree
+   * file rows by name (case-insensitive substring) through
+   * {@link FolderTreeComponent.setNameFilter}; it never touches the timeline,
+   * the diff, or the selection. The placeholder flows through `plugin.t` with an
+   * inline-English fallback (D13 pattern) so it reads sensibly before the key is
+   * propagated to every catalog.
+   */
+  renderTreeSearch() {
+    if (!this.treeSearchEl) {
+      return;
+    }
+    const key2 = "modal.folder.filter-files";
+    const resolved = this.plugin.t(key2);
+    const placeholder = resolved && resolved !== key2 ? resolved : "Filter files by name";
+    new import_obsidian16.SearchComponent(this.treeSearchEl).setPlaceholder(placeholder).setValue("").onChange((value) => {
+      this.tree.setNameFilter(value);
+    });
+  }
+  /**
+   * Builds the toolbar in the same shape the file modal uses (T13 / D10):
+   * a destructive group (restore-original / remove-history) pinned to the
+   * left, a constructive group (restore-selected / remove-selected /
+   * label-selected) keyed on the tree-selected file at the picked timeline
+   * point T, and the four view-mode toggles right-aligned after them. Every
+   * action delegates to {@link VersionActionsService} or to
+   * {@link ModalsService}, so behaviour cannot drift from the file modal.
+   */
+  makeToolbar() {
+    const actionsGroup = DomHelper.create({
+      tag: "div",
+      classes: ["lct-modal-toolbar-group", "lct-modal-toolbar-actions"],
+      container: this.toolbarEl
+    });
+    this.restoreOriginalButton = this.makeToolbarButton(actionsGroup, {
+      icon: "rotate-ccw",
+      label: this.plugin.t("modal.restore-original"),
+      warning: true,
+      onClick: async () => {
+        await this.handleRestoreOriginal();
+      }
+    });
+    this.removeHistoryButton = this.makeToolbarButton(actionsGroup, {
+      icon: "trash-2",
+      label: this.plugin.t("modal.remove-history"),
+      warning: true,
+      onClick: async () => {
+        await this.handleRemoveHistory();
+      }
+    });
+    const filterGroup = DomHelper.create({
+      tag: "div",
+      classes: ["lct-modal-toolbar-group", "lct-modal-toolbar-filter"],
+      container: this.toolbarEl
+    });
+    this.restoreSelectedButton = this.makeToolbarButton(filterGroup, {
+      icon: "history",
+      label: this.plugin.t("modal.restore-selected"),
+      onClick: async () => {
+        await this.handleRestoreSelected();
+      }
+    });
+    this.removeSelectedButton = this.makeToolbarButton(filterGroup, {
+      icon: "list-x",
+      label: this.plugin.t("modal.remove-selected"),
+      onClick: async () => {
+        await this.handleRemoveSelected();
+      }
+    });
+    this.labelSelectedButton = this.makeToolbarButton(filterGroup, {
+      icon: "tag",
+      label: this.plugin.t("modal.label-selected"),
+      onClick: async () => {
+        await this.handleLabelSelected();
+      }
+    });
+    const modesGroup = DomHelper.create({
+      tag: "div",
+      classes: ["lct-modal-toolbar-group", "lct-modal-toolbar-modes"],
+      container: this.toolbarEl
+    });
+    this.modeButtons.patch = this.makeToolbarButton(modesGroup, {
+      icon: "file-text",
+      label: this.plugin.t("modal.mode.patch"),
+      onClick: () => {
+        this.setDisplayMode("patch");
+      }
+    });
+    this.modeButtons.inline = this.makeToolbarButton(modesGroup, {
+      icon: "pilcrow",
+      label: this.plugin.t("modal.mode.inline"),
+      onClick: () => {
+        this.setDisplayMode("inline");
+      }
+    });
+    this.modeButtons.lineByLine = this.makeToolbarButton(modesGroup, {
+      icon: "align-justify",
+      label: this.plugin.t("modal.mode.line-by-line"),
+      onClick: () => {
+        this.setDisplayMode("line-by-line" /* line */);
+      }
+    });
+    this.modeButtons.sideBySide = this.makeToolbarButton(modesGroup, {
+      icon: "columns-2",
+      label: this.plugin.t("modal.mode.side-by-side"),
+      onClick: () => {
+        this.setDisplayMode("side-by-side" /* side */);
+      }
+    });
+    this.updateModeButtonActiveStates();
+    this.updateActionButtonStates();
+  }
+  /**
+   * Syncs the action-button `disabled` flag with the current selection: when no
+   * file is selected in the tree (or the selected file has no snapshot in the
+   * subtree any more), every selected-* action and the restore-original /
+   * remove-history pair are disabled so a click cannot fire against a missing
+   * target (AC5). Mirrors the file modal's "disable when nothing is picked"
+   * pattern without coupling to the file modal's selectedBaseId.
+   */
+  updateActionButtonStates() {
+    const path = this.tree.getSelectedPath();
+    const snapshot = path ? this.snapshotsByPath.get(path) : void 0;
+    const disabled = !snapshot;
+    [
+      this.restoreSelectedButton,
+      this.removeSelectedButton,
+      this.labelSelectedButton,
+      this.restoreOriginalButton,
+      this.removeHistoryButton
+    ].forEach((button) => {
+      if (!button) {
+        return;
+      }
+      button.disabled = disabled;
+      DomHelper.update(button, {
+        classes: disabled ? { add: "is-disabled" } : { remove: "is-disabled" }
+      });
+    });
+  }
+  /**
+   * Renders one toolbar icon button: an accessible clickable-icon wearing the
+   * Obsidian button look, with an aria-label / tooltip so screen readers and
+   * keyboard users have a text label for the icon-only control.
+   *
+   * @param {HTMLElement} group - The toolbar group to append the button to
+   * @param {FolderToolbarButtonConfig} config - The button's icon, label, and handler
+   * @return {HTMLButtonElement} The created button
+   */
+  makeToolbarButton(group, config) {
+    const button = DomHelper.create({
+      tag: "button",
+      classes: config.warning ? ["clickable-icon", "lct-toolbar-warning"] : ["clickable-icon"],
+      attributes: { "aria-label": config.label, "type": "button" },
+      container: group,
+      events: {
+        click: () => {
+          void config.onClick();
+        }
+      }
+    });
+    (0, import_obsidian16.setIcon)(button, config.icon);
+    return button;
+  }
+  /**
+   * Highlights the active mode button. Matches the file modal's accent
+   * behaviour (`is-active` on the active control, plain on the others) so the
+   * two modals are visually consistent.
+   */
+  updateModeButtonActiveStates() {
+    const active = this.getActiveModeButton();
+    Object.values(this.modeButtons).forEach((button) => {
+      if (!button) {
+        return;
+      }
+      DomHelper.update(button, {
+        classes: button === active ? { add: "is-active" } : { remove: "is-active" }
+      });
+    });
+  }
+  /**
+   * Resolves the toolbar button corresponding to the current display mode.
+   *
+   * @return {HTMLElement | undefined} The active mode button, or undefined when none
+   */
+  getActiveModeButton() {
+    switch (this.currentDisplayMode) {
+      case "patch":
+        return this.modeButtons.patch;
+      case "inline":
+        return this.modeButtons.inline;
+      case "line-by-line" /* line */:
+        return this.modeButtons.lineByLine;
+      case "side-by-side" /* side */:
+        return this.modeButtons.sideBySide;
+      default:
+        return void 0;
+    }
+  }
+  /**
+   * Sets the active display mode and re-renders the diff against the same
+   * selected timeline point and selected file (AC5). A no-op when the mode is
+   * already active.
+   *
+   * @param {DiffRenderMode} mode - The mode to switch to
+   */
+  setDisplayMode(mode) {
+    if (this.currentDisplayMode === mode) {
+      return;
+    }
+    this.currentDisplayMode = mode;
+    this.updateModeButtonActiveStates();
+    this.refreshDiff();
+  }
+  /**
+   * Renders the timeline rail: a flat list of points grouped by their day
+   * key, clickable so the user can pick a new T. Highlights the entry whose
+   * timestamp matches the currently selected T.
+   */
+  renderTimeline() {
+    if (!this.railEl) {
+      return;
+    }
+    const groups = [];
+    this.timeline.forEach((point) => {
+      let group = groups[groups.length - 1];
+      if (!group || group.label !== point.dayKey) {
+        group = { label: point.dayKey, points: [] };
+        groups.push(group);
+      }
+      group.points.push(point);
+    });
+    const items = [];
+    groups.forEach((group) => {
+      items.push({ tag: "div", classes: "lct-versions-day", text: group.label });
+      group.points.forEach((point) => {
+        items.push(this.makeTimelineItem(point));
+      });
+    });
+    if (items.length === 0) {
+      items.push({
+        tag: "div",
+        classes: "lct-versions-no-results",
+        text: this.plugin.t("modal.no-versions-match")
+      });
+    }
+    DomHelper.update(this.railEl, {
+      text: null,
+      children: [
+        {
+          tag: "div",
+          classes: "lct-versions",
+          children: [{ tag: "div", classes: "lct-versions-list", children: items }]
+        }
+      ]
+    });
+    this.paintExternalBadges(this.railEl);
+  }
+  /**
+   * Mirrors the rail / panel post-mount pass: after the DomHelper config tree
+   * is mounted, apply Obsidian's `setIcon` to every badge slot the timeline
+   * config declared. The icon id is carried as `data-icon` on the wrapper so
+   * each badge can be painted without rebuilding the rail imperatively.
+   *
+   * @param {HTMLElement} container - The rail container to scan
+   */
+  paintExternalBadges(container) {
+    const badges = container.querySelectorAll(
+      ".lct-version-external-badge"
+    );
+    badges.forEach((badge) => {
+      const iconId = badge.getAttribute("data-icon");
+      const slot = badge.querySelector(".lct-version-external-badge-icon");
+      if (iconId && slot) {
+        (0, import_obsidian16.setIcon)(slot, iconId);
+      }
+    });
+  }
+  /**
+   * Whether the given timeline point comes from an external-change capture
+   * (D13, T20). Only `'capture'` points map back to a `FileVersion` via
+   * `versionId`; `'delete'` and `'move-in'` markers stay non-external. A
+   * point whose path or version is no longer in the map (e.g. removed by a
+   * destructive action after resync) returns false defensively.
+   *
+   * @param {FolderTimelinePoint} point - The timeline point to inspect
+   * @return {boolean} True when the underlying version is flagged external
+   */
+  isExternalPoint(point) {
+    if (point.kind !== "capture" || !point.versionId) {
+      return false;
+    }
+    const snapshot = this.snapshotsByPath.get(point.path);
+    if (!snapshot) {
+      return false;
+    }
+    const version = snapshot.getVersion(point.versionId);
+    return (version == null ? void 0 : version.isExternal()) === true;
+  }
+  /**
+   * Builds the inline external-change badge config used by the timeline rail.
+   * Shape and i18n contract match the file modal rail and the recent-changes
+   * panel so the badge reads consistently across surfaces (T20 AC1/AC2/AC3).
+   *
+   * @return {DomElementConfig} The badge element config
+   */
+  makeExternalBadge() {
+    const text = this.plugin.t("version.badge.external");
+    return {
+      tag: "span",
+      classes: "lct-version-external-badge",
+      attributes: { "aria-label": text, "title": text, "data-icon": "download-cloud" },
+      children: [
+        { tag: "span", classes: "lct-version-external-badge-icon" },
+        { tag: "span", classes: "lct-version-external-badge-text", text }
+      ]
+    };
+  }
+  /**
+   * Builds a single timeline rail entry: a label describing the event (a
+   * capture / delete / move-in plus the file's short name), the time of day
+   * inline, and a click that re-pins T and re-renders the tree and diff.
+   *
+   * @param {FolderTimelinePoint} point - The point to render
+   * @return {DomElementConfig} The rail entry element config
+   */
+  makeTimelineItem(point) {
+    const active = this.selectedTimestamp === point.timestamp;
+    const shortName = this.basename(point.path);
+    const kindLabel = this.kindLabel(point.kind);
+    const time = new Date(point.timestamp).toLocaleTimeString();
+    const external = this.isExternalPoint(point);
+    const labelChildren = [
+      { tag: "span", classes: "lct-version-label", text: shortName }
+    ];
+    if (external) {
+      labelChildren.push(this.makeExternalBadge());
+    }
+    return {
+      tag: "div",
+      classes: active ? ["lct-version-item", "is-active"] : ["lct-version-item"],
+      events: {
+        click: () => {
+          this.selectTimestamp(point.timestamp);
+        }
+      },
+      children: [
+        { tag: "span", classes: "lct-version-label-row", children: labelChildren },
+        { tag: "span", classes: "lct-version-meta", text: `${kindLabel}, ${time}` }
+      ]
+    };
+  }
+  /**
+   * Returns a short, inline-English label for a timeline point kind. The
+   * literal strings are propagated across every catalog in T15 (D13 pattern);
+   * until then, the labels show as English on every locale.
+   *
+   * @param {FolderTimelinePoint['kind']} kind - The discriminator
+   * @return {string} The human-readable kind label
+   */
+  kindLabel(kind) {
+    switch (kind) {
+      case "capture":
+        return this.plugin.t("modal.folder.timeline.capture");
+      case "delete":
+        return this.plugin.t("modal.folder.timeline.delete");
+      case "move-in":
+        return this.plugin.t("modal.folder.timeline.move-in");
+      default:
+        return kind;
+    }
+  }
+  /**
+   * Returns the last path segment of a vault-relative path. Used as the rail
+   * row's short file label so the column does not overflow on deep paths.
+   *
+   * @param {string} path - The vault-relative path
+   * @return {string} The trailing segment, or the path itself when no slash
+   */
+  basename(path) {
+    const lastSlash = path.lastIndexOf("/");
+    return lastSlash === -1 ? path : path.slice(lastSlash + 1);
+  }
+  /**
+   * Pins a new timeline point T, re-renders the rail (to flip the active
+   * highlight), re-colours the tree (the per-file deltas change with T), and
+   * re-renders the diff for the currently-selected file at the new T (AC2).
+   *
+   * @param {number} timestamp - The new selected T
+   */
+  selectTimestamp(timestamp) {
+    if (this.selectedTimestamp === timestamp) {
+      return;
+    }
+    this.selectedTimestamp = timestamp;
+    this.renderTimeline();
+    this.refreshTree();
+    this.refreshDiff();
+  }
+  /**
+   * Re-runs `FolderDeltaHelper.compareAt` for every snapshot in the subtree
+   * and pushes the resulting entries to the tree component, which preserves
+   * the user's expand/collapse state and the previous selection when it is
+   * still in the tree (AC2). The tree component falls back to the first file
+   * in render order when the previous selection is gone, so the diff pane
+   * always has a sensible target.
+   */
+  refreshTree() {
+    const entries = [];
+    this.snapshotsByPath.forEach((snapshot, path) => {
+      const result = FolderDeltaHelper.compareAt(snapshot, this.selectedTimestamp);
+      const closest = this.resolveVersionAtT(snapshot);
+      entries.push({
+        path,
+        status: result.status,
+        external: (closest == null ? void 0 : closest.isExternal()) === true
+      });
+    });
+    this.tree.update({ entries, rootPath: this.rootPath });
+  }
+  /**
+   * Renders the diff for the currently-selected file at the currently-selected
+   * T. When no file is selected (an empty tree, or every entry filtered to
+   * status `'none'` at this T) the diff pane is replaced with a calm hint
+   * instead of leaving stale content on screen.
+   */
+  refreshDiff() {
+    var _a;
+    if (!this.diffContainerEl) {
+      return;
+    }
+    const path = this.tree.getSelectedPath();
+    const snapshot = path ? this.snapshotsByPath.get(path) : void 0;
+    const result = snapshot ? FolderDeltaHelper.compareAt(snapshot, this.selectedTimestamp) : null;
+    this.updateDiffNotice(result);
+    this.updateColumnsHeader(result);
+    this.updateActionButtonStates();
+    if (!result) {
+      DomHelper.update(this.diffContainerEl, { text: null });
+      return;
+    }
+    DiffRenderHelper.render({
+      baseLines: result.base,
+      currentLines: result.current,
+      lineBreak: (_a = snapshot == null ? void 0 : snapshot.lineBreak) != null ? _a : DEFAULT_LINE_BREAK,
+      mode: this.currentDisplayMode,
+      container: this.diffContainerEl,
+      filePath: path != null ? path : "",
+      plugin: this.plugin
+    });
+  }
+  /**
+   * Handler for a tree click: re-renders the diff against the newly-selected
+   * file at the current T. The tree component already updates its own
+   * `is-active` row, so no rail / tree side effects are needed here.
+   *
+   * @param {string} _path - The clicked file path
+   */
+  handleTreeSelection(_path) {
+    this.refreshDiff();
+  }
+  /**
+   * Resolves the captured version of the given snapshot whose timestamp is
+   * closest to (but not after) the picked timeline point T (D10). Returns null
+   * when no version qualifies, i.e. when T precedes every captured version: the
+   * caller falls back to the synthetic baseline branch in that case so the user
+   * can still restore the file's earliest known content.
+   *
+   * @param {FileSnapshot} snapshot - The file's snapshot
+   * @return {FileVersion | null} The closest version at/before T, or null
+   */
+  resolveVersionAtT(snapshot) {
+    const versions = snapshot.getVersions();
+    let candidate = null;
+    versions.forEach((version) => {
+      if (version.timestamp > this.selectedTimestamp) {
+        return;
+      }
+      if (!candidate || version.timestamp > candidate.timestamp) {
+        candidate = version;
+      }
+    });
+    return candidate;
+  }
+  /**
+   * Resolves the file currently focused in the tree back to its snapshot and
+   * the per-file delta at T in a single shot, so each handler can early-exit on
+   * an empty selection without re-computing the same lookup.
+   *
+   * @return {{ path: string; snapshot: FileSnapshot; result: FolderDeltaResult } | null}
+   */
+  resolveSelection() {
+    const path = this.tree.getSelectedPath();
+    if (!path) {
+      return null;
+    }
+    const snapshot = this.snapshotsByPath.get(path);
+    if (!snapshot) {
+      return null;
+    }
+    return {
+      path,
+      snapshot,
+      result: FolderDeltaHelper.compareAt(snapshot, this.selectedTimestamp)
+    };
+  }
+  /**
+   * Re-synthesises the timeline from the current snapshot map, clamps the
+   * selected T to the nearest remaining point (defaults to the newest one when
+   * the original point is gone), and re-renders the rail. Used after a
+   * destructive action that removed a version or wiped a file's history so the
+   * rail does not surface stale entries.
+   */
+  resyncTimeline() {
+    this.timeline = FolderTimelineHelper.synthesize(
+      Array.from(this.snapshotsByPath.values()),
+      this.rootPath
+    );
+    if (this.timeline.length === 0) {
+      this.renderTimeline();
+      return;
+    }
+    const stillExists = this.timeline.some(
+      (point) => point.timestamp === this.selectedTimestamp
+    );
+    if (!stillExists) {
+      this.selectedTimestamp = this.timeline[0].timestamp;
+    }
+    this.renderTimeline();
+  }
+  /**
+   * Handler for the "Restore selected version" toolbar button. The version
+   * closest to T is restored on the tree-selected file (D10/AC1). When T
+   * precedes every captured version, the synthetic baseline branch writes the
+   * `compareAt` base back through {@link SnapshotsService.applyContent} so the
+   * file's earliest known content is still restorable. When the selected file
+   * is a tombstone with `deletedTimestamp > T` (AC4), the file is re-created
+   * at its old path with the content at T and the tombstone is promoted back
+   * to a live snapshot in place.
+   *
+   * @return {Promise<void>}
+   */
+  async handleRestoreSelected() {
+    var _a;
+    const selection = this.resolveSelection();
+    if (!selection) {
+      return;
+    }
+    const confirmed = await this.modalsService.confirm({
+      title: this.plugin.t("modal.confirm.restore-version.title"),
+      message: this.plugin.t("modal.confirm.restore-version.message"),
+      confirmText: this.plugin.t("modal.confirm.restore-version.button"),
+      cancelText: this.plugin.t("modal.confirm.cancel")
+    });
+    if (!confirmed) {
+      return;
+    }
+    if (selection.snapshot.isTombstone() && selection.result.status === "deleted") {
+      await this.restoreTombstoneSelection(selection.path, selection.snapshot, selection.result);
+      this.resyncTimeline();
+      this.refreshTree();
+      this.refreshDiff();
+      return;
+    }
+    const file = (_a = selection.snapshot.file) != null ? _a : null;
+    if (!file) {
+      return;
+    }
+    const version = this.resolveVersionAtT(selection.snapshot);
+    if (version) {
+      await this.versionActionsService.restoreSelected(file, version.id);
+    } else {
+      const baseLines = selection.result.base;
+      const currentLines = selection.snapshot.getLastStateLines();
+      if (baseLines.join(selection.snapshot.lineBreak) !== currentLines.join(selection.snapshot.lineBreak)) {
+        await this.snapshotsService.applyContent(file, baseLines, {
+          start: 0,
+          removeCount: currentLines.length,
+          newLines: baseLines
+        });
+      }
+    }
+    this.refreshTree();
+    this.refreshDiff();
+  }
+  /**
+   * Promotes a tombstone back to a live snapshot for AC4: writes the resolved
+   * base content to disk at the snapshot's old path through
+   * {@link App.vault.create}, attaches the resulting file to the snapshot, and
+   * clears the tombstone marker so the entry becomes live in the map without
+   * losing its captured versions or history baseline. A best-effort path: on a
+   * vault error a Notice surfaces the failure and the tombstone stays as-is so
+   * the user can retry.
+   *
+   * @param {string} path - The vault-relative old path of the deleted file
+   * @param {FileSnapshot} snapshot - The tombstone snapshot to promote
+   * @param {FolderDeltaResult} result - The compareAt result carrying the base content at T
+   * @return {Promise<void>}
+   */
+  async restoreTombstoneSelection(path, snapshot, result) {
+    const content = result.base.join(snapshot.lineBreak);
+    try {
+      const created = await this.app.vault.create(path, content);
+      snapshot.file = created;
+      snapshot.deletedTimestamp = void 0;
+      snapshot.updateState(result.base);
+      snapshot.updateChanges();
+      this.snapshotsService.forceUpdate();
+    } catch (_error) {
+      new import_obsidian16.Notice(this.plugin.t("notice.file-restore-failed"));
+    }
+  }
+  /**
+   * Handler for the "Remove selected version" toolbar button. Drops the version
+   * closest to T from the tree-selected file's timeline (D10/AC2), then
+   * re-synthesises the folder timeline and re-renders the tree so the rail and
+   * the per-file delta reflect the removed point. A no-op for a tombstone with
+   * no captured version at T (there is nothing to remove without violating the
+   * "version closest to T" semantics).
+   *
+   * @return {Promise<void>}
+   */
+  async handleRemoveSelected() {
+    var _a;
+    const selection = this.resolveSelection();
+    if (!selection) {
+      return;
+    }
+    const version = this.resolveVersionAtT(selection.snapshot);
+    if (!version) {
+      return;
+    }
+    const confirmed = await this.modalsService.confirm({
+      title: this.plugin.t("modal.confirm.remove-version.title"),
+      message: this.plugin.t("modal.confirm.remove-version.message"),
+      confirmText: this.plugin.t("modal.confirm.remove-version.button"),
+      cancelText: this.plugin.t("modal.confirm.cancel")
+    });
+    if (!confirmed) {
+      return;
+    }
+    const file = (_a = selection.snapshot.file) != null ? _a : null;
+    if (file) {
+      this.versionActionsService.removeSelected(file, version.id);
+    } else if (selection.snapshot.removeVersion(version.id)) {
+      this.snapshotsService.forceUpdate();
+    }
+    this.resyncTimeline();
+    this.refreshTree();
+    this.refreshDiff();
+  }
+  /**
+   * Handler for the "Label selected version" toolbar button. Routes the
+   * version closest to T through {@link ModalsService.labelVersion} so the
+   * label prompt and the cancel/blank no-op contract match the file modal
+   * exactly (D10/AC3). A no-op for a tombstone whose snapshot has no live
+   * `file` reference (the modals service resolves the label target by file).
+   *
+   * @return {Promise<void>}
+   */
+  async handleLabelSelected() {
+    var _a;
+    const selection = this.resolveSelection();
+    if (!selection) {
+      return;
+    }
+    const version = this.resolveVersionAtT(selection.snapshot);
+    const file = (_a = selection.snapshot.file) != null ? _a : null;
+    if (!version || !file) {
+      return;
+    }
+    const labeled = await this.modalsService.labelVersion(file, version.id);
+    if (!labeled) {
+      return;
+    }
+    this.refreshTree();
+    this.refreshDiff();
+  }
+  /**
+   * Handler for the "Restore original" toolbar button. Asks for confirmation
+   * and, on consent, rewrites the tree-selected file back to its history
+   * baseline and drops its snapshot, mirroring the file modal's destructive
+   * action. The folder modal stays open: the tree re-colours so the user can
+   * see the rest of the subtree, the now-untracked file simply leaves the
+   * delta view.
+   *
+   * @return {Promise<void>}
+   */
+  async handleRestoreOriginal() {
+    var _a;
+    const selection = this.resolveSelection();
+    if (!selection) {
+      return;
+    }
+    const file = (_a = selection.snapshot.file) != null ? _a : null;
+    if (!file) {
+      return;
+    }
+    const confirmed = await this.modalsService.confirm({
+      title: this.plugin.t("modal.confirm.restore.title"),
+      message: this.plugin.t("modal.confirm.restore.message"),
+      confirmText: this.plugin.t("modal.confirm.restore.button"),
+      cancelText: this.plugin.t("modal.confirm.cancel")
+    });
+    if (!confirmed) {
+      return;
+    }
+    try {
+      const originalContent = selection.snapshot.getHistoryOriginalState();
+      await this.app.vault.modify(file, originalContent);
+      this.snapshotsService.wipeOne(file);
+      this.snapshotsByPath.delete(selection.path);
+      new import_obsidian16.Notice(this.plugin.t("notice.file-restored"));
+    } catch (_error) {
+      new import_obsidian16.Notice(this.plugin.t("notice.file-restore-failed"));
+      return;
+    }
+    this.resyncTimeline();
+    this.refreshTree();
+    this.refreshDiff();
+  }
+  /**
+   * Handler for the "Remove history" toolbar button. Asks for confirmation and,
+   * on consent, drops the tree-selected file's snapshot through
+   * {@link SnapshotsService.wipeOne}, leaving the file's content untouched on
+   * disk. The folder modal stays open and the tree is re-coloured so the
+   * remaining changed files stay visible.
+   *
+   * @return {Promise<void>}
+   */
+  async handleRemoveHistory() {
+    var _a;
+    const selection = this.resolveSelection();
+    if (!selection) {
+      return;
+    }
+    const file = (_a = selection.snapshot.file) != null ? _a : null;
+    if (!file) {
+      return;
+    }
+    const confirmed = await this.modalsService.confirm({
+      title: this.plugin.t("modal.confirm.remove.title"),
+      message: this.plugin.t("modal.confirm.remove.message"),
+      confirmText: this.plugin.t("modal.confirm.remove.button"),
+      cancelText: this.plugin.t("modal.confirm.cancel")
+    });
+    if (!confirmed) {
+      return;
+    }
+    this.snapshotsService.wipeOne(file);
+    this.snapshotsByPath.delete(selection.path);
+    this.resyncTimeline();
+    this.refreshTree();
+    this.refreshDiff();
+  }
+  /**
+   * Shows or hides the above-diff notice based on the selected file's status
+   * at T. The notice is shown when there is no file to diff (empty tree at T),
+   * when the file did not change (`'none'`), or for added / deleted variants
+   * the user benefits from a one-line explanation alongside the
+   * "everything green / red" diff.
+   *
+   * @param {FolderDeltaResult | null} result - The compareAt result for the selected file
+   */
+  updateDiffNotice(result) {
+    if (!this.noticeEl) {
+      return;
+    }
+    const text = this.resolveNoticeText(result);
+    DomHelper.update(this.noticeEl, {
+      text: text != null ? text : null,
+      classes: text ? { remove: "lct-diff-notice-hidden" } : { add: "lct-diff-notice-hidden" }
+    });
+  }
+  /**
+   * Picks the inline-English notice text for the selected file's status, or
+   * null when no banner is needed (status `'modified'` reads on its own).
+   * The literal strings are propagated across every catalog in T15.
+   *
+   * @param {FolderDeltaResult | null} result - The compareAt result
+   * @return {string | null} The notice text or null when the banner is hidden
+   */
+  resolveNoticeText(result) {
+    if (!result) {
+      return this.plugin.t("modal.folder.notice.no-file");
+    }
+    switch (result.status) {
+      case "added":
+        return this.plugin.t("modal.folder.notice.added");
+      case "deleted":
+        return this.plugin.t("modal.folder.notice.deleted");
+      case "none":
+        return this.plugin.t("modal.folder.notice.unchanged");
+      default:
+        return null;
+    }
+  }
+  /**
+   * Toggles the side-by-side column header and, when shown, labels the left
+   * column with the picked timeline point and the right column with the
+   * current state. Hidden in the single-column modes (patch / inline /
+   * line-by-line).
+   *
+   * @param {FolderDeltaResult | null} result - The compareAt result for the selected file
+   */
+  updateColumnsHeader(result) {
+    if (!this.columnsHeaderEl) {
+      return;
+    }
+    const sideBySide = this.currentDisplayMode === "side-by-side" /* side */;
+    if (!sideBySide || !result) {
+      DomHelper.update(this.columnsHeaderEl, { text: null, classes: { add: "lct-diff-columns-hidden" } });
+      return;
+    }
+    const pointLabel = new Date(this.selectedTimestamp).toLocaleString();
+    DomHelper.update(this.columnsHeaderEl, {
+      text: null,
+      classes: { remove: "lct-diff-columns-hidden" },
+      children: [
+        { tag: "div", classes: "lct-diff-column-title", text: pointLabel },
+        { tag: "div", classes: "lct-diff-column-title", text: this.plugin.t("modal.version.current") }
+      ]
+    });
+  }
+  /**
+   * Returns the timeline this modal was opened against. Exposed for tests
+   * and for T13 wiring (the toolbar actions need to know which version is
+   * closest to the picked T for the selected file).
+   *
+   * @return {FolderTimelinePoint[]} The timeline points, newest-first
+   */
+  getTimeline() {
+    return this.timeline;
+  }
+  /**
+   * Returns the currently selected timeline point T. Exposed for tests and
+   * future T13 wiring.
+   *
+   * @return {number} The selected T in ms
+   */
+  getSelectedTimestamp() {
+    return this.selectedTimestamp;
+  }
+  /**
+   * Returns the snapshot map keyed by path. Exposed for T13 wiring so the
+   * toolbar actions can resolve the tree-selected file back to its snapshot
+   * without re-filtering the service map.
+   *
+   * @return {Map<string, FileSnapshot>} The snapshot map
+   */
+  getSnapshotsByPath() {
+    return this.snapshotsByPath;
+  }
+  /**
+   * Re-runs the per-file delta against the given path at the current T.
+   * Exposed for T13 so it can derive the base / current content for the
+   * selected file when invoking VersionActionsService.
+   *
+   * @param {string} path - The vault-relative file path
+   * @return {FolderDeltaStatus} The status at T, `'none'` when the path is unknown
+   */
+  statusAt(path) {
+    const snapshot = this.snapshotsByPath.get(path);
+    if (!snapshot) {
+      return "none";
+    }
+    return FolderDeltaHelper.compareAt(snapshot, this.selectedTimestamp).status;
+  }
+};
+__decorateClass([
+  Inject("SnapshotsService")
+], FolderHistoryModal.prototype, "snapshotsService", 2);
+__decorateClass([
+  Inject("ModalsService")
+], FolderHistoryModal.prototype, "modalsService", 2);
+__decorateClass([
+  Inject("VersionActionsService")
+], FolderHistoryModal.prototype, "versionActionsService", 2);
+
+// src/helpers/base-content.helper.ts
+var BaseContentHelper = class {
+  /**
+   * Resolves the base content to diff the current state against.
+   *
+   * @param {string} selectedBaseId - The picked base id (the synthetic baseline
+   *   sentinel or an intermediate version id)
+   * @param {string} baselineId - The sentinel id that marks the synthetic
+   *   baseline entry
+   * @param {BaseContentSnapshot} snapshot - The reduced snapshot view to read
+   * @return {string} The base content for the diff
+   */
+  static resolve(selectedBaseId, baselineId, snapshot) {
+    if (selectedBaseId !== baselineId) {
+      const content = snapshot.versionContent(selectedBaseId);
+      if (content !== null) {
+        return content;
+      }
+    }
+    const latest = snapshot.versions[0];
+    return latest != null ? latest : snapshot.original;
+  }
+};
+
+// src/helpers/list-selection.helper.ts
+var ListSelectionHelper = class {
+  /**
+   * Resolves the id the selection moves to when an arrow key is pressed.
+   *
+   * @param {string[]} ids - The selectable ids in their displayed order
+   * @param {string} currentId - The currently selected id
+   * @param {ListSelectionDirection} direction - Which way to step
+   * @return {string | null} The new selected id, the same id at a list edge, or
+   *   null when the list is empty
+   */
+  static step(ids, currentId, direction) {
+    const list = ids != null ? ids : [];
+    if (list.length === 0) {
+      return null;
+    }
+    const found = list.indexOf(currentId);
+    const start = found === -1 ? 0 : found;
+    const next = Math.max(0, Math.min(list.length - 1, start + (direction === "down" ? 1 : -1)));
+    return list[next];
+  }
+};
+
+// src/helpers/version-search.helper.ts
+var VersionSearchHelper = class {
+  /**
+   * Resolves the ids of the versions visible for a given search query.
+   *
+   * @param {SearchableVersion[]} versions - The timeline versions to filter
+   * @param {string} query - The raw search query (trimmed and lower-cased here)
+   * @return {Set<string>} The ids of the matching versions; every version's id
+   *   when the query is empty
+   */
+  static match(versions, query) {
+    const list = versions != null ? versions : [];
+    const needle = (query != null ? query : "").trim().toLowerCase();
+    if (needle === "") {
+      return new Set(list.map((version) => version.id));
+    }
+    return new Set(
+      list.filter((version) => {
+        var _a;
+        return ((_a = version.content) != null ? _a : "").toLowerCase().includes(needle);
+      }).map((version) => version.id)
+    );
+  }
+};
+
+// src/helpers/version-label.helper.ts
+var VersionLabelHelper = class _VersionLabelHelper {
+  /**
+   * Describes the transition from previous to current as an action plus the
+   * line-level delta. Symmetric in shape: both empty inputs are handled, and
+   * the result is well-defined even when the two contents are identical (kind
+   * is "modified" with zero added and zero removed, which the UI can render or
+   * suppress as it sees fit).
+   *
+   * @param {string[]} previousLines - The previous content as an array of lines
+   * @param {string[]} currentLines - The current content as an array of lines
+   * @return {VersionDescription} The action kind plus the added/removed counts
+   */
+  static describe(previousLines, currentLines) {
+    const previous = previousLines != null ? previousLines : [];
+    const current = currentLines != null ? currentLines : [];
+    const previousEmpty = _VersionLabelHelper.isEmpty(previous);
+    const currentEmpty = _VersionLabelHelper.isEmpty(current);
+    const { added, removed } = _VersionLabelHelper.countDelta(previous, current);
+    if (previousEmpty && !currentEmpty) {
+      return { kind: "created", added, removed };
+    }
+    if (!previousEmpty && currentEmpty) {
+      return { kind: "cleared", added, removed };
+    }
+    return { kind: "modified", added, removed };
+  }
+  /**
+   * Whether a line array represents empty content (no lines, or only empty
+   * lines). Treating a single empty-string line as empty matches how a brand
+   * new file is captured.
+   *
+   * @param {string[]} lines - The lines to inspect
+   * @return {boolean} True when there is no meaningful content
+   */
+  static isEmpty(lines) {
+    if (lines.length === 0) {
+      return true;
+    }
+    return lines.every((line) => line === "");
+  }
+  /**
+   * Counts added and removed lines between two contents using a structured
+   * patch with zero context, so each hunk's lines are exactly the changed
+   * lines on either side. A trailing newline is appended to both texts before
+   * diffing: without it the diff library merges the last "no-newline" run into
+   * a coarser block (e.g. a single-line edit can leak into the following
+   * unchanged line), inflating both counts. The newline is then ignored as a
+   * meta marker, leaving only true `+`/`-` lines counted.
+   *
+   * @param {string[]} previous - The previous content as lines
+   * @param {string[]} current - The current content as lines
+   * @return {{ added: number; removed: number }} The line delta
+   */
+  static countDelta(previous, current) {
+    const previousEmpty = _VersionLabelHelper.isEmpty(previous);
+    const currentEmpty = _VersionLabelHelper.isEmpty(current);
+    if (previousEmpty && currentEmpty) {
+      return { added: 0, removed: 0 };
+    }
+    if (previousEmpty) {
+      return { added: current.filter((line) => line !== "").length, removed: 0 };
+    }
+    if (currentEmpty) {
+      return { added: 0, removed: previous.filter((line) => line !== "").length };
+    }
+    const previousText = `${previous.join("\n")}
+`;
+    const currentText = `${current.join("\n")}
+`;
+    if (previousText === currentText) {
+      return { added: 0, removed: 0 };
+    }
+    const hunks = structuredPatch("", "", previousText, currentText, "", "", { context: 0 }).hunks;
+    let added = 0;
+    let removed = 0;
+    for (const hunk of hunks) {
+      for (const line of hunk.lines) {
+        if (line.startsWith("+")) {
+          added += 1;
+        } else if (line.startsWith("-")) {
+          removed += 1;
+        }
+      }
+    }
+    return { added, removed };
+  }
+};
+
 // src/modals/history.modal.ts
-var import_obsidian13 = require("obsidian");
+var import_obsidian17 = require("obsidian");
 var ORIGINAL_BASE_ID = "original";
 var DIFF_SCROLL_STEP_PX = 48;
-var HistoryModal = class extends import_obsidian13.Modal {
+var HistoryModal = class extends import_obsidian17.Modal {
   /**
    * Creates a new instance of HistoryModal.
    *
@@ -14081,10 +16967,10 @@ var HistoryModal = class extends import_obsidian13.Modal {
       const file = this.snapshot.file;
       await this.app.vault.modify(file, originalContent);
       this.snapshotsService.wipeOne(file);
-      new import_obsidian13.Notice(this.plugin.t("notice.file-restored"));
+      new import_obsidian17.Notice(this.plugin.t("notice.file-restored"));
       this.close();
     } catch (_error) {
-      new import_obsidian13.Notice(this.plugin.t("notice.file-restore-failed"));
+      new import_obsidian17.Notice(this.plugin.t("notice.file-restore-failed"));
     }
   }
   /**
@@ -14787,7 +17673,7 @@ var HistoryModal = class extends import_obsidian13.Modal {
         }
       }
     });
-    (0, import_obsidian13.setIcon)(button, config.icon);
+    (0, import_obsidian17.setIcon)(button, config.icon);
     return button;
   }
   /**
@@ -14872,7 +17758,7 @@ var HistoryModal = class extends import_obsidian13.Modal {
       return;
     }
     DomHelper.update(this.searchEl, { text: null, classes: { remove: "lct-rail-search-empty" } });
-    new import_obsidian13.SearchComponent(this.searchEl).setPlaceholder(this.plugin.t("modal.search-versions")).setValue(this.searchQuery).onChange((value) => {
+    new import_obsidian17.SearchComponent(this.searchEl).setPlaceholder(this.plugin.t("modal.search-versions")).setValue(this.searchQuery).onChange((value) => {
       this.searchQuery = value;
       this.renderVersions();
     });
@@ -14933,7 +17819,8 @@ var HistoryModal = class extends import_obsidian13.Modal {
         label: this.plugin.t("modal.version.original"),
         day: this.snapshot.getLastChangedDate(),
         meta: this.snapshot.getLastChangedDateTime(),
-        delta: ""
+        delta: "",
+        external: false
       }
     ] : matched.map((version) => {
       const description = this.describeVersion(version, versions);
@@ -14942,7 +17829,8 @@ var HistoryModal = class extends import_obsidian13.Modal {
         label: this.resolveVersionPrimaryLabel(version, versions),
         day: version.getDate(),
         meta: version.getDateTime(),
-        delta: this.formatVersionDelta(description)
+        delta: this.formatVersionDelta(description),
+        external: version.isExternal()
       };
     });
     const groups = [];
@@ -14958,7 +17846,7 @@ var HistoryModal = class extends import_obsidian13.Modal {
     groups.forEach((group) => {
       items.push({ tag: "div", classes: "lct-versions-day", text: group.label });
       group.entries.forEach((entry) => {
-        items.push(this.makeVersionItem(entry.id, entry.label, entry.meta, entry.delta));
+        items.push(this.makeVersionItem(entry));
       });
     });
     if (versions.length > 0 && matched.length === 0) {
@@ -14978,35 +17866,92 @@ var HistoryModal = class extends import_obsidian13.Modal {
         }
       ]
     });
+    this.paintExternalBadges(this.versionsEl);
+  }
+  /**
+   * Walks the rendered subtree of `container` and applies Obsidian's `setIcon`
+   * to every external-badge icon slot the DomHelper config emitted. The badge
+   * config carries the icon id as `data-icon` on the wrapper so this pass is a
+   * one-liner per badge with no per-row imperative DOM building (the rail is
+   * still declarative). Re-running it on every render keeps the icon in sync
+   * when the rail filters or re-orders rows.
+   *
+   * @param {HTMLElement} container - The subtree to scan for badge slots
+   */
+  paintExternalBadges(container) {
+    const badges = container.querySelectorAll(
+      ".lct-version-external-badge"
+    );
+    badges.forEach((badge) => {
+      const iconId = badge.getAttribute("data-icon");
+      const slot = badge.querySelector(".lct-version-external-badge-icon");
+      if (iconId && slot) {
+        (0, import_obsidian17.setIcon)(slot, iconId);
+      }
+    });
   }
   /**
    * Builds a single selectable version list entry config.
-   * The active entry carries a highlight class; clicking selects that base.
+   * The active entry carries a highlight class; clicking selects that base. A
+   * version captured from an external change (D13, T18) renders a small badge
+   * next to the primary label so the user can tell external states apart from
+   * editor edits without opening the diff. The badge text is an inline English
+   * literal here and is propagated to every catalog in T15 (D13 pattern).
    *
-   * @param {string} id - The base id (original sentinel or a version id)
-   * @param {string} label - The primary label to show (action or custom label)
-   * @param {string} meta - Inline date+time text, empty when none
-   * @param {string} delta - Inline line delta text, empty when not applicable
+   * @param {{id: string, label: string, meta: string, delta: string, external: boolean}} entry -
+   *   The rail entry to render
    * @return {DomElementConfig} A DomHelper element config for the entry
    */
-  makeVersionItem(id, label, meta, delta) {
-    const active = this.selectedBaseId === id;
-    const children = [{ tag: "span", classes: "lct-version-label", text: label }];
-    if (meta) {
-      children.push({ tag: "span", classes: "lct-version-meta", text: meta });
+  makeVersionItem(entry) {
+    const active = this.selectedBaseId === entry.id;
+    const labelChildren = [
+      { tag: "span", classes: "lct-version-label", text: entry.label }
+    ];
+    if (entry.external) {
+      labelChildren.push(this.makeExternalBadge());
     }
-    if (delta) {
-      children.push({ tag: "span", classes: "lct-version-delta", text: delta });
+    const children = [
+      { tag: "span", classes: "lct-version-label-row", children: labelChildren }
+    ];
+    if (entry.meta) {
+      children.push({ tag: "span", classes: "lct-version-meta", text: entry.meta });
+    }
+    if (entry.delta) {
+      children.push({ tag: "span", classes: "lct-version-delta", text: entry.delta });
     }
     return {
       tag: "div",
       classes: active ? ["lct-version-item", "is-active"] : ["lct-version-item"],
       events: {
         click: () => {
-          this.selectBase(id);
+          this.selectBase(entry.id);
         }
       },
       children
+    };
+  }
+  /**
+   * Builds the inline external-change badge config (D13, T20): a small icon
+   * paired with a short text label and an accessible name on the wrapper so
+   * screen readers announce the marker. The icon is rendered post-DOM by the
+   * caller because `DomHelper.create` does not invoke Obsidian's `setIcon`
+   * during the config tree; emitting the icon node here keeps the structural
+   * markup colocated with the badge while the icon glyph is attached when the
+   * caller mounts the entry. The text ships as an inline English literal and
+   * is propagated across every catalog in T15.
+   *
+   * @return {DomElementConfig} The badge element config
+   */
+  makeExternalBadge() {
+    const text = this.plugin.t("version.badge.external");
+    return {
+      tag: "span",
+      classes: "lct-version-external-badge",
+      attributes: { "aria-label": text, "title": text, "data-icon": "download-cloud" },
+      children: [
+        { tag: "span", classes: "lct-version-external-badge-icon" },
+        { tag: "span", classes: "lct-version-external-badge-text", text }
+      ]
     };
   }
   /**
@@ -15326,290 +18271,87 @@ var HistoryModal = class extends import_obsidian13.Modal {
         }
       }
     });
-    (0, import_obsidian13.setIcon)(button, "undo-2");
-  }
-  /**
-   * Generates a unified diff between the selected base and the current state.
-   * If they differ, use the diff library to create a patch.
-   * If they are identical, create a simple diff header with the file content.
-   *
-   * @return {string} A string containing the unified diff
-   */
-  getDiffLines() {
-    var _a, _b;
-    if (!((_b = (_a = this.snapshot) == null ? void 0 : _a.file) == null ? void 0 : _b.path)) {
-      return "";
-    }
-    const filePath = this.snapshot.file.path;
-    const base = this.getBaseContent();
-    const current = this.snapshot.getLastState();
-    if (!this.isBaseSameCurrent()) {
-      return createTwoFilesPatch(
-        filePath,
-        filePath,
-        base != null ? base : "",
-        current != null ? current : "",
-        "",
-        "",
-        {
-          context: Number.MAX_SAFE_INTEGER
-        }
-      );
-    }
-    return [
-      "===================================================================",
-      `--- ${filePath}	`,
-      `+++ ${filePath}	`,
-      `@@ -1,${base.length} +1,${current.length} @@`,
-      this.snapshot.getLastStateLines().map((content) => ` ${content}`).join("\n"),
-      "\\ No newline at end of file"
-    ].join("\n");
-  }
-  /**
-   * Generates a clean patch with context size 0 between the original and current state of the file.
-   * Shows only the changed lines without surrounding context.
-   *
-   * @return {string} A string containing the clean patch
-   */
-  getCleanPatch() {
-    var _a, _b;
-    if (!((_b = (_a = this.snapshot) == null ? void 0 : _a.file) == null ? void 0 : _b.path)) {
-      return "";
-    }
-    const filePath = this.snapshot.file.path;
-    const base = this.getBaseContent();
-    const current = this.snapshot.getLastState();
-    if (!this.isBaseSameCurrent()) {
-      return createTwoFilesPatch(
-        filePath,
-        filePath,
-        base != null ? base : "",
-        current != null ? current : "",
-        "",
-        "",
-        {
-          context: 0
-        }
-      );
-    }
-    return `--- ${filePath}	
-+++ ${filePath}	
-`;
+    (0, import_obsidian17.setIcon)(button, "undo-2");
   }
   /**
    * Shows the clean patch in a readable format.
-   * Displays the patch with context size 0 in a pre-formatted text element.
+   * Delegates the DOM rendering to {@link DiffRenderHelper}; the per-row revert
+   * affordances are skipped here because patch mode has no per-row structure to
+   * anchor them to, and the navigation buttons are refreshed at the end.
    */
   showCleanPatch() {
-    var _a;
+    var _a, _b, _c;
     this.currentDisplayMode = "patch";
     this.updateButtonActiveStates();
     this.cleanupScrollSync();
     this.updateDiffNotice();
     this.updateColumnsHeader();
-    const patch = this.getCleanPatch();
-    const handlerClick = () => {
-      navigator.clipboard.writeText(patch).then(() => {
-        new import_obsidian13.Notice(this.plugin.t("notice.copied"));
+    if (this.diffContainerEl) {
+      DiffRenderHelper.render({
+        baseLines: this.getBaseContent().split(this.snapshot.lineBreak),
+        currentLines: this.snapshot.getLastStateLines(),
+        lineBreak: this.snapshot.lineBreak,
+        mode: "patch",
+        container: this.diffContainerEl,
+        filePath: (_c = (_b = (_a = this.snapshot) == null ? void 0 : _a.file) == null ? void 0 : _b.path) != null ? _c : "",
+        plugin: this.plugin
       });
-    };
-    DomHelper.update(
-      this.diffContainerEl,
-      {
-        text: null,
-        children: [
-          {
-            tag: "div",
-            classes: "lct-patch-container",
-            children: [
-              {
-                tag: "pre",
-                classes: "lct-patch-text",
-                text: patch
-              },
-              {
-                tag: "button",
-                classes: ["lct-patch-copy-button", "mod-outline"],
-                events: {
-                  click: handlerClick
-                }
-              }
-            ]
-          }
-        ]
-      }
-    );
-    const copyButton = (_a = this.diffContainerEl) == null ? void 0 : _a.querySelector(".lct-patch-copy-button");
-    if (copyButton) {
-      (0, import_obsidian13.setIcon)(copyButton, "copy");
-      copyButton.setAttribute("aria-label", this.plugin.t("modal.copy"));
-      copyButton.setAttribute("title", this.plugin.t("modal.copy"));
     }
     this.updateNavButtonsState();
   }
   /**
    * Renders an inline diff between the selected base and the current state,
    * highlighting changed words inside modified lines instead of marking the
-   * whole line. Context lines are shown plain, pure additions and removals are
-   * shown whole in their colour, and a modified line is shown as its old text
-   * (with removed words highlighted) above its new text (with added words
-   * highlighted). The whole view is built with safe DOM nodes (no raw HTML);
-   * each word span carries a class the stylesheet colours.
+   * whole line. Delegates the DOM rendering to {@link DiffRenderHelper}; the
+   * per-hunk revert affordances and the nav button refresh stay here because
+   * they are file-mode specific (they need a snapshot to write back to).
    */
   renderInlineDiff() {
+    var _a, _b, _c;
     this.currentDisplayMode = "inline";
     this.updateButtonActiveStates();
     this.cleanupScrollSync();
     this.updateDiffNotice();
     this.updateColumnsHeader();
-    const diffLines2 = WordDiffHelper.lines(this.getBaseContent(), this.snapshot.getLastState());
-    const rows = [];
-    diffLines2.forEach((line) => {
-      var _a, _b, _c, _d, _e;
-      if (line.type === "context") {
-        rows.push(this.makeInlineRow("context", " ", [{ tag: "span", text: (_a = line.oldText) != null ? _a : "" }]));
-        return;
-      }
-      if (line.type === "added") {
-        rows.push(this.makeInlineRow("added", "+", [{ tag: "span", text: (_b = line.newText) != null ? _b : "" }]));
-        return;
-      }
-      if (line.type === "removed") {
-        rows.push(this.makeInlineRow("removed", "-", [{ tag: "span", text: (_c = line.oldText) != null ? _c : "" }]));
-        return;
-      }
-      rows.push(this.makeInlineRow("modified", "~", this.makeInlineWordSpans((_d = line.oldText) != null ? _d : "", (_e = line.newText) != null ? _e : "")));
-    });
-    DomHelper.update(this.diffContainerEl, {
-      text: null,
-      children: [{ tag: "div", classes: "lct-inline-container", children: rows }]
-    });
+    if (this.diffContainerEl) {
+      DiffRenderHelper.render({
+        baseLines: this.getBaseContent().split(this.snapshot.lineBreak),
+        currentLines: this.snapshot.getLastStateLines(),
+        lineBreak: this.snapshot.lineBreak,
+        mode: "inline",
+        container: this.diffContainerEl,
+        filePath: (_c = (_b = (_a = this.snapshot) == null ? void 0 : _a.file) == null ? void 0 : _b.path) != null ? _c : "",
+        plugin: this.plugin
+      });
+    }
     this.attachInlineReverts();
   }
   /**
-   * Builds one inline diff row: a sign gutter (a space, plus, or minus) and the
-   * line content made of the provided spans.
-   *
-   * @param {string} kind - The row kind, used as a modifier class
-   * @param {string} sign - The leading sign character for the row
-   * @param {DomElementConfig[]} content - The content spans for the line
-   * @return {DomElementConfig} The row element config
-   */
-  makeInlineRow(kind, sign, content) {
-    return {
-      tag: "div",
-      classes: ["lct-inline-row", `lct-inline-${kind}`],
-      children: [
-        { tag: "span", classes: "lct-inline-sign", text: sign },
-        { tag: "span", classes: "lct-inline-content", children: content }
-      ]
-    };
-  }
-  /**
-   * Computes the word-level spans for a modified line as one flowing sequence:
-   * unchanged words plain, removed words marked for deletion, added words marked
-   * for insertion, all kept in their original order. This is what lets the
-   * inline mode show a wording change as a single line instead of a before/after
-   * pair.
-   *
-   * @param {string} oldText - The old (base) line text
-   * @param {string} newText - The new (current) line text
-   * @return {DomElementConfig[]} The ordered span configs for the merged line
-   */
-  makeInlineWordSpans(oldText, newText) {
-    return WordDiffHelper.segments(oldText, newText).map((segment3) => {
-      const classes = segment3.added ? "lct-word-added" : segment3.removed ? "lct-word-removed" : void 0;
-      return classes ? { tag: "span", classes, text: segment3.value } : { tag: "span", text: segment3.value };
-    });
-  }
-  /**
-   * Renders the diff view in the specified container.
-   * Converts the unified diff to HTML using the diff2html library.
-   * Supports two formats: 'line-by-line' and 'side-by-side'.
-   * Use custom templates to control the HTML structure and styling.
+   * Renders the diff view in the specified diff2html format (line-by-line or
+   * side-by-side). Delegates the DOM rendering to {@link DiffRenderHelper}; the
+   * per-hunk revert affordances and the side-by-side scroll sync stay here
+   * because they are file-mode specific.
    *
    * @param {DiffOutputFormatType} format - The format of the diff view (defaults to 'side-by-side')
    */
   renderDiff(format = "side-by-side" /* side */) {
+    var _a, _b, _c;
     this.currentDisplayMode = format;
     this.updateButtonActiveStates();
     this.cleanupScrollSync();
     this.updateDiffNotice();
     this.updateColumnsHeader();
-    const diffHtml = html(this.getDiffLines(), {
-      drawFileList: false,
-      matching: "lines",
-      outputFormat: format,
-      renderNothingWhenEmpty: true,
-      rawTemplates: {
-        "line-by-line-file-diff": `
-           {{{diffs}}}
-        `,
-        "side-by-side-file-diff": `
-          <div class="d2h-side-column">
-            <div class="d2h-side-column-wrapper">
-                <div class="d2h-side-column-container">
-                  {{{diffs.left}}}
-              </div>
-            </div>
-          </div>
-          <div class="d2h-side-column">
-            <div class="d2h-side-column-wrapper">
-                <div class="d2h-side-column-container">
-                  {{{diffs.right}}}
-              </div>
-            </div>
-          </div>
-        `,
-        "generic-wrapper": `
-          <div class="d2h-wrapper d2h-${format === "line-by-line" /* line */ ? "line" : "side"}">
-            <div class="d2h-container">
-                {{{content}}}
-            </div>
-          </div>
-        `,
-        "generic-block-header": `
-          <div class="d2h-code-row-wrapper d2h-code-header-wrapper {{CSSLineClass.INFO}}">
-              <div class="d2h-code-linenumber {{CSSLineClass.INFO}}"></div>
-              <div class="d2h-code-linecontent {{CSSLineClass.INFO}}">
-                  <div class="d2h-code-line d2h-code-row">
-                    <span class="d2h-code-line-prefix">&nbsp;</span>
-                    <span class="d2h-code-line-ctn">
-                      {{#blockHeader}}{{{blockHeader}}}{{/blockHeader}}{{^blockHeader}}&nbsp;{{/blockHeader}}
-                    </span>
-                  </div>
-              </div>
-          </div>
-        `,
-        "generic-line": `
-          <div class="d2h-code-row-wrapper {{type}}">
-            <div class="d2h-code-linenumber {{type}}">
-              {{{lineNumber}}}
-            </div>
-            <div class="d2h-code-linecontent {{type}}">
-                <div class="d2h-code-line d2h-code-row">
-                  {{#prefix}}
-                      <span class="d2h-code-line-prefix">{{{prefix}}}</span>
-                  {{/prefix}}
-                  {{^prefix}}
-                      <span class="d2h-code-line-prefix">&nbsp;</span>
-                  {{/prefix}}
-                  {{#content}}
-                      <span class="d2h-code-line-ctn">{{{content}}}</span>
-                  {{/content}}
-                  {{^content}}
-                      <span class="d2h-code-line-ctn"><br></span>
-                  {{/content}}
-                </div>
-            </div>
-        </div>
-        `
-      }
-    });
-    DomHelper.update(
-      this.diffContainerEl,
-      { html: diffHtml }
-    );
+    if (this.diffContainerEl) {
+      DiffRenderHelper.render({
+        baseLines: this.getBaseContent().split(this.snapshot.lineBreak),
+        currentLines: this.snapshot.getLastStateLines(),
+        lineBreak: this.snapshot.lineBreak,
+        mode: format,
+        container: this.diffContainerEl,
+        filePath: (_c = (_b = (_a = this.snapshot) == null ? void 0 : _a.file) == null ? void 0 : _b.path) != null ? _c : "",
+        plugin: this.plugin
+      });
+    }
     this.attachInlineReverts();
     if (format === "side-by-side") {
       setTimeout(() => this.setupScrollSynchronization(), 0);
@@ -15679,8 +18421,8 @@ __decorateClass([
 ], HistoryModal.prototype, "versionActionsService", 2);
 
 // src/modals/prompt.modal.ts
-var import_obsidian14 = require("obsidian");
-var PromptModal = class extends import_obsidian14.Modal {
+var import_obsidian18 = require("obsidian");
+var PromptModal = class extends import_obsidian18.Modal {
   /**
    * Creates a new instance of PromptModal.
    *
@@ -15813,6 +18555,7 @@ var PromptModal = class extends import_obsidian14.Modal {
 };
 
 // src/services/modals.service.ts
+var import_obsidian19 = require("obsidian");
 var ModalsService = class {
   /**
    * Creates a new instance of ModalsService.
@@ -15902,6 +18645,60 @@ var ModalsService = class {
     );
     new HistoryModal(this.plugin.app, this.plugin, snapshot, { selectionFilterIds: matched }).open();
     return true;
+  }
+  /**
+   * Opens the folder history modal for the given folder (D5/T12). Filters the
+   * service's snapshot map to the folder's prefix (live snapshots and
+   * tombstones alike: a deleted file still anchors at its last-known path),
+   * and opens {@link FolderHistoryModal} against that subtree. When no
+   * snapshot lives under the prefix the modal would have nothing to render,
+   * so the entry surfaces an inline-English "no folder history" notice and
+   * returns false, mirroring the `diff()` contract for files without history.
+   *
+   * The notice string is intentionally an inline English literal so the i18n
+   * parity guard stays green; T15 propagates it across the 44 bundled catalogs
+   * together with every other epic-05 string.
+   *
+   * @param {TFolder} folder - The folder whose history should be shown
+   * @return {boolean} True when the modal was opened, false on an empty subtree
+   */
+  openFolderHistory(folder) {
+    if (!folder) {
+      new import_obsidian19.Notice(this.plugin.t("notice.no-folder-history"));
+      return false;
+    }
+    const rootPath = folder.path;
+    const snapshots = this.snapshotsService.getList().filter((snapshot) => this.isUnderFolder(snapshot, rootPath));
+    if (snapshots.length === 0) {
+      new import_obsidian19.Notice(this.plugin.t("notice.no-folder-history"));
+      return false;
+    }
+    new FolderHistoryModal(this.plugin.app, this.plugin, rootPath, snapshots).open();
+    return true;
+  }
+  /**
+   * Whether a snapshot's path lies under the given folder prefix. Matches the
+   * same prefix rule {@link FolderTimelineHelper} uses (exact equality or a
+   * `${root}/` prefix) so the snapshot lookup in the modal and the timeline
+   * synthesis agree on what "under this folder" means. The vault-root case
+   * (empty `rootPath`) matches every snapshot, which is consistent but only
+   * reachable from a future caller that explicitly asks for whole-vault
+   * history.
+   *
+   * @param {FileSnapshot} snapshot - The snapshot under inspection
+   * @param {string} rootPath - The folder's vault-relative path
+   * @return {boolean} True when the snapshot lives under the folder
+   */
+  isUnderFolder(snapshot, rootPath) {
+    var _a, _b;
+    const path = (_b = (_a = snapshot == null ? void 0 : snapshot.file) == null ? void 0 : _a.path) != null ? _b : "";
+    if (!path) {
+      return false;
+    }
+    if (!rootPath) {
+      return true;
+    }
+    return path === rootPath || path.startsWith(`${rootPath}/`);
   }
   /**
    * Shows a confirmation dialog with the specified configuration.
@@ -16111,8 +18908,11 @@ var PersistenceService = class {
   }
   /**
    * Applies the size and age caps to a list of serialized snapshots.
-   * Drops entries older than the age cap, then keeps only the most recently
-   * touched entries up to the size cap. A cap of 0 disables that dimension.
+   * Runs two independent passes (D4): live snapshots are bounded by
+   * `retention.maxEntries` / `retention.maxAgeDays` and tombstones
+   * (entries with `deletedTimestamp` set) by
+   * `retention.maxDeletedEntries` / `retention.maxDeletedAgeDays`.
+   * A cap of 0 disables that dimension for its bucket, matching the live caps.
    *
    * @param {SerializedFileSnapshot[]} snapshots - The raw persisted snapshots
    * @return {SerializedFileSnapshot[]} The retained subset, newest first
@@ -16121,13 +18921,57 @@ var PersistenceService = class {
     if (!Array.isArray(snapshots)) {
       return [];
     }
-    const maxEntries = this.settingsService.value("retention.maxEntries");
-    const maxAgeDays = this.settingsService.value("retention.maxAgeDays");
-    const oldest = maxAgeDays > 0 ? Date.now() - maxAgeDays * MS_PER_DAY : 0;
-    let kept = snapshots.filter(
-      (item) => !!item && (oldest === 0 || item.timestamp >= oldest)
+    const live = [];
+    const tombstones = [];
+    for (const item of snapshots) {
+      if (!item) {
+        continue;
+      }
+      if (typeof item.deletedTimestamp === "number") {
+        tombstones.push(item);
+      } else {
+        live.push(item);
+      }
+    }
+    const keptLive = this.applyBucketRetention(
+      live,
+      this.settingsService.value("retention.maxEntries"),
+      this.settingsService.value("retention.maxAgeDays"),
+      (item) => item.timestamp
     );
-    kept.sort((a, b) => b.timestamp - a.timestamp);
+    const keptTombstones = this.applyBucketRetention(
+      tombstones,
+      this.settingsService.value("retention.maxDeletedEntries"),
+      this.settingsService.value("retention.maxDeletedAgeDays"),
+      // Age a tombstone by its deletion time so the policy answers "how long do
+      // we keep deleted-file recoverability" rather than "how stale was the file
+      // when it was deleted".
+      (item) => {
+        var _a;
+        return (_a = item.deletedTimestamp) != null ? _a : item.timestamp;
+      }
+    );
+    return [...keptLive, ...keptTombstones];
+  }
+  /**
+   * Runs a single retention pass on a bucket of serialized snapshots, dropping
+   * entries older than `maxAgeDays` (when > 0) and then capping by
+   * `maxEntries` (when > 0). The bucket's "age" is read through the supplied
+   * accessor so live snapshots can age by `timestamp` and tombstones by
+   * `deletedTimestamp`.
+   *
+   * @param {SerializedFileSnapshot[]} bucket - The bucket to prune (not mutated)
+   * @param {number} maxEntries - Size cap for this bucket (0 disables)
+   * @param {number} maxAgeDays - Age cap in days for this bucket (0 disables)
+   * @param {(item: SerializedFileSnapshot) => number} ageOf - Reads the age timestamp from an item
+   * @return {SerializedFileSnapshot[]} The retained subset, newest first
+   */
+  applyBucketRetention(bucket, maxEntries, maxAgeDays, ageOf) {
+    const oldest = maxAgeDays > 0 ? Date.now() - maxAgeDays * MS_PER_DAY : 0;
+    let kept = bucket.filter(
+      (item) => oldest === 0 || ageOf(item) >= oldest
+    );
+    kept.sort((a, b) => ageOf(b) - ageOf(a));
     if (maxEntries > 0 && kept.length > maxEntries) {
       kept = kept.slice(0, maxEntries);
     }
@@ -16249,8 +19093,8 @@ __decorateClass([
 ], PersistenceService.prototype, "onSettingsUpdate", 1);
 
 // src/settings/main.setting.ts
-var import_obsidian15 = require("obsidian");
-var MainSetting = class extends import_obsidian15.PluginSettingTab {
+var import_obsidian20 = require("obsidian");
+var MainSetting = class extends import_obsidian20.PluginSettingTab {
   /**
    * Renders the settings UI.
    * Creates and configures all settings elements in the settings tab.
@@ -16267,12 +19111,12 @@ var MainSetting = class extends import_obsidian15.PluginSettingTab {
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.type.name")).setDesc(this.plugin.t("setting.type.desc")).addDropdown(
+    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.type.name")).setDesc(this.plugin.t("setting.type.desc")).addDropdown(
       (dropdown) => dropdown.addOption("line" /* line */, this.plugin.t("setting.type.option.line")).addOption("dot" /* dot */, this.plugin.t("setting.type.option.dot")).setValue(this.settingsService.value("type")).onChange((value) => {
         this.settingsService.update("type", value);
       })
     );
-    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.allowed-extensions.name")).setDesc(this.plugin.t("setting.allowed-extensions.desc")).addText(
+    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.allowed-extensions.name")).setDesc(this.plugin.t("setting.allowed-extensions.desc")).addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.allowedExtensions).setValue(this.settingsService.value("allowedExtensions")).onChange((value) => {
         this.settingsService.update(
           "allowedExtensions",
@@ -16280,45 +19124,57 @@ var MainSetting = class extends import_obsidian15.PluginSettingTab {
         );
       })
     );
-    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.exclude-paths.name")).setDesc(this.plugin.t("setting.exclude-paths.desc")).addText(
+    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.exclude-paths.name")).setDesc(this.plugin.t("setting.exclude-paths.desc")).addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.excludePaths).setValue(this.settingsService.value("excludePaths")).onChange((value) => {
         this.settingsService.update("excludePaths", value);
       })
     );
-    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.keep.name")).setDesc(this.plugin.t("setting.keep.desc")).addDropdown(
+    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.keep.name")).setDesc(this.plugin.t("setting.keep.desc")).addDropdown(
       (dropdown) => dropdown.addOption("app" /* app */, this.plugin.t("setting.keep.option.app")).addOption("file" /* file */, this.plugin.t("setting.keep.option.file")).setValue(this.settingsService.value("keep")).onChange((value) => {
         this.settingsService.update("keep", value);
       })
     );
-    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.ignore-new-files.name")).setDesc(this.plugin.t("setting.ignore-new-files.desc")).addToggle(
+    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.ignore-new-files.name")).setDesc(this.plugin.t("setting.ignore-new-files.desc")).addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("ignoreNewFiles")).onChange((value) => {
         this.settingsService.update("ignoreNewFiles", value);
       })
     );
-    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.persist.name")).setDesc(this.plugin.t("setting.persist.desc")).addToggle(
+    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.persist.name")).setDesc(this.plugin.t("setting.persist.desc")).addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("persist")).onChange((value) => {
         this.settingsService.update("persist", value);
       })
     );
-    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.max-entries.name")).setDesc(this.plugin.t("setting.max-entries.desc")).addText(
+    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.max-entries.name")).setDesc(this.plugin.t("setting.max-entries.desc")).addText(
       (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.retention.maxEntries)).setValue(String(this.settingsService.value("retention.maxEntries"))).onChange((value) => {
         const count = this.toCount(value, DEFAULT_SETTINGS.retention.maxEntries);
         this.settingsService.update("retention.maxEntries", count);
       })
     );
-    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.max-age-days.name")).setDesc(this.plugin.t("setting.max-age-days.desc")).addText(
+    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.max-age-days.name")).setDesc(this.plugin.t("setting.max-age-days.desc")).addText(
       (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.retention.maxAgeDays)).setValue(String(this.settingsService.value("retention.maxAgeDays"))).onChange((value) => {
         const days = this.toCount(value, DEFAULT_SETTINGS.retention.maxAgeDays);
         this.settingsService.update("retention.maxAgeDays", days);
       })
     );
-    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.snapshots-heading")).setHeading();
-    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.snapshots-enabled.name")).setDesc(this.plugin.t("setting.snapshots-enabled.desc")).addToggle(
+    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.max-deleted-entries.name")).setDesc(this.plugin.t("setting.max-deleted-entries.desc")).addText(
+      (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.retention.maxDeletedEntries)).setValue(String(this.settingsService.value("retention.maxDeletedEntries"))).onChange((value) => {
+        const count = this.toCount(value, DEFAULT_SETTINGS.retention.maxDeletedEntries);
+        this.settingsService.update("retention.maxDeletedEntries", count);
+      })
+    );
+    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.max-deleted-age-days.name")).setDesc(this.plugin.t("setting.max-deleted-age-days.desc")).addText(
+      (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.retention.maxDeletedAgeDays)).setValue(String(this.settingsService.value("retention.maxDeletedAgeDays"))).onChange((value) => {
+        const days = this.toCount(value, DEFAULT_SETTINGS.retention.maxDeletedAgeDays);
+        this.settingsService.update("retention.maxDeletedAgeDays", days);
+      })
+    );
+    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.snapshots-heading")).setHeading();
+    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.snapshots-enabled.name")).setDesc(this.plugin.t("setting.snapshots-enabled.desc")).addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("snapshots.enabled")).onChange((value) => {
         this.settingsService.update("snapshots.enabled", value);
       })
     );
-    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.snapshots-edit-threshold.name")).setDesc(this.plugin.t("setting.snapshots-edit-threshold.desc")).addText(
+    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.snapshots-edit-threshold.name")).setDesc(this.plugin.t("setting.snapshots-edit-threshold.desc")).addText(
       (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.snapshots.editThreshold)).setValue(String(this.settingsService.value("snapshots.editThreshold"))).onChange((value) => {
         this.settingsService.update(
           "snapshots.editThreshold",
@@ -16326,13 +19182,13 @@ var MainSetting = class extends import_obsidian15.PluginSettingTab {
         );
       })
     );
-    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.snapshots-interval.name")).setDesc(this.plugin.t("setting.snapshots-interval.desc")).addText(
+    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.snapshots-interval.name")).setDesc(this.plugin.t("setting.snapshots-interval.desc")).addText(
       (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.snapshots.intervalMs / 6e4)).setValue(String(this.settingsService.value("snapshots.intervalMs") / 6e4)).onChange((value) => {
         const minutes = this.toCount(value, DEFAULT_SETTINGS.snapshots.intervalMs / 6e4);
         this.settingsService.update("snapshots.intervalMs", minutes * 6e4);
       })
     );
-    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.max-version-age-days.name")).setDesc(this.plugin.t("setting.max-version-age-days.desc")).addText(
+    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.max-version-age-days.name")).setDesc(this.plugin.t("setting.max-version-age-days.desc")).addText(
       (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.snapshots.maxVersionAgeDays)).setValue(String(this.settingsService.value("snapshots.maxVersionAgeDays"))).onChange((value) => {
         this.settingsService.update(
           "snapshots.maxVersionAgeDays",
@@ -16340,7 +19196,7 @@ var MainSetting = class extends import_obsidian15.PluginSettingTab {
         );
       })
     );
-    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.max-versions.name")).setDesc(this.plugin.t("setting.max-versions.desc")).addText(
+    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.max-versions.name")).setDesc(this.plugin.t("setting.max-versions.desc")).addText(
       (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.snapshots.maxVersions)).setValue(String(this.settingsService.value("snapshots.maxVersions"))).onChange((value) => {
         this.settingsService.update(
           "snapshots.maxVersions",
@@ -16348,35 +19204,35 @@ var MainSetting = class extends import_obsidian15.PluginSettingTab {
         );
       })
     );
-    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.show-heading")).setHeading();
-    new import_obsidian15.Setting(containerEl).setDesc(this.plugin.t("setting.show.desc"));
-    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.show.changed")).addToggle(
+    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.show-heading")).setHeading();
+    new import_obsidian20.Setting(containerEl).setDesc(this.plugin.t("setting.show.desc"));
+    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.show.changed")).addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("show.changed")).onChange((value) => {
         this.settingsService.update("show.changed", value);
       })
     );
-    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.show.restored")).addToggle(
+    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.show.restored")).addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("show.restored")).onChange((value) => {
         this.settingsService.update("show.restored", value);
       })
     );
-    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.show.added")).addToggle(
+    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.show.added")).addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("show.added")).onChange((value) => {
         this.settingsService.update("show.added", value);
       })
     );
-    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.show.removed")).addToggle(
+    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.show.removed")).addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("show.removed")).onChange((value) => {
         this.settingsService.update("show.removed", value);
       })
     );
-    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.line-heading")).setHeading();
-    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.line-width.name")).setDesc(this.plugin.t("setting.line-width.desc")).addSlider(
+    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.line-heading")).setHeading();
+    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.line-width.name")).setDesc(this.plugin.t("setting.line-width.desc")).addSlider(
       (slider) => slider.setLimits(1, 5, 1).setValue(this.settingsService.value("line.width")).setDynamicTooltip().onChange((value) => {
         this.settingsService.update("line.width", value);
       })
     );
-    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.gutter-heading.name")).setDesc((() => {
+    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.gutter-heading.name")).setDesc((() => {
       return DomHelper.createFragment([
         {
           tag: "div",
@@ -16401,22 +19257,22 @@ var MainSetting = class extends import_obsidian15.PluginSettingTab {
         }
       ]);
     })()).setHeading();
-    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.gutter-changed.name")).addText(
+    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.gutter-changed.name")).addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.gutter.changed).setValue(this.settingsService.value("gutter.changed")).onChange((value) => {
         this.settingsService.update("gutter.changed", value || DEFAULT_SETTINGS.gutter.changed);
       })
     );
-    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.gutter-added.name")).addText(
+    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.gutter-added.name")).addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.gutter.added).setValue(this.settingsService.value("gutter.added")).onChange((value) => {
         this.settingsService.update("gutter.added", value || DEFAULT_SETTINGS.gutter.added);
       })
     );
-    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.gutter-restored.name")).addText(
+    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.gutter-restored.name")).addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.gutter.restored).setValue(this.settingsService.value("gutter.restored")).onChange((value) => {
         this.settingsService.update("gutter.restored", value || DEFAULT_SETTINGS.gutter.restored);
       })
     );
-    new import_obsidian15.Setting(containerEl).setName(this.plugin.t("setting.gutter-removed.name")).addText(
+    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.gutter-removed.name")).addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.gutter.removed).setValue(this.settingsService.value("gutter.removed")).onChange((value) => {
         this.settingsService.update("gutter.removed", value || DEFAULT_SETTINGS.gutter.removed);
       })
@@ -17324,8 +20180,9 @@ var FileVersion = class _FileVersion {
    * @param {string[]} lines - The file content at capture time, split into lines
    * @param {number} timestamp - Optional capture timestamp (defaults to now)
    * @param {string} label - Optional user-supplied tag pinning this version
+   * @param {boolean} external - Optional flag marking this version as an external change
    */
-  constructor(lines, timestamp, label) {
+  constructor(lines, timestamp, label, external) {
     /**
      * Unique identifier for this version, generated on creation. Used as a stable
      * key for the version list in the UI and to address a picked diff base.
@@ -17346,6 +20203,9 @@ var FileVersion = class _FileVersion {
     if (typeof label === "string" && label.length > 0) {
       this.label = label;
     }
+    if (external === true) {
+      this.external = true;
+    }
   }
   /**
    * Whether this version carries a user-supplied label and is therefore pinned
@@ -17355,6 +20215,16 @@ var FileVersion = class _FileVersion {
    */
   isLabeled() {
     return typeof this.label === "string" && this.label.length > 0;
+  }
+  /**
+   * Whether this version was captured from an external-change event (git pull,
+   * sync, an external editor). Independent from `isLabeled()`: a version can be
+   * both labeled and external.
+   *
+   * @return {boolean} True when this version is flagged as external
+   */
+  isExternal() {
+    return this.external === true;
   }
   /**
    * Gets the captured content as a string joined by the given line break.
@@ -17416,6 +20286,9 @@ var FileVersion = class _FileVersion {
     if (this.isLabeled()) {
       data.label = this.label;
     }
+    if (this.isExternal()) {
+      data.external = true;
+    }
     return data;
   }
   /**
@@ -17428,7 +20301,8 @@ var FileVersion = class _FileVersion {
     return new _FileVersion(
       Array.isArray(data == null ? void 0 : data.lines) ? data.lines : [],
       data == null ? void 0 : data.timestamp,
-      typeof (data == null ? void 0 : data.label) === "string" ? data.label : void 0
+      typeof (data == null ? void 0 : data.label) === "string" ? data.label : void 0,
+      (data == null ? void 0 : data.external) === true
     );
   }
 };
@@ -17555,7 +20429,7 @@ var FileSnapshot = class _FileSnapshot {
    */
   toJSON() {
     var _a, _b;
-    return {
+    const payload = {
       path: (_b = (_a = this.file) == null ? void 0 : _a.path) != null ? _b : "",
       lineBreak: this.lineBreak,
       timestamp: this.timestamp,
@@ -17564,6 +20438,13 @@ var FileSnapshot = class _FileSnapshot {
       tracker: this.tracker.map((tracker) => tracker.toJSON()),
       versions: this.versions.map((version) => version.toJSON())
     };
+    if (isNumber_default(this.deletedTimestamp)) {
+      payload.deletedTimestamp = this.deletedTimestamp;
+    }
+    if (isNumber_default(this.movedIntoAt)) {
+      payload.movedIntoAt = this.movedIntoAt;
+    }
+    return payload;
   }
   /**
    * Rebuilds a snapshot from its serialized form.
@@ -17585,10 +20466,34 @@ var FileSnapshot = class _FileSnapshot {
     snapshot.timestamp = data.timestamp;
     snapshot.tracker = data.tracker.map((line) => TrackerLine.fromJSON(line));
     snapshot.versions = Array.isArray(data.versions) ? data.versions.map((version) => FileVersion.fromJSON(version)) : [];
+    if (isNumber_default(data.deletedTimestamp)) {
+      snapshot.deletedTimestamp = data.deletedTimestamp;
+    }
+    if (isNumber_default(data.movedIntoAt)) {
+      snapshot.movedIntoAt = data.movedIntoAt;
+    }
     snapshot.invalidateCurrentIndex();
     snapshot.updateState(data.state);
     snapshot.updateChanges();
     return snapshot;
+  }
+  /**
+   * Whether this snapshot is a tombstone for a deleted file (D1). True when
+   * `deletedTimestamp` is set; false for a live snapshot.
+   *
+   * @return {boolean} True when the snapshot represents a deleted file
+   */
+  isTombstone() {
+    return isNumber_default(this.deletedTimestamp);
+  }
+  /**
+   * Whether this snapshot was re-keyed to a new path by a cross-directory move
+   * (D2). True when `movedIntoAt` is set; false otherwise.
+   *
+   * @return {boolean} True when the snapshot carries a move-in marker
+   */
+  isMovedIn() {
+    return isNumber_default(this.movedIntoAt);
   }
   /**
    * Checks if the file content has changed since the last update.
@@ -18337,7 +21242,7 @@ var FileSnapshot = class _FileSnapshot {
 };
 
 // src/services/snapshots.service.ts
-var import_obsidian16 = require("obsidian");
+var import_obsidian21 = require("obsidian");
 var SnapshotsService = class {
   /**
    * Creates a new instance of SnapshotsService.
@@ -18432,6 +21337,37 @@ var SnapshotsService = class {
     this.fileSnapshots.delete(file.path);
   }
   /**
+   * Marks the snapshot for the given file as a tombstone (D1) instead of
+   * dropping it. The entry stays in the map under its current path so any
+   * folder view at that prefix can still surface it, and its `state`,
+   * `historyLines`, and `versions` are preserved so the file can be
+   * reconstructed from history. The session-only marker baseline (`lines`)
+   * and the live `tracker` are reset to empty arrays because they only
+   * carry meaning against a live editor view, and the file is gone.
+   *
+   * No-op when the file is missing or when no snapshot exists at the path
+   * (there is nothing to remember). Calling on an already-tombstoned entry
+   * is also a no-op: the existing `deletedTimestamp` is preserved so a
+   * later replay of the same delete signal cannot rewrite the original
+   * tombstone moment.
+   *
+   * @param {TFile} file - The file that was deleted in the vault
+   */
+  markDeleted(file) {
+    if (!file) {
+      return;
+    }
+    const snapshot = this.fileSnapshots.get(file.path);
+    if (!snapshot || snapshot.isTombstone()) {
+      return;
+    }
+    snapshot.deletedTimestamp = Date.now();
+    snapshot.lines = [];
+    snapshot.tracker = [];
+    snapshot.changes.clear();
+    this.forceUpdate();
+  }
+  /**
    * Re-keys a snapshot after its file was renamed or moved.
    * Moves the snapshot from the old path to the file's current path and updates
    * the stored file reference, preserving the tracked history across the rename.
@@ -18452,6 +21388,59 @@ var SnapshotsService = class {
     this.fileSnapshots.set(file.path, snapshot);
   }
   /**
+   * Handles a cross-directory move (D2): leaves a tombstone at `oldPath` and
+   * re-keys the live snapshot to the file's new path while stamping
+   * `movedIntoAt` with the call timestamp. The live snapshot's history baseline,
+   * version timeline, and current state travel with it so the file's captured
+   * history is continuous through the move; the tombstone left behind carries
+   * a full copy of those same fields so a folder view at the source prefix can
+   * still surface the file as deleted with its history intact.
+   *
+   * This method is the move-only entry point: it asserts that `oldPath` and the
+   * file's new path belong to different directories (per D3, an in-place rename
+   * stays a pure re-key through `rename`). Calling it without a directory
+   * change throws so a wiring bug surfaces immediately rather than littering a
+   * folder with phantom tombstones.
+   *
+   * No-op when `oldPath`, `file`, or the existing snapshot is missing: there is
+   * nothing to remember, and the move signal can be safely ignored.
+   *
+   * @param {string} oldPath - The path the snapshot was previously keyed by
+   * @param {TFile} file - The file in its moved state (holding the new path)
+   */
+  markMoved(oldPath, file) {
+    if (!oldPath || !file || oldPath === file.path) {
+      return;
+    }
+    if (PathHelper.dirname(oldPath) === PathHelper.dirname(file.path)) {
+      throw new Error(
+        `SnapshotsService.markMoved called without a directory change: ${oldPath} -> ${file.path}`
+      );
+    }
+    const snapshot = this.fileSnapshots.get(oldPath);
+    if (!snapshot) {
+      return;
+    }
+    const now = Date.now();
+    const tombstone = new FileSnapshot("", snapshot.lineBreak);
+    tombstone.file = null;
+    tombstone.lines = [];
+    tombstone.tracker = [];
+    tombstone.changes.clear();
+    tombstone.historyLines = snapshot.getHistoryOriginalStateLines();
+    tombstone.updateState(snapshot.getLastStateLines());
+    tombstone.versions = snapshot.versions.map(
+      (version) => FileVersion.fromJSON(version.toJSON())
+    );
+    tombstone.timestamp = snapshot.timestamp;
+    tombstone.deletedTimestamp = now;
+    snapshot.file = file;
+    snapshot.movedIntoAt = now;
+    this.fileSnapshots.delete(oldPath);
+    this.fileSnapshots.set(file.path, snapshot);
+    this.fileSnapshots.set(oldPath, tombstone);
+  }
+  /**
    * Clears all snapshots from the service.
    * Removes all stored file snapshots.
    */
@@ -18460,22 +21449,35 @@ var SnapshotsService = class {
   }
   /**
    * Serializes all tracked snapshots into a plain, persistable structure.
-   * Includes snapshots that carry actual history (a tracker with changes) or a
-   * non-empty intermediate-version timeline, and that have a known file path,
-   * so pristine files do not bloat the store but a timeline is never lost just
-   * because the current state happens to match the original.
+   * Includes live snapshots that carry actual history (a tracker with changes
+   * or a non-empty intermediate-version timeline) so pristine files do not
+   * bloat the store but a timeline is never lost just because the current
+   * state happens to match the original. Tombstones (D1) are ALWAYS included
+   * regardless of tracker/timeline emptiness: their final state plus
+   * `deletedTimestamp` is the only record of a deleted file's content and must
+   * survive a restart even when the live tracker was reset on `markDeleted`.
+   *
+   * The serialized `path` is taken from the map key (not from `snapshot.file`)
+   * so tombstones whose `file` reference is null (cross-directory move leaves
+   * a detached tombstone, D2) still round-trip to disk under their last-known
+   * path.
    *
    * @return {SerializedHistory} The versioned, serializable history payload
    */
   serialize() {
-    var _a;
     const snapshots = [];
-    for (const snapshot of this.fileSnapshots.values()) {
-      const hasHistory = snapshot.getChangesLinesCount() > 0 || snapshot.hasVersions();
-      if (!((_a = snapshot.file) == null ? void 0 : _a.path) || !hasHistory) {
+    for (const [path, snapshot] of this.fileSnapshots.entries()) {
+      if (!path) {
         continue;
       }
-      snapshots.push(snapshot.toJSON());
+      const isTombstone = snapshot.isTombstone();
+      const hasHistory = snapshot.getChangesLinesCount() > 0 || snapshot.hasVersions();
+      if (!isTombstone && !hasHistory) {
+        continue;
+      }
+      const payload = snapshot.toJSON();
+      payload.path = path;
+      snapshots.push(payload);
     }
     return { version: 1, snapshots };
   }
@@ -18492,8 +21494,23 @@ var SnapshotsService = class {
    *
    * When the file is not open this session there is no session marker baseline to
    * preserve, so the snapshot is rebuilt verbatim (marker and history baselines
-   * coincide). Entries whose file is gone are skipped (deleted while the plugin
-   * was off).
+   * coincide).
+   *
+   * When the live file is gone (deleted while the plugin was off, or the entry
+   * was already a tombstone on disk) the snapshot is reconstructed as a
+   * tombstone under its persisted path so deleted-file history is never silently
+   * dropped on restart:
+   *
+   *   - a payload that already carries `deletedTimestamp` is rebuilt as that
+   *     same tombstone (the original deletion moment is preserved);
+   *   - a live payload whose file no longer resolves is auto-tombstoned with
+   *     `deletedTimestamp = data.timestamp`, treating the offline disappearance
+   *     as a delete that happened at the snapshot's last-known moment.
+   *
+   * Auto-tombstoning runs from `restoreFromDisk`, which itself runs from
+   * `onLayoutReady`, so the vault file index is fully populated by the time
+   * `getFileByPath` is consulted; a null result is a real absence, not a
+   * transient indexing miss.
    *
    * @param {SerializedFileSnapshot[]} snapshots - The serialized snapshots
    */
@@ -18507,6 +21524,7 @@ var SnapshotsService = class {
       }
       const file = this.plugin.getFileByPath(data.path);
       if (!file) {
+        this.restoreOrphan(data);
         continue;
       }
       const existing = this.fileSnapshots.get(data.path);
@@ -18518,6 +21536,24 @@ var SnapshotsService = class {
       }
       this.fileSnapshots.set(data.path, FileSnapshot.fromJSON(data, file));
     }
+  }
+  /**
+   * Reconstructs a serialized entry whose live file is missing as a tombstone.
+   * A payload that already carries `deletedTimestamp` is rebuilt verbatim so
+   * the original deletion moment survives a restart; a live payload whose file
+   * is gone is auto-tombstoned with `deletedTimestamp = data.timestamp` (the
+   * snapshot's last-known moment), keeping deleted-file history accessible
+   * even when the delete happened while the plugin was off.
+   *
+   * @param {SerializedFileSnapshot} data - The serialized snapshot
+   */
+  restoreOrphan(data) {
+    const snapshot = FileSnapshot.fromJSON(data, null);
+    if (!snapshot.isTombstone()) {
+      snapshot.deletedTimestamp = data.timestamp;
+    }
+    snapshot.file = null;
+    this.fileSnapshots.set(data.path, snapshot);
   }
   /**
    * Forces an update of the snapshots.
@@ -18625,7 +21661,7 @@ var SnapshotsService = class {
       return;
     }
     this.lastWarnedExcludePattern = pattern;
-    new import_obsidian16.Notice(this.plugin.t("notice.invalid-exclude-pattern"));
+    new import_obsidian21.Notice(this.plugin.t("notice.invalid-exclude-pattern"));
   }
   /**
    * Checks if a file has already been captured (has a snapshot).
@@ -18676,6 +21712,96 @@ var SnapshotsService = class {
     } catch (error) {
       console.error("Error capturing file snapshot:", error);
     }
+  }
+  /**
+   * Captures an external (off-editor) change to a tracked file as a flagged
+   * version on its timeline (D12/D13). Reads the file from disk, compares its
+   * content hash to the snapshot's known `state`, and force-captures the new
+   * content as a `FileVersion` with `external = true` only when the hash
+   * diverges, then updates `state`/tracker/changes so further reads see the
+   * captured content as the new baseline.
+   *
+   * Gating mirrors the parts of `canCapture` that still apply when a snapshot
+   * already exists: a wrong-extension file, an excluded path, an ignored file,
+   * or a missing/folder TFile is a no-op. A hash match is also a no-op so
+   * editor-driven flushes and the plugin's own revert writes (which already
+   * synchronized `state` before/after the write) do not produce phantom
+   * external versions.
+   *
+   * A first-sight file (no snapshot yet) is captured as a normal snapshot via
+   * `capture`, without an `external` version: there is no prior state to diff
+   * against, so flagging the very first capture would mislabel a brand-new
+   * file as an external change.
+   *
+   * A tombstone entry is a no-op: a tombstone represents a deleted file at
+   * that path and `vault.modify` should not legitimately fire there; the
+   * resurrection flow belongs to a future `vault.create` handler, not here.
+   *
+   * The capture is forced past the cadence gates so every distinct external
+   * state lands as its own version (D13), but it is NOT pinned: the resulting
+   * version obeys the normal age/count retention exactly like a cadence one,
+   * so a chatty sync workflow cannot bloat `history.json` with un-evictable
+   * entries.
+   *
+   * @param {TFile | null} file - The file whose disk content changed
+   */
+  async captureExternalChange(file) {
+    if (!file) {
+      return;
+    }
+    if (!this.isInAllowedExtensions(file)) {
+      return;
+    }
+    if (this.isExcludedPath(file)) {
+      return;
+    }
+    if (this.isInIgnoreList(file)) {
+      return;
+    }
+    const snapshot = this.fileSnapshots.get(file.path);
+    if (!snapshot) {
+      await this.capture(file);
+      return;
+    }
+    if (snapshot.isTombstone()) {
+      return;
+    }
+    let content;
+    try {
+      content = await this.plugin.app.vault.read(file);
+    } catch (error) {
+      console.error("Error reading file for external change capture:", error);
+      return;
+    }
+    if (!snapshot.isNeedUpdate(content)) {
+      return;
+    }
+    const newLines = content.split(snapshot.lineBreak);
+    const captured = snapshot.captureVersion(newLines, this.getCaptureOptions(), true);
+    if (captured) {
+      captured.external = true;
+    }
+    const previousLength = snapshot.state.length;
+    snapshot.replaceBlock(0, previousLength, newLines);
+    snapshot.updateState(newLines);
+    snapshot.updateChanges();
+    this.forceUpdate();
+  }
+  /**
+   * Reads the current capture cadence and retention caps into a plain options
+   * object for the snapshot model. Mirrors the helper in change-detector and
+   * version-actions so eviction stays aligned across every capture source.
+   *
+   * @return {SnapshotCaptureOptions} The capture cadence configuration
+   */
+  getCaptureOptions() {
+    return {
+      enabled: this.settingsService.value("snapshots.enabled"),
+      intervalMs: this.settingsService.value("snapshots.intervalMs"),
+      editThreshold: this.settingsService.value("snapshots.editThreshold"),
+      maxVersions: this.settingsService.value("snapshots.maxVersions"),
+      maxVersionAgeDays: this.settingsService.value("snapshots.maxVersionAgeDays")
+    };
   }
   /**
    * Removes a snapshot for a specific file.
@@ -18748,7 +21874,7 @@ __decorateClass([
 ], SnapshotsService.prototype, "settingsService", 2);
 
 // src/services/statusbar.service.ts
-var import_obsidian17 = require("obsidian");
+var import_obsidian22 = require("obsidian");
 var StatusbarService = class {
   /**
    * Creates a new instance of StatusbarService.
@@ -18780,7 +21906,7 @@ var StatusbarService = class {
     var _a, _b;
     const view = (_a = this.plugin.app.workspace.getMostRecentLeaf()) == null ? void 0 : _a.view;
     const snapshot = this.snapshotsService.getOne();
-    if (!view || !(view instanceof import_obsidian17.MarkdownView) || !snapshot) {
+    if (!view || !(view instanceof import_obsidian22.MarkdownView) || !snapshot) {
       this.clear();
       return;
     }
@@ -19105,8 +22231,8 @@ __decorateClass([
 ], VersionActionsService.prototype, "settingsService", 2);
 
 // src/views/recent-changes.view.ts
-var import_obsidian18 = require("obsidian");
-var RecentChangesView = class extends import_obsidian18.ItemView {
+var import_obsidian23 = require("obsidian");
+var RecentChangesView = class extends import_obsidian23.ItemView {
   /**
    * Creates a new instance of RecentChangesView.
    *
@@ -19250,6 +22376,27 @@ var RecentChangesView = class extends import_obsidian18.ItemView {
         (version) => this.makeRow(version, versions, snapshot, file)
       )
     });
+    this.paintExternalBadges(this.listEl);
+  }
+  /**
+   * Mirrors `HistoryModal.paintExternalBadges`: after the DomHelper config tree
+   * is mounted, apply Obsidian's `setIcon` to every badge slot the row config
+   * declared. The badge text and icon id (`data-icon` on the wrapper) match the
+   * rail's badge so external versions read consistently across surfaces (AC2).
+   *
+   * @param {HTMLElement} container - The list container to scan
+   */
+  paintExternalBadges(container) {
+    const badges = container.querySelectorAll(
+      ".lct-version-external-badge"
+    );
+    badges.forEach((badge) => {
+      const iconId = badge.getAttribute("data-icon");
+      const slot = badge.querySelector(".lct-version-external-badge-icon");
+      if (iconId && slot) {
+        (0, import_obsidian23.setIcon)(slot, iconId);
+      }
+    });
   }
   /**
    * Builds the DomHelper config for a single timeline row. Mirrors the modal
@@ -19269,8 +22416,14 @@ var RecentChangesView = class extends import_obsidian18.ItemView {
     const description = this.describeVersion(version, versions, snapshot);
     const label = this.resolveLabel(version, description);
     const delta = this.formatDelta(description);
+    const labelChildren = [
+      { tag: "span", classes: "lct-recent-changes-label", text: label }
+    ];
+    if (version.isExternal()) {
+      labelChildren.push(this.makeExternalBadge());
+    }
     const children = [
-      { tag: "span", classes: "lct-recent-changes-label", text: label },
+      { tag: "span", classes: "lct-recent-changes-label-row", children: labelChildren },
       { tag: "span", classes: "lct-recent-changes-meta", text: version.getDateTime() }
     ];
     if (delta) {
@@ -19288,6 +22441,29 @@ var RecentChangesView = class extends import_obsidian18.ItemView {
         }
       },
       children
+    };
+  }
+  /**
+   * Builds the inline external-change badge config (D13, T20). Mirrors the
+   * rail's badge shape so the panel and the modal feel consistent: a Lucide
+   * `download-cloud` icon paired with a short text label, wrapped in an
+   * `aria-label`-tagged span so assistive tech announces the marker. The icon
+   * id is carried as `data-icon` so {@link paintExternalBadges} can mount the
+   * glyph after DomHelper builds the config tree. The text ships as an inline
+   * English literal and is propagated to every catalog in T15.
+   *
+   * @return {DomElementConfig} The badge element config
+   */
+  makeExternalBadge() {
+    const text = this.plugin.t("version.badge.external");
+    return {
+      tag: "span",
+      classes: "lct-version-external-badge",
+      attributes: { "aria-label": text, "title": text, "data-icon": "download-cloud" },
+      children: [
+        { tag: "span", classes: "lct-version-external-badge-icon" },
+        { tag: "span", classes: "lct-version-external-badge-text", text }
+      ]
     };
   }
   /**
@@ -19309,7 +22485,7 @@ var RecentChangesView = class extends import_obsidian18.ItemView {
    */
   openRowMenu(event, file, version) {
     event.preventDefault();
-    const menu = new import_obsidian18.Menu();
+    const menu = new import_obsidian23.Menu();
     const modalsService = this.plugin.get("ModalsService");
     const versionActionsService = this.plugin.get("VersionActionsService");
     menu.addItem((item) => {
@@ -19427,8 +22603,8 @@ var import_index = __toESM(require_eventemitter3(), 1);
 var eventemitter3_default = import_index.default;
 
 // src/main.ts
-var import_obsidian19 = require("obsidian");
-var LineChangeTrackerPlugin = class extends import_obsidian19.Plugin {
+var import_obsidian24 = require("obsidian");
+var LineChangeTrackerPlugin = class extends import_obsidian24.Plugin {
   /**
    * Creates a new instance of the LineChangeTrackerPlugin.
    * Registers all required services during initialization.
@@ -19620,7 +22796,7 @@ var LineChangeTrackerPlugin = class extends import_obsidian19.Plugin {
    * @return {MarkdownView | null} The active markdown view, or null if none is active
    */
   getActiveViewOfType() {
-    return this.app.workspace.getActiveViewOfType(import_obsidian19.MarkdownView);
+    return this.app.workspace.getActiveViewOfType(import_obsidian24.MarkdownView);
   }
   /**
    * Gets the active file.
@@ -19641,7 +22817,7 @@ var LineChangeTrackerPlugin = class extends import_obsidian19.Plugin {
    */
   getFileByPath(path) {
     const file = this.app.vault.getAbstractFileByPath(path);
-    return file instanceof import_obsidian19.TFile ? file : null;
+    return file instanceof import_obsidian24.TFile ? file : null;
   }
   /**
    * Reveals the Recent changes panel in the right sidebar (D3).

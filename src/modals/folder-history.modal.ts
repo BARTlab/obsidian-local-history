@@ -1,4 +1,4 @@
-import { DiffOutputFormatType } from '@/consts';
+import { DEFAULT_LINE_BREAK, DiffOutputFormatType } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { FolderTreeComponent, type FolderTreeEntry } from '@/components/folder-tree.component';
 import { DiffRenderHelper, type DiffRenderMode } from '@/helpers/diff-render.helper';
@@ -20,15 +20,6 @@ import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FileVersion } from '@/snapshots/file.version';
 import type { DomElementConfig, FunctionVoid } from '@/types';
 import { type App, Modal, Notice, SearchComponent, type TFile, setIcon } from 'obsidian';
-
-/**
- * Default line break used to render diffs in the folder modal. The snapshot
- * owns the per-file line break, but the modal renders diffs across many files;
- * a single conservative default is enough because the diff renderer only joins
- * lines back together for the unified-patch input, and the rendered output uses
- * the same separator on both sides.
- */
-const DEFAULT_LINE_BREAK: string = '\n';
 
 /**
  * Toolbar button config used by the folder modal toolbar. Mirrors the shape the

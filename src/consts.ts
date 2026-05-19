@@ -170,3 +170,43 @@ export enum PluginEvent {
   // settings
   settingsUpdate = 'settings:update',
 }
+
+/**
+ * Default line break used to render diffs in the folder modal. The snapshot
+ * owns the per-file line break, but the modal renders diffs across many files;
+ * a single conservative default is enough because the diff renderer only joins
+ * lines back together for the unified-patch input, and the rendered output uses
+ * the same separator on both sides.
+ */
+export const DEFAULT_LINE_BREAK: string = '\n';
+
+/**
+ * Sentinel id for the Original entry in the version list. It is the only base
+ * shown when the file has no captured snapshots yet, and it diffs the current
+ * state against the file's original captured content. Once snapshots exist the
+ * rail lists the real versions instead (the latest one already shows "what
+ * changed since the last save"), so this id is no longer offered for selection;
+ * a stale version id still routes here and falls back to the latest snapshot.
+ * Real versions are keyed by their own id, which is never this value.
+ */
+export const ORIGINAL_BASE_ID: string = 'original';
+
+/**
+ * Pixels the diff pane scrolls per up/down arrow press when it holds focus.
+ * Roughly two diff rows (each ~24px tall), so an arrow nudges the content a
+ * line or two at a time, matching a native focused-scroll-container feel.
+ */
+export const DIFF_SCROLL_STEP_PX: number = 48;
+
+/**
+ * Marker line emitted by the diff library to flag a missing trailing newline.
+ * It carries no content and must be ignored when reconstructing line text.
+ */
+export const NO_NEWLINE_MARKER: string = '\\ No newline at end of file';
+
+/**
+ * Glyph rendered for the gutter revert affordance: a left arrow that reads as
+ * "send this block back to the base". Kept as a constant so the visual and its
+ * accessible label stay in one place.
+ */
+export const REVERT_GLYPH: string = '↩';

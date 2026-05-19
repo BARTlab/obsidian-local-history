@@ -1,16 +1,9 @@
-import { ChangeType, IndicatorType } from '@/consts';
+import { ChangeType, IndicatorType, REVERT_GLYPH } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import type LineChangeTrackerPlugin from '@/main';
 import type { SettingsService } from '@/services/settings.service';
 import type { RevertLine } from '@/types';
 import { GutterMarker } from '@codemirror/view';
-
-/**
- * Glyph rendered for the gutter revert affordance: a left arrow that reads as
- * "send this block back to the base". Kept as a constant so the visual and its
- * accessible label stay in one place.
- */
-const REVERT_GLYPH: string = '↩';
 
 /**
  * Marker class for displaying character indicators in the editor gutter.

@@ -1,10 +1,5 @@
+import { NO_NEWLINE_MARKER } from '@/consts';
 import * as Diff from 'diff';
-
-/**
- * Marker line emitted by the diff library to flag a missing trailing newline.
- * It carries no content and must be ignored when reconstructing line text.
- */
-const NO_NEWLINE_MARKER: string = '\\ No newline at end of file';
 
 /**
  * Helper for line-level diff hunks and single-hunk reverts.

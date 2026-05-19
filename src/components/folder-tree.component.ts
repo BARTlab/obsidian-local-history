@@ -1,6 +1,11 @@
 import { DomHelper } from '@/helpers/dom.helper';
 import type { FolderDeltaStatus } from '@/helpers/folder-delta.helper';
-import type { DomElementConfig, TranslationVars } from '@/types';
+import type {
+  DomElementConfig,
+  FolderTreeNode,
+  FolderTreeSelectionHandler,
+  TranslationVars,
+} from '@/types';
 import { setIcon } from 'obsidian';
 
 /**
@@ -28,12 +33,6 @@ export interface FolderTreeEntry {
 }
 
 /**
- * Callback fired when the user clicks a file row. The component passes the
- * vault-relative path so the parent modal can drive the diff pane.
- */
-export type FolderTreeSelectionHandler = (path: string) => void;
-
-/**
  * Minimal translator surface the component needs. Matches `LineChangeTrackerPlugin.t`
  * so the modal can pass `plugin` directly, but stays narrow so unit tests can
  * supply an inert translator (echoing keys) without the real plugin instance.
@@ -52,26 +51,6 @@ export interface FolderTreeTranslator {
 export interface FolderTreeUpdateParams {
   entries: FolderTreeEntry[];
   rootPath: string;
-}
-
-/**
- * Internal tree node: a folder (possibly the synthetic root) or a leaf file.
- * Children of a folder are sorted alphabetically with folders before files so
- * the rendered output reads top-down like a file explorer.
- */
-interface FolderTreeNode {
-  /** Vault-relative path of the node (folder or file). */
-  path: string;
-  /** Display name (the last path segment). */
-  name: string;
-  /** Whether this node is a folder; files are leaves. */
-  isFolder: boolean;
-  /** Per-file delta status; undefined for folder nodes. */
-  status?: FolderDeltaStatus;
-  /** Whether the file's delta point at T is an external-change capture (T20). */
-  external?: boolean;
-  /** Child nodes (folders + files) when `isFolder` is true. */
-  children: FolderTreeNode[];
 }
 
 /**

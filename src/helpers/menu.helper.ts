@@ -1,14 +1,5 @@
+import type { MenuItemWithSubmenu } from '@/types';
 import type { Menu, MenuItem } from 'obsidian';
-
-/**
- * Shape of the runtime-only `setSubmenu()` method on a `MenuItem`. The method
- * exists in Obsidian >= 1.5 but is missing from the bundled 1.13.0 typings, so
- * a structural interface keeps the cast localised to this helper instead of
- * leaking `any` to every call site that builds a submenu.
- */
-interface MenuItemWithSubmenu extends MenuItem {
-  setSubmenu(): Menu;
-}
 
 /**
  * Typed wrapper around Obsidian's undocumented `MenuItem.setSubmenu()`.

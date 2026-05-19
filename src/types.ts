@@ -1,6 +1,7 @@
 import type { KeepHistory } from '@/consts';
 import { type IndicatorType, type ObsidianVaultEvent, type ObsidianWorkspaceEvent } from '@/consts';
 import type { BaseExtension } from '@/extensions/base.extension';
+import type { FolderDeltaStatus } from '@/helpers/folder-delta.helper';
 import type { RangeSet } from '@codemirror/state';
 import type {
   BlockInfo,
@@ -16,6 +17,7 @@ import {
   type Editor,
   type MarkdownView,
   type Menu,
+  type MenuItem,
   type TAbstractFile,
   type TFile,
   type WorkspaceLeaf
@@ -557,6 +559,77 @@ export interface PromptModalConfig {
   confirmText?: string;
   /** Text for the cancel button (defaults to 'Cancel') */
   cancelText?: string;
+}
+
+/**
+ * Callback fired when the user clicks a file row. The component passes the
+ * vault-relative path so the parent modal can drive the diff pane.
+ */
+export type FolderTreeSelectionHandler = (path: string) => void;
+
+/**
+ * Internal tree node: a folder (possibly the synthetic root) or a leaf file.
+ * Children of a folder are sorted alphabetically with folders before files so
+ * the rendered output reads top-down like a file explorer.
+ */
+export interface FolderTreeNode {
+  /** Vault-relative path of the node (folder or file). */
+  path: string;
+  /** Display name (the last path segment). */
+  name: string;
+  /** Whether this node is a folder; files are leaves. */
+  isFolder: boolean;
+  /** Per-file delta status; undefined for folder nodes. */
+  status?: FolderDeltaStatus;
+  /** Whether the file's delta point at T is an external-change capture (T20). */
+  external?: boolean;
+  /** Child nodes (folders + files) when `isFolder` is true. */
+  children: FolderTreeNode[];
+}
+
+/**
+ * Shape of a single toolbar icon button: the Lucide icon id, the label exposed
+ * via tooltip and aria-label, the click handler (sync or async), and an
+ * optional destructive accent for the restore-original and remove-history
+ * actions.
+ */
+export interface ToolbarButtonConfig {
+  /** The Obsidian (Lucide) icon id to render */
+  icon: string;
+  /** The text label exposed via tooltip and aria-label */
+  label: string;
+  /** The click handler, awaited when it returns a promise */
+  onClick: FunctionVoid | (() => Promise<void>);
+  /** Whether to add the destructive (error-tinted) accent */
+  warning?: boolean;
+}
+
+/**
+ * Toolbar button config used by the folder modal toolbar. Mirrors the shape the
+ * file modal uses (icon id + accessible label + click handler) so both modals
+ * present a consistent control surface. The `warning` flag adds the destructive
+ * accent (`.lct-toolbar-warning`) for the restore-original and remove-history
+ * actions, matching the file modal's classification.
+ */
+export interface FolderToolbarButtonConfig {
+  /** The Obsidian (Lucide) icon id to render */
+  icon: string;
+  /** The text label exposed via tooltip and aria-label */
+  label: string;
+  /** The click handler */
+  onClick: FunctionVoid;
+  /** Whether to paint the destructive accent */
+  warning?: boolean;
+}
+
+/**
+ * Shape of the runtime-only `setSubmenu()` method on a `MenuItem`. The method
+ * exists in Obsidian >= 1.5 but is missing from the bundled 1.13.0 typings, so
+ * a structural interface keeps the cast localised to its helper instead of
+ * leaking `any` to every call site that builds a submenu.
+ */
+export interface MenuItemWithSubmenu extends MenuItem {
+  setSubmenu(): Menu;
 }
 
 // --- COPY FROM CODEMIRROR ---

@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 
 import { describe, expect, it, beforeAll } from '@jest/globals';
-import { DiffOutputFormatType } from '@/consts';
+import { DiffOutputFormatType, DiffViewMode } from '@/consts';
 import { DiffRenderHelper, type DiffRenderParams } from '@/helpers/diff-render.helper';
 import type { TranslationVars } from '@/types';
 
@@ -86,7 +86,7 @@ describe('DiffRenderHelper', () => {
     it('renders the lct-patch-container with the unified clean patch text', (): void => {
       const target: HTMLDivElement = container();
 
-      DiffRenderHelper.render(params(['one', 'two'], ['one', 'two-changed'], 'patch', target));
+      DiffRenderHelper.render(params(['one', 'two'], ['one', 'two-changed'], DiffViewMode.patch, target));
 
       const patchContainer: HTMLElement | null = target.querySelector('.lct-patch-container');
 
@@ -105,7 +105,7 @@ describe('DiffRenderHelper', () => {
     it('renders the copy button with an accessible label and an icon marker', (): void => {
       const target: HTMLDivElement = container();
 
-      DiffRenderHelper.render(params(['a'], ['b'], 'patch', target));
+      DiffRenderHelper.render(params(['a'], ['b'], DiffViewMode.patch, target));
 
       const copyButton: HTMLButtonElement | null = target.querySelector<HTMLButtonElement>('.lct-patch-copy-button');
 
@@ -120,7 +120,7 @@ describe('DiffRenderHelper', () => {
     it('renders an empty header when the base equals the current content', (): void => {
       const target: HTMLDivElement = container();
 
-      DiffRenderHelper.render(params(['same'], ['same'], 'patch', target));
+      DiffRenderHelper.render(params(['same'], ['same'], DiffViewMode.patch, target));
 
       const patchText: HTMLElement | null = target.querySelector('.lct-patch-container .lct-patch-text');
 
@@ -134,7 +134,7 @@ describe('DiffRenderHelper', () => {
     it('renders the lct-inline-container with one row per diff line', (): void => {
       const target: HTMLDivElement = container();
 
-      DiffRenderHelper.render(params(['one', 'two'], ['one', 'two-changed'], 'inline', target));
+      DiffRenderHelper.render(params(['one', 'two'], ['one', 'two-changed'], DiffViewMode.inline, target));
 
       expect(target.querySelector('.lct-inline-container')).not.toBeNull();
 
@@ -149,13 +149,13 @@ describe('DiffRenderHelper', () => {
     it('marks pure additions with lct-inline-added and pure removals with lct-inline-removed', (): void => {
       const targetAdded: HTMLDivElement = container();
 
-      DiffRenderHelper.render(params([], ['one'], 'inline', targetAdded));
+      DiffRenderHelper.render(params([], ['one'], DiffViewMode.inline, targetAdded));
 
       expect(targetAdded.querySelector('.lct-inline-added')).not.toBeNull();
 
       const targetRemoved: HTMLDivElement = container();
 
-      DiffRenderHelper.render(params(['one'], [], 'inline', targetRemoved));
+      DiffRenderHelper.render(params(['one'], [], DiffViewMode.inline, targetRemoved));
 
       expect(targetRemoved.querySelector('.lct-inline-removed')).not.toBeNull();
     });
@@ -188,7 +188,7 @@ describe('DiffRenderHelper', () => {
     it('returns a non-empty hunk list when the base differs from the current', (): void => {
       const target: HTMLDivElement = container();
 
-      const result = DiffRenderHelper.render(params(['one', 'two'], ['one', 'two-changed'], 'inline', target));
+      const result = DiffRenderHelper.render(params(['one', 'two'], ['one', 'two-changed'], DiffViewMode.inline, target));
 
       expect(result.hunks.length).toBeGreaterThanOrEqual(1);
     });
@@ -196,7 +196,7 @@ describe('DiffRenderHelper', () => {
     it('returns an empty hunk list when the base equals the current', (): void => {
       const target: HTMLDivElement = container();
 
-      const result = DiffRenderHelper.render(params(['same'], ['same'], 'inline', target));
+      const result = DiffRenderHelper.render(params(['same'], ['same'], DiffViewMode.inline, target));
 
       expect(result.hunks).toEqual([]);
     });

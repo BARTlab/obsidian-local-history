@@ -1,7 +1,7 @@
-import { DIFF_SCROLL_STEP_PX, DiffOutputFormatType, ListSelectionDirection, NavigationDirection, ORIGINAL_BASE_ID } from '@/consts';
+import { DIFF_SCROLL_STEP_PX, DiffOutputFormatType, DiffViewMode, ListSelectionDirection, NavigationDirection, ORIGINAL_BASE_ID, VersionListEdge } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { BaseContentHelper } from '@/helpers/base-content.helper';
-import { DiffRenderHelper } from '@/helpers/diff-render.helper';
+import { DiffRenderHelper, type DiffRenderMode } from '@/helpers/diff-render.helper';
 import { DomHelper } from '@/helpers/dom.helper';
 import { HunkHelper } from '@/helpers/hunk.helper';
 import { ListSelectionHelper } from '@/helpers/list-selection.helper';
@@ -149,11 +149,11 @@ export class HistoryModal extends Modal {
   protected labelSelectedButton?: HTMLElement;
 
   /**
-   * The current display mode for the diff view.
-   * Can be 'patch', 'inline', 'line-by-line', or 'side-by-side'.
-   * Defaults to 'side-by-side'.
+   * The current display mode for the diff view. One of the four
+   * {@link DiffRenderMode} values (patch, inline, line-by-line, side-by-side).
+   * Defaults to side-by-side.
    */
-  protected currentDisplayMode: 'patch' | 'inline' | 'line-by-line' | 'side-by-side' = 'side-by-side';
+  protected currentDisplayMode: DiffRenderMode = DiffOutputFormatType.side;
 
   /**
    * References to the mode toggle buttons.
@@ -264,13 +264,13 @@ export class HistoryModal extends Modal {
    */
   protected getActiveButton(): HTMLElement | null {
     switch (this.currentDisplayMode) {
-      case 'patch':
+      case DiffViewMode.patch:
         return this.modeButtons.patch;
-      case 'inline':
+      case DiffViewMode.inline:
         return this.modeButtons.inline;
-      case 'line-by-line':
+      case DiffOutputFormatType.line:
         return this.modeButtons.lineByLine;
-      case 'side-by-side':
+      case DiffOutputFormatType.side:
         return this.modeButtons.sideBySide;
       default:
         return null;
@@ -489,12 +489,12 @@ export class HistoryModal extends Modal {
         return;
       case 'Home':
         event.preventDefault();
-        this.moveVersionSelectionToEdge('first');
+        this.moveVersionSelectionToEdge(VersionListEdge.first);
 
         return;
       case 'End':
         event.preventDefault();
-        this.moveVersionSelectionToEdge('last');
+        this.moveVersionSelectionToEdge(VersionListEdge.last);
 
         return;
       case 'Delete':
@@ -591,11 +591,11 @@ export class HistoryModal extends Modal {
    * version) entry, backing the Home/End keys. A no-op when that edge is already
    * selected or the list is empty.
    *
-   * @param {'first' | 'last'} edge - Which end of the list to select
+   * @param {VersionListEdge} edge - Which end of the list to select
    */
-  protected moveVersionSelectionToEdge(edge: 'first' | 'last'): void {
+  protected moveVersionSelectionToEdge(edge: VersionListEdge): void {
     const ids: string[] = this.getSelectableIds();
-    const target: string | undefined = edge === 'first' ? ids[0] : ids[ids.length - 1];
+    const target: string | undefined = edge === VersionListEdge.first ? ids[0] : ids[ids.length - 1];
 
     if (!target || target === this.selectedBaseId) {
       return;
@@ -956,7 +956,7 @@ export class HistoryModal extends Modal {
       return;
     }
 
-    const visible: boolean = this.currentDisplayMode === 'side-by-side';
+    const visible: boolean = this.currentDisplayMode === DiffOutputFormatType.side;
 
     if (!visible) {
       DomHelper.update(this.columnsHeaderEl, { text: null, classes: { add: 'lct-diff-columns-hidden' } });
@@ -1274,7 +1274,7 @@ export class HistoryModal extends Modal {
    */
   protected updateNavButtonsState(): void {
     const count: number = this.getHunks().length;
-    const disabled: boolean = count === 0 || this.currentDisplayMode === 'patch';
+    const disabled: boolean = count === 0 || this.currentDisplayMode === DiffViewMode.patch;
 
     [this.navButtons.previous, this.navButtons.next].forEach((button: HTMLElement | undefined): void => {
       if (!button) {
@@ -1591,15 +1591,15 @@ export class HistoryModal extends Modal {
    */
   protected refreshActiveView(): void {
     switch (this.currentDisplayMode) {
-      case 'patch':
+      case DiffViewMode.patch:
         this.showCleanPatch();
 
         return;
-      case 'inline':
+      case DiffViewMode.inline:
         this.renderInlineDiff();
 
         return;
-      case 'line-by-line':
+      case DiffOutputFormatType.line:
         this.renderDiff(DiffOutputFormatType.line);
 
         return;
@@ -1788,7 +1788,7 @@ export class HistoryModal extends Modal {
    * @return {HTMLElement | null} The anchor row, or null when no row matches
    */
   protected resolveHunkAnchor(hunk: Diff.StructuredPatchHunk): HTMLElement | null {
-    if (this.currentDisplayMode === 'inline') {
+    if (this.currentDisplayMode === DiffViewMode.inline) {
       return this.resolveInlineAnchor(hunk);
     }
 
@@ -1848,7 +1848,7 @@ export class HistoryModal extends Modal {
    * @return {HTMLElement | null} The anchor row, or null when none matches
    */
   protected resolveDiff2HtmlAnchor(hunk: Diff.StructuredPatchHunk): HTMLElement | null {
-    const sideBySide: boolean = this.currentDisplayMode === 'side-by-side';
+    const sideBySide: boolean = this.currentDisplayMode === DiffOutputFormatType.side;
     const columns: HTMLElement[] = sideBySide
       ? Array.from(this.diffContainerEl.querySelectorAll<HTMLElement>('.d2h-side-column'))
       : [];
@@ -1960,7 +1960,7 @@ export class HistoryModal extends Modal {
   protected showCleanPatch(): void {
     // Update current mode and button states,
     // clean up previous scroll synchronization
-    this.currentDisplayMode = 'patch';
+    this.currentDisplayMode = DiffViewMode.patch;
     this.updateButtonActiveStates();
     this.cleanupScrollSync();
     this.updateDiffNotice();
@@ -1971,7 +1971,7 @@ export class HistoryModal extends Modal {
         baseLines: this.getBaseContent().split(this.snapshot.lineBreak),
         currentLines: this.snapshot.getLastStateLines(),
         lineBreak: this.snapshot.lineBreak,
-        mode: 'patch',
+        mode: DiffViewMode.patch,
         container: this.diffContainerEl,
         filePath: this.snapshot?.file?.path ?? '',
         plugin: this.plugin,
@@ -1993,7 +1993,7 @@ export class HistoryModal extends Modal {
   protected renderInlineDiff(): void {
     // Update current mode and button states,
     // clean up previous scroll synchronization.
-    this.currentDisplayMode = 'inline';
+    this.currentDisplayMode = DiffViewMode.inline;
     this.updateButtonActiveStates();
     this.cleanupScrollSync();
     this.updateDiffNotice();
@@ -2004,7 +2004,7 @@ export class HistoryModal extends Modal {
         baseLines: this.getBaseContent().split(this.snapshot.lineBreak),
         currentLines: this.snapshot.getLastStateLines(),
         lineBreak: this.snapshot.lineBreak,
-        mode: 'inline',
+        mode: DiffViewMode.inline,
         container: this.diffContainerEl,
         filePath: this.snapshot?.file?.path ?? '',
         plugin: this.plugin,
@@ -2051,7 +2051,7 @@ export class HistoryModal extends Modal {
 
     // Scroll synchronization for a side-by-side diff view,
     // uses setTimeout to ensure DOM elements are rendered
-    if (format === 'side-by-side') {
+    if (format === DiffOutputFormatType.side) {
       setTimeout(() => this.setupScrollSynchronization(), 0);
     }
   }

@@ -1,3 +1,4 @@
+import { WordDiffLineType } from '@/consts';
 import * as Diff from 'diff';
 
 /**
@@ -8,7 +9,7 @@ import * as Diff from 'diff';
  */
 export interface InlineDiffLine {
   /** The kind of change this line represents */
-  type: 'context' | 'added' | 'removed' | 'modified';
+  type: WordDiffLineType;
   /** The old (base) text of the line, present for context, removed, modified */
   oldText?: string;
   /** The new (current) text of the line, present for context, added, modified */
@@ -67,7 +68,7 @@ export class WordDiffHelper {
 
       if (!change.added && !change.removed) {
         WordDiffHelper.splitLines(change.value).forEach((text: string): void => {
-          result.push({ type: 'context', oldText: text, newText: text });
+          result.push({ type: WordDiffLineType.context, oldText: text, newText: text });
         });
 
         continue;
@@ -84,16 +85,16 @@ export class WordDiffHelper {
           const paired: number = Math.min(removedLines.length, addedLines.length);
 
           for (let i: number = 0; i < paired; i++) {
-            result.push({ type: 'modified', oldText: removedLines[i], newText: addedLines[i] });
+            result.push({ type: WordDiffLineType.modified, oldText: removedLines[i], newText: addedLines[i] });
           }
 
           // Surplus old lines are pure removals, surplus new lines pure additions.
           for (let i: number = paired; i < removedLines.length; i++) {
-            result.push({ type: 'removed', oldText: removedLines[i] });
+            result.push({ type: WordDiffLineType.removed, oldText: removedLines[i] });
           }
 
           for (let i: number = paired; i < addedLines.length; i++) {
-            result.push({ type: 'added', newText: addedLines[i] });
+            result.push({ type: WordDiffLineType.added, newText: addedLines[i] });
           }
 
           // The added block was consumed as the pair, skip it on the next turn.
@@ -103,7 +104,7 @@ export class WordDiffHelper {
         }
 
         removedLines.forEach((text: string): void => {
-          result.push({ type: 'removed', oldText: text });
+          result.push({ type: WordDiffLineType.removed, oldText: text });
         });
 
         continue;
@@ -111,7 +112,7 @@ export class WordDiffHelper {
 
       // An added block with no removed block before it is a pure addition.
       WordDiffHelper.splitLines(change.value).forEach((text: string): void => {
-        result.push({ type: 'added', newText: text });
+        result.push({ type: WordDiffLineType.added, newText: text });
       });
     }
 

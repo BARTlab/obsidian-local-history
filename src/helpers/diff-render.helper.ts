@@ -1,4 +1,4 @@
-import { DiffOutputFormatType, DiffViewMode } from '@/consts';
+import { DiffOutputFormatType, DiffViewMode, WordDiffLineType } from '@/consts';
 import { DomHelper } from '@/helpers/dom.helper';
 import { HunkHelper } from '@/helpers/hunk.helper';
 import { type InlineDiffLine, WordDiffHelper } from '@/helpers/word-diff.helper';
@@ -241,20 +241,20 @@ export class DiffRenderHelper {
     const rows: DomElementConfig[] = [];
 
     diffLines.forEach((line: InlineDiffLine): void => {
-      if (line.type === 'context') {
+      if (line.type === WordDiffLineType.context) {
         rows.push(DiffRenderHelper.makeInlineRow('context', ' ', [{ tag: 'span', text: line.oldText ?? '' }]));
 
         return;
       }
 
       // Whole added/removed lines rely on the row tint, so the text is plain.
-      if (line.type === 'added') {
+      if (line.type === WordDiffLineType.added) {
         rows.push(DiffRenderHelper.makeInlineRow('added', '+', [{ tag: 'span', text: line.newText ?? '' }]));
 
         return;
       }
 
-      if (line.type === 'removed') {
+      if (line.type === WordDiffLineType.removed) {
         rows.push(DiffRenderHelper.makeInlineRow('removed', '-', [{ tag: 'span', text: line.oldText ?? '' }]));
 
         return;

@@ -1,3 +1,4 @@
+import { MapChangeAction } from '@/consts';
 import type { ChangeHandler } from '@/types';
 
 /**
@@ -52,7 +53,7 @@ export class ObservableMap<K, V> extends Map<K, V> {
    * @param {*} key - The key that was affected (if applicable)
    * @param {*} value - The value that was affected (if applicable)
    */
-  public next(action: 'set' | 'delete' | 'clear' | 'update', key?: K, value?: V): void {
+  public next(action: MapChangeAction, key?: K, value?: V): void {
     for (const listener of this.listeners) {
       listener(action, key, value);
     }
@@ -75,7 +76,7 @@ export class ObservableMap<K, V> extends Map<K, V> {
     super.set(key, value);
 
     if (force || !hadKey || prev !== value) {
-      this.next('set', key, value);
+      this.next(MapChangeAction.set, key, value);
     }
 
     return this;
@@ -94,7 +95,7 @@ export class ObservableMap<K, V> extends Map<K, V> {
     const result: boolean = super.delete(key);
 
     if (force || result) {
-      this.next('delete', key);
+      this.next(MapChangeAction.delete, key);
     }
 
     return result;
@@ -114,7 +115,7 @@ export class ObservableMap<K, V> extends Map<K, V> {
     super.clear();
 
     if (force || size > 0) {
-      this.next('clear');
+      this.next(MapChangeAction.clear);
     }
 
     return size;

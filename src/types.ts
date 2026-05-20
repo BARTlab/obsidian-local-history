@@ -1,5 +1,4 @@
-import type { KeepHistory } from '@/consts';
-import { type IndicatorType, type ObsidianVaultEvent, type ObsidianWorkspaceEvent } from '@/consts';
+import type { IndicatorType, KeepHistory, MapChangeAction, ObsidianVaultEvent, ObsidianWorkspaceEvent } from '@/consts';
 import type { BaseExtension } from '@/extensions/base.extension';
 import type { FolderDeltaStatus } from '@/helpers/folder-delta.helper';
 import type { RangeSet } from '@codemirror/state';
@@ -36,11 +35,11 @@ export type KeysMatching<T, Value> = {
  * Type definition for a change handler function that responds to data structure modifications.
  * @template K - The key type
  * @template V - The value type
- * @param action - The type of action performed ('set', 'delete', 'clear', or 'update')
+ * @param action - The type of action performed (set, delete, clear, or update)
  * @param key - Optional key that was affected by the action
  * @param value - Optional value associated with the action
  */
-export type ChangeHandler<K, V> = (action: 'set' | 'delete' | 'clear' | 'update', key?: K, value?: V) => void;
+export type ChangeHandler<K, V> = (action: MapChangeAction, key?: K, value?: V) => void;
 
 /**
  * Configuration interface for the Line Change Tracker plugin settings.

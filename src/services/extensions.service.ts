@@ -1,3 +1,4 @@
+import { ExtensionKind } from '@/consts';
 import { ChangeDetectorExtension } from '@/extensions/change-detector.extension';
 import { EditorCommonExtension } from '@/extensions/editor-common.extension';
 import { GutterCommonExtension } from '@/extensions/gutter-common.extension';
@@ -37,10 +38,10 @@ export class ExtensionsService implements Service {
    * Called during plugin initialization.
    */
   public init(): void {
-    this.register(ChangeDetectorExtension, 'editor');
-    this.register(EditorCommonExtension, 'editor');
-    this.register(GutterCommonExtension, 'gutter');
-    this.register(GutterRemovedExtension, 'gutter');
+    this.register(ChangeDetectorExtension, ExtensionKind.editor);
+    this.register(EditorCommonExtension, ExtensionKind.editor);
+    this.register(GutterCommonExtension, ExtensionKind.gutter);
+    this.register(GutterRemovedExtension, ExtensionKind.gutter);
   }
 
   /**
@@ -55,7 +56,7 @@ export class ExtensionsService implements Service {
    */
   protected register<T extends EditorExtension | GutterConfig>(
     clsConstructor: ClassConstructor<T>,
-    type: 'editor' | 'gutter'
+    type: ExtensionKind
   ): void {
     // @ts-ignore
     const extension: Extension | ViewPlugin<T, unknown> = this.factory<T>(clsConstructor, type);
@@ -79,7 +80,7 @@ export class ExtensionsService implements Service {
    */
   protected factory<T extends GutterConfig>(
     clsConstructor: ClassConstructor<T>,
-    type: 'gutter',
+    type: ExtensionKind.gutter,
   ): Extension;
 
   /**
@@ -93,7 +94,7 @@ export class ExtensionsService implements Service {
    */
   protected factory<T extends EditorExtension>(
     clsConstructor: ClassConstructor<T>,
-    type: 'editor',
+    type: ExtensionKind.editor,
   ): ViewPlugin<T, unknown>;
 
   /**
@@ -108,12 +109,12 @@ export class ExtensionsService implements Service {
    */
   protected factory<T extends EditorExtension | GutterConfig>(
     clsConstructor: ClassConstructor<T>,
-    type: 'editor' | 'gutter'
+    type: ExtensionKind
   ): Extension | ViewPlugin<T, unknown> {
     const plugin: LineChangeTrackerPlugin = this.plugin;
 
     switch (type) {
-      case 'editor':
+      case ExtensionKind.editor:
         return ViewPlugin.define(
           // eslint-disable-next-line new-cap
           (view: EditorView, arg: unknown): T => new clsConstructor(view, plugin, arg),
@@ -122,7 +123,7 @@ export class ExtensionsService implements Service {
           } as PluginSpec<T>
         );
 
-      case 'gutter':
+      case ExtensionKind.gutter:
         // eslint-disable-next-line new-cap
         return gutter(new clsConstructor(null, plugin) as GutterConfig);
 

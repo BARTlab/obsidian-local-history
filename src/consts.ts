@@ -57,6 +57,20 @@ export enum ListSelectionDirection {
 }
 
 /**
+ * Discriminator for the action a version represents relative to its previous
+ * point on the timeline. Mirrors the three semantic transitions the user cares
+ * about in the rail and panel: a non-empty content born from emptiness, a
+ * non-empty content blanked out, and any other content-changing diff. The
+ * member values are the literal action keys used to build the
+ * `modal.version.action.*` translation lookups, so they must stay byte-equal.
+ */
+export enum VersionAction {
+  created = 'created',
+  modified = 'modified',
+  cleared = 'cleared',
+}
+
+/**
  * Default settings for the Line Change Tracker plugin.
  * Defines initial values for all configurable options including
  * - Indicator type (line or dot)

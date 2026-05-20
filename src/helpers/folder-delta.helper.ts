@@ -1,19 +1,8 @@
+import { FolderDeltaStatus } from '@/consts';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FileVersion } from '@/snapshots/file.version';
 
-/**
- * Per-file status reported by {@link FolderDeltaHelper.compareAt} (D8). One of:
- *
- * - `'added'` - the file did not exist at T but exists now (or was move-in into
- *   the folder after T). The base is empty; the current is the live content.
- * - `'modified'` - the file existed at T with a different content than now.
- * - `'deleted'` - the file existed at T but is gone now (a tombstone whose
- *   `deletedTimestamp` is after T). The base is the content at T; the current
- *   is empty.
- * - `'none'` - no diff worth showing at T: identical content for a live snapshot,
- *   or a tombstone that was already deleted before T.
- */
-export type FolderDeltaStatus = 'added' | 'modified' | 'deleted' | 'none';
+export { FolderDeltaStatus } from '@/consts';
 
 /**
  * Result of comparing a snapshot's state at a chosen timeline point T to its
@@ -69,7 +58,7 @@ export class FolderDeltaHelper {
    */
   public static compareAt(snapshot: FileSnapshot | null | undefined, timestamp: number): FolderDeltaResult {
     if (!snapshot) {
-      return { status: 'none', base: [], current: [] };
+      return { status: FolderDeltaStatus.none, base: [], current: [] };
     }
 
     const existedAtT: boolean = FolderDeltaHelper.existedAtT(snapshot, timestamp);
@@ -79,13 +68,13 @@ export class FolderDeltaHelper {
     // The file is gone now and was already gone at T: there is nothing to show
     // on this row for this point in time. The folder tree filters these out.
     if (!existsNow && !existedAtT) {
-      return { status: 'none', base: [], current: [] };
+      return { status: FolderDeltaStatus.none, base: [], current: [] };
     }
 
     // The file did not exist at T but exists now (created or moved in later).
     // No base content to diff against; the diff renders as "everything green".
     if (!existedAtT) {
-      return { status: 'added', base: [], current };
+      return { status: FolderDeltaStatus.added, base: [], current };
     }
 
     const base: string[] = FolderDeltaHelper.resolveBaseAt(snapshot, timestamp);
@@ -93,13 +82,13 @@ export class FolderDeltaHelper {
     // The file existed at T and is gone now (a tombstone deleted after T): the
     // diff renders as "everything red" against the base content at T.
     if (!existsNow) {
-      return { status: 'deleted', base, current: [] };
+      return { status: FolderDeltaStatus.deleted, base, current: [] };
     }
 
     // Both sides exist: an actual line-by-line comparison decides whether the
     // row is `modified` or `none` so the tree skips visually-equal files.
     return {
-      status: FolderDeltaHelper.contentEquals(base, current) ? 'none' : 'modified',
+      status: FolderDeltaHelper.contentEquals(base, current) ? FolderDeltaStatus.none : FolderDeltaStatus.modified,
       base,
       current,
     };

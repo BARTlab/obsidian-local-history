@@ -1,4 +1,9 @@
-import { DEFAULT_LINE_BREAK, DiffOutputFormatType } from '@/consts';
+import {
+  DEFAULT_LINE_BREAK,
+  DiffOutputFormatType,
+  FolderDeltaStatus,
+  FolderTimelinePointKind,
+} from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { FolderTreeComponent, type FolderTreeEntry } from '@/components/folder-tree.component';
 import { DiffRenderHelper, type DiffRenderMode } from '@/helpers/diff-render.helper';
@@ -6,7 +11,6 @@ import { DomHelper } from '@/helpers/dom.helper';
 import {
   FolderDeltaHelper,
   type FolderDeltaResult,
-  type FolderDeltaStatus,
 } from '@/helpers/folder-delta.helper';
 import {
   FolderTimelineHelper,
@@ -629,7 +633,7 @@ export class FolderHistoryModal extends Modal {
    * @return {boolean} True when the underlying version is flagged external
    */
   protected isExternalPoint(point: FolderTimelinePoint): boolean {
-    if (point.kind !== 'capture' || !point.versionId) {
+    if (point.kind !== FolderTimelinePointKind.capture || !point.versionId) {
       return false;
     }
 
@@ -713,11 +717,11 @@ export class FolderHistoryModal extends Modal {
    */
   protected kindLabel(kind: FolderTimelinePoint['kind']): string {
     switch (kind) {
-      case 'capture':
+      case FolderTimelinePointKind.capture:
         return this.plugin.t('modal.folder.timeline.capture');
-      case 'delete':
+      case FolderTimelinePointKind.delete:
         return this.plugin.t('modal.folder.timeline.delete');
-      case 'move-in':
+      case FolderTimelinePointKind.moveIn:
         return this.plugin.t('modal.folder.timeline.move-in');
       default:
         return kind;
@@ -950,7 +954,7 @@ export class FolderHistoryModal extends Modal {
       return;
     }
 
-    if (selection.snapshot.isTombstone() && selection.result.status === 'deleted') {
+    if (selection.snapshot.isTombstone() && selection.result.status === FolderDeltaStatus.deleted) {
       await this.restoreTombstoneSelection(selection.path, selection.snapshot, selection.result);
       this.resyncTimeline();
       this.refreshTree();
@@ -1247,11 +1251,11 @@ export class FolderHistoryModal extends Modal {
     }
 
     switch (result.status) {
-      case 'added':
+      case FolderDeltaStatus.added:
         return this.plugin.t('modal.folder.notice.added');
-      case 'deleted':
+      case FolderDeltaStatus.deleted:
         return this.plugin.t('modal.folder.notice.deleted');
-      case 'none':
+      case FolderDeltaStatus.none:
         return this.plugin.t('modal.folder.notice.unchanged');
       default:
         return null;
@@ -1335,7 +1339,7 @@ export class FolderHistoryModal extends Modal {
     const snapshot: FileSnapshot | undefined = this.snapshotsByPath.get(path);
 
     if (!snapshot) {
-      return 'none';
+      return FolderDeltaStatus.none;
     }
 
     return FolderDeltaHelper.compareAt(snapshot, this.selectedTimestamp).status;

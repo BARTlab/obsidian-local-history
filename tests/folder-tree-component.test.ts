@@ -1,6 +1,7 @@
 /** @jest-environment jsdom */
 
 import { describe, expect, it, beforeAll, beforeEach } from '@jest/globals';
+import { FolderDeltaStatus } from '@/consts';
 import { FolderTreeComponent, type FolderTreeEntry } from '@/components/folder-tree.component';
 
 /**
@@ -65,11 +66,11 @@ describe('FolderTreeComponent', () => {
    * @return {FolderTreeEntry[]} The fixture entries
    */
   const fixture = (): FolderTreeEntry[] => [
-    { path: 'notes/sub/added.md', status: 'added' },
-    { path: 'notes/direct-modified.md', status: 'modified' },
-    { path: 'notes/sub/deleted.md', status: 'deleted' },
-    { path: 'notes/unchanged.md', status: 'none' },
-    { path: 'notes/other/unchanged-deep.md', status: 'none' },
+    { path: 'notes/sub/added.md', status: FolderDeltaStatus.added },
+    { path: 'notes/direct-modified.md', status: FolderDeltaStatus.modified },
+    { path: 'notes/sub/deleted.md', status: FolderDeltaStatus.deleted },
+    { path: 'notes/unchanged.md', status: FolderDeltaStatus.none },
+    { path: 'notes/other/unchanged-deep.md', status: FolderDeltaStatus.none },
   ];
 
   describe('AC1: only changed files plus their ancestor folders render', () => {
@@ -96,8 +97,8 @@ describe('FolderTreeComponent', () => {
 
     it('drops entries that lie outside the root prefix', (): void => {
       const entries: FolderTreeEntry[] = [
-        { path: 'notes/inside.md', status: 'added' },
-        { path: 'other/outside.md', status: 'added' },
+        { path: 'notes/inside.md', status: FolderDeltaStatus.added },
+        { path: 'other/outside.md', status: FolderDeltaStatus.added },
       ];
 
       component.update({ entries, rootPath: 'notes' });
@@ -112,8 +113,8 @@ describe('FolderTreeComponent', () => {
 
     it('treats an empty root path as the whole vault', (): void => {
       const entries: FolderTreeEntry[] = [
-        { path: 'a.md', status: 'modified' },
-        { path: 'sub/b.md', status: 'added' },
+        { path: 'a.md', status: FolderDeltaStatus.modified },
+        { path: 'sub/b.md', status: FolderDeltaStatus.added },
       ];
 
       component.update({ entries, rootPath: '' });
@@ -247,8 +248,8 @@ describe('FolderTreeComponent', () => {
 
     it('renders the empty hint when every entry has status none', (): void => {
       const entries: FolderTreeEntry[] = [
-        { path: 'notes/a.md', status: 'none' },
-        { path: 'notes/sub/b.md', status: 'none' },
+        { path: 'notes/a.md', status: FolderDeltaStatus.none },
+        { path: 'notes/sub/b.md', status: FolderDeltaStatus.none },
       ];
 
       component.update({ entries, rootPath: 'notes' });

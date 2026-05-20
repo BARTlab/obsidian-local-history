@@ -1,4 +1,4 @@
-import { DiffOutputFormatType } from '@/consts';
+import { DiffOutputFormatType, DiffViewMode } from '@/consts';
 import { DomHelper } from '@/helpers/dom.helper';
 import { HunkHelper } from '@/helpers/hunk.helper';
 import { type InlineDiffLine, WordDiffHelper } from '@/helpers/word-diff.helper';
@@ -8,12 +8,12 @@ import * as Diff2Html from 'diff2html';
 import { Notice, setIcon } from 'obsidian';
 
 /**
- * The four supported diff display modes. `'patch'` renders the textual unified
- * patch, `'inline'` renders word-level highlights inside modified lines, and the
- * two {@link DiffOutputFormatType} values render the diff2html line-by-line or
- * side-by-side views.
+ * The four supported diff display modes. The two {@link DiffViewMode} values
+ * render the textual unified patch and the word-level inline highlights, and
+ * the two {@link DiffOutputFormatType} values render the diff2html line-by-line
+ * or side-by-side views.
  */
-export type DiffRenderMode = 'patch' | 'inline' | DiffOutputFormatType;
+export type DiffRenderMode = DiffViewMode | DiffOutputFormatType;
 
 /**
  * Minimal translator surface the helper needs. Matches `LineChangeTrackerPlugin.t`
@@ -86,11 +86,11 @@ export class DiffRenderHelper {
     );
 
     switch (params.mode) {
-      case 'patch':
+      case DiffViewMode.patch:
         DiffRenderHelper.renderPatch(params);
 
         break;
-      case 'inline':
+      case DiffViewMode.inline:
         DiffRenderHelper.renderInline(params);
 
         break;

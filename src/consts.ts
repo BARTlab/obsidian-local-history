@@ -39,6 +39,29 @@ export enum DiffOutputFormatType {
 }
 
 /**
+ * The two text-oriented diff views the history modals render directly, as
+ * opposed to the diff2html-backed {@link DiffOutputFormatType} views. `patch`
+ * shows the unified clean patch text and `inline` shows word-level highlights
+ * inside modified lines. The member values are the literal mode strings the
+ * modals interpolate into `modal.mode.${mode}` translation lookups, so they
+ * must stay byte-equal.
+ */
+export enum DiffViewMode {
+  patch = 'patch',
+  inline = 'inline',
+}
+
+/**
+ * Which end of the version list the Home/End keys jump the selection to.
+ * `first` selects the topmost (newest) entry, `last` the bottommost (the
+ * synthetic baseline or the oldest version).
+ */
+export enum VersionListEdge {
+  first = 'first',
+  last = 'last',
+}
+
+/**
  * Direction in which to walk the set of changed lines when navigating.
  */
 export enum NavigationDirection {

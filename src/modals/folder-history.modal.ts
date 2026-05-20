@@ -1,6 +1,7 @@
 import {
   DEFAULT_LINE_BREAK,
   DiffOutputFormatType,
+  DiffViewMode,
   FolderDeltaStatus,
   FolderTimelinePointKind,
 } from '@/consts';
@@ -393,7 +394,7 @@ export class FolderHistoryModal extends Modal {
       icon: 'file-text',
       label: this.plugin.t('modal.mode.patch'),
       onClick: (): void => {
-        this.setDisplayMode('patch');
+        this.setDisplayMode(DiffViewMode.patch);
       },
     });
 
@@ -401,7 +402,7 @@ export class FolderHistoryModal extends Modal {
       icon: 'pilcrow',
       label: this.plugin.t('modal.mode.inline'),
       onClick: (): void => {
-        this.setDisplayMode('inline');
+        this.setDisplayMode(DiffViewMode.inline);
       },
     });
 
@@ -509,9 +510,9 @@ export class FolderHistoryModal extends Modal {
    */
   protected getActiveModeButton(): HTMLElement | undefined {
     switch (this.currentDisplayMode) {
-      case 'patch':
+      case DiffViewMode.patch:
         return this.modeButtons.patch;
-      case 'inline':
+      case DiffViewMode.inline:
         return this.modeButtons.inline;
       case DiffOutputFormatType.line:
         return this.modeButtons.lineByLine;

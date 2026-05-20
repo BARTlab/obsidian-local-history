@@ -132,6 +132,44 @@ export enum FolderDeltaStatus {
 }
 
 /**
+ * The kind of change a single line represents in the inline (word-level) diff
+ * view. `context` is an unchanged line, `added` a pure addition, `removed` a
+ * pure removal, and `modified` a removed/added pair that stand for the same
+ * logical line so the renderer can show word-level spans for each side. This is
+ * a distinct domain from {@link ChangeType} (the gutter change kinds), so it is
+ * its own enum.
+ */
+export enum WordDiffLineType {
+  context = 'context',
+  added = 'added',
+  removed = 'removed',
+  modified = 'modified',
+}
+
+/**
+ * Which CodeMirror surface an extension binds to. `editor` extensions are
+ * `ViewPlugin` instances and `gutter` extensions are gutter configurations; the
+ * extensions service uses this to pick the right factory overload.
+ */
+export enum ExtensionKind {
+  editor = 'editor',
+  gutter = 'gutter',
+}
+
+/**
+ * The mutation an {@link ObservableMap} notifies its listeners about. `set`,
+ * `delete`, and `clear` mirror the overridden map methods, and `update` is a
+ * manual notification a holder fires when a value mutates in place without a
+ * key reassignment.
+ */
+export enum MapChangeAction {
+  set = 'set',
+  delete = 'delete',
+  clear = 'clear',
+  update = 'update',
+}
+
+/**
  * Default settings for the Line Change Tracker plugin.
  * Defines initial values for all configurable options including
  * - Indicator type (line or dot)

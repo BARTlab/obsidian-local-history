@@ -1,4 +1,4 @@
-import { PluginEvent } from '@/consts';
+import { MapChangeAction, PluginEvent } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { PathExcludeHelper } from '@/helpers/path-exclude.helper';
 import { PathHelper } from '@/helpers/path.helper';
@@ -413,7 +413,7 @@ export class SnapshotsService implements Service {
    * @return {void}
    */
   public forceUpdate(): void {
-    return this.fileSnapshots.next('update');
+    return this.fileSnapshots.next(MapChangeAction.update);
   }
 
   /**

@@ -1,12 +1,5 @@
 import * as Diff from 'diff';
-
-/**
- * Discriminator for the action a version represents relative to its previous
- * point on the timeline. Mirrors the three semantic transitions the user cares
- * about in the rail and panel: a non-empty content born from emptiness, a
- * non-empty content blanked out, and any other content-changing diff.
- */
-export type VersionAction = 'created' | 'modified' | 'cleared';
+import { VersionAction } from '@/consts';
 
 /**
  * The pure result of describing a version. Carries the discriminator plus the
@@ -66,14 +59,14 @@ export class VersionLabelHelper {
     const { added, removed }: { added: number; removed: number } = VersionLabelHelper.countDelta(previous, current);
 
     if (previousEmpty && !currentEmpty) {
-      return { kind: 'created', added, removed };
+      return { kind: VersionAction.created, added, removed };
     }
 
     if (!previousEmpty && currentEmpty) {
-      return { kind: 'cleared', added, removed };
+      return { kind: VersionAction.cleared, added, removed };
     }
 
-    return { kind: 'modified', added, removed };
+    return { kind: VersionAction.modified, added, removed };
   }
 
   /**

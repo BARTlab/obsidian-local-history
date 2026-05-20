@@ -1,4 +1,5 @@
 import { BaseCommand } from '@/commands/base.command';
+import { NavigationDirection } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { NavigationHelper } from '@/helpers/navigation.helper';
 import type { SnapshotsService } from '@/services/snapshots.service';
@@ -51,7 +52,8 @@ export class GoToPreviousChangeCommand extends BaseCommand implements Command {
       return;
     }
 
-    const target: number | null = NavigationHelper.target(positions, editor.getCursor().line, 'previous');
+    const cursorLine: number = editor.getCursor().line;
+    const target: number | null = NavigationHelper.target(positions, cursorLine, NavigationDirection.previous);
 
     if (target === null) {
       return;

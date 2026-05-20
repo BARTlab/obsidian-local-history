@@ -1,9 +1,4 @@
-/**
- * Direction in which to walk a flat selection list with the keyboard. `down`
- * moves toward the end of the list (the visually lower entry), `up` toward the
- * start.
- */
-export type ListSelectionDirection = 'up' | 'down';
+import { ListSelectionDirection } from '@/consts';
 
 /**
  * Pure helper backing the history modal's keyboard navigation of the version
@@ -37,7 +32,8 @@ export class ListSelectionHelper {
     // moves back into the visible entries instead of dead-ending.
     const found: number = list.indexOf(currentId);
     const start: number = found === -1 ? 0 : found;
-    const next: number = Math.max(0, Math.min(list.length - 1, start + (direction === 'down' ? 1 : -1)));
+    const step: number = direction === ListSelectionDirection.down ? 1 : -1;
+    const next: number = Math.max(0, Math.min(list.length - 1, start + step));
 
     return list[next];
   }

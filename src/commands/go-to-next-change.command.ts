@@ -1,4 +1,5 @@
 import { BaseCommand } from '@/commands/base.command';
+import { NavigationDirection } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { NavigationHelper } from '@/helpers/navigation.helper';
 import type { SnapshotsService } from '@/services/snapshots.service';
@@ -51,7 +52,7 @@ export class GoToNextChangeCommand extends BaseCommand implements Command {
       return;
     }
 
-    const target: number | null = NavigationHelper.target(positions, editor.getCursor().line, 'next');
+    const target: number | null = NavigationHelper.target(positions, editor.getCursor().line, NavigationDirection.next);
 
     if (target === null) {
       return;

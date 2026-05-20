@@ -39,6 +39,24 @@ export enum DiffOutputFormatType {
 }
 
 /**
+ * Direction in which to walk the set of changed lines when navigating.
+ */
+export enum NavigationDirection {
+  next = 'next',
+  previous = 'previous',
+}
+
+/**
+ * Direction in which to walk a flat selection list with the keyboard. `down`
+ * moves toward the end of the list (the visually lower entry), `up` toward the
+ * start.
+ */
+export enum ListSelectionDirection {
+  up = 'up',
+  down = 'down',
+}
+
+/**
  * Default settings for the Line Change Tracker plugin.
  * Defines initial values for all configurable options including
  * - Indicator type (line or dot)

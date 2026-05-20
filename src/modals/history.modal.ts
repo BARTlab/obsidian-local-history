@@ -1,11 +1,11 @@
-import { DIFF_SCROLL_STEP_PX, DiffOutputFormatType, ORIGINAL_BASE_ID } from '@/consts';
+import { DIFF_SCROLL_STEP_PX, DiffOutputFormatType, ListSelectionDirection, NavigationDirection, ORIGINAL_BASE_ID } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { BaseContentHelper } from '@/helpers/base-content.helper';
 import { DiffRenderHelper } from '@/helpers/diff-render.helper';
 import { DomHelper } from '@/helpers/dom.helper';
 import { HunkHelper } from '@/helpers/hunk.helper';
-import { type ListSelectionDirection, ListSelectionHelper } from '@/helpers/list-selection.helper';
-import { type NavigationDirection, NavigationHelper } from '@/helpers/navigation.helper';
+import { ListSelectionHelper } from '@/helpers/list-selection.helper';
+import { NavigationHelper } from '@/helpers/navigation.helper';
 import { type SearchableVersion, VersionSearchHelper } from '@/helpers/version-search.helper';
 import { type VersionDescription, VersionLabelHelper } from '@/helpers/version-label.helper';
 import type LineChangeTrackerPlugin from '@/main';
@@ -479,12 +479,12 @@ export class HistoryModal extends Modal {
     switch (event.key) {
       case 'ArrowDown':
         event.preventDefault();
-        this.moveVersionSelection('down');
+        this.moveVersionSelection(ListSelectionDirection.down);
 
         return;
       case 'ArrowUp':
         event.preventDefault();
-        this.moveVersionSelection('up');
+        this.moveVersionSelection(ListSelectionDirection.up);
 
         return;
       case 'Home':
@@ -1084,7 +1084,7 @@ export class HistoryModal extends Modal {
       icon: 'chevron-up',
       label: this.plugin.t('modal.previous-difference'),
       onClick: (): void => {
-        this.goToDifference('previous');
+        this.goToDifference(NavigationDirection.previous);
       },
     });
 
@@ -1092,7 +1092,7 @@ export class HistoryModal extends Modal {
       icon: 'chevron-down',
       label: this.plugin.t('modal.next-difference'),
       onClick: (): void => {
-        this.goToDifference('next');
+        this.goToDifference(NavigationDirection.next);
       },
     });
 

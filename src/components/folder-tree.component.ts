@@ -1,5 +1,5 @@
+import { FolderDeltaStatus } from '@/consts';
 import { DomHelper } from '@/helpers/dom.helper';
-import type { FolderDeltaStatus } from '@/helpers/folder-delta.helper';
 import type {
   DomElementConfig,
   FolderTreeNode,
@@ -261,7 +261,11 @@ export class FolderTreeComponent {
         return;
       }
 
-      if (entry.status !== 'added' && entry.status !== 'modified' && entry.status !== 'deleted') {
+      if (
+        entry.status !== FolderDeltaStatus.added
+        && entry.status !== FolderDeltaStatus.modified
+        && entry.status !== FolderDeltaStatus.deleted
+      ) {
         return;
       }
 
@@ -703,11 +707,11 @@ export class FolderTreeComponent {
    * @return {string} The CSS class for the row's colour token
    */
   protected statusClassName(status: FolderDeltaStatus | undefined): string {
-    if (status === 'added') {
+    if (status === FolderDeltaStatus.added) {
       return 'lct-tree-added';
     }
 
-    if (status === 'deleted') {
+    if (status === FolderDeltaStatus.deleted) {
       return 'lct-tree-deleted';
     }
 

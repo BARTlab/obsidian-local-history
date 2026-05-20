@@ -1,16 +1,7 @@
+import { FolderTimelinePointKind } from '@/consts';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 
-/**
- * Discriminator for the three kinds of points that make up a folder timeline.
- *
- * - `'capture'` is a per-file version captured by the cadence (or a labelled
- *   capture), so the timeline lists one point per `FileVersion.timestamp`.
- * - `'delete'` is a tombstone point, taken from `FileSnapshot.deletedTimestamp`
- *   when the snapshot represents a deleted file (D1).
- * - `'move-in'` is a move-in point, taken from `FileSnapshot.movedIntoAt` when
- *   the snapshot was re-keyed to a new path by a cross-directory move (D2).
- */
-export type FolderTimelinePointKind = 'capture' | 'delete' | 'move-in';
+export { FolderTimelinePointKind } from '@/consts';
 
 /**
  * A single point in the folder timeline. `timestamp` is the moment the event
@@ -94,7 +85,7 @@ export class FolderTimelineHelper {
         points.push({
           timestamp: version.timestamp,
           path,
-          kind: 'capture',
+          kind: FolderTimelinePointKind.capture,
           dayKey: FolderTimelineHelper.dayKeyOf(version.timestamp),
           versionId: version.id,
         });
@@ -104,7 +95,7 @@ export class FolderTimelineHelper {
         points.push({
           timestamp: snapshot.deletedTimestamp,
           path,
-          kind: 'delete',
+          kind: FolderTimelinePointKind.delete,
           dayKey: FolderTimelineHelper.dayKeyOf(snapshot.deletedTimestamp),
         });
       }
@@ -113,7 +104,7 @@ export class FolderTimelineHelper {
         points.push({
           timestamp: snapshot.movedIntoAt,
           path,
-          kind: 'move-in',
+          kind: FolderTimelinePointKind.moveIn,
           dayKey: FolderTimelineHelper.dayKeyOf(snapshot.movedIntoAt),
         });
       }

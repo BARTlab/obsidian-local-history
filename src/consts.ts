@@ -71,6 +71,44 @@ export enum VersionAction {
 }
 
 /**
+ * Discriminator for the three kinds of points that make up a folder timeline.
+ * The member values are the literal kind strings the folder modal interpolates
+ * into `modal.folder.timeline.${kind}` translation lookups, so they must stay
+ * byte-equal.
+ *
+ * - `capture` is a per-file version captured by the cadence (or a labelled
+ *   capture), so the timeline lists one point per `FileVersion.timestamp`.
+ * - `delete` is a tombstone point, taken from `FileSnapshot.deletedTimestamp`
+ *   when the snapshot represents a deleted file (D1).
+ * - `moveIn` is a move-in point, taken from `FileSnapshot.movedIntoAt` when the
+ *   snapshot was re-keyed to a new path by a cross-directory move (D2).
+ */
+export enum FolderTimelinePointKind {
+  capture = 'capture',
+  delete = 'delete',
+  moveIn = 'move-in',
+}
+
+/**
+ * Per-file status reported by `FolderDeltaHelper.compareAt` (D8). One of:
+ *
+ * - `added` - the file did not exist at T but exists now (or was moved into the
+ *   folder after T). The base is empty; the current is the live content.
+ * - `modified` - the file existed at T with a different content than now.
+ * - `deleted` - the file existed at T but is gone now (a tombstone whose
+ *   `deletedTimestamp` is after T). The base is the content at T; the current
+ *   is empty.
+ * - `none` - no diff worth showing at T: identical content for a live snapshot,
+ *   or a tombstone that was already deleted before T.
+ */
+export enum FolderDeltaStatus {
+  added = 'added',
+  modified = 'modified',
+  deleted = 'deleted',
+  none = 'none',
+}
+
+/**
  * Default settings for the Line Change Tracker plugin.
  * Defines initial values for all configurable options including
  * - Indicator type (line or dot)

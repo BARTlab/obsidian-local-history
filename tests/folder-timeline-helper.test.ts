@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { describe, expect, it } from '@jest/globals';
 
+import { FolderTimelinePointKind } from '@/consts';
 import { FolderTimelineHelper, type FolderTimelinePoint } from '@/helpers/folder-timeline.helper';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import { FileVersion } from '@/snapshots/file.version';
@@ -74,7 +75,7 @@ describe('FolderTimelineHelper.synthesize - kinds emitted', () => {
     const points: FolderTimelinePoint[] = FolderTimelineHelper.synthesize([snapshot], 'root');
 
     expect(points).toHaveLength(2);
-    expect(points.every((point: FolderTimelinePoint): boolean => point.kind === 'capture')).toBe(true);
+    expect(points.every((point: FolderTimelinePoint): boolean => point.kind === FolderTimelinePointKind.capture)).toBe(true);
     expect(points.map((point: FolderTimelinePoint): number => point.timestamp)).toEqual([2_000, 1_000]);
     expect(points.every((point: FolderTimelinePoint): boolean => point.path === 'root/a.md')).toBe(true);
   });
@@ -85,7 +86,7 @@ describe('FolderTimelineHelper.synthesize - kinds emitted', () => {
     const points: FolderTimelinePoint[] = FolderTimelineHelper.synthesize([tombstone], 'root');
 
     expect(points).toEqual([
-      expect.objectContaining({ kind: 'delete', timestamp: 5_000, path: 'root/gone.md' }),
+      expect.objectContaining({ kind: FolderTimelinePointKind.delete, timestamp: 5_000, path: 'root/gone.md' }),
     ]);
   });
 
@@ -97,7 +98,7 @@ describe('FolderTimelineHelper.synthesize - kinds emitted', () => {
     const points: FolderTimelinePoint[] = FolderTimelineHelper.synthesize([snapshot], 'root');
 
     expect(points).toEqual([
-      expect.objectContaining({ kind: 'move-in', timestamp: 7_000, path: 'root/moved.md' }),
+      expect.objectContaining({ kind: FolderTimelinePointKind.moveIn, timestamp: 7_000, path: 'root/moved.md' }),
     ]);
   });
 
@@ -114,7 +115,12 @@ describe('FolderTimelineHelper.synthesize - kinds emitted', () => {
     expect(points).toHaveLength(4);
     expect(points.map((point: FolderTimelinePoint): number => point.timestamp))
       .toEqual([9_000, 3_000, 2_000, 1_000]);
-    expect(kinds).toEqual(['delete', 'capture', 'move-in', 'capture']);
+    expect(kinds).toEqual([
+      FolderTimelinePointKind.delete,
+      FolderTimelinePointKind.capture,
+      FolderTimelinePointKind.moveIn,
+      FolderTimelinePointKind.capture,
+    ]);
   });
 });
 
@@ -126,9 +132,9 @@ describe('FolderTimelineHelper.synthesize - capture point carries its version id
 
     const points: FolderTimelinePoint[] = FolderTimelineHelper.synthesize([snapshot], 'root');
     const byKind: Record<string, FolderTimelinePoint | undefined> = {
-      capture: points.find((point: FolderTimelinePoint): boolean => point.kind === 'capture'),
-      delete: points.find((point: FolderTimelinePoint): boolean => point.kind === 'delete'),
-      'move-in': points.find((point: FolderTimelinePoint): boolean => point.kind === 'move-in'),
+      capture: points.find((point: FolderTimelinePoint): boolean => point.kind === FolderTimelinePointKind.capture),
+      delete: points.find((point: FolderTimelinePoint): boolean => point.kind === FolderTimelinePointKind.delete),
+      'move-in': points.find((point: FolderTimelinePoint): boolean => point.kind === FolderTimelinePointKind.moveIn),
     };
 
     expect(byKind.capture?.versionId).toBe(snapshot.versions[0].id);
@@ -209,7 +215,7 @@ describe('FolderTimelineHelper.synthesize - ordering', () => {
     const points: FolderTimelinePoint[] = FolderTimelineHelper.synthesize([snapshot], 'root');
 
     expect(points.map((point: FolderTimelinePoint): FolderTimelinePointKind => point.kind))
-      .toEqual(['capture', 'delete']);
+      .toEqual([FolderTimelinePointKind.capture, FolderTimelinePointKind.delete]);
   });
 });
 
@@ -258,6 +264,3 @@ describe('FolderTimelineHelper.synthesize - day grouping keys', () => {
     expect(points[0].dayKey).toBe(version.getDate());
   });
 });
-
-// Local re-export so the test file's inline annotations stay self-contained.
-type FolderTimelinePointKind = FolderTimelinePoint['kind'];

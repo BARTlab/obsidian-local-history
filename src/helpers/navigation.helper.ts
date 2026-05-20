@@ -1,9 +1,5 @@
 import type { Editor } from 'obsidian';
-
-/**
- * Direction in which to walk the set of changed lines when navigating.
- */
-export type NavigationDirection = 'next' | 'previous';
+import { NavigationDirection } from '@/consts';
 
 /**
  * Pure helper that picks the changed line a navigation command should jump to.
@@ -45,7 +41,7 @@ export class NavigationHelper {
       return null;
     }
 
-    if (direction === 'next') {
+    if (direction === NavigationDirection.next) {
       const ahead: number | undefined = sorted.find((line: number): boolean => line > cursorLine);
 
       // Wrap to the first change when nothing lies strictly after the cursor.

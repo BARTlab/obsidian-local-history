@@ -1,5 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
-import { type ListSelectionDirection, ListSelectionHelper } from '@/helpers/list-selection.helper';
+import { ListSelectionDirection } from '@/consts';
+import { ListSelectionHelper } from '@/helpers/list-selection.helper';
 
 /**
  * Tests for the history modal's keyboard navigation of the version rail. They
@@ -24,25 +25,25 @@ describe('ListSelectionHelper.step', () => {
 
   describe('down', () => {
     it('moves to the next entry below', () => {
-      expect(step('original', 'down')).toBe('v3');
-      expect(step('v3', 'down')).toBe('v2');
-      expect(step('v2', 'down')).toBe('v1');
+      expect(step('original', ListSelectionDirection.down)).toBe('v3');
+      expect(step('v3', ListSelectionDirection.down)).toBe('v2');
+      expect(step('v2', ListSelectionDirection.down)).toBe('v1');
     });
 
     it('clamps on the last entry', () => {
-      expect(step('v1', 'down')).toBe('v1');
+      expect(step('v1', ListSelectionDirection.down)).toBe('v1');
     });
   });
 
   describe('up', () => {
     it('moves to the entry above', () => {
-      expect(step('v1', 'up')).toBe('v2');
-      expect(step('v2', 'up')).toBe('v3');
-      expect(step('v3', 'up')).toBe('original');
+      expect(step('v1', ListSelectionDirection.up)).toBe('v2');
+      expect(step('v2', ListSelectionDirection.up)).toBe('v3');
+      expect(step('v3', ListSelectionDirection.up)).toBe('original');
     });
 
     it('clamps on the first entry (the baseline)', () => {
-      expect(step('original', 'up')).toBe('original');
+      expect(step('original', ListSelectionDirection.up)).toBe('original');
     });
   });
 
@@ -50,22 +51,22 @@ describe('ListSelectionHelper.step', () => {
     it('starts from the top when the current id is not in the list', () => {
       // A selection hidden by the rail filter: down lands on the first entry, up
       // stays clamped at the top.
-      expect(step('missing', 'down')).toBe('v3');
-      expect(step('missing', 'up')).toBe('original');
+      expect(step('missing', ListSelectionDirection.down)).toBe('v3');
+      expect(step('missing', ListSelectionDirection.up)).toBe('original');
     });
 
     it('resolves to the only entry in either direction', () => {
-      expect(ListSelectionHelper.step(['original'], 'original', 'down')).toBe('original');
-      expect(ListSelectionHelper.step(['original'], 'original', 'up')).toBe('original');
+      expect(ListSelectionHelper.step(['original'], 'original', ListSelectionDirection.down)).toBe('original');
+      expect(ListSelectionHelper.step(['original'], 'original', ListSelectionDirection.up)).toBe('original');
     });
 
     it('yields no target for an empty list, so an arrow press is a no-op', () => {
-      expect(ListSelectionHelper.step([], 'original', 'down')).toBeNull();
-      expect(ListSelectionHelper.step([], 'original', 'up')).toBeNull();
+      expect(ListSelectionHelper.step([], 'original', ListSelectionDirection.down)).toBeNull();
+      expect(ListSelectionHelper.step([], 'original', ListSelectionDirection.up)).toBeNull();
     });
 
     it('tolerates a nullish list', () => {
-      expect(ListSelectionHelper.step(undefined as unknown as string[], 'original', 'down')).toBeNull();
+      expect(ListSelectionHelper.step(undefined as unknown as string[], 'original', ListSelectionDirection.down)).toBeNull();
     });
   });
 });

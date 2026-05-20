@@ -1,5 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
-import { type NavigationDirection, NavigationHelper } from '@/helpers/navigation.helper';
+import { NavigationDirection } from '@/consts';
+import { NavigationHelper } from '@/helpers/navigation.helper';
 
 /**
  * Tests for the history modal next/previous difference navigation (T08). The
@@ -35,48 +36,48 @@ describe('history modal difference navigation (hunk-index selection)', () => {
     return NavigationHelper.target(indices, activeIndex, direction);
   };
 
-  describe('next', () => {
+  describe(NavigationDirection.next, () => {
     it('focuses the first hunk when nothing is focused yet', () => {
-      expect(step(3, -1, 'next')).toBe(0);
+      expect(step(3, -1, NavigationDirection.next)).toBe(0);
     });
 
     it('advances to the following hunk', () => {
-      expect(step(3, 0, 'next')).toBe(1);
-      expect(step(3, 1, 'next')).toBe(2);
+      expect(step(3, 0, NavigationDirection.next)).toBe(1);
+      expect(step(3, 1, NavigationDirection.next)).toBe(2);
     });
 
     it('wraps from the last hunk back to the first', () => {
-      expect(step(3, 2, 'next')).toBe(0);
+      expect(step(3, 2, NavigationDirection.next)).toBe(0);
     });
   });
 
-  describe('previous', () => {
+  describe(NavigationDirection.previous, () => {
     it('focuses the last hunk when nothing is focused yet', () => {
       // The cursor at -1 lies before every index, so "previous" wraps to the end.
-      expect(step(3, -1, 'previous')).toBe(2);
+      expect(step(3, -1, NavigationDirection.previous)).toBe(2);
     });
 
     it('retreats to the preceding hunk', () => {
-      expect(step(3, 2, 'previous')).toBe(1);
-      expect(step(3, 1, 'previous')).toBe(0);
+      expect(step(3, 2, NavigationDirection.previous)).toBe(1);
+      expect(step(3, 1, NavigationDirection.previous)).toBe(0);
     });
 
     it('wraps from the first hunk back to the last', () => {
-      expect(step(3, 0, 'previous')).toBe(2);
+      expect(step(3, 0, NavigationDirection.previous)).toBe(2);
     });
   });
 
   describe('edge cases', () => {
     it('always resolves to the only hunk in either direction', () => {
-      expect(step(1, -1, 'next')).toBe(0);
-      expect(step(1, -1, 'previous')).toBe(0);
-      expect(step(1, 0, 'next')).toBe(0);
-      expect(step(1, 0, 'previous')).toBe(0);
+      expect(step(1, -1, NavigationDirection.next)).toBe(0);
+      expect(step(1, -1, NavigationDirection.previous)).toBe(0);
+      expect(step(1, 0, NavigationDirection.next)).toBe(0);
+      expect(step(1, 0, NavigationDirection.previous)).toBe(0);
     });
 
     it('yields no target when there are no hunks, so navigation is a no-op', () => {
-      expect(step(0, -1, 'next')).toBeNull();
-      expect(step(0, -1, 'previous')).toBeNull();
+      expect(step(0, -1, NavigationDirection.next)).toBeNull();
+      expect(step(0, -1, NavigationDirection.previous)).toBeNull();
     });
   });
 });

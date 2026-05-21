@@ -1,9 +1,10 @@
-import { ChangeType, MS_PER_DAY } from '@/consts';
+import { ChangeType } from '@/consts';
 import { TextHelper } from '@/helpers/text.helper';
 import { ChangeLine } from '@/lines/change.line';
 import { TrackerLine } from '@/lines/tracker.line';
 import { ArrayMap } from '@/maps/array.map';
 import { FileVersion } from '@/snapshots/file.version';
+import { VersionTimeline } from '@/snapshots/version-timeline';
 import type { KeysMatching, SerializedFileSnapshot, SnapshotCaptureOptions, TrackerLineParams } from '@/types';
 import { isArray, isNumber, isString } from 'lodash-es';
 import type { TFile } from 'obsidian';
@@ -88,17 +89,13 @@ export class FileSnapshot {
   public versions: FileVersion[] = [];
 
   /**
-   * Number of state updates accumulated since the last captured version.
-   * Drives the edit-count gate of the capture cadence so versions are taken
-   * every N edits rather than on every keystroke-driven update.
+   * The version-timeline collaborator that owns the capture cadence, the no-op
+   * dedup, and the age/count eviction. It is a stateless operator over the
+   * façade-owned `versions` array (which external code assigns and mutates), so
+   * the façade passes that array in and writes the result back; the collaborator
+   * holds only the cadence counters.
    */
-  protected editsSinceVersion: number = 0;
-
-  /**
-   * Timestamp (ms) of the last captured version, or the snapshot creation time
-   * when no version has been captured yet. Drives the time gate of the cadence.
-   */
-  protected lastVersionAt: number = Date.now();
+  protected timeline: VersionTimeline = new VersionTimeline();
 
   /**
    * Line break character used in the file.
@@ -320,131 +317,21 @@ export class FileSnapshot {
     force: boolean = false,
     label?: string,
   ): FileVersion | null {
-    if (!options?.enabled || !isArray(previousLines)) {
-      return null;
-    }
+    const result = this.timeline.capture(
+      {
+        versions: this.versions,
+        historyBaseline: this.getHistoryOriginalState(),
+        lineBreak: this.lineBreak,
+        options,
+      },
+      previousLines,
+      force,
+      label,
+    );
 
-    const labeled: boolean = typeof label === 'string' && label.length > 0;
+    this.versions = result.versions;
 
-    this.editsSinceVersion += 1;
-
-    if (!force && !this.isVersionDue(options)) {
-      return null;
-    }
-
-    // Skip a capture that would duplicate the latest stored version, or the
-    // original baseline when the timeline is still empty. The cadence counters
-    // are intentionally left untouched so the next genuinely diverging edit is
-    // captured immediately rather than waiting out the gate again. A label
-    // bypasses the dedup: an intentional marker must land even on no-op content.
-    if (!labeled && this.isDuplicateOfLatest(previousLines)) {
-      return null;
-    }
-
-    return this.pushVersion(new FileVersion(previousLines, undefined, label), options);
-  }
-
-  /**
-   * Whether the given content equals the latest stored version, or the original
-   * baseline when no version exists yet. Used to skip a no-op capture so the
-   * timeline never holds an adjacent duplicate or a first version identical to
-   * the original.
-   *
-   * @param {string[]} lines - The candidate content to freeze
-   * @return {boolean} True when the candidate duplicates the latest base
-   */
-  protected isDuplicateOfLatest(lines: string[]): boolean {
-    const candidate: string = lines.join(this.lineBreak);
-    const latest: FileVersion | undefined = this.versions[this.versions.length - 1];
-    // The timeline belongs to the history side, so the empty-timeline reference
-    // is the history baseline (the persisted original), not the marker baseline.
-    const reference: string = latest ? latest.getContent(this.lineBreak) : this.getHistoryOriginalState();
-
-    return candidate === reference;
-  }
-
-  /**
-   * Decides whether the cadence gates allow a new version right now.
-   * Either gate (edit count or elapsed time) can trigger a capture; a gate set
-   * to 0 is disabled and never triggers on its own.
-   *
-   * @param {SnapshotCaptureOptions} options - The capture cadence configuration
-   * @return {boolean} True if a version should be captured
-   */
-  protected isVersionDue(options: SnapshotCaptureOptions): boolean {
-    const byEdits: boolean = options.editThreshold > 0 && this.editsSinceVersion >= options.editThreshold;
-    const byTime: boolean = options.intervalMs > 0 && (Date.now() - this.lastVersionAt) >= options.intervalMs;
-
-    return byEdits || byTime;
-  }
-
-  /**
-   * Appends a version to the timeline, resets the cadence counters, and trims
-   * the timeline by evicting expired then excess entries.
-   *
-   * @param {FileVersion} version - The version to append
-   * @param {SnapshotCaptureOptions} options - The capture cadence and retention caps
-   * @return {FileVersion} The appended version
-   */
-  protected pushVersion(version: FileVersion, options: SnapshotCaptureOptions): FileVersion {
-    this.versions.push(version);
-
-    this.editsSinceVersion = 0;
-    this.lastVersionAt = version.timestamp;
-
-    this.evictVersions(options);
-
-    return version;
-  }
-
-  /**
-   * Trims the timeline to its retention caps, age first then count, mirroring
-   * the JetBrains Local History model where age is the primary bound and the
-   * count is a safety cap. Versions older than maxVersionAgeDays are dropped
-   * regardless of count, then any beyond maxVersions are dropped regardless of
-   * age. A cap of 0 disables that dimension. Because versions are appended
-   * oldest-first, both passes evict from the front of the array.
-   *
-   * Labeled versions are pinned (D6): they are never dropped by either pass, so
-   * an intentional user marker survives both the age window and the count cap.
-   * The count cap counts only unlabeled entries, so a labeled version does not
-   * push an unlabeled one out either.
-   *
-   * @param {SnapshotCaptureOptions} options - The retention caps to apply
-   */
-  protected evictVersions(options: SnapshotCaptureOptions): void {
-    const maxAgeDays: number = options?.maxVersionAgeDays;
-
-    if (isNumber(maxAgeDays) && maxAgeDays > 0) {
-      const oldest: number = Date.now() - (maxAgeDays * MS_PER_DAY);
-
-      this.versions = this.versions.filter(
-        (version: FileVersion): boolean => version.isLabeled() || version.timestamp >= oldest,
-      );
-    }
-
-    const maxVersions: number = options?.maxVersions;
-
-    if (isNumber(maxVersions) && maxVersions > 0) {
-      const unlabeled: number = this.versions.reduce(
-        (count: number, version: FileVersion): number => count + (version.isLabeled() ? 0 : 1),
-        0,
-      );
-
-      let toDrop: number = unlabeled - maxVersions;
-
-      if (toDrop > 0) {
-        this.versions = this.versions.filter((version: FileVersion): boolean => {
-          if (toDrop <= 0 || version.isLabeled()) {
-            return true;
-          }
-
-          toDrop -= 1;
-
-          return false;
-        });
-      }
-    }
+    return result.version;
   }
 
   /**
@@ -454,7 +341,7 @@ export class FileSnapshot {
    * @return {FileVersion[]} The timeline versions, newest first
    */
   public getVersions(): FileVersion[] {
-    return [...this.versions].reverse();
+    return this.timeline.getVersions(this.versions);
   }
 
   /**
@@ -464,7 +351,7 @@ export class FileSnapshot {
    * @return {FileVersion | null} The matching version, or null if absent
    */
   public getVersion(id: string): FileVersion | null {
-    return this.versions.find((version: FileVersion): boolean => version.id === id) ?? null;
+    return this.timeline.getVersion(this.versions, id);
   }
 
   /**
@@ -476,15 +363,7 @@ export class FileSnapshot {
    * @return {boolean} True if a version was removed, false if no id matched
    */
   public removeVersion(id: string): boolean {
-    const index: number = this.versions.findIndex((version: FileVersion): boolean => version.id === id);
-
-    if (index === -1) {
-      return false;
-    }
-
-    this.versions.splice(index, 1);
-
-    return true;
+    return this.timeline.removeVersion(this.versions, id);
   }
 
   /**
@@ -493,7 +372,7 @@ export class FileSnapshot {
    * @return {boolean} True when at least one version exists
    */
   public hasVersions(): boolean {
-    return this.versions.length > 0;
+    return this.timeline.hasVersions(this.versions);
   }
 
   /**

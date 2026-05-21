@@ -5,6 +5,7 @@ import { TrackerLine } from '@/lines/tracker.line';
 import { ArrayMap } from '@/maps/array.map';
 import { FileVersion } from '@/snapshots/file.version';
 import { SnapshotState } from '@/snapshots/snapshot-state';
+import { SnapshotTimestamps } from '@/snapshots/snapshot-timestamps';
 import { TrackerEditor } from '@/snapshots/tracker-editor';
 import { TrackerIndex } from '@/snapshots/tracker-index';
 import { VersionTimeline } from '@/snapshots/version-timeline';
@@ -525,7 +526,7 @@ export class FileSnapshot {
    * @return {number} The last-change timestamp in milliseconds
    */
   public getLastChangedTimestamp(): number {
-    return this.file?.stat?.mtime ?? this.timestamp;
+    return SnapshotTimestamps.getLastChangedTimestamp(this.file, this.timestamp);
   }
 
   /**
@@ -534,7 +535,7 @@ export class FileSnapshot {
    * @return {string} The date and time of the last change in a localized string format.
    */
   public getLastChangedDateTime(): string {
-    return new Date(this.getLastChangedTimestamp()).toLocaleString();
+    return SnapshotTimestamps.getLastChangedDateTime(this.file, this.timestamp);
   }
 
   /**
@@ -544,7 +545,7 @@ export class FileSnapshot {
    * @return {string} The localized last-change date
    */
   public getLastChangedDate(): string {
-    return new Date(this.getLastChangedTimestamp()).toLocaleDateString();
+    return SnapshotTimestamps.getLastChangedDate(this.file, this.timestamp);
   }
 
   /**
@@ -554,7 +555,7 @@ export class FileSnapshot {
    * @return {string} The localized last-change time
    */
   public getLastChangedTime(): string {
-    return new Date(this.getLastChangedTimestamp()).toLocaleTimeString();
+    return SnapshotTimestamps.getLastChangedTime(this.file, this.timestamp);
   }
 
   /**

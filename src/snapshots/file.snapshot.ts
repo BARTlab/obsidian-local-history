@@ -1,9 +1,10 @@
-import { ChangeType } from '@/consts';
+import type { ChangeType } from '@/consts';
 import { TextHelper } from '@/helpers/text.helper';
-import { ChangeLine } from '@/lines/change.line';
+import type { ChangeLine } from '@/lines/change.line';
 import { TrackerLine } from '@/lines/tracker.line';
 import { ArrayMap } from '@/maps/array.map';
 import { FileVersion } from '@/snapshots/file.version';
+import { SnapshotState } from '@/snapshots/snapshot-state';
 import { VersionTimeline } from '@/snapshots/version-timeline';
 import type { KeysMatching, SerializedFileSnapshot, SnapshotCaptureOptions, TrackerLineParams } from '@/types';
 import { isArray, isNumber, isString } from 'lodash-es';
@@ -273,8 +274,10 @@ export class FileSnapshot {
    * @param {string | string[]} content - The new content of the file, either as a string or array of lines
    */
   public updateState(content: string | string[]): void {
-    this.state = isArray(content) ? [...content] : content.split(this.lineBreak);
-    this.lastHash = TextHelper.hash(this.state.join(this.lineBreak));
+    const result = SnapshotState.updateState(content, this.lineBreak);
+
+    this.state = result.state;
+    this.lastHash = result.lastHash;
   }
 
   /**
@@ -382,7 +385,7 @@ export class FileSnapshot {
    * @return {boolean} True if the current state matches the original state, false otherwise
    */
   public isStateSameOriginal(): boolean {
-    return this.getOriginalState() === this.getLastState();
+    return SnapshotState.isStateSameOriginal(this.lines, this.state, this.lineBreak);
   }
 
   /**
@@ -392,7 +395,7 @@ export class FileSnapshot {
    * @return {string} The current state of the file as a string
    */
   public getLastState(): string {
-    return this.state.join(this.lineBreak);
+    return SnapshotState.getLastState(this.state, this.lineBreak);
   }
 
   /**
@@ -402,7 +405,7 @@ export class FileSnapshot {
    * @return {string[]} The current state of the file as an array of lines
    */
   public getLastStateLines(): string[] {
-    return [...this.state];
+    return SnapshotState.getLastStateLines(this.state);
   }
 
   /**
@@ -412,7 +415,7 @@ export class FileSnapshot {
    * @return {string} The marker baseline of the file as a string
    */
   public getOriginalState(): string {
-    return [...this.lines].join(this.lineBreak);
+    return SnapshotState.getOriginalState(this.lines, this.lineBreak);
   }
 
   /**
@@ -422,7 +425,7 @@ export class FileSnapshot {
    * @return {string[]} The marker baseline of the file as an array of lines
    */
   public getOriginalStateLines(): string[] {
-    return [...this.lines];
+    return SnapshotState.getOriginalStateLines(this.lines);
   }
 
   /**
@@ -434,7 +437,7 @@ export class FileSnapshot {
    * @return {string} The history baseline of the file as a string
    */
   public getHistoryOriginalState(): string {
-    return [...this.historyLines].join(this.lineBreak);
+    return SnapshotState.getHistoryOriginalState(this.historyLines, this.lineBreak);
   }
 
   /**
@@ -444,7 +447,7 @@ export class FileSnapshot {
    * @return {string[]} The history baseline of the file as an array of lines
    */
   public getHistoryOriginalStateLines(): string[] {
-    return [...this.historyLines];
+    return SnapshotState.getHistoryOriginalStateLines(this.historyLines);
   }
 
   /**
@@ -459,8 +462,10 @@ export class FileSnapshot {
    * @param {FileVersion[]} versions - The persisted version timeline, oldest first
    */
   public adoptHistory(historyLines: string[], versions: FileVersion[]): void {
-    this.historyLines = Array.isArray(historyLines) ? [...historyLines] : [];
-    this.versions = Array.isArray(versions) ? [...versions] : [];
+    const result = SnapshotState.adoptHistory(historyLines, versions);
+
+    this.historyLines = result.historyLines;
+    this.versions = result.versions;
   }
 
   /**
@@ -475,16 +480,7 @@ export class FileSnapshot {
       this.changes = new ArrayMap<ChangeLine>();
     }
 
-    if (type) {
-      return ArrayMap.make(
-        this.changes
-          .filter((change: ChangeLine): boolean => change.has(type))
-          .map((change: ChangeLine): ChangeLine => new ChangeLine(change.getLine(), change.getTypes())),
-        (item: ChangeLine): number => item.getLine(),
-      );
-    }
-
-    return this.changes;
+    return SnapshotState.getChanges(this.changes, type);
   }
 
   /**
@@ -494,7 +490,7 @@ export class FileSnapshot {
    * @return {number} The number of lines with changes
    */
   public getChangesLinesCount(): number {
-    return this.getChanges([ChangeType.changed, ChangeType.added, ChangeType.removed]).size;
+    return SnapshotState.getChangesLinesCount(this.getChanges());
   }
 
   /**
@@ -508,16 +504,7 @@ export class FileSnapshot {
    * @return {number[]} The unique changed line positions in ascending order
    */
   public getChangedPositions(type?: ChangeType | ChangeType[]): number[] {
-    const types: ChangeType | ChangeType[] = type ?? [
-      ChangeType.changed,
-      ChangeType.added,
-      ChangeType.restored,
-      ChangeType.removed,
-    ];
-
-    return [...this.getChanges(types).keys()]
-      .filter((line): line is number => isNumber(line))
-      .sort((a: number, b: number): number => a - b);
+    return SnapshotState.getChangedPositions(this.getChanges(), type);
   }
 
   /**
@@ -567,50 +554,7 @@ export class FileSnapshot {
    * (added, removed, restored, changed) to the change map.
    */
   public updateChanges(): void {
-    const store: ArrayMap<ChangeLine> = this.getChanges();
-
-    store.clear();
-
-    this.getTracker().forEach((lineTracker: TrackerLine): void => {
-      // Ideally, this situation could never happen
-      if (!lineTracker || lineTracker.isStateGhost()) {
-        return;
-      }
-
-      const position: number = lineTracker.isStateRemoved()
-        ? lineTracker.removedAtPosition
-        : lineTracker.currentPosition;
-
-      const line: ChangeLine = store.get(position) ?? new ChangeLine(position, []);
-
-      if (!store.has(position)) {
-        store.set(position, line);
-      }
-
-      if (lineTracker.isStateRemoved()) {
-        line.add(ChangeType.removed);
-
-        return;
-      }
-
-      if (lineTracker.isStateAdded()) {
-        line.add(ChangeType.added);
-
-        return;
-      }
-
-      if (lineTracker.isStateRestored()) {
-        line.add(ChangeType.restored);
-
-        return;
-      }
-
-      if (lineTracker.isStateChanged()) {
-        line.add(ChangeType.changed);
-
-        return;
-      }
-    });
+    SnapshotState.updateChanges(this.getChanges(), this.getTracker());
   }
 
   /**

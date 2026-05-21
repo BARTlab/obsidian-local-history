@@ -306,7 +306,7 @@ describe('VersionActionsService.putLabel', () => {
   });
 });
 
-describe('VersionActionsService.labelVersion', () => {
+describe('VersionActionsService.label', () => {
   it('labels the EXISTING picked version in place (not a new capture) and notifies subscribers', () => {
     const file = makeFile('a.md');
     const harness = makeHarness({
@@ -318,7 +318,7 @@ describe('VersionActionsService.labelVersion', () => {
       ],
     });
 
-    const labeled = harness.service.labelVersion(file, 'v1', '  milestone  ');
+    const labeled = harness.service.label(file, 'v1', '  milestone  ');
 
     expect(labeled).not.toBeNull();
     expect(labeled?.id).toBe('v1');
@@ -337,14 +337,14 @@ describe('VersionActionsService.labelVersion', () => {
       versions: [{ id: 'v1', lines: ['one'] }],
     });
 
-    expect(harness.service.labelVersion(file, 'v1', '')).toBeNull();
-    expect(harness.service.labelVersion(file, 'v1', '   ')).toBeNull();
-    expect(harness.service.labelVersion(file, 'missing', 'tag')).toBeNull();
+    expect(harness.service.label(file, 'v1', '')).toBeNull();
+    expect(harness.service.label(file, 'v1', '   ')).toBeNull();
+    expect(harness.service.label(file, 'missing', 'tag')).toBeNull();
     expect(harness.snapshot?.versionsList.find((v) => v.id === 'v1')?.label).toBeUndefined();
     expect(harness.forceUpdate).not.toHaveBeenCalled();
 
     const noSnapshot = makeHarness(null);
-    expect(noSnapshot.service.labelVersion(file, 'v1', 'tag')).toBeNull();
+    expect(noSnapshot.service.label(file, 'v1', 'tag')).toBeNull();
     expect(noSnapshot.forceUpdate).not.toHaveBeenCalled();
   });
 });

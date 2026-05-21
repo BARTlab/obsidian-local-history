@@ -151,7 +151,7 @@ export class FolderTreeComponent {
     }
 
     this.rootPath = this.normalizeRoot(params.rootPath);
-    this.rootNode = this.buildTree(params.entries, this.rootPath);
+    this.rootNode = this.build(params.entries, this.rootPath);
 
     // Reset selection when the previous file is no longer present so the diff
     // pane never points at a row that does not exist anymore. The first file
@@ -244,7 +244,7 @@ export class FolderTreeComponent {
    * @return {FolderTreeNode} The synthetic root node (its children are the
    *   top-level entries of the tree, the root itself never renders).
    */
-  protected buildTree(entries: FolderTreeEntry[], rootPath: string): FolderTreeNode {
+  protected build(entries: FolderTreeEntry[], rootPath: string): FolderTreeNode {
     const root: FolderTreeNode = {
       path: rootPath,
       name: '',
@@ -701,7 +701,7 @@ export class FolderTreeComponent {
   /**
    * Maps the delta status to its row class. The three statuses are stable
    * tokens the modal CSS hooks into (T14); rows with status `'none'` never
-   * reach this code path because they are filtered in {@link buildTree}.
+   * reach this code path because they are filtered in {@link build}.
    *
    * @param {FolderDeltaStatus} status - The per-file delta status
    * @return {string} The CSS class for the row's colour token

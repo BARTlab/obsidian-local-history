@@ -328,7 +328,7 @@ export class ModalsService implements Service {
   /**
    * Labels an EXISTING captured version: asks for a tag through the PromptModal
    * (D8) and forwards the trimmed result to
-   * VersionActionsService.labelVersion. Unlike {@link putLabel}, which pins the
+   * VersionActionsService.label. Unlike {@link putLabel}, which pins the
    * file's CURRENT content as a new version, this marks the version the caller
    * picked (a Recent changes row, or the modal's selected base), so the label
    * lands on the slice the user pointed at instead of on the latest state. The
@@ -377,6 +377,6 @@ export class ModalsService implements Service {
       return null;
     }
 
-    return this.versionActionsService.labelVersion(target, versionId, entered);
+    return this.versionActionsService.label(target, versionId, entered);
   }
 }

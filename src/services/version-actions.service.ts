@@ -214,7 +214,7 @@ export class VersionActionsService implements Service {
    * @param {string} label - The user-supplied tag
    * @return {FileVersion | null} The labeled version, or null on a no-op
    */
-  public labelVersion(file: TFile | null, versionId: string, label: string): FileVersion | null {
+  public label(file: TFile | null, versionId: string, label: string): FileVersion | null {
     const snapshot: FileSnapshot | null = this.snapshotsService.getOne(file);
     const trimmed: string = typeof label === 'string' ? label.trim() : '';
 

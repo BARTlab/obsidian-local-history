@@ -47,6 +47,7 @@ export class MainSetting extends PluginSettingTab {
    * Each setting is bound to the corresponding value in the plugin settings
    * and updates the settings when changed.
    */
+  //noinspection JSDeprecatedSymbols
   public display(): void {
     const { containerEl } = this;
 

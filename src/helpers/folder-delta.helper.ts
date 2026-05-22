@@ -1,6 +1,7 @@
 import { FolderDeltaStatus } from '@/consts';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FileVersion } from '@/snapshots/file.version';
+import { isNumber } from 'lodash-es';
 
 export { FolderDeltaStatus } from '@/consts';
 
@@ -114,13 +115,13 @@ export class FolderDeltaHelper {
   protected static existedAtT(snapshot: FileSnapshot, timestamp: number): boolean {
     // A snapshot created after T means the file did not exist at T regardless
     // of whether it is currently live or a tombstone.
-    if (typeof snapshot.timestamp === 'number' && snapshot.timestamp > timestamp) {
+    if (isNumber(snapshot.timestamp) && snapshot.timestamp > timestamp) {
       return false;
     }
 
     if (snapshot.isTombstone()) {
       // The tombstone existed at T only when it was deleted strictly after T.
-      return typeof snapshot.deletedTimestamp === 'number' && snapshot.deletedTimestamp > timestamp;
+      return isNumber(snapshot.deletedTimestamp) && snapshot.deletedTimestamp > timestamp;
     }
 
     return true;
@@ -146,7 +147,7 @@ export class FolderDeltaHelper {
     for (let i: number = versions.length - 1; i >= 0; i -= 1) {
       const version: FileVersion = versions[i];
 
-      if (version && typeof version.timestamp === 'number' && version.timestamp <= timestamp) {
+      if (version && isNumber(version.timestamp) && version.timestamp <= timestamp) {
         return version.getLines();
       }
     }

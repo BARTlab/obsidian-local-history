@@ -6,6 +6,7 @@ import type {
   FolderTreeSelectionHandler,
   TranslationVars,
 } from '@/types';
+import { isString } from 'lodash-es';
 import { setIcon } from 'obsidian';
 
 /**
@@ -257,7 +258,7 @@ export class FolderTreeComponent {
     folderIndex.set(rootPath, root);
 
     entries.forEach((entry: FolderTreeEntry): void => {
-      if (!entry || typeof entry.path !== 'string') {
+      if (!entry || !isString(entry.path)) {
         return;
       }
 

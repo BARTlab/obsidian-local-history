@@ -1,3 +1,5 @@
+import { isString } from 'lodash-es';
+
 import { FALLBACK_LANGUAGE, LANGUAGE_STORAGE_KEY, OBSIDIAN_LANGUAGES, PLACEHOLDER_PATTERN } from '@/consts';
 import { BUNDLED_CATALOGS } from '@/i18n';
 import type LineChangeTrackerPlugin from '@/main';
@@ -137,13 +139,13 @@ export class I18nService implements Service {
     const all: TranslationCatalogs = catalogs ?? {};
     const active: TranslationCatalog | undefined = all[language];
 
-    if (active && typeof active[key] === 'string') {
+    if (active && isString(active[key])) {
       return active[key];
     }
 
     const fallback: TranslationCatalog | undefined = all[FALLBACK_LANGUAGE];
 
-    if (fallback && typeof fallback[key] === 'string') {
+    if (fallback && isString(fallback[key])) {
       return fallback[key];
     }
 

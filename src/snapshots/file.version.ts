@@ -1,3 +1,5 @@
+import { isNumber, isString } from 'lodash-es';
+
 import { TextHelper } from '@/helpers/text.helper';
 import type { SerializedFileVersion } from '@/types';
 
@@ -55,11 +57,11 @@ export class FileVersion {
   public constructor(lines: string[], timestamp?: number, label?: string, external?: boolean) {
     this.lines = [...(lines ?? [])];
 
-    if (typeof timestamp === 'number') {
+    if (isNumber(timestamp)) {
       this.timestamp = timestamp;
     }
 
-    if (typeof label === 'string' && label.length > 0) {
+    if (isString(label) && label.length > 0) {
       this.label = label;
     }
 
@@ -75,7 +77,7 @@ export class FileVersion {
    * @return {boolean} True when a non-empty label is set
    */
   public isLabeled(): boolean {
-    return typeof this.label === 'string' && this.label.length > 0;
+    return isString(this.label) && this.label.length > 0;
   }
 
   /**
@@ -173,7 +175,7 @@ export class FileVersion {
     return new FileVersion(
       Array.isArray(data?.lines) ? data.lines : [],
       data?.timestamp,
-      typeof data?.label === 'string' ? data.label : undefined,
+      isString(data?.label) ? data.label : undefined,
       data?.external === true,
     );
   }

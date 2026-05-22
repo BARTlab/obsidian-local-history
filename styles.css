@@ -756,3 +756,8 @@
 .lct-patch-container .lct-patch-copy-button:active {
   background-color: var(--background-modifier-active);
 }
+.lct-gutter-char-input {
+  width: 2ch;
+  min-width: 2ch;
+  text-align: center;
+}

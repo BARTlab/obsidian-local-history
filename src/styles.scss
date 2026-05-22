@@ -1168,3 +1168,13 @@
     }
   }
 }
+
+/* ---- settings ---- */
+
+// Gutter symbol inputs hold a single indicator character, so the field is sized
+// to about two characters wide rather than stretching to the full setting row.
+.lct-gutter-char-input {
+  width: 2ch;
+  min-width: 2ch;
+  text-align: center;
+}

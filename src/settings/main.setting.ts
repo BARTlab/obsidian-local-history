@@ -364,47 +364,71 @@ export class MainSetting extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName(this.plugin.t('setting.gutter-changed.name'))
-      .addText((text: TextComponent): TextComponent =>
-        text
+      .addText((text: TextComponent): TextComponent => {
+        this.constrainGutterCharInput(text);
+
+        return text
           .setPlaceholder(DEFAULT_SETTINGS.gutter.changed)
           .setValue(this.settingsService.value('gutter.changed'))
           .onChange((value): void => {
             this.settingsService.update('gutter.changed', value || DEFAULT_SETTINGS.gutter.changed);
-          })
-      );
+          });
+      });
 
     new Setting(containerEl)
       .setName(this.plugin.t('setting.gutter-added.name'))
-      .addText((text: TextComponent): TextComponent =>
-        text
+      .addText((text: TextComponent): TextComponent => {
+        this.constrainGutterCharInput(text);
+
+        return text
           .setPlaceholder(DEFAULT_SETTINGS.gutter.added)
           .setValue(this.settingsService.value('gutter.added'))
           .onChange((value): void => {
             this.settingsService.update('gutter.added', value || DEFAULT_SETTINGS.gutter.added);
-          })
-      );
+          });
+      });
 
     new Setting(containerEl)
       .setName(this.plugin.t('setting.gutter-restored.name'))
-      .addText((text: TextComponent): TextComponent =>
-        text
+      .addText((text: TextComponent): TextComponent => {
+        this.constrainGutterCharInput(text);
+
+        return text
           .setPlaceholder(DEFAULT_SETTINGS.gutter.restored)
           .setValue(this.settingsService.value('gutter.restored'))
           .onChange((value): void => {
             this.settingsService.update('gutter.restored', value || DEFAULT_SETTINGS.gutter.restored);
-          })
-      );
+          });
+      });
 
     new Setting(containerEl)
       .setName(this.plugin.t('setting.gutter-removed.name'))
-      .addText((text: TextComponent): TextComponent =>
-        text
+      .addText((text: TextComponent): TextComponent => {
+        this.constrainGutterCharInput(text);
+
+        return text
           .setPlaceholder(DEFAULT_SETTINGS.gutter.removed)
           .setValue(this.settingsService.value('gutter.removed'))
           .onChange((value): void => {
             this.settingsService.update('gutter.removed', value || DEFAULT_SETTINGS.gutter.removed);
-          })
-      );
+          });
+      });
+  }
+
+  /**
+   * Constrains a gutter symbol text input to a single character and a narrow
+   * width sized for roughly two characters.
+   *
+   * Caps the underlying input to one character via the native maxLength
+   * attribute and tags it with the lct-gutter-char-input class, which the
+   * stylesheet sizes to about two characters wide.
+   *
+   * @param {TextComponent} text - The gutter symbol text component to constrain
+   * @return {void}
+   */
+  protected constrainGutterCharInput(text: TextComponent): void {
+    text.inputEl.maxLength = 1;
+    text.inputEl.addClass('lct-gutter-char-input');
   }
 
   /**

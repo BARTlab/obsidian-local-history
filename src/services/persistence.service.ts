@@ -1,3 +1,5 @@
+import { isNumber } from 'lodash-es';
+
 import { KeepHistory, MS_PER_DAY, PluginEvent, SAVE_DEBOUNCE_MS } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { On } from '@/decorators/on.decorator';
@@ -179,7 +181,7 @@ export class PersistenceService implements Service {
         continue;
       }
 
-      if (typeof item.deletedTimestamp === 'number') {
+      if (isNumber(item.deletedTimestamp)) {
         tombstones.push(item);
       } else {
         live.push(item);

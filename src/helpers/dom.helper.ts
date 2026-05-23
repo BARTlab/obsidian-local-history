@@ -17,10 +17,8 @@ export class DomHelper {
   ): HTMLElementTagNameMap[K] {
     const element: HTMLElementTagNameMap[K] = document.createElement(config.tag);
 
-    // apply config to a new element
     this.update(element, config);
 
-    // append to container if provided
     if (config.container) {
       config.container.appendChild(element);
     }
@@ -36,7 +34,6 @@ export class DomHelper {
   public static createFragment(children: DomElementConfig[]): DocumentFragment {
     const fragment: DocumentFragment = document.createDocumentFragment();
 
-    // create and append child to new fragment
     children.forEach((childConfig: DomElementConfig): void => {
       fragment.appendChild(DomHelper.create(childConfig));
     });
@@ -55,7 +52,6 @@ export class DomHelper {
       return;
     }
 
-    // classes
     if (config.classes) {
       if (isArray(config.classes) || isString(config.classes)) {
         element.classList.add(
@@ -74,30 +70,28 @@ export class DomHelper {
       }
     }
 
-    // Set text content
     if (!isUndefined(config.text)) {
       element.textContent = config.text;
     }
 
-    // Set html content
     if (!isUndefined(config.html)) {
       element.empty();
       element.appendChild(sanitizeHTMLToDom(config.html));
     }
 
-    // Set attributes
     if (config.attributes) {
       entries(config.attributes).forEach(([key, value]: [string, string]): void => {
         try {
           element.setAttribute(key, value);
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (_error) {
-          // empty
+          /**
+           * Swallow invalid attribute names; the element keeps its prior state.
+           */
         }
       });
     }
 
-    // Apply styles
     if (config.styles) {
       entries(config.styles).forEach(([key, value]): void => {
         if (isUndefined(value)) {
@@ -105,10 +99,12 @@ export class DomHelper {
         }
 
         try {
-          // CSSStyleDeclaration keys are camelCase (e.g. paddingInlineStart),
-          // but setProperty expects the CSS custom-property/kebab name. Convert
-          // camelCase to kebab-case so the value is actually applied; leave
-          // custom properties (--foo) untouched.
+          /**
+           * CSSStyleDeclaration keys are camelCase (e.g. paddingInlineStart),
+           * but setProperty expects the CSS custom-property/kebab name. Convert
+           * camelCase to kebab-case so the value is actually applied; leave
+           * custom properties (--foo) untouched.
+           */
           const cssName: string = key.startsWith('--')
             ? key
             : key.replace(/[A-Z]/g, (match: string): string => `-${match.toLowerCase()}`);
@@ -116,19 +112,19 @@ export class DomHelper {
           element.style.setProperty(cssName, String(value));
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (_error) {
-          // empty
+          /**
+           * Swallow invalid style values; the element keeps its prior state.
+           */
         }
       });
     }
 
-    // Add event listeners
     if (config.events) {
       entries(config.events).forEach(([eventType, handler]): void => {
         element.addEventListener(eventType, handler);
       });
     }
 
-    // Add child elements
     if (config.children) {
       config.children.forEach((childConfig: DomElementConfig): void => {
         element.appendChild(DomHelper.create(childConfig));

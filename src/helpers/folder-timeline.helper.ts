@@ -80,8 +80,10 @@ export class FolderTimelineHelper {
         continue;
       }
 
-      // Capture points come from the version timeline, in stored order so a
-      // tie on timestamp keeps the original sequence the snapshot recorded.
+      /**
+       * Capture points come from the version timeline, in stored order so a
+       * tie on timestamp keeps the original sequence the snapshot recorded.
+       */
       for (const version of snapshot.versions ?? []) {
         points.push({
           timestamp: version.timestamp,
@@ -111,8 +113,10 @@ export class FolderTimelineHelper {
       }
     }
 
-    // Newest first, ties preserve insertion order. V8's Array.prototype.sort
-    // is stable, so a comparator returning 0 keeps the original sequence.
+    /**
+     * Newest first, ties preserve insertion order. V8's Array.prototype.sort
+     * is stable, so a comparator returning 0 keeps the original sequence.
+     */
     points.sort(
       (a: FolderTimelinePoint, b: FolderTimelinePoint): number => b.timestamp - a.timestamp,
     );

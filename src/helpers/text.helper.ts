@@ -21,7 +21,10 @@ export class TextHelper {
 
     for (let i: number = 0; i < content.length; i++) {
       hash = ((hash << 5) - hash) + content.charCodeAt(i);
-      hash |= 0; // Convert to 32-bit integer
+      /**
+       * Convert to 32-bit integer.
+       */
+      hash |= 0;
     }
 
     return Math.abs(hash).toString();

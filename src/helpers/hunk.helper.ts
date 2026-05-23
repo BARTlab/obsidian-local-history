@@ -102,8 +102,10 @@ export class HunkHelper {
       return lines;
     }
 
-    // newStart is 1-based; clamp into range so a hunk at the very end (where
-    // newStart can point one past the last line) still splices safely.
+    /**
+     * newStart is 1-based; clamp into range so a hunk at the very end (where
+     * newStart can point one past the last line) still splices safely.
+     */
     const start: number = Math.max(0, Math.min(lines.length, hunk.newStart - 1));
 
     lines.splice(start, Math.max(0, hunk.newLines), ...HunkHelper.baseLinesForHunk(hunk));

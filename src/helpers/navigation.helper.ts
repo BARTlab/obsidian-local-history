@@ -44,7 +44,9 @@ export class NavigationHelper {
     if (direction === NavigationDirection.next) {
       const ahead: number | undefined = sorted.find((line: number): boolean => line > cursorLine);
 
-      // Wrap to the first change when nothing lies strictly after the cursor.
+      /**
+       * Wrap to the first change when nothing lies strictly after the cursor.
+       */
       return ahead ?? sorted[0];
     }
 
@@ -52,7 +54,9 @@ export class NavigationHelper {
       .reverse()
       .find((line: number): boolean => line < cursorLine);
 
-    // Wrap to the last change when nothing lies strictly before the cursor.
+    /**
+     * Wrap to the last change when nothing lies strictly before the cursor.
+     */
     return before ?? sorted[sorted.length - 1];
   }
 
@@ -70,8 +74,10 @@ export class NavigationHelper {
     const targetLine: number = Math.max(0, Math.min(lastLine, line));
     const column: number = editor.getLine(targetLine).length;
 
-    // Land at the start of the changed line and center it in the viewport. The
-    // scroll range spans the whole line so the indicator is comfortably shown.
+    /**
+     * Land at the start of the changed line and center it in the viewport. The
+     * scroll range spans the whole line so the indicator is comfortably shown.
+     */
     editor.setCursor({ line: targetLine, ch: 0 });
     editor.scrollIntoView({
       from: { line: targetLine, ch: 0 },

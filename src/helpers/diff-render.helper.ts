@@ -32,19 +32,33 @@ export interface DiffRenderTranslator {
  * they are file-mode specific (D6).
  */
 export interface DiffRenderParams {
-  /** The selected base content split by `lineBreak`. */
+  /**
+   * The selected base content split by `lineBreak`.
+   */
   baseLines: string[];
-  /** The current state content split by `lineBreak`. */
+  /**
+   * The current state content split by `lineBreak`.
+   */
   currentLines: string[];
-  /** The line separator used when joining content back into text for patches. */
+  /**
+   * The line separator used when joining content back into text for patches.
+   */
   lineBreak: string;
-  /** Which of the four diff modes to render. */
+  /**
+   * Which of the four diff modes to render.
+   */
   mode: DiffRenderMode;
-  /** The container the renderer writes the diff DOM into. */
+  /**
+   * The container the renderer writes the diff DOM into.
+   */
   container: HTMLElement;
-  /** The vault-relative file path used in the unified patch headers. */
+  /**
+   * The vault-relative file path used in the unified patch headers.
+   */
   filePath: string;
-  /** Translator used for the copy button tooltip and the copy notice text. */
+  /**
+   * Translator used for the copy button tooltip and the copy notice text.
+   */
   plugin: DiffRenderTranslator;
 }
 
@@ -213,8 +227,10 @@ export class DiffRenderHelper {
       }
     );
 
-    // Icon-only copy button: the label lives in the tooltip and aria-label so it
-    // stays usable by keyboard and screen readers, matching the toolbar buttons.
+    /**
+     * Icon-only copy button: the label lives in the tooltip and aria-label so it
+     * stays usable by keyboard and screen readers, matching the toolbar buttons.
+     */
     const copyButton: HTMLButtonElement | null =
       params.container.querySelector<HTMLButtonElement>('.lct-patch-copy-button');
 
@@ -247,7 +263,9 @@ export class DiffRenderHelper {
         return;
       }
 
-      // Whole added/removed lines rely on the row tint, so the text is plain.
+      /**
+       * Whole added/removed lines rely on the row tint, so the text is plain.
+       */
       if (line.type === WordDiffLineType.added) {
         rows.push(DiffRenderHelper.makeInlineRow('added', '+', [{ tag: 'span', text: line.newText ?? '' }]));
 
@@ -260,10 +278,12 @@ export class DiffRenderHelper {
         return;
       }
 
-      // Modified: a single flowing line with the word-level changes shown in
-      // place - unchanged words plain, removed words struck through, added words
-      // highlighted - so a wording edit reads as one line, not a before/after
-      // pair. This is what makes the inline mode distinct from line-by-line.
+      /**
+       * Modified: a single flowing line with the word-level changes shown in
+       * place - unchanged words plain, removed words struck through, added words
+       * highlighted - so a wording edit reads as one line, not a before/after
+       * pair. This is what makes the inline mode distinct from line-by-line.
+       */
       rows.push(DiffRenderHelper.makeInlineRow(
         'modified',
         '~',

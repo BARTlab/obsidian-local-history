@@ -2,7 +2,8 @@ import 'reflect-metadata';
 import { describe, expect, it } from '@jest/globals';
 
 import { FolderTimelinePointKind } from '@/consts';
-import { FolderTimelineHelper, type FolderTimelinePoint } from '@/helpers/folder-timeline.helper';
+import { FolderTimelineHelper } from '@/helpers/folder-timeline.helper';
+import type { FolderTimelinePoint } from '@/types';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import { FileVersion } from '@/snapshots/file.version';
 import type { TFile } from 'obsidian';

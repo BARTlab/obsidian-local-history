@@ -1,13 +1,13 @@
 import { PluginEvent, RECENT_CHANGES_VIEW_TYPE } from '@/consts';
 import { DomHelper } from '@/helpers/dom.helper';
-import { type VersionDescription, VersionLabelHelper } from '@/helpers/version-label.helper';
+import { VersionLabelHelper } from '@/helpers/version-label.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ModalsService } from '@/services/modals.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import type { VersionActionsService } from '@/services/version-actions.service';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FileVersion } from '@/snapshots/file.version';
-import type { DomElementConfig } from '@/types';
+import type { DomElementConfig, VersionDescription } from '@/types';
 import { type IconName, ItemView, Menu, type MenuItem, type TFile, type WorkspaceLeaf, setIcon } from 'obsidian';
 
 /**

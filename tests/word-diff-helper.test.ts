@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import type { Change } from 'diff';
-import { type InlineDiffLine, WordDiffHelper } from '@/helpers/word-diff.helper';
+import { WordDiffHelper } from '@/helpers/word-diff.helper';
+import type { InlineDiffLine } from '@/types';
 
 /**
  * Tests for the intra-line (word) diff logic (T5.5). They drive WordDiffHelper

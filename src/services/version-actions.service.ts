@@ -6,36 +6,8 @@ import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FileVersion } from '@/snapshots/file.version';
-import type { Service, SnapshotCaptureOptions } from '@/types';
+import type { Service, SnapshotCaptureOptions, VersionRemoveResult, VersionRestoreResult } from '@/types';
 import type { TFile } from 'obsidian';
-
-/**
- * Result of restoring a selected version. The flag tells the caller whether the
- * write happened, so a UI can refresh its diff/rail only when something actually
- * changed (a no-op restore against identical content stays silent).
- */
-export interface VersionRestoreResult {
-  /**
-   * True when the file content was rewritten to the version.
-   */
-  applied: boolean;
-}
-
-/**
- * Result of removing a selected version, including the next selection id the
- * caller can fall back to so a UI list stays focused on a sensible neighbour
- * after the deletion. The id is null when the timeline is now empty.
- */
-export interface VersionRemoveResult {
-  /**
-   * True when a version was dropped from the timeline.
-   */
-  removed: boolean;
-  /**
-   * The id the caller should select next, or null when nothing remains.
-   */
-  nextId: string | null;
-}
 
 /**
  * Shared owner of restore/remove/put-label actions on a file's version timeline.

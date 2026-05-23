@@ -1,5 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
-import { type BaseContentSnapshot, BaseContentHelper } from '@/helpers/base-content.helper';
+import { BaseContentHelper } from '@/helpers/base-content.helper';
+import type { BaseContentSnapshot } from '@/types';
 
 /**
  * Tests for the history modal diff-base resolution (T01 / D1). They drive

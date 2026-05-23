@@ -2,57 +2,14 @@ import { FolderDeltaStatus } from '@/consts';
 import { DomHelper } from '@/helpers/dom.helper';
 import type {
   DomElementConfig,
+  FolderTreeEntry,
   FolderTreeNode,
   FolderTreeSelectionHandler,
-  TranslationVars,
+  FolderTreeTranslator,
+  FolderTreeUpdateParams,
 } from '@/types';
 import { isString } from 'lodash-es';
 import { setIcon } from 'obsidian';
-
-/**
- * One entry handed to {@link FolderTreeComponent.update}: a vault-relative file
- * path and the per-file delta status resolved by `FolderDeltaHelper.compareAt`
- * for the selected timeline point T.
- *
- * The component only renders rows whose status is `added | modified | deleted`
- * (D9). Entries with status `'none'` are accepted to keep the call-site simple
- * (the caller can pass every snapshot in the subtree) but are filtered out
- * before rendering so the tree shows only the files that actually changed.
- */
-export interface FolderTreeEntry {
-  path: string;
-  status: FolderDeltaStatus;
-  /**
-   * Optional flag set when the file's latest delta point at the picked T is an
-   * external-change capture (D13, T20). The component renders a small badge on
-   * the file row when true so the user can spot external states without
-   * leaving the tree (AC3). The field is optional so unit tests and earlier
-   * callers can keep ignoring it; the rendered tree only depends on it for the
-   * badge, not for the row's visibility or its status colour token.
-   */
-  external?: boolean;
-}
-
-/**
- * Minimal translator surface the component needs. Matches `LineChangeTrackerPlugin.t`
- * so the modal can pass `plugin` directly, but stays narrow so unit tests can
- * supply an inert translator (echoing keys) without the real plugin instance.
- */
-export interface FolderTreeTranslator {
-  t(key: string, vars?: TranslationVars): string;
-}
-
-/**
- * Parameters for {@link FolderTreeComponent.update}. The component fully owns
- * the DOM under its mount container, so update is the single entry point that
- * rebuilds the tree against a fresh `(entries, rootPath)` pair while keeping
- * the user's expand/collapse state and the currently-selected file (when it is
- * still present in the new entries).
- */
-export interface FolderTreeUpdateParams {
-  entries: FolderTreeEntry[];
-  rootPath: string;
-}
 
 /**
  * Component that renders the per-folder "changes since T" tree shown in the

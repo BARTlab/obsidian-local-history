@@ -1,26 +1,6 @@
 import * as Diff from 'diff';
 import { VersionAction } from '@/consts';
-
-/**
- * The pure result of describing a version. Carries the discriminator plus the
- * line-level delta of the transition (number of newly added lines and number of
- * removed lines), so the UI can render "Modified (+3, -1)" inline without
- * running the diff twice.
- */
-export interface VersionDescription {
-  /**
-   * The action discriminator for the version.
-   */
-  kind: VersionAction;
-  /**
-   * Number of lines added going from previous to current.
-   */
-  added: number;
-  /**
-   * Number of lines removed going from previous to current.
-   */
-  removed: number;
-}
+import type { VersionDescription } from '@/types';
 
 /**
  * Pure helper that derives a human action description for a version from its

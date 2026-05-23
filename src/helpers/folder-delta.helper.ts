@@ -1,25 +1,10 @@
 import { FolderDeltaStatus } from '@/consts';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FileVersion } from '@/snapshots/file.version';
+import type { FolderDeltaResult } from '@/types';
 import { isNumber } from 'lodash-es';
 
 export { FolderDeltaStatus } from '@/consts';
-
-/**
- * Result of comparing a snapshot's state at a chosen timeline point T to its
- * current state (D8). `base` is the resolved content at T (an empty array means
- * "did not exist at T"); `current` is the resolved live content (an empty array
- * means "does not exist now"); `status` is the categorical diff used by the
- * folder tree colouring.
- *
- * The two content arrays are returned as plain copies so the diff renderer can
- * consume them without worrying about mutating the underlying snapshot.
- */
-export interface FolderDeltaResult {
-  status: FolderDeltaStatus;
-  base: string[];
-  current: string[];
-}
 
 /**
  * Pure helper that resolves the per-file delta from a chosen folder-timeline

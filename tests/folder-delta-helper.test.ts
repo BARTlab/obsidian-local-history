@@ -1,7 +1,8 @@
 import 'reflect-metadata';
 import { describe, expect, it } from '@jest/globals';
 
-import { FolderDeltaHelper, type FolderDeltaResult } from '@/helpers/folder-delta.helper';
+import { FolderDeltaHelper } from '@/helpers/folder-delta.helper';
+import type { FolderDeltaResult } from '@/types';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import { FileVersion } from '@/snapshots/file.version';
 import type { TFile } from 'obsidian';

@@ -1,25 +1,5 @@
+import type { SelectableVersion } from '@/types';
 import * as Diff from 'diff';
-
-/**
- * One timeline version reduced to just what the selection filter needs: its
- * stable id and its captured lines. Kept intentionally minimal (instead of
- * `FileVersion`) so the helper stays pure and directly unit-testable with no
- * Obsidian or model dependency.
- *
- * Versions are passed in the order the rail renders them; the helper itself is
- * order-agnostic and uses the explicit `baselineLines` parameter rather than an
- * out-of-band convention to anchor the oldest version's diff.
- */
-export interface SelectableVersion {
-  /**
-   * The version's stable id, returned when its diff touches the selection.
-   */
-  id: string;
-  /**
-   * The version's captured content as lines, diffed against its neighbour.
-   */
-  lines: string[];
-}
 
 /**
  * Pure helper backing the "Show History for Selection" filter. Given a

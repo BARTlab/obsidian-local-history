@@ -1,30 +1,4 @@
-/**
- * The slice of a snapshot the base-content resolution needs, reduced to the
- * three reads the history modal performs when picking a diff base. Keeping the
- * helper to this minimal shape (instead of a full FileSnapshot) is what lets the
- * resolution stay a pure, directly unit-tested function with no Obsidian or
- * model dependency.
- */
-export interface BaseContentSnapshot {
-  /**
-   * The captured content of the timeline versions, newest first (mirrors
-   * `FileSnapshot.getVersions()` mapped through `getContent`). The first entry,
-   * when present, is the latest snapshot the baseline entry diffs against.
-   */
-  versions: string[];
-  /**
-   * The file's original captured content (the birth-state fallback).
-   */
-  original: string;
-  /**
-   * Resolves a picked intermediate version's content by id, or null when the id
-   * does not address an existing version (mirrors `FileSnapshot.getVersion`).
-   *
-   * @param {string} id - The version id to resolve
-   * @return {string | null} The version content, or null when absent
-   */
-  versionContent(id: string): string | null;
-}
+import type { BaseContentSnapshot } from '@/types';
 
 /**
  * Pure helper backing the history modal's diff-base resolution (D1). Given the

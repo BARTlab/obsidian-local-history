@@ -1,5 +1,5 @@
 import { Inject } from '@/decorators/inject.decorator';
-import { type SelectableVersion, SelectionHistoryHelper } from '@/helpers/selection-history.helper';
+import { SelectionHistoryHelper } from '@/helpers/selection-history.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import { ConfirmModal } from '@/modals/confirm.modal';
 import { FolderHistoryModal } from '@/modals/folder-history.modal';
@@ -9,41 +9,15 @@ import type { SnapshotsService } from '@/services/snapshots.service';
 import type { VersionActionsService } from '@/services/version-actions.service';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FileVersion } from '@/snapshots/file.version';
-import type { ConfirmModalConfig, PromptModalConfig, Service } from '@/types';
+import type {
+  ConfirmModalConfig,
+  HistoryModalOpenOptions,
+  PromptModalConfig,
+  SelectableVersion,
+  Service
+} from '@/types';
 import type { TFile, TFolder } from 'obsidian';
 import { Notice } from 'obsidian';
-
-/**
- * Open options for the history/diff modal. Both fields are optional, so a call
- * with no options preserves the current default behaviour: the rail is shown
- * and the modal opens on the latest captured version (D4).
- *
- * - `initialBaseId`: pre-selects a specific version id as the diff base on open
- *   (the rail entry that would otherwise be the top one). A baseline-only file
- *   ignores it; an unknown id falls through to the modal's default selection.
- * - `hideRail`: opens the modal without the left rail (search + version list),
- *   so the diff and the toolbar fill the modal. Used by the Recent changes
- *   panel, which is the navigator in that session.
- */
-export interface HistoryModalOpenOptions {
-  /**
-   * The version id to pre-select as the diff base on open.
-   */
-  initialBaseId?: string;
-  /**
-   * Whether to hide the left rail (search + version list).
-   */
-  hideRail?: boolean;
-  /**
-   * Optional set of version ids the rail must restrict itself to: when present,
-   * only versions whose id is in the set survive the rail filters. Used by
-   * "Show History for Selection" (D7/T09) to narrow the rail to versions where
-   * the editor selection was added or removed. `undefined` means no selection
-   * filter is active (the rail behaves as before); an empty set means a filter
-   * is active but matched nothing, so the rail shows its no-results hint.
-   */
-  selectionFilterIds?: ReadonlySet<string>;
-}
 
 /**
  * Service responsible for managing modal dialogs in the plugin.

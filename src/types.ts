@@ -1,6 +1,18 @@
-import type { IndicatorType, KeepHistory, MapChangeAction, ObsidianVaultEvent, ObsidianWorkspaceEvent } from '@/consts';
+import type {
+  DiffOutputFormatType,
+  DiffViewMode,
+  FolderDeltaStatus,
+  FolderTimelinePointKind,
+  IndicatorType,
+  KeepHistory,
+  MapChangeAction,
+  ObsidianVaultEvent,
+  ObsidianWorkspaceEvent,
+  VersionAction,
+  WordDiffLineType
+} from '@/consts';
 import type { BaseExtension } from '@/extensions/base.extension';
-import type { FolderDeltaStatus } from '@/helpers/folder-delta.helper';
+import type { FileVersion } from '@/snapshots/file.version';
 import type { RangeSet } from '@codemirror/state';
 import type {
   BlockInfo,
@@ -880,4 +892,391 @@ export interface GutterConfig extends BaseExtension {
    Supply event handlers for DOM events on this gutter.
    */
   domEventHandlers?: Handlers;
+}
+
+/**
+ * The normalized result of adopting a persisted history baseline and version
+ * timeline. The collaborator produces defensive copies and the façade assigns
+ * each field back; `versions` belongs to the timeline cluster but adoptHistory
+ * sets it alongside the history baseline, so it is carried back here too.
+ */
+export interface AdoptHistoryResult {
+  /**
+   * The defensive copy of the persisted history baseline lines.
+   */
+  historyLines: string[];
+
+  /**
+   * The defensive copy of the persisted version timeline, oldest first.
+   */
+  versions: FileVersion[];
+}
+
+/**
+ * The outcome of an updateState call: the normalized current state lines and the
+ * hash of that state. The façade owns both `state` and `lastHash`, so the
+ * collaborator returns both for the façade to write back.
+ */
+export interface UpdateStateResult {
+  /**
+   * The defensive copy of the current state as an array of lines.
+   */
+  state: string[];
+
+  /**
+   * The hash of the current state, used for change detection.
+   */
+  lastHash: string;
+}
+
+/**
+ * The slice of a snapshot the base-content resolution needs, reduced to the
+ * three reads the history modal performs when picking a diff base. Keeping the
+ * helper to this minimal shape (instead of a full FileSnapshot) is what lets the
+ * resolution stay a pure, directly unit-tested function with no Obsidian or
+ * model dependency.
+ */
+export interface BaseContentSnapshot {
+  /**
+   * The captured content of the timeline versions, newest first (mirrors
+   * `FileSnapshot.getVersions()` mapped through `getContent`). The first entry,
+   * when present, is the latest snapshot the baseline entry diffs against.
+   */
+  versions: string[];
+  /**
+   * The file's original captured content (the birth-state fallback).
+   */
+  original: string;
+  /**
+   * Resolves a picked intermediate version's content by id, or null when the id
+   * does not address an existing version (mirrors `FileSnapshot.getVersion`).
+   *
+   * @param {string} id - The version id to resolve
+   * @return {string | null} The version content, or null when absent
+   */
+  versionContent(id: string): string | null;
+}
+
+/**
+ * One line of an inline diff. A line is either unchanged context, a pure
+ * addition, a pure removal, or a modification (a removed and added pair that
+ * represent the same logical line). For a modified line both the old and the
+ * new text are kept so the renderer can show word-level spans for each side.
+ */
+export interface InlineDiffLine {
+  /**
+   * The kind of change this line represents.
+   */
+  type: WordDiffLineType;
+  /**
+   * The old (base) text of the line, present for context, removed, modified.
+   */
+  oldText?: string;
+  /**
+   * The new (current) text of the line, present for context, added, modified.
+   */
+  newText?: string;
+}
+
+/**
+ * Result of comparing a snapshot's state at a chosen timeline point T to its
+ * current state (D8). `base` is the resolved content at T (an empty array means
+ * "did not exist at T"); `current` is the resolved live content (an empty array
+ * means "does not exist now"); `status` is the categorical diff used by the
+ * folder tree colouring.
+ *
+ * The two content arrays are returned as plain copies so the diff renderer can
+ * consume them without worrying about mutating the underlying snapshot.
+ */
+export interface FolderDeltaResult {
+  status: FolderDeltaStatus;
+  base: string[];
+  current: string[];
+}
+
+/**
+ * One timeline version reduced to just what the selection filter needs: its
+ * stable id and its captured lines. Kept intentionally minimal (instead of
+ * `FileVersion`) so the helper stays pure and directly unit-testable with no
+ * Obsidian or model dependency.
+ *
+ * Versions are passed in the order the rail renders them; the helper itself is
+ * order-agnostic and uses the explicit `baselineLines` parameter rather than an
+ * out-of-band convention to anchor the oldest version's diff.
+ */
+export interface SelectableVersion {
+  /**
+   * The version's stable id, returned when its diff touches the selection.
+   */
+  id: string;
+  /**
+   * The version's captured content as lines, diffed against its neighbour.
+   */
+  lines: string[];
+}
+
+/**
+ * The four supported diff display modes. The two {@link DiffViewMode} values
+ * render the textual unified patch and the word-level inline highlights, and
+ * the two {@link DiffOutputFormatType} values render the diff2html line-by-line
+ * or side-by-side views.
+ */
+export type DiffRenderMode = DiffViewMode | DiffOutputFormatType;
+
+/**
+ * Minimal translator surface the helper needs. Matches `LineChangeTrackerPlugin.t`
+ * so the modal can pass `plugin` directly, but stays narrow so a test or another
+ * caller can provide its own translator without dragging in the whole plugin.
+ */
+export interface DiffRenderTranslator {
+  t(key: string, vars?: TranslationVars): string;
+}
+
+/**
+ * Parameters accepted by {@link DiffRenderHelper.render}. The renderer is pure
+ * and modal-agnostic: it owns no state, holds no references, and only mutates
+ * the provided container. Per-hunk revert affordances, the columns header,
+ * the diff notice, and scroll synchronization stay in the calling modal because
+ * they are file-mode specific (D6).
+ */
+export interface DiffRenderParams {
+  /**
+   * The selected base content split by `lineBreak`.
+   */
+  baseLines: string[];
+  /**
+   * The current state content split by `lineBreak`.
+   */
+  currentLines: string[];
+  /**
+   * The line separator used when joining content back into text for patches.
+   */
+  lineBreak: string;
+  /**
+   * Which of the four diff modes to render.
+   */
+  mode: DiffRenderMode;
+  /**
+   * The container the renderer writes the diff DOM into.
+   */
+  container: HTMLElement;
+  /**
+   * The vault-relative file path used in the unified patch headers.
+   */
+  filePath: string;
+  /**
+   * Translator used for the copy button tooltip and the copy notice text.
+   */
+  plugin: DiffRenderTranslator;
+}
+
+/**
+ * One searchable timeline version reduced to just what the rail filter needs:
+ * its stable id and its captured text. Keeping the helper to this minimal shape
+ * (instead of a full FileVersion) is what lets the filter stay a pure, directly
+ * unit-tested function with no Obsidian or model dependency.
+ */
+export interface SearchableVersion {
+  /**
+   * The version's stable id, returned when its content matches.
+   */
+  id: string;
+  /**
+   * The version's captured content, searched case-insensitively.
+   */
+  content: string;
+}
+
+/**
+ * A single point in the folder timeline. `timestamp` is the moment the event
+ * happened (newest-first when sorted), `path` is the snapshot's vault-relative
+ * path under the folder root, `kind` is the discriminator above, and `dayKey`
+ * is the localized day string (`new Date(timestamp).toLocaleDateString()`) the
+ * rail uses to group rows: identical to {@link FileVersion.getDate} so the
+ * folder modal rail can group rows the same way the file modal rail does.
+ *
+ * For a `'capture'` point, `versionId` carries the originating version's id
+ * so callers can correlate the timeline entry with the underlying
+ * {@link FileVersion}. For `'delete'` and `'move-in'` points, the field stays
+ * `undefined` (the event is a snapshot-level marker, not tied to a version).
+ */
+export interface FolderTimelinePoint {
+  timestamp: number;
+  path: string;
+  kind: FolderTimelinePointKind;
+  dayKey: string;
+  versionId?: string;
+}
+
+/**
+ * The pure result of describing a version. Carries the discriminator plus the
+ * line-level delta of the transition (number of newly added lines and number of
+ * removed lines), so the UI can render "Modified (+3, -1)" inline without
+ * running the diff twice.
+ */
+export interface VersionDescription {
+  /**
+   * The action discriminator for the version.
+   */
+  kind: VersionAction;
+  /**
+   * Number of lines added going from previous to current.
+   */
+  added: number;
+  /**
+   * Number of lines removed going from previous to current.
+   */
+  removed: number;
+}
+
+/**
+ * Result of restoring a selected version. The flag tells the caller whether the
+ * write happened, so a UI can refresh its diff/rail only when something actually
+ * changed (a no-op restore against identical content stays silent).
+ */
+export interface VersionRestoreResult {
+  /**
+   * True when the file content was rewritten to the version.
+   */
+  applied: boolean;
+}
+
+/**
+ * Result of removing a selected version, including the next selection id the
+ * caller can fall back to so a UI list stays focused on a sensible neighbour
+ * after the deletion. The id is null when the timeline is now empty.
+ */
+export interface VersionRemoveResult {
+  /**
+   * True when a version was dropped from the timeline.
+   */
+  removed: boolean;
+  /**
+   * The id the caller should select next, or null when nothing remains.
+   */
+  nextId: string | null;
+}
+
+/**
+ * Open options for the history/diff modal. Both fields are optional, so a call
+ * with no options preserves the current default behaviour: the rail is shown
+ * and the modal opens on the latest captured version (D4).
+ *
+ * - `initialBaseId`: pre-selects a specific version id as the diff base on open
+ *   (the rail entry that would otherwise be the top one). A baseline-only file
+ *   ignores it; an unknown id falls through to the modal's default selection.
+ * - `hideRail`: opens the modal without the left rail (search + version list),
+ *   so the diff and the toolbar fill the modal. Used by the Recent changes
+ *   panel, which is the navigator in that session.
+ */
+export interface HistoryModalOpenOptions {
+  /**
+   * The version id to pre-select as the diff base on open.
+   */
+  initialBaseId?: string;
+  /**
+   * Whether to hide the left rail (search + version list).
+   */
+  hideRail?: boolean;
+  /**
+   * Optional set of version ids the rail must restrict itself to: when present,
+   * only versions whose id is in the set survive the rail filters. Used by
+   * "Show History for Selection" (D7/T09) to narrow the rail to versions where
+   * the editor selection was added or removed. `undefined` means no selection
+   * filter is active (the rail behaves as before); an empty set means a filter
+   * is active but matched nothing, so the rail shows its no-results hint.
+   */
+  selectionFilterIds?: ReadonlySet<string>;
+}
+
+/**
+ * The façade-owned inputs a capture attempt operates on. Bundles the timeline
+ * array, the empty-timeline dedup reference (the history baseline), the line
+ * break, and the cadence/retention options so the collaborator stays a stateless
+ * operator over passed-in state without a long positional parameter list.
+ */
+export interface VersionCaptureContext {
+  /**
+   * The current timeline, oldest first. The façade owns this array.
+   */
+  versions: FileVersion[];
+
+  /**
+   * The history baseline used as the dedup reference when the timeline is empty.
+   */
+  historyBaseline: string;
+
+  /**
+   * The line break used to join candidate content for comparison.
+   */
+  lineBreak: string;
+
+  /**
+   * The capture cadence configuration and retention caps.
+   */
+  options: SnapshotCaptureOptions;
+}
+
+/**
+ * Outcome of a capture attempt. `version` is the freshly pushed version (or null
+ * when the cadence/dedup gates skipped it), and `versions` is the timeline array
+ * the façade must adopt: unchanged on a skip, or the appended-then-evicted array
+ * on a capture. The façade owns the `versions` field, so the collaborator hands
+ * the resulting array back rather than mutating a private copy.
+ */
+export interface VersionCaptureResult {
+  /**
+   * The version pushed onto the timeline, or null when no version was taken.
+   */
+  version: FileVersion | null;
+
+  /**
+   * The timeline array the façade must store after the attempt.
+   */
+  versions: FileVersion[];
+}
+
+/**
+ * One entry handed to {@link FolderTreeComponent.update}: a vault-relative file
+ * path and the per-file delta status resolved by `FolderDeltaHelper.compareAt`
+ * for the selected timeline point T.
+ *
+ * The component only renders rows whose status is `added | modified | deleted`
+ * (D9). Entries with status `'none'` are accepted to keep the call-site simple
+ * (the caller can pass every snapshot in the subtree) but are filtered out
+ * before rendering so the tree shows only the files that actually changed.
+ */
+export interface FolderTreeEntry {
+  path: string;
+  status: FolderDeltaStatus;
+  /**
+   * Optional flag set when the file's latest delta point at the picked T is an
+   * external-change capture (D13, T20). The component renders a small badge on
+   * the file row when true so the user can spot external states without
+   * leaving the tree (AC3). The field is optional so unit tests and earlier
+   * callers can keep ignoring it; the rendered tree only depends on it for the
+   * badge, not for the row's visibility or its status colour token.
+   */
+  external?: boolean;
+}
+
+/**
+ * Minimal translator surface the component needs. Matches `LineChangeTrackerPlugin.t`
+ * so the modal can pass `plugin` directly, but stays narrow so unit tests can
+ * supply an inert translator (echoing keys) without the real plugin instance.
+ */
+export interface FolderTreeTranslator {
+  t(key: string, vars?: TranslationVars): string;
+}
+
+/**
+ * Parameters for {@link FolderTreeComponent.update}. The component fully owns
+ * the DOM under its mount container, so update is the single entry point that
+ * rebuilds the tree against a fresh `(entries, rootPath)` pair while keeping
+ * the user's expand/collapse state and the currently-selected file (when it is
+ * still present in the new entries).
+ */
+export interface FolderTreeUpdateParams {
+  entries: FolderTreeEntry[];
+  rootPath: string;
 }

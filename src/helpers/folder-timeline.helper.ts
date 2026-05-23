@@ -1,29 +1,9 @@
 import { FolderTimelinePointKind } from '@/consts';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
+import type { FolderTimelinePoint } from '@/types';
 import { isNumber } from 'lodash-es';
 
 export { FolderTimelinePointKind } from '@/consts';
-
-/**
- * A single point in the folder timeline. `timestamp` is the moment the event
- * happened (newest-first when sorted), `path` is the snapshot's vault-relative
- * path under the folder root, `kind` is the discriminator above, and `dayKey`
- * is the localized day string (`new Date(timestamp).toLocaleDateString()`) the
- * rail uses to group rows: identical to {@link FileVersion.getDate} so the
- * folder modal rail can group rows the same way the file modal rail does.
- *
- * For a `'capture'` point, `versionId` carries the originating version's id
- * so callers can correlate the timeline entry with the underlying
- * {@link FileVersion}. For `'delete'` and `'move-in'` points, the field stays
- * `undefined` (the event is a snapshot-level marker, not tied to a version).
- */
-export interface FolderTimelinePoint {
-  timestamp: number;
-  path: string;
-  kind: FolderTimelinePointKind;
-  dayKey: string;
-  versionId?: string;
-}
 
 /**
  * Pure helper that synthesises a folder-level history timeline from the per-file

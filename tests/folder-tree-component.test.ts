@@ -2,7 +2,8 @@
 
 import { describe, expect, it, beforeAll, beforeEach } from '@jest/globals';
 import { FolderDeltaStatus } from '@/consts';
-import { FolderTreeComponent, type FolderTreeEntry } from '@/components/folder-tree.component';
+import { FolderTreeComponent } from '@/components/folder-tree.component';
+import type { FolderTreeEntry } from '@/types';
 
 /**
  * Tests for {@link FolderTreeComponent} (T11 / D9).

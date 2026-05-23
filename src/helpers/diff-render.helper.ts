@@ -1,66 +1,16 @@
 import { DiffOutputFormatType, DiffViewMode, WordDiffLineType } from '@/consts';
 import { DomHelper } from '@/helpers/dom.helper';
 import { HunkHelper } from '@/helpers/hunk.helper';
-import { type InlineDiffLine, WordDiffHelper } from '@/helpers/word-diff.helper';
-import type { DomElementConfig, FunctionVoid, TranslationVars } from '@/types';
+import { WordDiffHelper } from '@/helpers/word-diff.helper';
+import type {
+  DiffRenderParams,
+  DomElementConfig,
+  FunctionVoid,
+  InlineDiffLine
+} from '@/types';
 import * as Diff from 'diff';
 import * as Diff2Html from 'diff2html';
 import { Notice, setIcon } from 'obsidian';
-
-/**
- * The four supported diff display modes. The two {@link DiffViewMode} values
- * render the textual unified patch and the word-level inline highlights, and
- * the two {@link DiffOutputFormatType} values render the diff2html line-by-line
- * or side-by-side views.
- */
-export type DiffRenderMode = DiffViewMode | DiffOutputFormatType;
-
-/**
- * Minimal translator surface the helper needs. Matches `LineChangeTrackerPlugin.t`
- * so the modal can pass `plugin` directly, but stays narrow so a test or another
- * caller can provide its own translator without dragging in the whole plugin.
- */
-export interface DiffRenderTranslator {
-  t(key: string, vars?: TranslationVars): string;
-}
-
-/**
- * Parameters accepted by {@link DiffRenderHelper.render}. The renderer is pure
- * and modal-agnostic: it owns no state, holds no references, and only mutates
- * the provided container. Per-hunk revert affordances, the columns header,
- * the diff notice, and scroll synchronization stay in the calling modal because
- * they are file-mode specific (D6).
- */
-export interface DiffRenderParams {
-  /**
-   * The selected base content split by `lineBreak`.
-   */
-  baseLines: string[];
-  /**
-   * The current state content split by `lineBreak`.
-   */
-  currentLines: string[];
-  /**
-   * The line separator used when joining content back into text for patches.
-   */
-  lineBreak: string;
-  /**
-   * Which of the four diff modes to render.
-   */
-  mode: DiffRenderMode;
-  /**
-   * The container the renderer writes the diff DOM into.
-   */
-  container: HTMLElement;
-  /**
-   * The vault-relative file path used in the unified patch headers.
-   */
-  filePath: string;
-  /**
-   * Translator used for the copy button tooltip and the copy notice text.
-   */
-  plugin: DiffRenderTranslator;
-}
 
 /**
  * Stateless DOM renderer for the four diff modes used by the history modals.

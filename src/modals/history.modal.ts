@@ -1,20 +1,30 @@
 import { DIFF_SCROLL_STEP_PX, DiffOutputFormatType, DiffViewMode, ListSelectionDirection, NavigationDirection, ORIGINAL_BASE_ID, VersionListEdge } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { BaseContentHelper } from '@/helpers/base-content.helper';
-import { DiffRenderHelper, type DiffRenderMode } from '@/helpers/diff-render.helper';
+import { DiffRenderHelper } from '@/helpers/diff-render.helper';
 import { DomHelper } from '@/helpers/dom.helper';
 import { HunkHelper } from '@/helpers/hunk.helper';
 import { ListSelectionHelper } from '@/helpers/list-selection.helper';
 import { NavigationHelper } from '@/helpers/navigation.helper';
-import { type SearchableVersion, VersionSearchHelper } from '@/helpers/version-search.helper';
-import { type VersionDescription, VersionLabelHelper } from '@/helpers/version-label.helper';
+import { VersionSearchHelper } from '@/helpers/version-search.helper';
+import { VersionLabelHelper } from '@/helpers/version-label.helper';
 import type LineChangeTrackerPlugin from '@/main';
-import type { HistoryModalOpenOptions, ModalsService } from '@/services/modals.service';
+import type { ModalsService } from '@/services/modals.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
-import type { VersionActionsService, VersionRemoveResult } from '@/services/version-actions.service';
+import type { VersionActionsService } from '@/services/version-actions.service';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FileVersion } from '@/snapshots/file.version';
-import type { DomElementConfig, FunctionVoid, HTMLElementWithScrollSync, ToolbarButtonConfig } from '@/types';
+import type {
+  DiffRenderMode,
+  DomElementConfig,
+  FunctionVoid,
+  HistoryModalOpenOptions,
+  HTMLElementWithScrollSync,
+  SearchableVersion,
+  ToolbarButtonConfig,
+  VersionDescription,
+  VersionRemoveResult
+} from '@/types';
 import type * as Diff from 'diff';
 import { type App, Modal, Notice, SearchComponent, setIcon, type TFile } from 'obsidian';
 

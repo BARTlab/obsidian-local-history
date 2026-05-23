@@ -4,42 +4,8 @@ import { ChangeLine } from '@/lines/change.line';
 import type { TrackerLine } from '@/lines/tracker.line';
 import { ArrayMap } from '@/maps/array.map';
 import type { FileVersion } from '@/snapshots/file.version';
+import type { AdoptHistoryResult, UpdateStateResult } from '@/types';
 import { isArray, isNumber } from 'lodash-es';
-
-/**
- * The normalized result of adopting a persisted history baseline and version
- * timeline. The collaborator produces defensive copies and the façade assigns
- * each field back; `versions` belongs to the timeline cluster but adoptHistory
- * sets it alongside the history baseline, so it is carried back here too.
- */
-export interface AdoptHistoryResult {
-  /**
-   * The defensive copy of the persisted history baseline lines.
-   */
-  historyLines: string[];
-
-  /**
-   * The defensive copy of the persisted version timeline, oldest first.
-   */
-  versions: FileVersion[];
-}
-
-/**
- * The outcome of an updateState call: the normalized current state lines and the
- * hash of that state. The façade owns both `state` and `lastHash`, so the
- * collaborator returns both for the façade to write back.
- */
-export interface UpdateStateResult {
-  /**
-   * The defensive copy of the current state as an array of lines.
-   */
-  state: string[];
-
-  /**
-   * The hash of the current state, used for change detection.
-   */
-  lastHash: string;
-}
 
 /**
  * Stateless operator owning the content/baselines/changes concern extracted from

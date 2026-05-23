@@ -159,6 +159,31 @@ describe('FolderDeltaHelper.compareAt - existence at T', () => {
     expect(result.current).toEqual(['current']);
   });
 
+  it('treats a file with versions older than its creation stamp as existing at T', () => {
+    // Regression: snapshot.timestamp is reset to "now" whenever the snapshot
+    // object is rebuilt (every session a file is captured), so it routinely
+    // drifts NEWER than the file's own captured versions. Resolving existence
+    // from timestamp alone mislabelled such a file 'added' (empty base, all-green
+    // diff) at every folder-timeline point before that stamp - the "swapped
+    // trees" bug. The earliest version is the reliable existence floor.
+    const snapshot: FileSnapshot = makeLiveSnapshot({
+      path: 'root/a.md',
+      createdAt: 9_000,
+      historyLines: ['baseline'],
+      versions: [
+        { timestamp: 1_000, lines: ['v1'] },
+        { timestamp: 3_000, lines: ['v2'] },
+      ],
+      state: ['current'],
+    });
+
+    const result: FolderDeltaResult = FolderDeltaHelper.compareAt(snapshot, 2_000);
+
+    expect(result.status).toBe('modified');
+    expect(result.base).toEqual(['v1']);
+    expect(result.current).toEqual(['current']);
+  });
+
   it('does not consult any version captured after T when answering existence', () => {
     // A version captured after T must not retroactively make the file exist
     // at T: the snapshot's own creation timestamp is the existence boundary.

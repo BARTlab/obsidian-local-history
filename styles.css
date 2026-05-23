@@ -613,22 +613,9 @@
   display: flex;
   flex-direction: column;
   font-size: var(--font-ui-small);
-}
-.lct-folder-tree .lct-folder-tree-row {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: var(--size-4-1);
-  padding: var(--size-4-1) var(--size-4-2);
-  cursor: pointer;
-  border-radius: var(--radius-s);
-  user-select: none;
-}
-.lct-folder-tree .lct-folder-tree-row:hover {
-  background-color: var(--background-modifier-hover);
-}
-.lct-folder-tree .lct-folder-tree-row.is-active {
-  background-color: var(--background-modifier-active-hover);
+  padding: 0;
+  min-width: max-content;
+  overflow: visible;
 }
 .lct-folder-tree .lct-folder-tree-chevron,
 .lct-folder-tree .lct-folder-tree-icon {
@@ -639,20 +626,20 @@
   width: var(--icon-s);
   height: var(--icon-s);
   color: var(--text-muted);
+  margin-inline-end: var(--size-4-1);
 }
 .lct-folder-tree .lct-folder-tree-name {
-  flex: 1 1 auto;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  flex: 0 0 auto;
   white-space: nowrap;
+  overflow: visible;
 }
-.lct-folder-tree .lct-tree-added {
+.lct-folder-tree .lct-tree-added .lct-folder-tree-name {
   color: var(--color-green);
 }
-.lct-folder-tree .lct-tree-modified {
+.lct-folder-tree .lct-tree-modified .lct-folder-tree-name {
   color: var(--text-warning);
 }
-.lct-folder-tree .lct-tree-deleted {
+.lct-folder-tree .lct-tree-deleted .lct-folder-tree-name {
   color: var(--color-red);
   text-decoration: line-through;
 }

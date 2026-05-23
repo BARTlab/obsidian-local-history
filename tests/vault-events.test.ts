@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { describe, expect, it, jest } from '@jest/globals';
 
+import { VaultCreateEvent } from '@/events/vault/create.event';
 import { VaultDeleteEvent } from '@/events/vault/delete.event';
 import { VaultModifyEvent } from '@/events/vault/modify.event';
 import { VaultRenameEvent } from '@/events/vault/rename.event';
@@ -170,6 +171,81 @@ describe('VaultModifyEvent', () => {
     const event = new VaultModifyEvent(makePlugin(service));
 
     expect(event.name).toBe('vault.modify');
+  });
+});
+
+describe('VaultCreateEvent', () => {
+  /**
+   * Builds the create-event collaborators: a snapshots mock exposing the three
+   * entry points the handler touches, plus a settings mock whose
+   * `ignoreNewFiles` value the test controls. The handler reaches both services
+   * via `plugin.get`, so the plugin stub routes the two keys accordingly.
+   */
+  const makeCreateContext = (
+    ignoreNewFiles: boolean,
+  ): {
+    event: VaultCreateEvent;
+    snapshots: { isInAllowedExtensions: jest.Mock; addToIgnoreList: jest.Mock; capture: jest.Mock };
+  } => {
+    const snapshots = {
+      isInAllowedExtensions: jest.fn().mockReturnValue(true),
+      addToIgnoreList: jest.fn(),
+      capture: jest.fn().mockReturnValue(Promise.resolve()),
+    };
+    const settings = { value: jest.fn().mockReturnValue(ignoreNewFiles) };
+    const plugin = {
+      get: (key: string): unknown => {
+        if (key === 'SnapshotsService') {
+          return snapshots;
+        }
+
+        if (key === 'SettingsService') {
+          return settings;
+        }
+
+        return undefined;
+      },
+    } as unknown as LineChangeTrackerPlugin;
+
+    return { event: new VaultCreateEvent(plugin), snapshots };
+  };
+
+  it('captures a baseline snapshot when new files are not ignored', () => {
+    const { event, snapshots } = makeCreateContext(false);
+    const file: TFile = makeFile('notes/sub/copied.md');
+
+    event.handler(file);
+
+    expect(snapshots.capture).toHaveBeenCalledTimes(1);
+    expect(snapshots.capture).toHaveBeenCalledWith(file);
+    expect(snapshots.addToIgnoreList).not.toHaveBeenCalled();
+  });
+
+  it('adds the file to the ignore list (no capture) when ignoreNewFiles is on', () => {
+    const { event, snapshots } = makeCreateContext(true);
+    const file: TFile = makeFile('notes/sub/copied.md');
+
+    event.handler(file);
+
+    expect(snapshots.addToIgnoreList).toHaveBeenCalledTimes(1);
+    expect(snapshots.addToIgnoreList).toHaveBeenCalledWith(file);
+    expect(snapshots.capture).not.toHaveBeenCalled();
+  });
+
+  it('short-circuits for non-file abstract files (folders)', () => {
+    const { event, snapshots } = makeCreateContext(false);
+    const folder: TAbstractFile = new TFolder() as unknown as TAbstractFile;
+
+    event.handler(folder);
+
+    expect(snapshots.capture).not.toHaveBeenCalled();
+    expect(snapshots.addToIgnoreList).not.toHaveBeenCalled();
+  });
+
+  it('declares the vault.create event name', () => {
+    const { event } = makeCreateContext(false);
+
+    expect(event.name).toBe('vault.create');
   });
 });
 

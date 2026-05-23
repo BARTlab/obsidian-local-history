@@ -392,6 +392,65 @@ describe('FolderDeltaHelper.compareAt - moved-in snapshot', () => {
   });
 });
 
+describe('FolderDeltaHelper.compareAt - live file with no captured versions', () => {
+  /**
+   * Builds a live snapshot edited once below the capture cadence: no
+   * intermediate versions, a history baseline that differs from the current
+   * state, and a real file mtime (distinct from the snapshot's creation stamp)
+   * marking when that single edit landed.
+   */
+  const makeNoVersionSnapshot = (params: {
+    createdAt: number;
+    mtime: number;
+    baseline: string[];
+    current: string[];
+  }): FileSnapshot => {
+    const snapshot: FileSnapshot = makeLiveSnapshot({
+      path: 'root/a.md',
+      createdAt: params.createdAt,
+      historyLines: params.baseline,
+      versions: [],
+      state: params.current,
+    });
+
+    (snapshot.file as unknown as { stat: { mtime: number } }).stat = { mtime: params.mtime };
+
+    return snapshot;
+  };
+
+  it('reads as modified at points before the single edit', () => {
+    // firstSeen (createdAt) <= T < mtime: the file existed but had not yet been
+    // edited, so the content at T is the baseline and differs from current.
+    const snapshot: FileSnapshot = makeNoVersionSnapshot({
+      createdAt: 1_000,
+      mtime: 5_000,
+      baseline: ['old'],
+      current: ['new'],
+    });
+
+    const result: FolderDeltaResult = FolderDeltaHelper.compareAt(snapshot, 3_000);
+
+    expect(result.status).toBe('modified');
+    expect(result.base).toEqual(['old']);
+    expect(result.current).toEqual(['new']);
+  });
+
+  it('reads as none at points at or after the single edit (mtime)', () => {
+    // T >= mtime: the file already holds its current content at T, so nothing
+    // changed between T and now - it drops out of the changed-files tree instead
+    // of showing as modified at every point the way the baseline-only fallback did.
+    const snapshot: FileSnapshot = makeNoVersionSnapshot({
+      createdAt: 1_000,
+      mtime: 5_000,
+      baseline: ['old'],
+      current: ['new'],
+    });
+
+    expect(FolderDeltaHelper.compareAt(snapshot, 5_000).status).toBe('none');
+    expect(FolderDeltaHelper.compareAt(snapshot, 6_000).status).toBe('none');
+  });
+});
+
 describe('FolderDeltaHelper.compareAt - live content equality', () => {
   it('returns none when the resolved content at T equals the current state', () => {
     // AC6: live snapshot whose content at T equals its current state -> 'none'.

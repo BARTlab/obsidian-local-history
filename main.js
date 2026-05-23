@@ -15574,6 +15574,18 @@ var FolderDeltaHelper = class _FolderDeltaHelper {
    * stored oldest-first (by capture order), so scanning back from the end
    * finds the qualifying version in one pass.
    *
+   * No-version live files are a special case (handled first). A file edited
+   * once below the capture cadence has no intermediate versions, so only two
+   * states are known: the history baseline (earliest) and the current state,
+   * reached at the file's last-change moment ({@link FileSnapshot.getLastChangedTimestamp},
+   * the file's mtime). Treating that moment as the single transition, the
+   * content at T is the current state for any T at/after it (so the file reads
+   * as unchanged - `'none'` - since T) and the baseline before it. Without this,
+   * a no-version file always diffs the baseline against the current state and
+   * so shows as `'modified'` at every timeline point, even the newest.
+   * Tombstones keep the baseline fallback: their captured-or-baseline content is
+   * the recoverable starting point and their current side is empty regardless.
+   *
    * Returns a copy of the lines so the caller cannot mutate the underlying
    * version or the history baseline through the returned reference.
    *
@@ -15583,6 +15595,13 @@ var FolderDeltaHelper = class _FolderDeltaHelper {
    */
   static resolveBaseAt(snapshot, timestamp) {
     const versions = Array.isArray(snapshot.versions) ? snapshot.versions : [];
+    if (versions.length === 0 && !snapshot.isTombstone()) {
+      const lastChanged = snapshot.getLastChangedTimestamp();
+      if (isNumber_default(lastChanged) && timestamp >= lastChanged) {
+        return snapshot.getLastStateLines();
+      }
+      return Array.isArray(snapshot.historyLines) ? [...snapshot.historyLines] : [];
+    }
     for (let i = versions.length - 1; i >= 0; i -= 1) {
       const version = versions[i];
       if (version && isNumber_default(version.timestamp) && version.timestamp <= timestamp) {

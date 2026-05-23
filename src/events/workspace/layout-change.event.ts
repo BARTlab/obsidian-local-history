@@ -44,7 +44,10 @@ export class WorkspaceLayoutChangeEvent extends BaseEvent {
   public handler(): void {
     const openedFiles: Set<TFile> = this.plugin.getWorkspaceFiles();
 
-    // Looking for files that were closed, but they are still in the state
+    /**
+     * Drop snapshots for files that are no longer open but still tracked in
+     * the state, when history is not kept after a file is closed.
+     */
     this.snapshotsService.getList().forEach((snapshot: FileSnapshot): void => {
       if (!snapshot.file || !this.isOnFileClose()) {
         return;
@@ -55,16 +58,23 @@ export class WorkspaceLayoutChangeEvent extends BaseEvent {
       }
     });
 
-    // Remove a file from an ignored list
+    /**
+     * Drop closed files from the ignore list so they are tracked again the
+     * next time they are opened.
+     */
     this.snapshotsService.getIgnoreList().forEach((file: TFile): void => {
       if (!openedFiles.has(file)) {
         this.snapshotsService.removeFromIgnoreList(file)
       }
     });
 
-    // Looking for new files that are not in the state
+    /**
+     * Capture snapshots for newly opened files that are not yet tracked.
+     */
     openedFiles.forEach((file: TFile): void => {
-      // Most likely an unnecessary check
+      /**
+       * Guard against capturing a file that already has a snapshot.
+       */
       if (!this.snapshotsService.getOne(file)) {
         void this.snapshotsService.capture(file);
       }

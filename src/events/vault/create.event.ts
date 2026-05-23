@@ -47,7 +47,6 @@ export class VaultCreateEvent extends BaseEvent {
       return;
     }
 
-    // If ignoring new files is enabled, add a file to ignore list
     if (this.settingsService.value('ignoreNewFiles') && this.snapshotsService.isInAllowedExtensions(file)) {
       this.snapshotsService.addToIgnoreList(file);
     }

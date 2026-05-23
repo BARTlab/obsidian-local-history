@@ -64,7 +64,9 @@ export class ChangeDetectorExtension extends BaseExtension implements EditorExte
       return;
     }
 
-    // If the content has not changed (by hash), skip
+    /**
+     * Skip when the content has not changed, detected by the snapshot hash.
+     */
     if (!snapshot.isNeedUpdate(currentContent)) {
       return;
     }
@@ -94,21 +96,27 @@ export class ChangeDetectorExtension extends BaseExtension implements EditorExte
     const prev: Text = update.startState.doc;
 
     update.changes.iterChanges((fromA: number, toA: number, fromB: number, toB: number): void => {
-      // Line numbers (0-based) touched by this change in the old and new docs.
+      /**
+       * Line numbers (0-based) touched by this change in the old and new docs.
+       */
       const fromOldLine: number = prev.lineAt(fromA).number - 1;
       const toOldLine: number = prev.lineAt(toA).number - 1;
       const fromNewLine: number = state.doc.lineAt(fromB).number - 1;
       const toNewLine: number = state.doc.lineAt(toB).number - 1;
 
-      // A boundary line survives when the edit keeps part of it: a preserved
-      // prefix (edit starts after the line start) or suffix (edit ends before
-      // the line end). The preserved span has equal length in both docs, so the
-      // new-doc positions decide it for both sides.
+      /**
+       * A boundary line survives when the edit keeps part of it: a preserved
+       * prefix (edit starts after the line start) or suffix (edit ends before
+       * the line end). The preserved span has equal length in both docs, so the
+       * new-doc positions decide it for both sides.
+       */
       const prefixShared: boolean = fromB > state.doc.lineAt(fromB).from;
       const suffixShared: boolean = toB < state.doc.lineAt(toB).to;
 
-      // The "core" lines are the ones wholly replaced: every old core line is
-      // gone and every new core line is brand new.
+      /**
+       * The "core" lines are the ones wholly replaced: every old core line is
+       * gone and every new core line is brand new.
+       */
       const oldCoreStart: number = fromOldLine + (prefixShared ? 1 : 0);
       const oldCoreEnd: number = toOldLine - (suffixShared ? 1 : 0);
       const newCoreStart: number = fromNewLine + (prefixShared ? 1 : 0);
@@ -118,19 +126,23 @@ export class ChangeDetectorExtension extends BaseExtension implements EditorExte
       const newCoreCount: number = Math.max(0, newCoreEnd - newCoreStart + 1);
 
       if (oldCoreCount === newCoreCount && oldCoreCount > 0) {
-        // Same number of lines in and out: each core line was edited in place.
+        /**
+         * Same number of lines in and out: each core line was edited in place.
+         */
         for (let i: number = 0; i < newCoreCount; i++) {
           const tracker: TrackerLine | null = snapshot.findCurrentLine(newCoreStart + i);
 
           tracker?.change(currentLines[newCoreStart + i]);
         }
       } else {
-        // Counts differ: treat the block as delete + insert so destroyed
-        // originals are removed and the replacements are added (no mismapping).
-        // Capture the doomed originals first, insert the new lines, then remove
-        // the originals by reference. Removing only after the inserts means the
-        // originals are not yet in a removed state, so a same-transaction insert
-        // adds a fresh line instead of resurrecting them.
+        /**
+         * Counts differ: treat the block as delete + insert so destroyed
+         * originals are removed and the replacements are added (no mismapping).
+         * Capture the doomed originals first, insert the new lines, then remove
+         * the originals by reference. Removing only after the inserts means the
+         * originals are not yet in a removed state, so a same-transaction insert
+         * adds a fresh line instead of resurrecting them.
+         */
         const doomed: TrackerLine[] = [];
 
         for (let index: number = oldCoreStart; index <= oldCoreEnd; index++) {
@@ -152,8 +164,10 @@ export class ChangeDetectorExtension extends BaseExtension implements EditorExte
         });
       }
 
-      // Update the content of the surviving boundary lines. The suffix line is
-      // read after add/remove shifts, so it sits at its final new position.
+      /**
+       * Update the content of the surviving boundary lines. The suffix line is
+       * read after add/remove shifts, so it sits at its final new position.
+       */
       if (prefixShared) {
         snapshot.findCurrentLine(fromNewLine)?.change(currentLines[fromNewLine]);
       }
@@ -163,9 +177,11 @@ export class ChangeDetectorExtension extends BaseExtension implements EditorExte
       }
     }, true);
 
-    // Freeze the pre-edit state on the timeline before recording the new state,
-    // so a captured version preserves the earlier point. Cadence gating lives
-    // in the snapshot, so this stays cheap on the keystroke path.
+    /**
+     * Freeze the pre-edit state on the timeline before recording the new state,
+     * so a captured version preserves the earlier point. Cadence gating lives
+     * in the snapshot, so this stays cheap on the keystroke path.
+     */
     snapshot.captureVersion(snapshot.getLastStateLines(), this.getCaptureOptions());
 
     snapshot.updateState(currentLines);

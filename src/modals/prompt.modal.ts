@@ -96,8 +96,10 @@ export class PromptModal extends Modal {
    * @override
    */
   public onOpen(): void {
-    // Tag the modal so the stylesheet can mirror the confirm modal's padding;
-    // a bare Modal's content otherwise sits flush against the edges.
+    /**
+     * Tag the modal so the stylesheet can mirror the confirm modal's padding;
+     * a bare Modal's content otherwise sits flush against the edges.
+     */
     DomHelper.update(this.modalEl, { classes: { add: 'lct-prompt-modal' } });
 
     DomHelper.update(this.contentEl, {
@@ -163,8 +165,10 @@ export class PromptModal extends Modal {
 
     this.inputEl = this.contentEl.querySelector('input.lct-prompt-input') as HTMLInputElement;
 
-    // Apply the initial value via the property, so submission reads the latest
-    // user-edited string without depending on the attribute being kept in sync.
+    /**
+     * Apply the initial value via the property, so submission reads the latest
+     * user-edited string without depending on the attribute being kept in sync.
+     */
     if (this.inputEl) {
       this.inputEl.value = this.initialValue;
       this.inputEl.focus();

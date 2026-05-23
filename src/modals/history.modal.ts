@@ -160,13 +160,21 @@ export class HistoryModal extends Modal {
    * Used to update the active state when switching between diff modes.
    */
   protected modeButtons: {
-    /** Button for patch mode */
+    /**
+     * Button for patch mode.
+     */
     patch?: HTMLElement;
-    /** Button for inline word-diff mode */
+    /**
+     * Button for inline word-diff mode.
+     */
     inline?: HTMLElement;
-    /** Button for line-by-line mode */
+    /**
+     * Button for line-by-line mode.
+     */
     lineByLine?: HTMLElement;
-    /** Button for side-by-side mode */
+    /**
+     * Button for side-by-side mode.
+     */
     sideBySide?: HTMLElement;
   } = {};
 
@@ -175,9 +183,13 @@ export class HistoryModal extends Modal {
    * can be disabled when the current diff has no hunks to walk.
    */
   protected navButtons: {
-    /** Button that jumps to the previous difference */
+    /**
+     * Button that jumps to the previous difference.
+     */
     previous?: HTMLElement;
-    /** Button that jumps to the next difference */
+    /**
+     * Button that jumps to the next difference.
+     */
     next?: HTMLElement;
   } = {};
 
@@ -228,20 +240,22 @@ export class HistoryModal extends Modal {
       return;
     }
 
-    // Open on the latest captured version ("what changed since the last save"),
-    // or on the Original entry when no snapshots exist yet.
+    /**
+     * Open on the latest captured version ("what changed since the last save"),
+     * or on the Original entry when no snapshots exist yet.
+     */
     this.selectedBaseId = this.getInitialBaseId();
 
-    // Make modal UI
     this.makeUI();
 
-    // Increasing the size of the modal window
+    /**
+     * Increase the size of the modal window.
+     */
     DomHelper.update(
       this.modalEl,
       { classes: { add: 'lct-diff-modal' } }
     );
 
-    // Generate and display diff
     this.renderDiff();
   }
 
@@ -343,10 +357,12 @@ export class HistoryModal extends Modal {
       return;
     }
 
-    // A picked captured version routes through the shared service (D5); the
-    // synthetic baseline (the latest snapshot or the history original) stays on
-    // the modal's local path because the service models real captured versions
-    // only and the baseline content is resolved by the modal's BaseContentHelper.
+    /**
+     * A picked captured version routes through the shared service (D5); the
+     * synthetic baseline (the latest snapshot or the history original) stays on
+     * the modal's local path because the service models real captured versions
+     * only and the baseline content is resolved by the modal's BaseContentHelper.
+     */
     if (this.selectedBaseId !== ORIGINAL_BASE_ID) {
       await this.versionActionsService.restoreSelected(file, this.selectedBaseId);
     } else {
@@ -360,8 +376,10 @@ export class HistoryModal extends Modal {
       });
     }
 
-    // The content changed, so the diff and its hunk indices are stale: drop the
-    // navigation focus and redraw the active view against the new content.
+    /**
+     * The content changed, so the diff and its hunk indices are stale: drop the
+     * navigation focus and redraw the active view against the new content.
+     */
     this.activeHunkIndex = -1;
     this.refreshActiveView();
   }
@@ -381,11 +399,13 @@ export class HistoryModal extends Modal {
       return;
     }
 
-    // Route through the shared service (D5). The service resolves the next
-    // selection against the FULL timeline (its visible list); the modal's
-    // search/hide-identical filter may exclude that fallback, so the result is
-    // narrowed to ids the rail still shows before applying it. The synthetic
-    // baseline is the final fallback.
+    /**
+     * Route through the shared service (D5). The service resolves the next
+     * selection against the FULL timeline (its visible list); the modal's
+     * search/hide-identical filter may exclude that fallback, so the result is
+     * narrowed to ids the rail still shows before applying it. The synthetic
+     * baseline is the final fallback.
+     */
     const result: VersionRemoveResult = this.versionActionsService.removeSelected(
       this.snapshot?.file ?? null,
       this.selectedBaseId,
@@ -526,8 +546,10 @@ export class HistoryModal extends Modal {
       return;
     }
 
-    // A page keeps a small overlap so the line the user was reading stays on
-    // screen, with a floor so a very short pane still advances.
+    /**
+     * A page keeps a small overlap so the line the user was reading stays on
+     * screen, with a floor so a very short pane still advances.
+     */
     const page: number = Math.max(DIFF_SCROLL_STEP_PX, scroller.clientHeight - DIFF_SCROLL_STEP_PX);
 
     switch (event.key) {
@@ -640,11 +662,13 @@ export class HistoryModal extends Modal {
       return requested;
     }
 
-    // With a selection filter active (T09/D7) the default selection should land
-    // on the first version that survives the filter, not on the unconditional
-    // latest snapshot which may be filtered out. The filter list is newest-first
-    // (matches getVersions()), so the first hit is also the newest match. An
-    // empty matched set falls through to the baseline.
+    /**
+     * With a selection filter active (T09/D7) the default selection should land
+     * on the first version that survives the filter, not on the unconditional
+     * latest snapshot which may be filtered out. The filter list is newest-first
+     * (matches getVersions()), so the first hit is also the newest match. An
+     * empty matched set falls through to the baseline.
+     */
     const selectionIds: ReadonlySet<string> | undefined = this.options.selectionFilterIds;
 
     if (selectionIds !== undefined) {
@@ -694,10 +718,12 @@ export class HistoryModal extends Modal {
    * lists side by side. Without the option the rail is built as before.
    */
   protected makeUI(): void {
-    // Obsidian Settings-style shell: the body splits into a left navigation
-    // column (the version rail) and a right content column. The content column
-    // stacks the toolbar above the diff, so the rail runs full height on the
-    // left and the toolbar plus diff fill the right.
+    /**
+     * Obsidian Settings-style shell: the body splits into a left navigation
+     * column (the version rail) and a right content column. The content column
+     * stacks the toolbar above the diff, so the rail runs full height on the
+     * left and the toolbar plus diff fill the right.
+     */
     const bodyEl: HTMLElement = DomHelper.create({
       tag: 'div',
       classes: 'lct-modal-body',
@@ -720,7 +746,9 @@ export class HistoryModal extends Modal {
       container: bodyEl,
     });
 
-    // The toolbar lives at the top of the right content column, above the diff.
+    /**
+     * The toolbar lives at the top of the right content column, above the diff.
+     */
     this.toolbarEl = DomHelper.create({
       tag: 'div',
       classes: 'lct-modal-toolbar',
@@ -729,11 +757,13 @@ export class HistoryModal extends Modal {
 
     this.makeToolbar();
 
-    // Pull the modal's native close button out of its floating top-right corner
-    // and append it as the last control in the toolbar, so it lines up with the
-    // other icon buttons instead of hovering apart. It drops the raised round
-    // look and wears the plain .clickable-icon look the rest of the row uses;
-    // the static position is restored in CSS.
+    /**
+     * Pull the modal's native close button out of its floating top-right corner
+     * and append it as the last control in the toolbar, so it lines up with the
+     * other icon buttons instead of hovering apart. It drops the raised round
+     * look and wears the plain .clickable-icon look the rest of the row uses;
+     * the static position is restored in CSS.
+     */
     const closeButtonEl: HTMLElement | null = this.modalEl.querySelector<HTMLElement>('.modal-close-button');
 
     if (closeButtonEl) {
@@ -742,21 +772,27 @@ export class HistoryModal extends Modal {
       this.toolbarEl.appendChild(closeButtonEl);
     }
 
-    // The rail (search + version list) is built only when not hidden. In
-    // rail-less mode the panel is the navigator and the modal acts as a pure
-    // viewer focused on the chosen version.
+    /**
+     * The rail (search + version list) is built only when not hidden. In
+     * rail-less mode the panel is the navigator and the modal acts as a pure
+     * viewer focused on the chosen version.
+     */
     if (this.railEl) {
-      // Content search sits above the version timeline in the left rail.
+      /**
+       * Content search sits above the version timeline in the left rail.
+       */
       this.searchEl = DomHelper.create({
         tag: 'div',
         classes: 'lct-rail-search',
         container: this.railEl,
       });
 
-      // Version timeline lives in the left rail, under the search box. It is a
-      // focusable region (tabindex 0) so the arrow keys can walk the snapshots
-      // and Delete can drop the selected one while the list, not the diff, has
-      // focus.
+      /**
+       * Version timeline lives in the left rail, under the search box. It is a
+       * focusable region (tabindex 0) so the arrow keys can walk the snapshots
+       * and Delete can drop the selected one while the list, not the diff, has
+       * focus.
+       */
       this.versionsEl = DomHelper.create({
         tag: 'div',
         classes: 'lct-versions',
@@ -768,36 +804,44 @@ export class HistoryModal extends Modal {
       });
     }
 
-    // Notice above the diff, hidden until the selected base equals the current
-    // state. It gives a single, mode-independent message so a blank diff is
-    // never left unexplained.
+    /**
+     * Notice above the diff, hidden until the selected base equals the current
+     * state. It gives a single, mode-independent message so a blank diff is
+     * never left unexplained.
+     */
     this.noticeEl = DomHelper.create({
       tag: 'div',
       classes: ['lct-diff-notice', 'lct-diff-notice-hidden'],
       container: this.mainEl,
     });
 
-    // The diff block bundles the side-by-side column header and the diff output
-    // in one bordered box, so the header reads as part of the diff: it sits as a
-    // fixed row at the top of the block and the diff fills the rest below it.
+    /**
+     * The diff block bundles the side-by-side column header and the diff output
+     * in one bordered box, so the header reads as part of the diff: it sits as a
+     * fixed row at the top of the block and the diff fills the rest below it.
+     */
     const blockEl: HTMLElement = DomHelper.create({
       tag: 'div',
       classes: 'lct-diff-block',
       container: this.mainEl,
     });
 
-    // Column header for the side-by-side mode, hidden in the single-column
-    // modes. It names the version each column shows (picked base vs current).
+    /**
+     * Column header for the side-by-side mode, hidden in the single-column
+     * modes. It names the version each column shows (picked base vs current).
+     */
     this.columnsHeaderEl = DomHelper.create({
       tag: 'div',
       classes: ['lct-diff-columns', 'lct-diff-columns-hidden'],
       container: blockEl,
     });
 
-    // The diff output fills the rest of the block. Per-hunk revert lives inline
-    // inside the diff rows, not in a separate panel. It is focusable (tabindex 0)
-    // so the arrow keys scroll the diff while it holds focus; Delete is ignored
-    // here, since deleting a snapshot only makes sense from the version list.
+    /**
+     * The diff output fills the rest of the block. Per-hunk revert lives inline
+     * inside the diff rows, not in a separate panel. It is focusable (tabindex 0)
+     * so the arrow keys scroll the diff while it holds focus; Delete is ignored
+     * here, since deleting a snapshot only makes sense from the version list.
+     */
     this.diffContainerEl = DomHelper.create({
       tag: 'div',
       classes: 'diff-container',
@@ -844,8 +888,10 @@ export class HistoryModal extends Modal {
     }
 
     if (this.labelSelectedButton) {
-      // Only a real captured version can carry a label; the synthetic baseline
-      // has no version to tag, so the action is disabled there.
+      /**
+       * Only a real captured version can carry a label; the synthetic baseline
+       * has no version to tag, so the action is disabled there.
+       */
       const noVersion: boolean = this.selectedBaseId === ORIGINAL_BASE_ID;
 
       (this.labelSelectedButton as HTMLButtonElement).disabled = noVersion;
@@ -986,10 +1032,12 @@ export class HistoryModal extends Modal {
    * updateButtonActiveStates; the destructive actions still confirm before acting.
    */
   protected makeToolbar(): void {
-    // Destructive actions: each still asks for confirmation before acting. This
-    // group leads the toolbar and is pushed to the left edge (its auto inline-end
-    // margin in CSS) so the destructive pair reads as separate from the view
-    // controls that follow on the right.
+    /**
+     * Destructive actions: each still asks for confirmation before acting. This
+     * group leads the toolbar and is pushed to the left edge (its auto inline-end
+     * margin in CSS) so the destructive pair reads as separate from the view
+     * controls that follow on the right.
+     */
     const actionsGroup: HTMLElement = this.makeToolbarGroup('lct-modal-toolbar-actions');
 
     this.makeToolbarButton(actionsGroup, {
@@ -1029,10 +1077,12 @@ export class HistoryModal extends Modal {
       },
     });
 
-    // Version controls: restore the file to the picked version (constructive,
-    // the history is kept) and delete the picked version from the timeline, then
-    // the rail filter that hides versions identical to the current state. The
-    // filter is a toggle, so it carries the is-active accent while active.
+    /**
+     * Version controls: restore the file to the picked version (constructive,
+     * the history is kept) and delete the picked version from the timeline, then
+     * the rail filter that hides versions identical to the current state. The
+     * filter is a toggle, so it carries the is-active accent while active.
+     */
     const filterGroup: HTMLElement = this.makeToolbarGroup('lct-modal-toolbar-filter');
 
     this.restoreSelectedButton = this.makeToolbarButton(filterGroup, {
@@ -1076,8 +1126,10 @@ export class HistoryModal extends Modal {
       },
     });
 
-    // Difference navigation: step between the diff hunks with wrap-around. The
-    // buttons are disabled when the current diff has no hunks.
+    /**
+     * Difference navigation: step between the diff hunks with wrap-around. The
+     * buttons are disabled when the current diff has no hunks.
+     */
     const navGroup: HTMLElement = this.makeToolbarGroup('lct-modal-toolbar-nav');
 
     this.navButtons.previous = this.makeToolbarButton(navGroup, {
@@ -1096,7 +1148,9 @@ export class HistoryModal extends Modal {
       },
     });
 
-    // View-mode toggles: the active mode is highlighted via is-active.
+    /**
+     * View-mode toggles: the active mode is highlighted via is-active.
+     */
     const modesGroup: HTMLElement = this.makeToolbarGroup('lct-modal-toolbar-modes');
 
     this.modeButtons.patch = this.makeToolbarButton(modesGroup, {
@@ -1131,7 +1185,9 @@ export class HistoryModal extends Modal {
       },
     });
 
-    // Set the initial active state.
+    /**
+     * Set the initial active state.
+     */
     this.updateButtonActiveStates();
   }
 
@@ -1220,8 +1276,10 @@ export class HistoryModal extends Modal {
       return;
     }
 
-    // Hunk indices are 0..count-1; reuse the cursor-based target picker over
-    // them so the wrap-around behaviour matches the editor navigation exactly.
+    /**
+     * Hunk indices are 0..count-1; reuse the cursor-based target picker over
+     * them so the wrap-around behaviour matches the editor navigation exactly.
+     */
     const indices: number[] = Array.from({ length: count }, (_unused: unknown, index: number): number => index);
     const target: number | null = NavigationHelper.target(indices, this.activeHunkIndex, direction);
 
@@ -1285,7 +1343,9 @@ export class HistoryModal extends Modal {
       DomHelper.update(button, { classes: disabled ? { add: 'is-disabled' } : { remove: 'is-disabled' } });
     });
 
-    // Forget a focus that no longer points at an existing hunk.
+    /**
+     * Forget a focus that no longer points at an existing hunk.
+     */
     if (this.activeHunkIndex >= count) {
       this.activeHunkIndex = -1;
     }
@@ -1344,10 +1404,12 @@ export class HistoryModal extends Modal {
         return false;
       }
 
-      // When a selection filter is active (T09/D7) the rail only shows versions
-      // whose neighbour-diff touched the selection. An empty set means the
-      // filter is active but matched nothing, so the rail collapses to its
-      // no-results hint without us short-circuiting the visibility logic.
+      /**
+       * When a selection filter is active (T09/D7) the rail only shows versions
+       * whose neighbour-diff touched the selection. An empty set means the
+       * filter is active but matched nothing, so the rail collapses to its
+       * no-results hint without us short-circuiting the visibility logic.
+       */
       if (selectionIds !== undefined && !selectionIds.has(version.id)) {
         return false;
       }
@@ -1375,21 +1437,25 @@ export class HistoryModal extends Modal {
 
     const versions: FileVersion[] = this.snapshot.getVersions();
 
-    // The rail is always visible: even a timeline-less file offers the single
-    // Original entry (original vs current), so the block is never collapsed.
+    /**
+     * The rail is always visible: even a timeline-less file offers the single
+     * Original entry (original vs current), so the block is never collapsed.
+     */
     DomHelper.update(this.versionsEl, { classes: { remove: 'lct-versions-empty' } });
 
     const matched: FileVersion[] = this.getVisibleVersions();
 
-    // Each entry is grouped by day; the row shows the action (or the user's
-    // custom label) as the primary text, with the capture date+time and the
-    // line-level delta inline as secondary metadata (the date is duplicated on
-    // the row, not only in the group heading, so the AC is met without relying
-    // on hover or external context). With snapshots the entries are the visible
-    // versions, already newest-first and time-ordered, so same-day entries are
-    // contiguous and a new group starts only when the day changes. With no
-    // snapshots the single Original entry takes its day and time from the
-    // file's last update and has no inline delta.
+    /**
+     * Each entry is grouped by day; the row shows the action (or the user's
+     * custom label) as the primary text, with the capture date+time and the
+     * line-level delta inline as secondary metadata (the date is duplicated on
+     * the row, not only in the group heading, so the AC is met without relying
+     * on hover or external context). With snapshots the entries are the visible
+     * versions, already newest-first and time-ordered, so same-day entries are
+     * contiguous and a new group starts only when the day changes. With no
+     * snapshots the single Original entry takes its day and time from the
+     * file's last update and has no inline delta.
+     */
     type RailEntry = { id: string; label: string; day: string; meta: string; delta: string; external: boolean };
 
     const entries: RailEntry[] =
@@ -1439,10 +1505,12 @@ export class HistoryModal extends Modal {
       });
     });
 
-    // A search that excluded every captured version leaves the version groups
-    // empty, so surface a no-results hint. (With no snapshots at all the
-    // Original entry is shown instead, so this only applies once versions
-    // exist.)
+    /**
+     * A search that excluded every captured version leaves the version groups
+     * empty, so surface a no-results hint. (With no snapshots at all the
+     * Original entry is shown instead, so this only applies once versions
+     * exist.)
+     */
     if (versions.length > 0 && matched.length === 0) {
       items.push({
         tag: 'div',
@@ -1720,9 +1788,11 @@ export class HistoryModal extends Modal {
       },
     );
 
-    // The content changed, so the diff (and its hunk indices) is stale: drop the
-    // navigation focus and redraw the active view, which re-attaches the inline
-    // revert affordances against the new hunks.
+    /**
+     * The content changed, so the diff (and its hunk indices) is stale: drop the
+     * navigation focus and redraw the active view, which re-attaches the inline
+     * revert affordances against the new hunks.
+     */
     this.activeHunkIndex = -1;
     this.refreshActiveView();
   }
@@ -1754,9 +1824,11 @@ export class HistoryModal extends Modal {
       anchor.classList.add('lct-hunk-anchor');
       anchor.dataset.lctHunk = String(index);
 
-      // Host the revert affordance in the row's gutter (the sticky line-number
-      // cell) so it stays pinned to the gutter while the diff scrolls
-      // horizontally; the inline mode has no gutter and falls back to the row.
+      /**
+       * Host the revert affordance in the row's gutter (the sticky line-number
+       * cell) so it stays pinned to the gutter while the diff scrolls
+       * horizontally; the inline mode has no gutter and falls back to the row.
+       */
       this.makeRevertAffordance(this.resolveHunkGutter(anchor), index);
     });
 
@@ -1810,12 +1882,14 @@ export class HistoryModal extends Modal {
       this.diffContainerEl.querySelectorAll<HTMLElement>('.lct-inline-row'),
     );
 
-    // Walk the rows tracking the current-side line number: every row that holds
-    // a current-side line advances it (context, a whole addition, or a modified
-    // line), while a pure removal does not. The anchor is the first changed row
-    // whose current-side position reaches the hunk's newStart. A pure deletion
-    // (newLines === 0) sits between current lines, so it anchors on the first
-    // changed row at or after newStart.
+    /**
+     * Walk the rows tracking the current-side line number: every row that holds
+     * a current-side line advances it (context, a whole addition, or a modified
+     * line), while a pure removal does not. The anchor is the first changed row
+     * whose current-side position reaches the hunk's newStart. A pure deletion
+     * (newLines === 0) sits between current lines, so it anchors on the first
+     * changed row at or after newStart.
+     */
     let currentLine: number = 0;
 
     for (const row of rows) {
@@ -1859,9 +1933,11 @@ export class HistoryModal extends Modal {
       return this.rowAtLine(newScope, hunk.newStart);
     }
 
-    // Pure deletion: in side-by-side the removed lines live in the left column,
-    // keyed by the hunk's oldStart; in line-by-line they are d2h-del rows in the
-    // single stream, anchored by the first one at or after the deletion point.
+    /**
+     * Pure deletion: in side-by-side the removed lines live in the left column,
+     * keyed by the hunk's oldStart; in line-by-line they are d2h-del rows in the
+     * single stream, anchored by the first one at or after the deletion point.
+     */
     if (sideBySide) {
       return this.rowAtLine(columns[0] ?? this.diffContainerEl, hunk.oldStart);
     }
@@ -1958,8 +2034,6 @@ export class HistoryModal extends Modal {
    * anchor them to, and the navigation buttons are refreshed at the end.
    */
   protected showCleanPatch(): void {
-    // Update current mode and button states,
-    // clean up previous scroll synchronization
     this.currentDisplayMode = DiffViewMode.patch;
     this.updateButtonActiveStates();
     this.cleanupScrollSync();
@@ -1978,8 +2052,10 @@ export class HistoryModal extends Modal {
       });
     }
 
-    // Patch mode has no per-row structure for inline revert and disables the
-    // navigation buttons (no anchors to step through).
+    /**
+     * Patch mode has no per-row structure for inline revert and disables the
+     * navigation buttons (no anchors to step through).
+     */
     this.updateNavButtonsState();
   }
 
@@ -1991,8 +2067,6 @@ export class HistoryModal extends Modal {
    * they are file-mode specific (they need a snapshot to write back to).
    */
   protected renderInlineDiff(): void {
-    // Update current mode and button states,
-    // clean up previous scroll synchronization.
     this.currentDisplayMode = DiffViewMode.inline;
     this.updateButtonActiveStates();
     this.cleanupScrollSync();
@@ -2011,8 +2085,10 @@ export class HistoryModal extends Modal {
       });
     }
 
-    // Map the rendered inline rows back to hunks and place the per-hunk revert
-    // affordances; this also refreshes the navigation button state.
+    /**
+     * Map the rendered inline rows back to hunks and place the per-hunk revert
+     * affordances; this also refreshes the navigation button state.
+     */
     this.attachInlineReverts();
   }
 
@@ -2025,8 +2101,6 @@ export class HistoryModal extends Modal {
    * @param {DiffOutputFormatType} format - The format of the diff view (defaults to 'side-by-side')
    */
   protected renderDiff(format: DiffOutputFormatType = DiffOutputFormatType.side): void {
-    // Update current mode and button states,
-    // clean up previous scroll synchronization
     this.currentDisplayMode = format;
     this.updateButtonActiveStates();
     this.cleanupScrollSync();
@@ -2045,12 +2119,16 @@ export class HistoryModal extends Modal {
       });
     }
 
-    // Map the rendered diff2html rows back to hunks and place the per-hunk
-    // revert affordances; this also refreshes the navigation button state.
+    /**
+     * Map the rendered diff2html rows back to hunks and place the per-hunk
+     * revert affordances; this also refreshes the navigation button state.
+     */
     this.attachInlineReverts();
 
-    // Scroll synchronization for a side-by-side diff view,
-    // uses setTimeout to ensure DOM elements are rendered
+    /**
+     * Scroll synchronization for a side-by-side diff view; uses setTimeout to
+     * ensure DOM elements are rendered.
+     */
     if (format === DiffOutputFormatType.side) {
       setTimeout(() => this.setupScrollSynchronization(), 0);
     }
@@ -2071,7 +2149,9 @@ export class HistoryModal extends Modal {
     const [leftWrapper, rightWrapper] = wrappers;
     let isScrolling: boolean = false;
 
-    // Synchronize scroll from left to right
+    /**
+     * Synchronize scroll from left to right.
+     */
     const syncLeftToRight: FunctionVoid = (): void => {
       if (isScrolling) {
         return;
@@ -2086,7 +2166,9 @@ export class HistoryModal extends Modal {
       });
     };
 
-    // Synchronize scroll from right to left
+    /**
+     * Synchronize scroll from right to left.
+     */
     const syncRightToLeft: FunctionVoid = (): void => {
       if (isScrolling) {
         return;
@@ -2101,11 +2183,12 @@ export class HistoryModal extends Modal {
       });
     };
 
-    // Add scroll event listeners
     leftWrapper.addEventListener('scroll', syncLeftToRight);
     rightWrapper.addEventListener('scroll', syncRightToLeft);
 
-    // Store references for cleanup (if needed later)
+    /**
+     * Store references so the listeners can be detached on cleanup.
+     */
     this.diffContainerEl._scrollSyncCleanup = (): void => {
       leftWrapper.removeEventListener('scroll', syncLeftToRight);
       rightWrapper.removeEventListener('scroll', syncRightToLeft);

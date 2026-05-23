@@ -109,17 +109,21 @@ export class RecentChangesView extends ItemView {
       container: this.contentEl,
     });
 
-    // Active-leaf-change is a native Obsidian event; routed through
-    // registerEvent so the ref releases with the view.
+    /**
+     * Active-leaf-change is a native Obsidian event; routed through
+     * registerEvent so the ref releases with the view.
+     */
     this.registerEvent(
       this.app.workspace.on('active-leaf-change', (): void => {
         this.render();
       }),
     );
 
-    // Internal snapshot updates (capture, restore, remove, put-label) flow
-    // through the plugin emitter, not the workspace, so subscribe directly and
-    // detach on close via the Component `register` hook.
+    /**
+     * Internal snapshot updates (capture, restore, remove, put-label) flow
+     * through the plugin emitter, not the workspace, so subscribe directly and
+     * detach on close via the Component `register` hook.
+     */
     const onSnapshotUpdate = (): void => this.render();
 
     this.plugin.on(PluginEvent.snapshotsUpdate, onSnapshotUpdate, this);
@@ -390,12 +394,14 @@ export class RecentChangesView extends ItemView {
         .setTitle(this.plugin.t('view.recent-changes.menu.put-label'))
         .setIcon('tag')
         .onClick((): void => {
-          // Label the version this row represents, NOT the file's current
-          // content: a right-click on a past slice must tag that slice. Route
-          // through ModalsService.labelVersion so the prompt strings and the
-          // empty/cancel no-op stay aligned with the rest of the put-label UX.
-          // The row's file is captured at render time so an active-file switch
-          // between right-click and confirm cannot retarget the label.
+          /**
+           * Label the version this row represents, NOT the file's current
+           * content: a right-click on a past slice must tag that slice. Route
+           * through ModalsService.labelVersion so the prompt strings and the
+           * empty/cancel no-op stay aligned with the rest of the put-label UX.
+           * The row's file is captured at render time so an active-file switch
+           * between right-click and confirm cannot retarget the label.
+           */
           void modalsService.labelVersion(file, version.id);
         });
     });

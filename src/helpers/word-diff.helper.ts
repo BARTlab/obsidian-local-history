@@ -1,26 +1,6 @@
 import { WordDiffLineType } from '@/consts';
+import type { InlineDiffLine } from '@/types';
 import * as Diff from 'diff';
-
-/**
- * One line of an inline diff. A line is either unchanged context, a pure
- * addition, a pure removal, or a modification (a removed and added pair that
- * represent the same logical line). For a modified line both the old and the
- * new text are kept so the renderer can show word-level spans for each side.
- */
-export interface InlineDiffLine {
-  /**
-   * The kind of change this line represents.
-   */
-  type: WordDiffLineType;
-  /**
-   * The old (base) text of the line, present for context, removed, modified.
-   */
-  oldText?: string;
-  /**
-   * The new (current) text of the line, present for context, added, modified.
-   */
-  newText?: string;
-}
 
 /**
  * Helper for intra-line (word-level) diffing used by the history modal.

@@ -2,8 +2,8 @@
 
 import { describe, expect, it, beforeAll } from '@jest/globals';
 import { DiffOutputFormatType, DiffViewMode } from '@/consts';
-import { DiffRenderHelper, type DiffRenderParams } from '@/helpers/diff-render.helper';
-import type { TranslationVars } from '@/types';
+import { DiffRenderHelper } from '@/helpers/diff-render.helper';
+import type { DiffRenderParams, TranslationVars } from '@/types';
 
 /**
  * Tests for {@link DiffRenderHelper} (T08 / D6).

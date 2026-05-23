@@ -1,5 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
-import { SelectionHistoryHelper, type SelectableVersion } from '@/helpers/selection-history.helper';
+import { SelectionHistoryHelper } from '@/helpers/selection-history.helper';
+import type { SelectableVersion } from '@/types';
 
 /**
  * Tests for the pure SelectionHistoryHelper (T08). The helper inspects each

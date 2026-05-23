@@ -1,5 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
-import { type SearchableVersion, VersionSearchHelper } from '@/helpers/version-search.helper';
+import { VersionSearchHelper } from '@/helpers/version-search.helper';
+import type { SearchableVersion } from '@/types';
 
 /**
  * Tests for the version-rail content search (T06). They drive

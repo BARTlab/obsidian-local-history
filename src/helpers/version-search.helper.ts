@@ -1,19 +1,4 @@
-/**
- * One searchable timeline version reduced to just what the rail filter needs:
- * its stable id and its captured text. Keeping the helper to this minimal shape
- * (instead of a full FileVersion) is what lets the filter stay a pure, directly
- * unit-tested function with no Obsidian or model dependency.
- */
-export interface SearchableVersion {
-  /**
-   * The version's stable id, returned when its content matches.
-   */
-  id: string;
-  /**
-   * The version's captured content, searched case-insensitively.
-   */
-  content: string;
-}
+import type { SearchableVersion } from '@/types';
 
 /**
  * Pure helper backing the history modal's left-rail content search. Given a

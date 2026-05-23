@@ -6,24 +6,25 @@ import {
   FolderTimelinePointKind,
 } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
-import { FolderTreeComponent, type FolderTreeEntry } from '@/components/folder-tree.component';
-import { DiffRenderHelper, type DiffRenderMode } from '@/helpers/diff-render.helper';
+import { FolderTreeComponent } from '@/components/folder-tree.component';
+import { DiffRenderHelper } from '@/helpers/diff-render.helper';
 import { DomHelper } from '@/helpers/dom.helper';
-import {
-  FolderDeltaHelper,
-  type FolderDeltaResult,
-} from '@/helpers/folder-delta.helper';
-import {
-  FolderTimelineHelper,
-  type FolderTimelinePoint,
-} from '@/helpers/folder-timeline.helper';
+import { FolderDeltaHelper } from '@/helpers/folder-delta.helper';
+import { FolderTimelineHelper } from '@/helpers/folder-timeline.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ModalsService } from '@/services/modals.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import type { VersionActionsService } from '@/services/version-actions.service';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FileVersion } from '@/snapshots/file.version';
-import type { DomElementConfig, FolderToolbarButtonConfig } from '@/types';
+import type {
+  DiffRenderMode,
+  DomElementConfig,
+  FolderDeltaResult,
+  FolderToolbarButtonConfig,
+  FolderTimelinePoint,
+  FolderTreeEntry
+} from '@/types';
 import { type App, Modal, Notice, SearchComponent, type TFile, setIcon } from 'obsidian';
 
 /**

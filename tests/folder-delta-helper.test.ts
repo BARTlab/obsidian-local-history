@@ -259,8 +259,12 @@ describe('FolderDeltaHelper.compareAt - tombstone snapshot', () => {
     expect(result.current).toEqual([]);
   });
 
-  it('returns none when a tombstone was deleted exactly at T', () => {
-    // The boundary is strict: deletedTimestamp == T means "gone by then".
+  it('returns deleted when a tombstone was deleted exactly at T', () => {
+    // The delete boundary is inclusive: a tombstone is still surfaced as
+    // 'deleted' on the very timeline point that represents its deletion (or its
+    // move-out, whose tombstone is stamped at the move instant). An exclusive
+    // bound hid the deleted file on its own point and made the newest snapshot
+    // look empty.
     const tombstone: FileSnapshot = makeTombstone({
       path: 'root/a.md',
       createdAt: 500,
@@ -271,6 +275,23 @@ describe('FolderDeltaHelper.compareAt - tombstone snapshot', () => {
     });
 
     const result: FolderDeltaResult = FolderDeltaHelper.compareAt(tombstone, 2_000);
+
+    expect(result.status).toBe('deleted');
+  });
+
+  it('returns none once T is strictly past the deletion instant', () => {
+    // One millisecond after the deletion the file is gone for good: it neither
+    // exists now nor existed at T, so the folder tree skips the row.
+    const tombstone: FileSnapshot = makeTombstone({
+      path: 'root/a.md',
+      createdAt: 500,
+      deletedAt: 2_000,
+      historyLines: ['baseline'],
+      versions: [],
+      finalState: ['final state'],
+    });
+
+    const result: FolderDeltaResult = FolderDeltaHelper.compareAt(tombstone, 2_001);
 
     expect(result.status).toBe('none');
   });
@@ -294,6 +315,80 @@ describe('FolderDeltaHelper.compareAt - tombstone snapshot', () => {
     expect(result.status).toBe('none');
     expect(result.base).toEqual([]);
     expect(result.current).toEqual([]);
+  });
+});
+
+describe('FolderDeltaHelper.compareAt - moved-in snapshot', () => {
+  /**
+   * Builds a live snapshot re-keyed to a destination path by a cross-directory
+   * move: same shape `SnapshotsService.markMoved` leaves behind, with
+   * `movedIntoAt` stamped at the move instant and the file's content carried
+   * across unchanged.
+   */
+  const makeMoved = (params: {
+    path: string;
+    createdAt: number;
+    movedIntoAt: number;
+    content: string[];
+  }): FileSnapshot => {
+    const snapshot: FileSnapshot = makeLiveSnapshot({
+      path: params.path,
+      createdAt: params.createdAt,
+      historyLines: params.content,
+      versions: [],
+      state: params.content,
+    });
+
+    snapshot.movedIntoAt = params.movedIntoAt;
+
+    return snapshot;
+  };
+
+  it('renders the moved file as added at its destination on the move instant', () => {
+    // The move-in timeline point sits exactly at movedIntoAt. The file appears
+    // at its destination path only strictly after the move, so on that point it
+    // reads as freshly added to the folder (the tombstone left at the old path
+    // reads as deleted on the same point - together they spell out a move).
+    const moved: FileSnapshot = makeMoved({
+      path: 'root/sub/a.md',
+      createdAt: 1_000,
+      movedIntoAt: 5_000,
+      content: ['kept'],
+    });
+
+    const result: FolderDeltaResult = FolderDeltaHelper.compareAt(moved, 5_000);
+
+    expect(result.status).toBe('added');
+    expect(result.base).toEqual([]);
+    expect(result.current).toEqual(['kept']);
+  });
+
+  it('renders the moved file as added at points before the move', () => {
+    const moved: FileSnapshot = makeMoved({
+      path: 'root/sub/a.md',
+      createdAt: 1_000,
+      movedIntoAt: 5_000,
+      content: ['kept'],
+    });
+
+    const result: FolderDeltaResult = FolderDeltaHelper.compareAt(moved, 3_000);
+
+    expect(result.status).toBe('added');
+  });
+
+  it('hides an unchanged moved file once T is strictly past the move', () => {
+    // After the move settles, an unchanged file has no diff against its own
+    // content, so it drops out of the changed-files tree (status none).
+    const moved: FileSnapshot = makeMoved({
+      path: 'root/sub/a.md',
+      createdAt: 1_000,
+      movedIntoAt: 5_000,
+      content: ['kept'],
+    });
+
+    const result: FolderDeltaResult = FolderDeltaHelper.compareAt(moved, 6_000);
+
+    expect(result.status).toBe('none');
   });
 });
 

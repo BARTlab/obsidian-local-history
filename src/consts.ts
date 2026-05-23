@@ -295,10 +295,14 @@ export const ObsidianEvent = {
  * to react to changes in snapshots or settings.
  */
 export enum PluginEvent {
-  // snapshots
+  /**
+   * Emitted when the snapshot store changes, so views can refresh.
+   */
   snapshotsUpdate = 'snapshots:update',
 
-  // settings
+  /**
+   * Emitted when the plugin settings change, so consumers can re-read them.
+   */
   settingsUpdate = 'settings:update',
 }
 

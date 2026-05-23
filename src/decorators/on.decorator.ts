@@ -10,7 +10,7 @@
  * ```typescript
  * @On(PluginEvent.snapshotsUpdate)
  * public updateFileStatus(): void {
- *   // This method will be called when the snapshotsUpdate event is emitted
+ *   this.refresh();
  * }
  * ```
  */

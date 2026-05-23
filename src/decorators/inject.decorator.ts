@@ -15,9 +15,6 @@ import type { ClassConstructor, Service } from '@/types';
  * class MyService {
  *   @Inject('SettingsService')
  *   protected settingsService: SettingsService;
- *
- *   // The settingsService property will be automatically populated
- *   // when accessed, retrieving it from the plugin's service container
  * }
  * ```
  */

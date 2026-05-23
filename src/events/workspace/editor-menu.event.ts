@@ -79,10 +79,12 @@ export class WorkspaceEditorMenuEvent extends BaseEvent {
           .setTitle(this.plugin.t('menu.local-history.show-history-selection'))
           .setIcon('text-select')
           .onClick((): void => {
-            // ModalsService.diffForSelection gracefully falls back to plain
-            // Show History when the selection is empty/whitespace (T09), so
-            // the entry stays live even with no selection rather than being a
-            // dead row.
+            /**
+             * ModalsService.diffForSelection gracefully falls back to plain
+             * Show History when the selection is empty or whitespace, so the
+             * entry stays live even with no selection rather than being a dead
+             * row.
+             */
             this.modalService.diffForSelection(null, selection);
           });
       });

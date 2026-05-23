@@ -46,73 +46,131 @@ export type ChangeHandler<K, V> = (action: MapChangeAction, key?: K, value?: V) 
  * Defines all customizable options for tracking and displaying line changes.
  */
 export interface LineChangeTrackerSettings {
-  /** Configuration for which types of changes to show */
+  /**
+   * Configuration for which types of changes to show
+   */
   show: {
-    /** Whether to show changed lines */
+    /**
+     * Whether to show changed lines
+     */
     changed: boolean;
-    /** Whether to show restored lines */
+    /**
+     * Whether to show restored lines
+     */
     restored: boolean;
-    /** Whether to show added lines */
+    /**
+     * Whether to show added lines
+     */
     added: boolean;
-    /** Whether to show removed lines */
+    /**
+     * Whether to show removed lines
+     */
     removed: boolean;
   };
 
-  /** Configuration for line appearance */
+  /**
+   * Configuration for line appearance
+   */
   line: {
-    /** Width of the change indicator line in pixels */
+    /**
+     * Width of the change indicator line in pixels
+     */
     width: number;
   };
 
-  /** Configuration for gutter colors */
+  /**
+   * Configuration for gutter colors
+   */
   gutter: {
-    /** Color for restored lines */
+    /**
+     * Color for restored lines
+     */
     restored: string;
-    /** Color for changed lines */
+    /**
+     * Color for changed lines
+     */
     changed: string;
-    /** Color for added lines */
+    /**
+     * Color for added lines
+     */
     added: string;
-    /** Color for removed lines */
+    /**
+     * Color for removed lines
+     */
     removed: string;
   };
 
-  /** Configuration for on-disk history retention caps */
+  /**
+   * Configuration for on-disk history retention caps
+   */
   retention: {
-    /** Maximum number of file histories kept on disk (size cap, 0 disables) */
+    /**
+     * Maximum number of file histories kept on disk (size cap, 0 disables)
+     */
     maxEntries: number;
-    /** Maximum age in days for a persisted history (age cap, 0 disables) */
+    /**
+     * Maximum age in days for a persisted history (age cap, 0 disables)
+     */
     maxAgeDays: number;
-    /** Maximum number of tombstone (deleted-file) histories kept on disk (size cap, 0 disables) */
+    /**
+     * Maximum number of tombstone (deleted-file) histories kept on disk (size cap, 0 disables)
+     */
     maxDeletedEntries: number;
-    /** Maximum age in days for a persisted tombstone history (age cap, 0 disables) */
+    /**
+     * Maximum age in days for a persisted tombstone history (age cap, 0 disables)
+     */
     maxDeletedAgeDays: number;
   };
 
-  /** Configuration for periodic intermediate snapshots (the timeline) */
+  /**
+   * Configuration for periodic intermediate snapshots (the timeline)
+   */
   snapshots: {
-    /** Whether to capture intermediate versions while editing */
+    /**
+     * Whether to capture intermediate versions while editing
+     */
     enabled: boolean;
-    /** Minimum time (ms) between captured versions (0 disables the time gate) */
+    /**
+     * Minimum time (ms) between captured versions (0 disables the time gate)
+     */
     intervalMs: number;
-    /** Minimum number of edits between captured versions (0 disables it) */
+    /**
+     * Minimum number of edits between captured versions (0 disables it)
+     */
     editThreshold: number;
-    /** Maximum number of intermediate versions kept per file (count cap, oldest evicted, 0 disables) */
+    /**
+     * Maximum number of intermediate versions kept per file (count cap, oldest evicted, 0 disables)
+     */
     maxVersions: number;
-    /** Maximum age in days for an intermediate version (age cap, oldest evicted, 0 disables) */
+    /**
+     * Maximum age in days for an intermediate version (age cap, oldest evicted, 0 disables)
+     */
     maxVersionAgeDays: number;
   };
 
-  /** Type of indicator to use for showing changes */
+  /**
+   * Type of indicator to use for showing changes
+   */
   type: IndicatorType;
-  /** History retention policy */
+  /**
+   * History retention policy
+   */
   keep: KeepHistory;
-  /** Persist history to disk so it survives an app restart */
+  /**
+   * Persist history to disk so it survives an app restart
+   */
   persist: boolean;
-  /** File extensions that are allowed for tracking (comma-separated) */
+  /**
+   * File extensions that are allowed for tracking (comma-separated)
+   */
   allowedExtensions: string;
-  /** Path/glob patterns to exclude from tracking (comma- or newline-separated) */
+  /**
+   * Path/glob patterns to exclude from tracking (comma- or newline-separated)
+   */
   excludePaths: string;
-  /** Whether to ignore newly created files */
+  /**
+   * Whether to ignore newly created files
+   */
   ignoreNewFiles: boolean;
 }
 
@@ -171,13 +229,21 @@ export interface EventTriggerElement {
  * Maps vault event types to their corresponding handler function signatures.
  */
 export interface ObsidianVaultEventsHandles {
-  /** Handler for file creation events */
+  /**
+   * Handler for file creation events
+   */
   [ObsidianVaultEvent.create]: (file: TAbstractFile) => void;
-  /** Handler for file modification events */
+  /**
+   * Handler for file modification events
+   */
   [ObsidianVaultEvent.modify]: (file: TAbstractFile) => void;
-  /** Handler for file deletion events */
+  /**
+   * Handler for file deletion events
+   */
   [ObsidianVaultEvent.delete]: (file: TAbstractFile) => void;
-  /** Handler for file rename events */
+  /**
+   * Handler for file rename events
+   */
   [ObsidianVaultEvent.rename]: (file: TAbstractFile, oldPath: string) => void;
 }
 
@@ -187,13 +253,21 @@ export interface ObsidianVaultEventsHandles {
  * Based on the official Obsidian documentation.
  */
 export interface ObsidianWorkspaceEventsHandles {
-  /** Handler for active leaf change events */
+  /**
+   * Handler for active leaf change events
+   */
   [ObsidianWorkspaceEvent.activeLeafChange]: (leaf: WorkspaceLeaf | null) => void;
-  /** Handler for layout change events */
+  /**
+   * Handler for layout change events
+   */
   [ObsidianWorkspaceEvent.layoutChange]: () => void;
-  /** Handler for file open events */
+  /**
+   * Handler for file open events
+   */
   [ObsidianWorkspaceEvent.fileOpen]: (file: TFile) => void;
-  /** Handler for editor context menu events */
+  /**
+   * Handler for editor context menu events
+   */
   [ObsidianWorkspaceEvent.editorMenu]: (menu: Menu, editor: Editor, view: MarkdownView) => void;
   /**
    * Handler for the markdown viewport context menu (the menu Obsidian opens on a
@@ -202,23 +276,41 @@ export interface ObsidianWorkspaceEventsHandles {
    * own `trigger("markdown-viewport-menu", menu, view, mode, source)`.
    */
   [ObsidianWorkspaceEvent.viewportMenu]: (menu: Menu, view: MarkdownView, mode: string, source: string) => void;
-  /** Handler for file context menu events */
+  /**
+   * Handler for file context menu events
+   */
   [ObsidianWorkspaceEvent.fileMenu]: (menu: Menu, files: TAbstractFile, source: string, leaf?: WorkspaceLeaf) => void;
-  /** Handler for application quit events */
+  /**
+   * Handler for application quit events
+   */
   [ObsidianWorkspaceEvent.quit]: (tasks: Tasks) => void;
-  /** Handler for window resize events */
+  /**
+   * Handler for window resize events
+   */
   [ObsidianWorkspaceEvent.resize]: () => void;
-  /** Handler for CSS change events */
+  /**
+   * Handler for CSS change events
+   */
   [ObsidianWorkspaceEvent.cssChange]: () => void;
-  /** Handler for editor content change events */
+  /**
+   * Handler for editor content change events
+   */
   [ObsidianWorkspaceEvent.editorChange]: (editor: Editor, view: MarkdownView) => void;
-  /** Handler for editor paste events */
+  /**
+   * Handler for editor paste events
+   */
   [ObsidianWorkspaceEvent.editorPaste]: (evt: ClipboardEvent, editor: Editor, view: MarkdownView) => void;
-  /** Handler for editor drop events */
+  /**
+   * Handler for editor drop events
+   */
   [ObsidianWorkspaceEvent.editorDrop]: (evt: DragEvent, editor: Editor, view: MarkdownView) => void;
-  /** Handler for window open events */
+  /**
+   * Handler for window open events
+   */
   [ObsidianWorkspaceEvent.windowOpen]: (workspaceWindow: WorkspaceWindow, window: Window) => void;
-  /** Handler for window close events */
+  /**
+   * Handler for window close events
+   */
   [ObsidianWorkspaceEvent.windowClose]: (workspaceWindow: WorkspaceWindow, window: Window) => void;
 }
 
@@ -245,13 +337,21 @@ export type VaultEventArgs<T extends ObsidianVaultEvent> = Parameters<ObsidianVa
  * Defines optional properties for customizing status bar item behavior and appearance.
  */
 export interface StatusBarItemCreate {
-  /** Optional unique identifier for the status bar item */
+  /**
+   * Optional unique identifier for the status bar item
+   */
   id?: string;
-  /** Whether the status bar item should be clickable */
+  /**
+   * Whether the status bar item should be clickable
+   */
   clickable?: boolean;
-  /** Click event handler for the status bar item */
+  /**
+   * Click event handler for the status bar item
+   */
   onClick?: (element: HTMLElement, event: MouseEvent) => unknown;
-  /** Options for the click event listener */
+  /**
+   * Options for the click event listener
+   */
   onClickOptions?: AddEventListenerOptions;
 }
 
@@ -274,7 +374,9 @@ export type ClassConstructor<T = {}> = {
  * Extends both PluginValue and BaseExtension to provide editor functionality.
  */
 export interface EditorExtension extends PluginValue, BaseExtension {
-  /** Optional decoration set for visual indicators */
+  /**
+   * Optional decoration set for visual indicators
+   */
   decorations?: DecorationSet;
 }
 
@@ -283,13 +385,19 @@ export interface EditorExtension extends PluginValue, BaseExtension {
  * Defines optional lifecycle methods that services can implement.
  */
 export interface Service {
-  /** Optional initialization method called during service setup */
+  /**
+   * Optional initialization method called during service setup
+   */
   init?(): void | Promise<void>;
 
-  /** Optional load method called when the service should start */
+  /**
+   * Optional load method called when the service should start
+   */
   load?(): void | Promise<void>;
 
-  /** Optional unload method called when the service should stop */
+  /**
+   * Optional unload method called when the service should stop
+   */
   unload?(): void | Promise<void>;
 }
 
@@ -379,9 +487,13 @@ export interface HTMLElementWithScrollSync extends HTMLElement {
  * Configuration object for creating DOM elements with DomHelper.
  */
 export interface DomElementConfig extends DomUpdateConfig {
-  /** The tag name of the element to create */
+  /**
+   * The tag name of the element to create
+   */
   tag: keyof HTMLElementTagNameMap;
-  /** Optional container to append the element to */
+  /**
+   * Optional container to append the element to
+   */
   container?: HTMLElement;
 }
 
@@ -399,19 +511,33 @@ export interface DomUpdateConfigClasses {
  * Configuration object for updating DOM elements with DomHelper.
  */
 export interface DomUpdateConfig {
-  /** CSS classes for the element */
+  /**
+   * CSS classes for the element
+   */
   classes?: string | string[] | DomUpdateConfigClasses;
-  /** Text content for the element */
+  /**
+   * Text content for the element
+   */
   text?: string;
-  /** HTML attributes to set on the element */
+  /**
+   * HTML attributes to set on the element
+   */
   attributes?: Record<string, string>;
-  /** CSS styles to apply to the element */
+  /**
+   * CSS styles to apply to the element
+   */
   styles?: Partial<CSSStyleDeclaration>;
-  /** Event listeners to attach to the element */
+  /**
+   * Event listeners to attach to the element
+   */
   events?: Record<string, (event: Event) => void>;
-  /** Child elements to append */
+  /**
+   * Child elements to append
+   */
   children?: DomElementConfig[];
-  /** HTML content for the element */
+  /**
+   * HTML content for the element
+   */
   html?: string;
 }
 
@@ -494,15 +620,25 @@ export interface SerializedHistory {
  * service.
  */
 export interface SnapshotCaptureOptions {
-  /** Whether intermediate version capture is enabled at all */
+  /**
+   * Whether intermediate version capture is enabled at all
+   */
   enabled: boolean;
-  /** Minimum time (ms) between captures (0 disables the time gate) */
+  /**
+   * Minimum time (ms) between captures (0 disables the time gate)
+   */
   intervalMs: number;
-  /** Minimum number of edits between captures (0 disables the edit gate) */
+  /**
+   * Minimum number of edits between captures (0 disables the edit gate)
+   */
   editThreshold: number;
-  /** Maximum number of versions kept (count cap, oldest evicted past this, 0 disables) */
+  /**
+   * Maximum number of versions kept (count cap, oldest evicted past this, 0 disables)
+   */
   maxVersions: number;
-  /** Maximum age in days for a kept version (age cap, evicted first, 0 disables) */
+  /**
+   * Maximum age in days for a kept version (age cap, evicted first, 0 disables)
+   */
   maxVersionAgeDays: number;
 }
 
@@ -511,16 +647,24 @@ export interface SnapshotCaptureOptions {
  * Used to initialize a line tracker with optional properties.
  */
 export interface TrackerLineParams {
-  /** The content of the line as a string */
+  /**
+   * The content of the line as a string
+   */
   content?: string;
 
-  /** The original position (line number) in the document */
+  /**
+   * The original position (line number) in the document
+   */
   originalPosition?: number;
 
-  /** The current position (line number) in the document */
+  /**
+   * The current position (line number) in the document
+   */
   currentPosition?: number;
 
-  /** Whether the content is the same as in the original document */
+  /**
+   * Whether the content is the same as in the original document
+   */
   contentSameOriginal?: boolean;
 }
 
@@ -529,13 +673,21 @@ export interface TrackerLineParams {
  * All parameters are optional with sensible defaults.
  */
 export interface ConfirmModalConfig {
-  /** The title of the confirmation dialog */
+  /**
+   * The title of the confirmation dialog
+   */
   title?: string;
-  /** The message content of the confirmation dialog */
+  /**
+   * The message content of the confirmation dialog
+   */
   message?: string;
-  /** Text for the confirmation button (defaults to 'Confirm') */
+  /**
+   * Text for the confirmation button (defaults to 'Confirm')
+   */
   confirmText?: string;
-  /** Text for the cancel button (defaults to 'Cancel') */
+  /**
+   * Text for the cancel button (defaults to 'Cancel')
+   */
   cancelText?: string;
 }
 
@@ -546,17 +698,29 @@ export interface ConfirmModalConfig {
  * defaults so a caller can open a minimal prompt by passing an empty config.
  */
 export interface PromptModalConfig {
-  /** The title of the prompt dialog */
+  /**
+   * The title of the prompt dialog
+   */
   title?: string;
-  /** Optional message rendered above the input */
+  /**
+   * Optional message rendered above the input
+   */
   message?: string;
-  /** Placeholder text shown inside the empty input */
+  /**
+   * Placeholder text shown inside the empty input
+   */
   placeholder?: string;
-  /** Initial value pre-filled in the input */
+  /**
+   * Initial value pre-filled in the input
+   */
   initialValue?: string;
-  /** Text for the confirm button (defaults to 'Confirm') */
+  /**
+   * Text for the confirm button (defaults to 'Confirm')
+   */
   confirmText?: string;
-  /** Text for the cancel button (defaults to 'Cancel') */
+  /**
+   * Text for the cancel button (defaults to 'Cancel')
+   */
   cancelText?: string;
 }
 
@@ -572,17 +736,29 @@ export type FolderTreeSelectionHandler = (path: string) => void;
  * the rendered output reads top-down like a file explorer.
  */
 export interface FolderTreeNode {
-  /** Vault-relative path of the node (folder or file). */
+  /**
+   * Vault-relative path of the node (folder or file).
+   */
   path: string;
-  /** Display name (the last path segment). */
+  /**
+   * Display name (the last path segment).
+   */
   name: string;
-  /** Whether this node is a folder; files are leaves. */
+  /**
+   * Whether this node is a folder; files are leaves.
+   */
   isFolder: boolean;
-  /** Per-file delta status; undefined for folder nodes. */
+  /**
+   * Per-file delta status; undefined for folder nodes.
+   */
   status?: FolderDeltaStatus;
-  /** Whether the file's delta point at T is an external-change capture (T20). */
+  /**
+   * Whether the file's delta point at T is an external-change capture (T20).
+   */
   external?: boolean;
-  /** Child nodes (folders + files) when `isFolder` is true. */
+  /**
+   * Child nodes (folders + files) when `isFolder` is true.
+   */
   children: FolderTreeNode[];
 }
 
@@ -593,13 +769,21 @@ export interface FolderTreeNode {
  * actions.
  */
 export interface ToolbarButtonConfig {
-  /** The Obsidian (Lucide) icon id to render */
+  /**
+   * The Obsidian (Lucide) icon id to render
+   */
   icon: string;
-  /** The text label exposed via tooltip and aria-label */
+  /**
+   * The text label exposed via tooltip and aria-label
+   */
   label: string;
-  /** The click handler, awaited when it returns a promise */
+  /**
+   * The click handler, awaited when it returns a promise
+   */
   onClick: FunctionVoid | (() => Promise<void>);
-  /** Whether to add the destructive (error-tinted) accent */
+  /**
+   * Whether to add the destructive (error-tinted) accent
+   */
   warning?: boolean;
 }
 
@@ -611,13 +795,21 @@ export interface ToolbarButtonConfig {
  * actions, matching the file modal's classification.
  */
 export interface FolderToolbarButtonConfig {
-  /** The Obsidian (Lucide) icon id to render */
+  /**
+   * The Obsidian (Lucide) icon id to render
+   */
   icon: string;
-  /** The text label exposed via tooltip and aria-label */
+  /**
+   * The text label exposed via tooltip and aria-label
+   */
   label: string;
-  /** The click handler */
+  /**
+   * The click handler
+   */
   onClick: FunctionVoid;
-  /** Whether to paint the destructive accent */
+  /**
+   * Whether to paint the destructive accent
+   */
   warning?: boolean;
 }
 
@@ -631,18 +823,22 @@ export interface MenuItemWithSubmenu extends MenuItem {
   setSubmenu(): Menu;
 }
 
-// --- COPY FROM CODEMIRROR ---
-
 /**
  * Type definition for DOM event handlers used in CodeMirror gutters.
  * Maps event names to handler functions that receive view, line, and event information.
+ * Mirrors the CodeMirror gutter handler shape so this plugin can build gutter
+ * configs without importing CodeMirror's internal types.
  */
 export type Handlers = {
   [event: string]: (view: EditorView, line: BlockInfo, event: Event) => boolean;
 };
 
+/**
+ * Gutter configuration mirrored from CodeMirror's `gutter()` options, extended
+ * with this plugin's `BaseExtension` so gutter extensions can be built and
+ * registered without importing CodeMirror's internal config type.
+ */
 export interface GutterConfig extends BaseExtension {
-  // type: 'gutter';
   /**
    An extra CSS class to be added to the wrapper (`cm-gutter`)
    element.

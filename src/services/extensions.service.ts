@@ -52,7 +52,7 @@ export class ExtensionsService implements Service {
    *
    * @template T - The extension type, either EditorExtension or GutterConfig
    * @param {ClassConstructor<T>} clsConstructor - The extension class constructor
-   * @param {string} type - The type of extension ('editor' or 'gutter')
+   * @param {ExtensionKind} type - The kind of extension (ExtensionKind.editor or ExtensionKind.gutter)
    */
   protected register<T extends EditorExtension | GutterConfig>(
     clsConstructor: ClassConstructor<T>,
@@ -75,7 +75,7 @@ export class ExtensionsService implements Service {
    *
    * @template T - The extension type, extending GutterConfig
    * @param clsConstructor - The extension class constructor
-   * @param type - Must be 'gutter'
+   * @param type - Must be ExtensionKind.gutter
    * @returns A CodeMirror gutter extension
    */
   protected factory<T extends GutterConfig>(
@@ -89,7 +89,7 @@ export class ExtensionsService implements Service {
    *
    * @template T - The extension type, extending EditorExtension
    * @param clsConstructor - The extension class constructor
-   * @param type - Must be 'editor'
+   * @param type - Must be ExtensionKind.editor
    * @returns A CodeMirror ViewPlugin
    */
   protected factory<T extends EditorExtension>(
@@ -103,7 +103,7 @@ export class ExtensionsService implements Service {
    *
    * @template T - The extension type, either EditorExtension or GutterConfig
    * @param {ClassConstructor<T>} clsConstructor - The extension class constructor
-   * @param {string} type - The type of extension ('editor' or 'gutter')
+   * @param {ExtensionKind} type - The kind of extension (ExtensionKind.editor or ExtensionKind.gutter)
    * @return {Extension|ViewPlugin} Either a CodeMirror Extension or ViewPlugin
    * @throws Error if the extension type is unknown
    */

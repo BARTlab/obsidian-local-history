@@ -15,7 +15,9 @@ import type { TFile } from 'obsidian';
  * changed (a no-op restore against identical content stays silent).
  */
 export interface VersionRestoreResult {
-  /** True when the file content was rewritten to the version */
+  /**
+   * True when the file content was rewritten to the version.
+   */
   applied: boolean;
 }
 
@@ -25,9 +27,13 @@ export interface VersionRestoreResult {
  * after the deletion. The id is null when the timeline is now empty.
  */
 export interface VersionRemoveResult {
-  /** True when a version was dropped from the timeline */
+  /**
+   * True when a version was dropped from the timeline.
+   */
   removed: boolean;
-  /** The id the caller should select next, or null when nothing remains */
+  /**
+   * The id the caller should select next, or null when nothing remains.
+   */
   nextId: string | null;
 }
 
@@ -141,10 +147,12 @@ export class VersionActionsService implements Service {
       return { removed: false, nextId: null };
     }
 
-    // Resolve the next focus from the displayed list BEFORE removing. getVersions
-    // is newest-first, so a row's older neighbour sits at the next index; we
-    // prefer the older one (continues a downward walk after Delete) and fall
-    // back to the newer one when nothing is below.
+    /**
+     * Resolve the next focus from the displayed list BEFORE removing. getVersions
+     * is newest-first, so a row's older neighbour sits at the next index; we
+     * prefer the older one (continues a downward walk after Delete) and fall
+     * back to the newer one when nothing is below.
+     */
     const visible: FileVersion[] = snapshot.getVersions();
     const index: number = visible.findIndex((version: FileVersion): boolean => version.id === versionId);
     const nextId: string | null =
@@ -180,10 +188,12 @@ export class VersionActionsService implements Service {
       return null;
     }
 
-    // A labeled capture is an intentional marker (D6), so the cadence "enabled"
-    // gate is forced on regardless of the user's snapshots setting: a user can
-    // turn off automatic capture but still pin a deliberate point. The retention
-    // caps stay as configured; labeled versions are pinned against eviction.
+    /**
+     * A labeled capture is an intentional marker (D6), so the cadence "enabled"
+     * gate is forced on regardless of the user's snapshots setting: a user can
+     * turn off automatic capture but still pin a deliberate point. The retention
+     * caps stay as configured; labeled versions are pinned against eviction.
+     */
     const captured: FileVersion | null = snapshot.captureVersion(
       snapshot.getLastStateLines(),
       { ...this.getCaptureOptions(), enabled: true },

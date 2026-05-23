@@ -157,8 +157,10 @@ export class FileSnapshot {
 
     this.lines = content?.split(this.lineBreak) ?? [];
 
-    // The history baseline starts equal to the marker baseline; a restore can
-    // later override it independently via adoptHistory.
+    /**
+     * The history baseline starts equal to the marker baseline; a restore can
+     * later override it independently via adoptHistory.
+     */
     this.historyLines = [...this.lines];
 
     this.tracker = this.lines.map((line: string, index: number): TrackerLine => new TrackerLine({
@@ -168,7 +170,9 @@ export class FileSnapshot {
       contentSameOriginal: true,
     }));
 
-    // save current content as last doc state
+    /**
+     * Save the current content as the last document state.
+     */
     this.updateState(this.lines);
   }
 
@@ -194,8 +198,10 @@ export class FileSnapshot {
       versions: this.versions.map((version: FileVersion): ReturnType<FileVersion['toJSON']> => version.toJSON()),
     };
 
-    // Optional markers are written only when present so existing live-snapshot
-    // payloads round-trip byte-identical and tombstones/moves are explicit.
+    /**
+     * Optional markers are written only when present so existing live-snapshot
+     * payloads round-trip byte-identical and tombstones/moves are explicit.
+     */
     if (isNumber(this.deletedTimestamp)) {
       payload.deletedTimestamp = this.deletedTimestamp;
     }

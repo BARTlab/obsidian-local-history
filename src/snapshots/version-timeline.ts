@@ -115,11 +115,13 @@ export class VersionTimeline {
       return { version: null, versions };
     }
 
-    // Skip a capture that would duplicate the latest stored version, or the
-    // history baseline when the timeline is still empty. The cadence counters are
-    // intentionally left untouched so the next genuinely diverging edit is
-    // captured immediately rather than waiting out the gate again. A label
-    // bypasses the dedup: an intentional marker must land even on no-op content.
+    /**
+     * Skip a capture that would duplicate the latest stored version, or the
+     * history baseline when the timeline is still empty. The cadence counters are
+     * intentionally left untouched so the next genuinely diverging edit is
+     * captured immediately rather than waiting out the gate again. A label
+     * bypasses the dedup: an intentional marker must land even on no-op content.
+     */
     if (!labeled && this.isDuplicateOfLatest(versions, previousLines, context.historyBaseline, context.lineBreak)) {
       return { version: null, versions };
     }
@@ -149,8 +151,10 @@ export class VersionTimeline {
   ): boolean {
     const candidate: string = lines.join(lineBreak);
     const latest: FileVersion | undefined = versions[versions.length - 1];
-    // The timeline belongs to the history side, so the empty-timeline reference
-    // is the history baseline (the persisted original), not the marker baseline.
+    /**
+     * The timeline belongs to the history side, so the empty-timeline reference
+     * is the history baseline (the persisted original), not the marker baseline.
+     */
     const reference: string = latest ? latest.getContent(lineBreak) : historyBaseline;
 
     return candidate === reference;

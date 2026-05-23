@@ -11,9 +11,13 @@ import * as Diff from 'diff';
  * out-of-band convention to anchor the oldest version's diff.
  */
 export interface SelectableVersion {
-  /** The version's stable id, returned when its diff touches the selection. */
+  /**
+   * The version's stable id, returned when its diff touches the selection.
+   */
   id: string;
-  /** The version's captured content as lines, diffed against its neighbour. */
+  /**
+   * The version's captured content as lines, diffed against its neighbour.
+   */
   lines: string[];
 }
 

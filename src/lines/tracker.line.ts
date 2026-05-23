@@ -9,7 +9,9 @@ import { isNumber, isString } from 'lodash-es';
  * Used by the FileSnapshot to track changes to individual lines over time.
  */
 export class TrackerLine {
-  /** Unique identifier for this tracker line */
+  /**
+   * Unique identifier for this tracker line.
+   */
   public id: string = TextHelper.rndId();
 
   /**
@@ -404,10 +406,14 @@ export class TrackerLine {
       return this;
     }
 
-    // Remember the removal position
+    /**
+     * Remember the removal position.
+     */
     this.removedAtPosition = line ?? this.currentPosition;
 
-    // Line no longer exists
+    /**
+     * Line no longer exists.
+     */
     this.currentPosition = -1;
     this.removedTimeStamp = Date.now();
 
@@ -453,7 +459,9 @@ export class TrackerLine {
       this.currentPosition += offset;
     }
 
-    // Also shift removed lines
+    /**
+     * Also shift removed lines.
+     */
     if (this.existedInOriginal && this.wasExplicitlyRemoved
     ) {
       this.removedAtPosition += offset;
@@ -472,7 +480,9 @@ export class TrackerLine {
       this.currentPosition -= offset;
     }
 
-    // Also shift removed lines
+    /**
+     * Also shift removed lines.
+     */
     if (this.existedInOriginal && this.wasExplicitlyRemoved) {
       this.removedAtPosition -= offset;
     }

@@ -86,19 +86,29 @@ export interface FolderTreeUpdateParams {
  * is remembered within the modal lifetime.
  */
 export class FolderTreeComponent {
-  /** Container the component renders into; null between dispose / re-mount. */
+  /**
+   * Container the component renders into; null between dispose / re-mount.
+   */
   protected container: HTMLElement | null = null;
 
-  /** Last computed root from {@link update}, used to normalize child paths. */
+  /**
+   * Last computed root from {@link update}, used to normalize child paths.
+   */
   protected rootPath: string = '';
 
-  /** Last computed root node, retained so re-renders do not need re-input. */
+  /**
+   * Last computed root node, retained so re-renders do not need re-input.
+   */
   protected rootNode: FolderTreeNode | null = null;
 
-  /** Currently-selected file path, or null when nothing is selected yet. */
+  /**
+   * Currently-selected file path, or null when nothing is selected yet.
+   */
   protected selectedPath: string | null = null;
 
-  /** Collapsed folder paths; absence in this set means "expanded" (initial). */
+  /**
+   * Collapsed folder paths; absence in this set means "expanded" (initial).
+   */
   protected collapsedFolders: Set<string> = new Set<string>();
 
   /**
@@ -110,10 +120,14 @@ export class FolderTreeComponent {
    */
   protected nameFilter: string = '';
 
-  /** Selection callback wired by the parent modal; no-op until set. */
+  /**
+   * Selection callback wired by the parent modal; no-op until set.
+   */
   protected onSelect: FolderTreeSelectionHandler | null = null;
 
-  /** Translator used for the empty-state hint; echoes keys when unset. */
+  /**
+   * Translator used for the empty-state hint; echoes keys when unset.
+   */
   protected plugin: FolderTreeTranslator | null = null;
 
   /**
@@ -154,9 +168,11 @@ export class FolderTreeComponent {
     this.rootPath = this.normalizeRoot(params.rootPath);
     this.rootNode = this.build(params.entries, this.rootPath);
 
-    // Reset selection when the previous file is no longer present so the diff
-    // pane never points at a row that does not exist anymore. The first file
-    // in render order is the natural fallback; AC3 of T12 also defaults to it.
+    /**
+     * Reset selection when the previous file is no longer present so the diff
+     * pane never points at a row that does not exist anymore. The first file
+     * in render order is the natural fallback; AC3 of T12 also defaults to it.
+     */
     if (this.selectedPath !== null && !this.containsFile(this.rootNode, this.selectedPath)) {
       this.selectedPath = null;
     }
@@ -284,7 +300,9 @@ export class FolderTreeComponent {
       let parent: FolderTreeNode = root;
       let accumulatedRelative: string = '';
 
-      // Walk every segment but the last to materialise the ancestor folders.
+      /**
+       * Walk every segment but the last to materialise the ancestor folders.
+       */
       for (let i: number = 0; i < segments.length - 1; i += 1) {
         const segment: string = segments[i];
 
@@ -506,9 +524,11 @@ export class FolderTreeComponent {
   protected renderEmpty(container: HTMLElement): void {
     const fallback: string = 'No changes in this folder for the selected point.';
     const resolved: string | null = this.plugin ? this.plugin.t('folder-tree.empty') : null;
-    // The catalog is the source of truth, but unit tests mount the component
-    // without a translator; fall back to the English literal so the empty
-    // branch renders a human-readable hint in either path.
+    /**
+     * The catalog is the source of truth, but unit tests mount the component
+     * without a translator; fall back to the English literal so the empty
+     * branch renders a human-readable hint in either path.
+     */
     const text: string = resolved && resolved !== 'folder-tree.empty' ? resolved : fallback;
 
     DomHelper.create({
@@ -549,10 +569,12 @@ export class FolderTreeComponent {
    * @return {void}
    */
   protected renderFolder(container: HTMLElement, node: FolderTreeNode, depth: number): void {
-    // While a name filter is active, force every folder open so matches that
-    // live in an otherwise-collapsed branch are still revealed. The user's
-    // collapse choices are preserved (the set is untouched) and re-applied
-    // once the filter is cleared.
+    /**
+     * While a name filter is active, force every folder open so matches that
+     * live in an otherwise-collapsed branch are still revealed. The user's
+     * collapse choices are preserved (the set is untouched) and re-applied
+     * once the filter is cleared.
+     */
     const isCollapsed: boolean = this.nameFilter ? false : this.collapsedFolders.has(node.path);
 
     const row: HTMLElement = DomHelper.create({
@@ -672,8 +694,10 @@ export class FolderTreeComponent {
   protected renderExternalBadge(row: HTMLElement): void {
     const fallback: string = 'external';
     const resolved: string | null = this.plugin ? this.plugin.t('version.badge.external') : null;
-    // Same translator-fallback contract as renderEmpty: unit tests can mount
-    // the component without a translator and still see the English literal.
+    /**
+     * Same translator-fallback contract as renderEmpty: unit tests can mount
+     * the component without a translator and still see the English literal.
+     */
     const text: string = resolved && resolved !== 'version.badge.external' ? resolved : fallback;
 
     const badge: HTMLElement = DomHelper.create({

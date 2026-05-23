@@ -12,7 +12,9 @@ export interface BaseContentSnapshot {
    * when present, is the latest snapshot the baseline entry diffs against.
    */
   versions: string[];
-  /** The file's original captured content (the birth-state fallback). */
+  /**
+   * The file's original captured content (the birth-state fallback).
+   */
   original: string;
   /**
    * Resolves a picked intermediate version's content by id, or null when the id
@@ -56,8 +58,10 @@ export class BaseContentHelper {
       }
     }
 
-    // Synthetic baseline (or a stale id): diff against the latest snapshot,
-    // falling back to the original only when the timeline is empty.
+    /**
+     * Synthetic baseline (or a stale id): diff against the latest snapshot,
+     * falling back to the original only when the timeline is empty.
+     */
     const latest: string | undefined = snapshot.versions[0];
 
     return latest ?? snapshot.original;

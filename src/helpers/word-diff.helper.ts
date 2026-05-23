@@ -8,11 +8,17 @@ import * as Diff from 'diff';
  * new text are kept so the renderer can show word-level spans for each side.
  */
 export interface InlineDiffLine {
-  /** The kind of change this line represents */
+  /**
+   * The kind of change this line represents.
+   */
   type: WordDiffLineType;
-  /** The old (base) text of the line, present for context, removed, modified */
+  /**
+   * The old (base) text of the line, present for context, removed, modified.
+   */
   oldText?: string;
-  /** The new (current) text of the line, present for context, added, modified */
+  /**
+   * The new (current) text of the line, present for context, added, modified.
+   */
   newText?: string;
 }
 
@@ -74,8 +80,10 @@ export class WordDiffHelper {
         continue;
       }
 
-      // A removed block paired with the added block that follows it is a
-      // modification: emit one modified line per matching position.
+      /**
+       * A removed block paired with the added block that follows it is a
+       * modification: emit one modified line per matching position.
+       */
       if (change.removed) {
         const next: Diff.Change | undefined = changes[index + 1];
         const removedLines: string[] = WordDiffHelper.splitLines(change.value);
@@ -88,7 +96,9 @@ export class WordDiffHelper {
             result.push({ type: WordDiffLineType.modified, oldText: removedLines[i], newText: addedLines[i] });
           }
 
-          // Surplus old lines are pure removals, surplus new lines pure additions.
+          /**
+           * Surplus old lines are pure removals, surplus new lines pure additions.
+           */
           for (let i: number = paired; i < removedLines.length; i++) {
             result.push({ type: WordDiffLineType.removed, oldText: removedLines[i] });
           }
@@ -97,7 +107,9 @@ export class WordDiffHelper {
             result.push({ type: WordDiffLineType.added, newText: addedLines[i] });
           }
 
-          // The added block was consumed as the pair, skip it on the next turn.
+          /**
+           * The added block was consumed as the pair, skip it on the next turn.
+           */
           index++;
 
           continue;
@@ -110,7 +122,9 @@ export class WordDiffHelper {
         continue;
       }
 
-      // An added block with no removed block before it is a pure addition.
+      /**
+       * An added block with no removed block before it is a pure addition.
+       */
       WordDiffHelper.splitLines(change.value).forEach((text: string): void => {
         result.push({ type: WordDiffLineType.added, newText: text });
       });

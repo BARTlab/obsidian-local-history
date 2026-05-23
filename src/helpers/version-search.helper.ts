@@ -5,9 +5,13 @@
  * unit-tested function with no Obsidian or model dependency.
  */
 export interface SearchableVersion {
-  /** The version's stable id, returned when its content matches. */
+  /**
+   * The version's stable id, returned when its content matches.
+   */
   id: string;
-  /** The version's captured content, searched case-insensitively. */
+  /**
+   * The version's captured content, searched case-insensitively.
+   */
   content: string;
 }
 

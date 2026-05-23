@@ -8,11 +8,17 @@ import { VersionAction } from '@/consts';
  * running the diff twice.
  */
 export interface VersionDescription {
-  /** The action discriminator for the version. */
+  /**
+   * The action discriminator for the version.
+   */
   kind: VersionAction;
-  /** Number of lines added going from previous to current. */
+  /**
+   * Number of lines added going from previous to current.
+   */
   added: number;
-  /** Number of lines removed going from previous to current. */
+  /**
+   * Number of lines removed going from previous to current.
+   */
   removed: number;
 }
 
@@ -102,9 +108,11 @@ export class VersionLabelHelper {
     const previousEmpty: boolean = VersionLabelHelper.isEmpty(previous);
     const currentEmpty: boolean = VersionLabelHelper.isEmpty(current);
 
-    // For empty-side transitions count the non-empty side directly: a
-    // structured patch against an empty array yields a phantom "-" line for
-    // the trailing newline marker, which would over-count by one.
+    /**
+     * For empty-side transitions count the non-empty side directly: a
+     * structured patch against an empty array yields a phantom "-" line for
+     * the trailing newline marker, which would over-count by one.
+     */
     if (previousEmpty && currentEmpty) {
       return { added: 0, removed: 0 };
     }

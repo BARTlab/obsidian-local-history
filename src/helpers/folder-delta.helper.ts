@@ -66,28 +66,36 @@ export class FolderDeltaHelper {
     const existsNow: boolean = !snapshot.isTombstone();
     const current: string[] = existsNow ? [...(snapshot.state ?? [])] : [];
 
-    // The file is gone now and was already gone at T: there is nothing to show
-    // on this row for this point in time. The folder tree filters these out.
+    /**
+     * The file is gone now and was already gone at T: there is nothing to show
+     * on this row for this point in time. The folder tree filters these out.
+     */
     if (!existsNow && !existedAtT) {
       return { status: FolderDeltaStatus.none, base: [], current: [] };
     }
 
-    // The file did not exist at T but exists now (created or moved in later).
-    // No base content to diff against; the diff renders as "everything green".
+    /**
+     * The file did not exist at T but exists now (created or moved in later).
+     * No base content to diff against; the diff renders as "everything green".
+     */
     if (!existedAtT) {
       return { status: FolderDeltaStatus.added, base: [], current };
     }
 
     const base: string[] = FolderDeltaHelper.resolveBaseAt(snapshot, timestamp);
 
-    // The file existed at T and is gone now (a tombstone deleted after T): the
-    // diff renders as "everything red" against the base content at T.
+    /**
+     * The file existed at T and is gone now (a tombstone deleted after T): the
+     * diff renders as "everything red" against the base content at T.
+     */
     if (!existsNow) {
       return { status: FolderDeltaStatus.deleted, base, current: [] };
     }
 
-    // Both sides exist: an actual line-by-line comparison decides whether the
-    // row is `modified` or `none` so the tree skips visually-equal files.
+    /**
+     * Both sides exist: an actual line-by-line comparison decides whether the
+     * row is `modified` or `none` so the tree skips visually-equal files.
+     */
     return {
       status: FolderDeltaHelper.contentEquals(base, current) ? FolderDeltaStatus.none : FolderDeltaStatus.modified,
       base,
@@ -113,14 +121,18 @@ export class FolderDeltaHelper {
    * @return {boolean} True when the snapshot represented a file present at T
    */
   protected static existedAtT(snapshot: FileSnapshot, timestamp: number): boolean {
-    // A snapshot created after T means the file did not exist at T regardless
-    // of whether it is currently live or a tombstone.
+    /**
+     * A snapshot created after T means the file did not exist at T regardless
+     * of whether it is currently live or a tombstone.
+     */
     if (isNumber(snapshot.timestamp) && snapshot.timestamp > timestamp) {
       return false;
     }
 
     if (snapshot.isTombstone()) {
-      // The tombstone existed at T only when it was deleted strictly after T.
+      /**
+       * The tombstone existed at T only when it was deleted strictly after T.
+       */
       return isNumber(snapshot.deletedTimestamp) && snapshot.deletedTimestamp > timestamp;
     }
 
@@ -152,9 +164,11 @@ export class FolderDeltaHelper {
       }
     }
 
-    // No version captured at or before T: the persisted history baseline is
-    // the file's earliest known content from the modal's point of view (see
-    // FileSnapshot.adoptHistory / D2 on the marker vs. history baseline split).
+    /**
+     * No version captured at or before T: the persisted history baseline is
+     * the file's earliest known content from the modal's point of view (see
+     * FileSnapshot.adoptHistory / D2 on the marker vs. history baseline split).
+     */
     return Array.isArray(snapshot.historyLines) ? [...snapshot.historyLines] : [];
   }
 

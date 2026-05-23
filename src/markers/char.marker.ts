@@ -7,7 +7,7 @@ import { GutterMarker } from '@codemirror/view';
 
 /**
  * Marker class for displaying character indicators in the editor gutter.
- * Shows different characters for different types of changes (added, modified, restored).
+ * Shows different characters for different types of changes (changed, added, restored).
  * Characters are configurable through plugin settings.
  *
  * @extends GutterMarker
@@ -48,10 +48,12 @@ export class DotMarker extends GutterMarker {
   ) {
     super();
 
-    // Resolve settings-derived state in the constructor body, after the
-    // parameter properties are assigned. As field initializers this would read
-    // the injected settingsService (which needs this.plugin) and this.changes
-    // before they exist under useDefineForClassFields, breaking injection.
+    /**
+     * Resolve settings-derived state in the constructor body, after the
+     * parameter properties are assigned. As field initializers this would read
+     * the injected settingsService (which needs this.plugin) and this.changes
+     * before they exist under useDefineForClassFields, breaking injection.
+     */
     this.char = {
       [ChangeType.changed]: this.settingsService.value('gutter.changed'),
       [ChangeType.added]: this.settingsService.value('gutter.added'),
@@ -90,7 +92,9 @@ export class DotMarker extends GutterMarker {
     });
 
     button.addEventListener('click', (event: MouseEvent): void => {
-      // Stop the gutter click from moving the caret or selecting the line.
+      /**
+       * Stop the gutter click from moving the caret or selecting the line.
+       */
       event.preventDefault();
       event.stopPropagation();
 
@@ -126,7 +130,7 @@ export class DotMarker extends GutterMarker {
   /**
    * Gets the change type of this marker.
    *
-   * @return {ChangeType} The change type (added, modified, restored)
+   * @return {ChangeType} The change type (changed, added, restored)
    */
   public getChangeType(): ChangeType {
     return this.changes;

@@ -27,9 +27,11 @@ export class ListSelectionHelper {
       return null;
     }
 
-    // A current id missing from the list (for example a selection the rail
-    // filter has hidden) starts the walk from the top, so the first arrow press
-    // moves back into the visible entries instead of dead-ending.
+    /**
+     * A current id missing from the list (for example a selection the rail
+     * filter has hidden) starts the walk from the top, so the first arrow press
+     * moves back into the visible entries instead of dead-ending.
+     */
     const found: number = list.indexOf(currentId);
     const start: number = found === -1 ? 0 : found;
     const step: number = direction === ListSelectionDirection.down ? 1 : -1;

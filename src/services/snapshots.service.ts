@@ -230,11 +230,13 @@ export class SnapshotsService implements Service {
 
     const now: number = Date.now();
 
-    // Build the tombstone first so its preserved fields capture the live state
-    // as it was before the move stamped movedIntoAt onto the migrating snapshot.
-    // Session-only marker baseline and tracker are dropped on the tombstone for
-    // the same reason markDeleted drops them: they carry meaning only against a
-    // live editor view, and the file is no longer there.
+    /**
+     * Build the tombstone first so its preserved fields capture the live state
+     * as it was before the move stamped movedIntoAt onto the migrating snapshot.
+     * Session-only marker baseline and tracker are dropped on the tombstone for
+     * the same reason markDeleted drops them: they carry meaning only against a
+     * live editor view, and the file is no longer there.
+     */
     const tombstone: FileSnapshot = new FileSnapshot('', snapshot.lineBreak);
 
     tombstone.file = null;
@@ -249,9 +251,11 @@ export class SnapshotsService implements Service {
     tombstone.timestamp = snapshot.timestamp;
     tombstone.deletedTimestamp = now;
 
-    // Re-key the live snapshot to the destination path and stamp the move
-    // marker so the folder UI can colour it as added in the new directory even
-    // though its captured history is older.
+    /**
+     * Re-key the live snapshot to the destination path and stamp the move
+     * marker so the folder UI can colour it as added in the new directory even
+     * though its captured history is older.
+     */
     snapshot.file = file;
     snapshot.movedIntoAt = now;
 
@@ -296,9 +300,11 @@ export class SnapshotsService implements Service {
       const isTombstone: boolean = snapshot.isTombstone();
       const hasHistory: boolean = snapshot.getChangesLinesCount() > 0 || snapshot.hasVersions();
 
-      // Tombstones are kept unconditionally; live snapshots only when they
-      // carry real history. The map key wins over snapshot.file?.path so a
-      // detached tombstone (file = null) still serializes under its path.
+      /**
+       * Tombstones are kept unconditionally; live snapshots only when they
+       * carry real history. The map key wins over snapshot.file?.path so a
+       * detached tombstone (file = null) still serializes under its path.
+       */
       if (!isTombstone && !hasHistory) {
         continue;
       }
@@ -367,9 +373,11 @@ export class SnapshotsService implements Service {
       const existing: FileSnapshot | undefined = this.fileSnapshots.get(data.path);
 
       if (existing) {
-        // Preserve the session marker baseline, tracker, and state; adopt only
-        // the persisted history baseline and versions so the modal regains its
-        // time machine while the gutter stays session-scoped.
+        /**
+         * Preserve the session marker baseline, tracker, and state; adopt only
+         * the persisted history baseline and versions so the modal regains its
+         * time machine while the gutter stays session-scoped.
+         */
         const persisted: FileSnapshot = FileSnapshot.fromJSON(data, file);
 
         existing.adoptHistory(persisted.getHistoryOriginalStateLines(), persisted.versions);
@@ -399,8 +407,10 @@ export class SnapshotsService implements Service {
       snapshot.deletedTimestamp = data.timestamp;
     }
 
-    // Detach the file reference: the underlying TFile no longer exists, so the
-    // tombstone must not pretend to point at a live vault entry.
+    /**
+     * Detach the file reference: the underlying TFile no longer exists, so the
+     * tombstone must not pretend to point at a live vault entry.
+     */
     snapshot.file = null;
 
     this.fileSnapshots.set(data.path, snapshot);
@@ -651,10 +661,12 @@ export class SnapshotsService implements Service {
       return;
     }
 
-    // A tombstone at this path means our model thinks the file is gone; a
-    // legitimate modify should never reach this point, and a resurrection is
-    // not an "external change" semantically. Leave the tombstone alone so the
-    // history modal still surfaces the file's last-known state.
+    /**
+     * A tombstone at this path means our model thinks the file is gone; a
+     * legitimate modify should never reach this point, and a resurrection is
+     * not an "external change" semantically. Leave the tombstone alone so the
+     * history modal still surfaces the file's last-known state.
+     */
     if (snapshot.isTombstone()) {
       return;
     }
@@ -677,19 +689,23 @@ export class SnapshotsService implements Service {
     const captured: FileVersion | null = snapshot.captureVersion(newLines, this.getCaptureOptions(), true);
 
     if (captured) {
-      // The version captures the NEW disk content as a discrete point on the
-      // timeline (D13: every distinct external state lands as its own version).
-      // Setting the flag after capture keeps file.snapshot.ts free of an
-      // external-aware overload and still flows through the normal eviction
-      // pipeline, so external versions remain evictable like cadence ones.
+      /**
+       * The version captures the NEW disk content as a discrete point on the
+       * timeline (D13: every distinct external state lands as its own version).
+       * Setting the flag after capture keeps file.snapshot.ts free of an
+       * external-aware overload and still flows through the normal eviction
+       * pipeline, so external versions remain evictable like cadence ones.
+       */
       captured.external = true;
     }
 
-    // Bring the tracker in line with the new content the same way applyContent
-    // does for the per-hunk revert path: rewrite the whole current span as a
-    // single block, then refresh the cached state and change map. Without this,
-    // the tracker would still describe the pre-change content and the gutter
-    // markers would drift out of sync with what the user sees in the editor.
+    /**
+     * Bring the tracker in line with the new content the same way applyContent
+     * does for the per-hunk revert path: rewrite the whole current span as a
+     * single block, then refresh the cached state and change map. Without this,
+     * the tracker would still describe the pre-change content and the gutter
+     * markers would drift out of sync with what the user sees in the editor.
+     */
     const previousLength: number = snapshot.state.length;
 
     snapshot.replaceBlock(0, previousLength, newLines);
@@ -734,7 +750,10 @@ export class SnapshotsService implements Service {
     }
 
     if (current && (!file || file?.path === current.path)) {
-      // If the current open file was cleared, most likely we are still in focused reading it again
+      /**
+       * The cleared snapshot belongs to the file the user is still viewing, so
+       * re-capture it immediately to start a fresh baseline for that file.
+       */
       void this.capture();
     }
   }

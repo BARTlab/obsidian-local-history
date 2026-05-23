@@ -26,9 +26,13 @@ import { Notice } from 'obsidian';
  *   panel, which is the navigator in that session.
  */
 export interface HistoryModalOpenOptions {
-  /** The version id to pre-select as the diff base on open */
+  /**
+   * The version id to pre-select as the diff base on open.
+   */
   initialBaseId?: string;
-  /** Whether to hide the left rail (search + version list) */
+  /**
+   * Whether to hide the left rail (search + version list).
+   */
   hideRail?: boolean;
   /**
    * Optional set of version ids the rail must restrict itself to: when present,
@@ -149,15 +153,19 @@ export class ModalsService implements Service {
     const needle: string = (selection ?? '').trim();
 
     if (needle.length === 0) {
-      // Empty selection has nothing to filter by; fall back to the plain Show
-      // History modal so the entry is a safe no-op rather than an error.
+      /**
+       * Empty selection has nothing to filter by; fall back to the plain Show
+       * History modal so the entry is a safe no-op rather than an error.
+       */
       new HistoryModal(this.plugin.app, this.plugin, snapshot).open();
 
       return true;
     }
 
-    // SelectionHistoryHelper expects versions oldest-first; getVersions() is
-    // newest-first, so reverse before handing them off.
+    /**
+     * SelectionHistoryHelper expects versions oldest-first; getVersions() is
+     * newest-first, so reverse before handing them off.
+     */
     const selectable: SelectableVersion[] = snapshot
       .getVersions()
       .slice()
@@ -296,9 +304,11 @@ export class ModalsService implements Service {
   ): Promise<FileVersion | null> {
     const target: TFile | null = file ?? this.plugin.getActiveFile();
 
-    // Bail before the prompt when no snapshot exists, so an untracked file does
-    // not pop a modal whose confirm would silently fail. The submenu gates this
-    // upstream too, but the service stays safe on a direct call.
+    /**
+     * Bail before the prompt when no snapshot exists, so an untracked file does
+     * not pop a modal whose confirm would silently fail. The submenu gates this
+     * upstream too, but the service stays safe on a direct call.
+     */
     if (!this.snapshotsService.getOne(target)) {
       return null;
     }
@@ -314,10 +324,12 @@ export class ModalsService implements Service {
 
     const entered: string | null = await this.prompt(config);
 
-    // A cancel returns null; a blank confirm is treated as the same no-op so
-    // the user does not accidentally pin a meaningless empty marker. The
-    // service re-trims defensively, but normalizing here keeps the contract
-    // explicit at the entry point.
+    /**
+     * A cancel returns null; a blank confirm is treated as the same no-op so
+     * the user does not accidentally pin a meaningless empty marker. The
+     * service re-trims defensively, but normalizing here keeps the contract
+     * explicit at the entry point.
+     */
     if (entered === null || entered.trim().length === 0) {
       return null;
     }
@@ -371,8 +383,10 @@ export class ModalsService implements Service {
 
     const entered: string | null = await this.prompt(config);
 
-    // Same cancel/blank no-op contract as putLabel: a user backing out must not
-    // wipe or alter the version's existing label.
+    /**
+     * Same cancel/blank no-op contract as putLabel: a user backing out must not
+     * wipe or alter the version's existing label.
+     */
     if (entered === null || entered.trim().length === 0) {
       return null;
     }

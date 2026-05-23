@@ -103,8 +103,10 @@ export class PersistenceService implements Service {
    */
   @On(PluginEvent.settingsUpdate)
   public onSettingsUpdate(): void {
-    // Turning persistence off should drop the on-disk copy so disabled means
-    // disabled; turning it on persists the current state right away.
+    /**
+     * Turning persistence off should drop the on-disk copy so disabled means
+     * disabled; turning it on persists the current state right away.
+     */
     if (!this.isPersistEnabled()) {
       void this.clearDisk();
 
@@ -125,7 +127,9 @@ export class PersistenceService implements Service {
   protected async restoreFromDisk(): Promise<void> {
     try {
       if (!this.isPersistEnabled()) {
-        // History is not kept across restarts in this mode; drop any stale file.
+        /**
+         * History is not kept across restarts in this mode; drop any stale file.
+         */
         await this.clearDisk();
 
         return;
@@ -145,14 +149,18 @@ export class PersistenceService implements Service {
         this.plugin.forceUpdateEditor();
       }
 
-      // Re-save so the pruned set replaces an over-cap file on disk.
+      /**
+       * Re-save so the pruned set replaces an over-cap file on disk.
+       */
       if (kept.length !== history.snapshots.length) {
         await this.saveToDisk();
       }
     } finally {
-      // Mark restore complete only now, so a snapshotsUpdate that fires while
-      // we are reading the disk cannot trigger a save of the empty pre-restore
-      // state and overwrite a valid history file.
+      /**
+       * Mark restore complete only now, so a snapshotsUpdate that fires while
+       * we are reading the disk cannot trigger a save of the empty pre-restore
+       * state and overwrite a valid history file.
+       */
       this.restored = true;
     }
   }
@@ -199,9 +207,11 @@ export class PersistenceService implements Service {
       tombstones,
       this.settingsService.value('retention.maxDeletedEntries'),
       this.settingsService.value('retention.maxDeletedAgeDays'),
-      // Age a tombstone by its deletion time so the policy answers "how long do
-      // we keep deleted-file recoverability" rather than "how stale was the file
-      // when it was deleted".
+      /**
+       * Age a tombstone by its deletion time so the policy answers "how long do
+       * we keep deleted-file recoverability" rather than "how stale was the file
+       * when it was deleted".
+       */
       (item: SerializedFileSnapshot): number => item.deletedTimestamp ?? item.timestamp,
     );
 
@@ -233,7 +243,9 @@ export class PersistenceService implements Service {
       oldest === 0 || ageOf(item) >= oldest
     );
 
-    // Newest first so the size cap evicts the stalest entries.
+    /**
+     * Newest first so the size cap evicts the stalest entries.
+     */
     kept.sort((a: SerializedFileSnapshot, b: SerializedFileSnapshot): number => ageOf(b) - ageOf(a));
 
     if (maxEntries > 0 && kept.length > maxEntries) {

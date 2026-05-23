@@ -231,7 +231,10 @@ export class SnapshotState {
     changes.clear();
 
     tracker.forEach((lineTracker: TrackerLine): void => {
-      // Ideally, this situation could never happen
+      /**
+       * Skip a missing or ghost tracker entry: it carries no current line to
+       * classify, so it contributes nothing to the change map.
+       */
       if (!lineTracker || lineTracker.isStateGhost()) {
         return;
       }

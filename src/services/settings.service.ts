@@ -34,9 +34,11 @@ export class SettingsService implements Service {
    * Loads saved settings data and added the settings tab to the plugin.
    */
   public async init(): Promise<void> {
-    // Deep-merge into a fresh clone so partial saved data keeps nested defaults
-    // (e.g. a saved `show.changed` does not drop the other `show.*` keys) and
-    // DEFAULT_SETTINGS stays untouched.
+    /**
+     * Deep-merge into a fresh clone so partial saved data keeps nested defaults
+     * (e.g. a saved `show.changed` does not drop the other `show.*` keys) and
+     * DEFAULT_SETTINGS stays untouched.
+     */
     this.data = merge({}, DEFAULT_SETTINGS, await this.plugin.loadData());
     this.plugin.addSettingTab(new MainSetting(this.plugin.app, this.plugin));
   }

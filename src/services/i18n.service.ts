@@ -190,8 +190,10 @@ export class I18nService implements Service {
         return stored;
       }
     } catch {
-      // localStorage may be unavailable (e.g. a test runner without a window);
-      // fall through to the moment locale.
+      /**
+       * localStorage may be unavailable (e.g. a test runner without a window);
+       * fall through to the moment locale.
+       */
     }
 
     try {
@@ -204,7 +206,9 @@ export class I18nService implements Service {
         return locale;
       }
     } catch {
-      // moment may be absent; fall through to the English default.
+      /**
+       * moment may be absent; fall through to the English default.
+       */
     }
 
     return FALLBACK_LANGUAGE;

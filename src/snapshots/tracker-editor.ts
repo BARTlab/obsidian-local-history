@@ -170,8 +170,10 @@ export class TrackerEditor {
   ): Record<number, TrackerLine[]> {
     const positions: Record<number, TrackerLine[]> = {};
 
-    // Only removed lines are in range here, and shifting them touches their
-    // removedAtPosition, not any current position, so the current index stays valid.
+    /**
+     * Only removed lines are in range here, and shifting them touches their
+     * removedAtPosition, not any current position, so the current index stays valid.
+     */
     tracker.forEach((item: TrackerLine): void => {
       if (item.isRemoveInRange(line, to)) {
         item.shiftUp(offset);
@@ -225,8 +227,10 @@ export class TrackerEditor {
   ): Record<number, TrackerLine[]> {
     const positions: Record<number, TrackerLine[]> = {};
 
-    // Only removed lines are in range here, and shifting them touches their
-    // removedAtPosition, not any current position, so the current index stays valid.
+    /**
+     * Only removed lines are in range here, and shifting them touches their
+     * removedAtPosition, not any current position, so the current index stays valid.
+     */
     tracker.forEach((item: TrackerLine): void => {
       if (item.isRemoveInRange(line, to)) {
         item.shiftDown(offset);
@@ -257,8 +261,10 @@ export class TrackerEditor {
 
     if (removed) {
       removed.restore(index);
-      // restore() rewrites currentPosition directly, so the index can be stale
-      // even when shift is false (shiftUp would otherwise have invalidated it).
+      /**
+       * restore() rewrites currentPosition directly, so the index can be stale
+       * even when shift is false (shiftUp would otherwise have invalidated it).
+       */
       this.index.invalidate();
     }
 
@@ -303,8 +309,10 @@ export class TrackerEditor {
       this.removeTrackerLine(tracker, found);
     }
 
-    // remove() drops currentPosition to -1; removeTrackerLine drops the entry.
-    // Either way the current index no longer reflects the tracker set.
+    /**
+     * remove() drops currentPosition to -1; removeTrackerLine drops the entry.
+     * Either way the current index no longer reflects the tracker set.
+     */
     this.index.invalidate();
 
     return found;
@@ -376,8 +384,10 @@ export class TrackerEditor {
     const replacement: string[] = newLines ?? [];
 
     if (count === replacement.length && count > 0) {
-      // Same line count in and out: edit each line in place. Editing back to the
-      // original content flips contentSameOriginal, so the highlight clears.
+      /**
+       * Same line count in and out: edit each line in place. Editing back to the
+       * original content flips contentSameOriginal, so the highlight clears.
+       */
       for (let i: number = 0; i < count; i++) {
         this.index.findCurrentLine(tracker, start + i)?.change(replacement[i]);
       }
@@ -385,10 +395,12 @@ export class TrackerEditor {
       return;
     }
 
-    // Counts differ: delete the old block and insert the replacement, matching
-    // the change detector so destroyed originals are removed and replacements
-    // added without mismapping. Capture the doomed lines first, insert the new
-    // ones, then remove the originals by reference.
+    /**
+     * Counts differ: delete the old block and insert the replacement, matching
+     * the change detector so destroyed originals are removed and replacements
+     * added without mismapping. Capture the doomed lines first, insert the new
+     * ones, then remove the originals by reference.
+     */
     const doomed: TrackerLine[] = [];
 
     for (let index: number = start; index < start + count; index++) {

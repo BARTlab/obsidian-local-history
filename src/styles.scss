@@ -945,29 +945,34 @@
 // Status colour tokens (lct-tree-added / -modified / -deleted) are owned by
 // T14; this task ships the structural layout only so the component is wired
 // before the styling pass.
+// The tree reuses Obsidian's native file-explorer classes (tree-item-self,
+// nav-folder-title, nav-file-title, tree-item-inner, collapse-icon,
+// is-clickable) so it inherits the theme's row padding, hover, and active
+// styling and reads like the real file tree. The component renders a flat list
+// and drives indentation with an inline padding-inline-start per depth, which
+// overrides the native left padding while keeping the native vertical rhythm.
+// The lct-* rules below are the thin layer native does not provide: the extra
+// leading folder/file glyph, the indentation reset on the container, and the
+// per-file delta colours for the historical slice (added / modified / deleted,
+// including rows for files that no longer exist in the vault).
 .lct-folder-tree {
   display: flex;
   flex-direction: column;
   font-size: var(--font-ui-small);
 
-  .lct-folder-tree-row {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: var(--size-4-1);
-    padding: var(--size-4-1) var(--size-4-2);
-    cursor: pointer;
-    border-radius: var(--radius-s);
-    user-select: none;
+  // The native container ships its own padding; we manage indentation per row
+  // via inline padding, so neutralise it to keep depth control authoritative.
+  padding: 0;
 
-    &:hover {
-      background-color: var(--background-modifier-hover);
-    }
-
-    &.is-active {
-      background-color: var(--background-modifier-active-hover);
-    }
-  }
+  // Grow to the widest row so deep paths and long names overflow the scroll
+  // viewport horizontally instead of being clipped; min-width: 100% keeps the
+  // list filling the column when the content is narrow so row backgrounds still
+  // span the full width. The nav-files-container class we borrow for native
+  // styling carries overflow-x: hidden, which would clip the horizontal scroll,
+  // so we hand all scrolling to the .lct-folder-tree-scroll parent and keep this
+  // list itself visible.
+  min-width: max-content;
+  overflow: visible;
 
   .lct-folder-tree-chevron,
   .lct-folder-tree-icon {
@@ -978,33 +983,39 @@
     width: var(--icon-s);
     height: var(--icon-s);
     color: var(--text-muted);
+    // Space our extra leading glyph from the name; native rows carry no icon
+    // here so this margin is purely ours.
+    margin-inline-end: var(--size-4-1);
   }
 
+  // Keep names on a single line at their natural width: no shrink and no
+  // ellipsis, so a long file name pushes the row wider and the tree scrolls
+  // horizontally (see the min-width: max-content on the list) rather than
+  // hiding the tail of the name behind an ellipsis.
   .lct-folder-tree-name {
-    flex: 1 1 auto;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    flex: 0 0 auto;
     white-space: nowrap;
+    overflow: visible;
   }
 
-  // Per-file delta colour tokens applied to .lct-folder-tree-row (T14, D8/D9).
-  // The component sets one of lct-tree-added / -modified / -deleted on every
-  // file row whose status is non-none; ancestor folders carry no token and
-  // stay in the default text colour so the changed files read against an
-  // inert tree backdrop. Colours resolve through Obsidian CSS variables so
-  // light and dark themes pick up the correct emphasis automatically.
-  .lct-tree-added {
+  // Per-file delta colour tokens. The status class lives on the row, but native
+  // nav-item styling colours the inner text node, so we target the name to win
+  // over --nav-item-color. Ancestor folders carry no token and keep the theme's
+  // default colour so changed files read against an inert tree backdrop.
+  // Colours resolve through Obsidian CSS variables so light and dark themes
+  // pick up the correct emphasis automatically.
+  .lct-tree-added .lct-folder-tree-name {
     color: var(--color-green);
   }
 
-  .lct-tree-modified {
+  .lct-tree-modified .lct-folder-tree-name {
     // --text-warning is the Obsidian-standard warning hue and reads as an
     // amber/yellow in both themes; we use it (rather than --color-yellow
     // directly) so the modified token tracks the theme's warning palette.
     color: var(--text-warning);
   }
 
-  .lct-tree-deleted {
+  .lct-tree-deleted .lct-folder-tree-name {
     color: var(--color-red);
     text-decoration: line-through;
   }

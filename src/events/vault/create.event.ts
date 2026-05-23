@@ -8,9 +8,15 @@ import { type TAbstractFile, TFile } from 'obsidian';
 
 /**
  * Event handler for Obsidian's vault create event.
- * Manages the ignore list when new files are created in the vault.
- * If the "ignore new files" setting is enabled, adds newly created files
- * to the ignore list to prevent tracking changes in them.
+ *
+ * Two behaviours, keyed on the "ignore new files" setting:
+ * - When enabled, a newly created file with an allowed extension is added to
+ *   the ignore list so its changes are never tracked.
+ * - When disabled, the file is captured into a baseline snapshot right away.
+ *   Without this eager capture a created or copied file has no snapshot until
+ *   it is later opened or written to, so folder-history (which is built purely
+ *   from the snapshot map) cannot surface it as an added file until some
+ *   unrelated event happens to capture it.
  *
  * @extends {BaseEvent}
  */
@@ -36,9 +42,15 @@ export class VaultCreateEvent extends BaseEvent {
   public name: ObsidianEventName = ObsidianEvent.vault.create;
 
   /**
-   * Handles the vault create event by managing the ignore list for new files.
-   * If the "ignore new files" setting is enabled and the file has an allowed extension,
-   * adds the file to the ignore list to prevent change tracking.
+   * Handles the vault create event. When the "ignore new files" setting is on,
+   * a new file with an allowed extension is added to the ignore list so it is
+   * never tracked. Otherwise the file is captured into a baseline snapshot at
+   * once, so a created or copied file is tracked from the moment it appears and
+   * shows up in folder history (which is derived purely from the snapshot map)
+   * without waiting for a later open or write to capture it.
+   *
+   * `capture` applies its own extension / excluded-path / already-captured /
+   * ignore-list gating, so it is safe to call unconditionally here.
    *
    * @param {TAbstractFile} file - The file that was created in the vault
    */
@@ -47,8 +59,14 @@ export class VaultCreateEvent extends BaseEvent {
       return;
     }
 
-    if (this.settingsService.value('ignoreNewFiles') && this.snapshotsService.isInAllowedExtensions(file)) {
-      this.snapshotsService.addToIgnoreList(file);
+    if (this.settingsService.value('ignoreNewFiles')) {
+      if (this.snapshotsService.isInAllowedExtensions(file)) {
+        this.snapshotsService.addToIgnoreList(file);
+      }
+
+      return;
     }
+
+    void this.snapshotsService.capture(file);
   }
 }

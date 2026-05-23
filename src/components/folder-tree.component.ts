@@ -438,7 +438,7 @@ export class FolderTreeComponent {
 
     const list: HTMLElement = DomHelper.create({
       tag: 'div',
-      classes: 'lct-folder-tree',
+      classes: ['nav-files-container', 'lct-folder-tree'],
       container: this.container,
     });
 
@@ -536,7 +536,14 @@ export class FolderTreeComponent {
 
     const row: HTMLElement = DomHelper.create({
       tag: 'div',
-      classes: ['lct-folder-tree-row', 'lct-folder-tree-folder'],
+      classes: [
+        'tree-item-self',
+        'nav-folder-title',
+        'is-clickable',
+        'mod-collapsible',
+        'lct-folder-tree-row',
+        'lct-folder-tree-folder',
+      ],
       attributes: { 'data-path': node.path },
       styles: { paddingInlineStart: `calc(var(--size-4-2) + ${depth * 16}px)` },
       events: {
@@ -550,7 +557,7 @@ export class FolderTreeComponent {
 
     const chevron: HTMLElement = DomHelper.create({
       tag: 'span',
-      classes: 'lct-folder-tree-chevron',
+      classes: ['tree-item-icon', 'collapse-icon', 'lct-folder-tree-chevron'],
       container: row,
     });
 
@@ -566,7 +573,7 @@ export class FolderTreeComponent {
 
     DomHelper.create({
       tag: 'span',
-      classes: 'lct-folder-tree-name',
+      classes: ['tree-item-inner', 'nav-folder-title-content', 'lct-folder-tree-name'],
       text: node.name,
       container: row,
     });
@@ -594,7 +601,14 @@ export class FolderTreeComponent {
    */
   protected renderFile(container: HTMLElement, node: FolderTreeNode, depth: number): void {
     const statusClass: string = this.statusClassName(node.status);
-    const classes: string[] = ['lct-folder-tree-row', 'lct-folder-tree-file', statusClass];
+    const classes: string[] = [
+      'tree-item-self',
+      'nav-file-title',
+      'is-clickable',
+      'lct-folder-tree-row',
+      'lct-folder-tree-file',
+      statusClass,
+    ];
 
     if (this.selectedPath === node.path) {
       classes.push('is-active');
@@ -626,7 +640,7 @@ export class FolderTreeComponent {
 
     DomHelper.create({
       tag: 'span',
-      classes: 'lct-folder-tree-name',
+      classes: ['tree-item-inner', 'nav-file-title-content', 'lct-folder-tree-name'],
       text: node.name,
       container: row,
     });

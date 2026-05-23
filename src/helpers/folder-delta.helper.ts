@@ -89,17 +89,26 @@ export class FolderDeltaHelper {
   }
 
   /**
-   * Whether the snapshot represented a file that existed at T. A live snapshot
-   * existed at T when its creation `timestamp` is at or before T; a tombstone
-   * existed at T when it was deleted strictly AFTER T (`deletedTimestamp > T`).
-   * A tombstone whose deletion is at or before T is considered "already gone
-   * at T", so the resulting cell is `'none'` rather than `'deleted'`.
+   * Whether the snapshot represented a file that existed at T. A file existed at
+   * T when its earliest known moment ({@link firstSeenAt}) is at or before T; a
+   * tombstone additionally requires that it was deleted strictly AFTER T
+   * (`deletedTimestamp > T`). A tombstone whose deletion is at or before T is
+   * considered "already gone at T", so the resulting cell is `'none'` rather
+   * than `'deleted'`.
+   *
+   * The existence boundary is the earliest of the snapshot's `timestamp` and its
+   * captured version timestamps, NOT `timestamp` alone. The `timestamp` field is
+   * set to `Date.now()` whenever the snapshot object is constructed (every
+   * session a file is captured, and on restore it carries the persisted creation
+   * stamp), so it routinely drifts NEWER than the file's own captured history.
+   * Using it alone misclassified any file with versions older than that stamp as
+   * `'added'` (empty base, all-green diff) at every timeline point before it,
+   * which is the folder-history "swapped trees" bug. The earliest version is a
+   * reliable historical floor for when the file demonstrably existed.
    *
    * The same rule applies to move-ins: `movedIntoAt` is not consulted directly
-   * because the snapshot's `timestamp` is set at construction time, which is
-   * earlier than (or equal to) the move-in stamp on a re-keyed snapshot; the
-   * earlier creation time is the correct existence boundary for the file
-   * across both folders.
+   * because the snapshot carries its captured history across the move, so the
+   * earliest-version floor already places the file's existence before the move.
    *
    * @param {FileSnapshot} snapshot - The snapshot under inspection
    * @param {number} timestamp - The chosen timeline point T, in ms
@@ -107,10 +116,10 @@ export class FolderDeltaHelper {
    */
   protected static existedAtT(snapshot: FileSnapshot, timestamp: number): boolean {
     /**
-     * A snapshot created after T means the file did not exist at T regardless
-     * of whether it is currently live or a tombstone.
+     * A file first seen after T did not exist at T regardless of whether it is
+     * currently live or a tombstone.
      */
-    if (isNumber(snapshot.timestamp) && snapshot.timestamp > timestamp) {
+    if (FolderDeltaHelper.firstSeenAt(snapshot) > timestamp) {
       return false;
     }
 
@@ -122,6 +131,34 @@ export class FolderDeltaHelper {
     }
 
     return true;
+  }
+
+  /**
+   * Resolves the earliest moment the file is known to have existed: the minimum
+   * of the snapshot's creation `timestamp` and every captured version timestamp.
+   * Versions are recorded with their true historical timestamps, so the earliest
+   * one is an older, more reliable existence floor than `timestamp`, which drifts
+   * to "now" each time the snapshot object is rebuilt (see {@link existedAtT}).
+   *
+   * Falls back to `+Infinity` when neither a numeric `timestamp` nor any version
+   * timestamp is available, so a degenerate snapshot is treated as never having
+   * existed rather than as existing since the epoch.
+   *
+   * @param {FileSnapshot} snapshot - The snapshot whose existence floor to resolve
+   * @return {number} The earliest known timestamp, or `+Infinity` when unknown
+   */
+  protected static firstSeenAt(snapshot: FileSnapshot): number {
+    let earliest: number = isNumber(snapshot.timestamp) ? snapshot.timestamp : Number.POSITIVE_INFINITY;
+
+    const versions: FileVersion[] = Array.isArray(snapshot.versions) ? snapshot.versions : [];
+
+    for (const version of versions) {
+      if (version && isNumber(version.timestamp) && version.timestamp < earliest) {
+        earliest = version.timestamp;
+      }
+    }
+
+    return earliest;
   }
 
   /**

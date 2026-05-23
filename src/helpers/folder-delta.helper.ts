@@ -89,48 +89,54 @@ export class FolderDeltaHelper {
   }
 
   /**
-   * Whether the snapshot represented a file that existed at T. A file existed at
-   * T when its earliest known moment ({@link firstSeenAt}) is at or before T; a
-   * tombstone additionally requires that it was deleted strictly AFTER T
-   * (`deletedTimestamp > T`). A tombstone whose deletion is at or before T is
-   * considered "already gone at T", so the resulting cell is `'none'` rather
-   * than `'deleted'`.
+   * Whether the snapshot represented a file present at its current path at T.
+   * The answer drives the added / deleted / modified grid in {@link compareAt},
+   * and crucially it is evaluated per the file's CURRENT path so a move shows up
+   * as a deletion at the old path and an addition at the new one.
    *
-   * The existence boundary is the earliest of the snapshot's `timestamp` and its
-   * captured version timestamps, NOT `timestamp` alone. The `timestamp` field is
-   * set to `Date.now()` whenever the snapshot object is constructed (every
-   * session a file is captured, and on restore it carries the persisted creation
-   * stamp), so it routinely drifts NEWER than the file's own captured history.
-   * Using it alone misclassified any file with versions older than that stamp as
-   * `'added'` (empty base, all-green diff) at every timeline point before it,
-   * which is the folder-history "swapped trees" bug. The earliest version is a
-   * reliable historical floor for when the file demonstrably existed.
+   * Three cases:
    *
-   * The same rule applies to move-ins: `movedIntoAt` is not consulted directly
-   * because the snapshot carries its captured history across the move, so the
-   * earliest-version floor already places the file's existence before the move.
+   * - Tombstone: existed at T when it was first seen at/before T and deleted at
+   *   or AFTER T (`deletedTimestamp >= T`, inclusive). Inclusive on the delete
+   *   instant so the file is still surfaced as `'deleted'` on the very timeline
+   *   point that represents its deletion (or its move-out, which leaves a
+   *   tombstone stamped at the move instant); an exclusive bound hid the deleted
+   *   file on its own point and made the newest snapshot look empty.
+   *
+   * - Moved-in live snapshot: the file appears at its destination path only
+   *   strictly AFTER the move (`movedIntoAt < T`). At and before the move instant
+   *   it is treated as not-yet-here, so the move-in timeline point renders it as
+   *   freshly `'added'` to the folder (green) while the tombstone left at the old
+   *   path renders as `'deleted'` (red): together they read as a move. Its
+   *   pre-move captured history belongs to the old path and is deliberately not
+   *   consulted for existence at the new one.
+   *
+   * - Plain live snapshot: existed at T when its earliest known moment
+   *   ({@link firstSeenAt}) is at/before T. The floor is the earliest of the
+   *   snapshot's `timestamp` and its version timestamps, NOT `timestamp` alone:
+   *   `timestamp` is reset to `Date.now()` whenever the snapshot object is
+   *   rebuilt, so it drifts NEWER than the file's own captured history and using
+   *   it alone misclassified long-lived files as `'added'` (empty base, all-green
+   *   diff) at every point before it.
    *
    * @param {FileSnapshot} snapshot - The snapshot under inspection
    * @param {number} timestamp - The chosen timeline point T, in ms
-   * @return {boolean} True when the snapshot represented a file present at T
+   * @return {boolean} True when the file was present at its current path at T
    */
   protected static existedAtT(snapshot: FileSnapshot, timestamp: number): boolean {
-    /**
-     * A file first seen after T did not exist at T regardless of whether it is
-     * currently live or a tombstone.
-     */
-    if (FolderDeltaHelper.firstSeenAt(snapshot) > timestamp) {
-      return false;
-    }
-
     if (snapshot.isTombstone()) {
-      /**
-       * The tombstone existed at T only when it was deleted strictly after T.
-       */
-      return isNumber(snapshot.deletedTimestamp) && snapshot.deletedTimestamp > timestamp;
+      if (FolderDeltaHelper.firstSeenAt(snapshot) > timestamp) {
+        return false;
+      }
+
+      return isNumber(snapshot.deletedTimestamp) && snapshot.deletedTimestamp >= timestamp;
     }
 
-    return true;
+    if (snapshot.isMovedIn()) {
+      return isNumber(snapshot.movedIntoAt) && snapshot.movedIntoAt < timestamp;
+    }
+
+    return FolderDeltaHelper.firstSeenAt(snapshot) <= timestamp;
   }
 
   /**

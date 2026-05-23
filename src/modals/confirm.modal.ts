@@ -68,8 +68,10 @@ export class ConfirmModal extends Modal {
    * @override
    */
   public onOpen(): void {
-    // Tag the modal so the stylesheet can restore the content padding; a bare
-    // Modal's content otherwise sits flush against the edges.
+    /**
+     * Tag the modal so the stylesheet can restore the content padding; a bare
+     * Modal's content otherwise sits flush against the edges.
+     */
     DomHelper.update(this.modalEl, { classes: { add: 'lct-confirm-modal' } });
 
     DomHelper.update(this.contentEl, {
@@ -118,7 +120,9 @@ export class ConfirmModal extends Modal {
       ]
     })
 
-    // Focus the confirmation button
+    /**
+     * Focus the confirmation button
+     */
     const confirmButton: HTMLButtonElement = this.contentEl.querySelector('button.mod-warning');
 
     confirmButton?.focus();

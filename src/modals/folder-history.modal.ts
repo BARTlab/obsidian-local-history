@@ -49,19 +49,27 @@ import { type App, Modal, Notice, SearchComponent, type TFile, setIcon } from 'o
  * without losing the selected T or the selected file.
  */
 export class FolderHistoryModal extends Modal {
-  /** Snapshots service used to restore tombstones and read the live map back. */
+  /**
+   * Snapshots service used to restore tombstones and read the live map back.
+   */
   @Inject('SnapshotsService')
   protected snapshotsService: SnapshotsService;
 
-  /** Modals service used to confirm destructive actions and to prompt for labels. */
+  /**
+   * Modals service used to confirm destructive actions and to prompt for labels.
+   */
   @Inject('ModalsService')
   protected modalsService: ModalsService;
 
-  /** Shared restore/remove/label action service, same one the file modal uses. */
+  /**
+   * Shared restore/remove/label action service, same one the file modal uses.
+   */
   @Inject('VersionActionsService')
   protected versionActionsService: VersionActionsService;
 
-  /** Vault-relative folder path the modal is opened against. */
+  /**
+   * Vault-relative folder path the modal is opened against.
+   */
   protected readonly rootPath: string;
 
   /**
@@ -86,40 +94,64 @@ export class FolderHistoryModal extends Modal {
    */
   protected selectedTimestamp: number;
 
-  /** Currently selected display mode; same enum the file modal uses (D6). */
+  /**
+   * Currently selected display mode; same enum the file modal uses (D6).
+   */
   protected currentDisplayMode: DiffRenderMode = DiffOutputFormatType.side;
 
-  /** Left rail container (timeline). */
+  /**
+   * Left rail container (timeline).
+   */
   protected railEl?: HTMLElement;
 
-  /** Middle column wrapper holding the name filter above the scrollable tree. */
+  /**
+   * Middle column wrapper holding the name filter above the scrollable tree.
+   */
   protected treeColumnEl?: HTMLElement;
 
-  /** Name-filter search box above the tree (filters file rows by name). */
+  /**
+   * Name-filter search box above the tree (filters file rows by name).
+   */
   protected treeSearchEl?: HTMLElement;
 
-  /** Middle tree container, owned by {@link FolderTreeComponent}. */
+  /**
+   * Middle tree container, owned by {@link FolderTreeComponent}.
+   */
   protected treeEl?: HTMLElement;
 
-  /** Right main column container (toolbar + diff). */
+  /**
+   * Right main column container (toolbar + diff).
+   */
   protected mainEl?: HTMLElement;
 
-  /** Top toolbar inside the main column. */
+  /**
+   * Top toolbar inside the main column.
+   */
   protected toolbarEl?: HTMLElement;
 
-  /** Diff output container, written into by {@link DiffRenderHelper}. */
+  /**
+   * Diff output container, written into by {@link DiffRenderHelper}.
+   */
   protected diffContainerEl?: HTMLElement;
 
-  /** Notice above the diff, shown when the selected file has no diff at T. */
+  /**
+   * Notice above the diff, shown when the selected file has no diff at T.
+   */
   protected noticeEl?: HTMLElement;
 
-  /** Header above the side-by-side diff naming each column's content. */
+  /**
+   * Header above the side-by-side diff naming each column's content.
+   */
   protected columnsHeaderEl?: HTMLElement;
 
-  /** Folder tree component instance, mounted into {@link treeEl}. */
+  /**
+   * Folder tree component instance, mounted into {@link treeEl}.
+   */
   protected readonly tree: FolderTreeComponent;
 
-  /** Mode toggle buttons, kept so the active accent can be flipped. */
+  /**
+   * Mode toggle buttons, kept so the active accent can be flipped.
+   */
   protected modeButtons: {
     patch?: HTMLElement;
     inline?: HTMLElement;
@@ -127,19 +159,29 @@ export class FolderHistoryModal extends Modal {
     sideBySide?: HTMLElement;
   } = {};
 
-  /** Restore selected version button, disabled when no file is selected. */
+  /**
+   * Restore selected version button, disabled when no file is selected.
+   */
   protected restoreSelectedButton?: HTMLButtonElement;
 
-  /** Remove selected version button, disabled when no file is selected. */
+  /**
+   * Remove selected version button, disabled when no file is selected.
+   */
   protected removeSelectedButton?: HTMLButtonElement;
 
-  /** Label selected version button, disabled when no file is selected. */
+  /**
+   * Label selected version button, disabled when no file is selected.
+   */
   protected labelSelectedButton?: HTMLButtonElement;
 
-  /** Restore original (wipe history and revert to baseline) button. */
+  /**
+   * Restore original (wipe history and revert to baseline) button.
+   */
   protected restoreOriginalButton?: HTMLButtonElement;
 
-  /** Remove history (drop the selected file's snapshot) button. */
+  /**
+   * Remove history (drop the selected file's snapshot) button.
+   */
   protected removeHistoryButton?: HTMLButtonElement;
 
   /**
@@ -253,9 +295,11 @@ export class FolderHistoryModal extends Modal {
 
     this.makeToolbar();
 
-    // Relocate the native close button into the toolbar, matching the file
-    // modal's pattern (see HistoryModal.makeUI) so the floating top-right
-    // glyph is replaced by an inline toolbar control.
+    /**
+     * Relocate the native close button into the toolbar, matching the file
+     * modal's pattern (see HistoryModal.makeUI) so the floating top-right
+     * glyph is replaced by an inline toolbar control.
+     */
     const closeButtonEl: HTMLElement | null = this.modalEl.querySelector<HTMLElement>('.modal-close-button');
 
     if (closeButtonEl) {
@@ -576,9 +620,11 @@ export class FolderHistoryModal extends Modal {
     });
 
     if (items.length === 0) {
-      // Defensive: openFolderHistory rejects an empty subtree, but a future
-      // caller might bypass that gate, so the rail still has a sensible
-      // no-results hint instead of an empty column.
+      /**
+       * Defensive: openFolderHistory rejects an empty subtree, but a future
+       * caller might bypass that gate, so the rail still has a sensible
+       * no-results hint instead of an empty column.
+       */
       items.push({
         tag: 'div',
         classes: 'lct-versions-no-results',
@@ -775,10 +821,12 @@ export class FolderHistoryModal extends Modal {
       const result: FolderDeltaResult = FolderDeltaHelper.compareAt(snapshot, this.selectedTimestamp);
       const closest: FileVersion | null = this.resolveVersionAtT(snapshot);
 
-      // The badge follows the version closest to T (D10): if that version was
-      // captured from an external change, the tree row carries the marker so
-      // the user can spot external states without opening the diff (T20 AC3).
-      // Ancestor folders never carry the flag; only file rows do.
+      /**
+       * The badge follows the version closest to T (D10): if that version was
+       * captured from an external change, the tree row carries the marker so
+       * the user can spot external states without opening the diff (T20 AC3).
+       * Ancestor folders never carry the flag; only file rows do.
+       */
       entries.push({
         path,
         status: result.status,
@@ -906,8 +954,10 @@ export class FolderHistoryModal extends Modal {
     );
 
     if (this.timeline.length === 0) {
-      // The subtree is now empty; the caller closes the modal, but the rail
-      // still re-renders into the empty-state hint for safety.
+      /**
+       * The subtree is now empty; the caller closes the modal, but the rail
+       * still re-renders into the empty-state hint for safety.
+       */
       this.renderTimeline();
 
       return;
@@ -975,10 +1025,12 @@ export class FolderHistoryModal extends Modal {
     if (version) {
       await this.versionActionsService.restoreSelected(file, version.id);
     } else {
-      // Synthetic baseline branch: T precedes every captured version, so the
-      // base resolved by FolderDeltaHelper is the history baseline. Reuse the
-      // same applyContent path the file modal's ORIGINAL_BASE_ID branch uses
-      // so the tracker and the cached state stay in sync after the write.
+      /**
+       * Synthetic baseline branch: T precedes every captured version, so the
+       * base resolved by FolderDeltaHelper is the history baseline. Reuse the
+       * same applyContent path the file modal's ORIGINAL_BASE_ID branch uses
+       * so the tracker and the cached state stay in sync after the write.
+       */
       const baseLines: string[] = selection.result.base;
       const currentLines: string[] = selection.snapshot.getLastStateLines();
 
@@ -1067,10 +1119,12 @@ export class FolderHistoryModal extends Modal {
 
     const file: TFile | null = selection.snapshot.file ?? null;
 
-    // Tombstones have a null `file` reference (D2 leaves them detached), so the
-    // service's getOne lookup would miss. Drop the version directly off the
-    // snapshot in that case and notify subscribers ourselves so retention and
-    // the rail still see a consistent map.
+    /**
+     * Tombstones have a null `file` reference (D2 leaves them detached), so the
+     * service's getOne lookup would miss. Drop the version directly off the
+     * snapshot in that case and notify subscribers ourselves so retention and
+     * the rail still see a consistent map.
+     */
     if (file) {
       this.versionActionsService.removeSelected(file, version.id);
     } else if (selection.snapshot.removeVersion(version.id)) {
@@ -1190,10 +1244,12 @@ export class FolderHistoryModal extends Modal {
 
     const file: TFile | null = selection.snapshot.file ?? null;
 
-    // Tombstone branch: no live file to write to. Remove-history on a deleted
-    // file has no analogue in the file modal (where the modal closes after the
-    // wipe), so the folder modal treats it as a no-op for tombstones and lets
-    // tombstone retention age the entry out instead.
+    /**
+     * Tombstone branch: no live file to write to. Remove-history on a deleted
+     * file has no analogue in the file modal (where the modal closes after the
+     * wipe), so the folder modal treats it as a no-op for tombstones and lets
+     * tombstone retention age the entry out instead.
+     */
     if (!file) {
       return;
     }

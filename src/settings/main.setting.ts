@@ -184,8 +184,6 @@ export class MainSetting extends PluginSettingTab {
           })
       );
 
-    // ----- intermediate snapshots (timeline) -----
-
     new Setting(containerEl)
       .setName(this.plugin.t('setting.snapshots-heading'))
       .setHeading();
@@ -260,8 +258,6 @@ export class MainSetting extends PluginSettingTab {
           })
       );
 
-    // ----- changed -----
-
     new Setting(containerEl)
       .setName(this.plugin.t('setting.show-heading'))
       .setHeading();
@@ -279,8 +275,6 @@ export class MainSetting extends PluginSettingTab {
           })
       );
 
-    // ----- restored -----
-
     new Setting(containerEl)
       .setName(this.plugin.t('setting.show.restored'))
       .addToggle((toggle: ToggleComponent): ToggleComponent =>
@@ -290,8 +284,6 @@ export class MainSetting extends PluginSettingTab {
             this.settingsService.update('show.restored', value);
           })
       );
-
-    // ----- added -----
 
     new Setting(containerEl)
       .setName(this.plugin.t('setting.show.added'))
@@ -303,8 +295,6 @@ export class MainSetting extends PluginSettingTab {
           })
       );
 
-    // ----- removed -----
-
     new Setting(containerEl)
       .setName(this.plugin.t('setting.show.removed'))
       .addToggle((toggle: ToggleComponent): ToggleComponent =>
@@ -314,8 +304,6 @@ export class MainSetting extends PluginSettingTab {
             this.settingsService.update('show.removed', value);
           })
       );
-
-    // ----- line -----
 
     new Setting(containerEl)
       .setName(this.plugin.t('setting.line-heading'))

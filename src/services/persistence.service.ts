@@ -1,4 +1,5 @@
 import { isNumber } from 'lodash-es';
+import type { DataAdapter } from 'obsidian';
 
 import { KeepHistory, MS_PER_DAY, PluginEvent, SAVE_DEBOUNCE_MS } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
@@ -44,6 +45,18 @@ export class PersistenceService implements Service {
   protected restored: boolean = false;
 
   /**
+   * Promise chain that serializes all on-disk writes (`saveToDisk` /
+   * `clearDisk`). Every public entry point appends its work as `.then(...)`,
+   * so writes run strictly in submission order and `unload` can await the
+   * tail to flush the queue before the plugin tears down.
+   *
+   * ADR-08-A: scheduleSave, unload, restoreFromDisk's re-save, and the
+   * settings-toggle path all hit the same file; without one chain they race
+   * `adapter.write` and last-writer-wins is non-deterministic.
+   */
+  protected writeQueue: Promise<void> = Promise.resolve();
+
+  /**
    * Creates a new instance of PersistenceService.
    *
    * @param {LineChangeTrackerPlugin} plugin - The plugin instance
@@ -67,10 +80,11 @@ export class PersistenceService implements Service {
 
   /**
    * Flushes any pending history to disk when the plugin unloads.
-   * Cancels the debounce timer and performs a final synchronous-style save so
-   * the latest state is not lost on disable or app quit.
+   * Cancels the debounce timer, enqueues a final save, then awaits the entire
+   * write queue so any in-flight or already-queued write has fully completed
+   * before the plugin tears down.
    *
-   * @return {Promise<void>} Resolves when the final save completes
+   * @return {Promise<void>} Resolves when the queue is drained
    */
   public async unload(): Promise<void> {
     if (this.saveTimer) {
@@ -78,7 +92,9 @@ export class PersistenceService implements Service {
       this.saveTimer = null;
     }
 
-    await this.saveToDisk();
+    this.enqueueSave();
+
+    await this.writeQueue;
   }
 
   /**
@@ -108,7 +124,7 @@ export class PersistenceService implements Service {
      * disabled; turning it on persists the current state right away.
      */
     if (!this.isPersistEnabled()) {
-      void this.clearDisk();
+      this.enqueueClear();
 
       return;
     }
@@ -130,7 +146,7 @@ export class PersistenceService implements Service {
         /**
          * History is not kept across restarts in this mode; drop any stale file.
          */
-        await this.clearDisk();
+        this.enqueueClear();
 
         return;
       }
@@ -153,7 +169,7 @@ export class PersistenceService implements Service {
        * Re-save so the pruned set replaces an over-cap file on disk.
        */
       if (kept.length !== history.snapshots.length) {
-        await this.saveToDisk();
+        this.enqueueSave();
       }
     } finally {
       /**
@@ -265,14 +281,36 @@ export class PersistenceService implements Service {
 
     this.saveTimer = setTimeout((): void => {
       this.saveTimer = null;
-      void this.saveToDisk();
+      this.enqueueSave();
     }, SAVE_DEBOUNCE_MS);
+  }
+
+  /**
+   * Appends a save to the write queue so it runs after every previously
+   * scheduled write completes. The queue swallows individual write failures
+   * (logged inside `saveToDisk`) so a single bad write does not poison the
+   * chain and starve later writes.
+   */
+  protected enqueueSave(): void {
+    this.writeQueue = this.writeQueue.then((): Promise<void> => this.saveToDisk());
+  }
+
+  /**
+   * Appends a clear to the write queue so it serializes with pending saves.
+   */
+  protected enqueueClear(): void {
+    this.writeQueue = this.writeQueue.then((): Promise<void> => this.clearDisk());
   }
 
   /**
    * Serializes the current snapshots and writes them to the history file.
    * Applies retention before writing so the on-disk set stays within caps, and
    * removes the file entirely when persistence is disabled or nothing is left.
+   *
+   * The write itself is atomic: payload is written to `<path>.tmp`, the prior
+   * file (if any) is copied to `<path>.bak`, and finally `.tmp` is renamed
+   * over `<path>`. A crash mid-write leaves either the prior file intact or
+   * the new `.tmp` recoverable, never a truncated `<path>`.
    *
    * @return {Promise<void>} Resolves when the write completes
    */
@@ -292,13 +330,47 @@ export class PersistenceService implements Service {
       return;
     }
 
+    const path: string = this.getHistoryPath();
+    const tmpPath: string = `${path}.tmp`;
+    const bakPath: string = `${path}.bak`;
+    const adapter: DataAdapter = this.plugin.app.vault.adapter;
+
     try {
-      await this.plugin.app.vault.adapter.write(
-        this.getHistoryPath(),
-        JSON.stringify({ version: payload.version, snapshots: kept }),
-      );
+      await adapter.write(tmpPath, JSON.stringify({ version: payload.version, snapshots: kept }));
+
+      /**
+       * Best-effort backup of the prior file before replacing it. A missing
+       * prior file is fine (first write); a backup failure must not abort
+       * the write, so it is logged and ignored.
+       */
+      if (await adapter.exists(path)) {
+        try {
+          if (await adapter.exists(bakPath)) {
+            await adapter.remove(bakPath);
+          }
+
+          await adapter.rename(path, bakPath);
+        } catch (error) {
+          console.error('Local history: failed to back up prior history file', error);
+        }
+      }
+
+      await adapter.rename(tmpPath, path);
     } catch (error) {
       console.error('Local history: failed to persist history', error);
+
+      /**
+       * Clean up the orphan tmp file so it does not accumulate on repeated
+       * failures. A remove failure is swallowed because the original write
+       * failure is already logged and there is nothing else to do.
+       */
+      try {
+        if (await adapter.exists(tmpPath)) {
+          await adapter.remove(tmpPath);
+        }
+      } catch {
+        // Ignored: tmp cleanup is best-effort.
+      }
     }
   }
 

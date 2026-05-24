@@ -48,6 +48,13 @@ export default class LineChangeTrackerPlugin extends Plugin {
   protected container: Map<ClassConstructor<Service>, Service> = new Map();
 
   /**
+   * Services whose `init` has resolved successfully in the current lifecycle.
+   * Tracked so a fatal init can tear down only what was actually brought up,
+   * in reverse registration order (ADR-08-C).
+   */
+  protected initialized: Service[] = [];
+
+  /**
    * Creates a new instance of the LineChangeTrackerPlugin.
    * Registers all required services during initialization.
    *
@@ -148,8 +155,21 @@ export default class LineChangeTrackerPlugin extends Plugin {
    * @return {Promise<void>} A promise that resolves when all services are loaded
    */
   public async onload(): Promise<void> {
-    await this.exec('init');
-    await this.exec('load');
+    const initFailed: boolean = await this.exec('init');
+
+    if (initFailed) {
+      await this.teardown();
+
+      return;
+    }
+
+    const loadFailed: boolean = await this.exec('load');
+
+    if (loadFailed) {
+      await this.teardown();
+
+      return;
+    }
 
     this.registerView(
       RECENT_CHANGES_VIEW_TYPE,
@@ -163,23 +183,75 @@ export default class LineChangeTrackerPlugin extends Plugin {
    *
    * @return {Promise<void>} A promise that resolves when all services are unloaded
    */
-  public onunload(): Promise<void> {
-    return this.exec('unload');
+  public async onunload(): Promise<void> {
+    await this.exec('unload');
   }
 
   /**
-   * Executes a method on all registered services.
-   * Used for lifecycle management (init, load, unload).
+   * Executes a method on all registered services in registration order.
+   * Each per-service call is isolated in try/catch so one failure does not
+   * abort the loop; remaining services still get a chance to run (ADR-08-C).
+   * For `init`, a successful call records the service in `initialized` so a
+   * subsequent fatal can tear down only what is actually up. `unload` clears
+   * the corresponding entry as the service goes down.
    *
    * @param {string} method - The method name to execute on each service
-   * @return {Promise<void>} A promise that resolves when all method executions are complete
+   * @return {Promise<boolean>} True when at least one service threw, so the
+   *   caller can trigger teardown of the partial container.
    */
-  protected async exec(method: keyof Service): Promise<void> {
+  protected async exec(method: keyof Service): Promise<boolean> {
+    let failed: boolean = false;
+
     for (const provider of [...this.container.values()]) {
       if (method in provider && isFunction(provider[method])) {
-        await provider[method]();
+        try {
+          await provider[method]();
+
+          if (method === 'init') {
+            this.initialized.push(provider);
+          } else if (method === 'unload') {
+            const idx: number = this.initialized.indexOf(provider);
+
+            if (idx >= 0) {
+              this.initialized.splice(idx, 1);
+            }
+          }
+        } catch (error) {
+          failed = true;
+          console.error(
+            `[obsidian-local-history] ${provider.constructor.name}.${method} failed:`,
+            error,
+          );
+        }
       }
     }
+
+    return failed;
+  }
+
+  /**
+   * Tears down services that were brought up by a partial `init`/`load`, in
+   * reverse registration order, so a fatal lifecycle failure never leaves a
+   * half-loaded plugin behind (ADR-08-C). Each per-service `unload` is
+   * isolated so one teardown failure does not block the rest.
+   *
+   * @return {Promise<void>} Resolves once teardown is complete.
+   */
+  protected async teardown(): Promise<void> {
+    for (const provider of [...this.initialized].reverse()) {
+      if ('unload' in provider && isFunction(provider.unload)) {
+        try {
+          await provider.unload();
+        } catch (error) {
+          console.error(
+            `[obsidian-local-history] ${provider.constructor.name}.unload failed during teardown:`,
+            error,
+          );
+        }
+      }
+    }
+
+    this.initialized = [];
   }
 
   /**

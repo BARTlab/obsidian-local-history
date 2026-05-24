@@ -1,4 +1,4 @@
-import { isNumber } from 'lodash-es';
+import { isNumber, isString } from 'lodash-es';
 import type { DataAdapter } from 'obsidian';
 
 import { KeepHistory, MS_PER_DAY, PluginEvent, SAVE_DEBOUNCE_MS } from '@/consts';
@@ -379,6 +379,11 @@ export class PersistenceService implements Service {
    * Returns null when the file is absent or unreadable so callers can treat a
    * missing or corrupt store as "no history" rather than throwing.
    *
+   * Per-entry validation (ADR-08-B): each snapshot is checked against a minimal
+   * shape predicate (`isValidEntry`) and malformed entries are skipped so a few
+   * bad records do not poison retention math (`NaN >= oldest` is always false,
+   * silently dropping otherwise-valid entries) or crash downstream `fromJSON`.
+   *
    * @return {Promise<SerializedHistory | null>} The parsed history, or null
    */
   protected async readDisk(): Promise<SerializedHistory | null> {
@@ -396,12 +401,47 @@ export class PersistenceService implements Service {
         return null;
       }
 
-      return parsed;
+      const valid: SerializedFileSnapshot[] = parsed.snapshots.filter(
+        (item: SerializedFileSnapshot): boolean => this.isValidEntry(item),
+      );
+
+      return { version: parsed.version, snapshots: valid };
     } catch (error) {
       console.error('Local history: failed to read persisted history', error);
 
       return null;
     }
+  }
+
+  /**
+   * Whether a serialized snapshot has the minimum well-formed shape required to
+   * survive retention math and reach `FileSnapshot.fromJSON` without falling
+   * back to defaults that would resurrect junk. Required: `path` is a string,
+   * `timestamp` is a finite number, `lines` and `tracker` are arrays. A
+   * non-finite timestamp is treated as "skip" rather than `0` so a malformed
+   * entry cannot pose as fresh history.
+   *
+   * @param {SerializedFileSnapshot} item - The candidate entry
+   * @return {boolean} True when the entry is structurally usable
+   */
+  protected isValidEntry(item: SerializedFileSnapshot): boolean {
+    if (!item || typeof item !== 'object') {
+      return false;
+    }
+
+    if (!isString(item.path)) {
+      return false;
+    }
+
+    if (!isNumber(item.timestamp) || !Number.isFinite(item.timestamp)) {
+      return false;
+    }
+
+    if (!Array.isArray(item.lines) || !Array.isArray(item.tracker)) {
+      return false;
+    }
+
+    return true;
   }
 
   /**

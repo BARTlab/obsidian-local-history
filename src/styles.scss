@@ -866,6 +866,36 @@
     &.lct-added:not(.mk-placeholder)::before {
       background-color: var(--lct-color-added);
     }
+
+    &.lct-whitespace:not(.mk-placeholder)::before {
+      background-color: var(--lct-color-whitespace);
+    }
+  }
+}
+
+/* ---- change layer (rendered block widgets in live preview) ---- */
+.lct-change-layer {
+  pointer-events: none;
+}
+
+.lct-change-bar {
+  width: var(--lct-line-width);
+  border-radius: var(--lct-line-border-radius);
+
+  &.lct-changed {
+    background-color: var(--lct-color-changed);
+  }
+
+  &.lct-restored {
+    background-color: var(--lct-color-restored);
+  }
+
+  &.lct-added {
+    background-color: var(--lct-color-added);
+  }
+
+  &.lct-whitespace {
+    background-color: var(--lct-color-whitespace);
   }
 }
 
@@ -901,6 +931,10 @@
 
     &.lct-added {
       color: var(--lct-color-added);
+    }
+
+    &.lct-whitespace {
+      color: var(--lct-color-whitespace);
     }
 
     // Revert affordance: the change glyph and a click-to-revert button share the
@@ -1185,7 +1219,7 @@
 // Gutter symbol inputs hold a single indicator character, so the field is sized
 // to about two characters wide rather than stretching to the full setting row.
 .lct-gutter-char-input {
-  width: 2ch;
-  min-width: 2ch;
+  width: 5ch;
+  min-width: 5ch;
   text-align: center;
 }

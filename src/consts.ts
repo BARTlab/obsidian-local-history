@@ -28,6 +28,13 @@ export enum ChangeType {
 
   added = 'added',
   removed = 'removed',
+
+  /**
+   * A line that exists in the original and differs from it only in whitespace
+   * (spaces or tabs). Shown in its own muted color so reformatting noise reads
+   * apart from real content edits, mirroring a JetBrains-style whitespace diff.
+   */
+  whitespace = 'whitespace',
 }
 
 /**

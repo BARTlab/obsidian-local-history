@@ -160,7 +160,12 @@ export class SnapshotState {
    * @return {number} The number of lines with changes
    */
   public static getChangesLinesCount(changes: ArrayMap<ChangeLine>): number {
-    return this.getChanges(changes, [ChangeType.changed, ChangeType.added, ChangeType.removed]).size;
+    return this.getChanges(changes, [
+      ChangeType.changed,
+      ChangeType.whitespace,
+      ChangeType.added,
+      ChangeType.removed,
+    ]).size;
   }
 
   /**
@@ -174,6 +179,7 @@ export class SnapshotState {
   public static getChangedPositions(changes: ArrayMap<ChangeLine>, type?: ChangeType | ChangeType[]): number[] {
     const types: ChangeType | ChangeType[] = type ?? [
       ChangeType.changed,
+      ChangeType.whitespace,
       ChangeType.added,
       ChangeType.restored,
       ChangeType.removed,
@@ -234,7 +240,12 @@ export class SnapshotState {
       }
 
       if (lineTracker.isStateChanged()) {
-        line.add(ChangeType.changed);
+        const whitespaceOnly: boolean = TextHelper.isWhitespaceDiff(
+          lineTracker.original ?? '',
+          lineTracker.current ?? '',
+        );
+
+        line.add(whitespaceOnly ? ChangeType.whitespace : ChangeType.changed);
 
         return;
       }

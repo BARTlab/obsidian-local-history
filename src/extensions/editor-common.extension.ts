@@ -160,7 +160,7 @@ export class EditorCommonExtension extends BaseExtension implements EditorExtens
    */
   protected getEnableTypes(): ChangeType[] {
     return [
-      ...this.settingsService.value('show.changed') ? [ChangeType.changed] : [],
+      ...this.settingsService.value('show.changed') ? [ChangeType.changed, ChangeType.whitespace] : [],
       ...this.settingsService.value('show.restored') ? [ChangeType.restored] : [],
       ...this.settingsService.value('show.added') ? [ChangeType.added] : [],
       ...this.settingsService.value('show.removed') ? [ChangeType.removed] : [],

@@ -1,7 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
 import { ChangeType } from '@/consts';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
-import type { TrackerLine } from '@/lines/tracker.line';
+import { TrackerLine } from '@/lines/tracker.line';
+import type { SerializedFileSnapshot, SerializedTrackerLine } from '@/types';
 import type { TFile } from 'obsidian';
 
 /**
@@ -116,6 +117,80 @@ describe('FileSnapshot serialize/deserialize round-trip', () => {
     expect(json.path).toBe('notes/x.md');
     expect(json.tracker).toHaveLength(2);
     expect(json.tracker[0]).not.toHaveProperty('id');
+  });
+});
+
+describe('FileSnapshot.fromJSON malformed-input guards (T02, ADR-08-B)', () => {
+  it('returns an empty-lines snapshot when `lines` is absent', () => {
+    const data = {
+      path: 'a.md',
+      lineBreak: '\n',
+      timestamp: 123,
+      state: ['a'],
+      tracker: [],
+      versions: [],
+    } as unknown as SerializedFileSnapshot;
+
+    const restored = FileSnapshot.fromJSON(data);
+
+    // An absent `lines` falls back to []; the constructor's split of "" yields
+    // [""] (the same shape an empty file produces), which is the safe default.
+    expect(restored.getOriginalStateLines()).toEqual(['']);
+    expect(restored.getLastStateLines()).toEqual(['a']);
+    expect(restored.tracker).toEqual([]);
+  });
+
+  it('returns an empty-tracker snapshot when `tracker` is absent', () => {
+    const data = {
+      path: 'a.md',
+      lineBreak: '\n',
+      timestamp: 123,
+      lines: ['a', 'b'],
+      state: ['a', 'b'],
+      versions: [],
+    } as unknown as SerializedFileSnapshot;
+
+    const restored = FileSnapshot.fromJSON(data);
+
+    expect(restored.tracker).toEqual([]);
+    expect(restored.getOriginalStateLines()).toEqual(['a', 'b']);
+  });
+
+  it('defaults `lineBreak` to "\\n" when not a string', () => {
+    const data = {
+      path: 'a.md',
+      timestamp: 0,
+      lines: ['a', 'b'],
+      state: ['a', 'b'],
+      tracker: [],
+      versions: [],
+    } as unknown as SerializedFileSnapshot;
+
+    const restored = FileSnapshot.fromJSON(data);
+
+    expect(restored.lineBreak).toBe('\n');
+    expect(restored.getLastState()).toBe('a\nb');
+  });
+
+  it('coerces a non-numeric `currentPosition` in TrackerLine.fromJSON to the safe default', () => {
+    const data = {
+      originalPosition: 0,
+      currentPosition: 'boom',
+      removedAtPosition: -1,
+      changeAtPosition: -1,
+      contentSameOriginal: true,
+      hash: null,
+      original: null,
+      current: null,
+      removedTimeStamp: -1,
+      changedTimeStamp: -1,
+      addedTimeStamp: 1,
+    } as unknown as SerializedTrackerLine;
+
+    const restored: TrackerLine = TrackerLine.fromJSON(data);
+
+    expect(restored.currentPosition).toBe(-1);
+    expect(typeof restored.currentPosition).toBe('number');
   });
 });
 

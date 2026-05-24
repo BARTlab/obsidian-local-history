@@ -522,17 +522,56 @@ export class TrackerLine {
   public static fromJSON(data: SerializedTrackerLine): TrackerLine {
     const tracker: TrackerLine = new TrackerLine();
 
-    tracker.originalPosition = data.originalPosition;
-    tracker.currentPosition = data.currentPosition;
-    tracker.removedAtPosition = data.removedAtPosition;
-    tracker.changeAtPosition = data.changeAtPosition;
-    tracker.contentSameOriginal = data.contentSameOriginal;
-    tracker.hash = data.hash;
-    tracker.original = data.original;
-    tracker.current = data.current;
-    tracker.removedTimeStamp = data.removedTimeStamp;
-    tracker.changedTimeStamp = data.changedTimeStamp;
-    tracker.addedTimeStamp = data.addedTimeStamp;
+    /**
+     * Defensive deserialization (ADR-08-B): each numeric field is coerced via
+     * `isNumber` (so a non-number from a corrupt history.json falls back to the
+     * field's safe default, e.g. -1), and content/hash strings are guarded so
+     * `change()` / `contentHashed` keep their invariants. Booleans default to
+     * the existing class default when missing.
+     */
+    if (isNumber(data?.originalPosition)) {
+      tracker.originalPosition = data.originalPosition;
+    }
+
+    if (isNumber(data?.currentPosition)) {
+      tracker.currentPosition = data.currentPosition;
+    }
+
+    if (isNumber(data?.removedAtPosition)) {
+      tracker.removedAtPosition = data.removedAtPosition;
+    }
+
+    if (isNumber(data?.changeAtPosition)) {
+      tracker.changeAtPosition = data.changeAtPosition;
+    }
+
+    if (data?.contentSameOriginal === true) {
+      tracker.contentSameOriginal = true;
+    }
+
+    if (isString(data?.hash)) {
+      tracker.hash = data.hash;
+    }
+
+    if (isString(data?.original)) {
+      tracker.original = data.original;
+    }
+
+    if (isString(data?.current)) {
+      tracker.current = data.current;
+    }
+
+    if (isNumber(data?.removedTimeStamp)) {
+      tracker.removedTimeStamp = data.removedTimeStamp;
+    }
+
+    if (isNumber(data?.changedTimeStamp)) {
+      tracker.changedTimeStamp = data.changedTimeStamp;
+    }
+
+    if (isNumber(data?.addedTimeStamp)) {
+      tracker.addedTimeStamp = data.addedTimeStamp;
+    }
 
     return tracker;
   }

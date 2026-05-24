@@ -62,11 +62,13 @@ export class StylesService implements Service {
     const width: number = this.settingsService.value('line.width');
 
     this.sheet.setText(`
-        .lct {
+        .lct,
+        .lct-change-layer {
           --lct-color-${ChangeType.changed}: var(--color-blue);
           --lct-color-${ChangeType.restored}: var(--text-faint);
           --lct-color-${ChangeType.added}: var(--color-orange);
           --lct-color-${ChangeType.removed}: var(--color-base-100);
+          --lct-color-${ChangeType.whitespace}: var(--color-yellow);
           --lct-line-width: ${width}px;
           --lct-line-border-radius: ${(width / 2).toFixed(0)}px;
         }

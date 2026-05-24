@@ -58,6 +58,7 @@ export class DotMarker extends GutterMarker {
       [ChangeType.changed]: this.settingsService.value('gutter.changed'),
       [ChangeType.added]: this.settingsService.value('gutter.added'),
       [ChangeType.restored]: this.settingsService.value('gutter.restored'),
+      [ChangeType.whitespace]: this.settingsService.value('gutter.changed'),
     };
     this.elementClass = `lct-${IndicatorType.dot} lct-${this.changes}`;
   }

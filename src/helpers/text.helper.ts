@@ -44,4 +44,18 @@ export class TextHelper {
 
     return `${prefix ?? ''}${idCounter.toString(36)}`;
   }
+
+  /**
+   * Whether two strings differ only in whitespace: they are not equal, yet they
+   * collapse to the same text once every whitespace run is stripped. Used to tag
+   * a changed line as a whitespace-only edit so reformatting noise (trailing
+   * spaces, tab/space swaps, re-alignment) reads apart from real content edits.
+   *
+   * @param {string} a - The original line content
+   * @param {string} b - The current line content
+   * @return {boolean} True when the only difference is whitespace
+   */
+  public static isWhitespaceDiff(a: string, b: string): boolean {
+    return a !== b && a.replace(/\s+/g, '') === b.replace(/\s+/g, '');
+  }
 }

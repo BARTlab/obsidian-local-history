@@ -1,5 +1,6 @@
 import { ExtensionKind } from '@/consts';
 import { ChangeDetectorExtension } from '@/extensions/change-detector.extension';
+import { ChangeLayerExtension } from '@/extensions/change-layer.extension';
 import { EditorCommonExtension } from '@/extensions/editor-common.extension';
 import { GutterCommonExtension } from '@/extensions/gutter-common.extension';
 import { GutterRemovedExtension } from '@/extensions/gutter-removed.extension';
@@ -42,6 +43,27 @@ export class ExtensionsService implements Service {
     this.register(EditorCommonExtension, ExtensionKind.editor);
     this.register(GutterCommonExtension, ExtensionKind.gutter);
     this.register(GutterRemovedExtension, ExtensionKind.gutter);
+    this.registerChangeLayer();
+  }
+
+  /**
+   * Registers the margin layer that draws the `line` change bars over rendered
+   * block widgets (tables, callouts, embeds) in Live Preview, where the
+   * decoration-based bar cannot attach. Skipped if already registered.
+   *
+   * @return {void}
+   */
+  protected registerChangeLayer(): void {
+    const name: string = ChangeLayerExtension.name;
+
+    if (this.instances.has(name)) {
+      return;
+    }
+
+    const extension: Extension = new ChangeLayerExtension(this.plugin).build();
+
+    this.instances.set(name, extension);
+    this.plugin.registerEditorExtension(extension);
   }
 
   /**

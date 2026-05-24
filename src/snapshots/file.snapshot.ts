@@ -10,7 +10,7 @@ import { TrackerEditor } from '@/snapshots/tracker-editor';
 import { TrackerIndex } from '@/snapshots/tracker-index';
 import { VersionTimeline } from '@/snapshots/version-timeline';
 import type { KeysMatching, SerializedFileSnapshot, SnapshotCaptureOptions, TrackerLineParams } from '@/types';
-import { isNumber } from 'lodash-es';
+import { isNumber, isString } from 'lodash-es';
 import type { TFile } from 'obsidian';
 
 /**
@@ -225,14 +225,24 @@ export class FileSnapshot {
    * @return {FileSnapshot} The reconstructed snapshot
    */
   public static fromJSON(data: SerializedFileSnapshot, file?: TFile | null): FileSnapshot {
+    /**
+     * Defensive deserialization (ADR-08-B): a corrupt or truncated history.json
+     * must not crash plugin load. Each field is guarded individually so a single
+     * malformed entry degrades to a safe default instead of throwing.
+     */
+    const lineBreak: string = isString(data.lineBreak) ? data.lineBreak : '\n';
+    const lines: string[] = Array.isArray(data.lines) ? data.lines : [];
+    const tracker: SerializedFileSnapshot['tracker'] = Array.isArray(data.tracker) ? data.tracker : [];
+    const state: string[] = Array.isArray(data.state) ? data.state : [];
+
     const snapshot: FileSnapshot = new FileSnapshot(
-      data.lines.join(data.lineBreak),
-      data.lineBreak,
+      lines.join(lineBreak),
+      lineBreak,
       file,
     );
 
-    snapshot.timestamp = data.timestamp;
-    snapshot.tracker = data.tracker.map((line): TrackerLine => TrackerLine.fromJSON(line));
+    snapshot.timestamp = isNumber(data.timestamp) ? data.timestamp : Date.now();
+    snapshot.tracker = tracker.map((line): TrackerLine => TrackerLine.fromJSON(line));
     snapshot.versions = Array.isArray(data.versions)
       ? data.versions.map((version): FileVersion => FileVersion.fromJSON(version))
       : [];
@@ -246,7 +256,7 @@ export class FileSnapshot {
     }
 
     snapshot.index.invalidate();
-    snapshot.updateState(data.state);
+    snapshot.updateState(state);
     snapshot.updateChanges();
 
     return snapshot;

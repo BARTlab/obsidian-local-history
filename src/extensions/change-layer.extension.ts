@@ -197,14 +197,17 @@ export class ChangeLayerExtension {
     const rowRects: DOMRect[] | null = this.tableRowRects(view, group.block);
 
     if (rowRects) {
-      const top: number = view.scrollDOM.scrollTop - view.scrollDOM.getBoundingClientRect().top;
+      const contentTop: number = view.contentDOM.getBoundingClientRect().top;
+      const padding: number = view.documentPadding.top;
 
       for (const [offset, types] of group.rows) {
         const index: number = this.rowIndexForOffset(offset);
         const rect: DOMRect | undefined = index >= 0 ? rowRects[index] : undefined;
 
         if (rect) {
-          markers.push(new RectangleMarker(this.classNamesFor(types), left, rect.top + top, null, rect.height));
+          const top: number = rect.top - contentTop + padding;
+
+          markers.push(new RectangleMarker(this.classNamesFor(types), left, top, null, rect.height));
         }
       }
 

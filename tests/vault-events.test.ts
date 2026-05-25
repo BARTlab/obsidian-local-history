@@ -23,6 +23,7 @@ const makeSnapshotsServiceMock = (): {
   remove: jest.Mock;
   removeFromIgnoreList: jest.Mock;
   captureExternalChange: jest.Mock;
+  scheduleExternalCapture: jest.Mock;
 } => ({
   markDeleted: jest.fn(),
   markMoved: jest.fn(),
@@ -30,6 +31,7 @@ const makeSnapshotsServiceMock = (): {
   remove: jest.fn(),
   removeFromIgnoreList: jest.fn(),
   captureExternalChange: jest.fn().mockReturnValue(Promise.resolve()),
+  scheduleExternalCapture: jest.fn(),
 });
 
 const makePlugin = (
@@ -145,15 +147,19 @@ describe('VaultRenameEvent', () => {
 });
 
 describe('VaultModifyEvent', () => {
-  it('routes a tracked file modify to captureExternalChange', () => {
+  it('routes a tracked file modify to scheduleExternalCapture (debounced)', () => {
+    // ADR-08-E: the handler hands off to the debounced/in-flight-guarded
+    // scheduler so a burst of modify events for the same file collapses
+    // into one capture instead of N redundant disk reads + hashes.
     const service = makeSnapshotsServiceMock();
     const event = new VaultModifyEvent(makePlugin(service));
     const file: TFile = makeFile('notes/a.md');
 
     event.handler(file);
 
-    expect(service.captureExternalChange).toHaveBeenCalledTimes(1);
-    expect(service.captureExternalChange).toHaveBeenCalledWith(file);
+    expect(service.scheduleExternalCapture).toHaveBeenCalledTimes(1);
+    expect(service.scheduleExternalCapture).toHaveBeenCalledWith(file);
+    expect(service.captureExternalChange).not.toHaveBeenCalled();
   });
 
   it('short-circuits for non-file abstract files (folders)', () => {
@@ -163,6 +169,7 @@ describe('VaultModifyEvent', () => {
 
     event.handler(folder);
 
+    expect(service.scheduleExternalCapture).not.toHaveBeenCalled();
     expect(service.captureExternalChange).not.toHaveBeenCalled();
   });
 

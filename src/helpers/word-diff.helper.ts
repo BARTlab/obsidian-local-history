@@ -117,7 +117,9 @@ export class WordDiffHelper {
    * Splits a diff block value into its constituent lines. The diff library
    * appends a trailing newline to every block, which would otherwise yield a
    * spurious empty final line, so a single trailing newline is dropped before
-   * splitting.
+   * splitting. The single line-ending normalization point for the diff surface
+   * (ADR-08-G): split on `/\r?\n/` so CRLF content does not leave a stray `\r`
+   * on every row.
    *
    * @param {string} value - The raw block value from the diff library
    * @return {string[]} The lines of the block
@@ -127,8 +129,8 @@ export class WordDiffHelper {
       return [];
     }
 
-    const normalized: string = value.endsWith('\n') ? value.slice(0, -1) : value;
+    const normalized: string = value.replace(/\r?\n$/, '');
 
-    return normalized.split('\n');
+    return normalized.split(/\r?\n/);
   }
 }

@@ -85,8 +85,8 @@ export class DiffRenderHelper {
       return Diff.createTwoFilesPatch(
         params.filePath,
         params.filePath,
-        base ?? '',
-        current ?? '',
+        base,
+        current,
         '',
         '',
         {
@@ -115,8 +115,8 @@ export class DiffRenderHelper {
       return Diff.createTwoFilesPatch(
         params.filePath,
         params.filePath,
-        base ?? '',
-        current ?? '',
+        base,
+        current,
         '',
         '',
         {
@@ -129,7 +129,7 @@ export class DiffRenderHelper {
       '===================================================================',
       `--- ${params.filePath}\t`,
       `+++ ${params.filePath}\t`,
-      `@@ -1,${base.length} +1,${current.length} @@`,
+      `@@ -1,${params.baseLines.length} +1,${params.currentLines.length} @@`,
       params.currentLines.map((content: string): string => ` ${content}`).join('\n'),
       '\\ No newline at end of file'
     ].join('\n');

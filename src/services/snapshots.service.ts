@@ -45,6 +45,38 @@ export class SnapshotsService implements Service {
   protected lastWarnedExcludePattern: string | null = null;
 
   /**
+   * Window (ms) that coalesces a burst of vault.modify events per file before
+   * the disk read + hash runs. Picked to be shorter than a typical human edit
+   * cadence (so a real follow-up captures promptly) but long enough that a
+   * sync/git storm's repeated writes for one file collapse into one capture.
+   */
+  protected static readonly externalDebounceMs: number = 150;
+
+  /**
+   * Per-path debounce timers for `captureExternalChange`. A new modify event
+   * for the same path resets the timer; only the trailing call runs the
+   * disk read and capture (ADR-08-E).
+   */
+  protected externalDebounceTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
+
+  /**
+   * Per-path in-flight guard for `captureExternalChange`. Holds the path of
+   * any file currently in the middle of a disk read + capture, so a follow-up
+   * modify event that fires before the prior call resolves does not start a
+   * second concurrent read of the same file and double-capture the same state.
+   */
+  protected externalInFlight: Set<string> = new Set();
+
+  /**
+   * Last-seen `stat.mtime` + `stat.size` per tracked path, captured at the end
+   * of every `captureExternalChange` call (success or hash-match no-op). A
+   * follow-up modify whose stat values match these is short-circuited before
+   * the disk read: nothing on disk could have changed since the last pass, so
+   * reading + hashing would just burn IO. Cleared on `clear`/`wipe`.
+   */
+  protected externalLastSeen: Map<string, { mtime: number; size: number }> = new Map();
+
+  /**
    * Creates a new instance of SnapshotsService.
    *
    * @param {LineChangeTrackerPlugin} plugin - The plugin instance
@@ -127,6 +159,27 @@ export class SnapshotsService implements Service {
     }
 
     this.fileSnapshots.delete(file.path);
+    this.forgetExternalGuards(file.path);
+  }
+
+  /**
+   * Drops any per-path debounce timer, in-flight marker, and last-seen stat
+   * for the given path. Called when a snapshot is removed/renamed/moved so
+   * stale state for a now-absent or relocated path cannot leak into a
+   * future modify event.
+   *
+   * @param {string} path - The vault-relative path to forget
+   */
+  protected forgetExternalGuards(path: string): void {
+    const timer: ReturnType<typeof setTimeout> | undefined = this.externalDebounceTimers.get(path);
+
+    if (timer !== undefined) {
+      clearTimeout(timer);
+      this.externalDebounceTimers.delete(path);
+    }
+
+    this.externalInFlight.delete(path);
+    this.externalLastSeen.delete(path);
   }
 
   /**
@@ -188,6 +241,7 @@ export class SnapshotsService implements Service {
 
     this.fileSnapshots.delete(oldPath);
     this.fileSnapshots.set(file.path, snapshot);
+    this.forgetExternalGuards(oldPath);
   }
 
   /**
@@ -270,6 +324,14 @@ export class SnapshotsService implements Service {
    */
   public clear(): void {
     this.fileSnapshots.clear();
+
+    for (const timer of this.externalDebounceTimers.values()) {
+      clearTimeout(timer);
+    }
+
+    this.externalDebounceTimers.clear();
+    this.externalInFlight.clear();
+    this.externalLastSeen.clear();
   }
 
   /**
@@ -657,6 +719,7 @@ export class SnapshotsService implements Service {
 
     if (!snapshot) {
       await this.capture(file);
+      this.rememberLastSeen(file);
 
       return;
     }
@@ -671,6 +734,22 @@ export class SnapshotsService implements Service {
       return;
     }
 
+    /**
+     * Stat pre-check (ADR-08-E): if mtime and size match the last-seen values
+     * for this path, nothing on disk could have changed since the previous
+     * pass, so skip the disk read entirely. The very first pass (no entry)
+     * always falls through to the read.
+     */
+    const lastSeen: { mtime: number; size: number } | undefined = this.externalLastSeen.get(file.path);
+    const currentStat: { mtime: number; size: number } | undefined = this.getFileStat(file);
+
+    if (lastSeen && currentStat
+      && lastSeen.mtime === currentStat.mtime
+      && lastSeen.size === currentStat.size
+    ) {
+      return;
+    }
+
     let content: string;
 
     try {
@@ -682,6 +761,8 @@ export class SnapshotsService implements Service {
     }
 
     if (!snapshot.isNeedUpdate(content)) {
+      this.rememberLastSeen(file);
+
       return;
     }
 
@@ -713,6 +794,115 @@ export class SnapshotsService implements Service {
     snapshot.updateChanges();
 
     this.forceUpdate();
+    this.rememberLastSeen(file);
+  }
+
+  /**
+   * Public entry point for the vault.modify handler. Coalesces a burst of
+   * modify events for the same path through a per-path debounce, then runs
+   * `captureExternalChange` once with an in-flight guard so an overlapping
+   * follow-up modify cannot double-capture the same disk state (ADR-08-E).
+   *
+   * Bursts of writes (sync, git pull, an external save loop) for one file
+   * collapse into a single trailing capture; events for different files run
+   * independently. The stat-based short-circuit inside `captureExternalChange`
+   * skips the disk read when nothing about the file's mtime/size changed
+   * between this debounced call and the previous one.
+   *
+   * @param {TFile} file - The file whose modify event fired
+   */
+  public scheduleExternalCapture(file: TFile): void {
+    if (!file) {
+      return;
+    }
+
+    const path: string = file.path;
+    const existing: ReturnType<typeof setTimeout> | undefined = this.externalDebounceTimers.get(path);
+
+    if (existing !== undefined) {
+      clearTimeout(existing);
+    }
+
+    const timer: ReturnType<typeof setTimeout> = setTimeout((): void => {
+      this.externalDebounceTimers.delete(path);
+      void this.runGuardedExternalCapture(file);
+    }, SnapshotsService.externalDebounceMs);
+
+    this.externalDebounceTimers.set(path, timer);
+  }
+
+  /**
+   * Runs `captureExternalChange` under a per-path in-flight guard so a
+   * second debounced trigger that fires while the first is still awaiting
+   * the disk read cannot start a second concurrent capture for the same
+   * path. If a follow-up trigger arrives during the capture, the path's
+   * scheduler hands off to a re-schedule after the in-flight call resolves
+   * so the most recent disk state is never silently dropped (the trailing
+   * write of a sync storm still lands as a version).
+   *
+   * The guard is released in a `finally` so an error inside the capture
+   * never strands the path as permanently in-flight.
+   *
+   * @param {TFile} file - The file to capture
+   */
+  protected async runGuardedExternalCapture(file: TFile): Promise<void> {
+    const path: string = file.path;
+
+    if (this.externalInFlight.has(path)) {
+      /**
+       * A capture is already in flight; re-schedule via the debounce so the
+       * follow-up call coalesces into one trailing pass after the current
+       * one resolves rather than silently dropping the latest write.
+       */
+      this.scheduleExternalCapture(file);
+
+      return;
+    }
+
+    this.externalInFlight.add(path);
+
+    try {
+      await this.captureExternalChange(file);
+    } finally {
+      this.externalInFlight.delete(path);
+    }
+  }
+
+  /**
+   * Reads the file's current `stat.mtime` / `stat.size` without throwing if
+   * the stat block is missing (older Obsidian builds, test stubs). Returns
+   * undefined when the stat is unusable so the caller falls through to a
+   * normal disk read instead of incorrectly short-circuiting.
+   *
+   * @param {TFile} file - The file to read stat from
+   * @return {{mtime: number, size: number} | undefined} The stat values or undefined
+   */
+  protected getFileStat(file: TFile): { mtime: number; size: number } | undefined {
+    const stat: { mtime?: number; size?: number } | undefined = file?.stat;
+
+    if (!stat || typeof stat.mtime !== 'number' || typeof stat.size !== 'number') {
+      return undefined;
+    }
+
+    return { mtime: stat.mtime, size: stat.size };
+  }
+
+  /**
+   * Stores the file's current mtime/size as the last-seen baseline for the
+   * stat pre-check. Called after a successful capture, after a hash-match
+   * no-op, and after a first-sight capture so the next modify event for the
+   * same path can skip the disk read when nothing changed.
+   *
+   * @param {TFile} file - The file whose stat to remember
+   */
+  protected rememberLastSeen(file: TFile): void {
+    const stat: { mtime: number; size: number } | undefined = this.getFileStat(file);
+
+    if (!stat) {
+      return;
+    }
+
+    this.externalLastSeen.set(file.path, stat);
   }
 
   /**

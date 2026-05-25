@@ -34,9 +34,12 @@ export class VaultModifyEvent extends BaseEvent {
   public readonly name: ObsidianEventName = ObsidianEvent.vault.modify;
 
   /**
-   * Handles the vault modify event. Delegates to `captureExternalChange` for
-   * real files; the service decides via a content-hash diff whether the
-   * write was external or self-inflicted. Skips non-file entries (folders).
+   * Handles the vault modify event. Routes to
+   * `SnapshotsService.scheduleExternalCapture` so a burst of modify events
+   * for the same file (sync, git pull, an external save loop) collapses into
+   * one debounced disk read + capture, and an overlapping follow-up modify
+   * cannot start a second concurrent capture for the same path (ADR-08-E).
+   * Skips non-file entries (folders).
    *
    * @param {TAbstractFile} file - The file that was modified in the vault
    */
@@ -45,6 +48,6 @@ export class VaultModifyEvent extends BaseEvent {
       return;
     }
 
-    void this.snapshotsService.captureExternalChange(file);
+    this.snapshotsService.scheduleExternalCapture(file);
   }
 }

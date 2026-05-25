@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { describe, expect, it } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 import { SnapshotsService } from '@/services/snapshots.service';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
@@ -18,11 +18,24 @@ interface SettingsValues {
   'snapshots.maxVersionAgeDays'?: number;
 }
 
-const makeFile = (path: string): TFile => {
+const makeFile = (
+  path: string,
+  stat: { mtime: number; size: number } = { mtime: 1, size: 1 },
+): TFile => {
   const name: string = path.split('/').pop() ?? path;
   const extension: string = name.includes('.') ? name.split('.').pop() ?? '' : '';
 
-  return { path, name, extension } as unknown as TFile;
+  return { path, name, extension, stat } as unknown as TFile;
+};
+
+/**
+ * Drains the microtask queue so a scheduled debounce callback that already
+ * resolved its inner promise has a chance to write its side effects before
+ * the test asserts on them.
+ */
+const flushMicrotasks = async (): Promise<void> => {
+  await Promise.resolve();
+  await Promise.resolve();
 };
 
 /**
@@ -248,11 +261,15 @@ describe('SnapshotsService.captureExternalChange', () => {
     expect(externalCount).toBe(1);
 
     // Add a second external state; eviction should drop the older external
-    // because external entries are evictable like cadence versions.
+    // because external entries are evictable like cadence versions. Bump the
+    // stat so the ADR-08-E mtime/size pre-check does not short-circuit the
+    // genuine content change.
     vault[file.path] = 'changed-again';
-    await service.captureExternalChange(file);
+    const bumped: TFile = makeFile(file.path, { mtime: 2, size: 2 });
 
-    const final: FileSnapshot = service.getOne(file) as FileSnapshot;
+    await service.captureExternalChange(bumped);
+
+    const final: FileSnapshot = service.getOne(bumped) as FileSnapshot;
     const finalUnlabeled: FileVersion[] = final.versions.filter(
       (v: FileVersion): boolean => !v.isLabeled(),
     );
@@ -268,5 +285,151 @@ describe('SnapshotsService.captureExternalChange', () => {
 
     await expect(service.captureExternalChange(null)).resolves.toBeUndefined();
     await expect(service.captureExternalChange(undefined)).resolves.toBeUndefined();
+  });
+
+  it('skips the disk read when mtime and size match the last-seen values', async () => {
+    const { service, vault } = makeService();
+    let reads: number = 0;
+    const originalRead = (service as unknown as {
+      plugin: { app: { vault: { read: (file: TFile) => Promise<string> } } };
+    }).plugin.app.vault.read;
+
+    (service as unknown as {
+      plugin: { app: { vault: { read: (file: TFile) => Promise<string> } } };
+    }).plugin.app.vault.read = async (file: TFile): Promise<string> => {
+      reads += 1;
+
+      return originalRead(file);
+    };
+
+    const file: TFile = makeFile('notes/a.md', { mtime: 10, size: 3 });
+
+    service.add(file, 'one\ntwo');
+    vault[file.path] = 'one\ntwo';
+
+    // First pass: stat is unseen, disk read runs and seeds last-seen.
+    await service.captureExternalChange(file);
+    expect(reads).toBe(1);
+
+    // Second pass with identical stat: short-circuits before the read.
+    await service.captureExternalChange(file);
+    expect(reads).toBe(1);
+
+    // Stat changed (mtime bumped): the pre-check no longer matches, disk
+    // read runs again even though the content turns out to be identical.
+    const bumped: TFile = makeFile('notes/a.md', { mtime: 20, size: 3 });
+
+    vault[bumped.path] = 'one\ntwo';
+    await service.captureExternalChange(bumped);
+    expect(reads).toBe(2);
+  });
+
+  it('still captures an external rewrite of a stat-changed file', async () => {
+    // Pins ADR-5: the modify path must not gate on "is the active file"; a
+    // genuine external rewrite (different stat, different content) is
+    // captured even if the user happens to be viewing the file.
+    const { service, vault } = makeService();
+    const before: TFile = makeFile('notes/open.md', { mtime: 5, size: 7 });
+
+    service.add(before, 'alpha\nbeta');
+    vault[before.path] = 'alpha\nbeta';
+    await service.captureExternalChange(before);
+
+    const after: TFile = makeFile('notes/open.md', { mtime: 6, size: 15 });
+
+    vault[after.path] = 'alpha-external\nbeta';
+    await service.captureExternalChange(after);
+
+    const snapshot: FileSnapshot = service.getOne(after) as FileSnapshot;
+
+    expect(snapshot.versions.length).toBe(1);
+    expect(snapshot.versions[0].isExternal()).toBe(true);
+    expect(snapshot.getLastStateLines()).toEqual(['alpha-external', 'beta']);
+  });
+
+  it('falls through when the file has no usable stat block', async () => {
+    // Older Obsidian builds and test stubs may not surface stat at all.
+    // The pre-check must treat a missing stat as "unknown" (not "matches")
+    // so we never wrongly short-circuit and miss an actual disk change.
+    const { service, vault } = makeService();
+    const file: TFile = { path: 'notes/no-stat.md', name: 'no-stat.md', extension: 'md' } as unknown as TFile;
+
+    service.add(file, 'one');
+    vault[file.path] = 'one-external';
+
+    await service.captureExternalChange(file);
+
+    const snapshot: FileSnapshot = service.getOne(file) as FileSnapshot;
+
+    expect(snapshot.versions.length).toBe(1);
+    expect(snapshot.versions[0].isExternal()).toBe(true);
+  });
+});
+
+describe('SnapshotsService.scheduleExternalCapture', () => {
+  beforeEach((): void => {
+    jest.useFakeTimers();
+  });
+
+  afterEach((): void => {
+    jest.useRealTimers();
+  });
+
+  it('coalesces a burst of modify events into a single disk read + capture', async () => {
+    const { service, vault } = makeService();
+    let reads: number = 0;
+    const originalRead = (service as unknown as {
+      plugin: { app: { vault: { read: (file: TFile) => Promise<string> } } };
+    }).plugin.app.vault.read;
+
+    (service as unknown as {
+      plugin: { app: { vault: { read: (file: TFile) => Promise<string> } } };
+    }).plugin.app.vault.read = async (file: TFile): Promise<string> => {
+      reads += 1;
+
+      return originalRead(file);
+    };
+
+    const file: TFile = makeFile('notes/burst.md', { mtime: 1, size: 3 });
+
+    service.add(file, 'one\ntwo');
+    vault[file.path] = 'one\ntwo-external';
+
+    // Fire ten modify events back-to-back inside the debounce window. Only
+    // the trailing call should result in a disk read + capture.
+    for (let i: number = 0; i < 10; i += 1) {
+      service.scheduleExternalCapture(file);
+    }
+
+    expect(reads).toBe(0);
+
+    await jest.runAllTimersAsync();
+    await flushMicrotasks();
+
+    const snapshot: FileSnapshot = service.getOne(file) as FileSnapshot;
+
+    expect(reads).toBe(1);
+    expect(snapshot.versions.length).toBe(1);
+    expect(snapshot.versions[0].isExternal()).toBe(true);
+  });
+
+  it('runs independent files concurrently without cross-debounce', async () => {
+    const { service, vault } = makeService();
+    const fileA: TFile = makeFile('notes/a.md', { mtime: 1, size: 3 });
+    const fileB: TFile = makeFile('notes/b.md', { mtime: 1, size: 5 });
+
+    service.add(fileA, 'a-one');
+    service.add(fileB, 'b-one');
+    vault[fileA.path] = 'a-external';
+    vault[fileB.path] = 'b-external';
+
+    service.scheduleExternalCapture(fileA);
+    service.scheduleExternalCapture(fileB);
+
+    await jest.runAllTimersAsync();
+    await flushMicrotasks();
+
+    expect((service.getOne(fileA) as FileSnapshot).versions.length).toBe(1);
+    expect((service.getOne(fileB) as FileSnapshot).versions.length).toBe(1);
   });
 });

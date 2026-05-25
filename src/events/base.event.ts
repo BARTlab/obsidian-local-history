@@ -74,7 +74,11 @@ export abstract class BaseEvent implements EventRef {
 
   /**
    * Registers the event handler with Obsidian.
-   * Uses the event name to determine the appropriate trigger and register the handler method.
+   * Wraps the handler call in a try/catch and attaches a `.catch` to any
+   * returned promise, so a sync throw or async rejection never escapes into
+   * Obsidian's dispatch and never becomes an unhandled rejection. The original
+   * handler signature stays untouched; subclasses still implement `handler`
+   * normally.
    *
    * @return {EventRef} An EventRef that can be used to unregister the event
    */
@@ -83,23 +87,42 @@ export abstract class BaseEvent implements EventRef {
 
     return this.getTrigger(type).on(
       name as string,
-      this.handler,
+      this.dispatch.bind(this),
       this,
     );
   }
 
   /**
-   * Unregisters the event handler from Obsidian.
-   * Removes the event listener to prevent memory leaks when the plugin is disabled.
+   * Routes an event call through a single try/catch so every handler failure
+   * is logged with the event name and neither propagates synchronously nor
+   * leaves an unhandled rejection. Async handlers attach `.catch` to the
+   * returned promise.
    *
+   * @param args - Arguments passed by the Obsidian event
    * @return {void}
    */
-  public unregister(): void {
-    const { name, type } = this.getTypeName();
+  protected dispatch(...args: unknown[]): void {
+    try {
+      const result: unknown = (this.handler as (...a: unknown[]) => unknown).apply(this, args);
 
-    return this.getTrigger(type).off(
-      name as string,
-      this.handler,
-    );
+      if (result && typeof (result as { then?: unknown }).then === 'function') {
+        (result as Promise<unknown>).catch((error: unknown): void => {
+          this.logError(error);
+        });
+      }
+    } catch (error) {
+      this.logError(error);
+    }
+  }
+
+  /**
+   * Logs a handler failure together with the originating event name so prod
+   * debugging has a single, greppable line per failure.
+   *
+   * @param {unknown} error - The thrown value or rejection reason
+   * @return {void}
+   */
+  protected logError(error: unknown): void {
+    console.error(`Local history: event handler "${this.name}" failed`, error);
   }
 }

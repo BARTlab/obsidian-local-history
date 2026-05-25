@@ -45,40 +45,70 @@ export class WorkspaceLayoutChangeEvent extends BaseEvent {
     const openedFiles: Set<TFile> = this.plugin.getWorkspaceFiles();
 
     /**
-     * Drop snapshots for files that are no longer open but still tracked in
-     * the state, when history is not kept after a file is closed.
+     * Snapshot every collection into a local array before iteration so the
+     * mutating service calls below (wipeOne, removeFromIgnoreList) and the
+     * follow-up captures cannot re-enter the loops they are walking
+     * (ADR-08-E adjacent).
      */
-    this.snapshotsService.getList().forEach((snapshot: FileSnapshot): void => {
-      if (!snapshot.file || !this.isOnFileClose()) {
-        return;
+    const snapshots: FileSnapshot[] = this.snapshotsService.getList();
+    const ignored: TFile[] = this.snapshotsService.getIgnoreList();
+    const opened: TFile[] = [...openedFiles];
+
+    const closedSnapshots: TFile[] = [];
+    const closedIgnored: TFile[] = [];
+    const newlyOpened: TFile[] = [];
+
+    /**
+     * Pass 1: collect snapshots whose file is no longer open (when history is
+     * not kept after a file is closed). No service mutation here.
+     */
+    const dropOnClose: boolean = this.isOnFileClose();
+
+    for (const snapshot of snapshots) {
+      if (!snapshot.file || !dropOnClose) {
+        continue;
       }
 
       if (!openedFiles.has(snapshot.file)) {
-        this.snapshotsService.wipeOne(snapshot.file);
+        closedSnapshots.push(snapshot.file);
       }
-    });
+    }
 
     /**
-     * Drop closed files from the ignore list so they are tracked again the
-     * next time they are opened.
+     * Pass 2: collect ignore-list entries whose file is no longer open.
      */
-    this.snapshotsService.getIgnoreList().forEach((file: TFile): void => {
+    for (const file of ignored) {
       if (!openedFiles.has(file)) {
-        this.snapshotsService.removeFromIgnoreList(file)
+        closedIgnored.push(file);
       }
-    });
+    }
 
     /**
-     * Capture snapshots for newly opened files that are not yet tracked.
+     * Pass 3: collect newly opened files that are not yet tracked.
      */
-    openedFiles.forEach((file: TFile): void => {
-      /**
-       * Guard against capturing a file that already has a snapshot.
-       */
+    for (const file of opened) {
       if (!this.snapshotsService.getOne(file)) {
-        void this.snapshotsService.capture(file);
+        newlyOpened.push(file);
       }
-    });
+    }
+
+    /**
+     * Now apply the mutations: wipe closed snapshots, drop closed ignore
+     * entries, then fire captures for the newly opened files. Captures are
+     * deferred to after the iteration completes, so a `wipeOne` re-capture of
+     * the active file cannot interleave with these loops.
+     */
+    for (const file of closedSnapshots) {
+      this.snapshotsService.wipeOne(file);
+    }
+
+    for (const file of closedIgnored) {
+      this.snapshotsService.removeFromIgnoreList(file);
+    }
+
+    for (const file of newlyOpened) {
+      void this.snapshotsService.capture(file);
+    }
   };
 
   /**

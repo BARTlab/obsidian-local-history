@@ -102,26 +102,33 @@ happened at this exact instant", which usually touches a single file.
 **Rejected:** a `FolderHistory` store (parallel source of truth, new write paths,
 new retention to tune); pairwise T vs T-1 deltas (rarely tells a story).
 
-### ADR-5: External changes are captured via `vault.modify` guarded by a hash diff
+### ADR-5: External changes are captured via `vault.modify` guarded by a content-equality check
 
 The Obsidian `modify` event fires for every write: editor flushes, the plugin's
 own revert writes, and genuine external changes (git pull, sync, an external
-editor). The handler reads the file from disk and compares its hash to the
-snapshot's known state. A match is a no-op; a mismatch is a change the editor
-never saw, captured as a forced version flagged `external`. The flag drives a UI
+editor). The handler reads the file from disk and compares its actual content
+to the snapshot's known state via `FileSnapshot.isContentChanged`: the 32-bit
+`lastHash` is a cheap pre-filter, but a hash match falls through to a
+line-by-line compare against `state` so a collision cannot mask a genuine
+external rewrite. A match is a no-op; a mismatch is a change the editor never
+saw, captured as a forced version flagged `external`. The flag drives a UI
 badge but does **not** pin the version (it obeys normal retention).
 
-**Why:** the hash diff is the same primitive the model already uses, and it
-cleanly separates the three write sources without fragile "is this the active
-editor" heuristics (a git pull can rewrite the open file too). External changes
-are discrete events worth recording in full, but a chatty sync could produce many
-of them, so pinning them would bloat history with un-evictable entries. A
-distinct `external` flag (rather than a reserved label value) keeps system markers
+**Why:** the handler has already read the full file, so an authoritative
+content compare costs one extra line walk on the rare hash-match path and
+removes the silent data-loss risk of a hash-only check; the hash still wins
+the common case as a fast pre-filter. The guard cleanly separates the three
+write sources without fragile "is this the active editor" heuristics (a git
+pull can rewrite the open file too). External changes are discrete events
+worth recording in full, but a chatty sync could produce many of them, so
+pinning them would bloat history with un-evictable entries. A distinct
+`external` flag (rather than a reserved label value) keeps system markers
 from colliding with user labels.
 
-**Rejected:** gating on "not the active file" (misses external rewrites of the
-open file); a debounce with no hash check (cannot tell our own writes from
-external ones).
+**Rejected:** gating on "not the active file" (misses external rewrites of
+the open file); a debounce with no content check (cannot tell our own writes
+from external ones); a wider or crypto hash (still probabilistic, more cost
+on the hot path, and the file content is already in hand).
 
 ### ADR-6: Plugin-owned localization with English fallback
 

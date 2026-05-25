@@ -184,6 +184,76 @@ describe('DiffRenderHelper', () => {
     });
   });
 
+  describe('no-change hunk header (T11)', () => {
+    /**
+     * Regression for the no-change branch of `buildDiff2HtmlInput` which used
+     * to report char counts (`base.length`) instead of line counts in the
+     * synthetic `@@` hunk header, causing diff2html to mis-range full-content
+     * displays. The header must now read `-1,N +1,N` where N is the line
+     * count.
+     */
+    it('builds the no-change synthetic @@ header with line counts, not char counts', (): void => {
+      const target: HTMLDivElement = container();
+      const equal: string[] = ['alpha', 'beta', 'gamma'];
+
+      DiffRenderHelper.render(params(equal, equal, DiffOutputFormatType.line, target));
+
+      const blockHeader: HTMLElement | null = target.querySelector('.d2h-code-line-ctn');
+
+      expect(blockHeader).not.toBeNull();
+      // diff2html reads the synthetic header and renders the range as
+      // "@@ -1,3 +1,3 @@" for a 3-line equal file. The previous bug produced
+      // counts based on char length (~17), so this guards the regression.
+      expect(blockHeader?.textContent ?? '').toContain('-1,3');
+      expect(blockHeader?.textContent ?? '').toContain('+1,3');
+    });
+  });
+
+  describe('CRLF normalization on the diff surface (T11, ADR-08-G)', () => {
+    /**
+     * `WordDiffHelper.splitLines` is the single normalization point for the
+     * diff surface: a CRLF-joined block from the diff library used to leave a
+     * trailing `\r` on every emitted row. Inline rendering now strips it.
+     */
+    it('does not leak a trailing \\r into inline rows when input is CRLF', (): void => {
+      const target: HTMLDivElement = container();
+      const baseLines: string[] = ['one', 'two'];
+      const currentLines: string[] = ['one', 'two-changed'];
+      const crlfParams: DiffRenderParams = {
+        ...params(baseLines, currentLines, DiffViewMode.inline, target),
+        lineBreak: '\r\n',
+      };
+
+      DiffRenderHelper.render(crlfParams);
+
+      const rowContents: NodeListOf<Element> = target.querySelectorAll(
+        '.lct-inline-container .lct-inline-row .lct-inline-content'
+      );
+
+      expect(rowContents.length).toBeGreaterThan(0);
+
+      rowContents.forEach((row: Element): void => {
+        // Every span text must be free of carriage returns. Reading
+        // textContent flattens nested spans, which is what we want here.
+        expect(row.textContent ?? '').not.toContain('\r');
+      });
+    });
+
+    it('renders LF content identically to before (no regression on \\n input)', (): void => {
+      const target: HTMLDivElement = container();
+
+      DiffRenderHelper.render(params(['one', 'two'], ['one', 'two-changed'], DiffViewMode.inline, target));
+
+      const rows: NodeListOf<Element> = target.querySelectorAll('.lct-inline-container .lct-inline-row');
+
+      // Same baseline as the inline mode case: one context row + one modified
+      // row for a single-line edit. LF must keep the existing behaviour.
+      expect(rows.length).toBe(2);
+      expect(target.querySelector('.lct-inline-context')).not.toBeNull();
+      expect(target.querySelector('.lct-inline-modified')).not.toBeNull();
+    });
+  });
+
   describe('hunks return value', () => {
     it('returns a non-empty hunk list when the base differs from the current', (): void => {
       const target: HTMLDivElement = container();

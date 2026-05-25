@@ -294,6 +294,43 @@ export class FileSnapshot {
   }
 
   /**
+   * Authoritative content-equality check for the external-change guard
+   * (ADR-08-D). Uses the 32-bit `lastHash` as a cheap pre-filter: a hash
+   * mismatch is always a real change, but a hash match falls through to an
+   * actual line-by-line compare against the snapshot's known `state` so a
+   * collision (two distinct contents that hash to the same 32-bit value)
+   * cannot make a genuine external rewrite look identical.
+   *
+   * The comparison splits the incoming content on the snapshot's own
+   * `lineBreak` (the same separator used when `state` was filled), so a
+   * change that differs only in trailing whitespace or line count is detected
+   * even when the hashes collide.
+   *
+   * @param {string} content - The current content of the file to check
+   * @return {boolean} True if the content differs from the stored state, false if identical
+   */
+  public isContentChanged(content: string): boolean {
+    if (this.lastHash !== TextHelper.hash(content)) {
+      return true;
+    }
+
+    const incoming: string[] = content.split(this.lineBreak);
+    const current: string[] = this.state;
+
+    if (incoming.length !== current.length) {
+      return true;
+    }
+
+    for (let i: number = 0; i < incoming.length; i++) {
+      if (incoming[i] !== current[i]) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
    * Updates the current state of the file snapshot.
    * Stores the new content and updates the hash for future change detection.
    *

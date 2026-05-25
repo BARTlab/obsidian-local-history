@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import { SnapshotsService } from '@/services/snapshots.service';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import { FileVersion } from '@/snapshots/file.version';
+import { TextHelper } from '@/helpers/text.helper';
 import type { TFile } from 'obsidian';
 
 type PluginArg = ConstructorParameters<typeof SnapshotsService>[0];
@@ -363,6 +364,55 @@ describe('SnapshotsService.captureExternalChange', () => {
 
     expect(snapshot.versions.length).toBe(1);
     expect(snapshot.versions[0].isExternal()).toBe(true);
+  });
+
+  it('captures a hash-collision rewrite where the 32-bit hash matches but the content differs', async (): Promise<void> => {
+    // ADR-08-D regression: a genuine external change must never be dropped
+    // because its weak 32-bit hash collides with the known state. We force a
+    // collision by overwriting the snapshot's `lastHash` with the hash of the
+    // new disk content while leaving `state` at the original lines, so the
+    // pre-filter says "match" and the content compare must catch the diff.
+    const { service, vault } = makeService();
+    const file: TFile = makeFile('notes/collision.md', { mtime: 1, size: 5 });
+
+    service.add(file, 'one\ntwo');
+    const snapshot: FileSnapshot = service.getOne(file) as FileSnapshot;
+    const colliding: string = 'three\nfour';
+
+    // Use the production hash so the pre-filter genuinely matches: this
+    // simulates the collision deterministically without depending on a known
+    // 32-bit input pair.
+    snapshot.lastHash = TextHelper.hash(colliding);
+    vault[file.path] = colliding;
+
+    await service.captureExternalChange(file);
+
+    const after: FileSnapshot = service.getOne(file) as FileSnapshot;
+
+    expect(after.versions.length).toBe(1);
+    expect(after.versions[0].isExternal()).toBe(true);
+    expect(after.versions[0].getLines()).toEqual(['three', 'four']);
+    expect(after.getLastStateLines()).toEqual(['three', 'four']);
+  });
+
+  it('stays a no-op when the hash matches AND the content actually matches', async () => {
+    // The content-equality fallback must not regress the common-case no-op:
+    // when both the hash and the line array match, we still skip the capture.
+    const { service, vault } = makeService();
+    const file: TFile = makeFile('notes/same.md', { mtime: 1, size: 7 });
+
+    service.add(file, 'one\ntwo\nthree');
+    vault[file.path] = 'one\ntwo\nthree';
+
+    const snapshot: FileSnapshot = service.getOne(file) as FileSnapshot;
+    const versionsBefore: number = snapshot.versions.length;
+
+    await service.captureExternalChange(file);
+
+    const after: FileSnapshot = service.getOne(file) as FileSnapshot;
+
+    expect(after.versions.length).toBe(versionsBefore);
+    expect(after.getLastStateLines()).toEqual(['one', 'two', 'three']);
   });
 });
 

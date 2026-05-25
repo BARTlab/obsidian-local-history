@@ -668,15 +668,17 @@ export class SnapshotsService implements Service {
 
   /**
    * Captures an external (off-editor) change to a tracked file as a flagged
-   * version on its timeline (D12/D13). Reads the file from disk, compares its
-   * content hash to the snapshot's known `state`, and force-captures the new
-   * content as a `FileVersion` with `external = true` only when the hash
-   * diverges, then updates `state`/tracker/changes so further reads see the
+   * version on its timeline (D12/D13). Reads the file from disk, compares the
+   * actual content to the snapshot's known `state` via `isContentChanged`
+   * (32-bit hash as a cheap pre-filter, line-by-line compare on a hash match
+   * so a collision cannot mask a real rewrite, ADR-08-D), and force-captures
+   * the new content as a `FileVersion` with `external = true` only when they
+   * differ, then updates `state`/tracker/changes so further reads see the
    * captured content as the new baseline.
    *
    * Gating mirrors the parts of `canCapture` that still apply when a snapshot
    * already exists: a wrong-extension file, an excluded path, an ignored file,
-   * or a missing/folder TFile is a no-op. A hash match is also a no-op so
+   * or a missing/folder TFile is a no-op. A content match is also a no-op so
    * editor-driven flushes and the plugin's own revert writes (which already
    * synchronized `state` before/after the write) do not produce phantom
    * external versions.
@@ -760,7 +762,13 @@ export class SnapshotsService implements Service {
       return;
     }
 
-    if (!snapshot.isNeedUpdate(content)) {
+    /**
+     * Content-equality guard (ADR-08-D): the 32-bit `lastHash` is only a cheap
+     * pre-filter inside `isContentChanged`; on a hash match it falls through
+     * to a line-by-line compare against the snapshot's known `state`, so a
+     * collision cannot mask a genuine external rewrite as a no-op.
+     */
+    if (!snapshot.isContentChanged(content)) {
       this.rememberLastSeen(file);
 
       return;

@@ -264,6 +264,38 @@ describe('ChangeDetectorExtension prev-state desync (T2.3)', () => {
   });
 });
 
+describe('ChangeDetectorExtension CRLF normalization (ADR-08-G)', () => {
+  // The editor surface must split content on /\r?\n/ rather than the CodeMirror
+  // `state.lineBreak` convention, so a CRLF document does not leak a trailing
+  // `\r` into the tracker (which would corrupt change content and equality).
+  it('records an edited CRLF line without a trailing carriage return', () => {
+    const doc = 'a\r\nb\r\nc';
+    const snapshot = new FileSnapshot(doc, '\r\n');
+    const { from, to } = lineRange(doc, 2);
+
+    step(snapshot, doc, { from, to, insert: 'B' });
+
+    const edited = snapshot.findCurrentLine(1);
+
+    expect(edited?.current).toBe('B');
+    expect(positions(snapshot, ChangeType.changed)).toEqual([1]);
+    expect(positions(snapshot, ChangeType.added)).toEqual([]);
+    expect(positions(snapshot, ChangeType.removed)).toEqual([]);
+  });
+
+  it('keeps LF behaviour unchanged for a plain edit', () => {
+    const snapshot = new FileSnapshot('a\nb\nc');
+    const { from, to } = lineRange('a\nb\nc', 2);
+
+    step(snapshot, 'a\nb\nc', { from, to, insert: 'B' });
+
+    const edited = snapshot.findCurrentLine(1);
+
+    expect(edited?.current).toBe('B');
+    expect(positions(snapshot, ChangeType.changed)).toEqual([1]);
+  });
+});
+
 describe('ChangeDetectorExtension scale (T3.2 hot path)', () => {
   // Pastes then deletes a large block in single transactions. The old tracker
   // hot path sorted and rebuilt an ArrayMap for every shifted line (and per

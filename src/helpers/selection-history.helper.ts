@@ -110,8 +110,18 @@ export class SelectionHistoryHelper {
       return { added, removed };
     }
 
-    const previousText: string = `${previous.join('\n')}\n`;
-    const currentText: string = `${current.join('\n')}\n`;
+    /**
+     * Strip a trailing `\r` from each line (ADR-08-G) before joining with LF:
+     * a CRLF-origin version array carries `\r` at the tail of every line, which
+     * would otherwise survive into the structured-patch hunk and miss the
+     * selection match by a single byte.
+     */
+    const normalize = (lines: string[]): string[] => lines.map(
+      (line: string): string => (line.endsWith('\r') ? line.slice(0, -1) : line),
+    );
+
+    const previousText: string = `${normalize(previous).join('\n')}\n`;
+    const currentText: string = `${normalize(current).join('\n')}\n`;
 
     if (previousText === currentText) {
       return { added, removed };

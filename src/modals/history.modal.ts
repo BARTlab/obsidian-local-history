@@ -65,6 +65,13 @@ export class HistoryModal extends Modal {
   protected diffContainerEl?: HTMLElementWithScrollSync;
 
   /**
+   * Handle of the pending deferred `setupScrollSynchronization` call, captured
+   * so a rapid mode switch can cancel it before it attaches listeners to a
+   * replaced DOM. See T13 in `.plan/08-code-review-remediation`.
+   */
+  protected scrollSyncTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /**
    * Left rail container of the three-pane shell. Hosts the version timeline
    * (and, in a later task, the content search above it).
    */
@@ -2137,10 +2144,22 @@ export class HistoryModal extends Modal {
 
     /**
      * Scroll synchronization for a side-by-side diff view; uses setTimeout to
-     * ensure DOM elements are rendered.
+     * ensure DOM elements are rendered. The timer handle is tracked on the
+     * instance and the deferred callback bails if the container was replaced
+     * (rapid mode switch) so no listeners attach to stale DOM.
      */
     if (format === DiffOutputFormatType.side) {
-      setTimeout(() => this.setupScrollSynchronization(), 0);
+      const targetContainer: HTMLElementWithScrollSync | undefined = this.diffContainerEl;
+
+      this.scrollSyncTimer = setTimeout((): void => {
+        this.scrollSyncTimer = null;
+
+        if (this.diffContainerEl !== targetContainer) {
+          return;
+        }
+
+        this.setupScrollSynchronization();
+      }, 0);
     }
   }
 
@@ -2210,6 +2229,12 @@ export class HistoryModal extends Modal {
    * Called when switching between diff modes or closing the modal.
    */
   protected cleanupScrollSync(): void {
+    if (this.scrollSyncTimer !== null) {
+      clearTimeout(this.scrollSyncTimer);
+
+      this.scrollSyncTimer = null;
+    }
+
     const container: HTMLElementWithScrollSync = this.diffContainerEl;
 
     if (container?._scrollSyncCleanup) {

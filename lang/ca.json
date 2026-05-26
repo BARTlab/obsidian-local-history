@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "S'han eliminat les dades de la instantània actual",
   "notice.file-restored": "S'ha restaurat el fitxer a l'estat original",
   "notice.file-restore-failed": "No s'ha pogut restaurar el fitxer a l'estat original",
+  "notice.file-restore-path-occupied": "No es pot restaurar: ja existeix un altre fitxer en aquesta ruta",
   "notice.copied": "S'ha copiat!",
   "notice.no-saved-history": "No hi ha cap historial desat per a aquest fitxer.",
   "notice.invalid-exclude-pattern": "Historial local: el patró de camins exclosos no és una expressió regular vàlida i s'ignora.",

@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "已刪除目前快照資料",
   "notice.file-restored": "檔案已還原為原始狀態",
   "notice.file-restore-failed": "無法將檔案還原為原始狀態",
+  "notice.file-restore-path-occupied": "無法還原：此路徑已存在其他檔案",
   "notice.copied": "已複製！",
   "notice.no-saved-history": "此檔案沒有已儲存的歷史記錄。",
   "notice.invalid-exclude-pattern": "本機歷史：排除路徑的模式不是有效的正規表示式，已被忽略。",

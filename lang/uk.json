@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "Дані поточного знімка видалено",
   "notice.file-restored": "Файл відновлено до початкового стану",
   "notice.file-restore-failed": "Не вдалося відновити файл до початкового стану",
+  "notice.file-restore-path-occupied": "Не вдалося відновити: за цим шляхом вже існує інший файл",
   "notice.copied": "Скопійовано!",
   "notice.no-saved-history": "Для цього файлу немає збереженої історії.",
   "notice.invalid-exclude-pattern": "Local history: шаблон виключених шляхів не є коректним регулярним виразом і ігнорується.",

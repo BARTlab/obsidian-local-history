@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "ลบข้อมูลสแน็ปช็อตปัจจุบันแล้ว",
   "notice.file-restored": "คืนค่าไฟล์กลับสู่สถานะเดิมแล้ว",
   "notice.file-restore-failed": "ไม่สามารถคืนค่าไฟล์กลับสู่สถานะเดิมได้",
+  "notice.file-restore-path-occupied": "ไม่สามารถกู้คืน: มีไฟล์อื่นอยู่ในเส้นทางนี้แล้ว",
   "notice.copied": "คัดลอกแล้ว!",
   "notice.no-saved-history": "ไม่มีประวัติที่บันทึกไว้สำหรับไฟล์นี้",
   "notice.invalid-exclude-pattern": "ประวัติในเครื่อง: รูปแบบพาธที่ยกเว้นไม่ใช่นิพจน์ทั่วไปที่ถูกต้อง จึงถูกละเว้น",

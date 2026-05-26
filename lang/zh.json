@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "已删除当前快照数据",
   "notice.file-restored": "文件已恢复到原始状态",
   "notice.file-restore-failed": "无法将文件恢复到原始状态",
+  "notice.file-restore-path-occupied": "无法恢复：此路径已存在其他文件",
   "notice.copied": "已复制！",
   "notice.no-saved-history": "此文件没有已保存的历史记录。",
   "notice.invalid-exclude-pattern": "本地历史：排除路径的模式不是有效的正则表达式，已被忽略。",

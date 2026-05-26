@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "Aktuelt øjebliksbillede slettet",
   "notice.file-restored": "Filen gendannet til oprindelig tilstand",
   "notice.file-restore-failed": "Filen kunne ikke gendannes til oprindelig tilstand",
+  "notice.file-restore-path-occupied": "Kan ikke gendanne: en anden fil findes allerede på denne sti",
   "notice.copied": "Kopieret!",
   "notice.no-saved-history": "Der er ingen gemt historik for denne fil.",
   "notice.invalid-exclude-pattern": "Lokal historik: mønstret for ekskluderede stier er ikke et gyldigt regulært udtryk og ignoreres.",

@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "Usunięto dane bieżącej migawki",
   "notice.file-restored": "Przywrócono plik do stanu pierwotnego",
   "notice.file-restore-failed": "Nie udało się przywrócić pliku do stanu pierwotnego",
+  "notice.file-restore-path-occupied": "Nie można przywrócić: w tej ścieżce już istnieje inny plik",
   "notice.copied": "Skopiowano!",
   "notice.no-saved-history": "Dla tego pliku nie ma zapisanej historii.",
   "notice.invalid-exclude-pattern": "Local history: wzorzec wykluczonych ścieżek nie jest prawidłowym wyrażeniem regularnym i zostanie zignorowany.",

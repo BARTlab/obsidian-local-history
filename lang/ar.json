@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "تم حذف بيانات اللقطة الحالية",
   "notice.file-restored": "تمت استعادة الملف إلى حالته الأصلية",
   "notice.file-restore-failed": "تعذّرت استعادة الملف إلى حالته الأصلية",
+  "notice.file-restore-path-occupied": "تعذّرت الاستعادة: يوجد بالفعل ملف آخر في هذا المسار",
   "notice.copied": "تم النسخ!",
   "notice.no-saved-history": "لا يوجد سجل محفوظ لهذا الملف.",
   "notice.invalid-exclude-pattern": "السجل المحلي: نمط المسارات المستثناة ليس تعبيرًا نمطيًا صالحًا وسيتم تجاهله.",

@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "Scriosadh sonraí an roghbhlúire reatha",
   "notice.file-restored": "Cuireadh an comhad ar ais ina staid bhunaidh",
   "notice.file-restore-failed": "Theip ar an gcomhad a chur ar ais ina staid bhunaidh",
+  "notice.file-restore-path-occupied": "Ní féidir é a athchóiriú: tá comhad eile sa chosán seo cheana féin",
   "notice.copied": "Cóipeáilte!",
   "notice.no-saved-history": "Níl aon stair shábháilte ann don chomhad seo.",
   "notice.invalid-exclude-pattern": "Stair áitiúil: ní slonn rialta bailí é patrún na gconairí eisiata agus déantar neamhaird de.",

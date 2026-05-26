@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "Pašreizējie momentuzņēmuma dati dzēsti",
   "notice.file-restored": "Fails atjaunots sākotnējā stāvoklī",
   "notice.file-restore-failed": "Neizdevās atjaunot failu sākotnējā stāvoklī",
+  "notice.file-restore-path-occupied": "Nevar atjaunot: šajā ceļā jau pastāv cits fails",
   "notice.copied": "Nokopēts!",
   "notice.no-saved-history": "Šim failam nav saglabātas vēstures.",
   "notice.invalid-exclude-pattern": "Vietējā vēsture: izslēgto ceļu raksts nav derīga regulārā izteiksme un tiek ignorēts.",

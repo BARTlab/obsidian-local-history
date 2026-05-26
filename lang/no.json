@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "Gjeldende øyeblikksbilde slettet",
   "notice.file-restored": "Filen gjenopprettet til opprinnelig tilstand",
   "notice.file-restore-failed": "Klarte ikke å gjenopprette filen til opprinnelig tilstand",
+  "notice.file-restore-path-occupied": "Kan ikke gjenopprette: en annen fil finnes allerede på denne banen",
   "notice.copied": "Kopiert!",
   "notice.no-saved-history": "Det finnes ingen lagret historikk for denne filen.",
   "notice.invalid-exclude-pattern": "Lokal historikk: mønsteret for ekskluderte stier er ikke et gyldig regulært uttrykk og blir ignorert.",

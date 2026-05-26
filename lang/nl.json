@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "Gegevens van huidige momentopname verwijderd",
   "notice.file-restored": "Bestand hersteld naar oorspronkelijke staat",
   "notice.file-restore-failed": "Kan bestand niet herstellen naar oorspronkelijke staat",
+  "notice.file-restore-path-occupied": "Kan niet herstellen: er bestaat al een ander bestand op dit pad",
   "notice.copied": "Gekopieerd!",
   "notice.no-saved-history": "Er is geen opgeslagen geschiedenis voor dit bestand.",
   "notice.invalid-exclude-pattern": "Lokale geschiedenis: het patroon voor uitgesloten paden is geen geldige reguliere expressie en wordt genegeerd.",

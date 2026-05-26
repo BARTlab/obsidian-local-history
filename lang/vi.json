@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "Đã xóa dữ liệu ảnh chụp hiện tại",
   "notice.file-restored": "Đã khôi phục tệp về trạng thái ban đầu",
   "notice.file-restore-failed": "Không thể khôi phục tệp về trạng thái ban đầu",
+  "notice.file-restore-path-occupied": "Không thể khôi phục: đường dẫn này đã tồn tại một tệp khác",
   "notice.copied": "Đã sao chép!",
   "notice.no-saved-history": "Không có lịch sử nào được lưu cho tệp này.",
   "notice.invalid-exclude-pattern": "Lịch sử cục bộ: mẫu đường dẫn loại trừ không phải là biểu thức chính quy hợp lệ nên bị bỏ qua.",

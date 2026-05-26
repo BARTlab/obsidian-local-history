@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "Dáta aktuálnej snímky boli odstránené",
   "notice.file-restored": "Súbor bol obnovený do pôvodného stavu",
   "notice.file-restore-failed": "Nepodarilo sa obnoviť súbor do pôvodného stavu",
+  "notice.file-restore-path-occupied": "Nedá sa obnoviť: na tejto ceste už existuje iný súbor",
   "notice.copied": "Skopírované!",
   "notice.no-saved-history": "Pre tento súbor nie je uložená žiadna história.",
   "notice.invalid-exclude-pattern": "Local history: vzor vylúčených ciest nie je platný regulárny výraz a bude ignorovaný.",

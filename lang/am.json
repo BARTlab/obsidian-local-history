@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "የአሁኑ የቅጽበታዊ ቅጂ ውሂብ ተሰርዟል",
   "notice.file-restored": "ፋይሉ ወደ መነሻ ሁኔታው ተመልሷል",
   "notice.file-restore-failed": "ፋይሉን ወደ መነሻ ሁኔታው መመለስ አልተሳካም",
+  "notice.file-restore-path-occupied": "መመለስ አይቻልም፦ በዚህ መንገድ ሌላ ፋይል አስቀድሞ አለ",
   "notice.copied": "ተቀድቷል!",
   "notice.no-saved-history": "ለዚህ ፋይል የተቀመጠ ታሪክ የለም።",
   "notice.invalid-exclude-pattern": "አካባቢያዊ ታሪክ: የተገለሉ መንገዶች ስርዓተ ጥለት ትክክለኛ መደበኛ መግለጫ አይደለም እና ችላ ይባላል።",

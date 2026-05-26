@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "Joriy surat maʼlumotlari oʻchirildi",
   "notice.file-restored": "Fayl asl holatiga tiklandi",
   "notice.file-restore-failed": "Faylni asl holatiga tiklab boʻlmadi",
+  "notice.file-restore-path-occupied": "Tiklab boʻlmadi: bu yoʻlda allaqachon boshqa fayl mavjud",
   "notice.copied": "Nusxalandi!",
   "notice.no-saved-history": "Bu fayl uchun saqlangan tarix yoʻq.",
   "notice.invalid-exclude-pattern": "Mahalliy tarix: istisno qilinadigan yoʻllar shabloni yaroqli muntazam ifoda emas va eʼtiborga olinmaydi.",

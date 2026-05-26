@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "Current snapshot data deleted",
   "notice.file-restored": "File restored to original state",
   "notice.file-restore-failed": "Failed to restore file to original state",
+  "notice.file-restore-path-occupied": "Cannot restore: another file already exists at this path",
   "notice.copied": "Copied!",
   "notice.no-saved-history": "There is no saved history for this file.",
   "notice.invalid-exclude-pattern": "Local history: the excluded-paths pattern is not a valid regular expression and is being ignored.",

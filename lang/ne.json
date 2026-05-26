@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "हालको स्न्यापसट डेटा मेटाइयो",
   "notice.file-restored": "फाइल मूल अवस्थामा पुनर्स्थापना गरियो",
   "notice.file-restore-failed": "फाइललाई मूल अवस्थामा पुनर्स्थापना गर्न असफल भयो",
+  "notice.file-restore-path-occupied": "पुनर्स्थापना सम्भव छैन: यो पथमा अर्को फाइल पहिले नै अवस्थित छ",
   "notice.copied": "प्रतिलिपि गरियो!",
   "notice.no-saved-history": "यस फाइलको लागि कुनै सुरक्षित इतिहास छैन।",
   "notice.invalid-exclude-pattern": "स्थानीय इतिहास: बहिष्कृत-पथ ढाँचा वैध नियमित अभिव्यक्ति होइन र बेवास्ता गरिँदैछ।",

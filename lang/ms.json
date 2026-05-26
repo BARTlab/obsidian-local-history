@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "Data snapshot semasa dipadamkan",
   "notice.file-restored": "Fail dipulihkan kepada keadaan asal",
   "notice.file-restore-failed": "Gagal memulihkan fail kepada keadaan asal",
+  "notice.file-restore-path-occupied": "Tidak dapat memulihkan: fail lain telah wujud di laluan ini",
   "notice.copied": "Disalin!",
   "notice.no-saved-history": "Tiada sejarah tersimpan untuk fail ini.",
   "notice.invalid-exclude-pattern": "Sejarah tempatan: corak laluan yang dikecualikan bukan ungkapan biasa yang sah dan diabaikan.",

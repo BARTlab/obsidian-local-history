@@ -1069,6 +1069,17 @@ export class FolderHistoryModal extends Modal {
   ): Promise<void> {
     const content: string = result.base.join(snapshot.lineBreak);
 
+    // T14: a deleted file's old path may now be occupied by a different file
+    // (recreated or renamed since deletion). `vault.create` throws on an
+    // existing path and the generic catch below would hide the cause from the
+    // user; pre-check here and surface a distinct notice so they can resolve
+    // the collision manually instead of seeing a vague "restore failed".
+    if (this.app.vault.getAbstractFileByPath(path) !== null) {
+      new Notice(this.plugin.t('notice.file-restore-path-occupied'));
+
+      return;
+    }
+
     try {
       const created: TFile = await this.app.vault.create(path, content);
 

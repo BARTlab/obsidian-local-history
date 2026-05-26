@@ -262,6 +262,42 @@ describe('FileSnapshot.replaceBlock (per-hunk revert, T5.3)', () => {
     expect(positionsWithType(snapshot, ChangeType.changed)).toEqual([3]);
     expect(snapshot.findCurrentLine(3)?.current).toBe('D');
   });
+
+  it('places every replacement on its expected current position when the block straddles tracked and removed lines (T16)', () => {
+    // Start from a, b, c, d, e; remove the middle line b so the tracker holds
+    // a removed marker at removedAtPosition=1 alongside a@0, c@1, d@2, e@3.
+    const snapshot = new FileSnapshot('a\nb\nc\nd\ne');
+
+    snapshot.removeTrackerOrLine(1);
+    snapshot.updateState(['a', 'c', 'd', 'e']);
+    snapshot.updateChanges();
+    expect(positionsWithType(snapshot, ChangeType.removed)).toEqual([1]);
+
+    // Replace the leading block (a, c) with three lines so the new block
+    // straddles the removed marker at position 1: removeCount=2, newLines.length=3.
+    snapshot.replaceBlock(0, 2, ['X', 'Y', 'Z']);
+    snapshot.updateState(['X', 'Y', 'Z', 'd', 'e']);
+    snapshot.updateChanges();
+
+    // Every replacement line lands on its expected current position and the
+    // trailing tracked lines slide by the net offset (+1) without drift.
+    expect(snapshot.findCurrentLine(0)?.current).toBe('X');
+    expect(snapshot.findCurrentLine(1)?.current).toBe('Y');
+    expect(snapshot.findCurrentLine(2)?.current).toBe('Z');
+    expect(snapshot.findCurrentLine(3)?.current).toBe('d');
+    expect(snapshot.findCurrentLine(4)?.current).toBe('e');
+    expect(snapshot.findCurrentLine(5)).toBeNull();
+
+    // The cached current-position index matches a direct tracker scan, so the
+    // straddle did not desynchronize the index from the underlying tracker.
+    for (let pos = -1; pos <= 6; pos++) {
+      expect(snapshot.findCurrentLine(pos)).toBe(liveAt(snapshot, pos));
+    }
+
+    // The new live document holds exactly five lines: no doomed-or-restored
+    // ghost stays on a current position past the visible end.
+    expect(snapshot.getLastStateLines()).toEqual(['X', 'Y', 'Z', 'd', 'e']);
+  });
 });
 
 describe('FileSnapshot.getChangedPositions (navigation source, T5.4)', () => {

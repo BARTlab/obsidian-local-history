@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "Data snapshot saat ini dihapus",
   "notice.file-restored": "Berkas dipulihkan ke keadaan semula",
   "notice.file-restore-failed": "Gagal memulihkan berkas ke keadaan semula",
+  "notice.file-restore-path-occupied": "Tidak dapat memulihkan: file lain sudah ada di jalur ini",
   "notice.copied": "Disalin!",
   "notice.no-saved-history": "Tidak ada riwayat tersimpan untuk berkas ini.",
   "notice.invalid-exclude-pattern": "Riwayat lokal: pola jalur yang dikecualikan bukan ekspresi reguler yang valid dan diabaikan.",

@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "현재 스냅샷 데이터를 삭제했습니다",
   "notice.file-restored": "파일을 원래 상태로 복원했습니다",
   "notice.file-restore-failed": "파일을 원래 상태로 복원하지 못했습니다",
+  "notice.file-restore-path-occupied": "복원할 수 없습니다: 이 경로에 이미 다른 파일이 있습니다",
   "notice.copied": "복사했습니다!",
   "notice.no-saved-history": "이 파일에 저장된 기록이 없습니다.",
   "notice.invalid-exclude-pattern": "로컬 기록: 제외 경로 패턴이 올바른 정규식이 아니므로 무시됩니다.",

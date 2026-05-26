@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "Aktuelle Snapshot-Daten gelöscht",
   "notice.file-restored": "Datei in den Originalzustand zurückgesetzt",
   "notice.file-restore-failed": "Datei konnte nicht in den Originalzustand zurückgesetzt werden",
+  "notice.file-restore-path-occupied": "Wiederherstellung nicht möglich: An diesem Pfad existiert bereits eine andere Datei",
   "notice.copied": "Kopiert!",
   "notice.no-saved-history": "Für diese Datei ist kein Verlauf gespeichert.",
   "notice.invalid-exclude-pattern": "Lokaler Verlauf: Das Muster für ausgeschlossene Pfade ist kein gültiger regulärer Ausdruck und wird ignoriert.",

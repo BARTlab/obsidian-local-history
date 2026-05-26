@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "Nykyiset tilannevedostiedot poistettu",
   "notice.file-restored": "Tiedosto palautettu alkuperäiseen tilaan",
   "notice.file-restore-failed": "Tiedoston palauttaminen alkuperäiseen tilaan epäonnistui",
+  "notice.file-restore-path-occupied": "Palautus epäonnistui: tässä polussa on jo toinen tiedosto",
   "notice.copied": "Kopioitu!",
   "notice.no-saved-history": "Tälle tiedostolle ei ole tallennettua historiaa.",
   "notice.invalid-exclude-pattern": "Paikallinen historia: poissuljettujen polkujen kuvio ei ole kelvollinen säännöllinen lauseke, ja se ohitetaan.",

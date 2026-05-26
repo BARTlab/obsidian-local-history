@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "Se eliminaron los datos de la instantánea actual",
   "notice.file-restored": "Archivo restaurado a su estado original",
   "notice.file-restore-failed": "No se pudo restaurar el archivo a su estado original",
+  "notice.file-restore-path-occupied": "No se puede restaurar: ya existe otro archivo en esta ruta",
   "notice.copied": "¡Copiado!",
   "notice.no-saved-history": "No hay historial guardado para este archivo.",
   "notice.invalid-exclude-pattern": "Historial local: el patrón de rutas excluidas no es una expresión regular válida y se ignora.",

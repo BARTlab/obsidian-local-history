@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "Данные текущего снимка удалены",
   "notice.file-restored": "Файл восстановлен до исходного состояния",
   "notice.file-restore-failed": "Не удалось восстановить файл до исходного состояния",
+  "notice.file-restore-path-occupied": "Не удалось восстановить: по этому пути уже существует другой файл",
   "notice.copied": "Скопировано!",
   "notice.no-saved-history": "Для этого файла нет сохранённой истории.",
   "notice.invalid-exclude-pattern": "Local history: шаблон исключённых путей не является корректным регулярным выражением и игнорируется.",

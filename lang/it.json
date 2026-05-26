@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "Dati dell'istantanea corrente eliminati",
   "notice.file-restored": "File ripristinato allo stato originale",
   "notice.file-restore-failed": "Impossibile ripristinare il file allo stato originale",
+  "notice.file-restore-path-occupied": "Impossibile ripristinare: in questo percorso esiste già un altro file",
   "notice.copied": "Copiato!",
   "notice.no-saved-history": "Non c'è una cronologia salvata per questo file.",
   "notice.invalid-exclude-pattern": "Cronologia locale: il pattern dei percorsi esclusi non è un'espressione regolare valida e viene ignorato.",

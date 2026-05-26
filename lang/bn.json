@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "বর্তমান স্ন্যাপশট ডেটা মুছে ফেলা হয়েছে",
   "notice.file-restored": "ফাইল মূল অবস্থায় পুনরুদ্ধার করা হয়েছে",
   "notice.file-restore-failed": "ফাইল মূল অবস্থায় পুনরুদ্ধার করা যায়নি",
+  "notice.file-restore-path-occupied": "পুনরুদ্ধার করা যায় না: এই পথে ইতিমধ্যে অন্য একটি ফাইল রয়েছে",
   "notice.copied": "অনুলিপি করা হয়েছে!",
   "notice.no-saved-history": "এই ফাইলের জন্য কোনো সংরক্ষিত ইতিহাস নেই।",
   "notice.invalid-exclude-pattern": "স্থানীয় ইতিহাস: বাদ-দেওয়া-পাথ প্যাটার্নটি বৈধ রেগুলার এক্সপ্রেশন নয় এবং উপেক্ষা করা হচ্ছে।",

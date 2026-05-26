@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "נתוני התצלום הנוכחי נמחקו",
   "notice.file-restored": "הקובץ שוחזר למצבו המקורי",
   "notice.file-restore-failed": "שחזור הקובץ למצבו המקורי נכשל",
+  "notice.file-restore-path-occupied": "לא ניתן לשחזר: בנתיב זה כבר קיים קובץ אחר",
   "notice.copied": "הועתק!",
   "notice.no-saved-history": "אין היסטוריה שמורה לקובץ זה.",
   "notice.invalid-exclude-pattern": "היסטוריה מקומית: תבנית הנתיבים המוחרגים אינה ביטוי רגולרי תקין והיא תתעלם.",

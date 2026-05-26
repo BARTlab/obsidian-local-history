@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "Aktuell ögonblicksbild borttagen",
   "notice.file-restored": "Filen återställd till ursprungligt skick",
   "notice.file-restore-failed": "Det gick inte att återställa filen till ursprungligt skick",
+  "notice.file-restore-path-occupied": "Kan inte återställa: en annan fil finns redan på denna sökväg",
   "notice.copied": "Kopierat!",
   "notice.no-saved-history": "Det finns ingen sparad historik för den här filen.",
   "notice.invalid-exclude-pattern": "Lokal historik: mönstret för uteslutna sökvägar är inte ett giltigt reguljärt uttryck och ignoreras.",

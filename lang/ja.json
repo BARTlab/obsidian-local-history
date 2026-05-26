@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "現在のスナップショットデータを削除しました",
   "notice.file-restored": "ファイルを元の状態に復元しました",
   "notice.file-restore-failed": "ファイルを元の状態に復元できませんでした",
+  "notice.file-restore-path-occupied": "復元できません: このパスには既に別のファイルが存在します",
   "notice.copied": "コピーしました！",
   "notice.no-saved-history": "このファイルには保存された履歴がありません。",
   "notice.invalid-exclude-pattern": "ローカル履歴: 除外パスのパターンが有効な正規表現ではないため、無視されます。",

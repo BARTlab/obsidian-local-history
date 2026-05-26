@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "Geçerli anlık görüntü verileri silindi",
   "notice.file-restored": "Dosya özgün durumuna geri yüklendi",
   "notice.file-restore-failed": "Dosya özgün durumuna geri yüklenemedi",
+  "notice.file-restore-path-occupied": "Geri yüklenemiyor: bu yolda zaten başka bir dosya var",
   "notice.copied": "Kopyalandı!",
   "notice.no-saved-history": "Bu dosya için kayıtlı bir geçmiş yok.",
   "notice.invalid-exclude-pattern": "Yerel geçmiş: dışlanan yollar deseni geçerli bir düzenli ifade değil ve yok sayılıyor.",

@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "داده‌های عکس فوری فعلی حذف شد",
   "notice.file-restored": "پرونده به وضعیت اصلی بازگردانده شد",
   "notice.file-restore-failed": "بازگرداندن پرونده به وضعیت اصلی ناموفق بود",
+  "notice.file-restore-path-occupied": "بازگردانی ممکن نیست: فایل دیگری در این مسیر وجود دارد",
   "notice.copied": "کپی شد!",
   "notice.no-saved-history": "هیچ تاریخچه ذخیره‌شده‌ای برای این پرونده وجود ندارد.",
   "notice.invalid-exclude-pattern": "تاریخچه محلی: الگوی مسیرهای مستثناشده یک عبارت باقاعده معتبر نیست و نادیده گرفته می‌شود.",

@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "Подаци текућег снимка су обрисани",
   "notice.file-restored": "Фајл је враћен у првобитно стање",
   "notice.file-restore-failed": "Враћање фајла у првобитно стање није успело",
+  "notice.file-restore-path-occupied": "Није могуће вратити: на овој путањи већ постоји други фајл",
   "notice.copied": "Копирано!",
   "notice.no-saved-history": "За овај фајл нема сачуване историје.",
   "notice.invalid-exclude-pattern": "Local history: образац искључених путања није исправан регуларни израз и биће занемарен.",

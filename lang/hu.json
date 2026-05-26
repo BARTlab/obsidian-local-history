@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "Az aktuális pillanatkép-adatok törölve",
   "notice.file-restored": "A fájl visszaállítva az eredeti állapotába",
   "notice.file-restore-failed": "Nem sikerült visszaállítani a fájlt az eredeti állapotába",
+  "notice.file-restore-path-occupied": "Nem lehet visszaállítani: ezen az útvonalon már létezik egy másik fájl",
   "notice.copied": "Másolva!",
   "notice.no-saved-history": "Ehhez a fájlhoz nincs mentett előzmény.",
   "notice.invalid-exclude-pattern": "Helyi előzmények: a kizárt útvonalak mintája nem érvényes reguláris kifejezés, ezért figyelmen kívül marad.",

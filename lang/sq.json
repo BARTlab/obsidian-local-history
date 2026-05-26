@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "U fshinë të dhënat e fotos aktuale",
   "notice.file-restored": "Skedari u rikthye në gjendjen origjinale",
   "notice.file-restore-failed": "Dështoi rikthimi i skedarit në gjendjen origjinale",
+  "notice.file-restore-path-occupied": "Nuk mund të rikthehet: në këtë shteg ekziston tashmë një skedar tjetër",
   "notice.copied": "U kopjua!",
   "notice.no-saved-history": "Nuk ka histori të ruajtur për këtë skedar.",
   "notice.invalid-exclude-pattern": "Historia lokale: modeli i shtigjeve të përjashtuara nuk është një shprehje e rregullt e vlefshme dhe po shpërfillet.",

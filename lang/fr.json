@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "Données de l'instantané actuel supprimées",
   "notice.file-restored": "Fichier restauré à son état d'origine",
   "notice.file-restore-failed": "Échec de la restauration du fichier à son état d'origine",
+  "notice.file-restore-path-occupied": "Restauration impossible : un autre fichier existe déjà à ce chemin",
   "notice.copied": "Copié !",
   "notice.no-saved-history": "Aucun historique enregistré pour ce fichier.",
   "notice.invalid-exclude-pattern": "Historique local : le motif des chemins exclus n'est pas une expression régulière valide et est ignoré.",

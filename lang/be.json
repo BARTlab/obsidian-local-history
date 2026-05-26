@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "Дадзеныя бягучага здымка выдалены",
   "notice.file-restored": "Файл адноўлены да зыходнага стану",
   "notice.file-restore-failed": "Не ўдалося аднавіць файл да зыходнага стану",
+  "notice.file-restore-path-occupied": "Не атрымалася аднавіць: па гэтым шляху ўжо існуе іншы файл",
   "notice.copied": "Скапіявана!",
   "notice.no-saved-history": "Для гэтага файла няма захаванай гісторыі.",
   "notice.invalid-exclude-pattern": "Local history: шаблон выключаных шляхоў не з'яўляецца карэктным рэгулярным выразам і ігнаруецца.",

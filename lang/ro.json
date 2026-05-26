@@ -9,6 +9,7 @@
   "notice.current-snapshot-deleted": "Datele instantaneului curent au fost șterse",
   "notice.file-restored": "Fișierul a fost restabilit la starea inițială",
   "notice.file-restore-failed": "Restabilirea fișierului la starea inițială a eșuat",
+  "notice.file-restore-path-occupied": "Nu se poate restaura: la această cale există deja un alt fișier",
   "notice.copied": "Copiat!",
   "notice.no-saved-history": "Nu există istoric salvat pentru acest fișier.",
   "notice.invalid-exclude-pattern": "Local history: tiparul căilor excluse nu este o expresie regulată validă și este ignorat.",

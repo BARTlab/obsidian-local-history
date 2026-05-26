@@ -258,4 +258,35 @@ export class VersionTimeline {
   public hasVersions(versions: FileVersion[]): boolean {
     return versions.length > 0;
   }
+
+  /**
+   * Seeds the time-gate counter on restore so the cadence is continuous across
+   * restarts (ADR-08, T15). Without this the constructor-seeded `lastVersionAt`
+   * (set to `Date.now()` at restore time) would reset the time gate on every
+   * launch, so a file that already had a version captured an hour before the
+   * restart would not be eligible for the next time-gated capture until the
+   * full interval elapsed again.
+   *
+   * The seed is derived from the newest version's timestamp (the value the
+   * gate normally tracks after a capture). When the timeline is empty there is
+   * no prior capture to anchor against, so the constructor default stays in
+   * place. Only timestamps that strictly precede the current default are
+   * accepted, so a corrupt future-dated entry cannot push the gate forward.
+   *
+   * @param {FileVersion[]} versions - The restored timeline, oldest first
+   */
+  public seedLastVersionAtFromVersions(versions: FileVersion[]): void {
+    if (!isArray(versions) || versions.length === 0) {
+      return;
+    }
+
+    const newest: FileVersion = versions[versions.length - 1];
+    const timestamp: number = newest?.timestamp;
+
+    if (!isNumber(timestamp) || timestamp >= this.lastVersionAt) {
+      return;
+    }
+
+    this.lastVersionAt = timestamp;
+  }
 }

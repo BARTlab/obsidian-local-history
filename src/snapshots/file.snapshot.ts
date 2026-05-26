@@ -247,6 +247,15 @@ export class FileSnapshot {
       ? data.versions.map((version): FileVersion => FileVersion.fromJSON(version))
       : [];
 
+    /**
+     * T15: seed the timeline's time-gate counter from the newest restored
+     * version so the interval-based capture cadence is continuous across a
+     * restart. Without this the freshly constructed timeline would reset
+     * `lastVersionAt` to load-time and re-arm the time gate for the full
+     * interval even though a recent version is already on disk.
+     */
+    snapshot.timeline.seedLastVersionAtFromVersions(snapshot.versions);
+
     if (isNumber(data.deletedTimestamp)) {
       snapshot.deletedTimestamp = data.deletedTimestamp;
     }

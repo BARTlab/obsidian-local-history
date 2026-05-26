@@ -332,6 +332,87 @@ describe('FileSnapshot timeline persistence round-trip', () => {
   });
 });
 
+describe('FileSnapshot timeline cadence continuity across restart (T15)', () => {
+  it('restores lastVersionAt from the newest version timestamp, not load-time', () => {
+    /**
+     * Build a snapshot at base time, capture two versions in the past, then
+     * advance Date.now to a restart moment that is well inside the time gate
+     * relative to the newest captured version but already past it relative to
+     * the restart itself. After fromJSON the next time-gated check must use
+     * the captured timestamp, not the restart time.
+     */
+    const base: number = 10_000_000_000;
+    const intervalMs: number = 60_000;
+    const newestCapturedAt: number = base - 30_000;
+    const restartAt: number = base;
+
+    const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(base - 90_000);
+
+    const snapshot = new FileSnapshot('a', '\n');
+    const opts = options({ editThreshold: 1, intervalMs });
+
+    nowSpy.mockReturnValue(base - 60_000);
+    snapshot.captureVersion(['v1'], opts);
+    nowSpy.mockReturnValue(newestCapturedAt);
+    snapshot.captureVersion(['v2'], opts);
+
+    const json = snapshot.toJSON();
+
+    // Restart moment: a fresh FileSnapshot.fromJSON happens now.
+    nowSpy.mockReturnValue(restartAt);
+
+    const restored = FileSnapshot.fromJSON(json);
+
+    // 30s after the newest capture, the 60s interval gate must NOT fire yet.
+    nowSpy.mockReturnValue(restartAt);
+    expect(restored.captureVersion(['too-soon'], options({ intervalMs }))).toBeNull();
+
+    // 31s later we cross the 60s window since the captured timestamp, so the
+    // next call must capture. If lastVersionAt had been reset to restart time
+    // the gate would still block here, proving the seed is honoured.
+    nowSpy.mockReturnValue(newestCapturedAt + intervalMs + 1);
+    expect(restored.captureVersion(['due'], options({ intervalMs }))).not.toBeNull();
+  });
+
+  it('leaves lastVersionAt at the constructor default when the timeline is empty', () => {
+    /**
+     * An older history file without any captured versions must round-trip
+     * unchanged and behave as before: the constructor seeds lastVersionAt to
+     * load-time, so a 1-second interval should not be due immediately.
+     */
+    const base: number = 20_000_000_000;
+    const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(base);
+
+    const snapshot = new FileSnapshot('a', '\n');
+    const json = snapshot.toJSON();
+    expect(json.versions).toEqual([]);
+
+    nowSpy.mockReturnValue(base + 500);
+    const restored = FileSnapshot.fromJSON(json);
+
+    expect(restored.captureVersion(['x'], options({ intervalMs: 1000 }))).toBeNull();
+    expect(restored.hasVersions()).toBe(false);
+  });
+
+  it('round-trips an older history payload without versions byte-identically', () => {
+    const snapshot = new FileSnapshot('a\nb', '\n');
+    const json = snapshot.toJSON();
+    delete json.versions;
+
+    const serialized: string = JSON.stringify(json);
+    const restored = FileSnapshot.fromJSON(JSON.parse(serialized));
+    const reSerialized: string = JSON.stringify(restored.toJSON());
+
+    // Restored payload must not have grown a new lastVersionAt-style field; the
+    // versions array re-appears as an empty list (constructor default), so
+    // compare without it on the restored side.
+    const reParsed = JSON.parse(reSerialized);
+    expect(reParsed.versions).toEqual([]);
+    delete reParsed.versions;
+    expect(reParsed).toEqual(json);
+  });
+});
+
 describe('FileSnapshot.removeVersion', () => {
   it('removes a single version by id and leaves the rest of the timeline', () => {
     const snapshot = new FileSnapshot('a', '\n');

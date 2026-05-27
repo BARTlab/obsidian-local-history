@@ -1,6 +1,7 @@
 import { DEFAULT_SETTINGS, IndicatorType, KeepHistory } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { DomHelper } from '@/helpers/dom.helper';
+import { PathExcludeHelper } from '@/helpers/path-exclude.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { SettingsService } from '@/services/settings.service';
 import {
@@ -89,7 +90,14 @@ export class MainSetting extends PluginSettingTab {
           .setPlaceholder(DEFAULT_SETTINGS.excludePaths)
           .setValue(this.settingsService.value('excludePaths'))
           .onChange((value: string): void => {
-            this.settingsService.update('excludePaths', value);
+            if (PathExcludeHelper.isValid(value)) {
+              text.inputEl.removeClass('lct-setting-invalid');
+              this.settingsService.update('excludePaths', value);
+
+              return;
+            }
+
+            text.inputEl.addClass('lct-setting-invalid');
           })
       );
 

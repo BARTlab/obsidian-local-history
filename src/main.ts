@@ -262,7 +262,7 @@ export default class LineChangeTrackerPlugin extends Plugin {
    * @return {boolean} True if the event had listeners, false otherwise
    */
   public emit(name: string, ...payload: unknown[]): boolean {
-    return this.emitter.emit(name, payload);
+    return this.emitter.emit(name, ...payload);
   }
 
   /**

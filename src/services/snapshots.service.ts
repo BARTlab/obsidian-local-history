@@ -114,9 +114,13 @@ export class SnapshotsService implements Service {
    * @return {FileSnapshot|null} The file snapshot, or null if no snapshot exists
    */
   public getOne(file?: TFile | null): FileSnapshot | null {
-    const currentFile: TFile = file ?? this.plugin.getActiveFile();
+    const currentFile: TFile | null = file ?? this.plugin.getActiveFile();
 
-    return this.fileSnapshots.get(currentFile?.path) ?? null;
+    if (!currentFile) {
+      return null;
+    }
+
+    return this.fileSnapshots.get(currentFile.path) ?? null;
   }
 
   /**
@@ -652,9 +656,9 @@ export class SnapshotsService implements Service {
    * @param {TFile} file - The file to capture, or null to use the active file
    */
   public async capture(file?: TFile | null): Promise<void> {
-    const currentFile: TFile = file ?? this.plugin.getActiveFile();
+    const currentFile: TFile | null = file ?? this.plugin.getActiveFile();
 
-    if (!this.canCapture(currentFile)) {
+    if (!currentFile || !this.canCapture(currentFile)) {
       return;
     }
 
@@ -938,16 +942,19 @@ export class SnapshotsService implements Service {
    * @param {TFile} file - The file to remove the snapshot for, or null to use the active file
    */
   public wipeOne(file?: TFile | null): void {
-    const current: TFile = this.plugin.getActiveFile();
+    const current: TFile | null = this.plugin.getActiveFile();
+    const target: TFile | null = file ?? current;
 
-    this.remove(file ?? current);
-    this.removeFromIgnoreList(file ?? current);
+    if (target) {
+      this.remove(target);
+      this.removeFromIgnoreList(target);
+    }
 
     if (this.plugin.getActiveViewOfType()) {
       this.plugin.forceUpdateEditor();
     }
 
-    if (current && (!file || file?.path === current.path)) {
+    if (current && (!file || file.path === current.path)) {
       /**
        * The cleared snapshot belongs to the file the user is still viewing, so
        * re-capture it immediately to start a fresh baseline for that file.

@@ -18,11 +18,29 @@
  */
 export class PathExcludeHelper {
   /**
+   * Upper bound on the normalized path length passed to `RegExp.test` to
+   * contain catastrophic backtracking on user-supplied patterns like `(a+)+$`.
+   * Vault paths are realistically well under this cap (filesystem limits sit
+   * around 4 KiB), so legitimate matching is unaffected; pathological input
+   * just yields "not excluded" instead of pinning the event loop.
+   */
+  protected static readonly MAX_PATH_LENGTH: number = 4096;
+
+  /**
+   * Single-slot cache for the most recently compiled pattern. The settings UI
+   * carries one exclude pattern at a time, so a 1-entry cache covers the hot
+   * `isExcluded` call site (per `trackable` check) without growing the helper
+   * into a map keyed by arbitrary user input.
+   */
+  protected static cachedPattern: string | null = null;
+  protected static cachedRegExp: RegExp | null = null;
+
+  /**
    * Decides whether a file path is excluded by the given pattern. The path is
    * normalized to forward slashes before matching so a pattern written with
    * `/` works regardless of the host path separator. An empty pattern, an
-   * empty path, or a pattern that fails to compile all return false (nothing
-   * excluded).
+   * empty path, a path beyond `MAX_PATH_LENGTH`, or a pattern that fails to
+   * compile all return false (nothing excluded).
    *
    * @param {string} path - The vault-relative file path to test
    * @param {string} pattern - The raw exclude pattern from the settings field
@@ -39,7 +57,13 @@ export class PathExcludeHelper {
       return false;
     }
 
-    return regExp.test(PathExcludeHelper.normalize(path));
+    const normalized: string = PathExcludeHelper.normalize(path);
+
+    if (normalized.length > PathExcludeHelper.MAX_PATH_LENGTH) {
+      return false;
+    }
+
+    return regExp.test(normalized);
   }
 
   /**
@@ -62,7 +86,9 @@ export class PathExcludeHelper {
   /**
    * Safe-compiles the raw pattern into a case-insensitive regular expression.
    * A blank pattern yields null (matches nothing) and an invalid pattern is
-   * caught and also yields null, so compilation never throws.
+   * caught and also yields null, so compilation never throws. The result is
+   * memoized in a single-slot cache keyed by the raw pattern string, so a
+   * stream of `isExcluded` calls with the same settings compiles once.
    *
    * @param {string} pattern - The raw exclude pattern from the settings field
    * @return {RegExp|null} The compiled regex, or null when blank or invalid
@@ -72,11 +98,22 @@ export class PathExcludeHelper {
       return null;
     }
 
-    try {
-      return new RegExp(pattern.trim(), 'i');
-    } catch {
-      return null;
+    if (PathExcludeHelper.cachedPattern === pattern) {
+      return PathExcludeHelper.cachedRegExp;
     }
+
+    let regExp: RegExp | null;
+
+    try {
+      regExp = new RegExp(pattern.trim(), 'i');
+    } catch {
+      regExp = null;
+    }
+
+    PathExcludeHelper.cachedPattern = pattern;
+    PathExcludeHelper.cachedRegExp = regExp;
+
+    return regExp;
   }
 
   /**

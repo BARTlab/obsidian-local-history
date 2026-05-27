@@ -49,12 +49,16 @@ export class ObservableMap<K, V> extends Map<K, V> {
    * Notifies all subscribed handlers of a change to the map.
    * Called internally by the set, delete, and clear methods.
    *
+   * Iterates over a snapshot of the listener set, so a handler that
+   * subscribes or unsubscribes during dispatch cannot corrupt the
+   * in-progress iteration (re-entrancy safety).
+   *
    * @param {string} action - The type of change that occurred
    * @param {*} key - The key that was affected (if applicable)
    * @param {*} value - The value that was affected (if applicable)
    */
   public next(action: MapChangeAction, key?: K, value?: V): void {
-    for (const listener of this.listeners) {
+    for (const listener of [...this.listeners]) {
       listener(action, key, value);
     }
   }

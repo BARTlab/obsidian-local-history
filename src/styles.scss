@@ -1223,3 +1223,11 @@
   min-width: 5ch;
   text-align: center;
 }
+
+// Settings-tab inputs that hold a malformed value (e.g. an exclude-paths
+// pattern that does not compile as a RegExp) get this class so the user sees
+// the rejection immediately and the value is not persisted.
+.lct-setting-invalid {
+  border-color: var(--text-error);
+  box-shadow: 0 0 0 1px var(--text-error);
+}

@@ -85,6 +85,89 @@ describe('PathExcludeHelper.isExcluded', () => {
   });
 });
 
+describe('PathExcludeHelper compile cache (T18)', () => {
+  /**
+   * A pattern is compiled once per distinct raw string. The cache is a
+   * single-slot key/value, so the same pattern across many `isExcluded` calls
+   * goes through `new RegExp` exactly once; changing the pattern invalidates
+   * it. We assert by spying on `RegExp` itself via a temporary subclass.
+   */
+  it('compiles the same pattern only once across many checks', () => {
+    const originalRegExp: typeof RegExp = globalThis.RegExp;
+    let constructed: number = 0;
+
+    class CountingRegExp extends originalRegExp {
+      public constructor(source: string | RegExp, flags?: string) {
+        super(source as string, flags);
+        constructed += 1;
+      }
+    }
+
+    (globalThis as { RegExp: typeof RegExp }).RegExp = CountingRegExp as unknown as typeof RegExp;
+    // Reset cache so the first call inside this test re-compiles via the spy.
+    (PathExcludeHelper as unknown as { cachedPattern: string | null }).cachedPattern = null;
+    (PathExcludeHelper as unknown as { cachedRegExp: RegExp | null }).cachedRegExp = null;
+
+    try {
+      const pattern: string = '(^|/)Templates/';
+      const before: number = constructed;
+      for (let i: number = 0; i < 50; i += 1) {
+        PathExcludeHelper.isExcluded(`notes/${i}.md`, pattern);
+        PathExcludeHelper.isExcluded(`Templates/${i}.md`, pattern);
+      }
+      expect(constructed - before).toBe(1);
+    } finally {
+      (globalThis as { RegExp: typeof RegExp }).RegExp = originalRegExp;
+      (PathExcludeHelper as unknown as { cachedPattern: string | null }).cachedPattern = null;
+      (PathExcludeHelper as unknown as { cachedRegExp: RegExp | null }).cachedRegExp = null;
+    }
+  });
+
+  it('recompiles when the pattern changes', () => {
+    const originalRegExp: typeof RegExp = globalThis.RegExp;
+    let constructed: number = 0;
+
+    class CountingRegExp extends originalRegExp {
+      public constructor(source: string | RegExp, flags?: string) {
+        super(source as string, flags);
+        constructed += 1;
+      }
+    }
+
+    (globalThis as { RegExp: typeof RegExp }).RegExp = CountingRegExp as unknown as typeof RegExp;
+    (PathExcludeHelper as unknown as { cachedPattern: string | null }).cachedPattern = null;
+    (PathExcludeHelper as unknown as { cachedRegExp: RegExp | null }).cachedRegExp = null;
+
+    try {
+      PathExcludeHelper.isExcluded('Templates/a.md', '^Templates/');
+      PathExcludeHelper.isExcluded('Templates/a.md', '^Templates/');
+      PathExcludeHelper.isExcluded('Drafts/a.md', '^Drafts/');
+      PathExcludeHelper.isExcluded('Drafts/a.md', '^Drafts/');
+      // Two distinct patterns -> two compiles, even with extra repeats.
+      expect(constructed).toBe(2);
+    } finally {
+      (globalThis as { RegExp: typeof RegExp }).RegExp = originalRegExp;
+      (PathExcludeHelper as unknown as { cachedPattern: string | null }).cachedPattern = null;
+      (PathExcludeHelper as unknown as { cachedRegExp: RegExp | null }).cachedRegExp = null;
+    }
+  });
+
+  it('skips matching on pathologically long paths (ReDoS length guard)', () => {
+    // (a+)+$ is a textbook catastrophic-backtracking pattern. A multi-KiB
+    // mostly-`a` path would otherwise pin the regex engine; the guard makes
+    // the call return false fast instead of running the match.
+    const evilPattern: string = '(a+)+$';
+    const longPath: string = `${'a'.repeat(8000)}b`;
+    const started: number = Date.now();
+    const result: boolean = PathExcludeHelper.isExcluded(longPath, evilPattern);
+    const elapsed: number = Date.now() - started;
+    expect(result).toBe(false);
+    // Generous upper bound: with the guard this is sub-millisecond; without
+    // the guard the same call hangs for seconds.
+    expect(elapsed).toBeLessThan(250);
+  });
+});
+
 describe('PathExcludeHelper.isValid', () => {
   it('treats a blank pattern as valid (it simply excludes nothing)', () => {
     expect(PathExcludeHelper.isValid('')).toBe(true);

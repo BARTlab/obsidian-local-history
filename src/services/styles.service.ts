@@ -59,6 +59,10 @@ export class StylesService implements Service {
    */
   @_On(PluginEvent.settingsUpdate)
   public update(): void {
+    if (!this.sheet) {
+      return;
+    }
+
     const width: number = this.settingsService.value('line.width');
 
     this.sheet.setText(`

@@ -562,6 +562,28 @@
 .cm-line.lct-line.lct-added:not(.mk-placeholder)::before {
   background-color: var(--lct-color-added);
 }
+.cm-line.lct-line.lct-whitespace:not(.mk-placeholder)::before {
+  background-color: var(--lct-color-whitespace);
+}
+.lct-change-layer {
+  pointer-events: none;
+}
+.lct-change-bar {
+  width: var(--lct-line-width);
+  border-radius: var(--lct-line-border-radius);
+}
+.lct-change-bar.lct-changed {
+  background-color: var(--lct-color-changed);
+}
+.lct-change-bar.lct-restored {
+  background-color: var(--lct-color-restored);
+}
+.lct-change-bar.lct-added {
+  background-color: var(--lct-color-added);
+}
+.lct-change-bar.lct-whitespace {
+  background-color: var(--lct-color-whitespace);
+}
 .cm-gutters {
   position: relative;
 }
@@ -583,6 +605,9 @@
 }
 .cm-gutterElement.lct-dot.lct-added {
   color: var(--lct-color-added);
+}
+.cm-gutterElement.lct-dot.lct-whitespace {
+  color: var(--lct-color-whitespace);
 }
 .cm-gutterElement.lct-dot .lct-gutter-marker {
   display: inline-flex;
@@ -744,7 +769,11 @@
   background-color: var(--background-modifier-active);
 }
 .lct-gutter-char-input {
-  width: 2ch;
-  min-width: 2ch;
+  width: 5ch;
+  min-width: 5ch;
   text-align: center;
+}
+.lct-setting-invalid {
+  border-color: var(--text-error);
+  box-shadow: 0 0 0 1px var(--text-error);
 }

@@ -2426,7 +2426,11 @@ var BaseEvent = class {
   }
   /**
    * Registers the event handler with Obsidian.
-   * Uses the event name to determine the appropriate trigger and register the handler method.
+   * Wraps the handler call in a try/catch and attaches a `.catch` to any
+   * returned promise, so a sync throw or async rejection never escapes into
+   * Obsidian's dispatch and never becomes an unhandled rejection. The original
+   * handler signature stays untouched; subclasses still implement `handler`
+   * normally.
    *
    * @return {EventRef} An EventRef that can be used to unregister the event
    */
@@ -2434,22 +2438,40 @@ var BaseEvent = class {
     const { name, type } = this.getTypeName();
     return this.getTrigger(type).on(
       name,
-      this.handler,
+      this.dispatch.bind(this),
       this
     );
   }
   /**
-   * Unregisters the event handler from Obsidian.
-   * Removes the event listener to prevent memory leaks when the plugin is disabled.
+   * Routes an event call through a single try/catch so every handler failure
+   * is logged with the event name and neither propagates synchronously nor
+   * leaves an unhandled rejection. Async handlers attach `.catch` to the
+   * returned promise.
    *
+   * @param args - Arguments passed by the Obsidian event
    * @return {void}
    */
-  unregister() {
-    const { name, type } = this.getTypeName();
-    return this.getTrigger(type).off(
-      name,
-      this.handler
-    );
+  dispatch(...args) {
+    try {
+      const result = this.handler.apply(this, args);
+      if (result && typeof result.then === "function") {
+        result.catch((error) => {
+          this.logError(error);
+        });
+      }
+    } catch (error) {
+      this.logError(error);
+    }
+  }
+  /**
+   * Logs a handler failure together with the originating event name so prod
+   * debugging has a single, greppable line per failure.
+   *
+   * @param {unknown} error - The thrown value or rejection reason
+   * @return {void}
+   */
+  logError(error) {
+    console.error(`Local history: event handler "${this.name}" failed`, error);
   }
 };
 
@@ -2538,9 +2560,12 @@ var VaultModifyEvent = class extends BaseEvent {
     this.name = ObsidianEvent.vault.modify;
   }
   /**
-   * Handles the vault modify event. Delegates to `captureExternalChange` for
-   * real files; the service decides via a content-hash diff whether the
-   * write was external or self-inflicted. Skips non-file entries (folders).
+   * Handles the vault modify event. Routes to
+   * `SnapshotsService.scheduleExternalCapture` so a burst of modify events
+   * for the same file (sync, git pull, an external save loop) collapses into
+   * one debounced disk read + capture, and an overlapping follow-up modify
+   * cannot start a second concurrent capture for the same path (ADR-08-E).
+   * Skips non-file entries (folders).
    *
    * @param {TAbstractFile} file - The file that was modified in the vault
    */
@@ -2548,7 +2573,7 @@ var VaultModifyEvent = class extends BaseEvent {
     if (!(file instanceof import_obsidian7.TFile)) {
       return;
     }
-    void this.snapshotsService.captureExternalChange(file);
+    this.snapshotsService.scheduleExternalCapture(file);
   }
 };
 __decorateClass([
@@ -2843,24 +2868,40 @@ var WorkspaceLayoutChangeEvent = class extends BaseEvent {
    */
   handler() {
     const openedFiles = this.plugin.getWorkspaceFiles();
-    this.snapshotsService.getList().forEach((snapshot) => {
-      if (!snapshot.file || !this.isOnFileClose()) {
-        return;
+    const snapshots = this.snapshotsService.getList();
+    const ignored = this.snapshotsService.getIgnoreList();
+    const opened = [...openedFiles];
+    const closedSnapshots = [];
+    const closedIgnored = [];
+    const newlyOpened = [];
+    const dropOnClose = this.isOnFileClose();
+    for (const snapshot of snapshots) {
+      if (!snapshot.file || !dropOnClose) {
+        continue;
       }
       if (!openedFiles.has(snapshot.file)) {
-        this.snapshotsService.wipeOne(snapshot.file);
+        closedSnapshots.push(snapshot.file);
       }
-    });
-    this.snapshotsService.getIgnoreList().forEach((file) => {
+    }
+    for (const file of ignored) {
       if (!openedFiles.has(file)) {
-        this.snapshotsService.removeFromIgnoreList(file);
+        closedIgnored.push(file);
       }
-    });
-    openedFiles.forEach((file) => {
+    }
+    for (const file of opened) {
       if (!this.snapshotsService.getOne(file)) {
-        void this.snapshotsService.capture(file);
+        newlyOpened.push(file);
       }
-    });
+    }
+    for (const file of closedSnapshots) {
+      this.snapshotsService.wipeOne(file);
+    }
+    for (const file of closedIgnored) {
+      this.snapshotsService.removeFromIgnoreList(file);
+    }
+    for (const file of newlyOpened) {
+      void this.snapshotsService.capture(file);
+    }
   }
   /**
    * Checks if the plugin is configured to remove snapshots when files are closed.
@@ -2921,10 +2962,14 @@ var EventsService = class {
   constructor(plugin) {
     this.plugin = plugin;
     /**
-     * Set of event instances.
-     * Used to track registered events and prevent duplicates.
+     * Map of event class names to their instances.
+     * Used to track registered events and prevent duplicates by constructor
+     * identity. Keying by class name matches the pattern in
+     * {@link CommandsService} / {@link ExtensionsService} - the previous
+     * `Set<BaseEvent>` keyed by instance identity never fired because
+     * {@link factory} always returns a fresh instance (ADR-08 T20).
      */
-    this.instances = /* @__PURE__ */ new Set();
+    this.instances = /* @__PURE__ */ new Map();
   }
   /**
    * Initializes the service by registering all plugin events.
@@ -2973,11 +3018,11 @@ var EventsService = class {
    * @param {ClassConstructor<T>} ClsCConstructor - The event class constructor
    */
   register(ClsCConstructor) {
-    const event = this.factory(ClsCConstructor);
-    if (this.instances.has(event)) {
+    if (this.instances.has(ClsCConstructor.name)) {
       return;
     }
-    this.instances.add(event);
+    const event = this.factory(ClsCConstructor);
+    this.instances.set(ClsCConstructor.name, event);
     this.plugin.registerEvent(event.register());
   }
   /**
@@ -3064,7 +3109,7 @@ var ChangeDetectorExtension = class extends BaseExtension {
    */
   computeIncrementalChanges(update) {
     const state = update.state;
-    const currentLines = state.doc.toString().split(state.lineBreak) || [];
+    const currentLines = state.doc.toString().split(/\r?\n/);
     const snapshot = this.snapshotsService.getOne();
     const prev = update.startState.doc;
     update.changes.iterChanges((fromA, toA, fromB, toB) => {
@@ -3136,9 +3181,286 @@ __decorateClass([
   Inject("SettingsService")
 ], ChangeDetectorExtension.prototype, "settingsService", 2);
 
+// src/extensions/change-layer.extension.ts
+var import_view2 = require("@codemirror/view");
+var BAR_LEFT_OFFSET = 10;
+var ChangeLayerExtension = class {
+  /**
+   * Creates a new instance of ChangeLayerExtension.
+   *
+   * @param {LineChangeTrackerPlugin} plugin - The plugin instance, read by the
+   *   @Inject decorator to resolve services.
+   */
+  constructor(plugin) {
+    this.plugin = plugin;
+  }
+  /**
+   * Builds the CodeMirror layer extension. The layer renders below the text so
+   * the bars sit behind the content, and re-measures whenever the document, the
+   * viewport, the geometry, or the snapshot/settings (via the refresh effect)
+   * change.
+   *
+   * @return {Extension} The configured layer extension
+   */
+  build() {
+    return (0, import_view2.layer)({
+      above: false,
+      class: "lct-change-layer",
+      update: (update) => this.needsUpdate(update),
+      markers: (view) => this.markers(view)
+    });
+  }
+  /**
+   * Decides whether the layer must re-measure its markers for this update.
+   *
+   * @param {ViewUpdate} update - The view update event from CodeMirror
+   * @return {boolean} True if the markers need to be rebuilt
+   */
+  needsUpdate(update) {
+    return update.docChanged || update.viewportChanged || update.geometryChanged || update.transactions.some((transaction) => transaction.effects.some((effect) => effect.is(refreshDecorationsEffect)));
+  }
+  /**
+   * Computes the markers for the current view, gated on the `line` indicator
+   * type and the presence of a snapshot with changes.
+   *
+   * @param {EditorView} view - The editor view to build markers for
+   * @return {LayerMarker[]} The markers to draw, possibly empty
+   */
+  markers(view) {
+    var _a;
+    const snapshot = this.snapshotsService.getOne();
+    const changes = (_a = snapshot == null ? void 0 : snapshot.getChanges(this.getEnableTypes())) != null ? _a : null;
+    if (!this.isTypeLine() || !snapshot || !(changes == null ? void 0 : changes.size)) {
+      return [];
+    }
+    return this.buildMarkers(view, changes);
+  }
+  /**
+   * Builds the bars for every rendered block that hosts a hidden changed line.
+   * Changed lines are grouped by the block they collapse into; per block, each
+   * changed source line keeps its own change types so a table can be lit row by
+   * row. A table is mapped to its rendered `<tr>` rects so only the changed rows
+   * are marked; any other widget (callout, embed) falls back to one bar over the
+   * whole block, since it has no per-line geometry.
+   *
+   * @param {EditorView} view - The editor view to measure against
+   * @param {ArrayMap<ChangeLine>} changes - The changed lines, keyed by 0-based index
+   * @return {RectangleMarker[]} The bars to draw
+   */
+  buildMarkers(view, changes) {
+    const blocks = /* @__PURE__ */ new Map();
+    const order = [];
+    const lines = view.state.doc.lines;
+    for (const [key2, change] of changes) {
+      const lineNumber = Number(key2) + 1;
+      if (lineNumber < 1 || lineNumber > lines) {
+        continue;
+      }
+      const line = view.state.doc.line(lineNumber);
+      if (!this.isHidden(view, line.from)) {
+        continue;
+      }
+      const block = view.lineBlockAt(line.from);
+      let group = blocks.get(block.from);
+      if (!group) {
+        group = { block, rows: /* @__PURE__ */ new Map() };
+        blocks.set(block.from, group);
+        order.push(block.from);
+      }
+      const startLine = view.state.doc.lineAt(block.from).number;
+      const offset = lineNumber - startLine;
+      let types = group.rows.get(offset);
+      if (!types) {
+        types = /* @__PURE__ */ new Set();
+        group.rows.set(offset, types);
+      }
+      change.getTypes().forEach((type) => {
+        types.add(type);
+      });
+    }
+    const left = this.getLeftBase(view) - BAR_LEFT_OFFSET;
+    const markers = [];
+    for (const from of order) {
+      this.markersForBlock(view, blocks.get(from), left, markers);
+    }
+    return markers;
+  }
+  /**
+   * Appends the bars for a single block to the accumulator: per-row bars when
+   * the block is a table whose rendered rows could be matched to its source
+   * lines, otherwise one bar spanning the whole block.
+   *
+   * @param {EditorView} view - The editor view to measure against
+   * @param {BlockGroup} group - The block and its changed rows
+   * @param {number} left - The shared left coordinate for every bar
+   * @param {RectangleMarker[]} markers - The accumulator to push bars onto
+   * @return {void}
+   */
+  markersForBlock(view, group, left, markers) {
+    const rowRects = this.tableRowRects(view, group.block);
+    if (rowRects) {
+      const contentTop = view.contentDOM.getBoundingClientRect().top;
+      const padding = view.documentPadding.top;
+      for (const [offset, types2] of group.rows) {
+        const index = this.rowIndexForOffset(offset);
+        const rect = index >= 0 ? rowRects[index] : void 0;
+        if (rect) {
+          const top = rect.top - contentTop + padding;
+          markers.push(new import_view2.RectangleMarker(this.classNamesFor(types2), left, top, null, rect.height));
+        }
+      }
+      return;
+    }
+    const types = /* @__PURE__ */ new Set();
+    group.rows.forEach((set2) => {
+      set2.forEach((type) => {
+        types.add(type);
+      });
+    });
+    markers.push(new import_view2.RectangleMarker(
+      this.classNamesFor(types),
+      left,
+      view.documentPadding.top + group.block.top,
+      null,
+      group.block.height
+    ));
+  }
+  /**
+   * Maps a source-line offset within a markdown table to the index of its
+   * rendered `<tr>`. Row 0 is the header; offset 1 is the `|---|` delimiter,
+   * which renders no row; every later data row shifts down by the delimiter.
+   *
+   * @param {number} offset - The 0-based source-line offset within the block
+   * @return {number} The matching `<tr>` index, or -1 for the delimiter line
+   */
+  rowIndexForOffset(offset) {
+    if (offset === 0) {
+      return 0;
+    }
+    return offset >= 2 ? offset - 1 : -1;
+  }
+  /**
+   * Returns the bounding rects of a rendered table's rows when the block is a
+   * table whose `<tr>` count matches its source lines minus the delimiter row,
+   * so the offset-to-row mapping is trustworthy. Returns null for any other
+   * widget or on a layout mismatch, signalling a whole-block fallback.
+   *
+   * @param {EditorView} view - The editor view holding the rendered widget
+   * @param {BlockInfo} block - The collapsed block to resolve
+   * @return {DOMRect[] | null} The row rects, or null when row mapping is unsafe
+   */
+  tableRowRects(view, block) {
+    const table = this.findBlockTable(view, block);
+    if (!table) {
+      return null;
+    }
+    const rows = Array.from(table.rows);
+    const sourceLines = view.state.doc.lineAt(block.to).number - view.state.doc.lineAt(block.from).number + 1;
+    if (!rows.length || rows.length !== sourceLines - 1) {
+      return null;
+    }
+    return rows.map((row) => row.getBoundingClientRect());
+  }
+  /**
+   * Finds the rendered `<table>` whose Live Preview widget maps to the given
+   * block, by matching each table widget's document position against the block
+   * range.
+   *
+   * @param {EditorView} view - The editor view to search within
+   * @param {BlockInfo} block - The collapsed block to resolve
+   * @return {HTMLTableElement | null} The matching table element, or null
+   */
+  findBlockTable(view, block) {
+    const widgets = view.contentDOM.querySelectorAll(".cm-table-widget");
+    for (const widget of Array.from(widgets)) {
+      let pos;
+      try {
+        pos = view.posAtDOM(widget);
+      } catch (e) {
+        continue;
+      }
+      if (pos >= block.from && pos <= block.to) {
+        return widget.querySelector("table");
+      }
+    }
+    return null;
+  }
+  /**
+   * Resolves the content-space x of the editor content's left edge, the anchor
+   * the bar offset is taken from.
+   *
+   * @param {EditorView} view - The editor view to measure
+   * @return {number} The left edge in layer coordinates
+   */
+  getLeftBase(view) {
+    const scrollRect = view.scrollDOM.getBoundingClientRect();
+    const contentRect = view.contentDOM.getBoundingClientRect();
+    return contentRect.left - scrollRect.left + view.scrollDOM.scrollLeft;
+  }
+  /**
+   * Joins the per-type CSS classes for a bar. The `removed` type carries no bar
+   * color in the layer, so it is dropped here.
+   *
+   * @param {Set<ChangeType>} types - The change types collapsed into this block
+   * @return {string} The space-joined class string for the marker element
+   */
+  classNamesFor(types) {
+    const classNames = ["lct", `lct-${"line" /* line */}`, "lct-change-bar"];
+    types.forEach((type) => {
+      if (type !== "removed" /* removed */) {
+        classNames.push(`lct-${type}`);
+      }
+    });
+    return classNames.join(" ");
+  }
+  /**
+   * Tests whether a position is inside the rendered viewport yet hidden by a
+   * replace decoration (a Live Preview block widget). Positions outside the
+   * viewport are off-screen and skipped; positions inside a visible range are
+   * real source lines handled by the decoration path.
+   *
+   * @param {EditorView} view - The editor view to test against
+   * @param {number} pos - The document position to classify
+   * @return {boolean} True if the position is collapsed under a block widget
+   */
+  isHidden(view, pos) {
+    if (pos < view.viewport.from || pos > view.viewport.to) {
+      return false;
+    }
+    return !view.visibleRanges.some(({ from, to }) => pos >= from && pos <= to);
+  }
+  /**
+   * Checks if the indicator type is set to 'line'.
+   *
+   * @return {boolean} True if the indicator type is 'line', false otherwise
+   */
+  isTypeLine() {
+    return this.settingsService.value("type") === "line" /* line */;
+  }
+  /**
+   * Gets the enabled change types that draw a bar. Mirrors the editor extension
+   * minus the removed type, which has no bar representation in this layer.
+   *
+   * @return {ChangeType[]} Array of enabled change types
+   */
+  getEnableTypes() {
+    return [
+      ...this.settingsService.value("show.changed") ? ["changed" /* changed */, "whitespace" /* whitespace */] : [],
+      ...this.settingsService.value("show.restored") ? ["restored" /* restored */] : [],
+      ...this.settingsService.value("show.added") ? ["added" /* added */] : []
+    ];
+  }
+};
+__decorateClass([
+  Inject("SettingsService")
+], ChangeLayerExtension.prototype, "settingsService", 2);
+__decorateClass([
+  Inject("SnapshotsService")
+], ChangeLayerExtension.prototype, "snapshotsService", 2);
+
 // src/extensions/editor-common.extension.ts
 var import_state2 = require("@codemirror/state");
-var import_view2 = require("@codemirror/view");
+var import_view3 = require("@codemirror/view");
 var EditorCommonExtension = class extends BaseExtension {
   /**
    * Creates a new instance of EditorCommonExtension.
@@ -3154,7 +3476,7 @@ var EditorCommonExtension = class extends BaseExtension {
      * Set of decorations to be applied to the editor.
      * Initialized with an empty decoration set.
      */
-    this.decorations = import_view2.Decoration.none;
+    this.decorations = import_view3.Decoration.none;
     this.updateDecorations();
   }
   /**
@@ -3187,7 +3509,7 @@ var EditorCommonExtension = class extends BaseExtension {
   updateDecorations() {
     const snapshot = this.snapshotsService.getOne();
     if (!this.isTypeLine() || !snapshot) {
-      this.decorations = import_view2.Decoration.none;
+      this.decorations = import_view3.Decoration.none;
       return;
     }
     this.buildDecorations();
@@ -3216,7 +3538,7 @@ var EditorCommonExtension = class extends BaseExtension {
           change.getTypes().forEach((type) => {
             classNames.push(`lct-${type}`);
           });
-          builder.add(line.from, line.from, import_view2.Decoration.line({
+          builder.add(line.from, line.from, import_view3.Decoration.line({
             attributes: {
               class: classNames.join(" ")
             }
@@ -3244,7 +3566,7 @@ var EditorCommonExtension = class extends BaseExtension {
    */
   getEnableTypes() {
     return [
-      ...this.settingsService.value("show.changed") ? ["changed" /* changed */] : [],
+      ...this.settingsService.value("show.changed") ? ["changed" /* changed */, "whitespace" /* whitespace */] : [],
       ...this.settingsService.value("show.restored") ? ["restored" /* restored */] : [],
       ...this.settingsService.value("show.added") ? ["added" /* added */] : [],
       ...this.settingsService.value("show.removed") ? ["removed" /* removed */] : []
@@ -4123,8 +4445,8 @@ var HunkHelper = class _HunkHelper {
 };
 
 // src/markers/char.marker.ts
-var import_view3 = require("@codemirror/view");
-var _DotMarker = class _DotMarker extends import_view3.GutterMarker {
+var import_view4 = require("@codemirror/view");
+var _DotMarker = class _DotMarker extends import_view4.GutterMarker {
   /**
    * Creates a new instance of DotMarker.
    *
@@ -4142,7 +4464,8 @@ var _DotMarker = class _DotMarker extends import_view3.GutterMarker {
     this.char = {
       ["changed" /* changed */]: this.settingsService.value("gutter.changed"),
       ["added" /* added */]: this.settingsService.value("gutter.added"),
-      ["restored" /* restored */]: this.settingsService.value("gutter.restored")
+      ["restored" /* restored */]: this.settingsService.value("gutter.restored"),
+      ["whitespace" /* whitespace */]: this.settingsService.value("gutter.changed")
     };
     this.elementClass = `lct-${"dot" /* dot */} lct-${this.changes}`;
   }
@@ -4364,7 +4687,7 @@ var GutterCommonExtension = class extends BaseExtension {
    */
   getEnableTypes() {
     return [
-      ...this.settingsService.value("show.changed") ? ["changed" /* changed */] : [],
+      ...this.settingsService.value("show.changed") ? ["changed" /* changed */, "whitespace" /* whitespace */] : [],
       ...this.settingsService.value("show.restored") ? ["restored" /* restored */] : [],
       ...this.settingsService.value("show.added") ? ["added" /* added */] : []
     ];
@@ -4381,8 +4704,8 @@ __decorateClass([
 ], GutterCommonExtension.prototype, "modalsService", 2);
 
 // src/markers/removed.marker.ts
-var import_view4 = require("@codemirror/view");
-var RemovedMarker = class extends import_view4.GutterMarker {
+var import_view5 = require("@codemirror/view");
+var RemovedMarker = class extends import_view5.GutterMarker {
   /**
    * Creates a new instance of RemovedMarker.
    *
@@ -4476,7 +4799,7 @@ __decorateClass([
 ], GutterRemovedExtension.prototype, "snapshotsService", 2);
 
 // src/services/extensions.service.ts
-var import_view5 = require("@codemirror/view");
+var import_view6 = require("@codemirror/view");
 var ExtensionsService = class {
   /**
    * Creates a new instance of ExtensionsService.
@@ -4500,6 +4823,23 @@ var ExtensionsService = class {
     this.register(EditorCommonExtension, "editor" /* editor */);
     this.register(GutterCommonExtension, "gutter" /* gutter */);
     this.register(GutterRemovedExtension, "gutter" /* gutter */);
+    this.registerChangeLayer();
+  }
+  /**
+   * Registers the margin layer that draws the `line` change bars over rendered
+   * block widgets (tables, callouts, embeds) in Live Preview, where the
+   * decoration-based bar cannot attach. Skipped if already registered.
+   *
+   * @return {void}
+   */
+  registerChangeLayer() {
+    const name = ChangeLayerExtension.name;
+    if (this.instances.has(name)) {
+      return;
+    }
+    const extension = new ChangeLayerExtension(this.plugin).build();
+    this.instances.set(name, extension);
+    this.plugin.registerEditorExtension(extension);
   }
   /**
    * Registers an extension with Obsidian.
@@ -4534,18 +4874,18 @@ var ExtensionsService = class {
     const plugin = this.plugin;
     switch (type) {
       case "editor" /* editor */:
-        return import_view5.ViewPlugin.define(
+        return import_view6.ViewPlugin.define(
           // eslint-disable-next-line new-cap
           (view, arg) => new clsConstructor(view, plugin, arg),
           {
             decorations: (view) => {
               var _a2;
-              return (_a2 = view.decorations) != null ? _a2 : import_view5.Decoration.none;
+              return (_a2 = view.decorations) != null ? _a2 : import_view6.Decoration.none;
             }
           }
         );
       case "gutter" /* gutter */:
-        return (0, import_view5.gutter)(new clsConstructor(null, plugin));
+        return (0, import_view6.gutter)(new clsConstructor(null, plugin));
       default:
         throw Error(`Unknown extension type "${type}" for "${(_a = clsConstructor == null ? void 0 : clsConstructor.name) != null ? _a : "unknown"}"`);
     }
@@ -5937,6 +6277,7 @@ var am_default = {
   "notice.current-snapshot-deleted": "\u12E8\u12A0\u1201\u1291 \u12E8\u1245\u133D\u1260\u1273\u12CA \u1245\u1302 \u12CD\u1202\u1265 \u1270\u1230\u122D\u12DF\u120D",
   "notice.file-restored": "\u134B\u12ED\u1209 \u12C8\u12F0 \u1218\u1290\u123B \u1201\u1294\u1273\u12CD \u1270\u1218\u120D\u1237\u120D",
   "notice.file-restore-failed": "\u134B\u12ED\u1209\u1295 \u12C8\u12F0 \u1218\u1290\u123B \u1201\u1294\u1273\u12CD \u1218\u1218\u1208\u1235 \u12A0\u120D\u1270\u1233\u12AB\u121D",
+  "notice.file-restore-path-occupied": "\u1218\u1218\u1208\u1235 \u12A0\u12ED\u127B\u120D\u121D\u1366 \u1260\u12DA\u1205 \u1218\u1295\u1308\u12F5 \u120C\u120B \u134B\u12ED\u120D \u12A0\u1235\u1240\u12F5\u121E \u12A0\u1208",
   "notice.copied": "\u1270\u1240\u12F5\u1277\u120D!",
   "notice.no-saved-history": "\u1208\u12DA\u1205 \u134B\u12ED\u120D \u12E8\u1270\u1240\u1218\u1320 \u1273\u122A\u12AD \u12E8\u1208\u121D\u1362",
   "notice.invalid-exclude-pattern": "\u12A0\u12AB\u1263\u1262\u12EB\u12CA \u1273\u122A\u12AD: \u12E8\u1270\u1308\u1208\u1209 \u1218\u1295\u1308\u12F6\u127D \u1235\u122D\u12D3\u1270 \u1325\u1208\u1275 \u1275\u12AD\u12AD\u1208\u129B \u1218\u12F0\u1260\u129B \u1218\u130D\u1208\u132B \u12A0\u12ED\u12F0\u1208\u121D \u12A5\u1293 \u127D\u120B \u12ED\u1263\u120B\u120D\u1362",
@@ -6075,6 +6416,7 @@ var ar_default = {
   "notice.current-snapshot-deleted": "\u062A\u0645 \u062D\u0630\u0641 \u0628\u064A\u0627\u0646\u0627\u062A \u0627\u0644\u0644\u0642\u0637\u0629 \u0627\u0644\u062D\u0627\u0644\u064A\u0629",
   "notice.file-restored": "\u062A\u0645\u062A \u0627\u0633\u062A\u0639\u0627\u062F\u0629 \u0627\u0644\u0645\u0644\u0641 \u0625\u0644\u0649 \u062D\u0627\u0644\u062A\u0647 \u0627\u0644\u0623\u0635\u0644\u064A\u0629",
   "notice.file-restore-failed": "\u062A\u0639\u0630\u0651\u0631\u062A \u0627\u0633\u062A\u0639\u0627\u062F\u0629 \u0627\u0644\u0645\u0644\u0641 \u0625\u0644\u0649 \u062D\u0627\u0644\u062A\u0647 \u0627\u0644\u0623\u0635\u0644\u064A\u0629",
+  "notice.file-restore-path-occupied": "\u062A\u0639\u0630\u0651\u0631\u062A \u0627\u0644\u0627\u0633\u062A\u0639\u0627\u062F\u0629: \u064A\u0648\u062C\u062F \u0628\u0627\u0644\u0641\u0639\u0644 \u0645\u0644\u0641 \u0622\u062E\u0631 \u0641\u064A \u0647\u0630\u0627 \u0627\u0644\u0645\u0633\u0627\u0631",
   "notice.copied": "\u062A\u0645 \u0627\u0644\u0646\u0633\u062E!",
   "notice.no-saved-history": "\u0644\u0627 \u064A\u0648\u062C\u062F \u0633\u062C\u0644 \u0645\u062D\u0641\u0648\u0638 \u0644\u0647\u0630\u0627 \u0627\u0644\u0645\u0644\u0641.",
   "notice.invalid-exclude-pattern": "\u0627\u0644\u0633\u062C\u0644 \u0627\u0644\u0645\u062D\u0644\u064A: \u0646\u0645\u0637 \u0627\u0644\u0645\u0633\u0627\u0631\u0627\u062A \u0627\u0644\u0645\u0633\u062A\u062B\u0646\u0627\u0629 \u0644\u064A\u0633 \u062A\u0639\u0628\u064A\u0631\u064B\u0627 \u0646\u0645\u0637\u064A\u064B\u0627 \u0635\u0627\u0644\u062D\u064B\u0627 \u0648\u0633\u064A\u062A\u0645 \u062A\u062C\u0627\u0647\u0644\u0647.",
@@ -6213,6 +6555,7 @@ var be_default = {
   "notice.current-snapshot-deleted": "\u0414\u0430\u0434\u0437\u0435\u043D\u044B\u044F \u0431\u044F\u0433\u0443\u0447\u0430\u0433\u0430 \u0437\u0434\u044B\u043C\u043A\u0430 \u0432\u044B\u0434\u0430\u043B\u0435\u043D\u044B",
   "notice.file-restored": "\u0424\u0430\u0439\u043B \u0430\u0434\u043D\u043E\u045E\u043B\u0435\u043D\u044B \u0434\u0430 \u0437\u044B\u0445\u043E\u0434\u043D\u0430\u0433\u0430 \u0441\u0442\u0430\u043D\u0443",
   "notice.file-restore-failed": "\u041D\u0435 \u045E\u0434\u0430\u043B\u043E\u0441\u044F \u0430\u0434\u043D\u0430\u0432\u0456\u0446\u044C \u0444\u0430\u0439\u043B \u0434\u0430 \u0437\u044B\u0445\u043E\u0434\u043D\u0430\u0433\u0430 \u0441\u0442\u0430\u043D\u0443",
+  "notice.file-restore-path-occupied": "\u041D\u0435 \u0430\u0442\u0440\u044B\u043C\u0430\u043B\u0430\u0441\u044F \u0430\u0434\u043D\u0430\u0432\u0456\u0446\u044C: \u043F\u0430 \u0433\u044D\u0442\u044B\u043C \u0448\u043B\u044F\u0445\u0443 \u045E\u0436\u043E \u0456\u0441\u043D\u0443\u0435 \u0456\u043D\u0448\u044B \u0444\u0430\u0439\u043B",
   "notice.copied": "\u0421\u043A\u0430\u043F\u0456\u044F\u0432\u0430\u043D\u0430!",
   "notice.no-saved-history": "\u0414\u043B\u044F \u0433\u044D\u0442\u0430\u0433\u0430 \u0444\u0430\u0439\u043B\u0430 \u043D\u044F\u043C\u0430 \u0437\u0430\u0445\u0430\u0432\u0430\u043D\u0430\u0439 \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u0456.",
   "notice.invalid-exclude-pattern": "Local history: \u0448\u0430\u0431\u043B\u043E\u043D \u0432\u044B\u043A\u043B\u044E\u0447\u0430\u043D\u044B\u0445 \u0448\u043B\u044F\u0445\u043E\u045E \u043D\u0435 \u0437'\u044F\u045E\u043B\u044F\u0435\u0446\u0446\u0430 \u043A\u0430\u0440\u044D\u043A\u0442\u043D\u044B\u043C \u0440\u044D\u0433\u0443\u043B\u044F\u0440\u043D\u044B\u043C \u0432\u044B\u0440\u0430\u0437\u0430\u043C \u0456 \u0456\u0433\u043D\u0430\u0440\u0443\u0435\u0446\u0446\u0430.",
@@ -6351,6 +6694,7 @@ var bn_default = {
   "notice.current-snapshot-deleted": "\u09AC\u09B0\u09CD\u09A4\u09AE\u09BE\u09A8 \u09B8\u09CD\u09A8\u09CD\u09AF\u09BE\u09AA\u09B6\u099F \u09A1\u09C7\u099F\u09BE \u09AE\u09C1\u099B\u09C7 \u09AB\u09C7\u09B2\u09BE \u09B9\u09AF\u09BC\u09C7\u099B\u09C7",
   "notice.file-restored": "\u09AB\u09BE\u0987\u09B2 \u09AE\u09C2\u09B2 \u0985\u09AC\u09B8\u09CD\u09A5\u09BE\u09AF\u09BC \u09AA\u09C1\u09A8\u09B0\u09C1\u09A6\u09CD\u09A7\u09BE\u09B0 \u0995\u09B0\u09BE \u09B9\u09AF\u09BC\u09C7\u099B\u09C7",
   "notice.file-restore-failed": "\u09AB\u09BE\u0987\u09B2 \u09AE\u09C2\u09B2 \u0985\u09AC\u09B8\u09CD\u09A5\u09BE\u09AF\u09BC \u09AA\u09C1\u09A8\u09B0\u09C1\u09A6\u09CD\u09A7\u09BE\u09B0 \u0995\u09B0\u09BE \u09AF\u09BE\u09AF\u09BC\u09A8\u09BF",
+  "notice.file-restore-path-occupied": "\u09AA\u09C1\u09A8\u09B0\u09C1\u09A6\u09CD\u09A7\u09BE\u09B0 \u0995\u09B0\u09BE \u09AF\u09BE\u09AF\u09BC \u09A8\u09BE: \u098F\u0987 \u09AA\u09A5\u09C7 \u0987\u09A4\u09BF\u09AE\u09A7\u09CD\u09AF\u09C7 \u0985\u09A8\u09CD\u09AF \u098F\u0995\u099F\u09BF \u09AB\u09BE\u0987\u09B2 \u09B0\u09AF\u09BC\u09C7\u099B\u09C7",
   "notice.copied": "\u0985\u09A8\u09C1\u09B2\u09BF\u09AA\u09BF \u0995\u09B0\u09BE \u09B9\u09AF\u09BC\u09C7\u099B\u09C7!",
   "notice.no-saved-history": "\u098F\u0987 \u09AB\u09BE\u0987\u09B2\u09C7\u09B0 \u099C\u09A8\u09CD\u09AF \u0995\u09CB\u09A8\u09CB \u09B8\u0982\u09B0\u0995\u09CD\u09B7\u09BF\u09A4 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09A8\u09C7\u0987\u0964",
   "notice.invalid-exclude-pattern": "\u09B8\u09CD\u09A5\u09BE\u09A8\u09C0\u09AF\u09BC \u0987\u09A4\u09BF\u09B9\u09BE\u09B8: \u09AC\u09BE\u09A6-\u09A6\u09C7\u0993\u09AF\u09BC\u09BE-\u09AA\u09BE\u09A5 \u09AA\u09CD\u09AF\u09BE\u099F\u09BE\u09B0\u09CD\u09A8\u099F\u09BF \u09AC\u09C8\u09A7 \u09B0\u09C7\u0997\u09C1\u09B2\u09BE\u09B0 \u098F\u0995\u09CD\u09B8\u09AA\u09CD\u09B0\u09C7\u09B6\u09A8 \u09A8\u09AF\u09BC \u098F\u09AC\u0982 \u0989\u09AA\u09C7\u0995\u09CD\u09B7\u09BE \u0995\u09B0\u09BE \u09B9\u099A\u09CD\u099B\u09C7\u0964",
@@ -6489,6 +6833,7 @@ var ca_default = {
   "notice.current-snapshot-deleted": "S'han eliminat les dades de la instant\xE0nia actual",
   "notice.file-restored": "S'ha restaurat el fitxer a l'estat original",
   "notice.file-restore-failed": "No s'ha pogut restaurar el fitxer a l'estat original",
+  "notice.file-restore-path-occupied": "No es pot restaurar: ja existeix un altre fitxer en aquesta ruta",
   "notice.copied": "S'ha copiat!",
   "notice.no-saved-history": "No hi ha cap historial desat per a aquest fitxer.",
   "notice.invalid-exclude-pattern": "Historial local: el patr\xF3 de camins exclosos no \xE9s una expressi\xF3 regular v\xE0lida i s'ignora.",
@@ -6627,6 +6972,7 @@ var cs_default = {
   "notice.current-snapshot-deleted": "Data aktu\xE1ln\xEDho sn\xEDmku byla smaz\xE1na",
   "notice.file-restored": "Soubor byl obnoven do p\u016Fvodn\xEDho stavu",
   "notice.file-restore-failed": "Nepoda\u0159ilo se obnovit soubor do p\u016Fvodn\xEDho stavu",
+  "notice.file-restore-path-occupied": "Nelze obnovit: na t\xE9to cest\u011B ji\u017E existuje jin\xFD soubor",
   "notice.copied": "Zkop\xEDrov\xE1no!",
   "notice.no-saved-history": "Pro tento soubor nen\xED ulo\u017Eena \u017E\xE1dn\xE1 historie.",
   "notice.invalid-exclude-pattern": "Local history: vzor vylou\u010Den\xFDch cest nen\xED platn\xFD regul\xE1rn\xED v\xFDraz a bude ignorov\xE1n.",
@@ -6765,6 +7111,7 @@ var da_default = {
   "notice.current-snapshot-deleted": "Aktuelt \xF8jebliksbillede slettet",
   "notice.file-restored": "Filen gendannet til oprindelig tilstand",
   "notice.file-restore-failed": "Filen kunne ikke gendannes til oprindelig tilstand",
+  "notice.file-restore-path-occupied": "Kan ikke gendanne: en anden fil findes allerede p\xE5 denne sti",
   "notice.copied": "Kopieret!",
   "notice.no-saved-history": "Der er ingen gemt historik for denne fil.",
   "notice.invalid-exclude-pattern": "Lokal historik: m\xF8nstret for ekskluderede stier er ikke et gyldigt regul\xE6rt udtryk og ignoreres.",
@@ -6903,6 +7250,7 @@ var de_default = {
   "notice.current-snapshot-deleted": "Aktuelle Snapshot-Daten gel\xF6scht",
   "notice.file-restored": "Datei in den Originalzustand zur\xFCckgesetzt",
   "notice.file-restore-failed": "Datei konnte nicht in den Originalzustand zur\xFCckgesetzt werden",
+  "notice.file-restore-path-occupied": "Wiederherstellung nicht m\xF6glich: An diesem Pfad existiert bereits eine andere Datei",
   "notice.copied": "Kopiert!",
   "notice.no-saved-history": "F\xFCr diese Datei ist kein Verlauf gespeichert.",
   "notice.invalid-exclude-pattern": "Lokaler Verlauf: Das Muster f\xFCr ausgeschlossene Pfade ist kein g\xFCltiger regul\xE4rer Ausdruck und wird ignoriert.",
@@ -7041,6 +7389,7 @@ var en_default = {
   "notice.current-snapshot-deleted": "Current snapshot data deleted",
   "notice.file-restored": "File restored to original state",
   "notice.file-restore-failed": "Failed to restore file to original state",
+  "notice.file-restore-path-occupied": "Cannot restore: another file already exists at this path",
   "notice.copied": "Copied!",
   "notice.no-saved-history": "There is no saved history for this file.",
   "notice.invalid-exclude-pattern": "Local history: the excluded-paths pattern is not a valid regular expression and is being ignored.",
@@ -7179,6 +7528,7 @@ var en_GB_default = {
   "notice.current-snapshot-deleted": "Current snapshot data deleted",
   "notice.file-restored": "File restored to original state",
   "notice.file-restore-failed": "Failed to restore file to original state",
+  "notice.file-restore-path-occupied": "Cannot restore: another file already exists at this path",
   "notice.copied": "Copied!",
   "notice.no-saved-history": "There is no saved history for this file.",
   "notice.invalid-exclude-pattern": "Local history: the excluded-paths pattern is not a valid regular expression and is being ignored.",
@@ -7317,6 +7667,7 @@ var es_default = {
   "notice.current-snapshot-deleted": "Se eliminaron los datos de la instant\xE1nea actual",
   "notice.file-restored": "Archivo restaurado a su estado original",
   "notice.file-restore-failed": "No se pudo restaurar el archivo a su estado original",
+  "notice.file-restore-path-occupied": "No se puede restaurar: ya existe otro archivo en esta ruta",
   "notice.copied": "\xA1Copiado!",
   "notice.no-saved-history": "No hay historial guardado para este archivo.",
   "notice.invalid-exclude-pattern": "Historial local: el patr\xF3n de rutas excluidas no es una expresi\xF3n regular v\xE1lida y se ignora.",
@@ -7455,6 +7806,7 @@ var fa_default = {
   "notice.current-snapshot-deleted": "\u062F\u0627\u062F\u0647\u200C\u0647\u0627\u06CC \u0639\u06A9\u0633 \u0641\u0648\u0631\u06CC \u0641\u0639\u0644\u06CC \u062D\u0630\u0641 \u0634\u062F",
   "notice.file-restored": "\u067E\u0631\u0648\u0646\u062F\u0647 \u0628\u0647 \u0648\u0636\u0639\u06CC\u062A \u0627\u0635\u0644\u06CC \u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u062F\u0647 \u0634\u062F",
   "notice.file-restore-failed": "\u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u062F\u0646 \u067E\u0631\u0648\u0646\u062F\u0647 \u0628\u0647 \u0648\u0636\u0639\u06CC\u062A \u0627\u0635\u0644\u06CC \u0646\u0627\u0645\u0648\u0641\u0642 \u0628\u0648\u062F",
+  "notice.file-restore-path-occupied": "\u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u06CC \u0645\u0645\u06A9\u0646 \u0646\u06CC\u0633\u062A: \u0641\u0627\u06CC\u0644 \u062F\u06CC\u06AF\u0631\u06CC \u062F\u0631 \u0627\u06CC\u0646 \u0645\u0633\u06CC\u0631 \u0648\u062C\u0648\u062F \u062F\u0627\u0631\u062F",
   "notice.copied": "\u06A9\u067E\u06CC \u0634\u062F!",
   "notice.no-saved-history": "\u0647\u06CC\u0686 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u0630\u062E\u06CC\u0631\u0647\u200C\u0634\u062F\u0647\u200C\u0627\u06CC \u0628\u0631\u0627\u06CC \u0627\u06CC\u0646 \u067E\u0631\u0648\u0646\u062F\u0647 \u0648\u062C\u0648\u062F \u0646\u062F\u0627\u0631\u062F.",
   "notice.invalid-exclude-pattern": "\u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u0645\u062D\u0644\u06CC: \u0627\u0644\u06AF\u0648\u06CC \u0645\u0633\u06CC\u0631\u0647\u0627\u06CC \u0645\u0633\u062A\u062B\u0646\u0627\u0634\u062F\u0647 \u06CC\u06A9 \u0639\u0628\u0627\u0631\u062A \u0628\u0627\u0642\u0627\u0639\u062F\u0647 \u0645\u0639\u062A\u0628\u0631 \u0646\u06CC\u0633\u062A \u0648 \u0646\u0627\u062F\u06CC\u062F\u0647 \u06AF\u0631\u0641\u062A\u0647 \u0645\u06CC\u200C\u0634\u0648\u062F.",
@@ -7593,6 +7945,7 @@ var fi_default = {
   "notice.current-snapshot-deleted": "Nykyiset tilannevedostiedot poistettu",
   "notice.file-restored": "Tiedosto palautettu alkuper\xE4iseen tilaan",
   "notice.file-restore-failed": "Tiedoston palauttaminen alkuper\xE4iseen tilaan ep\xE4onnistui",
+  "notice.file-restore-path-occupied": "Palautus ep\xE4onnistui: t\xE4ss\xE4 polussa on jo toinen tiedosto",
   "notice.copied": "Kopioitu!",
   "notice.no-saved-history": "T\xE4lle tiedostolle ei ole tallennettua historiaa.",
   "notice.invalid-exclude-pattern": "Paikallinen historia: poissuljettujen polkujen kuvio ei ole kelvollinen s\xE4\xE4nn\xF6llinen lauseke, ja se ohitetaan.",
@@ -7731,6 +8084,7 @@ var fr_default = {
   "notice.current-snapshot-deleted": "Donn\xE9es de l'instantan\xE9 actuel supprim\xE9es",
   "notice.file-restored": "Fichier restaur\xE9 \xE0 son \xE9tat d'origine",
   "notice.file-restore-failed": "\xC9chec de la restauration du fichier \xE0 son \xE9tat d'origine",
+  "notice.file-restore-path-occupied": "Restauration impossible : un autre fichier existe d\xE9j\xE0 \xE0 ce chemin",
   "notice.copied": "Copi\xE9 !",
   "notice.no-saved-history": "Aucun historique enregistr\xE9 pour ce fichier.",
   "notice.invalid-exclude-pattern": "Historique local : le motif des chemins exclus n'est pas une expression r\xE9guli\xE8re valide et est ignor\xE9.",
@@ -7869,6 +8223,7 @@ var ga_default = {
   "notice.current-snapshot-deleted": "Scriosadh sonra\xED an roghbhl\xFAire reatha",
   "notice.file-restored": "Cuireadh an comhad ar ais ina staid bhunaidh",
   "notice.file-restore-failed": "Theip ar an gcomhad a chur ar ais ina staid bhunaidh",
+  "notice.file-restore-path-occupied": "N\xED f\xE9idir \xE9 a athch\xF3iri\xFA: t\xE1 comhad eile sa chos\xE1n seo cheana f\xE9in",
   "notice.copied": "C\xF3ipe\xE1ilte!",
   "notice.no-saved-history": "N\xEDl aon stair sh\xE1bh\xE1ilte ann don chomhad seo.",
   "notice.invalid-exclude-pattern": "Stair \xE1iti\xFAil: n\xED slonn rialta bail\xED \xE9 patr\xFAn na gconair\xED eisiata agus d\xE9antar neamhaird de.",
@@ -8007,6 +8362,7 @@ var he_default = {
   "notice.current-snapshot-deleted": "\u05E0\u05EA\u05D5\u05E0\u05D9 \u05D4\u05EA\u05E6\u05DC\u05D5\u05DD \u05D4\u05E0\u05D5\u05DB\u05D7\u05D9 \u05E0\u05DE\u05D7\u05E7\u05D5",
   "notice.file-restored": "\u05D4\u05E7\u05D5\u05D1\u05E5 \u05E9\u05D5\u05D7\u05D6\u05E8 \u05DC\u05DE\u05E6\u05D1\u05D5 \u05D4\u05DE\u05E7\u05D5\u05E8\u05D9",
   "notice.file-restore-failed": "\u05E9\u05D7\u05D6\u05D5\u05E8 \u05D4\u05E7\u05D5\u05D1\u05E5 \u05DC\u05DE\u05E6\u05D1\u05D5 \u05D4\u05DE\u05E7\u05D5\u05E8\u05D9 \u05E0\u05DB\u05E9\u05DC",
+  "notice.file-restore-path-occupied": "\u05DC\u05D0 \u05E0\u05D9\u05EA\u05DF \u05DC\u05E9\u05D7\u05D6\u05E8: \u05D1\u05E0\u05EA\u05D9\u05D1 \u05D6\u05D4 \u05DB\u05D1\u05E8 \u05E7\u05D9\u05D9\u05DD \u05E7\u05D5\u05D1\u05E5 \u05D0\u05D7\u05E8",
   "notice.copied": "\u05D4\u05D5\u05E2\u05EA\u05E7!",
   "notice.no-saved-history": "\u05D0\u05D9\u05DF \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05E9\u05DE\u05D5\u05E8\u05D4 \u05DC\u05E7\u05D5\u05D1\u05E5 \u05D6\u05D4.",
   "notice.invalid-exclude-pattern": "\u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05DE\u05E7\u05D5\u05DE\u05D9\u05EA: \u05EA\u05D1\u05E0\u05D9\u05EA \u05D4\u05E0\u05EA\u05D9\u05D1\u05D9\u05DD \u05D4\u05DE\u05D5\u05D7\u05E8\u05D2\u05D9\u05DD \u05D0\u05D9\u05E0\u05D4 \u05D1\u05D9\u05D8\u05D5\u05D9 \u05E8\u05D2\u05D5\u05DC\u05E8\u05D9 \u05EA\u05E7\u05D9\u05DF \u05D5\u05D4\u05D9\u05D0 \u05EA\u05EA\u05E2\u05DC\u05DD.",
@@ -8145,6 +8501,7 @@ var hu_default = {
   "notice.current-snapshot-deleted": "Az aktu\xE1lis pillanatk\xE9p-adatok t\xF6r\xF6lve",
   "notice.file-restored": "A f\xE1jl vissza\xE1ll\xEDtva az eredeti \xE1llapot\xE1ba",
   "notice.file-restore-failed": "Nem siker\xFClt vissza\xE1ll\xEDtani a f\xE1jlt az eredeti \xE1llapot\xE1ba",
+  "notice.file-restore-path-occupied": "Nem lehet vissza\xE1ll\xEDtani: ezen az \xFAtvonalon m\xE1r l\xE9tezik egy m\xE1sik f\xE1jl",
   "notice.copied": "M\xE1solva!",
   "notice.no-saved-history": "Ehhez a f\xE1jlhoz nincs mentett el\u0151zm\xE9ny.",
   "notice.invalid-exclude-pattern": "Helyi el\u0151zm\xE9nyek: a kiz\xE1rt \xFAtvonalak mint\xE1ja nem \xE9rv\xE9nyes regul\xE1ris kifejez\xE9s, ez\xE9rt figyelmen k\xEDv\xFCl marad.",
@@ -8283,6 +8640,7 @@ var id_default = {
   "notice.current-snapshot-deleted": "Data snapshot saat ini dihapus",
   "notice.file-restored": "Berkas dipulihkan ke keadaan semula",
   "notice.file-restore-failed": "Gagal memulihkan berkas ke keadaan semula",
+  "notice.file-restore-path-occupied": "Tidak dapat memulihkan: file lain sudah ada di jalur ini",
   "notice.copied": "Disalin!",
   "notice.no-saved-history": "Tidak ada riwayat tersimpan untuk berkas ini.",
   "notice.invalid-exclude-pattern": "Riwayat lokal: pola jalur yang dikecualikan bukan ekspresi reguler yang valid dan diabaikan.",
@@ -8421,6 +8779,7 @@ var it_default = {
   "notice.current-snapshot-deleted": "Dati dell'istantanea corrente eliminati",
   "notice.file-restored": "File ripristinato allo stato originale",
   "notice.file-restore-failed": "Impossibile ripristinare il file allo stato originale",
+  "notice.file-restore-path-occupied": "Impossibile ripristinare: in questo percorso esiste gi\xE0 un altro file",
   "notice.copied": "Copiato!",
   "notice.no-saved-history": "Non c'\xE8 una cronologia salvata per questo file.",
   "notice.invalid-exclude-pattern": "Cronologia locale: il pattern dei percorsi esclusi non \xE8 un'espressione regolare valida e viene ignorato.",
@@ -8559,6 +8918,7 @@ var ja_default = {
   "notice.current-snapshot-deleted": "\u73FE\u5728\u306E\u30B9\u30CA\u30C3\u30D7\u30B7\u30E7\u30C3\u30C8\u30C7\u30FC\u30BF\u3092\u524A\u9664\u3057\u307E\u3057\u305F",
   "notice.file-restored": "\u30D5\u30A1\u30A4\u30EB\u3092\u5143\u306E\u72B6\u614B\u306B\u5FA9\u5143\u3057\u307E\u3057\u305F",
   "notice.file-restore-failed": "\u30D5\u30A1\u30A4\u30EB\u3092\u5143\u306E\u72B6\u614B\u306B\u5FA9\u5143\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F",
+  "notice.file-restore-path-occupied": "\u5FA9\u5143\u3067\u304D\u307E\u305B\u3093: \u3053\u306E\u30D1\u30B9\u306B\u306F\u65E2\u306B\u5225\u306E\u30D5\u30A1\u30A4\u30EB\u304C\u5B58\u5728\u3057\u307E\u3059",
   "notice.copied": "\u30B3\u30D4\u30FC\u3057\u307E\u3057\u305F\uFF01",
   "notice.no-saved-history": "\u3053\u306E\u30D5\u30A1\u30A4\u30EB\u306B\u306F\u4FDD\u5B58\u3055\u308C\u305F\u5C65\u6B74\u304C\u3042\u308A\u307E\u305B\u3093\u3002",
   "notice.invalid-exclude-pattern": "\u30ED\u30FC\u30AB\u30EB\u5C65\u6B74: \u9664\u5916\u30D1\u30B9\u306E\u30D1\u30BF\u30FC\u30F3\u304C\u6709\u52B9\u306A\u6B63\u898F\u8868\u73FE\u3067\u306F\u306A\u3044\u305F\u3081\u3001\u7121\u8996\u3055\u308C\u307E\u3059\u3002",
@@ -8697,6 +9057,7 @@ var ka_default = {
   "notice.current-snapshot-deleted": "\u10DB\u10D8\u10DB\u10D3\u10D8\u10DC\u10D0\u10E0\u10D4 \u10E1\u10EC\u10E0\u10D0\u10E4\u10D8 \u10D0\u10E1\u10DA\u10D8\u10E1 \u10DB\u10DD\u10DC\u10D0\u10EA\u10D4\u10DB\u10D4\u10D1\u10D8 \u10EC\u10D0\u10D8\u10E8\u10D0\u10DA\u10D0",
   "notice.file-restored": "\u10E4\u10D0\u10D8\u10DA\u10D8 \u10D0\u10E6\u10D3\u10D2\u10D0 \u10E1\u10D0\u10EC\u10E7\u10D8\u10E1 \u10DB\u10D3\u10D2\u10DD\u10DB\u10D0\u10E0\u10D4\u10DD\u10D1\u10D0\u10DB\u10D3\u10D4",
   "notice.file-restore-failed": "\u10E4\u10D0\u10D8\u10DA\u10D8\u10E1 \u10E1\u10D0\u10EC\u10E7\u10D8\u10E1 \u10DB\u10D3\u10D2\u10DD\u10DB\u10D0\u10E0\u10D4\u10DD\u10D1\u10D0\u10DB\u10D3\u10D4 \u10D0\u10E6\u10D3\u10D2\u10D4\u10DC\u10D0 \u10D5\u10D4\u10E0 \u10DB\u10DD\u10EE\u10D4\u10E0\u10EE\u10D3\u10D0",
+  "notice.file-restore-path-occupied": "\u10D0\u10E6\u10D3\u10D2\u10D4\u10DC\u10D0 \u10E8\u10D4\u10E3\u10EB\u10DA\u10D4\u10D1\u10D4\u10DA\u10D8\u10D0: \u10D0\u10DB \u10D1\u10D8\u10DA\u10D8\u10D9\u10D6\u10D4 \u10E3\u10D9\u10D5\u10D4 \u10D0\u10E0\u10E1\u10D4\u10D1\u10DD\u10D1\u10E1 \u10E1\u10EE\u10D5\u10D0 \u10E4\u10D0\u10D8\u10DA\u10D8",
   "notice.copied": "\u10D3\u10D0\u10D9\u10DD\u10DE\u10D8\u10E0\u10D3\u10D0!",
   "notice.no-saved-history": "\u10D0\u10DB \u10E4\u10D0\u10D8\u10DA\u10D8\u10E1\u10D7\u10D5\u10D8\u10E1 \u10E8\u10D4\u10DC\u10D0\u10EE\u10E3\u10DA\u10D8 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D0 \u10D0\u10E0 \u10D0\u10E0\u10D8\u10E1.",
   "notice.invalid-exclude-pattern": "\u10DA\u10DD\u10D9\u10D0\u10DA\u10E3\u10E0\u10D8 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D0: \u10D2\u10D0\u10DB\u10DD\u10E0\u10D8\u10EA\u10EE\u10E3\u10DA\u10D8 \u10D2\u10D6\u10D4\u10D1\u10D8\u10E1 \u10E8\u10D0\u10D1\u10DA\u10DD\u10DC\u10D8 \u10D0\u10E0 \u10D0\u10E0\u10D8\u10E1 \u10D5\u10D0\u10DA\u10D8\u10D3\u10E3\u10E0\u10D8 \u10E0\u10D4\u10D2\u10E3\u10DA\u10D0\u10E0\u10E3\u10DA\u10D8 \u10D2\u10D0\u10DB\u10DD\u10E1\u10D0\u10EE\u10E3\u10DA\u10D4\u10D1\u10D0 \u10D3\u10D0 \u10D8\u10D2\u10DC\u10DD\u10E0\u10D8\u10E0\u10D3\u10D4\u10D1\u10D0.",
@@ -8835,6 +9196,7 @@ var kh_default = {
   "notice.current-snapshot-deleted": "\u1794\u17B6\u1793\u179B\u17BB\u1794\u1791\u17B7\u1793\u17D2\u1793\u1793\u17D0\u1799\u179A\u17BC\u1794\u1790\u178F\u1794\u1785\u17D2\u1785\u17BB\u1794\u17D2\u1794\u1793\u17D2\u1793",
   "notice.file-restored": "\u1794\u17B6\u1793\u179F\u17D2\u178A\u17B6\u179A\u17AF\u1780\u179F\u17B6\u179A\u1791\u17C5\u179F\u17D2\u1790\u17B6\u1793\u1797\u17B6\u1796\u178A\u17BE\u1798\u179C\u17B7\u1789",
   "notice.file-restore-failed": "\u1798\u17B7\u1793\u17A2\u17B6\u1785\u179F\u17D2\u178A\u17B6\u179A\u17AF\u1780\u179F\u17B6\u179A\u1791\u17C5\u179F\u17D2\u1790\u17B6\u1793\u1797\u17B6\u1796\u178A\u17BE\u1798\u179C\u17B7\u1789\u1794\u17B6\u1793\u1791\u17C1",
+  "notice.file-restore-path-occupied": "\u1798\u17B7\u1793\u17A2\u17B6\u1785\u179F\u17D2\u178A\u17B6\u179A\u17A1\u17BE\u1784\u179C\u17B7\u1789\u1794\u17B6\u1793\u1791\u17C1: \u1798\u17B6\u1793\u17AF\u1780\u179F\u17B6\u179A\u1795\u17D2\u179F\u17C1\u1784\u1793\u17C5\u1795\u17D2\u179B\u17BC\u179C\u1793\u17C1\u17C7\u179A\u17BD\u1785\u17A0\u17BE\u1799",
   "notice.copied": "\u1794\u17B6\u1793\u1785\u1798\u17D2\u179B\u1784!",
   "notice.no-saved-history": "\u1782\u17D2\u1798\u17B6\u1793\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u178A\u17C2\u179B\u1794\u17B6\u1793\u179A\u1780\u17D2\u179F\u17B6\u1791\u17BB\u1780\u179F\u1798\u17D2\u179A\u17B6\u1794\u17CB\u17AF\u1780\u179F\u17B6\u179A\u1793\u17C1\u17C7\u1791\u17C1\u17D4",
   "notice.invalid-exclude-pattern": "\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u1780\u17D2\u1793\u17BB\u1784\u1798\u17C9\u17B6\u179F\u17CA\u17B8\u1793\u17D6 \u179B\u17C6\u1793\u17B6\u17C6\u1795\u17D2\u179B\u17BC\u179C\u178A\u17C2\u179B\u178A\u1780\u1785\u17C1\u1789\u1798\u17B7\u1793\u1798\u17C2\u1793\u1787\u17B6 Regular Expression \u178F\u17D2\u179A\u17B9\u1798\u178F\u17D2\u179A\u17BC\u179C\u1791\u17C1 \u178A\u17BC\u1785\u17D2\u1793\u17C1\u17C7\u179C\u17B6\u178F\u17D2\u179A\u17BC\u179C\u1794\u17B6\u1793\u179A\u17C6\u179B\u1784\u17D4",
@@ -8973,6 +9335,7 @@ var ko_default = {
   "notice.current-snapshot-deleted": "\uD604\uC7AC \uC2A4\uB0C5\uC0F7 \uB370\uC774\uD130\uB97C \uC0AD\uC81C\uD588\uC2B5\uB2C8\uB2E4",
   "notice.file-restored": "\uD30C\uC77C\uC744 \uC6D0\uB798 \uC0C1\uD0DC\uB85C \uBCF5\uC6D0\uD588\uC2B5\uB2C8\uB2E4",
   "notice.file-restore-failed": "\uD30C\uC77C\uC744 \uC6D0\uB798 \uC0C1\uD0DC\uB85C \uBCF5\uC6D0\uD558\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4",
+  "notice.file-restore-path-occupied": "\uBCF5\uC6D0\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4: \uC774 \uACBD\uB85C\uC5D0 \uC774\uBBF8 \uB2E4\uB978 \uD30C\uC77C\uC774 \uC788\uC2B5\uB2C8\uB2E4",
   "notice.copied": "\uBCF5\uC0AC\uD588\uC2B5\uB2C8\uB2E4!",
   "notice.no-saved-history": "\uC774 \uD30C\uC77C\uC5D0 \uC800\uC7A5\uB41C \uAE30\uB85D\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.",
   "notice.invalid-exclude-pattern": "\uB85C\uCEEC \uAE30\uB85D: \uC81C\uC678 \uACBD\uB85C \uD328\uD134\uC774 \uC62C\uBC14\uB978 \uC815\uADDC\uC2DD\uC774 \uC544\uB2C8\uBBC0\uB85C \uBB34\uC2DC\uB429\uB2C8\uB2E4.",
@@ -9111,6 +9474,7 @@ var lv_default = {
   "notice.current-snapshot-deleted": "Pa\u0161reiz\u0113jie momentuz\u0146\u0113muma dati dz\u0113sti",
   "notice.file-restored": "Fails atjaunots s\u0101kotn\u0113j\u0101 st\u0101vokl\u012B",
   "notice.file-restore-failed": "Neizdev\u0101s atjaunot failu s\u0101kotn\u0113j\u0101 st\u0101vokl\u012B",
+  "notice.file-restore-path-occupied": "Nevar atjaunot: \u0161aj\u0101 ce\u013C\u0101 jau past\u0101v cits fails",
   "notice.copied": "Nokop\u0113ts!",
   "notice.no-saved-history": "\u0160im failam nav saglab\u0101tas v\u0113stures.",
   "notice.invalid-exclude-pattern": "Viet\u0113j\u0101 v\u0113sture: izsl\u0113gto ce\u013Cu raksts nav der\u012Bga regul\u0101r\u0101 izteiksme un tiek ignor\u0113ts.",
@@ -9249,6 +9613,7 @@ var ms_default = {
   "notice.current-snapshot-deleted": "Data snapshot semasa dipadamkan",
   "notice.file-restored": "Fail dipulihkan kepada keadaan asal",
   "notice.file-restore-failed": "Gagal memulihkan fail kepada keadaan asal",
+  "notice.file-restore-path-occupied": "Tidak dapat memulihkan: fail lain telah wujud di laluan ini",
   "notice.copied": "Disalin!",
   "notice.no-saved-history": "Tiada sejarah tersimpan untuk fail ini.",
   "notice.invalid-exclude-pattern": "Sejarah tempatan: corak laluan yang dikecualikan bukan ungkapan biasa yang sah dan diabaikan.",
@@ -9387,6 +9752,7 @@ var ne_default = {
   "notice.current-snapshot-deleted": "\u0939\u093E\u0932\u0915\u094B \u0938\u094D\u0928\u094D\u092F\u093E\u092A\u0938\u091F \u0921\u0947\u091F\u093E \u092E\u0947\u091F\u093E\u0907\u092F\u094B",
   "notice.file-restored": "\u092B\u093E\u0907\u0932 \u092E\u0942\u0932 \u0905\u0935\u0938\u094D\u0925\u093E\u092E\u093E \u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u0928\u093E \u0917\u0930\u093F\u092F\u094B",
   "notice.file-restore-failed": "\u092B\u093E\u0907\u0932\u0932\u093E\u0908 \u092E\u0942\u0932 \u0905\u0935\u0938\u094D\u0925\u093E\u092E\u093E \u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u0928\u093E \u0917\u0930\u094D\u0928 \u0905\u0938\u092B\u0932 \u092D\u092F\u094B",
+  "notice.file-restore-path-occupied": "\u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u0928\u093E \u0938\u092E\u094D\u092D\u0935 \u091B\u0948\u0928: \u092F\u094B \u092A\u0925\u092E\u093E \u0905\u0930\u094D\u0915\u094B \u092B\u093E\u0907\u0932 \u092A\u0939\u093F\u0932\u0947 \u0928\u0948 \u0905\u0935\u0938\u094D\u0925\u093F\u0924 \u091B",
   "notice.copied": "\u092A\u094D\u0930\u0924\u093F\u0932\u093F\u092A\u093F \u0917\u0930\u093F\u092F\u094B!",
   "notice.no-saved-history": "\u092F\u0938 \u092B\u093E\u0907\u0932\u0915\u094B \u0932\u093E\u0917\u093F \u0915\u0941\u0928\u0948 \u0938\u0941\u0930\u0915\u094D\u0937\u093F\u0924 \u0907\u0924\u093F\u0939\u093E\u0938 \u091B\u0948\u0928\u0964",
   "notice.invalid-exclude-pattern": "\u0938\u094D\u0925\u093E\u0928\u0940\u092F \u0907\u0924\u093F\u0939\u093E\u0938: \u092C\u0939\u093F\u0937\u094D\u0915\u0943\u0924-\u092A\u0925 \u0922\u093E\u0901\u091A\u093E \u0935\u0948\u0927 \u0928\u093F\u092F\u092E\u093F\u0924 \u0905\u092D\u093F\u0935\u094D\u092F\u0915\u094D\u0924\u093F \u0939\u094B\u0907\u0928 \u0930 \u092C\u0947\u0935\u093E\u0938\u094D\u0924\u093E \u0917\u0930\u093F\u0901\u0926\u0948\u091B\u0964",
@@ -9525,6 +9891,7 @@ var nl_default = {
   "notice.current-snapshot-deleted": "Gegevens van huidige momentopname verwijderd",
   "notice.file-restored": "Bestand hersteld naar oorspronkelijke staat",
   "notice.file-restore-failed": "Kan bestand niet herstellen naar oorspronkelijke staat",
+  "notice.file-restore-path-occupied": "Kan niet herstellen: er bestaat al een ander bestand op dit pad",
   "notice.copied": "Gekopieerd!",
   "notice.no-saved-history": "Er is geen opgeslagen geschiedenis voor dit bestand.",
   "notice.invalid-exclude-pattern": "Lokale geschiedenis: het patroon voor uitgesloten paden is geen geldige reguliere expressie en wordt genegeerd.",
@@ -9663,6 +10030,7 @@ var no_default = {
   "notice.current-snapshot-deleted": "Gjeldende \xF8yeblikksbilde slettet",
   "notice.file-restored": "Filen gjenopprettet til opprinnelig tilstand",
   "notice.file-restore-failed": "Klarte ikke \xE5 gjenopprette filen til opprinnelig tilstand",
+  "notice.file-restore-path-occupied": "Kan ikke gjenopprette: en annen fil finnes allerede p\xE5 denne banen",
   "notice.copied": "Kopiert!",
   "notice.no-saved-history": "Det finnes ingen lagret historikk for denne filen.",
   "notice.invalid-exclude-pattern": "Lokal historikk: m\xF8nsteret for ekskluderte stier er ikke et gyldig regul\xE6rt uttrykk og blir ignorert.",
@@ -9801,6 +10169,7 @@ var pl_default = {
   "notice.current-snapshot-deleted": "Usuni\u0119to dane bie\u017C\u0105cej migawki",
   "notice.file-restored": "Przywr\xF3cono plik do stanu pierwotnego",
   "notice.file-restore-failed": "Nie uda\u0142o si\u0119 przywr\xF3ci\u0107 pliku do stanu pierwotnego",
+  "notice.file-restore-path-occupied": "Nie mo\u017Cna przywr\xF3ci\u0107: w tej \u015Bcie\u017Cce ju\u017C istnieje inny plik",
   "notice.copied": "Skopiowano!",
   "notice.no-saved-history": "Dla tego pliku nie ma zapisanej historii.",
   "notice.invalid-exclude-pattern": "Local history: wzorzec wykluczonych \u015Bcie\u017Cek nie jest prawid\u0142owym wyra\u017Ceniem regularnym i zostanie zignorowany.",
@@ -9939,6 +10308,7 @@ var pt_default = {
   "notice.current-snapshot-deleted": "Dados da captura atual eliminados",
   "notice.file-restored": "Ficheiro restaurado ao estado original",
   "notice.file-restore-failed": "N\xE3o foi poss\xEDvel restaurar o ficheiro ao estado original",
+  "notice.file-restore-path-occupied": "N\xE3o \xE9 poss\xEDvel restaurar: j\xE1 existe outro ficheiro neste caminho",
   "notice.copied": "Copiado!",
   "notice.no-saved-history": "N\xE3o existe hist\xF3rico guardado para este ficheiro.",
   "notice.invalid-exclude-pattern": "Hist\xF3rico local: o padr\xE3o de caminhos exclu\xEDdos n\xE3o \xE9 uma express\xE3o regular v\xE1lida e est\xE1 a ser ignorado.",
@@ -10077,6 +10447,7 @@ var pt_BR_default = {
   "notice.current-snapshot-deleted": "Dados do instant\xE2neo atual exclu\xEDdos",
   "notice.file-restored": "Arquivo restaurado ao estado original",
   "notice.file-restore-failed": "N\xE3o foi poss\xEDvel restaurar o arquivo ao estado original",
+  "notice.file-restore-path-occupied": "N\xE3o \xE9 poss\xEDvel restaurar: j\xE1 existe outro arquivo neste caminho",
   "notice.copied": "Copiado!",
   "notice.no-saved-history": "N\xE3o h\xE1 hist\xF3rico salvo para este arquivo.",
   "notice.invalid-exclude-pattern": "Hist\xF3rico local: o padr\xE3o de caminhos exclu\xEDdos n\xE3o \xE9 uma express\xE3o regular v\xE1lida e est\xE1 sendo ignorado.",
@@ -10215,6 +10586,7 @@ var ro_default = {
   "notice.current-snapshot-deleted": "Datele instantaneului curent au fost \u0219terse",
   "notice.file-restored": "Fi\u0219ierul a fost restabilit la starea ini\u021Bial\u0103",
   "notice.file-restore-failed": "Restabilirea fi\u0219ierului la starea ini\u021Bial\u0103 a e\u0219uat",
+  "notice.file-restore-path-occupied": "Nu se poate restaura: la aceast\u0103 cale exist\u0103 deja un alt fi\u0219ier",
   "notice.copied": "Copiat!",
   "notice.no-saved-history": "Nu exist\u0103 istoric salvat pentru acest fi\u0219ier.",
   "notice.invalid-exclude-pattern": "Local history: tiparul c\u0103ilor excluse nu este o expresie regulat\u0103 valid\u0103 \u0219i este ignorat.",
@@ -10353,6 +10725,7 @@ var ru_default = {
   "notice.current-snapshot-deleted": "\u0414\u0430\u043D\u043D\u044B\u0435 \u0442\u0435\u043A\u0443\u0449\u0435\u0433\u043E \u0441\u043D\u0438\u043C\u043A\u0430 \u0443\u0434\u0430\u043B\u0435\u043D\u044B",
   "notice.file-restored": "\u0424\u0430\u0439\u043B \u0432\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D \u0434\u043E \u0438\u0441\u0445\u043E\u0434\u043D\u043E\u0433\u043E \u0441\u043E\u0441\u0442\u043E\u044F\u043D\u0438\u044F",
   "notice.file-restore-failed": "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0432\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C \u0444\u0430\u0439\u043B \u0434\u043E \u0438\u0441\u0445\u043E\u0434\u043D\u043E\u0433\u043E \u0441\u043E\u0441\u0442\u043E\u044F\u043D\u0438\u044F",
+  "notice.file-restore-path-occupied": "\u041D\u0435 \u0443\u0434\u0430\u043B\u043E\u0441\u044C \u0432\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C: \u043F\u043E \u044D\u0442\u043E\u043C\u0443 \u043F\u0443\u0442\u0438 \u0443\u0436\u0435 \u0441\u0443\u0449\u0435\u0441\u0442\u0432\u0443\u0435\u0442 \u0434\u0440\u0443\u0433\u043E\u0439 \u0444\u0430\u0439\u043B",
   "notice.copied": "\u0421\u043A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u043D\u043E!",
   "notice.no-saved-history": "\u0414\u043B\u044F \u044D\u0442\u043E\u0433\u043E \u0444\u0430\u0439\u043B\u0430 \u043D\u0435\u0442 \u0441\u043E\u0445\u0440\u0430\u043D\u0451\u043D\u043D\u043E\u0439 \u0438\u0441\u0442\u043E\u0440\u0438\u0438.",
   "notice.invalid-exclude-pattern": "Local history: \u0448\u0430\u0431\u043B\u043E\u043D \u0438\u0441\u043A\u043B\u044E\u0447\u0451\u043D\u043D\u044B\u0445 \u043F\u0443\u0442\u0435\u0439 \u043D\u0435 \u044F\u0432\u043B\u044F\u0435\u0442\u0441\u044F \u043A\u043E\u0440\u0440\u0435\u043A\u0442\u043D\u044B\u043C \u0440\u0435\u0433\u0443\u043B\u044F\u0440\u043D\u044B\u043C \u0432\u044B\u0440\u0430\u0436\u0435\u043D\u0438\u0435\u043C \u0438 \u0438\u0433\u043D\u043E\u0440\u0438\u0440\u0443\u0435\u0442\u0441\u044F.",
@@ -10491,6 +10864,7 @@ var sk_default = {
   "notice.current-snapshot-deleted": "D\xE1ta aktu\xE1lnej sn\xEDmky boli odstr\xE1nen\xE9",
   "notice.file-restored": "S\xFAbor bol obnoven\xFD do p\xF4vodn\xE9ho stavu",
   "notice.file-restore-failed": "Nepodarilo sa obnovi\u0165 s\xFAbor do p\xF4vodn\xE9ho stavu",
+  "notice.file-restore-path-occupied": "Ned\xE1 sa obnovi\u0165: na tejto ceste u\u017E existuje in\xFD s\xFAbor",
   "notice.copied": "Skop\xEDrovan\xE9!",
   "notice.no-saved-history": "Pre tento s\xFAbor nie je ulo\u017Een\xE1 \u017Eiadna hist\xF3ria.",
   "notice.invalid-exclude-pattern": "Local history: vzor vyl\xFA\u010Den\xFDch ciest nie je platn\xFD regul\xE1rny v\xFDraz a bude ignorovan\xFD.",
@@ -10629,6 +11003,7 @@ var sq_default = {
   "notice.current-snapshot-deleted": "U fshin\xEB t\xEB dh\xEBnat e fotos aktuale",
   "notice.file-restored": "Skedari u rikthye n\xEB gjendjen origjinale",
   "notice.file-restore-failed": "D\xEBshtoi rikthimi i skedarit n\xEB gjendjen origjinale",
+  "notice.file-restore-path-occupied": "Nuk mund t\xEB rikthehet: n\xEB k\xEBt\xEB shteg ekziston tashm\xEB nj\xEB skedar tjet\xEBr",
   "notice.copied": "U kopjua!",
   "notice.no-saved-history": "Nuk ka histori t\xEB ruajtur p\xEBr k\xEBt\xEB skedar.",
   "notice.invalid-exclude-pattern": "Historia lokale: modeli i shtigjeve t\xEB p\xEBrjashtuara nuk \xEBsht\xEB nj\xEB shprehje e rregullt e vlefshme dhe po shp\xEBrfillet.",
@@ -10767,6 +11142,7 @@ var sr_default = {
   "notice.current-snapshot-deleted": "\u041F\u043E\u0434\u0430\u0446\u0438 \u0442\u0435\u043A\u0443\u045B\u0435\u0433 \u0441\u043D\u0438\u043C\u043A\u0430 \u0441\u0443 \u043E\u0431\u0440\u0438\u0441\u0430\u043D\u0438",
   "notice.file-restored": "\u0424\u0430\u0458\u043B \u0458\u0435 \u0432\u0440\u0430\u045B\u0435\u043D \u0443 \u043F\u0440\u0432\u043E\u0431\u0438\u0442\u043D\u043E \u0441\u0442\u0430\u045A\u0435",
   "notice.file-restore-failed": "\u0412\u0440\u0430\u045B\u0430\u045A\u0435 \u0444\u0430\u0458\u043B\u0430 \u0443 \u043F\u0440\u0432\u043E\u0431\u0438\u0442\u043D\u043E \u0441\u0442\u0430\u045A\u0435 \u043D\u0438\u0458\u0435 \u0443\u0441\u043F\u0435\u043B\u043E",
+  "notice.file-restore-path-occupied": "\u041D\u0438\u0458\u0435 \u043C\u043E\u0433\u0443\u045B\u0435 \u0432\u0440\u0430\u0442\u0438\u0442\u0438: \u043D\u0430 \u043E\u0432\u043E\u0458 \u043F\u0443\u0442\u0430\u045A\u0438 \u0432\u0435\u045B \u043F\u043E\u0441\u0442\u043E\u0458\u0438 \u0434\u0440\u0443\u0433\u0438 \u0444\u0430\u0458\u043B",
   "notice.copied": "\u041A\u043E\u043F\u0438\u0440\u0430\u043D\u043E!",
   "notice.no-saved-history": "\u0417\u0430 \u043E\u0432\u0430\u0458 \u0444\u0430\u0458\u043B \u043D\u0435\u043C\u0430 \u0441\u0430\u0447\u0443\u0432\u0430\u043D\u0435 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0435.",
   "notice.invalid-exclude-pattern": "Local history: \u043E\u0431\u0440\u0430\u0437\u0430\u0446 \u0438\u0441\u043A\u0459\u0443\u0447\u0435\u043D\u0438\u0445 \u043F\u0443\u0442\u0430\u045A\u0430 \u043D\u0438\u0458\u0435 \u0438\u0441\u043F\u0440\u0430\u0432\u0430\u043D \u0440\u0435\u0433\u0443\u043B\u0430\u0440\u043D\u0438 \u0438\u0437\u0440\u0430\u0437 \u0438 \u0431\u0438\u045B\u0435 \u0437\u0430\u043D\u0435\u043C\u0430\u0440\u0435\u043D.",
@@ -10905,6 +11281,7 @@ var sv_default = {
   "notice.current-snapshot-deleted": "Aktuell \xF6gonblicksbild borttagen",
   "notice.file-restored": "Filen \xE5terst\xE4lld till ursprungligt skick",
   "notice.file-restore-failed": "Det gick inte att \xE5terst\xE4lla filen till ursprungligt skick",
+  "notice.file-restore-path-occupied": "Kan inte \xE5terst\xE4lla: en annan fil finns redan p\xE5 denna s\xF6kv\xE4g",
   "notice.copied": "Kopierat!",
   "notice.no-saved-history": "Det finns ingen sparad historik f\xF6r den h\xE4r filen.",
   "notice.invalid-exclude-pattern": "Lokal historik: m\xF6nstret f\xF6r uteslutna s\xF6kv\xE4gar \xE4r inte ett giltigt regulj\xE4rt uttryck och ignoreras.",
@@ -11043,6 +11420,7 @@ var th_default = {
   "notice.current-snapshot-deleted": "\u0E25\u0E1A\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E2A\u0E41\u0E19\u0E47\u0E1B\u0E0A\u0E47\u0E2D\u0E15\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19\u0E41\u0E25\u0E49\u0E27",
   "notice.file-restored": "\u0E04\u0E37\u0E19\u0E04\u0E48\u0E32\u0E44\u0E1F\u0E25\u0E4C\u0E01\u0E25\u0E31\u0E1A\u0E2A\u0E39\u0E48\u0E2A\u0E16\u0E32\u0E19\u0E30\u0E40\u0E14\u0E34\u0E21\u0E41\u0E25\u0E49\u0E27",
   "notice.file-restore-failed": "\u0E44\u0E21\u0E48\u0E2A\u0E32\u0E21\u0E32\u0E23\u0E16\u0E04\u0E37\u0E19\u0E04\u0E48\u0E32\u0E44\u0E1F\u0E25\u0E4C\u0E01\u0E25\u0E31\u0E1A\u0E2A\u0E39\u0E48\u0E2A\u0E16\u0E32\u0E19\u0E30\u0E40\u0E14\u0E34\u0E21\u0E44\u0E14\u0E49",
+  "notice.file-restore-path-occupied": "\u0E44\u0E21\u0E48\u0E2A\u0E32\u0E21\u0E32\u0E23\u0E16\u0E01\u0E39\u0E49\u0E04\u0E37\u0E19: \u0E21\u0E35\u0E44\u0E1F\u0E25\u0E4C\u0E2D\u0E37\u0E48\u0E19\u0E2D\u0E22\u0E39\u0E48\u0E43\u0E19\u0E40\u0E2A\u0E49\u0E19\u0E17\u0E32\u0E07\u0E19\u0E35\u0E49\u0E41\u0E25\u0E49\u0E27",
   "notice.copied": "\u0E04\u0E31\u0E14\u0E25\u0E2D\u0E01\u0E41\u0E25\u0E49\u0E27!",
   "notice.no-saved-history": "\u0E44\u0E21\u0E48\u0E21\u0E35\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E17\u0E35\u0E48\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E44\u0E27\u0E49\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E44\u0E1F\u0E25\u0E4C\u0E19\u0E35\u0E49",
   "notice.invalid-exclude-pattern": "\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E43\u0E19\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07: \u0E23\u0E39\u0E1B\u0E41\u0E1A\u0E1A\u0E1E\u0E32\u0E18\u0E17\u0E35\u0E48\u0E22\u0E01\u0E40\u0E27\u0E49\u0E19\u0E44\u0E21\u0E48\u0E43\u0E0A\u0E48\u0E19\u0E34\u0E1E\u0E08\u0E19\u0E4C\u0E17\u0E31\u0E48\u0E27\u0E44\u0E1B\u0E17\u0E35\u0E48\u0E16\u0E39\u0E01\u0E15\u0E49\u0E2D\u0E07 \u0E08\u0E36\u0E07\u0E16\u0E39\u0E01\u0E25\u0E30\u0E40\u0E27\u0E49\u0E19",
@@ -11181,6 +11559,7 @@ var tr_default = {
   "notice.current-snapshot-deleted": "Ge\xE7erli anl\u0131k g\xF6r\xFCnt\xFC verileri silindi",
   "notice.file-restored": "Dosya \xF6zg\xFCn durumuna geri y\xFCklendi",
   "notice.file-restore-failed": "Dosya \xF6zg\xFCn durumuna geri y\xFCklenemedi",
+  "notice.file-restore-path-occupied": "Geri y\xFCklenemiyor: bu yolda zaten ba\u015Fka bir dosya var",
   "notice.copied": "Kopyaland\u0131!",
   "notice.no-saved-history": "Bu dosya i\xE7in kay\u0131tl\u0131 bir ge\xE7mi\u015F yok.",
   "notice.invalid-exclude-pattern": "Yerel ge\xE7mi\u015F: d\u0131\u015Flanan yollar deseni ge\xE7erli bir d\xFCzenli ifade de\u011Fil ve yok say\u0131l\u0131yor.",
@@ -11319,6 +11698,7 @@ var uk_default = {
   "notice.current-snapshot-deleted": "\u0414\u0430\u043D\u0456 \u043F\u043E\u0442\u043E\u0447\u043D\u043E\u0433\u043E \u0437\u043D\u0456\u043C\u043A\u0430 \u0432\u0438\u0434\u0430\u043B\u0435\u043D\u043E",
   "notice.file-restored": "\u0424\u0430\u0439\u043B \u0432\u0456\u0434\u043D\u043E\u0432\u043B\u0435\u043D\u043E \u0434\u043E \u043F\u043E\u0447\u0430\u0442\u043A\u043E\u0432\u043E\u0433\u043E \u0441\u0442\u0430\u043D\u0443",
   "notice.file-restore-failed": "\u041D\u0435 \u0432\u0434\u0430\u043B\u043E\u0441\u044F \u0432\u0456\u0434\u043D\u043E\u0432\u0438\u0442\u0438 \u0444\u0430\u0439\u043B \u0434\u043E \u043F\u043E\u0447\u0430\u0442\u043A\u043E\u0432\u043E\u0433\u043E \u0441\u0442\u0430\u043D\u0443",
+  "notice.file-restore-path-occupied": "\u041D\u0435 \u0432\u0434\u0430\u043B\u043E\u0441\u044F \u0432\u0456\u0434\u043D\u043E\u0432\u0438\u0442\u0438: \u0437\u0430 \u0446\u0438\u043C \u0448\u043B\u044F\u0445\u043E\u043C \u0432\u0436\u0435 \u0456\u0441\u043D\u0443\u0454 \u0456\u043D\u0448\u0438\u0439 \u0444\u0430\u0439\u043B",
   "notice.copied": "\u0421\u043A\u043E\u043F\u0456\u0439\u043E\u0432\u0430\u043D\u043E!",
   "notice.no-saved-history": "\u0414\u043B\u044F \u0446\u044C\u043E\u0433\u043E \u0444\u0430\u0439\u043B\u0443 \u043D\u0435\u043C\u0430\u0454 \u0437\u0431\u0435\u0440\u0435\u0436\u0435\u043D\u043E\u0457 \u0456\u0441\u0442\u043E\u0440\u0456\u0457.",
   "notice.invalid-exclude-pattern": "Local history: \u0448\u0430\u0431\u043B\u043E\u043D \u0432\u0438\u043A\u043B\u044E\u0447\u0435\u043D\u0438\u0445 \u0448\u043B\u044F\u0445\u0456\u0432 \u043D\u0435 \u0454 \u043A\u043E\u0440\u0435\u043A\u0442\u043D\u0438\u043C \u0440\u0435\u0433\u0443\u043B\u044F\u0440\u043D\u0438\u043C \u0432\u0438\u0440\u0430\u0437\u043E\u043C \u0456 \u0456\u0433\u043D\u043E\u0440\u0443\u0454\u0442\u044C\u0441\u044F.",
@@ -11457,6 +11837,7 @@ var uz_default = {
   "notice.current-snapshot-deleted": "Joriy surat ma\u02BClumotlari o\u02BBchirildi",
   "notice.file-restored": "Fayl asl holatiga tiklandi",
   "notice.file-restore-failed": "Faylni asl holatiga tiklab bo\u02BBlmadi",
+  "notice.file-restore-path-occupied": "Tiklab bo\u02BBlmadi: bu yo\u02BBlda allaqachon boshqa fayl mavjud",
   "notice.copied": "Nusxalandi!",
   "notice.no-saved-history": "Bu fayl uchun saqlangan tarix yo\u02BBq.",
   "notice.invalid-exclude-pattern": "Mahalliy tarix: istisno qilinadigan yo\u02BBllar shabloni yaroqli muntazam ifoda emas va e\u02BCtiborga olinmaydi.",
@@ -11595,6 +11976,7 @@ var vi_default = {
   "notice.current-snapshot-deleted": "\u0110\xE3 x\xF3a d\u1EEF li\u1EC7u \u1EA3nh ch\u1EE5p hi\u1EC7n t\u1EA1i",
   "notice.file-restored": "\u0110\xE3 kh\xF4i ph\u1EE5c t\u1EC7p v\u1EC1 tr\u1EA1ng th\xE1i ban \u0111\u1EA7u",
   "notice.file-restore-failed": "Kh\xF4ng th\u1EC3 kh\xF4i ph\u1EE5c t\u1EC7p v\u1EC1 tr\u1EA1ng th\xE1i ban \u0111\u1EA7u",
+  "notice.file-restore-path-occupied": "Kh\xF4ng th\u1EC3 kh\xF4i ph\u1EE5c: \u0111\u01B0\u1EDDng d\u1EABn n\xE0y \u0111\xE3 t\u1ED3n t\u1EA1i m\u1ED9t t\u1EC7p kh\xE1c",
   "notice.copied": "\u0110\xE3 sao ch\xE9p!",
   "notice.no-saved-history": "Kh\xF4ng c\xF3 l\u1ECBch s\u1EED n\xE0o \u0111\u01B0\u1EE3c l\u01B0u cho t\u1EC7p n\xE0y.",
   "notice.invalid-exclude-pattern": "L\u1ECBch s\u1EED c\u1EE5c b\u1ED9: m\u1EABu \u0111\u01B0\u1EDDng d\u1EABn lo\u1EA1i tr\u1EEB kh\xF4ng ph\u1EA3i l\xE0 bi\u1EC3u th\u1EE9c ch\xEDnh quy h\u1EE3p l\u1EC7 n\xEAn b\u1ECB b\u1ECF qua.",
@@ -11733,6 +12115,7 @@ var zh_default = {
   "notice.current-snapshot-deleted": "\u5DF2\u5220\u9664\u5F53\u524D\u5FEB\u7167\u6570\u636E",
   "notice.file-restored": "\u6587\u4EF6\u5DF2\u6062\u590D\u5230\u539F\u59CB\u72B6\u6001",
   "notice.file-restore-failed": "\u65E0\u6CD5\u5C06\u6587\u4EF6\u6062\u590D\u5230\u539F\u59CB\u72B6\u6001",
+  "notice.file-restore-path-occupied": "\u65E0\u6CD5\u6062\u590D\uFF1A\u6B64\u8DEF\u5F84\u5DF2\u5B58\u5728\u5176\u4ED6\u6587\u4EF6",
   "notice.copied": "\u5DF2\u590D\u5236\uFF01",
   "notice.no-saved-history": "\u6B64\u6587\u4EF6\u6CA1\u6709\u5DF2\u4FDD\u5B58\u7684\u5386\u53F2\u8BB0\u5F55\u3002",
   "notice.invalid-exclude-pattern": "\u672C\u5730\u5386\u53F2\uFF1A\u6392\u9664\u8DEF\u5F84\u7684\u6A21\u5F0F\u4E0D\u662F\u6709\u6548\u7684\u6B63\u5219\u8868\u8FBE\u5F0F\uFF0C\u5DF2\u88AB\u5FFD\u7565\u3002",
@@ -11871,6 +12254,7 @@ var zh_TW_default = {
   "notice.current-snapshot-deleted": "\u5DF2\u522A\u9664\u76EE\u524D\u5FEB\u7167\u8CC7\u6599",
   "notice.file-restored": "\u6A94\u6848\u5DF2\u9084\u539F\u70BA\u539F\u59CB\u72C0\u614B",
   "notice.file-restore-failed": "\u7121\u6CD5\u5C07\u6A94\u6848\u9084\u539F\u70BA\u539F\u59CB\u72C0\u614B",
+  "notice.file-restore-path-occupied": "\u7121\u6CD5\u9084\u539F\uFF1A\u6B64\u8DEF\u5F91\u5DF2\u5B58\u5728\u5176\u4ED6\u6A94\u6848",
   "notice.copied": "\u5DF2\u8907\u88FD\uFF01",
   "notice.no-saved-history": "\u6B64\u6A94\u6848\u6C92\u6709\u5DF2\u5132\u5B58\u7684\u6B77\u53F2\u8A18\u9304\u3002",
   "notice.invalid-exclude-pattern": "\u672C\u6A5F\u6B77\u53F2\uFF1A\u6392\u9664\u8DEF\u5F91\u7684\u6A21\u5F0F\u4E0D\u662F\u6709\u6548\u7684\u6B63\u898F\u8868\u793A\u5F0F\uFF0C\u5DF2\u88AB\u5FFD\u7565\u3002",
@@ -12301,9 +12685,12 @@ var SelectionHistoryHelper = class _SelectionHistoryHelper {
     if (previous.length === 0 && current.length === 0) {
       return { added, removed };
     }
-    const previousText = `${previous.join("\n")}
+    const normalize = (lines) => lines.map(
+      (line) => line.endsWith("\r") ? line.slice(0, -1) : line
+    );
+    const previousText = `${normalize(previous).join("\n")}
 `;
-    const currentText = `${current.join("\n")}
+    const currentText = `${normalize(current).join("\n")}
 `;
     if (previousText === currentText) {
       return { added, removed };
@@ -13195,7 +13582,9 @@ var WordDiffHelper = class _WordDiffHelper {
    * Splits a diff block value into its constituent lines. The diff library
    * appends a trailing newline to every block, which would otherwise yield a
    * spurious empty final line, so a single trailing newline is dropped before
-   * splitting.
+   * splitting. The single line-ending normalization point for the diff surface
+   * (ADR-08-G): split on `/\r?\n/` so CRLF content does not leave a stray `\r`
+   * on every row.
    *
    * @param {string} value - The raw block value from the diff library
    * @return {string[]} The lines of the block
@@ -13204,8 +13593,8 @@ var WordDiffHelper = class _WordDiffHelper {
     if (value === "") {
       return [];
     }
-    const normalized = value.endsWith("\n") ? value.slice(0, -1) : value;
-    return normalized.split("\n");
+    const normalized = value.replace(/\r?\n$/, "");
+    return normalized.split(/\r?\n/);
   }
 };
 
@@ -15204,8 +15593,8 @@ var DiffRenderHelper = class _DiffRenderHelper {
       return createTwoFilesPatch(
         params.filePath,
         params.filePath,
-        base != null ? base : "",
-        current != null ? current : "",
+        base,
+        current,
         "",
         "",
         {
@@ -15233,8 +15622,8 @@ var DiffRenderHelper = class _DiffRenderHelper {
       return createTwoFilesPatch(
         params.filePath,
         params.filePath,
-        base != null ? base : "",
-        current != null ? current : "",
+        base,
+        current,
         "",
         "",
         {
@@ -15246,7 +15635,7 @@ var DiffRenderHelper = class _DiffRenderHelper {
       "===================================================================",
       `--- ${params.filePath}	`,
       `+++ ${params.filePath}	`,
-      `@@ -1,${base.length} +1,${current.length} @@`,
+      `@@ -1,${params.baseLines.length} +1,${params.currentLines.length} @@`,
       params.currentLines.map((content) => ` ${content}`).join("\n"),
       "\\ No newline at end of file"
     ].join("\n");
@@ -16496,6 +16885,10 @@ var FolderHistoryModal = class extends import_obsidian16.Modal {
    */
   async restoreTombstoneSelection(path, snapshot, result) {
     const content = result.base.join(snapshot.lineBreak);
+    if (this.app.vault.getAbstractFileByPath(path) !== null) {
+      new import_obsidian16.Notice(this.plugin.t("notice.file-restore-path-occupied"));
+      return;
+    }
     try {
       const created = await this.app.vault.create(path, content);
       snapshot.file = created;
@@ -16952,6 +17345,12 @@ var HistoryModal = class extends import_obsidian17.Modal {
     this.app = app;
     this.plugin = plugin;
     this.snapshot = snapshot;
+    /**
+     * Handle of the pending deferred `setupScrollSynchronization` call, captured
+     * so a rapid mode switch can cancel it before it attaches listeners to a
+     * replaced DOM. See T13 in `.plan/08-code-review-remediation`.
+     */
+    this.scrollSyncTimer = null;
     /**
      * Id of the currently selected diff base. Set on open to the latest captured
      * version (so the modal opens on "what changed since the last save"), or to
@@ -18466,7 +18865,14 @@ var HistoryModal = class extends import_obsidian17.Modal {
     }
     this.attachInlineReverts();
     if (format === "side-by-side" /* side */) {
-      setTimeout(() => this.setupScrollSynchronization(), 0);
+      const targetContainer = this.diffContainerEl;
+      this.scrollSyncTimer = setTimeout(() => {
+        this.scrollSyncTimer = null;
+        if (this.diffContainerEl !== targetContainer) {
+          return;
+        }
+        this.setupScrollSynchronization();
+      }, 0);
     }
   }
   /**
@@ -18515,6 +18921,10 @@ var HistoryModal = class extends import_obsidian17.Modal {
    * Called when switching between diff modes or closing the modal.
    */
   cleanupScrollSync() {
+    if (this.scrollSyncTimer !== null) {
+      clearTimeout(this.scrollSyncTimer);
+      this.scrollSyncTimer = null;
+    }
     const container = this.diffContainerEl;
     if (container == null ? void 0 : container._scrollSyncCleanup) {
       container._scrollSyncCleanup();
@@ -18947,6 +19357,17 @@ var PersistenceService = class {
      * before the initial load has populated state.
      */
     this.restored = false;
+    /**
+     * Promise chain that serializes all on-disk writes (`saveToDisk` /
+     * `clearDisk`). Every public entry point appends its work as `.then(...)`,
+     * so writes run strictly in submission order and `unload` can await the
+     * tail to flush the queue before the plugin tears down.
+     *
+     * ADR-08-A: scheduleSave, unload, restoreFromDisk's re-save, and the
+     * settings-toggle path all hit the same file; without one chain they race
+     * `adapter.write` and last-writer-wins is non-deterministic.
+     */
+    this.writeQueue = Promise.resolve();
   }
   /**
    * Loads persisted history once the workspace layout is ready.
@@ -18961,17 +19382,19 @@ var PersistenceService = class {
   }
   /**
    * Flushes any pending history to disk when the plugin unloads.
-   * Cancels the debounce timer and performs a final synchronous-style save so
-   * the latest state is not lost on disable or app quit.
+   * Cancels the debounce timer, enqueues a final save, then awaits the entire
+   * write queue so any in-flight or already-queued write has fully completed
+   * before the plugin tears down.
    *
-   * @return {Promise<void>} Resolves when the final save completes
+   * @return {Promise<void>} Resolves when the queue is drained
    */
   async unload() {
     if (this.saveTimer) {
       clearTimeout(this.saveTimer);
       this.saveTimer = null;
     }
-    await this.saveToDisk();
+    this.enqueueSave();
+    await this.writeQueue;
   }
   onSnapshotsUpdate() {
     if (!this.restored || !this.isPersistEnabled()) {
@@ -18981,7 +19404,7 @@ var PersistenceService = class {
   }
   onSettingsUpdate() {
     if (!this.isPersistEnabled()) {
-      void this.clearDisk();
+      this.enqueueClear();
       return;
     }
     this.scheduleSave();
@@ -18997,7 +19420,7 @@ var PersistenceService = class {
   async restoreFromDisk() {
     try {
       if (!this.isPersistEnabled()) {
-        await this.clearDisk();
+        this.enqueueClear();
         return;
       }
       const history = await this.readDisk();
@@ -19010,7 +19433,7 @@ var PersistenceService = class {
         this.plugin.forceUpdateEditor();
       }
       if (kept.length !== history.snapshots.length) {
-        await this.saveToDisk();
+        this.enqueueSave();
       }
     } finally {
       this.restored = true;
@@ -19098,13 +19521,33 @@ var PersistenceService = class {
     }
     this.saveTimer = setTimeout(() => {
       this.saveTimer = null;
-      void this.saveToDisk();
+      this.enqueueSave();
     }, SAVE_DEBOUNCE_MS);
+  }
+  /**
+   * Appends a save to the write queue so it runs after every previously
+   * scheduled write completes. The queue swallows individual write failures
+   * (logged inside `saveToDisk`) so a single bad write does not poison the
+   * chain and starve later writes.
+   */
+  enqueueSave() {
+    this.writeQueue = this.writeQueue.then(() => this.saveToDisk());
+  }
+  /**
+   * Appends a clear to the write queue so it serializes with pending saves.
+   */
+  enqueueClear() {
+    this.writeQueue = this.writeQueue.then(() => this.clearDisk());
   }
   /**
    * Serializes the current snapshots and writes them to the history file.
    * Applies retention before writing so the on-disk set stays within caps, and
    * removes the file entirely when persistence is disabled or nothing is left.
+   *
+   * The write itself is atomic: payload is written to `<path>.tmp`, the prior
+   * file (if any) is copied to `<path>.bak`, and finally `.tmp` is renamed
+   * over `<path>`. A crash mid-write leaves either the prior file intact or
+   * the new `.tmp` recoverable, never a truncated `<path>`.
    *
    * @return {Promise<void>} Resolves when the write completes
    */
@@ -19119,19 +19562,42 @@ var PersistenceService = class {
       await this.clearDisk();
       return;
     }
+    const path = this.getHistoryPath();
+    const tmpPath = `${path}.tmp`;
+    const bakPath = `${path}.bak`;
+    const adapter = this.plugin.app.vault.adapter;
     try {
-      await this.plugin.app.vault.adapter.write(
-        this.getHistoryPath(),
-        JSON.stringify({ version: payload.version, snapshots: kept })
-      );
+      await adapter.write(tmpPath, JSON.stringify({ version: payload.version, snapshots: kept }));
+      if (await adapter.exists(path)) {
+        try {
+          if (await adapter.exists(bakPath)) {
+            await adapter.remove(bakPath);
+          }
+          await adapter.rename(path, bakPath);
+        } catch (error) {
+          console.error("Local history: failed to back up prior history file", error);
+        }
+      }
+      await adapter.rename(tmpPath, path);
     } catch (error) {
       console.error("Local history: failed to persist history", error);
+      try {
+        if (await adapter.exists(tmpPath)) {
+          await adapter.remove(tmpPath);
+        }
+      } catch (e) {
+      }
     }
   }
   /**
    * Reads and parses the on-disk history file.
    * Returns null when the file is absent or unreadable so callers can treat a
    * missing or corrupt store as "no history" rather than throwing.
+   *
+   * Per-entry validation (ADR-08-B): each snapshot is checked against a minimal
+   * shape predicate (`isValidEntry`) and malformed entries are skipped so a few
+   * bad records do not poison retention math (`NaN >= oldest` is always false,
+   * silently dropping otherwise-valid entries) or crash downstream `fromJSON`.
    *
    * @return {Promise<SerializedHistory | null>} The parsed history, or null
    */
@@ -19146,11 +19612,40 @@ var PersistenceService = class {
       if (!parsed || !Array.isArray(parsed.snapshots)) {
         return null;
       }
-      return parsed;
+      const valid = parsed.snapshots.filter(
+        (item) => this.isValidEntry(item)
+      );
+      return { version: parsed.version, snapshots: valid };
     } catch (error) {
       console.error("Local history: failed to read persisted history", error);
       return null;
     }
+  }
+  /**
+   * Whether a serialized snapshot has the minimum well-formed shape required to
+   * survive retention math and reach `FileSnapshot.fromJSON` without falling
+   * back to defaults that would resurrect junk. Required: `path` is a string,
+   * `timestamp` is a finite number, `lines` and `tracker` are arrays. A
+   * non-finite timestamp is treated as "skip" rather than `0` so a malformed
+   * entry cannot pose as fresh history.
+   *
+   * @param {SerializedFileSnapshot} item - The candidate entry
+   * @return {boolean} True when the entry is structurally usable
+   */
+  isValidEntry(item) {
+    if (!item || typeof item !== "object") {
+      return false;
+    }
+    if (!isString_default(item.path)) {
+      return false;
+    }
+    if (!isNumber_default(item.timestamp) || !Number.isFinite(item.timestamp)) {
+      return false;
+    }
+    if (!Array.isArray(item.lines) || !Array.isArray(item.tracker)) {
+      return false;
+    }
+    return true;
   }
   /**
    * Removes the on-disk history file if it exists.
@@ -19204,6 +19699,112 @@ __decorateClass([
   On("settings:update" /* settingsUpdate */)
 ], PersistenceService.prototype, "onSettingsUpdate", 1);
 
+// src/helpers/path-exclude.helper.ts
+var _PathExcludeHelper = class _PathExcludeHelper {
+  /**
+   * Decides whether a file path is excluded by the given pattern. The path is
+   * normalized to forward slashes before matching so a pattern written with
+   * `/` works regardless of the host path separator. An empty pattern, an
+   * empty path, a path beyond `MAX_PATH_LENGTH`, or a pattern that fails to
+   * compile all return false (nothing excluded).
+   *
+   * @param {string} path - The vault-relative file path to test
+   * @param {string} pattern - The raw exclude pattern from the settings field
+   * @return {boolean} True when the path matches the compiled pattern
+   */
+  static isExcluded(path, pattern) {
+    if (!path) {
+      return false;
+    }
+    const regExp = _PathExcludeHelper.compile(pattern);
+    if (!regExp) {
+      return false;
+    }
+    const normalized = _PathExcludeHelper.normalize(path);
+    if (normalized.length > _PathExcludeHelper.MAX_PATH_LENGTH) {
+      return false;
+    }
+    return regExp.test(normalized);
+  }
+  /**
+   * Reports whether a pattern is usable: blank patterns are valid (they simply
+   * exclude nothing), and a non-blank pattern is valid only when it compiles to
+   * a regular expression. Callers use this to warn the user once about a
+   * malformed pattern without coupling to the matching logic.
+   *
+   * @param {string} pattern - The raw exclude pattern from the settings field
+   * @return {boolean} True when the pattern is blank or compiles successfully
+   */
+  static isValid(pattern) {
+    if (!pattern || !pattern.trim()) {
+      return true;
+    }
+    return _PathExcludeHelper.compile(pattern) !== null;
+  }
+  /**
+   * Safe-compiles the raw pattern into a case-insensitive regular expression.
+   * A blank pattern yields null (matches nothing) and an invalid pattern is
+   * caught and also yields null, so compilation never throws. The result is
+   * memoized in a single-slot cache keyed by the raw pattern string, so a
+   * stream of `isExcluded` calls with the same settings compiles once.
+   *
+   * @param {string} pattern - The raw exclude pattern from the settings field
+   * @return {RegExp|null} The compiled regex, or null when blank or invalid
+   */
+  static compile(pattern) {
+    if (!pattern || !pattern.trim()) {
+      return null;
+    }
+    if (_PathExcludeHelper.cachedPattern === pattern) {
+      return _PathExcludeHelper.cachedRegExp;
+    }
+    let regExp;
+    try {
+      regExp = new RegExp(pattern.trim(), "i");
+    } catch (e) {
+      regExp = null;
+    }
+    _PathExcludeHelper.cachedPattern = pattern;
+    _PathExcludeHelper.cachedRegExp = regExp;
+    return regExp;
+  }
+  /**
+   * Normalizes a path for matching: converts backslashes to forward slashes and
+   * drops a leading `./` or `/` so the value aligns with the vault-relative
+   * paths the user writes patterns against.
+   *
+   * @param {string} value - The raw path
+   * @return {string} The normalized path
+   */
+  static normalize(value) {
+    let result = value.replace(/\\/g, "/");
+    if (result.startsWith("./")) {
+      result = result.slice(2);
+    }
+    if (result.startsWith("/")) {
+      result = result.slice(1);
+    }
+    return result;
+  }
+};
+/**
+ * Upper bound on the normalized path length passed to `RegExp.test` to
+ * contain catastrophic backtracking on user-supplied patterns like `(a+)+$`.
+ * Vault paths are realistically well under this cap (filesystem limits sit
+ * around 4 KiB), so legitimate matching is unaffected; pathological input
+ * just yields "not excluded" instead of pinning the event loop.
+ */
+_PathExcludeHelper.MAX_PATH_LENGTH = 4096;
+/**
+ * Single-slot cache for the most recently compiled pattern. The settings UI
+ * carries one exclude pattern at a time, so a 1-entry cache covers the hot
+ * `isExcluded` call site (per `trackable` check) without growing the helper
+ * into a map keyed by arbitrary user input.
+ */
+_PathExcludeHelper.cachedPattern = null;
+_PathExcludeHelper.cachedRegExp = null;
+var PathExcludeHelper = _PathExcludeHelper;
+
 // src/settings/main.setting.ts
 var import_obsidian20 = require("obsidian");
 var MainSetting = class extends import_obsidian20.PluginSettingTab {
@@ -19239,7 +19840,12 @@ var MainSetting = class extends import_obsidian20.PluginSettingTab {
     );
     new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.exclude-paths.name")).setDesc(this.plugin.t("setting.exclude-paths.desc")).addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.excludePaths).setValue(this.settingsService.value("excludePaths")).onChange((value) => {
-        this.settingsService.update("excludePaths", value);
+        if (PathExcludeHelper.isValid(value)) {
+          text.inputEl.removeClass("lct-setting-invalid");
+          this.settingsService.update("excludePaths", value);
+          return;
+        }
+        text.inputEl.addClass("lct-setting-invalid");
       })
     );
     new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.keep.name")).setDesc(this.plugin.t("setting.keep.desc")).addDropdown(
@@ -19513,82 +20119,6 @@ var SettingsService = class {
   }
 };
 
-// src/helpers/path-exclude.helper.ts
-var PathExcludeHelper = class _PathExcludeHelper {
-  /**
-   * Decides whether a file path is excluded by the given pattern. The path is
-   * normalized to forward slashes before matching so a pattern written with
-   * `/` works regardless of the host path separator. An empty pattern, an
-   * empty path, or a pattern that fails to compile all return false (nothing
-   * excluded).
-   *
-   * @param {string} path - The vault-relative file path to test
-   * @param {string} pattern - The raw exclude pattern from the settings field
-   * @return {boolean} True when the path matches the compiled pattern
-   */
-  static isExcluded(path, pattern) {
-    if (!path) {
-      return false;
-    }
-    const regExp = _PathExcludeHelper.compile(pattern);
-    if (!regExp) {
-      return false;
-    }
-    return regExp.test(_PathExcludeHelper.normalize(path));
-  }
-  /**
-   * Reports whether a pattern is usable: blank patterns are valid (they simply
-   * exclude nothing), and a non-blank pattern is valid only when it compiles to
-   * a regular expression. Callers use this to warn the user once about a
-   * malformed pattern without coupling to the matching logic.
-   *
-   * @param {string} pattern - The raw exclude pattern from the settings field
-   * @return {boolean} True when the pattern is blank or compiles successfully
-   */
-  static isValid(pattern) {
-    if (!pattern || !pattern.trim()) {
-      return true;
-    }
-    return _PathExcludeHelper.compile(pattern) !== null;
-  }
-  /**
-   * Safe-compiles the raw pattern into a case-insensitive regular expression.
-   * A blank pattern yields null (matches nothing) and an invalid pattern is
-   * caught and also yields null, so compilation never throws.
-   *
-   * @param {string} pattern - The raw exclude pattern from the settings field
-   * @return {RegExp|null} The compiled regex, or null when blank or invalid
-   */
-  static compile(pattern) {
-    if (!pattern || !pattern.trim()) {
-      return null;
-    }
-    try {
-      return new RegExp(pattern.trim(), "i");
-    } catch (e) {
-      return null;
-    }
-  }
-  /**
-   * Normalizes a path for matching: converts backslashes to forward slashes and
-   * drops a leading `./` or `/` so the value aligns with the vault-relative
-   * paths the user writes patterns against.
-   *
-   * @param {string} value - The raw path
-   * @return {string} The normalized path
-   */
-  static normalize(value) {
-    let result = value.replace(/\\/g, "/");
-    if (result.startsWith("./")) {
-      result = result.slice(2);
-    }
-    if (result.startsWith("/")) {
-      result = result.slice(1);
-    }
-    return result;
-  }
-};
-
 // src/maps/observable.map.ts
 var ObservableMap = class extends Map {
   constructor() {
@@ -19627,12 +20157,16 @@ var ObservableMap = class extends Map {
    * Notifies all subscribed handlers of a change to the map.
    * Called internally by the set, delete, and clear methods.
    *
+   * Iterates over a snapshot of the listener set, so a handler that
+   * subscribes or unsubscribes during dispatch cannot corrupt the
+   * in-progress iteration (re-entrancy safety).
+   *
    * @param {string} action - The type of change that occurred
    * @param {*} key - The key that was affected (if applicable)
    * @param {*} value - The value that was affected (if applicable)
    */
   next(action, key2, value) {
-    for (const listener of this.listeners) {
+    for (const listener of [...this.listeners]) {
       listener(action, key2, value);
     }
   }
@@ -19719,6 +20253,19 @@ var TextHelper = class {
   static rndId(prefix) {
     idCounter += 1;
     return `${prefix != null ? prefix : ""}${idCounter.toString(36)}`;
+  }
+  /**
+   * Whether two strings differ only in whitespace: they are not equal, yet they
+   * collapse to the same text once every whitespace run is stripped. Used to tag
+   * a changed line as a whitespace-only edit so reformatting noise (trailing
+   * spaces, tab/space swaps, re-alignment) reads apart from real content edits.
+   *
+   * @param {string} a - The original line content
+   * @param {string} b - The current line content
+   * @return {boolean} True when the only difference is whitespace
+   */
+  static isWhitespaceDiff(a, b) {
+    return a !== b && a.replace(/\s+/g, "") === b.replace(/\s+/g, "");
   }
 };
 
@@ -20160,17 +20707,39 @@ var TrackerLine = class _TrackerLine {
    */
   static fromJSON(data) {
     const tracker = new _TrackerLine();
-    tracker.originalPosition = data.originalPosition;
-    tracker.currentPosition = data.currentPosition;
-    tracker.removedAtPosition = data.removedAtPosition;
-    tracker.changeAtPosition = data.changeAtPosition;
-    tracker.contentSameOriginal = data.contentSameOriginal;
-    tracker.hash = data.hash;
-    tracker.original = data.original;
-    tracker.current = data.current;
-    tracker.removedTimeStamp = data.removedTimeStamp;
-    tracker.changedTimeStamp = data.changedTimeStamp;
-    tracker.addedTimeStamp = data.addedTimeStamp;
+    if (isNumber_default(data == null ? void 0 : data.originalPosition)) {
+      tracker.originalPosition = data.originalPosition;
+    }
+    if (isNumber_default(data == null ? void 0 : data.currentPosition)) {
+      tracker.currentPosition = data.currentPosition;
+    }
+    if (isNumber_default(data == null ? void 0 : data.removedAtPosition)) {
+      tracker.removedAtPosition = data.removedAtPosition;
+    }
+    if (isNumber_default(data == null ? void 0 : data.changeAtPosition)) {
+      tracker.changeAtPosition = data.changeAtPosition;
+    }
+    if ((data == null ? void 0 : data.contentSameOriginal) === true) {
+      tracker.contentSameOriginal = true;
+    }
+    if (isString_default(data == null ? void 0 : data.hash)) {
+      tracker.hash = data.hash;
+    }
+    if (isString_default(data == null ? void 0 : data.original)) {
+      tracker.original = data.original;
+    }
+    if (isString_default(data == null ? void 0 : data.current)) {
+      tracker.current = data.current;
+    }
+    if (isNumber_default(data == null ? void 0 : data.removedTimeStamp)) {
+      tracker.removedTimeStamp = data.removedTimeStamp;
+    }
+    if (isNumber_default(data == null ? void 0 : data.changedTimeStamp)) {
+      tracker.changedTimeStamp = data.changedTimeStamp;
+    }
+    if (isNumber_default(data == null ? void 0 : data.addedTimeStamp)) {
+      tracker.addedTimeStamp = data.addedTimeStamp;
+    }
     return tracker;
   }
 };
@@ -20570,7 +21139,12 @@ var SnapshotState = class {
    * @return {number} The number of lines with changes
    */
   static getChangesLinesCount(changes) {
-    return this.getChanges(changes, ["changed" /* changed */, "added" /* added */, "removed" /* removed */]).size;
+    return this.getChanges(changes, [
+      "changed" /* changed */,
+      "whitespace" /* whitespace */,
+      "added" /* added */,
+      "removed" /* removed */
+    ]).size;
   }
   /**
    * Returns the 0-based positions of every changed line, ascending. Defaults to
@@ -20583,6 +21157,7 @@ var SnapshotState = class {
   static getChangedPositions(changes, type) {
     const types = type != null ? type : [
       "changed" /* changed */,
+      "whitespace" /* whitespace */,
       "added" /* added */,
       "restored" /* restored */,
       "removed" /* removed */
@@ -20601,7 +21176,7 @@ var SnapshotState = class {
   static updateChanges(changes, tracker) {
     changes.clear();
     tracker.forEach((lineTracker) => {
-      var _a;
+      var _a, _b, _c;
       if (!lineTracker || lineTracker.isStateGhost()) {
         return;
       }
@@ -20623,7 +21198,11 @@ var SnapshotState = class {
         return;
       }
       if (lineTracker.isStateChanged()) {
-        line.add("changed" /* changed */);
+        const whitespaceOnly = TextHelper.isWhitespaceDiff(
+          (_b = lineTracker.original) != null ? _b : "",
+          (_c = lineTracker.current) != null ? _c : ""
+        );
+        line.add(whitespaceOnly ? "whitespace" /* whitespace */ : "changed" /* changed */);
         return;
       }
     });
@@ -21261,6 +21840,33 @@ var VersionTimeline = class {
   hasVersions(versions) {
     return versions.length > 0;
   }
+  /**
+   * Seeds the time-gate counter on restore so the cadence is continuous across
+   * restarts (ADR-08, T15). Without this the constructor-seeded `lastVersionAt`
+   * (set to `Date.now()` at restore time) would reset the time gate on every
+   * launch, so a file that already had a version captured an hour before the
+   * restart would not be eligible for the next time-gated capture until the
+   * full interval elapsed again.
+   *
+   * The seed is derived from the newest version's timestamp (the value the
+   * gate normally tracks after a capture). When the timeline is empty there is
+   * no prior capture to anchor against, so the constructor default stays in
+   * place. Only timestamps that strictly precede the current default are
+   * accepted, so a corrupt future-dated entry cannot push the gate forward.
+   *
+   * @param {FileVersion[]} versions - The restored timeline, oldest first
+   */
+  seedLastVersionAtFromVersions(versions) {
+    if (!isArray_default(versions) || versions.length === 0) {
+      return;
+    }
+    const newest = versions[versions.length - 1];
+    const timestamp = newest == null ? void 0 : newest.timestamp;
+    if (!isNumber_default(timestamp) || timestamp >= this.lastVersionAt) {
+      return;
+    }
+    this.lastVersionAt = timestamp;
+  }
 };
 
 // src/snapshots/file.snapshot.ts
@@ -21416,14 +22022,19 @@ var FileSnapshot = class _FileSnapshot {
    * @return {FileSnapshot} The reconstructed snapshot
    */
   static fromJSON(data, file) {
+    const lineBreak = isString_default(data.lineBreak) ? data.lineBreak : "\n";
+    const lines = Array.isArray(data.lines) ? data.lines : [];
+    const tracker = Array.isArray(data.tracker) ? data.tracker : [];
+    const state = Array.isArray(data.state) ? data.state : [];
     const snapshot = new _FileSnapshot(
-      data.lines.join(data.lineBreak),
-      data.lineBreak,
+      lines.join(lineBreak),
+      lineBreak,
       file
     );
-    snapshot.timestamp = data.timestamp;
-    snapshot.tracker = data.tracker.map((line) => TrackerLine.fromJSON(line));
+    snapshot.timestamp = isNumber_default(data.timestamp) ? data.timestamp : Date.now();
+    snapshot.tracker = tracker.map((line) => TrackerLine.fromJSON(line));
     snapshot.versions = Array.isArray(data.versions) ? data.versions.map((version) => FileVersion.fromJSON(version)) : [];
+    snapshot.timeline.seedLastVersionAtFromVersions(snapshot.versions);
     if (isNumber_default(data.deletedTimestamp)) {
       snapshot.deletedTimestamp = data.deletedTimestamp;
     }
@@ -21431,7 +22042,7 @@ var FileSnapshot = class _FileSnapshot {
       snapshot.movedIntoAt = data.movedIntoAt;
     }
     snapshot.index.invalidate();
-    snapshot.updateState(data.state);
+    snapshot.updateState(state);
     snapshot.updateChanges();
     return snapshot;
   }
@@ -21462,6 +22073,38 @@ var FileSnapshot = class _FileSnapshot {
    */
   isNeedUpdate(content) {
     return this.lastHash !== TextHelper.hash(content);
+  }
+  /**
+   * Authoritative content-equality check for the external-change guard
+   * (ADR-08-D). Uses the 32-bit `lastHash` as a cheap pre-filter: a hash
+   * mismatch is always a real change, but a hash match falls through to an
+   * actual line-by-line compare against the snapshot's known `state` so a
+   * collision (two distinct contents that hash to the same 32-bit value)
+   * cannot make a genuine external rewrite look identical.
+   *
+   * The comparison splits the incoming content on the snapshot's own
+   * `lineBreak` (the same separator used when `state` was filled), so a
+   * change that differs only in trailing whitespace or line count is detected
+   * even when the hashes collide.
+   *
+   * @param {string} content - The current content of the file to check
+   * @return {boolean} True if the content differs from the stored state, false if identical
+   */
+  isContentChanged(content) {
+    if (this.lastHash !== TextHelper.hash(content)) {
+      return true;
+    }
+    const incoming = content.split(this.lineBreak);
+    const current = this.state;
+    if (incoming.length !== current.length) {
+      return true;
+    }
+    for (let i = 0; i < incoming.length; i++) {
+      if (incoming[i] !== current[i]) {
+        return true;
+      }
+    }
+    return false;
   }
   /**
    * Updates the current state of the file snapshot.
@@ -21897,7 +22540,7 @@ var FileSnapshot = class _FileSnapshot {
 
 // src/services/snapshots.service.ts
 var import_obsidian21 = require("obsidian");
-var SnapshotsService = class {
+var _SnapshotsService = class _SnapshotsService {
   /**
    * Creates a new instance of SnapshotsService.
    *
@@ -21922,6 +22565,27 @@ var SnapshotsService = class {
      * valid one (or to a different bad one).
      */
     this.lastWarnedExcludePattern = null;
+    /**
+     * Per-path debounce timers for `captureExternalChange`. A new modify event
+     * for the same path resets the timer; only the trailing call runs the
+     * disk read and capture (ADR-08-E).
+     */
+    this.externalDebounceTimers = /* @__PURE__ */ new Map();
+    /**
+     * Per-path in-flight guard for `captureExternalChange`. Holds the path of
+     * any file currently in the middle of a disk read + capture, so a follow-up
+     * modify event that fires before the prior call resolves does not start a
+     * second concurrent read of the same file and double-capture the same state.
+     */
+    this.externalInFlight = /* @__PURE__ */ new Set();
+    /**
+     * Last-seen `stat.mtime` + `stat.size` per tracked path, captured at the end
+     * of every `captureExternalChange` call (success or hash-match no-op). A
+     * follow-up modify whose stat values match these is short-circuited before
+     * the disk read: nothing on disk could have changed since the last pass, so
+     * reading + hashing would just burn IO. Cleared on `clear`/`wipe`.
+     */
+    this.externalLastSeen = /* @__PURE__ */ new Map();
   }
   /**
    * Initializes the service.
@@ -21951,7 +22615,10 @@ var SnapshotsService = class {
   getOne(file) {
     var _a;
     const currentFile = file != null ? file : this.plugin.getActiveFile();
-    return (_a = this.fileSnapshots.get(currentFile == null ? void 0 : currentFile.path)) != null ? _a : null;
+    if (!currentFile) {
+      return null;
+    }
+    return (_a = this.fileSnapshots.get(currentFile.path)) != null ? _a : null;
   }
   /**
    * Gets all snapshots.
@@ -21989,6 +22656,24 @@ var SnapshotsService = class {
       return;
     }
     this.fileSnapshots.delete(file.path);
+    this.forgetExternalGuards(file.path);
+  }
+  /**
+   * Drops any per-path debounce timer, in-flight marker, and last-seen stat
+   * for the given path. Called when a snapshot is removed/renamed/moved so
+   * stale state for a now-absent or relocated path cannot leak into a
+   * future modify event.
+   *
+   * @param {string} path - The vault-relative path to forget
+   */
+  forgetExternalGuards(path) {
+    const timer = this.externalDebounceTimers.get(path);
+    if (timer !== void 0) {
+      clearTimeout(timer);
+      this.externalDebounceTimers.delete(path);
+    }
+    this.externalInFlight.delete(path);
+    this.externalLastSeen.delete(path);
   }
   /**
    * Marks the snapshot for the given file as a tombstone (D1) instead of
@@ -22040,6 +22725,7 @@ var SnapshotsService = class {
     snapshot.file = file;
     this.fileSnapshots.delete(oldPath);
     this.fileSnapshots.set(file.path, snapshot);
+    this.forgetExternalGuards(oldPath);
   }
   /**
    * Handles a cross-directory move (D2): leaves a tombstone at `oldPath` and
@@ -22100,6 +22786,12 @@ var SnapshotsService = class {
    */
   clear() {
     this.fileSnapshots.clear();
+    for (const timer of this.externalDebounceTimers.values()) {
+      clearTimeout(timer);
+    }
+    this.externalDebounceTimers.clear();
+    this.externalInFlight.clear();
+    this.externalLastSeen.clear();
   }
   /**
    * Serializes all tracked snapshots into a plain, persistable structure.
@@ -22357,7 +23049,7 @@ var SnapshotsService = class {
    */
   async capture(file) {
     const currentFile = file != null ? file : this.plugin.getActiveFile();
-    if (!this.canCapture(currentFile)) {
+    if (!currentFile || !this.canCapture(currentFile)) {
       return;
     }
     try {
@@ -22369,15 +23061,17 @@ var SnapshotsService = class {
   }
   /**
    * Captures an external (off-editor) change to a tracked file as a flagged
-   * version on its timeline (D12/D13). Reads the file from disk, compares its
-   * content hash to the snapshot's known `state`, and force-captures the new
-   * content as a `FileVersion` with `external = true` only when the hash
-   * diverges, then updates `state`/tracker/changes so further reads see the
+   * version on its timeline (D12/D13). Reads the file from disk, compares the
+   * actual content to the snapshot's known `state` via `isContentChanged`
+   * (32-bit hash as a cheap pre-filter, line-by-line compare on a hash match
+   * so a collision cannot mask a real rewrite, ADR-08-D), and force-captures
+   * the new content as a `FileVersion` with `external = true` only when they
+   * differ, then updates `state`/tracker/changes so further reads see the
    * captured content as the new baseline.
    *
    * Gating mirrors the parts of `canCapture` that still apply when a snapshot
    * already exists: a wrong-extension file, an excluded path, an ignored file,
-   * or a missing/folder TFile is a no-op. A hash match is also a no-op so
+   * or a missing/folder TFile is a no-op. A content match is also a no-op so
    * editor-driven flushes and the plugin's own revert writes (which already
    * synchronized `state` before/after the write) do not produce phantom
    * external versions.
@@ -22415,9 +23109,15 @@ var SnapshotsService = class {
     const snapshot = this.fileSnapshots.get(file.path);
     if (!snapshot) {
       await this.capture(file);
+      this.rememberLastSeen(file);
       return;
     }
     if (snapshot.isTombstone()) {
+      return;
+    }
+    const lastSeen = this.externalLastSeen.get(file.path);
+    const currentStat = this.getFileStat(file);
+    if (lastSeen && currentStat && lastSeen.mtime === currentStat.mtime && lastSeen.size === currentStat.size) {
       return;
     }
     let content;
@@ -22427,7 +23127,8 @@ var SnapshotsService = class {
       console.error("Error reading file for external change capture:", error);
       return;
     }
-    if (!snapshot.isNeedUpdate(content)) {
+    if (!snapshot.isContentChanged(content)) {
+      this.rememberLastSeen(file);
       return;
     }
     const newLines = content.split(snapshot.lineBreak);
@@ -22440,6 +23141,94 @@ var SnapshotsService = class {
     snapshot.updateState(newLines);
     snapshot.updateChanges();
     this.forceUpdate();
+    this.rememberLastSeen(file);
+  }
+  /**
+   * Public entry point for the vault.modify handler. Coalesces a burst of
+   * modify events for the same path through a per-path debounce, then runs
+   * `captureExternalChange` once with an in-flight guard so an overlapping
+   * follow-up modify cannot double-capture the same disk state (ADR-08-E).
+   *
+   * Bursts of writes (sync, git pull, an external save loop) for one file
+   * collapse into a single trailing capture; events for different files run
+   * independently. The stat-based short-circuit inside `captureExternalChange`
+   * skips the disk read when nothing about the file's mtime/size changed
+   * between this debounced call and the previous one.
+   *
+   * @param {TFile} file - The file whose modify event fired
+   */
+  scheduleExternalCapture(file) {
+    if (!file) {
+      return;
+    }
+    const path = file.path;
+    const existing = this.externalDebounceTimers.get(path);
+    if (existing !== void 0) {
+      clearTimeout(existing);
+    }
+    const timer = setTimeout(() => {
+      this.externalDebounceTimers.delete(path);
+      void this.runGuardedExternalCapture(file);
+    }, _SnapshotsService.externalDebounceMs);
+    this.externalDebounceTimers.set(path, timer);
+  }
+  /**
+   * Runs `captureExternalChange` under a per-path in-flight guard so a
+   * second debounced trigger that fires while the first is still awaiting
+   * the disk read cannot start a second concurrent capture for the same
+   * path. If a follow-up trigger arrives during the capture, the path's
+   * scheduler hands off to a re-schedule after the in-flight call resolves
+   * so the most recent disk state is never silently dropped (the trailing
+   * write of a sync storm still lands as a version).
+   *
+   * The guard is released in a `finally` so an error inside the capture
+   * never strands the path as permanently in-flight.
+   *
+   * @param {TFile} file - The file to capture
+   */
+  async runGuardedExternalCapture(file) {
+    const path = file.path;
+    if (this.externalInFlight.has(path)) {
+      this.scheduleExternalCapture(file);
+      return;
+    }
+    this.externalInFlight.add(path);
+    try {
+      await this.captureExternalChange(file);
+    } finally {
+      this.externalInFlight.delete(path);
+    }
+  }
+  /**
+   * Reads the file's current `stat.mtime` / `stat.size` without throwing if
+   * the stat block is missing (older Obsidian builds, test stubs). Returns
+   * undefined when the stat is unusable so the caller falls through to a
+   * normal disk read instead of incorrectly short-circuiting.
+   *
+   * @param {TFile} file - The file to read stat from
+   * @return {{mtime: number, size: number} | undefined} The stat values or undefined
+   */
+  getFileStat(file) {
+    const stat = file == null ? void 0 : file.stat;
+    if (!stat || typeof stat.mtime !== "number" || typeof stat.size !== "number") {
+      return void 0;
+    }
+    return { mtime: stat.mtime, size: stat.size };
+  }
+  /**
+   * Stores the file's current mtime/size as the last-seen baseline for the
+   * stat pre-check. Called after a successful capture, after a hash-match
+   * no-op, and after a first-sight capture so the next modify event for the
+   * same path can skip the disk read when nothing changed.
+   *
+   * @param {TFile} file - The file whose stat to remember
+   */
+  rememberLastSeen(file) {
+    const stat = this.getFileStat(file);
+    if (!stat) {
+      return;
+    }
+    this.externalLastSeen.set(file.path, stat);
   }
   /**
    * Reads the current capture cadence and retention caps into a plain options
@@ -22466,12 +23255,15 @@ var SnapshotsService = class {
    */
   wipeOne(file) {
     const current = this.plugin.getActiveFile();
-    this.remove(file != null ? file : current);
-    this.removeFromIgnoreList(file != null ? file : current);
+    const target = file != null ? file : current;
+    if (target) {
+      this.remove(target);
+      this.removeFromIgnoreList(target);
+    }
     if (this.plugin.getActiveViewOfType()) {
       this.plugin.forceUpdateEditor();
     }
-    if (current && (!file || (file == null ? void 0 : file.path) === current.path)) {
+    if (current && (!file || file.path === current.path)) {
       void this.capture();
     }
   }
@@ -22523,9 +23315,17 @@ var SnapshotsService = class {
     void this.capture();
   }
 };
+/**
+ * Window (ms) that coalesces a burst of vault.modify events per file before
+ * the disk read + hash runs. Picked to be shorter than a typical human edit
+ * cadence (so a real follow-up captures promptly) but long enough that a
+ * sync/git storm's repeated writes for one file collapse into one capture.
+ */
+_SnapshotsService.externalDebounceMs = 150;
 __decorateClass([
   Inject("SettingsService")
-], SnapshotsService.prototype, "settingsService", 2);
+], _SnapshotsService.prototype, "settingsService", 2);
+var SnapshotsService = _SnapshotsService;
 
 // src/services/statusbar.service.ts
 var import_obsidian22 = require("obsidian");
@@ -22671,13 +23471,18 @@ var StylesService = class {
     this.update();
   }
   update() {
+    if (!this.sheet) {
+      return;
+    }
     const width = this.settingsService.value("line.width");
     this.sheet.setText(`
-        .lct {
+        .lct,
+        .lct-change-layer {
           --lct-color-${"changed" /* changed */}: var(--color-blue);
           --lct-color-${"restored" /* restored */}: var(--text-faint);
           --lct-color-${"added" /* added */}: var(--color-orange);
           --lct-color-${"removed" /* removed */}: var(--color-base-100);
+          --lct-color-${"whitespace" /* whitespace */}: var(--color-yellow);
           --lct-line-width: ${width}px;
           --lct-line-border-radius: ${(width / 2).toFixed(0)}px;
         }
@@ -23278,6 +24083,12 @@ var LineChangeTrackerPlugin = class extends import_obsidian24.Plugin {
      * Maps service class constructors to their instances.
      */
     this.container = /* @__PURE__ */ new Map();
+    /**
+     * Services whose `init` has resolved successfully in the current lifecycle.
+     * Tracked so a fatal init can tear down only what was actually brought up,
+     * in reverse registration order (ADR-08-C).
+     */
+    this.initialized = [];
     this.registerService(SettingsService);
     this.registerService(I18nService);
     this.registerService(StylesService);
@@ -23352,8 +24163,16 @@ var LineChangeTrackerPlugin = class extends import_obsidian24.Plugin {
    * @return {Promise<void>} A promise that resolves when all services are loaded
    */
   async onload() {
-    await this.exec("init");
-    await this.exec("load");
+    const initFailed = await this.exec("init");
+    if (initFailed) {
+      await this.teardown();
+      return;
+    }
+    const loadFailed = await this.exec("load");
+    if (loadFailed) {
+      await this.teardown();
+      return;
+    }
     this.registerView(
       RECENT_CHANGES_VIEW_TYPE,
       (leaf) => new RecentChangesView(leaf, this)
@@ -23365,22 +24184,68 @@ var LineChangeTrackerPlugin = class extends import_obsidian24.Plugin {
    *
    * @return {Promise<void>} A promise that resolves when all services are unloaded
    */
-  onunload() {
-    return this.exec("unload");
+  async onunload() {
+    await this.exec("unload");
   }
   /**
-   * Executes a method on all registered services.
-   * Used for lifecycle management (init, load, unload).
+   * Executes a method on all registered services in registration order.
+   * Each per-service call is isolated in try/catch so one failure does not
+   * abort the loop; remaining services still get a chance to run (ADR-08-C).
+   * For `init`, a successful call records the service in `initialized` so a
+   * subsequent fatal can tear down only what is actually up. `unload` clears
+   * the corresponding entry as the service goes down.
    *
    * @param {string} method - The method name to execute on each service
-   * @return {Promise<void>} A promise that resolves when all method executions are complete
+   * @return {Promise<boolean>} True when at least one service threw, so the
+   *   caller can trigger teardown of the partial container.
    */
   async exec(method) {
+    let failed = false;
     for (const provider of [...this.container.values()]) {
       if (method in provider && isFunction_default(provider[method])) {
-        await provider[method]();
+        try {
+          await provider[method]();
+          if (method === "init") {
+            this.initialized.push(provider);
+          } else if (method === "unload") {
+            const idx = this.initialized.indexOf(provider);
+            if (idx >= 0) {
+              this.initialized.splice(idx, 1);
+            }
+          }
+        } catch (error) {
+          failed = true;
+          console.error(
+            `[obsidian-local-history] ${provider.constructor.name}.${method} failed:`,
+            error
+          );
+        }
       }
     }
+    return failed;
+  }
+  /**
+   * Tears down services that were brought up by a partial `init`/`load`, in
+   * reverse registration order, so a fatal lifecycle failure never leaves a
+   * half-loaded plugin behind (ADR-08-C). Each per-service `unload` is
+   * isolated so one teardown failure does not block the rest.
+   *
+   * @return {Promise<void>} Resolves once teardown is complete.
+   */
+  async teardown() {
+    for (const provider of [...this.initialized].reverse()) {
+      if ("unload" in provider && isFunction_default(provider.unload)) {
+        try {
+          await provider.unload();
+        } catch (error) {
+          console.error(
+            `[obsidian-local-history] ${provider.constructor.name}.unload failed during teardown:`,
+            error
+          );
+        }
+      }
+    }
+    this.initialized = [];
   }
   /**
    * Emits an event with the given name and payload.
@@ -23390,7 +24255,7 @@ var LineChangeTrackerPlugin = class extends import_obsidian24.Plugin {
    * @return {boolean} True if the event had listeners, false otherwise
    */
   emit(name, ...payload) {
-    return this.emitter.emit(name, payload);
+    return this.emitter.emit(name, ...payload);
   }
   /**
    * Registers an event listener for the specified event.

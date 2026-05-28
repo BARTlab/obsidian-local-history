@@ -123,3 +123,139 @@ describe('VersionCodec.encode', (): void => {
     });
   });
 });
+
+/**
+ * Tests for VersionCodec.decode (Epic 09, T03): the keyframe + delta entry chain
+ * is rebuilt into a materialized FileVersion[], preserving timestamp/label/
+ * external, decoding old all-keyframe (version-1) files natively, and skipping
+ * unanchored or unappliable deltas without throwing (ADR-08-B resilience).
+ */
+describe('VersionCodec.decode', (): void => {
+  it('returns an empty array for empty input', (): void => {
+    expect(VersionCodec.decode([], '\n')).toEqual([]);
+  });
+
+  it('returns an empty array for a non-array input', (): void => {
+    expect(VersionCodec.decode(null as unknown as SerializedFileVersion[], '\n')).toEqual([]);
+  });
+
+  it('round-trips an encoded chain back to the original lines', (): void => {
+    const versions: FileVersion[] = makeVersions(VERSION_KEYFRAME_INTERVAL + 5);
+
+    const decoded: FileVersion[] = VersionCodec.decode(VersionCodec.encode(versions, '\n'), '\n');
+
+    expect(decoded).toHaveLength(versions.length);
+    decoded.forEach((version: FileVersion, i: number): void => {
+      expect(version.getLines()).toEqual(versions[i].getLines());
+    });
+  });
+
+  it('preserves timestamp, label and external across the round-trip', (): void => {
+    const versions: FileVersion[] = makeVersions(2, (i: number) => (i === 1 ? { label: 'tag', external: true } : {}));
+
+    const decoded: FileVersion[] = VersionCodec.decode(VersionCodec.encode(versions, '\n'), '\n');
+
+    expect(decoded[0].timestamp).toBe(1000);
+    expect(decoded[0].isLabeled()).toBe(false);
+    expect(decoded[0].isExternal()).toBe(false);
+    expect(decoded[1].timestamp).toBe(1001);
+    expect(decoded[1].label).toBe('tag');
+    expect(decoded[1].isExternal()).toBe(true);
+  });
+
+  it('decodes an all-keyframe version-1 entry array natively', (): void => {
+    const entries: SerializedFileVersion[] = [
+      { timestamp: 1, lines: ['a', 'b'] },
+      { timestamp: 2, lines: ['c', 'd'], label: 'pinned' },
+      { timestamp: 3, lines: ['e'], external: true },
+    ];
+
+    const decoded: FileVersion[] = VersionCodec.decode(entries, '\n');
+
+    expect(decoded).toHaveLength(3);
+    expect(decoded[0].getLines()).toEqual(['a', 'b']);
+    expect(decoded[1].getLines()).toEqual(['c', 'd']);
+    expect(decoded[1].label).toBe('pinned');
+    expect(decoded[2].getLines()).toEqual(['e']);
+    expect(decoded[2].isExternal()).toBe(true);
+  });
+
+  it('preserves a CRLF-derived line set across the round-trip', (): void => {
+    const versions: FileVersion[] = [
+      new FileVersion(['first\r', 'second\r', 'third'], 1),
+      new FileVersion(['first\r', 'second-changed\r', 'third'], 2),
+    ];
+
+    const decoded: FileVersion[] = VersionCodec.decode(VersionCodec.encode(versions, '\r\n'), '\r\n');
+
+    expect(decoded[0].getLines()).toEqual(['first\r', 'second\r', 'third']);
+    expect(decoded[1].getLines()).toEqual(['first\r', 'second-changed\r', 'third']);
+  });
+
+  it('drops a corrupted delta segment and resyncs at the next keyframe', (): void => {
+    // Corrupting one delta bounds its blast radius to the segment up to the next
+    // keyframe: deltas chain off the prior materialized state, so the entries
+    // between the break and the next keyframe are dropped, then the keyframe and
+    // everything after it materialize correctly (the resync guarantee).
+    const versions: FileVersion[] = makeVersions(VERSION_KEYFRAME_INTERVAL + 2);
+    const entries: SerializedFileVersion[] = VersionCodec.encode(versions, '\n');
+
+    expect(entries[1].delta).toBeDefined();
+    entries[1].delta = '@@ this is not a valid patch @@\n-nonexistent-line\n';
+
+    const decoded: FileVersion[] = VersionCodec.decode(entries, '\n');
+
+    // Survivors: keyframe 0, then keyframe VERSION_KEYFRAME_INTERVAL and its
+    // following delta. The corrupt segment (indices 1..interval-1) is dropped.
+    expect(decoded).toHaveLength(3);
+    expect(decoded[0].getLines()).toEqual(versions[0].getLines());
+    expect(decoded[1].getLines()).toEqual(versions[VERSION_KEYFRAME_INTERVAL].getLines());
+    expect(decoded[2].getLines()).toEqual(versions[VERSION_KEYFRAME_INTERVAL + 1].getLines());
+  });
+
+  it('drops only the single corrupted version when a keyframe follows immediately', (): void => {
+    // When the next entry after the corrupt delta is a keyframe, the resync is
+    // immediate and exactly one version is lost.
+    const versions: FileVersion[] = makeVersions(VERSION_KEYFRAME_INTERVAL + 2);
+    const entries: SerializedFileVersion[] = VersionCodec.encode(versions, '\n');
+
+    const corruptIndex: number = VERSION_KEYFRAME_INTERVAL - 1;
+    expect(entries[corruptIndex].delta).toBeDefined();
+    entries[corruptIndex].delta = '@@ broken @@\n-nope\n';
+
+    const decoded: FileVersion[] = VersionCodec.decode(entries, '\n');
+
+    // Only the corrupted version is lost; the keyframe at the interval resyncs.
+    expect(decoded).toHaveLength(versions.length - 1);
+    expect(decoded[decoded.length - 1].getLines()).toEqual(versions[versions.length - 1].getLines());
+    expect(decoded[VERSION_KEYFRAME_INTERVAL - 1].getLines()).toEqual(versions[VERSION_KEYFRAME_INTERVAL].getLines());
+  });
+
+  it('skips a delta that appears before any keyframe without throwing', (): void => {
+    const entries: SerializedFileVersion[] = [
+      { timestamp: 1, delta: '@@ -1 +1 @@\n-old\n+new\n' },
+      { timestamp: 2, lines: ['anchor'] },
+    ];
+
+    let decoded: FileVersion[] = [];
+
+    expect((): void => {
+      decoded = VersionCodec.decode(entries, '\n');
+    }).not.toThrow();
+
+    expect(decoded).toHaveLength(1);
+    expect(decoded[0].getLines()).toEqual(['anchor']);
+  });
+
+  it('skips null and non-object entries defensively', (): void => {
+    const entries: SerializedFileVersion[] = [
+      null as unknown as SerializedFileVersion,
+      { timestamp: 1, lines: ['kept'] },
+    ];
+
+    const decoded: FileVersion[] = VersionCodec.decode(entries, '\n');
+
+    expect(decoded).toHaveLength(1);
+    expect(decoded[0].getLines()).toEqual(['kept']);
+  });
+});

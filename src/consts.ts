@@ -366,6 +366,17 @@ export const MS_PER_DAY: number = 24 * 60 * 60 * 1000;
 export const SAVE_DEBOUNCE_MS: number = 1500;
 
 /**
+ * Cadence at which the version codec forces a full keyframe inside the delta
+ * chain: version `i` is a keyframe when `i % VERSION_KEYFRAME_INTERVAL === 0`,
+ * otherwise a delta against version `i - 1` (Epic 09). It is the single place to
+ * tune that cadence. A smaller value bounds the corruption blast-radius (a
+ * broken delta only invalidates entries up to the next keyframe, where the chain
+ * resyncs) at the cost of more full copies on disk; a larger value saves disk at
+ * the cost of a wider blast-radius. Must be a positive integer.
+ */
+export const VERSION_KEYFRAME_INTERVAL: number = 25;
+
+/**
  * The language code used as the universal fallback. Every key is guaranteed to
  * exist in this catalog, so a missing translation in another language resolves
  * to the English string rather than a raw key.

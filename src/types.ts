@@ -582,10 +582,19 @@ export interface SerializedTrackerLine {
  * tell git-pull / sync / external-editor states apart from in-editor edits.
  * Both fields are omitted from the payload when unset so existing histories
  * round-trip unchanged.
+ *
+ * A version entry is keyframe-xor-delta: it carries either `lines` (a keyframe,
+ * the full materialized text) or `delta` (a unified-diff string against the
+ * preceding entry in the chain), never both and never neither. A current
+ * `{ timestamp, lines }` entry is already a valid keyframe, so this shape is a
+ * strict superset of the original full-text format (Epic 09). The `label` and
+ * `external` flags apply to either form. Runtime dispatch on which form an entry
+ * carries lives in the codec, not in this type.
  */
 export interface SerializedFileVersion {
   timestamp: number;
-  lines: string[];
+  lines?: string[];
+  delta?: string;
   label?: string;
   external?: boolean;
 }

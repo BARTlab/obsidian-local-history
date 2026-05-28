@@ -4,6 +4,47 @@ All notable user-facing changes to this plugin are documented here. The format
 is based on [Keep a Changelog](https://keepachangelog.com/), and the project
 follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- **Data safety.** All on-disk history writes are now serialized through a
+  single queue and committed atomically (temp file + rename) with a `.bak` of
+  the prior contents; plugin unload waits for the queue to drain, so concurrent
+  scheduled saves, unload, and restore no longer race or truncate
+  `history.json`.
+- **Crash-proof load.** A corrupt or truncated `history.json` no longer crashes
+  the plugin: every `fromJSON` boundary guards each field, and `readDisk` skips
+  malformed entries instead of dropping the whole store. `history.json` is now
+  gitignored so note content cannot leak into the repo.
+- **Load integrity.** A failing service `init` or `load` no longer leaves a
+  half-loaded plugin: each service step is isolated, and successfully
+  initialized services are torn down in reverse order on a fatal step.
+- **Render.** Change indicators in code blocks and tables now share one
+  document-relative coordinate frame, so the bars stop drifting on scroll.
+- **Modify hot path.** Editor and external modifications are now debounced per
+  path and guarded by an in-flight set plus an `mtime`/`size` precheck, removing
+  redundant reads and double-captures under sync or git storms.
+- **External-change capture.** External-change equality now compares the actual
+  line array instead of relying on a 32-bit hash, so a hash collision can no
+  longer drop a real external version.
+- **Async robustness.** Event handlers are wrapped in try/catch with a logged
+  failure, so a throwing or rejecting handler no longer surfaces as an
+  unhandled rejection or silently breaks the dispatch loop.
+- **CRLF correctness.** Content is normalized at the read boundary so diff
+  rendering, change detection, and selection history no longer carry a stray
+  `\r`, and diff hunk headers report line counts rather than character counts.
+- **Editor and modal correctness.** The history modal's scroll-sync setup no
+  longer leaks listeners across rapid mode switches; tombstone restore now
+  surfaces a distinct error when the destination path is already occupied; the
+  version timeline's edit-cadence gate now survives a restart.
+- **Low-severity hardening.** Observable maps snapshot their listeners before
+  dispatch (re-entry safe); the path-exclude regex is cached and guarded
+  against ReDoS on extreme inputs; the settings tab validates the exclude
+  pattern before saving; small registry and lifecycle guards prevent
+  duplicate event instances, null stylesheet writes, and event payload
+  array-wrapping.
+
 ## [1.0.2] - 2026-06-03
 
 This is a large update that turns the plugin from a live line-change highlighter
@@ -89,6 +130,7 @@ into a full local history system for your vault.
   lines with line or gutter indicators, a built-in side-by-side and line-by-line
   diff modal, patch export, and configurable appearance and history settings.
 
+[Unreleased]: https://github.com/bartlab/obsidian-local-history/compare/1.0.2...HEAD
 [1.0.2]: https://github.com/bartlab/obsidian-local-history/compare/1.0.1...1.0.2
 [1.0.1]: https://github.com/bartlab/obsidian-local-history/compare/1.0.0...1.0.1
 [1.0.0]: https://github.com/bartlab/obsidian-local-history/releases/tag/1.0.0

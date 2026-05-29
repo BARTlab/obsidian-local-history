@@ -1,7 +1,9 @@
 import 'reflect-metadata';
 import { describe, expect, it } from '@jest/globals';
+import { VERSION_KEYFRAME_INTERVAL } from '@/consts';
 import { SnapshotsService } from '@/services/snapshots.service';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
+import { FileVersion } from '@/snapshots/file.version';
 import type { SerializedFileSnapshot } from '@/types';
 import type { TFile } from 'obsidian';
 
@@ -167,5 +169,124 @@ describe('SnapshotsService.restore', () => {
     service.restore([{ path: '' } as SerializedFileSnapshot]);
 
     expect(service.getList()).toHaveLength(0);
+  });
+});
+
+describe('SnapshotsService delta-encoded version round-trip (T07)', () => {
+  const PATH = 'timeline.md';
+  const TOTAL: number = VERSION_KEYFRAME_INTERVAL + 5; // > one keyframe interval
+
+  // Indices (oldest-first) that carry flags, both inside the delta region so
+  // flag survival is asserted on delta entries, not only on keyframes.
+  const LABELED_INDEX = 3;
+  const EXTERNAL_INDEX = 7;
+
+  /**
+   * Builds a live snapshot inside a service whose timeline holds TOTAL versions,
+   * oldest-first, with realistically sized line content so consecutive versions
+   * diff into compact deltas. One version is labeled and one is external, both
+   * placed in the delta region (not on a keyframe boundary).
+   *
+   * @return {{ service: SnapshotsService; file: TFile; versions: FileVersion[] }}
+   *   The seeded service, its live file, and the original timeline (oldest-first).
+   */
+  const seed = (): { service: SnapshotsService; file: TFile; versions: FileVersion[] } => {
+    const service = makeService([PATH]);
+    const file = makeFile(PATH);
+
+    service.add(file, 'line-0\nline-1\nline-2');
+    const snapshot: FileSnapshot = service.getOne(file);
+
+    const versions: FileVersion[] = [];
+
+    for (let i = 0; i < TOTAL; i += 1) {
+      // Each version differs from its predecessor by one line plus a stable body,
+      // so a unified-diff delta against i-1 stays small while still non-empty.
+      const lines: string[] = [
+        'header',
+        `edit number ${i}`,
+        'shared body line a',
+        'shared body line b',
+        `tail ${i}`,
+      ];
+
+      const label: string | undefined = i === LABELED_INDEX ? `pinned ${i}` : undefined;
+      const external: boolean = i === EXTERNAL_INDEX;
+
+      versions.push(new FileVersion(lines, 1_700_000_000_000 + i * 1_000, label, external));
+    }
+
+    // The façade owns the versions array; assign the materialized timeline
+    // directly (oldest-first) the way the timeline operators do internally.
+    snapshot.versions = versions;
+
+    return { service, file, versions };
+  };
+
+  it('emits at least one delta entry once the timeline exceeds the keyframe interval', () => {
+    const { service } = seed();
+
+    const payload = service.serialize();
+
+    expect(payload.version).toBe(2);
+    expect(payload.snapshots).toHaveLength(1);
+
+    const serializedVersions = payload.snapshots[0].versions;
+    expect(serializedVersions).toHaveLength(TOTAL);
+
+    const deltaCount: number = serializedVersions.filter(
+      (entry): boolean => typeof entry.delta === 'string',
+    ).length;
+    const keyframeCount: number = serializedVersions.filter(
+      (entry): boolean => Array.isArray(entry.lines),
+    ).length;
+
+    expect(deltaCount).toBeGreaterThan(0);
+    // Keyframes land at i % interval === 0: index 0 and index 25 for TOTAL = 30.
+    expect(keyframeCount).toBe(2);
+    expect(deltaCount).toBe(TOTAL - keyframeCount);
+  });
+
+  it('reconstructs every version byte-identically across the JSON disk transport', () => {
+    const { service, file, versions } = seed();
+
+    // Exercise the real disk boundary: serialize -> JSON string -> parse.
+    const onDisk: string = JSON.stringify(service.serialize());
+    const parsed = JSON.parse(onDisk) as ReturnType<SnapshotsService['serialize']>;
+
+    const fresh = makeService([PATH]);
+    fresh.restore(parsed.snapshots);
+
+    // getVersions() returns newest-first; reverse back to the oldest-first order
+    // the originals were authored in for a positional comparison.
+    const restored: FileVersion[] = [...(fresh.getOne(file)?.getVersions() ?? [])].reverse();
+
+    expect(restored).toHaveLength(versions.length);
+
+    for (let i = 0; i < versions.length; i += 1) {
+      expect(restored[i].lines).toEqual(versions[i].lines);
+      expect(restored[i].timestamp).toBe(versions[i].timestamp);
+    }
+  });
+
+  it('preserves label and external flags end-to-end through the service', () => {
+    const { service, file, versions } = seed();
+
+    const parsed = JSON.parse(JSON.stringify(service.serialize())) as ReturnType<
+      SnapshotsService['serialize']
+    >;
+
+    const fresh = makeService([PATH]);
+    fresh.restore(parsed.snapshots);
+
+    const restored: FileVersion[] = [...(fresh.getOne(file)?.getVersions() ?? [])].reverse();
+
+    expect(restored[LABELED_INDEX].label).toBe(versions[LABELED_INDEX].label);
+    expect(restored[LABELED_INDEX].label).toBe(`pinned ${LABELED_INDEX}`);
+    expect(restored[EXTERNAL_INDEX].external).toBe(true);
+
+    // Flags do not bleed onto neighbouring versions.
+    expect(restored[LABELED_INDEX + 1].label).toBeUndefined();
+    expect(restored[EXTERNAL_INDEX + 1].external).toBeUndefined();
   });
 });

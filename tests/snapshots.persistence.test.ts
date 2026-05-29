@@ -47,7 +47,7 @@ describe('SnapshotsService.serialize', () => {
 
     const payload = service.serialize();
 
-    expect(payload.version).toBe(1);
+    expect(payload.version).toBe(2);
     expect(payload.snapshots).toHaveLength(1);
     expect(payload.snapshots[0].path).toBe('dirty.md');
   });

@@ -3,11 +3,12 @@ import { TextHelper } from '@/helpers/text.helper';
 import type { ChangeLine } from '@/lines/change.line';
 import { TrackerLine } from '@/lines/tracker.line';
 import { ArrayMap } from '@/maps/array.map';
-import { FileVersion } from '@/snapshots/file.version';
+import type { FileVersion } from '@/snapshots/file.version';
 import { SnapshotState } from '@/snapshots/snapshot-state';
 import { SnapshotTimestamps } from '@/snapshots/snapshot-timestamps';
 import { TrackerEditor } from '@/snapshots/tracker-editor';
 import { TrackerIndex } from '@/snapshots/tracker-index';
+import { VersionCodec } from '@/snapshots/version-codec';
 import { VersionTimeline } from '@/snapshots/version-timeline';
 import type { KeysMatching, SerializedFileSnapshot, SnapshotCaptureOptions, TrackerLineParams } from '@/types';
 import { isNumber, isString } from 'lodash-es';
@@ -195,7 +196,7 @@ export class FileSnapshot {
       lines: [...this.historyLines],
       state: [...this.state],
       tracker: this.tracker.map((tracker: TrackerLine): ReturnType<TrackerLine['toJSON']> => tracker.toJSON()),
-      versions: this.versions.map((version: FileVersion): ReturnType<FileVersion['toJSON']> => version.toJSON()),
+      versions: VersionCodec.encode(this.versions, this.lineBreak),
     };
 
     /**
@@ -243,9 +244,7 @@ export class FileSnapshot {
 
     snapshot.timestamp = isNumber(data.timestamp) ? data.timestamp : Date.now();
     snapshot.tracker = tracker.map((line): TrackerLine => TrackerLine.fromJSON(line));
-    snapshot.versions = Array.isArray(data.versions)
-      ? data.versions.map((version): FileVersion => FileVersion.fromJSON(version))
-      : [];
+    snapshot.versions = VersionCodec.decode(data.versions, lineBreak);
 
     /**
      * T15: seed the timeline's time-gate counter from the newest restored

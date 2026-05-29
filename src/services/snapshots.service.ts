@@ -382,7 +382,13 @@ export class SnapshotsService implements Service {
       snapshots.push(payload);
     }
 
-    return { version: 1, snapshots };
+    /**
+     * Format version 2 signals "may contain delta entries" in versions[].
+     * It is purely advisory: decode dispatches per entry on `lines` vs `delta`
+     * (VersionCodec.decode), so version-1 (all-keyframe) and version-2
+     * (delta-bearing) files restore identically and no reader branches on it.
+     */
+    return { version: 2, snapshots };
   }
 
   /**

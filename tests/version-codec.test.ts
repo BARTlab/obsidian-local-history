@@ -259,3 +259,127 @@ describe('VersionCodec.decode', (): void => {
     expect(decoded[0].getLines()).toEqual(['kept']);
   });
 });
+
+/**
+ * Round-trip, superset and edge property tests (Epic 09, T04). These prove
+ * `encode` -> `decode` is lossless across the cases the real serialization path
+ * (T05) leans on: chains that span several keyframe intervals (so multiple
+ * keyframes are exercised, not just index 0 and the first interval), CRLF
+ * content, label/external flags, empty and trailing-blank lines, and a
+ * hand-built old-format (all-keyframe, version-1) array decoding unchanged.
+ * Versions are built from real `FileVersion` instances so the round-trip runs
+ * the genuine `lines` plumbing, and structural facts (keyframe cadence) are
+ * asserted alongside content so a cadence regression is caught too.
+ */
+describe('VersionCodec round-trip and edges (T04)', (): void => {
+  it('round-trips a chain spanning multiple keyframe intervals with keyframes at every multiple', (): void => {
+    // 2.5 intervals worth of versions, so the chain holds keyframes at 0, the
+    // interval and twice the interval, plus a trailing partial delta run.
+    const count: number = VERSION_KEYFRAME_INTERVAL * 2 + Math.floor(VERSION_KEYFRAME_INTERVAL / 2);
+    const versions: FileVersion[] = makeVersions(count);
+
+    const entries: SerializedFileVersion[] = VersionCodec.encode(versions, '\n');
+    const decoded: FileVersion[] = VersionCodec.decode(entries, '\n');
+
+    expect(entries).toHaveLength(count);
+    expect(decoded).toHaveLength(count);
+
+    entries.forEach((entry: SerializedFileVersion, i: number): void => {
+      if (i % VERSION_KEYFRAME_INTERVAL === 0) {
+        expect(entry.lines).toBeDefined();
+        expect(entry.delta).toBeUndefined();
+      } else {
+        expect(entry.lines).toBeUndefined();
+        expect(typeof entry.delta).toBe('string');
+      }
+    });
+
+    // At least three keyframes are exercised, proving multi-keyframe coverage.
+    const keyframeCount: number = entries.filter((entry: SerializedFileVersion): boolean => entry.lines !== undefined).length;
+    expect(keyframeCount).toBe(Math.floor((count - 1) / VERSION_KEYFRAME_INTERVAL) + 1);
+    expect(keyframeCount).toBeGreaterThanOrEqual(3);
+
+    decoded.forEach((version: FileVersion, i: number): void => {
+      expect(version.getLines()).toEqual(versions[i].getLines());
+      expect(version.timestamp).toBe(versions[i].timestamp);
+    });
+  });
+
+  it('round-trips CRLF-derived versions across a multi-version chain without \\r corruption', (): void => {
+    // Lines carry a trailing \r because they were split from CRLF content on the
+    // \r\n line break; the \n transport must leave that \r untouched.
+    const versions: FileVersion[] = [
+      new FileVersion(['alpha\r', 'beta\r', 'gamma'], 1),
+      new FileVersion(['alpha\r', 'beta-edited\r', 'gamma'], 2),
+      new FileVersion(['alpha\r', 'beta-edited\r', 'gamma', 'delta\r'], 3),
+    ];
+
+    const decoded: FileVersion[] = VersionCodec.decode(VersionCodec.encode(versions, '\r\n'), '\r\n');
+
+    expect(decoded).toHaveLength(versions.length);
+    decoded.forEach((version: FileVersion, i: number): void => {
+      expect(version.getLines()).toEqual(versions[i].getLines());
+    });
+  });
+
+  it('round-trips label and external flags on both keyframe and delta forms', (): void => {
+    // Flags on index 0 (a keyframe) and on a later delta entry both survive.
+    const versions: FileVersion[] = [
+      new FileVersion(['root'], 1, 'pinned-root', true),
+      new FileVersion(['root', 'next'], 2),
+      new FileVersion(['root', 'next', 'leaf'], 3, 'pinned-leaf', true),
+    ];
+
+    const decoded: FileVersion[] = VersionCodec.decode(VersionCodec.encode(versions, '\n'), '\n');
+
+    expect(decoded[0].label).toBe('pinned-root');
+    expect(decoded[0].isExternal()).toBe(true);
+    expect(decoded[1].isLabeled()).toBe(false);
+    expect(decoded[1].isExternal()).toBe(false);
+    expect(decoded[2].label).toBe('pinned-leaf');
+    expect(decoded[2].isExternal()).toBe(true);
+  });
+
+  it('round-trips content with empty lines and trailing blank lines exactly', (): void => {
+    // Blank and trailing-empty lines stress the patch transport: an off-by-one in
+    // join/split would drop a terminal blank or merge two empties.
+    const versions: FileVersion[] = [
+      new FileVersion(['head', '', 'body', '', ''], 1),
+      new FileVersion(['head', '', 'body-changed', '', '', ''], 2),
+      new FileVersion(['', '', 'only-trailing', ''], 3),
+    ];
+
+    const decoded: FileVersion[] = VersionCodec.decode(VersionCodec.encode(versions, '\n'), '\n');
+
+    expect(decoded).toHaveLength(versions.length);
+    decoded.forEach((version: FileVersion, i: number): void => {
+      expect(version.getLines()).toEqual(versions[i].getLines());
+      expect(version.getLines()).toHaveLength(versions[i].getLines().length);
+    });
+  });
+
+  it('decodes a hand-built all-keyframe version-1 array with no delta handling', (): void => {
+    // The version-1 on-disk shape is every entry full-text; decode must treat
+    // each as a keyframe natively (the superset property) with no delta in sight.
+    const entries: SerializedFileVersion[] = [
+      { timestamp: 10, lines: ['one', 'two'] },
+      { timestamp: 20, lines: ['one', 'two', 'three'], label: 'kept' },
+      { timestamp: 30, lines: ['one'], external: true },
+      { timestamp: 40, lines: ['', 'trailing', ''] },
+    ];
+
+    entries.forEach((entry: SerializedFileVersion): void => {
+      expect(entry.delta).toBeUndefined();
+    });
+
+    const decoded: FileVersion[] = VersionCodec.decode(entries, '\n');
+
+    expect(decoded).toHaveLength(4);
+    expect(decoded[0].getLines()).toEqual(['one', 'two']);
+    expect(decoded[1].getLines()).toEqual(['one', 'two', 'three']);
+    expect(decoded[1].label).toBe('kept');
+    expect(decoded[2].getLines()).toEqual(['one']);
+    expect(decoded[2].isExternal()).toBe(true);
+    expect(decoded[3].getLines()).toEqual(['', 'trailing', '']);
+  });
+});

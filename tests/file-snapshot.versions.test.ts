@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
+import { VERSION_KEYFRAME_INTERVAL } from '@/consts';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import { FileVersion } from '@/snapshots/file.version';
-import type { SnapshotCaptureOptions } from '@/types';
+import type { SerializedFileVersion, SnapshotCaptureOptions } from '@/types';
 
 /**
  * Tests for the intermediate-snapshot timeline (T5.2): capture cadence by edit
@@ -439,6 +440,102 @@ describe('FileSnapshot.removeVersion', () => {
 
     expect(snapshot.removeVersion('does-not-exist')).toBe(false);
     expect(snapshot.getVersions()).toHaveLength(1);
+  });
+});
+
+describe('FileSnapshot version codec wiring (T05)', () => {
+  it('round-trips lines, timestamp, label and external through the codec', () => {
+    const snapshot = new FileSnapshot('a\nb', '\n');
+    const opts = options({ editThreshold: 1, maxVersions: 0 });
+
+    snapshot.captureVersion(['a', 'b1'], opts);
+    snapshot.captureVersion(['a', 'B'], opts, true, 'milestone');
+    snapshot.captureVersion(['a', 'B', 'c'], opts, true);
+    // Flag the newest captured version as external so the round-trip carries it.
+    snapshot.versions[snapshot.versions.length - 1].external = true;
+
+    const restored = FileSnapshot.fromJSON(snapshot.toJSON());
+
+    // Oldest-first comparison so the decoded delta chain lines up with capture.
+    expect(restored.versions.map((v: FileVersion): string[] => v.getLines())).toEqual([
+      ['a', 'b1'],
+      ['a', 'B'],
+      ['a', 'B', 'c'],
+    ]);
+    expect(restored.versions.map((v: FileVersion): number => v.timestamp)).toEqual(
+      snapshot.versions.map((v: FileVersion): number => v.timestamp),
+    );
+    expect(restored.versions[1].label).toBe('milestone');
+    expect(restored.versions[2].isExternal()).toBe(true);
+    expect(restored.versions[0].isLabeled()).toBe(false);
+    expect(restored.versions[0].isExternal()).toBe(false);
+  });
+
+  it('engages the codec: a chain longer than the keyframe interval emits deltas', () => {
+    const snapshot = new FileSnapshot('line-0', '\n');
+    const opts = options({ editThreshold: 1, maxVersions: 0 });
+
+    // One more than the interval so at least one entry must be a delta.
+    const count: number = VERSION_KEYFRAME_INTERVAL + 1;
+    for (let i = 1; i <= count; i++) {
+      snapshot.captureVersion([`line-${i}`], opts);
+    }
+    expect(snapshot.versions).toHaveLength(count);
+
+    const entries: SerializedFileVersion[] | undefined = snapshot.toJSON().versions;
+    expect(entries).toHaveLength(count);
+
+    const deltas = (entries ?? []).filter(
+      (entry: SerializedFileVersion): boolean => typeof entry.delta === 'string',
+    );
+    const keyframes = (entries ?? []).filter(
+      (entry: SerializedFileVersion): boolean => Array.isArray(entry.lines),
+    );
+    // Index 0 and index VERSION_KEYFRAME_INTERVAL are keyframes; the rest deltas.
+    expect(keyframes.length).toBe(2);
+    expect(deltas.length).toBe(count - 2);
+
+    // The delta-bearing payload still restores every version verbatim.
+    const restored = FileSnapshot.fromJSON(snapshot.toJSON());
+    expect(restored.versions.map((v: FileVersion): string[] => v.getLines())).toEqual(
+      snapshot.versions.map((v: FileVersion): string[] => v.getLines()),
+    );
+  });
+
+  it('restores an all-keyframe (version-1) versions array unchanged', () => {
+    const snapshot = new FileSnapshot('seed', '\n');
+    const json = snapshot.toJSON();
+
+    // Hand-build a legacy v1 payload: every entry carries full lines, no deltas.
+    json.versions = [
+      { timestamp: 100, lines: ['a'] },
+      { timestamp: 200, lines: ['a', 'b'], label: 'tag' },
+      { timestamp: 300, lines: ['a', 'b', 'c'], external: true },
+    ];
+
+    const restored = FileSnapshot.fromJSON(json);
+
+    expect(restored.versions.map((v: FileVersion): string[] => v.getLines())).toEqual([
+      ['a'],
+      ['a', 'b'],
+      ['a', 'b', 'c'],
+    ]);
+    expect(restored.versions.map((v: FileVersion): number => v.timestamp)).toEqual([100, 200, 300]);
+    expect(restored.versions[1].label).toBe('tag');
+    expect(restored.versions[2].isExternal()).toBe(true);
+  });
+
+  it('decodes to [] when versions is undefined without throwing', () => {
+    const snapshot = new FileSnapshot('a\nb', '\n');
+    const json = snapshot.toJSON();
+    json.versions = undefined;
+
+    let restored!: FileSnapshot;
+    expect((): void => {
+      restored = FileSnapshot.fromJSON(json);
+    }).not.toThrow();
+    expect(restored.versions).toEqual([]);
+    expect(restored.hasVersions()).toBe(false);
   });
 });
 

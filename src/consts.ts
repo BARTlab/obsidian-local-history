@@ -366,6 +366,15 @@ export const MS_PER_DAY: number = 24 * 60 * 60 * 1000;
 export const SAVE_DEBOUNCE_MS: number = 1500;
 
 /**
+ * Subdirectory under the plugin folder that holds the per-note history shards.
+ * Each shard is one self-describing `{ version, snapshot }` JSON file named by a
+ * hash of the note's vault-relative path (see {@link ShardNameHelper}). The
+ * directory listing is the source of truth for which notes have history; there
+ * is deliberately no index or manifest file (Epic 10, ADR-10).
+ */
+export const HISTORY_SHARD_DIR: string = 'history';
+
+/**
  * Cadence at which the version codec forces a full keyframe inside the delta
  * chain: version `i` is a keyframe when `i % VERSION_KEYFRAME_INTERVAL === 0`,
  * otherwise a delta against version `i - 1` (Epic 09). It is the single place to

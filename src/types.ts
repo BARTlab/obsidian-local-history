@@ -635,6 +635,22 @@ export interface SerializedHistory {
 }
 
 /**
+ * On-disk shape of a single history shard (Epic 10): one self-describing JSON
+ * file per snapshot under the {@link HISTORY_SHARD_DIR} directory, so a corrupt
+ * or lost shard costs one note's history instead of the whole base. The shard
+ * carries its own `version` (the on-disk format version emitted by
+ * `SnapshotsService.serialize()`, not a hardcoded literal) so the version codec
+ * can bump it without any shard-level change, and the embedded `snapshot.path`
+ * is the read-time identity (the filename is only a hash of that path). The
+ * shard is content-agnostic: it never inspects `snapshot.versions[]`, which may
+ * hold full-text or delta entries depending on the codec.
+ */
+export interface SerializedShard {
+  version: number;
+  snapshot: SerializedFileSnapshot;
+}
+
+/**
  * Options that govern when an intermediate version is captured on the timeline.
  * Mirrors the user-facing `snapshots` settings and is passed to
  * FileSnapshot.captureVersion so the model stays decoupled from the settings

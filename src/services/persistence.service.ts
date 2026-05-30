@@ -1,13 +1,27 @@
 import { isNumber, isString } from 'lodash-es';
 import type { DataAdapter } from 'obsidian';
 
-import { KeepHistory, MS_PER_DAY, PluginEvent, SAVE_DEBOUNCE_MS } from '@/consts';
+import { HISTORY_SHARD_DIR, KeepHistory, MS_PER_DAY, PluginEvent, SAVE_DEBOUNCE_MS } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { On } from '@/decorators/on.decorator';
+import { ShardNameHelper } from '@/helpers/shard-name.helper';
 import type LineChangeTrackerPlugin from '@/main';
+import { HistoryShardStore, type LoadedShard } from '@/persistence/history-shard-store';
 import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import type { SerializedFileSnapshot, SerializedHistory, Service } from '@/types';
+
+/**
+ * One in-memory index entry for a persisted shard: the on-disk filename to write
+ * or remove it under, and a >=64-bit content digest of its serialized snapshot.
+ * The save path (Epic 10, T07) diffs the live digest against this to write only
+ * changed shards, and reuses `name` for collision-aware naming so two distinct
+ * notes never share a filename.
+ */
+export interface ShardIndexEntry {
+  name: string;
+  digest: string;
+}
 
 /**
  * Service responsible for persisting file history to disk so it survives an
@@ -55,6 +69,23 @@ export class PersistenceService implements Service {
    * `adapter.write` and last-writer-wins is non-deterministic.
    */
   protected writeQueue: Promise<void> = Promise.resolve();
+
+  /**
+   * Lazily-created IO collaborator that owns the on-disk shard directory.
+   * Resolved through {@link shardStore} so the adapter and resolved shard
+   * directory are read once the plugin (and thus its manifest) is ready, never
+   * at construction time.
+   */
+  protected store: HistoryShardStore | null = null;
+
+  /**
+   * In-memory map of vault-relative note path to the shard that persists it
+   * (filename + content digest). Seeded from disk on restore and maintained by
+   * the save path (Epic 10, T07): it is the source of truth for dirty-tracking
+   * (skip a shard whose digest is unchanged) and collision-aware naming (probe a
+   * suffix when two distinct paths hash to the same filename).
+   */
+  protected shardIndex: Map<string, ShardIndexEntry> = new Map<string, ShardIndexEntry>();
 
   /**
    * Creates a new instance of PersistenceService.
@@ -151,13 +182,38 @@ export class PersistenceService implements Service {
         return;
       }
 
-      const history: SerializedHistory | null = await this.readDisk();
+      const loaded: LoadedShard[] = await this.shardStore().readAll();
 
-      if (!history) {
-        return;
+      /**
+       * The shard's serialized snapshot is the read-time identity (the filename
+       * is just a path hash). Carry the actual on-disk filename alongside each
+       * snapshot so the index can be seeded with the name that is really on
+       * disk, including any collision-probed suffix written by a prior save.
+       */
+      const byPath: Map<SerializedFileSnapshot, string> = new Map<SerializedFileSnapshot, string>();
+      const snapshots: SerializedFileSnapshot[] = [];
+
+      for (const item of loaded) {
+        byPath.set(item.shard.snapshot, item.name);
+        snapshots.push(item.shard.snapshot);
       }
 
-      const kept: SerializedFileSnapshot[] = this.applyRetention(history.snapshots);
+      const kept: SerializedFileSnapshot[] = this.applyRetention(snapshots);
+
+      /**
+       * Seed the path-to-shard index from what survived retention: one entry per
+       * kept shard, keyed by its path, holding its on-disk filename and a content
+       * digest of its serialized snapshot. Over-cap shards are deliberately left
+       * out of the index so the re-save below evicts them from disk (T07).
+       */
+      this.shardIndex.clear();
+
+      for (const snapshot of kept) {
+        this.shardIndex.set(snapshot.path, {
+          name: byPath.get(snapshot) ?? ShardNameHelper.forPath(snapshot.path),
+          digest: this.contentDigest(snapshot),
+        });
+      }
 
       this.snapshotsService.restore(kept);
 
@@ -166,9 +222,9 @@ export class PersistenceService implements Service {
       }
 
       /**
-       * Re-save so the pruned set replaces an over-cap file on disk.
+       * Re-save so the pruned set replaces the over-cap shards on disk.
        */
-      if (kept.length !== history.snapshots.length) {
+      if (kept.length !== snapshots.length) {
         this.enqueueSave();
       }
     } finally {
@@ -469,10 +525,60 @@ export class PersistenceService implements Service {
    * @return {string} The vault-relative path to the history file
    */
   protected getHistoryPath(): string {
-    const dir: string = this.plugin.manifest.dir
-      ?? `${this.plugin.app.vault.configDir}/plugins/${this.plugin.manifest.id}`;
+    return `${this.getPluginDir()}/history.json`;
+  }
 
-    return `${dir}/history.json`;
+  /**
+   * Resolves the vault-relative path of the per-note shard directory inside the
+   * plugin folder. Resolved the same way as {@link getHistoryPath} but pointing
+   * at `<plugindir>/history` (Epic 10, ADR-10).
+   *
+   * @return {string} The vault-relative path to the shard directory
+   */
+  protected getShardDir(): string {
+    return `${this.getPluginDir()}/${HISTORY_SHARD_DIR}`;
+  }
+
+  /**
+   * Resolves the plugin's own folder, falling back to a sane default if the
+   * manifest dir is missing. Shared by {@link getHistoryPath} (legacy monolith)
+   * and {@link getShardDir} (shard directory) so both resolve identically.
+   *
+   * @return {string} The vault-relative plugin directory
+   */
+  protected getPluginDir(): string {
+    return this.plugin.manifest.dir
+      ?? `${this.plugin.app.vault.configDir}/plugins/${this.plugin.manifest.id}`;
+  }
+
+  /**
+   * Returns the shard store, creating it once on first use. Construction is
+   * deferred so the adapter and resolved shard directory are read after the
+   * plugin manifest is available, not at service construction time.
+   *
+   * @return {HistoryShardStore} The shared shard store instance
+   */
+  protected shardStore(): HistoryShardStore {
+    if (!this.store) {
+      this.store = new HistoryShardStore(this.plugin.app.vault.adapter, this.getShardDir());
+    }
+
+    return this.store;
+  }
+
+  /**
+   * Computes a >=64-bit content digest of a serialized snapshot, used to detect
+   * whether a shard's content actually changed between saves. Reuses the shared
+   * {@link ShardNameHelper} hash (not the 32-bit `TextHelper.hash`, which is too
+   * narrow and load-bearing for change detection elsewhere) over the snapshot's
+   * JSON, so an unchanged snapshot yields a stable digest and a changed one a
+   * different digest with astronomically-rare collisions.
+   *
+   * @param {SerializedFileSnapshot} snapshot - The serialized snapshot to digest
+   * @return {string} A deterministic content digest string
+   */
+  protected contentDigest(snapshot: SerializedFileSnapshot): string {
+    return ShardNameHelper.forPath(JSON.stringify(snapshot));
   }
 
   /**

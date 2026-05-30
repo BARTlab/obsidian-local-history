@@ -1,5 +1,4 @@
 import { isNumber, isString } from 'lodash-es';
-import type { DataAdapter } from 'obsidian';
 
 import { HISTORY_SHARD_DIR, KeepHistory, MS_PER_DAY, PluginEvent, SAVE_DEBOUNCE_MS } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
@@ -359,16 +358,20 @@ export class PersistenceService implements Service {
   }
 
   /**
-   * Serializes the current snapshots and writes them to the history file.
-   * Applies retention before writing so the on-disk set stays within caps, and
-   * removes the file entirely when persistence is disabled or nothing is left.
+   * Serializes the current snapshots and reconciles them to the shard directory.
+   * Applies retention first so the on-disk set stays within caps, then writes
+   * only the shards whose content changed (dirty-only, Epic 10 T07) and removes
+   * shards for paths that left the kept set. Removes everything when persistence
+   * is disabled or nothing is left.
    *
-   * The write itself is atomic: payload is written to `<path>.tmp`, the prior
-   * file (if any) is copied to `<path>.bak`, and finally `.tmp` is renamed
-   * over `<path>`. A crash mid-write leaves either the prior file intact or
-   * the new `.tmp` recoverable, never a truncated `<path>`.
+   * Each shard write is atomic at shard granularity inside
+   * {@link HistoryShardStore.writeShard}; a crash mid-write loses at most one
+   * note's shard and never a truncated file. Blindly rewriting all shards every
+   * save would turn one logical change into N atomic `tmp + rename` ops (worse IO
+   * than the monolith), so the in-memory index is diffed by content digest and
+   * only changed shards are touched.
    *
-   * @return {Promise<void>} Resolves when the write completes
+   * @return {Promise<void>} Resolves when the reconciliation completes
    */
   protected async saveToDisk(): Promise<void> {
     if (!this.isPersistEnabled()) {
@@ -386,48 +389,90 @@ export class PersistenceService implements Service {
       return;
     }
 
-    const path: string = this.getHistoryPath();
-    const tmpPath: string = `${path}.tmp`;
-    const bakPath: string = `${path}.bak`;
-    const adapter: DataAdapter = this.plugin.app.vault.adapter;
+    const store: HistoryShardStore = this.shardStore();
+    const keptPaths: Set<string> = new Set<string>();
 
-    try {
-      await adapter.write(tmpPath, JSON.stringify({ version: payload.version, snapshots: kept }));
+    /**
+     * Write pass: for each kept snapshot, skip when the index already holds the
+     * same path with the same digest (unchanged), otherwise resolve or allocate
+     * a collision-free shard name, write it, and update the index. The shard's
+     * `version` is read through from `serialize()` so Epic 09's 1->2 bump flows
+     * in without a shard-level branch.
+     */
+    for (const snapshot of kept) {
+      keptPaths.add(snapshot.path);
 
-      /**
-       * Best-effort backup of the prior file before replacing it. A missing
-       * prior file is fine (first write); a backup failure must not abort
-       * the write, so it is logged and ignored.
-       */
-      if (await adapter.exists(path)) {
-        try {
-          if (await adapter.exists(bakPath)) {
-            await adapter.remove(bakPath);
-          }
+      const digest: string = this.contentDigest(snapshot);
+      const existing: ShardIndexEntry | undefined = this.shardIndex.get(snapshot.path);
 
-          await adapter.rename(path, bakPath);
-        } catch (error) {
-          console.error('Local history: failed to back up prior history file', error);
-        }
+      if (existing && existing.digest === digest) {
+        continue;
       }
 
-      await adapter.rename(tmpPath, path);
-    } catch (error) {
-      console.error('Local history: failed to persist history', error);
+      const name: string = existing?.name ?? this.allocateShardName(snapshot.path);
 
-      /**
-       * Clean up the orphan tmp file so it does not accumulate on repeated
-       * failures. A remove failure is swallowed because the original write
-       * failure is already logged and there is nothing else to do.
-       */
       try {
-        if (await adapter.exists(tmpPath)) {
-          await adapter.remove(tmpPath);
-        }
-      } catch {
-        // Ignored: tmp cleanup is best-effort.
+        await store.writeShard(name, { version: payload.version, snapshot });
+
+        this.shardIndex.set(snapshot.path, { name, digest });
+      } catch (error) {
+        console.error('Local history: failed to persist history shard', snapshot.path, error);
       }
     }
+
+    /**
+     * Removal pass: any indexed path absent from the kept set was evicted by
+     * retention, deleted, or re-keyed by a rename/move. Drop its shard from disk
+     * and from the index so the index stays consistent with disk.
+     */
+    for (const [path, entry] of [...this.shardIndex]) {
+      if (keptPaths.has(path)) {
+        continue;
+      }
+
+      await store.removeShard(entry.name);
+      this.shardIndex.delete(path);
+    }
+  }
+
+  /**
+   * Allocates a shard filename for a path that has no index entry yet, resolving
+   * the astronomically-rare 64-bit hash collision. The base name is the path
+   * hash; if a different path already holds it in the index, a numeric suffix is
+   * linear-probed until free so two distinct notes never share a filename and one
+   * can never silently overwrite another (Epic 10 DECISIONS).
+   *
+   * @param {string} path - The vault-relative note path to name a shard for
+   * @return {string} A shard filename not currently held by any other path
+   */
+  protected allocateShardName(path: string): string {
+    const base: string = ShardNameHelper.forPath(path);
+    const taken: Set<string> = new Set<string>(
+      [...this.shardIndex.values()].map((entry: ShardIndexEntry): string => entry.name),
+    );
+
+    if (!taken.has(base)) {
+      return base;
+    }
+
+    /**
+     * Probe `<hash>.json`, `<hash>-1.json`, `<hash>-2.json`, ... by splitting the
+     * base into its hash and extension so the suffix lands before `.json` and the
+     * file keeps a recognizable shard extension.
+     */
+    const dot: number = base.lastIndexOf('.');
+    const stem: string = dot === -1 ? base : base.slice(0, dot);
+    const ext: string = dot === -1 ? '' : base.slice(dot);
+
+    let suffix: number = 1;
+    let candidate: string = `${stem}-${suffix}${ext}`;
+
+    while (taken.has(candidate)) {
+      suffix += 1;
+      candidate = `${stem}-${suffix}${ext}`;
+    }
+
+    return candidate;
   }
 
   /**

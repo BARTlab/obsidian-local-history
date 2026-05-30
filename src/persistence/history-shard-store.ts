@@ -1,6 +1,17 @@
-import type { DataAdapter } from 'obsidian';
+import { isNumber, isString } from 'lodash-es';
+import type { DataAdapter, ListedFiles } from 'obsidian';
 
-import type { SerializedShard } from '@/types';
+import type { SerializedFileSnapshot, SerializedShard } from '@/types';
+
+/**
+ * One enumerated shard: its on-disk filename (the read-time index key) paired
+ * with the parsed, validated payload. `readAll` returns these so the caller can
+ * seed its in-memory path-to-shard index (Epic 10, T06) without re-listing.
+ */
+export interface LoadedShard {
+  name: string;
+  shard: SerializedShard;
+}
 
 /**
  * Stateless IO collaborator that owns the on-disk history shard directory
@@ -89,6 +100,172 @@ export class HistoryShardStore {
 
       throw error;
     }
+  }
+
+  /**
+   * Reads every shard back into memory by enumerating the shard directory, which
+   * is the source of truth (Epic 10, ADR-10): there is no manifest, so a missing
+   * shard simply is not listed and a corrupt one degrades exactly one note. Each
+   * base name is recovered through {@link readShard}'s `.json -> .bak -> .tmp`
+   * fallback, so a crash between the write's rename steps never loses a note.
+   *
+   * An absent directory yields `[]` (no history yet, not an error). Orphan
+   * `.bak`/`.tmp` siblings whose primary `.json` is gone are still picked up so a
+   * shard interrupted mid-write is not abandoned. Nulls (no readable variant)
+   * are dropped, leaving only structurally valid shards.
+   *
+   * @return {Promise<LoadedShard[]>} Every readable shard with its filename.
+   */
+  public async readAll(): Promise<LoadedShard[]> {
+    if (!(await this.adapter.exists(this.dir))) {
+      return [];
+    }
+
+    let listed: ListedFiles;
+
+    try {
+      listed = await this.adapter.list(this.dir);
+    } catch (error) {
+      console.error('Local history: failed to list history shard directory', error);
+
+      return [];
+    }
+
+    const names: string[] = this.shardNames(listed.files);
+    const loaded: LoadedShard[] = [];
+
+    for (const name of names) {
+      const shard: SerializedShard | null = await this.readShard(name);
+
+      if (shard !== null) {
+        loaded.push({ name, shard });
+      }
+    }
+
+    return loaded;
+  }
+
+  /**
+   * Reads one shard by its base name, trying `<name>` first and falling back to
+   * the `.bak` then `.tmp` siblings, returning the first variant that parses
+   * into a structurally valid {@link SerializedShard}. Never throws: a missing,
+   * unreadable, or malformed file is treated as "this variant is absent" so a
+   * corrupt shard isolates to one note instead of poisoning the whole load.
+   *
+   * @param {string} name - The shard base filename (e.g. `<hex>.json`).
+   * @return {Promise<SerializedShard | null>} The first valid shard, or null.
+   */
+  public async readShard(name: string): Promise<SerializedShard | null> {
+    const path: string = this.shardPath(name);
+
+    for (const candidate of [path, `${path}.bak`, `${path}.tmp`]) {
+      const shard: SerializedShard | null = await this.readVariant(candidate);
+
+      if (shard !== null) {
+        return shard;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Reads and validates a single shard-file variant. Returns null when the file
+   * is absent, unreadable, not JSON, or not a structurally valid shard, so the
+   * caller can fall through to the next variant. Never throws.
+   *
+   * @param {string} path - The full vault-relative path of the variant.
+   * @return {Promise<SerializedShard | null>} The valid shard, or null.
+   */
+  protected async readVariant(path: string): Promise<SerializedShard | null> {
+    try {
+      if (!(await this.adapter.exists(path))) {
+        return null;
+      }
+
+      const raw: string = await this.adapter.read(path);
+      const parsed: unknown = JSON.parse(raw);
+
+      return this.isValidShard(parsed) ? parsed : null;
+    } catch (error) {
+      console.error('Local history: failed to read history shard variant', path, error);
+
+      return null;
+    }
+  }
+
+  /**
+   * Derives the de-duplicated set of shard base names from a directory listing.
+   * `adapter.list` returns full vault-relative paths in `files`; this strips the
+   * directory prefix to a base name and maps any `.bak`/`.tmp` sibling back to
+   * its primary `<name>` so an orphaned variant (primary lost mid-write) is still
+   * enumerated exactly once.
+   *
+   * @param {string[]} files - The `files` entries from a directory listing.
+   * @return {string[]} The unique shard base names to attempt.
+   */
+  protected shardNames(files: string[]): string[] {
+    const names: Set<string> = new Set<string>();
+
+    for (const file of files) {
+      const base: string = file.slice(file.lastIndexOf('/') + 1);
+      const name: string = base.replace(/\.(?:bak|tmp)$/, '');
+
+      names.add(name);
+    }
+
+    return [...names];
+  }
+
+  /**
+   * Whether a parsed value is a structurally usable {@link SerializedShard}: a
+   * numeric `version` and a `snapshot` whose minimal shape (path string, finite
+   * timestamp, `lines`/`tracker` arrays) survives retention math and reaches
+   * `FileSnapshot.fromJSON` without resurrecting junk. This mirrors the
+   * per-entry predicate that the monolithic `readDisk` applied (ADR-08-B), now
+   * at shard granularity.
+   *
+   * @param {unknown} value - The parsed shard candidate.
+   * @return {value is SerializedShard} True when the shard is usable.
+   */
+  protected isValidShard(value: unknown): value is SerializedShard {
+    if (!value || typeof value !== 'object') {
+      return false;
+    }
+
+    const shard: Partial<SerializedShard> = value as Partial<SerializedShard>;
+
+    if (!isNumber(shard.version) || !Number.isFinite(shard.version)) {
+      return false;
+    }
+
+    return this.isValidSnapshot(shard.snapshot);
+  }
+
+  /**
+   * Whether a serialized snapshot has the minimum well-formed shape required to
+   * survive retention math and reach `FileSnapshot.fromJSON`. Required: `path` is
+   * a string, `timestamp` is a finite number, `lines` and `tracker` are arrays.
+   * A non-finite timestamp is rejected so a malformed entry cannot pose as fresh
+   * history.
+   *
+   * @param {SerializedFileSnapshot | undefined} item - The candidate snapshot.
+   * @return {boolean} True when the snapshot is structurally usable.
+   */
+  protected isValidSnapshot(item: SerializedFileSnapshot | undefined): boolean {
+    if (!item || typeof item !== 'object') {
+      return false;
+    }
+
+    if (!isString(item.path)) {
+      return false;
+    }
+
+    if (!isNumber(item.timestamp) || !Number.isFinite(item.timestamp)) {
+      return false;
+    }
+
+    return Array.isArray(item.lines) && Array.isArray(item.tracker);
   }
 
   /**

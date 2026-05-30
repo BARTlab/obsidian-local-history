@@ -170,6 +170,76 @@ export class HistoryShardStore {
   }
 
   /**
+   * Removes one shard by base name, deleting its `<name>`, `<name>.bak`, and
+   * `<name>.tmp` variants if present. Used by the policy layer (Epic 10, T07/T14)
+   * to evict a shard whose snapshot fell out of retention's kept set. Best-effort
+   * and idempotent: a missing variant is fine and a per-variant failure is logged,
+   * not thrown, so reconciling the index against disk can never abort on one
+   * stubborn file.
+   *
+   * @param {string} name - The shard base filename (e.g. `<hex>.json`).
+   * @return {Promise<void>} Resolves once all present variants are removed.
+   */
+  public async removeShard(name: string): Promise<void> {
+    const path: string = this.shardPath(name);
+
+    for (const candidate of [path, `${path}.bak`, `${path}.tmp`]) {
+      try {
+        if (await this.adapter.exists(candidate)) {
+          await this.adapter.remove(candidate);
+        }
+      } catch (error) {
+        console.error('Local history: failed to remove history shard variant', candidate, error);
+      }
+    }
+  }
+
+  /**
+   * Wipes the whole shard directory, used when persistence is disabled or there
+   * is nothing left to keep (Epic 10, T08). Mirrors the monolith's `clearDisk`
+   * (`PersistenceService`) at directory scope: remove the dir recursively if it
+   * exists, swallowing and logging any failure rather than throwing, so disabling
+   * persistence never surfaces an error to the caller.
+   *
+   * @return {Promise<void>} Resolves once the directory is gone (or was absent).
+   */
+  public async clearAll(): Promise<void> {
+    try {
+      if (await this.adapter.exists(this.dir)) {
+        await this.adapter.rmdir(this.dir, true);
+      }
+    } catch (error) {
+      console.error('Local history: failed to clear history shard directory', error);
+    }
+  }
+
+  /**
+   * Lists the base shard names currently on disk, derived from the directory
+   * enumeration (the source of truth, Epic 10, ADR-10) the same way {@link readAll}
+   * does, so an orphan `.bak`/`.tmp` maps back to its primary name and is reported
+   * once. Lets the policy layer reconcile its in-memory path-to-shard index
+   * against disk without reading shard contents. An absent directory yields an
+   * empty set; never throws.
+   *
+   * @return {Promise<Set<string>>} The set of base shard names present on disk.
+   */
+  public async listNames(): Promise<Set<string>> {
+    if (!(await this.adapter.exists(this.dir))) {
+      return new Set<string>();
+    }
+
+    try {
+      const listed: ListedFiles = await this.adapter.list(this.dir);
+
+      return new Set<string>(this.shardNames(listed.files));
+    } catch (error) {
+      console.error('Local history: failed to list history shard directory', error);
+
+      return new Set<string>();
+    }
+  }
+
+  /**
    * Reads and validates a single shard-file variant. Returns null when the file
    * is absent, unreadable, not JSON, or not a structurally valid shard, so the
    * caller can fall through to the next variant. Never throws.

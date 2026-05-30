@@ -185,6 +185,37 @@ the logic lives in small testable units.
 and in-place mutation); leaving the class monolithic with comment banners (the
 decomposition goal was real units, not cosmetic grouping).
 
+### ADR-9: The version timeline is persisted as a keyframe + delta chain
+
+A note edited over weeks accrues many timeline versions, and the only
+super-linear growth driver on disk is `versions[]`: storing each version's full
+`lines` costs O(versions x file size). The stateless `VersionCodec` under
+`src/snapshots/` encodes the materialized `FileVersion[]` into a keyframe + delta
+chain at the serialization boundary. Version `i` is a **keyframe** (full `lines`)
+when `i % VERSION_KEYFRAME_INTERVAL === 0`, otherwise a **delta**: a unified-diff
+string (the existing `diff` dependency, context 0) against version `i-1`. Encode
+is a pure function of `versions[]`, recomputed in full on every save; decode
+seeds from a keyframe and applies each following delta to rebuild the materialized
+array. The in-memory `FileVersion` / `VersionTimeline` and every consumer
+(`getLines`/`getContent`, the diff modal, restore, search) stay fully
+materialized and untouched: this is purely a serialization-boundary concern.
+
+**Why:** all consumers already read through `FileVersion.getLines()`, eviction
+already runs in-memory before serialize, and the codec self-anchors on its own
+keyframes, so a stateless re-encode each save buys the disk win with zero change
+to the hot read path and no incremental-delta bookkeeping. The format is a strict
+superset of the prior one (a v1 `{ timestamp, lines }` entry is already a valid
+keyframe), so existing `history.json` files decode with no migration code and no
+data loss; `SerializedHistory.version` is bumped to 2 only as a signal that
+deltas may be present, never as a decode branch.
+
+**Rejected:** deltas in the in-memory model (infects every consumer with
+materialization, trades disk for CPU on the read path); incremental on-disk delta
+maintenance on capture/eviction (fragile re-keyframing when the oldest entry is
+evicted); a one-shot migration pass over old files (needless code for an
+already-superset format); base64/gzip of the versions blob (opaque, kills the
+readable JSON; file-level gzip is an orthogonal concern).
+
 ## Invariants and gotchas
 
 These are the load-bearing assumptions that are easy to break from a distance.
@@ -212,6 +243,23 @@ These are the load-bearing assumptions that are easy to break from a distance.
   `deletedTimestamp`, `movedIntoAt`) so older history files round-trip unchanged.
   The on-disk format is versioned (`SerializedHistory.version`) for the same
   reason.
+- **The version codec touches only serialization; in-memory stays materialized.**
+  `versions[]` is encoded as a keyframe + delta chain on disk (ADR-9), but the
+  in-memory `FileVersion[]` is always fully materialized, so no consumer ever
+  sees a delta. The encode is recomputed in full from the materialized array on
+  every save.
+- **The keyframe + delta format is a strict superset of v1, so old files need no
+  migration.** Decode dispatches per entry on `lines` vs `delta`; a v1 full-text
+  entry is just a keyframe. The version bump to 2 is a signal only, never a decode
+  branch.
+- **Decode is resilient and resyncs at keyframes.** A delta with no preceding
+  keyframe, or one that fails to apply, is skipped rather than thrown (ADR-08-B);
+  the chain resyncs at the next keyframe, so one corrupt delta loses at most the
+  segment up to that keyframe, never the whole load.
+- **Deltas transport lines joined on `\n` regardless of the file `lineBreak`.** A
+  tracked line is the split product of the file's `lineBreak` (`\n` or `\r\n`) and
+  so never contains a bare `\n`, which makes `\n`-join a lossless patch transport
+  even for CRLF files (the `diff` lib normalizes on `\n`).
 
 ### Enum values are wire/UI contracts
 

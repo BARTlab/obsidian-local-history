@@ -546,21 +546,19 @@ export class PersistenceService implements Service {
   }
 
   /**
-   * Removes the on-disk history file if it exists.
-   * Used when persistence is disabled or there is nothing left to keep.
+   * Wipes the on-disk shard directory and resets the in-memory index.
+   * Used when persistence is disabled or there is nothing left to keep, so
+   * disabled truly means nothing is left behind. Delegates the directory wipe to
+   * {@link HistoryShardStore.clearAll} (which swallows and logs its own IO
+   * failures) and then empties {@link shardIndex} so the next save re-allocates
+   * shard names from a clean slate rather than reusing stale digests (Epic 10,
+   * T08).
    *
-   * @return {Promise<void>} Resolves when the file is removed (or was absent)
+   * @return {Promise<void>} Resolves once the directory is gone and the index is empty
    */
   protected async clearDisk(): Promise<void> {
-    const path: string = this.getHistoryPath();
-
-    try {
-      if (await this.plugin.app.vault.adapter.exists(path)) {
-        await this.plugin.app.vault.adapter.remove(path);
-      }
-    } catch (error) {
-      console.error('Local history: failed to clear persisted history', error);
-    }
+    await this.shardStore().clearAll();
+    this.shardIndex.clear();
   }
 
   /**

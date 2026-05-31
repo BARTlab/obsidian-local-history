@@ -181,6 +181,15 @@ export class PersistenceService implements Service {
         return;
       }
 
+      /**
+       * One-time monolith-to-shard migration (Epic 10, T09). When no shards
+       * exist yet but a legacy `history.json` (or its `.bak`) does, split it into
+       * shards and remove the legacy files before reading the shard dir. A
+       * migration failure leaves the legacy file intact and falls through to a
+       * (then-empty) shard read, so no history is lost.
+       */
+      await this.migrateMonolithIfNeeded();
+
       const loaded: LoadedShard[] = await this.shardStore().readAll();
 
       /**
@@ -446,10 +455,26 @@ export class PersistenceService implements Service {
    * @return {string} A shard filename not currently held by any other path
    */
   protected allocateShardName(path: string): string {
-    const base: string = ShardNameHelper.forPath(path);
     const taken: Set<string> = new Set<string>(
       [...this.shardIndex.values()].map((entry: ShardIndexEntry): string => entry.name),
     );
+
+    return this.allocateShardNameAgainst(path, taken);
+  }
+
+  /**
+   * Allocates a collision-free shard filename for a path against an arbitrary set
+   * of already-claimed names. The base name is the path hash; if it is taken, a
+   * numeric suffix is linear-probed before the `.json` extension so two distinct
+   * paths never share a filename. Shared by {@link allocateShardName} (probing
+   * the live index) and the migration pass (probing names claimed so far).
+   *
+   * @param {string} path - The vault-relative note path to name a shard for
+   * @param {Set<string>} taken - Names already claimed (must not be reused)
+   * @return {string} A shard filename not present in `taken`
+   */
+  protected allocateShardNameAgainst(path: string, taken: Set<string>): string {
+    const base: string = ShardNameHelper.forPath(path);
 
     if (!taken.has(base)) {
       return base;
@@ -476,9 +501,97 @@ export class PersistenceService implements Service {
   }
 
   /**
-   * Reads and parses the on-disk history file.
-   * Returns null when the file is absent or unreadable so callers can treat a
-   * missing or corrupt store as "no history" rather than throwing.
+   * Migrates a legacy monolithic `history.json` into per-note shards exactly once
+   * (Epic 10, T09). Runs only when the shard directory holds no shards yet but a
+   * legacy file (or its `.bak`) still exists and parses: each legacy snapshot is
+   * written as its own shard, then the legacy `history.json`/`.bak`/`.tmp` files
+   * are removed. The shard `version` is carried through from the legacy file (no
+   * re-encode), so a version-1 or version-2 monolith migrates byte-for-byte per
+   * snapshot whether or not Epic 09's delta codec has landed.
+   *
+   * Failure-safe: a write failure aborts before any legacy file is removed and
+   * logs, so the legacy file stays intact and the next restore retries. Once
+   * shards exist the legacy path is never consulted again (the guard sees a
+   * non-empty shard dir and returns immediately).
+   *
+   * @return {Promise<void>} Resolves once migration ran or was skipped
+   */
+  protected async migrateMonolithIfNeeded(): Promise<void> {
+    /**
+     * Skip migration the moment any shard exists: the shard dir is the source of
+     * truth, so a single prior shard means migration already happened (or the
+     * store is the live store) and the legacy path must never be reconsulted.
+     */
+    if ((await this.shardStore().listNames()).size > 0) {
+      return;
+    }
+
+    const legacy: SerializedHistory | null = await this.readDisk();
+
+    if (!legacy || legacy.snapshots.length === 0) {
+      return;
+    }
+
+    const store: HistoryShardStore = this.shardStore();
+    const taken: Set<string> = new Set<string>();
+
+    try {
+      for (const snapshot of legacy.snapshots) {
+        const name: string = this.allocateShardNameAgainst(snapshot.path, taken);
+
+        taken.add(name);
+
+        await store.writeShard(name, { version: legacy.version, snapshot });
+      }
+    } catch (error) {
+      /**
+       * A write failed mid-migration. Leave the legacy file in place (no removal
+       * happens below) so the next restore retries; any partial shards written so
+       * far are harmless because the legacy file remains the recovery source until
+       * a full migration succeeds.
+       */
+      console.error('Local history: failed to migrate legacy history into shards', error);
+
+      return;
+    }
+
+    /**
+     * All shards landed: remove the legacy monolith and its atomic-write siblings
+     * so the one-time migration never runs again and disabled never resurfaces
+     * stale data.
+     */
+    await this.removeLegacyMonolith();
+  }
+
+  /**
+   * Removes the legacy monolithic `history.json` and its `.bak`/`.tmp` siblings
+   * after a successful migration. Best-effort and idempotent: a missing variant
+   * is fine and a per-variant failure is logged, not thrown, so a stubborn file
+   * cannot abort restore once the shards are already on disk.
+   *
+   * @return {Promise<void>} Resolves once all present legacy variants are gone
+   */
+  protected async removeLegacyMonolith(): Promise<void> {
+    const path: string = this.getHistoryPath();
+
+    for (const candidate of [path, `${path}.bak`, `${path}.tmp`]) {
+      try {
+        if (await this.plugin.app.vault.adapter.exists(candidate)) {
+          await this.plugin.app.vault.adapter.remove(candidate);
+        }
+      } catch (error) {
+        console.error('Local history: failed to remove legacy history file', candidate, error);
+      }
+    }
+  }
+
+  /**
+   * Reads and parses the legacy on-disk monolith, the one-time migration source
+   * (Epic 10, T09). Tries the primary `history.json` first and falls back to its
+   * `.bak` sibling so a crash between the monolith's old `tmp -> bak -> rename`
+   * steps still yields a usable source. Returns null when neither variant is
+   * present or parses, so the migration caller treats a missing/corrupt monolith
+   * as "nothing to migrate" rather than throwing.
    *
    * Per-entry validation (ADR-08-B): each snapshot is checked against a minimal
    * shape predicate (`isValidEntry`) and malformed entries are skipped so a few
@@ -490,6 +603,27 @@ export class PersistenceService implements Service {
   protected async readDisk(): Promise<SerializedHistory | null> {
     const path: string = this.getHistoryPath();
 
+    for (const candidate of [path, `${path}.bak`]) {
+      const parsed: SerializedHistory | null = await this.readMonolithVariant(candidate);
+
+      if (parsed !== null) {
+        return parsed;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Reads and validates one legacy monolith variant (`history.json` or its
+   * `.bak`). Returns null when the file is absent, unreadable, not JSON, or has
+   * no `snapshots` array so {@link readDisk} can fall through to the next
+   * variant. Never throws.
+   *
+   * @param {string} path - The full vault-relative path of the variant
+   * @return {Promise<SerializedHistory | null>} The parsed history, or null
+   */
+  protected async readMonolithVariant(path: string): Promise<SerializedHistory | null> {
     try {
       if (!(await this.plugin.app.vault.adapter.exists(path))) {
         return null;

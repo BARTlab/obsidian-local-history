@@ -1,8 +1,11 @@
 import 'reflect-metadata';
 import { describe, expect, it, jest } from '@jest/globals';
-import { KeepHistory, SAVE_DEBOUNCE_MS } from '@/consts';
+import { HISTORY_SHARD_DIR, KeepHistory, SAVE_DEBOUNCE_MS } from '@/consts';
+import { ShardNameHelper } from '@/helpers/shard-name.helper';
 import { PersistenceService } from '@/services/persistence.service';
-import type { SerializedFileSnapshot, SerializedHistory } from '@/types';
+import type { SerializedFileSnapshot, SerializedHistory, SerializedShard } from '@/types';
+
+import { MemoryAdapter } from './stubs/memory-adapter';
 
 /**
  * Tests for the retention caps in PersistenceService (T5.1). They drive the
@@ -244,80 +247,12 @@ describe('PersistenceService retention tombstone caps (T06)', () => {
 });
 
 /**
- * Tests for the serialized + atomic + backed-up write pipeline (ADR-08-A,
- * task T03). They drive a tiny in-memory adapter that mirrors the Obsidian
- * `DataAdapter` surface used by `PersistenceService` (`exists`, `read`,
- * `write`, `rename`, `remove`) so the queue, atomic replace, and `.bak`
- * behaviour can be verified end-to-end without touching real disk.
+ * Tests for the serialized + atomic + backed-up write pipeline (ADR-08-A) ported
+ * to the sharded layout (Epic 10, T15). They drive the shared dir-aware
+ * `MemoryAdapter` so the queue serialization, per-shard atomic replace, and
+ * per-shard `.bak` behaviour are verified end-to-end against shard files under
+ * `<plugindir>/history/`, not the legacy monolith, without touching real disk.
  */
-
-interface AdapterCall {
-  readonly op: 'write' | 'rename' | 'remove' | 'exists' | 'read';
-  readonly args: readonly string[];
-}
-
-class MemoryAdapter {
-  public files: Map<string, string> = new Map<string, string>();
-
-  public calls: AdapterCall[] = [];
-
-  public writeDelay: number = 0;
-
-  public failNextRename: boolean = false;
-
-  public async exists(path: string): Promise<boolean> {
-    this.calls.push({ op: 'exists', args: [path] });
-
-    return this.files.has(path);
-  }
-
-  public async read(path: string): Promise<string> {
-    this.calls.push({ op: 'read', args: [path] });
-
-    const value: string | undefined = this.files.get(path);
-
-    if (value === undefined) {
-      throw new Error(`MemoryAdapter: missing ${path}`);
-    }
-
-    return value;
-  }
-
-  public async write(path: string, data: string): Promise<void> {
-    this.calls.push({ op: 'write', args: [path] });
-
-    if (this.writeDelay > 0) {
-      await new Promise<void>((resolve: () => void): void => {
-        setTimeout(resolve, this.writeDelay);
-      });
-    }
-
-    this.files.set(path, data);
-  }
-
-  public async rename(from: string, to: string): Promise<void> {
-    this.calls.push({ op: 'rename', args: [from, to] });
-
-    if (this.failNextRename) {
-      this.failNextRename = false;
-      throw new Error('MemoryAdapter: rename failed');
-    }
-
-    const value: string | undefined = this.files.get(from);
-
-    if (value === undefined) {
-      throw new Error(`MemoryAdapter: cannot rename missing ${from}`);
-    }
-
-    this.files.set(to, value);
-    this.files.delete(from);
-  }
-
-  public async remove(path: string): Promise<void> {
-    this.calls.push({ op: 'remove', args: [path] });
-    this.files.delete(path);
-  }
-}
 
 /**
  * Test-only subclass exposing the protected write surface and the internal
@@ -417,6 +352,29 @@ const makeWriteService = (
 
 const HISTORY_PATH: string = '.obsidian/plugins/local-history/history.json';
 
+const SHARD_DIR: string = `.obsidian/plugins/local-history/${HISTORY_SHARD_DIR}`;
+
+/**
+ * Resolves the on-disk shard file path for a note path the same way the service
+ * does (path hash + `.json` under the shard dir), so tests assert against real
+ * shard filenames without hardcoding any hash.
+ */
+const shardPath = (notePath: string): string => `${SHARD_DIR}/${ShardNameHelper.forPath(notePath)}`;
+
+/**
+ * Reads back a shard file from the adapter and returns its embedded snapshot, or
+ * undefined when no shard for that note path is on disk.
+ */
+const readShardSnapshot = (adapter: MemoryAdapter, notePath: string): SerializedFileSnapshot | undefined => {
+  const raw: string | undefined = adapter.files.get(shardPath(notePath));
+
+  if (raw === undefined) {
+    return undefined;
+  }
+
+  return (JSON.parse(raw) as SerializedShard).snapshot;
+};
+
 const payload = (path: string, timestamp: number): SerializedHistory => ({
   version: 1,
   snapshots: [
@@ -432,38 +390,39 @@ const payload = (path: string, timestamp: number): SerializedHistory => ({
 });
 
 describe('PersistenceService write queue (ADR-08-A)', () => {
-  it('serializes overlapping saves so the later payload wins on disk', async (): Promise<void> => {
+  it('serializes overlapping saves so the later payload wins in its shard', async (): Promise<void> => {
     const adapter = new MemoryAdapter();
     let counter: number = 0;
+    // Same note path on both saves so they target one shard; only the content
+    // (timestamp) changes, so the second save observes the first already on disk
+    // and backs it up before swapping in its own.
     const service = makeWriteService(adapter, (): SerializedHistory => {
       counter += 1;
 
-      return payload(`v${counter}.md`, counter);
+      return payload('overlap.md', counter);
     });
 
     // First save sees a slow write, second is enqueued before the first
     // finishes. With one queue the second must observe the first's output
-    // already on disk (prior file copied to .bak before the second rename).
+    // already in its shard (prior shard copied to .bak before the second rename).
     adapter.writeDelay = 20;
 
     service.triggerSave();
     service.triggerSave();
     await service.drain();
 
-    const final: string | undefined = adapter.files.get(HISTORY_PATH);
-    expect(final).toBeDefined();
+    const live: SerializedFileSnapshot | undefined = readShardSnapshot(adapter, 'overlap.md');
+    expect(live).toBeDefined();
+    expect(live?.timestamp).toBe(2);
 
-    const parsed: SerializedHistory = JSON.parse(final ?? '') as SerializedHistory;
-    expect(parsed.snapshots[0].path).toBe('v2.md');
-
-    // .bak holds the prior (first) write so the second write was not a clobber.
-    const backup: string | undefined = adapter.files.get(`${HISTORY_PATH}.bak`);
-    expect(backup).toBeDefined();
-    const parsedBackup: SerializedHistory = JSON.parse(backup ?? '') as SerializedHistory;
-    expect(parsedBackup.snapshots[0].path).toBe('v1.md');
+    // The shard's .bak holds the prior (first) write so the second was not a clobber.
+    const backupRaw: string | undefined = adapter.files.get(`${shardPath('overlap.md')}.bak`);
+    expect(backupRaw).toBeDefined();
+    const backup: SerializedShard = JSON.parse(backupRaw ?? '') as SerializedShard;
+    expect(backup.snapshot.timestamp).toBe(1);
   });
 
-  it('unload awaits an in-flight save and the final state is persisted', async (): Promise<void> => {
+  it('unload awaits an in-flight save and the final state is persisted to its shard', async (): Promise<void> => {
     const adapter = new MemoryAdapter();
     const service = makeWriteService(adapter, (): SerializedHistory => payload('unload.md', 1));
 
@@ -472,40 +431,46 @@ describe('PersistenceService write queue (ADR-08-A)', () => {
 
     await service.unload();
 
-    expect(adapter.files.has(HISTORY_PATH)).toBe(true);
-    const parsed: SerializedHistory = JSON.parse(adapter.files.get(HISTORY_PATH) ?? '') as SerializedHistory;
-    expect(parsed.snapshots[0].path).toBe('unload.md');
+    const snapshot: SerializedFileSnapshot | undefined = readShardSnapshot(adapter, 'unload.md');
+    expect(snapshot).toBeDefined();
+    expect(snapshot?.path).toBe('unload.md');
   });
 
-  it('writes atomically through .tmp + rename and produces a .bak of the prior file', async (): Promise<void> => {
+  it('writes each shard atomically through .tmp + rename and produces a .bak of the prior shard', async (): Promise<void> => {
     const adapter = new MemoryAdapter();
     let counter: number = 0;
+    // One note path, changing content, so the same shard is overwritten on the
+    // second save and the atomic tmp -> bak -> rename mechanic is exercised.
     const service = makeWriteService(adapter, (): SerializedHistory => {
       counter += 1;
 
-      return payload(`atom-${counter}.md`, counter);
+      return payload('atom.md', counter);
     });
 
     service.triggerSave();
     await service.drain();
-    // First write: tmp + rename, no prior file so no .bak.
-    expect(adapter.files.has(HISTORY_PATH)).toBe(true);
-    expect(adapter.files.has(`${HISTORY_PATH}.bak`)).toBe(false);
-    expect(adapter.files.has(`${HISTORY_PATH}.tmp`)).toBe(false);
+    // First write: tmp + rename, no prior shard so no .bak and no leftover .tmp.
+    const path: string = shardPath('atom.md');
+    expect(adapter.files.has(path)).toBe(true);
+    expect(adapter.files.has(`${path}.bak`)).toBe(false);
+    expect(adapter.files.has(`${path}.tmp`)).toBe(false);
 
     service.triggerSave();
     await service.drain();
-    // Second write: prior file exists, must have been moved to .bak.
-    expect(adapter.files.has(`${HISTORY_PATH}.bak`)).toBe(true);
-    const bak: SerializedHistory = JSON.parse(adapter.files.get(`${HISTORY_PATH}.bak`) ?? '') as SerializedHistory;
-    expect(bak.snapshots[0].path).toBe('atom-1.md');
-    const live: SerializedHistory = JSON.parse(adapter.files.get(HISTORY_PATH) ?? '') as SerializedHistory;
-    expect(live.snapshots[0].path).toBe('atom-2.md');
+    // Second write: prior shard existed, must have been moved to .bak.
+    expect(adapter.files.has(`${path}.bak`)).toBe(true);
+    const bak: SerializedShard = JSON.parse(adapter.files.get(`${path}.bak`) ?? '') as SerializedShard;
+    expect(bak.snapshot.timestamp).toBe(1);
+    const live: SerializedShard = JSON.parse(adapter.files.get(path) ?? '') as SerializedShard;
+    expect(live.snapshot.timestamp).toBe(2);
+    // No orphan .tmp is left behind after a clean overwrite.
+    expect(adapter.files.has(`${path}.tmp`)).toBe(false);
   });
 
-  it('clears the on-disk file even when persistence is disabled', async (): Promise<void> => {
+  it('clears the on-disk shards even when persistence is disabled', async (): Promise<void> => {
     const adapter = new MemoryAdapter();
-    adapter.files.set(HISTORY_PATH, JSON.stringify(payload('stale.md', 1)));
+    // Seed a stale shard so the disabled-clear path has something to wipe.
+    await adapter.write(shardPath('stale.md'), JSON.stringify({ version: 1, snapshot: payload('stale.md', 1).snapshots[0] }));
 
     const service = makeWriteService(
       adapter,
@@ -516,7 +481,8 @@ describe('PersistenceService write queue (ADR-08-A)', () => {
     service.triggerClear();
     await service.drain();
 
-    expect(adapter.files.has(HISTORY_PATH)).toBe(false);
+    expect(adapter.files.has(shardPath('stale.md'))).toBe(false);
+    expect(await adapter.exists(SHARD_DIR)).toBe(false);
   });
 
   it('debounced saves are coalesced and routed through the queue', async (): Promise<void> => {
@@ -527,7 +493,7 @@ describe('PersistenceService write queue (ADR-08-A)', () => {
       const service = makeWriteService(adapter, (): SerializedHistory => {
         calls += 1;
 
-        return payload(`debounced-${calls}.md`, calls);
+        return payload('debounced.md', calls);
       });
 
       service.onSnapshotsUpdate();
@@ -540,8 +506,9 @@ describe('PersistenceService write queue (ADR-08-A)', () => {
 
       // Only one serialize call happened because the timer collapsed the three triggers.
       expect(calls).toBe(1);
-      const live: SerializedHistory = JSON.parse(adapter.files.get(HISTORY_PATH) ?? '') as SerializedHistory;
-      expect(live.snapshots[0].path).toBe('debounced-1.md');
+      const snapshot: SerializedFileSnapshot | undefined = readShardSnapshot(adapter, 'debounced.md');
+      expect(snapshot).toBeDefined();
+      expect(snapshot?.timestamp).toBe(1);
     } finally {
       jest.useRealTimers();
     }

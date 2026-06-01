@@ -8,15 +8,21 @@ follows [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- **Sharded history storage.** History is now stored as one self-describing
+  shard file per note under a `history/` folder instead of a single
+  `history.json`, so a corrupt or lost shard costs one note's history rather
+  than the entire base, and a save rewrites only the shards that changed. Each
+  shard keeps its own atomic write plus `.bak`/`.tmp` read fallback; global
+  retention is preserved and reconciled to disk; an existing `history.json`
+  migrates into shards once on first load.
 - **Data safety.** All on-disk history writes are now serialized through a
   single queue and committed atomically (temp file + rename) with a `.bak` of
   the prior contents; plugin unload waits for the queue to drain, so concurrent
-  scheduled saves, unload, and restore no longer race or truncate
-  `history.json`.
-- **Crash-proof load.** A corrupt or truncated `history.json` no longer crashes
-  the plugin: every `fromJSON` boundary guards each field, and `readDisk` skips
-  malformed entries instead of dropping the whole store. `history.json` is now
-  gitignored so note content cannot leak into the repo.
+  scheduled saves, unload, and restore no longer race or truncate a shard.
+- **Crash-proof load.** A corrupt or truncated history file no longer crashes
+  the plugin: every `fromJSON` boundary guards each field, and load skips
+  malformed entries instead of dropping the whole store. On-disk history is
+  kept out of version control so note content cannot leak into the repo.
 - **Load integrity.** A failing service `init` or `load` no longer leaves a
   half-loaded plugin: each service step is isolated, and successfully
   initialized services are torn down in reverse order on a fatal step.

@@ -30,5 +30,8 @@
   },
   "include": [
     "**/*.ts"
+  ],
+  "exclude": [
+    "tests/perf"
   ]
 }

@@ -104,6 +104,10 @@ export class ChangeLayerExtension {
    * @return {LayerMarker[]} The markers to draw, possibly empty
    */
   protected markers(view: EditorView): LayerMarker[] {
+    if (!this.plugin.isReady()) {
+      return [];
+    }
+
     const snapshot: FileSnapshot | null = this.snapshotsService.getOne();
     const changes: ArrayMap<ChangeLine> | null = snapshot?.getChanges(this.getEnableTypes()) ?? null;
 

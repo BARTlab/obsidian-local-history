@@ -9,6 +9,7 @@ var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 var __commonJS = (cb, mod) => function __require() {
   return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
 };
@@ -64,21 +65,25 @@ var require_Reflect = __commonJS({
               previous(key2, value);
           };
         }
+        __name(makeExporter, "makeExporter");
         function functionThis() {
           try {
             return Function("return this;")();
           } catch (_) {
           }
         }
+        __name(functionThis, "functionThis");
         function indirectEvalThis() {
           try {
             return (void 0, eval)("(function() { return this; })()");
           } catch (_) {
           }
         }
+        __name(indirectEvalThis, "indirectEvalThis");
         function sloppyModeThis() {
           return functionThis() || indirectEvalThis();
         }
+        __name(sloppyModeThis, "sloppyModeThis");
       })(function(exporter, root2) {
         var hasOwn = Object.prototype.hasOwnProperty;
         var supportsSymbol = typeof Symbol === "function";
@@ -134,6 +139,7 @@ var require_Reflect = __commonJS({
             return DecorateConstructor(decorators, target);
           }
         }
+        __name(decorate, "decorate");
         exporter("decorate", decorate);
         function metadata(metadataKey, metadataValue) {
           function decorator(target, propertyKey) {
@@ -143,8 +149,10 @@ var require_Reflect = __commonJS({
               throw new TypeError();
             OrdinaryDefineOwnMetadata(metadataKey, metadataValue, target, propertyKey);
           }
+          __name(decorator, "decorator");
           return decorator;
         }
+        __name(metadata, "metadata");
         exporter("metadata", metadata);
         function defineMetadata(metadataKey, metadataValue, target, propertyKey) {
           if (!IsObject(target))
@@ -153,6 +161,7 @@ var require_Reflect = __commonJS({
             propertyKey = ToPropertyKey(propertyKey);
           return OrdinaryDefineOwnMetadata(metadataKey, metadataValue, target, propertyKey);
         }
+        __name(defineMetadata, "defineMetadata");
         exporter("defineMetadata", defineMetadata);
         function hasMetadata(metadataKey, target, propertyKey) {
           if (!IsObject(target))
@@ -161,6 +170,7 @@ var require_Reflect = __commonJS({
             propertyKey = ToPropertyKey(propertyKey);
           return OrdinaryHasMetadata(metadataKey, target, propertyKey);
         }
+        __name(hasMetadata, "hasMetadata");
         exporter("hasMetadata", hasMetadata);
         function hasOwnMetadata(metadataKey, target, propertyKey) {
           if (!IsObject(target))
@@ -169,6 +179,7 @@ var require_Reflect = __commonJS({
             propertyKey = ToPropertyKey(propertyKey);
           return OrdinaryHasOwnMetadata(metadataKey, target, propertyKey);
         }
+        __name(hasOwnMetadata, "hasOwnMetadata");
         exporter("hasOwnMetadata", hasOwnMetadata);
         function getMetadata(metadataKey, target, propertyKey) {
           if (!IsObject(target))
@@ -177,6 +188,7 @@ var require_Reflect = __commonJS({
             propertyKey = ToPropertyKey(propertyKey);
           return OrdinaryGetMetadata(metadataKey, target, propertyKey);
         }
+        __name(getMetadata, "getMetadata");
         exporter("getMetadata", getMetadata);
         function getOwnMetadata(metadataKey, target, propertyKey) {
           if (!IsObject(target))
@@ -185,6 +197,7 @@ var require_Reflect = __commonJS({
             propertyKey = ToPropertyKey(propertyKey);
           return OrdinaryGetOwnMetadata(metadataKey, target, propertyKey);
         }
+        __name(getOwnMetadata, "getOwnMetadata");
         exporter("getOwnMetadata", getOwnMetadata);
         function getMetadataKeys(target, propertyKey) {
           if (!IsObject(target))
@@ -193,6 +206,7 @@ var require_Reflect = __commonJS({
             propertyKey = ToPropertyKey(propertyKey);
           return OrdinaryMetadataKeys(target, propertyKey);
         }
+        __name(getMetadataKeys, "getMetadataKeys");
         exporter("getMetadataKeys", getMetadataKeys);
         function getOwnMetadataKeys(target, propertyKey) {
           if (!IsObject(target))
@@ -201,6 +215,7 @@ var require_Reflect = __commonJS({
             propertyKey = ToPropertyKey(propertyKey);
           return OrdinaryOwnMetadataKeys(target, propertyKey);
         }
+        __name(getOwnMetadataKeys, "getOwnMetadataKeys");
         exporter("getOwnMetadataKeys", getOwnMetadataKeys);
         function deleteMetadata(metadataKey, target, propertyKey) {
           if (!IsObject(target))
@@ -221,6 +236,7 @@ var require_Reflect = __commonJS({
             return false;
           return provider.OrdinaryDeleteMetadata(metadataKey, target, propertyKey);
         }
+        __name(deleteMetadata, "deleteMetadata");
         exporter("deleteMetadata", deleteMetadata);
         function DecorateConstructor(decorators, target) {
           for (var i = decorators.length - 1; i >= 0; --i) {
@@ -234,6 +250,7 @@ var require_Reflect = __commonJS({
           }
           return target;
         }
+        __name(DecorateConstructor, "DecorateConstructor");
         function DecorateProperty(decorators, target, propertyKey, descriptor) {
           for (var i = decorators.length - 1; i >= 0; --i) {
             var decorator = decorators[i];
@@ -246,6 +263,7 @@ var require_Reflect = __commonJS({
           }
           return descriptor;
         }
+        __name(DecorateProperty, "DecorateProperty");
         function OrdinaryHasMetadata(MetadataKey, O, P) {
           var hasOwn2 = OrdinaryHasOwnMetadata(MetadataKey, O, P);
           if (hasOwn2)
@@ -255,6 +273,7 @@ var require_Reflect = __commonJS({
             return OrdinaryHasMetadata(MetadataKey, parent, P);
           return false;
         }
+        __name(OrdinaryHasMetadata, "OrdinaryHasMetadata");
         function OrdinaryHasOwnMetadata(MetadataKey, O, P) {
           var provider = GetMetadataProvider(
             O,
@@ -266,6 +285,7 @@ var require_Reflect = __commonJS({
             return false;
           return ToBoolean(provider.OrdinaryHasOwnMetadata(MetadataKey, O, P));
         }
+        __name(OrdinaryHasOwnMetadata, "OrdinaryHasOwnMetadata");
         function OrdinaryGetMetadata(MetadataKey, O, P) {
           var hasOwn2 = OrdinaryHasOwnMetadata(MetadataKey, O, P);
           if (hasOwn2)
@@ -275,6 +295,7 @@ var require_Reflect = __commonJS({
             return OrdinaryGetMetadata(MetadataKey, parent, P);
           return void 0;
         }
+        __name(OrdinaryGetMetadata, "OrdinaryGetMetadata");
         function OrdinaryGetOwnMetadata(MetadataKey, O, P) {
           var provider = GetMetadataProvider(
             O,
@@ -286,6 +307,7 @@ var require_Reflect = __commonJS({
             return;
           return provider.OrdinaryGetOwnMetadata(MetadataKey, O, P);
         }
+        __name(OrdinaryGetOwnMetadata, "OrdinaryGetOwnMetadata");
         function OrdinaryDefineOwnMetadata(MetadataKey, MetadataValue, O, P) {
           var provider = GetMetadataProvider(
             O,
@@ -295,6 +317,7 @@ var require_Reflect = __commonJS({
           );
           provider.OrdinaryDefineOwnMetadata(MetadataKey, MetadataValue, O, P);
         }
+        __name(OrdinaryDefineOwnMetadata, "OrdinaryDefineOwnMetadata");
         function OrdinaryMetadataKeys(O, P) {
           var ownKeys = OrdinaryOwnMetadataKeys(O, P);
           var parent = OrdinaryGetPrototypeOf(O);
@@ -325,6 +348,7 @@ var require_Reflect = __commonJS({
           }
           return keys2;
         }
+        __name(OrdinaryMetadataKeys, "OrdinaryMetadataKeys");
         function OrdinaryOwnMetadataKeys(O, P) {
           var provider = GetMetadataProvider(
             O,
@@ -337,6 +361,7 @@ var require_Reflect = __commonJS({
           }
           return provider.OrdinaryOwnMetadataKeys(O, P);
         }
+        __name(OrdinaryOwnMetadataKeys, "OrdinaryOwnMetadataKeys");
         function Type(x) {
           if (x === null)
             return 1;
@@ -357,18 +382,23 @@ var require_Reflect = __commonJS({
               return 6;
           }
         }
+        __name(Type, "Type");
         function IsUndefined(x) {
           return x === void 0;
         }
+        __name(IsUndefined, "IsUndefined");
         function IsNull(x) {
           return x === null;
         }
+        __name(IsNull, "IsNull");
         function IsSymbol(x) {
           return typeof x === "symbol";
         }
+        __name(IsSymbol, "IsSymbol");
         function IsObject(x) {
           return typeof x === "object" ? x !== null : typeof x === "function";
         }
+        __name(IsObject, "IsObject");
         function ToPrimitive(input, PreferredType) {
           switch (Type(input)) {
             case 0:
@@ -394,6 +424,7 @@ var require_Reflect = __commonJS({
           }
           return OrdinaryToPrimitive(input, hint === "default" ? "number" : hint);
         }
+        __name(ToPrimitive, "ToPrimitive");
         function OrdinaryToPrimitive(O, hint) {
           if (hint === "string") {
             var toString_1 = O.toString;
@@ -424,12 +455,15 @@ var require_Reflect = __commonJS({
           }
           throw new TypeError();
         }
+        __name(OrdinaryToPrimitive, "OrdinaryToPrimitive");
         function ToBoolean(argument) {
           return !!argument;
         }
+        __name(ToBoolean, "ToBoolean");
         function ToString(argument) {
           return "" + argument;
         }
+        __name(ToString, "ToString");
         function ToPropertyKey(argument) {
           var key2 = ToPrimitive(
             argument,
@@ -440,15 +474,19 @@ var require_Reflect = __commonJS({
             return key2;
           return ToString(key2);
         }
+        __name(ToPropertyKey, "ToPropertyKey");
         function IsArray(argument) {
           return Array.isArray ? Array.isArray(argument) : argument instanceof Object ? argument instanceof Array : Object.prototype.toString.call(argument) === "[object Array]";
         }
+        __name(IsArray, "IsArray");
         function IsCallable(argument) {
           return typeof argument === "function";
         }
+        __name(IsCallable, "IsCallable");
         function IsConstructor(argument) {
           return typeof argument === "function";
         }
+        __name(IsConstructor, "IsConstructor");
         function IsPropertyKey(argument) {
           switch (Type(argument)) {
             case 3:
@@ -459,9 +497,11 @@ var require_Reflect = __commonJS({
               return false;
           }
         }
+        __name(IsPropertyKey, "IsPropertyKey");
         function SameValueZero(x, y) {
           return x === y || x !== x && y !== y;
         }
+        __name(SameValueZero, "SameValueZero");
         function GetMethod(V, P) {
           var func = V[P];
           if (func === void 0 || func === null)
@@ -470,6 +510,7 @@ var require_Reflect = __commonJS({
             throw new TypeError();
           return func;
         }
+        __name(GetMethod, "GetMethod");
         function GetIterator(obj) {
           var method = GetMethod(obj, iteratorSymbol);
           if (!IsCallable(method))
@@ -479,18 +520,22 @@ var require_Reflect = __commonJS({
             throw new TypeError();
           return iterator;
         }
+        __name(GetIterator, "GetIterator");
         function IteratorValue(iterResult) {
           return iterResult.value;
         }
+        __name(IteratorValue, "IteratorValue");
         function IteratorStep(iterator) {
           var result = iterator.next();
           return result.done ? false : result;
         }
+        __name(IteratorStep, "IteratorStep");
         function IteratorClose(iterator) {
           var f = iterator["return"];
           if (f)
             f.call(iterator);
         }
+        __name(IteratorClose, "IteratorClose");
         function OrdinaryGetPrototypeOf(O) {
           var proto = Object.getPrototypeOf(O);
           if (typeof O !== "function" || O === functionPrototype)
@@ -508,6 +553,7 @@ var require_Reflect = __commonJS({
             return proto;
           return constructor;
         }
+        __name(OrdinaryGetPrototypeOf, "OrdinaryGetPrototypeOf");
         function CreateMetadataRegistry() {
           var fallback;
           if (!IsUndefined(registrySymbol) && typeof root2.Reflect !== "undefined" && !(registrySymbol in root2.Reflect) && typeof root2.Reflect.defineMetadata === "function") {
@@ -547,6 +593,7 @@ var require_Reflect = __commonJS({
                 break;
             }
           }
+          __name(registerProvider, "registerProvider");
           function getProviderNoCache(O, P) {
             if (!IsUndefined(first)) {
               if (first.isProviderFor(O, P))
@@ -575,6 +622,7 @@ var require_Reflect = __commonJS({
             }
             return void 0;
           }
+          __name(getProviderNoCache, "getProviderNoCache");
           function getProvider(O, P) {
             var providerMap = targetProviderMap.get(O);
             var provider;
@@ -594,11 +642,13 @@ var require_Reflect = __commonJS({
             }
             return provider;
           }
+          __name(getProvider, "getProvider");
           function hasProvider(provider) {
             if (IsUndefined(provider))
               throw new TypeError();
             return first === provider || second === provider || !IsUndefined(rest) && rest.has(provider);
           }
+          __name(hasProvider, "hasProvider");
           function setProvider(O, P, provider) {
             if (!hasProvider(provider)) {
               throw new Error("Metadata provider not registered.");
@@ -617,7 +667,9 @@ var require_Reflect = __commonJS({
             }
             return true;
           }
+          __name(setProvider, "setProvider");
         }
+        __name(CreateMetadataRegistry, "CreateMetadataRegistry");
         function GetOrCreateMetadataRegistry() {
           var metadataRegistry2;
           if (!IsUndefined(registrySymbol) && IsObject(root2.Reflect) && Object.isExtensible(root2.Reflect)) {
@@ -636,15 +688,16 @@ var require_Reflect = __commonJS({
           }
           return metadataRegistry2;
         }
+        __name(GetOrCreateMetadataRegistry, "GetOrCreateMetadataRegistry");
         function CreateMetadataProvider(registry) {
           var metadata2 = new _WeakMap();
           var provider = {
-            isProviderFor: function(O, P) {
+            isProviderFor: /* @__PURE__ */ __name(function(O, P) {
               var targetMetadata = metadata2.get(O);
               if (IsUndefined(targetMetadata))
                 return false;
               return targetMetadata.has(P);
-            },
+            }, "isProviderFor"),
             OrdinaryDefineOwnMetadata: OrdinaryDefineOwnMetadata2,
             OrdinaryHasOwnMetadata: OrdinaryHasOwnMetadata2,
             OrdinaryGetOwnMetadata: OrdinaryGetOwnMetadata2,
@@ -679,6 +732,7 @@ var require_Reflect = __commonJS({
             }
             return metadataMap;
           }
+          __name(GetOrCreateMetadataMap, "GetOrCreateMetadataMap");
           function OrdinaryHasOwnMetadata2(MetadataKey, O, P) {
             var metadataMap = GetOrCreateMetadataMap(
               O,
@@ -690,6 +744,7 @@ var require_Reflect = __commonJS({
               return false;
             return ToBoolean(metadataMap.has(MetadataKey));
           }
+          __name(OrdinaryHasOwnMetadata2, "OrdinaryHasOwnMetadata");
           function OrdinaryGetOwnMetadata2(MetadataKey, O, P) {
             var metadataMap = GetOrCreateMetadataMap(
               O,
@@ -701,6 +756,7 @@ var require_Reflect = __commonJS({
               return void 0;
             return metadataMap.get(MetadataKey);
           }
+          __name(OrdinaryGetOwnMetadata2, "OrdinaryGetOwnMetadata");
           function OrdinaryDefineOwnMetadata2(MetadataKey, MetadataValue, O, P) {
             var metadataMap = GetOrCreateMetadataMap(
               O,
@@ -710,6 +766,7 @@ var require_Reflect = __commonJS({
             );
             metadataMap.set(MetadataKey, MetadataValue);
           }
+          __name(OrdinaryDefineOwnMetadata2, "OrdinaryDefineOwnMetadata");
           function OrdinaryOwnMetadataKeys2(O, P) {
             var keys2 = [];
             var metadataMap = GetOrCreateMetadataMap(
@@ -742,6 +799,7 @@ var require_Reflect = __commonJS({
               k++;
             }
           }
+          __name(OrdinaryOwnMetadataKeys2, "OrdinaryOwnMetadataKeys");
           function OrdinaryDeleteMetadata(MetadataKey, O, P) {
             var metadataMap = GetOrCreateMetadataMap(
               O,
@@ -764,12 +822,14 @@ var require_Reflect = __commonJS({
             }
             return true;
           }
+          __name(OrdinaryDeleteMetadata, "OrdinaryDeleteMetadata");
         }
+        __name(CreateMetadataProvider, "CreateMetadataProvider");
         function CreateFallbackProvider(reflect) {
           var defineMetadata2 = reflect.defineMetadata, hasOwnMetadata2 = reflect.hasOwnMetadata, getOwnMetadata2 = reflect.getOwnMetadata, getOwnMetadataKeys2 = reflect.getOwnMetadataKeys, deleteMetadata2 = reflect.deleteMetadata;
           var metadataOwner = new _WeakMap();
           var provider = {
-            isProviderFor: function(O, P) {
+            isProviderFor: /* @__PURE__ */ __name(function(O, P) {
               var metadataPropertySet = metadataOwner.get(O);
               if (!IsUndefined(metadataPropertySet) && metadataPropertySet.has(P)) {
                 return true;
@@ -783,7 +843,7 @@ var require_Reflect = __commonJS({
                 return true;
               }
               return false;
-            },
+            }, "isProviderFor"),
             OrdinaryDefineOwnMetadata: defineMetadata2,
             OrdinaryHasOwnMetadata: hasOwnMetadata2,
             OrdinaryGetOwnMetadata: getOwnMetadata2,
@@ -792,6 +852,7 @@ var require_Reflect = __commonJS({
           };
           return provider;
         }
+        __name(CreateFallbackProvider, "CreateFallbackProvider");
         function GetMetadataProvider(O, P, Create) {
           var registeredProvider = metadataRegistry.getProvider(O, P);
           if (!IsUndefined(registeredProvider)) {
@@ -805,6 +866,7 @@ var require_Reflect = __commonJS({
           }
           return void 0;
         }
+        __name(GetMetadataProvider, "GetMetadataProvider");
         function CreateMapPolyfill() {
           var cacheSentinel = {};
           var arraySentinel = [];
@@ -817,6 +879,7 @@ var require_Reflect = __commonJS({
                 this._values = values;
                 this._selector = selector;
               }
+              __name(MapIterator2, "MapIterator");
               MapIterator2.prototype["@@iterator"] = function() {
                 return this;
               };
@@ -866,10 +929,11 @@ var require_Reflect = __commonJS({
                 this._cacheKey = cacheSentinel;
                 this._cacheIndex = -2;
               }
+              __name(Map4, "Map");
               Object.defineProperty(Map4.prototype, "size", {
-                get: function() {
+                get: /* @__PURE__ */ __name(function() {
                   return this._keys.length;
-                },
+                }, "get"),
                 enumerable: true,
                 configurable: true
               });
@@ -964,13 +1028,17 @@ var require_Reflect = __commonJS({
           function getKey(key2, _) {
             return key2;
           }
+          __name(getKey, "getKey");
           function getValue2(_, value) {
             return value;
           }
+          __name(getValue2, "getValue");
           function getEntry(key2, value) {
             return [key2, value];
           }
+          __name(getEntry, "getEntry");
         }
+        __name(CreateMapPolyfill, "CreateMapPolyfill");
         function CreateSetPolyfill() {
           var Set3 = (
             /** @class */
@@ -978,10 +1046,11 @@ var require_Reflect = __commonJS({
               function Set4() {
                 this._map = new _Map();
               }
+              __name(Set4, "Set");
               Object.defineProperty(Set4.prototype, "size", {
-                get: function() {
+                get: /* @__PURE__ */ __name(function() {
                   return this._map.size;
-                },
+                }, "get"),
                 enumerable: true,
                 configurable: true
               });
@@ -1017,6 +1086,7 @@ var require_Reflect = __commonJS({
           );
           return Set3;
         }
+        __name(CreateSetPolyfill, "CreateSetPolyfill");
         function CreateWeakMapPolyfill() {
           var UUID_SIZE = 16;
           var keys2 = HashMap.create();
@@ -1027,6 +1097,7 @@ var require_Reflect = __commonJS({
               function WeakMap3() {
                 this._key = CreateUniqueKey();
               }
+              __name(WeakMap3, "WeakMap");
               WeakMap3.prototype.has = function(target) {
                 var table = GetOrCreateWeakMapTable(
                   target,
@@ -1074,6 +1145,7 @@ var require_Reflect = __commonJS({
             keys2[key2] = true;
             return key2;
           }
+          __name(CreateUniqueKey, "CreateUniqueKey");
           function GetOrCreateWeakMapTable(target, create) {
             if (!hasOwn.call(target, rootKey)) {
               if (!create)
@@ -1082,11 +1154,13 @@ var require_Reflect = __commonJS({
             }
             return target[rootKey];
           }
+          __name(GetOrCreateWeakMapTable, "GetOrCreateWeakMapTable");
           function FillRandomBytes(buffer, size) {
             for (var i = 0; i < size; ++i)
               buffer[i] = Math.random() * 255 | 0;
             return buffer;
           }
+          __name(FillRandomBytes, "FillRandomBytes");
           function GenRandomBytes(size) {
             if (typeof Uint8Array === "function") {
               var array = new Uint8Array(size);
@@ -1101,6 +1175,7 @@ var require_Reflect = __commonJS({
             }
             return FillRandomBytes(new Array(size), size);
           }
+          __name(GenRandomBytes, "GenRandomBytes");
           function CreateUUID() {
             var data = GenRandomBytes(UUID_SIZE);
             data[6] = data[6] & 79 | 64;
@@ -1116,12 +1191,15 @@ var require_Reflect = __commonJS({
             }
             return result;
           }
+          __name(CreateUUID, "CreateUUID");
         }
+        __name(CreateWeakMapPolyfill, "CreateWeakMapPolyfill");
         function MakeDictionary(obj) {
           obj.__ = void 0;
           delete obj.__;
           return obj;
         }
+        __name(MakeDictionary, "MakeDictionary");
       });
     })(Reflect2 || (Reflect2 = {}));
   }
@@ -1146,7 +1224,7 @@ var require_compiler = __commonJS({
         "&": 11,
         "_t": 12
       };
-      Hogan4.scan = function scan(text, delimiters) {
+      Hogan4.scan = /* @__PURE__ */ __name(function scan(text, delimiters) {
         var len = text.length, IN_TEXT = 0, IN_TAG_TYPE = 1, IN_TAG = 2, state = IN_TEXT, tagType = null, tag = null, buf = "", tokens = [], seenTag = false, i = 0, lineStart = 0, otag = "{{", ctag = "}}";
         function addBuf() {
           if (buf.length > 0) {
@@ -1154,6 +1232,7 @@ var require_compiler = __commonJS({
             buf = "";
           }
         }
+        __name(addBuf, "addBuf");
         function lineIsWhitespace() {
           var isAllWhitespace = true;
           for (var j = lineStart; j < tokens.length; j++) {
@@ -1164,6 +1243,7 @@ var require_compiler = __commonJS({
           }
           return isAllWhitespace;
         }
+        __name(lineIsWhitespace, "lineIsWhitespace");
         function filterLine(haveSeenTag, noNewLine) {
           addBuf();
           if (haveSeenTag && lineIsWhitespace()) {
@@ -1181,6 +1261,7 @@ var require_compiler = __commonJS({
           seenTag = false;
           lineStart = tokens.length;
         }
+        __name(filterLine, "filterLine");
         function changeDelimiters(text2, index) {
           var close = "=" + ctag, closeIndex = text2.indexOf(close, index), delimiters2 = trim(
             text2.substring(text2.indexOf("=", index) + 1, closeIndex)
@@ -1189,6 +1270,7 @@ var require_compiler = __commonJS({
           ctag = delimiters2[delimiters2.length - 1];
           return closeIndex + close.length - 1;
         }
+        __name(changeDelimiters, "changeDelimiters");
         if (delimiters) {
           delimiters = delimiters.split(" ");
           otag = delimiters[0];
@@ -1247,18 +1329,20 @@ var require_compiler = __commonJS({
         }
         filterLine(seenTag, true);
         return tokens;
-      };
+      }, "scan");
       function cleanTripleStache(token) {
         if (token.n.substr(token.n.length - 1) === "}") {
           token.n = token.n.substring(0, token.n.length - 1);
         }
       }
+      __name(cleanTripleStache, "cleanTripleStache");
       function trim(s) {
         if (s.trim) {
           return s.trim();
         }
         return s.replace(/^\s*|\s*$/g, "");
       }
+      __name(trim, "trim");
       function tagChange(tag, text, index) {
         if (text.charAt(index) != tag.charAt(0)) {
           return false;
@@ -1270,6 +1354,7 @@ var require_compiler = __commonJS({
         }
         return true;
       }
+      __name(tagChange, "tagChange");
       var allowedInSuper = { "_t": true, "\n": true, "$": true, "/": true };
       function buildTree(tokens, kind, stack, customTags) {
         var instructions = [], opener = null, tail = null, token = null;
@@ -1302,6 +1387,7 @@ var require_compiler = __commonJS({
         }
         return instructions;
       }
+      __name(buildTree, "buildTree");
       function isOpener(token, tags) {
         for (var i = 0, l = tags.length; i < l; i++) {
           if (tags[i].o == token.n) {
@@ -1310,6 +1396,7 @@ var require_compiler = __commonJS({
           }
         }
       }
+      __name(isOpener, "isOpener");
       function isCloser(close, open, tags) {
         for (var i = 0, l = tags.length; i < l; i++) {
           if (tags[i].c == close && tags[i].o == open) {
@@ -1317,6 +1404,7 @@ var require_compiler = __commonJS({
           }
         }
       }
+      __name(isCloser, "isCloser");
       function stringifySubstitutions(obj) {
         var items = [];
         for (var key2 in obj) {
@@ -1324,6 +1412,7 @@ var require_compiler = __commonJS({
         }
         return "{ " + items.join(",") + " }";
       }
+      __name(stringifySubstitutions, "stringifySubstitutions");
       function stringifyPartials(codeObj) {
         var partials = [];
         for (var key2 in codeObj.partials) {
@@ -1331,6 +1420,7 @@ var require_compiler = __commonJS({
         }
         return "partials: {" + partials.join(",") + "}, subs: " + stringifySubstitutions(codeObj.subs);
       }
+      __name(stringifyPartials, "stringifyPartials");
       Hogan4.stringify = function(codeObj, text, options) {
         return "{code: function (c,p,i) { " + Hogan4.wrapMain(codeObj.code) + " }," + stringifyPartials(codeObj) + "}";
       };
@@ -1366,9 +1456,11 @@ var require_compiler = __commonJS({
       function esc(s) {
         return s.replace(rSlash, "\\\\").replace(rQuot, '\\"').replace(rNewline, "\\n").replace(rCr, "\\r").replace(rLineSep, "\\u2028").replace(rParagraphSep, "\\u2029");
       }
+      __name(esc, "esc");
       function chooseMethod(s) {
         return ~s.indexOf(".") ? "d" : "f";
       }
+      __name(chooseMethod, "chooseMethod");
       function createPartial(node, context) {
         var prefix = "<" + (context.prefix || "");
         var sym = prefix + node.n + serialNo++;
@@ -1376,51 +1468,54 @@ var require_compiler = __commonJS({
         context.code += 't.b(t.rp("' + esc(sym) + '",c,p,"' + (node.indent || "") + '"));';
         return sym;
       }
+      __name(createPartial, "createPartial");
       Hogan4.codegen = {
-        "#": function(node, context) {
+        "#": /* @__PURE__ */ __name(function(node, context) {
           context.code += "if(t.s(t." + chooseMethod(node.n) + '("' + esc(node.n) + '",c,p,1),c,p,0,' + node.i + "," + node.end + ',"' + node.otag + " " + node.ctag + '")){t.rs(c,p,function(c,p,t){';
           Hogan4.walk(node.nodes, context);
           context.code += "});c.pop();}";
-        },
-        "^": function(node, context) {
+        }, "#"),
+        "^": /* @__PURE__ */ __name(function(node, context) {
           context.code += "if(!t.s(t." + chooseMethod(node.n) + '("' + esc(node.n) + '",c,p,1),c,p,1,0,0,"")){';
           Hogan4.walk(node.nodes, context);
           context.code += "};";
-        },
+        }, "^"),
         ">": createPartial,
-        "<": function(node, context) {
+        "<": /* @__PURE__ */ __name(function(node, context) {
           var ctx = { partials: {}, code: "", subs: {}, inPartial: true };
           Hogan4.walk(node.nodes, ctx);
           var template = context.partials[createPartial(node, context)];
           template.subs = ctx.subs;
           template.partials = ctx.partials;
-        },
-        "$": function(node, context) {
+        }, "<"),
+        "$": /* @__PURE__ */ __name(function(node, context) {
           var ctx = { subs: {}, code: "", partials: context.partials, prefix: node.n };
           Hogan4.walk(node.nodes, ctx);
           context.subs[node.n] = ctx.code;
           if (!context.inPartial) {
             context.code += 't.sub("' + esc(node.n) + '",c,p,i);';
           }
-        },
-        "\n": function(node, context) {
+        }, "$"),
+        "\n": /* @__PURE__ */ __name(function(node, context) {
           context.code += write('"\\n"' + (node.last ? "" : " + i"));
-        },
-        "_v": function(node, context) {
+        }, "\n"),
+        "_v": /* @__PURE__ */ __name(function(node, context) {
           context.code += "t.b(t.v(t." + chooseMethod(node.n) + '("' + esc(node.n) + '",c,p,0)));';
-        },
-        "_t": function(node, context) {
+        }, "_v"),
+        "_t": /* @__PURE__ */ __name(function(node, context) {
           context.code += write('"' + esc(node.text) + '"');
-        },
+        }, "_t"),
         "{": tripleStache,
         "&": tripleStache
       };
       function tripleStache(node, context) {
         context.code += "t.b(t.t(t." + chooseMethod(node.n) + '("' + esc(node.n) + '",c,p,0)));';
       }
+      __name(tripleStache, "tripleStache");
       function write(s) {
         return "t.b(" + s + ");";
       }
+      __name(write, "write");
       Hogan4.walk = function(nodelist, context) {
         var func;
         for (var i = 0, l = nodelist.length; i < l; i++) {
@@ -1472,22 +1567,22 @@ var require_template = __commonJS({
       };
       Hogan5.Template.prototype = {
         // render: replaced by generated code.
-        r: function(context, partials, indent) {
+        r: /* @__PURE__ */ __name(function(context, partials, indent) {
           return "";
-        },
+        }, "r"),
         // variable escaping
         v: hoganEscape,
         // triple stache
         t: coerceToString,
-        render: function render(context, partials, indent) {
+        render: /* @__PURE__ */ __name(function render(context, partials, indent) {
           return this.ri([context], partials || {}, indent);
-        },
+        }, "render"),
         // render internal -- a hook for overrides that catches partials too
-        ri: function(context, partials, indent) {
+        ri: /* @__PURE__ */ __name(function(context, partials, indent) {
           return this.r(context, partials, indent);
-        },
+        }, "ri"),
         // ensurePartial
-        ep: function(symbol, partials) {
+        ep: /* @__PURE__ */ __name(function(symbol, partials) {
           var partial = this.partials[symbol];
           var template = partials[partial.name];
           if (partial.instance && partial.base == template) {
@@ -1521,17 +1616,17 @@ var require_template = __commonJS({
           }
           this.partials[symbol].instance = template;
           return template;
-        },
+        }, "ep"),
         // tries to find a partial in the current scope and render it
-        rp: function(symbol, context, partials, indent) {
+        rp: /* @__PURE__ */ __name(function(symbol, context, partials, indent) {
           var partial = this.ep(symbol, partials);
           if (!partial) {
             return "";
           }
           return partial.ri(context, partials, indent);
-        },
+        }, "rp"),
         // render a section
-        rs: function(context, partials, section) {
+        rs: /* @__PURE__ */ __name(function(context, partials, section) {
           var tail = context[context.length - 1];
           if (!isArray2(tail)) {
             section(context, partials, this);
@@ -1542,9 +1637,9 @@ var require_template = __commonJS({
             section(context, partials, this);
             context.pop();
           }
-        },
+        }, "rs"),
         // maybe start a section
-        s: function(val, ctx, partials, inverted, start, end, tags) {
+        s: /* @__PURE__ */ __name(function(val, ctx, partials, inverted, start, end, tags) {
           var pass;
           if (isArray2(val) && val.length === 0) {
             return false;
@@ -1557,9 +1652,9 @@ var require_template = __commonJS({
             ctx.push(typeof val == "object" ? val : ctx[ctx.length - 1]);
           }
           return pass;
-        },
+        }, "s"),
         // find values with dotted names
-        d: function(key2, ctx, partials, returnFound) {
+        d: /* @__PURE__ */ __name(function(key2, ctx, partials, returnFound) {
           var found, names = key2.split("."), val = this.f(names[0], ctx, partials, returnFound), doModelGet = this.options.modelGet, cx = null;
           if (key2 === "." && isArray2(ctx[ctx.length - 2])) {
             val = ctx[ctx.length - 1];
@@ -1583,9 +1678,9 @@ var require_template = __commonJS({
             ctx.pop();
           }
           return val;
-        },
+        }, "d"),
         // find values with normal names
-        f: function(key2, ctx, partials, returnFound) {
+        f: /* @__PURE__ */ __name(function(key2, ctx, partials, returnFound) {
           var val = false, v = null, found = false, doModelGet = this.options.modelGet;
           for (var i = ctx.length - 1; i >= 0; i--) {
             v = ctx[i];
@@ -1602,33 +1697,33 @@ var require_template = __commonJS({
             val = this.mv(val, ctx, partials);
           }
           return val;
-        },
+        }, "f"),
         // higher order templates
-        ls: function(func, cx, ctx, partials, text, tags) {
+        ls: /* @__PURE__ */ __name(function(func, cx, ctx, partials, text, tags) {
           var oldTags = this.options.delimiters;
           this.options.delimiters = tags;
           this.b(this.ct(coerceToString(func.call(cx, text, ctx)), cx, partials));
           this.options.delimiters = oldTags;
           return false;
-        },
+        }, "ls"),
         // compile text
-        ct: function(text, cx, partials) {
+        ct: /* @__PURE__ */ __name(function(text, cx, partials) {
           if (this.options.disableLambda) {
             throw new Error("Lambda features disabled.");
           }
           return this.c.compile(text, this.options).render(cx, partials);
-        },
+        }, "ct"),
         // template result buffering
-        b: function(s) {
+        b: /* @__PURE__ */ __name(function(s) {
           this.buf += s;
-        },
-        fl: function() {
+        }, "b"),
+        fl: /* @__PURE__ */ __name(function() {
           var r = this.buf;
           this.buf = "";
           return r;
-        },
+        }, "fl"),
         // method replace section
-        ms: function(func, ctx, partials, inverted, start, end, tags) {
+        ms: /* @__PURE__ */ __name(function(func, ctx, partials, inverted, start, end, tags) {
           var textSource, cx = ctx[ctx.length - 1], result = func.call(cx);
           if (typeof result == "function") {
             if (inverted) {
@@ -1639,24 +1734,24 @@ var require_template = __commonJS({
             }
           }
           return result;
-        },
+        }, "ms"),
         // method replace variable
-        mv: function(func, ctx, partials) {
+        mv: /* @__PURE__ */ __name(function(func, ctx, partials) {
           var cx = ctx[ctx.length - 1];
           var result = func.call(cx);
           if (typeof result == "function") {
             return this.ct(coerceToString(result.call(cx)), cx, partials);
           }
           return result;
-        },
-        sub: function(name, context, partials, indent) {
+        }, "mv"),
+        sub: /* @__PURE__ */ __name(function(name, context, partials, indent) {
           var f = this.subs[name];
           if (f) {
             this.activeSub = name;
             f(context, partials, this, indent);
             this.activeSub = false;
           }
-        }
+        }, "sub")
       };
       function findInScope(key2, scope, doModelGet) {
         var val;
@@ -1669,13 +1764,16 @@ var require_template = __commonJS({
         }
         return val;
       }
+      __name(findInScope, "findInScope");
       function createSpecializedPartial(instance, subs, partials, stackSubs, stackPartials, stackText) {
         function PartialTemplate() {
         }
+        __name(PartialTemplate, "PartialTemplate");
         ;
         PartialTemplate.prototype = instance;
         function Substitutions() {
         }
+        __name(Substitutions, "Substitutions");
         ;
         Substitutions.prototype = instance.subs;
         var key2;
@@ -1702,14 +1800,17 @@ var require_template = __commonJS({
         }
         return partial;
       }
+      __name(createSpecializedPartial, "createSpecializedPartial");
       var rAmp = /&/g, rLt = /</g, rGt = />/g, rApos = /\'/g, rQuot = /\"/g, hChars = /[&<>\"\']/;
       function coerceToString(val) {
         return String(val === null || val === void 0 ? "" : val);
       }
+      __name(coerceToString, "coerceToString");
       function hoganEscape(str) {
         str = coerceToString(str);
         return hChars.test(str) ? str.replace(rAmp, "&amp;").replace(rLt, "&lt;").replace(rGt, "&gt;").replace(rApos, "&#39;").replace(rQuot, "&quot;") : str;
       }
+      __name(hoganEscape, "hoganEscape");
       var isArray2 = Array.isArray || function(a) {
         return Object.prototype.toString.call(a) === "[object Array]";
       };
@@ -1735,6 +1836,7 @@ var require_eventemitter3 = __commonJS({
     var prefix = "~";
     function Events() {
     }
+    __name(Events, "Events");
     if (Object.create) {
       Events.prototype = /* @__PURE__ */ Object.create(null);
       if (!new Events().__proto__) prefix = false;
@@ -1744,6 +1846,7 @@ var require_eventemitter3 = __commonJS({
       this.context = context;
       this.once = once || false;
     }
+    __name(EE, "EE");
     function addListener(emitter, event, fn, context, once) {
       if (typeof fn !== "function") {
         throw new TypeError("The listener must be a function");
@@ -1754,15 +1857,18 @@ var require_eventemitter3 = __commonJS({
       else emitter._events[evt] = [emitter._events[evt], listener];
       return emitter;
     }
+    __name(addListener, "addListener");
     function clearEvent(emitter, evt) {
       if (--emitter._eventsCount === 0) emitter._events = new Events();
       else delete emitter._events[evt];
     }
+    __name(clearEvent, "clearEvent");
     function EventEmitter2() {
       this._events = new Events();
       this._eventsCount = 0;
     }
-    EventEmitter2.prototype.eventNames = function eventNames() {
+    __name(EventEmitter2, "EventEmitter");
+    EventEmitter2.prototype.eventNames = /* @__PURE__ */ __name(function eventNames() {
       var names = [], events, name;
       if (this._eventsCount === 0) return names;
       for (name in events = this._events) {
@@ -1772,8 +1878,8 @@ var require_eventemitter3 = __commonJS({
         return names.concat(Object.getOwnPropertySymbols(events));
       }
       return names;
-    };
-    EventEmitter2.prototype.listeners = function listeners(event) {
+    }, "eventNames");
+    EventEmitter2.prototype.listeners = /* @__PURE__ */ __name(function listeners(event) {
       var evt = prefix ? prefix + event : event, handlers = this._events[evt];
       if (!handlers) return [];
       if (handlers.fn) return [handlers.fn];
@@ -1781,14 +1887,14 @@ var require_eventemitter3 = __commonJS({
         ee[i] = handlers[i].fn;
       }
       return ee;
-    };
-    EventEmitter2.prototype.listenerCount = function listenerCount(event) {
+    }, "listeners");
+    EventEmitter2.prototype.listenerCount = /* @__PURE__ */ __name(function listenerCount(event) {
       var evt = prefix ? prefix + event : event, listeners = this._events[evt];
       if (!listeners) return 0;
       if (listeners.fn) return 1;
       return listeners.length;
-    };
-    EventEmitter2.prototype.emit = function emit(event, a1, a2, a3, a4, a5) {
+    }, "listenerCount");
+    EventEmitter2.prototype.emit = /* @__PURE__ */ __name(function emit(event, a1, a2, a3, a4, a5) {
       var evt = prefix ? prefix + event : event;
       if (!this._events[evt]) return false;
       var listeners = this._events[evt], len = arguments.length, args, i;
@@ -1838,14 +1944,14 @@ var require_eventemitter3 = __commonJS({
         }
       }
       return true;
-    };
-    EventEmitter2.prototype.on = function on(event, fn, context) {
+    }, "emit");
+    EventEmitter2.prototype.on = /* @__PURE__ */ __name(function on(event, fn, context) {
       return addListener(this, event, fn, context, false);
-    };
-    EventEmitter2.prototype.once = function once(event, fn, context) {
+    }, "on");
+    EventEmitter2.prototype.once = /* @__PURE__ */ __name(function once(event, fn, context) {
       return addListener(this, event, fn, context, true);
-    };
-    EventEmitter2.prototype.removeListener = function removeListener(event, fn, context, once) {
+    }, "once");
+    EventEmitter2.prototype.removeListener = /* @__PURE__ */ __name(function removeListener(event, fn, context, once) {
       var evt = prefix ? prefix + event : event;
       if (!this._events[evt]) return this;
       if (!fn) {
@@ -1867,8 +1973,8 @@ var require_eventemitter3 = __commonJS({
         else clearEvent(this, evt);
       }
       return this;
-    };
-    EventEmitter2.prototype.removeAllListeners = function removeAllListeners(event) {
+    }, "removeListener");
+    EventEmitter2.prototype.removeAllListeners = /* @__PURE__ */ __name(function removeAllListeners(event) {
       var evt;
       if (event) {
         evt = prefix ? prefix + event : event;
@@ -1878,7 +1984,7 @@ var require_eventemitter3 = __commonJS({
         this._eventsCount = 0;
       }
       return this;
-    };
+    }, "removeAllListeners");
     EventEmitter2.prototype.off = EventEmitter2.prototype.removeListener;
     EventEmitter2.prototype.addListener = EventEmitter2.prototype.on;
     EventEmitter2.prefixed = prefix;
@@ -1973,6 +2079,8 @@ var NO_NEWLINE_MARKER = "\\ No newline at end of file";
 var REVERT_GLYPH = "\u21A9";
 var MS_PER_DAY = 24 * 60 * 60 * 1e3;
 var SAVE_DEBOUNCE_MS = 1500;
+var HISTORY_SHARD_DIR = "history";
+var VERSION_KEYFRAME_INTERVAL = 25;
 var FALLBACK_LANGUAGE = "en";
 var LANGUAGE_STORAGE_KEY = "language";
 var OBSIDIAN_LANGUAGES = [
@@ -2056,7 +2164,7 @@ var import_state = require("@codemirror/state");
 var refreshDecorationsEffect = import_state.StateEffect.define();
 
 // src/commands/base.command.ts
-var BaseCommand = class {
+var _BaseCommand = class _BaseCommand {
   /**
    * Creates a new instance of BaseCommand.
    *
@@ -2066,9 +2174,11 @@ var BaseCommand = class {
     this.plugin = plugin;
   }
 };
+__name(_BaseCommand, "BaseCommand");
+var BaseCommand = _BaseCommand;
 
 // src/decorators/inject.decorator.ts
-var Inject = (cls) => {
+var Inject = /* @__PURE__ */ __name((cls) => {
   return (target, propertyKey) => {
     Reflect.defineMetadata("INJECT", true, target, propertyKey);
     Object.defineProperty(target, propertyKey, {
@@ -2084,10 +2194,10 @@ var Inject = (cls) => {
       }
     });
   };
-};
+}, "Inject");
 
 // src/helpers/navigation.helper.ts
-var NavigationHelper = class _NavigationHelper {
+var _NavigationHelper = class _NavigationHelper {
   /**
    * Resolves the changed line to navigate to from the current cursor line.
    * Targets are strictly after (for 'next') or strictly before (for
@@ -2145,10 +2255,12 @@ var NavigationHelper = class _NavigationHelper {
     return [...new Set(changedLines != null ? changedLines : [])].filter((line) => Number.isFinite(line)).sort((a, b) => a - b);
   }
 };
+__name(_NavigationHelper, "NavigationHelper");
+var NavigationHelper = _NavigationHelper;
 
 // src/commands/go-to-next-change.command.ts
 var import_obsidian = require("obsidian");
-var GoToNextChangeCommand = class extends BaseCommand {
+var _GoToNextChangeCommand = class _GoToNextChangeCommand extends BaseCommand {
   constructor() {
     super(...arguments);
     /**
@@ -2168,7 +2280,7 @@ var GoToNextChangeCommand = class extends BaseCommand {
      *
      * @param {Editor} editor - The active editor the command runs against
      */
-    this.editorCallback = (editor) => {
+    this.editorCallback = /* @__PURE__ */ __name((editor) => {
       var _a;
       const snapshot = this.snapshotsService.getOne();
       const positions = (_a = snapshot == null ? void 0 : snapshot.getChangedPositions()) != null ? _a : [];
@@ -2181,16 +2293,18 @@ var GoToNextChangeCommand = class extends BaseCommand {
         return;
       }
       NavigationHelper.moveCursor(editor, target);
-    };
+    }, "editorCallback");
   }
 };
+__name(_GoToNextChangeCommand, "GoToNextChangeCommand");
 __decorateClass([
   Inject("SnapshotsService")
-], GoToNextChangeCommand.prototype, "snapshotsService", 2);
+], _GoToNextChangeCommand.prototype, "snapshotsService", 2);
+var GoToNextChangeCommand = _GoToNextChangeCommand;
 
 // src/commands/go-to-previous-change.command.ts
 var import_obsidian2 = require("obsidian");
-var GoToPreviousChangeCommand = class extends BaseCommand {
+var _GoToPreviousChangeCommand = class _GoToPreviousChangeCommand extends BaseCommand {
   constructor() {
     super(...arguments);
     /**
@@ -2210,7 +2324,7 @@ var GoToPreviousChangeCommand = class extends BaseCommand {
      *
      * @param {Editor} editor - The active editor the command runs against
      */
-    this.editorCallback = (editor) => {
+    this.editorCallback = /* @__PURE__ */ __name((editor) => {
       var _a;
       const snapshot = this.snapshotsService.getOne();
       const positions = (_a = snapshot == null ? void 0 : snapshot.getChangedPositions()) != null ? _a : [];
@@ -2224,16 +2338,18 @@ var GoToPreviousChangeCommand = class extends BaseCommand {
         return;
       }
       NavigationHelper.moveCursor(editor, target);
-    };
+    }, "editorCallback");
   }
 };
+__name(_GoToPreviousChangeCommand, "GoToPreviousChangeCommand");
 __decorateClass([
   Inject("SnapshotsService")
-], GoToPreviousChangeCommand.prototype, "snapshotsService", 2);
+], _GoToPreviousChangeCommand.prototype, "snapshotsService", 2);
+var GoToPreviousChangeCommand = _GoToPreviousChangeCommand;
 
 // src/commands/reset-lines-all.command.ts
 var import_obsidian3 = require("obsidian");
-var ResetLinesAllCommand = class extends BaseCommand {
+var _ResetLinesAllCommand = class _ResetLinesAllCommand extends BaseCommand {
   constructor() {
     super(...arguments);
     /**
@@ -2250,19 +2366,21 @@ var ResetLinesAllCommand = class extends BaseCommand {
      * Callback function executed when the command is triggered.
      * Deletes all snapshots and shows a notification.
      */
-    this.callback = () => {
+    this.callback = /* @__PURE__ */ __name(() => {
       this.snapshotsService.wipe();
       new import_obsidian3.Notice(this.plugin.t("notice.all-snapshots-deleted"));
-    };
+    }, "callback");
   }
 };
+__name(_ResetLinesAllCommand, "ResetLinesAllCommand");
 __decorateClass([
   Inject("SnapshotsService")
-], ResetLinesAllCommand.prototype, "snapshotsService", 2);
+], _ResetLinesAllCommand.prototype, "snapshotsService", 2);
+var ResetLinesAllCommand = _ResetLinesAllCommand;
 
 // src/commands/reset-lines.command.ts
 var import_obsidian4 = require("obsidian");
-var ResetLinesCommand = class extends BaseCommand {
+var _ResetLinesCommand = class _ResetLinesCommand extends BaseCommand {
   constructor() {
     super(...arguments);
     /**
@@ -2279,18 +2397,20 @@ var ResetLinesCommand = class extends BaseCommand {
      * Callback function executed when the command is triggered in an editor context.
      * Deletes the snapshot for the current document and shows a notification.
      */
-    this.editorCallback = () => {
+    this.editorCallback = /* @__PURE__ */ __name(() => {
       this.snapshotsService.wipeOne();
       new import_obsidian4.Notice(this.plugin.t("notice.current-snapshot-deleted"));
-    };
+    }, "editorCallback");
   }
 };
+__name(_ResetLinesCommand, "ResetLinesCommand");
 __decorateClass([
   Inject("SnapshotsService")
-], ResetLinesCommand.prototype, "snapshotsService", 2);
+], _ResetLinesCommand.prototype, "snapshotsService", 2);
+var ResetLinesCommand = _ResetLinesCommand;
 
 // src/commands/show-diff.command.ts
-var ShowDiffCommand = class extends BaseCommand {
+var _ShowDiffCommand = class _ShowDiffCommand extends BaseCommand {
   constructor() {
     super(...arguments);
     /**
@@ -2313,21 +2433,23 @@ var ShowDiffCommand = class extends BaseCommand {
      * @param {boolean} checking - True when Obsidian is only querying availability
      * @return {boolean} True if the command is available for the active file
      */
-    this.checkCallback = (checking) => {
+    this.checkCallback = /* @__PURE__ */ __name((checking) => {
       const canDiff = this.modalService.canDiff();
       if (checking) {
         return canDiff;
       }
       return this.modalService.diff();
-    };
+    }, "checkCallback");
   }
 };
+__name(_ShowDiffCommand, "ShowDiffCommand");
 __decorateClass([
   Inject("ModalsService")
-], ShowDiffCommand.prototype, "modalService", 2);
+], _ShowDiffCommand.prototype, "modalService", 2);
+var ShowDiffCommand = _ShowDiffCommand;
 
 // src/services/commands.service.ts
-var CommandsService = class {
+var _CommandsService = class _CommandsService {
   /**
    * Creates a new instance of CommandsService.
    *
@@ -2381,9 +2503,11 @@ var CommandsService = class {
     return new ClsCConstructor(this.plugin);
   }
 };
+__name(_CommandsService, "CommandsService");
+var CommandsService = _CommandsService;
 
 // src/events/base.event.ts
-var BaseEvent = class {
+var _BaseEvent = class _BaseEvent {
   /**
    * Creates a new instance of BaseEvent.
    *
@@ -2474,10 +2598,12 @@ var BaseEvent = class {
     console.error(`Local history: event handler "${this.name}" failed`, error);
   }
 };
+__name(_BaseEvent, "BaseEvent");
+var BaseEvent = _BaseEvent;
 
 // src/events/vault/create.event.ts
 var import_obsidian5 = require("obsidian");
-var VaultCreateEvent = class extends BaseEvent {
+var _VaultCreateEvent = class _VaultCreateEvent extends BaseEvent {
   constructor() {
     super(...arguments);
     /**
@@ -2512,16 +2638,18 @@ var VaultCreateEvent = class extends BaseEvent {
     void this.snapshotsService.capture(file);
   }
 };
+__name(_VaultCreateEvent, "VaultCreateEvent");
 __decorateClass([
   Inject("SettingsService")
-], VaultCreateEvent.prototype, "settingsService", 2);
+], _VaultCreateEvent.prototype, "settingsService", 2);
 __decorateClass([
   Inject("SnapshotsService")
-], VaultCreateEvent.prototype, "snapshotsService", 2);
+], _VaultCreateEvent.prototype, "snapshotsService", 2);
+var VaultCreateEvent = _VaultCreateEvent;
 
 // src/events/vault/delete.event.ts
 var import_obsidian6 = require("obsidian");
-var VaultDeleteEvent = class extends BaseEvent {
+var _VaultDeleteEvent = class _VaultDeleteEvent extends BaseEvent {
   constructor() {
     super(...arguments);
     /**
@@ -2544,13 +2672,15 @@ var VaultDeleteEvent = class extends BaseEvent {
     this.snapshotsService.removeFromIgnoreList(file);
   }
 };
+__name(_VaultDeleteEvent, "VaultDeleteEvent");
 __decorateClass([
   Inject("SnapshotsService")
-], VaultDeleteEvent.prototype, "snapshotsService", 2);
+], _VaultDeleteEvent.prototype, "snapshotsService", 2);
+var VaultDeleteEvent = _VaultDeleteEvent;
 
 // src/events/vault/modify.event.ts
 var import_obsidian7 = require("obsidian");
-var VaultModifyEvent = class extends BaseEvent {
+var _VaultModifyEvent = class _VaultModifyEvent extends BaseEvent {
   constructor() {
     super(...arguments);
     /**
@@ -2576,12 +2706,14 @@ var VaultModifyEvent = class extends BaseEvent {
     this.snapshotsService.scheduleExternalCapture(file);
   }
 };
+__name(_VaultModifyEvent, "VaultModifyEvent");
 __decorateClass([
   Inject("SnapshotsService")
-], VaultModifyEvent.prototype, "snapshotsService", 2);
+], _VaultModifyEvent.prototype, "snapshotsService", 2);
+var VaultModifyEvent = _VaultModifyEvent;
 
 // src/helpers/path.helper.ts
-var PathHelper = class {
+var _PathHelper = class _PathHelper {
   /**
    * Returns the directory portion of a vault-relative path, without a trailing
    * slash. A path with no slash (a file at the vault root) returns an empty
@@ -2609,10 +2741,12 @@ var PathHelper = class {
     return path.slice(0, lastSlash);
   }
 };
+__name(_PathHelper, "PathHelper");
+var PathHelper = _PathHelper;
 
 // src/events/vault/rename.event.ts
 var import_obsidian8 = require("obsidian");
-var VaultRenameEvent = class extends BaseEvent {
+var _VaultRenameEvent = class _VaultRenameEvent extends BaseEvent {
   constructor() {
     super(...arguments);
     /**
@@ -2640,12 +2774,14 @@ var VaultRenameEvent = class extends BaseEvent {
     this.snapshotsService.markMoved(oldPath, file);
   }
 };
+__name(_VaultRenameEvent, "VaultRenameEvent");
 __decorateClass([
   Inject("SnapshotsService")
-], VaultRenameEvent.prototype, "snapshotsService", 2);
+], _VaultRenameEvent.prototype, "snapshotsService", 2);
+var VaultRenameEvent = _VaultRenameEvent;
 
 // src/events/workspace/active-leaf-change.event.ts
-var WorkspaceActiveLeafChangeEvent = class extends BaseEvent {
+var _WorkspaceActiveLeafChangeEvent = class _WorkspaceActiveLeafChangeEvent extends BaseEvent {
   constructor() {
     super(...arguments);
     /**
@@ -2661,15 +2797,20 @@ var WorkspaceActiveLeafChangeEvent = class extends BaseEvent {
    * @param {...any} args - Arguments passed by the event (not used in this handler)
    */
   handler(..._args) {
+    if (!this.plugin.isReady()) {
+      return;
+    }
     this.snapshotsService.forceUpdate();
   }
 };
+__name(_WorkspaceActiveLeafChangeEvent, "WorkspaceActiveLeafChangeEvent");
 __decorateClass([
   Inject("SnapshotsService")
-], WorkspaceActiveLeafChangeEvent.prototype, "snapshotsService", 2);
+], _WorkspaceActiveLeafChangeEvent.prototype, "snapshotsService", 2);
+var WorkspaceActiveLeafChangeEvent = _WorkspaceActiveLeafChangeEvent;
 
 // src/helpers/menu.helper.ts
-var MenuHelper = class {
+var _MenuHelper = class _MenuHelper {
   /**
    * Attaches a child submenu to the given parent menu item and returns the
    * resulting `Menu` instance, fully typed. The returned menu accepts the usual
@@ -2683,9 +2824,11 @@ var MenuHelper = class {
     return item.setSubmenu();
   }
 };
+__name(_MenuHelper, "MenuHelper");
+var MenuHelper = _MenuHelper;
 
 // src/events/workspace/editor-menu.event.ts
-var WorkspaceEditorMenuEvent = class extends BaseEvent {
+var _WorkspaceEditorMenuEvent = class _WorkspaceEditorMenuEvent extends BaseEvent {
   constructor() {
     super(...arguments);
     /**
@@ -2730,12 +2873,14 @@ var WorkspaceEditorMenuEvent = class extends BaseEvent {
     });
   }
 };
+__name(_WorkspaceEditorMenuEvent, "WorkspaceEditorMenuEvent");
 __decorateClass([
   Inject("ModalsService")
-], WorkspaceEditorMenuEvent.prototype, "modalService", 2);
+], _WorkspaceEditorMenuEvent.prototype, "modalService", 2);
+var WorkspaceEditorMenuEvent = _WorkspaceEditorMenuEvent;
 
 // src/events/workspace/file-open.event.ts
-var WorkspaceFileOpenEvent = class extends BaseEvent {
+var _WorkspaceFileOpenEvent = class _WorkspaceFileOpenEvent extends BaseEvent {
   constructor() {
     super(...arguments);
     /**
@@ -2757,14 +2902,16 @@ var WorkspaceFileOpenEvent = class extends BaseEvent {
     void this.snapshotsService.capture(file);
   }
 };
+__name(_WorkspaceFileOpenEvent, "WorkspaceFileOpenEvent");
 __decorateClass([
   Inject("SnapshotsService")
-], WorkspaceFileOpenEvent.prototype, "snapshotsService", 2);
+], _WorkspaceFileOpenEvent.prototype, "snapshotsService", 2);
+var WorkspaceFileOpenEvent = _WorkspaceFileOpenEvent;
 
 // src/events/workspace/files-menu.event.ts
 var import_obsidian9 = require("obsidian");
 var import_obsidian10 = require("obsidian");
-var WorkspaceFilesMenuEvent = class extends BaseEvent {
+var _WorkspaceFilesMenuEvent = class _WorkspaceFilesMenuEvent extends BaseEvent {
   constructor() {
     super(...arguments);
     /**
@@ -2846,12 +2993,14 @@ var WorkspaceFilesMenuEvent = class extends BaseEvent {
     });
   }
 };
+__name(_WorkspaceFilesMenuEvent, "WorkspaceFilesMenuEvent");
 __decorateClass([
   Inject("ModalsService")
-], WorkspaceFilesMenuEvent.prototype, "modalService", 2);
+], _WorkspaceFilesMenuEvent.prototype, "modalService", 2);
+var WorkspaceFilesMenuEvent = _WorkspaceFilesMenuEvent;
 
 // src/events/workspace/layout-change.event.ts
-var WorkspaceLayoutChangeEvent = class extends BaseEvent {
+var _WorkspaceLayoutChangeEvent = class _WorkspaceLayoutChangeEvent extends BaseEvent {
   constructor() {
     super(...arguments);
     /**
@@ -2912,15 +3061,17 @@ var WorkspaceLayoutChangeEvent = class extends BaseEvent {
     return this.settingsService.value("keep") === "file" /* file */;
   }
 };
+__name(_WorkspaceLayoutChangeEvent, "WorkspaceLayoutChangeEvent");
 __decorateClass([
   Inject("SnapshotsService")
-], WorkspaceLayoutChangeEvent.prototype, "snapshotsService", 2);
+], _WorkspaceLayoutChangeEvent.prototype, "snapshotsService", 2);
 __decorateClass([
   Inject("SettingsService")
-], WorkspaceLayoutChangeEvent.prototype, "settingsService", 2);
+], _WorkspaceLayoutChangeEvent.prototype, "settingsService", 2);
+var WorkspaceLayoutChangeEvent = _WorkspaceLayoutChangeEvent;
 
 // src/events/workspace/viewport-menu.event.ts
-var WorkspaceViewportMenuEvent = class extends BaseEvent {
+var _WorkspaceViewportMenuEvent = class _WorkspaceViewportMenuEvent extends BaseEvent {
   constructor() {
     super(...arguments);
     /**
@@ -2948,12 +3099,14 @@ var WorkspaceViewportMenuEvent = class extends BaseEvent {
     });
   }
 };
+__name(_WorkspaceViewportMenuEvent, "WorkspaceViewportMenuEvent");
 __decorateClass([
   Inject("SettingsService")
-], WorkspaceViewportMenuEvent.prototype, "settingsService", 2);
+], _WorkspaceViewportMenuEvent.prototype, "settingsService", 2);
+var WorkspaceViewportMenuEvent = _WorkspaceViewportMenuEvent;
 
 // src/services/events.service.ts
-var EventsService = class {
+var _EventsService = class _EventsService {
   /**
    * Creates a new instance of EventsService.
    *
@@ -3037,9 +3190,11 @@ var EventsService = class {
     return new ClsCConstructor(this.plugin);
   }
 };
+__name(_EventsService, "EventsService");
+var EventsService = _EventsService;
 
 // src/extensions/base.extension.ts
-var BaseExtension = class {
+var _BaseExtension = class _BaseExtension {
   /**
    * Creates a new instance of BaseExtension.
    *
@@ -3051,10 +3206,12 @@ var BaseExtension = class {
     this.plugin = plugin;
   }
 };
+__name(_BaseExtension, "BaseExtension");
+var BaseExtension = _BaseExtension;
 
 // src/extensions/change-detector.extension.ts
 var import_view = require("@codemirror/view");
-var ChangeDetectorExtension = class extends BaseExtension {
+var _ChangeDetectorExtension = class _ChangeDetectorExtension extends BaseExtension {
   constructor() {
     super(...arguments);
     /**
@@ -3174,17 +3331,19 @@ var ChangeDetectorExtension = class extends BaseExtension {
     };
   }
 };
+__name(_ChangeDetectorExtension, "ChangeDetectorExtension");
 __decorateClass([
   Inject("SnapshotsService")
-], ChangeDetectorExtension.prototype, "snapshotsService", 2);
+], _ChangeDetectorExtension.prototype, "snapshotsService", 2);
 __decorateClass([
   Inject("SettingsService")
-], ChangeDetectorExtension.prototype, "settingsService", 2);
+], _ChangeDetectorExtension.prototype, "settingsService", 2);
+var ChangeDetectorExtension = _ChangeDetectorExtension;
 
 // src/extensions/change-layer.extension.ts
 var import_view2 = require("@codemirror/view");
 var BAR_LEFT_OFFSET = 10;
-var ChangeLayerExtension = class {
+var _ChangeLayerExtension = class _ChangeLayerExtension {
   /**
    * Creates a new instance of ChangeLayerExtension.
    *
@@ -3206,8 +3365,8 @@ var ChangeLayerExtension = class {
     return (0, import_view2.layer)({
       above: false,
       class: "lct-change-layer",
-      update: (update) => this.needsUpdate(update),
-      markers: (view) => this.markers(view)
+      update: /* @__PURE__ */ __name((update) => this.needsUpdate(update), "update"),
+      markers: /* @__PURE__ */ __name((view) => this.markers(view), "markers")
     });
   }
   /**
@@ -3228,6 +3387,9 @@ var ChangeLayerExtension = class {
    */
   markers(view) {
     var _a;
+    if (!this.plugin.isReady()) {
+      return [];
+    }
     const snapshot = this.snapshotsService.getOne();
     const changes = (_a = snapshot == null ? void 0 : snapshot.getChanges(this.getEnableTypes())) != null ? _a : null;
     if (!this.isTypeLine() || !snapshot || !(changes == null ? void 0 : changes.size)) {
@@ -3451,17 +3613,19 @@ var ChangeLayerExtension = class {
     ];
   }
 };
+__name(_ChangeLayerExtension, "ChangeLayerExtension");
 __decorateClass([
   Inject("SettingsService")
-], ChangeLayerExtension.prototype, "settingsService", 2);
+], _ChangeLayerExtension.prototype, "settingsService", 2);
 __decorateClass([
   Inject("SnapshotsService")
-], ChangeLayerExtension.prototype, "snapshotsService", 2);
+], _ChangeLayerExtension.prototype, "snapshotsService", 2);
+var ChangeLayerExtension = _ChangeLayerExtension;
 
 // src/extensions/editor-common.extension.ts
 var import_state2 = require("@codemirror/state");
 var import_view3 = require("@codemirror/view");
-var EditorCommonExtension = class extends BaseExtension {
+var _EditorCommonExtension = class _EditorCommonExtension extends BaseExtension {
   /**
    * Creates a new instance of EditorCommonExtension.
    * Builds the initial decoration set so a freshly opened view already
@@ -3573,15 +3737,17 @@ var EditorCommonExtension = class extends BaseExtension {
     ];
   }
 };
+__name(_EditorCommonExtension, "EditorCommonExtension");
 __decorateClass([
   Inject("SettingsService")
-], EditorCommonExtension.prototype, "settingsService", 2);
+], _EditorCommonExtension.prototype, "settingsService", 2);
 __decorateClass([
   Inject("SnapshotsService")
-], EditorCommonExtension.prototype, "snapshotsService", 2);
+], _EditorCommonExtension.prototype, "snapshotsService", 2);
+var EditorCommonExtension = _EditorCommonExtension;
 
 // node_modules/diff/libesm/diff/base.js
-var Diff = class {
+var _Diff = class _Diff {
   diff(oldStr, newStr, options = {}) {
     let callback;
     if (typeof options === "function") {
@@ -3598,7 +3764,7 @@ var Diff = class {
   }
   diffWithOptionsObj(oldTokens, newTokens, options, callback) {
     var _a;
-    const done = (value) => {
+    const done = /* @__PURE__ */ __name((value) => {
       value = this.postProcess(value, options);
       if (callback) {
         setTimeout(function() {
@@ -3608,7 +3774,7 @@ var Diff = class {
       } else {
         return value;
       }
-    };
+    }, "done");
     const newLen = newTokens.length, oldLen = oldTokens.length;
     let editLength = 1;
     let maxEditLength = newLen + oldLen;
@@ -3623,7 +3789,7 @@ var Diff = class {
       return done(this.buildValues(bestPath[0].lastComponent, newTokens, oldTokens));
     }
     let minDiagonalToConsider = -Infinity, maxDiagonalToConsider = Infinity;
-    const execEditLength = () => {
+    const execEditLength = /* @__PURE__ */ __name(() => {
       for (let diagonalPath = Math.max(minDiagonalToConsider, -editLength); diagonalPath <= Math.min(maxDiagonalToConsider, editLength); diagonalPath += 2) {
         let basePath;
         const removePath = bestPath[diagonalPath - 1], addPath = bestPath[diagonalPath + 1];
@@ -3659,9 +3825,9 @@ var Diff = class {
         }
       }
       editLength++;
-    };
+    }, "execEditLength");
     if (callback) {
-      (function exec() {
+      (/* @__PURE__ */ __name(function exec() {
         setTimeout(function() {
           if (editLength > maxEditLength || Date.now() > abortAfterTimestamp) {
             return callback(void 0);
@@ -3670,7 +3836,7 @@ var Diff = class {
             exec();
           }
         }, 0);
-      })();
+      }, "exec"))();
     } else {
       while (editLength <= maxEditLength && Date.now() <= abortAfterTimestamp) {
         const ret = execEditLength();
@@ -3781,6 +3947,8 @@ var Diff = class {
     return components;
   }
 };
+__name(_Diff, "Diff");
+var Diff = _Diff;
 
 // node_modules/diff/libesm/util/string.js
 function longestCommonPrefix(str1, str2) {
@@ -3792,6 +3960,7 @@ function longestCommonPrefix(str1, str2) {
   }
   return str1.slice(0, i);
 }
+__name(longestCommonPrefix, "longestCommonPrefix");
 function longestCommonSuffix(str1, str2) {
   let i;
   if (!str1 || !str2 || str1[str1.length - 1] != str2[str2.length - 1]) {
@@ -3804,12 +3973,14 @@ function longestCommonSuffix(str1, str2) {
   }
   return str1.slice(-i);
 }
+__name(longestCommonSuffix, "longestCommonSuffix");
 function replacePrefix(string, oldPrefix, newPrefix) {
   if (string.slice(0, oldPrefix.length) != oldPrefix) {
     throw Error(`string ${JSON.stringify(string)} doesn't start with prefix ${JSON.stringify(oldPrefix)}; this is a bug`);
   }
   return newPrefix + string.slice(oldPrefix.length);
 }
+__name(replacePrefix, "replacePrefix");
 function replaceSuffix(string, oldSuffix, newSuffix) {
   if (!oldSuffix) {
     return string + newSuffix;
@@ -3819,15 +3990,19 @@ function replaceSuffix(string, oldSuffix, newSuffix) {
   }
   return string.slice(0, -oldSuffix.length) + newSuffix;
 }
+__name(replaceSuffix, "replaceSuffix");
 function removePrefix(string, oldPrefix) {
   return replacePrefix(string, oldPrefix, "");
 }
+__name(removePrefix, "removePrefix");
 function removeSuffix(string, oldSuffix) {
   return replaceSuffix(string, oldSuffix, "");
 }
+__name(removeSuffix, "removeSuffix");
 function maximumOverlap(string1, string2) {
   return string2.slice(0, overlapCount(string1, string2));
 }
+__name(maximumOverlap, "maximumOverlap");
 function overlapCount(a, b) {
   let startA = 0;
   if (a.length > b.length) {
@@ -3864,6 +4039,15 @@ function overlapCount(a, b) {
   }
   return k;
 }
+__name(overlapCount, "overlapCount");
+function hasOnlyWinLineEndings(string) {
+  return string.includes("\r\n") && !string.startsWith("\n") && !string.match(/[^\r]\n/);
+}
+__name(hasOnlyWinLineEndings, "hasOnlyWinLineEndings");
+function hasOnlyUnixLineEndings(string) {
+  return !string.includes("\r\n") && string.includes("\n");
+}
+__name(hasOnlyUnixLineEndings, "hasOnlyUnixLineEndings");
 function segment(string, segmenter) {
   const parts = [];
   for (const segmentObj of Array.from(segmenter.segment(string))) {
@@ -3876,6 +4060,7 @@ function segment(string, segmenter) {
   }
   return parts;
 }
+__name(segment, "segment");
 function trailingWs(string, segmenter) {
   if (segmenter) {
     return leadingAndTrailingWs(string, segmenter)[1];
@@ -3888,6 +4073,7 @@ function trailingWs(string, segmenter) {
   }
   return string.substring(i + 1);
 }
+__name(trailingWs, "trailingWs");
 function leadingWs(string, segmenter) {
   if (segmenter) {
     return leadingAndTrailingWs(string, segmenter)[0];
@@ -3895,6 +4081,7 @@ function leadingWs(string, segmenter) {
   const match = string.match(/^\s*/);
   return match ? match[0] : "";
 }
+__name(leadingWs, "leadingWs");
 function leadingAndTrailingWs(string, segmenter) {
   if (!segmenter) {
     return [leadingWs(string), trailingWs(string)];
@@ -3909,11 +4096,12 @@ function leadingAndTrailingWs(string, segmenter) {
   const tail = /\s/.test(lastSeg) ? lastSeg : "";
   return [head, tail];
 }
+__name(leadingAndTrailingWs, "leadingAndTrailingWs");
 
 // node_modules/diff/libesm/diff/word.js
 var extendedWordChars = "a-zA-Z0-9_\\u{AD}\\u{C0}-\\u{D6}\\u{D8}-\\u{F6}\\u{F8}-\\u{2C6}\\u{2C8}-\\u{2D7}\\u{2DE}-\\u{2FF}\\u{1E00}-\\u{1EFF}";
 var tokenizeIncludingWhitespace = new RegExp(`[${extendedWordChars}]+|\\s+|[^${extendedWordChars}]`, "ug");
-var WordDiff = class extends Diff {
+var _WordDiff = class _WordDiff extends Diff {
   equals(left, right, options) {
     if (options.ignoreCase) {
       left = left.toLowerCase();
@@ -3990,6 +4178,8 @@ var WordDiff = class extends Diff {
     return changes;
   }
 };
+__name(_WordDiff, "WordDiff");
+var WordDiff = _WordDiff;
 var wordDiff = new WordDiff();
 function diffWords(oldStr, newStr, options) {
   if ((options === null || options === void 0 ? void 0 : options.ignoreWhitespace) != null && !options.ignoreWhitespace) {
@@ -3997,6 +4187,7 @@ function diffWords(oldStr, newStr, options) {
   }
   return wordDiff.diff(oldStr, newStr, options);
 }
+__name(diffWords, "diffWords");
 function dedupeWhitespaceInChangeObjects(startKeep, deletion, insertion, endKeep, segmenter) {
   if (deletion && insertion) {
     const [oldWsPrefix, oldWsSuffix] = leadingAndTrailingWs(deletion.value, segmenter);
@@ -4042,19 +4233,23 @@ function dedupeWhitespaceInChangeObjects(startKeep, deletion, insertion, endKeep
     deletion.value = removePrefix(deletion.value, overlap);
   }
 }
-var WordsWithSpaceDiff = class extends Diff {
+__name(dedupeWhitespaceInChangeObjects, "dedupeWhitespaceInChangeObjects");
+var _WordsWithSpaceDiff = class _WordsWithSpaceDiff extends Diff {
   tokenize(value) {
     const regex2 = new RegExp(`(\\r?\\n)|[${extendedWordChars}]+|[^\\S\\n\\r]+|[^${extendedWordChars}]`, "ug");
     return value.match(regex2) || [];
   }
 };
+__name(_WordsWithSpaceDiff, "WordsWithSpaceDiff");
+var WordsWithSpaceDiff = _WordsWithSpaceDiff;
 var wordsWithSpaceDiff = new WordsWithSpaceDiff();
 function diffWordsWithSpace(oldStr, newStr, options) {
   return wordsWithSpaceDiff.diff(oldStr, newStr, options);
 }
+__name(diffWordsWithSpace, "diffWordsWithSpace");
 
 // node_modules/diff/libesm/diff/line.js
-var LineDiff = class extends Diff {
+var _LineDiff = class _LineDiff extends Diff {
   constructor() {
     super(...arguments);
     this.tokenize = tokenize;
@@ -4078,10 +4273,13 @@ var LineDiff = class extends Diff {
     return super.equals(left, right, options);
   }
 };
+__name(_LineDiff, "LineDiff");
+var LineDiff = _LineDiff;
 var lineDiff = new LineDiff();
 function diffLines(oldStr, newStr, options) {
   return lineDiff.diff(oldStr, newStr, options);
 }
+__name(diffLines, "diffLines");
 function tokenize(value, options) {
   if (options.stripTrailingCr) {
     value = value.replace(/\r\n/g, "\n");
@@ -4100,6 +4298,572 @@ function tokenize(value, options) {
   }
   return retLines;
 }
+__name(tokenize, "tokenize");
+
+// node_modules/diff/libesm/patch/line-endings.js
+function unixToWin(patch) {
+  if (Array.isArray(patch)) {
+    return patch.map((p) => unixToWin(p));
+  }
+  return Object.assign(Object.assign({}, patch), { hunks: patch.hunks.map((hunk) => Object.assign(Object.assign({}, hunk), { lines: hunk.lines.map((line, i) => {
+    var _a;
+    return line.startsWith("\\") || line.endsWith("\r") || ((_a = hunk.lines[i + 1]) === null || _a === void 0 ? void 0 : _a.startsWith("\\")) ? line : line + "\r";
+  }) })) });
+}
+__name(unixToWin, "unixToWin");
+function winToUnix(patch) {
+  if (Array.isArray(patch)) {
+    return patch.map((p) => winToUnix(p));
+  }
+  return Object.assign(Object.assign({}, patch), { hunks: patch.hunks.map((hunk) => Object.assign(Object.assign({}, hunk), { lines: hunk.lines.map((line) => line.endsWith("\r") ? line.substring(0, line.length - 1) : line) })) });
+}
+__name(winToUnix, "winToUnix");
+function isUnix(patch) {
+  if (!Array.isArray(patch)) {
+    patch = [patch];
+  }
+  return !patch.some((index) => index.hunks.some((hunk) => hunk.lines.some((line) => !line.startsWith("\\") && line.endsWith("\r"))));
+}
+__name(isUnix, "isUnix");
+function isWin(patch) {
+  if (!Array.isArray(patch)) {
+    patch = [patch];
+  }
+  return patch.some((index) => index.hunks.some((hunk) => hunk.lines.some((line) => line.endsWith("\r")))) && patch.every((index) => index.hunks.every((hunk) => hunk.lines.every((line, i) => {
+    var _a;
+    return line.startsWith("\\") || line.endsWith("\r") || ((_a = hunk.lines[i + 1]) === null || _a === void 0 ? void 0 : _a.startsWith("\\"));
+  })));
+}
+__name(isWin, "isWin");
+
+// node_modules/diff/libesm/patch/parse.js
+function parsePatch(uniDiff) {
+  const diffstr = uniDiff.split(/\n/), list = [];
+  let i = 0;
+  function isGitDiffHeader(line) {
+    return /^diff --git /.test(line);
+  }
+  __name(isGitDiffHeader, "isGitDiffHeader");
+  function isDiffHeader(line) {
+    return isGitDiffHeader(line) || /^Index:\s/.test(line) || /^diff(?: -r \w+)+\s/.test(line);
+  }
+  __name(isDiffHeader, "isDiffHeader");
+  function isFileHeader(line) {
+    return /^(---|\+\+\+)\s/.test(line);
+  }
+  __name(isFileHeader, "isFileHeader");
+  function isHunkHeader(line) {
+    return /^@@\s/.test(line);
+  }
+  __name(isHunkHeader, "isHunkHeader");
+  function parseIndex() {
+    var _a;
+    const index = {};
+    index.hunks = [];
+    list.push(index);
+    let seenDiffHeader = false;
+    while (i < diffstr.length) {
+      const line = diffstr[i];
+      if (isFileHeader(line) || isHunkHeader(line)) {
+        break;
+      }
+      if (isGitDiffHeader(line)) {
+        if (seenDiffHeader) {
+          return;
+        }
+        seenDiffHeader = true;
+        index.isGit = true;
+        const paths = parseGitDiffHeader(line);
+        if (paths) {
+          index.oldFileName = paths.oldFileName;
+          index.newFileName = paths.newFileName;
+        }
+        i++;
+        while (i < diffstr.length) {
+          const extLine = diffstr[i];
+          if (isFileHeader(extLine) || isHunkHeader(extLine) || isDiffHeader(extLine)) {
+            break;
+          }
+          const renameFromMatch = /^rename from (.*)/.exec(extLine);
+          if (renameFromMatch) {
+            index.oldFileName = "a/" + unquoteIfQuoted(renameFromMatch[1]);
+            index.isRename = true;
+          }
+          const renameToMatch = /^rename to (.*)/.exec(extLine);
+          if (renameToMatch) {
+            index.newFileName = "b/" + unquoteIfQuoted(renameToMatch[1]);
+            index.isRename = true;
+          }
+          const copyFromMatch = /^copy from (.*)/.exec(extLine);
+          if (copyFromMatch) {
+            index.oldFileName = "a/" + unquoteIfQuoted(copyFromMatch[1]);
+            index.isCopy = true;
+          }
+          const copyToMatch = /^copy to (.*)/.exec(extLine);
+          if (copyToMatch) {
+            index.newFileName = "b/" + unquoteIfQuoted(copyToMatch[1]);
+            index.isCopy = true;
+          }
+          const newFileModeMatch = /^new file mode (\d+)/.exec(extLine);
+          if (newFileModeMatch) {
+            index.isCreate = true;
+            index.newMode = newFileModeMatch[1];
+          }
+          const deletedFileModeMatch = /^deleted file mode (\d+)/.exec(extLine);
+          if (deletedFileModeMatch) {
+            index.isDelete = true;
+            index.oldMode = deletedFileModeMatch[1];
+          }
+          const oldModeMatch = /^old mode (\d+)/.exec(extLine);
+          if (oldModeMatch) {
+            index.oldMode = oldModeMatch[1];
+          }
+          const newModeMatch = /^new mode (\d+)/.exec(extLine);
+          if (newModeMatch) {
+            index.newMode = newModeMatch[1];
+          }
+          if (/^Binary files /.test(extLine)) {
+            index.isBinary = true;
+          }
+          i++;
+        }
+        continue;
+      } else if (isDiffHeader(line)) {
+        if (seenDiffHeader) {
+          return;
+        }
+        seenDiffHeader = true;
+        const headerMatch = /^(?:Index:|diff(?: -r \w+)+)\s+/.exec(line);
+        if (headerMatch) {
+          index.index = line.substring(headerMatch[0].length).trim();
+        }
+      }
+      i++;
+    }
+    parseFileHeader(index);
+    parseFileHeader(index);
+    if (index.oldFileName === void 0 !== (index.newFileName === void 0)) {
+      throw new Error("Missing " + (index.oldFileName !== void 0 ? '"+++ ..."' : '"--- ..."') + " file header for " + ((_a = index.oldFileName) !== null && _a !== void 0 ? _a : index.newFileName));
+    }
+    while (i < diffstr.length) {
+      const line = diffstr[i];
+      if (isDiffHeader(line) || isFileHeader(line) || /^===================================================================/.test(line)) {
+        break;
+      } else if (isHunkHeader(line)) {
+        index.hunks.push(parseHunk());
+      } else {
+        i++;
+      }
+    }
+  }
+  __name(parseIndex, "parseIndex");
+  function parseGitDiffHeader(line) {
+    const rest = line.substring("diff --git ".length);
+    if (rest.startsWith('"')) {
+      const oldPath = parseQuotedFileName(rest);
+      if (oldPath === null) {
+        return null;
+      }
+      const afterOld = rest.substring(oldPath.rawLength + 1);
+      let newFileName;
+      if (afterOld.startsWith('"')) {
+        const newPath = parseQuotedFileName(afterOld);
+        if (newPath === null) {
+          return null;
+        }
+        newFileName = newPath.fileName;
+      } else {
+        newFileName = afterOld;
+      }
+      return {
+        oldFileName: oldPath.fileName,
+        newFileName
+      };
+    }
+    const quoteIdx = rest.indexOf('"');
+    if (quoteIdx > 0) {
+      const oldFileName = rest.substring(0, quoteIdx - 1);
+      const newPath = parseQuotedFileName(rest.substring(quoteIdx));
+      if (newPath === null) {
+        return null;
+      }
+      return {
+        oldFileName,
+        newFileName: newPath.fileName
+      };
+    }
+    if (rest.startsWith("a/")) {
+      const splits = [];
+      let idx = 0;
+      while (true) {
+        idx = rest.indexOf(" b/", idx + 1);
+        if (idx === -1) {
+          break;
+        }
+        splits.push(idx);
+      }
+      if (splits.length > 0) {
+        const mid = splits[Math.floor(splits.length / 2)];
+        return {
+          oldFileName: rest.substring(0, mid),
+          newFileName: rest.substring(mid + 1)
+        };
+      }
+    }
+    return null;
+  }
+  __name(parseGitDiffHeader, "parseGitDiffHeader");
+  function unquoteIfQuoted(s) {
+    if (s.startsWith('"')) {
+      const parsed = parseQuotedFileName(s);
+      if (parsed) {
+        return parsed.fileName;
+      }
+    }
+    return s;
+  }
+  __name(unquoteIfQuoted, "unquoteIfQuoted");
+  function parseQuotedFileName(s) {
+    if (!s.startsWith('"')) {
+      return null;
+    }
+    let result = "";
+    let j = 1;
+    while (j < s.length) {
+      if (s[j] === '"') {
+        return { fileName: result, rawLength: j + 1 };
+      }
+      if (s[j] === "\\" && j + 1 < s.length) {
+        j++;
+        switch (s[j]) {
+          case "a":
+            result += "\x07";
+            break;
+          case "b":
+            result += "\b";
+            break;
+          case "f":
+            result += "\f";
+            break;
+          case "n":
+            result += "\n";
+            break;
+          case "r":
+            result += "\r";
+            break;
+          case "t":
+            result += "	";
+            break;
+          case "v":
+            result += "\v";
+            break;
+          case "\\":
+            result += "\\";
+            break;
+          case '"':
+            result += '"';
+            break;
+          case "0":
+          case "1":
+          case "2":
+          case "3":
+          case "4":
+          case "5":
+          case "6":
+          case "7": {
+            if (j + 2 >= s.length || s[j + 1] < "0" || s[j + 1] > "7" || s[j + 2] < "0" || s[j + 2] > "7") {
+              return null;
+            }
+            const bytes = [parseInt(s.substring(j, j + 3), 8)];
+            j += 3;
+            while (s[j] === "\\" && s[j + 1] >= "0" && s[j + 1] <= "7") {
+              if (j + 3 >= s.length || s[j + 2] < "0" || s[j + 2] > "7" || s[j + 3] < "0" || s[j + 3] > "7") {
+                return null;
+              }
+              bytes.push(parseInt(s.substring(j + 1, j + 4), 8));
+              j += 4;
+            }
+            result += new TextDecoder("utf-8").decode(new Uint8Array(bytes));
+            continue;
+          }
+          // Note that in C, there are also three kinds of hex escape sequences:
+          // - \xhh
+          // - \uhhhh
+          // - \Uhhhhhhhh
+          // We do not bother to parse them here because, so far as we know,
+          // they are never emitted by any tools that generate unified diff
+          // format diffs, and so for now jsdiff does not consider them legal.
+          default:
+            return null;
+        }
+      } else {
+        result += s[j];
+      }
+      j++;
+    }
+    return null;
+  }
+  __name(parseQuotedFileName, "parseQuotedFileName");
+  function parseFileHeader(index) {
+    const fileHeaderMatch = /^(---|\+\+\+)\s+/.exec(diffstr[i]);
+    if (fileHeaderMatch) {
+      const prefix = fileHeaderMatch[1], data = diffstr[i].substring(3).trim().split("	", 2), header = (data[1] || "").trim();
+      let fileName = data[0];
+      if (fileName.startsWith('"')) {
+        fileName = unquoteIfQuoted(fileName);
+      } else {
+        fileName = fileName.replace(/\\\\/g, "\\");
+      }
+      if (prefix === "---") {
+        index.oldFileName = fileName;
+        index.oldHeader = header;
+      } else {
+        index.newFileName = fileName;
+        index.newHeader = header;
+      }
+      i++;
+    }
+  }
+  __name(parseFileHeader, "parseFileHeader");
+  function parseHunk() {
+    var _a;
+    const chunkHeaderIndex = i, chunkHeaderLine = diffstr[i++], chunkHeader = chunkHeaderLine.split(/@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/);
+    const hunk = {
+      oldStart: +chunkHeader[1],
+      oldLines: typeof chunkHeader[2] === "undefined" ? 1 : +chunkHeader[2],
+      newStart: +chunkHeader[3],
+      newLines: typeof chunkHeader[4] === "undefined" ? 1 : +chunkHeader[4],
+      lines: []
+    };
+    if (hunk.oldLines === 0) {
+      hunk.oldStart += 1;
+    }
+    if (hunk.newLines === 0) {
+      hunk.newStart += 1;
+    }
+    let addCount = 0, removeCount = 0;
+    for (; i < diffstr.length && (removeCount < hunk.oldLines || addCount < hunk.newLines || ((_a = diffstr[i]) === null || _a === void 0 ? void 0 : _a.startsWith("\\"))); i++) {
+      const operation = diffstr[i].length == 0 && i != diffstr.length - 1 ? " " : diffstr[i][0];
+      if (operation === "+" || operation === "-" || operation === " " || operation === "\\") {
+        hunk.lines.push(diffstr[i]);
+        if (operation === "+") {
+          addCount++;
+        } else if (operation === "-") {
+          removeCount++;
+        } else if (operation === " ") {
+          addCount++;
+          removeCount++;
+        }
+      } else {
+        throw new Error(`Hunk at line ${chunkHeaderIndex + 1} contained invalid line ${diffstr[i]}`);
+      }
+    }
+    if (!addCount && hunk.newLines === 1) {
+      hunk.newLines = 0;
+    }
+    if (!removeCount && hunk.oldLines === 1) {
+      hunk.oldLines = 0;
+    }
+    if (addCount !== hunk.newLines) {
+      throw new Error("Added line count did not match for hunk at line " + (chunkHeaderIndex + 1));
+    }
+    if (removeCount !== hunk.oldLines) {
+      throw new Error("Removed line count did not match for hunk at line " + (chunkHeaderIndex + 1));
+    }
+    if (i < diffstr.length && diffstr[i] && /^[+ -]/.test(diffstr[i]) && !isFileHeader(diffstr[i])) {
+      throw new Error("Hunk at line " + (chunkHeaderIndex + 1) + " has more lines than expected (expected " + hunk.oldLines + " old lines and " + hunk.newLines + " new lines)");
+    }
+    return hunk;
+  }
+  __name(parseHunk, "parseHunk");
+  while (i < diffstr.length) {
+    parseIndex();
+  }
+  return list;
+}
+__name(parsePatch, "parsePatch");
+
+// node_modules/diff/libesm/util/distance-iterator.js
+function distance_iterator_default(start, minLine, maxLine) {
+  let wantForward = true, backwardExhausted = false, forwardExhausted = false, localOffset = 1;
+  return /* @__PURE__ */ __name(function iterator() {
+    if (wantForward && !forwardExhausted) {
+      if (backwardExhausted) {
+        localOffset++;
+      } else {
+        wantForward = false;
+      }
+      if (start + localOffset <= maxLine) {
+        return start + localOffset;
+      }
+      forwardExhausted = true;
+    }
+    if (!backwardExhausted) {
+      if (!forwardExhausted) {
+        wantForward = true;
+      }
+      if (minLine <= start - localOffset) {
+        return start - localOffset++;
+      }
+      backwardExhausted = true;
+      return iterator();
+    }
+    return void 0;
+  }, "iterator");
+}
+__name(distance_iterator_default, "default");
+
+// node_modules/diff/libesm/patch/apply.js
+function applyPatch(source, patch, options = {}) {
+  let patches;
+  if (typeof patch === "string") {
+    patches = parsePatch(patch);
+  } else if (Array.isArray(patch)) {
+    patches = patch;
+  } else {
+    patches = [patch];
+  }
+  if (patches.length > 1) {
+    throw new Error("applyPatch only works with a single input.");
+  }
+  return applyStructuredPatch(source, patches[0], options);
+}
+__name(applyPatch, "applyPatch");
+function applyStructuredPatch(source, patch, options = {}) {
+  if (options.autoConvertLineEndings || options.autoConvertLineEndings == null) {
+    if (hasOnlyWinLineEndings(source) && isUnix(patch)) {
+      patch = unixToWin(patch);
+    } else if (hasOnlyUnixLineEndings(source) && isWin(patch)) {
+      patch = winToUnix(patch);
+    }
+  }
+  const lines = source.split("\n"), hunks = patch.hunks, compareLine = options.compareLine || ((lineNumber, line, operation, patchContent) => line === patchContent), fuzzFactor = options.fuzzFactor || 0;
+  let minLine = 0;
+  if (fuzzFactor < 0 || !Number.isInteger(fuzzFactor)) {
+    throw new Error("fuzzFactor must be a non-negative integer");
+  }
+  if (!hunks.length) {
+    return source;
+  }
+  let prevLine = "", removeEOFNL = false, addEOFNL = false;
+  for (let i = 0; i < hunks[hunks.length - 1].lines.length; i++) {
+    const line = hunks[hunks.length - 1].lines[i];
+    if (line[0] == "\\") {
+      if (prevLine[0] == "+") {
+        removeEOFNL = true;
+      } else if (prevLine[0] == "-") {
+        addEOFNL = true;
+      }
+    }
+    prevLine = line;
+  }
+  if (removeEOFNL) {
+    if (addEOFNL) {
+      if (!fuzzFactor && lines[lines.length - 1] == "") {
+        return false;
+      }
+    } else if (lines[lines.length - 1] == "") {
+      lines.pop();
+    } else if (!fuzzFactor) {
+      return false;
+    }
+  } else if (addEOFNL) {
+    if (lines[lines.length - 1] != "") {
+      lines.push("");
+    } else if (!fuzzFactor) {
+      return false;
+    }
+  }
+  function applyHunk(hunkLines, toPos, maxErrors, hunkLinesI = 0, lastContextLineMatched = true, patchedLines = [], patchedLinesLength = 0) {
+    let nConsecutiveOldContextLines = 0;
+    let nextContextLineMustMatch = false;
+    for (; hunkLinesI < hunkLines.length; hunkLinesI++) {
+      const hunkLine = hunkLines[hunkLinesI], operation = hunkLine.length > 0 ? hunkLine[0] : " ", content = hunkLine.length > 0 ? hunkLine.substr(1) : hunkLine;
+      if (operation === "-") {
+        if (compareLine(toPos + 1, lines[toPos], operation, content)) {
+          toPos++;
+          nConsecutiveOldContextLines = 0;
+        } else {
+          if (!maxErrors || lines[toPos] == null) {
+            return null;
+          }
+          patchedLines[patchedLinesLength] = lines[toPos];
+          return applyHunk(hunkLines, toPos + 1, maxErrors - 1, hunkLinesI, false, patchedLines, patchedLinesLength + 1);
+        }
+      }
+      if (operation === "+") {
+        if (!lastContextLineMatched) {
+          return null;
+        }
+        patchedLines[patchedLinesLength] = content;
+        patchedLinesLength++;
+        nConsecutiveOldContextLines = 0;
+        nextContextLineMustMatch = true;
+      }
+      if (operation === " ") {
+        nConsecutiveOldContextLines++;
+        patchedLines[patchedLinesLength] = lines[toPos];
+        if (compareLine(toPos + 1, lines[toPos], operation, content)) {
+          patchedLinesLength++;
+          lastContextLineMatched = true;
+          nextContextLineMustMatch = false;
+          toPos++;
+        } else {
+          if (nextContextLineMustMatch || !maxErrors) {
+            return null;
+          }
+          return lines[toPos] && (applyHunk(hunkLines, toPos + 1, maxErrors - 1, hunkLinesI + 1, false, patchedLines, patchedLinesLength + 1) || applyHunk(hunkLines, toPos + 1, maxErrors - 1, hunkLinesI, false, patchedLines, patchedLinesLength + 1)) || applyHunk(hunkLines, toPos, maxErrors - 1, hunkLinesI + 1, false, patchedLines, patchedLinesLength);
+        }
+      }
+    }
+    patchedLinesLength -= nConsecutiveOldContextLines;
+    toPos -= nConsecutiveOldContextLines;
+    patchedLines.length = patchedLinesLength;
+    return {
+      patchedLines,
+      oldLineLastI: toPos - 1
+    };
+  }
+  __name(applyHunk, "applyHunk");
+  const resultLines = [];
+  let prevHunkOffset = 0;
+  for (let i = 0; i < hunks.length; i++) {
+    const hunk = hunks[i];
+    let hunkResult;
+    const maxLine = lines.length - hunk.oldLines + fuzzFactor;
+    let toPos;
+    for (let maxErrors = 0; maxErrors <= fuzzFactor; maxErrors++) {
+      toPos = hunk.oldStart + prevHunkOffset - 1;
+      const iterator = distance_iterator_default(toPos, minLine, maxLine);
+      for (; toPos !== void 0; toPos = iterator()) {
+        hunkResult = applyHunk(hunk.lines, toPos, maxErrors);
+        if (hunkResult) {
+          break;
+        }
+      }
+      if (hunkResult) {
+        break;
+      }
+    }
+    if (!hunkResult) {
+      return false;
+    }
+    for (let i2 = minLine; i2 < toPos; i2++) {
+      resultLines.push(lines[i2]);
+    }
+    for (let i2 = 0; i2 < hunkResult.patchedLines.length; i2++) {
+      const line = hunkResult.patchedLines[i2];
+      resultLines.push(line);
+    }
+    minLine = hunkResult.oldLineLastI + 1;
+    prevHunkOffset = toPos + 1 - hunk.oldStart;
+  }
+  for (let i = minLine; i < lines.length; i++) {
+    resultLines.push(lines[i]);
+  }
+  return resultLines.join("\n");
+}
+__name(applyStructuredPatch, "applyStructuredPatch");
 
 // node_modules/diff/libesm/patch/create.js
 function needsQuoting(s) {
@@ -4110,6 +4874,7 @@ function needsQuoting(s) {
   }
   return false;
 }
+__name(needsQuoting, "needsQuoting");
 function quoteFileNameIfNeeded(s) {
   if (!needsQuoting(s)) {
     return s;
@@ -4147,6 +4912,7 @@ function quoteFileNameIfNeeded(s) {
   result += '"';
   return result;
 }
+__name(quoteFileNameIfNeeded, "quoteFileNameIfNeeded");
 var INCLUDE_HEADERS = {
   includeIndex: true,
   includeUnderline: true,
@@ -4172,10 +4938,10 @@ function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, ne
     return diffLinesResultToPatch(diffLines(oldStr, newStr, optionsObj));
   } else {
     const { callback } = optionsObj;
-    diffLines(oldStr, newStr, Object.assign(Object.assign({}, optionsObj), { callback: (diff) => {
+    diffLines(oldStr, newStr, Object.assign(Object.assign({}, optionsObj), { callback: /* @__PURE__ */ __name((diff) => {
       const patch = diffLinesResultToPatch(diff);
       callback(patch);
-    } }));
+    }, "callback") }));
   }
   function diffLinesResultToPatch(diff) {
     if (!diff) {
@@ -4187,6 +4953,7 @@ function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, ne
         return " " + entry;
       });
     }
+    __name(contextLines, "contextLines");
     const hunks = [];
     let oldRangeStart = 0, newRangeStart = 0, curRange = [], oldLine = 1, newLine = 1;
     for (let i = 0; i < diff.length; i++) {
@@ -4257,7 +5024,9 @@ function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, ne
       hunks
     };
   }
+  __name(diffLinesResultToPatch, "diffLinesResultToPatch");
 }
+__name(structuredPatch, "structuredPatch");
 function formatPatch(patch, headerOptions) {
   var _a, _b, _c, _d, _e, _f;
   if (!headerOptions) {
@@ -4328,6 +5097,7 @@ function formatPatch(patch, headerOptions) {
   }
   return ret.join("\n") + "\n";
 }
+__name(formatPatch, "formatPatch");
 function createTwoFilesPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options) {
   if (typeof options === "function") {
     options = { callback: options };
@@ -4340,15 +5110,16 @@ function createTwoFilesPatch(oldFileName, newFileName, oldStr, newStr, oldHeader
     return formatPatch(patchObj, options === null || options === void 0 ? void 0 : options.headerOptions);
   } else {
     const { callback } = options;
-    structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, Object.assign(Object.assign({}, options), { callback: (patchObj) => {
+    structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, Object.assign(Object.assign({}, options), { callback: /* @__PURE__ */ __name((patchObj) => {
       if (!patchObj) {
         callback(void 0);
       } else {
         callback(formatPatch(patchObj, options.headerOptions));
       }
-    } }));
+    }, "callback") }));
   }
 }
+__name(createTwoFilesPatch, "createTwoFilesPatch");
 function splitLines(text) {
   const hasTrailingNl = text.endsWith("\n");
   const result = text.split("\n").map((line) => line + "\n");
@@ -4359,9 +5130,10 @@ function splitLines(text) {
   }
   return result;
 }
+__name(splitLines, "splitLines");
 
 // src/helpers/hunk.helper.ts
-var HunkHelper = class _HunkHelper {
+var _HunkHelper = class _HunkHelper {
   /**
    * Computes the line-level hunks between a base text and the current text.
    * Uses zero context so each hunk covers only the changed lines, which keeps
@@ -4443,6 +5215,8 @@ var HunkHelper = class _HunkHelper {
     return lines;
   }
 };
+__name(_HunkHelper, "HunkHelper");
+var HunkHelper = _HunkHelper;
 
 // src/markers/char.marker.ts
 var import_view4 = require("@codemirror/view");
@@ -4537,6 +5311,7 @@ var _DotMarker = class _DotMarker extends import_view4.GutterMarker {
     return this.char[this.changes];
   }
 };
+__name(_DotMarker, "DotMarker");
 __decorateClass([
   Inject("SettingsService")
 ], _DotMarker.prototype, "settingsService", 2);
@@ -4545,7 +5320,7 @@ var DotMarker = _DotMarker;
 // src/extensions/gutter-common.extension.ts
 var import_obsidian11 = require("obsidian");
 var import_state3 = require("@codemirror/state");
-var GutterCommonExtension = class extends BaseExtension {
+var _GutterCommonExtension = class _GutterCommonExtension extends BaseExtension {
   constructor() {
     super(...arguments);
     /**
@@ -4566,10 +5341,10 @@ var GutterCommonExtension = class extends BaseExtension {
      * is removed automatically when the registered editor extension unloads.
      */
     this.domEventHandlers = {
-      contextmenu: (_view, _line, event) => {
+      contextmenu: /* @__PURE__ */ __name((_view, _line, event) => {
         this.openGutterMenu(event);
         return true;
-      }
+      }, "contextmenu")
     };
     /**
      * Creates markers for the gutter-based online changes.
@@ -4578,7 +5353,7 @@ var GutterCommonExtension = class extends BaseExtension {
      * @param {EditorView} view - The editor view to create markers for
      * @return {RangeSet<DotMarker>} A RangeSet of DotMarker instances
      */
-    this.markers = (view) => {
+    this.markers = /* @__PURE__ */ __name((view) => {
       var _a;
       const enable = this.getEnableTypes();
       const snapshot = this.snapshotsService.getOne();
@@ -4602,7 +5377,7 @@ var GutterCommonExtension = class extends BaseExtension {
         }
       }
       return builder.finish();
-    };
+    }, "markers");
   }
   /**
    * Reverts the single changed block sitting at the given 0-based current line
@@ -4693,19 +5468,21 @@ var GutterCommonExtension = class extends BaseExtension {
     ];
   }
 };
+__name(_GutterCommonExtension, "GutterCommonExtension");
 __decorateClass([
   Inject("SettingsService")
-], GutterCommonExtension.prototype, "settingsService", 2);
+], _GutterCommonExtension.prototype, "settingsService", 2);
 __decorateClass([
   Inject("SnapshotsService")
-], GutterCommonExtension.prototype, "snapshotsService", 2);
+], _GutterCommonExtension.prototype, "snapshotsService", 2);
 __decorateClass([
   Inject("ModalsService")
-], GutterCommonExtension.prototype, "modalsService", 2);
+], _GutterCommonExtension.prototype, "modalsService", 2);
+var GutterCommonExtension = _GutterCommonExtension;
 
 // src/markers/removed.marker.ts
 var import_view5 = require("@codemirror/view");
-var RemovedMarker = class extends import_view5.GutterMarker {
+var _RemovedMarker = class _RemovedMarker extends import_view5.GutterMarker {
   /**
    * Creates a new instance of RemovedMarker.
    *
@@ -4731,13 +5508,15 @@ var RemovedMarker = class extends import_view5.GutterMarker {
     return document.createTextNode(this.settingsService.value("gutter.removed"));
   }
 };
+__name(_RemovedMarker, "RemovedMarker");
 __decorateClass([
   Inject("SettingsService")
-], RemovedMarker.prototype, "settingsService", 2);
+], _RemovedMarker.prototype, "settingsService", 2);
+var RemovedMarker = _RemovedMarker;
 
 // src/extensions/gutter-removed.extension.ts
 var import_state4 = require("@codemirror/state");
-var GutterRemovedExtension = class extends BaseExtension {
+var _GutterRemovedExtension = class _GutterRemovedExtension extends BaseExtension {
   constructor() {
     super(...arguments);
     /**
@@ -4757,7 +5536,7 @@ var GutterRemovedExtension = class extends BaseExtension {
      * @param {EditorView} view - The editor view to create markers for
      * @return {RangeSet<RemovedMarker>} A RangeSet of RemovedMarker instances
      */
-    this.markers = (view) => {
+    this.markers = /* @__PURE__ */ __name((view) => {
       var _a;
       const snapshot = this.snapshotsService.getOne();
       const removed = (_a = snapshot == null ? void 0 : snapshot.getChanges("removed" /* removed */)) != null ? _a : null;
@@ -4772,7 +5551,7 @@ var GutterRemovedExtension = class extends BaseExtension {
         }
       }
       return builder.finish();
-    };
+    }, "markers");
   }
   /**
    * Checks if the indicator type is set to 'dot'.
@@ -4791,16 +5570,18 @@ var GutterRemovedExtension = class extends BaseExtension {
     return this.settingsService.value("show.removed");
   }
 };
+__name(_GutterRemovedExtension, "GutterRemovedExtension");
 __decorateClass([
   Inject("SettingsService")
-], GutterRemovedExtension.prototype, "settingsService", 2);
+], _GutterRemovedExtension.prototype, "settingsService", 2);
 __decorateClass([
   Inject("SnapshotsService")
-], GutterRemovedExtension.prototype, "snapshotsService", 2);
+], _GutterRemovedExtension.prototype, "snapshotsService", 2);
+var GutterRemovedExtension = _GutterRemovedExtension;
 
 // src/services/extensions.service.ts
 var import_view6 = require("@codemirror/view");
-var ExtensionsService = class {
+var _ExtensionsService = class _ExtensionsService {
   /**
    * Creates a new instance of ExtensionsService.
    *
@@ -4878,10 +5659,10 @@ var ExtensionsService = class {
           // eslint-disable-next-line new-cap
           (view, arg) => new clsConstructor(view, plugin, arg),
           {
-            decorations: (view) => {
+            decorations: /* @__PURE__ */ __name((view) => {
               var _a2;
               return (_a2 = view.decorations) != null ? _a2 : import_view6.Decoration.none;
-            }
+            }, "decorations")
           }
         );
       case "gutter" /* gutter */:
@@ -4891,6 +5672,8 @@ var ExtensionsService = class {
     }
   }
 };
+__name(_ExtensionsService, "ExtensionsService");
+var ExtensionsService = _ExtensionsService;
 
 // node_modules/lodash-es/_freeGlobal.js
 var freeGlobal = typeof global == "object" && global && global.Object === Object && global;
@@ -4927,6 +5710,7 @@ function getRawTag(value) {
   }
   return result;
 }
+__name(getRawTag, "getRawTag");
 var getRawTag_default = getRawTag;
 
 // node_modules/lodash-es/_objectToString.js
@@ -4935,6 +5719,7 @@ var nativeObjectToString2 = objectProto2.toString;
 function objectToString(value) {
   return nativeObjectToString2.call(value);
 }
+__name(objectToString, "objectToString");
 var objectToString_default = objectToString;
 
 // node_modules/lodash-es/_baseGetTag.js
@@ -4947,12 +5732,14 @@ function baseGetTag(value) {
   }
   return symToStringTag2 && symToStringTag2 in Object(value) ? getRawTag_default(value) : objectToString_default(value);
 }
+__name(baseGetTag, "baseGetTag");
 var baseGetTag_default = baseGetTag;
 
 // node_modules/lodash-es/isObjectLike.js
 function isObjectLike(value) {
   return value != null && typeof value == "object";
 }
+__name(isObjectLike, "isObjectLike");
 var isObjectLike_default = isObjectLike;
 
 // node_modules/lodash-es/isSymbol.js
@@ -4960,6 +5747,7 @@ var symbolTag = "[object Symbol]";
 function isSymbol(value) {
   return typeof value == "symbol" || isObjectLike_default(value) && baseGetTag_default(value) == symbolTag;
 }
+__name(isSymbol, "isSymbol");
 var isSymbol_default = isSymbol;
 
 // node_modules/lodash-es/_arrayMap.js
@@ -4970,6 +5758,7 @@ function arrayMap(array, iteratee) {
   }
   return result;
 }
+__name(arrayMap, "arrayMap");
 var arrayMap_default = arrayMap;
 
 // node_modules/lodash-es/isArray.js
@@ -4993,6 +5782,7 @@ function baseToString(value) {
   var result = value + "";
   return result == "0" && 1 / value == -INFINITY ? "-0" : result;
 }
+__name(baseToString, "baseToString");
 var baseToString_default = baseToString;
 
 // node_modules/lodash-es/isObject.js
@@ -5000,12 +5790,14 @@ function isObject(value) {
   var type = typeof value;
   return value != null && (type == "object" || type == "function");
 }
+__name(isObject, "isObject");
 var isObject_default = isObject;
 
 // node_modules/lodash-es/identity.js
 function identity(value) {
   return value;
 }
+__name(identity, "identity");
 var identity_default = identity;
 
 // node_modules/lodash-es/isFunction.js
@@ -5020,6 +5812,7 @@ function isFunction(value) {
   var tag = baseGetTag_default(value);
   return tag == funcTag || tag == genTag || tag == asyncTag || tag == proxyTag;
 }
+__name(isFunction, "isFunction");
 var isFunction_default = isFunction;
 
 // node_modules/lodash-es/_coreJsData.js
@@ -5034,6 +5827,7 @@ var maskSrcKey = (function() {
 function isMasked(func) {
   return !!maskSrcKey && maskSrcKey in func;
 }
+__name(isMasked, "isMasked");
 var isMasked_default = isMasked;
 
 // node_modules/lodash-es/_toSource.js
@@ -5052,6 +5846,7 @@ function toSource(func) {
   }
   return "";
 }
+__name(toSource, "toSource");
 var toSource_default = toSource;
 
 // node_modules/lodash-es/_baseIsNative.js
@@ -5071,12 +5866,14 @@ function baseIsNative(value) {
   var pattern = isFunction_default(value) ? reIsNative : reIsHostCtor;
   return pattern.test(toSource_default(value));
 }
+__name(baseIsNative, "baseIsNative");
 var baseIsNative_default = baseIsNative;
 
 // node_modules/lodash-es/_getValue.js
 function getValue(object, key2) {
   return object == null ? void 0 : object[key2];
 }
+__name(getValue, "getValue");
 var getValue_default = getValue;
 
 // node_modules/lodash-es/_getNative.js
@@ -5084,6 +5881,7 @@ function getNative(object, key2) {
   var value = getValue_default(object, key2);
   return baseIsNative_default(value) ? value : void 0;
 }
+__name(getNative, "getNative");
 var getNative_default = getNative;
 
 // node_modules/lodash-es/_WeakMap.js
@@ -5095,6 +5893,7 @@ var objectCreate = Object.create;
 var baseCreate = /* @__PURE__ */ (function() {
   function object() {
   }
+  __name(object, "object");
   return function(proto) {
     if (!isObject_default(proto)) {
       return {};
@@ -5124,6 +5923,7 @@ function apply(func, thisArg, args) {
   }
   return func.apply(thisArg, args);
 }
+__name(apply, "apply");
 var apply_default = apply;
 
 // node_modules/lodash-es/_copyArray.js
@@ -5135,6 +5935,7 @@ function copyArray(source, array) {
   }
   return array;
 }
+__name(copyArray, "copyArray");
 var copyArray_default = copyArray;
 
 // node_modules/lodash-es/_shortOut.js
@@ -5156,6 +5957,7 @@ function shortOut(func) {
     return func.apply(void 0, arguments);
   };
 }
+__name(shortOut, "shortOut");
 var shortOut_default = shortOut;
 
 // node_modules/lodash-es/constant.js
@@ -5164,6 +5966,7 @@ function constant(value) {
     return value;
   };
 }
+__name(constant, "constant");
 var constant_default = constant;
 
 // node_modules/lodash-es/_defineProperty.js
@@ -5200,6 +6003,7 @@ function isIndex(value, length) {
   length = length == null ? MAX_SAFE_INTEGER : length;
   return !!length && (type == "number" || type != "symbol" && reIsUint.test(value)) && (value > -1 && value % 1 == 0 && value < length);
 }
+__name(isIndex, "isIndex");
 var isIndex_default = isIndex;
 
 // node_modules/lodash-es/_baseAssignValue.js
@@ -5215,12 +6019,14 @@ function baseAssignValue(object, key2, value) {
     object[key2] = value;
   }
 }
+__name(baseAssignValue, "baseAssignValue");
 var baseAssignValue_default = baseAssignValue;
 
 // node_modules/lodash-es/eq.js
 function eq(value, other) {
   return value === other || value !== value && other !== other;
 }
+__name(eq, "eq");
 var eq_default = eq;
 
 // node_modules/lodash-es/_assignValue.js
@@ -5232,6 +6038,7 @@ function assignValue(object, key2, value) {
     baseAssignValue_default(object, key2, value);
   }
 }
+__name(assignValue, "assignValue");
 var assignValue_default = assignValue;
 
 // node_modules/lodash-es/_copyObject.js
@@ -5253,6 +6060,7 @@ function copyObject(source, props, object, customizer) {
   }
   return object;
 }
+__name(copyObject, "copyObject");
 var copyObject_default = copyObject;
 
 // node_modules/lodash-es/_overRest.js
@@ -5273,12 +6081,14 @@ function overRest(func, start, transform) {
     return apply_default(func, this, otherArgs);
   };
 }
+__name(overRest, "overRest");
 var overRest_default = overRest;
 
 // node_modules/lodash-es/_baseRest.js
 function baseRest(func, start) {
   return setToString_default(overRest_default(func, start, identity_default), func + "");
 }
+__name(baseRest, "baseRest");
 var baseRest_default = baseRest;
 
 // node_modules/lodash-es/isLength.js
@@ -5286,12 +6096,14 @@ var MAX_SAFE_INTEGER2 = 9007199254740991;
 function isLength(value) {
   return typeof value == "number" && value > -1 && value % 1 == 0 && value <= MAX_SAFE_INTEGER2;
 }
+__name(isLength, "isLength");
 var isLength_default = isLength;
 
 // node_modules/lodash-es/isArrayLike.js
 function isArrayLike(value) {
   return value != null && isLength_default(value.length) && !isFunction_default(value);
 }
+__name(isArrayLike, "isArrayLike");
 var isArrayLike_default = isArrayLike;
 
 // node_modules/lodash-es/_isIterateeCall.js
@@ -5305,6 +6117,7 @@ function isIterateeCall(value, index, object) {
   }
   return false;
 }
+__name(isIterateeCall, "isIterateeCall");
 var isIterateeCall_default = isIterateeCall;
 
 // node_modules/lodash-es/_createAssigner.js
@@ -5326,6 +6139,7 @@ function createAssigner(assigner) {
     return object;
   });
 }
+__name(createAssigner, "createAssigner");
 var createAssigner_default = createAssigner;
 
 // node_modules/lodash-es/_isPrototype.js
@@ -5334,6 +6148,7 @@ function isPrototype(value) {
   var Ctor = value && value.constructor, proto = typeof Ctor == "function" && Ctor.prototype || objectProto5;
   return value === proto;
 }
+__name(isPrototype, "isPrototype");
 var isPrototype_default = isPrototype;
 
 // node_modules/lodash-es/_baseTimes.js
@@ -5344,6 +6159,7 @@ function baseTimes(n, iteratee) {
   }
   return result;
 }
+__name(baseTimes, "baseTimes");
 var baseTimes_default = baseTimes;
 
 // node_modules/lodash-es/_baseIsArguments.js
@@ -5351,6 +6167,7 @@ var argsTag = "[object Arguments]";
 function baseIsArguments(value) {
   return isObjectLike_default(value) && baseGetTag_default(value) == argsTag;
 }
+__name(baseIsArguments, "baseIsArguments");
 var baseIsArguments_default = baseIsArguments;
 
 // node_modules/lodash-es/isArguments.js
@@ -5368,6 +6185,7 @@ var isArguments_default = isArguments;
 function stubFalse() {
   return false;
 }
+__name(stubFalse, "stubFalse");
 var stubFalse_default = stubFalse;
 
 // node_modules/lodash-es/isBuffer.js
@@ -5410,6 +6228,7 @@ typedArrayTags[argsTag2] = typedArrayTags[arrayTag] = typedArrayTags[arrayBuffer
 function baseIsTypedArray(value) {
   return isObjectLike_default(value) && isLength_default(value.length) && !!typedArrayTags[baseGetTag_default(value)];
 }
+__name(baseIsTypedArray, "baseIsTypedArray");
 var baseIsTypedArray_default = baseIsTypedArray;
 
 // node_modules/lodash-es/_baseUnary.js
@@ -5418,6 +6237,7 @@ function baseUnary(func) {
     return func(value);
   };
 }
+__name(baseUnary, "baseUnary");
 var baseUnary_default = baseUnary;
 
 // node_modules/lodash-es/_nodeUtil.js
@@ -5458,6 +6278,7 @@ function arrayLikeKeys(value, inherited) {
   }
   return result;
 }
+__name(arrayLikeKeys, "arrayLikeKeys");
 var arrayLikeKeys_default = arrayLikeKeys;
 
 // node_modules/lodash-es/_overArg.js
@@ -5466,6 +6287,7 @@ function overArg(func, transform) {
     return func(transform(arg));
   };
 }
+__name(overArg, "overArg");
 var overArg_default = overArg;
 
 // node_modules/lodash-es/_nativeKeys.js
@@ -5487,12 +6309,14 @@ function baseKeys(object) {
   }
   return result;
 }
+__name(baseKeys, "baseKeys");
 var baseKeys_default = baseKeys;
 
 // node_modules/lodash-es/keys.js
 function keys(object) {
   return isArrayLike_default(object) ? arrayLikeKeys_default(object) : baseKeys_default(object);
 }
+__name(keys, "keys");
 var keys_default = keys;
 
 // node_modules/lodash-es/_nativeKeysIn.js
@@ -5505,6 +6329,7 @@ function nativeKeysIn(object) {
   }
   return result;
 }
+__name(nativeKeysIn, "nativeKeysIn");
 var nativeKeysIn_default = nativeKeysIn;
 
 // node_modules/lodash-es/_baseKeysIn.js
@@ -5522,12 +6347,14 @@ function baseKeysIn(object) {
   }
   return result;
 }
+__name(baseKeysIn, "baseKeysIn");
 var baseKeysIn_default = baseKeysIn;
 
 // node_modules/lodash-es/keysIn.js
 function keysIn(object) {
   return isArrayLike_default(object) ? arrayLikeKeys_default(object, true) : baseKeysIn_default(object);
 }
+__name(keysIn, "keysIn");
 var keysIn_default = keysIn;
 
 // node_modules/lodash-es/_isKey.js
@@ -5543,6 +6370,7 @@ function isKey(value, object) {
   }
   return reIsPlainProp.test(value) || !reIsDeepProp.test(value) || object != null && value in Object(object);
 }
+__name(isKey, "isKey");
 var isKey_default = isKey;
 
 // node_modules/lodash-es/_nativeCreate.js
@@ -5554,6 +6382,7 @@ function hashClear() {
   this.__data__ = nativeCreate_default ? nativeCreate_default(null) : {};
   this.size = 0;
 }
+__name(hashClear, "hashClear");
 var hashClear_default = hashClear;
 
 // node_modules/lodash-es/_hashDelete.js
@@ -5562,6 +6391,7 @@ function hashDelete(key2) {
   this.size -= result ? 1 : 0;
   return result;
 }
+__name(hashDelete, "hashDelete");
 var hashDelete_default = hashDelete;
 
 // node_modules/lodash-es/_hashGet.js
@@ -5576,6 +6406,7 @@ function hashGet(key2) {
   }
   return hasOwnProperty8.call(data, key2) ? data[key2] : void 0;
 }
+__name(hashGet, "hashGet");
 var hashGet_default = hashGet;
 
 // node_modules/lodash-es/_hashHas.js
@@ -5585,6 +6416,7 @@ function hashHas(key2) {
   var data = this.__data__;
   return nativeCreate_default ? data[key2] !== void 0 : hasOwnProperty9.call(data, key2);
 }
+__name(hashHas, "hashHas");
 var hashHas_default = hashHas;
 
 // node_modules/lodash-es/_hashSet.js
@@ -5595,6 +6427,7 @@ function hashSet(key2, value) {
   data[key2] = nativeCreate_default && value === void 0 ? HASH_UNDEFINED2 : value;
   return this;
 }
+__name(hashSet, "hashSet");
 var hashSet_default = hashSet;
 
 // node_modules/lodash-es/_Hash.js
@@ -5606,6 +6439,7 @@ function Hash(entries) {
     this.set(entry[0], entry[1]);
   }
 }
+__name(Hash, "Hash");
 Hash.prototype.clear = hashClear_default;
 Hash.prototype["delete"] = hashDelete_default;
 Hash.prototype.get = hashGet_default;
@@ -5618,6 +6452,7 @@ function listCacheClear() {
   this.__data__ = [];
   this.size = 0;
 }
+__name(listCacheClear, "listCacheClear");
 var listCacheClear_default = listCacheClear;
 
 // node_modules/lodash-es/_assocIndexOf.js
@@ -5630,6 +6465,7 @@ function assocIndexOf(array, key2) {
   }
   return -1;
 }
+__name(assocIndexOf, "assocIndexOf");
 var assocIndexOf_default = assocIndexOf;
 
 // node_modules/lodash-es/_listCacheDelete.js
@@ -5649,6 +6485,7 @@ function listCacheDelete(key2) {
   --this.size;
   return true;
 }
+__name(listCacheDelete, "listCacheDelete");
 var listCacheDelete_default = listCacheDelete;
 
 // node_modules/lodash-es/_listCacheGet.js
@@ -5656,12 +6493,14 @@ function listCacheGet(key2) {
   var data = this.__data__, index = assocIndexOf_default(data, key2);
   return index < 0 ? void 0 : data[index][1];
 }
+__name(listCacheGet, "listCacheGet");
 var listCacheGet_default = listCacheGet;
 
 // node_modules/lodash-es/_listCacheHas.js
 function listCacheHas(key2) {
   return assocIndexOf_default(this.__data__, key2) > -1;
 }
+__name(listCacheHas, "listCacheHas");
 var listCacheHas_default = listCacheHas;
 
 // node_modules/lodash-es/_listCacheSet.js
@@ -5675,6 +6514,7 @@ function listCacheSet(key2, value) {
   }
   return this;
 }
+__name(listCacheSet, "listCacheSet");
 var listCacheSet_default = listCacheSet;
 
 // node_modules/lodash-es/_ListCache.js
@@ -5686,6 +6526,7 @@ function ListCache(entries) {
     this.set(entry[0], entry[1]);
   }
 }
+__name(ListCache, "ListCache");
 ListCache.prototype.clear = listCacheClear_default;
 ListCache.prototype["delete"] = listCacheDelete_default;
 ListCache.prototype.get = listCacheGet_default;
@@ -5706,6 +6547,7 @@ function mapCacheClear() {
     "string": new Hash_default()
   };
 }
+__name(mapCacheClear, "mapCacheClear");
 var mapCacheClear_default = mapCacheClear;
 
 // node_modules/lodash-es/_isKeyable.js
@@ -5713,6 +6555,7 @@ function isKeyable(value) {
   var type = typeof value;
   return type == "string" || type == "number" || type == "symbol" || type == "boolean" ? value !== "__proto__" : value === null;
 }
+__name(isKeyable, "isKeyable");
 var isKeyable_default = isKeyable;
 
 // node_modules/lodash-es/_getMapData.js
@@ -5720,6 +6563,7 @@ function getMapData(map, key2) {
   var data = map.__data__;
   return isKeyable_default(key2) ? data[typeof key2 == "string" ? "string" : "hash"] : data.map;
 }
+__name(getMapData, "getMapData");
 var getMapData_default = getMapData;
 
 // node_modules/lodash-es/_mapCacheDelete.js
@@ -5728,18 +6572,21 @@ function mapCacheDelete(key2) {
   this.size -= result ? 1 : 0;
   return result;
 }
+__name(mapCacheDelete, "mapCacheDelete");
 var mapCacheDelete_default = mapCacheDelete;
 
 // node_modules/lodash-es/_mapCacheGet.js
 function mapCacheGet(key2) {
   return getMapData_default(this, key2).get(key2);
 }
+__name(mapCacheGet, "mapCacheGet");
 var mapCacheGet_default = mapCacheGet;
 
 // node_modules/lodash-es/_mapCacheHas.js
 function mapCacheHas(key2) {
   return getMapData_default(this, key2).has(key2);
 }
+__name(mapCacheHas, "mapCacheHas");
 var mapCacheHas_default = mapCacheHas;
 
 // node_modules/lodash-es/_mapCacheSet.js
@@ -5749,6 +6596,7 @@ function mapCacheSet(key2, value) {
   this.size += data.size == size ? 0 : 1;
   return this;
 }
+__name(mapCacheSet, "mapCacheSet");
 var mapCacheSet_default = mapCacheSet;
 
 // node_modules/lodash-es/_MapCache.js
@@ -5760,6 +6608,7 @@ function MapCache(entries) {
     this.set(entry[0], entry[1]);
   }
 }
+__name(MapCache, "MapCache");
 MapCache.prototype.clear = mapCacheClear_default;
 MapCache.prototype["delete"] = mapCacheDelete_default;
 MapCache.prototype.get = mapCacheGet_default;
@@ -5773,7 +6622,7 @@ function memoize(func, resolver) {
   if (typeof func != "function" || resolver != null && typeof resolver != "function") {
     throw new TypeError(FUNC_ERROR_TEXT);
   }
-  var memoized = function() {
+  var memoized = /* @__PURE__ */ __name(function() {
     var args = arguments, key2 = resolver ? resolver.apply(this, args) : args[0], cache = memoized.cache;
     if (cache.has(key2)) {
       return cache.get(key2);
@@ -5781,10 +6630,11 @@ function memoize(func, resolver) {
     var result = func.apply(this, args);
     memoized.cache = cache.set(key2, result) || cache;
     return result;
-  };
+  }, "memoized");
   memoized.cache = new (memoize.Cache || MapCache_default)();
   return memoized;
 }
+__name(memoize, "memoize");
 memoize.Cache = MapCache_default;
 var memoize_default = memoize;
 
@@ -5800,6 +6650,7 @@ function memoizeCapped(func) {
   var cache = result.cache;
   return result;
 }
+__name(memoizeCapped, "memoizeCapped");
 var memoizeCapped_default = memoizeCapped;
 
 // node_modules/lodash-es/_stringToPath.js
@@ -5821,6 +6672,7 @@ var stringToPath_default = stringToPath;
 function toString(value) {
   return value == null ? "" : baseToString_default(value);
 }
+__name(toString, "toString");
 var toString_default = toString;
 
 // node_modules/lodash-es/_castPath.js
@@ -5830,6 +6682,7 @@ function castPath(value, object) {
   }
   return isKey_default(value, object) ? [value] : stringToPath_default(toString_default(value));
 }
+__name(castPath, "castPath");
 var castPath_default = castPath;
 
 // node_modules/lodash-es/_toKey.js
@@ -5841,6 +6694,7 @@ function toKey(value) {
   var result = value + "";
   return result == "0" && 1 / value == -INFINITY2 ? "-0" : result;
 }
+__name(toKey, "toKey");
 var toKey_default = toKey;
 
 // node_modules/lodash-es/_baseGet.js
@@ -5852,6 +6706,7 @@ function baseGet(object, path) {
   }
   return index && index == length ? object : void 0;
 }
+__name(baseGet, "baseGet");
 var baseGet_default = baseGet;
 
 // node_modules/lodash-es/get.js
@@ -5859,6 +6714,7 @@ function get(object, path, defaultValue) {
   var result = object == null ? void 0 : baseGet_default(object, path);
   return result === void 0 ? defaultValue : result;
 }
+__name(get, "get");
 var get_default = get;
 
 // node_modules/lodash-es/_getPrototype.js
@@ -5883,6 +6739,7 @@ function isPlainObject(value) {
   var Ctor = hasOwnProperty10.call(proto, "constructor") && proto.constructor;
   return typeof Ctor == "function" && Ctor instanceof Ctor && funcToString3.call(Ctor) == objectCtorString;
 }
+__name(isPlainObject, "isPlainObject");
 var isPlainObject_default = isPlainObject;
 
 // node_modules/lodash-es/castArray.js
@@ -5893,6 +6750,7 @@ function castArray() {
   var value = arguments[0];
   return isArray_default(value) ? value : [value];
 }
+__name(castArray, "castArray");
 var castArray_default = castArray;
 
 // node_modules/lodash-es/_stackClear.js
@@ -5900,6 +6758,7 @@ function stackClear() {
   this.__data__ = new ListCache_default();
   this.size = 0;
 }
+__name(stackClear, "stackClear");
 var stackClear_default = stackClear;
 
 // node_modules/lodash-es/_stackDelete.js
@@ -5908,18 +6767,21 @@ function stackDelete(key2) {
   this.size = data.size;
   return result;
 }
+__name(stackDelete, "stackDelete");
 var stackDelete_default = stackDelete;
 
 // node_modules/lodash-es/_stackGet.js
 function stackGet(key2) {
   return this.__data__.get(key2);
 }
+__name(stackGet, "stackGet");
 var stackGet_default = stackGet;
 
 // node_modules/lodash-es/_stackHas.js
 function stackHas(key2) {
   return this.__data__.has(key2);
 }
+__name(stackHas, "stackHas");
 var stackHas_default = stackHas;
 
 // node_modules/lodash-es/_stackSet.js
@@ -5939,6 +6801,7 @@ function stackSet(key2, value) {
   this.size = data.size;
   return this;
 }
+__name(stackSet, "stackSet");
 var stackSet_default = stackSet;
 
 // node_modules/lodash-es/_Stack.js
@@ -5946,6 +6809,7 @@ function Stack(entries) {
   var data = this.__data__ = new ListCache_default(entries);
   this.size = data.size;
 }
+__name(Stack, "Stack");
 Stack.prototype.clear = stackClear_default;
 Stack.prototype["delete"] = stackDelete_default;
 Stack.prototype.get = stackGet_default;
@@ -5967,6 +6831,7 @@ function cloneBuffer(buffer, isDeep) {
   buffer.copy(result);
   return result;
 }
+__name(cloneBuffer, "cloneBuffer");
 var cloneBuffer_default = cloneBuffer;
 
 // node_modules/lodash-es/_DataView.js
@@ -5995,7 +6860,7 @@ var setCtorString = toSource_default(Set_default);
 var weakMapCtorString = toSource_default(WeakMap_default);
 var getTag = baseGetTag_default;
 if (DataView_default && getTag(new DataView_default(new ArrayBuffer(1))) != dataViewTag2 || Map_default && getTag(new Map_default()) != mapTag2 || Promise_default && getTag(Promise_default.resolve()) != promiseTag || Set_default && getTag(new Set_default()) != setTag2 || WeakMap_default && getTag(new WeakMap_default()) != weakMapTag2) {
-  getTag = function(value) {
+  getTag = /* @__PURE__ */ __name(function(value) {
     var result = baseGetTag_default(value), Ctor = result == objectTag3 ? value.constructor : void 0, ctorString = Ctor ? toSource_default(Ctor) : "";
     if (ctorString) {
       switch (ctorString) {
@@ -6012,7 +6877,7 @@ if (DataView_default && getTag(new DataView_default(new ArrayBuffer(1))) != data
       }
     }
     return result;
-  };
+  }, "getTag");
 }
 var getTag_default = getTag;
 
@@ -6026,6 +6891,7 @@ function cloneArrayBuffer(arrayBuffer) {
   new Uint8Array_default(result).set(new Uint8Array_default(arrayBuffer));
   return result;
 }
+__name(cloneArrayBuffer, "cloneArrayBuffer");
 var cloneArrayBuffer_default = cloneArrayBuffer;
 
 // node_modules/lodash-es/_cloneTypedArray.js
@@ -6033,12 +6899,14 @@ function cloneTypedArray(typedArray, isDeep) {
   var buffer = isDeep ? cloneArrayBuffer_default(typedArray.buffer) : typedArray.buffer;
   return new typedArray.constructor(buffer, typedArray.byteOffset, typedArray.length);
 }
+__name(cloneTypedArray, "cloneTypedArray");
 var cloneTypedArray_default = cloneTypedArray;
 
 // node_modules/lodash-es/_initCloneObject.js
 function initCloneObject(object) {
   return typeof object.constructor == "function" && !isPrototype_default(object) ? baseCreate_default(getPrototype_default(object)) : {};
 }
+__name(initCloneObject, "initCloneObject");
 var initCloneObject_default = initCloneObject;
 
 // node_modules/lodash-es/_mapToArray.js
@@ -6049,6 +6917,7 @@ function mapToArray(map) {
   });
   return result;
 }
+__name(mapToArray, "mapToArray");
 var mapToArray_default = mapToArray;
 
 // node_modules/lodash-es/_createBaseFor.js
@@ -6064,6 +6933,7 @@ function createBaseFor(fromRight) {
     return object;
   };
 }
+__name(createBaseFor, "createBaseFor");
 var createBaseFor_default = createBaseFor;
 
 // node_modules/lodash-es/_baseFor.js
@@ -6076,12 +6946,14 @@ function assignMergeValue(object, key2, value) {
     baseAssignValue_default(object, key2, value);
   }
 }
+__name(assignMergeValue, "assignMergeValue");
 var assignMergeValue_default = assignMergeValue;
 
 // node_modules/lodash-es/isArrayLikeObject.js
 function isArrayLikeObject(value) {
   return isObjectLike_default(value) && isArrayLike_default(value);
 }
+__name(isArrayLikeObject, "isArrayLikeObject");
 var isArrayLikeObject_default = isArrayLikeObject;
 
 // node_modules/lodash-es/_safeGet.js
@@ -6094,12 +6966,14 @@ function safeGet(object, key2) {
   }
   return object[key2];
 }
+__name(safeGet, "safeGet");
 var safeGet_default = safeGet;
 
 // node_modules/lodash-es/toPlainObject.js
 function toPlainObject(value) {
   return copyObject_default(value, keysIn_default(value));
 }
+__name(toPlainObject, "toPlainObject");
 var toPlainObject_default = toPlainObject;
 
 // node_modules/lodash-es/_baseMergeDeep.js
@@ -6146,6 +7020,7 @@ function baseMergeDeep(object, source, key2, srcIndex, mergeFunc, customizer, st
   }
   assignMergeValue_default(object, key2, newValue);
 }
+__name(baseMergeDeep, "baseMergeDeep");
 var baseMergeDeep_default = baseMergeDeep;
 
 // node_modules/lodash-es/_baseMerge.js
@@ -6166,6 +7041,7 @@ function baseMerge(object, source, srcIndex, customizer, stack) {
     }
   }, keysIn_default);
 }
+__name(baseMerge, "baseMerge");
 var baseMerge_default = baseMerge;
 
 // node_modules/lodash-es/_baseToPairs.js
@@ -6174,6 +7050,7 @@ function baseToPairs(object, props) {
     return [key2, object[key2]];
   });
 }
+__name(baseToPairs, "baseToPairs");
 var baseToPairs_default = baseToPairs;
 
 // node_modules/lodash-es/_setToPairs.js
@@ -6184,6 +7061,7 @@ function setToPairs(set2) {
   });
   return result;
 }
+__name(setToPairs, "setToPairs");
 var setToPairs_default = setToPairs;
 
 // node_modules/lodash-es/_createToPairs.js
@@ -6201,6 +7079,7 @@ function createToPairs(keysFunc) {
     return baseToPairs_default(object, keysFunc(object));
   };
 }
+__name(createToPairs, "createToPairs");
 var createToPairs_default = createToPairs;
 
 // node_modules/lodash-es/toPairs.js
@@ -6212,6 +7091,7 @@ var stringTag2 = "[object String]";
 function isString(value) {
   return typeof value == "string" || !isArray_default(value) && isObjectLike_default(value) && baseGetTag_default(value) == stringTag2;
 }
+__name(isString, "isString");
 var isString_default = isString;
 
 // node_modules/lodash-es/isNumber.js
@@ -6219,12 +7099,14 @@ var numberTag2 = "[object Number]";
 function isNumber(value) {
   return typeof value == "number" || isObjectLike_default(value) && baseGetTag_default(value) == numberTag2;
 }
+__name(isNumber, "isNumber");
 var isNumber_default = isNumber;
 
 // node_modules/lodash-es/isUndefined.js
 function isUndefined(value) {
   return value === void 0;
 }
+__name(isUndefined, "isUndefined");
 var isUndefined_default = isUndefined;
 
 // node_modules/lodash-es/merge.js
@@ -6257,12 +7139,14 @@ function baseSet(object, path, value, customizer) {
   }
   return object;
 }
+__name(baseSet, "baseSet");
 var baseSet_default = baseSet;
 
 // node_modules/lodash-es/set.js
 function set(object, path, value) {
   return object == null ? object : baseSet_default(object, path, value);
 }
+__name(set, "set");
 var set_default = set;
 
 // lang/am.json
@@ -12430,7 +13314,7 @@ var BUNDLED_CATALOGS = {
 };
 
 // src/services/i18n.service.ts
-var I18nService = class _I18nService {
+var _I18nService = class _I18nService {
   /**
    * Creates a new instance of I18nService.
    *
@@ -12607,9 +13491,11 @@ var I18nService = class _I18nService {
     }
   }
 };
+__name(_I18nService, "I18nService");
+var I18nService = _I18nService;
 
 // src/helpers/selection-history.helper.ts
-var SelectionHistoryHelper = class _SelectionHistoryHelper {
+var _SelectionHistoryHelper = class _SelectionHistoryHelper {
   /**
    * Resolves the ids of the versions where the selection text was added or
    * removed at that point on the timeline.
@@ -12685,9 +13571,9 @@ var SelectionHistoryHelper = class _SelectionHistoryHelper {
     if (previous.length === 0 && current.length === 0) {
       return { added, removed };
     }
-    const normalize = (lines) => lines.map(
+    const normalize = /* @__PURE__ */ __name((lines) => lines.map(
       (line) => line.endsWith("\r") ? line.slice(0, -1) : line
-    );
+    ), "normalize");
     const previousText = `${normalize(previous).join("\n")}
 `;
     const currentText = `${normalize(current).join("\n")}
@@ -12726,10 +13612,12 @@ var SelectionHistoryHelper = class _SelectionHistoryHelper {
     ));
   }
 };
+__name(_SelectionHistoryHelper, "SelectionHistoryHelper");
+var SelectionHistoryHelper = _SelectionHistoryHelper;
 
 // src/helpers/dom.helper.ts
 var import_obsidian12 = require("obsidian");
-var DomHelper = class _DomHelper {
+var _DomHelper = class _DomHelper {
   /**
    * Creates a DOM element based on the provided configuration.
    * @param {DomElementConfig} config - Configuration object for the element
@@ -12820,10 +13708,12 @@ var DomHelper = class _DomHelper {
     }
   }
 };
+__name(_DomHelper, "DomHelper");
+var DomHelper = _DomHelper;
 
 // src/modals/confirm.modal.ts
 var import_obsidian13 = require("obsidian");
-var ConfirmModal = class extends import_obsidian13.Modal {
+var _ConfirmModal = class _ConfirmModal extends import_obsidian13.Modal {
   /**
    * Creates a new instance of ConfirmModal.
    *
@@ -12874,10 +13764,10 @@ var ConfirmModal = class extends import_obsidian13.Modal {
                   tag: "button",
                   text: this.cancelText,
                   events: {
-                    click: () => {
+                    click: /* @__PURE__ */ __name(() => {
                       this.result = false;
                       this.close();
-                    }
+                    }, "click")
                   }
                 },
                 {
@@ -12885,10 +13775,10 @@ var ConfirmModal = class extends import_obsidian13.Modal {
                   text: this.confirmText,
                   classes: "mod-warning",
                   events: {
-                    click: () => {
+                    click: /* @__PURE__ */ __name(() => {
                       this.result = true;
                       this.close();
-                    }
+                    }, "click")
                   }
                 }
               ]
@@ -12925,10 +13815,12 @@ var ConfirmModal = class extends import_obsidian13.Modal {
     });
   }
 };
+__name(_ConfirmModal, "ConfirmModal");
+var ConfirmModal = _ConfirmModal;
 
 // src/components/folder-tree.component.ts
 var import_obsidian14 = require("obsidian");
-var FolderTreeComponent = class {
+var _FolderTreeComponent = class _FolderTreeComponent {
   constructor() {
     /**
      * Container the component renders into; null between dispose / re-mount.
@@ -13335,10 +14227,10 @@ var FolderTreeComponent = class {
       attributes: { "data-path": node.path },
       styles: { paddingInlineStart: `calc(var(--size-4-2) + ${depth * 16}px)` },
       events: {
-        click: (event) => {
+        click: /* @__PURE__ */ __name((event) => {
           event.preventDefault();
           this.toggleFolder(node.path);
-        }
+        }, "click")
       },
       container
     });
@@ -13399,10 +14291,10 @@ var FolderTreeComponent = class {
       attributes: { "data-path": node.path },
       styles: { paddingInlineStart: `calc(var(--size-4-2) + ${depth * 16}px)` },
       events: {
-        click: (event) => {
+        click: /* @__PURE__ */ __name((event) => {
           event.preventDefault();
           this.selectFile(node.path);
-        }
+        }, "click")
       },
       container
     };
@@ -13508,9 +14400,11 @@ var FolderTreeComponent = class {
     }
   }
 };
+__name(_FolderTreeComponent, "FolderTreeComponent");
+var FolderTreeComponent = _FolderTreeComponent;
 
 // src/helpers/word-diff.helper.ts
-var WordDiffHelper = class _WordDiffHelper {
+var _WordDiffHelper = class _WordDiffHelper {
   /**
    * Splits a pair of lines into word-level segments. Each segment carries its
    * text and whether it was added (present only in the new line), removed
@@ -13597,6 +14491,8 @@ var WordDiffHelper = class _WordDiffHelper {
     return normalized.split(/\r?\n/);
   }
 };
+__name(_WordDiffHelper, "WordDiffHelper");
+var WordDiffHelper = _WordDiffHelper;
 
 // node_modules/diff2html/lib-esm/types.js
 var LineType;
@@ -13648,9 +14544,11 @@ var regex = RegExp("[" + specials.join("\\") + "]", "g");
 function escapeForRegExp(str) {
   return str.replace(regex, "\\$&");
 }
+__name(escapeForRegExp, "escapeForRegExp");
 function unifyPath(path) {
   return path ? path.replace(/\\/g, "/") : path;
 }
+__name(unifyPath, "unifyPath");
 function hashCode(text) {
   let i, chr, len;
   let hash = 0;
@@ -13661,6 +14559,7 @@ function hashCode(text) {
   }
   return hash;
 }
+__name(hashCode, "hashCode");
 function max(arr) {
   const length = arr.length;
   let max2 = -Infinity;
@@ -13669,15 +14568,18 @@ function max(arr) {
   }
   return max2;
 }
+__name(max, "max");
 
 // node_modules/diff2html/lib-esm/diff-parser.js
 function getExtension(filename, language) {
   const filenameParts = filename.split(".");
   return filenameParts.length > 1 ? filenameParts[filenameParts.length - 1] : language;
 }
+__name(getExtension, "getExtension");
 function startsWithAny(str, prefixes) {
   return prefixes.reduce((startsWith, prefix) => startsWith || str.startsWith(prefix), false);
 }
+__name(startsWithAny, "startsWithAny");
 var baseDiffFilenamePrefixes = ["a/", "b/", "i/", "w/", "c/", "o/"];
 function getFilename(line, linePrefix, extraPrefix) {
   const prefixes = extraPrefix !== void 0 ? [...baseDiffFilenamePrefixes, extraPrefix] : baseDiffFilenamePrefixes;
@@ -13687,12 +14589,15 @@ function getFilename(line, linePrefix, extraPrefix) {
   const fnameWithoutPrefix = matchingPrefix ? filename.slice(matchingPrefix.length) : filename;
   return fnameWithoutPrefix.replace(/\s+\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:\.\d+)? [+-]\d{4}.*$/, "");
 }
+__name(getFilename, "getFilename");
 function getSrcFilename(line, srcPrefix) {
   return getFilename(line, "---", srcPrefix);
 }
+__name(getSrcFilename, "getSrcFilename");
 function getDstFilename(line, dstPrefix) {
   return getFilename(line, "+++", dstPrefix);
 }
+__name(getDstFilename, "getDstFilename");
 function parse(diffInput, config = {}) {
   const files = [];
   let currentFile = null;
@@ -13729,6 +14634,7 @@ function parse(diffInput, config = {}) {
       currentBlock = null;
     }
   }
+  __name(saveBlock, "saveBlock");
   function saveFile() {
     if (currentFile !== null) {
       if (!currentFile.oldName && possibleOldName !== null) {
@@ -13745,6 +14651,7 @@ function parse(diffInput, config = {}) {
     possibleOldName = null;
     possibleNewName = null;
   }
+  __name(saveFile, "saveFile");
   function startFile() {
     saveBlock();
     saveFile();
@@ -13754,6 +14661,7 @@ function parse(diffInput, config = {}) {
       addedLines: 0
     };
   }
+  __name(startFile, "startFile");
   function startBlock(line) {
     saveBlock();
     let values;
@@ -13784,6 +14692,7 @@ function parse(diffInput, config = {}) {
       header: line
     };
   }
+  __name(startBlock, "startBlock");
   function createLine(line) {
     if (currentFile === null || currentBlock === null || oldLine === null || newLine === null)
       return;
@@ -13809,6 +14718,7 @@ function parse(diffInput, config = {}) {
     }
     currentBlock.lines.push(currentLine);
   }
+  __name(createLine, "createLine");
   function existHunkHeader(line, lineIdx) {
     let idx = lineIdx;
     while (idx < diffLines2.length - 3) {
@@ -13822,6 +14732,7 @@ function parse(diffInput, config = {}) {
     }
     return false;
   }
+  __name(existHunkHeader, "existHunkHeader");
   diffLines2.forEach((line, lineIndex) => {
     if (!line || line.startsWith("*")) {
       return;
@@ -13961,9 +14872,10 @@ function parse(diffInput, config = {}) {
   saveFile();
   return files;
 }
+__name(parse, "parse");
 
 // node_modules/diff2html/node_modules/diff/libesm/diff/base.js
-var Diff2 = class {
+var _Diff2 = class _Diff2 {
   diff(oldStr, newStr, options = {}) {
     let callback;
     if (typeof options === "function") {
@@ -13980,7 +14892,7 @@ var Diff2 = class {
   }
   diffWithOptionsObj(oldTokens, newTokens, options, callback) {
     var _a;
-    const done = (value) => {
+    const done = /* @__PURE__ */ __name((value) => {
       value = this.postProcess(value, options);
       if (callback) {
         setTimeout(function() {
@@ -13990,7 +14902,7 @@ var Diff2 = class {
       } else {
         return value;
       }
-    };
+    }, "done");
     const newLen = newTokens.length, oldLen = oldTokens.length;
     let editLength = 1;
     let maxEditLength = newLen + oldLen;
@@ -14005,7 +14917,7 @@ var Diff2 = class {
       return done(this.buildValues(bestPath[0].lastComponent, newTokens, oldTokens));
     }
     let minDiagonalToConsider = -Infinity, maxDiagonalToConsider = Infinity;
-    const execEditLength = () => {
+    const execEditLength = /* @__PURE__ */ __name(() => {
       for (let diagonalPath = Math.max(minDiagonalToConsider, -editLength); diagonalPath <= Math.min(maxDiagonalToConsider, editLength); diagonalPath += 2) {
         let basePath;
         const removePath = bestPath[diagonalPath - 1], addPath = bestPath[diagonalPath + 1];
@@ -14041,9 +14953,9 @@ var Diff2 = class {
         }
       }
       editLength++;
-    };
+    }, "execEditLength");
     if (callback) {
-      (function exec() {
+      (/* @__PURE__ */ __name(function exec() {
         setTimeout(function() {
           if (editLength > maxEditLength || Date.now() > abortAfterTimestamp) {
             return callback(void 0);
@@ -14052,7 +14964,7 @@ var Diff2 = class {
             exec();
           }
         }, 0);
-      })();
+      }, "exec"))();
     } else {
       while (editLength <= maxEditLength && Date.now() <= abortAfterTimestamp) {
         const ret = execEditLength();
@@ -14163,14 +15075,19 @@ var Diff2 = class {
     return components;
   }
 };
+__name(_Diff2, "Diff");
+var Diff2 = _Diff2;
 
 // node_modules/diff2html/node_modules/diff/libesm/diff/character.js
-var CharacterDiff = class extends Diff2 {
+var _CharacterDiff = class _CharacterDiff extends Diff2 {
 };
+__name(_CharacterDiff, "CharacterDiff");
+var CharacterDiff = _CharacterDiff;
 var characterDiff = new CharacterDiff();
 function diffChars(oldStr, newStr, options) {
   return characterDiff.diff(oldStr, newStr, options);
 }
+__name(diffChars, "diffChars");
 
 // node_modules/diff2html/node_modules/diff/libesm/util/string.js
 function longestCommonPrefix2(str1, str2) {
@@ -14182,6 +15099,7 @@ function longestCommonPrefix2(str1, str2) {
   }
   return str1.slice(0, i);
 }
+__name(longestCommonPrefix2, "longestCommonPrefix");
 function longestCommonSuffix2(str1, str2) {
   let i;
   if (!str1 || !str2 || str1[str1.length - 1] != str2[str2.length - 1]) {
@@ -14194,12 +15112,14 @@ function longestCommonSuffix2(str1, str2) {
   }
   return str1.slice(-i);
 }
+__name(longestCommonSuffix2, "longestCommonSuffix");
 function replacePrefix2(string, oldPrefix, newPrefix) {
   if (string.slice(0, oldPrefix.length) != oldPrefix) {
     throw Error(`string ${JSON.stringify(string)} doesn't start with prefix ${JSON.stringify(oldPrefix)}; this is a bug`);
   }
   return newPrefix + string.slice(oldPrefix.length);
 }
+__name(replacePrefix2, "replacePrefix");
 function replaceSuffix2(string, oldSuffix, newSuffix) {
   if (!oldSuffix) {
     return string + newSuffix;
@@ -14209,15 +15129,19 @@ function replaceSuffix2(string, oldSuffix, newSuffix) {
   }
   return string.slice(0, -oldSuffix.length) + newSuffix;
 }
+__name(replaceSuffix2, "replaceSuffix");
 function removePrefix2(string, oldPrefix) {
   return replacePrefix2(string, oldPrefix, "");
 }
+__name(removePrefix2, "removePrefix");
 function removeSuffix2(string, oldSuffix) {
   return replaceSuffix2(string, oldSuffix, "");
 }
+__name(removeSuffix2, "removeSuffix");
 function maximumOverlap2(string1, string2) {
   return string2.slice(0, overlapCount2(string1, string2));
 }
+__name(maximumOverlap2, "maximumOverlap");
 function overlapCount2(a, b) {
   let startA = 0;
   if (a.length > b.length) {
@@ -14254,6 +15178,7 @@ function overlapCount2(a, b) {
   }
   return k;
 }
+__name(overlapCount2, "overlapCount");
 function segment2(string, segmenter) {
   const parts = [];
   for (const segmentObj of Array.from(segmenter.segment(string))) {
@@ -14266,6 +15191,7 @@ function segment2(string, segmenter) {
   }
   return parts;
 }
+__name(segment2, "segment");
 function trailingWs2(string, segmenter) {
   if (segmenter) {
     return leadingAndTrailingWs2(string, segmenter)[1];
@@ -14278,6 +15204,7 @@ function trailingWs2(string, segmenter) {
   }
   return string.substring(i + 1);
 }
+__name(trailingWs2, "trailingWs");
 function leadingWs2(string, segmenter) {
   if (segmenter) {
     return leadingAndTrailingWs2(string, segmenter)[0];
@@ -14285,6 +15212,7 @@ function leadingWs2(string, segmenter) {
   const match = string.match(/^\s*/);
   return match ? match[0] : "";
 }
+__name(leadingWs2, "leadingWs");
 function leadingAndTrailingWs2(string, segmenter) {
   if (!segmenter) {
     return [leadingWs2(string), trailingWs2(string)];
@@ -14299,11 +15227,12 @@ function leadingAndTrailingWs2(string, segmenter) {
   const tail = /\s/.test(lastSeg) ? lastSeg : "";
   return [head, tail];
 }
+__name(leadingAndTrailingWs2, "leadingAndTrailingWs");
 
 // node_modules/diff2html/node_modules/diff/libesm/diff/word.js
 var extendedWordChars2 = "a-zA-Z0-9_\\u{AD}\\u{C0}-\\u{D6}\\u{D8}-\\u{F6}\\u{F8}-\\u{2C6}\\u{2C8}-\\u{2D7}\\u{2DE}-\\u{2FF}\\u{1E00}-\\u{1EFF}";
 var tokenizeIncludingWhitespace2 = new RegExp(`[${extendedWordChars2}]+|\\s+|[^${extendedWordChars2}]`, "ug");
-var WordDiff2 = class extends Diff2 {
+var _WordDiff2 = class _WordDiff2 extends Diff2 {
   equals(left, right, options) {
     if (options.ignoreCase) {
       left = left.toLowerCase();
@@ -14380,6 +15309,8 @@ var WordDiff2 = class extends Diff2 {
     return changes;
   }
 };
+__name(_WordDiff2, "WordDiff");
+var WordDiff2 = _WordDiff2;
 var wordDiff2 = new WordDiff2();
 function dedupeWhitespaceInChangeObjects2(startKeep, deletion, insertion, endKeep, segmenter) {
   if (deletion && insertion) {
@@ -14426,16 +15357,20 @@ function dedupeWhitespaceInChangeObjects2(startKeep, deletion, insertion, endKee
     deletion.value = removePrefix2(deletion.value, overlap);
   }
 }
-var WordsWithSpaceDiff2 = class extends Diff2 {
+__name(dedupeWhitespaceInChangeObjects2, "dedupeWhitespaceInChangeObjects");
+var _WordsWithSpaceDiff2 = class _WordsWithSpaceDiff2 extends Diff2 {
   tokenize(value) {
     const regex2 = new RegExp(`(\\r?\\n)|[${extendedWordChars2}]+|[^\\S\\n\\r]+|[^${extendedWordChars2}]`, "ug");
     return value.match(regex2) || [];
   }
 };
+__name(_WordsWithSpaceDiff2, "WordsWithSpaceDiff");
+var WordsWithSpaceDiff2 = _WordsWithSpaceDiff2;
 var wordsWithSpaceDiff2 = new WordsWithSpaceDiff2();
 function diffWordsWithSpace2(oldStr, newStr, options) {
   return wordsWithSpaceDiff2.diff(oldStr, newStr, options);
 }
+__name(diffWordsWithSpace2, "diffWordsWithSpace");
 
 // node_modules/diff2html/lib-esm/rematch.js
 function levenshtein(a, b) {
@@ -14465,6 +15400,7 @@ function levenshtein(a, b) {
   }
   return matrix[b.length][a.length];
 }
+__name(levenshtein, "levenshtein");
 function newDistanceFn(str) {
   return (x, y) => {
     const xValue = str(x).trim();
@@ -14473,6 +15409,7 @@ function newDistanceFn(str) {
     return lev / (xValue.length + yValue.length);
   };
 }
+__name(newDistanceFn, "newDistanceFn");
 function newMatcherFn(distance2) {
   function findBestMatch(a, b, cache = /* @__PURE__ */ new Map()) {
     let bestMatchDist = Infinity;
@@ -14493,6 +15430,7 @@ function newMatcherFn(distance2) {
     }
     return bestMatch;
   }
+  __name(findBestMatch, "findBestMatch");
   function group(a, b, level = 0, cache = /* @__PURE__ */ new Map()) {
     const bm = findBestMatch(a, b, cache);
     if (!bm || a.length + b.length < 3) {
@@ -14518,8 +15456,10 @@ function newMatcherFn(distance2) {
     }
     return result;
   }
+  __name(group, "group");
   return group;
 }
+__name(newMatcherFn, "newMatcherFn");
 
 // node_modules/diff2html/lib-esm/render-utils.js
 var CSSLineClass = {
@@ -14543,12 +15483,15 @@ var matcher = newMatcherFn(distance);
 function isDevNullName(name) {
   return name.indexOf("dev/null") !== -1;
 }
+__name(isDevNullName, "isDevNullName");
 function removeInsElements(line) {
   return line.replace(/(<ins[^>]*>((.|\n)*?)<\/ins>)/g, "");
 }
+__name(removeInsElements, "removeInsElements");
 function removeDelElements(line) {
   return line.replace(/(<del[^>]*>((.|\n)*?)<\/del>)/g, "");
 }
+__name(removeDelElements, "removeDelElements");
 function toCSSClass(lineType) {
   switch (lineType) {
     case LineType.CONTEXT:
@@ -14559,6 +15502,7 @@ function toCSSClass(lineType) {
       return CSSLineClass.DELETES;
   }
 }
+__name(toCSSClass, "toCSSClass");
 function colorSchemeToCss(colorScheme) {
   switch (colorScheme) {
     case ColorSchemeType.DARK:
@@ -14570,12 +15514,15 @@ function colorSchemeToCss(colorScheme) {
       return "d2h-light-color-scheme";
   }
 }
+__name(colorSchemeToCss, "colorSchemeToCss");
 function prefixLength(isCombined) {
   return isCombined ? 2 : 1;
 }
+__name(prefixLength, "prefixLength");
 function escapeForHtml(str) {
   return str.slice(0).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#x27;").replace(/\//g, "&#x2F;");
 }
+__name(escapeForHtml, "escapeForHtml");
 function deconstructLine(line, isCombined, escape = true) {
   const indexToSplit = prefixLength(isCombined);
   return {
@@ -14583,6 +15530,7 @@ function deconstructLine(line, isCombined, escape = true) {
     content: escape ? escapeForHtml(line.substring(indexToSplit)) : line.substring(indexToSplit)
   };
 }
+__name(deconstructLine, "deconstructLine");
 function filenameDiff(file) {
   const oldFilename = unifyPath(file.oldName);
   const newFilename = unifyPath(file.newName);
@@ -14631,9 +15579,11 @@ function filenameDiff(file) {
     return oldFilename;
   }
 }
+__name(filenameDiff, "filenameDiff");
 function getHtmlId(file) {
   return `d2h-${hashCode(filenameDiff(file)).toString().slice(-6)}`;
 }
+__name(getHtmlId, "getHtmlId");
 function getFileIcon(file) {
   let templateName = "file-changed";
   if (file.isRename) {
@@ -14649,6 +15599,7 @@ function getFileIcon(file) {
   }
   return templateName;
 }
+__name(getFileIcon, "getFileIcon");
 function diffHighlight(diffLine1, diffLine2, isCombined, config = {}) {
   const { matching, maxLineLengthHighlight, matchWordsThreshold, diffStyle } = Object.assign(Object.assign({}, defaultRenderConfig), config);
   const line1 = deconstructLine(diffLine1, isCombined, false);
@@ -14698,6 +15649,7 @@ function diffHighlight(diffLine1, diffLine2, isCombined, config = {}) {
     }
   };
 }
+__name(diffHighlight, "diffHighlight");
 
 // node_modules/diff2html/lib-esm/file-list-renderer.js
 var baseTemplatesPath = "file-summary";
@@ -14705,7 +15657,7 @@ var iconsBaseTemplatesPath = "icon";
 var defaultFileListRendererConfig = {
   colorScheme: defaultRenderConfig.colorScheme
 };
-var FileListRenderer = class {
+var _FileListRenderer = class _FileListRenderer {
   constructor(hoganUtils, config = {}) {
     this.hoganUtils = hoganUtils;
     this.config = Object.assign(Object.assign({}, defaultFileListRendererConfig), config);
@@ -14728,6 +15680,8 @@ var FileListRenderer = class {
     });
   }
 };
+__name(_FileListRenderer, "FileListRenderer");
+var FileListRenderer = _FileListRenderer;
 
 // node_modules/diff2html/lib-esm/line-by-line-renderer.js
 var defaultLineByLineRendererConfig = Object.assign(Object.assign({}, defaultRenderConfig), { renderNothingWhenEmpty: false, matchingMaxComparisons: 2500, maxLineSizeInBlockForComparison: 200 });
@@ -14735,7 +15689,7 @@ var genericTemplatesPath = "generic";
 var baseTemplatesPath2 = "line-by-line";
 var iconsBaseTemplatesPath2 = "icon";
 var tagsBaseTemplatesPath = "tag";
-var LineByLineRenderer = class {
+var _LineByLineRenderer = class _LineByLineRenderer {
   constructor(hoganUtils, config = {}) {
     this.hoganUtils = hoganUtils;
     this.config = Object.assign(Object.assign({}, defaultLineByLineRendererConfig), config);
@@ -14903,6 +15857,8 @@ var LineByLineRenderer = class {
     });
   }
 };
+__name(_LineByLineRenderer, "LineByLineRenderer");
+var LineByLineRenderer = _LineByLineRenderer;
 
 // node_modules/diff2html/lib-esm/side-by-side-renderer.js
 var defaultSideBySideRendererConfig = Object.assign(Object.assign({}, defaultRenderConfig), { renderNothingWhenEmpty: false, matchingMaxComparisons: 2500, maxLineSizeInBlockForComparison: 200 });
@@ -14910,7 +15866,7 @@ var genericTemplatesPath2 = "generic";
 var baseTemplatesPath3 = "side-by-side";
 var iconsBaseTemplatesPath3 = "icon";
 var tagsBaseTemplatesPath2 = "tag";
-var SideBySideRenderer = class {
+var _SideBySideRenderer = class _SideBySideRenderer {
   constructor(hoganUtils, config = {}) {
     this.hoganUtils = hoganUtils;
     this.config = Object.assign(Object.assign({}, defaultSideBySideRendererConfig), config);
@@ -15089,6 +16045,8 @@ var SideBySideRenderer = class {
     });
   }
 };
+__name(_SideBySideRenderer, "SideBySideRenderer");
+var SideBySideRenderer = _SideBySideRenderer;
 
 // node_modules/diff2html/lib-esm/hoganjs-utils.js
 var Hogan3 = __toESM(require_hogan());
@@ -15096,7 +16054,7 @@ var Hogan3 = __toESM(require_hogan());
 // node_modules/diff2html/lib-esm/diff2html-templates.js
 var Hogan2 = __toESM(require_hogan());
 var defaultTemplates = {};
-defaultTemplates["file-summary-line"] = new Hogan2.Template({ code: function(c, p, i) {
+defaultTemplates["file-summary-line"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b('<li class="d2h-file-list-line">');
@@ -15126,8 +16084,8 @@ defaultTemplates["file-summary-line"] = new Hogan2.Template({ code: function(c, 
   t.b("\n" + i);
   t.b("</li>");
   return t.fl();
-}, partials: { "<fileIcon0": { name: "fileIcon", partials: {}, subs: {} } }, subs: {} });
-defaultTemplates["file-summary-wrapper"] = new Hogan2.Template({ code: function(c, p, i) {
+}, "code"), partials: { "<fileIcon0": { name: "fileIcon", partials: {}, subs: {} } }, subs: {} });
+defaultTemplates["file-summary-wrapper"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b('<div class="d2h-file-list-wrapper ');
@@ -15155,8 +16113,8 @@ defaultTemplates["file-summary-wrapper"] = new Hogan2.Template({ code: function(
   t.b("\n" + i);
   t.b("</div>");
   return t.fl();
-}, partials: {}, subs: {} });
-defaultTemplates["generic-block-header"] = new Hogan2.Template({ code: function(c, p, i) {
+}, "code"), partials: {}, subs: {} });
+defaultTemplates["generic-block-header"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b("<tr>");
@@ -15190,8 +16148,8 @@ defaultTemplates["generic-block-header"] = new Hogan2.Template({ code: function(
   t.b("\n" + i);
   t.b("</tr>");
   return t.fl();
-}, partials: {}, subs: {} });
-defaultTemplates["generic-empty-diff"] = new Hogan2.Template({ code: function(c, p, i) {
+}, "code"), partials: {}, subs: {} });
+defaultTemplates["generic-empty-diff"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b("<tr>");
@@ -15212,8 +16170,8 @@ defaultTemplates["generic-empty-diff"] = new Hogan2.Template({ code: function(c,
   t.b("\n" + i);
   t.b("</tr>");
   return t.fl();
-}, partials: {}, subs: {} });
-defaultTemplates["generic-file-path"] = new Hogan2.Template({ code: function(c, p, i) {
+}, "code"), partials: {}, subs: {} });
+defaultTemplates["generic-file-path"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b('<span class="d2h-file-name-wrapper">');
@@ -15234,8 +16192,8 @@ defaultTemplates["generic-file-path"] = new Hogan2.Template({ code: function(c, 
   t.b("\n" + i);
   t.b("</label>");
   return t.fl();
-}, partials: { "<fileIcon0": { name: "fileIcon", partials: {}, subs: {} }, "<fileTag1": { name: "fileTag", partials: {}, subs: {} } }, subs: {} });
-defaultTemplates["generic-line"] = new Hogan2.Template({ code: function(c, p, i) {
+}, "code"), partials: { "<fileIcon0": { name: "fileIcon", partials: {}, subs: {} }, "<fileTag1": { name: "fileTag", partials: {}, subs: {} } }, subs: {} });
+defaultTemplates["generic-line"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b("<tr>");
@@ -15293,8 +16251,8 @@ defaultTemplates["generic-line"] = new Hogan2.Template({ code: function(c, p, i)
   t.b("\n" + i);
   t.b("</tr>");
   return t.fl();
-}, partials: {}, subs: {} });
-defaultTemplates["generic-wrapper"] = new Hogan2.Template({ code: function(c, p, i) {
+}, "code"), partials: {}, subs: {} });
+defaultTemplates["generic-wrapper"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b('<div class="d2h-wrapper ');
@@ -15306,8 +16264,8 @@ defaultTemplates["generic-wrapper"] = new Hogan2.Template({ code: function(c, p,
   t.b("\n" + i);
   t.b("</div>");
   return t.fl();
-}, partials: {}, subs: {} });
-defaultTemplates["icon-file-added"] = new Hogan2.Template({ code: function(c, p, i) {
+}, "code"), partials: {}, subs: {} });
+defaultTemplates["icon-file-added"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b('<svg aria-hidden="true" class="d2h-icon d2h-added" height="16" title="added" version="1.1" viewBox="0 0 14 16"');
@@ -15318,8 +16276,8 @@ defaultTemplates["icon-file-added"] = new Hogan2.Template({ code: function(c, p,
   t.b("\n" + i);
   t.b("</svg>");
   return t.fl();
-}, partials: {}, subs: {} });
-defaultTemplates["icon-file-changed"] = new Hogan2.Template({ code: function(c, p, i) {
+}, "code"), partials: {}, subs: {} });
+defaultTemplates["icon-file-changed"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b('<svg aria-hidden="true" class="d2h-icon d2h-changed" height="16" title="modified" version="1.1"');
@@ -15330,8 +16288,8 @@ defaultTemplates["icon-file-changed"] = new Hogan2.Template({ code: function(c, 
   t.b("\n" + i);
   t.b("</svg>");
   return t.fl();
-}, partials: {}, subs: {} });
-defaultTemplates["icon-file-deleted"] = new Hogan2.Template({ code: function(c, p, i) {
+}, "code"), partials: {}, subs: {} });
+defaultTemplates["icon-file-deleted"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b('<svg aria-hidden="true" class="d2h-icon d2h-deleted" height="16" title="removed" version="1.1"');
@@ -15342,8 +16300,8 @@ defaultTemplates["icon-file-deleted"] = new Hogan2.Template({ code: function(c, 
   t.b("\n" + i);
   t.b("</svg>");
   return t.fl();
-}, partials: {}, subs: {} });
-defaultTemplates["icon-file-renamed"] = new Hogan2.Template({ code: function(c, p, i) {
+}, "code"), partials: {}, subs: {} });
+defaultTemplates["icon-file-renamed"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b('<svg aria-hidden="true" class="d2h-icon d2h-moved" height="16" title="renamed" version="1.1"');
@@ -15354,8 +16312,8 @@ defaultTemplates["icon-file-renamed"] = new Hogan2.Template({ code: function(c, 
   t.b("\n" + i);
   t.b("</svg>");
   return t.fl();
-}, partials: {}, subs: {} });
-defaultTemplates["icon-file"] = new Hogan2.Template({ code: function(c, p, i) {
+}, "code"), partials: {}, subs: {} });
+defaultTemplates["icon-file"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b('<svg aria-hidden="true" class="d2h-icon" height="16" version="1.1" viewBox="0 0 12 16" width="12">');
@@ -15364,8 +16322,8 @@ defaultTemplates["icon-file"] = new Hogan2.Template({ code: function(c, p, i) {
   t.b("\n" + i);
   t.b("</svg>");
   return t.fl();
-}, partials: {}, subs: {} });
-defaultTemplates["line-by-line-file-diff"] = new Hogan2.Template({ code: function(c, p, i) {
+}, "code"), partials: {}, subs: {} });
+defaultTemplates["line-by-line-file-diff"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b('<div id="');
@@ -15402,8 +16360,8 @@ defaultTemplates["line-by-line-file-diff"] = new Hogan2.Template({ code: functio
   t.b("\n" + i);
   t.b("</div>");
   return t.fl();
-}, partials: {}, subs: {} });
-defaultTemplates["line-by-line-numbers"] = new Hogan2.Template({ code: function(c, p, i) {
+}, "code"), partials: {}, subs: {} });
+defaultTemplates["line-by-line-numbers"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b('<div class="line-num1">');
@@ -15414,8 +16372,8 @@ defaultTemplates["line-by-line-numbers"] = new Hogan2.Template({ code: function(
   t.b(t.v(t.f("newNumber", c, p, 0)));
   t.b("</div>");
   return t.fl();
-}, partials: {}, subs: {} });
-defaultTemplates["side-by-side-file-diff"] = new Hogan2.Template({ code: function(c, p, i) {
+}, "code"), partials: {}, subs: {} });
+defaultTemplates["side-by-side-file-diff"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b('<div id="');
@@ -15475,34 +16433,34 @@ defaultTemplates["side-by-side-file-diff"] = new Hogan2.Template({ code: functio
   t.b("\n" + i);
   t.b("</div>");
   return t.fl();
-}, partials: {}, subs: {} });
-defaultTemplates["tag-file-added"] = new Hogan2.Template({ code: function(c, p, i) {
+}, "code"), partials: {}, subs: {} });
+defaultTemplates["tag-file-added"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b('<span class="d2h-tag d2h-added d2h-added-tag">ADDED</span>');
   return t.fl();
-}, partials: {}, subs: {} });
-defaultTemplates["tag-file-changed"] = new Hogan2.Template({ code: function(c, p, i) {
+}, "code"), partials: {}, subs: {} });
+defaultTemplates["tag-file-changed"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b('<span class="d2h-tag d2h-changed d2h-changed-tag">CHANGED</span>');
   return t.fl();
-}, partials: {}, subs: {} });
-defaultTemplates["tag-file-deleted"] = new Hogan2.Template({ code: function(c, p, i) {
+}, "code"), partials: {}, subs: {} });
+defaultTemplates["tag-file-deleted"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b('<span class="d2h-tag d2h-deleted d2h-deleted-tag">DELETED</span>');
   return t.fl();
-}, partials: {}, subs: {} });
-defaultTemplates["tag-file-renamed"] = new Hogan2.Template({ code: function(c, p, i) {
+}, "code"), partials: {}, subs: {} });
+defaultTemplates["tag-file-renamed"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b('<span class="d2h-tag d2h-moved d2h-moved-tag">RENAMED</span>');
   return t.fl();
-}, partials: {}, subs: {} });
+}, "code"), partials: {}, subs: {} });
 
 // node_modules/diff2html/lib-esm/hoganjs-utils.js
-var HoganJsUtils = class {
+var _HoganJsUtils = class _HoganJsUtils {
   constructor({ compiledTemplates = {}, rawTemplates = {} }) {
     const compiledRawTemplates = Object.entries(rawTemplates).reduce((previousTemplates, [name, templateString]) => {
       const compiledTemplate = Hogan3.compile(templateString, { asString: false });
@@ -15529,6 +16487,8 @@ var HoganJsUtils = class {
     return `${namespace}-${view}`;
   }
 };
+__name(_HoganJsUtils, "HoganJsUtils");
+var HoganJsUtils = _HoganJsUtils;
 
 // node_modules/diff2html/lib-esm/diff2html.js
 var defaultDiff2HtmlConfig = Object.assign(Object.assign(Object.assign({}, defaultLineByLineRendererConfig), defaultSideBySideRendererConfig), { outputFormat: OutputFormatType.LINE_BY_LINE, drawFileList: true });
@@ -15542,10 +16502,11 @@ function html(diffInput, configuration = {}) {
   const diffOutput = config.outputFormat === "side-by-side" ? new SideBySideRenderer(hoganUtils, config).render(diffJson) : new LineByLineRenderer(hoganUtils, config).render(diffJson);
   return fileList + diffOutput;
 }
+__name(html, "html");
 
 // src/helpers/diff-render.helper.ts
 var import_obsidian15 = require("obsidian");
-var DiffRenderHelper = class _DiffRenderHelper {
+var _DiffRenderHelper = class _DiffRenderHelper {
   /**
    * Renders the diff in the requested mode into the supplied container. The
    * container is fully replaced on every call (no incremental update), so the
@@ -15648,11 +16609,11 @@ var DiffRenderHelper = class _DiffRenderHelper {
    */
   static renderPatch(params) {
     const patch = _DiffRenderHelper.buildCleanPatch(params);
-    const handlerClick = () => {
+    const handlerClick = /* @__PURE__ */ __name(() => {
       navigator.clipboard.writeText(patch).then(() => {
         new import_obsidian15.Notice(params.plugin.t("notice.copied"));
       });
-    };
+    }, "handlerClick");
     DomHelper.update(
       params.container,
       {
@@ -15845,9 +16806,11 @@ var DiffRenderHelper = class _DiffRenderHelper {
     });
   }
 };
+__name(_DiffRenderHelper, "DiffRenderHelper");
+var DiffRenderHelper = _DiffRenderHelper;
 
 // src/helpers/folder-delta.helper.ts
-var FolderDeltaHelper = class _FolderDeltaHelper {
+var _FolderDeltaHelper = class _FolderDeltaHelper {
   /**
    * Compares the snapshot's state at the timeline point T to its current
    * state. See the class docs for the full status grid and the resolution
@@ -16020,9 +16983,11 @@ var FolderDeltaHelper = class _FolderDeltaHelper {
     return true;
   }
 };
+__name(_FolderDeltaHelper, "FolderDeltaHelper");
+var FolderDeltaHelper = _FolderDeltaHelper;
 
 // src/helpers/folder-timeline.helper.ts
-var FolderTimelineHelper = class _FolderTimelineHelper {
+var _FolderTimelineHelper = class _FolderTimelineHelper {
   /**
    * Synthesises the folder timeline from the snapshots whose path starts with
    * `rootPath`. See the class docs for the kinds emitted and the ordering
@@ -16144,10 +17109,12 @@ var FolderTimelineHelper = class _FolderTimelineHelper {
     return path === root2 || path.startsWith(`${root2}/`);
   }
 };
+__name(_FolderTimelineHelper, "FolderTimelineHelper");
+var FolderTimelineHelper = _FolderTimelineHelper;
 
 // src/modals/folder-history.modal.ts
 var import_obsidian16 = require("obsidian");
-var FolderHistoryModal = class extends import_obsidian16.Modal {
+var _FolderHistoryModal = class _FolderHistoryModal extends import_obsidian16.Modal {
   /**
    * Builds a new folder history modal. The caller is expected to have filtered
    * the snapshots to the folder root (see {@link ModalsService.openFolderHistory})
@@ -16322,17 +17289,17 @@ var FolderHistoryModal = class extends import_obsidian16.Modal {
       icon: "rotate-ccw",
       label: this.plugin.t("modal.restore-original"),
       warning: true,
-      onClick: async () => {
+      onClick: /* @__PURE__ */ __name(async () => {
         await this.handleRestoreOriginal();
-      }
+      }, "onClick")
     });
     this.removeHistoryButton = this.makeToolbarButton(actionsGroup, {
       icon: "trash-2",
       label: this.plugin.t("modal.remove-history"),
       warning: true,
-      onClick: async () => {
+      onClick: /* @__PURE__ */ __name(async () => {
         await this.handleRemoveHistory();
-      }
+      }, "onClick")
     });
     const filterGroup = DomHelper.create({
       tag: "div",
@@ -16342,23 +17309,23 @@ var FolderHistoryModal = class extends import_obsidian16.Modal {
     this.restoreSelectedButton = this.makeToolbarButton(filterGroup, {
       icon: "history",
       label: this.plugin.t("modal.restore-selected"),
-      onClick: async () => {
+      onClick: /* @__PURE__ */ __name(async () => {
         await this.handleRestoreSelected();
-      }
+      }, "onClick")
     });
     this.removeSelectedButton = this.makeToolbarButton(filterGroup, {
       icon: "list-x",
       label: this.plugin.t("modal.remove-selected"),
-      onClick: async () => {
+      onClick: /* @__PURE__ */ __name(async () => {
         await this.handleRemoveSelected();
-      }
+      }, "onClick")
     });
     this.labelSelectedButton = this.makeToolbarButton(filterGroup, {
       icon: "tag",
       label: this.plugin.t("modal.label-selected"),
-      onClick: async () => {
+      onClick: /* @__PURE__ */ __name(async () => {
         await this.handleLabelSelected();
-      }
+      }, "onClick")
     });
     const modesGroup = DomHelper.create({
       tag: "div",
@@ -16368,30 +17335,30 @@ var FolderHistoryModal = class extends import_obsidian16.Modal {
     this.modeButtons.patch = this.makeToolbarButton(modesGroup, {
       icon: "file-text",
       label: this.plugin.t("modal.mode.patch"),
-      onClick: () => {
+      onClick: /* @__PURE__ */ __name(() => {
         this.setDisplayMode("patch" /* patch */);
-      }
+      }, "onClick")
     });
     this.modeButtons.inline = this.makeToolbarButton(modesGroup, {
       icon: "pilcrow",
       label: this.plugin.t("modal.mode.inline"),
-      onClick: () => {
+      onClick: /* @__PURE__ */ __name(() => {
         this.setDisplayMode("inline" /* inline */);
-      }
+      }, "onClick")
     });
     this.modeButtons.lineByLine = this.makeToolbarButton(modesGroup, {
       icon: "align-justify",
       label: this.plugin.t("modal.mode.line-by-line"),
-      onClick: () => {
+      onClick: /* @__PURE__ */ __name(() => {
         this.setDisplayMode("line-by-line" /* line */);
-      }
+      }, "onClick")
     });
     this.modeButtons.sideBySide = this.makeToolbarButton(modesGroup, {
       icon: "columns-2",
       label: this.plugin.t("modal.mode.side-by-side"),
-      onClick: () => {
+      onClick: /* @__PURE__ */ __name(() => {
         this.setDisplayMode("side-by-side" /* side */);
-      }
+      }, "onClick")
     });
     this.updateModeButtonActiveStates();
     this.updateActionButtonStates();
@@ -16440,9 +17407,9 @@ var FolderHistoryModal = class extends import_obsidian16.Modal {
       attributes: { "aria-label": config.label, "type": "button" },
       container: group,
       events: {
-        click: () => {
+        click: /* @__PURE__ */ __name(() => {
           void config.onClick();
-        }
+        }, "click")
       }
     });
     (0, import_obsidian16.setIcon)(button, config.icon);
@@ -16626,9 +17593,9 @@ var FolderHistoryModal = class extends import_obsidian16.Modal {
       tag: "div",
       classes: active ? ["lct-version-item", "is-active"] : ["lct-version-item"],
       events: {
-        click: () => {
+        click: /* @__PURE__ */ __name(() => {
           this.selectTimestamp(point.timestamp);
-        }
+        }, "click")
       },
       children: [
         { tag: "span", classes: "lct-version-label-row", children: labelChildren },
@@ -17157,18 +18124,20 @@ var FolderHistoryModal = class extends import_obsidian16.Modal {
     return FolderDeltaHelper.compareAt(snapshot, this.selectedTimestamp).status;
   }
 };
+__name(_FolderHistoryModal, "FolderHistoryModal");
 __decorateClass([
   Inject("SnapshotsService")
-], FolderHistoryModal.prototype, "snapshotsService", 2);
+], _FolderHistoryModal.prototype, "snapshotsService", 2);
 __decorateClass([
   Inject("ModalsService")
-], FolderHistoryModal.prototype, "modalsService", 2);
+], _FolderHistoryModal.prototype, "modalsService", 2);
 __decorateClass([
   Inject("VersionActionsService")
-], FolderHistoryModal.prototype, "versionActionsService", 2);
+], _FolderHistoryModal.prototype, "versionActionsService", 2);
+var FolderHistoryModal = _FolderHistoryModal;
 
 // src/helpers/base-content.helper.ts
-var BaseContentHelper = class {
+var _BaseContentHelper = class _BaseContentHelper {
   /**
    * Resolves the base content to diff the current state against.
    *
@@ -17190,9 +18159,11 @@ var BaseContentHelper = class {
     return latest != null ? latest : snapshot.original;
   }
 };
+__name(_BaseContentHelper, "BaseContentHelper");
+var BaseContentHelper = _BaseContentHelper;
 
 // src/helpers/list-selection.helper.ts
-var ListSelectionHelper = class {
+var _ListSelectionHelper = class _ListSelectionHelper {
   /**
    * Resolves the id the selection moves to when an arrow key is pressed.
    *
@@ -17214,9 +18185,11 @@ var ListSelectionHelper = class {
     return list[next];
   }
 };
+__name(_ListSelectionHelper, "ListSelectionHelper");
+var ListSelectionHelper = _ListSelectionHelper;
 
 // src/helpers/version-search.helper.ts
-var VersionSearchHelper = class {
+var _VersionSearchHelper = class _VersionSearchHelper {
   /**
    * Resolves the ids of the versions visible for a given search query.
    *
@@ -17239,9 +18212,11 @@ var VersionSearchHelper = class {
     );
   }
 };
+__name(_VersionSearchHelper, "VersionSearchHelper");
+var VersionSearchHelper = _VersionSearchHelper;
 
 // src/helpers/version-label.helper.ts
-var VersionLabelHelper = class _VersionLabelHelper {
+var _VersionLabelHelper = class _VersionLabelHelper {
   /**
    * Describes the transition from previous to current as an action plus the
    * line-level delta. Symmetric in shape: both empty inputs are handled, and
@@ -17328,10 +18303,12 @@ var VersionLabelHelper = class _VersionLabelHelper {
     return { added, removed };
   }
 };
+__name(_VersionLabelHelper, "VersionLabelHelper");
+var VersionLabelHelper = _VersionLabelHelper;
 
 // src/modals/history.modal.ts
 var import_obsidian17 = require("obsidian");
-var HistoryModal = class extends import_obsidian17.Modal {
+var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
   /**
    * Creates a new instance of HistoryModal.
    *
@@ -17828,7 +18805,7 @@ var HistoryModal = class extends import_obsidian17.Modal {
         container: this.railEl,
         attributes: { tabindex: "0" },
         events: {
-          keydown: (event) => this.handleVersionsKeydown(event)
+          keydown: /* @__PURE__ */ __name((event) => this.handleVersionsKeydown(event), "keydown")
         }
       });
     }
@@ -17853,7 +18830,7 @@ var HistoryModal = class extends import_obsidian17.Modal {
       container: blockEl,
       attributes: { tabindex: "0" },
       events: {
-        keydown: (event) => this.handleDiffKeydown(event)
+        keydown: /* @__PURE__ */ __name((event) => this.handleDiffKeydown(event), "keydown")
       }
     });
     this.renderSearch();
@@ -18013,7 +18990,7 @@ var HistoryModal = class extends import_obsidian17.Modal {
       icon: "rotate-ccw",
       label: this.plugin.t("modal.restore-original"),
       warning: true,
-      onClick: async () => {
+      onClick: /* @__PURE__ */ __name(async () => {
         const confirmed = await this.modalsService.confirm({
           title: this.plugin.t("modal.confirm.restore.title"),
           message: this.plugin.t("modal.confirm.restore.message"),
@@ -18023,13 +19000,13 @@ var HistoryModal = class extends import_obsidian17.Modal {
         if (confirmed) {
           await this.restoreOriginalFile();
         }
-      }
+      }, "onClick")
     });
     this.makeToolbarButton(actionsGroup, {
       icon: "trash-2",
       label: this.plugin.t("modal.remove-history"),
       warning: true,
-      onClick: async () => {
+      onClick: /* @__PURE__ */ __name(async () => {
         var _a;
         const confirmed = await this.modalsService.confirm({
           title: this.plugin.t("modal.confirm.remove.title"),
@@ -18041,13 +19018,13 @@ var HistoryModal = class extends import_obsidian17.Modal {
           (_a = this.snapshotsService) == null ? void 0 : _a.wipeOne(this.snapshot.file);
           this.close();
         }
-      }
+      }, "onClick")
     });
     const filterGroup = this.makeToolbarGroup("lct-modal-toolbar-filter");
     this.restoreSelectedButton = this.makeToolbarButton(filterGroup, {
       icon: "history",
       label: this.plugin.t("modal.restore-selected"),
-      onClick: async () => {
+      onClick: /* @__PURE__ */ __name(async () => {
         const confirmed = await this.modalsService.confirm({
           title: this.plugin.t("modal.confirm.restore-version.title"),
           message: this.plugin.t("modal.confirm.restore-version.message"),
@@ -18057,72 +19034,72 @@ var HistoryModal = class extends import_obsidian17.Modal {
         if (confirmed) {
           await this.restoreSelectedVersion();
         }
-      }
+      }, "onClick")
     });
     this.removeSelectedButton = this.makeToolbarButton(filterGroup, {
       icon: "list-x",
       label: this.plugin.t("modal.remove-selected"),
-      onClick: () => {
+      onClick: /* @__PURE__ */ __name(() => {
         void this.confirmRemoveSelectedVersion();
-      }
+      }, "onClick")
     });
     this.labelSelectedButton = this.makeToolbarButton(filterGroup, {
       icon: "tag",
       label: this.plugin.t("modal.label-selected"),
-      onClick: async () => {
+      onClick: /* @__PURE__ */ __name(async () => {
         await this.labelSelectedVersion();
-      }
+      }, "onClick")
     });
     this.hideIdenticalButton = this.makeToolbarButton(filterGroup, {
       icon: "eye-off",
       label: this.plugin.t("modal.hide-identical"),
-      onClick: () => {
+      onClick: /* @__PURE__ */ __name(() => {
         this.toggleHideIdentical();
-      }
+      }, "onClick")
     });
     const navGroup = this.makeToolbarGroup("lct-modal-toolbar-nav");
     this.navButtons.previous = this.makeToolbarButton(navGroup, {
       icon: "chevron-up",
       label: this.plugin.t("modal.previous-difference"),
-      onClick: () => {
+      onClick: /* @__PURE__ */ __name(() => {
         this.goToDifference("previous" /* previous */);
-      }
+      }, "onClick")
     });
     this.navButtons.next = this.makeToolbarButton(navGroup, {
       icon: "chevron-down",
       label: this.plugin.t("modal.next-difference"),
-      onClick: () => {
+      onClick: /* @__PURE__ */ __name(() => {
         this.goToDifference("next" /* next */);
-      }
+      }, "onClick")
     });
     const modesGroup = this.makeToolbarGroup("lct-modal-toolbar-modes");
     this.modeButtons.patch = this.makeToolbarButton(modesGroup, {
       icon: "file-text",
       label: this.plugin.t("modal.mode.patch"),
-      onClick: () => {
+      onClick: /* @__PURE__ */ __name(() => {
         this.showCleanPatch();
-      }
+      }, "onClick")
     });
     this.modeButtons.inline = this.makeToolbarButton(modesGroup, {
       icon: "pilcrow",
       label: this.plugin.t("modal.mode.inline"),
-      onClick: () => {
+      onClick: /* @__PURE__ */ __name(() => {
         this.renderInlineDiff();
-      }
+      }, "onClick")
     });
     this.modeButtons.lineByLine = this.makeToolbarButton(modesGroup, {
       icon: "align-justify",
       label: this.plugin.t("modal.mode.line-by-line"),
-      onClick: () => {
+      onClick: /* @__PURE__ */ __name(() => {
         this.renderDiff("line-by-line" /* line */);
-      }
+      }, "onClick")
     });
     this.modeButtons.sideBySide = this.makeToolbarButton(modesGroup, {
       icon: "columns-2",
       label: this.plugin.t("modal.mode.side-by-side"),
-      onClick: () => {
+      onClick: /* @__PURE__ */ __name(() => {
         this.renderDiff("side-by-side" /* side */);
-      }
+      }, "onClick")
     });
     this.updateButtonActiveStates();
   }
@@ -18179,9 +19156,9 @@ var HistoryModal = class extends import_obsidian17.Modal {
       attributes: { "aria-label": config.label, "type": "button" },
       container: group,
       events: {
-        click: () => {
+        click: /* @__PURE__ */ __name(() => {
           void config.onClick();
-        }
+        }, "click")
       }
     });
     (0, import_obsidian17.setIcon)(button, config.icon);
@@ -18434,9 +19411,9 @@ var HistoryModal = class extends import_obsidian17.Modal {
       tag: "div",
       classes: active ? ["lct-version-item", "is-active"] : ["lct-version-item"],
       events: {
-        click: () => {
+        click: /* @__PURE__ */ __name(() => {
           this.selectBase(entry.id);
-        }
+        }, "click")
       },
       children
     };
@@ -18513,10 +19490,10 @@ var HistoryModal = class extends import_obsidian17.Modal {
     return BaseContentHelper.resolve(this.selectedBaseId, ORIGINAL_BASE_ID, {
       versions: this.snapshot.getVersions().map((version) => version.getContent(this.snapshot.lineBreak)),
       original: this.snapshot.getHistoryOriginalState(),
-      versionContent: (id) => {
+      versionContent: /* @__PURE__ */ __name((id) => {
         var _a, _b;
         return (_b = (_a = this.snapshot.getVersion(id)) == null ? void 0 : _a.getContent(this.snapshot.lineBreak)) != null ? _b : null;
-      }
+      }, "versionContent")
     });
   }
   /**
@@ -18775,11 +19752,11 @@ var HistoryModal = class extends import_obsidian17.Modal {
       attributes: { "aria-label": label, "type": "button" },
       container: gutter2,
       events: {
-        click: (event) => {
+        click: /* @__PURE__ */ __name((event) => {
           event.preventDefault();
           event.stopPropagation();
           void this.revertHunk(index);
-        }
+        }, "click")
       }
     });
     (0, import_obsidian17.setIcon)(button, "undo-2");
@@ -18887,7 +19864,7 @@ var HistoryModal = class extends import_obsidian17.Modal {
     }
     const [leftWrapper, rightWrapper] = wrappers;
     let isScrolling = false;
-    const syncLeftToRight = () => {
+    const syncLeftToRight = /* @__PURE__ */ __name(() => {
       if (isScrolling) {
         return;
       }
@@ -18897,8 +19874,8 @@ var HistoryModal = class extends import_obsidian17.Modal {
       requestAnimationFrame(() => {
         isScrolling = false;
       });
-    };
-    const syncRightToLeft = () => {
+    }, "syncLeftToRight");
+    const syncRightToLeft = /* @__PURE__ */ __name(() => {
       if (isScrolling) {
         return;
       }
@@ -18908,7 +19885,7 @@ var HistoryModal = class extends import_obsidian17.Modal {
       requestAnimationFrame(() => {
         isScrolling = false;
       });
-    };
+    }, "syncRightToLeft");
     leftWrapper.addEventListener("scroll", syncLeftToRight);
     rightWrapper.addEventListener("scroll", syncRightToLeft);
     this.diffContainerEl._scrollSyncCleanup = () => {
@@ -18932,19 +19909,21 @@ var HistoryModal = class extends import_obsidian17.Modal {
     }
   }
 };
+__name(_HistoryModal, "HistoryModal");
 __decorateClass([
   Inject("SnapshotsService")
-], HistoryModal.prototype, "snapshotsService", 2);
+], _HistoryModal.prototype, "snapshotsService", 2);
 __decorateClass([
   Inject("ModalsService")
-], HistoryModal.prototype, "modalsService", 2);
+], _HistoryModal.prototype, "modalsService", 2);
 __decorateClass([
   Inject("VersionActionsService")
-], HistoryModal.prototype, "versionActionsService", 2);
+], _HistoryModal.prototype, "versionActionsService", 2);
+var HistoryModal = _HistoryModal;
 
 // src/modals/prompt.modal.ts
 var import_obsidian18 = require("obsidian");
-var PromptModal = class extends import_obsidian18.Modal {
+var _PromptModal = class _PromptModal extends import_obsidian18.Modal {
   /**
    * Creates a new instance of PromptModal.
    *
@@ -18997,13 +19976,13 @@ var PromptModal = class extends import_obsidian18.Modal {
                 value: this.initialValue
               },
               events: {
-                keydown: (event) => {
+                keydown: /* @__PURE__ */ __name((event) => {
                   const keyboard = event;
                   if (keyboard.key === "Enter") {
                     keyboard.preventDefault();
                     this.confirmResult();
                   }
-                }
+                }, "keydown")
               }
             },
             {
@@ -19014,10 +19993,10 @@ var PromptModal = class extends import_obsidian18.Modal {
                   tag: "button",
                   text: this.cancelText,
                   events: {
-                    click: () => {
+                    click: /* @__PURE__ */ __name(() => {
                       this.result = null;
                       this.close();
-                    }
+                    }, "click")
                   }
                 },
                 {
@@ -19025,7 +20004,7 @@ var PromptModal = class extends import_obsidian18.Modal {
                   text: this.confirmText,
                   classes: "mod-cta",
                   events: {
-                    click: () => this.confirmResult()
+                    click: /* @__PURE__ */ __name(() => this.confirmResult(), "click")
                   }
                 }
               ]
@@ -19075,10 +20054,12 @@ var PromptModal = class extends import_obsidian18.Modal {
     this.close();
   }
 };
+__name(_PromptModal, "PromptModal");
+var PromptModal = _PromptModal;
 
 // src/services/modals.service.ts
 var import_obsidian19 = require("obsidian");
-var ModalsService = class {
+var _ModalsService = class _ModalsService {
   /**
    * Creates a new instance of ModalsService.
    *
@@ -19325,22 +20306,363 @@ var ModalsService = class {
     return this.versionActionsService.label(target, versionId, entered);
   }
 };
+__name(_ModalsService, "ModalsService");
 __decorateClass([
   Inject("SnapshotsService")
-], ModalsService.prototype, "snapshotsService", 2);
+], _ModalsService.prototype, "snapshotsService", 2);
 __decorateClass([
   Inject("VersionActionsService")
-], ModalsService.prototype, "versionActionsService", 2);
+], _ModalsService.prototype, "versionActionsService", 2);
+var ModalsService = _ModalsService;
 
 // src/decorators/on.decorator.ts
-var On = (name) => {
+var On = /* @__PURE__ */ __name((name) => {
   return (target, propertyKey) => {
     return Reflect.defineMetadata("ON_EVENT", { name }, target, propertyKey);
   };
+}, "On");
+
+// src/helpers/shard-name.helper.ts
+var FNV_OFFSET_BASIS = 2166136261;
+var FNV_PRIME = 16777619;
+function multiplyFnvPrime(hash) {
+  const lo = (hash & 65535) * FNV_PRIME;
+  const hi = (hash >>> 16) * FNV_PRIME & 65535;
+  return (hi << 16 >>> 0) + lo >>> 0;
+}
+__name(multiplyFnvPrime, "multiplyFnvPrime");
+function toHex32(value) {
+  return (value >>> 0).toString(16).padStart(8, "0");
+}
+__name(toHex32, "toHex32");
+var _ShardNameHelper = class _ShardNameHelper {
+  /**
+   * Computes the deterministic shard filename for a vault-relative path.
+   *
+   * @param {string} path - The vault-relative note path (the snapshot identity).
+   * @return {string} A stable `<hex>.json` filename, 16 hex chars + `.json`,
+   *   identical across calls for the same input.
+   */
+  static forPath(path) {
+    return `${this.digest(path)}.json`;
+  }
+  /**
+   * Computes the raw 64-bit hex digest for a path (without the `.json`
+   * extension). Two independent 32-bit FNV-1a lanes are run over the UTF-16 code
+   * units, the second lane mixing in the byte index so the lanes decorrelate,
+   * and the lanes are concatenated into a fixed-width 16-char hex string.
+   *
+   * @param {string} path - The string to hash.
+   * @return {string} A 16-character lowercase hex digest.
+   */
+  static digest(path) {
+    let lo = FNV_OFFSET_BASIS;
+    let hi = FNV_OFFSET_BASIS ^ 2654435769;
+    for (let i = 0; i < path.length; i++) {
+      const code = path.charCodeAt(i);
+      lo = multiplyFnvPrime((lo ^ code) >>> 0);
+      hi = multiplyFnvPrime((hi ^ code + i) >>> 0);
+    }
+    return `${toHex32(hi)}${toHex32(lo)}`;
+  }
 };
+__name(_ShardNameHelper, "ShardNameHelper");
+/**
+ * Width in hex characters of the digest emitted by {@link forPath} (two
+ * 32-bit lanes, 8 chars each). Exposed so callers and tests can assert the
+ * fixed length without hardcoding the magic number.
+ */
+_ShardNameHelper.DIGEST_LENGTH = 16;
+var ShardNameHelper = _ShardNameHelper;
+
+// src/persistence/history-shard-store.ts
+var _HistoryShardStore = class _HistoryShardStore {
+  /**
+   * Creates a shard store bound to one adapter and one resolved shard directory.
+   *
+   * @param {DataAdapter} adapter - The vault data adapter used for all IO.
+   * @param {string} dir - The resolved (vault-relative) shard directory path.
+   */
+  constructor(adapter, dir) {
+    this.adapter = adapter;
+    this.dir = dir;
+  }
+  /**
+   * Writes one shard atomically, replacing any prior shard of the same name.
+   *
+   * The mechanic mirrors the former monolithic write at shard granularity:
+   * ensure the shard directory exists, write the payload to `<name>.tmp`, back
+   * up an existing `<name>` to `<name>.bak` (best-effort: a backup failure is
+   * logged, not thrown, so it cannot abort the write), then `rename(tmp -> name)`
+   * to swap the new content in atomically. A crash between steps leaves either
+   * the prior file intact or the new `.tmp` recoverable, never a truncated shard.
+   *
+   * On a write failure the orphan `.tmp` is cleaned up best-effort and the error
+   * is rethrown so the caller's write queue can observe and log it, matching the
+   * service's existing failure handling.
+   *
+   * @param {string} name - The shard filename (e.g. `<hex>.json`).
+   * @param {SerializedShard} shard - The self-describing shard payload to write.
+   * @return {Promise<void>} Resolves once the new shard is in place.
+   */
+  async writeShard(name, shard) {
+    await this.ensureDir();
+    const path = this.shardPath(name);
+    const tmpPath = `${path}.tmp`;
+    const bakPath = `${path}.bak`;
+    try {
+      await this.adapter.write(tmpPath, JSON.stringify(shard));
+      if (await this.adapter.exists(path)) {
+        try {
+          if (await this.adapter.exists(bakPath)) {
+            await this.adapter.remove(bakPath);
+          }
+          await this.adapter.rename(path, bakPath);
+        } catch (error) {
+          console.error("Local history: failed to back up prior history shard", error);
+        }
+      }
+      await this.adapter.rename(tmpPath, path);
+    } catch (error) {
+      try {
+        if (await this.adapter.exists(tmpPath)) {
+          await this.adapter.remove(tmpPath);
+        }
+      } catch (e) {
+      }
+      throw error;
+    }
+  }
+  /**
+   * Reads every shard back into memory by enumerating the shard directory, which
+   * is the source of truth (Epic 10, ADR-10): there is no manifest, so a missing
+   * shard simply is not listed and a corrupt one degrades exactly one note. Each
+   * base name is recovered through {@link readShard}'s `.json -> .bak -> .tmp`
+   * fallback, so a crash between the write's rename steps never loses a note.
+   *
+   * An absent directory yields `[]` (no history yet, not an error). Orphan
+   * `.bak`/`.tmp` siblings whose primary `.json` is gone are still picked up so a
+   * shard interrupted mid-write is not abandoned. Nulls (no readable variant)
+   * are dropped, leaving only structurally valid shards.
+   *
+   * @return {Promise<LoadedShard[]>} Every readable shard with its filename.
+   */
+  async readAll() {
+    if (!await this.adapter.exists(this.dir)) {
+      return [];
+    }
+    let listed;
+    try {
+      listed = await this.adapter.list(this.dir);
+    } catch (error) {
+      console.error("Local history: failed to list history shard directory", error);
+      return [];
+    }
+    const names = this.shardNames(listed.files);
+    const loaded = [];
+    for (const name of names) {
+      const shard = await this.readShard(name);
+      if (shard !== null) {
+        loaded.push({ name, shard });
+      }
+    }
+    return loaded;
+  }
+  /**
+   * Reads one shard by its base name, trying `<name>` first and falling back to
+   * the `.bak` then `.tmp` siblings, returning the first variant that parses
+   * into a structurally valid {@link SerializedShard}. Never throws: a missing,
+   * unreadable, or malformed file is treated as "this variant is absent" so a
+   * corrupt shard isolates to one note instead of poisoning the whole load.
+   *
+   * @param {string} name - The shard base filename (e.g. `<hex>.json`).
+   * @return {Promise<SerializedShard | null>} The first valid shard, or null.
+   */
+  async readShard(name) {
+    const path = this.shardPath(name);
+    for (const candidate of [path, `${path}.bak`, `${path}.tmp`]) {
+      const shard = await this.readVariant(candidate);
+      if (shard !== null) {
+        return shard;
+      }
+    }
+    return null;
+  }
+  /**
+   * Removes one shard by base name, deleting its `<name>`, `<name>.bak`, and
+   * `<name>.tmp` variants if present. Used by the policy layer (Epic 10, T07/T14)
+   * to evict a shard whose snapshot fell out of retention's kept set. Best-effort
+   * and idempotent: a missing variant is fine and a per-variant failure is logged,
+   * not thrown, so reconciling the index against disk can never abort on one
+   * stubborn file.
+   *
+   * @param {string} name - The shard base filename (e.g. `<hex>.json`).
+   * @return {Promise<void>} Resolves once all present variants are removed.
+   */
+  async removeShard(name) {
+    const path = this.shardPath(name);
+    for (const candidate of [path, `${path}.bak`, `${path}.tmp`]) {
+      try {
+        if (await this.adapter.exists(candidate)) {
+          await this.adapter.remove(candidate);
+        }
+      } catch (error) {
+        console.error("Local history: failed to remove history shard variant", candidate, error);
+      }
+    }
+  }
+  /**
+   * Wipes the whole shard directory, used when persistence is disabled or there
+   * is nothing left to keep (Epic 10, T08). Mirrors the monolith's `clearDisk`
+   * (`PersistenceService`) at directory scope: remove the dir recursively if it
+   * exists, swallowing and logging any failure rather than throwing, so disabling
+   * persistence never surfaces an error to the caller.
+   *
+   * @return {Promise<void>} Resolves once the directory is gone (or was absent).
+   */
+  async clearAll() {
+    try {
+      if (await this.adapter.exists(this.dir)) {
+        await this.adapter.rmdir(this.dir, true);
+      }
+    } catch (error) {
+      console.error("Local history: failed to clear history shard directory", error);
+    }
+  }
+  /**
+   * Lists the base shard names currently on disk, derived from the directory
+   * enumeration (the source of truth, Epic 10, ADR-10) the same way {@link readAll}
+   * does, so an orphan `.bak`/`.tmp` maps back to its primary name and is reported
+   * once. Lets the policy layer reconcile its in-memory path-to-shard index
+   * against disk without reading shard contents. An absent directory yields an
+   * empty set; never throws.
+   *
+   * @return {Promise<Set<string>>} The set of base shard names present on disk.
+   */
+  async listNames() {
+    if (!await this.adapter.exists(this.dir)) {
+      return /* @__PURE__ */ new Set();
+    }
+    try {
+      const listed = await this.adapter.list(this.dir);
+      return new Set(this.shardNames(listed.files));
+    } catch (error) {
+      console.error("Local history: failed to list history shard directory", error);
+      return /* @__PURE__ */ new Set();
+    }
+  }
+  /**
+   * Reads and validates a single shard-file variant. Returns null when the file
+   * is absent, unreadable, not JSON, or not a structurally valid shard, so the
+   * caller can fall through to the next variant. Never throws.
+   *
+   * @param {string} path - The full vault-relative path of the variant.
+   * @return {Promise<SerializedShard | null>} The valid shard, or null.
+   */
+  async readVariant(path) {
+    try {
+      if (!await this.adapter.exists(path)) {
+        return null;
+      }
+      const raw = await this.adapter.read(path);
+      const parsed = JSON.parse(raw);
+      return this.isValidShard(parsed) ? parsed : null;
+    } catch (error) {
+      console.error("Local history: failed to read history shard variant", path, error);
+      return null;
+    }
+  }
+  /**
+   * Derives the de-duplicated set of shard base names from a directory listing.
+   * `adapter.list` returns full vault-relative paths in `files`; this strips the
+   * directory prefix to a base name and maps any `.bak`/`.tmp` sibling back to
+   * its primary `<name>` so an orphaned variant (primary lost mid-write) is still
+   * enumerated exactly once.
+   *
+   * @param {string[]} files - The `files` entries from a directory listing.
+   * @return {string[]} The unique shard base names to attempt.
+   */
+  shardNames(files) {
+    const names = /* @__PURE__ */ new Set();
+    for (const file of files) {
+      const base = file.slice(file.lastIndexOf("/") + 1);
+      const name = base.replace(/\.(?:bak|tmp)$/, "");
+      names.add(name);
+    }
+    return [...names];
+  }
+  /**
+   * Whether a parsed value is a structurally usable {@link SerializedShard}: a
+   * numeric `version` and a `snapshot` whose minimal shape (path string, finite
+   * timestamp, `lines`/`tracker` arrays) survives retention math and reaches
+   * `FileSnapshot.fromJSON` without resurrecting junk. This mirrors the
+   * per-entry predicate that the monolithic `readDisk` applied (ADR-08-B), now
+   * at shard granularity.
+   *
+   * @param {unknown} value - The parsed shard candidate.
+   * @return {value is SerializedShard} True when the shard is usable.
+   */
+  isValidShard(value) {
+    if (!value || typeof value !== "object") {
+      return false;
+    }
+    const shard = value;
+    if (!isNumber_default(shard.version) || !Number.isFinite(shard.version)) {
+      return false;
+    }
+    return this.isValidSnapshot(shard.snapshot);
+  }
+  /**
+   * Whether a serialized snapshot has the minimum well-formed shape required to
+   * survive retention math and reach `FileSnapshot.fromJSON`. Required: `path` is
+   * a string, `timestamp` is a finite number, `lines` and `tracker` are arrays.
+   * A non-finite timestamp is rejected so a malformed entry cannot pose as fresh
+   * history.
+   *
+   * @param {SerializedFileSnapshot | undefined} item - The candidate snapshot.
+   * @return {boolean} True when the snapshot is structurally usable.
+   */
+  isValidSnapshot(item) {
+    if (!item || typeof item !== "object") {
+      return false;
+    }
+    if (!isString_default(item.path)) {
+      return false;
+    }
+    if (!isNumber_default(item.timestamp) || !Number.isFinite(item.timestamp)) {
+      return false;
+    }
+    return Array.isArray(item.lines) && Array.isArray(item.tracker);
+  }
+  /**
+   * Resolves the vault-relative path of a shard by its filename.
+   *
+   * @param {string} name - The shard filename.
+   * @return {string} The full path inside the shard directory.
+   */
+  shardPath(name) {
+    return `${this.dir}/${name}`;
+  }
+  /**
+   * Ensures the shard directory exists, creating it on demand. An "already
+   * exists" failure is swallowed because `mkdir` on an existing directory is a
+   * no-op intent: there is no portable pre-check across the desktop and mobile
+   * adapters, so creating-then-ignoring is the cheapest correct path.
+   *
+   * @return {Promise<void>} Resolves once the directory is present.
+   */
+  async ensureDir() {
+    try {
+      await this.adapter.mkdir(this.dir);
+    } catch (e) {
+    }
+  }
+};
+__name(_HistoryShardStore, "HistoryShardStore");
+var HistoryShardStore = _HistoryShardStore;
 
 // src/services/persistence.service.ts
-var PersistenceService = class {
+var _PersistenceService = class _PersistenceService {
   /**
    * Creates a new instance of PersistenceService.
    *
@@ -19368,6 +20690,21 @@ var PersistenceService = class {
      * `adapter.write` and last-writer-wins is non-deterministic.
      */
     this.writeQueue = Promise.resolve();
+    /**
+     * Lazily-created IO collaborator that owns the on-disk shard directory.
+     * Resolved through {@link shardStore} so the adapter and resolved shard
+     * directory are read once the plugin (and thus its manifest) is ready, never
+     * at construction time.
+     */
+    this.store = null;
+    /**
+     * In-memory map of vault-relative note path to the shard that persists it
+     * (filename + content digest). Seeded from disk on restore and maintained by
+     * the save path (Epic 10, T07): it is the source of truth for dirty-tracking
+     * (skip a shard whose digest is unchanged) and collision-aware naming (probe a
+     * suffix when two distinct paths hash to the same filename).
+     */
+    this.shardIndex = /* @__PURE__ */ new Map();
   }
   /**
    * Loads persisted history once the workspace layout is ready.
@@ -19418,21 +20755,33 @@ var PersistenceService = class {
    * @return {Promise<void>} Resolves when restore finishes
    */
   async restoreFromDisk() {
+    var _a;
     try {
       if (!this.isPersistEnabled()) {
         this.enqueueClear();
         return;
       }
-      const history = await this.readDisk();
-      if (!history) {
-        return;
+      await this.migrateMonolithIfNeeded();
+      const loaded = await this.shardStore().readAll();
+      const byPath = /* @__PURE__ */ new Map();
+      const snapshots = [];
+      for (const item of loaded) {
+        byPath.set(item.shard.snapshot, item.name);
+        snapshots.push(item.shard.snapshot);
       }
-      const kept = this.applyRetention(history.snapshots);
+      const kept = this.applyRetention(snapshots);
+      this.shardIndex.clear();
+      for (const snapshot of kept) {
+        this.shardIndex.set(snapshot.path, {
+          name: (_a = byPath.get(snapshot)) != null ? _a : ShardNameHelper.forPath(snapshot.path),
+          digest: this.contentDigest(snapshot)
+        });
+      }
       this.snapshotsService.restore(kept);
       if (kept.length > 0) {
         this.plugin.forceUpdateEditor();
       }
-      if (kept.length !== history.snapshots.length) {
+      if (kept.length !== snapshots.length) {
         this.enqueueSave();
       }
     } finally {
@@ -19540,18 +20889,23 @@ var PersistenceService = class {
     this.writeQueue = this.writeQueue.then(() => this.clearDisk());
   }
   /**
-   * Serializes the current snapshots and writes them to the history file.
-   * Applies retention before writing so the on-disk set stays within caps, and
-   * removes the file entirely when persistence is disabled or nothing is left.
+   * Serializes the current snapshots and reconciles them to the shard directory.
+   * Applies retention first so the on-disk set stays within caps, then writes
+   * only the shards whose content changed (dirty-only, Epic 10 T07) and removes
+   * shards for paths that left the kept set. Removes everything when persistence
+   * is disabled or nothing is left.
    *
-   * The write itself is atomic: payload is written to `<path>.tmp`, the prior
-   * file (if any) is copied to `<path>.bak`, and finally `.tmp` is renamed
-   * over `<path>`. A crash mid-write leaves either the prior file intact or
-   * the new `.tmp` recoverable, never a truncated `<path>`.
+   * Each shard write is atomic at shard granularity inside
+   * {@link HistoryShardStore.writeShard}; a crash mid-write loses at most one
+   * note's shard and never a truncated file. Blindly rewriting all shards every
+   * save would turn one logical change into N atomic `tmp + rename` ops (worse IO
+   * than the monolith), so the in-memory index is diffed by content digest and
+   * only changed shards are touched.
    *
-   * @return {Promise<void>} Resolves when the write completes
+   * @return {Promise<void>} Resolves when the reconciliation completes
    */
   async saveToDisk() {
+    var _a;
     if (!this.isPersistEnabled()) {
       await this.clearDisk();
       return;
@@ -19562,37 +20916,139 @@ var PersistenceService = class {
       await this.clearDisk();
       return;
     }
-    const path = this.getHistoryPath();
-    const tmpPath = `${path}.tmp`;
-    const bakPath = `${path}.bak`;
-    const adapter = this.plugin.app.vault.adapter;
-    try {
-      await adapter.write(tmpPath, JSON.stringify({ version: payload.version, snapshots: kept }));
-      if (await adapter.exists(path)) {
-        try {
-          if (await adapter.exists(bakPath)) {
-            await adapter.remove(bakPath);
-          }
-          await adapter.rename(path, bakPath);
-        } catch (error) {
-          console.error("Local history: failed to back up prior history file", error);
-        }
+    const store = this.shardStore();
+    const keptPaths = /* @__PURE__ */ new Set();
+    for (const snapshot of kept) {
+      keptPaths.add(snapshot.path);
+      const digest = this.contentDigest(snapshot);
+      const existing = this.shardIndex.get(snapshot.path);
+      if (existing && existing.digest === digest) {
+        continue;
       }
-      await adapter.rename(tmpPath, path);
-    } catch (error) {
-      console.error("Local history: failed to persist history", error);
+      const name = (_a = existing == null ? void 0 : existing.name) != null ? _a : this.allocateShardName(snapshot.path);
       try {
-        if (await adapter.exists(tmpPath)) {
-          await adapter.remove(tmpPath);
+        await store.writeShard(name, { version: payload.version, snapshot });
+        this.shardIndex.set(snapshot.path, { name, digest });
+      } catch (error) {
+        console.error("Local history: failed to persist history shard", snapshot.path, error);
+      }
+    }
+    for (const [path, entry] of [...this.shardIndex]) {
+      if (keptPaths.has(path)) {
+        continue;
+      }
+      await store.removeShard(entry.name);
+      this.shardIndex.delete(path);
+    }
+  }
+  /**
+   * Allocates a shard filename for a path that has no index entry yet, resolving
+   * the astronomically-rare 64-bit hash collision. The base name is the path
+   * hash; if a different path already holds it in the index, a numeric suffix is
+   * linear-probed until free so two distinct notes never share a filename and one
+   * can never silently overwrite another (Epic 10 DECISIONS).
+   *
+   * @param {string} path - The vault-relative note path to name a shard for
+   * @return {string} A shard filename not currently held by any other path
+   */
+  allocateShardName(path) {
+    const taken = new Set(
+      [...this.shardIndex.values()].map((entry) => entry.name)
+    );
+    return this.allocateShardNameAgainst(path, taken);
+  }
+  /**
+   * Allocates a collision-free shard filename for a path against an arbitrary set
+   * of already-claimed names. The base name is the path hash; if it is taken, a
+   * numeric suffix is linear-probed before the `.json` extension so two distinct
+   * paths never share a filename. Shared by {@link allocateShardName} (probing
+   * the live index) and the migration pass (probing names claimed so far).
+   *
+   * @param {string} path - The vault-relative note path to name a shard for
+   * @param {Set<string>} taken - Names already claimed (must not be reused)
+   * @return {string} A shard filename not present in `taken`
+   */
+  allocateShardNameAgainst(path, taken) {
+    const base = ShardNameHelper.forPath(path);
+    if (!taken.has(base)) {
+      return base;
+    }
+    const dot = base.lastIndexOf(".");
+    const stem = dot === -1 ? base : base.slice(0, dot);
+    const ext = dot === -1 ? "" : base.slice(dot);
+    let suffix = 1;
+    let candidate = `${stem}-${suffix}${ext}`;
+    while (taken.has(candidate)) {
+      suffix += 1;
+      candidate = `${stem}-${suffix}${ext}`;
+    }
+    return candidate;
+  }
+  /**
+   * Migrates a legacy monolithic `history.json` into per-note shards exactly once
+   * (Epic 10, T09). Runs only when the shard directory holds no shards yet but a
+   * legacy file (or its `.bak`) still exists and parses: each legacy snapshot is
+   * written as its own shard, then the legacy `history.json`/`.bak`/`.tmp` files
+   * are removed. The shard `version` is carried through from the legacy file (no
+   * re-encode), so a version-1 or version-2 monolith migrates byte-for-byte per
+   * snapshot whether or not Epic 09's delta codec has landed.
+   *
+   * Failure-safe: a write failure aborts before any legacy file is removed and
+   * logs, so the legacy file stays intact and the next restore retries. Once
+   * shards exist the legacy path is never consulted again (the guard sees a
+   * non-empty shard dir and returns immediately).
+   *
+   * @return {Promise<void>} Resolves once migration ran or was skipped
+   */
+  async migrateMonolithIfNeeded() {
+    if ((await this.shardStore().listNames()).size > 0) {
+      return;
+    }
+    const legacy = await this.readDisk();
+    if (!legacy || legacy.snapshots.length === 0) {
+      return;
+    }
+    const store = this.shardStore();
+    const taken = /* @__PURE__ */ new Set();
+    try {
+      for (const snapshot of legacy.snapshots) {
+        const name = this.allocateShardNameAgainst(snapshot.path, taken);
+        taken.add(name);
+        await store.writeShard(name, { version: legacy.version, snapshot });
+      }
+    } catch (error) {
+      console.error("Local history: failed to migrate legacy history into shards", error);
+      return;
+    }
+    await this.removeLegacyMonolith();
+  }
+  /**
+   * Removes the legacy monolithic `history.json` and its `.bak`/`.tmp` siblings
+   * after a successful migration. Best-effort and idempotent: a missing variant
+   * is fine and a per-variant failure is logged, not thrown, so a stubborn file
+   * cannot abort restore once the shards are already on disk.
+   *
+   * @return {Promise<void>} Resolves once all present legacy variants are gone
+   */
+  async removeLegacyMonolith() {
+    const path = this.getHistoryPath();
+    for (const candidate of [path, `${path}.bak`, `${path}.tmp`]) {
+      try {
+        if (await this.plugin.app.vault.adapter.exists(candidate)) {
+          await this.plugin.app.vault.adapter.remove(candidate);
         }
-      } catch (e) {
+      } catch (error) {
+        console.error("Local history: failed to remove legacy history file", candidate, error);
       }
     }
   }
   /**
-   * Reads and parses the on-disk history file.
-   * Returns null when the file is absent or unreadable so callers can treat a
-   * missing or corrupt store as "no history" rather than throwing.
+   * Reads and parses the legacy on-disk monolith, the one-time migration source
+   * (Epic 10, T09). Tries the primary `history.json` first and falls back to its
+   * `.bak` sibling so a crash between the monolith's old `tmp -> bak -> rename`
+   * steps still yields a usable source. Returns null when neither variant is
+   * present or parses, so the migration caller treats a missing/corrupt monolith
+   * as "nothing to migrate" rather than throwing.
    *
    * Per-entry validation (ADR-08-B): each snapshot is checked against a minimal
    * shape predicate (`isValidEntry`) and malformed entries are skipped so a few
@@ -19603,6 +21059,24 @@ var PersistenceService = class {
    */
   async readDisk() {
     const path = this.getHistoryPath();
+    for (const candidate of [path, `${path}.bak`]) {
+      const parsed = await this.readMonolithVariant(candidate);
+      if (parsed !== null) {
+        return parsed;
+      }
+    }
+    return null;
+  }
+  /**
+   * Reads and validates one legacy monolith variant (`history.json` or its
+   * `.bak`). Returns null when the file is absent, unreadable, not JSON, or has
+   * no `snapshots` array so {@link readDisk} can fall through to the next
+   * variant. Never throws.
+   *
+   * @param {string} path - The full vault-relative path of the variant
+   * @return {Promise<SerializedHistory | null>} The parsed history, or null
+   */
+  async readMonolithVariant(path) {
     try {
       if (!await this.plugin.app.vault.adapter.exists(path)) {
         return null;
@@ -19648,20 +21122,19 @@ var PersistenceService = class {
     return true;
   }
   /**
-   * Removes the on-disk history file if it exists.
-   * Used when persistence is disabled or there is nothing left to keep.
+   * Wipes the on-disk shard directory and resets the in-memory index.
+   * Used when persistence is disabled or there is nothing left to keep, so
+   * disabled truly means nothing is left behind. Delegates the directory wipe to
+   * {@link HistoryShardStore.clearAll} (which swallows and logs its own IO
+   * failures) and then empties {@link shardIndex} so the next save re-allocates
+   * shard names from a clean slate rather than reusing stale digests (Epic 10,
+   * T08).
    *
-   * @return {Promise<void>} Resolves when the file is removed (or was absent)
+   * @return {Promise<void>} Resolves once the directory is gone and the index is empty
    */
   async clearDisk() {
-    const path = this.getHistoryPath();
-    try {
-      if (await this.plugin.app.vault.adapter.exists(path)) {
-        await this.plugin.app.vault.adapter.remove(path);
-      }
-    } catch (error) {
-      console.error("Local history: failed to clear persisted history", error);
-    }
+    await this.shardStore().clearAll();
+    this.shardIndex.clear();
   }
   /**
    * Resolves the absolute (vault-relative) path of the history file inside the
@@ -19670,9 +21143,55 @@ var PersistenceService = class {
    * @return {string} The vault-relative path to the history file
    */
   getHistoryPath() {
+    return `${this.getPluginDir()}/history.json`;
+  }
+  /**
+   * Resolves the vault-relative path of the per-note shard directory inside the
+   * plugin folder. Resolved the same way as {@link getHistoryPath} but pointing
+   * at `<plugindir>/history` (Epic 10, ADR-10).
+   *
+   * @return {string} The vault-relative path to the shard directory
+   */
+  getShardDir() {
+    return `${this.getPluginDir()}/${HISTORY_SHARD_DIR}`;
+  }
+  /**
+   * Resolves the plugin's own folder, falling back to a sane default if the
+   * manifest dir is missing. Shared by {@link getHistoryPath} (legacy monolith)
+   * and {@link getShardDir} (shard directory) so both resolve identically.
+   *
+   * @return {string} The vault-relative plugin directory
+   */
+  getPluginDir() {
     var _a;
-    const dir = (_a = this.plugin.manifest.dir) != null ? _a : `${this.plugin.app.vault.configDir}/plugins/${this.plugin.manifest.id}`;
-    return `${dir}/history.json`;
+    return (_a = this.plugin.manifest.dir) != null ? _a : `${this.plugin.app.vault.configDir}/plugins/${this.plugin.manifest.id}`;
+  }
+  /**
+   * Returns the shard store, creating it once on first use. Construction is
+   * deferred so the adapter and resolved shard directory are read after the
+   * plugin manifest is available, not at service construction time.
+   *
+   * @return {HistoryShardStore} The shared shard store instance
+   */
+  shardStore() {
+    if (!this.store) {
+      this.store = new HistoryShardStore(this.plugin.app.vault.adapter, this.getShardDir());
+    }
+    return this.store;
+  }
+  /**
+   * Computes a >=64-bit content digest of a serialized snapshot, used to detect
+   * whether a shard's content actually changed between saves. Reuses the shared
+   * {@link ShardNameHelper} hash (not the 32-bit `TextHelper.hash`, which is too
+   * narrow and load-bearing for change detection elsewhere) over the snapshot's
+   * JSON, so an unchanged snapshot yields a stable digest and a changed one a
+   * different digest with astronomically-rare collisions.
+   *
+   * @param {SerializedFileSnapshot} snapshot - The serialized snapshot to digest
+   * @return {string} A deterministic content digest string
+   */
+  contentDigest(snapshot) {
+    return ShardNameHelper.forPath(JSON.stringify(snapshot));
   }
   /**
    * Whether history should be persisted to disk right now.
@@ -19686,18 +21205,20 @@ var PersistenceService = class {
     return this.settingsService.value("persist") && this.settingsService.value("keep") === "app" /* app */;
   }
 };
+__name(_PersistenceService, "PersistenceService");
 __decorateClass([
   Inject("SettingsService")
-], PersistenceService.prototype, "settingsService", 2);
+], _PersistenceService.prototype, "settingsService", 2);
 __decorateClass([
   Inject("SnapshotsService")
-], PersistenceService.prototype, "snapshotsService", 2);
+], _PersistenceService.prototype, "snapshotsService", 2);
 __decorateClass([
   On("snapshots:update" /* snapshotsUpdate */)
-], PersistenceService.prototype, "onSnapshotsUpdate", 1);
+], _PersistenceService.prototype, "onSnapshotsUpdate", 1);
 __decorateClass([
   On("settings:update" /* settingsUpdate */)
-], PersistenceService.prototype, "onSettingsUpdate", 1);
+], _PersistenceService.prototype, "onSettingsUpdate", 1);
+var PersistenceService = _PersistenceService;
 
 // src/helpers/path-exclude.helper.ts
 var _PathExcludeHelper = class _PathExcludeHelper {
@@ -19787,6 +21308,7 @@ var _PathExcludeHelper = class _PathExcludeHelper {
     return result;
   }
 };
+__name(_PathExcludeHelper, "PathExcludeHelper");
 /**
  * Upper bound on the normalized path length passed to `RegExp.test` to
  * contain catastrophic backtracking on user-supplied patterns like `(a+)+$`.
@@ -19807,7 +21329,7 @@ var PathExcludeHelper = _PathExcludeHelper;
 
 // src/settings/main.setting.ts
 var import_obsidian20 = require("obsidian");
-var MainSetting = class extends import_obsidian20.PluginSettingTab {
+var _MainSetting = class _MainSetting extends import_obsidian20.PluginSettingTab {
   /**
    * Renders the settings UI.
    * Creates and configures all settings elements in the settings tab.
@@ -20033,12 +21555,14 @@ var MainSetting = class extends import_obsidian20.PluginSettingTab {
     return Math.max(0, parsed);
   }
 };
+__name(_MainSetting, "MainSetting");
 __decorateClass([
   Inject("SettingsService")
-], MainSetting.prototype, "settingsService", 2);
+], _MainSetting.prototype, "settingsService", 2);
+var MainSetting = _MainSetting;
 
 // src/services/settings.service.ts
-var SettingsService = class {
+var _SettingsService = class _SettingsService {
   /**
    * Creates a new instance of SettingsService.
    *
@@ -20118,9 +21642,11 @@ var SettingsService = class {
     SHOW_CHANGE_KEYS.forEach((key2) => this.update(key2, value));
   }
 };
+__name(_SettingsService, "SettingsService");
+var SettingsService = _SettingsService;
 
 // src/maps/observable.map.ts
-var ObservableMap = class extends Map {
+var _ObservableMap = class _ObservableMap extends Map {
   constructor() {
     super(...arguments);
     /**
@@ -20222,10 +21748,12 @@ var ObservableMap = class extends Map {
     return size;
   }
 };
+__name(_ObservableMap, "ObservableMap");
+var ObservableMap = _ObservableMap;
 
 // src/helpers/text.helper.ts
 var idCounter = 0;
-var TextHelper = class {
+var _TextHelper = class _TextHelper {
   /**
    * Generates a hash from a string content.
    * Uses a simple algorithm to convert the string to a numeric hash.
@@ -20268,9 +21796,11 @@ var TextHelper = class {
     return a !== b && a.replace(/\s+/g, "") === b.replace(/\s+/g, "");
   }
 };
+__name(_TextHelper, "TextHelper");
+var TextHelper = _TextHelper;
 
 // src/lines/tracker.line.ts
-var TrackerLine = class _TrackerLine {
+var _TrackerLine = class _TrackerLine {
   /**
    * Creates a new instance of TrackerLine.
    * Initializes the line tracker with optional parameters for content and position.
@@ -20743,9 +22273,11 @@ var TrackerLine = class _TrackerLine {
     return tracker;
   }
 };
+__name(_TrackerLine, "TrackerLine");
+var TrackerLine = _TrackerLine;
 
 // src/maps/array.map.ts
-var ArrayMap = class extends Map {
+var _ArrayMap = class _ArrayMap extends Map {
   /**
    * Creates an ArrayMap from an array of objects.
    * Uses either a property key or a function to determine the map keys.
@@ -20811,144 +22343,11 @@ var ArrayMap = class extends Map {
     return this.simplify().filter(...args);
   }
 };
-
-// src/snapshots/file.version.ts
-var FileVersion = class _FileVersion {
-  /**
-   * Creates a new immutable version from a content snapshot.
-   *
-   * @param {string[]} lines - The file content at capture time, split into lines
-   * @param {number} timestamp - Optional capture timestamp (defaults to now)
-   * @param {string} label - Optional user-supplied tag pinning this version
-   * @param {boolean} external - Optional flag marking this version as an external change
-   */
-  constructor(lines, timestamp, label, external) {
-    /**
-     * Unique identifier for this version, generated on creation. Used as a stable
-     * key for the version list in the UI and to address a picked diff base.
-     */
-    this.id = TextHelper.rndId();
-    /**
-     * Timestamp (ms) when this version was captured.
-     */
-    this.timestamp = Date.now();
-    /**
-     * The file content at capture time, as an array of lines.
-     */
-    this.lines = [];
-    this.lines = [...lines != null ? lines : []];
-    if (isNumber_default(timestamp)) {
-      this.timestamp = timestamp;
-    }
-    if (isString_default(label) && label.length > 0) {
-      this.label = label;
-    }
-    if (external === true) {
-      this.external = true;
-    }
-  }
-  /**
-   * Whether this version carries a user-supplied label and is therefore pinned
-   * (exempt from the duplicate-skip and eviction).
-   *
-   * @return {boolean} True when a non-empty label is set
-   */
-  isLabeled() {
-    return isString_default(this.label) && this.label.length > 0;
-  }
-  /**
-   * Whether this version was captured from an external-change event (git pull,
-   * sync, an external editor). Independent from `isLabeled()`: a version can be
-   * both labeled and external.
-   *
-   * @return {boolean} True when this version is flagged as external
-   */
-  isExternal() {
-    return this.external === true;
-  }
-  /**
-   * Gets the captured content as a string joined by the given line break.
-   *
-   * @param {string} lineBreak - The line break to join lines with
-   * @return {string} The captured content as a single string
-   */
-  getContent(lineBreak) {
-    return this.lines.join(lineBreak);
-  }
-  /**
-   * Gets a copy of the captured lines so callers cannot mutate the version.
-   *
-   * @return {string[]} A copy of the captured content lines
-   */
-  getLines() {
-    return [...this.lines];
-  }
-  /**
-   * Gets the capture date and time as a localized string for display.
-   *
-   * @return {string} The localized capture date and time
-   */
-  getDateTime() {
-    return new Date(this.timestamp).toLocaleString();
-  }
-  /**
-   * Gets the capture day as a localized date string, used both as the label and
-   * the grouping key for the day-grouped version list. Two versions captured on
-   * the same calendar day yield the same string.
-   *
-   * @return {string} The localized capture date (no time)
-   */
-  getDate() {
-    return new Date(this.timestamp).toLocaleDateString();
-  }
-  /**
-   * Gets the capture time of day as a localized string. Shown as the per-version
-   * meta once the day lives in the group heading, so the time is not repeated
-   * with a redundant date.
-   *
-   * @return {string} The localized capture time
-   */
-  getTime() {
-    return new Date(this.timestamp).toLocaleTimeString();
-  }
-  /**
-   * Serializes this version into a plain object for on-disk persistence.
-   * The id is intentionally omitted so a fresh, collision-free id is assigned
-   * on restore (matching how tracker lines are persisted).
-   *
-   * @return {SerializedFileVersion} The plain serialized representation
-   */
-  toJSON() {
-    const data = {
-      timestamp: this.timestamp,
-      lines: [...this.lines]
-    };
-    if (this.isLabeled()) {
-      data.label = this.label;
-    }
-    if (this.isExternal()) {
-      data.external = true;
-    }
-    return data;
-  }
-  /**
-   * Rebuilds a version from its serialized form, assigning a fresh id.
-   *
-   * @param {SerializedFileVersion} data - The serialized version
-   * @return {FileVersion} The reconstructed version
-   */
-  static fromJSON(data) {
-    return new _FileVersion(
-      Array.isArray(data == null ? void 0 : data.lines) ? data.lines : [],
-      data == null ? void 0 : data.timestamp,
-      isString_default(data == null ? void 0 : data.label) ? data.label : void 0,
-      (data == null ? void 0 : data.external) === true
-    );
-  }
-};
+__name(_ArrayMap, "ArrayMap");
+var ArrayMap = _ArrayMap;
 
 // src/lines/change.line.ts
-var ChangeLine = class {
+var _ChangeLine = class _ChangeLine {
   /**
    * Creates a new instance of ChangeLine.
    *
@@ -21009,9 +22408,11 @@ var ChangeLine = class {
     return this.line;
   }
 };
+__name(_ChangeLine, "ChangeLine");
+var ChangeLine = _ChangeLine;
 
 // src/snapshots/snapshot-state.ts
-var SnapshotState = class {
+var _SnapshotState = class _SnapshotState {
   /**
    * Normalizes new content into a state line array and computes its hash. The
    * façade assigns the returned `state` and `lastHash` back to its own fields.
@@ -21208,9 +22609,11 @@ var SnapshotState = class {
     });
   }
 };
+__name(_SnapshotState, "SnapshotState");
+var SnapshotState = _SnapshotState;
 
 // src/snapshots/snapshot-timestamps.ts
-var SnapshotTimestamps = class _SnapshotTimestamps {
+var _SnapshotTimestamps = class _SnapshotTimestamps {
   /**
    * Resolves the timestamp of the file's last update. Prefers the file's
    * modification time (the real last-change moment of the live content), and
@@ -21258,9 +22661,11 @@ var SnapshotTimestamps = class _SnapshotTimestamps {
     return new Date(_SnapshotTimestamps.getLastChangedTimestamp(file, timestamp)).toLocaleTimeString();
   }
 };
+__name(_SnapshotTimestamps, "SnapshotTimestamps");
+var SnapshotTimestamps = _SnapshotTimestamps;
 
 // src/snapshots/tracker-editor.ts
-var TrackerEditor = class {
+var _TrackerEditor = class _TrackerEditor {
   /**
    * Creates a tracker editor bound to the shared current-position index.
    *
@@ -21555,9 +22960,11 @@ var TrackerEditor = class {
     });
   }
 };
+__name(_TrackerEditor, "TrackerEditor");
+var TrackerEditor = _TrackerEditor;
 
 // src/snapshots/tracker-index.ts
-var TrackerIndex = class {
+var _TrackerIndex = class _TrackerIndex {
   constructor() {
     /**
      * Lazily built index from a current line position to the tracker living there.
@@ -21648,9 +23055,275 @@ var TrackerIndex = class {
     return found;
   }
 };
+__name(_TrackerIndex, "TrackerIndex");
+var TrackerIndex = _TrackerIndex;
+
+// src/snapshots/file.version.ts
+var _FileVersion = class _FileVersion {
+  /**
+   * Creates a new immutable version from a content snapshot.
+   *
+   * @param {string[]} lines - The file content at capture time, split into lines
+   * @param {number} timestamp - Optional capture timestamp (defaults to now)
+   * @param {string} label - Optional user-supplied tag pinning this version
+   * @param {boolean} external - Optional flag marking this version as an external change
+   */
+  constructor(lines, timestamp, label, external) {
+    /**
+     * Unique identifier for this version, generated on creation. Used as a stable
+     * key for the version list in the UI and to address a picked diff base.
+     */
+    this.id = TextHelper.rndId();
+    /**
+     * Timestamp (ms) when this version was captured.
+     */
+    this.timestamp = Date.now();
+    /**
+     * The file content at capture time, as an array of lines.
+     */
+    this.lines = [];
+    this.lines = [...lines != null ? lines : []];
+    if (isNumber_default(timestamp)) {
+      this.timestamp = timestamp;
+    }
+    if (isString_default(label) && label.length > 0) {
+      this.label = label;
+    }
+    if (external === true) {
+      this.external = true;
+    }
+  }
+  /**
+   * Whether this version carries a user-supplied label and is therefore pinned
+   * (exempt from the duplicate-skip and eviction).
+   *
+   * @return {boolean} True when a non-empty label is set
+   */
+  isLabeled() {
+    return isString_default(this.label) && this.label.length > 0;
+  }
+  /**
+   * Whether this version was captured from an external-change event (git pull,
+   * sync, an external editor). Independent from `isLabeled()`: a version can be
+   * both labeled and external.
+   *
+   * @return {boolean} True when this version is flagged as external
+   */
+  isExternal() {
+    return this.external === true;
+  }
+  /**
+   * Gets the captured content as a string joined by the given line break.
+   *
+   * @param {string} lineBreak - The line break to join lines with
+   * @return {string} The captured content as a single string
+   */
+  getContent(lineBreak) {
+    return this.lines.join(lineBreak);
+  }
+  /**
+   * Gets a copy of the captured lines so callers cannot mutate the version.
+   *
+   * @return {string[]} A copy of the captured content lines
+   */
+  getLines() {
+    return [...this.lines];
+  }
+  /**
+   * Gets the capture date and time as a localized string for display.
+   *
+   * @return {string} The localized capture date and time
+   */
+  getDateTime() {
+    return new Date(this.timestamp).toLocaleString();
+  }
+  /**
+   * Gets the capture day as a localized date string, used both as the label and
+   * the grouping key for the day-grouped version list. Two versions captured on
+   * the same calendar day yield the same string.
+   *
+   * @return {string} The localized capture date (no time)
+   */
+  getDate() {
+    return new Date(this.timestamp).toLocaleDateString();
+  }
+  /**
+   * Gets the capture time of day as a localized string. Shown as the per-version
+   * meta once the day lives in the group heading, so the time is not repeated
+   * with a redundant date.
+   *
+   * @return {string} The localized capture time
+   */
+  getTime() {
+    return new Date(this.timestamp).toLocaleTimeString();
+  }
+  /**
+   * Serializes this version into a plain object for on-disk persistence.
+   * The id is intentionally omitted so a fresh, collision-free id is assigned
+   * on restore (matching how tracker lines are persisted).
+   *
+   * @return {SerializedFileVersion} The plain serialized representation
+   */
+  toJSON() {
+    const data = {
+      timestamp: this.timestamp,
+      lines: [...this.lines]
+    };
+    if (this.isLabeled()) {
+      data.label = this.label;
+    }
+    if (this.isExternal()) {
+      data.external = true;
+    }
+    return data;
+  }
+  /**
+   * Rebuilds a version from its serialized form, assigning a fresh id.
+   *
+   * @param {SerializedFileVersion} data - The serialized version
+   * @return {FileVersion} The reconstructed version
+   */
+  static fromJSON(data) {
+    return new _FileVersion(
+      Array.isArray(data == null ? void 0 : data.lines) ? data.lines : [],
+      data == null ? void 0 : data.timestamp,
+      isString_default(data == null ? void 0 : data.label) ? data.label : void 0,
+      (data == null ? void 0 : data.external) === true
+    );
+  }
+};
+__name(_FileVersion, "FileVersion");
+var FileVersion = _FileVersion;
+
+// src/snapshots/version-codec.ts
+var _VersionCodec = class _VersionCodec {
+  /**
+   * Encodes a materialized version timeline (oldest first) into a keyframe +
+   * delta entry chain. Recomputed in full on every save: eviction already runs
+   * in memory before serialization, so the codec always sees a clean, trimmed
+   * array and never has to maintain an incremental on-disk chain.
+   *
+   * @param {FileVersion[]} versions - The materialized versions, oldest first
+   * @param {string} _lineBreak - The file's line break (unused for the patch
+   *   transport, which always joins on `\n`; kept for interface symmetry with
+   *   decode and the serialization boundary)
+   * @return {SerializedFileVersion[]} The keyframe + delta entry chain
+   */
+  static encode(versions, _lineBreak) {
+    if (!Array.isArray(versions) || versions.length === 0) {
+      return [];
+    }
+    const entries = [];
+    for (let i = 0; i < versions.length; i++) {
+      const version = versions[i];
+      const isKeyframe = i % VERSION_KEYFRAME_INTERVAL === 0;
+      const entry = isKeyframe ? { timestamp: version.timestamp, lines: version.getLines() } : { timestamp: version.timestamp, delta: _VersionCodec.diff(versions[i - 1], version) };
+      if (version.isLabeled()) {
+        entry.label = version.label;
+      }
+      if (version.isExternal()) {
+        entry.external = true;
+      }
+      entries.push(entry);
+    }
+    return entries;
+  }
+  /**
+   * Decodes a keyframe + delta entry chain (oldest first) back into a fully
+   * materialized `FileVersion[]`. Walks the entries holding the previous
+   * materialized lines (`prev`): a keyframe entry resets `prev` to its own
+   * `lines`, a delta entry applies its patch to `prev.join('\n')` and splits the
+   * result back into lines on the same `\n` transport used by encode.
+   *
+   * Resilient by design (ADR-08-B): a delta with no preceding keyframe (`prev`
+   * is still null) or one whose patch fails to apply is skipped (its version is
+   * dropped) and decoding continues; the next keyframe resyncs `prev`. A null or
+   * non-object entry is skipped likewise. Decode never throws on a malformed
+   * chain, it returns whatever decoded cleanly. A version-1 entry
+   * (`{ timestamp, lines }` with no `delta`) decodes natively as a keyframe with
+   * no special-casing, which is the superset property.
+   *
+   * @param {SerializedFileVersion[]} entries - The encoded chain, oldest first
+   * @param {string} _lineBreak - The file's line break (unused for the patch
+   *   transport, which always splits on `\n`; kept for interface symmetry with
+   *   encode and the serialization boundary)
+   * @return {FileVersion[]} The materialized versions that decoded cleanly
+   */
+  static decode(entries, _lineBreak) {
+    if (!Array.isArray(entries) || entries.length === 0) {
+      return [];
+    }
+    const versions = [];
+    let prev = null;
+    for (const entry of entries) {
+      if (entry === null || typeof entry !== "object") {
+        continue;
+      }
+      const lines = _VersionCodec.materialize(entry, prev);
+      if (lines === null) {
+        continue;
+      }
+      prev = lines;
+      versions.push(
+        new FileVersion(
+          lines,
+          entry.timestamp,
+          typeof entry.label === "string" ? entry.label : void 0,
+          entry.external === true
+        )
+      );
+    }
+    return versions;
+  }
+  /**
+   * Materializes one entry into its full lines, or returns null when the entry
+   * cannot be reconstructed (an unanchored or unappliable delta) and must be
+   * skipped. A keyframe (`lines` present) yields its own lines and re-anchors the
+   * chain; a delta (`delta` present) is patched onto `prev` over the `\n`
+   * transport, with both a `false` result and a thrown parse error treated as an
+   * unappliable delta so a corrupt string never crashes the decode.
+   *
+   * @param {SerializedFileVersion} entry - The chain entry to materialize
+   * @param {string[] | null} prev - The previous materialized lines, or null
+   *   when no keyframe has anchored the chain yet
+   * @return {string[] | null} The materialized lines, or null to skip the entry
+   */
+  static materialize(entry, prev) {
+    if (Array.isArray(entry.lines)) {
+      return [...entry.lines];
+    }
+    if (typeof entry.delta !== "string" || prev === null) {
+      return null;
+    }
+    let patched;
+    try {
+      patched = applyPatch(prev.join("\n"), entry.delta);
+    } catch (e) {
+      return null;
+    }
+    return patched === false ? null : patched.split("\n");
+  }
+  /**
+   * Computes the unified-diff string (context 0) transforming the previous
+   * version's lines into the current version's lines. Lines are joined with the
+   * `\n` transport (see the class transport invariant) so the patch is portable
+   * across files regardless of their real line break.
+   *
+   * @param {FileVersion} previous - The version the delta is anchored against
+   * @param {FileVersion} current - The version the delta reconstructs
+   * @return {string} The unified-diff patch string
+   */
+  static diff(previous, current) {
+    const before = previous.getLines().join("\n");
+    const after = current.getLines().join("\n");
+    return formatPatch(structuredPatch("", "", before, after, "", "", { context: 0 }));
+  }
+};
+__name(_VersionCodec, "VersionCodec");
+var VersionCodec = _VersionCodec;
 
 // src/snapshots/version-timeline.ts
-var VersionTimeline = class {
+var _VersionTimeline = class _VersionTimeline {
   constructor() {
     /**
      * Number of state updates accumulated since the last captured version. Drives
@@ -21868,9 +23541,11 @@ var VersionTimeline = class {
     this.lastVersionAt = timestamp;
   }
 };
+__name(_VersionTimeline, "VersionTimeline");
+var VersionTimeline = _VersionTimeline;
 
 // src/snapshots/file.snapshot.ts
-var FileSnapshot = class _FileSnapshot {
+var _FileSnapshot = class _FileSnapshot {
   /**
    * Creates a new instance of FileSnapshot.
    * Initializes the snapshot with the provided content, splits it into lines,
@@ -22000,7 +23675,7 @@ var FileSnapshot = class _FileSnapshot {
       lines: [...this.historyLines],
       state: [...this.state],
       tracker: this.tracker.map((tracker) => tracker.toJSON()),
-      versions: this.versions.map((version) => version.toJSON())
+      versions: VersionCodec.encode(this.versions, this.lineBreak)
     };
     if (isNumber_default(this.deletedTimestamp)) {
       payload.deletedTimestamp = this.deletedTimestamp;
@@ -22033,7 +23708,7 @@ var FileSnapshot = class _FileSnapshot {
     );
     snapshot.timestamp = isNumber_default(data.timestamp) ? data.timestamp : Date.now();
     snapshot.tracker = tracker.map((line) => TrackerLine.fromJSON(line));
-    snapshot.versions = Array.isArray(data.versions) ? data.versions.map((version) => FileVersion.fromJSON(version)) : [];
+    snapshot.versions = VersionCodec.decode(data.versions, lineBreak);
     snapshot.timeline.seedLastVersionAtFromVersions(snapshot.versions);
     if (isNumber_default(data.deletedTimestamp)) {
       snapshot.deletedTimestamp = data.deletedTimestamp;
@@ -22537,6 +24212,8 @@ var FileSnapshot = class _FileSnapshot {
     this.editor.replaceBlock(this.tracker, startLine, removeCount, newLines);
   }
 };
+__name(_FileSnapshot, "FileSnapshot");
+var FileSnapshot = _FileSnapshot;
 
 // src/services/snapshots.service.ts
 var import_obsidian21 = require("obsidian");
@@ -22825,7 +24502,7 @@ var _SnapshotsService = class _SnapshotsService {
       payload.path = path;
       snapshots.push(payload);
     }
-    return { version: 1, snapshots };
+    return { version: 2, snapshots };
   }
   /**
    * Restores snapshots from a previously serialized history payload, keeping the
@@ -23315,6 +24992,7 @@ var _SnapshotsService = class _SnapshotsService {
     void this.capture();
   }
 };
+__name(_SnapshotsService, "SnapshotsService");
 /**
  * Window (ms) that coalesces a burst of vault.modify events per file before
  * the disk read + hash runs. Picked to be shorter than a typical human edit
@@ -23329,7 +25007,7 @@ var SnapshotsService = _SnapshotsService;
 
 // src/services/statusbar.service.ts
 var import_obsidian22 = require("obsidian");
-var StatusbarService = class {
+var _StatusbarService = class _StatusbarService {
   /**
    * Creates a new instance of StatusbarService.
    *
@@ -23351,9 +25029,9 @@ var StatusbarService = class {
   init() {
     this.add({
       clickable: true,
-      onClick: () => {
+      onClick: /* @__PURE__ */ __name(() => {
         this.modalService.diff();
-      }
+      }, "onClick")
     });
   }
   updateFileStatus() {
@@ -23436,18 +25114,20 @@ var StatusbarService = class {
     return item;
   }
 };
+__name(_StatusbarService, "StatusbarService");
 __decorateClass([
   Inject("ModalsService")
-], StatusbarService.prototype, "modalService", 2);
+], _StatusbarService.prototype, "modalService", 2);
 __decorateClass([
   Inject("SnapshotsService")
-], StatusbarService.prototype, "snapshotsService", 2);
+], _StatusbarService.prototype, "snapshotsService", 2);
 __decorateClass([
   On("snapshots:update" /* snapshotsUpdate */)
-], StatusbarService.prototype, "updateFileStatus", 1);
+], _StatusbarService.prototype, "updateFileStatus", 1);
+var StatusbarService = _StatusbarService;
 
 // src/services/styles.service.ts
-var StylesService = class {
+var _StylesService = class _StylesService {
   /**
    * Creates a new instance of StylesService.
    *
@@ -23515,15 +25195,17 @@ var StylesService = class {
     this.sheet = styleSheet;
   }
 };
+__name(_StylesService, "StylesService");
 __decorateClass([
   Inject("SettingsService")
-], StylesService.prototype, "settingsService", 2);
+], _StylesService.prototype, "settingsService", 2);
 __decorateClass([
   On("settings:update" /* settingsUpdate */)
-], StylesService.prototype, "update", 1);
+], _StylesService.prototype, "update", 1);
+var StylesService = _StylesService;
 
 // src/services/version-actions.service.ts
-var VersionActionsService = class {
+var _VersionActionsService = class _VersionActionsService {
   /**
    * Creates a new instance of VersionActionsService.
    *
@@ -23682,16 +25364,18 @@ var VersionActionsService = class {
     };
   }
 };
+__name(_VersionActionsService, "VersionActionsService");
 __decorateClass([
   Inject("SnapshotsService")
-], VersionActionsService.prototype, "snapshotsService", 2);
+], _VersionActionsService.prototype, "snapshotsService", 2);
 __decorateClass([
   Inject("SettingsService")
-], VersionActionsService.prototype, "settingsService", 2);
+], _VersionActionsService.prototype, "settingsService", 2);
+var VersionActionsService = _VersionActionsService;
 
 // src/views/recent-changes.view.ts
 var import_obsidian23 = require("obsidian");
-var RecentChangesView = class extends import_obsidian23.ItemView {
+var _RecentChangesView = class _RecentChangesView extends import_obsidian23.ItemView {
   /**
    * Creates a new instance of RecentChangesView.
    *
@@ -23765,7 +25449,7 @@ var RecentChangesView = class extends import_obsidian23.ItemView {
         this.render();
       })
     );
-    const onSnapshotUpdate = () => this.render();
+    const onSnapshotUpdate = /* @__PURE__ */ __name(() => this.render(), "onSnapshotUpdate");
     this.plugin.on("snapshots:update" /* snapshotsUpdate */, onSnapshotUpdate, this);
     this.register(() => {
       this.plugin.off("snapshots:update" /* snapshotsUpdate */, onSnapshotUpdate, this);
@@ -23892,12 +25576,12 @@ var RecentChangesView = class extends import_obsidian23.ItemView {
       tag: "div",
       classes: "lct-recent-changes-item",
       events: {
-        dblclick: () => {
+        dblclick: /* @__PURE__ */ __name(() => {
           this.openInModal(file, version.id);
-        },
-        contextmenu: (event) => {
+        }, "dblclick"),
+        contextmenu: /* @__PURE__ */ __name((event) => {
           this.openRowMenu(event, file, version);
-        }
+        }, "contextmenu")
       },
       children
     };
@@ -24056,6 +25740,8 @@ var RecentChangesView = class extends import_obsidian23.ItemView {
     });
   }
 };
+__name(_RecentChangesView, "RecentChangesView");
+var RecentChangesView = _RecentChangesView;
 
 // node_modules/eventemitter3/index.mjs
 var import_index = __toESM(require_eventemitter3(), 1);
@@ -24063,7 +25749,7 @@ var eventemitter3_default = import_index.default;
 
 // src/main.ts
 var import_obsidian24 = require("obsidian");
-var LineChangeTrackerPlugin = class extends import_obsidian24.Plugin {
+var _LineChangeTrackerPlugin = class _LineChangeTrackerPlugin extends import_obsidian24.Plugin {
   /**
    * Creates a new instance of the LineChangeTrackerPlugin.
    * Registers all required services during initialization.
@@ -24089,6 +25775,15 @@ var LineChangeTrackerPlugin = class extends import_obsidian24.Plugin {
      * in reverse registration order (ADR-08-C).
      */
     this.initialized = [];
+    /**
+     * True only between a successful `onload` and the next `onunload`/teardown.
+     * Editor extensions and workspace event handlers live in Obsidian's lifecycle,
+     * not the container's, so they can fire before services are up or after the
+     * instance is torn down (e.g. a stale CodeMirror layer from a previous load
+     * re-measuring). Those surfaces gate on this flag and no-op when it is false,
+     * instead of resolving an injected service against a half-built container.
+     */
+    this.ready = false;
     this.registerService(SettingsService);
     this.registerService(I18nService);
     this.registerService(StylesService);
@@ -24137,11 +25832,24 @@ var LineChangeTrackerPlugin = class extends import_obsidian24.Plugin {
       throw new Error("Service cannot be empty");
     }
     const type = isString_default(key2) ? [...this.container.keys()].find((item) => item.name === key2) : key2;
-    const service = this.container.get(type);
+    const service = type ? this.container.get(type) : void 0;
     if (!service) {
-      throw new Error(`Service '${type.name}' not registered`);
+      const label = isString_default(key2) ? key2 : key2.name;
+      throw new Error(`Service '${label}' not registered`);
     }
     return service;
+  }
+  /**
+   * Whether the plugin finished loading and has not been torn down. Surfaces
+   * that run outside the container lifecycle (editor extensions, workspace
+   * event handlers) check this before resolving injected services, so a call
+   * arriving before load completes or after unload is a no-op rather than a
+   * crash on an unresolved service.
+   *
+   * @return {boolean} True while the plugin is fully loaded
+   */
+  isReady() {
+    return this.ready;
   }
   /**
    * Translates a dotted localization key to a user-facing string in Obsidian's
@@ -24177,6 +25885,8 @@ var LineChangeTrackerPlugin = class extends import_obsidian24.Plugin {
       RECENT_CHANGES_VIEW_TYPE,
       (leaf) => new RecentChangesView(leaf, this)
     );
+    this.ready = true;
+    this.forceUpdateEditor();
   }
   /**
    * Lifecycle method called when the plugin is unloaded.
@@ -24185,6 +25895,7 @@ var LineChangeTrackerPlugin = class extends import_obsidian24.Plugin {
    * @return {Promise<void>} A promise that resolves when all services are unloaded
    */
   async onunload() {
+    this.ready = false;
     await this.exec("unload");
   }
   /**
@@ -24233,6 +25944,7 @@ var LineChangeTrackerPlugin = class extends import_obsidian24.Plugin {
    * @return {Promise<void>} Resolves once teardown is complete.
    */
   async teardown() {
+    this.ready = false;
     for (const provider of [...this.initialized].reverse()) {
       if ("unload" in provider && isFunction_default(provider.unload)) {
         try {
@@ -24376,6 +26088,8 @@ var LineChangeTrackerPlugin = class extends import_obsidian24.Plugin {
     );
   }
 };
+__name(_LineChangeTrackerPlugin, "LineChangeTrackerPlugin");
+var LineChangeTrackerPlugin = _LineChangeTrackerPlugin;
 /*! Bundled license information:
 
 reflect-metadata/Reflect.js:

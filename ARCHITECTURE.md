@@ -216,6 +216,72 @@ evicted); a one-shot migration pass over old files (needless code for an
 already-superset format); base64/gzip of the versions blob (opaque, kills the
 readable JSON; file-level gzip is an orthogonal concern).
 
+### ADR-10: History is one self-describing shard per snapshot, no index file
+
+History is stored as one shard file per snapshot under `<plugindir>/history/`,
+not one monolithic `history.json`. Each shard is `{ version, snapshot }`: a single
+serialized `FileSnapshot` plus the on-disk format version. The directory listing
+is the source of truth; there is deliberately **no manifest or index file**. A
+shard is named by a deterministic, synchronous >=64-bit hash of the
+vault-relative path (16 hex chars + `.json`), and the path inside the shard is the
+read-time identity. The stateless `HistoryShardStore` owns the IO mechanics
+(atomic write, fallback read, enumerate, remove, clear); `PersistenceService`
+keeps policy (debounce, write queue, retention, the dirty index, the enabled
+gate).
+
+Writes are per-shard atomic (`tmp -> bak -> rename`) and reads fall back
+`.json -> .bak -> .tmp`, so a crash between rename steps loses nothing for that
+shard. Saves are **dirty-only**: a save serializes all snapshots, applies the
+existing global retention in memory, then compares each kept snapshot's 64-bit
+content digest against an in-memory `Map<path, { name, digest }>` and writes only
+the shards whose digest changed, removing shards for paths that left the kept set
+(retention eviction, delete, cross-dir move re-key). A no-op save writes nothing.
+The astronomically-rare 64-bit name collision is resolved at allocation by
+linear-probing a `-N` suffix between the hash stem and `.json`, checked against
+the in-memory index (seeded from the real on-disk filenames returned by the
+directory enumeration), so two distinct notes can never share a filename and no
+per-write disk read is needed. Global retention math (live + tombstone buckets) is
+unchanged and runs over the full set in memory; only its on-disk effect changes
+from trimming one array to removing the evicted shards. On restore, if no shard
+directory exists yet but a legacy `history.json`/`.bak` does, it is split into
+shards once and the legacy files are removed only after every shard is written; a
+failure leaves the legacy file intact so the next restore retries.
+
+**Why:** a single `history.json` is a single point of failure: one corrupt or lost
+file costs the entire base, and every save rewrites the whole file. Sharding makes
+a corrupt or lost shard cost exactly one note's history while the rest load,
+recovering from `.bak`/`.tmp` where present, and a save touches only the file that
+changed. Directory enumeration as the source of truth avoids re-introducing the
+very single point of failure being removed: an index file, if lost, would "lose"
+every shard it failed to list. A deterministic path hash keeps filenames
+length-safe (paths can exceed the 255-byte filename limit) and FS-safe (paths
+contain `/`), and being synchronous makes it deterministic and trivially testable.
+Dirty-only writes are required because blindly rewriting all shards turns one write
+into N atomic `tmp`+`rename` ops, which would make sharding worse than the monolith
+for IO.
+
+**Relationship to ADR-9 (version codec).** ADR-9 changes shard *contents* (it
+delta-encodes `versions[]` at the `FileSnapshot.toJSON/fromJSON` boundary and bumps
+the format version 1->2); this ADR changes shard *placement*. They compose
+cleanly. The shard `version` is read through from `serialize()`, never hardcoded,
+so ADR-9's 1->2 bump flows through with no shard-level change. The shard store is
+agnostic to delta vs full-text: it (de)serializes the whole `FileSnapshot` and
+never inspects `versions[]`, so encode/decode stays entirely in
+`FileSnapshot.toJSON/fromJSON` reached through `serialize()`/`restore()`. The two
+resilience layers are complementary, not redundant: the shard `.bak`/`.tmp`
+fallback (this ADR) recovers a whole snapshot file, while the codec keyframe-resync
+(ADR-9) repairs a corrupt delta inside an otherwise-loaded timeline. The migration
+carries each legacy snapshot through byte-for-byte (no re-encode), so a v1 or v2
+monolith migrates unchanged regardless of which epic landed first.
+
+**Rejected:** keeping the monolith (the failure mode being fixed); a manifest/index
+file listing shards (re-introduces the single point of failure); reversible path
+encoding for filenames (breaks on long or unicode paths); async WebCrypto SHA-256
+naming (extra async plus mobile-availability risk); rewriting all shards on every
+save (turns one write into N, worse IO than the monolith); a separate `migrated`
+marker file (re-introduces a single point of failure when the shard directory is
+already the source of truth).
+
 ## Invariants and gotchas
 
 These are the load-bearing assumptions that are easy to break from a distance.
@@ -234,6 +300,19 @@ These are the load-bearing assumptions that are easy to break from a distance.
 
 ### Persistence
 
+- **History is one shard per snapshot, the directory is the source of truth.**
+  Each snapshot persists as one `{ version, snapshot }` shard under
+  `<plugindir>/history/`, named by a >=64-bit hash of its path; there is no index
+  or manifest file, so enumeration of the directory (not any stored list) is
+  authoritative on load (ADR-10).
+- **A save writes only the shards that changed.** Saves are dirty-only: the
+  in-memory path-to-shard index holds each shard's content digest, and a save
+  writes only shards whose digest changed and removes shards for paths dropped by
+  retention or deletion. A no-op save writes nothing; never rewrite all shards
+  (ADR-10).
+- **A shard recovers itself, never the whole base.** Per-shard atomic
+  `tmp -> bak -> rename` with `.json -> .bak -> .tmp` read fallback means a corrupt
+  or lost shard costs exactly one note's history; the rest still load (ADR-10).
 - **The marker baseline is never persisted.** `toJSON` writes `historyLines` as
   its `lines` field; the session marker baseline is re-derived from the file on
   the next open (ADR-1).

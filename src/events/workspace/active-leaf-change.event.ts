@@ -32,6 +32,10 @@ export class WorkspaceActiveLeafChangeEvent extends BaseEvent {
    * @param {...any} args - Arguments passed by the event (not used in this handler)
    */
   public handler(..._args: WorkspaceEventArgs<typeof ObsidianEvent.workspace.activeLeafChange>): void {
+    if (!this.plugin.isReady()) {
+      return;
+    }
+
     this.snapshotsService.forceUpdate();
   };
 }

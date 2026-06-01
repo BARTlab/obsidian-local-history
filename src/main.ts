@@ -55,6 +55,16 @@ export default class LineChangeTrackerPlugin extends Plugin {
   protected initialized: Service[] = [];
 
   /**
+   * True only between a successful `onload` and the next `onunload`/teardown.
+   * Editor extensions and workspace event handlers live in Obsidian's lifecycle,
+   * not the container's, so they can fire before services are up or after the
+   * instance is torn down (e.g. a stale CodeMirror layer from a previous load
+   * re-measuring). Those surfaces gate on this flag and no-op when it is false,
+   * instead of resolving an injected service against a half-built container.
+   */
+  protected ready: boolean = false;
+
+  /**
    * Creates a new instance of the LineChangeTrackerPlugin.
    * Registers all required services during initialization.
    *
@@ -121,17 +131,32 @@ export default class LineChangeTrackerPlugin extends Plugin {
       throw new Error('Service cannot be empty');
     }
 
-    const type: ClassConstructor<unknown> = isString(key)
+    const type: ClassConstructor<unknown> | undefined = isString(key)
       ? [...this.container.keys()].find((item: ClassConstructor<unknown>): boolean => item.name === key)
       : key;
 
-    const service: T = this.container.get(type) as T;
+    const service: T | undefined = type ? this.container.get(type) as T : undefined;
 
     if (!service) {
-      throw new Error(`Service '${type.name}' not registered`);
+      const label: string = isString(key) ? key : key.name;
+
+      throw new Error(`Service '${label}' not registered`);
     }
 
     return service;
+  }
+
+  /**
+   * Whether the plugin finished loading and has not been torn down. Surfaces
+   * that run outside the container lifecycle (editor extensions, workspace
+   * event handlers) check this before resolving injected services, so a call
+   * arriving before load completes or after unload is a no-op rather than a
+   * crash on an unresolved service.
+   *
+   * @return {boolean} True while the plugin is fully loaded
+   */
+  public isReady(): boolean {
+    return this.ready;
   }
 
   /**
@@ -175,6 +200,9 @@ export default class LineChangeTrackerPlugin extends Plugin {
       RECENT_CHANGES_VIEW_TYPE,
       (leaf: WorkspaceLeaf): RecentChangesView => new RecentChangesView(leaf, this),
     );
+
+    this.ready = true;
+    this.forceUpdateEditor();
   }
 
   /**
@@ -184,6 +212,8 @@ export default class LineChangeTrackerPlugin extends Plugin {
    * @return {Promise<void>} A promise that resolves when all services are unloaded
    */
   public async onunload(): Promise<void> {
+    this.ready = false;
+
     await this.exec('unload');
   }
 
@@ -238,6 +268,8 @@ export default class LineChangeTrackerPlugin extends Plugin {
    * @return {Promise<void>} Resolves once teardown is complete.
    */
   protected async teardown(): Promise<void> {
+    this.ready = false;
+
     for (const provider of [...this.initialized].reverse()) {
       if ('unload' in provider && isFunction(provider.unload)) {
         try {

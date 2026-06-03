@@ -1,197 +1,197 @@
 {
   "diff.hunk.large.churn": {
-    "medianMs": 0.4026964999993652,
-    "recordedAt": "2026-06-03T22:06:21.128Z",
+    "medianMs": 0.40913200000068173,
+    "recordedAt": "2026-06-03T23:48:51.383Z",
     "env": "node v24.15.0 linux/x64"
   },
   "diff.hunk.large.edit": {
-    "medianMs": 4.862972000000809,
-    "recordedAt": "2026-06-03T22:06:20.805Z",
+    "medianMs": 6.9768199999962235,
+    "recordedAt": "2026-06-03T23:48:48.613Z",
     "env": "node v24.15.0 linux/x64"
   },
   "diff.hunk.large.rewrite": {
-    "medianMs": 326.66136899999947,
-    "recordedAt": "2026-06-03T22:06:24.680Z",
+    "medianMs": 190.30634499999724,
+    "recordedAt": "2026-06-03T23:48:54.619Z",
     "env": "node v24.15.0 linux/x64"
   },
   "diff.hunk.medium.churn": {
-    "medianMs": 0.22027600000092207,
-    "recordedAt": "2026-06-03T22:06:16.504Z",
+    "medianMs": 0.19093100000100094,
+    "recordedAt": "2026-06-03T23:48:35.902Z",
     "env": "node v24.15.0 linux/x64"
   },
   "diff.hunk.medium.edit": {
-    "medianMs": 0.8460235000002285,
-    "recordedAt": "2026-06-03T22:06:16.159Z",
+    "medianMs": 1.0300339999994321,
+    "recordedAt": "2026-06-03T23:48:34.551Z",
     "env": "node v24.15.0 linux/x64"
   },
   "diff.hunk.medium.rewrite": {
-    "medianMs": 29.690068500000052,
-    "recordedAt": "2026-06-03T22:06:18.054Z",
+    "medianMs": 31.32023100000515,
+    "recordedAt": "2026-06-03T23:48:40.654Z",
     "env": "node v24.15.0 linux/x64"
   },
   "diff.hunk.small.churn": {
-    "medianMs": 0.09693550000019968,
-    "recordedAt": "2026-06-03T22:06:04.338Z",
+    "medianMs": 0.09914100000014514,
+    "recordedAt": "2026-06-03T23:48:08.131Z",
     "env": "node v24.15.0 linux/x64"
   },
   "diff.hunk.small.edit": {
-    "medianMs": 0.04387500000007094,
-    "recordedAt": "2026-06-03T22:06:04.274Z",
+    "medianMs": 0.041229999999814027,
+    "recordedAt": "2026-06-03T23:48:06.865Z",
     "env": "node v24.15.0 linux/x64"
   },
   "diff.hunk.small.rewrite": {
-    "medianMs": 0.6027129999999943,
-    "recordedAt": "2026-06-03T22:06:05.203Z",
+    "medianMs": 0.5649029999995037,
+    "recordedAt": "2026-06-03T23:48:13.718Z",
     "env": "node v24.15.0 linux/x64"
   },
   "diff.render.large.churn": {
-    "medianMs": 0.9158139999999548,
-    "recordedAt": "2026-06-03T22:06:21.137Z",
+    "medianMs": 1.6908869999970193,
+    "recordedAt": "2026-06-03T23:48:51.627Z",
     "env": "node v24.15.0 linux/x64"
   },
   "diff.render.large.edit": {
-    "medianMs": 68.5671880000009,
-    "recordedAt": "2026-06-03T22:06:21.122Z",
+    "medianMs": 59.424087999999756,
+    "recordedAt": "2026-06-03T23:48:51.315Z",
     "env": "node v24.15.0 linux/x64"
   },
   "diff.render.large.rewrite": {
-    "medianMs": 1062.9899029999979,
-    "recordedAt": "2026-06-03T22:06:33.658Z",
+    "medianMs": 525.6918780000051,
+    "recordedAt": "2026-06-03T23:49:00.483Z",
     "env": "node v24.15.0 linux/x64"
   },
   "diff.render.medium.churn": {
-    "medianMs": 0.6111229999996795,
-    "recordedAt": "2026-06-03T22:06:16.529Z",
+    "medianMs": 1.159364999999525,
+    "recordedAt": "2026-06-03T23:48:36.452Z",
     "env": "node v24.15.0 linux/x64"
   },
   "diff.render.medium.edit": {
-    "medianMs": 31.507636000000275,
-    "recordedAt": "2026-06-03T22:06:16.492Z",
+    "medianMs": 24.747163,
+    "recordedAt": "2026-06-03T23:48:35.833Z",
     "env": "node v24.15.0 linux/x64"
   },
   "diff.render.medium.rewrite": {
-    "medianMs": 125.37158350000209,
-    "recordedAt": "2026-06-03T22:06:20.741Z",
+    "medianMs": 126.02163499999733,
+    "recordedAt": "2026-06-03T23:48:46.625Z",
     "env": "node v24.15.0 linux/x64"
   },
   "diff.render.small.churn": {
-    "medianMs": 20.44616649999989,
-    "recordedAt": "2026-06-03T22:06:05.073Z",
+    "medianMs": 32.54792499999985,
+    "recordedAt": "2026-06-03T23:48:11.702Z",
     "env": "node v24.15.0 linux/x64"
   },
   "diff.render.small.edit": {
-    "medianMs": 0.361846499999956,
-    "recordedAt": "2026-06-03T22:06:04.317Z",
+    "medianMs": 0.33181100000001607,
+    "recordedAt": "2026-06-03T23:48:08.023Z",
     "env": "node v24.15.0 linux/x64"
   },
   "diff.render.small.rewrite": {
-    "medianMs": 331.5105054999999,
-    "recordedAt": "2026-06-03T22:06:16.111Z",
+    "medianMs": 334.59705900000336,
+    "recordedAt": "2026-06-03T23:48:29.414Z",
     "env": "node v24.15.0 linux/x64"
   },
   "diff.word.large.churn": {
-    "medianMs": 0.3533269999988988,
-    "recordedAt": "2026-06-03T22:06:21.133Z",
+    "medianMs": 0.35498099999676924,
+    "recordedAt": "2026-06-03T23:48:51.448Z",
     "env": "node v24.15.0 linux/x64"
   },
   "diff.word.large.edit": {
-    "medianMs": 4.662006000000474,
-    "recordedAt": "2026-06-03T22:06:20.864Z",
+    "medianMs": 4.636250000003201,
+    "recordedAt": "2026-06-03T23:48:50.776Z",
     "env": "node v24.15.0 linux/x64"
   },
   "diff.word.large.rewrite": {
-    "medianMs": 420.85497899999973,
-    "recordedAt": "2026-06-03T22:06:29.458Z",
+    "medianMs": 186.2757380000039,
+    "recordedAt": "2026-06-03T23:48:57.591Z",
     "env": "node v24.15.0 linux/x64"
   },
   "diff.word.medium.churn": {
-    "medianMs": 0.18842050000057498,
-    "recordedAt": "2026-06-03T22:06:16.522Z",
+    "medianMs": 0.16245100000014645,
+    "recordedAt": "2026-06-03T23:48:35.969Z",
     "env": "node v24.15.0 linux/x64"
   },
   "diff.word.medium.edit": {
-    "medianMs": 0.8275340000000142,
-    "recordedAt": "2026-06-03T22:06:16.204Z",
+    "medianMs": 0.7585029999972903,
+    "recordedAt": "2026-06-03T23:48:35.131Z",
     "env": "node v24.15.0 linux/x64"
   },
   "diff.word.medium.rewrite": {
-    "medianMs": 29.374311999999918,
-    "recordedAt": "2026-06-03T22:06:19.615Z",
+    "medianMs": 30.815088000003016,
+    "recordedAt": "2026-06-03T23:48:44.784Z",
     "env": "node v24.15.0 linux/x64"
   },
   "diff.word.small.churn": {
-    "medianMs": 0.08767050000028576,
-    "recordedAt": "2026-06-03T22:06:04.358Z",
+    "medianMs": 0.08771100000012666,
+    "recordedAt": "2026-06-03T23:48:08.227Z",
     "env": "node v24.15.0 linux/x64"
   },
   "diff.word.small.edit": {
-    "medianMs": 0.03923500000018976,
-    "recordedAt": "2026-06-03T22:06:04.285Z",
+    "medianMs": 0.037229999999908614,
+    "recordedAt": "2026-06-03T23:48:06.940Z",
     "env": "node v24.15.0 linux/x64"
   },
   "diff.word.small.rewrite": {
-    "medianMs": 0.5758870000001934,
-    "recordedAt": "2026-06-03T22:06:05.324Z",
+    "medianMs": 0.5413619999999355,
+    "recordedAt": "2026-06-03T23:48:14.282Z",
     "env": "node v24.15.0 linux/x64"
   },
   "folder.delta.compareAt.nested": {
-    "medianMs": 0.07187549999980547,
-    "recordedAt": "2026-06-03T22:06:04.855Z",
+    "medianMs": 0.05934999999954016,
+    "recordedAt": "2026-06-03T23:48:16.794Z",
     "env": "node v24.15.0 linux/x64"
   },
   "folder.timeline.synthesize.nested": {
-    "medianMs": 2.47187649999978,
-    "recordedAt": "2026-06-03T22:06:04.455Z",
+    "medianMs": 2.5683610000000954,
+    "recordedAt": "2026-06-03T23:48:13.128Z",
     "env": "node v24.15.0 linux/x64"
   },
   "folder.timeline.synthesize.shallow": {
-    "medianMs": 0.42683199999987664,
-    "recordedAt": "2026-06-03T22:06:04.168Z",
+    "medianMs": 0.3548319999999876,
+    "recordedAt": "2026-06-03T23:48:06.610Z",
     "env": "node v24.15.0 linux/x64"
   },
   "folder.timeline.synthesize.wide": {
-    "medianMs": 6.8564799999999195,
-    "recordedAt": "2026-06-03T22:06:04.842Z",
+    "medianMs": 7.099729999999909,
+    "recordedAt": "2026-06-03T23:48:16.735Z",
     "env": "node v24.15.0 linux/x64"
   },
   "persistence.parse.medium": {
-    "medianMs": 7.6421690000001945,
-    "recordedAt": "2026-06-03T22:06:06.707Z",
+    "medianMs": 6.713177999999971,
+    "recordedAt": "2026-06-03T23:48:16.404Z",
     "env": "node v24.15.0 linux/x64"
   },
   "persistence.restore.medium": {
-    "medianMs": 35.92624100000012,
-    "recordedAt": "2026-06-03T22:06:08.770Z",
+    "medianMs": 40.75365899999997,
+    "recordedAt": "2026-06-03T23:48:21.904Z",
     "env": "node v24.15.0 linux/x64"
   },
   "persistence.retention.large": {
-    "medianMs": 0.07664000000022497,
-    "recordedAt": "2026-06-03T22:06:09.436Z",
+    "medianMs": 0.07045999999900232,
+    "recordedAt": "2026-06-03T23:48:22.521Z",
     "env": "node v24.15.0 linux/x64"
   },
   "persistence.serialize.medium": {
-    "medianMs": 37.25275149999993,
-    "recordedAt": "2026-06-03T22:06:06.203Z",
+    "medianMs": 42.30957500000022,
+    "recordedAt": "2026-06-03T23:48:12.863Z",
     "env": "node v24.15.0 linux/x64"
   },
   "snapshot.captureVersion.medium": {
-    "medianMs": 0.03771000000006097,
-    "recordedAt": "2026-06-03T22:06:04.186Z",
+    "medianMs": 0.03905100000065431,
+    "recordedAt": "2026-06-03T23:48:12.692Z",
     "env": "node v24.15.0 linux/x64"
   },
   "snapshot.evictVersions.large": {
-    "medianMs": 0.8721040000002631,
-    "recordedAt": "2026-06-03T22:06:04.492Z",
+    "medianMs": 1.0699150000000373,
+    "recordedAt": "2026-06-03T23:48:19.470Z",
     "env": "node v24.15.0 linux/x64"
   },
   "snapshot.shift.medium": {
-    "medianMs": 0.034795000000030996,
-    "recordedAt": "2026-06-03T22:06:04.178Z",
+    "medianMs": 0.03794999999990978,
+    "recordedAt": "2026-06-03T23:48:12.576Z",
     "env": "node v24.15.0 linux/x64"
   },
   "snapshot.updateChanges.medium": {
-    "medianMs": 1.063274500000034,
-    "recordedAt": "2026-06-03T22:06:04.169Z",
+    "medianMs": 1.181115000000318,
+    "recordedAt": "2026-06-03T23:48:12.481Z",
     "env": "node v24.15.0 linux/x64"
   }
 }

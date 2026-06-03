@@ -4,6 +4,14 @@
  * fast and never pays the bench cost. DOM-free by design (node environment,
  * no jsdom): the harness uses node:perf_hooks only.
  *
+ * The `test:perf` npm script runs this project with `NODE_OPTIONS=--expose-gc`
+ * so the harness can force a GC before each timed sample (GC is the dominant
+ * run-to-run noise source on the allocation-heavy diff/render paths). The flag
+ * must be in the environment before Node starts - setting it from inside this
+ * config is too late, as Jest's forked workers do not pick up a --expose-gc
+ * added at config-evaluation time. Absent the flag the harness GC call is a
+ * graceful no-op and the gate falls back to its hybrid ceiling.
+ *
  * @type {import('ts-jest').JestConfigWithTsJest}
  */
 module.exports = {

@@ -134,19 +134,30 @@ export function buildPair(size: FixtureSize, shape: FixtureShape): DiffPair {
 export type DiffHelperKind = 'hunk' | 'word' | 'render';
 
 /**
- * Iteration counts per helper and size, tuned so each label gets a stable
- * median while the whole file stays well under the 60s budget (AC4). The line
- * helpers (`hunk`, `word`) are microsecond-to-millisecond cheap and can afford
- * many iterations; `DiffRenderHelper.render` is orders of magnitude heavier
- * (it diffs, then builds DOM through jsdom), so it gets far fewer iterations,
- * scaling down sharply with size where a single near-total `rewrite` render
- * already costs hundreds of milliseconds.
+ * Iteration counts per helper, size, and shape, tuned so each label gets a
+ * stable minimum (the harness reports min-of-N) while the whole file stays
+ * under the 60s budget (AC4).
+ *
+ * `DiffRenderHelper.render` is orders of magnitude heavier than the line
+ * helpers (it diffs, then builds DOM through jsdom), so it gets far fewer
+ * iterations, scaling down sharply with size.
+ *
+ * The line helpers (`hunk`, `word`) are cheap on the `edit`/`churn` shapes
+ * (sub-millisecond to a few ms) and so get many iterations: a min-of-N needs
+ * enough samples to reliably catch one clean, uncontended run, and at only ten
+ * iterations the mid-cost large `edit` labels (~5 ms/sample) saw their minimum
+ * drift under machine load, producing false gate failures. The `rewrite` shape
+ * is the exception: a near-total rewrite costs ~200 ms/sample at large size, so
+ * it keeps a low iteration count (its large per-sample cost already dwarfs the
+ * jitter, so it is stable with few samples, and more iterations would blow
+ * AC4).
  *
  * @param {DiffHelperKind} kind - The helper being benched
  * @param {FixtureSize} size - The file size descriptor
+ * @param {FixtureShape} shape - The edit shape (rewrite is the expensive one)
  * @return {number} The iteration count for `measure`
  */
-export function itersFor(kind: DiffHelperKind, size: FixtureSize): number {
+export function itersFor(kind: DiffHelperKind, size: FixtureSize, shape: FixtureShape): number {
   if (kind === 'render') {
     switch (size.lines) {
       case FIXTURE_SIZES.small.lines:
@@ -158,12 +169,29 @@ export function itersFor(kind: DiffHelperKind, size: FixtureSize): number {
     }
   }
 
+  // The near-total rewrite is the expensive line-helper shape; keep it low so
+  // the large rewrite (~200 ms/sample) does not bust AC4. It is stable with few
+  // samples because its per-sample cost swamps the jitter.
+  if (shape === 'rewrite') {
+    switch (size.lines) {
+      case FIXTURE_SIZES.small.lines:
+        return 200;
+      case FIXTURE_SIZES.medium.lines:
+        return 50;
+      default:
+        return 10;
+    }
+  }
+
+  // Cheap edit/churn shapes: take enough samples that min-of-N reliably catches
+  // a clean, uncontended run even under machine load (ten was too few for the
+  // ~5 ms large labels), while staying inside AC4's 60s diff-suite budget.
   switch (size.lines) {
     case FIXTURE_SIZES.small.lines:
-      return 200;
+      return 300;
     case FIXTURE_SIZES.medium.lines:
-      return 50;
+      return 100;
     default:
-      return 10;
+      return 40;
   }
 }

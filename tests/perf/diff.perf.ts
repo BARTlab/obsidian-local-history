@@ -144,7 +144,7 @@ describe('diff perf', () => {
 
         const median = measure(label, (): void => {
           HunkHelper.diff(pair.baseLines, pair.currentLines);
-        }, itersFor('hunk', size));
+        }, itersFor('hunk', size, shape));
 
         expect(median).toBeGreaterThan(0);
         assertWithinBaseline(label, median);
@@ -162,7 +162,7 @@ describe('diff perf', () => {
 
         const median = measure(label, (): void => {
           WordDiffHelper.lines(base, current);
-        }, itersFor('word', size));
+        }, itersFor('word', size, shape));
 
         expect(median).toBeGreaterThan(0);
         assertWithinBaseline(label, median);
@@ -188,7 +188,7 @@ describe('diff perf', () => {
           // version pick / mode toggle in the modal. The container is replaced
           // wholesale on every call, so re-rendering in place is faithful.
           DiffRenderHelper.render(renderParams(pair, mode, container));
-        }, itersFor('render', size));
+        }, itersFor('render', size, shape));
 
         // Still detached after the loop: the bench never paints into the document.
         expect(container.parentNode).toBeNull();

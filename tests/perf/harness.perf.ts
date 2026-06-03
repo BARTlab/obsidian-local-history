@@ -1,6 +1,7 @@
 import {describe, expect, it} from '@jest/globals';
 
 import {
+  ABS_SLACK_MS,
   assertWithinBaseline,
   type Baseline,
   baselineMode,
@@ -16,14 +17,15 @@ function baselineWith(label: string, medianMs: number): Baseline {
 
 /**
  * Self-test for the perf harness. Runs under jest.config.perf.js only (named
- * *.perf.ts so the default `npm test` never picks it up). Proves the three
- * harness contracts the later benches rely on: measure returns a positive
- * median, the gate is lenient when a baseline label is missing, and the gate
- * trips on a synthetic over-budget value.
+ * *.perf.ts so the default `npm test` never picks it up). Proves the harness
+ * contracts the later benches rely on: measure returns a positive minimum and
+ * honours warmup, the gate is lenient when a baseline label is missing, the
+ * hybrid ceiling trips on a synthetic over-budget value, and the absolute arm
+ * widens the ceiling on a tiny-baseline label.
  */
 describe('perf harness', () => {
-  it('measure returns a positive median over the iteration count', () => {
-    const median = measure('harness/self-test', () => {
+  it('measure returns a positive minimum over the iteration count', () => {
+    const min = measure('harness/self-test', () => {
       let acc = 0;
       for (let i = 0; i < 1000; i++) {
         acc += i;
@@ -34,12 +36,25 @@ describe('perf harness', () => {
       }
     }, 50);
 
-    expect(median).toBeGreaterThan(0);
-    expect(Number.isFinite(median)).toBe(true);
+    expect(min).toBeGreaterThan(0);
+    expect(Number.isFinite(min)).toBe(true);
+  });
+
+  it('measure runs warmup iterations without timing them', () => {
+    let calls = 0;
+    measure('harness/warmup', () => {
+      calls++;
+    }, 10, 5);
+    // 5 warmup + 10 timed calls = 15 total invocations.
+    expect(calls).toBe(15);
   });
 
   it('measure rejects a non-positive iteration count', () => {
     expect(() => measure('harness/bad-iters', () => undefined, 0)).toThrow();
+  });
+
+  it('measure rejects a negative warmup count', () => {
+    expect(() => measure('harness/bad-warmup', () => undefined, 10, -1)).toThrow();
   });
 
   it('resolves baseline mode from PERF_BASELINE (record only when explicitly set)', () => {
@@ -57,14 +72,27 @@ describe('perf harness', () => {
 
   it('gate passes when the measured value is within budget', () => {
     const baseline = baselineWith('harness/within', 10);
-    // 10 * 1.2 = 12 ceiling; 11 is under it.
-    expect(() => checkBudget('harness/within', 11, baseline)).not.toThrow();
+    // Hybrid ceiling = max(10 * (1 + 0.4) = 14, 10 + 0.8 = 10.8) = 14; 11 is under it.
+    const within = 10 * (1 + REGRESSION_BUDGET) - 1;
+    expect(() => checkBudget('harness/within', within, baseline)).not.toThrow();
   });
 
-  it('gate trips on a synthetic over-budget value', () => {
+  it('gate trips on a synthetic over-budget value (relative arm dominates)', () => {
     const baseline = baselineWith('harness/over', 10);
-    // 10 * (1 + 0.2) = 12 ceiling; 13 exceeds it.
+    // Hybrid ceiling = max(14, 10.8) = 14; 15 exceeds it.
     const overBudget = 10 * (1 + REGRESSION_BUDGET) + 1;
     expect(() => checkBudget('harness/over', overBudget, baseline)).toThrow(/regression on "harness\/over"/);
+  });
+
+  it('absolute arm widens the ceiling on a tiny-baseline label', () => {
+    // Baseline 0.04 ms: relative ceiling 0.056 ms, absolute ceiling 0.84 ms; the
+    // hybrid max is the absolute arm, so a 0.2 ms reading (a +400% relative jump
+    // that is just scheduling jitter on a sub-0.1 ms path) must NOT trip the gate.
+    const baseline = baselineWith('harness/tiny', 0.04);
+    expect(() => checkBudget('harness/tiny', 0.2, baseline)).not.toThrow();
+    // A value past the absolute ceiling (a real regression) still trips.
+    expect(() => checkBudget('harness/tiny', 0.04 + ABS_SLACK_MS + 0.01, baseline)).toThrow(
+      /regression on "harness\/tiny"/,
+    );
   });
 });

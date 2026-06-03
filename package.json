@@ -10,7 +10,7 @@
     "lint": "eslint src",
     "type-check": "tsc --noEmit",
     "test": "jest",
-    "test:perf": "jest --config jest.config.perf.js"
+    "test:perf": "NODE_OPTIONS=--expose-gc jest --config jest.config.perf.js"
   },
   "keywords": [
     "obsidian",

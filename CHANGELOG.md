@@ -8,6 +8,13 @@ follows [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- **Service resolution in the released build.** The bundled plugin could fail to
+  resolve its own services, surfacing as repeated `Service 'SnapshotsService'
+  not registered` errors and silently breaking change indicators, history
+  capture, and the editor gutter. Class names are now preserved in the build so
+  name-based dependency resolution works in the bundle, and lifecycle guards
+  keep a stale editor extension or event from touching services after unload.
+
 - **Sharded history storage.** History is now stored as one self-describing
   shard file per note under a `history/` folder instead of a single
   `history.json`, so a corrupt or lost shard costs one note's history rather

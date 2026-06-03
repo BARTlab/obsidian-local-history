@@ -83,3 +83,7 @@ Do **not** rebaseline to silence a gate failure you have not explained. Silent
 or routine rebaselining defeats regression detection: it hides drift instead of
 surfacing it. A baseline bump must be a conscious, reviewed decision, captured in
 its own commit with a message that says why the numbers moved.
+
+## Provenance
+
+Last recorded: 2026-06-04 on node v24.15.0 (linux/x64), plugin commit db1acad.

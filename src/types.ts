@@ -1305,3 +1305,38 @@ export interface FolderTreeUpdateParams {
   entries: FolderTreeEntry[];
   rootPath: string;
 }
+
+/**
+ * One row in Obsidian's native file explorer, as exposed on the undocumented
+ * `view.fileItems` map keyed by vault-relative path (D8). `selfEl` is the row's
+ * outer `.nav-file-title` / `.nav-folder-title` element the decorator tints, and
+ * `titleEl` is the inner label node. Both are optional because these are core
+ * internals that may move across versions, so every access stays defensive and
+ * the decorator degrades silently when a member is missing.
+ */
+export interface NativeFileExplorerItem {
+  /**
+   * The row's outer title element (`.nav-file-title` / `.nav-folder-title`),
+   * the node the `lct-tree-*` status class is added to and removed from.
+   */
+  selfEl?: HTMLElement;
+  /**
+   * The inner label node inside the row, present on native rows but unused by
+   * the file-row decorator (the CSS reaches the inner node by class descent).
+   */
+  titleEl?: HTMLElement;
+}
+
+/**
+ * The undocumented shape of Obsidian's file-explorer view (D8). `fileItems` maps
+ * each vault-relative path to its rendered {@link NativeFileExplorerItem}; only
+ * lazily-rendered (expanded) rows are present, so a missing entry means the row
+ * is not currently in the DOM. Reached through a local augmentation here instead
+ * of scattered `as any` casts; the decorator never assumes the field exists.
+ */
+export interface NativeFileExplorerView {
+  /**
+   * Map from vault-relative path to the rendered explorer row, when present.
+   */
+  fileItems?: Record<string, NativeFileExplorerItem | undefined>;
+}

@@ -11,6 +11,7 @@ import { SettingsService } from '@/services/settings.service';
 import { SnapshotsService } from '@/services/snapshots.service';
 import { StatusbarService } from '@/services/statusbar.service';
 import { StylesService } from '@/services/styles.service';
+import { TreeTabDecoratorService } from '@/services/tree-tab-decorator.service';
 import { VersionActionsService } from '@/services/version-actions.service';
 import { type ClassConstructor, type Service, type TranslationVars } from '@/types';
 import { RecentChangesView } from '@/views/recent-changes.view';
@@ -85,6 +86,7 @@ export default class LineChangeTrackerPlugin extends Plugin {
     this.registerService(SnapshotsService);
     this.registerService(VersionActionsService);
     this.registerService(PersistenceService);
+    this.registerService(TreeTabDecoratorService);
   }
 
   /**

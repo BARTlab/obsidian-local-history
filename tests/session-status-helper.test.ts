@@ -70,3 +70,29 @@ describe('SessionStatusHelper.statusOf', () => {
     expect(SessionStatusHelper.statusOf(snapshot)).toBe(FolderDeltaStatus.added);
   });
 });
+
+describe('SessionStatusHelper.ancestorFolderPaths', () => {
+  it('yields every ancestor folder of a nested file (a/b/c.md -> a, a/b)', () => {
+    const folders: Set<string> = SessionStatusHelper.ancestorFolderPaths(['a/b/c.md']);
+
+    expect([...folders].sort()).toEqual(['a', 'a/b']);
+  });
+
+  it('returns an empty set for a file at the vault root (no parent folder)', () => {
+    expect(SessionStatusHelper.ancestorFolderPaths(['c.md']).size).toBe(0);
+  });
+
+  it('deduplicates folders shared by sibling changed files', () => {
+    const folders: Set<string> = SessionStatusHelper.ancestorFolderPaths([
+      'a/b/c.md',
+      'a/b/d.md',
+      'a/e.md',
+    ]);
+
+    expect([...folders].sort()).toEqual(['a', 'a/b']);
+  });
+
+  it('returns an empty set for no changed paths', () => {
+    expect(SessionStatusHelper.ancestorFolderPaths([]).size).toBe(0);
+  });
+});

@@ -1,3 +1,21 @@
+/* ---- status palette ---- */
+// Single source of truth for the change-status colours. The modal folder tree
+// and the native-surface decorations (file-explorer rows, tab headers) both
+// resolve their colours from these variables so the palette is defined once.
+// Values map to Obsidian's own theme variables so light and dark themes pick up
+// the correct emphasis automatically:
+//   added    -> --color-green
+//   modified -> --text-warning (the Obsidian-standard warning hue, reads amber
+//               in both themes; tracks the theme's warning palette rather than
+//               --color-yellow directly)
+//   deleted  -> --color-red (modal palette only; native surfaces never paint
+//               deleted - a deleted file has no native row or tab, see D5)
+:root {
+  --lct-status-added: var(--color-green);
+  --lct-status-modified: var(--text-warning);
+  --lct-status-deleted: var(--color-red);
+}
+
 /* ---- modal ---- */
 
 .modal {
@@ -1036,23 +1054,56 @@
   // nav-item styling colours the inner text node, so we target the name to win
   // over --nav-item-color. Ancestor folders carry no token and keep the theme's
   // default colour so changed files read against an inert tree backdrop.
-  // Colours resolve through Obsidian CSS variables so light and dark themes
-  // pick up the correct emphasis automatically.
+  // Colours resolve through the shared --lct-status-* palette (defined at :root)
+  // so the modal tree and the native surfaces share one source of truth.
   .lct-tree-added .lct-folder-tree-name {
-    color: var(--color-green);
+    color: var(--lct-status-added);
   }
 
   .lct-tree-modified .lct-folder-tree-name {
-    // --text-warning is the Obsidian-standard warning hue and reads as an
-    // amber/yellow in both themes; we use it (rather than --color-yellow
-    // directly) so the modified token tracks the theme's warning palette.
-    color: var(--text-warning);
+    color: var(--lct-status-modified);
   }
 
   .lct-tree-deleted .lct-folder-tree-name {
-    color: var(--color-red);
+    color: var(--lct-status-deleted);
     text-decoration: line-through;
   }
+}
+
+/* ---- native-surface decorations (epic 11) ---- */
+// The tree/tab decorator adds the lct-tree-added / lct-tree-modified classes to
+// Obsidian's own DOM (file-explorer rows and workspace tab headers) to tint
+// files and folders changed this session. These rules paint those classes from
+// the shared --lct-status-* palette so they agree with the modal tree by
+// construction. Native surfaces never carry lct-tree-deleted (D5): a deleted
+// file has no row or tab to paint, so deleted lives only in the diff modal.
+//
+// Native nav-item styling colours the inner text node via --nav-item-color, so
+// each rule targets the title/inner element to win over the theme default.
+.nav-file-title.lct-tree-added,
+.nav-file-title.lct-tree-added .nav-file-title-content,
+.nav-folder-title.lct-tree-added,
+.nav-folder-title.lct-tree-added .nav-folder-title-content {
+  color: var(--lct-status-added);
+}
+
+.nav-file-title.lct-tree-modified,
+.nav-file-title.lct-tree-modified .nav-file-title-content,
+.nav-folder-title.lct-tree-modified,
+.nav-folder-title.lct-tree-modified .nav-folder-title-content {
+  color: var(--lct-status-modified);
+}
+
+// Tab headers: the class lands on the tab header element; the visible label is
+// the inner title node, so we tint both to override the theme's tab colour.
+.workspace-tab-header.lct-tree-added,
+.workspace-tab-header.lct-tree-added .workspace-tab-header-inner-title {
+  color: var(--lct-status-added);
+}
+
+.workspace-tab-header.lct-tree-modified,
+.workspace-tab-header.lct-tree-modified .workspace-tab-header-inner-title {
+  color: var(--lct-status-modified);
 }
 
 .lct-folder-tree-empty {

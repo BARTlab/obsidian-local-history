@@ -139,6 +139,19 @@ export class FileSnapshot {
   public movedIntoAt?: number;
 
   /**
+   * Transient "added in this app run" marker (epic 11, D4): set to `true` only
+   * when the file was created by the user in the vault during the current
+   * session (the post-layout-ready `vault.create` capture path stamps it). It
+   * is the only reliable "created this run" signal, since `firstSeenAt` /
+   * absence of `historyLines` cannot tell a newly created file from a
+   * first-opened pre-existing one. It is deliberately NOT persisted: `toJSON`
+   * never writes it and `fromJSON` never reads it, so a snapshot restored from
+   * `history.json` after a restart comes back falsy and the tree/tab decorator
+   * stops painting it green once the session that created it ends.
+   */
+  public createdThisSession: boolean = false;
+
+  /**
    * Creates a new instance of FileSnapshot.
    * Initializes the snapshot with the provided content, splits it into lines,
    * creates tracker objects for each line, and saves the initial state.

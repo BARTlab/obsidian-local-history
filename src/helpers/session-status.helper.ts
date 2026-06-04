@@ -65,4 +65,40 @@ export class SessionStatusHelper {
 
     return FolderDeltaStatus.none;
   }
+
+  /**
+   * Collects every ancestor folder path of the given changed file paths, so the
+   * decorator can tint each containing folder a single change colour (D6). Pure
+   * and total: it walks the `/`-separated path of each file upward, emitting one
+   * entry per intermediate folder and stopping at the vault root, which has no
+   * folder row to paint and is therefore never included.
+   *
+   * For `a/b/c.md` it yields `a` and `a/b`; the set deduplicates folders shared
+   * by sibling files, so a folder appears once regardless of how many changed
+   * descendants it has.
+   *
+   * @param {Iterable<string>} changedPaths - Vault paths of changed files
+   * @return {Set<string>} The set of ancestor folder paths to tint
+   */
+  public static ancestorFolderPaths(changedPaths: Iterable<string>): Set<string> {
+    const folders: Set<string> = new Set();
+
+    for (const path of changedPaths) {
+      const parts: string[] = path.split('/');
+
+      /**
+       * Drop the file segment itself, then accumulate each folder prefix. The
+       * last prefix (the file's immediate parent) and every prefix above it are
+       * containing folders; an empty or single-segment path has no parent folder.
+       */
+      let prefix: string = '';
+
+      for (let i: number = 0; i < parts.length - 1; i++) {
+        prefix = prefix ? `${prefix}/${parts[i]}` : parts[i];
+        folders.add(prefix);
+      }
+    }
+
+    return folders;
+  }
 }

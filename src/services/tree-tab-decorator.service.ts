@@ -194,11 +194,14 @@ export class TreeTabDecoratorService implements Service {
   }
 
   /**
-   * Builds the per-path desired status from the current snapshots, keeping only
-   * the paintable ones (`added` / `modified`); a snapshot the helper resolves to
-   * `none` (including any tombstone, D5) is omitted so its row carries no class.
+   * Builds the per-path desired status for both file and folder rows. Each live
+   * snapshot the helper resolves to a paintable status (`added` / `modified`)
+   * contributes its file row; a `none` snapshot (including any tombstone, D5) is
+   * omitted so its row carries no class. Every ancestor folder of a changed file
+   * is then tinted the single `modified` token (D6), so a folder is painted iff
+   * it still contains a session change and clears symmetrically once none remain.
    *
-   * @return {Map<string, FolderDeltaStatus>} Live path to its session status
+   * @return {Map<string, FolderDeltaStatus>} File/folder path to its session status
    */
   protected computeStatuses(): Map<string, FolderDeltaStatus> {
     const statuses: Map<string, FolderDeltaStatus> = new Map();
@@ -215,6 +218,12 @@ export class TreeTabDecoratorService implements Service {
       if (status !== FolderDeltaStatus.none) {
         statuses.set(path, status);
       }
+    }
+
+    const filePaths: string[] = [...statuses.keys()];
+
+    for (const folder of SessionStatusHelper.ancestorFolderPaths(filePaths)) {
+      statuses.set(folder, FolderDeltaStatus.modified);
     }
 
     return statuses;

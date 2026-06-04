@@ -193,14 +193,21 @@ describe('VaultCreateEvent', () => {
    */
   const makeCreateContext = (
     ignoreNewFiles: boolean,
+    snapshot: FileSnapshot | null = { createdThisSession: false } as FileSnapshot,
   ): {
     event: VaultCreateEvent;
-    snapshots: { isInAllowedExtensions: jest.Mock; addToIgnoreList: jest.Mock; capture: jest.Mock };
+    snapshots: {
+      isInAllowedExtensions: jest.Mock;
+      addToIgnoreList: jest.Mock;
+      capture: jest.Mock;
+      getOne: jest.Mock;
+    };
   } => {
     const snapshots = {
       isInAllowedExtensions: jest.fn().mockReturnValue(true),
       addToIgnoreList: jest.fn(),
       capture: jest.fn().mockReturnValue(Promise.resolve()),
+      getOne: jest.fn().mockReturnValue(snapshot),
     };
     const settings = { value: jest.fn().mockReturnValue(ignoreNewFiles) };
     const plugin = {
@@ -229,6 +236,27 @@ describe('VaultCreateEvent', () => {
     expect(snapshots.capture).toHaveBeenCalledTimes(1);
     expect(snapshots.capture).toHaveBeenCalledWith(file);
     expect(snapshots.addToIgnoreList).not.toHaveBeenCalled();
+  });
+
+  it('stamps createdThisSession on the captured snapshot (epic 11, D4)', async () => {
+    const snapshot: FileSnapshot = { createdThisSession: false } as FileSnapshot;
+    const { event, snapshots } = makeCreateContext(false, snapshot);
+    const file: TFile = makeFile('notes/sub/new.md');
+
+    await event.handler(file);
+
+    expect(snapshots.capture).toHaveBeenCalledWith(file);
+    expect(snapshots.getOne).toHaveBeenCalledWith(file);
+    expect(snapshot.createdThisSession).toBe(true);
+  });
+
+  it('does not throw when the captured snapshot is missing', async () => {
+    const { event, snapshots } = makeCreateContext(false, null);
+    const file: TFile = makeFile('notes/sub/new.md');
+
+    await event.handler(file);
+
+    expect(snapshots.getOne).toHaveBeenCalledWith(file);
   });
 
   it('adds the file to the ignore list (no capture) when ignoreNewFiles is on', () => {

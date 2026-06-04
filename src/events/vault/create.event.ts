@@ -3,6 +3,7 @@ import { Inject } from '@/decorators/inject.decorator';
 import { BaseEvent } from '@/events/base.event';
 import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
+import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { ObsidianEventName } from '@/types';
 import { type TAbstractFile, TFile } from 'obsidian';
 
@@ -52,9 +53,17 @@ export class VaultCreateEvent extends BaseEvent {
    * `capture` applies its own extension / excluded-path / already-captured /
    * ignore-list gating, so it is safe to call unconditionally here.
    *
+   * Because vault events are registered only after `workspace.onLayoutReady`
+   * (the cold-start create burst for pre-existing files is excluded), every
+   * create reaching this handler is a genuine user action this run, so the
+   * captured snapshot is stamped with the transient `createdThisSession` flag
+   * (epic 11, D4) so the tree/tab decorator can paint it green. The capture is
+   * awaited before stamping because it builds the snapshot asynchronously.
+   *
    * @param {TAbstractFile} file - The file that was created in the vault
+   * @return {Promise<void>} Resolves once the create has been handled
    */
-  public handler(file: TAbstractFile): void {
+  public async handler(file: TAbstractFile): Promise<void> {
     if (!(file instanceof TFile)) {
       return;
     }
@@ -67,6 +76,12 @@ export class VaultCreateEvent extends BaseEvent {
       return;
     }
 
-    void this.snapshotsService.capture(file);
+    await this.snapshotsService.capture(file);
+
+    const snapshot: FileSnapshot | null = this.snapshotsService.getOne(file);
+
+    if (snapshot) {
+      snapshot.createdThisSession = true;
+    }
   }
 }

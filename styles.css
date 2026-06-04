@@ -1,6 +1,11 @@
 @charset "UTF-8";
 
 /* src/styles.scss */
+:root {
+  --lct-status-added: var(--color-green);
+  --lct-status-modified: var(--text-warning);
+  --lct-status-deleted: var(--color-red);
+}
 .modal.lct-diff-modal {
   width: 90vw;
   height: 80vh;
@@ -659,14 +664,34 @@
   overflow: visible;
 }
 .lct-folder-tree .lct-tree-added .lct-folder-tree-name {
-  color: var(--color-green);
+  color: var(--lct-status-added);
 }
 .lct-folder-tree .lct-tree-modified .lct-folder-tree-name {
-  color: var(--text-warning);
+  color: var(--lct-status-modified);
 }
 .lct-folder-tree .lct-tree-deleted .lct-folder-tree-name {
-  color: var(--color-red);
+  color: var(--lct-status-deleted);
   text-decoration: line-through;
+}
+.nav-file-title.lct-tree-added,
+.nav-file-title.lct-tree-added .nav-file-title-content,
+.nav-folder-title.lct-tree-added,
+.nav-folder-title.lct-tree-added .nav-folder-title-content {
+  color: var(--lct-status-added);
+}
+.nav-file-title.lct-tree-modified,
+.nav-file-title.lct-tree-modified .nav-file-title-content,
+.nav-folder-title.lct-tree-modified,
+.nav-folder-title.lct-tree-modified .nav-folder-title-content {
+  color: var(--lct-status-modified);
+}
+.workspace-tab-header.lct-tree-added,
+.workspace-tab-header.lct-tree-added .workspace-tab-header-inner-title {
+  color: var(--lct-status-added);
+}
+.workspace-tab-header.lct-tree-modified,
+.workspace-tab-header.lct-tree-modified .workspace-tab-header-inner-title {
+  color: var(--lct-status-modified);
 }
 .lct-folder-tree-empty {
   padding: var(--size-4-3);

@@ -76,6 +76,25 @@ export class TreeTabDecoratorService implements Service {
   protected timer: ReturnType<typeof setTimeout> | undefined = undefined;
 
   /**
+   * The `MutationObserver` watching the explorer container for lazily-rendered
+   * rows (D7), or undefined when no container is currently observed. Expanding a
+   * collapsed folder or a drag/drop mounts new `fileItems` rows WITHOUT firing a
+   * plugin event, so `snapshotsUpdate` alone misses them; a childList mutation on
+   * the container schedules a debounced re-apply that decorates the new rows. It
+   * observes childList only, never attributes, so the decorator's own class flips
+   * never re-trigger it. It is DOM we hold a handle to, not auto-cleaned, so it is
+   * disconnected on unload.
+   */
+  protected observer: MutationObserver | undefined = undefined;
+
+  /**
+   * The explorer container the {@link observer} is currently attached to, kept so
+   * the observer is only re-wired when the container element actually changes
+   * (the explorer is recreated across some layout changes). Cleared on unload.
+   */
+  protected observed: HTMLElement | undefined = undefined;
+
+  /**
    * Creates a new instance of TreeTabDecoratorService.
    *
    * @param {LineChangeTrackerPlugin} plugin - The plugin instance
@@ -98,10 +117,29 @@ export class TreeTabDecoratorService implements Service {
   }
 
   /**
-   * Applies the initial decoration once the plugin is fully loaded, so files
-   * already changed at load time are tinted without waiting for the next event.
+   * Wires the refresh triggers and applies the initial decoration. Besides the
+   * `snapshotsUpdate` fan-out ({@link refresh}), the tree must be re-decorated on
+   * two more signals that carry no plugin event (D7): a `layout-change` (the
+   * explorer can be recreated, dropping every class this decorator added) and an
+   * `active-leaf-change` (the active file changed). Both go through
+   * `plugin.registerEvent` so their refs release on plugin unload, and both only
+   * `schedule()` a debounced, `isReady()`-guarded sweep that re-attaches the
+   * lazy-row observer and re-applies the diff. The initial `schedule()` tints
+   * files already changed at load time without waiting for the next event.
    */
   public load(): void {
+    this.plugin.registerEvent(
+      this.plugin.app.workspace.on('layout-change', (): void => {
+        this.schedule();
+      }),
+    );
+
+    this.plugin.registerEvent(
+      this.plugin.app.workspace.on('active-leaf-change', (): void => {
+        this.schedule();
+      }),
+    );
+
     this.schedule();
   }
 
@@ -126,6 +164,13 @@ export class TreeTabDecoratorService implements Service {
       clearTimeout(this.timer);
       this.timer = undefined;
     }
+
+    if (this.observer) {
+      this.observer.disconnect();
+      this.observer = undefined;
+    }
+
+    this.observed = undefined;
 
     const view: NativeFileExplorerView | null = this.getExplorerView();
 
@@ -171,6 +216,8 @@ export class TreeTabDecoratorService implements Service {
     if (!view?.fileItems) {
       return;
     }
+
+    this.syncObserver(this.getExplorerContainer());
 
     const desired: Map<string, FolderDeltaStatus> = this.computeStatuses();
     const paths: Set<string> = new Set([...this.applied.keys(), ...desired.keys()]);
@@ -253,6 +300,40 @@ export class TreeTabDecoratorService implements Service {
   }
 
   /**
+   * (Re)attaches the lazy-row {@link observer} to the live explorer container.
+   * The observer is wired only when the container element actually changes (a
+   * layout change can recreate the explorer), so steady-state sweeps do not churn
+   * it; a recreated explorer disconnects the stale observer and re-observes the
+   * new container. It watches `childList` with `subtree` so any expand/collapse,
+   * drag, or filter that mounts new rows fires it, but never `attributes`, so the
+   * decorator's own class flips inside {@link apply} never re-trigger it (no
+   * feedback loop). The container is reached through the typed `View.containerEl`,
+   * not an internal, and a missing container degrades to no observer (D8).
+   *
+   * @param {HTMLElement | undefined} container - The explorer container to observe
+   */
+  protected syncObserver(container: HTMLElement | undefined): void {
+    if (!container) {
+      return;
+    }
+
+    if (this.observed === container && this.observer) {
+      return;
+    }
+
+    if (this.observer) {
+      this.observer.disconnect();
+    }
+
+    this.observer = new MutationObserver((): void => {
+      this.schedule();
+    });
+
+    this.observer.observe(container, { childList: true, subtree: true });
+    this.observed = container;
+  }
+
+  /**
    * Resolves the native file-explorer view through the local augmentation, or
    * null when no explorer leaf is open. Untyped internal access (D8) is confined
    * to this one cast so the rest of the service stays typed.
@@ -260,10 +341,31 @@ export class TreeTabDecoratorService implements Service {
    * @return {NativeFileExplorerView | null} The explorer view, or null when absent
    */
   protected getExplorerView(): NativeFileExplorerView | null {
-    const type: string = TreeTabDecoratorService.fileExplorerType;
-    const leaf: WorkspaceLeaf | undefined = this.plugin.app.workspace.getLeavesOfType(type)[0];
-    const view: View | undefined = leaf?.view;
+    const view: View | undefined = this.getExplorerLeaf()?.view;
 
     return view ? (view as unknown as NativeFileExplorerView) : null;
+  }
+
+  /**
+   * Resolves the explorer container element the lazy-row observer watches,
+   * through the typed `View.containerEl` (no internal access needed), or
+   * undefined when no explorer leaf is open. Kept separate from
+   * {@link getExplorerView} so the observer wiring stays on typed DOM.
+   *
+   * @return {HTMLElement | undefined} The explorer container, or undefined when absent
+   */
+  protected getExplorerContainer(): HTMLElement | undefined {
+    return this.getExplorerLeaf()?.view.containerEl;
+  }
+
+  /**
+   * Resolves the first open native file-explorer leaf, or undefined when none is
+   * open. The single `getLeavesOfType` lookup both the typed and the augmented
+   * accessors share.
+   *
+   * @return {WorkspaceLeaf | undefined} The explorer leaf, or undefined when absent
+   */
+  protected getExplorerLeaf(): WorkspaceLeaf | undefined {
+    return this.plugin.app.workspace.getLeavesOfType(TreeTabDecoratorService.fileExplorerType)[0];
   }
 }

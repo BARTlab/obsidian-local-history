@@ -30,6 +30,8 @@
   "setting.keep.option.file": "Zavření souboru",
   "setting.ignore-new-files.name": "Ignorovat nové soubory",
   "setting.ignore-new-files.desc": "Nesledovat změny v souborech vytvořených po zahájení sledování",
+  "setting.tree-highlight.name": "Zvýraznit změny ve stromu souborů a na kartách",
+  "setting.tree-highlight.desc": "Obarví soubory a složky v nativním průzkumníku souborů a záhlaví karet otevřených souborů podle toho, co se v této relaci změnilo (oranžová pro upravené, zelená pro přidané).",
   "setting.persist.name": "Zachovat historii mezi restarty",
   "setting.persist.desc": "Ukládat historii na disk, aby zvýraznění přečkala restart. Vyžaduje nastavení \"Uchovávat historii do\" na zavření aplikace.",
   "setting.max-entries.name": "Maximum uložených souborů",

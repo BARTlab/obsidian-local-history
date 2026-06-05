@@ -3,6 +3,7 @@ import { Inject } from '@/decorators/inject.decorator';
 import { On } from '@/decorators/on.decorator';
 import { SessionStatusHelper } from '@/helpers/session-status.helper';
 import type LineChangeTrackerPlugin from '@/main';
+import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import type { NativeFileExplorerItem, NativeFileExplorerView, NativeWorkspaceLeaf, Service } from '@/types';
 import { type MarkdownView, type View, type WorkspaceLeaf } from 'obsidian';
@@ -31,6 +32,10 @@ import { type MarkdownView, type View, type WorkspaceLeaf } from 'obsidian';
  *   whose status actually changed since the last apply are touched (D7).
  * - The classes it adds are not auto-cleaned by Obsidian, so `unload()` removes
  *   every one of them, mirroring the `StylesService` teardown pattern.
+ * - The whole decorator is gated behind the `treeHighlight` setting (D9): when it
+ *   is off, `apply()` clears every applied class and paints nothing further;
+ *   flipping it back on re-applies the current statuses live without a reload,
+ *   driven by the `settingsUpdate` fan-out.
  *
  * @implements {Service}
  */
@@ -41,6 +46,14 @@ export class TreeTabDecoratorService implements Service {
    */
   @Inject('SnapshotsService')
   protected snapshotsService: SnapshotsService;
+
+  /**
+   * Service for reading the plugin settings, used to gate the whole decorator
+   * behind the `treeHighlight` toggle (D9): off clears every applied class and
+   * paints nothing further, on re-applies the current statuses live.
+   */
+  @Inject('SettingsService')
+  protected settingsService: SettingsService;
 
   /**
    * Debounce window (ms) for a tree sweep. A burst of `snapshotsUpdate` events
@@ -180,6 +193,18 @@ export class TreeTabDecoratorService implements Service {
   }
 
   /**
+   * Re-decorates on every settings change so the `treeHighlight` toggle reacts
+   * live (D9): toggling it off makes the next scheduled {@link apply} clear every
+   * applied class, and toggling it back on re-applies the current statuses
+   * without a reload. Debounced like every other trigger; the toggle read itself
+   * happens in {@link apply}, so this stays a uniform `schedule()`.
+   */
+  @On(PluginEvent.settingsUpdate)
+  public onSettingsUpdate(): void {
+    this.schedule();
+  }
+
+  /**
    * Removes every class this decorator added from the native rows and tab headers
    * and clears its bookkeeping, so unloading the plugin leaves Obsidian's DOM
    * exactly as found (the classes are not auto-cleaned, unlike `registerEvent`
@@ -198,20 +223,7 @@ export class TreeTabDecoratorService implements Service {
 
     this.observed = undefined;
 
-    const view: NativeFileExplorerView | null = this.getExplorerView();
-
-    if (view?.fileItems) {
-      for (const item of Object.values(view.fileItems)) {
-        item?.selfEl?.classList.remove(...TreeTabDecoratorService.statusClasses);
-      }
-    }
-
-    for (const leaf of this.appliedTabs.keys()) {
-      leaf.tabHeaderEl?.classList.remove(...TreeTabDecoratorService.statusClasses);
-    }
-
-    this.applied.clear();
-    this.appliedTabs.clear();
+    this.clearAll();
   }
 
   /**
@@ -236,10 +248,18 @@ export class TreeTabDecoratorService implements Service {
    * Both sweeps are diff-based (only surfaces whose status changed are touched)
    * and `isReady()`-guarded; each degrades silently when its surface is missing
    * (D8). The tab sweep runs even when no explorer is open, so tabs stay decorated
-   * while the file tree is hidden.
+   * while the file tree is hidden. When the `treeHighlight` toggle is off (D9) the
+   * sweep instead clears every applied class and paints nothing further, so the
+   * feature can be switched off live.
    */
   protected apply(): void {
     if (!this.plugin.isReady()) {
+      return;
+    }
+
+    if (!this.settingsService.value('treeHighlight')) {
+      this.clearAll();
+
       return;
     }
 
@@ -247,6 +267,31 @@ export class TreeTabDecoratorService implements Service {
 
     this.applyRows(desired);
     this.applyTabs(desired);
+  }
+
+  /**
+   * Removes every class this decorator added from the native rows and tab headers
+   * and empties the two bookkeeping maps, WITHOUT tearing down the refresh wiring
+   * (timer, observer) the way {@link unload} does. Used when the `treeHighlight`
+   * toggle flips off so the feature clears live yet stays able to re-decorate the
+   * moment it is flipped back on. Idempotent: a second call clears nothing because
+   * the maps are already empty.
+   */
+  protected clearAll(): void {
+    const view: NativeFileExplorerView | null = this.getExplorerView();
+
+    if (view?.fileItems) {
+      for (const item of Object.values(view.fileItems)) {
+        item?.selfEl?.classList.remove(...TreeTabDecoratorService.statusClasses);
+      }
+    }
+
+    for (const leaf of this.appliedTabs.keys()) {
+      leaf.tabHeaderEl?.classList.remove(...TreeTabDecoratorService.statusClasses);
+    }
+
+    this.applied.clear();
+    this.appliedTabs.clear();
   }
 
   /**

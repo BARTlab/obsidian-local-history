@@ -30,6 +30,8 @@
   "setting.keep.option.file": "Dosya kapanışı",
   "setting.ignore-new-files.name": "Yeni dosyaları yok say",
   "setting.ignore-new-files.desc": "İzleme başladıktan sonra oluşturulan dosyalardaki değişiklikleri izleme",
+  "setting.tree-highlight.name": "Dosya ağacında ve sekmelerde değişiklikleri vurgula",
+  "setting.tree-highlight.desc": "Yerel dosya gezginindeki dosya ve klasörleri ve açık dosyaların sekme başlıklarını bu oturumda nelerin değiştiğine göre renklendirir (değiştirilen için kehribar, eklenen için yeşil).",
   "setting.persist.name": "Geçmişi yeniden başlatmalar arasında koru",
   "setting.persist.desc": "Vurgular yeniden başlatmadan sonra da kalsın diye geçmişi diske kaydet. \"Geçmişi şu zamana kadar tut\" ayarının uygulama kapanışına ayarlanmasını gerektirir.",
   "setting.max-entries.name": "Saklanan en fazla dosya",

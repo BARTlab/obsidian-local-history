@@ -30,6 +30,8 @@
   "setting.keep.option.file": "Fechamento do arquivo",
   "setting.ignore-new-files.name": "Ignorar arquivos novos",
   "setting.ignore-new-files.desc": "Não rastrear alterações em arquivos criados depois que o rastreamento começou",
+  "setting.tree-highlight.name": "Destacar alterações na árvore de arquivos e nas abas",
+  "setting.tree-highlight.desc": "Colore arquivos e pastas no explorador de arquivos nativo, e os cabeçalhos das abas dos arquivos abertos, conforme o que mudou nesta sessão (âmbar para modificado, verde para adicionado).",
   "setting.persist.name": "Manter o histórico entre reinicializações",
   "setting.persist.desc": "Salvar o histórico no disco para que os destaques sobrevivam a uma reinicialização. Requer que \"Manter o histórico até\" esteja definido como fechamento do aplicativo.",
   "setting.max-entries.name": "Máximo de arquivos armazenados",

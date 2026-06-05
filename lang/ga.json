@@ -30,6 +30,8 @@
   "setting.keep.option.file": "Dúnadh an comhad",
   "setting.ignore-new-files.name": "Déan neamhaird de chomhaid nua",
   "setting.ignore-new-files.desc": "Ná lorg athruithe i gcomhaid a cruthaíodh tar éis don lorg tosú",
+  "setting.tree-highlight.name": "Aibhsigh athruithe i gcrann na gcomhad agus sna cluaisíní",
+  "setting.tree-highlight.desc": "Dathaigh comhaid agus fillteáin i mbrabhsálaí dúchasach na gcomhad, agus ceanntásca cluaisíní na gcomhad oscailte, de réir ar athraíodh sa seisiún seo (ómra do mhodhnaithe, glas don bhreisithe).",
   "setting.persist.name": "Coinnigh an stair trí atosuithe",
   "setting.persist.desc": "Sábháil an stair ar an diosca ionas go maireann na haibhsithe trí atosú. Ní mór \"coinnigh an stair go dtí\" a shocrú ar dhúnadh an aip.",
   "setting.max-entries.name": "Uasmhéid comhad stóráilte",

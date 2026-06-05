@@ -30,6 +30,8 @@
   "setting.keep.option.file": "Zamknięcia pliku",
   "setting.ignore-new-files.name": "Ignoruj nowe pliki",
   "setting.ignore-new-files.desc": "Nie śledź zmian w plikach utworzonych po rozpoczęciu śledzenia",
+  "setting.tree-highlight.name": "Wyróżnij zmiany w drzewie plików i na kartach",
+  "setting.tree-highlight.desc": "Koloruje pliki i foldery w natywnym eksploratorze plików oraz nagłówki kart otwartych plików według tego, co zmieniło się w tej sesji (bursztyn dla zmodyfikowanych, zielony dla dodanych).",
   "setting.persist.name": "Zachowuj historię między ponownymi uruchomieniami",
   "setting.persist.desc": "Zapisuj historię na dysku, aby podświetlenia przetrwały ponowne uruchomienie. Wymaga ustawienia opcji \"Przechowuj historię do\" na zamknięcie aplikacji.",
   "setting.max-entries.name": "Maksymalna liczba przechowywanych plików",

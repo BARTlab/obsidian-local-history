@@ -30,6 +30,8 @@
   "setting.keep.option.file": "Fail ditutup",
   "setting.ignore-new-files.name": "Abaikan fail baharu",
   "setting.ignore-new-files.desc": "Jangan jejak perubahan pada fail yang dicipta selepas penjejakan bermula",
+  "setting.tree-highlight.name": "Serlahkan perubahan dalam pepohon fail dan tab",
+  "setting.tree-highlight.desc": "Warnakan fail dan folder dalam penjelajah fail asli, serta pengepala tab bagi fail yang dibuka, mengikut apa yang berubah dalam sesi ini (kuning untuk diubah, hijau untuk ditambah).",
   "setting.persist.name": "Kekalkan sejarah merentas mula semula",
   "setting.persist.desc": "Simpan sejarah ke cakera supaya sorotan kekal selepas mula semula. Memerlukan \"simpan sejarah sehingga\" ditetapkan kepada apl ditutup.",
   "setting.max-entries.name": "Maks fail tersimpan",

@@ -126,6 +126,17 @@ export class MainSetting extends PluginSettingTab {
       );
 
     new Setting(containerEl)
+      .setName(this.plugin.t('setting.tree-highlight.name'))
+      .setDesc(this.plugin.t('setting.tree-highlight.desc'))
+      .addToggle((toggle: ToggleComponent): ToggleComponent =>
+        toggle
+          .setValue(this.settingsService.value('treeHighlight'))
+          .onChange((value: boolean): void => {
+            this.settingsService.update('treeHighlight', value);
+          })
+      );
+
+    new Setting(containerEl)
       .setName(this.plugin.t('setting.persist.name'))
       .setDesc(this.plugin.t('setting.persist.desc'))
       .addToggle((toggle: ToggleComponent): ToggleComponent =>

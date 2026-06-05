@@ -30,6 +30,8 @@
   "setting.keep.option.file": "ፋይል መዘጋት",
   "setting.ignore-new-files.name": "አዲስ ፋይሎችን ችላ በል",
   "setting.ignore-new-files.desc": "ክትትል ከተጀመረ በኋላ የተፈጠሩ ፋይሎች ውስጥ ለውጦችን አትከታተል",
+  "setting.tree-highlight.name": "በፋይል ዛፍ እና ትሮች ውስጥ ለውጦችን አጉልተ",
+  "setting.tree-highlight.desc": "በቤተኛው የፋይል አሳሽ ውስጥ ያሉ ፋይሎችን እና አቃፊዎችን፣ እንዲሁም የተከፈቱ ፋይሎችን የትር አርዕስቶች በዚህ ክፍለ ጊዜ በተለወጠው መሠረት ቀለም ስጥ (ለተሻሻለ አምበር፣ ለታከለ አረንጓዴ)።",
   "setting.persist.name": "ታሪክን በዳግም ማስጀመሮች መካከል አቆይ",
   "setting.persist.desc": "ምልክቶች ዳግም ማስጀመርን እንዲተርፉ ታሪክን ወደ ዲስክ አስቀምጥ። \"ታሪክን እስከመቼ ማቆየት\" ወደ መተግበሪያ መዘጋት መዋቀር ይጠይቃል።",
   "setting.max-entries.name": "ከፍተኛ የተከማቹ ፋይሎች",

@@ -30,6 +30,8 @@
   "setting.keep.option.file": "Fájl bezárása",
   "setting.ignore-new-files.name": "Új fájlok mellőzése",
   "setting.ignore-new-files.desc": "Ne kövesse a követés indítása után létrehozott fájlok módosításait",
+  "setting.tree-highlight.name": "Változások kiemelése a fájlfában és a füleken",
+  "setting.tree-highlight.desc": "A natív fájlböngésző fájljainak és mappáinak, valamint a megnyitott fájlok fülfejléceinek színezése aszerint, hogy mi változott ebben a munkamenetben (borostyán a módosítotthoz, zöld a hozzáadotthoz).",
   "setting.persist.name": "Előzmények megőrzése újraindításokon át",
   "setting.persist.desc": "Mentse az előzményeket lemezre, hogy a kiemelések túléljenek egy újraindítást. Ehhez az \"Előzmények megőrzése eddig\" beállításnak az Alkalmazás bezárása értéken kell állnia.",
   "setting.max-entries.name": "Tárolt fájlok maximális száma",

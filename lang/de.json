@@ -30,6 +30,8 @@
   "setting.keep.option.file": "Datei schließen",
   "setting.ignore-new-files.name": "Neue Dateien ignorieren",
   "setting.ignore-new-files.desc": "Änderungen in Dateien, die nach dem Start der Erfassung erstellt wurden, nicht erfassen",
+  "setting.tree-highlight.name": "Änderungen im Dateibaum und in Tabs hervorheben",
+  "setting.tree-highlight.desc": "Färbt Dateien und Ordner im nativen Datei-Explorer sowie die Tab-Köpfe geöffneter Dateien danach, was in dieser Sitzung geändert wurde (Bernstein für geändert, Grün für hinzugefügt).",
   "setting.persist.name": "Verlauf über Neustarts hinweg beibehalten",
   "setting.persist.desc": "Verlauf auf der Festplatte speichern, damit Hervorhebungen einen Neustart überdauern. Erfordert, dass \"Verlauf behalten bis\" auf App schließen gesetzt ist.",
   "setting.max-entries.name": "Maximal gespeicherte Dateien",

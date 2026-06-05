@@ -30,6 +30,8 @@
   "setting.keep.option.file": "Filen lukkes",
   "setting.ignore-new-files.name": "Ignorer nye filer",
   "setting.ignore-new-files.desc": "Spor ikke ændringer i filer, der er oprettet, efter sporingen blev startet",
+  "setting.tree-highlight.name": "Fremhæv ændringer i filtræet og fanerne",
+  "setting.tree-highlight.desc": "Farv filer og mapper i den indbyggede filstifinder samt fanebladene for åbne filer efter, hvad der er ændret i denne session (rav for ændret, grøn for tilføjet).",
   "setting.persist.name": "Bevar historik på tværs af genstarter",
   "setting.persist.desc": "Gem historik på disken, så fremhævninger overlever en genstart. Kræver, at \"Behold historik indtil\" er sat til Appen lukkes.",
   "setting.max-entries.name": "Maks. gemte filer",

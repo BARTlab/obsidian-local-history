@@ -30,6 +30,8 @@
   "setting.keep.option.file": "File close",
   "setting.ignore-new-files.name": "Ignore new files",
   "setting.ignore-new-files.desc": "Don't track changes in files created after tracking started",
+  "setting.tree-highlight.name": "Highlight changes in file tree and tabs",
+  "setting.tree-highlight.desc": "Tint files and folders in the native file explorer, and the tab headers of open files, by what changed this session (amber for modified, green for added).",
   "setting.persist.name": "Persist history across restarts",
   "setting.persist.desc": "Save history to disk so highlights survive a restart. Requires \"keep history until\" set to app close.",
   "setting.max-entries.name": "Max stored files",

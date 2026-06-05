@@ -30,6 +30,8 @@
   "setting.keep.option.file": "Filen stängs",
   "setting.ignore-new-files.name": "Ignorera nya filer",
   "setting.ignore-new-files.desc": "Spåra inte ändringar i filer som skapats efter att spårningen startade",
+  "setting.tree-highlight.name": "Markera ändringar i filträdet och flikarna",
+  "setting.tree-highlight.desc": "Färgar filer och mappar i den inbyggda filhanteraren samt flikrubrikerna för öppna filer efter vad som ändrats i denna session (bärnsten för ändrat, grönt för tillagt).",
   "setting.persist.name": "Behåll historik mellan omstarter",
   "setting.persist.desc": "Spara historik på disk så att markeringar överlever en omstart. Kräver att \"Behåll historik tills\" är inställt på Appen stängs.",
   "setting.max-entries.name": "Max antal sparade filer",

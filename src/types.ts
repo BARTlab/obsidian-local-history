@@ -184,6 +184,11 @@ export interface LineChangeTrackerSettings {
    * Whether to ignore newly created files
    */
   ignoreNewFiles: boolean;
+  /**
+   * Whether to tint native file-explorer rows and workspace tab headers by
+   * their session change status (the tree + tab highlight feature)
+   */
+  treeHighlight: boolean;
 }
 
 /**

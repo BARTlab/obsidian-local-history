@@ -4,15 +4,17 @@ import { On } from '@/decorators/on.decorator';
 import { SessionStatusHelper } from '@/helpers/session-status.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { SnapshotsService } from '@/services/snapshots.service';
-import type { NativeFileExplorerItem, NativeFileExplorerView, Service } from '@/types';
-import type { View, WorkspaceLeaf } from 'obsidian';
+import type { NativeFileExplorerItem, NativeFileExplorerView, NativeWorkspaceLeaf, Service } from '@/types';
+import { type MarkdownView, type View, type WorkspaceLeaf } from 'obsidian';
 
 /**
- * Service that tints native Obsidian file-explorer rows by their session change
- * status (epic 11, M1). It owns no DOM of its own: it adds and removes the shared
- * `lct-tree-added` / `lct-tree-modified` classes on rows Obsidian renders
- * (`fileItems[path].selfEl`), so the file tree shows at a glance what was edited
- * or created this session, agreeing with the editor gutter by construction (D1).
+ * Service that tints native Obsidian file-explorer rows and workspace tab headers
+ * by their session change status (epic 11, M1 + M2). It owns no DOM of its own:
+ * it adds and removes the shared `lct-tree-added` / `lct-tree-modified` classes on
+ * rows Obsidian renders (`fileItems[path].selfEl`) and on the tab headers of open
+ * files (`leaf.tabHeaderEl`), so the file tree and the tab bar show at a glance
+ * what was edited or created this session, agreeing with the editor gutter by
+ * construction (D1).
  *
  * Design constraints baked in here:
  *
@@ -53,6 +55,13 @@ export class TreeTabDecoratorService implements Service {
   protected static readonly fileExplorerType: string = 'file-explorer';
 
   /**
+   * Obsidian view type id of a markdown editor leaf, the only leaves whose tab
+   * headers are decorated (a markdown leaf is the only one backed by a vault
+   * `TFile` the session status can be resolved for).
+   */
+  protected static readonly markdownType: string = 'markdown';
+
+  /**
    * The two status classes this decorator manages on native surfaces (D5: no
    * `lct-tree-deleted`). Removed wholesale from a row before the current status
    * class is re-applied so a status flip never leaves a stale colour behind.
@@ -68,6 +77,15 @@ export class TreeTabDecoratorService implements Service {
    * A path drops out of the map when it returns to `none`.
    */
   protected applied: Map<string, FolderDeltaStatus> = new Map();
+
+  /**
+   * Last status applied per decorated tab header, keyed by the leaf itself (not
+   * its path: two leaves can show the same file, and a leaf survives the file it
+   * shows changing). Lets a tab sweep mutate only headers whose status changed
+   * since the previous sweep, and gives `unload()` the exact set of leaves to
+   * clear. A leaf drops out when its status returns to `none`.
+   */
+  protected appliedTabs: Map<NativeWorkspaceLeaf, FolderDeltaStatus> = new Map();
 
   /**
    * The pending debounce timer for a scheduled sweep, or undefined when none is
@@ -118,14 +136,16 @@ export class TreeTabDecoratorService implements Service {
 
   /**
    * Wires the refresh triggers and applies the initial decoration. Besides the
-   * `snapshotsUpdate` fan-out ({@link refresh}), the tree must be re-decorated on
-   * two more signals that carry no plugin event (D7): a `layout-change` (the
-   * explorer can be recreated, dropping every class this decorator added) and an
-   * `active-leaf-change` (the active file changed). Both go through
-   * `plugin.registerEvent` so their refs release on plugin unload, and both only
-   * `schedule()` a debounced, `isReady()`-guarded sweep that re-attaches the
-   * lazy-row observer and re-applies the diff. The initial `schedule()` tints
-   * files already changed at load time without waiting for the next event.
+   * `snapshotsUpdate` fan-out ({@link refresh}), the tree and tabs must be
+   * re-decorated on three more signals that carry no plugin event (D7): a
+   * `layout-change` (the explorer or a tab bar can be recreated, dropping every
+   * class this decorator added), an `active-leaf-change` (the active leaf
+   * changed), and a `file-open` (a leaf swapped the file it shows, so its tab
+   * needs a fresh status). All go through `plugin.registerEvent` so their refs
+   * release on plugin unload, and each only `schedule()`s a debounced,
+   * `isReady()`-guarded sweep that re-attaches the lazy-row observer and
+   * re-applies the diff. The initial `schedule()` tints rows and tabs already
+   * changed at load time without waiting for the next event.
    */
   public load(): void {
     this.plugin.registerEvent(
@@ -136,6 +156,12 @@ export class TreeTabDecoratorService implements Service {
 
     this.plugin.registerEvent(
       this.plugin.app.workspace.on('active-leaf-change', (): void => {
+        this.schedule();
+      }),
+    );
+
+    this.plugin.registerEvent(
+      this.plugin.app.workspace.on('file-open', (): void => {
         this.schedule();
       }),
     );
@@ -154,10 +180,10 @@ export class TreeTabDecoratorService implements Service {
   }
 
   /**
-   * Removes every class this decorator added from the native rows and clears its
-   * bookkeeping, so unloading the plugin leaves Obsidian's DOM exactly as found
-   * (the classes are not auto-cleaned, unlike `registerEvent` refs). Mirrors the
-   * `StylesService.unload` teardown contract.
+   * Removes every class this decorator added from the native rows and tab headers
+   * and clears its bookkeeping, so unloading the plugin leaves Obsidian's DOM
+   * exactly as found (the classes are not auto-cleaned, unlike `registerEvent`
+   * refs). Mirrors the `StylesService.unload` teardown contract.
    */
   public unload(): void {
     if (this.timer !== undefined) {
@@ -180,7 +206,12 @@ export class TreeTabDecoratorService implements Service {
       }
     }
 
+    for (const leaf of this.appliedTabs.keys()) {
+      leaf.tabHeaderEl?.classList.remove(...TreeTabDecoratorService.statusClasses);
+    }
+
     this.applied.clear();
+    this.appliedTabs.clear();
   }
 
   /**
@@ -199,18 +230,36 @@ export class TreeTabDecoratorService implements Service {
   }
 
   /**
-   * Reconciles the native file rows with the current session statuses. Builds
-   * the desired status for every live snapshot, then for every previously- or
-   * newly-decorated path flips the row's class only when its status changed
-   * since the last sweep. Paths that returned to `none` have their class removed
-   * and drop out of the bookkeeping map. Guarded on `isReady()` and degrades
-   * silently when the explorer or a row is missing (D8).
+   * Reconciles the native file rows and the open-file tab headers with the
+   * current session statuses. Builds the desired status for every live snapshot
+   * once, then sweeps the explorer rows and the tab headers off the same map.
+   * Both sweeps are diff-based (only surfaces whose status changed are touched)
+   * and `isReady()`-guarded; each degrades silently when its surface is missing
+   * (D8). The tab sweep runs even when no explorer is open, so tabs stay decorated
+   * while the file tree is hidden.
    */
   protected apply(): void {
     if (!this.plugin.isReady()) {
       return;
     }
 
+    const desired: Map<string, FolderDeltaStatus> = this.computeStatuses();
+
+    this.applyRows(desired);
+    this.applyTabs(desired);
+  }
+
+  /**
+   * Reconciles the native file-explorer rows with the desired statuses. For every
+   * previously- or newly-decorated path it flips the row's class only when its
+   * status changed since the last sweep; paths that returned to `none` have their
+   * class removed and drop out of the bookkeeping map. A no-op (beyond clearing no
+   * rows) when no explorer leaf is open. Re-attaches the lazy-row observer to the
+   * live container on each sweep.
+   *
+   * @param {Map<string, FolderDeltaStatus>} desired - File/folder path to its session status
+   */
+  protected applyRows(desired: Map<string, FolderDeltaStatus>): void {
     const view: NativeFileExplorerView | null = this.getExplorerView();
 
     if (!view?.fileItems) {
@@ -219,7 +268,6 @@ export class TreeTabDecoratorService implements Service {
 
     this.syncObserver(this.getExplorerContainer());
 
-    const desired: Map<string, FolderDeltaStatus> = this.computeStatuses();
     const paths: Set<string> = new Set([...this.applied.keys(), ...desired.keys()]);
 
     for (const path of paths) {
@@ -236,6 +284,48 @@ export class TreeTabDecoratorService implements Service {
         this.applied.delete(path);
       } else {
         this.applied.set(path, next);
+      }
+    }
+  }
+
+  /**
+   * Reconciles the open markdown tab headers with the desired statuses. Resolves
+   * each markdown leaf's file, looks its status up in the file path map (folder
+   * tints never apply to a tab), and flips the header class only when it changed
+   * since the last sweep. A leaf no longer open, or whose status returned to
+   * `none`, has its class removed and drops out of the tab bookkeeping. Degrades
+   * silently when a leaf has no `tabHeaderEl` or no file (D8).
+   *
+   * @param {Map<string, FolderDeltaStatus>} desired - File/folder path to its session status
+   */
+  protected applyTabs(desired: Map<string, FolderDeltaStatus>): void {
+    const open: Map<NativeWorkspaceLeaf, FolderDeltaStatus> = new Map();
+
+    for (const leaf of this.getMarkdownLeaves()) {
+      const path: string | undefined = (leaf.view as MarkdownView)?.file?.path;
+      const status: FolderDeltaStatus = (path ? desired.get(path) : undefined) ?? FolderDeltaStatus.none;
+
+      if (status !== FolderDeltaStatus.none) {
+        open.set(leaf, status);
+      }
+    }
+
+    const leaves: Set<NativeWorkspaceLeaf> = new Set([...this.appliedTabs.keys(), ...open.keys()]);
+
+    for (const leaf of leaves) {
+      const next: FolderDeltaStatus = open.get(leaf) ?? FolderDeltaStatus.none;
+      const prev: FolderDeltaStatus | undefined = this.appliedTabs.get(leaf);
+
+      if (next === prev) {
+        continue;
+      }
+
+      this.decorateTab(leaf, next);
+
+      if (next === FolderDeltaStatus.none) {
+        this.appliedTabs.delete(leaf);
+      } else {
+        this.appliedTabs.set(leaf, next);
       }
     }
   }
@@ -287,6 +377,28 @@ export class TreeTabDecoratorService implements Service {
    */
   protected decorateRow(item: NativeFileExplorerItem | undefined, status: FolderDeltaStatus): void {
     const el: HTMLElement | undefined = item?.selfEl;
+
+    if (!el) {
+      return;
+    }
+
+    el.classList.remove(...TreeTabDecoratorService.statusClasses);
+
+    if (status !== FolderDeltaStatus.none) {
+      el.classList.add(TreeTabDecoratorService.classFor(status));
+    }
+  }
+
+  /**
+   * Sets a single tab header's status class: removes both managed classes, then
+   * adds the one for `status` unless it is `none`. A no-op when the leaf exposes
+   * no `tabHeaderEl` (an untyped internal that may be absent, D8).
+   *
+   * @param {NativeWorkspaceLeaf} leaf - The leaf whose tab header to decorate
+   * @param {FolderDeltaStatus} status - The status to paint, or `none` to clear
+   */
+  protected decorateTab(leaf: NativeWorkspaceLeaf, status: FolderDeltaStatus): void {
+    const el: HTMLElement | undefined = leaf.tabHeaderEl;
 
     if (!el) {
       return;
@@ -367,5 +479,18 @@ export class TreeTabDecoratorService implements Service {
    */
   protected getExplorerLeaf(): WorkspaceLeaf | undefined {
     return this.plugin.app.workspace.getLeavesOfType(TreeTabDecoratorService.fileExplorerType)[0];
+  }
+
+  /**
+   * Resolves every open markdown leaf, each viewed through the local
+   * {@link NativeWorkspaceLeaf} augmentation so its untyped `tabHeaderEl` is in
+   * reach (D8). Markdown leaves are the only ones backed by a vault `TFile` whose
+   * session status the tab sweep can resolve.
+   *
+   * @return {NativeWorkspaceLeaf[]} The open markdown leaves
+   */
+  protected getMarkdownLeaves(): NativeWorkspaceLeaf[] {
+    return this.plugin.app.workspace
+      .getLeavesOfType(TreeTabDecoratorService.markdownType) as NativeWorkspaceLeaf[];
   }
 }

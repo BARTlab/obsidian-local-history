@@ -1340,3 +1340,20 @@ export interface NativeFileExplorerView {
    */
   fileItems?: Record<string, NativeFileExplorerItem | undefined>;
 }
+
+/**
+ * The undocumented tab-header slice of an Obsidian `WorkspaceLeaf` (D8).
+ * `tabHeaderEl` is the `.workspace-tab-header` element rendered for the leaf in
+ * its tab bar, the node the decorator tints by its open file's session status.
+ * It is optional because it is a core internal that may move across versions, so
+ * every access stays defensive and the decorator degrades silently when it is
+ * missing. Reached through this local augmentation instead of scattered `as any`
+ * casts; the decorator never assumes the field exists.
+ */
+export interface NativeWorkspaceLeaf extends WorkspaceLeaf {
+  /**
+   * The leaf's tab-header element (`.workspace-tab-header`), the node the
+   * `lct-tree-*` status class is added to and removed from.
+   */
+  tabHeaderEl?: HTMLElement;
+}

@@ -454,3 +454,168 @@ modal rail, the recent-changes panel, and the folder tree.
   tree row for the externally-changed file at its capture T lacks the badge; an
   ancestor folder row wrongly shows the badge; the badge differs in glyph or text
   from the other surfaces; or a console error is thrown.
+
+## Native tree + tab highlight
+
+The tree/tab decorator (`TreeTabDecoratorService`,
+`src/services/tree-tab-decorator.service.ts`) tints Obsidian's OWN file-explorer
+rows and workspace tab headers by what changed this session, so "what I touched
+this run" is legible from the native surfaces, not only from inside the editor
+(gutter) or the plugin's modals. It owns no DOM: it adds and removes the shared
+status classes `lct-tree-added` and `lct-tree-modified` on rows Obsidian renders
+(`fileItems[path].selfEl`) and on the tab headers of open files
+(`leaf.tabHeaderEl`), and never re-renders the explorer (D2). Native surfaces
+carry only `added` and `modified`, never `lct-tree-deleted` (D5): a deleted file
+has no row or tab to paint, so deletes stay in the diff modal. Session status is
+the same notion the gutter uses (D1): a file created this session resolves to
+`added`, a file whose marker baseline differs now
+(`getChangesLinesCount() > 0`) resolves to `modified`. The two colours come from
+the shared `--lct-status-*` palette: `added` is green (`--color-green`),
+`modified` is amber (`--text-warning`), so a tree row, a tab, and the modal tree
+can never disagree. Ancestor folders of any changed file are tinted the single
+`modified` (amber) token (D6). Applies are debounced (100 ms) and diff-based, so
+a burst of keystrokes collapses into one trailing sweep that touches only rows
+whose status changed (D7). A `MutationObserver` on the explorer container catches
+lazily-rendered rows from expand/collapse or drag (D7). The whole decorator is
+gated by the `setting.tree-highlight` toggle (default on, D9): off clears every
+applied class live and on re-applies without a reload.
+
+For these scenarios, in DevTools you can confirm a class on a row by inspecting
+the `.nav-file-title` / `.nav-folder-title` element (the title node carries
+`lct-tree-added` or `lct-tree-modified`) and a tab by inspecting the
+`.workspace-tab-header` element; this is the same DevTools inspection the other
+sections already rely on, no source instrumentation. "This session" means since
+the current Obsidian launch: a fresh reload resets the `added` flag (it is
+transient, not persisted, D4), so build the preconditions without reloading mid
+scenario.
+
+### Scenario N1 - Modified file row tints amber
+
+- **Setup:** Have the native file explorer open with the `setting.tree-highlight`
+  toggle on (the default). Pick a tracked note that already has captured history
+  and is currently unchanged relative to its session baseline (its row shows no
+  status colour). Open DevTools and clear the console.
+- **Action:** Open that note and edit a line so its content differs from the
+  baseline (so the gutter would show a change marker), then look at the file's row
+  in the explorer.
+- **Pass:** The file's row in the explorer turns amber (the `.nav-file-title`
+  carries `lct-tree-modified`, painted from `--lct-status-modified`), matching the
+  gutter's notion of "changed now". Reverting the edit back to the baseline content
+  clears the amber within a debounce window (the `lct-tree-modified` class is
+  removed). Console stays clean.
+- **Fail:** The row never turns amber while the file differs from its baseline; the
+  amber persists after the content is reverted to baseline; the row turns green
+  instead of amber; or a console error is thrown.
+
+### Scenario N2 - Created file row tints green
+
+- **Setup:** Have the file explorer open with the toggle on. Open DevTools and
+  clear the console. Do not reload the vault during this scenario.
+- **Action:** Create a brand new note this session (e.g. via "New note" in the file
+  explorer), give it a name, and look at its row in the explorer.
+- **Pass:** The new file's row tints green (the `.nav-file-title` carries
+  `lct-tree-added`, painted from `--lct-status-added`), distinct from the amber a
+  mere edit would produce. Editing the new file further keeps it green (created
+  outranks modified). Console stays clean.
+- **Fail:** A file created this session shows no colour or shows amber instead of
+  green; an unmodified pre-existing file wrongly shows green; or a console error is
+  thrown.
+
+### Scenario N3 - Ancestor folders tint amber
+
+- **Setup:** Have the file explorer open with the toggle on and a tracked note
+  nested at least one folder deep (e.g. `Notes/Sub/file.md`). Confirm the
+  containing folders are visible (expanded) in the explorer. Clear the console.
+- **Action:** Edit the nested note so it differs from its baseline (per N1), then
+  look at every ancestor folder row up to, but not including, the vault root.
+- **Pass:** Each ancestor folder row of the changed file tints amber (each
+  `.nav-folder-title` carries `lct-tree-modified`, the single `modified` token used
+  for folders regardless of whether the descendant change was an add or a modify,
+  D6). Reverting the file to baseline clears the folder tint once no descendant
+  still differs. Console stays clean.
+- **Fail:** No ancestor folder tints while a descendant file differs; a folder with
+  no changed descendant wrongly tints; the vault-root row itself is tinted; the
+  folder tint lingers after the only changed descendant is reverted; or a console
+  error is thrown.
+
+### Scenario N4 - Tab header of an open changed file tints
+
+- **Setup:** Have the toggle on. Open a tracked note in a tab so its tab header is
+  visible in the tab bar. Clear the console.
+- **Action:** Edit the open note so it differs from its baseline (per N1) and look
+  at its tab header.
+- **Pass:** The tab header for the changed file tints by status (the
+  `.workspace-tab-header` carries `lct-tree-modified` for an edit, or
+  `lct-tree-added` for a file created this session), matching that file's row in
+  the explorer. Reverting to baseline clears the tab tint. A second tab opened on
+  the same file tints the same way (tabs are tracked per leaf, D13). Console stays
+  clean.
+- **Fail:** The tab header never tints while the open file differs from its
+  baseline; the tab tint disagrees with the file's explorer row; the tint lingers
+  after the content is reverted; or a console error is thrown.
+
+### Scenario N5 - Lazy rows decorate on expand
+
+- **Setup:** Have the toggle on and a changed (amber or green) note that lives
+  inside a folder which is currently COLLAPSED in the explorer, so the file's row
+  is not yet rendered. Clear the console.
+- **Action:** Expand the collapsed folder so the file's row mounts for the first
+  time.
+- **Pass:** The newly mounted file row already carries its status colour the moment
+  it appears (the `MutationObserver` on the explorer container schedules a debounced
+  re-apply that decorates the lazily-rendered row), without any edit or reload to
+  prompt it. Collapsing and re-expanding the folder keeps the colour. Console stays
+  clean.
+- **Fail:** The freshly expanded row appears uncoloured while the file is changed
+  and only colours after an unrelated edit or a reload; expanding a folder throws;
+  or a console error is thrown.
+
+### Scenario N6 - Debounced under rapid edits
+
+- **Setup:** Have the toggle on with a tracked note open and its row visible in the
+  explorer. Open DevTools and clear the console.
+- **Action:** Type continuously in the note for a few seconds (a steady stream of
+  keystrokes), then stop.
+- **Pass:** The explorer row and the tab settle to amber and the typing stays
+  smooth: the decorator does not repaint the tree on every keystroke (a single
+  trailing sweep runs about 100 ms after typing stops, D7). The editor shows no
+  per-keystroke stutter attributable to tree repainting. Console stays clean.
+- **Fail:** Typing visibly stutters in step with tree repaints; the row flickers on
+  every keystroke; the row fails to reach amber after typing stops; or a console
+  error is thrown.
+
+### Scenario N7 - Toggle off clears, on restores
+
+- **Setup:** Reach a state with at least one amber or green file row, its tinted
+  ancestor folders, and a tinted tab (run N1 plus N3 plus N4 first). Open the
+  plugin settings tab and locate the **"Highlight changes in file tree and tabs"**
+  toggle (`setting.tree-highlight`). Clear the console.
+- **Action:** Switch the toggle OFF, observe the explorer and tabs, then switch it
+  back ON.
+- **Pass:** Turning the toggle off clears every status colour live, with no reload:
+  the file rows, the ancestor folder rows, and the tab headers all lose their
+  `lct-tree-added` / `lct-tree-modified` classes within a debounce window. Turning
+  it back on re-paints the same rows, folders, and tabs to their current statuses,
+  again without a reload. Console stays clean.
+- **Fail:** Turning the toggle off leaves any row, folder, or tab still tinted;
+  turning it back on fails to restore the tints, or requires a reload to do so; or a
+  console error is thrown.
+
+### Scenario N8 - Full clear on plugin disable
+
+- **Setup:** Reach a state with several tinted file rows, tinted ancestor folders,
+  and at least one tinted tab (run N1 plus N3 plus N4). Open DevTools and clear the
+  console.
+- **Action:** Disable the plugin from Community plugins (or reload the vault),
+  leaving the file explorer and the same tabs open.
+- **Pass:** Every `lct-tree-added` / `lct-tree-modified` class added by the
+  decorator is removed from all explorer rows, ancestor folders, and tab headers, so
+  Obsidian's own DOM is left exactly as found (the decorator's `unload` clears all
+  its classes symmetrically). No detached or orphaned tint lingers on any native
+  surface. Console stays clean.
+- **Fail:** A status colour remains on any file row, folder row, or tab header after
+  the plugin is disabled; disabling throws; or a console error is thrown.
+
+Last verified: not yet run (authored 2026-06-05 for epic 11 T09; awaiting a manual
+pass in a real Obsidian window before the release that ships native tree/tab
+highlighting).

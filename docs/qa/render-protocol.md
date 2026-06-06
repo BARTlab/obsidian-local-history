@@ -616,6 +616,5 @@ scenario.
 - **Fail:** A status colour remains on any file row, folder row, or tab header after
   the plugin is disabled; disabling throws; or a console error is thrown.
 
-Last verified: not yet run (authored 2026-06-05 for epic 11 T09; awaiting a manual
-pass in a real Obsidian window before the release that ships native tree/tab
-highlighting).
+Last verified: 2026-06-05 (manual pass in a real Obsidian window; native tree/tab
+highlighting scenarios N1-N8 confirmed working).

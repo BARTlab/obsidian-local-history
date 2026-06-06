@@ -213,7 +213,7 @@ export class ModalsService implements Service {
    * @return {boolean} True when the snapshot lives under the folder
    */
   protected isUnderFolder(snapshot: FileSnapshot, rootPath: string): boolean {
-    const path: string = snapshot?.file?.path ?? '';
+    const path: string = snapshot?.file?.path ?? snapshot?.path ?? '';
 
     if (!path) {
       return false;

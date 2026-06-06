@@ -50,6 +50,21 @@ const makeTombstone = (
   return snapshot;
 };
 
+/**
+ * Builds a snapshot whose live `file` is null but whose carried `path` mirrors
+ * the canonical map key (epic 12): the state of a restored snapshot after a
+ * reload when `getFileByPath` did not resolve. Such a snapshot must still place
+ * onto the folder timeline by its `path`, not be dropped by an empty `file.path`.
+ */
+const makeRestoredSnapshot = (path: string, versionTimestamps: number[] = []): FileSnapshot => {
+  const snapshot: FileSnapshot = makeLiveSnapshot(path, versionTimestamps);
+
+  snapshot.file = null;
+  snapshot.path = path;
+
+  return snapshot;
+};
+
 describe('FolderTimelineHelper.synthesize - input shapes', () => {
   it('returns an empty array for an empty iterable', () => {
     expect(FolderTimelineHelper.synthesize([], 'root')).toEqual([]);
@@ -122,6 +137,53 @@ describe('FolderTimelineHelper.synthesize - kinds emitted', () => {
       FolderTimelinePointKind.moveIn,
       FolderTimelinePointKind.capture,
     ]);
+  });
+});
+
+describe('FolderTimelineHelper.synthesize - path survives a null file (epic 12)', () => {
+  it('places a restored snapshot with file = null under its folder by its carried path', () => {
+    // After a reload, a restored snapshot whose file did not resolve has
+    // file = null but keeps its canonical map-key path. The timeline must use
+    // that path so the snapshot is not dropped by an empty file.path.
+    const snapshot: FileSnapshot = makeRestoredSnapshot('folder/sub/note.md', [1_000, 2_000]);
+
+    const points: FolderTimelinePoint[] = FolderTimelineHelper.synthesize([snapshot], 'folder');
+
+    expect(points).toHaveLength(2);
+    expect(points.every((point: FolderTimelinePoint): boolean => point.path === 'folder/sub/note.md')).toBe(true);
+  });
+
+  it('filters a null-file snapshot out of an unrelated folder by its carried path', () => {
+    const snapshot: FileSnapshot = makeRestoredSnapshot('folder/sub/note.md', [1_000]);
+
+    expect(FolderTimelineHelper.synthesize([snapshot], 'other')).toEqual([]);
+  });
+
+  it('emits a delete point for a detached tombstone (file = null) by its carried path', () => {
+    // A cross-directory move leaves a detached tombstone (file = null) whose
+    // path is the source map key; its delete marker must still surface.
+    const tombstone: FileSnapshot = makeRestoredSnapshot('folder/gone.md');
+
+    tombstone.deletedTimestamp = 5_000;
+
+    const points: FolderTimelinePoint[] = FolderTimelineHelper.synthesize([tombstone], 'folder');
+
+    expect(points).toEqual([
+      expect.objectContaining({ kind: FolderTimelinePointKind.delete, timestamp: 5_000, path: 'folder/gone.md' }),
+    ]);
+  });
+
+  it('prefers the live file.path over the carried path when both are present', () => {
+    // A live snapshot may carry a stale `path` from before a re-key; the live
+    // TFile always wins so behaviour is unchanged for the live case.
+    const snapshot: FileSnapshot = makeLiveSnapshot('root/live.md', [1_000]);
+
+    snapshot.path = 'stale/old.md';
+
+    const points: FolderTimelinePoint[] = FolderTimelineHelper.synthesize([snapshot], 'root');
+
+    expect(points).toHaveLength(1);
+    expect(points[0].path).toBe('root/live.md');
   });
 });
 

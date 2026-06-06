@@ -281,6 +281,7 @@ export class SnapshotsService implements Service {
     }
 
     snapshot.file = file;
+    snapshot.path = file.path;
 
     this.fileSnapshots.delete(oldPath);
     this.fileSnapshots.set(file.path, snapshot);
@@ -338,6 +339,7 @@ export class SnapshotsService implements Service {
     const tombstone: FileSnapshot = new FileSnapshot('', snapshot.lineBreak);
 
     tombstone.file = null;
+    tombstone.path = oldPath;
     tombstone.lines = [];
     tombstone.tracker = [];
     tombstone.changes.clear();
@@ -355,6 +357,7 @@ export class SnapshotsService implements Service {
      * though its captured history is older.
      */
     snapshot.file = file;
+    snapshot.path = file.path;
     snapshot.movedIntoAt = now;
 
     this.fileSnapshots.delete(oldPath);

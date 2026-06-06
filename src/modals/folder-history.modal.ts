@@ -9,6 +9,7 @@ import { Inject } from '@/decorators/inject.decorator';
 import { FolderTreeComponent } from '@/components/folder-tree.component';
 import { DiffRenderHelper } from '@/helpers/diff-render.helper';
 import { DomHelper } from '@/helpers/dom.helper';
+import { ExternalBadgeHelper } from '@/helpers/external-badge.helper';
 import { FolderDeltaHelper } from '@/helpers/folder-delta.helper';
 import { FolderTimelineHelper } from '@/helpers/folder-timeline.helper';
 import type LineChangeTrackerPlugin from '@/main';
@@ -644,30 +645,7 @@ export class FolderHistoryModal extends Modal {
       ],
     });
 
-    this.paintExternalBadges(this.railEl);
-  }
-
-  /**
-   * Mirrors the rail / panel post-mount pass: after the DomHelper config tree
-   * is mounted, apply Obsidian's `setIcon` to every badge slot the timeline
-   * config declared. The icon id is carried as `data-icon` on the wrapper so
-   * each badge can be painted without rebuilding the rail imperatively.
-   *
-   * @param {HTMLElement} container - The rail container to scan
-   */
-  protected paintExternalBadges(container: HTMLElement): void {
-    const badges: NodeListOf<HTMLElement> = container.querySelectorAll<HTMLElement>(
-      '.lct-version-external-badge',
-    );
-
-    badges.forEach((badge: HTMLElement): void => {
-      const iconId: string | null = badge.getAttribute('data-icon');
-      const slot: HTMLElement | null = badge.querySelector<HTMLElement>('.lct-version-external-badge-icon');
-
-      if (iconId && slot) {
-        setIcon(slot, iconId);
-      }
-    });
+    ExternalBadgeHelper.paint(this.railEl);
   }
 
   /**
@@ -697,27 +675,6 @@ export class FolderHistoryModal extends Modal {
   }
 
   /**
-   * Builds the inline external-change badge config used by the timeline rail.
-   * Shape and i18n contract match the file modal rail and the recent-changes
-   * panel so the badge reads consistently across surfaces (T20 AC1/AC2/AC3).
-   *
-   * @return {DomElementConfig} The badge element config
-   */
-  protected makeExternalBadge(): DomElementConfig {
-    const text: string = this.plugin.t('version.badge.external');
-
-    return {
-      tag: 'span',
-      classes: 'lct-version-external-badge',
-      attributes: { 'aria-label': text, 'title': text, 'data-icon': 'download-cloud' },
-      children: [
-        { tag: 'span', classes: 'lct-version-external-badge-icon' },
-        { tag: 'span', classes: 'lct-version-external-badge-text', text },
-      ],
-    };
-  }
-
-  /**
    * Builds a single timeline rail entry: a label describing the event (a
    * capture / delete / move-in plus the file's short name), the time of day
    * inline, and a click that re-pins T and re-renders the tree and diff.
@@ -737,7 +694,7 @@ export class FolderHistoryModal extends Modal {
     ];
 
     if (external) {
-      labelChildren.push(this.makeExternalBadge());
+      labelChildren.push(ExternalBadgeHelper.make(this.plugin.t('version.badge.external')));
     }
 
     return {

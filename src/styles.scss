@@ -2,18 +2,28 @@
 // Single source of truth for the change-status colours. The modal folder tree
 // and the native-surface decorations (file-explorer rows, tab headers) both
 // resolve their colours from these variables so the palette is defined once.
-// Values map to Obsidian's own theme variables so light and dark themes pick up
-// the correct emphasis automatically:
-//   added    -> --color-green
-//   modified -> --text-warning (the Obsidian-standard warning hue, reads amber
-//               in both themes; tracks the theme's warning palette rather than
-//               --color-yellow directly)
-//   deleted  -> --color-red (modal palette only; native surfaces never paint
-//               deleted - a deleted file has no native row or tab, see D5)
-:root {
-  --lct-status-added: var(--color-green);
-  --lct-status-modified: var(--text-warning);
-  --lct-status-deleted: var(--color-red);
+// Values are the SAME Obsidian colour variables the editor gutter paints change
+// markers with (see StylesService: changed -> --color-blue, added ->
+// --color-orange), so a file's tree/tab/modal tint matches its gutter marker by
+// construction:
+//   added    -> --color-orange    (matches the gutter's added-line marker)
+//   modified -> --color-blue       (matches the gutter's changed-line marker)
+//   deleted  -> --color-base-100   (matches the gutter's removed-line marker;
+//               modal palette only - native surfaces never paint deleted, a
+//               deleted file has no native row or tab, see D5)
+//
+// Defined on `body`, NOT `:root`: Obsidian resolves theme colours like
+// `--text-warning` on the `.theme-dark` / `.theme-light` class it puts on
+// `body`, so those variables are EMPTY at `:root` (html). A custom property is
+// substituted at its own declaration site, so `--lct-status-modified:
+// var(--text-warning)` declared on `:root` computes to an invalid (empty) value
+// and inherits down empty even onto elements where `--text-warning` exists. On
+// `body` the theme variables are in scope, so the palette resolves and cascades
+// to every descendant (modal tree and native rows/tabs alike).
+body {
+  --lct-status-added: var(--color-orange);
+  --lct-status-modified: var(--color-blue);
+  --lct-status-deleted: var(--color-base-100);
 }
 
 /* ---- modal ---- */
@@ -1079,31 +1089,48 @@
 // file has no row or tab to paint, so deleted lives only in the diff modal.
 //
 // Native nav-item styling colours the inner text node via --nav-item-color, so
-// each rule targets the title/inner element to win over the theme default.
+// each rule targets the title/inner element. The colour is forced with
+// `!important` because Obsidian (and themes) paint stateful rows/tabs through
+// their own selectors - a focused folder (`.has-focus`), the active file
+// (`.is-active`), and the active tab (`.mod-active`/`.is-active`) all set a
+// state colour whose specificity ties or beats a plain two-class selector, so
+// the decorator's tint would silently lose the cascade on exactly those
+// surfaces. We cannot enumerate every theme's state selectors, so we override
+// the property itself rather than chase specificity. We also pin the
+// `--nav-item-color*` custom properties so themes that colour the label by
+// resolving that variable (instead of `color`) pick up the tint too.
 .nav-file-title.lct-tree-added,
 .nav-file-title.lct-tree-added .nav-file-title-content,
 .nav-folder-title.lct-tree-added,
 .nav-folder-title.lct-tree-added .nav-folder-title-content {
-  color: var(--lct-status-added);
+  --nav-item-color: var(--lct-status-added);
+  --nav-item-color-hover: var(--lct-status-added);
+  --nav-item-color-active: var(--lct-status-added);
+  color: var(--lct-status-added) !important;
 }
 
 .nav-file-title.lct-tree-modified,
 .nav-file-title.lct-tree-modified .nav-file-title-content,
 .nav-folder-title.lct-tree-modified,
 .nav-folder-title.lct-tree-modified .nav-folder-title-content {
-  color: var(--lct-status-modified);
+  --nav-item-color: var(--lct-status-modified);
+  --nav-item-color-hover: var(--lct-status-modified);
+  --nav-item-color-active: var(--lct-status-modified);
+  color: var(--lct-status-modified) !important;
 }
 
 // Tab headers: the class lands on the tab header element; the visible label is
-// the inner title node, so we tint both to override the theme's tab colour.
+// the inner title node, so we tint both. `!important` for the same reason as the
+// rows: the active tab (`.mod-active`/`.is-active`) carries a theme state colour
+// that would otherwise win over a plain two-class selector.
 .workspace-tab-header.lct-tree-added,
 .workspace-tab-header.lct-tree-added .workspace-tab-header-inner-title {
-  color: var(--lct-status-added);
+  color: var(--lct-status-added) !important;
 }
 
 .workspace-tab-header.lct-tree-modified,
 .workspace-tab-header.lct-tree-modified .workspace-tab-header-inner-title {
-  color: var(--lct-status-modified);
+  color: var(--lct-status-modified) !important;
 }
 
 .lct-folder-tree-empty {

@@ -31,6 +31,19 @@ export class SnapshotsService implements Service {
   protected fileSnapshots: ObservableMap<string, FileSnapshot> = new ObservableMap<string, FileSnapshot>();
 
   /**
+   * Vault paths of files CREATED by the user in the current app session (epic
+   * 11). Recorded by the `vault.create` handler regardless of the
+   * "ignore new files" setting, so the tree/tab decorator can paint a freshly
+   * created file as "added" even when that setting suppresses its snapshot (an
+   * ignored new file has no snapshot to carry `createdThisSession`). Transient:
+   * never persisted, so it resets to empty on restart and a created file stops
+   * reading as new once the session that made it ends. Kept in step with the
+   * snapshot map on remove/rename/move/clear so a stale path never tints a row
+   * that has since changed identity.
+   */
+  protected sessionCreatedPaths: Set<string> = new Set<string>();
+
+  /**
    * Set of files to ignore when capturing snapshots.
    * Files in this list will not have any changes tracked.
    */
@@ -163,7 +176,33 @@ export class SnapshotsService implements Service {
     }
 
     this.fileSnapshots.delete(file.path);
+    this.sessionCreatedPaths.delete(file.path);
     this.forgetExternalGuards(file.path);
+  }
+
+  /**
+   * Records that `path` was created by the user this session so the tree/tab
+   * decorator can paint it as "added" even when the "ignore new files" setting
+   * suppressed its snapshot. Called by the `vault.create` handler. Transient and
+   * never persisted (see {@link sessionCreatedPaths}).
+   *
+   * @param {string} path - The vault-relative path of the created file
+   */
+  public markCreatedThisSession(path: string): void {
+    if (path) {
+      this.sessionCreatedPaths.add(path);
+    }
+  }
+
+  /**
+   * The set of vault paths created by the user this session. Read by the
+   * tree/tab decorator to tint created files as "added" independently of whether
+   * a snapshot exists for them.
+   *
+   * @return {ReadonlySet<string>} The session-created paths
+   */
+  public getSessionCreatedPaths(): ReadonlySet<string> {
+    return this.sessionCreatedPaths;
   }
 
   /**
@@ -245,6 +284,7 @@ export class SnapshotsService implements Service {
 
     this.fileSnapshots.delete(oldPath);
     this.fileSnapshots.set(file.path, snapshot);
+    this.rekeySessionCreated(oldPath, file.path);
     this.forgetExternalGuards(oldPath);
   }
 
@@ -320,6 +360,22 @@ export class SnapshotsService implements Service {
     this.fileSnapshots.delete(oldPath);
     this.fileSnapshots.set(file.path, snapshot);
     this.fileSnapshots.set(oldPath, tombstone);
+    this.rekeySessionCreated(oldPath, file.path);
+  }
+
+  /**
+   * Moves a session-created mark from `oldPath` to `newPath` when the file is
+   * renamed or moved, so a file created this session keeps reading as "added"
+   * at its new path and the stale old path drops out. A no-op when the file was
+   * not created this session.
+   *
+   * @param {string} oldPath - The path the file used to live at
+   * @param {string} newPath - The path the file now lives at
+   */
+  protected rekeySessionCreated(oldPath: string, newPath: string): void {
+    if (this.sessionCreatedPaths.delete(oldPath)) {
+      this.sessionCreatedPaths.add(newPath);
+    }
   }
 
   /**
@@ -328,6 +384,7 @@ export class SnapshotsService implements Service {
    */
   public clear(): void {
     this.fileSnapshots.clear();
+    this.sessionCreatedPaths.clear();
 
     for (const timer of this.externalDebounceTimers.values()) {
       clearTimeout(timer);

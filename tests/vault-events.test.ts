@@ -201,6 +201,7 @@ describe('VaultCreateEvent', () => {
       addToIgnoreList: jest.Mock;
       capture: jest.Mock;
       getOne: jest.Mock;
+      markCreatedThisSession: jest.Mock;
     };
   } => {
     const snapshots = {
@@ -208,6 +209,7 @@ describe('VaultCreateEvent', () => {
       addToIgnoreList: jest.fn(),
       capture: jest.fn().mockReturnValue(Promise.resolve()),
       getOne: jest.fn().mockReturnValue(snapshot),
+      markCreatedThisSession: jest.fn(),
     };
     const settings = { value: jest.fn().mockReturnValue(ignoreNewFiles) };
     const plugin = {
@@ -267,6 +269,16 @@ describe('VaultCreateEvent', () => {
 
     expect(snapshots.addToIgnoreList).toHaveBeenCalledTimes(1);
     expect(snapshots.addToIgnoreList).toHaveBeenCalledWith(file);
+    expect(snapshots.capture).not.toHaveBeenCalled();
+  });
+
+  it('records the created path even when ignoreNewFiles is on (epic 11)', () => {
+    const { event, snapshots } = makeCreateContext(true);
+    const file: TFile = makeFile('notes/sub/fresh.md');
+
+    event.handler(file);
+
+    expect(snapshots.markCreatedThisSession).toHaveBeenCalledWith('notes/sub/fresh.md');
     expect(snapshots.capture).not.toHaveBeenCalled();
   });
 

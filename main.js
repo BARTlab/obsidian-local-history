@@ -2638,6 +2638,7 @@ var _VaultCreateEvent = class _VaultCreateEvent extends BaseEvent {
     if (!(file instanceof import_obsidian5.TFile)) {
       return;
     }
+    this.snapshotsService.markCreatedThisSession(file.path);
     if (this.settingsService.value("ignoreNewFiles")) {
       if (this.snapshotsService.isInAllowedExtensions(file)) {
         this.snapshotsService.addToIgnoreList(file);
@@ -24349,6 +24350,18 @@ var _SnapshotsService = class _SnapshotsService {
      */
     this.fileSnapshots = new ObservableMap();
     /**
+     * Vault paths of files CREATED by the user in the current app session (epic
+     * 11). Recorded by the `vault.create` handler regardless of the
+     * "ignore new files" setting, so the tree/tab decorator can paint a freshly
+     * created file as "added" even when that setting suppresses its snapshot (an
+     * ignored new file has no snapshot to carry `createdThisSession`). Transient:
+     * never persisted, so it resets to empty on restart and a created file stops
+     * reading as new once the session that made it ends. Kept in step with the
+     * snapshot map on remove/rename/move/clear so a stale path never tints a row
+     * that has since changed identity.
+     */
+    this.sessionCreatedPaths = /* @__PURE__ */ new Set();
+    /**
      * Set of files to ignore when capturing snapshots.
      * Files in this list will not have any changes tracked.
      */
@@ -24451,7 +24464,31 @@ var _SnapshotsService = class _SnapshotsService {
       return;
     }
     this.fileSnapshots.delete(file.path);
+    this.sessionCreatedPaths.delete(file.path);
     this.forgetExternalGuards(file.path);
+  }
+  /**
+   * Records that `path` was created by the user this session so the tree/tab
+   * decorator can paint it as "added" even when the "ignore new files" setting
+   * suppressed its snapshot. Called by the `vault.create` handler. Transient and
+   * never persisted (see {@link sessionCreatedPaths}).
+   *
+   * @param {string} path - The vault-relative path of the created file
+   */
+  markCreatedThisSession(path) {
+    if (path) {
+      this.sessionCreatedPaths.add(path);
+    }
+  }
+  /**
+   * The set of vault paths created by the user this session. Read by the
+   * tree/tab decorator to tint created files as "added" independently of whether
+   * a snapshot exists for them.
+   *
+   * @return {ReadonlySet<string>} The session-created paths
+   */
+  getSessionCreatedPaths() {
+    return this.sessionCreatedPaths;
   }
   /**
    * Drops any per-path debounce timer, in-flight marker, and last-seen stat
@@ -24520,6 +24557,7 @@ var _SnapshotsService = class _SnapshotsService {
     snapshot.file = file;
     this.fileSnapshots.delete(oldPath);
     this.fileSnapshots.set(file.path, snapshot);
+    this.rekeySessionCreated(oldPath, file.path);
     this.forgetExternalGuards(oldPath);
   }
   /**
@@ -24574,6 +24612,21 @@ var _SnapshotsService = class _SnapshotsService {
     this.fileSnapshots.delete(oldPath);
     this.fileSnapshots.set(file.path, snapshot);
     this.fileSnapshots.set(oldPath, tombstone);
+    this.rekeySessionCreated(oldPath, file.path);
+  }
+  /**
+   * Moves a session-created mark from `oldPath` to `newPath` when the file is
+   * renamed or moved, so a file created this session keeps reading as "added"
+   * at its new path and the stale old path drops out. A no-op when the file was
+   * not created this session.
+   *
+   * @param {string} oldPath - The path the file used to live at
+   * @param {string} newPath - The path the file now lives at
+   */
+  rekeySessionCreated(oldPath, newPath) {
+    if (this.sessionCreatedPaths.delete(oldPath)) {
+      this.sessionCreatedPaths.add(newPath);
+    }
   }
   /**
    * Clears all snapshots from the service.
@@ -24581,6 +24634,7 @@ var _SnapshotsService = class _SnapshotsService {
    */
   clear() {
     this.fileSnapshots.clear();
+    this.sessionCreatedPaths.clear();
     for (const timer of this.externalDebounceTimers.values()) {
       clearTimeout(timer);
     }
@@ -25633,6 +25687,9 @@ var _TreeTabDecoratorService = class _TreeTabDecoratorService {
       if (status !== "none" /* none */) {
         statuses.set(path, status);
       }
+    }
+    for (const path of this.snapshotsService.getSessionCreatedPaths()) {
+      statuses.set(path, "added" /* added */);
     }
     const filePaths = [...statuses.keys()];
     for (const folder of SessionStatusHelper.ancestorFolderPaths(filePaths)) {

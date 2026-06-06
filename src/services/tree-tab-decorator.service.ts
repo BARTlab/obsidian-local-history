@@ -402,6 +402,17 @@ export class TreeTabDecoratorService implements Service {
       }
     }
 
+    /**
+     * Files the user created this session read as `added` even when the
+     * "ignore new files" setting suppressed their snapshot (epic 11): such a
+     * file has no snapshot above, so its status comes from the session-created
+     * path set instead. `added` overrides any `modified` already set for the
+     * same path (created-this-session is the more informative read, D4).
+     */
+    for (const path of this.snapshotsService.getSessionCreatedPaths()) {
+      statuses.set(path, FolderDeltaStatus.added);
+    }
+
     const filePaths: string[] = [...statuses.keys()];
 
     for (const folder of SessionStatusHelper.ancestorFolderPaths(filePaths)) {

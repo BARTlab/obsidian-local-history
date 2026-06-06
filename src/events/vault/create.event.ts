@@ -68,6 +68,14 @@ export class VaultCreateEvent extends BaseEvent {
       return;
     }
 
+    /**
+     * Record the created path for the tree/tab decorator BEFORE the ignore-list
+     * branch (epic 11). A file created this session reads as "added" in the tree
+     * even when "ignore new files" is on and therefore no snapshot exists to
+     * carry `createdThisSession`; the decorator paints it from this path set.
+     */
+    this.snapshotsService.markCreatedThisSession(file.path);
+
     if (this.settingsService.value('ignoreNewFiles')) {
       if (this.snapshotsService.isInAllowedExtensions(file)) {
         this.snapshotsService.addToIgnoreList(file);

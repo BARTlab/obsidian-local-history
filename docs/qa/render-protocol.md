@@ -168,6 +168,8 @@ default and selects the latest captured version as the diff base.
   none does; the side-by-side columns do not scroll together; a toggle takes
   noticeably longer than ~300 ms on the small file; or a console error is thrown.
 
+Last verified: 2026-06-05 on Obsidian 1.12.7, plugin commit 5e84292.
+
 ## Folder-history modal
 
 The folder modal (`src/modals/folder-history.modal.ts`) renders a three-column
@@ -266,6 +268,8 @@ newest timeline point's T. It is opened from the file explorer: right-click a
   pick; the diff pane stays blank for a file that differs at the new T; the pick
   takes noticeably longer than ~300 ms; or a console error is thrown.
 
+Last verified: 2026-06-05 on Obsidian 1.12.7, plugin commit 5e84292.
+
 ## Recent-changes view
 
 The recent-changes view (`src/views/recent-changes.view.ts`) is a right-sidebar
@@ -328,6 +332,8 @@ calls `plugin.revealRecentChanges()`.
   the panel shows a blank list instead of the hint; switching back does not
   restore the list; or a console error is thrown.
 
+Last verified: 2026-06-05 on Obsidian 1.12.7, plugin commit 5e84292.
+
 ## Gutter markers
 
 The change gutter is two CodeMirror extensions registered per editor:
@@ -389,6 +395,8 @@ a single **Show changes** toggle (`menu.show-changes`).
   run; the marker lands on the wrong line (not the line after the deletion);
   restoring the deleted text leaves the marker behind; or a console error is
   thrown.
+
+Last verified: 2026-06-05 on Obsidian 1.12.7, plugin commit 5e84292.
 
 ## External-change badge
 
@@ -454,6 +462,8 @@ modal rail, the recent-changes panel, and the folder tree.
   tree row for the externally-changed file at its capture T lacks the badge; an
   ancestor folder row wrongly shows the badge; the badge differs in glyph or text
   from the other surfaces; or a console error is thrown.
+
+Last verified: 2026-06-05 on Obsidian 1.12.7, plugin commit 5e84292.
 
 ## Native tree + tab highlight
 
@@ -616,5 +626,4 @@ scenario.
 - **Fail:** A status colour remains on any file row, folder row, or tab header after
   the plugin is disabled; disabling throws; or a console error is thrown.
 
-Last verified: 2026-06-05 (manual pass in a real Obsidian window; native tree/tab
-highlighting scenarios N1-N8 confirmed working).
+Last verified: 2026-06-05 on Obsidian 1.12.7, plugin commit 5e84292.

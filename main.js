@@ -17163,10 +17163,12 @@ var _FolderTimelineHelper = class _FolderTimelineHelper {
   }
   /**
    * Resolves the vault-relative path of a snapshot. Prefers the attached
-   * `file.path` (live snapshots own a `TFile`), and falls back to scanning the
-   * map key out of `file?.path` only - tombstones built by `markDeleted`/`markMoved`
-   * keep their pre-delete `TFile` reference, so the path stays correct without
-   * the caller having to pass the map key separately.
+   * `file.path` (live snapshots own a `TFile`), and falls back to the
+   * snapshot's carried `path` (epic 12), which mirrors the canonical map key in
+   * `SnapshotsService.fileSnapshots`. The fallback is what keeps a restored
+   * snapshot whose `file` did not resolve (restore miss, detached tombstone or
+   * orphan) on the timeline after a reload, instead of being dropped by an empty
+   * path.
    *
    * A snapshot without any usable path (defensive: not expected in practice)
    * contributes nothing to the timeline.
@@ -17175,8 +17177,8 @@ var _FolderTimelineHelper = class _FolderTimelineHelper {
    * @return {string} The vault-relative path, or `''` when missing
    */
   static pathOf(snapshot) {
-    var _a, _b;
-    return (_b = (_a = snapshot == null ? void 0 : snapshot.file) == null ? void 0 : _a.path) != null ? _b : "";
+    var _a, _b, _c;
+    return (_c = (_b = (_a = snapshot == null ? void 0 : snapshot.file) == null ? void 0 : _a.path) != null ? _b : snapshot == null ? void 0 : snapshot.path) != null ? _c : "";
   }
   /**
    * Strips a trailing slash from the root prefix so the matcher does not have
@@ -17243,9 +17245,9 @@ var _FolderHistoryModal = class _FolderHistoryModal extends import_obsidian16.Mo
     this.rootPath = rootPath;
     this.snapshotsByPath = new Map(
       snapshots.map((snapshot) => {
-        var _a, _b;
+        var _a, _b, _c;
         return [
-          (_b = (_a = snapshot == null ? void 0 : snapshot.file) == null ? void 0 : _a.path) != null ? _b : "",
+          (_c = (_b = (_a = snapshot == null ? void 0 : snapshot.file) == null ? void 0 : _a.path) != null ? _b : snapshot == null ? void 0 : snapshot.path) != null ? _c : "",
           snapshot
         ];
       })
@@ -20295,8 +20297,8 @@ var _ModalsService = class _ModalsService {
    * @return {boolean} True when the snapshot lives under the folder
    */
   isUnderFolder(snapshot, rootPath) {
-    var _a, _b;
-    const path = (_b = (_a = snapshot == null ? void 0 : snapshot.file) == null ? void 0 : _a.path) != null ? _b : "";
+    var _a, _b, _c;
+    const path = (_c = (_b = (_a = snapshot == null ? void 0 : snapshot.file) == null ? void 0 : _a.path) != null ? _b : snapshot == null ? void 0 : snapshot.path) != null ? _c : "";
     if (!path) {
       return false;
     }
@@ -22980,6 +22982,10 @@ var _TrackerEditor = class _TrackerEditor {
     }
     if (existedInOriginal) {
       found.remove();
+      const lastLine = this.lastCurrentLine(tracker);
+      if (lastLine >= 0 && found.removedAtPosition > lastLine) {
+        found.removedAtPosition = lastLine;
+      }
     } else {
       this.removeTrackerLine(tracker, found);
     }
@@ -22999,6 +23005,23 @@ var _TrackerEditor = class _TrackerEditor {
     tracker.push(item);
     this.index.invalidate();
     return item;
+  }
+  /**
+   * Returns the highest current line position present in the document, or -1 when
+   * no line currently exists. Used to clamp a removed-line anchor so it can never
+   * point past the last real line (epic 13).
+   *
+   * @param {TrackerLine[]} tracker - The shared tracker array to scan
+   * @return {number} The last current line index, or -1 when the document is empty
+   */
+  lastCurrentLine(tracker) {
+    let last = -1;
+    for (const item of tracker) {
+      if (item.existedInCurrent && item.currentPosition > last) {
+        last = item.currentPosition;
+      }
+    }
+    return last;
   }
   /**
    * Removes a tracker line from the snapshot.
@@ -23746,6 +23769,17 @@ var _FileSnapshot = class _FileSnapshot {
      */
     this.lineBreak = "\n";
     /**
+     * Canonical vault-relative path of the snapshot, decoupled from a live
+     * `TFile` (epic 12). This mirrors the key the snapshot is stored under in
+     * `SnapshotsService.fileSnapshots` and survives a reload: a restored snapshot
+     * whose `file` did not resolve (restore miss, tombstone, orphan, detached
+     * cross-directory move) still carries its path here, so folder-history path
+     * resolution no longer depends on `file?.path` being non-null. Every map
+     * insert in `SnapshotsService` sets this field; `toJSON` persists it
+     * (`file?.path ?? path`) and `fromJSON` restores it from the serialized path.
+     */
+    this.path = "";
+    /**
      * Transient "added in this app run" marker (epic 11, D4): set to `true` only
      * when the file was created by the user in the vault during the current
      * session (the post-layout-ready `vault.create` capture path stamps it). It
@@ -23763,6 +23797,7 @@ var _FileSnapshot = class _FileSnapshot {
     }
     if (file) {
       this.file = file;
+      this.path = file.path;
     }
     this.lines = (_a = content == null ? void 0 : content.split(this.lineBreak)) != null ? _a : [];
     this.historyLines = [...this.lines];
@@ -23788,7 +23823,7 @@ var _FileSnapshot = class _FileSnapshot {
   toJSON() {
     var _a, _b;
     const payload = {
-      path: (_b = (_a = this.file) == null ? void 0 : _a.path) != null ? _b : "",
+      path: (_b = (_a = this.file) == null ? void 0 : _a.path) != null ? _b : this.path,
       lineBreak: this.lineBreak,
       timestamp: this.timestamp,
       lines: [...this.historyLines],
@@ -23825,6 +23860,7 @@ var _FileSnapshot = class _FileSnapshot {
       lineBreak,
       file
     );
+    snapshot.path = isString_default(data.path) ? data.path : snapshot.path;
     snapshot.timestamp = isNumber_default(data.timestamp) ? data.timestamp : Date.now();
     snapshot.tracker = tracker.map((line) => TrackerLine.fromJSON(line));
     snapshot.versions = VersionCodec.decode(data.versions, lineBreak);
@@ -24555,6 +24591,7 @@ var _SnapshotsService = class _SnapshotsService {
       return;
     }
     snapshot.file = file;
+    snapshot.path = file.path;
     this.fileSnapshots.delete(oldPath);
     this.fileSnapshots.set(file.path, snapshot);
     this.rekeySessionCreated(oldPath, file.path);
@@ -24597,6 +24634,7 @@ var _SnapshotsService = class _SnapshotsService {
     const now = Date.now();
     const tombstone = new FileSnapshot("", snapshot.lineBreak);
     tombstone.file = null;
+    tombstone.path = oldPath;
     tombstone.lines = [];
     tombstone.tracker = [];
     tombstone.changes.clear();
@@ -24608,6 +24646,7 @@ var _SnapshotsService = class _SnapshotsService {
     tombstone.timestamp = snapshot.timestamp;
     tombstone.deletedTimestamp = now;
     snapshot.file = file;
+    snapshot.path = file.path;
     snapshot.movedIntoAt = now;
     this.fileSnapshots.delete(oldPath);
     this.fileSnapshots.set(file.path, snapshot);

@@ -207,7 +207,7 @@ export class FolderHistoryModal extends Modal {
     this.rootPath = rootPath;
     this.snapshotsByPath = new Map<string, FileSnapshot>(
       snapshots.map((snapshot: FileSnapshot): [string, FileSnapshot] => [
-        snapshot?.file?.path ?? '',
+        snapshot?.file?.path ?? snapshot?.path ?? '',
         snapshot,
       ]),
     );

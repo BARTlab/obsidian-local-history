@@ -118,10 +118,12 @@ export class FolderTimelineHelper {
 
   /**
    * Resolves the vault-relative path of a snapshot. Prefers the attached
-   * `file.path` (live snapshots own a `TFile`), and falls back to scanning the
-   * map key out of `file?.path` only - tombstones built by `markDeleted`/`markMoved`
-   * keep their pre-delete `TFile` reference, so the path stays correct without
-   * the caller having to pass the map key separately.
+   * `file.path` (live snapshots own a `TFile`), and falls back to the
+   * snapshot's carried `path` (epic 12), which mirrors the canonical map key in
+   * `SnapshotsService.fileSnapshots`. The fallback is what keeps a restored
+   * snapshot whose `file` did not resolve (restore miss, detached tombstone or
+   * orphan) on the timeline after a reload, instead of being dropped by an empty
+   * path.
    *
    * A snapshot without any usable path (defensive: not expected in practice)
    * contributes nothing to the timeline.
@@ -130,7 +132,7 @@ export class FolderTimelineHelper {
    * @return {string} The vault-relative path, or `''` when missing
    */
   protected static pathOf(snapshot: FileSnapshot): string {
-    return snapshot?.file?.path ?? '';
+    return snapshot?.file?.path ?? snapshot?.path ?? '';
   }
 
   /**

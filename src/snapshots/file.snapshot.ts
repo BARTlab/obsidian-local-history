@@ -122,6 +122,18 @@ export class FileSnapshot {
   public file?: TFile | null;
 
   /**
+   * Canonical vault-relative path of the snapshot, decoupled from a live
+   * `TFile` (epic 12). This mirrors the key the snapshot is stored under in
+   * `SnapshotsService.fileSnapshots` and survives a reload: a restored snapshot
+   * whose `file` did not resolve (restore miss, tombstone, orphan, detached
+   * cross-directory move) still carries its path here, so folder-history path
+   * resolution no longer depends on `file?.path` being non-null. Every map
+   * insert in `SnapshotsService` sets this field; `toJSON` persists it
+   * (`file?.path ?? path`) and `fromJSON` restores it from the serialized path.
+   */
+  public path: string = '';
+
+  /**
    * Tombstone marker (D1): the timestamp (ms) at which the underlying file was
    * deleted in the vault. While this is set, the snapshot represents a deleted
    * file whose final state and history are preserved for inspection and restore;
@@ -167,6 +179,7 @@ export class FileSnapshot {
 
     if (file) {
       this.file = file;
+      this.path = file.path;
     }
 
     this.lines = content?.split(this.lineBreak) ?? [];
@@ -203,7 +216,7 @@ export class FileSnapshot {
    */
   public toJSON(): SerializedFileSnapshot {
     const payload: SerializedFileSnapshot = {
-      path: this.file?.path ?? '',
+      path: this.file?.path ?? this.path,
       lineBreak: this.lineBreak,
       timestamp: this.timestamp,
       lines: [...this.historyLines],
@@ -255,6 +268,14 @@ export class FileSnapshot {
       file,
     );
 
+    /**
+     * The serialized path is the canonical map key (epic 12). Seed it onto the
+     * snapshot so a restored entry whose `file` did not resolve still resolves
+     * its folder path without a live `TFile`. A `file`-bearing restore keeps the
+     * same value (the key equals `file.path`), so this never disagrees with the
+     * constructor's path seed.
+     */
+    snapshot.path = isString(data.path) ? data.path : snapshot.path;
     snapshot.timestamp = isNumber(data.timestamp) ? data.timestamp : Date.now();
     snapshot.tracker = tracker.map((line): TrackerLine => TrackerLine.fromJSON(line));
     snapshot.versions = VersionCodec.decode(data.versions, lineBreak);

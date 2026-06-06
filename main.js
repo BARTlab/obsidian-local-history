@@ -25715,10 +25715,10 @@ var _TreeTabDecoratorService = class _TreeTabDecoratorService {
    * @return {Map<string, FolderDeltaStatus>} File/folder path to its session status
    */
   computeStatuses() {
-    var _a;
+    var _a, _b;
     const statuses = /* @__PURE__ */ new Map();
     for (const snapshot of this.snapshotsService.getList()) {
-      const path = (_a = snapshot.file) == null ? void 0 : _a.path;
+      const path = (_b = (_a = snapshot.file) == null ? void 0 : _a.path) != null ? _b : snapshot.path;
       if (!path) {
         continue;
       }

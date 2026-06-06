@@ -389,7 +389,15 @@ export class TreeTabDecoratorService implements Service {
     const statuses: Map<string, FolderDeltaStatus> = new Map();
 
     for (const snapshot of this.snapshotsService.getList()) {
-      const path: string | undefined = snapshot.file?.path;
+      /**
+       * Resolve the path without depending on a live `TFile` (epic 12). After a
+       * reload a restored snapshot has `file == null` until it is re-captured
+       * this session, so `file?.path` alone drops it from the tint map and the
+       * folder stops painting even though its `modified` status survives the
+       * restart (epic 11 intent). The carried `path` mirrors the map key and is
+       * the same fallback the folder-history readers use.
+       */
+      const path: string | undefined = snapshot.file?.path ?? snapshot.path;
 
       if (!path) {
         continue;

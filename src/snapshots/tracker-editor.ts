@@ -305,6 +305,23 @@ export class TrackerEditor {
 
     if (existedInOriginal) {
       found.remove();
+
+      /**
+       * Epic 13: keep the removed-line anchor on a real line. A block replaced by
+       * a different line count is processed as delete + insert, removing the
+       * doomed originals AFTER the replacements are inserted; each insert advances
+       * the removed anchors (shiftUpRemoved). When the replaced block sits at the
+       * document end (or the whole document is replaced, e.g. an empty file typed
+       * full of new lines), the anchor is shifted past the last real line and the
+       * removed gutter, which can only mark a real line, orphans it above the
+       * title. Clamp the anchor to the last current line so the marker stays bound
+       * to a real line at the bottom (the conventional "removed below here" spot).
+       */
+      const lastLine: number = this.lastCurrentLine(tracker);
+
+      if (lastLine >= 0 && found.removedAtPosition > lastLine) {
+        found.removedAtPosition = lastLine;
+      }
     } else {
       this.removeTrackerLine(tracker, found);
     }
@@ -333,6 +350,26 @@ export class TrackerEditor {
     this.index.invalidate();
 
     return item;
+  }
+
+  /**
+   * Returns the highest current line position present in the document, or -1 when
+   * no line currently exists. Used to clamp a removed-line anchor so it can never
+   * point past the last real line (epic 13).
+   *
+   * @param {TrackerLine[]} tracker - The shared tracker array to scan
+   * @return {number} The last current line index, or -1 when the document is empty
+   */
+  protected lastCurrentLine(tracker: TrackerLine[]): number {
+    let last: number = -1;
+
+    for (const item of tracker) {
+      if (item.existedInCurrent && item.currentPosition > last) {
+        last = item.currentPosition;
+      }
+    }
+
+    return last;
   }
 
   /**

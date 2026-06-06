@@ -518,7 +518,18 @@ export class SnapshotsService implements Service {
         continue;
       }
 
-      this.fileSnapshots.set(data.path, FileSnapshot.fromJSON(data, file));
+      /**
+       * A file that exists but was not captured this session yet: reconstruct it
+       * from disk, then collapse its session marker baseline onto the current
+       * state so it starts session-clean. Without this the restored snapshot
+       * carries its full history diff and the tree/tab decorator (which reads
+       * snapshots without opening them) would paint its folder as changed on a
+       * fresh launch, before the user edits anything this session.
+       */
+      const restored: FileSnapshot = FileSnapshot.fromJSON(data, file);
+
+      restored.resetMarkerBaseline();
+      this.fileSnapshots.set(data.path, restored);
     }
   }
 

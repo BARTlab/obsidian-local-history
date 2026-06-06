@@ -1,5 +1,6 @@
 import { PluginEvent, RECENT_CHANGES_VIEW_TYPE } from '@/consts';
 import { DomHelper } from '@/helpers/dom.helper';
+import { ExternalBadgeHelper } from '@/helpers/external-badge.helper';
 import { VersionLabelHelper } from '@/helpers/version-label.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ModalsService } from '@/services/modals.service';
@@ -8,7 +9,7 @@ import type { VersionActionsService } from '@/services/version-actions.service';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FileVersion } from '@/snapshots/file.version';
 import type { DomElementConfig, VersionDescription } from '@/types';
-import { type IconName, ItemView, Menu, type MenuItem, type TFile, type WorkspaceLeaf, setIcon } from 'obsidian';
+import { type IconName, ItemView, Menu, type MenuItem, type TFile, type WorkspaceLeaf } from 'obsidian';
 
 /**
  * Right-sidebar navigator for the active file's version timeline (D3).
@@ -208,30 +209,7 @@ export class RecentChangesView extends ItemView {
       ),
     });
 
-    this.paintExternalBadges(this.listEl);
-  }
-
-  /**
-   * Mirrors `HistoryModal.paintExternalBadges`: after the DomHelper config tree
-   * is mounted, apply Obsidian's `setIcon` to every badge slot the row config
-   * declared. The badge text and icon id (`data-icon` on the wrapper) match the
-   * rail's badge so external versions read consistently across surfaces (AC2).
-   *
-   * @param {HTMLElement} container - The list container to scan
-   */
-  protected paintExternalBadges(container: HTMLElement): void {
-    const badges: NodeListOf<HTMLElement> = container.querySelectorAll<HTMLElement>(
-      '.lct-version-external-badge',
-    );
-
-    badges.forEach((badge: HTMLElement): void => {
-      const iconId: string | null = badge.getAttribute('data-icon');
-      const slot: HTMLElement | null = badge.querySelector<HTMLElement>('.lct-version-external-badge-icon');
-
-      if (iconId && slot) {
-        setIcon(slot, iconId);
-      }
-    });
+    ExternalBadgeHelper.paint(this.listEl);
   }
 
   /**
@@ -263,7 +241,7 @@ export class RecentChangesView extends ItemView {
     ];
 
     if (version.isExternal()) {
-      labelChildren.push(this.makeExternalBadge());
+      labelChildren.push(ExternalBadgeHelper.make(this.plugin.t('version.badge.external')));
     }
 
     const children: DomElementConfig[] = [
@@ -287,31 +265,6 @@ export class RecentChangesView extends ItemView {
         },
       },
       children,
-    };
-  }
-
-  /**
-   * Builds the inline external-change badge config (D13, T20). Mirrors the
-   * rail's badge shape so the panel and the modal feel consistent: a Lucide
-   * `download-cloud` icon paired with a short text label, wrapped in an
-   * `aria-label`-tagged span so assistive tech announces the marker. The icon
-   * id is carried as `data-icon` so {@link paintExternalBadges} can mount the
-   * glyph after DomHelper builds the config tree. The text ships as an inline
-   * English literal and is propagated to every catalog in T15.
-   *
-   * @return {DomElementConfig} The badge element config
-   */
-  protected makeExternalBadge(): DomElementConfig {
-    const text: string = this.plugin.t('version.badge.external');
-
-    return {
-      tag: 'span',
-      classes: 'lct-version-external-badge',
-      attributes: { 'aria-label': text, 'title': text, 'data-icon': 'download-cloud' },
-      children: [
-        { tag: 'span', classes: 'lct-version-external-badge-icon' },
-        { tag: 'span', classes: 'lct-version-external-badge-text', text },
-      ],
     };
   }
 

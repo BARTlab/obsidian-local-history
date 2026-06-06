@@ -3,6 +3,7 @@ import { Inject } from '@/decorators/inject.decorator';
 import { BaseContentHelper } from '@/helpers/base-content.helper';
 import { DiffRenderHelper } from '@/helpers/diff-render.helper';
 import { DomHelper } from '@/helpers/dom.helper';
+import { ExternalBadgeHelper } from '@/helpers/external-badge.helper';
 import { HunkHelper } from '@/helpers/hunk.helper';
 import { ListSelectionHelper } from '@/helpers/list-selection.helper';
 import { NavigationHelper } from '@/helpers/navigation.helper';
@@ -1547,32 +1548,7 @@ export class HistoryModal extends Modal {
       ],
     });
 
-    this.paintExternalBadges(this.versionsEl);
-  }
-
-  /**
-   * Walks the rendered subtree of `container` and applies Obsidian's `setIcon`
-   * to every external-badge icon slot the DomHelper config emitted. The badge
-   * config carries the icon id as `data-icon` on the wrapper so this pass is a
-   * one-liner per badge with no per-row imperative DOM building (the rail is
-   * still declarative). Re-running it on every render keeps the icon in sync
-   * when the rail filters or re-orders rows.
-   *
-   * @param {HTMLElement} container - The subtree to scan for badge slots
-   */
-  protected paintExternalBadges(container: HTMLElement): void {
-    const badges: NodeListOf<HTMLElement> = container.querySelectorAll<HTMLElement>(
-      '.lct-version-external-badge',
-    );
-
-    badges.forEach((badge: HTMLElement): void => {
-      const iconId: string | null = badge.getAttribute('data-icon');
-      const slot: HTMLElement | null = badge.querySelector<HTMLElement>('.lct-version-external-badge-icon');
-
-      if (iconId && slot) {
-        setIcon(slot, iconId);
-      }
-    });
+    ExternalBadgeHelper.paint(this.versionsEl);
   }
 
   /**
@@ -1600,7 +1576,7 @@ export class HistoryModal extends Modal {
     ];
 
     if (entry.external) {
-      labelChildren.push(this.makeExternalBadge());
+      labelChildren.push(ExternalBadgeHelper.make(this.plugin.t('version.badge.external')));
     }
 
     const children: DomElementConfig[] = [
@@ -1624,32 +1600,6 @@ export class HistoryModal extends Modal {
         },
       },
       children,
-    };
-  }
-
-  /**
-   * Builds the inline external-change badge config (D13, T20): a small icon
-   * paired with a short text label and an accessible name on the wrapper so
-   * screen readers announce the marker. The icon is rendered post-DOM by the
-   * caller because `DomHelper.create` does not invoke Obsidian's `setIcon`
-   * during the config tree; emitting the icon node here keeps the structural
-   * markup colocated with the badge while the icon glyph is attached when the
-   * caller mounts the entry. The text ships as an inline English literal and
-   * is propagated across every catalog in T15.
-   *
-   * @return {DomElementConfig} The badge element config
-   */
-  protected makeExternalBadge(): DomElementConfig {
-    const text: string = this.plugin.t('version.badge.external');
-
-    return {
-      tag: 'span',
-      classes: 'lct-version-external-badge',
-      attributes: { 'aria-label': text, 'title': text, 'data-icon': 'download-cloud' },
-      children: [
-        { tag: 'span', classes: 'lct-version-external-badge-icon' },
-        { tag: 'span', classes: 'lct-version-external-badge-text', text },
-      ],
     };
   }
 

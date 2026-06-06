@@ -89,4 +89,21 @@ describe('TreeTabDecoratorService.computeStatuses - path resolution (epic 12)', 
     expect(statuses.has('stale/old.md')).toBe(false);
     expect(statuses.has('stale')).toBe(false);
   });
+
+  it('paints nothing for a restored snapshot re-baselined session-clean (root and nested alike)', () => {
+    // A snapshot restored from disk carries its full history diff until the
+    // session marker baseline is re-established. `restore` calls
+    // resetMarkerBaseline so a fresh launch starts clean: the decorator must
+    // paint neither the file rows nor their folders, consistently for a root
+    // file and a nested one.
+    const rootRestored = makeModified(makeFile('root-note.md'));
+    const nestedRestored = makeModified(makeFile('folder/sub/note.md'));
+
+    rootRestored.resetMarkerBaseline();
+    nestedRestored.resetMarkerBaseline();
+
+    const statuses = computeStatuses([rootRestored, nestedRestored]);
+
+    expect(statuses.size).toBe(0);
+  });
 });

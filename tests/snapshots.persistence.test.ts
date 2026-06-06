@@ -94,15 +94,25 @@ describe('SnapshotsService.restore', () => {
     return snapshot.toJSON();
   };
 
-  it('rebuilds snapshots and attaches the live file', () => {
+  it('rebuilds a not-yet-captured file session-clean while keeping its history', () => {
     const service = makeService(['a.md']);
 
     service.restore([dirtySerialized('a.md')]);
 
     const restored: FileSnapshot | null = service.getOne(makeFile('a.md'));
     expect(restored).not.toBeNull();
-    expect(restored?.getChangesLinesCount()).toBe(1);
     expect(restored?.file?.path).toBe('a.md');
+
+    // The session marker baseline is re-established on the current state at
+    // restore, so a fresh launch starts session-clean and the tree/tab decorator
+    // paints nothing until the file is edited this session.
+    expect(restored?.getChangesLinesCount()).toBe(0);
+    expect(restored?.getOriginalStateLines()).toEqual(['a', 'B', 'c']);
+
+    // No data is lost: the current state and the persisted history baseline are
+    // preserved, so the history modal still diffs against the original.
+    expect(restored?.getLastStateLines()).toEqual(['a', 'B', 'c']);
+    expect(restored?.getHistoryOriginalStateLines()).toEqual(['a', 'b', 'c']);
   });
 
   it('auto-tombstones entries whose live file no longer exists (T05 AC4)', () => {

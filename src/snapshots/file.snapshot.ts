@@ -574,6 +574,37 @@ export class FileSnapshot {
   }
 
   /**
+   * Re-establishes the session marker baseline at the current state, the eager
+   * form of the "re-established from the file content on the next open" contract
+   * that `toJSON` documents for the deliberately non-persisted marker baseline.
+   *
+   * `fromJSON` reconstructs the marker baseline from the persisted HISTORY
+   * original and restores the persisted tracker, so a restored snapshot reports
+   * its full history diff (`getChangesLinesCount() > 0`) before the file is ever
+   * opened this run. The session surfaces that read a snapshot WITHOUT opening it
+   * - the tree/tab decorator above all - would then paint a folder as changed on
+   * a fresh launch even though nothing changed this session. Calling this at
+   * restore collapses the marker baseline onto the current state so the snapshot
+   * starts session-clean (`none`), matching the gutter, which re-baselines to the
+   * editor content on open. The HISTORY baseline (`historyLines`) and the version
+   * timeline are untouched, so the history modal keeps diffing against the
+   * persisted original; only the session-scoped marker view is reset.
+   */
+  public resetMarkerBaseline(): void {
+    this.lines = [...this.state];
+
+    this.tracker = this.lines.map((line: string, index: number): TrackerLine => new TrackerLine({
+      content: line,
+      originalPosition: index,
+      currentPosition: index,
+      contentSameOriginal: true,
+    }));
+
+    this.index.invalidate();
+    this.updateChanges();
+  }
+
+  /**
    * Gets the changes for the specified change types.
    * If no type is specified, returns all changes.
    *

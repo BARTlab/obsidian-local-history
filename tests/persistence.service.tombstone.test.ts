@@ -184,7 +184,10 @@ describe('SnapshotsService.restore with live snapshots (T05 AC3)', () => {
     expect(restored).not.toBeNull();
     expect(restored!.isTombstone()).toBe(false);
     expect(restored!.file?.path).toBe('notes/a.md');
-    expect(restored!.getChangesLinesCount()).toBe(1);
+    // The session marker baseline is re-established on restore, so a not-yet-opened
+    // live file starts session-clean; its current state and history are preserved.
+    expect(restored!.getChangesLinesCount()).toBe(0);
+    expect(restored!.getLastStateLines()).toEqual(['a', 'B', 'c']);
   });
 });
 

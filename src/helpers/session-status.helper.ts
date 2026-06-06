@@ -22,11 +22,14 @@ export { FolderDeltaStatus } from '@/consts';
  * - `added` - the transient `createdThisSession` flag (D4), stamped by the
  *   post-layout-ready `vault.create` capture path. It is the only reliable
  *   "created this run" signal and is never persisted, so a snapshot restored
- *   from history after a restart comes back as `none`/`modified` and stops
- *   being painted green.
+ *   from history after a restart comes back falsy and stops being painted green.
  * - `modified` - `getChangesLinesCount() > 0` against the marker baseline, the
  *   exact change set the gutter paints (D1), so the tree and the gutter agree
- *   by construction.
+ *   by construction. The marker baseline is session-scoped: a restored snapshot
+ *   is re-baselined onto its current state at restore (see
+ *   `FileSnapshot.resetMarkerBaseline`), so on a fresh launch every restored file
+ *   reads `none` and the tree paints nothing until the user edits it this
+ *   session, consistently for root and nested files alike.
  * - `none` - nothing changed this session worth painting on a native surface.
  *
  * `added` wins over `modified` because a file created this session that has

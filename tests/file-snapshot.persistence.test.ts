@@ -233,3 +233,50 @@ describe('FileSnapshot marker/history baseline split (T08, D2)', () => {
     expect(snapshot.getHistoryOriginalStateLines()).toEqual(['h1', 'h2']);
   });
 });
+
+describe('FileSnapshot.resetMarkerBaseline - eager session re-baseline at restore', () => {
+  it('clears a restored snapshot change count without touching the history baseline', () => {
+    const snapshot = new FileSnapshot('a\nb\nc');
+
+    snapshot.findCurrentLine(1)?.change('B');
+    snapshot.updateState(['a', 'B', 'c']);
+    snapshot.updateChanges();
+
+    const restored = FileSnapshot.fromJSON(snapshot.toJSON());
+
+    // The restored snapshot still reports its full history diff before re-baseline.
+    expect(restored.getChangesLinesCount()).toBe(1);
+
+    restored.resetMarkerBaseline();
+
+    // After re-baseline the snapshot is session-clean: no marker-baseline diff,
+    // so the tree/tab decorator paints nothing for it on a fresh launch.
+    expect(restored.getChangesLinesCount()).toBe(0);
+    // The marker baseline now equals the current state.
+    expect(restored.getOriginalStateLines()).toEqual(['a', 'B', 'c']);
+    expect(restored.getLastStateLines()).toEqual(['a', 'B', 'c']);
+    // The HISTORY baseline (the persisted original) is untouched, so the modal
+    // still diffs against it.
+    expect(restored.getHistoryOriginalStateLines()).toEqual(['a', 'b', 'c']);
+  });
+
+  it('registers a subsequent session edit as a change after re-baseline', () => {
+    const snapshot = new FileSnapshot('a\nb\nc');
+
+    snapshot.findCurrentLine(1)?.change('B');
+    snapshot.updateState(['a', 'B', 'c']);
+    snapshot.updateChanges();
+
+    const restored = FileSnapshot.fromJSON(snapshot.toJSON());
+
+    restored.resetMarkerBaseline();
+    expect(restored.getChangesLinesCount()).toBe(0);
+
+    // A genuine edit this session is measured against the re-baselined origin.
+    restored.findCurrentLine(0)?.change('A');
+    restored.updateState(['A', 'B', 'c']);
+    restored.updateChanges();
+
+    expect(restored.getChangesLinesCount()).toBe(1);
+  });
+});

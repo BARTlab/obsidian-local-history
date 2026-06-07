@@ -1,13 +1,13 @@
 import { DIFF_SCROLL_STEP_PX, DiffOutputFormatType, DiffViewMode, ListSelectionDirection, NavigationDirection, ORIGINAL_BASE_ID, VersionListEdge } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { DiffScrollSync } from '@/modals/diff-scroll-sync';
+import { DiffViewState, type DiffViewStateHost } from '@/modals/diff-view-state';
 import { GutterRevertHandler, type GutterRevertHost } from '@/modals/gutter-revert-handler';
 import { VersionList, type VersionListHost } from '@/modals/version-list.component';
 import { BaseContentHelper } from '@/helpers/base-content.helper';
 import { DiffRenderHelper } from '@/helpers/diff-render.helper';
 import { DomHelper } from '@/helpers/dom.helper';
 import { HunkHelper } from '@/helpers/hunk.helper';
-import { NavigationHelper } from '@/helpers/navigation.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ModalsService } from '@/services/modals.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
@@ -134,27 +134,16 @@ export class HistoryModal extends Modal {
   protected versionsEl?: HTMLElement;
 
   /**
-   * Id of the currently selected diff base. Set on open to the latest captured
-   * version (so the modal opens on "what changed since the last save"), or to
-   * the Original entry when the file has no snapshots yet. May be changed to any
-   * other version's id to diff the current state against that earlier point.
+   * Diff-view-state collaborator the modal owns (T06). It holds the diff-view
+   * state - the selected base, the active display mode, the focused hunk index,
+   * the hide-identical rail filter, and the content-search query - together with
+   * the toolbar mode/nav button registries, and owns the active-mode highlight,
+   * the next/previous difference walk, and the nav-button enablement; it reads
+   * the live diff container and hunks back through the host adapter below so the
+   * focus and button state always match the rendered diff. The modal reads and
+   * mutates the state through this reference while coordinating the renders.
    */
-  protected selectedBaseId: string = ORIGINAL_BASE_ID;
-
-  /**
-   * Current content-search query for the version rail. An empty string shows
-   * every version; a non-empty query keeps only versions whose captured content
-   * contains it (case-insensitive). It never affects the selected diff base.
-   */
-  protected searchQuery: string = '';
-
-  /**
-   * Whether the rail hides intermediate versions whose captured content is
-   * identical to the current state. Off by default so the full timeline shows;
-   * toggled from the toolbar. It is a view-only filter over the rail list and
-   * never changes the selected diff base.
-   */
-  protected hideIdenticalVersions: boolean = false;
+  protected readonly viewState: DiffViewState = new DiffViewState(this.makeDiffViewStateHost());
 
   /**
    * Toolbar button toggling hideIdenticalVersions, kept so its active (is-active)
@@ -182,59 +171,6 @@ export class HistoryModal extends Modal {
    * carry a custom label).
    */
   protected labelSelectedButton?: HTMLElement;
-
-  /**
-   * The current display mode for the diff view. One of the four
-   * {@link DiffRenderMode} values (patch, inline, line-by-line, side-by-side).
-   * Defaults to side-by-side.
-   */
-  protected currentDisplayMode: DiffRenderMode = DiffOutputFormatType.side;
-
-  /**
-   * References to the mode toggle buttons.
-   * Used to update the active state when switching between diff modes.
-   */
-  protected modeButtons: {
-    /**
-     * Button for patch mode.
-     */
-    patch?: HTMLElement;
-    /**
-     * Button for inline word-diff mode.
-     */
-    inline?: HTMLElement;
-    /**
-     * Button for line-by-line mode.
-     */
-    lineByLine?: HTMLElement;
-    /**
-     * Button for side-by-side mode.
-     */
-    sideBySide?: HTMLElement;
-  } = {};
-
-  /**
-   * References to the next/previous difference navigation buttons, kept so they
-   * can be disabled when the current diff has no hunks to walk.
-   */
-  protected navButtons: {
-    /**
-     * Button that jumps to the previous difference.
-     */
-    previous?: HTMLElement;
-    /**
-     * Button that jumps to the next difference.
-     */
-    next?: HTMLElement;
-  } = {};
-
-  /**
-   * Index of the difference currently focused by the next/previous navigation,
-   * or -1 when none is focused yet. It indexes into the hunks computed for the
-   * selected base, and is reset whenever the diff changes (base switch, revert,
-   * or content change) so a stale index can never highlight the wrong block.
-   */
-  protected activeHunkIndex: number = -1;
 
   /**
    * Open options applied on the next onOpen call: an optional `initialBaseId`
@@ -279,7 +215,7 @@ export class HistoryModal extends Modal {
      * Open on the latest captured version ("what changed since the last save"),
      * or on the Original entry when no snapshots exist yet.
      */
-    this.selectedBaseId = this.getInitialBaseId();
+    this.viewState.selectedBaseId = this.getInitialBaseId();
 
     this.makeUI();
 
@@ -303,50 +239,6 @@ export class HistoryModal extends Modal {
   public onClose(): void {
     this.scrollSync.cleanup();
     this.contentEl.empty();
-  }
-
-  /**
-   * Gets the currently active button based on the current display mode.
-   * Returns the button element that corresponds to the active diff view mode.
-   *
-   * @return {HTMLElement | null} The active button element, or null if no mode is active
-   */
-  protected getActiveButton(): HTMLElement | null {
-    switch (this.currentDisplayMode) {
-      case DiffViewMode.patch:
-        return this.modeButtons.patch;
-      case DiffViewMode.inline:
-        return this.modeButtons.inline;
-      case DiffOutputFormatType.line:
-        return this.modeButtons.lineByLine;
-      case DiffOutputFormatType.side:
-        return this.modeButtons.sideBySide;
-      default:
-        return null;
-    }
-  }
-
-  /**
-   * Updates the active state of mode buttons based on the current display mode.
-   */
-  protected updateButtonActiveStates(): void {
-    Object.values(this.modeButtons).forEach((button: HTMLElement): void => {
-      DomHelper.update(
-        button,
-        { classes: { remove: 'is-active' } }
-      );
-    });
-
-    const activeButton: HTMLElement = this.getActiveButton();
-
-    if (!activeButton) {
-      return;
-    }
-
-    DomHelper.update(
-      activeButton,
-      { classes: { add: 'is-active' } }
-    );
   }
 
   /**
@@ -398,8 +290,8 @@ export class HistoryModal extends Modal {
      * the modal's local path because the service models real captured versions
      * only and the baseline content is resolved by the modal's BaseContentHelper.
      */
-    if (this.selectedBaseId !== ORIGINAL_BASE_ID) {
-      await this.versionActionsService.restoreSelected(file, this.selectedBaseId);
+    if (this.viewState.selectedBaseId !== ORIGINAL_BASE_ID) {
+      await this.versionActionsService.restoreSelected(file, this.viewState.selectedBaseId);
     } else {
       const baseLines: string[] = this.getBaseContent().split(this.snapshot.lineBreak);
       const currentLines: string[] = this.snapshot.getLastStateLines();
@@ -415,7 +307,7 @@ export class HistoryModal extends Modal {
      * The content changed, so the diff and its hunk indices are stale: drop the
      * navigation focus and redraw the active view against the new content.
      */
-    this.activeHunkIndex = -1;
+    this.viewState.activeHunkIndex = -1;
     this.refreshActiveView();
   }
 
@@ -430,7 +322,7 @@ export class HistoryModal extends Modal {
    * no longer appears.
    */
   protected removeSelectedVersion(): void {
-    if (this.selectedBaseId === ORIGINAL_BASE_ID) {
+    if (this.viewState.selectedBaseId === ORIGINAL_BASE_ID) {
       return;
     }
 
@@ -443,7 +335,7 @@ export class HistoryModal extends Modal {
      */
     const result: VersionRemoveResult = this.versionActionsService.removeSelected(
       this.snapshot?.file ?? null,
-      this.selectedBaseId,
+      this.viewState.selectedBaseId,
     );
 
     if (!result.removed) {
@@ -457,8 +349,8 @@ export class HistoryModal extends Modal {
     const nextId: string =
       result.nextId && visibleIds.has(result.nextId) ? result.nextId : ORIGINAL_BASE_ID;
 
-    this.selectedBaseId = nextId;
-    this.activeHunkIndex = -1;
+    this.viewState.selectedBaseId = nextId;
+    this.viewState.activeHunkIndex = -1;
     this.versionList.render();
     this.refreshActiveView();
   }
@@ -476,13 +368,13 @@ export class HistoryModal extends Modal {
    * @return {Promise<void>}
    */
   protected async labelSelectedVersion(): Promise<void> {
-    if (this.selectedBaseId === ORIGINAL_BASE_ID) {
+    if (this.viewState.selectedBaseId === ORIGINAL_BASE_ID) {
       return;
     }
 
     const labeled: FileVersion | null = await this.modalsService.labelVersion(
       this.snapshot?.file ?? null,
-      this.selectedBaseId,
+      this.viewState.selectedBaseId,
     );
 
     if (!labeled) {
@@ -503,7 +395,7 @@ export class HistoryModal extends Modal {
    * @return {Promise<void>}
    */
   protected async confirmRemoveSelectedVersion(): Promise<void> {
-    if (this.selectedBaseId === ORIGINAL_BASE_ID) {
+    if (this.viewState.selectedBaseId === ORIGINAL_BASE_ID) {
       return;
     }
 
@@ -849,7 +741,7 @@ export class HistoryModal extends Modal {
     }
 
     if (this.removeSelectedButton) {
-      const noVersion: boolean = this.selectedBaseId === ORIGINAL_BASE_ID;
+      const noVersion: boolean = this.viewState.selectedBaseId === ORIGINAL_BASE_ID;
 
       (this.removeSelectedButton as HTMLButtonElement).disabled = noVersion;
       DomHelper.update(this.removeSelectedButton, {
@@ -862,7 +754,7 @@ export class HistoryModal extends Modal {
        * Only a real captured version can carry a label; the synthetic baseline
        * has no version to tag, so the action is disabled there.
        */
-      const noVersion: boolean = this.selectedBaseId === ORIGINAL_BASE_ID;
+      const noVersion: boolean = this.viewState.selectedBaseId === ORIGINAL_BASE_ID;
 
       (this.labelSelectedButton as HTMLButtonElement).disabled = noVersion;
       DomHelper.update(this.labelSelectedButton, {
@@ -889,9 +781,9 @@ export class HistoryModal extends Modal {
    * @return {string} The base-side label
    */
   protected getBaseLabel(): string {
-    if (this.selectedBaseId !== ORIGINAL_BASE_ID) {
+    if (this.viewState.selectedBaseId !== ORIGINAL_BASE_ID) {
       const versions: FileVersion[] = this.snapshot.getVersions();
-      const version: FileVersion | null = this.snapshot.getVersion(this.selectedBaseId);
+      const version: FileVersion | null = this.snapshot.getVersion(this.viewState.selectedBaseId);
 
       if (version) {
         return this.versionList.resolvePrimaryLabel(version, versions);
@@ -913,7 +805,7 @@ export class HistoryModal extends Modal {
       return;
     }
 
-    const visible: boolean = this.currentDisplayMode === DiffOutputFormatType.side;
+    const visible: boolean = this.viewState.currentDisplayMode === DiffOutputFormatType.side;
 
     if (!visible) {
       DomHelper.update(this.columnsHeaderEl, { text: null, classes: { add: 'lct-diff-columns-hidden' } });
@@ -1043,19 +935,19 @@ export class HistoryModal extends Modal {
      */
     const navGroup: HTMLElement = this.makeToolbarGroup('lct-modal-toolbar-nav');
 
-    this.navButtons.previous = this.makeToolbarButton(navGroup, {
+    this.viewState.navButtons.previous = this.makeToolbarButton(navGroup, {
       icon: 'chevron-up',
       label: this.plugin.t('modal.previous-difference'),
       onClick: (): void => {
-        this.goToDifference(NavigationDirection.previous);
+        this.viewState.goToDifference(NavigationDirection.previous);
       },
     });
 
-    this.navButtons.next = this.makeToolbarButton(navGroup, {
+    this.viewState.navButtons.next = this.makeToolbarButton(navGroup, {
       icon: 'chevron-down',
       label: this.plugin.t('modal.next-difference'),
       onClick: (): void => {
-        this.goToDifference(NavigationDirection.next);
+        this.viewState.goToDifference(NavigationDirection.next);
       },
     });
 
@@ -1064,7 +956,7 @@ export class HistoryModal extends Modal {
      */
     const modesGroup: HTMLElement = this.makeToolbarGroup('lct-modal-toolbar-modes');
 
-    this.modeButtons.patch = this.makeToolbarButton(modesGroup, {
+    this.viewState.modeButtons.patch = this.makeToolbarButton(modesGroup, {
       icon: 'file-text',
       label: this.plugin.t('modal.mode.patch'),
       onClick: (): void => {
@@ -1072,7 +964,7 @@ export class HistoryModal extends Modal {
       },
     });
 
-    this.modeButtons.inline = this.makeToolbarButton(modesGroup, {
+    this.viewState.modeButtons.inline = this.makeToolbarButton(modesGroup, {
       icon: 'pilcrow',
       label: this.plugin.t('modal.mode.inline'),
       onClick: (): void => {
@@ -1080,7 +972,7 @@ export class HistoryModal extends Modal {
       },
     });
 
-    this.modeButtons.lineByLine = this.makeToolbarButton(modesGroup, {
+    this.viewState.modeButtons.lineByLine = this.makeToolbarButton(modesGroup, {
       icon: 'align-justify',
       label: this.plugin.t('modal.mode.line-by-line'),
       onClick: (): void => {
@@ -1088,7 +980,7 @@ export class HistoryModal extends Modal {
       },
     });
 
-    this.modeButtons.sideBySide = this.makeToolbarButton(modesGroup, {
+    this.viewState.modeButtons.sideBySide = this.makeToolbarButton(modesGroup, {
       icon: 'columns-2',
       label: this.plugin.t('modal.mode.side-by-side'),
       onClick: (): void => {
@@ -1099,7 +991,7 @@ export class HistoryModal extends Modal {
     /**
      * Set the initial active state.
      */
-    this.updateButtonActiveStates();
+    this.viewState.updateButtonActiveStates();
   }
 
   /**
@@ -1126,11 +1018,11 @@ export class HistoryModal extends Modal {
    * rebuilt: the selected diff base and the diff output are untouched.
    */
   protected toggleHideIdentical(): void {
-    this.hideIdenticalVersions = !this.hideIdenticalVersions;
+    this.viewState.hideIdenticalVersions = !this.viewState.hideIdenticalVersions;
 
     if (this.hideIdenticalButton) {
       DomHelper.update(this.hideIdenticalButton, {
-        classes: this.hideIdenticalVersions ? { add: 'is-active' } : { remove: 'is-active' },
+        classes: this.viewState.hideIdenticalVersions ? { add: 'is-active' } : { remove: 'is-active' },
       });
     }
 
@@ -1171,98 +1063,6 @@ export class HistoryModal extends Modal {
   }
 
   /**
-   * Moves the difference focus to the next or previous hunk and brings it into
-   * view. The target index is resolved by the same pure NavigationHelper.target
-   * used by the editor change-navigation commands, fed the hunk indices as the
-   * "changed lines" and the current active index as the cursor, so the walk
-   * wraps around at both ends (past the last hunk returns to the first, before
-   * the first returns to the last). With no hunks it is a safe no-op.
-   *
-   * @param {NavigationDirection} direction - Which way to step through the hunks
-   */
-  protected goToDifference(direction: NavigationDirection): void {
-    const count: number = this.getHunks().length;
-
-    if (count === 0) {
-      return;
-    }
-
-    /**
-     * Hunk indices are 0..count-1; reuse the cursor-based target picker over
-     * them so the wrap-around behaviour matches the editor navigation exactly.
-     */
-    const indices: number[] = Array.from({ length: count }, (_unused: unknown, index: number): number => index);
-    const target: number | null = NavigationHelper.target(indices, this.activeHunkIndex, direction);
-
-    if (target === null) {
-      return;
-    }
-
-    this.activeHunkIndex = target;
-    this.focusHunk(target);
-  }
-
-  /**
-   * Highlights the hunk at the given index inside the diff and scrolls it into
-   * view, so the difference the navigation buttons moved to is visible and
-   * marked active. The target is the hunk's anchor row inside the rendered diff
-   * (the same row that carries the inline revert affordance), so navigation
-   * works against the diff itself now that the separate difference panel is
-   * gone. Every other anchor row loses the active marker first. Patch mode has
-   * no per-row anchors, so this is a safe no-op there.
-   *
-   * @param {number} index - The hunk index to focus
-   */
-  protected focusHunk(index: number): void {
-    if (!this.diffContainerEl) {
-      return;
-    }
-
-    const anchors: HTMLElement[] = Array.from(
-      this.diffContainerEl.querySelectorAll<HTMLElement>('.lct-hunk-anchor'),
-    );
-
-    anchors.forEach((anchor: HTMLElement): void => {
-      const anchorIndex: number = Number(anchor.dataset.lctHunk);
-
-      DomHelper.update(anchor, { classes: anchorIndex === index ? { add: 'is-active' } : { remove: 'is-active' } });
-    });
-
-    anchors
-      .find((anchor: HTMLElement): boolean => Number(anchor.dataset.lctHunk) === index)
-      ?.scrollIntoView({ block: 'nearest' });
-  }
-
-  /**
-   * Enables or disables the next/previous difference buttons based on whether
-   * the current diff has any hunks to walk, and drops a stale active index when
-   * the diff no longer has that many hunks. A diff with zero hunks leaves both
-   * buttons disabled so a click is an ignored no-op. Patch mode is also disabled:
-   * it renders a plain <pre> with no per-row anchors to scroll to, so stepping
-   * between differences has nothing to focus there.
-   */
-  protected updateNavButtonsState(): void {
-    const count: number = this.getHunks().length;
-    const disabled: boolean = count === 0 || this.currentDisplayMode === DiffViewMode.patch;
-
-    [this.navButtons.previous, this.navButtons.next].forEach((button: HTMLElement | undefined): void => {
-      if (!button) {
-        return;
-      }
-
-      (button as HTMLButtonElement).disabled = disabled;
-      DomHelper.update(button, { classes: disabled ? { add: 'is-disabled' } : { remove: 'is-disabled' } });
-    });
-
-    /**
-     * Forget a focus that no longer points at an existing hunk.
-     */
-    if (this.activeHunkIndex >= count) {
-      this.activeHunkIndex = -1;
-    }
-  }
-
-  /**
    * Renders the content-search box above the version list. The box filters the
    * intermediate versions in the rail by their captured content. It is always
    * shown so the rail stays consistent even before any version exists; with no
@@ -1278,9 +1078,9 @@ export class HistoryModal extends Modal {
 
     new SearchComponent(this.searchEl)
       .setPlaceholder(this.plugin.t('modal.search-versions'))
-      .setValue(this.searchQuery)
+      .setValue(this.viewState.searchQuery)
       .onChange((value: string): void => {
-        this.searchQuery = value;
+        this.viewState.searchQuery = value;
         this.versionList.render();
       });
   }
@@ -1295,11 +1095,11 @@ export class HistoryModal extends Modal {
    * @param {string} id - The base id to select
    */
   protected selectBase(id: string): void {
-    if (this.selectedBaseId === id) {
+    if (this.viewState.selectedBaseId === id) {
       return;
     }
 
-    this.selectedBaseId = id;
+    this.viewState.selectedBaseId = id;
     this.versionList.render();
     this.refreshActiveView();
   }
@@ -1320,9 +1120,9 @@ export class HistoryModal extends Modal {
       snapshot: this.snapshot,
       plugin: this.plugin,
       versionsEl: (): HTMLElement | undefined => this.versionsEl,
-      selectedBaseId: (): string => this.selectedBaseId,
-      searchQuery: (): string => this.searchQuery,
-      hideIdenticalVersions: (): boolean => this.hideIdenticalVersions,
+      selectedBaseId: (): string => this.viewState.selectedBaseId,
+      searchQuery: (): string => this.viewState.searchQuery,
+      hideIdenticalVersions: (): boolean => this.viewState.hideIdenticalVersions,
       selectionFilterIds: (): ReadonlySet<string> | undefined => this.options.selectionFilterIds,
       selectBase: (id: string): void => this.selectBase(id),
     };
@@ -1347,13 +1147,30 @@ export class HistoryModal extends Modal {
       modalsService: this.modalsService,
       snapshotsService: this.snapshotsService,
       diffContainer: (): HTMLElement | undefined => this.diffContainerEl,
-      displayMode: (): DiffRenderMode => this.currentDisplayMode,
+      displayMode: (): DiffRenderMode => this.viewState.currentDisplayMode,
       getHunks: (): Diff.StructuredPatchHunk[] => this.getHunks(),
-      updateNavButtonsState: (): void => this.updateNavButtonsState(),
+      updateNavButtonsState: (): void => this.viewState.updateNavButtonsState(),
       onReverted: (): void => {
-        this.activeHunkIndex = -1;
+        this.viewState.activeHunkIndex = -1;
         this.refreshActiveView();
       },
+    };
+  }
+
+  /**
+   * Builds the host adapter the owned {@link DiffViewState} reads the live
+   * render through. It exposes the live diff container and the current hunks as
+   * lazy accessors so the state's hunk focus and the nav-button enablement
+   * always reflect the rendered diff. Keeping the modal's diff container
+   * protected and handing the collaborator a narrow port preserves the
+   * encapsulation the GutterRevertHost established (T05).
+   *
+   * @return {DiffViewStateHost} The host port for the diff-view-state collaborator
+   */
+  protected makeDiffViewStateHost(): DiffViewStateHost {
+    return {
+      diffContainer: (): HTMLElement | undefined => this.diffContainerEl,
+      getHunks: (): Diff.StructuredPatchHunk[] => this.getHunks(),
     };
   }
 
@@ -1363,7 +1180,7 @@ export class HistoryModal extends Modal {
    * the selected mode without duplicating the mode dispatch at every call site.
    */
   protected refreshActiveView(): void {
-    switch (this.currentDisplayMode) {
+    switch (this.viewState.currentDisplayMode) {
       case DiffViewMode.patch:
         this.showCleanPatch();
 
@@ -1392,7 +1209,7 @@ export class HistoryModal extends Modal {
    * @return {string} The base content to diff the current state against
    */
   protected getBaseContent(): string {
-    return BaseContentHelper.resolve(this.selectedBaseId, ORIGINAL_BASE_ID, {
+    return BaseContentHelper.resolve(this.viewState.selectedBaseId, ORIGINAL_BASE_ID, {
       versions: this.snapshot
         .getVersions()
         .map((version: FileVersion): string => version.getContent(this.snapshot.lineBreak)),
@@ -1423,7 +1240,7 @@ export class HistoryModal extends Modal {
    * @return {string} The empty-diff placeholder text for the current base
    */
   protected getEmptyDiffText(): string {
-    return this.selectedBaseId === ORIGINAL_BASE_ID
+    return this.viewState.selectedBaseId === ORIGINAL_BASE_ID
       ? this.plugin.t('modal.no-changes')
       : this.plugin.t('modal.identical-to-current');
   }
@@ -1451,8 +1268,8 @@ export class HistoryModal extends Modal {
    * anchor them to, and the navigation buttons are refreshed at the end.
    */
   protected showCleanPatch(): void {
-    this.currentDisplayMode = DiffViewMode.patch;
-    this.updateButtonActiveStates();
+    this.viewState.currentDisplayMode = DiffViewMode.patch;
+    this.viewState.updateButtonActiveStates();
     this.scrollSync.cleanup();
     this.updateDiffNotice();
     this.updateColumnsHeader();
@@ -1473,7 +1290,7 @@ export class HistoryModal extends Modal {
      * Patch mode has no per-row structure for inline revert and disables the
      * navigation buttons (no anchors to step through).
      */
-    this.updateNavButtonsState();
+    this.viewState.updateNavButtonsState();
   }
 
   /**
@@ -1484,8 +1301,8 @@ export class HistoryModal extends Modal {
    * they are file-mode specific (they need a snapshot to write back to).
    */
   protected renderInlineDiff(): void {
-    this.currentDisplayMode = DiffViewMode.inline;
-    this.updateButtonActiveStates();
+    this.viewState.currentDisplayMode = DiffViewMode.inline;
+    this.viewState.updateButtonActiveStates();
     this.scrollSync.cleanup();
     this.updateDiffNotice();
     this.updateColumnsHeader();
@@ -1518,8 +1335,8 @@ export class HistoryModal extends Modal {
    * @param {DiffOutputFormatType} format - The format of the diff view (defaults to 'side-by-side')
    */
   protected renderDiff(format: DiffOutputFormatType = DiffOutputFormatType.side): void {
-    this.currentDisplayMode = format;
-    this.updateButtonActiveStates();
+    this.viewState.currentDisplayMode = format;
+    this.viewState.updateButtonActiveStates();
     this.scrollSync.cleanup();
     this.updateDiffNotice();
     this.updateColumnsHeader();

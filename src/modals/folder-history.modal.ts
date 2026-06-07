@@ -1,15 +1,14 @@
 import {
-  DEFAULT_LINE_BREAK,
   DiffOutputFormatType,
   DiffViewMode,
   FolderDeltaStatus,
 } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { FolderTreeComponent } from '@/components/folder-tree.component';
-import { DiffRenderHelper } from '@/helpers/diff-render.helper';
 import { DomHelper } from '@/helpers/dom.helper';
 import { FolderDeltaHelper } from '@/helpers/folder-delta.helper';
 import { FolderTimelineHelper } from '@/helpers/folder-timeline.helper';
+import { FolderDiffRenderer, type FolderDiffHost } from '@/modals/folder-diff-renderer';
 import { FolderTimelineRenderer, type FolderTimelineHost } from '@/modals/folder-timeline-renderer';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ModalsService } from '@/services/modals.service';
@@ -37,11 +36,11 @@ import { type App, Modal, Notice, SearchComponent, type TFile, setIcon } from 'o
  * - The tree is rendered by {@link FolderTreeComponent}, coloured by
  *   {@link FolderDeltaHelper.compareAt}'s status for the selected timeline
  *   point T (D8 / D9).
- * - The diff pane is rendered by the shared {@link DiffRenderHelper} extracted
- *   in T08 / D6 - the same renderer the file modal uses, so an added file
- *   renders as "everything green" (empty base, full current) and a deleted
- *   file as "everything red" (full base, empty current) without any folder-mode
- *   special-casing.
+ * - The diff pane is rendered by the {@link FolderDiffRenderer} collaborator,
+ *   which delegates to the shared `DiffRenderHelper` - the same renderer the
+ *   file modal uses, so an added file renders as "everything green" (empty
+ *   base, full current) and a deleted file as "everything red" (full base,
+ *   empty current) without any folder-mode special-casing.
  *
  * The modal is read-only in T12: toolbar actions (restore / remove / label on
  * the tree-selected file at T) land in T13. The view-mode toggles ARE wired
@@ -130,7 +129,7 @@ export class FolderHistoryModal extends Modal {
   protected toolbarEl?: HTMLElement;
 
   /**
-   * Diff output container, written into by {@link DiffRenderHelper}.
+   * Diff output container, written into by the {@link FolderDiffRenderer}.
    */
   protected diffContainerEl?: HTMLElement;
 
@@ -155,6 +154,15 @@ export class FolderHistoryModal extends Modal {
    * and reporting a picked T back so the modal re-pins it.
    */
   protected readonly timelineRenderer: FolderTimelineRenderer;
+
+  /**
+   * Diff-pane renderer (T08): a plain collaborator the modal owns, rendering
+   * the per-file delta diff, the above-diff notice, and the side-by-side
+   * column header for the tree-selected file at the selected T. Reads the live
+   * containers / mode / T / selection through a narrow host port and signals
+   * each render back so the modal re-syncs the toolbar action-button states.
+   */
+  protected readonly diffRenderer: FolderDiffRenderer;
 
   /**
    * Mode toggle buttons, kept so the active accent can be flipped.
@@ -221,6 +229,7 @@ export class FolderHistoryModal extends Modal {
     this.selectedTimestamp = this.timeline.length > 0 ? this.timeline[0].timestamp : Date.now();
     this.tree = new FolderTreeComponent();
     this.timelineRenderer = new FolderTimelineRenderer(this.makeTimelineHost());
+    this.diffRenderer = new FolderDiffRenderer(this.makeDiffHost());
   }
 
   /**
@@ -243,6 +252,35 @@ export class FolderHistoryModal extends Modal {
       snapshotsByPath: (): Map<string, FileSnapshot> => this.snapshotsByPath,
       selectTimestamp: (timestamp: number): void => {
         this.selectTimestamp(timestamp);
+      },
+    };
+  }
+
+  /**
+   * Builds the narrow host port the {@link FolderDiffRenderer} reads the modal's
+   * diff-pane state through. The accessors are lazy so the renderer always sees
+   * the live diff / notice / columns-header containers, the selected display
+   * mode, the selected T, the tree's selected file, and the snapshot map; the
+   * `onDiffRendered` callback routes the post-render refresh of the toolbar
+   * action-button states back to the modal, which still owns the toolbar.
+   * Mirrors the host-port pattern the timeline renderer (T07) and the file
+   * modal's collaborators (T04 / T05) use: the renderer never sees the modal's
+   * protected fields directly.
+   *
+   * @return {FolderDiffHost} The host port for the diff renderer
+   */
+  protected makeDiffHost(): FolderDiffHost {
+    return {
+      plugin: this.plugin,
+      diffContainerEl: (): HTMLElement | undefined => this.diffContainerEl,
+      noticeEl: (): HTMLElement | undefined => this.noticeEl,
+      columnsHeaderEl: (): HTMLElement | undefined => this.columnsHeaderEl,
+      displayMode: (): DiffRenderMode => this.currentDisplayMode,
+      selectedTimestamp: (): number => this.selectedTimestamp,
+      selectedPath: (): string | null => this.tree.getSelectedPath(),
+      snapshotsByPath: (): Map<string, FileSnapshot> => this.snapshotsByPath,
+      onDiffRendered: (): void => {
+        this.updateActionButtonStates();
       },
     };
   }
@@ -667,40 +705,13 @@ export class FolderHistoryModal extends Modal {
 
   /**
    * Renders the diff for the currently-selected file at the currently-selected
-   * T. When no file is selected (an empty tree, or every entry filtered to
-   * status `'none'` at this T) the diff pane is replaced with a calm hint
-   * instead of leaving stale content on screen.
+   * T by delegating to the {@link FolderDiffRenderer} collaborator (T08). The
+   * renderer reads the live containers / mode / T / selection through its host
+   * port and calls back into {@link updateActionButtonStates} after each render
+   * so the toolbar stays in sync.
    */
   protected refreshDiff(): void {
-    if (!this.diffContainerEl) {
-      return;
-    }
-
-    const path: string | null = this.tree.getSelectedPath();
-    const snapshot: FileSnapshot | undefined = path ? this.snapshotsByPath.get(path) : undefined;
-    const result: FolderDeltaResult | null = snapshot
-      ? FolderDeltaHelper.compareAt(snapshot, this.selectedTimestamp)
-      : null;
-
-    this.updateDiffNotice(result);
-    this.updateColumnsHeader(result);
-    this.updateActionButtonStates();
-
-    if (!result) {
-      DomHelper.update(this.diffContainerEl, { text: null });
-
-      return;
-    }
-
-    DiffRenderHelper.render({
-      baseLines: result.base,
-      currentLines: result.current,
-      lineBreak: snapshot?.lineBreak ?? DEFAULT_LINE_BREAK,
-      mode: this.currentDisplayMode,
-      container: this.diffContainerEl,
-      filePath: path ?? '',
-      plugin: this.plugin,
-    });
+    this.diffRenderer.refresh();
   }
 
   /**
@@ -1109,86 +1120,6 @@ export class FolderHistoryModal extends Modal {
     this.resyncTimeline();
     this.refreshTree();
     this.refreshDiff();
-  }
-
-  /**
-   * Shows or hides the above-diff notice based on the selected file's status
-   * at T. The notice is shown when there is no file to diff (empty tree at T),
-   * when the file did not change (`'none'`), or for added / deleted variants
-   * the user benefits from a one-line explanation alongside the
-   * "everything green / red" diff.
-   *
-   * @param {FolderDeltaResult | null} result - The compareAt result for the selected file
-   */
-  protected updateDiffNotice(result: FolderDeltaResult | null): void {
-    if (!this.noticeEl) {
-      return;
-    }
-
-    const text: string | null = this.resolveNoticeText(result);
-
-    DomHelper.update(this.noticeEl, {
-      text: text ?? null,
-      classes: text ? { remove: 'lct-diff-notice-hidden' } : { add: 'lct-diff-notice-hidden' },
-    });
-  }
-
-  /**
-   * Picks the inline-English notice text for the selected file's status, or
-   * null when no banner is needed (status `'modified'` reads on its own).
-   * The literal strings are propagated across every catalog in T15.
-   *
-   * @param {FolderDeltaResult | null} result - The compareAt result
-   * @return {string | null} The notice text or null when the banner is hidden
-   */
-  protected resolveNoticeText(result: FolderDeltaResult | null): string | null {
-    if (!result) {
-      return this.plugin.t('modal.folder.notice.no-file');
-    }
-
-    switch (result.status) {
-      case FolderDeltaStatus.added:
-        return this.plugin.t('modal.folder.notice.added');
-      case FolderDeltaStatus.deleted:
-        return this.plugin.t('modal.folder.notice.deleted');
-      case FolderDeltaStatus.none:
-        return this.plugin.t('modal.folder.notice.unchanged');
-      default:
-        return null;
-    }
-  }
-
-  /**
-   * Toggles the side-by-side column header and, when shown, labels the left
-   * column with the picked timeline point and the right column with the
-   * current state. Hidden in the single-column modes (patch / inline /
-   * line-by-line).
-   *
-   * @param {FolderDeltaResult | null} result - The compareAt result for the selected file
-   */
-  protected updateColumnsHeader(result: FolderDeltaResult | null): void {
-    if (!this.columnsHeaderEl) {
-      return;
-    }
-
-    const sideBySide: boolean = this.currentDisplayMode === DiffOutputFormatType.side;
-
-    if (!sideBySide || !result) {
-      DomHelper.update(this.columnsHeaderEl, { text: null, classes: { add: 'lct-diff-columns-hidden' } });
-
-      return;
-    }
-
-    const pointLabel: string = new Date(this.selectedTimestamp).toLocaleString();
-
-    DomHelper.update(this.columnsHeaderEl, {
-      text: null,
-      classes: { remove: 'lct-diff-columns-hidden' },
-      children: [
-        { tag: 'div', classes: 'lct-diff-column-title', text: pointLabel },
-        { tag: 'div', classes: 'lct-diff-column-title', text: this.plugin.t('modal.version.current') },
-      ],
-    });
   }
 
   /**

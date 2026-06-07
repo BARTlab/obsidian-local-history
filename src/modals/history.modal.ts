@@ -1,6 +1,7 @@
 import { DIFF_SCROLL_STEP_PX, DiffOutputFormatType, DiffViewMode, ListSelectionDirection, NavigationDirection, ORIGINAL_BASE_ID, VersionListEdge } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { DiffScrollSync } from '@/modals/diff-scroll-sync';
+import { GutterRevertHandler, type GutterRevertHost } from '@/modals/gutter-revert-handler';
 import { VersionList, type VersionListHost } from '@/modals/version-list.component';
 import { BaseContentHelper } from '@/helpers/base-content.helper';
 import { DiffRenderHelper } from '@/helpers/diff-render.helper';
@@ -77,6 +78,16 @@ export class HistoryModal extends Modal {
    * via `selectBase` so the modal keeps coordinating the diff render.
    */
   protected readonly versionList: VersionList = new VersionList(this.makeVersionListHost());
+
+  /**
+   * Gutter-revert collaborator the modal owns (T05). It decorates each rendered
+   * hunk with an anchor marker and an inline revert affordance, resolves the
+   * anchor row across every diff render mode, and reverts a single hunk on click;
+   * it reads the live diff container, display mode, and hunks back through the
+   * host adapter below and reports a completed revert via `onReverted` so the
+   * modal drops the stale focus and re-renders the active diff.
+   */
+  protected readonly gutterReverts: GutterRevertHandler = new GutterRevertHandler(this.makeGutterRevertHost());
 
   /**
    * Left rail container of the three-pane shell. Hosts the version timeline
@@ -1318,6 +1329,35 @@ export class HistoryModal extends Modal {
   }
 
   /**
+   * Builds the host adapter the owned {@link GutterRevertHandler} reads its
+   * shared state through. It exposes the live diff container, display mode, and
+   * hunks as lazy accessors (so the handler always sees the current render),
+   * hands the handler the snapshot and the services it drives the revert with,
+   * and routes the post-decoration nav refresh and the post-revert redraw back
+   * to the modal. Keeping the modal's diff fields protected and handing the
+   * collaborator a narrow port preserves the encapsulation the VersionList host
+   * established (T04).
+   *
+   * @return {GutterRevertHost} The host port for the gutter-revert collaborator
+   */
+  protected makeGutterRevertHost(): GutterRevertHost {
+    return {
+      snapshot: this.snapshot,
+      plugin: this.plugin,
+      modalsService: this.modalsService,
+      snapshotsService: this.snapshotsService,
+      diffContainer: (): HTMLElement | undefined => this.diffContainerEl,
+      displayMode: (): DiffRenderMode => this.currentDisplayMode,
+      getHunks: (): Diff.StructuredPatchHunk[] => this.getHunks(),
+      updateNavButtonsState: (): void => this.updateNavButtonsState(),
+      onReverted: (): void => {
+        this.activeHunkIndex = -1;
+        this.refreshActiveView();
+      },
+    };
+  }
+
+  /**
    * Re-renders whichever diff view is currently active. Used after the diff
    * base or the file content changes so the visible output stays in sync with
    * the selected mode without duplicating the mode dispatch at every call site.
@@ -1405,294 +1445,6 @@ export class HistoryModal extends Modal {
   }
 
   /**
-   * Reverts a single hunk of the current diff back to the selected base and
-   * leaves every other change intact. The hunk is resolved fresh from getHunks
-   * (against the live content) by its index, the user confirms before the write,
-   * and the revert reuses the same plumbing the editor gutter uses: HunkHelper to
-   * scope the block, SnapshotsService.applyContent to write it and refresh the
-   * highlights. The active view is then re-rendered so the diff reflects the new
-   * content. A stale index (the diff changed under the click) is a safe no-op.
-   *
-   * @param {number} index - The index of the hunk to revert in the current diff
-   * @return {Promise<void>}
-   */
-  protected async revertHunk(index: number): Promise<void> {
-    const file: TFile | undefined = this.snapshot?.file;
-
-    if (!file) {
-      return;
-    }
-
-    const hunk: Diff.StructuredPatchHunk | undefined = this.getHunks()[index];
-
-    if (!hunk) {
-      return;
-    }
-
-    const confirmed: boolean = await this.modalsService.confirm({
-      title: this.plugin.t('modal.confirm.revert.title'),
-      message: this.plugin.t('modal.confirm.revert.message'),
-      confirmText: this.plugin.t('modal.confirm.revert.button'),
-      cancelText: this.plugin.t('modal.confirm.cancel'),
-    });
-
-    if (!confirmed) {
-      return;
-    }
-
-    const currentLines: string[] = this.snapshot.getLastStateLines();
-    const start: number = Math.max(0, Math.min(currentLines.length, hunk.newStart - 1));
-
-    await this.snapshotsService.applyContent(
-      file,
-      HunkHelper.revertHunk(currentLines, hunk),
-      {
-        start,
-        removeCount: hunk.newLines,
-        newLines: HunkHelper.baseLinesForHunk(hunk),
-      },
-    );
-
-    /**
-     * The content changed, so the diff (and its hunk indices) is stale: drop the
-     * navigation focus and redraw the active view, which re-attaches the inline
-     * revert affordances against the new hunks.
-     */
-    this.activeHunkIndex = -1;
-    this.refreshActiveView();
-  }
-
-  /**
-   * Post-processes the rendered diff to place one inline revert affordance at
-   * the anchor row of each hunk, JetBrains style: a small revert arrow that
-   * reverts only that block. It maps the rendered rows back to getHunks by their
-   * current-side line number and marks each anchor with its hunk index, so the
-   * next/previous navigation can scroll and highlight the same rows. Patch mode
-   * renders a plain <pre> with no per-row structure, so it carries no affordance
-   * and is skipped (handled by the caller). The nav button state is refreshed
-   * here because the hunk set is now known.
-   */
-  protected attachInlineReverts(): void {
-    if (!this.diffContainerEl) {
-      return;
-    }
-
-    const hunks: Diff.StructuredPatchHunk[] = this.getHunks();
-
-    hunks.forEach((hunk: Diff.StructuredPatchHunk, index: number): void => {
-      const anchor: HTMLElement | null = this.resolveHunkAnchor(hunk);
-
-      if (!anchor) {
-        return;
-      }
-
-      anchor.classList.add('lct-hunk-anchor');
-      anchor.dataset.lctHunk = String(index);
-
-      /**
-       * Host the revert affordance in the row's gutter (the sticky line-number
-       * cell) so it stays pinned to the gutter while the diff scrolls
-       * horizontally; the inline mode has no gutter and falls back to the row.
-       */
-      this.makeRevertAffordance(this.resolveHunkGutter(anchor), index);
-    });
-
-    this.updateNavButtonsState();
-  }
-
-  /**
-   * Resolves the element that hosts the inline revert affordance for an anchor
-   * row. The diff2html modes (line-by-line, side-by-side) carry a sticky
-   * line-number cell, which keeps the affordance pinned to the gutter while the
-   * diff scrolls horizontally. The inline mode has no such cell, so the row
-   * itself hosts the affordance.
-   *
-   * @param {HTMLElement} anchor - The hunk anchor row
-   * @return {HTMLElement} The element the revert affordance is appended to
-   */
-  protected resolveHunkGutter(anchor: HTMLElement): HTMLElement {
-    return anchor.querySelector<HTMLElement>('.d2h-code-linenumber') ?? anchor;
-  }
-
-  /**
-   * Resolves the rendered diff row that anchors a hunk, across the three diff
-   * modes that carry per-row structure. The anchor is the first current-side row
-   * of the hunk (the hunk's newStart). A pure deletion (newLines === 0) has no
-   * current-side row, so it anchors on the base-side row of its first removed
-   * line instead, which is the row the user sees the deletion on.
-   *
-   * @param {Diff.StructuredPatchHunk} hunk - The hunk to anchor
-   * @return {HTMLElement | null} The anchor row, or null when no row matches
-   */
-  protected resolveHunkAnchor(hunk: Diff.StructuredPatchHunk): HTMLElement | null {
-    if (this.currentDisplayMode === DiffViewMode.inline) {
-      return this.resolveInlineAnchor(hunk);
-    }
-
-    return this.resolveDiff2HtmlAnchor(hunk);
-  }
-
-  /**
-   * Resolves the anchor row inside the plugin-rendered inline diff. The inline
-   * rows have no line numbers, so the anchor is found positionally: the inline
-   * diff lists context and changed rows in document order, so the Nth changed
-   * row group maps to the Nth hunk. The first row of the hunk's changed run is
-   * the anchor.
-   *
-   * @param {Diff.StructuredPatchHunk} hunk - The hunk to anchor
-   * @return {HTMLElement | null} The anchor row, or null when none matches
-   */
-  protected resolveInlineAnchor(hunk: Diff.StructuredPatchHunk): HTMLElement | null {
-    const rows: HTMLElement[] = Array.from(
-      this.diffContainerEl.querySelectorAll<HTMLElement>('.lct-inline-row'),
-    );
-
-    /**
-     * Walk the rows tracking the current-side line number: every row that holds
-     * a current-side line advances it (context, a whole addition, or a modified
-     * line), while a pure removal does not. The anchor is the first changed row
-     * whose current-side position reaches the hunk's newStart. A pure deletion
-     * (newLines === 0) sits between current lines, so it anchors on the first
-     * changed row at or after newStart.
-     */
-    let currentLine: number = 0;
-
-    for (const row of rows) {
-      const changed: boolean = !row.classList.contains('lct-inline-context');
-      const hasNewLine: boolean = !row.classList.contains('lct-inline-removed');
-
-      if (changed && currentLine + 1 >= hunk.newStart) {
-        return row;
-      }
-
-      if (hasNewLine) {
-        currentLine++;
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Resolves the anchor row inside a diff2html render (line-by-line or
-   * side-by-side). Both share the same .d2h-code-row-wrapper rows; for a hunk
-   * that occupies current lines the anchor is the row whose current-side line
-   * number equals the hunk's newStart (in side-by-side that number lives in the
-   * right column, so only the right column's rows are searched). A pure deletion
-   * has no current-side row: in line-by-line it shows as a d2h-del row in the
-   * single stream; in side-by-side the deleted text sits in the left column,
-   * keyed by the hunk's oldStart. Both are anchored accordingly.
-   *
-   * @param {Diff.StructuredPatchHunk} hunk - The hunk to anchor
-   * @return {HTMLElement | null} The anchor row, or null when none matches
-   */
-  protected resolveDiff2HtmlAnchor(hunk: Diff.StructuredPatchHunk): HTMLElement | null {
-    const sideBySide: boolean = this.currentDisplayMode === DiffOutputFormatType.side;
-    const columns: HTMLElement[] = sideBySide
-      ? Array.from(this.diffContainerEl.querySelectorAll<HTMLElement>('.d2h-side-column'))
-      : [];
-
-    if (hunk.newLines > 0) {
-      const newScope: ParentNode = sideBySide ? columns[1] ?? this.diffContainerEl : this.diffContainerEl;
-
-      return this.rowAtLine(newScope, hunk.newStart);
-    }
-
-    /**
-     * Pure deletion: in side-by-side the removed lines live in the left column,
-     * keyed by the hunk's oldStart; in line-by-line they are d2h-del rows in the
-     * single stream, anchored by the first one at or after the deletion point.
-     */
-    if (sideBySide) {
-      return this.rowAtLine(columns[0] ?? this.diffContainerEl, hunk.oldStart);
-    }
-
-    const rows: HTMLElement[] = this.codeRows(this.diffContainerEl);
-
-    return rows.find((row: HTMLElement): boolean => {
-      const line: number | null = this.rowLine(row);
-
-      return row.classList.contains('d2h-del') && (line === null || line >= hunk.newStart);
-    }) ?? rows.find((row: HTMLElement): boolean => row.classList.contains('d2h-del')) ?? null;
-  }
-
-  /**
-   * Finds the code row inside a scope whose line-number cell carries the given
-   * line number. Used to anchor a hunk on the row at its current-side (or, for a
-   * side-by-side deletion, base-side) start line.
-   *
-   * @param {ParentNode} scope - The container (or column) to search
-   * @param {number} line - The 1-based line number to match
-   * @return {HTMLElement | null} The matching row, or null when none matches
-   */
-  protected rowAtLine(scope: ParentNode, line: number): HTMLElement | null {
-    return this.codeRows(scope).find((row: HTMLElement): boolean => this.rowLine(row) === line) ?? null;
-  }
-
-  /**
-   * Collects the content code rows inside a scope, skipping the block headers.
-   *
-   * @param {ParentNode} scope - The container (or column) to search
-   * @return {HTMLElement[]} The content rows, top to bottom
-   */
-  protected codeRows(scope: ParentNode): HTMLElement[] {
-    return Array.from(
-      scope.querySelectorAll<HTMLElement>('.d2h-code-row-wrapper:not(.d2h-code-header-wrapper)'),
-    );
-  }
-
-  /**
-   * Reads the line number a diff2html row carries, or null when the row has none
-   * (an empty placeholder). The number is the last numeric token in the row's
-   * line-number cell: line-by-line packs both the old and the new number there
-   * (the new one last), and each side-by-side column carries a single number.
-   *
-   * @param {HTMLElement} row - The .d2h-code-row-wrapper to read
-   * @return {number | null} The 1-based line number, or null
-   */
-  protected rowLine(row: HTMLElement): number | null {
-    const cell: HTMLElement | null = row.querySelector<HTMLElement>('.d2h-code-linenumber');
-    const numbers: RegExpMatchArray | null = cell?.textContent?.match(/\d+/g) ?? null;
-
-    if (!numbers || numbers.length === 0) {
-      return null;
-    }
-
-    return Number(numbers[numbers.length - 1]);
-  }
-
-  /**
-   * Builds the inline revert affordance for a hunk inside the given gutter cell:
-   * an accessible icon button that reverts only that hunk on click. It carries a
-   * single tooltip via aria-label (Obsidian renders it), with no native title so
-   * the hover hint is not shown twice, and a Lucide undo glyph set through
-   * Obsidian so it matches the app's icon set instead of an emoji.
-   *
-   * @param {HTMLElement} gutter - The element to host the affordance
-   * @param {number} index - The hunk index the affordance reverts
-   * @return {void}
-   */
-  protected makeRevertAffordance(gutter: HTMLElement, index: number): void {
-    const label: string = this.plugin.t('modal.revert-hunk');
-
-    const button: HTMLButtonElement = DomHelper.create({
-      tag: 'button',
-      classes: ['lct-hunk-revert', 'clickable-icon'],
-      attributes: { 'aria-label': label, 'type': 'button' },
-      container: gutter,
-      events: {
-        click: (event: Event): void => {
-          event.preventDefault();
-          event.stopPropagation();
-          void this.revertHunk(index);
-        },
-      },
-    });
-
-    setIcon(button, 'undo-2');
-  }
-
-  /**
    * Shows the clean patch in a readable format.
    * Delegates the DOM rendering to {@link DiffRenderHelper}; the per-row revert
    * affordances are skipped here because patch mode has no per-row structure to
@@ -1754,7 +1506,7 @@ export class HistoryModal extends Modal {
      * Map the rendered inline rows back to hunks and place the per-hunk revert
      * affordances; this also refreshes the navigation button state.
      */
-    this.attachInlineReverts();
+    this.gutterReverts.attachInlineReverts();
   }
 
   /**
@@ -1788,7 +1540,7 @@ export class HistoryModal extends Modal {
      * Map the rendered diff2html rows back to hunks and place the per-hunk
      * revert affordances; this also refreshes the navigation button state.
      */
-    this.attachInlineReverts();
+    this.gutterReverts.attachInlineReverts();
 
     /**
      * Side-by-side mode mirrors scroll between its two columns; the owned

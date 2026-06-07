@@ -1,15 +1,12 @@
 import { DIFF_SCROLL_STEP_PX, DiffOutputFormatType, DiffViewMode, ListSelectionDirection, NavigationDirection, ORIGINAL_BASE_ID, VersionListEdge } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { DiffScrollSync } from '@/modals/diff-scroll-sync';
+import { VersionList, type VersionListHost } from '@/modals/version-list.component';
 import { BaseContentHelper } from '@/helpers/base-content.helper';
 import { DiffRenderHelper } from '@/helpers/diff-render.helper';
 import { DomHelper } from '@/helpers/dom.helper';
-import { ExternalBadgeHelper } from '@/helpers/external-badge.helper';
 import { HunkHelper } from '@/helpers/hunk.helper';
-import { ListSelectionHelper } from '@/helpers/list-selection.helper';
 import { NavigationHelper } from '@/helpers/navigation.helper';
-import { VersionSearchHelper } from '@/helpers/version-search.helper';
-import { VersionLabelHelper } from '@/helpers/version-label.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ModalsService } from '@/services/modals.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
@@ -18,12 +15,9 @@ import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FileVersion } from '@/snapshots/file.version';
 import type {
   DiffRenderMode,
-  DomElementConfig,
   HistoryModalOpenOptions,
   HTMLElementWithScrollSync,
-  SearchableVersion,
   ToolbarButtonConfig,
-  VersionDescription,
   VersionRemoveResult
 } from '@/types';
 import type * as Diff from 'diff';
@@ -74,6 +68,15 @@ export class HistoryModal extends Modal {
   protected readonly scrollSync: DiffScrollSync = new DiffScrollSync(
     (): HTMLElementWithScrollSync | undefined => this.diffContainerEl,
   );
+
+  /**
+   * Version-list collaborator the modal owns (T04). It renders the left-rail
+   * timeline, walks the selection with the keyboard, and derives the per-row
+   * labels/deltas; it reads the live selection and the search/hide-identical
+   * filters back through the host adapter below and reports a selection change
+   * via `selectBase` so the modal keeps coordinating the diff render.
+   */
+  protected readonly versionList: VersionList = new VersionList(this.makeVersionListHost());
 
   /**
    * Left rail container of the three-pane shell. Hosts the version timeline
@@ -437,7 +440,7 @@ export class HistoryModal extends Modal {
     }
 
     const visibleIds: Set<string> = new Set(
-      this.getVisibleVersions().map((version: FileVersion): string => version.id),
+      this.versionList.getVisibleVersions().map((version: FileVersion): string => version.id),
     );
 
     const nextId: string =
@@ -445,7 +448,7 @@ export class HistoryModal extends Modal {
 
     this.selectedBaseId = nextId;
     this.activeHunkIndex = -1;
-    this.renderVersions();
+    this.versionList.render();
     this.refreshActiveView();
   }
 
@@ -475,7 +478,7 @@ export class HistoryModal extends Modal {
       return;
     }
 
-    this.renderVersions();
+    this.versionList.render();
     this.refreshActiveView();
   }
 
@@ -520,22 +523,22 @@ export class HistoryModal extends Modal {
     switch (event.key) {
       case 'ArrowDown':
         event.preventDefault();
-        this.moveVersionSelection(ListSelectionDirection.down);
+        this.versionList.moveSelection(ListSelectionDirection.down);
 
         return;
       case 'ArrowUp':
         event.preventDefault();
-        this.moveVersionSelection(ListSelectionDirection.up);
+        this.versionList.moveSelection(ListSelectionDirection.up);
 
         return;
       case 'Home':
         event.preventDefault();
-        this.moveVersionSelectionToEdge(VersionListEdge.first);
+        this.versionList.moveSelectionToEdge(VersionListEdge.first);
 
         return;
       case 'End':
         event.preventDefault();
-        this.moveVersionSelectionToEdge(VersionListEdge.last);
+        this.versionList.moveSelectionToEdge(VersionListEdge.last);
 
         return;
       case 'Delete':
@@ -610,61 +613,6 @@ export class HistoryModal extends Modal {
   }
 
   /**
-   * Moves the rail selection one entry up or down and keeps it in view. The
-   * order matches the rendered list (the baseline on top, then the visible
-   * versions newest-first), so down moves toward older snapshots. The walk is
-   * delegated to the pure ListSelectionHelper and clamps at both ends. A move
-   * that resolves to the already-selected entry (an edge) is a no-op.
-   *
-   * @param {ListSelectionDirection} direction - Which way to move the selection
-   */
-  protected moveVersionSelection(direction: ListSelectionDirection): void {
-    const next: string | null = ListSelectionHelper.step(this.getSelectableIds(), this.selectedBaseId, direction);
-
-    if (next === null || next === this.selectedBaseId) {
-      return;
-    }
-
-    this.selectBase(next);
-    this.scrollActiveVersionIntoView();
-  }
-
-  /**
-   * Jumps the rail selection to the first (baseline) or last (oldest visible
-   * version) entry, backing the Home/End keys. A no-op when that edge is already
-   * selected or the list is empty.
-   *
-   * @param {VersionListEdge} edge - Which end of the list to select
-   */
-  protected moveVersionSelectionToEdge(edge: VersionListEdge): void {
-    const ids: string[] = this.getSelectableIds();
-    const target: string | undefined = edge === VersionListEdge.first ? ids[0] : ids[ids.length - 1];
-
-    if (!target || target === this.selectedBaseId) {
-      return;
-    }
-
-    this.selectBase(target);
-    this.scrollActiveVersionIntoView();
-  }
-
-  /**
-   * The ids selectable in the rail, in rendered order. With captured snapshots
-   * these are the currently visible versions (after the search and
-   * hide-identical filters) newest-first; with no snapshots it is the single
-   * Original entry. This is the list the arrow keys walk.
-   *
-   * @return {string[]} The selectable base ids, top to bottom
-   */
-  protected getSelectableIds(): string[] {
-    if (this.snapshot.getVersions().length === 0) {
-      return [ORIGINAL_BASE_ID];
-    }
-
-    return this.getVisibleVersions().map((version: FileVersion): string => version.id);
-  }
-
-  /**
    * Resolves the base to select when the modal opens. With an open option
    * `initialBaseId` naming a real version the modal opens focused on that
    * version (D4); otherwise it defaults to the latest captured version (the top
@@ -704,16 +652,6 @@ export class HistoryModal extends Modal {
     }
 
     return versions.length > 0 ? versions[0].id : ORIGINAL_BASE_ID;
-  }
-
-  /**
-   * Scrolls the currently selected version entry into view inside the rail, so
-   * an arrow-key move that lands on an off-screen snapshot brings it into sight.
-   */
-  protected scrollActiveVersionIntoView(): void {
-    this.versionsEl
-      ?.querySelector<HTMLElement>('.lct-version-item.is-active')
-      ?.scrollIntoView({ block: 'nearest' });
   }
 
   /**
@@ -874,7 +812,7 @@ export class HistoryModal extends Modal {
     });
 
     this.renderSearch();
-    this.renderVersions();
+    this.versionList.render();
   }
 
   /**
@@ -945,70 +883,11 @@ export class HistoryModal extends Modal {
       const version: FileVersion | null = this.snapshot.getVersion(this.selectedBaseId);
 
       if (version) {
-        return this.resolveVersionPrimaryLabel(version, versions);
+        return this.versionList.resolvePrimaryLabel(version, versions);
       }
     }
 
     return this.plugin.t('modal.version.original');
-  }
-
-  /**
-   * Returns the primary label shown for a captured version: the user's custom
-   * label when present (D1), otherwise the derived action text translated from
-   * VersionLabelHelper.describe against the version's previous neighbour. For
-   * the oldest version on the timeline the previous neighbour is the history
-   * baseline.
-   *
-   * @param {FileVersion} version - The version to label
-   * @param {FileVersion[]} versions - The full timeline, newest first
-   * @return {string} The primary label string
-   */
-  protected resolveVersionPrimaryLabel(version: FileVersion, versions: FileVersion[]): string {
-    if (version.isLabeled()) {
-      return version.label as string;
-    }
-
-    const description: VersionDescription = this.describeVersion(version, versions);
-
-    return this.plugin.t(`modal.version.action.${description.kind}`);
-  }
-
-  /**
-   * Computes the derived action description for a version against its previous
-   * neighbour. The neighbour is the next-older captured version, or the file's
-   * history baseline when the version is the oldest one on the timeline. The
-   * result drives both the rail primary label (when no custom label is set) and
-   * the inline line delta shown on the row.
-   *
-   * @param {FileVersion} version - The version to describe
-   * @param {FileVersion[]} versions - The full timeline, newest first
-   * @return {VersionDescription} The action kind plus the added/removed counts
-   */
-  protected describeVersion(version: FileVersion, versions: FileVersion[]): VersionDescription {
-    const index: number = versions.indexOf(version);
-    const previous: FileVersion | undefined = index >= 0 ? versions[index + 1] : undefined;
-    const previousLines: string[] = previous ? previous.getLines() : this.snapshot.getHistoryOriginalStateLines();
-
-    return VersionLabelHelper.describe(previousLines, version.getLines());
-  }
-
-  /**
-   * Formats the inline line delta shown on a rail row. Returns an empty string
-   * when both added and removed are zero so the row stays clean for no-op
-   * captures (e.g. a labeled version pinned at unchanged content).
-   *
-   * @param {VersionDescription} description - The describe result
-   * @return {string} The formatted delta or empty string
-   */
-  protected formatVersionDelta(description: VersionDescription): string {
-    if (description.added === 0 && description.removed === 0) {
-      return '';
-    }
-
-    return this.plugin.t('modal.version.delta', {
-      added: String(description.added),
-      removed: String(description.removed),
-    });
   }
 
   /**
@@ -1244,7 +1123,7 @@ export class HistoryModal extends Modal {
       });
     }
 
-    this.renderVersions();
+    this.versionList.render();
   }
 
   /**
@@ -1391,224 +1270,16 @@ export class HistoryModal extends Modal {
       .setValue(this.searchQuery)
       .onChange((value: string): void => {
         this.searchQuery = value;
-        this.renderVersions();
+        this.versionList.render();
       });
-  }
-
-  /**
-   * The intermediate versions currently shown in the rail, newest first, after
-   * the content search and the hide-identical filter. The hide-identical filter
-   * drops versions whose captured content equals the live state (picking one
-   * would diff to nothing); the search keeps only versions matching the query.
-   * Shared by the rail render and the post-delete selection so "the next visible
-   * version" means the same list in both.
-   *
-   * @return {FileVersion[]} The visible versions, newest first
-   */
-  protected getVisibleVersions(): FileVersion[] {
-    const versions: FileVersion[] = this.snapshot.getVersions();
-
-    const visibleIds: Set<string> = VersionSearchHelper.match(
-      versions.map((version: FileVersion): SearchableVersion => ({
-        id: version.id,
-        content: version.getContent(this.snapshot.lineBreak),
-      })),
-      this.searchQuery,
-    );
-
-    const currentContent: string = this.snapshot.getLastState();
-
-    const selectionIds: ReadonlySet<string> | undefined = this.options.selectionFilterIds;
-
-    return versions.filter((version: FileVersion): boolean => {
-      if (!visibleIds.has(version.id)) {
-        return false;
-      }
-
-      /**
-       * When a selection filter is active (T09/D7) the rail only shows versions
-       * whose neighbour-diff touched the selection. An empty set means the
-       * filter is active but matched nothing, so the rail collapses to its
-       * no-results hint without us short-circuiting the visibility logic.
-       */
-      if (selectionIds !== undefined && !selectionIds.has(version.id)) {
-        return false;
-      }
-
-      return !this.hideIdenticalVersions || version.getContent(this.snapshot.lineBreak) !== currentContent;
-    });
-  }
-
-  /**
-   * Renders the version timeline as a list of selectable diff bases, grouped
-   * under a heading per day. With captured snapshots the list is the real
-   * versions, newest first, each in its capture day's group; the topmost
-   * (the latest snapshot) is the default base and shows what changed since the
-   * last save. With no snapshots yet the list is a single Original entry (the
-   * file's birth state vs the current content), placed in the day group of the
-   * file's last update. The rail is never hidden: when a query matches no
-   * version it shows just a no-results hint, leaving the current selection
-   * untouched. Selecting an entry sets it as the diff base and re-renders the
-   * active view.
-   */
-  protected renderVersions(): void {
-    if (!this.versionsEl) {
-      return;
-    }
-
-    const versions: FileVersion[] = this.snapshot.getVersions();
-
-    /**
-     * The rail is always visible: even a timeline-less file offers the single
-     * Original entry (original vs current), so the block is never collapsed.
-     */
-    DomHelper.update(this.versionsEl, { classes: { remove: 'lct-versions-empty' } });
-
-    const matched: FileVersion[] = this.getVisibleVersions();
-
-    /**
-     * Each entry is grouped by day; the row shows the action (or the user's
-     * custom label) as the primary text, with the capture date+time and the
-     * line-level delta inline as secondary metadata (the date is duplicated on
-     * the row, not only in the group heading, so the AC is met without relying
-     * on hover or external context). With snapshots the entries are the visible
-     * versions, already newest-first and time-ordered, so same-day entries are
-     * contiguous and a new group starts only when the day changes. With no
-     * snapshots the single Original entry takes its day and time from the
-     * file's last update and has no inline delta.
-     */
-    type RailEntry = { id: string; label: string; day: string; meta: string; delta: string; external: boolean };
-
-    const entries: RailEntry[] =
-      versions.length === 0
-        ? [
-            {
-              id: ORIGINAL_BASE_ID,
-              label: this.plugin.t('modal.version.original'),
-              day: this.snapshot.getLastChangedDate(),
-              meta: this.snapshot.getLastChangedDateTime(),
-              delta: '',
-              external: false,
-            },
-          ]
-        : matched.map((version: FileVersion): RailEntry => {
-            const description: VersionDescription = this.describeVersion(version, versions);
-
-            return {
-              id: version.id,
-              label: this.resolveVersionPrimaryLabel(version, versions),
-              day: version.getDate(),
-              meta: version.getDateTime(),
-              delta: this.formatVersionDelta(description),
-              external: version.isExternal(),
-            };
-          });
-
-    const groups: { label: string; entries: RailEntry[] }[] = [];
-
-    entries.forEach((entry: RailEntry): void => {
-      let group: { label: string; entries: RailEntry[] } | undefined = groups[groups.length - 1];
-
-      if (!group || group.label !== entry.day) {
-        group = { label: entry.day, entries: [] };
-        groups.push(group);
-      }
-
-      group.entries.push(entry);
-    });
-
-    const items: DomElementConfig[] = [];
-
-    groups.forEach((group: { label: string; entries: RailEntry[] }): void => {
-      items.push({ tag: 'div', classes: 'lct-versions-day', text: group.label });
-      group.entries.forEach((entry: RailEntry): void => {
-        items.push(this.makeVersionItem(entry));
-      });
-    });
-
-    /**
-     * A search that excluded every captured version leaves the version groups
-     * empty, so surface a no-results hint. (With no snapshots at all the
-     * Original entry is shown instead, so this only applies once versions
-     * exist.)
-     */
-    if (versions.length > 0 && matched.length === 0) {
-      items.push({
-        tag: 'div',
-        classes: 'lct-versions-no-results',
-        text: this.plugin.t('modal.no-versions-match'),
-      });
-    }
-
-    DomHelper.update(this.versionsEl, {
-      text: null,
-      children: [
-        {
-          tag: 'div',
-          classes: 'lct-versions-list',
-          children: items,
-        },
-      ],
-    });
-
-    ExternalBadgeHelper.paint(this.versionsEl);
-  }
-
-  /**
-   * Builds a single selectable version list entry config.
-   * The active entry carries a highlight class; clicking selects that base. A
-   * version captured from an external change (D13, T18) renders a small badge
-   * next to the primary label so the user can tell external states apart from
-   * editor edits without opening the diff. The badge text is an inline English
-   * literal here and is propagated to every catalog in T15 (D13 pattern).
-   *
-   * @param {{id: string, label: string, meta: string, delta: string, external: boolean}} entry -
-   *   The rail entry to render
-   * @return {DomElementConfig} A DomHelper element config for the entry
-   */
-  protected makeVersionItem(entry: {
-    id: string;
-    label: string;
-    meta: string;
-    delta: string;
-    external: boolean;
-  }): DomElementConfig {
-    const active: boolean = this.selectedBaseId === entry.id;
-    const labelChildren: DomElementConfig[] = [
-      { tag: 'span', classes: 'lct-version-label', text: entry.label },
-    ];
-
-    if (entry.external) {
-      labelChildren.push(ExternalBadgeHelper.make(this.plugin.t('version.badge.external')));
-    }
-
-    const children: DomElementConfig[] = [
-      { tag: 'span', classes: 'lct-version-label-row', children: labelChildren },
-    ];
-
-    if (entry.meta) {
-      children.push({ tag: 'span', classes: 'lct-version-meta', text: entry.meta });
-    }
-
-    if (entry.delta) {
-      children.push({ tag: 'span', classes: 'lct-version-delta', text: entry.delta });
-    }
-
-    return {
-      tag: 'div',
-      classes: active ? ['lct-version-item', 'is-active'] : ['lct-version-item'],
-      events: {
-        click: (): void => {
-          this.selectBase(entry.id);
-        },
-      },
-      children,
-    };
   }
 
   /**
    * Selects a new diff base and refreshes the version list and active diff view.
-   * No-op when the base is already selected.
+   * No-op when the base is already selected. Shared by the rail rows and the
+   * keyboard selection (both routed through the VersionList collaborator) so a
+   * pick from either path coordinates the rail re-render and the diff refresh in
+   * one place.
    *
    * @param {string} id - The base id to select
    */
@@ -1618,8 +1289,32 @@ export class HistoryModal extends Modal {
     }
 
     this.selectedBaseId = id;
-    this.renderVersions();
+    this.versionList.render();
     this.refreshActiveView();
+  }
+
+  /**
+   * Builds the host adapter the owned {@link VersionList} reads its shared state
+   * through. It exposes the live selection, the search/hide-identical filters,
+   * and the selection-filter ids as lazy accessors (so the component always sees
+   * the current values), plus the selectBase callback the component reports a
+   * pick to. Keeping the modal's selection/filter fields protected and handing
+   * the collaborator a narrow port preserves the encapsulation the DiffScrollSync
+   * resolver established (T03).
+   *
+   * @return {VersionListHost} The host port for the version-list collaborator
+   */
+  protected makeVersionListHost(): VersionListHost {
+    return {
+      snapshot: this.snapshot,
+      plugin: this.plugin,
+      versionsEl: (): HTMLElement | undefined => this.versionsEl,
+      selectedBaseId: (): string => this.selectedBaseId,
+      searchQuery: (): string => this.searchQuery,
+      hideIdenticalVersions: (): boolean => this.hideIdenticalVersions,
+      selectionFilterIds: (): ReadonlySet<string> | undefined => this.options.selectionFilterIds,
+      selectBase: (id: string): void => this.selectBase(id),
+    };
   }
 
   /**

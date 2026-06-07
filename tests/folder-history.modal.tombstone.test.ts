@@ -5,62 +5,53 @@
 import 'reflect-metadata';
 import { describe, expect, it, jest } from '@jest/globals';
 
-import { FolderHistoryModal } from '@/modals/folder-history.modal';
+import { FolderActionHandler, type FolderActionHost } from '@/modals/folder-action-handler';
 import { FolderDeltaStatus } from '@/consts';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FolderDeltaResult } from '@/types';
 
 /**
- * Guards `restoreTombstoneSelection` (T14) against an occupied target path. The
- * production method is protected and the modal class drags the whole DI / DOM
- * lifecycle through its constructor, so the test bypasses construction via
- * `Object.create` and assigns only the fields the method actually touches:
+ * Guards `restoreTombstoneSelection` (T14, owned by FolderActionHandler since
+ * T09) against an occupied target path. The production method is protected, so
+ * the test binds it off the handler prototype against a minimal
+ * {@link FolderActionHost} carrying only the fields the method actually touches:
  * `app.vault`, `plugin.t`, `snapshotsService`. This keeps the test focused on
- * the new occupied-path branch without standing up the full modal.
+ * the occupied-path branch without standing up the full modal.
  */
 
 type RestoreFn = (path: string, snapshot: FileSnapshot, result: FolderDeltaResult) => Promise<void>;
 
 /**
- * Builds a minimally-wired `FolderHistoryModal` instance: only the collaborators
- * `restoreTombstoneSelection` reads are populated, everything else is left
- * undefined. The bound restore function is returned so the test can call the
- * protected method without a cast at every call site.
- *
- * `snapshotsService` is wired through `plugin.get` because the `@Inject`
- * decorator installs a setter that throws on direct assignment; the test
- * cooperates with the DI getter instead of fighting it.
+ * Builds a bound reference to the handler's protected `restoreTombstoneSelection`
+ * over a minimal {@link FolderActionHost}: only the collaborators the method
+ * reads are populated, everything else is left undefined. The bound restore
+ * function is returned so the test can call the protected method without a cast
+ * at every call site.
  *
  * @param {object} vault - Vault stub with `getAbstractFileByPath` and `create`
  * @param {(key: string) => string} t - i18n resolver stub (returns the key itself)
  * @param {jest.Mock} forceUpdate - Spy for `snapshotsService.forceUpdate`
  * @return {RestoreFn} A bound reference to the protected restoreTombstoneSelection
  */
-function buildModal(
+function buildHandler(
   vault: { getAbstractFileByPath: jest.Mock; create: jest.Mock },
   t: (key: string) => string,
   forceUpdate: jest.Mock,
 ): RestoreFn {
-  const instance = Object.create(FolderHistoryModal.prototype) as Record<string, unknown>;
-  const snapshotsService = { forceUpdate };
-  const plugin = {
-    t,
-    get(name: string): unknown {
-      if (name === 'SnapshotsService') {
-        return snapshotsService;
-      }
+  const host = {
+    app: { vault },
+    plugin: { t },
+    snapshotsService: { forceUpdate },
+  } as unknown as FolderActionHost;
 
-      return undefined;
-    },
-  };
+  const instance = Object.create(FolderActionHandler.prototype) as Record<string, unknown>;
 
-  instance.app = { vault };
-  instance.plugin = plugin;
+  instance.host = host;
 
-  const proto = FolderHistoryModal.prototype as unknown as Record<string, RestoreFn>;
+  const proto = FolderActionHandler.prototype as unknown as Record<string, RestoreFn>;
   const restoreFn = proto.restoreTombstoneSelection;
 
-  return restoreFn.bind(instance as unknown as FolderHistoryModal);
+  return restoreFn.bind(instance as unknown as FolderActionHandler);
 }
 
 /**
@@ -98,7 +89,7 @@ describe('FolderHistoryModal.restoreTombstoneSelection (T14 occupied-path guard)
       return key;
     };
 
-    const restore = buildModal({ getAbstractFileByPath, create }, t, forceUpdate);
+    const restore = buildHandler({ getAbstractFileByPath, create }, t, forceUpdate);
 
     await restore('old.md', buildTombstone(), result);
 
@@ -115,7 +106,7 @@ describe('FolderHistoryModal.restoreTombstoneSelection (T14 occupied-path guard)
     const forceUpdate = jest.fn();
     const t = (key: string): string => key;
 
-    const restore = buildModal(
+    const restore = buildHandler(
       { getAbstractFileByPath, create: create as unknown as jest.Mock },
       t,
       forceUpdate,
@@ -145,7 +136,7 @@ describe('FolderHistoryModal.restoreTombstoneSelection (T14 occupied-path guard)
       return key;
     };
 
-    const restore = buildModal(
+    const restore = buildHandler(
       { getAbstractFileByPath, create: create as unknown as jest.Mock },
       t,
       forceUpdate,

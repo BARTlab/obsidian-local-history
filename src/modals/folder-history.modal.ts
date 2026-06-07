@@ -8,6 +8,11 @@ import { FolderTreeComponent } from '@/components/folder-tree.component';
 import { DomHelper } from '@/helpers/dom.helper';
 import { FolderDeltaHelper } from '@/helpers/folder-delta.helper';
 import { FolderTimelineHelper } from '@/helpers/folder-timeline.helper';
+import {
+  FolderActionHandler,
+  type FolderActionHost,
+  type FolderActionSelection,
+} from '@/modals/folder-action-handler';
 import { FolderDiffRenderer, type FolderDiffHost } from '@/modals/folder-diff-renderer';
 import { FolderTimelineRenderer, type FolderTimelineHost } from '@/modals/folder-timeline-renderer';
 import type LineChangeTrackerPlugin from '@/main';
@@ -23,7 +28,7 @@ import type {
   FolderTimelinePoint,
   FolderTreeEntry
 } from '@/types';
-import { type App, Modal, Notice, SearchComponent, type TFile, setIcon } from 'obsidian';
+import { type App, Modal, SearchComponent, setIcon } from 'obsidian';
 
 /**
  * Modal dialog that displays a folder-level history view (D5). Three columns:
@@ -165,6 +170,16 @@ export class FolderHistoryModal extends Modal {
   protected readonly diffRenderer: FolderDiffRenderer;
 
   /**
+   * Toolbar-action collaborator (T09): a plain collaborator the modal owns,
+   * owning the five async toolbar actions (restore / remove / label selected,
+   * restore-original, remove-history) and the deleted-file tombstone restore.
+   * Reads the live selection / closest version through a narrow host port and
+   * drives the post-action rail / tree / diff re-render back through it, so the
+   * modal stays free of the destructive-action bodies.
+   */
+  protected readonly actionHandler: FolderActionHandler;
+
+  /**
    * Mode toggle buttons, kept so the active accent can be flipped.
    */
   protected modeButtons: {
@@ -230,6 +245,7 @@ export class FolderHistoryModal extends Modal {
     this.tree = new FolderTreeComponent();
     this.timelineRenderer = new FolderTimelineRenderer(this.makeTimelineHost());
     this.diffRenderer = new FolderDiffRenderer(this.makeDiffHost());
+    this.actionHandler = new FolderActionHandler(this.makeActionHost());
   }
 
   /**
@@ -281,6 +297,41 @@ export class FolderHistoryModal extends Modal {
       snapshotsByPath: (): Map<string, FileSnapshot> => this.snapshotsByPath,
       onDiffRendered: (): void => {
         this.updateActionButtonStates();
+      },
+    };
+  }
+
+  /**
+   * Builds the narrow host port the {@link FolderActionHandler} reads the modal's
+   * action state through. The services and app are passed straight through; the
+   * selection / closest-version derivations and the snapshot-map mutation +
+   * rail / tree / diff re-render are routed back to the modal so the handler
+   * never owns the timeline or the snapshot map directly. Mirrors the host-port
+   * pattern the timeline (T07) and diff (T08) renderers use: the handler never
+   * sees the modal's protected fields directly.
+   *
+   * @return {FolderActionHost} The host port for the action handler
+   */
+  protected makeActionHost(): FolderActionHost {
+    return {
+      app: this.app,
+      plugin: this.plugin,
+      modalsService: this.modalsService,
+      versionActionsService: this.versionActionsService,
+      snapshotsService: this.snapshotsService,
+      resolveSelection: (): FolderActionSelection | null => this.resolveSelection(),
+      resolveVersionAtT: (snapshot: FileSnapshot): FileVersion | null => this.resolveVersionAtT(snapshot),
+      removeFromMap: (path: string): void => {
+        this.snapshotsByPath.delete(path);
+      },
+      resyncTimeline: (): void => {
+        this.resyncTimeline();
+      },
+      refreshTree: (): void => {
+        this.refreshTree();
+      },
+      refreshDiff: (): void => {
+        this.refreshDiff();
       },
     };
   }
@@ -455,7 +506,7 @@ export class FolderHistoryModal extends Modal {
       label: this.plugin.t('modal.restore-original'),
       warning: true,
       onClick: async (): Promise<void> => {
-        await this.handleRestoreOriginal();
+        await this.actionHandler.handleRestoreOriginal();
       },
     });
 
@@ -464,7 +515,7 @@ export class FolderHistoryModal extends Modal {
       label: this.plugin.t('modal.remove-history'),
       warning: true,
       onClick: async (): Promise<void> => {
-        await this.handleRemoveHistory();
+        await this.actionHandler.handleRemoveHistory();
       },
     });
 
@@ -478,7 +529,7 @@ export class FolderHistoryModal extends Modal {
       icon: 'history',
       label: this.plugin.t('modal.restore-selected'),
       onClick: async (): Promise<void> => {
-        await this.handleRestoreSelected();
+        await this.actionHandler.handleRestoreSelected();
       },
     });
 
@@ -486,7 +537,7 @@ export class FolderHistoryModal extends Modal {
       icon: 'list-x',
       label: this.plugin.t('modal.remove-selected'),
       onClick: async (): Promise<void> => {
-        await this.handleRemoveSelected();
+        await this.actionHandler.handleRemoveSelected();
       },
     });
 
@@ -494,7 +545,7 @@ export class FolderHistoryModal extends Modal {
       icon: 'tag',
       label: this.plugin.t('modal.label-selected'),
       onClick: async (): Promise<void> => {
-        await this.handleLabelSelected();
+        await this.actionHandler.handleLabelSelected();
       },
     });
 
@@ -811,315 +862,6 @@ export class FolderHistoryModal extends Modal {
     }
 
     this.timelineRenderer.render();
-  }
-
-  /**
-   * Handler for the "Restore selected version" toolbar button. The version
-   * closest to T is restored on the tree-selected file (D10/AC1). When T
-   * precedes every captured version, the synthetic baseline branch writes the
-   * `compareAt` base back through {@link SnapshotsService.applyContent} so the
-   * file's earliest known content is still restorable. When the selected file
-   * is a tombstone with `deletedTimestamp > T` (AC4), the file is re-created
-   * at its old path with the content at T and the tombstone is promoted back
-   * to a live snapshot in place.
-   *
-   * @return {Promise<void>}
-   */
-  protected async handleRestoreSelected(): Promise<void> {
-    const selection: { path: string; snapshot: FileSnapshot; result: FolderDeltaResult } | null =
-      this.resolveSelection();
-
-    if (!selection) {
-      return;
-    }
-
-    const confirmed: boolean = await this.modalsService.confirm({
-      title: this.plugin.t('modal.confirm.restore-version.title'),
-      message: this.plugin.t('modal.confirm.restore-version.message'),
-      confirmText: this.plugin.t('modal.confirm.restore-version.button'),
-      cancelText: this.plugin.t('modal.confirm.cancel'),
-    });
-
-    if (!confirmed) {
-      return;
-    }
-
-    if (selection.snapshot.isTombstone() && selection.result.status === FolderDeltaStatus.deleted) {
-      await this.restoreTombstoneSelection(selection.path, selection.snapshot, selection.result);
-      this.resyncTimeline();
-      this.refreshTree();
-      this.refreshDiff();
-
-      return;
-    }
-
-    const file: TFile | null = selection.snapshot.file ?? null;
-
-    if (!file) {
-      return;
-    }
-
-    const version: FileVersion | null = this.resolveVersionAtT(selection.snapshot);
-
-    if (version) {
-      await this.versionActionsService.restoreSelected(file, version.id);
-    } else {
-      /**
-       * Synthetic baseline branch: T precedes every captured version, so the
-       * base resolved by FolderDeltaHelper is the history baseline. Reuse the
-       * same applyContent path the file modal's ORIGINAL_BASE_ID branch uses
-       * so the tracker and the cached state stay in sync after the write.
-       */
-      const baseLines: string[] = selection.result.base;
-      const currentLines: string[] = selection.snapshot.getLastStateLines();
-
-      if (baseLines.join(selection.snapshot.lineBreak) !== currentLines.join(selection.snapshot.lineBreak)) {
-        await this.snapshotsService.applyContent(file, baseLines, {
-          start: 0,
-          removeCount: currentLines.length,
-          newLines: baseLines,
-        });
-      }
-    }
-
-    this.refreshTree();
-    this.refreshDiff();
-  }
-
-  /**
-   * Promotes a tombstone back to a live snapshot for AC4: writes the resolved
-   * base content to disk at the snapshot's old path through
-   * {@link App.vault.create}, attaches the resulting file to the snapshot, and
-   * clears the tombstone marker so the entry becomes live in the map without
-   * losing its captured versions or history baseline. A best-effort path: on a
-   * vault error a Notice surfaces the failure and the tombstone stays as-is so
-   * the user can retry.
-   *
-   * @param {string} path - The vault-relative old path of the deleted file
-   * @param {FileSnapshot} snapshot - The tombstone snapshot to promote
-   * @param {FolderDeltaResult} result - The compareAt result carrying the base content at T
-   * @return {Promise<void>}
-   */
-  protected async restoreTombstoneSelection(
-    path: string,
-    snapshot: FileSnapshot,
-    result: FolderDeltaResult,
-  ): Promise<void> {
-    const content: string = result.base.join(snapshot.lineBreak);
-
-    // T14: a deleted file's old path may now be occupied by a different file
-    // (recreated or renamed since deletion). `vault.create` throws on an
-    // existing path and the generic catch below would hide the cause from the
-    // user; pre-check here and surface a distinct notice so they can resolve
-    // the collision manually instead of seeing a vague "restore failed".
-    if (this.app.vault.getAbstractFileByPath(path) !== null) {
-      new Notice(this.plugin.t('notice.file-restore-path-occupied'));
-
-      return;
-    }
-
-    try {
-      const created: TFile = await this.app.vault.create(path, content);
-
-      snapshot.file = created;
-      snapshot.deletedTimestamp = undefined;
-      snapshot.updateState(result.base);
-      snapshot.updateChanges();
-      this.snapshotsService.forceUpdate();
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_error) {
-      new Notice(this.plugin.t('notice.file-restore-failed'));
-    }
-  }
-
-  /**
-   * Handler for the "Remove selected version" toolbar button. Drops the version
-   * closest to T from the tree-selected file's timeline (D10/AC2), then
-   * re-synthesises the folder timeline and re-renders the tree so the rail and
-   * the per-file delta reflect the removed point. A no-op for a tombstone with
-   * no captured version at T (there is nothing to remove without violating the
-   * "version closest to T" semantics).
-   *
-   * @return {Promise<void>}
-   */
-  protected async handleRemoveSelected(): Promise<void> {
-    const selection: { path: string; snapshot: FileSnapshot; result: FolderDeltaResult } | null =
-      this.resolveSelection();
-
-    if (!selection) {
-      return;
-    }
-
-    const version: FileVersion | null = this.resolveVersionAtT(selection.snapshot);
-
-    if (!version) {
-      return;
-    }
-
-    const confirmed: boolean = await this.modalsService.confirm({
-      title: this.plugin.t('modal.confirm.remove-version.title'),
-      message: this.plugin.t('modal.confirm.remove-version.message'),
-      confirmText: this.plugin.t('modal.confirm.remove-version.button'),
-      cancelText: this.plugin.t('modal.confirm.cancel'),
-    });
-
-    if (!confirmed) {
-      return;
-    }
-
-    const file: TFile | null = selection.snapshot.file ?? null;
-
-    /**
-     * Tombstones have a null `file` reference (D2 leaves them detached), so the
-     * service's getOne lookup would miss. Drop the version directly off the
-     * snapshot in that case and notify subscribers ourselves so retention and
-     * the rail still see a consistent map.
-     */
-    if (file) {
-      this.versionActionsService.removeSelected(file, version.id);
-    } else if (selection.snapshot.removeVersion(version.id)) {
-      this.snapshotsService.forceUpdate();
-    }
-
-    this.resyncTimeline();
-    this.refreshTree();
-    this.refreshDiff();
-  }
-
-  /**
-   * Handler for the "Label selected version" toolbar button. Routes the
-   * version closest to T through {@link ModalsService.labelVersion} so the
-   * label prompt and the cancel/blank no-op contract match the file modal
-   * exactly (D10/AC3). A no-op for a tombstone whose snapshot has no live
-   * `file` reference (the modals service resolves the label target by file).
-   *
-   * @return {Promise<void>}
-   */
-  protected async handleLabelSelected(): Promise<void> {
-    const selection: { path: string; snapshot: FileSnapshot; result: FolderDeltaResult } | null =
-      this.resolveSelection();
-
-    if (!selection) {
-      return;
-    }
-
-    const version: FileVersion | null = this.resolveVersionAtT(selection.snapshot);
-    const file: TFile | null = selection.snapshot.file ?? null;
-
-    if (!version || !file) {
-      return;
-    }
-
-    const labeled: FileVersion | null = await this.modalsService.labelVersion(file, version.id);
-
-    if (!labeled) {
-      return;
-    }
-
-    this.refreshTree();
-    this.refreshDiff();
-  }
-
-  /**
-   * Handler for the "Restore original" toolbar button. Asks for confirmation
-   * and, on consent, rewrites the tree-selected file back to its history
-   * baseline and drops its snapshot, mirroring the file modal's destructive
-   * action. The folder modal stays open: the tree re-colours so the user can
-   * see the rest of the subtree, the now-untracked file simply leaves the
-   * delta view.
-   *
-   * @return {Promise<void>}
-   */
-  protected async handleRestoreOriginal(): Promise<void> {
-    const selection: { path: string; snapshot: FileSnapshot; result: FolderDeltaResult } | null =
-      this.resolveSelection();
-
-    if (!selection) {
-      return;
-    }
-
-    const file: TFile | null = selection.snapshot.file ?? null;
-
-    if (!file) {
-      return;
-    }
-
-    const confirmed: boolean = await this.modalsService.confirm({
-      title: this.plugin.t('modal.confirm.restore.title'),
-      message: this.plugin.t('modal.confirm.restore.message'),
-      confirmText: this.plugin.t('modal.confirm.restore.button'),
-      cancelText: this.plugin.t('modal.confirm.cancel'),
-    });
-
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      const originalContent: string = selection.snapshot.getHistoryOriginalState();
-
-      await this.app.vault.modify(file, originalContent);
-      this.snapshotsService.wipeOne(file);
-      this.snapshotsByPath.delete(selection.path);
-
-      new Notice(this.plugin.t('notice.file-restored'));
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_error) {
-      new Notice(this.plugin.t('notice.file-restore-failed'));
-
-      return;
-    }
-
-    this.resyncTimeline();
-    this.refreshTree();
-    this.refreshDiff();
-  }
-
-  /**
-   * Handler for the "Remove history" toolbar button. Asks for confirmation and,
-   * on consent, drops the tree-selected file's snapshot through
-   * {@link SnapshotsService.wipeOne}, leaving the file's content untouched on
-   * disk. The folder modal stays open and the tree is re-coloured so the
-   * remaining changed files stay visible.
-   *
-   * @return {Promise<void>}
-   */
-  protected async handleRemoveHistory(): Promise<void> {
-    const selection: { path: string; snapshot: FileSnapshot; result: FolderDeltaResult } | null =
-      this.resolveSelection();
-
-    if (!selection) {
-      return;
-    }
-
-    const file: TFile | null = selection.snapshot.file ?? null;
-
-    /**
-     * Tombstone branch: no live file to write to. Remove-history on a deleted
-     * file has no analogue in the file modal (where the modal closes after the
-     * wipe), so the folder modal treats it as a no-op for tombstones and lets
-     * tombstone retention age the entry out instead.
-     */
-    if (!file) {
-      return;
-    }
-
-    const confirmed: boolean = await this.modalsService.confirm({
-      title: this.plugin.t('modal.confirm.remove.title'),
-      message: this.plugin.t('modal.confirm.remove.message'),
-      confirmText: this.plugin.t('modal.confirm.remove.button'),
-      cancelText: this.plugin.t('modal.confirm.cancel'),
-    });
-
-    if (!confirmed) {
-      return;
-    }
-
-    this.snapshotsService.wipeOne(file);
-    this.snapshotsByPath.delete(selection.path);
-    this.resyncTimeline();
-    this.refreshTree();
-    this.refreshDiff();
   }
 
   /**

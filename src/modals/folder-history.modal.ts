@@ -3,15 +3,14 @@ import {
   DiffOutputFormatType,
   DiffViewMode,
   FolderDeltaStatus,
-  FolderTimelinePointKind,
 } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { FolderTreeComponent } from '@/components/folder-tree.component';
 import { DiffRenderHelper } from '@/helpers/diff-render.helper';
 import { DomHelper } from '@/helpers/dom.helper';
-import { ExternalBadgeHelper } from '@/helpers/external-badge.helper';
 import { FolderDeltaHelper } from '@/helpers/folder-delta.helper';
 import { FolderTimelineHelper } from '@/helpers/folder-timeline.helper';
+import { FolderTimelineRenderer, type FolderTimelineHost } from '@/modals/folder-timeline-renderer';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ModalsService } from '@/services/modals.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
@@ -20,7 +19,6 @@ import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FileVersion } from '@/snapshots/file.version';
 import type {
   DiffRenderMode,
-  DomElementConfig,
   FolderDeltaResult,
   FolderToolbarButtonConfig,
   FolderTimelinePoint,
@@ -152,6 +150,13 @@ export class FolderHistoryModal extends Modal {
   protected readonly tree: FolderTreeComponent;
 
   /**
+   * Timeline-rail renderer (T07): a plain collaborator the modal owns, reading
+   * the live timeline / selected T / snapshot map through a narrow host port
+   * and reporting a picked T back so the modal re-pins it.
+   */
+  protected readonly timelineRenderer: FolderTimelineRenderer;
+
+  /**
    * Mode toggle buttons, kept so the active accent can be flipped.
    */
   protected modeButtons: {
@@ -215,6 +220,31 @@ export class FolderHistoryModal extends Modal {
     this.timeline = FolderTimelineHelper.synthesize(snapshots, rootPath);
     this.selectedTimestamp = this.timeline.length > 0 ? this.timeline[0].timestamp : Date.now();
     this.tree = new FolderTreeComponent();
+    this.timelineRenderer = new FolderTimelineRenderer(this.makeTimelineHost());
+  }
+
+  /**
+   * Builds the narrow host port the {@link FolderTimelineRenderer} reads the
+   * modal's shared state through. The accessors are lazy so the renderer always
+   * sees the live timeline, selected T, rail container, and snapshot map, and
+   * the `selectTimestamp` callback routes a picked point back through the
+   * modal's own re-pin path (rail + tree + diff). Mirrors the host-port pattern
+   * the file modal's VersionList / GutterRevert collaborators use (T04 / T05):
+   * the renderer never sees the modal's protected fields directly.
+   *
+   * @return {FolderTimelineHost} The host port for the timeline renderer
+   */
+  protected makeTimelineHost(): FolderTimelineHost {
+    return {
+      plugin: this.plugin,
+      railEl: (): HTMLElement | undefined => this.railEl,
+      timeline: (): FolderTimelinePoint[] => this.timeline,
+      selectedTimestamp: (): number => this.selectedTimestamp,
+      snapshotsByPath: (): Map<string, FileSnapshot> => this.snapshotsByPath,
+      selectTimestamp: (timestamp: number): void => {
+        this.selectTimestamp(timestamp);
+      },
+    };
   }
 
   /**
@@ -229,7 +259,7 @@ export class FolderHistoryModal extends Modal {
 
     DomHelper.update(this.modalEl, { classes: { add: ['lct-diff-modal', 'lct-folder-history-modal'] } });
 
-    this.renderTimeline();
+    this.timelineRenderer.render();
     this.refreshTree();
     this.refreshDiff();
   }
@@ -587,166 +617,6 @@ export class FolderHistoryModal extends Modal {
   }
 
   /**
-   * Renders the timeline rail: a flat list of points grouped by their day
-   * key, clickable so the user can pick a new T. Highlights the entry whose
-   * timestamp matches the currently selected T.
-   */
-  protected renderTimeline(): void {
-    if (!this.railEl) {
-      return;
-    }
-
-    type RailGroup = { label: string; points: FolderTimelinePoint[] };
-
-    const groups: RailGroup[] = [];
-
-    this.timeline.forEach((point: FolderTimelinePoint): void => {
-      let group: RailGroup | undefined = groups[groups.length - 1];
-
-      if (!group || group.label !== point.dayKey) {
-        group = { label: point.dayKey, points: [] };
-        groups.push(group);
-      }
-
-      group.points.push(point);
-    });
-
-    const items: DomElementConfig[] = [];
-
-    groups.forEach((group: RailGroup): void => {
-      items.push({ tag: 'div', classes: 'lct-versions-day', text: group.label });
-
-      group.points.forEach((point: FolderTimelinePoint): void => {
-        items.push(this.makeTimelineItem(point));
-      });
-    });
-
-    if (items.length === 0) {
-      /**
-       * Defensive: openFolderHistory rejects an empty subtree, but a future
-       * caller might bypass that gate, so the rail still has a sensible
-       * no-results hint instead of an empty column.
-       */
-      items.push({
-        tag: 'div',
-        classes: 'lct-versions-no-results',
-        text: this.plugin.t('modal.no-versions-match'),
-      });
-    }
-
-    DomHelper.update(this.railEl, {
-      text: null,
-      children: [
-        {
-          tag: 'div',
-          classes: 'lct-versions',
-          children: [{ tag: 'div', classes: 'lct-versions-list', children: items }],
-        },
-      ],
-    });
-
-    ExternalBadgeHelper.paint(this.railEl);
-  }
-
-  /**
-   * Whether the given timeline point comes from an external-change capture
-   * (D13, T20). Only `'capture'` points map back to a `FileVersion` via
-   * `versionId`; `'delete'` and `'move-in'` markers stay non-external. A
-   * point whose path or version is no longer in the map (e.g. removed by a
-   * destructive action after resync) returns false defensively.
-   *
-   * @param {FolderTimelinePoint} point - The timeline point to inspect
-   * @return {boolean} True when the underlying version is flagged external
-   */
-  protected isExternalPoint(point: FolderTimelinePoint): boolean {
-    if (point.kind !== FolderTimelinePointKind.capture || !point.versionId) {
-      return false;
-    }
-
-    const snapshot: FileSnapshot | undefined = this.snapshotsByPath.get(point.path);
-
-    if (!snapshot) {
-      return false;
-    }
-
-    const version: FileVersion | undefined = snapshot.getVersion(point.versionId);
-
-    return version?.isExternal() === true;
-  }
-
-  /**
-   * Builds a single timeline rail entry: a label describing the event (a
-   * capture / delete / move-in plus the file's short name), the time of day
-   * inline, and a click that re-pins T and re-renders the tree and diff.
-   *
-   * @param {FolderTimelinePoint} point - The point to render
-   * @return {DomElementConfig} The rail entry element config
-   */
-  protected makeTimelineItem(point: FolderTimelinePoint): DomElementConfig {
-    const active: boolean = this.selectedTimestamp === point.timestamp;
-    const shortName: string = this.basename(point.path);
-    const kindLabel: string = this.kindLabel(point.kind);
-    const time: string = new Date(point.timestamp).toLocaleTimeString();
-    const external: boolean = this.isExternalPoint(point);
-
-    const labelChildren: DomElementConfig[] = [
-      { tag: 'span', classes: 'lct-version-label', text: shortName },
-    ];
-
-    if (external) {
-      labelChildren.push(ExternalBadgeHelper.make(this.plugin.t('version.badge.external')));
-    }
-
-    return {
-      tag: 'div',
-      classes: active ? ['lct-version-item', 'is-active'] : ['lct-version-item'],
-      events: {
-        click: (): void => {
-          this.selectTimestamp(point.timestamp);
-        },
-      },
-      children: [
-        { tag: 'span', classes: 'lct-version-label-row', children: labelChildren },
-        { tag: 'span', classes: 'lct-version-meta', text: `${kindLabel}, ${time}` },
-      ],
-    };
-  }
-
-  /**
-   * Returns a short, inline-English label for a timeline point kind. The
-   * literal strings are propagated across every catalog in T15 (D13 pattern);
-   * until then, the labels show as English on every locale.
-   *
-   * @param {FolderTimelinePoint['kind']} kind - The discriminator
-   * @return {string} The human-readable kind label
-   */
-  protected kindLabel(kind: FolderTimelinePoint['kind']): string {
-    switch (kind) {
-      case FolderTimelinePointKind.capture:
-        return this.plugin.t('modal.folder.timeline.capture');
-      case FolderTimelinePointKind.delete:
-        return this.plugin.t('modal.folder.timeline.delete');
-      case FolderTimelinePointKind.moveIn:
-        return this.plugin.t('modal.folder.timeline.move-in');
-      default:
-        return kind;
-    }
-  }
-
-  /**
-   * Returns the last path segment of a vault-relative path. Used as the rail
-   * row's short file label so the column does not overflow on deep paths.
-   *
-   * @param {string} path - The vault-relative path
-   * @return {string} The trailing segment, or the path itself when no slash
-   */
-  protected basename(path: string): string {
-    const lastSlash: number = path.lastIndexOf('/');
-
-    return lastSlash === -1 ? path : path.slice(lastSlash + 1);
-  }
-
-  /**
    * Pins a new timeline point T, re-renders the rail (to flip the active
    * highlight), re-colours the tree (the per-file deltas change with T), and
    * re-renders the diff for the currently-selected file at the new T (AC2).
@@ -759,7 +629,7 @@ export class FolderHistoryModal extends Modal {
     }
 
     this.selectedTimestamp = timestamp;
-    this.renderTimeline();
+    this.timelineRenderer.render();
     this.refreshTree();
     this.refreshDiff();
   }
@@ -916,7 +786,7 @@ export class FolderHistoryModal extends Modal {
        * The subtree is now empty; the caller closes the modal, but the rail
        * still re-renders into the empty-state hint for safety.
        */
-      this.renderTimeline();
+      this.timelineRenderer.render();
 
       return;
     }
@@ -929,7 +799,7 @@ export class FolderHistoryModal extends Modal {
       this.selectedTimestamp = this.timeline[0].timestamp;
     }
 
-    this.renderTimeline();
+    this.timelineRenderer.render();
   }
 
   /**

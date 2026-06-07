@@ -1,5 +1,6 @@
 import { DIFF_SCROLL_STEP_PX, DiffOutputFormatType, DiffViewMode, ListSelectionDirection, NavigationDirection, ORIGINAL_BASE_ID, VersionListEdge } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
+import { DiffScrollSync } from '@/modals/diff-scroll-sync';
 import { BaseContentHelper } from '@/helpers/base-content.helper';
 import { DiffRenderHelper } from '@/helpers/diff-render.helper';
 import { DomHelper } from '@/helpers/dom.helper';
@@ -18,7 +19,6 @@ import type { FileVersion } from '@/snapshots/file.version';
 import type {
   DiffRenderMode,
   DomElementConfig,
-  FunctionVoid,
   HistoryModalOpenOptions,
   HTMLElementWithScrollSync,
   SearchableVersion,
@@ -66,11 +66,14 @@ export class HistoryModal extends Modal {
   protected diffContainerEl?: HTMLElementWithScrollSync;
 
   /**
-   * Handle of the pending deferred `setupScrollSynchronization` call, captured
-   * so a rapid mode switch can cancel it before it attaches listeners to a
-   * replaced DOM. See T13 in `.plan/08-code-review-remediation`.
+   * Side-by-side scroll-synchronisation collaborator the modal owns (T03). It
+   * carries the deferred-setup timer and the per-container listener cleanup
+   * that previously lived on the modal; it reads the live diff container back
+   * through the resolver so it can bail when the container is swapped mid-flight.
    */
-  protected scrollSyncTimer: ReturnType<typeof setTimeout> | null = null;
+  protected readonly scrollSync: DiffScrollSync = new DiffScrollSync(
+    (): HTMLElementWithScrollSync | undefined => this.diffContainerEl,
+  );
 
   /**
    * Left rail container of the three-pane shell. Hosts the version timeline
@@ -284,7 +287,7 @@ export class HistoryModal extends Modal {
    * @override
    */
   public onClose(): void {
-    this.cleanupScrollSync();
+    this.scrollSync.cleanup();
     this.contentEl.empty();
   }
 
@@ -2003,7 +2006,7 @@ export class HistoryModal extends Modal {
   protected showCleanPatch(): void {
     this.currentDisplayMode = DiffViewMode.patch;
     this.updateButtonActiveStates();
-    this.cleanupScrollSync();
+    this.scrollSync.cleanup();
     this.updateDiffNotice();
     this.updateColumnsHeader();
 
@@ -2036,7 +2039,7 @@ export class HistoryModal extends Modal {
   protected renderInlineDiff(): void {
     this.currentDisplayMode = DiffViewMode.inline;
     this.updateButtonActiveStates();
-    this.cleanupScrollSync();
+    this.scrollSync.cleanup();
     this.updateDiffNotice();
     this.updateColumnsHeader();
 
@@ -2070,7 +2073,7 @@ export class HistoryModal extends Modal {
   protected renderDiff(format: DiffOutputFormatType = DiffOutputFormatType.side): void {
     this.currentDisplayMode = format;
     this.updateButtonActiveStates();
-    this.cleanupScrollSync();
+    this.scrollSync.cleanup();
     this.updateDiffNotice();
     this.updateColumnsHeader();
 
@@ -2093,104 +2096,12 @@ export class HistoryModal extends Modal {
     this.attachInlineReverts();
 
     /**
-     * Scroll synchronization for a side-by-side diff view; uses setTimeout to
-     * ensure DOM elements are rendered. The timer handle is tracked on the
-     * instance and the deferred callback bails if the container was replaced
-     * (rapid mode switch) so no listeners attach to stale DOM.
+     * Side-by-side mode mirrors scroll between its two columns; the owned
+     * collaborator defers the listener setup until the diff2html DOM mounts and
+     * bails if the container is swapped before the timer fires (T03).
      */
     if (format === DiffOutputFormatType.side) {
-      const targetContainer: HTMLElementWithScrollSync | undefined = this.diffContainerEl;
-
-      this.scrollSyncTimer = setTimeout((): void => {
-        this.scrollSyncTimer = null;
-
-        if (this.diffContainerEl !== targetContainer) {
-          return;
-        }
-
-        this.setupScrollSynchronization();
-      }, 0);
-    }
-  }
-
-  /**
-   * Sets up scroll synchronization for a side-by-side diff view.
-   * Finds the scrollable wrapper elements for both columns and adds event listeners
-   * to synchronize both vertical and horizontal scroll positions.
-   */
-  protected setupScrollSynchronization(): void {
-    const wrappers = this.diffContainerEl.querySelectorAll('.d2h-side-column-wrapper') as NodeListOf<HTMLElement>;
-
-    if (wrappers?.length !== 2) {
-      return;
-    }
-
-    const [leftWrapper, rightWrapper] = wrappers;
-    let isScrolling: boolean = false;
-
-    /**
-     * Synchronize scroll from left to right.
-     */
-    const syncLeftToRight: FunctionVoid = (): void => {
-      if (isScrolling) {
-        return;
-      }
-
-      isScrolling = true;
-      rightWrapper.scrollTop = leftWrapper.scrollTop;
-      rightWrapper.scrollLeft = leftWrapper.scrollLeft;
-
-      requestAnimationFrame((): void => {
-        isScrolling = false;
-      });
-    };
-
-    /**
-     * Synchronize scroll from right to left.
-     */
-    const syncRightToLeft: FunctionVoid = (): void => {
-      if (isScrolling) {
-        return;
-      }
-
-      isScrolling = true;
-      leftWrapper.scrollTop = rightWrapper.scrollTop;
-      leftWrapper.scrollLeft = rightWrapper.scrollLeft;
-
-      requestAnimationFrame((): void => {
-        isScrolling = false;
-      });
-    };
-
-    leftWrapper.addEventListener('scroll', syncLeftToRight);
-    rightWrapper.addEventListener('scroll', syncRightToLeft);
-
-    /**
-     * Store references so the listeners can be detached on cleanup.
-     */
-    this.diffContainerEl._scrollSyncCleanup = (): void => {
-      leftWrapper.removeEventListener('scroll', syncLeftToRight);
-      rightWrapper.removeEventListener('scroll', syncRightToLeft);
-    };
-  }
-
-  /**
-   * Cleans up scroll synchronization event listeners.
-   * Called when switching between diff modes or closing the modal.
-   */
-  protected cleanupScrollSync(): void {
-    if (this.scrollSyncTimer !== null) {
-      clearTimeout(this.scrollSyncTimer);
-
-      this.scrollSyncTimer = null;
-    }
-
-    const container: HTMLElementWithScrollSync = this.diffContainerEl;
-
-    if (container?._scrollSyncCleanup) {
-      container._scrollSyncCleanup();
-
-      delete container._scrollSyncCleanup;
+      this.scrollSync.schedule();
     }
   }
 }

@@ -1,6 +1,5 @@
 import { MapChangeAction, PluginEvent } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
-import { PathExcludeHelper } from '@/helpers/path-exclude.helper';
 import { PathHelper } from '@/helpers/path.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import { ObservableMap } from '@/maps/observable.map';
@@ -8,6 +7,7 @@ import { ExternalChangeCapture, type ExternalChangeHost } from '@/services/exter
 import type { SettingsService } from '@/services/settings.service';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import { FileVersion } from '@/snapshots/file.version';
+import { IgnoreListManager, type IgnoreListHost } from '@/snapshots/ignore-list';
 import type { SerializedFileSnapshot, SerializedHistory, Service, SnapshotCaptureOptions } from '@/types';
 import { Notice, type TFile } from 'obsidian';
 
@@ -45,18 +45,15 @@ export class SnapshotsService implements Service {
   protected sessionCreatedPaths: Set<string> = new Set<string>();
 
   /**
-   * Set of files to ignore when capturing snapshots.
-   * Files in this list will not have any changes tracked.
+   * Plain collaborator that owns the ignore-list and exclude-pattern concern:
+   * the per-file ignore set (files the user opted out of tracking) and the
+   * path-exclude decision (a configured regexp that vetoes tracking for whole
+   * folders), including the warn-once guard for an invalid pattern. Owned by the
+   * service (not a DI service); reads the exclude pattern and routes the
+   * invalid-pattern warning back through an {@link IgnoreListHost} port the
+   * service builds.
    */
-  protected ignoreList: Set<TFile> = new Set();
-
-  /**
-   * The last exclude pattern a user was warned about for being invalid. Keeps
-   * the "invalid regexp" Notice from firing on every captured file: the warning
-   * shows once per distinct bad pattern until the user edits the field to a
-   * valid one (or to a different bad one).
-   */
-  protected lastWarnedExcludePattern: string | null = null;
+  protected ignoreList: IgnoreListManager = new IgnoreListManager(this.makeIgnoreListHost());
 
   /**
    * Plain collaborator that owns the external (off-editor) change detection
@@ -527,10 +524,6 @@ export class SnapshotsService implements Service {
    * @param {TFile} file - The file to add to the ignore list
    */
   public addToIgnoreList(file: TFile): void {
-    if (!file) {
-      return;
-    }
-
     this.ignoreList.add(file);
   }
 
@@ -541,11 +534,7 @@ export class SnapshotsService implements Service {
    * @param {TFile} file - The file to remove from the ignore list
    */
   public removeFromIgnoreList(file: TFile): void {
-    if (!file) {
-      return;
-    }
-
-    this.ignoreList.delete(file);
+    this.ignoreList.remove(file);
   }
 
   /**
@@ -555,11 +544,7 @@ export class SnapshotsService implements Service {
    * @return {boolean} True if the file is in the ignore list, false otherwise
    */
   public isInIgnoreList(file: TFile): boolean {
-    if (!file) {
-      return false;
-    }
-
-    return this.ignoreList.has(file);
+    return this.ignoreList.isIgnored(file);
   }
 
   /**
@@ -576,7 +561,7 @@ export class SnapshotsService implements Service {
    * @return {TFile[]} An array of files in the ignore list
    */
   public getIgnoreList(): TFile[] {
-    return [...this.ignoreList];
+    return this.ignoreList.list();
   }
 
   /**
@@ -605,39 +590,25 @@ export class SnapshotsService implements Service {
    * @return {boolean} True if the file path is excluded from tracking
    */
   public isExcludedPath(file: TFile): boolean {
-    if (!file) {
-      return false;
-    }
-
-    const pattern: string = this.settingsService.value('excludePaths');
-
-    this.warnOnInvalidExcludePattern(pattern);
-
-    return PathExcludeHelper.isExcluded(file.path, pattern);
+    return this.ignoreList.isExcluded(file);
   }
 
   /**
-   * Shows a one-time Notice when the exclude pattern does not compile, so the
-   * user learns their regexp is ignored without being spammed once per file.
-   * Resets the guard when the pattern becomes valid again, so a later mistake is
-   * surfaced afresh.
+   * Builds the narrow {@link IgnoreListHost} port the {@link IgnoreListManager}
+   * reads its exclude-pattern dependency through. Exposes the raw exclude
+   * pattern from settings and the one-time invalid-pattern warning, keeping
+   * settings access and Notice construction owned by this service while the
+   * manager owns the ignore set and the warn-once guard.
    *
-   * @param {string} pattern - The raw exclude pattern from settings
+   * @return {IgnoreListHost} The host port onto the exclude-pattern dependency
    */
-  protected warnOnInvalidExcludePattern(pattern: string): void {
-    if (PathExcludeHelper.isValid(pattern)) {
-      this.lastWarnedExcludePattern = null;
-
-      return;
-    }
-
-    if (this.lastWarnedExcludePattern === pattern) {
-      return;
-    }
-
-    this.lastWarnedExcludePattern = pattern;
-
-    new Notice(this.plugin.t('notice.invalid-exclude-pattern'));
+  protected makeIgnoreListHost(): IgnoreListHost {
+    return {
+      getExcludePattern: (): string => this.settingsService.value('excludePaths'),
+      notifyInvalidPattern: (): void => {
+        new Notice(this.plugin.t('notice.invalid-exclude-pattern'));
+      },
+    };
   }
 
   /**

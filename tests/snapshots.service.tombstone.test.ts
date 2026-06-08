@@ -6,14 +6,9 @@ import { FileSnapshot } from '@/snapshots/file.snapshot';
 import { FileVersion } from '@/snapshots/file.version';
 import type { TFile } from 'obsidian';
 
+import { makeFile } from './helpers/builders';
+
 type PluginArg = ConstructorParameters<typeof SnapshotsService>[0];
-
-const makeFile = (path: string): TFile => {
-  const name: string = path.split('/').pop() ?? path;
-  const extension: string = name.includes('.') ? name.split('.').pop() ?? '' : '';
-
-  return { path, name, extension } as unknown as TFile;
-};
 
 const makeService = (): SnapshotsService => {
   const plugin = {

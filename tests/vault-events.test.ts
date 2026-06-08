@@ -11,8 +11,10 @@ import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type LineChangeTrackerPlugin from '@/main';
 import { EventsService } from '@/services/events.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
-import { TFile, TFolder } from 'obsidian';
-import type { TAbstractFile } from 'obsidian';
+import { TFolder } from 'obsidian';
+import type { TAbstractFile, TFile } from 'obsidian';
+
+import { makeTFile as makeFile } from './helpers/builders';
 
 /**
  * Builds a minimal SnapshotsService mock that records calls to the three entry
@@ -49,16 +51,6 @@ const makePlugin = (
   },
 }) as unknown as LineChangeTrackerPlugin;
 
-const makeFile = (path: string): TFile => {
-  const file = new TFile();
-  const name: string = path.split('/').pop() ?? path;
-
-  file.path = path;
-  file.name = name;
-  file.extension = name.includes('.') ? name.split('.').pop() ?? '' : '';
-
-  return file;
-};
 
 describe('VaultDeleteEvent', () => {
   it('routes a tracked file to markDeleted and clears the ignore list', () => {

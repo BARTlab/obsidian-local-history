@@ -7,12 +7,7 @@ import { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import type { TFile } from 'obsidian';
 
-/**
- * Minimal `TFile`-like object so a snapshot can carry a live path without
- * dragging in Obsidian's full type.
- */
-const makeFile = (path: string): TFile =>
-  ({ path, name: path.split('/').pop() ?? path } as unknown as TFile);
+import { makeFile } from './helpers/builders';
 
 /**
  * Drives a snapshot through a real one-line edit so `getChangesLinesCount()`

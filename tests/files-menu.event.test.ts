@@ -4,8 +4,9 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { WorkspaceFilesMenuEvent } from '@/events/workspace/files-menu.event';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ModalsService } from '@/services/modals.service';
-import { TFile, TFolder } from 'obsidian';
-import type { TAbstractFile } from 'obsidian';
+import type { TAbstractFile, TFile, TFolder } from 'obsidian';
+
+import { makeTFile as makeFile, makeFolder } from './helpers/builders';
 
 /**
  * Recorder for the chain of MenuItem builder calls that the handler issues.
@@ -105,26 +106,6 @@ const makePlugin = (
   t: (key: string): string => key,
   revealRecentChanges: reveal,
 }) as unknown as LineChangeTrackerPlugin;
-
-const makeFile = (path: string): TFile => {
-  const file = new TFile();
-  const name: string = path.split('/').pop() ?? path;
-
-  file.path = path;
-  file.name = name;
-
-  return file;
-};
-
-const makeFolder = (path: string): TFolder => {
-  const folder = new TFolder();
-  const name: string = path.split('/').pop() ?? path;
-
-  folder.path = path;
-  folder.name = name;
-
-  return folder;
-};
 
 describe('WorkspaceFilesMenuEvent', () => {
   let service: ReturnType<typeof makeModalsServiceMock>;

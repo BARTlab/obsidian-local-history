@@ -3,7 +3,8 @@ import { ChangeType } from '@/consts';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import { TrackerLine } from '@/lines/tracker.line';
 import type { SerializedFileSnapshot, SerializedTrackerLine } from '@/types';
-import type { TFile } from 'obsidian';
+
+import { makeFile } from './helpers/builders';
 
 /**
  * Round-trip tests for FileSnapshot persistence (T5.1). They drive the snapshot
@@ -11,9 +12,6 @@ import type { TFile } from 'obsidian';
  * assert the reconstructed snapshot reports the same change state. They also
  * pin the contract that restored tracker ids are fresh and collision-free.
  */
-
-const makeFile = (path: string): TFile =>
-  ({ path, name: path.split('/').pop() ?? path } as unknown as TFile);
 
 const positionsWithType = (snapshot: FileSnapshot, type: ChangeType): number[] =>
   snapshot

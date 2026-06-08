@@ -8,17 +8,7 @@ import { FileVersion } from '@/snapshots/file.version';
 import type { TFile } from 'obsidian';
 
 import { makeFile } from './helpers/builders';
-
-type PluginArg = ConstructorParameters<typeof SnapshotsService>[0];
-
-const makeService = (): SnapshotsService => {
-  const plugin = {
-    getActiveEditorView: (): undefined => undefined,
-    t: (key: string): string => key,
-  } as unknown as PluginArg;
-
-  return new SnapshotsService(plugin);
-};
+import { makeSnapshotsService as makeService } from './helpers/service-factories';
 
 /**
  * Seeds the service with a live snapshot at the source path, decorated with a

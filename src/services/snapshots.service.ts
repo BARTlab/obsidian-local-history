@@ -5,6 +5,7 @@ import type LineChangeTrackerPlugin from '@/main';
 import { ObservableMap } from '@/maps/observable.map';
 import { ExternalChangeCapture, type ExternalChangeHost } from '@/services/external-change-capture';
 import type { SettingsService } from '@/services/settings.service';
+import { EditorOperations, type EditorBlock, type EditorOperationsHost } from '@/snapshots/editor-operations';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import { FileVersion } from '@/snapshots/file.version';
 import { IgnoreListManager, type IgnoreListHost } from '@/snapshots/ignore-list';
@@ -63,6 +64,15 @@ export class SnapshotsService implements Service {
    * gating back through an {@link ExternalChangeHost} port the service builds.
    */
   protected externalCapture: ExternalChangeCapture = new ExternalChangeCapture(this.makeExternalChangeHost());
+
+  /**
+   * Plain collaborator that owns the out-of-editor file-write concern: applying
+   * a reverted block to a file (snapshot resync + disk write + editor refresh).
+   * Owned by the service (not a DI service); reads the snapshot map and routes
+   * the post-write forced update back through an {@link EditorOperationsHost}
+   * port the service builds.
+   */
+  protected editorOperations: EditorOperations = new EditorOperations(this.makeEditorOperationsHost());
 
   /**
    * Creates a new instance of SnapshotsService.
@@ -769,47 +779,41 @@ export class SnapshotsService implements Service {
   /**
    * Applies an out-of-editor content change to a file and keeps its snapshot in
    * sync, preserving the original baseline and the version timeline. Used by the
-   * history modal to revert a single hunk: the block is rewritten in the tracker
-   * (so highlights stay correct even for a file that is not the active editor),
-   * the cached state is set to the written content, and the file is modified on
-   * disk.
+   * history modal to revert a single hunk. Delegates to the
+   * {@link EditorOperations} collaborator, which rewrites the changed block in
+   * the tracker, sets the cached state to the written content, refreshes the
+   * derived changes, then writes the new content to disk and refreshes the
+   * editor (the snapshot is updated before the file write so the change detector
+   * skips reprocessing the resulting editor update).
    *
-   * The snapshot is updated before the file write so that, when the file is the
-   * active editor, the change detector sees a matching content hash and skips
-   * reprocessing the resulting editor update (no double application).
-   *
-   * @param {TFile} file - The file to rewrite
+   * @param {TFile | null} file - The file to rewrite
    * @param {string[]} lines - The full new content of the file as lines
-   * @param {object} block - The single block that changed, in tracker terms
-   * @param {number} block.start - The 0-based current line where the block begins
-   * @param {number} block.removeCount - How many current lines the block spans
-   * @param {string[]} block.newLines - The content the block should hold afterwards
+   * @param {EditorBlock} block - The single block that changed, in tracker terms
    * @return {Promise<boolean>} True if the change was applied, false otherwise
    */
-  public async applyContent(
+  public applyContent(
     file: TFile | null,
     lines: string[],
-    block: { start: number; removeCount: number; newLines: string[] },
+    block: EditorBlock,
   ): Promise<boolean> {
-    const snapshot: FileSnapshot | null = this.getOne(file);
+    return this.editorOperations.applyContent(file, lines, block);
+  }
 
-    if (!file || !snapshot || !Array.isArray(lines)) {
-      return false;
-    }
-
-    snapshot.replaceBlock(block.start, block.removeCount, block.newLines);
-    snapshot.updateState(lines);
-    snapshot.updateChanges();
-
-    await this.plugin.app.vault.modify(file, lines.join(snapshot.lineBreak));
-
-    if (this.plugin.getActiveViewOfType()) {
-      this.plugin.forceUpdateEditor();
-    }
-
-    this.forceUpdate();
-
-    return true;
+  /**
+   * Builds the narrow {@link EditorOperationsHost} port the
+   * {@link EditorOperations} collaborator reads its shared state through.
+   * Exposes the plugin (for the disk write and the active-view check), the
+   * snapshot lookup, and the forced update, keeping the snapshot map and CRUD
+   * owned by this service while the collaborator owns the file-write flow.
+   *
+   * @return {EditorOperationsHost} The host port onto the snapshot state
+   */
+  protected makeEditorOperationsHost(): EditorOperationsHost {
+    return {
+      plugin: this.plugin,
+      getSnapshot: (file?: TFile | null): FileSnapshot | null => this.getOne(file),
+      forceUpdate: (): void => this.forceUpdate(),
+    };
   }
 
   /**

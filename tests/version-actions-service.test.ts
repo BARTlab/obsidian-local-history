@@ -73,6 +73,8 @@ import { FileSnapshot } from '@/snapshots/file.snapshot';
 import { VersionActionsService } from '@/services/version-actions.service';
 import type { TFile } from 'obsidian';
 
+import { makeFile } from './helpers/builders';
+
 interface ServiceHarness {
   service: VersionActionsService;
   applyContent: jest.Mock;
@@ -85,8 +87,6 @@ interface ServiceHarness {
     getLastStateLines: () => string[];
   } | null;
 }
-
-const makeFile = (path: string): TFile => ({ path, name: path, extension: 'md' }) as unknown as TFile;
 
 const makeHarness = (snapshotInit?: {
   file: TFile;

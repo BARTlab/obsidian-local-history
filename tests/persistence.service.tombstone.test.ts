@@ -7,6 +7,8 @@ import { FileVersion } from '@/snapshots/file.version';
 import type { SerializedFileSnapshot } from '@/types';
 import type { TFile } from 'obsidian';
 
+import { makeFile } from './helpers/builders';
+
 /**
  * Tests for T05: PersistenceService serialize/restore tombstones + orphan
  * handling. These exercise SnapshotsService.serialize and restore directly so
@@ -15,13 +17,6 @@ import type { TFile } from 'obsidian';
  */
 
 type PluginArg = ConstructorParameters<typeof SnapshotsService>[0];
-
-const makeFile = (path: string): TFile => {
-  const name: string = path.split('/').pop() ?? path;
-  const extension: string = name.includes('.') ? name.split('.').pop() ?? '' : '';
-
-  return { path, name, extension } as unknown as TFile;
-};
 
 /**
  * Builds a service whose host plugin resolves only the given set of paths to

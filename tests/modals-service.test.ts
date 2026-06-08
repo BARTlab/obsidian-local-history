@@ -4,13 +4,8 @@ import { describe, expect, it } from '@jest/globals';
 import { ModalsService } from '@/services/modals.service';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { SerializedFileSnapshot } from '@/types';
-import type { TFile } from 'obsidian';
 
-/**
- * Builds a minimal `TFile`-like object carrying only the `path` the folder
- * prefix matcher reads.
- */
-const makeFile = (path: string): TFile => ({ path } as unknown as TFile);
+import { makeFile } from './helpers/builders';
 
 /**
  * Exposes the protected `isUnderFolder` predicate without standing up the full

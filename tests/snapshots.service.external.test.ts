@@ -7,6 +7,8 @@ import { FileVersion } from '@/snapshots/file.version';
 import { TextHelper } from '@/helpers/text.helper';
 import type { TFile } from 'obsidian';
 
+import { makeFile } from './helpers/builders';
+
 type PluginArg = ConstructorParameters<typeof SnapshotsService>[0];
 
 interface SettingsValues {
@@ -18,16 +20,6 @@ interface SettingsValues {
   'snapshots.maxVersions'?: number;
   'snapshots.maxVersionAgeDays'?: number;
 }
-
-const makeFile = (
-  path: string,
-  stat: { mtime: number; size: number } = { mtime: 1, size: 1 },
-): TFile => {
-  const name: string = path.split('/').pop() ?? path;
-  const extension: string = name.includes('.') ? name.split('.').pop() ?? '' : '';
-
-  return { path, name, extension, stat } as unknown as TFile;
-};
 
 /**
  * Drains the microtask queue so a scheduled debounce callback that already
@@ -89,7 +81,7 @@ const makeService = (
 describe('SnapshotsService.captureExternalChange', () => {
   it('is a no-op when the disk hash matches the snapshot state', async () => {
     const { service, vault } = makeService();
-    const file = makeFile('notes/a.md');
+    const file = makeFile('notes/a.md', { stat: { mtime: 1, size: 1 } });
 
     service.add(file, 'one\ntwo\nthree');
     vault[file.path] = 'one\ntwo\nthree';
@@ -108,7 +100,7 @@ describe('SnapshotsService.captureExternalChange', () => {
 
   it('force-captures the new content with external=true on a hash divergence', async () => {
     const { service, vault } = makeService();
-    const file = makeFile('notes/a.md');
+    const file = makeFile('notes/a.md', { stat: { mtime: 1, size: 1 } });
 
     service.add(file, 'one\ntwo\nthree');
     vault[file.path] = 'one\ntwo-external\nthree';
@@ -139,7 +131,7 @@ describe('SnapshotsService.captureExternalChange', () => {
       'snapshots.editThreshold': 0,
       'snapshots.intervalMs': 0,
     });
-    const file = makeFile('notes/a.md');
+    const file = makeFile('notes/a.md', { stat: { mtime: 1, size: 1 } });
 
     service.add(file, 'alpha\nbeta');
     vault[file.path] = 'alpha\nbeta-edited';
@@ -154,7 +146,7 @@ describe('SnapshotsService.captureExternalChange', () => {
 
   it('captures a first-sight file as a new snapshot without an external version', async () => {
     const { service, vault } = makeService();
-    const file = makeFile('notes/fresh.md');
+    const file = makeFile('notes/fresh.md', { stat: { mtime: 1, size: 1 } });
 
     vault[file.path] = 'fresh content\nline two';
 
@@ -171,7 +163,7 @@ describe('SnapshotsService.captureExternalChange', () => {
 
   it('is a no-op for a wrong-extension file', async () => {
     const { service, vault } = makeService({ allowedExtensions: 'md' });
-    const file = makeFile('notes/binary.bin');
+    const file = makeFile('notes/binary.bin', { stat: { mtime: 1, size: 1 } });
 
     vault[file.path] = 'whatever';
 
@@ -185,7 +177,7 @@ describe('SnapshotsService.captureExternalChange', () => {
       allowedExtensions: 'md',
       excludePaths: '^templates/',
     });
-    const file = makeFile('templates/note.md');
+    const file = makeFile('templates/note.md', { stat: { mtime: 1, size: 1 } });
 
     vault[file.path] = 'banned';
 
@@ -196,7 +188,7 @@ describe('SnapshotsService.captureExternalChange', () => {
 
   it('is a no-op for a file in the ignore list', async () => {
     const { service, vault } = makeService();
-    const file = makeFile('notes/ignored.md');
+    const file = makeFile('notes/ignored.md', { stat: { mtime: 1, size: 1 } });
 
     service.add(file, 'one');
     vault[file.path] = 'one-external';
@@ -213,7 +205,7 @@ describe('SnapshotsService.captureExternalChange', () => {
 
   it('is a no-op for a tombstone entry', async () => {
     const { service, vault } = makeService();
-    const file = makeFile('notes/dead.md');
+    const file = makeFile('notes/dead.md', { stat: { mtime: 1, size: 1 } });
 
     service.add(file, 'still here');
     service.markDeleted(file);
@@ -239,7 +231,7 @@ describe('SnapshotsService.captureExternalChange', () => {
     const { service, vault } = makeService({
       'snapshots.maxVersions': 1,
     });
-    const file = makeFile('notes/a.md');
+    const file = makeFile('notes/a.md', { stat: { mtime: 1, size: 1 } });
 
     service.add(file, 'initial');
     const seeded: FileSnapshot = service.getOne(file) as FileSnapshot;
@@ -266,7 +258,7 @@ describe('SnapshotsService.captureExternalChange', () => {
     // stat so the ADR-08-E mtime/size pre-check does not short-circuit the
     // genuine content change.
     vault[file.path] = 'changed-again';
-    const bumped: TFile = makeFile(file.path, { mtime: 2, size: 2 });
+    const bumped: TFile = makeFile(file.path, { stat: { mtime: 2, size: 2 } });
 
     await service.captureExternalChange(bumped);
 
@@ -303,7 +295,7 @@ describe('SnapshotsService.captureExternalChange', () => {
       return originalRead(file);
     };
 
-    const file: TFile = makeFile('notes/a.md', { mtime: 10, size: 3 });
+    const file: TFile = makeFile('notes/a.md', { stat: { mtime: 10, size: 3 } });
 
     service.add(file, 'one\ntwo');
     vault[file.path] = 'one\ntwo';
@@ -318,7 +310,7 @@ describe('SnapshotsService.captureExternalChange', () => {
 
     // Stat changed (mtime bumped): the pre-check no longer matches, disk
     // read runs again even though the content turns out to be identical.
-    const bumped: TFile = makeFile('notes/a.md', { mtime: 20, size: 3 });
+    const bumped: TFile = makeFile('notes/a.md', { stat: { mtime: 20, size: 3 } });
 
     vault[bumped.path] = 'one\ntwo';
     await service.captureExternalChange(bumped);
@@ -330,13 +322,13 @@ describe('SnapshotsService.captureExternalChange', () => {
     // genuine external rewrite (different stat, different content) is
     // captured even if the user happens to be viewing the file.
     const { service, vault } = makeService();
-    const before: TFile = makeFile('notes/open.md', { mtime: 5, size: 7 });
+    const before: TFile = makeFile('notes/open.md', { stat: { mtime: 5, size: 7 } });
 
     service.add(before, 'alpha\nbeta');
     vault[before.path] = 'alpha\nbeta';
     await service.captureExternalChange(before);
 
-    const after: TFile = makeFile('notes/open.md', { mtime: 6, size: 15 });
+    const after: TFile = makeFile('notes/open.md', { stat: { mtime: 6, size: 15 } });
 
     vault[after.path] = 'alpha-external\nbeta';
     await service.captureExternalChange(after);
@@ -373,7 +365,7 @@ describe('SnapshotsService.captureExternalChange', () => {
     // new disk content while leaving `state` at the original lines, so the
     // pre-filter says "match" and the content compare must catch the diff.
     const { service, vault } = makeService();
-    const file: TFile = makeFile('notes/collision.md', { mtime: 1, size: 5 });
+    const file: TFile = makeFile('notes/collision.md', { stat: { mtime: 1, size: 5 } });
 
     service.add(file, 'one\ntwo');
     const snapshot: FileSnapshot = service.getOne(file) as FileSnapshot;
@@ -399,7 +391,7 @@ describe('SnapshotsService.captureExternalChange', () => {
     // The content-equality fallback must not regress the common-case no-op:
     // when both the hash and the line array match, we still skip the capture.
     const { service, vault } = makeService();
-    const file: TFile = makeFile('notes/same.md', { mtime: 1, size: 7 });
+    const file: TFile = makeFile('notes/same.md', { stat: { mtime: 1, size: 7 } });
 
     service.add(file, 'one\ntwo\nthree');
     vault[file.path] = 'one\ntwo\nthree';
@@ -440,7 +432,7 @@ describe('SnapshotsService.scheduleExternalCapture', () => {
       return originalRead(file);
     };
 
-    const file: TFile = makeFile('notes/burst.md', { mtime: 1, size: 3 });
+    const file: TFile = makeFile('notes/burst.md', { stat: { mtime: 1, size: 3 } });
 
     service.add(file, 'one\ntwo');
     vault[file.path] = 'one\ntwo-external';
@@ -465,8 +457,8 @@ describe('SnapshotsService.scheduleExternalCapture', () => {
 
   it('runs independent files concurrently without cross-debounce', async () => {
     const { service, vault } = makeService();
-    const fileA: TFile = makeFile('notes/a.md', { mtime: 1, size: 3 });
-    const fileB: TFile = makeFile('notes/b.md', { mtime: 1, size: 5 });
+    const fileA: TFile = makeFile('notes/a.md', { stat: { mtime: 1, size: 3 } });
+    const fileB: TFile = makeFile('notes/b.md', { stat: { mtime: 1, size: 5 } });
 
     service.add(fileA, 'a-one');
     service.add(fileB, 'b-one');

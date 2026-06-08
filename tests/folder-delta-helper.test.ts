@@ -5,18 +5,8 @@ import { FolderDeltaHelper } from '@/helpers/folder-delta.helper';
 import type { FolderDeltaResult } from '@/types';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import { FileVersion } from '@/snapshots/file.version';
-import type { TFile } from 'obsidian';
 
-/**
- * Builds a minimal `TFile`-like object that satisfies the snapshot's path
- * accessor without dragging in Obsidian's full type.
- */
-const makeFile = (path: string): TFile => {
-  const name: string = path.split('/').pop() ?? path;
-  const extension: string = name.includes('.') ? name.split('.').pop() ?? '' : '';
-
-  return { path, name, extension } as unknown as TFile;
-};
+import { makeFile } from './helpers/builders';
 
 /**
  * Builds a live snapshot whose creation timestamp, history baseline, version

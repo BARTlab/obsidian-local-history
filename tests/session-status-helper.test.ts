@@ -3,14 +3,8 @@ import { describe, expect, it } from '@jest/globals';
 import { FolderDeltaStatus } from '@/consts';
 import { SessionStatusHelper } from '@/helpers/session-status.helper';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
-import type { TFile } from 'obsidian';
 
-/**
- * Minimal `TFile`-like object so a snapshot can carry a path without dragging
- * in Obsidian's full type.
- */
-const makeFile = (path: string): TFile =>
-  ({ path, name: path.split('/').pop() ?? path } as unknown as TFile);
+import { makeFile } from './helpers/builders';
 
 /**
  * Builds a clean live snapshot with no session changes (no edits, not created

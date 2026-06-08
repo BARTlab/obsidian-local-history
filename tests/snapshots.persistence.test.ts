@@ -7,6 +7,8 @@ import { FileVersion } from '@/snapshots/file.version';
 import type { SerializedFileSnapshot } from '@/types';
 import type { TFile } from 'obsidian';
 
+import { makeFile } from './helpers/builders';
+
 /**
  * Tests for SnapshotsService serialize/restore (T5.1). They use the real
  * FileSnapshot so the serialize -> restore path is exercised end to end,
@@ -14,9 +16,6 @@ import type { TFile } from 'obsidian';
  */
 
 type PluginArg = ConstructorParameters<typeof SnapshotsService>[0];
-
-const makeFile = (path: string): TFile =>
-  ({ path, name: path.split('/').pop() ?? path } as unknown as TFile);
 
 /**
  * Builds a service whose host plugin resolves only the given set of paths to

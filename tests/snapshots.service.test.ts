@@ -21,17 +21,9 @@ import * as obsidian from 'obsidian';
 import type { TFile } from 'obsidian';
 
 import { makeFile } from './helpers/builders';
+import { makeSnapshotsService as makeService } from './helpers/service-factories';
 
 type PluginArg = ConstructorParameters<typeof SnapshotsService>[0];
-
-const makeService = (): SnapshotsService => {
-  const plugin = {
-    getActiveEditorView: (): undefined => undefined,
-    t: (key: string): string => key,
-  } as unknown as PluginArg;
-
-  return new SnapshotsService(plugin);
-};
 
 /**
  * Builds a service whose injected SettingsService returns the given allowed

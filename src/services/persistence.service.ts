@@ -351,19 +351,37 @@ export class PersistenceService implements Service {
 
   /**
    * Appends a save to the write queue so it runs after every previously
-   * scheduled write completes. The queue swallows individual write failures
-   * (logged inside `saveToDisk`) so a single bad write does not poison the
-   * chain and starve later writes.
+   * scheduled write completes.
    */
   protected enqueueSave(): void {
-    this.writeQueue = this.writeQueue.then((): Promise<void> => this.saveToDisk());
+    this.enqueue((): Promise<void> => this.saveToDisk());
   }
 
   /**
    * Appends a clear to the write queue so it serializes with pending saves.
    */
   protected enqueueClear(): void {
-    this.writeQueue = this.writeQueue.then((): Promise<void> => this.clearDisk());
+    this.enqueue((): Promise<void> => this.clearDisk());
+  }
+
+  /**
+   * Appends one unit of work to the serialized write queue, isolating its
+   * failure. The stored `writeQueue` is always left in a FULFILLED state: a
+   * rejection from `work` is caught and logged here, never propagated into the
+   * chain. Without this, a single throwing unit would leave `writeQueue` as a
+   * rejected promise, and because every `enqueue` chains with `.then(onFulfilled)`
+   * (no rejection handler), that rejection would pass straight through and
+   * permanently starve every later save, clear, and the `unload` flush, leaving
+   * the on-disk history frozen at its last good state. Each unit is responsible
+   * for its own data-loss guards (see `saveToDisk`); this seam only guarantees
+   * the queue keeps running.
+   *
+   * @param {() => Promise<void>} work - The queued unit of write work
+   */
+  protected enqueue(work: () => Promise<void>): void {
+    this.writeQueue = this.writeQueue.then((): Promise<void> => work()).catch((error: unknown): void => {
+      console.error('Local history: a queued write failed; continuing with the next', error);
+    });
   }
 
   /**
@@ -389,8 +407,29 @@ export class PersistenceService implements Service {
       return;
     }
 
-    const payload: SerializedHistory = this.snapshotsService.serialize();
-    const kept: SerializedFileSnapshot[] = this.applyRetention(payload.snapshots);
+    /**
+     * Serialization can throw (a single corrupt snapshot's `toJSON`, an encode
+     * edge) and retention can throw on unexpected shapes. Both run before the
+     * destructive `kept.length === 0` branch, so a failure here must NOT be
+     * mistaken for "nothing to keep": that would wipe the entire vault's
+     * persisted history over a transient in-memory fault. Catch it, log it, and
+     * skip this save so the existing on-disk shards stay intact and the next
+     * save retries against a (hopefully) healthy state. Returning here also
+     * keeps the throw out of the write queue, which would otherwise reject and
+     * permanently starve every later save and the unload flush (the queue's
+     * `.then` chain has no rejection handler).
+     */
+    let payload: SerializedHistory;
+    let kept: SerializedFileSnapshot[];
+
+    try {
+      payload = this.snapshotsService.serialize();
+      kept = this.applyRetention(payload.snapshots);
+    } catch (error) {
+      console.error('Local history: failed to serialize history; skipping this save to avoid data loss', error);
+
+      return;
+    }
 
     if (kept.length === 0) {
       await this.clearDisk();

@@ -516,6 +516,92 @@ describe('PersistenceService write queue (ADR-08-A)', () => {
 });
 
 /**
+ * Regression tests for the data-loss guard on the save path. A `serialize()`
+ * that throws (a single corrupt snapshot's `toJSON`, an encode edge) must never
+ * be mistaken for "nothing to keep" and wipe the on-disk history, and a single
+ * throwing save must never poison the write queue so later saves and the
+ * `unload` flush keep running. Together these close the "history resets for the
+ * whole vault" path a transient serialization fault could otherwise trigger.
+ */
+describe('PersistenceService save-path data-loss guard', () => {
+  it('does not wipe existing shards when serialize throws, and retries on the next save', async (): Promise<void> => {
+    const adapter = new MemoryAdapter();
+    let mode: 'ok' | 'throw' = 'ok';
+    const service = makeWriteService(adapter, (): SerializedHistory => {
+      if (mode === 'throw') {
+        throw new Error('serialize boom');
+      }
+
+      return payload('keep.md', 1);
+    });
+
+    // First good save lands a shard on disk.
+    service.triggerSave();
+    await service.drain();
+    expect(readShardSnapshot(adapter, 'keep.md')).toBeDefined();
+
+    // A save whose serialize throws must leave the existing shard untouched
+    // (no clearAll, no wipe) rather than treating the failure as an empty set.
+    mode = 'throw';
+    service.triggerSave();
+    await service.drain();
+    expect(readShardSnapshot(adapter, 'keep.md')).toBeDefined();
+    expect(await adapter.exists(SHARD_DIR)).toBe(true);
+  });
+
+  it('keeps the queue alive after a throwing save so later saves still persist', async (): Promise<void> => {
+    const adapter = new MemoryAdapter();
+    let serializeCalls: number = 0;
+    let mode: 'ok' | 'throw' = 'throw';
+    const service = makeWriteService(adapter, (): SerializedHistory => {
+      serializeCalls += 1;
+
+      if (mode === 'throw') {
+        throw new Error('serialize boom');
+      }
+
+      return payload('recovered.md', 1);
+    });
+
+    // First save throws; with an unguarded `.then` chain this would reject the
+    // stored writeQueue and starve every later save forever.
+    service.triggerSave();
+    await service.drain();
+
+    mode = 'ok';
+    const before: number = serializeCalls;
+    service.triggerSave();
+    await service.drain();
+
+    // The recovery save actually ran serialize and wrote its shard, proving the
+    // queue was not poisoned by the earlier throw.
+    expect(serializeCalls).toBeGreaterThan(before);
+    expect(readShardSnapshot(adapter, 'recovered.md')).toBeDefined();
+  });
+
+  it('unload flushes a final save even after a prior save threw', async (): Promise<void> => {
+    const adapter = new MemoryAdapter();
+    let mode: 'ok' | 'throw' = 'throw';
+    const service = makeWriteService(adapter, (): SerializedHistory => {
+      if (mode === 'throw') {
+        throw new Error('serialize boom');
+      }
+
+      return payload('final.md', 1);
+    });
+
+    service.triggerSave();
+    await service.drain();
+
+    // unload enqueues a final save and awaits the queue; a poisoned queue would
+    // reject here and drop the flush.
+    mode = 'ok';
+    await expect(service.unload()).resolves.toBeUndefined();
+    expect(readShardSnapshot(adapter, 'final.md')).toBeDefined();
+  });
+});
+
+/**
  * Tests for skip-invalid per-entry validation in `readDisk` (ADR-08-B,
  * task T04). They seed the in-memory adapter with hand-crafted history files
  * that mix valid and malformed entries and assert `readDisk` returns only the

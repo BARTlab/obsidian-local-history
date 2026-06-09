@@ -393,7 +393,24 @@ export class SnapshotsService implements Service {
         continue;
       }
 
-      const payload: SerializedFileSnapshot = snapshot.toJSON();
+      /**
+       * Isolate per-file serialization failure: a single corrupt snapshot whose
+       * `toJSON` (or its version encode) throws must drop only that file, never
+       * abort the whole loop. An unguarded throw here would propagate out of
+       * `serialize()` and lose the ENTIRE vault's payload for that save, which
+       * the persistence layer could then misread (an empty/failed payload) and
+       * act on destructively. Skipping the bad entry keeps every other file's
+       * history intact.
+       */
+      let payload: SerializedFileSnapshot;
+
+      try {
+        payload = snapshot.toJSON();
+      } catch (error) {
+        console.error('Local history: failed to serialize snapshot; skipping it', path, error);
+
+        continue;
+      }
 
       payload.path = path;
 

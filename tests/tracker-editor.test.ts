@@ -82,6 +82,33 @@ describe('TrackerEditor removed-anchor clamping (epic 13)', () => {
     });
   });
 
+  it('does not orphan anchors when many originals shrink to fewer lines', () => {
+    // A multi-line original file replaced by fewer lines (e.g. select-all then
+    // type one line). This is delete + insert where the removed count far
+    // exceeds the inserted count, so several doomed originals are still current
+    // (not yet removed) while the first ones are processed. The clamp must reach
+    // the final surviving last line, not an inflated count that still includes
+    // the pending doomed lines, or the early anchors orphan past the last line.
+    const snapshot = new FileSnapshot('o1\no2\no3\no4\no5');
+
+    snapshot.replaceBlock(0, 5, ['Z']);
+    snapshot.updateState(['Z']);
+    snapshot.updateChanges();
+
+    // Only "Z" survives, at index 0. No removed anchor may exceed it.
+    const last: number = lastLineIndex(snapshot);
+
+    removedAnchors(snapshot).forEach((anchor: number): void => {
+      expect(anchor).toBeGreaterThanOrEqual(0);
+      expect(anchor).toBeLessThanOrEqual(last);
+    });
+
+    changeKeys(snapshot).forEach((key: number): void => {
+      expect(key).toBeGreaterThanOrEqual(0);
+      expect(key).toBeLessThanOrEqual(last);
+    });
+  });
+
   it('still anchors an interior removed block on the surviving line below it', () => {
     const snapshot = new FileSnapshot('a\nb\nc\nd');
 

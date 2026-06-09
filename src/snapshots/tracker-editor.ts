@@ -307,20 +307,32 @@ export class TrackerEditor {
       found.remove();
 
       /**
-       * Epic 13: keep the removed-line anchor on a real line. A block replaced by
-       * a different line count is processed as delete + insert, removing the
+       * Epic 13: keep every removed-line anchor on a real line. A block replaced
+       * by a different line count is processed as delete + insert, removing the
        * doomed originals AFTER the replacements are inserted; each insert advances
        * the removed anchors (shiftUpRemoved). When the replaced block sits at the
        * document end (or the whole document is replaced, e.g. an empty file typed
-       * full of new lines), the anchor is shifted past the last real line and the
+       * full of new lines), an anchor is shifted past the last real line and the
        * removed gutter, which can only mark a real line, orphans it above the
-       * title. Clamp the anchor to the last current line so the marker stays bound
-       * to a real line at the bottom (the conventional "removed below here" spot).
+       * title.
+       *
+       * Re-clamp ALL removed anchors here, not just `found`: when many originals
+       * shrink to fewer lines, several doomed originals are still current (not yet
+       * removed) while the first ones are processed, so `lastCurrentLine` is
+       * inflated by the pending doomed lines and an early anchor stays below it,
+       * escaping a `found`-only clamp. Clamping the whole removed set on every
+       * removal means the final removal (when only survivors remain) pulls every
+       * orphaned anchor down to the last real line (the conventional "removed
+       * below here" spot).
        */
       const lastLine: number = this.lastCurrentLine(tracker);
 
-      if (lastLine >= 0 && found.removedAtPosition > lastLine) {
-        found.removedAtPosition = lastLine;
+      if (lastLine >= 0) {
+        for (const item of tracker) {
+          if (item.isStateRemoved() && item.removedAtPosition > lastLine) {
+            item.removedAtPosition = lastLine;
+          }
+        }
       }
     } else {
       this.removeTrackerLine(tracker, found);

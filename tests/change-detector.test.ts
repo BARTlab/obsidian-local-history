@@ -201,6 +201,47 @@ describe('ChangeDetectorExtension line replacement (T2.2 off-by-one)', () => {
   });
 });
 
+describe('ChangeDetectorExtension removed-anchor clamping (epic 13 regression)', () => {
+  // A multi-line original file replaced by fewer lines (select-all, then type a
+  // single line) is a delete + insert where the removed count far exceeds the
+  // inserted count. Several doomed originals stay current while the first ones
+  // are removed, so the clamp must reach the final surviving last line. Before
+  // the fix the early removed anchors orphaned past the last real line and the
+  // removed gutter rendered a marker above the document title.
+  it('keeps every removed anchor on a real line when the whole doc shrinks', () => {
+    const snapshot = new FileSnapshot('o1\no2\no3\no4\no5');
+
+    // Replace the whole document content with a single line "Z".
+    const doc = 'o1\no2\no3\no4\no5';
+
+    step(snapshot, doc, {
+      from: 0,
+      to: lineRange(doc, 5).to,
+      insert: 'Z',
+    });
+
+    const last: number = Math.max(
+      ...snapshot.tracker
+        .filter((line): boolean => line.existedInCurrent)
+        .map((line): number => line.currentPosition),
+    );
+
+    snapshot.tracker
+      .filter((line): boolean => line.isStateRemoved())
+      .forEach((line): void => {
+        expect(line.removedAtPosition).toBeGreaterThanOrEqual(0);
+        expect(line.removedAtPosition).toBeLessThanOrEqual(last);
+      });
+
+    [...snapshot.getChanges().keys()]
+      .filter((key): key is number => typeof key === 'number')
+      .forEach((key: number): void => {
+        expect(key).toBeGreaterThanOrEqual(0);
+        expect(key).toBeLessThanOrEqual(last);
+      });
+  });
+});
+
 describe('ChangeDetectorExtension prev-state desync (T2.3)', () => {
   // The old-document side of a ChangeSet (fromA/toA) must be mapped against the
   // editor state those positions index into, i.e. update.startState. Earlier the

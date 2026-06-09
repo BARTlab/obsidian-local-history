@@ -122,7 +122,10 @@ describe('PersistenceService retention size cap', () => {
 });
 
 describe('PersistenceService retention age cap', () => {
-  it('drops entries older than maxAgeDays', () => {
+  it('does NOT drop live entries older than maxAgeDays (live files are age-exempt)', () => {
+    // Live files are no longer age-pruned: a still-present file keeps its
+    // history regardless of age, so an idle vault is never wiped. The age cap
+    // applies only to tombstones (covered in the tombstone-caps suite).
     const service = makeService(0, 7);
     const now: number = Date.now();
 
@@ -131,7 +134,7 @@ describe('PersistenceService retention age cap', () => {
       entry('stale.md', now - (30 * DAY)),
     ]);
 
-    expect(kept.map((item: SerializedFileSnapshot): string => item.path)).toEqual(['fresh.md']);
+    expect(kept.map((item: SerializedFileSnapshot): string => item.path)).toEqual(['fresh.md', 'stale.md']);
   });
 
   it('keeps everything when maxAgeDays is 0 (disabled)', () => {
@@ -144,20 +147,33 @@ describe('PersistenceService retention age cap', () => {
 
     expect(kept).toHaveLength(1);
   });
+
+  it('keeps a very old live entry even when maxAgeDays is set', () => {
+    // Belt-and-suspenders for the idle-vault wipe: even an entry far past the
+    // age cap survives because live files are bounded by count only.
+    const service = makeService(0, 30);
+    const now: number = Date.now();
+
+    const kept = service.prune([
+      entry('ancient.md', now - (3650 * DAY)),
+    ]);
+
+    expect(kept).toHaveLength(1);
+  });
 });
 
 describe('PersistenceService retention combined caps', () => {
-  it('applies the age cap before the size cap', () => {
+  it('ignores the live age cap and applies only the size cap', () => {
     const service = makeService(2, 7);
     const now: number = Date.now();
 
     const kept = service.prune([
       entry('new.md', now - DAY),
       entry('mid.md', now - (2 * DAY)),
-      entry('expired.md', now - (10 * DAY)),
+      entry('old.md', now - (10 * DAY)),
     ]);
 
-    // expired.md is removed by age; the remaining two fit the size cap.
+    // Age no longer prunes live entries; the size cap keeps the two newest.
     expect(kept.map((item: SerializedFileSnapshot): string => item.path)).toEqual(['new.md', 'mid.md']);
   });
 
@@ -598,6 +614,241 @@ describe('PersistenceService save-path data-loss guard', () => {
     mode = 'ok';
     await expect(service.unload()).resolves.toBeUndefined();
     expect(readShardSnapshot(adapter, 'final.md')).toBeDefined();
+  });
+});
+
+/**
+ * Regression tests for the idle-vault total-wipe guard. Live files are no longer
+ * age-pruned, so a vault left untouched past `maxAgeDays` must keep every live
+ * file's on-disk history; only the count cap bounds live files, and only
+ * deleted-file tombstones still expire by age. The save path must reconcile
+ * per-shard and must NOT wipe the whole shard directory while live in-memory
+ * history exists.
+ */
+
+interface RetentionCaps {
+  maxEntries: number;
+  maxAgeDays: number;
+  maxDeletedEntries: number;
+  maxDeletedAgeDays: number;
+}
+
+/**
+ * Builds a write service whose injected SettingsService returns the given
+ * retention caps (the default `makeWriteService` hardcodes them all to 0), so a
+ * test can exercise the live count cap, the tombstone age cap, and the
+ * idle-vault no-wipe path against a real multi-snapshot payload on the
+ * `MemoryAdapter`.
+ */
+const makeRetentionWriteService = (
+  adapter: MemoryAdapter,
+  serialize: () => SerializedHistory,
+  caps: RetentionCaps,
+): WritePersistenceService => {
+  const settings = {
+    value: (path: string): unknown => {
+      if (path === 'persist') {
+        return true;
+      }
+
+      if (path === 'keep') {
+        return KeepHistory.app;
+      }
+
+      if (path === 'retention.maxEntries') {
+        return caps.maxEntries;
+      }
+
+      if (path === 'retention.maxAgeDays') {
+        return caps.maxAgeDays;
+      }
+
+      if (path === 'retention.maxDeletedEntries') {
+        return caps.maxDeletedEntries;
+      }
+
+      if (path === 'retention.maxDeletedAgeDays') {
+        return caps.maxDeletedAgeDays;
+      }
+
+      return 0;
+    },
+  };
+
+  const snapshotsService = {
+    serialize,
+    restore: (): void => {
+      // unused in these tests
+    },
+  };
+
+  const plugin = {
+    get: (key: string): unknown => {
+      if (key === 'SettingsService') {
+        return settings;
+      }
+
+      if (key === 'SnapshotsService') {
+        return snapshotsService;
+      }
+
+      return undefined;
+    },
+    app: {
+      vault: {
+        adapter,
+      },
+    },
+    manifest: {
+      dir: '.obsidian/plugins/local-history',
+      id: 'local-history',
+    },
+    forceUpdateEditor: (): void => {
+      // no-op
+    },
+  } as unknown as PluginArg;
+
+  return new WritePersistenceService(plugin);
+};
+
+const liveEntry = (path: string, timestamp: number): SerializedFileSnapshot => ({
+  path,
+  lineBreak: '\n',
+  timestamp,
+  lines: [],
+  state: [],
+  tracker: [],
+});
+
+const deadEntry = (path: string, timestamp: number, deletedTimestamp: number): SerializedFileSnapshot => ({
+  path,
+  lineBreak: '\n',
+  timestamp,
+  lines: [],
+  state: [],
+  tracker: [],
+  deletedTimestamp,
+});
+
+const multiPayload = (snapshots: SerializedFileSnapshot[]): SerializedHistory => ({
+  version: 1,
+  snapshots,
+});
+
+/**
+ * Whether the recursive directory wipe (`clearAll` -> `rmdir(dir, true)`) was
+ * issued against the shard directory at any point. The whole-vault wipe this
+ * change forbids would surface here.
+ */
+const didRecursiveWipe = (adapter: MemoryAdapter): boolean =>
+  adapter.calls.some((call): boolean => call.op === 'rmdir' && call.args[0] === SHARD_DIR && call.args[1] === 'true');
+
+const DAY_MS: number = 24 * 60 * 60 * 1000;
+
+describe('PersistenceService idle-vault no-wipe guard', () => {
+  it('never wipes the shard dir when every live snapshot is older than maxAgeDays', async (): Promise<void> => {
+    const adapter = new MemoryAdapter();
+    const now: number = Date.now();
+    // Every live file is 60 days old, well past the 30-day age cap. Pre-change,
+    // retention returned [] and the save path nuked the entire shard directory.
+    const snapshots: SerializedFileSnapshot[] = [
+      liveEntry('a.md', now - (60 * DAY_MS)),
+      liveEntry('b.md', now - (90 * DAY_MS)),
+    ];
+    const service = makeRetentionWriteService(
+      adapter,
+      (): SerializedHistory => multiPayload(snapshots),
+      { maxEntries: 0, maxAgeDays: 30, maxDeletedEntries: 0, maxDeletedAgeDays: 30 },
+    );
+
+    service.triggerSave();
+    await service.drain();
+
+    // History survives: both shards on disk, no recursive directory wipe.
+    expect(readShardSnapshot(adapter, 'a.md')).toBeDefined();
+    expect(readShardSnapshot(adapter, 'b.md')).toBeDefined();
+    expect(didRecursiveWipe(adapter)).toBe(false);
+    expect(await adapter.exists(SHARD_DIR)).toBe(true);
+  });
+
+  it('still evicts the stalest live files when the count cap is exceeded', async (): Promise<void> => {
+    const adapter = new MemoryAdapter();
+    const now: number = Date.now();
+    // Five live files, count cap of 2: only the two newest survive, the three
+    // stalest are evicted per shard (not via a directory wipe).
+    const snapshots: SerializedFileSnapshot[] = [
+      liveEntry('new.md', now - DAY_MS),
+      liveEntry('second.md', now - (2 * DAY_MS)),
+      liveEntry('third.md', now - (3 * DAY_MS)),
+      liveEntry('fourth.md', now - (4 * DAY_MS)),
+      liveEntry('fifth.md', now - (5 * DAY_MS)),
+    ];
+    const service = makeRetentionWriteService(
+      adapter,
+      (): SerializedHistory => multiPayload(snapshots),
+      { maxEntries: 2, maxAgeDays: 0, maxDeletedEntries: 0, maxDeletedAgeDays: 0 },
+    );
+
+    service.triggerSave();
+    await service.drain();
+
+    expect(readShardSnapshot(adapter, 'new.md')).toBeDefined();
+    expect(readShardSnapshot(adapter, 'second.md')).toBeDefined();
+    expect(readShardSnapshot(adapter, 'third.md')).toBeUndefined();
+    expect(readShardSnapshot(adapter, 'fourth.md')).toBeUndefined();
+    expect(readShardSnapshot(adapter, 'fifth.md')).toBeUndefined();
+    expect(didRecursiveWipe(adapter)).toBe(false);
+  });
+
+  it('still expires deleted-file tombstones by maxDeletedAgeDays', async (): Promise<void> => {
+    const adapter = new MemoryAdapter();
+    const now: number = Date.now();
+    // A live file plus one fresh and one stale tombstone. With a 7-day deleted
+    // age cap the stale tombstone is dropped while the live file and the fresh
+    // tombstone persist.
+    const snapshots: SerializedFileSnapshot[] = [
+      liveEntry('live.md', now - (60 * DAY_MS)),
+      deadEntry('fresh-dead.md', now - (60 * DAY_MS), now - DAY_MS),
+      deadEntry('stale-dead.md', now - (60 * DAY_MS), now - (30 * DAY_MS)),
+    ];
+    const service = makeRetentionWriteService(
+      adapter,
+      (): SerializedHistory => multiPayload(snapshots),
+      { maxEntries: 0, maxAgeDays: 30, maxDeletedEntries: 0, maxDeletedAgeDays: 7 },
+    );
+
+    service.triggerSave();
+    await service.drain();
+
+    // Live file kept despite being 60 days old; fresh tombstone kept; stale
+    // tombstone expired. No directory wipe.
+    expect(readShardSnapshot(adapter, 'live.md')).toBeDefined();
+    expect(readShardSnapshot(adapter, 'fresh-dead.md')).toBeDefined();
+    expect(readShardSnapshot(adapter, 'stale-dead.md')).toBeUndefined();
+    expect(didRecursiveWipe(adapter)).toBe(false);
+  });
+
+  it('still clears the disk for the genuinely-empty case (no in-memory snapshots)', async (): Promise<void> => {
+    const adapter = new MemoryAdapter();
+    // Seed a stale shard so the clear path has something to wipe.
+    await adapter.write(
+      shardPath('stale.md'),
+      JSON.stringify({ version: 1, snapshot: liveEntry('stale.md', 1) }),
+    );
+
+    const service = makeRetentionWriteService(
+      adapter,
+      // Empty in-memory state: the intended clear path must still run.
+      (): SerializedHistory => multiPayload([]),
+      { maxEntries: 0, maxAgeDays: 30, maxDeletedEntries: 0, maxDeletedAgeDays: 30 },
+    );
+
+    service.triggerSave();
+    await service.drain();
+
+    expect(readShardSnapshot(adapter, 'stale.md')).toBeUndefined();
+    expect(await adapter.exists(SHARD_DIR)).toBe(false);
+    expect(didRecursiveWipe(adapter)).toBe(true);
   });
 });
 

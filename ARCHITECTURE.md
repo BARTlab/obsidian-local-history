@@ -153,8 +153,10 @@ Folder history is a separate `FolderHistoryModal` class, not a `mode` flag on th
 already-large file `HistoryModal`. The two modals share only the diff rendering,
 extracted into a stateless `DiffRenderHelper` that takes
 `{baseLines, currentLines, lineBreak, mode, container}` and returns hunk metadata.
-Scroll sync and per-hunk revert stay in the file modal because they are file-mode
-specific (revert needs a single owning file to write back).
+Scroll sync and per-hunk revert stay owned by the file modal because they are
+file-mode specific (revert needs a single owning file to write back); ADR-11 later
+moved each into its own collaborator that the file modal owns, but neither is
+shared with the folder modal.
 
 **Why:** the file modal is already at the edge of "too many concerns in one
 class"; a `mode` branch in every method (toolbar, rail, search, key handlers,
@@ -281,6 +283,68 @@ naming (extra async plus mobile-availability risk); rewriting all shards on ever
 save (turns one write into N, worse IO than the monolith); a separate `migrated`
 marker file (re-introduces a single point of failure when the shard directory is
 already the source of truth).
+
+### ADR-11: Mega-files decompose into host-owned plain collaborators, not DI services
+
+The four largest files (`HistoryModal`, `FolderHistoryModal`, `SnapshotsService`,
+and `types.ts`) were decomposed into focused, single-concern units, following the
+same façade-over-collaborators shape ADR-8 established for `FileSnapshot`. The new
+units are **plain objects instantiated and owned by their host**, not DI services.
+Each reads its host's live state through a narrow per-collaborator host port (a
+small interface of lazy accessors plus callbacks the host builds), so the host
+keeps owning the shared state and the collaborator never holds a private copy of a
+field the host mutates in place. The host class becomes a thin coordinator that
+delegates to its collaborators.
+
+The collaborators (`src/modals/`, `src/services/`, `src/snapshots/`):
+
+- `HistoryModal` owns `DiffScrollSync` (`src/modals/diff-scroll-sync.ts`,
+  scroll mirroring), `VersionList` (`src/modals/version-list.component.ts`, the
+  version rail + label/delta derivation, port `VersionListHost`),
+  `GutterRevertHandler` (`src/modals/gutter-revert-handler.ts`, revert affordances
+  + hunk-anchor resolution, port `GutterRevertHost`), and `DiffViewState`
+  (`src/modals/diff-view-state.ts`, diff-view fields + mode/nav button behaviour,
+  port `DiffViewStateHost`). Hunk navigation lives in `DiffViewState` and talks to
+  `GutterRevertHandler` only through the rendered DOM marker contract
+  (`lct-hunk-anchor` class + `data-lct-hunk` index) the handler sets and the
+  navigation reads.
+- `FolderHistoryModal` owns `FolderTimelineRenderer`
+  (`src/modals/folder-timeline-renderer.ts`, the timeline rail, port
+  `FolderTimelineHost`), `FolderDiffRenderer` (`src/modals/folder-diff-renderer.ts`,
+  the diff pane + notice + columns header, port `FolderDiffHost`), and
+  `FolderActionHandler` (`src/modals/folder-action-handler.ts`, the five toolbar
+  actions, port `FolderActionHost`).
+- `SnapshotsService` owns `ExternalChangeCapture`
+  (`src/services/external-change-capture.ts`, off-editor capture: debounce,
+  in-flight guard, last-seen precheck, hash-compared forced capture, port
+  `ExternalChangeHost`), `IgnoreListManager` (`src/snapshots/ignore-list.ts`, the
+  ignore set + path-exclude decision + warn-once guard, port `IgnoreListHost`), and
+  `EditorOperations` (`src/snapshots/editor-operations.ts`, the sole file-write
+  method `applyContent`, port `EditorOperationsHost`). The service keeps the
+  snapshot map, the CRUD, and the capture-gating predicates.
+- `types.ts` became a barrel'd `src/types/` directory (per-concern submodules
+  re-exported by `src/types/index.ts`); importers using the `../types` path keep
+  resolving against the barrel with no import-site churn.
+
+**Why plain collaborators, not DI.** The DI container resolves dependencies by
+`constructor.name` and depends on esbuild `keepNames`; it is reserved for the
+long-lived service singletons whose registration order is a load-bearing contract
+(see "Service and event ordering" below). Modal and service collaborators are
+short-lived helpers owned by a single host, so registering them as `@Inject`
+services would add no wiring value while putting the ordering invariants at risk.
+Owning them as plain objects keeps the container, its registration order, and the
+`keepNames` dependency completely untouched, while still giving each concern its
+own testable unit. The host-port seam (rather than passing the raw host in) keeps
+the host's protected fields protected: the collaborator sees only the narrow
+interface it needs, not the whole host surface.
+
+**Rejected:** registering each collaborator as a DI service (no wiring gain, risks
+the registration-ordering invariants); state-owning collaborators with their own
+copies of host fields (desync the moment the host reassigns or mutates a field in
+place, the same trap ADR-8 calls out); passing the raw host into each collaborator
+(leaks the entire host surface and re-introduces the coupling the extraction
+removes); rewriting every `../types` import to point at the new submodules
+(needless churn, the barrel resolves them).
 
 ## Invariants and gotchas
 

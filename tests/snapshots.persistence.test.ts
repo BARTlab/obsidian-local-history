@@ -53,6 +53,42 @@ describe('SnapshotsService.serialize', () => {
     expect(payload.snapshots[0].path).toBe('dirty.md');
   });
 
+  it('drops only the failing snapshot when one toJSON throws, never the whole payload', () => {
+    // A single corrupt snapshot whose toJSON throws must not abort the loop and
+    // lose every other file's history (which the persistence layer could then
+    // misread as an empty payload and wipe the vault on disk).
+    const service = makeService();
+    const good = makeFile('good.md');
+    const bad = makeFile('bad.md');
+
+    service.add(good, 'a\nb');
+    service.add(bad, 'a\nb');
+
+    const goodSnapshot: FileSnapshot = service.getOne(good);
+    goodSnapshot.findCurrentLine(1)?.change('B');
+    goodSnapshot.updateState(['a', 'B']);
+    goodSnapshot.updateChanges();
+
+    const badSnapshot: FileSnapshot = service.getOne(bad);
+    badSnapshot.findCurrentLine(1)?.change('B');
+    badSnapshot.updateState(['a', 'B']);
+    badSnapshot.updateChanges();
+    badSnapshot.toJSON = (): never => {
+      throw new Error('toJSON boom');
+    };
+
+    let payload: ReturnType<SnapshotsService['serialize']> | null = null;
+    expect((): void => {
+      payload = service.serialize();
+    }).not.toThrow();
+
+    expect(payload).not.toBeNull();
+    const paths: string[] = (payload?.snapshots ?? []).map(
+      (item: SerializedFileSnapshot): string => item.path,
+    );
+    expect(paths).toEqual(['good.md']);
+  });
+
   it('serializes a snapshot that has versions even with no current changes', () => {
     const service = makeService(['timeline.md']);
     const file = makeFile('timeline.md');

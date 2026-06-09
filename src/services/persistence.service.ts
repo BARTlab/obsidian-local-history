@@ -246,12 +246,22 @@ export class PersistenceService implements Service {
   }
 
   /**
-   * Applies the size and age caps to a list of serialized snapshots.
-   * Runs two independent passes (D4): live snapshots are bounded by
-   * `retention.maxEntries` / `retention.maxAgeDays` and tombstones
-   * (entries with `deletedTimestamp` set) by
-   * `retention.maxDeletedEntries` / `retention.maxDeletedAgeDays`.
-   * A cap of 0 disables that dimension for its bucket, matching the live caps.
+   * Applies the retention caps to a list of serialized snapshots.
+   * Runs two independent passes: live snapshots are bounded by COUNT only
+   * (`retention.maxEntries`) and are deliberately NOT pruned by age, while
+   * tombstones (entries with `deletedTimestamp` set) keep BOTH caps
+   * (`retention.maxDeletedEntries` / `retention.maxDeletedAgeDays`).
+   * A cap of 0 disables that dimension for its bucket.
+   *
+   * Live files are no longer age-pruned (the prior D4 contract dropped live
+   * entries past `retention.maxAgeDays`). That dropped age dimension caused a
+   * total-history wipe: in an idle vault every live snapshot eventually ages
+   * past `maxAgeDays`, retention then returned an empty set, and the save path
+   * cleared the entire shard directory even though those files still exist and
+   * still hold in-memory history. Bounding live files by count (and per-file
+   * version caps elsewhere) keeps storage in check without ever expiring a
+   * still-present file's history purely because it is old. A deleted file's
+   * recoverability window is a real policy, so tombstones still expire by age.
    *
    * @param {SerializedFileSnapshot[]} snapshots - The raw persisted snapshots
    * @return {SerializedFileSnapshot[]} The retained subset, newest first
@@ -279,7 +289,14 @@ export class PersistenceService implements Service {
     const keptLive: SerializedFileSnapshot[] = this.applyBucketRetention(
       live,
       this.settingsService.value('retention.maxEntries'),
-      this.settingsService.value('retention.maxAgeDays'),
+      /**
+       * Age cap forced to 0 (disabled) for live files on purpose: a still-present
+       * file must never lose its history just because it is old, otherwise an idle
+       * vault's entire on-disk history is eventually evicted and wiped. Only the
+       * count cap bounds live files here; `retention.maxAgeDays` is left to govern
+       * tombstones below.
+       */
+      0,
       (item: SerializedFileSnapshot): number => item.timestamp,
     );
 
@@ -302,8 +319,9 @@ export class PersistenceService implements Service {
    * Runs a single retention pass on a bucket of serialized snapshots, dropping
    * entries older than `maxAgeDays` (when > 0) and then capping by
    * `maxEntries` (when > 0). The bucket's "age" is read through the supplied
-   * accessor so live snapshots can age by `timestamp` and tombstones by
-   * `deletedTimestamp`.
+   * accessor so tombstones age by `deletedTimestamp`. Callers pass
+   * `maxAgeDays = 0` to disable age pruning entirely: the live bucket does this
+   * so a still-present file is never expired by age (see {@link applyRetention}).
    *
    * @param {SerializedFileSnapshot[]} bucket - The bucket to prune (not mutated)
    * @param {number} maxEntries - Size cap for this bucket (0 disables)
@@ -431,7 +449,18 @@ export class PersistenceService implements Service {
       return;
     }
 
-    if (kept.length === 0) {
+    /**
+     * The directory-wide wipe may run ONLY for the genuinely-empty case: there
+     * is no in-memory history at all (`payload.snapshots` is empty). When live
+     * in-memory history exists (`payload.snapshots.length > 0`) we must NEVER
+     * nuke the whole shard directory, even if retention kept nothing this pass:
+     * doing so would destroy every note's on-disk history in one shot for a
+     * vault that still has live history (the idle-vault wipe this change closes).
+     * In that case fall through to the per-shard write/removal passes below,
+     * which reconcile disk one shard at a time and only remove shards that were
+     * actually evicted, renamed, or deleted.
+     */
+    if (payload.snapshots.length === 0) {
       await this.clearDisk();
 
       return;

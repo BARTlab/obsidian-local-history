@@ -883,6 +883,18 @@ body {
       height: 4px;
     }
 
+    /**
+     * The removed dash straddles the top edge of its line (translateY(-50%)),
+     * which on the very first editor line escapes upward into the inline-title
+     * gap and orphans a marker above the document. Pin the first line's removed
+     * dash to its own top so it stays inside the document instead of floating
+     * above the title.
+     */
+    &:first-child.lct-removed:not(.mk-placeholder)::after {
+      transform: none;
+      top: 0;
+    }
+
     &.lct-changed:not(.mk-placeholder)::before {
       background-color: var(--lct-color-changed);
     }

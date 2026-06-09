@@ -10,6 +10,9 @@ jest.mock('@codemirror/view', () => ({
   Decoration: { none: {}, line: (): unknown => ({}) },
 }));
 
+import { ChangeType } from '@/consts';
+import { ChangeLine } from '@/lines/change.line';
+import { Decoration as MockedDecoration } from '@codemirror/view';
 import { EditorCommonExtension } from '@/extensions/editor-common.extension';
 import { refreshDecorationsEffect } from '@/extensions/refresh.effect';
 
@@ -87,6 +90,56 @@ describe('EditorCommonExtension rebuild gating', () => {
     } as unknown as UpdateArg);
 
     expect(spy).toHaveBeenCalledTimes(1);
+  });
+});
+
+/**
+ * Builds an EditorCommonExtension whose change map returns a fixed ChangeLine for
+ * line index 0 and captures the class string handed to Decoration.line, so the
+ * line-mode class composition can be asserted directly.
+ */
+const makeExtWithChange = (doc: string, change: ChangeLine): { classes: string[] } => {
+  const lineSpy = jest.spyOn(MockedDecoration as unknown as { line: (spec: { attributes: { class: string } }) => unknown }, 'line');
+  const settings = { value: (key: string): unknown => (key === 'type' ? 'line' : true) };
+  const snapshot = { getChanges: (): unknown => ({ get: (index: number): ChangeLine | null => (index === 0 ? change : null) }) };
+  const services: Record<string, unknown> = {
+    SettingsService: settings,
+    SnapshotsService: { getOne: (): unknown => snapshot },
+  };
+  const plugin = { get: (name: string): unknown => services[name] };
+  const state = EditorState.create({ doc });
+  const view = { visibleRanges: [{ from: state.doc.line(1).from, to: state.doc.line(1).to }], state };
+
+  new EditorCommonExtension(view as unknown as ViewArg, plugin as unknown as PluginArg);
+
+  const classes: string[] = lineSpy.mock.calls.map((call): string => (call[0] as { attributes: { class: string } }).attributes.class);
+
+  lineSpy.mockRestore();
+
+  return { classes };
+};
+
+describe('EditorCommonExtension removed-anchor collapse on a real line (line-mode orphan regression)', () => {
+  // A deleted original line and a freshly added line can both map onto the same
+  // current index (most visibly index 0, the document top). In line mode the
+  // stacked `lct-removed` override pulls the bar above the inline title. The
+  // renderer must drop `removed` when a positive change type is present on the
+  // same line, mirroring the dot-mode contract where removed is handled
+  // separately and never stacked onto the modify marker.
+  it('drops lct-removed when the line also carries a positive change', () => {
+    const change = new ChangeLine(0, [ChangeType.added, ChangeType.removed]);
+
+    const { classes } = makeExtWithChange('A\nB\nC', change);
+
+    expect(classes).toEqual(['lct lct-line lct-added']);
+  });
+
+  it('keeps lct-removed when the line is removed-only', () => {
+    const change = new ChangeLine(0, [ChangeType.removed]);
+
+    const { classes } = makeExtWithChange('A\nB\nC', change);
+
+    expect(classes).toEqual(['lct lct-line lct-removed']);
   });
 });
 

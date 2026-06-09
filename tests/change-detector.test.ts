@@ -242,6 +242,54 @@ describe('ChangeDetectorExtension removed-anchor clamping (epic 13 regression)',
   });
 });
 
+describe('ChangeDetectorExtension removed-onto-added collapse at the document top', () => {
+  // Add new lines below an original line, then delete the original from the top
+  // with Del. The deleted original is removed at index 0 while the first added
+  // line shifts up into index 0, so the change map carries both `added` and
+  // `removed` on index 0. The model state is legitimate (a line was added there
+  // and the original above it is gone); the line-mode renderer is responsible
+  // for not stacking a removed marker onto the added bar (see editor-common).
+  // This pins the anchor collision so a model-boundary change cannot silently
+  // re-orphan the removed anchor off a real line.
+  it('keeps the collapsed removed anchor on index 0, not past the last real line', () => {
+    const snapshot = new FileSnapshot('start');
+
+    // Add three lines below "start": start, A, B, C.
+    const afterAdd: string = step(snapshot, 'start', { from: lineRange('start', 1).to, insert: '\nA\nB\nC' });
+
+    // Del at the top removes the original "start": A, B, C remain.
+    step(snapshot, afterAdd, { from: lineRange(afterAdd, 1).from, to: lineRange(afterAdd, 2).from, insert: '' });
+
+    const last: number = Math.max(
+      ...snapshot.tracker
+        .filter((line): boolean => line.existedInCurrent)
+        .map((line): number => line.currentPosition),
+    );
+
+    // Every removed anchor stays on a real line (>= 0 and <= last current line).
+    snapshot.tracker
+      .filter((line): boolean => line.isStateRemoved())
+      .forEach((line): void => {
+        expect(line.removedAtPosition).toBeGreaterThanOrEqual(0);
+        expect(line.removedAtPosition).toBeLessThanOrEqual(last);
+      });
+
+    // No change-map key escapes the real line range.
+    [...snapshot.getChanges().keys()]
+      .filter((key): key is number => typeof key === 'number')
+      .forEach((key: number): void => {
+        expect(key).toBeGreaterThanOrEqual(0);
+        expect(key).toBeLessThanOrEqual(last);
+      });
+
+    // Index 0 carries both the added line and the collapsed removed anchor.
+    const top = snapshot.getChanges().get(0);
+
+    expect(top?.has(ChangeType.added)).toBe(true);
+    expect(top?.has(ChangeType.removed)).toBe(true);
+  });
+});
+
 describe('ChangeDetectorExtension prev-state desync (T2.3)', () => {
   // The old-document side of a ChangeSet (fromA/toA) must be mapped against the
   // editor state those positions index into, i.e. update.startState. Earlier the

@@ -558,6 +558,10 @@ body {
   transform: translateY(-50%);
   height: 4px;
 }
+.cm-line.lct-line:first-child.lct-removed:not(.mk-placeholder)::after {
+  transform: none;
+  top: 0;
+}
 .cm-line.lct-line.lct-changed:not(.mk-placeholder)::before {
   background-color: var(--lct-color-changed);
 }

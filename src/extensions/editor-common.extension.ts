@@ -123,7 +123,24 @@ export class EditorCommonExtension extends BaseExtension implements EditorExtens
         if (change) {
           const classNames: string[] = ['lct', `lct-${IndicatorType.line}`];
 
-          change.getTypes().forEach((type: ChangeType): void => {
+          /**
+           * A removed-line anchor can collapse onto a real current line that
+           * already carries a positive change (added/changed/restored/whitespace),
+           * most visibly at the document top where a deleted original line and a
+           * brand-new added line both map onto index 0. In line mode a single bar
+           * cannot represent both, and the `lct-removed` override pulls the bar
+           * (and its half-above dash) up into the inline-title gap. Mirror the
+           * dot-mode contract (removed is handled in its own gutter, never stacked
+           * onto the modify marker) by dropping `removed` when a positive type is
+           * present, so the line renders its own clean bar instead of an orphaned
+           * marker above the title.
+           */
+          const modify: ChangeType | null = change.getModify();
+          const types: ChangeType[] = modify === null
+            ? change.getTypes()
+            : change.getTypes().filter((type: ChangeType): boolean => type !== ChangeType.removed);
+
+          types.forEach((type: ChangeType): void => {
             classNames.push(`lct-${type}`);
           });
 

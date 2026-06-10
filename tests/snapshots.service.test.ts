@@ -18,7 +18,6 @@ jest.mock('@/snapshots/file.snapshot', () => ({
 
 import { SnapshotsService } from '@/services/snapshots.service';
 import * as obsidian from 'obsidian';
-import type { TFile } from 'obsidian';
 
 import { makeFile } from './helpers/builders';
 import { makeSnapshotsService as makeService } from './helpers/service-factories';

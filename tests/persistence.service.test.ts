@@ -393,16 +393,7 @@ const readShardSnapshot = (adapter: MemoryAdapter, notePath: string): Serialized
 
 const payload = (path: string, timestamp: number): SerializedHistory => ({
   version: 1,
-  snapshots: [
-    {
-      path,
-      lineBreak: '\n',
-      timestamp,
-      lines: [],
-      state: [],
-      tracker: [],
-    },
-  ],
+  snapshots: [entry(path, timestamp)],
 });
 
 describe('PersistenceService write queue (ADR-08-A)', () => {
@@ -711,25 +702,6 @@ const makeRetentionWriteService = (
   return new WritePersistenceService(plugin);
 };
 
-const liveEntry = (path: string, timestamp: number): SerializedFileSnapshot => ({
-  path,
-  lineBreak: '\n',
-  timestamp,
-  lines: [],
-  state: [],
-  tracker: [],
-});
-
-const deadEntry = (path: string, timestamp: number, deletedTimestamp: number): SerializedFileSnapshot => ({
-  path,
-  lineBreak: '\n',
-  timestamp,
-  lines: [],
-  state: [],
-  tracker: [],
-  deletedTimestamp,
-});
-
 const multiPayload = (snapshots: SerializedFileSnapshot[]): SerializedHistory => ({
   version: 1,
   snapshots,
@@ -752,8 +724,8 @@ describe('PersistenceService idle-vault no-wipe guard', () => {
     // Every live file is 60 days old, well past the 30-day age cap. Pre-change,
     // retention returned [] and the save path nuked the entire shard directory.
     const snapshots: SerializedFileSnapshot[] = [
-      liveEntry('a.md', now - (60 * DAY_MS)),
-      liveEntry('b.md', now - (90 * DAY_MS)),
+      entry('a.md', now - (60 * DAY_MS)),
+      entry('b.md', now - (90 * DAY_MS)),
     ];
     const service = makeRetentionWriteService(
       adapter,
@@ -777,11 +749,11 @@ describe('PersistenceService idle-vault no-wipe guard', () => {
     // Five live files, count cap of 2: only the two newest survive, the three
     // stalest are evicted per shard (not via a directory wipe).
     const snapshots: SerializedFileSnapshot[] = [
-      liveEntry('new.md', now - DAY_MS),
-      liveEntry('second.md', now - (2 * DAY_MS)),
-      liveEntry('third.md', now - (3 * DAY_MS)),
-      liveEntry('fourth.md', now - (4 * DAY_MS)),
-      liveEntry('fifth.md', now - (5 * DAY_MS)),
+      entry('new.md', now - DAY_MS),
+      entry('second.md', now - (2 * DAY_MS)),
+      entry('third.md', now - (3 * DAY_MS)),
+      entry('fourth.md', now - (4 * DAY_MS)),
+      entry('fifth.md', now - (5 * DAY_MS)),
     ];
     const service = makeRetentionWriteService(
       adapter,
@@ -807,9 +779,9 @@ describe('PersistenceService idle-vault no-wipe guard', () => {
     // age cap the stale tombstone is dropped while the live file and the fresh
     // tombstone persist.
     const snapshots: SerializedFileSnapshot[] = [
-      liveEntry('live.md', now - (60 * DAY_MS)),
-      deadEntry('fresh-dead.md', now - (60 * DAY_MS), now - DAY_MS),
-      deadEntry('stale-dead.md', now - (60 * DAY_MS), now - (30 * DAY_MS)),
+      entry('live.md', now - (60 * DAY_MS)),
+      tombstone('fresh-dead.md', now - (60 * DAY_MS), now - DAY_MS),
+      tombstone('stale-dead.md', now - (60 * DAY_MS), now - (30 * DAY_MS)),
     ];
     const service = makeRetentionWriteService(
       adapter,
@@ -833,7 +805,7 @@ describe('PersistenceService idle-vault no-wipe guard', () => {
     // Seed a stale shard so the clear path has something to wipe.
     await adapter.write(
       shardPath('stale.md'),
-      JSON.stringify({ version: 1, snapshot: liveEntry('stale.md', 1) }),
+      JSON.stringify({ version: 1, snapshot: entry('stale.md', 1) }),
     );
 
     const service = makeRetentionWriteService(
@@ -858,16 +830,11 @@ describe('PersistenceService idle-vault no-wipe guard', () => {
  * that mix valid and malformed entries and assert `readDisk` returns only the
  * structurally usable ones (no crash, no silent drop of valid neighbours, no
  * resurrection of junk as fresh history with a `0` timestamp).
+ *
+ * The structurally valid entries here use the shared `entry` builder; the
+ * malformed neighbours are hand-crafted POJOs inline so each test contrasts a
+ * good entry against the specific defect it exercises.
  */
-
-const validEntry = (path: string, timestamp: number): SerializedFileSnapshot => ({
-  path,
-  lineBreak: '\n',
-  timestamp,
-  lines: [],
-  state: [],
-  tracker: [],
-});
 
 describe('PersistenceService readDisk per-entry validation (ADR-08-B)', () => {
   it('skips entries missing a finite timestamp and keeps the valid ones', async (): Promise<void> => {
@@ -876,12 +843,12 @@ describe('PersistenceService readDisk per-entry validation (ADR-08-B)', () => {
     adapter.files.set(HISTORY_PATH, JSON.stringify({
       version: 1,
       snapshots: [
-        validEntry('good.md', now),
+        entry('good.md', now),
         // Missing timestamp: must be skipped, not coerced to 0.
         { path: 'bad-no-ts.md', lineBreak: '\n', lines: [], state: [], tracker: [] },
         // Non-finite timestamp (NaN serializes to null; tested through both forms).
         { path: 'bad-nan.md', lineBreak: '\n', timestamp: null, lines: [], state: [], tracker: [] },
-        validEntry('good-2.md', now - 1000),
+        entry('good-2.md', now - 1000),
       ],
     }));
 
@@ -899,9 +866,9 @@ describe('PersistenceService readDisk per-entry validation (ADR-08-B)', () => {
     const adapter = new MemoryAdapter();
     const now: number = Date.now();
     const snapshots: SerializedFileSnapshot[] = [
-      validEntry('a.md', now),
-      validEntry('b.md', now - 1000),
-      validEntry('c.md', now - 2000),
+      entry('a.md', now),
+      entry('b.md', now - 1000),
+      entry('c.md', now - 2000),
     ];
     adapter.files.set(HISTORY_PATH, JSON.stringify({ version: 1, snapshots }));
 
@@ -941,7 +908,7 @@ describe('PersistenceService readDisk per-entry validation (ADR-08-B)', () => {
     adapter.files.set(HISTORY_PATH, JSON.stringify({
       version: 1,
       snapshots: [
-        validEntry('good.md', now),
+        entry('good.md', now),
         { path: 'bad-lines.md', timestamp: now, lines: 'oops', tracker: [] },
         { path: 'bad-tracker.md', timestamp: now, lines: [], tracker: { not: 'an array' } },
       ],

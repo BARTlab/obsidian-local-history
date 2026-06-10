@@ -8,6 +8,7 @@ import { TextHelper } from '@/helpers/text.helper';
 import type { TFile } from 'obsidian';
 
 import { makeFile } from './helpers/builders';
+import { flushMicrotasks } from './helpers/async-utils';
 
 type PluginArg = ConstructorParameters<typeof SnapshotsService>[0];
 
@@ -20,16 +21,6 @@ interface SettingsValues {
   'snapshots.maxVersions'?: number;
   'snapshots.maxVersionAgeDays'?: number;
 }
-
-/**
- * Drains the microtask queue so a scheduled debounce callback that already
- * resolved its inner promise has a chance to write its side effects before
- * the test asserts on them.
- */
-const flushMicrotasks = async (): Promise<void> => {
-  await Promise.resolve();
-  await Promise.resolve();
-};
 
 /**
  * Builds a SnapshotsService backed by an in-memory vault map. `read` returns

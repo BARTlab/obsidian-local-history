@@ -5,6 +5,8 @@ import { BaseEvent } from '@/events/base.event';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ObsidianEventName } from '@/types';
 
+import { flushMicrotasks } from './helpers/async-utils';
+
 /**
  * Captures the callback registered with a fake Obsidian trigger so the test can
  * dispatch events through the wrapping introduced by T07. The trigger imitates
@@ -99,9 +101,8 @@ describe('BaseEvent.dispatch', () => {
     // The wrapper must not surface the promise to Obsidian (returns void).
     expect(returned).toBeUndefined();
 
-    // Give the microtask queue a tick so the .catch runs.
-    await Promise.resolve();
-    await Promise.resolve();
+    // Drain the microtask queue so the wrapper's .catch runs deterministically.
+    await flushMicrotasks();
 
     expect(errorSpy).toHaveBeenCalledTimes(1);
     const [message, error] = errorSpy.mock.calls[0] as [string, unknown];

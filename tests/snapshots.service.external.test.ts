@@ -8,7 +8,6 @@ import { TextHelper } from '@/helpers/text.helper';
 import type { TFile } from 'obsidian';
 
 import { makeFile } from './helpers/builders';
-import { flushMicrotasks } from './helpers/async-utils';
 
 type PluginArg = ConstructorParameters<typeof SnapshotsService>[0];
 
@@ -228,8 +227,9 @@ describe('SnapshotsService.captureExternalChange', () => {
     const seeded: FileSnapshot = service.getOne(file) as FileSnapshot;
 
     // Pin a labeled version manually so the eviction count compares only
-    // unlabeled (external) entries against maxVersions.
-    seeded.versions.push(new FileVersion(['initial'], Date.now() - 1000, 'pin'));
+    // unlabeled (external) entries against maxVersions. A fixed past timestamp
+    // (not Date.now()) keeps the assertion reproducible regardless of run date.
+    seeded.versions.push(new FileVersion(['initial'], 1000, 'pin'));
 
     vault[file.path] = 'changed-externally';
     await service.captureExternalChange(file);
@@ -436,8 +436,11 @@ describe('SnapshotsService.scheduleExternalCapture', () => {
 
     expect(reads).toBe(0);
 
+    // runAllTimersAsync fires the debounce timer and exhausts the microtask
+    // queue between/after timers, so the trailing capture's async chain
+    // (disk read + capture) completes deterministically with no real-timer
+    // microtask flush.
     await jest.runAllTimersAsync();
-    await flushMicrotasks();
 
     const snapshot: FileSnapshot = service.getOne(file) as FileSnapshot;
 
@@ -460,7 +463,6 @@ describe('SnapshotsService.scheduleExternalCapture', () => {
     service.scheduleExternalCapture(fileB);
 
     await jest.runAllTimersAsync();
-    await flushMicrotasks();
 
     expect((service.getOne(fileA) as FileSnapshot).versions.length).toBe(1);
     expect((service.getOne(fileB) as FileSnapshot).versions.length).toBe(1);

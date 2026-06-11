@@ -168,7 +168,7 @@ default and selects the latest captured version as the diff base.
   none does; the side-by-side columns do not scroll together; a toggle takes
   noticeably longer than ~300 ms on the small file; or a console error is thrown.
 
-Last verified: 2026-06-05 on Obsidian 1.12.7, plugin commit 5e84292.
+Last verified: 2026-06-05 on Obsidian 1.12.7, plugin commit 2451e57.
 
 ## Folder-history modal
 
@@ -200,8 +200,9 @@ newest timeline point's T. It is opened from the file explorer: right-click a
 - **Action:** Right-click the folder in the file explorer, open
   **Local history -> Show History**, timing the open per the `Performance.now()`
   convention from the Conventions section (the documented marker is the body of
-  `FolderHistoryModal.onOpen`, which runs `makeUI()`, `renderTimeline()`,
-  `refreshTree()`, and `refreshDiff()` synchronously).
+  `FolderHistoryModal.onOpen`, which runs `makeUI()`,
+  `timelineRenderer.render()`, `refreshTree()`, and `refreshDiff()`
+  synchronously).
 - **Pass:** The modal opens to the three-column shell: the left rail lists the
   folder timeline points grouped by day (newest first, the newest point
   highlighted with `is-active`), the middle tree shows the changed files under
@@ -268,7 +269,7 @@ newest timeline point's T. It is opened from the file explorer: right-click a
   pick; the diff pane stays blank for a file that differs at the new T; the pick
   takes noticeably longer than ~300 ms; or a console error is thrown.
 
-Last verified: 2026-06-05 on Obsidian 1.12.7, plugin commit 5e84292.
+Last verified: 2026-06-05 on Obsidian 1.12.7, plugin commit 2451e57.
 
 ## Recent-changes view
 
@@ -332,7 +333,7 @@ calls `plugin.revealRecentChanges()`.
   the panel shows a blank list instead of the hint; switching back does not
   restore the list; or a console error is thrown.
 
-Last verified: 2026-06-05 on Obsidian 1.12.7, plugin commit 5e84292.
+Last verified: 2026-06-05 on Obsidian 1.12.7, plugin commit 2451e57.
 
 ## Gutter markers
 
@@ -396,7 +397,7 @@ a single **Show changes** toggle (`menu.show-changes`).
   restoring the deleted text leaves the marker behind; or a console error is
   thrown.
 
-Last verified: 2026-06-05 on Obsidian 1.12.7, plugin commit 5e84292.
+Last verified: 2026-06-05 on Obsidian 1.12.7, plugin commit 2451e57.
 
 ## External-change badge
 
@@ -463,7 +464,7 @@ modal rail, the recent-changes panel, and the folder tree.
   ancestor folder row wrongly shows the badge; the badge differs in glyph or text
   from the other surfaces; or a console error is thrown.
 
-Last verified: 2026-06-05 on Obsidian 1.12.7, plugin commit 5e84292.
+Last verified: 2026-06-05 on Obsidian 1.12.7, plugin commit 2451e57.
 
 ## Native tree + tab highlight
 
@@ -626,4 +627,4 @@ scenario.
 - **Fail:** A status colour remains on any file row, folder row, or tab header after
   the plugin is disabled; disabling throws; or a console error is thrown.
 
-Last verified: 2026-06-05 on Obsidian 1.12.7, plugin commit 5e84292.
+Last verified: 2026-06-05 on Obsidian 1.12.7, plugin commit 2451e57.

@@ -8,8 +8,8 @@ it captures rationale and traps, not a tour of the codebase.
 The plugin uses a small service-oriented core (a DI container in `main.ts` holds
 the services; `@Inject` / `@On` decorators wire dependencies and Obsidian
 events). The data model centers on `FileSnapshot`, one per tracked file, holding
-the baselines, the live tracker, and the version timeline. The rest of this
-document assumes that shape.
+the baselines, the live tracker, and the version timeline. All decisions below
+assume that shape.
 
 ## Decision records
 
@@ -254,7 +254,7 @@ file costs the entire base, and every save rewrites the whole file. Sharding mak
 a corrupt or lost shard cost exactly one note's history while the rest load,
 recovering from `.bak`/`.tmp` where present, and a save touches only the file that
 changed. Directory enumeration as the source of truth avoids re-introducing the
-very single point of failure being removed: an index file, if lost, would "lose"
+single point of failure being removed: an index file, if lost, would "lose"
 every shard it failed to list. A deterministic path hash keeps filenames
 length-safe (paths can exceed the 255-byte filename limit) and FS-safe (paths
 contain `/`), and being synchronous makes it deterministic and trivially testable.
@@ -333,7 +333,7 @@ long-lived service singletons whose registration order is a load-bearing contrac
 short-lived helpers owned by a single host, so registering them as `@Inject`
 services would add no wiring value while putting the ordering invariants at risk.
 Owning them as plain objects keeps the container, its registration order, and the
-`keepNames` dependency completely untouched, while still giving each concern its
+`keepNames` dependency untouched, while still giving each concern its
 own testable unit. The host-port seam (rather than passing the raw host in) keeps
 the host's protected fields protected: the collaborator sees only the narrow
 interface it needs, not the whole host surface.
@@ -348,7 +348,7 @@ removes); rewriting every `../types` import to point at the new submodules
 
 ## Invariants and gotchas
 
-These are the load-bearing assumptions that are easy to break from a distance.
+Each item below is a load-bearing assumption that is easy to break from a distance.
 
 ### Service and event ordering
 

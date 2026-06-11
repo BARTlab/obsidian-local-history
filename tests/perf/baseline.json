@@ -160,8 +160,8 @@
     "env": "node v24.15.0 linux/x64"
   },
   "persistence.restore.medium": {
-    "medianMs": 40.75365899999997,
-    "recordedAt": "2026-06-03T23:48:21.904Z",
+    "medianMs": 62.21534400000019,
+    "recordedAt": "2026-06-05T13:13:34.071Z",
     "env": "node v24.15.0 linux/x64"
   },
   "persistence.retention.large": {

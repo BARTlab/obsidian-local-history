@@ -149,6 +149,23 @@ its own commit with a message that says why the numbers moved.
 
 ## Provenance
 
-Last recorded: 2026-06-04 on node v24.15.0 (linux/x64), plugin commit b92b4dd
+Last recorded: 2026-06-05 on node v24.15.0 (linux/x64), plugin commit 845af47
 (measurement method: warmup + adaptive forced GC + minimum-of-N; hybrid ceiling
 max(+40%, +0.8 ms)).
+
+### Re-baseline history
+
+- **2026-06-05, commit 845af47** - partial re-baseline: `persistence.restore.medium`
+  only. The restore hot path now calls `FileSnapshot.resetMarkerBaseline()` on each
+  restored snapshot (added in commit af3a728 as a feature: restored snapshots reset
+  the session marker baseline so the tree does not paint files as changed on a fresh
+  launch). That per-snapshot work - rebuilding the `TrackerLine` array, invalidating
+  the position index, and calling `updateChanges` - is legitimate new cost proportional
+  to the number of lines per file. The measured minimum rose from ~40.75 ms to
+  ~62 ms (+52%), exceeding the 40% relative ceiling. All 47 other labels passed
+  within budget without change. The new baseline records the accepted cost of the
+  session-clean restore behaviour.
+
+- **2026-06-04, commit b92b4dd** - initial baseline recording (all 36 labels).
+  Measurement method established: warmup + adaptive forced GC + minimum-of-N samples,
+  hybrid ceiling max(relative +40%, absolute +0.8 ms).

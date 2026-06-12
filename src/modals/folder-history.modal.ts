@@ -47,10 +47,11 @@ import { type App, Modal, SearchComponent, setIcon } from 'obsidian';
  *   base, full current) and a deleted file as "everything red" (full base,
  *   empty current) without any folder-mode special-casing.
  *
- * The modal is read-only in T12: toolbar actions (restore / remove / label on
- * the tree-selected file at T) land in T13. The view-mode toggles ARE wired
- * here so the AC5 contract holds: changing the mode re-renders the diff
- * without losing the selected T or the selected file.
+ * Toolbar actions (restore / remove / label on the tree-selected file at the
+ * selected timeline point T) are handled by the {@link FolderActionHandler}
+ * collaborator, which drives the post-action rail / tree / diff re-render back
+ * through the modal. The view-mode toggles re-render the diff in place: changing
+ * the mode never loses the selected T or the selected file.
  */
 export class FolderHistoryModal extends Modal {
   /**
@@ -86,7 +87,7 @@ export class FolderHistoryModal extends Modal {
   /**
    * Timeline points synthesised once at open: every per-file capture, delete,
    * and move-in under the root, newest-first. Re-synthesised when the file
-   * timeline changes (the toolbar actions in T13 will trigger that).
+   * timeline changes (the toolbar actions trigger that).
    */
   protected timeline: FolderTimelinePoint[];
 
@@ -486,7 +487,7 @@ export class FolderHistoryModal extends Modal {
   }
 
   /**
-   * Builds the toolbar in the same shape the file modal uses (T13 / D10):
+   * Builds the toolbar in the same shape the file modal uses (D10):
    * a destructive group (restore-original / remove-history) pinned to the
    * left, a constructive group (restore-selected / remove-selected /
    * label-selected) keyed on the tree-selected file at the picked timeline
@@ -866,8 +867,8 @@ export class FolderHistoryModal extends Modal {
 
   /**
    * Returns the timeline this modal was opened against. Exposed for tests
-   * and for T13 wiring (the toolbar actions need to know which version is
-   * closest to the picked T for the selected file).
+   * and for the toolbar actions, which need to know which version is closest
+   * to the picked T for the selected file.
    *
    * @return {FolderTimelinePoint[]} The timeline points, newest-first
    */
@@ -877,7 +878,7 @@ export class FolderHistoryModal extends Modal {
 
   /**
    * Returns the currently selected timeline point T. Exposed for tests and
-   * future T13 wiring.
+   * the toolbar actions.
    *
    * @return {number} The selected T in ms
    */
@@ -886,8 +887,8 @@ export class FolderHistoryModal extends Modal {
   }
 
   /**
-   * Returns the snapshot map keyed by path. Exposed for T13 wiring so the
-   * toolbar actions can resolve the tree-selected file back to its snapshot
+   * Returns the snapshot map keyed by path. Exposed so the toolbar
+   * actions can resolve the tree-selected file back to its snapshot
    * without re-filtering the service map.
    *
    * @return {Map<string, FileSnapshot>} The snapshot map
@@ -898,8 +899,8 @@ export class FolderHistoryModal extends Modal {
 
   /**
    * Re-runs the per-file delta against the given path at the current T.
-   * Exposed for T13 so it can derive the base / current content for the
-   * selected file when invoking VersionActionsService.
+   * Exposed so the toolbar actions can derive the base / current content
+   * for the selected file when invoking VersionActionsService.
    *
    * @param {string} path - The vault-relative file path
    * @return {FolderDeltaStatus} The status at T, `'none'` when the path is unknown

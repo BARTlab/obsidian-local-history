@@ -383,9 +383,10 @@ export class RecentChangesView extends ItemView {
   /**
    * Computes the derived action description for a version against its previous
    * neighbour. The neighbour is the next-older captured version, or the file's
-   * history baseline when the version is the oldest one on the timeline.
-   * Mirrors HistoryModal.describeVersion so the panel and the rail label the
-   * same content identically.
+   * history baseline when the version is the oldest one on the timeline. The
+   * action text is derived via VersionLabelHelper.describe, the same shared sink
+   * VersionList.describe uses, so the panel and the rail label content
+   * identically.
    *
    * @param {FileVersion} version - The version to describe
    * @param {FileVersion[]} versions - The full timeline, newest first

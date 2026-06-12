@@ -5,6 +5,7 @@ import type LineChangeTrackerPlugin from '@/main';
 import { ObservableMap } from '@/maps/observable.map';
 import { ExternalChangeCapture, type ExternalChangeHost } from '@/services/external-change-capture';
 import type { SettingsService } from '@/services/settings.service';
+import { TOKENS } from '@/services/tokens';
 import { EditorOperations, type EditorBlock, type EditorOperationsHost } from '@/snapshots/editor-operations';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import { FileVersion } from '@/snapshots/file.version';
@@ -23,7 +24,7 @@ export class SnapshotsService implements Service {
    * Service for accessing and updating plugin settings.
    * Injected using the @Inject decorator.
    */
-  @Inject('SettingsService')
+  @Inject(TOKENS.settings)
   protected settingsService: SettingsService;
 
   /**

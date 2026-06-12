@@ -12,6 +12,7 @@ jest.mock('@codemirror/view', () => ({
 import { ChangeType, DEFAULT_SETTINGS } from '@/consts';
 import { DotMarker } from '@/markers/char.marker';
 import { RemovedMarker } from '@/markers/removed.marker';
+import { TOKENS } from '@/services/tokens';
 
 type AnyRecord = Record<string, unknown>;
 
@@ -25,7 +26,7 @@ const makePlugin = (): unknown => {
       path.split('.').reduce<unknown>((acc, part) => (acc as AnyRecord)?.[part], DEFAULT_SETTINGS),
   };
 
-  return { get: (name: string): unknown => (name === 'SettingsService' ? settings : undefined) };
+  return { get: (key: unknown): unknown => (key === TOKENS.settings ? settings : undefined) };
 };
 
 describe('DotMarker init-order safety', () => {

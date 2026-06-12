@@ -3,6 +3,7 @@ import { Inject } from '@/decorators/inject.decorator';
 import { On as _On } from '@/decorators/on.decorator';
 import type LineChangeTrackerPlugin from '@/main';
 import type { SettingsService } from '@/services/settings.service';
+import { TOKENS } from '@/services/tokens';
 import type { Service } from '@/types';
 
 /**
@@ -17,7 +18,7 @@ export class StylesService implements Service {
    * Service for accessing plugin settings.
    * Injected using the @Inject decorator.
    */
-  @Inject('SettingsService')
+  @Inject(TOKENS.settings)
   protected settingsService: SettingsService;
 
   /**

@@ -4,6 +4,7 @@ import { On } from '@/decorators/on.decorator';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ModalsService } from '@/services/modals.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
+import { TOKENS } from '@/services/tokens';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { Service, StatusBarItemCreate } from '@/types';
 import { MarkdownView, type View } from 'obsidian';
@@ -20,14 +21,14 @@ export class StatusbarService implements Service {
    * Service for managing modal dialogs.
    * Injected using the @Inject decorator.
    */
-  @Inject('ModalsService')
+  @Inject(TOKENS.modals)
   protected modalService: ModalsService;
 
   /**
    * Service for managing file snapshots.
    * Injected using the @Inject decorator.
    */
-  @Inject('SnapshotsService')
+  @Inject(TOKENS.snapshots)
   protected snapshotsService: SnapshotsService;
 
   /**

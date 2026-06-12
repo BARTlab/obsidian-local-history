@@ -2,6 +2,7 @@ import { ChangeType, IndicatorType } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import type LineChangeTrackerPlugin from '@/main';
 import type { SettingsService } from '@/services/settings.service';
+import { TOKENS } from '@/services/tokens';
 import { GutterMarker } from '@codemirror/view';
 
 /**
@@ -16,7 +17,7 @@ export class RemovedMarker extends GutterMarker {
    * Service for accessing plugin settings.
    * Injected using the @Inject decorator.
    */
-  @Inject('SettingsService')
+  @Inject(TOKENS.settings)
   protected settingsService: SettingsService;
 
   /**

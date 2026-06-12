@@ -2,6 +2,7 @@ import { ChangeType, IndicatorType, REVERT_GLYPH } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import type LineChangeTrackerPlugin from '@/main';
 import type { SettingsService } from '@/services/settings.service';
+import { TOKENS } from '@/services/tokens';
 import type { RevertLine } from '@/types';
 import { GutterMarker } from '@codemirror/view';
 
@@ -17,7 +18,7 @@ export class DotMarker extends GutterMarker {
    * Service for accessing plugin settings.
    * Injected using the @Inject decorator.
    */
-  @Inject('SettingsService')
+  @Inject(TOKENS.settings)
   protected settingsService!: SettingsService;
 
   /**

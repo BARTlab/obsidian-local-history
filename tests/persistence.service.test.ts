@@ -3,6 +3,7 @@ import { describe, expect, it, jest } from '@jest/globals';
 import { HISTORY_SHARD_DIR, KeepHistory, SAVE_DEBOUNCE_MS } from '@/consts';
 import { ShardNameHelper } from '@/helpers/shard-name.helper';
 import { PersistenceService } from '@/services/persistence.service';
+import { TOKENS } from '@/services/tokens';
 import type { SerializedFileSnapshot, SerializedHistory, SerializedShard } from '@/types';
 
 import { MemoryAdapter } from './stubs/memory-adapter';
@@ -338,12 +339,12 @@ const makeWriteService = (
   };
 
   const plugin = {
-    get: (key: string): unknown => {
-      if (key === 'SettingsService') {
+    get: (key: unknown): unknown => {
+      if (key === TOKENS.settings) {
         return settings;
       }
 
-      if (key === 'SnapshotsService') {
+      if (key === TOKENS.snapshots) {
         return snapshotsService;
       }
 
@@ -674,12 +675,12 @@ const makeRetentionWriteService = (
   };
 
   const plugin = {
-    get: (key: string): unknown => {
-      if (key === 'SettingsService') {
+    get: (key: unknown): unknown => {
+      if (key === TOKENS.settings) {
         return settings;
       }
 
-      if (key === 'SnapshotsService') {
+      if (key === TOKENS.snapshots) {
         return snapshotsService;
       }
 

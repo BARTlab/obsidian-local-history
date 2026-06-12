@@ -11,6 +11,7 @@ import { SettingsService } from '@/services/settings.service';
 import { SnapshotsService } from '@/services/snapshots.service';
 import { StatusbarService } from '@/services/statusbar.service';
 import { StylesService } from '@/services/styles.service';
+import { type ServiceToken, TOKENS, tokenName } from '@/services/tokens';
 import { TreeTabDecoratorService } from '@/services/tree-tab-decorator.service';
 import { VersionActionsService } from '@/services/version-actions.service';
 import { type ClassConstructor, type Service, type TranslationVars } from '@/types';
@@ -49,6 +50,16 @@ export default class LineChangeTrackerPlugin extends Plugin {
   protected container: Map<ClassConstructor<Service>, Service> = new Map();
 
   /**
+   * Token-keyed view of the same service instances as {@link container}.
+   * Maps each service's stable {@link ServiceToken} (a symbol, minification-safe)
+   * to its instance, so resolution by token does not depend on `constructor.name`
+   * surviving the bundle. Both maps point at the identical instances; they are
+   * populated together in {@link registerService}. The token path is the
+   * migration target; the legacy class/string paths are removed in C5.
+   */
+  protected tokenContainer: Map<symbol, Service> = new Map();
+
+  /**
    * Services whose `init` has resolved successfully in the current lifecycle.
    * Tracked so a fatal init can tear down only what was actually brought up,
    * in reverse registration order (ADR-08-C).
@@ -75,35 +86,44 @@ export default class LineChangeTrackerPlugin extends Plugin {
   public constructor(app: App, manifest: PluginManifest) {
     super(app, manifest);
 
-    this.registerService(SettingsService);
-    this.registerService(I18nService);
-    this.registerService(StylesService);
-    this.registerService(ModalsService);
-    this.registerService(ExtensionsService);
-    this.registerService(StatusbarService);
-    this.registerService(CommandsService);
-    this.registerService(EventsService);
-    this.registerService(SnapshotsService);
-    this.registerService(VersionActionsService);
-    this.registerService(PersistenceService);
-    this.registerService(TreeTabDecoratorService);
+    this.registerService(SettingsService, TOKENS.settings);
+    this.registerService(I18nService, TOKENS.i18n);
+    this.registerService(StylesService, TOKENS.styles);
+    this.registerService(ModalsService, TOKENS.modals);
+    this.registerService(ExtensionsService, TOKENS.extensions);
+    this.registerService(StatusbarService, TOKENS.statusbar);
+    this.registerService(CommandsService, TOKENS.commands);
+    this.registerService(EventsService, TOKENS.events);
+    this.registerService(SnapshotsService, TOKENS.snapshots);
+    this.registerService(VersionActionsService, TOKENS.versionActions);
+    this.registerService(PersistenceService, TOKENS.persistence);
+    this.registerService(TreeTabDecoratorService, TOKENS.treeTabDecorator);
   }
 
   /**
    * Registers a service with the plugin.
-   * Creates an instance of the service, stores it in the container,
-   * and sets up event listeners for methods decorated with @On.
+   * Creates an instance of the service, stores it in the container under both
+   * its class constructor and its stable token, and sets up event listeners for
+   * methods decorated with @On.
    *
    * @template T - The service type
    * @param {ClassConstructor<T>} provider - The service class constructor
+   * @param {ServiceToken<T>} [tokenKey] - The stable token to key the instance
+   *   by. Optional only for the back-compat window: every `main.ts` registration
+   *   passes one, and the token map is what lets resolution stop depending on
+   *   `constructor.name` once consumers migrate (C5).
    */
   public registerService<
     T extends {} = Service
-  >(provider: ClassConstructor<T>): void {
+  >(provider: ClassConstructor<T>, tokenKey?: ServiceToken<T>): void {
     // eslint-disable-next-line new-cap
     const inst = new provider(this);
 
     this.container.set(provider, inst);
+
+    if (tokenKey) {
+      this.tokenContainer.set(tokenKey, inst);
+    }
 
     for (const prop of Object.getOwnPropertyNames(Object.getPrototypeOf(inst))) {
       const event: { name: string } | undefined = Reflect.getMetadata('ON_EVENT', inst, prop);
@@ -121,26 +141,53 @@ export default class LineChangeTrackerPlugin extends Plugin {
 
   /**
    * Retrieves a service from the container.
-   * Can look up services by class constructor or by class name.
+   *
+   * Resolution order:
+   * 1. A {@link ServiceToken} (symbol) resolves directly from the token map -
+   *    the stable, minification-safe path that every consumer migrates toward.
+   * 2. A class constructor resolves from the class-keyed map.
+   * 3. A string resolves via the back-compat fallback: it matches a token by its
+   *    description (the legacy class name) or, failing that, a class by its
+   *    `constructor.name`. This keeps unmigrated `@Inject('Name')` call sites
+   *    working until C5 removes the fallback (and the `keepNames` dependency).
    *
    * @template T - The service type
-   * @param {ClassConstructor<T> | string} key - The service class constructor or class name
+   * @param {ServiceToken<T> | ClassConstructor<T> | string} key - The token,
+   *   class constructor, or legacy class name to resolve
    * @return {T} The service instance
    * @throws Error if the service is not registered
    */
-  public get<T extends {} = Service>(key: ClassConstructor<T> | string): T {
+  public get<T extends {} = Service>(
+    key: ServiceToken<T> | ClassConstructor<T> | string
+  ): T {
     if (!key) {
       throw new Error('Service cannot be empty');
     }
 
-    const type: ClassConstructor<unknown> | undefined = isString(key)
-      ? [...this.container.keys()].find((item: ClassConstructor<unknown>): boolean => item.name === key)
-      : key;
+    let service: T | undefined;
 
-    const service: T | undefined = type ? this.container.get(type) as T : undefined;
+    if (typeof key === 'symbol') {
+      service = this.tokenContainer.get(key) as T | undefined;
+    } else if (isString(key)) {
+      const matchedToken: symbol | undefined = [...this.tokenContainer.keys()]
+        .find((item: symbol): boolean => tokenName(item) === key);
+
+      if (matchedToken) {
+        service = this.tokenContainer.get(matchedToken) as T | undefined;
+      } else {
+        const type: ClassConstructor<unknown> | undefined = [...this.container.keys()]
+          .find((item: ClassConstructor<unknown>): boolean => item.name === key);
+
+        service = type ? this.container.get(type) as T : undefined;
+      }
+    } else {
+      service = this.container.get(key) as T | undefined;
+    }
 
     if (!service) {
-      const label: string = isString(key) ? key : key.name;
+      const label: string = typeof key === 'symbol'
+        ? (tokenName(key) ?? key.toString())
+        : isString(key) ? key : key.name;
 
       throw new Error(`Service '${label}' not registered`);
     }

@@ -4,6 +4,7 @@ import { Inject } from '@/decorators/inject.decorator';
 import type LineChangeTrackerPlugin from '@/main';
 import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
+import { TOKENS } from '@/services/tokens';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FileVersion } from '@/snapshots/file.version';
 import type { Service, SnapshotCaptureOptions, VersionRemoveResult, VersionRestoreResult } from '@/types';
@@ -27,7 +28,7 @@ export class VersionActionsService implements Service {
    * write the reverted content via applyContent, and to notify subscribers when
    * the version list changes (forceUpdate after a remove).
    */
-  @Inject('SnapshotsService')
+  @Inject(TOKENS.snapshots)
   protected snapshotsService: SnapshotsService;
 
   /**
@@ -36,7 +37,7 @@ export class VersionActionsService implements Service {
    * consistent across capture sources. The cadence gates (interval/edit count)
    * do not apply because a labeled capture forces (D6).
    */
-  @Inject('SettingsService')
+  @Inject(TOKENS.settings)
   protected settingsService: SettingsService;
 
   /**

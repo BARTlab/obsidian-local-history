@@ -3,6 +3,7 @@ import { BaseExtension } from '@/extensions/base.extension';
 import type { TrackerLine } from '@/lines/tracker.line';
 import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
+import { TOKENS } from '@/services/tokens';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { EditorExtension, SnapshotCaptureOptions } from '@/types';
 import { type EditorState, type Text } from '@codemirror/state';
@@ -20,14 +21,14 @@ export class ChangeDetectorExtension extends BaseExtension implements EditorExte
    * Service for managing file snapshots.
    * Injected using the @Inject decorator.
    */
-  @Inject('SnapshotsService')
+  @Inject(TOKENS.snapshots)
   protected snapshotsService: SnapshotsService;
 
   /**
    * Service for reading the intermediate-snapshot cadence settings.
    * Injected using the @Inject decorator.
    */
-  @Inject('SettingsService')
+  @Inject(TOKENS.settings)
   protected settingsService: SettingsService;
 
   /**

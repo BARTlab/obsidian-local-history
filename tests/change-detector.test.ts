@@ -12,6 +12,7 @@ jest.mock('@codemirror/view', () => ({
 
 import { ChangeType } from '@/consts';
 import { ChangeDetectorExtension } from '@/extensions/change-detector.extension';
+import { TOKENS } from '@/services/tokens';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 
 type ViewArg = ConstructorParameters<typeof ChangeDetectorExtension>[0];
@@ -37,13 +38,13 @@ const removedTrackerCount = (snapshot: FileSnapshot): number =>
 const step = (snapshot: FileSnapshot, currentDoc: string, changes: ChangeSpec): string => {
   const start: EditorState = EditorState.create({ doc: currentDoc });
   const tr = start.update({ changes });
-  // Resolve services by name: the detector injects both SnapshotsService and
+  // Resolve services by token: the detector injects both SnapshotsService and
   // SettingsService. Intermediate-version capture is disabled here so these
   // engine assertions stay focused on change detection, not the timeline.
   const snapshotsService = { getOne: (): FileSnapshot => snapshot, forceUpdate: (): void => undefined };
   const settingsService = { value: (): unknown => false };
   const plugin = {
-    get: (name: string): unknown => (name === 'SettingsService' ? settingsService : snapshotsService),
+    get: (key: unknown): unknown => (key === TOKENS.settings ? settingsService : snapshotsService),
   };
   const ext = new ChangeDetectorExtension({ state: tr.state } as unknown as ViewArg, plugin as unknown as PluginArg);
 

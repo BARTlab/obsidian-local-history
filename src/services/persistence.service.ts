@@ -8,6 +8,7 @@ import type LineChangeTrackerPlugin from '@/main';
 import { HistoryShardStore, type LoadedShard } from '@/persistence/history-shard-store';
 import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
+import { TOKENS } from '@/services/tokens';
 import type { SerializedFileSnapshot, SerializedHistory, Service } from '@/types';
 
 /**
@@ -36,14 +37,14 @@ export class PersistenceService implements Service {
    * Service for accessing plugin settings (persist flag and retention caps).
    * Injected using the @Inject decorator.
    */
-  @Inject('SettingsService')
+  @Inject(TOKENS.settings)
   protected settingsService: SettingsService;
 
   /**
    * Service holding the in-memory snapshots to serialize and restore.
    * Injected using the @Inject decorator.
    */
-  @Inject('SnapshotsService')
+  @Inject(TOKENS.snapshots)
   protected snapshotsService: SnapshotsService;
 
   /**

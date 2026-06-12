@@ -71,6 +71,7 @@ jest.mock('@/snapshots/file.snapshot', () => ({
 
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import { VersionActionsService } from '@/services/version-actions.service';
+import { TOKENS } from '@/services/tokens';
 import type { TFile } from 'obsidian';
 
 import { makeFile } from './helpers/builders';
@@ -133,14 +134,14 @@ const makeHarness = (snapshotInit?: {
   };
 
   const plugin = {
-    get: (key: string): unknown => {
-      if (key === 'SnapshotsService') {
+    get: (key: unknown): unknown => {
+      if (key === TOKENS.snapshots) {
         return snapshotsService;
       }
-      if (key === 'SettingsService') {
+      if (key === TOKENS.settings) {
         return settingsService;
       }
-      throw new Error(`Unknown service: ${key}`);
+      throw new Error(`Unknown service: ${String(key)}`);
     },
   } as unknown as ConstructorParameters<typeof VersionActionsService>[0];
 

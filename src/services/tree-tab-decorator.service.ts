@@ -5,6 +5,7 @@ import { SessionStatusHelper } from '@/helpers/session-status.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
+import { TOKENS } from '@/services/tokens';
 import type { NativeFileExplorerItem, NativeFileExplorerView, NativeWorkspaceLeaf, Service } from '@/types';
 import { type MarkdownView, type View, type WorkspaceLeaf } from 'obsidian';
 
@@ -44,7 +45,7 @@ export class TreeTabDecoratorService implements Service {
    * Service for reading the current set of file snapshots, the source the
    * session status is derived from.
    */
-  @Inject('SnapshotsService')
+  @Inject(TOKENS.snapshots)
   protected snapshotsService: SnapshotsService;
 
   /**
@@ -52,7 +53,7 @@ export class TreeTabDecoratorService implements Service {
    * behind the `treeHighlight` toggle (D9): off clears every applied class and
    * paints nothing further, on re-applies the current statuses live.
    */
-  @Inject('SettingsService')
+  @Inject(TOKENS.settings)
   protected settingsService: SettingsService;
 
   /**

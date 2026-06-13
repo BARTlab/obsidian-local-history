@@ -8,6 +8,7 @@ import { FileSnapshot } from '@/snapshots/file.snapshot';
 import { FileVersion } from '@/snapshots/file.version';
 import type LineChangeTrackerPlugin from '@/main';
 import type { DiffRenderMode } from '@/types';
+import { installJsdomDomPolyfill } from './helpers/jsdom-dom';
 
 /**
  * Tests for {@link FolderDiffRenderer} (T08), the diff-pane collaborator the
@@ -32,16 +33,11 @@ describe('FolderDiffRenderer', () => {
   /**
    * Obsidian augments HTMLElement.prototype with `empty()` at runtime; jsdom
    * does not, and DomHelper.update calls it before pasting parsed HTML in the
-   * diff2html (side-by-side) branch. Polyfill the minimum the renderer touches.
+   * diff2html (side-by-side) branch. Install the shared polyfill the renderer
+   * touches.
    */
   beforeAll((): void => {
-    if (!(HTMLElement.prototype as unknown as { empty?: () => void }).empty) {
-      (HTMLElement.prototype as unknown as { empty: () => void }).empty = function emptyImpl(this: HTMLElement): void {
-        while (this.firstChild) {
-          this.removeChild(this.firstChild);
-        }
-      };
-    }
+    installJsdomDomPolyfill();
   });
 
   let diffEl: HTMLElement | undefined;

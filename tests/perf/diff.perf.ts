@@ -21,6 +21,7 @@ import {
   type FixtureSize,
   itersFor,
 } from './fixtures/diff-fixture';
+import {installJsdomDomPolyfill} from '../helpers/jsdom-dom';
 import {assertWithinBaseline, measure} from './harness';
 
 /**
@@ -50,17 +51,11 @@ describe('diff perf', () => {
   /**
    * Obsidian augments HTMLElement.prototype with `empty()` at runtime; jsdom
    * does not, and DomHelper.update calls it before pasting parsed HTML in the
-   * diff2html branch. Polyfill the minimum the renderer touches, matching
+   * diff2html branch. Install the shared polyfill the renderer touches, matching
    * tests/diff-render-helper.test.ts.
    */
   beforeAll((): void => {
-    if (!(HTMLElement.prototype as unknown as {empty?: () => void}).empty) {
-      (HTMLElement.prototype as unknown as {empty: () => void}).empty = function emptyImpl(this: HTMLElement): void {
-        while (this.firstChild) {
-          this.removeChild(this.firstChild);
-        }
-      };
-    }
+    installJsdomDomPolyfill();
   });
 
   /**

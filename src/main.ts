@@ -18,7 +18,7 @@ import { type ClassConstructor, type Service, type TranslationVars } from '@/typ
 import { RecentChangesView } from '@/views/recent-changes.view';
 import type { EditorView } from '@codemirror/view';
 import EventEmitter from 'eventemitter3';
-import { isFunction, isString } from 'lodash-es';
+import { isFunction } from 'lodash-es';
 import {
   type App,
   type Editor,
@@ -144,50 +144,33 @@ export default class LineChangeTrackerPlugin extends Plugin {
    *
    * Resolution order:
    * 1. A {@link ServiceToken} (symbol) resolves directly from the token map -
-   *    the stable, minification-safe path that every consumer migrates toward.
-   * 2. A class constructor resolves from the class-keyed map.
-   * 3. A string resolves via the back-compat fallback: it matches a token by its
-   *    description (the legacy class name) or, failing that, a class by its
-   *    `constructor.name`. This keeps unmigrated `@Inject('Name')` call sites
-   *    working until C5 removes the fallback (and the `keepNames` dependency).
+   *    the stable, minification-safe path every consumer uses.
+   * 2. A class constructor resolves from the class-keyed map by identity.
+   *
+   * Both paths are independent of `constructor.name`, so resolution no longer
+   * depends on class names surviving minification (the bundle drops `keepNames`).
    *
    * @template T - The service type
-   * @param {ServiceToken<T> | ClassConstructor<T> | string} key - The token,
-   *   class constructor, or legacy class name to resolve
+   * @param {ServiceToken<T> | ClassConstructor<T>} key - The token or class
+   *   constructor to resolve
    * @return {T} The service instance
    * @throws Error if the service is not registered
    */
   public get<T extends {} = Service>(
-    key: ServiceToken<T> | ClassConstructor<T> | string
+    key: ServiceToken<T> | ClassConstructor<T>
   ): T {
     if (!key) {
       throw new Error('Service cannot be empty');
     }
 
-    let service: T | undefined;
-
-    if (typeof key === 'symbol') {
-      service = this.tokenContainer.get(key) as T | undefined;
-    } else if (isString(key)) {
-      const matchedToken: symbol | undefined = [...this.tokenContainer.keys()]
-        .find((item: symbol): boolean => tokenName(item) === key);
-
-      if (matchedToken) {
-        service = this.tokenContainer.get(matchedToken) as T | undefined;
-      } else {
-        const type: ClassConstructor<unknown> | undefined = [...this.container.keys()]
-          .find((item: ClassConstructor<unknown>): boolean => item.name === key);
-
-        service = type ? this.container.get(type) as T : undefined;
-      }
-    } else {
-      service = this.container.get(key) as T | undefined;
-    }
+    const service: T | undefined = typeof key === 'symbol'
+      ? this.tokenContainer.get(key) as T | undefined
+      : this.container.get(key) as T | undefined;
 
     if (!service) {
       const label: string = typeof key === 'symbol'
         ? (tokenName(key) ?? key.toString())
-        : isString(key) ? key : key.name;
+        : key.name;
 
       throw new Error(`Service '${label}' not registered`);
     }

@@ -4,7 +4,7 @@ import { ExternalBadgeHelper } from '@/helpers/external-badge.helper';
 import { VersionLabelHelper } from '@/helpers/version-label.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ModalsService } from '@/services/modals.service';
-import type { SnapshotsService } from '@/services/snapshots.service';
+import { TOKENS } from '@/services/tokens';
 import type { VersionActionsService } from '@/services/version-actions.service';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FileVersion } from '@/snapshots/file.version';
@@ -167,7 +167,7 @@ export class RecentChangesView extends ItemView {
 
     const file: TFile | null = this.plugin.getActiveFile();
     const snapshot: FileSnapshot | null = this.plugin
-      .get<SnapshotsService>('SnapshotsService')
+      .get(TOKENS.snapshots)
       .getOne(file);
 
     if (!file || !snapshot) {
@@ -289,9 +289,9 @@ export class RecentChangesView extends ItemView {
     event.preventDefault();
 
     const menu: Menu = new Menu();
-    const modalsService: ModalsService = this.plugin.get<ModalsService>('ModalsService');
+    const modalsService: ModalsService = this.plugin.get(TOKENS.modals);
     const versionActionsService: VersionActionsService =
-      this.plugin.get<VersionActionsService>('VersionActionsService');
+      this.plugin.get(TOKENS.versionActions);
 
     menu.addItem((item: MenuItem): void => {
       item
@@ -438,7 +438,7 @@ export class RecentChangesView extends ItemView {
    * @param {string} versionId - The version id to focus on open
    */
   protected openInModal(file: TFile, versionId: string): void {
-    this.plugin.get<ModalsService>('ModalsService').diff(file, {
+    this.plugin.get(TOKENS.modals).diff(file, {
       initialBaseId: versionId,
       hideRail: true,
     });

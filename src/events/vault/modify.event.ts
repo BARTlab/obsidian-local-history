@@ -2,6 +2,7 @@ import { ObsidianEvent } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { BaseEvent } from '@/events/base.event';
 import type { SnapshotsService } from '@/services/snapshots.service';
+import { TOKENS } from '@/services/tokens';
 import type { ObsidianEventName } from '@/types';
 import { type TAbstractFile, TFile } from 'obsidian';
 
@@ -24,7 +25,7 @@ export class VaultModifyEvent extends BaseEvent {
    * Service for managing file snapshots.
    * Injected using the @Inject decorator.
    */
-  @Inject('SnapshotsService')
+  @Inject(TOKENS.snapshots)
   protected snapshotsService: SnapshotsService;
 
   /**

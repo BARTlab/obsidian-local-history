@@ -3,6 +3,7 @@ import { Inject } from '@/decorators/inject.decorator';
 import { BaseEvent } from '@/events/base.event';
 import { PathHelper } from '@/helpers/path.helper';
 import type { SnapshotsService } from '@/services/snapshots.service';
+import { TOKENS } from '@/services/tokens';
 import type { ObsidianEventName } from '@/types';
 import { type TAbstractFile, TFile } from 'obsidian';
 
@@ -20,7 +21,7 @@ export class VaultRenameEvent extends BaseEvent {
    * Service for managing file snapshots.
    * Injected using the @Inject decorator.
    */
-  @Inject('SnapshotsService')
+  @Inject(TOKENS.snapshots)
   protected snapshotsService: SnapshotsService;
 
   /**

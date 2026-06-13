@@ -11,6 +11,7 @@ import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type LineChangeTrackerPlugin from '@/main';
 import { EventsService } from '@/services/events.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
+import { TOKENS } from '@/services/tokens';
 import { TFolder } from 'obsidian';
 import type { TAbstractFile, TFile } from 'obsidian';
 
@@ -19,7 +20,7 @@ import { makeTFile as makeFile } from './helpers/builders';
 /**
  * Builds a minimal SnapshotsService mock that records calls to the three entry
  * points the vault event handlers touch. The handlers reach the service via
- * `plugin.get('SnapshotsService')`, so the plugin stub below returns this mock.
+ * `plugin.get(TOKENS.snapshots)`, so the plugin stub below returns this mock.
  */
 const makeSnapshotsServiceMock = (): {
   markDeleted: jest.Mock;
@@ -41,15 +42,15 @@ const makeSnapshotsServiceMock = (): {
 
 const makePlugin = (
   service: ReturnType<typeof makeSnapshotsServiceMock>,
-): LineChangeTrackerPlugin => ({
-  get: (key: string | unknown): unknown => {
-    if (key === 'SnapshotsService') {
-      return service as unknown as SnapshotsService;
-    }
+): LineChangeTrackerPlugin => {
+  const container: Map<unknown, unknown> = new Map<unknown, unknown>([
+    [TOKENS.snapshots, service as unknown as SnapshotsService],
+  ]);
 
-    return undefined;
-  },
-}) as unknown as LineChangeTrackerPlugin;
+  return {
+    get: (key: unknown): unknown => container.get(key),
+  } as unknown as LineChangeTrackerPlugin;
+};
 
 
 describe('VaultDeleteEvent', () => {
@@ -181,7 +182,7 @@ describe('VaultCreateEvent', () => {
    * Builds the create-event collaborators: a snapshots mock exposing the three
    * entry points the handler touches, plus a settings mock whose
    * `ignoreNewFiles` value the test controls. The handler reaches both services
-   * via `plugin.get`, so the plugin stub routes the two keys accordingly.
+   * via `plugin.get`, so the plugin stub routes the two tokens accordingly.
    */
   const makeCreateContext = (
     ignoreNewFiles: boolean,
@@ -204,18 +205,12 @@ describe('VaultCreateEvent', () => {
       markCreatedThisSession: jest.fn(),
     };
     const settings = { value: jest.fn().mockReturnValue(ignoreNewFiles) };
+    const container: Map<unknown, unknown> = new Map<unknown, unknown>([
+      [TOKENS.snapshots, snapshots],
+      [TOKENS.settings, settings],
+    ]);
     const plugin = {
-      get: (key: string): unknown => {
-        if (key === 'SnapshotsService') {
-          return snapshots;
-        }
-
-        if (key === 'SettingsService') {
-          return settings;
-        }
-
-        return undefined;
-      },
+      get: (key: unknown): unknown => container.get(key),
     } as unknown as LineChangeTrackerPlugin;
 
     return { event: new VaultCreateEvent(plugin), snapshots };

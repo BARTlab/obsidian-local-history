@@ -42,12 +42,10 @@ const context = await esbuild.context({
   logLevel: 'info',
   sourcemap: prod ? false : 'inline',
   treeShaking: true,
-  // The DI container resolves services by `constructor.name` (see `@Inject` and
-  // `LineChangeTrackerPlugin.get`). esbuild renames a class to a private binding
-  // (e.g. `_SnapshotsService`) whenever it statically references itself, which
-  // changes `.name` and breaks the string lookup. keepNames pins `.name` to the
-  // original identifier so name-based resolution stays correct in the bundle.
-  keepNames: true,
+  // No keepNames: the DI container resolves services by stable symbol tokens
+  // (see `@Inject(TOKENS.x)` and `LineChangeTrackerPlugin.get`), never by
+  // `constructor.name`. Tokens survive minification untouched, so the bundle can
+  // freely rename/mangle class identifiers without breaking resolution.
   plugins: [sassPlugin({
     basedir: './',
     cssOutfile: './styles.css',

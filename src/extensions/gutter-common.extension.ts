@@ -8,6 +8,7 @@ import { DotMarker } from '@/markers/char.marker';
 import type { ModalsService } from '@/services/modals.service';
 import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
+import { TOKENS } from '@/services/tokens';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { GutterConfig, Handlers } from '@/types';
 import type * as Diff from 'diff';
@@ -29,21 +30,21 @@ export class GutterCommonExtension extends BaseExtension implements GutterConfig
    * Service for accessing plugin settings.
    * Injected using the @Inject decorator.
    */
-  @Inject('SettingsService')
+  @Inject(TOKENS.settings)
   protected settingsService: SettingsService;
 
   /**
    * Service for managing file snapshots.
    * Injected using the @Inject decorator.
    */
-  @Inject('SnapshotsService')
+  @Inject(TOKENS.snapshots)
   protected snapshotsService: SnapshotsService;
 
   /**
    * Service for confirmation dialogs.
    * Injected using the @Inject decorator.
    */
-  @Inject('ModalsService')
+  @Inject(TOKENS.modals)
   protected modalsService: ModalsService;
 
   /**

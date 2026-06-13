@@ -15,6 +15,7 @@ import { ChangeLine } from '@/lines/change.line';
 import { Decoration as MockedDecoration } from '@codemirror/view';
 import { EditorCommonExtension } from '@/extensions/editor-common.extension';
 import { refreshDecorationsEffect } from '@/extensions/refresh.effect';
+import { TOKENS } from '@/services/tokens';
 
 type ViewArg = ConstructorParameters<typeof EditorCommonExtension>[0];
 type PluginArg = ConstructorParameters<typeof EditorCommonExtension>[1];
@@ -34,11 +35,19 @@ const makeExt = (doc: string, visibleRanges: { from: number; to: number }[]): Fa
   const getChange = jest.fn((): unknown => null);
   const settings = { value: (key: string): unknown => (key === 'type' ? 'line' : true) };
   const snapshot = { getChanges: (): unknown => ({ get: getChange }) };
-  const services: Record<string, unknown> = {
-    SettingsService: settings,
-    SnapshotsService: { getOne: (): unknown => snapshot },
+  const services: Map<unknown, unknown> = new Map<unknown, unknown>([
+    [TOKENS.settings, settings],
+    [TOKENS.snapshots, { getOne: (): unknown => snapshot }],
+  ]);
+  const plugin = {
+    get: (key: unknown): unknown => {
+      if (!services.has(key)) {
+        throw new Error(`Service '${String(key)}' not registered`);
+      }
+
+      return services.get(key);
+    },
   };
-  const plugin = { get: (name: string): unknown => services[name] };
   const view = { visibleRanges, state: EditorState.create({ doc }) };
   const ext = new EditorCommonExtension(view as unknown as ViewArg, plugin as unknown as PluginArg);
 
@@ -102,11 +111,19 @@ const makeExtWithChange = (doc: string, change: ChangeLine): { classes: string[]
   const lineSpy = jest.spyOn(MockedDecoration as unknown as { line: (spec: { attributes: { class: string } }) => unknown }, 'line');
   const settings = { value: (key: string): unknown => (key === 'type' ? 'line' : true) };
   const snapshot = { getChanges: (): unknown => ({ get: (index: number): ChangeLine | null => (index === 0 ? change : null) }) };
-  const services: Record<string, unknown> = {
-    SettingsService: settings,
-    SnapshotsService: { getOne: (): unknown => snapshot },
+  const services: Map<unknown, unknown> = new Map<unknown, unknown>([
+    [TOKENS.settings, settings],
+    [TOKENS.snapshots, { getOne: (): unknown => snapshot }],
+  ]);
+  const plugin = {
+    get: (key: unknown): unknown => {
+      if (!services.has(key)) {
+        throw new Error(`Service '${String(key)}' not registered`);
+      }
+
+      return services.get(key);
+    },
   };
-  const plugin = { get: (name: string): unknown => services[name] };
   const state = EditorState.create({ doc });
   const view = { visibleRanges: [{ from: state.doc.line(1).from, to: state.doc.line(1).to }], state };
 

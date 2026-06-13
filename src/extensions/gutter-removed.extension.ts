@@ -6,6 +6,7 @@ import type { ArrayMap } from '@/maps/array.map';
 import { RemovedMarker } from '@/markers/removed.marker';
 import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
+import { TOKENS } from '@/services/tokens';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { GutterConfig } from '@/types';
 import { type Line, type RangeSet, RangeSetBuilder } from '@codemirror/state';
@@ -23,14 +24,14 @@ export class GutterRemovedExtension extends BaseExtension implements GutterConfi
    * Service for accessing plugin settings.
    * Injected using the @Inject decorator.
    */
-  @Inject('SettingsService')
+  @Inject(TOKENS.settings)
   protected settingsService: SettingsService;
 
   /**
    * Service for managing file snapshots.
    * Injected using the @Inject decorator.
    */
-  @Inject('SnapshotsService')
+  @Inject(TOKENS.snapshots)
   protected snapshotsService: SnapshotsService;
 
   /**

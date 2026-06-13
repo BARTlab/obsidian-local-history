@@ -119,6 +119,21 @@ describe('GutterRevertHandler', () => {
     hunks = HunkHelper.diff(['a', 'B', 'c'], ['a', 'b', 'c']);
   });
 
+  /**
+   * Pure-deletion fixture: base "a\nb\nc\nd", current "a\nd" (lines b and c
+   * deleted). HunkHelper.diff produces a single hunk with newLines===0 and
+   * oldLines===2, anchored at the deletion point between current lines 1 and 2
+   * (newStart===2 in the diff library's 1-based counting for a deletion that
+   * sits after line 1 of the current file).
+   */
+  const makeDeletionFixture = (): void => {
+    snapshot = new FileSnapshot('a\nd');
+    const file = { path: 'note.md', name: 'note.md', extension: 'md' } as unknown as TFile;
+
+    snapshot.file = file;
+    hunks = HunkHelper.diff(['a', 'b', 'c', 'd'], ['a', 'd']);
+  };
+
   describe('attachInlineReverts (anchoring)', () => {
     it('marks the line-by-line anchor row and hangs a revert button on its gutter', () => {
       // Rows for current lines 1..3; the modified line is line 2.
@@ -184,6 +199,71 @@ describe('GutterRevertHandler', () => {
       // row itself.
       expect(changed.classList.contains('lct-hunk-anchor')).toBe(true);
       expect(changed.querySelector('.lct-hunk-revert')).not.toBeNull();
+    });
+
+    it('pure-deletion (newLines===0): anchors on the d2h-del row in line-by-line mode', () => {
+      // Fixture: base "a\nb\nc\nd", current "a\nd" -> deletion hunk with
+      // newLines===0, newStart=2, oldStart=2. The hunk covers old lines 2-3
+      // ("b" and "c") which do not exist in the current file.
+      makeDeletionFixture();
+
+      // In line-by-line the removed lines appear as d2h-del rows. The line
+      // numbers in the linenumber cell for deleted rows carry old-side numbers
+      // (diff2html packs old then new; new is absent, so only the old number is
+      // present). Using old-side line 2 for the first deleted row satisfies the
+      // line >= hunk.newStart (2 >= 2) condition in the first find pass.
+      const contextRow = codeRow([1, 1]);
+      const delRow = codeRow([2], 'd2h-del');
+
+      container.appendChild(contextRow);
+      container.appendChild(delRow);
+      container.appendChild(codeRow([2, 2]));
+
+      const handler = new GutterRevertHandler(makeHost());
+
+      handler.attachInlineReverts();
+
+      expect(delRow.classList.contains('lct-hunk-anchor')).toBe(true);
+      expect(delRow.dataset.lctHunk).toBe('0');
+      expect(delRow.querySelector('.d2h-code-linenumber .lct-hunk-revert')).not.toBeNull();
+      expect(navRefreshed).toBe(1);
+    });
+
+    it('pure-deletion (newLines===0): anchors on the first current-side row at newStart in inline mode', () => {
+      // Fixture: base "a\nb\nc\nd", current "a\nd" -> deletion hunk with newLines===0.
+      makeDeletionFixture();
+      displayMode = DiffViewMode.inline;
+
+      // The inline diff for "a\nd" vs "a\nb\nc\nd": one context row "a", then
+      // the removed rows (lct-inline-removed), then context row "d". The deletion
+      // sits after current line 1, so the anchor is the first changed row at or
+      // after newStart=2. The removed rows do not advance currentLine, so the
+      // first removal row is the anchor.
+      const contextA = document.createElement('div');
+
+      contextA.className = 'lct-inline-row lct-inline-context';
+      const removedB = document.createElement('div');
+
+      removedB.className = 'lct-inline-row lct-inline-removed';
+      const removedC = document.createElement('div');
+
+      removedC.className = 'lct-inline-row lct-inline-removed';
+      const contextD = document.createElement('div');
+
+      contextD.className = 'lct-inline-row lct-inline-context';
+      container.appendChild(contextA);
+      container.appendChild(removedB);
+      container.appendChild(removedC);
+      container.appendChild(contextD);
+
+      const handler = new GutterRevertHandler(makeHost());
+
+      handler.attachInlineReverts();
+
+      expect(removedB.classList.contains('lct-hunk-anchor')).toBe(true);
+      expect(removedB.dataset.lctHunk).toBe('0');
+      expect(removedB.querySelector('.lct-hunk-revert')).not.toBeNull();
+      expect(navRefreshed).toBe(1);
     });
 
     it('does nothing when the diff container is absent', () => {

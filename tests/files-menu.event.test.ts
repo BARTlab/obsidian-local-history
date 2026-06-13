@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { WorkspaceFilesMenuEvent } from '@/events/workspace/files-menu.event';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ModalsService } from '@/services/modals.service';
+import { TOKENS } from '@/services/tokens';
 import type { TAbstractFile, TFile, TFolder } from 'obsidian';
 
 import { makeTFile as makeFile, makeFolder } from './helpers/builders';
@@ -95,17 +96,17 @@ const makeModalsServiceMock = (): {
 const makePlugin = (
   service: ReturnType<typeof makeModalsServiceMock>,
   reveal: jest.Mock,
-): LineChangeTrackerPlugin => ({
-  get: (key: string | unknown): unknown => {
-    if (key === 'ModalsService') {
-      return service as unknown as ModalsService;
-    }
+): LineChangeTrackerPlugin => {
+  const container = new Map<unknown, unknown>([
+    [TOKENS.modals, service as unknown as ModalsService],
+  ]);
 
-    return undefined;
-  },
-  t: (key: string): string => key,
-  revealRecentChanges: reveal,
-}) as unknown as LineChangeTrackerPlugin;
+  return {
+    get: (key: unknown): unknown => container.get(key),
+    t: (key: string): string => key,
+    revealRecentChanges: reveal,
+  } as unknown as LineChangeTrackerPlugin;
+};
 
 describe('WorkspaceFilesMenuEvent', () => {
   let service: ReturnType<typeof makeModalsServiceMock>;

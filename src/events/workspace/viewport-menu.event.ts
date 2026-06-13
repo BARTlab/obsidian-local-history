@@ -2,6 +2,7 @@ import { ObsidianEvent } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { BaseEvent } from '@/events/base.event';
 import type { SettingsService } from '@/services/settings.service';
+import { TOKENS } from '@/services/tokens';
 import { type ObsidianEventName } from '@/types';
 import type { MarkdownView, Menu, MenuItem } from 'obsidian';
 
@@ -24,7 +25,7 @@ export class WorkspaceViewportMenuEvent extends BaseEvent {
    * Service for accessing and updating plugin settings.
    * Injected using the @Inject decorator.
    */
-  @Inject('SettingsService')
+  @Inject(TOKENS.settings)
   protected settingsService: SettingsService;
 
   /**

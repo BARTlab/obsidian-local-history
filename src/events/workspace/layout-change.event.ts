@@ -3,6 +3,7 @@ import { Inject } from '@/decorators/inject.decorator';
 import { BaseEvent } from '@/events/base.event';
 import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
+import { TOKENS } from '@/services/tokens';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { ObsidianEventName } from '@/types';
 import type { TFile } from 'obsidian';
@@ -19,14 +20,14 @@ export class WorkspaceLayoutChangeEvent extends BaseEvent {
    * Service for managing file snapshots.
    * Injected using the @Inject decorator.
    */
-  @Inject('SnapshotsService')
+  @Inject(TOKENS.snapshots)
   protected snapshotsService: SnapshotsService;
 
   /**
    * Service for accessing plugin settings.
    * Injected using the @Inject decorator.
    */
-  @Inject('SettingsService')
+  @Inject(TOKENS.settings)
   protected settingsService: SettingsService;
 
   /**

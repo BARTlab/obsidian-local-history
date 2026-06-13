@@ -352,19 +352,14 @@ describe('WorkspaceLayoutChangeEvent', () => {
       value: jest.fn().mockReturnValue(params.keepOnClose ? KeepHistory.file : KeepHistory.app),
     };
 
+    const container = new Map<unknown, unknown>([
+      [TOKENS.snapshots, service],
+      [TOKENS.settings, settings],
+    ]);
+
     const plugin = {
       getWorkspaceFiles: (): Set<TFile> => new Set(params.opened),
-      get: (key: string): unknown => {
-        if (key === 'SnapshotsService') {
-          return service;
-        }
-
-        if (key === 'SettingsService') {
-          return settings;
-        }
-
-        return undefined;
-      },
+      get: (key: unknown): unknown => container.get(key),
     } as unknown as LineChangeTrackerPlugin;
 
     return { event: new WorkspaceLayoutChangeEvent(plugin), calls, service };

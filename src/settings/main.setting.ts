@@ -4,6 +4,7 @@ import { DomHelper } from '@/helpers/dom.helper';
 import { PathExcludeHelper } from '@/helpers/path-exclude.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { SettingsService } from '@/services/settings.service';
+import { TOKENS } from '@/services/tokens';
 import {
   type DropdownComponent,
   PluginSettingTab,
@@ -26,7 +27,7 @@ export class MainSetting extends PluginSettingTab {
    * Service for accessing and updating plugin settings.
    * Injected using the @Inject decorator.
    */
-  @Inject('SettingsService')
+  @Inject(TOKENS.settings)
   protected settingsService: SettingsService;
 
   /**

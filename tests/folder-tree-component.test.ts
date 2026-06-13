@@ -4,6 +4,7 @@ import { describe, expect, it, beforeAll, beforeEach } from '@jest/globals';
 import { FolderDeltaStatus } from '@/consts';
 import { FolderTreeComponent } from '@/components/folder-tree.component';
 import type { FolderTreeEntry } from '@/types';
+import { installJsdomDomPolyfill } from './helpers/jsdom-dom';
 
 /**
  * Tests for {@link FolderTreeComponent} (T11 / D9).
@@ -25,17 +26,11 @@ import type { FolderTreeEntry } from '@/types';
 describe('FolderTreeComponent', () => {
   /**
    * jsdom does not implement HTMLElement.empty (Obsidian augments the prototype
-   * at runtime). The component calls empty() before each render, so the
-   * polyfill must exist for every test.
+   * at runtime). The component calls empty() before each render, so the shared
+   * polyfill must be installed for every test.
    */
   beforeAll((): void => {
-    if (!(HTMLElement.prototype as unknown as { empty?: () => void }).empty) {
-      (HTMLElement.prototype as unknown as { empty: () => void }).empty = function emptyImpl(this: HTMLElement): void {
-        while (this.firstChild) {
-          this.removeChild(this.firstChild);
-        }
-      };
-    }
+    installJsdomDomPolyfill();
   });
 
   let host: HTMLDivElement;

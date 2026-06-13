@@ -4,6 +4,7 @@ import { describe, expect, it, beforeAll } from '@jest/globals';
 import { DiffOutputFormatType, DiffViewMode } from '@/consts';
 import { DiffRenderHelper } from '@/helpers/diff-render.helper';
 import type { DiffRenderParams, TranslationVars } from '@/types';
+import { installJsdomDomPolyfill } from './helpers/jsdom-dom';
 
 /**
  * Tests for {@link DiffRenderHelper} (T08 / D6).
@@ -24,17 +25,12 @@ import type { DiffRenderParams, TranslationVars } from '@/types';
 describe('DiffRenderHelper', () => {
   /**
    * Obsidian augments HTMLElement.prototype with `empty()` at runtime; jsdom
-   * does not, so we polyfill the minimum the renderer touches (DomHelper.update
-   * calls empty() before pasting parsed HTML in the diff2html branch).
+   * does not, so we install the shared polyfill the renderer touches
+   * (DomHelper.update calls empty() before pasting parsed HTML in the diff2html
+   * branch).
    */
   beforeAll((): void => {
-    if (!(HTMLElement.prototype as unknown as { empty?: () => void }).empty) {
-      (HTMLElement.prototype as unknown as { empty: () => void }).empty = function emptyImpl(this: HTMLElement): void {
-        while (this.firstChild) {
-          this.removeChild(this.firstChild);
-        }
-      };
-    }
+    installJsdomDomPolyfill();
   });
 
   /**

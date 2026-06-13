@@ -1,6 +1,7 @@
 import { BaseCommand } from '@/commands/base.command';
 import { Inject } from '@/decorators/inject.decorator';
 import type { ModalsService } from '@/services/modals.service';
+import { TOKENS } from '@/services/tokens';
 import type { Command } from 'obsidian';
 
 /**
@@ -22,7 +23,7 @@ export class ShowDiffCommand extends BaseCommand implements Command {
    * Service for managing modal dialogs.
    * Injected using the @Inject decorator.
    */
-  @Inject('ModalsService')
+  @Inject(TOKENS.modals)
   protected modalService: ModalsService;
 
   /**

@@ -1,6 +1,7 @@
 import { BaseCommand } from '@/commands/base.command';
 import { Inject } from '@/decorators/inject.decorator';
 import type { SnapshotsService } from '@/services/snapshots.service';
+import { TOKENS } from '@/services/tokens';
 import type { FunctionVoid } from '@/types';
 import { type Command, Notice } from 'obsidian';
 
@@ -16,7 +17,7 @@ export class ResetLinesCommand extends BaseCommand implements Command {
    * Service for managing file snapshots.
    * Injected using the @Inject decorator.
    */
-  @Inject('SnapshotsService')
+  @Inject(TOKENS.snapshots)
   protected snapshotsService: SnapshotsService;
 
   /**

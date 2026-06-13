@@ -19,6 +19,7 @@ import type LineChangeTrackerPlugin from '@/main';
 import type { ModalsService } from '@/services/modals.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import type { VersionActionsService } from '@/services/version-actions.service';
+import { TOKENS } from '@/services/tokens';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FileVersion } from '@/snapshots/file.version';
 import type {
@@ -57,19 +58,19 @@ export class FolderHistoryModal extends Modal {
   /**
    * Snapshots service used to restore tombstones and read the live map back.
    */
-  @Inject('SnapshotsService')
+  @Inject(TOKENS.snapshots)
   protected snapshotsService: SnapshotsService;
 
   /**
    * Modals service used to confirm destructive actions and to prompt for labels.
    */
-  @Inject('ModalsService')
+  @Inject(TOKENS.modals)
   protected modalsService: ModalsService;
 
   /**
    * Shared restore/remove/label action service, same one the file modal uses.
    */
-  @Inject('VersionActionsService')
+  @Inject(TOKENS.versionActions)
   protected versionActionsService: VersionActionsService;
 
   /**

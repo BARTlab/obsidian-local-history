@@ -12,6 +12,7 @@ import type LineChangeTrackerPlugin from '@/main';
 import type { ModalsService } from '@/services/modals.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import type { VersionActionsService } from '@/services/version-actions.service';
+import { TOKENS } from '@/services/tokens';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FileVersion } from '@/snapshots/file.version';
 import type {
@@ -36,14 +37,14 @@ export class HistoryModal extends Modal {
    * Service for managing file snapshots.
    * Injected using the @Inject decorator.
    */
-  @Inject('SnapshotsService')
+  @Inject(TOKENS.snapshots)
   protected snapshotsService: SnapshotsService;
 
   /**
    * Service for managing modal dialogs.
    * Injected using the @Inject decorator.
    */
-  @Inject('ModalsService')
+  @Inject(TOKENS.modals)
   protected modalsService: ModalsService;
 
   /**
@@ -51,7 +52,7 @@ export class HistoryModal extends Modal {
    * The modal routes these through the service so the panel (and any future
    * surface) executes the same implementation (D5).
    */
-  @Inject('VersionActionsService')
+  @Inject(TOKENS.versionActions)
   protected versionActionsService: VersionActionsService;
 
   /**

@@ -3,6 +3,7 @@ import { Inject } from '@/decorators/inject.decorator';
 import { BaseEvent } from '@/events/base.event';
 import { MenuHelper } from '@/helpers/menu.helper';
 import type { ModalsService } from '@/services/modals.service';
+import { TOKENS } from '@/services/tokens';
 import type { ObsidianEventName } from '@/types';
 import { type Menu, type MenuItem, type TAbstractFile, TFile, TFolder, type WorkspaceLeaf } from 'obsidian';
 import { Notice } from 'obsidian';
@@ -39,7 +40,7 @@ export class WorkspaceFilesMenuEvent extends BaseEvent {
    * Service for managing modal dialogs.
    * Injected using the @Inject decorator.
    */
-  @Inject('ModalsService')
+  @Inject(TOKENS.modals)
   protected modalService: ModalsService;
 
   /**

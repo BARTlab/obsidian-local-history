@@ -3,6 +3,7 @@ import { NavigationDirection } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { NavigationHelper } from '@/helpers/navigation.helper';
 import type { SnapshotsService } from '@/services/snapshots.service';
+import { TOKENS } from '@/services/tokens';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import { type Command, type Editor, Notice } from 'obsidian';
 
@@ -20,7 +21,7 @@ export class GoToNextChangeCommand extends BaseCommand implements Command {
    * Service for managing file snapshots.
    * Injected using the @Inject decorator.
    */
-  @Inject('SnapshotsService')
+  @Inject(TOKENS.snapshots)
   protected snapshotsService: SnapshotsService;
 
   /**

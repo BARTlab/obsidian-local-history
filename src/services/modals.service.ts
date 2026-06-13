@@ -6,6 +6,7 @@ import { FolderHistoryModal } from '@/modals/folder-history.modal';
 import { HistoryModal } from '@/modals/history.modal';
 import { PromptModal } from '@/modals/prompt.modal';
 import type { SnapshotsService } from '@/services/snapshots.service';
+import { TOKENS } from '@/services/tokens';
 import type { VersionActionsService } from '@/services/version-actions.service';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FileVersion } from '@/snapshots/file.version';
@@ -30,7 +31,7 @@ export class ModalsService implements Service {
    * Service for managing file snapshots.
    * Injected using the @Inject decorator.
    */
-  @Inject('SnapshotsService')
+  @Inject(TOKENS.snapshots)
   protected snapshotsService: SnapshotsService;
 
   /**
@@ -39,7 +40,7 @@ export class ModalsService implements Service {
    * result to the shared capture path without each call site duplicating the
    * snapshot lookup or the empty/cancel handling.
    */
-  @Inject('VersionActionsService')
+  @Inject(TOKENS.versionActions)
   protected versionActionsService: VersionActionsService;
 
   /**

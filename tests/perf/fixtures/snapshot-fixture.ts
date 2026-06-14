@@ -1,5 +1,5 @@
-import {FileSnapshot} from '@/snapshots/file.snapshot';
-import type {SnapshotCaptureOptions} from '@/types';
+import { FileSnapshot } from '@/snapshots/file.snapshot';
+import type { SnapshotCaptureOptions } from '@/types';
 
 /**
  * Deterministic fixtures for the snapshot perf benches (T03). Content is
@@ -25,9 +25,9 @@ export interface SnapshotFixtureSize {
  * versions). Frozen so a bench cannot mutate them between iterations.
  */
 export const FIXTURE_SIZES: Readonly<Record<SnapshotFixtureSize['name'], SnapshotFixtureSize>> = Object.freeze({
-  small: {name: 'small', lines: 50, versions: 5},
-  medium: {name: 'medium', lines: 500, versions: 50},
-  large: {name: 'large', lines: 5000, versions: 200},
+  small: { name: 'small', lines: 50, versions: 5 },
+  medium: { name: 'medium', lines: 500, versions: 50 },
+  large: { name: 'large', lines: 5000, versions: 200 },
 });
 
 /**
@@ -53,9 +53,11 @@ export const OPEN_CAPTURE_OPTIONS: Readonly<SnapshotCaptureOptions> = Object.fre
  */
 export function buildLines(count: number): string[] {
   const lines: string[] = new Array<string>(count);
+
   for (let i = 0; i < count; i++) {
     lines[i] = `line ${i} - the quick brown fox jumps over the lazy dog ${i * 7}`;
   }
+
   return lines;
 }
 

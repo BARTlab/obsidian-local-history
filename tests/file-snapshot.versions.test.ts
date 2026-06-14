@@ -477,9 +477,11 @@ describe('FileSnapshot version codec wiring (T05)', () => {
 
     // One more than the interval so at least one entry must be a delta.
     const count: number = VERSION_KEYFRAME_INTERVAL + 1;
+
     for (let i = 1; i <= count; i++) {
       snapshot.captureVersion([`line-${i}`], opts);
     }
+
     expect(snapshot.versions).toHaveLength(count);
 
     const entries: SerializedFileVersion[] | undefined = snapshot.toJSON().versions;
@@ -488,9 +490,11 @@ describe('FileSnapshot version codec wiring (T05)', () => {
     const deltas = (entries ?? []).filter(
       (entry: SerializedFileVersion): boolean => typeof entry.delta === 'string',
     );
+
     const keyframes = (entries ?? []).filter(
       (entry: SerializedFileVersion): boolean => Array.isArray(entry.lines),
     );
+
     // Index 0 and index VERSION_KEYFRAME_INTERVAL are keyframes; the rest deltas.
     expect(keyframes.length).toBe(2);
     expect(deltas.length).toBe(count - 2);

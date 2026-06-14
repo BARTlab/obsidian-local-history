@@ -1,10 +1,10 @@
 import 'reflect-metadata';
 
-import {describe, expect, it} from '@jest/globals';
+import { describe, expect, it } from '@jest/globals';
 
-import {PersistenceService} from '@/services/persistence.service';
-import {SnapshotsService} from '@/services/snapshots.service';
-import type {SerializedFileSnapshot, SerializedHistory} from '@/types';
+import { PersistenceService } from '@/services/persistence.service';
+import { SnapshotsService } from '@/services/snapshots.service';
+import type { SerializedFileSnapshot, SerializedHistory } from '@/types';
 
 import {
   buildPluginStub,
@@ -14,7 +14,7 @@ import {
   OPEN_RETENTION,
   type PluginStub,
 } from './fixtures/persistence-fixture';
-import {assertWithinBaseline, measure} from './harness';
+import { assertWithinBaseline, measure } from './harness';
 
 /**
  * Perf benches for the persistence round-trip hot paths (T04). They lock the
@@ -59,7 +59,6 @@ function buildPopulatedService(
 }
 
 describe('persistence perf', () => {
-  const small = FIXTURE_SIZES.small;
   const medium = FIXTURE_SIZES.medium;
   const large = FIXTURE_SIZES.large;
 
@@ -67,7 +66,7 @@ describe('persistence perf', () => {
     const label = `persistence.serialize.${medium.name}`;
     const snapshots = buildSerializedSnapshots(medium);
     const paths = snapshots.map((item: SerializedFileSnapshot): string => item.path);
-    const stub = buildPluginStub(paths, {...OPEN_RETENTION});
+    const stub = buildPluginStub(paths, { ...OPEN_RETENTION });
     const service = buildPopulatedService(snapshots, stub);
 
     // Sanity: restore actually populated the service so serialize does real work.
@@ -99,7 +98,7 @@ describe('persistence perf', () => {
     const label = `persistence.restore.${medium.name}`;
     const snapshots = buildSerializedSnapshots(medium);
     const paths = snapshots.map((item: SerializedFileSnapshot): string => item.path);
-    const stub = buildPluginStub(paths, {...OPEN_RETENTION});
+    const stub = buildPluginStub(paths, { ...OPEN_RETENTION });
 
     const median = measure(label, () => {
       // A fresh service per iteration: restore mutates the snapshot map, so a
@@ -123,7 +122,7 @@ describe('persistence perf', () => {
     const label = `persistence.retention.${large.name}`;
     const snapshots = buildSerializedSnapshots(large);
     const paths = snapshots.map((item: SerializedFileSnapshot): string => item.path);
-    const stub = buildPluginStub(paths, {...OPEN_RETENTION});
+    const stub = buildPluginStub(paths, { ...OPEN_RETENTION });
     const service = new BenchPersistenceService(
       stub.plugin as ConstructorParameters<typeof PersistenceService>[0],
     );

@@ -1,10 +1,10 @@
-import {FileSnapshot} from '@/snapshots/file.snapshot';
+import { FileSnapshot } from '@/snapshots/file.snapshot';
 import type {
   SerializedFileSnapshot,
   SerializedHistory,
   SnapshotCaptureOptions,
 } from '@/types';
-import type {TFile} from 'obsidian';
+import type { TFile } from 'obsidian';
 
 /**
  * Deterministic fixtures for the persistence perf benches (T04). The serialized
@@ -38,9 +38,9 @@ export interface PersistenceFixtureSize {
  * cannot mutate them between iterations.
  */
 export const FIXTURE_SIZES: Readonly<Record<PersistenceFixtureSize['name'], PersistenceFixtureSize>> = Object.freeze({
-  small: {name: 'small', files: 20, versions: 100, lines: 40},
-  medium: {name: 'medium', files: 200, versions: 2000, lines: 40},
-  large: {name: 'large', files: 2000, versions: 20000, lines: 40},
+  small: { name: 'small', files: 20, versions: 100, lines: 40 },
+  medium: { name: 'medium', files: 200, versions: 2000, lines: 40 },
+  large: { name: 'large', files: 2000, versions: 20000, lines: 40 },
 });
 
 /**
@@ -136,7 +136,7 @@ export function buildSerializedSnapshots(size: PersistenceFixtureSize): Serializ
 
 /** Build the full serialized history payload (version + snapshots) for a size. */
 export function buildSerializedHistory(size: PersistenceFixtureSize): SerializedHistory {
-  return {version: 2, snapshots: buildSerializedSnapshots(size)};
+  return { version: 2, snapshots: buildSerializedSnapshots(size) };
 }
 
 /**
@@ -185,7 +185,7 @@ export function buildPluginStub(paths: string[], retention: Record<string, numbe
     },
     read: async (): Promise<string> => '',
     exists: async (): Promise<boolean> => false,
-    list: async (): Promise<{files: string[]; folders: string[]}> => ({files: [], folders: []}),
+    list: async (): Promise<{ files: string[]; folders: string[] }> => ({ files: [], folders: [] }),
   };
 
   const files: Map<string, TFile> = new Map<string, TFile>();
@@ -194,7 +194,7 @@ export function buildPluginStub(paths: string[], retention: Record<string, numbe
     const name: string = path.split('/').pop() ?? path;
     const extension: string = name.includes('.') ? name.split('.').pop() ?? '' : '';
 
-    files.set(path, {path, name, extension} as unknown as TFile);
+    files.set(path, { path, name, extension } as unknown as TFile);
   }
 
   const settingsService = {
@@ -210,7 +210,7 @@ export function buildPluginStub(paths: string[], retention: Record<string, numbe
     forceUpdateEditor: (): void => undefined,
     emit: (): void => undefined,
     t: (key: string): string => key,
-    manifest: {dir: 'plugins/local-history', id: 'local-history'},
+    manifest: { dir: 'plugins/local-history', id: 'local-history' },
     app: {
       vault: {
         adapter,

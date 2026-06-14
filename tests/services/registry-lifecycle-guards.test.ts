@@ -55,6 +55,7 @@ describe('T20 registry/lifecycle guards (epic 08)', (): void => {
         app: { workspace: {}, vault: {} },
         registerEvent,
       } as unknown) as LineChangeTrackerPlugin;
+
       const service = new TestEventsService(plugin);
 
       service.callRegister();

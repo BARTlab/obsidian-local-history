@@ -20,9 +20,19 @@ function buildPaths(): string[] {
 
   const folders: string[] = ['', 'notes/', 'Projects/2024/', 'журнал/', 'a/b/c/d/'];
   const names: string[] = [
-    'index', 'Index', 'index ', ' index', 'index1', 'index2',
-    'todo-list', 'todo_list', 'todolist', 'café', 'cafe',
-    'a'.repeat(300), 'b'.repeat(300),
+    'index',
+'Index',
+'index ',
+' index',
+'index1',
+'index2',
+    'todo-list',
+'todo_list',
+'todolist',
+'café',
+'cafe',
+    'a'.repeat(300),
+'b'.repeat(300),
   ];
 
   for (const folder of folders) {

@@ -2,8 +2,8 @@ import 'reflect-metadata';
 import { describe, expect, it } from '@jest/globals';
 
 import { PathHelper } from '@/helpers/path.helper';
-import { SnapshotsService } from '@/services/snapshots.service';
-import { FileSnapshot } from '@/snapshots/file.snapshot';
+import type { SnapshotsService } from '@/services/snapshots.service';
+import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import { FileVersion } from '@/snapshots/file.version';
 import type { TFile } from 'obsidian';
 

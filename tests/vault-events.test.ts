@@ -52,7 +52,6 @@ const makePlugin = (
   } as unknown as LineChangeTrackerPlugin;
 };
 
-
 describe('VaultDeleteEvent', () => {
   it('routes a tracked file to markDeleted and clears the ignore list', () => {
     const service = makeSnapshotsServiceMock();
@@ -204,11 +203,13 @@ describe('VaultCreateEvent', () => {
       getOne: jest.fn().mockReturnValue(snapshot),
       markCreatedThisSession: jest.fn(),
     };
+
     const settings = { value: jest.fn().mockReturnValue(ignoreNewFiles) };
     const container: Map<unknown, unknown> = new Map<unknown, unknown>([
       [TOKENS.snapshots, snapshots],
       [TOKENS.settings, settings],
     ]);
+
     const plugin = {
       get: (key: unknown): unknown => container.get(key),
     } as unknown as LineChangeTrackerPlugin;
@@ -401,6 +402,7 @@ describe('WorkspaceLayoutChangeEvent', () => {
     const lastReadIndex: number = Math.max(
       ...reads.map((entry: string): number => calls.lastIndexOf(entry))
     );
+
     const firstWriteIndex: number = calls.findIndex((entry: string): boolean =>
       writePrefixes.some((prefix: string): boolean => entry.startsWith(prefix))
     );

@@ -254,6 +254,7 @@ describe('PersistenceService retention tombstone caps (T06)', () => {
     const livePaths: string[] = kept
       .filter((item: SerializedFileSnapshot): boolean => item.deletedTimestamp === undefined)
       .map((item: SerializedFileSnapshot): string => item.path);
+
     const deadPaths: string[] = kept
       .filter((item: SerializedFileSnapshot): boolean => item.deletedTimestamp !== undefined)
       .map((item: SerializedFileSnapshot): string => item.path);
@@ -495,6 +496,7 @@ describe('PersistenceService write queue (ADR-08-A)', () => {
 
   it('debounced saves are coalesced and routed through the queue', async (): Promise<void> => {
     jest.useFakeTimers();
+
     try {
       const adapter = new MemoryAdapter();
       let calls: number = 0;
@@ -728,6 +730,7 @@ describe('PersistenceService idle-vault no-wipe guard', () => {
       entry('a.md', now - (60 * DAY_MS)),
       entry('b.md', now - (90 * DAY_MS)),
     ];
+
     const service = makeRetentionWriteService(
       adapter,
       (): SerializedHistory => multiPayload(snapshots),
@@ -756,6 +759,7 @@ describe('PersistenceService idle-vault no-wipe guard', () => {
       entry('fourth.md', now - (4 * DAY_MS)),
       entry('fifth.md', now - (5 * DAY_MS)),
     ];
+
     const service = makeRetentionWriteService(
       adapter,
       (): SerializedHistory => multiPayload(snapshots),
@@ -784,6 +788,7 @@ describe('PersistenceService idle-vault no-wipe guard', () => {
       tombstone('fresh-dead.md', now - (60 * DAY_MS), now - DAY_MS),
       tombstone('stale-dead.md', now - (60 * DAY_MS), now - (30 * DAY_MS)),
     ];
+
     const service = makeRetentionWriteService(
       adapter,
       (): SerializedHistory => multiPayload(snapshots),
@@ -860,6 +865,7 @@ describe('PersistenceService readDisk per-entry validation (ADR-08-B)', () => {
     const paths: string[] = (result?.snapshots ?? []).map(
       (item: SerializedFileSnapshot): string => item.path,
     );
+
     expect(paths).toEqual(['good.md', 'good-2.md']);
   });
 
@@ -871,6 +877,7 @@ describe('PersistenceService readDisk per-entry validation (ADR-08-B)', () => {
       entry('b.md', now - 1000),
       entry('c.md', now - 2000),
     ];
+
     adapter.files.set(HISTORY_PATH, JSON.stringify({ version: 1, snapshots }));
 
     const service = makeWriteService(adapter, (): SerializedHistory => payload('ignored.md', 1));
@@ -921,6 +928,7 @@ describe('PersistenceService readDisk per-entry validation (ADR-08-B)', () => {
     const paths: string[] = (result?.snapshots ?? []).map(
       (item: SerializedFileSnapshot): string => item.path,
     );
+
     expect(paths).toEqual(['good.md']);
   });
 });

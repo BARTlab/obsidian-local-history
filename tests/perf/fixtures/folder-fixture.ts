@@ -1,6 +1,6 @@
-import {FileSnapshot} from '@/snapshots/file.snapshot';
-import {FileVersion} from '@/snapshots/file.version';
-import type {TFile} from 'obsidian';
+import { FileSnapshot } from '@/snapshots/file.snapshot';
+import { FileVersion } from '@/snapshots/file.version';
+import type { TFile } from 'obsidian';
 
 /**
  * Deterministic fixtures for the folder aggregation perf benches (T05). The
@@ -40,9 +40,9 @@ export interface FolderFixtureShape {
  * iterations.
  */
 export const FIXTURE_SHAPES: Readonly<Record<FolderFixtureShape['name'], FolderFixtureShape>> = Object.freeze({
-  shallow: {name: 'shallow', depth: 3, files: 30, versionsPerFile: 10, lines: 20},
-  nested: {name: 'nested', depth: 10, files: 100, versionsPerFile: 20, lines: 20},
-  wide: {name: 'wide', depth: 3, files: 1000, versionsPerFile: 5, lines: 20},
+  shallow: { name: 'shallow', depth: 3, files: 30, versionsPerFile: 10, lines: 20 },
+  nested: { name: 'nested', depth: 10, files: 100, versionsPerFile: 20, lines: 20 },
+  wide: { name: 'wide', depth: 3, files: 1000, versionsPerFile: 5, lines: 20 },
 });
 
 /** The shared root every fixture path lives under, so a real subtree match runs. */
@@ -70,7 +70,7 @@ function makeFile(path: string): TFile {
   const name: string = path.split('/').pop() ?? path;
   const extension: string = name.includes('.') ? name.split('.').pop() ?? '' : '';
 
-  return {path, name, extension} as unknown as TFile;
+  return { path, name, extension } as unknown as TFile;
 }
 
 /**

@@ -1,6 +1,6 @@
-import {describe, expect, it} from '@jest/globals';
+import { describe, expect, it } from '@jest/globals';
 
-import type {SnapshotCaptureOptions} from '@/types';
+import type { SnapshotCaptureOptions } from '@/types';
 
 import {
   buildEditedSnapshot,
@@ -10,7 +10,7 @@ import {
   FIXTURE_SIZES,
   OPEN_CAPTURE_OPTIONS,
 } from './fixtures/snapshot-fixture';
-import {assertWithinBaseline, measure} from './harness';
+import { assertWithinBaseline, measure } from './harness';
 
 /**
  * Perf benches for the FileSnapshot hot paths (T03). Each bench drives only the
@@ -90,7 +90,7 @@ describe('snapshot perf', () => {
     // version overflows by one and evictVersions drops a single oldest entry,
     // holding the length constant across iterations while the two eviction
     // passes (age filter then count filter) run on a full-size array each call.
-    const capped: SnapshotCaptureOptions = {...OPEN_CAPTURE_OPTIONS, maxVersions: large.versions};
+    const capped: SnapshotCaptureOptions = { ...OPEN_CAPTURE_OPTIONS, maxVersions: large.versions };
     const before = snapshot.getVersions().length;
     const body = buildLines(large.lines);
     let counter = 0;

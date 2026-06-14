@@ -111,10 +111,12 @@ describe('PathExcludeHelper compile cache (T18)', () => {
     try {
       const pattern: string = '(^|/)Templates/';
       const before: number = constructed;
+
       for (let i: number = 0; i < 50; i += 1) {
         PathExcludeHelper.isExcluded(`notes/${i}.md`, pattern);
         PathExcludeHelper.isExcluded(`Templates/${i}.md`, pattern);
       }
+
       expect(constructed - before).toBe(1);
     } finally {
       (globalThis as { RegExp: typeof RegExp }).RegExp = originalRegExp;

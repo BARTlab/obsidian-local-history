@@ -21,11 +21,13 @@ describe('ObservableMap re-entrant dispatch (T17)', (): void => {
         map.unsubscribe(selfUnsub);
       }
     );
+
     const listenerB: ChangeHandler<string, number> = jest.fn(
       (action: MapChangeAction): void => {
         calls.push(`b:${action}`);
       }
     );
+
     const listenerC: ChangeHandler<string, number> = jest.fn(
       (action: MapChangeAction): void => {
         calls.push(`c:${action}`);
@@ -57,12 +59,14 @@ describe('ObservableMap re-entrant dispatch (T17)', (): void => {
         calls.push(`late:${action}`);
       }
     );
+
     const subscriber: ChangeHandler<string, number> = jest.fn(
       (action: MapChangeAction): void => {
         calls.push(`sub:${action}`);
         map.subscribe(lateListener);
       }
     );
+
     const listenerTail: ChangeHandler<string, number> = jest.fn(
       (action: MapChangeAction): void => {
         calls.push(`tail:${action}`);

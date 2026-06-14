@@ -46,6 +46,7 @@ const step = (snapshot: FileSnapshot, currentDoc: string, changes: ChangeSpec): 
   const plugin = {
     get: (key: unknown): unknown => (key === TOKENS.settings ? settingsService : snapshotsService),
   };
+
   const ext = new ChangeDetectorExtension({ state: tr.state } as unknown as ViewArg, plugin as unknown as PluginArg);
 
   ext.update({
@@ -144,6 +145,7 @@ describe('ChangeDetectorExtension restore', () => {
       to: lineRange('a\nb\nc', 2).to,
       insert: 'B',
     });
+
     step(snapshot, afterEdit, {
       from: lineRange(afterEdit, 2).from,
       to: lineRange(afterEdit, 2).to,
@@ -163,6 +165,7 @@ describe('ChangeDetectorExtension restore', () => {
       to: lineRange('a\nb\nc', 2).to,
       insert: '',
     });
+
     step(snapshot, afterDelete, {
       from: lineRange(afterDelete, 2).from,
       to: lineRange(afterDelete, 2).to,
@@ -330,16 +333,19 @@ describe('ChangeDetectorExtension prev-state desync (T2.3)', () => {
       to: lineRange('a\nb\nc', 2).to,
       insert: 'B',
     });
+
     const s2: string = step(snapshot, s1, {
       from: lineRange(s1, 2).from,
       to: lineRange(s1, 2).to,
       insert: 'BB',
     });
+
     const s3: string = step(snapshot, s2, {
       from: lineRange(s2, 2).from,
       to: lineRange(s2, 2).to,
       insert: 'B',
     });
+
     step(snapshot, s3, {
       from: lineRange(s3, 2).from,
       to: lineRange(s3, 2).to,

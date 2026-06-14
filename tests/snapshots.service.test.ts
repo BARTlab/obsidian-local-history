@@ -115,11 +115,12 @@ describe('SnapshotsService path excludes', () => {
 
   it('excludes nothing on an invalid regexp so tracking continues', () => {
     const notice = jest.spyOn(obsidian, 'Notice').mockImplementation(
-      function (this: unknown): void {
+      function(this: unknown): void {
         // Inert: swallow construction so the "new Notice(...)" call is counted
         // without needing a real Obsidian toast.
       } as unknown as () => obsidian.Notice
     );
+
     const service = makeServiceWithSettings({
       allowedExtensions: 'md',
       excludePaths: '[unclosed',

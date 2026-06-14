@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 import { SnapshotsService } from '@/services/snapshots.service';
-import { FileSnapshot } from '@/snapshots/file.snapshot';
+import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import { FileVersion } from '@/snapshots/file.version';
 import { TextHelper } from '@/helpers/text.helper';
 import type { TFile } from 'obsidian';
@@ -12,8 +12,8 @@ import { makeFile } from './helpers/builders';
 type PluginArg = ConstructorParameters<typeof SnapshotsService>[0];
 
 interface SettingsValues {
-  allowedExtensions?: string;
-  excludePaths?: string;
+  'allowedExtensions'?: string;
+  'excludePaths'?: string;
   'snapshots.enabled'?: boolean;
   'snapshots.intervalMs'?: number;
   'snapshots.editThreshold'?: number;
@@ -31,8 +31,8 @@ const makeService = (
   vaultContent: Record<string, string> = {},
 ): { service: SnapshotsService; vault: Record<string, string>; settings: SettingsValues } => {
   const settings: SettingsValues = {
-    allowedExtensions: 'md',
-    excludePaths: '',
+    'allowedExtensions': 'md',
+    'excludePaths': '',
     'snapshots.enabled': true,
     'snapshots.intervalMs': 0,
     'snapshots.editThreshold': 0,
@@ -40,6 +40,7 @@ const makeService = (
     'snapshots.maxVersionAgeDays': 0,
     ...overrides,
   };
+
   const vault: Record<string, string> = { ...vaultContent };
   const settingsService = {
     value: (path: keyof SettingsValues): unknown => settings[path],
@@ -121,6 +122,7 @@ describe('SnapshotsService.captureExternalChange', () => {
       'snapshots.editThreshold': 0,
       'snapshots.intervalMs': 0,
     });
+
     const file = makeFile('notes/a.md', { stat: { mtime: 1, size: 1 } });
 
     service.add(file, 'alpha\nbeta');
@@ -167,6 +169,7 @@ describe('SnapshotsService.captureExternalChange', () => {
       allowedExtensions: 'md',
       excludePaths: '^templates/',
     });
+
     const file = makeFile('templates/note.md', { stat: { mtime: 1, size: 1 } });
 
     vault[file.path] = 'banned';
@@ -221,6 +224,7 @@ describe('SnapshotsService.captureExternalChange', () => {
     const { service, vault } = makeService({
       'snapshots.maxVersions': 1,
     });
+
     const file = makeFile('notes/a.md', { stat: { mtime: 1, size: 1 } });
 
     service.add(file, 'initial');

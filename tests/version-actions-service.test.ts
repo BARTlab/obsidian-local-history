@@ -29,9 +29,11 @@ jest.mock('@/snapshots/file.snapshot', () => ({
       id: string,
     ): { id: string; lines: string[]; label?: string; getLines: () => string[] } | null {
       const entry = this.versionsList.find((v) => v.id === id);
+
       if (!entry) {
         return null;
       }
+
       // Return the STORED reference (augmented with getLines), mirroring the
       // real FileSnapshot.getVersion: a caller that sets .label must persist it
       // onto the timeline entry, which labelVersion relies on.
@@ -45,11 +47,14 @@ jest.mock('@/snapshots/file.snapshot', () => ({
 
     public removeVersion(id: string): boolean {
       const index: number = this.versionsList.findIndex((v) => v.id === id);
+
       if (index === -1) {
         return false;
       }
+
       this.versionsList.splice(index, 1);
       this.removed.push(id);
+
       return true;
     }
 
@@ -61,9 +66,11 @@ jest.mock('@/snapshots/file.snapshot', () => ({
     ): { id: string; lines: string[]; label?: string } | null {
       const entry = { id: `v-${this.captured.length + 1}`, lines: [...lines], label };
       this.captured.push({ lines: [...lines], force, label });
+
       if (label) {
         this.versionsList.push(entry);
       }
+
       return entry;
     }
   },
@@ -104,6 +111,7 @@ const makeHarness = (snapshotInit?: {
     state: string[],
     versions?: { id: string; lines: string[]; label?: string }[],
   ) => ServiceHarness['snapshot'];
+
   const snapshot = snapshotInit
     ? new SnapshotCtor(snapshotInit.file, snapshotInit.state, snapshotInit.versions ?? [])
     : null;
@@ -138,9 +146,11 @@ const makeHarness = (snapshotInit?: {
       if (key === TOKENS.snapshots) {
         return snapshotsService;
       }
+
       if (key === TOKENS.settings) {
         return settingsService;
       }
+
       throw new Error(`Unknown service: ${String(key)}`);
     },
   } as unknown as ConstructorParameters<typeof VersionActionsService>[0];

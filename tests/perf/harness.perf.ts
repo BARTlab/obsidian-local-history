@@ -1,4 +1,4 @@
-import {describe, expect, it} from '@jest/globals';
+import { describe, expect, it } from '@jest/globals';
 
 import {
   ABS_SLACK_MS,
@@ -12,7 +12,7 @@ import {
 
 /** Build a one-label baseline with the given median; provenance is filler. */
 function baselineWith(label: string, medianMs: number): Baseline {
-  return {[label]: {medianMs, recordedAt: '2026-01-01T00:00:00.000Z', env: 'node test'}};
+  return { [label]: { medianMs, recordedAt: '2026-01-01T00:00:00.000Z', env: 'node test' } };
 }
 
 /**
@@ -27,9 +27,11 @@ describe('perf harness', () => {
   it('measure returns a positive minimum over the iteration count', () => {
     const min = measure('harness/self-test', () => {
       let acc = 0;
+
       for (let i = 0; i < 1000; i++) {
         acc += i;
       }
+
       // Touch acc so the loop is not optimised away.
       if (acc < 0) {
         throw new Error('unreachable');

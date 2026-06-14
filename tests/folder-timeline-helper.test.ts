@@ -185,8 +185,8 @@ describe('FolderTimelineHelper.synthesize - capture point carries its version id
 
     const points: FolderTimelinePoint[] = FolderTimelineHelper.synthesize([snapshot], 'root');
     const byKind: Record<string, FolderTimelinePoint | undefined> = {
-      capture: points.find((point: FolderTimelinePoint): boolean => point.kind === FolderTimelinePointKind.capture),
-      delete: points.find((point: FolderTimelinePoint): boolean => point.kind === FolderTimelinePointKind.delete),
+      'capture': points.find((point: FolderTimelinePoint): boolean => point.kind === FolderTimelinePointKind.capture),
+      'delete': points.find((point: FolderTimelinePoint): boolean => point.kind === FolderTimelinePointKind.delete),
       'move-in': points.find((point: FolderTimelinePoint): boolean => point.kind === FolderTimelinePointKind.moveIn),
     };
 

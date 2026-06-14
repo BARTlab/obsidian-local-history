@@ -20,9 +20,9 @@
 
 /** The three file sizes, in line counts, spanning the small/medium/large curve. */
 export const FIXTURE_SIZES = {
-  small: {name: 'small', lines: 50},
-  medium: {name: 'medium', lines: 400},
-  large: {name: 'large', lines: 1000},
+  small: { name: 'small', lines: 50 },
+  medium: { name: 'medium', lines: 400 },
+  large: { name: 'large', lines: 1000 },
 } as const;
 
 /** A fixture size descriptor (name + line count). */
@@ -85,7 +85,7 @@ function changedLine(index: number): string {
  * @return {DiffPair} The base/current line arrays
  */
 export function buildPair(size: FixtureSize, shape: FixtureShape): DiffPair {
-  const baseLines: string[] = Array.from({length: size.lines}, (_unused, index: number): string => baseLine(index));
+  const baseLines: string[] = Array.from({ length: size.lines }, (_unused, index: number): string => baseLine(index));
   const currentLines: string[] = baseLines.slice();
 
   switch (shape) {
@@ -100,6 +100,7 @@ export function buildPair(size: FixtureSize, shape: FixtureShape): DiffPair {
 
       break;
     }
+
     case 'churn': {
       // Ten isolated single-line changes; the unchanged neighbours on both
       // sides keep each one its own hunk rather than merging into a block.
@@ -113,6 +114,7 @@ export function buildPair(size: FixtureSize, shape: FixtureShape): DiffPair {
 
       break;
     }
+
     case 'rewrite': {
       // Almost everything changes; keep every 13th line as an anchor so the
       // diff still aligns the file with itself instead of treating it as a
@@ -127,7 +129,7 @@ export function buildPair(size: FixtureSize, shape: FixtureShape): DiffPair {
     }
   }
 
-  return {baseLines, currentLines};
+  return { baseLines, currentLines };
 }
 
 /** The three benched helpers, used to pick an iteration count per cost class. */

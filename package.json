@@ -7,7 +7,7 @@
     "dev": "node esbuild.config.mjs",
     "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
     "version": "node version-bump.mjs && git add manifest.json versions.json",
-    "lint": "eslint src",
+    "lint": "eslint src tests",
     "type-check": "tsc --noEmit",
     "test": "jest",
     "test:perf": "NODE_OPTIONS=--expose-gc jest --config jest.config.perf.js"

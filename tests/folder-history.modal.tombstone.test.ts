@@ -83,6 +83,7 @@ describe('FolderHistoryModal.restoreTombstoneSelection (T14 occupied-path guard)
     const create = jest.fn();
     const forceUpdate = jest.fn();
     const keys: string[] = [];
+
     const t = (key: string): string => {
       keys.push(key);
 
@@ -128,8 +129,10 @@ describe('FolderHistoryModal.restoreTombstoneSelection (T14 occupied-path guard)
     const create = jest.fn((_path: string, _content: string): Promise<unknown> => {
       return Promise.reject(new Error('boom'));
     });
+
     const forceUpdate = jest.fn();
     const keys: string[] = [];
+
     const t = (key: string): string => {
       keys.push(key);
 

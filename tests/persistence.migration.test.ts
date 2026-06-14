@@ -162,6 +162,7 @@ describe('PersistenceService monolith-to-shard migration (T09)', () => {
         tombstone('c.md', now - 2000, now - 500),
       ],
     };
+
     adapter.files.set(HISTORY_PATH, JSON.stringify(legacy));
 
     const service = makeService(adapter);
@@ -193,6 +194,7 @@ describe('PersistenceService monolith-to-shard migration (T09)', () => {
       version: 2,
       snapshots: [entry('only.md', now)],
     };
+
     // Only the .bak sibling survives (e.g. a crash between the monolith's old
     // tmp -> bak -> rename steps); migration must still find a usable source.
     adapter.files.set(`${HISTORY_PATH}.bak`, JSON.stringify(legacy));
@@ -221,6 +223,7 @@ describe('PersistenceService monolith-to-shard migration (T09)', () => {
       version: 1,
       snapshots: [entry('legacy.md', now - 1000)],
     };
+
     adapter.files.set(HISTORY_PATH, JSON.stringify(legacy));
 
     const service = makeService(adapter);

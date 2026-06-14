@@ -39,6 +39,7 @@ const makeExt = (doc: string, visibleRanges: { from: number; to: number }[]): Fa
     [TOKENS.settings, settings],
     [TOKENS.snapshots, { getOne: (): unknown => snapshot }],
   ]);
+
   const plugin = {
     get: (key: unknown): unknown => {
       if (!services.has(key)) {
@@ -48,6 +49,7 @@ const makeExt = (doc: string, visibleRanges: { from: number; to: number }[]): Fa
       return services.get(key);
     },
   };
+
   const view = { visibleRanges, state: EditorState.create({ doc }) };
   const ext = new EditorCommonExtension(view as unknown as ViewArg, plugin as unknown as PluginArg);
 
@@ -115,6 +117,7 @@ const makeExtWithChange = (doc: string, change: ChangeLine): { classes: string[]
     [TOKENS.settings, settings],
     [TOKENS.snapshots, { getOne: (): unknown => snapshot }],
   ]);
+
   const plugin = {
     get: (key: unknown): unknown => {
       if (!services.has(key)) {
@@ -124,6 +127,7 @@ const makeExtWithChange = (doc: string, change: ChangeLine): { classes: string[]
       return services.get(key);
     },
   };
+
   const state = EditorState.create({ doc });
   const view = { visibleRanges: [{ from: state.doc.line(1).from, to: state.doc.line(1).to }], state };
 

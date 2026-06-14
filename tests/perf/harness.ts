@@ -1,6 +1,6 @@
-import {closeSync, existsSync, openSync, readFileSync, unlinkSync, writeFileSync} from 'node:fs';
-import {join} from 'node:path';
-import {performance} from 'node:perf_hooks';
+import { closeSync, existsSync, openSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { performance } from 'node:perf_hooks';
 
 /**
  * Relative regression budget for the perf gate. A measured time may exceed its
@@ -132,6 +132,7 @@ export function measure(
   if (!Number.isInteger(iters) || iters <= 0) {
     throw new Error(`measure(${label}): iters must be a positive integer, got ${iters}`);
   }
+
   if (!Number.isInteger(warmup) || warmup < 0) {
     throw new Error(`measure(${label}): warmup must be a non-negative integer, got ${warmup}`);
   }
@@ -142,6 +143,7 @@ export function measure(
 
   let min = Infinity;
   let prevElapsed = 0;
+
   for (let i = 0; i < iters; i++) {
     // Collect garbage before timing so a GC pause triggered by the previous
     // iteration's allocations does not land inside this sample. GC is the
@@ -161,14 +163,17 @@ export function measure(
     if (i === 0 || prevElapsed >= GC_SAMPLE_THRESHOLD_MS) {
       forceGc();
     }
+
     const start = performance.now();
     fn();
     const elapsed = performance.now() - start;
     prevElapsed = elapsed;
+
     if (elapsed < min) {
       min = elapsed;
     }
   }
+
   return min;
 }
 
@@ -184,7 +189,7 @@ const GC_SAMPLE_THRESHOLD_MS = 1;
  * Reference to Node's manual GC trigger, present only when the process was
  * started with `--expose-gc`. Captured once at module load.
  */
-const exposedGc: (() => void) | undefined = (globalThis as {gc?: () => void}).gc;
+const exposedGc: (() => void) | undefined = (globalThis as { gc?: () => void }).gc;
 
 /** Run a full GC if `--expose-gc` made one available; otherwise a no-op. */
 function forceGc(): void {
@@ -198,10 +203,13 @@ export function loadBaseline(): Baseline {
   if (!existsSync(BASELINE_PATH)) {
     return {};
   }
+
   const raw = readFileSync(BASELINE_PATH, 'utf8').trim();
+
   if (raw.length === 0) {
     return {};
   }
+
   return JSON.parse(raw) as Baseline;
 }
 
@@ -225,11 +233,12 @@ export function checkBudget(label: string, measuredMs: number, baseline: Baselin
   const entry = baseline[label];
 
   if (entry === undefined) {
-    // eslint-disable-next-line no-console
+     
     console.info(
       `[perf] no baseline yet for "${label}" (measured ${measuredMs.toFixed(4)} ms); ` +
-        `will record on rebaseline.`,
+        'will record on rebaseline.',
     );
+
     return;
   }
 
@@ -237,6 +246,7 @@ export function checkBudget(label: string, measuredMs: number, baseline: Baselin
   const relativeCeiling = expected * (1 + REGRESSION_BUDGET);
   const absoluteCeiling = expected + ABS_SLACK_MS;
   const ceiling = Math.max(relativeCeiling, absoluteCeiling);
+
   if (measuredMs > ceiling) {
     const budgetPct = (REGRESSION_BUDGET * 100).toFixed(0);
     throw new Error(
@@ -260,6 +270,7 @@ export function checkBudget(label: string, measuredMs: number, baseline: Baselin
  */
 function acquireLock(): number {
   const deadline = Date.now() + 5000;
+
   // Busy-wait is acceptable here: the held section is a tiny synchronous write,
   // this runs only in the explicit record flow, and there is no event loop turn
   // to yield to between the synchronous fs calls of a single bench assertion.
@@ -270,6 +281,7 @@ function acquireLock(): number {
       if ((err as NodeJS.ErrnoException).code !== 'EEXIST') {
         throw err;
       }
+
       if (Date.now() > deadline) {
         throw new Error('[perf] timed out acquiring baseline lock during record');
       }
@@ -280,6 +292,7 @@ function acquireLock(): number {
 /** Release the lock held via {@link acquireLock}. */
 function releaseLock(fd: number): void {
   closeSync(fd);
+
   // Remove the lockfile so the next writer's `wx` open succeeds.
   try {
     unlinkSync(LOCK_PATH);
@@ -297,6 +310,7 @@ function releaseLock(fd: number): void {
  */
 export function recordBaseline(label: string, medianMs: number): void {
   const fd = acquireLock();
+
   try {
     const baseline = loadBaseline();
     baseline[label] = {
@@ -308,8 +322,10 @@ export function recordBaseline(label: string, medianMs: number): void {
       .sort()
       .reduce<Baseline>((acc, key) => {
         acc[key] = baseline[key];
+
         return acc;
       }, {});
+
     writeFileSync(BASELINE_PATH, `${JSON.stringify(sorted, null, 2)}\n`, 'utf8');
   } finally {
     releaseLock(fd);
@@ -328,7 +344,9 @@ export function recordBaseline(label: string, medianMs: number): void {
 export function assertWithinBaseline(label: string, measuredMs: number): void {
   if (baselineMode() === 'record') {
     recordBaseline(label, measuredMs);
+
     return;
   }
+
   checkBudget(label, measuredMs, loadBaseline());
 }

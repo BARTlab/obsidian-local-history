@@ -1,11 +1,11 @@
 import 'reflect-metadata';
 
-import {describe, expect, it} from '@jest/globals';
+import { describe, expect, it } from '@jest/globals';
 
-import {FolderDeltaHelper} from '@/helpers/folder-delta.helper';
-import {FolderTimelineHelper} from '@/helpers/folder-timeline.helper';
-import type {FileSnapshot} from '@/snapshots/file.snapshot';
-import type {FolderDeltaResult, FolderTimelinePoint} from '@/types';
+import { FolderDeltaHelper } from '@/helpers/folder-delta.helper';
+import { FolderTimelineHelper } from '@/helpers/folder-timeline.helper';
+import type { FileSnapshot } from '@/snapshots/file.snapshot';
+import type { FolderDeltaResult, FolderTimelinePoint } from '@/types';
 
 import {
   buildSnapshots,
@@ -13,7 +13,7 @@ import {
   probeTimestamp,
   ROOT_PATH,
 } from './fixtures/folder-fixture';
-import {assertWithinBaseline, measure} from './harness';
+import { assertWithinBaseline, measure } from './harness';
 
 /**
  * Perf benches for the folder-history aggregation hot paths (T05). They lock

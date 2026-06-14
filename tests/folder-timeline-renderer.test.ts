@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 
-import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { beforeEach, describe, expect, it } from '@jest/globals';
 import { FolderTimelinePointKind } from '@/consts';
 import { FolderTimelineRenderer } from '@/modals/folder-timeline-renderer';
 import type { FolderTimelineHost } from '@/modals/folder-timeline-renderer';

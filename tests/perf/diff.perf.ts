@@ -4,13 +4,13 @@
 
 import 'reflect-metadata';
 
-import {beforeAll, describe, expect, it} from '@jest/globals';
+import { beforeAll, describe, expect, it } from '@jest/globals';
 
-import {DiffOutputFormatType, DiffViewMode} from '@/consts';
-import {DiffRenderHelper} from '@/helpers/diff-render.helper';
-import {HunkHelper} from '@/helpers/hunk.helper';
-import {WordDiffHelper} from '@/helpers/word-diff.helper';
-import type {DiffRenderMode, DiffRenderParams} from '@/types';
+import { DiffOutputFormatType, DiffViewMode } from '@/consts';
+import { DiffRenderHelper } from '@/helpers/diff-render.helper';
+import { HunkHelper } from '@/helpers/hunk.helper';
+import { WordDiffHelper } from '@/helpers/word-diff.helper';
+import type { DiffRenderMode, DiffRenderParams } from '@/types';
 
 import {
   buildPair,
@@ -21,8 +21,8 @@ import {
   type FixtureSize,
   itersFor,
 } from './fixtures/diff-fixture';
-import {installJsdomDomPolyfill} from '../helpers/jsdom-dom';
-import {assertWithinBaseline, measure} from './harness';
+import { installJsdomDomPolyfill } from '../helpers/jsdom-dom';
+import { assertWithinBaseline, measure } from './harness';
 
 /**
  * Perf benches for the diff pipeline the history modal recomputes on every
@@ -62,7 +62,7 @@ describe('diff perf', () => {
    * Inert translator echoing its key, enough for the patch copy-button tooltip
    * and the copy notice text the renderer reads.
    */
-  const translator = {t: (key: string): string => key};
+  const translator = { t: (key: string): string => key };
 
   /**
    * The render bench measures one mode per label. The 3x3 (size x shape) grid

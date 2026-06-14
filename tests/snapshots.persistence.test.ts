@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { describe, expect, it } from '@jest/globals';
 import { VERSION_KEYFRAME_INTERVAL } from '@/consts';
-import { SnapshotsService } from '@/services/snapshots.service';
+import type { SnapshotsService } from '@/services/snapshots.service';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import { FileVersion } from '@/snapshots/file.version';
 import type { SerializedFileSnapshot } from '@/types';
@@ -57,6 +57,7 @@ describe('SnapshotsService.serialize', () => {
     badSnapshot.findCurrentLine(1)?.change('B');
     badSnapshot.updateState(['a', 'B']);
     badSnapshot.updateChanges();
+
     badSnapshot.toJSON = (): never => {
       throw new Error('toJSON boom');
     };
@@ -70,6 +71,7 @@ describe('SnapshotsService.serialize', () => {
     const paths: string[] = (payload?.snapshots ?? []).map(
       (item: SerializedFileSnapshot): string => item.path,
     );
+
     expect(paths).toEqual(['good.md']);
   });
 
@@ -266,6 +268,7 @@ describe('SnapshotsService delta-encoded version round-trip (T07)', () => {
     const deltaCount: number = serializedVersions.filter(
       (entry): boolean => typeof entry.delta === 'string',
     ).length;
+
     const keyframeCount: number = serializedVersions.filter(
       (entry): boolean => Array.isArray(entry.lines),
     ).length;

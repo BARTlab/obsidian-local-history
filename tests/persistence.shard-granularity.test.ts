@@ -247,6 +247,7 @@ describe('PersistenceService dirty-only write granularity (T13)', () => {
       entry('b.md', now - 1000),
       entry('c.md', now - 2000),
     ];
+
     const service = makeService(adapter, (): SerializedHistory => ({ version: 1, snapshots }));
 
     // First save: seeds the index and writes all three shards from a clean slate.
@@ -286,6 +287,7 @@ describe('PersistenceService dirty-only write granularity (T13)', () => {
       entry('a.md', now),
       entry('b.md', now - 1000),
     ];
+
     const service = makeService(adapter, (): SerializedHistory => ({ version: 1, snapshots }));
 
     // First save seeds the index with both shards' digests.
@@ -328,6 +330,7 @@ describe('PersistenceService retention evicts shards from disk (T14)', () => {
       entry('c.md', now - 2000),
       entry('d.md', now - 3000),
     ];
+
     const caps: RetentionCaps = { maxEntries: 0, maxDeletedEntries: 0 };
     const service = makeRetentionService(
       adapter,
@@ -373,6 +376,7 @@ describe('PersistenceService retention evicts shards from disk (T14)', () => {
       tombstone('gone-new.md', now - 1000),
       tombstone('gone-old.md', now - 2000),
     ];
+
     const caps: RetentionCaps = { maxEntries: 0, maxDeletedEntries: 0 };
     const service = makeRetentionService(
       adapter,

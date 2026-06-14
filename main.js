@@ -9,7 +9,6 @@ var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 var __commonJS = (cb, mod) => function __require() {
   return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
 };
@@ -65,25 +64,21 @@ var require_Reflect = __commonJS({
               previous(key2, value);
           };
         }
-        __name(makeExporter, "makeExporter");
         function functionThis() {
           try {
             return Function("return this;")();
           } catch (_) {
           }
         }
-        __name(functionThis, "functionThis");
         function indirectEvalThis() {
           try {
             return (void 0, eval)("(function() { return this; })()");
           } catch (_) {
           }
         }
-        __name(indirectEvalThis, "indirectEvalThis");
         function sloppyModeThis() {
           return functionThis() || indirectEvalThis();
         }
-        __name(sloppyModeThis, "sloppyModeThis");
       })(function(exporter, root2) {
         var hasOwn = Object.prototype.hasOwnProperty;
         var supportsSymbol = typeof Symbol === "function";
@@ -139,7 +134,6 @@ var require_Reflect = __commonJS({
             return DecorateConstructor(decorators, target);
           }
         }
-        __name(decorate, "decorate");
         exporter("decorate", decorate);
         function metadata(metadataKey, metadataValue) {
           function decorator(target, propertyKey) {
@@ -149,10 +143,8 @@ var require_Reflect = __commonJS({
               throw new TypeError();
             OrdinaryDefineOwnMetadata(metadataKey, metadataValue, target, propertyKey);
           }
-          __name(decorator, "decorator");
           return decorator;
         }
-        __name(metadata, "metadata");
         exporter("metadata", metadata);
         function defineMetadata(metadataKey, metadataValue, target, propertyKey) {
           if (!IsObject(target))
@@ -161,7 +153,6 @@ var require_Reflect = __commonJS({
             propertyKey = ToPropertyKey(propertyKey);
           return OrdinaryDefineOwnMetadata(metadataKey, metadataValue, target, propertyKey);
         }
-        __name(defineMetadata, "defineMetadata");
         exporter("defineMetadata", defineMetadata);
         function hasMetadata(metadataKey, target, propertyKey) {
           if (!IsObject(target))
@@ -170,7 +161,6 @@ var require_Reflect = __commonJS({
             propertyKey = ToPropertyKey(propertyKey);
           return OrdinaryHasMetadata(metadataKey, target, propertyKey);
         }
-        __name(hasMetadata, "hasMetadata");
         exporter("hasMetadata", hasMetadata);
         function hasOwnMetadata(metadataKey, target, propertyKey) {
           if (!IsObject(target))
@@ -179,7 +169,6 @@ var require_Reflect = __commonJS({
             propertyKey = ToPropertyKey(propertyKey);
           return OrdinaryHasOwnMetadata(metadataKey, target, propertyKey);
         }
-        __name(hasOwnMetadata, "hasOwnMetadata");
         exporter("hasOwnMetadata", hasOwnMetadata);
         function getMetadata(metadataKey, target, propertyKey) {
           if (!IsObject(target))
@@ -188,7 +177,6 @@ var require_Reflect = __commonJS({
             propertyKey = ToPropertyKey(propertyKey);
           return OrdinaryGetMetadata(metadataKey, target, propertyKey);
         }
-        __name(getMetadata, "getMetadata");
         exporter("getMetadata", getMetadata);
         function getOwnMetadata(metadataKey, target, propertyKey) {
           if (!IsObject(target))
@@ -197,7 +185,6 @@ var require_Reflect = __commonJS({
             propertyKey = ToPropertyKey(propertyKey);
           return OrdinaryGetOwnMetadata(metadataKey, target, propertyKey);
         }
-        __name(getOwnMetadata, "getOwnMetadata");
         exporter("getOwnMetadata", getOwnMetadata);
         function getMetadataKeys(target, propertyKey) {
           if (!IsObject(target))
@@ -206,7 +193,6 @@ var require_Reflect = __commonJS({
             propertyKey = ToPropertyKey(propertyKey);
           return OrdinaryMetadataKeys(target, propertyKey);
         }
-        __name(getMetadataKeys, "getMetadataKeys");
         exporter("getMetadataKeys", getMetadataKeys);
         function getOwnMetadataKeys(target, propertyKey) {
           if (!IsObject(target))
@@ -215,7 +201,6 @@ var require_Reflect = __commonJS({
             propertyKey = ToPropertyKey(propertyKey);
           return OrdinaryOwnMetadataKeys(target, propertyKey);
         }
-        __name(getOwnMetadataKeys, "getOwnMetadataKeys");
         exporter("getOwnMetadataKeys", getOwnMetadataKeys);
         function deleteMetadata(metadataKey, target, propertyKey) {
           if (!IsObject(target))
@@ -236,7 +221,6 @@ var require_Reflect = __commonJS({
             return false;
           return provider.OrdinaryDeleteMetadata(metadataKey, target, propertyKey);
         }
-        __name(deleteMetadata, "deleteMetadata");
         exporter("deleteMetadata", deleteMetadata);
         function DecorateConstructor(decorators, target) {
           for (var i = decorators.length - 1; i >= 0; --i) {
@@ -250,7 +234,6 @@ var require_Reflect = __commonJS({
           }
           return target;
         }
-        __name(DecorateConstructor, "DecorateConstructor");
         function DecorateProperty(decorators, target, propertyKey, descriptor) {
           for (var i = decorators.length - 1; i >= 0; --i) {
             var decorator = decorators[i];
@@ -263,7 +246,6 @@ var require_Reflect = __commonJS({
           }
           return descriptor;
         }
-        __name(DecorateProperty, "DecorateProperty");
         function OrdinaryHasMetadata(MetadataKey, O, P) {
           var hasOwn2 = OrdinaryHasOwnMetadata(MetadataKey, O, P);
           if (hasOwn2)
@@ -273,7 +255,6 @@ var require_Reflect = __commonJS({
             return OrdinaryHasMetadata(MetadataKey, parent, P);
           return false;
         }
-        __name(OrdinaryHasMetadata, "OrdinaryHasMetadata");
         function OrdinaryHasOwnMetadata(MetadataKey, O, P) {
           var provider = GetMetadataProvider(
             O,
@@ -285,7 +266,6 @@ var require_Reflect = __commonJS({
             return false;
           return ToBoolean(provider.OrdinaryHasOwnMetadata(MetadataKey, O, P));
         }
-        __name(OrdinaryHasOwnMetadata, "OrdinaryHasOwnMetadata");
         function OrdinaryGetMetadata(MetadataKey, O, P) {
           var hasOwn2 = OrdinaryHasOwnMetadata(MetadataKey, O, P);
           if (hasOwn2)
@@ -295,7 +275,6 @@ var require_Reflect = __commonJS({
             return OrdinaryGetMetadata(MetadataKey, parent, P);
           return void 0;
         }
-        __name(OrdinaryGetMetadata, "OrdinaryGetMetadata");
         function OrdinaryGetOwnMetadata(MetadataKey, O, P) {
           var provider = GetMetadataProvider(
             O,
@@ -307,7 +286,6 @@ var require_Reflect = __commonJS({
             return;
           return provider.OrdinaryGetOwnMetadata(MetadataKey, O, P);
         }
-        __name(OrdinaryGetOwnMetadata, "OrdinaryGetOwnMetadata");
         function OrdinaryDefineOwnMetadata(MetadataKey, MetadataValue, O, P) {
           var provider = GetMetadataProvider(
             O,
@@ -317,7 +295,6 @@ var require_Reflect = __commonJS({
           );
           provider.OrdinaryDefineOwnMetadata(MetadataKey, MetadataValue, O, P);
         }
-        __name(OrdinaryDefineOwnMetadata, "OrdinaryDefineOwnMetadata");
         function OrdinaryMetadataKeys(O, P) {
           var ownKeys = OrdinaryOwnMetadataKeys(O, P);
           var parent = OrdinaryGetPrototypeOf(O);
@@ -348,7 +325,6 @@ var require_Reflect = __commonJS({
           }
           return keys2;
         }
-        __name(OrdinaryMetadataKeys, "OrdinaryMetadataKeys");
         function OrdinaryOwnMetadataKeys(O, P) {
           var provider = GetMetadataProvider(
             O,
@@ -361,7 +337,6 @@ var require_Reflect = __commonJS({
           }
           return provider.OrdinaryOwnMetadataKeys(O, P);
         }
-        __name(OrdinaryOwnMetadataKeys, "OrdinaryOwnMetadataKeys");
         function Type(x) {
           if (x === null)
             return 1;
@@ -382,23 +357,18 @@ var require_Reflect = __commonJS({
               return 6;
           }
         }
-        __name(Type, "Type");
         function IsUndefined(x) {
           return x === void 0;
         }
-        __name(IsUndefined, "IsUndefined");
         function IsNull(x) {
           return x === null;
         }
-        __name(IsNull, "IsNull");
         function IsSymbol(x) {
           return typeof x === "symbol";
         }
-        __name(IsSymbol, "IsSymbol");
         function IsObject(x) {
           return typeof x === "object" ? x !== null : typeof x === "function";
         }
-        __name(IsObject, "IsObject");
         function ToPrimitive(input, PreferredType) {
           switch (Type(input)) {
             case 0:
@@ -424,7 +394,6 @@ var require_Reflect = __commonJS({
           }
           return OrdinaryToPrimitive(input, hint === "default" ? "number" : hint);
         }
-        __name(ToPrimitive, "ToPrimitive");
         function OrdinaryToPrimitive(O, hint) {
           if (hint === "string") {
             var toString_1 = O.toString;
@@ -455,15 +424,12 @@ var require_Reflect = __commonJS({
           }
           throw new TypeError();
         }
-        __name(OrdinaryToPrimitive, "OrdinaryToPrimitive");
         function ToBoolean(argument) {
           return !!argument;
         }
-        __name(ToBoolean, "ToBoolean");
         function ToString(argument) {
           return "" + argument;
         }
-        __name(ToString, "ToString");
         function ToPropertyKey(argument) {
           var key2 = ToPrimitive(
             argument,
@@ -474,19 +440,15 @@ var require_Reflect = __commonJS({
             return key2;
           return ToString(key2);
         }
-        __name(ToPropertyKey, "ToPropertyKey");
         function IsArray(argument) {
           return Array.isArray ? Array.isArray(argument) : argument instanceof Object ? argument instanceof Array : Object.prototype.toString.call(argument) === "[object Array]";
         }
-        __name(IsArray, "IsArray");
         function IsCallable(argument) {
           return typeof argument === "function";
         }
-        __name(IsCallable, "IsCallable");
         function IsConstructor(argument) {
           return typeof argument === "function";
         }
-        __name(IsConstructor, "IsConstructor");
         function IsPropertyKey(argument) {
           switch (Type(argument)) {
             case 3:
@@ -497,11 +459,9 @@ var require_Reflect = __commonJS({
               return false;
           }
         }
-        __name(IsPropertyKey, "IsPropertyKey");
         function SameValueZero(x, y) {
           return x === y || x !== x && y !== y;
         }
-        __name(SameValueZero, "SameValueZero");
         function GetMethod(V, P) {
           var func = V[P];
           if (func === void 0 || func === null)
@@ -510,7 +470,6 @@ var require_Reflect = __commonJS({
             throw new TypeError();
           return func;
         }
-        __name(GetMethod, "GetMethod");
         function GetIterator(obj) {
           var method = GetMethod(obj, iteratorSymbol);
           if (!IsCallable(method))
@@ -520,22 +479,18 @@ var require_Reflect = __commonJS({
             throw new TypeError();
           return iterator;
         }
-        __name(GetIterator, "GetIterator");
         function IteratorValue(iterResult) {
           return iterResult.value;
         }
-        __name(IteratorValue, "IteratorValue");
         function IteratorStep(iterator) {
           var result = iterator.next();
           return result.done ? false : result;
         }
-        __name(IteratorStep, "IteratorStep");
         function IteratorClose(iterator) {
           var f = iterator["return"];
           if (f)
             f.call(iterator);
         }
-        __name(IteratorClose, "IteratorClose");
         function OrdinaryGetPrototypeOf(O) {
           var proto = Object.getPrototypeOf(O);
           if (typeof O !== "function" || O === functionPrototype)
@@ -553,7 +508,6 @@ var require_Reflect = __commonJS({
             return proto;
           return constructor;
         }
-        __name(OrdinaryGetPrototypeOf, "OrdinaryGetPrototypeOf");
         function CreateMetadataRegistry() {
           var fallback;
           if (!IsUndefined(registrySymbol) && typeof root2.Reflect !== "undefined" && !(registrySymbol in root2.Reflect) && typeof root2.Reflect.defineMetadata === "function") {
@@ -593,7 +547,6 @@ var require_Reflect = __commonJS({
                 break;
             }
           }
-          __name(registerProvider, "registerProvider");
           function getProviderNoCache(O, P) {
             if (!IsUndefined(first)) {
               if (first.isProviderFor(O, P))
@@ -622,7 +575,6 @@ var require_Reflect = __commonJS({
             }
             return void 0;
           }
-          __name(getProviderNoCache, "getProviderNoCache");
           function getProvider(O, P) {
             var providerMap = targetProviderMap.get(O);
             var provider;
@@ -642,13 +594,11 @@ var require_Reflect = __commonJS({
             }
             return provider;
           }
-          __name(getProvider, "getProvider");
           function hasProvider(provider) {
             if (IsUndefined(provider))
               throw new TypeError();
             return first === provider || second === provider || !IsUndefined(rest) && rest.has(provider);
           }
-          __name(hasProvider, "hasProvider");
           function setProvider(O, P, provider) {
             if (!hasProvider(provider)) {
               throw new Error("Metadata provider not registered.");
@@ -667,9 +617,7 @@ var require_Reflect = __commonJS({
             }
             return true;
           }
-          __name(setProvider, "setProvider");
         }
-        __name(CreateMetadataRegistry, "CreateMetadataRegistry");
         function GetOrCreateMetadataRegistry() {
           var metadataRegistry2;
           if (!IsUndefined(registrySymbol) && IsObject(root2.Reflect) && Object.isExtensible(root2.Reflect)) {
@@ -688,16 +636,15 @@ var require_Reflect = __commonJS({
           }
           return metadataRegistry2;
         }
-        __name(GetOrCreateMetadataRegistry, "GetOrCreateMetadataRegistry");
         function CreateMetadataProvider(registry) {
           var metadata2 = new _WeakMap();
           var provider = {
-            isProviderFor: /* @__PURE__ */ __name(function(O, P) {
+            isProviderFor: function(O, P) {
               var targetMetadata = metadata2.get(O);
               if (IsUndefined(targetMetadata))
                 return false;
               return targetMetadata.has(P);
-            }, "isProviderFor"),
+            },
             OrdinaryDefineOwnMetadata: OrdinaryDefineOwnMetadata2,
             OrdinaryHasOwnMetadata: OrdinaryHasOwnMetadata2,
             OrdinaryGetOwnMetadata: OrdinaryGetOwnMetadata2,
@@ -732,7 +679,6 @@ var require_Reflect = __commonJS({
             }
             return metadataMap;
           }
-          __name(GetOrCreateMetadataMap, "GetOrCreateMetadataMap");
           function OrdinaryHasOwnMetadata2(MetadataKey, O, P) {
             var metadataMap = GetOrCreateMetadataMap(
               O,
@@ -744,7 +690,6 @@ var require_Reflect = __commonJS({
               return false;
             return ToBoolean(metadataMap.has(MetadataKey));
           }
-          __name(OrdinaryHasOwnMetadata2, "OrdinaryHasOwnMetadata");
           function OrdinaryGetOwnMetadata2(MetadataKey, O, P) {
             var metadataMap = GetOrCreateMetadataMap(
               O,
@@ -756,7 +701,6 @@ var require_Reflect = __commonJS({
               return void 0;
             return metadataMap.get(MetadataKey);
           }
-          __name(OrdinaryGetOwnMetadata2, "OrdinaryGetOwnMetadata");
           function OrdinaryDefineOwnMetadata2(MetadataKey, MetadataValue, O, P) {
             var metadataMap = GetOrCreateMetadataMap(
               O,
@@ -766,7 +710,6 @@ var require_Reflect = __commonJS({
             );
             metadataMap.set(MetadataKey, MetadataValue);
           }
-          __name(OrdinaryDefineOwnMetadata2, "OrdinaryDefineOwnMetadata");
           function OrdinaryOwnMetadataKeys2(O, P) {
             var keys2 = [];
             var metadataMap = GetOrCreateMetadataMap(
@@ -799,7 +742,6 @@ var require_Reflect = __commonJS({
               k++;
             }
           }
-          __name(OrdinaryOwnMetadataKeys2, "OrdinaryOwnMetadataKeys");
           function OrdinaryDeleteMetadata(MetadataKey, O, P) {
             var metadataMap = GetOrCreateMetadataMap(
               O,
@@ -822,14 +764,12 @@ var require_Reflect = __commonJS({
             }
             return true;
           }
-          __name(OrdinaryDeleteMetadata, "OrdinaryDeleteMetadata");
         }
-        __name(CreateMetadataProvider, "CreateMetadataProvider");
         function CreateFallbackProvider(reflect) {
           var defineMetadata2 = reflect.defineMetadata, hasOwnMetadata2 = reflect.hasOwnMetadata, getOwnMetadata2 = reflect.getOwnMetadata, getOwnMetadataKeys2 = reflect.getOwnMetadataKeys, deleteMetadata2 = reflect.deleteMetadata;
           var metadataOwner = new _WeakMap();
           var provider = {
-            isProviderFor: /* @__PURE__ */ __name(function(O, P) {
+            isProviderFor: function(O, P) {
               var metadataPropertySet = metadataOwner.get(O);
               if (!IsUndefined(metadataPropertySet) && metadataPropertySet.has(P)) {
                 return true;
@@ -843,7 +783,7 @@ var require_Reflect = __commonJS({
                 return true;
               }
               return false;
-            }, "isProviderFor"),
+            },
             OrdinaryDefineOwnMetadata: defineMetadata2,
             OrdinaryHasOwnMetadata: hasOwnMetadata2,
             OrdinaryGetOwnMetadata: getOwnMetadata2,
@@ -852,7 +792,6 @@ var require_Reflect = __commonJS({
           };
           return provider;
         }
-        __name(CreateFallbackProvider, "CreateFallbackProvider");
         function GetMetadataProvider(O, P, Create) {
           var registeredProvider = metadataRegistry.getProvider(O, P);
           if (!IsUndefined(registeredProvider)) {
@@ -866,7 +805,6 @@ var require_Reflect = __commonJS({
           }
           return void 0;
         }
-        __name(GetMetadataProvider, "GetMetadataProvider");
         function CreateMapPolyfill() {
           var cacheSentinel = {};
           var arraySentinel = [];
@@ -879,7 +817,6 @@ var require_Reflect = __commonJS({
                 this._values = values;
                 this._selector = selector;
               }
-              __name(MapIterator2, "MapIterator");
               MapIterator2.prototype["@@iterator"] = function() {
                 return this;
               };
@@ -929,11 +866,10 @@ var require_Reflect = __commonJS({
                 this._cacheKey = cacheSentinel;
                 this._cacheIndex = -2;
               }
-              __name(Map4, "Map");
               Object.defineProperty(Map4.prototype, "size", {
-                get: /* @__PURE__ */ __name(function() {
+                get: function() {
                   return this._keys.length;
-                }, "get"),
+                },
                 enumerable: true,
                 configurable: true
               });
@@ -1028,17 +964,13 @@ var require_Reflect = __commonJS({
           function getKey(key2, _) {
             return key2;
           }
-          __name(getKey, "getKey");
           function getValue2(_, value) {
             return value;
           }
-          __name(getValue2, "getValue");
           function getEntry(key2, value) {
             return [key2, value];
           }
-          __name(getEntry, "getEntry");
         }
-        __name(CreateMapPolyfill, "CreateMapPolyfill");
         function CreateSetPolyfill() {
           var Set3 = (
             /** @class */
@@ -1046,11 +978,10 @@ var require_Reflect = __commonJS({
               function Set4() {
                 this._map = new _Map();
               }
-              __name(Set4, "Set");
               Object.defineProperty(Set4.prototype, "size", {
-                get: /* @__PURE__ */ __name(function() {
+                get: function() {
                   return this._map.size;
-                }, "get"),
+                },
                 enumerable: true,
                 configurable: true
               });
@@ -1086,7 +1017,6 @@ var require_Reflect = __commonJS({
           );
           return Set3;
         }
-        __name(CreateSetPolyfill, "CreateSetPolyfill");
         function CreateWeakMapPolyfill() {
           var UUID_SIZE = 16;
           var keys2 = HashMap.create();
@@ -1097,7 +1027,6 @@ var require_Reflect = __commonJS({
               function WeakMap3() {
                 this._key = CreateUniqueKey();
               }
-              __name(WeakMap3, "WeakMap");
               WeakMap3.prototype.has = function(target) {
                 var table = GetOrCreateWeakMapTable(
                   target,
@@ -1145,7 +1074,6 @@ var require_Reflect = __commonJS({
             keys2[key2] = true;
             return key2;
           }
-          __name(CreateUniqueKey, "CreateUniqueKey");
           function GetOrCreateWeakMapTable(target, create) {
             if (!hasOwn.call(target, rootKey)) {
               if (!create)
@@ -1154,13 +1082,11 @@ var require_Reflect = __commonJS({
             }
             return target[rootKey];
           }
-          __name(GetOrCreateWeakMapTable, "GetOrCreateWeakMapTable");
           function FillRandomBytes(buffer, size) {
             for (var i = 0; i < size; ++i)
               buffer[i] = Math.random() * 255 | 0;
             return buffer;
           }
-          __name(FillRandomBytes, "FillRandomBytes");
           function GenRandomBytes(size) {
             if (typeof Uint8Array === "function") {
               var array = new Uint8Array(size);
@@ -1175,7 +1101,6 @@ var require_Reflect = __commonJS({
             }
             return FillRandomBytes(new Array(size), size);
           }
-          __name(GenRandomBytes, "GenRandomBytes");
           function CreateUUID() {
             var data = GenRandomBytes(UUID_SIZE);
             data[6] = data[6] & 79 | 64;
@@ -1191,15 +1116,12 @@ var require_Reflect = __commonJS({
             }
             return result;
           }
-          __name(CreateUUID, "CreateUUID");
         }
-        __name(CreateWeakMapPolyfill, "CreateWeakMapPolyfill");
         function MakeDictionary(obj) {
           obj.__ = void 0;
           delete obj.__;
           return obj;
         }
-        __name(MakeDictionary, "MakeDictionary");
       });
     })(Reflect2 || (Reflect2 = {}));
   }
@@ -1224,7 +1146,7 @@ var require_compiler = __commonJS({
         "&": 11,
         "_t": 12
       };
-      Hogan4.scan = /* @__PURE__ */ __name(function scan(text, delimiters) {
+      Hogan4.scan = function scan(text, delimiters) {
         var len = text.length, IN_TEXT = 0, IN_TAG_TYPE = 1, IN_TAG = 2, state = IN_TEXT, tagType = null, tag = null, buf = "", tokens = [], seenTag = false, i = 0, lineStart = 0, otag = "{{", ctag = "}}";
         function addBuf() {
           if (buf.length > 0) {
@@ -1232,7 +1154,6 @@ var require_compiler = __commonJS({
             buf = "";
           }
         }
-        __name(addBuf, "addBuf");
         function lineIsWhitespace() {
           var isAllWhitespace = true;
           for (var j = lineStart; j < tokens.length; j++) {
@@ -1243,7 +1164,6 @@ var require_compiler = __commonJS({
           }
           return isAllWhitespace;
         }
-        __name(lineIsWhitespace, "lineIsWhitespace");
         function filterLine(haveSeenTag, noNewLine) {
           addBuf();
           if (haveSeenTag && lineIsWhitespace()) {
@@ -1261,7 +1181,6 @@ var require_compiler = __commonJS({
           seenTag = false;
           lineStart = tokens.length;
         }
-        __name(filterLine, "filterLine");
         function changeDelimiters(text2, index) {
           var close = "=" + ctag, closeIndex = text2.indexOf(close, index), delimiters2 = trim(
             text2.substring(text2.indexOf("=", index) + 1, closeIndex)
@@ -1270,7 +1189,6 @@ var require_compiler = __commonJS({
           ctag = delimiters2[delimiters2.length - 1];
           return closeIndex + close.length - 1;
         }
-        __name(changeDelimiters, "changeDelimiters");
         if (delimiters) {
           delimiters = delimiters.split(" ");
           otag = delimiters[0];
@@ -1329,20 +1247,18 @@ var require_compiler = __commonJS({
         }
         filterLine(seenTag, true);
         return tokens;
-      }, "scan");
-      function cleanTripleStache(token) {
-        if (token.n.substr(token.n.length - 1) === "}") {
-          token.n = token.n.substring(0, token.n.length - 1);
+      };
+      function cleanTripleStache(token2) {
+        if (token2.n.substr(token2.n.length - 1) === "}") {
+          token2.n = token2.n.substring(0, token2.n.length - 1);
         }
       }
-      __name(cleanTripleStache, "cleanTripleStache");
       function trim(s) {
         if (s.trim) {
           return s.trim();
         }
         return s.replace(/^\s*|\s*$/g, "");
       }
-      __name(trim, "trim");
       function tagChange(tag, text, index) {
         if (text.charAt(index) != tag.charAt(0)) {
           return false;
@@ -1354,49 +1270,46 @@ var require_compiler = __commonJS({
         }
         return true;
       }
-      __name(tagChange, "tagChange");
       var allowedInSuper = { "_t": true, "\n": true, "$": true, "/": true };
       function buildTree(tokens, kind, stack, customTags) {
-        var instructions = [], opener = null, tail = null, token = null;
+        var instructions = [], opener = null, tail = null, token2 = null;
         tail = stack[stack.length - 1];
         while (tokens.length > 0) {
-          token = tokens.shift();
-          if (tail && tail.tag == "<" && !(token.tag in allowedInSuper)) {
+          token2 = tokens.shift();
+          if (tail && tail.tag == "<" && !(token2.tag in allowedInSuper)) {
             throw new Error("Illegal content in < super tag.");
           }
-          if (Hogan4.tags[token.tag] <= Hogan4.tags["$"] || isOpener(token, customTags)) {
-            stack.push(token);
-            token.nodes = buildTree(tokens, token.tag, stack, customTags);
-          } else if (token.tag == "/") {
+          if (Hogan4.tags[token2.tag] <= Hogan4.tags["$"] || isOpener(token2, customTags)) {
+            stack.push(token2);
+            token2.nodes = buildTree(tokens, token2.tag, stack, customTags);
+          } else if (token2.tag == "/") {
             if (stack.length === 0) {
-              throw new Error("Closing tag without opener: /" + token.n);
+              throw new Error("Closing tag without opener: /" + token2.n);
             }
             opener = stack.pop();
-            if (token.n != opener.n && !isCloser(token.n, opener.n, customTags)) {
-              throw new Error("Nesting error: " + opener.n + " vs. " + token.n);
+            if (token2.n != opener.n && !isCloser(token2.n, opener.n, customTags)) {
+              throw new Error("Nesting error: " + opener.n + " vs. " + token2.n);
             }
-            opener.end = token.i;
+            opener.end = token2.i;
             return instructions;
-          } else if (token.tag == "\n") {
-            token.last = tokens.length == 0 || tokens[0].tag == "\n";
+          } else if (token2.tag == "\n") {
+            token2.last = tokens.length == 0 || tokens[0].tag == "\n";
           }
-          instructions.push(token);
+          instructions.push(token2);
         }
         if (stack.length > 0) {
           throw new Error("missing closing tag: " + stack.pop().n);
         }
         return instructions;
       }
-      __name(buildTree, "buildTree");
-      function isOpener(token, tags) {
+      function isOpener(token2, tags) {
         for (var i = 0, l = tags.length; i < l; i++) {
-          if (tags[i].o == token.n) {
-            token.tag = "#";
+          if (tags[i].o == token2.n) {
+            token2.tag = "#";
             return true;
           }
         }
       }
-      __name(isOpener, "isOpener");
       function isCloser(close, open, tags) {
         for (var i = 0, l = tags.length; i < l; i++) {
           if (tags[i].c == close && tags[i].o == open) {
@@ -1404,7 +1317,6 @@ var require_compiler = __commonJS({
           }
         }
       }
-      __name(isCloser, "isCloser");
       function stringifySubstitutions(obj) {
         var items = [];
         for (var key2 in obj) {
@@ -1412,7 +1324,6 @@ var require_compiler = __commonJS({
         }
         return "{ " + items.join(",") + " }";
       }
-      __name(stringifySubstitutions, "stringifySubstitutions");
       function stringifyPartials(codeObj) {
         var partials = [];
         for (var key2 in codeObj.partials) {
@@ -1420,7 +1331,6 @@ var require_compiler = __commonJS({
         }
         return "partials: {" + partials.join(",") + "}, subs: " + stringifySubstitutions(codeObj.subs);
       }
-      __name(stringifyPartials, "stringifyPartials");
       Hogan4.stringify = function(codeObj, text, options) {
         return "{code: function (c,p,i) { " + Hogan4.wrapMain(codeObj.code) + " }," + stringifyPartials(codeObj) + "}";
       };
@@ -1456,11 +1366,9 @@ var require_compiler = __commonJS({
       function esc(s) {
         return s.replace(rSlash, "\\\\").replace(rQuot, '\\"').replace(rNewline, "\\n").replace(rCr, "\\r").replace(rLineSep, "\\u2028").replace(rParagraphSep, "\\u2029");
       }
-      __name(esc, "esc");
       function chooseMethod(s) {
         return ~s.indexOf(".") ? "d" : "f";
       }
-      __name(chooseMethod, "chooseMethod");
       function createPartial(node, context) {
         var prefix = "<" + (context.prefix || "");
         var sym = prefix + node.n + serialNo++;
@@ -1468,54 +1376,51 @@ var require_compiler = __commonJS({
         context.code += 't.b(t.rp("' + esc(sym) + '",c,p,"' + (node.indent || "") + '"));';
         return sym;
       }
-      __name(createPartial, "createPartial");
       Hogan4.codegen = {
-        "#": /* @__PURE__ */ __name(function(node, context) {
+        "#": function(node, context) {
           context.code += "if(t.s(t." + chooseMethod(node.n) + '("' + esc(node.n) + '",c,p,1),c,p,0,' + node.i + "," + node.end + ',"' + node.otag + " " + node.ctag + '")){t.rs(c,p,function(c,p,t){';
           Hogan4.walk(node.nodes, context);
           context.code += "});c.pop();}";
-        }, "#"),
-        "^": /* @__PURE__ */ __name(function(node, context) {
+        },
+        "^": function(node, context) {
           context.code += "if(!t.s(t." + chooseMethod(node.n) + '("' + esc(node.n) + '",c,p,1),c,p,1,0,0,"")){';
           Hogan4.walk(node.nodes, context);
           context.code += "};";
-        }, "^"),
+        },
         ">": createPartial,
-        "<": /* @__PURE__ */ __name(function(node, context) {
+        "<": function(node, context) {
           var ctx = { partials: {}, code: "", subs: {}, inPartial: true };
           Hogan4.walk(node.nodes, ctx);
           var template = context.partials[createPartial(node, context)];
           template.subs = ctx.subs;
           template.partials = ctx.partials;
-        }, "<"),
-        "$": /* @__PURE__ */ __name(function(node, context) {
+        },
+        "$": function(node, context) {
           var ctx = { subs: {}, code: "", partials: context.partials, prefix: node.n };
           Hogan4.walk(node.nodes, ctx);
           context.subs[node.n] = ctx.code;
           if (!context.inPartial) {
             context.code += 't.sub("' + esc(node.n) + '",c,p,i);';
           }
-        }, "$"),
-        "\n": /* @__PURE__ */ __name(function(node, context) {
+        },
+        "\n": function(node, context) {
           context.code += write('"\\n"' + (node.last ? "" : " + i"));
-        }, "\n"),
-        "_v": /* @__PURE__ */ __name(function(node, context) {
+        },
+        "_v": function(node, context) {
           context.code += "t.b(t.v(t." + chooseMethod(node.n) + '("' + esc(node.n) + '",c,p,0)));';
-        }, "_v"),
-        "_t": /* @__PURE__ */ __name(function(node, context) {
+        },
+        "_t": function(node, context) {
           context.code += write('"' + esc(node.text) + '"');
-        }, "_t"),
+        },
         "{": tripleStache,
         "&": tripleStache
       };
       function tripleStache(node, context) {
         context.code += "t.b(t.t(t." + chooseMethod(node.n) + '("' + esc(node.n) + '",c,p,0)));';
       }
-      __name(tripleStache, "tripleStache");
       function write(s) {
         return "t.b(" + s + ");";
       }
-      __name(write, "write");
       Hogan4.walk = function(nodelist, context) {
         var func;
         for (var i = 0, l = nodelist.length; i < l; i++) {
@@ -1567,22 +1472,22 @@ var require_template = __commonJS({
       };
       Hogan5.Template.prototype = {
         // render: replaced by generated code.
-        r: /* @__PURE__ */ __name(function(context, partials, indent) {
+        r: function(context, partials, indent) {
           return "";
-        }, "r"),
+        },
         // variable escaping
         v: hoganEscape,
         // triple stache
         t: coerceToString,
-        render: /* @__PURE__ */ __name(function render(context, partials, indent) {
+        render: function render(context, partials, indent) {
           return this.ri([context], partials || {}, indent);
-        }, "render"),
+        },
         // render internal -- a hook for overrides that catches partials too
-        ri: /* @__PURE__ */ __name(function(context, partials, indent) {
+        ri: function(context, partials, indent) {
           return this.r(context, partials, indent);
-        }, "ri"),
+        },
         // ensurePartial
-        ep: /* @__PURE__ */ __name(function(symbol, partials) {
+        ep: function(symbol, partials) {
           var partial = this.partials[symbol];
           var template = partials[partial.name];
           if (partial.instance && partial.base == template) {
@@ -1616,17 +1521,17 @@ var require_template = __commonJS({
           }
           this.partials[symbol].instance = template;
           return template;
-        }, "ep"),
+        },
         // tries to find a partial in the current scope and render it
-        rp: /* @__PURE__ */ __name(function(symbol, context, partials, indent) {
+        rp: function(symbol, context, partials, indent) {
           var partial = this.ep(symbol, partials);
           if (!partial) {
             return "";
           }
           return partial.ri(context, partials, indent);
-        }, "rp"),
+        },
         // render a section
-        rs: /* @__PURE__ */ __name(function(context, partials, section) {
+        rs: function(context, partials, section) {
           var tail = context[context.length - 1];
           if (!isArray2(tail)) {
             section(context, partials, this);
@@ -1637,9 +1542,9 @@ var require_template = __commonJS({
             section(context, partials, this);
             context.pop();
           }
-        }, "rs"),
+        },
         // maybe start a section
-        s: /* @__PURE__ */ __name(function(val, ctx, partials, inverted, start, end, tags) {
+        s: function(val, ctx, partials, inverted, start, end, tags) {
           var pass;
           if (isArray2(val) && val.length === 0) {
             return false;
@@ -1652,9 +1557,9 @@ var require_template = __commonJS({
             ctx.push(typeof val == "object" ? val : ctx[ctx.length - 1]);
           }
           return pass;
-        }, "s"),
+        },
         // find values with dotted names
-        d: /* @__PURE__ */ __name(function(key2, ctx, partials, returnFound) {
+        d: function(key2, ctx, partials, returnFound) {
           var found, names = key2.split("."), val = this.f(names[0], ctx, partials, returnFound), doModelGet = this.options.modelGet, cx = null;
           if (key2 === "." && isArray2(ctx[ctx.length - 2])) {
             val = ctx[ctx.length - 1];
@@ -1678,9 +1583,9 @@ var require_template = __commonJS({
             ctx.pop();
           }
           return val;
-        }, "d"),
+        },
         // find values with normal names
-        f: /* @__PURE__ */ __name(function(key2, ctx, partials, returnFound) {
+        f: function(key2, ctx, partials, returnFound) {
           var val = false, v = null, found = false, doModelGet = this.options.modelGet;
           for (var i = ctx.length - 1; i >= 0; i--) {
             v = ctx[i];
@@ -1697,33 +1602,33 @@ var require_template = __commonJS({
             val = this.mv(val, ctx, partials);
           }
           return val;
-        }, "f"),
+        },
         // higher order templates
-        ls: /* @__PURE__ */ __name(function(func, cx, ctx, partials, text, tags) {
+        ls: function(func, cx, ctx, partials, text, tags) {
           var oldTags = this.options.delimiters;
           this.options.delimiters = tags;
           this.b(this.ct(coerceToString(func.call(cx, text, ctx)), cx, partials));
           this.options.delimiters = oldTags;
           return false;
-        }, "ls"),
+        },
         // compile text
-        ct: /* @__PURE__ */ __name(function(text, cx, partials) {
+        ct: function(text, cx, partials) {
           if (this.options.disableLambda) {
             throw new Error("Lambda features disabled.");
           }
           return this.c.compile(text, this.options).render(cx, partials);
-        }, "ct"),
+        },
         // template result buffering
-        b: /* @__PURE__ */ __name(function(s) {
+        b: function(s) {
           this.buf += s;
-        }, "b"),
-        fl: /* @__PURE__ */ __name(function() {
+        },
+        fl: function() {
           var r = this.buf;
           this.buf = "";
           return r;
-        }, "fl"),
+        },
         // method replace section
-        ms: /* @__PURE__ */ __name(function(func, ctx, partials, inverted, start, end, tags) {
+        ms: function(func, ctx, partials, inverted, start, end, tags) {
           var textSource, cx = ctx[ctx.length - 1], result = func.call(cx);
           if (typeof result == "function") {
             if (inverted) {
@@ -1734,24 +1639,24 @@ var require_template = __commonJS({
             }
           }
           return result;
-        }, "ms"),
+        },
         // method replace variable
-        mv: /* @__PURE__ */ __name(function(func, ctx, partials) {
+        mv: function(func, ctx, partials) {
           var cx = ctx[ctx.length - 1];
           var result = func.call(cx);
           if (typeof result == "function") {
             return this.ct(coerceToString(result.call(cx)), cx, partials);
           }
           return result;
-        }, "mv"),
-        sub: /* @__PURE__ */ __name(function(name, context, partials, indent) {
+        },
+        sub: function(name, context, partials, indent) {
           var f = this.subs[name];
           if (f) {
             this.activeSub = name;
             f(context, partials, this, indent);
             this.activeSub = false;
           }
-        }, "sub")
+        }
       };
       function findInScope(key2, scope, doModelGet) {
         var val;
@@ -1764,16 +1669,13 @@ var require_template = __commonJS({
         }
         return val;
       }
-      __name(findInScope, "findInScope");
       function createSpecializedPartial(instance, subs, partials, stackSubs, stackPartials, stackText) {
         function PartialTemplate() {
         }
-        __name(PartialTemplate, "PartialTemplate");
         ;
         PartialTemplate.prototype = instance;
         function Substitutions() {
         }
-        __name(Substitutions, "Substitutions");
         ;
         Substitutions.prototype = instance.subs;
         var key2;
@@ -1800,17 +1702,14 @@ var require_template = __commonJS({
         }
         return partial;
       }
-      __name(createSpecializedPartial, "createSpecializedPartial");
       var rAmp = /&/g, rLt = /</g, rGt = />/g, rApos = /\'/g, rQuot = /\"/g, hChars = /[&<>\"\']/;
       function coerceToString(val) {
         return String(val === null || val === void 0 ? "" : val);
       }
-      __name(coerceToString, "coerceToString");
       function hoganEscape(str) {
         str = coerceToString(str);
         return hChars.test(str) ? str.replace(rAmp, "&amp;").replace(rLt, "&lt;").replace(rGt, "&gt;").replace(rApos, "&#39;").replace(rQuot, "&quot;") : str;
       }
-      __name(hoganEscape, "hoganEscape");
       var isArray2 = Array.isArray || function(a) {
         return Object.prototype.toString.call(a) === "[object Array]";
       };
@@ -1836,7 +1735,6 @@ var require_eventemitter3 = __commonJS({
     var prefix = "~";
     function Events() {
     }
-    __name(Events, "Events");
     if (Object.create) {
       Events.prototype = /* @__PURE__ */ Object.create(null);
       if (!new Events().__proto__) prefix = false;
@@ -1846,7 +1744,6 @@ var require_eventemitter3 = __commonJS({
       this.context = context;
       this.once = once || false;
     }
-    __name(EE, "EE");
     function addListener(emitter, event, fn, context, once) {
       if (typeof fn !== "function") {
         throw new TypeError("The listener must be a function");
@@ -1857,18 +1754,15 @@ var require_eventemitter3 = __commonJS({
       else emitter._events[evt] = [emitter._events[evt], listener];
       return emitter;
     }
-    __name(addListener, "addListener");
     function clearEvent(emitter, evt) {
       if (--emitter._eventsCount === 0) emitter._events = new Events();
       else delete emitter._events[evt];
     }
-    __name(clearEvent, "clearEvent");
     function EventEmitter2() {
       this._events = new Events();
       this._eventsCount = 0;
     }
-    __name(EventEmitter2, "EventEmitter");
-    EventEmitter2.prototype.eventNames = /* @__PURE__ */ __name(function eventNames() {
+    EventEmitter2.prototype.eventNames = function eventNames() {
       var names = [], events, name;
       if (this._eventsCount === 0) return names;
       for (name in events = this._events) {
@@ -1878,8 +1772,8 @@ var require_eventemitter3 = __commonJS({
         return names.concat(Object.getOwnPropertySymbols(events));
       }
       return names;
-    }, "eventNames");
-    EventEmitter2.prototype.listeners = /* @__PURE__ */ __name(function listeners(event) {
+    };
+    EventEmitter2.prototype.listeners = function listeners(event) {
       var evt = prefix ? prefix + event : event, handlers = this._events[evt];
       if (!handlers) return [];
       if (handlers.fn) return [handlers.fn];
@@ -1887,14 +1781,14 @@ var require_eventemitter3 = __commonJS({
         ee[i] = handlers[i].fn;
       }
       return ee;
-    }, "listeners");
-    EventEmitter2.prototype.listenerCount = /* @__PURE__ */ __name(function listenerCount(event) {
+    };
+    EventEmitter2.prototype.listenerCount = function listenerCount(event) {
       var evt = prefix ? prefix + event : event, listeners = this._events[evt];
       if (!listeners) return 0;
       if (listeners.fn) return 1;
       return listeners.length;
-    }, "listenerCount");
-    EventEmitter2.prototype.emit = /* @__PURE__ */ __name(function emit(event, a1, a2, a3, a4, a5) {
+    };
+    EventEmitter2.prototype.emit = function emit(event, a1, a2, a3, a4, a5) {
       var evt = prefix ? prefix + event : event;
       if (!this._events[evt]) return false;
       var listeners = this._events[evt], len = arguments.length, args, i;
@@ -1944,14 +1838,14 @@ var require_eventemitter3 = __commonJS({
         }
       }
       return true;
-    }, "emit");
-    EventEmitter2.prototype.on = /* @__PURE__ */ __name(function on(event, fn, context) {
+    };
+    EventEmitter2.prototype.on = function on(event, fn, context) {
       return addListener(this, event, fn, context, false);
-    }, "on");
-    EventEmitter2.prototype.once = /* @__PURE__ */ __name(function once(event, fn, context) {
+    };
+    EventEmitter2.prototype.once = function once(event, fn, context) {
       return addListener(this, event, fn, context, true);
-    }, "once");
-    EventEmitter2.prototype.removeListener = /* @__PURE__ */ __name(function removeListener(event, fn, context, once) {
+    };
+    EventEmitter2.prototype.removeListener = function removeListener(event, fn, context, once) {
       var evt = prefix ? prefix + event : event;
       if (!this._events[evt]) return this;
       if (!fn) {
@@ -1973,8 +1867,8 @@ var require_eventemitter3 = __commonJS({
         else clearEvent(this, evt);
       }
       return this;
-    }, "removeListener");
-    EventEmitter2.prototype.removeAllListeners = /* @__PURE__ */ __name(function removeAllListeners(event) {
+    };
+    EventEmitter2.prototype.removeAllListeners = function removeAllListeners(event) {
       var evt;
       if (event) {
         evt = prefix ? prefix + event : event;
@@ -1984,7 +1878,7 @@ var require_eventemitter3 = __commonJS({
         this._eventsCount = 0;
       }
       return this;
-    }, "removeAllListeners");
+    };
     EventEmitter2.prototype.off = EventEmitter2.prototype.removeListener;
     EventEmitter2.prototype.addListener = EventEmitter2.prototype.on;
     EventEmitter2.prefixed = prefix;
@@ -2165,7 +2059,7 @@ var import_state = require("@codemirror/state");
 var refreshDecorationsEffect = import_state.StateEffect.define();
 
 // src/commands/base.command.ts
-var _BaseCommand = class _BaseCommand {
+var BaseCommand = class {
   /**
    * Creates a new instance of BaseCommand.
    *
@@ -2175,11 +2069,9 @@ var _BaseCommand = class _BaseCommand {
     this.plugin = plugin;
   }
 };
-__name(_BaseCommand, "BaseCommand");
-var BaseCommand = _BaseCommand;
 
 // src/decorators/inject.decorator.ts
-var Inject = /* @__PURE__ */ __name((cls) => {
+var Inject = (cls) => {
   return (target, propertyKey) => {
     Reflect.defineMetadata("INJECT", true, target, propertyKey);
     Object.defineProperty(target, propertyKey, {
@@ -2195,10 +2087,10 @@ var Inject = /* @__PURE__ */ __name((cls) => {
       }
     });
   };
-}, "Inject");
+};
 
 // src/helpers/navigation.helper.ts
-var _NavigationHelper = class _NavigationHelper {
+var NavigationHelper = class _NavigationHelper {
   /**
    * Resolves the changed line to navigate to from the current cursor line.
    * Targets are strictly after (for 'next') or strictly before (for
@@ -2256,12 +2148,33 @@ var _NavigationHelper = class _NavigationHelper {
     return [...new Set(changedLines != null ? changedLines : [])].filter((line) => Number.isFinite(line)).sort((a, b) => a - b);
   }
 };
-__name(_NavigationHelper, "NavigationHelper");
-var NavigationHelper = _NavigationHelper;
+
+// src/services/tokens.ts
+var TOKEN_NAMES = /* @__PURE__ */ new Map();
+var token = (name) => {
+  const sym = Symbol(name);
+  TOKEN_NAMES.set(sym, name);
+  return sym;
+};
+var TOKENS = {
+  settings: token("SettingsService"),
+  i18n: token("I18nService"),
+  styles: token("StylesService"),
+  modals: token("ModalsService"),
+  extensions: token("ExtensionsService"),
+  statusbar: token("StatusbarService"),
+  commands: token("CommandsService"),
+  events: token("EventsService"),
+  snapshots: token("SnapshotsService"),
+  versionActions: token("VersionActionsService"),
+  persistence: token("PersistenceService"),
+  treeTabDecorator: token("TreeTabDecoratorService")
+};
+var tokenName = (sym) => TOKEN_NAMES.get(sym);
 
 // src/commands/go-to-next-change.command.ts
 var import_obsidian = require("obsidian");
-var _GoToNextChangeCommand = class _GoToNextChangeCommand extends BaseCommand {
+var GoToNextChangeCommand = class extends BaseCommand {
   constructor() {
     super(...arguments);
     /**
@@ -2281,7 +2194,7 @@ var _GoToNextChangeCommand = class _GoToNextChangeCommand extends BaseCommand {
      *
      * @param {Editor} editor - The active editor the command runs against
      */
-    this.editorCallback = /* @__PURE__ */ __name((editor) => {
+    this.editorCallback = (editor) => {
       var _a;
       const snapshot = this.snapshotsService.getOne();
       const positions = (_a = snapshot == null ? void 0 : snapshot.getChangedPositions()) != null ? _a : [];
@@ -2294,18 +2207,16 @@ var _GoToNextChangeCommand = class _GoToNextChangeCommand extends BaseCommand {
         return;
       }
       NavigationHelper.moveCursor(editor, target);
-    }, "editorCallback");
+    };
   }
 };
-__name(_GoToNextChangeCommand, "GoToNextChangeCommand");
 __decorateClass([
-  Inject("SnapshotsService")
-], _GoToNextChangeCommand.prototype, "snapshotsService", 2);
-var GoToNextChangeCommand = _GoToNextChangeCommand;
+  Inject(TOKENS.snapshots)
+], GoToNextChangeCommand.prototype, "snapshotsService", 2);
 
 // src/commands/go-to-previous-change.command.ts
 var import_obsidian2 = require("obsidian");
-var _GoToPreviousChangeCommand = class _GoToPreviousChangeCommand extends BaseCommand {
+var GoToPreviousChangeCommand = class extends BaseCommand {
   constructor() {
     super(...arguments);
     /**
@@ -2325,7 +2236,7 @@ var _GoToPreviousChangeCommand = class _GoToPreviousChangeCommand extends BaseCo
      *
      * @param {Editor} editor - The active editor the command runs against
      */
-    this.editorCallback = /* @__PURE__ */ __name((editor) => {
+    this.editorCallback = (editor) => {
       var _a;
       const snapshot = this.snapshotsService.getOne();
       const positions = (_a = snapshot == null ? void 0 : snapshot.getChangedPositions()) != null ? _a : [];
@@ -2339,18 +2250,16 @@ var _GoToPreviousChangeCommand = class _GoToPreviousChangeCommand extends BaseCo
         return;
       }
       NavigationHelper.moveCursor(editor, target);
-    }, "editorCallback");
+    };
   }
 };
-__name(_GoToPreviousChangeCommand, "GoToPreviousChangeCommand");
 __decorateClass([
-  Inject("SnapshotsService")
-], _GoToPreviousChangeCommand.prototype, "snapshotsService", 2);
-var GoToPreviousChangeCommand = _GoToPreviousChangeCommand;
+  Inject(TOKENS.snapshots)
+], GoToPreviousChangeCommand.prototype, "snapshotsService", 2);
 
 // src/commands/reset-lines-all.command.ts
 var import_obsidian3 = require("obsidian");
-var _ResetLinesAllCommand = class _ResetLinesAllCommand extends BaseCommand {
+var ResetLinesAllCommand = class extends BaseCommand {
   constructor() {
     super(...arguments);
     /**
@@ -2367,21 +2276,19 @@ var _ResetLinesAllCommand = class _ResetLinesAllCommand extends BaseCommand {
      * Callback function executed when the command is triggered.
      * Deletes all snapshots and shows a notification.
      */
-    this.callback = /* @__PURE__ */ __name(() => {
+    this.callback = () => {
       this.snapshotsService.wipe();
       new import_obsidian3.Notice(this.plugin.t("notice.all-snapshots-deleted"));
-    }, "callback");
+    };
   }
 };
-__name(_ResetLinesAllCommand, "ResetLinesAllCommand");
 __decorateClass([
-  Inject("SnapshotsService")
-], _ResetLinesAllCommand.prototype, "snapshotsService", 2);
-var ResetLinesAllCommand = _ResetLinesAllCommand;
+  Inject(TOKENS.snapshots)
+], ResetLinesAllCommand.prototype, "snapshotsService", 2);
 
 // src/commands/reset-lines.command.ts
 var import_obsidian4 = require("obsidian");
-var _ResetLinesCommand = class _ResetLinesCommand extends BaseCommand {
+var ResetLinesCommand = class extends BaseCommand {
   constructor() {
     super(...arguments);
     /**
@@ -2398,20 +2305,18 @@ var _ResetLinesCommand = class _ResetLinesCommand extends BaseCommand {
      * Callback function executed when the command is triggered in an editor context.
      * Deletes the snapshot for the current document and shows a notification.
      */
-    this.editorCallback = /* @__PURE__ */ __name(() => {
+    this.editorCallback = () => {
       this.snapshotsService.wipeOne();
       new import_obsidian4.Notice(this.plugin.t("notice.current-snapshot-deleted"));
-    }, "editorCallback");
+    };
   }
 };
-__name(_ResetLinesCommand, "ResetLinesCommand");
 __decorateClass([
-  Inject("SnapshotsService")
-], _ResetLinesCommand.prototype, "snapshotsService", 2);
-var ResetLinesCommand = _ResetLinesCommand;
+  Inject(TOKENS.snapshots)
+], ResetLinesCommand.prototype, "snapshotsService", 2);
 
 // src/commands/show-diff.command.ts
-var _ShowDiffCommand = class _ShowDiffCommand extends BaseCommand {
+var ShowDiffCommand = class extends BaseCommand {
   constructor() {
     super(...arguments);
     /**
@@ -2434,23 +2339,21 @@ var _ShowDiffCommand = class _ShowDiffCommand extends BaseCommand {
      * @param {boolean} checking - True when Obsidian is only querying availability
      * @return {boolean} True if the command is available for the active file
      */
-    this.checkCallback = /* @__PURE__ */ __name((checking) => {
+    this.checkCallback = (checking) => {
       const canDiff = this.modalService.canDiff();
       if (checking) {
         return canDiff;
       }
       return this.modalService.diff();
-    }, "checkCallback");
+    };
   }
 };
-__name(_ShowDiffCommand, "ShowDiffCommand");
 __decorateClass([
-  Inject("ModalsService")
-], _ShowDiffCommand.prototype, "modalService", 2);
-var ShowDiffCommand = _ShowDiffCommand;
+  Inject(TOKENS.modals)
+], ShowDiffCommand.prototype, "modalService", 2);
 
 // src/services/commands.service.ts
-var _CommandsService = class _CommandsService {
+var CommandsService = class {
   /**
    * Creates a new instance of CommandsService.
    *
@@ -2504,11 +2407,9 @@ var _CommandsService = class _CommandsService {
     return new ClsCConstructor(this.plugin);
   }
 };
-__name(_CommandsService, "CommandsService");
-var CommandsService = _CommandsService;
 
 // src/events/base.event.ts
-var _BaseEvent = class _BaseEvent {
+var BaseEvent = class {
   /**
    * Creates a new instance of BaseEvent.
    *
@@ -2599,12 +2500,10 @@ var _BaseEvent = class _BaseEvent {
     console.error(`Local history: event handler "${this.name}" failed`, error);
   }
 };
-__name(_BaseEvent, "BaseEvent");
-var BaseEvent = _BaseEvent;
 
 // src/events/vault/create.event.ts
 var import_obsidian5 = require("obsidian");
-var _VaultCreateEvent = class _VaultCreateEvent extends BaseEvent {
+var VaultCreateEvent = class extends BaseEvent {
   constructor() {
     super(...arguments);
     /**
@@ -2652,18 +2551,16 @@ var _VaultCreateEvent = class _VaultCreateEvent extends BaseEvent {
     }
   }
 };
-__name(_VaultCreateEvent, "VaultCreateEvent");
 __decorateClass([
-  Inject("SettingsService")
-], _VaultCreateEvent.prototype, "settingsService", 2);
+  Inject(TOKENS.settings)
+], VaultCreateEvent.prototype, "settingsService", 2);
 __decorateClass([
-  Inject("SnapshotsService")
-], _VaultCreateEvent.prototype, "snapshotsService", 2);
-var VaultCreateEvent = _VaultCreateEvent;
+  Inject(TOKENS.snapshots)
+], VaultCreateEvent.prototype, "snapshotsService", 2);
 
 // src/events/vault/delete.event.ts
 var import_obsidian6 = require("obsidian");
-var _VaultDeleteEvent = class _VaultDeleteEvent extends BaseEvent {
+var VaultDeleteEvent = class extends BaseEvent {
   constructor() {
     super(...arguments);
     /**
@@ -2686,15 +2583,13 @@ var _VaultDeleteEvent = class _VaultDeleteEvent extends BaseEvent {
     this.snapshotsService.removeFromIgnoreList(file);
   }
 };
-__name(_VaultDeleteEvent, "VaultDeleteEvent");
 __decorateClass([
-  Inject("SnapshotsService")
-], _VaultDeleteEvent.prototype, "snapshotsService", 2);
-var VaultDeleteEvent = _VaultDeleteEvent;
+  Inject(TOKENS.snapshots)
+], VaultDeleteEvent.prototype, "snapshotsService", 2);
 
 // src/events/vault/modify.event.ts
 var import_obsidian7 = require("obsidian");
-var _VaultModifyEvent = class _VaultModifyEvent extends BaseEvent {
+var VaultModifyEvent = class extends BaseEvent {
   constructor() {
     super(...arguments);
     /**
@@ -2720,14 +2615,12 @@ var _VaultModifyEvent = class _VaultModifyEvent extends BaseEvent {
     this.snapshotsService.scheduleExternalCapture(file);
   }
 };
-__name(_VaultModifyEvent, "VaultModifyEvent");
 __decorateClass([
-  Inject("SnapshotsService")
-], _VaultModifyEvent.prototype, "snapshotsService", 2);
-var VaultModifyEvent = _VaultModifyEvent;
+  Inject(TOKENS.snapshots)
+], VaultModifyEvent.prototype, "snapshotsService", 2);
 
 // src/helpers/path.helper.ts
-var _PathHelper = class _PathHelper {
+var PathHelper = class {
   /**
    * Returns the directory portion of a vault-relative path, without a trailing
    * slash. A path with no slash (a file at the vault root) returns an empty
@@ -2755,12 +2648,10 @@ var _PathHelper = class _PathHelper {
     return path.slice(0, lastSlash);
   }
 };
-__name(_PathHelper, "PathHelper");
-var PathHelper = _PathHelper;
 
 // src/events/vault/rename.event.ts
 var import_obsidian8 = require("obsidian");
-var _VaultRenameEvent = class _VaultRenameEvent extends BaseEvent {
+var VaultRenameEvent = class extends BaseEvent {
   constructor() {
     super(...arguments);
     /**
@@ -2788,14 +2679,12 @@ var _VaultRenameEvent = class _VaultRenameEvent extends BaseEvent {
     this.snapshotsService.markMoved(oldPath, file);
   }
 };
-__name(_VaultRenameEvent, "VaultRenameEvent");
 __decorateClass([
-  Inject("SnapshotsService")
-], _VaultRenameEvent.prototype, "snapshotsService", 2);
-var VaultRenameEvent = _VaultRenameEvent;
+  Inject(TOKENS.snapshots)
+], VaultRenameEvent.prototype, "snapshotsService", 2);
 
 // src/events/workspace/active-leaf-change.event.ts
-var _WorkspaceActiveLeafChangeEvent = class _WorkspaceActiveLeafChangeEvent extends BaseEvent {
+var WorkspaceActiveLeafChangeEvent = class extends BaseEvent {
   constructor() {
     super(...arguments);
     /**
@@ -2817,14 +2706,12 @@ var _WorkspaceActiveLeafChangeEvent = class _WorkspaceActiveLeafChangeEvent exte
     this.snapshotsService.forceUpdate();
   }
 };
-__name(_WorkspaceActiveLeafChangeEvent, "WorkspaceActiveLeafChangeEvent");
 __decorateClass([
-  Inject("SnapshotsService")
-], _WorkspaceActiveLeafChangeEvent.prototype, "snapshotsService", 2);
-var WorkspaceActiveLeafChangeEvent = _WorkspaceActiveLeafChangeEvent;
+  Inject(TOKENS.snapshots)
+], WorkspaceActiveLeafChangeEvent.prototype, "snapshotsService", 2);
 
 // src/helpers/menu.helper.ts
-var _MenuHelper = class _MenuHelper {
+var MenuHelper = class {
   /**
    * Attaches a child submenu to the given parent menu item and returns the
    * resulting `Menu` instance, fully typed. The returned menu accepts the usual
@@ -2838,11 +2725,9 @@ var _MenuHelper = class _MenuHelper {
     return item.setSubmenu();
   }
 };
-__name(_MenuHelper, "MenuHelper");
-var MenuHelper = _MenuHelper;
 
 // src/events/workspace/editor-menu.event.ts
-var _WorkspaceEditorMenuEvent = class _WorkspaceEditorMenuEvent extends BaseEvent {
+var WorkspaceEditorMenuEvent = class extends BaseEvent {
   constructor() {
     super(...arguments);
     /**
@@ -2887,14 +2772,12 @@ var _WorkspaceEditorMenuEvent = class _WorkspaceEditorMenuEvent extends BaseEven
     });
   }
 };
-__name(_WorkspaceEditorMenuEvent, "WorkspaceEditorMenuEvent");
 __decorateClass([
-  Inject("ModalsService")
-], _WorkspaceEditorMenuEvent.prototype, "modalService", 2);
-var WorkspaceEditorMenuEvent = _WorkspaceEditorMenuEvent;
+  Inject(TOKENS.modals)
+], WorkspaceEditorMenuEvent.prototype, "modalService", 2);
 
 // src/events/workspace/file-open.event.ts
-var _WorkspaceFileOpenEvent = class _WorkspaceFileOpenEvent extends BaseEvent {
+var WorkspaceFileOpenEvent = class extends BaseEvent {
   constructor() {
     super(...arguments);
     /**
@@ -2916,16 +2799,14 @@ var _WorkspaceFileOpenEvent = class _WorkspaceFileOpenEvent extends BaseEvent {
     void this.snapshotsService.capture(file);
   }
 };
-__name(_WorkspaceFileOpenEvent, "WorkspaceFileOpenEvent");
 __decorateClass([
-  Inject("SnapshotsService")
-], _WorkspaceFileOpenEvent.prototype, "snapshotsService", 2);
-var WorkspaceFileOpenEvent = _WorkspaceFileOpenEvent;
+  Inject(TOKENS.snapshots)
+], WorkspaceFileOpenEvent.prototype, "snapshotsService", 2);
 
 // src/events/workspace/files-menu.event.ts
 var import_obsidian9 = require("obsidian");
 var import_obsidian10 = require("obsidian");
-var _WorkspaceFilesMenuEvent = class _WorkspaceFilesMenuEvent extends BaseEvent {
+var WorkspaceFilesMenuEvent = class extends BaseEvent {
   constructor() {
     super(...arguments);
     /**
@@ -3007,14 +2888,12 @@ var _WorkspaceFilesMenuEvent = class _WorkspaceFilesMenuEvent extends BaseEvent 
     });
   }
 };
-__name(_WorkspaceFilesMenuEvent, "WorkspaceFilesMenuEvent");
 __decorateClass([
-  Inject("ModalsService")
-], _WorkspaceFilesMenuEvent.prototype, "modalService", 2);
-var WorkspaceFilesMenuEvent = _WorkspaceFilesMenuEvent;
+  Inject(TOKENS.modals)
+], WorkspaceFilesMenuEvent.prototype, "modalService", 2);
 
 // src/events/workspace/layout-change.event.ts
-var _WorkspaceLayoutChangeEvent = class _WorkspaceLayoutChangeEvent extends BaseEvent {
+var WorkspaceLayoutChangeEvent = class extends BaseEvent {
   constructor() {
     super(...arguments);
     /**
@@ -3075,17 +2954,15 @@ var _WorkspaceLayoutChangeEvent = class _WorkspaceLayoutChangeEvent extends Base
     return this.settingsService.value("keep") === "file" /* file */;
   }
 };
-__name(_WorkspaceLayoutChangeEvent, "WorkspaceLayoutChangeEvent");
 __decorateClass([
-  Inject("SnapshotsService")
-], _WorkspaceLayoutChangeEvent.prototype, "snapshotsService", 2);
+  Inject(TOKENS.snapshots)
+], WorkspaceLayoutChangeEvent.prototype, "snapshotsService", 2);
 __decorateClass([
-  Inject("SettingsService")
-], _WorkspaceLayoutChangeEvent.prototype, "settingsService", 2);
-var WorkspaceLayoutChangeEvent = _WorkspaceLayoutChangeEvent;
+  Inject(TOKENS.settings)
+], WorkspaceLayoutChangeEvent.prototype, "settingsService", 2);
 
 // src/events/workspace/viewport-menu.event.ts
-var _WorkspaceViewportMenuEvent = class _WorkspaceViewportMenuEvent extends BaseEvent {
+var WorkspaceViewportMenuEvent = class extends BaseEvent {
   constructor() {
     super(...arguments);
     /**
@@ -3113,14 +2990,12 @@ var _WorkspaceViewportMenuEvent = class _WorkspaceViewportMenuEvent extends Base
     });
   }
 };
-__name(_WorkspaceViewportMenuEvent, "WorkspaceViewportMenuEvent");
 __decorateClass([
-  Inject("SettingsService")
-], _WorkspaceViewportMenuEvent.prototype, "settingsService", 2);
-var WorkspaceViewportMenuEvent = _WorkspaceViewportMenuEvent;
+  Inject(TOKENS.settings)
+], WorkspaceViewportMenuEvent.prototype, "settingsService", 2);
 
 // src/services/events.service.ts
-var _EventsService = class _EventsService {
+var EventsService = class {
   /**
    * Creates a new instance of EventsService.
    *
@@ -3204,11 +3079,9 @@ var _EventsService = class _EventsService {
     return new ClsCConstructor(this.plugin);
   }
 };
-__name(_EventsService, "EventsService");
-var EventsService = _EventsService;
 
 // src/extensions/base.extension.ts
-var _BaseExtension = class _BaseExtension {
+var BaseExtension = class {
   /**
    * Creates a new instance of BaseExtension.
    *
@@ -3220,12 +3093,10 @@ var _BaseExtension = class _BaseExtension {
     this.plugin = plugin;
   }
 };
-__name(_BaseExtension, "BaseExtension");
-var BaseExtension = _BaseExtension;
 
 // src/extensions/change-detector.extension.ts
 var import_view = require("@codemirror/view");
-var _ChangeDetectorExtension = class _ChangeDetectorExtension extends BaseExtension {
+var ChangeDetectorExtension = class extends BaseExtension {
   constructor() {
     super(...arguments);
     /**
@@ -3345,19 +3216,17 @@ var _ChangeDetectorExtension = class _ChangeDetectorExtension extends BaseExtens
     };
   }
 };
-__name(_ChangeDetectorExtension, "ChangeDetectorExtension");
 __decorateClass([
-  Inject("SnapshotsService")
-], _ChangeDetectorExtension.prototype, "snapshotsService", 2);
+  Inject(TOKENS.snapshots)
+], ChangeDetectorExtension.prototype, "snapshotsService", 2);
 __decorateClass([
-  Inject("SettingsService")
-], _ChangeDetectorExtension.prototype, "settingsService", 2);
-var ChangeDetectorExtension = _ChangeDetectorExtension;
+  Inject(TOKENS.settings)
+], ChangeDetectorExtension.prototype, "settingsService", 2);
 
 // src/extensions/change-layer.extension.ts
 var import_view2 = require("@codemirror/view");
 var BAR_LEFT_OFFSET = 10;
-var _ChangeLayerExtension = class _ChangeLayerExtension {
+var ChangeLayerExtension = class {
   /**
    * Creates a new instance of ChangeLayerExtension.
    *
@@ -3379,8 +3248,8 @@ var _ChangeLayerExtension = class _ChangeLayerExtension {
     return (0, import_view2.layer)({
       above: false,
       class: "lct-change-layer",
-      update: /* @__PURE__ */ __name((update) => this.needsUpdate(update), "update"),
-      markers: /* @__PURE__ */ __name((view) => this.markers(view), "markers")
+      update: (update) => this.needsUpdate(update),
+      markers: (view) => this.markers(view)
     });
   }
   /**
@@ -3627,19 +3496,17 @@ var _ChangeLayerExtension = class _ChangeLayerExtension {
     ];
   }
 };
-__name(_ChangeLayerExtension, "ChangeLayerExtension");
 __decorateClass([
-  Inject("SettingsService")
-], _ChangeLayerExtension.prototype, "settingsService", 2);
+  Inject(TOKENS.settings)
+], ChangeLayerExtension.prototype, "settingsService", 2);
 __decorateClass([
-  Inject("SnapshotsService")
-], _ChangeLayerExtension.prototype, "snapshotsService", 2);
-var ChangeLayerExtension = _ChangeLayerExtension;
+  Inject(TOKENS.snapshots)
+], ChangeLayerExtension.prototype, "snapshotsService", 2);
 
 // src/extensions/editor-common.extension.ts
 var import_state2 = require("@codemirror/state");
 var import_view3 = require("@codemirror/view");
-var _EditorCommonExtension = class _EditorCommonExtension extends BaseExtension {
+var EditorCommonExtension = class extends BaseExtension {
   /**
    * Creates a new instance of EditorCommonExtension.
    * Builds the initial decoration set so a freshly opened view already
@@ -3713,7 +3580,9 @@ var _EditorCommonExtension = class _EditorCommonExtension extends BaseExtension 
         const change = (_a = changes == null ? void 0 : changes.get(line.number - 1)) != null ? _a : null;
         if (change) {
           const classNames = ["lct", `lct-${"line" /* line */}`];
-          change.getTypes().forEach((type) => {
+          const modify = change.getModify();
+          const types = modify === null ? change.getTypes() : change.getTypes().filter((type) => type !== "removed" /* removed */);
+          types.forEach((type) => {
             classNames.push(`lct-${type}`);
           });
           builder.add(line.from, line.from, import_view3.Decoration.line({
@@ -3751,17 +3620,15 @@ var _EditorCommonExtension = class _EditorCommonExtension extends BaseExtension 
     ];
   }
 };
-__name(_EditorCommonExtension, "EditorCommonExtension");
 __decorateClass([
-  Inject("SettingsService")
-], _EditorCommonExtension.prototype, "settingsService", 2);
+  Inject(TOKENS.settings)
+], EditorCommonExtension.prototype, "settingsService", 2);
 __decorateClass([
-  Inject("SnapshotsService")
-], _EditorCommonExtension.prototype, "snapshotsService", 2);
-var EditorCommonExtension = _EditorCommonExtension;
+  Inject(TOKENS.snapshots)
+], EditorCommonExtension.prototype, "snapshotsService", 2);
 
 // node_modules/diff/libesm/diff/base.js
-var _Diff = class _Diff {
+var Diff = class {
   diff(oldStr, newStr, options = {}) {
     let callback;
     if (typeof options === "function") {
@@ -3778,7 +3645,7 @@ var _Diff = class _Diff {
   }
   diffWithOptionsObj(oldTokens, newTokens, options, callback) {
     var _a;
-    const done = /* @__PURE__ */ __name((value) => {
+    const done = (value) => {
       value = this.postProcess(value, options);
       if (callback) {
         setTimeout(function() {
@@ -3788,7 +3655,7 @@ var _Diff = class _Diff {
       } else {
         return value;
       }
-    }, "done");
+    };
     const newLen = newTokens.length, oldLen = oldTokens.length;
     let editLength = 1;
     let maxEditLength = newLen + oldLen;
@@ -3803,7 +3670,7 @@ var _Diff = class _Diff {
       return done(this.buildValues(bestPath[0].lastComponent, newTokens, oldTokens));
     }
     let minDiagonalToConsider = -Infinity, maxDiagonalToConsider = Infinity;
-    const execEditLength = /* @__PURE__ */ __name(() => {
+    const execEditLength = () => {
       for (let diagonalPath = Math.max(minDiagonalToConsider, -editLength); diagonalPath <= Math.min(maxDiagonalToConsider, editLength); diagonalPath += 2) {
         let basePath;
         const removePath = bestPath[diagonalPath - 1], addPath = bestPath[diagonalPath + 1];
@@ -3839,9 +3706,9 @@ var _Diff = class _Diff {
         }
       }
       editLength++;
-    }, "execEditLength");
+    };
     if (callback) {
-      (/* @__PURE__ */ __name(function exec() {
+      (function exec() {
         setTimeout(function() {
           if (editLength > maxEditLength || Date.now() > abortAfterTimestamp) {
             return callback(void 0);
@@ -3850,7 +3717,7 @@ var _Diff = class _Diff {
             exec();
           }
         }, 0);
-      }, "exec"))();
+      })();
     } else {
       while (editLength <= maxEditLength && Date.now() <= abortAfterTimestamp) {
         const ret = execEditLength();
@@ -3961,8 +3828,6 @@ var _Diff = class _Diff {
     return components;
   }
 };
-__name(_Diff, "Diff");
-var Diff = _Diff;
 
 // node_modules/diff/libesm/util/string.js
 function longestCommonPrefix(str1, str2) {
@@ -3974,7 +3839,6 @@ function longestCommonPrefix(str1, str2) {
   }
   return str1.slice(0, i);
 }
-__name(longestCommonPrefix, "longestCommonPrefix");
 function longestCommonSuffix(str1, str2) {
   let i;
   if (!str1 || !str2 || str1[str1.length - 1] != str2[str2.length - 1]) {
@@ -3987,14 +3851,12 @@ function longestCommonSuffix(str1, str2) {
   }
   return str1.slice(-i);
 }
-__name(longestCommonSuffix, "longestCommonSuffix");
 function replacePrefix(string, oldPrefix, newPrefix) {
   if (string.slice(0, oldPrefix.length) != oldPrefix) {
     throw Error(`string ${JSON.stringify(string)} doesn't start with prefix ${JSON.stringify(oldPrefix)}; this is a bug`);
   }
   return newPrefix + string.slice(oldPrefix.length);
 }
-__name(replacePrefix, "replacePrefix");
 function replaceSuffix(string, oldSuffix, newSuffix) {
   if (!oldSuffix) {
     return string + newSuffix;
@@ -4004,19 +3866,15 @@ function replaceSuffix(string, oldSuffix, newSuffix) {
   }
   return string.slice(0, -oldSuffix.length) + newSuffix;
 }
-__name(replaceSuffix, "replaceSuffix");
 function removePrefix(string, oldPrefix) {
   return replacePrefix(string, oldPrefix, "");
 }
-__name(removePrefix, "removePrefix");
 function removeSuffix(string, oldSuffix) {
   return replaceSuffix(string, oldSuffix, "");
 }
-__name(removeSuffix, "removeSuffix");
 function maximumOverlap(string1, string2) {
   return string2.slice(0, overlapCount(string1, string2));
 }
-__name(maximumOverlap, "maximumOverlap");
 function overlapCount(a, b) {
   let startA = 0;
   if (a.length > b.length) {
@@ -4053,15 +3911,12 @@ function overlapCount(a, b) {
   }
   return k;
 }
-__name(overlapCount, "overlapCount");
 function hasOnlyWinLineEndings(string) {
   return string.includes("\r\n") && !string.startsWith("\n") && !string.match(/[^\r]\n/);
 }
-__name(hasOnlyWinLineEndings, "hasOnlyWinLineEndings");
 function hasOnlyUnixLineEndings(string) {
   return !string.includes("\r\n") && string.includes("\n");
 }
-__name(hasOnlyUnixLineEndings, "hasOnlyUnixLineEndings");
 function segment(string, segmenter) {
   const parts = [];
   for (const segmentObj of Array.from(segmenter.segment(string))) {
@@ -4074,7 +3929,6 @@ function segment(string, segmenter) {
   }
   return parts;
 }
-__name(segment, "segment");
 function trailingWs(string, segmenter) {
   if (segmenter) {
     return leadingAndTrailingWs(string, segmenter)[1];
@@ -4087,7 +3941,6 @@ function trailingWs(string, segmenter) {
   }
   return string.substring(i + 1);
 }
-__name(trailingWs, "trailingWs");
 function leadingWs(string, segmenter) {
   if (segmenter) {
     return leadingAndTrailingWs(string, segmenter)[0];
@@ -4095,7 +3948,6 @@ function leadingWs(string, segmenter) {
   const match = string.match(/^\s*/);
   return match ? match[0] : "";
 }
-__name(leadingWs, "leadingWs");
 function leadingAndTrailingWs(string, segmenter) {
   if (!segmenter) {
     return [leadingWs(string), trailingWs(string)];
@@ -4110,12 +3962,11 @@ function leadingAndTrailingWs(string, segmenter) {
   const tail = /\s/.test(lastSeg) ? lastSeg : "";
   return [head, tail];
 }
-__name(leadingAndTrailingWs, "leadingAndTrailingWs");
 
 // node_modules/diff/libesm/diff/word.js
 var extendedWordChars = "a-zA-Z0-9_\\u{AD}\\u{C0}-\\u{D6}\\u{D8}-\\u{F6}\\u{F8}-\\u{2C6}\\u{2C8}-\\u{2D7}\\u{2DE}-\\u{2FF}\\u{1E00}-\\u{1EFF}";
 var tokenizeIncludingWhitespace = new RegExp(`[${extendedWordChars}]+|\\s+|[^${extendedWordChars}]`, "ug");
-var _WordDiff = class _WordDiff extends Diff {
+var WordDiff = class extends Diff {
   equals(left, right, options) {
     if (options.ignoreCase) {
       left = left.toLowerCase();
@@ -4157,11 +4008,11 @@ var _WordDiff = class _WordDiff extends Diff {
     return tokens;
   }
   join(tokens) {
-    return tokens.map((token, i) => {
+    return tokens.map((token2, i) => {
       if (i == 0) {
-        return token;
+        return token2;
       } else {
-        return token.replace(/^\s+/, "");
+        return token2.replace(/^\s+/, "");
       }
     }).join("");
   }
@@ -4192,8 +4043,6 @@ var _WordDiff = class _WordDiff extends Diff {
     return changes;
   }
 };
-__name(_WordDiff, "WordDiff");
-var WordDiff = _WordDiff;
 var wordDiff = new WordDiff();
 function diffWords(oldStr, newStr, options) {
   if ((options === null || options === void 0 ? void 0 : options.ignoreWhitespace) != null && !options.ignoreWhitespace) {
@@ -4201,7 +4050,6 @@ function diffWords(oldStr, newStr, options) {
   }
   return wordDiff.diff(oldStr, newStr, options);
 }
-__name(diffWords, "diffWords");
 function dedupeWhitespaceInChangeObjects(startKeep, deletion, insertion, endKeep, segmenter) {
   if (deletion && insertion) {
     const [oldWsPrefix, oldWsSuffix] = leadingAndTrailingWs(deletion.value, segmenter);
@@ -4247,23 +4095,19 @@ function dedupeWhitespaceInChangeObjects(startKeep, deletion, insertion, endKeep
     deletion.value = removePrefix(deletion.value, overlap);
   }
 }
-__name(dedupeWhitespaceInChangeObjects, "dedupeWhitespaceInChangeObjects");
-var _WordsWithSpaceDiff = class _WordsWithSpaceDiff extends Diff {
+var WordsWithSpaceDiff = class extends Diff {
   tokenize(value) {
     const regex2 = new RegExp(`(\\r?\\n)|[${extendedWordChars}]+|[^\\S\\n\\r]+|[^${extendedWordChars}]`, "ug");
     return value.match(regex2) || [];
   }
 };
-__name(_WordsWithSpaceDiff, "WordsWithSpaceDiff");
-var WordsWithSpaceDiff = _WordsWithSpaceDiff;
 var wordsWithSpaceDiff = new WordsWithSpaceDiff();
 function diffWordsWithSpace(oldStr, newStr, options) {
   return wordsWithSpaceDiff.diff(oldStr, newStr, options);
 }
-__name(diffWordsWithSpace, "diffWordsWithSpace");
 
 // node_modules/diff/libesm/diff/line.js
-var _LineDiff = class _LineDiff extends Diff {
+var LineDiff = class extends Diff {
   constructor() {
     super(...arguments);
     this.tokenize = tokenize;
@@ -4287,13 +4131,10 @@ var _LineDiff = class _LineDiff extends Diff {
     return super.equals(left, right, options);
   }
 };
-__name(_LineDiff, "LineDiff");
-var LineDiff = _LineDiff;
 var lineDiff = new LineDiff();
 function diffLines(oldStr, newStr, options) {
   return lineDiff.diff(oldStr, newStr, options);
 }
-__name(diffLines, "diffLines");
 function tokenize(value, options) {
   if (options.stripTrailingCr) {
     value = value.replace(/\r\n/g, "\n");
@@ -4312,7 +4153,6 @@ function tokenize(value, options) {
   }
   return retLines;
 }
-__name(tokenize, "tokenize");
 
 // node_modules/diff/libesm/patch/line-endings.js
 function unixToWin(patch) {
@@ -4324,21 +4164,18 @@ function unixToWin(patch) {
     return line.startsWith("\\") || line.endsWith("\r") || ((_a = hunk.lines[i + 1]) === null || _a === void 0 ? void 0 : _a.startsWith("\\")) ? line : line + "\r";
   }) })) });
 }
-__name(unixToWin, "unixToWin");
 function winToUnix(patch) {
   if (Array.isArray(patch)) {
     return patch.map((p) => winToUnix(p));
   }
   return Object.assign(Object.assign({}, patch), { hunks: patch.hunks.map((hunk) => Object.assign(Object.assign({}, hunk), { lines: hunk.lines.map((line) => line.endsWith("\r") ? line.substring(0, line.length - 1) : line) })) });
 }
-__name(winToUnix, "winToUnix");
 function isUnix(patch) {
   if (!Array.isArray(patch)) {
     patch = [patch];
   }
   return !patch.some((index) => index.hunks.some((hunk) => hunk.lines.some((line) => !line.startsWith("\\") && line.endsWith("\r"))));
 }
-__name(isUnix, "isUnix");
 function isWin(patch) {
   if (!Array.isArray(patch)) {
     patch = [patch];
@@ -4348,7 +4185,6 @@ function isWin(patch) {
     return line.startsWith("\\") || line.endsWith("\r") || ((_a = hunk.lines[i + 1]) === null || _a === void 0 ? void 0 : _a.startsWith("\\"));
   })));
 }
-__name(isWin, "isWin");
 
 // node_modules/diff/libesm/patch/parse.js
 function parsePatch(uniDiff) {
@@ -4357,19 +4193,15 @@ function parsePatch(uniDiff) {
   function isGitDiffHeader(line) {
     return /^diff --git /.test(line);
   }
-  __name(isGitDiffHeader, "isGitDiffHeader");
   function isDiffHeader(line) {
     return isGitDiffHeader(line) || /^Index:\s/.test(line) || /^diff(?: -r \w+)+\s/.test(line);
   }
-  __name(isDiffHeader, "isDiffHeader");
   function isFileHeader(line) {
     return /^(---|\+\+\+)\s/.test(line);
   }
-  __name(isFileHeader, "isFileHeader");
   function isHunkHeader(line) {
     return /^@@\s/.test(line);
   }
-  __name(isHunkHeader, "isHunkHeader");
   function parseIndex() {
     var _a;
     const index = {};
@@ -4470,7 +4302,6 @@ function parsePatch(uniDiff) {
       }
     }
   }
-  __name(parseIndex, "parseIndex");
   function parseGitDiffHeader(line) {
     const rest = line.substring("diff --git ".length);
     if (rest.startsWith('"')) {
@@ -4526,7 +4357,6 @@ function parsePatch(uniDiff) {
     }
     return null;
   }
-  __name(parseGitDiffHeader, "parseGitDiffHeader");
   function unquoteIfQuoted(s) {
     if (s.startsWith('"')) {
       const parsed = parseQuotedFileName(s);
@@ -4536,7 +4366,6 @@ function parsePatch(uniDiff) {
     }
     return s;
   }
-  __name(unquoteIfQuoted, "unquoteIfQuoted");
   function parseQuotedFileName(s) {
     if (!s.startsWith('"')) {
       return null;
@@ -4617,7 +4446,6 @@ function parsePatch(uniDiff) {
     }
     return null;
   }
-  __name(parseQuotedFileName, "parseQuotedFileName");
   function parseFileHeader(index) {
     const fileHeaderMatch = /^(---|\+\+\+)\s+/.exec(diffstr[i]);
     if (fileHeaderMatch) {
@@ -4638,7 +4466,6 @@ function parsePatch(uniDiff) {
       i++;
     }
   }
-  __name(parseFileHeader, "parseFileHeader");
   function parseHunk() {
     var _a;
     const chunkHeaderIndex = i, chunkHeaderLine = diffstr[i++], chunkHeader = chunkHeaderLine.split(/@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/);
@@ -4689,18 +4516,16 @@ function parsePatch(uniDiff) {
     }
     return hunk;
   }
-  __name(parseHunk, "parseHunk");
   while (i < diffstr.length) {
     parseIndex();
   }
   return list;
 }
-__name(parsePatch, "parsePatch");
 
 // node_modules/diff/libesm/util/distance-iterator.js
 function distance_iterator_default(start, minLine, maxLine) {
   let wantForward = true, backwardExhausted = false, forwardExhausted = false, localOffset = 1;
-  return /* @__PURE__ */ __name(function iterator() {
+  return function iterator() {
     if (wantForward && !forwardExhausted) {
       if (backwardExhausted) {
         localOffset++;
@@ -4723,9 +4548,8 @@ function distance_iterator_default(start, minLine, maxLine) {
       return iterator();
     }
     return void 0;
-  }, "iterator");
+  };
 }
-__name(distance_iterator_default, "default");
 
 // node_modules/diff/libesm/patch/apply.js
 function applyPatch(source, patch, options = {}) {
@@ -4742,7 +4566,6 @@ function applyPatch(source, patch, options = {}) {
   }
   return applyStructuredPatch(source, patches[0], options);
 }
-__name(applyPatch, "applyPatch");
 function applyStructuredPatch(source, patch, options = {}) {
   if (options.autoConvertLineEndings || options.autoConvertLineEndings == null) {
     if (hasOnlyWinLineEndings(source) && isUnix(patch)) {
@@ -4838,7 +4661,6 @@ function applyStructuredPatch(source, patch, options = {}) {
       oldLineLastI: toPos - 1
     };
   }
-  __name(applyHunk, "applyHunk");
   const resultLines = [];
   let prevHunkOffset = 0;
   for (let i = 0; i < hunks.length; i++) {
@@ -4877,7 +4699,6 @@ function applyStructuredPatch(source, patch, options = {}) {
   }
   return resultLines.join("\n");
 }
-__name(applyStructuredPatch, "applyStructuredPatch");
 
 // node_modules/diff/libesm/patch/create.js
 function needsQuoting(s) {
@@ -4888,7 +4709,6 @@ function needsQuoting(s) {
   }
   return false;
 }
-__name(needsQuoting, "needsQuoting");
 function quoteFileNameIfNeeded(s) {
   if (!needsQuoting(s)) {
     return s;
@@ -4926,7 +4746,6 @@ function quoteFileNameIfNeeded(s) {
   result += '"';
   return result;
 }
-__name(quoteFileNameIfNeeded, "quoteFileNameIfNeeded");
 var INCLUDE_HEADERS = {
   includeIndex: true,
   includeUnderline: true,
@@ -4952,10 +4771,10 @@ function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, ne
     return diffLinesResultToPatch(diffLines(oldStr, newStr, optionsObj));
   } else {
     const { callback } = optionsObj;
-    diffLines(oldStr, newStr, Object.assign(Object.assign({}, optionsObj), { callback: /* @__PURE__ */ __name((diff) => {
+    diffLines(oldStr, newStr, Object.assign(Object.assign({}, optionsObj), { callback: (diff) => {
       const patch = diffLinesResultToPatch(diff);
       callback(patch);
-    }, "callback") }));
+    } }));
   }
   function diffLinesResultToPatch(diff) {
     if (!diff) {
@@ -4967,7 +4786,6 @@ function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, ne
         return " " + entry;
       });
     }
-    __name(contextLines, "contextLines");
     const hunks = [];
     let oldRangeStart = 0, newRangeStart = 0, curRange = [], oldLine = 1, newLine = 1;
     for (let i = 0; i < diff.length; i++) {
@@ -5038,9 +4856,7 @@ function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, ne
       hunks
     };
   }
-  __name(diffLinesResultToPatch, "diffLinesResultToPatch");
 }
-__name(structuredPatch, "structuredPatch");
 function formatPatch(patch, headerOptions) {
   var _a, _b, _c, _d, _e, _f;
   if (!headerOptions) {
@@ -5111,7 +4927,6 @@ function formatPatch(patch, headerOptions) {
   }
   return ret.join("\n") + "\n";
 }
-__name(formatPatch, "formatPatch");
 function createTwoFilesPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options) {
   if (typeof options === "function") {
     options = { callback: options };
@@ -5124,16 +4939,15 @@ function createTwoFilesPatch(oldFileName, newFileName, oldStr, newStr, oldHeader
     return formatPatch(patchObj, options === null || options === void 0 ? void 0 : options.headerOptions);
   } else {
     const { callback } = options;
-    structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, Object.assign(Object.assign({}, options), { callback: /* @__PURE__ */ __name((patchObj) => {
+    structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, Object.assign(Object.assign({}, options), { callback: (patchObj) => {
       if (!patchObj) {
         callback(void 0);
       } else {
         callback(formatPatch(patchObj, options.headerOptions));
       }
-    }, "callback") }));
+    } }));
   }
 }
-__name(createTwoFilesPatch, "createTwoFilesPatch");
 function splitLines(text) {
   const hasTrailingNl = text.endsWith("\n");
   const result = text.split("\n").map((line) => line + "\n");
@@ -5144,10 +4958,9 @@ function splitLines(text) {
   }
   return result;
 }
-__name(splitLines, "splitLines");
 
 // src/helpers/hunk.helper.ts
-var _HunkHelper = class _HunkHelper {
+var HunkHelper = class _HunkHelper {
   /**
    * Computes the line-level hunks between a base text and the current text.
    * Uses zero context so each hunk covers only the changed lines, which keeps
@@ -5229,8 +5042,6 @@ var _HunkHelper = class _HunkHelper {
     return lines;
   }
 };
-__name(_HunkHelper, "HunkHelper");
-var HunkHelper = _HunkHelper;
 
 // src/markers/char.marker.ts
 var import_view4 = require("@codemirror/view");
@@ -5325,16 +5136,15 @@ var _DotMarker = class _DotMarker extends import_view4.GutterMarker {
     return this.char[this.changes];
   }
 };
-__name(_DotMarker, "DotMarker");
 __decorateClass([
-  Inject("SettingsService")
+  Inject(TOKENS.settings)
 ], _DotMarker.prototype, "settingsService", 2);
 var DotMarker = _DotMarker;
 
 // src/extensions/gutter-common.extension.ts
 var import_obsidian11 = require("obsidian");
 var import_state3 = require("@codemirror/state");
-var _GutterCommonExtension = class _GutterCommonExtension extends BaseExtension {
+var GutterCommonExtension = class extends BaseExtension {
   constructor() {
     super(...arguments);
     /**
@@ -5355,10 +5165,10 @@ var _GutterCommonExtension = class _GutterCommonExtension extends BaseExtension 
      * is removed automatically when the registered editor extension unloads.
      */
     this.domEventHandlers = {
-      contextmenu: /* @__PURE__ */ __name((_view, _line, event) => {
+      contextmenu: (_view, _line, event) => {
         this.openGutterMenu(event);
         return true;
-      }, "contextmenu")
+      }
     };
     /**
      * Creates markers for the gutter-based online changes.
@@ -5367,7 +5177,7 @@ var _GutterCommonExtension = class _GutterCommonExtension extends BaseExtension 
      * @param {EditorView} view - The editor view to create markers for
      * @return {RangeSet<DotMarker>} A RangeSet of DotMarker instances
      */
-    this.markers = /* @__PURE__ */ __name((view) => {
+    this.markers = (view) => {
       var _a;
       const enable = this.getEnableTypes();
       const snapshot = this.snapshotsService.getOne();
@@ -5391,7 +5201,7 @@ var _GutterCommonExtension = class _GutterCommonExtension extends BaseExtension 
         }
       }
       return builder.finish();
-    }, "markers");
+    };
   }
   /**
    * Reverts the single changed block sitting at the given 0-based current line
@@ -5482,21 +5292,19 @@ var _GutterCommonExtension = class _GutterCommonExtension extends BaseExtension 
     ];
   }
 };
-__name(_GutterCommonExtension, "GutterCommonExtension");
 __decorateClass([
-  Inject("SettingsService")
-], _GutterCommonExtension.prototype, "settingsService", 2);
+  Inject(TOKENS.settings)
+], GutterCommonExtension.prototype, "settingsService", 2);
 __decorateClass([
-  Inject("SnapshotsService")
-], _GutterCommonExtension.prototype, "snapshotsService", 2);
+  Inject(TOKENS.snapshots)
+], GutterCommonExtension.prototype, "snapshotsService", 2);
 __decorateClass([
-  Inject("ModalsService")
-], _GutterCommonExtension.prototype, "modalsService", 2);
-var GutterCommonExtension = _GutterCommonExtension;
+  Inject(TOKENS.modals)
+], GutterCommonExtension.prototype, "modalsService", 2);
 
 // src/markers/removed.marker.ts
 var import_view5 = require("@codemirror/view");
-var _RemovedMarker = class _RemovedMarker extends import_view5.GutterMarker {
+var RemovedMarker = class extends import_view5.GutterMarker {
   /**
    * Creates a new instance of RemovedMarker.
    *
@@ -5522,15 +5330,13 @@ var _RemovedMarker = class _RemovedMarker extends import_view5.GutterMarker {
     return document.createTextNode(this.settingsService.value("gutter.removed"));
   }
 };
-__name(_RemovedMarker, "RemovedMarker");
 __decorateClass([
-  Inject("SettingsService")
-], _RemovedMarker.prototype, "settingsService", 2);
-var RemovedMarker = _RemovedMarker;
+  Inject(TOKENS.settings)
+], RemovedMarker.prototype, "settingsService", 2);
 
 // src/extensions/gutter-removed.extension.ts
 var import_state4 = require("@codemirror/state");
-var _GutterRemovedExtension = class _GutterRemovedExtension extends BaseExtension {
+var GutterRemovedExtension = class extends BaseExtension {
   constructor() {
     super(...arguments);
     /**
@@ -5550,7 +5356,7 @@ var _GutterRemovedExtension = class _GutterRemovedExtension extends BaseExtensio
      * @param {EditorView} view - The editor view to create markers for
      * @return {RangeSet<RemovedMarker>} A RangeSet of RemovedMarker instances
      */
-    this.markers = /* @__PURE__ */ __name((view) => {
+    this.markers = (view) => {
       var _a;
       const snapshot = this.snapshotsService.getOne();
       const removed = (_a = snapshot == null ? void 0 : snapshot.getChanges("removed" /* removed */)) != null ? _a : null;
@@ -5565,7 +5371,7 @@ var _GutterRemovedExtension = class _GutterRemovedExtension extends BaseExtensio
         }
       }
       return builder.finish();
-    }, "markers");
+    };
   }
   /**
    * Checks if the indicator type is set to 'dot'.
@@ -5584,18 +5390,16 @@ var _GutterRemovedExtension = class _GutterRemovedExtension extends BaseExtensio
     return this.settingsService.value("show.removed");
   }
 };
-__name(_GutterRemovedExtension, "GutterRemovedExtension");
 __decorateClass([
-  Inject("SettingsService")
-], _GutterRemovedExtension.prototype, "settingsService", 2);
+  Inject(TOKENS.settings)
+], GutterRemovedExtension.prototype, "settingsService", 2);
 __decorateClass([
-  Inject("SnapshotsService")
-], _GutterRemovedExtension.prototype, "snapshotsService", 2);
-var GutterRemovedExtension = _GutterRemovedExtension;
+  Inject(TOKENS.snapshots)
+], GutterRemovedExtension.prototype, "snapshotsService", 2);
 
 // src/services/extensions.service.ts
 var import_view6 = require("@codemirror/view");
-var _ExtensionsService = class _ExtensionsService {
+var ExtensionsService = class {
   /**
    * Creates a new instance of ExtensionsService.
    *
@@ -5673,10 +5477,10 @@ var _ExtensionsService = class _ExtensionsService {
           // eslint-disable-next-line new-cap
           (view, arg) => new clsConstructor(view, plugin, arg),
           {
-            decorations: /* @__PURE__ */ __name((view) => {
+            decorations: (view) => {
               var _a2;
               return (_a2 = view.decorations) != null ? _a2 : import_view6.Decoration.none;
-            }, "decorations")
+            }
           }
         );
       case "gutter" /* gutter */:
@@ -5686,8 +5490,6 @@ var _ExtensionsService = class _ExtensionsService {
     }
   }
 };
-__name(_ExtensionsService, "ExtensionsService");
-var ExtensionsService = _ExtensionsService;
 
 // node_modules/lodash-es/_freeGlobal.js
 var freeGlobal = typeof global == "object" && global && global.Object === Object && global;
@@ -5724,7 +5526,6 @@ function getRawTag(value) {
   }
   return result;
 }
-__name(getRawTag, "getRawTag");
 var getRawTag_default = getRawTag;
 
 // node_modules/lodash-es/_objectToString.js
@@ -5733,7 +5534,6 @@ var nativeObjectToString2 = objectProto2.toString;
 function objectToString(value) {
   return nativeObjectToString2.call(value);
 }
-__name(objectToString, "objectToString");
 var objectToString_default = objectToString;
 
 // node_modules/lodash-es/_baseGetTag.js
@@ -5746,14 +5546,12 @@ function baseGetTag(value) {
   }
   return symToStringTag2 && symToStringTag2 in Object(value) ? getRawTag_default(value) : objectToString_default(value);
 }
-__name(baseGetTag, "baseGetTag");
 var baseGetTag_default = baseGetTag;
 
 // node_modules/lodash-es/isObjectLike.js
 function isObjectLike(value) {
   return value != null && typeof value == "object";
 }
-__name(isObjectLike, "isObjectLike");
 var isObjectLike_default = isObjectLike;
 
 // node_modules/lodash-es/isSymbol.js
@@ -5761,7 +5559,6 @@ var symbolTag = "[object Symbol]";
 function isSymbol(value) {
   return typeof value == "symbol" || isObjectLike_default(value) && baseGetTag_default(value) == symbolTag;
 }
-__name(isSymbol, "isSymbol");
 var isSymbol_default = isSymbol;
 
 // node_modules/lodash-es/_arrayMap.js
@@ -5772,7 +5569,6 @@ function arrayMap(array, iteratee) {
   }
   return result;
 }
-__name(arrayMap, "arrayMap");
 var arrayMap_default = arrayMap;
 
 // node_modules/lodash-es/isArray.js
@@ -5796,7 +5592,6 @@ function baseToString(value) {
   var result = value + "";
   return result == "0" && 1 / value == -INFINITY ? "-0" : result;
 }
-__name(baseToString, "baseToString");
 var baseToString_default = baseToString;
 
 // node_modules/lodash-es/isObject.js
@@ -5804,14 +5599,12 @@ function isObject(value) {
   var type = typeof value;
   return value != null && (type == "object" || type == "function");
 }
-__name(isObject, "isObject");
 var isObject_default = isObject;
 
 // node_modules/lodash-es/identity.js
 function identity(value) {
   return value;
 }
-__name(identity, "identity");
 var identity_default = identity;
 
 // node_modules/lodash-es/isFunction.js
@@ -5826,7 +5619,6 @@ function isFunction(value) {
   var tag = baseGetTag_default(value);
   return tag == funcTag || tag == genTag || tag == asyncTag || tag == proxyTag;
 }
-__name(isFunction, "isFunction");
 var isFunction_default = isFunction;
 
 // node_modules/lodash-es/_coreJsData.js
@@ -5841,7 +5633,6 @@ var maskSrcKey = (function() {
 function isMasked(func) {
   return !!maskSrcKey && maskSrcKey in func;
 }
-__name(isMasked, "isMasked");
 var isMasked_default = isMasked;
 
 // node_modules/lodash-es/_toSource.js
@@ -5860,7 +5651,6 @@ function toSource(func) {
   }
   return "";
 }
-__name(toSource, "toSource");
 var toSource_default = toSource;
 
 // node_modules/lodash-es/_baseIsNative.js
@@ -5880,14 +5670,12 @@ function baseIsNative(value) {
   var pattern = isFunction_default(value) ? reIsNative : reIsHostCtor;
   return pattern.test(toSource_default(value));
 }
-__name(baseIsNative, "baseIsNative");
 var baseIsNative_default = baseIsNative;
 
 // node_modules/lodash-es/_getValue.js
 function getValue(object, key2) {
   return object == null ? void 0 : object[key2];
 }
-__name(getValue, "getValue");
 var getValue_default = getValue;
 
 // node_modules/lodash-es/_getNative.js
@@ -5895,7 +5683,6 @@ function getNative(object, key2) {
   var value = getValue_default(object, key2);
   return baseIsNative_default(value) ? value : void 0;
 }
-__name(getNative, "getNative");
 var getNative_default = getNative;
 
 // node_modules/lodash-es/_WeakMap.js
@@ -5907,7 +5694,6 @@ var objectCreate = Object.create;
 var baseCreate = /* @__PURE__ */ (function() {
   function object() {
   }
-  __name(object, "object");
   return function(proto) {
     if (!isObject_default(proto)) {
       return {};
@@ -5937,7 +5723,6 @@ function apply(func, thisArg, args) {
   }
   return func.apply(thisArg, args);
 }
-__name(apply, "apply");
 var apply_default = apply;
 
 // node_modules/lodash-es/_copyArray.js
@@ -5949,7 +5734,6 @@ function copyArray(source, array) {
   }
   return array;
 }
-__name(copyArray, "copyArray");
 var copyArray_default = copyArray;
 
 // node_modules/lodash-es/_shortOut.js
@@ -5971,7 +5755,6 @@ function shortOut(func) {
     return func.apply(void 0, arguments);
   };
 }
-__name(shortOut, "shortOut");
 var shortOut_default = shortOut;
 
 // node_modules/lodash-es/constant.js
@@ -5980,7 +5763,6 @@ function constant(value) {
     return value;
   };
 }
-__name(constant, "constant");
 var constant_default = constant;
 
 // node_modules/lodash-es/_defineProperty.js
@@ -6017,7 +5799,6 @@ function isIndex(value, length) {
   length = length == null ? MAX_SAFE_INTEGER : length;
   return !!length && (type == "number" || type != "symbol" && reIsUint.test(value)) && (value > -1 && value % 1 == 0 && value < length);
 }
-__name(isIndex, "isIndex");
 var isIndex_default = isIndex;
 
 // node_modules/lodash-es/_baseAssignValue.js
@@ -6033,14 +5814,12 @@ function baseAssignValue(object, key2, value) {
     object[key2] = value;
   }
 }
-__name(baseAssignValue, "baseAssignValue");
 var baseAssignValue_default = baseAssignValue;
 
 // node_modules/lodash-es/eq.js
 function eq(value, other) {
   return value === other || value !== value && other !== other;
 }
-__name(eq, "eq");
 var eq_default = eq;
 
 // node_modules/lodash-es/_assignValue.js
@@ -6052,7 +5831,6 @@ function assignValue(object, key2, value) {
     baseAssignValue_default(object, key2, value);
   }
 }
-__name(assignValue, "assignValue");
 var assignValue_default = assignValue;
 
 // node_modules/lodash-es/_copyObject.js
@@ -6074,7 +5852,6 @@ function copyObject(source, props, object, customizer) {
   }
   return object;
 }
-__name(copyObject, "copyObject");
 var copyObject_default = copyObject;
 
 // node_modules/lodash-es/_overRest.js
@@ -6095,14 +5872,12 @@ function overRest(func, start, transform) {
     return apply_default(func, this, otherArgs);
   };
 }
-__name(overRest, "overRest");
 var overRest_default = overRest;
 
 // node_modules/lodash-es/_baseRest.js
 function baseRest(func, start) {
   return setToString_default(overRest_default(func, start, identity_default), func + "");
 }
-__name(baseRest, "baseRest");
 var baseRest_default = baseRest;
 
 // node_modules/lodash-es/isLength.js
@@ -6110,14 +5885,12 @@ var MAX_SAFE_INTEGER2 = 9007199254740991;
 function isLength(value) {
   return typeof value == "number" && value > -1 && value % 1 == 0 && value <= MAX_SAFE_INTEGER2;
 }
-__name(isLength, "isLength");
 var isLength_default = isLength;
 
 // node_modules/lodash-es/isArrayLike.js
 function isArrayLike(value) {
   return value != null && isLength_default(value.length) && !isFunction_default(value);
 }
-__name(isArrayLike, "isArrayLike");
 var isArrayLike_default = isArrayLike;
 
 // node_modules/lodash-es/_isIterateeCall.js
@@ -6131,7 +5904,6 @@ function isIterateeCall(value, index, object) {
   }
   return false;
 }
-__name(isIterateeCall, "isIterateeCall");
 var isIterateeCall_default = isIterateeCall;
 
 // node_modules/lodash-es/_createAssigner.js
@@ -6153,7 +5925,6 @@ function createAssigner(assigner) {
     return object;
   });
 }
-__name(createAssigner, "createAssigner");
 var createAssigner_default = createAssigner;
 
 // node_modules/lodash-es/_isPrototype.js
@@ -6162,7 +5933,6 @@ function isPrototype(value) {
   var Ctor = value && value.constructor, proto = typeof Ctor == "function" && Ctor.prototype || objectProto5;
   return value === proto;
 }
-__name(isPrototype, "isPrototype");
 var isPrototype_default = isPrototype;
 
 // node_modules/lodash-es/_baseTimes.js
@@ -6173,7 +5943,6 @@ function baseTimes(n, iteratee) {
   }
   return result;
 }
-__name(baseTimes, "baseTimes");
 var baseTimes_default = baseTimes;
 
 // node_modules/lodash-es/_baseIsArguments.js
@@ -6181,7 +5950,6 @@ var argsTag = "[object Arguments]";
 function baseIsArguments(value) {
   return isObjectLike_default(value) && baseGetTag_default(value) == argsTag;
 }
-__name(baseIsArguments, "baseIsArguments");
 var baseIsArguments_default = baseIsArguments;
 
 // node_modules/lodash-es/isArguments.js
@@ -6199,7 +5967,6 @@ var isArguments_default = isArguments;
 function stubFalse() {
   return false;
 }
-__name(stubFalse, "stubFalse");
 var stubFalse_default = stubFalse;
 
 // node_modules/lodash-es/isBuffer.js
@@ -6242,7 +6009,6 @@ typedArrayTags[argsTag2] = typedArrayTags[arrayTag] = typedArrayTags[arrayBuffer
 function baseIsTypedArray(value) {
   return isObjectLike_default(value) && isLength_default(value.length) && !!typedArrayTags[baseGetTag_default(value)];
 }
-__name(baseIsTypedArray, "baseIsTypedArray");
 var baseIsTypedArray_default = baseIsTypedArray;
 
 // node_modules/lodash-es/_baseUnary.js
@@ -6251,7 +6017,6 @@ function baseUnary(func) {
     return func(value);
   };
 }
-__name(baseUnary, "baseUnary");
 var baseUnary_default = baseUnary;
 
 // node_modules/lodash-es/_nodeUtil.js
@@ -6292,7 +6057,6 @@ function arrayLikeKeys(value, inherited) {
   }
   return result;
 }
-__name(arrayLikeKeys, "arrayLikeKeys");
 var arrayLikeKeys_default = arrayLikeKeys;
 
 // node_modules/lodash-es/_overArg.js
@@ -6301,7 +6065,6 @@ function overArg(func, transform) {
     return func(transform(arg));
   };
 }
-__name(overArg, "overArg");
 var overArg_default = overArg;
 
 // node_modules/lodash-es/_nativeKeys.js
@@ -6323,14 +6086,12 @@ function baseKeys(object) {
   }
   return result;
 }
-__name(baseKeys, "baseKeys");
 var baseKeys_default = baseKeys;
 
 // node_modules/lodash-es/keys.js
 function keys(object) {
   return isArrayLike_default(object) ? arrayLikeKeys_default(object) : baseKeys_default(object);
 }
-__name(keys, "keys");
 var keys_default = keys;
 
 // node_modules/lodash-es/_nativeKeysIn.js
@@ -6343,7 +6104,6 @@ function nativeKeysIn(object) {
   }
   return result;
 }
-__name(nativeKeysIn, "nativeKeysIn");
 var nativeKeysIn_default = nativeKeysIn;
 
 // node_modules/lodash-es/_baseKeysIn.js
@@ -6361,14 +6121,12 @@ function baseKeysIn(object) {
   }
   return result;
 }
-__name(baseKeysIn, "baseKeysIn");
 var baseKeysIn_default = baseKeysIn;
 
 // node_modules/lodash-es/keysIn.js
 function keysIn(object) {
   return isArrayLike_default(object) ? arrayLikeKeys_default(object, true) : baseKeysIn_default(object);
 }
-__name(keysIn, "keysIn");
 var keysIn_default = keysIn;
 
 // node_modules/lodash-es/_isKey.js
@@ -6384,7 +6142,6 @@ function isKey(value, object) {
   }
   return reIsPlainProp.test(value) || !reIsDeepProp.test(value) || object != null && value in Object(object);
 }
-__name(isKey, "isKey");
 var isKey_default = isKey;
 
 // node_modules/lodash-es/_nativeCreate.js
@@ -6396,7 +6153,6 @@ function hashClear() {
   this.__data__ = nativeCreate_default ? nativeCreate_default(null) : {};
   this.size = 0;
 }
-__name(hashClear, "hashClear");
 var hashClear_default = hashClear;
 
 // node_modules/lodash-es/_hashDelete.js
@@ -6405,7 +6161,6 @@ function hashDelete(key2) {
   this.size -= result ? 1 : 0;
   return result;
 }
-__name(hashDelete, "hashDelete");
 var hashDelete_default = hashDelete;
 
 // node_modules/lodash-es/_hashGet.js
@@ -6420,7 +6175,6 @@ function hashGet(key2) {
   }
   return hasOwnProperty8.call(data, key2) ? data[key2] : void 0;
 }
-__name(hashGet, "hashGet");
 var hashGet_default = hashGet;
 
 // node_modules/lodash-es/_hashHas.js
@@ -6430,7 +6184,6 @@ function hashHas(key2) {
   var data = this.__data__;
   return nativeCreate_default ? data[key2] !== void 0 : hasOwnProperty9.call(data, key2);
 }
-__name(hashHas, "hashHas");
 var hashHas_default = hashHas;
 
 // node_modules/lodash-es/_hashSet.js
@@ -6441,7 +6194,6 @@ function hashSet(key2, value) {
   data[key2] = nativeCreate_default && value === void 0 ? HASH_UNDEFINED2 : value;
   return this;
 }
-__name(hashSet, "hashSet");
 var hashSet_default = hashSet;
 
 // node_modules/lodash-es/_Hash.js
@@ -6453,7 +6205,6 @@ function Hash(entries) {
     this.set(entry[0], entry[1]);
   }
 }
-__name(Hash, "Hash");
 Hash.prototype.clear = hashClear_default;
 Hash.prototype["delete"] = hashDelete_default;
 Hash.prototype.get = hashGet_default;
@@ -6466,7 +6217,6 @@ function listCacheClear() {
   this.__data__ = [];
   this.size = 0;
 }
-__name(listCacheClear, "listCacheClear");
 var listCacheClear_default = listCacheClear;
 
 // node_modules/lodash-es/_assocIndexOf.js
@@ -6479,7 +6229,6 @@ function assocIndexOf(array, key2) {
   }
   return -1;
 }
-__name(assocIndexOf, "assocIndexOf");
 var assocIndexOf_default = assocIndexOf;
 
 // node_modules/lodash-es/_listCacheDelete.js
@@ -6499,7 +6248,6 @@ function listCacheDelete(key2) {
   --this.size;
   return true;
 }
-__name(listCacheDelete, "listCacheDelete");
 var listCacheDelete_default = listCacheDelete;
 
 // node_modules/lodash-es/_listCacheGet.js
@@ -6507,14 +6255,12 @@ function listCacheGet(key2) {
   var data = this.__data__, index = assocIndexOf_default(data, key2);
   return index < 0 ? void 0 : data[index][1];
 }
-__name(listCacheGet, "listCacheGet");
 var listCacheGet_default = listCacheGet;
 
 // node_modules/lodash-es/_listCacheHas.js
 function listCacheHas(key2) {
   return assocIndexOf_default(this.__data__, key2) > -1;
 }
-__name(listCacheHas, "listCacheHas");
 var listCacheHas_default = listCacheHas;
 
 // node_modules/lodash-es/_listCacheSet.js
@@ -6528,7 +6274,6 @@ function listCacheSet(key2, value) {
   }
   return this;
 }
-__name(listCacheSet, "listCacheSet");
 var listCacheSet_default = listCacheSet;
 
 // node_modules/lodash-es/_ListCache.js
@@ -6540,7 +6285,6 @@ function ListCache(entries) {
     this.set(entry[0], entry[1]);
   }
 }
-__name(ListCache, "ListCache");
 ListCache.prototype.clear = listCacheClear_default;
 ListCache.prototype["delete"] = listCacheDelete_default;
 ListCache.prototype.get = listCacheGet_default;
@@ -6561,7 +6305,6 @@ function mapCacheClear() {
     "string": new Hash_default()
   };
 }
-__name(mapCacheClear, "mapCacheClear");
 var mapCacheClear_default = mapCacheClear;
 
 // node_modules/lodash-es/_isKeyable.js
@@ -6569,7 +6312,6 @@ function isKeyable(value) {
   var type = typeof value;
   return type == "string" || type == "number" || type == "symbol" || type == "boolean" ? value !== "__proto__" : value === null;
 }
-__name(isKeyable, "isKeyable");
 var isKeyable_default = isKeyable;
 
 // node_modules/lodash-es/_getMapData.js
@@ -6577,7 +6319,6 @@ function getMapData(map, key2) {
   var data = map.__data__;
   return isKeyable_default(key2) ? data[typeof key2 == "string" ? "string" : "hash"] : data.map;
 }
-__name(getMapData, "getMapData");
 var getMapData_default = getMapData;
 
 // node_modules/lodash-es/_mapCacheDelete.js
@@ -6586,21 +6327,18 @@ function mapCacheDelete(key2) {
   this.size -= result ? 1 : 0;
   return result;
 }
-__name(mapCacheDelete, "mapCacheDelete");
 var mapCacheDelete_default = mapCacheDelete;
 
 // node_modules/lodash-es/_mapCacheGet.js
 function mapCacheGet(key2) {
   return getMapData_default(this, key2).get(key2);
 }
-__name(mapCacheGet, "mapCacheGet");
 var mapCacheGet_default = mapCacheGet;
 
 // node_modules/lodash-es/_mapCacheHas.js
 function mapCacheHas(key2) {
   return getMapData_default(this, key2).has(key2);
 }
-__name(mapCacheHas, "mapCacheHas");
 var mapCacheHas_default = mapCacheHas;
 
 // node_modules/lodash-es/_mapCacheSet.js
@@ -6610,7 +6348,6 @@ function mapCacheSet(key2, value) {
   this.size += data.size == size ? 0 : 1;
   return this;
 }
-__name(mapCacheSet, "mapCacheSet");
 var mapCacheSet_default = mapCacheSet;
 
 // node_modules/lodash-es/_MapCache.js
@@ -6622,7 +6359,6 @@ function MapCache(entries) {
     this.set(entry[0], entry[1]);
   }
 }
-__name(MapCache, "MapCache");
 MapCache.prototype.clear = mapCacheClear_default;
 MapCache.prototype["delete"] = mapCacheDelete_default;
 MapCache.prototype.get = mapCacheGet_default;
@@ -6636,7 +6372,7 @@ function memoize(func, resolver) {
   if (typeof func != "function" || resolver != null && typeof resolver != "function") {
     throw new TypeError(FUNC_ERROR_TEXT);
   }
-  var memoized = /* @__PURE__ */ __name(function() {
+  var memoized = function() {
     var args = arguments, key2 = resolver ? resolver.apply(this, args) : args[0], cache = memoized.cache;
     if (cache.has(key2)) {
       return cache.get(key2);
@@ -6644,11 +6380,10 @@ function memoize(func, resolver) {
     var result = func.apply(this, args);
     memoized.cache = cache.set(key2, result) || cache;
     return result;
-  }, "memoized");
+  };
   memoized.cache = new (memoize.Cache || MapCache_default)();
   return memoized;
 }
-__name(memoize, "memoize");
 memoize.Cache = MapCache_default;
 var memoize_default = memoize;
 
@@ -6664,7 +6399,6 @@ function memoizeCapped(func) {
   var cache = result.cache;
   return result;
 }
-__name(memoizeCapped, "memoizeCapped");
 var memoizeCapped_default = memoizeCapped;
 
 // node_modules/lodash-es/_stringToPath.js
@@ -6686,7 +6420,6 @@ var stringToPath_default = stringToPath;
 function toString(value) {
   return value == null ? "" : baseToString_default(value);
 }
-__name(toString, "toString");
 var toString_default = toString;
 
 // node_modules/lodash-es/_castPath.js
@@ -6696,7 +6429,6 @@ function castPath(value, object) {
   }
   return isKey_default(value, object) ? [value] : stringToPath_default(toString_default(value));
 }
-__name(castPath, "castPath");
 var castPath_default = castPath;
 
 // node_modules/lodash-es/_toKey.js
@@ -6708,7 +6440,6 @@ function toKey(value) {
   var result = value + "";
   return result == "0" && 1 / value == -INFINITY2 ? "-0" : result;
 }
-__name(toKey, "toKey");
 var toKey_default = toKey;
 
 // node_modules/lodash-es/_baseGet.js
@@ -6720,7 +6451,6 @@ function baseGet(object, path) {
   }
   return index && index == length ? object : void 0;
 }
-__name(baseGet, "baseGet");
 var baseGet_default = baseGet;
 
 // node_modules/lodash-es/get.js
@@ -6728,7 +6458,6 @@ function get(object, path, defaultValue) {
   var result = object == null ? void 0 : baseGet_default(object, path);
   return result === void 0 ? defaultValue : result;
 }
-__name(get, "get");
 var get_default = get;
 
 // node_modules/lodash-es/_getPrototype.js
@@ -6753,7 +6482,6 @@ function isPlainObject(value) {
   var Ctor = hasOwnProperty10.call(proto, "constructor") && proto.constructor;
   return typeof Ctor == "function" && Ctor instanceof Ctor && funcToString3.call(Ctor) == objectCtorString;
 }
-__name(isPlainObject, "isPlainObject");
 var isPlainObject_default = isPlainObject;
 
 // node_modules/lodash-es/castArray.js
@@ -6764,7 +6492,6 @@ function castArray() {
   var value = arguments[0];
   return isArray_default(value) ? value : [value];
 }
-__name(castArray, "castArray");
 var castArray_default = castArray;
 
 // node_modules/lodash-es/_stackClear.js
@@ -6772,7 +6499,6 @@ function stackClear() {
   this.__data__ = new ListCache_default();
   this.size = 0;
 }
-__name(stackClear, "stackClear");
 var stackClear_default = stackClear;
 
 // node_modules/lodash-es/_stackDelete.js
@@ -6781,21 +6507,18 @@ function stackDelete(key2) {
   this.size = data.size;
   return result;
 }
-__name(stackDelete, "stackDelete");
 var stackDelete_default = stackDelete;
 
 // node_modules/lodash-es/_stackGet.js
 function stackGet(key2) {
   return this.__data__.get(key2);
 }
-__name(stackGet, "stackGet");
 var stackGet_default = stackGet;
 
 // node_modules/lodash-es/_stackHas.js
 function stackHas(key2) {
   return this.__data__.has(key2);
 }
-__name(stackHas, "stackHas");
 var stackHas_default = stackHas;
 
 // node_modules/lodash-es/_stackSet.js
@@ -6815,7 +6538,6 @@ function stackSet(key2, value) {
   this.size = data.size;
   return this;
 }
-__name(stackSet, "stackSet");
 var stackSet_default = stackSet;
 
 // node_modules/lodash-es/_Stack.js
@@ -6823,7 +6545,6 @@ function Stack(entries) {
   var data = this.__data__ = new ListCache_default(entries);
   this.size = data.size;
 }
-__name(Stack, "Stack");
 Stack.prototype.clear = stackClear_default;
 Stack.prototype["delete"] = stackDelete_default;
 Stack.prototype.get = stackGet_default;
@@ -6845,7 +6566,6 @@ function cloneBuffer(buffer, isDeep) {
   buffer.copy(result);
   return result;
 }
-__name(cloneBuffer, "cloneBuffer");
 var cloneBuffer_default = cloneBuffer;
 
 // node_modules/lodash-es/_DataView.js
@@ -6874,7 +6594,7 @@ var setCtorString = toSource_default(Set_default);
 var weakMapCtorString = toSource_default(WeakMap_default);
 var getTag = baseGetTag_default;
 if (DataView_default && getTag(new DataView_default(new ArrayBuffer(1))) != dataViewTag2 || Map_default && getTag(new Map_default()) != mapTag2 || Promise_default && getTag(Promise_default.resolve()) != promiseTag || Set_default && getTag(new Set_default()) != setTag2 || WeakMap_default && getTag(new WeakMap_default()) != weakMapTag2) {
-  getTag = /* @__PURE__ */ __name(function(value) {
+  getTag = function(value) {
     var result = baseGetTag_default(value), Ctor = result == objectTag3 ? value.constructor : void 0, ctorString = Ctor ? toSource_default(Ctor) : "";
     if (ctorString) {
       switch (ctorString) {
@@ -6891,7 +6611,7 @@ if (DataView_default && getTag(new DataView_default(new ArrayBuffer(1))) != data
       }
     }
     return result;
-  }, "getTag");
+  };
 }
 var getTag_default = getTag;
 
@@ -6905,7 +6625,6 @@ function cloneArrayBuffer(arrayBuffer) {
   new Uint8Array_default(result).set(new Uint8Array_default(arrayBuffer));
   return result;
 }
-__name(cloneArrayBuffer, "cloneArrayBuffer");
 var cloneArrayBuffer_default = cloneArrayBuffer;
 
 // node_modules/lodash-es/_cloneTypedArray.js
@@ -6913,14 +6632,12 @@ function cloneTypedArray(typedArray, isDeep) {
   var buffer = isDeep ? cloneArrayBuffer_default(typedArray.buffer) : typedArray.buffer;
   return new typedArray.constructor(buffer, typedArray.byteOffset, typedArray.length);
 }
-__name(cloneTypedArray, "cloneTypedArray");
 var cloneTypedArray_default = cloneTypedArray;
 
 // node_modules/lodash-es/_initCloneObject.js
 function initCloneObject(object) {
   return typeof object.constructor == "function" && !isPrototype_default(object) ? baseCreate_default(getPrototype_default(object)) : {};
 }
-__name(initCloneObject, "initCloneObject");
 var initCloneObject_default = initCloneObject;
 
 // node_modules/lodash-es/_mapToArray.js
@@ -6931,7 +6648,6 @@ function mapToArray(map) {
   });
   return result;
 }
-__name(mapToArray, "mapToArray");
 var mapToArray_default = mapToArray;
 
 // node_modules/lodash-es/_createBaseFor.js
@@ -6947,7 +6663,6 @@ function createBaseFor(fromRight) {
     return object;
   };
 }
-__name(createBaseFor, "createBaseFor");
 var createBaseFor_default = createBaseFor;
 
 // node_modules/lodash-es/_baseFor.js
@@ -6960,14 +6675,12 @@ function assignMergeValue(object, key2, value) {
     baseAssignValue_default(object, key2, value);
   }
 }
-__name(assignMergeValue, "assignMergeValue");
 var assignMergeValue_default = assignMergeValue;
 
 // node_modules/lodash-es/isArrayLikeObject.js
 function isArrayLikeObject(value) {
   return isObjectLike_default(value) && isArrayLike_default(value);
 }
-__name(isArrayLikeObject, "isArrayLikeObject");
 var isArrayLikeObject_default = isArrayLikeObject;
 
 // node_modules/lodash-es/_safeGet.js
@@ -6980,14 +6693,12 @@ function safeGet(object, key2) {
   }
   return object[key2];
 }
-__name(safeGet, "safeGet");
 var safeGet_default = safeGet;
 
 // node_modules/lodash-es/toPlainObject.js
 function toPlainObject(value) {
   return copyObject_default(value, keysIn_default(value));
 }
-__name(toPlainObject, "toPlainObject");
 var toPlainObject_default = toPlainObject;
 
 // node_modules/lodash-es/_baseMergeDeep.js
@@ -7034,7 +6745,6 @@ function baseMergeDeep(object, source, key2, srcIndex, mergeFunc, customizer, st
   }
   assignMergeValue_default(object, key2, newValue);
 }
-__name(baseMergeDeep, "baseMergeDeep");
 var baseMergeDeep_default = baseMergeDeep;
 
 // node_modules/lodash-es/_baseMerge.js
@@ -7055,7 +6765,6 @@ function baseMerge(object, source, srcIndex, customizer, stack) {
     }
   }, keysIn_default);
 }
-__name(baseMerge, "baseMerge");
 var baseMerge_default = baseMerge;
 
 // node_modules/lodash-es/_baseToPairs.js
@@ -7064,7 +6773,6 @@ function baseToPairs(object, props) {
     return [key2, object[key2]];
   });
 }
-__name(baseToPairs, "baseToPairs");
 var baseToPairs_default = baseToPairs;
 
 // node_modules/lodash-es/_setToPairs.js
@@ -7075,7 +6783,6 @@ function setToPairs(set2) {
   });
   return result;
 }
-__name(setToPairs, "setToPairs");
 var setToPairs_default = setToPairs;
 
 // node_modules/lodash-es/_createToPairs.js
@@ -7093,7 +6800,6 @@ function createToPairs(keysFunc) {
     return baseToPairs_default(object, keysFunc(object));
   };
 }
-__name(createToPairs, "createToPairs");
 var createToPairs_default = createToPairs;
 
 // node_modules/lodash-es/toPairs.js
@@ -7105,7 +6811,6 @@ var stringTag2 = "[object String]";
 function isString(value) {
   return typeof value == "string" || !isArray_default(value) && isObjectLike_default(value) && baseGetTag_default(value) == stringTag2;
 }
-__name(isString, "isString");
 var isString_default = isString;
 
 // node_modules/lodash-es/isNumber.js
@@ -7113,14 +6818,12 @@ var numberTag2 = "[object Number]";
 function isNumber(value) {
   return typeof value == "number" || isObjectLike_default(value) && baseGetTag_default(value) == numberTag2;
 }
-__name(isNumber, "isNumber");
 var isNumber_default = isNumber;
 
 // node_modules/lodash-es/isUndefined.js
 function isUndefined(value) {
   return value === void 0;
 }
-__name(isUndefined, "isUndefined");
 var isUndefined_default = isUndefined;
 
 // node_modules/lodash-es/merge.js
@@ -7153,14 +6856,12 @@ function baseSet(object, path, value, customizer) {
   }
   return object;
 }
-__name(baseSet, "baseSet");
 var baseSet_default = baseSet;
 
 // node_modules/lodash-es/set.js
 function set(object, path, value) {
   return object == null ? object : baseSet_default(object, path, value);
 }
-__name(set, "set");
 var set_default = set;
 
 // lang/am.json
@@ -13416,7 +13117,7 @@ var BUNDLED_CATALOGS = {
 };
 
 // src/services/i18n.service.ts
-var _I18nService = class _I18nService {
+var I18nService = class _I18nService {
   /**
    * Creates a new instance of I18nService.
    *
@@ -13593,11 +13294,9 @@ var _I18nService = class _I18nService {
     }
   }
 };
-__name(_I18nService, "I18nService");
-var I18nService = _I18nService;
 
 // src/helpers/selection-history.helper.ts
-var _SelectionHistoryHelper = class _SelectionHistoryHelper {
+var SelectionHistoryHelper = class _SelectionHistoryHelper {
   /**
    * Resolves the ids of the versions where the selection text was added or
    * removed at that point on the timeline.
@@ -13673,9 +13372,9 @@ var _SelectionHistoryHelper = class _SelectionHistoryHelper {
     if (previous.length === 0 && current.length === 0) {
       return { added, removed };
     }
-    const normalize = /* @__PURE__ */ __name((lines) => lines.map(
+    const normalize = (lines) => lines.map(
       (line) => line.endsWith("\r") ? line.slice(0, -1) : line
-    ), "normalize");
+    );
     const previousText = `${normalize(previous).join("\n")}
 `;
     const currentText = `${normalize(current).join("\n")}
@@ -13714,12 +13413,10 @@ var _SelectionHistoryHelper = class _SelectionHistoryHelper {
     ));
   }
 };
-__name(_SelectionHistoryHelper, "SelectionHistoryHelper");
-var SelectionHistoryHelper = _SelectionHistoryHelper;
 
 // src/helpers/dom.helper.ts
 var import_obsidian12 = require("obsidian");
-var _DomHelper = class _DomHelper {
+var DomHelper = class _DomHelper {
   /**
    * Creates a DOM element based on the provided configuration.
    * @param {DomElementConfig} config - Configuration object for the element
@@ -13810,12 +13507,10 @@ var _DomHelper = class _DomHelper {
     }
   }
 };
-__name(_DomHelper, "DomHelper");
-var DomHelper = _DomHelper;
 
 // src/modals/confirm.modal.ts
 var import_obsidian13 = require("obsidian");
-var _ConfirmModal = class _ConfirmModal extends import_obsidian13.Modal {
+var ConfirmModal = class extends import_obsidian13.Modal {
   /**
    * Creates a new instance of ConfirmModal.
    *
@@ -13866,10 +13561,10 @@ var _ConfirmModal = class _ConfirmModal extends import_obsidian13.Modal {
                   tag: "button",
                   text: this.cancelText,
                   events: {
-                    click: /* @__PURE__ */ __name(() => {
+                    click: () => {
                       this.result = false;
                       this.close();
-                    }, "click")
+                    }
                   }
                 },
                 {
@@ -13877,10 +13572,10 @@ var _ConfirmModal = class _ConfirmModal extends import_obsidian13.Modal {
                   text: this.confirmText,
                   classes: "mod-warning",
                   events: {
-                    click: /* @__PURE__ */ __name(() => {
+                    click: () => {
                       this.result = true;
                       this.close();
-                    }, "click")
+                    }
                   }
                 }
               ]
@@ -13917,12 +13612,10 @@ var _ConfirmModal = class _ConfirmModal extends import_obsidian13.Modal {
     });
   }
 };
-__name(_ConfirmModal, "ConfirmModal");
-var ConfirmModal = _ConfirmModal;
 
 // src/components/folder-tree.component.ts
 var import_obsidian14 = require("obsidian");
-var _FolderTreeComponent = class _FolderTreeComponent {
+var FolderTreeComponent = class {
   constructor() {
     /**
      * Container the component renders into; null between dispose / re-mount.
@@ -14329,10 +14022,10 @@ var _FolderTreeComponent = class _FolderTreeComponent {
       attributes: { "data-path": node.path },
       styles: { paddingInlineStart: `calc(var(--size-4-2) + ${depth * 16}px)` },
       events: {
-        click: /* @__PURE__ */ __name((event) => {
+        click: (event) => {
           event.preventDefault();
           this.toggleFolder(node.path);
-        }, "click")
+        }
       },
       container
     });
@@ -14393,10 +14086,10 @@ var _FolderTreeComponent = class _FolderTreeComponent {
       attributes: { "data-path": node.path },
       styles: { paddingInlineStart: `calc(var(--size-4-2) + ${depth * 16}px)` },
       events: {
-        click: /* @__PURE__ */ __name((event) => {
+        click: (event) => {
           event.preventDefault();
           this.selectFile(node.path);
-        }, "click")
+        }
       },
       container
     };
@@ -14502,11 +14195,551 @@ var _FolderTreeComponent = class _FolderTreeComponent {
     }
   }
 };
-__name(_FolderTreeComponent, "FolderTreeComponent");
-var FolderTreeComponent = _FolderTreeComponent;
+
+// src/helpers/folder-delta.helper.ts
+var FolderDeltaHelper = class _FolderDeltaHelper {
+  /**
+   * Compares the snapshot's state at the timeline point T to its current
+   * state. See the class docs for the full status grid and the resolution
+   * rules; see {@link FolderDeltaResult} for the returned shape.
+   *
+   * The helper is defensive about a missing snapshot (returns `'none'` with
+   * empty content) so callers iterating over a possibly-stale map can pass
+   * `undefined` without guarding every call site.
+   *
+   * @param {FileSnapshot} snapshot - The snapshot to inspect (live or tombstone)
+   * @param {number} timestamp - The chosen folder-timeline point T, in ms
+   * @return {FolderDeltaResult} The resolved base / current / status triple
+   */
+  static compareAt(snapshot, timestamp) {
+    var _a;
+    if (!snapshot) {
+      return { status: "none" /* none */, base: [], current: [] };
+    }
+    const existedAtT = _FolderDeltaHelper.existedAtT(snapshot, timestamp);
+    const existsNow = !snapshot.isTombstone();
+    const current = existsNow ? [...(_a = snapshot.state) != null ? _a : []] : [];
+    if (!existsNow && !existedAtT) {
+      return { status: "none" /* none */, base: [], current: [] };
+    }
+    if (!existedAtT) {
+      return { status: "added" /* added */, base: [], current };
+    }
+    const base = _FolderDeltaHelper.resolveBaseAt(snapshot, timestamp);
+    if (!existsNow) {
+      return { status: "deleted" /* deleted */, base, current: [] };
+    }
+    return {
+      status: _FolderDeltaHelper.contentEquals(base, current) ? "none" /* none */ : "modified" /* modified */,
+      base,
+      current
+    };
+  }
+  /**
+   * Whether the snapshot represented a file present at its current path at T.
+   * The answer drives the added / deleted / modified grid in {@link compareAt},
+   * and crucially it is evaluated per the file's CURRENT path so a move shows up
+   * as a deletion at the old path and an addition at the new one.
+   *
+   * Three cases:
+   *
+   * - Tombstone: existed at T when it was first seen at/before T and deleted at
+   *   or AFTER T (`deletedTimestamp >= T`, inclusive). Inclusive on the delete
+   *   instant so the file is still surfaced as `'deleted'` on the very timeline
+   *   point that represents its deletion (or its move-out, which leaves a
+   *   tombstone stamped at the move instant); an exclusive bound hid the deleted
+   *   file on its own point and made the newest snapshot look empty.
+   *
+   * - Moved-in live snapshot: the file appears at its destination path only
+   *   strictly AFTER the move (`movedIntoAt < T`). At and before the move instant
+   *   it is treated as not-yet-here, so the move-in timeline point renders it as
+   *   freshly `'added'` to the folder (green) while the tombstone left at the old
+   *   path renders as `'deleted'` (red): together they read as a move. Its
+   *   pre-move captured history belongs to the old path and is deliberately not
+   *   consulted for existence at the new one.
+   *
+   * - Plain live snapshot: existed at T when its earliest known moment
+   *   ({@link firstSeenAt}) is at/before T. The floor is the earliest of the
+   *   snapshot's `timestamp` and its version timestamps, NOT `timestamp` alone:
+   *   `timestamp` is reset to `Date.now()` whenever the snapshot object is
+   *   rebuilt, so it drifts NEWER than the file's own captured history and using
+   *   it alone misclassified long-lived files as `'added'` (empty base, all-green
+   *   diff) at every point before it.
+   *
+   * @param {FileSnapshot} snapshot - The snapshot under inspection
+   * @param {number} timestamp - The chosen timeline point T, in ms
+   * @return {boolean} True when the file was present at its current path at T
+   */
+  static existedAtT(snapshot, timestamp) {
+    if (snapshot.isTombstone()) {
+      if (_FolderDeltaHelper.firstSeenAt(snapshot) > timestamp) {
+        return false;
+      }
+      return isNumber_default(snapshot.deletedTimestamp) && snapshot.deletedTimestamp >= timestamp;
+    }
+    if (snapshot.isMovedIn()) {
+      return isNumber_default(snapshot.movedIntoAt) && snapshot.movedIntoAt < timestamp;
+    }
+    return _FolderDeltaHelper.firstSeenAt(snapshot) <= timestamp;
+  }
+  /**
+   * Resolves the earliest moment the file is known to have existed: the minimum
+   * of the snapshot's creation `timestamp` and every captured version timestamp.
+   * Versions are recorded with their true historical timestamps, so the earliest
+   * one is an older, more reliable existence floor than `timestamp`, which drifts
+   * to "now" each time the snapshot object is rebuilt (see {@link existedAtT}).
+   *
+   * Falls back to `+Infinity` when neither a numeric `timestamp` nor any version
+   * timestamp is available, so a degenerate snapshot is treated as never having
+   * existed rather than as existing since the epoch.
+   *
+   * @param {FileSnapshot} snapshot - The snapshot whose existence floor to resolve
+   * @return {number} The earliest known timestamp, or `+Infinity` when unknown
+   */
+  static firstSeenAt(snapshot) {
+    let earliest = isNumber_default(snapshot.timestamp) ? snapshot.timestamp : Number.POSITIVE_INFINITY;
+    const versions = Array.isArray(snapshot.versions) ? snapshot.versions : [];
+    for (const version of versions) {
+      if (version && isNumber_default(version.timestamp) && version.timestamp < earliest) {
+        earliest = version.timestamp;
+      }
+    }
+    return earliest;
+  }
+  /**
+   * Resolves the file's content at T as the captured version whose timestamp
+   * is the latest at or before T, falling back to the persisted history
+   * baseline when no version qualifies. The snapshot's `versions` array is
+   * stored oldest-first (by capture order), so scanning back from the end
+   * finds the qualifying version in one pass.
+   *
+   * No-version live files are a special case (handled first). A file edited
+   * once below the capture cadence has no intermediate versions, so only two
+   * states are known: the history baseline (earliest) and the current state,
+   * reached at the file's last-change moment ({@link FileSnapshot.getLastChangedTimestamp},
+   * the file's mtime). Treating that moment as the single transition, the
+   * content at T is the current state for any T at/after it (so the file reads
+   * as unchanged - `'none'` - since T) and the baseline before it. Without this,
+   * a no-version file always diffs the baseline against the current state and
+   * so shows as `'modified'` at every timeline point, even the newest.
+   * Tombstones keep the baseline fallback: their captured-or-baseline content is
+   * the recoverable starting point and their current side is empty regardless.
+   *
+   * Returns a copy of the lines so the caller cannot mutate the underlying
+   * version or the history baseline through the returned reference.
+   *
+   * @param {FileSnapshot} snapshot - The snapshot whose content to resolve
+   * @param {number} timestamp - The chosen timeline point T, in ms
+   * @return {string[]} The resolved base content as a fresh array of lines
+   */
+  static resolveBaseAt(snapshot, timestamp) {
+    const versions = Array.isArray(snapshot.versions) ? snapshot.versions : [];
+    if (versions.length === 0 && !snapshot.isTombstone()) {
+      const lastChanged = snapshot.getLastChangedTimestamp();
+      if (isNumber_default(lastChanged) && timestamp >= lastChanged) {
+        return snapshot.getLastStateLines();
+      }
+      return Array.isArray(snapshot.historyLines) ? [...snapshot.historyLines] : [];
+    }
+    for (let i = versions.length - 1; i >= 0; i -= 1) {
+      const version = versions[i];
+      if (version && isNumber_default(version.timestamp) && version.timestamp <= timestamp) {
+        return version.getLines();
+      }
+    }
+    return Array.isArray(snapshot.historyLines) ? [...snapshot.historyLines] : [];
+  }
+  /**
+   * Line-by-line equality used to decide `modified` vs `none` for two live
+   * states. Cheaper than joining the arrays and comparing strings because the
+   * common case (identical) short-circuits on the first mismatching index.
+   *
+   * @param {string[]} a - First line array
+   * @param {string[]} b - Second line array
+   * @return {boolean} True when both arrays have the same length and contents
+   */
+  static contentEquals(a, b) {
+    if (a.length !== b.length) {
+      return false;
+    }
+    for (let i = 0; i < a.length; i += 1) {
+      if (a[i] !== b[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+};
+
+// src/helpers/folder-timeline.helper.ts
+var FolderTimelineHelper = class _FolderTimelineHelper {
+  /**
+   * Synthesises the folder timeline from the snapshots whose path starts with
+   * `rootPath`. See the class docs for the kinds emitted and the ordering
+   * contract; see {@link FolderTimelinePoint} for the per-point shape.
+   *
+   * An empty input or an empty subtree returns an empty array. A `rootPath`
+   * of `''` matches every snapshot, which is the natural "whole vault" case
+   * a future caller could use; today the folder modal always passes a real
+   * folder path.
+   *
+   * @param {Iterable<FileSnapshot>} snapshots - The snapshots to scan
+   * @param {string} rootPath - Vault-relative folder path (no trailing slash)
+   * @return {FolderTimelinePoint[]} Points sorted newest-first, stable on ties
+   */
+  static synthesize(snapshots, rootPath) {
+    var _a;
+    if (!snapshots) {
+      return [];
+    }
+    const normalizedRoot = _FolderTimelineHelper.normalizeRoot(rootPath);
+    const points = [];
+    for (const snapshot of snapshots) {
+      if (!snapshot) {
+        continue;
+      }
+      const path = _FolderTimelineHelper.pathOf(snapshot);
+      if (!_FolderTimelineHelper.isUnderRoot(path, normalizedRoot)) {
+        continue;
+      }
+      for (const version of (_a = snapshot.versions) != null ? _a : []) {
+        points.push({
+          timestamp: version.timestamp,
+          path,
+          kind: "capture" /* capture */,
+          dayKey: _FolderTimelineHelper.dayKeyOf(version.timestamp),
+          versionId: version.id
+        });
+      }
+      if (snapshot.isTombstone() && isNumber_default(snapshot.deletedTimestamp)) {
+        points.push({
+          timestamp: snapshot.deletedTimestamp,
+          path,
+          kind: "delete" /* delete */,
+          dayKey: _FolderTimelineHelper.dayKeyOf(snapshot.deletedTimestamp)
+        });
+      }
+      if (snapshot.isMovedIn() && isNumber_default(snapshot.movedIntoAt)) {
+        points.push({
+          timestamp: snapshot.movedIntoAt,
+          path,
+          kind: "move-in" /* moveIn */,
+          dayKey: _FolderTimelineHelper.dayKeyOf(snapshot.movedIntoAt)
+        });
+      }
+    }
+    points.sort(
+      (a, b) => b.timestamp - a.timestamp
+    );
+    return points;
+  }
+  /**
+   * Returns the day-group key for a timestamp the same way {@link FileVersion.getDate}
+   * does, so a folder modal rail using the same string can match a file modal
+   * rail group heading for any version on the same calendar day.
+   *
+   * @param {number} timestamp - Capture timestamp in milliseconds
+   * @return {string} Localized day key, identical to `new Date(ts).toLocaleDateString()`
+   */
+  static dayKeyOf(timestamp) {
+    return new Date(timestamp).toLocaleDateString();
+  }
+  /**
+   * Resolves the vault-relative path of a snapshot. Prefers the attached
+   * `file.path` (live snapshots own a `TFile`), and falls back to the
+   * snapshot's carried `path` (epic 12), which mirrors the canonical map key in
+   * `SnapshotsService.fileSnapshots`. The fallback is what keeps a restored
+   * snapshot whose `file` did not resolve (restore miss, detached tombstone or
+   * orphan) on the timeline after a reload, instead of being dropped by an empty
+   * path.
+   *
+   * A snapshot without any usable path (defensive: not expected in practice)
+   * contributes nothing to the timeline.
+   *
+   * @param {FileSnapshot} snapshot - The snapshot to inspect
+   * @return {string} The vault-relative path, or `''` when missing
+   */
+  static pathOf(snapshot) {
+    var _a, _b, _c;
+    return (_c = (_b = (_a = snapshot == null ? void 0 : snapshot.file) == null ? void 0 : _a.path) != null ? _b : snapshot == null ? void 0 : snapshot.path) != null ? _c : "";
+  }
+  /**
+   * Strips a trailing slash from the root prefix so the matcher does not have
+   * to special-case it. An empty root matches every path (whole-vault scope).
+   *
+   * @param {string} rootPath - Caller-supplied folder root
+   * @return {string} Normalized root, never ending in a slash
+   */
+  static normalizeRoot(rootPath) {
+    if (!rootPath) {
+      return "";
+    }
+    return rootPath.endsWith("/") ? rootPath.slice(0, -1) : rootPath;
+  }
+  /**
+   * Whether the given path is inside the root prefix. An empty root matches
+   * everything; an exact equality match is allowed (a snapshot keyed exactly at
+   * the root path is a degenerate but harmless case); otherwise the path must
+   * have `${root}/` as its prefix so `src/a.md` does not match the root `s`.
+   *
+   * @param {string} path - Vault-relative path to test
+   * @param {string} root - Normalized root prefix (no trailing slash)
+   * @return {boolean} True when `path` lives under `root`
+   */
+  static isUnderRoot(path, root2) {
+    if (!path) {
+      return false;
+    }
+    if (!root2) {
+      return true;
+    }
+    return path === root2 || path.startsWith(`${root2}/`);
+  }
+};
+
+// src/modals/folder-action-handler.ts
+var import_obsidian15 = require("obsidian");
+var FolderActionHandler = class {
+  /**
+   * @param {FolderActionHost} host - The modal port the handler reads its shared
+   *   state through and drives the post-action re-render with.
+   */
+  constructor(host) {
+    this.host = host;
+  }
+  /**
+   * Handler for the "Restore selected version" toolbar button. The version
+   * closest to T is restored on the tree-selected file (D10/AC1). When T
+   * precedes every captured version, the synthetic baseline branch writes the
+   * `compareAt` base back through {@link SnapshotsService.applyContent} so the
+   * file's earliest known content is still restorable. When the selected file
+   * is a tombstone with `deletedTimestamp > T` (AC4), the file is re-created at
+   * its old path with the content at T and the tombstone is promoted back to a
+   * live snapshot in place.
+   *
+   * @return {Promise<void>}
+   */
+  async handleRestoreSelected() {
+    var _a;
+    const selection = this.host.resolveSelection();
+    if (!selection) {
+      return;
+    }
+    const confirmed = await this.host.modalsService.confirm({
+      title: this.host.plugin.t("modal.confirm.restore-version.title"),
+      message: this.host.plugin.t("modal.confirm.restore-version.message"),
+      confirmText: this.host.plugin.t("modal.confirm.restore-version.button"),
+      cancelText: this.host.plugin.t("modal.confirm.cancel")
+    });
+    if (!confirmed) {
+      return;
+    }
+    if (selection.snapshot.isTombstone() && selection.result.status === "deleted" /* deleted */) {
+      await this.restoreTombstoneSelection(selection.path, selection.snapshot, selection.result);
+      this.host.resyncTimeline();
+      this.host.refreshTree();
+      this.host.refreshDiff();
+      return;
+    }
+    const file = (_a = selection.snapshot.file) != null ? _a : null;
+    if (!file) {
+      return;
+    }
+    const version = this.host.resolveVersionAtT(selection.snapshot);
+    if (version) {
+      await this.host.versionActionsService.restoreSelected(file, version.id);
+    } else {
+      const baseLines = selection.result.base;
+      const currentLines = selection.snapshot.getLastStateLines();
+      if (baseLines.join(selection.snapshot.lineBreak) !== currentLines.join(selection.snapshot.lineBreak)) {
+        await this.host.snapshotsService.applyContent(file, baseLines, {
+          start: 0,
+          removeCount: currentLines.length,
+          newLines: baseLines
+        });
+      }
+    }
+    this.host.refreshTree();
+    this.host.refreshDiff();
+  }
+  /**
+   * Promotes a tombstone back to a live snapshot for AC4: writes the resolved
+   * base content to disk at the snapshot's old path through
+   * {@link App.vault.create}, attaches the resulting file to the snapshot, and
+   * clears the tombstone marker so the entry becomes live in the map without
+   * losing its captured versions or history baseline. A best-effort path: on a
+   * vault error a Notice surfaces the failure and the tombstone stays as-is so
+   * the user can retry.
+   *
+   * @param {string} path - The vault-relative old path of the deleted file
+   * @param {FileSnapshot} snapshot - The tombstone snapshot to promote
+   * @param {FolderDeltaResult} result - The compareAt result carrying the base content at T
+   * @return {Promise<void>}
+   */
+  async restoreTombstoneSelection(path, snapshot, result) {
+    const content = result.base.join(snapshot.lineBreak);
+    if (this.host.app.vault.getAbstractFileByPath(path) !== null) {
+      new import_obsidian15.Notice(this.host.plugin.t("notice.file-restore-path-occupied"));
+      return;
+    }
+    try {
+      const created = await this.host.app.vault.create(path, content);
+      snapshot.file = created;
+      snapshot.deletedTimestamp = void 0;
+      snapshot.updateState(result.base);
+      snapshot.updateChanges();
+      this.host.snapshotsService.forceUpdate();
+    } catch (_error) {
+      new import_obsidian15.Notice(this.host.plugin.t("notice.file-restore-failed"));
+    }
+  }
+  /**
+   * Handler for the "Remove selected version" toolbar button. Drops the version
+   * closest to T from the tree-selected file's timeline (D10/AC2), then
+   * re-synthesises the folder timeline and re-renders the tree so the rail and
+   * the per-file delta reflect the removed point. A no-op for a tombstone with
+   * no captured version at T (there is nothing to remove without violating the
+   * "version closest to T" semantics).
+   *
+   * @return {Promise<void>}
+   */
+  async handleRemoveSelected() {
+    var _a;
+    const selection = this.host.resolveSelection();
+    if (!selection) {
+      return;
+    }
+    const version = this.host.resolveVersionAtT(selection.snapshot);
+    if (!version) {
+      return;
+    }
+    const confirmed = await this.host.modalsService.confirm({
+      title: this.host.plugin.t("modal.confirm.remove-version.title"),
+      message: this.host.plugin.t("modal.confirm.remove-version.message"),
+      confirmText: this.host.plugin.t("modal.confirm.remove-version.button"),
+      cancelText: this.host.plugin.t("modal.confirm.cancel")
+    });
+    if (!confirmed) {
+      return;
+    }
+    const file = (_a = selection.snapshot.file) != null ? _a : null;
+    if (file) {
+      this.host.versionActionsService.removeSelected(file, version.id);
+    } else if (selection.snapshot.removeVersion(version.id)) {
+      this.host.snapshotsService.forceUpdate();
+    }
+    this.host.resyncTimeline();
+    this.host.refreshTree();
+    this.host.refreshDiff();
+  }
+  /**
+   * Handler for the "Label selected version" toolbar button. Routes the version
+   * closest to T through {@link ModalsService.labelVersion} so the label prompt
+   * and the cancel/blank no-op contract match the file modal exactly (D10/AC3).
+   * A no-op for a tombstone whose snapshot has no live `file` reference (the
+   * modals service resolves the label target by file).
+   *
+   * @return {Promise<void>}
+   */
+  async handleLabelSelected() {
+    var _a;
+    const selection = this.host.resolveSelection();
+    if (!selection) {
+      return;
+    }
+    const version = this.host.resolveVersionAtT(selection.snapshot);
+    const file = (_a = selection.snapshot.file) != null ? _a : null;
+    if (!version || !file) {
+      return;
+    }
+    const labeled = await this.host.modalsService.labelVersion(file, version.id);
+    if (!labeled) {
+      return;
+    }
+    this.host.refreshTree();
+    this.host.refreshDiff();
+  }
+  /**
+   * Handler for the "Restore original" toolbar button. Asks for confirmation
+   * and, on consent, rewrites the tree-selected file back to its history
+   * baseline and drops its snapshot, mirroring the file modal's destructive
+   * action. The folder modal stays open: the tree re-colours so the user can
+   * see the rest of the subtree, the now-untracked file simply leaves the delta
+   * view.
+   *
+   * @return {Promise<void>}
+   */
+  async handleRestoreOriginal() {
+    var _a;
+    const selection = this.host.resolveSelection();
+    if (!selection) {
+      return;
+    }
+    const file = (_a = selection.snapshot.file) != null ? _a : null;
+    if (!file) {
+      return;
+    }
+    const confirmed = await this.host.modalsService.confirm({
+      title: this.host.plugin.t("modal.confirm.restore.title"),
+      message: this.host.plugin.t("modal.confirm.restore.message"),
+      confirmText: this.host.plugin.t("modal.confirm.restore.button"),
+      cancelText: this.host.plugin.t("modal.confirm.cancel")
+    });
+    if (!confirmed) {
+      return;
+    }
+    try {
+      const originalContent = selection.snapshot.getHistoryOriginalState();
+      await this.host.app.vault.modify(file, originalContent);
+      this.host.snapshotsService.wipeOne(file);
+      this.host.removeFromMap(selection.path);
+      new import_obsidian15.Notice(this.host.plugin.t("notice.file-restored"));
+    } catch (_error) {
+      new import_obsidian15.Notice(this.host.plugin.t("notice.file-restore-failed"));
+      return;
+    }
+    this.host.resyncTimeline();
+    this.host.refreshTree();
+    this.host.refreshDiff();
+  }
+  /**
+   * Handler for the "Remove history" toolbar button. Asks for confirmation and,
+   * on consent, drops the tree-selected file's snapshot through
+   * {@link SnapshotsService.wipeOne}, leaving the file's content untouched on
+   * disk. The folder modal stays open and the tree is re-coloured so the
+   * remaining changed files stay visible.
+   *
+   * @return {Promise<void>}
+   */
+  async handleRemoveHistory() {
+    var _a;
+    const selection = this.host.resolveSelection();
+    if (!selection) {
+      return;
+    }
+    const file = (_a = selection.snapshot.file) != null ? _a : null;
+    if (!file) {
+      return;
+    }
+    const confirmed = await this.host.modalsService.confirm({
+      title: this.host.plugin.t("modal.confirm.remove.title"),
+      message: this.host.plugin.t("modal.confirm.remove.message"),
+      confirmText: this.host.plugin.t("modal.confirm.remove.button"),
+      cancelText: this.host.plugin.t("modal.confirm.cancel")
+    });
+    if (!confirmed) {
+      return;
+    }
+    this.host.snapshotsService.wipeOne(file);
+    this.host.removeFromMap(selection.path);
+    this.host.resyncTimeline();
+    this.host.refreshTree();
+    this.host.refreshDiff();
+  }
+};
 
 // src/helpers/word-diff.helper.ts
-var _WordDiffHelper = class _WordDiffHelper {
+var WordDiffHelper = class _WordDiffHelper {
   /**
    * Splits a pair of lines into word-level segments. Each segment carries its
    * text and whether it was added (present only in the new line), removed
@@ -14593,8 +14826,6 @@ var _WordDiffHelper = class _WordDiffHelper {
     return normalized.split(/\r?\n/);
   }
 };
-__name(_WordDiffHelper, "WordDiffHelper");
-var WordDiffHelper = _WordDiffHelper;
 
 // node_modules/diff2html/lib-esm/types.js
 var LineType;
@@ -14646,11 +14877,9 @@ var regex = RegExp("[" + specials.join("\\") + "]", "g");
 function escapeForRegExp(str) {
   return str.replace(regex, "\\$&");
 }
-__name(escapeForRegExp, "escapeForRegExp");
 function unifyPath(path) {
   return path ? path.replace(/\\/g, "/") : path;
 }
-__name(unifyPath, "unifyPath");
 function hashCode(text) {
   let i, chr, len;
   let hash = 0;
@@ -14661,7 +14890,6 @@ function hashCode(text) {
   }
   return hash;
 }
-__name(hashCode, "hashCode");
 function max(arr) {
   const length = arr.length;
   let max2 = -Infinity;
@@ -14670,18 +14898,15 @@ function max(arr) {
   }
   return max2;
 }
-__name(max, "max");
 
 // node_modules/diff2html/lib-esm/diff-parser.js
 function getExtension(filename, language) {
   const filenameParts = filename.split(".");
   return filenameParts.length > 1 ? filenameParts[filenameParts.length - 1] : language;
 }
-__name(getExtension, "getExtension");
 function startsWithAny(str, prefixes) {
   return prefixes.reduce((startsWith, prefix) => startsWith || str.startsWith(prefix), false);
 }
-__name(startsWithAny, "startsWithAny");
 var baseDiffFilenamePrefixes = ["a/", "b/", "i/", "w/", "c/", "o/"];
 function getFilename(line, linePrefix, extraPrefix) {
   const prefixes = extraPrefix !== void 0 ? [...baseDiffFilenamePrefixes, extraPrefix] : baseDiffFilenamePrefixes;
@@ -14691,15 +14916,12 @@ function getFilename(line, linePrefix, extraPrefix) {
   const fnameWithoutPrefix = matchingPrefix ? filename.slice(matchingPrefix.length) : filename;
   return fnameWithoutPrefix.replace(/\s+\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:\.\d+)? [+-]\d{4}.*$/, "");
 }
-__name(getFilename, "getFilename");
 function getSrcFilename(line, srcPrefix) {
   return getFilename(line, "---", srcPrefix);
 }
-__name(getSrcFilename, "getSrcFilename");
 function getDstFilename(line, dstPrefix) {
   return getFilename(line, "+++", dstPrefix);
 }
-__name(getDstFilename, "getDstFilename");
 function parse(diffInput, config = {}) {
   const files = [];
   let currentFile = null;
@@ -14736,7 +14958,6 @@ function parse(diffInput, config = {}) {
       currentBlock = null;
     }
   }
-  __name(saveBlock, "saveBlock");
   function saveFile() {
     if (currentFile !== null) {
       if (!currentFile.oldName && possibleOldName !== null) {
@@ -14753,7 +14974,6 @@ function parse(diffInput, config = {}) {
     possibleOldName = null;
     possibleNewName = null;
   }
-  __name(saveFile, "saveFile");
   function startFile() {
     saveBlock();
     saveFile();
@@ -14763,7 +14983,6 @@ function parse(diffInput, config = {}) {
       addedLines: 0
     };
   }
-  __name(startFile, "startFile");
   function startBlock(line) {
     saveBlock();
     let values;
@@ -14794,7 +15013,6 @@ function parse(diffInput, config = {}) {
       header: line
     };
   }
-  __name(startBlock, "startBlock");
   function createLine(line) {
     if (currentFile === null || currentBlock === null || oldLine === null || newLine === null)
       return;
@@ -14820,7 +15038,6 @@ function parse(diffInput, config = {}) {
     }
     currentBlock.lines.push(currentLine);
   }
-  __name(createLine, "createLine");
   function existHunkHeader(line, lineIdx) {
     let idx = lineIdx;
     while (idx < diffLines2.length - 3) {
@@ -14834,7 +15051,6 @@ function parse(diffInput, config = {}) {
     }
     return false;
   }
-  __name(existHunkHeader, "existHunkHeader");
   diffLines2.forEach((line, lineIndex) => {
     if (!line || line.startsWith("*")) {
       return;
@@ -14974,10 +15190,9 @@ function parse(diffInput, config = {}) {
   saveFile();
   return files;
 }
-__name(parse, "parse");
 
 // node_modules/diff2html/node_modules/diff/libesm/diff/base.js
-var _Diff2 = class _Diff2 {
+var Diff2 = class {
   diff(oldStr, newStr, options = {}) {
     let callback;
     if (typeof options === "function") {
@@ -14994,7 +15209,7 @@ var _Diff2 = class _Diff2 {
   }
   diffWithOptionsObj(oldTokens, newTokens, options, callback) {
     var _a;
-    const done = /* @__PURE__ */ __name((value) => {
+    const done = (value) => {
       value = this.postProcess(value, options);
       if (callback) {
         setTimeout(function() {
@@ -15004,7 +15219,7 @@ var _Diff2 = class _Diff2 {
       } else {
         return value;
       }
-    }, "done");
+    };
     const newLen = newTokens.length, oldLen = oldTokens.length;
     let editLength = 1;
     let maxEditLength = newLen + oldLen;
@@ -15019,7 +15234,7 @@ var _Diff2 = class _Diff2 {
       return done(this.buildValues(bestPath[0].lastComponent, newTokens, oldTokens));
     }
     let minDiagonalToConsider = -Infinity, maxDiagonalToConsider = Infinity;
-    const execEditLength = /* @__PURE__ */ __name(() => {
+    const execEditLength = () => {
       for (let diagonalPath = Math.max(minDiagonalToConsider, -editLength); diagonalPath <= Math.min(maxDiagonalToConsider, editLength); diagonalPath += 2) {
         let basePath;
         const removePath = bestPath[diagonalPath - 1], addPath = bestPath[diagonalPath + 1];
@@ -15055,9 +15270,9 @@ var _Diff2 = class _Diff2 {
         }
       }
       editLength++;
-    }, "execEditLength");
+    };
     if (callback) {
-      (/* @__PURE__ */ __name(function exec() {
+      (function exec() {
         setTimeout(function() {
           if (editLength > maxEditLength || Date.now() > abortAfterTimestamp) {
             return callback(void 0);
@@ -15066,7 +15281,7 @@ var _Diff2 = class _Diff2 {
             exec();
           }
         }, 0);
-      }, "exec"))();
+      })();
     } else {
       while (editLength <= maxEditLength && Date.now() <= abortAfterTimestamp) {
         const ret = execEditLength();
@@ -15177,19 +15392,14 @@ var _Diff2 = class _Diff2 {
     return components;
   }
 };
-__name(_Diff2, "Diff");
-var Diff2 = _Diff2;
 
 // node_modules/diff2html/node_modules/diff/libesm/diff/character.js
-var _CharacterDiff = class _CharacterDiff extends Diff2 {
+var CharacterDiff = class extends Diff2 {
 };
-__name(_CharacterDiff, "CharacterDiff");
-var CharacterDiff = _CharacterDiff;
 var characterDiff = new CharacterDiff();
 function diffChars(oldStr, newStr, options) {
   return characterDiff.diff(oldStr, newStr, options);
 }
-__name(diffChars, "diffChars");
 
 // node_modules/diff2html/node_modules/diff/libesm/util/string.js
 function longestCommonPrefix2(str1, str2) {
@@ -15201,7 +15411,6 @@ function longestCommonPrefix2(str1, str2) {
   }
   return str1.slice(0, i);
 }
-__name(longestCommonPrefix2, "longestCommonPrefix");
 function longestCommonSuffix2(str1, str2) {
   let i;
   if (!str1 || !str2 || str1[str1.length - 1] != str2[str2.length - 1]) {
@@ -15214,14 +15423,12 @@ function longestCommonSuffix2(str1, str2) {
   }
   return str1.slice(-i);
 }
-__name(longestCommonSuffix2, "longestCommonSuffix");
 function replacePrefix2(string, oldPrefix, newPrefix) {
   if (string.slice(0, oldPrefix.length) != oldPrefix) {
     throw Error(`string ${JSON.stringify(string)} doesn't start with prefix ${JSON.stringify(oldPrefix)}; this is a bug`);
   }
   return newPrefix + string.slice(oldPrefix.length);
 }
-__name(replacePrefix2, "replacePrefix");
 function replaceSuffix2(string, oldSuffix, newSuffix) {
   if (!oldSuffix) {
     return string + newSuffix;
@@ -15231,19 +15438,15 @@ function replaceSuffix2(string, oldSuffix, newSuffix) {
   }
   return string.slice(0, -oldSuffix.length) + newSuffix;
 }
-__name(replaceSuffix2, "replaceSuffix");
 function removePrefix2(string, oldPrefix) {
   return replacePrefix2(string, oldPrefix, "");
 }
-__name(removePrefix2, "removePrefix");
 function removeSuffix2(string, oldSuffix) {
   return replaceSuffix2(string, oldSuffix, "");
 }
-__name(removeSuffix2, "removeSuffix");
 function maximumOverlap2(string1, string2) {
   return string2.slice(0, overlapCount2(string1, string2));
 }
-__name(maximumOverlap2, "maximumOverlap");
 function overlapCount2(a, b) {
   let startA = 0;
   if (a.length > b.length) {
@@ -15280,7 +15483,6 @@ function overlapCount2(a, b) {
   }
   return k;
 }
-__name(overlapCount2, "overlapCount");
 function segment2(string, segmenter) {
   const parts = [];
   for (const segmentObj of Array.from(segmenter.segment(string))) {
@@ -15293,7 +15495,6 @@ function segment2(string, segmenter) {
   }
   return parts;
 }
-__name(segment2, "segment");
 function trailingWs2(string, segmenter) {
   if (segmenter) {
     return leadingAndTrailingWs2(string, segmenter)[1];
@@ -15306,7 +15507,6 @@ function trailingWs2(string, segmenter) {
   }
   return string.substring(i + 1);
 }
-__name(trailingWs2, "trailingWs");
 function leadingWs2(string, segmenter) {
   if (segmenter) {
     return leadingAndTrailingWs2(string, segmenter)[0];
@@ -15314,7 +15514,6 @@ function leadingWs2(string, segmenter) {
   const match = string.match(/^\s*/);
   return match ? match[0] : "";
 }
-__name(leadingWs2, "leadingWs");
 function leadingAndTrailingWs2(string, segmenter) {
   if (!segmenter) {
     return [leadingWs2(string), trailingWs2(string)];
@@ -15329,12 +15528,11 @@ function leadingAndTrailingWs2(string, segmenter) {
   const tail = /\s/.test(lastSeg) ? lastSeg : "";
   return [head, tail];
 }
-__name(leadingAndTrailingWs2, "leadingAndTrailingWs");
 
 // node_modules/diff2html/node_modules/diff/libesm/diff/word.js
 var extendedWordChars2 = "a-zA-Z0-9_\\u{AD}\\u{C0}-\\u{D6}\\u{D8}-\\u{F6}\\u{F8}-\\u{2C6}\\u{2C8}-\\u{2D7}\\u{2DE}-\\u{2FF}\\u{1E00}-\\u{1EFF}";
 var tokenizeIncludingWhitespace2 = new RegExp(`[${extendedWordChars2}]+|\\s+|[^${extendedWordChars2}]`, "ug");
-var _WordDiff2 = class _WordDiff2 extends Diff2 {
+var WordDiff2 = class extends Diff2 {
   equals(left, right, options) {
     if (options.ignoreCase) {
       left = left.toLowerCase();
@@ -15376,11 +15574,11 @@ var _WordDiff2 = class _WordDiff2 extends Diff2 {
     return tokens;
   }
   join(tokens) {
-    return tokens.map((token, i) => {
+    return tokens.map((token2, i) => {
       if (i == 0) {
-        return token;
+        return token2;
       } else {
-        return token.replace(/^\s+/, "");
+        return token2.replace(/^\s+/, "");
       }
     }).join("");
   }
@@ -15411,8 +15609,6 @@ var _WordDiff2 = class _WordDiff2 extends Diff2 {
     return changes;
   }
 };
-__name(_WordDiff2, "WordDiff");
-var WordDiff2 = _WordDiff2;
 var wordDiff2 = new WordDiff2();
 function dedupeWhitespaceInChangeObjects2(startKeep, deletion, insertion, endKeep, segmenter) {
   if (deletion && insertion) {
@@ -15459,20 +15655,16 @@ function dedupeWhitespaceInChangeObjects2(startKeep, deletion, insertion, endKee
     deletion.value = removePrefix2(deletion.value, overlap);
   }
 }
-__name(dedupeWhitespaceInChangeObjects2, "dedupeWhitespaceInChangeObjects");
-var _WordsWithSpaceDiff2 = class _WordsWithSpaceDiff2 extends Diff2 {
+var WordsWithSpaceDiff2 = class extends Diff2 {
   tokenize(value) {
     const regex2 = new RegExp(`(\\r?\\n)|[${extendedWordChars2}]+|[^\\S\\n\\r]+|[^${extendedWordChars2}]`, "ug");
     return value.match(regex2) || [];
   }
 };
-__name(_WordsWithSpaceDiff2, "WordsWithSpaceDiff");
-var WordsWithSpaceDiff2 = _WordsWithSpaceDiff2;
 var wordsWithSpaceDiff2 = new WordsWithSpaceDiff2();
 function diffWordsWithSpace2(oldStr, newStr, options) {
   return wordsWithSpaceDiff2.diff(oldStr, newStr, options);
 }
-__name(diffWordsWithSpace2, "diffWordsWithSpace");
 
 // node_modules/diff2html/lib-esm/rematch.js
 function levenshtein(a, b) {
@@ -15502,7 +15694,6 @@ function levenshtein(a, b) {
   }
   return matrix[b.length][a.length];
 }
-__name(levenshtein, "levenshtein");
 function newDistanceFn(str) {
   return (x, y) => {
     const xValue = str(x).trim();
@@ -15511,7 +15702,6 @@ function newDistanceFn(str) {
     return lev / (xValue.length + yValue.length);
   };
 }
-__name(newDistanceFn, "newDistanceFn");
 function newMatcherFn(distance2) {
   function findBestMatch(a, b, cache = /* @__PURE__ */ new Map()) {
     let bestMatchDist = Infinity;
@@ -15532,7 +15722,6 @@ function newMatcherFn(distance2) {
     }
     return bestMatch;
   }
-  __name(findBestMatch, "findBestMatch");
   function group(a, b, level = 0, cache = /* @__PURE__ */ new Map()) {
     const bm = findBestMatch(a, b, cache);
     if (!bm || a.length + b.length < 3) {
@@ -15558,10 +15747,8 @@ function newMatcherFn(distance2) {
     }
     return result;
   }
-  __name(group, "group");
   return group;
 }
-__name(newMatcherFn, "newMatcherFn");
 
 // node_modules/diff2html/lib-esm/render-utils.js
 var CSSLineClass = {
@@ -15585,15 +15772,12 @@ var matcher = newMatcherFn(distance);
 function isDevNullName(name) {
   return name.indexOf("dev/null") !== -1;
 }
-__name(isDevNullName, "isDevNullName");
 function removeInsElements(line) {
   return line.replace(/(<ins[^>]*>((.|\n)*?)<\/ins>)/g, "");
 }
-__name(removeInsElements, "removeInsElements");
 function removeDelElements(line) {
   return line.replace(/(<del[^>]*>((.|\n)*?)<\/del>)/g, "");
 }
-__name(removeDelElements, "removeDelElements");
 function toCSSClass(lineType) {
   switch (lineType) {
     case LineType.CONTEXT:
@@ -15604,7 +15788,6 @@ function toCSSClass(lineType) {
       return CSSLineClass.DELETES;
   }
 }
-__name(toCSSClass, "toCSSClass");
 function colorSchemeToCss(colorScheme) {
   switch (colorScheme) {
     case ColorSchemeType.DARK:
@@ -15616,15 +15799,12 @@ function colorSchemeToCss(colorScheme) {
       return "d2h-light-color-scheme";
   }
 }
-__name(colorSchemeToCss, "colorSchemeToCss");
 function prefixLength(isCombined) {
   return isCombined ? 2 : 1;
 }
-__name(prefixLength, "prefixLength");
 function escapeForHtml(str) {
   return str.slice(0).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#x27;").replace(/\//g, "&#x2F;");
 }
-__name(escapeForHtml, "escapeForHtml");
 function deconstructLine(line, isCombined, escape = true) {
   const indexToSplit = prefixLength(isCombined);
   return {
@@ -15632,7 +15812,6 @@ function deconstructLine(line, isCombined, escape = true) {
     content: escape ? escapeForHtml(line.substring(indexToSplit)) : line.substring(indexToSplit)
   };
 }
-__name(deconstructLine, "deconstructLine");
 function filenameDiff(file) {
   const oldFilename = unifyPath(file.oldName);
   const newFilename = unifyPath(file.newName);
@@ -15681,11 +15860,9 @@ function filenameDiff(file) {
     return oldFilename;
   }
 }
-__name(filenameDiff, "filenameDiff");
 function getHtmlId(file) {
   return `d2h-${hashCode(filenameDiff(file)).toString().slice(-6)}`;
 }
-__name(getHtmlId, "getHtmlId");
 function getFileIcon(file) {
   let templateName = "file-changed";
   if (file.isRename) {
@@ -15701,7 +15878,6 @@ function getFileIcon(file) {
   }
   return templateName;
 }
-__name(getFileIcon, "getFileIcon");
 function diffHighlight(diffLine1, diffLine2, isCombined, config = {}) {
   const { matching, maxLineLengthHighlight, matchWordsThreshold, diffStyle } = Object.assign(Object.assign({}, defaultRenderConfig), config);
   const line1 = deconstructLine(diffLine1, isCombined, false);
@@ -15751,7 +15927,6 @@ function diffHighlight(diffLine1, diffLine2, isCombined, config = {}) {
     }
   };
 }
-__name(diffHighlight, "diffHighlight");
 
 // node_modules/diff2html/lib-esm/file-list-renderer.js
 var baseTemplatesPath = "file-summary";
@@ -15759,7 +15934,7 @@ var iconsBaseTemplatesPath = "icon";
 var defaultFileListRendererConfig = {
   colorScheme: defaultRenderConfig.colorScheme
 };
-var _FileListRenderer = class _FileListRenderer {
+var FileListRenderer = class {
   constructor(hoganUtils, config = {}) {
     this.hoganUtils = hoganUtils;
     this.config = Object.assign(Object.assign({}, defaultFileListRendererConfig), config);
@@ -15782,8 +15957,6 @@ var _FileListRenderer = class _FileListRenderer {
     });
   }
 };
-__name(_FileListRenderer, "FileListRenderer");
-var FileListRenderer = _FileListRenderer;
 
 // node_modules/diff2html/lib-esm/line-by-line-renderer.js
 var defaultLineByLineRendererConfig = Object.assign(Object.assign({}, defaultRenderConfig), { renderNothingWhenEmpty: false, matchingMaxComparisons: 2500, maxLineSizeInBlockForComparison: 200 });
@@ -15791,7 +15964,7 @@ var genericTemplatesPath = "generic";
 var baseTemplatesPath2 = "line-by-line";
 var iconsBaseTemplatesPath2 = "icon";
 var tagsBaseTemplatesPath = "tag";
-var _LineByLineRenderer = class _LineByLineRenderer {
+var LineByLineRenderer = class {
   constructor(hoganUtils, config = {}) {
     this.hoganUtils = hoganUtils;
     this.config = Object.assign(Object.assign({}, defaultLineByLineRendererConfig), config);
@@ -15959,8 +16132,6 @@ var _LineByLineRenderer = class _LineByLineRenderer {
     });
   }
 };
-__name(_LineByLineRenderer, "LineByLineRenderer");
-var LineByLineRenderer = _LineByLineRenderer;
 
 // node_modules/diff2html/lib-esm/side-by-side-renderer.js
 var defaultSideBySideRendererConfig = Object.assign(Object.assign({}, defaultRenderConfig), { renderNothingWhenEmpty: false, matchingMaxComparisons: 2500, maxLineSizeInBlockForComparison: 200 });
@@ -15968,7 +16139,7 @@ var genericTemplatesPath2 = "generic";
 var baseTemplatesPath3 = "side-by-side";
 var iconsBaseTemplatesPath3 = "icon";
 var tagsBaseTemplatesPath2 = "tag";
-var _SideBySideRenderer = class _SideBySideRenderer {
+var SideBySideRenderer = class {
   constructor(hoganUtils, config = {}) {
     this.hoganUtils = hoganUtils;
     this.config = Object.assign(Object.assign({}, defaultSideBySideRendererConfig), config);
@@ -16147,8 +16318,6 @@ var _SideBySideRenderer = class _SideBySideRenderer {
     });
   }
 };
-__name(_SideBySideRenderer, "SideBySideRenderer");
-var SideBySideRenderer = _SideBySideRenderer;
 
 // node_modules/diff2html/lib-esm/hoganjs-utils.js
 var Hogan3 = __toESM(require_hogan());
@@ -16156,7 +16325,7 @@ var Hogan3 = __toESM(require_hogan());
 // node_modules/diff2html/lib-esm/diff2html-templates.js
 var Hogan2 = __toESM(require_hogan());
 var defaultTemplates = {};
-defaultTemplates["file-summary-line"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
+defaultTemplates["file-summary-line"] = new Hogan2.Template({ code: function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b('<li class="d2h-file-list-line">');
@@ -16186,8 +16355,8 @@ defaultTemplates["file-summary-line"] = new Hogan2.Template({ code: /* @__PURE__
   t.b("\n" + i);
   t.b("</li>");
   return t.fl();
-}, "code"), partials: { "<fileIcon0": { name: "fileIcon", partials: {}, subs: {} } }, subs: {} });
-defaultTemplates["file-summary-wrapper"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
+}, partials: { "<fileIcon0": { name: "fileIcon", partials: {}, subs: {} } }, subs: {} });
+defaultTemplates["file-summary-wrapper"] = new Hogan2.Template({ code: function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b('<div class="d2h-file-list-wrapper ');
@@ -16215,8 +16384,8 @@ defaultTemplates["file-summary-wrapper"] = new Hogan2.Template({ code: /* @__PUR
   t.b("\n" + i);
   t.b("</div>");
   return t.fl();
-}, "code"), partials: {}, subs: {} });
-defaultTemplates["generic-block-header"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
+}, partials: {}, subs: {} });
+defaultTemplates["generic-block-header"] = new Hogan2.Template({ code: function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b("<tr>");
@@ -16250,8 +16419,8 @@ defaultTemplates["generic-block-header"] = new Hogan2.Template({ code: /* @__PUR
   t.b("\n" + i);
   t.b("</tr>");
   return t.fl();
-}, "code"), partials: {}, subs: {} });
-defaultTemplates["generic-empty-diff"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
+}, partials: {}, subs: {} });
+defaultTemplates["generic-empty-diff"] = new Hogan2.Template({ code: function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b("<tr>");
@@ -16272,8 +16441,8 @@ defaultTemplates["generic-empty-diff"] = new Hogan2.Template({ code: /* @__PURE_
   t.b("\n" + i);
   t.b("</tr>");
   return t.fl();
-}, "code"), partials: {}, subs: {} });
-defaultTemplates["generic-file-path"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
+}, partials: {}, subs: {} });
+defaultTemplates["generic-file-path"] = new Hogan2.Template({ code: function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b('<span class="d2h-file-name-wrapper">');
@@ -16294,8 +16463,8 @@ defaultTemplates["generic-file-path"] = new Hogan2.Template({ code: /* @__PURE__
   t.b("\n" + i);
   t.b("</label>");
   return t.fl();
-}, "code"), partials: { "<fileIcon0": { name: "fileIcon", partials: {}, subs: {} }, "<fileTag1": { name: "fileTag", partials: {}, subs: {} } }, subs: {} });
-defaultTemplates["generic-line"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
+}, partials: { "<fileIcon0": { name: "fileIcon", partials: {}, subs: {} }, "<fileTag1": { name: "fileTag", partials: {}, subs: {} } }, subs: {} });
+defaultTemplates["generic-line"] = new Hogan2.Template({ code: function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b("<tr>");
@@ -16353,8 +16522,8 @@ defaultTemplates["generic-line"] = new Hogan2.Template({ code: /* @__PURE__ */ _
   t.b("\n" + i);
   t.b("</tr>");
   return t.fl();
-}, "code"), partials: {}, subs: {} });
-defaultTemplates["generic-wrapper"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
+}, partials: {}, subs: {} });
+defaultTemplates["generic-wrapper"] = new Hogan2.Template({ code: function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b('<div class="d2h-wrapper ');
@@ -16366,8 +16535,8 @@ defaultTemplates["generic-wrapper"] = new Hogan2.Template({ code: /* @__PURE__ *
   t.b("\n" + i);
   t.b("</div>");
   return t.fl();
-}, "code"), partials: {}, subs: {} });
-defaultTemplates["icon-file-added"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
+}, partials: {}, subs: {} });
+defaultTemplates["icon-file-added"] = new Hogan2.Template({ code: function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b('<svg aria-hidden="true" class="d2h-icon d2h-added" height="16" title="added" version="1.1" viewBox="0 0 14 16"');
@@ -16378,8 +16547,8 @@ defaultTemplates["icon-file-added"] = new Hogan2.Template({ code: /* @__PURE__ *
   t.b("\n" + i);
   t.b("</svg>");
   return t.fl();
-}, "code"), partials: {}, subs: {} });
-defaultTemplates["icon-file-changed"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
+}, partials: {}, subs: {} });
+defaultTemplates["icon-file-changed"] = new Hogan2.Template({ code: function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b('<svg aria-hidden="true" class="d2h-icon d2h-changed" height="16" title="modified" version="1.1"');
@@ -16390,8 +16559,8 @@ defaultTemplates["icon-file-changed"] = new Hogan2.Template({ code: /* @__PURE__
   t.b("\n" + i);
   t.b("</svg>");
   return t.fl();
-}, "code"), partials: {}, subs: {} });
-defaultTemplates["icon-file-deleted"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
+}, partials: {}, subs: {} });
+defaultTemplates["icon-file-deleted"] = new Hogan2.Template({ code: function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b('<svg aria-hidden="true" class="d2h-icon d2h-deleted" height="16" title="removed" version="1.1"');
@@ -16402,8 +16571,8 @@ defaultTemplates["icon-file-deleted"] = new Hogan2.Template({ code: /* @__PURE__
   t.b("\n" + i);
   t.b("</svg>");
   return t.fl();
-}, "code"), partials: {}, subs: {} });
-defaultTemplates["icon-file-renamed"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
+}, partials: {}, subs: {} });
+defaultTemplates["icon-file-renamed"] = new Hogan2.Template({ code: function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b('<svg aria-hidden="true" class="d2h-icon d2h-moved" height="16" title="renamed" version="1.1"');
@@ -16414,8 +16583,8 @@ defaultTemplates["icon-file-renamed"] = new Hogan2.Template({ code: /* @__PURE__
   t.b("\n" + i);
   t.b("</svg>");
   return t.fl();
-}, "code"), partials: {}, subs: {} });
-defaultTemplates["icon-file"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
+}, partials: {}, subs: {} });
+defaultTemplates["icon-file"] = new Hogan2.Template({ code: function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b('<svg aria-hidden="true" class="d2h-icon" height="16" version="1.1" viewBox="0 0 12 16" width="12">');
@@ -16424,8 +16593,8 @@ defaultTemplates["icon-file"] = new Hogan2.Template({ code: /* @__PURE__ */ __na
   t.b("\n" + i);
   t.b("</svg>");
   return t.fl();
-}, "code"), partials: {}, subs: {} });
-defaultTemplates["line-by-line-file-diff"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
+}, partials: {}, subs: {} });
+defaultTemplates["line-by-line-file-diff"] = new Hogan2.Template({ code: function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b('<div id="');
@@ -16462,8 +16631,8 @@ defaultTemplates["line-by-line-file-diff"] = new Hogan2.Template({ code: /* @__P
   t.b("\n" + i);
   t.b("</div>");
   return t.fl();
-}, "code"), partials: {}, subs: {} });
-defaultTemplates["line-by-line-numbers"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
+}, partials: {}, subs: {} });
+defaultTemplates["line-by-line-numbers"] = new Hogan2.Template({ code: function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b('<div class="line-num1">');
@@ -16474,8 +16643,8 @@ defaultTemplates["line-by-line-numbers"] = new Hogan2.Template({ code: /* @__PUR
   t.b(t.v(t.f("newNumber", c, p, 0)));
   t.b("</div>");
   return t.fl();
-}, "code"), partials: {}, subs: {} });
-defaultTemplates["side-by-side-file-diff"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
+}, partials: {}, subs: {} });
+defaultTemplates["side-by-side-file-diff"] = new Hogan2.Template({ code: function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b('<div id="');
@@ -16535,34 +16704,34 @@ defaultTemplates["side-by-side-file-diff"] = new Hogan2.Template({ code: /* @__P
   t.b("\n" + i);
   t.b("</div>");
   return t.fl();
-}, "code"), partials: {}, subs: {} });
-defaultTemplates["tag-file-added"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
+}, partials: {}, subs: {} });
+defaultTemplates["tag-file-added"] = new Hogan2.Template({ code: function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b('<span class="d2h-tag d2h-added d2h-added-tag">ADDED</span>');
   return t.fl();
-}, "code"), partials: {}, subs: {} });
-defaultTemplates["tag-file-changed"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
+}, partials: {}, subs: {} });
+defaultTemplates["tag-file-changed"] = new Hogan2.Template({ code: function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b('<span class="d2h-tag d2h-changed d2h-changed-tag">CHANGED</span>');
   return t.fl();
-}, "code"), partials: {}, subs: {} });
-defaultTemplates["tag-file-deleted"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
+}, partials: {}, subs: {} });
+defaultTemplates["tag-file-deleted"] = new Hogan2.Template({ code: function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b('<span class="d2h-tag d2h-deleted d2h-deleted-tag">DELETED</span>');
   return t.fl();
-}, "code"), partials: {}, subs: {} });
-defaultTemplates["tag-file-renamed"] = new Hogan2.Template({ code: /* @__PURE__ */ __name(function(c, p, i) {
+}, partials: {}, subs: {} });
+defaultTemplates["tag-file-renamed"] = new Hogan2.Template({ code: function(c, p, i) {
   var t = this;
   t.b(i = i || "");
   t.b('<span class="d2h-tag d2h-moved d2h-moved-tag">RENAMED</span>');
   return t.fl();
-}, "code"), partials: {}, subs: {} });
+}, partials: {}, subs: {} });
 
 // node_modules/diff2html/lib-esm/hoganjs-utils.js
-var _HoganJsUtils = class _HoganJsUtils {
+var HoganJsUtils = class {
   constructor({ compiledTemplates = {}, rawTemplates = {} }) {
     const compiledRawTemplates = Object.entries(rawTemplates).reduce((previousTemplates, [name, templateString]) => {
       const compiledTemplate = Hogan3.compile(templateString, { asString: false });
@@ -16589,8 +16758,6 @@ var _HoganJsUtils = class _HoganJsUtils {
     return `${namespace}-${view}`;
   }
 };
-__name(_HoganJsUtils, "HoganJsUtils");
-var HoganJsUtils = _HoganJsUtils;
 
 // node_modules/diff2html/lib-esm/diff2html.js
 var defaultDiff2HtmlConfig = Object.assign(Object.assign(Object.assign({}, defaultLineByLineRendererConfig), defaultSideBySideRendererConfig), { outputFormat: OutputFormatType.LINE_BY_LINE, drawFileList: true });
@@ -16604,11 +16771,10 @@ function html(diffInput, configuration = {}) {
   const diffOutput = config.outputFormat === "side-by-side" ? new SideBySideRenderer(hoganUtils, config).render(diffJson) : new LineByLineRenderer(hoganUtils, config).render(diffJson);
   return fileList + diffOutput;
 }
-__name(html, "html");
 
 // src/helpers/diff-render.helper.ts
-var import_obsidian15 = require("obsidian");
-var _DiffRenderHelper = class _DiffRenderHelper {
+var import_obsidian16 = require("obsidian");
+var DiffRenderHelper = class _DiffRenderHelper {
   /**
    * Renders the diff in the requested mode into the supplied container. The
    * container is fully replaced on every call (no incremental update), so the
@@ -16711,11 +16877,11 @@ var _DiffRenderHelper = class _DiffRenderHelper {
    */
   static renderPatch(params) {
     const patch = _DiffRenderHelper.buildCleanPatch(params);
-    const handlerClick = /* @__PURE__ */ __name(() => {
+    const handlerClick = () => {
       navigator.clipboard.writeText(patch).then(() => {
-        new import_obsidian15.Notice(params.plugin.t("notice.copied"));
+        new import_obsidian16.Notice(params.plugin.t("notice.copied"));
       });
-    }, "handlerClick");
+    };
     DomHelper.update(
       params.container,
       {
@@ -16744,7 +16910,7 @@ var _DiffRenderHelper = class _DiffRenderHelper {
     );
     const copyButton = params.container.querySelector(".lct-patch-copy-button");
     if (copyButton) {
-      (0, import_obsidian15.setIcon)(copyButton, "copy");
+      (0, import_obsidian16.setIcon)(copyButton, "copy");
       copyButton.setAttribute("aria-label", params.plugin.t("modal.copy"));
       copyButton.setAttribute("title", params.plugin.t("modal.copy"));
     }
@@ -16908,317 +17074,316 @@ var _DiffRenderHelper = class _DiffRenderHelper {
     });
   }
 };
-__name(_DiffRenderHelper, "DiffRenderHelper");
-var DiffRenderHelper = _DiffRenderHelper;
 
-// src/helpers/folder-delta.helper.ts
-var _FolderDeltaHelper = class _FolderDeltaHelper {
+// src/modals/folder-diff-renderer.ts
+var FolderDiffRenderer = class {
   /**
-   * Compares the snapshot's state at the timeline point T to its current
-   * state. See the class docs for the full status grid and the resolution
-   * rules; see {@link FolderDeltaResult} for the returned shape.
-   *
-   * The helper is defensive about a missing snapshot (returns `'none'` with
-   * empty content) so callers iterating over a possibly-stale map can pass
-   * `undefined` without guarding every call site.
-   *
-   * @param {FileSnapshot} snapshot - The snapshot to inspect (live or tombstone)
-   * @param {number} timestamp - The chosen folder-timeline point T, in ms
-   * @return {FolderDeltaResult} The resolved base / current / status triple
+   * @param {FolderDiffHost} host - The modal port the renderer reads its shared
+   *   state through and reports each render back to.
    */
-  static compareAt(snapshot, timestamp) {
+  constructor(host) {
+    this.host = host;
+  }
+  /**
+   * Renders the diff for the currently-selected file at the currently-selected
+   * T. When no file is selected (an empty tree, or every entry filtered to
+   * status `'none'` at this T) the diff pane is replaced with a calm hint
+   * instead of leaving stale content on screen. After laying out the notice and
+   * column header it calls back into the host so the toolbar action-button
+   * states stay in sync with the visible selection.
+   */
+  refresh() {
     var _a;
-    if (!snapshot) {
-      return { status: "none" /* none */, base: [], current: [] };
+    const diffContainerEl = this.host.diffContainerEl();
+    if (!diffContainerEl) {
+      return;
     }
-    const existedAtT = _FolderDeltaHelper.existedAtT(snapshot, timestamp);
-    const existsNow = !snapshot.isTombstone();
-    const current = existsNow ? [...(_a = snapshot.state) != null ? _a : []] : [];
-    if (!existsNow && !existedAtT) {
-      return { status: "none" /* none */, base: [], current: [] };
+    const path = this.host.selectedPath();
+    const snapshot = path ? this.host.snapshotsByPath().get(path) : void 0;
+    const result = snapshot ? FolderDeltaHelper.compareAt(snapshot, this.host.selectedTimestamp()) : null;
+    this.updateNotice(result);
+    this.updateColumnsHeader(result);
+    this.host.onDiffRendered();
+    if (!result) {
+      DomHelper.update(diffContainerEl, { text: null });
+      return;
     }
-    if (!existedAtT) {
-      return { status: "added" /* added */, base: [], current };
+    DiffRenderHelper.render({
+      baseLines: result.base,
+      currentLines: result.current,
+      lineBreak: (_a = snapshot == null ? void 0 : snapshot.lineBreak) != null ? _a : DEFAULT_LINE_BREAK,
+      mode: this.host.displayMode(),
+      container: diffContainerEl,
+      filePath: path != null ? path : "",
+      plugin: this.host.plugin
+    });
+  }
+  /**
+   * Shows or hides the above-diff notice based on the selected file's status
+   * at T. The notice is shown when there is no file to diff (empty tree at T),
+   * when the file did not change (`'none'`), or for added / deleted variants
+   * the user benefits from a one-line explanation alongside the
+   * "everything green / red" diff.
+   *
+   * @param {FolderDeltaResult | null} result - The compareAt result for the selected file
+   */
+  updateNotice(result) {
+    const noticeEl = this.host.noticeEl();
+    if (!noticeEl) {
+      return;
     }
-    const base = _FolderDeltaHelper.resolveBaseAt(snapshot, timestamp);
-    if (!existsNow) {
-      return { status: "deleted" /* deleted */, base, current: [] };
+    const text = this.resolveNoticeText(result);
+    DomHelper.update(noticeEl, {
+      text: text != null ? text : null,
+      classes: text ? { remove: "lct-diff-notice-hidden" } : { add: "lct-diff-notice-hidden" }
+    });
+  }
+  /**
+   * Picks the inline-English notice text for the selected file's status, or
+   * null when no banner is needed (status `'modified'` reads on its own).
+   * The literal strings are propagated across every catalog in T15.
+   *
+   * @param {FolderDeltaResult | null} result - The compareAt result
+   * @return {string | null} The notice text or null when the banner is hidden
+   */
+  resolveNoticeText(result) {
+    if (!result) {
+      return this.host.plugin.t("modal.folder.notice.no-file");
     }
+    switch (result.status) {
+      case "added" /* added */:
+        return this.host.plugin.t("modal.folder.notice.added");
+      case "deleted" /* deleted */:
+        return this.host.plugin.t("modal.folder.notice.deleted");
+      case "none" /* none */:
+        return this.host.plugin.t("modal.folder.notice.unchanged");
+      default:
+        return null;
+    }
+  }
+  /**
+   * Toggles the side-by-side column header and, when shown, labels the left
+   * column with the picked timeline point and the right column with the
+   * current state. Hidden in the single-column modes (patch / inline /
+   * line-by-line).
+   *
+   * @param {FolderDeltaResult | null} result - The compareAt result for the selected file
+   */
+  updateColumnsHeader(result) {
+    const columnsHeaderEl = this.host.columnsHeaderEl();
+    if (!columnsHeaderEl) {
+      return;
+    }
+    const sideBySide = this.host.displayMode() === "side-by-side" /* side */;
+    if (!sideBySide || !result) {
+      DomHelper.update(columnsHeaderEl, { text: null, classes: { add: "lct-diff-columns-hidden" } });
+      return;
+    }
+    const pointLabel = new Date(this.host.selectedTimestamp()).toLocaleString();
+    DomHelper.update(columnsHeaderEl, {
+      text: null,
+      classes: { remove: "lct-diff-columns-hidden" },
+      children: [
+        { tag: "div", classes: "lct-diff-column-title", text: pointLabel },
+        { tag: "div", classes: "lct-diff-column-title", text: this.host.plugin.t("modal.version.current") }
+      ]
+    });
+  }
+};
+
+// src/helpers/external-badge.helper.ts
+var import_obsidian17 = require("obsidian");
+var ExternalBadgeHelper = class {
+  /**
+   * Builds the inline external-change badge config. The icon id ships as
+   * `data-icon` on the wrapper so {@link paint} can mount the glyph after
+   * DomHelper builds the config tree; the text is rendered as both the visible
+   * label and the accessible name (`aria-label` / `title`) so assistive tech
+   * announces the marker.
+   *
+   * @param {string} text - The locale-resolved badge label
+   * @return {DomElementConfig} The badge element config
+   */
+  static make(text) {
     return {
-      status: _FolderDeltaHelper.contentEquals(base, current) ? "none" /* none */ : "modified" /* modified */,
-      base,
-      current
+      tag: "span",
+      classes: "lct-version-external-badge",
+      attributes: { "aria-label": text, "title": text, "data-icon": this.iconId },
+      children: [
+        { tag: "span", classes: "lct-version-external-badge-icon" },
+        { tag: "span", classes: "lct-version-external-badge-text", text }
+      ]
     };
   }
   /**
-   * Whether the snapshot represented a file present at its current path at T.
-   * The answer drives the added / deleted / modified grid in {@link compareAt},
-   * and crucially it is evaluated per the file's CURRENT path so a move shows up
-   * as a deletion at the old path and an addition at the new one.
+   * Walks the rendered subtree of `container` and applies Obsidian's `setIcon`
+   * to every external-badge icon slot {@link make} emitted. The icon id is read
+   * back from the `data-icon` attribute the config carried. Re-running it on
+   * every render keeps the icon in sync when a rail filters or re-orders rows.
    *
-   * Three cases:
-   *
-   * - Tombstone: existed at T when it was first seen at/before T and deleted at
-   *   or AFTER T (`deletedTimestamp >= T`, inclusive). Inclusive on the delete
-   *   instant so the file is still surfaced as `'deleted'` on the very timeline
-   *   point that represents its deletion (or its move-out, which leaves a
-   *   tombstone stamped at the move instant); an exclusive bound hid the deleted
-   *   file on its own point and made the newest snapshot look empty.
-   *
-   * - Moved-in live snapshot: the file appears at its destination path only
-   *   strictly AFTER the move (`movedIntoAt < T`). At and before the move instant
-   *   it is treated as not-yet-here, so the move-in timeline point renders it as
-   *   freshly `'added'` to the folder (green) while the tombstone left at the old
-   *   path renders as `'deleted'` (red): together they read as a move. Its
-   *   pre-move captured history belongs to the old path and is deliberately not
-   *   consulted for existence at the new one.
-   *
-   * - Plain live snapshot: existed at T when its earliest known moment
-   *   ({@link firstSeenAt}) is at/before T. The floor is the earliest of the
-   *   snapshot's `timestamp` and its version timestamps, NOT `timestamp` alone:
-   *   `timestamp` is reset to `Date.now()` whenever the snapshot object is
-   *   rebuilt, so it drifts NEWER than the file's own captured history and using
-   *   it alone misclassified long-lived files as `'added'` (empty base, all-green
-   *   diff) at every point before it.
-   *
-   * @param {FileSnapshot} snapshot - The snapshot under inspection
-   * @param {number} timestamp - The chosen timeline point T, in ms
-   * @return {boolean} True when the file was present at its current path at T
+   * @param {HTMLElement} container - The subtree to scan for badge slots
    */
-  static existedAtT(snapshot, timestamp) {
-    if (snapshot.isTombstone()) {
-      if (_FolderDeltaHelper.firstSeenAt(snapshot) > timestamp) {
-        return false;
-      }
-      return isNumber_default(snapshot.deletedTimestamp) && snapshot.deletedTimestamp >= timestamp;
-    }
-    if (snapshot.isMovedIn()) {
-      return isNumber_default(snapshot.movedIntoAt) && snapshot.movedIntoAt < timestamp;
-    }
-    return _FolderDeltaHelper.firstSeenAt(snapshot) <= timestamp;
-  }
-  /**
-   * Resolves the earliest moment the file is known to have existed: the minimum
-   * of the snapshot's creation `timestamp` and every captured version timestamp.
-   * Versions are recorded with their true historical timestamps, so the earliest
-   * one is an older, more reliable existence floor than `timestamp`, which drifts
-   * to "now" each time the snapshot object is rebuilt (see {@link existedAtT}).
-   *
-   * Falls back to `+Infinity` when neither a numeric `timestamp` nor any version
-   * timestamp is available, so a degenerate snapshot is treated as never having
-   * existed rather than as existing since the epoch.
-   *
-   * @param {FileSnapshot} snapshot - The snapshot whose existence floor to resolve
-   * @return {number} The earliest known timestamp, or `+Infinity` when unknown
-   */
-  static firstSeenAt(snapshot) {
-    let earliest = isNumber_default(snapshot.timestamp) ? snapshot.timestamp : Number.POSITIVE_INFINITY;
-    const versions = Array.isArray(snapshot.versions) ? snapshot.versions : [];
-    for (const version of versions) {
-      if (version && isNumber_default(version.timestamp) && version.timestamp < earliest) {
-        earliest = version.timestamp;
-      }
-    }
-    return earliest;
-  }
-  /**
-   * Resolves the file's content at T as the captured version whose timestamp
-   * is the latest at or before T, falling back to the persisted history
-   * baseline when no version qualifies. The snapshot's `versions` array is
-   * stored oldest-first (by capture order), so scanning back from the end
-   * finds the qualifying version in one pass.
-   *
-   * No-version live files are a special case (handled first). A file edited
-   * once below the capture cadence has no intermediate versions, so only two
-   * states are known: the history baseline (earliest) and the current state,
-   * reached at the file's last-change moment ({@link FileSnapshot.getLastChangedTimestamp},
-   * the file's mtime). Treating that moment as the single transition, the
-   * content at T is the current state for any T at/after it (so the file reads
-   * as unchanged - `'none'` - since T) and the baseline before it. Without this,
-   * a no-version file always diffs the baseline against the current state and
-   * so shows as `'modified'` at every timeline point, even the newest.
-   * Tombstones keep the baseline fallback: their captured-or-baseline content is
-   * the recoverable starting point and their current side is empty regardless.
-   *
-   * Returns a copy of the lines so the caller cannot mutate the underlying
-   * version or the history baseline through the returned reference.
-   *
-   * @param {FileSnapshot} snapshot - The snapshot whose content to resolve
-   * @param {number} timestamp - The chosen timeline point T, in ms
-   * @return {string[]} The resolved base content as a fresh array of lines
-   */
-  static resolveBaseAt(snapshot, timestamp) {
-    const versions = Array.isArray(snapshot.versions) ? snapshot.versions : [];
-    if (versions.length === 0 && !snapshot.isTombstone()) {
-      const lastChanged = snapshot.getLastChangedTimestamp();
-      if (isNumber_default(lastChanged) && timestamp >= lastChanged) {
-        return snapshot.getLastStateLines();
-      }
-      return Array.isArray(snapshot.historyLines) ? [...snapshot.historyLines] : [];
-    }
-    for (let i = versions.length - 1; i >= 0; i -= 1) {
-      const version = versions[i];
-      if (version && isNumber_default(version.timestamp) && version.timestamp <= timestamp) {
-        return version.getLines();
-      }
-    }
-    return Array.isArray(snapshot.historyLines) ? [...snapshot.historyLines] : [];
-  }
-  /**
-   * Line-by-line equality used to decide `modified` vs `none` for two live
-   * states. Cheaper than joining the arrays and comparing strings because the
-   * common case (identical) short-circuits on the first mismatching index.
-   *
-   * @param {string[]} a - First line array
-   * @param {string[]} b - Second line array
-   * @return {boolean} True when both arrays have the same length and contents
-   */
-  static contentEquals(a, b) {
-    if (a.length !== b.length) {
-      return false;
-    }
-    for (let i = 0; i < a.length; i += 1) {
-      if (a[i] !== b[i]) {
-        return false;
-      }
-    }
-    return true;
-  }
-};
-__name(_FolderDeltaHelper, "FolderDeltaHelper");
-var FolderDeltaHelper = _FolderDeltaHelper;
-
-// src/helpers/folder-timeline.helper.ts
-var _FolderTimelineHelper = class _FolderTimelineHelper {
-  /**
-   * Synthesises the folder timeline from the snapshots whose path starts with
-   * `rootPath`. See the class docs for the kinds emitted and the ordering
-   * contract; see {@link FolderTimelinePoint} for the per-point shape.
-   *
-   * An empty input or an empty subtree returns an empty array. A `rootPath`
-   * of `''` matches every snapshot, which is the natural "whole vault" case
-   * a future caller could use; today the folder modal always passes a real
-   * folder path.
-   *
-   * @param {Iterable<FileSnapshot>} snapshots - The snapshots to scan
-   * @param {string} rootPath - Vault-relative folder path (no trailing slash)
-   * @return {FolderTimelinePoint[]} Points sorted newest-first, stable on ties
-   */
-  static synthesize(snapshots, rootPath) {
-    var _a;
-    if (!snapshots) {
-      return [];
-    }
-    const normalizedRoot = _FolderTimelineHelper.normalizeRoot(rootPath);
-    const points = [];
-    for (const snapshot of snapshots) {
-      if (!snapshot) {
-        continue;
-      }
-      const path = _FolderTimelineHelper.pathOf(snapshot);
-      if (!_FolderTimelineHelper.isUnderRoot(path, normalizedRoot)) {
-        continue;
-      }
-      for (const version of (_a = snapshot.versions) != null ? _a : []) {
-        points.push({
-          timestamp: version.timestamp,
-          path,
-          kind: "capture" /* capture */,
-          dayKey: _FolderTimelineHelper.dayKeyOf(version.timestamp),
-          versionId: version.id
-        });
-      }
-      if (snapshot.isTombstone() && isNumber_default(snapshot.deletedTimestamp)) {
-        points.push({
-          timestamp: snapshot.deletedTimestamp,
-          path,
-          kind: "delete" /* delete */,
-          dayKey: _FolderTimelineHelper.dayKeyOf(snapshot.deletedTimestamp)
-        });
-      }
-      if (snapshot.isMovedIn() && isNumber_default(snapshot.movedIntoAt)) {
-        points.push({
-          timestamp: snapshot.movedIntoAt,
-          path,
-          kind: "move-in" /* moveIn */,
-          dayKey: _FolderTimelineHelper.dayKeyOf(snapshot.movedIntoAt)
-        });
-      }
-    }
-    points.sort(
-      (a, b) => b.timestamp - a.timestamp
+  static paint(container) {
+    const badges = container.querySelectorAll(
+      ".lct-version-external-badge"
     );
-    return points;
-  }
-  /**
-   * Returns the day-group key for a timestamp the same way {@link FileVersion.getDate}
-   * does, so a folder modal rail using the same string can match a file modal
-   * rail group heading for any version on the same calendar day.
-   *
-   * @param {number} timestamp - Capture timestamp in milliseconds
-   * @return {string} Localized day key, identical to `new Date(ts).toLocaleDateString()`
-   */
-  static dayKeyOf(timestamp) {
-    return new Date(timestamp).toLocaleDateString();
-  }
-  /**
-   * Resolves the vault-relative path of a snapshot. Prefers the attached
-   * `file.path` (live snapshots own a `TFile`), and falls back to the
-   * snapshot's carried `path` (epic 12), which mirrors the canonical map key in
-   * `SnapshotsService.fileSnapshots`. The fallback is what keeps a restored
-   * snapshot whose `file` did not resolve (restore miss, detached tombstone or
-   * orphan) on the timeline after a reload, instead of being dropped by an empty
-   * path.
-   *
-   * A snapshot without any usable path (defensive: not expected in practice)
-   * contributes nothing to the timeline.
-   *
-   * @param {FileSnapshot} snapshot - The snapshot to inspect
-   * @return {string} The vault-relative path, or `''` when missing
-   */
-  static pathOf(snapshot) {
-    var _a, _b, _c;
-    return (_c = (_b = (_a = snapshot == null ? void 0 : snapshot.file) == null ? void 0 : _a.path) != null ? _b : snapshot == null ? void 0 : snapshot.path) != null ? _c : "";
-  }
-  /**
-   * Strips a trailing slash from the root prefix so the matcher does not have
-   * to special-case it. An empty root matches every path (whole-vault scope).
-   *
-   * @param {string} rootPath - Caller-supplied folder root
-   * @return {string} Normalized root, never ending in a slash
-   */
-  static normalizeRoot(rootPath) {
-    if (!rootPath) {
-      return "";
-    }
-    return rootPath.endsWith("/") ? rootPath.slice(0, -1) : rootPath;
-  }
-  /**
-   * Whether the given path is inside the root prefix. An empty root matches
-   * everything; an exact equality match is allowed (a snapshot keyed exactly at
-   * the root path is a degenerate but harmless case); otherwise the path must
-   * have `${root}/` as its prefix so `src/a.md` does not match the root `s`.
-   *
-   * @param {string} path - Vault-relative path to test
-   * @param {string} root - Normalized root prefix (no trailing slash)
-   * @return {boolean} True when `path` lives under `root`
-   */
-  static isUnderRoot(path, root2) {
-    if (!path) {
-      return false;
-    }
-    if (!root2) {
-      return true;
-    }
-    return path === root2 || path.startsWith(`${root2}/`);
+    badges.forEach((badge) => {
+      const iconId = badge.getAttribute("data-icon");
+      const slot = badge.querySelector(".lct-version-external-badge-icon");
+      if (iconId && slot) {
+        (0, import_obsidian17.setIcon)(slot, iconId);
+      }
+    });
   }
 };
-__name(_FolderTimelineHelper, "FolderTimelineHelper");
-var FolderTimelineHelper = _FolderTimelineHelper;
+/** Lucide icon id mounted into every external badge. */
+ExternalBadgeHelper.iconId = "download-cloud";
+
+// src/modals/folder-timeline-renderer.ts
+var FolderTimelineRenderer = class {
+  /**
+   * @param {FolderTimelineHost} host - The modal port the renderer reads its
+   *   shared state through and reports the picked T to.
+   */
+  constructor(host) {
+    this.host = host;
+  }
+  /**
+   * Renders the timeline rail: a flat list of points grouped by their day
+   * key, clickable so the user can pick a new T. Highlights the entry whose
+   * timestamp matches the currently selected T.
+   */
+  render() {
+    const railEl = this.host.railEl();
+    if (!railEl) {
+      return;
+    }
+    const groups = [];
+    this.host.timeline().forEach((point) => {
+      let group = groups[groups.length - 1];
+      if (!group || group.label !== point.dayKey) {
+        group = { label: point.dayKey, points: [] };
+        groups.push(group);
+      }
+      group.points.push(point);
+    });
+    const items = [];
+    groups.forEach((group) => {
+      items.push({ tag: "div", classes: "lct-versions-day", text: group.label });
+      group.points.forEach((point) => {
+        items.push(this.makeTimelineItem(point));
+      });
+    });
+    if (items.length === 0) {
+      items.push({
+        tag: "div",
+        classes: "lct-versions-no-results",
+        text: this.host.plugin.t("modal.no-versions-match")
+      });
+    }
+    DomHelper.update(railEl, {
+      text: null,
+      children: [
+        {
+          tag: "div",
+          classes: "lct-versions",
+          children: [{ tag: "div", classes: "lct-versions-list", children: items }]
+        }
+      ]
+    });
+    ExternalBadgeHelper.paint(railEl);
+  }
+  /**
+   * Whether the given timeline point comes from an external-change capture
+   * (D13, T20). Only `'capture'` points map back to a `FileVersion` via
+   * `versionId`; `'delete'` and `'move-in'` markers stay non-external. A
+   * point whose path or version is no longer in the map (e.g. removed by a
+   * destructive action after resync) returns false defensively.
+   *
+   * @param {FolderTimelinePoint} point - The timeline point to inspect
+   * @return {boolean} True when the underlying version is flagged external
+   */
+  isExternalPoint(point) {
+    if (point.kind !== "capture" /* capture */ || !point.versionId) {
+      return false;
+    }
+    const snapshot = this.host.snapshotsByPath().get(point.path);
+    if (!snapshot) {
+      return false;
+    }
+    const version = snapshot.getVersion(point.versionId);
+    return (version == null ? void 0 : version.isExternal()) === true;
+  }
+  /**
+   * Builds a single timeline rail entry: a label describing the event (a
+   * capture / delete / move-in plus the file's short name), the time of day
+   * inline, and a click that re-pins T and re-renders the tree and diff.
+   *
+   * @param {FolderTimelinePoint} point - The point to render
+   * @return {DomElementConfig} The rail entry element config
+   */
+  makeTimelineItem(point) {
+    const active = this.host.selectedTimestamp() === point.timestamp;
+    const shortName = this.basename(point.path);
+    const kindLabel = this.kindLabel(point.kind);
+    const time = new Date(point.timestamp).toLocaleTimeString();
+    const external = this.isExternalPoint(point);
+    const labelChildren = [
+      { tag: "span", classes: "lct-version-label", text: shortName }
+    ];
+    if (external) {
+      labelChildren.push(ExternalBadgeHelper.make(this.host.plugin.t("version.badge.external")));
+    }
+    return {
+      tag: "div",
+      classes: active ? ["lct-version-item", "is-active"] : ["lct-version-item"],
+      events: {
+        click: () => {
+          this.host.selectTimestamp(point.timestamp);
+        }
+      },
+      children: [
+        { tag: "span", classes: "lct-version-label-row", children: labelChildren },
+        { tag: "span", classes: "lct-version-meta", text: `${kindLabel}, ${time}` }
+      ]
+    };
+  }
+  /**
+   * Returns a short, inline-English label for a timeline point kind. The
+   * literal strings are propagated across every catalog in T15 (D13 pattern);
+   * until then, the labels show as English on every locale.
+   *
+   * @param {FolderTimelinePoint['kind']} kind - The discriminator
+   * @return {string} The human-readable kind label
+   */
+  kindLabel(kind) {
+    switch (kind) {
+      case "capture" /* capture */:
+        return this.host.plugin.t("modal.folder.timeline.capture");
+      case "delete" /* delete */:
+        return this.host.plugin.t("modal.folder.timeline.delete");
+      case "move-in" /* moveIn */:
+        return this.host.plugin.t("modal.folder.timeline.move-in");
+      default:
+        return kind;
+    }
+  }
+  /**
+   * Returns the last path segment of a vault-relative path. Used as the rail
+   * row's short file label so the column does not overflow on deep paths.
+   *
+   * @param {string} path - The vault-relative path
+   * @return {string} The trailing segment, or the path itself when no slash
+   */
+  basename(path) {
+    const lastSlash = path.lastIndexOf("/");
+    return lastSlash === -1 ? path : path.slice(lastSlash + 1);
+  }
+};
 
 // src/modals/folder-history.modal.ts
-var import_obsidian16 = require("obsidian");
-var _FolderHistoryModal = class _FolderHistoryModal extends import_obsidian16.Modal {
+var import_obsidian18 = require("obsidian");
+var FolderHistoryModal = class extends import_obsidian18.Modal {
   /**
    * Builds a new folder history modal. The caller is expected to have filtered
    * the snapshots to the folder root (see {@link ModalsService.openFolderHistory})
@@ -17255,6 +17420,94 @@ var _FolderHistoryModal = class _FolderHistoryModal extends import_obsidian16.Mo
     this.timeline = FolderTimelineHelper.synthesize(snapshots, rootPath);
     this.selectedTimestamp = this.timeline.length > 0 ? this.timeline[0].timestamp : Date.now();
     this.tree = new FolderTreeComponent();
+    this.timelineRenderer = new FolderTimelineRenderer(this.makeTimelineHost());
+    this.diffRenderer = new FolderDiffRenderer(this.makeDiffHost());
+    this.actionHandler = new FolderActionHandler(this.makeActionHost());
+  }
+  /**
+   * Builds the narrow host port the {@link FolderTimelineRenderer} reads the
+   * modal's shared state through. The accessors are lazy so the renderer always
+   * sees the live timeline, selected T, rail container, and snapshot map, and
+   * the `selectTimestamp` callback routes a picked point back through the
+   * modal's own re-pin path (rail + tree + diff). Mirrors the host-port pattern
+   * the file modal's VersionList / GutterRevert collaborators use (T04 / T05):
+   * the renderer never sees the modal's protected fields directly.
+   *
+   * @return {FolderTimelineHost} The host port for the timeline renderer
+   */
+  makeTimelineHost() {
+    return {
+      plugin: this.plugin,
+      railEl: () => this.railEl,
+      timeline: () => this.timeline,
+      selectedTimestamp: () => this.selectedTimestamp,
+      snapshotsByPath: () => this.snapshotsByPath,
+      selectTimestamp: (timestamp) => {
+        this.selectTimestamp(timestamp);
+      }
+    };
+  }
+  /**
+   * Builds the narrow host port the {@link FolderDiffRenderer} reads the modal's
+   * diff-pane state through. The accessors are lazy so the renderer always sees
+   * the live diff / notice / columns-header containers, the selected display
+   * mode, the selected T, the tree's selected file, and the snapshot map; the
+   * `onDiffRendered` callback routes the post-render refresh of the toolbar
+   * action-button states back to the modal, which still owns the toolbar.
+   * Mirrors the host-port pattern the timeline renderer (T07) and the file
+   * modal's collaborators (T04 / T05) use: the renderer never sees the modal's
+   * protected fields directly.
+   *
+   * @return {FolderDiffHost} The host port for the diff renderer
+   */
+  makeDiffHost() {
+    return {
+      plugin: this.plugin,
+      diffContainerEl: () => this.diffContainerEl,
+      noticeEl: () => this.noticeEl,
+      columnsHeaderEl: () => this.columnsHeaderEl,
+      displayMode: () => this.currentDisplayMode,
+      selectedTimestamp: () => this.selectedTimestamp,
+      selectedPath: () => this.tree.getSelectedPath(),
+      snapshotsByPath: () => this.snapshotsByPath,
+      onDiffRendered: () => {
+        this.updateActionButtonStates();
+      }
+    };
+  }
+  /**
+   * Builds the narrow host port the {@link FolderActionHandler} reads the modal's
+   * action state through. The services and app are passed straight through; the
+   * selection / closest-version derivations and the snapshot-map mutation +
+   * rail / tree / diff re-render are routed back to the modal so the handler
+   * never owns the timeline or the snapshot map directly. Mirrors the host-port
+   * pattern the timeline (T07) and diff (T08) renderers use: the handler never
+   * sees the modal's protected fields directly.
+   *
+   * @return {FolderActionHost} The host port for the action handler
+   */
+  makeActionHost() {
+    return {
+      app: this.app,
+      plugin: this.plugin,
+      modalsService: this.modalsService,
+      versionActionsService: this.versionActionsService,
+      snapshotsService: this.snapshotsService,
+      resolveSelection: () => this.resolveSelection(),
+      resolveVersionAtT: (snapshot) => this.resolveVersionAtT(snapshot),
+      removeFromMap: (path) => {
+        this.snapshotsByPath.delete(path);
+      },
+      resyncTimeline: () => {
+        this.resyncTimeline();
+      },
+      refreshTree: () => {
+        this.refreshTree();
+      },
+      refreshDiff: () => {
+        this.refreshDiff();
+      }
+    };
   }
   /**
    * Lifecycle hook called when the modal opens. Builds the three-column shell,
@@ -17266,7 +17519,7 @@ var _FolderHistoryModal = class _FolderHistoryModal extends import_obsidian16.Mo
   onOpen() {
     this.makeUI();
     DomHelper.update(this.modalEl, { classes: { add: ["lct-diff-modal", "lct-folder-history-modal"] } });
-    this.renderTimeline();
+    this.timelineRenderer.render();
     this.refreshTree();
     this.refreshDiff();
   }
@@ -17370,12 +17623,12 @@ var _FolderHistoryModal = class _FolderHistoryModal extends import_obsidian16.Mo
     const key2 = "modal.folder.filter-files";
     const resolved = this.plugin.t(key2);
     const placeholder = resolved && resolved !== key2 ? resolved : "Filter files by name";
-    new import_obsidian16.SearchComponent(this.treeSearchEl).setPlaceholder(placeholder).setValue("").onChange((value) => {
+    new import_obsidian18.SearchComponent(this.treeSearchEl).setPlaceholder(placeholder).setValue("").onChange((value) => {
       this.tree.setNameFilter(value);
     });
   }
   /**
-   * Builds the toolbar in the same shape the file modal uses (T13 / D10):
+   * Builds the toolbar in the same shape the file modal uses (D10):
    * a destructive group (restore-original / remove-history) pinned to the
    * left, a constructive group (restore-selected / remove-selected /
    * label-selected) keyed on the tree-selected file at the picked timeline
@@ -17393,17 +17646,17 @@ var _FolderHistoryModal = class _FolderHistoryModal extends import_obsidian16.Mo
       icon: "rotate-ccw",
       label: this.plugin.t("modal.restore-original"),
       warning: true,
-      onClick: /* @__PURE__ */ __name(async () => {
-        await this.handleRestoreOriginal();
-      }, "onClick")
+      onClick: async () => {
+        await this.actionHandler.handleRestoreOriginal();
+      }
     });
     this.removeHistoryButton = this.makeToolbarButton(actionsGroup, {
       icon: "trash-2",
       label: this.plugin.t("modal.remove-history"),
       warning: true,
-      onClick: /* @__PURE__ */ __name(async () => {
-        await this.handleRemoveHistory();
-      }, "onClick")
+      onClick: async () => {
+        await this.actionHandler.handleRemoveHistory();
+      }
     });
     const filterGroup = DomHelper.create({
       tag: "div",
@@ -17413,23 +17666,23 @@ var _FolderHistoryModal = class _FolderHistoryModal extends import_obsidian16.Mo
     this.restoreSelectedButton = this.makeToolbarButton(filterGroup, {
       icon: "history",
       label: this.plugin.t("modal.restore-selected"),
-      onClick: /* @__PURE__ */ __name(async () => {
-        await this.handleRestoreSelected();
-      }, "onClick")
+      onClick: async () => {
+        await this.actionHandler.handleRestoreSelected();
+      }
     });
     this.removeSelectedButton = this.makeToolbarButton(filterGroup, {
       icon: "list-x",
       label: this.plugin.t("modal.remove-selected"),
-      onClick: /* @__PURE__ */ __name(async () => {
-        await this.handleRemoveSelected();
-      }, "onClick")
+      onClick: async () => {
+        await this.actionHandler.handleRemoveSelected();
+      }
     });
     this.labelSelectedButton = this.makeToolbarButton(filterGroup, {
       icon: "tag",
       label: this.plugin.t("modal.label-selected"),
-      onClick: /* @__PURE__ */ __name(async () => {
-        await this.handleLabelSelected();
-      }, "onClick")
+      onClick: async () => {
+        await this.actionHandler.handleLabelSelected();
+      }
     });
     const modesGroup = DomHelper.create({
       tag: "div",
@@ -17439,30 +17692,30 @@ var _FolderHistoryModal = class _FolderHistoryModal extends import_obsidian16.Mo
     this.modeButtons.patch = this.makeToolbarButton(modesGroup, {
       icon: "file-text",
       label: this.plugin.t("modal.mode.patch"),
-      onClick: /* @__PURE__ */ __name(() => {
+      onClick: () => {
         this.setDisplayMode("patch" /* patch */);
-      }, "onClick")
+      }
     });
     this.modeButtons.inline = this.makeToolbarButton(modesGroup, {
       icon: "pilcrow",
       label: this.plugin.t("modal.mode.inline"),
-      onClick: /* @__PURE__ */ __name(() => {
+      onClick: () => {
         this.setDisplayMode("inline" /* inline */);
-      }, "onClick")
+      }
     });
     this.modeButtons.lineByLine = this.makeToolbarButton(modesGroup, {
       icon: "align-justify",
       label: this.plugin.t("modal.mode.line-by-line"),
-      onClick: /* @__PURE__ */ __name(() => {
+      onClick: () => {
         this.setDisplayMode("line-by-line" /* line */);
-      }, "onClick")
+      }
     });
     this.modeButtons.sideBySide = this.makeToolbarButton(modesGroup, {
       icon: "columns-2",
       label: this.plugin.t("modal.mode.side-by-side"),
-      onClick: /* @__PURE__ */ __name(() => {
+      onClick: () => {
         this.setDisplayMode("side-by-side" /* side */);
-      }, "onClick")
+      }
     });
     this.updateModeButtonActiveStates();
     this.updateActionButtonStates();
@@ -17511,12 +17764,12 @@ var _FolderHistoryModal = class _FolderHistoryModal extends import_obsidian16.Mo
       attributes: { "aria-label": config.label, "type": "button" },
       container: group,
       events: {
-        click: /* @__PURE__ */ __name(() => {
+        click: () => {
           void config.onClick();
-        }, "click")
+        }
       }
     });
-    (0, import_obsidian16.setIcon)(button, config.icon);
+    (0, import_obsidian18.setIcon)(button, config.icon);
     return button;
   }
   /**
@@ -17570,175 +17823,6 @@ var _FolderHistoryModal = class _FolderHistoryModal extends import_obsidian16.Mo
     this.refreshDiff();
   }
   /**
-   * Renders the timeline rail: a flat list of points grouped by their day
-   * key, clickable so the user can pick a new T. Highlights the entry whose
-   * timestamp matches the currently selected T.
-   */
-  renderTimeline() {
-    if (!this.railEl) {
-      return;
-    }
-    const groups = [];
-    this.timeline.forEach((point) => {
-      let group = groups[groups.length - 1];
-      if (!group || group.label !== point.dayKey) {
-        group = { label: point.dayKey, points: [] };
-        groups.push(group);
-      }
-      group.points.push(point);
-    });
-    const items = [];
-    groups.forEach((group) => {
-      items.push({ tag: "div", classes: "lct-versions-day", text: group.label });
-      group.points.forEach((point) => {
-        items.push(this.makeTimelineItem(point));
-      });
-    });
-    if (items.length === 0) {
-      items.push({
-        tag: "div",
-        classes: "lct-versions-no-results",
-        text: this.plugin.t("modal.no-versions-match")
-      });
-    }
-    DomHelper.update(this.railEl, {
-      text: null,
-      children: [
-        {
-          tag: "div",
-          classes: "lct-versions",
-          children: [{ tag: "div", classes: "lct-versions-list", children: items }]
-        }
-      ]
-    });
-    this.paintExternalBadges(this.railEl);
-  }
-  /**
-   * Mirrors the rail / panel post-mount pass: after the DomHelper config tree
-   * is mounted, apply Obsidian's `setIcon` to every badge slot the timeline
-   * config declared. The icon id is carried as `data-icon` on the wrapper so
-   * each badge can be painted without rebuilding the rail imperatively.
-   *
-   * @param {HTMLElement} container - The rail container to scan
-   */
-  paintExternalBadges(container) {
-    const badges = container.querySelectorAll(
-      ".lct-version-external-badge"
-    );
-    badges.forEach((badge) => {
-      const iconId = badge.getAttribute("data-icon");
-      const slot = badge.querySelector(".lct-version-external-badge-icon");
-      if (iconId && slot) {
-        (0, import_obsidian16.setIcon)(slot, iconId);
-      }
-    });
-  }
-  /**
-   * Whether the given timeline point comes from an external-change capture
-   * (D13, T20). Only `'capture'` points map back to a `FileVersion` via
-   * `versionId`; `'delete'` and `'move-in'` markers stay non-external. A
-   * point whose path or version is no longer in the map (e.g. removed by a
-   * destructive action after resync) returns false defensively.
-   *
-   * @param {FolderTimelinePoint} point - The timeline point to inspect
-   * @return {boolean} True when the underlying version is flagged external
-   */
-  isExternalPoint(point) {
-    if (point.kind !== "capture" /* capture */ || !point.versionId) {
-      return false;
-    }
-    const snapshot = this.snapshotsByPath.get(point.path);
-    if (!snapshot) {
-      return false;
-    }
-    const version = snapshot.getVersion(point.versionId);
-    return (version == null ? void 0 : version.isExternal()) === true;
-  }
-  /**
-   * Builds the inline external-change badge config used by the timeline rail.
-   * Shape and i18n contract match the file modal rail and the recent-changes
-   * panel so the badge reads consistently across surfaces (T20 AC1/AC2/AC3).
-   *
-   * @return {DomElementConfig} The badge element config
-   */
-  makeExternalBadge() {
-    const text = this.plugin.t("version.badge.external");
-    return {
-      tag: "span",
-      classes: "lct-version-external-badge",
-      attributes: { "aria-label": text, "title": text, "data-icon": "download-cloud" },
-      children: [
-        { tag: "span", classes: "lct-version-external-badge-icon" },
-        { tag: "span", classes: "lct-version-external-badge-text", text }
-      ]
-    };
-  }
-  /**
-   * Builds a single timeline rail entry: a label describing the event (a
-   * capture / delete / move-in plus the file's short name), the time of day
-   * inline, and a click that re-pins T and re-renders the tree and diff.
-   *
-   * @param {FolderTimelinePoint} point - The point to render
-   * @return {DomElementConfig} The rail entry element config
-   */
-  makeTimelineItem(point) {
-    const active = this.selectedTimestamp === point.timestamp;
-    const shortName = this.basename(point.path);
-    const kindLabel = this.kindLabel(point.kind);
-    const time = new Date(point.timestamp).toLocaleTimeString();
-    const external = this.isExternalPoint(point);
-    const labelChildren = [
-      { tag: "span", classes: "lct-version-label", text: shortName }
-    ];
-    if (external) {
-      labelChildren.push(this.makeExternalBadge());
-    }
-    return {
-      tag: "div",
-      classes: active ? ["lct-version-item", "is-active"] : ["lct-version-item"],
-      events: {
-        click: /* @__PURE__ */ __name(() => {
-          this.selectTimestamp(point.timestamp);
-        }, "click")
-      },
-      children: [
-        { tag: "span", classes: "lct-version-label-row", children: labelChildren },
-        { tag: "span", classes: "lct-version-meta", text: `${kindLabel}, ${time}` }
-      ]
-    };
-  }
-  /**
-   * Returns a short, inline-English label for a timeline point kind. The
-   * literal strings are propagated across every catalog in T15 (D13 pattern);
-   * until then, the labels show as English on every locale.
-   *
-   * @param {FolderTimelinePoint['kind']} kind - The discriminator
-   * @return {string} The human-readable kind label
-   */
-  kindLabel(kind) {
-    switch (kind) {
-      case "capture" /* capture */:
-        return this.plugin.t("modal.folder.timeline.capture");
-      case "delete" /* delete */:
-        return this.plugin.t("modal.folder.timeline.delete");
-      case "move-in" /* moveIn */:
-        return this.plugin.t("modal.folder.timeline.move-in");
-      default:
-        return kind;
-    }
-  }
-  /**
-   * Returns the last path segment of a vault-relative path. Used as the rail
-   * row's short file label so the column does not overflow on deep paths.
-   *
-   * @param {string} path - The vault-relative path
-   * @return {string} The trailing segment, or the path itself when no slash
-   */
-  basename(path) {
-    const lastSlash = path.lastIndexOf("/");
-    return lastSlash === -1 ? path : path.slice(lastSlash + 1);
-  }
-  /**
    * Pins a new timeline point T, re-renders the rail (to flip the active
    * highlight), re-colours the tree (the per-file deltas change with T), and
    * re-renders the diff for the currently-selected file at the new T (AC2).
@@ -17750,7 +17834,7 @@ var _FolderHistoryModal = class _FolderHistoryModal extends import_obsidian16.Mo
       return;
     }
     this.selectedTimestamp = timestamp;
-    this.renderTimeline();
+    this.timelineRenderer.render();
     this.refreshTree();
     this.refreshDiff();
   }
@@ -17777,34 +17861,13 @@ var _FolderHistoryModal = class _FolderHistoryModal extends import_obsidian16.Mo
   }
   /**
    * Renders the diff for the currently-selected file at the currently-selected
-   * T. When no file is selected (an empty tree, or every entry filtered to
-   * status `'none'` at this T) the diff pane is replaced with a calm hint
-   * instead of leaving stale content on screen.
+   * T by delegating to the {@link FolderDiffRenderer} collaborator (T08). The
+   * renderer reads the live containers / mode / T / selection through its host
+   * port and calls back into {@link updateActionButtonStates} after each render
+   * so the toolbar stays in sync.
    */
   refreshDiff() {
-    var _a;
-    if (!this.diffContainerEl) {
-      return;
-    }
-    const path = this.tree.getSelectedPath();
-    const snapshot = path ? this.snapshotsByPath.get(path) : void 0;
-    const result = snapshot ? FolderDeltaHelper.compareAt(snapshot, this.selectedTimestamp) : null;
-    this.updateDiffNotice(result);
-    this.updateColumnsHeader(result);
-    this.updateActionButtonStates();
-    if (!result) {
-      DomHelper.update(this.diffContainerEl, { text: null });
-      return;
-    }
-    DiffRenderHelper.render({
-      baseLines: result.base,
-      currentLines: result.current,
-      lineBreak: (_a = snapshot == null ? void 0 : snapshot.lineBreak) != null ? _a : DEFAULT_LINE_BREAK,
-      mode: this.currentDisplayMode,
-      container: this.diffContainerEl,
-      filePath: path != null ? path : "",
-      plugin: this.plugin
-    });
+    this.diffRenderer.refresh();
   }
   /**
    * Handler for a tree click: re-renders the diff against the newly-selected
@@ -17874,7 +17937,7 @@ var _FolderHistoryModal = class _FolderHistoryModal extends import_obsidian16.Mo
       this.rootPath
     );
     if (this.timeline.length === 0) {
-      this.renderTimeline();
+      this.timelineRenderer.render();
       return;
     }
     const stillExists = this.timeline.some(
@@ -17883,310 +17946,12 @@ var _FolderHistoryModal = class _FolderHistoryModal extends import_obsidian16.Mo
     if (!stillExists) {
       this.selectedTimestamp = this.timeline[0].timestamp;
     }
-    this.renderTimeline();
-  }
-  /**
-   * Handler for the "Restore selected version" toolbar button. The version
-   * closest to T is restored on the tree-selected file (D10/AC1). When T
-   * precedes every captured version, the synthetic baseline branch writes the
-   * `compareAt` base back through {@link SnapshotsService.applyContent} so the
-   * file's earliest known content is still restorable. When the selected file
-   * is a tombstone with `deletedTimestamp > T` (AC4), the file is re-created
-   * at its old path with the content at T and the tombstone is promoted back
-   * to a live snapshot in place.
-   *
-   * @return {Promise<void>}
-   */
-  async handleRestoreSelected() {
-    var _a;
-    const selection = this.resolveSelection();
-    if (!selection) {
-      return;
-    }
-    const confirmed = await this.modalsService.confirm({
-      title: this.plugin.t("modal.confirm.restore-version.title"),
-      message: this.plugin.t("modal.confirm.restore-version.message"),
-      confirmText: this.plugin.t("modal.confirm.restore-version.button"),
-      cancelText: this.plugin.t("modal.confirm.cancel")
-    });
-    if (!confirmed) {
-      return;
-    }
-    if (selection.snapshot.isTombstone() && selection.result.status === "deleted" /* deleted */) {
-      await this.restoreTombstoneSelection(selection.path, selection.snapshot, selection.result);
-      this.resyncTimeline();
-      this.refreshTree();
-      this.refreshDiff();
-      return;
-    }
-    const file = (_a = selection.snapshot.file) != null ? _a : null;
-    if (!file) {
-      return;
-    }
-    const version = this.resolveVersionAtT(selection.snapshot);
-    if (version) {
-      await this.versionActionsService.restoreSelected(file, version.id);
-    } else {
-      const baseLines = selection.result.base;
-      const currentLines = selection.snapshot.getLastStateLines();
-      if (baseLines.join(selection.snapshot.lineBreak) !== currentLines.join(selection.snapshot.lineBreak)) {
-        await this.snapshotsService.applyContent(file, baseLines, {
-          start: 0,
-          removeCount: currentLines.length,
-          newLines: baseLines
-        });
-      }
-    }
-    this.refreshTree();
-    this.refreshDiff();
-  }
-  /**
-   * Promotes a tombstone back to a live snapshot for AC4: writes the resolved
-   * base content to disk at the snapshot's old path through
-   * {@link App.vault.create}, attaches the resulting file to the snapshot, and
-   * clears the tombstone marker so the entry becomes live in the map without
-   * losing its captured versions or history baseline. A best-effort path: on a
-   * vault error a Notice surfaces the failure and the tombstone stays as-is so
-   * the user can retry.
-   *
-   * @param {string} path - The vault-relative old path of the deleted file
-   * @param {FileSnapshot} snapshot - The tombstone snapshot to promote
-   * @param {FolderDeltaResult} result - The compareAt result carrying the base content at T
-   * @return {Promise<void>}
-   */
-  async restoreTombstoneSelection(path, snapshot, result) {
-    const content = result.base.join(snapshot.lineBreak);
-    if (this.app.vault.getAbstractFileByPath(path) !== null) {
-      new import_obsidian16.Notice(this.plugin.t("notice.file-restore-path-occupied"));
-      return;
-    }
-    try {
-      const created = await this.app.vault.create(path, content);
-      snapshot.file = created;
-      snapshot.deletedTimestamp = void 0;
-      snapshot.updateState(result.base);
-      snapshot.updateChanges();
-      this.snapshotsService.forceUpdate();
-    } catch (_error) {
-      new import_obsidian16.Notice(this.plugin.t("notice.file-restore-failed"));
-    }
-  }
-  /**
-   * Handler for the "Remove selected version" toolbar button. Drops the version
-   * closest to T from the tree-selected file's timeline (D10/AC2), then
-   * re-synthesises the folder timeline and re-renders the tree so the rail and
-   * the per-file delta reflect the removed point. A no-op for a tombstone with
-   * no captured version at T (there is nothing to remove without violating the
-   * "version closest to T" semantics).
-   *
-   * @return {Promise<void>}
-   */
-  async handleRemoveSelected() {
-    var _a;
-    const selection = this.resolveSelection();
-    if (!selection) {
-      return;
-    }
-    const version = this.resolveVersionAtT(selection.snapshot);
-    if (!version) {
-      return;
-    }
-    const confirmed = await this.modalsService.confirm({
-      title: this.plugin.t("modal.confirm.remove-version.title"),
-      message: this.plugin.t("modal.confirm.remove-version.message"),
-      confirmText: this.plugin.t("modal.confirm.remove-version.button"),
-      cancelText: this.plugin.t("modal.confirm.cancel")
-    });
-    if (!confirmed) {
-      return;
-    }
-    const file = (_a = selection.snapshot.file) != null ? _a : null;
-    if (file) {
-      this.versionActionsService.removeSelected(file, version.id);
-    } else if (selection.snapshot.removeVersion(version.id)) {
-      this.snapshotsService.forceUpdate();
-    }
-    this.resyncTimeline();
-    this.refreshTree();
-    this.refreshDiff();
-  }
-  /**
-   * Handler for the "Label selected version" toolbar button. Routes the
-   * version closest to T through {@link ModalsService.labelVersion} so the
-   * label prompt and the cancel/blank no-op contract match the file modal
-   * exactly (D10/AC3). A no-op for a tombstone whose snapshot has no live
-   * `file` reference (the modals service resolves the label target by file).
-   *
-   * @return {Promise<void>}
-   */
-  async handleLabelSelected() {
-    var _a;
-    const selection = this.resolveSelection();
-    if (!selection) {
-      return;
-    }
-    const version = this.resolveVersionAtT(selection.snapshot);
-    const file = (_a = selection.snapshot.file) != null ? _a : null;
-    if (!version || !file) {
-      return;
-    }
-    const labeled = await this.modalsService.labelVersion(file, version.id);
-    if (!labeled) {
-      return;
-    }
-    this.refreshTree();
-    this.refreshDiff();
-  }
-  /**
-   * Handler for the "Restore original" toolbar button. Asks for confirmation
-   * and, on consent, rewrites the tree-selected file back to its history
-   * baseline and drops its snapshot, mirroring the file modal's destructive
-   * action. The folder modal stays open: the tree re-colours so the user can
-   * see the rest of the subtree, the now-untracked file simply leaves the
-   * delta view.
-   *
-   * @return {Promise<void>}
-   */
-  async handleRestoreOriginal() {
-    var _a;
-    const selection = this.resolveSelection();
-    if (!selection) {
-      return;
-    }
-    const file = (_a = selection.snapshot.file) != null ? _a : null;
-    if (!file) {
-      return;
-    }
-    const confirmed = await this.modalsService.confirm({
-      title: this.plugin.t("modal.confirm.restore.title"),
-      message: this.plugin.t("modal.confirm.restore.message"),
-      confirmText: this.plugin.t("modal.confirm.restore.button"),
-      cancelText: this.plugin.t("modal.confirm.cancel")
-    });
-    if (!confirmed) {
-      return;
-    }
-    try {
-      const originalContent = selection.snapshot.getHistoryOriginalState();
-      await this.app.vault.modify(file, originalContent);
-      this.snapshotsService.wipeOne(file);
-      this.snapshotsByPath.delete(selection.path);
-      new import_obsidian16.Notice(this.plugin.t("notice.file-restored"));
-    } catch (_error) {
-      new import_obsidian16.Notice(this.plugin.t("notice.file-restore-failed"));
-      return;
-    }
-    this.resyncTimeline();
-    this.refreshTree();
-    this.refreshDiff();
-  }
-  /**
-   * Handler for the "Remove history" toolbar button. Asks for confirmation and,
-   * on consent, drops the tree-selected file's snapshot through
-   * {@link SnapshotsService.wipeOne}, leaving the file's content untouched on
-   * disk. The folder modal stays open and the tree is re-coloured so the
-   * remaining changed files stay visible.
-   *
-   * @return {Promise<void>}
-   */
-  async handleRemoveHistory() {
-    var _a;
-    const selection = this.resolveSelection();
-    if (!selection) {
-      return;
-    }
-    const file = (_a = selection.snapshot.file) != null ? _a : null;
-    if (!file) {
-      return;
-    }
-    const confirmed = await this.modalsService.confirm({
-      title: this.plugin.t("modal.confirm.remove.title"),
-      message: this.plugin.t("modal.confirm.remove.message"),
-      confirmText: this.plugin.t("modal.confirm.remove.button"),
-      cancelText: this.plugin.t("modal.confirm.cancel")
-    });
-    if (!confirmed) {
-      return;
-    }
-    this.snapshotsService.wipeOne(file);
-    this.snapshotsByPath.delete(selection.path);
-    this.resyncTimeline();
-    this.refreshTree();
-    this.refreshDiff();
-  }
-  /**
-   * Shows or hides the above-diff notice based on the selected file's status
-   * at T. The notice is shown when there is no file to diff (empty tree at T),
-   * when the file did not change (`'none'`), or for added / deleted variants
-   * the user benefits from a one-line explanation alongside the
-   * "everything green / red" diff.
-   *
-   * @param {FolderDeltaResult | null} result - The compareAt result for the selected file
-   */
-  updateDiffNotice(result) {
-    if (!this.noticeEl) {
-      return;
-    }
-    const text = this.resolveNoticeText(result);
-    DomHelper.update(this.noticeEl, {
-      text: text != null ? text : null,
-      classes: text ? { remove: "lct-diff-notice-hidden" } : { add: "lct-diff-notice-hidden" }
-    });
-  }
-  /**
-   * Picks the inline-English notice text for the selected file's status, or
-   * null when no banner is needed (status `'modified'` reads on its own).
-   * The literal strings are propagated across every catalog in T15.
-   *
-   * @param {FolderDeltaResult | null} result - The compareAt result
-   * @return {string | null} The notice text or null when the banner is hidden
-   */
-  resolveNoticeText(result) {
-    if (!result) {
-      return this.plugin.t("modal.folder.notice.no-file");
-    }
-    switch (result.status) {
-      case "added" /* added */:
-        return this.plugin.t("modal.folder.notice.added");
-      case "deleted" /* deleted */:
-        return this.plugin.t("modal.folder.notice.deleted");
-      case "none" /* none */:
-        return this.plugin.t("modal.folder.notice.unchanged");
-      default:
-        return null;
-    }
-  }
-  /**
-   * Toggles the side-by-side column header and, when shown, labels the left
-   * column with the picked timeline point and the right column with the
-   * current state. Hidden in the single-column modes (patch / inline /
-   * line-by-line).
-   *
-   * @param {FolderDeltaResult | null} result - The compareAt result for the selected file
-   */
-  updateColumnsHeader(result) {
-    if (!this.columnsHeaderEl) {
-      return;
-    }
-    const sideBySide = this.currentDisplayMode === "side-by-side" /* side */;
-    if (!sideBySide || !result) {
-      DomHelper.update(this.columnsHeaderEl, { text: null, classes: { add: "lct-diff-columns-hidden" } });
-      return;
-    }
-    const pointLabel = new Date(this.selectedTimestamp).toLocaleString();
-    DomHelper.update(this.columnsHeaderEl, {
-      text: null,
-      classes: { remove: "lct-diff-columns-hidden" },
-      children: [
-        { tag: "div", classes: "lct-diff-column-title", text: pointLabel },
-        { tag: "div", classes: "lct-diff-column-title", text: this.plugin.t("modal.version.current") }
-      ]
-    });
+    this.timelineRenderer.render();
   }
   /**
    * Returns the timeline this modal was opened against. Exposed for tests
-   * and for T13 wiring (the toolbar actions need to know which version is
-   * closest to the picked T for the selected file).
+   * and for the toolbar actions, which need to know which version is closest
+   * to the picked T for the selected file.
    *
    * @return {FolderTimelinePoint[]} The timeline points, newest-first
    */
@@ -18195,7 +17960,7 @@ var _FolderHistoryModal = class _FolderHistoryModal extends import_obsidian16.Mo
   }
   /**
    * Returns the currently selected timeline point T. Exposed for tests and
-   * future T13 wiring.
+   * the toolbar actions.
    *
    * @return {number} The selected T in ms
    */
@@ -18203,8 +17968,8 @@ var _FolderHistoryModal = class _FolderHistoryModal extends import_obsidian16.Mo
     return this.selectedTimestamp;
   }
   /**
-   * Returns the snapshot map keyed by path. Exposed for T13 wiring so the
-   * toolbar actions can resolve the tree-selected file back to its snapshot
+   * Returns the snapshot map keyed by path. Exposed so the toolbar
+   * actions can resolve the tree-selected file back to its snapshot
    * without re-filtering the service map.
    *
    * @return {Map<string, FileSnapshot>} The snapshot map
@@ -18214,8 +17979,8 @@ var _FolderHistoryModal = class _FolderHistoryModal extends import_obsidian16.Mo
   }
   /**
    * Re-runs the per-file delta against the given path at the current T.
-   * Exposed for T13 so it can derive the base / current content for the
-   * selected file when invoking VersionActionsService.
+   * Exposed so the toolbar actions can derive the base / current content
+   * for the selected file when invoking VersionActionsService.
    *
    * @param {string} path - The vault-relative file path
    * @return {FolderDeltaStatus} The status at T, `'none'` when the path is unknown
@@ -18228,46 +17993,530 @@ var _FolderHistoryModal = class _FolderHistoryModal extends import_obsidian16.Mo
     return FolderDeltaHelper.compareAt(snapshot, this.selectedTimestamp).status;
   }
 };
-__name(_FolderHistoryModal, "FolderHistoryModal");
 __decorateClass([
-  Inject("SnapshotsService")
-], _FolderHistoryModal.prototype, "snapshotsService", 2);
+  Inject(TOKENS.snapshots)
+], FolderHistoryModal.prototype, "snapshotsService", 2);
 __decorateClass([
-  Inject("ModalsService")
-], _FolderHistoryModal.prototype, "modalsService", 2);
+  Inject(TOKENS.modals)
+], FolderHistoryModal.prototype, "modalsService", 2);
 __decorateClass([
-  Inject("VersionActionsService")
-], _FolderHistoryModal.prototype, "versionActionsService", 2);
-var FolderHistoryModal = _FolderHistoryModal;
+  Inject(TOKENS.versionActions)
+], FolderHistoryModal.prototype, "versionActionsService", 2);
 
-// src/helpers/base-content.helper.ts
-var _BaseContentHelper = class _BaseContentHelper {
+// src/modals/diff-scroll-sync.ts
+var DiffScrollSync = class {
   /**
-   * Resolves the base content to diff the current state against.
-   *
-   * @param {string} selectedBaseId - The picked base id (the synthetic baseline
-   *   sentinel or an intermediate version id)
-   * @param {string} baselineId - The sentinel id that marks the synthetic
-   *   baseline entry
-   * @param {BaseContentSnapshot} snapshot - The reduced snapshot view to read
-   * @return {string} The base content for the diff
+   * @param {DiffContainerResolver} resolveContainer - Reads the host's live diff
+   *   container, used both as the setup target and to detect container swaps.
    */
-  static resolve(selectedBaseId, baselineId, snapshot) {
-    if (selectedBaseId !== baselineId) {
-      const content = snapshot.versionContent(selectedBaseId);
-      if (content !== null) {
-        return content;
+  constructor(resolveContainer) {
+    this.resolveContainer = resolveContainer;
+    /**
+     * Handle of the pending deferred {@link setup} call, captured so a rapid mode
+     * switch can cancel it before it attaches listeners to a replaced DOM.
+     */
+    this.timer = null;
+  }
+  /**
+   * Schedules scroll synchronisation for a freshly rendered side-by-side diff.
+   * Uses `setTimeout(0)` to let the diff2html DOM mount first; the deferred
+   * callback bails if the container was replaced (rapid mode switch) so no
+   * listeners attach to stale DOM. Any previously pending schedule is left for
+   * {@link cleanup}, which the host calls before every render.
+   */
+  schedule() {
+    const targetContainer = this.resolveContainer();
+    this.timer = setTimeout(() => {
+      this.timer = null;
+      if (this.resolveContainer() !== targetContainer) {
+        return;
       }
+      this.setup();
+    }, 0);
+  }
+  /**
+   * Cancels any pending deferred setup and detaches the scroll listeners from
+   * the current diff container. Called when switching between diff modes or
+   * closing the modal.
+   */
+  cleanup() {
+    if (this.timer !== null) {
+      clearTimeout(this.timer);
+      this.timer = null;
     }
-    const latest = snapshot.versions[0];
-    return latest != null ? latest : snapshot.original;
+    const container = this.resolveContainer();
+    if (container == null ? void 0 : container._scrollSyncCleanup) {
+      container._scrollSyncCleanup();
+      delete container._scrollSyncCleanup;
+    }
+  }
+  /**
+   * Finds the scrollable wrapper elements for both diff columns and adds the
+   * listeners that mirror vertical and horizontal scroll between them. A
+   * reentrancy guard (`isScrolling`, cleared on the next animation frame)
+   * prevents the two listeners from echoing each other. The detach closure is
+   * stored on the container so {@link cleanup} can remove the listeners.
+   */
+  setup() {
+    const container = this.resolveContainer();
+    if (!container) {
+      return;
+    }
+    const wrappers = container.querySelectorAll(".d2h-side-column-wrapper");
+    if ((wrappers == null ? void 0 : wrappers.length) !== 2) {
+      return;
+    }
+    const [leftWrapper, rightWrapper] = wrappers;
+    let isScrolling = false;
+    const syncLeftToRight = () => {
+      if (isScrolling) {
+        return;
+      }
+      isScrolling = true;
+      rightWrapper.scrollTop = leftWrapper.scrollTop;
+      rightWrapper.scrollLeft = leftWrapper.scrollLeft;
+      requestAnimationFrame(() => {
+        isScrolling = false;
+      });
+    };
+    const syncRightToLeft = () => {
+      if (isScrolling) {
+        return;
+      }
+      isScrolling = true;
+      leftWrapper.scrollTop = rightWrapper.scrollTop;
+      leftWrapper.scrollLeft = rightWrapper.scrollLeft;
+      requestAnimationFrame(() => {
+        isScrolling = false;
+      });
+    };
+    leftWrapper.addEventListener("scroll", syncLeftToRight);
+    rightWrapper.addEventListener("scroll", syncRightToLeft);
+    container._scrollSyncCleanup = () => {
+      leftWrapper.removeEventListener("scroll", syncLeftToRight);
+      rightWrapper.removeEventListener("scroll", syncRightToLeft);
+    };
   }
 };
-__name(_BaseContentHelper, "BaseContentHelper");
-var BaseContentHelper = _BaseContentHelper;
+
+// src/modals/diff-view-state.ts
+var DiffViewState = class {
+  /**
+   * @param {DiffViewStateHost} host - The modal port the state reads the live
+   *   diff container and hunks back through.
+   */
+  constructor(host) {
+    this.host = host;
+    /**
+     * Id of the currently selected diff base. Set on open to the latest captured
+     * version (so the modal opens on "what changed since the last save"), or to
+     * the Original entry when the file has no snapshots yet. May be changed to any
+     * other version's id to diff the current state against that earlier point.
+     */
+    this.selectedBaseId = ORIGINAL_BASE_ID;
+    /**
+     * Current content-search query for the version rail. An empty string shows
+     * every version; a non-empty query keeps only versions whose captured content
+     * contains it (case-insensitive). It never affects the selected diff base.
+     */
+    this.searchQuery = "";
+    /**
+     * Whether the rail hides intermediate versions whose captured content is
+     * identical to the current state. Off by default so the full timeline shows;
+     * toggled from the toolbar. It is a view-only filter over the rail list and
+     * never changes the selected diff base.
+     */
+    this.hideIdenticalVersions = false;
+    /**
+     * The current display mode for the diff view. One of the four
+     * {@link DiffRenderMode} values (patch, inline, line-by-line, side-by-side).
+     * Defaults to side-by-side.
+     */
+    this.currentDisplayMode = "side-by-side" /* side */;
+    /**
+     * Index of the difference currently focused by the next/previous navigation,
+     * or -1 when none is focused yet. It indexes into the hunks computed for the
+     * selected base, and is reset whenever the diff changes (base switch, revert,
+     * or content change) so a stale index can never highlight the wrong block.
+     */
+    this.activeHunkIndex = -1;
+    /**
+     * References to the mode toggle buttons.
+     * Used to update the active state when switching between diff modes.
+     */
+    this.modeButtons = {};
+    /**
+     * References to the next/previous difference navigation buttons, kept so they
+     * can be disabled when the current diff has no hunks to walk.
+     */
+    this.navButtons = {};
+  }
+  /**
+   * Gets the currently active button based on the current display mode.
+   * Returns the button element that corresponds to the active diff view mode.
+   *
+   * @return {HTMLElement | null} The active button element, or null if no mode is active
+   */
+  getActiveButton() {
+    switch (this.currentDisplayMode) {
+      case "patch" /* patch */:
+        return this.modeButtons.patch;
+      case "inline" /* inline */:
+        return this.modeButtons.inline;
+      case "line-by-line" /* line */:
+        return this.modeButtons.lineByLine;
+      case "side-by-side" /* side */:
+        return this.modeButtons.sideBySide;
+      default:
+        return null;
+    }
+  }
+  /**
+   * Updates the active state of mode buttons based on the current display mode.
+   */
+  updateButtonActiveStates() {
+    Object.values(this.modeButtons).forEach((button) => {
+      DomHelper.update(
+        button,
+        { classes: { remove: "is-active" } }
+      );
+    });
+    const activeButton = this.getActiveButton();
+    if (!activeButton) {
+      return;
+    }
+    DomHelper.update(
+      activeButton,
+      { classes: { add: "is-active" } }
+    );
+  }
+  /**
+   * Moves the difference focus to the next or previous hunk and brings it into
+   * view. The target index is resolved by the same pure NavigationHelper.target
+   * used by the editor change-navigation commands, fed the hunk indices as the
+   * "changed lines" and the current active index as the cursor, so the walk
+   * wraps around at both ends (past the last hunk returns to the first, before
+   * the first returns to the last). With no hunks it is a safe no-op.
+   *
+   * @param {NavigationDirection} direction - Which way to step through the hunks
+   */
+  goToDifference(direction) {
+    const count = this.host.getHunks().length;
+    if (count === 0) {
+      return;
+    }
+    const indices = Array.from({ length: count }, (_unused, index) => index);
+    const target = NavigationHelper.target(indices, this.activeHunkIndex, direction);
+    if (target === null) {
+      return;
+    }
+    this.activeHunkIndex = target;
+    this.focusHunk(target);
+  }
+  /**
+   * Highlights the hunk at the given index inside the diff and scrolls it into
+   * view, so the difference the navigation buttons moved to is visible and
+   * marked active. The target is the hunk's anchor row inside the rendered diff
+   * (the same row that carries the inline revert affordance), so navigation
+   * works against the diff itself now that the separate difference panel is
+   * gone. Every other anchor row loses the active marker first. Patch mode has
+   * no per-row anchors, so this is a safe no-op there.
+   *
+   * @param {number} index - The hunk index to focus
+   */
+  focusHunk(index) {
+    var _a;
+    const container = this.host.diffContainer();
+    if (!container) {
+      return;
+    }
+    const anchors = Array.from(
+      container.querySelectorAll(".lct-hunk-anchor")
+    );
+    anchors.forEach((anchor) => {
+      const anchorIndex = Number(anchor.dataset.lctHunk);
+      DomHelper.update(anchor, { classes: anchorIndex === index ? { add: "is-active" } : { remove: "is-active" } });
+    });
+    (_a = anchors.find((anchor) => Number(anchor.dataset.lctHunk) === index)) == null ? void 0 : _a.scrollIntoView({ block: "nearest" });
+  }
+  /**
+   * Enables or disables the next/previous difference buttons based on whether
+   * the current diff has any hunks to walk, and drops a stale active index when
+   * the diff no longer has that many hunks. A diff with zero hunks leaves both
+   * buttons disabled so a click is an ignored no-op. Patch mode is also disabled:
+   * it renders a plain <pre> with no per-row anchors to scroll to, so stepping
+   * between differences has nothing to focus there.
+   */
+  updateNavButtonsState() {
+    const count = this.host.getHunks().length;
+    const disabled = count === 0 || this.currentDisplayMode === "patch" /* patch */;
+    [this.navButtons.previous, this.navButtons.next].forEach((button) => {
+      if (!button) {
+        return;
+      }
+      button.disabled = disabled;
+      DomHelper.update(button, { classes: disabled ? { add: "is-disabled" } : { remove: "is-disabled" } });
+    });
+    if (this.activeHunkIndex >= count) {
+      this.activeHunkIndex = -1;
+    }
+  }
+};
+
+// src/modals/gutter-revert-handler.ts
+var import_obsidian19 = require("obsidian");
+var GutterRevertHandler = class {
+  /**
+   * @param {GutterRevertHost} host - The modal port the handler reads its shared
+   *   state through and reports reverts to.
+   */
+  constructor(host) {
+    this.host = host;
+  }
+  /**
+   * Post-processes the rendered diff to place one inline revert affordance at
+   * the anchor row of each hunk, JetBrains style: a small revert arrow that
+   * reverts only that block. It maps the rendered rows back to getHunks by their
+   * current-side line number and marks each anchor with its hunk index, so the
+   * next/previous navigation can scroll and highlight the same rows. Patch mode
+   * renders a plain <pre> with no per-row structure, so it carries no affordance
+   * and is skipped (handled by the caller). The nav button state is refreshed
+   * here because the hunk set is now known.
+   */
+  attachInlineReverts() {
+    if (!this.host.diffContainer()) {
+      return;
+    }
+    const hunks = this.host.getHunks();
+    hunks.forEach((hunk, index) => {
+      const anchor = this.resolveHunkAnchor(hunk);
+      if (!anchor) {
+        return;
+      }
+      anchor.classList.add("lct-hunk-anchor");
+      anchor.dataset.lctHunk = String(index);
+      this.makeRevertAffordance(this.resolveHunkGutter(anchor), index);
+    });
+    this.host.updateNavButtonsState();
+  }
+  /**
+   * Reverts a single hunk of the current diff back to the selected base and
+   * leaves every other change intact. The hunk is resolved fresh from getHunks
+   * (against the live content) by its index, the user confirms before the write,
+   * and the revert reuses the same plumbing the editor gutter uses: HunkHelper to
+   * scope the block, SnapshotsService.applyContent to write it and refresh the
+   * highlights. The host is then notified so the active view is re-rendered and
+   * the diff reflects the new content. A stale index (the diff changed under the
+   * click) is a safe no-op.
+   *
+   * @param {number} index - The index of the hunk to revert in the current diff
+   * @return {Promise<void>}
+   */
+  async revertHunk(index) {
+    const snapshot = this.host.snapshot;
+    const file = snapshot == null ? void 0 : snapshot.file;
+    if (!file) {
+      return;
+    }
+    const hunk = this.host.getHunks()[index];
+    if (!hunk) {
+      return;
+    }
+    const confirmed = await this.host.modalsService.confirm({
+      title: this.host.plugin.t("modal.confirm.revert.title"),
+      message: this.host.plugin.t("modal.confirm.revert.message"),
+      confirmText: this.host.plugin.t("modal.confirm.revert.button"),
+      cancelText: this.host.plugin.t("modal.confirm.cancel")
+    });
+    if (!confirmed) {
+      return;
+    }
+    const currentLines = snapshot.getLastStateLines();
+    const start = Math.max(0, Math.min(currentLines.length, hunk.newStart - 1));
+    await this.host.snapshotsService.applyContent(
+      file,
+      HunkHelper.revertHunk(currentLines, hunk),
+      {
+        start,
+        removeCount: hunk.newLines,
+        newLines: HunkHelper.baseLinesForHunk(hunk)
+      }
+    );
+    this.host.onReverted();
+  }
+  /**
+   * Resolves the element that hosts the inline revert affordance for an anchor
+   * row. The diff2html modes (line-by-line, side-by-side) carry a sticky
+   * line-number cell, which keeps the affordance pinned to the gutter while the
+   * diff scrolls horizontally. The inline mode has no such cell, so the row
+   * itself hosts the affordance.
+   *
+   * @param {HTMLElement} anchor - The hunk anchor row
+   * @return {HTMLElement} The element the revert affordance is appended to
+   */
+  resolveHunkGutter(anchor) {
+    var _a;
+    return (_a = anchor.querySelector(".d2h-code-linenumber")) != null ? _a : anchor;
+  }
+  /**
+   * Resolves the rendered diff row that anchors a hunk, across the three diff
+   * modes that carry per-row structure. The anchor is the first current-side row
+   * of the hunk (the hunk's newStart). A pure deletion (newLines === 0) has no
+   * current-side row, so it anchors on the base-side row of its first removed
+   * line instead, which is the row the user sees the deletion on.
+   *
+   * @param {Diff.StructuredPatchHunk} hunk - The hunk to anchor
+   * @return {HTMLElement | null} The anchor row, or null when no row matches
+   */
+  resolveHunkAnchor(hunk) {
+    if (this.host.displayMode() === "inline" /* inline */) {
+      return this.resolveInlineAnchor(hunk);
+    }
+    return this.resolveDiff2HtmlAnchor(hunk);
+  }
+  /**
+   * Resolves the anchor row inside the plugin-rendered inline diff. The inline
+   * rows have no line numbers, so the anchor is found positionally: the inline
+   * diff lists context and changed rows in document order, so the Nth changed
+   * row group maps to the Nth hunk. The first row of the hunk's changed run is
+   * the anchor.
+   *
+   * @param {Diff.StructuredPatchHunk} hunk - The hunk to anchor
+   * @return {HTMLElement | null} The anchor row, or null when none matches
+   */
+  resolveInlineAnchor(hunk) {
+    const rows = Array.from(
+      this.diffContainer().querySelectorAll(".lct-inline-row")
+    );
+    let currentLine = 0;
+    for (const row of rows) {
+      const changed = !row.classList.contains("lct-inline-context");
+      const hasNewLine = !row.classList.contains("lct-inline-removed");
+      if (changed && currentLine + 1 >= hunk.newStart) {
+        return row;
+      }
+      if (hasNewLine) {
+        currentLine++;
+      }
+    }
+    return null;
+  }
+  /**
+   * Resolves the anchor row inside a diff2html render (line-by-line or
+   * side-by-side). Both share the same .d2h-code-row-wrapper rows; for a hunk
+   * that occupies current lines the anchor is the row whose current-side line
+   * number equals the hunk's newStart (in side-by-side that number lives in the
+   * right column, so only the right column's rows are searched). A pure deletion
+   * has no current-side row: in line-by-line it shows as a d2h-del row in the
+   * single stream; in side-by-side the deleted text sits in the left column,
+   * keyed by the hunk's oldStart. Both are anchored accordingly.
+   *
+   * @param {Diff.StructuredPatchHunk} hunk - The hunk to anchor
+   * @return {HTMLElement | null} The anchor row, or null when none matches
+   */
+  resolveDiff2HtmlAnchor(hunk) {
+    var _a, _b, _c, _d;
+    const container = this.diffContainer();
+    const sideBySide = this.host.displayMode() === "side-by-side" /* side */;
+    const columns = sideBySide ? Array.from(container.querySelectorAll(".d2h-side-column")) : [];
+    if (hunk.newLines > 0) {
+      const newScope = sideBySide ? (_a = columns[1]) != null ? _a : container : container;
+      return this.rowAtLine(newScope, hunk.newStart);
+    }
+    if (sideBySide) {
+      return this.rowAtLine((_b = columns[0]) != null ? _b : container, hunk.oldStart);
+    }
+    const rows = this.codeRows(container);
+    return (_d = (_c = rows.find((row) => {
+      const line = this.rowLine(row);
+      return row.classList.contains("d2h-del") && (line === null || line >= hunk.newStart);
+    })) != null ? _c : rows.find((row) => row.classList.contains("d2h-del"))) != null ? _d : null;
+  }
+  /**
+   * Finds the code row inside a scope whose line-number cell carries the given
+   * line number. Used to anchor a hunk on the row at its current-side (or, for a
+   * side-by-side deletion, base-side) start line.
+   *
+   * @param {ParentNode} scope - The container (or column) to search
+   * @param {number} line - The 1-based line number to match
+   * @return {HTMLElement | null} The matching row, or null when none matches
+   */
+  rowAtLine(scope, line) {
+    var _a;
+    return (_a = this.codeRows(scope).find((row) => this.rowLine(row) === line)) != null ? _a : null;
+  }
+  /**
+   * Collects the content code rows inside a scope, skipping the block headers.
+   *
+   * @param {ParentNode} scope - The container (or column) to search
+   * @return {HTMLElement[]} The content rows, top to bottom
+   */
+  codeRows(scope) {
+    return Array.from(
+      scope.querySelectorAll(".d2h-code-row-wrapper:not(.d2h-code-header-wrapper)")
+    );
+  }
+  /**
+   * Reads the line number a diff2html row carries, or null when the row has none
+   * (an empty placeholder). The number is the last numeric token in the row's
+   * line-number cell: line-by-line packs both the old and the new number there
+   * (the new one last), and each side-by-side column carries a single number.
+   *
+   * @param {HTMLElement} row - The .d2h-code-row-wrapper to read
+   * @return {number | null} The 1-based line number, or null
+   */
+  rowLine(row) {
+    var _a, _b;
+    const cell = row.querySelector(".d2h-code-linenumber");
+    const numbers = (_b = (_a = cell == null ? void 0 : cell.textContent) == null ? void 0 : _a.match(/\d+/g)) != null ? _b : null;
+    if (!numbers || numbers.length === 0) {
+      return null;
+    }
+    return Number(numbers[numbers.length - 1]);
+  }
+  /**
+   * Builds the inline revert affordance for a hunk inside the given gutter cell:
+   * an accessible icon button that reverts only that hunk on click. It carries a
+   * single tooltip via aria-label (Obsidian renders it), with no native title so
+   * the hover hint is not shown twice, and a Lucide undo glyph set through
+   * Obsidian so it matches the app's icon set instead of an emoji.
+   *
+   * @param {HTMLElement} gutter - The element to host the affordance
+   * @param {number} index - The hunk index the affordance reverts
+   * @return {void}
+   */
+  makeRevertAffordance(gutter2, index) {
+    const label = this.host.plugin.t("modal.revert-hunk");
+    const button = DomHelper.create({
+      tag: "button",
+      classes: ["lct-hunk-revert", "clickable-icon"],
+      attributes: { "aria-label": label, "type": "button" },
+      container: gutter2,
+      events: {
+        click: (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          void this.revertHunk(index);
+        }
+      }
+    });
+    (0, import_obsidian19.setIcon)(button, "undo-2");
+  }
+  /**
+   * The live diff container, narrowed to a non-null element. The public entry
+   * point ({@link attachInlineReverts}) bails when the container is absent, and
+   * a revert only fires from an affordance that was attached while it existed,
+   * so the anchor-resolution helpers can read it without re-checking.
+   *
+   * @return {HTMLElement} The diff container
+   */
+  diffContainer() {
+    return this.host.diffContainer();
+  }
+};
 
 // src/helpers/list-selection.helper.ts
-var _ListSelectionHelper = class _ListSelectionHelper {
+var ListSelectionHelper = class {
   /**
    * Resolves the id the selection moves to when an arrow key is pressed.
    *
@@ -18289,38 +18538,9 @@ var _ListSelectionHelper = class _ListSelectionHelper {
     return list[next];
   }
 };
-__name(_ListSelectionHelper, "ListSelectionHelper");
-var ListSelectionHelper = _ListSelectionHelper;
-
-// src/helpers/version-search.helper.ts
-var _VersionSearchHelper = class _VersionSearchHelper {
-  /**
-   * Resolves the ids of the versions visible for a given search query.
-   *
-   * @param {SearchableVersion[]} versions - The timeline versions to filter
-   * @param {string} query - The raw search query (trimmed and lower-cased here)
-   * @return {Set<string>} The ids of the matching versions; every version's id
-   *   when the query is empty
-   */
-  static match(versions, query) {
-    const list = versions != null ? versions : [];
-    const needle = (query != null ? query : "").trim().toLowerCase();
-    if (needle === "") {
-      return new Set(list.map((version) => version.id));
-    }
-    return new Set(
-      list.filter((version) => {
-        var _a;
-        return ((_a = version.content) != null ? _a : "").toLowerCase().includes(needle);
-      }).map((version) => version.id)
-    );
-  }
-};
-__name(_VersionSearchHelper, "VersionSearchHelper");
-var VersionSearchHelper = _VersionSearchHelper;
 
 // src/helpers/version-label.helper.ts
-var _VersionLabelHelper = class _VersionLabelHelper {
+var VersionLabelHelper = class _VersionLabelHelper {
   /**
    * Describes the transition from previous to current as an action plus the
    * line-level delta. Symmetric in shape: both empty inputs are handled, and
@@ -18407,12 +18627,324 @@ var _VersionLabelHelper = class _VersionLabelHelper {
     return { added, removed };
   }
 };
-__name(_VersionLabelHelper, "VersionLabelHelper");
-var VersionLabelHelper = _VersionLabelHelper;
+
+// src/helpers/version-search.helper.ts
+var VersionSearchHelper = class {
+  /**
+   * Resolves the ids of the versions visible for a given search query.
+   *
+   * @param {SearchableVersion[]} versions - The timeline versions to filter
+   * @param {string} query - The raw search query (trimmed and lower-cased here)
+   * @return {Set<string>} The ids of the matching versions; every version's id
+   *   when the query is empty
+   */
+  static match(versions, query) {
+    const list = versions != null ? versions : [];
+    const needle = (query != null ? query : "").trim().toLowerCase();
+    if (needle === "") {
+      return new Set(list.map((version) => version.id));
+    }
+    return new Set(
+      list.filter((version) => {
+        var _a;
+        return ((_a = version.content) != null ? _a : "").toLowerCase().includes(needle);
+      }).map((version) => version.id)
+    );
+  }
+};
+
+// src/modals/version-list.component.ts
+var VersionList = class {
+  /**
+   * @param {VersionListHost} host - The modal port the component reads its
+   *   shared state through and reports selection changes to.
+   */
+  constructor(host) {
+    this.host = host;
+  }
+  /**
+   * The intermediate versions currently shown in the rail, newest first, after
+   * the content search and the hide-identical filter. The hide-identical filter
+   * drops versions whose captured content equals the live state (picking one
+   * would diff to nothing); the search keeps only versions matching the query.
+   * Shared by the rail render and the post-delete selection so "the next visible
+   * version" means the same list in both.
+   *
+   * @return {FileVersion[]} The visible versions, newest first
+   */
+  getVisibleVersions() {
+    const snapshot = this.host.snapshot;
+    const versions = snapshot.getVersions();
+    const visibleIds = VersionSearchHelper.match(
+      versions.map((version) => ({
+        id: version.id,
+        content: version.getContent(snapshot.lineBreak)
+      })),
+      this.host.searchQuery()
+    );
+    const currentContent = snapshot.getLastState();
+    const selectionIds = this.host.selectionFilterIds();
+    return versions.filter((version) => {
+      if (!visibleIds.has(version.id)) {
+        return false;
+      }
+      if (selectionIds !== void 0 && !selectionIds.has(version.id)) {
+        return false;
+      }
+      return !this.host.hideIdenticalVersions() || version.getContent(snapshot.lineBreak) !== currentContent;
+    });
+  }
+  /**
+   * The ids selectable in the rail, in rendered order. With captured snapshots
+   * these are the currently visible versions (after the search and
+   * hide-identical filters) newest-first; with no snapshots it is the single
+   * Original entry. This is the list the arrow keys walk.
+   *
+   * @return {string[]} The selectable base ids, top to bottom
+   */
+  getSelectableIds() {
+    if (this.host.snapshot.getVersions().length === 0) {
+      return [ORIGINAL_BASE_ID];
+    }
+    return this.getVisibleVersions().map((version) => version.id);
+  }
+  /**
+   * Moves the rail selection one entry up or down and keeps it in view. The
+   * order matches the rendered list (the baseline on top, then the visible
+   * versions newest-first), so down moves toward older snapshots. The walk is
+   * delegated to the pure ListSelectionHelper and clamps at both ends. A move
+   * that resolves to the already-selected entry (an edge) is a no-op.
+   *
+   * @param {ListSelectionDirection} direction - Which way to move the selection
+   */
+  moveSelection(direction) {
+    const current = this.host.selectedBaseId();
+    const next = ListSelectionHelper.step(this.getSelectableIds(), current, direction);
+    if (next === null || next === current) {
+      return;
+    }
+    this.host.selectBase(next);
+    this.scrollActiveIntoView();
+  }
+  /**
+   * Jumps the rail selection to the first (baseline) or last (oldest visible
+   * version) entry, backing the Home/End keys. A no-op when that edge is already
+   * selected or the list is empty.
+   *
+   * @param {VersionListEdge} edge - Which end of the list to select
+   */
+  moveSelectionToEdge(edge) {
+    const ids = this.getSelectableIds();
+    const target = edge === "first" /* first */ ? ids[0] : ids[ids.length - 1];
+    if (!target || target === this.host.selectedBaseId()) {
+      return;
+    }
+    this.host.selectBase(target);
+    this.scrollActiveIntoView();
+  }
+  /**
+   * Scrolls the currently selected version entry into view inside the rail, so
+   * an arrow-key move that lands on an off-screen snapshot brings it into sight.
+   */
+  scrollActiveIntoView() {
+    var _a, _b;
+    (_b = (_a = this.host.versionsEl()) == null ? void 0 : _a.querySelector(".lct-version-item.is-active")) == null ? void 0 : _b.scrollIntoView({ block: "nearest" });
+  }
+  /**
+   * Returns the primary label shown for a captured version: the user's custom
+   * label when present (D1), otherwise the derived action text translated from
+   * VersionLabelHelper.describe against the version's previous neighbour. For
+   * the oldest version on the timeline the previous neighbour is the history
+   * baseline.
+   *
+   * @param {FileVersion} version - The version to label
+   * @param {FileVersion[]} versions - The full timeline, newest first
+   * @return {string} The primary label string
+   */
+  resolvePrimaryLabel(version, versions) {
+    if (version.isLabeled()) {
+      return version.label;
+    }
+    const description = this.describe(version, versions);
+    return this.host.plugin.t(`modal.version.action.${description.kind}`);
+  }
+  /**
+   * Computes the derived action description for a version against its previous
+   * neighbour. The neighbour is the next-older captured version, or the file's
+   * history baseline when the version is the oldest one on the timeline. The
+   * result drives both the rail primary label (when no custom label is set) and
+   * the inline line delta shown on the row.
+   *
+   * @param {FileVersion} version - The version to describe
+   * @param {FileVersion[]} versions - The full timeline, newest first
+   * @return {VersionDescription} The action kind plus the added/removed counts
+   */
+  describe(version, versions) {
+    const index = versions.indexOf(version);
+    const previous = index >= 0 ? versions[index + 1] : void 0;
+    const previousLines = previous ? previous.getLines() : this.host.snapshot.getHistoryOriginalStateLines();
+    return VersionLabelHelper.describe(previousLines, version.getLines());
+  }
+  /**
+   * Formats the inline line delta shown on a rail row. Returns an empty string
+   * when both added and removed are zero so the row stays clean for no-op
+   * captures (e.g. a labeled version pinned at unchanged content).
+   *
+   * @param {VersionDescription} description - The describe result
+   * @return {string} The formatted delta or empty string
+   */
+  formatDelta(description) {
+    if (description.added === 0 && description.removed === 0) {
+      return "";
+    }
+    return this.host.plugin.t("modal.version.delta", {
+      added: String(description.added),
+      removed: String(description.removed)
+    });
+  }
+  /**
+   * Renders the version timeline as a list of selectable diff bases, grouped
+   * under a heading per day. With captured snapshots the list is the real
+   * versions, newest first, each in its capture day's group; the topmost
+   * (the latest snapshot) is the default base and shows what changed since the
+   * last save. With no snapshots yet the list is a single Original entry (the
+   * file's birth state vs the current content), placed in the day group of the
+   * file's last update. The rail is never hidden: when a query matches no
+   * version it shows just a no-results hint, leaving the current selection
+   * untouched. Selecting an entry sets it as the diff base and re-renders the
+   * active view.
+   */
+  render() {
+    const versionsEl = this.host.versionsEl();
+    if (!versionsEl) {
+      return;
+    }
+    const snapshot = this.host.snapshot;
+    const versions = snapshot.getVersions();
+    DomHelper.update(versionsEl, { classes: { remove: "lct-versions-empty" } });
+    const matched = this.getVisibleVersions();
+    const entries = versions.length === 0 ? [
+      {
+        id: ORIGINAL_BASE_ID,
+        label: this.host.plugin.t("modal.version.original"),
+        day: snapshot.getLastChangedDate(),
+        meta: snapshot.getLastChangedDateTime(),
+        delta: "",
+        external: false
+      }
+    ] : matched.map((version) => {
+      const description = this.describe(version, versions);
+      return {
+        id: version.id,
+        label: this.resolvePrimaryLabel(version, versions),
+        day: version.getDate(),
+        meta: version.getDateTime(),
+        delta: this.formatDelta(description),
+        external: version.isExternal()
+      };
+    });
+    const groups = [];
+    entries.forEach((entry) => {
+      let group = groups[groups.length - 1];
+      if (!group || group.label !== entry.day) {
+        group = { label: entry.day, entries: [] };
+        groups.push(group);
+      }
+      group.entries.push(entry);
+    });
+    const items = [];
+    groups.forEach((group) => {
+      items.push({ tag: "div", classes: "lct-versions-day", text: group.label });
+      group.entries.forEach((entry) => {
+        items.push(this.makeItem(entry));
+      });
+    });
+    if (versions.length > 0 && matched.length === 0) {
+      items.push({
+        tag: "div",
+        classes: "lct-versions-no-results",
+        text: this.host.plugin.t("modal.no-versions-match")
+      });
+    }
+    DomHelper.update(versionsEl, {
+      text: null,
+      children: [
+        {
+          tag: "div",
+          classes: "lct-versions-list",
+          children: items
+        }
+      ]
+    });
+    ExternalBadgeHelper.paint(versionsEl);
+  }
+  /**
+   * Builds a single selectable version list entry config.
+   * The active entry carries a highlight class; clicking selects that base. A
+   * version captured from an external change (D13, T18) renders a small badge
+   * next to the primary label so the user can tell external states apart from
+   * editor edits without opening the diff.
+   *
+   * @param {RailEntry} entry - The rail entry to render
+   * @return {DomElementConfig} A DomHelper element config for the entry
+   */
+  makeItem(entry) {
+    const active = this.host.selectedBaseId() === entry.id;
+    const labelChildren = [
+      { tag: "span", classes: "lct-version-label", text: entry.label }
+    ];
+    if (entry.external) {
+      labelChildren.push(ExternalBadgeHelper.make(this.host.plugin.t("version.badge.external")));
+    }
+    const children = [
+      { tag: "span", classes: "lct-version-label-row", children: labelChildren }
+    ];
+    if (entry.meta) {
+      children.push({ tag: "span", classes: "lct-version-meta", text: entry.meta });
+    }
+    if (entry.delta) {
+      children.push({ tag: "span", classes: "lct-version-delta", text: entry.delta });
+    }
+    return {
+      tag: "div",
+      classes: active ? ["lct-version-item", "is-active"] : ["lct-version-item"],
+      events: {
+        click: () => {
+          this.host.selectBase(entry.id);
+        }
+      },
+      children
+    };
+  }
+};
+
+// src/helpers/base-content.helper.ts
+var BaseContentHelper = class {
+  /**
+   * Resolves the base content to diff the current state against.
+   *
+   * @param {string} selectedBaseId - The picked base id (the synthetic baseline
+   *   sentinel or an intermediate version id)
+   * @param {string} baselineId - The sentinel id that marks the synthetic
+   *   baseline entry
+   * @param {BaseContentSnapshot} snapshot - The reduced snapshot view to read
+   * @return {string} The base content for the diff
+   */
+  static resolve(selectedBaseId, baselineId, snapshot) {
+    if (selectedBaseId !== baselineId) {
+      const content = snapshot.versionContent(selectedBaseId);
+      if (content !== null) {
+        return content;
+      }
+    }
+    const latest = snapshot.versions[0];
+    return latest != null ? latest : snapshot.original;
+  }
+};
 
 // src/modals/history.modal.ts
-var import_obsidian17 = require("obsidian");
-var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
+var import_obsidian20 = require("obsidian");
+var HistoryModal = class extends import_obsidian20.Modal {
   /**
    * Creates a new instance of HistoryModal.
    *
@@ -18427,54 +18959,42 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
     this.plugin = plugin;
     this.snapshot = snapshot;
     /**
-     * Handle of the pending deferred `setupScrollSynchronization` call, captured
-     * so a rapid mode switch can cancel it before it attaches listeners to a
-     * replaced DOM. See T13 in `.plan/08-code-review-remediation`.
+     * Side-by-side scroll-synchronisation collaborator the modal owns (T03). It
+     * carries the deferred-setup timer and the per-container listener cleanup
+     * that previously lived on the modal; it reads the live diff container back
+     * through the resolver so it can bail when the container is swapped mid-flight.
      */
-    this.scrollSyncTimer = null;
+    this.scrollSync = new DiffScrollSync(
+      () => this.diffContainerEl
+    );
     /**
-     * Id of the currently selected diff base. Set on open to the latest captured
-     * version (so the modal opens on "what changed since the last save"), or to
-     * the Original entry when the file has no snapshots yet. May be changed to any
-     * other version's id to diff the current state against that earlier point.
+     * Version-list collaborator the modal owns (T04). It renders the left-rail
+     * timeline, walks the selection with the keyboard, and derives the per-row
+     * labels/deltas; it reads the live selection and the search/hide-identical
+     * filters back through the host adapter below and reports a selection change
+     * via `selectBase` so the modal keeps coordinating the diff render.
      */
-    this.selectedBaseId = ORIGINAL_BASE_ID;
+    this.versionList = new VersionList(this.makeVersionListHost());
     /**
-     * Current content-search query for the version rail. An empty string shows
-     * every version; a non-empty query keeps only versions whose captured content
-     * contains it (case-insensitive). It never affects the selected diff base.
+     * Gutter-revert collaborator the modal owns (T05). It decorates each rendered
+     * hunk with an anchor marker and an inline revert affordance, resolves the
+     * anchor row across every diff render mode, and reverts a single hunk on click;
+     * it reads the live diff container, display mode, and hunks back through the
+     * host adapter below and reports a completed revert via `onReverted` so the
+     * modal drops the stale focus and re-renders the active diff.
      */
-    this.searchQuery = "";
+    this.gutterReverts = new GutterRevertHandler(this.makeGutterRevertHost());
     /**
-     * Whether the rail hides intermediate versions whose captured content is
-     * identical to the current state. Off by default so the full timeline shows;
-     * toggled from the toolbar. It is a view-only filter over the rail list and
-     * never changes the selected diff base.
+     * Diff-view-state collaborator the modal owns (T06). It holds the diff-view
+     * state - the selected base, the active display mode, the focused hunk index,
+     * the hide-identical rail filter, and the content-search query - together with
+     * the toolbar mode/nav button registries, and owns the active-mode highlight,
+     * the next/previous difference walk, and the nav-button enablement; it reads
+     * the live diff container and hunks back through the host adapter below so the
+     * focus and button state always match the rendered diff. The modal reads and
+     * mutates the state through this reference while coordinating the renders.
      */
-    this.hideIdenticalVersions = false;
-    /**
-     * The current display mode for the diff view. One of the four
-     * {@link DiffRenderMode} values (patch, inline, line-by-line, side-by-side).
-     * Defaults to side-by-side.
-     */
-    this.currentDisplayMode = "side-by-side" /* side */;
-    /**
-     * References to the mode toggle buttons.
-     * Used to update the active state when switching between diff modes.
-     */
-    this.modeButtons = {};
-    /**
-     * References to the next/previous difference navigation buttons, kept so they
-     * can be disabled when the current diff has no hunks to walk.
-     */
-    this.navButtons = {};
-    /**
-     * Index of the difference currently focused by the next/previous navigation,
-     * or -1 when none is focused yet. It indexes into the hunks computed for the
-     * selected base, and is reset whenever the diff changes (base switch, revert,
-     * or content change) so a stale index can never highlight the wrong block.
-     */
-    this.activeHunkIndex = -1;
+    this.viewState = new DiffViewState(this.makeDiffViewStateHost());
     this.options = options != null ? options : {};
   }
   /**
@@ -18489,7 +19009,7 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
     if (!this.snapshot) {
       return;
     }
-    this.selectedBaseId = this.getInitialBaseId();
+    this.viewState.selectedBaseId = this.getInitialBaseId();
     this.makeUI();
     DomHelper.update(
       this.modalEl,
@@ -18504,47 +19024,8 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
    * @override
    */
   onClose() {
-    this.cleanupScrollSync();
+    this.scrollSync.cleanup();
     this.contentEl.empty();
-  }
-  /**
-   * Gets the currently active button based on the current display mode.
-   * Returns the button element that corresponds to the active diff view mode.
-   *
-   * @return {HTMLElement | null} The active button element, or null if no mode is active
-   */
-  getActiveButton() {
-    switch (this.currentDisplayMode) {
-      case "patch" /* patch */:
-        return this.modeButtons.patch;
-      case "inline" /* inline */:
-        return this.modeButtons.inline;
-      case "line-by-line" /* line */:
-        return this.modeButtons.lineByLine;
-      case "side-by-side" /* side */:
-        return this.modeButtons.sideBySide;
-      default:
-        return null;
-    }
-  }
-  /**
-   * Updates the active state of mode buttons based on the current display mode.
-   */
-  updateButtonActiveStates() {
-    Object.values(this.modeButtons).forEach((button) => {
-      DomHelper.update(
-        button,
-        { classes: { remove: "is-active" } }
-      );
-    });
-    const activeButton = this.getActiveButton();
-    if (!activeButton) {
-      return;
-    }
-    DomHelper.update(
-      activeButton,
-      { classes: { add: "is-active" } }
-    );
   }
   /**
    * Restores the file to its original state and resets the history tracking.
@@ -18559,10 +19040,10 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
       const file = this.snapshot.file;
       await this.app.vault.modify(file, originalContent);
       this.snapshotsService.wipeOne(file);
-      new import_obsidian17.Notice(this.plugin.t("notice.file-restored"));
+      new import_obsidian20.Notice(this.plugin.t("notice.file-restored"));
       this.close();
     } catch (_error) {
-      new import_obsidian17.Notice(this.plugin.t("notice.file-restore-failed"));
+      new import_obsidian20.Notice(this.plugin.t("notice.file-restore-failed"));
     }
   }
   /**
@@ -18582,8 +19063,8 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
     if (!file || this.isBaseSameCurrent()) {
       return;
     }
-    if (this.selectedBaseId !== ORIGINAL_BASE_ID) {
-      await this.versionActionsService.restoreSelected(file, this.selectedBaseId);
+    if (this.viewState.selectedBaseId !== ORIGINAL_BASE_ID) {
+      await this.versionActionsService.restoreSelected(file, this.viewState.selectedBaseId);
     } else {
       const baseLines = this.getBaseContent().split(this.snapshot.lineBreak);
       const currentLines = this.snapshot.getLastStateLines();
@@ -18593,7 +19074,7 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
         newLines: baseLines
       });
     }
-    this.activeHunkIndex = -1;
+    this.viewState.activeHunkIndex = -1;
     this.refreshActiveView();
   }
   /**
@@ -18608,23 +19089,23 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
    */
   removeSelectedVersion() {
     var _a, _b;
-    if (this.selectedBaseId === ORIGINAL_BASE_ID) {
+    if (this.viewState.selectedBaseId === ORIGINAL_BASE_ID) {
       return;
     }
     const result = this.versionActionsService.removeSelected(
       (_b = (_a = this.snapshot) == null ? void 0 : _a.file) != null ? _b : null,
-      this.selectedBaseId
+      this.viewState.selectedBaseId
     );
     if (!result.removed) {
       return;
     }
     const visibleIds = new Set(
-      this.getVisibleVersions().map((version) => version.id)
+      this.versionList.getVisibleVersions().map((version) => version.id)
     );
     const nextId = result.nextId && visibleIds.has(result.nextId) ? result.nextId : ORIGINAL_BASE_ID;
-    this.selectedBaseId = nextId;
-    this.activeHunkIndex = -1;
-    this.renderVersions();
+    this.viewState.selectedBaseId = nextId;
+    this.viewState.activeHunkIndex = -1;
+    this.versionList.render();
     this.refreshActiveView();
   }
   /**
@@ -18641,17 +19122,17 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
    */
   async labelSelectedVersion() {
     var _a, _b;
-    if (this.selectedBaseId === ORIGINAL_BASE_ID) {
+    if (this.viewState.selectedBaseId === ORIGINAL_BASE_ID) {
       return;
     }
     const labeled = await this.modalsService.labelVersion(
       (_b = (_a = this.snapshot) == null ? void 0 : _a.file) != null ? _b : null,
-      this.selectedBaseId
+      this.viewState.selectedBaseId
     );
     if (!labeled) {
       return;
     }
-    this.renderVersions();
+    this.versionList.render();
     this.refreshActiveView();
   }
   /**
@@ -18665,7 +19146,7 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
    */
   async confirmRemoveSelectedVersion() {
     var _a;
-    if (this.selectedBaseId === ORIGINAL_BASE_ID) {
+    if (this.viewState.selectedBaseId === ORIGINAL_BASE_ID) {
       return;
     }
     const confirmed = await this.modalsService.confirm({
@@ -18693,19 +19174,19 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
     switch (event.key) {
       case "ArrowDown":
         event.preventDefault();
-        this.moveVersionSelection("down" /* down */);
+        this.versionList.moveSelection("down" /* down */);
         return;
       case "ArrowUp":
         event.preventDefault();
-        this.moveVersionSelection("up" /* up */);
+        this.versionList.moveSelection("up" /* up */);
         return;
       case "Home":
         event.preventDefault();
-        this.moveVersionSelectionToEdge("first" /* first */);
+        this.versionList.moveSelectionToEdge("first" /* first */);
         return;
       case "End":
         event.preventDefault();
-        this.moveVersionSelectionToEdge("last" /* last */);
+        this.versionList.moveSelectionToEdge("last" /* last */);
         return;
       case "Delete":
       case "Backspace":
@@ -18763,53 +19244,6 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
     }
   }
   /**
-   * Moves the rail selection one entry up or down and keeps it in view. The
-   * order matches the rendered list (the baseline on top, then the visible
-   * versions newest-first), so down moves toward older snapshots. The walk is
-   * delegated to the pure ListSelectionHelper and clamps at both ends. A move
-   * that resolves to the already-selected entry (an edge) is a no-op.
-   *
-   * @param {ListSelectionDirection} direction - Which way to move the selection
-   */
-  moveVersionSelection(direction) {
-    const next = ListSelectionHelper.step(this.getSelectableIds(), this.selectedBaseId, direction);
-    if (next === null || next === this.selectedBaseId) {
-      return;
-    }
-    this.selectBase(next);
-    this.scrollActiveVersionIntoView();
-  }
-  /**
-   * Jumps the rail selection to the first (baseline) or last (oldest visible
-   * version) entry, backing the Home/End keys. A no-op when that edge is already
-   * selected or the list is empty.
-   *
-   * @param {VersionListEdge} edge - Which end of the list to select
-   */
-  moveVersionSelectionToEdge(edge) {
-    const ids = this.getSelectableIds();
-    const target = edge === "first" /* first */ ? ids[0] : ids[ids.length - 1];
-    if (!target || target === this.selectedBaseId) {
-      return;
-    }
-    this.selectBase(target);
-    this.scrollActiveVersionIntoView();
-  }
-  /**
-   * The ids selectable in the rail, in rendered order. With captured snapshots
-   * these are the currently visible versions (after the search and
-   * hide-identical filters) newest-first; with no snapshots it is the single
-   * Original entry. This is the list the arrow keys walk.
-   *
-   * @return {string[]} The selectable base ids, top to bottom
-   */
-  getSelectableIds() {
-    if (this.snapshot.getVersions().length === 0) {
-      return [ORIGINAL_BASE_ID];
-    }
-    return this.getVisibleVersions().map((version) => version.id);
-  }
-  /**
    * Resolves the base to select when the modal opens. With an open option
    * `initialBaseId` naming a real version the modal opens focused on that
    * version (D4); otherwise it defaults to the latest captured version (the top
@@ -18835,14 +19269,6 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
       return ORIGINAL_BASE_ID;
     }
     return versions.length > 0 ? versions[0].id : ORIGINAL_BASE_ID;
-  }
-  /**
-   * Scrolls the currently selected version entry into view inside the rail, so
-   * an arrow-key move that lands on an off-screen snapshot brings it into sight.
-   */
-  scrollActiveVersionIntoView() {
-    var _a, _b;
-    (_b = (_a = this.versionsEl) == null ? void 0 : _a.querySelector(".lct-version-item.is-active")) == null ? void 0 : _b.scrollIntoView({ block: "nearest" });
   }
   /**
    * Resolves the scrollable element of the diff pane for the active view mode:
@@ -18909,7 +19335,7 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
         container: this.railEl,
         attributes: { tabindex: "0" },
         events: {
-          keydown: /* @__PURE__ */ __name((event) => this.handleVersionsKeydown(event), "keydown")
+          keydown: (event) => this.handleVersionsKeydown(event)
         }
       });
     }
@@ -18934,11 +19360,11 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
       container: blockEl,
       attributes: { tabindex: "0" },
       events: {
-        keydown: /* @__PURE__ */ __name((event) => this.handleDiffKeydown(event), "keydown")
+        keydown: (event) => this.handleDiffKeydown(event)
       }
     });
     this.renderSearch();
-    this.renderVersions();
+    this.versionList.render();
   }
   /**
    * Shows or hides the above-diff notice and syncs the restore-selected button's
@@ -18961,14 +19387,14 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
       });
     }
     if (this.removeSelectedButton) {
-      const noVersion = this.selectedBaseId === ORIGINAL_BASE_ID;
+      const noVersion = this.viewState.selectedBaseId === ORIGINAL_BASE_ID;
       this.removeSelectedButton.disabled = noVersion;
       DomHelper.update(this.removeSelectedButton, {
         classes: noVersion ? { add: "is-disabled" } : { remove: "is-disabled" }
       });
     }
     if (this.labelSelectedButton) {
-      const noVersion = this.selectedBaseId === ORIGINAL_BASE_ID;
+      const noVersion = this.viewState.selectedBaseId === ORIGINAL_BASE_ID;
       this.labelSelectedButton.disabled = noVersion;
       DomHelper.update(this.labelSelectedButton, {
         classes: noVersion ? { add: "is-disabled" } : { remove: "is-disabled" }
@@ -18991,66 +19417,14 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
    * @return {string} The base-side label
    */
   getBaseLabel() {
-    if (this.selectedBaseId !== ORIGINAL_BASE_ID) {
+    if (this.viewState.selectedBaseId !== ORIGINAL_BASE_ID) {
       const versions = this.snapshot.getVersions();
-      const version = this.snapshot.getVersion(this.selectedBaseId);
+      const version = this.snapshot.getVersion(this.viewState.selectedBaseId);
       if (version) {
-        return this.resolveVersionPrimaryLabel(version, versions);
+        return this.versionList.resolvePrimaryLabel(version, versions);
       }
     }
     return this.plugin.t("modal.version.original");
-  }
-  /**
-   * Returns the primary label shown for a captured version: the user's custom
-   * label when present (D1), otherwise the derived action text translated from
-   * VersionLabelHelper.describe against the version's previous neighbour. For
-   * the oldest version on the timeline the previous neighbour is the history
-   * baseline.
-   *
-   * @param {FileVersion} version - The version to label
-   * @param {FileVersion[]} versions - The full timeline, newest first
-   * @return {string} The primary label string
-   */
-  resolveVersionPrimaryLabel(version, versions) {
-    if (version.isLabeled()) {
-      return version.label;
-    }
-    const description = this.describeVersion(version, versions);
-    return this.plugin.t(`modal.version.action.${description.kind}`);
-  }
-  /**
-   * Computes the derived action description for a version against its previous
-   * neighbour. The neighbour is the next-older captured version, or the file's
-   * history baseline when the version is the oldest one on the timeline. The
-   * result drives both the rail primary label (when no custom label is set) and
-   * the inline line delta shown on the row.
-   *
-   * @param {FileVersion} version - The version to describe
-   * @param {FileVersion[]} versions - The full timeline, newest first
-   * @return {VersionDescription} The action kind plus the added/removed counts
-   */
-  describeVersion(version, versions) {
-    const index = versions.indexOf(version);
-    const previous = index >= 0 ? versions[index + 1] : void 0;
-    const previousLines = previous ? previous.getLines() : this.snapshot.getHistoryOriginalStateLines();
-    return VersionLabelHelper.describe(previousLines, version.getLines());
-  }
-  /**
-   * Formats the inline line delta shown on a rail row. Returns an empty string
-   * when both added and removed are zero so the row stays clean for no-op
-   * captures (e.g. a labeled version pinned at unchanged content).
-   *
-   * @param {VersionDescription} description - The describe result
-   * @return {string} The formatted delta or empty string
-   */
-  formatVersionDelta(description) {
-    if (description.added === 0 && description.removed === 0) {
-      return "";
-    }
-    return this.plugin.t("modal.version.delta", {
-      added: String(description.added),
-      removed: String(description.removed)
-    });
   }
   /**
    * Shows or hides the side-by-side column header and, when shown, labels the
@@ -19063,7 +19437,7 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
     if (!this.columnsHeaderEl) {
       return;
     }
-    const visible = this.currentDisplayMode === "side-by-side" /* side */;
+    const visible = this.viewState.currentDisplayMode === "side-by-side" /* side */;
     if (!visible) {
       DomHelper.update(this.columnsHeaderEl, { text: null, classes: { add: "lct-diff-columns-hidden" } });
       return;
@@ -19094,7 +19468,7 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
       icon: "rotate-ccw",
       label: this.plugin.t("modal.restore-original"),
       warning: true,
-      onClick: /* @__PURE__ */ __name(async () => {
+      onClick: async () => {
         const confirmed = await this.modalsService.confirm({
           title: this.plugin.t("modal.confirm.restore.title"),
           message: this.plugin.t("modal.confirm.restore.message"),
@@ -19104,13 +19478,13 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
         if (confirmed) {
           await this.restoreOriginalFile();
         }
-      }, "onClick")
+      }
     });
     this.makeToolbarButton(actionsGroup, {
       icon: "trash-2",
       label: this.plugin.t("modal.remove-history"),
       warning: true,
-      onClick: /* @__PURE__ */ __name(async () => {
+      onClick: async () => {
         var _a;
         const confirmed = await this.modalsService.confirm({
           title: this.plugin.t("modal.confirm.remove.title"),
@@ -19122,13 +19496,13 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
           (_a = this.snapshotsService) == null ? void 0 : _a.wipeOne(this.snapshot.file);
           this.close();
         }
-      }, "onClick")
+      }
     });
     const filterGroup = this.makeToolbarGroup("lct-modal-toolbar-filter");
     this.restoreSelectedButton = this.makeToolbarButton(filterGroup, {
       icon: "history",
       label: this.plugin.t("modal.restore-selected"),
-      onClick: /* @__PURE__ */ __name(async () => {
+      onClick: async () => {
         const confirmed = await this.modalsService.confirm({
           title: this.plugin.t("modal.confirm.restore-version.title"),
           message: this.plugin.t("modal.confirm.restore-version.message"),
@@ -19138,74 +19512,74 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
         if (confirmed) {
           await this.restoreSelectedVersion();
         }
-      }, "onClick")
+      }
     });
     this.removeSelectedButton = this.makeToolbarButton(filterGroup, {
       icon: "list-x",
       label: this.plugin.t("modal.remove-selected"),
-      onClick: /* @__PURE__ */ __name(() => {
+      onClick: () => {
         void this.confirmRemoveSelectedVersion();
-      }, "onClick")
+      }
     });
     this.labelSelectedButton = this.makeToolbarButton(filterGroup, {
       icon: "tag",
       label: this.plugin.t("modal.label-selected"),
-      onClick: /* @__PURE__ */ __name(async () => {
+      onClick: async () => {
         await this.labelSelectedVersion();
-      }, "onClick")
+      }
     });
     this.hideIdenticalButton = this.makeToolbarButton(filterGroup, {
       icon: "eye-off",
       label: this.plugin.t("modal.hide-identical"),
-      onClick: /* @__PURE__ */ __name(() => {
+      onClick: () => {
         this.toggleHideIdentical();
-      }, "onClick")
+      }
     });
     const navGroup = this.makeToolbarGroup("lct-modal-toolbar-nav");
-    this.navButtons.previous = this.makeToolbarButton(navGroup, {
+    this.viewState.navButtons.previous = this.makeToolbarButton(navGroup, {
       icon: "chevron-up",
       label: this.plugin.t("modal.previous-difference"),
-      onClick: /* @__PURE__ */ __name(() => {
-        this.goToDifference("previous" /* previous */);
-      }, "onClick")
+      onClick: () => {
+        this.viewState.goToDifference("previous" /* previous */);
+      }
     });
-    this.navButtons.next = this.makeToolbarButton(navGroup, {
+    this.viewState.navButtons.next = this.makeToolbarButton(navGroup, {
       icon: "chevron-down",
       label: this.plugin.t("modal.next-difference"),
-      onClick: /* @__PURE__ */ __name(() => {
-        this.goToDifference("next" /* next */);
-      }, "onClick")
+      onClick: () => {
+        this.viewState.goToDifference("next" /* next */);
+      }
     });
     const modesGroup = this.makeToolbarGroup("lct-modal-toolbar-modes");
-    this.modeButtons.patch = this.makeToolbarButton(modesGroup, {
+    this.viewState.modeButtons.patch = this.makeToolbarButton(modesGroup, {
       icon: "file-text",
       label: this.plugin.t("modal.mode.patch"),
-      onClick: /* @__PURE__ */ __name(() => {
+      onClick: () => {
         this.showCleanPatch();
-      }, "onClick")
+      }
     });
-    this.modeButtons.inline = this.makeToolbarButton(modesGroup, {
+    this.viewState.modeButtons.inline = this.makeToolbarButton(modesGroup, {
       icon: "pilcrow",
       label: this.plugin.t("modal.mode.inline"),
-      onClick: /* @__PURE__ */ __name(() => {
+      onClick: () => {
         this.renderInlineDiff();
-      }, "onClick")
+      }
     });
-    this.modeButtons.lineByLine = this.makeToolbarButton(modesGroup, {
+    this.viewState.modeButtons.lineByLine = this.makeToolbarButton(modesGroup, {
       icon: "align-justify",
       label: this.plugin.t("modal.mode.line-by-line"),
-      onClick: /* @__PURE__ */ __name(() => {
+      onClick: () => {
         this.renderDiff("line-by-line" /* line */);
-      }, "onClick")
+      }
     });
-    this.modeButtons.sideBySide = this.makeToolbarButton(modesGroup, {
+    this.viewState.modeButtons.sideBySide = this.makeToolbarButton(modesGroup, {
       icon: "columns-2",
       label: this.plugin.t("modal.mode.side-by-side"),
-      onClick: /* @__PURE__ */ __name(() => {
+      onClick: () => {
         this.renderDiff("side-by-side" /* side */);
-      }, "onClick")
+      }
     });
-    this.updateButtonActiveStates();
+    this.viewState.updateButtonActiveStates();
   }
   /**
    * Creates one toolbar group: a flat row of icon buttons. The modifier class
@@ -19230,13 +19604,13 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
    * rebuilt: the selected diff base and the diff output are untouched.
    */
   toggleHideIdentical() {
-    this.hideIdenticalVersions = !this.hideIdenticalVersions;
+    this.viewState.hideIdenticalVersions = !this.viewState.hideIdenticalVersions;
     if (this.hideIdenticalButton) {
       DomHelper.update(this.hideIdenticalButton, {
-        classes: this.hideIdenticalVersions ? { add: "is-active" } : { remove: "is-active" }
+        classes: this.viewState.hideIdenticalVersions ? { add: "is-active" } : { remove: "is-active" }
       });
     }
-    this.renderVersions();
+    this.versionList.render();
   }
   /**
    * Builds one accessible icon button inside a toolbar group, the same way the
@@ -19260,83 +19634,13 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
       attributes: { "aria-label": config.label, "type": "button" },
       container: group,
       events: {
-        click: /* @__PURE__ */ __name(() => {
+        click: () => {
           void config.onClick();
-        }, "click")
+        }
       }
     });
-    (0, import_obsidian17.setIcon)(button, config.icon);
+    (0, import_obsidian20.setIcon)(button, config.icon);
     return button;
-  }
-  /**
-   * Moves the difference focus to the next or previous hunk and brings it into
-   * view. The target index is resolved by the same pure NavigationHelper.target
-   * used by the editor change-navigation commands, fed the hunk indices as the
-   * "changed lines" and the current active index as the cursor, so the walk
-   * wraps around at both ends (past the last hunk returns to the first, before
-   * the first returns to the last). With no hunks it is a safe no-op.
-   *
-   * @param {NavigationDirection} direction - Which way to step through the hunks
-   */
-  goToDifference(direction) {
-    const count = this.getHunks().length;
-    if (count === 0) {
-      return;
-    }
-    const indices = Array.from({ length: count }, (_unused, index) => index);
-    const target = NavigationHelper.target(indices, this.activeHunkIndex, direction);
-    if (target === null) {
-      return;
-    }
-    this.activeHunkIndex = target;
-    this.focusHunk(target);
-  }
-  /**
-   * Highlights the hunk at the given index inside the diff and scrolls it into
-   * view, so the difference the navigation buttons moved to is visible and
-   * marked active. The target is the hunk's anchor row inside the rendered diff
-   * (the same row that carries the inline revert affordance), so navigation
-   * works against the diff itself now that the separate difference panel is
-   * gone. Every other anchor row loses the active marker first. Patch mode has
-   * no per-row anchors, so this is a safe no-op there.
-   *
-   * @param {number} index - The hunk index to focus
-   */
-  focusHunk(index) {
-    var _a;
-    if (!this.diffContainerEl) {
-      return;
-    }
-    const anchors = Array.from(
-      this.diffContainerEl.querySelectorAll(".lct-hunk-anchor")
-    );
-    anchors.forEach((anchor) => {
-      const anchorIndex = Number(anchor.dataset.lctHunk);
-      DomHelper.update(anchor, { classes: anchorIndex === index ? { add: "is-active" } : { remove: "is-active" } });
-    });
-    (_a = anchors.find((anchor) => Number(anchor.dataset.lctHunk) === index)) == null ? void 0 : _a.scrollIntoView({ block: "nearest" });
-  }
-  /**
-   * Enables or disables the next/previous difference buttons based on whether
-   * the current diff has any hunks to walk, and drops a stale active index when
-   * the diff no longer has that many hunks. A diff with zero hunks leaves both
-   * buttons disabled so a click is an ignored no-op. Patch mode is also disabled:
-   * it renders a plain <pre> with no per-row anchors to scroll to, so stepping
-   * between differences has nothing to focus there.
-   */
-  updateNavButtonsState() {
-    const count = this.getHunks().length;
-    const disabled = count === 0 || this.currentDisplayMode === "patch" /* patch */;
-    [this.navButtons.previous, this.navButtons.next].forEach((button) => {
-      if (!button) {
-        return;
-      }
-      button.disabled = disabled;
-      DomHelper.update(button, { classes: disabled ? { add: "is-disabled" } : { remove: "is-disabled" } });
-    });
-    if (this.activeHunkIndex >= count) {
-      this.activeHunkIndex = -1;
-    }
   }
   /**
    * Renders the content-search box above the version list. The box filters the
@@ -19350,215 +19654,94 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
       return;
     }
     DomHelper.update(this.searchEl, { text: null, classes: { remove: "lct-rail-search-empty" } });
-    new import_obsidian17.SearchComponent(this.searchEl).setPlaceholder(this.plugin.t("modal.search-versions")).setValue(this.searchQuery).onChange((value) => {
-      this.searchQuery = value;
-      this.renderVersions();
+    new import_obsidian20.SearchComponent(this.searchEl).setPlaceholder(this.plugin.t("modal.search-versions")).setValue(this.viewState.searchQuery).onChange((value) => {
+      this.viewState.searchQuery = value;
+      this.versionList.render();
     });
-  }
-  /**
-   * The intermediate versions currently shown in the rail, newest first, after
-   * the content search and the hide-identical filter. The hide-identical filter
-   * drops versions whose captured content equals the live state (picking one
-   * would diff to nothing); the search keeps only versions matching the query.
-   * Shared by the rail render and the post-delete selection so "the next visible
-   * version" means the same list in both.
-   *
-   * @return {FileVersion[]} The visible versions, newest first
-   */
-  getVisibleVersions() {
-    const versions = this.snapshot.getVersions();
-    const visibleIds = VersionSearchHelper.match(
-      versions.map((version) => ({
-        id: version.id,
-        content: version.getContent(this.snapshot.lineBreak)
-      })),
-      this.searchQuery
-    );
-    const currentContent = this.snapshot.getLastState();
-    const selectionIds = this.options.selectionFilterIds;
-    return versions.filter((version) => {
-      if (!visibleIds.has(version.id)) {
-        return false;
-      }
-      if (selectionIds !== void 0 && !selectionIds.has(version.id)) {
-        return false;
-      }
-      return !this.hideIdenticalVersions || version.getContent(this.snapshot.lineBreak) !== currentContent;
-    });
-  }
-  /**
-   * Renders the version timeline as a list of selectable diff bases, grouped
-   * under a heading per day. With captured snapshots the list is the real
-   * versions, newest first, each in its capture day's group; the topmost
-   * (the latest snapshot) is the default base and shows what changed since the
-   * last save. With no snapshots yet the list is a single Original entry (the
-   * file's birth state vs the current content), placed in the day group of the
-   * file's last update. The rail is never hidden: when a query matches no
-   * version it shows just a no-results hint, leaving the current selection
-   * untouched. Selecting an entry sets it as the diff base and re-renders the
-   * active view.
-   */
-  renderVersions() {
-    if (!this.versionsEl) {
-      return;
-    }
-    const versions = this.snapshot.getVersions();
-    DomHelper.update(this.versionsEl, { classes: { remove: "lct-versions-empty" } });
-    const matched = this.getVisibleVersions();
-    const entries = versions.length === 0 ? [
-      {
-        id: ORIGINAL_BASE_ID,
-        label: this.plugin.t("modal.version.original"),
-        day: this.snapshot.getLastChangedDate(),
-        meta: this.snapshot.getLastChangedDateTime(),
-        delta: "",
-        external: false
-      }
-    ] : matched.map((version) => {
-      const description = this.describeVersion(version, versions);
-      return {
-        id: version.id,
-        label: this.resolveVersionPrimaryLabel(version, versions),
-        day: version.getDate(),
-        meta: version.getDateTime(),
-        delta: this.formatVersionDelta(description),
-        external: version.isExternal()
-      };
-    });
-    const groups = [];
-    entries.forEach((entry) => {
-      let group = groups[groups.length - 1];
-      if (!group || group.label !== entry.day) {
-        group = { label: entry.day, entries: [] };
-        groups.push(group);
-      }
-      group.entries.push(entry);
-    });
-    const items = [];
-    groups.forEach((group) => {
-      items.push({ tag: "div", classes: "lct-versions-day", text: group.label });
-      group.entries.forEach((entry) => {
-        items.push(this.makeVersionItem(entry));
-      });
-    });
-    if (versions.length > 0 && matched.length === 0) {
-      items.push({
-        tag: "div",
-        classes: "lct-versions-no-results",
-        text: this.plugin.t("modal.no-versions-match")
-      });
-    }
-    DomHelper.update(this.versionsEl, {
-      text: null,
-      children: [
-        {
-          tag: "div",
-          classes: "lct-versions-list",
-          children: items
-        }
-      ]
-    });
-    this.paintExternalBadges(this.versionsEl);
-  }
-  /**
-   * Walks the rendered subtree of `container` and applies Obsidian's `setIcon`
-   * to every external-badge icon slot the DomHelper config emitted. The badge
-   * config carries the icon id as `data-icon` on the wrapper so this pass is a
-   * one-liner per badge with no per-row imperative DOM building (the rail is
-   * still declarative). Re-running it on every render keeps the icon in sync
-   * when the rail filters or re-orders rows.
-   *
-   * @param {HTMLElement} container - The subtree to scan for badge slots
-   */
-  paintExternalBadges(container) {
-    const badges = container.querySelectorAll(
-      ".lct-version-external-badge"
-    );
-    badges.forEach((badge) => {
-      const iconId = badge.getAttribute("data-icon");
-      const slot = badge.querySelector(".lct-version-external-badge-icon");
-      if (iconId && slot) {
-        (0, import_obsidian17.setIcon)(slot, iconId);
-      }
-    });
-  }
-  /**
-   * Builds a single selectable version list entry config.
-   * The active entry carries a highlight class; clicking selects that base. A
-   * version captured from an external change (D13, T18) renders a small badge
-   * next to the primary label so the user can tell external states apart from
-   * editor edits without opening the diff. The badge text is an inline English
-   * literal here and is propagated to every catalog in T15 (D13 pattern).
-   *
-   * @param {{id: string, label: string, meta: string, delta: string, external: boolean}} entry -
-   *   The rail entry to render
-   * @return {DomElementConfig} A DomHelper element config for the entry
-   */
-  makeVersionItem(entry) {
-    const active = this.selectedBaseId === entry.id;
-    const labelChildren = [
-      { tag: "span", classes: "lct-version-label", text: entry.label }
-    ];
-    if (entry.external) {
-      labelChildren.push(this.makeExternalBadge());
-    }
-    const children = [
-      { tag: "span", classes: "lct-version-label-row", children: labelChildren }
-    ];
-    if (entry.meta) {
-      children.push({ tag: "span", classes: "lct-version-meta", text: entry.meta });
-    }
-    if (entry.delta) {
-      children.push({ tag: "span", classes: "lct-version-delta", text: entry.delta });
-    }
-    return {
-      tag: "div",
-      classes: active ? ["lct-version-item", "is-active"] : ["lct-version-item"],
-      events: {
-        click: /* @__PURE__ */ __name(() => {
-          this.selectBase(entry.id);
-        }, "click")
-      },
-      children
-    };
-  }
-  /**
-   * Builds the inline external-change badge config (D13, T20): a small icon
-   * paired with a short text label and an accessible name on the wrapper so
-   * screen readers announce the marker. The icon is rendered post-DOM by the
-   * caller because `DomHelper.create` does not invoke Obsidian's `setIcon`
-   * during the config tree; emitting the icon node here keeps the structural
-   * markup colocated with the badge while the icon glyph is attached when the
-   * caller mounts the entry. The text ships as an inline English literal and
-   * is propagated across every catalog in T15.
-   *
-   * @return {DomElementConfig} The badge element config
-   */
-  makeExternalBadge() {
-    const text = this.plugin.t("version.badge.external");
-    return {
-      tag: "span",
-      classes: "lct-version-external-badge",
-      attributes: { "aria-label": text, "title": text, "data-icon": "download-cloud" },
-      children: [
-        { tag: "span", classes: "lct-version-external-badge-icon" },
-        { tag: "span", classes: "lct-version-external-badge-text", text }
-      ]
-    };
   }
   /**
    * Selects a new diff base and refreshes the version list and active diff view.
-   * No-op when the base is already selected.
+   * No-op when the base is already selected. Shared by the rail rows and the
+   * keyboard selection (both routed through the VersionList collaborator) so a
+   * pick from either path coordinates the rail re-render and the diff refresh in
+   * one place.
    *
    * @param {string} id - The base id to select
    */
   selectBase(id) {
-    if (this.selectedBaseId === id) {
+    if (this.viewState.selectedBaseId === id) {
       return;
     }
-    this.selectedBaseId = id;
-    this.renderVersions();
+    this.viewState.selectedBaseId = id;
+    this.versionList.render();
     this.refreshActiveView();
+  }
+  /**
+   * Builds the host adapter the owned {@link VersionList} reads its shared state
+   * through. It exposes the live selection, the search/hide-identical filters,
+   * and the selection-filter ids as lazy accessors (so the component always sees
+   * the current values), plus the selectBase callback the component reports a
+   * pick to. Keeping the modal's selection/filter fields protected and handing
+   * the collaborator a narrow port preserves the encapsulation the DiffScrollSync
+   * resolver established (T03).
+   *
+   * @return {VersionListHost} The host port for the version-list collaborator
+   */
+  makeVersionListHost() {
+    return {
+      snapshot: this.snapshot,
+      plugin: this.plugin,
+      versionsEl: () => this.versionsEl,
+      selectedBaseId: () => this.viewState.selectedBaseId,
+      searchQuery: () => this.viewState.searchQuery,
+      hideIdenticalVersions: () => this.viewState.hideIdenticalVersions,
+      selectionFilterIds: () => this.options.selectionFilterIds,
+      selectBase: (id) => this.selectBase(id)
+    };
+  }
+  /**
+   * Builds the host adapter the owned {@link GutterRevertHandler} reads its
+   * shared state through. It exposes the live diff container, display mode, and
+   * hunks as lazy accessors (so the handler always sees the current render),
+   * hands the handler the snapshot and the services it drives the revert with,
+   * and routes the post-decoration nav refresh and the post-revert redraw back
+   * to the modal. Keeping the modal's diff fields protected and handing the
+   * collaborator a narrow port preserves the encapsulation the VersionList host
+   * established (T04).
+   *
+   * @return {GutterRevertHost} The host port for the gutter-revert collaborator
+   */
+  makeGutterRevertHost() {
+    return {
+      snapshot: this.snapshot,
+      plugin: this.plugin,
+      modalsService: this.modalsService,
+      snapshotsService: this.snapshotsService,
+      diffContainer: () => this.diffContainerEl,
+      displayMode: () => this.viewState.currentDisplayMode,
+      getHunks: () => this.getHunks(),
+      updateNavButtonsState: () => this.viewState.updateNavButtonsState(),
+      onReverted: () => {
+        this.viewState.activeHunkIndex = -1;
+        this.refreshActiveView();
+      }
+    };
+  }
+  /**
+   * Builds the host adapter the owned {@link DiffViewState} reads the live
+   * render through. It exposes the live diff container and the current hunks as
+   * lazy accessors so the state's hunk focus and the nav-button enablement
+   * always reflect the rendered diff. Keeping the modal's diff container
+   * protected and handing the collaborator a narrow port preserves the
+   * encapsulation the GutterRevertHost established (T05).
+   *
+   * @return {DiffViewStateHost} The host port for the diff-view-state collaborator
+   */
+  makeDiffViewStateHost() {
+    return {
+      diffContainer: () => this.diffContainerEl,
+      getHunks: () => this.getHunks()
+    };
   }
   /**
    * Re-renders whichever diff view is currently active. Used after the diff
@@ -19566,7 +19749,7 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
    * the selected mode without duplicating the mode dispatch at every call site.
    */
   refreshActiveView() {
-    switch (this.currentDisplayMode) {
+    switch (this.viewState.currentDisplayMode) {
       case "patch" /* patch */:
         this.showCleanPatch();
         return;
@@ -19591,13 +19774,13 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
    * @return {string} The base content to diff the current state against
    */
   getBaseContent() {
-    return BaseContentHelper.resolve(this.selectedBaseId, ORIGINAL_BASE_ID, {
+    return BaseContentHelper.resolve(this.viewState.selectedBaseId, ORIGINAL_BASE_ID, {
       versions: this.snapshot.getVersions().map((version) => version.getContent(this.snapshot.lineBreak)),
       original: this.snapshot.getHistoryOriginalState(),
-      versionContent: /* @__PURE__ */ __name((id) => {
+      versionContent: (id) => {
         var _a, _b;
         return (_b = (_a = this.snapshot.getVersion(id)) == null ? void 0 : _a.getContent(this.snapshot.lineBreak)) != null ? _b : null;
-      }, "versionContent")
+      }
     });
   }
   /**
@@ -19620,7 +19803,7 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
    * @return {string} The empty-diff placeholder text for the current base
    */
   getEmptyDiffText() {
-    return this.selectedBaseId === ORIGINAL_BASE_ID ? this.plugin.t("modal.no-changes") : this.plugin.t("modal.identical-to-current");
+    return this.viewState.selectedBaseId === ORIGINAL_BASE_ID ? this.plugin.t("modal.no-changes") : this.plugin.t("modal.identical-to-current");
   }
   /**
    * Computes the line-level hunks between the selected base and the current
@@ -19638,234 +19821,6 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
     );
   }
   /**
-   * Reverts a single hunk of the current diff back to the selected base and
-   * leaves every other change intact. The hunk is resolved fresh from getHunks
-   * (against the live content) by its index, the user confirms before the write,
-   * and the revert reuses the same plumbing the editor gutter uses: HunkHelper to
-   * scope the block, SnapshotsService.applyContent to write it and refresh the
-   * highlights. The active view is then re-rendered so the diff reflects the new
-   * content. A stale index (the diff changed under the click) is a safe no-op.
-   *
-   * @param {number} index - The index of the hunk to revert in the current diff
-   * @return {Promise<void>}
-   */
-  async revertHunk(index) {
-    var _a;
-    const file = (_a = this.snapshot) == null ? void 0 : _a.file;
-    if (!file) {
-      return;
-    }
-    const hunk = this.getHunks()[index];
-    if (!hunk) {
-      return;
-    }
-    const confirmed = await this.modalsService.confirm({
-      title: this.plugin.t("modal.confirm.revert.title"),
-      message: this.plugin.t("modal.confirm.revert.message"),
-      confirmText: this.plugin.t("modal.confirm.revert.button"),
-      cancelText: this.plugin.t("modal.confirm.cancel")
-    });
-    if (!confirmed) {
-      return;
-    }
-    const currentLines = this.snapshot.getLastStateLines();
-    const start = Math.max(0, Math.min(currentLines.length, hunk.newStart - 1));
-    await this.snapshotsService.applyContent(
-      file,
-      HunkHelper.revertHunk(currentLines, hunk),
-      {
-        start,
-        removeCount: hunk.newLines,
-        newLines: HunkHelper.baseLinesForHunk(hunk)
-      }
-    );
-    this.activeHunkIndex = -1;
-    this.refreshActiveView();
-  }
-  /**
-   * Post-processes the rendered diff to place one inline revert affordance at
-   * the anchor row of each hunk, JetBrains style: a small revert arrow that
-   * reverts only that block. It maps the rendered rows back to getHunks by their
-   * current-side line number and marks each anchor with its hunk index, so the
-   * next/previous navigation can scroll and highlight the same rows. Patch mode
-   * renders a plain <pre> with no per-row structure, so it carries no affordance
-   * and is skipped (handled by the caller). The nav button state is refreshed
-   * here because the hunk set is now known.
-   */
-  attachInlineReverts() {
-    if (!this.diffContainerEl) {
-      return;
-    }
-    const hunks = this.getHunks();
-    hunks.forEach((hunk, index) => {
-      const anchor = this.resolveHunkAnchor(hunk);
-      if (!anchor) {
-        return;
-      }
-      anchor.classList.add("lct-hunk-anchor");
-      anchor.dataset.lctHunk = String(index);
-      this.makeRevertAffordance(this.resolveHunkGutter(anchor), index);
-    });
-    this.updateNavButtonsState();
-  }
-  /**
-   * Resolves the element that hosts the inline revert affordance for an anchor
-   * row. The diff2html modes (line-by-line, side-by-side) carry a sticky
-   * line-number cell, which keeps the affordance pinned to the gutter while the
-   * diff scrolls horizontally. The inline mode has no such cell, so the row
-   * itself hosts the affordance.
-   *
-   * @param {HTMLElement} anchor - The hunk anchor row
-   * @return {HTMLElement} The element the revert affordance is appended to
-   */
-  resolveHunkGutter(anchor) {
-    var _a;
-    return (_a = anchor.querySelector(".d2h-code-linenumber")) != null ? _a : anchor;
-  }
-  /**
-   * Resolves the rendered diff row that anchors a hunk, across the three diff
-   * modes that carry per-row structure. The anchor is the first current-side row
-   * of the hunk (the hunk's newStart). A pure deletion (newLines === 0) has no
-   * current-side row, so it anchors on the base-side row of its first removed
-   * line instead, which is the row the user sees the deletion on.
-   *
-   * @param {Diff.StructuredPatchHunk} hunk - The hunk to anchor
-   * @return {HTMLElement | null} The anchor row, or null when no row matches
-   */
-  resolveHunkAnchor(hunk) {
-    if (this.currentDisplayMode === "inline" /* inline */) {
-      return this.resolveInlineAnchor(hunk);
-    }
-    return this.resolveDiff2HtmlAnchor(hunk);
-  }
-  /**
-   * Resolves the anchor row inside the plugin-rendered inline diff. The inline
-   * rows have no line numbers, so the anchor is found positionally: the inline
-   * diff lists context and changed rows in document order, so the Nth changed
-   * row group maps to the Nth hunk. The first row of the hunk's changed run is
-   * the anchor.
-   *
-   * @param {Diff.StructuredPatchHunk} hunk - The hunk to anchor
-   * @return {HTMLElement | null} The anchor row, or null when none matches
-   */
-  resolveInlineAnchor(hunk) {
-    const rows = Array.from(
-      this.diffContainerEl.querySelectorAll(".lct-inline-row")
-    );
-    let currentLine = 0;
-    for (const row of rows) {
-      const changed = !row.classList.contains("lct-inline-context");
-      const hasNewLine = !row.classList.contains("lct-inline-removed");
-      if (changed && currentLine + 1 >= hunk.newStart) {
-        return row;
-      }
-      if (hasNewLine) {
-        currentLine++;
-      }
-    }
-    return null;
-  }
-  /**
-   * Resolves the anchor row inside a diff2html render (line-by-line or
-   * side-by-side). Both share the same .d2h-code-row-wrapper rows; for a hunk
-   * that occupies current lines the anchor is the row whose current-side line
-   * number equals the hunk's newStart (in side-by-side that number lives in the
-   * right column, so only the right column's rows are searched). A pure deletion
-   * has no current-side row: in line-by-line it shows as a d2h-del row in the
-   * single stream; in side-by-side the deleted text sits in the left column,
-   * keyed by the hunk's oldStart. Both are anchored accordingly.
-   *
-   * @param {Diff.StructuredPatchHunk} hunk - The hunk to anchor
-   * @return {HTMLElement | null} The anchor row, or null when none matches
-   */
-  resolveDiff2HtmlAnchor(hunk) {
-    var _a, _b, _c, _d;
-    const sideBySide = this.currentDisplayMode === "side-by-side" /* side */;
-    const columns = sideBySide ? Array.from(this.diffContainerEl.querySelectorAll(".d2h-side-column")) : [];
-    if (hunk.newLines > 0) {
-      const newScope = sideBySide ? (_a = columns[1]) != null ? _a : this.diffContainerEl : this.diffContainerEl;
-      return this.rowAtLine(newScope, hunk.newStart);
-    }
-    if (sideBySide) {
-      return this.rowAtLine((_b = columns[0]) != null ? _b : this.diffContainerEl, hunk.oldStart);
-    }
-    const rows = this.codeRows(this.diffContainerEl);
-    return (_d = (_c = rows.find((row) => {
-      const line = this.rowLine(row);
-      return row.classList.contains("d2h-del") && (line === null || line >= hunk.newStart);
-    })) != null ? _c : rows.find((row) => row.classList.contains("d2h-del"))) != null ? _d : null;
-  }
-  /**
-   * Finds the code row inside a scope whose line-number cell carries the given
-   * line number. Used to anchor a hunk on the row at its current-side (or, for a
-   * side-by-side deletion, base-side) start line.
-   *
-   * @param {ParentNode} scope - The container (or column) to search
-   * @param {number} line - The 1-based line number to match
-   * @return {HTMLElement | null} The matching row, or null when none matches
-   */
-  rowAtLine(scope, line) {
-    var _a;
-    return (_a = this.codeRows(scope).find((row) => this.rowLine(row) === line)) != null ? _a : null;
-  }
-  /**
-   * Collects the content code rows inside a scope, skipping the block headers.
-   *
-   * @param {ParentNode} scope - The container (or column) to search
-   * @return {HTMLElement[]} The content rows, top to bottom
-   */
-  codeRows(scope) {
-    return Array.from(
-      scope.querySelectorAll(".d2h-code-row-wrapper:not(.d2h-code-header-wrapper)")
-    );
-  }
-  /**
-   * Reads the line number a diff2html row carries, or null when the row has none
-   * (an empty placeholder). The number is the last numeric token in the row's
-   * line-number cell: line-by-line packs both the old and the new number there
-   * (the new one last), and each side-by-side column carries a single number.
-   *
-   * @param {HTMLElement} row - The .d2h-code-row-wrapper to read
-   * @return {number | null} The 1-based line number, or null
-   */
-  rowLine(row) {
-    var _a, _b;
-    const cell = row.querySelector(".d2h-code-linenumber");
-    const numbers = (_b = (_a = cell == null ? void 0 : cell.textContent) == null ? void 0 : _a.match(/\d+/g)) != null ? _b : null;
-    if (!numbers || numbers.length === 0) {
-      return null;
-    }
-    return Number(numbers[numbers.length - 1]);
-  }
-  /**
-   * Builds the inline revert affordance for a hunk inside the given gutter cell:
-   * an accessible icon button that reverts only that hunk on click. It carries a
-   * single tooltip via aria-label (Obsidian renders it), with no native title so
-   * the hover hint is not shown twice, and a Lucide undo glyph set through
-   * Obsidian so it matches the app's icon set instead of an emoji.
-   *
-   * @param {HTMLElement} gutter - The element to host the affordance
-   * @param {number} index - The hunk index the affordance reverts
-   * @return {void}
-   */
-  makeRevertAffordance(gutter2, index) {
-    const label = this.plugin.t("modal.revert-hunk");
-    const button = DomHelper.create({
-      tag: "button",
-      classes: ["lct-hunk-revert", "clickable-icon"],
-      attributes: { "aria-label": label, "type": "button" },
-      container: gutter2,
-      events: {
-        click: /* @__PURE__ */ __name((event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          void this.revertHunk(index);
-        }, "click")
-      }
-    });
-    (0, import_obsidian17.setIcon)(button, "undo-2");
-  }
-  /**
    * Shows the clean patch in a readable format.
    * Delegates the DOM rendering to {@link DiffRenderHelper}; the per-row revert
    * affordances are skipped here because patch mode has no per-row structure to
@@ -19873,9 +19828,9 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
    */
   showCleanPatch() {
     var _a, _b, _c;
-    this.currentDisplayMode = "patch" /* patch */;
-    this.updateButtonActiveStates();
-    this.cleanupScrollSync();
+    this.viewState.currentDisplayMode = "patch" /* patch */;
+    this.viewState.updateButtonActiveStates();
+    this.scrollSync.cleanup();
     this.updateDiffNotice();
     this.updateColumnsHeader();
     if (this.diffContainerEl) {
@@ -19889,7 +19844,7 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
         plugin: this.plugin
       });
     }
-    this.updateNavButtonsState();
+    this.viewState.updateNavButtonsState();
   }
   /**
    * Renders an inline diff between the selected base and the current state,
@@ -19900,9 +19855,9 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
    */
   renderInlineDiff() {
     var _a, _b, _c;
-    this.currentDisplayMode = "inline" /* inline */;
-    this.updateButtonActiveStates();
-    this.cleanupScrollSync();
+    this.viewState.currentDisplayMode = "inline" /* inline */;
+    this.viewState.updateButtonActiveStates();
+    this.scrollSync.cleanup();
     this.updateDiffNotice();
     this.updateColumnsHeader();
     if (this.diffContainerEl) {
@@ -19916,7 +19871,7 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
         plugin: this.plugin
       });
     }
-    this.attachInlineReverts();
+    this.gutterReverts.attachInlineReverts();
   }
   /**
    * Renders the diff view in the specified diff2html format (line-by-line or
@@ -19928,9 +19883,9 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
    */
   renderDiff(format = "side-by-side" /* side */) {
     var _a, _b, _c;
-    this.currentDisplayMode = format;
-    this.updateButtonActiveStates();
-    this.cleanupScrollSync();
+    this.viewState.currentDisplayMode = format;
+    this.viewState.updateButtonActiveStates();
+    this.scrollSync.cleanup();
     this.updateDiffNotice();
     this.updateColumnsHeader();
     if (this.diffContainerEl) {
@@ -19944,90 +19899,25 @@ var _HistoryModal = class _HistoryModal extends import_obsidian17.Modal {
         plugin: this.plugin
       });
     }
-    this.attachInlineReverts();
+    this.gutterReverts.attachInlineReverts();
     if (format === "side-by-side" /* side */) {
-      const targetContainer = this.diffContainerEl;
-      this.scrollSyncTimer = setTimeout(() => {
-        this.scrollSyncTimer = null;
-        if (this.diffContainerEl !== targetContainer) {
-          return;
-        }
-        this.setupScrollSynchronization();
-      }, 0);
-    }
-  }
-  /**
-   * Sets up scroll synchronization for a side-by-side diff view.
-   * Finds the scrollable wrapper elements for both columns and adds event listeners
-   * to synchronize both vertical and horizontal scroll positions.
-   */
-  setupScrollSynchronization() {
-    const wrappers = this.diffContainerEl.querySelectorAll(".d2h-side-column-wrapper");
-    if ((wrappers == null ? void 0 : wrappers.length) !== 2) {
-      return;
-    }
-    const [leftWrapper, rightWrapper] = wrappers;
-    let isScrolling = false;
-    const syncLeftToRight = /* @__PURE__ */ __name(() => {
-      if (isScrolling) {
-        return;
-      }
-      isScrolling = true;
-      rightWrapper.scrollTop = leftWrapper.scrollTop;
-      rightWrapper.scrollLeft = leftWrapper.scrollLeft;
-      requestAnimationFrame(() => {
-        isScrolling = false;
-      });
-    }, "syncLeftToRight");
-    const syncRightToLeft = /* @__PURE__ */ __name(() => {
-      if (isScrolling) {
-        return;
-      }
-      isScrolling = true;
-      leftWrapper.scrollTop = rightWrapper.scrollTop;
-      leftWrapper.scrollLeft = rightWrapper.scrollLeft;
-      requestAnimationFrame(() => {
-        isScrolling = false;
-      });
-    }, "syncRightToLeft");
-    leftWrapper.addEventListener("scroll", syncLeftToRight);
-    rightWrapper.addEventListener("scroll", syncRightToLeft);
-    this.diffContainerEl._scrollSyncCleanup = () => {
-      leftWrapper.removeEventListener("scroll", syncLeftToRight);
-      rightWrapper.removeEventListener("scroll", syncRightToLeft);
-    };
-  }
-  /**
-   * Cleans up scroll synchronization event listeners.
-   * Called when switching between diff modes or closing the modal.
-   */
-  cleanupScrollSync() {
-    if (this.scrollSyncTimer !== null) {
-      clearTimeout(this.scrollSyncTimer);
-      this.scrollSyncTimer = null;
-    }
-    const container = this.diffContainerEl;
-    if (container == null ? void 0 : container._scrollSyncCleanup) {
-      container._scrollSyncCleanup();
-      delete container._scrollSyncCleanup;
+      this.scrollSync.schedule();
     }
   }
 };
-__name(_HistoryModal, "HistoryModal");
 __decorateClass([
-  Inject("SnapshotsService")
-], _HistoryModal.prototype, "snapshotsService", 2);
+  Inject(TOKENS.snapshots)
+], HistoryModal.prototype, "snapshotsService", 2);
 __decorateClass([
-  Inject("ModalsService")
-], _HistoryModal.prototype, "modalsService", 2);
+  Inject(TOKENS.modals)
+], HistoryModal.prototype, "modalsService", 2);
 __decorateClass([
-  Inject("VersionActionsService")
-], _HistoryModal.prototype, "versionActionsService", 2);
-var HistoryModal = _HistoryModal;
+  Inject(TOKENS.versionActions)
+], HistoryModal.prototype, "versionActionsService", 2);
 
 // src/modals/prompt.modal.ts
-var import_obsidian18 = require("obsidian");
-var _PromptModal = class _PromptModal extends import_obsidian18.Modal {
+var import_obsidian21 = require("obsidian");
+var PromptModal = class extends import_obsidian21.Modal {
   /**
    * Creates a new instance of PromptModal.
    *
@@ -20080,13 +19970,13 @@ var _PromptModal = class _PromptModal extends import_obsidian18.Modal {
                 value: this.initialValue
               },
               events: {
-                keydown: /* @__PURE__ */ __name((event) => {
+                keydown: (event) => {
                   const keyboard = event;
                   if (keyboard.key === "Enter") {
                     keyboard.preventDefault();
                     this.confirmResult();
                   }
-                }, "keydown")
+                }
               }
             },
             {
@@ -20097,10 +19987,10 @@ var _PromptModal = class _PromptModal extends import_obsidian18.Modal {
                   tag: "button",
                   text: this.cancelText,
                   events: {
-                    click: /* @__PURE__ */ __name(() => {
+                    click: () => {
                       this.result = null;
                       this.close();
-                    }, "click")
+                    }
                   }
                 },
                 {
@@ -20108,7 +19998,7 @@ var _PromptModal = class _PromptModal extends import_obsidian18.Modal {
                   text: this.confirmText,
                   classes: "mod-cta",
                   events: {
-                    click: /* @__PURE__ */ __name(() => this.confirmResult(), "click")
+                    click: () => this.confirmResult()
                   }
                 }
               ]
@@ -20158,12 +20048,10 @@ var _PromptModal = class _PromptModal extends import_obsidian18.Modal {
     this.close();
   }
 };
-__name(_PromptModal, "PromptModal");
-var PromptModal = _PromptModal;
 
 // src/services/modals.service.ts
-var import_obsidian19 = require("obsidian");
-var _ModalsService = class _ModalsService {
+var import_obsidian22 = require("obsidian");
+var ModalsService = class {
   /**
    * Creates a new instance of ModalsService.
    *
@@ -20271,13 +20159,13 @@ var _ModalsService = class _ModalsService {
    */
   openFolderHistory(folder) {
     if (!folder) {
-      new import_obsidian19.Notice(this.plugin.t("notice.no-folder-history"));
+      new import_obsidian22.Notice(this.plugin.t("notice.no-folder-history"));
       return false;
     }
     const rootPath = folder.path;
     const snapshots = this.snapshotsService.getList().filter((snapshot) => this.isUnderFolder(snapshot, rootPath));
     if (snapshots.length === 0) {
-      new import_obsidian19.Notice(this.plugin.t("notice.no-folder-history"));
+      new import_obsidian22.Notice(this.plugin.t("notice.no-folder-history"));
       return false;
     }
     new FolderHistoryModal(this.plugin.app, this.plugin, rootPath, snapshots).open();
@@ -20410,21 +20298,19 @@ var _ModalsService = class _ModalsService {
     return this.versionActionsService.label(target, versionId, entered);
   }
 };
-__name(_ModalsService, "ModalsService");
 __decorateClass([
-  Inject("SnapshotsService")
-], _ModalsService.prototype, "snapshotsService", 2);
+  Inject(TOKENS.snapshots)
+], ModalsService.prototype, "snapshotsService", 2);
 __decorateClass([
-  Inject("VersionActionsService")
-], _ModalsService.prototype, "versionActionsService", 2);
-var ModalsService = _ModalsService;
+  Inject(TOKENS.versionActions)
+], ModalsService.prototype, "versionActionsService", 2);
 
 // src/decorators/on.decorator.ts
-var On = /* @__PURE__ */ __name((name) => {
+var On = (name) => {
   return (target, propertyKey) => {
     return Reflect.defineMetadata("ON_EVENT", { name }, target, propertyKey);
   };
-}, "On");
+};
 
 // src/helpers/shard-name.helper.ts
 var FNV_OFFSET_BASIS = 2166136261;
@@ -20434,12 +20320,10 @@ function multiplyFnvPrime(hash) {
   const hi = (hash >>> 16) * FNV_PRIME & 65535;
   return (hi << 16 >>> 0) + lo >>> 0;
 }
-__name(multiplyFnvPrime, "multiplyFnvPrime");
 function toHex32(value) {
   return (value >>> 0).toString(16).padStart(8, "0");
 }
-__name(toHex32, "toHex32");
-var _ShardNameHelper = class _ShardNameHelper {
+var ShardNameHelper = class {
   /**
    * Computes the deterministic shard filename for a vault-relative path.
    *
@@ -20470,17 +20354,15 @@ var _ShardNameHelper = class _ShardNameHelper {
     return `${toHex32(hi)}${toHex32(lo)}`;
   }
 };
-__name(_ShardNameHelper, "ShardNameHelper");
 /**
  * Width in hex characters of the digest emitted by {@link forPath} (two
  * 32-bit lanes, 8 chars each). Exposed so callers and tests can assert the
  * fixed length without hardcoding the magic number.
  */
-_ShardNameHelper.DIGEST_LENGTH = 16;
-var ShardNameHelper = _ShardNameHelper;
+ShardNameHelper.DIGEST_LENGTH = 16;
 
 // src/persistence/history-shard-store.ts
-var _HistoryShardStore = class _HistoryShardStore {
+var HistoryShardStore = class {
   /**
    * Creates a shard store bound to one adapter and one resolved shard directory.
    *
@@ -20762,11 +20644,9 @@ var _HistoryShardStore = class _HistoryShardStore {
     }
   }
 };
-__name(_HistoryShardStore, "HistoryShardStore");
-var HistoryShardStore = _HistoryShardStore;
 
 // src/services/persistence.service.ts
-var _PersistenceService = class _PersistenceService {
+var PersistenceService = class {
   /**
    * Creates a new instance of PersistenceService.
    *
@@ -20893,12 +20773,22 @@ var _PersistenceService = class _PersistenceService {
     }
   }
   /**
-   * Applies the size and age caps to a list of serialized snapshots.
-   * Runs two independent passes (D4): live snapshots are bounded by
-   * `retention.maxEntries` / `retention.maxAgeDays` and tombstones
-   * (entries with `deletedTimestamp` set) by
-   * `retention.maxDeletedEntries` / `retention.maxDeletedAgeDays`.
-   * A cap of 0 disables that dimension for its bucket, matching the live caps.
+   * Applies the retention caps to a list of serialized snapshots.
+   * Runs two independent passes: live snapshots are bounded by COUNT only
+   * (`retention.maxEntries`) and are deliberately NOT pruned by age, while
+   * tombstones (entries with `deletedTimestamp` set) keep BOTH caps
+   * (`retention.maxDeletedEntries` / `retention.maxDeletedAgeDays`).
+   * A cap of 0 disables that dimension for its bucket.
+   *
+   * Live files are no longer age-pruned (the prior D4 contract dropped live
+   * entries past `retention.maxAgeDays`). That dropped age dimension caused a
+   * total-history wipe: in an idle vault every live snapshot eventually ages
+   * past `maxAgeDays`, retention then returned an empty set, and the save path
+   * cleared the entire shard directory even though those files still exist and
+   * still hold in-memory history. Bounding live files by count (and per-file
+   * version caps elsewhere) keeps storage in check without ever expiring a
+   * still-present file's history purely because it is old. A deleted file's
+   * recoverability window is a real policy, so tombstones still expire by age.
    *
    * @param {SerializedFileSnapshot[]} snapshots - The raw persisted snapshots
    * @return {SerializedFileSnapshot[]} The retained subset, newest first
@@ -20922,7 +20812,14 @@ var _PersistenceService = class _PersistenceService {
     const keptLive = this.applyBucketRetention(
       live,
       this.settingsService.value("retention.maxEntries"),
-      this.settingsService.value("retention.maxAgeDays"),
+      /**
+       * Age cap forced to 0 (disabled) for live files on purpose: a still-present
+       * file must never lose its history just because it is old, otherwise an idle
+       * vault's entire on-disk history is eventually evicted and wiped. Only the
+       * count cap bounds live files here; `retention.maxAgeDays` is left to govern
+       * tombstones below.
+       */
+      0,
       (item) => item.timestamp
     );
     const keptTombstones = this.applyBucketRetention(
@@ -20945,8 +20842,9 @@ var _PersistenceService = class _PersistenceService {
    * Runs a single retention pass on a bucket of serialized snapshots, dropping
    * entries older than `maxAgeDays` (when > 0) and then capping by
    * `maxEntries` (when > 0). The bucket's "age" is read through the supplied
-   * accessor so live snapshots can age by `timestamp` and tombstones by
-   * `deletedTimestamp`.
+   * accessor so tombstones age by `deletedTimestamp`. Callers pass
+   * `maxAgeDays = 0` to disable age pruning entirely: the live bucket does this
+   * so a still-present file is never expired by age (see {@link applyRetention}).
    *
    * @param {SerializedFileSnapshot[]} bucket - The bucket to prune (not mutated)
    * @param {number} maxEntries - Size cap for this bucket (0 disables)
@@ -20979,18 +20877,35 @@ var _PersistenceService = class _PersistenceService {
   }
   /**
    * Appends a save to the write queue so it runs after every previously
-   * scheduled write completes. The queue swallows individual write failures
-   * (logged inside `saveToDisk`) so a single bad write does not poison the
-   * chain and starve later writes.
+   * scheduled write completes.
    */
   enqueueSave() {
-    this.writeQueue = this.writeQueue.then(() => this.saveToDisk());
+    this.enqueue(() => this.saveToDisk());
   }
   /**
    * Appends a clear to the write queue so it serializes with pending saves.
    */
   enqueueClear() {
-    this.writeQueue = this.writeQueue.then(() => this.clearDisk());
+    this.enqueue(() => this.clearDisk());
+  }
+  /**
+   * Appends one unit of work to the serialized write queue, isolating its
+   * failure. The stored `writeQueue` is always left in a FULFILLED state: a
+   * rejection from `work` is caught and logged here, never propagated into the
+   * chain. Without this, a single throwing unit would leave `writeQueue` as a
+   * rejected promise, and because every `enqueue` chains with `.then(onFulfilled)`
+   * (no rejection handler), that rejection would pass straight through and
+   * permanently starve every later save, clear, and the `unload` flush, leaving
+   * the on-disk history frozen at its last good state. Each unit is responsible
+   * for its own data-loss guards (see `saveToDisk`); this seam only guarantees
+   * the queue keeps running.
+   *
+   * @param {() => Promise<void>} work - The queued unit of write work
+   */
+  enqueue(work) {
+    this.writeQueue = this.writeQueue.then(() => work()).catch((error) => {
+      console.error("Local history: a queued write failed; continuing with the next", error);
+    });
   }
   /**
    * Serializes the current snapshots and reconciles them to the shard directory.
@@ -21014,9 +20929,16 @@ var _PersistenceService = class _PersistenceService {
       await this.clearDisk();
       return;
     }
-    const payload = this.snapshotsService.serialize();
-    const kept = this.applyRetention(payload.snapshots);
-    if (kept.length === 0) {
+    let payload;
+    let kept;
+    try {
+      payload = this.snapshotsService.serialize();
+      kept = this.applyRetention(payload.snapshots);
+    } catch (error) {
+      console.error("Local history: failed to serialize history; skipping this save to avoid data loss", error);
+      return;
+    }
+    if (payload.snapshots.length === 0) {
       await this.clearDisk();
       return;
     }
@@ -21309,20 +21231,18 @@ var _PersistenceService = class _PersistenceService {
     return this.settingsService.value("persist") && this.settingsService.value("keep") === "app" /* app */;
   }
 };
-__name(_PersistenceService, "PersistenceService");
 __decorateClass([
-  Inject("SettingsService")
-], _PersistenceService.prototype, "settingsService", 2);
+  Inject(TOKENS.settings)
+], PersistenceService.prototype, "settingsService", 2);
 __decorateClass([
-  Inject("SnapshotsService")
-], _PersistenceService.prototype, "snapshotsService", 2);
+  Inject(TOKENS.snapshots)
+], PersistenceService.prototype, "snapshotsService", 2);
 __decorateClass([
   On("snapshots:update" /* snapshotsUpdate */)
-], _PersistenceService.prototype, "onSnapshotsUpdate", 1);
+], PersistenceService.prototype, "onSnapshotsUpdate", 1);
 __decorateClass([
   On("settings:update" /* settingsUpdate */)
-], _PersistenceService.prototype, "onSettingsUpdate", 1);
-var PersistenceService = _PersistenceService;
+], PersistenceService.prototype, "onSettingsUpdate", 1);
 
 // src/helpers/path-exclude.helper.ts
 var _PathExcludeHelper = class _PathExcludeHelper {
@@ -21412,7 +21332,6 @@ var _PathExcludeHelper = class _PathExcludeHelper {
     return result;
   }
 };
-__name(_PathExcludeHelper, "PathExcludeHelper");
 /**
  * Upper bound on the normalized path length passed to `RegExp.test` to
  * contain catastrophic backtracking on user-supplied patterns like `(a+)+$`.
@@ -21432,8 +21351,8 @@ _PathExcludeHelper.cachedRegExp = null;
 var PathExcludeHelper = _PathExcludeHelper;
 
 // src/settings/main.setting.ts
-var import_obsidian20 = require("obsidian");
-var _MainSetting = class _MainSetting extends import_obsidian20.PluginSettingTab {
+var import_obsidian23 = require("obsidian");
+var MainSetting = class extends import_obsidian23.PluginSettingTab {
   /**
    * Renders the settings UI.
    * Creates and configures all settings elements in the settings tab.
@@ -21451,12 +21370,12 @@ var _MainSetting = class _MainSetting extends import_obsidian20.PluginSettingTab
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.type.name")).setDesc(this.plugin.t("setting.type.desc")).addDropdown(
+    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.type.name")).setDesc(this.plugin.t("setting.type.desc")).addDropdown(
       (dropdown) => dropdown.addOption("line" /* line */, this.plugin.t("setting.type.option.line")).addOption("dot" /* dot */, this.plugin.t("setting.type.option.dot")).setValue(this.settingsService.value("type")).onChange((value) => {
         this.settingsService.update("type", value);
       })
     );
-    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.allowed-extensions.name")).setDesc(this.plugin.t("setting.allowed-extensions.desc")).addText(
+    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.allowed-extensions.name")).setDesc(this.plugin.t("setting.allowed-extensions.desc")).addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.allowedExtensions).setValue(this.settingsService.value("allowedExtensions")).onChange((value) => {
         this.settingsService.update(
           "allowedExtensions",
@@ -21464,7 +21383,7 @@ var _MainSetting = class _MainSetting extends import_obsidian20.PluginSettingTab
         );
       })
     );
-    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.exclude-paths.name")).setDesc(this.plugin.t("setting.exclude-paths.desc")).addText(
+    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.exclude-paths.name")).setDesc(this.plugin.t("setting.exclude-paths.desc")).addText(
       (text) => text.setPlaceholder(DEFAULT_SETTINGS.excludePaths).setValue(this.settingsService.value("excludePaths")).onChange((value) => {
         if (PathExcludeHelper.isValid(value)) {
           text.inputEl.removeClass("lct-setting-invalid");
@@ -21474,57 +21393,57 @@ var _MainSetting = class _MainSetting extends import_obsidian20.PluginSettingTab
         text.inputEl.addClass("lct-setting-invalid");
       })
     );
-    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.keep.name")).setDesc(this.plugin.t("setting.keep.desc")).addDropdown(
+    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.keep.name")).setDesc(this.plugin.t("setting.keep.desc")).addDropdown(
       (dropdown) => dropdown.addOption("app" /* app */, this.plugin.t("setting.keep.option.app")).addOption("file" /* file */, this.plugin.t("setting.keep.option.file")).setValue(this.settingsService.value("keep")).onChange((value) => {
         this.settingsService.update("keep", value);
       })
     );
-    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.ignore-new-files.name")).setDesc(this.plugin.t("setting.ignore-new-files.desc")).addToggle(
+    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.ignore-new-files.name")).setDesc(this.plugin.t("setting.ignore-new-files.desc")).addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("ignoreNewFiles")).onChange((value) => {
         this.settingsService.update("ignoreNewFiles", value);
       })
     );
-    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.tree-highlight.name")).setDesc(this.plugin.t("setting.tree-highlight.desc")).addToggle(
+    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.tree-highlight.name")).setDesc(this.plugin.t("setting.tree-highlight.desc")).addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("treeHighlight")).onChange((value) => {
         this.settingsService.update("treeHighlight", value);
       })
     );
-    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.persist.name")).setDesc(this.plugin.t("setting.persist.desc")).addToggle(
+    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.persist.name")).setDesc(this.plugin.t("setting.persist.desc")).addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("persist")).onChange((value) => {
         this.settingsService.update("persist", value);
       })
     );
-    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.max-entries.name")).setDesc(this.plugin.t("setting.max-entries.desc")).addText(
+    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.max-entries.name")).setDesc(this.plugin.t("setting.max-entries.desc")).addText(
       (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.retention.maxEntries)).setValue(String(this.settingsService.value("retention.maxEntries"))).onChange((value) => {
         const count = this.toCount(value, DEFAULT_SETTINGS.retention.maxEntries);
         this.settingsService.update("retention.maxEntries", count);
       })
     );
-    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.max-age-days.name")).setDesc(this.plugin.t("setting.max-age-days.desc")).addText(
+    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.max-age-days.name")).setDesc(this.plugin.t("setting.max-age-days.desc")).addText(
       (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.retention.maxAgeDays)).setValue(String(this.settingsService.value("retention.maxAgeDays"))).onChange((value) => {
         const days = this.toCount(value, DEFAULT_SETTINGS.retention.maxAgeDays);
         this.settingsService.update("retention.maxAgeDays", days);
       })
     );
-    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.max-deleted-entries.name")).setDesc(this.plugin.t("setting.max-deleted-entries.desc")).addText(
+    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.max-deleted-entries.name")).setDesc(this.plugin.t("setting.max-deleted-entries.desc")).addText(
       (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.retention.maxDeletedEntries)).setValue(String(this.settingsService.value("retention.maxDeletedEntries"))).onChange((value) => {
         const count = this.toCount(value, DEFAULT_SETTINGS.retention.maxDeletedEntries);
         this.settingsService.update("retention.maxDeletedEntries", count);
       })
     );
-    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.max-deleted-age-days.name")).setDesc(this.plugin.t("setting.max-deleted-age-days.desc")).addText(
+    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.max-deleted-age-days.name")).setDesc(this.plugin.t("setting.max-deleted-age-days.desc")).addText(
       (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.retention.maxDeletedAgeDays)).setValue(String(this.settingsService.value("retention.maxDeletedAgeDays"))).onChange((value) => {
         const days = this.toCount(value, DEFAULT_SETTINGS.retention.maxDeletedAgeDays);
         this.settingsService.update("retention.maxDeletedAgeDays", days);
       })
     );
-    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.snapshots-heading")).setHeading();
-    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.snapshots-enabled.name")).setDesc(this.plugin.t("setting.snapshots-enabled.desc")).addToggle(
+    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.snapshots-heading")).setHeading();
+    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.snapshots-enabled.name")).setDesc(this.plugin.t("setting.snapshots-enabled.desc")).addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("snapshots.enabled")).onChange((value) => {
         this.settingsService.update("snapshots.enabled", value);
       })
     );
-    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.snapshots-edit-threshold.name")).setDesc(this.plugin.t("setting.snapshots-edit-threshold.desc")).addText(
+    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.snapshots-edit-threshold.name")).setDesc(this.plugin.t("setting.snapshots-edit-threshold.desc")).addText(
       (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.snapshots.editThreshold)).setValue(String(this.settingsService.value("snapshots.editThreshold"))).onChange((value) => {
         this.settingsService.update(
           "snapshots.editThreshold",
@@ -21532,13 +21451,13 @@ var _MainSetting = class _MainSetting extends import_obsidian20.PluginSettingTab
         );
       })
     );
-    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.snapshots-interval.name")).setDesc(this.plugin.t("setting.snapshots-interval.desc")).addText(
+    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.snapshots-interval.name")).setDesc(this.plugin.t("setting.snapshots-interval.desc")).addText(
       (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.snapshots.intervalMs / 6e4)).setValue(String(this.settingsService.value("snapshots.intervalMs") / 6e4)).onChange((value) => {
         const minutes = this.toCount(value, DEFAULT_SETTINGS.snapshots.intervalMs / 6e4);
         this.settingsService.update("snapshots.intervalMs", minutes * 6e4);
       })
     );
-    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.max-version-age-days.name")).setDesc(this.plugin.t("setting.max-version-age-days.desc")).addText(
+    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.max-version-age-days.name")).setDesc(this.plugin.t("setting.max-version-age-days.desc")).addText(
       (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.snapshots.maxVersionAgeDays)).setValue(String(this.settingsService.value("snapshots.maxVersionAgeDays"))).onChange((value) => {
         this.settingsService.update(
           "snapshots.maxVersionAgeDays",
@@ -21546,7 +21465,7 @@ var _MainSetting = class _MainSetting extends import_obsidian20.PluginSettingTab
         );
       })
     );
-    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.max-versions.name")).setDesc(this.plugin.t("setting.max-versions.desc")).addText(
+    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.max-versions.name")).setDesc(this.plugin.t("setting.max-versions.desc")).addText(
       (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.snapshots.maxVersions)).setValue(String(this.settingsService.value("snapshots.maxVersions"))).onChange((value) => {
         this.settingsService.update(
           "snapshots.maxVersions",
@@ -21554,35 +21473,35 @@ var _MainSetting = class _MainSetting extends import_obsidian20.PluginSettingTab
         );
       })
     );
-    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.show-heading")).setHeading();
-    new import_obsidian20.Setting(containerEl).setDesc(this.plugin.t("setting.show.desc"));
-    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.show.changed")).addToggle(
+    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.show-heading")).setHeading();
+    new import_obsidian23.Setting(containerEl).setDesc(this.plugin.t("setting.show.desc"));
+    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.show.changed")).addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("show.changed")).onChange((value) => {
         this.settingsService.update("show.changed", value);
       })
     );
-    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.show.restored")).addToggle(
+    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.show.restored")).addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("show.restored")).onChange((value) => {
         this.settingsService.update("show.restored", value);
       })
     );
-    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.show.added")).addToggle(
+    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.show.added")).addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("show.added")).onChange((value) => {
         this.settingsService.update("show.added", value);
       })
     );
-    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.show.removed")).addToggle(
+    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.show.removed")).addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("show.removed")).onChange((value) => {
         this.settingsService.update("show.removed", value);
       })
     );
-    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.line-heading")).setHeading();
-    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.line-width.name")).setDesc(this.plugin.t("setting.line-width.desc")).addSlider(
+    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.line-heading")).setHeading();
+    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.line-width.name")).setDesc(this.plugin.t("setting.line-width.desc")).addSlider(
       (slider) => slider.setLimits(1, 5, 1).setValue(this.settingsService.value("line.width")).setDynamicTooltip().onChange((value) => {
         this.settingsService.update("line.width", value);
       })
     );
-    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.gutter-heading.name")).setDesc((() => {
+    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.gutter-heading.name")).setDesc((() => {
       return DomHelper.createFragment([
         {
           tag: "div",
@@ -21607,25 +21526,25 @@ var _MainSetting = class _MainSetting extends import_obsidian20.PluginSettingTab
         }
       ]);
     })()).setHeading();
-    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.gutter-changed.name")).addText((text) => {
+    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.gutter-changed.name")).addText((text) => {
       this.constrainGutterCharInput(text);
       return text.setPlaceholder(DEFAULT_SETTINGS.gutter.changed).setValue(this.settingsService.value("gutter.changed")).onChange((value) => {
         this.settingsService.update("gutter.changed", value || DEFAULT_SETTINGS.gutter.changed);
       });
     });
-    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.gutter-added.name")).addText((text) => {
+    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.gutter-added.name")).addText((text) => {
       this.constrainGutterCharInput(text);
       return text.setPlaceholder(DEFAULT_SETTINGS.gutter.added).setValue(this.settingsService.value("gutter.added")).onChange((value) => {
         this.settingsService.update("gutter.added", value || DEFAULT_SETTINGS.gutter.added);
       });
     });
-    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.gutter-restored.name")).addText((text) => {
+    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.gutter-restored.name")).addText((text) => {
       this.constrainGutterCharInput(text);
       return text.setPlaceholder(DEFAULT_SETTINGS.gutter.restored).setValue(this.settingsService.value("gutter.restored")).onChange((value) => {
         this.settingsService.update("gutter.restored", value || DEFAULT_SETTINGS.gutter.restored);
       });
     });
-    new import_obsidian20.Setting(containerEl).setName(this.plugin.t("setting.gutter-removed.name")).addText((text) => {
+    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.gutter-removed.name")).addText((text) => {
       this.constrainGutterCharInput(text);
       return text.setPlaceholder(DEFAULT_SETTINGS.gutter.removed).setValue(this.settingsService.value("gutter.removed")).onChange((value) => {
         this.settingsService.update("gutter.removed", value || DEFAULT_SETTINGS.gutter.removed);
@@ -21664,14 +21583,12 @@ var _MainSetting = class _MainSetting extends import_obsidian20.PluginSettingTab
     return Math.max(0, parsed);
   }
 };
-__name(_MainSetting, "MainSetting");
 __decorateClass([
-  Inject("SettingsService")
-], _MainSetting.prototype, "settingsService", 2);
-var MainSetting = _MainSetting;
+  Inject(TOKENS.settings)
+], MainSetting.prototype, "settingsService", 2);
 
 // src/services/settings.service.ts
-var _SettingsService = class _SettingsService {
+var SettingsService = class {
   /**
    * Creates a new instance of SettingsService.
    *
@@ -21751,11 +21668,9 @@ var _SettingsService = class _SettingsService {
     SHOW_CHANGE_KEYS.forEach((key2) => this.update(key2, value));
   }
 };
-__name(_SettingsService, "SettingsService");
-var SettingsService = _SettingsService;
 
 // src/maps/observable.map.ts
-var _ObservableMap = class _ObservableMap extends Map {
+var ObservableMap = class extends Map {
   constructor() {
     super(...arguments);
     /**
@@ -21857,12 +21772,290 @@ var _ObservableMap = class _ObservableMap extends Map {
     return size;
   }
 };
-__name(_ObservableMap, "ObservableMap");
-var ObservableMap = _ObservableMap;
+
+// src/services/external-change-capture.ts
+var _ExternalChangeCapture = class _ExternalChangeCapture {
+  /**
+   * Creates a new ExternalChangeCapture bound to its owning service's host port.
+   *
+   * @param {ExternalChangeHost} host - The narrow port onto the snapshot state
+   */
+  constructor(host) {
+    this.host = host;
+    /**
+     * Per-path debounce timers for `capture`. A new modify event for the same
+     * path resets the timer; only the trailing call runs the disk read and
+     * capture (ADR-08-E).
+     */
+    this.debounceTimers = /* @__PURE__ */ new Map();
+    /**
+     * Per-path in-flight guard for `capture`. Holds the path of any file
+     * currently in the middle of a disk read + capture, so a follow-up modify
+     * event that fires before the prior call resolves does not start a second
+     * concurrent read of the same file and double-capture the same state.
+     */
+    this.inFlight = /* @__PURE__ */ new Set();
+    /**
+     * Last-seen `stat.mtime` + `stat.size` per tracked path, captured at the end
+     * of every `capture` call (success or hash-match no-op). A follow-up modify
+     * whose stat values match these is short-circuited before the disk read:
+     * nothing on disk could have changed since the last pass, so reading +
+     * hashing would just burn IO. Cleared on `forget`/`clear`.
+     */
+    this.lastSeen = /* @__PURE__ */ new Map();
+  }
+  /**
+   * Public entry point for the vault.modify handler. Coalesces a burst of
+   * modify events for the same path through a per-path debounce, then runs
+   * `capture` once with an in-flight guard so an overlapping follow-up modify
+   * cannot double-capture the same disk state (ADR-08-E).
+   *
+   * Bursts of writes (sync, git pull, an external save loop) for one file
+   * collapse into a single trailing capture; events for different files run
+   * independently. The stat-based short-circuit inside `capture` skips the disk
+   * read when nothing about the file's mtime/size changed between this debounced
+   * call and the previous one.
+   *
+   * @param {TFile} file - The file whose modify event fired
+   */
+  schedule(file) {
+    if (!file) {
+      return;
+    }
+    const path = file.path;
+    const existing = this.debounceTimers.get(path);
+    if (existing !== void 0) {
+      clearTimeout(existing);
+    }
+    const timer = setTimeout(() => {
+      this.debounceTimers.delete(path);
+      void this.runGuarded(file);
+    }, _ExternalChangeCapture.debounceMs);
+    this.debounceTimers.set(path, timer);
+  }
+  /**
+   * Captures an external (off-editor) change to a tracked file as a flagged
+   * version on its timeline (D12/D13). Reads the file from disk, compares the
+   * actual content to the snapshot's known `state` via `isContentChanged`
+   * (32-bit hash as a cheap pre-filter, line-by-line compare on a hash match
+   * so a collision cannot mask a real rewrite, ADR-08-D), and force-captures
+   * the new content as a `FileVersion` with `external = true` only when they
+   * differ, then updates `state`/tracker/changes so further reads see the
+   * captured content as the new baseline.
+   *
+   * Gating mirrors the parts of `canCapture` that still apply when a snapshot
+   * already exists: a wrong-extension file, an excluded path, an ignored file,
+   * or a missing/folder TFile is a no-op. A content match is also a no-op so
+   * editor-driven flushes and the plugin's own revert writes (which already
+   * synchronized `state` before/after the write) do not produce phantom
+   * external versions.
+   *
+   * A first-sight file (no snapshot yet) is captured as a normal snapshot via
+   * the host, without an `external` version: there is no prior state to diff
+   * against, so flagging the very first capture would mislabel a brand-new
+   * file as an external change.
+   *
+   * A tombstone entry is a no-op: a tombstone represents a deleted file at
+   * that path and `vault.modify` should not legitimately fire there; the
+   * resurrection flow belongs to a future `vault.create` handler, not here.
+   *
+   * The capture is forced past the cadence gates so every distinct external
+   * state lands as its own version (D13), but it is NOT pinned: the resulting
+   * version obeys the normal age/count retention exactly like a cadence one,
+   * so a chatty sync workflow cannot bloat `history.json` with un-evictable
+   * entries.
+   *
+   * @param {TFile | null} file - The file whose disk content changed
+   */
+  async capture(file) {
+    if (!file) {
+      return;
+    }
+    if (!this.host.isExternallyCapturable(file)) {
+      return;
+    }
+    const snapshot = this.host.getSnapshot(file.path);
+    if (!snapshot) {
+      await this.host.captureFirstSight(file);
+      this.rememberLastSeen(file);
+      return;
+    }
+    if (snapshot.isTombstone()) {
+      return;
+    }
+    const lastSeen = this.lastSeen.get(file.path);
+    const currentStat = this.getFileStat(file);
+    if (lastSeen && currentStat && lastSeen.mtime === currentStat.mtime && lastSeen.size === currentStat.size) {
+      return;
+    }
+    let content;
+    try {
+      content = await this.host.plugin.app.vault.read(file);
+    } catch (error) {
+      console.error("Error reading file for external change capture:", error);
+      return;
+    }
+    if (!snapshot.isContentChanged(content)) {
+      this.rememberLastSeen(file);
+      return;
+    }
+    const newLines = content.split(snapshot.lineBreak);
+    const captured = snapshot.captureVersion(newLines, this.host.getCaptureOptions(), true);
+    if (captured) {
+      captured.external = true;
+    }
+    const previousLength = snapshot.state.length;
+    snapshot.replaceBlock(0, previousLength, newLines);
+    snapshot.updateState(newLines);
+    snapshot.updateChanges();
+    this.host.forceUpdate();
+    this.rememberLastSeen(file);
+  }
+  /**
+   * Drops any per-path debounce timer, in-flight marker, and last-seen stat
+   * for the given path. Called when a snapshot is removed/renamed/moved so
+   * stale state for a now-absent or relocated path cannot leak into a future
+   * modify event.
+   *
+   * @param {string} path - The vault-relative path to forget
+   */
+  forget(path) {
+    const timer = this.debounceTimers.get(path);
+    if (timer !== void 0) {
+      clearTimeout(timer);
+      this.debounceTimers.delete(path);
+    }
+    this.inFlight.delete(path);
+    this.lastSeen.delete(path);
+  }
+  /**
+   * Clears every pending debounce timer, the in-flight guard, and the last-seen
+   * stat baseline. Called from the service's `clear`/`wipe` so a full reset
+   * leaves no stray timer firing against a wiped snapshot map.
+   */
+  clear() {
+    for (const timer of this.debounceTimers.values()) {
+      clearTimeout(timer);
+    }
+    this.debounceTimers.clear();
+    this.inFlight.clear();
+    this.lastSeen.clear();
+  }
+  /**
+   * Runs `capture` under a per-path in-flight guard so a second debounced
+   * trigger that fires while the first is still awaiting the disk read cannot
+   * start a second concurrent capture for the same path. If a follow-up trigger
+   * arrives during the capture, the path's scheduler hands off to a re-schedule
+   * after the in-flight call resolves so the most recent disk state is never
+   * silently dropped (the trailing write of a sync storm still lands as a
+   * version).
+   *
+   * The guard is released in a `finally` so an error inside the capture never
+   * strands the path as permanently in-flight.
+   *
+   * @param {TFile} file - The file to capture
+   */
+  async runGuarded(file) {
+    const path = file.path;
+    if (this.inFlight.has(path)) {
+      this.schedule(file);
+      return;
+    }
+    this.inFlight.add(path);
+    try {
+      await this.capture(file);
+    } finally {
+      this.inFlight.delete(path);
+    }
+  }
+  /**
+   * Reads the file's current `stat.mtime` / `stat.size` without throwing if
+   * the stat block is missing (older Obsidian builds, test stubs). Returns
+   * undefined when the stat is unusable so the caller falls through to a
+   * normal disk read instead of incorrectly short-circuiting.
+   *
+   * @param {TFile} file - The file to read stat from
+   * @return {{mtime: number, size: number} | undefined} The stat values or undefined
+   */
+  getFileStat(file) {
+    const stat = file == null ? void 0 : file.stat;
+    if (!stat || typeof stat.mtime !== "number" || typeof stat.size !== "number") {
+      return void 0;
+    }
+    return { mtime: stat.mtime, size: stat.size };
+  }
+  /**
+   * Stores the file's current mtime/size as the last-seen baseline for the
+   * stat pre-check. Called after a successful capture, after a hash-match
+   * no-op, and after a first-sight capture so the next modify event for the
+   * same path can skip the disk read when nothing changed.
+   *
+   * @param {TFile} file - The file whose stat to remember
+   */
+  rememberLastSeen(file) {
+    const stat = this.getFileStat(file);
+    if (!stat) {
+      return;
+    }
+    this.lastSeen.set(file.path, stat);
+  }
+};
+/**
+ * Window (ms) that coalesces a burst of vault.modify events per file before
+ * the disk read + hash runs. Picked to be shorter than a typical human edit
+ * cadence (so a real follow-up captures promptly) but long enough that a
+ * sync/git storm's repeated writes for one file collapse into one capture.
+ */
+_ExternalChangeCapture.debounceMs = 150;
+var ExternalChangeCapture = _ExternalChangeCapture;
+
+// src/snapshots/editor-operations.ts
+var EditorOperations = class {
+  /**
+   * Creates a new EditorOperations bound to its owning service's host port.
+   *
+   * @param {EditorOperationsHost} host - The narrow port onto the snapshot state
+   */
+  constructor(host) {
+    this.host = host;
+  }
+  /**
+   * Applies an out-of-editor content change to a file and keeps its snapshot in
+   * sync, preserving the original baseline and the version timeline. Used by the
+   * history modal to revert a single hunk: the block is rewritten in the tracker
+   * (so highlights stay correct even for a file that is not the active editor),
+   * the cached state is set to the written content, and the file is modified on
+   * disk.
+   *
+   * The snapshot is updated before the file write so that, when the file is the
+   * active editor, the change detector sees a matching content hash and skips
+   * reprocessing the resulting editor update (no double application).
+   *
+   * @param {TFile | null} file - The file to rewrite
+   * @param {string[]} lines - The full new content of the file as lines
+   * @param {EditorBlock} block - The single block that changed, in tracker terms
+   * @return {Promise<boolean>} True if the change was applied, false otherwise
+   */
+  async applyContent(file, lines, block) {
+    const snapshot = this.host.getSnapshot(file);
+    if (!file || !snapshot || !Array.isArray(lines)) {
+      return false;
+    }
+    snapshot.replaceBlock(block.start, block.removeCount, block.newLines);
+    snapshot.updateState(lines);
+    snapshot.updateChanges();
+    await this.host.plugin.app.vault.modify(file, lines.join(snapshot.lineBreak));
+    if (this.host.plugin.getActiveViewOfType()) {
+      this.host.plugin.forceUpdateEditor();
+    }
+    this.host.forceUpdate();
+    return true;
+  }
+};
 
 // src/helpers/text.helper.ts
 var idCounter = 0;
-var _TextHelper = class _TextHelper {
+var TextHelper = class {
   /**
    * Generates a hash from a string content.
    * Uses a simple algorithm to convert the string to a numeric hash.
@@ -21905,11 +22098,9 @@ var _TextHelper = class _TextHelper {
     return a !== b && a.replace(/\s+/g, "") === b.replace(/\s+/g, "");
   }
 };
-__name(_TextHelper, "TextHelper");
-var TextHelper = _TextHelper;
 
 // src/lines/tracker.line.ts
-var _TrackerLine = class _TrackerLine {
+var TrackerLine = class _TrackerLine {
   /**
    * Creates a new instance of TrackerLine.
    * Initializes the line tracker with optional parameters for content and position.
@@ -22382,11 +22573,9 @@ var _TrackerLine = class _TrackerLine {
     return tracker;
   }
 };
-__name(_TrackerLine, "TrackerLine");
-var TrackerLine = _TrackerLine;
 
 // src/maps/array.map.ts
-var _ArrayMap = class _ArrayMap extends Map {
+var ArrayMap = class extends Map {
   /**
    * Creates an ArrayMap from an array of objects.
    * Uses either a property key or a function to determine the map keys.
@@ -22452,11 +22641,9 @@ var _ArrayMap = class _ArrayMap extends Map {
     return this.simplify().filter(...args);
   }
 };
-__name(_ArrayMap, "ArrayMap");
-var ArrayMap = _ArrayMap;
 
 // src/lines/change.line.ts
-var _ChangeLine = class _ChangeLine {
+var ChangeLine = class {
   /**
    * Creates a new instance of ChangeLine.
    *
@@ -22517,11 +22704,9 @@ var _ChangeLine = class _ChangeLine {
     return this.line;
   }
 };
-__name(_ChangeLine, "ChangeLine");
-var ChangeLine = _ChangeLine;
 
 // src/snapshots/snapshot-state.ts
-var _SnapshotState = class _SnapshotState {
+var SnapshotState = class {
   /**
    * Normalizes new content into a state line array and computes its hash. The
    * façade assigns the returned `state` and `lastHash` back to its own fields.
@@ -22718,11 +22903,9 @@ var _SnapshotState = class _SnapshotState {
     });
   }
 };
-__name(_SnapshotState, "SnapshotState");
-var SnapshotState = _SnapshotState;
 
 // src/snapshots/snapshot-timestamps.ts
-var _SnapshotTimestamps = class _SnapshotTimestamps {
+var SnapshotTimestamps = class _SnapshotTimestamps {
   /**
    * Resolves the timestamp of the file's last update. Prefers the file's
    * modification time (the real last-change moment of the live content), and
@@ -22770,11 +22953,9 @@ var _SnapshotTimestamps = class _SnapshotTimestamps {
     return new Date(_SnapshotTimestamps.getLastChangedTimestamp(file, timestamp)).toLocaleTimeString();
   }
 };
-__name(_SnapshotTimestamps, "SnapshotTimestamps");
-var SnapshotTimestamps = _SnapshotTimestamps;
 
 // src/snapshots/tracker-editor.ts
-var _TrackerEditor = class _TrackerEditor {
+var TrackerEditor = class {
   /**
    * Creates a tracker editor bound to the shared current-position index.
    *
@@ -22983,8 +23164,12 @@ var _TrackerEditor = class _TrackerEditor {
     if (existedInOriginal) {
       found.remove();
       const lastLine = this.lastCurrentLine(tracker);
-      if (lastLine >= 0 && found.removedAtPosition > lastLine) {
-        found.removedAtPosition = lastLine;
+      if (lastLine >= 0) {
+        for (const item of tracker) {
+          if (item.isStateRemoved() && item.removedAtPosition > lastLine) {
+            item.removedAtPosition = lastLine;
+          }
+        }
       }
     } else {
       this.removeTrackerLine(tracker, found);
@@ -23090,11 +23275,9 @@ var _TrackerEditor = class _TrackerEditor {
     });
   }
 };
-__name(_TrackerEditor, "TrackerEditor");
-var TrackerEditor = _TrackerEditor;
 
 // src/snapshots/tracker-index.ts
-var _TrackerIndex = class _TrackerIndex {
+var TrackerIndex = class {
   constructor() {
     /**
      * Lazily built index from a current line position to the tracker living there.
@@ -23185,11 +23368,9 @@ var _TrackerIndex = class _TrackerIndex {
     return found;
   }
 };
-__name(_TrackerIndex, "TrackerIndex");
-var TrackerIndex = _TrackerIndex;
 
 // src/snapshots/file.version.ts
-var _FileVersion = class _FileVersion {
+var FileVersion = class _FileVersion {
   /**
    * Creates a new immutable version from a content snapshot.
    *
@@ -23322,11 +23503,9 @@ var _FileVersion = class _FileVersion {
     );
   }
 };
-__name(_FileVersion, "FileVersion");
-var FileVersion = _FileVersion;
 
 // src/snapshots/version-codec.ts
-var _VersionCodec = class _VersionCodec {
+var VersionCodec = class _VersionCodec {
   /**
    * Encodes a materialized version timeline (oldest first) into a keyframe +
    * delta entry chain. Recomputed in full on every save: eviction already runs
@@ -23449,11 +23628,9 @@ var _VersionCodec = class _VersionCodec {
     return formatPatch(structuredPatch("", "", before, after, "", "", { context: 0 }));
   }
 };
-__name(_VersionCodec, "VersionCodec");
-var VersionCodec = _VersionCodec;
 
 // src/snapshots/version-timeline.ts
-var _VersionTimeline = class _VersionTimeline {
+var VersionTimeline = class {
   constructor() {
     /**
      * Number of state updates accumulated since the last captured version. Drives
@@ -23671,11 +23848,9 @@ var _VersionTimeline = class _VersionTimeline {
     this.lastVersionAt = timestamp;
   }
 };
-__name(_VersionTimeline, "VersionTimeline");
-var VersionTimeline = _VersionTimeline;
 
 // src/snapshots/file.snapshot.ts
-var _FileSnapshot = class _FileSnapshot {
+var FileSnapshot = class _FileSnapshot {
   /**
    * Creates a new instance of FileSnapshot.
    * Initializes the snapshot with the provided content, splits it into lines,
@@ -24395,12 +24570,123 @@ var _FileSnapshot = class _FileSnapshot {
     this.editor.replaceBlock(this.tracker, startLine, removeCount, newLines);
   }
 };
-__name(_FileSnapshot, "FileSnapshot");
-var FileSnapshot = _FileSnapshot;
+
+// src/snapshots/ignore-list.ts
+var IgnoreListManager = class {
+  /**
+   * Creates a new IgnoreListManager bound to its owning service's host port.
+   *
+   * @param {IgnoreListHost} host - The narrow port onto the exclude pattern
+   */
+  constructor(host) {
+    this.host = host;
+    /**
+     * Set of files to ignore when capturing snapshots. Files in this set will not
+     * have any changes tracked.
+     */
+    this.ignoreList = /* @__PURE__ */ new Set();
+    /**
+     * The last exclude pattern a user was warned about for being invalid. Keeps
+     * the "invalid regexp" warning from firing on every captured file: the warning
+     * shows once per distinct bad pattern until the user edits the field to a
+     * valid one (or to a different bad one).
+     */
+    this.lastWarnedExcludePattern = null;
+  }
+  /**
+   * Adds a file to the ignore list. Files in the ignore list will not have any
+   * changes tracked.
+   *
+   * @param {TFile} file - The file to add to the ignore list
+   */
+  add(file) {
+    if (!file) {
+      return;
+    }
+    this.ignoreList.add(file);
+  }
+  /**
+   * Removes a file from the ignore list. The file becomes eligible for change
+   * tracking again.
+   *
+   * @param {TFile} file - The file to remove from the ignore list
+   */
+  remove(file) {
+    if (!file) {
+      return;
+    }
+    this.ignoreList.delete(file);
+  }
+  /**
+   * Checks if a file is in the ignore list.
+   *
+   * @param {TFile} file - The file to check
+   * @return {boolean} True if the file is in the ignore list, false otherwise
+   */
+  isIgnored(file) {
+    if (!file) {
+      return false;
+    }
+    return this.ignoreList.has(file);
+  }
+  /**
+   * Clears all files from the ignore list. All files become eligible for change
+   * tracking again.
+   */
+  clear() {
+    this.ignoreList.clear();
+  }
+  /**
+   * Gets all files currently in the ignore list.
+   *
+   * @return {TFile[]} An array of files in the ignore list
+   */
+  list() {
+    return [...this.ignoreList];
+  }
+  /**
+   * Checks whether a file path matches the configured exclude pattern. Excluded
+   * paths (for example a templates or daily-notes folder) are never tracked, on
+   * top of the extension filter. The pattern is a single case-insensitive regexp
+   * matched against the vault-relative path; an empty pattern excludes nothing.
+   * An invalid pattern excludes nothing and warns the user once so a typo cannot
+   * silently disable all tracking.
+   *
+   * @param {TFile} file - The file to check
+   * @return {boolean} True if the file path is excluded from tracking
+   */
+  isExcluded(file) {
+    if (!file) {
+      return false;
+    }
+    const pattern = this.host.getExcludePattern();
+    this.warnOnInvalidExcludePattern(pattern);
+    return PathExcludeHelper.isExcluded(file.path, pattern);
+  }
+  /**
+   * Routes a one-time warning to the host when the exclude pattern does not
+   * compile, so the user learns their regexp is ignored without being spammed
+   * once per file. Resets the guard when the pattern becomes valid again, so a
+   * later mistake is surfaced afresh.
+   *
+   * @param {string} pattern - The raw exclude pattern from settings
+   */
+  warnOnInvalidExcludePattern(pattern) {
+    if (PathExcludeHelper.isValid(pattern)) {
+      this.lastWarnedExcludePattern = null;
+      return;
+    }
+    if (this.lastWarnedExcludePattern === pattern) {
+      return;
+    }
+    this.lastWarnedExcludePattern = pattern;
+    this.host.notifyInvalidPattern();
+  }
+};
 
 // src/services/snapshots.service.ts
-var import_obsidian21 = require("obsidian");
-var _SnapshotsService = class _SnapshotsService {
+var import_obsidian24 = require("obsidian");
+var SnapshotsService = class {
   /**
    * Creates a new instance of SnapshotsService.
    *
@@ -24426,38 +24712,31 @@ var _SnapshotsService = class _SnapshotsService {
      */
     this.sessionCreatedPaths = /* @__PURE__ */ new Set();
     /**
-     * Set of files to ignore when capturing snapshots.
-     * Files in this list will not have any changes tracked.
+     * Plain collaborator that owns the ignore-list and exclude-pattern concern:
+     * the per-file ignore set (files the user opted out of tracking) and the
+     * path-exclude decision (a configured regexp that vetoes tracking for whole
+     * folders), including the warn-once guard for an invalid pattern. Owned by the
+     * service (not a DI service); reads the exclude pattern and routes the
+     * invalid-pattern warning back through an {@link IgnoreListHost} port the
+     * service builds.
      */
-    this.ignoreList = /* @__PURE__ */ new Set();
+    this.ignoreList = new IgnoreListManager(this.makeIgnoreListHost());
     /**
-     * The last exclude pattern a user was warned about for being invalid. Keeps
-     * the "invalid regexp" Notice from firing on every captured file: the warning
-     * shows once per distinct bad pattern until the user edits the field to a
-     * valid one (or to a different bad one).
+     * Plain collaborator that owns the external (off-editor) change detection
+     * concern: the per-path debounce, the in-flight guard, the stat-based
+     * last-seen pre-check, and the disk-read + hash-compare capture flow. Owned
+     * by the service (not a DI service); reads the snapshot map and capture
+     * gating back through an {@link ExternalChangeHost} port the service builds.
      */
-    this.lastWarnedExcludePattern = null;
+    this.externalCapture = new ExternalChangeCapture(this.makeExternalChangeHost());
     /**
-     * Per-path debounce timers for `captureExternalChange`. A new modify event
-     * for the same path resets the timer; only the trailing call runs the
-     * disk read and capture (ADR-08-E).
+     * Plain collaborator that owns the out-of-editor file-write concern: applying
+     * a reverted block to a file (snapshot resync + disk write + editor refresh).
+     * Owned by the service (not a DI service); reads the snapshot map and routes
+     * the post-write forced update back through an {@link EditorOperationsHost}
+     * port the service builds.
      */
-    this.externalDebounceTimers = /* @__PURE__ */ new Map();
-    /**
-     * Per-path in-flight guard for `captureExternalChange`. Holds the path of
-     * any file currently in the middle of a disk read + capture, so a follow-up
-     * modify event that fires before the prior call resolves does not start a
-     * second concurrent read of the same file and double-capture the same state.
-     */
-    this.externalInFlight = /* @__PURE__ */ new Set();
-    /**
-     * Last-seen `stat.mtime` + `stat.size` per tracked path, captured at the end
-     * of every `captureExternalChange` call (success or hash-match no-op). A
-     * follow-up modify whose stat values match these is short-circuited before
-     * the disk read: nothing on disk could have changed since the last pass, so
-     * reading + hashing would just burn IO. Cleared on `clear`/`wipe`.
-     */
-    this.externalLastSeen = /* @__PURE__ */ new Map();
+    this.editorOperations = new EditorOperations(this.makeEditorOperationsHost());
   }
   /**
    * Initializes the service.
@@ -24529,7 +24808,7 @@ var _SnapshotsService = class _SnapshotsService {
     }
     this.fileSnapshots.delete(file.path);
     this.sessionCreatedPaths.delete(file.path);
-    this.forgetExternalGuards(file.path);
+    this.externalCapture.forget(file.path);
   }
   /**
    * Records that `path` was created by the user this session so the tree/tab
@@ -24553,23 +24832,6 @@ var _SnapshotsService = class _SnapshotsService {
    */
   getSessionCreatedPaths() {
     return this.sessionCreatedPaths;
-  }
-  /**
-   * Drops any per-path debounce timer, in-flight marker, and last-seen stat
-   * for the given path. Called when a snapshot is removed/renamed/moved so
-   * stale state for a now-absent or relocated path cannot leak into a
-   * future modify event.
-   *
-   * @param {string} path - The vault-relative path to forget
-   */
-  forgetExternalGuards(path) {
-    const timer = this.externalDebounceTimers.get(path);
-    if (timer !== void 0) {
-      clearTimeout(timer);
-      this.externalDebounceTimers.delete(path);
-    }
-    this.externalInFlight.delete(path);
-    this.externalLastSeen.delete(path);
   }
   /**
    * Marks the snapshot for the given file as a tombstone (D1) instead of
@@ -24623,7 +24885,7 @@ var _SnapshotsService = class _SnapshotsService {
     this.fileSnapshots.delete(oldPath);
     this.fileSnapshots.set(file.path, snapshot);
     this.rekeySessionCreated(oldPath, file.path);
-    this.forgetExternalGuards(oldPath);
+    this.externalCapture.forget(oldPath);
   }
   /**
    * Handles a cross-directory move (D2): leaves a tombstone at `oldPath` and
@@ -24702,12 +24964,7 @@ var _SnapshotsService = class _SnapshotsService {
   clear() {
     this.fileSnapshots.clear();
     this.sessionCreatedPaths.clear();
-    for (const timer of this.externalDebounceTimers.values()) {
-      clearTimeout(timer);
-    }
-    this.externalDebounceTimers.clear();
-    this.externalInFlight.clear();
-    this.externalLastSeen.clear();
+    this.externalCapture.clear();
   }
   /**
    * Serializes all tracked snapshots into a plain, persistable structure.
@@ -24737,7 +24994,13 @@ var _SnapshotsService = class _SnapshotsService {
       if (!isTombstone && !hasHistory) {
         continue;
       }
-      const payload = snapshot.toJSON();
+      let payload;
+      try {
+        payload = snapshot.toJSON();
+      } catch (error) {
+        console.error("Local history: failed to serialize snapshot; skipping it", path, error);
+        continue;
+      }
       payload.path = path;
       snapshots.push(payload);
     }
@@ -24835,9 +25098,6 @@ var _SnapshotsService = class _SnapshotsService {
    * @param {TFile} file - The file to add to the ignore list
    */
   addToIgnoreList(file) {
-    if (!file) {
-      return;
-    }
     this.ignoreList.add(file);
   }
   /**
@@ -24847,10 +25107,7 @@ var _SnapshotsService = class _SnapshotsService {
    * @param {TFile} file - The file to remove from the ignore list
    */
   removeFromIgnoreList(file) {
-    if (!file) {
-      return;
-    }
-    this.ignoreList.delete(file);
+    this.ignoreList.remove(file);
   }
   /**
    * Checks if a file is in the ignore list.
@@ -24859,10 +25116,7 @@ var _SnapshotsService = class _SnapshotsService {
    * @return {boolean} True if the file is in the ignore list, false otherwise
    */
   isInIgnoreList(file) {
-    if (!file) {
-      return false;
-    }
-    return this.ignoreList.has(file);
+    return this.ignoreList.isIgnored(file);
   }
   /**
    * Clears all files from the ignore list.
@@ -24877,7 +25131,7 @@ var _SnapshotsService = class _SnapshotsService {
    * @return {TFile[]} An array of files in the ignore list
    */
   getIgnoreList() {
-    return [...this.ignoreList];
+    return this.ignoreList.list();
   }
   /**
    * Checks if a file is a plain text file based on its extension.
@@ -24901,31 +25155,24 @@ var _SnapshotsService = class _SnapshotsService {
    * @return {boolean} True if the file path is excluded from tracking
    */
   isExcludedPath(file) {
-    if (!file) {
-      return false;
-    }
-    const pattern = this.settingsService.value("excludePaths");
-    this.warnOnInvalidExcludePattern(pattern);
-    return PathExcludeHelper.isExcluded(file.path, pattern);
+    return this.ignoreList.isExcluded(file);
   }
   /**
-   * Shows a one-time Notice when the exclude pattern does not compile, so the
-   * user learns their regexp is ignored without being spammed once per file.
-   * Resets the guard when the pattern becomes valid again, so a later mistake is
-   * surfaced afresh.
+   * Builds the narrow {@link IgnoreListHost} port the {@link IgnoreListManager}
+   * reads its exclude-pattern dependency through. Exposes the raw exclude
+   * pattern from settings and the one-time invalid-pattern warning, keeping
+   * settings access and Notice construction owned by this service while the
+   * manager owns the ignore set and the warn-once guard.
    *
-   * @param {string} pattern - The raw exclude pattern from settings
+   * @return {IgnoreListHost} The host port onto the exclude-pattern dependency
    */
-  warnOnInvalidExcludePattern(pattern) {
-    if (PathExcludeHelper.isValid(pattern)) {
-      this.lastWarnedExcludePattern = null;
-      return;
-    }
-    if (this.lastWarnedExcludePattern === pattern) {
-      return;
-    }
-    this.lastWarnedExcludePattern = pattern;
-    new import_obsidian21.Notice(this.plugin.t("notice.invalid-exclude-pattern"));
+  makeIgnoreListHost() {
+    return {
+      getExcludePattern: () => this.settingsService.value("excludePaths"),
+      notifyInvalidPattern: () => {
+        new import_obsidian24.Notice(this.plugin.t("notice.invalid-exclude-pattern"));
+      }
+    };
   }
   /**
    * Checks if a file has already been captured (has a snapshot).
@@ -24979,174 +25226,50 @@ var _SnapshotsService = class _SnapshotsService {
   }
   /**
    * Captures an external (off-editor) change to a tracked file as a flagged
-   * version on its timeline (D12/D13). Reads the file from disk, compares the
-   * actual content to the snapshot's known `state` via `isContentChanged`
-   * (32-bit hash as a cheap pre-filter, line-by-line compare on a hash match
-   * so a collision cannot mask a real rewrite, ADR-08-D), and force-captures
-   * the new content as a `FileVersion` with `external = true` only when they
-   * differ, then updates `state`/tracker/changes so further reads see the
-   * captured content as the new baseline.
-   *
-   * Gating mirrors the parts of `canCapture` that still apply when a snapshot
-   * already exists: a wrong-extension file, an excluded path, an ignored file,
-   * or a missing/folder TFile is a no-op. A content match is also a no-op so
-   * editor-driven flushes and the plugin's own revert writes (which already
-   * synchronized `state` before/after the write) do not produce phantom
-   * external versions.
-   *
-   * A first-sight file (no snapshot yet) is captured as a normal snapshot via
-   * `capture`, without an `external` version: there is no prior state to diff
-   * against, so flagging the very first capture would mislabel a brand-new
-   * file as an external change.
-   *
-   * A tombstone entry is a no-op: a tombstone represents a deleted file at
-   * that path and `vault.modify` should not legitimately fire there; the
-   * resurrection flow belongs to a future `vault.create` handler, not here.
-   *
-   * The capture is forced past the cadence gates so every distinct external
-   * state lands as its own version (D13), but it is NOT pinned: the resulting
-   * version obeys the normal age/count retention exactly like a cadence one,
-   * so a chatty sync workflow cannot bloat `history.json` with un-evictable
-   * entries.
+   * version on its timeline (D12/D13). Delegates to the
+   * {@link ExternalChangeCapture} collaborator, which reads the file from disk,
+   * compares it to the snapshot's known state, and force-captures a divergent
+   * external version while filtering out editor flushes, the plugin's own
+   * revert writes, tombstones, ignored/excluded/wrong-extension files, and
+   * unchanged content (ADR-08-D/E).
    *
    * @param {TFile | null} file - The file whose disk content changed
+   * @return {Promise<void>} Resolves once the external capture completes
    */
-  async captureExternalChange(file) {
-    if (!file) {
-      return;
-    }
-    if (!this.isInAllowedExtensions(file)) {
-      return;
-    }
-    if (this.isExcludedPath(file)) {
-      return;
-    }
-    if (this.isInIgnoreList(file)) {
-      return;
-    }
-    const snapshot = this.fileSnapshots.get(file.path);
-    if (!snapshot) {
-      await this.capture(file);
-      this.rememberLastSeen(file);
-      return;
-    }
-    if (snapshot.isTombstone()) {
-      return;
-    }
-    const lastSeen = this.externalLastSeen.get(file.path);
-    const currentStat = this.getFileStat(file);
-    if (lastSeen && currentStat && lastSeen.mtime === currentStat.mtime && lastSeen.size === currentStat.size) {
-      return;
-    }
-    let content;
-    try {
-      content = await this.plugin.app.vault.read(file);
-    } catch (error) {
-      console.error("Error reading file for external change capture:", error);
-      return;
-    }
-    if (!snapshot.isContentChanged(content)) {
-      this.rememberLastSeen(file);
-      return;
-    }
-    const newLines = content.split(snapshot.lineBreak);
-    const captured = snapshot.captureVersion(newLines, this.getCaptureOptions(), true);
-    if (captured) {
-      captured.external = true;
-    }
-    const previousLength = snapshot.state.length;
-    snapshot.replaceBlock(0, previousLength, newLines);
-    snapshot.updateState(newLines);
-    snapshot.updateChanges();
-    this.forceUpdate();
-    this.rememberLastSeen(file);
+  captureExternalChange(file) {
+    return this.externalCapture.capture(file);
   }
   /**
-   * Public entry point for the vault.modify handler. Coalesces a burst of
-   * modify events for the same path through a per-path debounce, then runs
-   * `captureExternalChange` once with an in-flight guard so an overlapping
-   * follow-up modify cannot double-capture the same disk state (ADR-08-E).
-   *
-   * Bursts of writes (sync, git pull, an external save loop) for one file
-   * collapse into a single trailing capture; events for different files run
-   * independently. The stat-based short-circuit inside `captureExternalChange`
-   * skips the disk read when nothing about the file's mtime/size changed
-   * between this debounced call and the previous one.
+   * Public entry point for the vault.modify handler. Delegates to the
+   * {@link ExternalChangeCapture} collaborator, which coalesces a burst of
+   * modify events for the same path through a per-path debounce, then runs the
+   * external capture once under an in-flight guard so an overlapping follow-up
+   * modify cannot double-capture the same disk state (ADR-08-E).
    *
    * @param {TFile} file - The file whose modify event fired
    */
   scheduleExternalCapture(file) {
-    if (!file) {
-      return;
-    }
-    const path = file.path;
-    const existing = this.externalDebounceTimers.get(path);
-    if (existing !== void 0) {
-      clearTimeout(existing);
-    }
-    const timer = setTimeout(() => {
-      this.externalDebounceTimers.delete(path);
-      void this.runGuardedExternalCapture(file);
-    }, _SnapshotsService.externalDebounceMs);
-    this.externalDebounceTimers.set(path, timer);
+    this.externalCapture.schedule(file);
   }
   /**
-   * Runs `captureExternalChange` under a per-path in-flight guard so a
-   * second debounced trigger that fires while the first is still awaiting
-   * the disk read cannot start a second concurrent capture for the same
-   * path. If a follow-up trigger arrives during the capture, the path's
-   * scheduler hands off to a re-schedule after the in-flight call resolves
-   * so the most recent disk state is never silently dropped (the trailing
-   * write of a sync storm still lands as a version).
+   * Builds the narrow {@link ExternalChangeHost} port the
+   * {@link ExternalChangeCapture} collaborator reads its shared state through.
+   * Exposes the plugin, the snapshot lookup, the external-capture gating, the
+   * first-sight capture, the capture cadence options, and the forced update,
+   * keeping the snapshot map and CRUD owned by this service while the
+   * collaborator owns the debounce/in-flight/last-seen machinery.
    *
-   * The guard is released in a `finally` so an error inside the capture
-   * never strands the path as permanently in-flight.
-   *
-   * @param {TFile} file - The file to capture
+   * @return {ExternalChangeHost} The host port onto the snapshot state
    */
-  async runGuardedExternalCapture(file) {
-    const path = file.path;
-    if (this.externalInFlight.has(path)) {
-      this.scheduleExternalCapture(file);
-      return;
-    }
-    this.externalInFlight.add(path);
-    try {
-      await this.captureExternalChange(file);
-    } finally {
-      this.externalInFlight.delete(path);
-    }
-  }
-  /**
-   * Reads the file's current `stat.mtime` / `stat.size` without throwing if
-   * the stat block is missing (older Obsidian builds, test stubs). Returns
-   * undefined when the stat is unusable so the caller falls through to a
-   * normal disk read instead of incorrectly short-circuiting.
-   *
-   * @param {TFile} file - The file to read stat from
-   * @return {{mtime: number, size: number} | undefined} The stat values or undefined
-   */
-  getFileStat(file) {
-    const stat = file == null ? void 0 : file.stat;
-    if (!stat || typeof stat.mtime !== "number" || typeof stat.size !== "number") {
-      return void 0;
-    }
-    return { mtime: stat.mtime, size: stat.size };
-  }
-  /**
-   * Stores the file's current mtime/size as the last-seen baseline for the
-   * stat pre-check. Called after a successful capture, after a hash-match
-   * no-op, and after a first-sight capture so the next modify event for the
-   * same path can skip the disk read when nothing changed.
-   *
-   * @param {TFile} file - The file whose stat to remember
-   */
-  rememberLastSeen(file) {
-    const stat = this.getFileStat(file);
-    if (!stat) {
-      return;
-    }
-    this.externalLastSeen.set(file.path, stat);
+  makeExternalChangeHost() {
+    return {
+      plugin: this.plugin,
+      getSnapshot: (path) => this.fileSnapshots.get(path),
+      isExternallyCapturable: (file) => this.isInAllowedExtensions(file) && !this.isExcludedPath(file) && !this.isInIgnoreList(file),
+      captureFirstSight: (file) => this.capture(file),
+      getCaptureOptions: () => this.getCaptureOptions(),
+      forceUpdate: () => this.forceUpdate()
+    };
   }
   /**
    * Reads the current capture cadence and retention caps into a plain options
@@ -25188,37 +25311,36 @@ var _SnapshotsService = class _SnapshotsService {
   /**
    * Applies an out-of-editor content change to a file and keeps its snapshot in
    * sync, preserving the original baseline and the version timeline. Used by the
-   * history modal to revert a single hunk: the block is rewritten in the tracker
-   * (so highlights stay correct even for a file that is not the active editor),
-   * the cached state is set to the written content, and the file is modified on
-   * disk.
+   * history modal to revert a single hunk. Delegates to the
+   * {@link EditorOperations} collaborator, which rewrites the changed block in
+   * the tracker, sets the cached state to the written content, refreshes the
+   * derived changes, then writes the new content to disk and refreshes the
+   * editor (the snapshot is updated before the file write so the change detector
+   * skips reprocessing the resulting editor update).
    *
-   * The snapshot is updated before the file write so that, when the file is the
-   * active editor, the change detector sees a matching content hash and skips
-   * reprocessing the resulting editor update (no double application).
-   *
-   * @param {TFile} file - The file to rewrite
+   * @param {TFile | null} file - The file to rewrite
    * @param {string[]} lines - The full new content of the file as lines
-   * @param {object} block - The single block that changed, in tracker terms
-   * @param {number} block.start - The 0-based current line where the block begins
-   * @param {number} block.removeCount - How many current lines the block spans
-   * @param {string[]} block.newLines - The content the block should hold afterwards
+   * @param {EditorBlock} block - The single block that changed, in tracker terms
    * @return {Promise<boolean>} True if the change was applied, false otherwise
    */
-  async applyContent(file, lines, block) {
-    const snapshot = this.getOne(file);
-    if (!file || !snapshot || !Array.isArray(lines)) {
-      return false;
-    }
-    snapshot.replaceBlock(block.start, block.removeCount, block.newLines);
-    snapshot.updateState(lines);
-    snapshot.updateChanges();
-    await this.plugin.app.vault.modify(file, lines.join(snapshot.lineBreak));
-    if (this.plugin.getActiveViewOfType()) {
-      this.plugin.forceUpdateEditor();
-    }
-    this.forceUpdate();
-    return true;
+  applyContent(file, lines, block) {
+    return this.editorOperations.applyContent(file, lines, block);
+  }
+  /**
+   * Builds the narrow {@link EditorOperationsHost} port the
+   * {@link EditorOperations} collaborator reads its shared state through.
+   * Exposes the plugin (for the disk write and the active-view check), the
+   * snapshot lookup, and the forced update, keeping the snapshot map and CRUD
+   * owned by this service while the collaborator owns the file-write flow.
+   *
+   * @return {EditorOperationsHost} The host port onto the snapshot state
+   */
+  makeEditorOperationsHost() {
+    return {
+      plugin: this.plugin,
+      getSnapshot: (file) => this.getOne(file),
+      forceUpdate: () => this.forceUpdate()
+    };
   }
   /**
    * Removes all snapshots.
@@ -25233,22 +25355,13 @@ var _SnapshotsService = class _SnapshotsService {
     void this.capture();
   }
 };
-__name(_SnapshotsService, "SnapshotsService");
-/**
- * Window (ms) that coalesces a burst of vault.modify events per file before
- * the disk read + hash runs. Picked to be shorter than a typical human edit
- * cadence (so a real follow-up captures promptly) but long enough that a
- * sync/git storm's repeated writes for one file collapse into one capture.
- */
-_SnapshotsService.externalDebounceMs = 150;
 __decorateClass([
-  Inject("SettingsService")
-], _SnapshotsService.prototype, "settingsService", 2);
-var SnapshotsService = _SnapshotsService;
+  Inject(TOKENS.settings)
+], SnapshotsService.prototype, "settingsService", 2);
 
 // src/services/statusbar.service.ts
-var import_obsidian22 = require("obsidian");
-var _StatusbarService = class _StatusbarService {
+var import_obsidian25 = require("obsidian");
+var StatusbarService = class {
   /**
    * Creates a new instance of StatusbarService.
    *
@@ -25270,16 +25383,16 @@ var _StatusbarService = class _StatusbarService {
   init() {
     this.add({
       clickable: true,
-      onClick: /* @__PURE__ */ __name(() => {
+      onClick: () => {
         this.modalService.diff();
-      }, "onClick")
+      }
     });
   }
   updateFileStatus() {
     var _a, _b;
     const view = (_a = this.plugin.app.workspace.getMostRecentLeaf()) == null ? void 0 : _a.view;
     const snapshot = this.snapshotsService.getOne();
-    if (!view || !(view instanceof import_obsidian22.MarkdownView) || !snapshot) {
+    if (!view || !(view instanceof import_obsidian25.MarkdownView) || !snapshot) {
       this.clear();
       return;
     }
@@ -25355,20 +25468,18 @@ var _StatusbarService = class _StatusbarService {
     return item;
   }
 };
-__name(_StatusbarService, "StatusbarService");
 __decorateClass([
-  Inject("ModalsService")
-], _StatusbarService.prototype, "modalService", 2);
+  Inject(TOKENS.modals)
+], StatusbarService.prototype, "modalService", 2);
 __decorateClass([
-  Inject("SnapshotsService")
-], _StatusbarService.prototype, "snapshotsService", 2);
+  Inject(TOKENS.snapshots)
+], StatusbarService.prototype, "snapshotsService", 2);
 __decorateClass([
   On("snapshots:update" /* snapshotsUpdate */)
-], _StatusbarService.prototype, "updateFileStatus", 1);
-var StatusbarService = _StatusbarService;
+], StatusbarService.prototype, "updateFileStatus", 1);
 
 // src/services/styles.service.ts
-var _StylesService = class _StylesService {
+var StylesService = class {
   /**
    * Creates a new instance of StylesService.
    *
@@ -25436,17 +25547,15 @@ var _StylesService = class _StylesService {
     this.sheet = styleSheet;
   }
 };
-__name(_StylesService, "StylesService");
 __decorateClass([
-  Inject("SettingsService")
-], _StylesService.prototype, "settingsService", 2);
+  Inject(TOKENS.settings)
+], StylesService.prototype, "settingsService", 2);
 __decorateClass([
   On("settings:update" /* settingsUpdate */)
-], _StylesService.prototype, "update", 1);
-var StylesService = _StylesService;
+], StylesService.prototype, "update", 1);
 
 // src/helpers/session-status.helper.ts
-var _SessionStatusHelper = class _SessionStatusHelper {
+var SessionStatusHelper = class {
   /**
    * Resolves the session change status of a single snapshot. Pure and total:
    * it never throws and never touches anything outside the snapshot, so callers
@@ -25494,8 +25603,6 @@ var _SessionStatusHelper = class _SessionStatusHelper {
     return folders;
   }
 };
-__name(_SessionStatusHelper, "SessionStatusHelper");
-var SessionStatusHelper = _SessionStatusHelper;
 
 // src/services/tree-tab-decorator.service.ts
 var _TreeTabDecoratorService = class _TreeTabDecoratorService {
@@ -25878,7 +25985,6 @@ var _TreeTabDecoratorService = class _TreeTabDecoratorService {
     return this.plugin.app.workspace.getLeavesOfType(_TreeTabDecoratorService.markdownType);
   }
 };
-__name(_TreeTabDecoratorService, "TreeTabDecoratorService");
 /**
  * Debounce window (ms) for a tree sweep. A burst of `snapshotsUpdate` events
  * within this window collapses into a single trailing apply, so per-keystroke
@@ -25905,10 +26011,10 @@ _TreeTabDecoratorService.statusClasses = [
   _TreeTabDecoratorService.classFor("modified" /* modified */)
 ];
 __decorateClass([
-  Inject("SnapshotsService")
+  Inject(TOKENS.snapshots)
 ], _TreeTabDecoratorService.prototype, "snapshotsService", 2);
 __decorateClass([
-  Inject("SettingsService")
+  Inject(TOKENS.settings)
 ], _TreeTabDecoratorService.prototype, "settingsService", 2);
 __decorateClass([
   On("snapshots:update" /* snapshotsUpdate */)
@@ -25919,7 +26025,7 @@ __decorateClass([
 var TreeTabDecoratorService = _TreeTabDecoratorService;
 
 // src/services/version-actions.service.ts
-var _VersionActionsService = class _VersionActionsService {
+var VersionActionsService = class {
   /**
    * Creates a new instance of VersionActionsService.
    *
@@ -26078,18 +26184,16 @@ var _VersionActionsService = class _VersionActionsService {
     };
   }
 };
-__name(_VersionActionsService, "VersionActionsService");
 __decorateClass([
-  Inject("SnapshotsService")
-], _VersionActionsService.prototype, "snapshotsService", 2);
+  Inject(TOKENS.snapshots)
+], VersionActionsService.prototype, "snapshotsService", 2);
 __decorateClass([
-  Inject("SettingsService")
-], _VersionActionsService.prototype, "settingsService", 2);
-var VersionActionsService = _VersionActionsService;
+  Inject(TOKENS.settings)
+], VersionActionsService.prototype, "settingsService", 2);
 
 // src/views/recent-changes.view.ts
-var import_obsidian23 = require("obsidian");
-var _RecentChangesView = class _RecentChangesView extends import_obsidian23.ItemView {
+var import_obsidian26 = require("obsidian");
+var RecentChangesView = class extends import_obsidian26.ItemView {
   /**
    * Creates a new instance of RecentChangesView.
    *
@@ -26163,7 +26267,7 @@ var _RecentChangesView = class _RecentChangesView extends import_obsidian23.Item
         this.render();
       })
     );
-    const onSnapshotUpdate = /* @__PURE__ */ __name(() => this.render(), "onSnapshotUpdate");
+    const onSnapshotUpdate = () => this.render();
     this.plugin.on("snapshots:update" /* snapshotsUpdate */, onSnapshotUpdate, this);
     this.register(() => {
       this.plugin.off("snapshots:update" /* snapshotsUpdate */, onSnapshotUpdate, this);
@@ -26199,7 +26303,7 @@ var _RecentChangesView = class _RecentChangesView extends import_obsidian23.Item
       return;
     }
     const file = this.plugin.getActiveFile();
-    const snapshot = this.plugin.get("SnapshotsService").getOne(file);
+    const snapshot = this.plugin.get(TOKENS.snapshots).getOne(file);
     if (!file || !snapshot) {
       DomHelper.update(this.listEl, {
         text: null,
@@ -26233,27 +26337,7 @@ var _RecentChangesView = class _RecentChangesView extends import_obsidian23.Item
         (version) => this.makeRow(version, versions, snapshot, file)
       )
     });
-    this.paintExternalBadges(this.listEl);
-  }
-  /**
-   * Mirrors `HistoryModal.paintExternalBadges`: after the DomHelper config tree
-   * is mounted, apply Obsidian's `setIcon` to every badge slot the row config
-   * declared. The badge text and icon id (`data-icon` on the wrapper) match the
-   * rail's badge so external versions read consistently across surfaces (AC2).
-   *
-   * @param {HTMLElement} container - The list container to scan
-   */
-  paintExternalBadges(container) {
-    const badges = container.querySelectorAll(
-      ".lct-version-external-badge"
-    );
-    badges.forEach((badge) => {
-      const iconId = badge.getAttribute("data-icon");
-      const slot = badge.querySelector(".lct-version-external-badge-icon");
-      if (iconId && slot) {
-        (0, import_obsidian23.setIcon)(slot, iconId);
-      }
-    });
+    ExternalBadgeHelper.paint(this.listEl);
   }
   /**
    * Builds the DomHelper config for a single timeline row. Mirrors the modal
@@ -26277,7 +26361,7 @@ var _RecentChangesView = class _RecentChangesView extends import_obsidian23.Item
       { tag: "span", classes: "lct-recent-changes-label", text: label }
     ];
     if (version.isExternal()) {
-      labelChildren.push(this.makeExternalBadge());
+      labelChildren.push(ExternalBadgeHelper.make(this.plugin.t("version.badge.external")));
     }
     const children = [
       { tag: "span", classes: "lct-recent-changes-label-row", children: labelChildren },
@@ -26290,37 +26374,14 @@ var _RecentChangesView = class _RecentChangesView extends import_obsidian23.Item
       tag: "div",
       classes: "lct-recent-changes-item",
       events: {
-        dblclick: /* @__PURE__ */ __name(() => {
+        dblclick: () => {
           this.openInModal(file, version.id);
-        }, "dblclick"),
-        contextmenu: /* @__PURE__ */ __name((event) => {
+        },
+        contextmenu: (event) => {
           this.openRowMenu(event, file, version);
-        }, "contextmenu")
+        }
       },
       children
-    };
-  }
-  /**
-   * Builds the inline external-change badge config (D13, T20). Mirrors the
-   * rail's badge shape so the panel and the modal feel consistent: a Lucide
-   * `download-cloud` icon paired with a short text label, wrapped in an
-   * `aria-label`-tagged span so assistive tech announces the marker. The icon
-   * id is carried as `data-icon` so {@link paintExternalBadges} can mount the
-   * glyph after DomHelper builds the config tree. The text ships as an inline
-   * English literal and is propagated to every catalog in T15.
-   *
-   * @return {DomElementConfig} The badge element config
-   */
-  makeExternalBadge() {
-    const text = this.plugin.t("version.badge.external");
-    return {
-      tag: "span",
-      classes: "lct-version-external-badge",
-      attributes: { "aria-label": text, "title": text, "data-icon": "download-cloud" },
-      children: [
-        { tag: "span", classes: "lct-version-external-badge-icon" },
-        { tag: "span", classes: "lct-version-external-badge-text", text }
-      ]
     };
   }
   /**
@@ -26342,9 +26403,9 @@ var _RecentChangesView = class _RecentChangesView extends import_obsidian23.Item
    */
   openRowMenu(event, file, version) {
     event.preventDefault();
-    const menu = new import_obsidian23.Menu();
-    const modalsService = this.plugin.get("ModalsService");
-    const versionActionsService = this.plugin.get("VersionActionsService");
+    const menu = new import_obsidian26.Menu();
+    const modalsService = this.plugin.get(TOKENS.modals);
+    const versionActionsService = this.plugin.get(TOKENS.versionActions);
     menu.addItem((item) => {
       item.setTitle(this.plugin.t("view.recent-changes.menu.show-diff")).setIcon("file-diff").onClick(() => {
         this.openInModal(file, version.id);
@@ -26404,9 +26465,10 @@ var _RecentChangesView = class _RecentChangesView extends import_obsidian23.Item
   /**
    * Computes the derived action description for a version against its previous
    * neighbour. The neighbour is the next-older captured version, or the file's
-   * history baseline when the version is the oldest one on the timeline.
-   * Mirrors HistoryModal.describeVersion so the panel and the rail label the
-   * same content identically.
+   * history baseline when the version is the oldest one on the timeline. The
+   * action text is derived via VersionLabelHelper.describe, the same shared sink
+   * VersionList.describe uses, so the panel and the rail label content
+   * identically.
    *
    * @param {FileVersion} version - The version to describe
    * @param {FileVersion[]} versions - The full timeline, newest first
@@ -26448,22 +26510,20 @@ var _RecentChangesView = class _RecentChangesView extends import_obsidian23.Item
    * @param {string} versionId - The version id to focus on open
    */
   openInModal(file, versionId) {
-    this.plugin.get("ModalsService").diff(file, {
+    this.plugin.get(TOKENS.modals).diff(file, {
       initialBaseId: versionId,
       hideRail: true
     });
   }
 };
-__name(_RecentChangesView, "RecentChangesView");
-var RecentChangesView = _RecentChangesView;
 
 // node_modules/eventemitter3/index.mjs
 var import_index = __toESM(require_eventemitter3(), 1);
 var eventemitter3_default = import_index.default;
 
 // src/main.ts
-var import_obsidian24 = require("obsidian");
-var _LineChangeTrackerPlugin = class _LineChangeTrackerPlugin extends import_obsidian24.Plugin {
+var import_obsidian27 = require("obsidian");
+var LineChangeTrackerPlugin = class extends import_obsidian27.Plugin {
   /**
    * Creates a new instance of the LineChangeTrackerPlugin.
    * Registers all required services during initialization.
@@ -26484,6 +26544,15 @@ var _LineChangeTrackerPlugin = class _LineChangeTrackerPlugin extends import_obs
      */
     this.container = /* @__PURE__ */ new Map();
     /**
+     * Token-keyed view of the same service instances as {@link container}.
+     * Maps each service's stable {@link ServiceToken} (a symbol, minification-safe)
+     * to its instance, so resolution by token does not depend on `constructor.name`
+     * surviving the bundle. Both maps point at the identical instances; they are
+     * populated together in {@link registerService}. The token path is the
+     * migration target; the legacy class/string paths are removed in C5.
+     */
+    this.tokenContainer = /* @__PURE__ */ new Map();
+    /**
      * Services whose `init` has resolved successfully in the current lifecycle.
      * Tracked so a fatal init can tear down only what was actually brought up,
      * in reverse registration order (ADR-08-C).
@@ -26498,30 +26567,38 @@ var _LineChangeTrackerPlugin = class _LineChangeTrackerPlugin extends import_obs
      * instead of resolving an injected service against a half-built container.
      */
     this.ready = false;
-    this.registerService(SettingsService);
-    this.registerService(I18nService);
-    this.registerService(StylesService);
-    this.registerService(ModalsService);
-    this.registerService(ExtensionsService);
-    this.registerService(StatusbarService);
-    this.registerService(CommandsService);
-    this.registerService(EventsService);
-    this.registerService(SnapshotsService);
-    this.registerService(VersionActionsService);
-    this.registerService(PersistenceService);
-    this.registerService(TreeTabDecoratorService);
+    this.registerService(SettingsService, TOKENS.settings);
+    this.registerService(I18nService, TOKENS.i18n);
+    this.registerService(StylesService, TOKENS.styles);
+    this.registerService(ModalsService, TOKENS.modals);
+    this.registerService(ExtensionsService, TOKENS.extensions);
+    this.registerService(StatusbarService, TOKENS.statusbar);
+    this.registerService(CommandsService, TOKENS.commands);
+    this.registerService(EventsService, TOKENS.events);
+    this.registerService(SnapshotsService, TOKENS.snapshots);
+    this.registerService(VersionActionsService, TOKENS.versionActions);
+    this.registerService(PersistenceService, TOKENS.persistence);
+    this.registerService(TreeTabDecoratorService, TOKENS.treeTabDecorator);
   }
   /**
    * Registers a service with the plugin.
-   * Creates an instance of the service, stores it in the container,
-   * and sets up event listeners for methods decorated with @On.
+   * Creates an instance of the service, stores it in the container under both
+   * its class constructor and its stable token, and sets up event listeners for
+   * methods decorated with @On.
    *
    * @template T - The service type
    * @param {ClassConstructor<T>} provider - The service class constructor
+   * @param {ServiceToken<T>} [tokenKey] - The stable token to key the instance
+   *   by. Optional only for the back-compat window: every `main.ts` registration
+   *   passes one, and the token map is what lets resolution stop depending on
+   *   `constructor.name` once consumers migrate (C5).
    */
-  registerService(provider) {
+  registerService(provider, tokenKey) {
     const inst = new provider(this);
     this.container.set(provider, inst);
+    if (tokenKey) {
+      this.tokenContainer.set(tokenKey, inst);
+    }
     for (const prop of Object.getOwnPropertyNames(Object.getPrototypeOf(inst))) {
       const event = Reflect.getMetadata("ON_EVENT", inst, prop);
       const inject = Reflect.getMetadata("INJECT", inst, prop);
@@ -26535,21 +26612,29 @@ var _LineChangeTrackerPlugin = class _LineChangeTrackerPlugin extends import_obs
   }
   /**
    * Retrieves a service from the container.
-   * Can look up services by class constructor or by class name.
+   *
+   * Resolution order:
+   * 1. A {@link ServiceToken} (symbol) resolves directly from the token map -
+   *    the stable, minification-safe path every consumer uses.
+   * 2. A class constructor resolves from the class-keyed map by identity.
+   *
+   * Both paths are independent of `constructor.name`, so resolution no longer
+   * depends on class names surviving minification (the bundle drops `keepNames`).
    *
    * @template T - The service type
-   * @param {ClassConstructor<T> | string} key - The service class constructor or class name
+   * @param {ServiceToken<T> | ClassConstructor<T>} key - The token or class
+   *   constructor to resolve
    * @return {T} The service instance
    * @throws Error if the service is not registered
    */
   get(key2) {
+    var _a;
     if (!key2) {
       throw new Error("Service cannot be empty");
     }
-    const type = isString_default(key2) ? [...this.container.keys()].find((item) => item.name === key2) : key2;
-    const service = type ? this.container.get(type) : void 0;
+    const service = typeof key2 === "symbol" ? this.tokenContainer.get(key2) : this.container.get(key2);
     if (!service) {
-      const label = isString_default(key2) ? key2 : key2.name;
+      const label = typeof key2 === "symbol" ? (_a = tokenName(key2)) != null ? _a : key2.toString() : key2.name;
       throw new Error(`Service '${label}' not registered`);
     }
     return service;
@@ -26742,7 +26827,7 @@ var _LineChangeTrackerPlugin = class _LineChangeTrackerPlugin extends import_obs
    * @return {MarkdownView | null} The active markdown view, or null if none is active
    */
   getActiveViewOfType() {
-    return this.app.workspace.getActiveViewOfType(import_obsidian24.MarkdownView);
+    return this.app.workspace.getActiveViewOfType(import_obsidian27.MarkdownView);
   }
   /**
    * Gets the active file.
@@ -26763,7 +26848,7 @@ var _LineChangeTrackerPlugin = class _LineChangeTrackerPlugin extends import_obs
    */
   getFileByPath(path) {
     const file = this.app.vault.getAbstractFileByPath(path);
-    return file instanceof import_obsidian24.TFile ? file : null;
+    return file instanceof import_obsidian27.TFile ? file : null;
   }
   /**
    * Reveals the Recent changes panel in the right sidebar (D3).
@@ -26803,8 +26888,6 @@ var _LineChangeTrackerPlugin = class _LineChangeTrackerPlugin extends import_obs
     );
   }
 };
-__name(_LineChangeTrackerPlugin, "LineChangeTrackerPlugin");
-var LineChangeTrackerPlugin = _LineChangeTrackerPlugin;
 /*! Bundled license information:
 
 reflect-metadata/Reflect.js:

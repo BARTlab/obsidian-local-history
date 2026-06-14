@@ -8,6 +8,7 @@ import type { SerializedFileSnapshot } from '@/types';
 import type { TFile } from 'obsidian';
 
 import { makeFile } from './helpers/builders';
+import { makeSnapshotsServiceWithPaths as makeService } from './helpers/service-factories';
 
 /**
  * Tests for T05: PersistenceService serialize/restore tombstones + orphan
@@ -15,26 +16,6 @@ import { makeFile } from './helpers/builders';
  * the round-trip is verified without touching the disk-IO layer that wraps
  * them; the disk path itself is covered by persistence.service.test.ts.
  */
-
-type PluginArg = ConstructorParameters<typeof SnapshotsService>[0];
-
-/**
- * Builds a service whose host plugin resolves only the given set of paths to
- * live files, mimicking the vault index at the moment restore runs. Paths
- * absent from the set return null from `getFileByPath`, which is what
- * `restoreFromDisk` consults to detect deleted-while-off files.
- */
-const makeService = (existingPaths: string[] = []): SnapshotsService => {
-  const present: Set<string> = new Set(existingPaths);
-
-  const plugin = {
-    getActiveEditorView: (): undefined => undefined,
-    getFileByPath: (path: string): TFile | null => (present.has(path) ? makeFile(path) : null),
-    t: (key: string): string => key,
-  } as unknown as PluginArg;
-
-  return new SnapshotsService(plugin);
-};
 
 /**
  * Seeds the service with a live snapshot, mutates its state, and captures a

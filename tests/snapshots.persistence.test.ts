@@ -8,29 +8,13 @@ import type { SerializedFileSnapshot } from '@/types';
 import type { TFile } from 'obsidian';
 
 import { makeFile } from './helpers/builders';
+import { makeSnapshotsServiceWithPaths as makeService } from './helpers/service-factories';
 
 /**
  * Tests for SnapshotsService serialize/restore (T5.1). They use the real
  * FileSnapshot so the serialize -> restore path is exercised end to end,
  * including the pristine-overwrite rule and skipping files that no longer exist.
  */
-
-type PluginArg = ConstructorParameters<typeof SnapshotsService>[0];
-
-/**
- * Builds a service whose host plugin resolves only the given set of paths to
- * live files (mimicking the vault index after some files were deleted offline).
- */
-const makeService = (existingPaths: string[] = []): SnapshotsService => {
-  const present: Set<string> = new Set(existingPaths);
-
-  const plugin = {
-    getActiveEditorView: (): undefined => undefined,
-    getFileByPath: (path: string): TFile | null => (present.has(path) ? makeFile(path) : null),
-  } as unknown as PluginArg;
-
-  return new SnapshotsService(plugin);
-};
 
 describe('SnapshotsService.serialize', () => {
   it('includes only snapshots that have tracked changes', () => {

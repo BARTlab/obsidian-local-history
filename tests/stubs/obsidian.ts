@@ -158,3 +158,179 @@ export function sanitizeHTMLToDom(html?: string): DocumentFragment | null {
 
   return fragment;
 }
+
+/**
+ * Minimal YAML parser that covers the frontmatter patterns used in tests.
+ * Handles top-level scalar keys, block sequences (- item), and block mappings.
+ * Throws on clearly malformed input so the catch-path in parseBlock is exercised.
+ *
+ * This is intentionally NOT a full YAML spec implementation - it only needs to
+ * produce the same shape as the real Obsidian parseYaml for the test fixtures
+ * in this suite (flat key-value, lists, nested objects).
+ *
+ * @param {string} yaml - YAML text to parse
+ * @returns {unknown} Parsed value
+ */
+export function parseYaml(yaml: string): unknown {
+  if (typeof yaml !== 'string') {
+    throw new Error('parseYaml: input must be a string');
+  }
+
+  const trimmed = yaml.trim();
+
+  if (trimmed === '' || trimmed === 'null' || trimmed === '~') {
+    return null;
+  }
+
+  return parseYamlValue(trimmed, 0);
+}
+
+/**
+ * Coerces a raw scalar string to its JS equivalent.
+ */
+function coerceScalar(raw: string): unknown {
+  const t = raw.trim();
+
+  if (t === 'true') return true;
+  if (t === 'false') return false;
+  if (t === 'null' || t === '~' || t === '') return null;
+
+  // Quoted strings - strip quotes.
+  if ((t.startsWith('"') && t.endsWith('"')) || (t.startsWith('\'') && t.endsWith('\''))) {
+    return t.slice(1, -1);
+  }
+
+  const num = Number(t);
+
+  if (!isNaN(num) && t !== '') return num;
+
+  return t;
+}
+
+/**
+ * Parses a YAML value that may be a mapping, sequence, or scalar.
+ * `indent` is the expected indentation level of child lines.
+ */
+function parseYamlValue(text: string, indent: number): unknown {
+  const lines = text.split('\n');
+
+  // Detect block mapping: first non-empty line contains ': '
+  const firstLine = lines[0].replace(/^\s+/, '');
+
+  if (firstLine.startsWith('- ') || firstLine === '-') {
+    return parseSequence(lines, indent);
+  }
+
+  if (firstLine.includes(': ') || firstLine.endsWith(':')) {
+    return parseMapping(lines, indent);
+  }
+
+  return coerceScalar(text.trim());
+}
+
+/**
+ * Parses a YAML block sequence from an array of lines.
+ */
+function parseSequence(lines: string[], _indent: number): unknown[] {
+  const result: unknown[] = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+    const stripped = line.replace(/^\s+/, '');
+
+    if (stripped === '' || stripped.startsWith('#')) {
+      i++;
+      continue;
+    }
+
+    if (stripped.startsWith('- ')) {
+      result.push(coerceScalar(stripped.slice(2)));
+      i++;
+    } else if (stripped === '-') {
+      result.push(null);
+      i++;
+    } else {
+      i++;
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Parses a YAML block mapping from an array of lines.
+ */
+function parseMapping(lines: string[], baseIndent: number): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    if (line.trim() === '' || line.trim().startsWith('#')) {
+      i++;
+      continue;
+    }
+
+    const currentIndent = line.search(/\S/);
+
+    if (currentIndent < baseIndent) {
+      break;
+    }
+
+    const colonIdx = line.indexOf(': ');
+    const trailingColon = line.replace(/\s+$/, '').endsWith(':') && !line.includes(': ');
+
+    if (colonIdx === -1 && !trailingColon) {
+      i++;
+      continue;
+    }
+
+    let key: string;
+    let inlineValue: string | null;
+
+    if (trailingColon) {
+      key = line.trim().slice(0, -1).trim();
+      inlineValue = null;
+    } else {
+      key = line.slice(0, colonIdx).trim();
+      inlineValue = line.slice(colonIdx + 2).trim();
+    }
+
+    // Collect child lines (indented deeper than current line).
+    const childLines: string[] = [];
+
+    i++;
+
+    while (i < lines.length) {
+      const childLine = lines[i];
+      const childIndent = childLine.search(/\S/);
+
+      // Empty lines are part of the child block.
+      if (childLine.trim() === '') {
+        childLines.push(childLine);
+        i++;
+        continue;
+      }
+
+      if (childIndent > currentIndent) {
+        childLines.push(childLine);
+        i++;
+      } else {
+        break;
+      }
+    }
+
+    if (childLines.some((l) => l.trim() !== '')) {
+      // Has a child block - parse it recursively.
+      result[key] = parseYamlValue(childLines.join('\n'), currentIndent + 1);
+    } else if (inlineValue !== null && inlineValue !== '') {
+      result[key] = coerceScalar(inlineValue);
+    } else {
+      result[key] = null;
+    }
+  }
+
+  return result;
+}

@@ -2168,7 +2168,8 @@ var TOKENS = {
   snapshots: token("SnapshotsService"),
   versionActions: token("VersionActionsService"),
   persistence: token("PersistenceService"),
-  treeTabDecorator: token("TreeTabDecoratorService")
+  treeTabDecorator: token("TreeTabDecoratorService"),
+  propertyDecorator: token("PropertyDecoratorService")
 };
 var tokenName = (sym) => TOKEN_NAMES.get(sym);
 
@@ -25554,6 +25555,444 @@ __decorateClass([
   On("settings:update" /* settingsUpdate */)
 ], StylesService.prototype, "update", 1);
 
+// src/helpers/properties-panel.adapter.ts
+var METADATA_EDITOR_SEL = ".metadata-properties";
+var METADATA_PROPERTY_SEL = ".metadata-property";
+var PROP_KEY_ATTR = "data-property-key";
+function queryMetadataEditor(container) {
+  return container.querySelector(METADATA_EDITOR_SEL);
+}
+function queryPropertyRows(editor) {
+  return Array.from(editor.querySelectorAll(METADATA_PROPERTY_SEL));
+}
+function getPropertyKey(row) {
+  return row.getAttribute(PROP_KEY_ATTR);
+}
+
+// src/helpers/frontmatter-diff.helper.ts
+var import_obsidian26 = require("obsidian");
+var EMPTY = { added: [], modified: [], removed: [] };
+function extractYamlBlock(lines) {
+  if (!lines.length || lines[0].trim() !== "---") {
+    return null;
+  }
+  const closeIdx = lines.indexOf("---", 1);
+  if (closeIdx === -1) {
+    return null;
+  }
+  return lines.slice(1, closeIdx).join("\n");
+}
+function parseBlock(yaml) {
+  try {
+    const parsed = (0, import_obsidian26.parseYaml)(yaml);
+    if (parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)) {
+      return parsed;
+    }
+  } catch (e) {
+  }
+  return {};
+}
+function serialise(value) {
+  var _a;
+  return (_a = JSON.stringify(value)) != null ? _a : "null";
+}
+function diffFrontmatter(oldLines, newLines) {
+  const oldYaml = extractYamlBlock(oldLines != null ? oldLines : []);
+  const newYaml = extractYamlBlock(newLines != null ? newLines : []);
+  if (oldYaml === null && newYaml === null) {
+    return EMPTY;
+  }
+  const oldProps = oldYaml !== null ? parseBlock(oldYaml) : {};
+  const newProps = newYaml !== null ? parseBlock(newYaml) : {};
+  const oldKeys = new Set(Object.keys(oldProps));
+  const newKeys = new Set(Object.keys(newProps));
+  const added = [];
+  const modified = [];
+  const removed = [];
+  for (const key2 of newKeys) {
+    if (!oldKeys.has(key2)) {
+      added.push(key2);
+    } else if (serialise(newProps[key2]) !== serialise(oldProps[key2])) {
+      modified.push(key2);
+    }
+  }
+  for (const key2 of oldKeys) {
+    if (!newKeys.has(key2)) {
+      removed.push(key2);
+    }
+  }
+  return { added, modified, removed };
+}
+
+// src/services/property-decorator.service.ts
+var import_obsidian27 = require("obsidian");
+var _PropertyDecoratorService = class _PropertyDecoratorService {
+  /**
+   * Creates a new instance of PropertyDecoratorService.
+   *
+   * @param {LineChangeTrackerPlugin} plugin - The plugin instance
+   */
+  constructor(plugin) {
+    this.plugin = plugin;
+    /**
+     * The pending debounce timer, or undefined when none is in flight.
+     * Cleared on unload so no sweep fires after teardown.
+     */
+    this.timer = void 0;
+    /**
+     * The MutationObserver watching `view.contentEl` for the lazy render of
+     * .metadata-editor, or undefined when not currently observing.
+     *
+     * Observes `{ childList: true, subtree: true }` only - never `attributes`,
+     * so the decorator's own class flips on property rows never re-trigger it
+     * (no feedback loop, matching the TreeTabDecoratorService pattern).
+     */
+    this.observer = void 0;
+    /**
+     * The `contentEl` element the observer is currently attached to, kept so
+     * the observer is only re-wired when the element actually changes across
+     * a layout rebuild.  Cleared on unload.
+     */
+    this.observed = void 0;
+    /**
+     * Live registry of injected ghost rows keyed by the removed property key.
+     * Entries are created in {@link injectGhosts} and deleted when the key is no
+     * longer in `changes.removed` on the next apply sweep.
+     */
+    this.ghostMap = /* @__PURE__ */ new Map();
+  }
+  /**
+   * Wires the refresh triggers and schedules the initial decoration.
+   *
+   * The three workspace events that carry no plugin event (layout-change,
+   * active-leaf-change, file-open) can all change which MarkdownView is active
+   * or cause the properties panel to be (re)rendered, so each schedules a
+   * debounced apply.  All registrations go through `plugin.registerEvent` so
+   * their refs release on plugin unload automatically.
+   */
+  load() {
+    this.plugin.registerEvent(
+      this.plugin.app.workspace.on("layout-change", () => {
+        this.schedule();
+      })
+    );
+    this.plugin.registerEvent(
+      this.plugin.app.workspace.on("active-leaf-change", () => {
+        this.schedule();
+      })
+    );
+    this.plugin.registerEvent(
+      this.plugin.app.workspace.on("file-open", () => {
+        this.schedule();
+      })
+    );
+    this.schedule();
+  }
+  refresh() {
+    this.schedule();
+  }
+  /**
+   * Tears down the observer and cancels any pending timer without leaving
+   * any state behind.  Workspace event refs are cleaned up automatically by
+   * `plugin.registerEvent`, so only the manually-held resources need explicit
+   * cleanup here.
+   */
+  unload() {
+    if (this.timer !== void 0) {
+      clearTimeout(this.timer);
+      this.timer = void 0;
+    }
+    if (this.observer) {
+      this.observer.disconnect();
+      this.observer = void 0;
+    }
+    this.observed = void 0;
+  }
+  /**
+   * Schedules a debounced apply sweep.  A pending timer is reset on each call
+   * so a burst of triggers resolves to a single trailing {@link apply}.
+   */
+  schedule() {
+    if (this.timer !== void 0) {
+      clearTimeout(this.timer);
+    }
+    this.timer = setTimeout(() => {
+      this.timer = void 0;
+      this.apply();
+    }, _PropertyDecoratorService.debounceMs);
+  }
+  /**
+   * Core sweep that computes the frontmatter diff for the active file and
+   * exposes the result for decoration.
+   *
+   * Guard branches (degrading silently per D8):
+   * - plugin not ready: return early
+   * - no active MarkdownView: return early
+   * - no .metadata-editor in DOM: (re)attach observer and return early
+   * - no snapshot for the current file: clear all decorations and return
+   *
+   * When a snapshot is found, {@link diffFrontmatter} is called with
+   * `snapshot.lines` (baseline) and `snapshot.state` (current).  The result
+   * together with the baseline key order is passed to {@link decorate}.
+   */
+  apply() {
+    if (!this.plugin.isReady()) {
+      return;
+    }
+    const view = this.plugin.getActiveViewOfType();
+    if (!view) {
+      return;
+    }
+    this.syncObserver(view.contentEl);
+    const editor = queryMetadataEditor(view.contentEl);
+    if (!editor) {
+      return;
+    }
+    const rows = queryPropertyRows(editor);
+    const snapshot = this.snapshotsService.getOne(view.file);
+    if (!snapshot) {
+      this.decorate(editor, rows, { added: [], modified: [], removed: [] }, []);
+      return;
+    }
+    const changes = diffFrontmatter(snapshot.lines, snapshot.state);
+    const snapshotKeyOrder = _PropertyDecoratorService.extractKeyOrder(snapshot.lines);
+    this.decorate(editor, rows, changes, snapshotKeyOrder);
+  }
+  /**
+   * Decorates existing property rows for added and modified states, clears
+   * decorations from rows that are no longer in any change set, and delegates
+   * ghost-row management for removed properties to {@link injectGhosts}.
+   *
+   * Visual signal is applied purely via CSS classes on the row element:
+   * the `.metadata-property-icon` child is tinted through CSS `color` so the
+   * property-type icon reflects the change status.  No child nodes are injected,
+   * so the MutationObserver (watching childList) is never triggered by this pass.
+   *
+   * @param {HTMLElement} editor - The .metadata-properties root element
+   * @param {HTMLElement[]} rows - The .metadata-property row elements
+   * @param {FrontmatterChange} changes - The key-level frontmatter diff
+   * @param {string[]} snapshotKeyOrder - All keys in the baseline snapshot, in order
+   */
+  decorate(editor, rows, changes, snapshotKeyOrder) {
+    const addedSet = new Set(changes.added);
+    const modifiedSet = new Set(changes.modified);
+    for (const row of rows) {
+      if (row.classList.contains(_PropertyDecoratorService.CLASS_GHOST)) {
+        continue;
+      }
+      const key2 = getPropertyKey(row);
+      if (key2 === null) {
+        continue;
+      }
+      if (addedSet.has(key2)) {
+        if (!row.classList.contains(_PropertyDecoratorService.CLASS_ADDED)) {
+          row.classList.remove(_PropertyDecoratorService.CLASS_MODIFIED);
+          row.classList.add(_PropertyDecoratorService.CLASS_ADDED);
+          row.setAttribute("title", `property "${key2}" added`);
+        }
+      } else if (modifiedSet.has(key2)) {
+        if (!row.classList.contains(_PropertyDecoratorService.CLASS_MODIFIED)) {
+          row.classList.remove(_PropertyDecoratorService.CLASS_ADDED);
+          row.classList.add(_PropertyDecoratorService.CLASS_MODIFIED);
+          row.setAttribute("title", `property "${key2}" modified`);
+        }
+      } else if (row.classList.contains(_PropertyDecoratorService.CLASS_ADDED) || row.classList.contains(_PropertyDecoratorService.CLASS_MODIFIED)) {
+        row.classList.remove(_PropertyDecoratorService.CLASS_ADDED, _PropertyDecoratorService.CLASS_MODIFIED);
+        row.removeAttribute("title");
+      }
+    }
+    this.injectGhosts(editor, rows, changes, snapshotKeyOrder);
+  }
+  /**
+   * Reconciles ghost rows for removed properties inside `editor`.
+   *
+   * Algorithm:
+   * 1. Build a set of keys that are currently removed.
+   * 2. Remove ghost rows whose keys are no longer in the removed set (the user
+   *    re-added that property or the snapshot changed).
+   * 3. For each key still in `removed`, skip if a ghost row already exists in
+   *    the DOM and is still connected (idempotent).
+   * 4. Create a new ghost row element and insert it at the correct position:
+   *    - Find the surviving-neighbor: the first key that comes after the removed
+   *      key in `snapshotKeyOrder` and still has a real live row present.
+   *      Insert the ghost before that neighbor row.
+   *    - If no surviving neighbor is found, append to the editor.
+   *
+   * @param {HTMLElement} editor - The .metadata-editor root element
+   * @param {HTMLElement[]} rows - The live .metadata-property row elements
+   * @param {FrontmatterChange} changes - The key-level frontmatter diff
+   * @param {string[]} snapshotKeyOrder - All keys in the baseline snapshot, in order
+   */
+  injectGhosts(editor, rows, changes, snapshotKeyOrder) {
+    const removedSet = new Set(changes.removed);
+    for (const [key2, ghostEl] of this.ghostMap) {
+      if (!removedSet.has(key2)) {
+        ghostEl.remove();
+        this.ghostMap.delete(key2);
+      }
+    }
+    if (removedSet.size === 0) {
+      return;
+    }
+    const liveRowByKey = /* @__PURE__ */ new Map();
+    for (const row of rows) {
+      const k = getPropertyKey(row);
+      if (k !== null) {
+        liveRowByKey.set(k, row);
+      }
+    }
+    for (const removedKey of removedSet) {
+      if (this.ghostMap.has(removedKey)) {
+        const existing = this.ghostMap.get(removedKey);
+        if (existing.isConnected) {
+          continue;
+        }
+        this.ghostMap.delete(removedKey);
+      }
+      const ghost = _PropertyDecoratorService.buildGhostRow(removedKey);
+      this.ghostMap.set(removedKey, ghost);
+      const neighborRow = _PropertyDecoratorService.findNeighborRow(
+        removedKey,
+        snapshotKeyOrder,
+        liveRowByKey
+      );
+      if (neighborRow) {
+        editor.insertBefore(ghost, neighborRow);
+      } else {
+        editor.appendChild(ghost);
+      }
+    }
+  }
+  /**
+   * Returns the first live row element whose property key comes after
+   * `removedKey` in `snapshotKeyOrder`.
+   *
+   * This is the surviving-neighbor strategy from PLAN.md risk #4: scan forward
+   * through the baseline key order starting from the position after `removedKey`
+   * and return the first entry that has a live row in `liveRowByKey`.
+   *
+   * When all keys after `removedKey` are also removed, returns null so the
+   * ghost is appended at the end.
+   *
+   * @param {string} removedKey - The key whose position to anchor
+   * @param {string[]} snapshotKeyOrder - All keys in the baseline snapshot, in order
+   * @param {Map<string, HTMLElement>} liveRowByKey - Live rows indexed by key
+   * @returns {HTMLElement | null} The neighbor row to insert before, or null
+   */
+  static findNeighborRow(removedKey, snapshotKeyOrder, liveRowByKey) {
+    const idx = snapshotKeyOrder.indexOf(removedKey);
+    if (idx === -1) {
+      return null;
+    }
+    for (let i = idx + 1; i < snapshotKeyOrder.length; i++) {
+      const candidateKey = snapshotKeyOrder[i];
+      const liveRow = liveRowByKey.get(candidateKey);
+      if (liveRow) {
+        return liveRow;
+      }
+    }
+    return null;
+  }
+  /**
+   * Builds a synthetic ghost row element representing a deleted property key.
+   *
+   * The element mimics the structure of a real `.metadata-property` row
+   * (same class, same `data-property-key` attribute) so the CSS rules in
+   * `.lct-prop-ghost` and `.lct-prop-removed` apply automatically.
+   *
+   * @param {string} key - The property key name to display
+   * @returns {HTMLElement} The ghost row element (not yet inserted into DOM)
+   */
+  static buildGhostRow(key2) {
+    const ghost = document.createElement("div");
+    ghost.classList.add(
+      "metadata-property",
+      _PropertyDecoratorService.CLASS_GHOST,
+      _PropertyDecoratorService.CLASS_REMOVED
+    );
+    ghost.setAttribute("data-property-key", key2);
+    ghost.setAttribute("title", `property "${key2}" removed`);
+    const keyCell = document.createElement("div");
+    keyCell.classList.add("metadata-property-key");
+    keyCell.textContent = key2;
+    ghost.appendChild(keyCell);
+    return ghost;
+  }
+  /**
+   * (Re)attaches the MutationObserver to `contentEl` when the element changes.
+   *
+   * Observes `{ childList: true, subtree: true }` (never `attributes`) so the
+   * decorator's own class mutations on `.metadata-property` rows never
+   * re-trigger it.  When `.metadata-editor` is not yet in the DOM at apply
+   * time, the observer fires once it is lazily rendered, scheduling a new
+   * apply that will find it.
+   *
+   * @param {HTMLElement} contentEl - The MarkdownView.contentEl to observe
+   */
+  syncObserver(contentEl) {
+    if (this.observed === contentEl && this.observer) {
+      return;
+    }
+    if (this.observer) {
+      this.observer.disconnect();
+    }
+    this.observer = new MutationObserver(() => {
+      this.schedule();
+    });
+    this.observer.observe(contentEl, { childList: true, subtree: true });
+    this.observed = contentEl;
+  }
+  /**
+   * Extracts the top-level key names from the frontmatter block of `lines` in
+   * their declaration order.  Returns an empty array when no frontmatter block
+   * is present or the block cannot be parsed.
+   *
+   * This is used by {@link apply} to obtain the baseline key order that
+   * {@link injectGhosts} needs for the surviving-neighbor insertion strategy.
+   *
+   * @param {string[]} lines - File content split into lines (baseline snapshot)
+   * @returns {string[]} Top-level YAML key names in declaration order
+   */
+  static extractKeyOrder(lines) {
+    if (!lines.length || lines[0].trim() !== "---") {
+      return [];
+    }
+    const closeIdx = lines.indexOf("---", 1);
+    if (closeIdx === -1) {
+      return [];
+    }
+    const yaml = lines.slice(1, closeIdx).join("\n");
+    try {
+      const parsed = (0, import_obsidian27.parseYaml)(yaml);
+      if (parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)) {
+        return Object.keys(parsed);
+      }
+    } catch (e) {
+    }
+    return [];
+  }
+};
+/**
+ * Debounce window (ms) for scheduling an apply sweep. Matches the value
+ * used by TreeTabDecoratorService so the two decorators stay in lockstep.
+ */
+_PropertyDecoratorService.debounceMs = 100;
+/** CSS class applied to the row element for an added property. */
+_PropertyDecoratorService.CLASS_ADDED = "lct-prop-added";
+/** CSS class applied to the row element for a modified property. */
+_PropertyDecoratorService.CLASS_MODIFIED = "lct-prop-modified";
+/** CSS class applied to the row element for a removed (ghost) property. */
+_PropertyDecoratorService.CLASS_REMOVED = "lct-prop-removed";
+/** CSS class applied to synthetic ghost rows injected for removed properties. */
+_PropertyDecoratorService.CLASS_GHOST = "lct-prop-ghost";
+__decorateClass([
+  Inject(TOKENS.snapshots)
+], _PropertyDecoratorService.prototype, "snapshotsService", 2);
+__decorateClass([
+  On("snapshots:update" /* snapshotsUpdate */)
+], _PropertyDecoratorService.prototype, "refresh", 1);
+var PropertyDecoratorService = _PropertyDecoratorService;
+
 // src/helpers/session-status.helper.ts
 var SessionStatusHelper = class {
   /**
@@ -26192,8 +26631,8 @@ __decorateClass([
 ], VersionActionsService.prototype, "settingsService", 2);
 
 // src/views/recent-changes.view.ts
-var import_obsidian26 = require("obsidian");
-var RecentChangesView = class extends import_obsidian26.ItemView {
+var import_obsidian28 = require("obsidian");
+var RecentChangesView = class extends import_obsidian28.ItemView {
   /**
    * Creates a new instance of RecentChangesView.
    *
@@ -26403,7 +26842,7 @@ var RecentChangesView = class extends import_obsidian26.ItemView {
    */
   openRowMenu(event, file, version) {
     event.preventDefault();
-    const menu = new import_obsidian26.Menu();
+    const menu = new import_obsidian28.Menu();
     const modalsService = this.plugin.get(TOKENS.modals);
     const versionActionsService = this.plugin.get(TOKENS.versionActions);
     menu.addItem((item) => {
@@ -26522,8 +26961,8 @@ var import_index = __toESM(require_eventemitter3(), 1);
 var eventemitter3_default = import_index.default;
 
 // src/main.ts
-var import_obsidian27 = require("obsidian");
-var LineChangeTrackerPlugin = class extends import_obsidian27.Plugin {
+var import_obsidian29 = require("obsidian");
+var LineChangeTrackerPlugin = class extends import_obsidian29.Plugin {
   /**
    * Creates a new instance of the LineChangeTrackerPlugin.
    * Registers all required services during initialization.
@@ -26579,6 +27018,7 @@ var LineChangeTrackerPlugin = class extends import_obsidian27.Plugin {
     this.registerService(VersionActionsService, TOKENS.versionActions);
     this.registerService(PersistenceService, TOKENS.persistence);
     this.registerService(TreeTabDecoratorService, TOKENS.treeTabDecorator);
+    this.registerService(PropertyDecoratorService, TOKENS.propertyDecorator);
   }
   /**
    * Registers a service with the plugin.
@@ -26827,7 +27267,7 @@ var LineChangeTrackerPlugin = class extends import_obsidian27.Plugin {
    * @return {MarkdownView | null} The active markdown view, or null if none is active
    */
   getActiveViewOfType() {
-    return this.app.workspace.getActiveViewOfType(import_obsidian27.MarkdownView);
+    return this.app.workspace.getActiveViewOfType(import_obsidian29.MarkdownView);
   }
   /**
    * Gets the active file.
@@ -26848,7 +27288,7 @@ var LineChangeTrackerPlugin = class extends import_obsidian27.Plugin {
    */
   getFileByPath(path) {
     const file = this.app.vault.getAbstractFileByPath(path);
-    return file instanceof import_obsidian27.TFile ? file : null;
+    return file instanceof import_obsidian29.TFile ? file : null;
   }
   /**
    * Reveals the Recent changes panel in the right sidebar (D3).

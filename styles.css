@@ -812,3 +812,17 @@ body {
   border-color: var(--text-error);
   box-shadow: 0 0 0 1px var(--text-error);
 }
+.metadata-property.lct-prop-added .metadata-property-icon {
+  color: var(--lct-status-added);
+}
+.metadata-property.lct-prop-modified .metadata-property-icon {
+  color: var(--lct-status-modified);
+}
+.lct-prop-ghost {
+  opacity: 0.5;
+  pointer-events: none;
+}
+.lct-prop-ghost .metadata-property-key {
+  text-decoration: line-through;
+  color: var(--lct-status-deleted);
+}

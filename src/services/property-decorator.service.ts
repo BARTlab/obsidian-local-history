@@ -11,7 +11,7 @@ import type LineChangeTrackerPlugin from '@/main';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import { TOKENS } from '@/services/tokens';
 import type { Service } from '@/types';
-import { setIcon, type MarkdownView } from 'obsidian';
+import { parseYaml, setIcon, type MarkdownView } from 'obsidian';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 
 /**
@@ -24,7 +24,7 @@ import type { FileSnapshot } from '@/snapshots/file.snapshot';
  * (layout-change, active-leaf-change, file-open, snapshotsUpdate) keep the
  * indicators in sync.  Decoration of added/modified rows (left border + icon)
  * is handled by {@link decorate}; ghost-row injection for removed keys is
- * handled in T07.
+ * handled by {@link injectGhosts}.
  *
  * @implements {Service}
  */
@@ -64,6 +64,13 @@ export class PropertyDecoratorService implements Service {
    * a layout rebuild.  Cleared on unload.
    */
   protected observed: HTMLElement | undefined = undefined;
+
+  /**
+   * Live registry of injected ghost rows keyed by the removed property key.
+   * Entries are created in {@link injectGhosts} and deleted when the key is no
+   * longer in `changes.removed` on the next apply sweep.
+   */
+  protected ghostMap: Map<string, HTMLElement> = new Map();
 
   /**
    * Creates a new instance of PropertyDecoratorService.
@@ -162,7 +169,7 @@ export class PropertyDecoratorService implements Service {
    *
    * When a snapshot is found, {@link diffFrontmatter} is called with
    * `snapshot.lines` (baseline) and `snapshot.state` (current).  The result
-   * is passed to {@link decorate}.
+   * together with the baseline key order is passed to {@link decorate}.
    */
   protected apply(): void {
     if (!this.plugin.isReady()) {
@@ -188,14 +195,15 @@ export class PropertyDecoratorService implements Service {
 
     if (!snapshot) {
       // Clear any stale decorations from a previous file and return.
-      this.decorate(editor, rows, { added: [], modified: [], removed: [] });
+      this.decorate(editor, rows, { added: [], modified: [], removed: [] }, []);
 
       return;
     }
 
     const changes: FrontmatterChange = diffFrontmatter(snapshot.lines, snapshot.state);
+    const snapshotKeyOrder: string[] = PropertyDecoratorService.extractKeyOrder(snapshot.lines);
 
-    this.decorate(editor, rows, changes);
+    this.decorate(editor, rows, changes, snapshotKeyOrder);
   }
 
   /** CSS class applied to the row element for an added property. */
@@ -203,6 +211,12 @@ export class PropertyDecoratorService implements Service {
 
   /** CSS class applied to the row element for a modified property. */
   protected static readonly CLASS_MODIFIED = 'lct-prop-modified';
+
+  /** CSS class applied to the row element for a removed (ghost) property. */
+  protected static readonly CLASS_REMOVED = 'lct-prop-removed';
+
+  /** CSS class applied to synthetic ghost rows injected for removed properties. */
+  protected static readonly CLASS_GHOST = 'lct-prop-ghost';
 
   /** CSS class applied to the marker icon element inside a property row. */
   protected static readonly CLASS_MARKER = 'lct-prop-marker';
@@ -213,9 +227,13 @@ export class PropertyDecoratorService implements Service {
   /** Lucide icon name used on modified-property marker icons. */
   protected static readonly ICON_MODIFIED = 'pencil';
 
+  /** Lucide icon name used on removed-property (ghost) marker icons. */
+  protected static readonly ICON_REMOVED = 'minus-circle';
+
   /**
-   * Decorates existing property rows for added and modified states and clears
-   * decorations from rows that are no longer in any change set.
+   * Decorates existing property rows for added and modified states, clears
+   * decorations from rows that are no longer in any change set, and delegates
+   * ghost-row management for removed properties to {@link injectGhosts}.
    *
    * For each row element the method:
    * 1. Reads the key via {@link getPropertyKey}; skips the row when absent.
@@ -225,13 +243,14 @@ export class PropertyDecoratorService implements Service {
    *    matching class, injects a `.lct-prop-marker` icon as the first child of
    *    `.metadata-property-key`, and sets a descriptive `title` attribute.
    *
-   * Ghost rows for removed properties are handled separately in T07.
-   *
-   * @param {HTMLElement} _editor - The .metadata-editor root element (reserved for T07)
+   * @param {HTMLElement} editor - The .metadata-editor root element
    * @param {HTMLElement[]} rows - The .metadata-property row elements
    * @param {FrontmatterChange} changes - The key-level frontmatter diff
+   * @param {string[]} snapshotKeyOrder - All keys in the baseline snapshot, in order
    */
-  protected decorate(_editor: HTMLElement, rows: HTMLElement[], changes: FrontmatterChange): void {
+  protected decorate(
+    editor: HTMLElement, rows: HTMLElement[], changes: FrontmatterChange, snapshotKeyOrder: string[],
+  ): void {
     const addedSet = new Set(changes.added);
     const modifiedSet = new Set(changes.modified);
 
@@ -264,6 +283,163 @@ export class PropertyDecoratorService implements Service {
         PropertyDecoratorService.injectMarker(row, PropertyDecoratorService.ICON_MODIFIED);
       }
     }
+
+    this.injectGhosts(editor, rows, changes, snapshotKeyOrder);
+  }
+
+  /**
+   * Reconciles ghost rows for removed properties inside `editor`.
+   *
+   * Algorithm:
+   * 1. Build a set of keys that are currently removed.
+   * 2. Remove ghost rows whose keys are no longer in the removed set (the user
+   *    re-added that property or the snapshot changed).
+   * 3. For each key still in `removed`, skip if a ghost row already exists in
+   *    the DOM and is still connected (idempotent).
+   * 4. Create a new ghost row element and insert it at the correct position:
+   *    - Find the surviving-neighbor: the first key that comes after the removed
+   *      key in `snapshotKeyOrder` and still has a real live row present.
+   *      Insert the ghost before that neighbor row.
+   *    - If no surviving neighbor is found, append to the editor.
+   *
+   * @param {HTMLElement} editor - The .metadata-editor root element
+   * @param {HTMLElement[]} rows - The live .metadata-property row elements
+   * @param {FrontmatterChange} changes - The key-level frontmatter diff
+   * @param {string[]} snapshotKeyOrder - All keys in the baseline snapshot, in order
+   */
+  protected injectGhosts(
+    editor: HTMLElement, rows: HTMLElement[], changes: FrontmatterChange, snapshotKeyOrder: string[],
+  ): void {
+    const removedSet = new Set(changes.removed);
+
+    // Step 1: remove stale ghost rows for keys no longer in the removed set.
+    for (const [key, ghostEl] of this.ghostMap) {
+      if (!removedSet.has(key)) {
+        ghostEl.remove();
+        this.ghostMap.delete(key);
+      }
+    }
+
+    if (removedSet.size === 0) {
+      return;
+    }
+
+    // Build a quick lookup from property key to its live row element.
+    const liveRowByKey = new Map<string, HTMLElement>();
+
+    for (const row of rows) {
+      const k = getPropertyKey(row);
+
+      if (k !== null) {
+        liveRowByKey.set(k, row);
+      }
+    }
+
+    // Step 2: for each removed key, ensure exactly one ghost row exists.
+    for (const removedKey of removedSet) {
+      // Idempotent: skip if a ghost is already in the DOM and connected.
+      if (this.ghostMap.has(removedKey)) {
+        const existing = this.ghostMap.get(removedKey)!;
+
+        if (existing.isConnected) {
+          continue;
+        }
+
+        // Ghost was detached (e.g., Obsidian re-rendered the panel) - remove
+        // stale entry so a fresh one is created below.
+        this.ghostMap.delete(removedKey);
+      }
+
+      const ghost = PropertyDecoratorService.buildGhostRow(removedKey);
+      this.ghostMap.set(removedKey, ghost);
+
+      // Find the first live row whose key comes after removedKey in snapshot
+      // order (surviving-neighbor strategy from PLAN.md risk #4).
+      const neighborRow = PropertyDecoratorService.findNeighborRow(
+        removedKey,
+        snapshotKeyOrder,
+        liveRowByKey,
+      );
+
+      if (neighborRow) {
+        editor.insertBefore(ghost, neighborRow);
+      } else {
+        editor.appendChild(ghost);
+      }
+    }
+  }
+
+  /**
+   * Returns the first live row element whose property key comes after
+   * `removedKey` in `snapshotKeyOrder`.
+   *
+   * This is the surviving-neighbor strategy from PLAN.md risk #4: scan forward
+   * through the baseline key order starting from the position after `removedKey`
+   * and return the first entry that has a live row in `liveRowByKey`.
+   *
+   * When all keys after `removedKey` are also removed, returns null so the
+   * ghost is appended at the end.
+   *
+   * @param {string} removedKey - The key whose position to anchor
+   * @param {string[]} snapshotKeyOrder - All keys in the baseline snapshot, in order
+   * @param {Map<string, HTMLElement>} liveRowByKey - Live rows indexed by key
+   * @returns {HTMLElement | null} The neighbor row to insert before, or null
+   */
+  protected static findNeighborRow(
+    removedKey: string,
+    snapshotKeyOrder: string[],
+    liveRowByKey: Map<string, HTMLElement>,
+  ): HTMLElement | null {
+    const idx = snapshotKeyOrder.indexOf(removedKey);
+
+    if (idx === -1) {
+      return null;
+    }
+
+    for (let i = idx + 1; i < snapshotKeyOrder.length; i++) {
+      const candidateKey = snapshotKeyOrder[i];
+      const liveRow = liveRowByKey.get(candidateKey);
+
+      if (liveRow) {
+        return liveRow;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Builds a synthetic ghost row element representing a deleted property key.
+   *
+   * The element mimics the structure of a real `.metadata-property` row
+   * (same class, same `data-property-key` attribute) so the CSS rules in
+   * `.lct-prop-ghost` and `.lct-prop-removed` apply automatically.  The key
+   * cell is created first so that {@link injectMarker} can prepend the icon
+   * inside it.
+   *
+   * @param {string} key - The property key name to display
+   * @returns {HTMLElement} The ghost row element (not yet inserted into DOM)
+   */
+  protected static buildGhostRow(key: string): HTMLElement {
+    const ghost = document.createElement('div');
+    ghost.classList.add(
+      'metadata-property',
+      PropertyDecoratorService.CLASS_GHOST,
+      PropertyDecoratorService.CLASS_REMOVED,
+    );
+    ghost.setAttribute('data-property-key', key);
+    ghost.setAttribute('title', `property "${key}" removed`);
+
+    // Create the key cell first so injectMarker can find it and prepend the icon.
+    const keyCell = document.createElement('div');
+    keyCell.classList.add('metadata-property-key');
+    keyCell.textContent = key;
+    ghost.appendChild(keyCell);
+
+    // Inject the minus-circle marker icon into the key cell.
+    PropertyDecoratorService.injectMarker(ghost, PropertyDecoratorService.ICON_REMOVED);
+
+    return ghost;
   }
 
   /**
@@ -311,5 +487,42 @@ export class PropertyDecoratorService implements Service {
 
     this.observer.observe(contentEl, { childList: true, subtree: true });
     this.observed = contentEl;
+  }
+
+  /**
+   * Extracts the top-level key names from the frontmatter block of `lines` in
+   * their declaration order.  Returns an empty array when no frontmatter block
+   * is present or the block cannot be parsed.
+   *
+   * This is used by {@link apply} to obtain the baseline key order that
+   * {@link injectGhosts} needs for the surviving-neighbor insertion strategy.
+   *
+   * @param {string[]} lines - File content split into lines (baseline snapshot)
+   * @returns {string[]} Top-level YAML key names in declaration order
+   */
+  protected static extractKeyOrder(lines: string[]): string[] {
+    if (!lines.length || lines[0].trim() !== '---') {
+      return [];
+    }
+
+    const closeIdx = lines.indexOf('---', 1);
+
+    if (closeIdx === -1) {
+      return [];
+    }
+
+    const yaml = lines.slice(1, closeIdx).join('\n');
+
+    try {
+      const parsed: unknown = parseYaml(yaml);
+
+      if (parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        return Object.keys(parsed as Record<string, unknown>);
+      }
+    } catch {
+      // Malformed YAML - degrade gracefully.
+    }
+
+    return [];
   }
 }

@@ -11,7 +11,7 @@ import type LineChangeTrackerPlugin from '@/main';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import { TOKENS } from '@/services/tokens';
 import type { Service } from '@/types';
-import { parseYaml, setIcon, type MarkdownView } from 'obsidian';
+import { parseYaml, type MarkdownView } from 'obsidian';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 
 /**
@@ -218,32 +218,17 @@ export class PropertyDecoratorService implements Service {
   /** CSS class applied to synthetic ghost rows injected for removed properties. */
   protected static readonly CLASS_GHOST = 'lct-prop-ghost';
 
-  /** CSS class applied to the marker icon element inside a property row. */
-  protected static readonly CLASS_MARKER = 'lct-prop-marker';
-
-  /** Lucide icon name used on added-property marker icons. */
-  protected static readonly ICON_ADDED = 'plus-circle';
-
-  /** Lucide icon name used on modified-property marker icons. */
-  protected static readonly ICON_MODIFIED = 'pencil';
-
-  /** Lucide icon name used on removed-property (ghost) marker icons. */
-  protected static readonly ICON_REMOVED = 'minus-circle';
-
   /**
    * Decorates existing property rows for added and modified states, clears
    * decorations from rows that are no longer in any change set, and delegates
    * ghost-row management for removed properties to {@link injectGhosts}.
    *
-   * For each row element the method:
-   * 1. Reads the key via {@link getPropertyKey}; skips the row when absent.
-   * 2. Removes stale state classes and any existing marker element so the pass
-   *    is idempotent regardless of how many times apply() fires.
-   * 3. If the key is in `changes.added` or `changes.modified`, adds the
-   *    matching class, injects a `.lct-prop-marker` icon as the first child of
-   *    `.metadata-property-key`, and sets a descriptive `title` attribute.
+   * Visual signal is applied purely via CSS classes on the row element:
+   * the `.metadata-property-icon` child is tinted through CSS `color` so the
+   * property-type icon reflects the change status.  No child nodes are injected,
+   * so the MutationObserver (watching childList) is never triggered by this pass.
    *
-   * @param {HTMLElement} editor - The .metadata-editor root element
+   * @param {HTMLElement} editor - The .metadata-properties root element
    * @param {HTMLElement[]} rows - The .metadata-property row elements
    * @param {FrontmatterChange} changes - The key-level frontmatter diff
    * @param {string[]} snapshotKeyOrder - All keys in the baseline snapshot, in order
@@ -255,32 +240,34 @@ export class PropertyDecoratorService implements Service {
     const modifiedSet = new Set(changes.modified);
 
     for (const row of rows) {
+      if (row.classList.contains(PropertyDecoratorService.CLASS_GHOST)) {
+        continue;
+      }
+
       const key: string | null = getPropertyKey(row);
 
       if (key === null) {
         continue;
       }
 
-      // Remove stale decoration first so each call is idempotent.
-      row.classList.remove(PropertyDecoratorService.CLASS_ADDED, PropertyDecoratorService.CLASS_MODIFIED);
-      row.removeAttribute('title');
-
-      const existingMarker: HTMLElement | null = row.querySelector<HTMLElement>(
-        `.${PropertyDecoratorService.CLASS_MARKER}`,
-      );
-
-      if (existingMarker) {
-        existingMarker.remove();
-      }
-
       if (addedSet.has(key)) {
-        row.classList.add(PropertyDecoratorService.CLASS_ADDED);
-        row.setAttribute('title', `property "${key}" added`);
-        PropertyDecoratorService.injectMarker(row, PropertyDecoratorService.ICON_ADDED);
+        if (!row.classList.contains(PropertyDecoratorService.CLASS_ADDED)) {
+          row.classList.remove(PropertyDecoratorService.CLASS_MODIFIED);
+          row.classList.add(PropertyDecoratorService.CLASS_ADDED);
+          row.setAttribute('title', `property "${key}" added`);
+        }
       } else if (modifiedSet.has(key)) {
-        row.classList.add(PropertyDecoratorService.CLASS_MODIFIED);
-        row.setAttribute('title', `property "${key}" modified`);
-        PropertyDecoratorService.injectMarker(row, PropertyDecoratorService.ICON_MODIFIED);
+        if (!row.classList.contains(PropertyDecoratorService.CLASS_MODIFIED)) {
+          row.classList.remove(PropertyDecoratorService.CLASS_ADDED);
+          row.classList.add(PropertyDecoratorService.CLASS_MODIFIED);
+          row.setAttribute('title', `property "${key}" modified`);
+        }
+      } else if (
+        row.classList.contains(PropertyDecoratorService.CLASS_ADDED) ||
+        row.classList.contains(PropertyDecoratorService.CLASS_MODIFIED)
+      ) {
+        row.classList.remove(PropertyDecoratorService.CLASS_ADDED, PropertyDecoratorService.CLASS_MODIFIED);
+        row.removeAttribute('title');
       }
     }
 
@@ -413,9 +400,7 @@ export class PropertyDecoratorService implements Service {
    *
    * The element mimics the structure of a real `.metadata-property` row
    * (same class, same `data-property-key` attribute) so the CSS rules in
-   * `.lct-prop-ghost` and `.lct-prop-removed` apply automatically.  The key
-   * cell is created first so that {@link injectMarker} can prepend the icon
-   * inside it.
+   * `.lct-prop-ghost` and `.lct-prop-removed` apply automatically.
    *
    * @param {string} key - The property key name to display
    * @returns {HTMLElement} The ghost row element (not yet inserted into DOM)
@@ -430,35 +415,12 @@ export class PropertyDecoratorService implements Service {
     ghost.setAttribute('data-property-key', key);
     ghost.setAttribute('title', `property "${key}" removed`);
 
-    // Create the key cell first so injectMarker can find it and prepend the icon.
     const keyCell = document.createElement('div');
     keyCell.classList.add('metadata-property-key');
     keyCell.textContent = key;
     ghost.appendChild(keyCell);
 
-    // Inject the minus-circle marker icon into the key cell.
-    PropertyDecoratorService.injectMarker(ghost, PropertyDecoratorService.ICON_REMOVED);
-
     return ghost;
-  }
-
-  /**
-   * Creates a `.lct-prop-marker` span, fills it with `iconId` via Obsidian's
-   * `setIcon`, and prepends it as the first child of the `.metadata-property-key`
-   * cell inside `row`.  When the key cell is absent the marker is prepended to
-   * `row` itself as a safe fallback.
-   *
-   * @param {HTMLElement} row - The `.metadata-property` row to inject into
-   * @param {string} iconId - The Lucide icon identifier to render
-   */
-  protected static injectMarker(row: HTMLElement, iconId: string): void {
-    const marker: HTMLSpanElement = document.createElement('span');
-    marker.classList.add(PropertyDecoratorService.CLASS_MARKER);
-    setIcon(marker, iconId);
-
-    const keyCell: HTMLElement | null = row.querySelector<HTMLElement>('.metadata-property-key');
-    const target: HTMLElement = keyCell ?? row;
-    target.prepend(marker);
   }
 
   /**

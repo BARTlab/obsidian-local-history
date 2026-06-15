@@ -5,7 +5,7 @@
  */
 
 /** CSS selector for the properties panel root element. */
-export const METADATA_EDITOR_SEL = '.metadata-editor';
+export const METADATA_EDITOR_SEL = '.metadata-properties';
 
 /** CSS selector for a single property row inside the panel. */
 export const METADATA_PROPERTY_SEL = '.metadata-property';

@@ -1323,66 +1323,27 @@ body {
 }
 
 /* ---- properties panel diff indicators (epic 16) ---- */
-// Left-border and marker-icon styles applied to Obsidian's .metadata-property
-// rows by PropertyDecoratorService. Colors resolve through the shared
-// --lct-status-* palette so light/dark themes are inherited automatically.
-// The border is drawn via box-shadow (inset) rather than border-left so the
-// row's existing box model and padding are not shifted; a border-left would push
-// the key label right and misalign it with unchanged rows.
+// Properties panel diff indicators applied by PropertyDecoratorService.
+// Visual signal is a color tint on the existing property-type icon
+// (.metadata-property-icon) - no layout shift, no injected nodes.
+// Colors resolve through the shared --lct-status-* palette.
 
-// Added property row: 4px inset left highlight in the "added" status color.
-.metadata-property.lct-prop-added {
-  box-shadow: inset 4px 0 0 var(--lct-status-added);
+.metadata-property.lct-prop-added .metadata-property-icon {
+  color: var(--lct-status-added);
 }
 
-// Modified property row: 4px inset left highlight in the "modified" status color.
-.metadata-property.lct-prop-modified {
-  box-shadow: inset 4px 0 0 var(--lct-status-modified);
+.metadata-property.lct-prop-modified .metadata-property-icon {
+  color: var(--lct-status-modified);
 }
 
-// Removed property row: 4px inset left highlight in the "deleted" status color.
-// Applied to ghost rows (see .lct-prop-ghost below) which represent keys deleted
-// from the frontmatter since the baseline snapshot.
-.metadata-property.lct-prop-removed {
-  box-shadow: inset 4px 0 0 var(--lct-status-deleted);
-}
-
-// Marker icon slot: a 12px icon injected at the leading edge of the row's key
-// cell to give a glyph signal alongside the border color. display: inline-flex
-// keeps it vertically centered with the key label; flex: none prevents it from
-// stretching or pushing sibling layout. Pointer-events is none so the icon does
-// not block clicks on the key label underneath it.
-.lct-prop-marker {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: none;
-  width: 12px;
-  height: 12px;
-  pointer-events: none;
-
-  svg {
-    width: 100%;
-    height: 100%;
-  }
-}
-
-// Ghost row: a synthetic .lct-prop-ghost element injected by the service to
-// represent a property that existed in the baseline snapshot but has since been
-// removed. The row is dimmed (opacity 0.5), the key text is struck through to
-// signal deletion, and pointer-events: none makes it non-interactive so the user
-// cannot accidentally click it. The transition on opacity is suppressed under
-// prefers-reduced-motion. Ghost rows also carry .lct-prop-removed (handled
-// above) so the left border color is inherited from there.
+// Ghost row: synthetic element for a property removed since the baseline.
+// Dimmed, non-interactive, key name struck through and tinted in the deleted color.
 .lct-prop-ghost {
   opacity: 0.5;
   pointer-events: none;
 
   .metadata-property-key {
     text-decoration: line-through;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    transition: none;
+    color: var(--lct-status-deleted);
   }
 }

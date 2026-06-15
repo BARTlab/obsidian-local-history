@@ -41,6 +41,7 @@ class TestPropertyDecoratorService extends PropertyDecoratorService {
   public get testGhostMap(): Map<string, HTMLElement> {
     return this.ghostMap;
   }
+
 }
 
 /** Minimal plugin stub - only what the constructor stores. */
@@ -93,7 +94,7 @@ const makeEditor = (keys: string[]): { editor: HTMLElement; rows: HTMLElement[] 
 };
 
 // ---------------------------------------------------------------------------
-// AC2 - modified row gets lct-prop-modified and a marker; other rows get neither
+// AC2 - modified row gets lct-prop-modified; other rows get neither
 // ---------------------------------------------------------------------------
 
 describe('PropertyDecoratorService - modified row', () => {
@@ -113,23 +114,16 @@ describe('PropertyDecoratorService - modified row', () => {
     expect(rows[0].classList.contains('lct-prop-modified')).toBe(true);
   });
 
-  it('injects a .lct-prop-marker into the modified row', () => {
-    service.callDecorate(editor, rows, { added: [], modified: ['title'], removed: [] }, ['title', 'status']);
-
-    expect(rows[0].querySelector('.lct-prop-marker')).not.toBeNull();
-  });
-
   it('leaves the unchanged row without any lct-prop-* class', () => {
     service.callDecorate(editor, rows, { added: [], modified: ['title'], removed: [] }, ['title', 'status']);
 
     expect(rows[1].classList.contains('lct-prop-modified')).toBe(false);
     expect(rows[1].classList.contains('lct-prop-added')).toBe(false);
-    expect(rows[1].querySelector('.lct-prop-marker')).toBeNull();
   });
 });
 
 // ---------------------------------------------------------------------------
-// AC3 - added row gets lct-prop-added and a plus-circle marker
+// AC3 - added row gets lct-prop-added
 // ---------------------------------------------------------------------------
 
 describe('PropertyDecoratorService - added row', () => {
@@ -148,20 +142,11 @@ describe('PropertyDecoratorService - added row', () => {
 
     expect(rows[1].classList.contains('lct-prop-added')).toBe(true);
   });
-
-  it('injects a marker icon tagged with plus-circle on the added row', () => {
-    service.callDecorate(editor, rows, { added: ['status'], modified: [], removed: [] }, ['title', 'status']);
-
-    const marker = rows[1].querySelector<HTMLElement>('.lct-prop-marker');
-    expect(marker).not.toBeNull();
-    // The obsidian stub's setIcon records the icon name on dataset.icon.
-    expect(marker?.dataset.icon).toBe('plus-circle');
-  });
 });
 
 // ---------------------------------------------------------------------------
-// AC4 - clearing: when no changes remain, all lct-prop-* classes and markers
-//        are absent after a second call
+// AC4 - clearing: when no changes remain, all lct-prop-* classes are absent
+//        after a second call
 // ---------------------------------------------------------------------------
 
 describe('PropertyDecoratorService - clearing decorations', () => {
@@ -175,25 +160,21 @@ describe('PropertyDecoratorService - clearing decorations', () => {
     ({ editor, rows } = makeEditor(['title', 'status']));
   });
 
-  it('removes lct-prop-modified and marker when changes are cleared', () => {
-    // First pass: add a modification.
+  it('removes lct-prop-modified when changes are cleared', () => {
     service.callDecorate(editor, rows, { added: [], modified: ['title'], removed: [] }, ['title', 'status']);
     expect(rows[0].classList.contains('lct-prop-modified')).toBe(true);
 
-    // Second pass: no changes.
     service.callDecorate(editor, rows, EMPTY, ['title', 'status']);
 
     expect(rows[0].classList.contains('lct-prop-modified')).toBe(false);
     expect(rows[0].classList.contains('lct-prop-added')).toBe(false);
-    expect(rows[0].querySelector('.lct-prop-marker')).toBeNull();
   });
 
-  it('removes lct-prop-added and marker when changes are cleared', () => {
+  it('removes lct-prop-added when changes are cleared', () => {
     service.callDecorate(editor, rows, { added: ['status'], modified: [], removed: [] }, ['title', 'status']);
     service.callDecorate(editor, rows, EMPTY, ['title', 'status']);
 
     expect(rows[1].classList.contains('lct-prop-added')).toBe(false);
-    expect(rows[1].querySelector('.lct-prop-marker')).toBeNull();
   });
 });
 
@@ -271,7 +252,7 @@ describe('PropertyDecoratorService - ghost row removal', () => {
 
 // ---------------------------------------------------------------------------
 // AC7 - idempotency: calling apply() twice with same input must not duplicate
-//        markers or ghost rows
+//        classes or ghost rows
 // ---------------------------------------------------------------------------
 
 describe('PropertyDecoratorService - idempotency', () => {
@@ -285,15 +266,14 @@ describe('PropertyDecoratorService - idempotency', () => {
     ({ editor, rows } = makeEditor(['title', 'status']));
   });
 
-  it('produces exactly one .lct-prop-marker per decorated row on double call', () => {
+  it('class is present exactly once on double call', () => {
     const changes: FrontmatterChange = { added: [], modified: ['title'], removed: [] };
     const keyOrder = ['title', 'status'];
 
     service.callDecorate(editor, rows, changes, keyOrder);
     service.callDecorate(editor, rows, changes, keyOrder);
 
-    const markers = rows[0].querySelectorAll('.lct-prop-marker');
-    expect(markers).toHaveLength(1);
+    expect(rows[0].classList.contains('lct-prop-modified')).toBe(true);
   });
 
   it('produces exactly one ghost row per removed key on double call', () => {
@@ -308,3 +288,4 @@ describe('PropertyDecoratorService - idempotency', () => {
     expect(ghosts).toHaveLength(1);
   });
 });
+

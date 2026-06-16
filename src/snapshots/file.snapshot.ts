@@ -563,14 +563,24 @@ export class FileSnapshot {
    * against the file content at this open) while the history modal still diffs
    * against the persisted original and its captured versions.
    *
+   * When the persisted snapshot carried a deletedTimestamp (i.e. it was a
+   * tombstone on disk), that value is synced onto this snapshot so tombstone
+   * data is never silently dropped when the session snapshot was created before
+   * the restore path ran (A8).
+   *
    * @param {string[]} historyLines - The persisted original (history baseline)
    * @param {FileVersion[]} versions - The persisted version timeline, oldest first
+   * @param {number | undefined} deletedTimestamp - The persisted tombstone marker, if any
    */
-  public adoptHistory(historyLines: string[], versions: FileVersion[]): void {
+  public adoptHistory(historyLines: string[], versions: FileVersion[], deletedTimestamp?: number): void {
     const result = SnapshotState.adoptHistory(historyLines, versions);
 
     this.historyLines = result.historyLines;
     this.versions = result.versions;
+
+    if (isNumber(deletedTimestamp)) {
+      this.deletedTimestamp = deletedTimestamp;
+    }
   }
 
   /**

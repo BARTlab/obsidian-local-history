@@ -1,7 +1,7 @@
 import 'reflect-metadata';
-import { describe, expect, it } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { VERSION_KEYFRAME_INTERVAL } from '@/consts';
-import type { SnapshotsService } from '@/services/snapshots.service';
+import { SnapshotsService } from '@/services/snapshots.service';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import { FileVersion } from '@/snapshots/file.version';
 import type { SerializedFileSnapshot } from '@/types';
@@ -351,5 +351,174 @@ describe('SnapshotsService delta-encoded version round-trip (T07)', () => {
     // Flags do not bleed onto neighbouring versions.
     expect(restored[LABELED_INDEX + 1].label).toBeUndefined();
     expect(restored[EXTERNAL_INDEX + 1].external).toBeUndefined();
+  });
+});
+
+/**
+ * A1: post-restore reconciliation for open files (T19).
+ *
+ * After restore() completes, files currently open in the editor whose disk
+ * content diverges from the restored snapshot state must be re-baselined via
+ * scheduleExternalCapture. Files not open must never trigger a disk read.
+ *
+ * The factory below wires getWorkspaceFiles() so the reconcile step can query
+ * which files are open, and supplies a vault read map so the external-capture
+ * path can fulfil the disk read without real IO.
+ */
+describe('SnapshotsService.restore - post-restore reconciliation (A1)', () => {
+  type PluginArg = ConstructorParameters<typeof SnapshotsService>[0];
+
+  interface ReconcileServiceOptions {
+    /** Paths that resolve to a live vault file (passed to getFileByPath). */
+    existingPaths?: string[];
+    /** Paths of files currently open in the editor (returned by getWorkspaceFiles). */
+    openPaths?: string[];
+    /** Vault content by path for the external-capture disk read. */
+    vaultContent?: Record<string, string>;
+  }
+
+  const makeReconcileService = (
+    opts: ReconcileServiceOptions = {},
+  ): SnapshotsService => {
+    const {
+      existingPaths = [],
+      openPaths = [],
+      vaultContent = {},
+    } = opts;
+
+    const present: Set<string> = new Set(existingPaths);
+    const open: Set<string> = new Set(openPaths);
+
+    const settingsService = {
+      value: (key: string): unknown => {
+        const defaults: Record<string, unknown> = {
+          'allowedExtensions': 'md',
+          'excludePaths': '',
+          'snapshots.enabled': true,
+          'snapshots.intervalMs': 0,
+          'snapshots.editThreshold': 0,
+          'snapshots.maxVersions': 0,
+          'snapshots.maxVersionAgeDays': 0,
+        };
+
+        return defaults[key] ?? '';
+      },
+    };
+
+    const plugin = {
+      getActiveEditorView: (): undefined => undefined,
+      getActiveFile: (): null => null,
+      getActiveViewOfType: (): null => null,
+      getFileByPath: (path: string): TFile | null => (present.has(path) ? makeFile(path) : null),
+      getWorkspaceFiles: (): Set<TFile> => new Set([...open].map((p: string): TFile => makeFile(p))),
+      t: (key: string): string => key,
+      get: (): unknown => settingsService,
+      emit: (): void => undefined,
+      app: {
+        vault: {
+          read: async (file: TFile): Promise<string> => {
+            if (!(file.path in vaultContent)) {
+              throw new Error(`No vault content for ${file.path}`);
+            }
+
+            return vaultContent[file.path];
+          },
+        },
+      },
+    } as unknown as PluginArg;
+
+    return new SnapshotsService(plugin);
+  };
+
+  beforeEach((): void => {
+    jest.useFakeTimers();
+  });
+
+  afterEach((): void => {
+    jest.useRealTimers();
+  });
+
+  it('A1-stale: schedules a re-capture for an open file whose disk content diverges from restored state', async () => {
+    // The session snapshot was established at session open with "original content".
+    // The persisted history carries the same content. But the disk now holds
+    // "edited externally" (changed while the plugin was off). After restore,
+    // the debounced capture must fire and record an external version.
+    const file = makeFile('notes/open-stale.md', { stat: { mtime: 1, size: 10 } });
+
+    const service = makeReconcileService({
+      existingPaths: ['notes/open-stale.md'],
+      openPaths: ['notes/open-stale.md'],
+      vaultContent: { 'notes/open-stale.md': 'edited externally' },
+    });
+
+    // Establish the session snapshot (file was open when plugin loaded).
+    service.add(file, 'original content');
+
+    // Restore from a payload that matches the session content.
+    const persisted = new FileSnapshot('original content', '\n', file);
+    service.restore([persisted.toJSON()]);
+
+    // Before the debounce fires: no external version yet.
+    const before: FileSnapshot = service.getOne(file) as FileSnapshot;
+    expect(before.versions.length).toBe(0);
+
+    // Let the debounce timer fire and the async capture complete.
+    await jest.runAllTimersAsync();
+
+    const after: FileSnapshot = service.getOne(file) as FileSnapshot;
+    expect(after.versions.length).toBe(1);
+    expect(after.versions[0].isExternal()).toBe(true);
+    expect(after.getLastStateLines()).toEqual(['edited externally']);
+  });
+
+  it('A1-match: does not re-capture when disk content matches the restored snapshot state', async () => {
+    // Disk and snapshot both hold the same content: no external version should land.
+    const file = makeFile('notes/open-match.md', { stat: { mtime: 1, size: 7 } });
+    const content = 'unchanged';
+
+    const service = makeReconcileService({
+      existingPaths: ['notes/open-match.md'],
+      openPaths: ['notes/open-match.md'],
+      vaultContent: { 'notes/open-match.md': content },
+    });
+
+    service.add(file, content);
+
+    const persisted = new FileSnapshot(content, '\n', file);
+    service.restore([persisted.toJSON()]);
+
+    await jest.runAllTimersAsync();
+
+    const after: FileSnapshot = service.getOne(file) as FileSnapshot;
+    expect(after.versions.length).toBe(0);
+  });
+
+  it('A1-closed: performs no disk read for files NOT open in the editor at restore time', async () => {
+    // The file exists in the vault and has a snapshot but is NOT open.
+    // The vault.read mock throws for this path so the test fails loudly if a
+    // disk read is attempted for it.
+    const file = makeFile('notes/closed.md', { stat: { mtime: 1, size: 5 } });
+
+    const service = makeReconcileService({
+      existingPaths: ['notes/closed.md'],
+      openPaths: [], // not open
+      vaultContent: {}, // read would throw for 'notes/closed.md'
+    });
+
+    service.add(file, 'closed content');
+
+    const persisted = new FileSnapshot('closed content', '\n', file);
+
+    // This must not trigger a vault read; if it does the mock throws and the
+    // test fails.
+    expect((): void => {
+      service.restore([persisted.toJSON()]);
+    }).not.toThrow();
+
+    await jest.runAllTimersAsync();
+
+    // No external version was captured (no disk read happened).
+    const after: FileSnapshot = service.getOne(file) as FileSnapshot;
+    expect(after.versions.length).toBe(0);
   });
 });

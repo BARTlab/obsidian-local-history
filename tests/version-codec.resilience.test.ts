@@ -21,10 +21,17 @@ import type { SerializedFileVersion } from '@/types';
 const makeVersions = (count: number): FileVersion[] => {
   const versions: FileVersion[] = [];
 
-  // Distinct, multi-line content per version so each delta is a real patch with
-  // a non-empty hunk body that can be meaningfully truncated.
+  // 19 stable lines shared across every version, followed by one line that
+  // changes per version. The large shared body keeps the unified-diff delta
+  // (with its fixed-overhead header) below the full-text join length, so
+  // encode() stays in delta form and the tests can manipulate it.
+  const sharedLines: string[] = Array.from(
+    { length: 19 },
+    (_u: unknown, k: number): string => `shared-resilience-line-${k.toString().padStart(3, '0')}`,
+  );
+
   for (let i: number = 0; i < count; i++) {
-    versions.push(new FileVersion([`alpha-${i}`, `beta-${i}`, `gamma-${i}`, 'shared-tail'], 1000 + i));
+    versions.push(new FileVersion([...sharedLines, `tail-${i}`], 1000 + i));
   }
 
   return versions;

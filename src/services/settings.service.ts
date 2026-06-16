@@ -1,4 +1,4 @@
-import { DEFAULT_SETTINGS, PluginEvent, SHOW_CHANGE_KEYS } from '@/consts';
+import { ChangeType, DEFAULT_SETTINGS, PluginEvent, SHOW_CHANGE_KEYS } from '@/consts';
 import type LineChangeTrackerPlugin from '@/main';
 import { MainSetting } from '@/settings/main.setting';
 import type { DeepValue, LineChangeTrackerSettings, PathTo, PathValue, Service } from '@/types';
@@ -108,5 +108,24 @@ export class SettingsService implements Service {
    */
   public toggleShowChanges(value: boolean): void {
     SHOW_CHANGE_KEYS.forEach((key): void => this.update(key, value));
+  }
+
+  /**
+   * Returns the list of change types currently visible according to the active
+   * show.* settings. Used by the navigation commands to skip change types the
+   * user has hidden so go-to-next/prev-change does not land on invisible lines.
+   *
+   * Note: show.changed enables both ChangeType.changed and ChangeType.whitespace
+   * (whitespace-only edits are a sub-category of changed and shown together).
+   *
+   * @return {ChangeType[]} The change types whose show.* flag is currently true
+   */
+  public getEnabledTypes(): ChangeType[] {
+    return [
+      ...this.value('show.changed') ? [ChangeType.changed, ChangeType.whitespace] : [],
+      ...this.value('show.restored') ? [ChangeType.restored] : [],
+      ...this.value('show.added') ? [ChangeType.added] : [],
+      ...this.value('show.removed') ? [ChangeType.removed] : [],
+    ];
   }
 }

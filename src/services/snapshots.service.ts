@@ -458,6 +458,14 @@ export class SnapshotsService implements Service {
    * `getFileByPath` is consulted; a null result is a real absence, not a
    * transient indexing miss.
    *
+   * After the restore loop, any file currently open in the editor is
+   * re-checked via {@link scheduleExternalCapture} to catch a disk state that
+   * diverged from the restored snapshot state while the plugin was off (A1).
+   * Files not open in the editor are intentionally skipped (no disk read for
+   * unopened files). The debounce inside {@link scheduleExternalCapture} also
+   * coalesces any vault.modify event that fires immediately after restore into a
+   * single trailing pass, preventing double-capture.
+   *
    * @param {SerializedFileSnapshot[]} snapshots - The serialized snapshots
    */
   public restore(snapshots: SerializedFileSnapshot[]): void {
@@ -510,6 +518,42 @@ export class SnapshotsService implements Service {
 
       restored.resetMarkerBaseline();
       this.fileSnapshots.set(data.path, restored);
+    }
+
+    this.reconcileOpenFiles();
+  }
+
+  /**
+   * Re-checks the disk state for every file currently open in the editor after
+   * a restore pass (A1). Calls {@link scheduleExternalCapture} for each open
+   * file that has a snapshot, which debounces the disk read + hash compare and
+   * fires a capture only when the on-disk content diverges from the restored
+   * state. Files not open in the editor are intentionally skipped: there is no
+   * visible editor surface for them and the performance cost of reading every
+   * tracked file on startup would be prohibitive.
+   *
+   * The debounce window inside {@link ExternalChangeCapture} acts as an
+   * async-safety valve: if a vault.modify event fires for the same file
+   * immediately after restore, its scheduleExternalCapture call resets the
+   * timer, so the two triggers coalesce into a single trailing disk read
+   * rather than a double-capture.
+   *
+   * A no-op when the plugin does not yet expose {@link getWorkspaceFiles}
+   * (test stubs or very early init paths that do not need the workspace).
+   */
+  protected reconcileOpenFiles(): void {
+    if (typeof this.plugin.getWorkspaceFiles !== 'function') {
+      return;
+    }
+
+    const openFiles: Set<TFile> = this.plugin.getWorkspaceFiles();
+
+    for (const file of openFiles) {
+      if (!file || !this.fileSnapshots.has(file.path)) {
+        continue;
+      }
+
+      this.scheduleExternalCapture(file);
     }
   }
 

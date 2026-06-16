@@ -478,8 +478,16 @@ describe('FileSnapshot version codec wiring (T05)', () => {
     // One more than the interval so at least one entry must be a delta.
     const count: number = VERSION_KEYFRAME_INTERVAL + 1;
 
+    // Build each version as 19 shared lines plus one tail line that changes.
+    // The large shared body keeps the unified-diff (including its fixed header
+    // overhead) below the full-text join length, so encode() keeps delta form.
+    const sharedLines: string[] = Array.from(
+      { length: 19 },
+      (_u: unknown, k: number): string => `shared-content-line-${k.toString().padStart(3, '0')}`,
+    );
+
     for (let i = 1; i <= count; i++) {
-      snapshot.captureVersion([`line-${i}`], opts);
+      snapshot.captureVersion([...sharedLines, `tail-${i}`], opts);
     }
 
     expect(snapshot.versions).toHaveLength(count);

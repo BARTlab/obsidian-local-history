@@ -12,13 +12,21 @@ import type { SerializedFileVersion } from '@/types';
  * than the full joined text it replaces. Decode is covered separately (T03).
  */
 
+/**
+ * Builds a sequence of FileVersion instances where 19 shared lines are followed
+ * by one tail line that changes per version. The large shared body keeps the
+ * unified-diff delta well below the full-text join length, so the keyframe-
+ * fallback guard (A11) is never triggered and non-keyframe entries stay in
+ * delta form - which is what the cadence-checking tests assert on.
+ */
 const makeVersions = (count: number, mutate?: (i: number) => Partial<{ label: string; external: boolean }>): FileVersion[] => {
+  const sharedLines: string[] = Array.from({ length: 19 }, (_u: unknown, k: number): string => `shared-content-line-${k.toString().padStart(3, '0')}`);
   const versions: FileVersion[] = [];
 
   for (let i: number = 0; i < count; i++) {
     const extras = mutate?.(i) ?? {};
 
-    versions.push(new FileVersion([`line-a-${i}`, `line-b-${i}`, `line-c-${i}`], 1000 + i, extras.label, extras.external));
+    versions.push(new FileVersion([...sharedLines, `tail-${i}`], 1000 + i, extras.label, extras.external));
   }
 
   return versions;
@@ -108,6 +116,38 @@ describe('VersionCodec.encode', (): void => {
 
     expect(entries[1].delta).toBeDefined();
     expect(entries[1].delta!.length).toBeLessThan(fullText.length);
+  });
+
+  it('falls back to a keyframe when delta length exceeds full-text length on a near-total rewrite', (): void => {
+    // A 3-line base followed by 50 completely different lines: the unified diff
+    // would be larger than the full-text join, so encode must store lines.
+    const base: string[] = ['a', 'b', 'c'];
+    const rewritten: string[] = Array.from({ length: 50 }, (_u: unknown, k: number): string => `new-line-${k}`);
+
+    const first: FileVersion = new FileVersion(base, 1);
+    const second: FileVersion = new FileVersion(rewritten, 2);
+
+    const entries: SerializedFileVersion[] = VersionCodec.encode([first, second], '\n');
+
+    expect(entries[1].lines).toBeDefined();
+    expect(entries[1].delta).toBeUndefined();
+    expect(entries[1].lines).toEqual(rewritten);
+  });
+
+  it('keeps a delta entry when the diff is smaller than the full text', (): void => {
+    // A large file with only one changed line: the diff is much smaller than
+    // the full-text join, so encode must preserve the delta form.
+    const base: string[] = Array.from({ length: 200 }, (_u: unknown, k: number): string => `stable-line-${k}`);
+    const changed: string[] = [...base];
+    changed[100] = 'stable-line-100-modified';
+
+    const first: FileVersion = new FileVersion(base, 1);
+    const second: FileVersion = new FileVersion(changed, 2);
+
+    const entries: SerializedFileVersion[] = VersionCodec.encode([first, second], '\n');
+
+    expect(entries[1].delta).toBeDefined();
+    expect(entries[1].lines).toBeUndefined();
   });
 
   it('does not mutate the input versions array or any FileVersion', (): void => {
@@ -355,6 +395,33 @@ describe('VersionCodec round-trip and edges (T04)', (): void => {
     decoded.forEach((version: FileVersion, i: number): void => {
       expect(version.getLines()).toEqual(versions[i].getLines());
       expect(version.getLines()).toHaveLength(versions[i].getLines().length);
+    });
+  });
+
+  it('round-trips a chain that includes a keyframe-fallback entry at a non-keyframe position', (): void => {
+    // Build a 3-version chain where version 2 is a near-total rewrite so the
+    // codec falls back to a keyframe. encode() stores lines for that entry;
+    // decode() must reconstruct all three versions correctly.
+    const base: string[] = ['a', 'b', 'c'];
+    const totalRewrite: string[] = Array.from({ length: 50 }, (_u: unknown, k: number): string => `completely-different-line-${k}`);
+
+    const versions: FileVersion[] = [
+      new FileVersion(base, 1),
+      new FileVersion(totalRewrite, 2),
+      new FileVersion([...totalRewrite, 'extra'], 3),
+    ];
+
+    const entries: SerializedFileVersion[] = VersionCodec.encode(versions, '\n');
+
+    // The second entry must be a keyframe fallback, not a delta.
+    expect(entries[1].lines).toBeDefined();
+    expect(entries[1].delta).toBeUndefined();
+
+    const decoded: FileVersion[] = VersionCodec.decode(entries, '\n');
+
+    expect(decoded).toHaveLength(3);
+    decoded.forEach((v: FileVersion, i: number): void => {
+      expect(v.getLines()).toEqual(versions[i].getLines());
     });
   });
 

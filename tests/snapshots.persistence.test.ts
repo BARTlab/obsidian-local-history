@@ -231,14 +231,14 @@ describe('SnapshotsService delta-encoded version round-trip (T07)', () => {
     const versions: FileVersion[] = [];
 
     for (let i = 0; i < TOTAL; i += 1) {
-      // Each version differs from its predecessor by one line plus a stable body,
-      // so a unified-diff delta against i-1 stays small while still non-empty.
+      // 18 stable lines plus two changing lines keep the unified-diff delta (with
+      // its fixed-overhead header) below the full-text join length, so encode()
+      // stays in delta form rather than falling back to a keyframe.
       const lines: string[] = [
         'header',
-        `edit number ${i}`,
-        'shared body line a',
-        'shared body line b',
-        `tail ${i}`,
+        ...Array.from({ length: 16 }, (_u: unknown, k: number): string => `shared-body-line-${k.toString().padStart(3, '0')}`),
+        `edit-${i}`,
+        `tail-${i}`,
       ];
 
       const label: string | undefined = i === LABELED_INDEX ? `pinned ${i}` : undefined;

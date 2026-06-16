@@ -47,9 +47,18 @@ export class VersionCodec {
       const version: FileVersion = versions[i];
       const isKeyframe: boolean = i % VERSION_KEYFRAME_INTERVAL === 0;
 
-      const entry: SerializedFileVersion = isKeyframe
-        ? { timestamp: version.timestamp, lines: version.getLines() }
-        : { timestamp: version.timestamp, delta: VersionCodec.diff(versions[i - 1], version) };
+      let entry: SerializedFileVersion;
+
+      if (isKeyframe) {
+        entry = { timestamp: version.timestamp, lines: version.getLines() };
+      } else {
+        const delta: string = VersionCodec.diff(versions[i - 1], version);
+        const fullText: string = version.getLines().join('\n');
+
+        entry = delta.length >= fullText.length
+          ? { timestamp: version.timestamp, lines: version.getLines() }
+          : { timestamp: version.timestamp, delta };
+      }
 
       if (version.isLabeled()) {
         entry.label = version.label;

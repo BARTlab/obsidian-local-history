@@ -2,6 +2,7 @@ import { BaseCommand } from '@/commands/base.command';
 import { NavigationDirection } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { NavigationHelper } from '@/helpers/navigation.helper';
+import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import { TOKENS } from '@/services/tokens';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
@@ -17,6 +18,13 @@ import { type Command, type Editor, Notice } from 'obsidian';
  * @implements {Command}
  */
 export class GoToPreviousChangeCommand extends BaseCommand implements Command {
+  /**
+   * Service for accessing plugin settings.
+   * Injected using the @Inject decorator.
+   */
+  @Inject(TOKENS.settings)
+  protected settingsService: SettingsService;
+
   /**
    * Service for managing file snapshots.
    * Injected using the @Inject decorator.
@@ -45,7 +53,7 @@ export class GoToPreviousChangeCommand extends BaseCommand implements Command {
    */
   public editorCallback = (editor: Editor): void => {
     const snapshot: FileSnapshot | null = this.snapshotsService.getOne();
-    const positions: number[] = snapshot?.getChangedPositions() ?? [];
+    const positions: number[] = snapshot?.getChangedPositions(this.settingsService.getEnabledTypes()) ?? [];
 
     if (positions.length === 0) {
       new Notice(this.plugin.t('notice.no-changes-to-navigate'));

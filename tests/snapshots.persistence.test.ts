@@ -201,6 +201,37 @@ describe('SnapshotsService.restore', () => {
 
     expect(service.getList()).toHaveLength(0);
   });
+
+  it('A8: syncs deletedTimestamp when persisted snapshot is a tombstone and session snapshot exists', () => {
+    // The session snapshot was created before restore ran (file exists in vault).
+    const service = makeService(['a.md']);
+    service.add(makeFile('a.md'), 'x\ny');
+
+    // Build a persisted tombstone payload: a snapshot that carries deletedTimestamp.
+    const persisted = new FileSnapshot('a\nb', '\n', makeFile('a.md'));
+    const serialized: SerializedFileSnapshot = persisted.toJSON();
+    serialized.deletedTimestamp = 1_700_000_000_000;
+
+    service.restore([serialized]);
+
+    const result: FileSnapshot | null = service.getOne(makeFile('a.md'));
+    expect(result).not.toBeNull();
+    expect(result!.isTombstone()).toBe(true);
+    expect(result!.deletedTimestamp).toBe(1_700_000_000_000);
+  });
+
+  it('A8: does not set deletedTimestamp when persisted snapshot has no deletedTimestamp', () => {
+    // Normal (non-deleted) restore: session snapshot must not gain a tombstone marker.
+    const service = makeService(['a.md']);
+    service.add(makeFile('a.md'), 'x\ny');
+
+    service.restore([dirtySerialized('a.md')]);
+
+    const result: FileSnapshot | null = service.getOne(makeFile('a.md'));
+    expect(result).not.toBeNull();
+    expect(result!.isTombstone()).toBe(false);
+    expect(result!.deletedTimestamp).toBeUndefined();
+  });
 });
 
 describe('SnapshotsService delta-encoded version round-trip (T07)', () => {

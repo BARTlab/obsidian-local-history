@@ -488,7 +488,11 @@ export class SnapshotsService implements Service {
          */
         const persisted: FileSnapshot = FileSnapshot.fromJSON(data, file);
 
-        existing.adoptHistory(persisted.getHistoryOriginalStateLines(), persisted.versions);
+        existing.adoptHistory(
+          persisted.getHistoryOriginalStateLines(),
+          persisted.versions,
+          persisted.deletedTimestamp,
+        );
         this.forceUpdate();
 
         continue;

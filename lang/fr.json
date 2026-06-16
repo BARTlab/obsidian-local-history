@@ -32,6 +32,8 @@
   "setting.ignore-new-files.desc": "Ne pas suivre les modifications des fichiers créés après le démarrage du suivi",
   "setting.tree-highlight.name": "Mettre en évidence les changements dans l'arborescence et les onglets",
   "setting.tree-highlight.desc": "Colore les fichiers et dossiers de l'explorateur de fichiers natif, ainsi que les en-têtes d'onglet des fichiers ouverts, selon ce qui a changé durant cette session (ambre pour modifié, vert pour ajouté).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Conserver l'historique entre les redémarrages",
   "setting.persist.desc": "Enregistrer l'historique sur le disque pour que les surlignages survivent à un redémarrage. Nécessite que \"Conserver l'historique jusqu'à\" soit réglé sur la fermeture de l'application.",
   "setting.max-entries.name": "Nombre maximal de fichiers stockés",

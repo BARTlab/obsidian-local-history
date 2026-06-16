@@ -32,6 +32,8 @@
   "setting.ignore-new-files.desc": "Nesledovat změny v souborech vytvořených po zahájení sledování",
   "setting.tree-highlight.name": "Zvýraznit změny ve stromu souborů a na kartách",
   "setting.tree-highlight.desc": "Obarví soubory a složky v nativním průzkumníku souborů a záhlaví karet otevřených souborů podle toho, co se v této relaci změnilo (oranžová pro upravené, zelená pro přidané).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Zachovat historii mezi restarty",
   "setting.persist.desc": "Ukládat historii na disk, aby zvýraznění přečkala restart. Vyžaduje nastavení \"Uchovávat historii do\" na zavření aplikace.",
   "setting.max-entries.name": "Maximum uložených souborů",

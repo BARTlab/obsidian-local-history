@@ -32,6 +32,8 @@
   "setting.ignore-new-files.desc": "Ikke spor endringer i filer som er opprettet etter at sporingen startet",
   "setting.tree-highlight.name": "Fremhev endringer i filtreet og fanene",
   "setting.tree-highlight.desc": "Farg filer og mapper i det innebygde filutforskeren samt fanetitlene for åpne filer etter hva som er endret i denne økten (rav for endret, grønn for lagt til).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Behold historikk på tvers av omstarter",
   "setting.persist.desc": "Lagre historikk på disk slik at uthevinger overlever en omstart. Krever at \"Behold historikk til\" er satt til Appen lukkes.",
   "setting.max-entries.name": "Maks. lagrede filer",

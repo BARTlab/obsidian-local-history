@@ -32,6 +32,8 @@
   "setting.ignore-new-files.desc": "Mos i ndiq ndryshimet në skedarët e krijuar pasi filloi ndjekja",
   "setting.tree-highlight.name": "Thekso ndryshimet në pemën e skedarëve dhe në skedat",
   "setting.tree-highlight.desc": "Ngjyros skedarët dhe dosjet në shfletuesin vendas të skedarëve, si dhe titujt e skedave të skedarëve të hapur, sipas asaj që ndryshoi në këtë sesion (qelibar për të modifikuarit, jeshile për të shtuarit).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Ruaj historinë gjatë rinisjeve",
   "setting.persist.desc": "Ruaj historinë në disk që theksimet të mbijetojnë një rinisje. Kërkon që \"Ruaj historinë deri\" të jetë vendosur te Mbyllja e aplikacionit.",
   "setting.max-entries.name": "Maks. skedarë të ruajtur",

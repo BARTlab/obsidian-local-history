@@ -136,4 +136,9 @@ export interface LineChangeTrackerSettings {
    * their session change status (the tree + tab highlight feature)
    */
   treeHighlight: boolean;
+  /**
+   * Whether to highlight added, modified, and removed properties in the
+   * Obsidian Properties panel (the properties-diff feature)
+   */
+  propertiesHighlight: boolean;
 }

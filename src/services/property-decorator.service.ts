@@ -8,6 +8,7 @@ import {
 } from '@/helpers/properties-panel.adapter';
 import { diffFrontmatter, type FrontmatterChange } from '@/helpers/frontmatter-diff.helper';
 import type LineChangeTrackerPlugin from '@/main';
+import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import { TOKENS } from '@/services/tokens';
 import type { Service } from '@/types';
@@ -29,6 +30,14 @@ import type { FileSnapshot } from '@/snapshots/file.snapshot';
  * @implements {Service}
  */
 export class PropertyDecoratorService implements Service {
+  /**
+   * Service for reading plugin settings, used to gate decoration behind the
+   * `propertiesHighlight` toggle (mirrors the `treeHighlight` gate in
+   * {@link TreeTabDecoratorService}).
+   */
+  @Inject(TOKENS.settings)
+  protected settingsService: SettingsService;
+
   /**
    * Service for reading the current set of file snapshots, from which the
    * frontmatter baseline lines and the current state lines are sourced.
@@ -143,6 +152,45 @@ export class PropertyDecoratorService implements Service {
   }
 
   /**
+   * Removes all property-diff decorations from the active MarkdownView and
+   * purges all ghost rows, WITHOUT tearing down the refresh wiring.  Called
+   * when the `propertiesHighlight` toggle is turned off so the panel clears
+   * live yet remains ready to re-decorate the moment it is turned back on.
+   * Idempotent: a second call is a no-op when the maps are already empty and
+   * no decorated rows remain.
+   */
+  protected clearAll(): void {
+    // Remove all injected ghost rows from the DOM and clear the registry.
+    for (const ghostEl of this.ghostMap.values()) {
+      ghostEl.remove();
+    }
+
+    this.ghostMap.clear();
+
+    // Strip lct-prop-* classes from all live property rows in the active view.
+    const view: MarkdownView | null = this.plugin.getActiveViewOfType();
+
+    if (!view) {
+      return;
+    }
+
+    const editor: HTMLElement | null = queryMetadataEditor(view.contentEl);
+
+    if (!editor) {
+      return;
+    }
+
+    for (const row of queryPropertyRows(editor)) {
+      row.classList.remove(
+        PropertyDecoratorService.CLASS_ADDED,
+        PropertyDecoratorService.CLASS_MODIFIED,
+        PropertyDecoratorService.CLASS_REMOVED,
+      );
+      row.removeAttribute('title');
+    }
+  }
+
+  /**
    * Schedules a debounced apply sweep.  A pending timer is reset on each call
    * so a burst of triggers resolves to a single trailing {@link apply}.
    */
@@ -173,6 +221,12 @@ export class PropertyDecoratorService implements Service {
    */
   protected apply(): void {
     if (!this.plugin.isReady()) {
+      return;
+    }
+
+    if (!this.settingsService.value('propertiesHighlight')) {
+      this.clearAll();
+
       return;
     }
 

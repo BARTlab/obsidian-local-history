@@ -32,6 +32,8 @@
   "setting.ignore-new-files.desc": "追跡開始後に作成されたファイルの変更を追跡しません",
   "setting.tree-highlight.name": "ファイルツリーとタブで変更を強調表示",
   "setting.tree-highlight.desc": "ネイティブのファイルエクスプローラー内のファイルとフォルダー、および開いているファイルのタブヘッダーを、このセッションで変更された内容に応じて色付けします（変更は琥珀色、追加は緑色）。",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "再起動後も履歴を保持",
   "setting.persist.desc": "履歴をディスクに保存し、再起動後もハイライトが残るようにします。「履歴を保持する期間」をアプリを閉じるまでに設定する必要があります。",
   "setting.max-entries.name": "保存するファイルの最大数",

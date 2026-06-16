@@ -32,6 +32,8 @@
   "setting.ignore-new-files.desc": "ट्र्याकिङ सुरु भएपछि सिर्जना गरिएका फाइलहरूमा परिवर्तन ट्र्याक नगर्नुहोस्",
   "setting.tree-highlight.name": "फाइल रूख र ट्याबहरूमा परिवर्तनहरू हाइलाइट गर्नुहोस्",
   "setting.tree-highlight.desc": "नेटिभ फाइल एक्सप्लोररमा फाइल र फोल्डरहरू, र खुला फाइलहरूको ट्याब हेडरहरूलाई यस सत्रमा के परिवर्तन भयो त्यसअनुसार रङ लगाउनुहोस् (परिमार्जितका लागि अम्बर, थपिएकाका लागि हरियो)।",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "पुनः सुरु भएपछि पनि इतिहास राख्नुहोस्",
   "setting.persist.desc": "हाइलाइटहरू पुनः सुरुपछि पनि रहून् भनेर इतिहास डिस्कमा सुरक्षित गर्नुहोस्। \"इतिहास राख्ने अवधि\" एप बन्दमा सेट गर्न आवश्यक छ।",
   "setting.max-entries.name": "अधिकतम सुरक्षित फाइलहरू",

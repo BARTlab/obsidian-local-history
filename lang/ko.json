@@ -32,6 +32,8 @@
   "setting.ignore-new-files.desc": "추적이 시작된 후 생성된 파일의 변경은 추적하지 않습니다",
   "setting.tree-highlight.name": "파일 트리와 탭에서 변경 사항 강조",
   "setting.tree-highlight.desc": "기본 파일 탐색기의 파일과 폴더, 그리고 열린 파일의 탭 헤더를 이번 세션에서 변경된 내용에 따라 색칠합니다 (수정은 호박색, 추가는 녹색).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "재시작 후에도 기록 유지",
   "setting.persist.desc": "재시작 후에도 강조 표시가 유지되도록 기록을 디스크에 저장합니다. \"기록 보관 기준\"이 앱 종료 시로 설정되어 있어야 합니다.",
   "setting.max-entries.name": "최대 저장 파일 수",

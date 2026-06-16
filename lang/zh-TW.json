@@ -32,6 +32,8 @@
   "setting.ignore-new-files.desc": "不追蹤在開始追蹤後建立的檔案中的變更",
   "setting.tree-highlight.name": "在檔案樹和分頁中醒目顯示變更",
   "setting.tree-highlight.desc": "依本次工作階段中的變更，為原生檔案總管中的檔案與資料夾，以及已開啟檔案的分頁標題著色（修改為琥珀色，新增為綠色）。",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "重新啟動後保留歷史記錄",
   "setting.persist.desc": "將歷史記錄儲存至磁碟，使醒目提示在重新啟動後依然保留。需要將「保留歷史記錄直到」設定為關閉應用程式時。",
   "setting.max-entries.name": "最多儲存的檔案數",

@@ -32,6 +32,8 @@
   "setting.ignore-new-files.desc": "No rastrear cambios en archivos creados después de iniciar el rastreo",
   "setting.tree-highlight.name": "Resaltar cambios en el árbol de archivos y las pestañas",
   "setting.tree-highlight.desc": "Colorea los archivos y carpetas del explorador de archivos nativo, y las cabeceras de pestaña de los archivos abiertos, según lo que cambió en esta sesión (ámbar para modificado, verde para añadido).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Conservar el historial entre reinicios",
   "setting.persist.desc": "Guardar el historial en el disco para que los resaltados sobrevivan a un reinicio. Requiere que \"Conservar el historial hasta\" esté en cerrar la aplicación.",
   "setting.max-entries.name": "Máximo de archivos almacenados",

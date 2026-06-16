@@ -32,6 +32,8 @@
   "setting.ignore-new-files.desc": "Älä seuraa muutoksia tiedostoissa, jotka on luotu seurannan aloittamisen jälkeen",
   "setting.tree-highlight.name": "Korosta muutokset tiedostopuussa ja välilehdissä",
   "setting.tree-highlight.desc": "Värjää natiivin tiedostoselaimen tiedostot ja kansiot sekä avoinna olevien tiedostojen välilehtien otsikot sen mukaan, mikä tässä istunnossa muuttui (keltainen muokatulle, vihreä lisätylle).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Säilytä historia uudelleenkäynnistysten yli",
   "setting.persist.desc": "Tallenna historia levylle, jotta korostukset säilyvät uudelleenkäynnistyksen yli. Edellyttää, että \"Säilytä historiaa kunnes\" on asetettu arvoon Sovellus suljetaan.",
   "setting.max-entries.name": "Tallennettujen tiedostojen enimmäismäärä",

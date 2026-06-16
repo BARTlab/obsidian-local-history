@@ -32,6 +32,8 @@
   "setting.ignore-new-files.desc": "Neizsekot izmaiņas failos, kas izveidoti pēc izsekošanas sākšanas",
   "setting.tree-highlight.name": "Izcelt izmaiņas failu kokā un cilnēs",
   "setting.tree-highlight.desc": "Iekrāso failus un mapes vietējā failu pārlūkā, kā arī atvērto failu ciļņu galvenes atbilstoši tam, kas mainījies šajā sesijā (dzintarkrāsa mainītajiem, zaļa pievienotajiem).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Saglabāt vēsturi starp restartiem",
   "setting.persist.desc": "Saglabāt vēsturi diskā, lai izcēlumi saglabātos pēc restarta. Nepieciešams, lai \"Saglabāt vēsturi līdz\" būtu iestatīts uz Lietotnes aizvēršanai.",
   "setting.max-entries.name": "Maks. saglabāto failu skaits",

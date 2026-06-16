@@ -32,6 +32,8 @@
   "setting.ignore-new-files.desc": "Jangan lacak perubahan pada berkas yang dibuat setelah pelacakan dimulai",
   "setting.tree-highlight.name": "Sorot perubahan di pohon berkas dan tab",
   "setting.tree-highlight.desc": "Warnai berkas dan folder di penjelajah berkas bawaan, serta tajuk tab berkas yang terbuka, berdasarkan apa yang berubah pada sesi ini (kuning untuk diubah, hijau untuk ditambah).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Pertahankan riwayat setelah dimulai ulang",
   "setting.persist.desc": "Simpan riwayat ke disk agar sorotan bertahan setelah dimulai ulang. Memerlukan \"simpan riwayat hingga\" disetel ke aplikasi ditutup.",
   "setting.max-entries.name": "Maks berkas tersimpan",

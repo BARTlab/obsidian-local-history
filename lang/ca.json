@@ -32,6 +32,8 @@
   "setting.ignore-new-files.desc": "No facis el seguiment dels canvis en fitxers creats després d'iniciar el seguiment",
   "setting.tree-highlight.name": "Ressalta els canvis a l'arbre de fitxers i a les pestanyes",
   "setting.tree-highlight.desc": "Acoloreix els fitxers i les carpetes a l'explorador de fitxers natiu, i les capçaleres de pestanya dels fitxers oberts, segons el que ha canviat en aquesta sessió (ambre per a modificat, verd per a afegit).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Conserva l'historial entre reinicis",
   "setting.persist.desc": "Desa l'historial al disc perquè els ressaltats sobrevisquin a un reinici. Cal que «conserva l'historial fins a» estigui definit a tancar l'aplicació.",
   "setting.max-entries.name": "Màxim de fitxers emmagatzemats",

@@ -138,6 +138,17 @@ export class MainSetting extends PluginSettingTab {
       );
 
     new Setting(containerEl)
+      .setName(this.plugin.t('setting.properties-highlight.name'))
+      .setDesc(this.plugin.t('setting.properties-highlight.desc'))
+      .addToggle((toggle: ToggleComponent): ToggleComponent =>
+        toggle
+          .setValue(this.settingsService.value('propertiesHighlight'))
+          .onChange((value: boolean): void => {
+            this.settingsService.update('propertiesHighlight', value);
+          })
+      );
+
+    new Setting(containerEl)
       .setName(this.plugin.t('setting.persist.name'))
       .setDesc(this.plugin.t('setting.persist.desc'))
       .addToggle((toggle: ToggleComponent): ToggleComponent =>

@@ -32,6 +32,8 @@
   "setting.ignore-new-files.desc": "ክትትል ከተጀመረ በኋላ የተፈጠሩ ፋይሎች ውስጥ ለውጦችን አትከታተል",
   "setting.tree-highlight.name": "በፋይል ዛፍ እና ትሮች ውስጥ ለውጦችን አጉልተ",
   "setting.tree-highlight.desc": "በቤተኛው የፋይል አሳሽ ውስጥ ያሉ ፋይሎችን እና አቃፊዎችን፣ እንዲሁም የተከፈቱ ፋይሎችን የትር አርዕስቶች በዚህ ክፍለ ጊዜ በተለወጠው መሠረት ቀለም ስጥ (ለተሻሻለ አምበር፣ ለታከለ አረንጓዴ)።",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "ታሪክን በዳግም ማስጀመሮች መካከል አቆይ",
   "setting.persist.desc": "ምልክቶች ዳግም ማስጀመርን እንዲተርፉ ታሪክን ወደ ዲስክ አስቀምጥ። \"ታሪክን እስከመቼ ማቆየት\" ወደ መተግበሪያ መዘጋት መዋቀር ይጠይቃል።",
   "setting.max-entries.name": "ከፍተኛ የተከማቹ ፋይሎች",

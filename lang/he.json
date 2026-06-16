@@ -32,6 +32,8 @@
   "setting.ignore-new-files.desc": "אל תעקוב אחר שינויים בקבצים שנוצרו לאחר תחילת המעקב",
   "setting.tree-highlight.name": "הדגשת שינויים בעץ הקבצים ובלשוניות",
   "setting.tree-highlight.desc": "צביעת קבצים ותיקיות בסייר הקבצים המובנה, וכותרות הלשוניות של קבצים פתוחים, לפי מה שהשתנה במהלך הפעלה זו (ענבר לשונה, ירוק לנוסף).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "שמירת היסטוריה בין הפעלות מחדש",
   "setting.persist.desc": "שמור את ההיסטוריה לדיסק כדי שההדגשות ישרדו הפעלה מחדש. דורש הגדרת \"שמירת היסטוריה עד\" לסגירת היישום.",
   "setting.max-entries.name": "מקסימום קבצים שמורים",

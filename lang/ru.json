@@ -32,6 +32,8 @@
   "setting.ignore-new-files.desc": "Не отслеживать изменения в файлах, созданных после начала отслеживания",
   "setting.tree-highlight.name": "Подсвечивать изменения в дереве файлов и вкладках",
   "setting.tree-highlight.desc": "Окрашивает файлы и папки в нативном проводнике файлов, а также заголовки вкладок открытых файлов по тому, что изменилось за эту сессию (янтарный для изменённых, зелёный для добавленных).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Сохранять историю между перезапусками",
   "setting.persist.desc": "Сохранять историю на диск, чтобы подсветки переживали перезапуск. Требует, чтобы параметр \"Хранить историю до\" был установлен на закрытие приложения.",
   "setting.max-entries.name": "Максимум хранимых файлов",

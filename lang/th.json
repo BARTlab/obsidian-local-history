@@ -32,6 +32,8 @@
   "setting.ignore-new-files.desc": "ไม่ติดตามการเปลี่ยนแปลงในไฟล์ที่สร้างขึ้นหลังจากเริ่มการติดตาม",
   "setting.tree-highlight.name": "เน้นการเปลี่ยนแปลงในแผนผังไฟล์และแท็บ",
   "setting.tree-highlight.desc": "ลงสีไฟล์และโฟลเดอร์ในตัวสำรวจไฟล์ดั้งเดิม และส่วนหัวแท็บของไฟล์ที่เปิดอยู่ ตามสิ่งที่เปลี่ยนแปลงในเซสชันนี้ (สีอำพันสำหรับที่แก้ไข สีเขียวสำหรับที่เพิ่ม)",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "คงประวัติไว้แม้รีสตาร์ท",
   "setting.persist.desc": "บันทึกประวัติลงดิสก์เพื่อให้ไฮไลต์ยังคงอยู่หลังรีสตาร์ท ต้องตั้ง \"เก็บประวัติไว้จนถึง\" เป็นปิดแอป",
   "setting.max-entries.name": "จำนวนไฟล์ที่จัดเก็บสูงสุด",

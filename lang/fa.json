@@ -32,6 +32,8 @@
   "setting.ignore-new-files.desc": "تغییرات در پرونده‌هایی که پس از آغاز ردیابی ساخته شده‌اند را ردیابی نکن",
   "setting.tree-highlight.name": "برجسته‌سازی تغییرات در درخت پرونده‌ها و زبانه‌ها",
   "setting.tree-highlight.desc": "پرونده‌ها و پوشه‌ها در کاوشگر پرونده بومی و سرتیتر زبانه‌های پرونده‌های باز را بر اساس آنچه در این نشست تغییر کرده رنگ می‌کند (کهربایی برای تغییر‌یافته، سبز برای افزوده‌شده).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "حفظ تاریخچه پس از راه‌اندازی مجدد",
   "setting.persist.desc": "تاریخچه را روی دیسک ذخیره کن تا برجسته‌سازی‌ها پس از راه‌اندازی مجدد باقی بمانند. به تنظیم \"نگهداری تاریخچه تا\" روی بستن برنامه نیاز دارد.",
   "setting.max-entries.name": "بیشینه پرونده‌های ذخیره‌شده",

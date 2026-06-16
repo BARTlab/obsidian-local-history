@@ -32,6 +32,8 @@
   "setting.ignore-new-files.desc": "Wijzigingen niet bijhouden in bestanden die zijn aangemaakt nadat het bijhouden is gestart",
   "setting.tree-highlight.name": "Wijzigingen markeren in de bestandsboom en tabbladen",
   "setting.tree-highlight.desc": "Kleurt bestanden en mappen in de native bestandsverkenner en de tabkoppen van geopende bestanden op basis van wat in deze sessie is gewijzigd (amber voor gewijzigd, groen voor toegevoegd).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Geschiedenis behouden na herstart",
   "setting.persist.desc": "Geschiedenis op schijf opslaan zodat markeringen een herstart overleven. Vereist dat \"Geschiedenis bewaren tot\" is ingesteld op app sluiten.",
   "setting.max-entries.name": "Maximaal opgeslagen bestanden",

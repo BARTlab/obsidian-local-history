@@ -32,6 +32,8 @@
   "setting.ignore-new-files.desc": "ნუ თვალყურს ადევნებ ცვლილებებს ფაილებში, რომლებიც თვალდევნების დაწყების შემდეგ შეიქმნა",
   "setting.tree-highlight.name": "ცვლილებების მონიშვნა ფაილების ხეში და ჩანართებში",
   "setting.tree-highlight.desc": "შეღებავს ფაილებსა და საქაღალდეებს ჩაშენებულ ფაილების მკვლევარში, აგრეთვე ღია ფაილების ჩანართების სათაურებს იმის მიხედვით, რა შეიცვალა ამ სესიაში (ქარვისფერი შეცვლილისთვის, მწვანე დამატებულისთვის).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "ისტორიის შენარჩუნება გადატვირთვებს შორის",
   "setting.persist.desc": "შეინახეთ ისტორია დისკზე, რათა გამოყოფები გადატვირთვას გადაურჩეს. მოითხოვს, რომ \"ისტორიის შენახვა ვიდრე\" დაყენებული იყოს აპლიკაციის დახურვაზე.",
   "setting.max-entries.name": "შენახული ფაილების მაქსიმუმი",

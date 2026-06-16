@@ -32,6 +32,8 @@
   "setting.ignore-new-files.desc": "Не прати измене у фајловима направљеним након почетка праћења",
   "setting.tree-highlight.name": "Истакни измене у стаблу датотека и картицама",
   "setting.tree-highlight.desc": "Боји датотеке и фасцикле у изворном прегледачу датотека и заглавља картица отворених датотека према ономе што је промењено у овој сесији (ћилибарна за измењено, зелена за додато).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Задржи историју између поновних покретања",
   "setting.persist.desc": "Чувај историју на диску да би истицања преживела поновно покретање. Захтева да опција \"Чувај историју до\" буде подешена на затварање апликације.",
   "setting.max-entries.name": "Највише сачуваних фајлова",

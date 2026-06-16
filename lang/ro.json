@@ -32,6 +32,8 @@
   "setting.ignore-new-files.desc": "Nu urmări modificările din fișierele create după începerea urmăririi",
   "setting.tree-highlight.name": "Evidențiază modificările în arborele de fișiere și în file",
   "setting.tree-highlight.desc": "Colorează fișierele și folderele din exploratorul de fișiere nativ, precum și antetele filelor fișierelor deschise, în funcție de ce s-a schimbat în această sesiune (chihlimbar pentru modificat, verde pentru adăugat).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Păstrează istoricul între reporniri",
   "setting.persist.desc": "Salvează istoricul pe disc, astfel încât evidențierile să supraviețuiască unei reporniri. Necesită ca opțiunea \"Păstrează istoricul până la\" să fie setată la închiderea aplicației.",
   "setting.max-entries.name": "Număr maxim de fișiere stocate",

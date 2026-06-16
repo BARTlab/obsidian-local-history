@@ -32,6 +32,8 @@
   "setting.ignore-new-files.desc": "Non tracciare le modifiche nei file creati dopo l'avvio del tracciamento",
   "setting.tree-highlight.name": "Evidenzia le modifiche nell'albero dei file e nelle schede",
   "setting.tree-highlight.desc": "Colora i file e le cartelle nell'esploratore file nativo e le intestazioni delle schede dei file aperti in base a ciò che è cambiato in questa sessione (ambra per modificato, verde per aggiunto).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Mantieni la cronologia tra i riavvii",
   "setting.persist.desc": "Salva la cronologia su disco in modo che le evidenziazioni sopravvivano a un riavvio. Richiede che \"Conserva la cronologia fino a\" sia impostato sulla chiusura dell'app.",
   "setting.max-entries.name": "Numero massimo di file memorizzati",

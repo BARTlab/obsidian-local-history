@@ -32,6 +32,8 @@
   "setting.ignore-new-files.desc": "عدم تتبّع التغييرات في الملفات المُنشأة بعد بدء التتبّع",
   "setting.tree-highlight.name": "إبراز التغييرات في شجرة الملفات والتبويبات",
   "setting.tree-highlight.desc": "تلوين الملفات والمجلدات في مستكشف الملفات الأصلي، وعناوين تبويبات الملفات المفتوحة، حسب ما تغيّر في هذه الجلسة (كهرماني للمعدّل، أخضر للمضاف).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "الاحتفاظ بالسجل عبر عمليات إعادة التشغيل",
   "setting.persist.desc": "احفظ السجل على القرص لتبقى الإبرازات بعد إعادة التشغيل. يتطلب ضبط \"الاحتفاظ بالسجل حتى\" على إغلاق التطبيق.",
   "setting.max-entries.name": "الحد الأقصى للملفات المخزَّنة",

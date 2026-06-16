@@ -32,6 +32,8 @@
   "setting.ignore-new-files.desc": "不追踪在开始追踪后创建的文件中的更改",
   "setting.tree-highlight.name": "在文件树和标签页中高亮显示更改",
   "setting.tree-highlight.desc": "根据本次会话中的更改，为原生文件浏览器中的文件和文件夹以及已打开文件的标签页标题着色（修改为琥珀色，新增为绿色）。",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "重启后保留历史记录",
   "setting.persist.desc": "将历史记录保存到磁盘，使高亮在重启后依然保留。需要将“保留历史记录直到”设置为关闭应用时。",
   "setting.max-entries.name": "最多存储的文件数",

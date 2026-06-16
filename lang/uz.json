@@ -32,6 +32,8 @@
   "setting.ignore-new-files.desc": "Kuzatuv boshlangach yaratilgan fayllardagi oʻzgarishlarni kuzatmaslik",
   "setting.tree-highlight.name": "Fayllar daraxti va yorliqlardagi oʻzgarishlarni ajratib koʻrsatish",
   "setting.tree-highlight.desc": "Tabiiy fayl boshqaruvchisidagi fayllar va papkalarni, shuningdek ochiq fayllarning yorliq sarlavhalarini ushbu seansda nima oʻzgarganiga qarab rangga boʻyaydi (oʻzgartirilgani uchun qahrabo, qoʻshilgani uchun yashil).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Tarixni qayta ishga tushirishlar orasida saqlash",
   "setting.persist.desc": "Belgilashlar qayta ishga tushirishdan keyin ham saqlanishi uchun tarixni diskka saqlang. \"Tarixni saqlash muddati\" sozlamasini ilova yopilgunicha qilib qoʻyishni talab qiladi.",
   "setting.max-entries.name": "Saqlanadigan maksimal fayllar",

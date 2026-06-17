@@ -1,4 +1,4 @@
-import { MS_PER_DAY } from '@/consts';
+import { MS_PER_DAY, VERSION_KEYFRAME_INTERVAL } from '@/consts';
 import { FileVersion } from '@/snapshots/file.version';
 import type { SnapshotCaptureOptions, VersionCaptureContext, VersionCaptureResult } from '@/types';
 import { isArray, isNumber, isString } from 'lodash-es';
@@ -288,5 +288,41 @@ export class VersionTimeline {
     }
 
     this.lastVersionAt = timestamp;
+  }
+
+  /**
+   * Seeds the edit-count gate on restore so the capture cadence is not
+   * artificially reset to 0 on every restart (A5). Without this, a file with
+   * an existing timeline always restarts with `editsSinceVersion = 0`,
+   * effectively delaying the first post-restore version capture by a full
+   * `editThreshold` count even though several versions may already have been
+   * taken in the current keyframe group.
+   *
+   * The seed is derived from the number of persisted versions in the current
+   * keyframe group: `versions.length % VERSION_KEYFRAME_INTERVAL`. A group
+   * starts at index 0, 25, 50, etc. (one full keyframe interval apart), so
+   * a timeline of N versions has accumulated N % 25 entries since the most
+   * recent keyframe boundary. When the timeline is empty or the length is an
+   * exact multiple of the interval (i.e., the last version IS a keyframe),
+   * the count is 0 and the gate is not advanced.
+   *
+   * The seeded value is the maximum of the computed count and any existing
+   * `editsSinceVersion` so a future call cannot deflate a counter that was
+   * already advanced by a capture since object creation.
+   *
+   * @param {FileVersion[]} versions - The restored timeline, oldest first
+   */
+  public seedEditsSinceVersionFromVersions(versions: FileVersion[]): void {
+    if (!isArray(versions) || versions.length === 0) {
+      return;
+    }
+
+    const count: number = versions.length % VERSION_KEYFRAME_INTERVAL;
+
+    if (count === 0) {
+      return;
+    }
+
+    this.editsSinceVersion = Math.max(this.editsSinceVersion, count);
   }
 }

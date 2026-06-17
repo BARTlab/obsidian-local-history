@@ -1,4 +1,4 @@
-import { WordDiffLineType } from '@/consts';
+import { WordDiffLineType, WORD_DIFF_LENGTH_THRESHOLD } from '@/consts';
 import type { InlineDiffLine } from '@/types';
 import * as Diff from 'diff';
 
@@ -24,12 +24,36 @@ export class WordDiffHelper {
    * side yields a single added or removed segment for the non-empty side, and
    * two identical lines yield a single unchanged segment.
    *
+   * When the combined character length of both sides exceeds
+   * {@link WORD_DIFF_LENGTH_THRESHOLD}, the O(n*m) diff is skipped entirely:
+   * the method returns one removed segment for the old text and one added
+   * segment for the new text. This keeps the modal responsive on very long
+   * lines (minified JS, base64 blobs) while preserving full word-diff quality
+   * for all normal lines.
+   *
    * @param {string} oldText - The old (base) line text
    * @param {string} newText - The new (current) line text
    * @return {Diff.Change[]} Ordered word-level segments
    */
   public static segments(oldText: string, newText: string): Diff.Change[] {
-    return Diff.diffWords(oldText ?? '', newText ?? '');
+    const old: string = oldText ?? '';
+    const next: string = newText ?? '';
+
+    if (old.length + next.length > WORD_DIFF_LENGTH_THRESHOLD) {
+      const result: Diff.Change[] = [];
+
+      if (old.length > 0) {
+        result.push({ value: old, removed: true, added: false, count: 1 });
+      }
+
+      if (next.length > 0) {
+        result.push({ value: next, added: true, removed: false, count: 1 });
+      }
+
+      return result;
+    }
+
+    return Diff.diffWords(old, next);
   }
 
   /**

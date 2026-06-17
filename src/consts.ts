@@ -488,6 +488,19 @@ export const OBSIDIAN_LANGUAGES: readonly string[] = [
 ];
 
 /**
+ * Combined character-length threshold for the two sides of a word diff. When
+ * `oldText.length + newText.length` exceeds this value, `WordDiffHelper.segments`
+ * short-circuits and returns one removed segment plus one added segment without
+ * calling `Diff.diffWords`. The O(n*m) diff algorithm causes visible UI stutter on
+ * very long lines (minified JS, base64 blobs); this guard keeps the modal
+ * responsive while still word-diffing typical prose and code lines well under the
+ * limit. 5000 characters was chosen as the threshold: it comfortably covers lines
+ * up to ~2500 chars on each side (far beyond any human-readable line) and keeps
+ * worst-case diff work bounded (see DECISIONS.md ADR-18-11).
+ */
+export const WORD_DIFF_LENGTH_THRESHOLD: number = 5000;
+
+/**
  * Matches a `{name}` placeholder inside a translated string. The captured group
  * is the variable name looked up in the interpolation vars.
  */

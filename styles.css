@@ -5,6 +5,7 @@ body {
   --lct-status-added: var(--color-orange);
   --lct-status-modified: var(--color-blue);
   --lct-status-deleted: var(--color-base-100);
+  --lct-prop-removed: var(--text-muted);
 }
 .modal.lct-diff-modal {
   width: 90vw;
@@ -824,5 +825,5 @@ body {
 }
 .lct-prop-ghost .metadata-property-key {
   text-decoration: line-through;
-  color: var(--lct-status-deleted);
+  color: var(--lct-prop-removed);
 }

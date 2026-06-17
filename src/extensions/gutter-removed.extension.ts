@@ -65,7 +65,7 @@ export class GutterRemovedExtension extends BaseExtension implements GutterConfi
     for (let i: number = 1; i <= view.state.doc.lines; i++) {
       const line: Line = view.state.doc.line(i);
 
-      if (removed.has(line.number - 1) && !removed.has(line.number - 2)) {
+      if (removed.has(line.number - 1) && (line.number < 2 || !removed.has(line.number - 2))) {
         builder.add(line.from, line.from, new RemovedMarker(this.plugin));
       }
     }

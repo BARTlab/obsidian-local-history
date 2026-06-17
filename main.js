@@ -1906,6 +1906,7 @@ var DEFAULT_SETTINGS = {
   excludePaths: "(^|/)templates/|\\.excalidraw\\.md$",
   ignoreNewFiles: true,
   treeHighlight: true,
+  propertiesHighlight: true,
   retention: {
     maxEntries: 200,
     maxAgeDays: 30,
@@ -2052,6 +2053,7 @@ var OBSIDIAN_LANGUAGES = [
   "zh",
   "zh-TW"
 ];
+var WORD_DIFF_LENGTH_THRESHOLD = 5e3;
 var PLACEHOLDER_PATTERN = /\{(\w+)\}/g;
 
 // src/extensions/refresh.effect.ts
@@ -2198,7 +2200,7 @@ var GoToNextChangeCommand = class extends BaseCommand {
     this.editorCallback = (editor) => {
       var _a;
       const snapshot = this.snapshotsService.getOne();
-      const positions = (_a = snapshot == null ? void 0 : snapshot.getChangedPositions()) != null ? _a : [];
+      const positions = (_a = snapshot == null ? void 0 : snapshot.getChangedPositions(this.settingsService.getEnabledTypes())) != null ? _a : [];
       if (positions.length === 0) {
         new import_obsidian.Notice(this.plugin.t("notice.no-changes-to-navigate"));
         return;
@@ -2211,6 +2213,9 @@ var GoToNextChangeCommand = class extends BaseCommand {
     };
   }
 };
+__decorateClass([
+  Inject(TOKENS.settings)
+], GoToNextChangeCommand.prototype, "settingsService", 2);
 __decorateClass([
   Inject(TOKENS.snapshots)
 ], GoToNextChangeCommand.prototype, "snapshotsService", 2);
@@ -2240,7 +2245,7 @@ var GoToPreviousChangeCommand = class extends BaseCommand {
     this.editorCallback = (editor) => {
       var _a;
       const snapshot = this.snapshotsService.getOne();
-      const positions = (_a = snapshot == null ? void 0 : snapshot.getChangedPositions()) != null ? _a : [];
+      const positions = (_a = snapshot == null ? void 0 : snapshot.getChangedPositions(this.settingsService.getEnabledTypes())) != null ? _a : [];
       if (positions.length === 0) {
         new import_obsidian2.Notice(this.plugin.t("notice.no-changes-to-navigate"));
         return;
@@ -2254,6 +2259,9 @@ var GoToPreviousChangeCommand = class extends BaseCommand {
     };
   }
 };
+__decorateClass([
+  Inject(TOKENS.settings)
+], GoToPreviousChangeCommand.prototype, "settingsService", 2);
 __decorateClass([
   Inject(TOKENS.snapshots)
 ], GoToPreviousChangeCommand.prototype, "snapshotsService", 2);
@@ -5367,7 +5375,7 @@ var GutterRemovedExtension = class extends BaseExtension {
       }
       for (let i = 1; i <= view.state.doc.lines; i++) {
         const line = view.state.doc.line(i);
-        if (removed.has(line.number - 1) && !removed.has(line.number - 2)) {
+        if (removed.has(line.number - 1) && (line.number < 2 || !removed.has(line.number - 2))) {
           builder.add(line.from, line.from, new RemovedMarker(this.plugin));
         }
       }
@@ -6900,6 +6908,8 @@ var am_default = {
   "setting.ignore-new-files.desc": "\u12AD\u1275\u1275\u120D \u12A8\u1270\u1300\u1218\u1228 \u1260\u128B\u120B \u12E8\u1270\u1348\u1320\u1229 \u134B\u12ED\u120E\u127D \u12CD\u1235\u1325 \u1208\u12CD\u1326\u127D\u1295 \u12A0\u1275\u12A8\u1273\u1270\u120D",
   "setting.tree-highlight.name": "\u1260\u134B\u12ED\u120D \u12DB\u134D \u12A5\u1293 \u1275\u122E\u127D \u12CD\u1235\u1325 \u1208\u12CD\u1326\u127D\u1295 \u12A0\u1309\u120D\u1270",
   "setting.tree-highlight.desc": "\u1260\u1264\u1270\u129B\u12CD \u12E8\u134B\u12ED\u120D \u12A0\u1233\u123D \u12CD\u1235\u1325 \u12EB\u1209 \u134B\u12ED\u120E\u127D\u1295 \u12A5\u1293 \u12A0\u1243\u134A\u12CE\u127D\u1295\u1363 \u12A5\u1295\u12F2\u1201\u121D \u12E8\u1270\u12A8\u1348\u1271 \u134B\u12ED\u120E\u127D\u1295 \u12E8\u1275\u122D \u12A0\u122D\u12D5\u1235\u1276\u127D \u1260\u12DA\u1205 \u12AD\u134D\u1208 \u130A\u12DC \u1260\u1270\u1208\u12C8\u1320\u12CD \u1218\u1220\u1228\u1275 \u1240\u1208\u121D \u1235\u1325 (\u1208\u1270\u123B\u123B\u1208 \u12A0\u121D\u1260\u122D\u1363 \u1208\u1273\u12A8\u1208 \u12A0\u1228\u1295\u1313\u12F4)\u1362",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "\u1273\u122A\u12AD\u1295 \u1260\u12F3\u130D\u121D \u121B\u1235\u1300\u1218\u122E\u127D \u1218\u12AB\u12A8\u120D \u12A0\u1246\u12ED",
   "setting.persist.desc": '\u121D\u120D\u12AD\u1276\u127D \u12F3\u130D\u121D \u121B\u1235\u1300\u1218\u122D\u1295 \u12A5\u1295\u12F2\u1270\u122D\u1349 \u1273\u122A\u12AD\u1295 \u12C8\u12F0 \u12F2\u1235\u12AD \u12A0\u1235\u1240\u121D\u1325\u1362 "\u1273\u122A\u12AD\u1295 \u12A5\u1235\u12A8\u1218\u127C \u121B\u1246\u12E8\u1275" \u12C8\u12F0 \u1218\u1270\u130D\u1260\u122A\u12EB \u1218\u12D8\u130B\u1275 \u1218\u12CB\u1240\u122D \u12ED\u1320\u12ED\u1243\u120D\u1362',
   "setting.max-entries.name": "\u12A8\u134D\u1270\u129B \u12E8\u1270\u12A8\u121B\u1279 \u134B\u12ED\u120E\u127D",
@@ -7041,6 +7051,8 @@ var ar_default = {
   "setting.ignore-new-files.desc": "\u0639\u062F\u0645 \u062A\u062A\u0628\u0651\u0639 \u0627\u0644\u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0641\u064A \u0627\u0644\u0645\u0644\u0641\u0627\u062A \u0627\u0644\u0645\u064F\u0646\u0634\u0623\u0629 \u0628\u0639\u062F \u0628\u062F\u0621 \u0627\u0644\u062A\u062A\u0628\u0651\u0639",
   "setting.tree-highlight.name": "\u0625\u0628\u0631\u0627\u0632 \u0627\u0644\u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0641\u064A \u0634\u062C\u0631\u0629 \u0627\u0644\u0645\u0644\u0641\u0627\u062A \u0648\u0627\u0644\u062A\u0628\u0648\u064A\u0628\u0627\u062A",
   "setting.tree-highlight.desc": "\u062A\u0644\u0648\u064A\u0646 \u0627\u0644\u0645\u0644\u0641\u0627\u062A \u0648\u0627\u0644\u0645\u062C\u0644\u062F\u0627\u062A \u0641\u064A \u0645\u0633\u062A\u0643\u0634\u0641 \u0627\u0644\u0645\u0644\u0641\u0627\u062A \u0627\u0644\u0623\u0635\u0644\u064A\u060C \u0648\u0639\u0646\u0627\u0648\u064A\u0646 \u062A\u0628\u0648\u064A\u0628\u0627\u062A \u0627\u0644\u0645\u0644\u0641\u0627\u062A \u0627\u0644\u0645\u0641\u062A\u0648\u062D\u0629\u060C \u062D\u0633\u0628 \u0645\u0627 \u062A\u063A\u064A\u0651\u0631 \u0641\u064A \u0647\u0630\u0647 \u0627\u0644\u062C\u0644\u0633\u0629 (\u0643\u0647\u0631\u0645\u0627\u0646\u064A \u0644\u0644\u0645\u0639\u062F\u0651\u0644\u060C \u0623\u062E\u0636\u0631 \u0644\u0644\u0645\u0636\u0627\u0641).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "\u0627\u0644\u0627\u062D\u062A\u0641\u0627\u0638 \u0628\u0627\u0644\u0633\u062C\u0644 \u0639\u0628\u0631 \u0639\u0645\u0644\u064A\u0627\u062A \u0625\u0639\u0627\u062F\u0629 \u0627\u0644\u062A\u0634\u063A\u064A\u0644",
   "setting.persist.desc": '\u0627\u062D\u0641\u0638 \u0627\u0644\u0633\u062C\u0644 \u0639\u0644\u0649 \u0627\u0644\u0642\u0631\u0635 \u0644\u062A\u0628\u0642\u0649 \u0627\u0644\u0625\u0628\u0631\u0627\u0632\u0627\u062A \u0628\u0639\u062F \u0625\u0639\u0627\u062F\u0629 \u0627\u0644\u062A\u0634\u063A\u064A\u0644. \u064A\u062A\u0637\u0644\u0628 \u0636\u0628\u0637 "\u0627\u0644\u0627\u062D\u062A\u0641\u0627\u0638 \u0628\u0627\u0644\u0633\u062C\u0644 \u062D\u062A\u0649" \u0639\u0644\u0649 \u0625\u063A\u0644\u0627\u0642 \u0627\u0644\u062A\u0637\u0628\u064A\u0642.',
   "setting.max-entries.name": "\u0627\u0644\u062D\u062F \u0627\u0644\u0623\u0642\u0635\u0649 \u0644\u0644\u0645\u0644\u0641\u0627\u062A \u0627\u0644\u0645\u062E\u0632\u064E\u0651\u0646\u0629",
@@ -7182,6 +7194,8 @@ var be_default = {
   "setting.ignore-new-files.desc": "\u041D\u0435 \u0430\u0434\u0441\u043E\u0447\u0432\u0430\u0446\u044C \u0437\u043C\u0435\u043D\u044B \u045E \u0444\u0430\u0439\u043B\u0430\u0445, \u0441\u0442\u0432\u043E\u0440\u0430\u043D\u044B\u0445 \u043F\u0430\u0441\u043B\u044F \u043F\u0430\u0447\u0430\u0442\u043A\u0443 \u0430\u0434\u0441\u043E\u0447\u0432\u0430\u043D\u043D\u044F",
   "setting.tree-highlight.name": "\u041F\u0430\u0434\u0441\u0432\u0435\u0447\u0432\u0430\u0446\u044C \u0437\u043C\u0435\u043D\u044B \u045E \u0434\u0440\u044D\u0432\u0435 \u0444\u0430\u0439\u043B\u0430\u045E \u0456 \u045E\u043A\u043B\u0430\u0434\u043A\u0430\u0445",
   "setting.tree-highlight.desc": "\u0410\u0444\u0430\u0440\u0431\u043E\u045E\u0432\u0430\u0446\u044C \u0444\u0430\u0439\u043B\u044B \u0456 \u043F\u0430\u043F\u043A\u0456 \u045E \u0440\u043E\u0434\u043D\u044B\u043C \u043F\u0440\u0430\u0432\u0430\u0434\u043D\u0456\u043A\u0443 \u0444\u0430\u0439\u043B\u0430\u045E, \u0430 \u0442\u0430\u043A\u0441\u0430\u043C\u0430 \u0437\u0430\u0433\u0430\u043B\u043E\u045E\u043A\u0456 \u045E\u043A\u043B\u0430\u0434\u0430\u043A \u0430\u0434\u043A\u0440\u044B\u0442\u044B\u0445 \u0444\u0430\u0439\u043B\u0430\u045E \u043F\u0430\u0432\u043E\u0434\u043B\u0435 \u0442\u0430\u0433\u043E, \u0448\u0442\u043E \u0437\u043C\u044F\u043D\u0456\u043B\u0430\u0441\u044F \u045E \u0433\u044D\u0442\u0430\u0439 \u0441\u0435\u0441\u0456\u0456 (\u0431\u0443\u0440\u0448\u0442\u044B\u043D\u0430\u0432\u044B \u0434\u043B\u044F \u0437\u043C\u0435\u043D\u0435\u043D\u0430\u0433\u0430, \u0437\u044F\u043B\u0451\u043D\u044B \u0434\u043B\u044F \u0434\u0430\u0434\u0430\u0434\u0437\u0435\u043D\u0430\u0433\u0430).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "\u0417\u0430\u0445\u043E\u045E\u0432\u0430\u0446\u044C \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044E \u043F\u0430\u043C\u0456\u0436 \u043F\u0435\u0440\u0430\u0437\u0430\u043F\u0443\u0441\u043A\u0430\u043C\u0456",
   "setting.persist.desc": '\u0417\u0430\u0445\u043E\u045E\u0432\u0430\u0446\u044C \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044E \u043D\u0430 \u0434\u044B\u0441\u043A, \u043A\u0430\u0431 \u043F\u0430\u0434\u0441\u0432\u0435\u0442\u043A\u0456 \u043F\u0435\u0440\u0430\u0436\u044B\u0432\u0430\u043B\u0456 \u043F\u0435\u0440\u0430\u0437\u0430\u043F\u0443\u0441\u043A. \u041F\u0430\u0442\u0440\u0430\u0431\u0443\u0435, \u043A\u0430\u0431 \u043F\u0430\u0440\u0430\u043C\u0435\u0442\u0440 "\u0417\u0430\u0445\u043E\u045E\u0432\u0430\u0446\u044C \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044E \u0434\u0430" \u0431\u044B\u045E \u0443\u0441\u0442\u0430\u043B\u044F\u0432\u0430\u043D\u044B \u043D\u0430 \u0437\u0430\u043A\u0440\u044B\u0446\u0446\u0451 \u043F\u0440\u0430\u0433\u0440\u0430\u043C\u044B.',
   "setting.max-entries.name": "\u041C\u0430\u043A\u0441\u0456\u043C\u0443\u043C \u0437\u0430\u0445\u0430\u0432\u0430\u043D\u044B\u0445 \u0444\u0430\u0439\u043B\u0430\u045E",
@@ -7323,6 +7337,8 @@ var bn_default = {
   "setting.ignore-new-files.desc": "\u099F\u09CD\u09B0\u09CD\u09AF\u09BE\u0995\u09BF\u0982 \u09B6\u09C1\u09B0\u09C1 \u09B9\u0993\u09AF\u09BC\u09BE\u09B0 \u09AA\u09B0\u09C7 \u09A4\u09C8\u09B0\u09BF \u09AB\u09BE\u0987\u09B2\u09C7\u09B0 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u099F\u09CD\u09B0\u09CD\u09AF\u09BE\u0995 \u0995\u09B0\u09AC\u09C7\u09A8 \u09A8\u09BE",
   "setting.tree-highlight.name": "\u09AB\u09BE\u0987\u09B2 \u099F\u09CD\u09B0\u09BF \u098F\u09AC\u0982 \u099F\u09CD\u09AF\u09BE\u09AC\u09C7 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u09B9\u09BE\u0987\u09B2\u09BE\u0987\u099F \u0995\u09B0\u09C1\u09A8",
   "setting.tree-highlight.desc": "\u09A8\u09C7\u099F\u09BF\u09AD \u09AB\u09BE\u0987\u09B2 \u098F\u0995\u09CD\u09B8\u09AA\u09CD\u09B2\u09CB\u09B0\u09BE\u09B0\u09C7 \u09AB\u09BE\u0987\u09B2 \u0993 \u09AB\u09CB\u09B2\u09CD\u09A1\u09BE\u09B0, \u098F\u09AC\u0982 \u0996\u09CB\u09B2\u09BE \u09AB\u09BE\u0987\u09B2\u09C7\u09B0 \u099F\u09CD\u09AF\u09BE\u09AC \u09B9\u09C7\u09A1\u09BE\u09B0 \u098F\u0987 \u09B8\u09C7\u09B6\u09A8\u09C7 \u09AF\u09BE \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09BF\u09A4 \u09B9\u09AF\u09BC\u09C7\u099B\u09C7 \u09A4\u09BE \u0985\u09A8\u09C1\u09B8\u09BE\u09B0\u09C7 \u09B0\u0999 \u0995\u09B0\u09C1\u09A8 (\u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09BF\u09A4\u09C7\u09B0 \u099C\u09A8\u09CD\u09AF \u0985\u09CD\u09AF\u09BE\u09AE\u09CD\u09AC\u09BE\u09B0, \u09AF\u09CB\u0997 \u0995\u09B0\u09BE\u09B0 \u099C\u09A8\u09CD\u09AF \u09B8\u09AC\u09C1\u099C)\u0964",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "\u09B0\u09BF\u09B8\u09CD\u099F\u09BE\u09B0\u09CD\u099F\u09C7\u09B0 \u09AA\u09B0\u09C7\u0993 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09A7\u09B0\u09C7 \u09B0\u09BE\u0996\u09C1\u09A8",
   "setting.persist.desc": '\u09A1\u09BF\u09B8\u09CD\u0995\u09C7 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09B8\u0982\u09B0\u0995\u09CD\u09B7\u09A3 \u0995\u09B0\u09C1\u09A8 \u09AF\u09BE\u09A4\u09C7 \u09B9\u09BE\u0987\u09B2\u09BE\u0987\u099F\u0997\u09C1\u09B2\u09CB \u09B0\u09BF\u09B8\u09CD\u099F\u09BE\u09B0\u09CD\u099F\u09C7\u09B0 \u09AA\u09B0\u09C7\u0993 \u09A5\u09BE\u0995\u09C7\u0964 "\u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09B0\u09BE\u0996\u09C1\u09A8 \u09AF\u09A4\u0995\u09CD\u09B7\u09A3" \u0985\u09CD\u09AF\u09BE\u09AA \u09AC\u09A8\u09CD\u09A7\u09C7 \u09B8\u09C7\u099F \u0995\u09B0\u09BE \u09AA\u09CD\u09B0\u09AF\u09BC\u09CB\u099C\u09A8\u0964',
   "setting.max-entries.name": "\u09B8\u09B0\u09CD\u09AC\u09BE\u09A7\u09BF\u0995 \u09B8\u0982\u09B0\u0995\u09CD\u09B7\u09BF\u09A4 \u09AB\u09BE\u0987\u09B2",
@@ -7464,6 +7480,8 @@ var ca_default = {
   "setting.ignore-new-files.desc": "No facis el seguiment dels canvis en fitxers creats despr\xE9s d'iniciar el seguiment",
   "setting.tree-highlight.name": "Ressalta els canvis a l'arbre de fitxers i a les pestanyes",
   "setting.tree-highlight.desc": "Acoloreix els fitxers i les carpetes a l'explorador de fitxers natiu, i les cap\xE7aleres de pestanya dels fitxers oberts, segons el que ha canviat en aquesta sessi\xF3 (ambre per a modificat, verd per a afegit).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Conserva l'historial entre reinicis",
   "setting.persist.desc": "Desa l'historial al disc perqu\xE8 els ressaltats sobrevisquin a un reinici. Cal que \xABconserva l'historial fins a\xBB estigui definit a tancar l'aplicaci\xF3.",
   "setting.max-entries.name": "M\xE0xim de fitxers emmagatzemats",
@@ -7605,6 +7623,8 @@ var cs_default = {
   "setting.ignore-new-files.desc": "Nesledovat zm\u011Bny v souborech vytvo\u0159en\xFDch po zah\xE1jen\xED sledov\xE1n\xED",
   "setting.tree-highlight.name": "Zv\xFDraznit zm\u011Bny ve stromu soubor\u016F a na kart\xE1ch",
   "setting.tree-highlight.desc": "Obarv\xED soubory a slo\u017Eky v nativn\xEDm pr\u016Fzkumn\xEDku soubor\u016F a z\xE1hlav\xED karet otev\u0159en\xFDch soubor\u016F podle toho, co se v t\xE9to relaci zm\u011Bnilo (oran\u017Eov\xE1 pro upraven\xE9, zelen\xE1 pro p\u0159idan\xE9).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Zachovat historii mezi restarty",
   "setting.persist.desc": 'Ukl\xE1dat historii na disk, aby zv\xFDrazn\u011Bn\xED p\u0159e\u010Dkala restart. Vy\u017Eaduje nastaven\xED "Uchov\xE1vat historii do" na zav\u0159en\xED aplikace.',
   "setting.max-entries.name": "Maximum ulo\u017Een\xFDch soubor\u016F",
@@ -7746,6 +7766,8 @@ var da_default = {
   "setting.ignore-new-files.desc": "Spor ikke \xE6ndringer i filer, der er oprettet, efter sporingen blev startet",
   "setting.tree-highlight.name": "Fremh\xE6v \xE6ndringer i filtr\xE6et og fanerne",
   "setting.tree-highlight.desc": "Farv filer og mapper i den indbyggede filstifinder samt fanebladene for \xE5bne filer efter, hvad der er \xE6ndret i denne session (rav for \xE6ndret, gr\xF8n for tilf\xF8jet).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Bevar historik p\xE5 tv\xE6rs af genstarter",
   "setting.persist.desc": 'Gem historik p\xE5 disken, s\xE5 fremh\xE6vninger overlever en genstart. Kr\xE6ver, at "Behold historik indtil" er sat til Appen lukkes.',
   "setting.max-entries.name": "Maks. gemte filer",
@@ -7887,6 +7909,8 @@ var de_default = {
   "setting.ignore-new-files.desc": "\xC4nderungen in Dateien, die nach dem Start der Erfassung erstellt wurden, nicht erfassen",
   "setting.tree-highlight.name": "\xC4nderungen im Dateibaum und in Tabs hervorheben",
   "setting.tree-highlight.desc": "F\xE4rbt Dateien und Ordner im nativen Datei-Explorer sowie die Tab-K\xF6pfe ge\xF6ffneter Dateien danach, was in dieser Sitzung ge\xE4ndert wurde (Bernstein f\xFCr ge\xE4ndert, Gr\xFCn f\xFCr hinzugef\xFCgt).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Verlauf \xFCber Neustarts hinweg beibehalten",
   "setting.persist.desc": 'Verlauf auf der Festplatte speichern, damit Hervorhebungen einen Neustart \xFCberdauern. Erfordert, dass "Verlauf behalten bis" auf App schlie\xDFen gesetzt ist.',
   "setting.max-entries.name": "Maximal gespeicherte Dateien",
@@ -8028,6 +8052,8 @@ var en_default = {
   "setting.ignore-new-files.desc": "Don't track changes in files created after tracking started",
   "setting.tree-highlight.name": "Highlight changes in file tree and tabs",
   "setting.tree-highlight.desc": "Tint files and folders in the native file explorer, and the tab headers of open files, by what changed this session (amber for modified, green for added).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Persist history across restarts",
   "setting.persist.desc": 'Save history to disk so highlights survive a restart. Requires "keep history until" set to app close.',
   "setting.max-entries.name": "Max stored files",
@@ -8169,6 +8195,8 @@ var en_GB_default = {
   "setting.ignore-new-files.desc": "Don't track changes in files created after tracking started",
   "setting.tree-highlight.name": "Highlight changes in file tree and tabs",
   "setting.tree-highlight.desc": "Tint files and folders in the native file explorer, and the tab headers of open files, by what changed this session (amber for modified, green for added).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Persist history across restarts",
   "setting.persist.desc": 'Save history to disk so highlights survive a restart. Requires "keep history until" set to app close.',
   "setting.max-entries.name": "Max stored files",
@@ -8310,6 +8338,8 @@ var es_default = {
   "setting.ignore-new-files.desc": "No rastrear cambios en archivos creados despu\xE9s de iniciar el rastreo",
   "setting.tree-highlight.name": "Resaltar cambios en el \xE1rbol de archivos y las pesta\xF1as",
   "setting.tree-highlight.desc": "Colorea los archivos y carpetas del explorador de archivos nativo, y las cabeceras de pesta\xF1a de los archivos abiertos, seg\xFAn lo que cambi\xF3 en esta sesi\xF3n (\xE1mbar para modificado, verde para a\xF1adido).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Conservar el historial entre reinicios",
   "setting.persist.desc": 'Guardar el historial en el disco para que los resaltados sobrevivan a un reinicio. Requiere que "Conservar el historial hasta" est\xE9 en cerrar la aplicaci\xF3n.',
   "setting.max-entries.name": "M\xE1ximo de archivos almacenados",
@@ -8451,6 +8481,8 @@ var fa_default = {
   "setting.ignore-new-files.desc": "\u062A\u063A\u06CC\u06CC\u0631\u0627\u062A \u062F\u0631 \u067E\u0631\u0648\u0646\u062F\u0647\u200C\u0647\u0627\u06CC\u06CC \u06A9\u0647 \u067E\u0633 \u0627\u0632 \u0622\u063A\u0627\u0632 \u0631\u062F\u06CC\u0627\u0628\u06CC \u0633\u0627\u062E\u062A\u0647 \u0634\u062F\u0647\u200C\u0627\u0646\u062F \u0631\u0627 \u0631\u062F\u06CC\u0627\u0628\u06CC \u0646\u06A9\u0646",
   "setting.tree-highlight.name": "\u0628\u0631\u062C\u0633\u062A\u0647\u200C\u0633\u0627\u0632\u06CC \u062A\u063A\u06CC\u06CC\u0631\u0627\u062A \u062F\u0631 \u062F\u0631\u062E\u062A \u067E\u0631\u0648\u0646\u062F\u0647\u200C\u0647\u0627 \u0648 \u0632\u0628\u0627\u0646\u0647\u200C\u0647\u0627",
   "setting.tree-highlight.desc": "\u067E\u0631\u0648\u0646\u062F\u0647\u200C\u0647\u0627 \u0648 \u067E\u0648\u0634\u0647\u200C\u0647\u0627 \u062F\u0631 \u06A9\u0627\u0648\u0634\u06AF\u0631 \u067E\u0631\u0648\u0646\u062F\u0647 \u0628\u0648\u0645\u06CC \u0648 \u0633\u0631\u062A\u06CC\u062A\u0631 \u0632\u0628\u0627\u0646\u0647\u200C\u0647\u0627\u06CC \u067E\u0631\u0648\u0646\u062F\u0647\u200C\u0647\u0627\u06CC \u0628\u0627\u0632 \u0631\u0627 \u0628\u0631 \u0627\u0633\u0627\u0633 \u0622\u0646\u0686\u0647 \u062F\u0631 \u0627\u06CC\u0646 \u0646\u0634\u0633\u062A \u062A\u063A\u06CC\u06CC\u0631 \u06A9\u0631\u062F\u0647 \u0631\u0646\u06AF \u0645\u06CC\u200C\u06A9\u0646\u062F (\u06A9\u0647\u0631\u0628\u0627\u06CC\u06CC \u0628\u0631\u0627\u06CC \u062A\u063A\u06CC\u06CC\u0631\u200C\u06CC\u0627\u0641\u062A\u0647\u060C \u0633\u0628\u0632 \u0628\u0631\u0627\u06CC \u0627\u0641\u0632\u0648\u062F\u0647\u200C\u0634\u062F\u0647).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "\u062D\u0641\u0638 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u067E\u0633 \u0627\u0632 \u0631\u0627\u0647\u200C\u0627\u0646\u062F\u0627\u0632\u06CC \u0645\u062C\u062F\u062F",
   "setting.persist.desc": '\u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u0631\u0627 \u0631\u0648\u06CC \u062F\u06CC\u0633\u06A9 \u0630\u062E\u06CC\u0631\u0647 \u06A9\u0646 \u062A\u0627 \u0628\u0631\u062C\u0633\u062A\u0647\u200C\u0633\u0627\u0632\u06CC\u200C\u0647\u0627 \u067E\u0633 \u0627\u0632 \u0631\u0627\u0647\u200C\u0627\u0646\u062F\u0627\u0632\u06CC \u0645\u062C\u062F\u062F \u0628\u0627\u0642\u06CC \u0628\u0645\u0627\u0646\u0646\u062F. \u0628\u0647 \u062A\u0646\u0638\u06CC\u0645 "\u0646\u06AF\u0647\u062F\u0627\u0631\u06CC \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u062A\u0627" \u0631\u0648\u06CC \u0628\u0633\u062A\u0646 \u0628\u0631\u0646\u0627\u0645\u0647 \u0646\u06CC\u0627\u0632 \u062F\u0627\u0631\u062F.',
   "setting.max-entries.name": "\u0628\u06CC\u0634\u06CC\u0646\u0647 \u067E\u0631\u0648\u0646\u062F\u0647\u200C\u0647\u0627\u06CC \u0630\u062E\u06CC\u0631\u0647\u200C\u0634\u062F\u0647",
@@ -8592,6 +8624,8 @@ var fi_default = {
   "setting.ignore-new-files.desc": "\xC4l\xE4 seuraa muutoksia tiedostoissa, jotka on luotu seurannan aloittamisen j\xE4lkeen",
   "setting.tree-highlight.name": "Korosta muutokset tiedostopuussa ja v\xE4lilehdiss\xE4",
   "setting.tree-highlight.desc": "V\xE4rj\xE4\xE4 natiivin tiedostoselaimen tiedostot ja kansiot sek\xE4 avoinna olevien tiedostojen v\xE4lilehtien otsikot sen mukaan, mik\xE4 t\xE4ss\xE4 istunnossa muuttui (keltainen muokatulle, vihre\xE4 lis\xE4tylle).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "S\xE4ilyt\xE4 historia uudelleenk\xE4ynnistysten yli",
   "setting.persist.desc": 'Tallenna historia levylle, jotta korostukset s\xE4ilyv\xE4t uudelleenk\xE4ynnistyksen yli. Edellytt\xE4\xE4, ett\xE4 "S\xE4ilyt\xE4 historiaa kunnes" on asetettu arvoon Sovellus suljetaan.',
   "setting.max-entries.name": "Tallennettujen tiedostojen enimm\xE4ism\xE4\xE4r\xE4",
@@ -8733,6 +8767,8 @@ var fr_default = {
   "setting.ignore-new-files.desc": "Ne pas suivre les modifications des fichiers cr\xE9\xE9s apr\xE8s le d\xE9marrage du suivi",
   "setting.tree-highlight.name": "Mettre en \xE9vidence les changements dans l'arborescence et les onglets",
   "setting.tree-highlight.desc": "Colore les fichiers et dossiers de l'explorateur de fichiers natif, ainsi que les en-t\xEAtes d'onglet des fichiers ouverts, selon ce qui a chang\xE9 durant cette session (ambre pour modifi\xE9, vert pour ajout\xE9).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Conserver l'historique entre les red\xE9marrages",
   "setting.persist.desc": `Enregistrer l'historique sur le disque pour que les surlignages survivent \xE0 un red\xE9marrage. N\xE9cessite que "Conserver l'historique jusqu'\xE0" soit r\xE9gl\xE9 sur la fermeture de l'application.`,
   "setting.max-entries.name": "Nombre maximal de fichiers stock\xE9s",
@@ -8874,6 +8910,8 @@ var ga_default = {
   "setting.ignore-new-files.desc": "N\xE1 lorg athruithe i gcomhaid a crutha\xEDodh tar \xE9is don lorg tos\xFA",
   "setting.tree-highlight.name": "Aibhsigh athruithe i gcrann na gcomhad agus sna cluais\xEDn\xED",
   "setting.tree-highlight.desc": "Dathaigh comhaid agus fillte\xE1in i mbrabhs\xE1la\xED d\xFAchasach na gcomhad, agus ceannt\xE1sca cluais\xEDn\xED na gcomhad oscailte, de r\xE9ir ar athra\xEDodh sa seisi\xFAn seo (\xF3mra do mhodhnaithe, glas don bhreisithe).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Coinnigh an stair tr\xED atosuithe",
   "setting.persist.desc": 'S\xE1bh\xE1il an stair ar an diosca ionas go maireann na haibhsithe tr\xED atos\xFA. N\xED m\xF3r "coinnigh an stair go dt\xED" a shocr\xFA ar dh\xFAnadh an aip.',
   "setting.max-entries.name": "Uasmh\xE9id comhad st\xF3r\xE1ilte",
@@ -9015,6 +9053,8 @@ var he_default = {
   "setting.ignore-new-files.desc": "\u05D0\u05DC \u05EA\u05E2\u05E7\u05D5\u05D1 \u05D0\u05D7\u05E8 \u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05D1\u05E7\u05D1\u05E6\u05D9\u05DD \u05E9\u05E0\u05D5\u05E6\u05E8\u05D5 \u05DC\u05D0\u05D7\u05E8 \u05EA\u05D7\u05D9\u05DC\u05EA \u05D4\u05DE\u05E2\u05E7\u05D1",
   "setting.tree-highlight.name": "\u05D4\u05D3\u05D2\u05E9\u05EA \u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05D1\u05E2\u05E5 \u05D4\u05E7\u05D1\u05E6\u05D9\u05DD \u05D5\u05D1\u05DC\u05E9\u05D5\u05E0\u05D9\u05D5\u05EA",
   "setting.tree-highlight.desc": "\u05E6\u05D1\u05D9\u05E2\u05EA \u05E7\u05D1\u05E6\u05D9\u05DD \u05D5\u05EA\u05D9\u05E7\u05D9\u05D5\u05EA \u05D1\u05E1\u05D9\u05D9\u05E8 \u05D4\u05E7\u05D1\u05E6\u05D9\u05DD \u05D4\u05DE\u05D5\u05D1\u05E0\u05D4, \u05D5\u05DB\u05D5\u05EA\u05E8\u05D5\u05EA \u05D4\u05DC\u05E9\u05D5\u05E0\u05D9\u05D5\u05EA \u05E9\u05DC \u05E7\u05D1\u05E6\u05D9\u05DD \u05E4\u05EA\u05D5\u05D7\u05D9\u05DD, \u05DC\u05E4\u05D9 \u05DE\u05D4 \u05E9\u05D4\u05E9\u05EA\u05E0\u05D4 \u05D1\u05DE\u05D4\u05DC\u05DA \u05D4\u05E4\u05E2\u05DC\u05D4 \u05D6\u05D5 (\u05E2\u05E0\u05D1\u05E8 \u05DC\u05E9\u05D5\u05E0\u05D4, \u05D9\u05E8\u05D5\u05E7 \u05DC\u05E0\u05D5\u05E1\u05E3).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "\u05E9\u05DE\u05D9\u05E8\u05EA \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05D1\u05D9\u05DF \u05D4\u05E4\u05E2\u05DC\u05D5\u05EA \u05DE\u05D7\u05D3\u05E9",
   "setting.persist.desc": '\u05E9\u05DE\u05D5\u05E8 \u05D0\u05EA \u05D4\u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05DC\u05D3\u05D9\u05E1\u05E7 \u05DB\u05D3\u05D9 \u05E9\u05D4\u05D4\u05D3\u05D2\u05E9\u05D5\u05EA \u05D9\u05E9\u05E8\u05D3\u05D5 \u05D4\u05E4\u05E2\u05DC\u05D4 \u05DE\u05D7\u05D3\u05E9. \u05D3\u05D5\u05E8\u05E9 \u05D4\u05D2\u05D3\u05E8\u05EA "\u05E9\u05DE\u05D9\u05E8\u05EA \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05E2\u05D3" \u05DC\u05E1\u05D2\u05D9\u05E8\u05EA \u05D4\u05D9\u05D9\u05E9\u05D5\u05DD.',
   "setting.max-entries.name": "\u05DE\u05E7\u05E1\u05D9\u05DE\u05D5\u05DD \u05E7\u05D1\u05E6\u05D9\u05DD \u05E9\u05DE\u05D5\u05E8\u05D9\u05DD",
@@ -9156,6 +9196,8 @@ var hu_default = {
   "setting.ignore-new-files.desc": "Ne k\xF6vesse a k\xF6vet\xE9s ind\xEDt\xE1sa ut\xE1n l\xE9trehozott f\xE1jlok m\xF3dos\xEDt\xE1sait",
   "setting.tree-highlight.name": "V\xE1ltoz\xE1sok kiemel\xE9se a f\xE1jlf\xE1ban \xE9s a f\xFCleken",
   "setting.tree-highlight.desc": "A nat\xEDv f\xE1jlb\xF6ng\xE9sz\u0151 f\xE1jljainak \xE9s mapp\xE1inak, valamint a megnyitott f\xE1jlok f\xFClfejl\xE9ceinek sz\xEDnez\xE9se aszerint, hogy mi v\xE1ltozott ebben a munkamenetben (borosty\xE1n a m\xF3dos\xEDtotthoz, z\xF6ld a hozz\xE1adotthoz).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "El\u0151zm\xE9nyek meg\u0151rz\xE9se \xFAjraind\xEDt\xE1sokon \xE1t",
   "setting.persist.desc": 'Mentse az el\u0151zm\xE9nyeket lemezre, hogy a kiemel\xE9sek t\xFAl\xE9ljenek egy \xFAjraind\xEDt\xE1st. Ehhez az "El\u0151zm\xE9nyek meg\u0151rz\xE9se eddig" be\xE1ll\xEDt\xE1snak az Alkalmaz\xE1s bez\xE1r\xE1sa \xE9rt\xE9ken kell \xE1llnia.',
   "setting.max-entries.name": "T\xE1rolt f\xE1jlok maxim\xE1lis sz\xE1ma",
@@ -9297,6 +9339,8 @@ var id_default = {
   "setting.ignore-new-files.desc": "Jangan lacak perubahan pada berkas yang dibuat setelah pelacakan dimulai",
   "setting.tree-highlight.name": "Sorot perubahan di pohon berkas dan tab",
   "setting.tree-highlight.desc": "Warnai berkas dan folder di penjelajah berkas bawaan, serta tajuk tab berkas yang terbuka, berdasarkan apa yang berubah pada sesi ini (kuning untuk diubah, hijau untuk ditambah).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Pertahankan riwayat setelah dimulai ulang",
   "setting.persist.desc": 'Simpan riwayat ke disk agar sorotan bertahan setelah dimulai ulang. Memerlukan "simpan riwayat hingga" disetel ke aplikasi ditutup.',
   "setting.max-entries.name": "Maks berkas tersimpan",
@@ -9438,6 +9482,8 @@ var it_default = {
   "setting.ignore-new-files.desc": "Non tracciare le modifiche nei file creati dopo l'avvio del tracciamento",
   "setting.tree-highlight.name": "Evidenzia le modifiche nell'albero dei file e nelle schede",
   "setting.tree-highlight.desc": "Colora i file e le cartelle nell'esploratore file nativo e le intestazioni delle schede dei file aperti in base a ci\xF2 che \xE8 cambiato in questa sessione (ambra per modificato, verde per aggiunto).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Mantieni la cronologia tra i riavvii",
   "setting.persist.desc": `Salva la cronologia su disco in modo che le evidenziazioni sopravvivano a un riavvio. Richiede che "Conserva la cronologia fino a" sia impostato sulla chiusura dell'app.`,
   "setting.max-entries.name": "Numero massimo di file memorizzati",
@@ -9579,6 +9625,8 @@ var ja_default = {
   "setting.ignore-new-files.desc": "\u8FFD\u8DE1\u958B\u59CB\u5F8C\u306B\u4F5C\u6210\u3055\u308C\u305F\u30D5\u30A1\u30A4\u30EB\u306E\u5909\u66F4\u3092\u8FFD\u8DE1\u3057\u307E\u305B\u3093",
   "setting.tree-highlight.name": "\u30D5\u30A1\u30A4\u30EB\u30C4\u30EA\u30FC\u3068\u30BF\u30D6\u3067\u5909\u66F4\u3092\u5F37\u8ABF\u8868\u793A",
   "setting.tree-highlight.desc": "\u30CD\u30A4\u30C6\u30A3\u30D6\u306E\u30D5\u30A1\u30A4\u30EB\u30A8\u30AF\u30B9\u30D7\u30ED\u30FC\u30E9\u30FC\u5185\u306E\u30D5\u30A1\u30A4\u30EB\u3068\u30D5\u30A9\u30EB\u30C0\u30FC\u3001\u304A\u3088\u3073\u958B\u3044\u3066\u3044\u308B\u30D5\u30A1\u30A4\u30EB\u306E\u30BF\u30D6\u30D8\u30C3\u30C0\u30FC\u3092\u3001\u3053\u306E\u30BB\u30C3\u30B7\u30E7\u30F3\u3067\u5909\u66F4\u3055\u308C\u305F\u5185\u5BB9\u306B\u5FDC\u3058\u3066\u8272\u4ED8\u3051\u3057\u307E\u3059\uFF08\u5909\u66F4\u306F\u7425\u73C0\u8272\u3001\u8FFD\u52A0\u306F\u7DD1\u8272\uFF09\u3002",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "\u518D\u8D77\u52D5\u5F8C\u3082\u5C65\u6B74\u3092\u4FDD\u6301",
   "setting.persist.desc": "\u5C65\u6B74\u3092\u30C7\u30A3\u30B9\u30AF\u306B\u4FDD\u5B58\u3057\u3001\u518D\u8D77\u52D5\u5F8C\u3082\u30CF\u30A4\u30E9\u30A4\u30C8\u304C\u6B8B\u308B\u3088\u3046\u306B\u3057\u307E\u3059\u3002\u300C\u5C65\u6B74\u3092\u4FDD\u6301\u3059\u308B\u671F\u9593\u300D\u3092\u30A2\u30D7\u30EA\u3092\u9589\u3058\u308B\u307E\u3067\u306B\u8A2D\u5B9A\u3059\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059\u3002",
   "setting.max-entries.name": "\u4FDD\u5B58\u3059\u308B\u30D5\u30A1\u30A4\u30EB\u306E\u6700\u5927\u6570",
@@ -9720,6 +9768,8 @@ var ka_default = {
   "setting.ignore-new-files.desc": "\u10DC\u10E3 \u10D7\u10D5\u10D0\u10DA\u10E7\u10E3\u10E0\u10E1 \u10D0\u10D3\u10D4\u10D5\u10DC\u10D4\u10D1 \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10E1 \u10E4\u10D0\u10D8\u10DA\u10D4\u10D1\u10E8\u10D8, \u10E0\u10DD\u10DB\u10DA\u10D4\u10D1\u10D8\u10EA \u10D7\u10D5\u10D0\u10DA\u10D3\u10D4\u10D5\u10DC\u10D4\u10D1\u10D8\u10E1 \u10D3\u10D0\u10EC\u10E7\u10D4\u10D1\u10D8\u10E1 \u10E8\u10D4\u10DB\u10D3\u10D4\u10D2 \u10E8\u10D4\u10D8\u10E5\u10DB\u10DC\u10D0",
   "setting.tree-highlight.name": "\u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10D8\u10E1 \u10DB\u10DD\u10DC\u10D8\u10E8\u10D5\u10DC\u10D0 \u10E4\u10D0\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10EE\u10D4\u10E8\u10D8 \u10D3\u10D0 \u10E9\u10D0\u10DC\u10D0\u10E0\u10D7\u10D4\u10D1\u10E8\u10D8",
   "setting.tree-highlight.desc": "\u10E8\u10D4\u10E6\u10D4\u10D1\u10D0\u10D5\u10E1 \u10E4\u10D0\u10D8\u10DA\u10D4\u10D1\u10E1\u10D0 \u10D3\u10D0 \u10E1\u10D0\u10E5\u10D0\u10E6\u10D0\u10DA\u10D3\u10D4\u10D4\u10D1\u10E1 \u10E9\u10D0\u10E8\u10D4\u10DC\u10D4\u10D1\u10E3\u10DA \u10E4\u10D0\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10DB\u10D9\u10D5\u10DA\u10D4\u10D5\u10D0\u10E0\u10E8\u10D8, \u10D0\u10D2\u10E0\u10D4\u10D7\u10D5\u10D4 \u10E6\u10D8\u10D0 \u10E4\u10D0\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10E9\u10D0\u10DC\u10D0\u10E0\u10D7\u10D4\u10D1\u10D8\u10E1 \u10E1\u10D0\u10D7\u10D0\u10E3\u10E0\u10D4\u10D1\u10E1 \u10D8\u10DB\u10D8\u10E1 \u10DB\u10D8\u10EE\u10D4\u10D3\u10D5\u10D8\u10D7, \u10E0\u10D0 \u10E8\u10D4\u10D8\u10EA\u10D5\u10D0\u10DA\u10D0 \u10D0\u10DB \u10E1\u10D4\u10E1\u10D8\u10D0\u10E8\u10D8 (\u10E5\u10D0\u10E0\u10D5\u10D8\u10E1\u10E4\u10D4\u10E0\u10D8 \u10E8\u10D4\u10EA\u10D5\u10DA\u10D8\u10DA\u10D8\u10E1\u10D7\u10D5\u10D8\u10E1, \u10DB\u10EC\u10D5\u10D0\u10DC\u10D4 \u10D3\u10D0\u10DB\u10D0\u10E2\u10D4\u10D1\u10E3\u10DA\u10D8\u10E1\u10D7\u10D5\u10D8\u10E1).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "\u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D8\u10E1 \u10E8\u10D4\u10DC\u10D0\u10E0\u10E9\u10E3\u10DC\u10D4\u10D1\u10D0 \u10D2\u10D0\u10D3\u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D5\u10D4\u10D1\u10E1 \u10E8\u10DD\u10E0\u10D8\u10E1",
   "setting.persist.desc": '\u10E8\u10D4\u10D8\u10DC\u10D0\u10EE\u10D4\u10D7 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D0 \u10D3\u10D8\u10E1\u10D9\u10D6\u10D4, \u10E0\u10D0\u10D7\u10D0 \u10D2\u10D0\u10DB\u10DD\u10E7\u10DD\u10E4\u10D4\u10D1\u10D8 \u10D2\u10D0\u10D3\u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D5\u10D0\u10E1 \u10D2\u10D0\u10D3\u10D0\u10E3\u10E0\u10E9\u10D4\u10E1. \u10DB\u10DD\u10D8\u10D7\u10EE\u10DD\u10D5\u10E1, \u10E0\u10DD\u10DB "\u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D8\u10E1 \u10E8\u10D4\u10DC\u10D0\u10EE\u10D5\u10D0 \u10D5\u10D8\u10D3\u10E0\u10D4" \u10D3\u10D0\u10E7\u10D4\u10DC\u10D4\u10D1\u10E3\u10DA\u10D8 \u10D8\u10E7\u10DD\u10E1 \u10D0\u10DE\u10DA\u10D8\u10D9\u10D0\u10EA\u10D8\u10D8\u10E1 \u10D3\u10D0\u10EE\u10E3\u10E0\u10D5\u10D0\u10D6\u10D4.',
   "setting.max-entries.name": "\u10E8\u10D4\u10DC\u10D0\u10EE\u10E3\u10DA\u10D8 \u10E4\u10D0\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10DB\u10D0\u10E5\u10E1\u10D8\u10DB\u10E3\u10DB\u10D8",
@@ -9861,6 +9911,8 @@ var kh_default = {
   "setting.ignore-new-files.desc": "\u1780\u17BB\u17C6\u178F\u17B6\u1798\u178A\u17B6\u1793\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1793\u17C5\u1780\u17D2\u1793\u17BB\u1784\u17AF\u1780\u179F\u17B6\u179A\u178A\u17C2\u179B\u1794\u1784\u17D2\u1780\u17BE\u178F\u17A1\u17BE\u1784\u1794\u1793\u17D2\u1791\u17B6\u1794\u17CB\u1796\u17B8\u1780\u17B6\u179A\u178F\u17B6\u1798\u178A\u17B6\u1793\u1794\u17B6\u1793\u1785\u17B6\u1794\u17CB\u1795\u17D2\u178A\u17BE\u1798",
   "setting.tree-highlight.name": "\u1794\u1793\u17D2\u179B\u17B7\u1785\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1793\u17C5\u1780\u17D2\u1793\u17BB\u1784\u1798\u17C2\u1780\u1792\u17B6\u1784\u17AF\u1780\u179F\u17B6\u179A \u1793\u17B7\u1784\u1795\u17D2\u1791\u17B6\u17C6\u1784",
   "setting.tree-highlight.desc": "\u178A\u17B6\u1780\u17CB\u1796\u178E\u17CC\u17AF\u1780\u179F\u17B6\u179A \u1793\u17B7\u1784\u1790\u178F\u1793\u17C5\u1780\u17D2\u1793\u17BB\u1784\u1780\u1798\u17D2\u1798\u179C\u17B7\u1792\u17B8\u179A\u17BB\u1780\u179A\u1780\u17AF\u1780\u179F\u17B6\u179A\u178A\u17BE\u1798 \u1793\u17B7\u1784\u1780\u17D2\u1794\u17B6\u179B\u1795\u17D2\u1791\u17B6\u17C6\u1784\u1793\u17C3\u17AF\u1780\u179F\u17B6\u179A\u178A\u17C2\u179B\u1794\u17BE\u1780 \u178F\u17B6\u1798\u17A2\u17D2\u179C\u17B8\u178A\u17C2\u179B\u1794\u17B6\u1793\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1780\u17D2\u1793\u17BB\u1784\u179C\u1782\u17D2\u1782\u1793\u17C1\u17C7 (\u1796\u178E\u17CC\u17A2\u17C6\u1796\u17B7\u179B\u179F\u1798\u17D2\u179A\u17B6\u1794\u17CB\u1780\u17C2\u1794\u17D2\u179A\u17C2 \u1794\u17C3\u178F\u1784\u179F\u1798\u17D2\u179A\u17B6\u1794\u17CB\u1794\u1793\u17D2\u1790\u17C2\u1798)\u17D4",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "\u179A\u1780\u17D2\u179F\u17B6\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u1794\u1793\u17D2\u1791\u17B6\u1794\u17CB\u1796\u17B8\u1780\u17B6\u179A\u1785\u17B6\u1794\u17CB\u1795\u17D2\u178A\u17BE\u1798\u17A1\u17BE\u1784\u179C\u17B7\u1789",
   "setting.persist.desc": '\u179A\u1780\u17D2\u179F\u17B6\u1791\u17BB\u1780\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u1791\u17C5\u1790\u17B6\u179F\u178A\u17BE\u1798\u17D2\u1794\u17B8\u17B1\u17D2\u1799\u1780\u17B6\u179A\u1794\u1793\u17D2\u179B\u17B7\u1785\u1793\u17C5\u178F\u17C2\u1798\u17B6\u1793\u1794\u1793\u17D2\u1791\u17B6\u1794\u17CB\u1796\u17B8\u1780\u17B6\u179A\u1785\u17B6\u1794\u17CB\u1795\u17D2\u178A\u17BE\u1798\u17A1\u17BE\u1784\u179C\u17B7\u1789\u17D4 \u1791\u17B6\u1798\u1791\u17B6\u179A\u17B1\u17D2\u1799 "\u179A\u1780\u17D2\u179F\u17B6\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u179A\u17A0\u17BC\u178F\u178A\u179B\u17CB" \u1780\u17C6\u178E\u178F\u17CB\u1791\u17C5\u1794\u17B7\u1791\u1780\u1798\u17D2\u1798\u179C\u17B7\u1792\u17B8\u17D4',
   "setting.max-entries.name": "\u1785\u17C6\u1793\u17BD\u1793\u17AF\u1780\u179F\u17B6\u179A\u178A\u17C2\u179B\u179A\u1780\u17D2\u179F\u17B6\u1791\u17BB\u1780\u17A2\u178F\u17B7\u1794\u179A\u1798\u17B6",
@@ -10002,6 +10054,8 @@ var ko_default = {
   "setting.ignore-new-files.desc": "\uCD94\uC801\uC774 \uC2DC\uC791\uB41C \uD6C4 \uC0DD\uC131\uB41C \uD30C\uC77C\uC758 \uBCC0\uACBD\uC740 \uCD94\uC801\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4",
   "setting.tree-highlight.name": "\uD30C\uC77C \uD2B8\uB9AC\uC640 \uD0ED\uC5D0\uC11C \uBCC0\uACBD \uC0AC\uD56D \uAC15\uC870",
   "setting.tree-highlight.desc": "\uAE30\uBCF8 \uD30C\uC77C \uD0D0\uC0C9\uAE30\uC758 \uD30C\uC77C\uACFC \uD3F4\uB354, \uADF8\uB9AC\uACE0 \uC5F4\uB9B0 \uD30C\uC77C\uC758 \uD0ED \uD5E4\uB354\uB97C \uC774\uBC88 \uC138\uC158\uC5D0\uC11C \uBCC0\uACBD\uB41C \uB0B4\uC6A9\uC5D0 \uB530\uB77C \uC0C9\uCE60\uD569\uB2C8\uB2E4 (\uC218\uC815\uC740 \uD638\uBC15\uC0C9, \uCD94\uAC00\uB294 \uB179\uC0C9).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "\uC7AC\uC2DC\uC791 \uD6C4\uC5D0\uB3C4 \uAE30\uB85D \uC720\uC9C0",
   "setting.persist.desc": '\uC7AC\uC2DC\uC791 \uD6C4\uC5D0\uB3C4 \uAC15\uC870 \uD45C\uC2DC\uAC00 \uC720\uC9C0\uB418\uB3C4\uB85D \uAE30\uB85D\uC744 \uB514\uC2A4\uD06C\uC5D0 \uC800\uC7A5\uD569\uB2C8\uB2E4. "\uAE30\uB85D \uBCF4\uAD00 \uAE30\uC900"\uC774 \uC571 \uC885\uB8CC \uC2DC\uB85C \uC124\uC815\uB418\uC5B4 \uC788\uC5B4\uC57C \uD569\uB2C8\uB2E4.',
   "setting.max-entries.name": "\uCD5C\uB300 \uC800\uC7A5 \uD30C\uC77C \uC218",
@@ -10143,6 +10197,8 @@ var lv_default = {
   "setting.ignore-new-files.desc": "Neizsekot izmai\u0146as failos, kas izveidoti p\u0113c izseko\u0161anas s\u0101k\u0161anas",
   "setting.tree-highlight.name": "Izcelt izmai\u0146as failu kok\u0101 un ciln\u0113s",
   "setting.tree-highlight.desc": "Iekr\u0101so failus un mapes viet\u0113j\u0101 failu p\u0101rl\u016Bk\u0101, k\u0101 ar\u012B atv\u0113rto failu ci\u013C\u0146u galvenes atbilsto\u0161i tam, kas main\u012Bjies \u0161aj\u0101 sesij\u0101 (dzintarkr\u0101sa main\u012Btajiem, za\u013Ca pievienotajiem).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Saglab\u0101t v\u0113sturi starp restartiem",
   "setting.persist.desc": 'Saglab\u0101t v\u0113sturi disk\u0101, lai izc\u0113lumi saglab\u0101tos p\u0113c restarta. Nepiecie\u0161ams, lai "Saglab\u0101t v\u0113sturi l\u012Bdz" b\u016Btu iestat\u012Bts uz Lietotnes aizv\u0113r\u0161anai.',
   "setting.max-entries.name": "Maks. saglab\u0101to failu skaits",
@@ -10284,6 +10340,8 @@ var ms_default = {
   "setting.ignore-new-files.desc": "Jangan jejak perubahan pada fail yang dicipta selepas penjejakan bermula",
   "setting.tree-highlight.name": "Serlahkan perubahan dalam pepohon fail dan tab",
   "setting.tree-highlight.desc": "Warnakan fail dan folder dalam penjelajah fail asli, serta pengepala tab bagi fail yang dibuka, mengikut apa yang berubah dalam sesi ini (kuning untuk diubah, hijau untuk ditambah).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Kekalkan sejarah merentas mula semula",
   "setting.persist.desc": 'Simpan sejarah ke cakera supaya sorotan kekal selepas mula semula. Memerlukan "simpan sejarah sehingga" ditetapkan kepada apl ditutup.',
   "setting.max-entries.name": "Maks fail tersimpan",
@@ -10425,6 +10483,8 @@ var ne_default = {
   "setting.ignore-new-files.desc": "\u091F\u094D\u0930\u094D\u092F\u093E\u0915\u093F\u0919 \u0938\u0941\u0930\u0941 \u092D\u090F\u092A\u091B\u093F \u0938\u093F\u0930\u094D\u091C\u0928\u093E \u0917\u0930\u093F\u090F\u0915\u093E \u092B\u093E\u0907\u0932\u0939\u0930\u0942\u092E\u093E \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u091F\u094D\u0930\u094D\u092F\u093E\u0915 \u0928\u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
   "setting.tree-highlight.name": "\u092B\u093E\u0907\u0932 \u0930\u0942\u0916 \u0930 \u091F\u094D\u092F\u093E\u092C\u0939\u0930\u0942\u092E\u093E \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928\u0939\u0930\u0942 \u0939\u093E\u0907\u0932\u093E\u0907\u091F \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
   "setting.tree-highlight.desc": "\u0928\u0947\u091F\u093F\u092D \u092B\u093E\u0907\u0932 \u090F\u0915\u094D\u0938\u092A\u094D\u0932\u094B\u0930\u0930\u092E\u093E \u092B\u093E\u0907\u0932 \u0930 \u092B\u094B\u0932\u094D\u0921\u0930\u0939\u0930\u0942, \u0930 \u0916\u0941\u0932\u093E \u092B\u093E\u0907\u0932\u0939\u0930\u0942\u0915\u094B \u091F\u094D\u092F\u093E\u092C \u0939\u0947\u0921\u0930\u0939\u0930\u0942\u0932\u093E\u0908 \u092F\u0938 \u0938\u0924\u094D\u0930\u092E\u093E \u0915\u0947 \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u092D\u092F\u094B \u0924\u094D\u092F\u0938\u0905\u0928\u0941\u0938\u093E\u0930 \u0930\u0919 \u0932\u0917\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D (\u092A\u0930\u093F\u092E\u093E\u0930\u094D\u091C\u093F\u0924\u0915\u093E \u0932\u093E\u0917\u093F \u0905\u092E\u094D\u092C\u0930, \u0925\u092A\u093F\u090F\u0915\u093E\u0915\u093E \u0932\u093E\u0917\u093F \u0939\u0930\u093F\u092F\u094B)\u0964",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "\u092A\u0941\u0928\u0903 \u0938\u0941\u0930\u0941 \u092D\u090F\u092A\u091B\u093F \u092A\u0928\u093F \u0907\u0924\u093F\u0939\u093E\u0938 \u0930\u093E\u0916\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
   "setting.persist.desc": '\u0939\u093E\u0907\u0932\u093E\u0907\u091F\u0939\u0930\u0942 \u092A\u0941\u0928\u0903 \u0938\u0941\u0930\u0941\u092A\u091B\u093F \u092A\u0928\u093F \u0930\u0939\u0942\u0928\u094D \u092D\u0928\u0947\u0930 \u0907\u0924\u093F\u0939\u093E\u0938 \u0921\u093F\u0938\u094D\u0915\u092E\u093E \u0938\u0941\u0930\u0915\u094D\u0937\u093F\u0924 \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964 "\u0907\u0924\u093F\u0939\u093E\u0938 \u0930\u093E\u0916\u094D\u0928\u0947 \u0905\u0935\u0927\u093F" \u090F\u092A \u092C\u0928\u094D\u0926\u092E\u093E \u0938\u0947\u091F \u0917\u0930\u094D\u0928 \u0906\u0935\u0936\u094D\u092F\u0915 \u091B\u0964',
   "setting.max-entries.name": "\u0905\u0927\u093F\u0915\u0924\u092E \u0938\u0941\u0930\u0915\u094D\u0937\u093F\u0924 \u092B\u093E\u0907\u0932\u0939\u0930\u0942",
@@ -10566,6 +10626,8 @@ var nl_default = {
   "setting.ignore-new-files.desc": "Wijzigingen niet bijhouden in bestanden die zijn aangemaakt nadat het bijhouden is gestart",
   "setting.tree-highlight.name": "Wijzigingen markeren in de bestandsboom en tabbladen",
   "setting.tree-highlight.desc": "Kleurt bestanden en mappen in de native bestandsverkenner en de tabkoppen van geopende bestanden op basis van wat in deze sessie is gewijzigd (amber voor gewijzigd, groen voor toegevoegd).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Geschiedenis behouden na herstart",
   "setting.persist.desc": 'Geschiedenis op schijf opslaan zodat markeringen een herstart overleven. Vereist dat "Geschiedenis bewaren tot" is ingesteld op app sluiten.',
   "setting.max-entries.name": "Maximaal opgeslagen bestanden",
@@ -10707,6 +10769,8 @@ var no_default = {
   "setting.ignore-new-files.desc": "Ikke spor endringer i filer som er opprettet etter at sporingen startet",
   "setting.tree-highlight.name": "Fremhev endringer i filtreet og fanene",
   "setting.tree-highlight.desc": "Farg filer og mapper i det innebygde filutforskeren samt fanetitlene for \xE5pne filer etter hva som er endret i denne \xF8kten (rav for endret, gr\xF8nn for lagt til).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Behold historikk p\xE5 tvers av omstarter",
   "setting.persist.desc": 'Lagre historikk p\xE5 disk slik at uthevinger overlever en omstart. Krever at "Behold historikk til" er satt til Appen lukkes.',
   "setting.max-entries.name": "Maks. lagrede filer",
@@ -10848,6 +10912,8 @@ var pl_default = {
   "setting.ignore-new-files.desc": "Nie \u015Bled\u017A zmian w plikach utworzonych po rozpocz\u0119ciu \u015Bledzenia",
   "setting.tree-highlight.name": "Wyr\xF3\u017Cnij zmiany w drzewie plik\xF3w i na kartach",
   "setting.tree-highlight.desc": "Koloruje pliki i foldery w natywnym eksploratorze plik\xF3w oraz nag\u0142\xF3wki kart otwartych plik\xF3w wed\u0142ug tego, co zmieni\u0142o si\u0119 w tej sesji (bursztyn dla zmodyfikowanych, zielony dla dodanych).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Zachowuj histori\u0119 mi\u0119dzy ponownymi uruchomieniami",
   "setting.persist.desc": 'Zapisuj histori\u0119 na dysku, aby pod\u015Bwietlenia przetrwa\u0142y ponowne uruchomienie. Wymaga ustawienia opcji "Przechowuj histori\u0119 do" na zamkni\u0119cie aplikacji.',
   "setting.max-entries.name": "Maksymalna liczba przechowywanych plik\xF3w",
@@ -10989,6 +11055,8 @@ var pt_default = {
   "setting.ignore-new-files.desc": "N\xE3o rastrear altera\xE7\xF5es em ficheiros criados depois de o rastreio come\xE7ar",
   "setting.tree-highlight.name": "Real\xE7ar altera\xE7\xF5es na \xE1rvore de ficheiros e nos separadores",
   "setting.tree-highlight.desc": "Colore ficheiros e pastas no explorador de ficheiros nativo, e os cabe\xE7alhos dos separadores dos ficheiros abertos, conforme o que mudou nesta sess\xE3o (\xE2mbar para modificado, verde para adicionado).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Manter o hist\xF3rico entre rein\xEDcios",
   "setting.persist.desc": 'Guardar o hist\xF3rico no disco para que os destaques sobrevivam a um rein\xEDcio. Requer que "Manter o hist\xF3rico at\xE9" esteja definido como fecho da aplica\xE7\xE3o.',
   "setting.max-entries.name": "M\xE1ximo de ficheiros armazenados",
@@ -11130,6 +11198,8 @@ var pt_BR_default = {
   "setting.ignore-new-files.desc": "N\xE3o rastrear altera\xE7\xF5es em arquivos criados depois que o rastreamento come\xE7ou",
   "setting.tree-highlight.name": "Destacar altera\xE7\xF5es na \xE1rvore de arquivos e nas abas",
   "setting.tree-highlight.desc": "Colore arquivos e pastas no explorador de arquivos nativo, e os cabe\xE7alhos das abas dos arquivos abertos, conforme o que mudou nesta sess\xE3o (\xE2mbar para modificado, verde para adicionado).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Manter o hist\xF3rico entre reinicializa\xE7\xF5es",
   "setting.persist.desc": 'Salvar o hist\xF3rico no disco para que os destaques sobrevivam a uma reinicializa\xE7\xE3o. Requer que "Manter o hist\xF3rico at\xE9" esteja definido como fechamento do aplicativo.',
   "setting.max-entries.name": "M\xE1ximo de arquivos armazenados",
@@ -11271,6 +11341,8 @@ var ro_default = {
   "setting.ignore-new-files.desc": "Nu urm\u0103ri modific\u0103rile din fi\u0219ierele create dup\u0103 \xEEnceperea urm\u0103ririi",
   "setting.tree-highlight.name": "Eviden\u021Biaz\u0103 modific\u0103rile \xEEn arborele de fi\u0219iere \u0219i \xEEn file",
   "setting.tree-highlight.desc": "Coloreaz\u0103 fi\u0219ierele \u0219i folderele din exploratorul de fi\u0219iere nativ, precum \u0219i antetele filelor fi\u0219ierelor deschise, \xEEn func\u021Bie de ce s-a schimbat \xEEn aceast\u0103 sesiune (chihlimbar pentru modificat, verde pentru ad\u0103ugat).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "P\u0103streaz\u0103 istoricul \xEEntre reporniri",
   "setting.persist.desc": 'Salveaz\u0103 istoricul pe disc, astfel \xEEnc\xE2t eviden\u021Bierile s\u0103 supravie\u021Buiasc\u0103 unei reporniri. Necesit\u0103 ca op\u021Biunea "P\u0103streaz\u0103 istoricul p\xE2n\u0103 la" s\u0103 fie setat\u0103 la \xEEnchiderea aplica\u021Biei.',
   "setting.max-entries.name": "Num\u0103r maxim de fi\u0219iere stocate",
@@ -11412,6 +11484,8 @@ var ru_default = {
   "setting.ignore-new-files.desc": "\u041D\u0435 \u043E\u0442\u0441\u043B\u0435\u0436\u0438\u0432\u0430\u0442\u044C \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044F \u0432 \u0444\u0430\u0439\u043B\u0430\u0445, \u0441\u043E\u0437\u0434\u0430\u043D\u043D\u044B\u0445 \u043F\u043E\u0441\u043B\u0435 \u043D\u0430\u0447\u0430\u043B\u0430 \u043E\u0442\u0441\u043B\u0435\u0436\u0438\u0432\u0430\u043D\u0438\u044F",
   "setting.tree-highlight.name": "\u041F\u043E\u0434\u0441\u0432\u0435\u0447\u0438\u0432\u0430\u0442\u044C \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044F \u0432 \u0434\u0435\u0440\u0435\u0432\u0435 \u0444\u0430\u0439\u043B\u043E\u0432 \u0438 \u0432\u043A\u043B\u0430\u0434\u043A\u0430\u0445",
   "setting.tree-highlight.desc": "\u041E\u043A\u0440\u0430\u0448\u0438\u0432\u0430\u0435\u0442 \u0444\u0430\u0439\u043B\u044B \u0438 \u043F\u0430\u043F\u043A\u0438 \u0432 \u043D\u0430\u0442\u0438\u0432\u043D\u043E\u043C \u043F\u0440\u043E\u0432\u043E\u0434\u043D\u0438\u043A\u0435 \u0444\u0430\u0439\u043B\u043E\u0432, \u0430 \u0442\u0430\u043A\u0436\u0435 \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043A\u0438 \u0432\u043A\u043B\u0430\u0434\u043E\u043A \u043E\u0442\u043A\u0440\u044B\u0442\u044B\u0445 \u0444\u0430\u0439\u043B\u043E\u0432 \u043F\u043E \u0442\u043E\u043C\u0443, \u0447\u0442\u043E \u0438\u0437\u043C\u0435\u043D\u0438\u043B\u043E\u0441\u044C \u0437\u0430 \u044D\u0442\u0443 \u0441\u0435\u0441\u0441\u0438\u044E (\u044F\u043D\u0442\u0430\u0440\u043D\u044B\u0439 \u0434\u043B\u044F \u0438\u0437\u043C\u0435\u043D\u0451\u043D\u043D\u044B\u0445, \u0437\u0435\u043B\u0451\u043D\u044B\u0439 \u0434\u043B\u044F \u0434\u043E\u0431\u0430\u0432\u043B\u0435\u043D\u043D\u044B\u0445).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "\u0421\u043E\u0445\u0440\u0430\u043D\u044F\u0442\u044C \u0438\u0441\u0442\u043E\u0440\u0438\u044E \u043C\u0435\u0436\u0434\u0443 \u043F\u0435\u0440\u0435\u0437\u0430\u043F\u0443\u0441\u043A\u0430\u043C\u0438",
   "setting.persist.desc": '\u0421\u043E\u0445\u0440\u0430\u043D\u044F\u0442\u044C \u0438\u0441\u0442\u043E\u0440\u0438\u044E \u043D\u0430 \u0434\u0438\u0441\u043A, \u0447\u0442\u043E\u0431\u044B \u043F\u043E\u0434\u0441\u0432\u0435\u0442\u043A\u0438 \u043F\u0435\u0440\u0435\u0436\u0438\u0432\u0430\u043B\u0438 \u043F\u0435\u0440\u0435\u0437\u0430\u043F\u0443\u0441\u043A. \u0422\u0440\u0435\u0431\u0443\u0435\u0442, \u0447\u0442\u043E\u0431\u044B \u043F\u0430\u0440\u0430\u043C\u0435\u0442\u0440 "\u0425\u0440\u0430\u043D\u0438\u0442\u044C \u0438\u0441\u0442\u043E\u0440\u0438\u044E \u0434\u043E" \u0431\u044B\u043B \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D \u043D\u0430 \u0437\u0430\u043A\u0440\u044B\u0442\u0438\u0435 \u043F\u0440\u0438\u043B\u043E\u0436\u0435\u043D\u0438\u044F.',
   "setting.max-entries.name": "\u041C\u0430\u043A\u0441\u0438\u043C\u0443\u043C \u0445\u0440\u0430\u043D\u0438\u043C\u044B\u0445 \u0444\u0430\u0439\u043B\u043E\u0432",
@@ -11553,6 +11627,8 @@ var sk_default = {
   "setting.ignore-new-files.desc": "Nesledova\u0165 zmeny v s\xFAboroch vytvoren\xFDch po za\u010Dat\xED sledovania",
   "setting.tree-highlight.name": "Zv\xFDrazni\u0165 zmeny v strome s\xFAborov a na kart\xE1ch",
   "setting.tree-highlight.desc": "Zafarb\xED s\xFAbory a prie\u010Dinky v nat\xEDvnom prehliada\u010Di s\xFAborov a hlavi\u010Dky kariet otvoren\xFDch s\xFAborov pod\u013Ea toho, \u010Do sa v tejto rel\xE1cii zmenilo (jant\xE1rov\xE1 pre upraven\xE9, zelen\xE1 pre pridan\xE9).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Zachova\u0165 hist\xF3riu medzi re\u0161tartmi",
   "setting.persist.desc": 'Uklada\u0165 hist\xF3riu na disk, aby zv\xFDraznenia pre\u017Eili re\u0161tart. Vy\u017Eaduje nastavenie "Uchov\xE1va\u0165 hist\xF3riu do" na zatvorenie aplik\xE1cie.',
   "setting.max-entries.name": "Maximum ulo\u017Een\xFDch s\xFAborov",
@@ -11694,6 +11770,8 @@ var sq_default = {
   "setting.ignore-new-files.desc": "Mos i ndiq ndryshimet n\xEB skedar\xEBt e krijuar pasi filloi ndjekja",
   "setting.tree-highlight.name": "Thekso ndryshimet n\xEB pem\xEBn e skedar\xEBve dhe n\xEB skedat",
   "setting.tree-highlight.desc": "Ngjyros skedar\xEBt dhe dosjet n\xEB shfletuesin vendas t\xEB skedar\xEBve, si dhe titujt e skedave t\xEB skedar\xEBve t\xEB hapur, sipas asaj q\xEB ndryshoi n\xEB k\xEBt\xEB sesion (qelibar p\xEBr t\xEB modifikuarit, jeshile p\xEBr t\xEB shtuarit).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Ruaj historin\xEB gjat\xEB rinisjeve",
   "setting.persist.desc": 'Ruaj historin\xEB n\xEB disk q\xEB theksimet t\xEB mbijetojn\xEB nj\xEB rinisje. K\xEBrkon q\xEB "Ruaj historin\xEB deri" t\xEB jet\xEB vendosur te Mbyllja e aplikacionit.',
   "setting.max-entries.name": "Maks. skedar\xEB t\xEB ruajtur",
@@ -11835,6 +11913,8 @@ var sr_default = {
   "setting.ignore-new-files.desc": "\u041D\u0435 \u043F\u0440\u0430\u0442\u0438 \u0438\u0437\u043C\u0435\u043D\u0435 \u0443 \u0444\u0430\u0458\u043B\u043E\u0432\u0438\u043C\u0430 \u043D\u0430\u043F\u0440\u0430\u0432\u0459\u0435\u043D\u0438\u043C \u043D\u0430\u043A\u043E\u043D \u043F\u043E\u0447\u0435\u0442\u043A\u0430 \u043F\u0440\u0430\u045B\u0435\u045A\u0430",
   "setting.tree-highlight.name": "\u0418\u0441\u0442\u0430\u043A\u043D\u0438 \u0438\u0437\u043C\u0435\u043D\u0435 \u0443 \u0441\u0442\u0430\u0431\u043B\u0443 \u0434\u0430\u0442\u043E\u0442\u0435\u043A\u0430 \u0438 \u043A\u0430\u0440\u0442\u0438\u0446\u0430\u043C\u0430",
   "setting.tree-highlight.desc": "\u0411\u043E\u0458\u0438 \u0434\u0430\u0442\u043E\u0442\u0435\u043A\u0435 \u0438 \u0444\u0430\u0441\u0446\u0438\u043A\u043B\u0435 \u0443 \u0438\u0437\u0432\u043E\u0440\u043D\u043E\u043C \u043F\u0440\u0435\u0433\u043B\u0435\u0434\u0430\u0447\u0443 \u0434\u0430\u0442\u043E\u0442\u0435\u043A\u0430 \u0438 \u0437\u0430\u0433\u043B\u0430\u0432\u0459\u0430 \u043A\u0430\u0440\u0442\u0438\u0446\u0430 \u043E\u0442\u0432\u043E\u0440\u0435\u043D\u0438\u0445 \u0434\u0430\u0442\u043E\u0442\u0435\u043A\u0430 \u043F\u0440\u0435\u043C\u0430 \u043E\u043D\u043E\u043C\u0435 \u0448\u0442\u043E \u0458\u0435 \u043F\u0440\u043E\u043C\u0435\u045A\u0435\u043D\u043E \u0443 \u043E\u0432\u043E\u0458 \u0441\u0435\u0441\u0438\u0458\u0438 (\u045B\u0438\u043B\u0438\u0431\u0430\u0440\u043D\u0430 \u0437\u0430 \u0438\u0437\u043C\u0435\u045A\u0435\u043D\u043E, \u0437\u0435\u043B\u0435\u043D\u0430 \u0437\u0430 \u0434\u043E\u0434\u0430\u0442\u043E).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "\u0417\u0430\u0434\u0440\u0436\u0438 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0443 \u0438\u0437\u043C\u0435\u0452\u0443 \u043F\u043E\u043D\u043E\u0432\u043D\u0438\u0445 \u043F\u043E\u043A\u0440\u0435\u0442\u0430\u045A\u0430",
   "setting.persist.desc": '\u0427\u0443\u0432\u0430\u0458 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0443 \u043D\u0430 \u0434\u0438\u0441\u043A\u0443 \u0434\u0430 \u0431\u0438 \u0438\u0441\u0442\u0438\u0446\u0430\u045A\u0430 \u043F\u0440\u0435\u0436\u0438\u0432\u0435\u043B\u0430 \u043F\u043E\u043D\u043E\u0432\u043D\u043E \u043F\u043E\u043A\u0440\u0435\u0442\u0430\u045A\u0435. \u0417\u0430\u0445\u0442\u0435\u0432\u0430 \u0434\u0430 \u043E\u043F\u0446\u0438\u0458\u0430 "\u0427\u0443\u0432\u0430\u0458 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0443 \u0434\u043E" \u0431\u0443\u0434\u0435 \u043F\u043E\u0434\u0435\u0448\u0435\u043D\u0430 \u043D\u0430 \u0437\u0430\u0442\u0432\u0430\u0440\u0430\u045A\u0435 \u0430\u043F\u043B\u0438\u043A\u0430\u0446\u0438\u0458\u0435.',
   "setting.max-entries.name": "\u041D\u0430\u0458\u0432\u0438\u0448\u0435 \u0441\u0430\u0447\u0443\u0432\u0430\u043D\u0438\u0445 \u0444\u0430\u0458\u043B\u043E\u0432\u0430",
@@ -11976,6 +12056,8 @@ var sv_default = {
   "setting.ignore-new-files.desc": "Sp\xE5ra inte \xE4ndringar i filer som skapats efter att sp\xE5rningen startade",
   "setting.tree-highlight.name": "Markera \xE4ndringar i filtr\xE4det och flikarna",
   "setting.tree-highlight.desc": "F\xE4rgar filer och mappar i den inbyggda filhanteraren samt flikrubrikerna f\xF6r \xF6ppna filer efter vad som \xE4ndrats i denna session (b\xE4rnsten f\xF6r \xE4ndrat, gr\xF6nt f\xF6r tillagt).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Beh\xE5ll historik mellan omstarter",
   "setting.persist.desc": 'Spara historik p\xE5 disk s\xE5 att markeringar \xF6verlever en omstart. Kr\xE4ver att "Beh\xE5ll historik tills" \xE4r inst\xE4llt p\xE5 Appen st\xE4ngs.',
   "setting.max-entries.name": "Max antal sparade filer",
@@ -12117,6 +12199,8 @@ var th_default = {
   "setting.ignore-new-files.desc": "\u0E44\u0E21\u0E48\u0E15\u0E34\u0E14\u0E15\u0E32\u0E21\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E43\u0E19\u0E44\u0E1F\u0E25\u0E4C\u0E17\u0E35\u0E48\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E02\u0E36\u0E49\u0E19\u0E2B\u0E25\u0E31\u0E07\u0E08\u0E32\u0E01\u0E40\u0E23\u0E34\u0E48\u0E21\u0E01\u0E32\u0E23\u0E15\u0E34\u0E14\u0E15\u0E32\u0E21",
   "setting.tree-highlight.name": "\u0E40\u0E19\u0E49\u0E19\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E43\u0E19\u0E41\u0E1C\u0E19\u0E1C\u0E31\u0E07\u0E44\u0E1F\u0E25\u0E4C\u0E41\u0E25\u0E30\u0E41\u0E17\u0E47\u0E1A",
   "setting.tree-highlight.desc": "\u0E25\u0E07\u0E2A\u0E35\u0E44\u0E1F\u0E25\u0E4C\u0E41\u0E25\u0E30\u0E42\u0E1F\u0E25\u0E40\u0E14\u0E2D\u0E23\u0E4C\u0E43\u0E19\u0E15\u0E31\u0E27\u0E2A\u0E33\u0E23\u0E27\u0E08\u0E44\u0E1F\u0E25\u0E4C\u0E14\u0E31\u0E49\u0E07\u0E40\u0E14\u0E34\u0E21 \u0E41\u0E25\u0E30\u0E2A\u0E48\u0E27\u0E19\u0E2B\u0E31\u0E27\u0E41\u0E17\u0E47\u0E1A\u0E02\u0E2D\u0E07\u0E44\u0E1F\u0E25\u0E4C\u0E17\u0E35\u0E48\u0E40\u0E1B\u0E34\u0E14\u0E2D\u0E22\u0E39\u0E48 \u0E15\u0E32\u0E21\u0E2A\u0E34\u0E48\u0E07\u0E17\u0E35\u0E48\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E43\u0E19\u0E40\u0E0B\u0E2A\u0E0A\u0E31\u0E19\u0E19\u0E35\u0E49 (\u0E2A\u0E35\u0E2D\u0E33\u0E1E\u0E31\u0E19\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E17\u0E35\u0E48\u0E41\u0E01\u0E49\u0E44\u0E02 \u0E2A\u0E35\u0E40\u0E02\u0E35\u0E22\u0E27\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E17\u0E35\u0E48\u0E40\u0E1E\u0E34\u0E48\u0E21)",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "\u0E04\u0E07\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E44\u0E27\u0E49\u0E41\u0E21\u0E49\u0E23\u0E35\u0E2A\u0E15\u0E32\u0E23\u0E4C\u0E17",
   "setting.persist.desc": '\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E25\u0E07\u0E14\u0E34\u0E2A\u0E01\u0E4C\u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E43\u0E2B\u0E49\u0E44\u0E2E\u0E44\u0E25\u0E15\u0E4C\u0E22\u0E31\u0E07\u0E04\u0E07\u0E2D\u0E22\u0E39\u0E48\u0E2B\u0E25\u0E31\u0E07\u0E23\u0E35\u0E2A\u0E15\u0E32\u0E23\u0E4C\u0E17 \u0E15\u0E49\u0E2D\u0E07\u0E15\u0E31\u0E49\u0E07 "\u0E40\u0E01\u0E47\u0E1A\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E44\u0E27\u0E49\u0E08\u0E19\u0E16\u0E36\u0E07" \u0E40\u0E1B\u0E47\u0E19\u0E1B\u0E34\u0E14\u0E41\u0E2D\u0E1B',
   "setting.max-entries.name": "\u0E08\u0E33\u0E19\u0E27\u0E19\u0E44\u0E1F\u0E25\u0E4C\u0E17\u0E35\u0E48\u0E08\u0E31\u0E14\u0E40\u0E01\u0E47\u0E1A\u0E2A\u0E39\u0E07\u0E2A\u0E38\u0E14",
@@ -12258,6 +12342,8 @@ var tr_default = {
   "setting.ignore-new-files.desc": "\u0130zleme ba\u015Flad\u0131ktan sonra olu\u015Fturulan dosyalardaki de\u011Fi\u015Fiklikleri izleme",
   "setting.tree-highlight.name": "Dosya a\u011Fac\u0131nda ve sekmelerde de\u011Fi\u015Fiklikleri vurgula",
   "setting.tree-highlight.desc": "Yerel dosya gezginindeki dosya ve klas\xF6rleri ve a\xE7\u0131k dosyalar\u0131n sekme ba\u015Fl\u0131klar\u0131n\u0131 bu oturumda nelerin de\u011Fi\u015Fti\u011Fine g\xF6re renklendirir (de\u011Fi\u015Ftirilen i\xE7in kehribar, eklenen i\xE7in ye\u015Fil).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Ge\xE7mi\u015Fi yeniden ba\u015Flatmalar aras\u0131nda koru",
   "setting.persist.desc": 'Vurgular yeniden ba\u015Flatmadan sonra da kals\u0131n diye ge\xE7mi\u015Fi diske kaydet. "Ge\xE7mi\u015Fi \u015Fu zamana kadar tut" ayar\u0131n\u0131n uygulama kapan\u0131\u015F\u0131na ayarlanmas\u0131n\u0131 gerektirir.',
   "setting.max-entries.name": "Saklanan en fazla dosya",
@@ -12399,6 +12485,8 @@ var uk_default = {
   "setting.ignore-new-files.desc": "\u041D\u0435 \u0432\u0456\u0434\u0441\u0442\u0435\u0436\u0443\u0432\u0430\u0442\u0438 \u0437\u043C\u0456\u043D\u0438 \u0443 \u0444\u0430\u0439\u043B\u0430\u0445, \u0441\u0442\u0432\u043E\u0440\u0435\u043D\u0438\u0445 \u043F\u0456\u0441\u043B\u044F \u043F\u043E\u0447\u0430\u0442\u043A\u0443 \u0432\u0456\u0434\u0441\u0442\u0435\u0436\u0435\u043D\u043D\u044F",
   "setting.tree-highlight.name": "\u041F\u0456\u0434\u0441\u0432\u0456\u0447\u0443\u0432\u0430\u0442\u0438 \u0437\u043C\u0456\u043D\u0438 \u0432 \u0434\u0435\u0440\u0435\u0432\u0456 \u0444\u0430\u0439\u043B\u0456\u0432 \u0456 \u0432\u043A\u043B\u0430\u0434\u043A\u0430\u0445",
   "setting.tree-highlight.desc": "\u0417\u0430\u0431\u0430\u0440\u0432\u043B\u044E\u0454 \u0444\u0430\u0439\u043B\u0438 \u0442\u0430 \u0442\u0435\u043A\u0438 \u0432 \u043D\u0430\u0442\u0438\u0432\u043D\u043E\u043C\u0443 \u043F\u0440\u043E\u0432\u0456\u0434\u043D\u0438\u043A\u0443 \u0444\u0430\u0439\u043B\u0456\u0432, \u0430 \u0442\u0430\u043A\u043E\u0436 \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043A\u0438 \u0432\u043A\u043B\u0430\u0434\u043E\u043A \u0432\u0456\u0434\u043A\u0440\u0438\u0442\u0438\u0445 \u0444\u0430\u0439\u043B\u0456\u0432 \u0437\u0430 \u0442\u0438\u043C, \u0449\u043E \u0437\u043C\u0456\u043D\u0438\u043B\u043E\u0441\u044F \u0437\u0430 \u0446\u044E \u0441\u0435\u0441\u0456\u044E (\u0431\u0443\u0440\u0448\u0442\u0438\u043D\u043E\u0432\u0438\u0439 \u0434\u043B\u044F \u0437\u043C\u0456\u043D\u0435\u043D\u0438\u0445, \u0437\u0435\u043B\u0435\u043D\u0438\u0439 \u0434\u043B\u044F \u0434\u043E\u0434\u0430\u043D\u0438\u0445).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "\u0417\u0431\u0435\u0440\u0456\u0433\u0430\u0442\u0438 \u0456\u0441\u0442\u043E\u0440\u0456\u044E \u043C\u0456\u0436 \u043F\u0435\u0440\u0435\u0437\u0430\u043F\u0443\u0441\u043A\u0430\u043C\u0438",
   "setting.persist.desc": '\u0417\u0431\u0435\u0440\u0456\u0433\u0430\u0442\u0438 \u0456\u0441\u0442\u043E\u0440\u0456\u044E \u043D\u0430 \u0434\u0438\u0441\u043A, \u0449\u043E\u0431 \u043F\u0456\u0434\u0441\u0432\u0456\u0447\u0443\u0432\u0430\u043D\u043D\u044F \u043F\u0435\u0440\u0435\u0436\u0438\u0432\u0430\u043B\u0438 \u043F\u0435\u0440\u0435\u0437\u0430\u043F\u0443\u0441\u043A. \u041F\u043E\u0442\u0440\u0435\u0431\u0443\u0454, \u0449\u043E\u0431 \u043F\u0430\u0440\u0430\u043C\u0435\u0442\u0440 "\u0417\u0431\u0435\u0440\u0456\u0433\u0430\u0442\u0438 \u0456\u0441\u0442\u043E\u0440\u0456\u044E \u0434\u043E" \u0431\u0443\u043B\u043E \u0432\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u043E \u043D\u0430 \u0437\u0430\u043A\u0440\u0438\u0442\u0442\u044F \u0437\u0430\u0441\u0442\u043E\u0441\u0443\u043D\u043A\u0443.',
   "setting.max-entries.name": "\u041C\u0430\u043A\u0441\u0438\u043C\u0443\u043C \u0437\u0431\u0435\u0440\u0435\u0436\u0435\u043D\u0438\u0445 \u0444\u0430\u0439\u043B\u0456\u0432",
@@ -12540,6 +12628,8 @@ var uz_default = {
   "setting.ignore-new-files.desc": "Kuzatuv boshlangach yaratilgan fayllardagi o\u02BBzgarishlarni kuzatmaslik",
   "setting.tree-highlight.name": "Fayllar daraxti va yorliqlardagi o\u02BBzgarishlarni ajratib ko\u02BBrsatish",
   "setting.tree-highlight.desc": "Tabiiy fayl boshqaruvchisidagi fayllar va papkalarni, shuningdek ochiq fayllarning yorliq sarlavhalarini ushbu seansda nima o\u02BBzgarganiga qarab rangga bo\u02BByaydi (o\u02BBzgartirilgani uchun qahrabo, qo\u02BBshilgani uchun yashil).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Tarixni qayta ishga tushirishlar orasida saqlash",
   "setting.persist.desc": 'Belgilashlar qayta ishga tushirishdan keyin ham saqlanishi uchun tarixni diskka saqlang. "Tarixni saqlash muddati" sozlamasini ilova yopilgunicha qilib qo\u02BByishni talab qiladi.',
   "setting.max-entries.name": "Saqlanadigan maksimal fayllar",
@@ -12681,6 +12771,8 @@ var vi_default = {
   "setting.ignore-new-files.desc": "Kh\xF4ng theo d\xF5i thay \u0111\u1ED5i trong c\xE1c t\u1EC7p \u0111\u01B0\u1EE3c t\u1EA1o sau khi b\u1EAFt \u0111\u1EA7u theo d\xF5i",
   "setting.tree-highlight.name": "L\xE0m n\u1ED5i b\u1EADt thay \u0111\u1ED5i trong c\xE2y t\u1EC7p v\xE0 c\xE1c th\u1EBB",
   "setting.tree-highlight.desc": "T\xF4 m\xE0u c\xE1c t\u1EC7p v\xE0 th\u01B0 m\u1EE5c trong tr\xECnh qu\u1EA3n l\xFD t\u1EC7p g\u1ED1c, c\xF9ng ti\xEAu \u0111\u1EC1 th\u1EBB c\u1EE7a c\xE1c t\u1EC7p \u0111ang m\u1EDF, theo nh\u1EEFng g\xEC \u0111\xE3 thay \u0111\u1ED5i trong phi\xEAn n\xE0y (h\u1ED5 ph\xE1ch cho \u0111\xE3 s\u1EEDa, xanh l\xE1 cho \u0111\xE3 th\xEAm).",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "Gi\u1EEF l\u1ECBch s\u1EED qua c\xE1c l\u1EA7n kh\u1EDFi \u0111\u1ED9ng l\u1EA1i",
   "setting.persist.desc": 'L\u01B0u l\u1ECBch s\u1EED v\xE0o \u0111\u0129a \u0111\u1EC3 c\xE1c \u0111i\u1EC3m \u0111\xE1nh d\u1EA5u v\u1EABn c\xF2n sau khi kh\u1EDFi \u0111\u1ED9ng l\u1EA1i. Y\xEAu c\u1EA7u "Gi\u1EEF l\u1ECBch s\u1EED cho \u0111\u1EBFn khi" \u0111\u01B0\u1EE3c \u0111\u1EB7t th\xE0nh \u0111\xF3ng \u1EE9ng d\u1EE5ng.',
   "setting.max-entries.name": "S\u1ED1 t\u1EC7p l\u01B0u tr\u1EEF t\u1ED1i \u0111a",
@@ -12822,6 +12914,8 @@ var zh_default = {
   "setting.ignore-new-files.desc": "\u4E0D\u8FFD\u8E2A\u5728\u5F00\u59CB\u8FFD\u8E2A\u540E\u521B\u5EFA\u7684\u6587\u4EF6\u4E2D\u7684\u66F4\u6539",
   "setting.tree-highlight.name": "\u5728\u6587\u4EF6\u6811\u548C\u6807\u7B7E\u9875\u4E2D\u9AD8\u4EAE\u663E\u793A\u66F4\u6539",
   "setting.tree-highlight.desc": "\u6839\u636E\u672C\u6B21\u4F1A\u8BDD\u4E2D\u7684\u66F4\u6539\uFF0C\u4E3A\u539F\u751F\u6587\u4EF6\u6D4F\u89C8\u5668\u4E2D\u7684\u6587\u4EF6\u548C\u6587\u4EF6\u5939\u4EE5\u53CA\u5DF2\u6253\u5F00\u6587\u4EF6\u7684\u6807\u7B7E\u9875\u6807\u9898\u7740\u8272\uFF08\u4FEE\u6539\u4E3A\u7425\u73C0\u8272\uFF0C\u65B0\u589E\u4E3A\u7EFF\u8272\uFF09\u3002",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "\u91CD\u542F\u540E\u4FDD\u7559\u5386\u53F2\u8BB0\u5F55",
   "setting.persist.desc": "\u5C06\u5386\u53F2\u8BB0\u5F55\u4FDD\u5B58\u5230\u78C1\u76D8\uFF0C\u4F7F\u9AD8\u4EAE\u5728\u91CD\u542F\u540E\u4F9D\u7136\u4FDD\u7559\u3002\u9700\u8981\u5C06\u201C\u4FDD\u7559\u5386\u53F2\u8BB0\u5F55\u76F4\u5230\u201D\u8BBE\u7F6E\u4E3A\u5173\u95ED\u5E94\u7528\u65F6\u3002",
   "setting.max-entries.name": "\u6700\u591A\u5B58\u50A8\u7684\u6587\u4EF6\u6570",
@@ -12963,6 +13057,8 @@ var zh_TW_default = {
   "setting.ignore-new-files.desc": "\u4E0D\u8FFD\u8E64\u5728\u958B\u59CB\u8FFD\u8E64\u5F8C\u5EFA\u7ACB\u7684\u6A94\u6848\u4E2D\u7684\u8B8A\u66F4",
   "setting.tree-highlight.name": "\u5728\u6A94\u6848\u6A39\u548C\u5206\u9801\u4E2D\u9192\u76EE\u986F\u793A\u8B8A\u66F4",
   "setting.tree-highlight.desc": "\u4F9D\u672C\u6B21\u5DE5\u4F5C\u968E\u6BB5\u4E2D\u7684\u8B8A\u66F4\uFF0C\u70BA\u539F\u751F\u6A94\u6848\u7E3D\u7BA1\u4E2D\u7684\u6A94\u6848\u8207\u8CC7\u6599\u593E\uFF0C\u4EE5\u53CA\u5DF2\u958B\u555F\u6A94\u6848\u7684\u5206\u9801\u6A19\u984C\u8457\u8272\uFF08\u4FEE\u6539\u70BA\u7425\u73C0\u8272\uFF0C\u65B0\u589E\u70BA\u7DA0\u8272\uFF09\u3002",
+  "setting.properties-highlight.name": "Highlight changes in Properties panel",
+  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
   "setting.persist.name": "\u91CD\u65B0\u555F\u52D5\u5F8C\u4FDD\u7559\u6B77\u53F2\u8A18\u9304",
   "setting.persist.desc": "\u5C07\u6B77\u53F2\u8A18\u9304\u5132\u5B58\u81F3\u78C1\u789F\uFF0C\u4F7F\u9192\u76EE\u63D0\u793A\u5728\u91CD\u65B0\u555F\u52D5\u5F8C\u4F9D\u7136\u4FDD\u7559\u3002\u9700\u8981\u5C07\u300C\u4FDD\u7559\u6B77\u53F2\u8A18\u9304\u76F4\u5230\u300D\u8A2D\u5B9A\u70BA\u95DC\u9589\u61C9\u7528\u7A0B\u5F0F\u6642\u3002",
   "setting.max-entries.name": "\u6700\u591A\u5132\u5B58\u7684\u6A94\u6848\u6578",
@@ -14748,12 +14844,31 @@ var WordDiffHelper = class _WordDiffHelper {
    * side yields a single added or removed segment for the non-empty side, and
    * two identical lines yield a single unchanged segment.
    *
+   * When the combined character length of both sides exceeds
+   * {@link WORD_DIFF_LENGTH_THRESHOLD}, the O(n*m) diff is skipped entirely:
+   * the method returns one removed segment for the old text and one added
+   * segment for the new text. This keeps the modal responsive on very long
+   * lines (minified JS, base64 blobs) while preserving full word-diff quality
+   * for all normal lines.
+   *
    * @param {string} oldText - The old (base) line text
    * @param {string} newText - The new (current) line text
    * @return {Diff.Change[]} Ordered word-level segments
    */
   static segments(oldText, newText) {
-    return diffWords(oldText != null ? oldText : "", newText != null ? newText : "");
+    const old = oldText != null ? oldText : "";
+    const next = newText != null ? newText : "";
+    if (old.length + next.length > WORD_DIFF_LENGTH_THRESHOLD) {
+      const result = [];
+      if (old.length > 0) {
+        result.push({ value: old, removed: true, added: false, count: 1 });
+      }
+      if (next.length > 0) {
+        result.push({ value: next, added: true, removed: false, count: 1 });
+      }
+      return result;
+    }
+    return diffWords(old, next);
   }
   /**
    * Turns a base text and a current text into an ordered list of inline diff
@@ -21409,6 +21524,11 @@ var MainSetting = class extends import_obsidian23.PluginSettingTab {
         this.settingsService.update("treeHighlight", value);
       })
     );
+    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.properties-highlight.name")).setDesc(this.plugin.t("setting.properties-highlight.desc")).addToggle(
+      (toggle) => toggle.setValue(this.settingsService.value("propertiesHighlight")).onChange((value) => {
+        this.settingsService.update("propertiesHighlight", value);
+      })
+    );
     new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.persist.name")).setDesc(this.plugin.t("setting.persist.desc")).addToggle(
       (toggle) => toggle.setValue(this.settingsService.value("persist")).onChange((value) => {
         this.settingsService.update("persist", value);
@@ -21667,6 +21787,24 @@ var SettingsService = class {
    */
   toggleShowChanges(value) {
     SHOW_CHANGE_KEYS.forEach((key2) => this.update(key2, value));
+  }
+  /**
+   * Returns the list of change types currently visible according to the active
+   * show.* settings. Used by the navigation commands to skip change types the
+   * user has hidden so go-to-next/prev-change does not land on invisible lines.
+   *
+   * Note: show.changed enables both ChangeType.changed and ChangeType.whitespace
+   * (whitespace-only edits are a sub-category of changed and shown together).
+   *
+   * @return {ChangeType[]} The change types whose show.* flag is currently true
+   */
+  getEnabledTypes() {
+    return [
+      ...this.value("show.changed") ? ["changed" /* changed */, "whitespace" /* whitespace */] : [],
+      ...this.value("show.restored") ? ["restored" /* restored */] : [],
+      ...this.value("show.added") ? ["added" /* added */] : [],
+      ...this.value("show.removed") ? ["removed" /* removed */] : []
+    ];
   }
 };
 
@@ -23527,7 +23665,14 @@ var VersionCodec = class _VersionCodec {
     for (let i = 0; i < versions.length; i++) {
       const version = versions[i];
       const isKeyframe = i % VERSION_KEYFRAME_INTERVAL === 0;
-      const entry = isKeyframe ? { timestamp: version.timestamp, lines: version.getLines() } : { timestamp: version.timestamp, delta: _VersionCodec.diff(versions[i - 1], version) };
+      let entry;
+      if (isKeyframe) {
+        entry = { timestamp: version.timestamp, lines: version.getLines() };
+      } else {
+        const delta = _VersionCodec.diff(versions[i - 1], version);
+        const fullText = version.getLines().join("\n");
+        entry = delta.length >= fullText.length ? { timestamp: version.timestamp, lines: version.getLines() } : { timestamp: version.timestamp, delta };
+      }
       if (version.isLabeled()) {
         entry.label = version.label;
       }
@@ -24282,13 +24427,22 @@ var FileSnapshot = class _FileSnapshot {
    * against the file content at this open) while the history modal still diffs
    * against the persisted original and its captured versions.
    *
+   * When the persisted snapshot carried a deletedTimestamp (i.e. it was a
+   * tombstone on disk), that value is synced onto this snapshot so tombstone
+   * data is never silently dropped when the session snapshot was created before
+   * the restore path ran (A8).
+   *
    * @param {string[]} historyLines - The persisted original (history baseline)
    * @param {FileVersion[]} versions - The persisted version timeline, oldest first
+   * @param {number | undefined} deletedTimestamp - The persisted tombstone marker, if any
    */
-  adoptHistory(historyLines, versions) {
+  adoptHistory(historyLines, versions, deletedTimestamp) {
     const result = SnapshotState.adoptHistory(historyLines, versions);
     this.historyLines = result.historyLines;
     this.versions = result.versions;
+    if (isNumber_default(deletedTimestamp)) {
+      this.deletedTimestamp = deletedTimestamp;
+    }
   }
   /**
    * Re-establishes the session marker baseline at the current state, the eager
@@ -25038,6 +25192,14 @@ var SnapshotsService = class {
    * `getFileByPath` is consulted; a null result is a real absence, not a
    * transient indexing miss.
    *
+   * After the restore loop, any file currently open in the editor is
+   * re-checked via {@link scheduleExternalCapture} to catch a disk state that
+   * diverged from the restored snapshot state while the plugin was off (A1).
+   * Files not open in the editor are intentionally skipped (no disk read for
+   * unopened files). The debounce inside {@link scheduleExternalCapture} also
+   * coalesces any vault.modify event that fires immediately after restore into a
+   * single trailing pass, preventing double-capture.
+   *
    * @param {SerializedFileSnapshot[]} snapshots - The serialized snapshots
    */
   restore(snapshots) {
@@ -25056,13 +25218,48 @@ var SnapshotsService = class {
       const existing = this.fileSnapshots.get(data.path);
       if (existing) {
         const persisted = FileSnapshot.fromJSON(data, file);
-        existing.adoptHistory(persisted.getHistoryOriginalStateLines(), persisted.versions);
+        existing.adoptHistory(
+          persisted.getHistoryOriginalStateLines(),
+          persisted.versions,
+          persisted.deletedTimestamp
+        );
         this.forceUpdate();
         continue;
       }
       const restored = FileSnapshot.fromJSON(data, file);
       restored.resetMarkerBaseline();
       this.fileSnapshots.set(data.path, restored);
+    }
+    this.reconcileOpenFiles();
+  }
+  /**
+   * Re-checks the disk state for every file currently open in the editor after
+   * a restore pass (A1). Calls {@link scheduleExternalCapture} for each open
+   * file that has a snapshot, which debounces the disk read + hash compare and
+   * fires a capture only when the on-disk content diverges from the restored
+   * state. Files not open in the editor are intentionally skipped: there is no
+   * visible editor surface for them and the performance cost of reading every
+   * tracked file on startup would be prohibitive.
+   *
+   * The debounce window inside {@link ExternalChangeCapture} acts as an
+   * async-safety valve: if a vault.modify event fires for the same file
+   * immediately after restore, its scheduleExternalCapture call resets the
+   * timer, so the two triggers coalesce into a single trailing disk read
+   * rather than a double-capture.
+   *
+   * A no-op when the plugin does not yet expose {@link getWorkspaceFiles}
+   * (test stubs or very early init paths that do not need the workspace).
+   */
+  reconcileOpenFiles() {
+    if (typeof this.plugin.getWorkspaceFiles !== "function") {
+      return;
+    }
+    const openFiles = this.plugin.getWorkspaceFiles();
+    for (const file of openFiles) {
+      if (!file || !this.fileSnapshots.has(file.path)) {
+        continue;
+      }
+      this.scheduleExternalCapture(file);
     }
   }
   /**
@@ -25709,6 +25906,36 @@ var _PropertyDecoratorService = class _PropertyDecoratorService {
     this.observed = void 0;
   }
   /**
+   * Removes all property-diff decorations from the active MarkdownView and
+   * purges all ghost rows, WITHOUT tearing down the refresh wiring.  Called
+   * when the `propertiesHighlight` toggle is turned off so the panel clears
+   * live yet remains ready to re-decorate the moment it is turned back on.
+   * Idempotent: a second call is a no-op when the maps are already empty and
+   * no decorated rows remain.
+   */
+  clearAll() {
+    for (const ghostEl of this.ghostMap.values()) {
+      ghostEl.remove();
+    }
+    this.ghostMap.clear();
+    const view = this.plugin.getActiveViewOfType();
+    if (!view) {
+      return;
+    }
+    const editor = queryMetadataEditor(view.contentEl);
+    if (!editor) {
+      return;
+    }
+    for (const row of queryPropertyRows(editor)) {
+      row.classList.remove(
+        _PropertyDecoratorService.CLASS_ADDED,
+        _PropertyDecoratorService.CLASS_MODIFIED,
+        _PropertyDecoratorService.CLASS_REMOVED
+      );
+      row.removeAttribute("title");
+    }
+  }
+  /**
    * Schedules a debounced apply sweep.  A pending timer is reset on each call
    * so a burst of triggers resolves to a single trailing {@link apply}.
    */
@@ -25737,6 +25964,10 @@ var _PropertyDecoratorService = class _PropertyDecoratorService {
    */
   apply() {
     if (!this.plugin.isReady()) {
+      return;
+    }
+    if (!this.settingsService.value("propertiesHighlight")) {
+      this.clearAll();
       return;
     }
     const view = this.plugin.getActiveViewOfType();
@@ -25985,6 +26216,9 @@ _PropertyDecoratorService.CLASS_MODIFIED = "lct-prop-modified";
 _PropertyDecoratorService.CLASS_REMOVED = "lct-prop-removed";
 /** CSS class applied to synthetic ghost rows injected for removed properties. */
 _PropertyDecoratorService.CLASS_GHOST = "lct-prop-ghost";
+__decorateClass([
+  Inject(TOKENS.settings)
+], _PropertyDecoratorService.prototype, "settingsService", 2);
 __decorateClass([
   Inject(TOKENS.snapshots)
 ], _PropertyDecoratorService.prototype, "snapshotsService", 2);

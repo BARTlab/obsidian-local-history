@@ -42,6 +42,9 @@ const context = await esbuild.context({
   logLevel: 'info',
   sourcemap: prod ? false : 'inline',
   treeShaking: true,
+  define: {
+    'process.env.NODE_ENV': prod ? '"production"' : '"development"',
+  },
   // No keepNames: the DI container resolves services by stable symbol tokens
   // (see `@Inject(TOKENS.x)` and `LineChangeTrackerPlugin.get`), never by
   // `constructor.name`. Tokens survive minification untouched, so the bundle can

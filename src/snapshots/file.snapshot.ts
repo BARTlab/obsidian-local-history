@@ -289,6 +289,14 @@ export class FileSnapshot {
      */
     snapshot.timeline.seedLastVersionAtFromVersions(snapshot.versions);
 
+    /**
+     * A5: seed the edit-count gate from the number of versions in the current
+     * keyframe group so the counter is not artificially reset to 0 on every
+     * restart. A file with N versions already captured in the current group
+     * starts the gate at N % VERSION_KEYFRAME_INTERVAL instead of 0.
+     */
+    snapshot.timeline.seedEditsSinceVersionFromVersions(snapshot.versions);
+
     if (isNumber(data.deletedTimestamp)) {
       snapshot.deletedTimestamp = data.deletedTimestamp;
     }

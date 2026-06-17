@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import type { Change } from 'diff';
 import { WordDiffHelper } from '@/helpers/word-diff.helper';
+import { WORD_DIFF_LENGTH_THRESHOLD } from '@/consts';
 import type { InlineDiffLine } from '@/types';
 
 /**
@@ -56,6 +57,38 @@ describe('WordDiffHelper.segments', () => {
 
   it('treats null inputs as empty strings', () => {
     expect(WordDiffHelper.segments(null as never, null as never)).toEqual([]);
+  });
+
+  it('short-circuits to one removed + one added when combined length exceeds threshold', () => {
+    const longLine: string = 'x'.repeat(WORD_DIFF_LENGTH_THRESHOLD);
+    const segments: Change[] = WordDiffHelper.segments(longLine, longLine + 'y');
+
+    expect(segments).toHaveLength(2);
+    expect(segments[0].removed).toBe(true);
+    expect(segments[0].value).toBe(longLine);
+    expect(segments[1].added).toBe(true);
+    expect(segments[1].value).toBe(longLine + 'y');
+  });
+
+  it('does not short-circuit when combined length equals the threshold', () => {
+    // Exactly at the boundary: oldText.length + newText.length === threshold.
+    // The guard uses strict >, so threshold itself goes through Diff.diffWords.
+    const half: string = 'a'.repeat(WORD_DIFF_LENGTH_THRESHOLD / 2);
+    const segments: Change[] = WordDiffHelper.segments(half, half);
+
+    // Identical strings -> single unchanged segment from Diff.diffWords.
+    expect(segments).toHaveLength(1);
+    expect(segments[0].added).toBeFalsy();
+    expect(segments[0].removed).toBeFalsy();
+  });
+
+  it('returns only an added segment when the old side is empty and new side exceeds threshold', () => {
+    const longLine: string = 'z'.repeat(WORD_DIFF_LENGTH_THRESHOLD + 1);
+    const segments: Change[] = WordDiffHelper.segments('', longLine);
+
+    expect(segments).toHaveLength(1);
+    expect(segments[0].added).toBe(true);
+    expect(segments[0].value).toBe(longLine);
   });
 });
 

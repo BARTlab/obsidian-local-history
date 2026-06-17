@@ -24,6 +24,9 @@ body {
   --lct-status-added: var(--color-orange);
   --lct-status-modified: var(--color-blue);
   --lct-status-deleted: var(--color-base-100);
+  // Ghost-row text colour: resolves to --text-muted so removed property keys
+  // have legible contrast in light themes where --color-base-100 is near-white.
+  --lct-prop-removed: var(--text-muted);
 }
 
 /* ---- modal ---- */
@@ -1337,13 +1340,15 @@ body {
 }
 
 // Ghost row: synthetic element for a property removed since the baseline.
-// Dimmed, non-interactive, key name struck through and tinted in the deleted color.
+// Dimmed, non-interactive, key name struck through and tinted in the removed color.
+// Uses --lct-prop-removed (resolves to --text-muted) instead of --lct-status-deleted
+// (--color-base-100) to avoid near-white text on light themes.
 .lct-prop-ghost {
   opacity: 0.5;
   pointer-events: none;
 
   .metadata-property-key {
     text-decoration: line-through;
-    color: var(--lct-status-deleted);
+    color: var(--lct-prop-removed);
   }
 }

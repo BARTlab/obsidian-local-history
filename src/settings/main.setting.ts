@@ -7,6 +7,7 @@ import type { SettingsService } from '@/services/settings.service';
 import { TOKENS } from '@/services/tokens';
 import {
   type DropdownComponent,
+  Notice,
   PluginSettingTab,
   Setting,
   type SliderComponent,
@@ -99,6 +100,7 @@ export class MainSetting extends PluginSettingTab {
             }
 
             text.inputEl.addClass('lct-setting-invalid');
+            new Notice(this.plugin.t('notice.invalid-exclude-pattern'));
           })
       );
 

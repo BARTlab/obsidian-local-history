@@ -398,13 +398,7 @@ export class RecentChangesView extends ItemView {
     versions: FileVersion[],
     snapshot: FileSnapshot,
   ): VersionDescription {
-    const index: number = versions.indexOf(version);
-    const previous: FileVersion | undefined = index >= 0 ? versions[index + 1] : undefined;
-    const previousLines: string[] = previous
-      ? previous.getLines()
-      : snapshot.getHistoryOriginalStateLines();
-
-    return VersionLabelHelper.describe(previousLines, version.getLines());
+    return VersionLabelHelper.walkNeighbour(version, versions, snapshot.getHistoryOriginalStateLines());
   }
 
   /**
@@ -416,14 +410,7 @@ export class RecentChangesView extends ItemView {
    * @return {string} The formatted delta or empty string
    */
   protected formatDelta(description: VersionDescription): string {
-    if (description.added === 0 && description.removed === 0) {
-      return '';
-    }
-
-    return this.plugin.t('modal.version.delta', {
-      added: String(description.added),
-      removed: String(description.removed),
-    });
+    return VersionLabelHelper.formatDelta(description, this.plugin.t.bind(this.plugin));
   }
 
   /**

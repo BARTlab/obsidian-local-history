@@ -1,6 +1,7 @@
 import * as Diff from 'diff';
 import { VersionAction } from '@/consts';
-import type { VersionDescription } from '@/types';
+import type { FileVersion } from '@/snapshots/file.version';
+import type { TranslationVars, VersionDescription } from '@/types';
 
 /**
  * Pure helper that derives a human action description for a version from its
@@ -53,6 +54,60 @@ export class VersionLabelHelper {
     }
 
     return { kind: VersionAction.modified, added, removed };
+  }
+
+  /**
+   * Computes the action description for a version against its previous
+   * neighbour on a timeline. The neighbour is the next-older captured version
+   * (the entry at index + 1 in a newest-first array), or `fallbackLines` when
+   * the version is the oldest one on the timeline (index + 1 is out of bounds).
+   *
+   * This is the shared neighbour-walk that both the history modal rail and the
+   * recent-changes panel use to derive action labels and line deltas, extracted
+   * here so neither caller duplicates the index arithmetic.
+   *
+   * @param {FileVersion} version - The version to describe
+   * @param {FileVersion[]} versions - The full timeline, newest first
+   * @param {string[]} fallbackLines - Lines to use as the previous state when
+   *   `version` is the oldest entry (typically the file's history baseline)
+   * @return {VersionDescription} The action kind plus the added/removed counts
+   */
+  public static walkNeighbour(
+    version: FileVersion,
+    versions: FileVersion[],
+    fallbackLines: string[],
+  ): VersionDescription {
+    const index: number = versions.indexOf(version);
+    const previous: FileVersion | undefined = index >= 0 ? versions[index + 1] : undefined;
+    const previousLines: string[] = previous ? previous.getLines() : fallbackLines;
+
+    return VersionLabelHelper.describe(previousLines, version.getLines());
+  }
+
+  /**
+   * Formats the inline line delta string from a describe result. Returns an
+   * empty string when both added and removed are zero so a no-op capture does
+   * not show a cluttered `+0 -0` row. The formatted string uses the supplied
+   * translation function so the output is localised at the call site without
+   * the helper having any Obsidian or service dependency.
+   *
+   * @param {VersionDescription} description - The describe result
+   * @param {(key: string, vars?: TranslationVars) => string} t - The
+   *   translation function bound to the active locale
+   * @return {string} The formatted delta string, or empty string for no-ops
+   */
+  public static formatDelta(
+    description: VersionDescription,
+    t: (key: string, vars?: TranslationVars) => string,
+  ): string {
+    if (description.added === 0 && description.removed === 0) {
+      return '';
+    }
+
+    return t('modal.version.delta', {
+      added: String(description.added),
+      removed: String(description.removed),
+    });
   }
 
   /**

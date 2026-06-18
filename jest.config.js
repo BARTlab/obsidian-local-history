@@ -25,6 +25,11 @@ module.exports = {
         // runtime is CommonJS, so compile test sources to CommonJS here.
         tsconfig: {
           module: 'commonjs',
+          // The project tsconfig uses `bundler` moduleResolution which does not
+          // auto-include @types/node under CommonJS. Pin `node` resolution so
+          // test files that import node:* builtins resolve without TS2307 errors.
+          moduleResolution: 'node',
+          types: ['node'],
         },
       },
     ],

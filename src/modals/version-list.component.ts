@@ -276,13 +276,7 @@ export class VersionList {
    * @return {VersionDescription} The action kind plus the added/removed counts
    */
   public describe(version: FileVersion, versions: FileVersion[]): VersionDescription {
-    const index: number = versions.indexOf(version);
-    const previous: FileVersion | undefined = index >= 0 ? versions[index + 1] : undefined;
-    const previousLines: string[] = previous
-      ? previous.getLines()
-      : this.host.snapshot.getHistoryOriginalStateLines();
-
-    return VersionLabelHelper.describe(previousLines, version.getLines());
+    return VersionLabelHelper.walkNeighbour(version, versions, this.host.snapshot.getHistoryOriginalStateLines());
   }
 
   /**
@@ -294,14 +288,7 @@ export class VersionList {
    * @return {string} The formatted delta or empty string
    */
   public formatDelta(description: VersionDescription): string {
-    if (description.added === 0 && description.removed === 0) {
-      return '';
-    }
-
-    return this.host.plugin.t('modal.version.delta', {
-      added: String(description.added),
-      removed: String(description.removed),
-    });
+    return VersionLabelHelper.formatDelta(description, this.host.plugin.t.bind(this.host.plugin));
   }
 
   /**

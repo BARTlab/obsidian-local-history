@@ -67,7 +67,6 @@
   "setting.gutter-added.name": "Afegit",
   "setting.gutter-restored.name": "Restauració",
   "setting.gutter-removed.name": "Eliminació",
-  "modal.title": "Historial",
   "modal.no-changes": "Cap canvi",
   "modal.identical-to-current": "Idèntic a l'actual",
   "modal.restore-original": "Restaura l'original",

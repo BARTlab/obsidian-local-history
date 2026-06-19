@@ -67,7 +67,6 @@
   "setting.gutter-added.name": "Ekleme",
   "setting.gutter-restored.name": "Geri yükleme",
   "setting.gutter-removed.name": "Kaldırma",
-  "modal.title": "Geçmiş",
   "modal.no-changes": "Değişiklik yok",
   "modal.identical-to-current": "Geçerli sürümle aynı",
   "modal.restore-original": "Özgün halini geri yükle",

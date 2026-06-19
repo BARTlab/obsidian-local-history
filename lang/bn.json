@@ -67,7 +67,6 @@
   "setting.gutter-added.name": "যোগ",
   "setting.gutter-restored.name": "পুনরুদ্ধার",
   "setting.gutter-removed.name": "অপসারণ",
-  "modal.title": "ইতিহাস",
   "modal.no-changes": "কোনো পরিবর্তন নেই",
   "modal.identical-to-current": "বর্তমানের সাথে অভিন্ন",
   "modal.restore-original": "মূলটি পুনরুদ্ধার করুন",

@@ -67,7 +67,6 @@
   "setting.gutter-added.name": "Додавање",
   "setting.gutter-restored.name": "Враћање",
   "setting.gutter-removed.name": "Уклањање",
-  "modal.title": "Историја",
   "modal.no-changes": "Нема измена",
   "modal.identical-to-current": "Идентично текућем",
   "modal.restore-original": "Врати оригинал",

@@ -67,7 +67,6 @@
   "setting.gutter-added.name": "Tilføjet",
   "setting.gutter-restored.name": "Gendannet",
   "setting.gutter-removed.name": "Fjernet",
-  "modal.title": "Historik",
   "modal.no-changes": "Ingen ændringer",
   "modal.identical-to-current": "Identisk med aktuel version",
   "modal.restore-original": "Gendan original",

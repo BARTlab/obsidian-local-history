@@ -67,7 +67,6 @@
   "setting.gutter-added.name": "Добавление",
   "setting.gutter-restored.name": "Восстановление",
   "setting.gutter-removed.name": "Удаление",
-  "modal.title": "История",
   "modal.no-changes": "Нет изменений",
   "modal.identical-to-current": "Идентично текущему",
   "modal.restore-selected": "Восстановить выбранную версию",

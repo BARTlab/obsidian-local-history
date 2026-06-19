@@ -67,7 +67,6 @@
   "setting.gutter-added.name": "الإضافة",
   "setting.gutter-restored.name": "الاستعادة",
   "setting.gutter-removed.name": "الحذف",
-  "modal.title": "السجل",
   "modal.no-changes": "لا توجد تغييرات",
   "modal.identical-to-current": "مطابق للنسخة الحالية",
   "modal.restore-original": "استعادة النسخة الأصلية",

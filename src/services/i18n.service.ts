@@ -1,7 +1,7 @@
 import { isString } from 'lodash-es';
 
 import { FALLBACK_LANGUAGE, LANGUAGE_STORAGE_KEY, OBSIDIAN_LANGUAGES, PLACEHOLDER_PATTERN } from '@/consts';
-import { BUNDLED_CATALOGS } from '@/i18n';
+import { BUNDLED_CATALOGS } from '@/helpers/i18n.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { Service, TranslationCatalog, TranslationCatalogs, TranslationVars } from '@/types';
 

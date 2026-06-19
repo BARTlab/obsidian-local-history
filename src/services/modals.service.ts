@@ -235,7 +235,7 @@ export class ModalsService implements Service {
    * @return {Promise<boolean>} Promise that resolves to true if confirmed, false if cancelled
    */
   public async confirm(config: ConfirmModalConfig): Promise<boolean> {
-    const modal: ConfirmModal = new ConfirmModal(this.plugin.app, config);
+    const modal: ConfirmModal = new ConfirmModal(this.plugin.app, config, this.plugin.t.bind(this.plugin));
 
     return await modal.confirm();
   }

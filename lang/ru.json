@@ -105,6 +105,7 @@
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Нет версий, соответствующих поиску",
   "modal.revert-hunk": "Откатить это изменение",
+  "gutter.revert": "Revert this change",
   "modal.copy": "Копировать",
   "modal.put-label.title": "Поставить метку",
   "modal.put-label.message": "Отметьте текущее содержимое короткой меткой.",

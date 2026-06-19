@@ -105,6 +105,7 @@
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Mikään versio ei vastaa hakua",
   "modal.revert-hunk": "Peru tämä muutos",
+  "gutter.revert": "Revert this change",
   "modal.copy": "Kopioi",
   "modal.put-label.title": "Put label",
   "modal.put-label.message": "Tag the current content with a short label.",

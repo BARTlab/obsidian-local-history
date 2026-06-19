@@ -105,6 +105,7 @@
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "គ្មានកំណែដែលត្រូវនឹងការស្វែងរកទេ",
   "modal.revert-hunk": "ត្រឡប់ការផ្លាស់ប្ដូរនេះវិញ",
+  "gutter.revert": "Revert this change",
   "modal.copy": "ចម្លង",
   "modal.put-label.title": "Put label",
   "modal.put-label.message": "Tag the current content with a short label.",

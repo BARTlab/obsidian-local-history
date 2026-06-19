@@ -105,6 +105,7 @@
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Không có phiên bản nào khớp với tìm kiếm",
   "modal.revert-hunk": "Hoàn nguyên thay đổi này",
+  "gutter.revert": "Revert this change",
   "modal.copy": "Sao chép",
   "modal.put-label.title": "Put label",
   "modal.put-label.message": "Tag the current content with a short label.",

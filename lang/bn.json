@@ -105,6 +105,7 @@
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "অনুসন্ধানের সাথে কোনো সংস্করণ মেলে না",
   "modal.revert-hunk": "এই পরিবর্তন প্রত্যাবর্তন করুন",
+  "gutter.revert": "Revert this change",
   "modal.copy": "অনুলিপি",
   "modal.put-label.title": "Put label",
   "modal.put-label.message": "Tag the current content with a short label.",

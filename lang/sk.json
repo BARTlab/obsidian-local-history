@@ -105,6 +105,7 @@
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Žiadne verzie nezodpovedajú hľadaniu",
   "modal.revert-hunk": "Vrátiť túto zmenu",
+  "gutter.revert": "Revert this change",
   "modal.copy": "Kopírovať",
   "modal.put-label.title": "Put label",
   "modal.put-label.message": "Tag the current content with a short label.",

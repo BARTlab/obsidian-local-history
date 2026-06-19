@@ -105,6 +105,7 @@
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Qidiruvga mos versiyalar yoʻq",
   "modal.revert-hunk": "Bu oʻzgarishni qaytarish",
+  "gutter.revert": "Revert this change",
   "modal.copy": "Nusxalash",
   "modal.put-label.title": "Put label",
   "modal.put-label.message": "Tag the current content with a short label.",

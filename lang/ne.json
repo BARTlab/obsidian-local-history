@@ -105,6 +105,7 @@
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "खोजसँग कुनै संस्करण मेल खाँदैन",
   "modal.revert-hunk": "यो परिवर्तन फिर्ता गर्नुहोस्",
+  "gutter.revert": "Revert this change",
   "modal.copy": "प्रतिलिपि गर्नुहोस्",
   "modal.put-label.title": "Put label",
   "modal.put-label.message": "Tag the current content with a short label.",

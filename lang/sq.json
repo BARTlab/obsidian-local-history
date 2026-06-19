@@ -105,6 +105,7 @@
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Asnjë version nuk përputhet me kërkimin",
   "modal.revert-hunk": "Ktheje këtë ndryshim",
+  "gutter.revert": "Revert this change",
   "modal.copy": "Kopjo",
   "modal.put-label.title": "Put label",
   "modal.put-label.message": "Tag the current content with a short label.",

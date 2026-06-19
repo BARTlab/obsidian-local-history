@@ -105,6 +105,7 @@
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "ከፍለጋው ጋር የሚዛመዱ ስሪቶች የሉም",
   "modal.revert-hunk": "ይህን ለውጥ መልስ",
+  "gutter.revert": "Revert this change",
   "modal.copy": "ቅዳ",
   "modal.put-label.title": "Put label",
   "modal.put-label.message": "Tag the current content with a short label.",

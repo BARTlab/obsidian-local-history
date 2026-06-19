@@ -105,6 +105,7 @@
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "沒有符合搜尋的版本",
   "modal.revert-hunk": "還原此變更",
+  "gutter.revert": "Revert this change",
   "modal.copy": "複製",
   "modal.put-label.title": "Put label",
   "modal.put-label.message": "Tag the current content with a short label.",

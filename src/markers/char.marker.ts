@@ -1,6 +1,7 @@
 import { ChangeType, IndicatorType, REVERT_GLYPH } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import type LineChangeTrackerPlugin from '@/main';
+import type { I18nService } from '@/services/i18n.service';
 import type { SettingsService } from '@/services/settings.service';
 import { TOKENS } from '@/services/tokens';
 import type { RevertLine } from '@/types';
@@ -20,6 +21,13 @@ export class DotMarker extends GutterMarker {
    */
   @Inject(TOKENS.settings)
   protected settingsService!: SettingsService;
+
+  /**
+   * Service for resolving localized strings.
+   * Injected using the @Inject decorator.
+   */
+  @Inject(TOKENS.i18n)
+  protected i18nService!: I18nService;
 
   /**
    * Map of change types to their corresponding gutter characters.
@@ -87,10 +95,11 @@ export class DotMarker extends GutterMarker {
       return wrapper;
     }
 
+    const revertLabel: string = this.i18nService.t('gutter.revert');
     const button: HTMLButtonElement = wrapper.createEl('button', {
       cls: 'lct-gutter-revert',
       text: REVERT_GLYPH,
-      attr: { 'aria-label': 'Revert this change', 'title': 'Revert this change', 'type': 'button' },
+      attr: { 'aria-label': revertLabel, 'title': revertLabel, 'type': 'button' },
     });
 
     button.addEventListener('click', (event: MouseEvent): void => {

@@ -105,6 +105,7 @@
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "검색과 일치하는 버전이 없습니다",
   "modal.revert-hunk": "이 변경 되돌리기",
+  "gutter.revert": "Revert this change",
   "modal.copy": "복사",
   "modal.put-label.title": "Put label",
   "modal.put-label.message": "Tag the current content with a short label.",

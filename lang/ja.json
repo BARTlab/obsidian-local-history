@@ -67,7 +67,6 @@
   "setting.gutter-added.name": "追加",
   "setting.gutter-restored.name": "復元",
   "setting.gutter-removed.name": "削除",
-  "modal.title": "履歴",
   "modal.no-changes": "変更なし",
   "modal.identical-to-current": "現在の内容と同一",
   "modal.restore-original": "元の状態に復元",

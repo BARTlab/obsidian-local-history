@@ -67,7 +67,6 @@
   "setting.gutter-added.name": "추가",
   "setting.gutter-restored.name": "복원",
   "setting.gutter-removed.name": "삭제",
-  "modal.title": "기록",
   "modal.no-changes": "변경 사항 없음",
   "modal.identical-to-current": "현재 내용과 동일",
   "modal.restore-original": "원본 복원",

@@ -67,7 +67,6 @@
   "setting.gutter-added.name": "Додавання",
   "setting.gutter-restored.name": "Відновлення",
   "setting.gutter-removed.name": "Видалення",
-  "modal.title": "Історія",
   "modal.no-changes": "Немає змін",
   "modal.identical-to-current": "Ідентично поточному",
   "modal.restore-original": "Відновити оригінал",

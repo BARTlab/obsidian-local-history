@@ -67,7 +67,6 @@
   "setting.gutter-added.name": "新增",
   "setting.gutter-restored.name": "還原",
   "setting.gutter-removed.name": "刪除",
-  "modal.title": "歷史記錄",
   "modal.no-changes": "無變更",
   "modal.identical-to-current": "與目前內容相同",
   "modal.restore-original": "還原原始內容",

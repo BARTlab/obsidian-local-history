@@ -67,7 +67,6 @@
   "setting.gutter-added.name": "Adăugare",
   "setting.gutter-restored.name": "Restabilire",
   "setting.gutter-removed.name": "Eliminare",
-  "modal.title": "Istoric",
   "modal.no-changes": "Nicio modificare",
   "modal.identical-to-current": "Identic cu cel curent",
   "modal.restore-original": "Restabilește originalul",

@@ -67,7 +67,6 @@
   "setting.gutter-added.name": "Tillagd",
   "setting.gutter-restored.name": "Återställd",
   "setting.gutter-removed.name": "Borttagen",
-  "modal.title": "Historik",
   "modal.no-changes": "Inga ändringar",
   "modal.identical-to-current": "Identisk med aktuell version",
   "modal.restore-original": "Återställ original",

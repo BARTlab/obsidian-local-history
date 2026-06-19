@@ -67,7 +67,6 @@
   "setting.gutter-added.name": "Hozzáadás",
   "setting.gutter-restored.name": "Visszaállítás",
   "setting.gutter-removed.name": "Eltávolítás",
-  "modal.title": "Előzmények",
   "modal.no-changes": "Nincs módosítás",
   "modal.identical-to-current": "Megegyezik a jelenlegivel",
   "modal.restore-original": "Eredeti visszaállítása",

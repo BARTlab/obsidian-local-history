@@ -67,7 +67,6 @@
   "setting.gutter-added.name": "Ajout",
   "setting.gutter-restored.name": "Restauration",
   "setting.gutter-removed.name": "Suppression",
-  "modal.title": "Historique",
   "modal.no-changes": "Aucune modification",
   "modal.identical-to-current": "Identique à la version actuelle",
   "modal.restore-original": "Restaurer l'original",

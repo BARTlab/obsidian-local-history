@@ -67,7 +67,6 @@
   "setting.gutter-added.name": "Aggiunta",
   "setting.gutter-restored.name": "Ripristino",
   "setting.gutter-removed.name": "Rimozione",
-  "modal.title": "Cronologia",
   "modal.no-changes": "Nessuna modifica",
   "modal.identical-to-current": "Identico all'attuale",
   "modal.restore-original": "Ripristina l'originale",

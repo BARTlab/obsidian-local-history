@@ -67,7 +67,6 @@
   "setting.gutter-added.name": "การเพิ่ม",
   "setting.gutter-restored.name": "การคืนค่า",
   "setting.gutter-removed.name": "การลบ",
-  "modal.title": "ประวัติ",
   "modal.no-changes": "ไม่มีการเปลี่ยนแปลง",
   "modal.identical-to-current": "เหมือนกับฉบับปัจจุบัน",
   "modal.restore-original": "คืนค่าต้นฉบับ",

@@ -47,17 +47,19 @@ export class ConfirmModal extends Modal {
    *
    * @param {App} app - The Obsidian app instance
    * @param {ConfirmModalConfig} config - Configuration object for the modal
+   * @param {(key: string) => string} t - Translation function for localized default texts
    */
   public constructor(
     app: App,
-    config: ConfirmModalConfig
+    config: ConfirmModalConfig,
+    t: (key: string) => string
   ) {
     super(app);
 
-    this.title = config.title ?? 'Confirmation';
-    this.message = config.message ?? 'Are you sure you want to proceed?';
-    this.confirmText = config.confirmText ?? 'Confirm';
-    this.cancelText = config.cancelText ?? 'Cancel';
+    this.title = config.title ?? t('modal.confirm.default.title');
+    this.message = config.message ?? t('modal.confirm.default.message');
+    this.confirmText = config.confirmText ?? t('modal.confirm.default.ok');
+    this.cancelText = config.cancelText ?? t('modal.confirm.default.cancel');
   }
 
   /**

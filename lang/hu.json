@@ -105,6 +105,7 @@
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Nincs a keresésnek megfelelő verzió",
   "modal.revert-hunk": "Módosítás visszavonása",
+  "gutter.revert": "Revert this change",
   "modal.copy": "Másolás",
   "modal.put-label.title": "Put label",
   "modal.put-label.message": "Tag the current content with a short label.",

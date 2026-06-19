@@ -105,6 +105,7 @@
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Nicio versiune nu corespunde căutării",
   "modal.revert-hunk": "Revino asupra acestei modificări",
+  "gutter.revert": "Revert this change",
   "modal.copy": "Copiază",
   "modal.put-label.title": "Put label",
   "modal.put-label.message": "Tag the current content with a short label.",

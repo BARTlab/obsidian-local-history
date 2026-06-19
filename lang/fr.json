@@ -105,6 +105,7 @@
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Aucune version ne correspond à la recherche",
   "modal.revert-hunk": "Annuler cette modification",
+  "gutter.revert": "Revert this change",
   "modal.copy": "Copier",
   "modal.put-label.title": "Put label",
   "modal.put-label.message": "Tag the current content with a short label.",

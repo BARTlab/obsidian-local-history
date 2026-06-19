@@ -105,6 +105,7 @@
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Няма версій, што адпавядаюць пошуку",
   "modal.revert-hunk": "Адкаціць гэтую змену",
+  "gutter.revert": "Revert this change",
   "modal.copy": "Капіяваць",
   "modal.put-label.title": "Put label",
   "modal.put-label.message": "Tag the current content with a short label.",

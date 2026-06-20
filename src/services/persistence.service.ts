@@ -264,6 +264,13 @@ export class PersistenceService implements Service {
    * still-present file's history purely because it is old. A deleted file's
    * recoverability window is a real policy, so tombstones still expire by age.
    *
+   * Byte-budget (global maxStorageBytes) is intentionally out of scope. The
+   * existing multi-dimensional count-cap policy (maxEntries, maxDeletedEntries,
+   * maxVersions) is accepted as the retention strategy (ADR-18-27). A byte-budget
+   * dimension adds implementation complexity - it requires summing encoded sizes
+   * across shards and is sensitive to codec changes - without meaningfully
+   * improving the user-observable storage behaviour that count caps already bound.
+   *
    * @param {SerializedFileSnapshot[]} snapshots - The raw persisted snapshots
    * @return {SerializedFileSnapshot[]} The retained subset, newest first
    */

@@ -11,12 +11,13 @@ import type { TFile } from 'obsidian';
  */
 export interface IgnoreListHost {
   /**
-   * The raw, user-configured exclude pattern from settings. A regexp matched
-   * against the vault-relative path; an empty pattern excludes nothing.
+   * The raw, user-configured exclude patterns from settings. Each entry is a
+   * regexp matched against the vault-relative path; the entries are OR'd and an
+   * empty list excludes nothing.
    *
-   * @return {string} The current exclude pattern
+   * @return {string[]} The current exclude patterns
    */
-  getExcludePattern(): string;
+  getExcludePatterns(): string[];
 
   /**
    * Whether the exclude pattern is matched case-sensitively. When true the 'i'
@@ -57,10 +58,10 @@ export class IgnoreListManager {
   protected ignoreList: Set<TFile> = new Set();
 
   /**
-   * The last exclude pattern a user was warned about for being invalid. Keeps
-   * the "invalid regexp" warning from firing on every captured file: the warning
-   * shows once per distinct bad pattern until the user edits the field to a
-   * valid one (or to a different bad one).
+   * The last exclude-pattern list a user was warned about for containing an
+   * invalid entry, joined into a single key. Keeps the "invalid regexp" warning
+   * from firing on every captured file: the warning shows once per distinct bad
+   * list until the user edits it to an all-valid one (or to a different bad one).
    */
   protected lastWarnedExcludePattern: string | null = null;
 
@@ -134,12 +135,13 @@ export class IgnoreListManager {
   }
 
   /**
-   * Checks whether a file path matches the configured exclude pattern. Excluded
+   * Checks whether a file path matches any configured exclude pattern. Excluded
    * paths (for example a templates or daily-notes folder) are never tracked, on
-   * top of the extension filter. The pattern is a regexp matched against the
-   * vault-relative path; case sensitivity is controlled by the host setting.
-   * An empty pattern excludes nothing. An invalid pattern excludes nothing and
-   * warns the user once so a typo cannot silently disable all tracking.
+   * top of the extension filter. Each pattern is a regexp matched against the
+   * vault-relative path and the entries are OR'd; case sensitivity is controlled
+   * by the host setting. An empty list excludes nothing. An invalid entry
+   * excludes nothing for that entry and warns the user once so a typo cannot
+   * silently disable all tracking.
    *
    * @param {TFile} file - The file to check
    * @return {boolean} True if the file path is excluded from tracking
@@ -149,34 +151,37 @@ export class IgnoreListManager {
       return false;
     }
 
-    const pattern: string = this.host.getExcludePattern();
+    const patterns: string[] = this.host.getExcludePatterns();
     const caseSensitive: boolean = this.host.getExcludePathsCaseSensitive();
 
-    this.warnOnInvalidExcludePattern(pattern);
+    this.warnOnInvalidExcludePattern(patterns);
 
-    return PathExcludeHelper.isExcluded(file.path, pattern, caseSensitive);
+    return PathExcludeHelper.isExcluded(file.path, patterns, caseSensitive);
   }
 
   /**
-   * Routes a one-time warning to the host when the exclude pattern does not
+   * Routes a one-time warning to the host when any exclude entry does not
    * compile, so the user learns their regexp is ignored without being spammed
-   * once per file. Resets the guard when the pattern becomes valid again, so a
-   * later mistake is surfaced afresh.
+   * once per file. The warn-once guard is keyed on the joined list, so editing
+   * the list to an all-valid state resets the guard and a later mistake is
+   * surfaced afresh.
    *
-   * @param {string} pattern - The raw exclude pattern from settings
+   * @param {string[]} patterns - The raw exclude patterns from settings
    */
-  protected warnOnInvalidExcludePattern(pattern: string): void {
-    if (PathExcludeHelper.isValid(pattern)) {
+  protected warnOnInvalidExcludePattern(patterns: string[]): void {
+    if (patterns.every((pattern: string): boolean => PathExcludeHelper.isValid(pattern))) {
       this.lastWarnedExcludePattern = null;
 
       return;
     }
 
-    if (this.lastWarnedExcludePattern === pattern) {
+    const key: string = patterns.join('\n');
+
+    if (this.lastWarnedExcludePattern === key) {
       return;
     }
 
-    this.lastWarnedExcludePattern = pattern;
+    this.lastWarnedExcludePattern = key;
 
     this.host.notifyInvalidPattern();
   }

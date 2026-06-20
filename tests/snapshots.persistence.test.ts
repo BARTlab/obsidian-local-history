@@ -393,7 +393,7 @@ describe('SnapshotsService.restore - post-restore reconciliation (A1)', () => {
       value: (key: string): unknown => {
         const defaults: Record<string, unknown> = {
           'allowedExtensions': 'md',
-          'excludePaths': '',
+          'excludePaths': [],
           'snapshots.enabled': true,
           'snapshots.intervalMs': 0,
           'snapshots.editThreshold': 0,

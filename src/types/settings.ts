@@ -124,13 +124,17 @@ export interface LineChangeTrackerSettings {
    */
   allowedExtensions: string;
   /**
-   * Path/glob patterns to exclude from tracking (comma- or newline-separated)
+   * Regular-expression patterns to exclude from tracking. Each entry is an
+   * independent regexp matched against the vault-relative path; a file is
+   * excluded when ANY entry matches (the entries are OR'd). An empty array
+   * excludes nothing. Stored as a structured array so the settings UI can manage
+   * each pattern as its own add/remove row.
    */
-  excludePaths: string;
+  excludePaths: string[];
   /**
-   * Whether the excludePaths regular expression is matched case-sensitively.
-   * When true, the 'i' flag is NOT applied; when false (default), the pattern
-   * is case-insensitive to behave well on case-insensitive file systems.
+   * Whether the excludePaths regular expressions are matched case-sensitively.
+   * When true, the 'i' flag is NOT applied; when false (default), the patterns
+   * are case-insensitive to behave well on case-insensitive file systems.
    */
   excludePathsCaseSensitive: boolean;
   /**

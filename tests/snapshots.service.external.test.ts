@@ -13,7 +13,7 @@ type PluginArg = ConstructorParameters<typeof SnapshotsService>[0];
 
 interface SettingsValues {
   'allowedExtensions'?: string;
-  'excludePaths'?: string;
+  'excludePaths'?: string[];
   'snapshots.enabled'?: boolean;
   'snapshots.intervalMs'?: number;
   'snapshots.editThreshold'?: number;
@@ -32,7 +32,7 @@ const makeService = (
 ): { service: SnapshotsService; vault: Record<string, string>; settings: SettingsValues } => {
   const settings: SettingsValues = {
     'allowedExtensions': 'md',
-    'excludePaths': '',
+    'excludePaths': [],
     'snapshots.enabled': true,
     'snapshots.intervalMs': 0,
     'snapshots.editThreshold': 0,
@@ -167,7 +167,7 @@ describe('SnapshotsService.captureExternalChange', () => {
   it('is a no-op for an excluded path', async () => {
     const { service, vault } = makeService({
       allowedExtensions: 'md',
-      excludePaths: '^templates/',
+      excludePaths: ['^templates/'],
     });
 
     const file = makeFile('templates/note.md', { stat: { mtime: 1, size: 1 } });

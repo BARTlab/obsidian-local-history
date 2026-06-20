@@ -19,23 +19,23 @@ import { makeFile } from './helpers/builders';
  */
 
 /** Builds a minimal {@link IgnoreListHost} stub backed by jest.fn(). */
-const makeHost = (pattern: string = '', caseSensitive: boolean = false): {
+const makeHost = (patterns: string[] = [], caseSensitive: boolean = false): {
   host: IgnoreListHost;
-  getExcludePattern: jest.Mock<() => string>;
+  getExcludePatterns: jest.Mock<() => string[]>;
   getExcludePathsCaseSensitive: jest.Mock<() => boolean>;
   notifyInvalidPattern: jest.Mock<() => void>;
 } => {
-  const getExcludePattern = jest.fn<() => string>(() => pattern);
+  const getExcludePatterns = jest.fn<() => string[]>(() => patterns);
   const getExcludePathsCaseSensitive = jest.fn<() => boolean>(() => caseSensitive);
   const notifyInvalidPattern = jest.fn<() => void>();
 
   const host: IgnoreListHost = {
-    getExcludePattern,
+    getExcludePatterns,
     getExcludePathsCaseSensitive,
     notifyInvalidPattern,
   };
 
-  return { host, getExcludePattern, getExcludePathsCaseSensitive, notifyInvalidPattern };
+  return { host, getExcludePatterns, getExcludePathsCaseSensitive, notifyInvalidPattern };
 };
 
 // ---------------------------------------------------------------------------
@@ -134,34 +134,34 @@ describe('IgnoreListManager - ignore-set CRUD', () => {
 
 describe('IgnoreListManager - isExcluded valid pattern', () => {
   it('returns true for a path that matches the exclude pattern', () => {
-    const { host } = makeHost('(^|/)Templates/');
+    const { host } = makeHost(['(^|/)Templates/']);
     const manager = new IgnoreListManager(host);
     const file = makeFile('Templates/daily.md');
     expect(manager.isExcluded(file)).toBe(true);
   });
 
   it('returns false for a path that does not match the exclude pattern', () => {
-    const { host } = makeHost('(^|/)Templates/');
+    const { host } = makeHost(['(^|/)Templates/']);
     const manager = new IgnoreListManager(host);
     const file = makeFile('notes/daily.md');
     expect(manager.isExcluded(file)).toBe(false);
   });
 
   it('returns false when the exclude pattern is empty (nothing excluded)', () => {
-    const { host } = makeHost('');
+    const { host } = makeHost([]);
     const manager = new IgnoreListManager(host);
     const file = makeFile('Templates/daily.md');
     expect(manager.isExcluded(file)).toBe(false);
   });
 
   it('returns false for a falsy file (null guard)', () => {
-    const { host } = makeHost('(^|/)Templates/');
+    const { host } = makeHost(['(^|/)Templates/']);
     const manager = new IgnoreListManager(host);
     expect(manager.isExcluded(null as unknown as TFile)).toBe(false);
   });
 
   it('does not call notifyInvalidPattern for a valid pattern', () => {
-    const { host, notifyInvalidPattern } = makeHost('(^|/)Templates/');
+    const { host, notifyInvalidPattern } = makeHost(['(^|/)Templates/']);
     const manager = new IgnoreListManager(host);
     manager.isExcluded(makeFile('Templates/daily.md'));
     expect(notifyInvalidPattern).not.toHaveBeenCalled();
@@ -174,14 +174,14 @@ describe('IgnoreListManager - isExcluded valid pattern', () => {
 
 describe('IgnoreListManager - warn-once guard (invalid pattern)', () => {
   it('calls notifyInvalidPattern exactly once for the first bad-pattern call', () => {
-    const { host, notifyInvalidPattern } = makeHost('[unclosed');
+    const { host, notifyInvalidPattern } = makeHost(['[unclosed']);
     const manager = new IgnoreListManager(host);
     manager.isExcluded(makeFile('notes/a.md'));
     expect(notifyInvalidPattern).toHaveBeenCalledTimes(1);
   });
 
   it('does NOT call notifyInvalidPattern again on a second call with the same bad pattern', () => {
-    const { host, notifyInvalidPattern } = makeHost('[unclosed');
+    const { host, notifyInvalidPattern } = makeHost(['[unclosed']);
     const manager = new IgnoreListManager(host);
     manager.isExcluded(makeFile('notes/a.md'));
     manager.isExcluded(makeFile('notes/b.md'));
@@ -189,27 +189,27 @@ describe('IgnoreListManager - warn-once guard (invalid pattern)', () => {
   });
 
   it('fires again when the bad pattern text changes to a new bad pattern', () => {
-    let pattern: string = '[bad1';
-    const getExcludePattern = jest.fn<() => string>(() => pattern);
+    let patterns: string[] = ['[bad1'];
+    const getExcludePatterns = jest.fn<() => string[]>(() => patterns);
     const getExcludePathsCaseSensitive = jest.fn<() => boolean>(() => false);
     const notifyInvalidPattern = jest.fn<() => void>();
-    const host: IgnoreListHost = { getExcludePattern, getExcludePathsCaseSensitive, notifyInvalidPattern };
+    const host: IgnoreListHost = { getExcludePatterns, getExcludePathsCaseSensitive, notifyInvalidPattern };
     const manager = new IgnoreListManager(host);
 
     manager.isExcluded(makeFile('notes/a.md'));
     expect(notifyInvalidPattern).toHaveBeenCalledTimes(1);
 
-    pattern = '[bad2';
+    patterns = ['[bad2'];
     manager.isExcluded(makeFile('notes/a.md'));
     expect(notifyInvalidPattern).toHaveBeenCalledTimes(2);
   });
 
   it('resets the guard when the pattern becomes valid after being bad', () => {
-    let pattern: string = '[bad';
-    const getExcludePattern = jest.fn<() => string>(() => pattern);
+    let patterns: string[] = ['[bad'];
+    const getExcludePatterns = jest.fn<() => string[]>(() => patterns);
     const getExcludePathsCaseSensitive = jest.fn<() => boolean>(() => false);
     const notifyInvalidPattern = jest.fn<() => void>();
-    const host: IgnoreListHost = { getExcludePattern, getExcludePathsCaseSensitive, notifyInvalidPattern };
+    const host: IgnoreListHost = { getExcludePatterns, getExcludePathsCaseSensitive, notifyInvalidPattern };
     const manager = new IgnoreListManager(host);
 
     // First call: bad pattern - warns once.
@@ -217,27 +217,27 @@ describe('IgnoreListManager - warn-once guard (invalid pattern)', () => {
     expect(notifyInvalidPattern).toHaveBeenCalledTimes(1);
 
     // Switch to a valid pattern - guard is reset, no new warning.
-    pattern = '(^|/)Templates/';
+    patterns = ['(^|/)Templates/'];
     manager.isExcluded(makeFile('notes/a.md'));
     expect(notifyInvalidPattern).toHaveBeenCalledTimes(1);
 
     // Switch back to the same bad pattern - guard fires once more.
-    pattern = '[bad';
+    patterns = ['[bad'];
     manager.isExcluded(makeFile('notes/a.md'));
     expect(notifyInvalidPattern).toHaveBeenCalledTimes(2);
   });
 
   it('isExcluded returns false (excludes nothing) for an invalid pattern', () => {
-    const { host } = makeHost('[unclosed');
+    const { host } = makeHost(['[unclosed']);
     const manager = new IgnoreListManager(host);
     expect(manager.isExcluded(makeFile('notes/a.md'))).toBe(false);
   });
 
-  it('still reads getExcludePattern on every call (host is polled, not cached)', () => {
-    const { host, getExcludePattern } = makeHost('(^|/)Templates/');
+  it('still reads getExcludePatterns on every call (host is polled, not cached)', () => {
+    const { host, getExcludePatterns } = makeHost(['(^|/)Templates/']);
     const manager = new IgnoreListManager(host);
     manager.isExcluded(makeFile('a.md'));
     manager.isExcluded(makeFile('b.md'));
-    expect(getExcludePattern).toHaveBeenCalledTimes(2);
+    expect(getExcludePatterns).toHaveBeenCalledTimes(2);
   });
 });

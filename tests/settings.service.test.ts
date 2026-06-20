@@ -56,20 +56,38 @@ describe('SettingsService init', () => {
 
   it('backfills excludePaths from defaults for data saved before the setting existed', async () => {
     // Saved data from an older version has no excludePaths key; the deep-merge
-    // must supply the default exclude regexp instead of leaving the key unset.
+    // must supply the default (an empty array) instead of leaving the key unset.
     const service = makeService({ show: { changed: false } });
     await service.init();
 
-    expect(service.value('excludePaths')).toBe(DEFAULT_SETTINGS.excludePaths);
-    expect(service.value('excludePaths')).not.toBe('');
+    expect(service.value('excludePaths')).toEqual(DEFAULT_SETTINGS.excludePaths);
+    expect(service.value('excludePaths')).toEqual([]);
   });
 
-  it('keeps a saved excludePaths value over the default', async () => {
-    const service = makeService({ excludePaths: 'Templates\nDaily/**' });
+  it('migrates a legacy excludePaths string into a single-element array (C3)', async () => {
+    // Older installs stored excludePaths as a single regex string. The migration
+    // shim wraps the whole string in a one-element array, preserving its exact
+    // matching semantics rather than splitting on regex alternation `|`.
+    const service = makeService({ excludePaths: '(^|/)Templates/|\\.excalidraw\\.md$' });
     await service.init();
 
-    expect(service.value('excludePaths')).toBe('Templates\nDaily/**');
+    expect(service.value('excludePaths')).toEqual(['(^|/)Templates/|\\.excalidraw\\.md$']);
     // Sibling defaults survive the partial save.
+    expect(service.value('allowedExtensions')).toBe(DEFAULT_SETTINGS.allowedExtensions);
+  });
+
+  it('migrates a blank legacy excludePaths string to the empty-array default', async () => {
+    const service = makeService({ excludePaths: '   ' });
+    await service.init();
+
+    expect(service.value('excludePaths')).toEqual([]);
+  });
+
+  it('keeps an already-array excludePaths value untouched', async () => {
+    const service = makeService({ excludePaths: ['Templates', 'Daily/**'] });
+    await service.init();
+
+    expect(service.value('excludePaths')).toEqual(['Templates', 'Daily/**']);
     expect(service.value('allowedExtensions')).toBe(DEFAULT_SETTINGS.allowedExtensions);
   });
 

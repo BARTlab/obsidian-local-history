@@ -656,12 +656,12 @@ export class SnapshotsService implements Service {
   }
 
   /**
-   * Checks whether a file path matches the configured exclude pattern.
+   * Checks whether a file path matches any configured exclude pattern.
    * Excluded paths (for example a templates or daily-notes folder) are never
-   * tracked, on top of the extension filter. The pattern is a single
-   * case-insensitive regexp matched against the vault-relative path; an empty
-   * pattern excludes nothing. An invalid pattern excludes nothing and warns the
-   * user once so a typo cannot silently disable all tracking.
+   * tracked, on top of the extension filter. The patterns are case-insensitive
+   * regexps matched against the vault-relative path and OR'd together; an empty
+   * list excludes nothing. An invalid entry excludes nothing and warns the user
+   * once so a typo cannot silently disable all tracking.
    *
    * @param {TFile} file - The file to check
    * @return {boolean} True if the file path is excluded from tracking
@@ -681,7 +681,7 @@ export class SnapshotsService implements Service {
    */
   protected makeIgnoreListHost(): IgnoreListHost {
     return {
-      getExcludePattern: (): string => this.settingsService.value('excludePaths'),
+      getExcludePatterns: (): string[] => this.settingsService.value('excludePaths'),
       getExcludePathsCaseSensitive: (): boolean => this.settingsService.value('excludePathsCaseSensitive'),
       notifyInvalidPattern: (): void => {
         new Notice(this.plugin.t('notice.invalid-exclude-pattern'));
@@ -900,12 +900,12 @@ export class SnapshotsService implements Service {
    * @return {number} The number of snapshots deleted
    */
   public purgeExcluded(): number {
-    const excludePattern: string = this.settingsService.value('excludePaths');
+    const excludePatterns: string[] = this.settingsService.value('excludePaths');
     const caseSensitive: boolean = this.settingsService.value('excludePathsCaseSensitive');
     const pathsToPurge: string[] = [];
 
     for (const [path] of this.fileSnapshots.entries()) {
-      if (path && PathExcludeHelper.isExcluded(path, excludePattern, caseSensitive)) {
+      if (path && PathExcludeHelper.isExcluded(path, excludePatterns, caseSensitive)) {
         pathsToPurge.push(path);
       }
     }

@@ -407,10 +407,14 @@ export const LANGUAGE_STORAGE_KEY: string = 'language';
  * `language` localStorage key). Every code is supported by this plugin: a code
  * with its own bundled catalog resolves to that catalog, and every other code
  * resolves through the English fallback (see {@link FALLBACK_LANGUAGE}), so the
- * plugin never surfaces a raw key or an error for any Obsidian language. New
- * catalogs are added by dropping a `lang/<code>.json` file (see the contributor
- * guide in README.md) and registering it; no change here is required for a code
- * already in this set.
+ * plugin never surfaces a raw key or an error for any Obsidian language.
+ *
+ * This array may lag behind Obsidian releases that add a new language. The lag
+ * is accepted: a missing code still resolves through English and never surfaces
+ * a raw key. Update trigger: a new Obsidian release adds a code not listed here
+ * and a user reports the missing catalog. Update process: add the new code to
+ * this array, add a matching `lang/<code>.json` file (or rely on English
+ * fallback), and verify with the catalog-parity test. See DECISIONS.md ADR-18-20.
  */
 export const OBSIDIAN_LANGUAGES: readonly string[] = [
   'en',

@@ -29,9 +29,9 @@ type PluginArg = ConstructorParameters<typeof SnapshotsService>[0];
  * extensions and exclude patterns, so the trackable decision (canCapture /
  * isExcludedPath) can be exercised without a real DI container.
  */
-const makeServiceWithSettings = (settings: Record<string, string>): SnapshotsService => {
+const makeServiceWithSettings = (settings: Record<string, unknown>): SnapshotsService => {
   const settingsService = {
-    value: (path: string): string => settings[path] ?? '',
+    value: (path: string): unknown => settings[path] ?? '',
   };
 
   const plugin = {
@@ -84,7 +84,7 @@ describe('SnapshotsService path excludes', () => {
   it('flags a path matched by the exclude regexp and keeps it out of canCapture', () => {
     const service = makeServiceWithSettings({
       allowedExtensions: 'md',
-      excludePaths: '(^|/)Templates/|(^|/)Daily/',
+      excludePaths: ['(^|/)Templates/', '(^|/)Daily/'],
     });
 
     const excluded = makeFile('Templates/note.md');
@@ -104,7 +104,7 @@ describe('SnapshotsService path excludes', () => {
   it('excludes nothing when the pattern is empty', () => {
     const service = makeServiceWithSettings({
       allowedExtensions: 'md',
-      excludePaths: '',
+      excludePaths: [],
     });
 
     const file = makeFile('Templates/note.md');
@@ -123,7 +123,7 @@ describe('SnapshotsService path excludes', () => {
 
     const service = makeServiceWithSettings({
       allowedExtensions: 'md',
-      excludePaths: '[unclosed',
+      excludePaths: ['[unclosed'],
     });
 
     const file = makeFile('Templates/note.md');
@@ -164,7 +164,7 @@ describe('SnapshotsService purgeExcluded', () => {
   it('removes snapshots for paths matching the exclude pattern and returns the count', () => {
     const service = makeServiceWithSettings({
       allowedExtensions: 'md',
-      excludePaths: '(^|/)Templates/',
+      excludePaths: ['(^|/)Templates/'],
     });
 
     const excluded1 = makeFile('Templates/note.md');
@@ -186,7 +186,7 @@ describe('SnapshotsService purgeExcluded', () => {
   it('does not remove snapshots for paths that do not match the exclude pattern', () => {
     const service = makeServiceWithSettings({
       allowedExtensions: 'md',
-      excludePaths: '(^|/)Templates/',
+      excludePaths: ['(^|/)Templates/'],
     });
 
     const kept = makeFile('notes/keep.md');
@@ -205,7 +205,7 @@ describe('SnapshotsService purgeExcluded', () => {
   it('returns zero and shows no error when no excluded snapshots exist', () => {
     const service = makeServiceWithSettings({
       allowedExtensions: 'md',
-      excludePaths: '(^|/)Templates/',
+      excludePaths: ['(^|/)Templates/'],
     });
 
     expect(() => service.purgeExcluded()).not.toThrow();

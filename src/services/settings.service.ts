@@ -34,13 +34,51 @@ export class SettingsService implements Service {
    * Loads saved settings data and added the settings tab to the plugin.
    */
   public async init(): Promise<void> {
+    const saved: unknown = SettingsService.migrateExcludePaths(await this.plugin.loadData());
+
     /**
      * Deep-merge into a fresh clone so partial saved data keeps nested defaults
      * (e.g. a saved `show.changed` does not drop the other `show.*` keys) and
-     * DEFAULT_SETTINGS stays untouched.
+     * DEFAULT_SETTINGS stays untouched. The exclude-paths migration runs on the
+     * raw payload first so merge only ever sees an array (merging an array
+     * default with a saved string corrupts the value index-by-index).
      */
-    this.data = merge({}, DEFAULT_SETTINGS, await this.plugin.loadData());
+    this.data = merge({}, DEFAULT_SETTINGS, saved);
     this.plugin.addSettingTab(new MainSetting(this.plugin.app, this.plugin));
+  }
+
+  /**
+   * Normalizes a saved `excludePaths` value to the structured `string[]` shape
+   * (C3) before the settings merge runs. Historic installs stored it as a single
+   * regular-expression string; this shim wraps that legacy string in a one-element
+   * array so its exact matching semantics are preserved (splitting on `|` would
+   * shatter a grouped alternation, see DECISIONS.md ADR-18-23). A blank or
+   * whitespace-only legacy string is dropped so the empty-array default applies.
+   * An already-array value is passed through untouched (idempotent). Any non-object
+   * payload (null, primitive) is returned unchanged for the merge to handle.
+   *
+   * @param {unknown} saved - The raw payload returned by `plugin.loadData()`
+   * @return {unknown} The payload with `excludePaths` normalized to `string[]`
+   */
+  protected static migrateExcludePaths(saved: unknown): unknown {
+    if (!saved || typeof saved !== 'object') {
+      return saved;
+    }
+
+    const record: Record<string, unknown> = saved as Record<string, unknown>;
+    const value: unknown = record.excludePaths;
+
+    if (typeof value !== 'string') {
+      return saved;
+    }
+
+    if (value.trim()) {
+      record.excludePaths = [value];
+    } else {
+      delete record.excludePaths;
+    }
+
+    return saved;
   }
 
   /**

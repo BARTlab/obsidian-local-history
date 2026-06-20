@@ -92,25 +92,7 @@ export class MainSetting extends PluginSettingTab {
           })
       );
 
-    new Setting(containerEl)
-      .setName(this.plugin.t('setting.exclude-paths.name'))
-      .setDesc(this.plugin.t('setting.exclude-paths.desc'))
-      .addText((text: TextComponent): TextComponent =>
-        text
-          .setPlaceholder(DEFAULT_SETTINGS.excludePaths)
-          .setValue(this.settingsService.value('excludePaths'))
-          .onChange((value: string): void => {
-            if (PathExcludeHelper.isValid(value)) {
-              text.inputEl.removeClass('lct-setting-invalid');
-              this.settingsService.update('excludePaths', value);
-
-              return;
-            }
-
-            text.inputEl.addClass('lct-setting-invalid');
-            new Notice(this.plugin.t('notice.invalid-exclude-pattern'));
-          })
-      );
+    this.renderExcludePaths(containerEl);
 
     new Setting(containerEl)
       .setName(this.plugin.t('setting.exclude-paths-case-sensitive.name'))
@@ -469,6 +451,89 @@ export class MainSetting extends PluginSettingTab {
             this.settingsService.update('gutter.removed', value || DEFAULT_SETTINGS.gutter.removed);
           });
       });
+  }
+
+  /**
+   * Renders the structured excluded-paths editor (C3): a header row carrying the
+   * setting name, description, and an "add pattern" button, followed by one
+   * input row per configured pattern. Each row binds a text input to its array
+   * index and a remove (trash) button. The whole section lives in its own
+   * wrapper element so adding or removing a pattern re-renders only this block,
+   * not the entire settings tab.
+   *
+   * Each row live-validates its pattern: a malformed regexp tags the input with
+   * `lct-setting-invalid` and shows a one-time Notice without persisting that
+   * entry, so a typo never silently disables tracking. Valid edits persist the
+   * full array immediately.
+   *
+   * @param {HTMLElement} containerEl - The settings tab container
+   * @return {void}
+   */
+  protected renderExcludePaths(containerEl: HTMLElement): void {
+    const wrapper: HTMLElement = containerEl.createDiv({ cls: 'lct-exclude-paths' });
+
+    this.paintExcludePaths(wrapper);
+  }
+
+  /**
+   * Paints the excluded-paths header and per-pattern rows into the given wrapper,
+   * clearing it first so a re-paint after an add/remove starts from a clean
+   * slate. Splitting the paint out of {@link renderExcludePaths} lets the add and
+   * remove handlers re-run it against the same wrapper element.
+   *
+   * @param {HTMLElement} wrapper - The dedicated exclude-paths section element
+   * @return {void}
+   */
+  protected paintExcludePaths(wrapper: HTMLElement): void {
+    wrapper.empty();
+
+    const patterns: string[] = [...this.settingsService.value('excludePaths')];
+
+    new Setting(wrapper)
+      .setName(this.plugin.t('setting.exclude-paths.name'))
+      .setDesc(this.plugin.t('setting.exclude-paths.desc'))
+      .addButton((button) =>
+        button
+          .setButtonText(this.plugin.t('setting.exclude-paths.add'))
+          .setCta()
+          .onClick((): void => {
+            this.settingsService.update('excludePaths', [...patterns, '']);
+            this.paintExcludePaths(wrapper);
+          })
+      );
+
+    patterns.forEach((pattern: string, index: number): void => {
+      new Setting(wrapper)
+        .addText((text: TextComponent): TextComponent =>
+          text
+            .setPlaceholder(this.plugin.t('setting.exclude-paths.placeholder'))
+            .setValue(pattern)
+            .onChange((value: string): void => {
+              if (!PathExcludeHelper.isValid(value)) {
+                text.inputEl.addClass('lct-setting-invalid');
+                new Notice(this.plugin.t('notice.invalid-exclude-pattern'));
+
+                return;
+              }
+
+              text.inputEl.removeClass('lct-setting-invalid');
+
+              const next: string[] = [...this.settingsService.value('excludePaths')];
+              next[index] = value;
+              this.settingsService.update('excludePaths', next);
+            })
+        )
+        .addExtraButton((button) =>
+          button
+            .setIcon('trash')
+            .setTooltip(this.plugin.t('setting.exclude-paths.remove'))
+            .onClick((): void => {
+              const next: string[] = patterns.filter((_: string, i: number): boolean => i !== index);
+              this.settingsService.update('excludePaths', next);
+              this.paintExcludePaths(wrapper);
+            })
+        );
+    });
   }
 
   /**

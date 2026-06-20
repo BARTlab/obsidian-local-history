@@ -162,7 +162,7 @@ export type PathJoin<Prefix extends string, Key extends string> =
  */
 export type PathTo<T, Prefix extends string = ''> = {
   [K in keyof T & string]:
-  T[K] extends Primitive
+  T[K] extends Primitive | readonly unknown[]
     ? PathJoin<Prefix, K>
     : PathTo<T[K], PathJoin<Prefix, K>>
 }[keyof T & string];

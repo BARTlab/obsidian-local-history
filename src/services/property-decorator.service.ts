@@ -486,6 +486,12 @@ export class PropertyDecoratorService implements Service {
    * time, the observer fires once it is lazily rendered, scheduling a new
    * apply that will find it.
    *
+   * NOTE: MutationObserver is used because Obsidian provides no stable public
+   * hook for properties-panel render events. This coupling is intentional and
+   * accepted until Obsidian ships an official properties API hook (see
+   * ADR-18-18 in DECISIONS.md). When such an API is available, replace this
+   * observer with the official hook.
+   *
    * @param {HTMLElement} contentEl - The MarkdownView.contentEl to observe
    */
   protected syncObserver(contentEl: HTMLElement): void {

@@ -141,5 +141,8 @@
   "modal.folder.notice.added": "Файл добавлен после этой точки.",
   "modal.folder.notice.deleted": "Файл удалён после этой точки.",
   "modal.folder.notice.unchanged": "Без изменений после этой точки.",
-  "version.badge.external": "внешнее"
+  "version.badge.external": "внешнее",
+  "setting.purge-excluded.name": "Purge history for excluded paths",
+  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
+  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths."
 }

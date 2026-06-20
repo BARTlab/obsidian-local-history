@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import type { Change } from 'diff';
 import { WordDiffHelper } from '@/helpers/word-diff.helper';
-import { WORD_DIFF_LENGTH_THRESHOLD } from '@/consts';
+import { WORD_DIFF_LENGTH_THRESHOLD, WORD_DIFF_PAIRING_THRESHOLD } from '@/consts';
 import type { InlineDiffLine } from '@/types';
 
 /**
@@ -173,5 +173,47 @@ describe('WordDiffHelper.lines', () => {
 
   it('treats null inputs as empty strings', () => {
     expect(WordDiffHelper.lines(null as never, null as never)).toEqual([]);
+  });
+
+  it('pairs reordered lines by similarity rather than position', () => {
+    // lineA = "the quick brown fox", lineB = "hello world foo bar"
+    // added in reversed order: lineB' first, lineA' second.
+    // Similarity pairing should match lineA with lineA' and lineB with lineB'.
+    const base: string = 'the quick brown fox\nhello world foo bar';
+    const current: string = 'hello world foo baz\nthe quick brown cat';
+
+    const result: InlineDiffLine[] = WordDiffHelper.lines(base, current);
+
+    expect(result).toHaveLength(2);
+    // First removed line pairs with most similar added line (highest word overlap).
+    expect(result[0]).toEqual({ type: 'modified', oldText: 'the quick brown fox', newText: 'the quick brown cat' });
+    expect(result[1]).toEqual({ type: 'modified', oldText: 'hello world foo bar', newText: 'hello world foo baz' });
+  });
+
+  it('falls back to positional pairing when a block exceeds the threshold', () => {
+    // Build blocks larger than WORD_DIFF_PAIRING_THRESHOLD.
+    const removedLines: string[] = Array.from(
+      { length: WORD_DIFF_PAIRING_THRESHOLD + 1 },
+      (_: unknown, i: number): string => `removed line ${i}`,
+    );
+
+    const addedLines: string[] = Array.from(
+      { length: WORD_DIFF_PAIRING_THRESHOLD + 1 },
+      (_: unknown, i: number): string => `added line ${i}`,
+    );
+
+    const base: string = removedLines.join('\n');
+    const current: string = addedLines.join('\n');
+
+    const result: InlineDiffLine[] = WordDiffHelper.lines(base, current);
+
+    // Every line should be modified (positional pairing: same length blocks).
+    expect(result).toHaveLength(WORD_DIFF_PAIRING_THRESHOLD + 1);
+
+    result.forEach((line: InlineDiffLine, i: number): void => {
+      expect(line.type).toBe('modified');
+      expect(line.oldText).toBe(`removed line ${i}`);
+      expect(line.newText).toBe(`added line ${i}`);
+    });
   });
 });

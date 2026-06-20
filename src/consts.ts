@@ -501,6 +501,17 @@ export const OBSIDIAN_LANGUAGES: readonly string[] = [
 export const WORD_DIFF_LENGTH_THRESHOLD: number = 5000;
 
 /**
+ * Maximum number of lines in a removed block (or an added block) for which
+ * `WordDiffHelper.lines` uses similarity-based greedy pairing instead of falling
+ * back to positional pairing. When either block exceeds this size the O(n*m)
+ * similarity scoring is skipped and lines are paired by array position, the same
+ * behaviour as before the B2 fix. 20 lines covers typical prose and code edits
+ * while keeping worst-case pairing work bounded at 400 comparisons (see
+ * DECISIONS.md ADR-18-16).
+ */
+export const WORD_DIFF_PAIRING_THRESHOLD: number = 20;
+
+/**
  * Matches a `{name}` placeholder inside a translated string. The captured group
  * is the variable name looked up in the interpolation vars.
  */

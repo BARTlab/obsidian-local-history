@@ -1,4 +1,4 @@
-import { WordDiffLineType, WORD_DIFF_LENGTH_THRESHOLD } from '@/consts';
+import { WordDiffLineType, WORD_DIFF_LENGTH_THRESHOLD, WORD_DIFF_PAIRING_THRESHOLD } from '@/consts';
 import type { InlineDiffLine } from '@/types';
 import * as Diff from 'diff';
 
@@ -12,9 +12,10 @@ import * as Diff from 'diff';
  *   highlight only the changed words inside a modified line instead of marking
  *   the whole line.
  * - {@link lines} turns a base and a current text into an ordered list of
- *   inline diff lines, pairing a removed block with the added block that
- *   immediately follows it so genuinely modified lines are detected (and later
- *   word-diffed), while pure additions and removals stay whole.
+ *   inline diff lines. When the removed and added blocks are both at most
+ *   {@link WORD_DIFF_PAIRING_THRESHOLD} lines, lines are paired by word-overlap
+ *   similarity (greedy best-match) so reordered edits produce correct modified
+ *   pairs. Larger blocks fall back to positional pairing to cap O(n*m) work.
  */
 export class WordDiffHelper {
   /**
@@ -59,11 +60,14 @@ export class WordDiffHelper {
   /**
    * Turns a base text and a current text into an ordered list of inline diff
    * lines. A removed block immediately followed by an added block is treated as
-   * a modification: the lines are paired by position so each pair can be word
-   * diffed later. Any surplus old lines in the block become pure removals and
-   * any surplus new lines become pure additions. A removed block with no added
-   * block after it stays a pure removal, and an added block with no removed
-   * block before it stays a pure addition.
+   * a modification. When both blocks are at most {@link WORD_DIFF_PAIRING_THRESHOLD}
+   * lines, similarity-based greedy matching pairs each removed line with the most
+   * similar added line (by word-overlap ratio). This corrects false "modified" pairs
+   * caused by reordered-line edits. When either block exceeds the threshold, lines
+   * fall back to positional pairing to bound O(n*m) scoring work. Any surplus old
+   * lines in the block become pure removals and any surplus new lines become pure
+   * additions. A removed block with no added block after it stays a pure removal,
+   * and an added block with no removed block before it stays a pure addition.
    *
    * @param {string} base - The base (older) content
    * @param {string} current - The current (newer) content
@@ -86,7 +90,7 @@ export class WordDiffHelper {
 
       /**
        * A removed block paired with the added block that follows it is a
-       * modification: emit one modified line per matching position.
+       * modification: pair lines by similarity when both blocks are small.
        */
       if (change.removed) {
         const next: Diff.Change | undefined = changes[index + 1];
@@ -94,22 +98,8 @@ export class WordDiffHelper {
 
         if (next?.added) {
           const addedLines: string[] = WordDiffHelper.splitLines(next.value);
-          const paired: number = Math.min(removedLines.length, addedLines.length);
 
-          for (let i: number = 0; i < paired; i++) {
-            result.push({ type: WordDiffLineType.modified, oldText: removedLines[i], newText: addedLines[i] });
-          }
-
-          /**
-           * Surplus old lines are pure removals, surplus new lines pure additions.
-           */
-          for (let i: number = paired; i < removedLines.length; i++) {
-            result.push({ type: WordDiffLineType.removed, oldText: removedLines[i] });
-          }
-
-          for (let i: number = paired; i < addedLines.length; i++) {
-            result.push({ type: WordDiffLineType.added, newText: addedLines[i] });
-          }
+          WordDiffHelper.pairAndEmit(removedLines, addedLines, result);
 
           /**
            * The added block was consumed as the pair, skip it on the next turn.
@@ -135,6 +125,172 @@ export class WordDiffHelper {
     }
 
     return result;
+  }
+
+  /**
+   * Pairs removed lines with added lines and appends the resulting
+   * {@link InlineDiffLine} entries to `result`. When both blocks are within
+   * {@link WORD_DIFF_PAIRING_THRESHOLD}, a greedy similarity match is used.
+   * Otherwise lines are paired by array position.
+   *
+   * Greedy algorithm (O(n*m)):
+   * 1. Score every (removed_i, added_j) pair with {@link wordOverlapRatio}.
+   * 2. Pick the highest-scoring pair, record it, remove both from the pool.
+   * 3. Repeat until no candidates remain.
+   * 4. Remaining unmatched lines are emitted as pure removals or additions.
+   * 5. Emit all pairs sorted by their original removed-line index for stable
+   *    top-to-bottom rendering order.
+   *
+   * @param {string[]} removedLines - Lines from the removed block
+   * @param {string[]} addedLines - Lines from the added block
+   * @param {InlineDiffLine[]} result - Array to append results to
+   */
+  protected static pairAndEmit(removedLines: string[], addedLines: string[], result: InlineDiffLine[]): void {
+    const useGreedy: boolean =
+      removedLines.length <= WORD_DIFF_PAIRING_THRESHOLD && addedLines.length <= WORD_DIFF_PAIRING_THRESHOLD;
+
+    if (!useGreedy) {
+      WordDiffHelper.positionalPair(removedLines, addedLines, result);
+
+      return;
+    }
+
+    WordDiffHelper.greedyPair(removedLines, addedLines, result);
+  }
+
+  /**
+   * Pairs lines by position (original behaviour). The shorter block determines
+   * how many modified pairs are emitted; surplus lines from either side become
+   * pure removals or additions.
+   */
+  private static positionalPair(removedLines: string[], addedLines: string[], result: InlineDiffLine[]): void {
+    const paired: number = Math.min(removedLines.length, addedLines.length);
+
+    for (let i: number = 0; i < paired; i++) {
+      result.push({ type: WordDiffLineType.modified, oldText: removedLines[i], newText: addedLines[i] });
+    }
+
+    for (let i: number = paired; i < removedLines.length; i++) {
+      result.push({ type: WordDiffLineType.removed, oldText: removedLines[i] });
+    }
+
+    for (let i: number = paired; i < addedLines.length; i++) {
+      result.push({ type: WordDiffLineType.added, newText: addedLines[i] });
+    }
+  }
+
+  /**
+   * Pairs lines by greedy best-match on word-overlap similarity. Pairs are
+   * emitted in ascending order of the original removed-line index.
+   */
+  private static greedyPair(removedLines: string[], addedLines: string[], result: InlineDiffLine[]): void {
+    const availableAdded: Set<number> = new Set(addedLines.map((_: string, i: number): number => i));
+    const pairs: Array<{ removedIdx: number; addedIdx: number }> = [];
+    const unmatchedRemoved: number[] = [];
+
+    for (let ri: number = 0; ri < removedLines.length; ri++) {
+      let bestScore: number = -1;
+      let bestAi: number = -1;
+
+      for (const ai of availableAdded) {
+        const score: number = WordDiffHelper.wordOverlapRatio(removedLines[ri], addedLines[ai]);
+
+        if (score > bestScore) {
+          bestScore = score;
+          bestAi = ai;
+        }
+      }
+
+      if (bestAi >= 0) {
+        pairs.push({ removedIdx: ri, addedIdx: bestAi });
+        availableAdded.delete(bestAi);
+      } else {
+        unmatchedRemoved.push(ri);
+      }
+    }
+
+    // Sort pairs by removed-line position for stable rendering order.
+    pairs.sort((a: { removedIdx: number; addedIdx: number }, b: { removedIdx: number; addedIdx: number }): number =>
+      a.removedIdx - b.removedIdx,
+    );
+
+    // Emit pairs as modified lines interleaved with unmatched removals in
+    // original removed-line order.
+    let unmatchedRemovedIdx: number = 0;
+
+    for (const pair of pairs) {
+      // Emit any pure removals that appear before this pair in the original order.
+      while (
+        unmatchedRemovedIdx < unmatchedRemoved.length &&
+        unmatchedRemoved[unmatchedRemovedIdx] < pair.removedIdx
+      ) {
+        result.push({ type: WordDiffLineType.removed, oldText: removedLines[unmatchedRemoved[unmatchedRemovedIdx]] });
+        unmatchedRemovedIdx++;
+      }
+
+      result.push({
+        type: WordDiffLineType.modified,
+        oldText: removedLines[pair.removedIdx],
+        newText: addedLines[pair.addedIdx],
+      });
+    }
+
+    // Emit remaining unmatched removals.
+    while (unmatchedRemovedIdx < unmatchedRemoved.length) {
+      result.push({ type: WordDiffLineType.removed, oldText: removedLines[unmatchedRemoved[unmatchedRemovedIdx]] });
+      unmatchedRemovedIdx++;
+    }
+
+    // Emit unmatched additions in their original order.
+    for (const ai of Array.from(availableAdded).sort((a: number, b: number): number => a - b)) {
+      result.push({ type: WordDiffLineType.added, newText: addedLines[ai] });
+    }
+  }
+
+  /**
+   * Computes the word-overlap ratio between two lines. The metric is the
+   * Jaccard similarity of the two lines' word multisets: the size of the
+   * intersection divided by the size of the union. Words are extracted by
+   * splitting on whitespace. An empty-vs-empty pair returns 0 (no similarity
+   * signal; treat as unmatched rather than trivially equal).
+   *
+   * The choice of word-overlap ratio over normalized Levenshtein is deliberate:
+   * it is O(n+m) in the number of words (after building a frequency map) and
+   * captures semantic similarity better than character-edit distance for typical
+   * prose and identifier-heavy code lines (see DECISIONS.md ADR-18-16).
+   *
+   * @param {string} a - First line
+   * @param {string} b - Second line
+   * @return {number} Similarity in [0, 1]; higher means more similar
+   */
+  protected static wordOverlapRatio(a: string, b: string): number {
+    const wordsA: string[] = a.trim().split(/\s+/).filter(Boolean);
+    const wordsB: string[] = b.trim().split(/\s+/).filter(Boolean);
+
+    if (wordsA.length === 0 && wordsB.length === 0) {
+      return 0;
+    }
+
+    const freqA: Map<string, number> = new Map();
+
+    for (const w of wordsA) {
+      freqA.set(w, (freqA.get(w) ?? 0) + 1);
+    }
+
+    let intersection: number = 0;
+
+    for (const w of wordsB) {
+      const countA: number = freqA.get(w) ?? 0;
+
+      if (countA > 0) {
+        intersection++;
+        freqA.set(w, countA - 1);
+      }
+    }
+
+    const union: number = wordsA.length + wordsB.length - intersection;
+
+    return union === 0 ? 0 : intersection / union;
   }
 
   /**

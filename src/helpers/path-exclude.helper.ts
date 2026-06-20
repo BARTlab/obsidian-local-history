@@ -1,8 +1,8 @@
 /**
  * Pure helper that decides whether a vault file path is excluded from tracking
- * by a single, user-configured case-insensitive regular expression (D1). It
- * runs in addition to the extension filter: a file is tracked only when its
- * extension is allowed AND its path does NOT match the exclude pattern.
+ * by a single, user-configured regular expression (D1). It runs in addition to
+ * the extension filter: a file is tracked only when its extension is allowed
+ * AND its path does NOT match the exclude pattern.
  *
  * The pattern is matched against the vault-relative path with forward slashes,
  * so a user can express any exclusion with full regexp power, for example:
@@ -10,11 +10,12 @@
  * - `(^|/)Templates/` to skip a Templates folder at any depth,
  * - `^Daily/` to skip a top-level Daily folder.
  *
- * Matching is case-insensitive (the `i` flag) to behave well on
- * case-insensitive file systems. An empty or whitespace-only pattern excludes
- * nothing. An invalid pattern (one that does not compile) is treated as
- * "exclude nothing" and never throws, so a typo cannot silently disable all
- * tracking; the caller is responsible for warning the user once.
+ * By default matching is case-insensitive (the `i` flag) to behave well on
+ * case-insensitive file systems. Pass `caseSensitive: true` to opt into strict
+ * case matching. An empty or whitespace-only pattern excludes nothing. An
+ * invalid pattern (one that does not compile) is treated as "exclude nothing"
+ * and never throws, so a typo cannot silently disable all tracking; the caller
+ * is responsible for warning the user once.
  */
 export class PathExcludeHelper {
   /**
@@ -30,9 +31,11 @@ export class PathExcludeHelper {
    * Single-slot cache for the most recently compiled pattern. The settings UI
    * carries one exclude pattern at a time, so a 1-entry cache covers the hot
    * `isExcluded` call site (per `trackable` check) without growing the helper
-   * into a map keyed by arbitrary user input.
+   * into a map keyed by arbitrary user input. Both the pattern string and the
+   * regex flags are cached so changing `caseSensitive` invalidates the slot.
    */
   protected static cachedPattern: string | null = null;
+  protected static cachedFlags: string | null = null;
   protected static cachedRegExp: RegExp | null = null;
 
   /**
@@ -44,14 +47,15 @@ export class PathExcludeHelper {
    *
    * @param {string} path - The vault-relative file path to test
    * @param {string} pattern - The raw exclude pattern from the settings field
+   * @param {boolean} [caseSensitive=false] - When true the 'i' flag is omitted
    * @return {boolean} True when the path matches the compiled pattern
    */
-  public static isExcluded(path: string, pattern: string): boolean {
+  public static isExcluded(path: string, pattern: string, caseSensitive: boolean = false): boolean {
     if (!path) {
       return false;
     }
 
-    const regExp: RegExp | null = PathExcludeHelper.compile(pattern);
+    const regExp: RegExp | null = PathExcludeHelper.compile(pattern, caseSensitive);
 
     if (!regExp) {
       return false;
@@ -84,33 +88,37 @@ export class PathExcludeHelper {
   }
 
   /**
-   * Safe-compiles the raw pattern into a case-insensitive regular expression.
-   * A blank pattern yields null (matches nothing) and an invalid pattern is
-   * caught and also yields null, so compilation never throws. The result is
-   * memoized in a single-slot cache keyed by the raw pattern string, so a
+   * Safe-compiles the raw pattern into a regular expression. A blank pattern
+   * yields null (matches nothing) and an invalid pattern is caught and also
+   * yields null, so compilation never throws. The result is memoized in a
+   * single-slot cache keyed by the raw pattern string and the flags, so a
    * stream of `isExcluded` calls with the same settings compiles once.
    *
    * @param {string} pattern - The raw exclude pattern from the settings field
+   * @param {boolean} [caseSensitive=false] - When false the 'i' flag is added
    * @return {RegExp|null} The compiled regex, or null when blank or invalid
    */
-  protected static compile(pattern: string): RegExp | null {
+  protected static compile(pattern: string, caseSensitive: boolean = false): RegExp | null {
     if (!pattern || !pattern.trim()) {
       return null;
     }
 
-    if (PathExcludeHelper.cachedPattern === pattern) {
+    const flags: string = caseSensitive ? '' : 'i';
+
+    if (PathExcludeHelper.cachedPattern === pattern && PathExcludeHelper.cachedFlags === flags) {
       return PathExcludeHelper.cachedRegExp;
     }
 
     let regExp: RegExp | null;
 
     try {
-      regExp = new RegExp(pattern.trim(), 'i');
+      regExp = new RegExp(pattern.trim(), flags);
     } catch {
       regExp = null;
     }
 
     PathExcludeHelper.cachedPattern = pattern;
+    PathExcludeHelper.cachedFlags = flags;
     PathExcludeHelper.cachedRegExp = regExp;
 
     return regExp;

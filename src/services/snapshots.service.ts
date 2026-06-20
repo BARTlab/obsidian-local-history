@@ -682,6 +682,7 @@ export class SnapshotsService implements Service {
   protected makeIgnoreListHost(): IgnoreListHost {
     return {
       getExcludePattern: (): string => this.settingsService.value('excludePaths'),
+      getExcludePathsCaseSensitive: (): boolean => this.settingsService.value('excludePathsCaseSensitive'),
       notifyInvalidPattern: (): void => {
         new Notice(this.plugin.t('notice.invalid-exclude-pattern'));
       },
@@ -900,10 +901,11 @@ export class SnapshotsService implements Service {
    */
   public purgeExcluded(): number {
     const excludePattern: string = this.settingsService.value('excludePaths');
+    const caseSensitive: boolean = this.settingsService.value('excludePathsCaseSensitive');
     const pathsToPurge: string[] = [];
 
     for (const [path] of this.fileSnapshots.entries()) {
-      if (path && PathExcludeHelper.isExcluded(path, excludePattern)) {
+      if (path && PathExcludeHelper.isExcluded(path, excludePattern, caseSensitive)) {
         pathsToPurge.push(path);
       }
     }

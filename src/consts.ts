@@ -191,6 +191,7 @@ export const DEFAULT_SETTINGS: LineChangeTrackerSettings = {
   persist: true,
   allowedExtensions: 'md, txt, csv, json, yaml',
   excludePaths: '(^|/)templates/|\\.excalidraw\\.md$',
+  excludePathsCaseSensitive: false,
   ignoreNewFiles: true,
   treeHighlight: true,
   propertiesHighlight: true,

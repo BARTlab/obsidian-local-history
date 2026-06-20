@@ -141,5 +141,8 @@
   "modal.folder.notice.added": "File was added after this point.",
   "modal.folder.notice.deleted": "File was deleted after this point.",
   "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external"
+  "version.badge.external": "external",
+  "setting.purge-excluded.name": "Purge history for excluded paths",
+  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
+  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths."
 }

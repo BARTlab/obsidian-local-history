@@ -1,5 +1,6 @@
 import { MapChangeAction, PluginEvent } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
+import { PathExcludeHelper } from '@/helpers/path-exclude.helper';
 import { PathHelper } from '@/helpers/path.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import { ObservableMap } from '@/maps/observable.map';
@@ -880,6 +881,44 @@ export class SnapshotsService implements Service {
       getSnapshot: (file?: TFile | null): FileSnapshot | null => this.getOne(file),
       forceUpdate: (): void => this.forceUpdate(),
     };
+  }
+
+  /**
+   * Deletes every snapshot whose path currently matches the configured exclude
+   * pattern. Live snapshots AND tombstones are both considered: a tombstone for
+   * an excluded path is equally unwanted. Paths that no longer match the exclude
+   * pattern, or where no snapshot exists, are left untouched.
+   *
+   * After the purge, the caller receives the number of entries removed via the
+   * return value so the settings UI can display a feedback Notice with an
+   * accurate count (including the zero case).
+   *
+   * Session-created marks and the external-capture state are dropped for each
+   * purged path to keep the in-memory caches consistent with the snapshot map.
+   *
+   * @return {number} The number of snapshots deleted
+   */
+  public purgeExcluded(): number {
+    const excludePattern: string = this.settingsService.value('excludePaths');
+    const pathsToPurge: string[] = [];
+
+    for (const [path] of this.fileSnapshots.entries()) {
+      if (path && PathExcludeHelper.isExcluded(path, excludePattern)) {
+        pathsToPurge.push(path);
+      }
+    }
+
+    for (const path of pathsToPurge) {
+      this.fileSnapshots.delete(path);
+      this.sessionCreatedPaths.delete(path);
+      this.externalCapture.forget(path);
+    }
+
+    if (pathsToPurge.length > 0) {
+      this.forceUpdate();
+    }
+
+    return pathsToPurge.length;
   }
 
   /**

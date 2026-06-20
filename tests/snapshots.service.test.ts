@@ -159,3 +159,56 @@ describe('SnapshotsService delete', () => {
     expect(service.isInIgnoreList(file)).toBe(false);
   });
 });
+
+describe('SnapshotsService purgeExcluded', () => {
+  it('removes snapshots for paths matching the exclude pattern and returns the count', () => {
+    const service = makeServiceWithSettings({
+      allowedExtensions: 'md',
+      excludePaths: '(^|/)Templates/',
+    });
+
+    const excluded1 = makeFile('Templates/note.md');
+    const excluded2 = makeFile('Templates/draft.md');
+    const kept = makeFile('notes/keep.md');
+
+    service.add(excluded1, 'a');
+    service.add(excluded2, 'b');
+    service.add(kept, 'c');
+
+    const purged = service.purgeExcluded();
+
+    expect(purged).toBe(2);
+    expect(service.getOne(excluded1)).toBeNull();
+    expect(service.getOne(excluded2)).toBeNull();
+    expect(service.getOne(kept)).not.toBeNull();
+  });
+
+  it('does not remove snapshots for paths that do not match the exclude pattern', () => {
+    const service = makeServiceWithSettings({
+      allowedExtensions: 'md',
+      excludePaths: '(^|/)Templates/',
+    });
+
+    const kept = makeFile('notes/keep.md');
+    const also = makeFile('daily/today.md');
+
+    service.add(kept, 'x');
+    service.add(also, 'y');
+
+    const purged = service.purgeExcluded();
+
+    expect(purged).toBe(0);
+    expect(service.getOne(kept)).not.toBeNull();
+    expect(service.getOne(also)).not.toBeNull();
+  });
+
+  it('returns zero and shows no error when no excluded snapshots exist', () => {
+    const service = makeServiceWithSettings({
+      allowedExtensions: 'md',
+      excludePaths: '(^|/)Templates/',
+    });
+
+    expect(() => service.purgeExcluded()).not.toThrow();
+    expect(service.purgeExcluded()).toBe(0);
+  });
+});

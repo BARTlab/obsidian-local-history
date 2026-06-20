@@ -4,6 +4,7 @@ import { DomHelper } from '@/helpers/dom.helper';
 import { PathExcludeHelper } from '@/helpers/path-exclude.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { SettingsService } from '@/services/settings.service';
+import type { SnapshotsService } from '@/services/snapshots.service';
 import { TOKENS } from '@/services/tokens';
 import {
   type DropdownComponent,
@@ -30,6 +31,13 @@ export class MainSetting extends PluginSettingTab {
    */
   @Inject(TOKENS.settings)
   protected settingsService: SettingsService;
+
+  /**
+   * Service for managing file snapshots.
+   * Injected using the @Inject decorator.
+   */
+  @Inject(TOKENS.snapshots)
+  protected snapshotsService: SnapshotsService;
 
   /**
    * The plugin instance.
@@ -101,6 +109,21 @@ export class MainSetting extends PluginSettingTab {
 
             text.inputEl.addClass('lct-setting-invalid');
             new Notice(this.plugin.t('notice.invalid-exclude-pattern'));
+          })
+      );
+
+    new Setting(containerEl)
+      .setName(this.plugin.t('setting.purge-excluded.name'))
+      .setDesc(this.plugin.t('setting.purge-excluded.desc'))
+      .addButton((button) =>
+        button
+          .setButtonText(this.plugin.t('setting.purge-excluded.name'))
+          .setWarning()
+          .onClick((): void => {
+            const count: number = this.snapshotsService.purgeExcluded();
+            const message: string = this.plugin.t('notice.purge-excluded').replace('{count}', String(count));
+
+            new Notice(message);
           })
       );
 

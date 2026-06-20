@@ -128,6 +128,12 @@ export interface LineChangeTrackerSettings {
    */
   excludePaths: string;
   /**
+   * Whether the excludePaths regular expression is matched case-sensitively.
+   * When true, the 'i' flag is NOT applied; when false (default), the pattern
+   * is case-insensitive to behave well on case-insensitive file systems.
+   */
+  excludePathsCaseSensitive: boolean;
+  /**
    * Whether to ignore newly created files
    */
   ignoreNewFiles: boolean;

@@ -113,6 +113,17 @@ export class MainSetting extends PluginSettingTab {
       );
 
     new Setting(containerEl)
+      .setName(this.plugin.t('setting.exclude-paths-case-sensitive.name'))
+      .setDesc(this.plugin.t('setting.exclude-paths-case-sensitive.desc'))
+      .addToggle((toggle: ToggleComponent): ToggleComponent =>
+        toggle
+          .setValue(this.settingsService.value('excludePathsCaseSensitive'))
+          .onChange((value: boolean): void => {
+            this.settingsService.update('excludePathsCaseSensitive', value);
+          })
+      );
+
+    new Setting(containerEl)
       .setName(this.plugin.t('setting.purge-excluded.name'))
       .setDesc(this.plugin.t('setting.purge-excluded.desc'))
       .addButton((button) =>

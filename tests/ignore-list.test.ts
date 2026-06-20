@@ -19,20 +19,23 @@ import { makeFile } from './helpers/builders';
  */
 
 /** Builds a minimal {@link IgnoreListHost} stub backed by jest.fn(). */
-const makeHost = (pattern: string = ''): {
+const makeHost = (pattern: string = '', caseSensitive: boolean = false): {
   host: IgnoreListHost;
   getExcludePattern: jest.Mock<() => string>;
+  getExcludePathsCaseSensitive: jest.Mock<() => boolean>;
   notifyInvalidPattern: jest.Mock<() => void>;
 } => {
   const getExcludePattern = jest.fn<() => string>(() => pattern);
+  const getExcludePathsCaseSensitive = jest.fn<() => boolean>(() => caseSensitive);
   const notifyInvalidPattern = jest.fn<() => void>();
 
   const host: IgnoreListHost = {
     getExcludePattern,
+    getExcludePathsCaseSensitive,
     notifyInvalidPattern,
   };
 
-  return { host, getExcludePattern, notifyInvalidPattern };
+  return { host, getExcludePattern, getExcludePathsCaseSensitive, notifyInvalidPattern };
 };
 
 // ---------------------------------------------------------------------------
@@ -188,8 +191,9 @@ describe('IgnoreListManager - warn-once guard (invalid pattern)', () => {
   it('fires again when the bad pattern text changes to a new bad pattern', () => {
     let pattern: string = '[bad1';
     const getExcludePattern = jest.fn<() => string>(() => pattern);
+    const getExcludePathsCaseSensitive = jest.fn<() => boolean>(() => false);
     const notifyInvalidPattern = jest.fn<() => void>();
-    const host: IgnoreListHost = { getExcludePattern, notifyInvalidPattern };
+    const host: IgnoreListHost = { getExcludePattern, getExcludePathsCaseSensitive, notifyInvalidPattern };
     const manager = new IgnoreListManager(host);
 
     manager.isExcluded(makeFile('notes/a.md'));
@@ -203,8 +207,9 @@ describe('IgnoreListManager - warn-once guard (invalid pattern)', () => {
   it('resets the guard when the pattern becomes valid after being bad', () => {
     let pattern: string = '[bad';
     const getExcludePattern = jest.fn<() => string>(() => pattern);
+    const getExcludePathsCaseSensitive = jest.fn<() => boolean>(() => false);
     const notifyInvalidPattern = jest.fn<() => void>();
-    const host: IgnoreListHost = { getExcludePattern, notifyInvalidPattern };
+    const host: IgnoreListHost = { getExcludePattern, getExcludePathsCaseSensitive, notifyInvalidPattern };
     const manager = new IgnoreListManager(host);
 
     // First call: bad pattern - warns once.

@@ -142,6 +142,8 @@
   "modal.folder.notice.deleted": "File was deleted after this point.",
   "modal.folder.notice.unchanged": "No changes since this point.",
   "version.badge.external": "external",
+  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
+  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
   "setting.purge-excluded.name": "Purge history for excluded paths",
   "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
   "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths."

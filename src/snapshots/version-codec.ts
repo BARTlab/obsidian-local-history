@@ -45,6 +45,10 @@ export class VersionCodec {
 
     for (let i: number = 0; i < versions.length; i++) {
       const version: FileVersion = versions[i];
+      // VERSION_KEYFRAME_INTERVAL is the accepted blast-radius bound: a corrupt
+      // delta only invalidates entries between two keyframes (up to interval - 1
+      // versions). Decode skips bad entries and re-anchors on the next keyframe
+      // (degrade-never-throw, ADR-08-B). Accepted trade-off: ADR-18-17.
       const isKeyframe: boolean = i % VERSION_KEYFRAME_INTERVAL === 0;
 
       let entry: SerializedFileVersion;

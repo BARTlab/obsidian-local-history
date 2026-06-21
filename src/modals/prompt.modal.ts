@@ -103,7 +103,6 @@ export class PromptModal extends Modal {
     DomHelper.update(this.modalEl, { classes: { add: 'lct-prompt-modal' } });
 
     DomHelper.update(this.contentEl, {
-      text: null,
       children: [
         {
           tag: 'div',

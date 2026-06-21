@@ -145,9 +145,9 @@ export class DiffViewState {
    * Gets the currently active button based on the current display mode.
    * Returns the button element that corresponds to the active diff view mode.
    *
-   * @return {HTMLElement | null} The active button element, or null if no mode is active
+   * @return {HTMLElement | undefined} The active button element, or undefined if no mode is active
    */
-  public getActiveButton(): HTMLElement | null {
+  public getActiveButton(): HTMLElement | undefined {
     switch (this.currentDisplayMode) {
       case DiffViewMode.patch:
         return this.modeButtons.patch;
@@ -158,7 +158,7 @@ export class DiffViewState {
       case DiffOutputFormatType.side:
         return this.modeButtons.sideBySide;
       default:
-        return null;
+        return undefined;
     }
   }
 
@@ -173,7 +173,7 @@ export class DiffViewState {
       );
     });
 
-    const activeButton: HTMLElement = this.getActiveButton();
+    const activeButton: HTMLElement | undefined = this.getActiveButton();
 
     if (!activeButton) {
       return;

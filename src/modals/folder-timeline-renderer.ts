@@ -131,7 +131,6 @@ export class FolderTimelineRenderer {
     }
 
     DomHelper.update(railEl, {
-      text: null,
       children: [
         {
           tag: 'div',
@@ -165,7 +164,7 @@ export class FolderTimelineRenderer {
       return false;
     }
 
-    const version: FileVersion | undefined = snapshot.getVersion(point.versionId);
+    const version: FileVersion | undefined = snapshot.getVersion(point.versionId) ?? undefined;
 
     return version?.isExternal() === true;
   }

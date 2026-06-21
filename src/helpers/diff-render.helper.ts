@@ -153,7 +153,6 @@ export class DiffRenderHelper {
     DomHelper.update(
       params.container,
       {
-        text: null,
         children: [
           {
             tag: 'div',
@@ -242,7 +241,6 @@ export class DiffRenderHelper {
     });
 
     DomHelper.update(params.container, {
-      text: null,
       children: [{ tag: 'div', classes: 'lct-inline-container', children: rows }],
     });
   }

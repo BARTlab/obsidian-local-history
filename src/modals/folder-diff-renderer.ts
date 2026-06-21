@@ -132,7 +132,7 @@ export class FolderDiffRenderer {
     this.host.onDiffRendered();
 
     if (!result) {
-      DomHelper.update(diffContainerEl, { text: null });
+      DomHelper.update(diffContainerEl, { text: '' });
 
       return;
     }
@@ -167,7 +167,7 @@ export class FolderDiffRenderer {
     const text: string | null = this.resolveNoticeText(result);
 
     DomHelper.update(noticeEl, {
-      text: text ?? null,
+      text: text ?? undefined,
       classes: text ? { remove: 'lct-diff-notice-hidden' } : { add: 'lct-diff-notice-hidden' },
     });
   }
@@ -215,7 +215,7 @@ export class FolderDiffRenderer {
     const sideBySide: boolean = this.host.displayMode() === DiffOutputFormatType.side;
 
     if (!sideBySide || !result) {
-      DomHelper.update(columnsHeaderEl, { text: null, classes: { add: 'lct-diff-columns-hidden' } });
+      DomHelper.update(columnsHeaderEl, { classes: { add: 'lct-diff-columns-hidden' } });
 
       return;
     }
@@ -223,7 +223,6 @@ export class FolderDiffRenderer {
     const pointLabel: string = new Date(this.host.selectedTimestamp()).toLocaleString();
 
     DomHelper.update(columnsHeaderEl, {
-      text: null,
       classes: { remove: 'lct-diff-columns-hidden' },
       children: [
         { tag: 'div', classes: 'lct-diff-column-title', text: pointLabel },

@@ -253,7 +253,12 @@ export class HistoryModal extends Modal {
 
     try {
       const originalContent: string = this.snapshot.getHistoryOriginalState();
-      const file: TFile = this.snapshot.file;
+      // snapshot.file is non-null when the snapshot was opened from a live file
+      const file: TFile | null | undefined = this.snapshot.file;
+
+      if (!file) {
+        return;
+      }
 
       await this.app.vault.modify(file, originalContent);
       this.snapshotsService.wipeOne(file);
@@ -279,7 +284,7 @@ export class HistoryModal extends Modal {
    * the active view is re-rendered so the diff reflects the new content.
    */
   protected async restoreSelectedVersion(): Promise<void> {
-    const file: TFile | undefined = this.snapshot?.file;
+    const file: TFile | undefined = this.snapshot?.file ?? undefined;
 
     if (!file || this.isBaseSameCurrent()) {
       return;
@@ -768,7 +773,7 @@ export class HistoryModal extends Modal {
     }
 
     DomHelper.update(this.noticeEl, {
-      text: identical ? this.getEmptyDiffText() : null,
+      text: identical ? this.getEmptyDiffText() : undefined,
       classes: identical ? { remove: 'lct-diff-notice-hidden' } : { add: 'lct-diff-notice-hidden' },
     });
   }
@@ -809,13 +814,12 @@ export class HistoryModal extends Modal {
     const visible: boolean = this.viewState.currentDisplayMode === DiffOutputFormatType.side;
 
     if (!visible) {
-      DomHelper.update(this.columnsHeaderEl, { text: null, classes: { add: 'lct-diff-columns-hidden' } });
+      DomHelper.update(this.columnsHeaderEl, { classes: { add: 'lct-diff-columns-hidden' } });
 
       return;
     }
 
     DomHelper.update(this.columnsHeaderEl, {
-      text: null,
       classes: { remove: 'lct-diff-columns-hidden' },
       children: [
         { tag: 'div', classes: 'lct-diff-column-title', text: this.getBaseLabel() },
@@ -1075,7 +1079,7 @@ export class HistoryModal extends Modal {
       return;
     }
 
-    DomHelper.update(this.searchEl, { text: null, classes: { remove: 'lct-rail-search-empty' } });
+    DomHelper.update(this.searchEl, { classes: { remove: 'lct-rail-search-empty' } });
 
     new SearchComponent(this.searchEl)
       .setPlaceholder(this.plugin.t('modal.search-versions'))

@@ -148,7 +148,7 @@ export class GutterRevertHandler {
    */
   protected async revertHunk(index: number): Promise<void> {
     const snapshot: FileSnapshot = this.host.snapshot;
-    const file: TFile | undefined = snapshot?.file;
+    const file: TFile | undefined = snapshot?.file ?? undefined;
 
     if (!file) {
       return;

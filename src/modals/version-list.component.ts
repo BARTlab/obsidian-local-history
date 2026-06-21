@@ -394,7 +394,6 @@ export class VersionList {
     }
 
     DomHelper.update(versionsEl, {
-      text: null,
       children: [
         {
           tag: 'div',

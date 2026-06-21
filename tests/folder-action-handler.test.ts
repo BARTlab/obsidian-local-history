@@ -160,7 +160,7 @@ describe('FolderActionHandler', () => {
       await new FolderActionHandler(makeHost()).handleRestoreSelected();
 
       expect(restoreSelected).toHaveBeenCalledTimes(1);
-      expect(restoreSelected).toHaveBeenCalledWith(selection.snapshot.file, versionAtT.id);
+      expect(restoreSelected).toHaveBeenCalledWith(selection!.snapshot.file!, versionAtT.id);
       expect(refreshTree).toHaveBeenCalledTimes(1);
       expect(refreshDiff).toHaveBeenCalledTimes(1);
     });
@@ -216,7 +216,7 @@ describe('FolderActionHandler', () => {
 
       await new FolderActionHandler(makeHost()).handleRemoveSelected();
 
-      expect(removeSelected).toHaveBeenCalledWith(selection.snapshot.file, versionAtT.id);
+      expect(removeSelected).toHaveBeenCalledWith(selection!.snapshot.file!, versionAtT.id);
       expect(resyncTimeline).toHaveBeenCalledTimes(1);
       expect(refreshTree).toHaveBeenCalledTimes(1);
       expect(refreshDiff).toHaveBeenCalledTimes(1);
@@ -263,7 +263,7 @@ describe('FolderActionHandler', () => {
       await new FolderActionHandler(makeHost()).handleRestoreOriginal();
 
       expect(modify).toHaveBeenCalledTimes(1);
-      expect(wipeOne).toHaveBeenCalledWith(selection.snapshot.file);
+      expect(wipeOne).toHaveBeenCalledWith(selection!.snapshot.file!);
       expect(removeFromMap).toHaveBeenCalledWith('a.md');
       expect(resyncTimeline).toHaveBeenCalledTimes(1);
     });
@@ -285,7 +285,7 @@ describe('FolderActionHandler', () => {
 
       await new FolderActionHandler(makeHost()).handleRemoveHistory();
 
-      expect(wipeOne).toHaveBeenCalledWith(selection.snapshot.file);
+      expect(wipeOne).toHaveBeenCalledWith(selection!.snapshot.file!);
       expect(removeFromMap).toHaveBeenCalledWith('a.md');
       expect(resyncTimeline).toHaveBeenCalledTimes(1);
     });

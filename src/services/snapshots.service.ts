@@ -144,7 +144,8 @@ export class SnapshotsService implements Service {
       return;
     }
 
-    const lineBreak: string = this.plugin.getActiveEditorView()?.state.lineBreak;
+    const activeLineBreak: string | undefined = this.plugin.getActiveEditorView()?.state.lineBreak;
+    const lineBreak: string = activeLineBreak ?? (content.includes('\r\n') ? '\r\n' : '\n');
 
     this.fileSnapshots.set(
       file.path,

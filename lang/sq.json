@@ -149,5 +149,7 @@
   "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
   "setting.purge-excluded.name": "Purge history for excluded paths",
   "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths."
+  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
+  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
+  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
 }

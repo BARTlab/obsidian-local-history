@@ -151,4 +151,12 @@ export interface LineChangeTrackerSettings {
    * Obsidian Properties panel (the properties-diff feature)
    */
   propertiesHighlight: boolean;
+  /**
+   * Whether to show block-level change indicators in Obsidian reading mode.
+   * When enabled, a MarkdownPostProcessor decorates rendered HTML blocks with
+   * CSS classes that match the live-edit indicator colours. Opt-in (false by
+   * default) because reading-mode decoration is a post-processor and has a
+   * small runtime cost per block on every re-render.
+   */
+  readingModeIndicator: boolean;
 }

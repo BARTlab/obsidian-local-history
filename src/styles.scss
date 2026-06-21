@@ -1352,3 +1352,38 @@ body {
     color: var(--lct-prop-removed);
   }
 }
+
+/* ---- reading-mode change indicators (B4) ---- */
+// Block-level change indicators applied by ReadingModeIndicatorService via a
+// MarkdownPostProcessor. A left border tinted by the dominant change type
+// colours each rendered block whose source lines contain a change. Colors
+// resolve through the --lct-color-* variables set by StylesService, matching
+// the live-edit gutter colours exactly.
+//
+// The indicator is a 3 px left border with a translucent background tint so the
+// block content remains fully readable. No layout shift: border-left moves the
+// content 3 px inward via padding-left compensation.
+.lct-rm-indicator {
+  border-left: 3px solid transparent;
+  padding-left: 3px;
+
+  &[data-lct-type="changed"] {
+    border-left-color: var(--lct-color-changed);
+    background-color: color-mix(in srgb, var(--lct-color-changed) 8%, transparent);
+  }
+
+  &[data-lct-type="added"] {
+    border-left-color: var(--lct-color-added);
+    background-color: color-mix(in srgb, var(--lct-color-added) 8%, transparent);
+  }
+
+  &[data-lct-type="whitespace"] {
+    border-left-color: var(--lct-color-whitespace);
+    background-color: color-mix(in srgb, var(--lct-color-whitespace) 8%, transparent);
+  }
+
+  &[data-lct-type="restored"] {
+    border-left-color: var(--lct-color-restored);
+    background-color: color-mix(in srgb, var(--lct-color-restored) 8%, transparent);
+  }
+}

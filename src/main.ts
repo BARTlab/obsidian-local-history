@@ -12,6 +12,7 @@ import { SnapshotsService } from '@/services/snapshots.service';
 import { StatusbarService } from '@/services/statusbar.service';
 import { StylesService } from '@/services/styles.service';
 import { type ServiceToken, TOKENS, tokenName } from '@/services/tokens';
+import { ReadingModeIndicatorService } from '@/extensions/reading-mode-indicator.extension';
 import { PropertyDecoratorService } from '@/services/property-decorator.service';
 import { TreeTabDecoratorService } from '@/services/tree-tab-decorator.service';
 import { VersionActionsService } from '@/services/version-actions.service';
@@ -100,6 +101,7 @@ export default class LineChangeTrackerPlugin extends Plugin {
     this.registerService(PersistenceService, TOKENS.persistence);
     this.registerService(TreeTabDecoratorService, TOKENS.treeTabDecorator);
     this.registerService(PropertyDecoratorService, TOKENS.propertyDecorator);
+    this.registerService(ReadingModeIndicatorService, TOKENS.readingModeIndicator);
   }
 
   /**

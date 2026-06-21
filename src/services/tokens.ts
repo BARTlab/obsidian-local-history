@@ -9,6 +9,7 @@ import type { SnapshotsService } from '@/services/snapshots.service';
 import type { StatusbarService } from '@/services/statusbar.service';
 import type { StylesService } from '@/services/styles.service';
 import type { PropertyDecoratorService } from '@/services/property-decorator.service';
+import type { ReadingModeIndicatorService } from '@/extensions/reading-mode-indicator.extension';
 import type { TreeTabDecoratorService } from '@/services/tree-tab-decorator.service';
 import type { VersionActionsService } from '@/services/version-actions.service';
 
@@ -78,6 +79,7 @@ export const TOKENS = {
   persistence: token<PersistenceService>('PersistenceService'),
   treeTabDecorator: token<TreeTabDecoratorService>('TreeTabDecoratorService'),
   propertyDecorator: token<PropertyDecoratorService>('PropertyDecoratorService'),
+  readingModeIndicator: token<ReadingModeIndicatorService>('ReadingModeIndicatorService'),
 } as const;
 
 /**

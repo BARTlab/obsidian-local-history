@@ -22,7 +22,6 @@ const allFiles = fs.readdirSync(LANG_DIR)
   .filter((f: string) => f.endsWith('.json'))
   .sort();
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const en_catalog: Catalog = require(path.join(LANG_DIR, 'en.json')) as Catalog;
 
 /**
@@ -31,10 +30,10 @@ const en_catalog: Catalog = require(path.join(LANG_DIR, 'en.json')) as Catalog;
  * adding a new lang/*.json file automatically adds it to parity checks.
  */
 const catalogs: Record<string, Catalog> = {};
+
 for (const file of allFiles) {
   if (file === 'en.json') continue;
   const lang = file.replace(/\.json$/, '');
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   catalogs[lang] = require(path.join(LANG_DIR, file)) as Catalog;
 }
 

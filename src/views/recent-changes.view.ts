@@ -172,7 +172,6 @@ export class RecentChangesView extends ItemView {
 
     if (!file || !snapshot) {
       DomHelper.update(this.listEl, {
-        text: null,
         children: [
           {
             tag: 'div',
@@ -189,7 +188,6 @@ export class RecentChangesView extends ItemView {
 
     if (versions.length === 0) {
       DomHelper.update(this.listEl, {
-        text: null,
         children: [
           {
             tag: 'div',
@@ -203,7 +201,6 @@ export class RecentChangesView extends ItemView {
     }
 
     DomHelper.update(this.listEl, {
-      text: null,
       children: versions.map((version: FileVersion): DomElementConfig =>
         this.makeRow(version, versions, snapshot, file),
       ),

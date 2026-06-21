@@ -77,7 +77,6 @@ export class ConfirmModal extends Modal {
     DomHelper.update(this.modalEl, { classes: { add: 'lct-confirm-modal' } });
 
     DomHelper.update(this.contentEl, {
-      text: null,
       children: [
         {
           tag: 'div',
@@ -125,7 +124,7 @@ export class ConfirmModal extends Modal {
     /**
      * Focus the confirmation button
      */
-    const confirmButton: HTMLButtonElement = this.contentEl.querySelector('button.mod-warning');
+    const confirmButton: HTMLButtonElement | null = this.contentEl.querySelector('button.mod-warning');
 
     confirmButton?.focus();
   }

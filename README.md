@@ -104,13 +104,26 @@ Settings for the different indicator types.
 
 ## Installation
 
-### From Community Plugins
+### From Community Plugins (pending review)
+
+The plugin is not yet listed in the Obsidian community store. Once the review is complete, you will be able to install it as follows:
 
 1. Open Obsidian.
 2. Go to Settings, then Community plugins.
 3. Turn off Restricted mode if it is enabled.
 4. Click Browse and search for "Local history".
 5. Click Install, then Enable.
+
+Until then, use BRAT or the manual install below.
+
+### Via BRAT (beta reviewers auto-update tool)
+
+[BRAT](https://github.com/TfTHacker/obsidian42-brat) lets you install plugins directly from GitHub before they appear in the store.
+
+1. Install BRAT from the Community Plugins browser and enable it.
+2. In BRAT settings, click "Add Beta plugin".
+3. Enter the repository URL: `https://github.com/bartlab/obsidian-local-history`
+4. Click "Add plugin". BRAT downloads and enables the latest release automatically.
 
 ### Manual installation
 
@@ -130,7 +143,7 @@ Settings for the different indicator types.
 3. As you keep editing, the plugin captures timeline versions in the background.
 4. Open the history modal to review, diff, or restore any version.
 
-In reading mode there are no inline indicators, but the history is still reachable through the command palette or the file context menu.
+In reading mode, block-level change indicators are shown when the "Show indicators in reading mode" setting is enabled (off by default). Each rendered block is highlighted to reflect the highest-priority change type present in its source lines - using the same colors as the live-edit indicators. The history is also reachable through the command palette or the file context menu regardless of whether the indicators are on.
 
 ### Opening history
 
@@ -177,7 +190,7 @@ Open Settings, then Community plugins, then the Local history options.
 ### Tracking
 
 - **Allowed file extensions**: a comma-separated list of extensions to track.
-- **Excluded paths**: a case-insensitive regular expression matched against the vault-relative path; matching files are never tracked. The default excludes Templates folders and Excalidraw drawings.
+- **Excluded paths**: a list of regular-expression patterns, each matched independently against the vault-relative path; a file is excluded when any pattern matches. Add or remove patterns with the dedicated row controls. By default the patterns are case-insensitive; toggle "Case-sensitive path exclusion" to match exactly as typed.
 - **Ignore new files**: do not track files created after tracking started.
 - **Keep history until**: clear tracking data when the app closes or when the file closes.
 
@@ -217,9 +230,18 @@ You can override the indicator colors with a CSS snippet:
 }
 ```
 
-## Privacy
+## Privacy and data storage
 
-This plugin runs entirely on your device. It does not connect to the network, does not collect telemetry, and does not require an account. History is stored in a JSON file inside the plugin's own folder in your vault. The plugin reads file contents from your vault only to compute diffs and capture versions, and never sends them anywhere.
+This plugin runs entirely on your device. It does not connect to the network, does not collect telemetry, and does not require an account.
+
+History is stored as JSON files under `.obsidian/plugins/local-history/history/` inside your vault. Each file's full text is captured in those history shards to power the diff and restore features.
+
+If you version-control your vault with git, back it up to a cloud folder, or use Obsidian Sync with "Sync vault configuration" enabled, those history files will be included unless you explicitly exclude them. To prevent history shards from being shared or committed:
+
+- **Git**: add `.obsidian/plugins/local-history/history/` to your `.gitignore`.
+- **Cloud sync or Obsidian Sync config sync**: configure your sync tool to exclude that folder, or disable config-folder sync for the plugin.
+
+The plugin reads file contents from your vault only to compute diffs and capture versions, and never sends them anywhere.
 
 ## Compatibility
 
@@ -229,7 +251,7 @@ This plugin runs entirely on your device. It does not connect to the network, do
 
 ## Localization
 
-The plugin follows Obsidian's own UI language, shipping a built-in dictionary per language under `lang/<code>.json` and falling back to English for any language without its own catalog. To add a translation, copy `lang/en.json` to `lang/<code>.json` (using the exact [Obsidian language code](https://github.com/obsidianmd/obsidian-translations)), translate every value while keeping the keys and `{name}` placeholders intact, register the catalog in `src/i18n.ts`, and add it to `tests/i18n-catalog-parity.test.ts`.
+The plugin follows Obsidian's own UI language, shipping a built-in dictionary per language under `lang/<code>.json` and falling back to English for any language without its own catalog. To add a translation, copy `lang/en.json` to `lang/<code>.json` (using the exact [Obsidian language code](https://github.com/obsidianmd/obsidian-translations)), translate every value while keeping the keys and `{name}` placeholders intact, register the catalog in `src/helpers/i18n.helper.ts`, and add it to `tests/i18n-catalog-parity.test.ts`.
 
 ## Support
 

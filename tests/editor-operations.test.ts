@@ -76,7 +76,7 @@ describe('EditorOperations', () => {
     expect((snapshot as FileSnapshot).getLastStateLines()).toEqual(['a', 'B', 'c']);
     // The disk write joins on the snapshot's line break.
     expect(modify).toHaveBeenCalledTimes(1);
-    expect(modify).toHaveBeenCalledWith(file, 'a\nB\nc');
+    expect(modify).toHaveBeenCalledWith(file!, 'a\nB\nc');
     expect(forceUpdate).toHaveBeenCalledTimes(1);
   });
 

@@ -25,7 +25,7 @@ describe('SnapshotsService.serialize', () => {
     service.add(clean, 'a\nb');
     service.add(dirty, 'a\nb');
 
-    const dirtySnapshot: FileSnapshot = service.getOne(dirty);
+    const dirtySnapshot = service.getOne(dirty)!;
     dirtySnapshot.findCurrentLine(1)?.change('B');
     dirtySnapshot.updateState(['a', 'B']);
     dirtySnapshot.updateChanges();
@@ -48,12 +48,12 @@ describe('SnapshotsService.serialize', () => {
     service.add(good, 'a\nb');
     service.add(bad, 'a\nb');
 
-    const goodSnapshot: FileSnapshot = service.getOne(good);
+    const goodSnapshot = service.getOne(good)!;
     goodSnapshot.findCurrentLine(1)?.change('B');
     goodSnapshot.updateState(['a', 'B']);
     goodSnapshot.updateChanges();
 
-    const badSnapshot: FileSnapshot = service.getOne(bad);
+    const badSnapshot = service.getOne(bad)!;
     badSnapshot.findCurrentLine(1)?.change('B');
     badSnapshot.updateState(['a', 'B']);
     badSnapshot.updateChanges();
@@ -68,7 +68,7 @@ describe('SnapshotsService.serialize', () => {
     }).not.toThrow();
 
     expect(payload).not.toBeNull();
-    const paths: string[] = (payload?.snapshots ?? []).map(
+    const paths: string[] = payload!.snapshots.map(
       (item: SerializedFileSnapshot): string => item.path,
     );
 
@@ -80,7 +80,7 @@ describe('SnapshotsService.serialize', () => {
     const file = makeFile('timeline.md');
 
     service.add(file, 'a\nb');
-    const snapshot: FileSnapshot = service.getOne(file);
+    const snapshot = service.getOne(file)!;
 
     // Capture an intermediate version, then return the state to the original so
     // there are no tracked changes but the timeline still holds history.
@@ -158,7 +158,7 @@ describe('SnapshotsService.restore', () => {
 
     // Pristine session capture: the marker baseline is this open's content.
     service.add(makeFile('a.md'), 'x\ny\nz');
-    const live: FileSnapshot = service.getOne(makeFile('a.md'));
+    const live = service.getOne(makeFile('a.md'))!;
     expect(live.getChangesLinesCount()).toBe(0);
 
     // The persisted history carries a different original ("a\nb\nc") and an edit.
@@ -180,7 +180,7 @@ describe('SnapshotsService.restore', () => {
     const service = makeService(['a.md']);
 
     service.add(makeFile('a.md'), 'a\nb\nc');
-    const live: FileSnapshot = service.getOne(makeFile('a.md'));
+    const live = service.getOne(makeFile('a.md'))!;
     live.findCurrentLine(0)?.change('Z');
     live.updateState(['Z', 'b', 'c']);
     live.updateChanges();
@@ -257,7 +257,7 @@ describe('SnapshotsService delta-encoded version round-trip (T07)', () => {
     const file = makeFile(PATH);
 
     service.add(file, 'line-0\nline-1\nline-2');
-    const snapshot: FileSnapshot = service.getOne(file);
+    const snapshot = service.getOne(file)!;
 
     const versions: FileVersion[] = [];
 
@@ -293,7 +293,7 @@ describe('SnapshotsService delta-encoded version round-trip (T07)', () => {
     expect(payload.version).toBe(2);
     expect(payload.snapshots).toHaveLength(1);
 
-    const serializedVersions = payload.snapshots[0].versions;
+    const serializedVersions = payload.snapshots[0].versions!;
     expect(serializedVersions).toHaveLength(TOTAL);
 
     const deltaCount: number = serializedVersions.filter(

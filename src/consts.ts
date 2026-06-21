@@ -195,6 +195,7 @@ export const DEFAULT_SETTINGS: LineChangeTrackerSettings = {
   ignoreNewFiles: true,
   treeHighlight: true,
   propertiesHighlight: true,
+  readingModeIndicator: false,
 
   retention: {
     maxEntries: 200,

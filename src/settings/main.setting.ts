@@ -167,6 +167,17 @@ export class MainSetting extends PluginSettingTab {
       );
 
     new Setting(containerEl)
+      .setName(this.plugin.t('setting.reading-mode-indicator.name'))
+      .setDesc(this.plugin.t('setting.reading-mode-indicator.desc'))
+      .addToggle((toggle: ToggleComponent): ToggleComponent =>
+        toggle
+          .setValue(this.settingsService.value('readingModeIndicator'))
+          .onChange((value: boolean): void => {
+            this.settingsService.update('readingModeIndicator', value);
+          })
+      );
+
+    new Setting(containerEl)
       .setName(this.plugin.t('setting.persist.name'))
       .setDesc(this.plugin.t('setting.persist.desc'))
       .addToggle((toggle: ToggleComponent): ToggleComponent =>

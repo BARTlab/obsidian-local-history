@@ -827,3 +827,23 @@ body {
   text-decoration: line-through;
   color: var(--lct-prop-removed);
 }
+.lct-rm-indicator {
+  border-left: 3px solid transparent;
+  padding-left: 3px;
+}
+.lct-rm-indicator[data-lct-type=changed] {
+  border-left-color: var(--lct-color-changed);
+  background-color: color-mix(in srgb, var(--lct-color-changed) 8%, transparent);
+}
+.lct-rm-indicator[data-lct-type=added] {
+  border-left-color: var(--lct-color-added);
+  background-color: color-mix(in srgb, var(--lct-color-added) 8%, transparent);
+}
+.lct-rm-indicator[data-lct-type=whitespace] {
+  border-left-color: var(--lct-color-whitespace);
+  background-color: color-mix(in srgb, var(--lct-color-whitespace) 8%, transparent);
+}
+.lct-rm-indicator[data-lct-type=restored] {
+  border-left-color: var(--lct-color-restored);
+  background-color: color-mix(in srgb, var(--lct-color-restored) 8%, transparent);
+}

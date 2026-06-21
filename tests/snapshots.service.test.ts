@@ -8,10 +8,12 @@ jest.mock('@/snapshots/file.snapshot', () => ({
   FileSnapshot: class {
     public file: unknown;
     public lines: string[];
+    public lineBreak: string;
 
-    public constructor(content: string, _lineBreak?: string, file?: unknown) {
+    public constructor(content: string, lineBreak?: string, file?: unknown) {
       this.file = file;
-      this.lines = typeof content === 'string' ? content.split('\n') : [];
+      this.lineBreak = lineBreak ?? '\n';
+      this.lines = typeof content === 'string' ? content.split(this.lineBreak) : [];
     }
   },
 }));
@@ -210,5 +212,56 @@ describe('SnapshotsService purgeExcluded', () => {
 
     expect(() => service.purgeExcluded()).not.toThrow();
     expect(service.purgeExcluded()).toBe(0);
+  });
+});
+
+describe('SnapshotsService lineBreak sniffing', () => {
+  it('sniffs \\r\\n from content when no active editor view is present', () => {
+    const service = makeService();
+    const file = makeFile('windows.md');
+
+    // CRLF content, no active view - the service factory returns undefined for
+    // getActiveEditorView, so sniffing must kick in.
+    service.add(file, 'line one\r\nline two\r\n');
+
+    const snapshot = service.getOne(file);
+
+    expect(snapshot).not.toBeNull();
+    expect((snapshot as { lineBreak: string }).lineBreak).toBe('\r\n');
+  });
+
+  it('falls back to \\n when content has no \\r\\n and no active editor view', () => {
+    const service = makeService();
+    const file = makeFile('unix.md');
+
+    service.add(file, 'line one\nline two\n');
+
+    const snapshot = service.getOne(file);
+
+    expect(snapshot).not.toBeNull();
+    expect((snapshot as { lineBreak: string }).lineBreak).toBe('\n');
+  });
+
+  it('uses the active editor state lineBreak over content sniffing', () => {
+    const settingsService = { value: (path: string): unknown => (path === 'allowedExtensions' ? 'md' : '') };
+
+    // Simulate an active editor view that reports '\r\n' (e.g. Windows file).
+    // The content itself uses '\n' so if sniffing wins the result would be '\n'.
+    const plugin = {
+      getActiveEditorView: (): { state: { lineBreak: string } } => ({ state: { lineBreak: '\r\n' } }),
+      get: (): unknown => settingsService,
+      t: (key: string): string => key,
+    } as unknown as ConstructorParameters<typeof SnapshotsService>[0];
+
+    const service = new SnapshotsService(plugin);
+    const file = makeFile('note.md');
+
+    service.add(file, 'line one\nline two\n');
+
+    const snapshot = service.getOne(file);
+
+    expect(snapshot).not.toBeNull();
+    // The editor state lineBreak must win over sniffing.
+    expect((snapshot as { lineBreak: string }).lineBreak).toBe('\r\n');
   });
 });

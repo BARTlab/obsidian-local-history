@@ -142,9 +142,9 @@ export class GutterCommonExtension extends BaseExtension implements GutterConfig
     }
 
     const confirmed: boolean = await this.modalsService.confirm({
-      title: 'Revert change',
-      message: 'Revert this change back to the original? Other changes are kept.',
-      confirmText: 'Revert',
+      title: this.plugin.t('modal.confirm.revert.title'),
+      message: this.plugin.t('modal.confirm.revert.message'),
+      confirmText: this.plugin.t('modal.confirm.revert.button'),
     });
 
     if (!confirmed) {

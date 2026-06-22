@@ -850,6 +850,12 @@ body {
 .cm-line {
   &.lct-line {
     position: relative;
+    // Prevent the theme from clipping the change bar. Quote lines in Obsidian Live
+    // Preview (.HyperMD-quote-N) may inherit overflow: hidden from the theme,
+    // which clips our absolutely-positioned ::before bar (left: -10px). Setting
+    // overflow: visible here ensures the bar is always rendered regardless of
+    // which theme property cascades onto the line element.
+    overflow: visible;
 
     &:not(.mk-placeholder)::before {
       content: '';

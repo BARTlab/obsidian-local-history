@@ -11,6 +11,8 @@ import {
   MarkdownPreviewRenderer,
   type MarkdownPostProcessor,
   type MarkdownPostProcessorContext,
+  type MarkdownView,
+  type WorkspaceLeaf,
 } from 'obsidian';
 
 /**
@@ -140,7 +142,9 @@ export class ReadingModeIndicatorService implements Service {
 
   /**
    * Unregisters the current post-processor from
-   * {@link MarkdownPreviewRenderer} and clears the stored reference.
+   * {@link MarkdownPreviewRenderer}, clears the stored reference, and sweeps
+   * all open reading-mode views to remove any residual indicator markup so the
+   * feature is visually off without waiting for a re-render.
    */
   protected unregister(): void {
     if (!this.processor) {
@@ -149,6 +153,36 @@ export class ReadingModeIndicatorService implements Service {
 
     MarkdownPreviewRenderer.unregisterPostProcessor(this.processor);
     this.processor = undefined;
+    this.clearAll();
+  }
+
+  /**
+   * Removes {@link CLASS_INDICATOR} and `data-lct-type` from every decorated
+   * element in every currently open reading-mode (preview) leaf. Called after
+   * unregistering the post-processor so indicator residue disappears
+   * immediately without requiring a re-render of the document.
+   *
+   * Degrades silently: if no leaf or no previewMode container is available the
+   * method returns without error.
+   */
+  protected clearAll(): void {
+    const leaves: WorkspaceLeaf[] = this.plugin.app.workspace.getLeavesOfType('markdown');
+
+    for (const leaf of leaves) {
+      const view = leaf.view as MarkdownView;
+      const container: HTMLElement | undefined = view?.previewMode?.containerEl;
+
+      if (!container) {
+        continue;
+      }
+
+      const decorated: NodeListOf<Element> = container.querySelectorAll(`.${CLASS_INDICATOR}`);
+
+      for (const el of decorated) {
+        el.classList.remove(CLASS_INDICATOR);
+        el.removeAttribute('data-lct-type');
+      }
+    }
   }
 
   /**

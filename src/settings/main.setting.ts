@@ -514,6 +514,8 @@ export class MainSetting extends PluginSettingTab {
       );
 
     patterns.forEach((pattern: string, index: number): void => {
+      let invalidNoticeShown = false;
+
       new Setting(wrapper)
         .addText((text: TextComponent): TextComponent =>
           text
@@ -522,11 +524,16 @@ export class MainSetting extends PluginSettingTab {
             .onChange((value: string): void => {
               if (!PathExcludeHelper.isValid(value)) {
                 text.inputEl.addClass('lct-setting-invalid');
-                new Notice(this.plugin.t('notice.invalid-exclude-pattern'));
+
+                if (!invalidNoticeShown) {
+                  new Notice(this.plugin.t('notice.invalid-exclude-pattern'));
+                  invalidNoticeShown = true;
+                }
 
                 return;
               }
 
+              invalidNoticeShown = false;
               text.inputEl.removeClass('lct-setting-invalid');
 
               const next: string[] = [...this.settingsService.value('excludePaths')];

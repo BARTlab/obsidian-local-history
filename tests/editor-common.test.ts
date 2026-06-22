@@ -179,3 +179,34 @@ describe('EditorCommonExtension visible-range build', () => {
     expect(getChange.mock.calls.map((call): unknown => call[0])).toEqual([2, 3]);
   });
 });
+
+describe('EditorCommonExtension quote-line decoration (T23 regression)', () => {
+  // Quote lines in Obsidian Live Preview (.HyperMD-quote-N) are plain .cm-line
+  // elements with no block-widget replacement, so the per-line decoration path
+  // in buildDecorations() reaches them through the normal visible-range walk.
+  // These tests pin that the class composition is correct for the two change
+  // types most relevant to the bug: an added quote line and an edited quote line
+  // (changed). Visual rendering of the bar in a live editor is outside the scope
+  // of the test harness; the CSS overflow: visible fix ensures the bar is not
+  // clipped by themes that apply overflow: hidden to .cm-line on quote lines.
+  it('applies lct-added to a newly added quote line', () => {
+    // The document content is irrelevant to the class composition; what matters
+    // is that the change map returns lct-added for the first line and that
+    // buildDecorations() emits exactly that class (no other types mixed in).
+    const change = new ChangeLine(0, [ChangeType.added]);
+
+    const { classes } = makeExtWithChange('> new quote\nB\nC', change);
+
+    expect(classes).toEqual(['lct lct-line lct-added']);
+  });
+
+  it('applies lct-changed to an edited quote line', () => {
+    // Regression guard for AC#3: editing an existing (baseline) quote line must
+    // show the changed indicator, not be silently dropped or decorated wrong.
+    const change = new ChangeLine(0, [ChangeType.changed]);
+
+    const { classes } = makeExtWithChange('> edited quote\nB\nC', change);
+
+    expect(classes).toEqual(['lct lct-line lct-changed']);
+  });
+});

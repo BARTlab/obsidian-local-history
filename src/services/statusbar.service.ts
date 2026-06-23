@@ -68,8 +68,8 @@ export class StatusbarService implements Service {
    */
   @On(PluginEvent.snapshotsUpdate)
   public updateFileStatus(): void {
-    const view: View = this.plugin.app.workspace.getMostRecentLeaf()?.view;
-    const snapshot: FileSnapshot = this.snapshotsService.getOne();
+    const view: View | undefined = this.plugin.app.workspace.getMostRecentLeaf()?.view;
+    const snapshot: FileSnapshot | null = this.snapshotsService.getOne();
 
     if (!view || !(view instanceof MarkdownView) || !snapshot) {
       this.clear();
@@ -87,7 +87,7 @@ export class StatusbarService implements Service {
    * @param {string} id - The ID of the status bar item to clear, or undefined to use the default
    */
   public clear(id?: string): void {
-    const item: HTMLElement = this.get(id);
+    const item: HTMLElement | null = this.get(id);
 
     if (!item) {
       return;
@@ -105,7 +105,7 @@ export class StatusbarService implements Service {
    * @param {string} id - The ID of the status bar item to update, or undefined to use the default
    */
   public update(title: string, id?: string): void {
-    const item: HTMLElement = this.get(id);
+    const item: HTMLElement | null = this.get(id);
 
     if (!item) {
       return;
@@ -136,7 +136,7 @@ export class StatusbarService implements Service {
    */
   public add(options?: StatusBarItemCreate): HTMLElement {
     const id: string = options?.id || STATUSBAR_ITEM_ID;
-    const exists: HTMLElement = this.items.get(id);
+    const exists: HTMLElement | undefined = this.items.get(id);
 
     if (exists) {
       return exists;
@@ -151,9 +151,11 @@ export class StatusbarService implements Service {
     }
 
     if (options?.onClick) {
+      const onClick: NonNullable<StatusBarItemCreate['onClick']> = options.onClick;
+
       item.onClickEvent(
         function(this: HTMLElement, event: MouseEvent): void {
-          options.onClick(this, event);
+          onClick(this, event);
         },
         options.onClickOptions || false
       );

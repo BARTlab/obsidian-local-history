@@ -7,7 +7,7 @@ import { GutterRemovedExtension } from '@/extensions/gutter-removed.extension';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ClassConstructor, EditorExtension, GutterConfig, Service } from '@/types';
 import type { Extension } from '@codemirror/state';
-import { Decoration, type DecorationSet, type EditorView, gutter, type PluginSpec, ViewPlugin } from '@codemirror/view';
+import { Decoration, type DecorationSet, type EditorView, gutter, type PluginSpec, type PluginValue, ViewPlugin } from '@codemirror/view';
 
 /**
  * Service responsible for registering and managing editor extensions.
@@ -22,7 +22,7 @@ export class ExtensionsService implements Service {
    * Map of extension names to their instances.
    * Used to track registered extensions and prevent duplicates.
    */
-  protected instances: Map<string, Extension | ViewPlugin<unknown>> = new Map();
+  protected instances: Map<string, Extension | ViewPlugin<PluginValue>> = new Map();
 
   /**
    * Creates a new instance of ExtensionsService.

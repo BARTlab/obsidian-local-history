@@ -75,7 +75,7 @@ export class ObservableMap<K, V> extends Map<K, V> {
    */
   public override set(key: K, value: V, force?: boolean): this {
     const hadKey: boolean = this.has(key);
-    const prev: V = this.get(key);
+    const prev: V | undefined = this.get(key);
 
     super.set(key, value);
 

@@ -50,17 +50,17 @@ export class TrackerLine {
    * Hash of the line content
    * Used for efficient content comparison
    */
-  public hash: string = null;
+  public hash: string | null = null;
 
   /**
    * Original content of the line (for development use only)
    */
-  public original: string = null;
+  public original: string | null = null;
 
   /**
    * Current content of the line (for development use only)
    */
-  public current: string = null;
+  public current: string | null = null;
 
   /**
    * Timestamp when the line was removed
@@ -174,7 +174,7 @@ export class TrackerLine {
     }
 
     if (contentSameOriginal === true) {
-      this.original = content;
+      this.original = content ?? null;
       this.contentSameOriginal = this.existedInOriginal && this.contentHashed;
     }
   }

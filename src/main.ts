@@ -468,7 +468,8 @@ export default class LineChangeTrackerPlugin extends Plugin {
     return new Set(
       this.app.workspace
         .getLeavesOfType('markdown')
-        .map((leaf: WorkspaceLeaf) => (leaf.view as MarkdownView)?.file)
+        .map((leaf: WorkspaceLeaf): TFile | null => (leaf.view as MarkdownView)?.file)
+        .filter((file: TFile | null): file is TFile => file !== null)
     );
   }
 }

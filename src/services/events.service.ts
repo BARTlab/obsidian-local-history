@@ -21,14 +21,15 @@ import type { ClassConstructor, Service } from '@/types';
  */
 export class EventsService implements Service {
   /**
-   * Map of event class names to their instances.
-   * Used to track registered events and prevent duplicates by constructor
-   * identity. Keying by class name matches the pattern in
-   * {@link CommandsService} / {@link ExtensionsService} - the previous
-   * `Set<BaseEvent>` keyed by instance identity never fired because
-   * {@link factory} always returns a fresh instance (ADR-08 T20).
+   * Map of event constructors to their instances.
+   * Keyed by constructor reference (not `.name`) so the guard is
+   * minification-safe. A name-string key would break if bundler
+   * minification is ever enabled (different classes could collapse to the
+   * same mangled name). The previous `Set<BaseEvent>` keyed by instance
+   * identity never fired because {@link factory} always returns a fresh
+   * instance (ADR-08 T20).
    */
-  protected instances: Map<string, BaseEvent> = new Map();
+  protected instances: Map<ClassConstructor<BaseEvent>, BaseEvent> = new Map();
 
   /**
    * Creates a new instance of EventsService.
@@ -90,13 +91,13 @@ export class EventsService implements Service {
    * @param {ClassConstructor<T>} ClsCConstructor - The event class constructor
    */
   protected register<T extends BaseEvent>(ClsCConstructor: ClassConstructor<T>): void {
-    if (this.instances.has(ClsCConstructor.name)) {
+    if (this.instances.has(ClsCConstructor)) {
       return;
     }
 
     const event: BaseEvent = this.factory<T>(ClsCConstructor);
 
-    this.instances.set(ClsCConstructor.name, event);
+    this.instances.set(ClsCConstructor, event);
     this.plugin.registerEvent(event.register());
   }
 

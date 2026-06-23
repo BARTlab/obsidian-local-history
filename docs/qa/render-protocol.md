@@ -628,3 +628,326 @@ scenario.
   the plugin is disabled; disabling throws; or a console error is thrown.
 
 Last verified: 2026-06-05 on Obsidian 1.12.7, plugin commit 2451e57.
+
+## Block-type render matrix
+
+This section is a systematic sweep over every block type Obsidian can render,
+crossed with both editor modes, both indicator families, and every representable
+change kind. It was added after three block-specific render fixes landed
+independently (tables, properties panel, quotes) to prevent further one-off
+discoveries before the 1.1.0 release.
+
+### How to read this matrix
+
+The matrix is a checklist for a human executing the protocol in a real Obsidian
+window. Each row is one (block type, mode, indicator, change kind) combination.
+Before running, set the indicator type in the plugin settings (dot or line) and
+enable all change kinds (added, changed, removed, restored) so every cell is
+observable. Where a cell is structurally impossible, the cell says `N/A` and the
+reason is given in parentheses.
+
+Indicator families:
+
+- **dot** - the dot gutter marker rendered by `GutterCommonExtension` (Live
+  Preview, source mode) and the `lct-rm-indicator` block badge rendered by
+  `ReadingModeIndicatorService` (reading mode).
+- **bar** - the `::before` left-margin bar on `.cm-line.lct-line` elements
+  rendered by `EditorCommonExtension` (plain source lines in Live Preview), and
+  the geometry bar drawn by `ChangeLayerExtension` (block widgets in Live
+  Preview). Reading mode has no bar: the block badge is the only indicator.
+
+Change kinds per mode:
+
+- **Live Preview**: added, changed, removed, restored all representable.
+  `removed` is dot-only (gutter marker after a deleted run); the bar never
+  shows a removed indicator because `ChangeLayerExtension` drops the removed
+  type when building class names.
+- **Reading mode**: added, changed, restored only. Removed lines have no HTML
+  block in reading mode, so the `removed` cell is always `N/A` there.
+
+### Preconditions
+
+1. Build and reload the plugin (`npm run build`, reload vault).
+2. Open the plugin settings. Set indicator type to **dot** first, then re-run
+   the matrix with **line** to cover both bar columns.
+3. Enable all four change kinds: added, changed, removed, restored.
+4. Enable the **reading-mode indicator** toggle.
+5. For each block-type row, create a note whose content is ONLY that block type
+   (or a clearly isolated section). Make a baseline capture (let the save
+   debounce fire). Then edit the source lines of that block to produce the
+   change kind under test before switching to the target mode.
+6. For reading mode cells, switch to reading mode with `Ctrl+E` after the edit
+   and observe the block-level badge (`lct-rm-indicator` class, colored left
+   border on the rendered block).
+7. For Live Preview cells, stay in Live Preview and observe the gutter dot or
+   margin bar beside the rendered block.
+8. Record each cell as `pass`, `fail`, or `N/A`. A fail must include a one-line
+   symptom. Every failing cell must be added to the epic's `FINDINGS.md` in the
+   format: `src/<file or ext>: <symptom>`.
+
+### Matrix
+
+This matrix has not yet been executed in a live Obsidian instance. All cells
+are `pending` until the owner runs the protocol and records results. The matrix
+structure (which cells are N/A and why) is derived from the source code and is
+authoritative; the pass/fail values require a live vault.
+
+**Legend:** `pending` = not yet run | `pass` | `fail: <symptom>` | `N/A (<reason>)`
+
+#### Paragraph
+
+| Change kind | LP dot | LP bar | RM indicator |
+|-------------|--------|--------|--------------|
+| added       | pending | pending | pending |
+| changed     | pending | pending | pending |
+| removed     | pending | pending | N/A (no HTML block for removed lines in reading mode) |
+| restored    | pending | pending | pending |
+
+Notes: Plain `.cm-line` in Live Preview; `EditorCommonExtension` decorates the
+line class, `GutterCommonExtension` dots the gutter. In reading mode
+`getSectionInfo()` returns the paragraph's line range and
+`ReadingModeIndicatorService` decorates the `<p>` element.
+
+#### Heading (H1-H6)
+
+| Change kind | LP dot | LP bar | RM indicator |
+|-------------|--------|--------|--------------|
+| added       | pending | pending | pending |
+| changed     | pending | pending | pending |
+| removed     | pending | pending | N/A (no HTML block for removed lines in reading mode) |
+| restored    | pending | pending | pending |
+
+Notes: In Live Preview headings render as `.HyperMD-header` plain `.cm-line`
+elements (the source line is always visible regardless of cursor position); same
+decoration path as paragraph. In reading mode the `<h1>`-`<h6>` element is the
+decorated block.
+
+#### Bullet list (flat and nested)
+
+| Change kind | LP dot | LP bar | RM indicator |
+|-------------|--------|--------|--------------|
+| added       | pending | pending | pending |
+| changed     | pending | pending | pending |
+| removed     | pending | pending | N/A (no HTML block for removed lines in reading mode) |
+| restored    | pending | pending | pending |
+
+Notes: In Live Preview bullet list items are plain `.cm-line` elements (no
+replace decoration for individual items). In reading mode the whole list is one
+`<ul>` block; `getSectionInfo()` spans all list lines. Test both a flat item
+and a nested sub-item to confirm the line-range mapping covers nested levels.
+
+#### Numbered list (flat and nested)
+
+| Change kind | LP dot | LP bar | RM indicator |
+|-------------|--------|--------|--------------|
+| added       | pending | pending | pending |
+| changed     | pending | pending | pending |
+| removed     | pending | pending | N/A (no HTML block for removed lines in reading mode) |
+| restored    | pending | pending | pending |
+
+Notes: Same rendering path as bullet list in Live Preview. In reading mode the
+whole list is one `<ol>` block.
+
+#### Quote block
+
+| Change kind | LP dot | LP bar | RM indicator |
+|-------------|--------|--------|--------------|
+| added       | pending | pending | pending |
+| changed     | pending | pending | pending |
+| removed     | pending | pending | N/A (no HTML block for removed lines in reading mode) |
+| restored    | pending | pending | pending |
+
+Notes: Quote lines are `.HyperMD-quote-N` plain `.cm-line` elements in Live
+Preview (no replace decoration). T23 fixed `overflow: hidden` clipping the
+`::before` bar (added `overflow: visible` on `.cm-line.lct-line`). The dot
+path iterates all doc lines and is unaffected by quote nesting. In reading mode
+the `<blockquote>` element is the decorated block. Test with a single-line
+quote and a multi-line quote to confirm both dot and bar.
+
+#### Callout (collapsed)
+
+| Change kind | LP dot | LP bar | RM indicator |
+|-------------|--------|--------|--------------|
+| added       | pending | pending | pending |
+| changed     | pending | pending | pending |
+| removed     | N/A (collapsed widget hides source lines; the removed-line gutter marker sits at the first line after the widget, outside it) | N/A (ChangeLayerExtension paints a block bar but the removed type carries no color in the layer classNamesFor()) | N/A (no HTML block for removed lines in reading mode) |
+| restored    | pending | pending | pending |
+
+Notes: A collapsed callout in Live Preview is a replace-decoration block
+widget. `GutterCommonExtension` iterates all doc lines so the dot should appear
+at the gutter position beside the collapsed widget. `ChangeLayerExtension`
+should paint a bar over the collapsed widget's geometry. In reading mode the
+callout renders as a `.callout` element; when collapsed the body is hidden but
+the header element is still present as the decorated block. Test: collapse the
+callout, edit a source line inside its body, check for dot/bar on the collapsed
+widget; then expand and re-check.
+
+#### Callout (expanded)
+
+| Change kind | LP dot | LP bar | RM indicator |
+|-------------|--------|--------|--------------|
+| added       | pending | pending | pending |
+| changed     | pending | pending | pending |
+| removed     | pending | pending | N/A (no HTML block for removed lines in reading mode) |
+| restored    | pending | pending | pending |
+
+Notes: An expanded callout in Live Preview may expose its inner `.cm-line`
+elements (when the cursor is inside the callout body) or keep them as a block
+widget (when the cursor is outside). Test with the cursor both inside and
+outside the callout body. In reading mode the `.callout` element is the
+decorated block.
+
+#### Table
+
+| Change kind | LP dot | LP bar (per-row) | RM indicator |
+|-------------|--------|-----------------|--------------|
+| added       | pending | pending | pending |
+| changed     | pending | pending | pending |
+| removed     | N/A (table widget replaces source lines; the removed-line marker sits at the first current line after the widget) | N/A (ChangeLayerExtension paints a block bar but the removed type carries no color in the layer) | N/A (no HTML block for removed lines in reading mode) |
+| restored    | pending | pending | pending |
+
+Notes: In Live Preview a table is a replace-decoration widget
+(`.cm-table-widget`). `ChangeLayerExtension.tableRowRects()` matches each
+changed source row to its rendered `<tr>` bounding rect, painting one bar per
+changed row. Verify that only the changed row's bar lights, not the whole table
+block. `GutterCommonExtension` iterates doc lines so the dot should appear
+at the gutter line of the table widget. In reading mode the `<table>` element
+is the decorated block. Test with a changed header row, a changed data row, and
+two changed rows simultaneously (only the changed rows' bars should light).
+
+#### Fenced code block
+
+| Change kind | LP dot | LP bar | RM indicator |
+|-------------|--------|--------|--------------|
+| added       | pending | pending | pending |
+| changed     | pending | pending | pending |
+| removed     | pending | pending | N/A (no HTML block for removed lines in reading mode) |
+| restored    | pending | pending | pending |
+
+Notes: In Live Preview a fenced code block renders as a replace-decoration
+widget when the cursor is outside it, and as visible source `.cm-line` elements
+when the cursor is inside it. Test with cursor outside (widget path via
+`ChangeLayerExtension`) and cursor inside (plain line path via
+`EditorCommonExtension`). The dot should appear in either case. In reading mode
+the `<pre><code>` element is the decorated block.
+
+#### Math block
+
+| Change kind | LP dot | LP bar | RM indicator |
+|-------------|--------|--------|--------------|
+| added       | pending | pending | pending |
+| changed     | pending | pending | pending |
+| removed     | N/A (math widget replaces source; the removed-line marker sits at the first current line after the widget) | N/A (ChangeLayerExtension paints a block bar but the removed type carries no color in the layer) | N/A (no HTML block for removed lines in reading mode) |
+| restored    | pending | pending | pending |
+
+Notes: Math blocks (`$$...$$`) render as replace-decoration widgets in Live
+Preview. `ChangeLayerExtension` should paint a bar over the whole widget block.
+`GutterCommonExtension` should dot the gutter line at the widget position. In
+reading mode the rendered math element (MathJax container) is the decorated
+block. Verify that `getSectionInfo()` returns a non-null range for the math
+block; if null, the RM cells are N/A by the same rule as embeds.
+
+#### Embed / transclusion
+
+| Change kind | LP dot | LP bar | RM indicator |
+|-------------|--------|--------|--------------|
+| added       | pending | pending | N/A (getSectionInfo() returns null for embed blocks in reading mode per ReadingModeIndicatorService source comment; processor returns early) |
+| changed     | pending | pending | N/A (same) |
+| removed     | pending | pending | N/A (no HTML block for removed lines in reading mode; getSectionInfo() also null) |
+| restored    | pending | pending | N/A (same as added) |
+
+Notes: Embed lines (`![[Note]]`) are replace-decoration block widgets in Live
+Preview. `ChangeLayerExtension` should detect the hidden source position and
+paint a bar over the embed widget. `GutterCommonExtension` iterates all doc
+lines so the dot should appear at the gutter line of the embed. In reading mode
+the `ReadingModeIndicatorService` source comment explicitly notes that
+`getSectionInfo()` returns null for synthetic blocks such as embeds; all RM
+cells are N/A by design (not a bug to fix).
+
+#### Image
+
+| Change kind | LP dot | LP bar | RM indicator |
+|-------------|--------|--------|--------------|
+| added       | pending | pending | pending |
+| changed     | pending | pending | pending |
+| removed     | N/A (image widget replaces source; the removed-line marker sits at the first current line after the widget) | N/A (ChangeLayerExtension paints a block bar but the removed type carries no color in the layer) | N/A (no HTML block for removed lines in reading mode) |
+| restored    | pending | pending | pending |
+
+Notes: An inline image reference (`![[image.png]]` or `![alt](url)`) renders as
+a replace-decoration widget in Live Preview. Expected behavior mirrors embed:
+`ChangeLayerExtension` bar over the widget, dot from `GutterCommonExtension`. In
+reading mode the `<img>` element (inside a `<p>` wrapper) is the decorated block.
+Verify that `getSectionInfo()` returns a non-null range (images are not synthetic
+in the same way embeds are). If null, mark RM cells N/A with that reason.
+
+#### Frontmatter / properties panel
+
+| Change kind | LP dot | LP bar | RM indicator |
+|-------------|--------|--------|--------------|
+| added       | pending | pending | N/A (the properties panel is not a markdown block; getSectionInfo() is expected to return null) |
+| changed     | pending | pending | N/A (same) |
+| removed     | N/A (frontmatter is a block widget; the removed-line marker sits at the first line after the frontmatter block) | N/A (ChangeLayerExtension paints a block bar but the removed type carries no color in the layer) | N/A (no HTML block for removed lines in reading mode) |
+| restored    | pending | pending | N/A (same as added) |
+
+Notes: Frontmatter in Live Preview is rendered by Obsidian's properties panel
+as a replace-decoration block widget. `ChangeLayerExtension` is expected to
+paint a bar over it when a frontmatter line is changed. Whether
+`GutterCommonExtension` dots the gutter at frontmatter lines depends on whether
+Obsidian exposes those lines in the doc (frontmatter lines are part of the
+document in CodeMirror even when the widget replaces them visually). In reading
+mode the properties panel is rendered outside the markdown content tree and
+`getSectionInfo()` is expected to return null; all RM cells are N/A by design.
+Confirm the LP dot assumption in the live run; if frontmatter lines are not
+in the doc, record both dot and bar as N/A with that reason.
+
+#### Horizontal rule
+
+| Change kind | LP dot | LP bar | RM indicator |
+|-------------|--------|--------|--------------|
+| added       | pending | pending | pending |
+| changed     | N/A (a horizontal rule is a single-character constant line; editing it to something else destroys the HR itself and the line is no longer a rule) | N/A (same) | N/A (same) |
+| removed     | pending | pending | N/A (no HTML block for removed lines in reading mode) |
+| restored    | pending | pending | pending |
+
+Notes: A horizontal rule (`---` on its own line) renders as a replace-decoration
+widget in Live Preview when the cursor is not on the line. The dot path iterates
+all doc lines; a dot should appear at the gutter line of the HR widget.
+`ChangeLayerExtension` should paint a bar over the widget geometry. In reading
+mode the `<hr>` element is the decorated block.
+
+#### Footnote definition
+
+| Change kind | LP dot | LP bar | RM indicator |
+|-------------|--------|--------|--------------|
+| added       | pending | pending | pending |
+| changed     | pending | pending | pending |
+| removed     | pending | pending | N/A (no HTML block for removed lines in reading mode) |
+| restored    | pending | pending | pending |
+
+Notes: Footnote definitions (`[^1]: text`) are plain `.cm-line` elements in
+Live Preview (not replace decorations); same path as paragraph. In reading mode
+footnotes render at the bottom of the document inside a `<section
+class="footnotes">` or similar element. Verify that `getSectionInfo()` returns
+a non-null range for the footnote definition block. Test by editing the
+definition line (not the inline `[^1]` reference).
+
+### Execution record
+
+Owner must fill in this section after running the matrix in a real Obsidian
+vault. Record the Obsidian version, plugin commit, and date. For each failing
+cell copy the one-line symptom from the matrix table and add a line to the
+epic's `FINDINGS.md`.
+
+```
+Date: PENDING
+Obsidian version: PENDING
+Plugin commit: PENDING
+Indicator type (dot pass): PENDING
+Indicator type (bar pass): PENDING
+Failing cells: PENDING
+  (list each as "<block type> / <mode> / <indicator> / <change kind>: <symptom>")
+```
+
+All cells above are `pending`. The matrix structure and N/A reasoning are
+derived from the source code and are author-time deliverables; the pass/fail
+values require the owner to run the protocol manually in a live Obsidian vault.

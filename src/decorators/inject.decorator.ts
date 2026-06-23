@@ -25,7 +25,7 @@ import type { ClassConstructor, Service } from '@/types';
  * }
  * ```
  */
-export const Inject = <T>(
+export const Inject = <T extends {}>(
   cls: ServiceToken<T> | ClassConstructor<T>
 ): PropertyDecorator => {
   return (

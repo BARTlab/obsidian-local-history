@@ -88,6 +88,9 @@ export class TrackerEditor {
 
           break;
       }
+
+      // Non-comparable or mixed-type pairs keep their relative order.
+      return 0;
     });
 
     return ArrayMap.make(list, keyBy);
@@ -292,11 +295,12 @@ export class TrackerEditor {
   ): TrackerLine | null {
     const found: TrackerLine | null = line instanceof TrackerLine ? line : this.index.findCurrentLine(tracker, line);
     const index: number = line instanceof TrackerLine ? line.currentPosition : line;
-    const existedInOriginal: boolean = found?.existedInOriginal;
 
     if (!found) {
       return null;
     }
+
+    const existedInOriginal: boolean = found.existedInOriginal;
 
     if (shift) {
       this.shiftDown(tracker, index + 1);

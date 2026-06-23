@@ -42,7 +42,7 @@ export abstract class BaseEvent implements EventRef {
    * @throws Error if the trigger type is unknown
    */
   public getTrigger(type: string): EventTriggerElement {
-    const trigger: Workspace | Vault = {
+    const trigger: Workspace | Vault | undefined = {
       workspace: this.plugin.app.workspace,
       vault: this.plugin.app.vault,
     }[type];

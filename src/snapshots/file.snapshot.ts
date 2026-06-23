@@ -84,7 +84,7 @@ export class FileSnapshot {
    * Hash of the last known state of the file.
    * Used to determine if the file has changed since the last update.
    */
-  public lastHash: string = null;
+  public lastHash: string | null = null;
 
   /**
    * Current content of the file as an array of lines.
@@ -278,7 +278,7 @@ export class FileSnapshot {
     snapshot.path = isString(data.path) ? data.path : snapshot.path;
     snapshot.timestamp = isNumber(data.timestamp) ? data.timestamp : Date.now();
     snapshot.tracker = tracker.map((line): TrackerLine => TrackerLine.fromJSON(line));
-    snapshot.versions = VersionCodec.decode(data.versions, lineBreak);
+    snapshot.versions = VersionCodec.decode(data.versions ?? [], lineBreak);
 
     /**
      * T15: seed the timeline's time-gate counter from the newest restored

@@ -91,7 +91,7 @@ export class ModalsService implements Service {
    * @return {boolean} True if the modal was opened successfully, false if no snapshot exists
    */
   public diff(file?: TFile | null, options?: HistoryModalOpenOptions): boolean {
-    const snapshot: FileSnapshot = this.snapshotsService.getOne(file);
+    const snapshot: FileSnapshot | null = this.snapshotsService.getOne(file);
 
     if (!snapshot) {
       return false;
@@ -119,7 +119,7 @@ export class ModalsService implements Service {
    * @return {boolean} True if the modal was opened, false if no snapshot exists
    */
   public diffForSelection(file?: TFile | null, selection?: string | null): boolean {
-    const snapshot: FileSnapshot = this.snapshotsService.getOne(file);
+    const snapshot: FileSnapshot | null = this.snapshotsService.getOne(file);
 
     if (!snapshot) {
       return false;

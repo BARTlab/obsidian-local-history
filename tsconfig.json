@@ -6,6 +6,7 @@
     "target": "ES6",
     "allowJs": true,
     "strict": false,
+    "strictNullChecks": true,
     "noImplicitAny": true,
     "moduleResolution": "bundler",
     "resolveJsonModule": true,

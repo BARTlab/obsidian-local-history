@@ -150,7 +150,7 @@ export class ChangeLayerExtension {
       }
 
       const block: BlockInfo = view.lineBlockAt(line.from);
-      let group: BlockGroup = blocks.get(block.from);
+      let group: BlockGroup | undefined = blocks.get(block.from);
 
       if (!group) {
         group = { block, rows: new Map<number, Set<ChangeType>>() };
@@ -160,7 +160,7 @@ export class ChangeLayerExtension {
 
       const startLine: number = view.state.doc.lineAt(block.from).number;
       const offset: number = lineNumber - startLine;
-      let types: Set<ChangeType> = group.rows.get(offset);
+      let types: Set<ChangeType> | undefined = group.rows.get(offset);
 
       if (!types) {
         types = new Set<ChangeType>();
@@ -176,7 +176,8 @@ export class ChangeLayerExtension {
     const markers: RectangleMarker[] = [];
 
     for (const from of order) {
-      this.markersForBlock(view, blocks.get(from), left, markers);
+      // from is always in blocks: it was pushed to order only via blocks.set().
+      this.markersForBlock(view, blocks.get(from)!, left, markers);
     }
 
     return markers;

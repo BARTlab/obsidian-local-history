@@ -112,14 +112,21 @@ export class EditorCommonExtension extends BaseExtension implements EditorExtens
     const builder = new RangeSetBuilder<Decoration>();
     const enable: ChangeType[] = this.getEnableTypes();
     const snapshot: FileSnapshot | null = this.snapshotsService.getOne();
-    const changes: ArrayMap<ChangeLine> = snapshot?.getChanges(enable);
+
+    if (!snapshot || !this.view) {
+      this.decorations = builder.finish();
+
+      return this.decorations;
+    }
+
+    const changes: ArrayMap<ChangeLine> = snapshot.getChanges(enable);
 
     for (const { from, to } of this.view.visibleRanges) {
       let pos: number = from;
 
       while (pos <= to) {
         const line: Line = this.view.state.doc.lineAt(pos);
-        const change: ChangeLine = changes?.get(line.number - 1) ?? null;
+        const change: ChangeLine | undefined = changes.get(line.number - 1);
 
         if (change) {
           const classNames: string[] = ['lct', `lct-${IndicatorType.line}`];

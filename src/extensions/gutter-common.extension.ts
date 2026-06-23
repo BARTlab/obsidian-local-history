@@ -93,11 +93,19 @@ export class GutterCommonExtension extends BaseExtension implements GutterConfig
 
     for (let i: number = 0; i <= view.state.doc.lines - 1; i++) {
       const line: Line = view.state.doc.line(i + 1);
-      const change: ChangeLine = changes.get(i);
+      const change: ChangeLine | undefined = changes.get(i);
 
       if (change) {
+        // getModify() is non-null when a positive change type is present;
+        // the dot marker is only added for lines with a modify type.
+        const modify: ChangeType | null = change.getModify();
+
+        if (modify === null) {
+          continue;
+        }
+
         builder.add(line.from, line.from, new DotMarker(
-          change.getModify(),
+          modify,
           this.plugin,
           i,
           (target: number): void => {

@@ -59,7 +59,7 @@ export class ChangeDetectorExtension extends BaseExtension implements EditorExte
    */
   protected processIncrementalChanges(update: ViewUpdate): void {
     const currentContent: string = update.state.doc.toString();
-    const snapshot: FileSnapshot = this.snapshotsService.getOne();
+    const snapshot: FileSnapshot | null = this.snapshotsService.getOne();
 
     if (!snapshot || !currentContent) {
       return;
@@ -98,8 +98,12 @@ export class ChangeDetectorExtension extends BaseExtension implements EditorExte
      * convention string that misses mixed or unexpected line endings.
      */
     const currentLines: string[] = state.doc.toString().split(/\r?\n/);
-    const snapshot: FileSnapshot = this.snapshotsService.getOne();
+    const snapshot: FileSnapshot | null = this.snapshotsService.getOne();
     const prev: Text = update.startState.doc;
+
+    if (!snapshot) {
+      return;
+    }
 
     update.changes.iterChanges((fromA: number, toA: number, fromB: number, toB: number): void => {
       /**

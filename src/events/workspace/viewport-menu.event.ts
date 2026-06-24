@@ -26,7 +26,7 @@ export class WorkspaceViewportMenuEvent extends BaseEvent {
    * Injected using the @Inject decorator.
    */
   @Inject(TOKENS.settings)
-  protected settingsService: SettingsService;
+  protected settingsService!: SettingsService;
 
   /**
    * The name of the Obsidian event to handle.

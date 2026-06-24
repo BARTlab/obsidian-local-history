@@ -41,7 +41,7 @@ export class WorkspaceFilesMenuEvent extends BaseEvent {
    * Injected using the @Inject decorator.
    */
   @Inject(TOKENS.modals)
-  protected modalService: ModalsService;
+  protected modalService!: ModalsService;
 
   /**
    * The name of the Obsidian event to handle.

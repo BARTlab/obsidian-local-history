@@ -63,16 +63,21 @@ export type RevertLine = (line: number) => void;
 
 /**
  * Type definition for abstract class constructors.
+ * The argument list is intentionally `any[]`: under `strictFunctionTypes`
+ * constructor parameters are checked contravariantly, so a marker type used
+ * purely to identify a class (DI token resolution, registry keys) must accept
+ * any concrete constructor signature regardless of its real parameters.
  * @template T - The type that the constructor creates (defaults to empty object)
  */
-export type AbstractConstructor<T = {}> = abstract new (...args: unknown[]) => T;
+export type AbstractConstructor<T = {}> = abstract new (...args: any[]) => T;
 
 /**
  * Type definition for concrete class constructors.
+ * See {@link AbstractConstructor} for why the argument list is `any[]`.
  * @template T - The type that the constructor creates (defaults to empty object)
  */
 export type ClassConstructor<T = {}> = {
-  new(...args: unknown[]): T;
+  new(...args: any[]): T;
 };
 
 /**

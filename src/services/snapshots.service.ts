@@ -26,7 +26,7 @@ export class SnapshotsService implements Service {
    * Injected using the @Inject decorator.
    */
   @Inject(TOKENS.settings)
-  protected settingsService: SettingsService;
+  protected settingsService!: SettingsService;
 
   /**
    * Map of file paths to their corresponding snapshots.

@@ -24,7 +24,7 @@ export class ShowDiffCommand extends BaseCommand implements Command {
    * Injected using the @Inject decorator.
    */
   @Inject(TOKENS.modals)
-  protected modalService: ModalsService;
+  protected modalService!: ModalsService;
 
   /**
    * Unique identifier for this command.

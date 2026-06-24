@@ -46,7 +46,7 @@ export class TreeTabDecoratorService implements Service {
    * session status is derived from.
    */
   @Inject(TOKENS.snapshots)
-  protected snapshotsService: SnapshotsService;
+  protected snapshotsService!: SnapshotsService;
 
   /**
    * Service for reading the plugin settings, used to gate the whole decorator
@@ -54,7 +54,7 @@ export class TreeTabDecoratorService implements Service {
    * paints nothing further, on re-applies the current statuses live.
    */
   @Inject(TOKENS.settings)
-  protected settingsService: SettingsService;
+  protected settingsService!: SettingsService;
 
   /**
    * Debounce window (ms) for a tree sweep. A burst of `snapshotsUpdate` events

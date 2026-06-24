@@ -22,14 +22,14 @@ export class ChangeDetectorExtension extends BaseExtension implements EditorExte
    * Injected using the @Inject decorator.
    */
   @Inject(TOKENS.snapshots)
-  protected snapshotsService: SnapshotsService;
+  protected snapshotsService!: SnapshotsService;
 
   /**
    * Service for reading the intermediate-snapshot cadence settings.
    * Injected using the @Inject decorator.
    */
   @Inject(TOKENS.settings)
-  protected settingsService: SettingsService;
+  protected settingsService!: SettingsService;
 
   /**
    * Set of decorations to be applied to the editor.

@@ -307,10 +307,10 @@ describe('WorkspaceLayoutChangeEvent', () => {
     service: {
       getList: jest.Mock;
       getIgnoreList: jest.Mock;
-      wipeOne: jest.Mock;
-      removeFromIgnoreList: jest.Mock;
-      getOne: jest.Mock;
-      capture: jest.Mock;
+      wipeOne: jest.Mock<(file: TFile) => void>;
+      removeFromIgnoreList: jest.Mock<(file: TFile) => void>;
+      getOne: jest.Mock<(file: TFile) => FileSnapshot | null>;
+      capture: jest.Mock<(file: TFile) => Promise<void>>;
     };
   } => {
     const calls: string[] = [];
@@ -331,18 +331,18 @@ describe('WorkspaceLayoutChangeEvent', () => {
 
         return [...params.ignored];
       }),
-      wipeOne: jest.fn().mockImplementation((file: TFile): void => {
+      wipeOne: jest.fn<(file: TFile) => void>().mockImplementation((file: TFile): void => {
         calls.push(`wipeOne:${file.path}`);
       }),
-      removeFromIgnoreList: jest.fn().mockImplementation((file: TFile): void => {
+      removeFromIgnoreList: jest.fn<(file: TFile) => void>().mockImplementation((file: TFile): void => {
         calls.push(`removeFromIgnoreList:${file.path}`);
       }),
-      getOne: jest.fn().mockImplementation((file: TFile): FileSnapshot | null => {
+      getOne: jest.fn<(file: TFile) => FileSnapshot | null>().mockImplementation((file: TFile): FileSnapshot | null => {
         calls.push(`getOne:${file.path}`);
 
         return tracked.has(file.path) ? ({} as FileSnapshot) : null;
       }),
-      capture: jest.fn().mockImplementation((file: TFile): Promise<void> => {
+      capture: jest.fn<(file: TFile) => Promise<void>>().mockImplementation((file: TFile): Promise<void> => {
         calls.push(`capture:${file.path}`);
 
         return Promise.resolve();

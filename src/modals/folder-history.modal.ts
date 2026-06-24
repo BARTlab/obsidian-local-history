@@ -59,19 +59,19 @@ export class FolderHistoryModal extends Modal {
    * Snapshots service used to restore tombstones and read the live map back.
    */
   @Inject(TOKENS.snapshots)
-  protected snapshotsService: SnapshotsService;
+  protected snapshotsService!: SnapshotsService;
 
   /**
    * Modals service used to confirm destructive actions and to prompt for labels.
    */
   @Inject(TOKENS.modals)
-  protected modalsService: ModalsService;
+  protected modalsService!: ModalsService;
 
   /**
    * Shared restore/remove/label action service, same one the file modal uses.
    */
   @Inject(TOKENS.versionActions)
-  protected versionActionsService: VersionActionsService;
+  protected versionActionsService!: VersionActionsService;
 
   /**
    * Vault-relative folder path the modal is opened against.

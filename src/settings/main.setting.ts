@@ -30,20 +30,23 @@ export class MainSetting extends PluginSettingTab {
    * Injected using the @Inject decorator.
    */
   @Inject(TOKENS.settings)
-  protected settingsService: SettingsService;
+  protected settingsService!: SettingsService;
 
   /**
    * Service for managing file snapshots.
    * Injected using the @Inject decorator.
    */
   @Inject(TOKENS.snapshots)
-  protected snapshotsService: SnapshotsService;
+  protected snapshotsService!: SnapshotsService;
 
   /**
    * The plugin instance.
    * Used to access plugin functionality.
+   * Declared (not assigned) here only to narrow the inherited
+   * `PluginSettingTab.plugin` field to the concrete plugin type; the base
+   * constructor assigns it at runtime.
    */
-  protected plugin: LineChangeTrackerPlugin;
+  protected declare plugin: LineChangeTrackerPlugin;
 
   /**
    * Renders the settings UI.
@@ -72,8 +75,8 @@ export class MainSetting extends PluginSettingTab {
           .addOption(IndicatorType.line, this.plugin.t('setting.type.option.line'))
           .addOption(IndicatorType.dot, this.plugin.t('setting.type.option.dot'))
           .setValue(this.settingsService.value('type'))
-          .onChange((value: IndicatorType): void => {
-            this.settingsService.update('type', value);
+          .onChange((value: string): void => {
+            this.settingsService.update('type', value as IndicatorType);
           })
       );
 
@@ -128,8 +131,8 @@ export class MainSetting extends PluginSettingTab {
           .addOption(KeepHistory.app, this.plugin.t('setting.keep.option.app'))
           .addOption(KeepHistory.file, this.plugin.t('setting.keep.option.file'))
           .setValue(this.settingsService.value('keep'))
-          .onChange((value: KeepHistory): void => {
-            this.settingsService.update('keep', value);
+          .onChange((value: string): void => {
+            this.settingsService.update('keep', value as KeepHistory);
           })
       );
 

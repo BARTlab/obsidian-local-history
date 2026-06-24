@@ -29,7 +29,7 @@ export class VersionActionsService implements Service {
    * the version list changes (forceUpdate after a remove).
    */
   @Inject(TOKENS.snapshots)
-  protected snapshotsService: SnapshotsService;
+  protected snapshotsService!: SnapshotsService;
 
   /**
    * Settings service the put-label path consults to pass the same retention
@@ -38,7 +38,7 @@ export class VersionActionsService implements Service {
    * do not apply because a labeled capture forces (D6).
    */
   @Inject(TOKENS.settings)
-  protected settingsService: SettingsService;
+  protected settingsService!: SettingsService;
 
   /**
    * Creates a new instance of VersionActionsService.

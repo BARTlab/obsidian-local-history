@@ -38,14 +38,14 @@ export class HistoryModal extends Modal {
    * Injected using the @Inject decorator.
    */
   @Inject(TOKENS.snapshots)
-  protected snapshotsService: SnapshotsService;
+  protected snapshotsService!: SnapshotsService;
 
   /**
    * Service for managing modal dialogs.
    * Injected using the @Inject decorator.
    */
   @Inject(TOKENS.modals)
-  protected modalsService: ModalsService;
+  protected modalsService!: ModalsService;
 
   /**
    * Shared owner of restore/remove/put-label actions on the version timeline.
@@ -53,7 +53,7 @@ export class HistoryModal extends Modal {
    * surface) executes the same implementation (D5).
    */
   @Inject(TOKENS.versionActions)
-  protected versionActionsService: VersionActionsService;
+  protected versionActionsService!: VersionActionsService;
 
   /**
    * Reference to the current diff container element.

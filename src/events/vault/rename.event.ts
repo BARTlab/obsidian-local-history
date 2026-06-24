@@ -22,7 +22,7 @@ export class VaultRenameEvent extends BaseEvent {
    * Injected using the @Inject decorator.
    */
   @Inject(TOKENS.snapshots)
-  protected snapshotsService: SnapshotsService;
+  protected snapshotsService!: SnapshotsService;
 
   /**
    * The name of the Obsidian event to handle.

@@ -18,7 +18,7 @@ export class ResetLinesCommand extends BaseCommand implements Command {
    * Injected using the @Inject decorator.
    */
   @Inject(TOKENS.snapshots)
-  protected snapshotsService: SnapshotsService;
+  protected snapshotsService!: SnapshotsService;
 
   /**
    * Unique identifier for this command.

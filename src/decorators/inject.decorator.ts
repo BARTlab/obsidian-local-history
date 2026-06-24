@@ -12,6 +12,13 @@ import type { ClassConstructor, Service } from '@/types';
  * `constructor.name`, so injection no longer depends on class names surviving
  * minification.
  *
+ * Strict-mode invariant: every `@Inject(...)` field is declared with the
+ * definite-assignment modifier (`field!: Type`). The decorator replaces the
+ * field with a getter that resolves the service from the container on access,
+ * so the field is always defined before any read even though no constructor or
+ * initializer assigns it. This invariant is stated here once and not repeated
+ * per field.
+ *
  * @template T - The type of service to inject
  * @param {ServiceToken<T> | ClassConstructor<T>} cls - The token or class
  *   constructor to inject

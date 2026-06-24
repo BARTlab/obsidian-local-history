@@ -28,14 +28,14 @@ export class VaultCreateEvent extends BaseEvent {
    * Injected using the @Inject decorator.
    */
   @Inject(TOKENS.settings)
-  protected settingsService: SettingsService;
+  protected settingsService!: SettingsService;
 
   /**
    * Service for managing file snapshots and ignore a list.
    * Injected using the @Inject decorator.
    */
   @Inject(TOKENS.snapshots)
-  protected snapshotsService: SnapshotsService;
+  protected snapshotsService!: SnapshotsService;
 
   /**
    * The name of the Obsidian event to handle.

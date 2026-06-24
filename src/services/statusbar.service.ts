@@ -22,14 +22,14 @@ export class StatusbarService implements Service {
    * Injected using the @Inject decorator.
    */
   @Inject(TOKENS.modals)
-  protected modalService: ModalsService;
+  protected modalService!: ModalsService;
 
   /**
    * Service for managing file snapshots.
    * Injected using the @Inject decorator.
    */
   @Inject(TOKENS.snapshots)
-  protected snapshotsService: SnapshotsService;
+  protected snapshotsService!: SnapshotsService;
 
   /**
    * Map of status bar item IDs to their corresponding HTML elements.

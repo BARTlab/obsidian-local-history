@@ -24,14 +24,14 @@ export class RemovedMarker extends GutterMarker {
    * Injected using the @Inject decorator.
    */
   @Inject(TOKENS.settings)
-  protected settingsService: SettingsService;
+  protected settingsService!: SettingsService;
 
   /**
    * Service for resolving localized strings.
    * Injected using the @Inject decorator.
    */
   @Inject(TOKENS.i18n)
-  protected i18nService: I18nService;
+  protected i18nService!: I18nService;
 
   /**
    * CSS class applied to the gutter marker element.

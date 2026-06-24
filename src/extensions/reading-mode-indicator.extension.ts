@@ -64,13 +64,13 @@ export class ReadingModeIndicatorService implements Service {
    * registration behind the `readingModeIndicator` toggle.
    */
   @Inject(TOKENS.settings)
-  protected settingsService: SettingsService;
+  protected settingsService!: SettingsService;
 
   /**
    * Service for reading file snapshots, from which the change map is sourced.
    */
   @Inject(TOKENS.snapshots)
-  protected snapshotsService: SnapshotsService;
+  protected snapshotsService!: SnapshotsService;
 
   /**
    * Reference to the currently registered post-processor function, or undefined

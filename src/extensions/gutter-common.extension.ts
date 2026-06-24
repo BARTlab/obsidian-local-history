@@ -31,21 +31,21 @@ export class GutterCommonExtension extends BaseExtension implements GutterConfig
    * Injected using the @Inject decorator.
    */
   @Inject(TOKENS.settings)
-  protected settingsService: SettingsService;
+  protected settingsService!: SettingsService;
 
   /**
    * Service for managing file snapshots.
    * Injected using the @Inject decorator.
    */
   @Inject(TOKENS.snapshots)
-  protected snapshotsService: SnapshotsService;
+  protected snapshotsService!: SnapshotsService;
 
   /**
    * Service for confirmation dialogs.
    * Injected using the @Inject decorator.
    */
   @Inject(TOKENS.modals)
-  protected modalsService: ModalsService;
+  protected modalsService!: ModalsService;
 
   /**
    * CSS class for the gutter element.

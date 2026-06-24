@@ -36,14 +36,14 @@ export class PropertyDecoratorService implements Service {
    * {@link TreeTabDecoratorService}).
    */
   @Inject(TOKENS.settings)
-  protected settingsService: SettingsService;
+  protected settingsService!: SettingsService;
 
   /**
    * Service for reading the current set of file snapshots, from which the
    * frontmatter baseline lines and the current state lines are sourced.
    */
   @Inject(TOKENS.snapshots)
-  protected snapshotsService: SnapshotsService;
+  protected snapshotsService!: SnapshotsService;
 
   /**
    * Debounce window (ms) for scheduling an apply sweep. Matches the value

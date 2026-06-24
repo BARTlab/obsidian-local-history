@@ -19,13 +19,14 @@ export class StylesService implements Service {
    * Injected using the @Inject decorator.
    */
   @Inject(TOKENS.settings)
-  protected settingsService: SettingsService;
+  protected settingsService!: SettingsService;
 
   /**
    * HTML style element that contains the CSS for line change indicators.
-   * Created during initialization and updated when settings change.
+   * Created during initialization (`init` -> `createStyleTag`) and updated when
+   * settings change; reads are guarded before that point.
    */
-  protected sheet: HTMLStyleElement;
+  protected sheet!: HTMLStyleElement;
 
   /**
    * Creates a new instance of StylesService.

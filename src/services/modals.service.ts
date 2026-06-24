@@ -32,7 +32,7 @@ export class ModalsService implements Service {
    * Injected using the @Inject decorator.
    */
   @Inject(TOKENS.snapshots)
-  protected snapshotsService: SnapshotsService;
+  protected snapshotsService!: SnapshotsService;
 
   /**
    * Service that owns version restore/remove/put-label actions (D5). Wired here
@@ -41,7 +41,7 @@ export class ModalsService implements Service {
    * snapshot lookup or the empty/cancel handling.
    */
   @Inject(TOKENS.versionActions)
-  protected versionActionsService: VersionActionsService;
+  protected versionActionsService!: VersionActionsService;
 
   /**
    * Creates a new instance of ModalsService.

@@ -42,7 +42,7 @@ const makeTombstone = (
 
 /**
  * Builds a snapshot whose live `file` is null but whose carried `path` mirrors
- * the canonical map key (epic 12): the state of a restored snapshot after a
+ * the canonical map key: the state of a restored snapshot after a
  * reload when `getFileByPath` did not resolve. Such a snapshot must still place
  * onto the folder timeline by its `path`, not be dropped by an empty `file.path`.
  */
@@ -130,7 +130,7 @@ describe('FolderTimelineHelper.synthesize - kinds emitted', () => {
   });
 });
 
-describe('FolderTimelineHelper.synthesize - path survives a null file (epic 12)', () => {
+describe('FolderTimelineHelper.synthesize - path survives a null file', () => {
   it('places a restored snapshot with file = null under its folder by its carried path', () => {
     // After a reload, a restored snapshot whose file did not resolve has
     // file = null but keeps its canonical map-key path. The timeline must use

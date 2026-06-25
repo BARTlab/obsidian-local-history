@@ -27,6 +27,13 @@
   "setting.exclude-paths.add": "Add pattern",
   "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
   "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.empty": "No excluded paths yet. Use the + button to add a pattern.",
+  "setting.exclude-paths.edit": "Edit pattern",
+  "setting.exclude-paths.save": "Save pattern",
+  "setting.exclude-paths.cancel": "Cancel",
+  "setting.exclude-paths.error": "The pattern must be a non-empty valid regular expression.",
+  "setting.general-heading": "General",
+  "setting.cleanup-heading": "History cleanup",
   "setting.keep.name": "Keep history until",
   "setting.keep.desc": "Strategy for cleaning up revision history",
   "setting.keep.option.app": "App close",
@@ -150,6 +157,7 @@
   "setting.purge-excluded.name": "Purge history for excluded paths",
   "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
   "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
+  "notice.purge-excluded.no-match": "Local history: no stored history matches the excluded paths.",
   "setting.reading-mode-indicator.name": "Show indicators in reading mode",
   "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
 }

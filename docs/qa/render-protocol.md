@@ -475,20 +475,20 @@ this run" is legible from the native surfaces, not only from inside the editor
 (gutter) or the plugin's modals. It owns no DOM: it adds and removes the shared
 status classes `lct-tree-added` and `lct-tree-modified` on rows Obsidian renders
 (`fileItems[path].selfEl`) and on the tab headers of open files
-(`leaf.tabHeaderEl`), and never re-renders the explorer (D2). Native surfaces
-carry only `added` and `modified`, never `lct-tree-deleted` (D5): a deleted file
+(`leaf.tabHeaderEl`), and never re-renders the explorer. Native surfaces
+carry only `added` and `modified`, never `lct-tree-deleted`: a deleted file
 has no row or tab to paint, so deletes stay in the diff modal. Session status is
-the same notion the gutter uses (D1): a file created this session resolves to
+the same notion the gutter uses: a file created this session resolves to
 `added`, a file whose marker baseline differs now
 (`getChangesLinesCount() > 0`) resolves to `modified`. The two colours come from
 the shared `--lct-status-*` palette: `added` is green (`--color-green`),
 `modified` is amber (`--text-warning`), so a tree row, a tab, and the modal tree
 can never disagree. Ancestor folders of any changed file are tinted the single
-`modified` (amber) token (D6). Applies are debounced (100 ms) and diff-based, so
+`modified` (amber) token. Applies are debounced (100 ms) and diff-based, so
 a burst of keystrokes collapses into one trailing sweep that touches only rows
-whose status changed (D7). A `MutationObserver` on the explorer container catches
-lazily-rendered rows from expand/collapse or drag (D7). The whole decorator is
-gated by the `setting.tree-highlight` toggle (default on, D9): off clears every
+whose status changed. A `MutationObserver` on the explorer container catches
+lazily-rendered rows from expand/collapse or drag. The whole decorator is
+gated by the `setting.tree-highlight` toggle (default on): off clears every
 applied class live and on re-applies without a reload.
 
 For these scenarios, in DevTools you can confirm a class on a row by inspecting
@@ -497,7 +497,7 @@ the `.nav-file-title` / `.nav-folder-title` element (the title node carries
 `.workspace-tab-header` element; this is the same DevTools inspection the other
 sections already rely on, no source instrumentation. "This session" means since
 the current Obsidian launch: a fresh reload resets the `added` flag (it is
-transient, not persisted, D4), so build the preconditions without reloading mid
+transient, not persisted), so build the preconditions without reloading mid
 scenario.
 
 ### Scenario N1 - Modified file row tints amber
@@ -541,8 +541,7 @@ scenario.
   look at every ancestor folder row up to, but not including, the vault root.
 - **Pass:** Each ancestor folder row of the changed file tints amber (each
   `.nav-folder-title` carries `lct-tree-modified`, the single `modified` token used
-  for folders regardless of whether the descendant change was an add or a modify,
-  D6). Reverting the file to baseline clears the folder tint once no descendant
+  for folders regardless of whether the descendant change was an add or a modify). Reverting the file to baseline clears the folder tint once no descendant
   still differs. Console stays clean.
 - **Fail:** No ancestor folder tints while a descendant file differs; a folder with
   no changed descendant wrongly tints; the vault-root row itself is tinted; the
@@ -559,7 +558,7 @@ scenario.
   `.workspace-tab-header` carries `lct-tree-modified` for an edit, or
   `lct-tree-added` for a file created this session), matching that file's row in
   the explorer. Reverting to baseline clears the tab tint. A second tab opened on
-  the same file tints the same way (tabs are tracked per leaf, D13). Console stays
+  the same file tints the same way (tabs are tracked per leaf). Console stays
   clean.
 - **Fail:** The tab header never tints while the open file differs from its
   baseline; the tab tint disagrees with the file's explorer row; the tint lingers
@@ -589,7 +588,7 @@ scenario.
   keystrokes), then stop.
 - **Pass:** The explorer row and the tab settle to amber and the typing stays
   smooth: the decorator does not repaint the tree on every keystroke (a single
-  trailing sweep runs about 100 ms after typing stops, D7). The editor shows no
+  trailing sweep runs about 100 ms after typing stops). The editor shows no
   per-keystroke stutter attributable to tree repainting. Console stays clean.
 - **Fail:** Typing visibly stutters in step with tree repaints; the row flickers on
   every keystroke; the row fails to reach amber after typing stops; or a console
@@ -682,7 +681,7 @@ Change kinds per mode:
 7. For Live Preview cells, stay in Live Preview and observe the gutter dot or
    margin bar beside the rendered block.
 8. Record each cell as `pass`, `fail`, or `N/A`. A fail must include a one-line
-   symptom. Every failing cell must be added to the epic's `FINDINGS.md` in the
+   symptom. Record every failing cell in the
    format: `src/<file or ext>: <symptom>`.
 
 ### Matrix
@@ -758,11 +757,18 @@ whole list is one `<ol>` block.
 | restored    | pending | pending | pending |
 
 Notes: Quote lines are `.HyperMD-quote-N` plain `.cm-line` elements in Live
-Preview (no replace decoration). T23 fixed `overflow: hidden` clipping the
-`::before` bar (added `overflow: visible` on `.cm-line.lct-line`). The dot
-path iterates all doc lines and is unaffected by quote nesting. In reading mode
-the `<blockquote>` element is the decorated block. Test with a single-line
-quote and a multi-line quote to confirm both dot and bar.
+Preview (no replace decoration). The dot path iterates all doc lines and is
+unaffected by quote nesting. In Live Preview bar mode a quote line draws NO
+plugin bar: Obsidian's own quote marker (`.HyperMD-quote:before`, painted with
+`--blockquote-border-color`) is recoloured to the change colour instead, so a
+changed quote shows a single tinted quote border rather than a double line.
+Source mode keeps the plugin bar (no quote marker exists there). In reading
+mode the section wrapper of the `<blockquote>` is the decorated block; the
+indicator border is likewise dropped and the quote's own border is recoloured
+via the same variable. Expected: quote border colour = change colour, no
+second vertical line in either surface. Test with a single-line quote, a
+multi-line quote, and a nested quote (all nested level borders take the
+change colour).
 
 #### Callout (collapsed)
 
@@ -935,8 +941,7 @@ definition line (not the inline `[^1]` reference).
 
 Owner must fill in this section after running the matrix in a real Obsidian
 vault. Record the Obsidian version, plugin commit, and date. For each failing
-cell copy the one-line symptom from the matrix table and add a line to the
-epic's `FINDINGS.md`.
+cell copy the one-line symptom from the matrix table and record it.
 
 ```
 Date: PENDING

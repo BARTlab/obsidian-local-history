@@ -68,7 +68,7 @@ export interface ExternalChangeHost {
  * burst of `vault.modify` events, the in-flight guard against concurrent
  * captures, the stat-based last-seen pre-check, and the disk-read + hash-compare
  * capture flow that lands a distinct external state as a flagged
- * {@link FileVersion} (D12/D13, ADR-08-D/E).
+ * {@link FileVersion}.
  *
  * It is instantiated and owned by the service (not a DI service), so the DI
  * container's `constructor.name` resolution and registration ordering are
@@ -89,7 +89,7 @@ export class ExternalChangeCapture {
   /**
    * Per-path debounce timers for `capture`. A new modify event for the same
    * path resets the timer; only the trailing call runs the disk read and
-   * capture (ADR-08-E).
+   * capture.
    */
   protected debounceTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
 
@@ -124,7 +124,7 @@ export class ExternalChangeCapture {
    * Public entry point for the vault.modify handler. Coalesces a burst of
    * modify events for the same path through a per-path debounce, then runs
    * `capture` once with an in-flight guard so an overlapping follow-up modify
-   * cannot double-capture the same disk state (ADR-08-E).
+   * cannot double-capture the same disk state.
    *
    * Bursts of writes (sync, git pull, an external save loop) for one file
    * collapse into a single trailing capture; events for different files run
@@ -156,10 +156,10 @@ export class ExternalChangeCapture {
 
   /**
    * Captures an external (off-editor) change to a tracked file as a flagged
-   * version on its timeline (D12/D13). Reads the file from disk, compares the
+   * version on its timeline. Reads the file from disk, compares the
    * actual content to the snapshot's known `state` via `isContentChanged`
    * (32-bit hash as a cheap pre-filter, line-by-line compare on a hash match
-   * so a collision cannot mask a real rewrite, ADR-08-D), and force-captures
+   * so a collision cannot mask a real rewrite), and force-captures
    * the new content as a `FileVersion` with `external = true` only when they
    * differ, then updates `state`/tracker/changes so further reads see the
    * captured content as the new baseline.
@@ -181,7 +181,7 @@ export class ExternalChangeCapture {
    * resurrection flow belongs to a future `vault.create` handler, not here.
    *
    * The capture is forced past the cadence gates so every distinct external
-   * state lands as its own version (D13), but it is NOT pinned: the resulting
+   * state lands as its own version, but it is NOT pinned: the resulting
    * version obeys the normal age/count retention exactly like a cadence one,
    * so a chatty sync workflow cannot bloat `history.json` with un-evictable
    * entries.
@@ -217,7 +217,7 @@ export class ExternalChangeCapture {
     }
 
     /**
-     * Stat pre-check (ADR-08-E): if mtime and size match the last-seen values
+     * Stat pre-check: if mtime and size match the last-seen values
      * for this path, nothing on disk could have changed since the previous
      * pass, so skip the disk read entirely. The very first pass (no entry)
      * always falls through to the read.
@@ -243,7 +243,7 @@ export class ExternalChangeCapture {
     }
 
     /**
-     * Content-equality guard (ADR-08-D): the 32-bit `lastHash` is only a cheap
+     * Content-equality guard: the 32-bit `lastHash` is only a cheap
      * pre-filter inside `isContentChanged`; on a hash match it falls through
      * to a line-by-line compare against the snapshot's known `state`, so a
      * collision cannot mask a genuine external rewrite as a no-op.
@@ -260,7 +260,7 @@ export class ExternalChangeCapture {
     if (captured) {
       /**
        * The version captures the NEW disk content as a discrete point on the
-       * timeline (D13: every distinct external state lands as its own version).
+       * timeline (every distinct external state lands as its own version).
        * Setting the flag after capture keeps file.snapshot.ts free of an
        * external-aware overload and still flows through the normal eviction
        * pipeline, so external versions remain evictable like cadence ones.

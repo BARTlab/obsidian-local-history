@@ -3,7 +3,7 @@ import type { PromptModalConfig } from '@/types';
 import { type App, Modal } from 'obsidian';
 
 /**
- * Single-input prompt modal for short free-text capture (D8).
+ * Single-input prompt modal for short free-text capture.
  *
  * Asks the user for one short string (for example a custom version label),
  * resolves to the entered text on confirm, and resolves to `null` on cancel
@@ -11,7 +11,7 @@ import { type App, Modal } from 'obsidian';
  * keyboard ergonomics match ConfirmModal: Enter inside the input confirms.
  *
  * The modal does not trim or otherwise post-process the entered value: the
- * caller is free to decide what counts as empty (T06 treats blank/whitespace as
+ * caller is free to decide what counts as empty (the label flow treats blank/whitespace as
  * a cancel), keeping this modal a thin reusable input layer.
  *
  * @extends {Modal}

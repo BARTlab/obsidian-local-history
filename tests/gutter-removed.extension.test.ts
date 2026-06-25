@@ -170,7 +170,7 @@ describe('GutterRemovedExtension markers - removed lines produce anchors', () =>
 
   beforeEach((): void => {
     // Use a doc where the lines of interest start at byte offset > 0 (line 2+)
-    // to avoid a CodeMirror RangeSet.iter() skip at position 0 (see D15).
+    // to avoid a CodeMirror RangeSet.iter() skip at position 0.
     snapshot = new FileSnapshot('a\nb\nc\nd');
   });
 

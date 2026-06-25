@@ -311,7 +311,7 @@ export class TrackerEditor {
       found.remove();
 
       /**
-       * Epic 13: keep every removed-line anchor on a real line. A block replaced
+       * Keep every removed-line anchor on a real line. A block replaced
        * by a different line count is processed as delete + insert, removing the
        * doomed originals AFTER the replacements are inserted; each insert advances
        * the removed anchors (shiftUpRemoved). When the replaced block sits at the
@@ -371,7 +371,7 @@ export class TrackerEditor {
   /**
    * Returns the highest current line position present in the document, or -1 when
    * no line currently exists. Used to clamp a removed-line anchor so it can never
-   * point past the last real line (epic 13).
+   * point past the last real line.
    *
    * @param {TrackerLine[]} tracker - The shared tracker array to scan
    * @return {number} The last current line index, or -1 when the document is empty

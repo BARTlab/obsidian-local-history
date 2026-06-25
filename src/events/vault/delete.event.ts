@@ -9,7 +9,7 @@ import { type TAbstractFile, TFile } from 'obsidian';
 /**
  * Event handler for Obsidian's vault delete event.
  * Turns the live snapshot into a tombstone via `SnapshotsService.markDeleted`
- * so the file's history survives the delete (epic 05 D1) and still drops the
+ * so the file's history survives the delete and still drops the
  * ignore-list entry so stale gating state is not leaked.
  *
  * @extends {BaseEvent}

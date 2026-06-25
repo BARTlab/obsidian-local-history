@@ -10,7 +10,7 @@ import { makeFile } from './helpers/builders';
 import { flushMicrotasks } from './helpers/async-utils';
 
 /**
- * Tests for {@link ExternalChangeCapture} (T10), the off-editor change-capture
+ * Tests for {@link ExternalChangeCapture}, the off-editor change-capture
  * collaborator the snapshots service owns. Extracted from the 1103-LOC service,
  * where the debounce, in-flight guard, stat pre-check, and disk-read + hash
  * capture were tangled into one method; these cover the behaviour the

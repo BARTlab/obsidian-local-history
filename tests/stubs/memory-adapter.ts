@@ -12,7 +12,7 @@ export interface AdapterCall {
 
 /**
  * In-memory stand-in for Obsidian's `DataAdapter`, shared between the shard
- * store unit tests (Epic 10, T05) and the ported persistence tests (T15). It
+ * store unit tests and the ported persistence tests. It
  * models a flat `Map<path, contents>` for files and a separate set of explicit
  * directory paths, deriving `list` from the flat map by path prefix so the
  * directory enumeration the shard store relies on (the source of truth, ADR-10)

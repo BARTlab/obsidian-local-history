@@ -16,7 +16,7 @@ import {
 import { assertWithinBaseline, measure } from './harness';
 
 /**
- * Perf benches for the folder-history aggregation hot paths (T05). They lock
+ * Perf benches for the folder-history aggregation hot paths. They lock
  * the cost of the work the folder modal pays before it paints:
  * `FolderTimelineHelper.synthesize` (scans every snapshot in the subtree, emits
  * a point per version / tombstone / move-in, then sorts newest-first) and

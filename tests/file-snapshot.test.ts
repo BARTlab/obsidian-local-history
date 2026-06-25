@@ -5,7 +5,7 @@ import type { TrackerLine } from '@/lines/tracker.line';
 import type { SerializedFileSnapshot } from '@/types';
 
 /**
- * Characterization tests for the FileSnapshot model (T2.1). They drive the
+ * Characterization tests for the FileSnapshot model. They drive the
  * snapshot directly (change/restore/add/remove and the raw shift helpers) and
  * encode the current expected behavior of the change-tracking state machine.
  */
@@ -128,7 +128,7 @@ describe('FileSnapshot shift helpers', () => {
   });
 });
 
-describe('FileSnapshot current-position index (T3.2)', () => {
+describe('FileSnapshot current-position index', () => {
   it('resolves findCurrentLine to the line living at the position', () => {
     const snapshot = new FileSnapshot('a\nb\nc');
 
@@ -186,7 +186,7 @@ describe('FileSnapshot current-position index (T3.2)', () => {
   });
 });
 
-describe('FileSnapshot.replaceBlock (per-hunk revert, T5.3)', () => {
+describe('FileSnapshot.replaceBlock (per-hunk revert)', () => {
   it('clears a changed line when its block is reverted to the original', () => {
     const snapshot = new FileSnapshot('a\nb\nc');
 
@@ -263,7 +263,7 @@ describe('FileSnapshot.replaceBlock (per-hunk revert, T5.3)', () => {
     expect(snapshot.findCurrentLine(3)?.current).toBe('D');
   });
 
-  it('places every replacement on its expected current position when the block straddles tracked and removed lines (T16)', () => {
+  it('places every replacement on its expected current position when the block straddles tracked and removed lines', () => {
     // Start from a, b, c, d, e; remove the middle line b so the tracker holds
     // a removed marker at removedAtPosition=1 alongside a@0, c@1, d@2, e@3.
     const snapshot = new FileSnapshot('a\nb\nc\nd\ne');
@@ -300,7 +300,7 @@ describe('FileSnapshot.replaceBlock (per-hunk revert, T5.3)', () => {
   });
 });
 
-describe('FileSnapshot.getChangedPositions (navigation source, T5.4)', () => {
+describe('FileSnapshot.getChangedPositions (navigation source)', () => {
   it('returns no positions for a pristine snapshot', () => {
     const snapshot = new FileSnapshot('a\nb\nc');
 
@@ -358,7 +358,7 @@ describe('FileSnapshot.getChangedPositions (navigation source, T5.4)', () => {
   });
 });
 
-describe('FileSnapshot tombstone and move markers (T01)', () => {
+describe('FileSnapshot tombstone and move markers', () => {
   it('leaves deletedTimestamp and movedIntoAt undefined on a fresh snapshot', () => {
     const snapshot = new FileSnapshot('a\nb');
 

@@ -29,7 +29,7 @@ const makeModified = (path: string = 'a.md'): FileSnapshot => {
 };
 
 describe('SessionStatusHelper.statusOf', () => {
-  it('returns none for a tombstoned snapshot (deleted is out of scope, D5)', () => {
+  it('returns none for a tombstoned snapshot (deleted is out of scope)', () => {
     const snapshot: FileSnapshot = makeClean();
     snapshot.deletedTimestamp = 1_000;
 
@@ -43,7 +43,7 @@ describe('SessionStatusHelper.statusOf', () => {
     expect(SessionStatusHelper.statusOf(snapshot)).toBe(FolderDeltaStatus.added);
   });
 
-  it('returns modified for a snapshot with changed lines (marker baseline, D1)', () => {
+  it('returns modified for a snapshot with changed lines (marker baseline)', () => {
     const snapshot: FileSnapshot = makeModified();
 
     expect(snapshot.getChangesLinesCount()).toBeGreaterThan(0);

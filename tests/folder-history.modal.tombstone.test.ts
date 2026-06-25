@@ -11,8 +11,7 @@ import { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FolderDeltaResult } from '@/types';
 
 /**
- * Guards `restoreTombstoneSelection` (T14, owned by FolderActionHandler since
- * T09) against an occupied target path. The production method is protected, so
+ * Guards `restoreTombstoneSelection` (owned by FolderActionHandler) against an occupied target path. The production method is protected, so
  * the test binds it off the handler prototype against a minimal
  * {@link FolderActionHost} carrying only the fields the method actually touches:
  * `app.vault`, `plugin.t`, `snapshotsService`. This keeps the test focused on
@@ -71,7 +70,7 @@ function buildTombstone(): FileSnapshot {
   return snapshot;
 }
 
-describe('FolderHistoryModal.restoreTombstoneSelection (T14 occupied-path guard)', () => {
+describe('FolderHistoryModal.restoreTombstoneSelection (occupied-path guard)', () => {
   const result: FolderDeltaResult = {
     status: FolderDeltaStatus.deleted,
     base: ['hello', 'world'],

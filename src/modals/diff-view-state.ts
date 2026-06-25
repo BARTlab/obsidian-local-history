@@ -70,10 +70,10 @@ export interface NavButtonRefs {
 }
 
 /**
- * Diff-view-state collaborator for the history modal (T06).
+ * Diff-view-state collaborator for the history modal.
  *
  * Extracted from {@link HistoryModal} as a plain object the modal instantiates
- * and owns (per ADR-8 / Epic 14: deep collaborators, not DI services). It owns
+ * and owns (per ADR-11: deep collaborators, not DI services). It owns
  * the modal's diff-view state - the selected base, the active display mode, the
  * focused hunk index, the hide-identical rail filter, and the content-search
  * query - together with the toolbar mode/nav button registries and the three

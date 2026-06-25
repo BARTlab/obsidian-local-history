@@ -7,7 +7,7 @@ import type {
 import type { TFile } from 'obsidian';
 
 /**
- * Deterministic fixtures for the persistence perf benches (T04). The serialized
+ * Deterministic fixtures for the persistence perf benches. The serialized
  * snapshot sets are generated in code from the real FileSnapshot codec
  * (constructor + captureVersion + toJSON), never committed as JSON, so the repo
  * stays small and a given size always yields the same payload. Building through
@@ -30,7 +30,7 @@ export interface PersistenceFixtureSize {
 }
 
 /**
- * The three fixture sizes the benches exercise, per the T04 spec: small (20
+ * The three fixture sizes the benches exercise, per the bench spec: small (20
  * files / 100 versions total), medium (200 files / 2000 total), large (2000
  * files / 20000 total). `versions` is the documented total; per-file count is
  * `versions / files` (5, 10, 10). Line bodies stay small so the large set
@@ -142,7 +142,7 @@ export function buildSerializedHistory(size: PersistenceFixtureSize): Serialized
 /**
  * A spying plugin stub for the SnapshotsService and PersistenceService benches.
  * Holds an in-memory vault adapter whose mutating ops are counted so the bench
- * can prove no disk write escapes (T04 AC4), plus a path-to-file map so
+ * can prove no disk write escapes, plus a path-to-file map so
  * `restore` takes the live-file branch (FileSnapshot.fromJSON with a real file)
  * for every fixture path rather than the orphan/tombstone branch.
  */

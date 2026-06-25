@@ -5,7 +5,7 @@ export { FolderDeltaStatus } from '@/consts';
 
 /**
  * Pure helper that maps a single snapshot to its CHANGE STATUS for the current
- * app session (epic 11). It is the one place the native tree/tab decorator asks
+ * app session. It is the one place the native tree/tab decorator asks
  * "what colour is this file right now?", mirroring the static-only shape of the
  * other `src/helpers/*` helpers (no vault, no DOM, no Obsidian state).
  *
@@ -13,18 +13,18 @@ export { FolderDeltaStatus } from '@/consts';
  * headers), which exist solely for files that are present in the vault, so the
  * status space is intentionally narrowed to the `added | modified | none`
  * members of the existing {@link FolderDeltaStatus} enum. `deleted` is out of
- * scope (D5): a deleted file has no native row and no tab, so there is nothing
+ * scope: a deleted file has no native row and no tab, so there is nothing
  * to paint, and a tombstoned snapshot therefore resolves to `none` rather than
  * `deleted` (deletes stay in the diff modal via `FolderDeltaHelper`).
  *
  * The session signals, in precedence order `added > modified > none`:
  *
- * - `added` - the transient `createdThisSession` flag (D4), stamped by the
+ * - `added` - the transient `createdThisSession` flag, stamped by the
  *   post-layout-ready `vault.create` capture path. It is the only reliable
  *   "created this run" signal and is never persisted, so a snapshot restored
  *   from history after a restart comes back falsy and stops being painted green.
  * - `modified` - `getChangesLinesCount() > 0` against the marker baseline, the
- *   exact change set the gutter paints (D1), so the tree and the gutter agree
+ *   exact change set the gutter paints, so the tree and the gutter agree
  *   by construction. The marker baseline is session-scoped: a restored snapshot
  *   is re-baselined onto its current state at restore (see
  *   `FileSnapshot.resetMarkerBaseline`), so on a fresh launch every restored file
@@ -47,7 +47,7 @@ export class SessionStatusHelper {
    */
   public static statusOf(snapshot: FileSnapshot): FolderDeltaStatus {
     /**
-     * A tombstone has no native row or tab to paint, so it is `none` (D5),
+     * A tombstone has no native row or tab to paint, so it is `none`,
      * even if it was created and then deleted in the same session.
      */
     if (snapshot.isTombstone()) {
@@ -71,7 +71,7 @@ export class SessionStatusHelper {
 
   /**
    * Collects every ancestor folder path of the given changed file paths, so the
-   * decorator can tint each containing folder a single change colour (D6). Pure
+   * decorator can tint each containing folder a single change colour. Pure
    * and total: it walks the `/`-separated path of each file upward, emitting one
    * entry per intermediate folder and stopping at the vault root, which has no
    * folder row to paint and is therefore never included.

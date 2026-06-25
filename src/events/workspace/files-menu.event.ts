@@ -11,27 +11,26 @@ import { Notice } from 'obsidian';
 /**
  * Event handler for Obsidian's file-menu event in the file explorer.
  *
- * Mirrors the editor context menu's PhpStorm-style submenu (epic 04 D2) on
- * vault entries, per D11/T07:
+ * Mirrors the editor context menu's PhpStorm-style submenu on
+ * vault entries:
  *
  * - On a `TFile`, the parent "Local history" expands to three entries: Show
  *   History (opens the diff modal via ModalsService.diff), Put label (prompts
  *   for a label via ModalsService.putLabel), and Recent changes (reveals the
  *   right-sidebar panel via plugin.revealRecentChanges).
  * - On a `TFolder`, the parent expands to two entries: Show History (opens
- *   the folder history modal via ModalsService.openFolderHistory, a safe
- *   placeholder until T12 lands) and Recent changes. Put label is omitted on
+ *   the folder history modal via ModalsService.openFolderHistory) and Recent changes. Put label is omitted on
  *   folders: a folder has no captured content of its own, so the label entry
- *   has no defined target (D11).
+ *   has no defined target.
  * - Any other `TAbstractFile` (neither file nor folder) short-circuits before
  *   the parent item is added, so the menu surface is unchanged.
  *
  * "Show History for Selection" from the editor submenu is deliberately
- * dropped on this surface: the file explorer has no editor selection (D11).
+ * dropped on this surface: the file explorer has no editor selection.
  *
  * The submenu titles resolve through `plugin.t('menu.local-history.*')` keys
- * that already exist in the en catalog from epic 04 T14; T15 of this epic
- * will swap any new inline strings introduced here onto the same lookup.
+ * that already exist in the en catalog; any new inline strings introduced
+ * here are swapped onto the same lookup once localized.
  *
  * @extends {BaseEvent}
  */
@@ -82,7 +81,7 @@ export class WorkspaceFilesMenuEvent extends BaseEvent {
 
   /**
    * Fills the submenu for a TFile target with Show History, Put label, and
-   * Recent changes (D11). Show History falls back to a "no saved history"
+   * Recent changes. Show History falls back to a "no saved history"
    * notice when no snapshot exists, matching the previous flat-entry
    * behaviour so an untracked file never silently no-ops.
    *
@@ -122,9 +121,8 @@ export class WorkspaceFilesMenuEvent extends BaseEvent {
 
   /**
    * Fills the submenu for a TFolder target with Show History and Recent
-   * changes (D11). Show History delegates to ModalsService.openFolderHistory,
-   * which is a safe placeholder until T12 wires the real FolderHistoryModal:
-   * today it surfaces a "no folder history yet" notice and returns false.
+   * changes. Show History delegates to ModalsService.openFolderHistory,
+   * which surfaces a "no folder history yet" notice and returns false.
    *
    * @param {Menu} submenu - The submenu to populate
    * @param {TFolder} folder - The folder the menu was opened for

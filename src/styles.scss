@@ -10,7 +10,7 @@
 //   modified -> --color-blue       (matches the gutter's changed-line marker)
 //   deleted  -> --color-base-100   (matches the gutter's removed-line marker;
 //               modal palette only - native surfaces never paint deleted, a
-//               deleted file has no native row or tab, see D5)
+//               deleted file has no native row or tab)
 //
 // Defined on `body`, NOT `:root`: Obsidian resolves theme colours like
 // `--text-warning` on the `.theme-dark` / `.theme-light` class it puts on
@@ -770,6 +770,16 @@ body {
   .lct-recent-changes-view {
     padding: var(--size-4-3) var(--size-4-2);
 
+    // Content search above the list; mirrors .lct-rail-search so the panel and
+    // the modal rail share one search affordance.
+    .lct-recent-changes-search {
+      padding-bottom: 8px;
+
+      .search-input-container {
+        width: 100%;
+      }
+    }
+
     // Stack the rows tightly; the rail uses a similar gap so the two surfaces
     // feel related when both are visible across sessions.
     .lct-recent-changes-list {
@@ -846,119 +856,54 @@ body {
   }
 }
 
-/* ---- lines ----  */
-.cm-line {
-  &.lct-line {
-    position: relative;
-    // Prevent the theme from clipping the change bar: the bar is absolutely
-    // positioned in the left margin (left: -10px), so any overflow: hidden
-    // cascading onto the line element would cut it off.
-    overflow: visible;
-
-    // The change bar lives on ::after, NOT ::before. In Live Preview Obsidian
-    // draws the blockquote marker through ::before on the same .cm-line
-    // (.HyperMD-quote:before, app.css), and an element has only one ::before:
-    // the two rules merge and the higher-specificity app.css geometry
-    // (inset-inline-start: 0; width: 1px) hijacks the bar onto the quote
-    // marker. ::after carries no line-level rules in stock app.css.
-    &:not(.mk-placeholder)::after {
-      content: '';
-      position: absolute;
-      left: -10px;
-      top: 0;
-      bottom: 0;
-      width: var(--lct-line-width);
-      border-radius: var(--lct-line-border-radius);
-      z-index: 0;
-    }
-
-    &:not(.mk-placeholder):has(+ .lct-removed)::after,
-    &.lct-removed:not(.mk-placeholder)::after {
-      height: calc(100% - 2px);
-    }
-
-    &.lct-removed:not(.mk-placeholder)::after {
-      top: auto;
-    }
-
-    // The removed dash takes ::before (swapped with the bar, see above). On a
-    // quote anchor line it degrades: Obsidian's quote-marker ::before wins the
-    // geometry there, so the dash is absorbed into the quote bar instead of
-    // rendering in the margin. Rare case, accepted over losing change bars on
-    // every changed quote line.
-    &.lct-removed:not(.mk-placeholder)::before {
-      content: '';
-      position: absolute;
-      left: -10px;
-      top: 0;
-      bottom: 0;
-      width: var(--lct-line-width);
-      border-radius: var(--lct-line-border-radius);
-      z-index: 0;
-      background-color: var(--lct-color-removed);
-      transform: translateY(-50%);
-      height: 4px;
-    }
-
-    /**
-     * The removed dash straddles the top edge of its line (translateY(-50%)),
-     * which on the very first editor line escapes upward into the inline-title
-     * gap and orphans a marker above the document. Pin the first line's removed
-     * dash to its own top so it stays inside the document instead of floating
-     * above the title.
-     */
-    &:first-child.lct-removed:not(.mk-placeholder)::before {
-      transform: none;
-      top: 0;
-    }
-
-    &.lct-changed:not(.mk-placeholder)::after {
-      background-color: var(--lct-color-changed);
-    }
-
-    &.lct-restored:not(.mk-placeholder)::after {
-      background-color: var(--lct-color-restored);
-    }
-
-    &.lct-added:not(.mk-placeholder)::after {
-      background-color: var(--lct-color-added);
-    }
-
-    &.lct-whitespace:not(.mk-placeholder)::after {
-      background-color: var(--lct-color-whitespace);
-    }
-  }
-}
-
-/* ---- change layer (rendered block widgets in live preview) ---- */
-.lct-change-layer {
-  pointer-events: none;
-}
-
-.lct-change-bar {
-  width: var(--lct-line-width);
-  border-radius: var(--lct-line-border-radius);
-
-  &.lct-changed {
-    background-color: var(--lct-color-changed);
-  }
-
-  &.lct-restored {
-    background-color: var(--lct-color-restored);
-  }
-
-  &.lct-added {
-    background-color: var(--lct-color-added);
-  }
-
-  &.lct-whitespace {
-    background-color: var(--lct-color-whitespace);
-  }
-}
 
 /* ---- gutters ---- */
 .cm-gutters {
   position: relative;
+}
+
+/* The line-mode change bar lives in its own narrow gutter column. Adjacent
+ * changed lines produce stacked gutter elements with no padding, so the bars
+ * read as one continuous vertical stroke. Hosted in a real CodeMirror gutter,
+ * the bar never shares a pseudo-element with the theme's blockquote marker
+ * (`.cm-line::before`), which is what the former `.cm-line` bar fought with. */
+.cm-gutter.lct-gutter-bar-col {
+  min-width: var(--lct-line-width);
+  padding: 0;
+
+  .cm-gutterElement {
+    padding: 0;
+  }
+
+  .lct-gutter-bar {
+    display: block;
+    width: var(--lct-line-width);
+    height: 100%;
+    border-radius: var(--lct-line-border-radius);
+  }
+
+  .lct-changed .lct-gutter-bar {
+    background-color: var(--lct-color-changed);
+  }
+
+  .lct-restored .lct-gutter-bar {
+    background-color: var(--lct-color-restored);
+  }
+
+  .lct-added .lct-gutter-bar {
+    background-color: var(--lct-color-added);
+  }
+
+  .lct-whitespace .lct-gutter-bar {
+    background-color: var(--lct-color-whitespace);
+  }
+
+  /* A removed anchor has no line of its own: mark it as a short dash pinned to
+   * the top of its anchor line instead of a full-height bar. */
+  .lct-removed .lct-gutter-bar {
+    height: 4px;
+    background-color: var(--lct-color-removed);
+  }
 }
 
 .cm-gutter {
@@ -1029,13 +974,12 @@ body {
   }
 }
 
-/* ---- folder tree (T11) ---- */
+/* ---- folder tree ---- */
 // Per-folder "changes since T" tree rendered in the middle column of the
 // folder modal. Only rows for files whose status is added / modified / deleted
 // show up; the ancestor folders that connect them to the root render too.
-// Status colour tokens (lct-tree-added / -modified / -deleted) are owned by
-// T14; this task ships the structural layout only so the component is wired
-// before the styling pass.
+// Status colour tokens (lct-tree-added / -modified / -deleted) live with the
+// folder modal styles below; this block ships the structural layout only.
 // The tree reuses Obsidian's native file-explorer classes (tree-item-self,
 // nav-folder-title, nav-file-title, tree-item-inner, collapse-icon,
 // is-clickable) so it inherits the theme's row padding, hover, and active
@@ -1109,12 +1053,12 @@ body {
   }
 }
 
-/* ---- native-surface decorations (epic 11) ---- */
+/* ---- native-surface decorations ---- */
 // The tree/tab decorator adds the lct-tree-added / lct-tree-modified classes to
 // Obsidian's own DOM (file-explorer rows and workspace tab headers) to tint
 // files and folders changed this session. These rules paint those classes from
 // the shared --lct-status-* palette so they agree with the modal tree by
-// construction. Native surfaces never carry lct-tree-deleted (D5): a deleted
+// construction. Native surfaces never carry lct-tree-deleted: a deleted
 // file has no row or tab to paint, so deleted lives only in the diff modal.
 //
 // Native nav-item styling colours the inner text node via --nav-item-color, so
@@ -1169,7 +1113,7 @@ body {
   font-style: italic;
 }
 
-/* ---- folder history modal (T12 + T14) ---- */
+/* ---- folder history modal ---- */
 // Three-column shell for the folder-level history modal: a timeline rail on
 // the left, a tree of changed files in the middle, and the diff pane on the
 // right. The shell reuses the same .lct-modal-body / .lct-modal-rail /
@@ -1217,7 +1161,7 @@ body {
   }
 }
 
-/* ---- external-change badge (T20) ---- */
+/* ---- external-change badge ---- */
 // Shared inline marker rendered next to a version's primary label on every
 // timeline surface (file modal rail, recent-changes panel, folder modal rail,
 // folder tree file rows). Two parts: a small Lucide glyph and a short text
@@ -1339,7 +1283,57 @@ body {
   box-shadow: 0 0 0 1px var(--text-error);
 }
 
-/* ---- properties panel diff indicators (epic 16) ---- */
+// Compact integer input on a settings row (retention caps, snapshot
+// triggers). The narrow width signals that the field expects a few digits,
+// not prose.
+.lct-input-number {
+  width: 9ch;
+}
+
+// Inline validation message under the exclude-pattern editor field. Collapses
+// when empty so a valid value leaves no gap.
+.lct-setting-error {
+  color: var(--text-error);
+
+  &:empty {
+    display: none;
+  }
+}
+
+// Element hidden in place (the exclude-paths empty-state hint while an
+// unsaved new-pattern row is open). Toggling a class instead of re-rendering
+// keeps the row's DOM node and focus. The !important is deliberate: a
+// hide-utility must beat component display rules of equal specificity.
+.lct-row-hidden {
+  display: none !important;
+}
+
+// Exclude-pattern row in edit mode: the (empty) info column collapses so the
+// text field takes the full free row width; the save/cancel ghost icons keep
+// flush right and the inline error wraps to its own full-width line below.
+.lct-exclude-edit {
+  .setting-item-info {
+    display: none;
+  }
+
+  .setting-item-control {
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+
+    input[type='text'] {
+      flex: 1 1 auto;
+    }
+
+    .lct-setting-error {
+      flex-basis: 100%;
+      // The error element is created before the field so the editor can wire
+      // its save handler around a const reference; flex order keeps it last.
+      order: 10;
+    }
+  }
+}
+
+/* ---- properties panel diff indicators ---- */
 // Properties panel diff indicators applied by PropertyDecoratorService.
 // Visual signal is a color tint on the existing property-type icon
 // (.metadata-property-icon) - no layout shift, no injected nodes.
@@ -1399,5 +1393,33 @@ body {
   &[data-lct-type="restored"] {
     border-left-color: var(--lct-color-restored);
     background-color: color-mix(in srgb, var(--lct-color-restored) 8%, transparent);
+  }
+}
+
+// Quote sections: .markdown-rendered blockquote draws its own
+// border-inline-start with --blockquote-border-color, so the indicator border
+// on the section wrapper would sit next to it as a double line. Drop the
+// indicator border (and its padding compensation, restoring the undecorated
+// geometry) and recolour the quote's own border by overriding the variable on
+// the wrapper; it inherits into the blockquote and any nested quotes. The
+// translucent background tint stays as the block-level change signal.
+.lct-rm-indicator:has(> blockquote) {
+  border-left: none;
+  padding-left: 0;
+
+  &[data-lct-type="changed"] {
+    --blockquote-border-color: var(--lct-color-changed);
+  }
+
+  &[data-lct-type="added"] {
+    --blockquote-border-color: var(--lct-color-added);
+  }
+
+  &[data-lct-type="whitespace"] {
+    --blockquote-border-color: var(--lct-color-whitespace);
+  }
+
+  &[data-lct-type="restored"] {
+    --blockquote-border-color: var(--lct-color-restored);
   }
 }

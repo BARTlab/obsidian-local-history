@@ -257,7 +257,7 @@ export class WordDiffHelper {
    * The choice of word-overlap ratio over normalized Levenshtein is deliberate:
    * it is O(n+m) in the number of words (after building a frequency map) and
    * captures semantic similarity better than character-edit distance for typical
-   * prose and identifier-heavy code lines (see DECISIONS.md ADR-18-16).
+   * prose and identifier-heavy code lines.
    *
    * @param {string} a - First line
    * @param {string} b - Second line
@@ -298,7 +298,7 @@ export class WordDiffHelper {
    * appends a trailing newline to every block, which would otherwise yield a
    * spurious empty final line, so a single trailing newline is dropped before
    * splitting. The single line-ending normalization point for the diff surface
-   * (ADR-08-G): split on `/\r?\n/` so CRLF content does not leave a stray `\r`
+   *: split on `/\r?\n/` so CRLF content does not leave a stray `\r`
    * on every row.
    *
    * @param {string} value - The raw block value from the diff library

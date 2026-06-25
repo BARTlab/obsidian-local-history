@@ -35,7 +35,7 @@ export class ModalsService implements Service {
   protected snapshotsService!: SnapshotsService;
 
   /**
-   * Service that owns version restore/remove/put-label actions (D5). Wired here
+   * Service that owns version restore/remove/put-label actions. Wired here
    * so the Put label entry point can prompt for a label and forward the trimmed
    * result to the shared capture path without each call site duplicating the
    * snapshot lookup or the empty/cancel handling.
@@ -82,7 +82,7 @@ export class ModalsService implements Service {
    * (preview) mode as in source mode; only the inline line highlights are
    * editor-only.
    *
-   * Optional open options (D4) let a caller pre-select a specific base version
+   * Optional open options let a caller pre-select a specific base version
    * and hide the left rail. With no options the modal behaves exactly as
    * before: the rail is visible and the latest captured version is selected.
    *
@@ -104,7 +104,7 @@ export class ModalsService implements Service {
 
   /**
    * Opens the history modal filtered to versions where the supplied selection
-   * text was added or removed at that point on the timeline (D7/T09). The
+   * text was added or removed at that point on the timeline. The
    * filter is precomputed via the pure SelectionHistoryHelper so the modal
    * just applies the resulting id set as a rail filter.
    *
@@ -162,7 +162,7 @@ export class ModalsService implements Service {
   }
 
   /**
-   * Opens the folder history modal for the given folder (D5/T12). Filters the
+   * Opens the folder history modal for the given folder. Filters the
    * service's snapshot map to the folder's prefix (live snapshots and
    * tombstones alike: a deleted file still anchors at its last-known path),
    * and opens {@link FolderHistoryModal} against that subtree. When no
@@ -171,8 +171,8 @@ export class ModalsService implements Service {
    * returns false, mirroring the `diff()` contract for files without history.
    *
    * The notice string is intentionally an inline English literal so the i18n
-   * parity guard stays green; T15 propagates it across the 44 bundled catalogs
-   * together with every other epic-05 string.
+   * parity guard stays green; it is propagated across the 44 bundled
+   * catalogs together with the other inline literals.
    *
    * @param {TFolder} folder - The folder whose history should be shown
    * @return {boolean} True when the modal was opened, false on an empty subtree
@@ -241,7 +241,7 @@ export class ModalsService implements Service {
   }
 
   /**
-   * Shows a single-input prompt dialog with the specified configuration (D8).
+   * Shows a single-input prompt dialog with the specified configuration.
    * Creates a PromptModal instance and returns a promise that resolves to the
    * entered text, or `null` when the user cancels or otherwise closes the
    * modal without confirming. Used by "Put label" to collect a free-text
@@ -258,8 +258,8 @@ export class ModalsService implements Service {
 
   /**
    * Captures a pinned labeled version of the file's current content by first
-   * asking the user for a label through the PromptModal (D8) and then handing
-   * the trimmed result to VersionActionsService.putLabel (D6). A cancelled
+   * asking the user for a label through the PromptModal and then handing
+   * the trimmed result to VersionActionsService.putLabel. A cancelled
    * prompt or an empty/whitespace label is a silent no-op so the user can back
    * out without polluting the timeline; a missing snapshot is also a no-op so
    * an untracked file does not surface a confusing error.
@@ -314,7 +314,7 @@ export class ModalsService implements Service {
 
   /**
    * Labels an EXISTING captured version: asks for a tag through the PromptModal
-   * (D8) and forwards the trimmed result to
+   * and forwards the trimmed result to
    * VersionActionsService.label. Unlike {@link putLabel}, which pins the
    * file's CURRENT content as a new version, this marks the version the caller
    * picked (a Recent changes row, or the modal's selected base), so the label

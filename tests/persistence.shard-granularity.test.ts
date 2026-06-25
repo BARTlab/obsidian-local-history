@@ -10,11 +10,11 @@ import type { AdapterCall } from './stubs/memory-adapter';
 import { MemoryAdapter } from './stubs/memory-adapter';
 
 /**
- * Dirty-only write granularity (Epic 10, T13). These tests prove the core IO
+ * Dirty-only write granularity. These tests prove the core IO
  * benefit of the shard layout: a save touches only the shards whose content
  * actually changed and leaves every other shard's file alone, and a no-op save
  * (nothing changed) writes nothing at all. This is the regression guard against
- * the dirty-tracking in T07 degrading into a full rewrite, which would make
+ * the dirty-tracking degrading into a full rewrite, which would make
  * shards strictly worse than the old monolith for IO.
  *
  * The suite drives the real save path through the write queue against the shared
@@ -125,7 +125,7 @@ const entry = (path: string, timestamp: number): SerializedFileSnapshot => ({
 });
 
 /**
- * Builds a tombstone snapshot (a deleted-file entry, D1) so the tombstone
+ * Builds a tombstone snapshot (a deleted-file entry) so the tombstone
  * retention bucket can be exercised. The `deletedTimestamp` both flags it as a
  * tombstone and is the age the tombstone bucket sorts and caps by.
  */
@@ -236,7 +236,7 @@ const totalShardWrites = (calls: readonly AdapterCall[]): number =>
     && call.args.some((arg: string): boolean => arg.startsWith(`${SHARD_DIR}/`))
   ).length;
 
-describe('PersistenceService dirty-only write granularity (T13)', () => {
+describe('PersistenceService dirty-only write granularity', () => {
   it('rewrites exactly the one changed shard and leaves the others untouched', async (): Promise<void> => {
     const adapter = new MemoryAdapter();
     const now: number = Date.now();
@@ -306,11 +306,11 @@ describe('PersistenceService dirty-only write granularity (T13)', () => {
 });
 
 /**
- * Retention evicts shards from disk (Epic 10, T14). The global retention policy
+ * Retention evicts shards from disk. The global retention policy
  * runs in memory over the full snapshot set; what changes under the shard layout
  * is that an evicted entry must have its shard file removed from disk, not just
  * trimmed from an array. These tests guard the removal (reconcile-deletions) pass
- * of the save path (T07) for both retention buckets: live snapshots capped by
+ * of the save path for both retention buckets: live snapshots capped by
  * `retention.maxEntries` and tombstones capped by `retention.maxDeletedEntries`.
  *
  * Each test seeds every shard under a relaxed cap on a first save, then tightens
@@ -318,7 +318,7 @@ describe('PersistenceService dirty-only write granularity (T13)', () => {
  * the removal pass (which only deletes shards already indexed on disk) rather
  * than retention silently never-writing an over-cap shard.
  */
-describe('PersistenceService retention evicts shards from disk (T14)', () => {
+describe('PersistenceService retention evicts shards from disk', () => {
   it('removes over-cap live shards and keeps the newest within maxEntries', async (): Promise<void> => {
     const adapter = new MemoryAdapter();
     const now: number = Date.now();

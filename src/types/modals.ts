@@ -104,7 +104,7 @@ export interface DiffRenderTranslator {
  * and modal-agnostic: it owns no state, holds no references, and only mutates
  * the provided container. Per-hunk revert affordances, the columns header,
  * the diff notice, and scroll synchronization stay in the calling modal because
- * they are file-mode specific (D6).
+ * they are file-mode specific.
  */
 export interface DiffRenderParams {
   /**
@@ -140,7 +140,7 @@ export interface DiffRenderParams {
 /**
  * Open options for the history/diff modal. Both fields are optional, so a call
  * with no options preserves the current default behaviour: the rail is shown
- * and the modal opens on the latest captured version (D4).
+ * and the modal opens on the latest captured version.
  *
  * - `initialBaseId`: pre-selects a specific version id as the diff base on open
  *   (the rail entry that would otherwise be the top one). A baseline-only file
@@ -161,7 +161,7 @@ export interface HistoryModalOpenOptions {
   /**
    * Optional set of version ids the rail must restrict itself to: when present,
    * only versions whose id is in the set survive the rail filters. Used by
-   * "Show History for Selection" (D7/T09) to narrow the rail to versions where
+   * "Show History for Selection" to narrow the rail to versions where
    * the editor selection was added or removed. `undefined` means no selection
    * filter is active (the rail behaves as before); an empty set means a filter
    * is active but matched nothing, so the rail shows its no-results hint.

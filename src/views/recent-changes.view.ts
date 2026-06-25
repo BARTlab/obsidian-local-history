@@ -2,25 +2,26 @@ import { PluginEvent, RECENT_CHANGES_VIEW_TYPE } from '@/consts';
 import { DomHelper } from '@/helpers/dom.helper';
 import { ExternalBadgeHelper } from '@/helpers/external-badge.helper';
 import { VersionLabelHelper } from '@/helpers/version-label.helper';
+import { VersionSearchHelper } from '@/helpers/version-search.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ModalsService } from '@/services/modals.service';
 import { TOKENS } from '@/services/tokens';
 import type { VersionActionsService } from '@/services/version-actions.service';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FileVersion } from '@/snapshots/file.version';
-import type { DomElementConfig, VersionDescription } from '@/types';
-import { type IconName, ItemView, Menu, type MenuItem, type TFile, type WorkspaceLeaf } from 'obsidian';
+import type { DomElementConfig, SearchableVersion, VersionDescription } from '@/types';
+import { type IconName, ItemView, Menu, type MenuItem, SearchComponent, type TFile, type WorkspaceLeaf } from 'obsidian';
 
 /**
- * Right-sidebar navigator for the active file's version timeline (D3).
+ * Right-sidebar navigator for the active file's version timeline.
  *
- * T11 fills the lifecycle skeleton from T10 with the timeline rows: each row
+ * The view renders the timeline rows: each row
  * shows the action label (or the user's custom label), the capture date, and
  * the line delta inline, newest first. The panel reacts to active-leaf-change
  * so switching files re-renders against the new file's timeline, and a
  * snapshot update (capture, restore, remove, put-label) is mirrored so the
  * panel never lags behind the rail. Double-clicking a row opens the history
- * modal in rail-less mode focused on that version (D4), so the panel stays
+ * modal in rail-less mode focused on that version, so the panel stays
  * the sole navigator in that session.
  *
  * @extends {ItemView}
@@ -32,6 +33,19 @@ export class RecentChangesView extends ItemView {
    * re-renders for stable CSS targeting.
    */
   protected listEl?: HTMLElement;
+
+  /**
+   * Search box mounted above the timeline list. Built once on onOpen and kept
+   * across renders so typing never loses focus; render() only refills the list.
+   */
+  protected searchComponent?: SearchComponent;
+
+  /**
+   * Current content-search query for the timeline. Mirrors the modal rail's
+   * semantics (VersionSearchHelper): an empty string shows every version, a
+   * non-empty one keeps only versions whose captured content matches.
+   */
+  protected searchQuery: string = '';
 
   /**
    * Creates a new instance of RecentChangesView.
@@ -95,7 +109,7 @@ export class RecentChangesView extends ItemView {
    * to active-leaf-change and the internal snapshots-update event, and renders
    * the initial state against the active file. Subscriptions go through
    * `registerEvent` and the Component `register` cleanup so a detach of the
-   * leaf tears them down with no leaks (T10's AC3 contract).
+   * leaf tears them down with no leaks.
    *
    * @return {Promise<void>} Resolves once the host is prepared
    * @override
@@ -103,6 +117,23 @@ export class RecentChangesView extends ItemView {
   protected async onOpen(): Promise<void> {
     this.contentEl.empty();
     this.contentEl.addClass('lct-recent-changes-view');
+
+    /**
+     * Content search sits above the timeline list, mirroring the modal rail's
+     * search-over-versions placement and strings.
+     */
+    const searchEl: HTMLElement = DomHelper.create({
+      tag: 'div',
+      classes: 'lct-recent-changes-search',
+      container: this.contentEl,
+    });
+
+    this.searchComponent = new SearchComponent(searchEl)
+      .setPlaceholder(this.plugin.t('modal.search-versions'))
+      .onChange((value: string): void => {
+        this.searchQuery = value;
+        this.render();
+      });
 
     this.listEl = DomHelper.create({
       tag: 'div',
@@ -112,10 +143,13 @@ export class RecentChangesView extends ItemView {
 
     /**
      * Active-leaf-change is a native Obsidian event; routed through
-     * registerEvent so the ref releases with the view.
+     * registerEvent so the ref releases with the view. The search query is
+     * scoped to one file's timeline, so a file switch clears it: a stale query
+     * silently hiding the new file's history would read as "no history".
      */
     this.registerEvent(
       this.app.workspace.on('active-leaf-change', (): void => {
+        this.resetSearch();
         this.render();
       }),
     );
@@ -148,6 +182,23 @@ export class RecentChangesView extends ItemView {
   protected async onClose(): Promise<void> {
     this.contentEl.empty();
     this.listEl = undefined;
+    this.searchComponent = undefined;
+    this.searchQuery = '';
+  }
+
+  /**
+   * Clears the search query and the box itself. SearchComponent.setValue does
+   * not fire onChange, so the caller re-renders explicitly; checking for an
+   * already-empty query keeps the file-switch path allocation-free in the
+   * common no-search case.
+   */
+  protected resetSearch(): void {
+    if (this.searchQuery === '') {
+      return;
+    }
+
+    this.searchQuery = '';
+    this.searchComponent?.setValue('');
   }
 
   /**
@@ -157,13 +208,22 @@ export class RecentChangesView extends ItemView {
    * keeping the AC for "react to the active file" intact (an empty render IS
    * the reaction). With a snapshot the rows mirror the modal rail format
    * (action or custom label, capture date inline, line delta inline) but
-   * without the rail's grouping and search, since the panel is a thin
-   * navigator (D3).
+   * without the rail's day grouping, since the panel is a thin navigator.
+   * The content search above the list narrows the rows via the same
+   * VersionSearchHelper the rail uses; a query that matches nothing renders
+   * the shared no-results hint instead of the rows.
    */
   protected render(): void {
     if (!this.listEl) {
       return;
     }
+
+    /**
+     * DomHelper.update appends children without clearing, so wipe the list
+     * first: render() fires on open, active-leaf-change and snapshotsUpdate,
+     * and each pass would otherwise stack another copy of the hint or rows.
+     */
+    this.listEl.empty();
 
     const file: TFile | null = this.plugin.getActiveFile();
     const snapshot: FileSnapshot | null = this.plugin
@@ -200,8 +260,40 @@ export class RecentChangesView extends ItemView {
       return;
     }
 
+    /**
+     * The search filters which rows render, but each row is still described
+     * against the FULL timeline: the neighbour-diff label must not change just
+     * because the search hid the real previous version (same contract as the
+     * modal rail's getVisibleVersions).
+     */
+    const visibleIds: Set<string> = VersionSearchHelper.match(
+      versions.map((version: FileVersion): SearchableVersion => ({
+        id: version.id,
+        content: version.getContent(snapshot.lineBreak),
+      })),
+      this.searchQuery,
+    );
+
+    const matched: FileVersion[] = versions.filter(
+      (version: FileVersion): boolean => visibleIds.has(version.id),
+    );
+
+    if (matched.length === 0) {
+      DomHelper.update(this.listEl, {
+        children: [
+          {
+            tag: 'div',
+            classes: 'lct-recent-changes-empty',
+            text: this.plugin.t('modal.no-versions-match'),
+          },
+        ],
+      });
+
+      return;
+    }
+
     DomHelper.update(this.listEl, {
-      children: versions.map((version: FileVersion): DomElementConfig =>
+      children: matched.map((version: FileVersion): DomElementConfig =>
         this.makeRow(version, versions, snapshot, file),
       ),
     });
@@ -213,7 +305,7 @@ export class RecentChangesView extends ItemView {
    * Builds the DomHelper config for a single timeline row. Mirrors the modal
    * rail's primary label (custom label or derived action), the inline capture
    * date+time, and the `+A -B` line delta. Double-click opens the history
-   * modal in rail-less mode focused on this version (D4): the panel stays the
+   * modal in rail-less mode focused on this version: the panel stays the
    * sole navigator, the modal acts as a pure viewer.
    *
    * @param {FileVersion} version - The version this row represents
@@ -266,12 +358,12 @@ export class RecentChangesView extends ItemView {
   }
 
   /**
-   * Opens the per-row context menu (T12). Mirrors the modal toolbar wiring so
+   * Opens the per-row context menu. Mirrors the modal toolbar wiring so
    * the panel and the modal share one behaviour for restore/delete/put-label
-   * (D5): "Show diff" opens the rail-less viewer focused on this version, the
+   *: "Show diff" opens the rail-less viewer focused on this version, the
    * destructive actions confirm through the same prompts the modal uses, and
    * Put label routes through the prompt+VersionActionsService entry point on
-   * ModalsService so an empty/cancel input is a silent no-op (T06). The native
+   * ModalsService so an empty/cancel input is a silent no-op. The native
    * browser menu is suppressed so only the plugin menu shows up.
    *
    * The captured `file` is the one resolved at row render time, so a later
@@ -361,7 +453,7 @@ export class RecentChangesView extends ItemView {
 
   /**
    * Returns the primary label shown on a row: the user's custom label when
-   * present (D1), otherwise the derived action text translated from
+   * present, otherwise the derived action text translated from
    * VersionLabelHelper.describe against the version's previous neighbour. The
    * oldest version's previous neighbour is the history baseline.
    *
@@ -412,7 +504,7 @@ export class RecentChangesView extends ItemView {
 
   /**
    * Opens the history modal in rail-less mode focused on the given version, so
-   * the panel is the sole navigator in that session (D4). The file is the one
+   * the panel is the sole navigator in that session. The file is the one
    * captured at row render time so an active-file switch between render and
    * double-click cannot retarget the modal at a different timeline. A missing
    * snapshot is treated as a no-op by ModalsService.diff (returns false), so

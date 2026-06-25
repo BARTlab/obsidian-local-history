@@ -32,7 +32,7 @@ import type {
 import { type App, Modal, SearchComponent, setIcon } from 'obsidian';
 
 /**
- * Modal dialog that displays a folder-level history view (D5). Three columns:
+ * Modal dialog that displays a folder-level history view. Three columns:
  * a timeline rail on the left, a tree of changed files in the middle, and the
  * diff pane on the right.
  *
@@ -41,7 +41,7 @@ import { type App, Modal, SearchComponent, setIcon } from 'obsidian';
  *   sorted newest-first, grouped by day.
  * - The tree is rendered by {@link FolderTreeComponent}, coloured by
  *   {@link FolderDeltaHelper.compareAt}'s status for the selected timeline
- *   point T (D8 / D9).
+ *   point T.
  * - The diff pane is rendered by the {@link FolderDiffRenderer} collaborator,
  *   which delegates to the shared `DiffRenderHelper` - the same renderer the
  *   file modal uses, so an added file renders as "everything green" (empty
@@ -101,7 +101,7 @@ export class FolderHistoryModal extends Modal {
   protected selectedTimestamp: number;
 
   /**
-   * Currently selected display mode; same enum the file modal uses (D6).
+   * Currently selected display mode; same enum the file modal uses.
    */
   protected currentDisplayMode: DiffRenderMode = DiffOutputFormatType.side;
 
@@ -156,14 +156,14 @@ export class FolderHistoryModal extends Modal {
   protected readonly tree: FolderTreeComponent;
 
   /**
-   * Timeline-rail renderer (T07): a plain collaborator the modal owns, reading
+   * Timeline-rail renderer: a plain collaborator the modal owns, reading
    * the live timeline / selected T / snapshot map through a narrow host port
    * and reporting a picked T back so the modal re-pins it.
    */
   protected readonly timelineRenderer: FolderTimelineRenderer;
 
   /**
-   * Diff-pane renderer (T08): a plain collaborator the modal owns, rendering
+   * Diff-pane renderer: a plain collaborator the modal owns, rendering
    * the per-file delta diff, the above-diff notice, and the side-by-side
    * column header for the tree-selected file at the selected T. Reads the live
    * containers / mode / T / selection through a narrow host port and signals
@@ -172,7 +172,7 @@ export class FolderHistoryModal extends Modal {
   protected readonly diffRenderer: FolderDiffRenderer;
 
   /**
-   * Toolbar-action collaborator (T09): a plain collaborator the modal owns,
+   * Toolbar-action collaborator: a plain collaborator the modal owns,
    * owning the five async toolbar actions (restore / remove / label selected,
    * restore-original, remove-history) and the deleted-file tombstone restore.
    * Reads the live selection / closest version through a narrow host port and
@@ -256,7 +256,7 @@ export class FolderHistoryModal extends Modal {
    * sees the live timeline, selected T, rail container, and snapshot map, and
    * the `selectTimestamp` callback routes a picked point back through the
    * modal's own re-pin path (rail + tree + diff). Mirrors the host-port pattern
-   * the file modal's VersionList / GutterRevert collaborators use (T04 / T05):
+   * the file modal's VersionList / GutterRevert collaborators use:
    * the renderer never sees the modal's protected fields directly.
    *
    * @return {FolderTimelineHost} The host port for the timeline renderer
@@ -281,8 +281,8 @@ export class FolderHistoryModal extends Modal {
    * mode, the selected T, the tree's selected file, and the snapshot map; the
    * `onDiffRendered` callback routes the post-render refresh of the toolbar
    * action-button states back to the modal, which still owns the toolbar.
-   * Mirrors the host-port pattern the timeline renderer (T07) and the file
-   * modal's collaborators (T04 / T05) use: the renderer never sees the modal's
+   * Mirrors the host-port pattern the timeline renderer and the file
+   * modal's collaborators use: the renderer never sees the modal's
    * protected fields directly.
    *
    * @return {FolderDiffHost} The host port for the diff renderer
@@ -309,7 +309,7 @@ export class FolderHistoryModal extends Modal {
    * selection / closest-version derivations and the snapshot-map mutation +
    * rail / tree / diff re-render are routed back to the modal so the handler
    * never owns the timeline or the snapshot map directly. Mirrors the host-port
-   * pattern the timeline (T07) and diff (T08) renderers use: the handler never
+   * pattern the timeline and diff renderers use: the handler never
    * sees the modal's protected fields directly.
    *
    * @return {FolderActionHost} The host port for the action handler
@@ -467,7 +467,7 @@ export class FolderHistoryModal extends Modal {
    * file rows by name (case-insensitive substring) through
    * {@link FolderTreeComponent.setNameFilter}; it never touches the timeline,
    * the diff, or the selection. The placeholder flows through `plugin.t` with an
-   * inline-English fallback (D13 pattern) so it reads sensibly before the key is
+   * inline-English fallback so it reads sensibly before the key is
    * propagated to every catalog.
    */
   protected renderTreeSearch(): void {
@@ -488,7 +488,7 @@ export class FolderHistoryModal extends Modal {
   }
 
   /**
-   * Builds the toolbar in the same shape the file modal uses (D10):
+   * Builds the toolbar in the same shape the file modal uses:
    * a destructive group (restore-original / remove-history) pinned to the
    * left, a constructive group (restore-selected / remove-selected /
    * label-selected) keyed on the tree-selected file at the picked timeline
@@ -741,9 +741,9 @@ export class FolderHistoryModal extends Modal {
       const closest: FileVersion | null = this.resolveVersionAtT(snapshot);
 
       /**
-       * The badge follows the version closest to T (D10): if that version was
+       * The badge follows the version closest to T: if that version was
        * captured from an external change, the tree row carries the marker so
-       * the user can spot external states without opening the diff (T20 AC3).
+       * the user can spot external states without opening the diff.
        * Ancestor folders never carry the flag; only file rows do.
        */
       entries.push({
@@ -758,7 +758,7 @@ export class FolderHistoryModal extends Modal {
 
   /**
    * Renders the diff for the currently-selected file at the currently-selected
-   * T by delegating to the {@link FolderDiffRenderer} collaborator (T08). The
+   * T by delegating to the {@link FolderDiffRenderer} collaborator. The
    * renderer reads the live containers / mode / T / selection through its host
    * port and calls back into {@link updateActionButtonStates} after each render
    * so the toolbar stays in sync.
@@ -780,7 +780,7 @@ export class FolderHistoryModal extends Modal {
 
   /**
    * Resolves the captured version of the given snapshot whose timestamp is
-   * closest to (but not after) the picked timeline point T (D10). Returns null
+   * closest to (but not after) the picked timeline point T. Returns null
    * when no version qualifies, i.e. when T precedes every captured version: the
    * caller falls back to the synthetic baseline branch in that case so the user
    * can still restore the file's earliest known content.

@@ -26,7 +26,7 @@ import { assertWithinBaseline, measure } from './harness';
 
 /**
  * Perf benches for the diff pipeline the history modal recomputes on every
- * version pick and every mode toggle, with no caching (T06). Three helpers are
+ * version pick and every mode toggle, with no caching. Three helpers are
  * gated across three file sizes x three edit shapes (27 labels total):
  * - `HunkHelper.diff`: line-level structured-patch hunks (zero context),
  * - `WordDiffHelper.lines`: the inline diff line list (line diff + pairing),
@@ -43,7 +43,7 @@ import { assertWithinBaseline, measure } from './harness';
  * Runs under jsdom (overriding the perf project's default node env via the
  * docblock above) because `DiffRenderHelper.render` produces DOM. The render
  * bench writes into a *detached* container and discards the markup: the gate
- * locks the compute, not the paint, exactly as DECISIONS notes. Each `diff.*`
+ * locks the compute, not the paint. Each `diff.*`
  * label records-only against the empty baseline and gates past the regression
  * budget once a number is recorded.
  */

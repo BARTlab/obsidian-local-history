@@ -7,10 +7,10 @@ import type { DiffRenderParams, TranslationVars } from '@/types';
 import { installJsdomDomPolyfill } from './helpers/jsdom-dom';
 
 /**
- * Tests for {@link DiffRenderHelper} (T08 / D6).
+ * Tests for {@link DiffRenderHelper}.
  *
  * The helper is the stateless DOM renderer the history modal delegates the
- * four diff modes to so the folder modal (T12) can reuse the same renderer
+ * four diff modes to so the folder modal can reuse the same renderer
  * verbatim. The tests run under jsdom and exercise each mode against a fresh
  * container, asserting on the mode-specific class markers the AC names:
  * - patch: `.lct-patch-container` with the unified-patch text and a copy button,
@@ -180,7 +180,7 @@ describe('DiffRenderHelper', () => {
     });
   });
 
-  describe('no-change hunk header (T11)', () => {
+  describe('no-change hunk header', () => {
     /**
      * Regression for the no-change branch of `buildDiff2HtmlInput` which used
      * to report char counts (`base.length`) instead of line counts in the
@@ -205,7 +205,7 @@ describe('DiffRenderHelper', () => {
     });
   });
 
-  describe('CRLF normalization on the diff surface (T11, ADR-08-G)', () => {
+  describe('CRLF normalization on the diff surface', () => {
     /**
      * `WordDiffHelper.splitLines` is the single normalization point for the
      * diff surface: a CRLF-joined block from the diff library used to leave a

@@ -13,7 +13,7 @@ import {
 import { assertWithinBaseline, measure } from './harness';
 
 /**
- * Perf benches for the FileSnapshot hot paths (T03). Each bench drives only the
+ * Perf benches for the FileSnapshot hot paths. Each bench drives only the
  * public FileSnapshot API, records a median over a fixed iteration count under a
  * `snapshot.<method>.<size>` label, and gates the median against the committed
  * baseline. Against an empty baseline the gate records-only (no throw); against

@@ -86,10 +86,10 @@ export interface FolderDiffHost {
 }
 
 /**
- * Diff-pane collaborator for the folder-history modal (T08).
+ * Diff-pane collaborator for the folder-history modal.
  *
  * Extracted from {@link FolderHistoryModal} as a plain object the modal
- * instantiates and owns (per ADR-8 / Epic 14: deep collaborators, not DI
+ * instantiates and owns (per ADR-11: deep collaborators, not DI
  * services). It owns the right-hand diff pane: rendering the per-file delta at
  * the selected timeline point T through the shared {@link DiffRenderHelper},
  * the above-diff notice (added / deleted / unchanged / no-file hints), and the
@@ -175,7 +175,7 @@ export class FolderDiffRenderer {
   /**
    * Picks the inline-English notice text for the selected file's status, or
    * null when no banner is needed (status `'modified'` reads on its own).
-   * The literal strings are propagated across every catalog in T15.
+   * The literal strings are propagated across every catalog.
    *
    * @param {FolderDeltaResult | null} result - The compareAt result
    * @return {string | null} The notice text or null when the banner is hidden

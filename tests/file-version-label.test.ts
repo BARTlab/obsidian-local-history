@@ -4,7 +4,7 @@ import { FileVersion } from '@/snapshots/file.version';
 import type { SerializedFileVersion, SnapshotCaptureOptions } from '@/types';
 
 /**
- * Tests for the optional user-supplied label on FileVersion (T01). A label
+ * Tests for the optional user-supplied label on FileVersion. A label
  * pins a version: it round-trips through toJSON/fromJSON, it bypasses the
  * captureVersion no-op dedup so the marker is always recorded, and it
  * survives both eviction passes (age and count) regardless of how old the

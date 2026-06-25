@@ -7,7 +7,7 @@ import type { FolderTreeEntry } from '@/types';
 import { installJsdomDomPolyfill } from './helpers/jsdom-dom';
 
 /**
- * Tests for {@link FolderTreeComponent} (T11 / D9).
+ * Tests for {@link FolderTreeComponent}.
  *
  * The component renders the per-folder "changes since T" tree in the middle
  * column of the folder modal. The tests run under jsdom and exercise the AC

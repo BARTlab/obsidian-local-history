@@ -3,7 +3,7 @@ import { NavigationDirection } from '@/consts';
 import { NavigationHelper } from '@/helpers/navigation.helper';
 
 /**
- * Tests for the history modal next/previous difference navigation (T08). The
+ * Tests for the history modal next/previous difference navigation. The
  * modal steps between diff hunks by reusing the same pure
  * NavigationHelper.target the editor change-navigation commands use, fed the
  * hunk indices (0..count-1) as the "changed lines" and the currently focused

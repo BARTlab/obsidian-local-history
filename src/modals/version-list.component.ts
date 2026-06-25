@@ -62,7 +62,7 @@ export interface VersionListHost {
   hideIdenticalVersions(): boolean;
 
   /**
-   * The optional selection filter ids (T09/D7): when present the rail only
+   * The optional selection filter ids: when present the rail only
    * shows versions in the set, or collapses to its no-results hint on an empty
    * set. `undefined` disables the filter.
    *
@@ -111,10 +111,10 @@ type RailEntry = {
 };
 
 /**
- * Version-list collaborator for the history modal (T04).
+ * Version-list collaborator for the history modal.
  *
  * Extracted from {@link HistoryModal} as a plain object the modal instantiates
- * and owns (per ADR-8 / Epic 14: deep collaborators, not DI services). It owns
+ * and owns (per ADR-11: deep collaborators, not DI services). It owns
  * the left-rail timeline: building the visible version set (search +
  * hide-identical + selection filters), rendering the grouped, selectable rows
  * with their external badges, walking the selection with the keyboard, and
@@ -163,7 +163,7 @@ export class VersionList {
       }
 
       /**
-       * When a selection filter is active (T09/D7) the rail only shows versions
+       * When a selection filter is active the rail only shows versions
        * whose neighbour-diff touched the selection. An empty set means the
        * filter is active but matched nothing, so the rail collapses to its
        * no-results hint without us short-circuiting the visibility logic.
@@ -245,7 +245,7 @@ export class VersionList {
 
   /**
    * Returns the primary label shown for a captured version: the user's custom
-   * label when present (D1), otherwise the derived action text translated from
+   * label when present, otherwise the derived action text translated from
    * VersionLabelHelper.describe against the version's previous neighbour. For
    * the oldest version on the timeline the previous neighbour is the history
    * baseline.
@@ -409,7 +409,7 @@ export class VersionList {
   /**
    * Builds a single selectable version list entry config.
    * The active entry carries a highlight class; clicking selects that base. A
-   * version captured from an external change (D13, T18) renders a small badge
+   * version captured from an external change renders a small badge
    * next to the primary label so the user can tell external states apart from
    * editor edits without opening the diff.
    *

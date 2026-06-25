@@ -129,7 +129,7 @@ describe('WorkspaceFilesMenuEvent', () => {
     expect(menu.addItem).toHaveBeenCalledTimes(1);
     expect(menu.items[0].title).toBe('menu.local-history');
 
-    // The submenu attached to the parent receives three entries (D11).
+    // The submenu attached to the parent receives three entries.
     const submenu = menu.children[0];
     const titles: string[] = submenu.items.map((i: RecordedItem): string => i.title);
     expect(titles).toEqual([

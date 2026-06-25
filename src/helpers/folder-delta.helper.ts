@@ -8,7 +8,7 @@ export { FolderDeltaStatus } from '@/consts';
 
 /**
  * Pure helper that resolves the per-file delta from a chosen folder-timeline
- * point T to "now" (D8). Used by the folder modal tree to colour each file by
+ * point T to "now". Used by the folder modal tree to colour each file by
  * its status relative to T, and to feed the diff renderer when a file is
  * selected in that tree.
  *
@@ -217,7 +217,7 @@ export class FolderDeltaHelper {
     /**
      * No version captured at or before T: the persisted history baseline is
      * the file's earliest known content from the modal's point of view (see
-     * FileSnapshot.adoptHistory / D2 on the marker vs. history baseline split).
+     * FileSnapshot.adoptHistory on the marker vs. history baseline split).
      */
     return Array.isArray(snapshot.historyLines) ? [...snapshot.historyLines] : [];
   }

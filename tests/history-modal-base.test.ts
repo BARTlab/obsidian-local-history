@@ -3,13 +3,13 @@ import { BaseContentHelper } from '@/helpers/base-content.helper';
 import type { BaseContentSnapshot } from '@/types';
 
 /**
- * Tests for the history modal diff-base resolution (T01 / D1). They drive
+ * Tests for the history modal diff-base resolution. They drive
  * BaseContentHelper.resolve directly, which is the pure unit the modal's
  * getBaseContent delegates to when picking the content the current state is
  * diffed against. The full modal renders inside an Obsidian Modal and needs the
  * DOM, so the headless-testable core is this branch selection.
  *
- * The guarantees under test mirror D1:
+ * The guarantees under test:
  * - the synthetic baseline entry diffs against the LATEST snapshot
  *   (getVersions()[0], newest first), not the original,
  * - with no snapshot it falls back to the original and never throws,

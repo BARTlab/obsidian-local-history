@@ -10,7 +10,7 @@ import type LineChangeTrackerPlugin from '@/main';
 import type { FolderTimelinePoint } from '@/types';
 
 /**
- * Tests for {@link FolderTimelineRenderer} (T07), the left-rail timeline
+ * Tests for {@link FolderTimelineRenderer}, the left-rail timeline
  * collaborator the folder-history modal owns. Extracted from the 1416-LOC modal,
  * where the rail grouping, the external-badge derivation, and the click-to-pin
  * were untestable; these run under jsdom and cover the behaviour the rail relies

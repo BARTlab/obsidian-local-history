@@ -523,7 +523,7 @@ export class TrackerLine {
     const tracker: TrackerLine = new TrackerLine();
 
     /**
-     * Defensive deserialization (ADR-08-B): each numeric field is coerced via
+     * Defensive deserialization: each numeric field is coerced via
      * `isNumber` (so a non-number from a corrupt history.json falls back to the
      * field's safe default, e.g. -1), and content/hash strings are guarded so
      * `change()` / `contentHashed` keep their invariants. Booleans default to

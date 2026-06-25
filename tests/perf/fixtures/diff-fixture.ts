@@ -1,5 +1,5 @@
 /**
- * Code-generated fixtures for the diff-pipeline benches (T06). They build
+ * Code-generated fixtures for the diff-pipeline benches. They build
  * `baseLines` / `currentLines` pairs that drive `HunkHelper.diff`,
  * `WordDiffHelper.lines`, and `DiffRenderHelper.render` exactly as the history
  * modal does on a version pick or a mode toggle.

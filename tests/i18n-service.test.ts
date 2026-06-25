@@ -4,12 +4,12 @@ import { I18nService, OBSIDIAN_LANGUAGES } from '@/services/i18n.service';
 import type { TranslationCatalogs } from '@/types';
 
 /**
- * Tests for the localization infrastructure (T11). They cover the pure
+ * Tests for the localization infrastructure. They cover the pure
  * resolution and interpolation logic directly and the I18nService instance
  * behaviour (active-language lookup, per-key English fallback, the dev-only
  * missing-key warning, and placeholder interpolation) without an Obsidian app.
  * The catalogs are passed as fixtures so the test does not depend on the bundled
- * lang/*.json files, which a later task ships (T12).
+ * lang/*.json files, which a later task ships.
  */
 
 type PluginArg = ConstructorParameters<typeof I18nService>[0];
@@ -252,7 +252,7 @@ describe('I18nService.resolveCatalogLanguage', () => {
 });
 
 describe('every Obsidian language resolves without error', () => {
-  // T13: any code Obsidian can set must resolve a catalog (its own when bundled,
+  // Any code Obsidian can set must resolve a catalog (its own when bundled,
   // otherwise the English fallback) and never surface a raw key or throw.
   it.each(OBSIDIAN_LANGUAGES)('resolves a real string for %s', (language: string) => {
     const result = makeService(language).t('modal.restore');

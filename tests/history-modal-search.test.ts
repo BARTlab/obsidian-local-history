@@ -3,7 +3,7 @@ import { VersionSearchHelper } from '@/helpers/version-search.helper';
 import type { SearchableVersion } from '@/types';
 
 /**
- * Tests for the version-rail content search (T06). They drive
+ * Tests for the version-rail content search. They drive
  * VersionSearchHelper.match directly on a list of {id, content} versions and a
  * query, which is the pure unit the history modal's left rail delegates to when
  * filtering the timeline. The guarantees under test are:

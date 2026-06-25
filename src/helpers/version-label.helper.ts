@@ -8,7 +8,7 @@ import type { TranslationVars, VersionDescription } from '@/types';
  * content compared to the previous point on the timeline.
  *
  * The description is computed at render time rather than persisted on the
- * version (D1): the action is fully derivable from content the snapshot already
+ * version: the action is fully derivable from content the snapshot already
  * stores, so it cannot rot when neighbours move. The helper has no Obsidian or
  * DOM dependency and is unit-testable directly.
  *

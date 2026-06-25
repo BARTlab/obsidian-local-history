@@ -15,7 +15,7 @@ import type { App, TFile } from 'obsidian';
 import { makeFile } from './helpers/builders';
 
 /**
- * Tests for {@link FolderActionHandler} (T09), the toolbar-action collaborator
+ * Tests for {@link FolderActionHandler}, the toolbar-action collaborator
  * the folder-history modal owns. Extracted from the 1416-LOC modal, where the
  * five async actions were tangled with the rendering; these cover the dispatch
  * behaviour each action relies on:

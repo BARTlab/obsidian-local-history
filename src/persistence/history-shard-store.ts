@@ -6,7 +6,7 @@ import type { SerializedFileSnapshot, SerializedShard } from '@/types';
 /**
  * One enumerated shard: its on-disk filename (the read-time index key) paired
  * with the parsed, validated payload. `readAll` returns these so the caller can
- * seed its in-memory path-to-shard index (Epic 10, T06) without re-listing.
+ * seed its in-memory path-to-shard index without re-listing.
  */
 export interface LoadedShard {
   name: string;
@@ -15,7 +15,7 @@ export interface LoadedShard {
 
 /**
  * Stateless IO collaborator that owns the on-disk history shard directory
- * (Epic 10, ADR-10). It relocates the atomic `tmp -> bak -> rename` write that
+ * (ADR-10). It relocates the atomic `tmp -> bak -> rename` write that
  * the monolithic `history.json` used (`PersistenceService.saveToDisk`) down to
  * per-shard scope, so a crash mid-write loses at most one note's shard and never
  * a truncated file.
@@ -23,7 +23,7 @@ export interface LoadedShard {
  * The store holds no snapshot state and runs no debounce, queue, or retention:
  * those policies stay in {@link PersistenceService}, which serializes calls
  * through its own write queue. The store only knows the adapter and the resolved
- * shard directory path, mirroring the stateless-operator split of ADR-08.
+ * shard directory path, mirroring the stateless-operator split of ADR-8.
  */
 export class HistoryShardStore {
   /**
@@ -104,7 +104,7 @@ export class HistoryShardStore {
 
   /**
    * Reads every shard back into memory by enumerating the shard directory, which
-   * is the source of truth (Epic 10, ADR-10): there is no manifest, so a missing
+   * is the source of truth (ADR-10): there is no manifest, so a missing
    * shard simply is not listed and a corrupt one degrades exactly one note. Each
    * base name is recovered through {@link readShard}'s `.json -> .bak -> .tmp`
    * fallback, so a crash between the write's rename steps never loses a note.
@@ -171,7 +171,7 @@ export class HistoryShardStore {
 
   /**
    * Removes one shard by base name, deleting its `<name>`, `<name>.bak`, and
-   * `<name>.tmp` variants if present. Used by the policy layer (Epic 10, T07/T14)
+   * `<name>.tmp` variants if present. Used by the policy layer
    * to evict a shard whose snapshot fell out of retention's kept set. Best-effort
    * and idempotent: a missing variant is fine and a per-variant failure is logged,
    * not thrown, so reconciling the index against disk can never abort on one
@@ -196,7 +196,7 @@ export class HistoryShardStore {
 
   /**
    * Wipes the whole shard directory, used when persistence is disabled or there
-   * is nothing left to keep (Epic 10, T08). Mirrors the monolith's `clearDisk`
+   * is nothing left to keep. Mirrors the monolith's `clearDisk`
    * (`PersistenceService`) at directory scope: remove the dir recursively if it
    * exists, swallowing and logging any failure rather than throwing, so disabling
    * persistence never surfaces an error to the caller.
@@ -215,7 +215,7 @@ export class HistoryShardStore {
 
   /**
    * Lists the base shard names currently on disk, derived from the directory
-   * enumeration (the source of truth, Epic 10, ADR-10) the same way {@link readAll}
+   * enumeration (the source of truth, ADR-10) the same way {@link readAll}
    * does, so an orphan `.bak`/`.tmp` maps back to its primary name and is reported
    * once. Lets the policy layer reconcile its in-memory path-to-shard index
    * against disk without reading shard contents. An absent directory yields an
@@ -292,7 +292,7 @@ export class HistoryShardStore {
    * numeric `version` and a `snapshot` whose minimal shape (path string, finite
    * timestamp, `lines`/`tracker` arrays) survives retention math and reaches
    * `FileSnapshot.fromJSON` without resurrecting junk. This mirrors the
-   * per-entry predicate that the monolithic `readDisk` applied (ADR-08-B), now
+   * per-entry predicate that the monolithic `readDisk` applied, now
    * at shard granularity.
    *
    * @param {unknown} value - The parsed shard candidate.

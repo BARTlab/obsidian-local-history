@@ -10,25 +10,24 @@ import type { Editor, MarkdownView, Menu, MenuItem } from 'obsidian';
 /**
  * Event handler for Obsidian's editor menu event.
  *
- * Adds a "Local history" PhpStorm-style submenu (D2/T14) to the editor's
+ * Adds a "Local history" PhpStorm-style submenu to the editor's
  * context menu with four entries:
  *
  * 1. Show History: opens the full history modal (rail visible).
  * 2. Show History for Selection: opens the modal pre-filtered to versions where
  *    the editor selection was added or removed at that point on the timeline.
  *    With an empty selection ModalsService.diffForSelection falls back to the
- *    plain Show History modal (T09), so the entry is always live and never a
+ *    plain Show History modal, so the entry is always live and never a
  *    dead handler.
  * 3. Put label: prompts for a label and captures a pinned labeled version of
  *    the active file's current content via VersionActionsService.
  * 4. Recent changes: reveals the right-sidebar Recent changes panel.
  *
- * The "Show changes" gutter toggle lives in the viewport (gutter) menu (epic 03
- * D3) and is intentionally NOT mirrored here (D9): scope is the editor context
- * menu only.
+ * The "Show changes" gutter toggle lives in the viewport (gutter) menu and is
+ * intentionally NOT mirrored here: scope is the editor context menu only.
  *
  * Submenu titles resolve through `plugin.t('menu.local-history.*')` against
- * every bundled catalog (T15); a non-English catalog without a translation
+ * every bundled catalog; a non-English catalog without a translation
  * falls back to the English string via the i18n service's standard fallback
  * so the parity guard stays intact and no surface degrades to a raw key.
  *
@@ -50,7 +49,7 @@ export class WorkspaceEditorMenuEvent extends BaseEvent {
 
   /**
    * Handles the editor menu event by adding the "Local history" parent item
-   * whose submenu carries the four PhpStorm-style entries (D2).
+   * whose submenu carries the four PhpStorm-style entries.
    *
    * @param {Menu} menu - The menu to add items to
    * @param {Editor} editor - The active editor (used for the current selection)

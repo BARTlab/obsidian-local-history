@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { PathExcludeHelper } from '@/helpers/path-exclude.helper';
 
 /**
- * Tests for the path exclude matcher (D1/C3). They drive the pure
+ * Tests for the path exclude matcher. They drive the pure
  * PathExcludeHelper directly: the trackable decision in SnapshotsService calls
  * it to keep excluded paths (templates, daily notes, generated files) from ever
  * getting a snapshot. The exclude rule is now a LIST of case-insensitive regular
@@ -117,7 +117,7 @@ describe('PathExcludeHelper.isExcluded', () => {
   });
 });
 
-describe('PathExcludeHelper compile cache (T18/C3)', () => {
+describe('PathExcludeHelper compile cache', () => {
   type CacheView = { cache: Map<string, RegExp | null> };
 
   const clearCache = (): void => {

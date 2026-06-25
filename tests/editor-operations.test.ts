@@ -8,7 +8,7 @@ import type { TFile } from 'obsidian';
 import { makeFile } from './helpers/builders';
 
 /**
- * Tests for {@link EditorOperations} (T12), the out-of-editor file-write
+ * Tests for {@link EditorOperations}, the out-of-editor file-write
  * collaborator the snapshots service owns. Extracted from the 1103-LOC service,
  * where the single `applyContent` write path was tangled with the snapshot CRUD;
  * these cover the behaviour the per-hunk revert relies on:

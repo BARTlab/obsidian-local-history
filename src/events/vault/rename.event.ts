@@ -9,7 +9,7 @@ import { type TAbstractFile, TFile } from 'obsidian';
 
 /**
  * Event handler for Obsidian's vault rename event.
- * Branches by whether the rename changed the file's directory (epic 05 D2/D3):
+ * Branches by whether the rename changed the file's directory:
  * - in-place rename (same directory) is a pure re-key via `rename`.
  * - cross-directory rename (move) leaves a tombstone at the old path and
  *   re-keys the live snapshot to the new path via `markMoved`.

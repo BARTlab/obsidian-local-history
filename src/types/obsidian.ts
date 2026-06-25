@@ -172,7 +172,7 @@ export interface MenuItemWithSubmenu extends MenuItem {
 
 /**
  * One row in Obsidian's native file explorer, as exposed on the undocumented
- * `view.fileItems` map keyed by vault-relative path (D8). `selfEl` is the row's
+ * `view.fileItems` map keyed by vault-relative path. `selfEl` is the row's
  * outer `.nav-file-title` / `.nav-folder-title` element the decorator tints, and
  * `titleEl` is the inner label node. Both are optional because these are core
  * internals that may move across versions, so every access stays defensive and
@@ -192,7 +192,7 @@ export interface NativeFileExplorerItem {
 }
 
 /**
- * The undocumented shape of Obsidian's file-explorer view (D8). `fileItems` maps
+ * The undocumented shape of Obsidian's file-explorer view. `fileItems` maps
  * each vault-relative path to its rendered {@link NativeFileExplorerItem}; only
  * lazily-rendered (expanded) rows are present, so a missing entry means the row
  * is not currently in the DOM. Reached through a local augmentation here instead
@@ -206,7 +206,7 @@ export interface NativeFileExplorerView {
 }
 
 /**
- * The undocumented tab-header slice of an Obsidian `WorkspaceLeaf` (D8).
+ * The undocumented tab-header slice of an Obsidian `WorkspaceLeaf`.
  * `tabHeaderEl` is the `.workspace-tab-header` element rendered for the leaf in
  * its tab bar, the node the decorator tints by its open file's session status.
  * It is optional because it is a core internal that may move across versions, so

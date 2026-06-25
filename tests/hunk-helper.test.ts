@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { HunkHelper } from '@/helpers/hunk.helper';
 
 /**
- * Tests for the per-hunk revert logic (T5.3). They drive HunkHelper directly on
+ * Tests for the per-hunk revert logic. They drive HunkHelper directly on
  * arrays of lines, which is the unit the history modal delegates to when a user
  * reverts a single hunk. The core guarantees under test are:
  * - reverting one hunk restores exactly that block to the base, and

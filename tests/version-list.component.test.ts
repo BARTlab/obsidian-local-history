@@ -9,7 +9,7 @@ import { FileVersion } from '@/snapshots/file.version';
 import type LineChangeTrackerPlugin from '@/main';
 
 /**
- * Tests for {@link VersionList} (T04), the left-rail version-list collaborator
+ * Tests for {@link VersionList}, the left-rail version-list collaborator
  * the history modal owns. Extracted from the 2246-LOC modal, where the visible
  * set, the keyboard selection, the label/delta derivation, and the rail render
  * were untestable; these run under jsdom and cover the behaviour the rail

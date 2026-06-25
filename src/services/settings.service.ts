@@ -52,7 +52,7 @@ export class SettingsService implements Service {
    * (C3) before the settings merge runs. Historic installs stored it as a single
    * regular-expression string; this shim wraps that legacy string in a one-element
    * array so its exact matching semantics are preserved (splitting on `|` would
-   * shatter a grouped alternation, see DECISIONS.md ADR-18-23). A blank or
+   * shatter a grouped alternation). A blank or
    * whitespace-only legacy string is dropped so the empty-array default applies.
    * An already-array value is passed through untouched (idempotent). Any non-object
    * payload (null, primitive) is returned unchanged for the merge to handle.

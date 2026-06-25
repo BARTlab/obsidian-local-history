@@ -7,7 +7,7 @@ import type { DiffViewStateHost } from '@/modals/diff-view-state';
 import type * as Diff from 'diff';
 
 /**
- * Tests for {@link DiffViewState} (T06), the diff-view-state collaborator the
+ * Tests for {@link DiffViewState}, the diff-view-state collaborator the
  * history modal owns. Extracted from the 2246-LOC modal, where the mode/nav
  * state was untestable; these run under jsdom and cover the behaviour the
  * toolbar relies on:

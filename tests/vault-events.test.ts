@@ -143,7 +143,7 @@ describe('VaultRenameEvent', () => {
 
 describe('VaultModifyEvent', () => {
   it('routes a tracked file modify to scheduleExternalCapture (debounced)', () => {
-    // ADR-08-E: the handler hands off to the debounced/in-flight-guarded
+    // the handler hands off to the debounced/in-flight-guarded
     // scheduler so a burst of modify events for the same file collapses
     // into one capture instead of N redundant disk reads + hashes.
     const service = makeSnapshotsServiceMock();
@@ -228,7 +228,7 @@ describe('VaultCreateEvent', () => {
     expect(snapshots.addToIgnoreList).not.toHaveBeenCalled();
   });
 
-  it('stamps createdThisSession on the captured snapshot (epic 11, D4)', async () => {
+  it('stamps createdThisSession on the captured snapshot', async () => {
     const snapshot: FileSnapshot = { createdThisSession: false } as FileSnapshot;
     const { event, snapshots } = makeCreateContext(false, snapshot);
     const file: TFile = makeFile('notes/sub/new.md');
@@ -260,7 +260,7 @@ describe('VaultCreateEvent', () => {
     expect(snapshots.capture).not.toHaveBeenCalled();
   });
 
-  it('records the created path even when ignoreNewFiles is on (epic 11)', () => {
+  it('records the created path even when ignoreNewFiles is on', () => {
     const { event, snapshots } = makeCreateContext(true);
     const file: TFile = makeFile('notes/sub/fresh.md');
 
@@ -293,7 +293,7 @@ describe('WorkspaceLayoutChangeEvent', () => {
    * an ignore list, and a workspace-opened-file set. The mock service mirrors
    * just enough of SnapshotsService for the handler to drive its three passes,
    * and records the order of every mutating call so the test can assert that
-   * no mutation happens during iteration (ADR-08-E adjacent, T10).
+   * no mutation happens during iteration.
    */
   const makeLayoutContext = (params: {
     snapshots: FileSnapshot[];

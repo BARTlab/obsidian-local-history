@@ -7,7 +7,7 @@ export { FolderTimelinePointKind } from '@/consts';
 
 /**
  * Pure helper that synthesises a folder-level history timeline from the per-file
- * snapshots living under a folder root (D7). The plugin never persists folder
+ * snapshots living under a folder root. The plugin never persists folder
  * events; instead every fact the folder modal needs is derived on demand from
  * the snapshots in the {@link SnapshotsService} map:
  *
@@ -119,7 +119,7 @@ export class FolderTimelineHelper {
   /**
    * Resolves the vault-relative path of a snapshot. Prefers the attached
    * `file.path` (live snapshots own a `TFile`), and falls back to the
-   * snapshot's carried `path` (epic 12), which mirrors the canonical map key in
+   * snapshot's carried `path`, which mirrors the canonical map key in
    * `SnapshotsService.fileSnapshots`. The fallback is what keeps a restored
    * snapshot whose `file` did not resolve (restore miss, detached tombstone or
    * orphan) on the timeline after a reload, instead of being dropped by an empty

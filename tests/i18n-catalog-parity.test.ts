@@ -4,14 +4,14 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 /**
- * Guards the shipped translation catalogs (T12). Every language must expose the
+ * Guards the shipped translation catalogs. Every language must expose the
  * exact same set of keys as English (the universal fallback) and must not carry
  * an empty value, so no UI surface silently degrades to the English fallback or
  * to a blank string in a translated language. English is the reference set
  * because it is the catalog every key is guaranteed to exist in.
  *
  * Catalogs are discovered automatically via fs.readdirSync so any new lang/*.json
- * file is included without a manual test edit (T17).
+ * file is included without a manual test edit.
  */
 
 type Catalog = Record<string, string>;

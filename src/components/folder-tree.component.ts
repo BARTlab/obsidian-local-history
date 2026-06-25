@@ -13,12 +13,12 @@ import { setIcon } from 'obsidian';
 
 /**
  * Component that renders the per-folder "changes since T" tree shown in the
- * middle column of `FolderHistoryModal` (D9, D10). The component is mount /
+ * middle column of `FolderHistoryModal`. The component is mount /
  * update / dispose lifecycle-driven so the parent modal can re-render the tree
  * on every timeline-point pick without recreating the component (which would
  * otherwise drop the expand/collapse state the user just set).
  *
- * Rendering rules (D9):
+ * Rendering rules:
  * - Only files whose status from `FolderDeltaHelper.compareAt` is one of
  *   `added | modified | deleted` are shown. Other entries are dropped silently
  *   so the call-site can hand over every snapshot in the subtree without
@@ -128,7 +128,7 @@ export class FolderTreeComponent {
     /**
      * Reset selection when the previous file is no longer present so the diff
      * pane never points at a row that does not exist anymore. The first file
-     * in render order is the natural fallback; AC3 of T12 also defaults to it.
+     * in render order is the natural fallback.
      */
     if (this.selectedPath !== null && !this.containsFile(this.rootNode, this.selectedPath)) {
       this.selectedPath = null;
@@ -209,7 +209,7 @@ export class FolderTreeComponent {
 
   /**
    * Builds an in-memory tree from the changed-file entries. Entries whose
-   * status is `'none'` are skipped (D9: only changed files render). Paths
+   * status is `'none'` are skipped (only changed files render). Paths
    * outside the root are skipped too, matching `FolderTimelineHelper`'s prefix
    * semantics so the component is robust to a caller passing the whole map.
    *
@@ -471,7 +471,7 @@ export class FolderTreeComponent {
   /**
    * Renders the empty-state hint when the tree contains no changed files. The
    * text flows through `plugin.t('folder-tree.empty')` so every bundled catalog
-   * carries it (T15). Unit tests that mount the component without a translator
+   * carries it. Unit tests that mount the component without a translator
    * see the bare key (the inert translator path), which is acceptable for an
    * assertion that the empty branch was rendered.
    *
@@ -651,12 +651,11 @@ export class FolderTreeComponent {
   }
 
   /**
-   * Renders the inline external-change badge on a file row (D13, T20): a
+   * Renders the inline external-change badge on a file row: a
    * Lucide `download-cloud` glyph plus a short text label, marked with an
    * `aria-label` so assistive tech announces the badge. The text is an inline
-   * English literal here and is propagated to every catalog in T15 (D13
-   * pattern); until then it shows in English on every locale even when the
-   * translator is wired, matching the rest of the folder modal's inline
+   * English literal here and is propagated to every catalog; until then it
+   * shows in English on every locale even when the translator is wired, matching the rest of the folder modal's inline
    * literals (see FolderHistoryModal.kindLabel).
    *
    * @param {HTMLElement} row - The file row to append the badge to
@@ -674,7 +673,10 @@ export class FolderTreeComponent {
     const badge: HTMLElement = DomHelper.create({
       tag: 'span',
       classes: 'lct-version-external-badge',
-      attributes: { 'aria-label': text, 'title': text },
+      // `aria-label` only (no `title`): Obsidian renders its own styled tooltip
+      // for `[aria-label]` elements, while `title` adds the unstyled native
+      // browser tooltip on top.
+      attributes: { 'aria-label': text },
       container: row,
     });
 
@@ -696,7 +698,7 @@ export class FolderTreeComponent {
 
   /**
    * Maps the delta status to its row class. The three statuses are stable
-   * tokens the modal CSS hooks into (T14); rows with status `'none'` never
+   * tokens the modal CSS hooks into; rows with status `'none'` never
    * reach this code path because they are filtered in {@link build}.
    *
    * @param {FolderDeltaStatus} status - The per-file delta status

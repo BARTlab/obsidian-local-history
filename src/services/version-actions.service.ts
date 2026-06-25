@@ -13,9 +13,9 @@ import type { TFile } from 'obsidian';
 /**
  * Shared owner of restore/remove/put-label actions on a file's version timeline.
  *
- * Both the history modal and the upcoming recent-changes panel (D3) need the
+ * Both the history modal and the upcoming recent-changes panel need the
  * same three operations against a {@link FileSnapshot}; routing them through one
- * service is the single implementation D5 requires, so behaviour cannot drift
+ * service is the single shared implementation, so behaviour cannot drift
  * between surfaces. The service stays Obsidian-DOM-free: callers handle the
  * confirmation prompts and the visual refresh, and this layer mutates the model
  * plus the vault file through the existing {@link SnapshotsService} primitives.
@@ -35,7 +35,7 @@ export class VersionActionsService implements Service {
    * Settings service the put-label path consults to pass the same retention
    * caps to captureVersion that the change-detector uses, so eviction stays
    * consistent across capture sources. The cadence gates (interval/edit count)
-   * do not apply because a labeled capture forces (D6).
+   * do not apply because a labeled capture forces.
    */
   @Inject(TOKENS.settings)
   protected settingsService!: SettingsService;
@@ -144,10 +144,10 @@ export class VersionActionsService implements Service {
    * Captures a pinned, labeled version of the file's current content. The label
    * is trimmed of surrounding whitespace; an empty result is a no-op so a
    * cancel-equivalent input does not pollute the timeline. The capture forces
-   * past the cadence gates and the duplicate-skip (D6), so an intentional marker
+   * past the cadence gates and the duplicate-skip, so an intentional marker
    * always lands even when nothing has changed since the latest version. The
    * snapshot's existing retention caps still apply, but labeled entries are
-   * pinned against eviction (D6/D10).
+   * pinned against eviction.
    *
    * @param {TFile | null} file - The file to label
    * @param {string} label - The user-supplied tag
@@ -162,7 +162,7 @@ export class VersionActionsService implements Service {
     }
 
     /**
-     * A labeled capture is an intentional marker (D6), so the cadence "enabled"
+     * A labeled capture is an intentional marker, so the cadence "enabled"
      * gate is forced on regardless of the user's snapshots setting: a user can
      * turn off automatic capture but still pin a deliberate point. The retention
      * caps stay as configured; labeled versions are pinned against eviction.
@@ -183,7 +183,7 @@ export class VersionActionsService implements Service {
 
   /**
    * Sets a custom label on an EXISTING captured version, turning that version
-   * into a pinned marker in place (D1/D6). This is distinct from
+   * into a pinned marker in place. This is distinct from
    * {@link putLabel}, which pins the file's CURRENT content as a NEW version:
    * here the label lands on the version the caller picked (a panel row, or the
    * modal's selected base), so the marker tags the slice the user pointed at

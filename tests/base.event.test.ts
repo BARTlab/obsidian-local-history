@@ -9,7 +9,7 @@ import { flushMicrotasks } from './helpers/async-utils';
 
 /**
  * Captures the callback registered with a fake Obsidian trigger so the test can
- * dispatch events through the wrapping introduced by T07. The trigger imitates
+ * dispatch events through the registration wrapping. The trigger imitates
  * the surface BaseEvent.register() reaches: only `on(name, callback, context)`
  * matters here. Returning a sentinel keeps the EventRef contract.
  */

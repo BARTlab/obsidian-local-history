@@ -19,7 +19,7 @@ const isUnderFolder: IsUnderFolderFn = (
   ModalsService.prototype as unknown as { isUnderFolder: IsUnderFolderFn }
 ).isUnderFolder;
 
-describe('ModalsService.isUnderFolder - path resolution (epic 12)', () => {
+describe('ModalsService.isUnderFolder - path resolution', () => {
   it('places a live snapshot under its folder by file.path', () => {
     const snapshot: FileSnapshot = new FileSnapshot('a\nb', '\n', makeFile('folder/sub/note.md'));
 
@@ -63,7 +63,7 @@ describe('ModalsService.isUnderFolder - path resolution (epic 12)', () => {
   });
 });
 
-describe('FileSnapshot path persistence (epic 12)', () => {
+describe('FileSnapshot path persistence', () => {
   it('seeds path from file.path on construction', () => {
     const snapshot: FileSnapshot = new FileSnapshot('a', '\n', makeFile('folder/note.md'));
 

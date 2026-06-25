@@ -30,7 +30,7 @@ export interface FolderTreeNode {
    */
   status?: FolderDeltaStatus;
   /**
-   * Whether the file's delta point at T is an external-change capture (T20).
+   * Whether the file's delta point at T is an external-change capture.
    */
   external?: boolean;
   /**
@@ -67,7 +67,7 @@ export interface FolderToolbarButtonConfig {
 
 /**
  * Result of comparing a snapshot's state at a chosen timeline point T to its
- * current state (D8). `base` is the resolved content at T (an empty array means
+ * current state. `base` is the resolved content at T (an empty array means
  * "did not exist at T"); `current` is the resolved live content (an empty array
  * means "does not exist now"); `status` is the categorical diff used by the
  * folder tree colouring.
@@ -108,7 +108,7 @@ export interface FolderTimelinePoint {
  * for the selected timeline point T.
  *
  * The component only renders rows whose status is `added | modified | deleted`
- * (D9). Entries with status `'none'` are accepted to keep the call-site simple
+ *. Entries with status `'none'` are accepted to keep the call-site simple
  * (the caller can pass every snapshot in the subtree) but are filtered out
  * before rendering so the tree shows only the files that actually changed.
  */
@@ -117,7 +117,7 @@ export interface FolderTreeEntry {
   status: FolderDeltaStatus;
   /**
    * Optional flag set when the file's latest delta point at the picked T is an
-   * external-change capture (D13, T20). The component renders a small badge on
+   * external-change capture. The component renders a small badge on
    * the file row when true so the user can spot external states without
    * leaving the tree (AC3). The field is optional so unit tests and earlier
    * callers can keep ignoring it; the rendered tree only depends on it for the

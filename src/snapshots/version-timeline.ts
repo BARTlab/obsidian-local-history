@@ -36,7 +36,7 @@ export class VersionTimeline {
    * always has the live state available separately. A no-op capture is skipped:
    * when the content to freeze equals the most recent stored version (or the
    * history baseline when none exist), no version is pushed. A label-carrying
-   * capture is treated as a pinned marker (D6): it bypasses the duplicate-skip so
+   * capture is treated as a pinned marker: it bypasses the duplicate-skip so
    * the user-supplied tag is always recorded, and the resulting version is exempt
    * from eviction.
    *
@@ -159,7 +159,7 @@ export class VersionTimeline {
    * disables that dimension. Because versions are appended oldest-first, both
    * passes evict from the front of the array.
    *
-   * Labeled versions are pinned (D6): they are never dropped by either pass, so
+   * Labeled versions are pinned: they are never dropped by either pass, so
    * an intentional user marker survives both the age window and the count cap.
    * The count cap counts only unlabeled entries, so a labeled version does not
    * push an unlabeled one out either.
@@ -261,7 +261,7 @@ export class VersionTimeline {
 
   /**
    * Seeds the time-gate counter on restore so the cadence is continuous across
-   * restarts (ADR-08, T15). Without this the constructor-seeded `lastVersionAt`
+   * restarts. Without this the constructor-seeded `lastVersionAt`
    * (set to `Date.now()` at restore time) would reset the time gate on every
    * launch, so a file that already had a version captured an hour before the
    * restart would not be eligible for the next time-gated capture until the

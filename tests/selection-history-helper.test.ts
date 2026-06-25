@@ -3,7 +3,7 @@ import { SelectionHistoryHelper } from '@/helpers/selection-history.helper';
 import type { SelectableVersion } from '@/types';
 
 /**
- * Tests for the pure SelectionHistoryHelper (T08). The helper inspects each
+ * Tests for the pure SelectionHistoryHelper. The helper inspects each
  * version's diff against its previous neighbour (the history baseline for the
  * oldest entry) and returns the ids whose added or removed lines contain the
  * selection text. The three acceptance items map to: addition match, removal

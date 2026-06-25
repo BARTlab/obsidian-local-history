@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 
 /**
- * Tests for {@link PropertyDecoratorService} (T09, epic 16).
+ * Tests for {@link PropertyDecoratorService}.
  *
  * These tests exercise the decoration and ghost-row logic directly via a thin
  * test subclass that exposes the protected `decorate` and `injectGhosts` methods.

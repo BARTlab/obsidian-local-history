@@ -5,7 +5,7 @@ import { WORD_DIFF_LENGTH_THRESHOLD, WORD_DIFF_PAIRING_THRESHOLD } from '@/const
 import type { InlineDiffLine } from '@/types';
 
 /**
- * Tests for the intra-line (word) diff logic (T5.5). They drive WordDiffHelper
+ * Tests for the intra-line (word) diff logic. They drive WordDiffHelper
  * directly, which is the pure unit the history modal delegates to when it
  * renders the inline word diff. Two guarantees are under test:
  * - segments() splits a modified line into word-level pieces flagged

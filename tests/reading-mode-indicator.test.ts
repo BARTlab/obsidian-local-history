@@ -3,9 +3,9 @@
  */
 
 /**
- * Regression tests for ReadingModeIndicatorService (T06).
+ * Regression tests for ReadingModeIndicatorService.
  *
- * Covers the two behaviours introduced by T06:
+ * Covers two behaviours:
  *
  * 1. clearAll() sweeps all open markdown leaves and removes `lct-rm-indicator`
  *    class and `data-lct-type` from every decorated element.

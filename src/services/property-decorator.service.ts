@@ -17,7 +17,7 @@ import type { FileSnapshot } from '@/snapshots/file.snapshot';
 
 /**
  * Service that adds visual change indicators to the Obsidian Properties panel
- * (.metadata-editor) for frontmatter key-level diffs (epic 16).
+ * (.metadata-editor) for frontmatter key-level diffs.
  *
  * It mirrors {@link TreeTabDecoratorService} exactly: a MutationObserver on
  * `view.contentEl` handles the lazy render of `.metadata-editor`, a 100 ms
@@ -209,7 +209,7 @@ export class PropertyDecoratorService implements Service {
    * Core sweep that computes the frontmatter diff for the active file and
    * exposes the result for decoration.
    *
-   * Guard branches (degrading silently per D8):
+   * Guard branches (degrading silently):
    * - plugin not ready: return early
    * - no active MarkdownView: return early
    * - no .metadata-editor in DOM: (re)attach observer and return early
@@ -488,9 +488,8 @@ export class PropertyDecoratorService implements Service {
    *
    * NOTE: MutationObserver is used because Obsidian provides no stable public
    * hook for properties-panel render events. This coupling is intentional and
-   * accepted until Obsidian ships an official properties API hook (see
-   * ADR-18-18 in DECISIONS.md). When such an API is available, replace this
-   * observer with the official hook.
+   * accepted until Obsidian ships an official properties API hook. When such an
+   * API is available, replace this observer with the official hook.
    *
    * @param {HTMLElement} contentEl - The MarkdownView.contentEl to observe
    */

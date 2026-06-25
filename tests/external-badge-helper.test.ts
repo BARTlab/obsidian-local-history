@@ -5,7 +5,7 @@ import { ExternalBadgeHelper } from '@/helpers/external-badge.helper';
 import type { DomElementConfig } from '@/types';
 
 /**
- * Tests for {@link ExternalBadgeHelper} (T01 / T18).
+ * Tests for {@link ExternalBadgeHelper}.
  *
  * The helper is the single source of truth for the external-change badge rendered
  * on three rail sites (file modal, folder timeline, recent-changes panel). The
@@ -26,11 +26,13 @@ describe('ExternalBadgeHelper', () => {
       expect(config.classes).toBe('lct-version-external-badge');
     });
 
-    it('sets aria-label and title to the supplied text', () => {
+    it('sets aria-label to the supplied text and no native title', () => {
       const config: DomElementConfig = ExternalBadgeHelper.make('External');
 
       expect(config.attributes?.['aria-label']).toBe('External');
-      expect(config.attributes?.['title']).toBe('External');
+      // No `title`: Obsidian styles the `[aria-label]` tooltip; `title` would
+      // add the unstyled native browser tooltip on top.
+      expect(config.attributes?.['title']).toBeUndefined();
     });
 
     it('sets data-icon to the download-cloud icon id', () => {
@@ -66,7 +68,7 @@ describe('ExternalBadgeHelper', () => {
       const config: DomElementConfig = ExternalBadgeHelper.make('Externe');
 
       expect(config.attributes?.['aria-label']).toBe('Externe');
-      expect(config.attributes?.['title']).toBe('Externe');
+      expect(config.attributes?.['title']).toBeUndefined();
 
       const textSlot: DomElementConfig | undefined = config.children?.find(
         (c: DomElementConfig) => c.classes === 'lct-version-external-badge-text',

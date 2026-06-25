@@ -33,7 +33,7 @@ export class FileVersion {
    * Optional user-supplied tag that turns this version into a pinned marker.
    * When set, the version is exempt from the duplicate-skip on capture and from
    * the age/count eviction passes, so an intentionally labeled point cannot
-   * silently vanish from the timeline (see D6).
+   * silently vanish from the timeline.
    */
   public label?: string;
 
@@ -42,7 +42,7 @@ export class FileVersion {
    * (git pull, sync, an external editor). Independent from `label`: an external
    * version may also carry a user label, and the two surfaces do not affect each
    * other. The flag drives a UI badge and is NOT a pin: external versions still
-   * obey the normal age/count retention like cadence versions (see D13).
+   * obey the normal age/count retention like cadence versions.
    */
   public external?: boolean;
 

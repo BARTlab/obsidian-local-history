@@ -5,7 +5,7 @@ import { FileVersion } from '@/snapshots/file.version';
 import type { SerializedFileVersion, SnapshotCaptureOptions } from '@/types';
 
 /**
- * Tests for the intermediate-snapshot timeline (T5.2): capture cadence by edit
+ * Tests for the intermediate-snapshot timeline: capture cadence by edit
  * count and elapsed time, the size cap, the pre-edit content contract, and the
  * serialize/restore round-trip of the timeline. These drive FileSnapshot
  * directly so the cadence logic is verified without any editor or Obsidian
@@ -333,7 +333,7 @@ describe('FileSnapshot timeline persistence round-trip', () => {
   });
 });
 
-describe('FileSnapshot timeline cadence continuity across restart (T15)', () => {
+describe('FileSnapshot timeline cadence continuity across restart', () => {
   it('restores lastVersionAt from the newest version timestamp, not load-time', () => {
     /**
      * Build a snapshot at base time, capture two versions in the past, then
@@ -443,7 +443,7 @@ describe('FileSnapshot.removeVersion', () => {
   });
 });
 
-describe('FileSnapshot version codec wiring (T05)', () => {
+describe('FileSnapshot version codec wiring', () => {
   it('round-trips lines, timestamp, label and external through the codec', () => {
     const snapshot = new FileSnapshot('a\nb', '\n');
     const opts = options({ editThreshold: 1, maxVersions: 0 });

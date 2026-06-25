@@ -14,7 +14,7 @@ import type { SerializedFileSnapshot, SerializedHistory, Service } from '@/types
 /**
  * One in-memory index entry for a persisted shard: the on-disk filename to write
  * or remove it under, and a >=64-bit content digest of its serialized snapshot.
- * The save path (Epic 10, T07) diffs the live digest against this to write only
+ * The save path diffs the live digest against this to write only
  * changed shards, and reuses `name` for collision-aware naming so two distinct
  * notes never share a filename.
  */
@@ -64,7 +64,7 @@ export class PersistenceService implements Service {
    * so writes run strictly in submission order and `unload` can await the
    * tail to flush the queue before the plugin tears down.
    *
-   * ADR-08-A: scheduleSave, unload, restoreFromDisk's re-save, and the
+   * scheduleSave, unload, restoreFromDisk's re-save, and the
    * settings-toggle path all hit the same file; without one chain they race
    * `adapter.write` and last-writer-wins is non-deterministic.
    */
@@ -81,7 +81,7 @@ export class PersistenceService implements Service {
   /**
    * In-memory map of vault-relative note path to the shard that persists it
    * (filename + content digest). Seeded from disk on restore and maintained by
-   * the save path (Epic 10, T07): it is the source of truth for dirty-tracking
+   * the save path: it is the source of truth for dirty-tracking
    * (skip a shard whose digest is unchanged) and collision-aware naming (probe a
    * suffix when two distinct paths hash to the same filename).
    */
@@ -183,7 +183,7 @@ export class PersistenceService implements Service {
       }
 
       /**
-       * One-time monolith-to-shard migration (Epic 10, T09). When no shards
+       * One-time monolith-to-shard migration. When no shards
        * exist yet but a legacy `history.json` (or its `.bak`) does, split it into
        * shards and remove the legacy files before reading the shard dir. A
        * migration failure leaves the legacy file intact and falls through to a
@@ -213,7 +213,7 @@ export class PersistenceService implements Service {
        * Seed the path-to-shard index from what survived retention: one entry per
        * kept shard, keyed by its path, holding its on-disk filename and a content
        * digest of its serialized snapshot. Over-cap shards are deliberately left
-       * out of the index so the re-save below evicts them from disk (T07).
+       * out of the index so the re-save below evicts them from disk.
        */
       this.shardIndex.clear();
 
@@ -254,7 +254,7 @@ export class PersistenceService implements Service {
    * (`retention.maxDeletedEntries` / `retention.maxDeletedAgeDays`).
    * A cap of 0 disables that dimension for its bucket.
    *
-   * Live files are no longer age-pruned (the prior D4 contract dropped live
+   * Live files are no longer age-pruned (the prior contract dropped live
    * entries past `retention.maxAgeDays`). That dropped age dimension caused a
    * total-history wipe: in an idle vault every live snapshot eventually ages
    * past `maxAgeDays`, retention then returned an empty set, and the save path
@@ -266,7 +266,7 @@ export class PersistenceService implements Service {
    *
    * Byte-budget (global maxStorageBytes) is intentionally out of scope. The
    * existing multi-dimensional count-cap policy (maxEntries, maxDeletedEntries,
-   * maxVersions) is accepted as the retention strategy (ADR-18-27). A byte-budget
+   * maxVersions) is accepted as the retention strategy. A byte-budget
    * dimension adds implementation complexity - it requires summing encoded sizes
    * across shards and is sensitive to codec changes - without meaningfully
    * improving the user-observable storage behaviour that count caps already bound.
@@ -413,7 +413,7 @@ export class PersistenceService implements Service {
   /**
    * Serializes the current snapshots and reconciles them to the shard directory.
    * Applies retention first so the on-disk set stays within caps, then writes
-   * only the shards whose content changed (dirty-only, Epic 10 T07) and removes
+   * only the shards whose content changed (dirty-only) and removes
    * shards for paths that left the kept set. Removes everything when persistence
    * is disabled or nothing is left.
    *
@@ -481,7 +481,7 @@ export class PersistenceService implements Service {
      * Write pass: for each kept snapshot, skip when the index already holds the
      * same path with the same digest (unchanged), otherwise resolve or allocate
      * a collision-free shard name, write it, and update the index. The shard's
-     * `version` is read through from `serialize()` so Epic 09's 1->2 bump flows
+     * `version` is read through from `serialize()` so the codec's 1->2 bump flows
      * in without a shard-level branch.
      */
     for (const snapshot of kept) {
@@ -525,7 +525,7 @@ export class PersistenceService implements Service {
    * the astronomically-rare 64-bit hash collision. The base name is the path
    * hash; if a different path already holds it in the index, a numeric suffix is
    * linear-probed until free so two distinct notes never share a filename and one
-   * can never silently overwrite another (Epic 10 DECISIONS).
+   * can never silently overwrite another.
    *
    * @param {string} path - The vault-relative note path to name a shard for
    * @return {string} A shard filename not currently held by any other path
@@ -578,12 +578,12 @@ export class PersistenceService implements Service {
 
   /**
    * Migrates a legacy monolithic `history.json` into per-note shards exactly once
-   * (Epic 10, T09). Runs only when the shard directory holds no shards yet but a
+   *. Runs only when the shard directory holds no shards yet but a
    * legacy file (or its `.bak`) still exists and parses: each legacy snapshot is
    * written as its own shard, then the legacy `history.json`/`.bak`/`.tmp` files
    * are removed. The shard `version` is carried through from the legacy file (no
    * re-encode), so a version-1 or version-2 monolith migrates byte-for-byte per
-   * snapshot whether or not Epic 09's delta codec has landed.
+   * snapshot whether or not the delta codec has landed.
    *
    * Failure-safe: a write failure aborts before any legacy file is removed and
    * logs, so the legacy file stays intact and the next restore retries. Once
@@ -663,13 +663,13 @@ export class PersistenceService implements Service {
 
   /**
    * Reads and parses the legacy on-disk monolith, the one-time migration source
-   * (Epic 10, T09). Tries the primary `history.json` first and falls back to its
+   *. Tries the primary `history.json` first and falls back to its
    * `.bak` sibling so a crash between the monolith's old `tmp -> bak -> rename`
    * steps still yields a usable source. Returns null when neither variant is
    * present or parses, so the migration caller treats a missing/corrupt monolith
    * as "nothing to migrate" rather than throwing.
    *
-   * Per-entry validation (ADR-08-B): each snapshot is checked against a minimal
+   * Per-entry validation: each snapshot is checked against a minimal
    * shape predicate (`isValidEntry`) and malformed entries are skipped so a few
    * bad records do not poison retention math (`NaN >= oldest` is always false,
    * silently dropping otherwise-valid entries) or crash downstream `fromJSON`.
@@ -761,8 +761,7 @@ export class PersistenceService implements Service {
    * disabled truly means nothing is left behind. Delegates the directory wipe to
    * {@link HistoryShardStore.clearAll} (which swallows and logs its own IO
    * failures) and then empties {@link shardIndex} so the next save re-allocates
-   * shard names from a clean slate rather than reusing stale digests (Epic 10,
-   * T08).
+   * shard names from a clean slate rather than reusing stale digests.
    *
    * @return {Promise<void>} Resolves once the directory is gone and the index is empty
    */
@@ -784,7 +783,7 @@ export class PersistenceService implements Service {
   /**
    * Resolves the vault-relative path of the per-note shard directory inside the
    * plugin folder. Resolved the same way as {@link getHistoryPath} but pointing
-   * at `<plugindir>/history` (Epic 10, ADR-10).
+   * at `<plugindir>/history` (ADR-10).
    *
    * @return {string} The vault-relative path to the shard directory
    */

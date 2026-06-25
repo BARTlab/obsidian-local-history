@@ -7,7 +7,7 @@ import type { SerializedFileSnapshot, SerializedTrackerLine } from '@/types';
 import { makeFile } from './helpers/builders';
 
 /**
- * Round-trip tests for FileSnapshot persistence (T5.1). They drive the snapshot
+ * Round-trip tests for FileSnapshot persistence. They drive the snapshot
  * through real edits, serialize it, rebuild it from the serialized form, and
  * assert the reconstructed snapshot reports the same change state. They also
  * pin the contract that restored tracker ids are fresh and collision-free.
@@ -118,7 +118,7 @@ describe('FileSnapshot serialize/deserialize round-trip', () => {
   });
 });
 
-describe('FileSnapshot.fromJSON malformed-input guards (T02, ADR-08-B)', () => {
+describe('FileSnapshot.fromJSON malformed-input guards', () => {
   it('returns an empty-lines snapshot when `lines` is absent', () => {
     const data = {
       path: 'a.md',
@@ -192,7 +192,7 @@ describe('FileSnapshot.fromJSON malformed-input guards (T02, ADR-08-B)', () => {
   });
 });
 
-describe('FileSnapshot marker/history baseline split (T08, D2)', () => {
+describe('FileSnapshot marker/history baseline split', () => {
   it('defaults the history baseline to the marker baseline on capture', () => {
     const snapshot = new FileSnapshot('a\nb\nc');
 

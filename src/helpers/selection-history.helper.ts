@@ -7,7 +7,7 @@ import * as Diff from 'diff';
  * returns the ids of the versions whose diff against the previous point on
  * the timeline added or removed a line containing the selection text.
  *
- * This is the precise changed/added/removed detection chosen in D7 over the
+ * This is the precise changed/added/removed detection chosen over the
  * cheap "content contains the selection" filter: a version is included only
  * when the selection actually appeared or disappeared at that point, not when
  * it merely coexists with the surrounding text.
@@ -15,7 +15,7 @@ import * as Diff from 'diff';
  * The helper has no Obsidian/DOM dependency: it takes plain line arrays plus
  * a selection string and returns a Set of ids. An empty or whitespace-only
  * selection matches no versions (the caller is expected to fall back to the
- * unfiltered modal in that case, per the T09 acceptance).
+ * unfiltered modal in that case).
  */
 export class SelectionHistoryHelper {
   /**
@@ -111,7 +111,7 @@ export class SelectionHistoryHelper {
     }
 
     /**
-     * Strip a trailing `\r` from each line (ADR-08-G) before joining with LF:
+     * Strip a trailing `\r` from each line before joining with LF:
      * a CRLF-origin version array carries `\r` at the tail of every line, which
      * would otherwise survive into the structured-patch hunk and miss the
      * selection match by a single byte.

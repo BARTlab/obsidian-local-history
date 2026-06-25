@@ -10,6 +10,7 @@ jest.mock('@codemirror/view', () => ({
 }));
 
 import { ChangeType, DEFAULT_SETTINGS } from '@/consts';
+import { BarMarker } from '@/markers/bar.marker';
 import { DotMarker } from '@/markers/char.marker';
 import { RemovedMarker } from '@/markers/removed.marker';
 import { TOKENS } from '@/services/tokens';
@@ -63,5 +64,23 @@ describe('RemovedMarker init-order safety', () => {
     const marker = new RemovedMarker(makePlugin() as never);
 
     expect(marker.elementClass).toBe('lct-dot lct-removed');
+  });
+});
+
+describe('BarMarker', () => {
+  it('tags the gutter element with the line indicator and the change kind', () => {
+    expect(new BarMarker(ChangeType.changed).elementClass).toBe('lct-line lct-changed');
+    expect(new BarMarker(ChangeType.added).elementClass).toBe('lct-line lct-added');
+    expect(new BarMarker(ChangeType.removed).elementClass).toBe('lct-line lct-removed');
+  });
+
+  it('treats markers with the same change kind as equal', () => {
+    const a = new BarMarker(ChangeType.changed);
+    const b = new BarMarker(ChangeType.changed);
+    const c = new BarMarker(ChangeType.added);
+
+    expect(a.eq(b)).toBe(true);
+    expect(a.eq(c)).toBe(false);
+    expect(a.getChangeType()).toBe(ChangeType.changed);
   });
 });

@@ -29,14 +29,14 @@ export class FileSnapshot {
   /**
    * Marker baseline: the file content the change tracker measures against. This
    * is the file state at the moment the snapshot was created in the current app
-   * run, so the gutter markers stay session-scoped (see D2). The tracker is
+   * run, so the gutter markers stay session-scoped. The tracker is
    * built from these lines and they never change for the life of the snapshot.
    */
   public lines: string[] = [];
 
   /**
    * History baseline: the persisted original the history modal diffs against
-   * (see D2). Defaults to the marker baseline (`lines`) so a freshly captured
+   *. Defaults to the marker baseline (`lines`) so a freshly captured
    * file has a single coherent origin. Restoring persisted history overrides
    * only this baseline (and the version timeline) through adoptHistory, leaving
    * the session marker baseline intact so the gutter does not mark the whole
@@ -123,7 +123,7 @@ export class FileSnapshot {
 
   /**
    * Canonical vault-relative path of the snapshot, decoupled from a live
-   * `TFile` (epic 12). This mirrors the key the snapshot is stored under in
+   * `TFile`. This mirrors the key the snapshot is stored under in
    * `SnapshotsService.fileSnapshots` and survives a reload: a restored snapshot
    * whose `file` did not resolve (restore miss, tombstone, orphan, detached
    * cross-directory move) still carries its path here, so folder-history path
@@ -134,7 +134,7 @@ export class FileSnapshot {
   public path: string = '';
 
   /**
-   * Tombstone marker (D1): the timestamp (ms) at which the underlying file was
+   * Tombstone marker: the timestamp (ms) at which the underlying file was
    * deleted in the vault. While this is set, the snapshot represents a deleted
    * file whose final state and history are preserved for inspection and restore;
    * a live snapshot leaves the field `undefined`. The map keeps the entry under
@@ -143,7 +143,7 @@ export class FileSnapshot {
   public deletedTimestamp?: number;
 
   /**
-   * Cross-directory move marker (D2): the timestamp (ms) at which this snapshot
+   * Cross-directory move marker: the timestamp (ms) at which this snapshot
    * was re-keyed to a new path because its file moved between directories. The
    * field stays `undefined` for a snapshot that has never been moved across
    * directories, and for the tombstone left behind in the source directory.
@@ -151,7 +151,7 @@ export class FileSnapshot {
   public movedIntoAt?: number;
 
   /**
-   * Transient "added in this app run" marker (epic 11, D4): set to `true` only
+   * Transient "added in this app run" marker: set to `true` only
    * when the file was created by the user in the vault during the current
    * session (the post-layout-ready `vault.create` capture path stamps it). It
    * is the only reliable "created this run" signal, since `firstSeenAt` /
@@ -209,7 +209,7 @@ export class FileSnapshot {
    * across restarts), the current state, and the full tracker so the highlights
    * can be restored verbatim. The session-scoped marker baseline is intentionally
    * not persisted: it is re-established from the file content on the next open
-   * (see D2). The change map is omitted because it is recomputed from the tracker
+   *. The change map is omitted because it is recomputed from the tracker
    * on restore.
    *
    * @return {SerializedFileSnapshot} The plain serialized representation
@@ -253,7 +253,7 @@ export class FileSnapshot {
    */
   public static fromJSON(data: SerializedFileSnapshot, file?: TFile | null): FileSnapshot {
     /**
-     * Defensive deserialization (ADR-08-B): a corrupt or truncated history.json
+     * Defensive deserialization: a corrupt or truncated history.json
      * must not crash plugin load. Each field is guarded individually so a single
      * malformed entry degrades to a safe default instead of throwing.
      */
@@ -269,7 +269,7 @@ export class FileSnapshot {
     );
 
     /**
-     * The serialized path is the canonical map key (epic 12). Seed it onto the
+     * The serialized path is the canonical map key. Seed it onto the
      * snapshot so a restored entry whose `file` did not resolve still resolves
      * its folder path without a live `TFile`. A `file`-bearing restore keeps the
      * same value (the key equals `file.path`), so this never disagrees with the
@@ -281,7 +281,7 @@ export class FileSnapshot {
     snapshot.versions = VersionCodec.decode(data.versions ?? [], lineBreak);
 
     /**
-     * T15: seed the timeline's time-gate counter from the newest restored
+     * Seed the timeline's time-gate counter from the newest restored
      * version so the interval-based capture cadence is continuous across a
      * restart. Without this the freshly constructed timeline would reset
      * `lastVersionAt` to load-time and re-arm the time gate for the full
@@ -313,7 +313,7 @@ export class FileSnapshot {
   }
 
   /**
-   * Whether this snapshot is a tombstone for a deleted file (D1). True when
+   * Whether this snapshot is a tombstone for a deleted file. True when
    * `deletedTimestamp` is set; false for a live snapshot.
    *
    * @return {boolean} True when the snapshot represents a deleted file
@@ -324,7 +324,7 @@ export class FileSnapshot {
 
   /**
    * Whether this snapshot was re-keyed to a new path by a cross-directory move
-   * (D2). True when `movedIntoAt` is set; false otherwise.
+   *. True when `movedIntoAt` is set; false otherwise.
    *
    * @return {boolean} True when the snapshot carries a move-in marker
    */
@@ -345,7 +345,7 @@ export class FileSnapshot {
 
   /**
    * Authoritative content-equality check for the external-change guard
-   * (ADR-08-D). Uses the 32-bit `lastHash` as a cheap pre-filter: a hash
+   *. Uses the 32-bit `lastHash` as a cheap pre-filter: a hash
    * mismatch is always a real change, but a hash match falls through to an
    * actual line-by-line compare against the snapshot's known `state` so a
    * collision (two distinct contents that hash to the same 32-bit value)
@@ -417,7 +417,7 @@ export class FileSnapshot {
    * or a first version identical to the original, which would otherwise diff
    * identically and make switching the base appear to change nothing.
    *
-   * A label-carrying capture is treated as a pinned marker (D6): it bypasses
+   * A label-carrying capture is treated as a pinned marker: it bypasses
    * the duplicate-skip so the user-supplied tag is always recorded, and the
    * resulting version is exempt from eviction in evictVersions.
    *
@@ -545,7 +545,7 @@ export class FileSnapshot {
    * Gets the HISTORY baseline as a string (the persisted original the history
    * modal diffs against). Distinct from the marker baseline so a restored file
    * keeps a stable origin for the time machine while the gutter stays
-   * session-scoped (see D2).
+   * session-scoped.
    *
    * @return {string} The history baseline of the file as a string
    */
@@ -566,7 +566,7 @@ export class FileSnapshot {
   /**
    * Adopts a persisted HISTORY baseline and version timeline into this
    * (session-captured) snapshot without touching the marker baseline, the
-   * tracker, or the current state (see D2). Used by the restore path so reopening
+   * tracker, or the current state. Used by the restore path so reopening
    * a file in a new app run keeps the gutter markers session-scoped (measured
    * against the file content at this open) while the history modal still diffs
    * against the persisted original and its captured versions.

@@ -36,8 +36,8 @@ export interface FolderActionSelection {
  * closest to T back through this port, mutates the snapshot map via
  * {@link removeFromMap}, and signals a structural change via {@link resyncTimeline}
  * / {@link refreshTree} / {@link refreshDiff} so the modal re-renders the rail,
- * the tree, and the diff. Mirrors the host-port pattern the timeline (T07) and
- * diff (T08) renderers use: the handler never sees the modal's protected fields
+ * the tree, and the diff. Mirrors the host-port pattern the timeline and
+ * diff renderers use: the handler never sees the modal's protected fields
  * directly.
  */
 export interface FolderActionHost {
@@ -111,10 +111,10 @@ export interface FolderActionHost {
 }
 
 /**
- * Toolbar-action collaborator for the folder-history modal (T09).
+ * Toolbar-action collaborator for the folder-history modal.
  *
  * Extracted from {@link FolderHistoryModal} as a plain object the modal
- * instantiates and owns (per ADR-8 / Epic 14: deep collaborators, not DI
+ * instantiates and owns (per ADR-11: deep collaborators, not DI
  * services). It owns the five async toolbar actions (restore-selected,
  * remove-selected, label-selected, restore-original, remove-history) plus the
  * deleted-file tombstone restore path. It is stateless about the modal and reads
@@ -132,7 +132,7 @@ export class FolderActionHandler {
 
   /**
    * Handler for the "Restore selected version" toolbar button. The version
-   * closest to T is restored on the tree-selected file (D10/AC1). When T
+   * closest to T is restored on the tree-selected file. When T
    * precedes every captured version, the synthetic baseline branch writes the
    * `compareAt` base back through {@link SnapshotsService.applyContent} so the
    * file's earliest known content is still restorable. When the selected file
@@ -223,7 +223,7 @@ export class FolderActionHandler {
   ): Promise<void> {
     const content: string = result.base.join(snapshot.lineBreak);
 
-    // T14: a deleted file's old path may now be occupied by a different file
+    // A deleted file's old path may now be occupied by a different file
     // (recreated or renamed since deletion). `vault.create` throws on an
     // existing path and the generic catch below would hide the cause from the
     // user; pre-check here and surface a distinct notice so they can resolve
@@ -250,7 +250,7 @@ export class FolderActionHandler {
 
   /**
    * Handler for the "Remove selected version" toolbar button. Drops the version
-   * closest to T from the tree-selected file's timeline (D10/AC2), then
+   * closest to T from the tree-selected file's timeline, then
    * re-synthesises the folder timeline and re-renders the tree so the rail and
    * the per-file delta reflect the removed point. A no-op for a tombstone with
    * no captured version at T (there is nothing to remove without violating the
@@ -285,7 +285,7 @@ export class FolderActionHandler {
     const file: TFile | null = selection.snapshot.file ?? null;
 
     /**
-     * Tombstones have a null `file` reference (D2 leaves them detached), so the
+     * Tombstones have a null `file` reference (they are left detached), so the
      * service's getOne lookup would miss. Drop the version directly off the
      * snapshot in that case and notify subscribers ourselves so retention and
      * the rail still see a consistent map.
@@ -304,7 +304,7 @@ export class FolderActionHandler {
   /**
    * Handler for the "Label selected version" toolbar button. Routes the version
    * closest to T through {@link ModalsService.labelVersion} so the label prompt
-   * and the cancel/blank no-op contract match the file modal exactly (D10/AC3).
+   * and the cancel/blank no-op contract match the file modal exactly.
    * A no-op for a tombstone whose snapshot has no live `file` reference (the
    * modals service resolves the label target by file).
    *

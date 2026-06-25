@@ -2,7 +2,7 @@ import { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { SnapshotCaptureOptions } from '@/types';
 
 /**
- * Deterministic fixtures for the snapshot perf benches (T03). Content is
+ * Deterministic fixtures for the snapshot perf benches. Content is
  * generated in code, never committed as JSON, so the repo stays small and the
  * sizes are reproducible from the parameters below. Every generator is pure
  * and seeded only by line/version counts, so a given size always yields the
@@ -20,7 +20,7 @@ export interface SnapshotFixtureSize {
 }
 
 /**
- * The three fixture sizes the bench exercises, per the T03 spec: small (50
+ * The three fixture sizes the bench exercises, per the bench spec: small (50
  * lines, 5 versions), medium (500 lines, 50 versions), large (5000 lines, 200
  * versions). Frozen so a bench cannot mutate them between iterations.
  */

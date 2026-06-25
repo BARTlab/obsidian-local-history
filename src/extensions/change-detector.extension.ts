@@ -93,7 +93,7 @@ export class ChangeDetectorExtension extends BaseExtension implements EditorExte
   public computeIncrementalChanges(update: ViewUpdate): void {
     const state: EditorState = update.state;
     /**
-     * Split on `/\r?\n/` (ADR-08-G) so a CRLF document does not leave a
+     * Split on `/\r?\n/` so a CRLF document does not leave a
      * trailing `\r` on every tracked line; `state.lineBreak` is a single
      * convention string that misses mixed or unexpected line endings.
      */

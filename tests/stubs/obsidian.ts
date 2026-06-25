@@ -110,6 +110,34 @@ export class Setting {
 }
 
 /**
+ * Inert replacement for Obsidian's `SettingGroup` (app 1.11+). Mirrors the
+ * builder surface the settings tab uses: `setHeading` and `addExtraButton`
+ * chain, `addSetting` synchronously invokes its callback with a fresh inert
+ * `Setting` so row-construction code runs under test.
+ */
+export class SettingGroup {
+  public listEl: HTMLElement = document.createElement('div');
+
+  public setHeading(): this {
+    return this;
+  }
+
+  public addClass(): this {
+    return this;
+  }
+
+  public addSetting(cb: (setting: Setting) => void): this {
+    cb(new Setting());
+
+    return this;
+  }
+
+  public addExtraButton(): this {
+    return this;
+  }
+}
+
+/**
  * Inert replacement for Obsidian's `setIcon`. Records the requested icon name
  * on the element so tests can assert on it; otherwise does nothing because the
  * real implementation paints SVG markup from Lucide which is irrelevant under

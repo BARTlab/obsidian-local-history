@@ -76,10 +76,10 @@ export interface GutterRevertHost {
 }
 
 /**
- * Gutter-revert collaborator for the history modal (T05).
+ * Gutter-revert collaborator for the history modal.
  *
  * Extracted from {@link HistoryModal} as a plain object the modal instantiates
- * and owns (per ADR-8 / Epic 14: deep collaborators, not DI services). It owns
+ * and owns (per ADR-11: deep collaborators, not DI services). It owns
  * the per-hunk revert affordance concern: decorating each rendered hunk with an
  * anchor marker and an inline revert button (JetBrains style), resolving the
  * anchor row across every diff render mode, and reverting a single hunk back to

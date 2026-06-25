@@ -58,7 +58,7 @@ export class VaultCreateEvent extends BaseEvent {
    * (the cold-start create burst for pre-existing files is excluded), every
    * create reaching this handler is a genuine user action this run, so the
    * captured snapshot is stamped with the transient `createdThisSession` flag
-   * (epic 11, D4) so the tree/tab decorator can paint it green. The capture is
+   * so the tree/tab decorator can paint it green. The capture is
    * awaited before stamping because it builds the snapshot asynchronously.
    *
    * @param {TAbstractFile} file - The file that was created in the vault
@@ -71,7 +71,7 @@ export class VaultCreateEvent extends BaseEvent {
 
     /**
      * Record the created path for the tree/tab decorator BEFORE the ignore-list
-     * branch (epic 11). A file created this session reads as "added" in the tree
+     * branch. A file created this session reads as "added" in the tree
      * even when "ignore new files" is on and therefore no snapshot exists to
      * carry `createdThisSession`; the decorator paints it from this path set.
      */

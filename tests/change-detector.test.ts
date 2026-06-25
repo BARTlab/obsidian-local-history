@@ -179,7 +179,7 @@ describe('ChangeDetectorExtension restore', () => {
   });
 });
 
-describe('ChangeDetectorExtension line replacement (T2.2 off-by-one)', () => {
+describe('ChangeDetectorExtension line replacement (off-by-one regression)', () => {
   // A block of lines replaced by a different number of lines is treated as
   // delete + insert, consistent with the engine's pure-delete and pure-paste
   // behavior: the destroyed originals are removed and the replacements are
@@ -205,7 +205,7 @@ describe('ChangeDetectorExtension line replacement (T2.2 off-by-one)', () => {
   });
 });
 
-describe('ChangeDetectorExtension removed-anchor clamping (epic 13 regression)', () => {
+describe('ChangeDetectorExtension removed-anchor clamping', () => {
   // A multi-line original file replaced by fewer lines (select-all, then type a
   // single line) is a delete + insert where the removed count far exceeds the
   // inserted count. Several doomed originals stay current while the first ones
@@ -252,7 +252,7 @@ describe('ChangeDetectorExtension removed-onto-added collapse at the document to
   // line shifts up into index 0, so the change map carries both `added` and
   // `removed` on index 0. The model state is legitimate (a line was added there
   // and the original above it is gone); the line-mode renderer is responsible
-  // for not stacking a removed marker onto the added bar (see editor-common).
+  // for not stacking a removed marker onto the added bar (see gutter-bar).
   // This pins the anchor collision so a model-boundary change cannot silently
   // re-orphan the removed anchor off a real line.
   it('keeps the collapsed removed anchor on index 0, not past the last real line', () => {
@@ -294,7 +294,7 @@ describe('ChangeDetectorExtension removed-onto-added collapse at the document to
   });
 });
 
-describe('ChangeDetectorExtension prev-state desync (T2.3)', () => {
+describe('ChangeDetectorExtension prev-state desync', () => {
   // The old-document side of a ChangeSet (fromA/toA) must be mapped against the
   // editor state those positions index into, i.e. update.startState. Earlier the
   // engine mapped them against the snapshot's cached state, which the weak hash
@@ -360,7 +360,7 @@ describe('ChangeDetectorExtension prev-state desync (T2.3)', () => {
   });
 });
 
-describe('ChangeDetectorExtension CRLF normalization (ADR-08-G)', () => {
+describe('ChangeDetectorExtension CRLF normalization', () => {
   // The editor surface must split content on /\r?\n/ rather than the CodeMirror
   // `state.lineBreak` convention, so a CRLF document does not leak a trailing
   // `\r` into the tracker (which would corrupt change content and equality).
@@ -392,12 +392,12 @@ describe('ChangeDetectorExtension CRLF normalization (ADR-08-G)', () => {
   });
 });
 
-describe('ChangeDetectorExtension scale (T3.2 hot path)', () => {
+describe('ChangeDetectorExtension scale (hot path)', () => {
   // Pastes then deletes a large block in single transactions. The old tracker
   // hot path sorted and rebuilt an ArrayMap for every shifted line (and per
   // findCurrentLine), which is O(n^2 log n) on a block this size; the indexed
   // path is linear per line. The result must stay correct and finish well under
-  // the budget below, which the pre-T3.2 code would blow past.
+  // the budget below, which the previous code would blow past.
   it('handles a 5000-line paste and delete correctly and fast', () => {
     const lineCount = 5000;
     const base = 'a\nb';

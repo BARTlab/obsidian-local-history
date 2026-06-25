@@ -64,7 +64,7 @@ export default class LineChangeTrackerPlugin extends Plugin {
   /**
    * Services whose `init` has resolved successfully in the current lifecycle.
    * Tracked so a fatal init can tear down only what was actually brought up,
-   * in reverse registration order (ADR-08-C).
+   * in reverse registration order.
    */
   protected initialized: Service[] = [];
 
@@ -256,7 +256,7 @@ export default class LineChangeTrackerPlugin extends Plugin {
   /**
    * Executes a method on all registered services in registration order.
    * Each per-service call is isolated in try/catch so one failure does not
-   * abort the loop; remaining services still get a chance to run (ADR-08-C).
+   * abort the loop; remaining services still get a chance to run.
    * For `init`, a successful call records the service in `initialized` so a
    * subsequent fatal can tear down only what is actually up. `unload` clears
    * the corresponding entry as the service goes down.
@@ -298,7 +298,7 @@ export default class LineChangeTrackerPlugin extends Plugin {
   /**
    * Tears down services that were brought up by a partial `init`/`load`, in
    * reverse registration order, so a fatal lifecycle failure never leaves a
-   * half-loaded plugin behind (ADR-08-C). Each per-service `unload` is
+   * half-loaded plugin behind. Each per-service `unload` is
    * isolated so one teardown failure does not block the rest.
    *
    * @return {Promise<void>} Resolves once teardown is complete.
@@ -430,7 +430,7 @@ export default class LineChangeTrackerPlugin extends Plugin {
   }
 
   /**
-   * Reveals the Recent changes panel in the right sidebar (D3).
+   * Reveals the Recent changes panel in the right sidebar.
    *
    * Reuses an existing leaf when one is already open so a second invocation
    * focuses the panel rather than spawning a duplicate. Falls back to creating

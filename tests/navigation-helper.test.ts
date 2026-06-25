@@ -3,7 +3,7 @@ import { NavigationDirection } from '@/consts';
 import { NavigationHelper } from '@/helpers/navigation.helper';
 
 /**
- * Tests for the next/previous change target selection (T5.4). They drive
+ * Tests for the next/previous change target selection. They drive
  * NavigationHelper.target directly on a set of 0-based changed line positions
  * and a cursor line, which is the unit the navigation commands delegate to
  * before moving the real cursor. The guarantees under test are:

@@ -11,7 +11,7 @@ import { makeFile } from './helpers/builders';
 import { makeSnapshotsServiceWithPaths as makeService } from './helpers/service-factories';
 
 /**
- * Tests for SnapshotsService serialize/restore (T5.1). They use the real
+ * Tests for SnapshotsService serialize/restore. They use the real
  * FileSnapshot so the serialize -> restore path is exercised end to end,
  * including the pristine-overwrite rule and skipping files that no longer exist.
  */
@@ -136,8 +136,8 @@ describe('SnapshotsService.restore', () => {
     expect(restored?.getHistoryOriginalStateLines()).toEqual(['a', 'b', 'c']);
   });
 
-  it('auto-tombstones entries whose live file no longer exists (T05 AC4)', () => {
-    // Pre-T05 the entry would have been silently dropped. T05 changes this:
+  it('auto-tombstones entries whose live file no longer exists', () => {
+    // Previously the entry would have been silently dropped. Now:
     // a serialized live snapshot whose file is gone on restore is rebuilt as
     // a tombstone (deletedTimestamp = data.timestamp), so the deleted-file
     // history survives a plugin-off deletion. The dedicated tombstone tests
@@ -153,7 +153,7 @@ describe('SnapshotsService.restore', () => {
     expect(orphan!.isTombstone()).toBe(true);
   });
 
-  it('keeps a pristine session marker baseline and adopts only the history baseline (D2)', () => {
+  it('keeps a pristine session marker baseline and adopts only the history baseline', () => {
     const service = makeService(['a.md']);
 
     // Pristine session capture: the marker baseline is this open's content.
@@ -234,7 +234,7 @@ describe('SnapshotsService.restore', () => {
   });
 });
 
-describe('SnapshotsService delta-encoded version round-trip (T07)', () => {
+describe('SnapshotsService delta-encoded version round-trip', () => {
   const PATH = 'timeline.md';
   const TOTAL: number = VERSION_KEYFRAME_INTERVAL + 5; // > one keyframe interval
 
@@ -355,7 +355,7 @@ describe('SnapshotsService delta-encoded version round-trip (T07)', () => {
 });
 
 /**
- * A1: post-restore reconciliation for open files (T19).
+ * A1: post-restore reconciliation for open files.
  *
  * After restore() completes, files currently open in the editor whose disk
  * content diverges from the restored snapshot state must be re-baselined via

@@ -9,17 +9,17 @@ import type { SerializedFileSnapshot, SerializedHistory, SerializedShard } from 
 import { MemoryAdapter } from './stubs/memory-adapter';
 
 /**
- * Resilience regressions for the core promise of Epic 10.
+ * Resilience regressions for the core promise of the sharded store.
  *
- * T11: one unreadable shard costs exactly one note's history, never the whole
+ * One unreadable shard costs exactly one note's history, never the whole
  * store. This is the test the monolith could never pass: a single bad byte in
  * `history.json` lost everything. The suite drives the real `restoreFromDisk`
  * against the shared dir-aware `MemoryAdapter`, seeding several valid shards plus
  * one corrupt one, and asserts the valid shards load while the corrupt one is
- * silently skipped (T03 per-shard `.json -> .bak -> .tmp` fallback), with no
+ * silently skipped (the per-shard `.json -> .bak -> .tmp` fallback), with no
  * error propagating.
  *
- * T12: a failure during a shard's atomic `tmp -> bak -> rename` write leaves
+ * A failure during a shard's atomic `tmp -> bak -> rename` write leaves
  * either the prior shard intact or a recoverable `.bak`/`.tmp`, never a truncated
  * primary. The suite arms the adapter's `failNextRename` at shard scope, drives a
  * real save through the write queue, then runs a real restore and asserts the
@@ -138,7 +138,7 @@ const seedShard = (adapter: MemoryAdapter, notePath: string, timestamp: number):
 const restoredPaths = (service: ResiliencePersistenceService): string[] =>
   service.restoredSnapshots.map((item: SerializedFileSnapshot): string => item.path).sort();
 
-describe('PersistenceService corrupt-shard isolation (T11)', () => {
+describe('PersistenceService corrupt-shard isolation', () => {
   it('loads the valid shards and silently skips an irrecoverably corrupt one', async (): Promise<void> => {
     const adapter = new MemoryAdapter();
     const now: number = Date.now();
@@ -171,7 +171,7 @@ describe('PersistenceService corrupt-shard isolation (T11)', () => {
 
     // The fourth shard's primary `.json` is corrupt, but a valid `.bak` survives
     // (e.g. a crash between the per-shard atomic write's rename steps). The
-    // `.json -> .bak -> .tmp` fallback (T03) must recover the note.
+    // `.json -> .bak -> .tmp` fallback must recover the note.
     const recoverable: SerializedShard = { version: 1, snapshot: entry('recoverable.md', now - 3000) };
     adapter.files.set(shardPath('recoverable.md'), '}{ corrupt primary');
     adapter.files.set(`${shardPath('recoverable.md')}.bak`, JSON.stringify(recoverable));
@@ -186,7 +186,7 @@ describe('PersistenceService corrupt-shard isolation (T11)', () => {
 });
 
 /**
- * Test-only subclass that also drives the save path (T12): it exposes the write
+ * Test-only subclass that also drives the save path: it exposes the write
  * queue so a test can enqueue a save and drain it deterministically, on top of
  * the restore entry point inherited via {@link ResiliencePersistenceService}.
  * `restored` is forced true in the constructor so an enqueued save is not
@@ -300,7 +300,7 @@ const variantHasValidPath = (adapter: MemoryAdapter, variantPath: string, notePa
   }
 };
 
-describe('PersistenceService per-shard rename-failure recovery (T12)', () => {
+describe('PersistenceService per-shard rename-failure recovery', () => {
   it('survives a failed backup rename without truncating the shard on overwrite', async (): Promise<void> => {
     const adapter = new MemoryAdapter();
     let counter: number = 0;

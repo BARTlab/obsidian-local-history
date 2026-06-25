@@ -3,16 +3,16 @@
  */
 
 /**
- * Tests for ReadingModeIndicatorService post-processor behavior (T17).
+ * Tests for ReadingModeIndicatorService post-processor behavior.
  *
- * Covers the four acceptance criteria that are NOT covered by the T06 file
+ * Covers the four acceptance criteria that are NOT covered by the unit-test file
  * (tests/reading-mode-indicator.test.ts), which owns clearAll/unregister and
  * resolveBlockChangeType unit tests:
  *
  * AC1: A block whose source lines contain changes is decorated with
  *      lct-rm-indicator and data-lct-type = highest-priority change type.
  * AC2: A block with no tracked changes is left untouched.
- * AC3: After decorating blocks, the clearAll() cleanup sweep (T06 regression)
+ * AC3: After decorating blocks, the clearAll() cleanup sweep
  *      removes class and attribute from every decorated element.
  * AC4: When the readingModeIndicator setting is off, init() registers no
  *      post-processor.
@@ -309,10 +309,10 @@ describe('ReadingModeIndicatorService.decorate - block with no changes', () => {
 });
 
 // ---------------------------------------------------------------------------
-// AC3: clearAll regression (T06) - decorated blocks are cleaned up by sweep
+// AC3: clearAll regression - decorated blocks are cleaned up by sweep
 // ---------------------------------------------------------------------------
 
-describe('ReadingModeIndicatorService clearAll sweep - T06 regression', () => {
+describe('ReadingModeIndicatorService clearAll sweep', () => {
   it('removes lct-rm-indicator and data-lct-type from all decorated elements in a leaf', () => {
     const container = document.createElement('div');
 

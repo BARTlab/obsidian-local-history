@@ -11,7 +11,7 @@ import { makeFile } from './helpers/builders';
 import { makeSnapshotsServiceWithPaths as makeService } from './helpers/service-factories';
 
 /**
- * Tests for T05: PersistenceService serialize/restore tombstones + orphan
+ * Tests for PersistenceService serialize/restore tombstones + orphan
  * handling. These exercise SnapshotsService.serialize and restore directly so
  * the round-trip is verified without touching the disk-IO layer that wraps
  * them; the disk path itself is covered by persistence.service.test.ts.
@@ -34,7 +34,7 @@ const seedLiveSnapshot = (service: SnapshotsService, file: TFile): FileSnapshot 
   return snapshot as FileSnapshot;
 };
 
-describe('SnapshotsService.serialize with tombstones (T05 AC1)', () => {
+describe('SnapshotsService.serialize with tombstones', () => {
   it('includes a tombstone snapshot even when no current changes remain', () => {
     const service = makeService();
     const file = makeFile('notes/gone.md');
@@ -73,7 +73,7 @@ describe('SnapshotsService.serialize with tombstones (T05 AC1)', () => {
   });
 
   it('keeps a pristine live snapshot out of the payload', () => {
-    // The pre-T05 filter behaviour for live snapshots is preserved: a clean
+    // The previous filter behaviour for live snapshots is preserved: a clean
     // file with no tracker changes and no versions still does not bloat disk.
     const service = makeService();
     const file = makeFile('notes/clean.md');
@@ -86,7 +86,7 @@ describe('SnapshotsService.serialize with tombstones (T05 AC1)', () => {
   });
 });
 
-describe('SnapshotsService.restore with tombstones (T05 AC2)', () => {
+describe('SnapshotsService.restore with tombstones', () => {
   it('reconstructs a tombstone whose path no longer resolves to a live file', () => {
     const service = makeService();
     const file = makeFile('notes/gone.md');
@@ -136,7 +136,7 @@ describe('SnapshotsService.restore with tombstones (T05 AC2)', () => {
   });
 });
 
-describe('SnapshotsService.restore with live snapshots (T05 AC3)', () => {
+describe('SnapshotsService.restore with live snapshots', () => {
   it('restores a live snapshot when its file still exists in the vault', () => {
     const service = makeService();
     const file = makeFile('notes/a.md');
@@ -167,7 +167,7 @@ describe('SnapshotsService.restore with live snapshots (T05 AC3)', () => {
   });
 });
 
-describe('SnapshotsService.restore orphan auto-tombstoning (T05 AC4)', () => {
+describe('SnapshotsService.restore orphan auto-tombstoning', () => {
   it('reconstructs a live serialized entry whose file is gone as a tombstone', () => {
     const service = makeService();
     const file = makeFile('lost/z.md');
@@ -228,7 +228,7 @@ describe('SnapshotsService.restore orphan auto-tombstoning (T05 AC4)', () => {
   });
 });
 
-describe('SnapshotsService tombstone round-trip across serialize/restore (T05 integration)', () => {
+describe('SnapshotsService tombstone round-trip across serialize/restore', () => {
   it('serialized tombstone -> restored tombstone preserves state, history, and versions', () => {
     const service = makeService();
     const file = makeFile('notes/a.md');

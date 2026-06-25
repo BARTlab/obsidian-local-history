@@ -109,9 +109,9 @@ export enum VersionAction {
  * - `capture` is a per-file version captured by the cadence (or a labelled
  *   capture), so the timeline lists one point per `FileVersion.timestamp`.
  * - `delete` is a tombstone point, taken from `FileSnapshot.deletedTimestamp`
- *   when the snapshot represents a deleted file (D1).
+ *   when the snapshot represents a deleted file.
  * - `moveIn` is a move-in point, taken from `FileSnapshot.movedIntoAt` when the
- *   snapshot was re-keyed to a new path by a cross-directory move (D2).
+ *   snapshot was re-keyed to a new path by a cross-directory move.
  */
 export enum FolderTimelinePointKind {
   capture = 'capture',
@@ -120,7 +120,7 @@ export enum FolderTimelinePointKind {
 }
 
 /**
- * Per-file status reported by `FolderDeltaHelper.compareAt` (D8). One of:
+ * Per-file status reported by `FolderDeltaHelper.compareAt`. One of:
  *
  * - `added` - the file did not exist at T but exists now (or was moved into the
  *   folder after T). The base is empty; the current is the live content.
@@ -245,7 +245,7 @@ export const SHOW_CHANGE_KEYS = ['show.changed', 'show.restored', 'show.added', 
 export const STYLE_ID = 'line-change-tracker-styles';
 
 /**
- * Stable view type id for the Recent changes side panel (D3). Registered with
+ * Stable view type id for the Recent changes side panel. Registered with
  * Obsidian once at plugin load so the right sidebar can host one navigator
  * leaf at a time, and used by the reveal entry point to look up the existing
  * leaf instead of spawning duplicates.
@@ -374,14 +374,14 @@ export const SAVE_DEBOUNCE_MS: number = 1500;
  * Each shard is one self-describing `{ version, snapshot }` JSON file named by a
  * hash of the note's vault-relative path (see {@link ShardNameHelper}). The
  * directory listing is the source of truth for which notes have history; there
- * is deliberately no index or manifest file (Epic 10, ADR-10).
+ * is deliberately no index or manifest file (ADR-10).
  */
 export const HISTORY_SHARD_DIR: string = 'history';
 
 /**
  * Cadence at which the version codec forces a full keyframe inside the delta
  * chain: version `i` is a keyframe when `i % VERSION_KEYFRAME_INTERVAL === 0`,
- * otherwise a delta against version `i - 1` (Epic 09). It is the single place to
+ * otherwise a delta against version `i - 1`. It is the single place to
  * tune that cadence. A smaller value bounds the corruption blast-radius (a
  * broken delta only invalidates entries up to the next keyframe, where the chain
  * resyncs) at the cost of more full copies on disk; a larger value saves disk at
@@ -416,7 +416,7 @@ export const LANGUAGE_STORAGE_KEY: string = 'language';
  * a raw key. Update trigger: a new Obsidian release adds a code not listed here
  * and a user reports the missing catalog. Update process: add the new code to
  * this array, add a matching `lang/<code>.json` file (or rely on English
- * fallback), and verify with the catalog-parity test. See DECISIONS.md ADR-18-20.
+ * fallback), and verify with the catalog-parity test.
  */
 export const OBSIDIAN_LANGUAGES: readonly string[] = [
   'en',
@@ -502,7 +502,7 @@ export const OBSIDIAN_LANGUAGES: readonly string[] = [
  * responsive while still word-diffing typical prose and code lines well under the
  * limit. 5000 characters was chosen as the threshold: it comfortably covers lines
  * up to ~2500 chars on each side (far beyond any human-readable line) and keeps
- * worst-case diff work bounded (see DECISIONS.md ADR-18-11).
+ * worst-case diff work bounded.
  */
 export const WORD_DIFF_LENGTH_THRESHOLD: number = 5000;
 
@@ -511,9 +511,8 @@ export const WORD_DIFF_LENGTH_THRESHOLD: number = 5000;
  * `WordDiffHelper.lines` uses similarity-based greedy pairing instead of falling
  * back to positional pairing. When either block exceeds this size the O(n*m)
  * similarity scoring is skipped and lines are paired by array position, the same
- * behaviour as before the B2 fix. 20 lines covers typical prose and code edits
- * while keeping worst-case pairing work bounded at 400 comparisons (see
- * DECISIONS.md ADR-18-16).
+ * behaviour as before the fix. 20 lines covers typical prose and code edits
+ * while keeping worst-case pairing work bounded at 400 comparisons.
  */
 export const WORD_DIFF_PAIRING_THRESHOLD: number = 20;
 

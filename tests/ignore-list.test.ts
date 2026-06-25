@@ -6,7 +6,7 @@ import type { TFile } from 'obsidian';
 import { makeFile } from './helpers/builders';
 
 /**
- * Focused unit tests for {@link IgnoreListManager} (T03).
+ * Focused unit tests for {@link IgnoreListManager}.
  *
  * The manager is a plain collaborator (not a DI service) that owns two
  * concerns for {@link SnapshotsService}: the per-file ignore set (add /

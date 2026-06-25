@@ -117,7 +117,7 @@ describe('SnapshotsService.captureExternalChange', () => {
   it('bypasses the cadence gates so a single external change captures even with zero gates', async () => {
     // Both editThreshold and intervalMs are 0 (disabled) in the defaults, so a
     // non-forced captureVersion would never trigger; this test pins that the
-    // external path forces past the gates as D13 requires.
+    // external path forces past the gates as required.
     const { service, vault } = makeService({
       'snapshots.editThreshold': 0,
       'snapshots.intervalMs': 0,
@@ -220,7 +220,7 @@ describe('SnapshotsService.captureExternalChange', () => {
   it('keeps an external version evictable under the count cap', async () => {
     // maxVersions = 1 with a labeled cadence-pinned existing version means a
     // freshly captured external version should be evictable while the labeled
-    // entry survives. Mirrors D13: external versions are NOT pinned.
+    // entry survives. External versions are NOT pinned.
     const { service, vault } = makeService({
       'snapshots.maxVersions': 1,
     });
@@ -250,7 +250,7 @@ describe('SnapshotsService.captureExternalChange', () => {
 
     // Add a second external state; eviction should drop the older external
     // because external entries are evictable like cadence versions. Bump the
-    // stat so the ADR-08-E mtime/size pre-check does not short-circuit the
+    // stat so the mtime/size pre-check does not short-circuit the
     // genuine content change.
     vault[file.path] = 'changed-again';
     const bumped: TFile = makeFile(file.path, { stat: { mtime: 2, size: 2 } });
@@ -354,7 +354,7 @@ describe('SnapshotsService.captureExternalChange', () => {
   });
 
   it('captures a hash-collision rewrite where the 32-bit hash matches but the content differs', async (): Promise<void> => {
-    // ADR-08-D regression: a genuine external change must never be dropped
+    // Regression: a genuine external change must never be dropped
     // because its weak 32-bit hash collides with the known state. We force a
     // collision by overwriting the snapshot's `lastHash` with the hash of the
     // new disk content while leaving `state` at the original lines, so the

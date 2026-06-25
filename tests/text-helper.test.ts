@@ -3,7 +3,7 @@ import { TextHelper } from '@/helpers/text.helper';
 import { TrackerLine } from '@/lines/tracker.line';
 
 /**
- * Regression tests for the collision-free id generator (T4.3). The previous
+ * Regression tests for the collision-free id generator. The previous
  * Math.random based scheme could emit empty, truncated, or colliding ids, which
  * TrackerLine.isEq and key depend on being unique.
  */

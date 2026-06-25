@@ -61,13 +61,13 @@ export interface FolderTimelineHost {
 }
 
 /**
- * Timeline-rail collaborator for the folder-history modal (T07).
+ * Timeline-rail collaborator for the folder-history modal.
  *
  * Extracted from {@link FolderHistoryModal} as a plain object the modal
- * instantiates and owns (per ADR-8 / Epic 14: deep collaborators, not DI
+ * instantiates and owns (per ADR-11: deep collaborators, not DI
  * services). It owns the left rail: grouping the timeline points by day,
  * rendering the grouped, clickable rows with their external badges (via the
- * shared {@link ExternalBadgeHelper} from T01), and the per-row label / kind /
+ * shared {@link ExternalBadgeHelper}), and the per-row label / kind /
  * external derivation. It is stateless about the modal and reads the live
  * timeline, the selected T, and the snapshot map back through
  * {@link FolderTimelineHost}, reporting a new T via the host's
@@ -145,7 +145,7 @@ export class FolderTimelineRenderer {
 
   /**
    * Whether the given timeline point comes from an external-change capture
-   * (D13, T20). Only `'capture'` points map back to a `FileVersion` via
+   *. Only `'capture'` points map back to a `FileVersion` via
    * `versionId`; `'delete'` and `'move-in'` markers stay non-external. A
    * point whose path or version is no longer in the map (e.g. removed by a
    * destructive action after resync) returns false defensively.
@@ -209,7 +209,7 @@ export class FolderTimelineRenderer {
 
   /**
    * Returns a short, inline-English label for a timeline point kind. The
-   * literal strings are propagated across every catalog in T15 (D13 pattern);
+   * literal strings are propagated across every catalog;
    * until then, the labels show as English on every locale.
    *
    * @param {FolderTimelinePoint['kind']} kind - The discriminator

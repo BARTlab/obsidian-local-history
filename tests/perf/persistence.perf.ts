@@ -17,7 +17,7 @@ import {
 import { assertWithinBaseline, measure } from './harness';
 
 /**
- * Perf benches for the persistence round-trip hot paths (T04). They lock the
+ * Perf benches for the persistence round-trip hot paths. They lock the
  * cost of the work that runs on every debounced save (serialize + the JSON
  * encode the shard store performs) and on plugin start (JSON parse + restore +
  * the two-pass retention filter). Disk IO itself is not measured: it is OS- and

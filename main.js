@@ -2541,7 +2541,7 @@ var VaultCreateEvent = class extends BaseEvent {
    * (the cold-start create burst for pre-existing files is excluded), every
    * create reaching this handler is a genuine user action this run, so the
    * captured snapshot is stamped with the transient `createdThisSession` flag
-   * (epic 11, D4) so the tree/tab decorator can paint it green. The capture is
+   * so the tree/tab decorator can paint it green. The capture is
    * awaited before stamping because it builds the snapshot asynchronously.
    *
    * @param {TAbstractFile} file - The file that was created in the vault
@@ -2617,7 +2617,7 @@ var VaultModifyEvent = class extends BaseEvent {
    * `SnapshotsService.scheduleExternalCapture` so a burst of modify events
    * for the same file (sync, git pull, an external save loop) collapses into
    * one debounced disk read + capture, and an overlapping follow-up modify
-   * cannot start a second concurrent capture for the same path (ADR-08-E).
+   * cannot start a second concurrent capture for the same path.
    * Skips non-file entries (folders).
    *
    * @param {TAbstractFile} file - The file that was modified in the vault
@@ -2752,7 +2752,7 @@ var WorkspaceEditorMenuEvent = class extends BaseEvent {
   }
   /**
    * Handles the editor menu event by adding the "Local history" parent item
-   * whose submenu carries the four PhpStorm-style entries (D2).
+   * whose submenu carries the four PhpStorm-style entries.
    *
    * @param {Menu} menu - The menu to add items to
    * @param {Editor} editor - The active editor (used for the current selection)
@@ -2854,7 +2854,7 @@ var WorkspaceFilesMenuEvent = class extends BaseEvent {
   }
   /**
    * Fills the submenu for a TFile target with Show History, Put label, and
-   * Recent changes (D11). Show History falls back to a "no saved history"
+   * Recent changes. Show History falls back to a "no saved history"
    * notice when no snapshot exists, matching the previous flat-entry
    * behaviour so an untracked file never silently no-ops.
    *
@@ -2882,9 +2882,8 @@ var WorkspaceFilesMenuEvent = class extends BaseEvent {
   }
   /**
    * Fills the submenu for a TFolder target with Show History and Recent
-   * changes (D11). Show History delegates to ModalsService.openFolderHistory,
-   * which is a safe placeholder until T12 wires the real FolderHistoryModal:
-   * today it surfaces a "no folder history yet" notice and returns false.
+   * changes. Show History delegates to ModalsService.openFolderHistory,
+   * which surfaces a "no folder history yet" notice and returns false.
    *
    * @param {Menu} submenu - The submenu to populate
    * @param {TFolder} folder - The folder the menu was opened for
@@ -3024,7 +3023,7 @@ var EventsService = class {
      * minification is ever enabled (different classes could collapse to the
      * same mangled name). The previous `Set<BaseEvent>` keyed by instance
      * identity never fired because {@link factory} always returns a fresh
-     * instance (ADR-08 T20).
+     * instance.
      */
     this.instances = /* @__PURE__ */ new Map();
   }
@@ -3241,394 +3240,107 @@ __decorateClass([
   Inject(TOKENS.settings)
 ], ChangeDetectorExtension.prototype, "settingsService", 2);
 
-// src/extensions/change-layer.extension.ts
+// src/markers/bar.marker.ts
 var import_view2 = require("@codemirror/view");
-var BAR_LEFT_OFFSET = 10;
-var ChangeLayerExtension = class {
+var BarMarker = class _BarMarker extends import_view2.GutterMarker {
   /**
-   * Creates a new instance of ChangeLayerExtension.
+   * Creates a new BarMarker.
    *
-   * @param {LineChangeTrackerPlugin} plugin - The plugin instance, read by the
-   *   @Inject decorator to resolve services.
+   * @param {ChangeType} changes - The change kind this bar represents
    */
-  constructor(plugin) {
-    this.plugin = plugin;
+  constructor(changes) {
+    super();
+    this.changes = changes;
+    this.elementClass = `lct-${"line" /* line */} lct-${this.changes}`;
   }
   /**
-   * Builds the CodeMirror layer extension. The layer renders below the text so
-   * the bars sit behind the content, and re-measures whenever the document, the
-   * viewport, the geometry, or the snapshot/settings (via the refresh effect)
-   * change.
+   * Renders the bar element. The bar fills the gutter element height; the
+   * removed dash height is overridden in CSS.
    *
-   * @return {Extension} The configured layer extension
+   * @return {Node} The bar DOM node
+   * @override
    */
-  build() {
-    return (0, import_view2.layer)({
-      above: false,
-      class: "lct-change-layer",
-      update: (update) => this.needsUpdate(update),
-      markers: (view) => this.markers(view)
-    });
+  toDOM() {
+    const bar = document.createElement("span");
+    bar.addClass("lct-gutter-bar");
+    return bar;
   }
   /**
-   * Decides whether the layer must re-measure its markers for this update.
+   * Two bar markers are equal when they share the change kind.
    *
-   * @param {ViewUpdate} update - The view update event from CodeMirror
-   * @return {boolean} True if the markers need to be rebuilt
+   * @param {BarMarker} other - The marker to compare with
+   * @return {boolean} True when equal
+   * @override
    */
-  needsUpdate(update) {
-    return update.docChanged || update.viewportChanged || update.geometryChanged || update.transactions.some((transaction) => transaction.effects.some((effect) => effect.is(refreshDecorationsEffect)));
+  eq(other) {
+    return other instanceof _BarMarker && this.changes === other.changes;
   }
   /**
-   * Computes the markers for the current view, gated on the `line` indicator
-   * type and the presence of a snapshot with changes.
+   * Gets the change kind of this marker.
    *
-   * @param {EditorView} view - The editor view to build markers for
-   * @return {LayerMarker[]} The markers to draw, possibly empty
+   * @return {ChangeType} The change kind
    */
-  markers(view) {
-    var _a;
-    if (!this.plugin.isReady()) {
-      return [];
-    }
-    const snapshot = this.snapshotsService.getOne();
-    const changes = (_a = snapshot == null ? void 0 : snapshot.getChanges(this.getEnableTypes())) != null ? _a : null;
-    if (!this.isTypeLine() || !snapshot || !(changes == null ? void 0 : changes.size)) {
-      return [];
-    }
-    return this.buildMarkers(view, changes);
-  }
-  /**
-   * Builds the bars for every rendered block that hosts a hidden changed line.
-   * Changed lines are grouped by the block they collapse into; per block, each
-   * changed source line keeps its own change types so a table can be lit row by
-   * row. A table is mapped to its rendered `<tr>` rects so only the changed rows
-   * are marked; any other widget (callout, embed) falls back to one bar over the
-   * whole block, since it has no per-line geometry.
-   *
-   * @param {EditorView} view - The editor view to measure against
-   * @param {ArrayMap<ChangeLine>} changes - The changed lines, keyed by 0-based index
-   * @return {RectangleMarker[]} The bars to draw
-   */
-  buildMarkers(view, changes) {
-    const blocks = /* @__PURE__ */ new Map();
-    const order = [];
-    const lines = view.state.doc.lines;
-    for (const [key2, change] of changes) {
-      const lineNumber = Number(key2) + 1;
-      if (lineNumber < 1 || lineNumber > lines) {
-        continue;
-      }
-      const line = view.state.doc.line(lineNumber);
-      if (!this.isHidden(view, line.from)) {
-        continue;
-      }
-      const block = view.lineBlockAt(line.from);
-      let group = blocks.get(block.from);
-      if (!group) {
-        group = { block, rows: /* @__PURE__ */ new Map() };
-        blocks.set(block.from, group);
-        order.push(block.from);
-      }
-      const startLine = view.state.doc.lineAt(block.from).number;
-      const offset = lineNumber - startLine;
-      let types = group.rows.get(offset);
-      if (!types) {
-        types = /* @__PURE__ */ new Set();
-        group.rows.set(offset, types);
-      }
-      change.getTypes().forEach((type) => {
-        types.add(type);
-      });
-    }
-    const left = this.getLeftBase(view) - BAR_LEFT_OFFSET;
-    const markers = [];
-    for (const from of order) {
-      this.markersForBlock(view, blocks.get(from), left, markers);
-    }
-    return markers;
-  }
-  /**
-   * Appends the bars for a single block to the accumulator: per-row bars when
-   * the block is a table whose rendered rows could be matched to its source
-   * lines, otherwise one bar spanning the whole block.
-   *
-   * @param {EditorView} view - The editor view to measure against
-   * @param {BlockGroup} group - The block and its changed rows
-   * @param {number} left - The shared left coordinate for every bar
-   * @param {RectangleMarker[]} markers - The accumulator to push bars onto
-   * @return {void}
-   */
-  markersForBlock(view, group, left, markers) {
-    const rowRects = this.tableRowRects(view, group.block);
-    if (rowRects) {
-      const contentTop = view.contentDOM.getBoundingClientRect().top;
-      const padding = view.documentPadding.top;
-      for (const [offset, types2] of group.rows) {
-        const index = this.rowIndexForOffset(offset);
-        const rect = index >= 0 ? rowRects[index] : void 0;
-        if (rect) {
-          const top = rect.top - contentTop + padding;
-          markers.push(new import_view2.RectangleMarker(this.classNamesFor(types2), left, top, null, rect.height));
-        }
-      }
-      return;
-    }
-    const types = /* @__PURE__ */ new Set();
-    group.rows.forEach((set2) => {
-      set2.forEach((type) => {
-        types.add(type);
-      });
-    });
-    markers.push(new import_view2.RectangleMarker(
-      this.classNamesFor(types),
-      left,
-      view.documentPadding.top + group.block.top,
-      null,
-      group.block.height
-    ));
-  }
-  /**
-   * Maps a source-line offset within a markdown table to the index of its
-   * rendered `<tr>`. Row 0 is the header; offset 1 is the `|---|` delimiter,
-   * which renders no row; every later data row shifts down by the delimiter.
-   *
-   * @param {number} offset - The 0-based source-line offset within the block
-   * @return {number} The matching `<tr>` index, or -1 for the delimiter line
-   */
-  rowIndexForOffset(offset) {
-    if (offset === 0) {
-      return 0;
-    }
-    return offset >= 2 ? offset - 1 : -1;
-  }
-  /**
-   * Returns the bounding rects of a rendered table's rows when the block is a
-   * table whose `<tr>` count matches its source lines minus the delimiter row,
-   * so the offset-to-row mapping is trustworthy. Returns null for any other
-   * widget or on a layout mismatch, signalling a whole-block fallback.
-   *
-   * @param {EditorView} view - The editor view holding the rendered widget
-   * @param {BlockInfo} block - The collapsed block to resolve
-   * @return {DOMRect[] | null} The row rects, or null when row mapping is unsafe
-   */
-  tableRowRects(view, block) {
-    const table = this.findBlockTable(view, block);
-    if (!table) {
-      return null;
-    }
-    const rows = Array.from(table.rows);
-    const sourceLines = view.state.doc.lineAt(block.to).number - view.state.doc.lineAt(block.from).number + 1;
-    if (!rows.length || rows.length !== sourceLines - 1) {
-      return null;
-    }
-    return rows.map((row) => row.getBoundingClientRect());
-  }
-  /**
-   * Finds the rendered `<table>` whose Live Preview widget maps to the given
-   * block, by matching each table widget's document position against the block
-   * range.
-   *
-   * @param {EditorView} view - The editor view to search within
-   * @param {BlockInfo} block - The collapsed block to resolve
-   * @return {HTMLTableElement | null} The matching table element, or null
-   */
-  findBlockTable(view, block) {
-    const widgets = view.contentDOM.querySelectorAll(".cm-table-widget");
-    for (const widget of Array.from(widgets)) {
-      let pos;
-      try {
-        pos = view.posAtDOM(widget);
-      } catch (e) {
-        continue;
-      }
-      if (pos >= block.from && pos <= block.to) {
-        return widget.querySelector("table");
-      }
-    }
-    return null;
-  }
-  /**
-   * Resolves the content-space x of the editor content's left edge, the anchor
-   * the bar offset is taken from.
-   *
-   * @param {EditorView} view - The editor view to measure
-   * @return {number} The left edge in layer coordinates
-   */
-  getLeftBase(view) {
-    const scrollRect = view.scrollDOM.getBoundingClientRect();
-    const contentRect = view.contentDOM.getBoundingClientRect();
-    return contentRect.left - scrollRect.left + view.scrollDOM.scrollLeft;
-  }
-  /**
-   * Joins the per-type CSS classes for a bar. The `removed` type carries no bar
-   * color in the layer, so it is dropped here.
-   *
-   * @param {Set<ChangeType>} types - The change types collapsed into this block
-   * @return {string} The space-joined class string for the marker element
-   */
-  classNamesFor(types) {
-    const classNames = ["lct", `lct-${"line" /* line */}`, "lct-change-bar"];
-    types.forEach((type) => {
-      if (type !== "removed" /* removed */) {
-        classNames.push(`lct-${type}`);
-      }
-    });
-    return classNames.join(" ");
-  }
-  /**
-   * Tests whether a position is inside the rendered viewport yet hidden by a
-   * replace decoration (a Live Preview block widget). Positions outside the
-   * viewport are off-screen and skipped; positions inside a visible range are
-   * real source lines handled by the decoration path.
-   *
-   * @param {EditorView} view - The editor view to test against
-   * @param {number} pos - The document position to classify
-   * @return {boolean} True if the position is collapsed under a block widget
-   */
-  isHidden(view, pos) {
-    if (pos < view.viewport.from || pos > view.viewport.to) {
-      return false;
-    }
-    return !view.visibleRanges.some(({ from, to }) => pos >= from && pos <= to);
-  }
-  /**
-   * Checks if the indicator type is set to 'line'.
-   *
-   * @return {boolean} True if the indicator type is 'line', false otherwise
-   */
-  isTypeLine() {
-    return this.settingsService.value("type") === "line" /* line */;
-  }
-  /**
-   * Gets the enabled change types that draw a bar. Mirrors the editor extension
-   * minus the removed type, which has no bar representation in this layer.
-   *
-   * @return {ChangeType[]} Array of enabled change types
-   */
-  getEnableTypes() {
-    return [
-      ...this.settingsService.value("show.changed") ? ["changed" /* changed */, "whitespace" /* whitespace */] : [],
-      ...this.settingsService.value("show.restored") ? ["restored" /* restored */] : [],
-      ...this.settingsService.value("show.added") ? ["added" /* added */] : []
-    ];
+  getChangeType() {
+    return this.changes;
   }
 };
-__decorateClass([
-  Inject(TOKENS.settings)
-], ChangeLayerExtension.prototype, "settingsService", 2);
-__decorateClass([
-  Inject(TOKENS.snapshots)
-], ChangeLayerExtension.prototype, "snapshotsService", 2);
 
-// src/extensions/editor-common.extension.ts
+// src/extensions/gutter-bar.extension.ts
 var import_state2 = require("@codemirror/state");
-var import_view3 = require("@codemirror/view");
-var EditorCommonExtension = class extends BaseExtension {
-  /**
-   * Creates a new instance of EditorCommonExtension.
-   * Builds the initial decoration set so a freshly opened view already
-   * reflects the current snapshot without waiting for the first update.
-   *
-   * @param {EditorView | null} view - The CodeMirror editor view
-   * @param {LineChangeTrackerPlugin} plugin - The plugin instance
-   */
-  constructor(view, plugin) {
-    super(view, plugin);
+var GutterBarExtension = class extends BaseExtension {
+  constructor() {
+    super(...arguments);
     /**
-     * Set of decorations to be applied to the editor.
-     * Initialized with an empty decoration set.
+     * CSS class for the gutter wrapper element.
      */
-    this.decorations = import_view3.Decoration.none;
-    this.updateDecorations();
-  }
-  /**
-   * Handles updates to the editor view.
-   * Rebuilds decorations only when the document changed, the viewport
-   * scrolled to new lines, or a refresh effect signalled that the snapshot or
-   * settings changed. Cursor-only and selection updates are ignored.
-   *
-   * @param {ViewUpdate} update - The view update event from CodeMirror
-   * @return {void}
-   */
-  update(update) {
-    if (this.needsRebuild(update)) {
-      this.updateDecorations();
-    }
-  }
-  /**
-   * Decides whether the decoration set must be rebuilt for this update.
-   *
-   * @param {ViewUpdate} update - The view update event from CodeMirror
-   * @return {boolean} True if decorations need to be rebuilt
-   */
-  needsRebuild(update) {
-    return update.docChanged || update.viewportChanged || update.transactions.some((transaction) => transaction.effects.some((effect) => effect.is(refreshDecorationsEffect)));
-  }
-  /**
-   * Updates the decorations based on the current snapshot.
-   * Clears decorations if the indicator type is not 'line' or if no snapshot exists.
-   */
-  updateDecorations() {
-    const snapshot = this.snapshotsService.getOne();
-    if (!this.isTypeLine() || !snapshot) {
-      this.decorations = import_view3.Decoration.none;
-      return;
-    }
-    this.buildDecorations();
-  }
-  /**
-   * Builds the decoration set based on the changes in the snapshot.
-   * Creates line decorations only for changed lines inside the currently
-   * visible ranges, so the work scales with the viewport rather than the
-   * whole document.
-   *
-   * @return {DecorationSet} The built decoration set
-   */
-  buildDecorations() {
-    const builder = new import_state2.RangeSetBuilder();
-    const enable = this.getEnableTypes();
-    const snapshot = this.snapshotsService.getOne();
-    if (!snapshot || !this.view) {
-      this.decorations = builder.finish();
-      return this.decorations;
-    }
-    const changes = snapshot.getChanges(enable);
-    for (const { from, to } of this.view.visibleRanges) {
-      let pos = from;
-      while (pos <= to) {
-        const line = this.view.state.doc.lineAt(pos);
-        const change = changes.get(line.number - 1);
-        if (change) {
-          const classNames = ["lct", `lct-${"line" /* line */}`];
-          const modify = change.getModify();
-          const types = modify === null ? change.getTypes() : change.getTypes().filter((type) => type !== "removed" /* removed */);
-          types.forEach((type) => {
-            classNames.push(`lct-${type}`);
-          });
-          builder.add(line.from, line.from, import_view3.Decoration.line({
-            attributes: {
-              class: classNames.join(" ")
-            }
-          }));
-        }
-        pos = line.to + 1;
+    this.class = `lct lct-gutter-bar-col lct-${"line" /* line */}`;
+    /**
+     * Only render elements for changed lines, so unchanged lines leave no filler
+     * and the column reads as discrete strokes per change run.
+     */
+    this.renderEmptyElements = false;
+    /**
+     * Builds one bar marker for every changed line in the current snapshot.
+     *
+     * @param {EditorView} view - The editor view
+     * @return {RangeSet<BarMarker>} The bar markers
+     */
+    this.markers = (view) => {
+      var _a;
+      const enable = this.getEnableTypes();
+      const snapshot = this.snapshotsService.getOne();
+      const changes = (_a = snapshot == null ? void 0 : snapshot.getChanges(enable)) != null ? _a : null;
+      const builder = new import_state2.RangeSetBuilder();
+      if (!this.isTypeLine() || !snapshot || !(changes == null ? void 0 : changes.size)) {
+        return builder.finish();
       }
-    }
-    this.decorations = builder.finish();
-    return this.decorations;
+      for (let i = 0; i <= view.state.doc.lines - 1; i++) {
+        const change = changes.get(i);
+        if (!change) {
+          continue;
+        }
+        const modify = change.getModify();
+        const kind = modify != null ? modify : change.has("removed" /* removed */) ? "removed" /* removed */ : null;
+        if (kind === null) {
+          continue;
+        }
+        const line = view.state.doc.line(i + 1);
+        builder.add(line.from, line.from, new BarMarker(kind));
+      }
+      return builder.finish();
+    };
   }
   /**
-   * Checks if the indicator type is set to 'line'.
+   * Whether the indicator type is `line`.
    *
-   * @return {boolean} True if the indicator type is 'line', false otherwise
+   * @return {boolean} True in line mode
    */
   isTypeLine() {
     return this.settingsService.value("type") === "line" /* line */;
   }
   /**
-   * Gets the enabled change types from settings.
-   * Includes only the types that are enabled in the settings.
+   * Gets the enabled change types from settings, including removed (drawn as a
+   * dash). Mirrors the former editor extension.
    *
    * @return {ChangeType[]} Array of enabled change types
    */
@@ -3643,10 +3355,10 @@ var EditorCommonExtension = class extends BaseExtension {
 };
 __decorateClass([
   Inject(TOKENS.settings)
-], EditorCommonExtension.prototype, "settingsService", 2);
+], GutterBarExtension.prototype, "settingsService", 2);
 __decorateClass([
   Inject(TOKENS.snapshots)
-], EditorCommonExtension.prototype, "snapshotsService", 2);
+], GutterBarExtension.prototype, "snapshotsService", 2);
 
 // node_modules/diff/libesm/diff/base.js
 var Diff = class {
@@ -5065,8 +4777,8 @@ var HunkHelper = class _HunkHelper {
 };
 
 // src/markers/char.marker.ts
-var import_view4 = require("@codemirror/view");
-var _DotMarker = class _DotMarker extends import_view4.GutterMarker {
+var import_view3 = require("@codemirror/view");
+var _DotMarker = class _DotMarker extends import_view3.GutterMarker {
   /**
    * Creates a new instance of DotMarker.
    *
@@ -5332,8 +5044,8 @@ __decorateClass([
 ], GutterCommonExtension.prototype, "modalsService", 2);
 
 // src/markers/removed.marker.ts
-var import_view5 = require("@codemirror/view");
-var _RemovedMarker = class _RemovedMarker extends import_view5.GutterMarker {
+var import_view4 = require("@codemirror/view");
+var _RemovedMarker = class _RemovedMarker extends import_view4.GutterMarker {
   /**
    * Creates a new instance of RemovedMarker.
    *
@@ -5531,7 +5243,7 @@ __decorateClass([
 ], GutterRemovedExtension.prototype, "modalsService", 2);
 
 // src/services/extensions.service.ts
-var import_view6 = require("@codemirror/view");
+var import_view5 = require("@codemirror/view");
 var ExtensionsService = class {
   /**
    * Creates a new instance of ExtensionsService.
@@ -5552,26 +5264,9 @@ var ExtensionsService = class {
    */
   init() {
     this.register(ChangeDetectorExtension, "editor" /* editor */);
-    this.register(EditorCommonExtension, "editor" /* editor */);
+    this.register(GutterBarExtension, "gutter" /* gutter */);
     this.register(GutterCommonExtension, "gutter" /* gutter */);
     this.register(GutterRemovedExtension, "gutter" /* gutter */);
-    this.registerChangeLayer();
-  }
-  /**
-   * Registers the margin layer that draws the `line` change bars over rendered
-   * block widgets (tables, callouts, embeds) in Live Preview, where the
-   * decoration-based bar cannot attach. Skipped if already registered.
-   *
-   * @return {void}
-   */
-  registerChangeLayer() {
-    const name = ChangeLayerExtension.name;
-    if (this.instances.has(name)) {
-      return;
-    }
-    const extension = new ChangeLayerExtension(this.plugin).build();
-    this.instances.set(name, extension);
-    this.plugin.registerEditorExtension(extension);
   }
   /**
    * Registers an extension with Obsidian.
@@ -5606,18 +5301,18 @@ var ExtensionsService = class {
     const plugin = this.plugin;
     switch (type) {
       case "editor" /* editor */:
-        return import_view6.ViewPlugin.define(
+        return import_view5.ViewPlugin.define(
           // eslint-disable-next-line new-cap
           (view, arg) => new clsConstructor(view, plugin, arg),
           {
             decorations: (view) => {
               var _a2;
-              return (_a2 = view.decorations) != null ? _a2 : import_view6.Decoration.none;
+              return (_a2 = view.decorations) != null ? _a2 : import_view5.Decoration.none;
             }
           }
         );
       case "gutter" /* gutter */:
-        return (0, import_view6.gutter)(new clsConstructor(null, plugin));
+        return (0, import_view5.gutter)(new clsConstructor(null, plugin));
       default:
         throw Error(`Unknown extension type "${type}" for "${(_a = clsConstructor == null ? void 0 : clsConstructor.name) != null ? _a : "unknown"}"`);
     }
@@ -7024,9 +6719,16 @@ var am_default = {
   "setting.allowed-extensions.desc": "\u1208\u12CD\u1326\u127B\u1278\u12CD \u12E8\u121A\u12A8\u1273\u1270\u1209 \u12E8\u134B\u12ED\u120D \u1245\u1325\u12EB\u12CE\u127D \u1260\u12AE\u121B \u12E8\u1270\u1208\u12E9 \u12DD\u122D\u12DD\u122D (\u1208\u121D\u1233\u120C md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "\u12E8\u1270\u1308\u1208\u1209 \u1218\u1295\u1308\u12F6\u127D",
   "setting.exclude-paths.desc": "\u12A8\u1218\u12EB\u12E3\u12CD (vault) \u12A0\u1295\u133B\u122B\u12CA \u1218\u1295\u1308\u12F5 \u130B\u122D \u12E8\u121A\u1290\u133B\u1338\u122D\u1363 \u1208\u134A\u12F0\u120D \u1218\u1320\u1295 \u130D\u12F5 \u12E8\u121B\u12ED\u1230\u1320\u12CD \u1218\u12F0\u1260\u129B \u1218\u130D\u1208\u132B\u1362 \u1218\u1295\u1308\u12F1 \u12E8\u121A\u12DB\u1218\u12F5 \u121B\u1295\u129B\u12CD\u121D \u134B\u12ED\u120D \u1348\u133D\u121E \u12A0\u12ED\u12A8\u1273\u1270\u120D\u121D (\u1208\u121D\u1233\u120C \\.excalidraw\\.md$ \u12C8\u12ED\u121D (^|/)Templates/)\u1362 \u1290\u1263\u122A\u12CD \u1245\u1295\u1265\u122D \u12E8Templates \u12A0\u1243\u134A\u12CE\u127D\u1295 \u12A5\u1293 \u12E8Excalidraw \u1235\u12D5\u120E\u127D\u1295 \u12ED\u1308\u120B\u120D\u1362 \u1201\u1209\u1295\u121D \u1208\u1218\u12A8\u1273\u1270\u120D \u1263\u12F6 \u12ED\u1270\u12C9\u1275\u1362",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "\u1225\u122D\u12D3\u1270 \u1325\u1208\u1275 \u1328\u121D\u122D",
+  "setting.exclude-paths.placeholder": "\u1208\u121D\u1233\u120C (^|/)Templates/",
+  "setting.exclude-paths.remove": "\u12ED\u1205\u1295 \u1225\u122D\u12D3\u1270 \u1325\u1208\u1275 \u12A0\u1235\u12C8\u130D\u12F5",
+  "setting.exclude-paths.empty": "\u12A5\u1235\u12AB\u1201\u1295 \u12E8\u1270\u1308\u1208\u1209 \u12F1\u12AB\u12CE\u127D \u12E8\u1209\u121D\u1362 \u1225\u122D\u12D3\u1270 \u1325\u1208\u1275 \u1208\u1218\u1328\u1218\u122D \u12E8 + \u12A0\u12DD\u122B\u1229\u1295 \u12ED\u1320\u1240\u1219\u1362",
+  "setting.exclude-paths.edit": "\u1225\u122D\u12D3\u1270 \u1325\u1208\u1275 \u12A0\u122D\u1275\u12D5",
+  "setting.exclude-paths.save": "\u1225\u122D\u12D3\u1270 \u1325\u1208\u1275 \u12A0\u1235\u1240\u121D\u1325",
+  "setting.exclude-paths.cancel": "\u1230\u122D\u12DD",
+  "setting.exclude-paths.error": "\u1225\u122D\u12D3\u1270 \u1325\u1208\u1271 \u1263\u12F6 \u12EB\u120D\u1206\u1290 \u1275\u12AD\u12AD\u1208\u129B \u1218\u12F0\u1260\u129B \u1218\u130D\u1208\u132B \u1218\u1206\u1295 \u12A0\u1208\u1260\u1275\u1362",
+  "setting.general-heading": "\u12A0\u1320\u1243\u120B\u12ED",
+  "setting.cleanup-heading": "\u12E8\u1273\u122A\u12AD \u133D\u12F3\u1275",
   "setting.keep.name": "\u1273\u122A\u12AD\u1295 \u12A5\u1235\u12A8\u1218\u127C \u121B\u1246\u12E8\u1275",
   "setting.keep.desc": "\u12E8\u12AD\u1208\u1233 \u1273\u122A\u12AD\u1295 \u12E8\u121B\u133D\u12F3\u1275 \u1235\u120D\u1275",
   "setting.keep.option.app": "\u1218\u1270\u130D\u1260\u122A\u12EB \u1218\u12D8\u130B\u1275",
@@ -7035,8 +6737,8 @@ var am_default = {
   "setting.ignore-new-files.desc": "\u12AD\u1275\u1275\u120D \u12A8\u1270\u1300\u1218\u1228 \u1260\u128B\u120B \u12E8\u1270\u1348\u1320\u1229 \u134B\u12ED\u120E\u127D \u12CD\u1235\u1325 \u1208\u12CD\u1326\u127D\u1295 \u12A0\u1275\u12A8\u1273\u1270\u120D",
   "setting.tree-highlight.name": "\u1260\u134B\u12ED\u120D \u12DB\u134D \u12A5\u1293 \u1275\u122E\u127D \u12CD\u1235\u1325 \u1208\u12CD\u1326\u127D\u1295 \u12A0\u1309\u120D\u1270",
   "setting.tree-highlight.desc": "\u1260\u1264\u1270\u129B\u12CD \u12E8\u134B\u12ED\u120D \u12A0\u1233\u123D \u12CD\u1235\u1325 \u12EB\u1209 \u134B\u12ED\u120E\u127D\u1295 \u12A5\u1293 \u12A0\u1243\u134A\u12CE\u127D\u1295\u1363 \u12A5\u1295\u12F2\u1201\u121D \u12E8\u1270\u12A8\u1348\u1271 \u134B\u12ED\u120E\u127D\u1295 \u12E8\u1275\u122D \u12A0\u122D\u12D5\u1235\u1276\u127D \u1260\u12DA\u1205 \u12AD\u134D\u1208 \u130A\u12DC \u1260\u1270\u1208\u12C8\u1320\u12CD \u1218\u1220\u1228\u1275 \u1240\u1208\u121D \u1235\u1325 (\u1208\u1270\u123B\u123B\u1208 \u12A0\u121D\u1260\u122D\u1363 \u1208\u1273\u12A8\u1208 \u12A0\u1228\u1295\u1313\u12F4)\u1362",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "\u1260\u1263\u1205\u122A\u12EB\u1275 \u1353\u1290\u120D \u12CD\u1235\u1325 \u1208\u12CD\u1326\u127D\u1295 \u12A0\u12F5\u121D\u1245",
+  "setting.properties-highlight.desc": "\u12E8\u1270\u1328\u1218\u1229\u1363 \u12E8\u1270\u1240\u12E8\u1229 \u12A5\u1293 \u12E8\u1270\u12C8\u1308\u12F1 \u12E8 frontmatter \u1241\u120D\u134E\u127D\u1295 \u1260 Obsidian \u1263\u1205\u122A\u12EB\u1275 \u1353\u1290\u120D \u12CD\u1235\u1325 \u12A0\u1233\u12ED\u1362 \u1201\u1209\u1295\u121D \u12E8\u1263\u1205\u122A \u1208\u12CD\u1325 \u121D\u120D\u12AD\u1275 \u1208\u1218\u12F0\u1260\u1245 \u12A0\u1230\u1293\u12AD\u120D\u1362",
   "setting.persist.name": "\u1273\u122A\u12AD\u1295 \u1260\u12F3\u130D\u121D \u121B\u1235\u1300\u1218\u122E\u127D \u1218\u12AB\u12A8\u120D \u12A0\u1246\u12ED",
   "setting.persist.desc": '\u121D\u120D\u12AD\u1276\u127D \u12F3\u130D\u121D \u121B\u1235\u1300\u1218\u122D\u1295 \u12A5\u1295\u12F2\u1270\u122D\u1349 \u1273\u122A\u12AD\u1295 \u12C8\u12F0 \u12F2\u1235\u12AD \u12A0\u1235\u1240\u121D\u1325\u1362 "\u1273\u122A\u12AD\u1295 \u12A5\u1235\u12A8\u1218\u127C \u121B\u1246\u12E8\u1275" \u12C8\u12F0 \u1218\u1270\u130D\u1260\u122A\u12EB \u1218\u12D8\u130B\u1275 \u1218\u12CB\u1240\u122D \u12ED\u1320\u12ED\u1243\u120D\u1362',
   "setting.max-entries.name": "\u12A8\u134D\u1270\u129B \u12E8\u1270\u12A8\u121B\u1279 \u134B\u12ED\u120E\u127D",
@@ -7084,10 +6786,10 @@ var am_default = {
   "modal.mode.side-by-side": "\u130E\u1295 \u1208\u130E\u1295",
   "modal.hide-identical": "\u12A8\u12A0\u1201\u1291 \u130B\u122D \u1270\u1218\u1233\u1233\u12ED \u1235\u122A\u1276\u127D\u1295 \u12F0\u1265\u1245",
   "modal.confirm.cancel": "\u1230\u122D\u12DD",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "\u121B\u1228\u130B\u1308\u132B",
+  "modal.confirm.default.message": "\u1218\u1240\u1320\u120D \u12A5\u1295\u12F0\u121A\u1348\u120D\u1309 \u12A5\u122D\u130D\u1320\u129B \u1290\u12CE\u1275?",
+  "modal.confirm.default.ok": "\u12A0\u1228\u130B\u130D\u1325",
+  "modal.confirm.default.cancel": "\u1230\u122D\u12DD",
   "modal.confirm.restore.title": "\u1218\u1290\u123B \u134B\u12ED\u120D\u1295 \u1218\u120D\u1235",
   "modal.confirm.restore.message": "\u12ED\u1205\u1295 \u134B\u12ED\u120D \u12C8\u12F0 \u1218\u1290\u123B \u1201\u1294\u1273\u12CD \u1218\u1218\u1208\u1235 \u12A5\u1295\u12F0\u121A\u1348\u120D\u1309 \u12A5\u122D\u130D\u1320\u129B \u1290\u12CE\u1275? \u1201\u1209\u121D \u12E8\u12A0\u1201\u1291 \u1208\u12CD\u1326\u127D \u12ED\u1320\u134B\u1209 \u12A5\u1293 \u12E8\u1208\u12CD\u1325 \u12AD\u1275\u1275\u120D \u1273\u122A\u12AD \u12F3\u130D\u121D \u12ED\u1300\u1218\u122B\u120D\u1362 \u12ED\u1205 \u12F5\u122D\u130A\u1275 \u120A\u1240\u1208\u1260\u1235 \u12A0\u12ED\u127D\u120D\u121D\u1362",
   "modal.confirm.restore.button": "\u134B\u12ED\u120D\u1295 \u1218\u120D\u1235",
@@ -7106,52 +6808,53 @@ var am_default = {
   "modal.search-versions": "\u1235\u122A\u1276\u127D\u1295 \u1348\u120D\u130D",
   "modal.version.current": "\u12E8\u12A0\u1201\u1291",
   "modal.version.original": "\u1218\u1290\u123B",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "\u1270\u1348\u1325\u122F\u120D",
+  "modal.version.action.modified": "\u1270\u1240\u12ED\u122F\u120D",
+  "modal.version.action.cleared": "\u1338\u12F5\u1277\u120D",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u12A8\u134D\u1208\u130B\u12CD \u130B\u122D \u12E8\u121A\u12DB\u1218\u12F1 \u1235\u122A\u1276\u127D \u12E8\u1209\u121D",
   "modal.revert-hunk": "\u12ED\u1205\u1295 \u1208\u12CD\u1325 \u1218\u120D\u1235",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "\u12ED\u1205\u1295 \u1208\u12CD\u1325 \u1218\u120D\u1235",
   "modal.copy": "\u1245\u12F3",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "\u1218\u1208\u12EB \u12A0\u1235\u1240\u121D\u1325",
+  "modal.put-label.message": "\u12E8\u12A0\u1201\u1291\u1295 \u12ED\u12D8\u1275 \u1260\u12A0\u132D\u122D \u1218\u1208\u12EB \u121D\u120D\u12AD\u1275 \u12EB\u12F5\u122D\u1309\u1362",
+  "modal.put-label.placeholder": "\u1218\u1208\u12EB",
+  "modal.put-label.confirm": "\u12A0\u1235\u1240\u121D\u1325",
+  "menu.local-history.show-history": "\u1273\u122A\u12AD \u12A0\u1233\u12ED",
+  "menu.local-history.show-history-selection": "\u1208\u121D\u122D\u132B\u12CD \u1273\u122A\u12AD \u12A0\u1233\u12ED",
+  "menu.local-history.put-label": "\u1218\u1208\u12EB \u12A0\u1235\u1240\u121D\u1325",
+  "menu.local-history.recent-changes": "\u12E8\u1245\u122D\u1265 \u130A\u12DC \u1208\u12CD\u1326\u127D",
+  "view.recent-changes.title": "\u12E8\u1245\u122D\u1265 \u130A\u12DC \u1208\u12CD\u1326\u127D",
+  "view.recent-changes.empty": "\u1208\u1290\u1243\u12CD \u134B\u12ED\u120D \u12E8\u1235\u122A\u1275 \u1273\u122A\u12AD \u12E8\u1208\u121D\u1362",
+  "view.recent-changes.menu.show-diff": "\u120D\u12E9\u1290\u1275 \u12A0\u1233\u12ED",
+  "view.recent-changes.menu.restore": "\u12ED\u1205\u1295 \u1235\u122A\u1275 \u1218\u120D\u1235",
+  "view.recent-changes.menu.delete": "\u1235\u122A\u1275 \u1230\u122D\u12DD",
+  "view.recent-changes.menu.put-label": "\u1218\u1208\u12EB \u12A0\u1235\u1240\u121D\u1325",
+  "modal.label-selected": "\u12E8\u1270\u1218\u1228\u1320\u12CD\u1295 \u1235\u122A\u1275 \u1218\u1208\u12EB \u1235\u1325",
+  "modal.label-version.message": "\u12ED\u1205\u1295 \u1235\u122A\u1275 \u1260\u12A0\u132D\u122D \u1218\u1208\u12EB \u121D\u120D\u12AD\u1275 \u12EB\u12F5\u122D\u1309\u1362",
+  "notice.no-folder-history": "\u12A5\u1235\u12AB\u1201\u1295 \u12E8\u12A0\u1243\u134A \u1273\u122A\u12AD \u12E8\u1208\u121D\u1362",
+  "setting.max-deleted-entries.name": "\u12E8\u121A\u1240\u1218\u1321 \u12E8\u1270\u1230\u1228\u12D9 \u134B\u12ED\u120E\u127D \u12A8\u134D\u1270\u129B \u1265\u12DB\u1275",
+  "setting.max-deleted-entries.desc": "\u1260\u12F2\u1235\u12AD \u120B\u12ED \u12E8\u121A\u1240\u1218\u1321 \u12E8\u1270\u1230\u1228\u12D9 \u134B\u12ED\u120E\u127D \u1273\u122A\u12AE\u127D \u1265\u12DB\u1275 \u1308\u12F0\u1265\u1362 \u1260\u1218\u1300\u1218\u122A\u12EB \u12E8\u1246\u12E9\u1275 \u12ED\u12C8\u1308\u12F3\u1209\u1362 \u1208\u121B\u1230\u1293\u12A8\u120D 0 \u12EB\u1235\u1240\u121D\u1321\u1362",
+  "setting.max-deleted-age-days.name": "\u12E8\u1270\u1230\u1228\u12D8 \u1273\u122A\u12AD \u12A8\u134D\u1270\u129B \u12D5\u12F5\u121C (\u1240\u1293\u1275)",
+  "setting.max-deleted-age-days.desc": "\u12A8\u12DA\u1205 \u12E8\u1240\u1293\u1275 \u1265\u12DB\u1275 \u12E8\u1246\u12E9 \u12E8\u1270\u1230\u1228\u12D9 \u134B\u12ED\u120E\u127D \u1273\u122A\u12AE\u127D\u1295 \u12A0\u1235\u12C8\u130D\u12F5\u1362 \u1208\u121B\u1230\u1293\u12A8\u120D 0 \u12EB\u1235\u1240\u121D\u1321\u1362",
+  "folder-tree.empty": "\u1208\u1270\u1218\u1228\u1320\u12CD \u1290\u1325\u1265 \u1260\u12DA\u1205 \u12A0\u1243\u134A \u12CD\u1235\u1325 \u1208\u12CD\u1326\u127D \u12E8\u1209\u121D\u1362",
+  "modal.folder.filter-files": "\u134B\u12ED\u120E\u127D\u1295 \u1260\u1235\u121D \u12A0\u1323\u122B",
+  "modal.folder.timeline.capture": "\u1270\u1240\u122D\u133F\u120D",
+  "modal.folder.timeline.delete": "\u1270\u1230\u122D\u12DF\u120D",
+  "modal.folder.timeline.move-in": "\u12C8\u12F0\u12DA\u1205 \u1270\u12DB\u12CD\u122F\u120D",
+  "modal.folder.notice.no-file": "\u121D\u1295\u121D \u134B\u12ED\u120D \u12A0\u120D\u1270\u1218\u1228\u1320\u121D\u1362",
+  "modal.folder.notice.added": "\u134B\u12ED\u1209 \u12A8\u12DA\u1205 \u1290\u1325\u1265 \u1260\u128B\u120B \u1270\u1328\u121D\u122F\u120D\u1362",
+  "modal.folder.notice.deleted": "\u134B\u12ED\u1209 \u12A8\u12DA\u1205 \u1290\u1325\u1265 \u1260\u128B\u120B \u1270\u1230\u122D\u12DF\u120D\u1362",
+  "modal.folder.notice.unchanged": "\u12A8\u12DA\u1205 \u1290\u1325\u1265 \u1300\u121D\u122E \u1208\u12CD\u1326\u127D \u12E8\u1209\u121D\u1362",
+  "version.badge.external": "\u12CD\u132B\u12CA",
+  "setting.exclude-paths-case-sensitive.name": "\u12E8\u134A\u12F0\u120D \u1218\u1320\u1295\u1295 \u12E8\u121A\u1208\u12ED \u12E8\u12F1\u12AB \u121B\u130D\u1208\u120D",
+  "setting.exclude-paths-case-sensitive.desc": "\u1232\u1290\u1243\u1363 \u12E8\u1270\u1308\u1208\u1209 \u12F1\u12AB\u12CE\u127D \u1218\u12F0\u1260\u129B \u1218\u130D\u1208\u132B \u12E8\u134A\u12F0\u120D \u1218\u1320\u1295\u1295 \u1260\u1218\u1208\u12E8\u1275 \u12ED\u12DB\u1218\u12F3\u120D (\u12EB\u1208 'i' \u1263\u1295\u12F2\u122B)\u1362 \u12E8\u134A\u12F0\u120D \u1218\u1320\u1295 \u1233\u12ED\u1208\u12ED \u12A5\u1295\u12F2\u12DB\u1218\u12F5 \u12A0\u1230\u1293\u12AD\u120D\u1366 \u12ED\u1205 \u1290\u1263\u122A \u1290\u12CD \u12A5\u1293 \u12E8\u134A\u12F0\u120D \u1218\u1320\u1295 \u1260\u121B\u12ED\u1208\u12E9 \u12E8\u134B\u12ED\u120D \u1235\u122D\u12D3\u1276\u127D \u120B\u12ED \u1260\u12F0\u1295\u1265 \u12ED\u1230\u122B\u120D\u1362",
+  "setting.purge-excluded.name": "\u1208\u1270\u1308\u1208\u1209 \u12F1\u12AB\u12CE\u127D \u1273\u122A\u12AD\u1295 \u12A0\u133D\u12F3",
+  "setting.purge-excluded.desc": "\u12F1\u12AB\u12CE\u127B\u1278\u12CD \u12A0\u1201\u1295 \u12A8\u1270\u1308\u1208\u1209 \u12F1\u12AB\u12CE\u127D \u1225\u122D\u12D3\u1270 \u1325\u1208\u1275 \u130B\u122D \u12E8\u121A\u12DB\u1218\u12F1 \u134B\u12ED\u120E\u127D\u1295 \u1201\u1209\u1295\u121D \u12E8\u1270\u1240\u1218\u1320 \u1273\u122A\u12AD \u1230\u122D\u12DD\u1362 \u12E8\u1270\u1230\u1228\u12D9 \u134B\u12ED\u120E\u127D \u1218\u12DD\u1308\u1266\u127D\u121D \u12ED\u12C8\u1308\u12F3\u1209\u1362 \u12ED\u1205 \u12F5\u122D\u130A\u1275 \u120A\u1240\u1208\u1260\u1235 \u12A0\u12ED\u127D\u120D\u121D\u1362",
+  "notice.purge-excluded": "\u12A0\u12AB\u1263\u1262\u12EB\u12CA \u1273\u122A\u12AD\u1366 \u1208\u1270\u1308\u1208\u1209 \u12F1\u12AB\u12CE\u127D {count} \u1245\u133D\u1260\u1273\u12CA \u1245\u1302\u12CE\u127D \u1338\u12F5\u1270\u12CB\u120D\u1362",
+  "notice.purge-excluded.no-match": "\u12A0\u12AB\u1263\u1262\u12EB\u12CA \u1273\u122A\u12AD\u1366 \u12A8\u1270\u1308\u1208\u1209 \u12F1\u12AB\u12CE\u127D \u130B\u122D \u12E8\u121A\u12DB\u1218\u12F5 \u12E8\u1270\u1240\u1218\u1320 \u1273\u122A\u12AD \u12E8\u1208\u121D\u1362",
+  "setting.reading-mode-indicator.name": "\u1260\u1295\u1263\u1265 \u1201\u1290\u1273 \u1320\u124B\u121A\u12CE\u127D\u1295 \u12A0\u1233\u12ED",
+  "setting.reading-mode-indicator.desc": "\u1260\u1295\u1263\u1265 \u1201\u1290\u1273 \u12E8\u1270\u1233\u1209 \u1265\u120E\u12AE\u127D\u1295 \u12A8\u12A0\u122D\u1275\u12D6\u1275 \u1320\u124B\u121A \u1240\u1208\u121E\u127D (\u12E8\u1270\u1240\u12E8\u1228\u1363 \u12E8\u1270\u1328\u1218\u1228\u1363 \u12AD\u134D\u1275 \u1266\u1273\u1363 \u12E8\u1270\u1218\u1208\u1230) \u130B\u122D \u1260\u121A\u12DB\u1218\u12F5 \u1263\u1208\u1240\u1208\u121D \u12E8\u130D\u122B \u12F5\u1295\u1260\u122D \u12A0\u1235\u130C\u1325\u1362 \u1260\u1290\u1263\u122A \u1320\u134D\u1277\u120D\u1364 \u1260\u12A5\u12EB\u1295\u12F3\u1295\u12F1 \u12E8\u1295\u1263\u1265 \u1201\u1290\u1273 \u12F3\u130D\u121D \u1218\u1233\u120D \u1208\u12A5\u12EB\u1295\u12F3\u1295\u12F1 \u1265\u120E\u12AD \u1275\u1295\u123D \u12C8\u132A \u12A0\u1208\u12CD\u1362"
 };
 
 // lang/ar.json
@@ -7181,9 +6884,16 @@ var ar_default = {
   "setting.allowed-extensions.desc": "\u0642\u0627\u0626\u0645\u0629 \u0628\u0627\u0645\u062A\u062F\u0627\u062F\u0627\u062A \u0627\u0644\u0645\u0644\u0641\u0627\u062A \u0645\u0641\u0635\u0648\u0644\u0629 \u0628\u0641\u0648\u0627\u0635\u0644 \u0644\u062A\u062A\u0628\u0651\u0639 \u0627\u0644\u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0641\u064A\u0647\u0627 (\u0645\u062B\u0644 md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "\u0627\u0644\u0645\u0633\u0627\u0631\u0627\u062A \u0627\u0644\u0645\u0633\u062A\u062B\u0646\u0627\u0629",
   "setting.exclude-paths.desc": "\u062A\u0639\u0628\u064A\u0631 \u0646\u0645\u0637\u064A \u063A\u064A\u0631 \u062D\u0633\u0627\u0633 \u0644\u062D\u0627\u0644\u0629 \u0627\u0644\u0623\u062D\u0631\u0641 \u064A\u064F\u0637\u0627\u0628\u064E\u0642 \u0645\u0639 \u0627\u0644\u0645\u0633\u0627\u0631 \u0627\u0644\u0646\u0633\u0628\u064A \u0644\u0644\u0642\u0628\u0648. \u0623\u064A \u0645\u0644\u0641 \u064A\u062A\u0637\u0627\u0628\u0642 \u0645\u0633\u0627\u0631\u0647 \u0644\u0627 \u064A\u064F\u062A\u062A\u0628\u0651\u0639 \u0623\u0628\u062F\u064B\u0627 (\u0645\u062B\u0644 \\.excalidraw\\.md$ \u0623\u0648 (^|/)Templates/). \u064A\u0633\u062A\u062B\u0646\u064A \u0627\u0644\u0625\u0639\u062F\u0627\u062F \u0627\u0644\u0627\u0641\u062A\u0631\u0627\u0636\u064A \u0645\u062C\u0644\u062F\u0627\u062A Templates \u0648\u0631\u0633\u0648\u0645\u0627\u062A Excalidraw. \u0627\u062A\u0631\u0643\u0647 \u0641\u0627\u0631\u063A\u064B\u0627 \u0644\u062A\u062A\u0628\u0651\u0639 \u0643\u0644 \u0634\u064A\u0621.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "\u0625\u0636\u0627\u0641\u0629 \u0646\u0645\u0637",
+  "setting.exclude-paths.placeholder": "\u0645\u062B\u0627\u0644: (^|/)Templates/",
+  "setting.exclude-paths.remove": "\u0625\u0632\u0627\u0644\u0629 \u0647\u0630\u0627 \u0627\u0644\u0646\u0645\u0637",
+  "setting.exclude-paths.empty": "\u0644\u0627 \u062A\u0648\u062C\u062F \u0645\u0633\u0627\u0631\u0627\u062A \u0645\u0633\u062A\u0628\u0639\u062F\u0629 \u0628\u0639\u062F. \u0627\u0633\u062A\u062E\u062F\u0645 \u0632\u0631 + \u0644\u0625\u0636\u0627\u0641\u0629 \u0646\u0645\u0637.",
+  "setting.exclude-paths.edit": "\u062A\u062D\u0631\u064A\u0631 \u0627\u0644\u0646\u0645\u0637",
+  "setting.exclude-paths.save": "\u062D\u0641\u0638 \u0627\u0644\u0646\u0645\u0637",
+  "setting.exclude-paths.cancel": "\u0625\u0644\u063A\u0627\u0621",
+  "setting.exclude-paths.error": "\u064A\u062C\u0628 \u0623\u0646 \u064A\u0643\u0648\u0646 \u0627\u0644\u0646\u0645\u0637 \u062A\u0639\u0628\u064A\u0631\u064B\u0627 \u0646\u0645\u0637\u064A\u064B\u0627 \u0635\u0627\u0644\u062D\u064B\u0627 \u0648\u063A\u064A\u0631 \u0641\u0627\u0631\u063A.",
+  "setting.general-heading": "\u0639\u0627\u0645",
+  "setting.cleanup-heading": "\u062A\u0646\u0638\u064A\u0641 \u0627\u0644\u0633\u062C\u0644",
   "setting.keep.name": "\u0627\u0644\u0627\u062D\u062A\u0641\u0627\u0638 \u0628\u0627\u0644\u0633\u062C\u0644 \u062D\u062A\u0649",
   "setting.keep.desc": "\u0627\u0633\u062A\u0631\u0627\u062A\u064A\u062C\u064A\u0629 \u062A\u0646\u0638\u064A\u0641 \u0633\u062C\u0644 \u0627\u0644\u0645\u0631\u0627\u062C\u0639\u0627\u062A",
   "setting.keep.option.app": "\u0625\u063A\u0644\u0627\u0642 \u0627\u0644\u062A\u0637\u0628\u064A\u0642",
@@ -7192,8 +6902,8 @@ var ar_default = {
   "setting.ignore-new-files.desc": "\u0639\u062F\u0645 \u062A\u062A\u0628\u0651\u0639 \u0627\u0644\u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0641\u064A \u0627\u0644\u0645\u0644\u0641\u0627\u062A \u0627\u0644\u0645\u064F\u0646\u0634\u0623\u0629 \u0628\u0639\u062F \u0628\u062F\u0621 \u0627\u0644\u062A\u062A\u0628\u0651\u0639",
   "setting.tree-highlight.name": "\u0625\u0628\u0631\u0627\u0632 \u0627\u0644\u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0641\u064A \u0634\u062C\u0631\u0629 \u0627\u0644\u0645\u0644\u0641\u0627\u062A \u0648\u0627\u0644\u062A\u0628\u0648\u064A\u0628\u0627\u062A",
   "setting.tree-highlight.desc": "\u062A\u0644\u0648\u064A\u0646 \u0627\u0644\u0645\u0644\u0641\u0627\u062A \u0648\u0627\u0644\u0645\u062C\u0644\u062F\u0627\u062A \u0641\u064A \u0645\u0633\u062A\u0643\u0634\u0641 \u0627\u0644\u0645\u0644\u0641\u0627\u062A \u0627\u0644\u0623\u0635\u0644\u064A\u060C \u0648\u0639\u0646\u0627\u0648\u064A\u0646 \u062A\u0628\u0648\u064A\u0628\u0627\u062A \u0627\u0644\u0645\u0644\u0641\u0627\u062A \u0627\u0644\u0645\u0641\u062A\u0648\u062D\u0629\u060C \u062D\u0633\u0628 \u0645\u0627 \u062A\u063A\u064A\u0651\u0631 \u0641\u064A \u0647\u0630\u0647 \u0627\u0644\u062C\u0644\u0633\u0629 (\u0643\u0647\u0631\u0645\u0627\u0646\u064A \u0644\u0644\u0645\u0639\u062F\u0651\u0644\u060C \u0623\u062E\u0636\u0631 \u0644\u0644\u0645\u0636\u0627\u0641).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "\u0625\u0628\u0631\u0627\u0632 \u0627\u0644\u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0641\u064A \u0644\u0648\u062D\u0629 \u0627\u0644\u062E\u0635\u0627\u0626\u0635",
+  "setting.properties-highlight.desc": "\u0639\u0631\u0636 \u0645\u0641\u0627\u062A\u064A\u062D frontmatter \u0627\u0644\u0645\u0636\u0627\u0641\u0629 \u0648\u0627\u0644\u0645\u0639\u062F\u0644\u0629 \u0648\u0627\u0644\u0645\u062D\u0630\u0648\u0641\u0629 \u0641\u064A \u0644\u0648\u062D\u0629 \u062E\u0635\u0627\u0626\u0635 Obsidian. \u0639\u0637\u0651\u0644 \u0627\u0644\u062E\u064A\u0627\u0631 \u0644\u0625\u062E\u0641\u0627\u0621 \u0643\u0644 \u062A\u0645\u064A\u064A\u0632 \u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0627\u0644\u062E\u0635\u0627\u0626\u0635.",
   "setting.persist.name": "\u0627\u0644\u0627\u062D\u062A\u0641\u0627\u0638 \u0628\u0627\u0644\u0633\u062C\u0644 \u0639\u0628\u0631 \u0639\u0645\u0644\u064A\u0627\u062A \u0625\u0639\u0627\u062F\u0629 \u0627\u0644\u062A\u0634\u063A\u064A\u0644",
   "setting.persist.desc": '\u0627\u062D\u0641\u0638 \u0627\u0644\u0633\u062C\u0644 \u0639\u0644\u0649 \u0627\u0644\u0642\u0631\u0635 \u0644\u062A\u0628\u0642\u0649 \u0627\u0644\u0625\u0628\u0631\u0627\u0632\u0627\u062A \u0628\u0639\u062F \u0625\u0639\u0627\u062F\u0629 \u0627\u0644\u062A\u0634\u063A\u064A\u0644. \u064A\u062A\u0637\u0644\u0628 \u0636\u0628\u0637 "\u0627\u0644\u0627\u062D\u062A\u0641\u0627\u0638 \u0628\u0627\u0644\u0633\u062C\u0644 \u062D\u062A\u0649" \u0639\u0644\u0649 \u0625\u063A\u0644\u0627\u0642 \u0627\u0644\u062A\u0637\u0628\u064A\u0642.',
   "setting.max-entries.name": "\u0627\u0644\u062D\u062F \u0627\u0644\u0623\u0642\u0635\u0649 \u0644\u0644\u0645\u0644\u0641\u0627\u062A \u0627\u0644\u0645\u062E\u0632\u064E\u0651\u0646\u0629",
@@ -7241,10 +6951,10 @@ var ar_default = {
   "modal.mode.side-by-side": "\u062C\u0646\u0628\u064B\u0627 \u0625\u0644\u0649 \u062C\u0646\u0628",
   "modal.hide-identical": "\u0625\u062E\u0641\u0627\u0621 \u0627\u0644\u0625\u0635\u062F\u0627\u0631\u0627\u062A \u0627\u0644\u0645\u0637\u0627\u0628\u0642\u0629 \u0644\u0644\u0646\u0633\u062E\u0629 \u0627\u0644\u062D\u0627\u0644\u064A\u0629",
   "modal.confirm.cancel": "\u0625\u0644\u063A\u0627\u0621",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "\u062A\u0623\u0643\u064A\u062F",
+  "modal.confirm.default.message": "\u0647\u0644 \u0623\u0646\u062A \u0645\u062A\u0623\u0643\u062F \u0623\u0646\u0643 \u062A\u0631\u064A\u062F \u0627\u0644\u0645\u062A\u0627\u0628\u0639\u0629\u061F",
+  "modal.confirm.default.ok": "\u062A\u0623\u0643\u064A\u062F",
+  "modal.confirm.default.cancel": "\u0625\u0644\u063A\u0627\u0621",
   "modal.confirm.restore.title": "\u0627\u0633\u062A\u0639\u0627\u062F\u0629 \u0627\u0644\u0645\u0644\u0641 \u0627\u0644\u0623\u0635\u0644\u064A",
   "modal.confirm.restore.message": "\u0647\u0644 \u0623\u0646\u062A \u0645\u062A\u0623\u0643\u062F \u0645\u0646 \u0631\u063A\u0628\u062A\u0643 \u0641\u064A \u0627\u0633\u062A\u0639\u0627\u062F\u0629 \u0647\u0630\u0627 \u0627\u0644\u0645\u0644\u0641 \u0625\u0644\u0649 \u062D\u0627\u0644\u062A\u0647 \u0627\u0644\u0623\u0635\u0644\u064A\u0629\u061F \u0633\u062A\u0641\u0642\u062F \u062C\u0645\u064A\u0639 \u0627\u0644\u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0627\u0644\u062D\u0627\u0644\u064A\u0629 \u0648\u0633\u062A\u062A\u0645 \u0625\u0639\u0627\u062F\u0629 \u062A\u0639\u064A\u064A\u0646 \u0633\u062C\u0644 \u062A\u062A\u0628\u0651\u0639 \u0627\u0644\u062A\u063A\u064A\u064A\u0631\u0627\u062A. \u0644\u0627 \u064A\u0645\u0643\u0646 \u0627\u0644\u062A\u0631\u0627\u062C\u0639 \u0639\u0646 \u0647\u0630\u0627 \u0627\u0644\u0625\u062C\u0631\u0627\u0621.",
   "modal.confirm.restore.button": "\u0627\u0633\u062A\u0639\u0627\u062F\u0629 \u0627\u0644\u0645\u0644\u0641",
@@ -7263,52 +6973,53 @@ var ar_default = {
   "modal.search-versions": "\u0627\u0644\u0628\u062D\u062B \u0641\u064A \u0627\u0644\u0625\u0635\u062F\u0627\u0631\u0627\u062A",
   "modal.version.current": "\u0627\u0644\u062D\u0627\u0644\u064A",
   "modal.version.original": "\u0627\u0644\u0623\u0635\u0644\u064A",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "\u0623\u064F\u0646\u0634\u0626\u062A",
+  "modal.version.action.modified": "\u0639\u064F\u062F\u0651\u0644\u062A",
+  "modal.version.action.cleared": "\u0623\u064F\u0641\u0631\u063A\u062A",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u0644\u0627 \u062A\u0648\u062C\u062F \u0625\u0635\u062F\u0627\u0631\u0627\u062A \u062A\u0637\u0627\u0628\u0642 \u0627\u0644\u0628\u062D\u062B",
   "modal.revert-hunk": "\u0627\u0644\u062A\u0631\u0627\u062C\u0639 \u0639\u0646 \u0647\u0630\u0627 \u0627\u0644\u062A\u063A\u064A\u064A\u0631",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "\u0627\u0644\u062A\u0631\u0627\u062C\u0639 \u0639\u0646 \u0647\u0630\u0627 \u0627\u0644\u062A\u063A\u064A\u064A\u0631",
   "modal.copy": "\u0646\u0633\u062E",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "\u0648\u0636\u0639 \u062A\u0633\u0645\u064A\u0629",
+  "modal.put-label.message": "\u0636\u0639 \u062A\u0633\u0645\u064A\u0629 \u0642\u0635\u064A\u0631\u0629 \u0639\u0644\u0649 \u0627\u0644\u0645\u062D\u062A\u0648\u0649 \u0627\u0644\u062D\u0627\u0644\u064A.",
+  "modal.put-label.placeholder": "\u062A\u0633\u0645\u064A\u0629",
+  "modal.put-label.confirm": "\u062D\u0641\u0638",
+  "menu.local-history.show-history": "\u0639\u0631\u0636 \u0627\u0644\u0633\u062C\u0644",
+  "menu.local-history.show-history-selection": "\u0639\u0631\u0636 \u0633\u062C\u0644 \u0627\u0644\u062A\u062D\u062F\u064A\u062F",
+  "menu.local-history.put-label": "\u0648\u0636\u0639 \u062A\u0633\u0645\u064A\u0629",
+  "menu.local-history.recent-changes": "\u0627\u0644\u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0627\u0644\u0623\u062E\u064A\u0631\u0629",
+  "view.recent-changes.title": "\u0627\u0644\u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0627\u0644\u0623\u062E\u064A\u0631\u0629",
+  "view.recent-changes.empty": "\u0644\u0627 \u064A\u0648\u062C\u062F \u0633\u062C\u0644 \u0625\u0635\u062F\u0627\u0631\u0627\u062A \u0644\u0644\u0645\u0644\u0641 \u0627\u0644\u0646\u0634\u0637.",
+  "view.recent-changes.menu.show-diff": "\u0639\u0631\u0636 \u0627\u0644\u0641\u0631\u0648\u0642",
+  "view.recent-changes.menu.restore": "\u0627\u0633\u062A\u0639\u0627\u062F\u0629 \u0647\u0630\u0627 \u0627\u0644\u0625\u0635\u062F\u0627\u0631",
+  "view.recent-changes.menu.delete": "\u062D\u0630\u0641 \u0627\u0644\u0625\u0635\u062F\u0627\u0631",
+  "view.recent-changes.menu.put-label": "\u0648\u0636\u0639 \u062A\u0633\u0645\u064A\u0629",
+  "modal.label-selected": "\u062A\u0633\u0645\u064A\u0629 \u0627\u0644\u0625\u0635\u062F\u0627\u0631 \u0627\u0644\u0645\u062D\u062F\u062F",
+  "modal.label-version.message": "\u0636\u0639 \u062A\u0633\u0645\u064A\u0629 \u0642\u0635\u064A\u0631\u0629 \u0639\u0644\u0649 \u0647\u0630\u0627 \u0627\u0644\u0625\u0635\u062F\u0627\u0631.",
+  "notice.no-folder-history": "\u0644\u0627 \u064A\u0648\u062C\u062F \u0633\u062C\u0644 \u0644\u0644\u0645\u062C\u0644\u062F \u0628\u0639\u062F.",
+  "setting.max-deleted-entries.name": "\u0627\u0644\u062D\u062F \u0627\u0644\u0623\u0642\u0635\u0649 \u0644\u0644\u0645\u0644\u0641\u0627\u062A \u0627\u0644\u0645\u062D\u0630\u0648\u0641\u0629 \u0627\u0644\u0645\u062E\u0632\u0646\u0629",
+  "setting.max-deleted-entries.desc": "\u062D\u062F \u0623\u0642\u0635\u0649 \u0644\u0639\u062F\u062F \u0633\u062C\u0644\u0627\u062A \u0627\u0644\u0645\u0644\u0641\u0627\u062A \u0627\u0644\u0645\u062D\u0630\u0648\u0641\u0629 \u0627\u0644\u0645\u062D\u0641\u0648\u0638\u0629 \u0639\u0644\u0649 \u0627\u0644\u0642\u0631\u0635. \u062A\u064F\u062D\u0630\u0641 \u0627\u0644\u0623\u0642\u062F\u0645 \u0623\u0648\u0644\u064B\u0627. \u0627\u0636\u0628\u0637 \u0627\u0644\u0642\u064A\u0645\u0629 \u0639\u0644\u0649 0 \u0644\u0644\u062A\u0639\u0637\u064A\u0644.",
+  "setting.max-deleted-age-days.name": "\u0627\u0644\u0639\u0645\u0631 \u0627\u0644\u0623\u0642\u0635\u0649 \u0644\u0633\u062C\u0644 \u0627\u0644\u0645\u0644\u0641\u0627\u062A \u0627\u0644\u0645\u062D\u0630\u0648\u0641\u0629 (\u0623\u064A\u0627\u0645)",
+  "setting.max-deleted-age-days.desc": "\u062D\u0630\u0641 \u0633\u062C\u0644\u0627\u062A \u0627\u0644\u0645\u0644\u0641\u0627\u062A \u0627\u0644\u0645\u062D\u0630\u0648\u0641\u0629 \u0627\u0644\u0623\u0642\u062F\u0645 \u0645\u0646 \u0647\u0630\u0627 \u0627\u0644\u0639\u062F\u062F \u0645\u0646 \u0627\u0644\u0623\u064A\u0627\u0645. \u0627\u0636\u0628\u0637 \u0627\u0644\u0642\u064A\u0645\u0629 \u0639\u0644\u0649 0 \u0644\u0644\u062A\u0639\u0637\u064A\u0644.",
+  "folder-tree.empty": "\u0644\u0627 \u062A\u0648\u062C\u062F \u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0641\u064A \u0647\u0630\u0627 \u0627\u0644\u0645\u062C\u0644\u062F \u0639\u0646\u062F \u0627\u0644\u0646\u0642\u0637\u0629 \u0627\u0644\u0645\u062D\u062F\u062F\u0629.",
+  "modal.folder.filter-files": "\u062A\u0635\u0641\u064A\u0629 \u0627\u0644\u0645\u0644\u0641\u0627\u062A \u062D\u0633\u0628 \u0627\u0644\u0627\u0633\u0645",
+  "modal.folder.timeline.capture": "\u0627\u0644\u062A\u064F\u0642\u0637",
+  "modal.folder.timeline.delete": "\u062D\u064F\u0630\u0641",
+  "modal.folder.timeline.move-in": "\u0646\u064F\u0642\u0644 \u0625\u0644\u0649 \u0647\u0646\u0627",
+  "modal.folder.notice.no-file": "\u0644\u0645 \u064A\u062A\u0645 \u062A\u062D\u062F\u064A\u062F \u0623\u064A \u0645\u0644\u0641.",
+  "modal.folder.notice.added": "\u0623\u064F\u0636\u064A\u0641 \u0627\u0644\u0645\u0644\u0641 \u0628\u0639\u062F \u0647\u0630\u0647 \u0627\u0644\u0646\u0642\u0637\u0629.",
+  "modal.folder.notice.deleted": "\u062D\u064F\u0630\u0641 \u0627\u0644\u0645\u0644\u0641 \u0628\u0639\u062F \u0647\u0630\u0647 \u0627\u0644\u0646\u0642\u0637\u0629.",
+  "modal.folder.notice.unchanged": "\u0644\u0627 \u062A\u0648\u062C\u062F \u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0645\u0646\u0630 \u0647\u0630\u0647 \u0627\u0644\u0646\u0642\u0637\u0629.",
+  "version.badge.external": "\u062E\u0627\u0631\u062C\u064A",
+  "setting.exclude-paths-case-sensitive.name": "\u0627\u0633\u062A\u0628\u0639\u0627\u062F \u0627\u0644\u0645\u0633\u0627\u0631\u0627\u062A \u0645\u0639 \u0645\u0631\u0627\u0639\u0627\u0629 \u062D\u0627\u0644\u0629 \u0627\u0644\u0623\u062D\u0631\u0641",
+  "setting.exclude-paths-case-sensitive.desc": "\u0639\u0646\u062F \u0627\u0644\u062A\u0641\u0639\u064A\u0644\u060C \u064A\u064F\u0637\u0627\u0628\u064E\u0642 \u0627\u0644\u062A\u0639\u0628\u064A\u0631 \u0627\u0644\u0646\u0645\u0637\u064A \u0644\u0644\u0645\u0633\u0627\u0631\u0627\u062A \u0627\u0644\u0645\u0633\u062A\u0628\u0639\u062F\u0629 \u0645\u0639 \u0645\u0631\u0627\u0639\u0627\u0629 \u062D\u0627\u0644\u0629 \u0627\u0644\u0623\u062D\u0631\u0641 (\u0628\u062F\u0648\u0646 \u0639\u0644\u0627\u0645\u0629 'i'). \u0639\u0637\u0651\u0644 \u0627\u0644\u062E\u064A\u0627\u0631 \u0644\u0644\u0645\u0637\u0627\u0628\u0642\u0629 \u0628\u063A\u0636 \u0627\u0644\u0646\u0638\u0631 \u0639\u0646 \u062D\u0627\u0644\u0629 \u0627\u0644\u0623\u062D\u0631\u0641: \u0647\u0630\u0627 \u0647\u0648 \u0627\u0644\u0625\u0639\u062F\u0627\u062F \u0627\u0644\u0627\u0641\u062A\u0631\u0627\u0636\u064A \u0648\u064A\u0639\u0645\u0644 \u062C\u064A\u062F\u064B\u0627 \u0639\u0644\u0649 \u0623\u0646\u0638\u0645\u0629 \u0627\u0644\u0645\u0644\u0641\u0627\u062A \u063A\u064A\u0631 \u0627\u0644\u062D\u0633\u0627\u0633\u0629 \u0644\u062D\u0627\u0644\u0629 \u0627\u0644\u0623\u062D\u0631\u0641.",
+  "setting.purge-excluded.name": "\u0645\u0633\u062D \u0633\u062C\u0644 \u0627\u0644\u0645\u0633\u0627\u0631\u0627\u062A \u0627\u0644\u0645\u0633\u062A\u0628\u0639\u062F\u0629",
+  "setting.purge-excluded.desc": "\u062D\u0630\u0641 \u0643\u0644 \u0627\u0644\u0633\u062C\u0644 \u0627\u0644\u0645\u062E\u0632\u0646 \u0644\u0644\u0645\u0644\u0641\u0627\u062A \u0627\u0644\u062A\u064A \u062A\u0637\u0627\u0628\u0642 \u0645\u0633\u0627\u0631\u0627\u062A\u0647\u0627 \u062D\u0627\u0644\u064A\u064B\u0627 \u0646\u0645\u0637 \u0627\u0644\u0645\u0633\u0627\u0631\u0627\u062A \u0627\u0644\u0645\u0633\u062A\u0628\u0639\u062F\u0629. \u062A\u064F\u0632\u0627\u0644 \u0623\u064A\u0636\u064B\u0627 \u0633\u062C\u0644\u0627\u062A \u0627\u0644\u0645\u0644\u0641\u0627\u062A \u0627\u0644\u0645\u062D\u0630\u0648\u0641\u0629. \u0644\u0627 \u064A\u0645\u0643\u0646 \u0627\u0644\u062A\u0631\u0627\u062C\u0639 \u0639\u0646 \u0647\u0630\u0627 \u0627\u0644\u0625\u062C\u0631\u0627\u0621.",
+  "notice.purge-excluded": "\u0627\u0644\u0633\u062C\u0644 \u0627\u0644\u0645\u062D\u0644\u064A: \u062A\u0645 \u0645\u0633\u062D {count} \u0644\u0642\u0637\u0629 \u0644\u0644\u0645\u0633\u0627\u0631\u0627\u062A \u0627\u0644\u0645\u0633\u062A\u0628\u0639\u062F\u0629.",
+  "notice.purge-excluded.no-match": "\u0627\u0644\u0633\u062C\u0644 \u0627\u0644\u0645\u062D\u0644\u064A: \u0644\u0627 \u064A\u0648\u062C\u062F \u0633\u062C\u0644 \u0645\u062E\u0632\u0651\u0646 \u064A\u0637\u0627\u0628\u0642 \u0627\u0644\u0645\u0633\u0627\u0631\u0627\u062A \u0627\u0644\u0645\u0633\u062A\u0628\u0639\u062F\u0629.",
+  "setting.reading-mode-indicator.name": "\u0639\u0631\u0636 \u0627\u0644\u0645\u0624\u0634\u0631\u0627\u062A \u0641\u064A \u0648\u0636\u0639 \u0627\u0644\u0642\u0631\u0627\u0621\u0629",
+  "setting.reading-mode-indicator.desc": "\u062A\u0632\u064A\u064A\u0646 \u0627\u0644\u0643\u062A\u0644 \u0627\u0644\u0645\u0639\u0631\u0648\u0636\u0629 \u0641\u064A \u0648\u0636\u0639 \u0627\u0644\u0642\u0631\u0627\u0621\u0629 \u0628\u062D\u062F \u0623\u064A\u0633\u0631 \u0645\u0644\u0648\u0646 \u064A\u0637\u0627\u0628\u0642 \u0623\u0644\u0648\u0627\u0646 \u0645\u0624\u0634\u0631 \u0627\u0644\u062A\u062D\u0631\u064A\u0631 (\u0645\u0639\u062F\u0651\u0644\u060C \u0645\u0636\u0627\u0641\u060C \u0645\u0633\u0627\u0641\u0627\u062A\u060C \u0645\u0633\u062A\u0639\u0627\u062F). \u0645\u0639\u0637\u0651\u0644 \u0627\u0641\u062A\u0631\u0627\u0636\u064A\u064B\u0627\u061B \u0644\u0647 \u062A\u0643\u0644\u0641\u0629 \u0635\u063A\u064A\u0631\u0629 \u0644\u0643\u0644 \u0643\u062A\u0644\u0629 \u0639\u0646\u062F \u0643\u0644 \u0625\u0639\u0627\u062F\u0629 \u0639\u0631\u0636 \u0644\u0648\u0636\u0639 \u0627\u0644\u0642\u0631\u0627\u0621\u0629."
 };
 
 // lang/be.json
@@ -7338,9 +7049,16 @@ var be_default = {
   "setting.allowed-extensions.desc": "\u0421\u043F\u0456\u0441 \u043F\u0430\u0448\u044B\u0440\u044D\u043D\u043D\u044F\u045E \u0444\u0430\u0439\u043B\u0430\u045E \u043F\u0440\u0430\u0437 \u043A\u043E\u0441\u043A\u0443, \u0437\u043C\u0435\u043D\u044B \u045E \u044F\u043A\u0456\u0445 \u0430\u0434\u0441\u043E\u0447\u0432\u0430\u044E\u0446\u0446\u0430 (\u043D\u0430\u043F\u0440\u044B\u043A\u043B\u0430\u0434, md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "\u0412\u044B\u043A\u043B\u044E\u0447\u0430\u043D\u044B\u044F \u0448\u043B\u044F\u0445\u0456",
   "setting.exclude-paths.desc": "\u0420\u044D\u0433\u0443\u043B\u044F\u0440\u043D\u044B \u0432\u044B\u0440\u0430\u0437 \u0431\u0435\u0437 \u0443\u043B\u0456\u043A\u0443 \u0440\u044D\u0433\u0456\u0441\u0442\u0440\u0430, \u044F\u043A\u0456 \u0441\u0443\u043F\u0430\u0441\u0442\u0430\u045E\u043B\u044F\u0435\u0446\u0446\u0430 \u0441\u0430 \u0448\u043B\u044F\u0445\u0430\u043C \u0430\u0434\u043D\u043E\u0441\u043D\u0430 \u0441\u0445\u043E\u0432\u0456\u0448\u0447\u0430. \u041B\u044E\u0431\u044B \u0444\u0430\u0439\u043B, \u0448\u043B\u044F\u0445 \u044F\u043A\u043E\u0433\u0430 \u0441\u0443\u043F\u0430\u0434\u0430\u0435, \u043D\u0456\u043A\u043E\u043B\u0456 \u043D\u0435 \u0430\u0434\u0441\u043E\u0447\u0432\u0430\u0435\u0446\u0446\u0430 (\u043D\u0430\u043F\u0440\u044B\u043A\u043B\u0430\u0434, \\.excalidraw\\.md$ \u0430\u0431\u043E (^|/)Templates/). \u041F\u0430 \u0437\u043C\u0430\u045E\u0447\u0430\u043D\u043D\u0456 \u0432\u044B\u043A\u043B\u044E\u0447\u0430\u044E\u0446\u0446\u0430 \u043F\u0430\u043F\u043A\u0456 Templates \u0456 \u043C\u0430\u043B\u044E\u043D\u043A\u0456 Excalidraw. \u041F\u0430\u043A\u0456\u043D\u044C\u0446\u0435 \u043F\u0443\u0441\u0442\u044B\u043C, \u043A\u0430\u0431 \u0430\u0434\u0441\u043E\u0447\u0432\u0430\u0446\u044C \u0443\u0441\u0451.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "\u0414\u0430\u0434\u0430\u0446\u044C \u0448\u0430\u0431\u043B\u043E\u043D",
+  "setting.exclude-paths.placeholder": "\u043D\u0430\u043F\u0440. (^|/)Templates/",
+  "setting.exclude-paths.remove": "\u0412\u044B\u0434\u0430\u043B\u0456\u0446\u044C \u0433\u044D\u0442\u044B \u0448\u0430\u0431\u043B\u043E\u043D",
+  "setting.exclude-paths.empty": "\u0412\u044B\u043A\u043B\u044E\u0447\u0430\u043D\u044B\u0445 \u0448\u043B\u044F\u0445\u043E\u045E \u043F\u0430\u043A\u0443\u043B\u044C \u043D\u044F\u043C\u0430. \u041D\u0430\u0446\u0456\u0441\u043D\u0456\u0446\u0435 \u043A\u043D\u043E\u043F\u043A\u0443 +, \u043A\u0430\u0431 \u0434\u0430\u0434\u0430\u0446\u044C \u0448\u0430\u0431\u043B\u043E\u043D.",
+  "setting.exclude-paths.edit": "\u0420\u044D\u0434\u0430\u0433\u0430\u0432\u0430\u0446\u044C \u0448\u0430\u0431\u043B\u043E\u043D",
+  "setting.exclude-paths.save": "\u0417\u0430\u0445\u0430\u0432\u0430\u0446\u044C \u0448\u0430\u0431\u043B\u043E\u043D",
+  "setting.exclude-paths.cancel": "\u0410\u0434\u043C\u0435\u043D\u0430",
+  "setting.exclude-paths.error": "\u0428\u0430\u0431\u043B\u043E\u043D \u043F\u0430\u0432\u0456\u043D\u0435\u043D \u0431\u044B\u0446\u044C \u043D\u0435\u043F\u0443\u0441\u0442\u044B\u043C \u043A\u0430\u0440\u044D\u043A\u0442\u043D\u044B\u043C \u0440\u044D\u0433\u0443\u043B\u044F\u0440\u043D\u044B\u043C \u0432\u044B\u0440\u0430\u0437\u0430\u043C.",
+  "setting.general-heading": "\u0410\u0433\u0443\u043B\u044C\u043D\u044B\u044F",
+  "setting.cleanup-heading": "\u0410\u0447\u044B\u0441\u0442\u043A\u0430 \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u0456",
   "setting.keep.name": "\u0417\u0430\u0445\u043E\u045E\u0432\u0430\u0446\u044C \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044E \u0434\u0430",
   "setting.keep.desc": "\u0421\u0442\u0440\u0430\u0442\u044D\u0433\u0456\u044F \u0430\u0447\u044B\u0441\u0442\u043A\u0456 \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u0456 \u0440\u044D\u0432\u0456\u0437\u0456\u0439",
   "setting.keep.option.app": "\u0417\u0430\u043A\u0440\u044B\u0446\u0446\u044F \u043F\u0440\u0430\u0433\u0440\u0430\u043C\u044B",
@@ -7349,8 +7067,8 @@ var be_default = {
   "setting.ignore-new-files.desc": "\u041D\u0435 \u0430\u0434\u0441\u043E\u0447\u0432\u0430\u0446\u044C \u0437\u043C\u0435\u043D\u044B \u045E \u0444\u0430\u0439\u043B\u0430\u0445, \u0441\u0442\u0432\u043E\u0440\u0430\u043D\u044B\u0445 \u043F\u0430\u0441\u043B\u044F \u043F\u0430\u0447\u0430\u0442\u043A\u0443 \u0430\u0434\u0441\u043E\u0447\u0432\u0430\u043D\u043D\u044F",
   "setting.tree-highlight.name": "\u041F\u0430\u0434\u0441\u0432\u0435\u0447\u0432\u0430\u0446\u044C \u0437\u043C\u0435\u043D\u044B \u045E \u0434\u0440\u044D\u0432\u0435 \u0444\u0430\u0439\u043B\u0430\u045E \u0456 \u045E\u043A\u043B\u0430\u0434\u043A\u0430\u0445",
   "setting.tree-highlight.desc": "\u0410\u0444\u0430\u0440\u0431\u043E\u045E\u0432\u0430\u0446\u044C \u0444\u0430\u0439\u043B\u044B \u0456 \u043F\u0430\u043F\u043A\u0456 \u045E \u0440\u043E\u0434\u043D\u044B\u043C \u043F\u0440\u0430\u0432\u0430\u0434\u043D\u0456\u043A\u0443 \u0444\u0430\u0439\u043B\u0430\u045E, \u0430 \u0442\u0430\u043A\u0441\u0430\u043C\u0430 \u0437\u0430\u0433\u0430\u043B\u043E\u045E\u043A\u0456 \u045E\u043A\u043B\u0430\u0434\u0430\u043A \u0430\u0434\u043A\u0440\u044B\u0442\u044B\u0445 \u0444\u0430\u0439\u043B\u0430\u045E \u043F\u0430\u0432\u043E\u0434\u043B\u0435 \u0442\u0430\u0433\u043E, \u0448\u0442\u043E \u0437\u043C\u044F\u043D\u0456\u043B\u0430\u0441\u044F \u045E \u0433\u044D\u0442\u0430\u0439 \u0441\u0435\u0441\u0456\u0456 (\u0431\u0443\u0440\u0448\u0442\u044B\u043D\u0430\u0432\u044B \u0434\u043B\u044F \u0437\u043C\u0435\u043D\u0435\u043D\u0430\u0433\u0430, \u0437\u044F\u043B\u0451\u043D\u044B \u0434\u043B\u044F \u0434\u0430\u0434\u0430\u0434\u0437\u0435\u043D\u0430\u0433\u0430).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "\u041F\u0430\u0434\u0441\u0432\u0435\u0447\u0432\u0430\u0446\u044C \u0437\u043C\u0435\u043D\u044B \u045E \u043F\u0430\u043D\u044D\u043B\u0456 \u045E\u043B\u0430\u0441\u0446\u0456\u0432\u0430\u0441\u0446\u0435\u0439",
+  "setting.properties-highlight.desc": "\u041F\u0430\u043A\u0430\u0437\u0432\u0430\u0446\u044C \u0434\u0430\u0434\u0430\u0434\u0437\u0435\u043D\u044B\u044F, \u0437\u043C\u0435\u043D\u0435\u043D\u044B\u044F \u0456 \u0432\u044B\u0434\u0430\u043B\u0435\u043D\u044B\u044F \u043A\u043B\u044E\u0447\u044B frontmatter \u0443 \u043F\u0430\u043D\u044D\u043B\u0456 \u045E\u043B\u0430\u0441\u0446\u0456\u0432\u0430\u0441\u0446\u0435\u0439 Obsidian. \u0410\u0434\u043A\u043B\u044E\u0447\u044B\u0446\u0435, \u043A\u0430\u0431 \u043F\u0440\u044B\u0431\u0440\u0430\u0446\u044C \u0443\u0441\u044E \u043F\u0430\u0434\u0441\u0432\u0435\u0442\u043A\u0443 \u0437\u043C\u0435\u043D \u0443\u043B\u0430\u0441\u0446\u0456\u0432\u0430\u0441\u0446\u0435\u0439.",
   "setting.persist.name": "\u0417\u0430\u0445\u043E\u045E\u0432\u0430\u0446\u044C \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044E \u043F\u0430\u043C\u0456\u0436 \u043F\u0435\u0440\u0430\u0437\u0430\u043F\u0443\u0441\u043A\u0430\u043C\u0456",
   "setting.persist.desc": '\u0417\u0430\u0445\u043E\u045E\u0432\u0430\u0446\u044C \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044E \u043D\u0430 \u0434\u044B\u0441\u043A, \u043A\u0430\u0431 \u043F\u0430\u0434\u0441\u0432\u0435\u0442\u043A\u0456 \u043F\u0435\u0440\u0430\u0436\u044B\u0432\u0430\u043B\u0456 \u043F\u0435\u0440\u0430\u0437\u0430\u043F\u0443\u0441\u043A. \u041F\u0430\u0442\u0440\u0430\u0431\u0443\u0435, \u043A\u0430\u0431 \u043F\u0430\u0440\u0430\u043C\u0435\u0442\u0440 "\u0417\u0430\u0445\u043E\u045E\u0432\u0430\u0446\u044C \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044E \u0434\u0430" \u0431\u044B\u045E \u0443\u0441\u0442\u0430\u043B\u044F\u0432\u0430\u043D\u044B \u043D\u0430 \u0437\u0430\u043A\u0440\u044B\u0446\u0446\u0451 \u043F\u0440\u0430\u0433\u0440\u0430\u043C\u044B.',
   "setting.max-entries.name": "\u041C\u0430\u043A\u0441\u0456\u043C\u0443\u043C \u0437\u0430\u0445\u0430\u0432\u0430\u043D\u044B\u0445 \u0444\u0430\u0439\u043B\u0430\u045E",
@@ -7398,10 +7116,10 @@ var be_default = {
   "modal.mode.side-by-side": "\u041F\u043E\u0431\u0430\u0447",
   "modal.hide-identical": "\u0421\u0445\u0430\u0432\u0430\u0446\u044C \u0432\u0435\u0440\u0441\u0456\u0456, \u0456\u0434\u044D\u043D\u0442\u044B\u0447\u043D\u044B\u044F \u0431\u044F\u0433\u0443\u0447\u0430\u0439",
   "modal.confirm.cancel": "\u0421\u043A\u0430\u0441\u0430\u0432\u0430\u0446\u044C",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "\u041F\u0430\u0446\u0432\u0435\u0440\u0434\u0436\u0430\u043D\u043D\u0435",
+  "modal.confirm.default.message": "\u0412\u044B \u045E\u043F\u044D\u045E\u043D\u0435\u043D\u044B, \u0448\u0442\u043E \u0445\u043E\u0447\u0430\u0446\u0435 \u043F\u0440\u0430\u0446\u044F\u0433\u043D\u0443\u0446\u044C?",
+  "modal.confirm.default.ok": "\u041F\u0430\u0446\u0432\u0435\u0440\u0434\u0437\u0456\u0446\u044C",
+  "modal.confirm.default.cancel": "\u0410\u0434\u043C\u0435\u043D\u0430",
   "modal.confirm.restore.title": "\u0410\u0434\u043D\u0430\u0432\u0456\u0446\u044C \u0437\u044B\u0445\u043E\u0434\u043D\u044B \u0444\u0430\u0439\u043B",
   "modal.confirm.restore.message": "\u0412\u044B \u045E\u043F\u044D\u045E\u043D\u0435\u043D\u044B, \u0448\u0442\u043E \u0445\u043E\u0447\u0430\u0446\u0435 \u0430\u0434\u043D\u0430\u0432\u0456\u0446\u044C \u0433\u044D\u0442\u044B \u0444\u0430\u0439\u043B \u0434\u0430 \u0437\u044B\u0445\u043E\u0434\u043D\u0430\u0433\u0430 \u0441\u0442\u0430\u043D\u0443? \u0423\u0441\u0435 \u0431\u044F\u0433\u0443\u0447\u044B\u044F \u0437\u043C\u0435\u043D\u044B \u0431\u0443\u0434\u0443\u0446\u044C \u0441\u0442\u0440\u0430\u0447\u0430\u043D\u044B, \u0430 \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044F \u0430\u0434\u0441\u043E\u0447\u0432\u0430\u043D\u043D\u044F \u0437\u043C\u0435\u043D \u0431\u0443\u0434\u0437\u0435 \u0441\u043A\u0456\u043D\u0443\u0442\u0430. \u0413\u044D\u0442\u0430 \u0434\u0437\u0435\u044F\u043D\u043D\u0435 \u043D\u0435\u043B\u044C\u0433\u0430 \u0430\u0434\u043C\u044F\u043D\u0456\u0446\u044C.",
   "modal.confirm.restore.button": "\u0410\u0434\u043D\u0430\u0432\u0456\u0446\u044C \u0444\u0430\u0439\u043B",
@@ -7420,52 +7138,53 @@ var be_default = {
   "modal.search-versions": "\u041F\u043E\u0448\u0443\u043A \u0432\u0435\u0440\u0441\u0456\u0439",
   "modal.version.current": "\u0411\u044F\u0433\u0443\u0447\u0430\u044F",
   "modal.version.original": "\u0410\u0440\u044B\u0433\u0456\u043D\u0430\u043B",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "\u0421\u0442\u0432\u043E\u0440\u0430\u043D\u0430",
+  "modal.version.action.modified": "\u0417\u043C\u0435\u043D\u0435\u043D\u0430",
+  "modal.version.action.cleared": "\u0410\u0447\u044B\u0448\u0447\u0430\u043D\u0430",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u041D\u044F\u043C\u0430 \u0432\u0435\u0440\u0441\u0456\u0439, \u0448\u0442\u043E \u0430\u0434\u043F\u0430\u0432\u044F\u0434\u0430\u044E\u0446\u044C \u043F\u043E\u0448\u0443\u043A\u0443",
   "modal.revert-hunk": "\u0410\u0434\u043A\u0430\u0446\u0456\u0446\u044C \u0433\u044D\u0442\u0443\u044E \u0437\u043C\u0435\u043D\u0443",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "\u0410\u0434\u043A\u0430\u0446\u0456\u0446\u044C \u0433\u044D\u0442\u0443 \u0437\u043C\u0435\u043D\u0443",
   "modal.copy": "\u041A\u0430\u043F\u0456\u044F\u0432\u0430\u0446\u044C",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "\u041F\u0430\u0441\u0442\u0430\u0432\u0456\u0446\u044C \u043C\u0435\u0442\u043A\u0443",
+  "modal.put-label.message": "\u0410\u0434\u0437\u043D\u0430\u0447\u0446\u0435 \u0431\u044F\u0433\u0443\u0447\u0430\u0435 \u0437\u043C\u0435\u0441\u0446\u0456\u0432\u0430 \u043A\u0430\u0440\u043E\u0442\u043A\u0430\u0439 \u043C\u0435\u0442\u043A\u0430\u0439.",
+  "modal.put-label.placeholder": "\u041C\u0435\u0442\u043A\u0430",
+  "modal.put-label.confirm": "\u0417\u0430\u0445\u0430\u0432\u0430\u0446\u044C",
+  "menu.local-history.show-history": "\u041F\u0430\u043A\u0430\u0437\u0430\u0446\u044C \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044E",
+  "menu.local-history.show-history-selection": "\u041F\u0430\u043A\u0430\u0437\u0430\u0446\u044C \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044E \u0434\u043B\u044F \u0432\u044B\u043B\u0443\u0447\u044D\u043D\u043D\u044F",
+  "menu.local-history.put-label": "\u041F\u0430\u0441\u0442\u0430\u0432\u0456\u0446\u044C \u043C\u0435\u0442\u043A\u0443",
+  "menu.local-history.recent-changes": "\u041D\u044F\u0434\u0430\u045E\u043D\u0456\u044F \u0437\u043C\u0435\u043D\u044B",
+  "view.recent-changes.title": "\u041D\u044F\u0434\u0430\u045E\u043D\u0456\u044F \u0437\u043C\u0435\u043D\u044B",
+  "view.recent-changes.empty": "\u0414\u043B\u044F \u0430\u043A\u0442\u044B\u045E\u043D\u0430\u0433\u0430 \u0444\u0430\u0439\u043B\u0430 \u043D\u044F\u043C\u0430 \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u0456 \u0432\u0435\u0440\u0441\u0456\u0439.",
+  "view.recent-changes.menu.show-diff": "\u041F\u0430\u043A\u0430\u0437\u0430\u0446\u044C \u0430\u0434\u0440\u043E\u0437\u043D\u0435\u043D\u043D\u0456",
+  "view.recent-changes.menu.restore": "\u0410\u0434\u043D\u0430\u0432\u0456\u0446\u044C \u0433\u044D\u0442\u0443 \u0432\u0435\u0440\u0441\u0456\u044E",
+  "view.recent-changes.menu.delete": "\u0412\u044B\u0434\u0430\u043B\u0456\u0446\u044C \u0432\u0435\u0440\u0441\u0456\u044E",
+  "view.recent-changes.menu.put-label": "\u041F\u0430\u0441\u0442\u0430\u0432\u0456\u0446\u044C \u043C\u0435\u0442\u043A\u0443",
+  "modal.label-selected": "\u041F\u0430\u0437\u043D\u0430\u0447\u044B\u0446\u044C \u0432\u044B\u0431\u0440\u0430\u043D\u0443\u044E \u0432\u0435\u0440\u0441\u0456\u044E",
+  "modal.label-version.message": "\u0410\u0434\u0437\u043D\u0430\u0447\u0446\u0435 \u0433\u044D\u0442\u0443 \u0432\u0435\u0440\u0441\u0456\u044E \u043A\u0430\u0440\u043E\u0442\u043A\u0430\u0439 \u043C\u0435\u0442\u043A\u0430\u0439.",
+  "notice.no-folder-history": "\u0413\u0456\u0441\u0442\u043E\u0440\u044B\u0456 \u043F\u0430\u043F\u043A\u0456 \u043F\u0430\u043A\u0443\u043B\u044C \u043D\u044F\u043C\u0430.",
+  "setting.max-deleted-entries.name": "\u041C\u0430\u043A\u0441\u0456\u043C\u0443\u043C \u0437\u0430\u0445\u0430\u0432\u0430\u043D\u044B\u0445 \u0432\u044B\u0434\u0430\u043B\u0435\u043D\u044B\u0445 \u0444\u0430\u0439\u043B\u0430\u045E",
+  "setting.max-deleted-entries.desc": "\u0410\u0431\u043C\u0435\u0436\u0430\u0432\u0430\u043D\u043D\u0435 \u043A\u043E\u043B\u044C\u043A\u0430\u0441\u0446\u0456 \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u0439 \u0432\u044B\u0434\u0430\u043B\u0435\u043D\u044B\u0445 \u0444\u0430\u0439\u043B\u0430\u045E, \u0448\u0442\u043E \u0437\u0430\u0445\u043E\u045E\u0432\u0430\u044E\u0446\u0446\u0430 \u043D\u0430 \u0434\u044B\u0441\u043A\u0443. \u0421\u043F\u0430\u0447\u0430\u0442\u043A\u0443 \u0432\u044B\u0434\u0430\u043B\u044F\u044E\u0446\u0446\u0430 \u0441\u0430\u043C\u044B\u044F \u0441\u0442\u0430\u0440\u044B\u044F. \u0423\u043A\u0430\u0436\u044B\u0446\u0435 0, \u043A\u0430\u0431 \u0430\u0434\u043A\u043B\u044E\u0447\u044B\u0446\u044C.",
+  "setting.max-deleted-age-days.name": "\u041C\u0430\u043A\u0441\u0456\u043C\u0430\u043B\u044C\u043D\u044B \u045E\u0437\u0440\u043E\u0441\u0442 \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u0456 \u0432\u044B\u0434\u0430\u043B\u0435\u043D\u044B\u0445 \u0444\u0430\u0439\u043B\u0430\u045E (\u0434\u0437\u0451\u043D)",
+  "setting.max-deleted-age-days.desc": "\u0412\u044B\u0434\u0430\u043B\u044F\u0446\u044C \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u0456 \u0432\u044B\u0434\u0430\u043B\u0435\u043D\u044B\u0445 \u0444\u0430\u0439\u043B\u0430\u045E, \u0441\u0442\u0430\u0440\u044D\u0439\u0448\u044B\u044F \u0437\u0430 \u045E\u043A\u0430\u0437\u0430\u043D\u0443\u044E \u043A\u043E\u043B\u044C\u043A\u0430\u0441\u0446\u044C \u0434\u0437\u0451\u043D. \u0423\u043A\u0430\u0436\u044B\u0446\u0435 0, \u043A\u0430\u0431 \u0430\u0434\u043A\u043B\u044E\u0447\u044B\u0446\u044C.",
+  "folder-tree.empty": "\u0423 \u0433\u044D\u0442\u0430\u0439 \u043F\u0430\u043F\u0446\u044B \u043D\u044F\u043C\u0430 \u0437\u043C\u0435\u043D \u0434\u043B\u044F \u0432\u044B\u0431\u0440\u0430\u043D\u0430\u0439 \u043A\u0440\u043E\u043F\u043A\u0456.",
+  "modal.folder.filter-files": "\u0424\u0456\u043B\u044C\u0442\u0440\u0430\u0432\u0430\u0446\u044C \u0444\u0430\u0439\u043B\u044B \u043F\u0430 \u0456\u043C\u0435\u043D\u0456",
+  "modal.folder.timeline.capture": "\u0417\u0430\u0444\u0456\u043A\u0441\u0430\u0432\u0430\u043D\u0430",
+  "modal.folder.timeline.delete": "\u0412\u044B\u0434\u0430\u043B\u0435\u043D\u0430",
+  "modal.folder.timeline.move-in": "\u041F\u0435\u0440\u0430\u043C\u0435\u0448\u0447\u0430\u043D\u0430 \u0441\u044E\u0434\u044B",
+  "modal.folder.notice.no-file": "\u0424\u0430\u0439\u043B \u043D\u0435 \u0432\u044B\u0431\u0440\u0430\u043D\u044B.",
+  "modal.folder.notice.added": "\u0424\u0430\u0439\u043B \u0431\u044B\u045E \u0434\u0430\u0434\u0430\u0434\u0437\u0435\u043D\u044B \u043F\u0430\u0441\u043B\u044F \u0433\u044D\u0442\u0430\u0439 \u043A\u0440\u043E\u043F\u043A\u0456.",
+  "modal.folder.notice.deleted": "\u0424\u0430\u0439\u043B \u0431\u044B\u045E \u0432\u044B\u0434\u0430\u043B\u0435\u043D\u044B \u043F\u0430\u0441\u043B\u044F \u0433\u044D\u0442\u0430\u0439 \u043A\u0440\u043E\u043F\u043A\u0456.",
+  "modal.folder.notice.unchanged": "\u041D\u044F\u043C\u0430 \u0437\u043C\u0435\u043D \u0437 \u0433\u044D\u0442\u0430\u0439 \u043A\u0440\u043E\u043F\u043A\u0456.",
+  "version.badge.external": "\u0437\u043D\u0435\u0448\u043D\u044F\u0435",
+  "setting.exclude-paths-case-sensitive.name": "\u0423\u043B\u0456\u0447\u0432\u0430\u0446\u044C \u0440\u044D\u0433\u0456\u0441\u0442\u0440 \u043F\u0440\u044B \u0432\u044B\u043A\u043B\u044E\u0447\u044D\u043D\u043D\u0456 \u0448\u043B\u044F\u0445\u043E\u045E",
+  "setting.exclude-paths-case-sensitive.desc": "\u041A\u0430\u043B\u0456 \u045E\u043A\u043B\u044E\u0447\u0430\u043D\u0430, \u0440\u044D\u0433\u0443\u043B\u044F\u0440\u043D\u044B \u0432\u044B\u0440\u0430\u0437 \u0432\u044B\u043A\u043B\u044E\u0447\u0430\u043D\u044B\u0445 \u0448\u043B\u044F\u0445\u043E\u045E \u0441\u0443\u043F\u0430\u0441\u0442\u0430\u045E\u043B\u044F\u0435\u0446\u0446\u0430 \u0437 \u0443\u043B\u0456\u043A\u0430\u043C \u0440\u044D\u0433\u0456\u0441\u0442\u0440\u0430 (\u0431\u0435\u0437 \u0441\u0446\u044F\u0433\u0430 'i'). \u0410\u0434\u043A\u043B\u044E\u0447\u044B\u0446\u0435, \u043A\u0430\u0431 \u0456\u0433\u043D\u0430\u0440\u0430\u0432\u0430\u0446\u044C \u0440\u044D\u0433\u0456\u0441\u0442\u0440: \u0433\u044D\u0442\u0430 \u043F\u0440\u0430\u0434\u0432\u044B\u0437\u043D\u0430\u0447\u0430\u043D\u0430\u0435 \u0437\u043D\u0430\u0447\u044D\u043D\u043D\u0435, \u044F\u043A\u043E\u0435 \u0434\u043E\u0431\u0440\u0430 \u043F\u0440\u0430\u0446\u0443\u0435 \u043D\u0430 \u0444\u0430\u0439\u043B\u0430\u0432\u044B\u0445 \u0441\u0456\u0441\u0442\u044D\u043C\u0430\u0445 \u0431\u0435\u0437 \u0443\u043B\u0456\u043A\u0443 \u0440\u044D\u0433\u0456\u0441\u0442\u0440\u0430.",
+  "setting.purge-excluded.name": "\u0410\u0447\u044B\u0441\u0446\u0456\u0446\u044C \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044E \u0434\u043B\u044F \u0432\u044B\u043A\u043B\u044E\u0447\u0430\u043D\u044B\u0445 \u0448\u043B\u044F\u0445\u043E\u045E",
+  "setting.purge-excluded.desc": "\u0412\u044B\u0434\u0430\u043B\u0456\u0446\u044C \u0443\u0441\u044E \u0437\u0430\u0445\u0430\u0432\u0430\u043D\u0443\u044E \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044E \u0444\u0430\u0439\u043B\u0430\u045E, \u0447\u044B\u0435 \u0448\u043B\u044F\u0445\u0456 \u0437\u0430\u0440\u0430\u0437 \u0430\u0434\u043F\u0430\u0432\u044F\u0434\u0430\u044E\u0446\u044C \u0448\u0430\u0431\u043B\u043E\u043D\u0443 \u0432\u044B\u043A\u043B\u044E\u0447\u0430\u043D\u044B\u0445 \u0448\u043B\u044F\u0445\u043E\u045E. \u0417\u0430\u043F\u0456\u0441\u044B \u043F\u0440\u0430 \u0432\u044B\u0434\u0430\u043B\u0435\u043D\u044B\u044F \u0444\u0430\u0439\u043B\u044B \u0442\u0430\u043A\u0441\u0430\u043C\u0430 \u0432\u044B\u0434\u0430\u043B\u044F\u044E\u0446\u0446\u0430. \u0413\u044D\u0442\u0430 \u0434\u0437\u0435\u044F\u043D\u043D\u0435 \u043D\u0435\u043B\u044C\u0433\u0430 \u0430\u0434\u043C\u044F\u043D\u0456\u0446\u044C.",
+  "notice.purge-excluded": "\u041B\u0430\u043A\u0430\u043B\u044C\u043D\u0430\u044F \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044F: \u0432\u044B\u0434\u0430\u043B\u0435\u043D\u0430 {count} \u0437\u0434\u044B\u043C\u043A\u0430\u045E \u0434\u043B\u044F \u0432\u044B\u043A\u043B\u044E\u0447\u0430\u043D\u044B\u0445 \u0448\u043B\u044F\u0445\u043E\u045E.",
+  "notice.purge-excluded.no-match": "\u041B\u0430\u043A\u0430\u043B\u044C\u043D\u0430\u044F \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044F: \u043D\u044F\u043C\u0430 \u0437\u0430\u0445\u0430\u0432\u0430\u043D\u0430\u0439 \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u0456, \u044F\u043A\u0430\u044F \u0430\u0434\u043F\u0430\u0432\u044F\u0434\u0430\u0435 \u0432\u044B\u043A\u043B\u044E\u0447\u0430\u043D\u044B\u043C \u0448\u043B\u044F\u0445\u0430\u043C.",
+  "setting.reading-mode-indicator.name": "\u041F\u0430\u043A\u0430\u0437\u0432\u0430\u0446\u044C \u0456\u043D\u0434\u044B\u043A\u0430\u0442\u0430\u0440\u044B \u045E \u0440\u044D\u0436\u044B\u043C\u0435 \u0447\u044B\u0442\u0430\u043D\u043D\u044F",
+  "setting.reading-mode-indicator.desc": "\u041F\u0430\u0437\u043D\u0430\u0447\u0430\u0446\u044C \u0430\u0434\u043B\u044E\u0441\u0442\u0440\u0430\u0432\u0430\u043D\u044B\u044F \u0431\u043B\u043E\u043A\u0456 \u045E \u0440\u044D\u0436\u044B\u043C\u0435 \u0447\u044B\u0442\u0430\u043D\u043D\u044F \u043A\u0430\u043B\u044F\u0440\u043E\u0432\u0430\u0439 \u043B\u0435\u0432\u0430\u0439 \u043C\u044F\u0436\u043E\u0439 \u0443 \u043A\u043E\u043B\u0435\u0440\u0430\u0445 \u0456\u043D\u0434\u044B\u043A\u0430\u0442\u0430\u0440\u0430 \u043F\u0440\u0430\u0432\u0430\u043A (\u0437\u043C\u0435\u043D\u0435\u043D\u0430, \u0434\u0430\u0434\u0430\u0434\u0437\u0435\u043D\u0430, \u043F\u0440\u0430\u0431\u0435\u043B\u044B, \u0430\u0434\u043D\u043E\u045E\u043B\u0435\u043D\u0430). \u041F\u0440\u0430\u0434\u0432\u044B\u0437\u043D\u0430\u0447\u0430\u043D\u0430 \u0432\u044B\u043A\u043B\u044E\u0447\u0430\u043D\u0430; \u0434\u0430\u0434\u0430\u0435 \u043D\u0435\u0432\u044F\u043B\u0456\u043A\u0443\u044E \u043D\u0430\u0433\u0440\u0443\u0437\u043A\u0443 \u043D\u0430 \u043A\u043E\u0436\u043D\u044B \u0431\u043B\u043E\u043A \u043F\u0440\u044B \u043F\u0435\u0440\u0430\u043C\u0430\u043B\u0451\u045E\u0446\u044B \u0440\u044D\u0436\u044B\u043C\u0443 \u0447\u044B\u0442\u0430\u043D\u043D\u044F."
 };
 
 // lang/bn.json
@@ -7495,9 +7214,16 @@ var bn_default = {
   "setting.allowed-extensions.desc": "\u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u099F\u09CD\u09B0\u09CD\u09AF\u09BE\u0995 \u0995\u09B0\u09BE\u09B0 \u099C\u09A8\u09CD\u09AF \u0995\u09AE\u09BE \u09A6\u09BF\u09AF\u09BC\u09C7 \u09AA\u09C3\u09A5\u0995 \u0995\u09B0\u09BE \u09AB\u09BE\u0987\u09B2 \u098F\u0995\u09CD\u09B8\u099F\u09C7\u09A8\u09B6\u09A8\u09C7\u09B0 \u09A4\u09BE\u09B2\u09BF\u0995\u09BE (\u09AF\u09C7\u09AE\u09A8, md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "\u09AC\u09BE\u09A6 \u09A6\u09C7\u0993\u09AF\u09BC\u09BE \u09AA\u09BE\u09A5",
   "setting.exclude-paths.desc": "\u09AD\u09B2\u09CD\u099F-\u09B8\u09BE\u09AA\u09C7\u0995\u09CD\u09B7 \u09AA\u09BE\u09A5\u09C7\u09B0 \u09AC\u09BF\u09AA\u09B0\u09C0\u09A4\u09C7 \u09AE\u09BF\u09B2\u09BE\u09A8\u09CB \u098F\u0995\u099F\u09BF \u0995\u09C7\u09B8-\u0985\u09B8\u0982\u09AC\u09C7\u09A6\u09A8\u09B6\u09C0\u09B2 \u09B0\u09C7\u0997\u09C1\u09B2\u09BE\u09B0 \u098F\u0995\u09CD\u09B8\u09AA\u09CD\u09B0\u09C7\u09B6\u09A8\u0964 \u09AF\u09C7 \u0995\u09CB\u09A8\u09CB \u09AB\u09BE\u0987\u09B2\u09C7\u09B0 \u09AA\u09BE\u09A5 \u09AE\u09BF\u09B2\u09C7 \u0997\u09C7\u09B2\u09C7 \u09A4\u09BE \u0995\u0996\u09A8\u09CB \u099F\u09CD\u09B0\u09CD\u09AF\u09BE\u0995 \u0995\u09B0\u09BE \u09B9\u09AF\u09BC \u09A8\u09BE (\u09AF\u09C7\u09AE\u09A8 \\.excalidraw\\.md$ \u0985\u09A5\u09AC\u09BE (^|/)Templates/)\u0964 \u09A1\u09BF\u09AB\u09B2\u09CD\u099F \u09B9\u09BF\u09B8\u09C7\u09AC\u09C7 Templates \u09AB\u09CB\u09B2\u09CD\u09A1\u09BE\u09B0 \u098F\u09AC\u0982 Excalidraw \u0985\u0999\u09CD\u0995\u09A8 \u09AC\u09BE\u09A6 \u09A6\u09C7\u0993\u09AF\u09BC\u09BE \u09B9\u09AF\u09BC\u0964 \u09B8\u09AC\u0995\u09BF\u099B\u09C1 \u099F\u09CD\u09B0\u09CD\u09AF\u09BE\u0995 \u0995\u09B0\u09A4\u09C7 \u0996\u09BE\u09B2\u09BF \u09B0\u09BE\u0996\u09C1\u09A8\u0964",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "\u09AA\u09CD\u09AF\u09BE\u099F\u09BE\u09B0\u09CD\u09A8 \u09AF\u09CB\u0997 \u0995\u09B0\u09C1\u09A8",
+  "setting.exclude-paths.placeholder": "\u09AF\u09C7\u09AE\u09A8 (^|/)Templates/",
+  "setting.exclude-paths.remove": "\u098F\u0987 \u09AA\u09CD\u09AF\u09BE\u099F\u09BE\u09B0\u09CD\u09A8\u099F\u09BF \u09B8\u09B0\u09BE\u09A8",
+  "setting.exclude-paths.empty": "\u098F\u0996\u09A8\u0993 \u0995\u09CB\u09A8\u09CB \u09AC\u09BE\u09A6 \u09A6\u09C7\u0993\u09AF\u09BC\u09BE \u09AA\u09BE\u09A5 \u09A8\u09C7\u0987\u0964 \u09AA\u09CD\u09AF\u09BE\u099F\u09BE\u09B0\u09CD\u09A8 \u09AF\u09CB\u0997 \u0995\u09B0\u09A4\u09C7 + \u09AC\u09CB\u09A4\u09BE\u09AE \u09AC\u09CD\u09AF\u09AC\u09B9\u09BE\u09B0 \u0995\u09B0\u09C1\u09A8\u0964",
+  "setting.exclude-paths.edit": "\u09AA\u09CD\u09AF\u09BE\u099F\u09BE\u09B0\u09CD\u09A8 \u09B8\u09AE\u09CD\u09AA\u09BE\u09A6\u09A8\u09BE \u0995\u09B0\u09C1\u09A8",
+  "setting.exclude-paths.save": "\u09AA\u09CD\u09AF\u09BE\u099F\u09BE\u09B0\u09CD\u09A8 \u09B8\u0982\u09B0\u0995\u09CD\u09B7\u09A3 \u0995\u09B0\u09C1\u09A8",
+  "setting.exclude-paths.cancel": "\u09AC\u09BE\u09A4\u09BF\u09B2",
+  "setting.exclude-paths.error": "\u09AA\u09CD\u09AF\u09BE\u099F\u09BE\u09B0\u09CD\u09A8\u099F\u09BF \u0985\u09AC\u09B6\u09CD\u09AF\u0987 \u098F\u0995\u099F\u09BF \u0985\u09B6\u09C2\u09A8\u09CD\u09AF \u09AC\u09C8\u09A7 \u09B0\u09C7\u0997\u09C1\u09B2\u09BE\u09B0 \u098F\u0995\u09CD\u09B8\u09AA\u09CD\u09B0\u09C7\u09B6\u09A8 \u09B9\u09A4\u09C7 \u09B9\u09AC\u09C7\u0964",
+  "setting.general-heading": "\u09B8\u09BE\u09A7\u09BE\u09B0\u09A3",
+  "setting.cleanup-heading": "\u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09AA\u09B0\u09BF\u09B7\u09CD\u0995\u09BE\u09B0",
   "setting.keep.name": "\u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09B0\u09BE\u0996\u09C1\u09A8 \u09AF\u09A4\u0995\u09CD\u09B7\u09A3",
   "setting.keep.desc": "\u09B8\u0982\u09B6\u09CB\u09A7\u09A8 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09AA\u09B0\u09BF\u09B7\u09CD\u0995\u09BE\u09B0 \u0995\u09B0\u09BE\u09B0 \u0995\u09CC\u09B6\u09B2",
   "setting.keep.option.app": "\u0985\u09CD\u09AF\u09BE\u09AA \u09AC\u09A8\u09CD\u09A7",
@@ -7506,8 +7232,8 @@ var bn_default = {
   "setting.ignore-new-files.desc": "\u099F\u09CD\u09B0\u09CD\u09AF\u09BE\u0995\u09BF\u0982 \u09B6\u09C1\u09B0\u09C1 \u09B9\u0993\u09AF\u09BC\u09BE\u09B0 \u09AA\u09B0\u09C7 \u09A4\u09C8\u09B0\u09BF \u09AB\u09BE\u0987\u09B2\u09C7\u09B0 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u099F\u09CD\u09B0\u09CD\u09AF\u09BE\u0995 \u0995\u09B0\u09AC\u09C7\u09A8 \u09A8\u09BE",
   "setting.tree-highlight.name": "\u09AB\u09BE\u0987\u09B2 \u099F\u09CD\u09B0\u09BF \u098F\u09AC\u0982 \u099F\u09CD\u09AF\u09BE\u09AC\u09C7 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u09B9\u09BE\u0987\u09B2\u09BE\u0987\u099F \u0995\u09B0\u09C1\u09A8",
   "setting.tree-highlight.desc": "\u09A8\u09C7\u099F\u09BF\u09AD \u09AB\u09BE\u0987\u09B2 \u098F\u0995\u09CD\u09B8\u09AA\u09CD\u09B2\u09CB\u09B0\u09BE\u09B0\u09C7 \u09AB\u09BE\u0987\u09B2 \u0993 \u09AB\u09CB\u09B2\u09CD\u09A1\u09BE\u09B0, \u098F\u09AC\u0982 \u0996\u09CB\u09B2\u09BE \u09AB\u09BE\u0987\u09B2\u09C7\u09B0 \u099F\u09CD\u09AF\u09BE\u09AC \u09B9\u09C7\u09A1\u09BE\u09B0 \u098F\u0987 \u09B8\u09C7\u09B6\u09A8\u09C7 \u09AF\u09BE \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09BF\u09A4 \u09B9\u09AF\u09BC\u09C7\u099B\u09C7 \u09A4\u09BE \u0985\u09A8\u09C1\u09B8\u09BE\u09B0\u09C7 \u09B0\u0999 \u0995\u09B0\u09C1\u09A8 (\u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09BF\u09A4\u09C7\u09B0 \u099C\u09A8\u09CD\u09AF \u0985\u09CD\u09AF\u09BE\u09AE\u09CD\u09AC\u09BE\u09B0, \u09AF\u09CB\u0997 \u0995\u09B0\u09BE\u09B0 \u099C\u09A8\u09CD\u09AF \u09B8\u09AC\u09C1\u099C)\u0964",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "\u09AA\u09CD\u09B0\u09CB\u09AA\u09BE\u09B0\u09CD\u099F\u09BF \u09AA\u09CD\u09AF\u09BE\u09A8\u09C7\u09B2\u09C7 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u09B9\u09BE\u0987\u09B2\u09BE\u0987\u099F \u0995\u09B0\u09C1\u09A8",
+  "setting.properties-highlight.desc": "Obsidian-\u098F\u09B0 \u09AA\u09CD\u09B0\u09CB\u09AA\u09BE\u09B0\u09CD\u099F\u09BF \u09AA\u09CD\u09AF\u09BE\u09A8\u09C7\u09B2\u09C7 \u09AF\u09CB\u0997 \u0995\u09B0\u09BE, \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09BF\u09A4 \u0993 \u09B8\u09B0\u09BE\u09A8\u09CB frontmatter \u0995\u09C0 \u09A6\u09C7\u0996\u09BE\u09A8\u0964 \u09AA\u09CD\u09B0\u09CB\u09AA\u09BE\u09B0\u09CD\u099F\u09BF \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8\u09C7\u09B0 \u09B8\u09AC \u099A\u09BF\u09B9\u09CD\u09A8 \u09B2\u09C1\u0995\u09BE\u09A4\u09C7 \u09A8\u09BF\u09B7\u09CD\u0995\u09CD\u09B0\u09BF\u09AF\u09BC \u0995\u09B0\u09C1\u09A8\u0964",
   "setting.persist.name": "\u09B0\u09BF\u09B8\u09CD\u099F\u09BE\u09B0\u09CD\u099F\u09C7\u09B0 \u09AA\u09B0\u09C7\u0993 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09A7\u09B0\u09C7 \u09B0\u09BE\u0996\u09C1\u09A8",
   "setting.persist.desc": '\u09A1\u09BF\u09B8\u09CD\u0995\u09C7 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09B8\u0982\u09B0\u0995\u09CD\u09B7\u09A3 \u0995\u09B0\u09C1\u09A8 \u09AF\u09BE\u09A4\u09C7 \u09B9\u09BE\u0987\u09B2\u09BE\u0987\u099F\u0997\u09C1\u09B2\u09CB \u09B0\u09BF\u09B8\u09CD\u099F\u09BE\u09B0\u09CD\u099F\u09C7\u09B0 \u09AA\u09B0\u09C7\u0993 \u09A5\u09BE\u0995\u09C7\u0964 "\u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09B0\u09BE\u0996\u09C1\u09A8 \u09AF\u09A4\u0995\u09CD\u09B7\u09A3" \u0985\u09CD\u09AF\u09BE\u09AA \u09AC\u09A8\u09CD\u09A7\u09C7 \u09B8\u09C7\u099F \u0995\u09B0\u09BE \u09AA\u09CD\u09B0\u09AF\u09BC\u09CB\u099C\u09A8\u0964',
   "setting.max-entries.name": "\u09B8\u09B0\u09CD\u09AC\u09BE\u09A7\u09BF\u0995 \u09B8\u0982\u09B0\u0995\u09CD\u09B7\u09BF\u09A4 \u09AB\u09BE\u0987\u09B2",
@@ -7555,10 +7281,10 @@ var bn_default = {
   "modal.mode.side-by-side": "\u09AA\u09BE\u09B6\u09BE\u09AA\u09BE\u09B6\u09BF",
   "modal.hide-identical": "\u09AC\u09B0\u09CD\u09A4\u09AE\u09BE\u09A8\u09C7\u09B0 \u09B8\u09BE\u09A5\u09C7 \u0985\u09AD\u09BF\u09A8\u09CD\u09A8 \u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3\u0997\u09C1\u09B2\u09BF \u09B2\u09C1\u0995\u09BE\u09A8",
   "modal.confirm.cancel": "\u09AC\u09BE\u09A4\u09BF\u09B2",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "\u09A8\u09BF\u09B6\u09CD\u099A\u09BF\u09A4\u0995\u09B0\u09A3",
+  "modal.confirm.default.message": "\u0986\u09AA\u09A8\u09BF \u0995\u09BF \u09B8\u09A4\u09CD\u09AF\u09BF\u0987 \u098F\u0997\u09BF\u09AF\u09BC\u09C7 \u09AF\u09C7\u09A4\u09C7 \u099A\u09BE\u09A8?",
+  "modal.confirm.default.ok": "\u09A8\u09BF\u09B6\u09CD\u099A\u09BF\u09A4 \u0995\u09B0\u09C1\u09A8",
+  "modal.confirm.default.cancel": "\u09AC\u09BE\u09A4\u09BF\u09B2",
   "modal.confirm.restore.title": "\u09AE\u09C2\u09B2 \u09AB\u09BE\u0987\u09B2 \u09AA\u09C1\u09A8\u09B0\u09C1\u09A6\u09CD\u09A7\u09BE\u09B0 \u0995\u09B0\u09C1\u09A8",
   "modal.confirm.restore.message": "\u0986\u09AA\u09A8\u09BF \u0995\u09BF \u09A8\u09BF\u09B6\u09CD\u099A\u09BF\u09A4 \u09AF\u09C7 \u098F\u0987 \u09AB\u09BE\u0987\u09B2\u099F\u09BF\u0995\u09C7 \u09A4\u09BE\u09B0 \u09AE\u09C2\u09B2 \u0985\u09AC\u09B8\u09CD\u09A5\u09BE\u09AF\u09BC \u09AA\u09C1\u09A8\u09B0\u09C1\u09A6\u09CD\u09A7\u09BE\u09B0 \u0995\u09B0\u09A4\u09C7 \u099A\u09BE\u09A8? \u09B8\u09AE\u09B8\u09CD\u09A4 \u09AC\u09B0\u09CD\u09A4\u09AE\u09BE\u09A8 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u09B9\u09BE\u09B0\u09BF\u09AF\u09BC\u09C7 \u09AF\u09BE\u09AC\u09C7 \u098F\u09AC\u0982 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u099F\u09CD\u09B0\u09CD\u09AF\u09BE\u0995\u09BF\u0982 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09B0\u09BF\u09B8\u09C7\u099F \u09B9\u09AC\u09C7\u0964 \u098F\u0987 \u0995\u09CD\u09B0\u09BF\u09AF\u09BC\u09BE\u099F\u09BF \u09AA\u09C2\u09B0\u09CD\u09AC\u09BE\u09AC\u09B8\u09CD\u09A5\u09BE\u09AF\u09BC \u09AB\u09C7\u09B0\u09BE\u09A8\u09CB \u09AF\u09BE\u09AC\u09C7 \u09A8\u09BE\u0964",
   "modal.confirm.restore.button": "\u09AB\u09BE\u0987\u09B2 \u09AA\u09C1\u09A8\u09B0\u09C1\u09A6\u09CD\u09A7\u09BE\u09B0 \u0995\u09B0\u09C1\u09A8",
@@ -7577,52 +7303,53 @@ var bn_default = {
   "modal.search-versions": "\u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3 \u0985\u09A8\u09C1\u09B8\u09A8\u09CD\u09A7\u09BE\u09A8 \u0995\u09B0\u09C1\u09A8",
   "modal.version.current": "\u09AC\u09B0\u09CD\u09A4\u09AE\u09BE\u09A8",
   "modal.version.original": "\u09AE\u09C2\u09B2",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "\u09A4\u09C8\u09B0\u09BF \u09B9\u09AF\u09BC\u09C7\u099B\u09C7",
+  "modal.version.action.modified": "\u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09BF\u09A4 \u09B9\u09AF\u09BC\u09C7\u099B\u09C7",
+  "modal.version.action.cleared": "\u0996\u09BE\u09B2\u09BF \u0995\u09B0\u09BE \u09B9\u09AF\u09BC\u09C7\u099B\u09C7",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u0985\u09A8\u09C1\u09B8\u09A8\u09CD\u09A7\u09BE\u09A8\u09C7\u09B0 \u09B8\u09BE\u09A5\u09C7 \u0995\u09CB\u09A8\u09CB \u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3 \u09AE\u09C7\u09B2\u09C7 \u09A8\u09BE",
   "modal.revert-hunk": "\u098F\u0987 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u09AA\u09CD\u09B0\u09A4\u09CD\u09AF\u09BE\u09AC\u09B0\u09CD\u09A4\u09A8 \u0995\u09B0\u09C1\u09A8",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "\u098F\u0987 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8\u099F\u09BF \u09AB\u09BF\u09B0\u09BF\u09AF\u09BC\u09C7 \u09A8\u09BF\u09A8",
   "modal.copy": "\u0985\u09A8\u09C1\u09B2\u09BF\u09AA\u09BF",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "\u09B2\u09C7\u09AC\u09C7\u09B2 \u09A6\u09BF\u09A8",
+  "modal.put-label.message": "\u09AC\u09B0\u09CD\u09A4\u09AE\u09BE\u09A8 \u09AC\u09BF\u09B7\u09AF\u09BC\u09AC\u09B8\u09CD\u09A4\u09C1\u0995\u09C7 \u098F\u0995\u099F\u09BF \u099B\u09CB\u099F \u09B2\u09C7\u09AC\u09C7\u09B2 \u09A6\u09BF\u09AF\u09BC\u09C7 \u099A\u09BF\u09B9\u09CD\u09A8\u09BF\u09A4 \u0995\u09B0\u09C1\u09A8\u0964",
+  "modal.put-label.placeholder": "\u09B2\u09C7\u09AC\u09C7\u09B2",
+  "modal.put-label.confirm": "\u09B8\u0982\u09B0\u0995\u09CD\u09B7\u09A3",
+  "menu.local-history.show-history": "\u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09A6\u09C7\u0996\u09BE\u09A8",
+  "menu.local-history.show-history-selection": "\u09A8\u09BF\u09B0\u09CD\u09AC\u09BE\u099A\u09A8\u09C7\u09B0 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09A6\u09C7\u0996\u09BE\u09A8",
+  "menu.local-history.put-label": "\u09B2\u09C7\u09AC\u09C7\u09B2 \u09A6\u09BF\u09A8",
+  "menu.local-history.recent-changes": "\u09B8\u09BE\u09AE\u09CD\u09AA\u09CD\u09B0\u09A4\u09BF\u0995 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8",
+  "view.recent-changes.title": "\u09B8\u09BE\u09AE\u09CD\u09AA\u09CD\u09B0\u09A4\u09BF\u0995 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8",
+  "view.recent-changes.empty": "\u09B8\u0995\u09CD\u09B0\u09BF\u09AF\u09BC \u09AB\u09BE\u0987\u09B2\u09C7\u09B0 \u0995\u09CB\u09A8\u09CB \u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09A8\u09C7\u0987\u0964",
+  "view.recent-changes.menu.show-diff": "\u09AA\u09BE\u09B0\u09CD\u09A5\u0995\u09CD\u09AF \u09A6\u09C7\u0996\u09BE\u09A8",
+  "view.recent-changes.menu.restore": "\u098F\u0987 \u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3\u099F\u09BF \u09AA\u09C1\u09A8\u09B0\u09C1\u09A6\u09CD\u09A7\u09BE\u09B0 \u0995\u09B0\u09C1\u09A8",
+  "view.recent-changes.menu.delete": "\u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3 \u09AE\u09C1\u099B\u09C1\u09A8",
+  "view.recent-changes.menu.put-label": "\u09B2\u09C7\u09AC\u09C7\u09B2 \u09A6\u09BF\u09A8",
+  "modal.label-selected": "\u09A8\u09BF\u09B0\u09CD\u09AC\u09BE\u099A\u09BF\u09A4 \u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3\u09C7 \u09B2\u09C7\u09AC\u09C7\u09B2 \u09A6\u09BF\u09A8",
+  "modal.label-version.message": "\u098F\u0987 \u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3\u099F\u09BF\u0995\u09C7 \u098F\u0995\u099F\u09BF \u099B\u09CB\u099F \u09B2\u09C7\u09AC\u09C7\u09B2 \u09A6\u09BF\u09AF\u09BC\u09C7 \u099A\u09BF\u09B9\u09CD\u09A8\u09BF\u09A4 \u0995\u09B0\u09C1\u09A8\u0964",
+  "notice.no-folder-history": "\u098F\u0996\u09A8\u0993 \u0995\u09CB\u09A8\u09CB \u09AB\u09CB\u09B2\u09CD\u09A1\u09BE\u09B0 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09A8\u09C7\u0987\u0964",
+  "setting.max-deleted-entries.name": "\u09B8\u0982\u09B0\u0995\u09CD\u09B7\u09BF\u09A4 \u09AE\u09C1\u099B\u09C7 \u09AB\u09C7\u09B2\u09BE \u09AB\u09BE\u0987\u09B2\u09C7\u09B0 \u09B8\u09B0\u09CD\u09AC\u09CB\u099A\u09CD\u099A \u09B8\u0982\u0996\u09CD\u09AF\u09BE",
+  "setting.max-deleted-entries.desc": "\u09A1\u09BF\u09B8\u09CD\u0995\u09C7 \u0995\u09A4\u099F\u09BF \u09AE\u09C1\u099B\u09C7 \u09AB\u09C7\u09B2\u09BE \u09AB\u09BE\u0987\u09B2\u09C7\u09B0 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09B0\u09BE\u0996\u09BE \u09B9\u09AC\u09C7 \u09A4\u09BE\u09B0 \u09B8\u09C0\u09AE\u09BE\u0964 \u09B8\u09AC\u099A\u09C7\u09AF\u09BC\u09C7 \u09AA\u09C1\u09B0\u09A8\u09CB\u0997\u09C1\u09B2\u09CB \u0986\u0997\u09C7 \u09B8\u09B0\u09BE\u09A8\u09CB \u09B9\u09AF\u09BC\u0964 \u09A8\u09BF\u09B7\u09CD\u0995\u09CD\u09B0\u09BF\u09AF\u09BC \u0995\u09B0\u09A4\u09C7 0 \u09A6\u09BF\u09A8\u0964",
+  "setting.max-deleted-age-days.name": "\u09AE\u09C1\u099B\u09C7 \u09AB\u09C7\u09B2\u09BE \u0987\u09A4\u09BF\u09B9\u09BE\u09B8\u09C7\u09B0 \u09B8\u09B0\u09CD\u09AC\u09CB\u099A\u09CD\u099A \u09AC\u09AF\u09BC\u09B8 (\u09A6\u09BF\u09A8)",
+  "setting.max-deleted-age-days.desc": "\u098F\u0987 \u09A6\u09BF\u09A8\u09C7\u09B0 \u099A\u09C7\u09AF\u09BC\u09C7 \u09AA\u09C1\u09B0\u09A8\u09CB \u09AE\u09C1\u099B\u09C7 \u09AB\u09C7\u09B2\u09BE \u09AB\u09BE\u0987\u09B2\u09C7\u09B0 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09B8\u09B0\u09BE\u09A8\u0964 \u09A8\u09BF\u09B7\u09CD\u0995\u09CD\u09B0\u09BF\u09AF\u09BC \u0995\u09B0\u09A4\u09C7 0 \u09A6\u09BF\u09A8\u0964",
+  "folder-tree.empty": "\u09A8\u09BF\u09B0\u09CD\u09AC\u09BE\u099A\u09BF\u09A4 \u09B8\u09AE\u09AF\u09BC\u09C7\u09B0 \u099C\u09A8\u09CD\u09AF \u098F\u0987 \u09AB\u09CB\u09B2\u09CD\u09A1\u09BE\u09B0\u09C7 \u0995\u09CB\u09A8\u09CB \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u09A8\u09C7\u0987\u0964",
+  "modal.folder.filter-files": "\u09A8\u09BE\u09AE \u09A6\u09BF\u09AF\u09BC\u09C7 \u09AB\u09BE\u0987\u09B2 \u09AB\u09BF\u09B2\u09CD\u099F\u09BE\u09B0 \u0995\u09B0\u09C1\u09A8",
+  "modal.folder.timeline.capture": "\u09A7\u09BE\u09B0\u09A3 \u0995\u09B0\u09BE \u09B9\u09AF\u09BC\u09C7\u099B\u09C7",
+  "modal.folder.timeline.delete": "\u09AE\u09C1\u099B\u09C7 \u09AB\u09C7\u09B2\u09BE \u09B9\u09AF\u09BC\u09C7\u099B\u09C7",
+  "modal.folder.timeline.move-in": "\u098F\u0996\u09BE\u09A8\u09C7 \u09B8\u09B0\u09BE\u09A8\u09CB \u09B9\u09AF\u09BC\u09C7\u099B\u09C7",
+  "modal.folder.notice.no-file": "\u0995\u09CB\u09A8\u09CB \u09AB\u09BE\u0987\u09B2 \u09A8\u09BF\u09B0\u09CD\u09AC\u09BE\u099A\u09A8 \u0995\u09B0\u09BE \u09B9\u09AF\u09BC\u09A8\u09BF\u0964",
+  "modal.folder.notice.added": "\u098F\u0987 \u09B8\u09AE\u09AF\u09BC\u09C7\u09B0 \u09AA\u09B0\u09C7 \u09AB\u09BE\u0987\u09B2\u099F\u09BF \u09AF\u09CB\u0997 \u0995\u09B0\u09BE \u09B9\u09AF\u09BC\u09C7\u099B\u09C7\u0964",
+  "modal.folder.notice.deleted": "\u098F\u0987 \u09B8\u09AE\u09AF\u09BC\u09C7\u09B0 \u09AA\u09B0\u09C7 \u09AB\u09BE\u0987\u09B2\u099F\u09BF \u09AE\u09C1\u099B\u09C7 \u09AB\u09C7\u09B2\u09BE \u09B9\u09AF\u09BC\u09C7\u099B\u09C7\u0964",
+  "modal.folder.notice.unchanged": "\u098F\u0987 \u09B8\u09AE\u09AF\u09BC\u09C7\u09B0 \u09AA\u09B0 \u09A5\u09C7\u0995\u09C7 \u0995\u09CB\u09A8\u09CB \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u09A8\u09C7\u0987\u0964",
+  "version.badge.external": "\u09AC\u09BE\u09B9\u09CD\u09AF\u09BF\u0995",
+  "setting.exclude-paths-case-sensitive.name": "\u0985\u0995\u09CD\u09B7\u09B0\u09C7\u09B0 \u099B\u09BE\u0981\u09A6-\u09B8\u0982\u09AC\u09C7\u09A6\u09A8\u09B6\u09C0\u09B2 \u09AA\u09BE\u09A5 \u09AC\u09BE\u09A6 \u09A6\u09C7\u0993\u09AF\u09BC\u09BE",
+  "setting.exclude-paths-case-sensitive.desc": "\u09B8\u0995\u09CD\u09B0\u09BF\u09AF\u09BC \u09A5\u09BE\u0995\u09B2\u09C7, \u09AC\u09BE\u09A6 \u09A6\u09C7\u0993\u09AF\u09BC\u09BE \u09AA\u09BE\u09A5\u09C7\u09B0 \u09B0\u09C7\u0997\u09C1\u09B2\u09BE\u09B0 \u098F\u0995\u09CD\u09B8\u09AA\u09CD\u09B0\u09C7\u09B6\u09A8 \u09AC\u09A1\u09BC/\u099B\u09CB\u099F \u09B9\u09BE\u09A4\u09C7\u09B0 \u0985\u0995\u09CD\u09B7\u09B0 \u09AC\u09BF\u09AC\u09C7\u099A\u09A8\u09BE \u0995\u09B0\u09C7 \u09AE\u09C7\u09B2\u09BE\u09A8\u09CB \u09B9\u09AF\u09BC ('i' \u09AB\u09CD\u09B2\u09CD\u09AF\u09BE\u0997 \u099B\u09BE\u09A1\u09BC\u09BE)\u0964 \u0985\u0995\u09CD\u09B7\u09B0\u09C7\u09B0 \u099B\u09BE\u0981\u09A6 \u09A8\u09BF\u09B0\u09CD\u09AC\u09BF\u09B6\u09C7\u09B7\u09C7 \u09AE\u09C7\u09B2\u09BE\u09A4\u09C7 \u09A8\u09BF\u09B7\u09CD\u0995\u09CD\u09B0\u09BF\u09AF\u09BC \u0995\u09B0\u09C1\u09A8: \u098F\u099F\u09BF\u0987 \u09A1\u09BF\u09AB\u09B2\u09CD\u099F \u098F\u09AC\u0982 \u0985\u0995\u09CD\u09B7\u09B0-\u0985\u09B8\u0982\u09AC\u09C7\u09A6\u09A8\u09B6\u09C0\u09B2 \u09AB\u09BE\u0987\u09B2 \u09B8\u09BF\u09B8\u09CD\u099F\u09C7\u09AE\u09C7 \u09AD\u09BE\u09B2\u09CB \u0995\u09BE\u099C \u0995\u09B0\u09C7\u0964",
+  "setting.purge-excluded.name": "\u09AC\u09BE\u09A6 \u09A6\u09C7\u0993\u09AF\u09BC\u09BE \u09AA\u09BE\u09A5\u09C7\u09B0 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09AA\u09B0\u09BF\u09B7\u09CD\u0995\u09BE\u09B0 \u0995\u09B0\u09C1\u09A8",
+  "setting.purge-excluded.desc": "\u09AF\u09C7\u09B8\u09AC \u09AB\u09BE\u0987\u09B2\u09C7\u09B0 \u09AA\u09BE\u09A5 \u09AC\u09B0\u09CD\u09A4\u09AE\u09BE\u09A8\u09C7 \u09AC\u09BE\u09A6 \u09A6\u09C7\u0993\u09AF\u09BC\u09BE \u09AA\u09BE\u09A5\u09C7\u09B0 \u09AA\u09CD\u09AF\u09BE\u099F\u09BE\u09B0\u09CD\u09A8\u09C7\u09B0 \u09B8\u09BE\u09A5\u09C7 \u09AE\u09C7\u09B2\u09C7 \u09A4\u09BE\u09A6\u09C7\u09B0 \u09B8\u09AC \u09B8\u0982\u09B0\u0995\u09CD\u09B7\u09BF\u09A4 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09AE\u09C1\u099B\u09C1\u09A8\u0964 \u09AE\u09C1\u099B\u09C7 \u09AB\u09C7\u09B2\u09BE \u09AB\u09BE\u0987\u09B2\u09C7\u09B0 \u09B0\u09C7\u0995\u09B0\u09CD\u09A1\u0993 \u09B8\u09B0\u09BE\u09A8\u09CB \u09B9\u09AF\u09BC\u0964 \u098F\u0987 \u0995\u09BE\u099C\u099F\u09BF \u0985\u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8\u09C0\u09AF\u09BC\u0964",
+  "notice.purge-excluded": "\u09B8\u09CD\u09A5\u09BE\u09A8\u09C0\u09AF\u09BC \u0987\u09A4\u09BF\u09B9\u09BE\u09B8: \u09AC\u09BE\u09A6 \u09A6\u09C7\u0993\u09AF\u09BC\u09BE \u09AA\u09BE\u09A5\u09C7\u09B0 {count}\u099F\u09BF \u09B8\u09CD\u09A8\u09CD\u09AF\u09BE\u09AA\u09B6\u099F \u09AA\u09B0\u09BF\u09B7\u09CD\u0995\u09BE\u09B0 \u0995\u09B0\u09BE \u09B9\u09AF\u09BC\u09C7\u099B\u09C7\u0964",
+  "notice.purge-excluded.no-match": "\u09B8\u09CD\u09A5\u09BE\u09A8\u09C0\u09AF\u09BC \u0987\u09A4\u09BF\u09B9\u09BE\u09B8: \u09AC\u09BE\u09A6 \u09A6\u09C7\u0993\u09AF\u09BC\u09BE \u09AA\u09BE\u09A5\u09C7\u09B0 \u09B8\u09BE\u09A5\u09C7 \u09AE\u09C7\u09B2\u09C7 \u098F\u09AE\u09A8 \u0995\u09CB\u09A8\u09CB \u09B8\u0982\u09B0\u0995\u09CD\u09B7\u09BF\u09A4 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09A8\u09C7\u0987\u0964",
+  "setting.reading-mode-indicator.name": "\u09AA\u09A1\u09BC\u09BE\u09B0 \u09AE\u09CB\u09A1\u09C7 \u09A8\u09BF\u09B0\u09CD\u09A6\u09C7\u09B6\u0995 \u09A6\u09C7\u0996\u09BE\u09A8",
+  "setting.reading-mode-indicator.desc": "\u09AA\u09A1\u09BC\u09BE\u09B0 \u09AE\u09CB\u09A1\u09C7 \u09B0\u09C7\u09A8\u09CD\u09A1\u09BE\u09B0 \u0995\u09B0\u09BE \u09AC\u09CD\u09B2\u0995\u0997\u09C1\u09B2\u09CB\u0995\u09C7 \u09B8\u09AE\u09CD\u09AA\u09BE\u09A6\u09A8\u09BE \u09A8\u09BF\u09B0\u09CD\u09A6\u09C7\u09B6\u0995\u09C7\u09B0 \u09B0\u0999\u09C7\u09B0 (\u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09BF\u09A4, \u09AF\u09CB\u0997 \u0995\u09B0\u09BE, \u09AB\u09BE\u0981\u0995\u09BE \u09B8\u09CD\u09A5\u09BE\u09A8, \u09AA\u09C1\u09A8\u09B0\u09C1\u09A6\u09CD\u09A7\u09BE\u09B0 \u0995\u09B0\u09BE) \u09B8\u09BE\u09A5\u09C7 \u09AE\u09C7\u09B2\u09BE\u09A8\u09CB \u09B0\u0999\u09BF\u09A8 \u09AC\u09BE\u09AE \u09AA\u09CD\u09B0\u09BE\u09A8\u09CD\u09A4 \u09A6\u09BF\u09AF\u09BC\u09C7 \u09B8\u09BE\u099C\u09BE\u09A8\u0964 \u09A1\u09BF\u09AB\u09B2\u09CD\u099F\u09AD\u09BE\u09AC\u09C7 \u09AC\u09A8\u09CD\u09A7; \u09AA\u09A1\u09BC\u09BE\u09B0 \u09AE\u09CB\u09A1\u09C7\u09B0 \u09AA\u09CD\u09B0\u09A4\u09BF\u099F\u09BF \u09AA\u09C1\u09A8\u0983\u09B0\u09C7\u09A8\u09CD\u09A1\u09BE\u09B0\u09C7 \u09AA\u09CD\u09B0\u09A4\u09BF \u09AC\u09CD\u09B2\u0995\u09C7 \u09B8\u09BE\u09AE\u09BE\u09A8\u09CD\u09AF \u0996\u09B0\u099A \u09B9\u09AF\u09BC\u0964"
 };
 
 // lang/ca.json
@@ -7652,9 +7379,16 @@ var ca_default = {
   "setting.allowed-extensions.desc": "Llista d'extensions de fitxer separades per comes per fer-ne el seguiment dels canvis (p. ex., md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "Camins exclosos",
   "setting.exclude-paths.desc": "Una expressi\xF3 regular sense distinci\xF3 de maj\xFAscules i min\xFAscules comparada amb el cam\xED relatiu al magatzem. Qualsevol fitxer el cam\xED del qual coincideixi no se'n fa mai el seguiment (p. ex. \\.excalidraw\\.md$ o (^|/)Templates/). El valor per defecte exclou les carpetes Templates i els dibuixos d'Excalidraw. Deixa-ho buit per fer el seguiment de tot.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "Afegeix un patr\xF3",
+  "setting.exclude-paths.placeholder": "p. ex. (^|/)Templates/",
+  "setting.exclude-paths.remove": "Elimina aquest patr\xF3",
+  "setting.exclude-paths.empty": "Encara no hi ha camins exclosos. Fes servir el bot\xF3 + per afegir un patr\xF3.",
+  "setting.exclude-paths.edit": "Edita el patr\xF3",
+  "setting.exclude-paths.save": "Desa el patr\xF3",
+  "setting.exclude-paths.cancel": "Cancel\xB7la",
+  "setting.exclude-paths.error": "El patr\xF3 ha de ser una expressi\xF3 regular v\xE0lida i no buida.",
+  "setting.general-heading": "General",
+  "setting.cleanup-heading": "Neteja de l'historial",
   "setting.keep.name": "Conserva l'historial fins a",
   "setting.keep.desc": "Estrat\xE8gia per netejar l'historial de revisions",
   "setting.keep.option.app": "Tancar l'aplicaci\xF3",
@@ -7663,8 +7397,8 @@ var ca_default = {
   "setting.ignore-new-files.desc": "No facis el seguiment dels canvis en fitxers creats despr\xE9s d'iniciar el seguiment",
   "setting.tree-highlight.name": "Ressalta els canvis a l'arbre de fitxers i a les pestanyes",
   "setting.tree-highlight.desc": "Acoloreix els fitxers i les carpetes a l'explorador de fitxers natiu, i les cap\xE7aleres de pestanya dels fitxers oberts, segons el que ha canviat en aquesta sessi\xF3 (ambre per a modificat, verd per a afegit).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "Ressalta els canvis al panell de propietats",
+  "setting.properties-highlight.desc": "Mostra les claus de frontmatter afegides, modificades i eliminades al panell de propietats d'Obsidian. Desactiva-ho per amagar tota la decoraci\xF3 de canvis de propietats.",
   "setting.persist.name": "Conserva l'historial entre reinicis",
   "setting.persist.desc": "Desa l'historial al disc perqu\xE8 els ressaltats sobrevisquin a un reinici. Cal que \xABconserva l'historial fins a\xBB estigui definit a tancar l'aplicaci\xF3.",
   "setting.max-entries.name": "M\xE0xim de fitxers emmagatzemats",
@@ -7712,10 +7446,10 @@ var ca_default = {
   "modal.mode.side-by-side": "Costat a costat",
   "modal.hide-identical": "Amaga les versions id\xE8ntiques a l'actual",
   "modal.confirm.cancel": "Cancel\xB7la",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "Confirmaci\xF3",
+  "modal.confirm.default.message": "Segur que vols continuar?",
+  "modal.confirm.default.ok": "Confirma",
+  "modal.confirm.default.cancel": "Cancel\xB7la",
   "modal.confirm.restore.title": "Restaura el fitxer original",
   "modal.confirm.restore.message": "Segur que vols restaurar aquest fitxer al seu estat original? Es perdran tots els canvis actuals i es reiniciar\xE0 l'historial de seguiment de canvis. Aquesta acci\xF3 no es pot desfer.",
   "modal.confirm.restore.button": "Restaura el fitxer",
@@ -7734,52 +7468,53 @@ var ca_default = {
   "modal.search-versions": "Cerca versions",
   "modal.version.current": "Actual",
   "modal.version.original": "Original",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "Creada",
+  "modal.version.action.modified": "Modificada",
+  "modal.version.action.cleared": "Buidada",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Cap versi\xF3 coincideix amb la cerca",
   "modal.revert-hunk": "Reverteix aquest canvi",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "Reverteix aquest canvi",
   "modal.copy": "Copia",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "Posa una etiqueta",
+  "modal.put-label.message": "Marca el contingut actual amb una etiqueta curta.",
+  "modal.put-label.placeholder": "Etiqueta",
+  "modal.put-label.confirm": "Desa",
+  "menu.local-history.show-history": "Mostra l'historial",
+  "menu.local-history.show-history-selection": "Mostra l'historial de la selecci\xF3",
+  "menu.local-history.put-label": "Posa una etiqueta",
+  "menu.local-history.recent-changes": "Canvis recents",
+  "view.recent-changes.title": "Canvis recents",
+  "view.recent-changes.empty": "No hi ha historial de versions per al fitxer actiu.",
+  "view.recent-changes.menu.show-diff": "Mostra les difer\xE8ncies",
+  "view.recent-changes.menu.restore": "Restaura aquesta versi\xF3",
+  "view.recent-changes.menu.delete": "Elimina la versi\xF3",
+  "view.recent-changes.menu.put-label": "Posa una etiqueta",
+  "modal.label-selected": "Etiqueta la versi\xF3 seleccionada",
+  "modal.label-version.message": "Marca aquesta versi\xF3 amb una etiqueta curta.",
+  "notice.no-folder-history": "Encara no hi ha historial de carpeta.",
+  "setting.max-deleted-entries.name": "M\xE0x. de fitxers eliminats desats",
+  "setting.max-deleted-entries.desc": "L\xEDmit de quants historials de fitxers eliminats es conserven al disc. Els m\xE9s antics s'eliminen primer. Posa-ho a 0 per desactivar-ho.",
+  "setting.max-deleted-age-days.name": "Antiguitat m\xE0x. de l'historial d'eliminats (dies)",
+  "setting.max-deleted-age-days.desc": "Elimina els historials de fitxers eliminats de m\xE9s d'aquest nombre de dies. Posa-ho a 0 per desactivar-ho.",
+  "folder-tree.empty": "No hi ha canvis en aquesta carpeta per al punt seleccionat.",
+  "modal.folder.filter-files": "Filtra els fitxers per nom",
+  "modal.folder.timeline.capture": "Capturat",
+  "modal.folder.timeline.delete": "Eliminat",
+  "modal.folder.timeline.move-in": "Mogut aqu\xED",
+  "modal.folder.notice.no-file": "No s'ha seleccionat cap fitxer.",
+  "modal.folder.notice.added": "El fitxer es va afegir despr\xE9s d'aquest punt.",
+  "modal.folder.notice.deleted": "El fitxer es va eliminar despr\xE9s d'aquest punt.",
+  "modal.folder.notice.unchanged": "Cap canvi des d'aquest punt.",
+  "version.badge.external": "externa",
+  "setting.exclude-paths-case-sensitive.name": "Exclusi\xF3 de camins sensible a maj\xFAscules",
+  "setting.exclude-paths-case-sensitive.desc": "Quan est\xE0 activat, l'expressi\xF3 regular dels camins exclosos es compara distingint maj\xFAscules i min\xFAscules (sense la bandera 'i'). Desactiva-ho per ignorar les maj\xFAscules: \xE9s el valor per defecte i funciona b\xE9 en sistemes de fitxers que no distingeixen maj\xFAscules.",
+  "setting.purge-excluded.name": "Purga l'historial dels camins exclosos",
+  "setting.purge-excluded.desc": "Elimina tot l'historial desat dels fitxers els camins dels quals coincideixen actualment amb el patr\xF3 de camins exclosos. Tamb\xE9 s'eliminen els registres de fitxers esborrats. Aquesta acci\xF3 no es pot desfer.",
+  "notice.purge-excluded": "Historial local: s'han purgat {count} instant\xE0nies de camins exclosos.",
+  "notice.purge-excluded.no-match": "Historial local: cap historial desat coincideix amb els camins exclosos.",
+  "setting.reading-mode-indicator.name": "Mostra indicadors en mode de lectura",
+  "setting.reading-mode-indicator.desc": "Decora els blocs renderitzats en mode de lectura amb una vora esquerra de color que coincideix amb els colors de l'indicador d'edici\xF3 (modificat, afegit, espais, restaurat). Desactivat per defecte; t\xE9 un petit cost per bloc a cada renderitzaci\xF3 del mode de lectura."
 };
 
 // lang/cs.json
@@ -7809,9 +7544,16 @@ var cs_default = {
   "setting.allowed-extensions.desc": "Seznam p\u0159\xEDpon soubor\u016F odd\u011Blen\xFDch \u010D\xE1rkami, jejich\u017E zm\u011Bny se sleduj\xED (nap\u0159. md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "Vylou\u010Den\xE9 cesty",
   "setting.exclude-paths.desc": "Regul\xE1rn\xED v\xFDraz nerozli\u0161uj\xEDc\xED velikost p\xEDsmen, porovn\xE1van\xFD s cestou relativn\xED k trezoru. \u017D\xE1dn\xFD soubor, jeho\u017E cesta odpov\xEDd\xE1, se nikdy nesleduje (nap\u0159. \\.excalidraw\\.md$ nebo (^|/)Templates/). V\xFDchoz\xED nastaven\xED vylu\u010Duje slo\u017Eky Templates a kresby Excalidraw. Ponechte pr\xE1zdn\xE9 pro sledov\xE1n\xED v\u0161eho.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "P\u0159idat vzor",
+  "setting.exclude-paths.placeholder": "nap\u0159. (^|/)Templates/",
+  "setting.exclude-paths.remove": "Odebrat tento vzor",
+  "setting.exclude-paths.empty": "Zat\xEDm \u017E\xE1dn\xE9 vylou\u010Den\xE9 cesty. Vzor p\u0159id\xE1te tla\u010D\xEDtkem +.",
+  "setting.exclude-paths.edit": "Upravit vzor",
+  "setting.exclude-paths.save": "Ulo\u017Eit vzor",
+  "setting.exclude-paths.cancel": "Zru\u0161it",
+  "setting.exclude-paths.error": "Vzor mus\xED b\xFDt nepr\xE1zdn\xFD platn\xFD regul\xE1rn\xED v\xFDraz.",
+  "setting.general-heading": "Obecn\xE9",
+  "setting.cleanup-heading": "\u010Ci\u0161t\u011Bn\xED historie",
   "setting.keep.name": "Uchov\xE1vat historii do",
   "setting.keep.desc": "Strategie \u010Di\u0161t\u011Bn\xED historie reviz\xED",
   "setting.keep.option.app": "Zav\u0159en\xED aplikace",
@@ -7820,8 +7562,8 @@ var cs_default = {
   "setting.ignore-new-files.desc": "Nesledovat zm\u011Bny v souborech vytvo\u0159en\xFDch po zah\xE1jen\xED sledov\xE1n\xED",
   "setting.tree-highlight.name": "Zv\xFDraznit zm\u011Bny ve stromu soubor\u016F a na kart\xE1ch",
   "setting.tree-highlight.desc": "Obarv\xED soubory a slo\u017Eky v nativn\xEDm pr\u016Fzkumn\xEDku soubor\u016F a z\xE1hlav\xED karet otev\u0159en\xFDch soubor\u016F podle toho, co se v t\xE9to relaci zm\u011Bnilo (oran\u017Eov\xE1 pro upraven\xE9, zelen\xE1 pro p\u0159idan\xE9).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "Zv\xFDraz\u0148ovat zm\u011Bny v panelu vlastnost\xED",
+  "setting.properties-highlight.desc": "Zobrazovat p\u0159idan\xE9, zm\u011Bn\u011Bn\xE9 a odebran\xE9 kl\xED\u010De frontmatteru v panelu vlastnost\xED Obsidianu. Vypnut\xEDm skryjete ve\u0161ker\xE9 zv\xFDrazn\u011Bn\xED zm\u011Bn vlastnost\xED.",
   "setting.persist.name": "Zachovat historii mezi restarty",
   "setting.persist.desc": 'Ukl\xE1dat historii na disk, aby zv\xFDrazn\u011Bn\xED p\u0159e\u010Dkala restart. Vy\u017Eaduje nastaven\xED "Uchov\xE1vat historii do" na zav\u0159en\xED aplikace.',
   "setting.max-entries.name": "Maximum ulo\u017Een\xFDch soubor\u016F",
@@ -7869,10 +7611,10 @@ var cs_default = {
   "modal.mode.side-by-side": "Vedle sebe",
   "modal.hide-identical": "Skr\xFDt verze shodn\xE9 s aktu\xE1ln\xED",
   "modal.confirm.cancel": "Zru\u0161it",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "Potvrzen\xED",
+  "modal.confirm.default.message": "Opravdu chcete pokra\u010Dovat?",
+  "modal.confirm.default.ok": "Potvrdit",
+  "modal.confirm.default.cancel": "Zru\u0161it",
   "modal.confirm.restore.title": "Obnovit p\u016Fvodn\xED soubor",
   "modal.confirm.restore.message": "Opravdu chcete obnovit tento soubor do p\u016Fvodn\xEDho stavu? V\u0161echny aktu\xE1ln\xED zm\u011Bny budou ztraceny a historie sledov\xE1n\xED zm\u011Bn bude resetov\xE1na. Tuto akci nelze vr\xE1tit zp\u011Bt.",
   "modal.confirm.restore.button": "Obnovit soubor",
@@ -7891,52 +7633,53 @@ var cs_default = {
   "modal.search-versions": "Hledat verze",
   "modal.version.current": "Aktu\xE1ln\xED",
   "modal.version.original": "Origin\xE1l",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "Vytvo\u0159eno",
+  "modal.version.action.modified": "Zm\u011Bn\u011Bno",
+  "modal.version.action.cleared": "Vymaz\xE1no",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u017D\xE1dn\xE9 verze neodpov\xEDdaj\xED hled\xE1n\xED",
   "modal.revert-hunk": "Vr\xE1tit tuto zm\u011Bnu",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "Vr\xE1tit tuto zm\u011Bnu",
   "modal.copy": "Kop\xEDrovat",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "P\u0159idat \u0161t\xEDtek",
+  "modal.put-label.message": "Ozna\u010Dte aktu\xE1ln\xED obsah kr\xE1tk\xFDm \u0161t\xEDtkem.",
+  "modal.put-label.placeholder": "\u0160t\xEDtek",
+  "modal.put-label.confirm": "Ulo\u017Eit",
+  "menu.local-history.show-history": "Zobrazit historii",
+  "menu.local-history.show-history-selection": "Zobrazit historii v\xFDb\u011Bru",
+  "menu.local-history.put-label": "P\u0159idat \u0161t\xEDtek",
+  "menu.local-history.recent-changes": "Ned\xE1vn\xE9 zm\u011Bny",
+  "view.recent-changes.title": "Ned\xE1vn\xE9 zm\u011Bny",
+  "view.recent-changes.empty": "Aktivn\xED soubor nem\xE1 \u017E\xE1dnou historii verz\xED.",
+  "view.recent-changes.menu.show-diff": "Zobrazit rozd\xEDl",
+  "view.recent-changes.menu.restore": "Obnovit tuto verzi",
+  "view.recent-changes.menu.delete": "Smazat verzi",
+  "view.recent-changes.menu.put-label": "P\u0159idat \u0161t\xEDtek",
+  "modal.label-selected": "Ozna\u010Dit vybranou verzi",
+  "modal.label-version.message": "Ozna\u010Dte tuto verzi kr\xE1tk\xFDm \u0161t\xEDtkem.",
+  "notice.no-folder-history": "Zat\xEDm \u017E\xE1dn\xE1 historie slo\u017Eky.",
+  "setting.max-deleted-entries.name": "Max. uchovan\xFDch smazan\xFDch soubor\u016F",
+  "setting.max-deleted-entries.desc": "Limit po\u010Dtu histori\xED smazan\xFDch soubor\u016F uchov\xE1van\xFDch na disku. Nejstar\u0161\xED se odstra\u0148uj\xED jako prvn\xED. Nastavte 0 pro vypnut\xED.",
+  "setting.max-deleted-age-days.name": "Max. st\xE1\u0159\xED historie smazan\xFDch soubor\u016F (dny)",
+  "setting.max-deleted-age-days.desc": "Odstra\u0148ovat historie smazan\xFDch soubor\u016F star\u0161\xED ne\u017E zadan\xFD po\u010Det dn\u016F. Nastavte 0 pro vypnut\xED.",
+  "folder-tree.empty": "V t\xE9to slo\u017Ece nejsou pro vybran\xFD bod \u017E\xE1dn\xE9 zm\u011Bny.",
+  "modal.folder.filter-files": "Filtrovat soubory podle n\xE1zvu",
+  "modal.folder.timeline.capture": "Zachyceno",
+  "modal.folder.timeline.delete": "Smaz\xE1no",
+  "modal.folder.timeline.move-in": "P\u0159esunuto sem",
+  "modal.folder.notice.no-file": "Nen\xED vybr\xE1n \u017E\xE1dn\xFD soubor.",
+  "modal.folder.notice.added": "Soubor byl p\u0159id\xE1n po tomto bod\u011B.",
+  "modal.folder.notice.deleted": "Soubor byl smaz\xE1n po tomto bod\u011B.",
+  "modal.folder.notice.unchanged": "Od tohoto bodu \u017E\xE1dn\xE9 zm\u011Bny.",
+  "version.badge.external": "extern\xED",
+  "setting.exclude-paths-case-sensitive.name": "Vylu\u010Dov\xE1n\xED cest s rozli\u0161en\xEDm velikosti p\xEDsmen",
+  "setting.exclude-paths-case-sensitive.desc": "Pokud je zapnuto, regul\xE1rn\xED v\xFDraz vylou\u010Den\xFDch cest se porovn\xE1v\xE1 s rozli\u0161en\xEDm velikosti p\xEDsmen (bez p\u0159\xEDznaku 'i'). Vypn\u011Bte pro porovn\xE1v\xE1n\xED bez ohledu na velikost p\xEDsmen: to je v\xFDchoz\xED nastaven\xED, kter\xE9 dob\u0159e funguje na souborov\xFDch syst\xE9mech nerozli\u0161uj\xEDc\xEDch velikost p\xEDsmen.",
+  "setting.purge-excluded.name": "Vy\u010Distit historii vylou\u010Den\xFDch cest",
+  "setting.purge-excluded.desc": "Smazat ve\u0161kerou ulo\u017Eenou historii soubor\u016F, jejich\u017E cesty aktu\xE1ln\u011B odpov\xEDdaj\xED vzoru vylou\u010Den\xFDch cest. Odstran\xED se i z\xE1znamy smazan\xFDch soubor\u016F. Tuto akci nelze vr\xE1tit zp\u011Bt.",
+  "notice.purge-excluded": "Lok\xE1ln\xED historie: odstran\u011Bno {count} sn\xEDmk\u016F pro vylou\u010Den\xE9 cesty.",
+  "notice.purge-excluded.no-match": "Lok\xE1ln\xED historie: \u017E\xE1dn\xE1 ulo\u017Een\xE1 historie neodpov\xEDd\xE1 vylou\u010Den\xFDm cest\xE1m.",
+  "setting.reading-mode-indicator.name": "Zobrazovat indik\xE1tory v re\u017Eimu \u010Dten\xED",
+  "setting.reading-mode-indicator.desc": "Ozna\u010Dovat vykreslen\xE9 bloky v re\u017Eimu \u010Dten\xED barevn\xFDm lev\xFDm okrajem v barv\xE1ch indik\xE1toru \xFAprav (zm\u011Bn\u011Bno, p\u0159id\xE1no, b\xEDl\xE9 znaky, obnoveno). Ve v\xFDchoz\xEDm stavu vypnuto; p\u0159id\xE1v\xE1 malou z\xE1t\u011B\u017E na ka\u017Ed\xFD blok p\u0159i ka\u017Ed\xE9m p\u0159ekreslen\xED re\u017Eimu \u010Dten\xED."
 };
 
 // lang/da.json
@@ -7966,9 +7709,16 @@ var da_default = {
   "setting.allowed-extensions.desc": "Kommasepareret liste over filtypenavne, hvis \xE6ndringer skal spores (f.eks. md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "Ekskluderede stier",
   "setting.exclude-paths.desc": "Et regul\xE6rt udtryk (uafh\xE6ngigt af store og sm\xE5 bogstaver), der matches mod stien relativt til boksen. Enhver fil, hvis sti matcher, spores aldrig (f.eks. \\.excalidraw\\.md$ eller (^|/)Templates/). Standardv\xE6rdien ekskluderer Templates-mapper og Excalidraw-tegninger. Lad feltet v\xE6re tomt for at spore alt.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "Tilf\xF8j m\xF8nster",
+  "setting.exclude-paths.placeholder": "f.eks. (^|/)Templates/",
+  "setting.exclude-paths.remove": "Fjern dette m\xF8nster",
+  "setting.exclude-paths.empty": "Ingen udelukkede stier endnu. Brug knappen + for at tilf\xF8je et m\xF8nster.",
+  "setting.exclude-paths.edit": "Rediger m\xF8nster",
+  "setting.exclude-paths.save": "Gem m\xF8nster",
+  "setting.exclude-paths.cancel": "Annuller",
+  "setting.exclude-paths.error": "M\xF8nsteret skal v\xE6re et ikke-tomt gyldigt regul\xE6rt udtryk.",
+  "setting.general-heading": "Generelt",
+  "setting.cleanup-heading": "Oprydning i historik",
   "setting.keep.name": "Behold historik indtil",
   "setting.keep.desc": "Strategi for oprydning af revisionshistorik",
   "setting.keep.option.app": "Appen lukkes",
@@ -7977,8 +7727,8 @@ var da_default = {
   "setting.ignore-new-files.desc": "Spor ikke \xE6ndringer i filer, der er oprettet, efter sporingen blev startet",
   "setting.tree-highlight.name": "Fremh\xE6v \xE6ndringer i filtr\xE6et og fanerne",
   "setting.tree-highlight.desc": "Farv filer og mapper i den indbyggede filstifinder samt fanebladene for \xE5bne filer efter, hvad der er \xE6ndret i denne session (rav for \xE6ndret, gr\xF8n for tilf\xF8jet).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "Fremh\xE6v \xE6ndringer i egenskabspanelet",
+  "setting.properties-highlight.desc": "Vis tilf\xF8jede, \xE6ndrede og fjernede frontmatter-n\xF8gler i Obsidians egenskabspanel. Sl\xE5 fra for at skjule al markering af egenskabs\xE6ndringer.",
   "setting.persist.name": "Bevar historik p\xE5 tv\xE6rs af genstarter",
   "setting.persist.desc": 'Gem historik p\xE5 disken, s\xE5 fremh\xE6vninger overlever en genstart. Kr\xE6ver, at "Behold historik indtil" er sat til Appen lukkes.',
   "setting.max-entries.name": "Maks. gemte filer",
@@ -8026,10 +7776,10 @@ var da_default = {
   "modal.mode.side-by-side": "Side om side",
   "modal.hide-identical": "Skjul versioner identiske med den aktuelle",
   "modal.confirm.cancel": "Annuller",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "Bekr\xE6ftelse",
+  "modal.confirm.default.message": "Er du sikker p\xE5, at du vil forts\xE6tte?",
+  "modal.confirm.default.ok": "Bekr\xE6ft",
+  "modal.confirm.default.cancel": "Annuller",
   "modal.confirm.restore.title": "Gendan originalfil",
   "modal.confirm.restore.message": "Er du sikker p\xE5, at du vil gendanne denne fil til dens oprindelige tilstand? Alle aktuelle \xE6ndringer g\xE5r tabt, og \xE6ndringshistorikken nulstilles. Denne handling kan ikke fortrydes.",
   "modal.confirm.restore.button": "Gendan fil",
@@ -8048,52 +7798,53 @@ var da_default = {
   "modal.search-versions": "S\xF8g i versioner",
   "modal.version.current": "Aktuel",
   "modal.version.original": "Original",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "Oprettet",
+  "modal.version.action.modified": "\xC6ndret",
+  "modal.version.action.cleared": "Ryddet",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Ingen versioner matcher s\xF8gningen",
   "modal.revert-hunk": "Tilbagef\xF8r denne \xE6ndring",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "Fortryd denne \xE6ndring",
   "modal.copy": "Kopier",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "S\xE6t etiket",
+  "modal.put-label.message": "Mark\xE9r det aktuelle indhold med en kort etiket.",
+  "modal.put-label.placeholder": "Etiket",
+  "modal.put-label.confirm": "Gem",
+  "menu.local-history.show-history": "Vis historik",
+  "menu.local-history.show-history-selection": "Vis historik for markering",
+  "menu.local-history.put-label": "S\xE6t etiket",
+  "menu.local-history.recent-changes": "Seneste \xE6ndringer",
+  "view.recent-changes.title": "Seneste \xE6ndringer",
+  "view.recent-changes.empty": "Ingen versionshistorik for den aktive fil.",
+  "view.recent-changes.menu.show-diff": "Vis diff",
+  "view.recent-changes.menu.restore": "Gendan denne version",
+  "view.recent-changes.menu.delete": "Slet version",
+  "view.recent-changes.menu.put-label": "S\xE6t etiket",
+  "modal.label-selected": "S\xE6t etiket p\xE5 valgt version",
+  "modal.label-version.message": "Mark\xE9r denne version med en kort etiket.",
+  "notice.no-folder-history": "Ingen mappehistorik endnu.",
+  "setting.max-deleted-entries.name": "Maks. gemte slettede filer",
+  "setting.max-deleted-entries.desc": "Loft over hvor mange historikker for slettede filer der gemmes p\xE5 disken. De \xE6ldste fjernes f\xF8rst. S\xE6t til 0 for at sl\xE5 fra.",
+  "setting.max-deleted-age-days.name": "Maks. alder for slettet historik (dage)",
+  "setting.max-deleted-age-days.desc": "Fjern historikker for slettede filer, der er \xE6ldre end dette antal dage. S\xE6t til 0 for at sl\xE5 fra.",
+  "folder-tree.empty": "Ingen \xE6ndringer i denne mappe for det valgte punkt.",
+  "modal.folder.filter-files": "Filtr\xE9r filer efter navn",
+  "modal.folder.timeline.capture": "Registreret",
+  "modal.folder.timeline.delete": "Slettet",
+  "modal.folder.timeline.move-in": "Flyttet hertil",
+  "modal.folder.notice.no-file": "Ingen fil valgt.",
+  "modal.folder.notice.added": "Filen blev tilf\xF8jet efter dette punkt.",
+  "modal.folder.notice.deleted": "Filen blev slettet efter dette punkt.",
+  "modal.folder.notice.unchanged": "Ingen \xE6ndringer siden dette punkt.",
+  "version.badge.external": "ekstern",
+  "setting.exclude-paths-case-sensitive.name": "Versalf\xF8lsom udelukkelse af stier",
+  "setting.exclude-paths-case-sensitive.desc": "N\xE5r sl\xE5et til, matches det regul\xE6re udtryk for udelukkede stier med forskel p\xE5 store og sm\xE5 bogstaver (uden 'i'-flag). Sl\xE5 fra for at matche uanset store/sm\xE5 bogstaver: det er standarden og fungerer godt p\xE5 filsystemer uden versalf\xF8lsomhed.",
+  "setting.purge-excluded.name": "Ryd historik for udelukkede stier",
+  "setting.purge-excluded.desc": "Slet al gemt historik for filer, hvis stier i \xF8jeblikket matcher m\xF8nsteret for udelukkede stier. Poster for slettede filer fjernes ogs\xE5. Denne handling kan ikke fortrydes.",
+  "notice.purge-excluded": "Lokal historik: ryddede {count} snapshot(s) for udelukkede stier.",
+  "notice.purge-excluded.no-match": "Lokal historik: ingen gemt historik matcher de udelukkede stier.",
+  "setting.reading-mode-indicator.name": "Vis indikatorer i l\xE6setilstand",
+  "setting.reading-mode-indicator.desc": "Mark\xE9r renderede blokke i l\xE6setilstand med en farvet venstre kant i redigeringsindikatorens farver (\xE6ndret, tilf\xF8jet, blanktegn, gendannet). Sl\xE5et fra som standard; har en lille omkostning pr. blok ved hver gengivelse i l\xE6setilstand."
 };
 
 // lang/de.json
@@ -8123,9 +7874,16 @@ var de_default = {
   "setting.allowed-extensions.desc": "Kommagetrennte Liste von Dateierweiterungen, deren \xC4nderungen erfasst werden (z. B. md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "Ausgeschlossene Pfade",
   "setting.exclude-paths.desc": "Ein nicht zwischen Gro\xDF- und Kleinschreibung unterscheidender regul\xE4rer Ausdruck, der mit dem Pfad relativ zum Tresor abgeglichen wird. Jede Datei, deren Pfad \xFCbereinstimmt, wird nie erfasst (z. B. \\.excalidraw\\.md$ oder (^|/)Templates/). Standardm\xE4\xDFig werden Templates-Ordner und Excalidraw-Zeichnungen ausgeschlossen. Leer lassen, um alles zu erfassen.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "Muster hinzuf\xFCgen",
+  "setting.exclude-paths.placeholder": "z. B. (^|/)Templates/",
+  "setting.exclude-paths.remove": "Dieses Muster entfernen",
+  "setting.exclude-paths.empty": "Noch keine ausgeschlossenen Pfade. Mit der Schaltfl\xE4che + ein Muster hinzuf\xFCgen.",
+  "setting.exclude-paths.edit": "Muster bearbeiten",
+  "setting.exclude-paths.save": "Muster speichern",
+  "setting.exclude-paths.cancel": "Abbrechen",
+  "setting.exclude-paths.error": "Das Muster muss ein nicht leerer g\xFCltiger regul\xE4rer Ausdruck sein.",
+  "setting.general-heading": "Allgemein",
+  "setting.cleanup-heading": "Verlaufsbereinigung",
   "setting.keep.name": "Verlauf behalten bis",
   "setting.keep.desc": "Strategie zum Bereinigen des Revisionsverlaufs",
   "setting.keep.option.app": "App schlie\xDFen",
@@ -8134,8 +7892,8 @@ var de_default = {
   "setting.ignore-new-files.desc": "\xC4nderungen in Dateien, die nach dem Start der Erfassung erstellt wurden, nicht erfassen",
   "setting.tree-highlight.name": "\xC4nderungen im Dateibaum und in Tabs hervorheben",
   "setting.tree-highlight.desc": "F\xE4rbt Dateien und Ordner im nativen Datei-Explorer sowie die Tab-K\xF6pfe ge\xF6ffneter Dateien danach, was in dieser Sitzung ge\xE4ndert wurde (Bernstein f\xFCr ge\xE4ndert, Gr\xFCn f\xFCr hinzugef\xFCgt).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "\xC4nderungen im Eigenschaften-Panel hervorheben",
+  "setting.properties-highlight.desc": "Hinzugef\xFCgte, ge\xE4nderte und entfernte Frontmatter-Schl\xFCssel im Obsidian-Eigenschaften-Panel anzeigen. Deaktivieren, um alle Eigenschafts-Diff-Markierungen zu unterdr\xFCcken.",
   "setting.persist.name": "Verlauf \xFCber Neustarts hinweg beibehalten",
   "setting.persist.desc": 'Verlauf auf der Festplatte speichern, damit Hervorhebungen einen Neustart \xFCberdauern. Erfordert, dass "Verlauf behalten bis" auf App schlie\xDFen gesetzt ist.',
   "setting.max-entries.name": "Maximal gespeicherte Dateien",
@@ -8183,10 +7941,10 @@ var de_default = {
   "modal.mode.side-by-side": "Nebeneinander",
   "modal.hide-identical": "Versionen ausblenden, die mit der aktuellen identisch sind",
   "modal.confirm.cancel": "Abbrechen",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "Best\xE4tigung",
+  "modal.confirm.default.message": "M\xF6chten Sie wirklich fortfahren?",
+  "modal.confirm.default.ok": "Best\xE4tigen",
+  "modal.confirm.default.cancel": "Abbrechen",
   "modal.confirm.restore.title": "Originaldatei wiederherstellen",
   "modal.confirm.restore.message": "M\xF6chtest du diese Datei wirklich in ihren Originalzustand zur\xFCcksetzen? Alle aktuellen \xC4nderungen gehen verloren und der \xC4nderungsverlauf wird zur\xFCckgesetzt. Diese Aktion kann nicht r\xFCckg\xE4ngig gemacht werden.",
   "modal.confirm.restore.button": "Datei wiederherstellen",
@@ -8205,52 +7963,53 @@ var de_default = {
   "modal.search-versions": "Versionen durchsuchen",
   "modal.version.current": "Aktuell",
   "modal.version.original": "Original",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "Erstellt",
+  "modal.version.action.modified": "Ge\xE4ndert",
+  "modal.version.action.cleared": "Geleert",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Keine Versionen entsprechen der Suche",
   "modal.revert-hunk": "Diese \xC4nderung zur\xFCcknehmen",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "Diese \xC4nderung r\xFCckg\xE4ngig machen",
   "modal.copy": "Kopieren",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.title": "Label setzen",
+  "modal.put-label.message": "Den aktuellen Inhalt mit einem kurzen Label versehen.",
   "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.confirm": "Speichern",
+  "menu.local-history.show-history": "Verlauf anzeigen",
+  "menu.local-history.show-history-selection": "Verlauf f\xFCr Auswahl anzeigen",
+  "menu.local-history.put-label": "Label setzen",
+  "menu.local-history.recent-changes": "Letzte \xC4nderungen",
+  "view.recent-changes.title": "Letzte \xC4nderungen",
+  "view.recent-changes.empty": "Kein Versionsverlauf f\xFCr die aktive Datei.",
+  "view.recent-changes.menu.show-diff": "Diff anzeigen",
+  "view.recent-changes.menu.restore": "Diese Version wiederherstellen",
+  "view.recent-changes.menu.delete": "Version l\xF6schen",
+  "view.recent-changes.menu.put-label": "Label setzen",
+  "modal.label-selected": "Ausgew\xE4hlte Version mit Label versehen",
+  "modal.label-version.message": "Diese Version mit einem kurzen Label versehen.",
+  "notice.no-folder-history": "Noch kein Ordnerverlauf.",
+  "setting.max-deleted-entries.name": "Max. gespeicherte gel\xF6schte Dateien",
+  "setting.max-deleted-entries.desc": "Obergrenze f\xFCr die Anzahl der auf der Festplatte gespeicherten Verl\xE4ufe gel\xF6schter Dateien. Die \xE4ltesten werden zuerst entfernt. Zum Deaktivieren auf 0 setzen.",
+  "setting.max-deleted-age-days.name": "Max. Alter des Verlaufs gel\xF6schter Dateien (Tage)",
+  "setting.max-deleted-age-days.desc": "Verl\xE4ufe gel\xF6schter Dateien entfernen, die \xE4lter als die angegebene Anzahl von Tagen sind. Zum Deaktivieren auf 0 setzen.",
+  "folder-tree.empty": "Keine \xC4nderungen in diesem Ordner f\xFCr den ausgew\xE4hlten Zeitpunkt.",
+  "modal.folder.filter-files": "Dateien nach Namen filtern",
+  "modal.folder.timeline.capture": "Erfasst",
+  "modal.folder.timeline.delete": "Gel\xF6scht",
+  "modal.folder.timeline.move-in": "Hierher verschoben",
+  "modal.folder.notice.no-file": "Keine Datei ausgew\xE4hlt.",
+  "modal.folder.notice.added": "Die Datei wurde nach diesem Zeitpunkt hinzugef\xFCgt.",
+  "modal.folder.notice.deleted": "Die Datei wurde nach diesem Zeitpunkt gel\xF6scht.",
+  "modal.folder.notice.unchanged": "Keine \xC4nderungen seit diesem Zeitpunkt.",
+  "version.badge.external": "extern",
+  "setting.exclude-paths-case-sensitive.name": "Pfadausschluss mit Gro\xDF-/Kleinschreibung",
+  "setting.exclude-paths-case-sensitive.desc": "Wenn aktiviert, wird der regul\xE4re Ausdruck f\xFCr ausgeschlossene Pfade unter Beachtung der Gro\xDF-/Kleinschreibung abgeglichen (ohne 'i'-Flag). Deaktivieren, um die Gro\xDF-/Kleinschreibung zu ignorieren: das ist die Voreinstellung und funktioniert gut auf Dateisystemen, die nicht zwischen Gro\xDF- und Kleinschreibung unterscheiden.",
+  "setting.purge-excluded.name": "Verlauf f\xFCr ausgeschlossene Pfade bereinigen",
+  "setting.purge-excluded.desc": "Den gesamten gespeicherten Verlauf der Dateien l\xF6schen, deren Pfade aktuell dem Muster der ausgeschlossenen Pfade entsprechen. Eintr\xE4ge gel\xF6schter Dateien werden ebenfalls entfernt. Diese Aktion kann nicht r\xFCckg\xE4ngig gemacht werden.",
+  "notice.purge-excluded": "Lokaler Verlauf: {count} Snapshot(s) f\xFCr ausgeschlossene Pfade entfernt.",
+  "notice.purge-excluded.no-match": "Lokaler Verlauf: kein gespeicherter Verlauf entspricht den ausgeschlossenen Pfaden.",
+  "setting.reading-mode-indicator.name": "Indikatoren im Lesemodus anzeigen",
+  "setting.reading-mode-indicator.desc": "Gerenderte Bl\xF6cke im Lesemodus mit einem farbigen linken Rand in den Farben des Bearbeitungsindikators markieren (ge\xE4ndert, hinzugef\xFCgt, Leerzeichen, wiederhergestellt). Standardm\xE4\xDFig deaktiviert; verursacht geringe Kosten pro Block bei jedem Neurendern des Lesemodus."
 };
 
 // lang/en.json
@@ -8283,6 +8042,13 @@ var en_default = {
   "setting.exclude-paths.add": "Add pattern",
   "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
   "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.empty": "No excluded paths yet. Use the + button to add a pattern.",
+  "setting.exclude-paths.edit": "Edit pattern",
+  "setting.exclude-paths.save": "Save pattern",
+  "setting.exclude-paths.cancel": "Cancel",
+  "setting.exclude-paths.error": "The pattern must be a non-empty valid regular expression.",
+  "setting.general-heading": "General",
+  "setting.cleanup-heading": "History cleanup",
   "setting.keep.name": "Keep history until",
   "setting.keep.desc": "Strategy for cleaning up revision history",
   "setting.keep.option.app": "App close",
@@ -8406,6 +8172,7 @@ var en_default = {
   "setting.purge-excluded.name": "Purge history for excluded paths",
   "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
   "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
+  "notice.purge-excluded.no-match": "Local history: no stored history matches the excluded paths.",
   "setting.reading-mode-indicator.name": "Show indicators in reading mode",
   "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
 };
@@ -8440,6 +8207,13 @@ var en_GB_default = {
   "setting.exclude-paths.add": "Add pattern",
   "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
   "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.empty": "No excluded paths yet. Use the + button to add a pattern.",
+  "setting.exclude-paths.edit": "Edit pattern",
+  "setting.exclude-paths.save": "Save pattern",
+  "setting.exclude-paths.cancel": "Cancel",
+  "setting.exclude-paths.error": "The pattern must be a non-empty valid regular expression.",
+  "setting.general-heading": "General",
+  "setting.cleanup-heading": "History cleanup",
   "setting.keep.name": "Keep history until",
   "setting.keep.desc": "Strategy for cleaning up revision history",
   "setting.keep.option.app": "App close",
@@ -8563,6 +8337,7 @@ var en_GB_default = {
   "setting.purge-excluded.name": "Purge history for excluded paths",
   "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
   "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
+  "notice.purge-excluded.no-match": "Local history: no stored history matches the excluded paths.",
   "setting.reading-mode-indicator.name": "Show indicators in reading mode",
   "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
 };
@@ -8594,9 +8369,16 @@ var es_default = {
   "setting.allowed-extensions.desc": "Lista de extensiones de archivo separadas por comas cuyos cambios se rastrean (p. ej., md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "Rutas excluidas",
   "setting.exclude-paths.desc": "Una expresi\xF3n regular que no distingue may\xFAsculas de min\xFAsculas comparada con la ruta relativa al almac\xE9n. Cualquier archivo cuya ruta coincida nunca se rastrea (p. ej. \\.excalidraw\\.md$ o (^|/)Templates/). De forma predeterminada se excluyen las carpetas Templates y los dibujos de Excalidraw. D\xE9jalo vac\xEDo para rastrear todo.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "A\xF1adir patr\xF3n",
+  "setting.exclude-paths.placeholder": "p. ej. (^|/)Templates/",
+  "setting.exclude-paths.remove": "Eliminar este patr\xF3n",
+  "setting.exclude-paths.empty": "A\xFAn no hay rutas excluidas. Usa el bot\xF3n + para a\xF1adir un patr\xF3n.",
+  "setting.exclude-paths.edit": "Editar patr\xF3n",
+  "setting.exclude-paths.save": "Guardar patr\xF3n",
+  "setting.exclude-paths.cancel": "Cancelar",
+  "setting.exclude-paths.error": "El patr\xF3n debe ser una expresi\xF3n regular v\xE1lida y no vac\xEDa.",
+  "setting.general-heading": "General",
+  "setting.cleanup-heading": "Limpieza del historial",
   "setting.keep.name": "Conservar el historial hasta",
   "setting.keep.desc": "Estrategia para limpiar el historial de revisiones",
   "setting.keep.option.app": "Cerrar la aplicaci\xF3n",
@@ -8605,8 +8387,8 @@ var es_default = {
   "setting.ignore-new-files.desc": "No rastrear cambios en archivos creados despu\xE9s de iniciar el rastreo",
   "setting.tree-highlight.name": "Resaltar cambios en el \xE1rbol de archivos y las pesta\xF1as",
   "setting.tree-highlight.desc": "Colorea los archivos y carpetas del explorador de archivos nativo, y las cabeceras de pesta\xF1a de los archivos abiertos, seg\xFAn lo que cambi\xF3 en esta sesi\xF3n (\xE1mbar para modificado, verde para a\xF1adido).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "Resaltar cambios en el panel de propiedades",
+  "setting.properties-highlight.desc": "Mostrar las claves de frontmatter a\xF1adidas, modificadas y eliminadas en el panel de propiedades de Obsidian. Desact\xEDvalo para ocultar toda la decoraci\xF3n de cambios de propiedades.",
   "setting.persist.name": "Conservar el historial entre reinicios",
   "setting.persist.desc": 'Guardar el historial en el disco para que los resaltados sobrevivan a un reinicio. Requiere que "Conservar el historial hasta" est\xE9 en cerrar la aplicaci\xF3n.',
   "setting.max-entries.name": "M\xE1ximo de archivos almacenados",
@@ -8654,10 +8436,10 @@ var es_default = {
   "modal.mode.side-by-side": "Lado a lado",
   "modal.hide-identical": "Ocultar versiones id\xE9nticas a la actual",
   "modal.confirm.cancel": "Cancelar",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "Confirmaci\xF3n",
+  "modal.confirm.default.message": "\xBFSeguro que quieres continuar?",
+  "modal.confirm.default.ok": "Confirmar",
+  "modal.confirm.default.cancel": "Cancelar",
   "modal.confirm.restore.title": "Restaurar el archivo original",
   "modal.confirm.restore.message": "\xBFSeguro que quieres restaurar este archivo a su estado original? Se perder\xE1n todos los cambios actuales y se restablecer\xE1 el historial de seguimiento de cambios. Esta acci\xF3n no se puede deshacer.",
   "modal.confirm.restore.button": "Restaurar archivo",
@@ -8676,52 +8458,53 @@ var es_default = {
   "modal.search-versions": "Buscar versiones",
   "modal.version.current": "Actual",
   "modal.version.original": "Original",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "Creada",
+  "modal.version.action.modified": "Modificada",
+  "modal.version.action.cleared": "Vaciada",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Ninguna versi\xF3n coincide con la b\xFAsqueda",
   "modal.revert-hunk": "Revertir este cambio",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "Revertir este cambio",
   "modal.copy": "Copiar",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "Poner etiqueta",
+  "modal.put-label.message": "Marca el contenido actual con una etiqueta corta.",
+  "modal.put-label.placeholder": "Etiqueta",
+  "modal.put-label.confirm": "Guardar",
+  "menu.local-history.show-history": "Mostrar historial",
+  "menu.local-history.show-history-selection": "Mostrar historial de la selecci\xF3n",
+  "menu.local-history.put-label": "Poner etiqueta",
+  "menu.local-history.recent-changes": "Cambios recientes",
+  "view.recent-changes.title": "Cambios recientes",
+  "view.recent-changes.empty": "No hay historial de versiones para el archivo activo.",
+  "view.recent-changes.menu.show-diff": "Mostrar diferencias",
+  "view.recent-changes.menu.restore": "Restaurar esta versi\xF3n",
+  "view.recent-changes.menu.delete": "Eliminar versi\xF3n",
+  "view.recent-changes.menu.put-label": "Poner etiqueta",
+  "modal.label-selected": "Etiquetar la versi\xF3n seleccionada",
+  "modal.label-version.message": "Marca esta versi\xF3n con una etiqueta corta.",
+  "notice.no-folder-history": "A\xFAn no hay historial de carpeta.",
+  "setting.max-deleted-entries.name": "M\xE1x. de archivos eliminados guardados",
+  "setting.max-deleted-entries.desc": "L\xEDmite de cu\xE1ntos historiales de archivos eliminados se conservan en disco. Los m\xE1s antiguos se descartan primero. Pon 0 para desactivar.",
+  "setting.max-deleted-age-days.name": "Antig\xFCedad m\xE1x. del historial de eliminados (d\xEDas)",
+  "setting.max-deleted-age-days.desc": "Eliminar los historiales de archivos eliminados con m\xE1s de este n\xFAmero de d\xEDas. Pon 0 para desactivar.",
+  "folder-tree.empty": "No hay cambios en esta carpeta para el punto seleccionado.",
+  "modal.folder.filter-files": "Filtrar archivos por nombre",
+  "modal.folder.timeline.capture": "Capturado",
+  "modal.folder.timeline.delete": "Eliminado",
+  "modal.folder.timeline.move-in": "Movido aqu\xED",
+  "modal.folder.notice.no-file": "Ning\xFAn archivo seleccionado.",
+  "modal.folder.notice.added": "El archivo se a\xF1adi\xF3 despu\xE9s de este punto.",
+  "modal.folder.notice.deleted": "El archivo se elimin\xF3 despu\xE9s de este punto.",
+  "modal.folder.notice.unchanged": "Sin cambios desde este punto.",
+  "version.badge.external": "externa",
+  "setting.exclude-paths-case-sensitive.name": "Exclusi\xF3n de rutas sensible a may\xFAsculas",
+  "setting.exclude-paths-case-sensitive.desc": "Si est\xE1 activado, la expresi\xF3n regular de rutas excluidas se compara distinguiendo may\xFAsculas y min\xFAsculas (sin la bandera 'i'). Desact\xEDvalo para ignorar las may\xFAsculas: es el valor predeterminado y funciona bien en sistemas de archivos que no distinguen may\xFAsculas.",
+  "setting.purge-excluded.name": "Purgar el historial de rutas excluidas",
+  "setting.purge-excluded.desc": "Eliminar todo el historial guardado de los archivos cuyas rutas coinciden actualmente con el patr\xF3n de rutas excluidas. Tambi\xE9n se eliminan los registros de archivos borrados. Esta acci\xF3n no se puede deshacer.",
+  "notice.purge-excluded": "Historial local: se purgaron {count} instant\xE1nea(s) de rutas excluidas.",
+  "notice.purge-excluded.no-match": "Historial local: ning\xFAn historial almacenado coincide con las rutas excluidas.",
+  "setting.reading-mode-indicator.name": "Mostrar indicadores en modo lectura",
+  "setting.reading-mode-indicator.desc": "Decorar los bloques renderizados en modo lectura con un borde izquierdo de color que coincide con los colores del indicador de edici\xF3n (modificado, a\xF1adido, espacios, restaurado). Desactivado por defecto; tiene un peque\xF1o coste por bloque en cada renderizado del modo lectura."
 };
 
 // lang/fa.json
@@ -8751,9 +8534,16 @@ var fa_default = {
   "setting.allowed-extensions.desc": "\u0641\u0647\u0631\u0633\u062A\u06CC \u0627\u0632 \u067E\u0633\u0648\u0646\u062F\u0647\u0627\u06CC \u067E\u0631\u0648\u0646\u062F\u0647 \u06A9\u0647 \u0628\u0627 \u06A9\u0627\u0645\u0627 \u062C\u062F\u0627 \u0634\u062F\u0647\u200C\u0627\u0646\u062F \u062A\u0627 \u062A\u063A\u06CC\u06CC\u0631\u0627\u062A\u0634\u0627\u0646 \u0631\u062F\u06CC\u0627\u0628\u06CC \u0634\u0648\u062F (\u0645\u062B\u0644\u0627\u064B md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "\u0645\u0633\u06CC\u0631\u0647\u0627\u06CC \u0645\u0633\u062A\u062B\u0646\u0627\u0634\u062F\u0647",
   "setting.exclude-paths.desc": "\u06CC\u06A9 \u0639\u0628\u0627\u0631\u062A \u0628\u0627\u0642\u0627\u0639\u062F\u0647 \u063A\u06CC\u0631\u062D\u0633\u0627\u0633 \u0628\u0647 \u062D\u0631\u0648\u0641 \u0628\u0632\u0631\u06AF \u0648 \u06A9\u0648\u0686\u06A9 \u06A9\u0647 \u0628\u0627 \u0645\u0633\u06CC\u0631 \u0646\u0633\u0628\u06CC \u0628\u0647 \u0627\u0646\u0628\u0627\u0631 \u0645\u0637\u0627\u0628\u0642\u062A \u062F\u0627\u062F\u0647 \u0645\u06CC\u200C\u0634\u0648\u062F. \u0647\u0631 \u067E\u0631\u0648\u0646\u062F\u0647\u200C\u0627\u06CC \u06A9\u0647 \u0645\u0633\u06CC\u0631\u0634 \u0645\u0637\u0627\u0628\u0642\u062A \u06A9\u0646\u062F \u0647\u0631\u06AF\u0632 \u0631\u062F\u06CC\u0627\u0628\u06CC \u0646\u0645\u06CC\u200C\u0634\u0648\u062F (\u0645\u062B\u0644\u0627\u064B \\.excalidraw\\.md$ \u06CC\u0627 (^|/)Templates/). \u062A\u0646\u0638\u06CC\u0645 \u067E\u06CC\u0634\u200C\u0641\u0631\u0636 \u067E\u0648\u0634\u0647\u200C\u0647\u0627\u06CC Templates \u0648 \u0637\u0631\u062D\u200C\u0647\u0627\u06CC Excalidraw \u0631\u0627 \u0645\u0633\u062A\u062B\u0646\u0627 \u0645\u06CC\u200C\u06A9\u0646\u062F. \u0628\u0631\u0627\u06CC \u0631\u062F\u06CC\u0627\u0628\u06CC \u0647\u0645\u0647\u200C\u0686\u06CC\u0632 \u0622\u0646 \u0631\u0627 \u062E\u0627\u0644\u06CC \u0628\u06AF\u0630\u0627\u0631\u06CC\u062F.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "\u0627\u0641\u0632\u0648\u062F\u0646 \u0627\u0644\u06AF\u0648",
+  "setting.exclude-paths.placeholder": "\u0645\u062B\u0644\u0627\u064B (^|/)Templates/",
+  "setting.exclude-paths.remove": "\u062D\u0630\u0641 \u0627\u06CC\u0646 \u0627\u0644\u06AF\u0648",
+  "setting.exclude-paths.empty": "\u0647\u0646\u0648\u0632 \u0645\u0633\u06CC\u0631 \u0645\u0633\u062A\u062B\u0646\u0627\u06CC\u06CC \u0648\u062C\u0648\u062F \u0646\u062F\u0627\u0631\u062F. \u0628\u0627 \u062F\u06A9\u0645\u0647 + \u06CC\u06A9 \u0627\u0644\u06AF\u0648 \u0627\u0636\u0627\u0641\u0647 \u06A9\u0646\u06CC\u062F.",
+  "setting.exclude-paths.edit": "\u0648\u06CC\u0631\u0627\u06CC\u0634 \u0627\u0644\u06AF\u0648",
+  "setting.exclude-paths.save": "\u0630\u062E\u06CC\u0631\u0647 \u0627\u0644\u06AF\u0648",
+  "setting.exclude-paths.cancel": "\u0644\u063A\u0648",
+  "setting.exclude-paths.error": "\u0627\u0644\u06AF\u0648 \u0628\u0627\u06CC\u062F \u06CC\u06A9 \u0639\u0628\u0627\u0631\u062A \u0628\u0627\u0642\u0627\u0639\u062F\u0647 \u0645\u0639\u062A\u0628\u0631 \u0648 \u063A\u06CC\u0631\u062E\u0627\u0644\u06CC \u0628\u0627\u0634\u062F.",
+  "setting.general-heading": "\u0639\u0645\u0648\u0645\u06CC",
+  "setting.cleanup-heading": "\u067E\u0627\u06A9\u200C\u0633\u0627\u0632\u06CC \u062A\u0627\u0631\u06CC\u062E\u0686\u0647",
   "setting.keep.name": "\u0646\u06AF\u0647\u062F\u0627\u0631\u06CC \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u062A\u0627",
   "setting.keep.desc": "\u0631\u0627\u0647\u0628\u0631\u062F \u067E\u0627\u06A9\u200C\u0633\u0627\u0632\u06CC \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u0628\u0627\u0632\u0646\u06AF\u0631\u06CC\u200C\u0647\u0627",
   "setting.keep.option.app": "\u0628\u0633\u062A\u0646 \u0628\u0631\u0646\u0627\u0645\u0647",
@@ -8762,8 +8552,8 @@ var fa_default = {
   "setting.ignore-new-files.desc": "\u062A\u063A\u06CC\u06CC\u0631\u0627\u062A \u062F\u0631 \u067E\u0631\u0648\u0646\u062F\u0647\u200C\u0647\u0627\u06CC\u06CC \u06A9\u0647 \u067E\u0633 \u0627\u0632 \u0622\u063A\u0627\u0632 \u0631\u062F\u06CC\u0627\u0628\u06CC \u0633\u0627\u062E\u062A\u0647 \u0634\u062F\u0647\u200C\u0627\u0646\u062F \u0631\u0627 \u0631\u062F\u06CC\u0627\u0628\u06CC \u0646\u06A9\u0646",
   "setting.tree-highlight.name": "\u0628\u0631\u062C\u0633\u062A\u0647\u200C\u0633\u0627\u0632\u06CC \u062A\u063A\u06CC\u06CC\u0631\u0627\u062A \u062F\u0631 \u062F\u0631\u062E\u062A \u067E\u0631\u0648\u0646\u062F\u0647\u200C\u0647\u0627 \u0648 \u0632\u0628\u0627\u0646\u0647\u200C\u0647\u0627",
   "setting.tree-highlight.desc": "\u067E\u0631\u0648\u0646\u062F\u0647\u200C\u0647\u0627 \u0648 \u067E\u0648\u0634\u0647\u200C\u0647\u0627 \u062F\u0631 \u06A9\u0627\u0648\u0634\u06AF\u0631 \u067E\u0631\u0648\u0646\u062F\u0647 \u0628\u0648\u0645\u06CC \u0648 \u0633\u0631\u062A\u06CC\u062A\u0631 \u0632\u0628\u0627\u0646\u0647\u200C\u0647\u0627\u06CC \u067E\u0631\u0648\u0646\u062F\u0647\u200C\u0647\u0627\u06CC \u0628\u0627\u0632 \u0631\u0627 \u0628\u0631 \u0627\u0633\u0627\u0633 \u0622\u0646\u0686\u0647 \u062F\u0631 \u0627\u06CC\u0646 \u0646\u0634\u0633\u062A \u062A\u063A\u06CC\u06CC\u0631 \u06A9\u0631\u062F\u0647 \u0631\u0646\u06AF \u0645\u06CC\u200C\u06A9\u0646\u062F (\u06A9\u0647\u0631\u0628\u0627\u06CC\u06CC \u0628\u0631\u0627\u06CC \u062A\u063A\u06CC\u06CC\u0631\u200C\u06CC\u0627\u0641\u062A\u0647\u060C \u0633\u0628\u0632 \u0628\u0631\u0627\u06CC \u0627\u0641\u0632\u0648\u062F\u0647\u200C\u0634\u062F\u0647).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "\u0628\u0631\u062C\u0633\u062A\u0647\u200C\u0633\u0627\u0632\u06CC \u062A\u063A\u06CC\u06CC\u0631\u0627\u062A \u062F\u0631 \u067E\u0646\u0644 \u0648\u06CC\u0698\u06AF\u06CC\u200C\u0647\u0627",
+  "setting.properties-highlight.desc": "\u0646\u0645\u0627\u06CC\u0634 \u06A9\u0644\u06CC\u062F\u0647\u0627\u06CC frontmatter \u0627\u0641\u0632\u0648\u062F\u0647\u060C \u062A\u063A\u06CC\u06CC\u0631\u06CC\u0627\u0641\u062A\u0647 \u0648 \u062D\u0630\u0641\u200C\u0634\u062F\u0647 \u062F\u0631 \u067E\u0646\u0644 \u0648\u06CC\u0698\u06AF\u06CC\u200C\u0647\u0627\u06CC Obsidian. \u0628\u0631\u0627\u06CC \u067E\u0646\u0647\u0627\u0646 \u06A9\u0631\u062F\u0646 \u0647\u0645\u0647 \u0646\u0634\u0627\u0646\u0647\u200C\u06AF\u0630\u0627\u0631\u06CC \u062A\u063A\u06CC\u06CC\u0631\u0627\u062A \u0648\u06CC\u0698\u06AF\u06CC\u200C\u0647\u0627 \u063A\u06CC\u0631\u0641\u0639\u0627\u0644 \u06A9\u0646\u06CC\u062F.",
   "setting.persist.name": "\u062D\u0641\u0638 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u067E\u0633 \u0627\u0632 \u0631\u0627\u0647\u200C\u0627\u0646\u062F\u0627\u0632\u06CC \u0645\u062C\u062F\u062F",
   "setting.persist.desc": '\u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u0631\u0627 \u0631\u0648\u06CC \u062F\u06CC\u0633\u06A9 \u0630\u062E\u06CC\u0631\u0647 \u06A9\u0646 \u062A\u0627 \u0628\u0631\u062C\u0633\u062A\u0647\u200C\u0633\u0627\u0632\u06CC\u200C\u0647\u0627 \u067E\u0633 \u0627\u0632 \u0631\u0627\u0647\u200C\u0627\u0646\u062F\u0627\u0632\u06CC \u0645\u062C\u062F\u062F \u0628\u0627\u0642\u06CC \u0628\u0645\u0627\u0646\u0646\u062F. \u0628\u0647 \u062A\u0646\u0638\u06CC\u0645 "\u0646\u06AF\u0647\u062F\u0627\u0631\u06CC \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u062A\u0627" \u0631\u0648\u06CC \u0628\u0633\u062A\u0646 \u0628\u0631\u0646\u0627\u0645\u0647 \u0646\u06CC\u0627\u0632 \u062F\u0627\u0631\u062F.',
   "setting.max-entries.name": "\u0628\u06CC\u0634\u06CC\u0646\u0647 \u067E\u0631\u0648\u0646\u062F\u0647\u200C\u0647\u0627\u06CC \u0630\u062E\u06CC\u0631\u0647\u200C\u0634\u062F\u0647",
@@ -8811,10 +8601,10 @@ var fa_default = {
   "modal.mode.side-by-side": "\u06A9\u0646\u0627\u0631 \u0647\u0645",
   "modal.hide-identical": "\u067E\u0646\u0647\u0627\u0646 \u06A9\u0631\u062F\u0646 \u0646\u0633\u062E\u0647\u200C\u0647\u0627\u06CC \u0647\u0645\u0633\u0627\u0646 \u0628\u0627 \u0646\u0633\u062E\u0647 \u0641\u0639\u0644\u06CC",
   "modal.confirm.cancel": "\u0644\u063A\u0648",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "\u062A\u0623\u06CC\u06CC\u062F",
+  "modal.confirm.default.message": "\u0622\u06CC\u0627 \u0645\u0637\u0645\u0626\u0646 \u0647\u0633\u062A\u06CC\u062F \u06A9\u0647 \u0645\u06CC\u200C\u062E\u0648\u0627\u0647\u06CC\u062F \u0627\u062F\u0627\u0645\u0647 \u062F\u0647\u06CC\u062F\u061F",
+  "modal.confirm.default.ok": "\u062A\u0623\u06CC\u06CC\u062F",
+  "modal.confirm.default.cancel": "\u0644\u063A\u0648",
   "modal.confirm.restore.title": "\u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u062F\u0646 \u067E\u0631\u0648\u0646\u062F\u0647 \u0627\u0635\u0644\u06CC",
   "modal.confirm.restore.message": "\u0622\u06CC\u0627 \u0645\u0637\u0645\u0626\u0646\u06CC\u062F \u06A9\u0647 \u0645\u06CC\u200C\u062E\u0648\u0627\u0647\u06CC\u062F \u0627\u06CC\u0646 \u067E\u0631\u0648\u0646\u062F\u0647 \u0631\u0627 \u0628\u0647 \u0648\u0636\u0639\u06CC\u062A \u0627\u0635\u0644\u06CC\u200C\u0627\u0634 \u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u06CC\u062F\u061F \u0647\u0645\u0647 \u062A\u063A\u06CC\u06CC\u0631\u0627\u062A \u0641\u0639\u0644\u06CC \u0627\u0632 \u062F\u0633\u062A \u0645\u06CC\u200C\u0631\u0648\u062F \u0648 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u0631\u062F\u06CC\u0627\u0628\u06CC \u062A\u063A\u06CC\u06CC\u0631\u0627\u062A \u0628\u0627\u0632\u0646\u0634\u0627\u0646\u06CC \u0645\u06CC\u200C\u0634\u0648\u062F. \u0627\u06CC\u0646 \u06A9\u0646\u0634 \u0642\u0627\u0628\u0644 \u0628\u0627\u0632\u06AF\u0634\u062A \u0646\u06CC\u0633\u062A.",
   "modal.confirm.restore.button": "\u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u062F\u0646 \u067E\u0631\u0648\u0646\u062F\u0647",
@@ -8833,52 +8623,53 @@ var fa_default = {
   "modal.search-versions": "\u062C\u0633\u062A\u200C\u0648\u062C\u0648\u06CC \u0646\u0633\u062E\u0647\u200C\u0647\u0627",
   "modal.version.current": "\u0641\u0639\u0644\u06CC",
   "modal.version.original": "\u0627\u0635\u0644\u06CC",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "\u0627\u06CC\u062C\u0627\u062F \u0634\u062F",
+  "modal.version.action.modified": "\u062A\u063A\u06CC\u06CC\u0631 \u06A9\u0631\u062F",
+  "modal.version.action.cleared": "\u067E\u0627\u06A9 \u0634\u062F",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u0647\u06CC\u0686 \u0646\u0633\u062E\u0647\u200C\u0627\u06CC \u0628\u0627 \u062C\u0633\u062A\u200C\u0648\u062C\u0648 \u0645\u0637\u0627\u0628\u0642\u062A \u0646\u062F\u0627\u0631\u062F",
   "modal.revert-hunk": "\u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u06CC \u0627\u06CC\u0646 \u062A\u063A\u06CC\u06CC\u0631",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "\u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u062F\u0646 \u0627\u06CC\u0646 \u062A\u063A\u06CC\u06CC\u0631",
   "modal.copy": "\u06A9\u067E\u06CC",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "\u06AF\u0630\u0627\u0634\u062A\u0646 \u0628\u0631\u0686\u0633\u0628",
+  "modal.put-label.message": "\u0645\u062D\u062A\u0648\u0627\u06CC \u0641\u0639\u0644\u06CC \u0631\u0627 \u0628\u0627 \u06CC\u06A9 \u0628\u0631\u0686\u0633\u0628 \u06A9\u0648\u062A\u0627\u0647 \u0639\u0644\u0627\u0645\u062A\u200C\u06AF\u0630\u0627\u0631\u06CC \u06A9\u0646\u06CC\u062F.",
+  "modal.put-label.placeholder": "\u0628\u0631\u0686\u0633\u0628",
+  "modal.put-label.confirm": "\u0630\u062E\u06CC\u0631\u0647",
+  "menu.local-history.show-history": "\u0646\u0645\u0627\u06CC\u0634 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647",
+  "menu.local-history.show-history-selection": "\u0646\u0645\u0627\u06CC\u0634 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u0628\u0631\u0627\u06CC \u0627\u0646\u062A\u062E\u0627\u0628",
+  "menu.local-history.put-label": "\u06AF\u0630\u0627\u0634\u062A\u0646 \u0628\u0631\u0686\u0633\u0628",
+  "menu.local-history.recent-changes": "\u062A\u063A\u06CC\u06CC\u0631\u0627\u062A \u0627\u062E\u06CC\u0631",
+  "view.recent-changes.title": "\u062A\u063A\u06CC\u06CC\u0631\u0627\u062A \u0627\u062E\u06CC\u0631",
+  "view.recent-changes.empty": "\u0628\u0631\u0627\u06CC \u0641\u0627\u06CC\u0644 \u0641\u0639\u0627\u0644 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u0646\u0633\u062E\u0647\u200C\u0627\u06CC \u0648\u062C\u0648\u062F \u0646\u062F\u0627\u0631\u062F.",
+  "view.recent-changes.menu.show-diff": "\u0646\u0645\u0627\u06CC\u0634 \u062A\u0641\u0627\u0648\u062A\u200C\u0647\u0627",
+  "view.recent-changes.menu.restore": "\u0628\u0627\u0632\u06CC\u0627\u0628\u06CC \u0627\u06CC\u0646 \u0646\u0633\u062E\u0647",
+  "view.recent-changes.menu.delete": "\u062D\u0630\u0641 \u0646\u0633\u062E\u0647",
+  "view.recent-changes.menu.put-label": "\u06AF\u0630\u0627\u0634\u062A\u0646 \u0628\u0631\u0686\u0633\u0628",
+  "modal.label-selected": "\u0628\u0631\u0686\u0633\u0628\u200C\u06AF\u0630\u0627\u0631\u06CC \u0646\u0633\u062E\u0647 \u0627\u0646\u062A\u062E\u0627\u0628\u200C\u0634\u062F\u0647",
+  "modal.label-version.message": "\u0627\u06CC\u0646 \u0646\u0633\u062E\u0647 \u0631\u0627 \u0628\u0627 \u06CC\u06A9 \u0628\u0631\u0686\u0633\u0628 \u06A9\u0648\u062A\u0627\u0647 \u0639\u0644\u0627\u0645\u062A\u200C\u06AF\u0630\u0627\u0631\u06CC \u06A9\u0646\u06CC\u062F.",
+  "notice.no-folder-history": "\u0647\u0646\u0648\u0632 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647\u200C\u0627\u06CC \u0628\u0631\u0627\u06CC \u067E\u0648\u0634\u0647 \u0648\u062C\u0648\u062F \u0646\u062F\u0627\u0631\u062F.",
+  "setting.max-deleted-entries.name": "\u062D\u062F\u0627\u06A9\u062B\u0631 \u0641\u0627\u06CC\u0644\u200C\u0647\u0627\u06CC \u062D\u0630\u0641\u200C\u0634\u062F\u0647 \u0630\u062E\u06CC\u0631\u0647\u200C\u0634\u062F\u0647",
+  "setting.max-deleted-entries.desc": "\u0633\u0642\u0641 \u062A\u0639\u062F\u0627\u062F \u062A\u0627\u0631\u06CC\u062E\u0686\u0647\u200C\u0647\u0627\u06CC \u0641\u0627\u06CC\u0644\u200C\u0647\u0627\u06CC \u062D\u0630\u0641\u200C\u0634\u062F\u0647 \u06A9\u0647 \u0631\u0648\u06CC \u062F\u06CC\u0633\u06A9 \u0646\u06AF\u0647 \u062F\u0627\u0634\u062A\u0647 \u0645\u06CC\u200C\u0634\u0648\u0646\u062F. \u0642\u062F\u06CC\u0645\u06CC\u200C\u062A\u0631\u06CC\u0646\u200C\u0647\u0627 \u0627\u0648\u0644 \u062D\u0630\u0641 \u0645\u06CC\u200C\u0634\u0648\u0646\u062F. \u0628\u0631\u0627\u06CC \u063A\u06CC\u0631\u0641\u0639\u0627\u0644 \u06A9\u0631\u062F\u0646 0 \u0628\u06AF\u0630\u0627\u0631\u06CC\u062F.",
+  "setting.max-deleted-age-days.name": "\u062D\u062F\u0627\u06A9\u062B\u0631 \u0639\u0645\u0631 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u0641\u0627\u06CC\u0644\u200C\u0647\u0627\u06CC \u062D\u0630\u0641\u200C\u0634\u062F\u0647 (\u0631\u0648\u0632)",
+  "setting.max-deleted-age-days.desc": "\u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u0641\u0627\u06CC\u0644\u200C\u0647\u0627\u06CC \u062D\u0630\u0641\u200C\u0634\u062F\u0647 \u0642\u062F\u06CC\u0645\u06CC\u200C\u062A\u0631 \u0627\u0632 \u0627\u06CC\u0646 \u062A\u0639\u062F\u0627\u062F \u0631\u0648\u0632 \u062D\u0630\u0641 \u0645\u06CC\u200C\u0634\u0648\u062F. \u0628\u0631\u0627\u06CC \u063A\u06CC\u0631\u0641\u0639\u0627\u0644 \u06A9\u0631\u062F\u0646 0 \u0628\u06AF\u0630\u0627\u0631\u06CC\u062F.",
+  "folder-tree.empty": "\u062F\u0631 \u0627\u06CC\u0646 \u067E\u0648\u0634\u0647 \u0628\u0631\u0627\u06CC \u0646\u0642\u0637\u0647 \u0627\u0646\u062A\u062E\u0627\u0628\u200C\u0634\u062F\u0647 \u062A\u063A\u06CC\u06CC\u0631\u06CC \u0648\u062C\u0648\u062F \u0646\u062F\u0627\u0631\u062F.",
+  "modal.folder.filter-files": "\u0641\u06CC\u0644\u062A\u0631 \u0641\u0627\u06CC\u0644\u200C\u0647\u0627 \u0628\u0631 \u0627\u0633\u0627\u0633 \u0646\u0627\u0645",
+  "modal.folder.timeline.capture": "\u062B\u0628\u062A \u0634\u062F",
+  "modal.folder.timeline.delete": "\u062D\u0630\u0641 \u0634\u062F",
+  "modal.folder.timeline.move-in": "\u0628\u0647 \u0627\u06CC\u0646\u062C\u0627 \u0645\u0646\u062A\u0642\u0644 \u0634\u062F",
+  "modal.folder.notice.no-file": "\u0647\u06CC\u0686 \u0641\u0627\u06CC\u0644\u06CC \u0627\u0646\u062A\u062E\u0627\u0628 \u0646\u0634\u062F\u0647 \u0627\u0633\u062A.",
+  "modal.folder.notice.added": "\u0641\u0627\u06CC\u0644 \u067E\u0633 \u0627\u0632 \u0627\u06CC\u0646 \u0646\u0642\u0637\u0647 \u0627\u0636\u0627\u0641\u0647 \u0634\u062F.",
+  "modal.folder.notice.deleted": "\u0641\u0627\u06CC\u0644 \u067E\u0633 \u0627\u0632 \u0627\u06CC\u0646 \u0646\u0642\u0637\u0647 \u062D\u0630\u0641 \u0634\u062F.",
+  "modal.folder.notice.unchanged": "\u0627\u0632 \u0627\u06CC\u0646 \u0646\u0642\u0637\u0647 \u062A\u063A\u06CC\u06CC\u0631\u06CC \u0648\u062C\u0648\u062F \u0646\u062F\u0627\u0631\u062F.",
+  "version.badge.external": "\u062E\u0627\u0631\u062C\u06CC",
+  "setting.exclude-paths-case-sensitive.name": "\u0645\u0633\u062A\u062B\u0646\u0627 \u06A9\u0631\u062F\u0646 \u0645\u0633\u06CC\u0631\u0647\u0627 \u0628\u0627 \u062D\u0633\u0627\u0633\u06CC\u062A \u0628\u0647 \u0628\u0632\u0631\u06AF\u06CC \u0648 \u06A9\u0648\u0686\u06A9\u06CC \u062D\u0631\u0648\u0641",
+  "setting.exclude-paths-case-sensitive.desc": "\u0648\u0642\u062A\u06CC \u0641\u0639\u0627\u0644 \u0628\u0627\u0634\u062F\u060C \u0639\u0628\u0627\u0631\u062A \u0628\u0627\u0642\u0627\u0639\u062F\u0647 \u0645\u0633\u06CC\u0631\u0647\u0627\u06CC \u0645\u0633\u062A\u062B\u0646\u0627 \u0628\u0627 \u062D\u0633\u0627\u0633\u06CC\u062A \u0628\u0647 \u0628\u0632\u0631\u06AF\u06CC \u0648 \u06A9\u0648\u0686\u06A9\u06CC \u062D\u0631\u0648\u0641 \u0645\u0637\u0627\u0628\u0642\u062A \u062F\u0627\u062F\u0647 \u0645\u06CC\u200C\u0634\u0648\u062F (\u0628\u062F\u0648\u0646 \u067E\u0631\u0686\u0645 'i'). \u0628\u0631\u0627\u06CC \u0645\u0637\u0627\u0628\u0642\u062A \u0628\u062F\u0648\u0646 \u062A\u0648\u062C\u0647 \u0628\u0647 \u062D\u0631\u0648\u0641 \u063A\u06CC\u0631\u0641\u0639\u0627\u0644 \u06A9\u0646\u06CC\u062F: \u0627\u06CC\u0646 \u067E\u06CC\u0634\u200C\u0641\u0631\u0636 \u0627\u0633\u062A \u0648 \u0631\u0648\u06CC \u0633\u06CC\u0633\u062A\u0645\u200C\u0647\u0627\u06CC \u0641\u0627\u06CC\u0644 \u063A\u06CC\u0631\u062D\u0633\u0627\u0633 \u0628\u0647 \u062D\u0631\u0648\u0641 \u062E\u0648\u0628 \u06A9\u0627\u0631 \u0645\u06CC\u200C\u06A9\u0646\u062F.",
+  "setting.purge-excluded.name": "\u067E\u0627\u06A9\u200C\u0633\u0627\u0632\u06CC \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u0645\u0633\u06CC\u0631\u0647\u0627\u06CC \u0645\u0633\u062A\u062B\u0646\u0627",
+  "setting.purge-excluded.desc": "\u062D\u0630\u0641 \u062A\u0645\u0627\u0645 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u0630\u062E\u06CC\u0631\u0647\u200C\u0634\u062F\u0647 \u0641\u0627\u06CC\u0644\u200C\u0647\u0627\u06CC\u06CC \u06A9\u0647 \u0645\u0633\u06CC\u0631\u0634\u0627\u0646 \u062F\u0631 \u062D\u0627\u0644 \u062D\u0627\u0636\u0631 \u0628\u0627 \u0627\u0644\u06AF\u0648\u06CC \u0645\u0633\u06CC\u0631\u0647\u0627\u06CC \u0645\u0633\u062A\u062B\u0646\u0627 \u0645\u0637\u0627\u0628\u0642\u062A \u062F\u0627\u0631\u062F. \u0631\u06A9\u0648\u0631\u062F\u0647\u0627\u06CC \u0641\u0627\u06CC\u0644\u200C\u0647\u0627\u06CC \u062D\u0630\u0641\u200C\u0634\u062F\u0647 \u0646\u06CC\u0632 \u062D\u0630\u0641 \u0645\u06CC\u200C\u0634\u0648\u0646\u062F. \u0627\u06CC\u0646 \u0639\u0645\u0644 \u0642\u0627\u0628\u0644 \u0628\u0627\u0632\u06AF\u0634\u062A \u0646\u06CC\u0633\u062A.",
+  "notice.purge-excluded": "\u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u0645\u062D\u0644\u06CC: {count} \u0639\u06A9\u0633 \u0641\u0648\u0631\u06CC \u0628\u0631\u0627\u06CC \u0645\u0633\u06CC\u0631\u0647\u0627\u06CC \u0645\u0633\u062A\u062B\u0646\u0627 \u067E\u0627\u06A9 \u0634\u062F.",
+  "notice.purge-excluded.no-match": "\u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u0645\u062D\u0644\u06CC: \u0647\u06CC\u0686 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u0630\u062E\u06CC\u0631\u0647\u200C\u0634\u062F\u0647\u200C\u0627\u06CC \u0628\u0627 \u0645\u0633\u06CC\u0631\u0647\u0627\u06CC \u0645\u0633\u062A\u062B\u0646\u0627 \u0645\u0637\u0627\u0628\u0642\u062A \u0646\u062F\u0627\u0631\u062F.",
+  "setting.reading-mode-indicator.name": "\u0646\u0645\u0627\u06CC\u0634 \u0646\u0634\u0627\u0646\u06AF\u0631\u0647\u0627 \u062F\u0631 \u062D\u0627\u0644\u062A \u062E\u0648\u0627\u0646\u062F\u0646",
+  "setting.reading-mode-indicator.desc": "\u062A\u0632\u06CC\u06CC\u0646 \u0628\u0644\u0648\u06A9\u200C\u0647\u0627\u06CC \u0646\u0645\u0627\u06CC\u0634\u200C\u062F\u0627\u062F\u0647\u200C\u0634\u062F\u0647 \u062F\u0631 \u062D\u0627\u0644\u062A \u062E\u0648\u0627\u0646\u062F\u0646 \u0628\u0627 \u062D\u0627\u0634\u06CC\u0647 \u0686\u067E \u0631\u0646\u06AF\u06CC \u0645\u0637\u0627\u0628\u0642 \u0631\u0646\u06AF\u200C\u0647\u0627\u06CC \u0646\u0634\u0627\u0646\u06AF\u0631 \u0648\u06CC\u0631\u0627\u06CC\u0634 (\u062A\u063A\u06CC\u06CC\u0631\u06CC\u0627\u0641\u062A\u0647\u060C \u0627\u0641\u0632\u0648\u062F\u0647\u060C \u0641\u0627\u0635\u0644\u0647\u060C \u0628\u0627\u0632\u06CC\u0627\u0628\u06CC\u200C\u0634\u062F\u0647). \u0628\u0647\u200C\u0637\u0648\u0631 \u067E\u06CC\u0634\u200C\u0641\u0631\u0636 \u062E\u0627\u0645\u0648\u0634 \u0627\u0633\u062A\u061B \u062F\u0631 \u0647\u0631 \u0628\u0627\u0631 \u0646\u0645\u0627\u06CC\u0634 \u0645\u062C\u062F\u062F \u062D\u0627\u0644\u062A \u062E\u0648\u0627\u0646\u062F\u0646 \u0647\u0632\u06CC\u0646\u0647 \u06A9\u0645\u06CC \u0628\u0647 \u0627\u0632\u0627\u06CC \u0647\u0631 \u0628\u0644\u0648\u06A9 \u062F\u0627\u0631\u062F."
 };
 
 // lang/fi.json
@@ -8908,9 +8699,16 @@ var fi_default = {
   "setting.allowed-extensions.desc": "Pilkuilla erotettu luettelo tiedostotyypeist\xE4, joiden muutoksia seurataan (esim. md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "Poissuljetut polut",
   "setting.exclude-paths.desc": "S\xE4\xE4nn\xF6llinen lauseke (kirjainkoosta riippumaton), jota verrataan holviin n\xE4hden suhteelliseen polkuun. Mit\xE4\xE4n tiedostoa, jonka polku t\xE4sm\xE4\xE4, ei koskaan seurata (esim. \\.excalidraw\\.md$ tai (^|/)Templates/). Oletusarvo sulkee pois Templates-kansiot ja Excalidraw-piirrokset. J\xE4t\xE4 tyhj\xE4ksi, jos haluat seurata kaikkea.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "Lis\xE4\xE4 kuvio",
+  "setting.exclude-paths.placeholder": "esim. (^|/)Templates/",
+  "setting.exclude-paths.remove": "Poista t\xE4m\xE4 kuvio",
+  "setting.exclude-paths.empty": "Ei viel\xE4 poissuljettuja polkuja. Lis\xE4\xE4 kuvio +-painikkeella.",
+  "setting.exclude-paths.edit": "Muokkaa kuviota",
+  "setting.exclude-paths.save": "Tallenna kuvio",
+  "setting.exclude-paths.cancel": "Peruuta",
+  "setting.exclude-paths.error": "Kuvion on oltava ei-tyhj\xE4 kelvollinen s\xE4\xE4nn\xF6llinen lauseke.",
+  "setting.general-heading": "Yleiset",
+  "setting.cleanup-heading": "Historian siivous",
   "setting.keep.name": "S\xE4ilyt\xE4 historiaa kunnes",
   "setting.keep.desc": "Versiohistorian siivoamisstrategia",
   "setting.keep.option.app": "Sovellus suljetaan",
@@ -8919,8 +8717,8 @@ var fi_default = {
   "setting.ignore-new-files.desc": "\xC4l\xE4 seuraa muutoksia tiedostoissa, jotka on luotu seurannan aloittamisen j\xE4lkeen",
   "setting.tree-highlight.name": "Korosta muutokset tiedostopuussa ja v\xE4lilehdiss\xE4",
   "setting.tree-highlight.desc": "V\xE4rj\xE4\xE4 natiivin tiedostoselaimen tiedostot ja kansiot sek\xE4 avoinna olevien tiedostojen v\xE4lilehtien otsikot sen mukaan, mik\xE4 t\xE4ss\xE4 istunnossa muuttui (keltainen muokatulle, vihre\xE4 lis\xE4tylle).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "Korosta muutokset ominaisuuspaneelissa",
+  "setting.properties-highlight.desc": "N\xE4yt\xE4 lis\xE4tyt, muutetut ja poistetut frontmatter-avaimet Obsidianin ominaisuuspaneelissa. Poista k\xE4yt\xF6st\xE4 piilottaaksesi kaikki ominaisuusmuutosten korostukset.",
   "setting.persist.name": "S\xE4ilyt\xE4 historia uudelleenk\xE4ynnistysten yli",
   "setting.persist.desc": 'Tallenna historia levylle, jotta korostukset s\xE4ilyv\xE4t uudelleenk\xE4ynnistyksen yli. Edellytt\xE4\xE4, ett\xE4 "S\xE4ilyt\xE4 historiaa kunnes" on asetettu arvoon Sovellus suljetaan.',
   "setting.max-entries.name": "Tallennettujen tiedostojen enimm\xE4ism\xE4\xE4r\xE4",
@@ -8968,10 +8766,10 @@ var fi_default = {
   "modal.mode.side-by-side": "Vierekk\xE4in",
   "modal.hide-identical": "Piilota nykyisen kanssa identtiset versiot",
   "modal.confirm.cancel": "Peruuta",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "Vahvistus",
+  "modal.confirm.default.message": "Haluatko varmasti jatkaa?",
+  "modal.confirm.default.ok": "Vahvista",
+  "modal.confirm.default.cancel": "Peruuta",
   "modal.confirm.restore.title": "Palauta alkuper\xE4inen tiedosto",
   "modal.confirm.restore.message": "Haluatko varmasti palauttaa t\xE4m\xE4n tiedoston alkuper\xE4iseen tilaansa? Kaikki nykyiset muutokset menetet\xE4\xE4n ja muutoshistoria nollataan. T\xE4t\xE4 toimintoa ei voi kumota.",
   "modal.confirm.restore.button": "Palauta tiedosto",
@@ -8990,52 +8788,53 @@ var fi_default = {
   "modal.search-versions": "Hae versioista",
   "modal.version.current": "Nykyinen",
   "modal.version.original": "Alkuper\xE4inen",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "Luotu",
+  "modal.version.action.modified": "Muokattu",
+  "modal.version.action.cleared": "Tyhjennetty",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Mik\xE4\xE4n versio ei vastaa hakua",
   "modal.revert-hunk": "Peru t\xE4m\xE4 muutos",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "Kumoa t\xE4m\xE4 muutos",
   "modal.copy": "Kopioi",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "Lis\xE4\xE4 tunniste",
+  "modal.put-label.message": "Merkitse nykyinen sis\xE4lt\xF6 lyhyell\xE4 tunnisteella.",
+  "modal.put-label.placeholder": "Tunniste",
+  "modal.put-label.confirm": "Tallenna",
+  "menu.local-history.show-history": "N\xE4yt\xE4 historia",
+  "menu.local-history.show-history-selection": "N\xE4yt\xE4 valinnan historia",
+  "menu.local-history.put-label": "Lis\xE4\xE4 tunniste",
+  "menu.local-history.recent-changes": "Viimeaikaiset muutokset",
+  "view.recent-changes.title": "Viimeaikaiset muutokset",
+  "view.recent-changes.empty": "Aktiivisella tiedostolla ei ole versiohistoriaa.",
+  "view.recent-changes.menu.show-diff": "N\xE4yt\xE4 erot",
+  "view.recent-changes.menu.restore": "Palauta t\xE4m\xE4 versio",
+  "view.recent-changes.menu.delete": "Poista versio",
+  "view.recent-changes.menu.put-label": "Lis\xE4\xE4 tunniste",
+  "modal.label-selected": "Merkitse valittu versio",
+  "modal.label-version.message": "Merkitse t\xE4m\xE4 versio lyhyell\xE4 tunnisteella.",
+  "notice.no-folder-history": "Ei viel\xE4 kansiohistoriaa.",
+  "setting.max-deleted-entries.name": "Tallennettujen poistettujen tiedostojen enimm\xE4ism\xE4\xE4r\xE4",
+  "setting.max-deleted-entries.desc": "Yl\xE4raja sille, kuinka monta poistettujen tiedostojen historiaa s\xE4ilytet\xE4\xE4n levyll\xE4. Vanhimmat poistetaan ensin. Aseta arvoksi 0 poistaaksesi k\xE4yt\xF6st\xE4.",
+  "setting.max-deleted-age-days.name": "Poistetun historian enimm\xE4isik\xE4 (p\xE4iv\xE4\xE4)",
+  "setting.max-deleted-age-days.desc": "Poista poistettujen tiedostojen historiat, jotka ovat annettua p\xE4ivien m\xE4\xE4r\xE4\xE4 vanhempia. Aseta arvoksi 0 poistaaksesi k\xE4yt\xF6st\xE4.",
+  "folder-tree.empty": "T\xE4ss\xE4 kansiossa ei ole muutoksia valitulle ajankohdalle.",
+  "modal.folder.filter-files": "Suodata tiedostoja nimen mukaan",
+  "modal.folder.timeline.capture": "Tallennettu",
+  "modal.folder.timeline.delete": "Poistettu",
+  "modal.folder.timeline.move-in": "Siirretty t\xE4nne",
+  "modal.folder.notice.no-file": "Tiedostoa ei ole valittu.",
+  "modal.folder.notice.added": "Tiedosto lis\xE4ttiin t\xE4m\xE4n ajankohdan j\xE4lkeen.",
+  "modal.folder.notice.deleted": "Tiedosto poistettiin t\xE4m\xE4n ajankohdan j\xE4lkeen.",
+  "modal.folder.notice.unchanged": "Ei muutoksia t\xE4m\xE4n ajankohdan j\xE4lkeen.",
+  "version.badge.external": "ulkoinen",
+  "setting.exclude-paths-case-sensitive.name": "Kirjainkoon huomioiva polkujen poissulkeminen",
+  "setting.exclude-paths-case-sensitive.desc": "Kun k\xE4yt\xF6ss\xE4, poissuljettujen polkujen s\xE4\xE4nn\xF6llinen lauseke t\xE4sm\xE4t\xE4\xE4n kirjainkoko huomioiden (ilman 'i'-lippua). Poista k\xE4yt\xF6st\xE4 t\xE4sm\xE4t\xE4ksesi kirjainkoosta riippumatta: se on oletus ja toimii hyvin kirjainkoosta riippumattomissa tiedostoj\xE4rjestelmiss\xE4.",
+  "setting.purge-excluded.name": "Tyhjenn\xE4 poissuljettujen polkujen historia",
+  "setting.purge-excluded.desc": "Poista kaikki tallennettu historia tiedostoilta, joiden polut vastaavat t\xE4ll\xE4 hetkell\xE4 poissuljettujen polkujen kuviota. My\xF6s poistettujen tiedostojen merkinn\xE4t poistetaan. T\xE4t\xE4 toimintoa ei voi kumota.",
+  "notice.purge-excluded": "Paikallinen historia: poistettiin {count} tilannekuvaa poissuljetuilta poluilta.",
+  "notice.purge-excluded.no-match": "Paikallinen historia: mik\xE4\xE4n tallennettu historia ei vastaa poissuljettuja polkuja.",
+  "setting.reading-mode-indicator.name": "N\xE4yt\xE4 ilmaisimet lukutilassa",
+  "setting.reading-mode-indicator.desc": "Merkitse render\xF6idyt lohkot lukutilassa v\xE4rillisell\xE4 vasemmalla reunuksella muokkausilmaisimen v\xE4reiss\xE4 (muutettu, lis\xE4tty, v\xE4lily\xF6nnit, palautettu). Oletuksena pois p\xE4\xE4lt\xE4; aiheuttaa pienen kustannuksen lohkoa kohden jokaisella lukutilan uudelleenrender\xF6innill\xE4."
 };
 
 // lang/fr.json
@@ -9065,9 +8864,16 @@ var fr_default = {
   "setting.allowed-extensions.desc": "Liste d'extensions de fichier s\xE9par\xE9es par des virgules dont les modifications sont suivies (par ex. md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "Chemins exclus",
   "setting.exclude-paths.desc": "Une expression r\xE9guli\xE8re insensible \xE0 la casse compar\xE9e au chemin relatif au coffre. Tout fichier dont le chemin correspond n'est jamais suivi (par ex. \\.excalidraw\\.md$ ou (^|/)Templates/). Par d\xE9faut, les dossiers Templates et les dessins Excalidraw sont exclus. Laissez vide pour tout suivre.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "Ajouter un motif",
+  "setting.exclude-paths.placeholder": "p. ex. (^|/)Templates/",
+  "setting.exclude-paths.remove": "Supprimer ce motif",
+  "setting.exclude-paths.empty": "Aucun chemin exclu pour le moment. Utilisez le bouton + pour ajouter un motif.",
+  "setting.exclude-paths.edit": "Modifier le motif",
+  "setting.exclude-paths.save": "Enregistrer le motif",
+  "setting.exclude-paths.cancel": "Annuler",
+  "setting.exclude-paths.error": "Le motif doit \xEAtre une expression r\xE9guli\xE8re valide et non vide.",
+  "setting.general-heading": "G\xE9n\xE9ral",
+  "setting.cleanup-heading": "Nettoyage de l'historique",
   "setting.keep.name": "Conserver l'historique jusqu'\xE0",
   "setting.keep.desc": "Strat\xE9gie de nettoyage de l'historique des r\xE9visions",
   "setting.keep.option.app": "Fermeture de l'application",
@@ -9076,8 +8882,8 @@ var fr_default = {
   "setting.ignore-new-files.desc": "Ne pas suivre les modifications des fichiers cr\xE9\xE9s apr\xE8s le d\xE9marrage du suivi",
   "setting.tree-highlight.name": "Mettre en \xE9vidence les changements dans l'arborescence et les onglets",
   "setting.tree-highlight.desc": "Colore les fichiers et dossiers de l'explorateur de fichiers natif, ainsi que les en-t\xEAtes d'onglet des fichiers ouverts, selon ce qui a chang\xE9 durant cette session (ambre pour modifi\xE9, vert pour ajout\xE9).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "Surligner les modifications dans le panneau des propri\xE9t\xE9s",
+  "setting.properties-highlight.desc": "Afficher les cl\xE9s de frontmatter ajout\xE9es, modifi\xE9es et supprim\xE9es dans le panneau des propri\xE9t\xE9s d'Obsidian. D\xE9sactivez pour masquer toute d\xE9coration des diff\xE9rences de propri\xE9t\xE9s.",
   "setting.persist.name": "Conserver l'historique entre les red\xE9marrages",
   "setting.persist.desc": `Enregistrer l'historique sur le disque pour que les surlignages survivent \xE0 un red\xE9marrage. N\xE9cessite que "Conserver l'historique jusqu'\xE0" soit r\xE9gl\xE9 sur la fermeture de l'application.`,
   "setting.max-entries.name": "Nombre maximal de fichiers stock\xE9s",
@@ -9126,9 +8932,9 @@ var fr_default = {
   "modal.hide-identical": "Masquer les versions identiques \xE0 la version actuelle",
   "modal.confirm.cancel": "Annuler",
   "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.message": "Voulez-vous vraiment continuer ?",
+  "modal.confirm.default.ok": "Confirmer",
+  "modal.confirm.default.cancel": "Annuler",
   "modal.confirm.restore.title": "Restaurer le fichier d'origine",
   "modal.confirm.restore.message": "Voulez-vous vraiment restaurer ce fichier \xE0 son \xE9tat d'origine ? Toutes les modifications actuelles seront perdues et l'historique de suivi des modifications sera r\xE9initialis\xE9. Cette action est irr\xE9versible.",
   "modal.confirm.restore.button": "Restaurer le fichier",
@@ -9147,52 +8953,53 @@ var fr_default = {
   "modal.search-versions": "Rechercher des versions",
   "modal.version.current": "Actuelle",
   "modal.version.original": "Original",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "Cr\xE9\xE9e",
+  "modal.version.action.modified": "Modifi\xE9e",
+  "modal.version.action.cleared": "Vid\xE9e",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Aucune version ne correspond \xE0 la recherche",
   "modal.revert-hunk": "Annuler cette modification",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "Annuler cette modification",
   "modal.copy": "Copier",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "Poser une \xE9tiquette",
+  "modal.put-label.message": "Marquez le contenu actuel avec une courte \xE9tiquette.",
+  "modal.put-label.placeholder": "\xC9tiquette",
+  "modal.put-label.confirm": "Enregistrer",
+  "menu.local-history.show-history": "Afficher l'historique",
+  "menu.local-history.show-history-selection": "Afficher l'historique de la s\xE9lection",
+  "menu.local-history.put-label": "Poser une \xE9tiquette",
+  "menu.local-history.recent-changes": "Modifications r\xE9centes",
+  "view.recent-changes.title": "Modifications r\xE9centes",
+  "view.recent-changes.empty": "Aucun historique de versions pour le fichier actif.",
+  "view.recent-changes.menu.show-diff": "Afficher les diff\xE9rences",
+  "view.recent-changes.menu.restore": "Restaurer cette version",
+  "view.recent-changes.menu.delete": "Supprimer la version",
+  "view.recent-changes.menu.put-label": "Poser une \xE9tiquette",
+  "modal.label-selected": "\xC9tiqueter la version s\xE9lectionn\xE9e",
+  "modal.label-version.message": "Marquez cette version avec une courte \xE9tiquette.",
+  "notice.no-folder-history": "Aucun historique de dossier pour le moment.",
+  "setting.max-deleted-entries.name": "Nombre max. de fichiers supprim\xE9s conserv\xE9s",
+  "setting.max-deleted-entries.desc": "Plafond du nombre d'historiques de fichiers supprim\xE9s conserv\xE9s sur le disque. Les plus anciens sont \xE9vinc\xE9s en premier. Mettez 0 pour d\xE9sactiver.",
+  "setting.max-deleted-age-days.name": "\xC2ge max. de l'historique des fichiers supprim\xE9s (jours)",
+  "setting.max-deleted-age-days.desc": "Supprimer les historiques de fichiers supprim\xE9s plus anciens que ce nombre de jours. Mettez 0 pour d\xE9sactiver.",
+  "folder-tree.empty": "Aucune modification dans ce dossier pour le point s\xE9lectionn\xE9.",
+  "modal.folder.filter-files": "Filtrer les fichiers par nom",
+  "modal.folder.timeline.capture": "Captur\xE9",
+  "modal.folder.timeline.delete": "Supprim\xE9",
+  "modal.folder.timeline.move-in": "D\xE9plac\xE9 ici",
+  "modal.folder.notice.no-file": "Aucun fichier s\xE9lectionn\xE9.",
+  "modal.folder.notice.added": "Le fichier a \xE9t\xE9 ajout\xE9 apr\xE8s ce point.",
+  "modal.folder.notice.deleted": "Le fichier a \xE9t\xE9 supprim\xE9 apr\xE8s ce point.",
+  "modal.folder.notice.unchanged": "Aucune modification depuis ce point.",
+  "version.badge.external": "externe",
+  "setting.exclude-paths-case-sensitive.name": "Exclusion de chemins sensible \xE0 la casse",
+  "setting.exclude-paths-case-sensitive.desc": "Lorsque cette option est activ\xE9e, l'expression r\xE9guli\xE8re des chemins exclus est appliqu\xE9e en respectant la casse (sans l'option 'i'). D\xE9sactivez pour ignorer la casse : c'est le r\xE9glage par d\xE9faut, qui convient bien aux syst\xE8mes de fichiers insensibles \xE0 la casse.",
+  "setting.purge-excluded.name": "Purger l'historique des chemins exclus",
+  "setting.purge-excluded.desc": "Supprimer tout l'historique enregistr\xE9 des fichiers dont les chemins correspondent actuellement au motif des chemins exclus. Les entr\xE9es des fichiers supprim\xE9s sont \xE9galement retir\xE9es. Cette action est irr\xE9versible.",
+  "notice.purge-excluded": "Historique local : {count} instantan\xE9(s) purg\xE9(s) pour les chemins exclus.",
+  "notice.purge-excluded.no-match": "Historique local : aucun historique enregistr\xE9 ne correspond aux chemins exclus.",
+  "setting.reading-mode-indicator.name": "Afficher les indicateurs en mode lecture",
+  "setting.reading-mode-indicator.desc": "D\xE9corer les blocs rendus en mode lecture d'une bordure gauche color\xE9e reprenant les couleurs de l'indicateur d'\xE9dition (modifi\xE9, ajout\xE9, espaces, restaur\xE9). D\xE9sactiv\xE9 par d\xE9faut ; entra\xEEne un l\xE9ger co\xFBt par bloc \xE0 chaque rendu du mode lecture."
 };
 
 // lang/ga.json
@@ -9222,9 +9029,16 @@ var ga_default = {
   "setting.allowed-extensions.desc": "Liosta iarmh\xEDreanna comhaid scartha le cam\xF3ga le hathruithe a lorg (m.sh., md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "Conair\xED eisiata",
   "setting.exclude-paths.desc": "Slonn rialta at\xE1 neamh\xEDogair do ch\xE1s na litreacha, compar\xE1idte leis an gconair choibhneasta sa taisce. N\xED lorga\xEDtear riamh aon chomhad a mheaitse\xE1lann a chonair (m.sh. \\.excalidraw\\.md$ n\xF3 (^|/)Templates/). Eisiann an r\xE9amhshocr\xFA fillte\xE1in Templates agus l\xEDn\xEDochta\xED Excalidraw. F\xE1g folamh \xE9 chun gach rud a lorg.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "Cuir patr\xFAn leis",
+  "setting.exclude-paths.placeholder": "m.sh. (^|/)Templates/",
+  "setting.exclude-paths.remove": "Bain an patr\xFAn seo",
+  "setting.exclude-paths.empty": "N\xEDl aon chos\xE1in eisiata f\xF3s. \xDAs\xE1id an cnaipe + chun patr\xFAn a chur leis.",
+  "setting.exclude-paths.edit": "Cuir an patr\xFAn in eagar",
+  "setting.exclude-paths.save": "S\xE1bh\xE1il an patr\xFAn",
+  "setting.exclude-paths.cancel": "Cealaigh",
+  "setting.exclude-paths.error": "Caithfidh an patr\xFAn a bheith ina shlonn ionada\xEDochta bail\xED nach bhfuil folamh.",
+  "setting.general-heading": "Ginear\xE1lta",
+  "setting.cleanup-heading": "Glanadh staire",
   "setting.keep.name": "Coinnigh an stair go dt\xED",
   "setting.keep.desc": "Strait\xE9is chun stair na leasuithe a ghlanadh",
   "setting.keep.option.app": "D\xFAnadh an aip",
@@ -9233,8 +9047,8 @@ var ga_default = {
   "setting.ignore-new-files.desc": "N\xE1 lorg athruithe i gcomhaid a crutha\xEDodh tar \xE9is don lorg tos\xFA",
   "setting.tree-highlight.name": "Aibhsigh athruithe i gcrann na gcomhad agus sna cluais\xEDn\xED",
   "setting.tree-highlight.desc": "Dathaigh comhaid agus fillte\xE1in i mbrabhs\xE1la\xED d\xFAchasach na gcomhad, agus ceannt\xE1sca cluais\xEDn\xED na gcomhad oscailte, de r\xE9ir ar athra\xEDodh sa seisi\xFAn seo (\xF3mra do mhodhnaithe, glas don bhreisithe).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "Aibhsigh athruithe sa phain\xE9al Air\xEDonna",
+  "setting.properties-highlight.desc": "Taispe\xE1in eochracha frontmatter a cuireadh leis, a athra\xEDodh agus a baineadh i bpain\xE9al Air\xEDonna Obsidian. D\xEDchumasaigh chun gach maisi\xFA difr\xEDochta air\xEDonna a cheilt.",
   "setting.persist.name": "Coinnigh an stair tr\xED atosuithe",
   "setting.persist.desc": 'S\xE1bh\xE1il an stair ar an diosca ionas go maireann na haibhsithe tr\xED atos\xFA. N\xED m\xF3r "coinnigh an stair go dt\xED" a shocr\xFA ar dh\xFAnadh an aip.',
   "setting.max-entries.name": "Uasmh\xE9id comhad st\xF3r\xE1ilte",
@@ -9282,10 +9096,10 @@ var ga_default = {
   "modal.mode.side-by-side": "Taobh le taobh",
   "modal.hide-identical": "Folaigh leaganacha comhionann leis an gceann reatha",
   "modal.confirm.cancel": "Cealaigh",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "Deimhni\xFA",
+  "modal.confirm.default.message": "An bhfuil t\xFA cinnte gur mhaith leat lean\xFAint ar aghaidh?",
+  "modal.confirm.default.ok": "Deimhnigh",
+  "modal.confirm.default.cancel": "Cealaigh",
   "modal.confirm.restore.title": "Athch\xF3irigh an comhad bunaidh",
   "modal.confirm.restore.message": "An bhfuil t\xFA cinnte gur mhaith leat an comhad seo a chur ar ais ina staid bhunaidh? Caillfear gach athr\xFA reatha agus athshocr\xF3far stair lorgtha na n-athruithe. N\xED f\xE9idir an gn\xEDomh seo a cheal\xFA.",
   "modal.confirm.restore.button": "Athch\xF3irigh an comhad",
@@ -9304,52 +9118,53 @@ var ga_default = {
   "modal.search-versions": "Cuardaigh leaganacha",
   "modal.version.current": "Reatha",
   "modal.version.original": "Bunleagan",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "Cruthaithe",
+  "modal.version.action.modified": "Athraithe",
+  "modal.version.action.cleared": "Glanta",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "N\xEDl aon leagan ag meaitse\xE1il an chuardaigh",
   "modal.revert-hunk": "Fill an t-athr\xFA seo",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "Cuir an t-athr\xFA seo ar ais",
   "modal.copy": "C\xF3ipe\xE1il",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "Cuir lip\xE9ad air",
+  "modal.put-label.message": "Marc\xE1il an t-\xE1bhar reatha le lip\xE9ad gearr.",
+  "modal.put-label.placeholder": "Lip\xE9ad",
+  "modal.put-label.confirm": "S\xE1bh\xE1il",
+  "menu.local-history.show-history": "Taispe\xE1in an stair",
+  "menu.local-history.show-history-selection": "Taispe\xE1in stair an roghn\xFAch\xE1in",
+  "menu.local-history.put-label": "Cuir lip\xE9ad air",
+  "menu.local-history.recent-changes": "Athruithe le d\xE9ana\xED",
+  "view.recent-changes.title": "Athruithe le d\xE9ana\xED",
+  "view.recent-changes.empty": "N\xEDl aon stair leaganacha don chomhad gn\xEDomhach.",
+  "view.recent-changes.menu.show-diff": "Taispe\xE1in difr\xEDochta\xED",
+  "view.recent-changes.menu.restore": "Athch\xF3irigh an leagan seo",
+  "view.recent-changes.menu.delete": "Scrios an leagan",
+  "view.recent-changes.menu.put-label": "Cuir lip\xE9ad air",
+  "modal.label-selected": "Cuir lip\xE9ad ar an leagan roghnaithe",
+  "modal.label-version.message": "Marc\xE1il an leagan seo le lip\xE9ad gearr.",
+  "notice.no-folder-history": "N\xEDl aon stair fillte\xE1in f\xF3s.",
+  "setting.max-deleted-entries.name": "Uasmh\xE9id comhad scriosta st\xF3r\xE1ilte",
+  "setting.max-deleted-entries.desc": "Teorainn ar l\xEDon na staireanna comhad scriosta a choinn\xEDtear ar an diosca. Baintear na cinn is sine ar dt\xFAs. Socraigh 0 chun \xE9 a dh\xEDchumas\xFA.",
+  "setting.max-deleted-age-days.name": "Uasaois stair na gcomhad scriosta (laethanta)",
+  "setting.max-deleted-age-days.desc": "Bain staireanna comhad scriosta at\xE1 n\xEDos sine n\xE1 an l\xEDon laethanta seo. Socraigh 0 chun \xE9 a dh\xEDchumas\xFA.",
+  "folder-tree.empty": "N\xEDl aon athruithe san fhillte\xE1n seo don phointe roghnaithe.",
+  "modal.folder.filter-files": "Scag comhaid de r\xE9ir ainm",
+  "modal.folder.timeline.capture": "Gabhtha",
+  "modal.folder.timeline.delete": "Scriosta",
+  "modal.folder.timeline.move-in": "Bogtha isteach anseo",
+  "modal.folder.notice.no-file": "N\xEDl aon chomhad roghnaithe.",
+  "modal.folder.notice.added": "Cuireadh an comhad leis tar \xE9is an phointe seo.",
+  "modal.folder.notice.deleted": "Scriosadh an comhad tar \xE9is an phointe seo.",
+  "modal.folder.notice.unchanged": "N\xEDl aon athruithe \xF3n bpointe seo.",
+  "version.badge.external": "seachtrach",
+  "setting.exclude-paths-case-sensitive.name": "Eisiamh cos\xE1n at\xE1 c\xE1s\xEDogair",
+  "setting.exclude-paths-case-sensitive.desc": "Nuair at\xE1 s\xE9 cumasaithe, meaitse\xE1iltear slonn ionada\xEDochta na gcos\xE1n eisiata go c\xE1s\xEDogair (gan bratach 'i'). D\xEDchumasaigh chun meaitse\xE1il beag beann ar an gc\xE1s: is \xE9 sin an r\xE9amhshocr\xFA agus oibr\xEDonn s\xE9 go maith ar ch\xF3rais comhad nach bhfuil c\xE1s\xEDogair.",
+  "setting.purge-excluded.name": "Glan an stair do chos\xE1in eisiata",
+  "setting.purge-excluded.desc": "Scrios an stair st\xF3r\xE1ilte ar fad do chomhaid a meaitse\xE1lann a gcos\xE1in patr\xFAn na gcos\xE1n eisiata faoi l\xE1thair. Baintear taifid na gcomhad scriosta freisin. N\xED f\xE9idir an gn\xEDomh seo a cheal\xFA.",
+  "notice.purge-excluded": "Stair \xE1iti\xFAil: glanadh {count} snapshot do chos\xE1in eisiata.",
+  "notice.purge-excluded.no-match": "Stair \xE1iti\xFAil: n\xEDl aon stair st\xF3r\xE1ilte ag teacht leis na cos\xE1in eisiata.",
+  "setting.reading-mode-indicator.name": "Taispe\xE1in t\xE1scair\xED sa mh\xF3d l\xE9itheoireachta",
+  "setting.reading-mode-indicator.desc": "Maisigh bloic rindre\xE1ilte sa mh\xF3d l\xE9itheoireachta le himeall cl\xE9 daite a mheaitse\xE1lann dathanna an t\xE1scaire eagarth\xF3ireachta (athraithe, curtha leis, sp\xE1s b\xE1n, athch\xF3irithe). M\xFAchta de r\xE9ir r\xE9amhshocraithe; t\xE1 costas beag in aghaidh an bhloic ar gach athrindre\xE1il sa mh\xF3d l\xE9itheoireachta."
 };
 
 // lang/he.json
@@ -9379,9 +9194,16 @@ var he_default = {
   "setting.allowed-extensions.desc": "\u05E8\u05E9\u05D9\u05DE\u05EA \u05E1\u05D9\u05D5\u05DE\u05D5\u05EA \u05E7\u05D1\u05E6\u05D9\u05DD \u05DE\u05D5\u05E4\u05E8\u05D3\u05D5\u05EA \u05D1\u05E4\u05E1\u05D9\u05E7\u05D9\u05DD \u05E9\u05D9\u05E9 \u05DC\u05E2\u05E7\u05D5\u05D1 \u05D0\u05D7\u05E8 \u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05D1\u05D4\u05DF (\u05DC\u05DE\u05E9\u05DC md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "\u05E0\u05EA\u05D9\u05D1\u05D9\u05DD \u05DE\u05D5\u05D7\u05E8\u05D2\u05D9\u05DD",
   "setting.exclude-paths.desc": "\u05D1\u05D9\u05D8\u05D5\u05D9 \u05E8\u05D2\u05D5\u05DC\u05E8\u05D9 \u05E9\u05D0\u05D9\u05E0\u05D5 \u05EA\u05DC\u05D5\u05D9 \u05E8\u05D9\u05E9\u05D9\u05D5\u05EA \u05D4\u05DE\u05D5\u05E9\u05D5\u05D5\u05D4 \u05D0\u05DC \u05D4\u05E0\u05EA\u05D9\u05D1 \u05D4\u05D9\u05D7\u05E1\u05D9 \u05DC\u05DB\u05E1\u05E4\u05EA. \u05DB\u05DC \u05E7\u05D5\u05D1\u05E5 \u05E9\u05D4\u05E0\u05EA\u05D9\u05D1 \u05E9\u05DC\u05D5 \u05EA\u05D5\u05D0\u05DD \u05DC\u05E2\u05D5\u05DC\u05DD \u05D0\u05D9\u05E0\u05D5 \u05E0\u05DE\u05E6\u05D0 \u05D1\u05DE\u05E2\u05E7\u05D1 (\u05DC\u05DE\u05E9\u05DC \\.excalidraw\\.md$ \u05D0\u05D5 (^|/)Templates/). \u05D1\u05E8\u05D9\u05E8\u05EA \u05D4\u05DE\u05D7\u05D3\u05DC \u05DE\u05D7\u05E8\u05D9\u05D2\u05D4 \u05EA\u05D9\u05E7\u05D9\u05D5\u05EA Templates \u05D5\u05E9\u05E8\u05D8\u05D5\u05D8\u05D9 Excalidraw. \u05D4\u05E9\u05D0\u05E8 \u05E8\u05D9\u05E7 \u05DB\u05D3\u05D9 \u05DC\u05E2\u05E7\u05D5\u05D1 \u05D0\u05D7\u05E8 \u05D4\u05DB\u05D5\u05DC.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "\u05D4\u05D5\u05E1\u05E3 \u05EA\u05D1\u05E0\u05D9\u05EA",
+  "setting.exclude-paths.placeholder": "\u05DC\u05D3\u05D5\u05D2\u05DE\u05D4 (^|/)Templates/",
+  "setting.exclude-paths.remove": "\u05D4\u05E1\u05E8 \u05EA\u05D1\u05E0\u05D9\u05EA \u05D6\u05D5",
+  "setting.exclude-paths.empty": "\u05D0\u05D9\u05DF \u05E2\u05D3\u05D9\u05D9\u05DF \u05E0\u05EA\u05D9\u05D1\u05D9\u05DD \u05DE\u05D5\u05D7\u05E8\u05D2\u05D9\u05DD. \u05D4\u05E9\u05EA\u05DE\u05E9\u05D5 \u05D1\u05DB\u05E4\u05EA\u05D5\u05E8 + \u05DB\u05D3\u05D9 \u05DC\u05D4\u05D5\u05E1\u05D9\u05E3 \u05EA\u05D1\u05E0\u05D9\u05EA.",
+  "setting.exclude-paths.edit": "\u05E2\u05E8\u05D5\u05DA \u05EA\u05D1\u05E0\u05D9\u05EA",
+  "setting.exclude-paths.save": "\u05E9\u05DE\u05D5\u05E8 \u05EA\u05D1\u05E0\u05D9\u05EA",
+  "setting.exclude-paths.cancel": "\u05D1\u05D9\u05D8\u05D5\u05DC",
+  "setting.exclude-paths.error": "\u05D4\u05EA\u05D1\u05E0\u05D9\u05EA \u05D7\u05D9\u05D9\u05D1\u05EA \u05DC\u05D4\u05D9\u05D5\u05EA \u05D1\u05D9\u05D8\u05D5\u05D9 \u05E8\u05D2\u05D5\u05DC\u05E8\u05D9 \u05EA\u05E7\u05D9\u05DF \u05D5\u05DC\u05D0 \u05E8\u05D9\u05E7.",
+  "setting.general-heading": "\u05DB\u05DC\u05DC\u05D9",
+  "setting.cleanup-heading": "\u05E0\u05D9\u05E7\u05D5\u05D9 \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4",
   "setting.keep.name": "\u05E9\u05DE\u05D9\u05E8\u05EA \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05E2\u05D3",
   "setting.keep.desc": "\u05D0\u05E1\u05D8\u05E8\u05D8\u05D2\u05D9\u05D4 \u05DC\u05E0\u05D9\u05E7\u05D5\u05D9 \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D9\u05EA \u05D4\u05D2\u05E8\u05E1\u05D0\u05D5\u05EA",
   "setting.keep.option.app": "\u05E1\u05D2\u05D9\u05E8\u05EA \u05D4\u05D9\u05D9\u05E9\u05D5\u05DD",
@@ -9390,8 +9212,8 @@ var he_default = {
   "setting.ignore-new-files.desc": "\u05D0\u05DC \u05EA\u05E2\u05E7\u05D5\u05D1 \u05D0\u05D7\u05E8 \u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05D1\u05E7\u05D1\u05E6\u05D9\u05DD \u05E9\u05E0\u05D5\u05E6\u05E8\u05D5 \u05DC\u05D0\u05D7\u05E8 \u05EA\u05D7\u05D9\u05DC\u05EA \u05D4\u05DE\u05E2\u05E7\u05D1",
   "setting.tree-highlight.name": "\u05D4\u05D3\u05D2\u05E9\u05EA \u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05D1\u05E2\u05E5 \u05D4\u05E7\u05D1\u05E6\u05D9\u05DD \u05D5\u05D1\u05DC\u05E9\u05D5\u05E0\u05D9\u05D5\u05EA",
   "setting.tree-highlight.desc": "\u05E6\u05D1\u05D9\u05E2\u05EA \u05E7\u05D1\u05E6\u05D9\u05DD \u05D5\u05EA\u05D9\u05E7\u05D9\u05D5\u05EA \u05D1\u05E1\u05D9\u05D9\u05E8 \u05D4\u05E7\u05D1\u05E6\u05D9\u05DD \u05D4\u05DE\u05D5\u05D1\u05E0\u05D4, \u05D5\u05DB\u05D5\u05EA\u05E8\u05D5\u05EA \u05D4\u05DC\u05E9\u05D5\u05E0\u05D9\u05D5\u05EA \u05E9\u05DC \u05E7\u05D1\u05E6\u05D9\u05DD \u05E4\u05EA\u05D5\u05D7\u05D9\u05DD, \u05DC\u05E4\u05D9 \u05DE\u05D4 \u05E9\u05D4\u05E9\u05EA\u05E0\u05D4 \u05D1\u05DE\u05D4\u05DC\u05DA \u05D4\u05E4\u05E2\u05DC\u05D4 \u05D6\u05D5 (\u05E2\u05E0\u05D1\u05E8 \u05DC\u05E9\u05D5\u05E0\u05D4, \u05D9\u05E8\u05D5\u05E7 \u05DC\u05E0\u05D5\u05E1\u05E3).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "\u05D4\u05D3\u05D2\u05E9\u05EA \u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05D1\u05D7\u05DC\u05D5\u05E0\u05D9\u05EA \u05D4\u05DE\u05D0\u05E4\u05D9\u05D9\u05E0\u05D9\u05DD",
+  "setting.properties-highlight.desc": "\u05D4\u05E6\u05D2\u05EA \u05DE\u05E4\u05EA\u05D7\u05D5\u05EA frontmatter \u05E9\u05E0\u05D5\u05E1\u05E4\u05D5, \u05E9\u05D5\u05E0\u05D5 \u05D0\u05D5 \u05D4\u05D5\u05E1\u05E8\u05D5 \u05D1\u05D7\u05DC\u05D5\u05E0\u05D9\u05EA \u05D4\u05DE\u05D0\u05E4\u05D9\u05D9\u05E0\u05D9\u05DD \u05E9\u05DC Obsidian. \u05DB\u05D1\u05D5 \u05DB\u05D3\u05D9 \u05DC\u05D4\u05E1\u05EA\u05D9\u05E8 \u05D0\u05EA \u05DB\u05DC \u05E1\u05D9\u05DE\u05D5\u05DF \u05E9\u05D9\u05E0\u05D5\u05D9\u05D9 \u05D4\u05DE\u05D0\u05E4\u05D9\u05D9\u05E0\u05D9\u05DD.",
   "setting.persist.name": "\u05E9\u05DE\u05D9\u05E8\u05EA \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05D1\u05D9\u05DF \u05D4\u05E4\u05E2\u05DC\u05D5\u05EA \u05DE\u05D7\u05D3\u05E9",
   "setting.persist.desc": '\u05E9\u05DE\u05D5\u05E8 \u05D0\u05EA \u05D4\u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05DC\u05D3\u05D9\u05E1\u05E7 \u05DB\u05D3\u05D9 \u05E9\u05D4\u05D4\u05D3\u05D2\u05E9\u05D5\u05EA \u05D9\u05E9\u05E8\u05D3\u05D5 \u05D4\u05E4\u05E2\u05DC\u05D4 \u05DE\u05D7\u05D3\u05E9. \u05D3\u05D5\u05E8\u05E9 \u05D4\u05D2\u05D3\u05E8\u05EA "\u05E9\u05DE\u05D9\u05E8\u05EA \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05E2\u05D3" \u05DC\u05E1\u05D2\u05D9\u05E8\u05EA \u05D4\u05D9\u05D9\u05E9\u05D5\u05DD.',
   "setting.max-entries.name": "\u05DE\u05E7\u05E1\u05D9\u05DE\u05D5\u05DD \u05E7\u05D1\u05E6\u05D9\u05DD \u05E9\u05DE\u05D5\u05E8\u05D9\u05DD",
@@ -9439,10 +9261,10 @@ var he_default = {
   "modal.mode.side-by-side": "\u05D6\u05D4 \u05DC\u05E6\u05D3 \u05D6\u05D4",
   "modal.hide-identical": "\u05D4\u05E1\u05EA\u05E8 \u05D2\u05E8\u05E1\u05D0\u05D5\u05EA \u05D6\u05D4\u05D5\u05EA \u05DC\u05E0\u05D5\u05DB\u05D7\u05D9",
   "modal.confirm.cancel": "\u05D1\u05D9\u05D8\u05D5\u05DC",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "\u05D0\u05D9\u05E9\u05D5\u05E8",
+  "modal.confirm.default.message": "\u05D4\u05D0\u05DD \u05D0\u05EA\u05DD \u05D1\u05D8\u05D5\u05D7\u05D9\u05DD \u05E9\u05D1\u05E8\u05E6\u05D5\u05E0\u05DB\u05DD \u05DC\u05D4\u05DE\u05E9\u05D9\u05DA?",
+  "modal.confirm.default.ok": "\u05D0\u05E9\u05E8",
+  "modal.confirm.default.cancel": "\u05D1\u05D9\u05D8\u05D5\u05DC",
   "modal.confirm.restore.title": "\u05E9\u05D7\u05D6\u05D5\u05E8 \u05D4\u05E7\u05D5\u05D1\u05E5 \u05D4\u05DE\u05E7\u05D5\u05E8\u05D9",
   "modal.confirm.restore.message": "\u05D4\u05D0\u05DD \u05D0\u05EA\u05D4 \u05D1\u05D8\u05D5\u05D7 \u05E9\u05D1\u05E8\u05E6\u05D5\u05E0\u05DA \u05DC\u05E9\u05D7\u05D6\u05E8 \u05E7\u05D5\u05D1\u05E5 \u05D6\u05D4 \u05DC\u05DE\u05E6\u05D1\u05D5 \u05D4\u05DE\u05E7\u05D5\u05E8\u05D9? \u05DB\u05DC \u05D4\u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05D4\u05E0\u05D5\u05DB\u05D7\u05D9\u05D9\u05DD \u05D9\u05D0\u05D1\u05D3\u05D5 \u05D5\u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D9\u05EA \u05DE\u05E2\u05E7\u05D1 \u05D4\u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05EA\u05D0\u05D5\u05E4\u05E1. \u05DC\u05D0 \u05E0\u05D9\u05EA\u05DF \u05DC\u05D1\u05D8\u05DC \u05E4\u05E2\u05D5\u05DC\u05D4 \u05D6\u05D5.",
   "modal.confirm.restore.button": "\u05E9\u05D7\u05D6\u05D5\u05E8 \u05D4\u05E7\u05D5\u05D1\u05E5",
@@ -9461,52 +9283,53 @@ var he_default = {
   "modal.search-versions": "\u05D7\u05D9\u05E4\u05D5\u05E9 \u05D2\u05E8\u05E1\u05D0\u05D5\u05EA",
   "modal.version.current": "\u05E0\u05D5\u05DB\u05D7\u05D9",
   "modal.version.original": "\u05DE\u05E7\u05D5\u05E8\u05D9",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "\u05E0\u05D5\u05E6\u05E8\u05D4",
+  "modal.version.action.modified": "\u05E9\u05D5\u05E0\u05EA\u05D4",
+  "modal.version.action.cleared": "\u05E0\u05D5\u05E7\u05EA\u05D4",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u05D0\u05D9\u05DF \u05D2\u05E8\u05E1\u05D0\u05D5\u05EA \u05D4\u05EA\u05D5\u05D0\u05DE\u05D5\u05EA \u05DC\u05D7\u05D9\u05E4\u05D5\u05E9",
   "modal.revert-hunk": "\u05D1\u05D9\u05D8\u05D5\u05DC \u05E9\u05D9\u05E0\u05D5\u05D9 \u05D6\u05D4",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "\u05D1\u05D8\u05DC \u05E9\u05D9\u05E0\u05D5\u05D9 \u05D6\u05D4",
   "modal.copy": "\u05D4\u05E2\u05EA\u05E7\u05D4",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "\u05D4\u05D5\u05E1\u05E3 \u05EA\u05D5\u05D5\u05D9\u05EA",
+  "modal.put-label.message": "\u05E1\u05DE\u05E0\u05D5 \u05D0\u05EA \u05D4\u05EA\u05D5\u05DB\u05DF \u05D4\u05E0\u05D5\u05DB\u05D7\u05D9 \u05D1\u05EA\u05D5\u05D5\u05D9\u05EA \u05E7\u05E6\u05E8\u05D4.",
+  "modal.put-label.placeholder": "\u05EA\u05D5\u05D5\u05D9\u05EA",
+  "modal.put-label.confirm": "\u05E9\u05DE\u05D5\u05E8",
+  "menu.local-history.show-history": "\u05D4\u05E6\u05D2 \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4",
+  "menu.local-history.show-history-selection": "\u05D4\u05E6\u05D2 \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05E2\u05D1\u05D5\u05E8 \u05D4\u05D1\u05D7\u05D9\u05E8\u05D4",
+  "menu.local-history.put-label": "\u05D4\u05D5\u05E1\u05E3 \u05EA\u05D5\u05D5\u05D9\u05EA",
+  "menu.local-history.recent-changes": "\u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05D0\u05D7\u05E8\u05D5\u05E0\u05D9\u05DD",
+  "view.recent-changes.title": "\u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05D0\u05D7\u05E8\u05D5\u05E0\u05D9\u05DD",
+  "view.recent-changes.empty": "\u05D0\u05D9\u05DF \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D9\u05EA \u05D2\u05E8\u05E1\u05D0\u05D5\u05EA \u05DC\u05E7\u05D5\u05D1\u05E5 \u05D4\u05E4\u05E2\u05D9\u05DC.",
+  "view.recent-changes.menu.show-diff": "\u05D4\u05E6\u05D2 \u05D4\u05D1\u05D3\u05DC\u05D9\u05DD",
+  "view.recent-changes.menu.restore": "\u05E9\u05D7\u05D6\u05E8 \u05D2\u05E8\u05E1\u05D4 \u05D6\u05D5",
+  "view.recent-changes.menu.delete": "\u05DE\u05D7\u05E7 \u05D2\u05E8\u05E1\u05D4",
+  "view.recent-changes.menu.put-label": "\u05D4\u05D5\u05E1\u05E3 \u05EA\u05D5\u05D5\u05D9\u05EA",
+  "modal.label-selected": "\u05D4\u05D5\u05E1\u05E3 \u05EA\u05D5\u05D5\u05D9\u05EA \u05DC\u05D2\u05E8\u05E1\u05D4 \u05E9\u05E0\u05D1\u05D7\u05E8\u05D4",
+  "modal.label-version.message": "\u05E1\u05DE\u05E0\u05D5 \u05D2\u05E8\u05E1\u05D4 \u05D6\u05D5 \u05D1\u05EA\u05D5\u05D5\u05D9\u05EA \u05E7\u05E6\u05E8\u05D4.",
+  "notice.no-folder-history": "\u05D0\u05D9\u05DF \u05E2\u05D3\u05D9\u05D9\u05DF \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D9\u05EA \u05EA\u05D9\u05E7\u05D9\u05D9\u05D4.",
+  "setting.max-deleted-entries.name": "\u05DE\u05E7\u05E1\u05D9\u05DE\u05D5\u05DD \u05E7\u05D1\u05E6\u05D9\u05DD \u05DE\u05D7\u05D5\u05E7\u05D9\u05DD \u05E9\u05DE\u05D5\u05E8\u05D9\u05DD",
+  "setting.max-deleted-entries.desc": "\u05EA\u05E7\u05E8\u05D4 \u05DC\u05DE\u05E1\u05E4\u05E8 \u05D4\u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D5\u05EA \u05E9\u05DC \u05E7\u05D1\u05E6\u05D9\u05DD \u05DE\u05D7\u05D5\u05E7\u05D9\u05DD \u05E9\u05E0\u05E9\u05DE\u05E8\u05D5\u05EA \u05D1\u05D3\u05D9\u05E1\u05E7. \u05D4\u05D9\u05E9\u05E0\u05D5\u05EA \u05D1\u05D9\u05D5\u05EA\u05E8 \u05DE\u05D5\u05E1\u05E8\u05D5\u05EA \u05EA\u05D7\u05D9\u05DC\u05D4. \u05D4\u05D2\u05D3\u05D9\u05E8\u05D5 0 \u05DB\u05D3\u05D9 \u05DC\u05DB\u05D1\u05D5\u05EA.",
+  "setting.max-deleted-age-days.name": "\u05D2\u05D9\u05DC \u05DE\u05E8\u05D1\u05D9 \u05DC\u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05E9\u05DC \u05E7\u05D1\u05E6\u05D9\u05DD \u05DE\u05D7\u05D5\u05E7\u05D9\u05DD (\u05D9\u05DE\u05D9\u05DD)",
+  "setting.max-deleted-age-days.desc": "\u05D4\u05E1\u05E8\u05EA \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D5\u05EA \u05E9\u05DC \u05E7\u05D1\u05E6\u05D9\u05DD \u05DE\u05D7\u05D5\u05E7\u05D9\u05DD \u05E9\u05D2\u05D9\u05DC\u05DF \u05E2\u05D5\u05DC\u05D4 \u05E2\u05DC \u05DE\u05E1\u05E4\u05E8 \u05D9\u05DE\u05D9\u05DD \u05D6\u05D4. \u05D4\u05D2\u05D3\u05D9\u05E8\u05D5 0 \u05DB\u05D3\u05D9 \u05DC\u05DB\u05D1\u05D5\u05EA.",
+  "folder-tree.empty": "\u05D0\u05D9\u05DF \u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05D1\u05EA\u05D9\u05E7\u05D9\u05D9\u05D4 \u05D6\u05D5 \u05E2\u05D1\u05D5\u05E8 \u05D4\u05E0\u05E7\u05D5\u05D3\u05D4 \u05E9\u05E0\u05D1\u05D7\u05E8\u05D4.",
+  "modal.folder.filter-files": "\u05E1\u05D9\u05E0\u05D5\u05DF \u05E7\u05D1\u05E6\u05D9\u05DD \u05DC\u05E4\u05D9 \u05E9\u05DD",
+  "modal.folder.timeline.capture": "\u05E0\u05DC\u05DB\u05D3",
+  "modal.folder.timeline.delete": "\u05E0\u05DE\u05D7\u05E7",
+  "modal.folder.timeline.move-in": "\u05D4\u05D5\u05E2\u05D1\u05E8 \u05DC\u05DB\u05D0\u05DF",
+  "modal.folder.notice.no-file": "\u05DC\u05D0 \u05E0\u05D1\u05D7\u05E8 \u05E7\u05D5\u05D1\u05E5.",
+  "modal.folder.notice.added": "\u05D4\u05E7\u05D5\u05D1\u05E5 \u05E0\u05D5\u05E1\u05E3 \u05D0\u05D7\u05E8\u05D9 \u05E0\u05E7\u05D5\u05D3\u05D4 \u05D6\u05D5.",
+  "modal.folder.notice.deleted": "\u05D4\u05E7\u05D5\u05D1\u05E5 \u05E0\u05DE\u05D7\u05E7 \u05D0\u05D7\u05E8\u05D9 \u05E0\u05E7\u05D5\u05D3\u05D4 \u05D6\u05D5.",
+  "modal.folder.notice.unchanged": "\u05D0\u05D9\u05DF \u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05DE\u05D0\u05D6 \u05E0\u05E7\u05D5\u05D3\u05D4 \u05D6\u05D5.",
+  "version.badge.external": "\u05D7\u05D9\u05E6\u05D5\u05E0\u05D9",
+  "setting.exclude-paths-case-sensitive.name": "\u05D4\u05D7\u05E8\u05D2\u05EA \u05E0\u05EA\u05D9\u05D1\u05D9\u05DD \u05EA\u05DC\u05D5\u05D9\u05EA \u05E8\u05D9\u05E9\u05D9\u05D5\u05EA",
+  "setting.exclude-paths-case-sensitive.desc": "\u05DB\u05E9\u05DE\u05D5\u05E4\u05E2\u05DC, \u05D4\u05D1\u05D9\u05D8\u05D5\u05D9 \u05D4\u05E8\u05D2\u05D5\u05DC\u05E8\u05D9 \u05E9\u05DC \u05D4\u05E0\u05EA\u05D9\u05D1\u05D9\u05DD \u05D4\u05DE\u05D5\u05D7\u05E8\u05D2\u05D9\u05DD \u05DE\u05D5\u05EA\u05D0\u05DD \u05EA\u05D5\u05DA \u05D4\u05D1\u05D7\u05E0\u05D4 \u05D1\u05D9\u05DF \u05D0\u05D5\u05EA\u05D9\u05D5\u05EA \u05D2\u05D3\u05D5\u05DC\u05D5\u05EA \u05DC\u05E7\u05D8\u05E0\u05D5\u05EA (\u05DC\u05DC\u05D0 \u05D3\u05D2\u05DC 'i'). \u05DB\u05D1\u05D5 \u05DB\u05D3\u05D9 \u05DC\u05D4\u05EA\u05D0\u05D9\u05DD \u05DC\u05DC\u05D0 \u05EA\u05DC\u05D5\u05EA \u05D1\u05E8\u05D9\u05E9\u05D9\u05D5\u05EA: \u05D6\u05D5 \u05D1\u05E8\u05D9\u05E8\u05EA \u05D4\u05DE\u05D7\u05D3\u05DC \u05D5\u05D4\u05D9\u05D0 \u05E2\u05D5\u05D1\u05D3\u05EA \u05D4\u05D9\u05D8\u05D1 \u05D1\u05DE\u05E2\u05E8\u05DB\u05D5\u05EA \u05E7\u05D1\u05E6\u05D9\u05DD \u05E9\u05D0\u05D9\u05E0\u05DF \u05EA\u05DC\u05D5\u05D9\u05D5\u05EA \u05E8\u05D9\u05E9\u05D9\u05D5\u05EA.",
+  "setting.purge-excluded.name": "\u05DE\u05D7\u05D9\u05E7\u05EA \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05DC\u05E0\u05EA\u05D9\u05D1\u05D9\u05DD \u05DE\u05D5\u05D7\u05E8\u05D2\u05D9\u05DD",
+  "setting.purge-excluded.desc": "\u05DE\u05D7\u05D9\u05E7\u05EA \u05DB\u05DC \u05D4\u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05D4\u05E9\u05DE\u05D5\u05E8\u05D4 \u05E9\u05DC \u05E7\u05D1\u05E6\u05D9\u05DD \u05E9\u05E0\u05EA\u05D9\u05D1\u05D9\u05D4\u05DD \u05EA\u05D5\u05D0\u05DE\u05D9\u05DD \u05DB\u05E2\u05EA \u05DC\u05EA\u05D1\u05E0\u05D9\u05EA \u05D4\u05E0\u05EA\u05D9\u05D1\u05D9\u05DD \u05D4\u05DE\u05D5\u05D7\u05E8\u05D2\u05D9\u05DD. \u05D2\u05DD \u05E8\u05E9\u05D5\u05DE\u05D5\u05EA \u05E9\u05DC \u05E7\u05D1\u05E6\u05D9\u05DD \u05DE\u05D7\u05D5\u05E7\u05D9\u05DD \u05D9\u05D5\u05E1\u05E8\u05D5. \u05E4\u05E2\u05D5\u05DC\u05D4 \u05D6\u05D5 \u05D0\u05D9\u05E0\u05D4 \u05E0\u05D9\u05EA\u05E0\u05EA \u05DC\u05D1\u05D9\u05D8\u05D5\u05DC.",
+  "notice.purge-excluded": "\u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05DE\u05E7\u05D5\u05DE\u05D9\u05EA: \u05E0\u05DE\u05D7\u05E7\u05D5 {count} \u05EA\u05DE\u05D5\u05E0\u05D5\u05EA \u05DE\u05E6\u05D1 \u05E2\u05D1\u05D5\u05E8 \u05E0\u05EA\u05D9\u05D1\u05D9\u05DD \u05DE\u05D5\u05D7\u05E8\u05D2\u05D9\u05DD.",
+  "notice.purge-excluded.no-match": "\u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05DE\u05E7\u05D5\u05DE\u05D9\u05EA: \u05D0\u05D9\u05DF \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05E9\u05DE\u05D5\u05E8\u05D4 \u05D4\u05EA\u05D5\u05D0\u05DE\u05EA \u05DC\u05E0\u05EA\u05D9\u05D1\u05D9\u05DD \u05DE\u05D5\u05D7\u05E8\u05D2\u05D9\u05DD.",
+  "setting.reading-mode-indicator.name": "\u05D4\u05E6\u05D2\u05EA \u05DE\u05D7\u05D5\u05D5\u05E0\u05D9\u05DD \u05D1\u05DE\u05E6\u05D1 \u05E7\u05E8\u05D9\u05D0\u05D4",
+  "setting.reading-mode-indicator.desc": "\u05E2\u05D9\u05D8\u05D5\u05E8 \u05D1\u05DC\u05D5\u05E7\u05D9\u05DD \u05DE\u05E2\u05D5\u05D1\u05D3\u05D9\u05DD \u05D1\u05DE\u05E6\u05D1 \u05E7\u05E8\u05D9\u05D0\u05D4 \u05D1\u05D2\u05D1\u05D5\u05DC \u05E9\u05DE\u05D0\u05DC\u05D9 \u05E6\u05D1\u05E2\u05D5\u05E0\u05D9 \u05D4\u05EA\u05D5\u05D0\u05DD \u05D0\u05EA \u05E6\u05D1\u05E2\u05D9 \u05DE\u05D7\u05D5\u05D5\u05DF \u05D4\u05E2\u05E8\u05D9\u05DB\u05D4 (\u05E9\u05D5\u05E0\u05D4, \u05E0\u05D5\u05E1\u05E3, \u05E8\u05D5\u05D5\u05D7\u05D9\u05DD, \u05E9\u05D5\u05D7\u05D6\u05E8). \u05DB\u05D1\u05D5\u05D9 \u05DB\u05D1\u05E8\u05D9\u05E8\u05EA \u05DE\u05D7\u05D3\u05DC; \u05D9\u05E9 \u05E2\u05DC\u05D5\u05EA \u05E7\u05D8\u05E0\u05D4 \u05DC\u05DB\u05DC \u05D1\u05DC\u05D5\u05E7 \u05D1\u05DB\u05DC \u05E2\u05D9\u05D1\u05D5\u05D3 \u05DE\u05D7\u05D3\u05E9 \u05E9\u05DC \u05DE\u05E6\u05D1 \u05D4\u05E7\u05E8\u05D9\u05D0\u05D4."
 };
 
 // lang/hu.json
@@ -9536,9 +9359,16 @@ var hu_default = {
   "setting.allowed-extensions.desc": "Vessz\u0151vel elv\xE1lasztott lista azokr\xF3l a f\xE1jlkiterjeszt\xE9sekr\u0151l, amelyek m\xF3dos\xEDt\xE1sait k\xF6vetni kell (pl. md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "Kiz\xE1rt \xFAtvonalak",
   "setting.exclude-paths.desc": "Kis- \xE9s nagybet\u0171kre nem \xE9rz\xE9keny regul\xE1ris kifejez\xE9s, amelyet a t\xE1rol\xF3hoz viszony\xEDtott \xFAtvonalra illeszt. Minden f\xE1jl, amelynek \xFAtvonala illeszkedik, soha nem lesz k\xF6vetve (pl. \\.excalidraw\\.md$ vagy (^|/)Templates/). Az alap\xE9rtelmezett be\xE1ll\xEDt\xE1s kiz\xE1rja a Templates mapp\xE1kat \xE9s az Excalidraw rajzokat. Hagyja \xFCresen az \xF6sszes k\xF6vet\xE9s\xE9hez.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "Minta hozz\xE1ad\xE1sa",
+  "setting.exclude-paths.placeholder": "pl. (^|/)Templates/",
+  "setting.exclude-paths.remove": "Minta elt\xE1vol\xEDt\xE1sa",
+  "setting.exclude-paths.empty": "M\xE9g nincsenek kiz\xE1rt \xFAtvonalak. A + gombbal adhat hozz\xE1 mint\xE1t.",
+  "setting.exclude-paths.edit": "Minta szerkeszt\xE9se",
+  "setting.exclude-paths.save": "Minta ment\xE9se",
+  "setting.exclude-paths.cancel": "M\xE9gse",
+  "setting.exclude-paths.error": "A mint\xE1nak nem \xFCres, \xE9rv\xE9nyes regul\xE1ris kifejez\xE9snek kell lennie.",
+  "setting.general-heading": "\xC1ltal\xE1nos",
+  "setting.cleanup-heading": "El\u0151zm\xE9nyek tiszt\xEDt\xE1sa",
   "setting.keep.name": "El\u0151zm\xE9nyek meg\u0151rz\xE9se eddig",
   "setting.keep.desc": "A rev\xEDzi\xF3s el\u0151zm\xE9nyek tiszt\xEDt\xE1s\xE1nak strat\xE9gi\xE1ja",
   "setting.keep.option.app": "Alkalmaz\xE1s bez\xE1r\xE1sa",
@@ -9547,8 +9377,8 @@ var hu_default = {
   "setting.ignore-new-files.desc": "Ne k\xF6vesse a k\xF6vet\xE9s ind\xEDt\xE1sa ut\xE1n l\xE9trehozott f\xE1jlok m\xF3dos\xEDt\xE1sait",
   "setting.tree-highlight.name": "V\xE1ltoz\xE1sok kiemel\xE9se a f\xE1jlf\xE1ban \xE9s a f\xFCleken",
   "setting.tree-highlight.desc": "A nat\xEDv f\xE1jlb\xF6ng\xE9sz\u0151 f\xE1jljainak \xE9s mapp\xE1inak, valamint a megnyitott f\xE1jlok f\xFClfejl\xE9ceinek sz\xEDnez\xE9se aszerint, hogy mi v\xE1ltozott ebben a munkamenetben (borosty\xE1n a m\xF3dos\xEDtotthoz, z\xF6ld a hozz\xE1adotthoz).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "V\xE1ltoz\xE1sok kiemel\xE9se a Tulajdons\xE1gok panelen",
+  "setting.properties-highlight.desc": "A hozz\xE1adott, m\xF3dos\xEDtott \xE9s elt\xE1vol\xEDtott frontmatter-kulcsok megjelen\xEDt\xE9se az Obsidian Tulajdons\xE1gok panelj\xE9n. Kapcsolja ki a tulajdons\xE1gv\xE1ltoz\xE1sok jel\xF6l\xE9s\xE9nek elrejt\xE9s\xE9hez.",
   "setting.persist.name": "El\u0151zm\xE9nyek meg\u0151rz\xE9se \xFAjraind\xEDt\xE1sokon \xE1t",
   "setting.persist.desc": 'Mentse az el\u0151zm\xE9nyeket lemezre, hogy a kiemel\xE9sek t\xFAl\xE9ljenek egy \xFAjraind\xEDt\xE1st. Ehhez az "El\u0151zm\xE9nyek meg\u0151rz\xE9se eddig" be\xE1ll\xEDt\xE1snak az Alkalmaz\xE1s bez\xE1r\xE1sa \xE9rt\xE9ken kell \xE1llnia.',
   "setting.max-entries.name": "T\xE1rolt f\xE1jlok maxim\xE1lis sz\xE1ma",
@@ -9596,10 +9426,10 @@ var hu_default = {
   "modal.mode.side-by-side": "Egym\xE1s mellett",
   "modal.hide-identical": "A jelenlegivel megegyez\u0151 verzi\xF3k elrejt\xE9se",
   "modal.confirm.cancel": "M\xE9gse",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "Meger\u0151s\xEDt\xE9s",
+  "modal.confirm.default.message": "Biztosan folytatja?",
+  "modal.confirm.default.ok": "Meger\u0151s\xEDt\xE9s",
+  "modal.confirm.default.cancel": "M\xE9gse",
   "modal.confirm.restore.title": "Eredeti f\xE1jl vissza\xE1ll\xEDt\xE1sa",
   "modal.confirm.restore.message": "Biztosan vissza szeretn\xE9 \xE1ll\xEDtani ezt a f\xE1jlt az eredeti \xE1llapot\xE1ba? Minden jelenlegi m\xF3dos\xEDt\xE1s elveszik, \xE9s a m\xF3dos\xEDt\xE1sk\xF6vet\xE9si el\u0151zm\xE9nyek vissza\xE1llnak. Ez a m\u0171velet nem vonhat\xF3 vissza.",
   "modal.confirm.restore.button": "F\xE1jl vissza\xE1ll\xEDt\xE1sa",
@@ -9618,52 +9448,53 @@ var hu_default = {
   "modal.search-versions": "Verzi\xF3k keres\xE9se",
   "modal.version.current": "Jelenlegi",
   "modal.version.original": "Eredeti",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "L\xE9trehozva",
+  "modal.version.action.modified": "M\xF3dos\xEDtva",
+  "modal.version.action.cleared": "Ki\xFCr\xEDtve",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Nincs a keres\xE9snek megfelel\u0151 verzi\xF3",
   "modal.revert-hunk": "M\xF3dos\xEDt\xE1s visszavon\xE1sa",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "V\xE1ltoz\xE1s visszavon\xE1sa",
   "modal.copy": "M\xE1sol\xE1s",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "C\xEDmke elhelyez\xE9se",
+  "modal.put-label.message": "Jel\xF6lje meg az aktu\xE1lis tartalmat egy r\xF6vid c\xEDmk\xE9vel.",
+  "modal.put-label.placeholder": "C\xEDmke",
+  "modal.put-label.confirm": "Ment\xE9s",
+  "menu.local-history.show-history": "El\u0151zm\xE9nyek megjelen\xEDt\xE9se",
+  "menu.local-history.show-history-selection": "Kijel\xF6l\xE9s el\u0151zm\xE9nyeinek megjelen\xEDt\xE9se",
+  "menu.local-history.put-label": "C\xEDmke elhelyez\xE9se",
+  "menu.local-history.recent-changes": "Legut\xF3bbi v\xE1ltoz\xE1sok",
+  "view.recent-changes.title": "Legut\xF3bbi v\xE1ltoz\xE1sok",
+  "view.recent-changes.empty": "Az akt\xEDv f\xE1jlhoz nincs verzi\xF3el\u0151zm\xE9ny.",
+  "view.recent-changes.menu.show-diff": "K\xFCl\xF6nbs\xE9gek megjelen\xEDt\xE9se",
+  "view.recent-changes.menu.restore": "Verzi\xF3 vissza\xE1ll\xEDt\xE1sa",
+  "view.recent-changes.menu.delete": "Verzi\xF3 t\xF6rl\xE9se",
+  "view.recent-changes.menu.put-label": "C\xEDmke elhelyez\xE9se",
+  "modal.label-selected": "Kijel\xF6lt verzi\xF3 c\xEDmk\xE9z\xE9se",
+  "modal.label-version.message": "Jel\xF6lje meg ezt a verzi\xF3t egy r\xF6vid c\xEDmk\xE9vel.",
+  "notice.no-folder-history": "M\xE9g nincs mappael\u0151zm\xE9ny.",
+  "setting.max-deleted-entries.name": "T\xE1rolt t\xF6r\xF6lt f\xE1jlok maximuma",
+  "setting.max-deleted-entries.desc": "Fels\u0151 korl\xE1t arra, h\xE1ny t\xF6r\xF6lt f\xE1jl el\u0151zm\xE9nye maradjon a lemezen. A legr\xE9gebbiek ker\xFClnek ki el\u0151sz\xF6r. 0 \xE9rt\xE9kkel kikapcsolhat\xF3.",
+  "setting.max-deleted-age-days.name": "T\xF6r\xF6lt el\u0151zm\xE9nyek maxim\xE1lis kora (nap)",
+  "setting.max-deleted-age-days.desc": "Az ennyi napn\xE1l r\xE9gebbi t\xF6r\xF6lt f\xE1jl-el\u0151zm\xE9nyek elt\xE1vol\xEDt\xE1sa. 0 \xE9rt\xE9kkel kikapcsolhat\xF3.",
+  "folder-tree.empty": "Nincs v\xE1ltoz\xE1s ebben a mapp\xE1ban a kiv\xE1lasztott id\u0151pontra.",
+  "modal.folder.filter-files": "F\xE1jlok sz\u0171r\xE9se n\xE9v szerint",
+  "modal.folder.timeline.capture": "R\xF6gz\xEDtve",
+  "modal.folder.timeline.delete": "T\xF6r\xF6lve",
+  "modal.folder.timeline.move-in": "Ide \xE1thelyezve",
+  "modal.folder.notice.no-file": "Nincs kiv\xE1lasztott f\xE1jl.",
+  "modal.folder.notice.added": "A f\xE1jl ezen id\u0151pont ut\xE1n lett hozz\xE1adva.",
+  "modal.folder.notice.deleted": "A f\xE1jl ezen id\u0151pont ut\xE1n lett t\xF6r\xF6lve.",
+  "modal.folder.notice.unchanged": "Nincs v\xE1ltoz\xE1s ezen id\u0151pont \xF3ta.",
+  "version.badge.external": "k\xFCls\u0151",
+  "setting.exclude-paths-case-sensitive.name": "Kis- \xE9s nagybet\u0171\xE9rz\xE9keny \xFAtvonal-kiz\xE1r\xE1s",
+  "setting.exclude-paths-case-sensitive.desc": "Bekapcsolva a kiz\xE1rt \xFAtvonalak regul\xE1ris kifejez\xE9se kis- \xE9s nagybet\u0171\xE9rz\xE9kenyen illeszkedik ('i' jelz\u0151 n\xE9lk\xFCl). Kapcsolja ki a bet\u0171m\xE9rett\u0151l f\xFCggetlen illeszt\xE9shez: ez az alap\xE9rtelmez\xE9s, \xE9s j\xF3l m\u0171k\xF6dik a kis- \xE9s nagybet\u0171ket nem megk\xFCl\xF6nb\xF6ztet\u0151 f\xE1jlrendszereken.",
+  "setting.purge-excluded.name": "Kiz\xE1rt \xFAtvonalak el\u0151zm\xE9nyeinek t\xF6rl\xE9se",
+  "setting.purge-excluded.desc": "Minden t\xE1rolt el\u0151zm\xE9ny t\xF6rl\xE9se azokhoz a f\xE1jlokhoz, amelyek \xFAtvonala jelenleg illeszkedik a kiz\xE1rt \xFAtvonalak mint\xE1j\xE1ra. A t\xF6r\xF6lt f\xE1jlok bejegyz\xE9sei is t\xF6rl\u0151dnek. Ez a m\u0171velet nem vonhat\xF3 vissza.",
+  "notice.purge-excluded": "Helyi el\u0151zm\xE9nyek: {count} pillanatk\xE9p t\xF6r\xF6lve a kiz\xE1rt \xFAtvonalakhoz.",
+  "notice.purge-excluded.no-match": "Helyi el\u0151zm\xE9nyek: egyetlen t\xE1rolt el\u0151zm\xE9ny sem felel meg a kiz\xE1rt \xFAtvonalaknak.",
+  "setting.reading-mode-indicator.name": "Jelz\u0151k megjelen\xEDt\xE9se olvas\xF3 m\xF3dban",
+  "setting.reading-mode-indicator.desc": "Az olvas\xF3 m\xF3dban megjelen\xEDtett blokkok sz\xEDnes bal szeg\xE9lyt kapnak a szerkeszt\xE9sjelz\u0151 sz\xEDneivel (m\xF3dos\xEDtva, hozz\xE1adva, sz\xF3k\xF6z, vissza\xE1ll\xEDtva). Alap\xE9rtelmez\xE9s szerint kikapcsolva; minden olvas\xF3 m\xF3dbeli \xFAjrarenderel\xE9skor kis t\xF6bbletk\xF6lts\xE9g blokkonk\xE9nt."
 };
 
 // lang/id.json
@@ -9693,9 +9524,16 @@ var id_default = {
   "setting.allowed-extensions.desc": "Daftar ekstensi berkas yang dipisahkan koma untuk dilacak perubahannya (mis. md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "Jalur yang dikecualikan",
   "setting.exclude-paths.desc": "Ekspresi reguler yang tidak peka huruf besar-kecil, dicocokkan dengan jalur relatif terhadap vault. Berkas mana pun yang jalurnya cocok tidak akan pernah dilacak (mis. \\.excalidraw\\.md$ atau (^|/)Templates/). Bawaan mengecualikan folder Templates dan gambar Excalidraw. Biarkan kosong untuk melacak semuanya.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "Tambah pola",
+  "setting.exclude-paths.placeholder": "mis. (^|/)Templates/",
+  "setting.exclude-paths.remove": "Hapus pola ini",
+  "setting.exclude-paths.empty": "Belum ada jalur yang dikecualikan. Gunakan tombol + untuk menambahkan pola.",
+  "setting.exclude-paths.edit": "Edit pola",
+  "setting.exclude-paths.save": "Simpan pola",
+  "setting.exclude-paths.cancel": "Batal",
+  "setting.exclude-paths.error": "Pola harus berupa ekspresi reguler valid yang tidak kosong.",
+  "setting.general-heading": "Umum",
+  "setting.cleanup-heading": "Pembersihan riwayat",
   "setting.keep.name": "Simpan riwayat hingga",
   "setting.keep.desc": "Strategi untuk membersihkan riwayat revisi",
   "setting.keep.option.app": "Aplikasi ditutup",
@@ -9704,8 +9542,8 @@ var id_default = {
   "setting.ignore-new-files.desc": "Jangan lacak perubahan pada berkas yang dibuat setelah pelacakan dimulai",
   "setting.tree-highlight.name": "Sorot perubahan di pohon berkas dan tab",
   "setting.tree-highlight.desc": "Warnai berkas dan folder di penjelajah berkas bawaan, serta tajuk tab berkas yang terbuka, berdasarkan apa yang berubah pada sesi ini (kuning untuk diubah, hijau untuk ditambah).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "Sorot perubahan di panel Properti",
+  "setting.properties-highlight.desc": "Tampilkan kunci frontmatter yang ditambahkan, diubah, dan dihapus di panel Properti Obsidian. Nonaktifkan untuk menyembunyikan semua penandaan perubahan properti.",
   "setting.persist.name": "Pertahankan riwayat setelah dimulai ulang",
   "setting.persist.desc": 'Simpan riwayat ke disk agar sorotan bertahan setelah dimulai ulang. Memerlukan "simpan riwayat hingga" disetel ke aplikasi ditutup.',
   "setting.max-entries.name": "Maks berkas tersimpan",
@@ -9753,10 +9591,10 @@ var id_default = {
   "modal.mode.side-by-side": "Berdampingan",
   "modal.hide-identical": "Sembunyikan versi yang sama dengan yang saat ini",
   "modal.confirm.cancel": "Batal",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "Konfirmasi",
+  "modal.confirm.default.message": "Yakin ingin melanjutkan?",
+  "modal.confirm.default.ok": "Konfirmasi",
+  "modal.confirm.default.cancel": "Batal",
   "modal.confirm.restore.title": "Pulihkan berkas asli",
   "modal.confirm.restore.message": "Anda yakin ingin memulihkan berkas ini ke keadaan semula? Semua perubahan saat ini akan hilang dan riwayat pelacakan perubahan akan disetel ulang. Tindakan ini tidak dapat dibatalkan.",
   "modal.confirm.restore.button": "Pulihkan berkas",
@@ -9775,52 +9613,53 @@ var id_default = {
   "modal.search-versions": "Cari versi",
   "modal.version.current": "Saat ini",
   "modal.version.original": "Asli",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "Dibuat",
+  "modal.version.action.modified": "Diubah",
+  "modal.version.action.cleared": "Dikosongkan",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Tidak ada versi yang cocok dengan pencarian",
   "modal.revert-hunk": "Kembalikan perubahan ini",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "Batalkan perubahan ini",
   "modal.copy": "Salin",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.title": "Beri label",
+  "modal.put-label.message": "Tandai konten saat ini dengan label singkat.",
   "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.confirm": "Simpan",
+  "menu.local-history.show-history": "Tampilkan riwayat",
+  "menu.local-history.show-history-selection": "Tampilkan riwayat untuk seleksi",
+  "menu.local-history.put-label": "Beri label",
+  "menu.local-history.recent-changes": "Perubahan terbaru",
+  "view.recent-changes.title": "Perubahan terbaru",
+  "view.recent-changes.empty": "Tidak ada riwayat versi untuk berkas aktif.",
+  "view.recent-changes.menu.show-diff": "Tampilkan perbedaan",
+  "view.recent-changes.menu.restore": "Pulihkan versi ini",
+  "view.recent-changes.menu.delete": "Hapus versi",
+  "view.recent-changes.menu.put-label": "Beri label",
+  "modal.label-selected": "Beri label versi yang dipilih",
+  "modal.label-version.message": "Tandai versi ini dengan label singkat.",
+  "notice.no-folder-history": "Belum ada riwayat folder.",
+  "setting.max-deleted-entries.name": "Maks. berkas terhapus yang disimpan",
+  "setting.max-deleted-entries.desc": "Batas jumlah riwayat berkas terhapus yang disimpan di disk. Yang tertua dihapus lebih dulu. Setel ke 0 untuk menonaktifkan.",
+  "setting.max-deleted-age-days.name": "Usia maks. riwayat berkas terhapus (hari)",
+  "setting.max-deleted-age-days.desc": "Hapus riwayat berkas terhapus yang lebih tua dari jumlah hari ini. Setel ke 0 untuk menonaktifkan.",
+  "folder-tree.empty": "Tidak ada perubahan di folder ini untuk titik yang dipilih.",
+  "modal.folder.filter-files": "Saring berkas berdasarkan nama",
+  "modal.folder.timeline.capture": "Direkam",
+  "modal.folder.timeline.delete": "Dihapus",
+  "modal.folder.timeline.move-in": "Dipindahkan ke sini",
+  "modal.folder.notice.no-file": "Tidak ada berkas yang dipilih.",
+  "modal.folder.notice.added": "Berkas ditambahkan setelah titik ini.",
+  "modal.folder.notice.deleted": "Berkas dihapus setelah titik ini.",
+  "modal.folder.notice.unchanged": "Tidak ada perubahan sejak titik ini.",
+  "version.badge.external": "eksternal",
+  "setting.exclude-paths-case-sensitive.name": "Pengecualian jalur peka huruf besar-kecil",
+  "setting.exclude-paths-case-sensitive.desc": "Saat diaktifkan, ekspresi reguler jalur yang dikecualikan dicocokkan dengan peka huruf besar-kecil (tanpa bendera 'i'). Nonaktifkan untuk mencocokkan tanpa memedulikan huruf besar-kecil: ini bawaan dan bekerja baik pada sistem berkas yang tidak peka huruf besar-kecil.",
+  "setting.purge-excluded.name": "Bersihkan riwayat untuk jalur yang dikecualikan",
+  "setting.purge-excluded.desc": "Hapus semua riwayat tersimpan untuk berkas yang jalurnya saat ini cocok dengan pola jalur yang dikecualikan. Catatan berkas terhapus juga dihapus. Tindakan ini tidak dapat diurungkan.",
+  "notice.purge-excluded": "Riwayat lokal: {count} snapshot untuk jalur yang dikecualikan dibersihkan.",
+  "notice.purge-excluded.no-match": "Riwayat lokal: tidak ada riwayat tersimpan yang cocok dengan jalur yang dikecualikan.",
+  "setting.reading-mode-indicator.name": "Tampilkan indikator di mode baca",
+  "setting.reading-mode-indicator.desc": "Hiasi blok yang dirender di mode baca dengan garis tepi kiri berwarna sesuai warna indikator penyuntingan (diubah, ditambahkan, spasi, dipulihkan). Nonaktif secara bawaan; ada sedikit biaya per blok pada setiap render ulang mode baca."
 };
 
 // lang/it.json
@@ -9850,9 +9689,16 @@ var it_default = {
   "setting.allowed-extensions.desc": "Elenco di estensioni di file separate da virgole di cui tracciare le modifiche (es. md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "Percorsi esclusi",
   "setting.exclude-paths.desc": "Un'espressione regolare senza distinzione tra maiuscole e minuscole confrontata con il percorso relativo al vault. Qualsiasi file il cui percorso corrisponde non viene mai tracciato (es. \\.excalidraw\\.md$ o (^|/)Templates/). Per impostazione predefinita vengono esclusi le cartelle Templates e i disegni Excalidraw. Lascia vuoto per tracciare tutto.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "Aggiungi pattern",
+  "setting.exclude-paths.placeholder": "ad es. (^|/)Templates/",
+  "setting.exclude-paths.remove": "Rimuovi questo pattern",
+  "setting.exclude-paths.empty": "Nessun percorso escluso. Usa il pulsante + per aggiungere un pattern.",
+  "setting.exclude-paths.edit": "Modifica pattern",
+  "setting.exclude-paths.save": "Salva pattern",
+  "setting.exclude-paths.cancel": "Annulla",
+  "setting.exclude-paths.error": "Il pattern deve essere un'espressione regolare valida e non vuota.",
+  "setting.general-heading": "Generale",
+  "setting.cleanup-heading": "Pulizia della cronologia",
   "setting.keep.name": "Conserva la cronologia fino a",
   "setting.keep.desc": "Strategia per la pulizia della cronologia delle revisioni",
   "setting.keep.option.app": "Chiusura dell'app",
@@ -9861,8 +9707,8 @@ var it_default = {
   "setting.ignore-new-files.desc": "Non tracciare le modifiche nei file creati dopo l'avvio del tracciamento",
   "setting.tree-highlight.name": "Evidenzia le modifiche nell'albero dei file e nelle schede",
   "setting.tree-highlight.desc": "Colora i file e le cartelle nell'esploratore file nativo e le intestazioni delle schede dei file aperti in base a ci\xF2 che \xE8 cambiato in questa sessione (ambra per modificato, verde per aggiunto).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "Evidenzia le modifiche nel pannello delle propriet\xE0",
+  "setting.properties-highlight.desc": "Mostra le chiavi del frontmatter aggiunte, modificate e rimosse nel pannello delle propriet\xE0 di Obsidian. Disattiva per nascondere tutta la decorazione delle differenze di propriet\xE0.",
   "setting.persist.name": "Mantieni la cronologia tra i riavvii",
   "setting.persist.desc": `Salva la cronologia su disco in modo che le evidenziazioni sopravvivano a un riavvio. Richiede che "Conserva la cronologia fino a" sia impostato sulla chiusura dell'app.`,
   "setting.max-entries.name": "Numero massimo di file memorizzati",
@@ -9910,10 +9756,10 @@ var it_default = {
   "modal.mode.side-by-side": "Affiancato",
   "modal.hide-identical": "Nascondi le versioni identiche all'attuale",
   "modal.confirm.cancel": "Annulla",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "Conferma",
+  "modal.confirm.default.message": "Vuoi davvero continuare?",
+  "modal.confirm.default.ok": "Conferma",
+  "modal.confirm.default.cancel": "Annulla",
   "modal.confirm.restore.title": "Ripristina il file originale",
   "modal.confirm.restore.message": "Vuoi davvero ripristinare questo file al suo stato originale? Tutte le modifiche correnti andranno perse e la cronologia di tracciamento delle modifiche verr\xE0 reimpostata. Questa azione non pu\xF2 essere annullata.",
   "modal.confirm.restore.button": "Ripristina file",
@@ -9932,52 +9778,53 @@ var it_default = {
   "modal.search-versions": "Cerca versioni",
   "modal.version.current": "Attuale",
   "modal.version.original": "Originale",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "Creata",
+  "modal.version.action.modified": "Modificata",
+  "modal.version.action.cleared": "Svuotata",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Nessuna versione corrisponde alla ricerca",
   "modal.revert-hunk": "Ripristina questa modifica",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "Annulla questa modifica",
   "modal.copy": "Copia",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "Applica etichetta",
+  "modal.put-label.message": "Contrassegna il contenuto corrente con una breve etichetta.",
+  "modal.put-label.placeholder": "Etichetta",
+  "modal.put-label.confirm": "Salva",
+  "menu.local-history.show-history": "Mostra cronologia",
+  "menu.local-history.show-history-selection": "Mostra cronologia per la selezione",
+  "menu.local-history.put-label": "Applica etichetta",
+  "menu.local-history.recent-changes": "Modifiche recenti",
+  "view.recent-changes.title": "Modifiche recenti",
+  "view.recent-changes.empty": "Nessuna cronologia delle versioni per il file attivo.",
+  "view.recent-changes.menu.show-diff": "Mostra differenze",
+  "view.recent-changes.menu.restore": "Ripristina questa versione",
+  "view.recent-changes.menu.delete": "Elimina versione",
+  "view.recent-changes.menu.put-label": "Applica etichetta",
+  "modal.label-selected": "Etichetta la versione selezionata",
+  "modal.label-version.message": "Contrassegna questa versione con una breve etichetta.",
+  "notice.no-folder-history": "Ancora nessuna cronologia della cartella.",
+  "setting.max-deleted-entries.name": "Max file eliminati conservati",
+  "setting.max-deleted-entries.desc": "Limite al numero di cronologie di file eliminati conservate su disco. Le pi\xF9 vecchie vengono rimosse per prime. Imposta 0 per disattivare.",
+  "setting.max-deleted-age-days.name": "Et\xE0 massima della cronologia dei file eliminati (giorni)",
+  "setting.max-deleted-age-days.desc": "Rimuovi le cronologie dei file eliminati pi\xF9 vecchie di questo numero di giorni. Imposta 0 per disattivare.",
+  "folder-tree.empty": "Nessuna modifica in questa cartella per il punto selezionato.",
+  "modal.folder.filter-files": "Filtra i file per nome",
+  "modal.folder.timeline.capture": "Acquisito",
+  "modal.folder.timeline.delete": "Eliminato",
+  "modal.folder.timeline.move-in": "Spostato qui",
+  "modal.folder.notice.no-file": "Nessun file selezionato.",
+  "modal.folder.notice.added": "Il file \xE8 stato aggiunto dopo questo punto.",
+  "modal.folder.notice.deleted": "Il file \xE8 stato eliminato dopo questo punto.",
+  "modal.folder.notice.unchanged": "Nessuna modifica da questo punto.",
+  "version.badge.external": "esterna",
+  "setting.exclude-paths-case-sensitive.name": "Esclusione dei percorsi con distinzione tra maiuscole e minuscole",
+  "setting.exclude-paths-case-sensitive.desc": "Se attivato, l'espressione regolare dei percorsi esclusi viene confrontata distinguendo tra maiuscole e minuscole (senza il flag 'i'). Disattiva per ignorare la distinzione: \xE8 l'impostazione predefinita e funziona bene sui file system che non distinguono le maiuscole.",
+  "setting.purge-excluded.name": "Elimina la cronologia dei percorsi esclusi",
+  "setting.purge-excluded.desc": "Elimina tutta la cronologia salvata dei file i cui percorsi corrispondono attualmente al pattern dei percorsi esclusi. Vengono rimossi anche i registri dei file eliminati. Questa azione non pu\xF2 essere annullata.",
+  "notice.purge-excluded": "Cronologia locale: eliminati {count} snapshot per i percorsi esclusi.",
+  "notice.purge-excluded.no-match": "Cronologia locale: nessuna cronologia salvata corrisponde ai percorsi esclusi.",
+  "setting.reading-mode-indicator.name": "Mostra indicatori in modalit\xE0 lettura",
+  "setting.reading-mode-indicator.desc": "Decora i blocchi renderizzati in modalit\xE0 lettura con un bordo sinistro colorato nei colori dell'indicatore di modifica (modificato, aggiunto, spazi, ripristinato). Disattivato per impostazione predefinita; comporta un piccolo costo per blocco a ogni re-rendering della modalit\xE0 lettura."
 };
 
 // lang/ja.json
@@ -10007,9 +9854,16 @@ var ja_default = {
   "setting.allowed-extensions.desc": "\u5909\u66F4\u3092\u8FFD\u8DE1\u3059\u308B\u30D5\u30A1\u30A4\u30EB\u62E1\u5F35\u5B50\u306E\u30AB\u30F3\u30DE\u533A\u5207\u308A\u30EA\u30B9\u30C8\uFF08\u4F8B: md, txt, csv, json, yaml\uFF09",
   "setting.exclude-paths.name": "\u9664\u5916\u3059\u308B\u30D1\u30B9",
   "setting.exclude-paths.desc": "Vault \u304B\u3089\u306E\u76F8\u5BFE\u30D1\u30B9\u306B\u5BFE\u3057\u3066\u7167\u5408\u3055\u308C\u308B\u3001\u5927\u6587\u5B57\u3068\u5C0F\u6587\u5B57\u3092\u533A\u5225\u3057\u306A\u3044\u6B63\u898F\u8868\u73FE\u3067\u3059\u3002\u30D1\u30B9\u304C\u4E00\u81F4\u3059\u308B\u30D5\u30A1\u30A4\u30EB\u306F\u4E00\u5207\u8FFD\u8DE1\u3055\u308C\u307E\u305B\u3093\uFF08\u4F8B: \\.excalidraw\\.md$ \u307E\u305F\u306F (^|/)Templates/\uFF09\u3002\u30C7\u30D5\u30A9\u30EB\u30C8\u3067\u306F Templates \u30D5\u30A9\u30EB\u30C0\u3068 Excalidraw \u306E\u63CF\u753B\u3092\u9664\u5916\u3057\u307E\u3059\u3002\u3059\u3079\u3066\u3092\u8FFD\u8DE1\u3059\u308B\u306B\u306F\u7A7A\u306E\u307E\u307E\u306B\u3057\u307E\u3059\u3002",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "\u30D1\u30BF\u30FC\u30F3\u3092\u8FFD\u52A0",
+  "setting.exclude-paths.placeholder": "\u4F8B: (^|/)Templates/",
+  "setting.exclude-paths.remove": "\u3053\u306E\u30D1\u30BF\u30FC\u30F3\u3092\u524A\u9664",
+  "setting.exclude-paths.empty": "\u9664\u5916\u30D1\u30B9\u306F\u307E\u3060\u3042\u308A\u307E\u305B\u3093\u3002+ \u30DC\u30BF\u30F3\u3067\u30D1\u30BF\u30FC\u30F3\u3092\u8FFD\u52A0\u3057\u3066\u304F\u3060\u3055\u3044\u3002",
+  "setting.exclude-paths.edit": "\u30D1\u30BF\u30FC\u30F3\u3092\u7DE8\u96C6",
+  "setting.exclude-paths.save": "\u30D1\u30BF\u30FC\u30F3\u3092\u4FDD\u5B58",
+  "setting.exclude-paths.cancel": "\u30AD\u30E3\u30F3\u30BB\u30EB",
+  "setting.exclude-paths.error": "\u30D1\u30BF\u30FC\u30F3\u306F\u7A7A\u3067\u306A\u3044\u6709\u52B9\u306A\u6B63\u898F\u8868\u73FE\u3067\u3042\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059\u3002",
+  "setting.general-heading": "\u4E00\u822C",
+  "setting.cleanup-heading": "\u5C65\u6B74\u306E\u30AF\u30EA\u30FC\u30F3\u30A2\u30C3\u30D7",
   "setting.keep.name": "\u5C65\u6B74\u3092\u4FDD\u6301\u3059\u308B\u671F\u9593",
   "setting.keep.desc": "\u30EA\u30D3\u30B8\u30E7\u30F3\u5C65\u6B74\u3092\u6574\u7406\u3059\u308B\u65B9\u6CD5",
   "setting.keep.option.app": "\u30A2\u30D7\u30EA\u3092\u9589\u3058\u308B\u307E\u3067",
@@ -10018,8 +9872,8 @@ var ja_default = {
   "setting.ignore-new-files.desc": "\u8FFD\u8DE1\u958B\u59CB\u5F8C\u306B\u4F5C\u6210\u3055\u308C\u305F\u30D5\u30A1\u30A4\u30EB\u306E\u5909\u66F4\u3092\u8FFD\u8DE1\u3057\u307E\u305B\u3093",
   "setting.tree-highlight.name": "\u30D5\u30A1\u30A4\u30EB\u30C4\u30EA\u30FC\u3068\u30BF\u30D6\u3067\u5909\u66F4\u3092\u5F37\u8ABF\u8868\u793A",
   "setting.tree-highlight.desc": "\u30CD\u30A4\u30C6\u30A3\u30D6\u306E\u30D5\u30A1\u30A4\u30EB\u30A8\u30AF\u30B9\u30D7\u30ED\u30FC\u30E9\u30FC\u5185\u306E\u30D5\u30A1\u30A4\u30EB\u3068\u30D5\u30A9\u30EB\u30C0\u30FC\u3001\u304A\u3088\u3073\u958B\u3044\u3066\u3044\u308B\u30D5\u30A1\u30A4\u30EB\u306E\u30BF\u30D6\u30D8\u30C3\u30C0\u30FC\u3092\u3001\u3053\u306E\u30BB\u30C3\u30B7\u30E7\u30F3\u3067\u5909\u66F4\u3055\u308C\u305F\u5185\u5BB9\u306B\u5FDC\u3058\u3066\u8272\u4ED8\u3051\u3057\u307E\u3059\uFF08\u5909\u66F4\u306F\u7425\u73C0\u8272\u3001\u8FFD\u52A0\u306F\u7DD1\u8272\uFF09\u3002",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "\u30D7\u30ED\u30D1\u30C6\u30A3\u30D1\u30CD\u30EB\u3067\u5909\u66F4\u3092\u30CF\u30A4\u30E9\u30A4\u30C8",
+  "setting.properties-highlight.desc": "\u8FFD\u52A0\u30FB\u5909\u66F4\u30FB\u524A\u9664\u3055\u308C\u305F\u30D5\u30ED\u30F3\u30C8\u30DE\u30BF\u30FC\u306E\u30AD\u30FC\u3092 Obsidian \u306E\u30D7\u30ED\u30D1\u30C6\u30A3\u30D1\u30CD\u30EB\u306B\u8868\u793A\u3057\u307E\u3059\u3002\u7121\u52B9\u306B\u3059\u308B\u3068\u30D7\u30ED\u30D1\u30C6\u30A3\u5DEE\u5206\u306E\u88C5\u98FE\u3092\u3059\u3079\u3066\u975E\u8868\u793A\u306B\u3057\u307E\u3059\u3002",
   "setting.persist.name": "\u518D\u8D77\u52D5\u5F8C\u3082\u5C65\u6B74\u3092\u4FDD\u6301",
   "setting.persist.desc": "\u5C65\u6B74\u3092\u30C7\u30A3\u30B9\u30AF\u306B\u4FDD\u5B58\u3057\u3001\u518D\u8D77\u52D5\u5F8C\u3082\u30CF\u30A4\u30E9\u30A4\u30C8\u304C\u6B8B\u308B\u3088\u3046\u306B\u3057\u307E\u3059\u3002\u300C\u5C65\u6B74\u3092\u4FDD\u6301\u3059\u308B\u671F\u9593\u300D\u3092\u30A2\u30D7\u30EA\u3092\u9589\u3058\u308B\u307E\u3067\u306B\u8A2D\u5B9A\u3059\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059\u3002",
   "setting.max-entries.name": "\u4FDD\u5B58\u3059\u308B\u30D5\u30A1\u30A4\u30EB\u306E\u6700\u5927\u6570",
@@ -10067,10 +9921,10 @@ var ja_default = {
   "modal.mode.side-by-side": "\u5DE6\u53F3\u306B\u4E26\u3079\u3066\u8868\u793A",
   "modal.hide-identical": "\u73FE\u5728\u306E\u5185\u5BB9\u3068\u540C\u4E00\u306E\u30D0\u30FC\u30B8\u30E7\u30F3\u3092\u975E\u8868\u793A",
   "modal.confirm.cancel": "\u30AD\u30E3\u30F3\u30BB\u30EB",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "\u78BA\u8A8D",
+  "modal.confirm.default.message": "\u672C\u5F53\u306B\u7D9A\u884C\u3057\u307E\u3059\u304B?",
+  "modal.confirm.default.ok": "\u78BA\u8A8D",
+  "modal.confirm.default.cancel": "\u30AD\u30E3\u30F3\u30BB\u30EB",
   "modal.confirm.restore.title": "\u5143\u306E\u30D5\u30A1\u30A4\u30EB\u3092\u5FA9\u5143",
   "modal.confirm.restore.message": "\u3053\u306E\u30D5\u30A1\u30A4\u30EB\u3092\u5143\u306E\u72B6\u614B\u306B\u5FA9\u5143\u3057\u3066\u3082\u3088\u308D\u3057\u3044\u3067\u3059\u304B\uFF1F\u73FE\u5728\u306E\u5909\u66F4\u306F\u3059\u3079\u3066\u5931\u308F\u308C\u3001\u5909\u66F4\u8FFD\u8DE1\u306E\u5C65\u6B74\u306F\u30EA\u30BB\u30C3\u30C8\u3055\u308C\u307E\u3059\u3002\u3053\u306E\u64CD\u4F5C\u306F\u53D6\u308A\u6D88\u305B\u307E\u305B\u3093\u3002",
   "modal.confirm.restore.button": "\u30D5\u30A1\u30A4\u30EB\u3092\u5FA9\u5143",
@@ -10089,52 +9943,53 @@ var ja_default = {
   "modal.search-versions": "\u30D0\u30FC\u30B8\u30E7\u30F3\u3092\u691C\u7D22",
   "modal.version.current": "\u73FE\u5728",
   "modal.version.original": "\u5143\u306E\u72B6\u614B",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "\u4F5C\u6210",
+  "modal.version.action.modified": "\u5909\u66F4",
+  "modal.version.action.cleared": "\u30AF\u30EA\u30A2",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u691C\u7D22\u306B\u4E00\u81F4\u3059\u308B\u30D0\u30FC\u30B8\u30E7\u30F3\u304C\u3042\u308A\u307E\u305B\u3093",
   "modal.revert-hunk": "\u3053\u306E\u5909\u66F4\u3092\u5143\u306B\u623B\u3059",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "\u3053\u306E\u5909\u66F4\u3092\u5143\u306B\u623B\u3059",
   "modal.copy": "\u30B3\u30D4\u30FC",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "\u30E9\u30D9\u30EB\u3092\u4ED8\u3051\u308B",
+  "modal.put-label.message": "\u73FE\u5728\u306E\u5185\u5BB9\u306B\u77ED\u3044\u30E9\u30D9\u30EB\u3092\u4ED8\u3051\u307E\u3059\u3002",
+  "modal.put-label.placeholder": "\u30E9\u30D9\u30EB",
+  "modal.put-label.confirm": "\u4FDD\u5B58",
+  "menu.local-history.show-history": "\u5C65\u6B74\u3092\u8868\u793A",
+  "menu.local-history.show-history-selection": "\u9078\u629E\u7BC4\u56F2\u306E\u5C65\u6B74\u3092\u8868\u793A",
+  "menu.local-history.put-label": "\u30E9\u30D9\u30EB\u3092\u4ED8\u3051\u308B",
+  "menu.local-history.recent-changes": "\u6700\u8FD1\u306E\u5909\u66F4",
+  "view.recent-changes.title": "\u6700\u8FD1\u306E\u5909\u66F4",
+  "view.recent-changes.empty": "\u30A2\u30AF\u30C6\u30A3\u30D6\u306A\u30D5\u30A1\u30A4\u30EB\u306B\u306F\u30D0\u30FC\u30B8\u30E7\u30F3\u5C65\u6B74\u304C\u3042\u308A\u307E\u305B\u3093\u3002",
+  "view.recent-changes.menu.show-diff": "\u5DEE\u5206\u3092\u8868\u793A",
+  "view.recent-changes.menu.restore": "\u3053\u306E\u30D0\u30FC\u30B8\u30E7\u30F3\u306B\u5FA9\u5143",
+  "view.recent-changes.menu.delete": "\u30D0\u30FC\u30B8\u30E7\u30F3\u3092\u524A\u9664",
+  "view.recent-changes.menu.put-label": "\u30E9\u30D9\u30EB\u3092\u4ED8\u3051\u308B",
+  "modal.label-selected": "\u9078\u629E\u3057\u305F\u30D0\u30FC\u30B8\u30E7\u30F3\u306B\u30E9\u30D9\u30EB\u3092\u4ED8\u3051\u308B",
+  "modal.label-version.message": "\u3053\u306E\u30D0\u30FC\u30B8\u30E7\u30F3\u306B\u77ED\u3044\u30E9\u30D9\u30EB\u3092\u4ED8\u3051\u307E\u3059\u3002",
+  "notice.no-folder-history": "\u30D5\u30A9\u30EB\u30C0\u30FC\u5C65\u6B74\u306F\u307E\u3060\u3042\u308A\u307E\u305B\u3093\u3002",
+  "setting.max-deleted-entries.name": "\u4FDD\u5B58\u3059\u308B\u524A\u9664\u6E08\u307F\u30D5\u30A1\u30A4\u30EB\u306E\u4E0A\u9650",
+  "setting.max-deleted-entries.desc": "\u524A\u9664\u6E08\u307F\u30D5\u30A1\u30A4\u30EB\u306E\u5C65\u6B74\u3092\u30C7\u30A3\u30B9\u30AF\u306B\u4FDD\u6301\u3059\u308B\u6570\u306E\u4E0A\u9650\u3067\u3059\u3002\u6700\u3082\u53E4\u3044\u3082\u306E\u304B\u3089\u524A\u9664\u3055\u308C\u307E\u3059\u30020 \u3067\u7121\u52B9\u306B\u306A\u308A\u307E\u3059\u3002",
+  "setting.max-deleted-age-days.name": "\u524A\u9664\u6E08\u307F\u5C65\u6B74\u306E\u6700\u5927\u4FDD\u6301\u671F\u9593 (\u65E5)",
+  "setting.max-deleted-age-days.desc": "\u3053\u306E\u65E5\u6570\u3088\u308A\u53E4\u3044\u524A\u9664\u6E08\u307F\u30D5\u30A1\u30A4\u30EB\u306E\u5C65\u6B74\u3092\u524A\u9664\u3057\u307E\u3059\u30020 \u3067\u7121\u52B9\u306B\u306A\u308A\u307E\u3059\u3002",
+  "folder-tree.empty": "\u9078\u629E\u3057\u305F\u6642\u70B9\u3067\u306F\u3001\u3053\u306E\u30D5\u30A9\u30EB\u30C0\u30FC\u306B\u5909\u66F4\u306F\u3042\u308A\u307E\u305B\u3093\u3002",
+  "modal.folder.filter-files": "\u30D5\u30A1\u30A4\u30EB\u540D\u3067\u7D5E\u308A\u8FBC\u307F",
+  "modal.folder.timeline.capture": "\u30AD\u30E3\u30D7\u30C1\u30E3",
+  "modal.folder.timeline.delete": "\u524A\u9664",
+  "modal.folder.timeline.move-in": "\u3053\u3053\u3078\u79FB\u52D5",
+  "modal.folder.notice.no-file": "\u30D5\u30A1\u30A4\u30EB\u304C\u9078\u629E\u3055\u308C\u3066\u3044\u307E\u305B\u3093\u3002",
+  "modal.folder.notice.added": "\u3053\u306E\u6642\u70B9\u3088\u308A\u5F8C\u306B\u30D5\u30A1\u30A4\u30EB\u304C\u8FFD\u52A0\u3055\u308C\u307E\u3057\u305F\u3002",
+  "modal.folder.notice.deleted": "\u3053\u306E\u6642\u70B9\u3088\u308A\u5F8C\u306B\u30D5\u30A1\u30A4\u30EB\u304C\u524A\u9664\u3055\u308C\u307E\u3057\u305F\u3002",
+  "modal.folder.notice.unchanged": "\u3053\u306E\u6642\u70B9\u304B\u3089\u5909\u66F4\u306F\u3042\u308A\u307E\u305B\u3093\u3002",
+  "version.badge.external": "\u5916\u90E8",
+  "setting.exclude-paths-case-sensitive.name": "\u30D1\u30B9\u9664\u5916\u3067\u5927\u6587\u5B57\u3068\u5C0F\u6587\u5B57\u3092\u533A\u5225",
+  "setting.exclude-paths-case-sensitive.desc": "\u6709\u52B9\u306B\u3059\u308B\u3068\u3001\u9664\u5916\u30D1\u30B9\u306E\u6B63\u898F\u8868\u73FE\u306F\u5927\u6587\u5B57\u3068\u5C0F\u6587\u5B57\u3092\u533A\u5225\u3057\u3066\u7167\u5408\u3055\u308C\u307E\u3059 ('i' \u30D5\u30E9\u30B0\u306A\u3057)\u3002\u7121\u52B9\u306B\u3059\u308B\u3068\u5927\u6587\u5B57\u5C0F\u6587\u5B57\u3092\u533A\u5225\u305B\u305A\u306B\u7167\u5408\u3057\u307E\u3059\u3002\u3053\u3061\u3089\u304C\u65E2\u5B9A\u3067\u3001\u5927\u6587\u5B57\u5C0F\u6587\u5B57\u3092\u533A\u5225\u3057\u306A\u3044\u30D5\u30A1\u30A4\u30EB\u30B7\u30B9\u30C6\u30E0\u3067\u3046\u307E\u304F\u6A5F\u80FD\u3057\u307E\u3059\u3002",
+  "setting.purge-excluded.name": "\u9664\u5916\u30D1\u30B9\u306E\u5C65\u6B74\u3092\u524A\u9664",
+  "setting.purge-excluded.desc": "\u73FE\u5728\u9664\u5916\u30D1\u30B9\u306E\u30D1\u30BF\u30FC\u30F3\u306B\u4E00\u81F4\u3059\u308B\u30D5\u30A1\u30A4\u30EB\u306E\u4FDD\u5B58\u6E08\u307F\u5C65\u6B74\u3092\u3059\u3079\u3066\u524A\u9664\u3057\u307E\u3059\u3002\u524A\u9664\u6E08\u307F\u30D5\u30A1\u30A4\u30EB\u306E\u8A18\u9332\u3082\u524A\u9664\u3055\u308C\u307E\u3059\u3002\u3053\u306E\u64CD\u4F5C\u306F\u5143\u306B\u623B\u305B\u307E\u305B\u3093\u3002",
+  "notice.purge-excluded": "\u30ED\u30FC\u30AB\u30EB\u5C65\u6B74: \u9664\u5916\u30D1\u30B9\u306E\u30B9\u30CA\u30C3\u30D7\u30B7\u30E7\u30C3\u30C8\u3092 {count} \u4EF6\u524A\u9664\u3057\u307E\u3057\u305F\u3002",
+  "notice.purge-excluded.no-match": "\u30ED\u30FC\u30AB\u30EB\u5C65\u6B74: \u9664\u5916\u30D1\u30B9\u306B\u4E00\u81F4\u3059\u308B\u4FDD\u5B58\u6E08\u307F\u5C65\u6B74\u306F\u3042\u308A\u307E\u305B\u3093\u3002",
+  "setting.reading-mode-indicator.name": "\u95B2\u89A7\u30E2\u30FC\u30C9\u3067\u30A4\u30F3\u30B8\u30B1\u30FC\u30BF\u30FC\u3092\u8868\u793A",
+  "setting.reading-mode-indicator.desc": "\u95B2\u89A7\u30E2\u30FC\u30C9\u3067\u63CF\u753B\u3055\u308C\u305F\u30D6\u30ED\u30C3\u30AF\u3092\u3001\u7DE8\u96C6\u30A4\u30F3\u30B8\u30B1\u30FC\u30BF\u30FC\u306E\u8272 (\u5909\u66F4\u30FB\u8FFD\u52A0\u30FB\u7A7A\u767D\u30FB\u5FA9\u5143) \u306B\u5408\u308F\u305B\u305F\u8272\u4ED8\u304D\u306E\u5DE6\u30DC\u30FC\u30C0\u30FC\u3067\u88C5\u98FE\u3057\u307E\u3059\u3002\u65E2\u5B9A\u3067\u306F\u7121\u52B9\u3067\u3059\u3002\u95B2\u89A7\u30E2\u30FC\u30C9\u306E\u518D\u63CF\u753B\u3054\u3068\u306B\u30D6\u30ED\u30C3\u30AF\u3042\u305F\u308A\u308F\u305A\u304B\u306A\u30B3\u30B9\u30C8\u304C\u304B\u304B\u308A\u307E\u3059\u3002"
 };
 
 // lang/ka.json
@@ -10164,9 +10019,16 @@ var ka_default = {
   "setting.allowed-extensions.desc": "\u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10D6\u10D4 \u10E1\u10D0\u10D7\u10D5\u10D0\u10DA\u10D7\u10D5\u10D0\u10DA\u10DD \u10E4\u10D0\u10D8\u10DA\u10D8\u10E1 \u10D2\u10D0\u10E4\u10D0\u10E0\u10D7\u10DD\u10D4\u10D1\u10D4\u10D1\u10D8\u10E1 \u10DB\u10EB\u10D8\u10DB\u10D8\u10D7 \u10D2\u10D0\u10DB\u10DD\u10E7\u10DD\u10E4\u10D8\u10DA\u10D8 \u10E1\u10D8\u10D0 (\u10DB\u10D0\u10D2. md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "\u10D2\u10D0\u10DB\u10DD\u10E0\u10D8\u10EA\u10EE\u10E3\u10DA\u10D8 \u10D2\u10D6\u10D4\u10D1\u10D8",
   "setting.exclude-paths.desc": "\u10E0\u10D4\u10D2\u10D8\u10E1\u10E2\u10E0\u10D8\u10E1\u10D0\u10D3\u10DB\u10D8 \u10D0\u10E0\u10D0\u10DB\u10D2\u10E0\u10EB\u10DC\u10DD\u10D1\u10D8\u10D0\u10E0\u10D4 \u10E0\u10D4\u10D2\u10E3\u10DA\u10D0\u10E0\u10E3\u10DA\u10D8 \u10D2\u10D0\u10DB\u10DD\u10E1\u10D0\u10EE\u10E3\u10DA\u10D4\u10D1\u10D0, \u10E0\u10DD\u10DB\u10D4\u10DA\u10D8\u10EA \u10D4\u10D3\u10D0\u10E0\u10D4\u10D1\u10D0 \u10E1\u10D0\u10EA\u10D0\u10D5\u10D8\u10E1 \u10E4\u10D0\u10E0\u10D3\u10DD\u10D1\u10D8\u10D7 \u10D2\u10D6\u10D0\u10E1. \u10DC\u10D4\u10D1\u10D8\u10E1\u10DB\u10D8\u10D4\u10E0\u10D8 \u10E4\u10D0\u10D8\u10DA\u10D8, \u10E0\u10DD\u10DB\u10DA\u10D8\u10E1 \u10D2\u10D6\u10D0\u10EA \u10D4\u10DB\u10D7\u10EE\u10D5\u10D4\u10D5\u10D0, \u10D0\u10E0\u10D0\u10E1\u10DD\u10D3\u10D4\u10E1 \u10D7\u10D5\u10D0\u10DA\u10D3\u10D4\u10D5\u10DC\u10D4\u10D1\u10D0 (\u10DB\u10D0\u10D2. \\.excalidraw\\.md$ \u10D0\u10DC (^|/)Templates/). \u10DC\u10D0\u10D2\u10E3\u10DA\u10D8\u10E1\u10EE\u10DB\u10D4\u10D5\u10D8 \u10DE\u10D0\u10E0\u10D0\u10DB\u10D4\u10E2\u10E0\u10D8 \u10D2\u10D0\u10DB\u10DD\u10E0\u10D8\u10EA\u10EE\u10D0\u10D5\u10E1 Templates \u10E1\u10D0\u10E5\u10D0\u10E6\u10D0\u10DA\u10D3\u10D4\u10D4\u10D1\u10E1\u10D0 \u10D3\u10D0 Excalidraw \u10DC\u10D0\u10EE\u10D0\u10D6\u10D4\u10D1\u10E1. \u10D3\u10D0\u10E2\u10DD\u10D5\u10D4\u10D7 \u10EA\u10D0\u10E0\u10D8\u10D4\u10DA\u10D8 \u10E7\u10D5\u10D4\u10DA\u10D0\u10E4\u10E0\u10D8\u10E1 \u10D7\u10D5\u10D0\u10DA\u10D3\u10D0\u10E1\u10D0\u10D3\u10D4\u10D5\u10DC\u10D4\u10D1\u10DA\u10D0\u10D3.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "\u10E8\u10D0\u10D1\u10DA\u10DD\u10DC\u10D8\u10E1 \u10D3\u10D0\u10DB\u10D0\u10E2\u10D4\u10D1\u10D0",
+  "setting.exclude-paths.placeholder": "\u10DB\u10D0\u10D2. (^|/)Templates/",
+  "setting.exclude-paths.remove": "\u10D0\u10DB \u10E8\u10D0\u10D1\u10DA\u10DD\u10DC\u10D8\u10E1 \u10EC\u10D0\u10E8\u10DA\u10D0",
+  "setting.exclude-paths.empty": "\u10D2\u10D0\u10DB\u10DD\u10E0\u10D8\u10EA\u10EE\u10E3\u10DA\u10D8 \u10D2\u10D6\u10D4\u10D1\u10D8 \u10EF\u10D4\u10E0 \u10D0\u10E0 \u10D0\u10E0\u10D8\u10E1. \u10E8\u10D0\u10D1\u10DA\u10DD\u10DC\u10D8\u10E1 \u10D3\u10D0\u10E1\u10D0\u10DB\u10D0\u10E2\u10D4\u10D1\u10DA\u10D0\u10D3 \u10D2\u10D0\u10DB\u10DD\u10D8\u10E7\u10D4\u10DC\u10D4\u10D7 \u10E6\u10D8\u10DA\u10D0\u10D9\u10D8 +.",
+  "setting.exclude-paths.edit": "\u10E8\u10D0\u10D1\u10DA\u10DD\u10DC\u10D8\u10E1 \u10E0\u10D4\u10D3\u10D0\u10E5\u10E2\u10D8\u10E0\u10D4\u10D1\u10D0",
+  "setting.exclude-paths.save": "\u10E8\u10D0\u10D1\u10DA\u10DD\u10DC\u10D8\u10E1 \u10E8\u10D4\u10DC\u10D0\u10EE\u10D5\u10D0",
+  "setting.exclude-paths.cancel": "\u10D2\u10D0\u10E3\u10E5\u10DB\u10D4\u10D1\u10D0",
+  "setting.exclude-paths.error": "\u10E8\u10D0\u10D1\u10DA\u10DD\u10DC\u10D8 \u10E3\u10DC\u10D3\u10D0 \u10D8\u10E7\u10DD\u10E1 \u10D0\u10E0\u10D0\u10EA\u10D0\u10E0\u10D8\u10D4\u10DA\u10D8, \u10E1\u10EC\u10DD\u10E0\u10D8 \u10E0\u10D4\u10D2\u10E3\u10DA\u10D0\u10E0\u10E3\u10DA\u10D8 \u10D2\u10D0\u10DB\u10DD\u10E1\u10D0\u10EE\u10E3\u10DA\u10D4\u10D1\u10D0.",
+  "setting.general-heading": "\u10D6\u10DD\u10D2\u10D0\u10D3\u10D8",
+  "setting.cleanup-heading": "\u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D8\u10E1 \u10D2\u10D0\u10E1\u10E3\u10E4\u10D7\u10D0\u10D5\u10D4\u10D1\u10D0",
   "setting.keep.name": "\u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D8\u10E1 \u10E8\u10D4\u10DC\u10D0\u10EE\u10D5\u10D0 \u10D5\u10D8\u10D3\u10E0\u10D4",
   "setting.keep.desc": "\u10D2\u10D0\u10D3\u10D0\u10E1\u10D8\u10DC\u10EF\u10D5\u10D4\u10D1\u10D8\u10E1 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D8\u10E1 \u10D2\u10D0\u10E1\u10E3\u10E4\u10D7\u10D0\u10D5\u10D4\u10D1\u10D8\u10E1 \u10E1\u10E2\u10E0\u10D0\u10E2\u10D4\u10D2\u10D8\u10D0",
   "setting.keep.option.app": "\u10D0\u10DE\u10DA\u10D8\u10D9\u10D0\u10EA\u10D8\u10D8\u10E1 \u10D3\u10D0\u10EE\u10E3\u10E0\u10D5\u10D0",
@@ -10175,8 +10037,8 @@ var ka_default = {
   "setting.ignore-new-files.desc": "\u10DC\u10E3 \u10D7\u10D5\u10D0\u10DA\u10E7\u10E3\u10E0\u10E1 \u10D0\u10D3\u10D4\u10D5\u10DC\u10D4\u10D1 \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10E1 \u10E4\u10D0\u10D8\u10DA\u10D4\u10D1\u10E8\u10D8, \u10E0\u10DD\u10DB\u10DA\u10D4\u10D1\u10D8\u10EA \u10D7\u10D5\u10D0\u10DA\u10D3\u10D4\u10D5\u10DC\u10D4\u10D1\u10D8\u10E1 \u10D3\u10D0\u10EC\u10E7\u10D4\u10D1\u10D8\u10E1 \u10E8\u10D4\u10DB\u10D3\u10D4\u10D2 \u10E8\u10D4\u10D8\u10E5\u10DB\u10DC\u10D0",
   "setting.tree-highlight.name": "\u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10D8\u10E1 \u10DB\u10DD\u10DC\u10D8\u10E8\u10D5\u10DC\u10D0 \u10E4\u10D0\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10EE\u10D4\u10E8\u10D8 \u10D3\u10D0 \u10E9\u10D0\u10DC\u10D0\u10E0\u10D7\u10D4\u10D1\u10E8\u10D8",
   "setting.tree-highlight.desc": "\u10E8\u10D4\u10E6\u10D4\u10D1\u10D0\u10D5\u10E1 \u10E4\u10D0\u10D8\u10DA\u10D4\u10D1\u10E1\u10D0 \u10D3\u10D0 \u10E1\u10D0\u10E5\u10D0\u10E6\u10D0\u10DA\u10D3\u10D4\u10D4\u10D1\u10E1 \u10E9\u10D0\u10E8\u10D4\u10DC\u10D4\u10D1\u10E3\u10DA \u10E4\u10D0\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10DB\u10D9\u10D5\u10DA\u10D4\u10D5\u10D0\u10E0\u10E8\u10D8, \u10D0\u10D2\u10E0\u10D4\u10D7\u10D5\u10D4 \u10E6\u10D8\u10D0 \u10E4\u10D0\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10E9\u10D0\u10DC\u10D0\u10E0\u10D7\u10D4\u10D1\u10D8\u10E1 \u10E1\u10D0\u10D7\u10D0\u10E3\u10E0\u10D4\u10D1\u10E1 \u10D8\u10DB\u10D8\u10E1 \u10DB\u10D8\u10EE\u10D4\u10D3\u10D5\u10D8\u10D7, \u10E0\u10D0 \u10E8\u10D4\u10D8\u10EA\u10D5\u10D0\u10DA\u10D0 \u10D0\u10DB \u10E1\u10D4\u10E1\u10D8\u10D0\u10E8\u10D8 (\u10E5\u10D0\u10E0\u10D5\u10D8\u10E1\u10E4\u10D4\u10E0\u10D8 \u10E8\u10D4\u10EA\u10D5\u10DA\u10D8\u10DA\u10D8\u10E1\u10D7\u10D5\u10D8\u10E1, \u10DB\u10EC\u10D5\u10D0\u10DC\u10D4 \u10D3\u10D0\u10DB\u10D0\u10E2\u10D4\u10D1\u10E3\u10DA\u10D8\u10E1\u10D7\u10D5\u10D8\u10E1).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "\u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10D8\u10E1 \u10D2\u10D0\u10DB\u10DD\u10D9\u10D5\u10D4\u10D7\u10D0 \u10D7\u10D5\u10D8\u10E1\u10D4\u10D1\u10D4\u10D1\u10D8\u10E1 \u10DE\u10D0\u10DC\u10D4\u10DA\u10E8\u10D8",
+  "setting.properties-highlight.desc": "\u10D3\u10D0\u10DB\u10D0\u10E2\u10D4\u10D1\u10E3\u10DA\u10D8, \u10E8\u10D4\u10EA\u10D5\u10DA\u10D8\u10DA\u10D8 \u10D3\u10D0 \u10EC\u10D0\u10E8\u10DA\u10D8\u10DA\u10D8 frontmatter \u10D2\u10D0\u10E1\u10D0\u10E6\u10D4\u10D1\u10D4\u10D1\u10D8\u10E1 \u10E9\u10D5\u10D4\u10DC\u10D4\u10D1\u10D0 Obsidian-\u10D8\u10E1 \u10D7\u10D5\u10D8\u10E1\u10D4\u10D1\u10D4\u10D1\u10D8\u10E1 \u10DE\u10D0\u10DC\u10D4\u10DA\u10E8\u10D8. \u10D2\u10D0\u10DB\u10DD\u10E0\u10D7\u10D4\u10D7, \u10E0\u10DD\u10DB \u10D3\u10D0\u10D8\u10DB\u10D0\u10DA\u10DD\u10E1 \u10D7\u10D5\u10D8\u10E1\u10D4\u10D1\u10D4\u10D1\u10D8\u10E1 \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10D8\u10E1 \u10E7\u10D5\u10D4\u10DA\u10D0 \u10D0\u10E6\u10DC\u10D8\u10E8\u10D5\u10DC\u10D0.",
   "setting.persist.name": "\u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D8\u10E1 \u10E8\u10D4\u10DC\u10D0\u10E0\u10E9\u10E3\u10DC\u10D4\u10D1\u10D0 \u10D2\u10D0\u10D3\u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D5\u10D4\u10D1\u10E1 \u10E8\u10DD\u10E0\u10D8\u10E1",
   "setting.persist.desc": '\u10E8\u10D4\u10D8\u10DC\u10D0\u10EE\u10D4\u10D7 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D0 \u10D3\u10D8\u10E1\u10D9\u10D6\u10D4, \u10E0\u10D0\u10D7\u10D0 \u10D2\u10D0\u10DB\u10DD\u10E7\u10DD\u10E4\u10D4\u10D1\u10D8 \u10D2\u10D0\u10D3\u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D5\u10D0\u10E1 \u10D2\u10D0\u10D3\u10D0\u10E3\u10E0\u10E9\u10D4\u10E1. \u10DB\u10DD\u10D8\u10D7\u10EE\u10DD\u10D5\u10E1, \u10E0\u10DD\u10DB "\u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D8\u10E1 \u10E8\u10D4\u10DC\u10D0\u10EE\u10D5\u10D0 \u10D5\u10D8\u10D3\u10E0\u10D4" \u10D3\u10D0\u10E7\u10D4\u10DC\u10D4\u10D1\u10E3\u10DA\u10D8 \u10D8\u10E7\u10DD\u10E1 \u10D0\u10DE\u10DA\u10D8\u10D9\u10D0\u10EA\u10D8\u10D8\u10E1 \u10D3\u10D0\u10EE\u10E3\u10E0\u10D5\u10D0\u10D6\u10D4.',
   "setting.max-entries.name": "\u10E8\u10D4\u10DC\u10D0\u10EE\u10E3\u10DA\u10D8 \u10E4\u10D0\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10DB\u10D0\u10E5\u10E1\u10D8\u10DB\u10E3\u10DB\u10D8",
@@ -10224,10 +10086,10 @@ var ka_default = {
   "modal.mode.side-by-side": "\u10D2\u10D5\u10D4\u10E0\u10D3\u10D8\u10D2\u10D5\u10D4\u10E0\u10D3",
   "modal.hide-identical": "\u10DB\u10D8\u10DB\u10D3\u10D8\u10DC\u10D0\u10E0\u10D8\u10E1 \u10D8\u10D3\u10D4\u10DC\u10E2\u10E3\u10E0\u10D8 \u10D5\u10D4\u10E0\u10E1\u10D8\u10D4\u10D1\u10D8\u10E1 \u10D3\u10D0\u10DB\u10D0\u10DA\u10D5\u10D0",
   "modal.confirm.cancel": "\u10D2\u10D0\u10E3\u10E5\u10DB\u10D4\u10D1\u10D0",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "\u10D3\u10D0\u10D3\u10D0\u10E1\u10E2\u10E3\u10E0\u10D4\u10D1\u10D0",
+  "modal.confirm.default.message": "\u10D3\u10D0\u10E0\u10EC\u10DB\u10E3\u10DC\u10D4\u10D1\u10E3\u10DA\u10D8 \u10EE\u10D0\u10E0\u10D7, \u10E0\u10DD\u10DB \u10D2\u10E1\u10E3\u10E0\u10D7 \u10D2\u10D0\u10D2\u10E0\u10EB\u10D4\u10DA\u10D4\u10D1\u10D0?",
+  "modal.confirm.default.ok": "\u10D3\u10D0\u10D3\u10D0\u10E1\u10E2\u10E3\u10E0\u10D4\u10D1\u10D0",
+  "modal.confirm.default.cancel": "\u10D2\u10D0\u10E3\u10E5\u10DB\u10D4\u10D1\u10D0",
   "modal.confirm.restore.title": "\u10DD\u10E0\u10D8\u10D2\u10D8\u10DC\u10D0\u10DA\u10D8 \u10E4\u10D0\u10D8\u10DA\u10D8\u10E1 \u10D0\u10E6\u10D3\u10D2\u10D4\u10DC\u10D0",
   "modal.confirm.restore.message": "\u10D3\u10D0\u10E0\u10EC\u10DB\u10E3\u10DC\u10D4\u10D1\u10E3\u10DA\u10D8 \u10EE\u10D0\u10E0\u10D7, \u10E0\u10DD\u10DB \u10D2\u10E1\u10E3\u10E0\u10D7 \u10D0\u10DB \u10E4\u10D0\u10D8\u10DA\u10D8\u10E1 \u10E1\u10D0\u10EC\u10E7\u10D8\u10E1 \u10DB\u10D3\u10D2\u10DD\u10DB\u10D0\u10E0\u10D4\u10DD\u10D1\u10D0\u10DB\u10D3\u10D4 \u10D0\u10E6\u10D3\u10D2\u10D4\u10DC\u10D0? \u10E7\u10D5\u10D4\u10DA\u10D0 \u10DB\u10D8\u10DB\u10D3\u10D8\u10DC\u10D0\u10E0\u10D4 \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D0 \u10D3\u10D0\u10D8\u10D9\u10D0\u10E0\u10D2\u10D4\u10D1\u10D0 \u10D3\u10D0 \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10D8\u10E1 \u10D7\u10D5\u10D0\u10DA\u10D3\u10D4\u10D5\u10DC\u10D4\u10D1\u10D8\u10E1 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D0 \u10D2\u10D0\u10D3\u10D0\u10D8\u10E2\u10D5\u10D8\u10E0\u10D7\u10D4\u10D1\u10D0. \u10D0\u10DB \u10DB\u10DD\u10E5\u10DB\u10D4\u10D3\u10D4\u10D1\u10D8\u10E1 \u10D2\u10D0\u10E3\u10E5\u10DB\u10D4\u10D1\u10D0 \u10E8\u10D4\u10E3\u10EB\u10DA\u10D4\u10D1\u10D4\u10DA\u10D8\u10D0.",
   "modal.confirm.restore.button": "\u10E4\u10D0\u10D8\u10DA\u10D8\u10E1 \u10D0\u10E6\u10D3\u10D2\u10D4\u10DC\u10D0",
@@ -10246,52 +10108,53 @@ var ka_default = {
   "modal.search-versions": "\u10D5\u10D4\u10E0\u10E1\u10D8\u10D4\u10D1\u10D8\u10E1 \u10EB\u10D8\u10D4\u10D1\u10D0",
   "modal.version.current": "\u10DB\u10D8\u10DB\u10D3\u10D8\u10DC\u10D0\u10E0\u10D4",
   "modal.version.original": "\u10DD\u10E0\u10D8\u10D2\u10D8\u10DC\u10D0\u10DA\u10D8",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "\u10E8\u10D4\u10D8\u10E5\u10DB\u10DC\u10D0",
+  "modal.version.action.modified": "\u10E8\u10D4\u10D8\u10EA\u10D5\u10D0\u10DA\u10D0",
+  "modal.version.action.cleared": "\u10D2\u10D0\u10E1\u10E3\u10E4\u10D7\u10D0\u10D5\u10D3\u10D0",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u10EB\u10D8\u10D4\u10D1\u10D0\u10E1 \u10D5\u10D4\u10E0\u10E1\u10D8\u10D4\u10D1\u10D8 \u10D0\u10E0 \u10D4\u10DB\u10D7\u10EE\u10D5\u10D4\u10D5\u10D0",
   "modal.revert-hunk": "\u10D0\u10DB \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10D3\u10D0\u10D1\u10E0\u10E3\u10DC\u10D4\u10D1\u10D0",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "\u10D0\u10DB \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10D3\u10D0\u10D1\u10E0\u10E3\u10DC\u10D4\u10D1\u10D0",
   "modal.copy": "\u10D9\u10DD\u10DE\u10D8\u10E0\u10D4\u10D1\u10D0",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "\u10D8\u10D0\u10E0\u10DA\u10D8\u10E7\u10D8\u10E1 \u10DB\u10D8\u10DC\u10D8\u10ED\u10D4\u10D1\u10D0",
+  "modal.put-label.message": "\u10DB\u10DD\u10DC\u10D8\u10E8\u10DC\u10D4\u10D7 \u10DB\u10D8\u10DB\u10D3\u10D8\u10DC\u10D0\u10E0\u10D4 \u10E8\u10D8\u10DC\u10D0\u10D0\u10E0\u10E1\u10D8 \u10DB\u10DD\u10D9\u10DA\u10D4 \u10D8\u10D0\u10E0\u10DA\u10D8\u10E7\u10D8\u10D7.",
+  "modal.put-label.placeholder": "\u10D8\u10D0\u10E0\u10DA\u10D8\u10E7\u10D8",
+  "modal.put-label.confirm": "\u10E8\u10D4\u10DC\u10D0\u10EE\u10D5\u10D0",
+  "menu.local-history.show-history": "\u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D8\u10E1 \u10E9\u10D5\u10D4\u10DC\u10D4\u10D1\u10D0",
+  "menu.local-history.show-history-selection": "\u10DB\u10DD\u10DC\u10D8\u10E8\u10DC\u10E3\u10DA\u10D8\u10E1 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D8\u10E1 \u10E9\u10D5\u10D4\u10DC\u10D4\u10D1\u10D0",
+  "menu.local-history.put-label": "\u10D8\u10D0\u10E0\u10DA\u10D8\u10E7\u10D8\u10E1 \u10DB\u10D8\u10DC\u10D8\u10ED\u10D4\u10D1\u10D0",
+  "menu.local-history.recent-changes": "\u10D1\u10DD\u10DA\u10DD \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10D8",
+  "view.recent-changes.title": "\u10D1\u10DD\u10DA\u10DD \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10D8",
+  "view.recent-changes.empty": "\u10D0\u10E5\u10E2\u10D8\u10E3\u10E0\u10D8 \u10E4\u10D0\u10D8\u10DA\u10D8\u10E1\u10D7\u10D5\u10D8\u10E1 \u10D5\u10D4\u10E0\u10E1\u10D8\u10D4\u10D1\u10D8\u10E1 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D0 \u10D0\u10E0 \u10D0\u10E0\u10E1\u10D4\u10D1\u10DD\u10D1\u10E1.",
+  "view.recent-changes.menu.show-diff": "\u10D2\u10D0\u10DC\u10E1\u10EE\u10D5\u10D0\u10D5\u10D4\u10D1\u10D4\u10D1\u10D8\u10E1 \u10E9\u10D5\u10D4\u10DC\u10D4\u10D1\u10D0",
+  "view.recent-changes.menu.restore": "\u10D0\u10DB \u10D5\u10D4\u10E0\u10E1\u10D8\u10D8\u10E1 \u10D0\u10E6\u10D3\u10D2\u10D4\u10DC\u10D0",
+  "view.recent-changes.menu.delete": "\u10D5\u10D4\u10E0\u10E1\u10D8\u10D8\u10E1 \u10EC\u10D0\u10E8\u10DA\u10D0",
+  "view.recent-changes.menu.put-label": "\u10D8\u10D0\u10E0\u10DA\u10D8\u10E7\u10D8\u10E1 \u10DB\u10D8\u10DC\u10D8\u10ED\u10D4\u10D1\u10D0",
+  "modal.label-selected": "\u10DB\u10DD\u10DC\u10D8\u10E8\u10DC\u10E3\u10DA\u10D8 \u10D5\u10D4\u10E0\u10E1\u10D8\u10D8\u10E1 \u10D8\u10D0\u10E0\u10DA\u10D8\u10E7\u10D8\u10D7 \u10D0\u10E6\u10DC\u10D8\u10E8\u10D5\u10DC\u10D0",
+  "modal.label-version.message": "\u10DB\u10DD\u10DC\u10D8\u10E8\u10DC\u10D4\u10D7 \u10D4\u10E1 \u10D5\u10D4\u10E0\u10E1\u10D8\u10D0 \u10DB\u10DD\u10D9\u10DA\u10D4 \u10D8\u10D0\u10E0\u10DA\u10D8\u10E7\u10D8\u10D7.",
+  "notice.no-folder-history": "\u10E1\u10D0\u10E5\u10D0\u10E6\u10D0\u10DA\u10D3\u10D8\u10E1 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D0 \u10EF\u10D4\u10E0 \u10D0\u10E0 \u10D0\u10E0\u10D8\u10E1.",
+  "setting.max-deleted-entries.name": "\u10E8\u10D4\u10DC\u10D0\u10EE\u10E3\u10DA\u10D8 \u10EC\u10D0\u10E8\u10DA\u10D8\u10DA\u10D8 \u10E4\u10D0\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10DB\u10D0\u10E5\u10E1\u10D8\u10DB\u10E3\u10DB\u10D8",
+  "setting.max-deleted-entries.desc": "\u10DA\u10D8\u10DB\u10D8\u10E2\u10D8, \u10E0\u10D0\u10DB\u10D3\u10D4\u10DC\u10D8 \u10EC\u10D0\u10E8\u10DA\u10D8\u10DA\u10D8 \u10E4\u10D0\u10D8\u10DA\u10D8\u10E1 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D0 \u10D8\u10DC\u10D0\u10EE\u10D4\u10D1\u10D0 \u10D3\u10D8\u10E1\u10D9\u10D6\u10D4. \u10EF\u10D4\u10E0 \u10E3\u10EB\u10D5\u10D4\u10DA\u10D4\u10E1\u10D8 \u10D8\u10E8\u10DA\u10D4\u10D1\u10D0. \u10D2\u10D0\u10DB\u10DD\u10E1\u10D0\u10E0\u10D7\u10D0\u10D5\u10D0\u10D3 \u10D3\u10D0\u10D0\u10E7\u10D4\u10DC\u10D4\u10D7 0.",
+  "setting.max-deleted-age-days.name": "\u10EC\u10D0\u10E8\u10DA\u10D8\u10DA\u10D8 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D8\u10E1 \u10DB\u10D0\u10E5\u10E1. \u10D0\u10E1\u10D0\u10D9\u10D8 (\u10D3\u10E6\u10D4)",
+  "setting.max-deleted-age-days.desc": "\u10D0\u10DB \u10D3\u10E6\u10D4\u10D4\u10D1\u10D8\u10E1 \u10E0\u10D0\u10DD\u10D3\u10D4\u10DC\u10DD\u10D1\u10D0\u10D6\u10D4 \u10EB\u10D5\u10D4\u10DA\u10D8 \u10EC\u10D0\u10E8\u10DA\u10D8\u10DA\u10D8 \u10E4\u10D0\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D4\u10D1\u10D8\u10E1 \u10EC\u10D0\u10E8\u10DA\u10D0. \u10D2\u10D0\u10DB\u10DD\u10E1\u10D0\u10E0\u10D7\u10D0\u10D5\u10D0\u10D3 \u10D3\u10D0\u10D0\u10E7\u10D4\u10DC\u10D4\u10D7 0.",
+  "folder-tree.empty": "\u10D0\u10DB \u10E1\u10D0\u10E5\u10D0\u10E6\u10D0\u10DA\u10D3\u10D4\u10E8\u10D8 \u10D0\u10E0\u10E9\u10D4\u10E3\u10DA\u10D8 \u10EC\u10D4\u10E0\u10E2\u10D8\u10DA\u10D8\u10E1\u10D7\u10D5\u10D8\u10E1 \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10D8 \u10D0\u10E0 \u10D0\u10E0\u10D8\u10E1.",
+  "modal.folder.filter-files": "\u10E4\u10D0\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10D2\u10D0\u10E4\u10D8\u10DA\u10E2\u10D5\u10E0\u10D0 \u10E1\u10D0\u10EE\u10D4\u10DA\u10D8\u10D7",
+  "modal.folder.timeline.capture": "\u10D0\u10E6\u10D1\u10D4\u10ED\u10D3\u10D8\u10DA\u10D8\u10D0",
+  "modal.folder.timeline.delete": "\u10EC\u10D0\u10E8\u10DA\u10D8\u10DA\u10D8\u10D0",
+  "modal.folder.timeline.move-in": "\u10D2\u10D0\u10D3\u10DB\u10DD\u10E2\u10D0\u10DC\u10D8\u10DA\u10D8\u10D0",
+  "modal.folder.notice.no-file": "\u10E4\u10D0\u10D8\u10DA\u10D8 \u10D0\u10E0 \u10D0\u10E0\u10D8\u10E1 \u10D0\u10E0\u10E9\u10D4\u10E3\u10DA\u10D8.",
+  "modal.folder.notice.added": "\u10E4\u10D0\u10D8\u10DA\u10D8 \u10D3\u10D0\u10D4\u10DB\u10D0\u10E2\u10D0 \u10D0\u10DB \u10EC\u10D4\u10E0\u10E2\u10D8\u10DA\u10D8\u10E1 \u10E8\u10D4\u10DB\u10D3\u10D4\u10D2.",
+  "modal.folder.notice.deleted": "\u10E4\u10D0\u10D8\u10DA\u10D8 \u10EC\u10D0\u10D8\u10E8\u10D0\u10DA\u10D0 \u10D0\u10DB \u10EC\u10D4\u10E0\u10E2\u10D8\u10DA\u10D8\u10E1 \u10E8\u10D4\u10DB\u10D3\u10D4\u10D2.",
+  "modal.folder.notice.unchanged": "\u10D0\u10DB \u10EC\u10D4\u10E0\u10E2\u10D8\u10DA\u10D8\u10D3\u10D0\u10DC \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10D8 \u10D0\u10E0 \u10D0\u10E0\u10D8\u10E1.",
+  "version.badge.external": "\u10D2\u10D0\u10E0\u10D4",
+  "setting.exclude-paths-case-sensitive.name": "\u10D2\u10D6\u10D4\u10D1\u10D8\u10E1 \u10D2\u10D0\u10DB\u10DD\u10E0\u10D8\u10EA\u10EE\u10D5\u10D0 \u10E0\u10D4\u10D2\u10D8\u10E1\u10E2\u10E0\u10D8\u10E1 \u10D2\u10D0\u10D7\u10D5\u10D0\u10DA\u10D8\u10E1\u10EC\u10D8\u10DC\u10D4\u10D1\u10D8\u10D7",
+  "setting.exclude-paths-case-sensitive.desc": "\u10E9\u10D0\u10E0\u10D7\u10D5\u10D8\u10E1\u10D0\u10E1 \u10D2\u10D0\u10DB\u10DD\u10E0\u10D8\u10EA\u10EE\u10E3\u10DA\u10D8 \u10D2\u10D6\u10D4\u10D1\u10D8\u10E1 \u10E0\u10D4\u10D2\u10E3\u10DA\u10D0\u10E0\u10E3\u10DA\u10D8 \u10D2\u10D0\u10DB\u10DD\u10E1\u10D0\u10EE\u10E3\u10DA\u10D4\u10D1\u10D0 \u10D4\u10DB\u10D7\u10EE\u10D5\u10D4\u10D5\u10D0 \u10E0\u10D4\u10D2\u10D8\u10E1\u10E2\u10E0\u10D8\u10E1 \u10D2\u10D0\u10D7\u10D5\u10D0\u10DA\u10D8\u10E1\u10EC\u10D8\u10DC\u10D4\u10D1\u10D8\u10D7 ('i' \u10D3\u10E0\u10DD\u10E8\u10D8\u10E1 \u10D2\u10D0\u10E0\u10D4\u10E8\u10D4). \u10D2\u10D0\u10DB\u10DD\u10E0\u10D7\u10D4\u10D7, \u10E0\u10DD\u10DB \u10D3\u10D0\u10DB\u10D7\u10EE\u10D5\u10D4\u10D5\u10D0 \u10E0\u10D4\u10D2\u10D8\u10E1\u10E2\u10E0\u10D8\u10E1 \u10DB\u10D8\u10E3\u10EE\u10D4\u10D3\u10D0\u10D5\u10D0\u10D3 \u10DB\u10DD\u10EE\u10D3\u10D4\u10E1: \u10D4\u10E1 \u10DC\u10D0\u10D2\u10E3\u10DA\u10D8\u10E1\u10EE\u10DB\u10D4\u10D5\u10D8\u10D0 \u10D3\u10D0 \u10D9\u10D0\u10E0\u10D2\u10D0\u10D3 \u10DB\u10E3\u10E8\u10D0\u10DD\u10D1\u10E1 \u10E0\u10D4\u10D2\u10D8\u10E1\u10E2\u10E0\u10D8\u10E1\u10D0\u10D3\u10DB\u10D8 \u10D0\u10E0\u10D0\u10DB\u10D2\u10E0\u10EB\u10DC\u10DD\u10D1\u10D8\u10D0\u10E0\u10D4 \u10E4\u10D0\u10D8\u10DA\u10E3\u10E0 \u10E1\u10D8\u10E1\u10E2\u10D4\u10DB\u10D4\u10D1\u10D6\u10D4.",
+  "setting.purge-excluded.name": "\u10D2\u10D0\u10DB\u10DD\u10E0\u10D8\u10EA\u10EE\u10E3\u10DA\u10D8 \u10D2\u10D6\u10D4\u10D1\u10D8\u10E1 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D8\u10E1 \u10D2\u10D0\u10E1\u10E3\u10E4\u10D7\u10D0\u10D5\u10D4\u10D1\u10D0",
+  "setting.purge-excluded.desc": "\u10E7\u10D5\u10D4\u10DA\u10D0 \u10E8\u10D4\u10DC\u10D0\u10EE\u10E3\u10DA\u10D8 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D8\u10E1 \u10EC\u10D0\u10E8\u10DA\u10D0 \u10D8\u10DB \u10E4\u10D0\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1\u10D7\u10D5\u10D8\u10E1, \u10E0\u10DD\u10DB\u10D4\u10DA\u10D7\u10D0 \u10D2\u10D6\u10D4\u10D1\u10D8 \u10D0\u10DB\u10DF\u10D0\u10DB\u10D0\u10D3 \u10D4\u10DB\u10D7\u10EE\u10D5\u10D4\u10D5\u10D0 \u10D2\u10D0\u10DB\u10DD\u10E0\u10D8\u10EA\u10EE\u10E3\u10DA\u10D8 \u10D2\u10D6\u10D4\u10D1\u10D8\u10E1 \u10E8\u10D0\u10D1\u10DA\u10DD\u10DC\u10E1. \u10EC\u10D0\u10E8\u10DA\u10D8\u10DA\u10D8 \u10E4\u10D0\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10E9\u10D0\u10DC\u10D0\u10EC\u10D4\u10E0\u10D4\u10D1\u10D8\u10EA \u10D8\u10E8\u10DA\u10D4\u10D1\u10D0. \u10D4\u10E1 \u10DB\u10DD\u10E5\u10DB\u10D4\u10D3\u10D4\u10D1\u10D0 \u10D5\u10D4\u10E0 \u10D2\u10D0\u10E3\u10E5\u10DB\u10D3\u10D4\u10D1\u10D0.",
+  "notice.purge-excluded": "\u10DA\u10DD\u10D9\u10D0\u10DA\u10E3\u10E0\u10D8 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D0: \u10D2\u10D0\u10E1\u10E3\u10E4\u10D7\u10D0\u10D5\u10D3\u10D0 {count} \u10D0\u10DC\u10D0\u10D1\u10D4\u10ED\u10D3\u10D8 \u10D2\u10D0\u10DB\u10DD\u10E0\u10D8\u10EA\u10EE\u10E3\u10DA\u10D8 \u10D2\u10D6\u10D4\u10D1\u10D8\u10E1\u10D7\u10D5\u10D8\u10E1.",
+  "notice.purge-excluded.no-match": "\u10DA\u10DD\u10D9\u10D0\u10DA\u10E3\u10E0\u10D8 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D0: \u10E8\u10D4\u10DC\u10D0\u10EE\u10E3\u10DA\u10D8 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D0 \u10D2\u10D0\u10DB\u10DD\u10E0\u10D8\u10EA\u10EE\u10E3\u10DA\u10D8 \u10D2\u10D6\u10D4\u10D1\u10D8\u10E1\u10D7\u10D5\u10D8\u10E1 \u10D0\u10E0 \u10DB\u10DD\u10D8\u10EB\u10D4\u10D1\u10DC\u10D0.",
+  "setting.reading-mode-indicator.name": "\u10D8\u10DC\u10D3\u10D8\u10D9\u10D0\u10E2\u10DD\u10E0\u10D4\u10D1\u10D8\u10E1 \u10E9\u10D5\u10D4\u10DC\u10D4\u10D1\u10D0 \u10D9\u10D8\u10D7\u10EE\u10D5\u10D8\u10E1 \u10E0\u10D4\u10DF\u10D8\u10DB\u10E8\u10D8",
+  "setting.reading-mode-indicator.desc": "\u10D9\u10D8\u10D7\u10EE\u10D5\u10D8\u10E1 \u10E0\u10D4\u10DF\u10D8\u10DB\u10E8\u10D8 \u10D2\u10D0\u10DB\u10DD\u10E1\u10D0\u10EE\u10E3\u10DA\u10D8 \u10D1\u10DA\u10DD\u10D9\u10D4\u10D1\u10D8\u10E1 \u10DB\u10DD\u10DC\u10D8\u10E8\u10D5\u10DC\u10D0 \u10E4\u10D4\u10E0\u10D0\u10D3\u10D8 \u10DB\u10D0\u10E0\u10EA\u10EE\u10D4\u10DC\u10D0 \u10D9\u10D8\u10D3\u10D8\u10D7, \u10E0\u10DD\u10DB\u10D4\u10DA\u10D8\u10EA \u10D4\u10DB\u10D7\u10EE\u10D5\u10D4\u10D5\u10D0 \u10E0\u10D4\u10D3\u10D0\u10E5\u10E2\u10D8\u10E0\u10D4\u10D1\u10D8\u10E1 \u10D8\u10DC\u10D3\u10D8\u10D9\u10D0\u10E2\u10DD\u10E0\u10D8\u10E1 \u10E4\u10D4\u10E0\u10D4\u10D1\u10E1 (\u10E8\u10D4\u10EA\u10D5\u10DA\u10D8\u10DA\u10D8, \u10D3\u10D0\u10DB\u10D0\u10E2\u10D4\u10D1\u10E3\u10DA\u10D8, \u10F0\u10D0\u10E0\u10D4\u10D4\u10D1\u10D8, \u10D0\u10E6\u10D3\u10D2\u10D4\u10DC\u10D8\u10DA\u10D8). \u10DC\u10D0\u10D2\u10E3\u10DA\u10D8\u10E1\u10EE\u10DB\u10D4\u10D5\u10D0\u10D3 \u10D2\u10D0\u10DB\u10DD\u10E0\u10D7\u10E3\u10DA\u10D8\u10D0; \u10D9\u10D8\u10D7\u10EE\u10D5\u10D8\u10E1 \u10E0\u10D4\u10DF\u10D8\u10DB\u10D8\u10E1 \u10E7\u10DD\u10D5\u10D4\u10DA \u10EE\u10D4\u10DA\u10D0\u10EE\u10D0\u10DA \u10D2\u10D0\u10DB\u10DD\u10E1\u10D0\u10EE\u10D5\u10D0\u10D6\u10D4 \u10D7\u10D8\u10D7\u10DD \u10D1\u10DA\u10DD\u10D9\u10D6\u10D4 \u10DB\u10EA\u10D8\u10E0\u10D4 \u10D3\u10D0\u10DC\u10D0\u10EE\u10D0\u10E0\u10EF\u10D8 \u10D0\u10E5\u10D5\u10E1."
 };
 
 // lang/kh.json
@@ -10321,9 +10184,16 @@ var kh_default = {
   "setting.allowed-extensions.desc": "\u1794\u1789\u17D2\u1787\u17B8\u1780\u1793\u17D2\u1791\u17BB\u1799\u17AF\u1780\u179F\u17B6\u179A\u178A\u17C2\u179B\u178F\u17D2\u179A\u17BC\u179C\u178F\u17B6\u1798\u178A\u17B6\u1793\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A \u1794\u17C6\u1794\u17C2\u1780\u178A\u17C4\u1799\u1780\u17D2\u1794\u17C0\u179F (\u17A7. md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "\u1795\u17D2\u179B\u17BC\u179C\u178A\u17C2\u179B\u178A\u1780\u1785\u17C1\u1789",
   "setting.exclude-paths.desc": "Regular Expression \u178A\u17C2\u179B\u1798\u17B7\u1793\u1794\u17D2\u179A\u1780\u17B6\u1793\u17CB\u17A2\u1780\u17D2\u179F\u179A\u1792\u17C6\u178F\u17BC\u1785 \u1794\u17D2\u179A\u17C0\u1794\u1792\u17C0\u1794\u1787\u17B6\u1798\u17BD\u1799\u1795\u17D2\u179B\u17BC\u179C\u178A\u17C2\u179B\u1791\u17B6\u1780\u17CB\u1791\u1784\u1793\u17B9\u1784 vault\u17D4 \u17AF\u1780\u179F\u17B6\u179A\u178E\u17B6\u178A\u17C2\u179B\u1795\u17D2\u179B\u17BC\u179C\u179A\u1794\u179F\u17CB\u179C\u17B6\u178F\u17D2\u179A\u17BC\u179C\u1782\u17D2\u1793\u17B6 \u1793\u17B9\u1784\u1798\u17B7\u1793\u178F\u17D2\u179A\u17BC\u179C\u1794\u17B6\u1793\u178F\u17B6\u1798\u178A\u17B6\u1793\u17A1\u17BE\u1799 (\u17A7. \\.excalidraw\\.md$ \u17AC (^|/)Templates/)\u17D4 \u178F\u1798\u17D2\u179B\u17C3\u179B\u17C6\u1793\u17B6\u17C6\u178A\u17BE\u1798\u178A\u1780\u1785\u17C1\u1789\u1790\u178F Templates \u1793\u17B7\u1784\u1782\u17C6\u1793\u17BC\u179A Excalidraw\u17D4 \u1791\u17BB\u1780\u17B1\u17D2\u1799\u1791\u1791\u17C1\u178A\u17BE\u1798\u17D2\u1794\u17B8\u178F\u17B6\u1798\u178A\u17B6\u1793\u1782\u17D2\u179A\u1794\u17CB\u1799\u17C9\u17B6\u1784\u17D4",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "\u1794\u1793\u17D2\u1790\u17C2\u1798\u179B\u17C6\u1793\u17B6\u17C6",
+  "setting.exclude-paths.placeholder": "\u17A7. (^|/)Templates/",
+  "setting.exclude-paths.remove": "\u179B\u17BB\u1794\u179B\u17C6\u1793\u17B6\u17C6\u1793\u17C1\u17C7",
+  "setting.exclude-paths.empty": "\u1798\u17B7\u1793\u1791\u17B6\u1793\u17CB\u1798\u17B6\u1793\u1795\u17D2\u179B\u17BC\u179C\u178A\u17C2\u179B\u178F\u17D2\u179A\u17BC\u179C\u1794\u17B6\u1793\u178A\u1780\u1785\u17C1\u1789\u1793\u17C5\u17A1\u17BE\u1799\u1791\u17C1\u17D4 \u1794\u17D2\u179A\u17BE\u1794\u17CA\u17BC\u178F\u17BB\u1784 + \u178A\u17BE\u1798\u17D2\u1794\u17B8\u1794\u1793\u17D2\u1790\u17C2\u1798\u179B\u17C6\u1793\u17B6\u17C6\u17D4",
+  "setting.exclude-paths.edit": "\u1780\u17C2\u179F\u1798\u17D2\u179A\u17BD\u179B\u179B\u17C6\u1793\u17B6\u17C6",
+  "setting.exclude-paths.save": "\u179A\u1780\u17D2\u179F\u17B6\u1791\u17BB\u1780\u179B\u17C6\u1793\u17B6\u17C6",
+  "setting.exclude-paths.cancel": "\u1794\u17C4\u17C7\u1794\u1784\u17CB",
+  "setting.exclude-paths.error": "\u179B\u17C6\u1793\u17B6\u17C6\u178F\u17D2\u179A\u17BC\u179C\u178F\u17C2\u1787\u17B6 regular expression \u178F\u17D2\u179A\u17B9\u1798\u178F\u17D2\u179A\u17BC\u179C \u1793\u17B7\u1784\u1798\u17B7\u1793\u1791\u1791\u17C1\u17D4",
+  "setting.general-heading": "\u1791\u17BC\u1791\u17C5",
+  "setting.cleanup-heading": "\u1780\u17B6\u179A\u179F\u1798\u17D2\u17A2\u17B6\u178F\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7",
   "setting.keep.name": "\u179A\u1780\u17D2\u179F\u17B6\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u179A\u17A0\u17BC\u178F\u178A\u179B\u17CB",
   "setting.keep.desc": "\u1799\u17BB\u1791\u17D2\u1792\u179F\u17B6\u179F\u17D2\u178F\u17D2\u179A\u179F\u1798\u17D2\u179A\u17B6\u1794\u17CB\u179F\u1798\u17D2\u17A2\u17B6\u178F\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u1780\u17C6\u178E\u17C2",
   "setting.keep.option.app": "\u1794\u17B7\u1791\u1780\u1798\u17D2\u1798\u179C\u17B7\u1792\u17B8",
@@ -10332,8 +10202,8 @@ var kh_default = {
   "setting.ignore-new-files.desc": "\u1780\u17BB\u17C6\u178F\u17B6\u1798\u178A\u17B6\u1793\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1793\u17C5\u1780\u17D2\u1793\u17BB\u1784\u17AF\u1780\u179F\u17B6\u179A\u178A\u17C2\u179B\u1794\u1784\u17D2\u1780\u17BE\u178F\u17A1\u17BE\u1784\u1794\u1793\u17D2\u1791\u17B6\u1794\u17CB\u1796\u17B8\u1780\u17B6\u179A\u178F\u17B6\u1798\u178A\u17B6\u1793\u1794\u17B6\u1793\u1785\u17B6\u1794\u17CB\u1795\u17D2\u178A\u17BE\u1798",
   "setting.tree-highlight.name": "\u1794\u1793\u17D2\u179B\u17B7\u1785\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1793\u17C5\u1780\u17D2\u1793\u17BB\u1784\u1798\u17C2\u1780\u1792\u17B6\u1784\u17AF\u1780\u179F\u17B6\u179A \u1793\u17B7\u1784\u1795\u17D2\u1791\u17B6\u17C6\u1784",
   "setting.tree-highlight.desc": "\u178A\u17B6\u1780\u17CB\u1796\u178E\u17CC\u17AF\u1780\u179F\u17B6\u179A \u1793\u17B7\u1784\u1790\u178F\u1793\u17C5\u1780\u17D2\u1793\u17BB\u1784\u1780\u1798\u17D2\u1798\u179C\u17B7\u1792\u17B8\u179A\u17BB\u1780\u179A\u1780\u17AF\u1780\u179F\u17B6\u179A\u178A\u17BE\u1798 \u1793\u17B7\u1784\u1780\u17D2\u1794\u17B6\u179B\u1795\u17D2\u1791\u17B6\u17C6\u1784\u1793\u17C3\u17AF\u1780\u179F\u17B6\u179A\u178A\u17C2\u179B\u1794\u17BE\u1780 \u178F\u17B6\u1798\u17A2\u17D2\u179C\u17B8\u178A\u17C2\u179B\u1794\u17B6\u1793\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1780\u17D2\u1793\u17BB\u1784\u179C\u1782\u17D2\u1782\u1793\u17C1\u17C7 (\u1796\u178E\u17CC\u17A2\u17C6\u1796\u17B7\u179B\u179F\u1798\u17D2\u179A\u17B6\u1794\u17CB\u1780\u17C2\u1794\u17D2\u179A\u17C2 \u1794\u17C3\u178F\u1784\u179F\u1798\u17D2\u179A\u17B6\u1794\u17CB\u1794\u1793\u17D2\u1790\u17C2\u1798)\u17D4",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "\u1794\u1793\u17D2\u179B\u17B7\u1785\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1793\u17C5\u1780\u17D2\u1793\u17BB\u1784\u1795\u17D2\u1791\u17B6\u17C6\u1784\u179B\u1780\u17D2\u1781\u178E\u179F\u1798\u17D2\u1794\u178F\u17D2\u178F\u17B7",
+  "setting.properties-highlight.desc": "\u1794\u1784\u17D2\u17A0\u17B6\u1789\u1782\u17D2\u179A\u17B6\u1794\u17CB\u1785\u17BB\u1785 frontmatter \u178A\u17C2\u179B\u1794\u17B6\u1793\u1794\u1793\u17D2\u1790\u17C2\u1798 \u1780\u17C2\u1794\u17D2\u179A\u17C2 \u1793\u17B7\u1784\u179B\u17BB\u1794\u1785\u17C1\u1789 \u1793\u17C5\u1780\u17D2\u1793\u17BB\u1784\u1795\u17D2\u1791\u17B6\u17C6\u1784\u179B\u1780\u17D2\u1781\u178E\u179F\u1798\u17D2\u1794\u178F\u17D2\u178F\u17B7\u179A\u1794\u179F\u17CB Obsidian\u17D4 \u1794\u17B7\u1791\u178A\u17BE\u1798\u17D2\u1794\u17B8\u179B\u17B6\u1780\u17CB\u179F\u1789\u17D2\u1789\u17B6\u179F\u1798\u17D2\u1782\u17B6\u179B\u17CB\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u179B\u1780\u17D2\u1781\u178E\u179F\u1798\u17D2\u1794\u178F\u17D2\u178F\u17B7\u1791\u17B6\u17C6\u1784\u17A2\u179F\u17CB\u17D4",
   "setting.persist.name": "\u179A\u1780\u17D2\u179F\u17B6\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u1794\u1793\u17D2\u1791\u17B6\u1794\u17CB\u1796\u17B8\u1780\u17B6\u179A\u1785\u17B6\u1794\u17CB\u1795\u17D2\u178A\u17BE\u1798\u17A1\u17BE\u1784\u179C\u17B7\u1789",
   "setting.persist.desc": '\u179A\u1780\u17D2\u179F\u17B6\u1791\u17BB\u1780\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u1791\u17C5\u1790\u17B6\u179F\u178A\u17BE\u1798\u17D2\u1794\u17B8\u17B1\u17D2\u1799\u1780\u17B6\u179A\u1794\u1793\u17D2\u179B\u17B7\u1785\u1793\u17C5\u178F\u17C2\u1798\u17B6\u1793\u1794\u1793\u17D2\u1791\u17B6\u1794\u17CB\u1796\u17B8\u1780\u17B6\u179A\u1785\u17B6\u1794\u17CB\u1795\u17D2\u178A\u17BE\u1798\u17A1\u17BE\u1784\u179C\u17B7\u1789\u17D4 \u1791\u17B6\u1798\u1791\u17B6\u179A\u17B1\u17D2\u1799 "\u179A\u1780\u17D2\u179F\u17B6\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u179A\u17A0\u17BC\u178F\u178A\u179B\u17CB" \u1780\u17C6\u178E\u178F\u17CB\u1791\u17C5\u1794\u17B7\u1791\u1780\u1798\u17D2\u1798\u179C\u17B7\u1792\u17B8\u17D4',
   "setting.max-entries.name": "\u1785\u17C6\u1793\u17BD\u1793\u17AF\u1780\u179F\u17B6\u179A\u178A\u17C2\u179B\u179A\u1780\u17D2\u179F\u17B6\u1791\u17BB\u1780\u17A2\u178F\u17B7\u1794\u179A\u1798\u17B6",
@@ -10381,10 +10251,10 @@ var kh_default = {
   "modal.mode.side-by-side": "\u1785\u17C6\u17A0\u17C0\u1784\u1782\u17D2\u1793\u17B6",
   "modal.hide-identical": "\u179B\u17B6\u1780\u17CB\u1780\u17C6\u178E\u17C2\u178A\u17C2\u179B\u178A\u17BC\u1785\u1782\u17D2\u1793\u17B6\u1793\u17B9\u1784\u1794\u1785\u17D2\u1785\u17BB\u1794\u17D2\u1794\u1793\u17D2\u1793",
   "modal.confirm.cancel": "\u1794\u17C4\u17C7\u1794\u1784\u17CB",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "\u1780\u17B6\u179A\u1794\u1789\u17D2\u1787\u17B6\u1780\u17CB",
+  "modal.confirm.default.message": "\u178F\u17BE\u17A2\u17D2\u1793\u1780\u1794\u17D2\u179A\u17B6\u1780\u178A\u1790\u17B6\u1785\u1784\u17CB\u1794\u1793\u17D2\u178F\u1791\u17C1?",
+  "modal.confirm.default.ok": "\u1794\u1789\u17D2\u1787\u17B6\u1780\u17CB",
+  "modal.confirm.default.cancel": "\u1794\u17C4\u17C7\u1794\u1784\u17CB",
   "modal.confirm.restore.title": "\u179F\u17D2\u178A\u17B6\u179A\u17AF\u1780\u179F\u17B6\u179A\u178A\u17BE\u1798",
   "modal.confirm.restore.message": "\u178F\u17BE\u17A2\u17D2\u1793\u1780\u1794\u17D2\u179A\u17B6\u1780\u178A\u1790\u17B6\u1785\u1784\u17CB\u179F\u17D2\u178A\u17B6\u179A\u17AF\u1780\u179F\u17B6\u179A\u1793\u17C1\u17C7\u1791\u17C5\u179F\u17D2\u1790\u17B6\u1793\u1797\u17B6\u1796\u178A\u17BE\u1798\u179C\u17B7\u1789\u17AC? \u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1794\u1785\u17D2\u1785\u17BB\u1794\u17D2\u1794\u1793\u17D2\u1793\u1791\u17B6\u17C6\u1784\u17A2\u179F\u17CB\u1793\u17B9\u1784\u1794\u17B6\u178F\u17CB\u1794\u1784\u17CB \u17A0\u17BE\u1799\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u178F\u17B6\u1798\u178A\u17B6\u1793\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1793\u17B9\u1784\u178F\u17D2\u179A\u17BC\u179C\u1780\u17C6\u178E\u178F\u17CB\u17A1\u17BE\u1784\u179C\u17B7\u1789\u17D4 \u179F\u1780\u1798\u17D2\u1798\u1797\u17B6\u1796\u1793\u17C1\u17C7\u1798\u17B7\u1793\u17A2\u17B6\u1785\u1798\u17B7\u1793\u1792\u17D2\u179C\u17BE\u179C\u17B7\u1789\u1794\u17B6\u1793\u1791\u17C1\u17D4",
   "modal.confirm.restore.button": "\u179F\u17D2\u178A\u17B6\u179A\u17AF\u1780\u179F\u17B6\u179A",
@@ -10403,52 +10273,53 @@ var kh_default = {
   "modal.search-versions": "\u179F\u17D2\u179C\u17C2\u1784\u179A\u1780\u1780\u17C6\u178E\u17C2",
   "modal.version.current": "\u1794\u1785\u17D2\u1785\u17BB\u1794\u17D2\u1794\u1793\u17D2\u1793",
   "modal.version.original": "\u178A\u17BE\u1798",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "\u1794\u17B6\u1793\u1794\u1784\u17D2\u1780\u17BE\u178F",
+  "modal.version.action.modified": "\u1794\u17B6\u1793\u1780\u17C2\u1794\u17D2\u179A\u17C2",
+  "modal.version.action.cleared": "\u1794\u17B6\u1793\u179F\u1798\u17D2\u17A2\u17B6\u178F",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u1782\u17D2\u1798\u17B6\u1793\u1780\u17C6\u178E\u17C2\u178A\u17C2\u179B\u178F\u17D2\u179A\u17BC\u179C\u1793\u17B9\u1784\u1780\u17B6\u179A\u179F\u17D2\u179C\u17C2\u1784\u179A\u1780\u1791\u17C1",
   "modal.revert-hunk": "\u178F\u17D2\u179A\u17A1\u1794\u17CB\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1793\u17C1\u17C7\u179C\u17B7\u1789",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "\u178F\u17D2\u179A\u17A1\u1794\u17CB\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1793\u17C1\u17C7",
   "modal.copy": "\u1785\u1798\u17D2\u179B\u1784",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "\u178A\u17B6\u1780\u17CB\u179F\u17D2\u179B\u17B6\u1780",
+  "modal.put-label.message": "\u179F\u1798\u17D2\u1782\u17B6\u179B\u17CB\u1781\u17D2\u179B\u17B9\u1798\u179F\u17B6\u179A\u1794\u1785\u17D2\u1785\u17BB\u1794\u17D2\u1794\u1793\u17D2\u1793\u178A\u17C4\u1799\u179F\u17D2\u179B\u17B6\u1780\u1781\u17D2\u179B\u17B8\u17D4",
+  "modal.put-label.placeholder": "\u179F\u17D2\u179B\u17B6\u1780",
+  "modal.put-label.confirm": "\u179A\u1780\u17D2\u179F\u17B6\u1791\u17BB\u1780",
+  "menu.local-history.show-history": "\u1794\u1784\u17D2\u17A0\u17B6\u1789\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7",
+  "menu.local-history.show-history-selection": "\u1794\u1784\u17D2\u17A0\u17B6\u1789\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u179F\u1798\u17D2\u179A\u17B6\u1794\u17CB\u1780\u17B6\u179A\u1787\u17D2\u179A\u17BE\u179F\u179A\u17BE\u179F",
+  "menu.local-history.put-label": "\u178A\u17B6\u1780\u17CB\u179F\u17D2\u179B\u17B6\u1780",
+  "menu.local-history.recent-changes": "\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1790\u17D2\u1798\u17B8\u17D7",
+  "view.recent-changes.title": "\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1790\u17D2\u1798\u17B8\u17D7",
+  "view.recent-changes.empty": "\u1782\u17D2\u1798\u17B6\u1793\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u1780\u17C6\u178E\u17C2\u179F\u1798\u17D2\u179A\u17B6\u1794\u17CB\u17AF\u1780\u179F\u17B6\u179A\u179F\u1780\u1798\u17D2\u1798\u1791\u17C1\u17D4",
+  "view.recent-changes.menu.show-diff": "\u1794\u1784\u17D2\u17A0\u17B6\u1789\u1797\u17B6\u1796\u1781\u17BB\u179F\u1782\u17D2\u1793\u17B6",
+  "view.recent-changes.menu.restore": "\u179F\u17D2\u178A\u17B6\u179A\u1780\u17C6\u178E\u17C2\u1793\u17C1\u17C7",
+  "view.recent-changes.menu.delete": "\u179B\u17BB\u1794\u1780\u17C6\u178E\u17C2",
+  "view.recent-changes.menu.put-label": "\u178A\u17B6\u1780\u17CB\u179F\u17D2\u179B\u17B6\u1780",
+  "modal.label-selected": "\u178A\u17B6\u1780\u17CB\u179F\u17D2\u179B\u17B6\u1780\u1780\u17C6\u178E\u17C2\u178A\u17C2\u179B\u1794\u17B6\u1793\u1787\u17D2\u179A\u17BE\u179F",
+  "modal.label-version.message": "\u179F\u1798\u17D2\u1782\u17B6\u179B\u17CB\u1780\u17C6\u178E\u17C2\u1793\u17C1\u17C7\u178A\u17C4\u1799\u179F\u17D2\u179B\u17B6\u1780\u1781\u17D2\u179B\u17B8\u17D4",
+  "notice.no-folder-history": "\u1798\u17B7\u1793\u1791\u17B6\u1793\u17CB\u1798\u17B6\u1793\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u1790\u178F\u1793\u17C5\u17A1\u17BE\u1799\u1791\u17C1\u17D4",
+  "setting.max-deleted-entries.name": "\u1785\u17C6\u1793\u17BD\u1793\u17A2\u178F\u17B7\u1794\u179A\u1798\u17B6\u1793\u17C3\u17AF\u1780\u179F\u17B6\u179A\u178A\u17C2\u179B\u1794\u17B6\u1793\u179B\u17BB\u1794\u178A\u17C2\u179B\u179A\u1780\u17D2\u179F\u17B6\u1791\u17BB\u1780",
+  "setting.max-deleted-entries.desc": "\u178A\u17C2\u1793\u1780\u17C6\u178E\u178F\u17CB\u1793\u17C3\u1785\u17C6\u1793\u17BD\u1793\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u17AF\u1780\u179F\u17B6\u179A\u178A\u17C2\u179B\u1794\u17B6\u1793\u179B\u17BB\u1794\u178A\u17C2\u179B\u179A\u1780\u17D2\u179F\u17B6\u1791\u17BB\u1780\u179B\u17BE\u1790\u17B6\u179F\u17D4 \u1785\u17B6\u179F\u17CB\u1794\u17C6\u1795\u17BB\u178F\u178F\u17D2\u179A\u17BC\u179C\u1794\u17B6\u1793\u179B\u17BB\u1794\u1785\u17C1\u1789\u1798\u17BB\u1793\u17D4 \u1780\u17C6\u178E\u178F\u17CB 0 \u178A\u17BE\u1798\u17D2\u1794\u17B8\u1794\u17B7\u1791\u17D4",
+  "setting.max-deleted-age-days.name": "\u17A2\u17B6\u1799\u17BB\u17A2\u178F\u17B7\u1794\u179A\u1798\u17B6\u1793\u17C3\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u17AF\u1780\u179F\u17B6\u179A\u178A\u17C2\u179B\u1794\u17B6\u1793\u179B\u17BB\u1794 (\u1790\u17D2\u1784\u17C3)",
+  "setting.max-deleted-age-days.desc": "\u179B\u17BB\u1794\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u17AF\u1780\u179F\u17B6\u179A\u178A\u17C2\u179B\u1794\u17B6\u1793\u179B\u17BB\u1794\u178A\u17C2\u179B\u1785\u17B6\u179F\u17CB\u1787\u17B6\u1784\u1785\u17C6\u1793\u17BD\u1793\u1790\u17D2\u1784\u17C3\u1793\u17C1\u17C7\u17D4 \u1780\u17C6\u178E\u178F\u17CB 0 \u178A\u17BE\u1798\u17D2\u1794\u17B8\u1794\u17B7\u1791\u17D4",
+  "folder-tree.empty": "\u1782\u17D2\u1798\u17B6\u1793\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1793\u17C5\u1780\u17D2\u1793\u17BB\u1784\u1790\u178F\u1793\u17C1\u17C7\u179F\u1798\u17D2\u179A\u17B6\u1794\u17CB\u1785\u17C6\u178E\u17BB\u1785\u178A\u17C2\u179B\u1794\u17B6\u1793\u1787\u17D2\u179A\u17BE\u179F\u1791\u17C1\u17D4",
+  "modal.folder.filter-files": "\u178F\u17D2\u179A\u1784\u17AF\u1780\u179F\u17B6\u179A\u178F\u17B6\u1798\u1788\u17D2\u1798\u17C4\u17C7",
+  "modal.folder.timeline.capture": "\u1794\u17B6\u1793\u1790\u178F",
+  "modal.folder.timeline.delete": "\u1794\u17B6\u1793\u179B\u17BB\u1794",
+  "modal.folder.timeline.move-in": "\u1794\u17B6\u1793\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1791\u17B8\u1785\u17BC\u179B",
+  "modal.folder.notice.no-file": "\u1798\u17B7\u1793\u1794\u17B6\u1793\u1787\u17D2\u179A\u17BE\u179F\u17AF\u1780\u179F\u17B6\u179A\u1791\u17C1\u17D4",
+  "modal.folder.notice.added": "\u17AF\u1780\u179F\u17B6\u179A\u178F\u17D2\u179A\u17BC\u179C\u1794\u17B6\u1793\u1794\u1793\u17D2\u1790\u17C2\u1798\u1794\u1793\u17D2\u1791\u17B6\u1794\u17CB\u1796\u17B8\u1785\u17C6\u178E\u17BB\u1785\u1793\u17C1\u17C7\u17D4",
+  "modal.folder.notice.deleted": "\u17AF\u1780\u179F\u17B6\u179A\u178F\u17D2\u179A\u17BC\u179C\u1794\u17B6\u1793\u179B\u17BB\u1794\u1794\u1793\u17D2\u1791\u17B6\u1794\u17CB\u1796\u17B8\u1785\u17C6\u178E\u17BB\u1785\u1793\u17C1\u17C7\u17D4",
+  "modal.folder.notice.unchanged": "\u1782\u17D2\u1798\u17B6\u1793\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1785\u17B6\u1794\u17CB\u178F\u17B6\u17C6\u1784\u1796\u17B8\u1785\u17C6\u178E\u17BB\u1785\u1793\u17C1\u17C7\u17D4",
+  "version.badge.external": "\u1781\u17B6\u1784\u1780\u17D2\u179A\u17C5",
+  "setting.exclude-paths-case-sensitive.name": "\u1780\u17B6\u179A\u178A\u1780\u1795\u17D2\u179B\u17BC\u179C\u1785\u17C1\u1789\u178A\u17C4\u1799\u1794\u17D2\u179A\u1780\u17B6\u1793\u17CB\u17A2\u1780\u17D2\u179F\u179A\u178F\u17BC\u1785\u1792\u17C6",
+  "setting.exclude-paths-case-sensitive.desc": "\u1793\u17C5\u1796\u17C1\u179B\u1794\u17BE\u1780 regular expression \u1793\u17C3\u1795\u17D2\u179B\u17BC\u179C\u178A\u17C2\u179B\u178F\u17D2\u179A\u17BC\u179C\u178A\u1780\u1785\u17C1\u1789\u178F\u17D2\u179A\u17BC\u179C\u1794\u17B6\u1793\u1795\u17D2\u1782\u17BC\u1795\u17D2\u1782\u1784\u178A\u17C4\u1799\u1794\u17D2\u179A\u1780\u17B6\u1793\u17CB\u17A2\u1780\u17D2\u179F\u179A\u178F\u17BC\u1785\u1792\u17C6 (\u1782\u17D2\u1798\u17B6\u1793\u1791\u1784\u17CB 'i')\u17D4 \u1794\u17B7\u1791\u178A\u17BE\u1798\u17D2\u1794\u17B8\u1795\u17D2\u1782\u17BC\u1795\u17D2\u1782\u1784\u178A\u17C4\u1799\u1798\u17B7\u1793\u1782\u17B7\u178F\u1796\u17B8\u17A2\u1780\u17D2\u179F\u179A\u178F\u17BC\u1785\u1792\u17C6\u17D6 \u1793\u17C1\u17C7\u1787\u17B6\u179B\u17C6\u1793\u17B6\u17C6\u178A\u17BE\u1798 \u17A0\u17BE\u1799\u178A\u17C6\u178E\u17BE\u179A\u1780\u17B6\u179A\u179B\u17D2\u17A2\u179B\u17BE\u1794\u17D2\u179A\u1796\u17D0\u1793\u17D2\u1792\u17AF\u1780\u179F\u17B6\u179A\u178A\u17C2\u179B\u1798\u17B7\u1793\u1794\u17D2\u179A\u1780\u17B6\u1793\u17CB\u17A2\u1780\u17D2\u179F\u179A\u178F\u17BC\u1785\u1792\u17C6\u17D4",
+  "setting.purge-excluded.name": "\u179F\u1798\u17D2\u17A2\u17B6\u178F\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u179F\u1798\u17D2\u179A\u17B6\u1794\u17CB\u1795\u17D2\u179B\u17BC\u179C\u178A\u17C2\u179B\u178F\u17D2\u179A\u17BC\u179C\u1794\u17B6\u1793\u178A\u1780\u1785\u17C1\u1789",
+  "setting.purge-excluded.desc": "\u179B\u17BB\u1794\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u178A\u17C2\u179B\u1794\u17B6\u1793\u179A\u1780\u17D2\u179F\u17B6\u1791\u17BB\u1780\u1791\u17B6\u17C6\u1784\u17A2\u179F\u17CB\u179F\u1798\u17D2\u179A\u17B6\u1794\u17CB\u17AF\u1780\u179F\u17B6\u179A\u178A\u17C2\u179B\u1795\u17D2\u179B\u17BC\u179C\u179A\u1794\u179F\u17CB\u179C\u17B6\u1794\u1785\u17D2\u1785\u17BB\u1794\u17D2\u1794\u1793\u17D2\u1793\u1795\u17D2\u1782\u17BC\u1795\u17D2\u1782\u1784\u1793\u17B9\u1784\u179B\u17C6\u1793\u17B6\u17C6\u1795\u17D2\u179B\u17BC\u179C\u178A\u17C2\u179B\u178F\u17D2\u179A\u17BC\u179C\u178A\u1780\u1785\u17C1\u1789\u17D4 \u1780\u17C6\u178E\u178F\u17CB\u178F\u17D2\u179A\u17B6\u17AF\u1780\u179F\u17B6\u179A\u178A\u17C2\u179B\u1794\u17B6\u1793\u179B\u17BB\u1794\u1780\u17CF\u178F\u17D2\u179A\u17BC\u179C\u1794\u17B6\u1793\u179B\u17BB\u1794\u1785\u17C1\u1789\u178A\u17C2\u179A\u17D4 \u179F\u1780\u1798\u17D2\u1798\u1797\u17B6\u1796\u1793\u17C1\u17C7\u1798\u17B7\u1793\u17A2\u17B6\u1785\u178F\u17D2\u179A\u17A1\u1794\u17CB\u179C\u17B7\u1789\u1794\u17B6\u1793\u1791\u17C1\u17D4",
+  "notice.purge-excluded": "\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u1798\u17BC\u179B\u178A\u17D2\u178B\u17B6\u1793\u17D6 \u1794\u17B6\u1793\u179F\u1798\u17D2\u17A2\u17B6\u178F snapshot \u1785\u17C6\u1793\u17BD\u1793 {count} \u179F\u1798\u17D2\u179A\u17B6\u1794\u17CB\u1795\u17D2\u179B\u17BC\u179C\u178A\u17C2\u179B\u178F\u17D2\u179A\u17BC\u179C\u1794\u17B6\u1793\u178A\u1780\u1785\u17C1\u1789\u17D4",
+  "notice.purge-excluded.no-match": "\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u1798\u17BC\u179B\u178A\u17D2\u178B\u17B6\u1793\u17D6 \u1782\u17D2\u1798\u17B6\u1793\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u178A\u17C2\u179B\u1794\u17B6\u1793\u179A\u1780\u17D2\u179F\u17B6\u1791\u17BB\u1780\u178F\u17D2\u179A\u17BC\u179C\u1793\u17B9\u1784\u1795\u17D2\u179B\u17BC\u179C\u178A\u17C2\u179B\u178F\u17D2\u179A\u17BC\u179C\u1794\u17B6\u1793\u178A\u1780\u1785\u17C1\u1789\u1791\u17C1\u17D4",
+  "setting.reading-mode-indicator.name": "\u1794\u1784\u17D2\u17A0\u17B6\u1789\u179F\u1789\u17D2\u1789\u17B6\u179F\u1798\u17D2\u1782\u17B6\u179B\u17CB\u1793\u17C5\u1780\u17D2\u1793\u17BB\u1784\u179A\u1794\u17C0\u1794\u17A2\u17B6\u1793",
+  "setting.reading-mode-indicator.desc": "\u178F\u17BB\u1794\u178F\u17C2\u1784\u1794\u17D2\u179B\u17BB\u1780\u178A\u17C2\u179B\u1794\u17B6\u1793\u1794\u1784\u17D2\u17A0\u17B6\u1789\u1793\u17C5\u1780\u17D2\u1793\u17BB\u1784\u179A\u1794\u17C0\u1794\u17A2\u17B6\u1793\u178A\u17C4\u1799\u179F\u17CA\u17BB\u1798\u1781\u17B6\u1784\u1786\u17D2\u179C\u17C1\u1784\u1798\u17B6\u1793\u1796\u178E\u17CC\u178A\u17C2\u179B\u178F\u17D2\u179A\u17BC\u179C\u1793\u17B9\u1784\u1796\u178E\u17CC\u179F\u1789\u17D2\u1789\u17B6\u179F\u1798\u17D2\u1782\u17B6\u179B\u17CB\u1780\u17B6\u179A\u1780\u17C2\u179F\u1798\u17D2\u179A\u17BD\u179B (\u1794\u17B6\u1793\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A \u1794\u17B6\u1793\u1794\u1793\u17D2\u1790\u17C2\u1798 \u1785\u1793\u17D2\u179B\u17C4\u17C7 \u1794\u17B6\u1793\u179F\u17D2\u178A\u17B6\u179A)\u17D4 \u1794\u17B7\u1791\u178F\u17B6\u1798\u179B\u17C6\u1793\u17B6\u17C6\u178A\u17BE\u1798; \u1798\u17B6\u1793\u178F\u1798\u17D2\u179B\u17C3\u178F\u17B7\u1785\u178F\u17BD\u1785\u1780\u17D2\u1793\u17BB\u1784\u1798\u17BD\u1799\u1794\u17D2\u179B\u17BB\u1780\u1793\u17C5\u179A\u17B6\u179B\u17CB\u1780\u17B6\u179A\u1794\u1784\u17D2\u17A0\u17B6\u1789\u179A\u1794\u17C0\u1794\u17A2\u17B6\u1793\u17A1\u17BE\u1784\u179C\u17B7\u1789\u17D4"
 };
 
 // lang/ko.json
@@ -10478,9 +10349,16 @@ var ko_default = {
   "setting.allowed-extensions.desc": "\uBCC0\uACBD\uC744 \uCD94\uC801\uD560 \uD30C\uC77C \uD655\uC7A5\uC790\uC758 \uC27C\uD45C\uB85C \uAD6C\uBD84\uB41C \uBAA9\uB85D (\uC608: md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "\uC81C\uC678\uD560 \uACBD\uB85C",
   "setting.exclude-paths.desc": "\uBCF4\uAD00\uD568 \uAE30\uC900 \uC0C1\uB300 \uACBD\uB85C\uC640 \uB300\uC870\uB418\uB294 \uB300\uC18C\uBB38\uC790 \uAD6C\uBD84 \uC5C6\uB294 \uC815\uADDC\uC2DD\uC785\uB2C8\uB2E4. \uACBD\uB85C\uAC00 \uC77C\uCE58\uD558\uB294 \uD30C\uC77C\uC740 \uC808\uB300 \uCD94\uC801\uB418\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4 (\uC608: \\.excalidraw\\.md$ \uB610\uB294 (^|/)Templates/). \uAE30\uBCF8\uAC12\uC740 Templates \uD3F4\uB354\uC640 Excalidraw \uADF8\uB9BC\uC744 \uC81C\uC678\uD569\uB2C8\uB2E4. \uBAA8\uB4E0 \uAC83\uC744 \uCD94\uC801\uD558\uB824\uBA74 \uBE44\uC6CC \uB450\uC138\uC694.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "\uD328\uD134 \uCD94\uAC00",
+  "setting.exclude-paths.placeholder": "\uC608: (^|/)Templates/",
+  "setting.exclude-paths.remove": "\uC774 \uD328\uD134 \uC81C\uAC70",
+  "setting.exclude-paths.empty": "\uC81C\uC678\uB41C \uACBD\uB85C\uAC00 \uC544\uC9C1 \uC5C6\uC2B5\uB2C8\uB2E4. + \uBC84\uD2BC\uC73C\uB85C \uD328\uD134\uC744 \uCD94\uAC00\uD558\uC138\uC694.",
+  "setting.exclude-paths.edit": "\uD328\uD134 \uD3B8\uC9D1",
+  "setting.exclude-paths.save": "\uD328\uD134 \uC800\uC7A5",
+  "setting.exclude-paths.cancel": "\uCDE8\uC18C",
+  "setting.exclude-paths.error": "\uD328\uD134\uC740 \uBE44\uC5B4 \uC788\uC9C0 \uC54A\uC740 \uC720\uD6A8\uD55C \uC815\uADDC \uD45C\uD604\uC2DD\uC774\uC5B4\uC57C \uD569\uB2C8\uB2E4.",
+  "setting.general-heading": "\uC77C\uBC18",
+  "setting.cleanup-heading": "\uAE30\uB85D \uC815\uB9AC",
   "setting.keep.name": "\uAE30\uB85D \uBCF4\uAD00 \uAE30\uC900",
   "setting.keep.desc": "\uC218\uC815 \uAE30\uB85D\uC744 \uC815\uB9AC\uD558\uB294 \uBC29\uC2DD",
   "setting.keep.option.app": "\uC571 \uC885\uB8CC \uC2DC",
@@ -10489,8 +10367,8 @@ var ko_default = {
   "setting.ignore-new-files.desc": "\uCD94\uC801\uC774 \uC2DC\uC791\uB41C \uD6C4 \uC0DD\uC131\uB41C \uD30C\uC77C\uC758 \uBCC0\uACBD\uC740 \uCD94\uC801\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4",
   "setting.tree-highlight.name": "\uD30C\uC77C \uD2B8\uB9AC\uC640 \uD0ED\uC5D0\uC11C \uBCC0\uACBD \uC0AC\uD56D \uAC15\uC870",
   "setting.tree-highlight.desc": "\uAE30\uBCF8 \uD30C\uC77C \uD0D0\uC0C9\uAE30\uC758 \uD30C\uC77C\uACFC \uD3F4\uB354, \uADF8\uB9AC\uACE0 \uC5F4\uB9B0 \uD30C\uC77C\uC758 \uD0ED \uD5E4\uB354\uB97C \uC774\uBC88 \uC138\uC158\uC5D0\uC11C \uBCC0\uACBD\uB41C \uB0B4\uC6A9\uC5D0 \uB530\uB77C \uC0C9\uCE60\uD569\uB2C8\uB2E4 (\uC218\uC815\uC740 \uD638\uBC15\uC0C9, \uCD94\uAC00\uB294 \uB179\uC0C9).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "\uC18D\uC131 \uD328\uB110\uC5D0\uC11C \uBCC0\uACBD \uC0AC\uD56D \uAC15\uC870",
+  "setting.properties-highlight.desc": "\uCD94\uAC00, \uC218\uC815, \uC81C\uAC70\uB41C \uD504\uB7F0\uD2B8\uB9E4\uD130 \uD0A4\uB97C Obsidian \uC18D\uC131 \uD328\uB110\uC5D0 \uD45C\uC2DC\uD569\uB2C8\uB2E4. \uBE44\uD65C\uC131\uD654\uD558\uBA74 \uC18D\uC131 \uBCC0\uACBD \uD45C\uC2DC\uAC00 \uBAA8\uB450 \uC228\uACA8\uC9D1\uB2C8\uB2E4.",
   "setting.persist.name": "\uC7AC\uC2DC\uC791 \uD6C4\uC5D0\uB3C4 \uAE30\uB85D \uC720\uC9C0",
   "setting.persist.desc": '\uC7AC\uC2DC\uC791 \uD6C4\uC5D0\uB3C4 \uAC15\uC870 \uD45C\uC2DC\uAC00 \uC720\uC9C0\uB418\uB3C4\uB85D \uAE30\uB85D\uC744 \uB514\uC2A4\uD06C\uC5D0 \uC800\uC7A5\uD569\uB2C8\uB2E4. "\uAE30\uB85D \uBCF4\uAD00 \uAE30\uC900"\uC774 \uC571 \uC885\uB8CC \uC2DC\uB85C \uC124\uC815\uB418\uC5B4 \uC788\uC5B4\uC57C \uD569\uB2C8\uB2E4.',
   "setting.max-entries.name": "\uCD5C\uB300 \uC800\uC7A5 \uD30C\uC77C \uC218",
@@ -10538,10 +10416,10 @@ var ko_default = {
   "modal.mode.side-by-side": "\uB098\uB780\uD788 \uBCF4\uAE30",
   "modal.hide-identical": "\uD604\uC7AC \uB0B4\uC6A9\uACFC \uB3D9\uC77C\uD55C \uBC84\uC804 \uC228\uAE30\uAE30",
   "modal.confirm.cancel": "\uCDE8\uC18C",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "\uD655\uC778",
+  "modal.confirm.default.message": "\uC815\uB9D0 \uACC4\uC18D\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?",
+  "modal.confirm.default.ok": "\uD655\uC778",
+  "modal.confirm.default.cancel": "\uCDE8\uC18C",
   "modal.confirm.restore.title": "\uC6D0\uBCF8 \uD30C\uC77C \uBCF5\uC6D0",
   "modal.confirm.restore.message": "\uC774 \uD30C\uC77C\uC744 \uC6D0\uB798 \uC0C1\uD0DC\uB85C \uBCF5\uC6D0\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C? \uD604\uC7AC \uBCC0\uACBD \uC0AC\uD56D\uC774 \uBAA8\uB450 \uC0AC\uB77C\uC9C0\uACE0 \uBCC0\uACBD \uCD94\uC801 \uAE30\uB85D\uC774 \uCD08\uAE30\uD654\uB429\uB2C8\uB2E4. \uC774 \uC791\uC5C5\uC740 \uCDE8\uC18C\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.",
   "modal.confirm.restore.button": "\uD30C\uC77C \uBCF5\uC6D0",
@@ -10560,52 +10438,53 @@ var ko_default = {
   "modal.search-versions": "\uBC84\uC804 \uAC80\uC0C9",
   "modal.version.current": "\uD604\uC7AC",
   "modal.version.original": "\uC6D0\uBCF8",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "\uC0DD\uC131\uB428",
+  "modal.version.action.modified": "\uC218\uC815\uB428",
+  "modal.version.action.cleared": "\uBE44\uC6CC\uC9D0",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\uAC80\uC0C9\uACFC \uC77C\uCE58\uD558\uB294 \uBC84\uC804\uC774 \uC5C6\uC2B5\uB2C8\uB2E4",
   "modal.revert-hunk": "\uC774 \uBCC0\uACBD \uB418\uB3CC\uB9AC\uAE30",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "\uC774 \uBCC0\uACBD \uB418\uB3CC\uB9AC\uAE30",
   "modal.copy": "\uBCF5\uC0AC",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "\uB77C\uBCA8 \uC9C0\uC815",
+  "modal.put-label.message": "\uD604\uC7AC \uB0B4\uC6A9\uC5D0 \uC9E7\uC740 \uB77C\uBCA8\uC744 \uC9C0\uC815\uD569\uB2C8\uB2E4.",
+  "modal.put-label.placeholder": "\uB77C\uBCA8",
+  "modal.put-label.confirm": "\uC800\uC7A5",
+  "menu.local-history.show-history": "\uAE30\uB85D \uBCF4\uAE30",
+  "menu.local-history.show-history-selection": "\uC120\uD0DD \uC601\uC5ED \uAE30\uB85D \uBCF4\uAE30",
+  "menu.local-history.put-label": "\uB77C\uBCA8 \uC9C0\uC815",
+  "menu.local-history.recent-changes": "\uCD5C\uADFC \uBCC0\uACBD \uC0AC\uD56D",
+  "view.recent-changes.title": "\uCD5C\uADFC \uBCC0\uACBD \uC0AC\uD56D",
+  "view.recent-changes.empty": "\uD65C\uC131 \uD30C\uC77C\uC5D0 \uBC84\uC804 \uAE30\uB85D\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.",
+  "view.recent-changes.menu.show-diff": "\uCC28\uC774 \uBCF4\uAE30",
+  "view.recent-changes.menu.restore": "\uC774 \uBC84\uC804 \uBCF5\uC6D0",
+  "view.recent-changes.menu.delete": "\uBC84\uC804 \uC0AD\uC81C",
+  "view.recent-changes.menu.put-label": "\uB77C\uBCA8 \uC9C0\uC815",
+  "modal.label-selected": "\uC120\uD0DD\uD55C \uBC84\uC804\uC5D0 \uB77C\uBCA8 \uC9C0\uC815",
+  "modal.label-version.message": "\uC774 \uBC84\uC804\uC5D0 \uC9E7\uC740 \uB77C\uBCA8\uC744 \uC9C0\uC815\uD569\uB2C8\uB2E4.",
+  "notice.no-folder-history": "\uD3F4\uB354 \uAE30\uB85D\uC774 \uC544\uC9C1 \uC5C6\uC2B5\uB2C8\uB2E4.",
+  "setting.max-deleted-entries.name": "\uC800\uC7A5\uD560 \uC0AD\uC81C\uB41C \uD30C\uC77C \uCD5C\uB300 \uC218",
+  "setting.max-deleted-entries.desc": "\uB514\uC2A4\uD06C\uC5D0 \uBCF4\uAD00\uB418\uB294 \uC0AD\uC81C\uB41C \uD30C\uC77C \uAE30\uB85D \uC218\uC758 \uC0C1\uD55C\uC785\uB2C8\uB2E4. \uAC00\uC7A5 \uC624\uB798\uB41C \uAC83\uBD80\uD130 \uC81C\uAC70\uB429\uB2C8\uB2E4. 0\uC73C\uB85C \uC124\uC815\uD558\uBA74 \uBE44\uD65C\uC131\uD654\uB429\uB2C8\uB2E4.",
+  "setting.max-deleted-age-days.name": "\uC0AD\uC81C\uB41C \uAE30\uB85D \uCD5C\uB300 \uBCF4\uAD00 \uAE30\uAC04 (\uC77C)",
+  "setting.max-deleted-age-days.desc": "\uC774 \uC77C\uC218\uBCF4\uB2E4 \uC624\uB798\uB41C \uC0AD\uC81C\uB41C \uD30C\uC77C \uAE30\uB85D\uC744 \uC81C\uAC70\uD569\uB2C8\uB2E4. 0\uC73C\uB85C \uC124\uC815\uD558\uBA74 \uBE44\uD65C\uC131\uD654\uB429\uB2C8\uB2E4.",
+  "folder-tree.empty": "\uC120\uD0DD\uD55C \uC2DC\uC810\uC5D0 \uC774 \uD3F4\uB354\uC5D0\uB294 \uBCC0\uACBD \uC0AC\uD56D\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.",
+  "modal.folder.filter-files": "\uC774\uB984\uC73C\uB85C \uD30C\uC77C \uD544\uD130\uB9C1",
+  "modal.folder.timeline.capture": "\uCEA1\uCC98\uB428",
+  "modal.folder.timeline.delete": "\uC0AD\uC81C\uB428",
+  "modal.folder.timeline.move-in": "\uC774\uB3D9\uB428",
+  "modal.folder.notice.no-file": "\uC120\uD0DD\uB41C \uD30C\uC77C\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.",
+  "modal.folder.notice.added": "\uC774 \uC2DC\uC810 \uC774\uD6C4\uC5D0 \uD30C\uC77C\uC774 \uCD94\uAC00\uB418\uC5C8\uC2B5\uB2C8\uB2E4.",
+  "modal.folder.notice.deleted": "\uC774 \uC2DC\uC810 \uC774\uD6C4\uC5D0 \uD30C\uC77C\uC774 \uC0AD\uC81C\uB418\uC5C8\uC2B5\uB2C8\uB2E4.",
+  "modal.folder.notice.unchanged": "\uC774 \uC2DC\uC810 \uC774\uD6C4 \uBCC0\uACBD \uC0AC\uD56D\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.",
+  "version.badge.external": "\uC678\uBD80",
+  "setting.exclude-paths-case-sensitive.name": "\uACBD\uB85C \uC81C\uC678 \uC2DC \uB300\uC18C\uBB38\uC790 \uAD6C\uBD84",
+  "setting.exclude-paths-case-sensitive.desc": "\uD65C\uC131\uD654\uD558\uBA74 \uC81C\uC678 \uACBD\uB85C \uC815\uADDC \uD45C\uD604\uC2DD\uC774 \uB300\uC18C\uBB38\uC790\uB97C \uAD6C\uBD84\uD558\uC5EC \uC77C\uCE58\uD569\uB2C8\uB2E4('i' \uD50C\uB798\uADF8 \uC5C6\uC74C). \uBE44\uD65C\uC131\uD654\uD558\uBA74 \uB300\uC18C\uBB38\uC790\uC5D0 \uAD00\uACC4\uC5C6\uC774 \uC77C\uCE58\uD558\uBA70, \uC774\uAC83\uC774 \uAE30\uBCF8\uAC12\uC774\uACE0 \uB300\uC18C\uBB38\uC790\uB97C \uAD6C\uBD84\uD558\uC9C0 \uC54A\uB294 \uD30C\uC77C \uC2DC\uC2A4\uD15C\uC5D0\uC11C \uC798 \uC791\uB3D9\uD569\uB2C8\uB2E4.",
+  "setting.purge-excluded.name": "\uC81C\uC678\uB41C \uACBD\uB85C\uC758 \uAE30\uB85D \uBE44\uC6B0\uAE30",
+  "setting.purge-excluded.desc": "\uACBD\uB85C\uAC00 \uD604\uC7AC \uC81C\uC678 \uACBD\uB85C \uD328\uD134\uACFC \uC77C\uCE58\uD558\uB294 \uD30C\uC77C\uC758 \uC800\uC7A5\uB41C \uAE30\uB85D\uC744 \uBAA8\uB450 \uC0AD\uC81C\uD569\uB2C8\uB2E4. \uC0AD\uC81C\uB41C \uD30C\uC77C\uC758 \uAE30\uB85D\uB3C4 \uD568\uAED8 \uC81C\uAC70\uB429\uB2C8\uB2E4. \uC774 \uC791\uC5C5\uC740 \uB418\uB3CC\uB9B4 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.",
+  "notice.purge-excluded": "\uB85C\uCEEC \uAE30\uB85D: \uC81C\uC678\uB41C \uACBD\uB85C\uC758 \uC2A4\uB0C5\uC0F7 {count}\uAC1C\uB97C \uBE44\uC6E0\uC2B5\uB2C8\uB2E4.",
+  "notice.purge-excluded.no-match": "\uB85C\uCEEC \uAE30\uB85D: \uC81C\uC678\uB41C \uACBD\uB85C\uC640 \uC77C\uCE58\uD558\uB294 \uC800\uC7A5\uB41C \uAE30\uB85D\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.",
+  "setting.reading-mode-indicator.name": "\uC77D\uAE30 \uBAA8\uB4DC\uC5D0\uC11C \uD45C\uC2DC\uAE30 \uBCF4\uC774\uAE30",
+  "setting.reading-mode-indicator.desc": "\uC77D\uAE30 \uBAA8\uB4DC\uC5D0\uC11C \uB80C\uB354\uB9C1\uB41C \uBE14\uB85D\uC744 \uD3B8\uC9D1 \uD45C\uC2DC\uAE30 \uC0C9\uC0C1(\uBCC0\uACBD, \uCD94\uAC00, \uACF5\uBC31, \uBCF5\uC6D0)\uACFC \uC77C\uCE58\uD558\uB294 \uC0C9\uC0C1\uC758 \uC67C\uCABD \uD14C\uB450\uB9AC\uB85C \uC7A5\uC2DD\uD569\uB2C8\uB2E4. \uAE30\uBCF8\uAC12\uC740 \uAEBC\uC9D0\uC774\uBA70, \uC77D\uAE30 \uBAA8\uB4DC\uB97C \uB2E4\uC2DC \uB80C\uB354\uB9C1\uD560 \uB54C\uB9C8\uB2E4 \uBE14\uB85D\uB2F9 \uC57D\uAC04\uC758 \uBE44\uC6A9\uC774 \uBC1C\uC0DD\uD569\uB2C8\uB2E4."
 };
 
 // lang/lv.json
@@ -10635,9 +10514,16 @@ var lv_default = {
   "setting.allowed-extensions.desc": "Ar komatiem atdal\u012Bts failu papla\u0161in\u0101jumu saraksts, kuru izmai\u0146as tiek izsekotas (piem., md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "Izsl\u0113gtie ce\u013Ci",
   "setting.exclude-paths.desc": "Regul\u0101r\u0101 izteiksme (neatkar\u012Bga no re\u0123istra), kas tiek sal\u012Bdzin\u0101ta ar ce\u013Cu attiec\u012Bb\u0101 pret glab\u0101tavu. Jebkur\u0161 fails, kura ce\u013C\u0161 atbilst, nekad netiek izsekots (piem., \\.excalidraw\\.md$ vai (^|/)Templates/). P\u0113c noklus\u0113juma tiek izsl\u0113gtas Templates mapes un Excalidraw z\u012Bm\u0113jumi. Atst\u0101jiet tuk\u0161u, lai izsekotu visu.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "Pievienot \u0161ablonu",
+  "setting.exclude-paths.placeholder": "piem. (^|/)Templates/",
+  "setting.exclude-paths.remove": "No\u0146emt \u0161o \u0161ablonu",
+  "setting.exclude-paths.empty": "V\u0113l nav izsl\u0113gtu ce\u013Cu. Izmantojiet pogu +, lai pievienotu \u0161ablonu.",
+  "setting.exclude-paths.edit": "Redi\u0123\u0113t \u0161ablonu",
+  "setting.exclude-paths.save": "Saglab\u0101t \u0161ablonu",
+  "setting.exclude-paths.cancel": "Atcelt",
+  "setting.exclude-paths.error": "\u0160ablonam j\u0101b\u016Bt netuk\u0161ai der\u012Bgai regul\u0101rajai izteiksmei.",
+  "setting.general-heading": "Visp\u0101r\u012Bgi",
+  "setting.cleanup-heading": "V\u0113stures t\u012Br\u012B\u0161ana",
   "setting.keep.name": "Saglab\u0101t v\u0113sturi l\u012Bdz",
   "setting.keep.desc": "Strat\u0113\u0123ija p\u0101rskatu v\u0113stures t\u012Br\u012B\u0161anai",
   "setting.keep.option.app": "Lietotnes aizv\u0113r\u0161anai",
@@ -10646,8 +10532,8 @@ var lv_default = {
   "setting.ignore-new-files.desc": "Neizsekot izmai\u0146as failos, kas izveidoti p\u0113c izseko\u0161anas s\u0101k\u0161anas",
   "setting.tree-highlight.name": "Izcelt izmai\u0146as failu kok\u0101 un ciln\u0113s",
   "setting.tree-highlight.desc": "Iekr\u0101so failus un mapes viet\u0113j\u0101 failu p\u0101rl\u016Bk\u0101, k\u0101 ar\u012B atv\u0113rto failu ci\u013C\u0146u galvenes atbilsto\u0161i tam, kas main\u012Bjies \u0161aj\u0101 sesij\u0101 (dzintarkr\u0101sa main\u012Btajiem, za\u013Ca pievienotajiem).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "Izcelt izmai\u0146as rekviz\u012Btu panel\u012B",
+  "setting.properties-highlight.desc": "R\u0101d\u012Bt pievienot\u0101s, main\u012Bt\u0101s un no\u0146emt\u0101s frontmatter atsl\u0113gas Obsidian rekviz\u012Btu panel\u012B. Atsp\u0113jojiet, lai pasl\u0113ptu visu rekviz\u012Btu izmai\u0146u mar\u0137\u0113jumu.",
   "setting.persist.name": "Saglab\u0101t v\u0113sturi starp restartiem",
   "setting.persist.desc": 'Saglab\u0101t v\u0113sturi disk\u0101, lai izc\u0113lumi saglab\u0101tos p\u0113c restarta. Nepiecie\u0161ams, lai "Saglab\u0101t v\u0113sturi l\u012Bdz" b\u016Btu iestat\u012Bts uz Lietotnes aizv\u0113r\u0161anai.',
   "setting.max-entries.name": "Maks. saglab\u0101to failu skaits",
@@ -10695,10 +10581,10 @@ var lv_default = {
   "modal.mode.side-by-side": "Blakus",
   "modal.hide-identical": "Sl\u0113pt pa\u0161reiz\u0113jam identisk\u0101s versijas",
   "modal.confirm.cancel": "Atcelt",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "Apstiprin\u0101jums",
+  "modal.confirm.default.message": "Vai tie\u0161\u0101m v\u0113laties turpin\u0101t?",
+  "modal.confirm.default.ok": "Apstiprin\u0101t",
+  "modal.confirm.default.cancel": "Atcelt",
   "modal.confirm.restore.title": "Atjaunot ori\u0123in\u0101lo failu",
   "modal.confirm.restore.message": "Vai tie\u0161\u0101m v\u0113laties atjaunot \u0161o failu s\u0101kotn\u0113j\u0101 st\u0101vokl\u012B? Visas pa\u0161reiz\u0113j\u0101s izmai\u0146as tiks zaud\u0113tas, un izmai\u0146u izseko\u0161anas v\u0113sture tiks atiestat\u012Bta. \u0160o darb\u012Bbu nevar atsaukt.",
   "modal.confirm.restore.button": "Atjaunot failu",
@@ -10717,52 +10603,53 @@ var lv_default = {
   "modal.search-versions": "Mekl\u0113t versij\u0101s",
   "modal.version.current": "Pa\u0161reiz\u0113jais",
   "modal.version.original": "Ori\u0123in\u0101ls",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "Izveidota",
+  "modal.version.action.modified": "Main\u012Bta",
+  "modal.version.action.cleared": "Not\u012Br\u012Bta",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Neviena versija neatbilst mekl\u0113jumam",
   "modal.revert-hunk": "Atsaukt \u0161o izmai\u0146u",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "Atsaukt \u0161o izmai\u0146u",
   "modal.copy": "Kop\u0113t",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "Pievienot eti\u0137eti",
+  "modal.put-label.message": "Atz\u012Bm\u0113jiet pa\u0161reiz\u0113jo saturu ar \u012Bsu eti\u0137eti.",
+  "modal.put-label.placeholder": "Eti\u0137ete",
+  "modal.put-label.confirm": "Saglab\u0101t",
+  "menu.local-history.show-history": "R\u0101d\u012Bt v\u0113sturi",
+  "menu.local-history.show-history-selection": "R\u0101d\u012Bt atlases v\u0113sturi",
+  "menu.local-history.put-label": "Pievienot eti\u0137eti",
+  "menu.local-history.recent-changes": "Nesen\u0101s izmai\u0146as",
+  "view.recent-changes.title": "Nesen\u0101s izmai\u0146as",
+  "view.recent-changes.empty": "Akt\u012Bvajam failam nav versiju v\u0113stures.",
+  "view.recent-changes.menu.show-diff": "R\u0101d\u012Bt at\u0161\u0137ir\u012Bbas",
+  "view.recent-changes.menu.restore": "Atjaunot \u0161o versiju",
+  "view.recent-changes.menu.delete": "Dz\u0113st versiju",
+  "view.recent-changes.menu.put-label": "Pievienot eti\u0137eti",
+  "modal.label-selected": "Pievienot eti\u0137eti atlas\u012Btajai versijai",
+  "modal.label-version.message": "Atz\u012Bm\u0113jiet \u0161o versiju ar \u012Bsu eti\u0137eti.",
+  "notice.no-folder-history": "V\u0113l nav mapes v\u0113stures.",
+  "setting.max-deleted-entries.name": "Maks. saglab\u0101to dz\u0113sto failu skaits",
+  "setting.max-deleted-entries.desc": "Ierobe\u017Eojums, cik dz\u0113sto failu v\u0113stures tiek glab\u0101tas disk\u0101. Vec\u0101k\u0101s tiek no\u0146emtas vispirms. Iestatiet 0, lai atsp\u0113jotu.",
+  "setting.max-deleted-age-days.name": "Maks. dz\u0113sto failu v\u0113stures vecums (dienas)",
+  "setting.max-deleted-age-days.desc": "No\u0146emt dz\u0113sto failu v\u0113stures, kas vec\u0101kas par \u0161o dienu skaitu. Iestatiet 0, lai atsp\u0113jotu.",
+  "folder-tree.empty": "\u0160aj\u0101 map\u0113 nav izmai\u0146u izv\u0113l\u0113tajam punktam.",
+  "modal.folder.filter-files": "Filtr\u0113t failus p\u0113c nosaukuma",
+  "modal.folder.timeline.capture": "Tverts",
+  "modal.folder.timeline.delete": "Dz\u0113sts",
+  "modal.folder.timeline.move-in": "P\u0101rvietots \u0161eit",
+  "modal.folder.notice.no-file": "Nav atlas\u012Bts neviens fails.",
+  "modal.folder.notice.added": "Fails tika pievienots p\u0113c \u0161\u012B punkta.",
+  "modal.folder.notice.deleted": "Fails tika dz\u0113sts p\u0113c \u0161\u012B punkta.",
+  "modal.folder.notice.unchanged": "Nav izmai\u0146u kop\u0161 \u0161\u012B punkta.",
+  "version.badge.external": "\u0101r\u0113js",
+  "setting.exclude-paths-case-sensitive.name": "Re\u0123istrjut\u012Bga ce\u013Cu izsl\u0113g\u0161ana",
+  "setting.exclude-paths-case-sensitive.desc": "Ja iesp\u0113jots, izsl\u0113gto ce\u013Cu regul\u0101r\u0101 izteiksme tiek sal\u012Bdzin\u0101ta, \u0146emot v\u0113r\u0101 re\u0123istru (bez 'i' karoga). Atsp\u0113jojiet, lai sal\u012Bdzin\u0101tu neatkar\u012Bgi no re\u0123istra: tas ir noklus\u0113jums un labi darbojas re\u0123istrnejut\u012Bg\u0101s failu sist\u0113m\u0101s.",
+  "setting.purge-excluded.name": "Izt\u012Br\u012Bt izsl\u0113gto ce\u013Cu v\u0113sturi",
+  "setting.purge-excluded.desc": "Dz\u0113st visu saglab\u0101to v\u0113sturi failiem, kuru ce\u013Ci pa\u0161laik atbilst izsl\u0113gto ce\u013Cu \u0161ablonam. Tiek no\u0146emti ar\u012B dz\u0113sto failu ieraksti. \u0160o darb\u012Bbu nevar atsaukt.",
+  "notice.purge-excluded": "Lok\u0101l\u0101 v\u0113sture: izt\u012Br\u012Bti {count} momentuz\u0146\u0113mumi izsl\u0113gtajiem ce\u013Ciem.",
+  "notice.purge-excluded.no-match": "Lok\u0101l\u0101 v\u0113sture: neviena saglab\u0101t\u0101 v\u0113sture neatbilst izsl\u0113gtajiem ce\u013Ciem.",
+  "setting.reading-mode-indicator.name": "R\u0101d\u012Bt indikatorus las\u012B\u0161anas re\u017E\u012Bm\u0101",
+  "setting.reading-mode-indicator.desc": "Las\u012B\u0161anas re\u017E\u012Bm\u0101 att\u0113lotajiem blokiem pievienot kr\u0101sainu kreiso malu redi\u0123\u0113\u0161anas indikatora kr\u0101s\u0101s (main\u012Bts, pievienots, atstarpes, atjaunots). P\u0113c noklus\u0113juma izsl\u0113gts; katr\u0101 las\u012B\u0161anas re\u017E\u012Bma p\u0101rz\u012Bm\u0113\u0161an\u0101 ir nelielas izmaksas par bloku."
 };
 
 // lang/ms.json
@@ -10792,9 +10679,16 @@ var ms_default = {
   "setting.allowed-extensions.desc": "Senarai sambungan fail dipisahkan koma untuk dijejak perubahannya (cth. md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "Laluan yang dikecualikan",
   "setting.exclude-paths.desc": "Ungkapan biasa yang tidak peka huruf besar-kecil, dipadankan dengan laluan relatif kepada vault. Mana-mana fail yang laluannya sepadan tidak akan dijejak (cth. \\.excalidraw\\.md$ atau (^|/)Templates/). Lalai mengecualikan folder Templates dan lukisan Excalidraw. Biarkan kosong untuk menjejak semuanya.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "Tambah corak",
+  "setting.exclude-paths.placeholder": "cth. (^|/)Templates/",
+  "setting.exclude-paths.remove": "Buang corak ini",
+  "setting.exclude-paths.empty": "Belum ada laluan yang dikecualikan. Gunakan butang + untuk menambah corak.",
+  "setting.exclude-paths.edit": "Sunting corak",
+  "setting.exclude-paths.save": "Simpan corak",
+  "setting.exclude-paths.cancel": "Batal",
+  "setting.exclude-paths.error": "Corak mestilah ungkapan nalar yang sah dan tidak kosong.",
+  "setting.general-heading": "Umum",
+  "setting.cleanup-heading": "Pembersihan sejarah",
   "setting.keep.name": "Simpan sejarah sehingga",
   "setting.keep.desc": "Strategi untuk membersihkan sejarah semakan",
   "setting.keep.option.app": "Apl ditutup",
@@ -10803,8 +10697,8 @@ var ms_default = {
   "setting.ignore-new-files.desc": "Jangan jejak perubahan pada fail yang dicipta selepas penjejakan bermula",
   "setting.tree-highlight.name": "Serlahkan perubahan dalam pepohon fail dan tab",
   "setting.tree-highlight.desc": "Warnakan fail dan folder dalam penjelajah fail asli, serta pengepala tab bagi fail yang dibuka, mengikut apa yang berubah dalam sesi ini (kuning untuk diubah, hijau untuk ditambah).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "Serlahkan perubahan dalam panel Sifat",
+  "setting.properties-highlight.desc": "Tunjukkan kunci frontmatter yang ditambah, diubah dan dibuang dalam panel Sifat Obsidian. Nyahaktifkan untuk menyembunyikan semua penandaan perubahan sifat.",
   "setting.persist.name": "Kekalkan sejarah merentas mula semula",
   "setting.persist.desc": 'Simpan sejarah ke cakera supaya sorotan kekal selepas mula semula. Memerlukan "simpan sejarah sehingga" ditetapkan kepada apl ditutup.',
   "setting.max-entries.name": "Maks fail tersimpan",
@@ -10852,10 +10746,10 @@ var ms_default = {
   "modal.mode.side-by-side": "Bersebelahan",
   "modal.hide-identical": "Sembunyikan versi yang sama dengan yang semasa",
   "modal.confirm.cancel": "Batal",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "Pengesahan",
+  "modal.confirm.default.message": "Adakah anda pasti mahu meneruskan?",
+  "modal.confirm.default.ok": "Sahkan",
+  "modal.confirm.default.cancel": "Batal",
   "modal.confirm.restore.title": "Pulihkan fail asal",
   "modal.confirm.restore.message": "Adakah anda pasti mahu memulihkan fail ini kepada keadaan asalnya? Semua perubahan semasa akan hilang dan sejarah penjejakan perubahan akan ditetapkan semula. Tindakan ini tidak boleh dibatalkan.",
   "modal.confirm.restore.button": "Pulihkan fail",
@@ -10874,52 +10768,53 @@ var ms_default = {
   "modal.search-versions": "Cari versi",
   "modal.version.current": "Semasa",
   "modal.version.original": "Asal",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "Dicipta",
+  "modal.version.action.modified": "Diubah",
+  "modal.version.action.cleared": "Dikosongkan",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Tiada versi sepadan dengan carian",
   "modal.revert-hunk": "Patah balik perubahan ini",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "Undurkan perubahan ini",
   "modal.copy": "Salin",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.title": "Letak label",
+  "modal.put-label.message": "Tandakan kandungan semasa dengan label ringkas.",
   "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.confirm": "Simpan",
+  "menu.local-history.show-history": "Tunjukkan sejarah",
+  "menu.local-history.show-history-selection": "Tunjukkan sejarah untuk pilihan",
+  "menu.local-history.put-label": "Letak label",
+  "menu.local-history.recent-changes": "Perubahan terkini",
+  "view.recent-changes.title": "Perubahan terkini",
+  "view.recent-changes.empty": "Tiada sejarah versi untuk fail aktif.",
+  "view.recent-changes.menu.show-diff": "Tunjukkan perbezaan",
+  "view.recent-changes.menu.restore": "Pulihkan versi ini",
+  "view.recent-changes.menu.delete": "Padam versi",
+  "view.recent-changes.menu.put-label": "Letak label",
+  "modal.label-selected": "Labelkan versi yang dipilih",
+  "modal.label-version.message": "Tandakan versi ini dengan label ringkas.",
+  "notice.no-folder-history": "Belum ada sejarah folder.",
+  "setting.max-deleted-entries.name": "Maks. fail terpadam yang disimpan",
+  "setting.max-deleted-entries.desc": "Had bilangan sejarah fail terpadam yang disimpan pada cakera. Yang tertua dibuang dahulu. Tetapkan kepada 0 untuk menyahaktifkan.",
+  "setting.max-deleted-age-days.name": "Usia maks. sejarah fail terpadam (hari)",
+  "setting.max-deleted-age-days.desc": "Buang sejarah fail terpadam yang lebih lama daripada bilangan hari ini. Tetapkan kepada 0 untuk menyahaktifkan.",
+  "folder-tree.empty": "Tiada perubahan dalam folder ini untuk titik yang dipilih.",
+  "modal.folder.filter-files": "Tapis fail mengikut nama",
+  "modal.folder.timeline.capture": "Dirakam",
+  "modal.folder.timeline.delete": "Dipadam",
+  "modal.folder.timeline.move-in": "Dipindahkan ke sini",
+  "modal.folder.notice.no-file": "Tiada fail dipilih.",
+  "modal.folder.notice.added": "Fail ditambah selepas titik ini.",
+  "modal.folder.notice.deleted": "Fail dipadam selepas titik ini.",
+  "modal.folder.notice.unchanged": "Tiada perubahan sejak titik ini.",
+  "version.badge.external": "luaran",
+  "setting.exclude-paths-case-sensitive.name": "Pengecualian laluan peka huruf besar-kecil",
+  "setting.exclude-paths-case-sensitive.desc": "Apabila diaktifkan, ungkapan nalar laluan yang dikecualikan dipadankan secara peka huruf besar-kecil (tanpa bendera 'i'). Nyahaktifkan untuk memadankan tanpa mengira huruf: ini lalai dan berfungsi baik pada sistem fail yang tidak peka huruf besar-kecil.",
+  "setting.purge-excluded.name": "Bersihkan sejarah untuk laluan yang dikecualikan",
+  "setting.purge-excluded.desc": "Padamkan semua sejarah tersimpan bagi fail yang laluannya kini sepadan dengan corak laluan yang dikecualikan. Rekod fail terpadam turut dibuang. Tindakan ini tidak boleh dibuat asal.",
+  "notice.purge-excluded": "Sejarah setempat: {count} snapshot untuk laluan yang dikecualikan dibersihkan.",
+  "notice.purge-excluded.no-match": "Sejarah setempat: tiada sejarah tersimpan yang sepadan dengan laluan yang dikecualikan.",
+  "setting.reading-mode-indicator.name": "Tunjukkan penunjuk dalam mod baca",
+  "setting.reading-mode-indicator.desc": "Hiasi blok yang dipaparkan dalam mod baca dengan jidar kiri berwarna mengikut warna penunjuk suntingan (diubah, ditambah, ruang putih, dipulihkan). Dimatikan secara lalai; ada kos kecil bagi setiap blok pada setiap paparan semula mod baca."
 };
 
 // lang/ne.json
@@ -10949,9 +10844,16 @@ var ne_default = {
   "setting.allowed-extensions.desc": "\u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928\u0939\u0930\u0942 \u091F\u094D\u0930\u094D\u092F\u093E\u0915 \u0917\u0930\u094D\u0928 \u0905\u0932\u094D\u092A\u0935\u093F\u0930\u093E\u092E\u0932\u0947 \u091B\u0941\u091F\u094D\u092F\u093E\u0907\u090F\u0915\u094B \u092B\u093E\u0907\u0932 \u090F\u0915\u094D\u0938\u091F\u0947\u0928\u094D\u0938\u0928\u0939\u0930\u0942\u0915\u094B \u0938\u0942\u091A\u0940 (\u091C\u0938\u094D\u0924\u0948, md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "\u092C\u0939\u093F\u0937\u094D\u0915\u0943\u0924 \u092A\u0925\u0939\u0930\u0942",
   "setting.exclude-paths.desc": "\u092D\u0932\u094D\u091F-\u0938\u093E\u092A\u0947\u0915\u094D\u0937 \u092A\u0925\u0938\u0901\u0917 \u092E\u093F\u0932\u093E\u0907\u0928\u0947 \u0915\u0947\u0938-\u0905\u0938\u0902\u0935\u0947\u0926\u0928\u0936\u0940\u0932 \u0928\u093F\u092F\u092E\u093F\u0924 \u0905\u092D\u093F\u0935\u094D\u092F\u0915\u094D\u0924\u093F\u0964 \u091C\u0941\u0928\u0938\u0941\u0915\u0948 \u092B\u093E\u0907\u0932\u0915\u094B \u092A\u0925 \u092E\u093F\u0932\u094D\u091B \u092D\u0928\u0947 \u0924\u094D\u092F\u094B \u0915\u0939\u093F\u0932\u094D\u092F\u0948 \u091F\u094D\u0930\u094D\u092F\u093E\u0915 \u0917\u0930\u093F\u0901\u0926\u0948\u0928 (\u091C\u0938\u094D\u0924\u0948 \\.excalidraw\\.md$ \u0935\u093E (^|/)Templates/)\u0964 \u092A\u0942\u0930\u094D\u0935\u0928\u093F\u0930\u094D\u0927\u093E\u0930\u093F\u0924 \u0930\u0942\u092A\u092E\u093E Templates \u092B\u094B\u0932\u094D\u0921\u0930\u0939\u0930\u0942 \u0930 Excalidraw \u091A\u093F\u0924\u094D\u0930\u0939\u0930\u0942 \u092C\u0939\u093F\u0937\u094D\u0915\u0943\u0924 \u0939\u0941\u0928\u094D\u091B\u0928\u094D\u0964 \u0938\u092C\u0948 \u0915\u0941\u0930\u093E \u091F\u094D\u0930\u094D\u092F\u093E\u0915 \u0917\u0930\u094D\u0928 \u0916\u093E\u0932\u0940 \u091B\u094B\u0921\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "\u0922\u093E\u0901\u091A\u093E \u0925\u092A\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "setting.exclude-paths.placeholder": "\u091C\u0938\u094D\u0924\u0948 (^|/)Templates/",
+  "setting.exclude-paths.remove": "\u092F\u094B \u0922\u093E\u0901\u091A\u093E \u0939\u091F\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D",
+  "setting.exclude-paths.empty": "\u0905\u0939\u093F\u0932\u0947\u0938\u092E\u094D\u092E \u0915\u0941\u0928\u0948 \u092C\u0939\u093F\u0937\u094D\u0915\u0943\u0924 \u092E\u093E\u0930\u094D\u0917 \u091B\u0948\u0928\u0964 \u0922\u093E\u0901\u091A\u093E \u0925\u092A\u094D\u0928 + \u092C\u091F\u0928 \u092A\u094D\u0930\u092F\u094B\u0917 \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
+  "setting.exclude-paths.edit": "\u0922\u093E\u0901\u091A\u093E \u0938\u092E\u094D\u092A\u093E\u0926\u0928 \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "setting.exclude-paths.save": "\u0922\u093E\u0901\u091A\u093E \u0938\u0941\u0930\u0915\u094D\u0937\u093F\u0924 \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "setting.exclude-paths.cancel": "\u0930\u0926\u094D\u0926 \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "setting.exclude-paths.error": "\u0922\u093E\u0901\u091A\u093E \u0916\u093E\u0932\u0940 \u0928\u092D\u090F\u0915\u094B \u092E\u093E\u0928\u094D\u092F \u0930\u0947\u0917\u0941\u0932\u0930 \u090F\u0915\u094D\u0938\u092A\u094D\u0930\u0947\u0938\u0928 \u0939\u0941\u0928\u0941\u092A\u0930\u094D\u091B\u0964",
+  "setting.general-heading": "\u0938\u093E\u092E\u093E\u0928\u094D\u092F",
+  "setting.cleanup-heading": "\u0907\u0924\u093F\u0939\u093E\u0938 \u0938\u092B\u093E\u0907",
   "setting.keep.name": "\u0907\u0924\u093F\u0939\u093E\u0938 \u0930\u093E\u0916\u094D\u0928\u0947 \u0905\u0935\u0927\u093F",
   "setting.keep.desc": "\u0938\u0902\u0936\u094B\u0927\u0928 \u0907\u0924\u093F\u0939\u093E\u0938 \u0938\u092B\u093E \u0917\u0930\u094D\u0928\u0947 \u0930\u0923\u0928\u0940\u0924\u093F",
   "setting.keep.option.app": "\u090F\u092A \u092C\u0928\u094D\u0926",
@@ -10960,8 +10862,8 @@ var ne_default = {
   "setting.ignore-new-files.desc": "\u091F\u094D\u0930\u094D\u092F\u093E\u0915\u093F\u0919 \u0938\u0941\u0930\u0941 \u092D\u090F\u092A\u091B\u093F \u0938\u093F\u0930\u094D\u091C\u0928\u093E \u0917\u0930\u093F\u090F\u0915\u093E \u092B\u093E\u0907\u0932\u0939\u0930\u0942\u092E\u093E \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u091F\u094D\u0930\u094D\u092F\u093E\u0915 \u0928\u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
   "setting.tree-highlight.name": "\u092B\u093E\u0907\u0932 \u0930\u0942\u0916 \u0930 \u091F\u094D\u092F\u093E\u092C\u0939\u0930\u0942\u092E\u093E \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928\u0939\u0930\u0942 \u0939\u093E\u0907\u0932\u093E\u0907\u091F \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
   "setting.tree-highlight.desc": "\u0928\u0947\u091F\u093F\u092D \u092B\u093E\u0907\u0932 \u090F\u0915\u094D\u0938\u092A\u094D\u0932\u094B\u0930\u0930\u092E\u093E \u092B\u093E\u0907\u0932 \u0930 \u092B\u094B\u0932\u094D\u0921\u0930\u0939\u0930\u0942, \u0930 \u0916\u0941\u0932\u093E \u092B\u093E\u0907\u0932\u0939\u0930\u0942\u0915\u094B \u091F\u094D\u092F\u093E\u092C \u0939\u0947\u0921\u0930\u0939\u0930\u0942\u0932\u093E\u0908 \u092F\u0938 \u0938\u0924\u094D\u0930\u092E\u093E \u0915\u0947 \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u092D\u092F\u094B \u0924\u094D\u092F\u0938\u0905\u0928\u0941\u0938\u093E\u0930 \u0930\u0919 \u0932\u0917\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D (\u092A\u0930\u093F\u092E\u093E\u0930\u094D\u091C\u093F\u0924\u0915\u093E \u0932\u093E\u0917\u093F \u0905\u092E\u094D\u092C\u0930, \u0925\u092A\u093F\u090F\u0915\u093E\u0915\u093E \u0932\u093E\u0917\u093F \u0939\u0930\u093F\u092F\u094B)\u0964",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "\u0917\u0941\u0923 \u092A\u094D\u092F\u093E\u0928\u0932\u092E\u093E \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928\u0939\u0930\u0942 \u0939\u093E\u0907\u0932\u093E\u0907\u091F \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "setting.properties-highlight.desc": "Obsidian \u0917\u0941\u0923 \u092A\u094D\u092F\u093E\u0928\u0932\u092E\u093E \u0925\u092A\u093F\u090F\u0915\u093E, \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u0917\u0930\u093F\u090F\u0915\u093E \u0930 \u0939\u091F\u093E\u0907\u090F\u0915\u093E frontmatter \u0915\u0941\u091E\u094D\u091C\u0940\u0939\u0930\u0942 \u0926\u0947\u0916\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D\u0964 \u0917\u0941\u0923 \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928\u0915\u093E \u0938\u092C\u0948 \u091A\u093F\u0928\u094D\u0939 \u0932\u0941\u0915\u093E\u0909\u0928 \u0928\u093F\u0937\u094D\u0915\u094D\u0930\u093F\u092F \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
   "setting.persist.name": "\u092A\u0941\u0928\u0903 \u0938\u0941\u0930\u0941 \u092D\u090F\u092A\u091B\u093F \u092A\u0928\u093F \u0907\u0924\u093F\u0939\u093E\u0938 \u0930\u093E\u0916\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
   "setting.persist.desc": '\u0939\u093E\u0907\u0932\u093E\u0907\u091F\u0939\u0930\u0942 \u092A\u0941\u0928\u0903 \u0938\u0941\u0930\u0941\u092A\u091B\u093F \u092A\u0928\u093F \u0930\u0939\u0942\u0928\u094D \u092D\u0928\u0947\u0930 \u0907\u0924\u093F\u0939\u093E\u0938 \u0921\u093F\u0938\u094D\u0915\u092E\u093E \u0938\u0941\u0930\u0915\u094D\u0937\u093F\u0924 \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964 "\u0907\u0924\u093F\u0939\u093E\u0938 \u0930\u093E\u0916\u094D\u0928\u0947 \u0905\u0935\u0927\u093F" \u090F\u092A \u092C\u0928\u094D\u0926\u092E\u093E \u0938\u0947\u091F \u0917\u0930\u094D\u0928 \u0906\u0935\u0936\u094D\u092F\u0915 \u091B\u0964',
   "setting.max-entries.name": "\u0905\u0927\u093F\u0915\u0924\u092E \u0938\u0941\u0930\u0915\u094D\u0937\u093F\u0924 \u092B\u093E\u0907\u0932\u0939\u0930\u0942",
@@ -11009,10 +10911,10 @@ var ne_default = {
   "modal.mode.side-by-side": "\u091B\u0947\u0909\u091B\u093E\u0909",
   "modal.hide-identical": "\u0939\u093E\u0932\u0915\u094B \u0938\u0901\u0917 \u0938\u092E\u093E\u0928 \u0938\u0902\u0938\u094D\u0915\u0930\u0923\u0939\u0930\u0942 \u0932\u0941\u0915\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D",
   "modal.confirm.cancel": "\u0930\u0926\u094D\u0926 \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "\u092A\u0941\u0937\u094D\u091F\u093F",
+  "modal.confirm.default.message": "\u0924\u092A\u093E\u0908\u0902 \u0928\u093F\u0936\u094D\u091A\u093F\u0924 \u0930\u0942\u092A\u092E\u093E \u0905\u0917\u093E\u0921\u093F \u092C\u0922\u094D\u0928 \u091A\u093E\u0939\u0928\u0941\u0939\u0941\u0928\u094D\u091B?",
+  "modal.confirm.default.ok": "\u092A\u0941\u0937\u094D\u091F\u093F \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "modal.confirm.default.cancel": "\u0930\u0926\u094D\u0926 \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
   "modal.confirm.restore.title": "\u092E\u0942\u0932 \u092B\u093E\u0907\u0932 \u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u0928\u093E \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
   "modal.confirm.restore.message": "\u0915\u0947 \u0924\u092A\u093E\u0908\u0902 \u092F\u094B \u092B\u093E\u0907\u0932\u0932\u093E\u0908 \u092F\u0938\u0915\u094B \u092E\u0942\u0932 \u0905\u0935\u0938\u094D\u0925\u093E\u092E\u093E \u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u0928\u093E \u0917\u0930\u094D\u0928 \u0928\u093F\u0936\u094D\u091A\u093F\u0924 \u0939\u0941\u0928\u0941\u0939\u0941\u0928\u094D\u091B? \u0938\u092C\u0948 \u0939\u093E\u0932\u0915\u093E \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928\u0939\u0930\u0942 \u0939\u0930\u093E\u0909\u0928\u0947\u091B\u0928\u094D \u0930 \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u091F\u094D\u0930\u094D\u092F\u093E\u0915\u093F\u0919 \u0907\u0924\u093F\u0939\u093E\u0938 \u0930\u093F\u0938\u0947\u091F \u0939\u0941\u0928\u0947\u091B\u0964 \u092F\u094B \u0915\u093E\u0930\u094D\u092F \u092A\u0942\u0930\u094D\u0935\u0935\u0924 \u0917\u0930\u094D\u0928 \u0938\u0915\u093F\u0901\u0926\u0948\u0928\u0964",
   "modal.confirm.restore.button": "\u092B\u093E\u0907\u0932 \u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u0928\u093E \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
@@ -11031,52 +10933,53 @@ var ne_default = {
   "modal.search-versions": "\u0938\u0902\u0938\u094D\u0915\u0930\u0923\u0939\u0930\u0942 \u0916\u094B\u091C\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
   "modal.version.current": "\u0939\u093E\u0932\u0915\u094B",
   "modal.version.original": "\u092E\u0942\u0932",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "\u0938\u093F\u0930\u094D\u091C\u0928\u093E \u0917\u0930\u093F\u092F\u094B",
+  "modal.version.action.modified": "\u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u0917\u0930\u093F\u092F\u094B",
+  "modal.version.action.cleared": "\u0916\u093E\u0932\u0940 \u0917\u0930\u093F\u092F\u094B",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u0916\u094B\u091C\u0938\u0901\u0917 \u0915\u0941\u0928\u0948 \u0938\u0902\u0938\u094D\u0915\u0930\u0923 \u092E\u0947\u0932 \u0916\u093E\u0901\u0926\u0948\u0928",
   "modal.revert-hunk": "\u092F\u094B \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u092B\u093F\u0930\u094D\u0924\u093E \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "\u092F\u094B \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u0909\u0932\u094D\u091F\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D",
   "modal.copy": "\u092A\u094D\u0930\u0924\u093F\u0932\u093F\u092A\u093F \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "\u0932\u0947\u092C\u0932 \u0930\u093E\u0916\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "modal.put-label.message": "\u0939\u093E\u0932\u0915\u094B \u0938\u093E\u092E\u0917\u094D\u0930\u0940\u0932\u093E\u0908 \u091B\u094B\u091F\u094B \u0932\u0947\u092C\u0932\u0932\u0947 \u091A\u093F\u0928\u094D\u0939 \u0932\u0917\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
+  "modal.put-label.placeholder": "\u0932\u0947\u092C\u0932",
+  "modal.put-label.confirm": "\u0938\u0941\u0930\u0915\u094D\u0937\u093F\u0924 \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "menu.local-history.show-history": "\u0907\u0924\u093F\u0939\u093E\u0938 \u0926\u0947\u0916\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D",
+  "menu.local-history.show-history-selection": "\u091A\u092F\u0928\u0915\u094B \u0907\u0924\u093F\u0939\u093E\u0938 \u0926\u0947\u0916\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D",
+  "menu.local-history.put-label": "\u0932\u0947\u092C\u0932 \u0930\u093E\u0916\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "menu.local-history.recent-changes": "\u0939\u093E\u0932\u0948\u0915\u093E \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928\u0939\u0930\u0942",
+  "view.recent-changes.title": "\u0939\u093E\u0932\u0948\u0915\u093E \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928\u0939\u0930\u0942",
+  "view.recent-changes.empty": "\u0938\u0915\u094D\u0930\u093F\u092F \u092B\u093E\u0907\u0932\u0915\u094B \u0915\u0941\u0928\u0948 \u0938\u0902\u0938\u094D\u0915\u0930\u0923 \u0907\u0924\u093F\u0939\u093E\u0938 \u091B\u0948\u0928\u0964",
+  "view.recent-changes.menu.show-diff": "\u092D\u093F\u0928\u094D\u0928\u0924\u093E \u0926\u0947\u0916\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D",
+  "view.recent-changes.menu.restore": "\u092F\u094B \u0938\u0902\u0938\u094D\u0915\u0930\u0923 \u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u0928\u093E \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "view.recent-changes.menu.delete": "\u0938\u0902\u0938\u094D\u0915\u0930\u0923 \u092E\u0947\u091F\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D",
+  "view.recent-changes.menu.put-label": "\u0932\u0947\u092C\u0932 \u0930\u093E\u0916\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "modal.label-selected": "\u091A\u092F\u0928 \u0917\u0930\u093F\u090F\u0915\u094B \u0938\u0902\u0938\u094D\u0915\u0930\u0923\u092E\u093E \u0932\u0947\u092C\u0932 \u0930\u093E\u0916\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "modal.label-version.message": "\u092F\u094B \u0938\u0902\u0938\u094D\u0915\u0930\u0923\u0932\u093E\u0908 \u091B\u094B\u091F\u094B \u0932\u0947\u092C\u0932\u0932\u0947 \u091A\u093F\u0928\u094D\u0939 \u0932\u0917\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
+  "notice.no-folder-history": "\u0905\u0939\u093F\u0932\u0947\u0938\u092E\u094D\u092E \u092B\u094B\u0932\u094D\u0921\u0930 \u0907\u0924\u093F\u0939\u093E\u0938 \u091B\u0948\u0928\u0964",
+  "setting.max-deleted-entries.name": "\u092D\u0923\u094D\u0921\u093E\u0930\u0923 \u0917\u0930\u093F\u0928\u0947 \u092E\u0947\u091F\u093E\u0907\u090F\u0915\u093E \u092B\u093E\u0907\u0932\u0939\u0930\u0942\u0915\u094B \u0905\u0927\u093F\u0915\u0924\u092E",
+  "setting.max-deleted-entries.desc": "\u0921\u093F\u0938\u094D\u0915\u092E\u093E \u0930\u093E\u0916\u093F\u0928\u0947 \u092E\u0947\u091F\u093E\u0907\u090F\u0915\u093E \u092B\u093E\u0907\u0932\u0939\u0930\u0942\u0915\u094B \u0907\u0924\u093F\u0939\u093E\u0938 \u0938\u0919\u094D\u0916\u094D\u092F\u093E\u0915\u094B \u0938\u0940\u092E\u093E\u0964 \u0938\u092C\u0948\u092D\u0928\u094D\u0926\u093E \u092A\u0941\u0930\u093E\u0928\u093E \u092A\u0939\u093F\u0932\u0947 \u0939\u091F\u093E\u0907\u0928\u094D\u091B\u0928\u094D\u0964 \u0928\u093F\u0937\u094D\u0915\u094D\u0930\u093F\u092F \u0917\u0930\u094D\u0928 0 \u0930\u093E\u0916\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
+  "setting.max-deleted-age-days.name": "\u092E\u0947\u091F\u093E\u0907\u090F\u0915\u094B \u0907\u0924\u093F\u0939\u093E\u0938\u0915\u094B \u0905\u0927\u093F\u0915\u0924\u092E \u0909\u092E\u0947\u0930 (\u0926\u093F\u0928)",
+  "setting.max-deleted-age-days.desc": "\u092F\u094B \u0926\u093F\u0928 \u0938\u0919\u094D\u0916\u094D\u092F\u093E\u092D\u0928\u094D\u0926\u093E \u092A\u0941\u0930\u093E\u0928\u093E \u092E\u0947\u091F\u093E\u0907\u090F\u0915\u093E \u092B\u093E\u0907\u0932\u0939\u0930\u0942\u0915\u094B \u0907\u0924\u093F\u0939\u093E\u0938 \u0939\u091F\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D\u0964 \u0928\u093F\u0937\u094D\u0915\u094D\u0930\u093F\u092F \u0917\u0930\u094D\u0928 0 \u0930\u093E\u0916\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
+  "folder-tree.empty": "\u091A\u092F\u0928 \u0917\u0930\u093F\u090F\u0915\u094B \u092C\u093F\u0928\u094D\u0926\u0941\u0915\u093E \u0932\u093E\u0917\u093F \u092F\u094B \u092B\u094B\u0932\u094D\u0921\u0930\u092E\u093E \u0915\u0941\u0928\u0948 \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u091B\u0948\u0928\u0964",
+  "modal.folder.filter-files": "\u0928\u093E\u092E\u0926\u094D\u0935\u093E\u0930\u093E \u092B\u093E\u0907\u0932\u0939\u0930\u0942 \u092B\u093F\u0932\u094D\u091F\u0930 \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "modal.folder.timeline.capture": "\u0915\u0948\u0926 \u0917\u0930\u093F\u092F\u094B",
+  "modal.folder.timeline.delete": "\u092E\u0947\u091F\u093E\u0907\u092F\u094B",
+  "modal.folder.timeline.move-in": "\u092F\u0939\u093E\u0901 \u0938\u093E\u0930\u093F\u092F\u094B",
+  "modal.folder.notice.no-file": "\u0915\u0941\u0928\u0948 \u092B\u093E\u0907\u0932 \u091A\u092F\u0928 \u0917\u0930\u093F\u090F\u0915\u094B \u091B\u0948\u0928\u0964",
+  "modal.folder.notice.added": "\u092F\u094B \u092C\u093F\u0928\u094D\u0926\u0941\u092A\u091B\u093F \u092B\u093E\u0907\u0932 \u0925\u092A\u093F\u090F\u0915\u094B \u0925\u093F\u092F\u094B\u0964",
+  "modal.folder.notice.deleted": "\u092F\u094B \u092C\u093F\u0928\u094D\u0926\u0941\u092A\u091B\u093F \u092B\u093E\u0907\u0932 \u092E\u0947\u091F\u093E\u0907\u090F\u0915\u094B \u0925\u093F\u092F\u094B\u0964",
+  "modal.folder.notice.unchanged": "\u092F\u094B \u092C\u093F\u0928\u094D\u0926\u0941\u0926\u0947\u0916\u093F \u0915\u0941\u0928\u0948 \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u091B\u0948\u0928\u0964",
+  "version.badge.external": "\u092C\u093E\u0939\u094D\u092F",
+  "setting.exclude-paths-case-sensitive.name": "\u0920\u0942\u0932\u093E-\u0938\u093E\u0928\u093E \u0905\u0915\u094D\u0937\u0930 \u091B\u0941\u091F\u094D\u092F\u093E\u0909\u0928\u0947 \u092E\u093E\u0930\u094D\u0917 \u092C\u0939\u093F\u0937\u094D\u0915\u0930\u0923",
+  "setting.exclude-paths-case-sensitive.desc": "\u0938\u0915\u094D\u0937\u092E \u0939\u0941\u0901\u0926\u093E, \u092C\u0939\u093F\u0937\u094D\u0915\u0943\u0924 \u092E\u093E\u0930\u094D\u0917\u0939\u0930\u0942\u0915\u094B \u0930\u0947\u0917\u0941\u0932\u0930 \u090F\u0915\u094D\u0938\u092A\u094D\u0930\u0947\u0938\u0928 \u0920\u0942\u0932\u093E-\u0938\u093E\u0928\u093E \u0905\u0915\u094D\u0937\u0930 \u091B\u0941\u091F\u094D\u092F\u093E\u090F\u0930 \u092E\u093F\u0932\u093E\u0907\u0928\u094D\u091B ('i' \u091D\u0928\u094D\u0921\u093E\u092C\u093F\u0928\u093E)\u0964 \u0905\u0915\u094D\u0937\u0930\u0915\u094B \u0906\u0915\u093E\u0930 \u0928\u0939\u0947\u0930\u0940 \u092E\u093F\u0932\u093E\u0909\u0928 \u0928\u093F\u0937\u094D\u0915\u094D\u0930\u093F\u092F \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D: \u092F\u094B \u092A\u0942\u0930\u094D\u0935\u0928\u093F\u0930\u094D\u0927\u093E\u0930\u093F\u0924 \u0939\u094B \u0930 \u0905\u0915\u094D\u0937\u0930 \u0928\u091B\u0941\u091F\u094D\u092F\u093E\u0909\u0928\u0947 \u092B\u093E\u0907\u0932 \u092A\u094D\u0930\u0923\u093E\u0932\u0940\u0939\u0930\u0942\u092E\u093E \u0930\u093E\u092E\u094D\u0930\u094B\u0938\u0901\u0917 \u0915\u093E\u092E \u0917\u0930\u094D\u091B\u0964",
+  "setting.purge-excluded.name": "\u092C\u0939\u093F\u0937\u094D\u0915\u0943\u0924 \u092E\u093E\u0930\u094D\u0917\u0939\u0930\u0942\u0915\u094B \u0907\u0924\u093F\u0939\u093E\u0938 \u0938\u092B\u093E \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "setting.purge-excluded.desc": "\u091C\u0938\u0915\u093E \u092E\u093E\u0930\u094D\u0917\u0939\u0930\u0942 \u0939\u093E\u0932 \u092C\u0939\u093F\u0937\u094D\u0915\u0943\u0924 \u092E\u093E\u0930\u094D\u0917\u0915\u094B \u0922\u093E\u0901\u091A\u093E\u0938\u0901\u0917 \u092E\u0947\u0932 \u0916\u093E\u0928\u094D\u091B\u0928\u094D, \u0924\u0940 \u092B\u093E\u0907\u0932\u0939\u0930\u0942\u0915\u094B \u0938\u092C\u0948 \u092D\u0923\u094D\u0921\u093E\u0930\u0923 \u0917\u0930\u093F\u090F\u0915\u094B \u0907\u0924\u093F\u0939\u093E\u0938 \u092E\u0947\u091F\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D\u0964 \u092E\u0947\u091F\u093E\u0907\u090F\u0915\u093E \u092B\u093E\u0907\u0932\u0939\u0930\u0942\u0915\u093E \u0905\u092D\u093F\u0932\u0947\u0916\u0939\u0930\u0942 \u092A\u0928\u093F \u0939\u091F\u093E\u0907\u0928\u094D\u091B\u0928\u094D\u0964 \u092F\u094B \u0915\u093E\u0930\u094D\u092F \u0909\u0932\u094D\u091F\u093E\u0909\u0928 \u0938\u0915\u093F\u0901\u0926\u0948\u0928\u0964",
+  "notice.purge-excluded": "\u0938\u094D\u0925\u093E\u0928\u0940\u092F \u0907\u0924\u093F\u0939\u093E\u0938: \u092C\u0939\u093F\u0937\u094D\u0915\u0943\u0924 \u092E\u093E\u0930\u094D\u0917\u0939\u0930\u0942\u0915\u093E {count} \u0938\u094D\u0928\u094D\u092F\u093E\u092A\u0938\u091F \u0938\u092B\u093E \u0917\u0930\u093F\u092F\u094B\u0964",
+  "notice.purge-excluded.no-match": "\u0938\u094D\u0925\u093E\u0928\u0940\u092F \u0907\u0924\u093F\u0939\u093E\u0938: \u092C\u0939\u093F\u0937\u094D\u0915\u0943\u0924 \u092E\u093E\u0930\u094D\u0917\u0939\u0930\u0942\u0938\u0901\u0917 \u092E\u093F\u0932\u094D\u0928\u0947 \u0915\u0941\u0928\u0948 \u0938\u0919\u094D\u0917\u094D\u0930\u0939\u093F\u0924 \u0907\u0924\u093F\u0939\u093E\u0938 \u091B\u0948\u0928\u0964",
+  "setting.reading-mode-indicator.name": "\u092A\u0922\u094D\u0928\u0947 \u092E\u094B\u0921\u092E\u093E \u0938\u0942\u091A\u0915\u0939\u0930\u0942 \u0926\u0947\u0916\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D",
+  "setting.reading-mode-indicator.desc": "\u092A\u0922\u094D\u0928\u0947 \u092E\u094B\u0921\u092E\u093E \u0930\u0947\u0928\u094D\u0921\u0930 \u0917\u0930\u093F\u090F\u0915\u093E \u092C\u094D\u0932\u0915\u0939\u0930\u0942\u0932\u093E\u0908 \u0938\u092E\u094D\u092A\u093E\u0926\u0928 \u0938\u0942\u091A\u0915\u0915\u093E \u0930\u0919\u0939\u0930\u0942 (\u092A\u0930\u093F\u0935\u0930\u094D\u0924\u093F\u0924, \u0925\u092A\u093F\u090F\u0915\u094B, \u0916\u093E\u0932\u0940 \u0938\u094D\u0925\u093E\u0928, \u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u093F\u0924) \u0938\u0901\u0917 \u092E\u093F\u0932\u094D\u0928\u0947 \u0930\u0919\u094D\u0917\u0940\u0928 \u092C\u093E\u092F\u093E\u0901 \u0915\u093F\u0928\u093E\u0930\u093E\u0932\u0947 \u0938\u091C\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D\u0964 \u092A\u0942\u0930\u094D\u0935\u0928\u093F\u0930\u094D\u0927\u093E\u0930\u093F\u0924 \u0930\u0942\u092A\u092E\u093E \u092C\u0928\u094D\u0926; \u092A\u0922\u094D\u0928\u0947 \u092E\u094B\u0921\u0915\u094B \u0939\u0930\u0947\u0915 \u092A\u0941\u0928\u0903 \u0930\u0947\u0928\u094D\u0921\u0930\u092E\u093E \u092A\u094D\u0930\u0924\u093F \u092C\u094D\u0932\u0915 \u0925\u094B\u0930\u0948 \u0932\u093E\u0917\u0924 \u0932\u093E\u0917\u094D\u091B\u0964"
 };
 
 // lang/nl.json
@@ -11106,9 +11009,16 @@ var nl_default = {
   "setting.allowed-extensions.desc": "Door komma's gescheiden lijst van bestandsextensies waarvan wijzigingen worden bijgehouden (bijv. md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "Uitgesloten paden",
   "setting.exclude-paths.desc": "Een hoofdletterongevoelige reguliere expressie die wordt vergeleken met het pad relatief aan de kluis. Elk bestand waarvan het pad overeenkomt, wordt nooit bijgehouden (bijv. \\.excalidraw\\.md$ of (^|/)Templates/). Standaard worden Templates-mappen en Excalidraw-tekeningen uitgesloten. Laat leeg om alles bij te houden.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "Patroon toevoegen",
+  "setting.exclude-paths.placeholder": "bijv. (^|/)Templates/",
+  "setting.exclude-paths.remove": "Dit patroon verwijderen",
+  "setting.exclude-paths.empty": "Nog geen uitgesloten paden. Gebruik de knop + om een patroon toe te voegen.",
+  "setting.exclude-paths.edit": "Patroon bewerken",
+  "setting.exclude-paths.save": "Patroon opslaan",
+  "setting.exclude-paths.cancel": "Annuleren",
+  "setting.exclude-paths.error": "Het patroon moet een niet-lege geldige reguliere expressie zijn.",
+  "setting.general-heading": "Algemeen",
+  "setting.cleanup-heading": "Geschiedenis opschonen",
   "setting.keep.name": "Geschiedenis bewaren tot",
   "setting.keep.desc": "Strategie voor het opschonen van de revisiegeschiedenis",
   "setting.keep.option.app": "App sluiten",
@@ -11117,8 +11027,8 @@ var nl_default = {
   "setting.ignore-new-files.desc": "Wijzigingen niet bijhouden in bestanden die zijn aangemaakt nadat het bijhouden is gestart",
   "setting.tree-highlight.name": "Wijzigingen markeren in de bestandsboom en tabbladen",
   "setting.tree-highlight.desc": "Kleurt bestanden en mappen in de native bestandsverkenner en de tabkoppen van geopende bestanden op basis van wat in deze sessie is gewijzigd (amber voor gewijzigd, groen voor toegevoegd).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "Wijzigingen markeren in het eigenschappenpaneel",
+  "setting.properties-highlight.desc": "Toegevoegde, gewijzigde en verwijderde frontmatter-sleutels tonen in het Obsidian-eigenschappenpaneel. Schakel uit om alle markering van eigenschapswijzigingen te onderdrukken.",
   "setting.persist.name": "Geschiedenis behouden na herstart",
   "setting.persist.desc": 'Geschiedenis op schijf opslaan zodat markeringen een herstart overleven. Vereist dat "Geschiedenis bewaren tot" is ingesteld op app sluiten.',
   "setting.max-entries.name": "Maximaal opgeslagen bestanden",
@@ -11166,10 +11076,10 @@ var nl_default = {
   "modal.mode.side-by-side": "Naast elkaar",
   "modal.hide-identical": "Versies identiek aan huidige verbergen",
   "modal.confirm.cancel": "Annuleren",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "Bevestiging",
+  "modal.confirm.default.message": "Weet u zeker dat u wilt doorgaan?",
+  "modal.confirm.default.ok": "Bevestigen",
+  "modal.confirm.default.cancel": "Annuleren",
   "modal.confirm.restore.title": "Origineel bestand herstellen",
   "modal.confirm.restore.message": "Weet je zeker dat je dit bestand wilt herstellen naar de oorspronkelijke staat? Alle huidige wijzigingen gaan verloren en de geschiedenis van het bijhouden van wijzigingen wordt opnieuw ingesteld. Deze actie kan niet ongedaan worden gemaakt.",
   "modal.confirm.restore.button": "Bestand herstellen",
@@ -11188,52 +11098,53 @@ var nl_default = {
   "modal.search-versions": "Versies zoeken",
   "modal.version.current": "Huidig",
   "modal.version.original": "Origineel",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "Aangemaakt",
+  "modal.version.action.modified": "Gewijzigd",
+  "modal.version.action.cleared": "Gewist",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Geen versies komen overeen met de zoekopdracht",
   "modal.revert-hunk": "Deze wijziging terugdraaien",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "Deze wijziging terugdraaien",
   "modal.copy": "Kopi\xEBren",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
+  "modal.put-label.title": "Label toevoegen",
+  "modal.put-label.message": "Geef de huidige inhoud een kort label.",
   "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.confirm": "Opslaan",
+  "menu.local-history.show-history": "Geschiedenis tonen",
+  "menu.local-history.show-history-selection": "Geschiedenis voor selectie tonen",
+  "menu.local-history.put-label": "Label toevoegen",
+  "menu.local-history.recent-changes": "Recente wijzigingen",
+  "view.recent-changes.title": "Recente wijzigingen",
+  "view.recent-changes.empty": "Geen versiegeschiedenis voor het actieve bestand.",
+  "view.recent-changes.menu.show-diff": "Diff tonen",
+  "view.recent-changes.menu.restore": "Deze versie herstellen",
+  "view.recent-changes.menu.delete": "Versie verwijderen",
+  "view.recent-changes.menu.put-label": "Label toevoegen",
+  "modal.label-selected": "Geselecteerde versie labelen",
+  "modal.label-version.message": "Geef deze versie een kort label.",
+  "notice.no-folder-history": "Nog geen mapgeschiedenis.",
+  "setting.max-deleted-entries.name": "Max. bewaarde verwijderde bestanden",
+  "setting.max-deleted-entries.desc": "Limiet voor het aantal geschiedenissen van verwijderde bestanden dat op schijf wordt bewaard. De oudste worden eerst verwijderd. Stel in op 0 om uit te schakelen.",
+  "setting.max-deleted-age-days.name": "Max. leeftijd geschiedenis verwijderde bestanden (dagen)",
+  "setting.max-deleted-age-days.desc": "Geschiedenissen van verwijderde bestanden ouder dan dit aantal dagen verwijderen. Stel in op 0 om uit te schakelen.",
+  "folder-tree.empty": "Geen wijzigingen in deze map voor het geselecteerde punt.",
+  "modal.folder.filter-files": "Bestanden filteren op naam",
+  "modal.folder.timeline.capture": "Vastgelegd",
+  "modal.folder.timeline.delete": "Verwijderd",
+  "modal.folder.timeline.move-in": "Hierheen verplaatst",
+  "modal.folder.notice.no-file": "Geen bestand geselecteerd.",
+  "modal.folder.notice.added": "Het bestand is na dit punt toegevoegd.",
+  "modal.folder.notice.deleted": "Het bestand is na dit punt verwijderd.",
+  "modal.folder.notice.unchanged": "Geen wijzigingen sinds dit punt.",
+  "version.badge.external": "extern",
+  "setting.exclude-paths-case-sensitive.name": "Hoofdlettergevoelige paduitsluiting",
+  "setting.exclude-paths-case-sensitive.desc": "Indien ingeschakeld wordt de reguliere expressie voor uitgesloten paden hoofdlettergevoelig vergeleken (zonder 'i'-vlag). Schakel uit om hoofdletters te negeren: dat is de standaard en werkt goed op niet-hoofdlettergevoelige bestandssystemen.",
+  "setting.purge-excluded.name": "Geschiedenis van uitgesloten paden opschonen",
+  "setting.purge-excluded.desc": "Alle opgeslagen geschiedenis verwijderen van bestanden waarvan de paden momenteel overeenkomen met het patroon voor uitgesloten paden. Vermeldingen van verwijderde bestanden worden ook verwijderd. Deze actie kan niet ongedaan worden gemaakt.",
+  "notice.purge-excluded": "Lokale geschiedenis: {count} snapshot(s) voor uitgesloten paden opgeschoond.",
+  "notice.purge-excluded.no-match": "Lokale geschiedenis: geen opgeslagen geschiedenis komt overeen met de uitgesloten paden.",
+  "setting.reading-mode-indicator.name": "Indicatoren tonen in leesmodus",
+  "setting.reading-mode-indicator.desc": "Gerenderde blokken in de leesmodus markeren met een gekleurde linkerrand in de kleuren van de bewerkingsindicator (gewijzigd, toegevoegd, witruimte, hersteld). Standaard uit; geeft een kleine kost per blok bij elke re-render van de leesmodus."
 };
 
 // lang/no.json
@@ -11263,9 +11174,16 @@ var no_default = {
   "setting.allowed-extensions.desc": "Kommaseparert liste over filendelser som skal spores for endringer (f.eks. md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "Ekskluderte stier",
   "setting.exclude-paths.desc": "Et regul\xE6rt uttrykk (uavhengig av store og sm\xE5 bokstaver) som sammenlignes mot stien relativt til hvelvet. Enhver fil hvis sti samsvarer, spores aldri (f.eks. \\.excalidraw\\.md$ eller (^|/)Templates/). Standardverdien ekskluderer Templates-mapper og Excalidraw-tegninger. La feltet st\xE5 tomt for \xE5 spore alt.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "Legg til m\xF8nster",
+  "setting.exclude-paths.placeholder": "f.eks. (^|/)Templates/",
+  "setting.exclude-paths.remove": "Fjern dette m\xF8nsteret",
+  "setting.exclude-paths.empty": "Ingen ekskluderte stier enn\xE5. Bruk +-knappen for \xE5 legge til et m\xF8nster.",
+  "setting.exclude-paths.edit": "Rediger m\xF8nster",
+  "setting.exclude-paths.save": "Lagre m\xF8nster",
+  "setting.exclude-paths.cancel": "Avbryt",
+  "setting.exclude-paths.error": "M\xF8nsteret m\xE5 v\xE6re et ikke-tomt gyldig regul\xE6rt uttrykk.",
+  "setting.general-heading": "Generelt",
+  "setting.cleanup-heading": "Opprydding i historikk",
   "setting.keep.name": "Behold historikk til",
   "setting.keep.desc": "Strategi for opprydding av revisjonshistorikk",
   "setting.keep.option.app": "Appen lukkes",
@@ -11274,8 +11192,8 @@ var no_default = {
   "setting.ignore-new-files.desc": "Ikke spor endringer i filer som er opprettet etter at sporingen startet",
   "setting.tree-highlight.name": "Fremhev endringer i filtreet og fanene",
   "setting.tree-highlight.desc": "Farg filer og mapper i det innebygde filutforskeren samt fanetitlene for \xE5pne filer etter hva som er endret i denne \xF8kten (rav for endret, gr\xF8nn for lagt til).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "Uthev endringer i egenskapspanelet",
+  "setting.properties-highlight.desc": "Vis frontmatter-n\xF8kler som er lagt til, endret eller fjernet i Obsidians egenskapspanel. Sl\xE5 av for \xE5 skjule all markering av egenskapsendringer.",
   "setting.persist.name": "Behold historikk p\xE5 tvers av omstarter",
   "setting.persist.desc": 'Lagre historikk p\xE5 disk slik at uthevinger overlever en omstart. Krever at "Behold historikk til" er satt til Appen lukkes.',
   "setting.max-entries.name": "Maks. lagrede filer",
@@ -11323,10 +11241,10 @@ var no_default = {
   "modal.mode.side-by-side": "Side ved side",
   "modal.hide-identical": "Skjul versjoner identiske med gjeldende",
   "modal.confirm.cancel": "Avbryt",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "Bekreftelse",
+  "modal.confirm.default.message": "Er du sikker p\xE5 at du vil fortsette?",
+  "modal.confirm.default.ok": "Bekreft",
+  "modal.confirm.default.cancel": "Avbryt",
   "modal.confirm.restore.title": "Gjenopprett originalfil",
   "modal.confirm.restore.message": "Er du sikker p\xE5 at du vil gjenopprette denne filen til opprinnelig tilstand? Alle gjeldende endringer g\xE5r tapt, og endringshistorikken tilbakestilles. Denne handlingen kan ikke angres.",
   "modal.confirm.restore.button": "Gjenopprett fil",
@@ -11345,52 +11263,53 @@ var no_default = {
   "modal.search-versions": "S\xF8k i versjoner",
   "modal.version.current": "Gjeldende",
   "modal.version.original": "Original",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "Opprettet",
+  "modal.version.action.modified": "Endret",
+  "modal.version.action.cleared": "T\xF8mt",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Ingen versjoner samsvarer med s\xF8ket",
   "modal.revert-hunk": "Tilbakestill denne endringen",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "Tilbakestill denne endringen",
   "modal.copy": "Kopier",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "Sett etikett",
+  "modal.put-label.message": "Merk gjeldende innhold med en kort etikett.",
+  "modal.put-label.placeholder": "Etikett",
+  "modal.put-label.confirm": "Lagre",
+  "menu.local-history.show-history": "Vis historikk",
+  "menu.local-history.show-history-selection": "Vis historikk for utvalg",
+  "menu.local-history.put-label": "Sett etikett",
+  "menu.local-history.recent-changes": "Nylige endringer",
+  "view.recent-changes.title": "Nylige endringer",
+  "view.recent-changes.empty": "Ingen versjonshistorikk for den aktive filen.",
+  "view.recent-changes.menu.show-diff": "Vis diff",
+  "view.recent-changes.menu.restore": "Gjenopprett denne versjonen",
+  "view.recent-changes.menu.delete": "Slett versjon",
+  "view.recent-changes.menu.put-label": "Sett etikett",
+  "modal.label-selected": "Sett etikett p\xE5 valgt versjon",
+  "modal.label-version.message": "Merk denne versjonen med en kort etikett.",
+  "notice.no-folder-history": "Ingen mappehistorikk enn\xE5.",
+  "setting.max-deleted-entries.name": "Maks lagrede slettede filer",
+  "setting.max-deleted-entries.desc": "Tak p\xE5 hvor mange historikker for slettede filer som beholdes p\xE5 disk. De eldste fjernes f\xF8rst. Sett til 0 for \xE5 sl\xE5 av.",
+  "setting.max-deleted-age-days.name": "Maks alder p\xE5 slettet historikk (dager)",
+  "setting.max-deleted-age-days.desc": "Fjern historikker for slettede filer som er eldre enn dette antallet dager. Sett til 0 for \xE5 sl\xE5 av.",
+  "folder-tree.empty": "Ingen endringer i denne mappen for det valgte punktet.",
+  "modal.folder.filter-files": "Filtrer filer etter navn",
+  "modal.folder.timeline.capture": "Registrert",
+  "modal.folder.timeline.delete": "Slettet",
+  "modal.folder.timeline.move-in": "Flyttet hit",
+  "modal.folder.notice.no-file": "Ingen fil valgt.",
+  "modal.folder.notice.added": "Filen ble lagt til etter dette punktet.",
+  "modal.folder.notice.deleted": "Filen ble slettet etter dette punktet.",
+  "modal.folder.notice.unchanged": "Ingen endringer siden dette punktet.",
+  "version.badge.external": "ekstern",
+  "setting.exclude-paths-case-sensitive.name": "Skill mellom store og sm\xE5 bokstaver i sti-ekskludering",
+  "setting.exclude-paths-case-sensitive.desc": "N\xE5r dette er p\xE5, matches det regul\xE6re uttrykket for ekskluderte stier med skille mellom store og sm\xE5 bokstaver (uten 'i'-flagg). Sl\xE5 av for \xE5 matche uavhengig av store/sm\xE5 bokstaver: det er standarden og fungerer godt p\xE5 filsystemer som ikke skiller mellom dem.",
+  "setting.purge-excluded.name": "T\xF8m historikk for ekskluderte stier",
+  "setting.purge-excluded.desc": "Slett all lagret historikk for filer med stier som for \xF8yeblikket matcher m\xF8nsteret for ekskluderte stier. Oppf\xF8ringer for slettede filer fjernes ogs\xE5. Denne handlingen kan ikke angres.",
+  "notice.purge-excluded": "Lokal historikk: fjernet {count} \xF8yeblikksbilde(r) for ekskluderte stier.",
+  "notice.purge-excluded.no-match": "Lokal historikk: ingen lagret historikk samsvarer med de ekskluderte stiene.",
+  "setting.reading-mode-indicator.name": "Vis indikatorer i lesemodus",
+  "setting.reading-mode-indicator.desc": "Marker gjengitte blokker i lesemodus med en farget venstre kant i redigeringsindikatorens farger (endret, lagt til, blanktegn, gjenopprettet). Av som standard; gir en liten kostnad per blokk ved hver gjengivelse i lesemodus."
 };
 
 // lang/pl.json
@@ -11420,9 +11339,16 @@ var pl_default = {
   "setting.allowed-extensions.desc": "Lista rozszerze\u0144 plik\xF3w oddzielonych przecinkami, kt\xF3rych zmiany s\u0105 \u015Bledzone (np. md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "Wykluczone \u015Bcie\u017Cki",
   "setting.exclude-paths.desc": "Wyra\u017Cenie regularne bez rozr\xF3\u017Cniania wielko\u015Bci liter, dopasowywane do \u015Bcie\u017Cki wzgl\u0119dem skarbca. Ka\u017Cdy plik, kt\xF3rego \u015Bcie\u017Cka pasuje, nigdy nie jest \u015Bledzony (np. \\.excalidraw\\.md$ lub (^|/)Templates/). Domy\u015Blnie wykluczane s\u0105 foldery Templates i rysunki Excalidraw. Pozostaw puste, aby \u015Bledzi\u0107 wszystko.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "Dodaj wzorzec",
+  "setting.exclude-paths.placeholder": "np. (^|/)Templates/",
+  "setting.exclude-paths.remove": "Usu\u0144 ten wzorzec",
+  "setting.exclude-paths.empty": "Brak wykluczonych \u015Bcie\u017Cek. U\u017Cyj przycisku +, aby doda\u0107 wzorzec.",
+  "setting.exclude-paths.edit": "Edytuj wzorzec",
+  "setting.exclude-paths.save": "Zapisz wzorzec",
+  "setting.exclude-paths.cancel": "Anuluj",
+  "setting.exclude-paths.error": "Wzorzec musi by\u0107 niepustym, poprawnym wyra\u017Ceniem regularnym.",
+  "setting.general-heading": "Og\xF3lne",
+  "setting.cleanup-heading": "Czyszczenie historii",
   "setting.keep.name": "Przechowuj histori\u0119 do",
   "setting.keep.desc": "Strategia czyszczenia historii wersji",
   "setting.keep.option.app": "Zamkni\u0119cia aplikacji",
@@ -11431,8 +11357,8 @@ var pl_default = {
   "setting.ignore-new-files.desc": "Nie \u015Bled\u017A zmian w plikach utworzonych po rozpocz\u0119ciu \u015Bledzenia",
   "setting.tree-highlight.name": "Wyr\xF3\u017Cnij zmiany w drzewie plik\xF3w i na kartach",
   "setting.tree-highlight.desc": "Koloruje pliki i foldery w natywnym eksploratorze plik\xF3w oraz nag\u0142\xF3wki kart otwartych plik\xF3w wed\u0142ug tego, co zmieni\u0142o si\u0119 w tej sesji (bursztyn dla zmodyfikowanych, zielony dla dodanych).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "Pod\u015Bwietlaj zmiany w panelu w\u0142a\u015Bciwo\u015Bci",
+  "setting.properties-highlight.desc": "Pokazuj dodane, zmienione i usuni\u0119te klucze frontmatter w panelu w\u0142a\u015Bciwo\u015Bci Obsidian. Wy\u0142\u0105cz, aby ukry\u0107 ca\u0142e oznaczanie zmian w\u0142a\u015Bciwo\u015Bci.",
   "setting.persist.name": "Zachowuj histori\u0119 mi\u0119dzy ponownymi uruchomieniami",
   "setting.persist.desc": 'Zapisuj histori\u0119 na dysku, aby pod\u015Bwietlenia przetrwa\u0142y ponowne uruchomienie. Wymaga ustawienia opcji "Przechowuj histori\u0119 do" na zamkni\u0119cie aplikacji.',
   "setting.max-entries.name": "Maksymalna liczba przechowywanych plik\xF3w",
@@ -11480,10 +11406,10 @@ var pl_default = {
   "modal.mode.side-by-side": "Obok siebie",
   "modal.hide-identical": "Ukryj wersje identyczne z bie\u017C\u0105c\u0105",
   "modal.confirm.cancel": "Anuluj",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "Potwierdzenie",
+  "modal.confirm.default.message": "Czy na pewno chcesz kontynuowa\u0107?",
+  "modal.confirm.default.ok": "Potwierd\u017A",
+  "modal.confirm.default.cancel": "Anuluj",
   "modal.confirm.restore.title": "Przywr\xF3\u0107 oryginalny plik",
   "modal.confirm.restore.message": "Czy na pewno chcesz przywr\xF3ci\u0107 ten plik do stanu pierwotnego? Wszystkie bie\u017C\u0105ce zmiany zostan\u0105 utracone, a historia \u015Bledzenia zmian zostanie zresetowana. Tej operacji nie mo\u017Cna cofn\u0105\u0107.",
   "modal.confirm.restore.button": "Przywr\xF3\u0107 plik",
@@ -11502,52 +11428,53 @@ var pl_default = {
   "modal.search-versions": "Szukaj wersji",
   "modal.version.current": "Bie\u017C\u0105ca",
   "modal.version.original": "Orygina\u0142",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "Utworzono",
+  "modal.version.action.modified": "Zmodyfikowano",
+  "modal.version.action.cleared": "Wyczyszczono",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Brak wersji pasuj\u0105cych do wyszukiwania",
   "modal.revert-hunk": "Wycofaj t\u0119 zmian\u0119",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "Cofnij t\u0119 zmian\u0119",
   "modal.copy": "Kopiuj",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "Dodaj etykiet\u0119",
+  "modal.put-label.message": "Oznacz bie\u017C\u0105c\u0105 zawarto\u015B\u0107 kr\xF3tk\u0105 etykiet\u0105.",
+  "modal.put-label.placeholder": "Etykieta",
+  "modal.put-label.confirm": "Zapisz",
+  "menu.local-history.show-history": "Poka\u017C histori\u0119",
+  "menu.local-history.show-history-selection": "Poka\u017C histori\u0119 zaznaczenia",
+  "menu.local-history.put-label": "Dodaj etykiet\u0119",
+  "menu.local-history.recent-changes": "Ostatnie zmiany",
+  "view.recent-changes.title": "Ostatnie zmiany",
+  "view.recent-changes.empty": "Brak historii wersji dla aktywnego pliku.",
+  "view.recent-changes.menu.show-diff": "Poka\u017C r\xF3\u017Cnice",
+  "view.recent-changes.menu.restore": "Przywr\xF3\u0107 t\u0119 wersj\u0119",
+  "view.recent-changes.menu.delete": "Usu\u0144 wersj\u0119",
+  "view.recent-changes.menu.put-label": "Dodaj etykiet\u0119",
+  "modal.label-selected": "Oznacz wybran\u0105 wersj\u0119",
+  "modal.label-version.message": "Oznacz t\u0119 wersj\u0119 kr\xF3tk\u0105 etykiet\u0105.",
+  "notice.no-folder-history": "Brak historii folderu.",
+  "setting.max-deleted-entries.name": "Maks. przechowywanych usuni\u0119tych plik\xF3w",
+  "setting.max-deleted-entries.desc": "Limit liczby historii usuni\u0119tych plik\xF3w przechowywanych na dysku. Najstarsze s\u0105 usuwane jako pierwsze. Ustaw 0, aby wy\u0142\u0105czy\u0107.",
+  "setting.max-deleted-age-days.name": "Maks. wiek historii usuni\u0119tych plik\xF3w (dni)",
+  "setting.max-deleted-age-days.desc": "Usuwaj historie usuni\u0119tych plik\xF3w starsze ni\u017C podana liczba dni. Ustaw 0, aby wy\u0142\u0105czy\u0107.",
+  "folder-tree.empty": "Brak zmian w tym folderze dla wybranego punktu.",
+  "modal.folder.filter-files": "Filtruj pliki wed\u0142ug nazwy",
+  "modal.folder.timeline.capture": "Zarejestrowano",
+  "modal.folder.timeline.delete": "Usuni\u0119to",
+  "modal.folder.timeline.move-in": "Przeniesiono tutaj",
+  "modal.folder.notice.no-file": "Nie wybrano pliku.",
+  "modal.folder.notice.added": "Plik zosta\u0142 dodany po tym punkcie.",
+  "modal.folder.notice.deleted": "Plik zosta\u0142 usuni\u0119ty po tym punkcie.",
+  "modal.folder.notice.unchanged": "Brak zmian od tego punktu.",
+  "version.badge.external": "zewn\u0119trzna",
+  "setting.exclude-paths-case-sensitive.name": "Wykluczanie \u015Bcie\u017Cek z uwzgl\u0119dnieniem wielko\u015Bci liter",
+  "setting.exclude-paths-case-sensitive.desc": "Gdy w\u0142\u0105czone, wyra\u017Cenie regularne wykluczonych \u015Bcie\u017Cek jest dopasowywane z uwzgl\u0119dnieniem wielko\u015Bci liter (bez flagi 'i'). Wy\u0142\u0105cz, aby ignorowa\u0107 wielko\u015B\u0107 liter: to ustawienie domy\u015Blne, dobrze dzia\u0142aj\u0105ce na systemach plik\xF3w nierozr\xF3\u017Cniaj\u0105cych wielko\u015Bci liter.",
+  "setting.purge-excluded.name": "Wyczy\u015B\u0107 histori\u0119 wykluczonych \u015Bcie\u017Cek",
+  "setting.purge-excluded.desc": "Usu\u0144 ca\u0142\u0105 zapisan\u0105 histori\u0119 plik\xF3w, kt\xF3rych \u015Bcie\u017Cki pasuj\u0105 obecnie do wzorca wykluczonych \u015Bcie\u017Cek. Usuwane s\u0105 te\u017C wpisy usuni\u0119tych plik\xF3w. Tej operacji nie mo\u017Cna cofn\u0105\u0107.",
+  "notice.purge-excluded": "Historia lokalna: usuni\u0119to {count} migawek dla wykluczonych \u015Bcie\u017Cek.",
+  "notice.purge-excluded.no-match": "Historia lokalna: \u017Cadna zapisana historia nie pasuje do wykluczonych \u015Bcie\u017Cek.",
+  "setting.reading-mode-indicator.name": "Pokazuj wska\u017Aniki w trybie czytania",
+  "setting.reading-mode-indicator.desc": "Oznaczaj wyrenderowane bloki w trybie czytania kolorow\u0105 lew\u0105 kraw\u0119dzi\u0105 w kolorach wska\u017Anika edycji (zmienione, dodane, bia\u0142e znaki, przywr\xF3cone). Domy\u015Blnie wy\u0142\u0105czone; dodaje niewielki koszt dla ka\u017Cdego bloku przy ka\u017Cdym renderowaniu trybu czytania."
 };
 
 // lang/pt.json
@@ -11577,9 +11504,16 @@ var pt_default = {
   "setting.allowed-extensions.desc": "Lista de extens\xF5es de ficheiro separadas por v\xEDrgulas cujas altera\xE7\xF5es s\xE3o rastreadas (por ex., md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "Caminhos exclu\xEDdos",
   "setting.exclude-paths.desc": "Uma express\xE3o regular que n\xE3o distingue mai\xFAsculas de min\xFAsculas comparada com o caminho relativo ao cofre. Qualquer ficheiro cujo caminho corresponda nunca \xE9 rastreado (por ex. \\.excalidraw\\.md$ ou (^|/)Templates/). Por predefini\xE7\xE3o s\xE3o exclu\xEDdas as pastas Templates e os desenhos Excalidraw. Deixe vazio para rastrear tudo.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "Adicionar padr\xE3o",
+  "setting.exclude-paths.placeholder": "p. ex. (^|/)Templates/",
+  "setting.exclude-paths.remove": "Remover este padr\xE3o",
+  "setting.exclude-paths.empty": "Ainda n\xE3o h\xE1 caminhos exclu\xEDdos. Use o bot\xE3o + para adicionar um padr\xE3o.",
+  "setting.exclude-paths.edit": "Editar padr\xE3o",
+  "setting.exclude-paths.save": "Guardar padr\xE3o",
+  "setting.exclude-paths.cancel": "Cancelar",
+  "setting.exclude-paths.error": "O padr\xE3o deve ser uma express\xE3o regular v\xE1lida e n\xE3o vazia.",
+  "setting.general-heading": "Geral",
+  "setting.cleanup-heading": "Limpeza do hist\xF3rico",
   "setting.keep.name": "Manter o hist\xF3rico at\xE9",
   "setting.keep.desc": "Estrat\xE9gia de limpeza do hist\xF3rico de revis\xF5es",
   "setting.keep.option.app": "Fecho da aplica\xE7\xE3o",
@@ -11588,8 +11522,8 @@ var pt_default = {
   "setting.ignore-new-files.desc": "N\xE3o rastrear altera\xE7\xF5es em ficheiros criados depois de o rastreio come\xE7ar",
   "setting.tree-highlight.name": "Real\xE7ar altera\xE7\xF5es na \xE1rvore de ficheiros e nos separadores",
   "setting.tree-highlight.desc": "Colore ficheiros e pastas no explorador de ficheiros nativo, e os cabe\xE7alhos dos separadores dos ficheiros abertos, conforme o que mudou nesta sess\xE3o (\xE2mbar para modificado, verde para adicionado).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "Real\xE7ar altera\xE7\xF5es no painel de propriedades",
+  "setting.properties-highlight.desc": "Mostrar as chaves de frontmatter adicionadas, modificadas e removidas no painel de propriedades do Obsidian. Desative para ocultar toda a decora\xE7\xE3o de altera\xE7\xF5es de propriedades.",
   "setting.persist.name": "Manter o hist\xF3rico entre rein\xEDcios",
   "setting.persist.desc": 'Guardar o hist\xF3rico no disco para que os destaques sobrevivam a um rein\xEDcio. Requer que "Manter o hist\xF3rico at\xE9" esteja definido como fecho da aplica\xE7\xE3o.',
   "setting.max-entries.name": "M\xE1ximo de ficheiros armazenados",
@@ -11637,10 +11571,10 @@ var pt_default = {
   "modal.mode.side-by-side": "Lado a lado",
   "modal.hide-identical": "Ocultar vers\xF5es id\xEAnticas \xE0 atual",
   "modal.confirm.cancel": "Cancelar",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "Confirma\xE7\xE3o",
+  "modal.confirm.default.message": "Tem a certeza de que pretende continuar?",
+  "modal.confirm.default.ok": "Confirmar",
+  "modal.confirm.default.cancel": "Cancelar",
   "modal.confirm.restore.title": "Restaurar o ficheiro original",
   "modal.confirm.restore.message": "Tem a certeza de que quer restaurar este ficheiro ao seu estado original? Todas as altera\xE7\xF5es atuais ser\xE3o perdidas e o hist\xF3rico de rastreio de altera\xE7\xF5es ser\xE1 reposto. Esta a\xE7\xE3o n\xE3o pode ser anulada.",
   "modal.confirm.restore.button": "Restaurar ficheiro",
@@ -11659,52 +11593,53 @@ var pt_default = {
   "modal.search-versions": "Pesquisar vers\xF5es",
   "modal.version.current": "Atual",
   "modal.version.original": "Original",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "Criada",
+  "modal.version.action.modified": "Modificada",
+  "modal.version.action.cleared": "Esvaziada",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Nenhuma vers\xE3o corresponde \xE0 pesquisa",
   "modal.revert-hunk": "Reverter esta altera\xE7\xE3o",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "Reverter esta altera\xE7\xE3o",
   "modal.copy": "Copiar",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "Colocar etiqueta",
+  "modal.put-label.message": "Marque o conte\xFAdo atual com uma etiqueta curta.",
+  "modal.put-label.placeholder": "Etiqueta",
+  "modal.put-label.confirm": "Guardar",
+  "menu.local-history.show-history": "Mostrar hist\xF3rico",
+  "menu.local-history.show-history-selection": "Mostrar hist\xF3rico da sele\xE7\xE3o",
+  "menu.local-history.put-label": "Colocar etiqueta",
+  "menu.local-history.recent-changes": "Altera\xE7\xF5es recentes",
+  "view.recent-changes.title": "Altera\xE7\xF5es recentes",
+  "view.recent-changes.empty": "Sem hist\xF3rico de vers\xF5es para o ficheiro ativo.",
+  "view.recent-changes.menu.show-diff": "Mostrar diferen\xE7as",
+  "view.recent-changes.menu.restore": "Restaurar esta vers\xE3o",
+  "view.recent-changes.menu.delete": "Eliminar vers\xE3o",
+  "view.recent-changes.menu.put-label": "Colocar etiqueta",
+  "modal.label-selected": "Etiquetar a vers\xE3o selecionada",
+  "modal.label-version.message": "Marque esta vers\xE3o com uma etiqueta curta.",
+  "notice.no-folder-history": "Ainda n\xE3o h\xE1 hist\xF3rico da pasta.",
+  "setting.max-deleted-entries.name": "M\xE1x. de ficheiros eliminados guardados",
+  "setting.max-deleted-entries.desc": "Limite de quantos hist\xF3ricos de ficheiros eliminados s\xE3o mantidos no disco. Os mais antigos s\xE3o removidos primeiro. Defina 0 para desativar.",
+  "setting.max-deleted-age-days.name": "Idade m\xE1x. do hist\xF3rico de eliminados (dias)",
+  "setting.max-deleted-age-days.desc": "Remover hist\xF3ricos de ficheiros eliminados com mais do que este n\xFAmero de dias. Defina 0 para desativar.",
+  "folder-tree.empty": "Sem altera\xE7\xF5es nesta pasta para o ponto selecionado.",
+  "modal.folder.filter-files": "Filtrar ficheiros por nome",
+  "modal.folder.timeline.capture": "Capturado",
+  "modal.folder.timeline.delete": "Eliminado",
+  "modal.folder.timeline.move-in": "Movido para aqui",
+  "modal.folder.notice.no-file": "Nenhum ficheiro selecionado.",
+  "modal.folder.notice.added": "O ficheiro foi adicionado depois deste ponto.",
+  "modal.folder.notice.deleted": "O ficheiro foi eliminado depois deste ponto.",
+  "modal.folder.notice.unchanged": "Sem altera\xE7\xF5es desde este ponto.",
+  "version.badge.external": "externa",
+  "setting.exclude-paths-case-sensitive.name": "Exclus\xE3o de caminhos sens\xEDvel a mai\xFAsculas",
+  "setting.exclude-paths-case-sensitive.desc": "Quando ativado, a express\xE3o regular dos caminhos exclu\xEDdos \xE9 comparada distinguindo mai\xFAsculas de min\xFAsculas (sem a flag 'i'). Desative para ignorar as mai\xFAsculas: \xE9 a predefini\xE7\xE3o e funciona bem em sistemas de ficheiros que n\xE3o distinguem mai\xFAsculas.",
+  "setting.purge-excluded.name": "Purgar o hist\xF3rico dos caminhos exclu\xEDdos",
+  "setting.purge-excluded.desc": "Eliminar todo o hist\xF3rico guardado dos ficheiros cujos caminhos correspondem atualmente ao padr\xE3o de caminhos exclu\xEDdos. Os registos de ficheiros eliminados tamb\xE9m s\xE3o removidos. Esta a\xE7\xE3o n\xE3o pode ser anulada.",
+  "notice.purge-excluded": "Hist\xF3rico local: foram purgados {count} instant\xE2neo(s) de caminhos exclu\xEDdos.",
+  "notice.purge-excluded.no-match": "Hist\xF3rico local: nenhum hist\xF3rico guardado corresponde aos caminhos exclu\xEDdos.",
+  "setting.reading-mode-indicator.name": "Mostrar indicadores no modo de leitura",
+  "setting.reading-mode-indicator.desc": "Decorar os blocos renderizados no modo de leitura com uma margem esquerda colorida nas cores do indicador de edi\xE7\xE3o (modificado, adicionado, espa\xE7os, restaurado). Desativado por predefini\xE7\xE3o; tem um pequeno custo por bloco em cada re-renderiza\xE7\xE3o do modo de leitura."
 };
 
 // lang/pt-BR.json
@@ -11734,9 +11669,16 @@ var pt_BR_default = {
   "setting.allowed-extensions.desc": "Lista de extens\xF5es de arquivo separadas por v\xEDrgulas cujas altera\xE7\xF5es s\xE3o rastreadas (por ex., md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "Caminhos exclu\xEDdos",
   "setting.exclude-paths.desc": "Uma express\xE3o regular que n\xE3o diferencia mai\xFAsculas de min\xFAsculas comparada com o caminho relativo ao cofre. Qualquer arquivo cujo caminho corresponda nunca \xE9 rastreado (por ex. \\.excalidraw\\.md$ ou (^|/)Templates/). Por padr\xE3o s\xE3o exclu\xEDdas as pastas Templates e os desenhos Excalidraw. Deixe em branco para rastrear tudo.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "Adicionar padr\xE3o",
+  "setting.exclude-paths.placeholder": "ex.: (^|/)Templates/",
+  "setting.exclude-paths.remove": "Remover este padr\xE3o",
+  "setting.exclude-paths.empty": "Ainda n\xE3o h\xE1 caminhos exclu\xEDdos. Use o bot\xE3o + para adicionar um padr\xE3o.",
+  "setting.exclude-paths.edit": "Editar padr\xE3o",
+  "setting.exclude-paths.save": "Salvar padr\xE3o",
+  "setting.exclude-paths.cancel": "Cancelar",
+  "setting.exclude-paths.error": "O padr\xE3o deve ser uma express\xE3o regular v\xE1lida e n\xE3o vazia.",
+  "setting.general-heading": "Geral",
+  "setting.cleanup-heading": "Limpeza do hist\xF3rico",
   "setting.keep.name": "Manter o hist\xF3rico at\xE9",
   "setting.keep.desc": "Estrat\xE9gia de limpeza do hist\xF3rico de revis\xF5es",
   "setting.keep.option.app": "Fechamento do aplicativo",
@@ -11745,8 +11687,8 @@ var pt_BR_default = {
   "setting.ignore-new-files.desc": "N\xE3o rastrear altera\xE7\xF5es em arquivos criados depois que o rastreamento come\xE7ou",
   "setting.tree-highlight.name": "Destacar altera\xE7\xF5es na \xE1rvore de arquivos e nas abas",
   "setting.tree-highlight.desc": "Colore arquivos e pastas no explorador de arquivos nativo, e os cabe\xE7alhos das abas dos arquivos abertos, conforme o que mudou nesta sess\xE3o (\xE2mbar para modificado, verde para adicionado).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "Destacar altera\xE7\xF5es no painel de propriedades",
+  "setting.properties-highlight.desc": "Mostrar as chaves de frontmatter adicionadas, modificadas e removidas no painel de propriedades do Obsidian. Desative para ocultar toda a decora\xE7\xE3o de altera\xE7\xF5es de propriedades.",
   "setting.persist.name": "Manter o hist\xF3rico entre reinicializa\xE7\xF5es",
   "setting.persist.desc": 'Salvar o hist\xF3rico no disco para que os destaques sobrevivam a uma reinicializa\xE7\xE3o. Requer que "Manter o hist\xF3rico at\xE9" esteja definido como fechamento do aplicativo.',
   "setting.max-entries.name": "M\xE1ximo de arquivos armazenados",
@@ -11794,10 +11736,10 @@ var pt_BR_default = {
   "modal.mode.side-by-side": "Lado a lado",
   "modal.hide-identical": "Ocultar vers\xF5es id\xEAnticas \xE0 atual",
   "modal.confirm.cancel": "Cancelar",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "Confirma\xE7\xE3o",
+  "modal.confirm.default.message": "Tem certeza de que deseja continuar?",
+  "modal.confirm.default.ok": "Confirmar",
+  "modal.confirm.default.cancel": "Cancelar",
   "modal.confirm.restore.title": "Restaurar o arquivo original",
   "modal.confirm.restore.message": "Tem certeza de que deseja restaurar este arquivo ao seu estado original? Todas as altera\xE7\xF5es atuais ser\xE3o perdidas e o hist\xF3rico de rastreamento de altera\xE7\xF5es ser\xE1 redefinido. Esta a\xE7\xE3o n\xE3o pode ser desfeita.",
   "modal.confirm.restore.button": "Restaurar arquivo",
@@ -11816,52 +11758,53 @@ var pt_BR_default = {
   "modal.search-versions": "Pesquisar vers\xF5es",
   "modal.version.current": "Atual",
   "modal.version.original": "Original",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "Criada",
+  "modal.version.action.modified": "Modificada",
+  "modal.version.action.cleared": "Esvaziada",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Nenhuma vers\xE3o corresponde \xE0 pesquisa",
   "modal.revert-hunk": "Reverter esta altera\xE7\xE3o",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "Reverter esta altera\xE7\xE3o",
   "modal.copy": "Copiar",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "Colocar r\xF3tulo",
+  "modal.put-label.message": "Marque o conte\xFAdo atual com um r\xF3tulo curto.",
+  "modal.put-label.placeholder": "R\xF3tulo",
+  "modal.put-label.confirm": "Salvar",
+  "menu.local-history.show-history": "Mostrar hist\xF3rico",
+  "menu.local-history.show-history-selection": "Mostrar hist\xF3rico da sele\xE7\xE3o",
+  "menu.local-history.put-label": "Colocar r\xF3tulo",
+  "menu.local-history.recent-changes": "Altera\xE7\xF5es recentes",
+  "view.recent-changes.title": "Altera\xE7\xF5es recentes",
+  "view.recent-changes.empty": "Sem hist\xF3rico de vers\xF5es para o arquivo ativo.",
+  "view.recent-changes.menu.show-diff": "Mostrar diferen\xE7as",
+  "view.recent-changes.menu.restore": "Restaurar esta vers\xE3o",
+  "view.recent-changes.menu.delete": "Excluir vers\xE3o",
+  "view.recent-changes.menu.put-label": "Colocar r\xF3tulo",
+  "modal.label-selected": "Rotular a vers\xE3o selecionada",
+  "modal.label-version.message": "Marque esta vers\xE3o com um r\xF3tulo curto.",
+  "notice.no-folder-history": "Ainda n\xE3o h\xE1 hist\xF3rico da pasta.",
+  "setting.max-deleted-entries.name": "M\xE1x. de arquivos exclu\xEDdos armazenados",
+  "setting.max-deleted-entries.desc": "Limite de quantos hist\xF3ricos de arquivos exclu\xEDdos s\xE3o mantidos em disco. Os mais antigos s\xE3o removidos primeiro. Defina 0 para desativar.",
+  "setting.max-deleted-age-days.name": "Idade m\xE1x. do hist\xF3rico de exclu\xEDdos (dias)",
+  "setting.max-deleted-age-days.desc": "Remover hist\xF3ricos de arquivos exclu\xEDdos com mais do que este n\xFAmero de dias. Defina 0 para desativar.",
+  "folder-tree.empty": "Sem altera\xE7\xF5es nesta pasta para o ponto selecionado.",
+  "modal.folder.filter-files": "Filtrar arquivos por nome",
+  "modal.folder.timeline.capture": "Capturado",
+  "modal.folder.timeline.delete": "Exclu\xEDdo",
+  "modal.folder.timeline.move-in": "Movido para c\xE1",
+  "modal.folder.notice.no-file": "Nenhum arquivo selecionado.",
+  "modal.folder.notice.added": "O arquivo foi adicionado depois deste ponto.",
+  "modal.folder.notice.deleted": "O arquivo foi exclu\xEDdo depois deste ponto.",
+  "modal.folder.notice.unchanged": "Sem altera\xE7\xF5es desde este ponto.",
+  "version.badge.external": "externa",
+  "setting.exclude-paths-case-sensitive.name": "Exclus\xE3o de caminhos com distin\xE7\xE3o de mai\xFAsculas",
+  "setting.exclude-paths-case-sensitive.desc": "Quando ativado, a express\xE3o regular dos caminhos exclu\xEDdos \xE9 comparada diferenciando mai\xFAsculas de min\xFAsculas (sem a flag 'i'). Desative para ignorar mai\xFAsculas: \xE9 o padr\xE3o e funciona bem em sistemas de arquivos que n\xE3o diferenciam mai\xFAsculas.",
+  "setting.purge-excluded.name": "Limpar o hist\xF3rico dos caminhos exclu\xEDdos",
+  "setting.purge-excluded.desc": "Excluir todo o hist\xF3rico salvo dos arquivos cujos caminhos correspondem atualmente ao padr\xE3o de caminhos exclu\xEDdos. Os registros de arquivos exclu\xEDdos tamb\xE9m s\xE3o removidos. Esta a\xE7\xE3o n\xE3o pode ser desfeita.",
+  "notice.purge-excluded": "Hist\xF3rico local: {count} snapshot(s) de caminhos exclu\xEDdos foram limpos.",
+  "notice.purge-excluded.no-match": "Hist\xF3rico local: nenhum hist\xF3rico armazenado corresponde aos caminhos exclu\xEDdos.",
+  "setting.reading-mode-indicator.name": "Mostrar indicadores no modo de leitura",
+  "setting.reading-mode-indicator.desc": "Decorar os blocos renderizados no modo de leitura com uma borda esquerda colorida nas cores do indicador de edi\xE7\xE3o (modificado, adicionado, espa\xE7os, restaurado). Desativado por padr\xE3o; tem um pequeno custo por bloco a cada re-renderiza\xE7\xE3o do modo de leitura."
 };
 
 // lang/ro.json
@@ -11891,9 +11834,16 @@ var ro_default = {
   "setting.allowed-extensions.desc": "List\u0103 de extensii de fi\u0219iere separate prin virgul\u0103 ale c\u0103ror modific\u0103ri sunt urm\u0103rite (de ex. md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "C\u0103i excluse",
   "setting.exclude-paths.desc": "O expresie regulat\u0103 care nu \u021Bine cont de majuscule, potrivit\u0103 cu calea relativ\u0103 la seif. Orice fi\u0219ier a c\u0103rui cale se potrive\u0219te nu este urm\u0103rit niciodat\u0103 (de ex. \\.excalidraw\\.md$ sau (^|/)Templates/). \xCEn mod implicit sunt excluse folderele Templates \u0219i desenele Excalidraw. L\u0103sa\u021Bi gol pentru a urm\u0103ri totul.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "Adaug\u0103 model",
+  "setting.exclude-paths.placeholder": "de ex. (^|/)Templates/",
+  "setting.exclude-paths.remove": "Elimin\u0103 acest model",
+  "setting.exclude-paths.empty": "\xCEnc\u0103 nu exist\u0103 c\u0103i excluse. Folose\u0219te butonul + pentru a ad\u0103uga un model.",
+  "setting.exclude-paths.edit": "Editeaz\u0103 modelul",
+  "setting.exclude-paths.save": "Salveaz\u0103 modelul",
+  "setting.exclude-paths.cancel": "Anuleaz\u0103",
+  "setting.exclude-paths.error": "Modelul trebuie s\u0103 fie o expresie regulat\u0103 valid\u0103 \u0219i nevid\u0103.",
+  "setting.general-heading": "General",
+  "setting.cleanup-heading": "Cur\u0103\u021Barea istoricului",
   "setting.keep.name": "P\u0103streaz\u0103 istoricul p\xE2n\u0103 la",
   "setting.keep.desc": "Strategie de cur\u0103\u021Bare a istoricului de revizii",
   "setting.keep.option.app": "\xCEnchiderea aplica\u021Biei",
@@ -11902,8 +11852,8 @@ var ro_default = {
   "setting.ignore-new-files.desc": "Nu urm\u0103ri modific\u0103rile din fi\u0219ierele create dup\u0103 \xEEnceperea urm\u0103ririi",
   "setting.tree-highlight.name": "Eviden\u021Biaz\u0103 modific\u0103rile \xEEn arborele de fi\u0219iere \u0219i \xEEn file",
   "setting.tree-highlight.desc": "Coloreaz\u0103 fi\u0219ierele \u0219i folderele din exploratorul de fi\u0219iere nativ, precum \u0219i antetele filelor fi\u0219ierelor deschise, \xEEn func\u021Bie de ce s-a schimbat \xEEn aceast\u0103 sesiune (chihlimbar pentru modificat, verde pentru ad\u0103ugat).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "Eviden\u021Biaz\u0103 modific\u0103rile \xEEn panoul de propriet\u0103\u021Bi",
+  "setting.properties-highlight.desc": "Afi\u0219eaz\u0103 cheile de frontmatter ad\u0103ugate, modificate \u0219i eliminate \xEEn panoul de propriet\u0103\u021Bi din Obsidian. Dezactiveaz\u0103 pentru a ascunde toat\u0103 decorarea diferen\u021Belor de propriet\u0103\u021Bi.",
   "setting.persist.name": "P\u0103streaz\u0103 istoricul \xEEntre reporniri",
   "setting.persist.desc": 'Salveaz\u0103 istoricul pe disc, astfel \xEEnc\xE2t eviden\u021Bierile s\u0103 supravie\u021Buiasc\u0103 unei reporniri. Necesit\u0103 ca op\u021Biunea "P\u0103streaz\u0103 istoricul p\xE2n\u0103 la" s\u0103 fie setat\u0103 la \xEEnchiderea aplica\u021Biei.',
   "setting.max-entries.name": "Num\u0103r maxim de fi\u0219iere stocate",
@@ -11951,10 +11901,10 @@ var ro_default = {
   "modal.mode.side-by-side": "Unul l\xE2ng\u0103 altul",
   "modal.hide-identical": "Ascunde versiunile identice cu cea curent\u0103",
   "modal.confirm.cancel": "Anuleaz\u0103",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "Confirmare",
+  "modal.confirm.default.message": "Sigur vrei s\u0103 continui?",
+  "modal.confirm.default.ok": "Confirm\u0103",
+  "modal.confirm.default.cancel": "Anuleaz\u0103",
   "modal.confirm.restore.title": "Restabile\u0219te fi\u0219ierul original",
   "modal.confirm.restore.message": "Sigur dori\u021Bi s\u0103 restabili\u021Bi acest fi\u0219ier la starea ini\u021Bial\u0103? Toate modific\u0103rile curente vor fi pierdute, iar istoricul de urm\u0103rire a modific\u0103rilor va fi resetat. Aceast\u0103 ac\u021Biune nu poate fi anulat\u0103.",
   "modal.confirm.restore.button": "Restabile\u0219te fi\u0219ierul",
@@ -11973,52 +11923,53 @@ var ro_default = {
   "modal.search-versions": "Caut\u0103 versiuni",
   "modal.version.current": "Curent\u0103",
   "modal.version.original": "Original",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "Creat\u0103",
+  "modal.version.action.modified": "Modificat\u0103",
+  "modal.version.action.cleared": "Golit\u0103",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Nicio versiune nu corespunde c\u0103ut\u0103rii",
   "modal.revert-hunk": "Revino asupra acestei modific\u0103ri",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "Anuleaz\u0103 aceast\u0103 modificare",
   "modal.copy": "Copiaz\u0103",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "Pune etichet\u0103",
+  "modal.put-label.message": "Marcheaz\u0103 con\u021Binutul curent cu o etichet\u0103 scurt\u0103.",
+  "modal.put-label.placeholder": "Etichet\u0103",
+  "modal.put-label.confirm": "Salveaz\u0103",
+  "menu.local-history.show-history": "Arat\u0103 istoricul",
+  "menu.local-history.show-history-selection": "Arat\u0103 istoricul selec\u021Biei",
+  "menu.local-history.put-label": "Pune etichet\u0103",
+  "menu.local-history.recent-changes": "Modific\u0103ri recente",
+  "view.recent-changes.title": "Modific\u0103ri recente",
+  "view.recent-changes.empty": "Nu exist\u0103 istoric de versiuni pentru fi\u0219ierul activ.",
+  "view.recent-changes.menu.show-diff": "Arat\u0103 diferen\u021Bele",
+  "view.recent-changes.menu.restore": "Restaureaz\u0103 aceast\u0103 versiune",
+  "view.recent-changes.menu.delete": "\u0218terge versiunea",
+  "view.recent-changes.menu.put-label": "Pune etichet\u0103",
+  "modal.label-selected": "Eticheteaz\u0103 versiunea selectat\u0103",
+  "modal.label-version.message": "Marcheaz\u0103 aceast\u0103 versiune cu o etichet\u0103 scurt\u0103.",
+  "notice.no-folder-history": "\xCEnc\u0103 nu exist\u0103 istoric al dosarului.",
+  "setting.max-deleted-entries.name": "Max. fi\u0219iere \u0219terse p\u0103strate",
+  "setting.max-deleted-entries.desc": "Plafon pentru c\xE2te istorice ale fi\u0219ierelor \u0219terse sunt p\u0103strate pe disc. Cele mai vechi sunt eliminate primele. Seteaz\u0103 0 pentru a dezactiva.",
+  "setting.max-deleted-age-days.name": "V\xE2rsta max. a istoricului fi\u0219ierelor \u0219terse (zile)",
+  "setting.max-deleted-age-days.desc": "Elimin\u0103 istoricele fi\u0219ierelor \u0219terse mai vechi de acest num\u0103r de zile. Seteaz\u0103 0 pentru a dezactiva.",
+  "folder-tree.empty": "Nicio modificare \xEEn acest dosar pentru punctul selectat.",
+  "modal.folder.filter-files": "Filtreaz\u0103 fi\u0219ierele dup\u0103 nume",
+  "modal.folder.timeline.capture": "Capturat",
+  "modal.folder.timeline.delete": "\u0218ters",
+  "modal.folder.timeline.move-in": "Mutat aici",
+  "modal.folder.notice.no-file": "Niciun fi\u0219ier selectat.",
+  "modal.folder.notice.added": "Fi\u0219ierul a fost ad\u0103ugat dup\u0103 acest punct.",
+  "modal.folder.notice.deleted": "Fi\u0219ierul a fost \u0219ters dup\u0103 acest punct.",
+  "modal.folder.notice.unchanged": "Nicio modificare de la acest punct.",
+  "version.badge.external": "extern\u0103",
+  "setting.exclude-paths-case-sensitive.name": "Excludere de c\u0103i cu diferen\u021Biere \xEEntre majuscule \u0219i minuscule",
+  "setting.exclude-paths-case-sensitive.desc": "C\xE2nd este activat, expresia regulat\u0103 a c\u0103ilor excluse este potrivit\u0103 \u021Bin\xE2nd cont de majuscule \u0219i minuscule (f\u0103r\u0103 flag-ul 'i'). Dezactiveaz\u0103 pentru a potrivi indiferent de majuscule: este implicit \u0219i func\u021Bioneaz\u0103 bine pe sisteme de fi\u0219iere care nu disting majusculele.",
+  "setting.purge-excluded.name": "Cur\u0103\u021B\u0103 istoricul pentru c\u0103ile excluse",
+  "setting.purge-excluded.desc": "\u0218terge tot istoricul salvat al fi\u0219ierelor ale c\u0103ror c\u0103i corespund \xEEn prezent modelului de c\u0103i excluse. \xCEnregistr\u0103rile fi\u0219ierelor \u0219terse sunt de asemenea eliminate. Aceast\u0103 ac\u021Biune nu poate fi anulat\u0103.",
+  "notice.purge-excluded": "Istoric local: au fost cur\u0103\u021Bate {count} instantanee pentru c\u0103ile excluse.",
+  "notice.purge-excluded.no-match": "Istoric local: niciun istoric stocat nu corespunde c\u0103ilor excluse.",
+  "setting.reading-mode-indicator.name": "Afi\u0219eaz\u0103 indicatori \xEEn modul de citire",
+  "setting.reading-mode-indicator.desc": "Decoreaz\u0103 blocurile redate \xEEn modul de citire cu o margine st\xE2ng\u0103 colorat\u0103 \xEEn culorile indicatorului de editare (modificat, ad\u0103ugat, spa\u021Bii, restaurat). Dezactivat implicit; are un mic cost per bloc la fiecare re-redare a modului de citire."
 };
 
 // lang/ru.json
@@ -12048,9 +11999,16 @@ var ru_default = {
   "setting.allowed-extensions.desc": "\u0421\u043F\u0438\u0441\u043E\u043A \u0440\u0430\u0441\u0448\u0438\u0440\u0435\u043D\u0438\u0439 \u0444\u0430\u0439\u043B\u043E\u0432 \u0447\u0435\u0440\u0435\u0437 \u0437\u0430\u043F\u044F\u0442\u0443\u044E, \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044F \u0432 \u043A\u043E\u0442\u043E\u0440\u044B\u0445 \u043E\u0442\u0441\u043B\u0435\u0436\u0438\u0432\u0430\u044E\u0442\u0441\u044F (\u043D\u0430\u043F\u0440\u0438\u043C\u0435\u0440, md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "\u0418\u0441\u043A\u043B\u044E\u0447\u0451\u043D\u043D\u044B\u0435 \u043F\u0443\u0442\u0438",
   "setting.exclude-paths.desc": "\u0420\u0435\u0433\u0443\u043B\u044F\u0440\u043D\u043E\u0435 \u0432\u044B\u0440\u0430\u0436\u0435\u043D\u0438\u0435 \u0431\u0435\u0437 \u0443\u0447\u0451\u0442\u0430 \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430, \u0441\u043E\u043F\u043E\u0441\u0442\u0430\u0432\u043B\u044F\u0435\u043C\u043E\u0435 \u0441 \u043F\u0443\u0442\u0451\u043C \u043E\u0442\u043D\u043E\u0441\u0438\u0442\u0435\u043B\u044C\u043D\u043E \u0445\u0440\u0430\u043D\u0438\u043B\u0438\u0449\u0430. \u041B\u044E\u0431\u043E\u0439 \u0444\u0430\u0439\u043B, \u043F\u0443\u0442\u044C \u043A\u043E\u0442\u043E\u0440\u043E\u0433\u043E \u0441\u043E\u0432\u043F\u0430\u0434\u0430\u0435\u0442, \u043D\u0438\u043A\u043E\u0433\u0434\u0430 \u043D\u0435 \u043E\u0442\u0441\u043B\u0435\u0436\u0438\u0432\u0430\u0435\u0442\u0441\u044F (\u043D\u0430\u043F\u0440\u0438\u043C\u0435\u0440, \\.excalidraw\\.md$ \u0438\u043B\u0438 (^|/)Templates/). \u041F\u043E \u0443\u043C\u043E\u043B\u0447\u0430\u043D\u0438\u044E \u0438\u0441\u043A\u043B\u044E\u0447\u0430\u044E\u0442\u0441\u044F \u043F\u0430\u043F\u043A\u0438 Templates \u0438 \u0440\u0438\u0441\u0443\u043D\u043A\u0438 Excalidraw. \u041E\u0441\u0442\u0430\u0432\u044C\u0442\u0435 \u043F\u0443\u0441\u0442\u044B\u043C, \u0447\u0442\u043E\u0431\u044B \u043E\u0442\u0441\u043B\u0435\u0436\u0438\u0432\u0430\u0442\u044C \u0432\u0441\u0451.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "\u0414\u043E\u0431\u0430\u0432\u0438\u0442\u044C \u0448\u0430\u0431\u043B\u043E\u043D",
+  "setting.exclude-paths.placeholder": "\u043D\u0430\u043F\u0440\u0438\u043C\u0435\u0440, (^|/)Templates/",
+  "setting.exclude-paths.remove": "\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u0448\u0430\u0431\u043B\u043E\u043D",
+  "setting.exclude-paths.empty": "\u0418\u0441\u043A\u043B\u044E\u0447\u0451\u043D\u043D\u044B\u0445 \u043F\u0443\u0442\u0435\u0439 \u043F\u043E\u043A\u0430 \u043D\u0435\u0442. \u041D\u0430\u0436\u043C\u0438\u0442\u0435 +, \u0447\u0442\u043E\u0431\u044B \u0434\u043E\u0431\u0430\u0432\u0438\u0442\u044C \u0448\u0430\u0431\u043B\u043E\u043D.",
+  "setting.exclude-paths.edit": "\u0418\u0437\u043C\u0435\u043D\u0438\u0442\u044C \u0448\u0430\u0431\u043B\u043E\u043D",
+  "setting.exclude-paths.save": "\u0421\u043E\u0445\u0440\u0430\u043D\u0438\u0442\u044C \u0448\u0430\u0431\u043B\u043E\u043D",
+  "setting.exclude-paths.cancel": "\u041E\u0442\u043C\u0435\u043D\u0430",
+  "setting.exclude-paths.error": "\u0428\u0430\u0431\u043B\u043E\u043D \u0434\u043E\u043B\u0436\u0435\u043D \u0431\u044B\u0442\u044C \u043D\u0435\u043F\u0443\u0441\u0442\u044B\u043C \u043A\u043E\u0440\u0440\u0435\u043A\u0442\u043D\u044B\u043C \u0440\u0435\u0433\u0443\u043B\u044F\u0440\u043D\u044B\u043C \u0432\u044B\u0440\u0430\u0436\u0435\u043D\u0438\u0435\u043C.",
+  "setting.general-heading": "\u041E\u0431\u0449\u0438\u0435",
+  "setting.cleanup-heading": "\u041E\u0447\u0438\u0441\u0442\u043A\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u0438",
   "setting.keep.name": "\u0425\u0440\u0430\u043D\u0438\u0442\u044C \u0438\u0441\u0442\u043E\u0440\u0438\u044E \u0434\u043E",
   "setting.keep.desc": "\u0421\u0442\u0440\u0430\u0442\u0435\u0433\u0438\u044F \u043E\u0447\u0438\u0441\u0442\u043A\u0438 \u0438\u0441\u0442\u043E\u0440\u0438\u0438 \u0440\u0435\u0432\u0438\u0437\u0438\u0439",
   "setting.keep.option.app": "\u0417\u0430\u043A\u0440\u044B\u0442\u0438\u044F \u043F\u0440\u0438\u043B\u043E\u0436\u0435\u043D\u0438\u044F",
@@ -12059,8 +12017,8 @@ var ru_default = {
   "setting.ignore-new-files.desc": "\u041D\u0435 \u043E\u0442\u0441\u043B\u0435\u0436\u0438\u0432\u0430\u0442\u044C \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044F \u0432 \u0444\u0430\u0439\u043B\u0430\u0445, \u0441\u043E\u0437\u0434\u0430\u043D\u043D\u044B\u0445 \u043F\u043E\u0441\u043B\u0435 \u043D\u0430\u0447\u0430\u043B\u0430 \u043E\u0442\u0441\u043B\u0435\u0436\u0438\u0432\u0430\u043D\u0438\u044F",
   "setting.tree-highlight.name": "\u041F\u043E\u0434\u0441\u0432\u0435\u0447\u0438\u0432\u0430\u0442\u044C \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044F \u0432 \u0434\u0435\u0440\u0435\u0432\u0435 \u0444\u0430\u0439\u043B\u043E\u0432 \u0438 \u0432\u043A\u043B\u0430\u0434\u043A\u0430\u0445",
   "setting.tree-highlight.desc": "\u041E\u043A\u0440\u0430\u0448\u0438\u0432\u0430\u0435\u0442 \u0444\u0430\u0439\u043B\u044B \u0438 \u043F\u0430\u043F\u043A\u0438 \u0432 \u043D\u0430\u0442\u0438\u0432\u043D\u043E\u043C \u043F\u0440\u043E\u0432\u043E\u0434\u043D\u0438\u043A\u0435 \u0444\u0430\u0439\u043B\u043E\u0432, \u0430 \u0442\u0430\u043A\u0436\u0435 \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043A\u0438 \u0432\u043A\u043B\u0430\u0434\u043E\u043A \u043E\u0442\u043A\u0440\u044B\u0442\u044B\u0445 \u0444\u0430\u0439\u043B\u043E\u0432 \u043F\u043E \u0442\u043E\u043C\u0443, \u0447\u0442\u043E \u0438\u0437\u043C\u0435\u043D\u0438\u043B\u043E\u0441\u044C \u0437\u0430 \u044D\u0442\u0443 \u0441\u0435\u0441\u0441\u0438\u044E (\u044F\u043D\u0442\u0430\u0440\u043D\u044B\u0439 \u0434\u043B\u044F \u0438\u0437\u043C\u0435\u043D\u0451\u043D\u043D\u044B\u0445, \u0437\u0435\u043B\u0451\u043D\u044B\u0439 \u0434\u043B\u044F \u0434\u043E\u0431\u0430\u0432\u043B\u0435\u043D\u043D\u044B\u0445).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "\u041F\u043E\u0434\u0441\u0432\u0435\u0447\u0438\u0432\u0430\u0442\u044C \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044F \u0432 \u043F\u0430\u043D\u0435\u043B\u0438 \u0441\u0432\u043E\u0439\u0441\u0442\u0432",
+  "setting.properties-highlight.desc": "\u041F\u043E\u043A\u0430\u0437\u044B\u0432\u0430\u0442\u044C \u0434\u043E\u0431\u0430\u0432\u043B\u0435\u043D\u043D\u044B\u0435, \u0438\u0437\u043C\u0435\u043D\u0451\u043D\u043D\u044B\u0435 \u0438 \u0443\u0434\u0430\u043B\u0451\u043D\u043D\u044B\u0435 \u043A\u043B\u044E\u0447\u0438 frontmatter \u0432 \u043F\u0430\u043D\u0435\u043B\u0438 \u0441\u0432\u043E\u0439\u0441\u0442\u0432 Obsidian. \u041E\u0442\u043A\u043B\u044E\u0447\u0438\u0442\u0435, \u0447\u0442\u043E\u0431\u044B \u0443\u0431\u0440\u0430\u0442\u044C \u0432\u0441\u044E \u043F\u043E\u0434\u0441\u0432\u0435\u0442\u043A\u0443 \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0439 \u0441\u0432\u043E\u0439\u0441\u0442\u0432.",
   "setting.persist.name": "\u0421\u043E\u0445\u0440\u0430\u043D\u044F\u0442\u044C \u0438\u0441\u0442\u043E\u0440\u0438\u044E \u043C\u0435\u0436\u0434\u0443 \u043F\u0435\u0440\u0435\u0437\u0430\u043F\u0443\u0441\u043A\u0430\u043C\u0438",
   "setting.persist.desc": '\u0421\u043E\u0445\u0440\u0430\u043D\u044F\u0442\u044C \u0438\u0441\u0442\u043E\u0440\u0438\u044E \u043D\u0430 \u0434\u0438\u0441\u043A, \u0447\u0442\u043E\u0431\u044B \u043F\u043E\u0434\u0441\u0432\u0435\u0442\u043A\u0438 \u043F\u0435\u0440\u0435\u0436\u0438\u0432\u0430\u043B\u0438 \u043F\u0435\u0440\u0435\u0437\u0430\u043F\u0443\u0441\u043A. \u0422\u0440\u0435\u0431\u0443\u0435\u0442, \u0447\u0442\u043E\u0431\u044B \u043F\u0430\u0440\u0430\u043C\u0435\u0442\u0440 "\u0425\u0440\u0430\u043D\u0438\u0442\u044C \u0438\u0441\u0442\u043E\u0440\u0438\u044E \u0434\u043E" \u0431\u044B\u043B \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D \u043D\u0430 \u0437\u0430\u043A\u0440\u044B\u0442\u0438\u0435 \u043F\u0440\u0438\u043B\u043E\u0436\u0435\u043D\u0438\u044F.',
   "setting.max-entries.name": "\u041C\u0430\u043A\u0441\u0438\u043C\u0443\u043C \u0445\u0440\u0430\u043D\u0438\u043C\u044B\u0445 \u0444\u0430\u0439\u043B\u043E\u0432",
@@ -12108,10 +12066,10 @@ var ru_default = {
   "modal.mode.side-by-side": "\u0411\u043E\u043A \u043E \u0431\u043E\u043A",
   "modal.hide-identical": "\u0421\u043A\u0440\u044B\u0442\u044C \u0432\u0435\u0440\u0441\u0438\u0438, \u0438\u0434\u0435\u043D\u0442\u0438\u0447\u043D\u044B\u0435 \u0442\u0435\u043A\u0443\u0449\u0435\u0439",
   "modal.confirm.cancel": "\u041E\u0442\u043C\u0435\u043D\u0430",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "\u041F\u043E\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043D\u0438\u0435",
+  "modal.confirm.default.message": "\u0412\u044B \u0443\u0432\u0435\u0440\u0435\u043D\u044B, \u0447\u0442\u043E \u0445\u043E\u0442\u0438\u0442\u0435 \u043F\u0440\u043E\u0434\u043E\u043B\u0436\u0438\u0442\u044C?",
+  "modal.confirm.default.ok": "\u041F\u043E\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u0442\u044C",
+  "modal.confirm.default.cancel": "\u041E\u0442\u043C\u0435\u043D\u0430",
   "modal.confirm.restore.title": "\u0412\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C \u0438\u0441\u0445\u043E\u0434\u043D\u044B\u0439 \u0444\u0430\u0439\u043B",
   "modal.confirm.restore.message": "\u0412\u044B \u0443\u0432\u0435\u0440\u0435\u043D\u044B, \u0447\u0442\u043E \u0445\u043E\u0442\u0438\u0442\u0435 \u0432\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C \u044D\u0442\u043E\u0442 \u0444\u0430\u0439\u043B \u0434\u043E \u0438\u0441\u0445\u043E\u0434\u043D\u043E\u0433\u043E \u0441\u043E\u0441\u0442\u043E\u044F\u043D\u0438\u044F? \u0412\u0441\u0435 \u0442\u0435\u043A\u0443\u0449\u0438\u0435 \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044F \u0431\u0443\u0434\u0443\u0442 \u043F\u043E\u0442\u0435\u0440\u044F\u043D\u044B, \u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u044F \u043E\u0442\u0441\u043B\u0435\u0436\u0438\u0432\u0430\u043D\u0438\u044F \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0439 \u0431\u0443\u0434\u0435\u0442 \u0441\u0431\u0440\u043E\u0448\u0435\u043D\u0430. \u042D\u0442\u043E \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435 \u043D\u0435\u043B\u044C\u0437\u044F \u043E\u0442\u043C\u0435\u043D\u0438\u0442\u044C.",
   "modal.confirm.restore.button": "\u0412\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C \u0444\u0430\u0439\u043B",
@@ -12136,7 +12094,7 @@ var ru_default = {
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u041D\u0435\u0442 \u0432\u0435\u0440\u0441\u0438\u0439, \u0441\u043E\u043E\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0443\u044E\u0449\u0438\u0445 \u043F\u043E\u0438\u0441\u043A\u0443",
   "modal.revert-hunk": "\u041E\u0442\u043A\u0430\u0442\u0438\u0442\u044C \u044D\u0442\u043E \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0435",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "\u041E\u0442\u043A\u0430\u0442\u0438\u0442\u044C \u044D\u0442\u043E \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0435",
   "modal.copy": "\u041A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u0442\u044C",
   "modal.put-label.title": "\u041F\u043E\u0441\u0442\u0430\u0432\u0438\u0442\u044C \u043C\u0435\u0442\u043A\u0443",
   "modal.put-label.message": "\u041E\u0442\u043C\u0435\u0442\u044C\u0442\u0435 \u0442\u0435\u043A\u0443\u0449\u0435\u0435 \u0441\u043E\u0434\u0435\u0440\u0436\u0438\u043C\u043E\u0435 \u043A\u043E\u0440\u043E\u0442\u043A\u043E\u0439 \u043C\u0435\u0442\u043A\u043E\u0439.",
@@ -12169,13 +12127,14 @@ var ru_default = {
   "modal.folder.notice.deleted": "\u0424\u0430\u0439\u043B \u0443\u0434\u0430\u043B\u0451\u043D \u043F\u043E\u0441\u043B\u0435 \u044D\u0442\u043E\u0439 \u0442\u043E\u0447\u043A\u0438.",
   "modal.folder.notice.unchanged": "\u0411\u0435\u0437 \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0439 \u043F\u043E\u0441\u043B\u0435 \u044D\u0442\u043E\u0439 \u0442\u043E\u0447\u043A\u0438.",
   "version.badge.external": "\u0432\u043D\u0435\u0448\u043D\u0435\u0435",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "setting.exclude-paths-case-sensitive.name": "\u0423\u0447\u0438\u0442\u044B\u0432\u0430\u0442\u044C \u0440\u0435\u0433\u0438\u0441\u0442\u0440 \u043F\u0440\u0438 \u0438\u0441\u043A\u043B\u044E\u0447\u0435\u043D\u0438\u0438 \u043F\u0443\u0442\u0435\u0439",
+  "setting.exclude-paths-case-sensitive.desc": "\u0415\u0441\u043B\u0438 \u0432\u043A\u043B\u044E\u0447\u0435\u043D\u043E, \u0440\u0435\u0433\u0443\u043B\u044F\u0440\u043D\u043E\u0435 \u0432\u044B\u0440\u0430\u0436\u0435\u043D\u0438\u0435 \u0438\u0441\u043A\u043B\u044E\u0447\u0451\u043D\u043D\u044B\u0445 \u043F\u0443\u0442\u0435\u0439 \u0441\u043E\u043F\u043E\u0441\u0442\u0430\u0432\u043B\u044F\u0435\u0442\u0441\u044F \u0441 \u0443\u0447\u0451\u0442\u043E\u043C \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430 (\u0431\u0435\u0437 \u0444\u043B\u0430\u0433\u0430 'i'). \u041E\u0442\u043A\u043B\u044E\u0447\u0438\u0442\u0435, \u0447\u0442\u043E\u0431\u044B \u0438\u0433\u043D\u043E\u0440\u0438\u0440\u043E\u0432\u0430\u0442\u044C \u0440\u0435\u0433\u0438\u0441\u0442\u0440: \u044D\u0442\u043E \u0437\u043D\u0430\u0447\u0435\u043D\u0438\u0435 \u043F\u043E \u0443\u043C\u043E\u043B\u0447\u0430\u043D\u0438\u044E, \u043E\u043D\u043E \u0445\u043E\u0440\u043E\u0448\u043E \u0440\u0430\u0431\u043E\u0442\u0430\u0435\u0442 \u043D\u0430 \u0444\u0430\u0439\u043B\u043E\u0432\u044B\u0445 \u0441\u0438\u0441\u0442\u0435\u043C\u0430\u0445 \u0431\u0435\u0437 \u0443\u0447\u0451\u0442\u0430 \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430.",
+  "setting.purge-excluded.name": "\u041E\u0447\u0438\u0441\u0442\u0438\u0442\u044C \u0438\u0441\u0442\u043E\u0440\u0438\u044E \u0434\u043B\u044F \u0438\u0441\u043A\u043B\u044E\u0447\u0451\u043D\u043D\u044B\u0445 \u043F\u0443\u0442\u0435\u0439",
+  "setting.purge-excluded.desc": "\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u0432\u0441\u044E \u0441\u043E\u0445\u0440\u0430\u043D\u0451\u043D\u043D\u0443\u044E \u0438\u0441\u0442\u043E\u0440\u0438\u044E \u0444\u0430\u0439\u043B\u043E\u0432, \u0447\u044C\u0438 \u043F\u0443\u0442\u0438 \u0441\u0435\u0439\u0447\u0430\u0441 \u0441\u043E\u043E\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0443\u044E\u0442 \u0448\u0430\u0431\u043B\u043E\u043D\u0443 \u0438\u0441\u043A\u043B\u044E\u0447\u0451\u043D\u043D\u044B\u0445 \u043F\u0443\u0442\u0435\u0439. \u0417\u0430\u043F\u0438\u0441\u0438 \u043E\u0431 \u0443\u0434\u0430\u043B\u0451\u043D\u043D\u044B\u0445 \u0444\u0430\u0439\u043B\u0430\u0445 \u0442\u0430\u043A\u0436\u0435 \u0443\u0434\u0430\u043B\u044F\u044E\u0442\u0441\u044F. \u042D\u0442\u043E \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435 \u043D\u0435\u043B\u044C\u0437\u044F \u043E\u0442\u043C\u0435\u043D\u0438\u0442\u044C.",
+  "notice.purge-excluded": "\u041B\u043E\u043A\u0430\u043B\u044C\u043D\u0430\u044F \u0438\u0441\u0442\u043E\u0440\u0438\u044F: \u0443\u0434\u0430\u043B\u0435\u043D\u043E {count} \u0441\u043D\u0438\u043C\u043A\u043E\u0432 \u0434\u043B\u044F \u0438\u0441\u043A\u043B\u044E\u0447\u0451\u043D\u043D\u044B\u0445 \u043F\u0443\u0442\u0435\u0439.",
+  "notice.purge-excluded.no-match": "\u041B\u043E\u043A\u0430\u043B\u044C\u043D\u0430\u044F \u0438\u0441\u0442\u043E\u0440\u0438\u044F: \u043D\u0435\u0442 \u0441\u043E\u0445\u0440\u0430\u043D\u0451\u043D\u043D\u043E\u0439 \u0438\u0441\u0442\u043E\u0440\u0438\u0438, \u0441\u043E\u0432\u043F\u0430\u0434\u0430\u044E\u0449\u0435\u0439 \u0441 \u0438\u0441\u043A\u043B\u044E\u0447\u0451\u043D\u043D\u044B\u043C\u0438 \u043F\u0443\u0442\u044F\u043C\u0438.",
+  "setting.reading-mode-indicator.name": "\u041F\u043E\u043A\u0430\u0437\u044B\u0432\u0430\u0442\u044C \u0438\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u044B \u0432 \u0440\u0435\u0436\u0438\u043C\u0435 \u0447\u0442\u0435\u043D\u0438\u044F",
+  "setting.reading-mode-indicator.desc": "\u041F\u043E\u043C\u0435\u0447\u0430\u0442\u044C \u043E\u0442\u0440\u0438\u0441\u043E\u0432\u0430\u043D\u043D\u044B\u0435 \u0431\u043B\u043E\u043A\u0438 \u0432 \u0440\u0435\u0436\u0438\u043C\u0435 \u0447\u0442\u0435\u043D\u0438\u044F \u0446\u0432\u0435\u0442\u043D\u043E\u0439 \u043B\u0435\u0432\u043E\u0439 \u0433\u0440\u0430\u043D\u0438\u0446\u0435\u0439 \u0432 \u0446\u0432\u0435\u0442\u0430\u0445 \u0438\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u0430 \u043F\u0440\u0430\u0432\u043E\u043A (\u0438\u0437\u043C\u0435\u043D\u0435\u043D\u043E, \u0434\u043E\u0431\u0430\u0432\u043B\u0435\u043D\u043E, \u043F\u0440\u043E\u0431\u0435\u043B\u044B, \u0432\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u043E). \u041F\u043E \u0443\u043C\u043E\u043B\u0447\u0430\u043D\u0438\u044E \u0432\u044B\u043A\u043B\u044E\u0447\u0435\u043D\u043E; \u0434\u043E\u0431\u0430\u0432\u043B\u044F\u0435\u0442 \u043D\u0435\u0431\u043E\u043B\u044C\u0448\u0443\u044E \u043D\u0430\u0433\u0440\u0443\u0437\u043A\u0443 \u043D\u0430 \u043A\u0430\u0436\u0434\u044B\u0439 \u0431\u043B\u043E\u043A \u043F\u0440\u0438 \u043F\u0435\u0440\u0435\u0440\u0438\u0441\u043E\u0432\u043A\u0435 \u0440\u0435\u0436\u0438\u043C\u0430 \u0447\u0442\u0435\u043D\u0438\u044F."
 };
 
 // lang/sk.json
@@ -12205,9 +12164,16 @@ var sk_default = {
   "setting.allowed-extensions.desc": "Zoznam pr\xEDpon s\xFAborov oddelen\xFDch \u010Diarkami, ktor\xFDch zmeny sa sleduj\xFA (napr. md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "Vyl\xFA\u010Den\xE9 cesty",
   "setting.exclude-paths.desc": "Regul\xE1rny v\xFDraz nerozli\u0161uj\xFAci ve\u013Ekos\u0165 p\xEDsmen, porovn\xE1van\xFD s cestou relat\xEDvnou k trezoru. \u017Diadny s\xFAbor, ktor\xE9ho cesta zodpoved\xE1, sa nikdy nesleduje (napr. \\.excalidraw\\.md$ alebo (^|/)Templates/). Predvolen\xE9 nastavenie vylu\u010Duje prie\u010Dinky Templates a kresby Excalidraw. Ponechajte pr\xE1zdne pre sledovanie v\u0161etk\xE9ho.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "Prida\u0165 vzor",
+  "setting.exclude-paths.placeholder": "napr. (^|/)Templates/",
+  "setting.exclude-paths.remove": "Odstr\xE1ni\u0165 tento vzor",
+  "setting.exclude-paths.empty": "Zatia\u013E \u017Eiadne vyl\xFA\u010Den\xE9 cesty. Vzor prid\xE1te tla\u010Didlom +.",
+  "setting.exclude-paths.edit": "Upravi\u0165 vzor",
+  "setting.exclude-paths.save": "Ulo\u017Ei\u0165 vzor",
+  "setting.exclude-paths.cancel": "Zru\u0161i\u0165",
+  "setting.exclude-paths.error": "Vzor mus\xED by\u0165 nepr\xE1zdny platn\xFD regul\xE1rny v\xFDraz.",
+  "setting.general-heading": "V\u0161eobecn\xE9",
+  "setting.cleanup-heading": "\u010Cistenie hist\xF3rie",
   "setting.keep.name": "Uchov\xE1va\u0165 hist\xF3riu do",
   "setting.keep.desc": "Strat\xE9gia \u010Distenia hist\xF3rie rev\xEDzi\xED",
   "setting.keep.option.app": "Zatvorenia aplik\xE1cie",
@@ -12216,8 +12182,8 @@ var sk_default = {
   "setting.ignore-new-files.desc": "Nesledova\u0165 zmeny v s\xFAboroch vytvoren\xFDch po za\u010Dat\xED sledovania",
   "setting.tree-highlight.name": "Zv\xFDrazni\u0165 zmeny v strome s\xFAborov a na kart\xE1ch",
   "setting.tree-highlight.desc": "Zafarb\xED s\xFAbory a prie\u010Dinky v nat\xEDvnom prehliada\u010Di s\xFAborov a hlavi\u010Dky kariet otvoren\xFDch s\xFAborov pod\u013Ea toho, \u010Do sa v tejto rel\xE1cii zmenilo (jant\xE1rov\xE1 pre upraven\xE9, zelen\xE1 pre pridan\xE9).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "Zv\xFDraz\u0148ova\u0165 zmeny v paneli vlastnost\xED",
+  "setting.properties-highlight.desc": "Zobrazova\u0165 pridan\xE9, zmenen\xE9 a odstr\xE1nen\xE9 k\u013E\xFA\u010De frontmatteru v paneli vlastnost\xED Obsidianu. Vypnut\xEDm skryjete cel\xE9 zv\xFDraznenie zmien vlastnost\xED.",
   "setting.persist.name": "Zachova\u0165 hist\xF3riu medzi re\u0161tartmi",
   "setting.persist.desc": 'Uklada\u0165 hist\xF3riu na disk, aby zv\xFDraznenia pre\u017Eili re\u0161tart. Vy\u017Eaduje nastavenie "Uchov\xE1va\u0165 hist\xF3riu do" na zatvorenie aplik\xE1cie.',
   "setting.max-entries.name": "Maximum ulo\u017Een\xFDch s\xFAborov",
@@ -12265,10 +12231,10 @@ var sk_default = {
   "modal.mode.side-by-side": "Ved\u013Ea seba",
   "modal.hide-identical": "Skry\u0165 verzie zhodn\xE9 s aktu\xE1lnou",
   "modal.confirm.cancel": "Zru\u0161i\u0165",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "Potvrdenie",
+  "modal.confirm.default.message": "Naozaj chcete pokra\u010Dova\u0165?",
+  "modal.confirm.default.ok": "Potvrdi\u0165",
+  "modal.confirm.default.cancel": "Zru\u0161i\u0165",
   "modal.confirm.restore.title": "Obnovi\u0165 p\xF4vodn\xFD s\xFAbor",
   "modal.confirm.restore.message": "Naozaj chcete obnovi\u0165 tento s\xFAbor do p\xF4vodn\xE9ho stavu? V\u0161etky aktu\xE1lne zmeny sa stratia a hist\xF3ria sledovania zmien sa resetuje. T\xFAto akciu nemo\u017Eno vr\xE1ti\u0165 sp\xE4\u0165.",
   "modal.confirm.restore.button": "Obnovi\u0165 s\xFAbor",
@@ -12287,52 +12253,53 @@ var sk_default = {
   "modal.search-versions": "H\u013Eada\u0165 verzie",
   "modal.version.current": "Aktu\xE1lna",
   "modal.version.original": "Origin\xE1l",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "Vytvoren\xE9",
+  "modal.version.action.modified": "Zmenen\xE9",
+  "modal.version.action.cleared": "Vymazan\xE9",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u017Diadne verzie nezodpovedaj\xFA h\u013Eadaniu",
   "modal.revert-hunk": "Vr\xE1ti\u0165 t\xFAto zmenu",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "Vr\xE1ti\u0165 t\xFAto zmenu",
   "modal.copy": "Kop\xEDrova\u0165",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "Prida\u0165 \u0161t\xEDtok",
+  "modal.put-label.message": "Ozna\u010Dte aktu\xE1lny obsah kr\xE1tkym \u0161t\xEDtkom.",
+  "modal.put-label.placeholder": "\u0160t\xEDtok",
+  "modal.put-label.confirm": "Ulo\u017Ei\u0165",
+  "menu.local-history.show-history": "Zobrazi\u0165 hist\xF3riu",
+  "menu.local-history.show-history-selection": "Zobrazi\u0165 hist\xF3riu v\xFDberu",
+  "menu.local-history.put-label": "Prida\u0165 \u0161t\xEDtok",
+  "menu.local-history.recent-changes": "Ned\xE1vne zmeny",
+  "view.recent-changes.title": "Ned\xE1vne zmeny",
+  "view.recent-changes.empty": "Akt\xEDvny s\xFAbor nem\xE1 \u017Eiadnu hist\xF3riu verzi\xED.",
+  "view.recent-changes.menu.show-diff": "Zobrazi\u0165 rozdiel",
+  "view.recent-changes.menu.restore": "Obnovi\u0165 t\xFAto verziu",
+  "view.recent-changes.menu.delete": "Odstr\xE1ni\u0165 verziu",
+  "view.recent-changes.menu.put-label": "Prida\u0165 \u0161t\xEDtok",
+  "modal.label-selected": "Ozna\u010Di\u0165 vybran\xFA verziu",
+  "modal.label-version.message": "Ozna\u010Dte t\xFAto verziu kr\xE1tkym \u0161t\xEDtkom.",
+  "notice.no-folder-history": "Zatia\u013E \u017Eiadna hist\xF3ria prie\u010Dinka.",
+  "setting.max-deleted-entries.name": "Max. uchovan\xFDch odstr\xE1nen\xFDch s\xFAborov",
+  "setting.max-deleted-entries.desc": "Limit po\u010Dtu hist\xF3ri\xED odstr\xE1nen\xFDch s\xFAborov uchov\xE1van\xFDch na disku. Najstar\u0161ie sa odstra\u0148uj\xFA ako prv\xE9. Nastavte 0 na vypnutie.",
+  "setting.max-deleted-age-days.name": "Max. vek hist\xF3rie odstr\xE1nen\xFDch s\xFAborov (dni)",
+  "setting.max-deleted-age-days.desc": "Odstra\u0148ova\u0165 hist\xF3rie odstr\xE1nen\xFDch s\xFAborov star\u0161ie ne\u017E zadan\xFD po\u010Det dn\xED. Nastavte 0 na vypnutie.",
+  "folder-tree.empty": "V tomto prie\u010Dinku nie s\xFA pre vybran\xFD bod \u017Eiadne zmeny.",
+  "modal.folder.filter-files": "Filtrova\u0165 s\xFAbory pod\u013Ea n\xE1zvu",
+  "modal.folder.timeline.capture": "Zachyten\xE9",
+  "modal.folder.timeline.delete": "Odstr\xE1nen\xE9",
+  "modal.folder.timeline.move-in": "Presunut\xE9 sem",
+  "modal.folder.notice.no-file": "Nie je vybran\xFD \u017Eiadny s\xFAbor.",
+  "modal.folder.notice.added": "S\xFAbor bol pridan\xFD po tomto bode.",
+  "modal.folder.notice.deleted": "S\xFAbor bol odstr\xE1nen\xFD po tomto bode.",
+  "modal.folder.notice.unchanged": "Od tohto bodu \u017Eiadne zmeny.",
+  "version.badge.external": "extern\xE9",
+  "setting.exclude-paths-case-sensitive.name": "Vylu\u010Dovanie ciest s rozl\xED\u0161en\xEDm ve\u013Ekosti p\xEDsmen",
+  "setting.exclude-paths-case-sensitive.desc": "Ak je zapnut\xE9, regul\xE1rny v\xFDraz vyl\xFA\u010Den\xFDch ciest sa porovn\xE1va s rozl\xED\u0161en\xEDm ve\u013Ekosti p\xEDsmen (bez pr\xEDznaku 'i'). Vypnite na porovn\xE1vanie bez oh\u013Eadu na ve\u013Ekos\u0165 p\xEDsmen: to je predvolen\xE9 nastavenie, ktor\xE9 dobre funguje na s\xFAborov\xFDch syst\xE9moch nerozli\u0161uj\xFAcich ve\u013Ekos\u0165 p\xEDsmen.",
+  "setting.purge-excluded.name": "Vy\u010Disti\u0165 hist\xF3riu vyl\xFA\u010Den\xFDch ciest",
+  "setting.purge-excluded.desc": "Odstr\xE1ni\u0165 v\u0161etku ulo\u017Een\xFA hist\xF3riu s\xFAborov, ktor\xFDch cesty aktu\xE1lne zodpovedaj\xFA vzoru vyl\xFA\u010Den\xFDch ciest. Odstr\xE1nia sa aj z\xE1znamy odstr\xE1nen\xFDch s\xFAborov. T\xFAto akciu nemo\u017Eno vr\xE1ti\u0165 sp\xE4\u0165.",
+  "notice.purge-excluded": "Lok\xE1lna hist\xF3ria: odstr\xE1nen\xFDch {count} sn\xEDmok pre vyl\xFA\u010Den\xE9 cesty.",
+  "notice.purge-excluded.no-match": "Lok\xE1lna hist\xF3ria: \u017Eiadna ulo\u017Een\xE1 hist\xF3ria nezodpoved\xE1 vyl\xFA\u010Den\xFDm cest\xE1m.",
+  "setting.reading-mode-indicator.name": "Zobrazova\u0165 indik\xE1tory v re\u017Eime \u010D\xEDtania",
+  "setting.reading-mode-indicator.desc": "Ozna\u010Dova\u0165 vykreslen\xE9 bloky v re\u017Eime \u010D\xEDtania farebn\xFDm \u013Eav\xFDm okrajom vo farb\xE1ch indik\xE1tora \xFAprav (zmenen\xE9, pridan\xE9, biele znaky, obnoven\xE9). Predvolene vypnut\xE9; prid\xE1va mal\xFA z\xE1\u0165a\u017E na ka\u017Ed\xFD blok pri ka\u017Edom prekreslen\xED re\u017Eimu \u010D\xEDtania."
 };
 
 // lang/sq.json
@@ -12362,9 +12329,16 @@ var sq_default = {
   "setting.allowed-extensions.desc": "List\xEB e ndar\xEB me presje e zgjerimeve t\xEB skedar\xEBve, ndryshimet e t\xEB cil\xEBve ndiqen (p.sh. md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "Shtigjet e p\xEBrjashtuara",
   "setting.exclude-paths.desc": "Nj\xEB shprehje e rregullt (q\xEB nuk dallon shkronjat e m\xEBdha nga t\xEB voglat) q\xEB krahasohet me shtegun relativ ndaj kasafort\xEBs. \xC7do skedar shtegu i t\xEB cilit p\xEBrputhet nuk ndiqet kurr\xEB (p.sh. \\.excalidraw\\.md$ ose (^|/)Templates/). Vlera e parazgjedhur p\xEBrjashton dosjet Templates dhe vizatimet Excalidraw. L\xEBre bosh p\xEBr t\xEB ndjekur gjith\xE7ka.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "Shto model",
+  "setting.exclude-paths.placeholder": "p.sh. (^|/)Templates/",
+  "setting.exclude-paths.remove": "Hiq k\xEBt\xEB model",
+  "setting.exclude-paths.empty": "Ende nuk ka shtigje t\xEB p\xEBrjashtuara. P\xEBrdor butonin + p\xEBr t\xEB shtuar nj\xEB model.",
+  "setting.exclude-paths.edit": "P\xEBrpuno modelin",
+  "setting.exclude-paths.save": "Ruaj modelin",
+  "setting.exclude-paths.cancel": "Anulo",
+  "setting.exclude-paths.error": "Modeli duhet t\xEB jet\xEB nj\xEB shprehje e rregullt e vlefshme dhe jo bosh.",
+  "setting.general-heading": "T\xEB p\xEBrgjithshme",
+  "setting.cleanup-heading": "Pastrimi i historikut",
   "setting.keep.name": "Ruaj historin\xEB deri",
   "setting.keep.desc": "Strategjia p\xEBr pastrimin e historis\xEB s\xEB rishikimeve",
   "setting.keep.option.app": "Mbyllja e aplikacionit",
@@ -12373,8 +12347,8 @@ var sq_default = {
   "setting.ignore-new-files.desc": "Mos i ndiq ndryshimet n\xEB skedar\xEBt e krijuar pasi filloi ndjekja",
   "setting.tree-highlight.name": "Thekso ndryshimet n\xEB pem\xEBn e skedar\xEBve dhe n\xEB skedat",
   "setting.tree-highlight.desc": "Ngjyros skedar\xEBt dhe dosjet n\xEB shfletuesin vendas t\xEB skedar\xEBve, si dhe titujt e skedave t\xEB skedar\xEBve t\xEB hapur, sipas asaj q\xEB ndryshoi n\xEB k\xEBt\xEB sesion (qelibar p\xEBr t\xEB modifikuarit, jeshile p\xEBr t\xEB shtuarit).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "Thekso ndryshimet n\xEB panelin e vetive",
+  "setting.properties-highlight.desc": "Shfaq \xE7el\xEBsat e frontmatter t\xEB shtuar, t\xEB ndryshuar dhe t\xEB hequr n\xEB panelin e vetive t\xEB Obsidian. \xC7aktivizoje p\xEBr t\xEB fshehur gjith\xEB sh\xEBnjimin e ndryshimeve t\xEB vetive.",
   "setting.persist.name": "Ruaj historin\xEB gjat\xEB rinisjeve",
   "setting.persist.desc": 'Ruaj historin\xEB n\xEB disk q\xEB theksimet t\xEB mbijetojn\xEB nj\xEB rinisje. K\xEBrkon q\xEB "Ruaj historin\xEB deri" t\xEB jet\xEB vendosur te Mbyllja e aplikacionit.',
   "setting.max-entries.name": "Maks. skedar\xEB t\xEB ruajtur",
@@ -12422,10 +12396,10 @@ var sq_default = {
   "modal.mode.side-by-side": "Krah p\xEBr krah",
   "modal.hide-identical": "Fshih versionet identike me aktualin",
   "modal.confirm.cancel": "Anulo",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "Konfirmim",
+  "modal.confirm.default.message": "Je i sigurt q\xEB d\xEBshiron t\xEB vazhdosh?",
+  "modal.confirm.default.ok": "Konfirmo",
+  "modal.confirm.default.cancel": "Anulo",
   "modal.confirm.restore.title": "Rikthe skedarin origjinal",
   "modal.confirm.restore.message": "Je i sigurt q\xEB d\xEBshiron ta rikthesh k\xEBt\xEB skedar n\xEB gjendjen e tij origjinale? T\xEB gjitha ndryshimet aktuale do t\xEB humbasin dhe historia e ndjekjes s\xEB ndryshimeve do t\xEB rivendoset. Ky veprim nuk mund t\xEB zhb\xEBhet.",
   "modal.confirm.restore.button": "Rikthe skedarin",
@@ -12444,52 +12418,53 @@ var sq_default = {
   "modal.search-versions": "K\xEBrko versionet",
   "modal.version.current": "Aktuali",
   "modal.version.original": "Origjinali",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "U krijua",
+  "modal.version.action.modified": "U ndryshua",
+  "modal.version.action.cleared": "U zbraz",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Asnj\xEB version nuk p\xEBrputhet me k\xEBrkimin",
   "modal.revert-hunk": "Ktheje k\xEBt\xEB ndryshim",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "Kthe k\xEBt\xEB ndryshim",
   "modal.copy": "Kopjo",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "Vendos etiket\xEB",
+  "modal.put-label.message": "Sh\xEBno p\xEBrmbajtjen aktuale me nj\xEB etiket\xEB t\xEB shkurt\xEBr.",
+  "modal.put-label.placeholder": "Etiket\xEB",
+  "modal.put-label.confirm": "Ruaj",
+  "menu.local-history.show-history": "Shfaq historikun",
+  "menu.local-history.show-history-selection": "Shfaq historikun p\xEBr p\xEBrzgjedhjen",
+  "menu.local-history.put-label": "Vendos etiket\xEB",
+  "menu.local-history.recent-changes": "Ndryshimet e fundit",
+  "view.recent-changes.title": "Ndryshimet e fundit",
+  "view.recent-changes.empty": "Nuk ka historik versionesh p\xEBr skedarin aktiv.",
+  "view.recent-changes.menu.show-diff": "Shfaq ndryshimet",
+  "view.recent-changes.menu.restore": "Rikthe k\xEBt\xEB version",
+  "view.recent-changes.menu.delete": "Fshi versionin",
+  "view.recent-changes.menu.put-label": "Vendos etiket\xEB",
+  "modal.label-selected": "Etiketo versionin e zgjedhur",
+  "modal.label-version.message": "Sh\xEBno k\xEBt\xEB version me nj\xEB etiket\xEB t\xEB shkurt\xEBr.",
+  "notice.no-folder-history": "Ende nuk ka historik dosjeje.",
+  "setting.max-deleted-entries.name": "Maks. skedar\xEB t\xEB fshir\xEB t\xEB ruajtur",
+  "setting.max-deleted-entries.desc": "Kufi p\xEBr numrin e historik\xEBve t\xEB skedar\xEBve t\xEB fshir\xEB q\xEB mbahen n\xEB disk. M\xEB t\xEB vjetrit hiqen t\xEB par\xEBt. Vendos 0 p\xEBr ta \xE7aktivizuar.",
+  "setting.max-deleted-age-days.name": "Mosha maks. e historikut t\xEB t\xEB fshir\xEBve (dit\xEB)",
+  "setting.max-deleted-age-days.desc": "Hiq historik\xEBt e skedar\xEBve t\xEB fshir\xEB m\xEB t\xEB vjet\xEBr se ky num\xEBr dit\xEBsh. Vendos 0 p\xEBr ta \xE7aktivizuar.",
+  "folder-tree.empty": "Nuk ka ndryshime n\xEB k\xEBt\xEB dosje p\xEBr pik\xEBn e zgjedhur.",
+  "modal.folder.filter-files": "Filtro skedar\xEBt sipas emrit",
+  "modal.folder.timeline.capture": "U kap",
+  "modal.folder.timeline.delete": "U fshi",
+  "modal.folder.timeline.move-in": "U zhvendos k\xEBtu",
+  "modal.folder.notice.no-file": "Nuk \xEBsht\xEB zgjedhur asnj\xEB skedar.",
+  "modal.folder.notice.added": "Skedari u shtua pas k\xEBsaj pike.",
+  "modal.folder.notice.deleted": "Skedari u fshi pas k\xEBsaj pike.",
+  "modal.folder.notice.unchanged": "Asnj\xEB ndryshim q\xEB nga kjo pik\xEB.",
+  "version.badge.external": "i jasht\xEBm",
+  "setting.exclude-paths-case-sensitive.name": "P\xEBrjashtim shtigjesh me dallim t\xEB shkronjave t\xEB m\xEBdha/t\xEB vogla",
+  "setting.exclude-paths-case-sensitive.desc": "Kur aktivizohet, shprehja e rregullt e shtigjeve t\xEB p\xEBrjashtuara krahasohet duke dalluar shkronjat e m\xEBdha nga t\xEB voglat (pa flamurin 'i'). \xC7aktivizoje p\xEBr t\xEB krahasuar pa marr\xEB parasysh shkronjat: ky \xEBsht\xEB parazgjedhja dhe funksionon mir\xEB n\xEB sistemet e skedar\xEBve q\xEB nuk i dallojn\xEB shkronjat.",
+  "setting.purge-excluded.name": "Pastro historikun p\xEBr shtigjet e p\xEBrjashtuara",
+  "setting.purge-excluded.desc": "Fshi gjith\xEB historikun e ruajtur t\xEB skedar\xEBve, shtigjet e t\xEB cil\xEBve p\xEBrputhen aktualisht me modelin e shtigjeve t\xEB p\xEBrjashtuara. Hiqen edhe regjistrimet e skedar\xEBve t\xEB fshir\xEB. Ky veprim nuk mund t\xEB zhb\xEBhet.",
+  "notice.purge-excluded": "Historiku lokal: u pastruan {count} fotografi p\xEBr shtigjet e p\xEBrjashtuara.",
+  "notice.purge-excluded.no-match": "Historiku lokal: asnj\xEB historik i ruajtur nuk p\xEBrputhet me shtigjet e p\xEBrjashtuara.",
+  "setting.reading-mode-indicator.name": "Shfaq tregues n\xEB m\xEBnyr\xEBn e leximit",
+  "setting.reading-mode-indicator.desc": "Zbukuro blloqet e shfaqura n\xEB m\xEBnyr\xEBn e leximit me nj\xEB kufi t\xEB majt\xEB me ngjyr\xEB sipas ngjyrave t\xEB treguesit t\xEB redaktimit (ndryshuar, shtuar, hap\xEBsira, rikthyer). I \xE7aktivizuar si parazgjedhje; ka nj\xEB kosto t\xEB vog\xEBl p\xEBr bllok n\xEB \xE7do rishfaqje t\xEB m\xEBnyr\xEBs s\xEB leximit."
 };
 
 // lang/sr.json
@@ -12519,9 +12494,16 @@ var sr_default = {
   "setting.allowed-extensions.desc": "\u0421\u043F\u0438\u0441\u0430\u043A \u0435\u043A\u0441\u0442\u0435\u043D\u0437\u0438\u0458\u0430 \u0444\u0430\u0458\u043B\u043E\u0432\u0430 \u0440\u0430\u0437\u0434\u0432\u043E\u0458\u0435\u043D\u0438\u0445 \u0437\u0430\u0440\u0435\u0437\u0438\u043C\u0430, \u0447\u0438\u0458\u0435 \u0441\u0435 \u0438\u0437\u043C\u0435\u043D\u0435 \u043F\u0440\u0430\u0442\u0435 (\u043D\u043F\u0440. md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "\u0418\u0441\u043A\u0459\u0443\u0447\u0435\u043D\u0435 \u043F\u0443\u0442\u0430\u045A\u0435",
   "setting.exclude-paths.desc": "\u0420\u0435\u0433\u0443\u043B\u0430\u0440\u043D\u0438 \u0438\u0437\u0440\u0430\u0437 \u043A\u043E\u0458\u0438 \u043D\u0435 \u0440\u0430\u0437\u043B\u0438\u043A\u0443\u0458\u0435 \u0432\u0435\u043B\u0438\u043A\u0430 \u0438 \u043C\u0430\u043B\u0430 \u0441\u043B\u043E\u0432\u0430, \u0443\u043F\u043E\u0440\u0435\u0452\u0443\u0458\u0435 \u0441\u0435 \u0441\u0430 \u043F\u0443\u0442\u0430\u045A\u043E\u043C \u0440\u0435\u043B\u0430\u0442\u0438\u0432\u043D\u043E\u043C \u0443 \u043E\u0434\u043D\u043E\u0441\u0443 \u043D\u0430 \u0442\u0440\u0435\u0437\u043E\u0440. \u0421\u0432\u0430\u043A\u0438 \u0444\u0430\u0458\u043B \u0447\u0438\u0458\u0430 \u0441\u0435 \u043F\u0443\u0442\u0430\u045A\u0430 \u043F\u043E\u0434\u0443\u0434\u0430\u0440\u0430 \u043D\u0438\u043A\u0430\u0434\u0430 \u0441\u0435 \u043D\u0435 \u043F\u0440\u0430\u0442\u0438 (\u043D\u043F\u0440. \\.excalidraw\\.md$ \u0438\u043B\u0438 (^|/)Templates/). \u041F\u043E\u0434\u0440\u0430\u0437\u0443\u043C\u0435\u0432\u0430\u043D\u043E \u0441\u0435 \u0438\u0441\u043A\u0459\u0443\u0447\u0443\u0458\u0443 \u0444\u0430\u0441\u0446\u0438\u043A\u043B\u0435 Templates \u0438 Excalidraw \u0446\u0440\u0442\u0435\u0436\u0438. \u041E\u0441\u0442\u0430\u0432\u0438\u0442\u0435 \u043F\u0440\u0430\u0437\u043D\u043E \u0434\u0430 \u0431\u0438\u0441\u0442\u0435 \u043F\u0440\u0430\u0442\u0438\u043B\u0438 \u0441\u0432\u0435.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "\u0414\u043E\u0434\u0430\u0458 \u0448\u0430\u0431\u043B\u043E\u043D",
+  "setting.exclude-paths.placeholder": "\u043D\u043F\u0440. (^|/)Templates/",
+  "setting.exclude-paths.remove": "\u0423\u043A\u043B\u043E\u043D\u0438 \u043E\u0432\u0430\u0458 \u0448\u0430\u0431\u043B\u043E\u043D",
+  "setting.exclude-paths.empty": "\u0408\u043E\u0448 \u043D\u0435\u043C\u0430 \u0438\u0441\u043A\u0459\u0443\u0447\u0435\u043D\u0438\u0445 \u043F\u0443\u0442\u0430\u045A\u0430. \u0428\u0430\u0431\u043B\u043E\u043D \u0434\u043E\u0434\u0430\u0458\u0442\u0435 \u0434\u0443\u0433\u043C\u0435\u0442\u043E\u043C +.",
+  "setting.exclude-paths.edit": "\u0418\u0437\u043C\u0435\u043D\u0438 \u0448\u0430\u0431\u043B\u043E\u043D",
+  "setting.exclude-paths.save": "\u0421\u0430\u0447\u0443\u0432\u0430\u0458 \u0448\u0430\u0431\u043B\u043E\u043D",
+  "setting.exclude-paths.cancel": "\u041E\u0442\u043A\u0430\u0436\u0438",
+  "setting.exclude-paths.error": "\u0428\u0430\u0431\u043B\u043E\u043D \u043C\u043E\u0440\u0430 \u0431\u0438\u0442\u0438 \u043D\u0435\u043F\u0440\u0430\u0437\u0430\u043D \u0438\u0441\u043F\u0440\u0430\u0432\u0430\u043D \u0440\u0435\u0433\u0443\u043B\u0430\u0440\u043D\u0438 \u0438\u0437\u0440\u0430\u0437.",
+  "setting.general-heading": "\u041E\u043F\u0448\u0442\u0435",
+  "setting.cleanup-heading": "\u0427\u0438\u0448\u045B\u0435\u045A\u0435 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0435",
   "setting.keep.name": "\u0427\u0443\u0432\u0430\u0458 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0443 \u0434\u043E",
   "setting.keep.desc": "\u0421\u0442\u0440\u0430\u0442\u0435\u0433\u0438\u0458\u0430 \u0447\u0438\u0448\u045B\u0435\u045A\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0435 \u0440\u0435\u0432\u0438\u0437\u0438\u0458\u0430",
   "setting.keep.option.app": "\u0417\u0430\u0442\u0432\u0430\u0440\u0430\u045A\u0430 \u0430\u043F\u043B\u0438\u043A\u0430\u0446\u0438\u0458\u0435",
@@ -12530,8 +12512,8 @@ var sr_default = {
   "setting.ignore-new-files.desc": "\u041D\u0435 \u043F\u0440\u0430\u0442\u0438 \u0438\u0437\u043C\u0435\u043D\u0435 \u0443 \u0444\u0430\u0458\u043B\u043E\u0432\u0438\u043C\u0430 \u043D\u0430\u043F\u0440\u0430\u0432\u0459\u0435\u043D\u0438\u043C \u043D\u0430\u043A\u043E\u043D \u043F\u043E\u0447\u0435\u0442\u043A\u0430 \u043F\u0440\u0430\u045B\u0435\u045A\u0430",
   "setting.tree-highlight.name": "\u0418\u0441\u0442\u0430\u043A\u043D\u0438 \u0438\u0437\u043C\u0435\u043D\u0435 \u0443 \u0441\u0442\u0430\u0431\u043B\u0443 \u0434\u0430\u0442\u043E\u0442\u0435\u043A\u0430 \u0438 \u043A\u0430\u0440\u0442\u0438\u0446\u0430\u043C\u0430",
   "setting.tree-highlight.desc": "\u0411\u043E\u0458\u0438 \u0434\u0430\u0442\u043E\u0442\u0435\u043A\u0435 \u0438 \u0444\u0430\u0441\u0446\u0438\u043A\u043B\u0435 \u0443 \u0438\u0437\u0432\u043E\u0440\u043D\u043E\u043C \u043F\u0440\u0435\u0433\u043B\u0435\u0434\u0430\u0447\u0443 \u0434\u0430\u0442\u043E\u0442\u0435\u043A\u0430 \u0438 \u0437\u0430\u0433\u043B\u0430\u0432\u0459\u0430 \u043A\u0430\u0440\u0442\u0438\u0446\u0430 \u043E\u0442\u0432\u043E\u0440\u0435\u043D\u0438\u0445 \u0434\u0430\u0442\u043E\u0442\u0435\u043A\u0430 \u043F\u0440\u0435\u043C\u0430 \u043E\u043D\u043E\u043C\u0435 \u0448\u0442\u043E \u0458\u0435 \u043F\u0440\u043E\u043C\u0435\u045A\u0435\u043D\u043E \u0443 \u043E\u0432\u043E\u0458 \u0441\u0435\u0441\u0438\u0458\u0438 (\u045B\u0438\u043B\u0438\u0431\u0430\u0440\u043D\u0430 \u0437\u0430 \u0438\u0437\u043C\u0435\u045A\u0435\u043D\u043E, \u0437\u0435\u043B\u0435\u043D\u0430 \u0437\u0430 \u0434\u043E\u0434\u0430\u0442\u043E).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "\u0418\u0441\u0442\u0430\u043A\u043D\u0438 \u0438\u0437\u043C\u0435\u043D\u0435 \u0443 \u043F\u0430\u043D\u0435\u043B\u0443 \u0441\u0432\u043E\u0458\u0441\u0442\u0430\u0432\u0430",
+  "setting.properties-highlight.desc": "\u041F\u0440\u0438\u043A\u0430\u0436\u0438 \u0434\u043E\u0434\u0430\u0442\u0435, \u0438\u0437\u043C\u0435\u045A\u0435\u043D\u0435 \u0438 \u0443\u043A\u043B\u043E\u045A\u0435\u043D\u0435 frontmatter \u043A\u0459\u0443\u0447\u0435\u0432\u0435 \u0443 Obsidian \u043F\u0430\u043D\u0435\u043B\u0443 \u0441\u0432\u043E\u0458\u0441\u0442\u0430\u0432\u0430. \u0418\u0441\u043A\u0459\u0443\u0447\u0438\u0442\u0435 \u0434\u0430 \u0431\u0438\u0441\u0442\u0435 \u0443\u043A\u043B\u043E\u043D\u0438\u043B\u0438 \u0441\u0432\u0435 \u043E\u0437\u043D\u0430\u0447\u0430\u0432\u0430\u045A\u0435 \u0438\u0437\u043C\u0435\u043D\u0430 \u0441\u0432\u043E\u0458\u0441\u0442\u0430\u0432\u0430.",
   "setting.persist.name": "\u0417\u0430\u0434\u0440\u0436\u0438 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0443 \u0438\u0437\u043C\u0435\u0452\u0443 \u043F\u043E\u043D\u043E\u0432\u043D\u0438\u0445 \u043F\u043E\u043A\u0440\u0435\u0442\u0430\u045A\u0430",
   "setting.persist.desc": '\u0427\u0443\u0432\u0430\u0458 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0443 \u043D\u0430 \u0434\u0438\u0441\u043A\u0443 \u0434\u0430 \u0431\u0438 \u0438\u0441\u0442\u0438\u0446\u0430\u045A\u0430 \u043F\u0440\u0435\u0436\u0438\u0432\u0435\u043B\u0430 \u043F\u043E\u043D\u043E\u0432\u043D\u043E \u043F\u043E\u043A\u0440\u0435\u0442\u0430\u045A\u0435. \u0417\u0430\u0445\u0442\u0435\u0432\u0430 \u0434\u0430 \u043E\u043F\u0446\u0438\u0458\u0430 "\u0427\u0443\u0432\u0430\u0458 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0443 \u0434\u043E" \u0431\u0443\u0434\u0435 \u043F\u043E\u0434\u0435\u0448\u0435\u043D\u0430 \u043D\u0430 \u0437\u0430\u0442\u0432\u0430\u0440\u0430\u045A\u0435 \u0430\u043F\u043B\u0438\u043A\u0430\u0446\u0438\u0458\u0435.',
   "setting.max-entries.name": "\u041D\u0430\u0458\u0432\u0438\u0448\u0435 \u0441\u0430\u0447\u0443\u0432\u0430\u043D\u0438\u0445 \u0444\u0430\u0458\u043B\u043E\u0432\u0430",
@@ -12579,10 +12561,10 @@ var sr_default = {
   "modal.mode.side-by-side": "\u0408\u0435\u0434\u043D\u043E \u043F\u043E\u0440\u0435\u0434 \u0434\u0440\u0443\u0433\u043E\u0433",
   "modal.hide-identical": "\u0421\u0430\u043A\u0440\u0438\u0458 \u0432\u0435\u0440\u0437\u0438\u0458\u0435 \u0438\u0434\u0435\u043D\u0442\u0438\u0447\u043D\u0435 \u0442\u0435\u043A\u0443\u045B\u0435\u043C",
   "modal.confirm.cancel": "\u041E\u0442\u043A\u0430\u0436\u0438",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "\u041F\u043E\u0442\u0432\u0440\u0434\u0430",
+  "modal.confirm.default.message": "\u0414\u0430 \u043B\u0438 \u0441\u0442\u0435 \u0441\u0438\u0433\u0443\u0440\u043D\u0438 \u0434\u0430 \u0436\u0435\u043B\u0438\u0442\u0435 \u0434\u0430 \u043D\u0430\u0441\u0442\u0430\u0432\u0438\u0442\u0435?",
+  "modal.confirm.default.ok": "\u041F\u043E\u0442\u0432\u0440\u0434\u0438",
+  "modal.confirm.default.cancel": "\u041E\u0442\u043A\u0430\u0436\u0438",
   "modal.confirm.restore.title": "\u0412\u0440\u0430\u0442\u0438 \u043E\u0440\u0438\u0433\u0438\u043D\u0430\u043B\u043D\u0438 \u0444\u0430\u0458\u043B",
   "modal.confirm.restore.message": "\u0414\u0430 \u043B\u0438 \u0441\u0442\u0435 \u0441\u0438\u0433\u0443\u0440\u043D\u0438 \u0434\u0430 \u0436\u0435\u043B\u0438\u0442\u0435 \u0434\u0430 \u0432\u0440\u0430\u0442\u0438\u0442\u0435 \u043E\u0432\u0430\u0458 \u0444\u0430\u0458\u043B \u0443 \u043F\u0440\u0432\u043E\u0431\u0438\u0442\u043D\u043E \u0441\u0442\u0430\u045A\u0435? \u0421\u0432\u0435 \u0442\u0435\u043A\u0443\u045B\u0435 \u0438\u0437\u043C\u0435\u043D\u0435 \u0431\u0438\u045B\u0435 \u0438\u0437\u0433\u0443\u0431\u0459\u0435\u043D\u0435, \u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0430 \u043F\u0440\u0430\u045B\u0435\u045A\u0430 \u0438\u0437\u043C\u0435\u043D\u0430 \u0431\u0438\u045B\u0435 \u0440\u0435\u0441\u0435\u0442\u043E\u0432\u0430\u043D\u0430. \u041E\u0432\u0430 \u0440\u0430\u0434\u045A\u0430 \u0441\u0435 \u043D\u0435 \u043C\u043E\u0436\u0435 \u043E\u043F\u043E\u0437\u0432\u0430\u0442\u0438.",
   "modal.confirm.restore.button": "\u0412\u0440\u0430\u0442\u0438 \u0444\u0430\u0458\u043B",
@@ -12601,52 +12583,53 @@ var sr_default = {
   "modal.search-versions": "\u041F\u0440\u0435\u0442\u0440\u0430\u0436\u0438 \u0432\u0435\u0440\u0437\u0438\u0458\u0435",
   "modal.version.current": "\u0422\u0435\u043A\u0443\u045B\u0430",
   "modal.version.original": "\u041E\u0440\u0438\u0433\u0438\u043D\u0430\u043B",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "\u041D\u0430\u043F\u0440\u0430\u0432\u0459\u0435\u043D\u043E",
+  "modal.version.action.modified": "\u0418\u0437\u043C\u0435\u045A\u0435\u043D\u043E",
+  "modal.version.action.cleared": "\u041E\u0447\u0438\u0448\u045B\u0435\u043D\u043E",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u041D\u0438\u0458\u0435\u0434\u043D\u0430 \u0432\u0435\u0440\u0437\u0438\u0458\u0430 \u043D\u0435 \u043E\u0434\u0433\u043E\u0432\u0430\u0440\u0430 \u043F\u0440\u0435\u0442\u0440\u0430\u0437\u0438",
   "modal.revert-hunk": "\u041E\u043F\u043E\u0437\u043E\u0432\u0438 \u043E\u0432\u0443 \u0438\u0437\u043C\u0435\u043D\u0443",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "\u0412\u0440\u0430\u0442\u0438 \u043E\u0432\u0443 \u0438\u0437\u043C\u0435\u043D\u0443",
   "modal.copy": "\u041A\u043E\u043F\u0438\u0440\u0430\u0458",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "\u041F\u043E\u0441\u0442\u0430\u0432\u0438 \u043E\u0437\u043D\u0430\u043A\u0443",
+  "modal.put-label.message": "\u041E\u0437\u043D\u0430\u0447\u0438\u0442\u0435 \u0442\u0440\u0435\u043D\u0443\u0442\u043D\u0438 \u0441\u0430\u0434\u0440\u0436\u0430\u0458 \u043A\u0440\u0430\u0442\u043A\u043E\u043C \u043E\u0437\u043D\u0430\u043A\u043E\u043C.",
+  "modal.put-label.placeholder": "\u041E\u0437\u043D\u0430\u043A\u0430",
+  "modal.put-label.confirm": "\u0421\u0430\u0447\u0443\u0432\u0430\u0458",
+  "menu.local-history.show-history": "\u041F\u0440\u0438\u043A\u0430\u0436\u0438 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0443",
+  "menu.local-history.show-history-selection": "\u041F\u0440\u0438\u043A\u0430\u0436\u0438 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0443 \u0437\u0430 \u0438\u0437\u0431\u043E\u0440",
+  "menu.local-history.put-label": "\u041F\u043E\u0441\u0442\u0430\u0432\u0438 \u043E\u0437\u043D\u0430\u043A\u0443",
+  "menu.local-history.recent-changes": "\u041D\u0435\u0434\u0430\u0432\u043D\u0435 \u0438\u0437\u043C\u0435\u043D\u0435",
+  "view.recent-changes.title": "\u041D\u0435\u0434\u0430\u0432\u043D\u0435 \u0438\u0437\u043C\u0435\u043D\u0435",
+  "view.recent-changes.empty": "\u0417\u0430 \u0430\u043A\u0442\u0438\u0432\u043D\u0438 \u0444\u0430\u0458\u043B \u043D\u0435\u043C\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0435 \u0432\u0435\u0440\u0437\u0438\u0458\u0430.",
+  "view.recent-changes.menu.show-diff": "\u041F\u0440\u0438\u043A\u0430\u0436\u0438 \u0440\u0430\u0437\u043B\u0438\u043A\u0435",
+  "view.recent-changes.menu.restore": "\u0412\u0440\u0430\u0442\u0438 \u043E\u0432\u0443 \u0432\u0435\u0440\u0437\u0438\u0458\u0443",
+  "view.recent-changes.menu.delete": "\u041E\u0431\u0440\u0438\u0448\u0438 \u0432\u0435\u0440\u0437\u0438\u0458\u0443",
+  "view.recent-changes.menu.put-label": "\u041F\u043E\u0441\u0442\u0430\u0432\u0438 \u043E\u0437\u043D\u0430\u043A\u0443",
+  "modal.label-selected": "\u041E\u0437\u043D\u0430\u0447\u0438 \u0438\u0437\u0430\u0431\u0440\u0430\u043D\u0443 \u0432\u0435\u0440\u0437\u0438\u0458\u0443",
+  "modal.label-version.message": "\u041E\u0437\u043D\u0430\u0447\u0438\u0442\u0435 \u043E\u0432\u0443 \u0432\u0435\u0440\u0437\u0438\u0458\u0443 \u043A\u0440\u0430\u0442\u043A\u043E\u043C \u043E\u0437\u043D\u0430\u043A\u043E\u043C.",
+  "notice.no-folder-history": "\u0408\u043E\u0448 \u043D\u0435\u043C\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0435 \u0444\u0430\u0441\u0446\u0438\u043A\u043B\u0435.",
+  "setting.max-deleted-entries.name": "\u041D\u0430\u0458\u0432\u0438\u0448\u0435 \u0441\u0430\u0447\u0443\u0432\u0430\u043D\u0438\u0445 \u043E\u0431\u0440\u0438\u0441\u0430\u043D\u0438\u0445 \u0444\u0430\u0458\u043B\u043E\u0432\u0430",
+  "setting.max-deleted-entries.desc": "\u041E\u0433\u0440\u0430\u043D\u0438\u0447\u0435\u045A\u0435 \u0431\u0440\u043E\u0458\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0430 \u043E\u0431\u0440\u0438\u0441\u0430\u043D\u0438\u0445 \u0444\u0430\u0458\u043B\u043E\u0432\u0430 \u043A\u043E\u0458\u0435 \u0441\u0435 \u0447\u0443\u0432\u0430\u0458\u0443 \u043D\u0430 \u0434\u0438\u0441\u043A\u0443. \u041D\u0430\u0458\u0441\u0442\u0430\u0440\u0438\u0458\u0435 \u0441\u0435 \u043F\u0440\u0432\u043E \u0443\u043A\u043B\u0430\u045A\u0430\u0458\u0443. \u041F\u043E\u0441\u0442\u0430\u0432\u0438\u0442\u0435 0 \u0434\u0430 \u0438\u0441\u043A\u0459\u0443\u0447\u0438\u0442\u0435.",
+  "setting.max-deleted-age-days.name": "\u041D\u0430\u0458\u0432\u0435\u045B\u0430 \u0441\u0442\u0430\u0440\u043E\u0441\u0442 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0435 \u043E\u0431\u0440\u0438\u0441\u0430\u043D\u0438\u0445 \u0444\u0430\u0458\u043B\u043E\u0432\u0430 (\u0434\u0430\u043D\u0430)",
+  "setting.max-deleted-age-days.desc": "\u0423\u043A\u043B\u043E\u043D\u0438 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0435 \u043E\u0431\u0440\u0438\u0441\u0430\u043D\u0438\u0445 \u0444\u0430\u0458\u043B\u043E\u0432\u0430 \u0441\u0442\u0430\u0440\u0438\u0458\u0435 \u043E\u0434 \u0437\u0430\u0434\u0430\u0442\u043E\u0433 \u0431\u0440\u043E\u0458\u0430 \u0434\u0430\u043D\u0430. \u041F\u043E\u0441\u0442\u0430\u0432\u0438\u0442\u0435 0 \u0434\u0430 \u0438\u0441\u043A\u0459\u0443\u0447\u0438\u0442\u0435.",
+  "folder-tree.empty": "\u0423 \u043E\u0432\u043E\u0458 \u0444\u0430\u0441\u0446\u0438\u043A\u043B\u0438 \u043D\u0435\u043C\u0430 \u0438\u0437\u043C\u0435\u043D\u0430 \u0437\u0430 \u0438\u0437\u0430\u0431\u0440\u0430\u043D\u0443 \u0442\u0430\u0447\u043A\u0443.",
+  "modal.folder.filter-files": "\u0424\u0438\u043B\u0442\u0440\u0438\u0440\u0430\u0458 \u0444\u0430\u0458\u043B\u043E\u0432\u0435 \u043F\u043E \u0438\u043C\u0435\u043D\u0443",
+  "modal.folder.timeline.capture": "\u0421\u043D\u0438\u043C\u0459\u0435\u043D\u043E",
+  "modal.folder.timeline.delete": "\u041E\u0431\u0440\u0438\u0441\u0430\u043D\u043E",
+  "modal.folder.timeline.move-in": "\u041F\u0440\u0435\u043C\u0435\u0448\u0442\u0435\u043D\u043E \u043E\u0432\u0434\u0435",
+  "modal.folder.notice.no-file": "\u041D\u0438\u0458\u0435 \u0438\u0437\u0430\u0431\u0440\u0430\u043D \u043D\u0438\u0458\u0435\u0434\u0430\u043D \u0444\u0430\u0458\u043B.",
+  "modal.folder.notice.added": "\u0424\u0430\u0458\u043B \u0458\u0435 \u0434\u043E\u0434\u0430\u0442 \u043F\u043E\u0441\u043B\u0435 \u043E\u0432\u0435 \u0442\u0430\u0447\u043A\u0435.",
+  "modal.folder.notice.deleted": "\u0424\u0430\u0458\u043B \u0458\u0435 \u043E\u0431\u0440\u0438\u0441\u0430\u043D \u043F\u043E\u0441\u043B\u0435 \u043E\u0432\u0435 \u0442\u0430\u0447\u043A\u0435.",
+  "modal.folder.notice.unchanged": "\u041D\u0435\u043C\u0430 \u0438\u0437\u043C\u0435\u043D\u0430 \u043E\u0434 \u043E\u0432\u0435 \u0442\u0430\u0447\u043A\u0435.",
+  "version.badge.external": "\u0441\u043F\u043E\u0459\u043D\u043E",
+  "setting.exclude-paths-case-sensitive.name": "\u0418\u0441\u043A\u0459\u0443\u0447\u0438\u0432\u0430\u045A\u0435 \u043F\u0443\u0442\u0430\u045A\u0430 \u0443\u0437 \u0440\u0430\u0437\u043B\u0438\u043A\u043E\u0432\u0430\u045A\u0435 \u0432\u0435\u043B\u0438\u043A\u0438\u0445 \u0438 \u043C\u0430\u043B\u0438\u0445 \u0441\u043B\u043E\u0432\u0430",
+  "setting.exclude-paths-case-sensitive.desc": "\u041A\u0430\u0434\u0430 \u0458\u0435 \u0443\u043A\u0459\u0443\u0447\u0435\u043D\u043E, \u0440\u0435\u0433\u0443\u043B\u0430\u0440\u043D\u0438 \u0438\u0437\u0440\u0430\u0437 \u0438\u0441\u043A\u0459\u0443\u0447\u0435\u043D\u0438\u0445 \u043F\u0443\u0442\u0430\u045A\u0430 \u043F\u043E\u043A\u043B\u0430\u043F\u0430 \u0441\u0435 \u0443\u0437 \u0440\u0430\u0437\u043B\u0438\u043A\u043E\u0432\u0430\u045A\u0435 \u0432\u0435\u043B\u0438\u043A\u0438\u0445 \u0438 \u043C\u0430\u043B\u0438\u0445 \u0441\u043B\u043E\u0432\u0430 (\u0431\u0435\u0437 \u0437\u0430\u0441\u0442\u0430\u0432\u0438\u0446\u0435 'i'). \u0418\u0441\u043A\u0459\u0443\u0447\u0438\u0442\u0435 \u0434\u0430 \u0441\u0435 \u043F\u043E\u043A\u043B\u0430\u043F\u0430\u045A\u0435 \u0432\u0440\u0448\u0438 \u0431\u0435\u0437 \u043E\u0431\u0437\u0438\u0440\u0430 \u043D\u0430 \u0432\u0435\u043B\u0438\u0447\u0438\u043D\u0443 \u0441\u043B\u043E\u0432\u0430: \u0442\u043E \u0458\u0435 \u043F\u043E\u0434\u0440\u0430\u0437\u0443\u043C\u0435\u0432\u0430\u043D\u043E \u0438 \u0434\u043E\u0431\u0440\u043E \u0440\u0430\u0434\u0438 \u043D\u0430 \u0441\u0438\u0441\u0442\u0435\u043C\u0438\u043C\u0430 \u0434\u0430\u0442\u043E\u0442\u0435\u043A\u0430 \u043A\u043E\u0458\u0438 \u043D\u0435 \u0440\u0430\u0437\u043B\u0438\u043A\u0443\u0458\u0443 \u0432\u0435\u043B\u0438\u0447\u0438\u043D\u0443 \u0441\u043B\u043E\u0432\u0430.",
+  "setting.purge-excluded.name": "\u041E\u0447\u0438\u0441\u0442\u0438 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0443 \u0437\u0430 \u0438\u0441\u043A\u0459\u0443\u0447\u0435\u043D\u0435 \u043F\u0443\u0442\u0430\u045A\u0435",
+  "setting.purge-excluded.desc": "\u041E\u0431\u0440\u0438\u0448\u0438 \u0441\u0432\u0443 \u0441\u0430\u0447\u0443\u0432\u0430\u043D\u0443 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0443 \u0444\u0430\u0458\u043B\u043E\u0432\u0430 \u0447\u0438\u0458\u0435 \u043F\u0443\u0442\u0430\u045A\u0435 \u0442\u0440\u0435\u043D\u0443\u0442\u043D\u043E \u043E\u0434\u0433\u043E\u0432\u0430\u0440\u0430\u0458\u0443 \u0448\u0430\u0431\u043B\u043E\u043D\u0443 \u0438\u0441\u043A\u0459\u0443\u0447\u0435\u043D\u0438\u0445 \u043F\u0443\u0442\u0430\u045A\u0430. \u0423\u043A\u043B\u0430\u045A\u0430\u0458\u0443 \u0441\u0435 \u0438 \u0437\u0430\u043F\u0438\u0441\u0438 \u043E\u0431\u0440\u0438\u0441\u0430\u043D\u0438\u0445 \u0444\u0430\u0458\u043B\u043E\u0432\u0430. \u041E\u0432\u0430 \u0440\u0430\u0434\u045A\u0430 \u0441\u0435 \u043D\u0435 \u043C\u043E\u0436\u0435 \u043E\u043F\u043E\u0437\u0432\u0430\u0442\u0438.",
+  "notice.purge-excluded": "\u041B\u043E\u043A\u0430\u043B\u043D\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0430: \u0443\u043A\u043B\u043E\u045A\u0435\u043D\u043E {count} \u0441\u043D\u0438\u043C\u0430\u043A\u0430 \u0437\u0430 \u0438\u0441\u043A\u0459\u0443\u0447\u0435\u043D\u0435 \u043F\u0443\u0442\u0430\u045A\u0435.",
+  "notice.purge-excluded.no-match": "\u041B\u043E\u043A\u0430\u043B\u043D\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0430: \u043D\u0438\u0458\u0435\u0434\u043D\u0430 \u0441\u0430\u0447\u0443\u0432\u0430\u043D\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0430 \u0441\u0435 \u043D\u0435 \u043F\u043E\u043A\u043B\u0430\u043F\u0430 \u0441\u0430 \u0438\u0441\u043A\u0459\u0443\u0447\u0435\u043D\u0438\u043C \u043F\u0443\u0442\u0430\u045A\u0430\u043C\u0430.",
+  "setting.reading-mode-indicator.name": "\u041F\u0440\u0438\u043A\u0430\u0436\u0438 \u0438\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u0435 \u0443 \u0440\u0435\u0436\u0438\u043C\u0443 \u0447\u0438\u0442\u0430\u045A\u0430",
+  "setting.reading-mode-indicator.desc": "\u041E\u0437\u043D\u0430\u0447\u0438 \u0438\u0441\u0446\u0440\u0442\u0430\u043D\u0435 \u0431\u043B\u043E\u043A\u043E\u0432\u0435 \u0443 \u0440\u0435\u0436\u0438\u043C\u0443 \u0447\u0438\u0442\u0430\u045A\u0430 \u043E\u0431\u043E\u0458\u0435\u043D\u043E\u043C \u043B\u0435\u0432\u043E\u043C \u0438\u0432\u0438\u0446\u043E\u043C \u0443 \u0431\u043E\u0458\u0430\u043C\u0430 \u0438\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u0430 \u0443\u0440\u0435\u0452\u0438\u0432\u0430\u045A\u0430 (\u0438\u0437\u043C\u0435\u045A\u0435\u043D\u043E, \u0434\u043E\u0434\u0430\u0442\u043E, \u0440\u0430\u0437\u043C\u0430\u0446\u0438, \u0432\u0440\u0430\u045B\u0435\u043D\u043E). \u041F\u043E\u0434\u0440\u0430\u0437\u0443\u043C\u0435\u0432\u0430\u043D\u043E \u0438\u0441\u043A\u0459\u0443\u0447\u0435\u043D\u043E; \u0434\u043E\u0434\u0430\u0458\u0435 \u043C\u0430\u043B\u0438 \u0442\u0440\u043E\u0448\u0430\u043A \u043F\u043E \u0431\u043B\u043E\u043A\u0443 \u043F\u0440\u0438 \u0441\u0432\u0430\u043A\u043E\u043C \u0438\u0441\u0446\u0440\u0442\u0430\u0432\u0430\u045A\u0443 \u0440\u0435\u0436\u0438\u043C\u0430 \u0447\u0438\u0442\u0430\u045A\u0430."
 };
 
 // lang/sv.json
@@ -12676,9 +12659,16 @@ var sv_default = {
   "setting.allowed-extensions.desc": "Kommaseparerad lista \xF6ver fil\xE4ndelser vars \xE4ndringar ska sp\xE5ras (t.ex. md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "Uteslutna s\xF6kv\xE4gar",
   "setting.exclude-paths.desc": "Ett regulj\xE4rt uttryck (utan skillnad p\xE5 stora och sm\xE5 bokst\xE4ver) som matchas mot s\xF6kv\xE4gen relativt valvet. Alla filer vars s\xF6kv\xE4g matchar sp\xE5ras aldrig (t.ex. \\.excalidraw\\.md$ eller (^|/)Templates/). Standardv\xE4rdet utesluter Templates-mappar och Excalidraw-ritningar. L\xE4mna tomt f\xF6r att sp\xE5ra allt.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "L\xE4gg till m\xF6nster",
+  "setting.exclude-paths.placeholder": "t.ex. (^|/)Templates/",
+  "setting.exclude-paths.remove": "Ta bort detta m\xF6nster",
+  "setting.exclude-paths.empty": "Inga exkluderade s\xF6kv\xE4gar \xE4nnu. Anv\xE4nd knappen + f\xF6r att l\xE4gga till ett m\xF6nster.",
+  "setting.exclude-paths.edit": "Redigera m\xF6nster",
+  "setting.exclude-paths.save": "Spara m\xF6nster",
+  "setting.exclude-paths.cancel": "Avbryt",
+  "setting.exclude-paths.error": "M\xF6nstret m\xE5ste vara ett icke-tomt giltigt regulj\xE4rt uttryck.",
+  "setting.general-heading": "Allm\xE4nt",
+  "setting.cleanup-heading": "Rensning av historik",
   "setting.keep.name": "Beh\xE5ll historik tills",
   "setting.keep.desc": "Strategi f\xF6r att rensa revisionshistorik",
   "setting.keep.option.app": "Appen st\xE4ngs",
@@ -12687,8 +12677,8 @@ var sv_default = {
   "setting.ignore-new-files.desc": "Sp\xE5ra inte \xE4ndringar i filer som skapats efter att sp\xE5rningen startade",
   "setting.tree-highlight.name": "Markera \xE4ndringar i filtr\xE4det och flikarna",
   "setting.tree-highlight.desc": "F\xE4rgar filer och mappar i den inbyggda filhanteraren samt flikrubrikerna f\xF6r \xF6ppna filer efter vad som \xE4ndrats i denna session (b\xE4rnsten f\xF6r \xE4ndrat, gr\xF6nt f\xF6r tillagt).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "Markera \xE4ndringar i egenskapspanelen",
+  "setting.properties-highlight.desc": "Visa tillagda, \xE4ndrade och borttagna frontmatter-nycklar i Obsidians egenskapspanel. Inaktivera f\xF6r att d\xF6lja all markering av egenskaps\xE4ndringar.",
   "setting.persist.name": "Beh\xE5ll historik mellan omstarter",
   "setting.persist.desc": 'Spara historik p\xE5 disk s\xE5 att markeringar \xF6verlever en omstart. Kr\xE4ver att "Beh\xE5ll historik tills" \xE4r inst\xE4llt p\xE5 Appen st\xE4ngs.',
   "setting.max-entries.name": "Max antal sparade filer",
@@ -12736,10 +12726,10 @@ var sv_default = {
   "modal.mode.side-by-side": "Sida vid sida",
   "modal.hide-identical": "D\xF6lj versioner identiska med aktuell",
   "modal.confirm.cancel": "Avbryt",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "Bekr\xE4ftelse",
+  "modal.confirm.default.message": "\xC4r du s\xE4ker p\xE5 att du vill forts\xE4tta?",
+  "modal.confirm.default.ok": "Bekr\xE4fta",
+  "modal.confirm.default.cancel": "Avbryt",
   "modal.confirm.restore.title": "\xC5terst\xE4ll originalfil",
   "modal.confirm.restore.message": "\xC4r du s\xE4ker p\xE5 att du vill \xE5terst\xE4lla den h\xE4r filen till sitt ursprungliga skick? Alla aktuella \xE4ndringar g\xE5r f\xF6rlorade och \xE4ndringshistoriken nollst\xE4lls. Den h\xE4r \xE5tg\xE4rden kan inte \xE5ngras.",
   "modal.confirm.restore.button": "\xC5terst\xE4ll fil",
@@ -12758,52 +12748,53 @@ var sv_default = {
   "modal.search-versions": "S\xF6k versioner",
   "modal.version.current": "Aktuell",
   "modal.version.original": "Original",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "Skapad",
+  "modal.version.action.modified": "\xC4ndrad",
+  "modal.version.action.cleared": "Rensad",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Inga versioner matchar s\xF6kningen",
   "modal.revert-hunk": "\xC5terst\xE4ll den h\xE4r \xE4ndringen",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "\xC5ngra denna \xE4ndring",
   "modal.copy": "Kopiera",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "S\xE4tt etikett",
+  "modal.put-label.message": "M\xE4rk det aktuella inneh\xE5llet med en kort etikett.",
+  "modal.put-label.placeholder": "Etikett",
+  "modal.put-label.confirm": "Spara",
+  "menu.local-history.show-history": "Visa historik",
+  "menu.local-history.show-history-selection": "Visa historik f\xF6r markering",
+  "menu.local-history.put-label": "S\xE4tt etikett",
+  "menu.local-history.recent-changes": "Senaste \xE4ndringar",
+  "view.recent-changes.title": "Senaste \xE4ndringar",
+  "view.recent-changes.empty": "Ingen versionshistorik f\xF6r den aktiva filen.",
+  "view.recent-changes.menu.show-diff": "Visa diff",
+  "view.recent-changes.menu.restore": "\xC5terst\xE4ll denna version",
+  "view.recent-changes.menu.delete": "Ta bort version",
+  "view.recent-changes.menu.put-label": "S\xE4tt etikett",
+  "modal.label-selected": "S\xE4tt etikett p\xE5 vald version",
+  "modal.label-version.message": "M\xE4rk denna version med en kort etikett.",
+  "notice.no-folder-history": "Ingen mapphistorik \xE4nnu.",
+  "setting.max-deleted-entries.name": "Max lagrade borttagna filer",
+  "setting.max-deleted-entries.desc": "Tak f\xF6r hur m\xE5nga historiker f\xF6r borttagna filer som beh\xE5lls p\xE5 disk. De \xE4ldsta tas bort f\xF6rst. S\xE4tt till 0 f\xF6r att inaktivera.",
+  "setting.max-deleted-age-days.name": "Max \xE5lder f\xF6r borttagen historik (dagar)",
+  "setting.max-deleted-age-days.desc": "Ta bort historiker f\xF6r borttagna filer som \xE4r \xE4ldre \xE4n detta antal dagar. S\xE4tt till 0 f\xF6r att inaktivera.",
+  "folder-tree.empty": "Inga \xE4ndringar i denna mapp f\xF6r den valda punkten.",
+  "modal.folder.filter-files": "Filtrera filer efter namn",
+  "modal.folder.timeline.capture": "Registrerad",
+  "modal.folder.timeline.delete": "Borttagen",
+  "modal.folder.timeline.move-in": "Flyttad hit",
+  "modal.folder.notice.no-file": "Ingen fil vald.",
+  "modal.folder.notice.added": "Filen lades till efter denna punkt.",
+  "modal.folder.notice.deleted": "Filen togs bort efter denna punkt.",
+  "modal.folder.notice.unchanged": "Inga \xE4ndringar sedan denna punkt.",
+  "version.badge.external": "extern",
+  "setting.exclude-paths-case-sensitive.name": "Skiftl\xE4gesk\xE4nslig exkludering av s\xF6kv\xE4gar",
+  "setting.exclude-paths-case-sensitive.desc": "N\xE4r detta \xE4r aktiverat matchas det regulj\xE4ra uttrycket f\xF6r exkluderade s\xF6kv\xE4gar skiftl\xE4gesk\xE4nsligt (utan 'i'-flagga). Inaktivera f\xF6r att matcha oavsett skiftl\xE4ge: det \xE4r standard och fungerar bra p\xE5 skiftl\xE4gesok\xE4nsliga filsystem.",
+  "setting.purge-excluded.name": "Rensa historik f\xF6r exkluderade s\xF6kv\xE4gar",
+  "setting.purge-excluded.desc": "Ta bort all lagrad historik f\xF6r filer vars s\xF6kv\xE4gar f\xF6r n\xE4rvarande matchar m\xF6nstret f\xF6r exkluderade s\xF6kv\xE4gar. Poster f\xF6r borttagna filer tas ocks\xE5 bort. Denna \xE5tg\xE4rd kan inte \xE5ngras.",
+  "notice.purge-excluded": "Lokal historik: rensade {count} \xF6gonblicksbild(er) f\xF6r exkluderade s\xF6kv\xE4gar.",
+  "notice.purge-excluded.no-match": "Lokal historik: ingen sparad historik matchar de exkluderade s\xF6kv\xE4garna.",
+  "setting.reading-mode-indicator.name": "Visa indikatorer i l\xE4sl\xE4ge",
+  "setting.reading-mode-indicator.desc": "Markera renderade block i l\xE4sl\xE4get med en f\xE4rgad v\xE4nsterkant i redigeringsindikatorns f\xE4rger (\xE4ndrad, tillagd, blanksteg, \xE5terst\xE4lld). Av som standard; ger en liten kostnad per block vid varje omrendering i l\xE4sl\xE4get."
 };
 
 // lang/th.json
@@ -12833,9 +12824,16 @@ var th_default = {
   "setting.allowed-extensions.desc": "\u0E23\u0E32\u0E22\u0E01\u0E32\u0E23\u0E19\u0E32\u0E21\u0E2A\u0E01\u0E38\u0E25\u0E44\u0E1F\u0E25\u0E4C\u0E17\u0E35\u0E48\u0E08\u0E30\u0E15\u0E34\u0E14\u0E15\u0E32\u0E21\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07 \u0E04\u0E31\u0E48\u0E19\u0E14\u0E49\u0E27\u0E22\u0E08\u0E38\u0E25\u0E20\u0E32\u0E04 (\u0E40\u0E0A\u0E48\u0E19 md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "\u0E1E\u0E32\u0E18\u0E17\u0E35\u0E48\u0E22\u0E01\u0E40\u0E27\u0E49\u0E19",
   "setting.exclude-paths.desc": "\u0E19\u0E34\u0E1E\u0E08\u0E19\u0E4C\u0E17\u0E31\u0E48\u0E27\u0E44\u0E1B\u0E17\u0E35\u0E48\u0E44\u0E21\u0E48\u0E04\u0E33\u0E19\u0E36\u0E07\u0E16\u0E36\u0E07\u0E15\u0E31\u0E27\u0E1E\u0E34\u0E21\u0E1E\u0E4C\u0E43\u0E2B\u0E0D\u0E48\u0E40\u0E25\u0E47\u0E01 \u0E43\u0E0A\u0E49\u0E08\u0E31\u0E1A\u0E04\u0E39\u0E48\u0E01\u0E31\u0E1A\u0E1E\u0E32\u0E18\u0E17\u0E35\u0E48\u0E2A\u0E31\u0E21\u0E1E\u0E31\u0E19\u0E18\u0E4C\u0E01\u0E31\u0E1A vault \u0E44\u0E1F\u0E25\u0E4C\u0E43\u0E14\u0E01\u0E47\u0E15\u0E32\u0E21\u0E17\u0E35\u0E48\u0E1E\u0E32\u0E18\u0E15\u0E23\u0E07\u0E01\u0E31\u0E19\u0E08\u0E30\u0E44\u0E21\u0E48\u0E16\u0E39\u0E01\u0E15\u0E34\u0E14\u0E15\u0E32\u0E21\u0E40\u0E25\u0E22 (\u0E40\u0E0A\u0E48\u0E19 \\.excalidraw\\.md$ \u0E2B\u0E23\u0E37\u0E2D (^|/)Templates/) \u0E04\u0E48\u0E32\u0E40\u0E23\u0E34\u0E48\u0E21\u0E15\u0E49\u0E19\u0E08\u0E30\u0E22\u0E01\u0E40\u0E27\u0E49\u0E19\u0E42\u0E1F\u0E25\u0E40\u0E14\u0E2D\u0E23\u0E4C Templates \u0E41\u0E25\u0E30\u0E20\u0E32\u0E1E\u0E27\u0E32\u0E14 Excalidraw \u0E40\u0E27\u0E49\u0E19\u0E27\u0E48\u0E32\u0E07\u0E44\u0E27\u0E49\u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E15\u0E34\u0E14\u0E15\u0E32\u0E21\u0E17\u0E38\u0E01\u0E2D\u0E22\u0E48\u0E32\u0E07",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "\u0E40\u0E1E\u0E34\u0E48\u0E21\u0E23\u0E39\u0E1B\u0E41\u0E1A\u0E1A",
+  "setting.exclude-paths.placeholder": "\u0E40\u0E0A\u0E48\u0E19 (^|/)Templates/",
+  "setting.exclude-paths.remove": "\u0E25\u0E1A\u0E23\u0E39\u0E1B\u0E41\u0E1A\u0E1A\u0E19\u0E35\u0E49",
+  "setting.exclude-paths.empty": "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E40\u0E2A\u0E49\u0E19\u0E17\u0E32\u0E07\u0E17\u0E35\u0E48\u0E22\u0E01\u0E40\u0E27\u0E49\u0E19 \u0E43\u0E0A\u0E49\u0E1B\u0E38\u0E48\u0E21 + \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E40\u0E1E\u0E34\u0E48\u0E21\u0E23\u0E39\u0E1B\u0E41\u0E1A\u0E1A",
+  "setting.exclude-paths.edit": "\u0E41\u0E01\u0E49\u0E44\u0E02\u0E23\u0E39\u0E1B\u0E41\u0E1A\u0E1A",
+  "setting.exclude-paths.save": "\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E23\u0E39\u0E1B\u0E41\u0E1A\u0E1A",
+  "setting.exclude-paths.cancel": "\u0E22\u0E01\u0E40\u0E25\u0E34\u0E01",
+  "setting.exclude-paths.error": "\u0E23\u0E39\u0E1B\u0E41\u0E1A\u0E1A\u0E15\u0E49\u0E2D\u0E07\u0E40\u0E1B\u0E47\u0E19\u0E19\u0E34\u0E1E\u0E08\u0E19\u0E4C\u0E17\u0E31\u0E48\u0E27\u0E44\u0E1B (regular expression) \u0E17\u0E35\u0E48\u0E16\u0E39\u0E01\u0E15\u0E49\u0E2D\u0E07\u0E41\u0E25\u0E30\u0E44\u0E21\u0E48\u0E27\u0E48\u0E32\u0E07\u0E40\u0E1B\u0E25\u0E48\u0E32",
+  "setting.general-heading": "\u0E17\u0E31\u0E48\u0E27\u0E44\u0E1B",
+  "setting.cleanup-heading": "\u0E01\u0E32\u0E23\u0E25\u0E49\u0E32\u0E07\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34",
   "setting.keep.name": "\u0E40\u0E01\u0E47\u0E1A\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E44\u0E27\u0E49\u0E08\u0E19\u0E16\u0E36\u0E07",
   "setting.keep.desc": "\u0E01\u0E25\u0E22\u0E38\u0E17\u0E18\u0E4C\u0E43\u0E19\u0E01\u0E32\u0E23\u0E25\u0E49\u0E32\u0E07\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E01\u0E32\u0E23\u0E41\u0E01\u0E49\u0E44\u0E02",
   "setting.keep.option.app": "\u0E1B\u0E34\u0E14\u0E41\u0E2D\u0E1B",
@@ -12844,8 +12842,8 @@ var th_default = {
   "setting.ignore-new-files.desc": "\u0E44\u0E21\u0E48\u0E15\u0E34\u0E14\u0E15\u0E32\u0E21\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E43\u0E19\u0E44\u0E1F\u0E25\u0E4C\u0E17\u0E35\u0E48\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E02\u0E36\u0E49\u0E19\u0E2B\u0E25\u0E31\u0E07\u0E08\u0E32\u0E01\u0E40\u0E23\u0E34\u0E48\u0E21\u0E01\u0E32\u0E23\u0E15\u0E34\u0E14\u0E15\u0E32\u0E21",
   "setting.tree-highlight.name": "\u0E40\u0E19\u0E49\u0E19\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E43\u0E19\u0E41\u0E1C\u0E19\u0E1C\u0E31\u0E07\u0E44\u0E1F\u0E25\u0E4C\u0E41\u0E25\u0E30\u0E41\u0E17\u0E47\u0E1A",
   "setting.tree-highlight.desc": "\u0E25\u0E07\u0E2A\u0E35\u0E44\u0E1F\u0E25\u0E4C\u0E41\u0E25\u0E30\u0E42\u0E1F\u0E25\u0E40\u0E14\u0E2D\u0E23\u0E4C\u0E43\u0E19\u0E15\u0E31\u0E27\u0E2A\u0E33\u0E23\u0E27\u0E08\u0E44\u0E1F\u0E25\u0E4C\u0E14\u0E31\u0E49\u0E07\u0E40\u0E14\u0E34\u0E21 \u0E41\u0E25\u0E30\u0E2A\u0E48\u0E27\u0E19\u0E2B\u0E31\u0E27\u0E41\u0E17\u0E47\u0E1A\u0E02\u0E2D\u0E07\u0E44\u0E1F\u0E25\u0E4C\u0E17\u0E35\u0E48\u0E40\u0E1B\u0E34\u0E14\u0E2D\u0E22\u0E39\u0E48 \u0E15\u0E32\u0E21\u0E2A\u0E34\u0E48\u0E07\u0E17\u0E35\u0E48\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E43\u0E19\u0E40\u0E0B\u0E2A\u0E0A\u0E31\u0E19\u0E19\u0E35\u0E49 (\u0E2A\u0E35\u0E2D\u0E33\u0E1E\u0E31\u0E19\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E17\u0E35\u0E48\u0E41\u0E01\u0E49\u0E44\u0E02 \u0E2A\u0E35\u0E40\u0E02\u0E35\u0E22\u0E27\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E17\u0E35\u0E48\u0E40\u0E1E\u0E34\u0E48\u0E21)",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "\u0E44\u0E2E\u0E44\u0E25\u0E15\u0E4C\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E43\u0E19\u0E41\u0E1C\u0E07\u0E04\u0E38\u0E13\u0E2A\u0E21\u0E1A\u0E31\u0E15\u0E34",
+  "setting.properties-highlight.desc": "\u0E41\u0E2A\u0E14\u0E07\u0E04\u0E35\u0E22\u0E4C frontmatter \u0E17\u0E35\u0E48\u0E16\u0E39\u0E01\u0E40\u0E1E\u0E34\u0E48\u0E21 \u0E41\u0E01\u0E49\u0E44\u0E02 \u0E41\u0E25\u0E30\u0E25\u0E1A\u0E43\u0E19\u0E41\u0E1C\u0E07\u0E04\u0E38\u0E13\u0E2A\u0E21\u0E1A\u0E31\u0E15\u0E34\u0E02\u0E2D\u0E07 Obsidian \u0E1B\u0E34\u0E14\u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E0B\u0E48\u0E2D\u0E19\u0E01\u0E32\u0E23\u0E15\u0E01\u0E41\u0E15\u0E48\u0E07\u0E04\u0E27\u0E32\u0E21\u0E41\u0E15\u0E01\u0E15\u0E48\u0E32\u0E07\u0E02\u0E2D\u0E07\u0E04\u0E38\u0E13\u0E2A\u0E21\u0E1A\u0E31\u0E15\u0E34\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14",
   "setting.persist.name": "\u0E04\u0E07\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E44\u0E27\u0E49\u0E41\u0E21\u0E49\u0E23\u0E35\u0E2A\u0E15\u0E32\u0E23\u0E4C\u0E17",
   "setting.persist.desc": '\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E25\u0E07\u0E14\u0E34\u0E2A\u0E01\u0E4C\u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E43\u0E2B\u0E49\u0E44\u0E2E\u0E44\u0E25\u0E15\u0E4C\u0E22\u0E31\u0E07\u0E04\u0E07\u0E2D\u0E22\u0E39\u0E48\u0E2B\u0E25\u0E31\u0E07\u0E23\u0E35\u0E2A\u0E15\u0E32\u0E23\u0E4C\u0E17 \u0E15\u0E49\u0E2D\u0E07\u0E15\u0E31\u0E49\u0E07 "\u0E40\u0E01\u0E47\u0E1A\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E44\u0E27\u0E49\u0E08\u0E19\u0E16\u0E36\u0E07" \u0E40\u0E1B\u0E47\u0E19\u0E1B\u0E34\u0E14\u0E41\u0E2D\u0E1B',
   "setting.max-entries.name": "\u0E08\u0E33\u0E19\u0E27\u0E19\u0E44\u0E1F\u0E25\u0E4C\u0E17\u0E35\u0E48\u0E08\u0E31\u0E14\u0E40\u0E01\u0E47\u0E1A\u0E2A\u0E39\u0E07\u0E2A\u0E38\u0E14",
@@ -12893,10 +12891,10 @@ var th_default = {
   "modal.mode.side-by-side": "\u0E40\u0E04\u0E35\u0E22\u0E07\u0E02\u0E49\u0E32\u0E07\u0E01\u0E31\u0E19",
   "modal.hide-identical": "\u0E0B\u0E48\u0E2D\u0E19\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19\u0E17\u0E35\u0E48\u0E40\u0E2B\u0E21\u0E37\u0E2D\u0E19\u0E01\u0E31\u0E1A\u0E09\u0E1A\u0E31\u0E1A\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19",
   "modal.confirm.cancel": "\u0E22\u0E01\u0E40\u0E25\u0E34\u0E01",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "\u0E22\u0E37\u0E19\u0E22\u0E31\u0E19",
+  "modal.confirm.default.message": "\u0E04\u0E38\u0E13\u0E41\u0E19\u0E48\u0E43\u0E08\u0E2B\u0E23\u0E37\u0E2D\u0E44\u0E21\u0E48\u0E27\u0E48\u0E32\u0E15\u0E49\u0E2D\u0E07\u0E01\u0E32\u0E23\u0E14\u0E33\u0E40\u0E19\u0E34\u0E19\u0E01\u0E32\u0E23\u0E15\u0E48\u0E2D?",
+  "modal.confirm.default.ok": "\u0E22\u0E37\u0E19\u0E22\u0E31\u0E19",
+  "modal.confirm.default.cancel": "\u0E22\u0E01\u0E40\u0E25\u0E34\u0E01",
   "modal.confirm.restore.title": "\u0E04\u0E37\u0E19\u0E04\u0E48\u0E32\u0E44\u0E1F\u0E25\u0E4C\u0E15\u0E49\u0E19\u0E09\u0E1A\u0E31\u0E1A",
   "modal.confirm.restore.message": "\u0E04\u0E38\u0E13\u0E41\u0E19\u0E48\u0E43\u0E08\u0E2B\u0E23\u0E37\u0E2D\u0E44\u0E21\u0E48\u0E27\u0E48\u0E32\u0E15\u0E49\u0E2D\u0E07\u0E01\u0E32\u0E23\u0E04\u0E37\u0E19\u0E04\u0E48\u0E32\u0E44\u0E1F\u0E25\u0E4C\u0E19\u0E35\u0E49\u0E01\u0E25\u0E31\u0E1A\u0E2A\u0E39\u0E48\u0E2A\u0E16\u0E32\u0E19\u0E30\u0E40\u0E14\u0E34\u0E21 \u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14\u0E08\u0E30\u0E2A\u0E39\u0E0D\u0E2B\u0E32\u0E22 \u0E41\u0E25\u0E30\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E01\u0E32\u0E23\u0E15\u0E34\u0E14\u0E15\u0E32\u0E21\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E08\u0E30\u0E16\u0E39\u0E01\u0E23\u0E35\u0E40\u0E0B\u0E47\u0E15 \u0E01\u0E32\u0E23\u0E01\u0E23\u0E30\u0E17\u0E33\u0E19\u0E35\u0E49\u0E44\u0E21\u0E48\u0E2A\u0E32\u0E21\u0E32\u0E23\u0E16\u0E22\u0E49\u0E2D\u0E19\u0E01\u0E25\u0E31\u0E1A\u0E44\u0E14\u0E49",
   "modal.confirm.restore.button": "\u0E04\u0E37\u0E19\u0E04\u0E48\u0E32\u0E44\u0E1F\u0E25\u0E4C",
@@ -12915,52 +12913,53 @@ var th_default = {
   "modal.search-versions": "\u0E04\u0E49\u0E19\u0E2B\u0E32\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19",
   "modal.version.current": "\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19",
   "modal.version.original": "\u0E15\u0E49\u0E19\u0E09\u0E1A\u0E31\u0E1A",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E41\u0E25\u0E49\u0E27",
+  "modal.version.action.modified": "\u0E41\u0E01\u0E49\u0E44\u0E02\u0E41\u0E25\u0E49\u0E27",
+  "modal.version.action.cleared": "\u0E25\u0E49\u0E32\u0E07\u0E41\u0E25\u0E49\u0E27",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u0E44\u0E21\u0E48\u0E21\u0E35\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19\u0E17\u0E35\u0E48\u0E15\u0E23\u0E07\u0E01\u0E31\u0E1A\u0E01\u0E32\u0E23\u0E04\u0E49\u0E19\u0E2B\u0E32",
   "modal.revert-hunk": "\u0E22\u0E49\u0E2D\u0E19\u0E01\u0E25\u0E31\u0E1A\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E19\u0E35\u0E49",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "\u0E22\u0E49\u0E2D\u0E19\u0E01\u0E25\u0E31\u0E1A\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E19\u0E35\u0E49",
   "modal.copy": "\u0E04\u0E31\u0E14\u0E25\u0E2D\u0E01",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "\u0E43\u0E2A\u0E48\u0E1B\u0E49\u0E32\u0E22\u0E01\u0E33\u0E01\u0E31\u0E1A",
+  "modal.put-label.message": "\u0E17\u0E33\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E2B\u0E21\u0E32\u0E22\u0E40\u0E19\u0E37\u0E49\u0E2D\u0E2B\u0E32\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19\u0E14\u0E49\u0E27\u0E22\u0E1B\u0E49\u0E32\u0E22\u0E01\u0E33\u0E01\u0E31\u0E1A\u0E2A\u0E31\u0E49\u0E19 \u0E46",
+  "modal.put-label.placeholder": "\u0E1B\u0E49\u0E32\u0E22\u0E01\u0E33\u0E01\u0E31\u0E1A",
+  "modal.put-label.confirm": "\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01",
+  "menu.local-history.show-history": "\u0E41\u0E2A\u0E14\u0E07\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34",
+  "menu.local-history.show-history-selection": "\u0E41\u0E2A\u0E14\u0E07\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E02\u0E2D\u0E07\u0E2A\u0E48\u0E27\u0E19\u0E17\u0E35\u0E48\u0E40\u0E25\u0E37\u0E2D\u0E01",
+  "menu.local-history.put-label": "\u0E43\u0E2A\u0E48\u0E1B\u0E49\u0E32\u0E22\u0E01\u0E33\u0E01\u0E31\u0E1A",
+  "menu.local-history.recent-changes": "\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E25\u0E48\u0E32\u0E2A\u0E38\u0E14",
+  "view.recent-changes.title": "\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E25\u0E48\u0E32\u0E2A\u0E38\u0E14",
+  "view.recent-changes.empty": "\u0E44\u0E1F\u0E25\u0E4C\u0E17\u0E35\u0E48\u0E43\u0E0A\u0E49\u0E07\u0E32\u0E19\u0E2D\u0E22\u0E39\u0E48\u0E44\u0E21\u0E48\u0E21\u0E35\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19",
+  "view.recent-changes.menu.show-diff": "\u0E41\u0E2A\u0E14\u0E07\u0E04\u0E27\u0E32\u0E21\u0E41\u0E15\u0E01\u0E15\u0E48\u0E32\u0E07",
+  "view.recent-changes.menu.restore": "\u0E01\u0E39\u0E49\u0E04\u0E37\u0E19\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19\u0E19\u0E35\u0E49",
+  "view.recent-changes.menu.delete": "\u0E25\u0E1A\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19",
+  "view.recent-changes.menu.put-label": "\u0E43\u0E2A\u0E48\u0E1B\u0E49\u0E32\u0E22\u0E01\u0E33\u0E01\u0E31\u0E1A",
+  "modal.label-selected": "\u0E43\u0E2A\u0E48\u0E1B\u0E49\u0E32\u0E22\u0E01\u0E33\u0E01\u0E31\u0E1A\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19\u0E17\u0E35\u0E48\u0E40\u0E25\u0E37\u0E2D\u0E01",
+  "modal.label-version.message": "\u0E17\u0E33\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E2B\u0E21\u0E32\u0E22\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19\u0E19\u0E35\u0E49\u0E14\u0E49\u0E27\u0E22\u0E1B\u0E49\u0E32\u0E22\u0E01\u0E33\u0E01\u0E31\u0E1A\u0E2A\u0E31\u0E49\u0E19 \u0E46",
+  "notice.no-folder-history": "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E42\u0E1F\u0E25\u0E40\u0E14\u0E2D\u0E23\u0E4C",
+  "setting.max-deleted-entries.name": "\u0E08\u0E33\u0E19\u0E27\u0E19\u0E44\u0E1F\u0E25\u0E4C\u0E17\u0E35\u0E48\u0E16\u0E39\u0E01\u0E25\u0E1A\u0E17\u0E35\u0E48\u0E40\u0E01\u0E47\u0E1A\u0E44\u0E27\u0E49\u0E2A\u0E39\u0E07\u0E2A\u0E38\u0E14",
+  "setting.max-deleted-entries.desc": "\u0E02\u0E35\u0E14\u0E08\u0E33\u0E01\u0E31\u0E14\u0E08\u0E33\u0E19\u0E27\u0E19\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E02\u0E2D\u0E07\u0E44\u0E1F\u0E25\u0E4C\u0E17\u0E35\u0E48\u0E16\u0E39\u0E01\u0E25\u0E1A\u0E17\u0E35\u0E48\u0E40\u0E01\u0E47\u0E1A\u0E44\u0E27\u0E49\u0E43\u0E19\u0E14\u0E34\u0E2A\u0E01\u0E4C \u0E23\u0E32\u0E22\u0E01\u0E32\u0E23\u0E17\u0E35\u0E48\u0E40\u0E01\u0E48\u0E32\u0E17\u0E35\u0E48\u0E2A\u0E38\u0E14\u0E08\u0E30\u0E16\u0E39\u0E01\u0E25\u0E1A\u0E01\u0E48\u0E2D\u0E19 \u0E15\u0E31\u0E49\u0E07\u0E40\u0E1B\u0E47\u0E19 0 \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E1B\u0E34\u0E14\u0E43\u0E0A\u0E49\u0E07\u0E32\u0E19",
+  "setting.max-deleted-age-days.name": "\u0E2D\u0E32\u0E22\u0E38\u0E2A\u0E39\u0E07\u0E2A\u0E38\u0E14\u0E02\u0E2D\u0E07\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E44\u0E1F\u0E25\u0E4C\u0E17\u0E35\u0E48\u0E16\u0E39\u0E01\u0E25\u0E1A (\u0E27\u0E31\u0E19)",
+  "setting.max-deleted-age-days.desc": "\u0E25\u0E1A\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E02\u0E2D\u0E07\u0E44\u0E1F\u0E25\u0E4C\u0E17\u0E35\u0E48\u0E16\u0E39\u0E01\u0E25\u0E1A\u0E17\u0E35\u0E48\u0E40\u0E01\u0E48\u0E32\u0E01\u0E27\u0E48\u0E32\u0E08\u0E33\u0E19\u0E27\u0E19\u0E27\u0E31\u0E19\u0E19\u0E35\u0E49 \u0E15\u0E31\u0E49\u0E07\u0E40\u0E1B\u0E47\u0E19 0 \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E1B\u0E34\u0E14\u0E43\u0E0A\u0E49\u0E07\u0E32\u0E19",
+  "folder-tree.empty": "\u0E44\u0E21\u0E48\u0E21\u0E35\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E43\u0E19\u0E42\u0E1F\u0E25\u0E40\u0E14\u0E2D\u0E23\u0E4C\u0E19\u0E35\u0E49\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E08\u0E38\u0E14\u0E17\u0E35\u0E48\u0E40\u0E25\u0E37\u0E2D\u0E01",
+  "modal.folder.filter-files": "\u0E01\u0E23\u0E2D\u0E07\u0E44\u0E1F\u0E25\u0E4C\u0E15\u0E32\u0E21\u0E0A\u0E37\u0E48\u0E2D",
+  "modal.folder.timeline.capture": "\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E41\u0E25\u0E49\u0E27",
+  "modal.folder.timeline.delete": "\u0E25\u0E1A\u0E41\u0E25\u0E49\u0E27",
+  "modal.folder.timeline.move-in": "\u0E22\u0E49\u0E32\u0E22\u0E40\u0E02\u0E49\u0E32\u0E21\u0E32",
+  "modal.folder.notice.no-file": "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49\u0E40\u0E25\u0E37\u0E2D\u0E01\u0E44\u0E1F\u0E25\u0E4C",
+  "modal.folder.notice.added": "\u0E44\u0E1F\u0E25\u0E4C\u0E16\u0E39\u0E01\u0E40\u0E1E\u0E34\u0E48\u0E21\u0E2B\u0E25\u0E31\u0E07\u0E08\u0E32\u0E01\u0E08\u0E38\u0E14\u0E19\u0E35\u0E49",
+  "modal.folder.notice.deleted": "\u0E44\u0E1F\u0E25\u0E4C\u0E16\u0E39\u0E01\u0E25\u0E1A\u0E2B\u0E25\u0E31\u0E07\u0E08\u0E32\u0E01\u0E08\u0E38\u0E14\u0E19\u0E35\u0E49",
+  "modal.folder.notice.unchanged": "\u0E44\u0E21\u0E48\u0E21\u0E35\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E15\u0E31\u0E49\u0E07\u0E41\u0E15\u0E48\u0E08\u0E38\u0E14\u0E19\u0E35\u0E49",
+  "version.badge.external": "\u0E20\u0E32\u0E22\u0E19\u0E2D\u0E01",
+  "setting.exclude-paths-case-sensitive.name": "\u0E01\u0E32\u0E23\u0E22\u0E01\u0E40\u0E27\u0E49\u0E19\u0E40\u0E2A\u0E49\u0E19\u0E17\u0E32\u0E07\u0E42\u0E14\u0E22\u0E04\u0E33\u0E19\u0E36\u0E07\u0E16\u0E36\u0E07\u0E15\u0E31\u0E27\u0E1E\u0E34\u0E21\u0E1E\u0E4C\u0E43\u0E2B\u0E0D\u0E48-\u0E40\u0E25\u0E47\u0E01",
+  "setting.exclude-paths-case-sensitive.desc": "\u0E40\u0E21\u0E37\u0E48\u0E2D\u0E40\u0E1B\u0E34\u0E14\u0E43\u0E0A\u0E49\u0E07\u0E32\u0E19 \u0E19\u0E34\u0E1E\u0E08\u0E19\u0E4C\u0E17\u0E31\u0E48\u0E27\u0E44\u0E1B\u0E02\u0E2D\u0E07\u0E40\u0E2A\u0E49\u0E19\u0E17\u0E32\u0E07\u0E17\u0E35\u0E48\u0E22\u0E01\u0E40\u0E27\u0E49\u0E19\u0E08\u0E30\u0E16\u0E39\u0E01\u0E08\u0E31\u0E1A\u0E04\u0E39\u0E48\u0E42\u0E14\u0E22\u0E04\u0E33\u0E19\u0E36\u0E07\u0E16\u0E36\u0E07\u0E15\u0E31\u0E27\u0E1E\u0E34\u0E21\u0E1E\u0E4C\u0E43\u0E2B\u0E0D\u0E48-\u0E40\u0E25\u0E47\u0E01 (\u0E44\u0E21\u0E48\u0E21\u0E35\u0E41\u0E1F\u0E25\u0E47\u0E01 'i') \u0E1B\u0E34\u0E14\u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E08\u0E31\u0E1A\u0E04\u0E39\u0E48\u0E42\u0E14\u0E22\u0E44\u0E21\u0E48\u0E2A\u0E19\u0E43\u0E08\u0E15\u0E31\u0E27\u0E1E\u0E34\u0E21\u0E1E\u0E4C: \u0E19\u0E35\u0E48\u0E04\u0E37\u0E2D\u0E04\u0E48\u0E32\u0E40\u0E23\u0E34\u0E48\u0E21\u0E15\u0E49\u0E19\u0E41\u0E25\u0E30\u0E17\u0E33\u0E07\u0E32\u0E19\u0E44\u0E14\u0E49\u0E14\u0E35\u0E1A\u0E19\u0E23\u0E30\u0E1A\u0E1A\u0E44\u0E1F\u0E25\u0E4C\u0E17\u0E35\u0E48\u0E44\u0E21\u0E48\u0E41\u0E22\u0E01\u0E15\u0E31\u0E27\u0E1E\u0E34\u0E21\u0E1E\u0E4C",
+  "setting.purge-excluded.name": "\u0E25\u0E49\u0E32\u0E07\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E02\u0E2D\u0E07\u0E40\u0E2A\u0E49\u0E19\u0E17\u0E32\u0E07\u0E17\u0E35\u0E48\u0E22\u0E01\u0E40\u0E27\u0E49\u0E19",
+  "setting.purge-excluded.desc": "\u0E25\u0E1A\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E17\u0E35\u0E48\u0E40\u0E01\u0E47\u0E1A\u0E44\u0E27\u0E49\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14\u0E02\u0E2D\u0E07\u0E44\u0E1F\u0E25\u0E4C\u0E17\u0E35\u0E48\u0E40\u0E2A\u0E49\u0E19\u0E17\u0E32\u0E07\u0E15\u0E23\u0E07\u0E01\u0E31\u0E1A\u0E23\u0E39\u0E1B\u0E41\u0E1A\u0E1A\u0E40\u0E2A\u0E49\u0E19\u0E17\u0E32\u0E07\u0E17\u0E35\u0E48\u0E22\u0E01\u0E40\u0E27\u0E49\u0E19\u0E43\u0E19\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19 \u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E02\u0E2D\u0E07\u0E44\u0E1F\u0E25\u0E4C\u0E17\u0E35\u0E48\u0E16\u0E39\u0E01\u0E25\u0E1A\u0E08\u0E30\u0E16\u0E39\u0E01\u0E25\u0E1A\u0E14\u0E49\u0E27\u0E22 \u0E01\u0E32\u0E23\u0E01\u0E23\u0E30\u0E17\u0E33\u0E19\u0E35\u0E49\u0E44\u0E21\u0E48\u0E2A\u0E32\u0E21\u0E32\u0E23\u0E16\u0E22\u0E49\u0E2D\u0E19\u0E01\u0E25\u0E31\u0E1A\u0E44\u0E14\u0E49",
+  "notice.purge-excluded": "\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E43\u0E19\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07: \u0E25\u0E49\u0E32\u0E07\u0E2A\u0E41\u0E19\u0E1B\u0E0A\u0E47\u0E2D\u0E15 {count} \u0E23\u0E32\u0E22\u0E01\u0E32\u0E23\u0E02\u0E2D\u0E07\u0E40\u0E2A\u0E49\u0E19\u0E17\u0E32\u0E07\u0E17\u0E35\u0E48\u0E22\u0E01\u0E40\u0E27\u0E49\u0E19",
+  "notice.purge-excluded.no-match": "\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E43\u0E19\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07: \u0E44\u0E21\u0E48\u0E21\u0E35\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E17\u0E35\u0E48\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E44\u0E27\u0E49\u0E15\u0E23\u0E07\u0E01\u0E31\u0E1A\u0E40\u0E2A\u0E49\u0E19\u0E17\u0E32\u0E07\u0E17\u0E35\u0E48\u0E22\u0E01\u0E40\u0E27\u0E49\u0E19",
+  "setting.reading-mode-indicator.name": "\u0E41\u0E2A\u0E14\u0E07\u0E15\u0E31\u0E27\u0E1A\u0E48\u0E07\u0E0A\u0E35\u0E49\u0E43\u0E19\u0E42\u0E2B\u0E21\u0E14\u0E2D\u0E48\u0E32\u0E19",
+  "setting.reading-mode-indicator.desc": "\u0E15\u0E01\u0E41\u0E15\u0E48\u0E07\u0E1A\u0E25\u0E47\u0E2D\u0E01\u0E17\u0E35\u0E48\u0E41\u0E2A\u0E14\u0E07\u0E1C\u0E25\u0E43\u0E19\u0E42\u0E2B\u0E21\u0E14\u0E2D\u0E48\u0E32\u0E19\u0E14\u0E49\u0E27\u0E22\u0E02\u0E2D\u0E1A\u0E0B\u0E49\u0E32\u0E22\u0E2A\u0E35\u0E17\u0E35\u0E48\u0E15\u0E23\u0E07\u0E01\u0E31\u0E1A\u0E2A\u0E35\u0E02\u0E2D\u0E07\u0E15\u0E31\u0E27\u0E1A\u0E48\u0E07\u0E0A\u0E35\u0E49\u0E01\u0E32\u0E23\u0E41\u0E01\u0E49\u0E44\u0E02 (\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07 \u0E40\u0E1E\u0E34\u0E48\u0E21 \u0E0A\u0E48\u0E2D\u0E07\u0E27\u0E48\u0E32\u0E07 \u0E01\u0E39\u0E49\u0E04\u0E37\u0E19) \u0E1B\u0E34\u0E14\u0E42\u0E14\u0E22\u0E04\u0E48\u0E32\u0E40\u0E23\u0E34\u0E48\u0E21\u0E15\u0E49\u0E19 \u0E21\u0E35\u0E04\u0E48\u0E32\u0E43\u0E0A\u0E49\u0E08\u0E48\u0E32\u0E22\u0E40\u0E25\u0E47\u0E01\u0E19\u0E49\u0E2D\u0E22\u0E15\u0E48\u0E2D\u0E1A\u0E25\u0E47\u0E2D\u0E01\u0E17\u0E38\u0E01\u0E04\u0E23\u0E31\u0E49\u0E07\u0E17\u0E35\u0E48\u0E41\u0E2A\u0E14\u0E07\u0E1C\u0E25\u0E42\u0E2B\u0E21\u0E14\u0E2D\u0E48\u0E32\u0E19\u0E43\u0E2B\u0E21\u0E48"
 };
 
 // lang/tr.json
@@ -12990,9 +12989,16 @@ var tr_default = {
   "setting.allowed-extensions.desc": "De\u011Fi\u015Fiklikleri izlenecek dosya uzant\u0131lar\u0131n\u0131n virg\xFClle ayr\u0131lm\u0131\u015F listesi (\xF6r. md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "D\u0131\u015Flanan yollar",
   "setting.exclude-paths.desc": "Kasaya g\xF6reli yolla e\u015Fle\u015Ftirilen, b\xFCy\xFCk/k\xFC\xE7\xFCk harfe duyarl\u0131 olmayan bir d\xFCzenli ifade. Yolu e\u015Fle\u015Fen hi\xE7bir dosya izlenmez (\xF6r. \\.excalidraw\\.md$ veya (^|/)Templates/). Varsay\u0131lan ayar Templates klas\xF6rlerini ve Excalidraw \xE7izimlerini d\u0131\u015Flar. Her \u015Feyi izlemek i\xE7in bo\u015F b\u0131rak\u0131n.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "Desen ekle",
+  "setting.exclude-paths.placeholder": "\xF6rn. (^|/)Templates/",
+  "setting.exclude-paths.remove": "Bu deseni kald\u0131r",
+  "setting.exclude-paths.empty": "Hen\xFCz hari\xE7 tutulan yol yok. Desen eklemek i\xE7in + d\xFC\u011Fmesini kullan\u0131n.",
+  "setting.exclude-paths.edit": "Deseni d\xFCzenle",
+  "setting.exclude-paths.save": "Deseni kaydet",
+  "setting.exclude-paths.cancel": "\u0130ptal",
+  "setting.exclude-paths.error": "Desen, bo\u015F olmayan ge\xE7erli bir d\xFCzenli ifade olmal\u0131d\u0131r.",
+  "setting.general-heading": "Genel",
+  "setting.cleanup-heading": "Ge\xE7mi\u015F temizli\u011Fi",
   "setting.keep.name": "Ge\xE7mi\u015Fi \u015Fu zamana kadar tut",
   "setting.keep.desc": "D\xFCzeltme ge\xE7mi\u015Fini temizleme stratejisi",
   "setting.keep.option.app": "Uygulama kapan\u0131\u015F\u0131",
@@ -13001,8 +13007,8 @@ var tr_default = {
   "setting.ignore-new-files.desc": "\u0130zleme ba\u015Flad\u0131ktan sonra olu\u015Fturulan dosyalardaki de\u011Fi\u015Fiklikleri izleme",
   "setting.tree-highlight.name": "Dosya a\u011Fac\u0131nda ve sekmelerde de\u011Fi\u015Fiklikleri vurgula",
   "setting.tree-highlight.desc": "Yerel dosya gezginindeki dosya ve klas\xF6rleri ve a\xE7\u0131k dosyalar\u0131n sekme ba\u015Fl\u0131klar\u0131n\u0131 bu oturumda nelerin de\u011Fi\u015Fti\u011Fine g\xF6re renklendirir (de\u011Fi\u015Ftirilen i\xE7in kehribar, eklenen i\xE7in ye\u015Fil).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "\xD6zellikler panelinde de\u011Fi\u015Fiklikleri vurgula",
+  "setting.properties-highlight.desc": "Eklenen, de\u011Fi\u015Ftirilen ve kald\u0131r\u0131lan frontmatter anahtarlar\u0131n\u0131 Obsidian \xD6zellikler panelinde g\xF6ster. T\xFCm \xF6zellik fark\u0131 i\u015Faretlemelerini gizlemek i\xE7in devre d\u0131\u015F\u0131 b\u0131rak\u0131n.",
   "setting.persist.name": "Ge\xE7mi\u015Fi yeniden ba\u015Flatmalar aras\u0131nda koru",
   "setting.persist.desc": 'Vurgular yeniden ba\u015Flatmadan sonra da kals\u0131n diye ge\xE7mi\u015Fi diske kaydet. "Ge\xE7mi\u015Fi \u015Fu zamana kadar tut" ayar\u0131n\u0131n uygulama kapan\u0131\u015F\u0131na ayarlanmas\u0131n\u0131 gerektirir.',
   "setting.max-entries.name": "Saklanan en fazla dosya",
@@ -13050,10 +13056,10 @@ var tr_default = {
   "modal.mode.side-by-side": "Yan yana",
   "modal.hide-identical": "Ge\xE7erli s\xFCr\xFCmle ayn\u0131 s\xFCr\xFCmleri gizle",
   "modal.confirm.cancel": "\u0130ptal",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "Onay",
+  "modal.confirm.default.message": "Devam etmek istedi\u011Finizden emin misiniz?",
+  "modal.confirm.default.ok": "Onayla",
+  "modal.confirm.default.cancel": "\u0130ptal",
   "modal.confirm.restore.title": "\xD6zg\xFCn dosyay\u0131 geri y\xFCkle",
   "modal.confirm.restore.message": "Bu dosyay\u0131 \xF6zg\xFCn durumuna geri y\xFCklemek istedi\u011Finizden emin misiniz? T\xFCm ge\xE7erli de\u011Fi\u015Fiklikler kaybolacak ve de\u011Fi\u015Fiklik izleme ge\xE7mi\u015Fi s\u0131f\u0131rlanacak. Bu i\u015Flem geri al\u0131namaz.",
   "modal.confirm.restore.button": "Dosyay\u0131 geri y\xFCkle",
@@ -13072,52 +13078,53 @@ var tr_default = {
   "modal.search-versions": "S\xFCr\xFCmlerde ara",
   "modal.version.current": "Ge\xE7erli",
   "modal.version.original": "\xD6zg\xFCn",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "Olu\u015Fturuldu",
+  "modal.version.action.modified": "De\u011Fi\u015Ftirildi",
+  "modal.version.action.cleared": "Temizlendi",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Aramayla e\u015Fle\u015Fen s\xFCr\xFCm yok",
   "modal.revert-hunk": "Bu de\u011Fi\u015Fikli\u011Fi geri al",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "Bu de\u011Fi\u015Fikli\u011Fi geri al",
   "modal.copy": "Kopyala",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "Etiket koy",
+  "modal.put-label.message": "Ge\xE7erli i\xE7eri\u011Fi k\u0131sa bir etiketle i\u015Faretleyin.",
+  "modal.put-label.placeholder": "Etiket",
+  "modal.put-label.confirm": "Kaydet",
+  "menu.local-history.show-history": "Ge\xE7mi\u015Fi g\xF6ster",
+  "menu.local-history.show-history-selection": "Se\xE7im i\xE7in ge\xE7mi\u015Fi g\xF6ster",
+  "menu.local-history.put-label": "Etiket koy",
+  "menu.local-history.recent-changes": "Son de\u011Fi\u015Fiklikler",
+  "view.recent-changes.title": "Son de\u011Fi\u015Fiklikler",
+  "view.recent-changes.empty": "Etkin dosya i\xE7in s\xFCr\xFCm ge\xE7mi\u015Fi yok.",
+  "view.recent-changes.menu.show-diff": "Fark\u0131 g\xF6ster",
+  "view.recent-changes.menu.restore": "Bu s\xFCr\xFCm\xFC geri y\xFCkle",
+  "view.recent-changes.menu.delete": "S\xFCr\xFCm\xFC sil",
+  "view.recent-changes.menu.put-label": "Etiket koy",
+  "modal.label-selected": "Se\xE7ilen s\xFCr\xFCm\xFC etiketle",
+  "modal.label-version.message": "Bu s\xFCr\xFCm\xFC k\u0131sa bir etiketle i\u015Faretleyin.",
+  "notice.no-folder-history": "Hen\xFCz klas\xF6r ge\xE7mi\u015Fi yok.",
+  "setting.max-deleted-entries.name": "Saklanan silinmi\u015F dosya \xFCst s\u0131n\u0131r\u0131",
+  "setting.max-deleted-entries.desc": "Diskte tutulan silinmi\u015F dosya ge\xE7mi\u015Flerinin say\u0131s\u0131na \xFCst s\u0131n\u0131r. \xD6nce en eskiler kald\u0131r\u0131l\u0131r. Devre d\u0131\u015F\u0131 b\u0131rakmak i\xE7in 0 yap\u0131n.",
+  "setting.max-deleted-age-days.name": "Silinmi\u015F ge\xE7mi\u015Fin azami ya\u015F\u0131 (g\xFCn)",
+  "setting.max-deleted-age-days.desc": "Bu g\xFCn say\u0131s\u0131ndan eski silinmi\u015F dosya ge\xE7mi\u015Flerini kald\u0131r. Devre d\u0131\u015F\u0131 b\u0131rakmak i\xE7in 0 yap\u0131n.",
+  "folder-tree.empty": "Se\xE7ilen nokta i\xE7in bu klas\xF6rde de\u011Fi\u015Fiklik yok.",
+  "modal.folder.filter-files": "Dosyalar\u0131 ada g\xF6re filtrele",
+  "modal.folder.timeline.capture": "Yakaland\u0131",
+  "modal.folder.timeline.delete": "Silindi",
+  "modal.folder.timeline.move-in": "Buraya ta\u015F\u0131nd\u0131",
+  "modal.folder.notice.no-file": "Dosya se\xE7ilmedi.",
+  "modal.folder.notice.added": "Dosya bu noktadan sonra eklendi.",
+  "modal.folder.notice.deleted": "Dosya bu noktadan sonra silindi.",
+  "modal.folder.notice.unchanged": "Bu noktadan beri de\u011Fi\u015Fiklik yok.",
+  "version.badge.external": "harici",
+  "setting.exclude-paths-case-sensitive.name": "B\xFCy\xFCk/k\xFC\xE7\xFCk harfe duyarl\u0131 yol hari\xE7 tutma",
+  "setting.exclude-paths-case-sensitive.desc": "Etkinle\u015Ftirildi\u011Finde, hari\xE7 tutulan yollar\u0131n d\xFCzenli ifadesi b\xFCy\xFCk/k\xFC\xE7\xFCk harfe duyarl\u0131 olarak e\u015Fle\u015Ftirilir ('i' bayra\u011F\u0131 olmadan). B\xFCy\xFCk/k\xFC\xE7\xFCk harften ba\u011F\u0131ms\u0131z e\u015Fle\u015Ftirmek i\xE7in devre d\u0131\u015F\u0131 b\u0131rak\u0131n: bu varsay\u0131land\u0131r ve b\xFCy\xFCk/k\xFC\xE7\xFCk harfe duyars\u0131z dosya sistemlerinde iyi \xE7al\u0131\u015F\u0131r.",
+  "setting.purge-excluded.name": "Hari\xE7 tutulan yollar\u0131n ge\xE7mi\u015Fini temizle",
+  "setting.purge-excluded.desc": "Yollar\u0131 \u015Fu anda hari\xE7 tutulan yol desenine uyan dosyalar\u0131n t\xFCm kay\u0131tl\u0131 ge\xE7mi\u015Fini sil. Silinmi\u015F dosyalar\u0131n kay\u0131tlar\u0131 da kald\u0131r\u0131l\u0131r. Bu i\u015Flem geri al\u0131namaz.",
+  "notice.purge-excluded": "Yerel ge\xE7mi\u015F: hari\xE7 tutulan yollar i\xE7in {count} anl\u0131k g\xF6r\xFCnt\xFC temizlendi.",
+  "notice.purge-excluded.no-match": "Yerel ge\xE7mi\u015F: hari\xE7 tutulan yollarla e\u015Fle\u015Fen kay\u0131tl\u0131 ge\xE7mi\u015F yok.",
+  "setting.reading-mode-indicator.name": "Okuma modunda g\xF6stergeleri g\xF6ster",
+  "setting.reading-mode-indicator.desc": "Okuma modunda i\u015Flenen bloklar\u0131, d\xFCzenleme g\xF6stergesi renkleriyle (de\u011Fi\u015Ftirildi, eklendi, bo\u015Fluk, geri y\xFCklendi) e\u015Fle\u015Fen renkli bir sol kenarl\u0131kla s\xFCsle. Varsay\u0131lan olarak kapal\u0131; okuma modunun her yeniden i\u015Flenmesinde blok ba\u015F\u0131na k\xFC\xE7\xFCk bir maliyeti vard\u0131r."
 };
 
 // lang/uk.json
@@ -13147,9 +13154,16 @@ var uk_default = {
   "setting.allowed-extensions.desc": "\u0421\u043F\u0438\u0441\u043E\u043A \u0440\u043E\u0437\u0448\u0438\u0440\u0435\u043D\u044C \u0444\u0430\u0439\u043B\u0456\u0432 \u0447\u0435\u0440\u0435\u0437 \u043A\u043E\u043C\u0443, \u0437\u043C\u0456\u043D\u0438 \u0432 \u044F\u043A\u0438\u0445 \u0432\u0456\u0434\u0441\u0442\u0435\u0436\u0443\u044E\u0442\u044C\u0441\u044F (\u043D\u0430\u043F\u0440\u0438\u043A\u043B\u0430\u0434, md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "\u0412\u0438\u043A\u043B\u044E\u0447\u0435\u043D\u0456 \u0448\u043B\u044F\u0445\u0438",
   "setting.exclude-paths.desc": "\u0420\u0435\u0433\u0443\u043B\u044F\u0440\u043D\u0438\u0439 \u0432\u0438\u0440\u0430\u0437 \u0431\u0435\u0437 \u0443\u0440\u0430\u0445\u0443\u0432\u0430\u043D\u043D\u044F \u0440\u0435\u0433\u0456\u0441\u0442\u0440\u0443, \u044F\u043A\u0438\u0439 \u0437\u0456\u0441\u0442\u0430\u0432\u043B\u044F\u0454\u0442\u044C\u0441\u044F \u0437\u0456 \u0448\u043B\u044F\u0445\u043E\u043C \u0432\u0456\u0434\u043D\u043E\u0441\u043D\u043E \u0441\u0445\u043E\u0432\u0438\u0449\u0430. \u0411\u0443\u0434\u044C-\u044F\u043A\u0438\u0439 \u0444\u0430\u0439\u043B, \u0448\u043B\u044F\u0445 \u044F\u043A\u043E\u0433\u043E \u0437\u0431\u0456\u0433\u0430\u0454\u0442\u044C\u0441\u044F, \u043D\u0456\u043A\u043E\u043B\u0438 \u043D\u0435 \u0432\u0456\u0434\u0441\u0442\u0435\u0436\u0443\u0454\u0442\u044C\u0441\u044F (\u043D\u0430\u043F\u0440\u0438\u043A\u043B\u0430\u0434, \\.excalidraw\\.md$ \u0430\u0431\u043E (^|/)Templates/). \u0417\u0430 \u0437\u0430\u043C\u043E\u0432\u0447\u0443\u0432\u0430\u043D\u043D\u044F\u043C \u0432\u0438\u043A\u043B\u044E\u0447\u0430\u044E\u0442\u044C\u0441\u044F \u0442\u0435\u043A\u0438 Templates \u0442\u0430 \u043C\u0430\u043B\u044E\u043D\u043A\u0438 Excalidraw. \u0417\u0430\u043B\u0438\u0448\u0442\u0435 \u043F\u043E\u0440\u043E\u0436\u043D\u0456\u043C, \u0449\u043E\u0431 \u0432\u0456\u0434\u0441\u0442\u0435\u0436\u0443\u0432\u0430\u0442\u0438 \u0432\u0441\u0435.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "\u0414\u043E\u0434\u0430\u0442\u0438 \u0448\u0430\u0431\u043B\u043E\u043D",
+  "setting.exclude-paths.placeholder": "\u043D\u0430\u043F\u0440. (^|/)Templates/",
+  "setting.exclude-paths.remove": "\u0412\u0438\u0434\u0430\u043B\u0438\u0442\u0438 \u0446\u0435\u0439 \u0448\u0430\u0431\u043B\u043E\u043D",
+  "setting.exclude-paths.empty": "\u0412\u0438\u043A\u043B\u044E\u0447\u0435\u043D\u0438\u0445 \u0448\u043B\u044F\u0445\u0456\u0432 \u043F\u043E\u043A\u0438 \u043D\u0435\u043C\u0430\u0454. \u041D\u0430\u0442\u0438\u0441\u043D\u0456\u0442\u044C \u043A\u043D\u043E\u043F\u043A\u0443 +, \u0449\u043E\u0431 \u0434\u043E\u0434\u0430\u0442\u0438 \u0448\u0430\u0431\u043B\u043E\u043D.",
+  "setting.exclude-paths.edit": "\u0420\u0435\u0434\u0430\u0433\u0443\u0432\u0430\u0442\u0438 \u0448\u0430\u0431\u043B\u043E\u043D",
+  "setting.exclude-paths.save": "\u0417\u0431\u0435\u0440\u0435\u0433\u0442\u0438 \u0448\u0430\u0431\u043B\u043E\u043D",
+  "setting.exclude-paths.cancel": "\u0421\u043A\u0430\u0441\u0443\u0432\u0430\u0442\u0438",
+  "setting.exclude-paths.error": "\u0428\u0430\u0431\u043B\u043E\u043D \u043C\u0430\u0454 \u0431\u0443\u0442\u0438 \u043D\u0435\u043F\u043E\u0440\u043E\u0436\u043D\u0456\u043C \u043A\u043E\u0440\u0435\u043A\u0442\u043D\u0438\u043C \u0440\u0435\u0433\u0443\u043B\u044F\u0440\u043D\u0438\u043C \u0432\u0438\u0440\u0430\u0437\u043E\u043C.",
+  "setting.general-heading": "\u0417\u0430\u0433\u0430\u043B\u044C\u043D\u0456",
+  "setting.cleanup-heading": "\u041E\u0447\u0438\u0449\u0435\u043D\u043D\u044F \u0456\u0441\u0442\u043E\u0440\u0456\u0457",
   "setting.keep.name": "\u0417\u0431\u0435\u0440\u0456\u0433\u0430\u0442\u0438 \u0456\u0441\u0442\u043E\u0440\u0456\u044E \u0434\u043E",
   "setting.keep.desc": "\u0421\u0442\u0440\u0430\u0442\u0435\u0433\u0456\u044F \u043E\u0447\u0438\u0449\u0435\u043D\u043D\u044F \u0456\u0441\u0442\u043E\u0440\u0456\u0457 \u0440\u0435\u0432\u0456\u0437\u0456\u0439",
   "setting.keep.option.app": "\u0417\u0430\u043A\u0440\u0438\u0442\u0442\u044F \u0437\u0430\u0441\u0442\u043E\u0441\u0443\u043D\u043A\u0443",
@@ -13158,8 +13172,8 @@ var uk_default = {
   "setting.ignore-new-files.desc": "\u041D\u0435 \u0432\u0456\u0434\u0441\u0442\u0435\u0436\u0443\u0432\u0430\u0442\u0438 \u0437\u043C\u0456\u043D\u0438 \u0443 \u0444\u0430\u0439\u043B\u0430\u0445, \u0441\u0442\u0432\u043E\u0440\u0435\u043D\u0438\u0445 \u043F\u0456\u0441\u043B\u044F \u043F\u043E\u0447\u0430\u0442\u043A\u0443 \u0432\u0456\u0434\u0441\u0442\u0435\u0436\u0435\u043D\u043D\u044F",
   "setting.tree-highlight.name": "\u041F\u0456\u0434\u0441\u0432\u0456\u0447\u0443\u0432\u0430\u0442\u0438 \u0437\u043C\u0456\u043D\u0438 \u0432 \u0434\u0435\u0440\u0435\u0432\u0456 \u0444\u0430\u0439\u043B\u0456\u0432 \u0456 \u0432\u043A\u043B\u0430\u0434\u043A\u0430\u0445",
   "setting.tree-highlight.desc": "\u0417\u0430\u0431\u0430\u0440\u0432\u043B\u044E\u0454 \u0444\u0430\u0439\u043B\u0438 \u0442\u0430 \u0442\u0435\u043A\u0438 \u0432 \u043D\u0430\u0442\u0438\u0432\u043D\u043E\u043C\u0443 \u043F\u0440\u043E\u0432\u0456\u0434\u043D\u0438\u043A\u0443 \u0444\u0430\u0439\u043B\u0456\u0432, \u0430 \u0442\u0430\u043A\u043E\u0436 \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043A\u0438 \u0432\u043A\u043B\u0430\u0434\u043E\u043A \u0432\u0456\u0434\u043A\u0440\u0438\u0442\u0438\u0445 \u0444\u0430\u0439\u043B\u0456\u0432 \u0437\u0430 \u0442\u0438\u043C, \u0449\u043E \u0437\u043C\u0456\u043D\u0438\u043B\u043E\u0441\u044F \u0437\u0430 \u0446\u044E \u0441\u0435\u0441\u0456\u044E (\u0431\u0443\u0440\u0448\u0442\u0438\u043D\u043E\u0432\u0438\u0439 \u0434\u043B\u044F \u0437\u043C\u0456\u043D\u0435\u043D\u0438\u0445, \u0437\u0435\u043B\u0435\u043D\u0438\u0439 \u0434\u043B\u044F \u0434\u043E\u0434\u0430\u043D\u0438\u0445).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "\u041F\u0456\u0434\u0441\u0432\u0456\u0447\u0443\u0432\u0430\u0442\u0438 \u0437\u043C\u0456\u043D\u0438 \u0432 \u043F\u0430\u043D\u0435\u043B\u0456 \u0432\u043B\u0430\u0441\u0442\u0438\u0432\u043E\u0441\u0442\u0435\u0439",
+  "setting.properties-highlight.desc": "\u041F\u043E\u043A\u0430\u0437\u0443\u0432\u0430\u0442\u0438 \u0434\u043E\u0434\u0430\u043D\u0456, \u0437\u043C\u0456\u043D\u0435\u043D\u0456 \u0442\u0430 \u0432\u0438\u0434\u0430\u043B\u0435\u043D\u0456 \u043A\u043B\u044E\u0447\u0456 frontmatter \u0443 \u043F\u0430\u043D\u0435\u043B\u0456 \u0432\u043B\u0430\u0441\u0442\u0438\u0432\u043E\u0441\u0442\u0435\u0439 Obsidian. \u0412\u0438\u043C\u043A\u043D\u0456\u0442\u044C, \u0449\u043E\u0431 \u043F\u0440\u0438\u0431\u0440\u0430\u0442\u0438 \u0432\u0441\u0435 \u043F\u0456\u0434\u0441\u0432\u0456\u0447\u0443\u0432\u0430\u043D\u043D\u044F \u0437\u043C\u0456\u043D \u0432\u043B\u0430\u0441\u0442\u0438\u0432\u043E\u0441\u0442\u0435\u0439.",
   "setting.persist.name": "\u0417\u0431\u0435\u0440\u0456\u0433\u0430\u0442\u0438 \u0456\u0441\u0442\u043E\u0440\u0456\u044E \u043C\u0456\u0436 \u043F\u0435\u0440\u0435\u0437\u0430\u043F\u0443\u0441\u043A\u0430\u043C\u0438",
   "setting.persist.desc": '\u0417\u0431\u0435\u0440\u0456\u0433\u0430\u0442\u0438 \u0456\u0441\u0442\u043E\u0440\u0456\u044E \u043D\u0430 \u0434\u0438\u0441\u043A, \u0449\u043E\u0431 \u043F\u0456\u0434\u0441\u0432\u0456\u0447\u0443\u0432\u0430\u043D\u043D\u044F \u043F\u0435\u0440\u0435\u0436\u0438\u0432\u0430\u043B\u0438 \u043F\u0435\u0440\u0435\u0437\u0430\u043F\u0443\u0441\u043A. \u041F\u043E\u0442\u0440\u0435\u0431\u0443\u0454, \u0449\u043E\u0431 \u043F\u0430\u0440\u0430\u043C\u0435\u0442\u0440 "\u0417\u0431\u0435\u0440\u0456\u0433\u0430\u0442\u0438 \u0456\u0441\u0442\u043E\u0440\u0456\u044E \u0434\u043E" \u0431\u0443\u043B\u043E \u0432\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u043E \u043D\u0430 \u0437\u0430\u043A\u0440\u0438\u0442\u0442\u044F \u0437\u0430\u0441\u0442\u043E\u0441\u0443\u043D\u043A\u0443.',
   "setting.max-entries.name": "\u041C\u0430\u043A\u0441\u0438\u043C\u0443\u043C \u0437\u0431\u0435\u0440\u0435\u0436\u0435\u043D\u0438\u0445 \u0444\u0430\u0439\u043B\u0456\u0432",
@@ -13207,10 +13221,10 @@ var uk_default = {
   "modal.mode.side-by-side": "\u041F\u043E\u0440\u0443\u0447",
   "modal.hide-identical": "\u0421\u0445\u043E\u0432\u0430\u0442\u0438 \u0432\u0435\u0440\u0441\u0456\u0457, \u0456\u0434\u0435\u043D\u0442\u0438\u0447\u043D\u0456 \u043F\u043E\u0442\u043E\u0447\u043D\u0456\u0439",
   "modal.confirm.cancel": "\u0421\u043A\u0430\u0441\u0443\u0432\u0430\u0442\u0438",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "\u041F\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043D\u043D\u044F",
+  "modal.confirm.default.message": "\u0412\u0438 \u0432\u043F\u0435\u0432\u043D\u0435\u043D\u0456, \u0449\u043E \u0445\u043E\u0447\u0435\u0442\u0435 \u043F\u0440\u043E\u0434\u043E\u0432\u0436\u0438\u0442\u0438?",
+  "modal.confirm.default.ok": "\u041F\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0438\u0442\u0438",
+  "modal.confirm.default.cancel": "\u0421\u043A\u0430\u0441\u0443\u0432\u0430\u0442\u0438",
   "modal.confirm.restore.title": "\u0412\u0456\u0434\u043D\u043E\u0432\u0438\u0442\u0438 \u043F\u043E\u0447\u0430\u0442\u043A\u043E\u0432\u0438\u0439 \u0444\u0430\u0439\u043B",
   "modal.confirm.restore.message": "\u0412\u0438 \u0432\u043F\u0435\u0432\u043D\u0435\u043D\u0456, \u0449\u043E \u0445\u043E\u0447\u0435\u0442\u0435 \u0432\u0456\u0434\u043D\u043E\u0432\u0438\u0442\u0438 \u0446\u0435\u0439 \u0444\u0430\u0439\u043B \u0434\u043E \u043F\u043E\u0447\u0430\u0442\u043A\u043E\u0432\u043E\u0433\u043E \u0441\u0442\u0430\u043D\u0443? \u0423\u0441\u0456 \u043F\u043E\u0442\u043E\u0447\u043D\u0456 \u0437\u043C\u0456\u043D\u0438 \u0431\u0443\u0434\u0435 \u0432\u0442\u0440\u0430\u0447\u0435\u043D\u043E, \u0430 \u0456\u0441\u0442\u043E\u0440\u0456\u044E \u0432\u0456\u0434\u0441\u0442\u0435\u0436\u0435\u043D\u043D\u044F \u0437\u043C\u0456\u043D \u0431\u0443\u0434\u0435 \u0441\u043A\u0438\u043D\u0443\u0442\u043E. \u0426\u044E \u0434\u0456\u044E \u043D\u0435 \u043C\u043E\u0436\u043D\u0430 \u0441\u043A\u0430\u0441\u0443\u0432\u0430\u0442\u0438.",
   "modal.confirm.restore.button": "\u0412\u0456\u0434\u043D\u043E\u0432\u0438\u0442\u0438 \u0444\u0430\u0439\u043B",
@@ -13229,52 +13243,53 @@ var uk_default = {
   "modal.search-versions": "\u041F\u043E\u0448\u0443\u043A \u0432\u0435\u0440\u0441\u0456\u0439",
   "modal.version.current": "\u041F\u043E\u0442\u043E\u0447\u043D\u0430",
   "modal.version.original": "\u041E\u0440\u0438\u0433\u0456\u043D\u0430\u043B",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "\u0421\u0442\u0432\u043E\u0440\u0435\u043D\u043E",
+  "modal.version.action.modified": "\u0417\u043C\u0456\u043D\u0435\u043D\u043E",
+  "modal.version.action.cleared": "\u041E\u0447\u0438\u0449\u0435\u043D\u043E",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u041D\u0435\u043C\u0430\u0454 \u0432\u0435\u0440\u0441\u0456\u0439, \u0449\u043E \u0432\u0456\u0434\u043F\u043E\u0432\u0456\u0434\u0430\u044E\u0442\u044C \u043F\u043E\u0448\u0443\u043A\u0443",
   "modal.revert-hunk": "\u0412\u0456\u0434\u043A\u043E\u0442\u0438\u0442\u0438 \u0446\u044E \u0437\u043C\u0456\u043D\u0443",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "\u0412\u0456\u0434\u043A\u043E\u0442\u0438\u0442\u0438 \u0446\u044E \u0437\u043C\u0456\u043D\u0443",
   "modal.copy": "\u041A\u043E\u043F\u0456\u044E\u0432\u0430\u0442\u0438",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "\u041F\u043E\u0441\u0442\u0430\u0432\u0438\u0442\u0438 \u043C\u0456\u0442\u043A\u0443",
+  "modal.put-label.message": "\u041F\u043E\u0437\u043D\u0430\u0447\u0442\u0435 \u043F\u043E\u0442\u043E\u0447\u043D\u0438\u0439 \u0432\u043C\u0456\u0441\u0442 \u043A\u043E\u0440\u043E\u0442\u043A\u043E\u044E \u043C\u0456\u0442\u043A\u043E\u044E.",
+  "modal.put-label.placeholder": "\u041C\u0456\u0442\u043A\u0430",
+  "modal.put-label.confirm": "\u0417\u0431\u0435\u0440\u0435\u0433\u0442\u0438",
+  "menu.local-history.show-history": "\u041F\u043E\u043A\u0430\u0437\u0430\u0442\u0438 \u0456\u0441\u0442\u043E\u0440\u0456\u044E",
+  "menu.local-history.show-history-selection": "\u041F\u043E\u043A\u0430\u0437\u0430\u0442\u0438 \u0456\u0441\u0442\u043E\u0440\u0456\u044E \u0434\u043B\u044F \u0432\u0438\u0434\u0456\u043B\u0435\u043D\u043D\u044F",
+  "menu.local-history.put-label": "\u041F\u043E\u0441\u0442\u0430\u0432\u0438\u0442\u0438 \u043C\u0456\u0442\u043A\u0443",
+  "menu.local-history.recent-changes": "\u041E\u0441\u0442\u0430\u043D\u043D\u0456 \u0437\u043C\u0456\u043D\u0438",
+  "view.recent-changes.title": "\u041E\u0441\u0442\u0430\u043D\u043D\u0456 \u0437\u043C\u0456\u043D\u0438",
+  "view.recent-changes.empty": "\u0414\u043B\u044F \u0430\u043A\u0442\u0438\u0432\u043D\u043E\u0433\u043E \u0444\u0430\u0439\u043B\u0443 \u043D\u0435\u043C\u0430\u0454 \u0456\u0441\u0442\u043E\u0440\u0456\u0457 \u0432\u0435\u0440\u0441\u0456\u0439.",
+  "view.recent-changes.menu.show-diff": "\u041F\u043E\u043A\u0430\u0437\u0430\u0442\u0438 \u0440\u0456\u0437\u043D\u0438\u0446\u044E",
+  "view.recent-changes.menu.restore": "\u0412\u0456\u0434\u043D\u043E\u0432\u0438\u0442\u0438 \u0446\u044E \u0432\u0435\u0440\u0441\u0456\u044E",
+  "view.recent-changes.menu.delete": "\u0412\u0438\u0434\u0430\u043B\u0438\u0442\u0438 \u0432\u0435\u0440\u0441\u0456\u044E",
+  "view.recent-changes.menu.put-label": "\u041F\u043E\u0441\u0442\u0430\u0432\u0438\u0442\u0438 \u043C\u0456\u0442\u043A\u0443",
+  "modal.label-selected": "\u041F\u043E\u0437\u043D\u0430\u0447\u0438\u0442\u0438 \u0432\u0438\u0431\u0440\u0430\u043D\u0443 \u0432\u0435\u0440\u0441\u0456\u044E",
+  "modal.label-version.message": "\u041F\u043E\u0437\u043D\u0430\u0447\u0442\u0435 \u0446\u044E \u0432\u0435\u0440\u0441\u0456\u044E \u043A\u043E\u0440\u043E\u0442\u043A\u043E\u044E \u043C\u0456\u0442\u043A\u043E\u044E.",
+  "notice.no-folder-history": "\u0406\u0441\u0442\u043E\u0440\u0456\u0457 \u0442\u0435\u043A\u0438 \u043F\u043E\u043A\u0438 \u043D\u0435\u043C\u0430\u0454.",
+  "setting.max-deleted-entries.name": "\u041C\u0430\u043A\u0441\u0438\u043C\u0443\u043C \u0437\u0431\u0435\u0440\u0435\u0436\u0435\u043D\u0438\u0445 \u0432\u0438\u0434\u0430\u043B\u0435\u043D\u0438\u0445 \u0444\u0430\u0439\u043B\u0456\u0432",
+  "setting.max-deleted-entries.desc": "\u041E\u0431\u043C\u0435\u0436\u0435\u043D\u043D\u044F \u043A\u0456\u043B\u044C\u043A\u043E\u0441\u0442\u0456 \u0456\u0441\u0442\u043E\u0440\u0456\u0439 \u0432\u0438\u0434\u0430\u043B\u0435\u043D\u0438\u0445 \u0444\u0430\u0439\u043B\u0456\u0432, \u0449\u043E \u0437\u0431\u0435\u0440\u0456\u0433\u0430\u044E\u0442\u044C\u0441\u044F \u043D\u0430 \u0434\u0438\u0441\u043A\u0443. \u041D\u0430\u0439\u0441\u0442\u0430\u0440\u0456\u0448\u0456 \u0432\u0438\u0434\u0430\u043B\u044F\u044E\u0442\u044C\u0441\u044F \u043F\u0435\u0440\u0448\u0438\u043C\u0438. \u0412\u043A\u0430\u0436\u0456\u0442\u044C 0, \u0449\u043E\u0431 \u0432\u0438\u043C\u043A\u043D\u0443\u0442\u0438.",
+  "setting.max-deleted-age-days.name": "\u041C\u0430\u043A\u0441\u0438\u043C\u0430\u043B\u044C\u043D\u0438\u0439 \u0432\u0456\u043A \u0456\u0441\u0442\u043E\u0440\u0456\u0457 \u0432\u0438\u0434\u0430\u043B\u0435\u043D\u0438\u0445 \u0444\u0430\u0439\u043B\u0456\u0432 (\u0434\u043D\u0456\u0432)",
+  "setting.max-deleted-age-days.desc": "\u0412\u0438\u0434\u0430\u043B\u044F\u0442\u0438 \u0456\u0441\u0442\u043E\u0440\u0456\u0457 \u0432\u0438\u0434\u0430\u043B\u0435\u043D\u0438\u0445 \u0444\u0430\u0439\u043B\u0456\u0432, \u0441\u0442\u0430\u0440\u0448\u0456 \u0437\u0430 \u0432\u043A\u0430\u0437\u0430\u043D\u0443 \u043A\u0456\u043B\u044C\u043A\u0456\u0441\u0442\u044C \u0434\u043D\u0456\u0432. \u0412\u043A\u0430\u0436\u0456\u0442\u044C 0, \u0449\u043E\u0431 \u0432\u0438\u043C\u043A\u043D\u0443\u0442\u0438.",
+  "folder-tree.empty": "\u0423 \u0446\u0456\u0439 \u0442\u0435\u0446\u0456 \u043D\u0435\u043C\u0430\u0454 \u0437\u043C\u0456\u043D \u0434\u043B\u044F \u0432\u0438\u0431\u0440\u0430\u043D\u043E\u0457 \u0442\u043E\u0447\u043A\u0438.",
+  "modal.folder.filter-files": "\u0424\u0456\u043B\u044C\u0442\u0440\u0443\u0432\u0430\u0442\u0438 \u0444\u0430\u0439\u043B\u0438 \u0437\u0430 \u043D\u0430\u0437\u0432\u043E\u044E",
+  "modal.folder.timeline.capture": "\u0417\u0430\u0444\u0456\u043A\u0441\u043E\u0432\u0430\u043D\u043E",
+  "modal.folder.timeline.delete": "\u0412\u0438\u0434\u0430\u043B\u0435\u043D\u043E",
+  "modal.folder.timeline.move-in": "\u041F\u0435\u0440\u0435\u043C\u0456\u0449\u0435\u043D\u043E \u0441\u044E\u0434\u0438",
+  "modal.folder.notice.no-file": "\u0424\u0430\u0439\u043B \u043D\u0435 \u0432\u0438\u0431\u0440\u0430\u043D\u043E.",
+  "modal.folder.notice.added": "\u0424\u0430\u0439\u043B \u0431\u0443\u043B\u043E \u0434\u043E\u0434\u0430\u043D\u043E \u043F\u0456\u0441\u043B\u044F \u0446\u0456\u0454\u0457 \u0442\u043E\u0447\u043A\u0438.",
+  "modal.folder.notice.deleted": "\u0424\u0430\u0439\u043B \u0431\u0443\u043B\u043E \u0432\u0438\u0434\u0430\u043B\u0435\u043D\u043E \u043F\u0456\u0441\u043B\u044F \u0446\u0456\u0454\u0457 \u0442\u043E\u0447\u043A\u0438.",
+  "modal.folder.notice.unchanged": "\u041D\u0435\u043C\u0430\u0454 \u0437\u043C\u0456\u043D \u0432\u0456\u0434 \u0446\u0456\u0454\u0457 \u0442\u043E\u0447\u043A\u0438.",
+  "version.badge.external": "\u0437\u043E\u0432\u043D\u0456\u0448\u043D\u0454",
+  "setting.exclude-paths-case-sensitive.name": "\u0412\u0440\u0430\u0445\u043E\u0432\u0443\u0432\u0430\u0442\u0438 \u0440\u0435\u0433\u0456\u0441\u0442\u0440 \u043F\u0456\u0434 \u0447\u0430\u0441 \u0432\u0438\u043A\u043B\u044E\u0447\u0435\u043D\u043D\u044F \u0448\u043B\u044F\u0445\u0456\u0432",
+  "setting.exclude-paths-case-sensitive.desc": "\u042F\u043A\u0449\u043E \u0432\u0432\u0456\u043C\u043A\u043D\u0435\u043D\u043E, \u0440\u0435\u0433\u0443\u043B\u044F\u0440\u043D\u0438\u0439 \u0432\u0438\u0440\u0430\u0437 \u0432\u0438\u043A\u043B\u044E\u0447\u0435\u043D\u0438\u0445 \u0448\u043B\u044F\u0445\u0456\u0432 \u0437\u0456\u0441\u0442\u0430\u0432\u043B\u044F\u0454\u0442\u044C\u0441\u044F \u0437 \u0443\u0440\u0430\u0445\u0443\u0432\u0430\u043D\u043D\u044F\u043C \u0440\u0435\u0433\u0456\u0441\u0442\u0440\u0443 (\u0431\u0435\u0437 \u043F\u0440\u0430\u043F\u043E\u0440\u0446\u044F 'i'). \u0412\u0438\u043C\u043A\u043D\u0456\u0442\u044C, \u0449\u043E\u0431 \u0456\u0433\u043D\u043E\u0440\u0443\u0432\u0430\u0442\u0438 \u0440\u0435\u0433\u0456\u0441\u0442\u0440: \u0446\u0435 \u0442\u0438\u043F\u043E\u0432\u0435 \u0437\u043D\u0430\u0447\u0435\u043D\u043D\u044F, \u044F\u043A\u0435 \u0434\u043E\u0431\u0440\u0435 \u043F\u0440\u0430\u0446\u044E\u0454 \u043D\u0430 \u0444\u0430\u0439\u043B\u043E\u0432\u0438\u0445 \u0441\u0438\u0441\u0442\u0435\u043C\u0430\u0445 \u0431\u0435\u0437 \u0443\u0440\u0430\u0445\u0443\u0432\u0430\u043D\u043D\u044F \u0440\u0435\u0433\u0456\u0441\u0442\u0440\u0443.",
+  "setting.purge-excluded.name": "\u041E\u0447\u0438\u0441\u0442\u0438\u0442\u0438 \u0456\u0441\u0442\u043E\u0440\u0456\u044E \u0434\u043B\u044F \u0432\u0438\u043A\u043B\u044E\u0447\u0435\u043D\u0438\u0445 \u0448\u043B\u044F\u0445\u0456\u0432",
+  "setting.purge-excluded.desc": "\u0412\u0438\u0434\u0430\u043B\u0438\u0442\u0438 \u0432\u0441\u044E \u0437\u0431\u0435\u0440\u0435\u0436\u0435\u043D\u0443 \u0456\u0441\u0442\u043E\u0440\u0456\u044E \u0444\u0430\u0439\u043B\u0456\u0432, \u0448\u043B\u044F\u0445\u0438 \u044F\u043A\u0438\u0445 \u0437\u0430\u0440\u0430\u0437 \u0432\u0456\u0434\u043F\u043E\u0432\u0456\u0434\u0430\u044E\u0442\u044C \u0448\u0430\u0431\u043B\u043E\u043D\u0443 \u0432\u0438\u043A\u043B\u044E\u0447\u0435\u043D\u0438\u0445 \u0448\u043B\u044F\u0445\u0456\u0432. \u0417\u0430\u043F\u0438\u0441\u0438 \u043F\u0440\u043E \u0432\u0438\u0434\u0430\u043B\u0435\u043D\u0456 \u0444\u0430\u0439\u043B\u0438 \u0442\u0430\u043A\u043E\u0436 \u0432\u0438\u043B\u0443\u0447\u0430\u044E\u0442\u044C\u0441\u044F. \u0426\u044E \u0434\u0456\u044E \u043D\u0435 \u043C\u043E\u0436\u043D\u0430 \u0441\u043A\u0430\u0441\u0443\u0432\u0430\u0442\u0438.",
+  "notice.purge-excluded": "\u041B\u043E\u043A\u0430\u043B\u044C\u043D\u0430 \u0456\u0441\u0442\u043E\u0440\u0456\u044F: \u0432\u0438\u0434\u0430\u043B\u0435\u043D\u043E {count} \u0437\u043D\u0456\u043C\u043A\u0456\u0432 \u0434\u043B\u044F \u0432\u0438\u043A\u043B\u044E\u0447\u0435\u043D\u0438\u0445 \u0448\u043B\u044F\u0445\u0456\u0432.",
+  "notice.purge-excluded.no-match": "\u041B\u043E\u043A\u0430\u043B\u044C\u043D\u0430 \u0456\u0441\u0442\u043E\u0440\u0456\u044F: \u043D\u0435\u043C\u0430\u0454 \u0437\u0431\u0435\u0440\u0435\u0436\u0435\u043D\u043E\u0457 \u0456\u0441\u0442\u043E\u0440\u0456\u0457, \u0449\u043E \u0432\u0456\u0434\u043F\u043E\u0432\u0456\u0434\u0430\u0454 \u0432\u0438\u043A\u043B\u044E\u0447\u0435\u043D\u0438\u043C \u0448\u043B\u044F\u0445\u0430\u043C.",
+  "setting.reading-mode-indicator.name": "\u041F\u043E\u043A\u0430\u0437\u0443\u0432\u0430\u0442\u0438 \u0456\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u0438 \u0432 \u0440\u0435\u0436\u0438\u043C\u0456 \u0447\u0438\u0442\u0430\u043D\u043D\u044F",
+  "setting.reading-mode-indicator.desc": "\u041F\u043E\u0437\u043D\u0430\u0447\u0430\u0442\u0438 \u0432\u0456\u0434\u0442\u0432\u043E\u0440\u0435\u043D\u0456 \u0431\u043B\u043E\u043A\u0438 \u0432 \u0440\u0435\u0436\u0438\u043C\u0456 \u0447\u0438\u0442\u0430\u043D\u043D\u044F \u043A\u043E\u043B\u044C\u043E\u0440\u043E\u0432\u043E\u044E \u043B\u0456\u0432\u043E\u044E \u043C\u0435\u0436\u0435\u044E \u0432 \u043A\u043E\u043B\u044C\u043E\u0440\u0430\u0445 \u0456\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u0430 \u0440\u0435\u0434\u0430\u0433\u0443\u0432\u0430\u043D\u043D\u044F (\u0437\u043C\u0456\u043D\u0435\u043D\u043E, \u0434\u043E\u0434\u0430\u043D\u043E, \u043F\u0440\u043E\u0431\u0456\u043B\u0438, \u0432\u0456\u0434\u043D\u043E\u0432\u043B\u0435\u043D\u043E). \u0422\u0438\u043F\u043E\u0432\u043E \u0432\u0438\u043C\u043A\u043D\u0435\u043D\u043E; \u0434\u043E\u0434\u0430\u0454 \u043D\u0435\u0432\u0435\u043B\u0438\u043A\u0435 \u043D\u0430\u0432\u0430\u043D\u0442\u0430\u0436\u0435\u043D\u043D\u044F \u043D\u0430 \u043A\u043E\u0436\u0435\u043D \u0431\u043B\u043E\u043A \u043F\u0456\u0434 \u0447\u0430\u0441 \u043F\u0435\u0440\u0435\u043C\u0430\u043B\u044C\u043E\u0432\u0443\u0432\u0430\u043D\u043D\u044F \u0440\u0435\u0436\u0438\u043C\u0443 \u0447\u0438\u0442\u0430\u043D\u043D\u044F."
 };
 
 // lang/uz.json
@@ -13304,9 +13319,16 @@ var uz_default = {
   "setting.allowed-extensions.desc": "O\u02BBzgarishlari kuzatiladigan fayl kengaytmalarining vergul bilan ajratilgan ro\u02BByxati (masalan, md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "Istisno qilingan yo\u02BBllar",
   "setting.exclude-paths.desc": "Ombor (vault) ga nisbatan yo\u02BBlga moslashtiriladigan, katta-kichik harfga sezgir bo\u02BBlmagan muntazam ifoda. Yo\u02BBli mos kelgan har qanday fayl hech qachon kuzatilmaydi (masalan, \\.excalidraw\\.md$ yoki (^|/)Templates/). Standart sozlama Templates papkalari va Excalidraw chizmalarini istisno qiladi. Hammasini kuzatish uchun bo\u02BBsh qoldiring.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "Shablon qo\u02BBshish",
+  "setting.exclude-paths.placeholder": "masalan (^|/)Templates/",
+  "setting.exclude-paths.remove": "Bu shablonni olib tashlash",
+  "setting.exclude-paths.empty": "Hozircha istisno qilingan yo\u02BBllar yo\u02BBq. Shablon qo\u02BBshish uchun + tugmasidan foydalaning.",
+  "setting.exclude-paths.edit": "Shablonni tahrirlash",
+  "setting.exclude-paths.save": "Shablonni saqlash",
+  "setting.exclude-paths.cancel": "Bekor qilish",
+  "setting.exclude-paths.error": "Shablon bo\u02BBsh bo\u02BBlmagan to\u02BBg\u02BBri regulyar ifoda bo\u02BBlishi kerak.",
+  "setting.general-heading": "Umumiy",
+  "setting.cleanup-heading": "Tarixni tozalash",
   "setting.keep.name": "Tarixni saqlash muddati",
   "setting.keep.desc": "Tahrirlar tarixini tozalash strategiyasi",
   "setting.keep.option.app": "Ilova yopilgunicha",
@@ -13315,8 +13337,8 @@ var uz_default = {
   "setting.ignore-new-files.desc": "Kuzatuv boshlangach yaratilgan fayllardagi o\u02BBzgarishlarni kuzatmaslik",
   "setting.tree-highlight.name": "Fayllar daraxti va yorliqlardagi o\u02BBzgarishlarni ajratib ko\u02BBrsatish",
   "setting.tree-highlight.desc": "Tabiiy fayl boshqaruvchisidagi fayllar va papkalarni, shuningdek ochiq fayllarning yorliq sarlavhalarini ushbu seansda nima o\u02BBzgarganiga qarab rangga bo\u02BByaydi (o\u02BBzgartirilgani uchun qahrabo, qo\u02BBshilgani uchun yashil).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "Xususiyatlar panelida o\u02BBzgarishlarni ajratib ko\u02BBrsatish",
+  "setting.properties-highlight.desc": "Obsidian xususiyatlar panelida qo\u02BBshilgan, o\u02BBzgartirilgan va olib tashlangan frontmatter kalitlarini ko\u02BBrsatish. Xususiyat o\u02BBzgarishlarining barcha belgilarini yashirish uchun o\u02BBchiring.",
   "setting.persist.name": "Tarixni qayta ishga tushirishlar orasida saqlash",
   "setting.persist.desc": 'Belgilashlar qayta ishga tushirishdan keyin ham saqlanishi uchun tarixni diskka saqlang. "Tarixni saqlash muddati" sozlamasini ilova yopilgunicha qilib qo\u02BByishni talab qiladi.',
   "setting.max-entries.name": "Saqlanadigan maksimal fayllar",
@@ -13364,10 +13386,10 @@ var uz_default = {
   "modal.mode.side-by-side": "Yonma-yon",
   "modal.hide-identical": "Joriy nusxaga bir xil versiyalarni yashirish",
   "modal.confirm.cancel": "Bekor qilish",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "Tasdiqlash",
+  "modal.confirm.default.message": "Davom etishni xohlaysizmi?",
+  "modal.confirm.default.ok": "Tasdiqlash",
+  "modal.confirm.default.cancel": "Bekor qilish",
   "modal.confirm.restore.title": "Asl faylni tiklash",
   "modal.confirm.restore.message": "Bu faylni asl holatiga tiklamoqchimisiz? Barcha joriy o\u02BBzgarishlar yo\u02BBqoladi va o\u02BBzgarishlarni kuzatish tarixi tiklanadi. Bu amalni ortga qaytarib bo\u02BBlmaydi.",
   "modal.confirm.restore.button": "Faylni tiklash",
@@ -13386,52 +13408,53 @@ var uz_default = {
   "modal.search-versions": "Versiyalarni qidirish",
   "modal.version.current": "Joriy",
   "modal.version.original": "Asl",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "Yaratildi",
+  "modal.version.action.modified": "O\u02BBzgartirildi",
+  "modal.version.action.cleared": "Tozalandi",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Qidiruvga mos versiyalar yo\u02BBq",
   "modal.revert-hunk": "Bu o\u02BBzgarishni qaytarish",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "Bu o\u02BBzgarishni qaytarish",
   "modal.copy": "Nusxalash",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "Yorliq qo\u02BByish",
+  "modal.put-label.message": "Joriy mazmunni qisqa yorliq bilan belgilang.",
+  "modal.put-label.placeholder": "Yorliq",
+  "modal.put-label.confirm": "Saqlash",
+  "menu.local-history.show-history": "Tarixni ko\u02BBrsatish",
+  "menu.local-history.show-history-selection": "Tanlov uchun tarixni ko\u02BBrsatish",
+  "menu.local-history.put-label": "Yorliq qo\u02BByish",
+  "menu.local-history.recent-changes": "So\u02BBnggi o\u02BBzgarishlar",
+  "view.recent-changes.title": "So\u02BBnggi o\u02BBzgarishlar",
+  "view.recent-changes.empty": "Faol fayl uchun versiyalar tarixi yo\u02BBq.",
+  "view.recent-changes.menu.show-diff": "Farqlarni ko\u02BBrsatish",
+  "view.recent-changes.menu.restore": "Bu versiyani tiklash",
+  "view.recent-changes.menu.delete": "Versiyani o\u02BBchirish",
+  "view.recent-changes.menu.put-label": "Yorliq qo\u02BByish",
+  "modal.label-selected": "Tanlangan versiyaga yorliq qo\u02BByish",
+  "modal.label-version.message": "Bu versiyani qisqa yorliq bilan belgilang.",
+  "notice.no-folder-history": "Hozircha papka tarixi yo\u02BBq.",
+  "setting.max-deleted-entries.name": "Saqlanadigan o\u02BBchirilgan fayllar maksimumi",
+  "setting.max-deleted-entries.desc": "Diskda saqlanadigan o\u02BBchirilgan fayllar tarixlari soniga chegara. Eng eskilari birinchi olib tashlanadi. O\u02BBchirish uchun 0 qo\u02BBying.",
+  "setting.max-deleted-age-days.name": "O\u02BBchirilgan tarixning maksimal yoshi (kun)",
+  "setting.max-deleted-age-days.desc": "Bu kunlar sonidan eski o\u02BBchirilgan fayllar tarixlarini olib tashlash. O\u02BBchirish uchun 0 qo\u02BBying.",
+  "folder-tree.empty": "Tanlangan nuqta uchun bu papkada o\u02BBzgarishlar yo\u02BBq.",
+  "modal.folder.filter-files": "Fayllarni nomi bo\u02BByicha filtrlash",
+  "modal.folder.timeline.capture": "Qayd etildi",
+  "modal.folder.timeline.delete": "O\u02BBchirildi",
+  "modal.folder.timeline.move-in": "Bu yerga ko\u02BBchirildi",
+  "modal.folder.notice.no-file": "Hech qanday fayl tanlanmagan.",
+  "modal.folder.notice.added": "Fayl bu nuqtadan keyin qo\u02BBshilgan.",
+  "modal.folder.notice.deleted": "Fayl bu nuqtadan keyin o\u02BBchirilgan.",
+  "modal.folder.notice.unchanged": "Bu nuqtadan beri o\u02BBzgarishlar yo\u02BBq.",
+  "version.badge.external": "tashqi",
+  "setting.exclude-paths-case-sensitive.name": "Yo\u02BBllarni istisno qilishda katta-kichik harflarni farqlash",
+  "setting.exclude-paths-case-sensitive.desc": "Yoqilganda, istisno qilingan yo\u02BBllarning regulyar ifodasi katta-kichik harflarni farqlagan holda solishtiriladi ('i' bayrog\u02BBisiz). Harflarni farqlamasdan solishtirish uchun o\u02BBchiring: bu standart qiymat bo\u02BBlib, harflarni farqlamaydigan fayl tizimlarida yaxshi ishlaydi.",
+  "setting.purge-excluded.name": "Istisno qilingan yo\u02BBllar tarixini tozalash",
+  "setting.purge-excluded.desc": "Yo\u02BBllari hozir istisno qilingan yo\u02BBllar shabloniga mos keladigan fayllarning barcha saqlangan tarixini o\u02BBchirish. O\u02BBchirilgan fayllar yozuvlari ham olib tashlanadi. Bu amalni qaytarib bo\u02BBlmaydi.",
+  "notice.purge-excluded": "Mahalliy tarix: istisno qilingan yo\u02BBllar uchun {count} ta surat tozalandi.",
+  "notice.purge-excluded.no-match": "Mahalliy tarix: istisno qilingan yo\u02BBllarga mos saqlangan tarix yo\u02BBq.",
+  "setting.reading-mode-indicator.name": "O\u02BBqish rejimida indikatorlarni ko\u02BBrsatish",
+  "setting.reading-mode-indicator.desc": "O\u02BBqish rejimida ko\u02BBrsatilgan bloklarni tahrirlash indikatori ranglariga (o\u02BBzgartirilgan, qo\u02BBshilgan, bo\u02BBsh joy, tiklangan) mos rangli chap hoshiya bilan bezash. Standart holatda o\u02BBchirilgan; o\u02BBqish rejimining har bir qayta chizilishida har blok uchun ozgina xarajat bor."
 };
 
 // lang/vi.json
@@ -13461,9 +13484,16 @@ var vi_default = {
   "setting.allowed-extensions.desc": "Danh s\xE1ch c\xE1c ph\u1EA7n m\u1EDF r\u1ED9ng t\u1EC7p c\u1EA7n theo d\xF5i thay \u0111\u1ED5i, ph\xE2n t\xE1ch b\u1EB1ng d\u1EA5u ph\u1EA9y (v\xED d\u1EE5: md, txt, csv, json, yaml)",
   "setting.exclude-paths.name": "\u0110\u01B0\u1EDDng d\u1EABn lo\u1EA1i tr\u1EEB",
   "setting.exclude-paths.desc": "M\u1ED9t bi\u1EC3u th\u1EE9c ch\xEDnh quy kh\xF4ng ph\xE2n bi\u1EC7t ch\u1EEF hoa ch\u1EEF th\u01B0\u1EDDng, \u0111\u01B0\u1EE3c so kh\u1EDBp v\u1EDBi \u0111\u01B0\u1EDDng d\u1EABn t\u01B0\u01A1ng \u0111\u1ED1i so v\u1EDBi kho l\u01B0u tr\u1EEF. M\u1ECDi t\u1EC7p c\xF3 \u0111\u01B0\u1EDDng d\u1EABn kh\u1EDBp s\u1EBD kh\xF4ng bao gi\u1EDD \u0111\u01B0\u1EE3c theo d\xF5i (v\xED d\u1EE5: \\.excalidraw\\.md$ ho\u1EB7c (^|/)Templates/). M\u1EB7c \u0111\u1ECBnh lo\u1EA1i tr\u1EEB c\xE1c th\u01B0 m\u1EE5c Templates v\xE0 b\u1EA3n v\u1EBD Excalidraw. \u0110\u1EC3 tr\u1ED1ng \u0111\u1EC3 theo d\xF5i m\u1ECDi th\u1EE9.",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "Th\xEAm m\u1EABu",
+  "setting.exclude-paths.placeholder": "vd: (^|/)Templates/",
+  "setting.exclude-paths.remove": "X\xF3a m\u1EABu n\xE0y",
+  "setting.exclude-paths.empty": "Ch\u01B0a c\xF3 \u0111\u01B0\u1EDDng d\u1EABn b\u1ECB lo\u1EA1i tr\u1EEB. D\xF9ng n\xFAt + \u0111\u1EC3 th\xEAm m\u1EABu.",
+  "setting.exclude-paths.edit": "S\u1EEDa m\u1EABu",
+  "setting.exclude-paths.save": "L\u01B0u m\u1EABu",
+  "setting.exclude-paths.cancel": "H\u1EE7y",
+  "setting.exclude-paths.error": "M\u1EABu ph\u1EA3i l\xE0 m\u1ED9t bi\u1EC3u th\u1EE9c ch\xEDnh quy h\u1EE3p l\u1EC7 v\xE0 kh\xF4ng r\u1ED7ng.",
+  "setting.general-heading": "Chung",
+  "setting.cleanup-heading": "D\u1ECDn d\u1EB9p l\u1ECBch s\u1EED",
   "setting.keep.name": "Gi\u1EEF l\u1ECBch s\u1EED cho \u0111\u1EBFn khi",
   "setting.keep.desc": "Chi\u1EBFn l\u01B0\u1EE3c d\u1ECDn d\u1EB9p l\u1ECBch s\u1EED ch\u1EC9nh s\u1EEDa",
   "setting.keep.option.app": "\u0110\xF3ng \u1EE9ng d\u1EE5ng",
@@ -13472,8 +13502,8 @@ var vi_default = {
   "setting.ignore-new-files.desc": "Kh\xF4ng theo d\xF5i thay \u0111\u1ED5i trong c\xE1c t\u1EC7p \u0111\u01B0\u1EE3c t\u1EA1o sau khi b\u1EAFt \u0111\u1EA7u theo d\xF5i",
   "setting.tree-highlight.name": "L\xE0m n\u1ED5i b\u1EADt thay \u0111\u1ED5i trong c\xE2y t\u1EC7p v\xE0 c\xE1c th\u1EBB",
   "setting.tree-highlight.desc": "T\xF4 m\xE0u c\xE1c t\u1EC7p v\xE0 th\u01B0 m\u1EE5c trong tr\xECnh qu\u1EA3n l\xFD t\u1EC7p g\u1ED1c, c\xF9ng ti\xEAu \u0111\u1EC1 th\u1EBB c\u1EE7a c\xE1c t\u1EC7p \u0111ang m\u1EDF, theo nh\u1EEFng g\xEC \u0111\xE3 thay \u0111\u1ED5i trong phi\xEAn n\xE0y (h\u1ED5 ph\xE1ch cho \u0111\xE3 s\u1EEDa, xanh l\xE1 cho \u0111\xE3 th\xEAm).",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "T\xF4 s\xE1ng thay \u0111\u1ED5i trong b\u1EA3ng thu\u1ED9c t\xEDnh",
+  "setting.properties-highlight.desc": "Hi\u1EC3n th\u1ECB c\xE1c kh\xF3a frontmatter \u0111\u01B0\u1EE3c th\xEAm, s\u1EEDa \u0111\u1ED5i v\xE0 x\xF3a trong b\u1EA3ng thu\u1ED9c t\xEDnh c\u1EE7a Obsidian. T\u1EAFt \u0111\u1EC3 \u1EA9n to\xE0n b\u1ED9 \u0111\xE1nh d\u1EA5u thay \u0111\u1ED5i thu\u1ED9c t\xEDnh.",
   "setting.persist.name": "Gi\u1EEF l\u1ECBch s\u1EED qua c\xE1c l\u1EA7n kh\u1EDFi \u0111\u1ED9ng l\u1EA1i",
   "setting.persist.desc": 'L\u01B0u l\u1ECBch s\u1EED v\xE0o \u0111\u0129a \u0111\u1EC3 c\xE1c \u0111i\u1EC3m \u0111\xE1nh d\u1EA5u v\u1EABn c\xF2n sau khi kh\u1EDFi \u0111\u1ED9ng l\u1EA1i. Y\xEAu c\u1EA7u "Gi\u1EEF l\u1ECBch s\u1EED cho \u0111\u1EBFn khi" \u0111\u01B0\u1EE3c \u0111\u1EB7t th\xE0nh \u0111\xF3ng \u1EE9ng d\u1EE5ng.',
   "setting.max-entries.name": "S\u1ED1 t\u1EC7p l\u01B0u tr\u1EEF t\u1ED1i \u0111a",
@@ -13521,10 +13551,10 @@ var vi_default = {
   "modal.mode.side-by-side": "C\u1EA1nh nhau",
   "modal.hide-identical": "\u1EA8n c\xE1c phi\xEAn b\u1EA3n gi\u1ED1ng v\u1EDBi b\u1EA3n hi\u1EC7n t\u1EA1i",
   "modal.confirm.cancel": "H\u1EE7y",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "X\xE1c nh\u1EADn",
+  "modal.confirm.default.message": "B\u1EA1n c\xF3 ch\u1EAFc mu\u1ED1n ti\u1EBFp t\u1EE5c?",
+  "modal.confirm.default.ok": "X\xE1c nh\u1EADn",
+  "modal.confirm.default.cancel": "H\u1EE7y",
   "modal.confirm.restore.title": "Kh\xF4i ph\u1EE5c t\u1EC7p g\u1ED1c",
   "modal.confirm.restore.message": "B\u1EA1n c\xF3 ch\u1EAFc mu\u1ED1n kh\xF4i ph\u1EE5c t\u1EC7p n\xE0y v\u1EC1 tr\u1EA1ng th\xE1i ban \u0111\u1EA7u kh\xF4ng? T\u1EA5t c\u1EA3 thay \u0111\u1ED5i hi\u1EC7n t\u1EA1i s\u1EBD b\u1ECB m\u1EA5t v\xE0 l\u1ECBch s\u1EED theo d\xF5i thay \u0111\u1ED5i s\u1EBD \u0111\u01B0\u1EE3c \u0111\u1EB7t l\u1EA1i. H\xE0nh \u0111\u1ED9ng n\xE0y kh\xF4ng th\u1EC3 ho\xE0n t\xE1c.",
   "modal.confirm.restore.button": "Kh\xF4i ph\u1EE5c t\u1EC7p",
@@ -13543,52 +13573,53 @@ var vi_default = {
   "modal.search-versions": "T\xECm ki\u1EBFm phi\xEAn b\u1EA3n",
   "modal.version.current": "Hi\u1EC7n t\u1EA1i",
   "modal.version.original": "B\u1EA3n g\u1ED1c",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "\u0110\xE3 t\u1EA1o",
+  "modal.version.action.modified": "\u0110\xE3 s\u1EEDa \u0111\u1ED5i",
+  "modal.version.action.cleared": "\u0110\xE3 x\xF3a tr\u1EAFng",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "Kh\xF4ng c\xF3 phi\xEAn b\u1EA3n n\xE0o kh\u1EDBp v\u1EDBi t\xECm ki\u1EBFm",
   "modal.revert-hunk": "Ho\xE0n nguy\xEAn thay \u0111\u1ED5i n\xE0y",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "Ho\xE0n t\xE1c thay \u0111\u1ED5i n\xE0y",
   "modal.copy": "Sao ch\xE9p",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "G\u1EAFn nh\xE3n",
+  "modal.put-label.message": "\u0110\xE1nh d\u1EA5u n\u1ED9i dung hi\u1EC7n t\u1EA1i b\u1EB1ng m\u1ED9t nh\xE3n ng\u1EAFn.",
+  "modal.put-label.placeholder": "Nh\xE3n",
+  "modal.put-label.confirm": "L\u01B0u",
+  "menu.local-history.show-history": "Hi\u1EC7n l\u1ECBch s\u1EED",
+  "menu.local-history.show-history-selection": "Hi\u1EC7n l\u1ECBch s\u1EED cho v\xF9ng ch\u1ECDn",
+  "menu.local-history.put-label": "G\u1EAFn nh\xE3n",
+  "menu.local-history.recent-changes": "Thay \u0111\u1ED5i g\u1EA7n \u0111\xE2y",
+  "view.recent-changes.title": "Thay \u0111\u1ED5i g\u1EA7n \u0111\xE2y",
+  "view.recent-changes.empty": "T\u1EC7p \u0111ang m\u1EDF kh\xF4ng c\xF3 l\u1ECBch s\u1EED phi\xEAn b\u1EA3n.",
+  "view.recent-changes.menu.show-diff": "Hi\u1EC7n kh\xE1c bi\u1EC7t",
+  "view.recent-changes.menu.restore": "Kh\xF4i ph\u1EE5c phi\xEAn b\u1EA3n n\xE0y",
+  "view.recent-changes.menu.delete": "X\xF3a phi\xEAn b\u1EA3n",
+  "view.recent-changes.menu.put-label": "G\u1EAFn nh\xE3n",
+  "modal.label-selected": "G\u1EAFn nh\xE3n phi\xEAn b\u1EA3n \u0111\xE3 ch\u1ECDn",
+  "modal.label-version.message": "\u0110\xE1nh d\u1EA5u phi\xEAn b\u1EA3n n\xE0y b\u1EB1ng m\u1ED9t nh\xE3n ng\u1EAFn.",
+  "notice.no-folder-history": "Ch\u01B0a c\xF3 l\u1ECBch s\u1EED th\u01B0 m\u1EE5c.",
+  "setting.max-deleted-entries.name": "S\u1ED1 t\u1EC7p \u0111\xE3 x\xF3a \u0111\u01B0\u1EE3c l\u01B0u t\u1ED1i \u0111a",
+  "setting.max-deleted-entries.desc": "Gi\u1EDBi h\u1EA1n s\u1ED1 l\u1ECBch s\u1EED c\u1EE7a c\xE1c t\u1EC7p \u0111\xE3 x\xF3a \u0111\u01B0\u1EE3c gi\u1EEF tr\xEAn \u0111\u0129a. C\u0169 nh\u1EA5t b\u1ECB lo\u1EA1i b\u1ECF tr\u01B0\u1EDBc. \u0110\u1EB7t 0 \u0111\u1EC3 t\u1EAFt.",
+  "setting.max-deleted-age-days.name": "Tu\u1ED5i t\u1ED1i \u0111a c\u1EE7a l\u1ECBch s\u1EED t\u1EC7p \u0111\xE3 x\xF3a (ng\xE0y)",
+  "setting.max-deleted-age-days.desc": "Lo\u1EA1i b\u1ECF l\u1ECBch s\u1EED c\u1EE7a c\xE1c t\u1EC7p \u0111\xE3 x\xF3a c\u0169 h\u01A1n s\u1ED1 ng\xE0y n\xE0y. \u0110\u1EB7t 0 \u0111\u1EC3 t\u1EAFt.",
+  "folder-tree.empty": "Kh\xF4ng c\xF3 thay \u0111\u1ED5i trong th\u01B0 m\u1EE5c n\xE0y t\u1EA1i th\u1EDDi \u0111i\u1EC3m \u0111\xE3 ch\u1ECDn.",
+  "modal.folder.filter-files": "L\u1ECDc t\u1EC7p theo t\xEAn",
+  "modal.folder.timeline.capture": "\u0110\xE3 ghi l\u1EA1i",
+  "modal.folder.timeline.delete": "\u0110\xE3 x\xF3a",
+  "modal.folder.timeline.move-in": "\u0110\xE3 chuy\u1EC3n v\xE0o",
+  "modal.folder.notice.no-file": "Ch\u01B0a ch\u1ECDn t\u1EC7p n\xE0o.",
+  "modal.folder.notice.added": "T\u1EC7p \u0111\u01B0\u1EE3c th\xEAm sau th\u1EDDi \u0111i\u1EC3m n\xE0y.",
+  "modal.folder.notice.deleted": "T\u1EC7p b\u1ECB x\xF3a sau th\u1EDDi \u0111i\u1EC3m n\xE0y.",
+  "modal.folder.notice.unchanged": "Kh\xF4ng c\xF3 thay \u0111\u1ED5i k\u1EC3 t\u1EEB th\u1EDDi \u0111i\u1EC3m n\xE0y.",
+  "version.badge.external": "b\xEAn ngo\xE0i",
+  "setting.exclude-paths-case-sensitive.name": "Lo\u1EA1i tr\u1EEB \u0111\u01B0\u1EDDng d\u1EABn ph\xE2n bi\u1EC7t ch\u1EEF hoa ch\u1EEF th\u01B0\u1EDDng",
+  "setting.exclude-paths-case-sensitive.desc": "Khi b\u1EADt, bi\u1EC3u th\u1EE9c ch\xEDnh quy c\u1EE7a \u0111\u01B0\u1EDDng d\u1EABn lo\u1EA1i tr\u1EEB \u0111\u01B0\u1EE3c so kh\u1EDBp c\xF3 ph\xE2n bi\u1EC7t ch\u1EEF hoa ch\u1EEF th\u01B0\u1EDDng (kh\xF4ng c\xF3 c\u1EDD 'i'). T\u1EAFt \u0111\u1EC3 so kh\u1EDBp kh\xF4ng ph\xE2n bi\u1EC7t: \u0111\xE2y l\xE0 m\u1EB7c \u0111\u1ECBnh v\xE0 ho\u1EA1t \u0111\u1ED9ng t\u1ED1t tr\xEAn c\xE1c h\u1EC7 th\u1ED1ng t\u1EC7p kh\xF4ng ph\xE2n bi\u1EC7t ch\u1EEF hoa ch\u1EEF th\u01B0\u1EDDng.",
+  "setting.purge-excluded.name": "X\xF3a s\u1EA1ch l\u1ECBch s\u1EED c\u1EE7a c\xE1c \u0111\u01B0\u1EDDng d\u1EABn b\u1ECB lo\u1EA1i tr\u1EEB",
+  "setting.purge-excluded.desc": "X\xF3a to\xE0n b\u1ED9 l\u1ECBch s\u1EED \u0111\xE3 l\u01B0u c\u1EE7a c\xE1c t\u1EC7p c\xF3 \u0111\u01B0\u1EDDng d\u1EABn hi\u1EC7n kh\u1EDBp v\u1EDBi m\u1EABu \u0111\u01B0\u1EDDng d\u1EABn lo\u1EA1i tr\u1EEB. B\u1EA3n ghi c\u1EE7a c\xE1c t\u1EC7p \u0111\xE3 x\xF3a c\u0169ng b\u1ECB lo\u1EA1i b\u1ECF. H\xE0nh \u0111\u1ED9ng n\xE0y kh\xF4ng th\u1EC3 ho\xE0n t\xE1c.",
+  "notice.purge-excluded": "L\u1ECBch s\u1EED c\u1EE5c b\u1ED9: \u0111\xE3 x\xF3a {count} \u1EA3nh ch\u1EE5p cho c\xE1c \u0111\u01B0\u1EDDng d\u1EABn b\u1ECB lo\u1EA1i tr\u1EEB.",
+  "notice.purge-excluded.no-match": "L\u1ECBch s\u1EED c\u1EE5c b\u1ED9: kh\xF4ng c\xF3 l\u1ECBch s\u1EED \u0111\xE3 l\u01B0u n\xE0o kh\u1EDBp v\u1EDBi c\xE1c \u0111\u01B0\u1EDDng d\u1EABn b\u1ECB lo\u1EA1i tr\u1EEB.",
+  "setting.reading-mode-indicator.name": "Hi\u1EC7n ch\u1EC9 b\xE1o trong ch\u1EBF \u0111\u1ED9 \u0111\u1ECDc",
+  "setting.reading-mode-indicator.desc": "Trang tr\xED c\xE1c kh\u1ED1i \u0111\u01B0\u1EE3c hi\u1EC3n th\u1ECB trong ch\u1EBF \u0111\u1ED9 \u0111\u1ECDc b\u1EB1ng vi\u1EC1n tr\xE1i c\xF3 m\xE0u tr\xF9ng v\u1EDBi m\xE0u ch\u1EC9 b\xE1o ch\u1EC9nh s\u1EEDa (thay \u0111\u1ED5i, th\xEAm, kho\u1EA3ng tr\u1EAFng, kh\xF4i ph\u1EE5c). M\u1EB7c \u0111\u1ECBnh t\u1EAFt; t\u1ED1n m\u1ED9t ch\xFAt chi ph\xED cho m\u1ED7i kh\u1ED1i \u1EDF m\u1ED7i l\u1EA7n hi\u1EC3n th\u1ECB l\u1EA1i ch\u1EBF \u0111\u1ED9 \u0111\u1ECDc."
 };
 
 // lang/zh.json
@@ -13618,9 +13649,16 @@ var zh_default = {
   "setting.allowed-extensions.desc": "\u7528\u4E8E\u8FFD\u8E2A\u66F4\u6539\u7684\u6587\u4EF6\u6269\u5C55\u540D\u5217\u8868\uFF0C\u4EE5\u9017\u53F7\u5206\u9694\uFF08\u4F8B\u5982 md, txt, csv, json, yaml\uFF09",
   "setting.exclude-paths.name": "\u6392\u9664\u7684\u8DEF\u5F84",
   "setting.exclude-paths.desc": "\u4E00\u4E2A\u4E0D\u533A\u5206\u5927\u5C0F\u5199\u7684\u6B63\u5219\u8868\u8FBE\u5F0F\uFF0C\u7528\u4E8E\u5339\u914D\u76F8\u5BF9\u4E8E\u5E93\u7684\u8DEF\u5F84\u3002\u8DEF\u5F84\u5339\u914D\u7684\u4EFB\u4F55\u6587\u4EF6\u90FD\u4E0D\u4F1A\u88AB\u8FFD\u8E2A\uFF08\u4F8B\u5982 \\.excalidraw\\.md$ \u6216 (^|/)Templates/\uFF09\u3002\u9ED8\u8BA4\u6392\u9664 Templates \u6587\u4EF6\u5939\u548C Excalidraw \u7ED8\u56FE\u3002\u7559\u7A7A\u5219\u8FFD\u8E2A\u6240\u6709\u5185\u5BB9\u3002",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "\u6DFB\u52A0\u6A21\u5F0F",
+  "setting.exclude-paths.placeholder": "\u4F8B\u5982 (^|/)Templates/",
+  "setting.exclude-paths.remove": "\u79FB\u9664\u6B64\u6A21\u5F0F",
+  "setting.exclude-paths.empty": "\u5C1A\u65E0\u6392\u9664\u8DEF\u5F84\u3002\u70B9\u51FB + \u6309\u94AE\u6DFB\u52A0\u6A21\u5F0F\u3002",
+  "setting.exclude-paths.edit": "\u7F16\u8F91\u6A21\u5F0F",
+  "setting.exclude-paths.save": "\u4FDD\u5B58\u6A21\u5F0F",
+  "setting.exclude-paths.cancel": "\u53D6\u6D88",
+  "setting.exclude-paths.error": "\u6A21\u5F0F\u5FC5\u987B\u662F\u975E\u7A7A\u7684\u6709\u6548\u6B63\u5219\u8868\u8FBE\u5F0F\u3002",
+  "setting.general-heading": "\u5E38\u89C4",
+  "setting.cleanup-heading": "\u5386\u53F2\u6E05\u7406",
   "setting.keep.name": "\u4FDD\u7559\u5386\u53F2\u8BB0\u5F55\u76F4\u5230",
   "setting.keep.desc": "\u6E05\u7406\u4FEE\u8BA2\u5386\u53F2\u7684\u7B56\u7565",
   "setting.keep.option.app": "\u5173\u95ED\u5E94\u7528\u65F6",
@@ -13629,8 +13667,8 @@ var zh_default = {
   "setting.ignore-new-files.desc": "\u4E0D\u8FFD\u8E2A\u5728\u5F00\u59CB\u8FFD\u8E2A\u540E\u521B\u5EFA\u7684\u6587\u4EF6\u4E2D\u7684\u66F4\u6539",
   "setting.tree-highlight.name": "\u5728\u6587\u4EF6\u6811\u548C\u6807\u7B7E\u9875\u4E2D\u9AD8\u4EAE\u663E\u793A\u66F4\u6539",
   "setting.tree-highlight.desc": "\u6839\u636E\u672C\u6B21\u4F1A\u8BDD\u4E2D\u7684\u66F4\u6539\uFF0C\u4E3A\u539F\u751F\u6587\u4EF6\u6D4F\u89C8\u5668\u4E2D\u7684\u6587\u4EF6\u548C\u6587\u4EF6\u5939\u4EE5\u53CA\u5DF2\u6253\u5F00\u6587\u4EF6\u7684\u6807\u7B7E\u9875\u6807\u9898\u7740\u8272\uFF08\u4FEE\u6539\u4E3A\u7425\u73C0\u8272\uFF0C\u65B0\u589E\u4E3A\u7EFF\u8272\uFF09\u3002",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "\u5728\u5C5E\u6027\u9762\u677F\u4E2D\u9AD8\u4EAE\u66F4\u6539",
+  "setting.properties-highlight.desc": "\u5728 Obsidian \u5C5E\u6027\u9762\u677F\u4E2D\u663E\u793A\u6DFB\u52A0\u3001\u4FEE\u6539\u548C\u79FB\u9664\u7684 frontmatter \u952E\u3002\u7981\u7528\u540E\u5C06\u9690\u85CF\u6240\u6709\u5C5E\u6027\u5DEE\u5F02\u6807\u8BB0\u3002",
   "setting.persist.name": "\u91CD\u542F\u540E\u4FDD\u7559\u5386\u53F2\u8BB0\u5F55",
   "setting.persist.desc": "\u5C06\u5386\u53F2\u8BB0\u5F55\u4FDD\u5B58\u5230\u78C1\u76D8\uFF0C\u4F7F\u9AD8\u4EAE\u5728\u91CD\u542F\u540E\u4F9D\u7136\u4FDD\u7559\u3002\u9700\u8981\u5C06\u201C\u4FDD\u7559\u5386\u53F2\u8BB0\u5F55\u76F4\u5230\u201D\u8BBE\u7F6E\u4E3A\u5173\u95ED\u5E94\u7528\u65F6\u3002",
   "setting.max-entries.name": "\u6700\u591A\u5B58\u50A8\u7684\u6587\u4EF6\u6570",
@@ -13678,10 +13716,10 @@ var zh_default = {
   "modal.mode.side-by-side": "\u5E76\u6392",
   "modal.hide-identical": "\u9690\u85CF\u4E0E\u5F53\u524D\u5185\u5BB9\u76F8\u540C\u7684\u7248\u672C",
   "modal.confirm.cancel": "\u53D6\u6D88",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "\u786E\u8BA4",
+  "modal.confirm.default.message": "\u786E\u5B9A\u8981\u7EE7\u7EED\u5417?",
+  "modal.confirm.default.ok": "\u786E\u8BA4",
+  "modal.confirm.default.cancel": "\u53D6\u6D88",
   "modal.confirm.restore.title": "\u6062\u590D\u539F\u59CB\u6587\u4EF6",
   "modal.confirm.restore.message": "\u786E\u5B9A\u8981\u5C06\u6B64\u6587\u4EF6\u6062\u590D\u5230\u539F\u59CB\u72B6\u6001\u5417\uFF1F\u6240\u6709\u5F53\u524D\u66F4\u6539\u90FD\u5C06\u4E22\u5931\uFF0C\u66F4\u6539\u8FFD\u8E2A\u5386\u53F2\u4E5F\u5C06\u88AB\u91CD\u7F6E\u3002\u6B64\u64CD\u4F5C\u65E0\u6CD5\u64A4\u9500\u3002",
   "modal.confirm.restore.button": "\u6062\u590D\u6587\u4EF6",
@@ -13700,52 +13738,53 @@ var zh_default = {
   "modal.search-versions": "\u641C\u7D22\u7248\u672C",
   "modal.version.current": "\u5F53\u524D",
   "modal.version.original": "\u539F\u59CB",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "\u5DF2\u521B\u5EFA",
+  "modal.version.action.modified": "\u5DF2\u4FEE\u6539",
+  "modal.version.action.cleared": "\u5DF2\u6E05\u7A7A",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u6CA1\u6709\u5339\u914D\u641C\u7D22\u7684\u7248\u672C",
   "modal.revert-hunk": "\u8FD8\u539F\u6B64\u66F4\u6539",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "\u64A4\u9500\u6B64\u66F4\u6539",
   "modal.copy": "\u590D\u5236",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "\u6DFB\u52A0\u6807\u7B7E",
+  "modal.put-label.message": "\u7528\u7B80\u77ED\u6807\u7B7E\u6807\u8BB0\u5F53\u524D\u5185\u5BB9\u3002",
+  "modal.put-label.placeholder": "\u6807\u7B7E",
+  "modal.put-label.confirm": "\u4FDD\u5B58",
+  "menu.local-history.show-history": "\u663E\u793A\u5386\u53F2",
+  "menu.local-history.show-history-selection": "\u663E\u793A\u9009\u533A\u5386\u53F2",
+  "menu.local-history.put-label": "\u6DFB\u52A0\u6807\u7B7E",
+  "menu.local-history.recent-changes": "\u6700\u8FD1\u66F4\u6539",
+  "view.recent-changes.title": "\u6700\u8FD1\u66F4\u6539",
+  "view.recent-changes.empty": "\u6D3B\u52A8\u6587\u4EF6\u6CA1\u6709\u7248\u672C\u5386\u53F2\u3002",
+  "view.recent-changes.menu.show-diff": "\u663E\u793A\u5DEE\u5F02",
+  "view.recent-changes.menu.restore": "\u6062\u590D\u6B64\u7248\u672C",
+  "view.recent-changes.menu.delete": "\u5220\u9664\u7248\u672C",
+  "view.recent-changes.menu.put-label": "\u6DFB\u52A0\u6807\u7B7E",
+  "modal.label-selected": "\u4E3A\u6240\u9009\u7248\u672C\u6DFB\u52A0\u6807\u7B7E",
+  "modal.label-version.message": "\u7528\u7B80\u77ED\u6807\u7B7E\u6807\u8BB0\u6B64\u7248\u672C\u3002",
+  "notice.no-folder-history": "\u5C1A\u65E0\u6587\u4EF6\u5939\u5386\u53F2\u3002",
+  "setting.max-deleted-entries.name": "\u5DF2\u5220\u9664\u6587\u4EF6\u7684\u6700\u5927\u4FDD\u5B58\u6570",
+  "setting.max-deleted-entries.desc": "\u78C1\u76D8\u4E0A\u4FDD\u7559\u7684\u5DF2\u5220\u9664\u6587\u4EF6\u5386\u53F2\u6570\u91CF\u4E0A\u9650\u3002\u6700\u65E7\u7684\u6700\u5148\u88AB\u6E05\u9664\u3002\u8BBE\u4E3A 0 \u53EF\u7981\u7528\u3002",
+  "setting.max-deleted-age-days.name": "\u5DF2\u5220\u9664\u5386\u53F2\u7684\u6700\u957F\u4FDD\u5B58\u671F (\u5929)",
+  "setting.max-deleted-age-days.desc": "\u6E05\u9664\u8D85\u8FC7\u6B64\u5929\u6570\u7684\u5DF2\u5220\u9664\u6587\u4EF6\u5386\u53F2\u3002\u8BBE\u4E3A 0 \u53EF\u7981\u7528\u3002",
+  "folder-tree.empty": "\u5728\u6240\u9009\u65F6\u95F4\u70B9,\u6B64\u6587\u4EF6\u5939\u6CA1\u6709\u66F4\u6539\u3002",
+  "modal.folder.filter-files": "\u6309\u540D\u79F0\u7B5B\u9009\u6587\u4EF6",
+  "modal.folder.timeline.capture": "\u5DF2\u6355\u83B7",
+  "modal.folder.timeline.delete": "\u5DF2\u5220\u9664",
+  "modal.folder.timeline.move-in": "\u79FB\u5165",
+  "modal.folder.notice.no-file": "\u672A\u9009\u62E9\u6587\u4EF6\u3002",
+  "modal.folder.notice.added": "\u6587\u4EF6\u5728\u6B64\u65F6\u95F4\u70B9\u4E4B\u540E\u88AB\u6DFB\u52A0\u3002",
+  "modal.folder.notice.deleted": "\u6587\u4EF6\u5728\u6B64\u65F6\u95F4\u70B9\u4E4B\u540E\u88AB\u5220\u9664\u3002",
+  "modal.folder.notice.unchanged": "\u81EA\u6B64\u65F6\u95F4\u70B9\u4EE5\u6765\u6CA1\u6709\u66F4\u6539\u3002",
+  "version.badge.external": "\u5916\u90E8",
+  "setting.exclude-paths-case-sensitive.name": "\u533A\u5206\u5927\u5C0F\u5199\u7684\u8DEF\u5F84\u6392\u9664",
+  "setting.exclude-paths-case-sensitive.desc": "\u542F\u7528\u540E,\u6392\u9664\u8DEF\u5F84\u7684\u6B63\u5219\u8868\u8FBE\u5F0F\u5C06\u533A\u5206\u5927\u5C0F\u5199\u8FDB\u884C\u5339\u914D(\u4E0D\u5E26 'i' \u6807\u5FD7)\u3002\u7981\u7528\u5219\u5FFD\u7565\u5927\u5C0F\u5199:\u8FD9\u662F\u9ED8\u8BA4\u8BBE\u7F6E,\u5728\u4E0D\u533A\u5206\u5927\u5C0F\u5199\u7684\u6587\u4EF6\u7CFB\u7EDF\u4E0A\u6548\u679C\u5F88\u597D\u3002",
+  "setting.purge-excluded.name": "\u6E05\u9664\u6392\u9664\u8DEF\u5F84\u7684\u5386\u53F2",
+  "setting.purge-excluded.desc": "\u5220\u9664\u8DEF\u5F84\u5F53\u524D\u5339\u914D\u6392\u9664\u8DEF\u5F84\u6A21\u5F0F\u7684\u6587\u4EF6\u7684\u6240\u6709\u5DF2\u5B58\u50A8\u5386\u53F2\u3002\u5DF2\u5220\u9664\u6587\u4EF6\u7684\u8BB0\u5F55\u4E5F\u4F1A\u88AB\u79FB\u9664\u3002\u6B64\u64CD\u4F5C\u65E0\u6CD5\u64A4\u9500\u3002",
+  "notice.purge-excluded": "\u672C\u5730\u5386\u53F2:\u5DF2\u6E05\u9664\u6392\u9664\u8DEF\u5F84\u7684 {count} \u4E2A\u5FEB\u7167\u3002",
+  "notice.purge-excluded.no-match": "\u672C\u5730\u5386\u53F2:\u6CA1\u6709\u4E0E\u6392\u9664\u8DEF\u5F84\u5339\u914D\u7684\u5DF2\u5B58\u50A8\u5386\u53F2\u3002",
+  "setting.reading-mode-indicator.name": "\u5728\u9605\u8BFB\u6A21\u5F0F\u4E2D\u663E\u793A\u6307\u793A\u5668",
+  "setting.reading-mode-indicator.desc": "\u5728\u9605\u8BFB\u6A21\u5F0F\u4E2D\u4E3A\u6E32\u67D3\u7684\u5757\u6DFB\u52A0\u5F69\u8272\u5DE6\u8FB9\u6846,\u989C\u8272\u4E0E\u5B9E\u65F6\u7F16\u8F91\u6307\u793A\u5668\u4E00\u81F4(\u66F4\u6539\u3001\u6DFB\u52A0\u3001\u7A7A\u767D\u3001\u6062\u590D)\u3002\u9ED8\u8BA4\u5173\u95ED;\u6BCF\u6B21\u9605\u8BFB\u6A21\u5F0F\u91CD\u65B0\u6E32\u67D3\u65F6\u6BCF\u4E2A\u5757\u6709\u5C11\u91CF\u5F00\u9500\u3002"
 };
 
 // lang/zh-TW.json
@@ -13775,9 +13814,16 @@ var zh_TW_default = {
   "setting.allowed-extensions.desc": "\u7528\u65BC\u8FFD\u8E64\u8B8A\u66F4\u7684\u6A94\u6848\u526F\u6A94\u540D\u6E05\u55AE\uFF0C\u4EE5\u9017\u865F\u5206\u9694\uFF08\u4F8B\u5982 md, txt, csv, json, yaml\uFF09",
   "setting.exclude-paths.name": "\u6392\u9664\u7684\u8DEF\u5F91",
   "setting.exclude-paths.desc": "\u4E00\u500B\u4E0D\u5206\u5927\u5C0F\u5BEB\u7684\u6B63\u898F\u8868\u793A\u5F0F\uFF0C\u7528\u65BC\u6BD4\u5C0D\u76F8\u5C0D\u65BC\u4FDD\u7BA1\u5EAB\u7684\u8DEF\u5F91\u3002\u8DEF\u5F91\u76F8\u7B26\u7684\u4EFB\u4F55\u6A94\u6848\u90FD\u4E0D\u6703\u88AB\u8FFD\u8E64\uFF08\u4F8B\u5982 \\.excalidraw\\.md$ \u6216 (^|/)Templates/\uFF09\u3002\u9810\u8A2D\u6703\u6392\u9664 Templates \u8CC7\u6599\u593E\u8207 Excalidraw \u7E6A\u5716\u3002\u7559\u7A7A\u5247\u8FFD\u8E64\u6240\u6709\u5167\u5BB9\u3002",
-  "setting.exclude-paths.add": "Add pattern",
-  "setting.exclude-paths.placeholder": "e.g. (^|/)Templates/",
-  "setting.exclude-paths.remove": "Remove this pattern",
+  "setting.exclude-paths.add": "\u65B0\u589E\u6A21\u5F0F",
+  "setting.exclude-paths.placeholder": "\u4F8B\u5982 (^|/)Templates/",
+  "setting.exclude-paths.remove": "\u79FB\u9664\u6B64\u6A21\u5F0F",
+  "setting.exclude-paths.empty": "\u5C1A\u7121\u6392\u9664\u8DEF\u5F91\u3002\u9EDE\u9078 + \u6309\u9215\u65B0\u589E\u6A21\u5F0F\u3002",
+  "setting.exclude-paths.edit": "\u7DE8\u8F2F\u6A21\u5F0F",
+  "setting.exclude-paths.save": "\u5132\u5B58\u6A21\u5F0F",
+  "setting.exclude-paths.cancel": "\u53D6\u6D88",
+  "setting.exclude-paths.error": "\u6A21\u5F0F\u5FC5\u9808\u662F\u975E\u7A7A\u7684\u6709\u6548\u6B63\u898F\u8868\u793A\u5F0F\u3002",
+  "setting.general-heading": "\u4E00\u822C",
+  "setting.cleanup-heading": "\u6B77\u53F2\u6E05\u7406",
   "setting.keep.name": "\u4FDD\u7559\u6B77\u53F2\u8A18\u9304\u76F4\u5230",
   "setting.keep.desc": "\u6E05\u7406\u4FEE\u8A02\u6B77\u53F2\u7684\u7B56\u7565",
   "setting.keep.option.app": "\u95DC\u9589\u61C9\u7528\u7A0B\u5F0F\u6642",
@@ -13786,8 +13832,8 @@ var zh_TW_default = {
   "setting.ignore-new-files.desc": "\u4E0D\u8FFD\u8E64\u5728\u958B\u59CB\u8FFD\u8E64\u5F8C\u5EFA\u7ACB\u7684\u6A94\u6848\u4E2D\u7684\u8B8A\u66F4",
   "setting.tree-highlight.name": "\u5728\u6A94\u6848\u6A39\u548C\u5206\u9801\u4E2D\u9192\u76EE\u986F\u793A\u8B8A\u66F4",
   "setting.tree-highlight.desc": "\u4F9D\u672C\u6B21\u5DE5\u4F5C\u968E\u6BB5\u4E2D\u7684\u8B8A\u66F4\uFF0C\u70BA\u539F\u751F\u6A94\u6848\u7E3D\u7BA1\u4E2D\u7684\u6A94\u6848\u8207\u8CC7\u6599\u593E\uFF0C\u4EE5\u53CA\u5DF2\u958B\u555F\u6A94\u6848\u7684\u5206\u9801\u6A19\u984C\u8457\u8272\uFF08\u4FEE\u6539\u70BA\u7425\u73C0\u8272\uFF0C\u65B0\u589E\u70BA\u7DA0\u8272\uFF09\u3002",
-  "setting.properties-highlight.name": "Highlight changes in Properties panel",
-  "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
+  "setting.properties-highlight.name": "\u5728\u5C6C\u6027\u9762\u677F\u4E2D\u6A19\u793A\u8B8A\u66F4",
+  "setting.properties-highlight.desc": "\u5728 Obsidian \u5C6C\u6027\u9762\u677F\u4E2D\u986F\u793A\u65B0\u589E\u3001\u4FEE\u6539\u548C\u79FB\u9664\u7684 frontmatter \u9375\u3002\u505C\u7528\u5F8C\u5C07\u96B1\u85CF\u6240\u6709\u5C6C\u6027\u5DEE\u7570\u6A19\u8A18\u3002",
   "setting.persist.name": "\u91CD\u65B0\u555F\u52D5\u5F8C\u4FDD\u7559\u6B77\u53F2\u8A18\u9304",
   "setting.persist.desc": "\u5C07\u6B77\u53F2\u8A18\u9304\u5132\u5B58\u81F3\u78C1\u789F\uFF0C\u4F7F\u9192\u76EE\u63D0\u793A\u5728\u91CD\u65B0\u555F\u52D5\u5F8C\u4F9D\u7136\u4FDD\u7559\u3002\u9700\u8981\u5C07\u300C\u4FDD\u7559\u6B77\u53F2\u8A18\u9304\u76F4\u5230\u300D\u8A2D\u5B9A\u70BA\u95DC\u9589\u61C9\u7528\u7A0B\u5F0F\u6642\u3002",
   "setting.max-entries.name": "\u6700\u591A\u5132\u5B58\u7684\u6A94\u6848\u6578",
@@ -13835,10 +13881,10 @@ var zh_TW_default = {
   "modal.mode.side-by-side": "\u4E26\u6392",
   "modal.hide-identical": "\u96B1\u85CF\u8207\u76EE\u524D\u5167\u5BB9\u76F8\u540C\u7684\u7248\u672C",
   "modal.confirm.cancel": "\u53D6\u6D88",
-  "modal.confirm.default.title": "Confirmation",
-  "modal.confirm.default.message": "Are you sure you want to proceed?",
-  "modal.confirm.default.ok": "Confirm",
-  "modal.confirm.default.cancel": "Cancel",
+  "modal.confirm.default.title": "\u78BA\u8A8D",
+  "modal.confirm.default.message": "\u78BA\u5B9A\u8981\u7E7C\u7E8C\u55CE?",
+  "modal.confirm.default.ok": "\u78BA\u8A8D",
+  "modal.confirm.default.cancel": "\u53D6\u6D88",
   "modal.confirm.restore.title": "\u9084\u539F\u539F\u59CB\u6A94\u6848",
   "modal.confirm.restore.message": "\u78BA\u5B9A\u8981\u5C07\u6B64\u6A94\u6848\u9084\u539F\u70BA\u539F\u59CB\u72C0\u614B\u55CE\uFF1F\u6240\u6709\u76EE\u524D\u8B8A\u66F4\u90FD\u5C07\u907A\u5931\uFF0C\u8B8A\u66F4\u8FFD\u8E64\u6B77\u53F2\u4E5F\u5C07\u88AB\u91CD\u8A2D\u3002\u6B64\u64CD\u4F5C\u7121\u6CD5\u5FA9\u539F\u3002",
   "modal.confirm.restore.button": "\u9084\u539F\u6A94\u6848",
@@ -13857,52 +13903,53 @@ var zh_TW_default = {
   "modal.search-versions": "\u641C\u5C0B\u7248\u672C",
   "modal.version.current": "\u76EE\u524D",
   "modal.version.original": "\u539F\u59CB",
-  "modal.version.action.created": "Created",
-  "modal.version.action.modified": "Modified",
-  "modal.version.action.cleared": "Cleared",
+  "modal.version.action.created": "\u5DF2\u5EFA\u7ACB",
+  "modal.version.action.modified": "\u5DF2\u4FEE\u6539",
+  "modal.version.action.cleared": "\u5DF2\u6E05\u7A7A",
   "modal.version.delta": "+{added} -{removed}",
   "modal.no-versions-match": "\u6C92\u6709\u7B26\u5408\u641C\u5C0B\u7684\u7248\u672C",
   "modal.revert-hunk": "\u9084\u539F\u6B64\u8B8A\u66F4",
-  "gutter.revert": "Revert this change",
+  "gutter.revert": "\u5FA9\u539F\u6B64\u8B8A\u66F4",
   "modal.copy": "\u8907\u88FD",
-  "modal.put-label.title": "Put label",
-  "modal.put-label.message": "Tag the current content with a short label.",
-  "modal.put-label.placeholder": "Label",
-  "modal.put-label.confirm": "Save",
-  "menu.local-history.show-history": "Show History",
-  "menu.local-history.show-history-selection": "Show History for Selection",
-  "menu.local-history.put-label": "Put label",
-  "menu.local-history.recent-changes": "Recent changes",
-  "view.recent-changes.title": "Recent changes",
-  "view.recent-changes.empty": "No version history for the active file.",
-  "view.recent-changes.menu.show-diff": "Show diff",
-  "view.recent-changes.menu.restore": "Restore this version",
-  "view.recent-changes.menu.delete": "Delete version",
-  "view.recent-changes.menu.put-label": "Put label",
-  "modal.label-selected": "Label selected version",
-  "modal.label-version.message": "Tag this version with a short label.",
-  "notice.no-folder-history": "No folder history yet.",
-  "setting.max-deleted-entries.name": "Max stored deleted files",
-  "setting.max-deleted-entries.desc": "Cap on how many tombstone histories (deleted files) are kept on disk. Oldest are evicted first. Set to 0 to disable.",
-  "setting.max-deleted-age-days.name": "Max deleted history age (days)",
-  "setting.max-deleted-age-days.desc": "Drop tombstone histories (deleted files) older than this many days. Set to 0 to disable.",
-  "folder-tree.empty": "No changes in this folder for the selected point.",
-  "modal.folder.filter-files": "Filter files by name",
-  "modal.folder.timeline.capture": "Captured",
-  "modal.folder.timeline.delete": "Deleted",
-  "modal.folder.timeline.move-in": "Moved in",
-  "modal.folder.notice.no-file": "No file selected.",
-  "modal.folder.notice.added": "File was added after this point.",
-  "modal.folder.notice.deleted": "File was deleted after this point.",
-  "modal.folder.notice.unchanged": "No changes since this point.",
-  "version.badge.external": "external",
-  "setting.exclude-paths-case-sensitive.name": "Case-sensitive path exclusion",
-  "setting.exclude-paths-case-sensitive.desc": "When enabled, the excluded-paths regular expression is matched case-sensitively (no 'i' flag). Disable to match regardless of case, which is the default and works well on case-insensitive file systems.",
-  "setting.purge-excluded.name": "Purge history for excluded paths",
-  "setting.purge-excluded.desc": "Delete all stored history for files whose paths currently match the excluded-paths pattern. Tombstones for deleted files are also removed. This action cannot be undone.",
-  "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
-  "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "modal.put-label.title": "\u52A0\u4E0A\u6A19\u7C64",
+  "modal.put-label.message": "\u4EE5\u7C21\u77ED\u6A19\u7C64\u6A19\u8A18\u76EE\u524D\u5167\u5BB9\u3002",
+  "modal.put-label.placeholder": "\u6A19\u7C64",
+  "modal.put-label.confirm": "\u5132\u5B58",
+  "menu.local-history.show-history": "\u986F\u793A\u6B77\u53F2",
+  "menu.local-history.show-history-selection": "\u986F\u793A\u9078\u53D6\u7BC4\u570D\u7684\u6B77\u53F2",
+  "menu.local-history.put-label": "\u52A0\u4E0A\u6A19\u7C64",
+  "menu.local-history.recent-changes": "\u6700\u8FD1\u8B8A\u66F4",
+  "view.recent-changes.title": "\u6700\u8FD1\u8B8A\u66F4",
+  "view.recent-changes.empty": "\u4F7F\u7528\u4E2D\u7684\u6A94\u6848\u6C92\u6709\u7248\u672C\u6B77\u53F2\u3002",
+  "view.recent-changes.menu.show-diff": "\u986F\u793A\u5DEE\u7570",
+  "view.recent-changes.menu.restore": "\u9084\u539F\u6B64\u7248\u672C",
+  "view.recent-changes.menu.delete": "\u522A\u9664\u7248\u672C",
+  "view.recent-changes.menu.put-label": "\u52A0\u4E0A\u6A19\u7C64",
+  "modal.label-selected": "\u70BA\u6240\u9078\u7248\u672C\u52A0\u4E0A\u6A19\u7C64",
+  "modal.label-version.message": "\u4EE5\u7C21\u77ED\u6A19\u7C64\u6A19\u8A18\u6B64\u7248\u672C\u3002",
+  "notice.no-folder-history": "\u5C1A\u7121\u8CC7\u6599\u593E\u6B77\u53F2\u3002",
+  "setting.max-deleted-entries.name": "\u5DF2\u522A\u9664\u6A94\u6848\u7684\u6700\u5927\u4FDD\u5B58\u6578",
+  "setting.max-deleted-entries.desc": "\u78C1\u789F\u4E0A\u4FDD\u7559\u7684\u5DF2\u522A\u9664\u6A94\u6848\u6B77\u53F2\u6578\u91CF\u4E0A\u9650\u3002\u6700\u820A\u7684\u6700\u5148\u88AB\u6E05\u9664\u3002\u8A2D\u70BA 0 \u53EF\u505C\u7528\u3002",
+  "setting.max-deleted-age-days.name": "\u5DF2\u522A\u9664\u6B77\u53F2\u7684\u6700\u9577\u4FDD\u5B58\u671F (\u5929)",
+  "setting.max-deleted-age-days.desc": "\u6E05\u9664\u8D85\u904E\u6B64\u5929\u6578\u7684\u5DF2\u522A\u9664\u6A94\u6848\u6B77\u53F2\u3002\u8A2D\u70BA 0 \u53EF\u505C\u7528\u3002",
+  "folder-tree.empty": "\u5728\u6240\u9078\u6642\u9593\u9EDE,\u6B64\u8CC7\u6599\u593E\u6C92\u6709\u8B8A\u66F4\u3002",
+  "modal.folder.filter-files": "\u4F9D\u540D\u7A31\u7BE9\u9078\u6A94\u6848",
+  "modal.folder.timeline.capture": "\u5DF2\u64F7\u53D6",
+  "modal.folder.timeline.delete": "\u5DF2\u522A\u9664",
+  "modal.folder.timeline.move-in": "\u79FB\u5165",
+  "modal.folder.notice.no-file": "\u672A\u9078\u64C7\u6A94\u6848\u3002",
+  "modal.folder.notice.added": "\u6A94\u6848\u5728\u6B64\u6642\u9593\u9EDE\u4E4B\u5F8C\u88AB\u65B0\u589E\u3002",
+  "modal.folder.notice.deleted": "\u6A94\u6848\u5728\u6B64\u6642\u9593\u9EDE\u4E4B\u5F8C\u88AB\u522A\u9664\u3002",
+  "modal.folder.notice.unchanged": "\u81EA\u6B64\u6642\u9593\u9EDE\u4EE5\u4F86\u6C92\u6709\u8B8A\u66F4\u3002",
+  "version.badge.external": "\u5916\u90E8",
+  "setting.exclude-paths-case-sensitive.name": "\u5340\u5206\u5927\u5C0F\u5BEB\u7684\u8DEF\u5F91\u6392\u9664",
+  "setting.exclude-paths-case-sensitive.desc": "\u555F\u7528\u5F8C,\u6392\u9664\u8DEF\u5F91\u7684\u6B63\u898F\u8868\u793A\u5F0F\u5C07\u5340\u5206\u5927\u5C0F\u5BEB\u9032\u884C\u6BD4\u5C0D(\u4E0D\u5E36 'i' \u65D7\u6A19)\u3002\u505C\u7528\u5247\u5FFD\u7565\u5927\u5C0F\u5BEB:\u9019\u662F\u9810\u8A2D\u503C,\u5728\u4E0D\u5340\u5206\u5927\u5C0F\u5BEB\u7684\u6A94\u6848\u7CFB\u7D71\u4E0A\u904B\u4F5C\u826F\u597D\u3002",
+  "setting.purge-excluded.name": "\u6E05\u9664\u6392\u9664\u8DEF\u5F91\u7684\u6B77\u53F2",
+  "setting.purge-excluded.desc": "\u522A\u9664\u8DEF\u5F91\u76EE\u524D\u7B26\u5408\u6392\u9664\u8DEF\u5F91\u6A21\u5F0F\u7684\u6A94\u6848\u7684\u6240\u6709\u5DF2\u5132\u5B58\u6B77\u53F2\u3002\u5DF2\u522A\u9664\u6A94\u6848\u7684\u8A18\u9304\u4E5F\u6703\u4E00\u4F75\u79FB\u9664\u3002\u6B64\u64CD\u4F5C\u7121\u6CD5\u5FA9\u539F\u3002",
+  "notice.purge-excluded": "\u672C\u6A5F\u6B77\u53F2:\u5DF2\u6E05\u9664\u6392\u9664\u8DEF\u5F91\u7684 {count} \u500B\u5FEB\u7167\u3002",
+  "notice.purge-excluded.no-match": "\u672C\u6A5F\u6B77\u53F2:\u6C92\u6709\u8207\u6392\u9664\u8DEF\u5F91\u76F8\u7B26\u7684\u5DF2\u5132\u5B58\u6B77\u53F2\u3002",
+  "setting.reading-mode-indicator.name": "\u5728\u95B1\u8B80\u6A21\u5F0F\u4E2D\u986F\u793A\u6307\u793A\u5668",
+  "setting.reading-mode-indicator.desc": "\u5728\u95B1\u8B80\u6A21\u5F0F\u4E2D\u70BA\u5448\u73FE\u7684\u5340\u584A\u52A0\u4E0A\u5F69\u8272\u5DE6\u908A\u6846,\u984F\u8272\u8207\u5373\u6642\u7DE8\u8F2F\u6307\u793A\u5668\u4E00\u81F4(\u8B8A\u66F4\u3001\u65B0\u589E\u3001\u7A7A\u767D\u3001\u9084\u539F)\u3002\u9810\u8A2D\u95DC\u9589;\u6BCF\u6B21\u95B1\u8B80\u6A21\u5F0F\u91CD\u65B0\u5448\u73FE\u6642\u6BCF\u500B\u5340\u584A\u6709\u5C11\u91CF\u8CA0\u64D4\u3002"
 };
 
 // src/helpers/i18n.helper.ts
@@ -14590,7 +14637,7 @@ var FolderTreeComponent = class {
   }
   /**
    * Builds an in-memory tree from the changed-file entries. Entries whose
-   * status is `'none'` are skipped (D9: only changed files render). Paths
+   * status is `'none'` are skipped (only changed files render). Paths
    * outside the root are skipped too, matching `FolderTimelineHelper`'s prefix
    * semantics so the component is robust to a caller passing the whole map.
    *
@@ -14798,7 +14845,7 @@ var FolderTreeComponent = class {
   /**
    * Renders the empty-state hint when the tree contains no changed files. The
    * text flows through `plugin.t('folder-tree.empty')` so every bundled catalog
-   * carries it (T15). Unit tests that mount the component without a translator
+   * carries it. Unit tests that mount the component without a translator
    * see the bare key (the inert translator path), which is acceptable for an
    * assertion that the empty branch was rendered.
    *
@@ -14948,12 +14995,11 @@ var FolderTreeComponent = class {
     }
   }
   /**
-   * Renders the inline external-change badge on a file row (D13, T20): a
+   * Renders the inline external-change badge on a file row: a
    * Lucide `download-cloud` glyph plus a short text label, marked with an
    * `aria-label` so assistive tech announces the badge. The text is an inline
-   * English literal here and is propagated to every catalog in T15 (D13
-   * pattern); until then it shows in English on every locale even when the
-   * translator is wired, matching the rest of the folder modal's inline
+   * English literal here and is propagated to every catalog; until then it
+   * shows in English on every locale even when the translator is wired, matching the rest of the folder modal's inline
    * literals (see FolderHistoryModal.kindLabel).
    *
    * @param {HTMLElement} row - The file row to append the badge to
@@ -14966,7 +15012,10 @@ var FolderTreeComponent = class {
     const badge = DomHelper.create({
       tag: "span",
       classes: "lct-version-external-badge",
-      attributes: { "aria-label": text, "title": text },
+      // `aria-label` only (no `title`): Obsidian renders its own styled tooltip
+      // for `[aria-label]` elements, while `title` adds the unstyled native
+      // browser tooltip on top.
+      attributes: { "aria-label": text },
       container: row
     });
     const slot = DomHelper.create({
@@ -14984,7 +15033,7 @@ var FolderTreeComponent = class {
   }
   /**
    * Maps the delta status to its row class. The three statuses are stable
-   * tokens the modal CSS hooks into (T14); rows with status `'none'` never
+   * tokens the modal CSS hooks into; rows with status `'none'` never
    * reach this code path because they are filtered in {@link build}.
    *
    * @param {FolderDeltaStatus} status - The per-file delta status
@@ -15284,7 +15333,7 @@ var FolderTimelineHelper = class _FolderTimelineHelper {
   /**
    * Resolves the vault-relative path of a snapshot. Prefers the attached
    * `file.path` (live snapshots own a `TFile`), and falls back to the
-   * snapshot's carried `path` (epic 12), which mirrors the canonical map key in
+   * snapshot's carried `path`, which mirrors the canonical map key in
    * `SnapshotsService.fileSnapshots`. The fallback is what keeps a restored
    * snapshot whose `file` did not resolve (restore miss, detached tombstone or
    * orphan) on the timeline after a reload, instead of being dropped by an empty
@@ -15346,7 +15395,7 @@ var FolderActionHandler = class {
   }
   /**
    * Handler for the "Restore selected version" toolbar button. The version
-   * closest to T is restored on the tree-selected file (D10/AC1). When T
+   * closest to T is restored on the tree-selected file. When T
    * precedes every captured version, the synthetic baseline branch writes the
    * `compareAt` base back through {@link SnapshotsService.applyContent} so the
    * file's earliest known content is still restorable. When the selected file
@@ -15432,7 +15481,7 @@ var FolderActionHandler = class {
   }
   /**
    * Handler for the "Remove selected version" toolbar button. Drops the version
-   * closest to T from the tree-selected file's timeline (D10/AC2), then
+   * closest to T from the tree-selected file's timeline, then
    * re-synthesises the folder timeline and re-renders the tree so the rail and
    * the per-file delta reflect the removed point. A no-op for a tombstone with
    * no captured version at T (there is nothing to remove without violating the
@@ -15472,7 +15521,7 @@ var FolderActionHandler = class {
   /**
    * Handler for the "Label selected version" toolbar button. Routes the version
    * closest to T through {@link ModalsService.labelVersion} so the label prompt
-   * and the cancel/blank no-op contract match the file modal exactly (D10/AC3).
+   * and the cancel/blank no-op contract match the file modal exactly.
    * A no-op for a tombstone whose snapshot has no live `file` reference (the
    * modals service resolves the label target by file).
    *
@@ -15758,7 +15807,7 @@ var WordDiffHelper = class _WordDiffHelper {
    * The choice of word-overlap ratio over normalized Levenshtein is deliberate:
    * it is O(n+m) in the number of words (after building a frequency map) and
    * captures semantic similarity better than character-edit distance for typical
-   * prose and identifier-heavy code lines (see DECISIONS.md ADR-18-16).
+   * prose and identifier-heavy code lines.
    *
    * @param {string} a - First line
    * @param {string} b - Second line
@@ -15791,7 +15840,7 @@ var WordDiffHelper = class _WordDiffHelper {
    * appends a trailing newline to every block, which would otherwise yield a
    * spurious empty final line, so a single trailing newline is dropped before
    * splitting. The single line-ending normalization point for the diff surface
-   * (ADR-08-G): split on `/\r?\n/` so CRLF content does not leave a stray `\r`
+   *: split on `/\r?\n/` so CRLF content does not leave a stray `\r`
    * on every row.
    *
    * @param {string} value - The raw block value from the diff library
@@ -18118,7 +18167,7 @@ var FolderDiffRenderer = class {
   /**
    * Picks the inline-English notice text for the selected file's status, or
    * null when no banner is needed (status `'modified'` reads on its own).
-   * The literal strings are propagated across every catalog in T15.
+   * The literal strings are propagated across every catalog.
    *
    * @param {FolderDeltaResult | null} result - The compareAt result
    * @return {string | null} The notice text or null when the banner is hidden
@@ -18174,8 +18223,10 @@ var ExternalBadgeHelper = class {
    * Builds the inline external-change badge config. The icon id ships as
    * `data-icon` on the wrapper so {@link paint} can mount the glyph after
    * DomHelper builds the config tree; the text is rendered as both the visible
-   * label and the accessible name (`aria-label` / `title`) so assistive tech
-   * announces the marker.
+   * label and the accessible name (`aria-label`) so assistive tech announces the
+   * marker. `aria-label` (not `title`) is used on purpose: Obsidian renders its
+   * own styled tooltip for `[aria-label]` elements, while `title` would add the
+   * unstyled native browser tooltip on top.
    *
    * @param {string} text - The locale-resolved badge label
    * @return {DomElementConfig} The badge element config
@@ -18184,7 +18235,7 @@ var ExternalBadgeHelper = class {
     return {
       tag: "span",
       classes: "lct-version-external-badge",
-      attributes: { "aria-label": text, "title": text, "data-icon": this.iconId },
+      attributes: { "aria-label": text, "data-icon": this.iconId },
       children: [
         { tag: "span", classes: "lct-version-external-badge-icon" },
         { tag: "span", classes: "lct-version-external-badge-text", text }
@@ -18270,7 +18321,7 @@ var FolderTimelineRenderer = class {
   }
   /**
    * Whether the given timeline point comes from an external-change capture
-   * (D13, T20). Only `'capture'` points map back to a `FileVersion` via
+   *. Only `'capture'` points map back to a `FileVersion` via
    * `versionId`; `'delete'` and `'move-in'` markers stay non-external. A
    * point whose path or version is no longer in the map (e.g. removed by a
    * destructive action after resync) returns false defensively.
@@ -18326,7 +18377,7 @@ var FolderTimelineRenderer = class {
   }
   /**
    * Returns a short, inline-English label for a timeline point kind. The
-   * literal strings are propagated across every catalog in T15 (D13 pattern);
+   * literal strings are propagated across every catalog;
    * until then, the labels show as English on every locale.
    *
    * @param {FolderTimelinePoint['kind']} kind - The discriminator
@@ -18376,7 +18427,7 @@ var FolderHistoryModal = class extends import_obsidian18.Modal {
     this.app = app;
     this.plugin = plugin;
     /**
-     * Currently selected display mode; same enum the file modal uses (D6).
+     * Currently selected display mode; same enum the file modal uses.
      */
     this.currentDisplayMode = "side-by-side" /* side */;
     /**
@@ -18406,7 +18457,7 @@ var FolderHistoryModal = class extends import_obsidian18.Modal {
    * sees the live timeline, selected T, rail container, and snapshot map, and
    * the `selectTimestamp` callback routes a picked point back through the
    * modal's own re-pin path (rail + tree + diff). Mirrors the host-port pattern
-   * the file modal's VersionList / GutterRevert collaborators use (T04 / T05):
+   * the file modal's VersionList / GutterRevert collaborators use:
    * the renderer never sees the modal's protected fields directly.
    *
    * @return {FolderTimelineHost} The host port for the timeline renderer
@@ -18430,8 +18481,8 @@ var FolderHistoryModal = class extends import_obsidian18.Modal {
    * mode, the selected T, the tree's selected file, and the snapshot map; the
    * `onDiffRendered` callback routes the post-render refresh of the toolbar
    * action-button states back to the modal, which still owns the toolbar.
-   * Mirrors the host-port pattern the timeline renderer (T07) and the file
-   * modal's collaborators (T04 / T05) use: the renderer never sees the modal's
+   * Mirrors the host-port pattern the timeline renderer and the file
+   * modal's collaborators use: the renderer never sees the modal's
    * protected fields directly.
    *
    * @return {FolderDiffHost} The host port for the diff renderer
@@ -18457,7 +18508,7 @@ var FolderHistoryModal = class extends import_obsidian18.Modal {
    * selection / closest-version derivations and the snapshot-map mutation +
    * rail / tree / diff re-render are routed back to the modal so the handler
    * never owns the timeline or the snapshot map directly. Mirrors the host-port
-   * pattern the timeline (T07) and diff (T08) renderers use: the handler never
+   * pattern the timeline and diff renderers use: the handler never
    * sees the modal's protected fields directly.
    *
    * @return {FolderActionHost} The host port for the action handler
@@ -18589,7 +18640,7 @@ var FolderHistoryModal = class extends import_obsidian18.Modal {
    * file rows by name (case-insensitive substring) through
    * {@link FolderTreeComponent.setNameFilter}; it never touches the timeline,
    * the diff, or the selection. The placeholder flows through `plugin.t` with an
-   * inline-English fallback (D13 pattern) so it reads sensibly before the key is
+   * inline-English fallback so it reads sensibly before the key is
    * propagated to every catalog.
    */
   renderTreeSearch() {
@@ -18604,7 +18655,7 @@ var FolderHistoryModal = class extends import_obsidian18.Modal {
     });
   }
   /**
-   * Builds the toolbar in the same shape the file modal uses (D10):
+   * Builds the toolbar in the same shape the file modal uses:
    * a destructive group (restore-original / remove-history) pinned to the
    * left, a constructive group (restore-selected / remove-selected /
    * label-selected) keyed on the tree-selected file at the picked timeline
@@ -18837,7 +18888,7 @@ var FolderHistoryModal = class extends import_obsidian18.Modal {
   }
   /**
    * Renders the diff for the currently-selected file at the currently-selected
-   * T by delegating to the {@link FolderDiffRenderer} collaborator (T08). The
+   * T by delegating to the {@link FolderDiffRenderer} collaborator. The
    * renderer reads the live containers / mode / T / selection through its host
    * port and calls back into {@link updateActionButtonStates} after each render
    * so the toolbar stays in sync.
@@ -18857,7 +18908,7 @@ var FolderHistoryModal = class extends import_obsidian18.Modal {
   }
   /**
    * Resolves the captured version of the given snapshot whose timestamp is
-   * closest to (but not after) the picked timeline point T (D10). Returns null
+   * closest to (but not after) the picked timeline point T. Returns null
    * when no version qualifies, i.e. when T precedes every captured version: the
    * caller falls back to the synthetic baseline branch in that case so the user
    * can still restore the file's earliest known content.
@@ -19772,7 +19823,7 @@ var VersionList = class {
   }
   /**
    * Returns the primary label shown for a captured version: the user's custom
-   * label when present (D1), otherwise the derived action text translated from
+   * label when present, otherwise the derived action text translated from
    * VersionLabelHelper.describe against the version's previous neighbour. For
    * the oldest version on the timeline the previous neighbour is the history
    * baseline.
@@ -19891,7 +19942,7 @@ var VersionList = class {
   /**
    * Builds a single selectable version list entry config.
    * The active entry carries a highlight class; clicking selects that base. A
-   * version captured from an external change (D13, T18) renders a small badge
+   * version captured from an external change renders a small badge
    * next to the primary label so the user can tell external states apart from
    * editor edits without opening the diff.
    *
@@ -19969,7 +20020,7 @@ var HistoryModal = class extends import_obsidian20.Modal {
     this.plugin = plugin;
     this.snapshot = snapshot;
     /**
-     * Side-by-side scroll-synchronisation collaborator the modal owns (T03). It
+     * Side-by-side scroll-synchronisation collaborator the modal owns. It
      * carries the deferred-setup timer and the per-container listener cleanup
      * that previously lived on the modal; it reads the live diff container back
      * through the resolver so it can bail when the container is swapped mid-flight.
@@ -19978,7 +20029,7 @@ var HistoryModal = class extends import_obsidian20.Modal {
       () => this.diffContainerEl
     );
     /**
-     * Version-list collaborator the modal owns (T04). It renders the left-rail
+     * Version-list collaborator the modal owns. It renders the left-rail
      * timeline, walks the selection with the keyboard, and derives the per-row
      * labels/deltas; it reads the live selection and the search/hide-identical
      * filters back through the host adapter below and reports a selection change
@@ -19986,7 +20037,7 @@ var HistoryModal = class extends import_obsidian20.Modal {
      */
     this.versionList = new VersionList(this.makeVersionListHost());
     /**
-     * Gutter-revert collaborator the modal owns (T05). It decorates each rendered
+     * Gutter-revert collaborator the modal owns. It decorates each rendered
      * hunk with an anchor marker and an inline revert affordance, resolves the
      * anchor row across every diff render mode, and reverts a single hunk on click;
      * it reads the live diff container, display mode, and hunks back through the
@@ -19995,7 +20046,7 @@ var HistoryModal = class extends import_obsidian20.Modal {
      */
     this.gutterReverts = new GutterRevertHandler(this.makeGutterRevertHost());
     /**
-     * Diff-view-state collaborator the modal owns (T06). It holds the diff-view
+     * Diff-view-state collaborator the modal owns. It holds the diff-view
      * state - the selected base, the active display mode, the focused hunk index,
      * the hide-identical rail filter, and the content-search query - together with
      * the toolbar mode/nav button registries, and owns the active-mode highlight,
@@ -20124,7 +20175,7 @@ var HistoryModal = class extends import_obsidian20.Modal {
   /**
    * Labels the selected version in place: prompts for a tag through the shared
    * ModalsService.labelVersion entry point and, on a non-empty result, marks
-   * that captured version (D1/D6). Unlike the editor-submenu Put label, which
+   * that captured version. Unlike the editor-submenu Put label, which
    * pins the current content as a new version, this tags the slice the user is
    * looking at in the rail. A no-op for the synthetic baseline (the button is
    * disabled there anyway) and for a cancelled/blank prompt. On success the
@@ -20259,7 +20310,7 @@ var HistoryModal = class extends import_obsidian20.Modal {
   /**
    * Resolves the base to select when the modal opens. With an open option
    * `initialBaseId` naming a real version the modal opens focused on that
-   * version (D4); otherwise it defaults to the latest captured version (the top
+   * version; otherwise it defaults to the latest captured version (the top
    * of the rail, showing what changed since the last save), or the Original
    * entry when the file has no snapshots yet. An unknown `initialBaseId` falls
    * back to the default so a stale id never leaves the modal pointing at
@@ -20301,7 +20352,7 @@ var HistoryModal = class extends import_obsidian20.Modal {
    * Creates the UI elements for the diff view.
    *
    * With the `hideRail` open option the left rail (search + version list) is
-   * not rendered and the diff/toolbar fill the modal (D4). The panel uses this
+   * not rendered and the diff/toolbar fill the modal. The panel uses this
    * mode so it stays the sole navigator and there are no two competing version
    * lists side by side. Without the option the rail is built as before.
    */
@@ -20695,7 +20746,7 @@ var HistoryModal = class extends import_obsidian20.Modal {
    * the current values), plus the selectBase callback the component reports a
    * pick to. Keeping the modal's selection/filter fields protected and handing
    * the collaborator a narrow port preserves the encapsulation the DiffScrollSync
-   * resolver established (T03).
+   * resolver established.
    *
    * @return {VersionListHost} The host port for the version-list collaborator
    */
@@ -20719,7 +20770,7 @@ var HistoryModal = class extends import_obsidian20.Modal {
    * and routes the post-decoration nav refresh and the post-revert redraw back
    * to the modal. Keeping the modal's diff fields protected and handing the
    * collaborator a narrow port preserves the encapsulation the VersionList host
-   * established (T04).
+   * established.
    *
    * @return {GutterRevertHost} The host port for the gutter-revert collaborator
    */
@@ -20745,7 +20796,7 @@ var HistoryModal = class extends import_obsidian20.Modal {
    * lazy accessors so the state's hunk focus and the nav-button enablement
    * always reflect the rendered diff. Keeping the modal's diff container
    * protected and handing the collaborator a narrow port preserves the
-   * encapsulation the GutterRevertHost established (T05).
+   * encapsulation the GutterRevertHost established.
    *
    * @return {DiffViewStateHost} The host port for the diff-view-state collaborator
    */
@@ -20780,7 +20831,7 @@ var HistoryModal = class extends import_obsidian20.Modal {
    * intermediate version resolves to that version's captured content. The
    * synthetic baseline entry (or a stale id whose version no longer exists)
    * resolves to the LATEST captured snapshot, falling back to the original only
-   * when no snapshot exists (D1). The branch logic lives in the pure
+   * when no snapshot exists. The branch logic lives in the pure
    * BaseContentHelper so it can be unit-tested without the modal DOM.
    *
    * @return {string} The base content to diff the current state against
@@ -21098,7 +21149,7 @@ var ModalsService = class {
    * (preview) mode as in source mode; only the inline line highlights are
    * editor-only.
    *
-   * Optional open options (D4) let a caller pre-select a specific base version
+   * Optional open options let a caller pre-select a specific base version
    * and hide the left rail. With no options the modal behaves exactly as
    * before: the rail is visible and the latest captured version is selected.
    *
@@ -21116,7 +21167,7 @@ var ModalsService = class {
   }
   /**
    * Opens the history modal filtered to versions where the supplied selection
-   * text was added or removed at that point on the timeline (D7/T09). The
+   * text was added or removed at that point on the timeline. The
    * filter is precomputed via the pure SelectionHistoryHelper so the modal
    * just applies the resulting id set as a rail filter.
    *
@@ -21153,7 +21204,7 @@ var ModalsService = class {
     return true;
   }
   /**
-   * Opens the folder history modal for the given folder (D5/T12). Filters the
+   * Opens the folder history modal for the given folder. Filters the
    * service's snapshot map to the folder's prefix (live snapshots and
    * tombstones alike: a deleted file still anchors at its last-known path),
    * and opens {@link FolderHistoryModal} against that subtree. When no
@@ -21162,8 +21213,8 @@ var ModalsService = class {
    * returns false, mirroring the `diff()` contract for files without history.
    *
    * The notice string is intentionally an inline English literal so the i18n
-   * parity guard stays green; T15 propagates it across the 44 bundled catalogs
-   * together with every other epic-05 string.
+   * parity guard stays green; it is propagated across the 44 bundled
+   * catalogs together with the other inline literals.
    *
    * @param {TFolder} folder - The folder whose history should be shown
    * @return {boolean} True when the modal was opened, false on an empty subtree
@@ -21218,7 +21269,7 @@ var ModalsService = class {
     return await modal.confirm();
   }
   /**
-   * Shows a single-input prompt dialog with the specified configuration (D8).
+   * Shows a single-input prompt dialog with the specified configuration.
    * Creates a PromptModal instance and returns a promise that resolves to the
    * entered text, or `null` when the user cancels or otherwise closes the
    * modal without confirming. Used by "Put label" to collect a free-text
@@ -21233,8 +21284,8 @@ var ModalsService = class {
   }
   /**
    * Captures a pinned labeled version of the file's current content by first
-   * asking the user for a label through the PromptModal (D8) and then handing
-   * the trimmed result to VersionActionsService.putLabel (D6). A cancelled
+   * asking the user for a label through the PromptModal and then handing
+   * the trimmed result to VersionActionsService.putLabel. A cancelled
    * prompt or an empty/whitespace label is a silent no-op so the user can back
    * out without polluting the timeline; a missing snapshot is also a no-op so
    * an untracked file does not surface a confusing error.
@@ -21269,7 +21320,7 @@ var ModalsService = class {
   }
   /**
    * Labels an EXISTING captured version: asks for a tag through the PromptModal
-   * (D8) and forwards the trimmed result to
+   * and forwards the trimmed result to
    * VersionActionsService.label. Unlike {@link putLabel}, which pins the
    * file's CURRENT content as a new version, this marks the version the caller
    * picked (a Recent changes row, or the modal's selected base), so the label
@@ -21432,7 +21483,7 @@ var HistoryShardStore = class {
   }
   /**
    * Reads every shard back into memory by enumerating the shard directory, which
-   * is the source of truth (Epic 10, ADR-10): there is no manifest, so a missing
+   * is the source of truth (ADR-10): there is no manifest, so a missing
    * shard simply is not listed and a corrupt one degrades exactly one note. Each
    * base name is recovered through {@link readShard}'s `.json -> .bak -> .tmp`
    * fallback, so a crash between the write's rename steps never loses a note.
@@ -21487,7 +21538,7 @@ var HistoryShardStore = class {
   }
   /**
    * Removes one shard by base name, deleting its `<name>`, `<name>.bak`, and
-   * `<name>.tmp` variants if present. Used by the policy layer (Epic 10, T07/T14)
+   * `<name>.tmp` variants if present. Used by the policy layer
    * to evict a shard whose snapshot fell out of retention's kept set. Best-effort
    * and idempotent: a missing variant is fine and a per-variant failure is logged,
    * not thrown, so reconciling the index against disk can never abort on one
@@ -21510,7 +21561,7 @@ var HistoryShardStore = class {
   }
   /**
    * Wipes the whole shard directory, used when persistence is disabled or there
-   * is nothing left to keep (Epic 10, T08). Mirrors the monolith's `clearDisk`
+   * is nothing left to keep. Mirrors the monolith's `clearDisk`
    * (`PersistenceService`) at directory scope: remove the dir recursively if it
    * exists, swallowing and logging any failure rather than throwing, so disabling
    * persistence never surfaces an error to the caller.
@@ -21528,7 +21579,7 @@ var HistoryShardStore = class {
   }
   /**
    * Lists the base shard names currently on disk, derived from the directory
-   * enumeration (the source of truth, Epic 10, ADR-10) the same way {@link readAll}
+   * enumeration (the source of truth, ADR-10) the same way {@link readAll}
    * does, so an orphan `.bak`/`.tmp` maps back to its primary name and is reported
    * once. Lets the policy layer reconcile its in-memory path-to-shard index
    * against disk without reading shard contents. An absent directory yields an
@@ -21593,7 +21644,7 @@ var HistoryShardStore = class {
    * numeric `version` and a `snapshot` whose minimal shape (path string, finite
    * timestamp, `lines`/`tracker` arrays) survives retention math and reaches
    * `FileSnapshot.fromJSON` without resurrecting junk. This mirrors the
-   * per-entry predicate that the monolithic `readDisk` applied (ADR-08-B), now
+   * per-entry predicate that the monolithic `readDisk` applied, now
    * at shard granularity.
    *
    * @param {unknown} value - The parsed shard candidate.
@@ -21680,7 +21731,7 @@ var PersistenceService = class {
      * so writes run strictly in submission order and `unload` can await the
      * tail to flush the queue before the plugin tears down.
      *
-     * ADR-08-A: scheduleSave, unload, restoreFromDisk's re-save, and the
+     * scheduleSave, unload, restoreFromDisk's re-save, and the
      * settings-toggle path all hit the same file; without one chain they race
      * `adapter.write` and last-writer-wins is non-deterministic.
      */
@@ -21695,7 +21746,7 @@ var PersistenceService = class {
     /**
      * In-memory map of vault-relative note path to the shard that persists it
      * (filename + content digest). Seeded from disk on restore and maintained by
-     * the save path (Epic 10, T07): it is the source of truth for dirty-tracking
+     * the save path: it is the source of truth for dirty-tracking
      * (skip a shard whose digest is unchanged) and collision-aware naming (probe a
      * suffix when two distinct paths hash to the same filename).
      */
@@ -21791,7 +21842,7 @@ var PersistenceService = class {
    * (`retention.maxDeletedEntries` / `retention.maxDeletedAgeDays`).
    * A cap of 0 disables that dimension for its bucket.
    *
-   * Live files are no longer age-pruned (the prior D4 contract dropped live
+   * Live files are no longer age-pruned (the prior contract dropped live
    * entries past `retention.maxAgeDays`). That dropped age dimension caused a
    * total-history wipe: in an idle vault every live snapshot eventually ages
    * past `maxAgeDays`, retention then returned an empty set, and the save path
@@ -21803,7 +21854,7 @@ var PersistenceService = class {
    *
    * Byte-budget (global maxStorageBytes) is intentionally out of scope. The
    * existing multi-dimensional count-cap policy (maxEntries, maxDeletedEntries,
-   * maxVersions) is accepted as the retention strategy (ADR-18-27). A byte-budget
+   * maxVersions) is accepted as the retention strategy. A byte-budget
    * dimension adds implementation complexity - it requires summing encoded sizes
    * across shards and is sensitive to codec changes - without meaningfully
    * improving the user-observable storage behaviour that count caps already bound.
@@ -21928,7 +21979,7 @@ var PersistenceService = class {
   /**
    * Serializes the current snapshots and reconciles them to the shard directory.
    * Applies retention first so the on-disk set stays within caps, then writes
-   * only the shards whose content changed (dirty-only, Epic 10 T07) and removes
+   * only the shards whose content changed (dirty-only) and removes
    * shards for paths that left the kept set. Removes everything when persistence
    * is disabled or nothing is left.
    *
@@ -21990,7 +22041,7 @@ var PersistenceService = class {
    * the astronomically-rare 64-bit hash collision. The base name is the path
    * hash; if a different path already holds it in the index, a numeric suffix is
    * linear-probed until free so two distinct notes never share a filename and one
-   * can never silently overwrite another (Epic 10 DECISIONS).
+   * can never silently overwrite another.
    *
    * @param {string} path - The vault-relative note path to name a shard for
    * @return {string} A shard filename not currently held by any other path
@@ -22030,12 +22081,12 @@ var PersistenceService = class {
   }
   /**
    * Migrates a legacy monolithic `history.json` into per-note shards exactly once
-   * (Epic 10, T09). Runs only when the shard directory holds no shards yet but a
+   *. Runs only when the shard directory holds no shards yet but a
    * legacy file (or its `.bak`) still exists and parses: each legacy snapshot is
    * written as its own shard, then the legacy `history.json`/`.bak`/`.tmp` files
    * are removed. The shard `version` is carried through from the legacy file (no
    * re-encode), so a version-1 or version-2 monolith migrates byte-for-byte per
-   * snapshot whether or not Epic 09's delta codec has landed.
+   * snapshot whether or not the delta codec has landed.
    *
    * Failure-safe: a write failure aborts before any legacy file is removed and
    * logs, so the legacy file stays intact and the next restore retries. Once
@@ -22088,13 +22139,13 @@ var PersistenceService = class {
   }
   /**
    * Reads and parses the legacy on-disk monolith, the one-time migration source
-   * (Epic 10, T09). Tries the primary `history.json` first and falls back to its
+   *. Tries the primary `history.json` first and falls back to its
    * `.bak` sibling so a crash between the monolith's old `tmp -> bak -> rename`
    * steps still yields a usable source. Returns null when neither variant is
    * present or parses, so the migration caller treats a missing/corrupt monolith
    * as "nothing to migrate" rather than throwing.
    *
-   * Per-entry validation (ADR-08-B): each snapshot is checked against a minimal
+   * Per-entry validation: each snapshot is checked against a minimal
    * shape predicate (`isValidEntry`) and malformed entries are skipped so a few
    * bad records do not poison retention math (`NaN >= oldest` is always false,
    * silently dropping otherwise-valid entries) or crash downstream `fromJSON`.
@@ -22171,8 +22222,7 @@ var PersistenceService = class {
    * disabled truly means nothing is left behind. Delegates the directory wipe to
    * {@link HistoryShardStore.clearAll} (which swallows and logs its own IO
    * failures) and then empties {@link shardIndex} so the next save re-allocates
-   * shard names from a clean slate rather than reusing stale digests (Epic 10,
-   * T08).
+   * shard names from a clean slate rather than reusing stale digests.
    *
    * @return {Promise<void>} Resolves once the directory is gone and the index is empty
    */
@@ -22192,7 +22242,7 @@ var PersistenceService = class {
   /**
    * Resolves the vault-relative path of the per-note shard directory inside the
    * plugin folder. Resolved the same way as {@link getHistoryPath} but pointing
-   * at `<plugindir>/history` (Epic 10, ADR-10).
+   * at `<plugindir>/history` (ADR-10).
    *
    * @return {string} The vault-relative path to the shard directory
    */
@@ -22380,280 +22430,613 @@ var PathExcludeHelper = _PathExcludeHelper;
 // src/settings/main.setting.ts
 var import_obsidian23 = require("obsidian");
 var MainSetting = class extends import_obsidian23.PluginSettingTab {
+  constructor() {
+    super(...arguments);
+    /**
+     * Every dynamic row currently in the excluded-paths group (the empty-state
+     * hint, pattern rows, and the unsaved new-pattern row). Tracked so
+     * {@link refreshPatternRows} can remove exactly the rows this editor owns,
+     * leaving the group header, its "+" button, and the static rows intact.
+     */
+    this.excludeRows = [];
+  }
   /**
-   * Renders the settings UI.
-   * Creates and configures all settings elements in the settings tab.
-   * Organizes settings into logical sections:
-   * - Indicator type (line or dot in gutter)
-   * - History retention options
-   * - Toggle switches for different change types (changed, restored, added, removed)
-   * - Line indicator width configuration
-   * - Gutter indicator character customization
-   *
-   * Each setting is bound to the corresponding value in the plugin settings
-   * and updates the settings when changed.
+   * Renders the settings UI as native setting groups in a fixed order, with
+   * the history-cleanup group (keep strategy, retention caps, purge) last.
+   * Safe to call again on reopen: the container is emptied first.
    */
-  //noinspection JSDeprecatedSymbols
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.type.name")).setDesc(this.plugin.t("setting.type.desc")).addDropdown(
-      (dropdown) => dropdown.addOption("line" /* line */, this.plugin.t("setting.type.option.line")).addOption("dot" /* dot */, this.plugin.t("setting.type.option.dot")).setValue(this.settingsService.value("type")).onChange((value) => {
-        this.settingsService.update("type", value);
-      })
-    );
-    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.allowed-extensions.name")).setDesc(this.plugin.t("setting.allowed-extensions.desc")).addText(
-      (text) => text.setPlaceholder(DEFAULT_SETTINGS.allowedExtensions).setValue(this.settingsService.value("allowedExtensions")).onChange((value) => {
-        this.settingsService.update(
-          "allowedExtensions",
-          value || DEFAULT_SETTINGS.allowedExtensions
-        );
-      })
-    );
+    this.renderGeneral(containerEl);
     this.renderExcludePaths(containerEl);
-    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.exclude-paths-case-sensitive.name")).setDesc(this.plugin.t("setting.exclude-paths-case-sensitive.desc")).addToggle(
-      (toggle) => toggle.setValue(this.settingsService.value("excludePathsCaseSensitive")).onChange((value) => {
-        this.settingsService.update("excludePathsCaseSensitive", value);
-      })
-    );
-    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.purge-excluded.name")).setDesc(this.plugin.t("setting.purge-excluded.desc")).addButton(
-      (button) => button.setButtonText(this.plugin.t("setting.purge-excluded.name")).setWarning().onClick(() => {
-        const count = this.snapshotsService.purgeExcluded();
-        const message = this.plugin.t("notice.purge-excluded").replace("{count}", String(count));
-        new import_obsidian23.Notice(message);
-      })
-    );
-    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.keep.name")).setDesc(this.plugin.t("setting.keep.desc")).addDropdown(
-      (dropdown) => dropdown.addOption("app" /* app */, this.plugin.t("setting.keep.option.app")).addOption("file" /* file */, this.plugin.t("setting.keep.option.file")).setValue(this.settingsService.value("keep")).onChange((value) => {
-        this.settingsService.update("keep", value);
-      })
-    );
-    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.ignore-new-files.name")).setDesc(this.plugin.t("setting.ignore-new-files.desc")).addToggle(
-      (toggle) => toggle.setValue(this.settingsService.value("ignoreNewFiles")).onChange((value) => {
-        this.settingsService.update("ignoreNewFiles", value);
-      })
-    );
-    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.tree-highlight.name")).setDesc(this.plugin.t("setting.tree-highlight.desc")).addToggle(
-      (toggle) => toggle.setValue(this.settingsService.value("treeHighlight")).onChange((value) => {
-        this.settingsService.update("treeHighlight", value);
-      })
-    );
-    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.properties-highlight.name")).setDesc(this.plugin.t("setting.properties-highlight.desc")).addToggle(
-      (toggle) => toggle.setValue(this.settingsService.value("propertiesHighlight")).onChange((value) => {
-        this.settingsService.update("propertiesHighlight", value);
-      })
-    );
-    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.reading-mode-indicator.name")).setDesc(this.plugin.t("setting.reading-mode-indicator.desc")).addToggle(
-      (toggle) => toggle.setValue(this.settingsService.value("readingModeIndicator")).onChange((value) => {
-        this.settingsService.update("readingModeIndicator", value);
-      })
-    );
-    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.persist.name")).setDesc(this.plugin.t("setting.persist.desc")).addToggle(
-      (toggle) => toggle.setValue(this.settingsService.value("persist")).onChange((value) => {
-        this.settingsService.update("persist", value);
-      })
-    );
-    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.max-entries.name")).setDesc(this.plugin.t("setting.max-entries.desc")).addText(
-      (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.retention.maxEntries)).setValue(String(this.settingsService.value("retention.maxEntries"))).onChange((value) => {
-        const count = this.toCount(value, DEFAULT_SETTINGS.retention.maxEntries);
-        this.settingsService.update("retention.maxEntries", count);
-      })
-    );
-    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.max-age-days.name")).setDesc(this.plugin.t("setting.max-age-days.desc")).addText(
-      (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.retention.maxAgeDays)).setValue(String(this.settingsService.value("retention.maxAgeDays"))).onChange((value) => {
-        const days = this.toCount(value, DEFAULT_SETTINGS.retention.maxAgeDays);
-        this.settingsService.update("retention.maxAgeDays", days);
-      })
-    );
-    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.max-deleted-entries.name")).setDesc(this.plugin.t("setting.max-deleted-entries.desc")).addText(
-      (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.retention.maxDeletedEntries)).setValue(String(this.settingsService.value("retention.maxDeletedEntries"))).onChange((value) => {
-        const count = this.toCount(value, DEFAULT_SETTINGS.retention.maxDeletedEntries);
-        this.settingsService.update("retention.maxDeletedEntries", count);
-      })
-    );
-    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.max-deleted-age-days.name")).setDesc(this.plugin.t("setting.max-deleted-age-days.desc")).addText(
-      (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.retention.maxDeletedAgeDays)).setValue(String(this.settingsService.value("retention.maxDeletedAgeDays"))).onChange((value) => {
-        const days = this.toCount(value, DEFAULT_SETTINGS.retention.maxDeletedAgeDays);
-        this.settingsService.update("retention.maxDeletedAgeDays", days);
-      })
-    );
-    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.snapshots-heading")).setHeading();
-    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.snapshots-enabled.name")).setDesc(this.plugin.t("setting.snapshots-enabled.desc")).addToggle(
-      (toggle) => toggle.setValue(this.settingsService.value("snapshots.enabled")).onChange((value) => {
-        this.settingsService.update("snapshots.enabled", value);
-      })
-    );
-    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.snapshots-edit-threshold.name")).setDesc(this.plugin.t("setting.snapshots-edit-threshold.desc")).addText(
-      (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.snapshots.editThreshold)).setValue(String(this.settingsService.value("snapshots.editThreshold"))).onChange((value) => {
-        this.settingsService.update(
-          "snapshots.editThreshold",
-          this.toCount(value, DEFAULT_SETTINGS.snapshots.editThreshold)
-        );
-      })
-    );
-    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.snapshots-interval.name")).setDesc(this.plugin.t("setting.snapshots-interval.desc")).addText(
-      (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.snapshots.intervalMs / 6e4)).setValue(String(this.settingsService.value("snapshots.intervalMs") / 6e4)).onChange((value) => {
-        const minutes = this.toCount(value, DEFAULT_SETTINGS.snapshots.intervalMs / 6e4);
-        this.settingsService.update("snapshots.intervalMs", minutes * 6e4);
-      })
-    );
-    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.max-version-age-days.name")).setDesc(this.plugin.t("setting.max-version-age-days.desc")).addText(
-      (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.snapshots.maxVersionAgeDays)).setValue(String(this.settingsService.value("snapshots.maxVersionAgeDays"))).onChange((value) => {
-        this.settingsService.update(
-          "snapshots.maxVersionAgeDays",
-          this.toCount(value, DEFAULT_SETTINGS.snapshots.maxVersionAgeDays)
-        );
-      })
-    );
-    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.max-versions.name")).setDesc(this.plugin.t("setting.max-versions.desc")).addText(
-      (text) => text.setPlaceholder(String(DEFAULT_SETTINGS.snapshots.maxVersions)).setValue(String(this.settingsService.value("snapshots.maxVersions"))).onChange((value) => {
-        this.settingsService.update(
-          "snapshots.maxVersions",
-          this.toCount(value, DEFAULT_SETTINGS.snapshots.maxVersions)
-        );
-      })
-    );
-    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.show-heading")).setHeading();
-    new import_obsidian23.Setting(containerEl).setDesc(this.plugin.t("setting.show.desc"));
-    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.show.changed")).addToggle(
-      (toggle) => toggle.setValue(this.settingsService.value("show.changed")).onChange((value) => {
-        this.settingsService.update("show.changed", value);
-      })
-    );
-    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.show.restored")).addToggle(
-      (toggle) => toggle.setValue(this.settingsService.value("show.restored")).onChange((value) => {
-        this.settingsService.update("show.restored", value);
-      })
-    );
-    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.show.added")).addToggle(
-      (toggle) => toggle.setValue(this.settingsService.value("show.added")).onChange((value) => {
-        this.settingsService.update("show.added", value);
-      })
-    );
-    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.show.removed")).addToggle(
-      (toggle) => toggle.setValue(this.settingsService.value("show.removed")).onChange((value) => {
-        this.settingsService.update("show.removed", value);
-      })
-    );
-    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.line-heading")).setHeading();
-    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.line-width.name")).setDesc(this.plugin.t("setting.line-width.desc")).addSlider(
-      (slider) => slider.setLimits(1, 5, 1).setValue(this.settingsService.value("line.width")).setDynamicTooltip().onChange((value) => {
-        this.settingsService.update("line.width", value);
-      })
-    );
-    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.gutter-heading.name")).setDesc((() => {
-      return DomHelper.createFragment([
-        {
-          tag: "div",
-          children: [
-            {
-              tag: "span",
-              text: this.plugin.t("setting.gutter-heading.prefix")
-            },
-            {
-              tag: "a",
-              text: "https://symbl.cc/en/unicode-table/",
-              attributes: {
-                href: "https://symbl.cc/en/unicode-table/",
-                target: "_blank"
-              }
-            },
-            {
-              tag: "span",
-              text: this.plugin.t("setting.gutter-heading.suffix")
-            }
-          ]
-        }
-      ]);
-    })()).setHeading();
-    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.gutter-changed.name")).addText((text) => {
-      this.constrainGutterCharInput(text);
-      return text.setPlaceholder(DEFAULT_SETTINGS.gutter.changed).setValue(this.settingsService.value("gutter.changed")).onChange((value) => {
-        this.settingsService.update("gutter.changed", value || DEFAULT_SETTINGS.gutter.changed);
-      });
-    });
-    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.gutter-added.name")).addText((text) => {
-      this.constrainGutterCharInput(text);
-      return text.setPlaceholder(DEFAULT_SETTINGS.gutter.added).setValue(this.settingsService.value("gutter.added")).onChange((value) => {
-        this.settingsService.update("gutter.added", value || DEFAULT_SETTINGS.gutter.added);
-      });
-    });
-    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.gutter-restored.name")).addText((text) => {
-      this.constrainGutterCharInput(text);
-      return text.setPlaceholder(DEFAULT_SETTINGS.gutter.restored).setValue(this.settingsService.value("gutter.restored")).onChange((value) => {
-        this.settingsService.update("gutter.restored", value || DEFAULT_SETTINGS.gutter.restored);
-      });
-    });
-    new import_obsidian23.Setting(containerEl).setName(this.plugin.t("setting.gutter-removed.name")).addText((text) => {
-      this.constrainGutterCharInput(text);
-      return text.setPlaceholder(DEFAULT_SETTINGS.gutter.removed).setValue(this.settingsService.value("gutter.removed")).onChange((value) => {
-        this.settingsService.update("gutter.removed", value || DEFAULT_SETTINGS.gutter.removed);
-      });
-    });
+    this.renderSnapshots(containerEl);
+    this.renderShow(containerEl);
+    this.renderLine(containerEl);
+    this.renderGutter(containerEl);
+    this.renderCleanup(containerEl);
   }
   /**
-   * Renders the structured excluded-paths editor (C3): a header row carrying the
-   * setting name, description, and an "add pattern" button, followed by one
-   * input row per configured pattern. Each row binds a text input to its array
-   * index and a remove (trash) button. The whole section lives in its own
-   * wrapper element so adding or removing a pattern re-renders only this block,
-   * not the entire settings tab.
-   *
-   * Each row live-validates its pattern: a malformed regexp tags the input with
-   * `lct-setting-invalid` and shows a one-time Notice without persisting that
-   * entry, so a typo never silently disables tracking. Valid edits persist the
-   * full array immediately.
+   * Renders the "General" group: indicator type, tracked extensions, the
+   * new-files filter, the three highlight surfaces (file tree, properties
+   * panel, reading mode), and history persistence.
    *
    * @param {HTMLElement} containerEl - The settings tab container
-   * @return {void}
    */
-  renderExcludePaths(containerEl) {
-    const wrapper = containerEl.createDiv({ cls: "lct-exclude-paths" });
-    this.paintExcludePaths(wrapper);
-  }
-  /**
-   * Paints the excluded-paths header and per-pattern rows into the given wrapper,
-   * clearing it first so a re-paint after an add/remove starts from a clean
-   * slate. Splitting the paint out of {@link renderExcludePaths} lets the add and
-   * remove handlers re-run it against the same wrapper element.
-   *
-   * @param {HTMLElement} wrapper - The dedicated exclude-paths section element
-   * @return {void}
-   */
-  paintExcludePaths(wrapper) {
-    wrapper.empty();
-    const patterns = [...this.settingsService.value("excludePaths")];
-    new import_obsidian23.Setting(wrapper).setName(this.plugin.t("setting.exclude-paths.name")).setDesc(this.plugin.t("setting.exclude-paths.desc")).addButton(
-      (button) => button.setButtonText(this.plugin.t("setting.exclude-paths.add")).setCta().onClick(() => {
-        this.settingsService.update("excludePaths", [...patterns, ""]);
-        this.paintExcludePaths(wrapper);
-      })
-    );
-    patterns.forEach((pattern, index) => {
-      let invalidNoticeShown = false;
-      new import_obsidian23.Setting(wrapper).addText(
-        (text) => text.setPlaceholder(this.plugin.t("setting.exclude-paths.placeholder")).setValue(pattern).onChange((value) => {
-          if (!PathExcludeHelper.isValid(value)) {
-            text.inputEl.addClass("lct-setting-invalid");
-            if (!invalidNoticeShown) {
-              new import_obsidian23.Notice(this.plugin.t("notice.invalid-exclude-pattern"));
-              invalidNoticeShown = true;
-            }
-            return;
-          }
-          invalidNoticeShown = false;
-          text.inputEl.removeClass("lct-setting-invalid");
-          const next = [...this.settingsService.value("excludePaths")];
-          next[index] = value;
-          this.settingsService.update("excludePaths", next);
-        })
-      ).addExtraButton(
-        (button) => button.setIcon("trash").setTooltip(this.plugin.t("setting.exclude-paths.remove")).onClick(() => {
-          const next = patterns.filter((_, i) => i !== index);
-          this.settingsService.update("excludePaths", next);
-          this.paintExcludePaths(wrapper);
+  renderGeneral(containerEl) {
+    const group = new import_obsidian23.SettingGroup(containerEl).setHeading(this.plugin.t("setting.general-heading"));
+    group.addSetting((setting) => {
+      setting.setName(this.plugin.t("setting.type.name")).setDesc(this.plugin.t("setting.type.desc")).addDropdown(
+        (dropdown) => dropdown.addOption("line" /* line */, this.plugin.t("setting.type.option.line")).addOption("dot" /* dot */, this.plugin.t("setting.type.option.dot")).setValue(this.settingsService.value("type")).onChange((value) => {
+          this.settingsService.update("type", value);
         })
       );
+    });
+    group.addSetting((setting) => {
+      setting.setName(this.plugin.t("setting.allowed-extensions.name")).setDesc(this.plugin.t("setting.allowed-extensions.desc")).addText(
+        (text) => text.setPlaceholder(DEFAULT_SETTINGS.allowedExtensions).setValue(this.settingsService.value("allowedExtensions")).onChange((value) => {
+          this.settingsService.update(
+            "allowedExtensions",
+            value || DEFAULT_SETTINGS.allowedExtensions
+          );
+        })
+      );
+    });
+    group.addSetting((setting) => {
+      setting.setName(this.plugin.t("setting.ignore-new-files.name")).setDesc(this.plugin.t("setting.ignore-new-files.desc")).addToggle(
+        (toggle) => toggle.setValue(this.settingsService.value("ignoreNewFiles")).onChange((value) => {
+          this.settingsService.update("ignoreNewFiles", value);
+        })
+      );
+    });
+    group.addSetting((setting) => {
+      setting.setName(this.plugin.t("setting.tree-highlight.name")).setDesc(this.plugin.t("setting.tree-highlight.desc")).addToggle(
+        (toggle) => toggle.setValue(this.settingsService.value("treeHighlight")).onChange((value) => {
+          this.settingsService.update("treeHighlight", value);
+        })
+      );
+    });
+    group.addSetting((setting) => {
+      setting.setName(this.plugin.t("setting.properties-highlight.name")).setDesc(this.plugin.t("setting.properties-highlight.desc")).addToggle(
+        (toggle) => toggle.setValue(this.settingsService.value("propertiesHighlight")).onChange((value) => {
+          this.settingsService.update("propertiesHighlight", value);
+        })
+      );
+    });
+    group.addSetting((setting) => {
+      setting.setName(this.plugin.t("setting.reading-mode-indicator.name")).setDesc(this.plugin.t("setting.reading-mode-indicator.desc")).addToggle(
+        (toggle) => toggle.setValue(this.settingsService.value("readingModeIndicator")).onChange((value) => {
+          this.settingsService.update("readingModeIndicator", value);
+        })
+      );
+    });
+    group.addSetting((setting) => {
+      setting.setName(this.plugin.t("setting.persist.name")).setDesc(this.plugin.t("setting.persist.desc")).addToggle(
+        (toggle) => toggle.setValue(this.settingsService.value("persist")).onChange((value) => {
+          this.settingsService.update("persist", value);
+        })
+      );
+    });
+  }
+  /**
+   * Renders the "Excluded paths" group: the add control as the group header's
+   * native "+" button, a description row, one dynamic row per configured
+   * pattern (second in the group, right under the description), and the
+   * case-sensitivity toggle last. The toggle row doubles as the insertion
+   * anchor that keeps refreshed pattern rows above it (see
+   * {@link placePatternRow}).
+   *
+   * @param {HTMLElement} containerEl - The settings tab container
+   */
+  renderExcludePaths(containerEl) {
+    const group = new import_obsidian23.SettingGroup(containerEl).setHeading(this.plugin.t("setting.exclude-paths.name"));
+    this.excludeGroup = group;
+    this.caseSensitiveRow = void 0;
+    group.addExtraButton(
+      (button) => button.setIcon("plus").setTooltip(this.plugin.t("setting.exclude-paths.add")).onClick(() => {
+        this.startAddPattern(group);
+      })
+    );
+    group.addSetting((setting) => {
+      setting.setDesc(this.plugin.t("setting.exclude-paths.desc"));
+    });
+    this.renderPatternRows(group, [...this.settingsService.value("excludePaths")]);
+    group.addSetting((setting) => {
+      this.caseSensitiveRow = setting;
+      setting.setName(this.plugin.t("setting.exclude-paths-case-sensitive.name")).setDesc(this.plugin.t("setting.exclude-paths-case-sensitive.desc")).addToggle(
+        (toggle) => toggle.setValue(this.settingsService.value("excludePathsCaseSensitive")).onChange((value) => {
+          this.settingsService.update("excludePathsCaseSensitive", value);
+        })
+      );
+    });
+  }
+  /**
+   * Tracks a dynamic pattern row and keeps it above the case-sensitivity
+   * toggle. On the initial render the toggle does not exist yet, so rows stay
+   * where the group appended them (right after the description); on an
+   * in-place refresh or an added row the group appends to its end, which is
+   * below the toggle, so the row's element is moved up before the anchor.
+   *
+   * @param {Setting} setting - The freshly appended dynamic row
+   */
+  placePatternRow(setting) {
+    var _a;
+    this.excludeRows.push(setting);
+    (_a = this.caseSensitiveRow) == null ? void 0 : _a.settingEl.before(setting.settingEl);
+  }
+  /**
+   * Renders the dynamic pattern rows into the group: a hint row while the list
+   * is empty, otherwise one display-mode row per pattern. Resets the
+   * row-tracking state first, so the call is also the second half of an
+   * in-place refresh.
+   *
+   * @param {SettingGroup} group - The "Excluded paths" native setting group
+   * @param {string[]} patterns - The pattern list to render rows for
+   */
+  renderPatternRows(group, patterns) {
+    this.excludeHint = void 0;
+    this.newPatternRow = void 0;
+    this.newPatternInput = void 0;
+    this.excludeRows = [];
+    if (patterns.length === 0) {
+      group.addSetting((setting) => {
+        this.placePatternRow(setting);
+        this.excludeHint = setting.setDesc(this.plugin.t("setting.exclude-paths.empty"));
+      });
+    }
+    patterns.forEach((pattern, index) => {
+      group.addSetting((setting) => {
+        this.placePatternRow(setting);
+        this.renderPatternDisplay(setting, pattern, index);
+      });
+    });
+  }
+  /**
+   * Rebuilds the pattern rows in place after a persisted mutation: removes
+   * every dynamic row this editor added to the group (the header, its "+"
+   * button, and the static rows stay) and renders fresh rows from the given
+   * list. No-ops when the group has not rendered yet.
+   *
+   * @param {string[]} patterns - The persisted pattern list the rows must match
+   */
+  refreshPatternRows(patterns) {
+    const group = this.excludeGroup;
+    if (!group) {
+      return;
+    }
+    for (const row of this.excludeRows) {
+      row.settingEl.remove();
+    }
+    this.renderPatternRows(group, patterns);
+  }
+  /**
+   * Renders (or restores) a pattern row's display mode: the pattern as the row
+   * name plus ghost edit and remove icon-buttons. Edit swaps the same row into
+   * edit mode in place; remove persists the shortened list.
+   *
+   * @param {Setting} setting - The row to render into (cleared first)
+   * @param {string} pattern - The pattern this row shows
+   * @param {number} index - The index of the pattern in the list
+   */
+  renderPatternDisplay(setting, pattern, index) {
+    setting.clear();
+    setting.controlEl.empty();
+    setting.settingEl.removeClass("lct-exclude-edit");
+    setting.setName(pattern);
+    setting.addExtraButton(
+      (button) => button.setIcon("pencil").setTooltip(this.plugin.t("setting.exclude-paths.edit")).onClick(() => {
+        this.renderPatternEditor(
+          setting,
+          pattern,
+          (value) => this.replacePattern(index, value),
+          () => {
+            this.renderPatternDisplay(setting, pattern, index);
+          }
+        );
+      })
+    );
+    setting.addExtraButton(
+      (button) => button.setIcon("trash").setTooltip(this.plugin.t("setting.exclude-paths.remove")).onClick(() => {
+        this.removePattern(index);
+      })
+    );
+  }
+  /**
+   * Swaps a pattern row into edit mode: a text field spanning the free row
+   * width plus save/cancel icon-buttons. Enter saves, Escape cancels. A failed
+   * save surfaces the validation message inline under the field and keeps the
+   * row in edit mode; a successful save persists, which rebuilds the pattern
+   * rows in place.
+   *
+   * @param {Setting} setting - The row to render into (cleared first)
+   * @param {string} initial - The initial field value (the current pattern, or
+   *   empty for a new row)
+   * @param {(value: string) => string | null} commit - Persists the entered
+   *   value; returns an error message to surface inline, or null on success
+   * @param {() => void} cancel - Restores the row (or removes it, for an
+   *   unsaved new row)
+   * @return {TextComponent | undefined} The text component, for re-focus
+   */
+  renderPatternEditor(setting, initial, commit, cancel) {
+    setting.clear();
+    setting.controlEl.empty();
+    setting.setName("");
+    setting.settingEl.addClass("lct-exclude-edit");
+    const errorEl = setting.controlEl.createDiv({ cls: "lct-setting-error" });
+    let input;
+    const save = () => {
+      var _a;
+      const message = commit((_a = input == null ? void 0 : input.getValue()) != null ? _a : "");
+      errorEl.setText(message != null ? message : "");
+    };
+    setting.addText((text) => {
+      input = text;
+      text.setPlaceholder(this.plugin.t("setting.exclude-paths.placeholder")).setValue(initial);
+      text.inputEl.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          save();
+          return;
+        }
+        if (event.key === "Escape") {
+          event.preventDefault();
+          cancel();
+        }
+      });
+    });
+    setting.addExtraButton(
+      (button) => button.setIcon("check").setTooltip(this.plugin.t("setting.exclude-paths.save")).onClick(() => {
+        save();
+      })
+    );
+    setting.addExtraButton(
+      (button) => button.setIcon("x").setTooltip(this.plugin.t("setting.exclude-paths.cancel")).onClick(() => {
+        cancel();
+      })
+    );
+    input == null ? void 0 : input.inputEl.focus();
+    return input;
+  }
+  /**
+   * Appends a new unsaved pattern row already in edit mode. When such a row is
+   * already open, re-focuses it instead of stacking another. The empty-state
+   * hint hides while the unsaved row is open and returns on cancel; a
+   * successful save persists and rebuilds the pattern rows in place.
+   *
+   * @param {SettingGroup} group - The native setting group the row is appended to
+   */
+  startAddPattern(group) {
+    var _a, _b;
+    if (this.newPatternRow) {
+      (_a = this.newPatternInput) == null ? void 0 : _a.inputEl.focus();
+      return;
+    }
+    (_b = this.excludeHint) == null ? void 0 : _b.settingEl.addClass("lct-row-hidden");
+    group.addSetting((setting) => {
+      this.placePatternRow(setting);
+      this.newPatternRow = setting;
+      this.newPatternInput = this.renderPatternEditor(
+        setting,
+        "",
+        (value) => this.appendPattern(value),
+        () => {
+          var _a2;
+          setting.settingEl.remove();
+          this.excludeRows = this.excludeRows.filter((row) => row !== setting);
+          this.newPatternRow = void 0;
+          this.newPatternInput = void 0;
+          (_a2 = this.excludeHint) == null ? void 0 : _a2.settingEl.removeClass("lct-row-hidden");
+        }
+      );
+    });
+  }
+  /**
+   * Validates a candidate exclude pattern: it must be non-blank and compile as
+   * a regular expression. Blank entries are rejected here even though the
+   * matcher tolerates them, because a stored blank row is dead weight the user
+   * would have to clean up by hand.
+   *
+   * @param {string} value - The trimmed candidate pattern
+   * @return {string | null} An error message, or null when the pattern is valid
+   */
+  validatePattern(value) {
+    if (value === "" || !PathExcludeHelper.isValid(value)) {
+      return this.plugin.t("setting.exclude-paths.error");
+    }
+    return null;
+  }
+  /**
+   * Validates and persists a replacement for the pattern at `index`. The list
+   * is re-read from the settings service at invocation time so edits made
+   * since the rows rendered are preserved.
+   *
+   * @param {number} index - The index of the pattern being edited
+   * @param {string} value - The raw field value
+   * @return {string | null} An error message to surface inline, or null once
+   *   persisted
+   */
+  replacePattern(index, value) {
+    const trimmed = value.trim();
+    const message = this.validatePattern(trimmed);
+    if (message !== null) {
+      return message;
+    }
+    const next = [...this.settingsService.value("excludePaths")];
+    next[index] = trimmed;
+    this.persistPatterns(next);
+    return null;
+  }
+  /**
+   * Validates and persists a new pattern appended to the list. The list is
+   * re-read from the settings service at invocation time so edits made since
+   * the rows rendered are preserved.
+   *
+   * @param {string} value - The raw field value
+   * @return {string | null} An error message to surface inline, or null once
+   *   persisted
+   */
+  appendPattern(value) {
+    const trimmed = value.trim();
+    const message = this.validatePattern(trimmed);
+    if (message !== null) {
+      return message;
+    }
+    this.persistPatterns([...this.settingsService.value("excludePaths"), trimmed]);
+    return null;
+  }
+  /**
+   * Removes the pattern at `index` and rebuilds the pattern rows in place.
+   *
+   * @param {number} index - The index of the pattern to remove
+   */
+  removePattern(index) {
+    const next = this.settingsService.value("excludePaths").filter((_pattern, at) => at !== index);
+    this.persistPatterns(next);
+  }
+  /**
+   * Persists a replacement pattern list and rebuilds the pattern rows in place
+   * so they match the persisted list. Only the dynamic rows are touched: the
+   * rest of the tab keeps its DOM and focus.
+   *
+   * @param {string[]} patterns - The full replacement pattern list
+   */
+  persistPatterns(patterns) {
+    this.settingsService.update("excludePaths", patterns);
+    this.refreshPatternRows(patterns);
+    this.updatePurgeButtonState();
+  }
+  /**
+   * Reports whether at least one non-blank exclude pattern is configured.
+   * Drives the purge button's disabled state: with no patterns the purge
+   * cannot match anything, so offering it would only invite a no-op confirm.
+   *
+   * @return {boolean} True when the exclude list holds a usable pattern
+   */
+  hasExcludePatterns() {
+    const patterns = this.settingsService.value("excludePaths");
+    return Array.isArray(patterns) && patterns.some((pattern) => Boolean(pattern == null ? void 0 : pattern.trim()));
+  }
+  /**
+   * Syncs the purge button's disabled state with the exclude pattern list.
+   * Called on initial render and after every persisted pattern mutation, so
+   * adding the first pattern enables the button in the same settings session
+   * and removing the last one disables it again.
+   */
+  updatePurgeButtonState() {
+    var _a;
+    (_a = this.purgeButton) == null ? void 0 : _a.setDisabled(!this.hasExcludePatterns());
+  }
+  /**
+   * Renders the "Timeline snapshots" group: the capture toggle, the two
+   * capture triggers (edits, minutes), and the per-file version retention
+   * caps. All numeric rows use compact native number inputs.
+   *
+   * @param {HTMLElement} containerEl - The settings tab container
+   */
+  renderSnapshots(containerEl) {
+    const group = new import_obsidian23.SettingGroup(containerEl).setHeading(this.plugin.t("setting.snapshots-heading"));
+    group.addSetting((setting) => {
+      setting.setName(this.plugin.t("setting.snapshots-enabled.name")).setDesc(this.plugin.t("setting.snapshots-enabled.desc")).addToggle(
+        (toggle) => toggle.setValue(this.settingsService.value("snapshots.enabled")).onChange((value) => {
+          this.settingsService.update("snapshots.enabled", value);
+        })
+      );
+    });
+    group.addSetting((setting) => {
+      setting.setName(this.plugin.t("setting.snapshots-edit-threshold.name")).setDesc(this.plugin.t("setting.snapshots-edit-threshold.desc")).addText(
+        (text) => this.constrainNumberInput(text).setPlaceholder(String(DEFAULT_SETTINGS.snapshots.editThreshold)).setValue(String(this.settingsService.value("snapshots.editThreshold"))).onChange((value) => {
+          this.settingsService.update(
+            "snapshots.editThreshold",
+            this.toCount(value, DEFAULT_SETTINGS.snapshots.editThreshold)
+          );
+        })
+      );
+    });
+    group.addSetting((setting) => {
+      setting.setName(this.plugin.t("setting.snapshots-interval.name")).setDesc(this.plugin.t("setting.snapshots-interval.desc")).addText(
+        (text) => this.constrainNumberInput(text).setPlaceholder(String(DEFAULT_SETTINGS.snapshots.intervalMs / 6e4)).setValue(String(this.settingsService.value("snapshots.intervalMs") / 6e4)).onChange((value) => {
+          const minutes = this.toCount(value, DEFAULT_SETTINGS.snapshots.intervalMs / 6e4);
+          this.settingsService.update("snapshots.intervalMs", minutes * 6e4);
+        })
+      );
+    });
+    group.addSetting((setting) => {
+      setting.setName(this.plugin.t("setting.max-version-age-days.name")).setDesc(this.plugin.t("setting.max-version-age-days.desc")).addText(
+        (text) => this.constrainNumberInput(text).setPlaceholder(String(DEFAULT_SETTINGS.snapshots.maxVersionAgeDays)).setValue(String(this.settingsService.value("snapshots.maxVersionAgeDays"))).onChange((value) => {
+          this.settingsService.update(
+            "snapshots.maxVersionAgeDays",
+            this.toCount(value, DEFAULT_SETTINGS.snapshots.maxVersionAgeDays)
+          );
+        })
+      );
+    });
+    group.addSetting((setting) => {
+      setting.setName(this.plugin.t("setting.max-versions.name")).setDesc(this.plugin.t("setting.max-versions.desc")).addText(
+        (text) => this.constrainNumberInput(text).setPlaceholder(String(DEFAULT_SETTINGS.snapshots.maxVersions)).setValue(String(this.settingsService.value("snapshots.maxVersions"))).onChange((value) => {
+          this.settingsService.update(
+            "snapshots.maxVersions",
+            this.toCount(value, DEFAULT_SETTINGS.snapshots.maxVersions)
+          );
+        })
+      );
+    });
+  }
+  /**
+   * Renders the "Show indicator for" group: the reading-mode hint and the four
+   * per-change-type toggles.
+   *
+   * @param {HTMLElement} containerEl - The settings tab container
+   */
+  renderShow(containerEl) {
+    const group = new import_obsidian23.SettingGroup(containerEl).setHeading(this.plugin.t("setting.show-heading"));
+    group.addSetting((setting) => {
+      setting.setDesc(this.plugin.t("setting.show.desc"));
+    });
+    const toggles = [
+      ["changed", this.plugin.t("setting.show.changed")],
+      ["restored", this.plugin.t("setting.show.restored")],
+      ["added", this.plugin.t("setting.show.added")],
+      ["removed", this.plugin.t("setting.show.removed")]
+    ];
+    toggles.forEach(([key2, label]) => {
+      group.addSetting((setting) => {
+        setting.setName(label).addToggle(
+          (toggle) => toggle.setValue(this.settingsService.value(`show.${key2}`)).onChange((value) => {
+            this.settingsService.update(`show.${key2}`, value);
+          })
+        );
+      });
+    });
+  }
+  /**
+   * Renders the "Line indicator" group with the width slider.
+   *
+   * @param {HTMLElement} containerEl - The settings tab container
+   */
+  renderLine(containerEl) {
+    const group = new import_obsidian23.SettingGroup(containerEl).setHeading(this.plugin.t("setting.line-heading"));
+    group.addSetting((setting) => {
+      setting.setName(this.plugin.t("setting.line-width.name")).setDesc(this.plugin.t("setting.line-width.desc")).addSlider(
+        (slider) => slider.setLimits(1, 5, 1).setValue(this.settingsService.value("line.width")).setDynamicTooltip().onChange((value) => {
+          this.settingsService.update("line.width", value);
+        })
+      );
+    });
+  }
+  /**
+   * Renders the "Gutter indicator" group: a description row carrying the
+   * unicode-table link and the four per-change-type symbol inputs.
+   *
+   * @param {HTMLElement} containerEl - The settings tab container
+   */
+  renderGutter(containerEl) {
+    const group = new import_obsidian23.SettingGroup(containerEl).setHeading(this.plugin.t("setting.gutter-heading.name"));
+    group.addSetting((setting) => {
+      setting.setDesc(
+        DomHelper.createFragment([
+          {
+            tag: "div",
+            children: [
+              {
+                tag: "span",
+                text: this.plugin.t("setting.gutter-heading.prefix")
+              },
+              {
+                tag: "a",
+                text: "https://symbl.cc/en/unicode-table/",
+                attributes: {
+                  href: "https://symbl.cc/en/unicode-table/",
+                  target: "_blank"
+                }
+              },
+              {
+                tag: "span",
+                text: this.plugin.t("setting.gutter-heading.suffix")
+              }
+            ]
+          }
+        ])
+      );
+    });
+    const symbols = [
+      ["changed", this.plugin.t("setting.gutter-changed.name")],
+      ["added", this.plugin.t("setting.gutter-added.name")],
+      ["restored", this.plugin.t("setting.gutter-restored.name")],
+      ["removed", this.plugin.t("setting.gutter-removed.name")]
+    ];
+    symbols.forEach(([key2, label]) => {
+      group.addSetting((setting) => {
+        setting.setName(label).addText((text) => {
+          this.constrainGutterCharInput(text);
+          return text.setPlaceholder(DEFAULT_SETTINGS.gutter[key2]).setValue(this.settingsService.value(`gutter.${key2}`)).onChange((value) => {
+            this.settingsService.update(`gutter.${key2}`, value || DEFAULT_SETTINGS.gutter[key2]);
+          });
+        });
+      });
+    });
+  }
+  /**
+   * Renders the "History cleanup" group, deliberately last in the tab: the
+   * keep strategy, the four stored-history retention caps, and the
+   * purge-excluded button. Everything that deletes or expires history lives
+   * here, so the destructive surface sits at the bottom of the settings.
+   *
+   * @param {HTMLElement} containerEl - The settings tab container
+   */
+  renderCleanup(containerEl) {
+    const group = new import_obsidian23.SettingGroup(containerEl).setHeading(this.plugin.t("setting.cleanup-heading"));
+    group.addSetting((setting) => {
+      setting.setName(this.plugin.t("setting.keep.name")).setDesc(this.plugin.t("setting.keep.desc")).addDropdown(
+        (dropdown) => dropdown.addOption("app" /* app */, this.plugin.t("setting.keep.option.app")).addOption("file" /* file */, this.plugin.t("setting.keep.option.file")).setValue(this.settingsService.value("keep")).onChange((value) => {
+          this.settingsService.update("keep", value);
+        })
+      );
+    });
+    const caps = [
+      ["maxEntries", this.plugin.t("setting.max-entries.name"), this.plugin.t("setting.max-entries.desc")],
+      ["maxAgeDays", this.plugin.t("setting.max-age-days.name"), this.plugin.t("setting.max-age-days.desc")],
+      [
+        "maxDeletedEntries",
+        this.plugin.t("setting.max-deleted-entries.name"),
+        this.plugin.t("setting.max-deleted-entries.desc")
+      ],
+      [
+        "maxDeletedAgeDays",
+        this.plugin.t("setting.max-deleted-age-days.name"),
+        this.plugin.t("setting.max-deleted-age-days.desc")
+      ]
+    ];
+    caps.forEach(([key2, name, desc]) => {
+      group.addSetting((setting) => {
+        setting.setName(name).setDesc(desc).addText(
+          (text) => this.constrainNumberInput(text).setPlaceholder(String(DEFAULT_SETTINGS.retention[key2])).setValue(String(this.settingsService.value(`retention.${key2}`))).onChange((value) => {
+            this.settingsService.update(
+              `retention.${key2}`,
+              this.toCount(value, DEFAULT_SETTINGS.retention[key2])
+            );
+          })
+        );
+      });
+    });
+    group.addSetting((setting) => {
+      setting.setName(this.plugin.t("setting.purge-excluded.name")).setDesc(this.plugin.t("setting.purge-excluded.desc")).addButton((button) => {
+        this.purgeButton = button;
+        this.updatePurgeButtonState();
+        return button.setButtonText(this.plugin.t("setting.purge-excluded.name")).setWarning().onClick(async () => {
+          const confirmed = await this.modalsService.confirm({
+            title: this.plugin.t("setting.purge-excluded.name"),
+            message: this.plugin.t("setting.purge-excluded.desc"),
+            confirmText: this.plugin.t("setting.purge-excluded.name"),
+            cancelText: this.plugin.t("modal.confirm.cancel")
+          });
+          if (!confirmed) {
+            return;
+          }
+          const count = this.snapshotsService.purgeExcluded();
+          const message = count === 0 ? this.plugin.t("notice.purge-excluded.no-match") : this.plugin.t("notice.purge-excluded").replace("{count}", String(count));
+          new import_obsidian23.Notice(message);
+        });
+      });
     });
   }
   /**
@@ -22670,6 +23053,27 @@ var MainSetting = class extends import_obsidian23.PluginSettingTab {
   constrainGutterCharInput(text) {
     text.inputEl.maxLength = 1;
     text.inputEl.addClass("lct-gutter-char-input");
+  }
+  /**
+   * Turns a settings-row text component into a compact integer input: native
+   * `type="number"` (the browser blocks non-numeric characters and renders a
+   * stepper), a zero lower bound, an integer step, and the narrow width class
+   * from the stylesheet so the field's size matches the few digits it expects.
+   *
+   * The change handlers keep parsing the string value through {@link toCount}:
+   * on invalid intermediate input the browser reports an empty string, which
+   * toCount maps to the default, so this is a usability layer, not the
+   * validation layer.
+   *
+   * @param {TextComponent} text - The text component of the row
+   * @return {TextComponent} The same component, for chaining
+   */
+  constrainNumberInput(text) {
+    text.inputEl.type = "number";
+    text.inputEl.min = "0";
+    text.inputEl.step = "1";
+    text.inputEl.addClass("lct-input-number");
+    return text;
   }
   /**
    * Parses a user-entered retention count into a non-negative integer.
@@ -22694,6 +23098,9 @@ __decorateClass([
 __decorateClass([
   Inject(TOKENS.snapshots)
 ], MainSetting.prototype, "snapshotsService", 2);
+__decorateClass([
+  Inject(TOKENS.modals)
+], MainSetting.prototype, "modalsService", 2);
 
 // src/services/settings.service.ts
 var SettingsService = class _SettingsService {
@@ -22725,7 +23132,7 @@ var SettingsService = class _SettingsService {
    * (C3) before the settings merge runs. Historic installs stored it as a single
    * regular-expression string; this shim wraps that legacy string in a one-element
    * array so its exact matching semantics are preserved (splitting on `|` would
-   * shatter a grouped alternation, see DECISIONS.md ADR-18-23). A blank or
+   * shatter a grouped alternation). A blank or
    * whitespace-only legacy string is dropped so the empty-array default applies.
    * An already-array value is passed through untouched (idempotent). Any non-object
    * payload (null, primitive) is returned unchanged for the merge to handle.
@@ -22941,7 +23348,7 @@ var _ExternalChangeCapture = class _ExternalChangeCapture {
     /**
      * Per-path debounce timers for `capture`. A new modify event for the same
      * path resets the timer; only the trailing call runs the disk read and
-     * capture (ADR-08-E).
+     * capture.
      */
     this.debounceTimers = /* @__PURE__ */ new Map();
     /**
@@ -22964,7 +23371,7 @@ var _ExternalChangeCapture = class _ExternalChangeCapture {
    * Public entry point for the vault.modify handler. Coalesces a burst of
    * modify events for the same path through a per-path debounce, then runs
    * `capture` once with an in-flight guard so an overlapping follow-up modify
-   * cannot double-capture the same disk state (ADR-08-E).
+   * cannot double-capture the same disk state.
    *
    * Bursts of writes (sync, git pull, an external save loop) for one file
    * collapse into a single trailing capture; events for different files run
@@ -22991,10 +23398,10 @@ var _ExternalChangeCapture = class _ExternalChangeCapture {
   }
   /**
    * Captures an external (off-editor) change to a tracked file as a flagged
-   * version on its timeline (D12/D13). Reads the file from disk, compares the
+   * version on its timeline. Reads the file from disk, compares the
    * actual content to the snapshot's known `state` via `isContentChanged`
    * (32-bit hash as a cheap pre-filter, line-by-line compare on a hash match
-   * so a collision cannot mask a real rewrite, ADR-08-D), and force-captures
+   * so a collision cannot mask a real rewrite), and force-captures
    * the new content as a `FileVersion` with `external = true` only when they
    * differ, then updates `state`/tracker/changes so further reads see the
    * captured content as the new baseline.
@@ -23016,7 +23423,7 @@ var _ExternalChangeCapture = class _ExternalChangeCapture {
    * resurrection flow belongs to a future `vault.create` handler, not here.
    *
    * The capture is forced past the cadence gates so every distinct external
-   * state lands as its own version (D13), but it is NOT pinned: the resulting
+   * state lands as its own version, but it is NOT pinned: the resulting
    * version obeys the normal age/count retention exactly like a cadence one,
    * so a chatty sync workflow cannot bloat `history.json` with un-evictable
    * entries.
@@ -24351,7 +24758,7 @@ var TrackerEditor = class {
   /**
    * Returns the highest current line position present in the document, or -1 when
    * no line currently exists. Used to clamp a removed-line anchor so it can never
-   * point past the last real line (epic 13).
+   * point past the last real line.
    *
    * @param {TrackerLine[]} tracker - The shared tracker array to scan
    * @return {number} The last current line index, or -1 when the document is empty
@@ -24708,7 +25115,7 @@ var VersionCodec = class _VersionCodec {
    * `lines`, a delta entry applies its patch to `prev.join('\n')` and splits the
    * result back into lines on the same `\n` transport used by encode.
    *
-   * Resilient by design (ADR-08-B): a delta with no preceding keyframe (`prev`
+   * Resilient by design: a delta with no preceding keyframe (`prev`
    * is still null) or one whose patch fails to apply is skipped (its version is
    * dropped) and decoding continues; the next keyframe resyncs `prev`. A null or
    * non-object entry is skipped likewise. Decode never throws on a malformed
@@ -24817,7 +25224,7 @@ var VersionTimeline = class {
    * always has the live state available separately. A no-op capture is skipped:
    * when the content to freeze equals the most recent stored version (or the
    * history baseline when none exist), no version is pushed. A label-carrying
-   * capture is treated as a pinned marker (D6): it bypasses the duplicate-skip so
+   * capture is treated as a pinned marker: it bypasses the duplicate-skip so
    * the user-supplied tag is always recorded, and the resulting version is exempt
    * from eviction.
    *
@@ -24900,7 +25307,7 @@ var VersionTimeline = class {
    * disables that dimension. Because versions are appended oldest-first, both
    * passes evict from the front of the array.
    *
-   * Labeled versions are pinned (D6): they are never dropped by either pass, so
+   * Labeled versions are pinned: they are never dropped by either pass, so
    * an intentional user marker survives both the age window and the count cap.
    * The count cap counts only unlabeled entries, so a labeled version does not
    * push an unlabeled one out either.
@@ -24986,7 +25393,7 @@ var VersionTimeline = class {
   }
   /**
    * Seeds the time-gate counter on restore so the cadence is continuous across
-   * restarts (ADR-08, T15). Without this the constructor-seeded `lastVersionAt`
+   * restarts. Without this the constructor-seeded `lastVersionAt`
    * (set to `Date.now()` at restore time) would reset the time gate on every
    * launch, so a file that already had a version captured an hour before the
    * restart would not be eligible for the next time-gated capture until the
@@ -25065,13 +25472,13 @@ var FileSnapshot = class _FileSnapshot {
     /**
      * Marker baseline: the file content the change tracker measures against. This
      * is the file state at the moment the snapshot was created in the current app
-     * run, so the gutter markers stay session-scoped (see D2). The tracker is
+     * run, so the gutter markers stay session-scoped. The tracker is
      * built from these lines and they never change for the life of the snapshot.
      */
     this.lines = [];
     /**
      * History baseline: the persisted original the history modal diffs against
-     * (see D2). Defaults to the marker baseline (`lines`) so a freshly captured
+     *. Defaults to the marker baseline (`lines`) so a freshly captured
      * file has a single coherent origin. Restoring persisted history overrides
      * only this baseline (and the version timeline) through adoptHistory, leaving
      * the session marker baseline intact so the gutter does not mark the whole
@@ -25141,7 +25548,7 @@ var FileSnapshot = class _FileSnapshot {
     this.lineBreak = "\n";
     /**
      * Canonical vault-relative path of the snapshot, decoupled from a live
-     * `TFile` (epic 12). This mirrors the key the snapshot is stored under in
+     * `TFile`. This mirrors the key the snapshot is stored under in
      * `SnapshotsService.fileSnapshots` and survives a reload: a restored snapshot
      * whose `file` did not resolve (restore miss, tombstone, orphan, detached
      * cross-directory move) still carries its path here, so folder-history path
@@ -25151,7 +25558,7 @@ var FileSnapshot = class _FileSnapshot {
      */
     this.path = "";
     /**
-     * Transient "added in this app run" marker (epic 11, D4): set to `true` only
+     * Transient "added in this app run" marker: set to `true` only
      * when the file was created by the user in the vault during the current
      * session (the post-layout-ready `vault.create` capture path stamps it). It
      * is the only reliable "created this run" signal, since `firstSeenAt` /
@@ -25186,7 +25593,7 @@ var FileSnapshot = class _FileSnapshot {
    * across restarts), the current state, and the full tracker so the highlights
    * can be restored verbatim. The session-scoped marker baseline is intentionally
    * not persisted: it is re-established from the file content on the next open
-   * (see D2). The change map is omitted because it is recomputed from the tracker
+   *. The change map is omitted because it is recomputed from the tracker
    * on restore.
    *
    * @return {SerializedFileSnapshot} The plain serialized representation
@@ -25250,7 +25657,7 @@ var FileSnapshot = class _FileSnapshot {
     return snapshot;
   }
   /**
-   * Whether this snapshot is a tombstone for a deleted file (D1). True when
+   * Whether this snapshot is a tombstone for a deleted file. True when
    * `deletedTimestamp` is set; false for a live snapshot.
    *
    * @return {boolean} True when the snapshot represents a deleted file
@@ -25260,7 +25667,7 @@ var FileSnapshot = class _FileSnapshot {
   }
   /**
    * Whether this snapshot was re-keyed to a new path by a cross-directory move
-   * (D2). True when `movedIntoAt` is set; false otherwise.
+   *. True when `movedIntoAt` is set; false otherwise.
    *
    * @return {boolean} True when the snapshot carries a move-in marker
    */
@@ -25279,7 +25686,7 @@ var FileSnapshot = class _FileSnapshot {
   }
   /**
    * Authoritative content-equality check for the external-change guard
-   * (ADR-08-D). Uses the 32-bit `lastHash` as a cheap pre-filter: a hash
+   *. Uses the 32-bit `lastHash` as a cheap pre-filter: a hash
    * mismatch is always a real change, but a hash match falls through to an
    * actual line-by-line compare against the snapshot's known `state` so a
    * collision (two distinct contents that hash to the same 32-bit value)
@@ -25344,7 +25751,7 @@ var FileSnapshot = class _FileSnapshot {
    * or a first version identical to the original, which would otherwise diff
    * identically and make switching the base appear to change nothing.
    *
-   * A label-carrying capture is treated as a pinned marker (D6): it bypasses
+   * A label-carrying capture is treated as a pinned marker: it bypasses
    * the duplicate-skip so the user-supplied tag is always recorded, and the
    * resulting version is exempt from eviction in evictVersions.
    *
@@ -25455,7 +25862,7 @@ var FileSnapshot = class _FileSnapshot {
    * Gets the HISTORY baseline as a string (the persisted original the history
    * modal diffs against). Distinct from the marker baseline so a restored file
    * keeps a stable origin for the time machine while the gutter stays
-   * session-scoped (see D2).
+   * session-scoped.
    *
    * @return {string} The history baseline of the file as a string
    */
@@ -25474,7 +25881,7 @@ var FileSnapshot = class _FileSnapshot {
   /**
    * Adopts a persisted HISTORY baseline and version timeline into this
    * (session-captured) snapshot without touching the marker baseline, the
-   * tracker, or the current state (see D2). Used by the restore path so reopening
+   * tracker, or the current state. Used by the restore path so reopening
    * a file in a new app run keeps the gutter markers session-scoped (measured
    * against the file content at this open) while the history modal still diffs
    * against the persisted original and its captured versions.
@@ -25911,9 +26318,9 @@ var SnapshotsService = class {
      */
     this.fileSnapshots = new ObservableMap();
     /**
-     * Vault paths of files CREATED by the user in the current app session (epic
-     * 11). Recorded by the `vault.create` handler regardless of the
-     * "ignore new files" setting, so the tree/tab decorator can paint a freshly
+     * Vault paths of files CREATED by the user in the current app session.
+     * Recorded by the `vault.create` handler regardless of the "ignore new
+     * files" setting, so the tree/tab decorator can paint a freshly
      * created file as "added" even when that setting suppresses its snapshot (an
      * ignored new file has no snapshot to carry `createdThisSession`). Transient:
      * never persisted, so it resets to empty on restart and a created file stops
@@ -26046,7 +26453,7 @@ var SnapshotsService = class {
     return this.sessionCreatedPaths;
   }
   /**
-   * Marks the snapshot for the given file as a tombstone (D1) instead of
+   * Marks the snapshot for the given file as a tombstone instead of
    * dropping it. The entry stays in the map under its current path so any
    * folder view at that prefix can still surface it, and its `state`,
    * `historyLines`, and `versions` are preserved so the file can be
@@ -26100,7 +26507,7 @@ var SnapshotsService = class {
     this.externalCapture.forget(oldPath);
   }
   /**
-   * Handles a cross-directory move (D2): leaves a tombstone at `oldPath` and
+   * Handles a cross-directory move: leaves a tombstone at `oldPath` and
    * re-keys the live snapshot to the file's new path while stamping
    * `movedIntoAt` with the call timestamp. The live snapshot's history baseline,
    * version timeline, and current state travel with it so the file's captured
@@ -26109,7 +26516,7 @@ var SnapshotsService = class {
    * still surface the file as deleted with its history intact.
    *
    * This method is the move-only entry point: it asserts that `oldPath` and the
-   * file's new path belong to different directories (per D3, an in-place rename
+   * file's new path belong to different directories (an in-place rename
    * stays a pure re-key through `rename`). Calling it without a directory
    * change throws so a wiring bug surfaces immediately rather than littering a
    * folder with phantom tombstones.
@@ -26183,14 +26590,14 @@ var SnapshotsService = class {
    * Includes live snapshots that carry actual history (a tracker with changes
    * or a non-empty intermediate-version timeline) so pristine files do not
    * bloat the store but a timeline is never lost just because the current
-   * state happens to match the original. Tombstones (D1) are ALWAYS included
+   * state happens to match the original. Tombstones are ALWAYS included
    * regardless of tracker/timeline emptiness: their final state plus
    * `deletedTimestamp` is the only record of a deleted file's content and must
    * survive a restart even when the live tracker was reset on `markDeleted`.
    *
    * The serialized `path` is taken from the map key (not from `snapshot.file`)
    * so tombstones whose `file` reference is null (cross-directory move leaves
-   * a detached tombstone, D2) still round-trip to disk under their last-known
+   * a detached tombstone) still round-trip to disk under their last-known
    * path.
    *
    * @return {SerializedHistory} The versioned, serializable history payload
@@ -26220,7 +26627,7 @@ var SnapshotsService = class {
   }
   /**
    * Restores snapshots from a previously serialized history payload, keeping the
-   * marker and history baselines separate (D2).
+   * marker and history baselines separate.
    *
    * When the file was already captured this session, its session snapshot owns
    * the MARKER baseline (the file content at this open) plus the live tracker and
@@ -26482,12 +26889,12 @@ var SnapshotsService = class {
   }
   /**
    * Captures an external (off-editor) change to a tracked file as a flagged
-   * version on its timeline (D12/D13). Delegates to the
+   * version on its timeline. Delegates to the
    * {@link ExternalChangeCapture} collaborator, which reads the file from disk,
    * compares it to the snapshot's known state, and force-captures a divergent
    * external version while filtering out editor flushes, the plugin's own
    * revert writes, tombstones, ignored/excluded/wrong-extension files, and
-   * unchanged content (ADR-08-D/E).
+   * unchanged content.
    *
    * @param {TFile | null} file - The file whose disk content changed
    * @return {Promise<void>} Resolves once the external capture completes
@@ -26500,7 +26907,7 @@ var SnapshotsService = class {
    * {@link ExternalChangeCapture} collaborator, which coalesces a burst of
    * modify events for the same path through a per-path debounce, then runs the
    * external capture once under an in-flight guard so an overlapping follow-up
-   * modify cannot double-capture the same disk state (ADR-08-E).
+   * modify cannot double-capture the same disk state.
    *
    * @param {TFile} file - The file whose modify event fired
    */
@@ -26800,7 +27207,7 @@ var StylesService = class {
     const width = this.settingsService.value("line.width");
     this.sheet.setText(`
         .lct,
-        .lct-change-layer {
+        .lct-rm-indicator {
           --lct-color-${"changed" /* changed */}: var(--color-blue);
           --lct-color-${"restored" /* restored */}: var(--text-faint);
           --lct-color-${"added" /* added */}: var(--color-orange);
@@ -27239,7 +27646,7 @@ var _PropertyDecoratorService = class _PropertyDecoratorService {
    * Core sweep that computes the frontmatter diff for the active file and
    * exposes the result for decoration.
    *
-   * Guard branches (degrading silently per D8):
+   * Guard branches (degrading silently):
    * - plugin not ready: return early
    * - no active MarkdownView: return early
    * - no .metadata-editor in DOM: (re)attach observer and return early
@@ -27447,9 +27854,8 @@ var _PropertyDecoratorService = class _PropertyDecoratorService {
    *
    * NOTE: MutationObserver is used because Obsidian provides no stable public
    * hook for properties-panel render events. This coupling is intentional and
-   * accepted until Obsidian ships an official properties API hook (see
-   * ADR-18-18 in DECISIONS.md). When such an API is available, replace this
-   * observer with the official hook.
+   * accepted until Obsidian ships an official properties API hook. When such an
+   * API is available, replace this observer with the official hook.
    *
    * @param {HTMLElement} contentEl - The MarkdownView.contentEl to observe
    */
@@ -27544,7 +27950,7 @@ var SessionStatusHelper = class {
   }
   /**
    * Collects every ancestor folder path of the given changed file paths, so the
-   * decorator can tint each containing folder a single change colour (D6). Pure
+   * decorator can tint each containing folder a single change colour. Pure
    * and total: it walks the `/`-separated path of each file upward, emitting one
    * entry per intermediate folder and stopping at the vault root, which has no
    * folder row to paint and is therefore never included.
@@ -27600,7 +28006,7 @@ var _TreeTabDecoratorService = class _TreeTabDecoratorService {
     this.timer = void 0;
     /**
      * The `MutationObserver` watching the explorer container for lazily-rendered
-     * rows (D7), or undefined when no container is currently observed. Expanding a
+     * rows, or undefined when no container is currently observed. Expanding a
      * collapsed folder or a drag/drop mounts new `fileItems` rows WITHOUT firing a
      * plugin event, so `snapshotsUpdate` alone misses them; a childList mutation on
      * the container schedules a debounced re-apply that decorates the new rows. It
@@ -27619,7 +28025,7 @@ var _TreeTabDecoratorService = class _TreeTabDecoratorService {
   /**
    * Maps a status to the native-surface class name that paints it. The class
    * tokens (`lct-tree-added` / `lct-tree-modified`) are the same ones the modal
-   * folder tree uses, sourced from the shared `--lct-status-*` palette (D3).
+   * folder tree uses, sourced from the shared `--lct-status-*` palette.
    *
    * @param {FolderDeltaStatus} status - The status to name a class for
    * @return {string} The `lct-tree-*` class name for that status
@@ -27630,7 +28036,7 @@ var _TreeTabDecoratorService = class _TreeTabDecoratorService {
   /**
    * Wires the refresh triggers and applies the initial decoration. Besides the
    * `snapshotsUpdate` fan-out ({@link refresh}), the tree and tabs must be
-   * re-decorated on three more signals that carry no plugin event (D7): a
+   * re-decorated on three more signals that carry no plugin event: a
    * `layout-change` (the explorer or a tab bar can be recreated, dropping every
    * class this decorator added), an `active-leaf-change` (the active leaf
    * changed), and a `file-open` (a leaf swapped the file it shows, so its tab
@@ -27701,8 +28107,8 @@ var _TreeTabDecoratorService = class _TreeTabDecoratorService {
    * once, then sweeps the explorer rows and the tab headers off the same map.
    * Both sweeps are diff-based (only surfaces whose status changed are touched)
    * and `isReady()`-guarded; each degrades silently when its surface is missing
-   * (D8). The tab sweep runs even when no explorer is open, so tabs stay decorated
-   * while the file tree is hidden. When the `treeHighlight` toggle is off (D9) the
+   *. The tab sweep runs even when no explorer is open, so tabs stay decorated
+   * while the file tree is hidden. When the `treeHighlight` toggle is off the
    * sweep instead clears every applied class and paints nothing further, so the
    * feature can be switched off live.
    */
@@ -27778,7 +28184,7 @@ var _TreeTabDecoratorService = class _TreeTabDecoratorService {
    * tints never apply to a tab), and flips the header class only when it changed
    * since the last sweep. A leaf no longer open, or whose status returned to
    * `none`, has its class removed and drops out of the tab bookkeeping. Degrades
-   * silently when a leaf has no `tabHeaderEl` or no file (D8).
+   * silently when a leaf has no `tabHeaderEl` or no file.
    *
    * @param {Map<string, FolderDeltaStatus>} desired - File/folder path to its session status
    */
@@ -27810,9 +28216,9 @@ var _TreeTabDecoratorService = class _TreeTabDecoratorService {
   /**
    * Builds the per-path desired status for both file and folder rows. Each live
    * snapshot the helper resolves to a paintable status (`added` / `modified`)
-   * contributes its file row; a `none` snapshot (including any tombstone, D5) is
+   * contributes its file row; a `none` snapshot (including any tombstone) is
    * omitted so its row carries no class. Every ancestor folder of a changed file
-   * is then tinted the single `modified` token (D6), so a folder is painted iff
+   * is then tinted the single `modified` token, so a folder is painted iff
    * it still contains a session change and clears symmetrically once none remain.
    *
    * @return {Map<string, FolderDeltaStatus>} File/folder path to its session status
@@ -27861,7 +28267,7 @@ var _TreeTabDecoratorService = class _TreeTabDecoratorService {
   /**
    * Sets a single tab header's status class: removes both managed classes, then
    * adds the one for `status` unless it is `none`. A no-op when the leaf exposes
-   * no `tabHeaderEl` (an untyped internal that may be absent, D8).
+   * no `tabHeaderEl` (an untyped internal that may be absent).
    *
    * @param {NativeWorkspaceLeaf} leaf - The leaf whose tab header to decorate
    * @param {FolderDeltaStatus} status - The status to paint, or `none` to clear
@@ -27885,7 +28291,7 @@ var _TreeTabDecoratorService = class _TreeTabDecoratorService {
    * drag, or filter that mounts new rows fires it, but never `attributes`, so the
    * decorator's own class flips inside {@link apply} never re-trigger it (no
    * feedback loop). The container is reached through the typed `View.containerEl`,
-   * not an internal, and a missing container degrades to no observer (D8).
+   * not an internal, and a missing container degrades to no observer.
    *
    * @param {HTMLElement | undefined} container - The explorer container to observe
    */
@@ -27907,7 +28313,7 @@ var _TreeTabDecoratorService = class _TreeTabDecoratorService {
   }
   /**
    * Resolves the native file-explorer view through the local augmentation, or
-   * null when no explorer leaf is open. Untyped internal access (D8) is confined
+   * null when no explorer leaf is open. Untyped internal access is confined
    * to this one cast so the rest of the service stays typed.
    *
    * @return {NativeFileExplorerView | null} The explorer view, or null when absent
@@ -27942,7 +28348,7 @@ var _TreeTabDecoratorService = class _TreeTabDecoratorService {
   /**
    * Resolves every open markdown leaf, each viewed through the local
    * {@link NativeWorkspaceLeaf} augmentation so its untyped `tabHeaderEl` is in
-   * reach (D8). Markdown leaves are the only ones backed by a vault `TFile` whose
+   * reach. Markdown leaves are the only ones backed by a vault `TFile` whose
    * session status the tab sweep can resolve.
    *
    * @return {NativeWorkspaceLeaf[]} The open markdown leaves
@@ -27968,7 +28374,7 @@ _TreeTabDecoratorService.fileExplorerType = "file-explorer";
  */
 _TreeTabDecoratorService.markdownType = "markdown";
 /**
- * The two status classes this decorator manages on native surfaces (D5: no
+ * The two status classes this decorator manages on native surfaces (no
  * `lct-tree-deleted`). Removed wholesale from a row before the current status
  * class is re-applied so a status flip never leaves a stale colour behind.
  */
@@ -28074,10 +28480,10 @@ var VersionActionsService = class {
    * Captures a pinned, labeled version of the file's current content. The label
    * is trimmed of surrounding whitespace; an empty result is a no-op so a
    * cancel-equivalent input does not pollute the timeline. The capture forces
-   * past the cadence gates and the duplicate-skip (D6), so an intentional marker
+   * past the cadence gates and the duplicate-skip, so an intentional marker
    * always lands even when nothing has changed since the latest version. The
    * snapshot's existing retention caps still apply, but labeled entries are
-   * pinned against eviction (D6/D10).
+   * pinned against eviction.
    *
    * @param {TFile | null} file - The file to label
    * @param {string} label - The user-supplied tag
@@ -28102,7 +28508,7 @@ var VersionActionsService = class {
   }
   /**
    * Sets a custom label on an EXISTING captured version, turning that version
-   * into a pinned marker in place (D1/D6). This is distinct from
+   * into a pinned marker in place. This is distinct from
    * {@link putLabel}, which pins the file's CURRENT content as a NEW version:
    * here the label lands on the version the caller picked (a panel row, or the
    * modal's selected base), so the marker tags the slice the user pointed at
@@ -28170,6 +28576,12 @@ var RecentChangesView = class extends import_obsidian29.ItemView {
   constructor(leaf, plugin) {
     super(leaf);
     this.plugin = plugin;
+    /**
+     * Current content-search query for the timeline. Mirrors the modal rail's
+     * semantics (VersionSearchHelper): an empty string shows every version, a
+     * non-empty one keeps only versions whose captured content matches.
+     */
+    this.searchQuery = "";
   }
   /**
    * Returns the stable view type id used to register and look up the view.
@@ -28215,7 +28627,7 @@ var RecentChangesView = class extends import_obsidian29.ItemView {
    * to active-leaf-change and the internal snapshots-update event, and renders
    * the initial state against the active file. Subscriptions go through
    * `registerEvent` and the Component `register` cleanup so a detach of the
-   * leaf tears them down with no leaks (T10's AC3 contract).
+   * leaf tears them down with no leaks.
    *
    * @return {Promise<void>} Resolves once the host is prepared
    * @override
@@ -28223,6 +28635,15 @@ var RecentChangesView = class extends import_obsidian29.ItemView {
   async onOpen() {
     this.contentEl.empty();
     this.contentEl.addClass("lct-recent-changes-view");
+    const searchEl = DomHelper.create({
+      tag: "div",
+      classes: "lct-recent-changes-search",
+      container: this.contentEl
+    });
+    this.searchComponent = new import_obsidian29.SearchComponent(searchEl).setPlaceholder(this.plugin.t("modal.search-versions")).onChange((value) => {
+      this.searchQuery = value;
+      this.render();
+    });
     this.listEl = DomHelper.create({
       tag: "div",
       classes: "lct-recent-changes-list",
@@ -28230,6 +28651,7 @@ var RecentChangesView = class extends import_obsidian29.ItemView {
     });
     this.registerEvent(
       this.app.workspace.on("active-leaf-change", () => {
+        this.resetSearch();
         this.render();
       })
     );
@@ -28253,6 +28675,22 @@ var RecentChangesView = class extends import_obsidian29.ItemView {
   async onClose() {
     this.contentEl.empty();
     this.listEl = void 0;
+    this.searchComponent = void 0;
+    this.searchQuery = "";
+  }
+  /**
+   * Clears the search query and the box itself. SearchComponent.setValue does
+   * not fire onChange, so the caller re-renders explicitly; checking for an
+   * already-empty query keeps the file-switch path allocation-free in the
+   * common no-search case.
+   */
+  resetSearch() {
+    var _a;
+    if (this.searchQuery === "") {
+      return;
+    }
+    this.searchQuery = "";
+    (_a = this.searchComponent) == null ? void 0 : _a.setValue("");
   }
   /**
    * Renders the timeline rows for the active file into the list container.
@@ -28261,13 +28699,16 @@ var RecentChangesView = class extends import_obsidian29.ItemView {
    * keeping the AC for "react to the active file" intact (an empty render IS
    * the reaction). With a snapshot the rows mirror the modal rail format
    * (action or custom label, capture date inline, line delta inline) but
-   * without the rail's grouping and search, since the panel is a thin
-   * navigator (D3).
+   * without the rail's day grouping, since the panel is a thin navigator.
+   * The content search above the list narrows the rows via the same
+   * VersionSearchHelper the rail uses; a query that matches nothing renders
+   * the shared no-results hint instead of the rows.
    */
   render() {
     if (!this.listEl) {
       return;
     }
+    this.listEl.empty();
     const file = this.plugin.getActiveFile();
     const snapshot = this.plugin.get(TOKENS.snapshots).getOne(file);
     if (!file || !snapshot) {
@@ -28295,8 +28736,30 @@ var RecentChangesView = class extends import_obsidian29.ItemView {
       });
       return;
     }
+    const visibleIds = VersionSearchHelper.match(
+      versions.map((version) => ({
+        id: version.id,
+        content: version.getContent(snapshot.lineBreak)
+      })),
+      this.searchQuery
+    );
+    const matched = versions.filter(
+      (version) => visibleIds.has(version.id)
+    );
+    if (matched.length === 0) {
+      DomHelper.update(this.listEl, {
+        children: [
+          {
+            tag: "div",
+            classes: "lct-recent-changes-empty",
+            text: this.plugin.t("modal.no-versions-match")
+          }
+        ]
+      });
+      return;
+    }
     DomHelper.update(this.listEl, {
-      children: versions.map(
+      children: matched.map(
         (version) => this.makeRow(version, versions, snapshot, file)
       )
     });
@@ -28306,7 +28769,7 @@ var RecentChangesView = class extends import_obsidian29.ItemView {
    * Builds the DomHelper config for a single timeline row. Mirrors the modal
    * rail's primary label (custom label or derived action), the inline capture
    * date+time, and the `+A -B` line delta. Double-click opens the history
-   * modal in rail-less mode focused on this version (D4): the panel stays the
+   * modal in rail-less mode focused on this version: the panel stays the
    * sole navigator, the modal acts as a pure viewer.
    *
    * @param {FileVersion} version - The version this row represents
@@ -28348,12 +28811,12 @@ var RecentChangesView = class extends import_obsidian29.ItemView {
     };
   }
   /**
-   * Opens the per-row context menu (T12). Mirrors the modal toolbar wiring so
+   * Opens the per-row context menu. Mirrors the modal toolbar wiring so
    * the panel and the modal share one behaviour for restore/delete/put-label
-   * (D5): "Show diff" opens the rail-less viewer focused on this version, the
+   *: "Show diff" opens the rail-less viewer focused on this version, the
    * destructive actions confirm through the same prompts the modal uses, and
    * Put label routes through the prompt+VersionActionsService entry point on
-   * ModalsService so an empty/cancel input is a silent no-op (T06). The native
+   * ModalsService so an empty/cancel input is a silent no-op. The native
    * browser menu is suppressed so only the plugin menu shows up.
    *
    * The captured `file` is the one resolved at row render time, so a later
@@ -28411,7 +28874,7 @@ var RecentChangesView = class extends import_obsidian29.ItemView {
   }
   /**
    * Returns the primary label shown on a row: the user's custom label when
-   * present (D1), otherwise the derived action text translated from
+   * present, otherwise the derived action text translated from
    * VersionLabelHelper.describe against the version's previous neighbour. The
    * oldest version's previous neighbour is the history baseline.
    *
@@ -28454,7 +28917,7 @@ var RecentChangesView = class extends import_obsidian29.ItemView {
   }
   /**
    * Opens the history modal in rail-less mode focused on the given version, so
-   * the panel is the sole navigator in that session (D4). The file is the one
+   * the panel is the sole navigator in that session. The file is the one
    * captured at row render time so an active-file switch between render and
    * double-click cannot retarget the modal at a different timeline. A missing
    * snapshot is treated as a no-op by ModalsService.diff (returns false), so
@@ -28509,7 +28972,7 @@ var LineChangeTrackerPlugin = class extends import_obsidian30.Plugin {
     /**
      * Services whose `init` has resolved successfully in the current lifecycle.
      * Tracked so a fatal init can tear down only what was actually brought up,
-     * in reverse registration order (ADR-08-C).
+     * in reverse registration order.
      */
     this.initialized = [];
     /**
@@ -28657,7 +29120,7 @@ var LineChangeTrackerPlugin = class extends import_obsidian30.Plugin {
   /**
    * Executes a method on all registered services in registration order.
    * Each per-service call is isolated in try/catch so one failure does not
-   * abort the loop; remaining services still get a chance to run (ADR-08-C).
+   * abort the loop; remaining services still get a chance to run.
    * For `init`, a successful call records the service in `initialized` so a
    * subsequent fatal can tear down only what is actually up. `unload` clears
    * the corresponding entry as the service goes down.
@@ -28694,7 +29157,7 @@ var LineChangeTrackerPlugin = class extends import_obsidian30.Plugin {
   /**
    * Tears down services that were brought up by a partial `init`/`load`, in
    * reverse registration order, so a fatal lifecycle failure never leaves a
-   * half-loaded plugin behind (ADR-08-C). Each per-service `unload` is
+   * half-loaded plugin behind. Each per-service `unload` is
    * isolated so one teardown failure does not block the rest.
    *
    * @return {Promise<void>} Resolves once teardown is complete.
@@ -28807,7 +29270,7 @@ var LineChangeTrackerPlugin = class extends import_obsidian30.Plugin {
     return file instanceof import_obsidian30.TFile ? file : null;
   }
   /**
-   * Reveals the Recent changes panel in the right sidebar (D3).
+   * Reveals the Recent changes panel in the right sidebar.
    *
    * Reuses an existing leaf when one is already open so a second invocation
    * focuses the panel rather than spawning a duplicate. Falls back to creating

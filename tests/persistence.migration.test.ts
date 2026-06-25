@@ -9,7 +9,7 @@ import type { SerializedFileSnapshot, SerializedHistory, SerializedShard } from 
 import { MemoryAdapter } from './stubs/memory-adapter';
 
 /**
- * Regression tests for the one-time monolith-to-shard migration (Epic 10, T09).
+ * Regression tests for the one-time monolith-to-shard migration.
  * They drive the real `restoreFromDisk` against the shared dir-aware
  * `MemoryAdapter`, seeding a legacy `history.json` (or its `.bak`) and asserting
  * the split into shards, the restored in-memory snapshots, the legacy-file
@@ -148,7 +148,7 @@ const readShardSnapshot = (adapter: MemoryAdapter, notePath: string): Serialized
   return (JSON.parse(raw) as SerializedShard).snapshot;
 };
 
-describe('PersistenceService monolith-to-shard migration (T09)', () => {
+describe('PersistenceService monolith-to-shard migration', () => {
   it('splits a legacy history.json with 3 snapshots into 3 shards and removes the legacy file', async (): Promise<void> => {
     const adapter = new MemoryAdapter();
     const now: number = Date.now();

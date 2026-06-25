@@ -40,7 +40,7 @@ function toHex32(value: number): string {
 
 /**
  * Maps a vault-relative note path to its on-disk history shard filename
- * (Epic 10). A path contains `/` and may exceed the 255-byte filename limit, so
+ *. A path contains `/` and may exceed the 255-byte filename limit, so
  * the file cannot be named by the path directly; instead the name is a
  * deterministic, synchronous 64-bit hash of the path rendered as fixed-width
  * hex plus `.json`. The path itself is stored inside the shard and is the

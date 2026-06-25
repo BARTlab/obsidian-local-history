@@ -44,7 +44,7 @@ const makeCommand = (modals: ModalsServiceDouble): ShowDiffCommand => {
 };
 
 /**
- * Tests for the reading-mode entry point (T5.7). ShowDiffCommand uses a
+ * Tests for the reading-mode entry point. ShowDiffCommand uses a
  * checkCallback so it is available whenever the active file has a snapshot,
  * independent of an editor (hence available in reading mode). The guarantees:
  * - availability mirrors whether a snapshot exists,

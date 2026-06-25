@@ -17,7 +17,7 @@ import { Notice, setIcon } from 'obsidian';
  *
  * Extracted from {@link HistoryModal} so {@link FolderHistoryModal} can render
  * the same diff verbatim without inheriting modal state or duplicating ~400
- * lines of mode plumbing (D6). The renderer:
+ * lines of mode plumbing. The renderer:
  * - computes the line-level hunks once and reuses them for the unified patch,
  *   the inline view and the diff2html call (so callers do not recompute them),
  * - writes the resulting DOM into the provided container, and

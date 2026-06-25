@@ -10,7 +10,7 @@ import { StylesService } from '@/services/styles.service';
 import type { ObsidianEventName } from '@/types';
 
 /**
- * Regression coverage for T20 (epic 08): three small lifecycle guards that
+ * Regression coverage: three small lifecycle guards that
  * were previously latent defects.
  *
  *  - EventsService: dedup must key on the event constructor, not the instance
@@ -21,7 +21,7 @@ import type { ObsidianEventName } from '@/types';
  *  - LineChangeTrackerPlugin: `emit(name, a, b)` must spread args to listeners
  *    rather than wrap them in a single positional array.
  */
-describe('T20 registry/lifecycle guards (epic 08)', (): void => {
+describe('Registry/lifecycle guards', (): void => {
   describe('EventsService.register dedup by constructor', (): void => {
     class FakeEvent extends BaseEvent {
       public readonly name = 'workspace.file-open' as ObsidianEventName;

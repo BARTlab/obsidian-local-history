@@ -50,7 +50,7 @@ export class HistoryModal extends Modal {
   /**
    * Shared owner of restore/remove/put-label actions on the version timeline.
    * The modal routes these through the service so the panel (and any future
-   * surface) executes the same implementation (D5).
+   * surface) executes the same implementation.
    */
   @Inject(TOKENS.versionActions)
   protected versionActionsService!: VersionActionsService;
@@ -62,7 +62,7 @@ export class HistoryModal extends Modal {
   protected diffContainerEl?: HTMLElementWithScrollSync;
 
   /**
-   * Side-by-side scroll-synchronisation collaborator the modal owns (T03). It
+   * Side-by-side scroll-synchronisation collaborator the modal owns. It
    * carries the deferred-setup timer and the per-container listener cleanup
    * that previously lived on the modal; it reads the live diff container back
    * through the resolver so it can bail when the container is swapped mid-flight.
@@ -72,7 +72,7 @@ export class HistoryModal extends Modal {
   );
 
   /**
-   * Version-list collaborator the modal owns (T04). It renders the left-rail
+   * Version-list collaborator the modal owns. It renders the left-rail
    * timeline, walks the selection with the keyboard, and derives the per-row
    * labels/deltas; it reads the live selection and the search/hide-identical
    * filters back through the host adapter below and reports a selection change
@@ -81,7 +81,7 @@ export class HistoryModal extends Modal {
   protected readonly versionList: VersionList = new VersionList(this.makeVersionListHost());
 
   /**
-   * Gutter-revert collaborator the modal owns (T05). It decorates each rendered
+   * Gutter-revert collaborator the modal owns. It decorates each rendered
    * hunk with an anchor marker and an inline revert affordance, resolves the
    * anchor row across every diff render mode, and reverts a single hunk on click;
    * it reads the live diff container, display mode, and hunks back through the
@@ -135,7 +135,7 @@ export class HistoryModal extends Modal {
   protected versionsEl?: HTMLElement;
 
   /**
-   * Diff-view-state collaborator the modal owns (T06). It holds the diff-view
+   * Diff-view-state collaborator the modal owns. It holds the diff-view
    * state - the selected base, the active display mode, the focused hunk index,
    * the hide-identical rail filter, and the content-search query - together with
    * the toolbar mode/nav button registries, and owns the active-mode highlight,
@@ -176,7 +176,7 @@ export class HistoryModal extends Modal {
   /**
    * Open options applied on the next onOpen call: an optional `initialBaseId`
    * to pre-select on open and an optional `hideRail` to render in rail-less
-   * mode (D4). With no options the modal behaves exactly as before.
+   * mode. With no options the modal behaves exactly as before.
    */
   protected readonly options: HistoryModalOpenOptions;
 
@@ -291,7 +291,7 @@ export class HistoryModal extends Modal {
     }
 
     /**
-     * A picked captured version routes through the shared service (D5); the
+     * A picked captured version routes through the shared service; the
      * synthetic baseline (the latest snapshot or the history original) stays on
      * the modal's local path because the service models real captured versions
      * only and the baseline content is resolved by the modal's BaseContentHelper.
@@ -333,7 +333,7 @@ export class HistoryModal extends Modal {
     }
 
     /**
-     * Route through the shared service (D5). The service resolves the next
+     * Route through the shared service. The service resolves the next
      * selection against the FULL timeline (its visible list); the modal's
      * search/hide-identical filter may exclude that fallback, so the result is
      * narrowed to ids the rail still shows before applying it. The synthetic
@@ -364,7 +364,7 @@ export class HistoryModal extends Modal {
   /**
    * Labels the selected version in place: prompts for a tag through the shared
    * ModalsService.labelVersion entry point and, on a non-empty result, marks
-   * that captured version (D1/D6). Unlike the editor-submenu Put label, which
+   * that captured version. Unlike the editor-submenu Put label, which
    * pins the current content as a new version, this tags the slice the user is
    * looking at in the rail. A no-op for the synthetic baseline (the button is
    * disabled there anyway) and for a cancelled/blank prompt. On success the
@@ -524,7 +524,7 @@ export class HistoryModal extends Modal {
   /**
    * Resolves the base to select when the modal opens. With an open option
    * `initialBaseId` naming a real version the modal opens focused on that
-   * version (D4); otherwise it defaults to the latest captured version (the top
+   * version; otherwise it defaults to the latest captured version (the top
    * of the rail, showing what changed since the last save), or the Original
    * entry when the file has no snapshots yet. An unknown `initialBaseId` falls
    * back to the default so a stale id never leaves the modal pointing at
@@ -541,7 +541,7 @@ export class HistoryModal extends Modal {
     }
 
     /**
-     * With a selection filter active (T09/D7) the default selection should land
+     * With a selection filter active the default selection should land
      * on the first version that survives the filter, not on the unconditional
      * latest snapshot which may be filtered out. The filter list is newest-first
      * (matches getVersions()), so the first hit is also the newest match. An
@@ -581,7 +581,7 @@ export class HistoryModal extends Modal {
    * Creates the UI elements for the diff view.
    *
    * With the `hideRail` open option the left rail (search + version list) is
-   * not rendered and the diff/toolbar fill the modal (D4). The panel uses this
+   * not rendered and the diff/toolbar fill the modal. The panel uses this
    * mode so it stays the sole navigator and there are no two competing version
    * lists side by side. Without the option the rail is built as before.
    */
@@ -1116,7 +1116,7 @@ export class HistoryModal extends Modal {
    * the current values), plus the selectBase callback the component reports a
    * pick to. Keeping the modal's selection/filter fields protected and handing
    * the collaborator a narrow port preserves the encapsulation the DiffScrollSync
-   * resolver established (T03).
+   * resolver established.
    *
    * @return {VersionListHost} The host port for the version-list collaborator
    */
@@ -1141,7 +1141,7 @@ export class HistoryModal extends Modal {
    * and routes the post-decoration nav refresh and the post-revert redraw back
    * to the modal. Keeping the modal's diff fields protected and handing the
    * collaborator a narrow port preserves the encapsulation the VersionList host
-   * established (T04).
+   * established.
    *
    * @return {GutterRevertHost} The host port for the gutter-revert collaborator
    */
@@ -1168,7 +1168,7 @@ export class HistoryModal extends Modal {
    * lazy accessors so the state's hunk focus and the nav-button enablement
    * always reflect the rendered diff. Keeping the modal's diff container
    * protected and handing the collaborator a narrow port preserves the
-   * encapsulation the GutterRevertHost established (T05).
+   * encapsulation the GutterRevertHost established.
    *
    * @return {DiffViewStateHost} The host port for the diff-view-state collaborator
    */
@@ -1208,7 +1208,7 @@ export class HistoryModal extends Modal {
    * intermediate version resolves to that version's captured content. The
    * synthetic baseline entry (or a stale id whose version no longer exists)
    * resolves to the LATEST captured snapshot, falling back to the original only
-   * when no snapshot exists (D1). The branch logic lives in the pure
+   * when no snapshot exists. The branch logic lives in the pure
    * BaseContentHelper so it can be unit-tested without the modal DOM.
    *
    * @return {string} The base content to diff the current state against
@@ -1367,7 +1367,7 @@ export class HistoryModal extends Modal {
     /**
      * Side-by-side mode mirrors scroll between its two columns; the owned
      * collaborator defers the listener setup until the diff2html DOM mounts and
-     * bails if the container is swapped before the timer fires (T03).
+     * bails if the container is swapped before the timer fires.
      */
     if (format === DiffOutputFormatType.side) {
       this.scrollSync.schedule();

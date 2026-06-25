@@ -6,15 +6,15 @@ import { VersionCodec } from '@/snapshots/version-codec';
 import type { SerializedFileVersion } from '@/types';
 
 /**
- * Corruption-resilience tests for VersionCodec.decode (Epic 09, T08). These pin
- * the ADR-08-B guarantee that a damaged on-disk delta chain degrades the
+ * Corruption-resilience tests for VersionCodec.decode. These pin
+ * the guarantee that a damaged on-disk delta chain degrades the
  * timeline instead of crashing plugin load. Each case constructs the corruption
  * explicitly (mutating `delta` strings or reordering entries), never via random
  * fuzzing, so a failure is deterministic and debuggable. Every case asserts both
  * the no-throw property and, where a keyframe follows, the resync property: a
  * post-keyframe version still materializes correctly.
  *
- * Decode is tests-only here; the resilience behaviour itself lives in T03's
+ * Decode is tests-only here; the resilience behaviour itself lives in the decode
  * source and must not be re-implemented or modified from this file.
  */
 
@@ -47,7 +47,7 @@ const decodeWithoutThrowing = (entries: SerializedFileVersion[]): FileVersion[] 
   return decoded;
 };
 
-describe('VersionCodec.decode resilience (T08)', (): void => {
+describe('VersionCodec.decode resilience', (): void => {
   it('drops only the truncated version and resyncs at the very next keyframe', (): void => {
     // The entry right before the interval keyframe is a delta; truncating its
     // hunk body (cutting just after the `@@` header) makes applyPatch reject the
@@ -96,7 +96,7 @@ describe('VersionCodec.decode resilience (T08)', (): void => {
 
     // The keyframe at 0 survives; the broken delta at 1 is dropped. Version 2 is
     // itself a delta chained off the dropped version, so it cannot resync without
-    // a keyframe and is dropped too (segment-level loss, per FINDINGS T03).
+    // a keyframe and is dropped too (segment-level loss).
     expect(decoded).toHaveLength(1);
     expect(decoded[0].getLines()).toEqual(versions[0].getLines());
   });

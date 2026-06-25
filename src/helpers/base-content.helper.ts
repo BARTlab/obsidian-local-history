@@ -1,7 +1,7 @@
 import type { BaseContentSnapshot } from '@/types';
 
 /**
- * Pure helper backing the history modal's diff-base resolution (D1). Given the
+ * Pure helper backing the history modal's diff-base resolution. Given the
  * selected base id and a reduced snapshot view, it returns the content the
  * current state should be diffed against.
  *

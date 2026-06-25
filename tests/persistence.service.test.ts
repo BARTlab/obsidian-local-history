@@ -9,7 +9,7 @@ import type { SerializedFileSnapshot, SerializedHistory, SerializedShard } from 
 import { MemoryAdapter } from './stubs/memory-adapter';
 
 /**
- * Tests for the retention caps in PersistenceService (T5.1). They drive the
+ * Tests for the retention caps in PersistenceService. They drive the
  * pruning logic directly with controlled settings so the size cap (eviction)
  * and age cap (expiry) are verified without any disk or Obsidian dependency.
  */
@@ -185,7 +185,7 @@ describe('PersistenceService retention combined caps', () => {
   });
 });
 
-describe('PersistenceService retention tombstone caps (T06)', () => {
+describe('PersistenceService retention tombstone caps', () => {
   it('applies live caps to live entries and tombstone caps to tombstones independently', () => {
     // Live cap: 1 entry, age unlimited. Tombstone cap: 2 entries, age unlimited.
     const service = makeService(1, 0, 2, 0);
@@ -265,8 +265,8 @@ describe('PersistenceService retention tombstone caps (T06)', () => {
 });
 
 /**
- * Tests for the serialized + atomic + backed-up write pipeline (ADR-08-A) ported
- * to the sharded layout (Epic 10, T15). They drive the shared dir-aware
+ * Tests for the serialized + atomic + backed-up write pipeline ported
+ * to the sharded layout. They drive the shared dir-aware
  * `MemoryAdapter` so the queue serialization, per-shard atomic replace, and
  * per-shard `.bak` behaviour are verified end-to-end against shard files under
  * `<plugindir>/history/`, not the legacy monolith, without touching real disk.
@@ -398,7 +398,7 @@ const payload = (path: string, timestamp: number): SerializedHistory => ({
   snapshots: [entry(path, timestamp)],
 });
 
-describe('PersistenceService write queue (ADR-08-A)', () => {
+describe('PersistenceService write queue', () => {
   it('serializes overlapping saves so the later payload wins in its shard', async (): Promise<void> => {
     const adapter = new MemoryAdapter();
     let counter: number = 0;
@@ -831,8 +831,7 @@ describe('PersistenceService idle-vault no-wipe guard', () => {
 });
 
 /**
- * Tests for skip-invalid per-entry validation in `readDisk` (ADR-08-B,
- * task T04). They seed the in-memory adapter with hand-crafted history files
+ * Tests for skip-invalid per-entry validation in `readDisk`. They seed the in-memory adapter with hand-crafted history files
  * that mix valid and malformed entries and assert `readDisk` returns only the
  * structurally usable ones (no crash, no silent drop of valid neighbours, no
  * resurrection of junk as fresh history with a `0` timestamp).
@@ -842,7 +841,7 @@ describe('PersistenceService idle-vault no-wipe guard', () => {
  * good entry against the specific defect it exercises.
  */
 
-describe('PersistenceService readDisk per-entry validation (ADR-08-B)', () => {
+describe('PersistenceService readDisk per-entry validation', () => {
   it('skips entries missing a finite timestamp and keeps the valid ones', async (): Promise<void> => {
     const adapter = new MemoryAdapter();
     const now: number = Date.now();

@@ -35,9 +35,9 @@ export class SnapshotsService implements Service {
   protected fileSnapshots: ObservableMap<string, FileSnapshot> = new ObservableMap<string, FileSnapshot>();
 
   /**
-   * Vault paths of files CREATED by the user in the current app session (epic
-   * 11). Recorded by the `vault.create` handler regardless of the
-   * "ignore new files" setting, so the tree/tab decorator can paint a freshly
+   * Vault paths of files CREATED by the user in the current app session.
+   * Recorded by the `vault.create` handler regardless of the "ignore new
+   * files" setting, so the tree/tab decorator can paint a freshly
    * created file as "added" even when that setting suppresses its snapshot (an
    * ignored new file has no snapshot to carry `createdThisSession`). Transient:
    * never persisted, so it resets to empty on restart and a created file stops
@@ -194,7 +194,7 @@ export class SnapshotsService implements Service {
   }
 
   /**
-   * Marks the snapshot for the given file as a tombstone (D1) instead of
+   * Marks the snapshot for the given file as a tombstone instead of
    * dropping it. The entry stays in the map under its current path so any
    * folder view at that prefix can still surface it, and its `state`,
    * `historyLines`, and `versions` are preserved so the file can be
@@ -258,7 +258,7 @@ export class SnapshotsService implements Service {
   }
 
   /**
-   * Handles a cross-directory move (D2): leaves a tombstone at `oldPath` and
+   * Handles a cross-directory move: leaves a tombstone at `oldPath` and
    * re-keys the live snapshot to the file's new path while stamping
    * `movedIntoAt` with the call timestamp. The live snapshot's history baseline,
    * version timeline, and current state travel with it so the file's captured
@@ -267,7 +267,7 @@ export class SnapshotsService implements Service {
    * still surface the file as deleted with its history intact.
    *
    * This method is the move-only entry point: it asserts that `oldPath` and the
-   * file's new path belong to different directories (per D3, an in-place rename
+   * file's new path belong to different directories (an in-place rename
    * stays a pure re-key through `rename`). Calling it without a directory
    * change throws so a wiring bug surfaces immediately rather than littering a
    * folder with phantom tombstones.
@@ -364,14 +364,14 @@ export class SnapshotsService implements Service {
    * Includes live snapshots that carry actual history (a tracker with changes
    * or a non-empty intermediate-version timeline) so pristine files do not
    * bloat the store but a timeline is never lost just because the current
-   * state happens to match the original. Tombstones (D1) are ALWAYS included
+   * state happens to match the original. Tombstones are ALWAYS included
    * regardless of tracker/timeline emptiness: their final state plus
    * `deletedTimestamp` is the only record of a deleted file's content and must
    * survive a restart even when the live tracker was reset on `markDeleted`.
    *
    * The serialized `path` is taken from the map key (not from `snapshot.file`)
    * so tombstones whose `file` reference is null (cross-directory move leaves
-   * a detached tombstone, D2) still round-trip to disk under their last-known
+   * a detached tombstone) still round-trip to disk under their last-known
    * path.
    *
    * @return {SerializedHistory} The versioned, serializable history payload
@@ -431,7 +431,7 @@ export class SnapshotsService implements Service {
 
   /**
    * Restores snapshots from a previously serialized history payload, keeping the
-   * marker and history baselines separate (D2).
+   * marker and history baselines separate.
    *
    * When the file was already captured this session, its session snapshot owns
    * the MARKER baseline (the file content at this open) plus the live tracker and
@@ -750,12 +750,12 @@ export class SnapshotsService implements Service {
 
   /**
    * Captures an external (off-editor) change to a tracked file as a flagged
-   * version on its timeline (D12/D13). Delegates to the
+   * version on its timeline. Delegates to the
    * {@link ExternalChangeCapture} collaborator, which reads the file from disk,
    * compares it to the snapshot's known state, and force-captures a divergent
    * external version while filtering out editor flushes, the plugin's own
    * revert writes, tombstones, ignored/excluded/wrong-extension files, and
-   * unchanged content (ADR-08-D/E).
+   * unchanged content.
    *
    * @param {TFile | null} file - The file whose disk content changed
    * @return {Promise<void>} Resolves once the external capture completes
@@ -769,7 +769,7 @@ export class SnapshotsService implements Service {
    * {@link ExternalChangeCapture} collaborator, which coalesces a burst of
    * modify events for the same path through a per-path debounce, then runs the
    * external capture once under an in-flight guard so an overlapping follow-up
-   * modify cannot double-capture the same disk state (ADR-08-E).
+   * modify cannot double-capture the same disk state.
    *
    * @param {TFile} file - The file whose modify event fired
    */

@@ -6,11 +6,11 @@ import { ObservableMap } from '@/maps/observable.map';
 import type { ChangeHandler } from '@/types';
 
 /**
- * T17: dispatch must iterate a snapshot of the listener set so a listener
+ * Dispatch must iterate a snapshot of the listener set so a listener
  * that subscribes or unsubscribes mid-dispatch cannot corrupt the in-progress
  * notification.
  */
-describe('ObservableMap re-entrant dispatch (T17)', (): void => {
+describe('ObservableMap re-entrant dispatch', (): void => {
   it('lets a listener unsubscribe itself during dispatch without skipping later listeners', (): void => {
     const map: ObservableMap<string, number> = new ObservableMap<string, number>();
     const calls: string[] = [];

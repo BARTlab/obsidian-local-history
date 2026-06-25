@@ -11,29 +11,29 @@ import { type MarkdownView, type View, type WorkspaceLeaf } from 'obsidian';
 
 /**
  * Service that tints native Obsidian file-explorer rows and workspace tab headers
- * by their session change status (epic 11, M1 + M2). It owns no DOM of its own:
+ * by their session change status. It owns no DOM of its own:
  * it adds and removes the shared `lct-tree-added` / `lct-tree-modified` classes on
  * rows Obsidian renders (`fileItems[path].selfEl`) and on the tab headers of open
  * files (`leaf.tabHeaderEl`), so the file tree and the tab bar show at a glance
  * what was edited or created this session, agreeing with the editor gutter by
- * construction (D1).
+ * construction.
  *
  * Design constraints baked in here:
  *
  * - It never re-renders the explorer; it only flips classes on existing nodes
- *   (D2), so it is theme-safe and survives core updates.
+ *  , so it is theme-safe and survives core updates.
  * - The native explorer is an untyped Obsidian internal; it is reached through
  *   the local {@link NativeFileExplorerView} augmentation with defensive optional
  *   access, and every entry point is gated on `plugin.isReady()` so a stale call
- *   degrades silently instead of throwing (D8).
+ *   degrades silently instead of throwing.
  * - `SessionStatusHelper` yields only `added | modified | none`, so a tombstone
- *   resolves to `none` and is never painted (D5).
+ *   resolves to `none` and is never painted.
  * - Applies are debounced and diff-based: a burst of `snapshotsUpdate` events
  *   (one per keystroke) collapses into a single trailing sweep, and only rows
- *   whose status actually changed since the last apply are touched (D7).
+ *   whose status actually changed since the last apply are touched.
  * - The classes it adds are not auto-cleaned by Obsidian, so `unload()` removes
  *   every one of them, mirroring the `StylesService` teardown pattern.
- * - The whole decorator is gated behind the `treeHighlight` setting (D9): when it
+ * - The whole decorator is gated behind the `treeHighlight` setting: when it
  *   is off, `apply()` clears every applied class and paints nothing further;
  *   flipping it back on re-applies the current statuses live without a reload,
  *   driven by the `settingsUpdate` fan-out.
@@ -50,7 +50,7 @@ export class TreeTabDecoratorService implements Service {
 
   /**
    * Service for reading the plugin settings, used to gate the whole decorator
-   * behind the `treeHighlight` toggle (D9): off clears every applied class and
+   * behind the `treeHighlight` toggle: off clears every applied class and
    * paints nothing further, on re-applies the current statuses live.
    */
   @Inject(TOKENS.settings)
@@ -76,7 +76,7 @@ export class TreeTabDecoratorService implements Service {
   protected static readonly markdownType: string = 'markdown';
 
   /**
-   * The two status classes this decorator manages on native surfaces (D5: no
+   * The two status classes this decorator manages on native surfaces (no
    * `lct-tree-deleted`). Removed wholesale from a row before the current status
    * class is re-applied so a status flip never leaves a stale colour behind.
    */
@@ -109,7 +109,7 @@ export class TreeTabDecoratorService implements Service {
 
   /**
    * The `MutationObserver` watching the explorer container for lazily-rendered
-   * rows (D7), or undefined when no container is currently observed. Expanding a
+   * rows, or undefined when no container is currently observed. Expanding a
    * collapsed folder or a drag/drop mounts new `fileItems` rows WITHOUT firing a
    * plugin event, so `snapshotsUpdate` alone misses them; a childList mutation on
    * the container schedules a debounced re-apply that decorates the new rows. It
@@ -139,7 +139,7 @@ export class TreeTabDecoratorService implements Service {
   /**
    * Maps a status to the native-surface class name that paints it. The class
    * tokens (`lct-tree-added` / `lct-tree-modified`) are the same ones the modal
-   * folder tree uses, sourced from the shared `--lct-status-*` palette (D3).
+   * folder tree uses, sourced from the shared `--lct-status-*` palette.
    *
    * @param {FolderDeltaStatus} status - The status to name a class for
    * @return {string} The `lct-tree-*` class name for that status
@@ -151,7 +151,7 @@ export class TreeTabDecoratorService implements Service {
   /**
    * Wires the refresh triggers and applies the initial decoration. Besides the
    * `snapshotsUpdate` fan-out ({@link refresh}), the tree and tabs must be
-   * re-decorated on three more signals that carry no plugin event (D7): a
+   * re-decorated on three more signals that carry no plugin event: a
    * `layout-change` (the explorer or a tab bar can be recreated, dropping every
    * class this decorator added), an `active-leaf-change` (the active leaf
    * changed), and a `file-open` (a leaf swapped the file it shows, so its tab
@@ -185,7 +185,7 @@ export class TreeTabDecoratorService implements Service {
 
   /**
    * Re-decorates the tree on every snapshot change. Debounced so a burst of
-   * edits collapses into a single trailing sweep (D7); the actual work runs in
+   * edits collapses into a single trailing sweep; the actual work runs in
    * {@link apply}.
    */
   @On(PluginEvent.snapshotsUpdate)
@@ -195,7 +195,7 @@ export class TreeTabDecoratorService implements Service {
 
   /**
    * Re-decorates on every settings change so the `treeHighlight` toggle reacts
-   * live (D9): toggling it off makes the next scheduled {@link apply} clear every
+   * live: toggling it off makes the next scheduled {@link apply} clear every
    * applied class, and toggling it back on re-applies the current statuses
    * without a reload. Debounced like every other trigger; the toggle read itself
    * happens in {@link apply}, so this stays a uniform `schedule()`.
@@ -248,8 +248,8 @@ export class TreeTabDecoratorService implements Service {
    * once, then sweeps the explorer rows and the tab headers off the same map.
    * Both sweeps are diff-based (only surfaces whose status changed are touched)
    * and `isReady()`-guarded; each degrades silently when its surface is missing
-   * (D8). The tab sweep runs even when no explorer is open, so tabs stay decorated
-   * while the file tree is hidden. When the `treeHighlight` toggle is off (D9) the
+   *. The tab sweep runs even when no explorer is open, so tabs stay decorated
+   * while the file tree is hidden. When the `treeHighlight` toggle is off the
    * sweep instead clears every applied class and paints nothing further, so the
    * feature can be switched off live.
    */
@@ -340,7 +340,7 @@ export class TreeTabDecoratorService implements Service {
    * tints never apply to a tab), and flips the header class only when it changed
    * since the last sweep. A leaf no longer open, or whose status returned to
    * `none`, has its class removed and drops out of the tab bookkeeping. Degrades
-   * silently when a leaf has no `tabHeaderEl` or no file (D8).
+   * silently when a leaf has no `tabHeaderEl` or no file.
    *
    * @param {Map<string, FolderDeltaStatus>} desired - File/folder path to its session status
    */
@@ -379,9 +379,9 @@ export class TreeTabDecoratorService implements Service {
   /**
    * Builds the per-path desired status for both file and folder rows. Each live
    * snapshot the helper resolves to a paintable status (`added` / `modified`)
-   * contributes its file row; a `none` snapshot (including any tombstone, D5) is
+   * contributes its file row; a `none` snapshot (including any tombstone) is
    * omitted so its row carries no class. Every ancestor folder of a changed file
-   * is then tinted the single `modified` token (D6), so a folder is painted iff
+   * is then tinted the single `modified` token, so a folder is painted iff
    * it still contains a session change and clears symmetrically once none remain.
    *
    * @return {Map<string, FolderDeltaStatus>} File/folder path to its session status
@@ -391,11 +391,11 @@ export class TreeTabDecoratorService implements Service {
 
     for (const snapshot of this.snapshotsService.getList()) {
       /**
-       * Resolve the path without depending on a live `TFile` (epic 12). After a
+       * Resolve the path without depending on a live `TFile`. After a
        * reload a restored snapshot has `file == null` until it is re-captured
        * this session, so `file?.path` alone drops it from the tint map and the
        * folder stops painting even though its `modified` status survives the
-       * restart (epic 11 intent). The carried `path` mirrors the map key and is
+       * restart. The carried `path` mirrors the map key and is
        * the same fallback the folder-history readers use.
        */
       const path: string | undefined = snapshot.file?.path ?? snapshot.path;
@@ -413,10 +413,10 @@ export class TreeTabDecoratorService implements Service {
 
     /**
      * Files the user created this session read as `added` even when the
-     * "ignore new files" setting suppressed their snapshot (epic 11): such a
+     * "ignore new files" setting suppressed their snapshot: such a
      * file has no snapshot above, so its status comes from the session-created
      * path set instead. `added` overrides any `modified` already set for the
-     * same path (created-this-session is the more informative read, D4).
+     * same path (created-this-session is the more informative read).
      */
     for (const path of this.snapshotsService.getSessionCreatedPaths()) {
       statuses.set(path, FolderDeltaStatus.added);
@@ -457,7 +457,7 @@ export class TreeTabDecoratorService implements Service {
   /**
    * Sets a single tab header's status class: removes both managed classes, then
    * adds the one for `status` unless it is `none`. A no-op when the leaf exposes
-   * no `tabHeaderEl` (an untyped internal that may be absent, D8).
+   * no `tabHeaderEl` (an untyped internal that may be absent).
    *
    * @param {NativeWorkspaceLeaf} leaf - The leaf whose tab header to decorate
    * @param {FolderDeltaStatus} status - The status to paint, or `none` to clear
@@ -485,7 +485,7 @@ export class TreeTabDecoratorService implements Service {
    * drag, or filter that mounts new rows fires it, but never `attributes`, so the
    * decorator's own class flips inside {@link apply} never re-trigger it (no
    * feedback loop). The container is reached through the typed `View.containerEl`,
-   * not an internal, and a missing container degrades to no observer (D8).
+   * not an internal, and a missing container degrades to no observer.
    *
    * @param {HTMLElement | undefined} container - The explorer container to observe
    */
@@ -512,7 +512,7 @@ export class TreeTabDecoratorService implements Service {
 
   /**
    * Resolves the native file-explorer view through the local augmentation, or
-   * null when no explorer leaf is open. Untyped internal access (D8) is confined
+   * null when no explorer leaf is open. Untyped internal access is confined
    * to this one cast so the rest of the service stays typed.
    *
    * @return {NativeFileExplorerView | null} The explorer view, or null when absent
@@ -549,7 +549,7 @@ export class TreeTabDecoratorService implements Service {
   /**
    * Resolves every open markdown leaf, each viewed through the local
    * {@link NativeWorkspaceLeaf} augmentation so its untyped `tabHeaderEl` is in
-   * reach (D8). Markdown leaves are the only ones backed by a vault `TFile` whose
+   * reach. Markdown leaves are the only ones backed by a vault `TFile` whose
    * session status the tab sweep can resolve.
    *
    * @return {NativeWorkspaceLeaf[]} The open markdown leaves

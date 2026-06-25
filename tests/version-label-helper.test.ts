@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { VersionLabelHelper } from '@/helpers/version-label.helper';
 
 /**
- * Tests for the pure VersionLabelHelper (T02). The helper derives a human
+ * Tests for the pure VersionLabelHelper. The helper derives a human
  * action description (created / modified / cleared) plus the added/removed
  * line counts for a version, given the previous and current contents. It has
  * no Obsidian or DOM dependency, so the tests drive it directly with line

@@ -50,7 +50,7 @@ const computeStatuses = (snapshots: FileSnapshot[], sessionCreated: string[] = [
   return fn.call(stub);
 };
 
-describe('TreeTabDecoratorService.computeStatuses - path resolution (epic 12)', () => {
+describe('TreeTabDecoratorService.computeStatuses - path resolution', () => {
   it('tints a live snapshot and its ancestor folders by file.path', () => {
     const statuses = computeStatuses([makeModified(makeFile('folder/sub/note.md'))]);
 

@@ -4,7 +4,7 @@ import { ChangeType } from '@/consts';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 
 /**
- * Epic 13 regression: a removed-line anchor must never land past the last real
+ * Regression: a removed-line anchor must never land past the last real
  * line. The change detector treats a block replaced by a different line count as
  * delete + insert, removing the doomed originals AFTER inserting the
  * replacements. Each insert advances the removed-line anchors (shiftUpRemoved),
@@ -32,7 +32,7 @@ const changeKeys = (snapshot: FileSnapshot): number[] =>
     .filter((key): key is number => typeof key === 'number')
     .sort((a: number, b: number): number => a - b);
 
-describe('TrackerEditor removed-anchor clamping (epic 13)', () => {
+describe('TrackerEditor removed-anchor clamping', () => {
   it('does not orphan a removed marker when the whole document is replaced', () => {
     // Empty Untitled file: a single empty original line at position 0.
     const snapshot = new FileSnapshot('');

@@ -3,7 +3,7 @@ import { PromptModal } from '@/modals/prompt.modal';
 import type { App } from 'obsidian';
 
 /**
- * Unit tests for PromptModal (T05).
+ * Unit tests for PromptModal.
  *
  * The Jest runtime is configured with the default `node` environment and no
  * jsdom is installed, so these tests do not exercise the rendered DOM. They
@@ -87,7 +87,7 @@ describe('PromptModal', () => {
 
   it('resolves to an empty string when the user confirms an empty input', async () => {
     // PromptModal does not trim or post-process the value: blank confirmation
-    // returns '', and callers (T06) are responsible for treating blanks as a
+    // returns '', and callers are responsible for treating blanks as a
     // no-op. This locks the thin-input-layer contract.
     const modal: TestablePromptModal = new TestablePromptModal(inertApp, {
       title: 'Enter label',

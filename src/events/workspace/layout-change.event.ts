@@ -49,7 +49,7 @@ export class WorkspaceLayoutChangeEvent extends BaseEvent {
      * Snapshot every collection into a local array before iteration so the
      * mutating service calls below (wipeOne, removeFromIgnoreList) and the
      * follow-up captures cannot re-enter the loops they are walking
-     * (ADR-08-E adjacent).
+     *.
      */
     const snapshots: FileSnapshot[] = this.snapshotsService.getList();
     const ignored: TFile[] = this.snapshotsService.getIgnoreList();

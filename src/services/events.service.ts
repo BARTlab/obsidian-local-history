@@ -27,7 +27,7 @@ export class EventsService implements Service {
    * minification is ever enabled (different classes could collapse to the
    * same mangled name). The previous `Set<BaseEvent>` keyed by instance
    * identity never fired because {@link factory} always returns a fresh
-   * instance (ADR-08 T20).
+   * instance.
    */
   protected instances: Map<ClassConstructor<BaseEvent>, BaseEvent> = new Map();
 

@@ -14,7 +14,7 @@ import type * as Diff from 'diff';
 import type { TFile } from 'obsidian';
 
 /**
- * Tests for {@link GutterRevertHandler} (T05), the per-hunk revert collaborator
+ * Tests for {@link GutterRevertHandler}, the per-hunk revert collaborator
  * the history modal owns. Extracted from the 2246-LOC modal, where the anchor
  * resolution and the revert flow were untestable; these run under jsdom and
  * cover the behaviour the gutter affordances rely on:

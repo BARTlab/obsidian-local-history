@@ -6,10 +6,10 @@ import { VersionCodec } from '@/snapshots/version-codec';
 import type { SerializedFileVersion } from '@/types';
 
 /**
- * Tests for VersionCodec.encode (Epic 09, T02): the materialized FileVersion[]
+ * Tests for VersionCodec.encode: the materialized FileVersion[]
  * is turned into a keyframe + delta entry chain with the correct per-index
  * cadence, flags are preserved on either form, and a delta is actually smaller
- * than the full joined text it replaces. Decode is covered separately (T03).
+ * than the full joined text it replaces. Decode is covered separately.
  */
 
 /**
@@ -165,10 +165,10 @@ describe('VersionCodec.encode', (): void => {
 });
 
 /**
- * Tests for VersionCodec.decode (Epic 09, T03): the keyframe + delta entry chain
+ * Tests for VersionCodec.decode: the keyframe + delta entry chain
  * is rebuilt into a materialized FileVersion[], preserving timestamp/label/
  * external, decoding old all-keyframe (version-1) files natively, and skipping
- * unanchored or unappliable deltas without throwing (ADR-08-B resilience).
+ * unanchored or unappliable deltas without throwing (resilience).
  */
 describe('VersionCodec.decode', (): void => {
   it('returns an empty array for empty input', (): void => {
@@ -301,9 +301,9 @@ describe('VersionCodec.decode', (): void => {
 });
 
 /**
- * Round-trip, superset and edge property tests (Epic 09, T04). These prove
+ * Round-trip, superset and edge property tests. These prove
  * `encode` -> `decode` is lossless across the cases the real serialization path
- * (T05) leans on: chains that span several keyframe intervals (so multiple
+ * leans on: chains that span several keyframe intervals (so multiple
  * keyframes are exercised, not just index 0 and the first interval), CRLF
  * content, label/external flags, empty and trailing-blank lines, and a
  * hand-built old-format (all-keyframe, version-1) array decoding unchanged.
@@ -311,7 +311,7 @@ describe('VersionCodec.decode', (): void => {
  * the genuine `lines` plumbing, and structural facts (keyframe cadence) are
  * asserted alongside content so a cadence regression is caught too.
  */
-describe('VersionCodec round-trip and edges (T04)', (): void => {
+describe('VersionCodec round-trip and edges', (): void => {
   it('round-trips a chain spanning multiple keyframe intervals with keyframes at every multiple', (): void => {
     // 2.5 intervals worth of versions, so the chain holds keyframes at 0, the
     // interval and twice the interval, plus a trailing partial delta run.

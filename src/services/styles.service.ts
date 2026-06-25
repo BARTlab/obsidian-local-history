@@ -67,9 +67,13 @@ export class StylesService implements Service {
 
     const width: number = this.settingsService.value('line.width');
 
+    // .lct-rm-indicator is listed explicitly: reading-mode section wrappers
+    // carry only that class (no .lct), so without it the --lct-color-*
+    // references in the reading-mode rules would not resolve and the border
+    // would fall back to currentColor.
     this.sheet.setText(`
         .lct,
-        .lct-change-layer {
+        .lct-rm-indicator {
           --lct-color-${ChangeType.changed}: var(--color-blue);
           --lct-color-${ChangeType.restored}: var(--text-faint);
           --lct-color-${ChangeType.added}: var(--color-orange);

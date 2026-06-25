@@ -3,7 +3,7 @@ import { FileVersion } from '@/snapshots/file.version';
 import type { TFile } from 'obsidian';
 
 /**
- * Deterministic fixtures for the folder aggregation perf benches (T05). The
+ * Deterministic fixtures for the folder aggregation perf benches. The
  * snapshot trees are generated in code, never committed as JSON, so the repo
  * stays small and a given shape always yields the same input. Every generator
  * is seeded only by its shape parameters, so the medians stay comparable across
@@ -32,7 +32,7 @@ export interface FolderFixtureShape {
 }
 
 /**
- * The three fixture shapes the benches exercise, per the T05 spec: shallow (3
+ * The three fixture shapes the benches exercise, per the bench spec: shallow (3
  * folders, 30 files, 10 versions/file), nested (10 folders deep, 100 files, 20
  * versions/file), wide (3 folders deep, 1000 files, 5 versions/file). `depth`
  * is the folder nesting under the shared root; `files` is the total file count

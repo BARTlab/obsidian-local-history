@@ -9,10 +9,10 @@ import type { FunctionVoid, HTMLElementWithScrollSync } from '@/types';
 export type DiffContainerResolver = () => HTMLElementWithScrollSync | undefined;
 
 /**
- * Scroll-synchronisation collaborator for the side-by-side diff view (T03).
+ * Scroll-synchronisation collaborator for the side-by-side diff view.
  *
  * Extracted from {@link HistoryModal} as a plain object the modal instantiates
- * and owns (per ADR-8 / Epic 14: deep collaborators, not DI services). It owns
+ * and owns (per ADR-11: deep collaborators, not DI services). It owns
  * the deferred-setup timer and the per-container listener cleanup so the modal
  * no longer carries scroll-sync fields or methods; the modal just calls
  * {@link schedule} after rendering a side-by-side diff and {@link cleanup} on

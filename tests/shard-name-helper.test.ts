@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import { ShardNameHelper } from '@/helpers/shard-name.helper';
 
 /**
- * Unit tests for the deterministic shard naming helper (Epic 10, T01). The
+ * Unit tests for the deterministic shard naming helper. The
  * shard filename is a synchronous hash of a note's vault-relative path; the
  * contract is that it is deterministic, fixed-width, filesystem-safe, and
  * collision free across a realistic corpus of paths.

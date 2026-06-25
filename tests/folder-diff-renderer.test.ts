@@ -11,7 +11,7 @@ import type { DiffRenderMode } from '@/types';
 import { installJsdomDomPolyfill } from './helpers/jsdom-dom';
 
 /**
- * Tests for {@link FolderDiffRenderer} (T08), the diff-pane collaborator the
+ * Tests for {@link FolderDiffRenderer}, the diff-pane collaborator the
  * folder-history modal owns. Extracted from the 1416-LOC modal, where the diff
  * body, the above-diff notice, and the side-by-side column header were tangled
  * with the toolbar; these run under jsdom and cover the behaviour the diff pane

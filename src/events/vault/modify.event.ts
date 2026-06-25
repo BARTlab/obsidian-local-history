@@ -11,7 +11,7 @@ import { type TAbstractFile, TFile } from 'obsidian';
  * Routes file writes to `SnapshotsService.captureExternalChange` so external
  * sources (git pull, sync, an external editor) get captured as flagged
  * versions while editor flushes and the plugin's own revert writes are
- * filtered out by the hash guard inside the service (epic 05 D12/D13).
+ * filtered out by the hash guard inside the service.
  *
  * Registration is deferred to `onLayoutReady` alongside the other vault
  * events so the initial reads Obsidian performs during the startup file
@@ -39,7 +39,7 @@ export class VaultModifyEvent extends BaseEvent {
    * `SnapshotsService.scheduleExternalCapture` so a burst of modify events
    * for the same file (sync, git pull, an external save loop) collapses into
    * one debounced disk read + capture, and an overlapping follow-up modify
-   * cannot start a second concurrent capture for the same path (ADR-08-E).
+   * cannot start a second concurrent capture for the same path.
    * Skips non-file entries (folders).
    *
    * @param {TAbstractFile} file - The file that was modified in the vault

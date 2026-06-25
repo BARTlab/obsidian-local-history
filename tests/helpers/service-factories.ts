@@ -41,8 +41,8 @@ export const makeSnapshotsService = (): SnapshotsService => {
  *
  * This is the single shared form of the `(existingPaths)` factory the
  * snapshots.persistence and persistence.service.tombstone suites each
- * re-declared. epic-14 decision #31 kept them split because tombstone added a
- * `t` translation stub that snapshots.persistence omitted; T07 verified that
+ * re-declared. They were originally split because tombstone added a
+ * `t` translation stub that snapshots.persistence omitted; it was verified that
  * `plugin.t` is only ever read on the invalid-exclude-pattern warning path,
  * which neither suite exercises, so the stub is a no-op for both and the
  * factory is safe to unify (echoing translation keys like

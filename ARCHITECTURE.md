@@ -274,7 +274,7 @@ resilience layers are complementary, not redundant: the shard `.bak`/`.tmp`
 fallback (this ADR) recovers a whole snapshot file, while the codec keyframe-resync
 (ADR-9) repairs a corrupt delta inside an otherwise-loaded timeline. The migration
 carries each legacy snapshot through byte-for-byte (no re-encode), so a v1 or v2
-monolith migrates unchanged regardless of which epic landed first.
+monolith migrates unchanged regardless of which format change landed first.
 
 **Rejected:** keeping the monolith (the failure mode being fixed); a manifest/index
 file listing shards (re-introduces the single point of failure); reversible path
@@ -396,7 +396,7 @@ Each item below is a load-bearing assumption that is easy to break from a distan
   entry is just a keyframe. The version bump to 2 is a signal only, never a decode
   branch.
 - **Decode is resilient and resyncs at keyframes.** A delta with no preceding
-  keyframe, or one that fails to apply, is skipped rather than thrown (ADR-08-B);
+  keyframe, or one that fails to apply, is skipped rather than thrown;
   the chain resyncs at the next keyframe, so one corrupt delta loses at most the
   segment up to that keyframe, never the whole load.
 - **Deltas transport lines joined on `\n` regardless of the file `lineBreak`.** A

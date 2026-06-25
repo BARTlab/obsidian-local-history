@@ -5,7 +5,7 @@ import { DiffScrollSync } from '@/modals/diff-scroll-sync';
 import type { HTMLElementWithScrollSync } from '@/types';
 
 /**
- * Tests for {@link DiffScrollSync} (T03), the scroll-synchronisation
+ * Tests for {@link DiffScrollSync}, the scroll-synchronisation
  * collaborator the history modal owns for its side-by-side diff. Extracted from
  * the 2246-LOC modal, where it was untestable; these run under jsdom and cover
  * the behaviour the modal relies on:

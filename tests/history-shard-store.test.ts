@@ -8,9 +8,8 @@ import type { SerializedFileSnapshot, SerializedShard } from '@/types';
 import { MemoryAdapter } from './stubs/memory-adapter';
 
 /**
- * Unit tests for the stateless `HistoryShardStore` IO collaborator (Epic 10,
- * tasks T02/T03/T04, proven here under T05). They drive the store against the
- * shared in-memory adapter so the per-shard atomic write, the
+ * Unit tests for the stateless `HistoryShardStore` IO collaborator. They drive the
+ * store against the shared in-memory adapter so the per-shard atomic write, the
  * `.json -> .bak -> .tmp` read fallback, removal, directory wipe, and name
  * enumeration are verified in isolation, without a real filesystem.
  */

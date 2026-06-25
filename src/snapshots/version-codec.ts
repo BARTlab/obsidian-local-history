@@ -6,9 +6,9 @@ import type { SerializedFileVersion } from '@/types';
 
 /**
  * Stateless codec that encodes a materialized `FileVersion[]` into a keyframe +
- * delta entry chain for on-disk persistence, and (T03) decodes that chain back
+ * delta entry chain for on-disk persistence, and decodes that chain back
  * into full-text entries. It holds no state: every method takes the arrays and
- * the line break as explicit arguments, matching the ADR-08 facade-over-
+ * the line break as explicit arguments, matching the ADR-8 facade-over-
  * stateless-operators rule.
  *
  * Chain shape: version `i` is a keyframe (full `lines`) when
@@ -21,7 +21,7 @@ import type { SerializedFileVersion } from '@/types';
  * Transport invariant: lines are joined with `\n` purely as patch transport,
  * never the file's real line break. A tracked line is the split product of the
  * file's line break (`\n` or `\r\n`) and so never contains a bare `\n`, which
- * makes the `\n`-join a lossless transport for the diff library (Epic 09).
+ * makes the `\n`-join a lossless transport for the diff library.
  */
 export class VersionCodec {
   /**
@@ -48,7 +48,7 @@ export class VersionCodec {
       // VERSION_KEYFRAME_INTERVAL is the accepted blast-radius bound: a corrupt
       // delta only invalidates entries between two keyframes (up to interval - 1
       // versions). Decode skips bad entries and re-anchors on the next keyframe
-      // (degrade-never-throw, ADR-08-B). Accepted trade-off: ADR-18-17.
+      // (degrade, never throw). This is an accepted trade-off.
       const isKeyframe: boolean = i % VERSION_KEYFRAME_INTERVAL === 0;
 
       let entry: SerializedFileVersion;
@@ -85,7 +85,7 @@ export class VersionCodec {
    * `lines`, a delta entry applies its patch to `prev.join('\n')` and splits the
    * result back into lines on the same `\n` transport used by encode.
    *
-   * Resilient by design (ADR-08-B): a delta with no preceding keyframe (`prev`
+   * Resilient by design: a delta with no preceding keyframe (`prev`
    * is still null) or one whose patch fails to apply is skipped (its version is
    * dropped) and decoding continues; the next keyframe resyncs `prev`. A null or
    * non-object entry is skipped likewise. Decode never throws on a malformed

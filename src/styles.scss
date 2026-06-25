@@ -850,14 +850,18 @@ body {
 .cm-line {
   &.lct-line {
     position: relative;
-    // Prevent the theme from clipping the change bar. Quote lines in Obsidian Live
-    // Preview (.HyperMD-quote-N) may inherit overflow: hidden from the theme,
-    // which clips our absolutely-positioned ::before bar (left: -10px). Setting
-    // overflow: visible here ensures the bar is always rendered regardless of
-    // which theme property cascades onto the line element.
+    // Prevent the theme from clipping the change bar: the bar is absolutely
+    // positioned in the left margin (left: -10px), so any overflow: hidden
+    // cascading onto the line element would cut it off.
     overflow: visible;
 
-    &:not(.mk-placeholder)::before {
+    // The change bar lives on ::after, NOT ::before. In Live Preview Obsidian
+    // draws the blockquote marker through ::before on the same .cm-line
+    // (.HyperMD-quote:before, app.css), and an element has only one ::before:
+    // the two rules merge and the higher-specificity app.css geometry
+    // (inset-inline-start: 0; width: 1px) hijacks the bar onto the quote
+    // marker. ::after carries no line-level rules in stock app.css.
+    &:not(.mk-placeholder)::after {
       content: '';
       position: absolute;
       left: -10px;
@@ -868,17 +872,21 @@ body {
       z-index: 0;
     }
 
-    &:not(.mk-placeholder):has(+ .lct-removed)::before,
-    &.lct-removed:not(.mk-placeholder)::before {
+    &:not(.mk-placeholder):has(+ .lct-removed)::after,
+    &.lct-removed:not(.mk-placeholder)::after {
       height: calc(100% - 2px);
     }
 
-    &.lct-removed:not(.mk-placeholder)::before {
-      //height: calc(100% - 2px);
+    &.lct-removed:not(.mk-placeholder)::after {
       top: auto;
     }
 
-    &.lct-removed:not(.mk-placeholder)::after {
+    // The removed dash takes ::before (swapped with the bar, see above). On a
+    // quote anchor line it degrades: Obsidian's quote-marker ::before wins the
+    // geometry there, so the dash is absorbed into the quote bar instead of
+    // rendering in the margin. Rare case, accepted over losing change bars on
+    // every changed quote line.
+    &.lct-removed:not(.mk-placeholder)::before {
       content: '';
       position: absolute;
       left: -10px;
@@ -899,24 +907,24 @@ body {
      * dash to its own top so it stays inside the document instead of floating
      * above the title.
      */
-    &:first-child.lct-removed:not(.mk-placeholder)::after {
+    &:first-child.lct-removed:not(.mk-placeholder)::before {
       transform: none;
       top: 0;
     }
 
-    &.lct-changed:not(.mk-placeholder)::before {
+    &.lct-changed:not(.mk-placeholder)::after {
       background-color: var(--lct-color-changed);
     }
 
-    &.lct-restored:not(.mk-placeholder)::before {
+    &.lct-restored:not(.mk-placeholder)::after {
       background-color: var(--lct-color-restored);
     }
 
-    &.lct-added:not(.mk-placeholder)::before {
+    &.lct-added:not(.mk-placeholder)::after {
       background-color: var(--lct-color-added);
     }
 
-    &.lct-whitespace:not(.mk-placeholder)::before {
+    &.lct-whitespace:not(.mk-placeholder)::after {
       background-color: var(--lct-color-whitespace);
     }
   }

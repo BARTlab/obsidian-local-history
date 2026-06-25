@@ -6,6 +6,8 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-06-10
+
 ### Fixed
 
 - **Service resolution in the released build.** The bundled plugin could fail to
@@ -57,6 +59,18 @@ follows [Semantic Versioning](https://semver.org/).
   pattern before saving; small registry and lifecycle guards prevent
   duplicate event instances, null stylesheet writes, and event payload
   array-wrapping.
+- **Unfocused-file capture.** Line-break style is now detected correctly when a
+  file is captured without ever being focused in the editor, so background and
+  synced changes no longer carry a mismatched line ending.
+- **Localized gutter revert.** The editor gutter's revert-block confirmation now
+  follows the UI language instead of being English-only.
+- **Quieter exclude-pattern input.** Typing an incomplete or invalid
+  path-exclude pattern in settings no longer spams repeated notifications.
+- **Reading-mode indicator cleanup.** Turning change indicators off now clears
+  the indicators already drawn in reading mode instead of leaving them until the
+  next reload.
+- **Live Preview quote blocks.** A newly added line inside a quote block now
+  shows its added-line indicator in Live Preview instead of rendering without one.
 
 ## [1.0.2] - 2026-06-03
 
@@ -143,7 +157,8 @@ into a full local history system for your vault.
   lines with line or gutter indicators, a built-in side-by-side and line-by-line
   diff modal, patch export, and configurable appearance and history settings.
 
-[Unreleased]: https://github.com/bartlab/obsidian-local-history/compare/1.0.2...HEAD
+[Unreleased]: https://github.com/bartlab/obsidian-local-history/compare/1.1.0...HEAD
+[1.1.0]: https://github.com/bartlab/obsidian-local-history/compare/1.0.2...1.1.0
 [1.0.2]: https://github.com/bartlab/obsidian-local-history/compare/1.0.1...1.0.2
 [1.0.1]: https://github.com/bartlab/obsidian-local-history/compare/1.0.0...1.0.1
 [1.0.0]: https://github.com/bartlab/obsidian-local-history/releases/tag/1.0.0

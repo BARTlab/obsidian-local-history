@@ -528,6 +528,7 @@ body {
 }
 .cm-line.lct-line {
   position: relative;
+  overflow: visible;
 }
 .cm-line.lct-line:not(.mk-placeholder)::before {
   content: "";

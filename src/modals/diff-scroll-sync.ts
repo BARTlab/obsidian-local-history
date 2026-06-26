@@ -6,7 +6,7 @@ import type { FunctionVoid, HTMLElementWithScrollSync } from '@/types';
  * to bail when the container was swapped (rapid mode switch) before the timer
  * fired, so no listeners attach to stale DOM.
  */
-export type DiffContainerResolver = () => HTMLElementWithScrollSync | undefined;
+type DiffContainerResolver = () => HTMLElementWithScrollSync | undefined;
 
 /**
  * Scroll-synchronisation collaborator for the side-by-side diff view.

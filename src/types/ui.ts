@@ -62,18 +62,11 @@ export type TranslationVars = Record<string, string | number>;
 export type RevertLine = (line: number) => void;
 
 /**
- * Type definition for abstract class constructors.
+ * Type definition for concrete class constructors.
  * The argument list is intentionally `any[]`: under `strictFunctionTypes`
  * constructor parameters are checked contravariantly, so a marker type used
  * purely to identify a class (DI token resolution, registry keys) must accept
  * any concrete constructor signature regardless of its real parameters.
- * @template T - The type that the constructor creates (defaults to empty object)
- */
-export type AbstractConstructor<T = {}> = abstract new (...args: any[]) => T;
-
-/**
- * Type definition for concrete class constructors.
- * See {@link AbstractConstructor} for why the argument list is `any[]`.
  * @template T - The type that the constructor creates (defaults to empty object)
  */
 export type ClassConstructor<T = {}> = {
@@ -113,25 +106,6 @@ export interface Service {
 }
 
 /**
- * Type definition for class-based providers.
- * @template T - The type that the class constructor creates
- */
-export type ClassProvider<T> = new (...args: unknown[]) => T;
-
-/**
- * Type definition for value-based providers.
- * @template T - The type of the provided value
- */
-export type ValueProvider<T> = T;
-
-/**
- * Union type for dependency injection providers.
- * Can be either a class constructor or a direct value.
- * @template T - The type being provided
- */
-export type Provider<T> = ClassProvider<T> | ValueProvider<T>;
-
-/**
  * Utility type for accessing deeply nested object properties using dot notation paths.
  * @template T - The object type to traverse
  * @template Path - The dot-separated path string (e.g., "user.profile.name")
@@ -149,14 +123,14 @@ export type DeepValue<T, Path extends string> =
  * Union type representing all primitive JavaScript types.
  * Used to determine when to stop recursion in type utilities.
  */
-export type Primitive = string | number | boolean | null | undefined | symbol | bigint;
+type Primitive = string | number | boolean | null | undefined | symbol | bigint;
 
 /**
  * Utility type for joining path segments with dots.
  * @template Prefix - The prefix path segment
  * @template Key - The key to append to the path
  */
-export type PathJoin<Prefix extends string, Key extends string> =
+type PathJoin<Prefix extends string, Key extends string> =
   Prefix extends '' ? Key : `${Prefix}.${Key}`;
 
 /**

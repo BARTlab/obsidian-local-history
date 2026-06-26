@@ -42,39 +42,6 @@ export class ArrayMap<T> extends Map<number | string, T> {
   }
 
   /**
-   * Finds the first element in the map that satisfies the provided testing function.
-   * Converts the map to an array and uses Array.prototype.find.
-   *
-   * @param {Array} args - Arguments to pass to Array.prototype.find
-   * @return {*} The first element that satisfies the testing function, or undefined if none is found
-   */
-  public find(...args: Parameters<T[]['filter']>): ReturnType<typeof Array.prototype.find> {
-    return this.simplify().find(...args);
-  }
-
-  /**
-   * Executes a reducer function on each element of the map.
-   * Converts the map to an array and uses Array.prototype.reduce.
-   *
-   * @param {Array} args - Arguments to pass to Array.prototype.reduce
-   * @return {*} The value that results from running the reducer
-   */
-  public reduce(...args: Parameters<T[]['reduce']>): ReturnType<typeof Array.prototype.reduce> {
-    return this.simplify().reduce(...args);
-  }
-
-  /**
-   * Finds the index of the first element in the map that satisfies the provided testing function.
-   * Converts the map to an array and uses Array.prototype.findIndex.
-   *
-   * @param {Array} args - Arguments to pass to Array.prototype.findIndex
-   * @return {number} The index of the first element that satisfies the testing function, or -1 if none is found
-   */
-  public findIndex(...args: Parameters<T[]['findIndex']>): ReturnType<typeof Array.prototype.findIndex> {
-    return this.simplify().findIndex(...args);
-  }
-
-  /**
    * Creates a new array with all elements from the map that pass the test implemented by the provided function.
    * Converts the map to an array and uses Array.prototype.filter.
    *

@@ -35,7 +35,7 @@ export interface DiffViewStateHost {
  * References to the four view-mode toggle buttons, kept so the active-mode
  * highlight can be flipped when the display mode changes.
  */
-export interface ModeButtonRefs {
+interface ModeButtonRefs {
   /**
    * Button for patch mode.
    */
@@ -58,7 +58,7 @@ export interface ModeButtonRefs {
  * References to the next/previous difference navigation buttons, kept so they
  * can be disabled when the current diff has no hunks to walk.
  */
-export interface NavButtonRefs {
+interface NavButtonRefs {
   /**
    * Button that jumps to the previous difference.
    */

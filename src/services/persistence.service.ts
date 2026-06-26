@@ -18,7 +18,7 @@ import type { SerializedFileSnapshot, SerializedHistory, Service } from '@/types
  * changed shards, and reuses `name` for collision-aware naming so two distinct
  * notes never share a filename.
  */
-export interface ShardIndexEntry {
+interface ShardIndexEntry {
   name: string;
   digest: string;
 }

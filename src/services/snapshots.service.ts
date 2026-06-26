@@ -45,7 +45,7 @@ export class SnapshotsService implements Service {
    * snapshot map on remove/rename/move/clear so a stale path never tints a row
    * that has since changed identity.
    */
-  protected sessionCreatedPaths: Set<string> = new Set<string>();
+  protected sessionCreatedPaths: Set<string> = new Set();
 
   /**
    * Plain collaborator that owns the ignore-list and exclude-pattern concern:

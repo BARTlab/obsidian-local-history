@@ -28,14 +28,14 @@ export class MemoryAdapter {
   /**
    * The flat file map: vault-relative path to serialized contents.
    */
-  public files: Map<string, string> = new Map<string, string>();
+  public files: Map<string, string> = new Map();
 
   /**
    * The set of explicitly created directory paths. A directory also exists
    * implicitly while it holds files, but `mkdir` records it here so an empty
    * directory still reports as present, matching the real adapter.
    */
-  public dirs: Set<string> = new Set<string>();
+  public dirs: Set<string> = new Set();
 
   /**
    * Ordered log of every call, for assertions on IO shape and ordering.
@@ -205,7 +205,7 @@ export class MemoryAdapter {
 
     const prefix: string = `${path}/`;
     const files: string[] = [];
-    const folders: Set<string> = new Set<string>();
+    const folders: Set<string> = new Set();
 
     for (const file of this.files.keys()) {
       if (!file.startsWith(prefix)) {

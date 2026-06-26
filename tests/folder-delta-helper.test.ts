@@ -17,7 +17,7 @@ const makeLiveSnapshot = (params: {
   path: string;
   createdAt: number;
   historyLines?: string[];
-  versions?: Array<{ timestamp: number; lines: string[] }>;
+  versions?: { timestamp: number; lines: string[] }[];
   state?: string[];
 }): FileSnapshot => {
   const history: string[] = params.historyLines ?? ['baseline'];
@@ -44,7 +44,7 @@ const makeTombstone = (params: {
   createdAt: number;
   deletedAt: number;
   historyLines?: string[];
-  versions?: Array<{ timestamp: number; lines: string[] }>;
+  versions?: { timestamp: number; lines: string[] }[];
   finalState?: string[];
 }): FileSnapshot => {
   const snapshot: FileSnapshot = makeLiveSnapshot({

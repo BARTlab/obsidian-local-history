@@ -85,7 +85,7 @@ export class PersistenceService implements Service {
    * (skip a shard whose digest is unchanged) and collision-aware naming (probe a
    * suffix when two distinct paths hash to the same filename).
    */
-  protected shardIndex: Map<string, ShardIndexEntry> = new Map<string, ShardIndexEntry>();
+  protected shardIndex: Map<string, ShardIndexEntry> = new Map();
 
   /**
    * Creates a new instance of PersistenceService.
@@ -199,7 +199,7 @@ export class PersistenceService implements Service {
        * snapshot so the index can be seeded with the name that is really on
        * disk, including any collision-probed suffix written by a prior save.
        */
-      const byPath: Map<SerializedFileSnapshot, string> = new Map<SerializedFileSnapshot, string>();
+      const byPath: Map<SerializedFileSnapshot, string> = new Map();
       const snapshots: SerializedFileSnapshot[] = [];
 
       for (const item of loaded) {
@@ -475,7 +475,7 @@ export class PersistenceService implements Service {
     }
 
     const store: HistoryShardStore = this.shardStore();
-    const keptPaths: Set<string> = new Set<string>();
+    const keptPaths: Set<string> = new Set();
 
     /**
      * Write pass: for each kept snapshot, skip when the index already holds the
@@ -531,7 +531,7 @@ export class PersistenceService implements Service {
    * @return {string} A shard filename not currently held by any other path
    */
   protected allocateShardName(path: string): string {
-    const taken: Set<string> = new Set<string>(
+    const taken: Set<string> = new Set(
       [...this.shardIndex.values()].map((entry: ShardIndexEntry): string => entry.name),
     );
 
@@ -609,7 +609,7 @@ export class PersistenceService implements Service {
     }
 
     const store: HistoryShardStore = this.shardStore();
-    const taken: Set<string> = new Set<string>();
+    const taken: Set<string> = new Set();
 
     try {
       for (const snapshot of legacy.snapshots) {

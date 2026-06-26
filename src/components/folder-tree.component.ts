@@ -66,7 +66,7 @@ export class FolderTreeComponent {
   /**
    * Collapsed folder paths; absence in this set means "expanded" (initial).
    */
-  protected collapsedFolders: Set<string> = new Set<string>();
+  protected collapsedFolders: Set<string> = new Set();
 
   /**
    * Case-insensitive substring filter applied to file names at render time.
@@ -226,7 +226,7 @@ export class FolderTreeComponent {
       children: [],
     };
 
-    const folderIndex: Map<string, FolderTreeNode> = new Map<string, FolderTreeNode>();
+    const folderIndex: Map<string, FolderTreeNode> = new Map();
 
     folderIndex.set(rootPath, root);
 

@@ -1,4 +1,5 @@
 import { DEFAULT_LINE_BREAK, DiffOutputFormatType, FolderDeltaStatus } from '@/consts';
+import { assertNever } from '@/helpers/assert-never.helper';
 import { DiffRenderHelper } from '@/helpers/diff-render.helper';
 import { DomHelper } from '@/helpers/dom.helper';
 import { FolderDeltaHelper } from '@/helpers/folder-delta.helper';
@@ -192,8 +193,10 @@ export class FolderDiffRenderer {
         return this.host.plugin.t('modal.folder.notice.deleted');
       case FolderDeltaStatus.none:
         return this.host.plugin.t('modal.folder.notice.unchanged');
-      default:
+      case FolderDeltaStatus.modified:
         return null;
+      default:
+        return assertNever(result.status, 'folder delta status');
     }
   }
 

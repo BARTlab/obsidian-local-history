@@ -1,4 +1,5 @@
 import { ExtensionKind } from '@/consts';
+import { assertNever } from '@/helpers/assert-never.helper';
 import { ChangeDetectorExtension } from '@/extensions/change-detector.extension';
 import { GutterBarExtension } from '@/extensions/gutter-bar.extension';
 import { GutterCommonExtension } from '@/extensions/gutter-common.extension';
@@ -130,7 +131,7 @@ export class ExtensionsService implements Service {
         return gutter(new clsConstructor(null, plugin) as GutterConfig);
 
       default:
-        throw Error(`Unknown extension type "${type}" for "${clsConstructor?.name ?? 'unknown'}"`);
+        return assertNever(type, `extension "${clsConstructor?.name ?? 'unknown'}"`);
     }
   }
 }

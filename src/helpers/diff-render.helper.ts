@@ -1,4 +1,5 @@
 import { DiffOutputFormatType, DiffViewMode, WordDiffLineType } from '@/consts';
+import { assertNever } from '@/helpers/assert-never.helper';
 import { DomHelper } from '@/helpers/dom.helper';
 import { HunkHelper } from '@/helpers/hunk.helper';
 import { WordDiffHelper } from '@/helpers/word-diff.helper';
@@ -63,6 +64,8 @@ export class DiffRenderHelper {
         DiffRenderHelper.renderDiff2Html(params, params.mode);
 
         break;
+      default:
+        assertNever(params.mode, 'diff render mode');
     }
 
     return { hunks };

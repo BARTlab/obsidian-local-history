@@ -148,18 +148,14 @@ export class DiffViewState {
    * @return {HTMLElement | undefined} The active button element, or undefined if no mode is active
    */
   public getActiveButton(): HTMLElement | undefined {
-    switch (this.currentDisplayMode) {
-      case DiffViewMode.patch:
-        return this.modeButtons.patch;
-      case DiffViewMode.inline:
-        return this.modeButtons.inline;
-      case DiffOutputFormatType.line:
-        return this.modeButtons.lineByLine;
-      case DiffOutputFormatType.side:
-        return this.modeButtons.sideBySide;
-      default:
-        return undefined;
-    }
+    const buttonByMode: Record<DiffRenderMode, HTMLElement | undefined> = {
+      [DiffViewMode.patch]: this.modeButtons.patch,
+      [DiffViewMode.inline]: this.modeButtons.inline,
+      [DiffOutputFormatType.line]: this.modeButtons.lineByLine,
+      [DiffOutputFormatType.side]: this.modeButtons.sideBySide,
+    };
+
+    return buttonByMode[this.currentDisplayMode];
   }
 
   /**

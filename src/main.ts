@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import { RECENT_CHANGES_VIEW_TYPE } from '@/consts';
+import { META_INJECT, META_ON_EVENT } from '@/decorators/meta-keys';
 import { refreshDecorationsEffect } from '@/extensions/refresh.effect';
 import { CommandsService } from '@/services/commands.service';
 import { EventsService } from '@/services/events.service';
@@ -130,8 +131,8 @@ export default class LineChangeTrackerPlugin extends Plugin {
     }
 
     for (const prop of Object.getOwnPropertyNames(Object.getPrototypeOf(inst))) {
-      const event: { name: string } | undefined = Reflect.getMetadata('ON_EVENT', inst, prop);
-      const inject: string | undefined = Reflect.getMetadata('INJECT', inst, prop);
+      const event: { name: string } | undefined = Reflect.getMetadata(META_ON_EVENT, inst, prop);
+      const inject: boolean | undefined = Reflect.getMetadata(META_INJECT, inst, prop);
 
       if (!inject && event && prop in inst) {
         const method: unknown = (inst as Record<string, unknown>)[prop];

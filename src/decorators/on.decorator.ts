@@ -1,3 +1,5 @@
+import { META_ON_EVENT } from '@/decorators/meta-keys';
+
 /**
  * Decorator that marks a method to be called when a specific event is emitted.
  * Associates the method with an event name using metadata.
@@ -18,6 +20,6 @@ export const On = (
   name: string,
 ): MethodDecorator => {
   return (target: Object, propertyKey: string | symbol): void => {
-    return Reflect.defineMetadata('ON_EVENT', { name }, target, propertyKey);
+    return Reflect.defineMetadata(META_ON_EVENT, { name }, target, propertyKey);
   };
 };

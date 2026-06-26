@@ -392,6 +392,144 @@ describe('ChangeDetectorExtension CRLF normalization', () => {
   });
 });
 
+describe('ChangeDetectorExtension empty-boundary-line rescue', () => {
+  // A pure insertion that lands at the start of an empty boundary line (most
+  // commonly the trailing empty line of a doc that ends with `\n`) reads as
+  // `prefixShared=false`, `suffixShared=false` by the byte-length checks
+  // because the empty line has zero length in both docs. Without the rescue,
+  // the empty line is treated as deleted core and the inserted content's last
+  // (preserved) line is treated as new core, leaving a phantom `removed`
+  // anchor at the boundary and breaking later `findRemovedAt` lookups.
+
+  it('pastes a multi-line block at the trailing empty line without phantom markers', () => {
+    // Initial doc ends with `\n`, so it has a trailing empty line at index 1.
+    const initial = 'header\n';
+    const snapshot = new FileSnapshot(initial);
+    const block = '| a | b |\n| - | - |\n| 1 | 2 |\n| 3 | 4 |\n';
+
+    step(snapshot, initial, {
+      from: lineRange(initial, 2).from,
+      to: lineRange(initial, 2).from,
+      insert: block,
+    });
+
+    // The four table rows are the only added lines; the empty trailing line
+    // is preserved at its new position (index 5), not re-created.
+    expect(positions(snapshot, ChangeType.added)).toEqual([1, 2, 3, 4]);
+    expect(positions(snapshot, ChangeType.removed)).toEqual([]);
+    expect(positions(snapshot, ChangeType.changed)).toEqual([]);
+    expect(removedTrackerCount(snapshot)).toBe(0);
+    expect(snapshot.findCurrentLine(5)?.isStateOriginal()).toBe(true);
+  });
+
+  it('delete-then-paste of an identical multi-line block ends clean', () => {
+    // Pasting then deleting then re-pasting the same content should leave the
+    // file in its original tracker state. Previously the phantom `removed`
+    // anchor from the first paste corrupted the `findRemovedAt` lookup on the
+    // re-paste, producing spurious `added`/`removed` markers at the boundary.
+    const initial = 'header\n';
+    const snapshot = new FileSnapshot(initial);
+    const block = '| a | b |\n| - | - |\n| 1 | 2 |\n| 3 | 4 |\n';
+
+    const afterPaste: string = step(snapshot, initial, {
+      from: lineRange(initial, 2).from,
+      to: lineRange(initial, 2).from,
+      insert: block,
+    });
+
+    const afterDelete: string = step(snapshot, afterPaste, {
+      from: lineRange(afterPaste, 2).from,
+      to: lineRange(afterPaste, 6).from,
+      insert: '',
+    });
+
+    step(snapshot, afterDelete, {
+      from: lineRange(afterDelete, 2).from,
+      to: lineRange(afterDelete, 2).from,
+      insert: block,
+    });
+
+    expect(positions(snapshot, ChangeType.changed)).toEqual([]);
+    expect(positions(snapshot, ChangeType.added)).toEqual([1, 2, 3, 4]);
+    expect(positions(snapshot, ChangeType.removed)).toEqual([]);
+  });
+
+  it('pure-deletion ending at an empty trailing line preserves that line', () => {
+    // Deleting the only "content" lines from a doc whose trailing empty line
+    // must survive: without the rescue, the trailing empty line in NEW was
+    // treated as a brand-new added line, which both painted an `added` mark
+    // and left the original trailing-empty tracker orphaned.
+    const initial = 'header\nT0\nT1\n';
+    const snapshot = new FileSnapshot(initial);
+
+    step(snapshot, initial, {
+      from: lineRange(initial, 2).from,
+      to: lineRange(initial, 4).from,
+      insert: '',
+    });
+
+    // T0 and T1 are gone (collapsed onto the same anchor as the doc shrinks);
+    // the trailing empty line stays as the original tracker at index 1 with
+    // no spurious `added` mark.
+    expect(positions(snapshot, ChangeType.added)).toEqual([]);
+    expect(positions(snapshot, ChangeType.changed)).toEqual([]);
+    expect(removedTrackerCount(snapshot)).toBe(2);
+    expect(snapshot.findCurrentLine(1)?.isStateOriginal()).toBe(true);
+  });
+
+  it('insert without a trailing newline still modifies the empty line in place', () => {
+    // The rescue must NOT fire when the inserted content has no trailing `\n`:
+    // there, the empty boundary line genuinely becomes the new content, and
+    // the in-place edit path (mark the line as changed) is the right answer.
+    const snapshot = new FileSnapshot('header\n');
+
+    step(snapshot, 'header\n', {
+      from: lineRange('header\n', 2).from,
+      to: lineRange('header\n', 2).from,
+      insert: 'X',
+    });
+
+    // Line 1 (was empty) is now 'X' and is marked as changed; no added marker.
+    expect(positions(snapshot, ChangeType.changed)).toEqual([1]);
+    expect(positions(snapshot, ChangeType.added)).toEqual([]);
+    expect(positions(snapshot, ChangeType.removed)).toEqual([]);
+  });
+});
+
+describe('ChangeDetectorExtension tracker self-heal', () => {
+  // A tracker whose `current` field has drifted from the actual doc line at
+  // its currentPosition (regardless of how it got there: compound transactions,
+  // hash-collision skip of a prior update, restoreOrAddTracker resurrecting a
+  // stale anchor, etc.) must be reconciled on the next change so a stale
+  // anchor cannot keep a wrong `changed` marker on a line the user didn't
+  // touch. Without the self-heal pass the wrong marker persists until the
+  // user resets the baseline.
+
+  it('clears a stale `changed` marker on a line that is in fact unchanged', () => {
+    const snapshot = new FileSnapshot('11111\nbody\ntail');
+
+    // Forge the drift: tracker[0]'s `current` claims '1' while the doc line
+    // is '11111'. This is the persisted symptom from the user-reported bug.
+    snapshot.tracker[0]!.current = '1';
+    snapshot.tracker[0]!.contentSameOriginal = false;
+    snapshot.tracker[0]!.changeAtPosition = 0;
+
+    snapshot.updateChanges();
+    expect(positions(snapshot, ChangeType.changed)).toContain(0);
+
+    // Touch an unrelated line elsewhere in the doc; the self-heal must run
+    // and reconcile tracker[0] with the real content.
+    step(snapshot, '11111\nbody\ntail', {
+      from: lineRange('11111\nbody\ntail', 3).to,
+      insert: '!',
+    });
+
+    expect(snapshot.tracker[0]!.current).toBe('11111');
+    expect(snapshot.tracker[0]!.contentSameOriginal).toBe(true);
+    expect(positions(snapshot, ChangeType.changed)).not.toContain(0);
+  });
+});
+
 describe('ChangeDetectorExtension scale (hot path)', () => {
   // Pastes then deletes a large block in single transactions. The old tracker
   // hot path sorted and rebuilt an ArrayMap for every shifted line (and per

@@ -1,3 +1,4 @@
+import { META_INJECT } from '@/decorators/meta-keys';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ServiceToken } from '@/services/tokens';
 import type { ClassConstructor, Service } from '@/types';
@@ -39,7 +40,7 @@ export const Inject = <T extends {}>(
     target: object,
     propertyKey: string | symbol,
   ): TypedPropertyDescriptor<T> | void => {
-    Reflect.defineMetadata('INJECT', true, target, propertyKey);
+    Reflect.defineMetadata(META_INJECT, true, target, propertyKey);
 
     Object.defineProperty(target, propertyKey, {
       get(): Service {

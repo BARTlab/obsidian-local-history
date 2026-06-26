@@ -275,7 +275,7 @@ export class HistoryShardStore {
    * @return {string[]} The unique shard base names to attempt.
    */
   protected shardNames(files: string[]): string[] {
-    const names: Set<string> = new Set<string>();
+    const names: Set<string> = new Set();
 
     for (const file of files) {
       const base: string = file.slice(file.lastIndexOf('/') + 1);

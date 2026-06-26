@@ -66,7 +66,7 @@ const OPEN_CAPTURE_OPTIONS: Readonly<SnapshotCaptureOptions> = Object.freeze({
  * @return {string[]} The generated lines, length `count`
  */
 function buildLines(fileIndex: number, count: number): string[] {
-  const lines: string[] = new Array<string>(count);
+  const lines: string[] = new Array(count);
 
   for (let i = 0; i < count; i++) {
     lines[i] = `file ${fileIndex} line ${i} - the quick brown fox jumps over the lazy dog ${i * 7}`;
@@ -125,7 +125,7 @@ function buildSerializedSnapshot(
 export function buildSerializedSnapshots(size: PersistenceFixtureSize): SerializedFileSnapshot[] {
   const versionsPerFile: number = Math.max(1, Math.floor(size.versions / size.files));
   const base: number = Date.UTC(2026, 0, 1);
-  const snapshots: SerializedFileSnapshot[] = new Array<SerializedFileSnapshot>(size.files);
+  const snapshots: SerializedFileSnapshot[] = new Array(size.files);
 
   for (let f = 0; f < size.files; f++) {
     snapshots[f] = buildSerializedSnapshot(f, versionsPerFile, size.lines, base - (f * 60_000));
@@ -188,7 +188,7 @@ export function buildPluginStub(paths: string[], retention: Record<string, numbe
     list: async (): Promise<{ files: string[]; folders: string[] }> => ({ files: [], folders: [] }),
   };
 
-  const files: Map<string, TFile> = new Map<string, TFile>();
+  const files: Map<string, TFile> = new Map();
 
   for (const path of paths) {
     const name: string = path.split('/').pop() ?? path;

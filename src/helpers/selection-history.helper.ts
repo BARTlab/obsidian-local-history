@@ -39,7 +39,7 @@ export class SelectionHistoryHelper {
    * @return {Set<string>} The ids of the matching versions; empty when the selection is empty
    */
   public static match(versions: SelectableVersion[], baselineLines: string[], selection: string): Set<string> {
-    const matched: Set<string> = new Set<string>();
+    const matched: Set<string> = new Set();
     const list: SelectableVersion[] = versions ?? [];
     const needle: string = (selection ?? '').trim();
 

@@ -185,7 +185,7 @@ export class WordDiffHelper {
    */
   private static greedyPair(removedLines: string[], addedLines: string[], result: InlineDiffLine[]): void {
     const availableAdded: Set<number> = new Set(addedLines.map((_: string, i: number): number => i));
-    const pairs: Array<{ removedIdx: number; addedIdx: number }> = [];
+    const pairs: { removedIdx: number; addedIdx: number }[] = [];
     const unmatchedRemoved: number[] = [];
 
     for (let ri: number = 0; ri < removedLines.length; ri++) {

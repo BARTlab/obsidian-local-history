@@ -31,6 +31,7 @@ export default [
       '@typescript-eslint/no-inferrable-types': 'off',
       '@typescript-eslint/explicit-member-accessibility': ['warn', { accessibility: 'explicit' }],
       '@typescript-eslint/consistent-type-imports': ['warn', { prefer: 'type-imports' }],
+      '@typescript-eslint/array-type': ['warn', { default: 'array' }],
 
       '@stylistic/linebreak-style': ['error', 'unix'],
       '@stylistic/padding-line-between-statements': [
@@ -98,6 +99,7 @@ export default [
       // Inline ad-hoc stub objects/classes do not need explicit accessibility.
       '@typescript-eslint/explicit-member-accessibility': 'off',
       '@typescript-eslint/consistent-type-imports': ['warn', { prefer: 'type-imports' }],
+      '@typescript-eslint/array-type': ['warn', { default: 'array' }],
 
       '@stylistic/linebreak-style': ['error', 'unix'],
       '@stylistic/padding-line-between-statements': [

@@ -48,7 +48,7 @@ export class ArrayMap<T> extends Map<number | string, T> {
    * @param {Array} args - Arguments to pass to Array.prototype.find
    * @return {*} The first element that satisfies the testing function, or undefined if none is found
    */
-  public find(...args: Parameters<Array<T>['filter']>): ReturnType<typeof Array.prototype.find> {
+  public find(...args: Parameters<T[]['filter']>): ReturnType<typeof Array.prototype.find> {
     return this.simplify().find(...args);
   }
 
@@ -59,7 +59,7 @@ export class ArrayMap<T> extends Map<number | string, T> {
    * @param {Array} args - Arguments to pass to Array.prototype.reduce
    * @return {*} The value that results from running the reducer
    */
-  public reduce(...args: Parameters<Array<T>['reduce']>): ReturnType<typeof Array.prototype.reduce> {
+  public reduce(...args: Parameters<T[]['reduce']>): ReturnType<typeof Array.prototype.reduce> {
     return this.simplify().reduce(...args);
   }
 
@@ -70,7 +70,7 @@ export class ArrayMap<T> extends Map<number | string, T> {
    * @param {Array} args - Arguments to pass to Array.prototype.findIndex
    * @return {number} The index of the first element that satisfies the testing function, or -1 if none is found
    */
-  public findIndex(...args: Parameters<Array<T>['findIndex']>): ReturnType<typeof Array.prototype.findIndex> {
+  public findIndex(...args: Parameters<T[]['findIndex']>): ReturnType<typeof Array.prototype.findIndex> {
     return this.simplify().findIndex(...args);
   }
 
@@ -81,7 +81,7 @@ export class ArrayMap<T> extends Map<number | string, T> {
    * @param {Array} args - Arguments to pass to Array.prototype.filter
    * @return {Array} A new array with the elements that pass the test
    */
-  public filter(...args: Parameters<Array<T>['filter']>): ReturnType<typeof Array.prototype.filter> {
+  public filter(...args: Parameters<T[]['filter']>): ReturnType<typeof Array.prototype.filter> {
     return this.simplify().filter(...args);
   }
 }

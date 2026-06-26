@@ -11,7 +11,7 @@ import { TrackerLine } from '@/lines/tracker.line';
 describe('TextHelper.rndId', () => {
   it('produces unique, non-empty ids across many calls', () => {
     const count: number = 10000;
-    const ids: Set<string> = new Set<string>();
+    const ids: Set<string> = new Set();
 
     for (let i: number = 0; i < count; i++) {
       const id: string = TextHelper.rndId();
@@ -34,8 +34,8 @@ describe('TextHelper.rndId', () => {
 describe('TrackerLine identity', () => {
   it('gives every line a unique id and key', () => {
     const count: number = 1000;
-    const ids: Set<string> = new Set<string>();
-    const keys: Set<string> = new Set<string>();
+    const ids: Set<string> = new Set();
+    const keys: Set<string> = new Set();
 
     for (let i: number = 0; i < count; i++) {
       const line: TrackerLine = new TrackerLine({

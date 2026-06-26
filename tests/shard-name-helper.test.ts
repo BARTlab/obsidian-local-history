@@ -70,7 +70,7 @@ describe('ShardNameHelper.forPath', () => {
 
   it('gives different names to different realistic paths (no collisions)', () => {
     const paths: string[] = buildPaths();
-    const names: Set<string> = new Set<string>();
+    const names: Set<string> = new Set();
 
     for (const path of paths) {
       names.add(ShardNameHelper.forPath(path));

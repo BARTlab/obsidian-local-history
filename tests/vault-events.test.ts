@@ -43,7 +43,7 @@ const makeSnapshotsServiceMock = (): {
 const makePlugin = (
   service: ReturnType<typeof makeSnapshotsServiceMock>,
 ): LineChangeTrackerPlugin => {
-  const container: Map<unknown, unknown> = new Map<unknown, unknown>([
+  const container: Map<unknown, unknown> = new Map([
     [TOKENS.snapshots, service as unknown as SnapshotsService],
   ]);
 

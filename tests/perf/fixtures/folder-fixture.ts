@@ -107,7 +107,7 @@ function buildPath(fileIndex: number, depth: number): string {
  * @return {string[]} The generated lines, length `count`
  */
 function buildLines(fileIndex: number, count: number): string[] {
-  const lines: string[] = new Array<string>(count);
+  const lines: string[] = new Array(count);
 
   for (let i = 0; i < count; i++) {
     lines[i] = `file ${fileIndex} line ${i} - the quick brown fox jumps over the lazy dog ${i * 7}`;
@@ -132,7 +132,7 @@ function buildLiveSnapshot(fileIndex: number, shape: FolderFixtureShape): FileSn
   const body: string[] = buildLines(fileIndex, shape.lines);
   const snapshot: FileSnapshot = new FileSnapshot(body.join('\n'), '\n', makeFile(buildPath(fileIndex, shape.depth)));
 
-  const versions: FileVersion[] = new Array<FileVersion>(shape.versionsPerFile);
+  const versions: FileVersion[] = new Array(shape.versionsPerFile);
 
   for (let v = 0; v < shape.versionsPerFile; v++) {
     const lines: string[] = body.slice();
@@ -157,7 +157,7 @@ function buildLiveSnapshot(fileIndex: number, shape: FolderFixtureShape): FileSn
  * @return {FileSnapshot[]} The generated snapshots, all under ROOT_PATH
  */
 export function buildSnapshots(shape: FolderFixtureShape): FileSnapshot[] {
-  const snapshots: FileSnapshot[] = new Array<FileSnapshot>(shape.files);
+  const snapshots: FileSnapshot[] = new Array(shape.files);
   const midTs: number = BASE_TS + Math.floor((shape.versionsPerFile / 2)) * STEP_MS;
 
   for (let f = 0; f < shape.files; f++) {

@@ -52,7 +52,7 @@ export const OPEN_CAPTURE_OPTIONS: Readonly<SnapshotCaptureOptions> = Object.fre
  * @return {string[]} The generated lines, length `count`
  */
 export function buildLines(count: number): string[] {
-  const lines: string[] = new Array<string>(count);
+  const lines: string[] = new Array(count);
 
   for (let i = 0; i < count; i++) {
     lines[i] = `line ${i} - the quick brown fox jumps over the lazy dog ${i * 7}`;

@@ -95,7 +95,7 @@ export type DiffRenderMode = DiffViewMode | DiffOutputFormatType;
  * so the modal can pass `plugin` directly, but stays narrow so a test or another
  * caller can provide its own translator without dragging in the whole plugin.
  */
-export interface DiffRenderTranslator {
+interface DiffRenderTranslator {
   t(key: string, vars?: TranslationVars): string;
 }
 

@@ -1,7 +1,6 @@
 import {
   DiffOutputFormatType,
   DiffViewMode,
-  FolderDeltaStatus,
 } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { FolderTreeComponent } from '@/components/folder-tree.component';
@@ -860,55 +859,5 @@ export class FolderHistoryModal extends Modal {
     }
 
     this.timelineRenderer.render();
-  }
-
-  /**
-   * Returns the timeline this modal was opened against. Exposed for tests
-   * and for the toolbar actions, which need to know which version is closest
-   * to the picked T for the selected file.
-   *
-   * @return {FolderTimelinePoint[]} The timeline points, newest-first
-   */
-  public getTimeline(): FolderTimelinePoint[] {
-    return this.timeline;
-  }
-
-  /**
-   * Returns the currently selected timeline point T. Exposed for tests and
-   * the toolbar actions.
-   *
-   * @return {number} The selected T in ms
-   */
-  public getSelectedTimestamp(): number {
-    return this.selectedTimestamp;
-  }
-
-  /**
-   * Returns the snapshot map keyed by path. Exposed so the toolbar
-   * actions can resolve the tree-selected file back to its snapshot
-   * without re-filtering the service map.
-   *
-   * @return {Map<string, FileSnapshot>} The snapshot map
-   */
-  public getSnapshotsByPath(): Map<string, FileSnapshot> {
-    return this.snapshotsByPath;
-  }
-
-  /**
-   * Re-runs the per-file delta against the given path at the current T.
-   * Exposed so the toolbar actions can derive the base / current content
-   * for the selected file when invoking VersionActionsService.
-   *
-   * @param {string} path - The vault-relative file path
-   * @return {FolderDeltaStatus} The status at T, `'none'` when the path is unknown
-   */
-  public statusAt(path: string): FolderDeltaStatus {
-    const snapshot: FileSnapshot | undefined = this.snapshotsByPath.get(path);
-
-    if (!snapshot) {
-      return FolderDeltaStatus.none;
-    }
-
-    return FolderDeltaHelper.compareAt(snapshot, this.selectedTimestamp).status;
   }
 }

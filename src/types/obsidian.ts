@@ -30,34 +30,11 @@ export interface EventTriggerElement {
 }
 
 /**
- * Interface defining event handlers for Obsidian vault events.
- * Maps vault event types to their corresponding handler function signatures.
- */
-export interface ObsidianVaultEventsHandles {
-  /**
-   * Handler for file creation events
-   */
-  [ObsidianVaultEvent.create]: (file: TAbstractFile) => void;
-  /**
-   * Handler for file modification events
-   */
-  [ObsidianVaultEvent.modify]: (file: TAbstractFile) => void;
-  /**
-   * Handler for file deletion events
-   */
-  [ObsidianVaultEvent.delete]: (file: TAbstractFile) => void;
-  /**
-   * Handler for file rename events
-   */
-  [ObsidianVaultEvent.rename]: (file: TAbstractFile, oldPath: string) => void;
-}
-
-/**
  * Interface defining event handlers for Obsidian workspace events.
  * Maps workspace event types to their corresponding handler function signatures.
  * Based on the official Obsidian documentation.
  */
-export interface ObsidianWorkspaceEventsHandles {
+interface ObsidianWorkspaceEventsHandles {
   /**
    * Handler for active leaf change events
    */
@@ -130,12 +107,6 @@ export type ObsidianEventName = `${ObsidianWorkspaceEvent}` | `${ObsidianVaultEv
  * @template T - The workspace event type
  */
 export type WorkspaceEventArgs<T extends ObsidianWorkspaceEvent> = Parameters<ObsidianWorkspaceEventsHandles[T]>;
-
-/**
- * Utility type that extracts the parameter types for a specific vault event handler.
- * @template T - The vault event type
- */
-export type VaultEventArgs<T extends ObsidianVaultEvent> = Parameters<ObsidianVaultEventsHandles[T]>;
 
 /**
  * Configuration interface for creating status bar items.

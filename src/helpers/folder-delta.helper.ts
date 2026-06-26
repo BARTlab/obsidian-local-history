@@ -4,8 +4,6 @@ import type { FileVersion } from '@/snapshots/file.version';
 import type { FolderDeltaResult } from '@/types';
 import { isNumber } from 'lodash-es';
 
-export { FolderDeltaStatus } from '@/consts';
-
 /**
  * Pure helper that resolves the per-file delta from a chosen folder-timeline
  * point T to "now". Used by the folder modal tree to colour each file by

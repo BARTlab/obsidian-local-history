@@ -121,7 +121,31 @@ export class ChangeDetectorExtension extends BaseExtension implements EditorExte
        * new-doc positions decide it for both sides.
        */
       const prefixShared: boolean = fromB > state.doc.lineAt(fromB).from;
-      const suffixShared: boolean = toB < state.doc.lineAt(toB).to;
+      let suffixShared: boolean = toB < state.doc.lineAt(toB).to;
+
+      /**
+       * Empty-boundary-line rescue. The byte-length check above reads false for
+       * an empty boundary line in both docs (`.from === .to`), so a pure
+       * insertion at the start of an empty line (commonly the trailing empty
+       * line) or a pure deletion that strands the new range at an empty line
+       * appears to wipe and re-create that empty line. The downstream model then
+       * removes the original anchor and adds a brand-new tracker, leaving a
+       * phantom `removed` mark at the boundary and breaking later
+       * `findRemovedAt` lookups for that anchor (visible to the user as artefacts
+       * after pasting/restoring tables at the document end). Treat the boundary
+       * line as preserved when the change creates a new `\n` adjacent to it on
+       * the surviving side: insertion ending with `\n` (pure insert) or
+       * deletion consuming the trailing `\n` (pure delete). When the insertion
+       * carries actual content into the empty line (no trailing `\n`), the
+       * in-place edit path is the right behaviour and this rescue is skipped.
+       */
+      if (!prefixShared && !suffixShared) {
+        if (fromA === toA && toB > 0 && state.doc.sliceString(toB - 1, toB) === '\n') {
+          suffixShared = true;
+        } else if (fromB === toB && toA > 0 && prev.sliceString(toA - 1, toA) === '\n') {
+          suffixShared = true;
+        }
+      }
 
       /**
        * The "core" lines are the ones wholly replaced: every old core line is
@@ -186,6 +210,33 @@ export class ChangeDetectorExtension extends BaseExtension implements EditorExte
         snapshot.findCurrentLine(toNewLine)?.change(currentLines[toNewLine]);
       }
     }, true);
+
+    /**
+     * Self-heal pass: re-sync every tracker's `current` with the actual line
+     * content at its currentPosition. The incremental diff above is supposed to
+     * keep them aligned, but edge cases observed in the wild (compound
+     * transactions where Obsidian's table editor dispatches a row-replacement
+     * alongside other edits; a stale `prev` line layout after a hash-collision
+     * skip; restoreOrAddTracker resurrecting a stale anchor at a far-away
+     * position) can leave a tracker whose `current` no longer matches the doc
+     * line it points at. That drift surfaces as a `changed` marker on a line
+     * the user did not touch (e.g. line 0 lit up while editing a table at the
+     * end of the doc). Re-calling `change()` with the real content is cheap
+     * (it bails on a hash match without touching state) and converges every
+     * tracker back onto the live line, so a stale anchor self-clears on the
+     * next edit instead of persisting until the user resets the baseline.
+     */
+    for (const tracker of snapshot.tracker) {
+      if (!tracker.existedInCurrent) {
+        continue;
+      }
+
+      const actual: string | undefined = currentLines[tracker.currentPosition];
+
+      if (actual !== undefined && tracker.current !== actual) {
+        tracker.change(actual);
+      }
+    }
 
     /**
      * Freeze the pre-edit state on the timeline before recording the new state,

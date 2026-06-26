@@ -100,3 +100,6 @@ Thumbs.db
 data.json
 history.json
 history/
+
+# tool session droppings
+.atk_audit_session.jsonl

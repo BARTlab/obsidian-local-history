@@ -3178,7 +3178,14 @@ var ChangeDetectorExtension = class extends BaseExtension {
       const fromNewLine = state.doc.lineAt(fromB).number - 1;
       const toNewLine = state.doc.lineAt(toB).number - 1;
       const prefixShared = fromB > state.doc.lineAt(fromB).from;
-      const suffixShared = toB < state.doc.lineAt(toB).to;
+      let suffixShared = toB < state.doc.lineAt(toB).to;
+      if (!prefixShared && !suffixShared) {
+        if (fromA === toA && toB > 0 && state.doc.sliceString(toB - 1, toB) === "\n") {
+          suffixShared = true;
+        } else if (fromB === toB && toA > 0 && prev.sliceString(toA - 1, toA) === "\n") {
+          suffixShared = true;
+        }
+      }
       const oldCoreStart = fromOldLine + (prefixShared ? 1 : 0);
       const oldCoreEnd = toOldLine - (suffixShared ? 1 : 0);
       const newCoreStart = fromNewLine + (prefixShared ? 1 : 0);
@@ -3213,6 +3220,15 @@ var ChangeDetectorExtension = class extends BaseExtension {
         (_b = snapshot.findCurrentLine(toNewLine)) == null ? void 0 : _b.change(currentLines[toNewLine]);
       }
     }, true);
+    for (const tracker of snapshot.tracker) {
+      if (!tracker.existedInCurrent) {
+        continue;
+      }
+      const actual = currentLines[tracker.currentPosition];
+      if (actual !== void 0 && tracker.current !== actual) {
+        tracker.change(actual);
+      }
+    }
     snapshot.captureVersion(snapshot.getLastStateLines(), this.getCaptureOptions());
     snapshot.updateState(currentLines);
     snapshot.updateChanges();

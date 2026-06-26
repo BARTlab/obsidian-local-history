@@ -1,3 +1,4 @@
+import { assertNever } from '@/helpers/assert-never.helper';
 import { TrackerLine } from '@/lines/tracker.line';
 import { ArrayMap } from '@/maps/array.map';
 import type { TrackerIndex } from '@/snapshots/tracker-index';
@@ -58,7 +59,7 @@ export class TrackerEditor {
     } = params ?? {};
 
     const sort: KeysMatching<TrackerLine, number | string> = isArray(ordering) ? ordering[0] : ordering;
-    const direction: string = isArray(ordering) ? ordering[1] : 'asc';
+    const direction = isArray(ordering) ? ordering[1] : 'asc';
     const list: TrackerLine[] = [...tracker];
 
     list.sort((a: TrackerLine, b: TrackerLine): number => {
@@ -87,6 +88,9 @@ export class TrackerEditor {
           }
 
           break;
+
+        default:
+          assertNever(direction, 'sort direction');
       }
 
       // Non-comparable or mixed-type pairs keep their relative order.

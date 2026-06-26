@@ -216,16 +216,13 @@ export class FolderTimelineRenderer {
    * @return {string} The human-readable kind label
    */
   protected kindLabel(kind: FolderTimelinePoint['kind']): string {
-    switch (kind) {
-      case FolderTimelinePointKind.capture:
-        return this.host.plugin.t('modal.folder.timeline.capture');
-      case FolderTimelinePointKind.delete:
-        return this.host.plugin.t('modal.folder.timeline.delete');
-      case FolderTimelinePointKind.moveIn:
-        return this.host.plugin.t('modal.folder.timeline.move-in');
-      default:
-        return kind;
-    }
+    const keyByKind: Record<FolderTimelinePointKind, string> = {
+      [FolderTimelinePointKind.capture]: 'modal.folder.timeline.capture',
+      [FolderTimelinePointKind.delete]: 'modal.folder.timeline.delete',
+      [FolderTimelinePointKind.moveIn]: 'modal.folder.timeline.move-in',
+    };
+
+    return this.host.plugin.t(keyByKind[kind]);
   }
 
   /**

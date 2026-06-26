@@ -4,6 +4,7 @@ import { DiffScrollSync } from '@/modals/diff-scroll-sync';
 import { DiffViewState, type DiffViewStateHost } from '@/modals/diff-view-state';
 import { GutterRevertHandler, type GutterRevertHost } from '@/modals/gutter-revert-handler';
 import { VersionList, type VersionListHost } from '@/modals/version-list.component';
+import { assertNever } from '@/helpers/assert-never.helper';
 import { BaseContentHelper } from '@/helpers/base-content.helper';
 import { DiffRenderHelper } from '@/helpers/diff-render.helper';
 import { DomHelper } from '@/helpers/dom.helper';
@@ -1198,8 +1199,12 @@ export class HistoryModal extends Modal {
         this.renderDiff(DiffOutputFormatType.line);
 
         return;
-      default:
+      case DiffOutputFormatType.side:
         this.renderDiff(DiffOutputFormatType.side);
+
+        return;
+      default:
+        assertNever(this.viewState.currentDisplayMode, 'diff display mode');
     }
   }
 

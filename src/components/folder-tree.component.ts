@@ -43,29 +43,19 @@ import { setIcon } from 'obsidian';
  * is remembered within the modal lifetime.
  */
 export class FolderTreeComponent {
-  /**
-   * Container the component renders into; null between dispose / re-mount.
-   */
+  /** Container the component renders into; null between dispose / re-mount. */
   protected container: HTMLElement | null = null;
 
-  /**
-   * Last computed root from {@link update}, used to normalize child paths.
-   */
+  /** Last computed root from {@link update}, used to normalize child paths. */
   protected rootPath: string = '';
 
-  /**
-   * Last computed root node, retained so re-renders do not need re-input.
-   */
+  /** Last computed root node, retained so re-renders do not need re-input. */
   protected rootNode: FolderTreeNode | null = null;
 
-  /**
-   * Currently-selected file path, or null when nothing is selected yet.
-   */
+  /** Currently-selected file path, or null when nothing is selected yet. */
   protected selectedPath: string | null = null;
 
-  /**
-   * Collapsed folder paths; absence in this set means "expanded" (initial).
-   */
+  /** Collapsed folder paths; absence in this set means "expanded" (initial). */
   protected collapsedFolders: Set<string> = new Set();
 
   /**
@@ -77,14 +67,10 @@ export class FolderTreeComponent {
    */
   protected nameFilter: string = '';
 
-  /**
-   * Selection callback wired by the parent modal; no-op until set.
-   */
+  /** Selection callback wired by the parent modal; no-op until set. */
   protected onSelect: FolderTreeSelectionHandler | null = null;
 
-  /**
-   * Translator used for the empty-state hint; echoes keys when unset.
-   */
+  /** Translator used for the empty-state hint; echoes keys when unset. */
   protected plugin: FolderTreeTranslator | null = null;
 
   /**
@@ -257,9 +243,7 @@ export class FolderTreeComponent {
       let parent: FolderTreeNode = root;
       let accumulatedRelative: string = '';
 
-      /**
-       * Walk every segment but the last to materialise the ancestor folders.
-       */
+      // Walk every segment but the last to materialise the ancestor folders.
       for (let i: number = 0; i < segments.length - 1; i += 1) {
         const segment: string = segments[i];
 

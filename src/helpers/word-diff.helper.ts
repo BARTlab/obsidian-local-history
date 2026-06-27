@@ -101,9 +101,7 @@ export class WordDiffHelper {
 
           WordDiffHelper.pairAndEmit(removedLines, addedLines, result);
 
-          /**
-           * The added block was consumed as the pair, skip it on the next turn.
-           */
+          // The added block was consumed as the pair, skip it on the next turn.
           index++;
 
           continue;
@@ -116,9 +114,7 @@ export class WordDiffHelper {
         continue;
       }
 
-      /**
-       * An added block with no removed block before it is a pure addition.
-       */
+      // An added block with no removed block before it is a pure addition.
       WordDiffHelper.splitLines(change.value).forEach((text: string): void => {
         result.push({ type: WordDiffLineType.added, newText: text });
       });

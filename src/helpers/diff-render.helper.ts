@@ -215,9 +215,7 @@ export class DiffRenderHelper {
         return;
       }
 
-      /**
-       * Whole added/removed lines rely on the row tint, so the text is plain.
-       */
+      // Whole added/removed lines rely on the row tint, so the text is plain.
       if (line.type === WordDiffLineType.added) {
         rows.push(DiffRenderHelper.makeInlineRow('added', '+', [{ tag: 'span', text: line.newText ?? '' }]));
 

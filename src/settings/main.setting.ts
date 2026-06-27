@@ -95,9 +95,7 @@ export class MainSetting extends PluginSettingTab {
    */
   protected newPatternRow?: Setting;
 
-  /**
-   * The text component of the unsaved new-pattern row, for re-focus.
-   */
+  /** The text component of the unsaved new-pattern row, for re-focus. */
   protected newPatternInput?: TextComponent;
 
   /**

@@ -25,9 +25,7 @@ export interface AdapterCall {
  * behaviour (the write queue, the rename-failure path) is preserved verbatim.
  */
 export class MemoryAdapter {
-  /**
-   * The flat file map: vault-relative path to serialized contents.
-   */
+  /** The flat file map: vault-relative path to serialized contents. */
   public files: Map<string, string> = new Map();
 
   /**
@@ -37,9 +35,7 @@ export class MemoryAdapter {
    */
   public dirs: Set<string> = new Set();
 
-  /**
-   * Ordered log of every call, for assertions on IO shape and ordering.
-   */
+  /** Ordered log of every call, for assertions on IO shape and ordering. */
   public calls: AdapterCall[] = [];
 
   /**

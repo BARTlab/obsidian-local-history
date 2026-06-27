@@ -29,21 +29,15 @@ import type { EditorView } from '@codemirror/view';
  * @extends {BaseExtension}
  */
 export class GutterBarExtension extends BaseExtension implements GutterConfig {
-  /**
-   * Service for accessing plugin settings.
-   */
+  /** Service for accessing plugin settings. */
   @Inject(TOKENS.settings)
   protected settingsService!: SettingsService;
 
-  /**
-   * Service for managing file snapshots.
-   */
+  /** Service for managing file snapshots. */
   @Inject(TOKENS.snapshots)
   protected snapshotsService!: SnapshotsService;
 
-  /**
-   * CSS class for the gutter wrapper element.
-   */
+  /** CSS class for the gutter wrapper element. */
   public class: string = `lct lct-gutter-bar-col lct-${IndicatorType.line}`;
 
   /**

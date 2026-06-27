@@ -140,9 +140,7 @@ export class DiffViewState {
     return buttonByMode[this.currentDisplayMode];
   }
 
-  /**
-   * Updates the active state of mode buttons based on the current display mode.
-   */
+  /** Updates the active state of mode buttons based on the current display mode. */
   public updateButtonActiveStates(): void {
     Object.values(this.modeButtons).forEach((button: HTMLElement): void => {
       DomHelper.update(
@@ -249,9 +247,7 @@ export class DiffViewState {
       DomHelper.update(button, { classes: disabled ? { add: 'is-disabled' } : { remove: 'is-disabled' } });
     });
 
-    /**
-     * Forget a focus that no longer points at an existing hunk.
-     */
+    // Forget a focus that no longer points at an existing hunk.
     if (this.activeHunkIndex >= count) {
       this.activeHunkIndex = -1;
     }

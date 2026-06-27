@@ -54,27 +54,19 @@ import { type App, Modal, SearchComponent, setIcon } from 'obsidian';
  * the mode never loses the selected T or the selected file.
  */
 export class FolderHistoryModal extends Modal {
-  /**
-   * Snapshots service used to restore tombstones and read the live map back.
-   */
+  /** Snapshots service used to restore tombstones and read the live map back. */
   @Inject(TOKENS.snapshots)
   protected snapshotsService!: SnapshotsService;
 
-  /**
-   * Modals service used to confirm destructive actions and to prompt for labels.
-   */
+  /** Modals service used to confirm destructive actions and to prompt for labels. */
   @Inject(TOKENS.modals)
   protected modalsService!: ModalsService;
 
-  /**
-   * Shared restore/remove/label action service, same one the file modal uses.
-   */
+  /** Shared restore/remove/label action service, same one the file modal uses. */
   @Inject(TOKENS.versionActions)
   protected versionActionsService!: VersionActionsService;
 
-  /**
-   * Vault-relative folder path the modal is opened against.
-   */
+  /** Vault-relative folder path the modal is opened against. */
   protected readonly rootPath: string;
 
   /**
@@ -99,59 +91,37 @@ export class FolderHistoryModal extends Modal {
    */
   protected selectedTimestamp: number;
 
-  /**
-   * Currently selected display mode; same enum the file modal uses.
-   */
+  /** Currently selected display mode; same enum the file modal uses. */
   protected currentDisplayMode: DiffRenderMode = DiffOutputFormatType.side;
 
-  /**
-   * Left rail container (timeline).
-   */
+  /** Left rail container (timeline). */
   protected railEl?: HTMLElement;
 
-  /**
-   * Middle column wrapper holding the name filter above the scrollable tree.
-   */
+  /** Middle column wrapper holding the name filter above the scrollable tree. */
   protected treeColumnEl?: HTMLElement;
 
-  /**
-   * Name-filter search box above the tree (filters file rows by name).
-   */
+  /** Name-filter search box above the tree (filters file rows by name). */
   protected treeSearchEl?: HTMLElement;
 
-  /**
-   * Middle tree container, owned by {@link FolderTreeComponent}.
-   */
+  /** Middle tree container, owned by {@link FolderTreeComponent}. */
   protected treeEl?: HTMLElement;
 
-  /**
-   * Right main column container (toolbar + diff).
-   */
+  /** Right main column container (toolbar + diff). */
   protected mainEl?: HTMLElement;
 
-  /**
-   * Top toolbar inside the main column.
-   */
+  /** Top toolbar inside the main column. */
   protected toolbarEl?: HTMLElement;
 
-  /**
-   * Diff output container, written into by the {@link FolderDiffRenderer}.
-   */
+  /** Diff output container, written into by the {@link FolderDiffRenderer}. */
   protected diffContainerEl?: HTMLElement;
 
-  /**
-   * Notice above the diff, shown when the selected file has no diff at T.
-   */
+  /** Notice above the diff, shown when the selected file has no diff at T. */
   protected noticeEl?: HTMLElement;
 
-  /**
-   * Header above the side-by-side diff naming each column's content.
-   */
+  /** Header above the side-by-side diff naming each column's content. */
   protected columnsHeaderEl?: HTMLElement;
 
-  /**
-   * Folder tree component instance, mounted into {@link treeEl}.
-   */
+  /** Folder tree component instance, mounted into {@link treeEl}. */
   protected readonly tree: FolderTreeComponent;
 
   /**
@@ -180,9 +150,7 @@ export class FolderHistoryModal extends Modal {
    */
   protected readonly actionHandler: FolderActionHandler;
 
-  /**
-   * Mode toggle buttons, kept so the active accent can be flipped.
-   */
+  /** Mode toggle buttons, kept so the active accent can be flipped. */
   protected modeButtons: {
     patch?: HTMLElement;
     inline?: HTMLElement;
@@ -190,29 +158,19 @@ export class FolderHistoryModal extends Modal {
     sideBySide?: HTMLElement;
   } = {};
 
-  /**
-   * Restore selected version button, disabled when no file is selected.
-   */
+  /** Restore selected version button, disabled when no file is selected. */
   protected restoreSelectedButton?: HTMLButtonElement;
 
-  /**
-   * Remove selected version button, disabled when no file is selected.
-   */
+  /** Remove selected version button, disabled when no file is selected. */
   protected removeSelectedButton?: HTMLButtonElement;
 
-  /**
-   * Label selected version button, disabled when no file is selected.
-   */
+  /** Label selected version button, disabled when no file is selected. */
   protected labelSelectedButton?: HTMLButtonElement;
 
-  /**
-   * Restore original (wipe history and revert to baseline) button.
-   */
+  /** Restore original (wipe history and revert to baseline) button. */
   protected restoreOriginalButton?: HTMLButtonElement;
 
-  /**
-   * Remove history (drop the selected file's snapshot) button.
-   */
+  /** Remove history (drop the selected file's snapshot) button. */
   protected removeHistoryButton?: HTMLButtonElement;
 
   /**

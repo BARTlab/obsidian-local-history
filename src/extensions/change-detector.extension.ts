@@ -20,9 +20,7 @@ export class ChangeDetectorExtension extends BaseExtension implements EditorExte
   @Inject(TOKENS.snapshots)
   protected snapshotsService!: SnapshotsService;
 
-  /**
-   * Service for reading the intermediate-snapshot cadence settings.
-   */
+  /** Service for reading the intermediate-snapshot cadence settings. */
   @Inject(TOKENS.settings)
   protected settingsService!: SettingsService;
 
@@ -60,9 +58,7 @@ export class ChangeDetectorExtension extends BaseExtension implements EditorExte
       return;
     }
 
-    /**
-     * Skip when the content has not changed, detected by the snapshot hash.
-     */
+    // Skip when the content has not changed, detected by the snapshot hash.
     if (!snapshot.isNeedUpdate(currentContent)) {
       return;
     }
@@ -101,9 +97,7 @@ export class ChangeDetectorExtension extends BaseExtension implements EditorExte
     }
 
     update.changes.iterChanges((fromA: number, toA: number, fromB: number, toB: number): void => {
-      /**
-       * Line numbers (0-based) touched by this change in the old and new docs.
-       */
+      // Line numbers (0-based) touched by this change in the old and new docs.
       const fromOldLine: number = prev.lineAt(fromA).number - 1;
       const toOldLine: number = prev.lineAt(toA).number - 1;
       const fromNewLine: number = state.doc.lineAt(fromB).number - 1;
@@ -155,9 +149,7 @@ export class ChangeDetectorExtension extends BaseExtension implements EditorExte
       const newCoreCount: number = Math.max(0, newCoreEnd - newCoreStart + 1);
 
       if (oldCoreCount === newCoreCount && oldCoreCount > 0) {
-        /**
-         * Same number of lines in and out: each core line was edited in place.
-         */
+        // Same number of lines in and out: each core line was edited in place.
         for (let i: number = 0; i < newCoreCount; i++) {
           const tracker: TrackerLine | null = snapshot.findCurrentLine(newCoreStart + i);
 

@@ -78,9 +78,7 @@ export type ClassConstructor<T = {}> = {
  * Extends both PluginValue and BaseExtension to provide editor functionality.
  */
 export interface EditorExtension extends PluginValue, BaseExtension {
-  /**
-   * Optional decoration set for visual indicators
-   */
+  /** Optional decoration set for visual indicators */
   decorations?: DecorationSet;
 }
 
@@ -89,19 +87,13 @@ export interface EditorExtension extends PluginValue, BaseExtension {
  * Defines optional lifecycle methods that services can implement.
  */
 export interface Service {
-  /**
-   * Optional initialization method called during service setup
-   */
+  /** Optional initialization method called during service setup */
   init?(): void | Promise<void>;
 
-  /**
-   * Optional load method called when the service should start
-   */
+  /** Optional load method called when the service should start */
   load?(): void | Promise<void>;
 
-  /**
-   * Optional unload method called when the service should stop
-   */
+  /** Optional unload method called when the service should stop */
   unload?(): void | Promise<void>;
 }
 
@@ -168,17 +160,11 @@ export interface HTMLElementWithScrollSync extends HTMLElement {
   _scrollSyncCleanup?: () => void;
 }
 
-/**
- * Configuration object for creating DOM elements with DomHelper.
- */
+/** Configuration object for creating DOM elements with DomHelper. */
 export interface DomElementConfig extends DomUpdateConfig {
-  /**
-   * The tag name of the element to create
-   */
+  /** The tag name of the element to create */
   tag: keyof HTMLElementTagNameMap;
-  /**
-   * Optional container to append the element to
-   */
+  /** Optional container to append the element to */
   container?: HTMLElement;
 }
 
@@ -192,33 +178,19 @@ export interface DomUpdateConfigClasses {
   remove?: string | string[];
 }
 
-/**
- * Configuration object for updating DOM elements with DomHelper.
- */
+/** Configuration object for updating DOM elements with DomHelper. */
 export interface DomUpdateConfig {
-  /**
-   * CSS classes for the element
-   */
+  /** CSS classes for the element */
   classes?: string | string[] | DomUpdateConfigClasses;
-  /**
-   * Text content for the element
-   */
+  /** Text content for the element */
   text?: string;
-  /**
-   * HTML attributes to set on the element
-   */
+  /** HTML attributes to set on the element */
   attributes?: Record<string, string>;
-  /**
-   * CSS styles to apply to the element
-   */
+  /** CSS styles to apply to the element */
   styles?: Partial<CSSStyleDeclaration>;
-  /**
-   * Event listeners to attach to the element
-   */
+  /** Event listeners to attach to the element */
   events?: Record<string, (event: Event) => void>;
-  /**
-   * Child elements to append
-   */
+  /** Child elements to append */
   children?: DomElementConfig[];
 }
 

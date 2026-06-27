@@ -66,18 +66,14 @@ export class TrackerIndex {
    * @return {TrackerLine | null} The tracker line at the specified position, or null if not found
    */
   public findCurrentLine(tracker: TrackerLine[], line: number, to?: number): TrackerLine | null {
-    /**
-     * Find the logical line currently at the desired position.
-     */
+    // Find the logical line currently at the desired position.
     const found: TrackerLine | undefined = this.get(tracker).get(line);
 
     if (!found) {
       return null;
     }
 
-    /**
-     * Preserve the original upper-bound guard so an out-of-range request misses.
-     */
+    // Preserve the original upper-bound guard so an out-of-range request misses.
     return found.isCurrentInRange(0, to) ? found : null;
   }
 
@@ -97,9 +93,7 @@ export class TrackerIndex {
     to?: number,
     visible: boolean = true,
   ): TrackerLine | null {
-    /**
-     * Find the logical line currently at the desired position.
-     */
+    // Find the logical line currently at the desired position.
     return tracker.find((item: TrackerLine): boolean =>
       (visible ? item.isCurrentAt(line) : item.isOriginAt(line)) &&
       item.existedInOriginal &&

@@ -197,9 +197,7 @@ export class FileSnapshot {
       contentSameOriginal: true,
     }));
 
-    /**
-     * Save the current content as the last document state.
-     */
+    // Save the current content as the last document state.
     this.updateState(this.lines);
   }
 

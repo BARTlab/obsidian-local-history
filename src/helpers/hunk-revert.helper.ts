@@ -9,34 +9,22 @@ import type { TFile } from 'obsidian';
  * revert needs, plus the resolved hunk to write back to the base.
  */
 export interface HunkRevertRequest {
-  /**
-   * Runs the confirm dialog before the destructive write.
-   */
+  /** Runs the confirm dialog before the destructive write. */
   modalsService: ModalsService;
 
-  /**
-   * Applies the reverted content and refreshes the highlights.
-   */
+  /** Applies the reverted content and refreshes the highlights. */
   snapshotsService: SnapshotsService;
 
-  /**
-   * Translation lookup for the confirm copy.
-   */
+  /** Translation lookup for the confirm copy. */
   plugin: { t(key: string): string };
 
-  /**
-   * The file the revert writes into.
-   */
+  /** The file the revert writes into. */
   file: TFile;
 
-  /**
-   * The current content as lines, the base for the positional splice.
-   */
+  /** The current content as lines, the base for the positional splice. */
   currentLines: string[];
 
-  /**
-   * The resolved hunk to revert.
-   */
+  /** The resolved hunk to revert. */
   hunk: Diff.StructuredPatchHunk;
 
   /**

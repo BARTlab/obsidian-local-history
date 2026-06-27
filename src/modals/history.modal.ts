@@ -213,9 +213,7 @@ export class HistoryModal extends Modal {
 
     this.makeUI();
 
-    /**
-     * Increase the size of the modal window.
-     */
+    // Increase the size of the modal window.
     DomHelper.update(
       this.modalEl,
       { classes: { add: 'lct-diff-modal' } }
@@ -607,9 +605,7 @@ export class HistoryModal extends Modal {
       container: bodyEl,
     });
 
-    /**
-     * The toolbar lives at the top of the right content column, above the diff.
-     */
+    // The toolbar lives at the top of the right content column, above the diff.
     this.toolbarEl = DomHelper.create({
       tag: 'div',
       classes: 'lct-modal-toolbar',
@@ -639,9 +635,7 @@ export class HistoryModal extends Modal {
      * viewer focused on the chosen version.
      */
     if (this.railEl) {
-      /**
-       * Content search sits above the version timeline in the left rail.
-       */
+      // Content search sits above the version timeline in the left rail.
       this.searchEl = DomHelper.create({
         tag: 'div',
         classes: 'lct-rail-search',
@@ -949,9 +943,7 @@ export class HistoryModal extends Modal {
       },
     });
 
-    /**
-     * View-mode toggles: the active mode is highlighted via is-active.
-     */
+    // View-mode toggles: the active mode is highlighted via is-active.
     const modesGroup: HTMLElement = this.makeToolbarGroup('lct-modal-toolbar-modes');
 
     this.viewState.modeButtons.patch = this.makeToolbarButton(modesGroup, {
@@ -986,9 +978,7 @@ export class HistoryModal extends Modal {
       },
     });
 
-    /**
-     * Set the initial active state.
-     */
+    // Set the initial active state.
     this.viewState.updateButtonActiveStates();
   }
 

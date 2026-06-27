@@ -30,9 +30,7 @@ export class PromptModal extends Modal {
    */
   protected resolvePromise: ((value: string | null) => void) | undefined;
 
-  /**
-   * The title text displayed in the modal header.
-   */
+  /** The title text displayed in the modal header. */
   protected readonly title: string;
 
   /**
@@ -41,24 +39,16 @@ export class PromptModal extends Modal {
    */
   protected readonly message: string;
 
-  /**
-   * Placeholder text shown inside the empty input.
-   */
+  /** Placeholder text shown inside the empty input. */
   protected readonly placeholder: string;
 
-  /**
-   * Value pre-filled in the input on open.
-   */
+  /** Value pre-filled in the input on open. */
   protected readonly initialValue: string;
 
-  /**
-   * The text displayed on the confirmation button.
-   */
+  /** The text displayed on the confirmation button. */
   protected readonly confirmText: string;
 
-  /**
-   * The text displayed on the cancel button.
-   */
+  /** The text displayed on the cancel button. */
   protected readonly cancelText: string;
 
   /**

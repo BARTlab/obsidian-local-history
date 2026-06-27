@@ -8,25 +8,15 @@ import type { FileVersion } from '@/snapshots/file.version';
  * service.
  */
 export interface SnapshotCaptureOptions {
-  /**
-   * Whether intermediate version capture is enabled at all
-   */
+  /** Whether intermediate version capture is enabled at all */
   enabled: boolean;
-  /**
-   * Minimum time (ms) between captures (0 disables the time gate)
-   */
+  /** Minimum time (ms) between captures (0 disables the time gate) */
   intervalMs: number;
-  /**
-   * Minimum number of edits between captures (0 disables the edit gate)
-   */
+  /** Minimum number of edits between captures (0 disables the edit gate) */
   editThreshold: number;
-  /**
-   * Maximum number of versions kept (count cap, oldest evicted past this, 0 disables)
-   */
+  /** Maximum number of versions kept (count cap, oldest evicted past this, 0 disables) */
   maxVersions: number;
-  /**
-   * Maximum age in days for a kept version (age cap, evicted first, 0 disables)
-   */
+  /** Maximum age in days for a kept version (age cap, evicted first, 0 disables) */
   maxVersionAgeDays: number;
 }
 
@@ -35,24 +25,16 @@ export interface SnapshotCaptureOptions {
  * Used to initialize a line tracker with optional properties.
  */
 export interface TrackerLineParams {
-  /**
-   * The content of the line as a string
-   */
+  /** The content of the line as a string */
   content?: string;
 
-  /**
-   * The original position (line number) in the document
-   */
+  /** The original position (line number) in the document */
   originalPosition?: number;
 
-  /**
-   * The current position (line number) in the document
-   */
+  /** The current position (line number) in the document */
   currentPosition?: number;
 
-  /**
-   * Whether the content is the same as in the original document
-   */
+  /** Whether the content is the same as in the original document */
   contentSameOriginal?: boolean;
 }
 
@@ -63,14 +45,10 @@ export interface TrackerLineParams {
  * sets it alongside the history baseline, so it is carried back here too.
  */
 export interface AdoptHistoryResult {
-  /**
-   * The defensive copy of the persisted history baseline lines.
-   */
+  /** The defensive copy of the persisted history baseline lines. */
   historyLines: string[];
 
-  /**
-   * The defensive copy of the persisted version timeline, oldest first.
-   */
+  /** The defensive copy of the persisted version timeline, oldest first. */
   versions: FileVersion[];
 }
 
@@ -80,14 +58,10 @@ export interface AdoptHistoryResult {
  * collaborator returns both for the façade to write back.
  */
 export interface UpdateStateResult {
-  /**
-   * The defensive copy of the current state as an array of lines.
-   */
+  /** The defensive copy of the current state as an array of lines. */
   state: string[];
 
-  /**
-   * The hash of the current state, used for change detection.
-   */
+  /** The hash of the current state, used for change detection. */
   lastHash: string;
 }
 
@@ -105,9 +79,7 @@ export interface BaseContentSnapshot {
    * when present, is the latest snapshot the baseline entry diffs against.
    */
   versions: string[];
-  /**
-   * The file's original captured content (the birth-state fallback).
-   */
+  /** The file's original captured content (the birth-state fallback). */
   original: string;
   /**
    * Resolves a picked intermediate version's content by id, or null when the id
@@ -126,17 +98,11 @@ export interface BaseContentSnapshot {
  * new text are kept so the renderer can show word-level spans for each side.
  */
 export interface InlineDiffLine {
-  /**
-   * The kind of change this line represents.
-   */
+  /** The kind of change this line represents. */
   type: WordDiffLineType;
-  /**
-   * The old (base) text of the line, present for context, removed, modified.
-   */
+  /** The old (base) text of the line, present for context, removed, modified. */
   oldText?: string;
-  /**
-   * The new (current) text of the line, present for context, added, modified.
-   */
+  /** The new (current) text of the line, present for context, added, modified. */
   newText?: string;
 }
 
@@ -151,13 +117,9 @@ export interface InlineDiffLine {
  * out-of-band convention to anchor the oldest version's diff.
  */
 export interface SelectableVersion {
-  /**
-   * The version's stable id, returned when its diff touches the selection.
-   */
+  /** The version's stable id, returned when its diff touches the selection. */
   id: string;
-  /**
-   * The version's captured content as lines, diffed against its neighbour.
-   */
+  /** The version's captured content as lines, diffed against its neighbour. */
   lines: string[];
 }
 
@@ -168,13 +130,9 @@ export interface SelectableVersion {
  * unit-tested function with no Obsidian or model dependency.
  */
 export interface SearchableVersion {
-  /**
-   * The version's stable id, returned when its content matches.
-   */
+  /** The version's stable id, returned when its content matches. */
   id: string;
-  /**
-   * The version's captured content, searched case-insensitively.
-   */
+  /** The version's captured content, searched case-insensitively. */
   content: string;
 }
 
@@ -185,17 +143,11 @@ export interface SearchableVersion {
  * running the diff twice.
  */
 export interface VersionDescription {
-  /**
-   * The action discriminator for the version.
-   */
+  /** The action discriminator for the version. */
   kind: VersionAction;
-  /**
-   * Number of lines added going from previous to current.
-   */
+  /** Number of lines added going from previous to current. */
   added: number;
-  /**
-   * Number of lines removed going from previous to current.
-   */
+  /** Number of lines removed going from previous to current. */
   removed: number;
 }
 
@@ -205,9 +157,7 @@ export interface VersionDescription {
  * changed (a no-op restore against identical content stays silent).
  */
 export interface VersionRestoreResult {
-  /**
-   * True when the file content was rewritten to the version.
-   */
+  /** True when the file content was rewritten to the version. */
   applied: boolean;
 }
 
@@ -217,13 +167,9 @@ export interface VersionRestoreResult {
  * after the deletion. The id is null when the timeline is now empty.
  */
 export interface VersionRemoveResult {
-  /**
-   * True when a version was dropped from the timeline.
-   */
+  /** True when a version was dropped from the timeline. */
   removed: boolean;
-  /**
-   * The id the caller should select next, or null when nothing remains.
-   */
+  /** The id the caller should select next, or null when nothing remains. */
   nextId: string | null;
 }
 
@@ -234,24 +180,16 @@ export interface VersionRemoveResult {
  * operator over passed-in state without a long positional parameter list.
  */
 export interface VersionCaptureContext {
-  /**
-   * The current timeline, oldest first. The façade owns this array.
-   */
+  /** The current timeline, oldest first. The façade owns this array. */
   versions: FileVersion[];
 
-  /**
-   * The history baseline used as the dedup reference when the timeline is empty.
-   */
+  /** The history baseline used as the dedup reference when the timeline is empty. */
   historyBaseline: string;
 
-  /**
-   * The line break used to join candidate content for comparison.
-   */
+  /** The line break used to join candidate content for comparison. */
   lineBreak: string;
 
-  /**
-   * The capture cadence configuration and retention caps.
-   */
+  /** The capture cadence configuration and retention caps. */
   options: SnapshotCaptureOptions;
 }
 
@@ -263,13 +201,9 @@ export interface VersionCaptureContext {
  * the resulting array back rather than mutating a private copy.
  */
 export interface VersionCaptureResult {
-  /**
-   * The version pushed onto the timeline, or null when no version was taken.
-   */
+  /** The version pushed onto the timeline, or null when no version was taken. */
   version: FileVersion | null;
 
-  /**
-   * The timeline array the façade must store after the attempt.
-   */
+  /** The timeline array the façade must store after the attempt. */
   versions: FileVersion[];
 }

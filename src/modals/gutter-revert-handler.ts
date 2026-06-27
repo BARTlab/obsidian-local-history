@@ -18,24 +18,16 @@ import { setIcon, type TFile } from 'obsidian';
  * post-decoration nav refresh back to the host.
  */
 export interface GutterRevertHost {
-  /**
-   * The file snapshot whose live state the reverts write into.
-   */
+  /** The file snapshot whose live state the reverts write into. */
   readonly snapshot: FileSnapshot;
 
-  /**
-   * The plugin instance, used for translation lookups and the confirm copy.
-   */
+  /** The plugin instance, used for translation lookups and the confirm copy. */
   readonly plugin: LineChangeTrackerPlugin;
 
-  /**
-   * Service that runs the confirm dialog before a destructive revert.
-   */
+  /** Service that runs the confirm dialog before a destructive revert. */
   readonly modalsService: ModalsService;
 
-  /**
-   * Service that applies the reverted content and refreshes the highlights.
-   */
+  /** Service that applies the reverted content and refreshes the highlights. */
   readonly snapshotsService: SnapshotsService;
 
   /**

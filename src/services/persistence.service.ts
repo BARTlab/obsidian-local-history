@@ -33,21 +33,15 @@ interface ShardIndexEntry {
  * @implements {Service}
  */
 export class PersistenceService implements Service {
-  /**
-   * Service for accessing plugin settings (persist flag and retention caps).
-   */
+  /** Service for accessing plugin settings (persist flag and retention caps). */
   @Inject(TOKENS.settings)
   protected settingsService!: SettingsService;
 
-  /**
-   * Service holding the in-memory snapshots to serialize and restore.
-   */
+  /** Service holding the in-memory snapshots to serialize and restore. */
   @Inject(TOKENS.snapshots)
   protected snapshotsService!: SnapshotsService;
 
-  /**
-   * Pending debounced save timer handle, or null when no save is scheduled.
-   */
+  /** Pending debounced save timer handle, or null when no save is scheduled. */
   protected saveTimer: ReturnType<typeof setTimeout> | null = null;
 
   /**
@@ -172,9 +166,7 @@ export class PersistenceService implements Service {
   protected async restoreFromDisk(): Promise<void> {
     try {
       if (!this.isPersistEnabled()) {
-        /**
-         * History is not kept across restarts in this mode; drop any stale file.
-         */
+        // History is not kept across restarts in this mode; drop any stale file.
         this.enqueueClear();
 
         return;
@@ -228,9 +220,7 @@ export class PersistenceService implements Service {
         this.plugin.forceUpdateEditor();
       }
 
-      /**
-       * Re-save so the pruned set replaces the over-cap shards on disk.
-       */
+      // Re-save so the pruned set replaces the over-cap shards on disk.
       if (kept.length !== snapshots.length) {
         this.enqueueSave();
       }
@@ -347,9 +337,7 @@ export class PersistenceService implements Service {
       oldest === 0 || ageOf(item) >= oldest
     );
 
-    /**
-     * Newest first so the size cap evicts the stalest entries.
-     */
+    // Newest first so the size cap evicts the stalest entries.
     kept.sort((a: SerializedFileSnapshot, b: SerializedFileSnapshot): number => ageOf(b) - ageOf(a));
 
     if (maxEntries > 0 && kept.length > maxEntries) {
@@ -359,9 +347,7 @@ export class PersistenceService implements Service {
     return kept;
   }
 
-  /**
-   * Schedules a debounced write to disk, collapsing rapid updates into one.
-   */
+  /** Schedules a debounced write to disk, collapsing rapid updates into one. */
   protected scheduleSave(): void {
     if (this.saveTimer) {
       clearTimeout(this.saveTimer);
@@ -381,9 +367,7 @@ export class PersistenceService implements Service {
     this.enqueue((): Promise<void> => this.saveToDisk());
   }
 
-  /**
-   * Appends a clear to the write queue so it serializes with pending saves.
-   */
+  /** Appends a clear to the write queue so it serializes with pending saves. */
   protected enqueueClear(): void {
     this.enqueue((): Promise<void> => this.clearDisk());
   }

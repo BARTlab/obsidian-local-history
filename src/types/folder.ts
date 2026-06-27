@@ -13,29 +13,17 @@ export type FolderTreeSelectionHandler = (path: string) => void;
  * the rendered output reads top-down like a file explorer.
  */
 export interface FolderTreeNode {
-  /**
-   * Vault-relative path of the node (folder or file).
-   */
+  /** Vault-relative path of the node (folder or file). */
   path: string;
-  /**
-   * Display name (the last path segment).
-   */
+  /** Display name (the last path segment). */
   name: string;
-  /**
-   * Whether this node is a folder; files are leaves.
-   */
+  /** Whether this node is a folder; files are leaves. */
   isFolder: boolean;
-  /**
-   * Per-file delta status; undefined for folder nodes.
-   */
+  /** Per-file delta status; undefined for folder nodes. */
   status?: FolderDeltaStatus;
-  /**
-   * Whether the file's delta point at T is an external-change capture.
-   */
+  /** Whether the file's delta point at T is an external-change capture. */
   external?: boolean;
-  /**
-   * Child nodes (folders + files) when `isFolder` is true.
-   */
+  /** Child nodes (folders + files) when `isFolder` is true. */
   children: FolderTreeNode[];
 }
 
@@ -47,21 +35,13 @@ export interface FolderTreeNode {
  * actions, matching the file modal's classification.
  */
 export interface FolderToolbarButtonConfig {
-  /**
-   * The Obsidian (Lucide) icon id to render
-   */
+  /** The Obsidian (Lucide) icon id to render */
   icon: string;
-  /**
-   * The text label exposed via tooltip and aria-label
-   */
+  /** The text label exposed via tooltip and aria-label */
   label: string;
-  /**
-   * The click handler
-   */
+  /** The click handler */
   onClick: FunctionVoid;
-  /**
-   * Whether to paint the destructive accent
-   */
+  /** Whether to paint the destructive accent */
   warning?: boolean;
 }
 

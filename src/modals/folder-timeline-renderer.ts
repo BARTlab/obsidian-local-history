@@ -15,9 +15,7 @@ import type { DomElementConfig, FolderTimelinePoint } from '@/types';
  * and diff.
  */
 export interface FolderTimelineHost {
-  /**
-   * The plugin instance, used only for translation lookups.
-   */
+  /** The plugin instance, used only for translation lookups. */
   readonly plugin: LineChangeTrackerPlugin;
 
   /**

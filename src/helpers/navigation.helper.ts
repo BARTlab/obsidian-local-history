@@ -44,9 +44,7 @@ export class NavigationHelper {
     if (direction === NavigationDirection.next) {
       const ahead: number | undefined = sorted.find((line: number): boolean => line > cursorLine);
 
-      /**
-       * Wrap to the first change when nothing lies strictly after the cursor.
-       */
+      // Wrap to the first change when nothing lies strictly after the cursor.
       return ahead ?? sorted[0];
     }
 
@@ -54,9 +52,7 @@ export class NavigationHelper {
       .reverse()
       .find((line: number): boolean => line < cursorLine);
 
-    /**
-     * Wrap to the last change when nothing lies strictly before the cursor.
-     */
+    // Wrap to the last change when nothing lies strictly before the cursor.
     return before ?? sorted[sorted.length - 1];
   }
 

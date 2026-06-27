@@ -100,9 +100,7 @@ export class DiffScrollSync {
     const [leftWrapper, rightWrapper] = wrappers;
     let isScrolling: boolean = false;
 
-    /**
-     * Synchronize scroll from left to right.
-     */
+    // Synchronize scroll from left to right.
     const syncLeftToRight: FunctionVoid = (): void => {
       if (isScrolling) {
         return;
@@ -117,9 +115,7 @@ export class DiffScrollSync {
       });
     };
 
-    /**
-     * Synchronize scroll from right to left.
-     */
+    // Synchronize scroll from right to left.
     const syncRightToLeft: FunctionVoid = (): void => {
       if (isScrolling) {
         return;
@@ -137,9 +133,7 @@ export class DiffScrollSync {
     leftWrapper.addEventListener('scroll', syncLeftToRight);
     rightWrapper.addEventListener('scroll', syncRightToLeft);
 
-    /**
-     * Store references so the listeners can be detached on cleanup.
-     */
+    // Store references so the listeners can be detached on cleanup.
     container._scrollSyncCleanup = (): void => {
       leftWrapper.removeEventListener('scroll', syncLeftToRight);
       rightWrapper.removeEventListener('scroll', syncRightToLeft);

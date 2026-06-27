@@ -1,6 +1,6 @@
 import { DiffOutputFormatType, DiffViewMode } from '@/consts';
 import { DomHelper } from '@/helpers/dom.helper';
-import { HunkHelper } from '@/helpers/hunk.helper';
+import { confirmAndRevertHunk } from '@/helpers/hunk-revert.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ModalsService } from '@/services/modals.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
@@ -136,12 +136,12 @@ export class GutterRevertHandler {
   /**
    * Reverts a single hunk of the current diff back to the selected base and
    * leaves every other change intact. The hunk is resolved fresh from getHunks
-   * (against the live content) by its index, the user confirms before the write,
-   * and the revert reuses the same plumbing the editor gutter uses: HunkHelper to
-   * scope the block, SnapshotsService.applyContent to write it and refresh the
-   * highlights. The host is then notified so the active view is re-rendered and
-   * the diff reflects the new content. A stale index (the diff changed under the
-   * click) is a safe no-op.
+   * (against the live content) by its index, then handed to the shared
+   * confirm-and-revert helper the editor gutter also uses (confirm, scope the
+   * block, apply, refresh the highlights). When the revert is applied the host
+   * is notified so the active view is re-rendered and the diff reflects the new
+   * content. A stale index (the diff changed under the click) or a declined
+   * confirm is a safe no-op.
    *
    * @param {number} index - The index of the hunk to revert in the current diff
    * @return {Promise<void>}
@@ -160,29 +160,19 @@ export class GutterRevertHandler {
       return;
     }
 
-    const confirmed: boolean = await this.host.modalsService.confirm({
-      title: this.host.plugin.t('modal.confirm.revert.title'),
-      message: this.host.plugin.t('modal.confirm.revert.message'),
-      confirmText: this.host.plugin.t('modal.confirm.revert.button'),
+    const applied: boolean = await confirmAndRevertHunk({
+      modalsService: this.host.modalsService,
+      snapshotsService: this.host.snapshotsService,
+      plugin: this.host.plugin,
+      file,
+      currentLines: snapshot.getLastStateLines(),
+      hunk,
       cancelText: this.host.plugin.t('modal.confirm.cancel'),
     });
 
-    if (!confirmed) {
+    if (!applied) {
       return;
     }
-
-    const currentLines: string[] = snapshot.getLastStateLines();
-    const start: number = Math.max(0, Math.min(currentLines.length, hunk.newStart - 1));
-
-    await this.host.snapshotsService.applyContent(
-      file,
-      HunkHelper.revertHunk(currentLines, hunk),
-      {
-        start,
-        removeCount: hunk.newLines,
-        newLines: HunkHelper.baseLinesForHunk(hunk),
-      },
-    );
 
     /**
      * The content changed, so the diff (and its hunk indices) is stale: the host

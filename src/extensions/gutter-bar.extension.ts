@@ -59,7 +59,7 @@ export class GutterBarExtension extends BaseExtension implements GutterConfig {
    * @return {RangeSet<BarMarker>} The bar markers
    */
   public markers = (view: EditorView): RangeSet<BarMarker> => {
-    const enable: ChangeType[] = this.getEnableTypes();
+    const enable: ChangeType[] = this.settingsService.getEnabledTypes();
     const snapshot: FileSnapshot | null = this.snapshotsService.getOne();
     const changes: ArrayMap<ChangeLine> | null = snapshot?.getChanges(enable) ?? null;
     const builder = new RangeSetBuilder<BarMarker>();
@@ -104,20 +104,5 @@ export class GutterBarExtension extends BaseExtension implements GutterConfig {
    */
   protected isTypeLine(): boolean {
     return this.settingsService.value('type') === IndicatorType.line;
-  }
-
-  /**
-   * Gets the enabled change types from settings, including removed (drawn as a
-   * dash). Mirrors the former editor extension.
-   *
-   * @return {ChangeType[]} Array of enabled change types
-   */
-  protected getEnableTypes(): ChangeType[] {
-    return [
-      ...this.settingsService.value('show.changed') ? [ChangeType.changed, ChangeType.whitespace] : [],
-      ...this.settingsService.value('show.restored') ? [ChangeType.restored] : [],
-      ...this.settingsService.value('show.added') ? [ChangeType.added] : [],
-      ...this.settingsService.value('show.removed') ? [ChangeType.removed] : [],
-    ];
   }
 }

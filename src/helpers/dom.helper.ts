@@ -78,8 +78,7 @@ export class DomHelper {
       entries(config.attributes).forEach(([key, value]: [string, string]): void => {
         try {
           element.setAttribute(key, value);
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        } catch (_error) {
+        } catch {
           // Swallow invalid attribute names; the element keeps its prior state.
         }
       });
@@ -103,8 +102,7 @@ export class DomHelper {
             : key.replace(/[A-Z]/g, (match: string): string => `-${match.toLowerCase()}`);
 
           element.style.setProperty(cssName, String(value));
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        } catch (_error) {
+        } catch {
           // Swallow invalid style values; the element keeps its prior state.
         }
       });

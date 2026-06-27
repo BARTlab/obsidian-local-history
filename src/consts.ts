@@ -514,4 +514,4 @@ export const WORD_DIFF_PAIRING_THRESHOLD: number = 20;
  * Matches a `{name}` placeholder inside a translated string. The captured group
  * is the variable name looked up in the interpolation vars.
  */
-export const PLACEHOLDER_PATTERN: RegExp = /\{(\w+)\}/g;
+export const PLACEHOLDER_PATTERN: RegExp = /\{(\w+)}/g;

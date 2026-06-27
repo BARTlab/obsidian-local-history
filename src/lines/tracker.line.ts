@@ -531,7 +531,7 @@ export class TrackerLine {
       tracker.changeAtPosition = data.changeAtPosition;
     }
 
-    if (data?.contentSameOriginal === true) {
+    if (data?.contentSameOriginal) {
       tracker.contentSameOriginal = true;
     }
 

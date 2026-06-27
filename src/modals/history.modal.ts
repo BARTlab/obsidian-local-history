@@ -343,10 +343,8 @@ export class HistoryModal extends Modal {
       this.versionList.getVisibleVersions().map((version: FileVersion): string => version.id),
     );
 
-    const nextId: string =
+    this.viewState.selectedBaseId =
       result.nextId && visibleIds.has(result.nextId) ? result.nextId : ORIGINAL_BASE_ID;
-
-    this.viewState.selectedBaseId = nextId;
     this.viewState.activeHunkIndex = -1;
     this.versionList.render();
     this.refreshActiveView();

@@ -730,11 +730,7 @@ export class PersistenceService implements Service {
       return false;
     }
 
-    if (!Array.isArray(item.lines) || !Array.isArray(item.tracker)) {
-      return false;
-    }
-
-    return true;
+    return Array.isArray(item.lines) && Array.isArray(item.tracker);
   }
 
   /**

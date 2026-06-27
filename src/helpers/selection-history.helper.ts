@@ -54,8 +54,7 @@ export class SelectionHistoryHelper {
       return matched;
     }
 
-    const baseline: string[] = baselineLines ?? [];
-    let previous: string[] = baseline;
+    let previous: string[] = baselineLines ?? [];
 
     for (const version of list) {
       const current: string[] = version?.lines ?? [];

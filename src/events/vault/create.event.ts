@@ -23,17 +23,9 @@ import { type TAbstractFile, TFile } from 'obsidian';
  * @extends {BaseEvent}
  */
 export class VaultCreateEvent extends BaseEvent {
-  /**
-   * Service for accessing plugin settings.
-   * Injected using the @Inject decorator.
-   */
   @Inject(TOKENS.settings)
   protected settingsService!: SettingsService;
 
-  /**
-   * Service for managing file snapshots and ignore a list.
-   * Injected using the @Inject decorator.
-   */
   @Inject(TOKENS.snapshots)
   protected snapshotsService!: SnapshotsService;
 

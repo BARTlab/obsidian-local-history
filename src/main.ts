@@ -326,8 +326,6 @@ export default class LineChangeTrackerPlugin extends Plugin {
   /**
    * Emits an event with the given name and payload.
    *
-   * @param {string} name - The name of the event to emit
-   * @param {unknown[]} payload - Additional data to pass with the event
    * @return {boolean} True if the event had listeners, false otherwise
    */
   public emit(name: string, ...payload: unknown[]): boolean {
@@ -336,11 +334,6 @@ export default class LineChangeTrackerPlugin extends Plugin {
 
   /**
    * Registers an event listener for the specified event.
-   *
-   * @param {string} name - The name of the event to listen for
-   * @param {Function} fn - The callback function to execute when the event is emitted
-   * @param {unknown} context - The context to bind the callback function to
-   * @return {EventEmitter<string | symbol, unknown>} The event emitter instance for chaining
    */
   public on(
     name: string,
@@ -352,11 +345,6 @@ export default class LineChangeTrackerPlugin extends Plugin {
 
   /**
    * Removes an event listener for the specified event.
-   *
-   * @param {string} name - The name of the event to remove the listener from
-   * @param {Function} fn - The callback function to remove
-   * @param {unknown} context - The context that was used when the listener was added
-   * @return {EventEmitter<string | symbol, unknown>} The event emitter instance for chaining
    */
   public off(
     name: string,

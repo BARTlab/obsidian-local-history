@@ -17,16 +17,11 @@ import { Decoration, type DecorationSet, type ViewUpdate } from '@codemirror/vie
  * @extends {BaseExtension}
  */
 export class ChangeDetectorExtension extends BaseExtension implements EditorExtension {
-  /**
-   * Service for managing file snapshots.
-   * Injected using the @Inject decorator.
-   */
   @Inject(TOKENS.snapshots)
   protected snapshotsService!: SnapshotsService;
 
   /**
    * Service for reading the intermediate-snapshot cadence settings.
-   * Injected using the @Inject decorator.
    */
   @Inject(TOKENS.settings)
   protected settingsService!: SettingsService;

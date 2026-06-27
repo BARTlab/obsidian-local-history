@@ -13,10 +13,6 @@ import { type Command, Notice } from 'obsidian';
  * @implements {Command}
  */
 export class ResetLinesAllCommand extends BaseCommand implements Command {
-  /**
-   * Service for managing file snapshots.
-   * Injected using the @Inject decorator.
-   */
   @Inject(TOKENS.snapshots)
   protected snapshotsService!: SnapshotsService;
 

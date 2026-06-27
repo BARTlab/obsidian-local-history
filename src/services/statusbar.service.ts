@@ -17,17 +17,9 @@ import { MarkdownView, type View } from 'obsidian';
  * @implements {Service}
  */
 export class StatusbarService implements Service {
-  /**
-   * Service for managing modal dialogs.
-   * Injected using the @Inject decorator.
-   */
   @Inject(TOKENS.modals)
   protected modalService!: ModalsService;
 
-  /**
-   * Service for managing file snapshots.
-   * Injected using the @Inject decorator.
-   */
   @Inject(TOKENS.snapshots)
   protected snapshotsService!: SnapshotsService;
 

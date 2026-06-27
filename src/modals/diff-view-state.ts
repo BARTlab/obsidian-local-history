@@ -36,21 +36,9 @@ export interface DiffViewStateHost {
  * highlight can be flipped when the display mode changes.
  */
 interface ModeButtonRefs {
-  /**
-   * Button for patch mode.
-   */
   patch?: HTMLElement;
-  /**
-   * Button for inline word-diff mode.
-   */
   inline?: HTMLElement;
-  /**
-   * Button for line-by-line mode.
-   */
   lineByLine?: HTMLElement;
-  /**
-   * Button for side-by-side mode.
-   */
   sideBySide?: HTMLElement;
 }
 
@@ -59,13 +47,7 @@ interface ModeButtonRefs {
  * can be disabled when the current diff has no hunks to walk.
  */
 interface NavButtonRefs {
-  /**
-   * Button that jumps to the previous difference.
-   */
   previous?: HTMLElement;
-  /**
-   * Button that jumps to the next difference.
-   */
   next?: HTMLElement;
 }
 

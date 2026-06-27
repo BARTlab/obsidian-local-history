@@ -27,24 +27,12 @@ import { type EditorView } from '@codemirror/view';
  * @extends {BaseExtension}
  */
 export class GutterCommonExtension extends BaseExtension implements GutterConfig {
-  /**
-   * Service for accessing plugin settings.
-   * Injected using the @Inject decorator.
-   */
   @Inject(TOKENS.settings)
   protected settingsService!: SettingsService;
 
-  /**
-   * Service for managing file snapshots.
-   * Injected using the @Inject decorator.
-   */
   @Inject(TOKENS.snapshots)
   protected snapshotsService!: SnapshotsService;
 
-  /**
-   * Service for confirmation dialogs.
-   * Injected using the @Inject decorator.
-   */
   @Inject(TOKENS.modals)
   protected modalsService!: ModalsService;
 

@@ -9,21 +9,9 @@ export interface LineChangeTrackerSettings {
    * Configuration for which types of changes to show
    */
   show: {
-    /**
-     * Whether to show changed lines
-     */
     changed: boolean;
-    /**
-     * Whether to show restored lines
-     */
     restored: boolean;
-    /**
-     * Whether to show added lines
-     */
     added: boolean;
-    /**
-     * Whether to show removed lines
-     */
     removed: boolean;
   };
 
@@ -41,21 +29,9 @@ export interface LineChangeTrackerSettings {
    * Configuration for gutter colors
    */
   gutter: {
-    /**
-     * Color for restored lines
-     */
     restored: string;
-    /**
-     * Color for changed lines
-     */
     changed: string;
-    /**
-     * Color for added lines
-     */
     added: string;
-    /**
-     * Color for removed lines
-     */
     removed: string;
   };
 
@@ -137,9 +113,6 @@ export interface LineChangeTrackerSettings {
    * are case-insensitive to behave well on case-insensitive file systems.
    */
   excludePathsCaseSensitive: boolean;
-  /**
-   * Whether to ignore newly created files
-   */
   ignoreNewFiles: boolean;
   /**
    * Whether to tint native file-explorer rows and workspace tab headers by

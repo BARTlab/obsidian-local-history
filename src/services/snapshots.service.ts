@@ -21,10 +21,6 @@ import { Notice, type TFile } from 'obsidian';
  * @implements {Service}
  */
 export class SnapshotsService implements Service {
-  /**
-   * Service for accessing and updating plugin settings.
-   * Injected using the @Inject decorator.
-   */
   @Inject(TOKENS.settings)
   protected settingsService!: SettingsService;
 

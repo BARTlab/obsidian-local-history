@@ -16,17 +16,9 @@ import type { TFile } from 'obsidian';
  * @extends {BaseEvent}
  */
 export class WorkspaceLayoutChangeEvent extends BaseEvent {
-  /**
-   * Service for managing file snapshots.
-   * Injected using the @Inject decorator.
-   */
   @Inject(TOKENS.snapshots)
   protected snapshotsService!: SnapshotsService;
 
-  /**
-   * Service for accessing plugin settings.
-   * Injected using the @Inject decorator.
-   */
   @Inject(TOKENS.settings)
   protected settingsService!: SettingsService;
 

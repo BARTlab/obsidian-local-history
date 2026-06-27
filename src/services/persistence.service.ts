@@ -35,14 +35,12 @@ interface ShardIndexEntry {
 export class PersistenceService implements Service {
   /**
    * Service for accessing plugin settings (persist flag and retention caps).
-   * Injected using the @Inject decorator.
    */
   @Inject(TOKENS.settings)
   protected settingsService!: SettingsService;
 
   /**
    * Service holding the in-memory snapshots to serialize and restore.
-   * Injected using the @Inject decorator.
    */
   @Inject(TOKENS.snapshots)
   protected snapshotsService!: SnapshotsService;

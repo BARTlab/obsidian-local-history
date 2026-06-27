@@ -35,10 +35,6 @@ import { Notice } from 'obsidian';
  * @extends {BaseEvent}
  */
 export class WorkspaceFilesMenuEvent extends BaseEvent {
-  /**
-   * Service for managing modal dialogs.
-   * Injected using the @Inject decorator.
-   */
   @Inject(TOKENS.modals)
   protected modalService!: ModalsService;
 

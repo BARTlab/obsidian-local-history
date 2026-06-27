@@ -18,17 +18,9 @@ import { type Command, type Editor, Notice } from 'obsidian';
  * @implements {Command}
  */
 export class GoToPreviousChangeCommand extends BaseCommand implements Command {
-  /**
-   * Service for accessing plugin settings.
-   * Injected using the @Inject decorator.
-   */
   @Inject(TOKENS.settings)
   protected settingsService!: SettingsService;
 
-  /**
-   * Service for managing file snapshots.
-   * Injected using the @Inject decorator.
-   */
   @Inject(TOKENS.snapshots)
   protected snapshotsService!: SnapshotsService;
 

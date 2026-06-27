@@ -21,10 +21,6 @@ import { type TAbstractFile, TFile } from 'obsidian';
  * @extends {BaseEvent}
  */
 export class VaultModifyEvent extends BaseEvent {
-  /**
-   * Service for managing file snapshots.
-   * Injected using the @Inject decorator.
-   */
   @Inject(TOKENS.snapshots)
   protected snapshotsService!: SnapshotsService;
 

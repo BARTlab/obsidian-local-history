@@ -34,17 +34,9 @@ import { type App, Modal, Notice, SearchComponent, setIcon, type TFile } from 'o
  * @extends Modal
  */
 export class HistoryModal extends Modal {
-  /**
-   * Service for managing file snapshots.
-   * Injected using the @Inject decorator.
-   */
   @Inject(TOKENS.snapshots)
   protected snapshotsService!: SnapshotsService;
 
-  /**
-   * Service for managing modal dialogs.
-   * Injected using the @Inject decorator.
-   */
   @Inject(TOKENS.modals)
   protected modalsService!: ModalsService;
 

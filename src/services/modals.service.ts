@@ -27,10 +27,6 @@ import { Notice } from 'obsidian';
  * @implements {Service}
  */
 export class ModalsService implements Service {
-  /**
-   * Service for managing file snapshots.
-   * Injected using the @Inject decorator.
-   */
   @Inject(TOKENS.snapshots)
   protected snapshotsService!: SnapshotsService;
 

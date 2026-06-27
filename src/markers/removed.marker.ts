@@ -19,17 +19,9 @@ import { GutterMarker } from '@codemirror/view';
  * @extends GutterMarker
  */
 export class RemovedMarker extends GutterMarker {
-  /**
-   * Service for accessing plugin settings.
-   * Injected using the @Inject decorator.
-   */
   @Inject(TOKENS.settings)
   protected settingsService!: SettingsService;
 
-  /**
-   * Service for resolving localized strings.
-   * Injected using the @Inject decorator.
-   */
   @Inject(TOKENS.i18n)
   protected i18nService!: I18nService;
 

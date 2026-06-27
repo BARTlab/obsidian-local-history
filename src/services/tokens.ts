@@ -22,11 +22,6 @@ import type { VersionActionsService } from '@/services/version-actions.service';
  * `plugin.get(TOKENS.settings)` and `@Inject(TOKENS.settings)` return the right
  * type without a cast.
  *
- * The `description` of the underlying symbol is the legacy class name. This is
- * what lets the container keep a back-compat string fallback: an unmigrated
- * `@Inject('SettingsService')` still resolves by matching the string against
- * `token.description`.
- *
  * @template T - The service instance type this token resolves to
  */
 export type ServiceToken<T> = symbol & { readonly __service?: T };
@@ -34,10 +29,9 @@ export type ServiceToken<T> = symbol & { readonly __service?: T };
 /**
  * Reverse lookup from a token back to its legacy class name.
  *
- * The back-compat string fallback and the "not registered" error label both
- * need the legacy name, but `Symbol.prototype.description` is ES2019 and the
- * build targets ES2018. Keying the name here (instead of off `.description`)
- * keeps the fallback target-safe.
+ * The "not registered" error label needs the legacy name, but
+ * `Symbol.prototype.description` is ES2019 and the build targets ES2018. Keying
+ * the name here (instead of off `.description`) keeps the label target-safe.
  */
 const TOKEN_NAMES: Map<symbol, string> = new Map();
 
@@ -46,7 +40,7 @@ const TOKEN_NAMES: Map<symbol, string> = new Map();
  *
  * @template T - The service instance type the token resolves to
  * @param {string} name - The legacy class name, recorded in {@link TOKEN_NAMES}
- *   so the container's back-compat string fallback can match it
+ *   so the "not registered" error label can name the service
  * @return {ServiceToken<T>} A typed, unique token
  */
 const token = <T>(name: string): ServiceToken<T> => {
@@ -61,9 +55,7 @@ const token = <T>(name: string): ServiceToken<T> => {
  * Catalog of DI tokens, one per service registered in `main.ts`.
  *
  * Each token is keyed independently of `constructor.name`. The container
- * resolves injection by matching these tokens, with a back-compat string
- * fallback that matches an unmigrated `@Inject('ClassName')` against the token
- * description.
+ * resolves injection by matching these tokens.
  */
 export const TOKENS = {
   settings: token<SettingsService>('SettingsService'),
@@ -85,8 +77,7 @@ export const TOKENS = {
 /**
  * Resolves the legacy class name a token was minted with.
  *
- * Used by the container's back-compat string fallback to match an unmigrated
- * `@Inject('Name')` against a token, and to label "not registered" errors.
+ * Used to label "not registered" errors with the service's legacy name.
  *
  * @param {symbol} sym - The token to look up
  * @return {string | undefined} The legacy class name, or undefined if unknown

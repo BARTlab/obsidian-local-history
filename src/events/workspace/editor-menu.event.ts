@@ -34,10 +34,6 @@ import type { Editor, MarkdownView, Menu, MenuItem } from 'obsidian';
  * @extends {BaseEvent}
  */
 export class WorkspaceEditorMenuEvent extends BaseEvent {
-  /**
-   * Service for managing modal dialogs.
-   * Injected using the @Inject decorator.
-   */
   @Inject(TOKENS.modals)
   protected modalService!: ModalsService;
 

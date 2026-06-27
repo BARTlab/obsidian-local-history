@@ -47,24 +47,15 @@ type RetentionKey = 'maxEntries' | 'maxAgeDays' | 'maxDeletedEntries' | 'maxDele
  * @extends PluginSettingTab
  */
 export class MainSetting extends PluginSettingTab {
-  /**
-   * Service for accessing and updating plugin settings.
-   * Injected using the @Inject decorator.
-   */
   @Inject(TOKENS.settings)
   protected settingsService!: SettingsService;
 
-  /**
-   * Service for managing file snapshots.
-   * Injected using the @Inject decorator.
-   */
   @Inject(TOKENS.snapshots)
   protected snapshotsService!: SnapshotsService;
 
   /**
-   * Service for opening plugin modals. Used by the purge button to gate the
-   * irreversible history purge behind a confirmation dialog.
-   * Injected using the @Inject decorator.
+   * Used by the purge button to gate the irreversible history purge behind a
+   * confirmation dialog.
    */
   @Inject(TOKENS.modals)
   protected modalsService!: ModalsService;

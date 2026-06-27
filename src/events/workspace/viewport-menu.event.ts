@@ -21,10 +21,6 @@ import type { MarkdownView, Menu, MenuItem } from 'obsidian';
  * @extends {BaseEvent}
  */
 export class WorkspaceViewportMenuEvent extends BaseEvent {
-  /**
-   * Service for accessing and updating plugin settings.
-   * Injected using the @Inject decorator.
-   */
   @Inject(TOKENS.settings)
   protected settingsService!: SettingsService;
 

@@ -13,10 +13,6 @@ import type { ObsidianEventName, WorkspaceEventArgs } from '@/types';
  * @extends {BaseEvent}
  */
 export class WorkspaceActiveLeafChangeEvent extends BaseEvent {
-  /**
-   * Service for managing file snapshots.
-   * Injected using the @Inject decorator.
-   */
   @Inject(TOKENS.snapshots)
   protected snapshotsService!: SnapshotsService;
 
@@ -29,8 +25,6 @@ export class WorkspaceActiveLeafChangeEvent extends BaseEvent {
   /**
    * Handles the active leaf change event.
    * Forces an update of the snapshots to ensure they reflect the current state.
-   *
-   * @param {...any} args - Arguments passed by the event (not used in this handler)
    */
   public handler(..._args: WorkspaceEventArgs<typeof ObsidianEvent.workspace.activeLeafChange>): void {
     if (!this.plugin.isReady()) {

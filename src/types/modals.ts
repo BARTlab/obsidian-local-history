@@ -6,13 +6,7 @@ import type { FunctionVoid, TranslationVars } from '@/types/ui';
  * All parameters are optional with sensible defaults.
  */
 export interface ConfirmModalConfig {
-  /**
-   * The title of the confirmation dialog
-   */
   title?: string;
-  /**
-   * The message content of the confirmation dialog
-   */
   message?: string;
   /**
    * Text for the confirmation button (defaults to 'Confirm')
@@ -31,9 +25,6 @@ export interface ConfirmModalConfig {
  * defaults so a caller can open a minimal prompt by passing an empty config.
  */
 export interface PromptModalConfig {
-  /**
-   * The title of the prompt dialog
-   */
   title?: string;
   /**
    * Optional message rendered above the input

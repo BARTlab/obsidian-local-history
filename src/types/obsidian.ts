@@ -35,21 +35,9 @@ export interface EventTriggerElement {
  * Based on the official Obsidian documentation.
  */
 interface ObsidianWorkspaceEventsHandles {
-  /**
-   * Handler for active leaf change events
-   */
   [ObsidianWorkspaceEvent.activeLeafChange]: (leaf: WorkspaceLeaf | null) => void;
-  /**
-   * Handler for layout change events
-   */
   [ObsidianWorkspaceEvent.layoutChange]: () => void;
-  /**
-   * Handler for file open events
-   */
   [ObsidianWorkspaceEvent.fileOpen]: (file: TFile) => void;
-  /**
-   * Handler for editor context menu events
-   */
   [ObsidianWorkspaceEvent.editorMenu]: (menu: Menu, editor: Editor, view: MarkdownView) => void;
   /**
    * Handler for the markdown viewport context menu (the menu Obsidian opens on a
@@ -58,41 +46,14 @@ interface ObsidianWorkspaceEventsHandles {
    * own `trigger("markdown-viewport-menu", menu, view, mode, source)`.
    */
   [ObsidianWorkspaceEvent.viewportMenu]: (menu: Menu, view: MarkdownView, mode: string, source: string) => void;
-  /**
-   * Handler for file context menu events
-   */
   [ObsidianWorkspaceEvent.fileMenu]: (menu: Menu, files: TAbstractFile, source: string, leaf?: WorkspaceLeaf) => void;
-  /**
-   * Handler for application quit events
-   */
   [ObsidianWorkspaceEvent.quit]: (tasks: Tasks) => void;
-  /**
-   * Handler for window resize events
-   */
   [ObsidianWorkspaceEvent.resize]: () => void;
-  /**
-   * Handler for CSS change events
-   */
   [ObsidianWorkspaceEvent.cssChange]: () => void;
-  /**
-   * Handler for editor content change events
-   */
   [ObsidianWorkspaceEvent.editorChange]: (editor: Editor, view: MarkdownView) => void;
-  /**
-   * Handler for editor paste events
-   */
   [ObsidianWorkspaceEvent.editorPaste]: (evt: ClipboardEvent, editor: Editor, view: MarkdownView) => void;
-  /**
-   * Handler for editor drop events
-   */
   [ObsidianWorkspaceEvent.editorDrop]: (evt: DragEvent, editor: Editor, view: MarkdownView) => void;
-  /**
-   * Handler for window open events
-   */
   [ObsidianWorkspaceEvent.windowOpen]: (workspaceWindow: WorkspaceWindow, window: Window) => void;
-  /**
-   * Handler for window close events
-   */
   [ObsidianWorkspaceEvent.windowClose]: (workspaceWindow: WorkspaceWindow, window: Window) => void;
 }
 
@@ -113,21 +74,9 @@ export type WorkspaceEventArgs<T extends ObsidianWorkspaceEvent> = Parameters<Ob
  * Defines optional properties for customizing status bar item behavior and appearance.
  */
 export interface StatusBarItemCreate {
-  /**
-   * Optional unique identifier for the status bar item
-   */
   id?: string;
-  /**
-   * Whether the status bar item should be clickable
-   */
   clickable?: boolean;
-  /**
-   * Click event handler for the status bar item
-   */
   onClick?: (element: HTMLElement, event: MouseEvent) => unknown;
-  /**
-   * Options for the click event listener
-   */
   onClickOptions?: AddEventListenerOptions;
 }
 

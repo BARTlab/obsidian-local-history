@@ -1,4 +1,4 @@
-import { ChangeType, PluginEvent, STYLE_ID } from '@/consts';
+import { PluginEvent } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { On as _On } from '@/decorators/on.decorator';
 import type LineChangeTrackerPlugin from '@/main';
@@ -6,115 +6,50 @@ import type { SettingsService } from '@/services/settings.service';
 import { TOKENS } from '@/services/tokens';
 import type { Service } from '@/types';
 
+const LINE_WIDTH_VAR: string = '--lct-line-width';
+const LINE_BORDER_RADIUS_VAR: string = '--lct-line-border-radius';
+
 /**
- * Service responsible for managing CSS styles in the plugin.
- * Creates and updates style elements with CSS variables for line change indicators.
- * Responds to settings changes to update styling accordingly.
+ * Keeps the settings-driven line-marker geometry in sync with the styles.
+ *
+ * The static change-status palette lives in styles.scss (loaded with the
+ * plugin), so this service only writes the two settings-dependent custom
+ * properties (bar width and corner radius). They are set on `document.body` so
+ * they cascade to both the editor gutter bars and the reading-mode indicators.
+ * No `<style>` element is injected (Obsidian guidelines discourage it).
  *
  * @implements {Service}
  */
 export class StylesService implements Service {
-  /**
-   * Service for accessing plugin settings.
-   * Injected using the @Inject decorator.
-   */
+  /** Service for accessing plugin settings. */
   @Inject(TOKENS.settings)
   protected settingsService!: SettingsService;
 
-  /**
-   * HTML style element that contains the CSS for line change indicators.
-   * Created during initialization (`init` -> `createStyleTag`) and updated when
-   * settings change; reads are guarded before that point.
-   */
-  protected sheet!: HTMLStyleElement;
-
-  /**
-   * Creates a new instance of StylesService.
-   *
-   * @param {LineChangeTrackerPlugin} plugin - The plugin instance
-   */
   public constructor(
     public plugin: LineChangeTrackerPlugin,
   ) {
   }
 
-  /**
-   * Initializes the service by creating a style tag.
-   * Called during plugin initialization.
-   */
-  public init(): void {
-    this.createStyleTag();
-  }
-
-  /**
-   * Loads the service by updating the CSS styles.
-   * Called after initialization to apply initial styles.
-   */
+  /** Applies the initial marker geometry from current settings. */
   public load(): void {
     this.update();
   }
 
   /**
-   * Updates the CSS styles based on current settings.
-   * Sets CSS variables for colors and dimensions of line change indicators.
-   * Automatically triggered when settings are updated via the @_On decorator.
+   * Writes the settings-driven marker geometry as CSS custom properties on the
+   * document body. Triggered on settings changes via the @_On decorator.
    */
   @_On(PluginEvent.settingsUpdate)
   public update(): void {
-    if (!this.sheet) {
-      return;
-    }
-
     const width: number = this.settingsService.value('line.width');
 
-    // .lct-rm-indicator is listed explicitly: reading-mode section wrappers
-    // carry only that class (no .lct), so without it the --lct-color-*
-    // references in the reading-mode rules would not resolve and the border
-    // would fall back to currentColor.
-    this.sheet.setText(`
-        .lct,
-        .lct-rm-indicator {
-          --lct-color-${ChangeType.changed}: var(--color-blue);
-          --lct-color-${ChangeType.restored}: var(--text-faint);
-          --lct-color-${ChangeType.added}: var(--color-orange);
-          --lct-color-${ChangeType.removed}: var(--color-base-100);
-          --lct-color-${ChangeType.whitespace}: var(--color-yellow);
-          --lct-line-width: ${width}px;
-          --lct-line-border-radius: ${(width / 2).toFixed(0)}px;
-        }
-    `);
+    document.body.style.setProperty(LINE_WIDTH_VAR, `${width}px`);
+    document.body.style.setProperty(LINE_BORDER_RADIUS_VAR, `${(width / 2).toFixed(0)}px`);
   }
 
-  /**
-   * Unloads the service by removing the style element from the DOM.
-   * Called when the plugin is disabled or unloaded.
-   * Performs a safety check to ensure the sheet exists before attempting removal.
-   */
+  /** Clears the custom properties this service set on the document body. */
   public unload(): void {
-    if (!this.sheet) {
-      return;
-    }
-
-    this.sheet.remove();
-  }
-
-  /**
-   * Creates a style tag in the document head.
-   * Either finds an existing style element with the plugin's style ID or creates a new one.
-   * Sets appropriate attributes and appends it to the document head if needed.
-   * Assigns the created/found element to the sheet property for later use.
-   */
-  protected createStyleTag(): void {
-    const styleSheet: HTMLStyleElement =
-      document.getElementById(STYLE_ID) as HTMLStyleElement || document.createElement('style');
-
-    styleSheet.setAttribute('type', 'text/css');
-    styleSheet.setAttribute('id', STYLE_ID);
-
-    if (!styleSheet.parentElement) {
-      document.head.appendChild(styleSheet);
-    }
-
-    this.sheet = styleSheet;
+    document.body.style.removeProperty(LINE_WIDTH_VAR);
+    document.body.style.removeProperty(LINE_BORDER_RADIUS_VAR);
   }
 }

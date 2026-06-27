@@ -220,10 +220,6 @@ export interface DomUpdateConfig {
    * Child elements to append
    */
   children?: DomElementConfig[];
-  /**
-   * HTML content for the element
-   */
-  html?: string;
 }
 
 /**

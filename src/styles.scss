@@ -29,6 +29,26 @@ body {
   --lct-prop-removed: var(--text-muted);
 }
 
+/* ---- change-indicator palette ---- */
+// The editor gutter change bars (.lct, set by GutterBarExtension) and the
+// reading-mode block indicators (.lct-rm-indicator, which carries no .lct
+// class) resolve their colours from these variables. Formerly written into a
+// JS-injected <style> element by StylesService; moved here as static tokens
+// per the Obsidian guideline against runtime style injection. Only the two
+// settings-driven values (--lct-line-width, --lct-line-border-radius) stay
+// dynamic and are set at runtime via StylesService.update ->
+// document.body.style.setProperty. Both selectors are listed (not :root) so the
+// theme colour references resolve against the .theme-dark / .theme-light class
+// Obsidian sets on body, the same reason the status palette above sits on body.
+.lct,
+.lct-rm-indicator {
+  --lct-color-changed: var(--color-blue);
+  --lct-color-restored: var(--text-faint);
+  --lct-color-added: var(--color-orange);
+  --lct-color-removed: var(--color-base-100);
+  --lct-color-whitespace: var(--color-yellow);
+}
+
 /* ---- modal ---- */
 
 .modal {

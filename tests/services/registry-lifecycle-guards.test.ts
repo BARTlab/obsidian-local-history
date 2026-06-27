@@ -1,3 +1,4 @@
+/** @jest-environment jsdom */
 import 'reflect-metadata';
 import { describe, expect, it, jest } from '@jest/globals';
 
@@ -16,8 +17,9 @@ import type { ObsidianEventName } from '@/types';
  *  - EventsService: dedup must key on the event constructor, not the instance
  *    identity that `factory()` always rebuilds fresh (so the old `Set` guard
  *    silently let duplicates through).
- *  - StylesService: `update()` must return early before `init()` populated
- *    `this.sheet`, mirroring the existing `unload()` null-guard.
+ *  - StylesService: `update()` writes the settings-driven marker geometry as
+ *    CSS custom properties on `document.body` and injects no `<style>` element,
+ *    and `unload()` clears those properties.
  *  - LineChangeTrackerPlugin: `emit(name, a, b)` must spread args to listeners
  *    rather than wrap them in a single positional array.
  */
@@ -66,16 +68,26 @@ describe('Registry/lifecycle guards', (): void => {
     });
   });
 
-  describe('StylesService.update null-guard', (): void => {
-    it('returns early if init() has not created the sheet yet', (): void => {
-      const plugin = {} as unknown as LineChangeTrackerPlugin;
+  describe('StylesService.update writes marker geometry to document.body', (): void => {
+    it('sets the width and radius custom properties and injects no <style> element', (): void => {
+      // The @Inject getter resolves settingsService via plugin.get(); the stub
+      // returns a settings object whose value() reports the line width.
+      const plugin = {
+        get: (): { value: () => number } => ({ value: (): number => 6 }),
+      } as unknown as LineChangeTrackerPlugin;
+
       const service = new StylesService(plugin);
 
-      // No init() ran, so `this.sheet` is undefined. Pre-fix code reached
-      // `this.sheet.setText(...)` and threw; the guard must keep `update()` a
-      // safe no-op. The DI-protected `settingsService` would also throw if it
-      // were touched, so a non-throw here proves the guard fires first.
-      expect((): void => service.update()).not.toThrow();
+      service.update();
+
+      expect(document.body.style.getPropertyValue('--lct-line-width')).toBe('6px');
+      expect(document.body.style.getPropertyValue('--lct-line-border-radius')).toBe('3px');
+      expect(document.getElementById('line-change-tracker-styles')).toBeNull();
+
+      service.unload();
+
+      expect(document.body.style.getPropertyValue('--lct-line-width')).toBe('');
+      expect(document.body.style.getPropertyValue('--lct-line-border-radius')).toBe('');
     });
   });
 

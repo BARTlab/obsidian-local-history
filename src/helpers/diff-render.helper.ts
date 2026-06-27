@@ -328,10 +328,11 @@ export class DiffRenderHelper {
       },
     });
 
-    DomHelper.update(
-      params.container,
-      { html: diffHtml }
-    );
+    // Sanctioned HTML boundary: diff2html emits by-design markup (the raw
+    // templates above), so it is pasted through the one sanitized-HTML entry
+    // point rather than the structured DOM config. This is the only caller of
+    // setSanitizedHtml in the codebase.
+    DomHelper.setSanitizedHtml(params.container, diffHtml);
   }
 
   /**

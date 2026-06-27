@@ -61,20 +61,20 @@ export class GutterRemovedExtension extends BaseExtension implements GutterConfi
       return builder.finish();
     }
 
-    for (let i: number = 1; i <= view.state.doc.lines; i++) {
-      const line: Line = view.state.doc.line(i);
-
-      if (removed.has(line.number - 1) && (line.number < 2 || !removed.has(line.number - 2))) {
-        const currentLine: number = line.number - 1;
-
-        builder.add(line.from, line.from, new RemovedMarker(
-          this.plugin,
-          currentLine,
-          (target: number): void => {
-            void this.revertRemovedAt(target);
-          },
-        ));
+    for (const pos of snapshot.getChangedPositions(ChangeType.removed)) {
+      if (pos >= view.state.doc.lines || removed.has(pos - 1)) {
+        continue;
       }
+
+      const line: Line = view.state.doc.line(pos + 1);
+
+      builder.add(line.from, line.from, new RemovedMarker(
+        this.plugin,
+        pos,
+        (target: number): void => {
+          void this.revertRemovedAt(target);
+        },
+      ));
     }
 
     return builder.finish();

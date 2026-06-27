@@ -1,5 +1,6 @@
 import * as Diff from 'diff';
 import { VersionAction } from '@/consts';
+import { HunkHelper, type HunkLineKind } from '@/helpers/hunk.helper';
 import type { FileVersion } from '@/snapshots/file.version';
 import type { TranslationVars, VersionDescription } from '@/types';
 
@@ -176,9 +177,13 @@ export class VersionLabelHelper {
 
     for (const hunk of hunks) {
       for (const line of hunk.lines) {
-        if (line.startsWith('+')) {
+        const kind: HunkLineKind = HunkHelper.classifyLine(line);
+
+        if (kind === 'added') {
           added += 1;
-        } else if (line.startsWith('-')) {
+        }
+
+        if (kind === 'removed') {
           removed += 1;
         }
       }

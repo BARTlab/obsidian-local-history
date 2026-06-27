@@ -1,3 +1,4 @@
+import { HunkHelper, type HunkLineKind } from '@/helpers/hunk.helper';
 import type { SelectableVersion } from '@/types';
 import * as Diff from 'diff';
 
@@ -133,9 +134,13 @@ export class SelectionHistoryHelper {
 
     for (const hunk of hunks) {
       for (const line of hunk.lines) {
-        if (line.startsWith('+')) {
+        const kind: HunkLineKind = HunkHelper.classifyLine(line);
+
+        if (kind === 'added') {
           added.push(line.slice(1));
-        } else if (line.startsWith('-')) {
+        }
+
+        if (kind === 'removed') {
           removed.push(line.slice(1));
         }
       }

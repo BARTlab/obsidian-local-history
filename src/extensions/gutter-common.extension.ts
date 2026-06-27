@@ -1,6 +1,7 @@
 import { ChangeType, IndicatorType } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { BaseExtension } from '@/extensions/base.extension';
+import { confirmAndRevertHunk } from '@/helpers/hunk-revert.helper';
 import { HunkHelper } from '@/helpers/hunk.helper';
 import type { ChangeLine } from '@/lines/change.line';
 import type { ArrayMap } from '@/maps/array.map';
@@ -82,7 +83,10 @@ export class GutterCommonExtension extends BaseExtension implements GutterConfig
    * @return {RangeSet<DotMarker>} A RangeSet of DotMarker instances
    */
   public markers = (view: EditorView): RangeSet<DotMarker> => {
-    const enable: ChangeType[] = this.getEnableTypes();
+    const enable: ChangeType[] = this.settingsService
+      .getEnabledTypes()
+      .filter((type: ChangeType): boolean => type !== ChangeType.removed);
+
     const snapshot: FileSnapshot | null = this.snapshotsService.getOne();
     const changes: ArrayMap<ChangeLine> | null = snapshot?.getChanges(enable) ?? null;
     const builder = new RangeSetBuilder<DotMarker>();
@@ -122,9 +126,8 @@ export class GutterCommonExtension extends BaseExtension implements GutterConfig
    * Reverts the single changed block sitting at the given 0-based current line
    * back to the original baseline, leaving every other change intact. The hunks
    * are recomputed against the live content so the resolved block is never stale,
-   * the user confirms before the write, and the revert reuses the same plumbing
-   * as the history modal (HunkHelper to scope the block, SnapshotsService to
-   * apply it), which refreshes the editor highlights.
+   * then the block is handed to the shared confirm-and-revert helper the history
+   * modal also uses (confirm, scope the block, apply, refresh the highlights).
    *
    * @param {number} line - The 0-based current line the affordance was clicked on
    * @return {Promise<void>}
@@ -149,27 +152,14 @@ export class GutterCommonExtension extends BaseExtension implements GutterConfig
       return;
     }
 
-    const confirmed: boolean = await this.modalsService.confirm({
-      title: this.plugin.t('modal.confirm.revert.title'),
-      message: this.plugin.t('modal.confirm.revert.message'),
-      confirmText: this.plugin.t('modal.confirm.revert.button'),
+    await confirmAndRevertHunk({
+      modalsService: this.modalsService,
+      snapshotsService: this.snapshotsService,
+      plugin: this.plugin,
+      file: snapshot.file,
+      currentLines,
+      hunk,
     });
-
-    if (!confirmed) {
-      return;
-    }
-
-    const start: number = Math.max(0, Math.min(currentLines.length, hunk.newStart - 1));
-
-    await this.snapshotsService.applyContent(
-      snapshot.file,
-      HunkHelper.revertHunk(currentLines, hunk),
-      {
-        start,
-        removeCount: hunk.newLines,
-        newLines: HunkHelper.baseLinesForHunk(hunk),
-      },
-    );
   }
 
   /**
@@ -207,21 +197,5 @@ export class GutterCommonExtension extends BaseExtension implements GutterConfig
    */
   protected isTypeDot(): boolean {
     return this.settingsService.value('type') === IndicatorType.dot;
-  }
-
-  /**
-   * Gets the enabled change types from settings.
-   * Includes only the types that are enabled in the settings.
-   * Note: Unlike editor extension, this doesn't include 'removed' type
-   * as removed lines are handled separately.
-   *
-   * @return {ChangeType[]} Array of enabled change types
-   */
-  protected getEnableTypes(): ChangeType[] {
-    return [
-      ...this.settingsService.value('show.changed') ? [ChangeType.changed, ChangeType.whitespace] : [],
-      ...this.settingsService.value('show.restored') ? [ChangeType.restored] : [],
-      ...this.settingsService.value('show.added') ? [ChangeType.added] : [],
-    ];
   }
 }

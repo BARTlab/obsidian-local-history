@@ -290,6 +290,9 @@ describe('GutterRevertHandler', () => {
 
       button?.click();
       // The click handler runs revertHunk async; let its promise chain settle.
+      // The confirm, the apply, and the shared helper's own frame each add a
+      // microtask hop before the host is notified, so drain enough of them.
+      await Promise.resolve();
       await Promise.resolve();
       await Promise.resolve();
 

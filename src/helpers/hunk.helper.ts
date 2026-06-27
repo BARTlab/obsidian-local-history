@@ -1,5 +1,11 @@
 import { NO_NEWLINE_MARKER } from '@/consts';
+import type { EditorBlock } from '@/snapshots/editor-operations';
 import * as Diff from 'diff';
+
+/**
+ * Classification of a single structured-patch line by its diff prefix.
+ */
+export type HunkLineKind = 'added' | 'removed' | 'context';
 
 /**
  * Helper for line-level diff hunks and single-hunk reverts.
@@ -111,5 +117,45 @@ export class HunkHelper {
     lines.splice(start, Math.max(0, hunk.newLines), ...HunkHelper.baseLinesForHunk(hunk));
 
     return lines;
+  }
+
+  /**
+   * Builds the {@link EditorBlock} descriptor for reverting a hunk: the clamped
+   * start (the same clamp {@link revertHunk} applies), the current-side span to
+   * replace, and the base-side lines to write. Shared by every revert call site
+   * so the block handed to the snapshot service is computed in one place.
+   *
+   * @param {string[]} currentLines - The current content as an array of lines
+   * @param {Diff.StructuredPatchHunk} hunk - The hunk to revert
+   * @return {EditorBlock} The block descriptor for the snapshot apply
+   */
+  public static revertDescriptor(currentLines: string[], hunk: Diff.StructuredPatchHunk): EditorBlock {
+    const start: number = Math.max(0, Math.min((currentLines ?? []).length, hunk.newStart - 1));
+
+    return {
+      start,
+      removeCount: hunk.newLines,
+      newLines: HunkHelper.baseLinesForHunk(hunk),
+    };
+  }
+
+  /**
+   * Classifies a structured-patch line by its diff prefix. The meta no-newline
+   * marker and context lines both read as `context`, so callers count or collect
+   * only genuine additions and removals.
+   *
+   * @param {string} line - The raw hunk line, including its diff prefix
+   * @return {HunkLineKind} Whether the line was added, removed, or is context
+   */
+  public static classifyLine(line: string): HunkLineKind {
+    if (line.startsWith('+')) {
+      return 'added';
+    }
+
+    if (line.startsWith('-')) {
+      return 'removed';
+    }
+
+    return 'context';
   }
 }

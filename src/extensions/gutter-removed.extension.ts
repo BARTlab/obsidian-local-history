@@ -1,6 +1,7 @@
 import { ChangeType, IndicatorType } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { BaseExtension } from '@/extensions/base.extension';
+import { confirmAndRevertHunk } from '@/helpers/hunk-revert.helper';
 import { HunkHelper } from '@/helpers/hunk.helper';
 import type { ChangeLine } from '@/lines/change.line';
 import type { ArrayMap } from '@/maps/array.map';
@@ -135,28 +136,15 @@ export class GutterRemovedExtension extends BaseExtension implements GutterConfi
       return;
     }
 
-    const confirmed: boolean = await this.modalsService.confirm({
-      title: this.plugin.t('modal.confirm.revert.title'),
-      message: this.plugin.t('modal.confirm.revert.message'),
-      confirmText: this.plugin.t('modal.confirm.revert.button'),
+    await confirmAndRevertHunk({
+      modalsService: this.modalsService,
+      snapshotsService: this.snapshotsService,
+      plugin: this.plugin,
+      file: snapshot.file,
+      currentLines,
+      hunk,
       cancelText: this.plugin.t('modal.confirm.cancel'),
     });
-
-    if (!confirmed) {
-      return;
-    }
-
-    const start: number = Math.max(0, Math.min(currentLines.length, hunk.newStart - 1));
-
-    await this.snapshotsService.applyContent(
-      snapshot.file,
-      HunkHelper.revertHunk(currentLines, hunk),
-      {
-        start,
-        removeCount: hunk.newLines,
-        newLines: HunkHelper.baseLinesForHunk(hunk),
-      },
-    );
   }
 
   /**

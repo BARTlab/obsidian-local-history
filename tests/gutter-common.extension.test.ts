@@ -81,6 +81,15 @@ const makePlugin = (overrides: {
     },
     isShowChangesEnabled: (): boolean => true,
     toggleShowChanges: (): void => undefined,
+    // Mirrors SettingsService.getEnabledTypes for the dot gutter: it always
+    // reports 'removed' as enabled so the extension's own removed-filter is
+    // exercised (the dot gutter draws removed lines in a separate column).
+    getEnabledTypes: (): ChangeType[] => [
+      ...(showChanged ? [ChangeType.changed, ChangeType.whitespace] : []),
+      ...(showRestored ? [ChangeType.restored] : []),
+      ...(showAdded ? [ChangeType.added] : []),
+      ChangeType.removed,
+    ],
   };
 
   const snapshotsService = {

@@ -83,28 +83,35 @@ export class GutterCommonExtension extends BaseExtension implements GutterConfig
       return builder.finish();
     }
 
-    for (let i: number = 0; i <= view.state.doc.lines - 1; i++) {
-      const line: Line = view.state.doc.line(i + 1);
-      const change: ChangeLine | undefined = changes.get(i);
-
-      if (change) {
-        // getModify() is non-null when a positive change type is present;
-        // the dot marker is only added for lines with a modify type.
-        const modify: ChangeType | null = change.getModify();
-
-        if (modify === null) {
-          continue;
-        }
-
-        builder.add(line.from, line.from, new DotMarker(
-          modify,
-          this.plugin,
-          i,
-          (target: number): void => {
-            void this.revertBlockAt(target);
-          },
-        ));
+    for (const pos of snapshot.getChangedPositions(enable)) {
+      if (pos >= view.state.doc.lines) {
+        continue;
       }
+
+      const change: ChangeLine | undefined = changes.get(pos);
+
+      if (!change) {
+        continue;
+      }
+
+      // getModify() is non-null when a positive change type is present;
+      // the dot marker is only added for lines with a modify type.
+      const modify: ChangeType | null = change.getModify();
+
+      if (modify === null) {
+        continue;
+      }
+
+      const line: Line = view.state.doc.line(pos + 1);
+
+      builder.add(line.from, line.from, new DotMarker(
+        modify,
+        this.plugin,
+        pos,
+        (target: number): void => {
+          void this.revertBlockAt(target);
+        },
+      ));
     }
 
     return builder.finish();

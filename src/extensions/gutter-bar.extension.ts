@@ -62,8 +62,12 @@ export class GutterBarExtension extends BaseExtension implements GutterConfig {
       return builder.finish();
     }
 
-    for (let i: number = 0; i <= view.state.doc.lines - 1; i++) {
-      const change: ChangeLine | undefined = changes.get(i);
+    for (const pos of snapshot.getChangedPositions(enable)) {
+      if (pos >= view.state.doc.lines) {
+        continue;
+      }
+
+      const change: ChangeLine | undefined = changes.get(pos);
 
       if (!change) {
         continue;
@@ -83,7 +87,7 @@ export class GutterBarExtension extends BaseExtension implements GutterConfig {
         continue;
       }
 
-      const line: Line = view.state.doc.line(i + 1);
+      const line: Line = view.state.doc.line(pos + 1);
 
       builder.add(line.from, line.from, new BarMarker(kind));
     }

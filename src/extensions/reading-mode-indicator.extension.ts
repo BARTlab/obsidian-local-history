@@ -271,14 +271,13 @@ export class ReadingModeIndicatorService implements Service {
         continue;
       }
 
-      for (const type of TYPE_PRIORITY) {
-        const priority: number = TYPE_PRIORITY.indexOf(type);
+      const priority: number = TYPE_PRIORITY.findIndex(
+        (type: ChangeType): boolean => changeLine.has(type),
+      );
 
-        if (priority < bestPriority && changeLine.has(type)) {
-          best = type;
-          bestPriority = priority;
-          break;
-        }
+      if (priority !== -1 && priority < bestPriority) {
+        best = TYPE_PRIORITY[priority];
+        bestPriority = priority;
       }
 
       if (bestPriority === 0) {

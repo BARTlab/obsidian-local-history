@@ -1,5 +1,4 @@
 import { ChangeType } from '@/consts';
-import { isArray } from 'lodash-es';
 
 /**
  * Represents a change to a specific line in a document.
@@ -39,7 +38,7 @@ export class ChangeLine {
    * @return {boolean} True if the line has any of the specified change types, false otherwise
    */
   public has(type: ChangeType | ChangeType[]): boolean {
-    const list: ChangeType[] = isArray(type) ? type : [type];
+    const list: ChangeType[] = Array.isArray(type) ? type : [type];
 
     return this.types.some((item: ChangeType): boolean => list.includes(item));
   }

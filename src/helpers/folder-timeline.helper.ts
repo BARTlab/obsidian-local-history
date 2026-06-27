@@ -1,7 +1,6 @@
 import { FolderTimelinePointKind } from '@/consts';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FolderTimelinePoint } from '@/types';
-import { isNumber } from 'lodash-es';
 
 export { FolderTimelinePointKind } from '@/consts';
 
@@ -74,7 +73,7 @@ export class FolderTimelineHelper {
         });
       }
 
-      if (snapshot.isTombstone() && isNumber(snapshot.deletedTimestamp)) {
+      if (snapshot.isTombstone() && typeof snapshot.deletedTimestamp === 'number') {
         points.push({
           timestamp: snapshot.deletedTimestamp,
           path,
@@ -83,7 +82,7 @@ export class FolderTimelineHelper {
         });
       }
 
-      if (snapshot.isMovedIn() && isNumber(snapshot.movedIntoAt)) {
+      if (snapshot.isMovedIn() && typeof snapshot.movedIntoAt === 'number') {
         points.push({
           timestamp: snapshot.movedIntoAt,
           path,

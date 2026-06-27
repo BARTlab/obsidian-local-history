@@ -1,4 +1,3 @@
-import { isNumber, isString } from 'lodash-es';
 import type { DataAdapter, ListedFiles } from 'obsidian';
 
 import type { SerializedFileSnapshot, SerializedShard } from '@/types';
@@ -305,7 +304,7 @@ export class HistoryShardStore {
 
     const shard: Partial<SerializedShard> = value as Partial<SerializedShard>;
 
-    if (!isNumber(shard.version) || !Number.isFinite(shard.version)) {
+    if (typeof shard.version !== 'number' || !Number.isFinite(shard.version)) {
       return false;
     }
 
@@ -327,11 +326,11 @@ export class HistoryShardStore {
       return false;
     }
 
-    if (!isString(item.path)) {
+    if (typeof item.path !== 'string') {
       return false;
     }
 
-    if (!isNumber(item.timestamp) || !Number.isFinite(item.timestamp)) {
+    if (typeof item.timestamp !== 'number' || !Number.isFinite(item.timestamp)) {
       return false;
     }
 

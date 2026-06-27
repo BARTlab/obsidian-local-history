@@ -11,7 +11,6 @@ import { TrackerIndex } from '@/snapshots/tracker-index';
 import { VersionCodec } from '@/snapshots/version-codec';
 import { VersionTimeline } from '@/snapshots/version-timeline';
 import type { KeysMatching, SerializedFileSnapshot, SnapshotCaptureOptions, TrackerLineParams } from '@/types';
-import { isNumber, isString } from 'lodash-es';
 import type { TFile } from 'obsidian';
 
 /**
@@ -227,11 +226,11 @@ export class FileSnapshot {
      * Optional markers are written only when present so existing live-snapshot
      * payloads round-trip byte-identical and tombstones/moves are explicit.
      */
-    if (isNumber(this.deletedTimestamp)) {
+    if (typeof this.deletedTimestamp === 'number') {
       payload.deletedTimestamp = this.deletedTimestamp;
     }
 
-    if (isNumber(this.movedIntoAt)) {
+    if (typeof this.movedIntoAt === 'number') {
       payload.movedIntoAt = this.movedIntoAt;
     }
 
@@ -255,7 +254,7 @@ export class FileSnapshot {
      * must not crash plugin load. Each field is guarded individually so a single
      * malformed entry degrades to a safe default instead of throwing.
      */
-    const lineBreak: string = isString(data.lineBreak) ? data.lineBreak : '\n';
+    const lineBreak: string = typeof data.lineBreak === 'string' ? data.lineBreak : '\n';
     const lines: string[] = Array.isArray(data.lines) ? data.lines : [];
     const tracker: SerializedFileSnapshot['tracker'] = Array.isArray(data.tracker) ? data.tracker : [];
     const state: string[] = Array.isArray(data.state) ? data.state : [];
@@ -273,8 +272,8 @@ export class FileSnapshot {
      * same value (the key equals `file.path`), so this never disagrees with the
      * constructor's path seed.
      */
-    snapshot.path = isString(data.path) ? data.path : snapshot.path;
-    snapshot.timestamp = isNumber(data.timestamp) ? data.timestamp : Date.now();
+    snapshot.path = typeof data.path === 'string' ? data.path : snapshot.path;
+    snapshot.timestamp = typeof data.timestamp === 'number' ? data.timestamp : Date.now();
     snapshot.tracker = tracker.map((line): TrackerLine => TrackerLine.fromJSON(line));
     snapshot.versions = VersionCodec.decode(data.versions ?? [], lineBreak);
 
@@ -295,11 +294,11 @@ export class FileSnapshot {
      */
     snapshot.timeline.seedEditsSinceVersionFromVersions(snapshot.versions);
 
-    if (isNumber(data.deletedTimestamp)) {
+    if (typeof data.deletedTimestamp === 'number') {
       snapshot.deletedTimestamp = data.deletedTimestamp;
     }
 
-    if (isNumber(data.movedIntoAt)) {
+    if (typeof data.movedIntoAt === 'number') {
       snapshot.movedIntoAt = data.movedIntoAt;
     }
 
@@ -317,7 +316,7 @@ export class FileSnapshot {
    * @return {boolean} True when the snapshot represents a deleted file
    */
   public isTombstone(): boolean {
-    return isNumber(this.deletedTimestamp);
+    return typeof this.deletedTimestamp === 'number';
   }
 
   /**
@@ -327,7 +326,7 @@ export class FileSnapshot {
    * @return {boolean} True when the snapshot carries a move-in marker
    */
   public isMovedIn(): boolean {
-    return isNumber(this.movedIntoAt);
+    return typeof this.movedIntoAt === 'number';
   }
 
   /**
@@ -584,7 +583,7 @@ export class FileSnapshot {
     this.historyLines = result.historyLines;
     this.versions = result.versions;
 
-    if (isNumber(deletedTimestamp)) {
+    if (typeof deletedTimestamp === 'number') {
       this.deletedTimestamp = deletedTimestamp;
     }
   }

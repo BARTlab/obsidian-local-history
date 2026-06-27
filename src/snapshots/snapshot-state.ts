@@ -5,7 +5,6 @@ import type { TrackerLine } from '@/lines/tracker.line';
 import { ArrayMap } from '@/maps/array.map';
 import type { FileVersion } from '@/snapshots/file.version';
 import type { AdoptHistoryResult, UpdateStateResult } from '@/types';
-import { isArray, isNumber } from 'lodash-es';
 
 /**
  * Stateless operator owning the content/baselines/changes concern extracted from
@@ -28,7 +27,7 @@ export class SnapshotState {
    * @return {UpdateStateResult} The normalized state lines and their hash
    */
   public static updateState(content: string | string[], lineBreak: string): UpdateStateResult {
-    const state: string[] = isArray(content) ? [...content] : content.split(lineBreak);
+    const state: string[] = Array.isArray(content) ? [...content] : content.split(lineBreak);
 
     return {
       state,
@@ -126,8 +125,8 @@ export class SnapshotState {
    */
   public static adoptHistory(historyLines: string[], versions: FileVersion[]): AdoptHistoryResult {
     return {
-      historyLines: isArray(historyLines) ? [...historyLines] : [],
-      versions: isArray(versions) ? [...versions] : [],
+      historyLines: Array.isArray(historyLines) ? [...historyLines] : [],
+      versions: Array.isArray(versions) ? [...versions] : [],
     };
   }
 
@@ -186,7 +185,7 @@ export class SnapshotState {
     ];
 
     return [...this.getChanges(changes, types).keys()]
-      .filter((line): line is number => isNumber(line))
+      .filter((line): line is number => typeof line === 'number')
       .sort((a: number, b: number): number => a - b);
   }
 

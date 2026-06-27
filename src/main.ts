@@ -21,7 +21,6 @@ import { type ClassConstructor, type Service, type TranslationVars } from '@/typ
 import { RecentChangesView } from '@/views/recent-changes.view';
 import type { EditorView } from '@codemirror/view';
 import EventEmitter from 'eventemitter3';
-import { isFunction } from 'lodash-es';
 import {
   type App,
   type Editor,
@@ -137,7 +136,7 @@ export default class LineChangeTrackerPlugin extends Plugin {
       if (!inject && event && prop in inst) {
         const method: unknown = (inst as Record<string, unknown>)[prop];
 
-        if (isFunction(method)) {
+        if (typeof method === 'function') {
           this.emitter.on(event.name, method as (...args: unknown[]) => void, inst);
         }
       }
@@ -270,7 +269,7 @@ export default class LineChangeTrackerPlugin extends Plugin {
     let failed: boolean = false;
 
     for (const provider of [...this.container.values()]) {
-      if (method in provider && isFunction(provider[method])) {
+      if (method in provider && typeof provider[method] === 'function') {
         try {
           await provider[method]();
 
@@ -308,7 +307,7 @@ export default class LineChangeTrackerPlugin extends Plugin {
     this.ready = false;
 
     for (const provider of [...this.initialized].reverse()) {
-      if ('unload' in provider && isFunction(provider.unload)) {
+      if ('unload' in provider && typeof provider.unload === 'function') {
         try {
           await provider.unload();
         } catch (error) {

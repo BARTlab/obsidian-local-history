@@ -1,5 +1,4 @@
 import type { KeysMatching } from '@/types';
-import { isFunction } from 'lodash-es';
 
 /**
  * Extended Map class that provides array-like functionality.
@@ -27,7 +26,10 @@ export class ArrayMap<T> extends Map<number | string, T> {
     key: K | ((item: R) => string | number)
   ): ArrayMap<R> {
     return new this(
-      list.map((item: R): [string | number, R] => [isFunction(key) ? key(item) : item[key] as string | number, item])
+      list.map((item: R): [string | number, R] => [
+        typeof key === 'function' ? key(item) : item[key] as string | number,
+        item,
+      ])
     ) as ArrayMap<R>;
   }
 

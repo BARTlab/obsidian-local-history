@@ -8,7 +8,6 @@ import type {
   FolderTreeTranslator,
   FolderTreeUpdateParams,
 } from '@/types';
-import { isString } from 'lodash-es';
 import { setIcon } from 'obsidian';
 
 /**
@@ -217,7 +216,7 @@ export class FolderTreeComponent {
     folderIndex.set(rootPath, root);
 
     entries.forEach((entry: FolderTreeEntry): void => {
-      if (!entry || !isString(entry.path)) {
+      if (!entry || typeof entry.path !== 'string') {
         return;
       }
 

@@ -1,5 +1,3 @@
-import { isNumber, isString } from 'lodash-es';
-
 import { HISTORY_SHARD_DIR, KeepHistory, MS_PER_DAY, PluginEvent, SAVE_DEBOUNCE_MS } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { On } from '@/decorators/on.decorator';
@@ -275,7 +273,7 @@ export class PersistenceService implements Service {
         continue;
       }
 
-      if (isNumber(item.deletedTimestamp)) {
+      if (typeof item.deletedTimestamp === 'number') {
         tombstones.push(item);
       } else {
         live.push(item);
@@ -722,11 +720,11 @@ export class PersistenceService implements Service {
       return false;
     }
 
-    if (!isString(item.path)) {
+    if (typeof item.path !== 'string') {
       return false;
     }
 
-    if (!isNumber(item.timestamp) || !Number.isFinite(item.timestamp)) {
+    if (typeof item.timestamp !== 'number' || !Number.isFinite(item.timestamp)) {
       return false;
     }
 

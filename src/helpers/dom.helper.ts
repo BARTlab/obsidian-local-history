@@ -1,5 +1,5 @@
 import type { DomElementConfig, DomUpdateConfig, DomUpdateConfigClasses } from '@/types';
-import { castArray, entries, isArray, isPlainObject, isString, isUndefined } from 'lodash-es';
+import { castArray, isPlainObject } from 'lodash-es';
 import { sanitizeHTMLToDom } from 'obsidian';
 
 /**
@@ -53,7 +53,7 @@ export class DomHelper {
     }
 
     if (config.classes) {
-      if (isArray(config.classes) || isString(config.classes)) {
+      if (Array.isArray(config.classes) || typeof config.classes === 'string') {
         element.classList.add(
           ...castArray(config.classes)
         );
@@ -70,12 +70,12 @@ export class DomHelper {
       }
     }
 
-    if (!isUndefined(config.text)) {
+    if (config.text !== undefined) {
       element.textContent = config.text;
     }
 
     if (config.attributes) {
-      entries(config.attributes).forEach(([key, value]: [string, string]): void => {
+      Object.entries(config.attributes).forEach(([key, value]: [string, string]): void => {
         try {
           element.setAttribute(key, value);
         } catch {
@@ -85,8 +85,8 @@ export class DomHelper {
     }
 
     if (config.styles) {
-      entries(config.styles).forEach(([key, value]): void => {
-        if (isUndefined(value)) {
+      Object.entries(config.styles).forEach(([key, value]): void => {
+        if (value === undefined) {
           return;
         }
 
@@ -109,7 +109,7 @@ export class DomHelper {
     }
 
     if (config.events) {
-      entries(config.events).forEach(([eventType, handler]): void => {
+      Object.entries(config.events).forEach(([eventType, handler]): void => {
         element.addEventListener(eventType, handler);
       });
     }

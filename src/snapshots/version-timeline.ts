@@ -1,7 +1,6 @@
 import { MS_PER_DAY, VERSION_KEYFRAME_INTERVAL } from '@/consts';
 import { FileVersion } from '@/snapshots/file.version';
 import type { SnapshotCaptureOptions, VersionCaptureContext, VersionCaptureResult } from '@/types';
-import { isArray, isNumber, isString } from 'lodash-es';
 
 /**
  * Stateless operator owning the version-timeline concern extracted from
@@ -56,11 +55,11 @@ export class VersionTimeline {
   ): VersionCaptureResult {
     const { versions, options } = context;
 
-    if (!options?.enabled || !isArray(previousLines)) {
+    if (!options?.enabled || !Array.isArray(previousLines)) {
       return { version: null, versions };
     }
 
-    const labeled: boolean = isString(label) && label.length > 0;
+    const labeled: boolean = typeof label === 'string' && label.length > 0;
 
     this.editsSinceVersion += 1;
 
@@ -172,7 +171,7 @@ export class VersionTimeline {
     let result: FileVersion[] = versions;
     const maxAgeDays: number = options?.maxVersionAgeDays;
 
-    if (isNumber(maxAgeDays) && maxAgeDays > 0) {
+    if (typeof maxAgeDays === 'number' && maxAgeDays > 0) {
       const oldest: number = Date.now() - (maxAgeDays * MS_PER_DAY);
 
       result = result.filter(
@@ -182,7 +181,7 @@ export class VersionTimeline {
 
     const maxVersions: number = options?.maxVersions;
 
-    if (isNumber(maxVersions) && maxVersions > 0) {
+    if (typeof maxVersions === 'number' && maxVersions > 0) {
       const unlabeled: number = result.reduce(
         (count: number, version: FileVersion): number => count + (version.isLabeled() ? 0 : 1),
         0,
@@ -276,14 +275,14 @@ export class VersionTimeline {
    * @param {FileVersion[]} versions - The restored timeline, oldest first
    */
   public seedLastVersionAtFromVersions(versions: FileVersion[]): void {
-    if (!isArray(versions) || versions.length === 0) {
+    if (!Array.isArray(versions) || versions.length === 0) {
       return;
     }
 
     const newest: FileVersion = versions[versions.length - 1];
     const timestamp: number = newest?.timestamp;
 
-    if (!isNumber(timestamp) || timestamp >= this.lastVersionAt) {
+    if (typeof timestamp !== 'number' || timestamp >= this.lastVersionAt) {
       return;
     }
 
@@ -313,7 +312,7 @@ export class VersionTimeline {
    * @param {FileVersion[]} versions - The restored timeline, oldest first
    */
   public seedEditsSinceVersionFromVersions(versions: FileVersion[]): void {
-    if (!isArray(versions) || versions.length === 0) {
+    if (!Array.isArray(versions) || versions.length === 0) {
       return;
     }
 

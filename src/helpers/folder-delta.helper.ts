@@ -2,7 +2,6 @@ import { FolderDeltaStatus } from '@/consts';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FileVersion } from '@/snapshots/file.version';
 import type { FolderDeltaResult } from '@/types';
-import { isNumber } from 'lodash-es';
 
 /**
  * Pure helper that resolves the per-file delta from a chosen folder-timeline
@@ -127,11 +126,11 @@ export class FolderDeltaHelper {
         return false;
       }
 
-      return isNumber(snapshot.deletedTimestamp) && snapshot.deletedTimestamp >= timestamp;
+      return typeof snapshot.deletedTimestamp === 'number' && snapshot.deletedTimestamp >= timestamp;
     }
 
     if (snapshot.isMovedIn()) {
-      return isNumber(snapshot.movedIntoAt) && snapshot.movedIntoAt < timestamp;
+      return typeof snapshot.movedIntoAt === 'number' && snapshot.movedIntoAt < timestamp;
     }
 
     return FolderDeltaHelper.firstSeenAt(snapshot) <= timestamp;
@@ -152,12 +151,12 @@ export class FolderDeltaHelper {
    * @return {number} The earliest known timestamp, or `+Infinity` when unknown
    */
   protected static firstSeenAt(snapshot: FileSnapshot): number {
-    let earliest: number = isNumber(snapshot.timestamp) ? snapshot.timestamp : Number.POSITIVE_INFINITY;
+    let earliest: number = typeof snapshot.timestamp === 'number' ? snapshot.timestamp : Number.POSITIVE_INFINITY;
 
     const versions: FileVersion[] = Array.isArray(snapshot.versions) ? snapshot.versions : [];
 
     for (const version of versions) {
-      if (version && isNumber(version.timestamp) && version.timestamp < earliest) {
+      if (version && typeof version.timestamp === 'number' && version.timestamp < earliest) {
         earliest = version.timestamp;
       }
     }
@@ -197,7 +196,7 @@ export class FolderDeltaHelper {
     if (versions.length === 0 && !snapshot.isTombstone()) {
       const lastChanged: number = snapshot.getLastChangedTimestamp();
 
-      if (isNumber(lastChanged) && timestamp >= lastChanged) {
+      if (typeof lastChanged === 'number' && timestamp >= lastChanged) {
         return snapshot.getLastStateLines();
       }
 
@@ -207,7 +206,7 @@ export class FolderDeltaHelper {
     for (let i: number = versions.length - 1; i >= 0; i -= 1) {
       const version: FileVersion = versions[i];
 
-      if (version && isNumber(version.timestamp) && version.timestamp <= timestamp) {
+      if (version && typeof version.timestamp === 'number' && version.timestamp <= timestamp) {
         return version.getLines();
       }
     }

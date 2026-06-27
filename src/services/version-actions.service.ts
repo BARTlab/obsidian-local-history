@@ -1,5 +1,3 @@
-import { isString } from 'lodash-es';
-
 import { Inject } from '@/decorators/inject.decorator';
 import type LineChangeTrackerPlugin from '@/main';
 import type { SettingsService } from '@/services/settings.service';
@@ -155,7 +153,7 @@ export class VersionActionsService implements Service {
    */
   public putLabel(file: TFile | null, label: string): FileVersion | null {
     const snapshot: FileSnapshot | null = this.snapshotsService.getOne(file);
-    const trimmed: string = isString(label) ? label.trim() : '';
+    const trimmed: string = typeof label === 'string' ? label.trim() : '';
 
     if (!snapshot || trimmed.length === 0) {
       return null;
@@ -201,7 +199,7 @@ export class VersionActionsService implements Service {
    */
   public label(file: TFile | null, versionId: string, label: string): FileVersion | null {
     const snapshot: FileSnapshot | null = this.snapshotsService.getOne(file);
-    const trimmed: string = isString(label) ? label.trim() : '';
+    const trimmed: string = typeof label === 'string' ? label.trim() : '';
 
     if (!snapshot || trimmed.length === 0) {
       return null;

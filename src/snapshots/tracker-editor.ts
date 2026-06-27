@@ -3,7 +3,6 @@ import { TrackerLine } from '@/lines/tracker.line';
 import { ArrayMap } from '@/maps/array.map';
 import type { TrackerIndex } from '@/snapshots/tracker-index';
 import type { KeysMatching, TrackerLineParams } from '@/types';
-import { isArray, isNumber, isString } from 'lodash-es';
 
 /**
  * Owns the tracker mutation concern extracted from FileSnapshot: ordered reads,
@@ -58,8 +57,8 @@ export class TrackerEditor {
       ordering = 'key',
     } = params ?? {};
 
-    const sort: KeysMatching<TrackerLine, number | string> = isArray(ordering) ? ordering[0] : ordering;
-    const direction = isArray(ordering) ? ordering[1] : 'asc';
+    const sort: KeysMatching<TrackerLine, number | string> = Array.isArray(ordering) ? ordering[0] : ordering;
+    const direction = Array.isArray(ordering) ? ordering[1] : 'asc';
     const list: TrackerLine[] = [...tracker];
 
     list.sort((a: TrackerLine, b: TrackerLine): number => {
@@ -68,22 +67,22 @@ export class TrackerEditor {
 
       switch (direction) {
         case 'asc':
-          if (isNumber(va) && isNumber(vb)) {
+          if (typeof va === 'number' && typeof vb === 'number') {
             return va - vb;
           }
 
-          if (isString(va) && isString(vb)) {
+          if (typeof va === 'string' && typeof vb === 'string') {
             return va.localeCompare(vb);
           }
 
           break;
 
         case 'dsc':
-          if (isNumber(va) && isNumber(vb)) {
+          if (typeof va === 'number' && typeof vb === 'number') {
             return vb - va;
           }
 
-          if (isString(va) && isString(vb)) {
+          if (typeof va === 'string' && typeof vb === 'string') {
             return vb.localeCompare(va);
           }
 

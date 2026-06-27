@@ -1,6 +1,5 @@
 import { TextHelper } from '@/helpers/text.helper';
 import type { SerializedTrackerLine, TrackerLineParams } from '@/types';
-import { isNumber, isString } from 'lodash-es';
 
 /**
  * Represents a tracked line in a document with full history and state tracking.
@@ -137,7 +136,7 @@ export class TrackerLine {
    * @return {boolean} True if the line has a content hash, false otherwise
    */
   public get contentHashed(): boolean {
-    return isString(this.hash) && !!this.hash;
+    return typeof this.hash === 'string' && !!this.hash;
   }
 
   /**
@@ -154,15 +153,15 @@ export class TrackerLine {
       contentSameOriginal,
     } = params ?? {};
 
-    if (isNumber(originalPosition)) {
+    if (typeof originalPosition === 'number') {
       this.originalPosition = originalPosition;
     }
 
-    if (isNumber(currentPosition)) {
+    if (typeof currentPosition === 'number') {
       this.currentPosition = currentPosition;
     }
 
-    if (isString(content)) {
+    if (typeof content === 'string') {
       this.current = content;
       this.hash = TextHelper.hash(content);
     }
@@ -420,7 +419,7 @@ export class TrackerLine {
    * @param {number} line - Optional line number where the change occurred (defaults to current position)
    */
   public change(content: string, line?: number): void {
-    if (!isString(content) || !this.existedInCurrent) {
+    if (typeof content !== 'string' || !this.existedInCurrent) {
       return;
     }
 
@@ -509,25 +508,25 @@ export class TrackerLine {
     const tracker: TrackerLine = new TrackerLine();
 
     /**
-     * Defensive deserialization: each numeric field is coerced via
-     * `isNumber` (so a non-number from a corrupt history.json falls back to the
-     * field's safe default, e.g. -1), and content/hash strings are guarded so
+     * Defensive deserialization: each numeric field is coerced via a
+     * `typeof` number check (so a non-number from a corrupt history.json falls
+     * back to the field's safe default, e.g. -1), and content/hash strings are guarded so
      * `change()` / `contentHashed` keep their invariants. Booleans default to
      * the existing class default when missing.
      */
-    if (isNumber(data?.originalPosition)) {
+    if (typeof data?.originalPosition === 'number') {
       tracker.originalPosition = data.originalPosition;
     }
 
-    if (isNumber(data?.currentPosition)) {
+    if (typeof data?.currentPosition === 'number') {
       tracker.currentPosition = data.currentPosition;
     }
 
-    if (isNumber(data?.removedAtPosition)) {
+    if (typeof data?.removedAtPosition === 'number') {
       tracker.removedAtPosition = data.removedAtPosition;
     }
 
-    if (isNumber(data?.changeAtPosition)) {
+    if (typeof data?.changeAtPosition === 'number') {
       tracker.changeAtPosition = data.changeAtPosition;
     }
 
@@ -535,27 +534,27 @@ export class TrackerLine {
       tracker.contentSameOriginal = true;
     }
 
-    if (isString(data?.hash)) {
+    if (typeof data?.hash === 'string') {
       tracker.hash = data.hash;
     }
 
-    if (isString(data?.original)) {
+    if (typeof data?.original === 'string') {
       tracker.original = data.original;
     }
 
-    if (isString(data?.current)) {
+    if (typeof data?.current === 'string') {
       tracker.current = data.current;
     }
 
-    if (isNumber(data?.removedTimeStamp)) {
+    if (typeof data?.removedTimeStamp === 'number') {
       tracker.removedTimeStamp = data.removedTimeStamp;
     }
 
-    if (isNumber(data?.changedTimeStamp)) {
+    if (typeof data?.changedTimeStamp === 'number') {
       tracker.changedTimeStamp = data.changedTimeStamp;
     }
 
-    if (isNumber(data?.addedTimeStamp)) {
+    if (typeof data?.addedTimeStamp === 'number') {
       tracker.addedTimeStamp = data.addedTimeStamp;
     }
 

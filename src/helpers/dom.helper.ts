@@ -74,11 +74,6 @@ export class DomHelper {
       element.textContent = config.text;
     }
 
-    if (!isUndefined(config.html)) {
-      element.empty();
-      element.appendChild(sanitizeHTMLToDom(config.html));
-    }
-
     if (config.attributes) {
       entries(config.attributes).forEach(([key, value]: [string, string]): void => {
         try {
@@ -130,5 +125,21 @@ export class DomHelper {
         element.appendChild(DomHelper.create(childConfig));
       });
     }
+  }
+
+  /**
+   * Replaces an element's content with sanitized HTML. The single sanctioned
+   * entry point for pasting an HTML string into the DOM: only the diff2html
+   * renderer uses it, for the by-design markup diff2html emits (see
+   * {@link DiffRenderHelper}). Every other DOM write goes through the structured
+   * create/update config, which carries no HTML-string escape hatch.
+   *
+   * @param {HTMLElement} element - The element whose content is replaced
+   * @param {string} html - The HTML string to sanitize and insert
+   * @return {void}
+   */
+  public static setSanitizedHtml(element: HTMLElement, html: string): void {
+    element.empty();
+    element.appendChild(sanitizeHTMLToDom(html));
   }
 }

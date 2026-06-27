@@ -239,12 +239,6 @@ export const DEFAULT_SETTINGS: LineChangeTrackerSettings = {
 export const SHOW_CHANGE_KEYS = ['show.changed', 'show.restored', 'show.added', 'show.removed'] as const;
 
 /**
- * ID for the plugin's style element in the DOM.
- * Used to identify and manipulate the CSS styles for line change indicators.
- */
-export const STYLE_ID = 'line-change-tracker-styles';
-
-/**
  * Stable view type id for the Recent changes side panel. Registered with
  * Obsidian once at plugin load so the right sidebar can host one navigator
  * leaf at a time, and used by the reveal entry point to look up the existing

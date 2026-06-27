@@ -13,19 +13,13 @@ import { type App, Notice, type TFile } from 'obsidian';
  * the picked timeline point T. Every action early-exits on a `null` selection.
  */
 export interface FolderActionSelection {
-  /**
-   * The vault-relative path of the selected file.
-   */
+  /** The vault-relative path of the selected file. */
   readonly path: string;
 
-  /**
-   * The snapshot owning the selected file's history.
-   */
+  /** The snapshot owning the selected file's history. */
   readonly snapshot: FileSnapshot;
 
-  /**
-   * The per-file delta at the picked T (base / current content + status).
-   */
+  /** The per-file delta at the picked T (base / current content + status). */
   readonly result: FolderDeltaResult;
 }
 
@@ -47,19 +41,13 @@ export interface FolderActionHost {
    */
   readonly app: App;
 
-  /**
-   * The plugin instance, used for translation lookups.
-   */
+  /** The plugin instance, used for translation lookups. */
   readonly plugin: LineChangeTrackerPlugin;
 
-  /**
-   * Confirms destructive actions and prompts for version labels.
-   */
+  /** Confirms destructive actions and prompts for version labels. */
   readonly modalsService: ModalsService;
 
-  /**
-   * Shared restore / remove action service, the same one the file modal uses.
-   */
+  /** Shared restore / remove action service, the same one the file modal uses. */
   readonly versionActionsService: VersionActionsService;
 
   /**
@@ -99,14 +87,10 @@ export interface FolderActionHost {
    */
   resyncTimeline(): void;
 
-  /**
-   * Re-runs the per-file deltas and re-renders the tree against the current T.
-   */
+  /** Re-runs the per-file deltas and re-renders the tree against the current T. */
   refreshTree(): void;
 
-  /**
-   * Re-renders the diff for the selected file at the current T.
-   */
+  /** Re-renders the diff for the selected file at the current T. */
   refreshDiff(): void;
 }
 

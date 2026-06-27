@@ -18,9 +18,7 @@ import type { DiffRenderMode, FolderDeltaResult } from '@/types';
  * of any toolbar coupling.
  */
 export interface FolderDiffHost {
-  /**
-   * The plugin instance, used only for translation lookups.
-   */
+  /** The plugin instance, used only for translation lookups. */
   readonly plugin: LineChangeTrackerPlugin;
 
   /**

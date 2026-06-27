@@ -5,9 +5,7 @@ import type { IndicatorType, KeepHistory } from '@/consts';
  * Defines all customizable options for tracking and displaying line changes.
  */
 export interface LineChangeTrackerSettings {
-  /**
-   * Configuration for which types of changes to show
-   */
+  /** Configuration for which types of changes to show */
   show: {
     changed: boolean;
     restored: boolean;
@@ -15,19 +13,13 @@ export interface LineChangeTrackerSettings {
     removed: boolean;
   };
 
-  /**
-   * Configuration for line appearance
-   */
+  /** Configuration for line appearance */
   line: {
-    /**
-     * Width of the change indicator line in pixels
-     */
+    /** Width of the change indicator line in pixels */
     width: number;
   };
 
-  /**
-   * Configuration for gutter colors
-   */
+  /** Configuration for gutter colors */
   gutter: {
     restored: string;
     changed: string;
@@ -35,69 +27,39 @@ export interface LineChangeTrackerSettings {
     removed: string;
   };
 
-  /**
-   * Configuration for on-disk history retention caps
-   */
+  /** Configuration for on-disk history retention caps */
   retention: {
-    /**
-     * Maximum number of file histories kept on disk (size cap, 0 disables)
-     */
+    /** Maximum number of file histories kept on disk (size cap, 0 disables) */
     maxEntries: number;
-    /**
-     * Maximum age in days for a persisted history (age cap, 0 disables)
-     */
+    /** Maximum age in days for a persisted history (age cap, 0 disables) */
     maxAgeDays: number;
-    /**
-     * Maximum number of tombstone (deleted-file) histories kept on disk (size cap, 0 disables)
-     */
+    /** Maximum number of tombstone (deleted-file) histories kept on disk (size cap, 0 disables) */
     maxDeletedEntries: number;
-    /**
-     * Maximum age in days for a persisted tombstone history (age cap, 0 disables)
-     */
+    /** Maximum age in days for a persisted tombstone history (age cap, 0 disables) */
     maxDeletedAgeDays: number;
   };
 
-  /**
-   * Configuration for periodic intermediate snapshots (the timeline)
-   */
+  /** Configuration for periodic intermediate snapshots (the timeline) */
   snapshots: {
-    /**
-     * Whether to capture intermediate versions while editing
-     */
+    /** Whether to capture intermediate versions while editing */
     enabled: boolean;
-    /**
-     * Minimum time (ms) between captured versions (0 disables the time gate)
-     */
+    /** Minimum time (ms) between captured versions (0 disables the time gate) */
     intervalMs: number;
-    /**
-     * Minimum number of edits between captured versions (0 disables it)
-     */
+    /** Minimum number of edits between captured versions (0 disables it) */
     editThreshold: number;
-    /**
-     * Maximum number of intermediate versions kept per file (count cap, oldest evicted, 0 disables)
-     */
+    /** Maximum number of intermediate versions kept per file (count cap, oldest evicted, 0 disables) */
     maxVersions: number;
-    /**
-     * Maximum age in days for an intermediate version (age cap, oldest evicted, 0 disables)
-     */
+    /** Maximum age in days for an intermediate version (age cap, oldest evicted, 0 disables) */
     maxVersionAgeDays: number;
   };
 
-  /**
-   * Type of indicator to use for showing changes
-   */
+  /** Type of indicator to use for showing changes */
   type: IndicatorType;
-  /**
-   * History retention policy
-   */
+  /** History retention policy */
   keep: KeepHistory;
-  /**
-   * Persist history to disk so it survives an app restart
-   */
+  /** Persist history to disk so it survives an app restart */
   persist: boolean;
-  /**
-   * File extensions that are allowed for tracking (comma-separated)
-   */
+  /** File extensions that are allowed for tracking (comma-separated) */
   allowedExtensions: string;
   /**
    * Regular-expression patterns to exclude from tracking. Each entry is an

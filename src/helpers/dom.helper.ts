@@ -80,9 +80,7 @@ export class DomHelper {
           element.setAttribute(key, value);
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (_error) {
-          /**
-           * Swallow invalid attribute names; the element keeps its prior state.
-           */
+          // Swallow invalid attribute names; the element keeps its prior state.
         }
       });
     }
@@ -107,9 +105,7 @@ export class DomHelper {
           element.style.setProperty(cssName, String(value));
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (_error) {
-          /**
-           * Swallow invalid style values; the element keeps its prior state.
-           */
+          // Swallow invalid style values; the element keeps its prior state.
         }
       });
     }

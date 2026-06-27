@@ -66,9 +66,7 @@ export class ReadingModeIndicatorService implements Service {
   @Inject(TOKENS.settings)
   protected settingsService!: SettingsService;
 
-  /**
-   * Service for reading file snapshots, from which the change map is sourced.
-   */
+  /** Service for reading file snapshots, from which the change map is sourced. */
   @Inject(TOKENS.snapshots)
   protected snapshotsService!: SnapshotsService;
 

@@ -19,14 +19,10 @@ export class FileVersion {
    */
   public id: string = TextHelper.rndId();
 
-  /**
-   * Timestamp (ms) when this version was captured.
-   */
+  /** Timestamp (ms) when this version was captured. */
   public timestamp: number = Date.now();
 
-  /**
-   * The file content at capture time, as an array of lines.
-   */
+  /** The file content at capture time, as an array of lines. */
   public lines: string[] = [];
 
   /**

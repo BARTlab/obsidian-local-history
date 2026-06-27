@@ -18,14 +18,10 @@ import type { DomElementConfig, SearchableVersion, VersionDescription } from '@/
  * via {@link selectBase} so the host re-renders the rail and the active diff.
  */
 export interface VersionListHost {
-  /**
-   * The file snapshot whose versions the rail lists.
-   */
+  /** The file snapshot whose versions the rail lists. */
   readonly snapshot: FileSnapshot;
 
-  /**
-   * The plugin instance, used only for translation lookups.
-   */
+  /** The plugin instance, used only for translation lookups. */
   readonly plugin: LineChangeTrackerPlugin;
 
   /**
@@ -80,33 +76,19 @@ export interface VersionListHost {
   selectBase(id: string): void;
 }
 
-/**
- * Internal rail entry shape: one selectable row's denormalised display data.
- */
+/** Internal rail entry shape: one selectable row's denormalised display data. */
 type RailEntry = {
-  /**
-   * The base id this row selects.
-   */
+  /** The base id this row selects. */
   id: string;
-  /**
-   * The primary label (custom label or derived action text).
-   */
+  /** The primary label (custom label or derived action text). */
   label: string;
-  /**
-   * The capture day used to group rows under a heading.
-   */
+  /** The capture day used to group rows under a heading. */
   day: string;
-  /**
-   * The capture date+time shown as secondary metadata on the row.
-   */
+  /** The capture date+time shown as secondary metadata on the row. */
   meta: string;
-  /**
-   * The formatted line delta, or an empty string for a no-op capture.
-   */
+  /** The formatted line delta, or an empty string for a no-op capture. */
   delta: string;
-  /**
-   * Whether the version was captured from an external change (renders a badge).
-   */
+  /** Whether the version was captured from an external change (renders a badge). */
   external: boolean;
 };
 

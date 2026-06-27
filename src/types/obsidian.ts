@@ -119,9 +119,7 @@ export interface NativeFileExplorerItem {
  * of scattered `as any` casts; the decorator never assumes the field exists.
  */
 export interface NativeFileExplorerView {
-  /**
-   * Map from vault-relative path to the rendered explorer row, when present.
-   */
+  /** Map from vault-relative path to the rendered explorer row, when present. */
   fileItems?: Record<string, NativeFileExplorerItem | undefined>;
 }
 

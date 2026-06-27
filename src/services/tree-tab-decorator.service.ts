@@ -63,9 +63,7 @@ export class TreeTabDecoratorService implements Service {
    */
   protected static readonly debounceMs: number = 100;
 
-  /**
-   * Obsidian view type id of the native file explorer leaf.
-   */
+  /** Obsidian view type id of the native file explorer leaf. */
   protected static readonly fileExplorerType: string = 'file-explorer';
 
   /**

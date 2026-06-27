@@ -8,13 +8,9 @@ import type { FunctionVoid, TranslationVars } from '@/types/ui';
 export interface ConfirmModalConfig {
   title?: string;
   message?: string;
-  /**
-   * Text for the confirmation button (defaults to 'Confirm')
-   */
+  /** Text for the confirmation button (defaults to 'Confirm') */
   confirmText?: string;
-  /**
-   * Text for the cancel button (defaults to 'Cancel')
-   */
+  /** Text for the cancel button (defaults to 'Cancel') */
   cancelText?: string;
 }
 
@@ -26,25 +22,15 @@ export interface ConfirmModalConfig {
  */
 export interface PromptModalConfig {
   title?: string;
-  /**
-   * Optional message rendered above the input
-   */
+  /** Optional message rendered above the input */
   message?: string;
-  /**
-   * Placeholder text shown inside the empty input
-   */
+  /** Placeholder text shown inside the empty input */
   placeholder?: string;
-  /**
-   * Initial value pre-filled in the input
-   */
+  /** Initial value pre-filled in the input */
   initialValue?: string;
-  /**
-   * Text for the confirm button (defaults to 'Confirm')
-   */
+  /** Text for the confirm button (defaults to 'Confirm') */
   confirmText?: string;
-  /**
-   * Text for the cancel button (defaults to 'Cancel')
-   */
+  /** Text for the cancel button (defaults to 'Cancel') */
   cancelText?: string;
 }
 
@@ -55,21 +41,13 @@ export interface PromptModalConfig {
  * actions.
  */
 export interface ToolbarButtonConfig {
-  /**
-   * The Obsidian (Lucide) icon id to render
-   */
+  /** The Obsidian (Lucide) icon id to render */
   icon: string;
-  /**
-   * The text label exposed via tooltip and aria-label
-   */
+  /** The text label exposed via tooltip and aria-label */
   label: string;
-  /**
-   * The click handler, awaited when it returns a promise
-   */
+  /** The click handler, awaited when it returns a promise */
   onClick: FunctionVoid | (() => Promise<void>);
-  /**
-   * Whether to add the destructive (error-tinted) accent
-   */
+  /** Whether to add the destructive (error-tinted) accent */
   warning?: boolean;
 }
 
@@ -98,33 +76,19 @@ interface DiffRenderTranslator {
  * they are file-mode specific.
  */
 export interface DiffRenderParams {
-  /**
-   * The selected base content split by `lineBreak`.
-   */
+  /** The selected base content split by `lineBreak`. */
   baseLines: string[];
-  /**
-   * The current state content split by `lineBreak`.
-   */
+  /** The current state content split by `lineBreak`. */
   currentLines: string[];
-  /**
-   * The line separator used when joining content back into text for patches.
-   */
+  /** The line separator used when joining content back into text for patches. */
   lineBreak: string;
-  /**
-   * Which of the four diff modes to render.
-   */
+  /** Which of the four diff modes to render. */
   mode: DiffRenderMode;
-  /**
-   * The container the renderer writes the diff DOM into.
-   */
+  /** The container the renderer writes the diff DOM into. */
   container: HTMLElement;
-  /**
-   * The vault-relative file path used in the unified patch headers.
-   */
+  /** The vault-relative file path used in the unified patch headers. */
   filePath: string;
-  /**
-   * Translator used for the copy button tooltip and the copy notice text.
-   */
+  /** Translator used for the copy button tooltip and the copy notice text. */
   plugin: DiffRenderTranslator;
 }
 
@@ -141,13 +105,9 @@ export interface DiffRenderParams {
  *   panel, which is the navigator in that session.
  */
 export interface HistoryModalOpenOptions {
-  /**
-   * The version id to pre-select as the diff base on open.
-   */
+  /** The version id to pre-select as the diff base on open. */
   initialBaseId?: string;
-  /**
-   * Whether to hide the left rail (search + version list).
-   */
+  /** Whether to hide the left rail (search + version list). */
   hideRail?: boolean;
   /**
    * Optional set of version ids the rail must restrict itself to: when present,

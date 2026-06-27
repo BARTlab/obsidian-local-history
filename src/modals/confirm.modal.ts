@@ -22,24 +22,16 @@ export class ConfirmModal extends Modal {
    */
   protected resolvePromise: ((value: boolean) => void) | undefined;
 
-  /**
-   * The title text displayed in the modal header.
-   */
+  /** The title text displayed in the modal header. */
   protected readonly title: string;
 
-  /**
-   * The message text displayed in the modal body.
-   */
+  /** The message text displayed in the modal body. */
   protected readonly message: string;
 
-  /**
-   * The text displayed on the confirmation button.
-   */
+  /** The text displayed on the confirmation button. */
   protected readonly confirmText: string;
 
-  /**
-   * The text displayed on the cancel button.
-   */
+  /** The text displayed on the cancel button. */
   protected readonly cancelText: string;
 
   /**
@@ -121,9 +113,7 @@ export class ConfirmModal extends Modal {
       ]
     })
 
-    /**
-     * Focus the confirmation button
-     */
+    // Focus the confirmation button
     const confirmButton: HTMLButtonElement | null = this.contentEl.querySelector('button.mod-warning');
 
     confirmButton?.focus();

@@ -2,9 +2,7 @@ import { NO_NEWLINE_MARKER } from '@/consts';
 import type { EditorBlock } from '@/snapshots/editor-operations';
 import * as Diff from 'diff';
 
-/**
- * Classification of a single structured-patch line by its diff prefix.
- */
+/** Classification of a single structured-patch line by its diff prefix. */
 export type HunkLineKind = 'added' | 'removed' | 'context';
 
 /**

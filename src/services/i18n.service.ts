@@ -206,9 +206,7 @@ export class I18nService implements Service {
         return locale;
       }
     } catch {
-      /**
-       * moment may be absent; fall through to the English default.
-       */
+      // moment may be absent; fall through to the English default.
     }
 
     return FALLBACK_LANGUAGE;

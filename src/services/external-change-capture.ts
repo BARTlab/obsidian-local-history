@@ -14,9 +14,7 @@ import type { TFile } from 'obsidian';
  * CRUD.
  */
 export interface ExternalChangeHost {
-  /**
-   * The plugin instance, used for the disk read of the modified file.
-   */
+  /** The plugin instance, used for the disk read of the modified file. */
   readonly plugin: LineChangeTrackerPlugin;
 
   /**

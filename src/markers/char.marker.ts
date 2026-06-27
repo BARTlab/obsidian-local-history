@@ -95,9 +95,7 @@ export class DotMarker extends GutterMarker {
     });
 
     button.addEventListener('click', (event: MouseEvent): void => {
-      /**
-       * Stop the gutter click from moving the caret or selecting the line.
-       */
+      // Stop the gutter click from moving the caret or selecting the line.
       event.preventDefault();
       event.stopPropagation();
 

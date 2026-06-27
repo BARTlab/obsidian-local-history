@@ -45,22 +45,16 @@ export class TFile {
   public extension = '';
 }
 
-/**
- * Inert replacement for Obsidian's `TFolder`.
- */
+/** Inert replacement for Obsidian's `TFolder`. */
 export class TFolder {
   public path = '';
   public name = '';
 }
 
-/**
- * Inert replacement for Obsidian's `MarkdownView`.
- */
+/** Inert replacement for Obsidian's `MarkdownView`. */
 export class MarkdownView {}
 
-/**
- * Inert replacement for Obsidian's `Modal` base class.
- */
+/** Inert replacement for Obsidian's `Modal` base class. */
 export class Modal {
   public open(): void {
     // no-op
@@ -213,9 +207,7 @@ export function parseYaml(yaml: string): unknown {
   return parseYamlValue(trimmed, 0);
 }
 
-/**
- * Coerces a raw scalar string to its JS equivalent.
- */
+/** Coerces a raw scalar string to its JS equivalent. */
 function coerceScalar(raw: string): unknown {
   const t = raw.trim();
 
@@ -256,9 +248,7 @@ function parseYamlValue(text: string, indent: number): unknown {
   return coerceScalar(text.trim());
 }
 
-/**
- * Parses a YAML block sequence from an array of lines.
- */
+/** Parses a YAML block sequence from an array of lines. */
 function parseSequence(lines: string[], _indent: number): unknown[] {
   const result: unknown[] = [];
   let i = 0;
@@ -286,9 +276,7 @@ function parseSequence(lines: string[], _indent: number): unknown[] {
   return result;
 }
 
-/**
- * Parses a YAML block mapping from an array of lines.
- */
+/** Parses a YAML block mapping from an array of lines. */
 function parseMapping(lines: string[], baseIndent: number): Record<string, unknown> {
   const result: Record<string, unknown> = {};
   let i = 0;

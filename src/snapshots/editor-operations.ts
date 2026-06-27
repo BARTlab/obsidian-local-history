@@ -9,19 +9,13 @@ import type { TFile } from 'obsidian';
  * service scope before writing it back through {@link EditorOperations}.
  */
 export interface EditorBlock {
-  /**
-   * The 0-based current line where the block begins.
-   */
+  /** The 0-based current line where the block begins. */
   start: number;
 
-  /**
-   * How many current lines the block spans.
-   */
+  /** How many current lines the block spans. */
   removeCount: number;
 
-  /**
-   * The content the block should hold afterwards.
-   */
+  /** The content the block should hold afterwards. */
   newLines: string[];
 }
 
@@ -34,9 +28,7 @@ export interface EditorBlock {
  * keeps sole ownership of the snapshot CRUD.
  */
 export interface EditorOperationsHost {
-  /**
-   * The plugin instance, used for the disk write and the active-view check.
-   */
+  /** The plugin instance, used for the disk write and the active-view check. */
   readonly plugin: LineChangeTrackerPlugin;
 
   /**

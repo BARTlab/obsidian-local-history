@@ -67,18 +67,14 @@ export class WorkspaceLayoutChangeEvent extends BaseEvent {
       }
     }
 
-    /**
-     * Pass 2: collect ignore-list entries whose file is no longer open.
-     */
+    // Pass 2: collect ignore-list entries whose file is no longer open.
     for (const file of ignored) {
       if (!openedFiles.has(file)) {
         closedIgnored.push(file);
       }
     }
 
-    /**
-     * Pass 3: collect newly opened files that are not yet tracked.
-     */
+    // Pass 3: collect newly opened files that are not yet tracked.
     for (const file of opened) {
       if (!this.snapshotsService.getOne(file)) {
         newlyOpened.push(file);

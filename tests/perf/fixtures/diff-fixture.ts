@@ -37,9 +37,7 @@ export const FIXTURE_SHAPES: readonly FixtureShape[] = ['edit', 'churn', 'rewrit
 /** Number of scattered single-line hunks the `churn` shape produces. */
 const CHURN_HUNKS = 10;
 
-/**
- * A base/current line-array pair ready to feed the diff helpers.
- */
+/** A base/current line-array pair ready to feed the diff helpers. */
 export interface DiffPair {
   baseLines: string[];
   currentLines: string[];

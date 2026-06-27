@@ -129,11 +129,13 @@ export class ChangeDetectorExtension extends BaseExtension implements EditorExte
        * in-place edit path is the right behaviour and this rescue is skipped.
        */
       if (!prefixShared && !suffixShared) {
-        if (fromA === toA && toB > 0 && state.doc.sliceString(toB - 1, toB) === '\n') {
-          suffixShared = true;
-        } else if (fromB === toB && toA > 0 && prev.sliceString(toA - 1, toA) === '\n') {
-          suffixShared = true;
-        }
+        const isPureInsertEndingInNewline: boolean =
+          fromA === toA && toB > 0 && state.doc.sliceString(toB - 1, toB) === '\n';
+
+        const isPureDeleteConsumingNewline: boolean =
+          fromB === toB && toA > 0 && prev.sliceString(toA - 1, toA) === '\n';
+
+        suffixShared = isPureInsertEndingInNewline || isPureDeleteConsumingNewline;
       }
 
       /**

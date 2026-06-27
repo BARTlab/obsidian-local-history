@@ -15,6 +15,16 @@ import type { Service } from '@/types';
 import { parseYaml, type MarkdownView } from 'obsidian';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 
+/** Decoration status a property row resolves to from the frontmatter diff. */
+type RowStatus = 'added' | 'modified' | 'clean';
+
+/** Class and title plan applied to a property row for a given RowStatus. */
+type RowDecoration = {
+  classToAdd: string | null;
+  classToRemove: string[];
+  title: string | null;
+};
+
 /**
  * Service that adds visual change indicators to the Obsidian Properties panel
  * (.metadata-editor) for frontmatter key-level diffs.
@@ -272,6 +282,25 @@ export class PropertyDecoratorService implements Service {
   /** CSS class applied to synthetic ghost rows injected for removed properties. */
   protected static readonly CLASS_GHOST = 'lct-prop-ghost';
 
+  /** Class/title plan per row status, driving the single apply step in decorate(). */
+  protected static readonly ROW_DECORATIONS: Record<RowStatus, RowDecoration> = {
+    added: {
+      classToAdd: PropertyDecoratorService.CLASS_ADDED,
+      classToRemove: [PropertyDecoratorService.CLASS_MODIFIED],
+      title: 'added',
+    },
+    modified: {
+      classToAdd: PropertyDecoratorService.CLASS_MODIFIED,
+      classToRemove: [PropertyDecoratorService.CLASS_ADDED],
+      title: 'modified',
+    },
+    clean: {
+      classToAdd: null,
+      classToRemove: [PropertyDecoratorService.CLASS_ADDED, PropertyDecoratorService.CLASS_MODIFIED],
+      title: null,
+    },
+  };
+
   /**
    * Decorates existing property rows for added and modified states, clears
    * decorations from rows that are no longer in any change set, and delegates
@@ -304,23 +333,32 @@ export class PropertyDecoratorService implements Service {
         continue;
       }
 
-      if (addedSet.has(key)) {
-        if (!row.classList.contains(PropertyDecoratorService.CLASS_ADDED)) {
-          row.classList.remove(PropertyDecoratorService.CLASS_MODIFIED);
-          row.classList.add(PropertyDecoratorService.CLASS_ADDED);
-          row.setAttribute('title', `property "${key}" added`);
-        }
-      } else if (modifiedSet.has(key)) {
-        if (!row.classList.contains(PropertyDecoratorService.CLASS_MODIFIED)) {
-          row.classList.remove(PropertyDecoratorService.CLASS_ADDED);
-          row.classList.add(PropertyDecoratorService.CLASS_MODIFIED);
-          row.setAttribute('title', `property "${key}" modified`);
-        }
-      } else if (
-        row.classList.contains(PropertyDecoratorService.CLASS_ADDED) ||
-        row.classList.contains(PropertyDecoratorService.CLASS_MODIFIED)
-      ) {
-        row.classList.remove(PropertyDecoratorService.CLASS_ADDED, PropertyDecoratorService.CLASS_MODIFIED);
+      const status: RowStatus = addedSet.has(key)
+        ? 'added'
+        : modifiedSet.has(key)
+          ? 'modified'
+          : 'clean';
+
+      const decoration: RowDecoration = PropertyDecoratorService.ROW_DECORATIONS[status];
+
+      const alreadyDecorated: boolean = decoration.classToAdd !== null
+        ? row.classList.contains(decoration.classToAdd)
+        : !row.classList.contains(PropertyDecoratorService.CLASS_ADDED)
+          && !row.classList.contains(PropertyDecoratorService.CLASS_MODIFIED);
+
+      if (alreadyDecorated) {
+        continue;
+      }
+
+      row.classList.remove(...decoration.classToRemove);
+
+      if (decoration.classToAdd !== null) {
+        row.classList.add(decoration.classToAdd);
+      }
+
+      if (decoration.title !== null) {
+        row.setAttribute('title', `property "${key}" ${decoration.title}`);
+      } else {
         row.removeAttribute('title');
       }
     }

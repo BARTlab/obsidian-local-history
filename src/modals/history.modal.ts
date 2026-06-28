@@ -1,17 +1,15 @@
-import { DIFF_SCROLL_STEP_PX, DiffOutputFormatType, DiffViewMode, ListSelectionDirection, NavigationDirection, ORIGINAL_BASE_ID, VersionListEdge } from '@/consts';
+import { DiffOutputFormatType, DiffViewMode, NavigationDirection, ORIGINAL_BASE_ID } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { DiffHeaderController } from '@/modals/diff-header-controller';
+import { DiffPresenter, type DiffPresenterHost } from '@/modals/diff-presenter';
 import { DiffScrollSync } from '@/modals/diff-scroll-sync';
 import { DiffViewState, type DiffViewStateHost } from '@/modals/diff-view-state';
 import { GutterRevertHandler, type GutterRevertHost } from '@/modals/gutter-revert-handler';
 import { HistoryModalShell, type HistoryModalShellRegions } from '@/modals/history-modal-shell';
+import { KeyboardController, type KeyboardControllerHost } from '@/modals/keyboard-controller';
 import { ToolbarBuilder } from '@/modals/toolbar-builder';
 import { VersionList, type VersionListHost } from '@/components/version-list.component';
-import { assertNever } from '@/helpers/assert-never.helper';
-import { BaseContentHelper } from '@/helpers/base-content.helper';
-import { DiffRenderHelper } from '@/helpers/diff-render.helper';
 import { DomHelper } from '@/helpers/dom.helper';
-import { HunkHelper } from '@/helpers/hunk.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ModalsService } from '@/services/modals.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
@@ -154,6 +152,25 @@ export class HistoryModal extends Modal {
   );
 
   /**
+   * Diff-presentation collaborator the modal owns: it holds the diff render
+   * pipeline behind refresh(mode) - base-content resolution, hunk computation,
+   * the four render modes, and the notice/columns-header updates driven through
+   * the shared DiffHeaderController. The modal decides when to render and routes
+   * the toolbar action-button state back through the host, while the presenter
+   * reads the live diff container and drives the owned collaborators.
+   */
+  protected readonly diffPresenter: DiffPresenter = new DiffPresenter(this.makeDiffPresenterHost());
+
+  /**
+   * Keyboard-navigation collaborator the modal owns: it handles the version-rail
+   * and diff-pane keydown events (arrow/Home/End/Page navigation, Delete). It
+   * walks the selection through the owned VersionList and reads the live diff
+   * container back through the host, routing the confirm-before-delete flow to
+   * the modal.
+   */
+  protected readonly keyboard: KeyboardController = new KeyboardController(this.makeKeyboardControllerHost());
+
+  /**
    * Toolbar button toggling hideIdenticalVersions, kept so its active (is-active)
    * state can be flipped when the filter changes.
    */
@@ -233,7 +250,7 @@ export class HistoryModal extends Modal {
       { classes: { add: 'lct-diff-modal' } }
     );
 
-    this.renderDiff();
+    this.diffPresenter.refresh(DiffOutputFormatType.side);
   }
 
   /**
@@ -291,7 +308,7 @@ export class HistoryModal extends Modal {
   protected async restoreSelectedVersion(): Promise<void> {
     const file: TFile | undefined = this.snapshot?.file ?? undefined;
 
-    if (!file || this.isBaseSameCurrent()) {
+    if (!file || this.diffPresenter.isBaseSameCurrent()) {
       return;
     }
 
@@ -299,12 +316,12 @@ export class HistoryModal extends Modal {
      * A picked captured version routes through the shared service; the
      * synthetic baseline (the latest snapshot or the history original) stays on
      * the modal's local path because the service models real captured versions
-     * only and the baseline content is resolved by the modal's BaseContentHelper.
+     * only and the baseline content is resolved by the diff presenter.
      */
     if (this.viewState.selectedBaseId !== ORIGINAL_BASE_ID) {
       await this.versionActionsService.restoreSelected(file, this.viewState.selectedBaseId);
     } else {
-      const baseLines: string[] = this.getBaseContent().split(this.snapshot.lineBreak);
+      const baseLines: string[] = this.diffPresenter.getBaseContent().split(this.snapshot.lineBreak);
       const currentLines: string[] = this.snapshot.getLastStateLines();
 
       await this.snapshotsService.applyContent(file, baseLines, {
@@ -319,7 +336,7 @@ export class HistoryModal extends Modal {
      * navigation focus and redraw the active view against the new content.
      */
     this.viewState.activeHunkIndex = -1;
-    this.refreshActiveView();
+    this.diffPresenter.refreshActive();
   }
 
   /**
@@ -361,7 +378,7 @@ export class HistoryModal extends Modal {
       result.nextId && visibleIds.has(result.nextId) ? result.nextId : ORIGINAL_BASE_ID;
     this.viewState.activeHunkIndex = -1;
     this.versionList.render();
-    this.refreshActiveView();
+    this.diffPresenter.refreshActive();
   }
 
   /**
@@ -391,7 +408,7 @@ export class HistoryModal extends Modal {
     }
 
     this.versionList.render();
-    this.refreshActiveView();
+    this.diffPresenter.refreshActive();
   }
 
   /**
@@ -418,109 +435,6 @@ export class HistoryModal extends Modal {
     if (confirmed) {
       this.removeSelectedVersion();
       this.versionsEl?.focus();
-    }
-  }
-
-  /**
-   * Handles a key press while the version list holds focus. The up/down arrows
-   * move the selection between snapshots (clamping at the ends), Home/End jump to
-   * the first/last snapshot, and Delete (or Backspace, the primary delete key on
-   * macOS) drops the selected snapshot through the same confirm flow as the
-   * toolbar button. Other keys are left alone so default behaviour (Tab, typing
-   * into the search box, the modal's own Escape) is untouched.
-   *
-   * @param {KeyboardEvent} event - The key event from the version list
-   */
-  protected handleVersionsKeydown(event: KeyboardEvent): void {
-    switch (event.key) {
-      case 'ArrowDown':
-        event.preventDefault();
-        this.versionList.moveSelection(ListSelectionDirection.down);
-
-        return;
-      case 'ArrowUp':
-        event.preventDefault();
-        this.versionList.moveSelection(ListSelectionDirection.up);
-
-        return;
-      case 'Home':
-        event.preventDefault();
-        this.versionList.moveSelectionToEdge(VersionListEdge.first);
-
-        return;
-      case 'End':
-        event.preventDefault();
-        this.versionList.moveSelectionToEdge(VersionListEdge.last);
-
-        return;
-      case 'Delete':
-      case 'Backspace':
-        event.preventDefault();
-        void this.confirmRemoveSelectedVersion();
-
-        return;
-      default:
-        return;
-    }
-  }
-
-  /**
-   * Handles a key press while the diff pane holds focus, scrolling the active
-   * diff scroller: the up/down arrows nudge it a step, PageUp/PageDown move it
-   * by almost a full pane (a small overlap is kept for context), and Home/End
-   * jump to the top/bottom. So the same keys that walk the snapshots in the list
-   * instead move through the diff content here. The browser clamps scrollTop, so
-   * an over-scroll at either end is a safe no-op. Delete is intentionally
-   * ignored: removing a snapshot only makes sense from the list.
-   *
-   * @param {KeyboardEvent} event - The key event from the diff pane
-   */
-  protected handleDiffKeydown(event: KeyboardEvent): void {
-    const scroller: HTMLElement | null = this.getDiffScroller();
-
-    if (!scroller) {
-      return;
-    }
-
-    /**
-     * A page keeps a small overlap so the line the user was reading stays on
-     * screen, with a floor so a very short pane still advances.
-     */
-    const page: number = Math.max(DIFF_SCROLL_STEP_PX, scroller.clientHeight - DIFF_SCROLL_STEP_PX);
-
-    switch (event.key) {
-      case 'ArrowDown':
-        event.preventDefault();
-        scroller.scrollTop += DIFF_SCROLL_STEP_PX;
-
-        return;
-      case 'ArrowUp':
-        event.preventDefault();
-        scroller.scrollTop -= DIFF_SCROLL_STEP_PX;
-
-        return;
-      case 'PageDown':
-        event.preventDefault();
-        scroller.scrollTop += page;
-
-        return;
-      case 'PageUp':
-        event.preventDefault();
-        scroller.scrollTop -= page;
-
-        return;
-      case 'Home':
-        event.preventDefault();
-        scroller.scrollTop = 0;
-
-        return;
-      case 'End':
-        event.preventDefault();
-        scroller.scrollTop = scroller.scrollHeight;
-
-        return;
-      default:
-        return;
     }
   }
 
@@ -567,20 +481,6 @@ export class HistoryModal extends Modal {
   }
 
   /**
-   * Resolves the scrollable element of the diff pane for the active view mode:
-   * the patch container, the inline container, the line-by-line wrapper, or the
-   * first side-by-side column wrapper (its scroll is mirrored to the other
-   * column by the scroll-sync). Returns null before any diff is rendered.
-   *
-   * @return {HTMLElement | null} The diff scroll container, or null
-   */
-  protected getDiffScroller(): HTMLElement | null {
-    return this.diffContainerEl?.querySelector<HTMLElement>(
-      '.lct-patch-container, .lct-inline-container, .d2h-wrapper.d2h-line, .d2h-side-column-wrapper',
-    ) ?? null;
-  }
-
-  /**
    * Builds the diff-view UI. The shared {@link HistoryModalShell} constructs the
    * body / main / toolbar / notice / diff-block spine and relocates the native
    * close button into the toolbar; this modal supplies the left rail and the
@@ -598,7 +498,7 @@ export class HistoryModal extends Modal {
       buildColumns: (bodyEl: HTMLElement): void => this.buildRail(bodyEl),
       diffContainerAttributes: { tabindex: '0' },
       diffContainerEvents: {
-        keydown: (event: Event): void => this.handleDiffKeydown(event as KeyboardEvent),
+        keydown: (event: Event): void => this.keyboard.handleDiffKeydown(event as KeyboardEvent),
       },
     });
 
@@ -652,36 +552,34 @@ export class HistoryModal extends Modal {
       container: this.railEl,
       attributes: { tabindex: '0' },
       events: {
-        keydown: (event: Event): void => this.handleVersionsKeydown(event as KeyboardEvent),
+        keydown: (event: Event): void => this.keyboard.handleVersionsKeydown(event as KeyboardEvent),
       },
     });
   }
 
   /**
-   * Shows or hides the above-diff notice and syncs the restore-selected button's
-   * enabled state, both driven by whether the selected base resolves to the
-   * current content. The notice is revealed, with the same text the empty-diff
-   * placeholder uses, whenever the base equals current (the original-vs-current
-   * "no changes" case or a picked version identical to current); otherwise it is
-   * hidden. In that same identical case there is nothing to restore, so the
-   * restore-selected button is disabled. The remove-selected button is disabled
-   * whenever the synthetic baseline is selected, since only a real captured
-   * version can be deleted. Called by every render path so all stay in sync with
-   * the visible diff.
+   * Syncs the restore/remove/label toolbar action buttons for the current base.
+   * In the base-equals-current case there is nothing to restore, so the
+   * restore-selected button is disabled; the remove-selected and label-selected
+   * buttons are disabled whenever the synthetic baseline is selected, since only
+   * a real captured version can be deleted or labelled. The presenter passes the
+   * base-vs-current fact and calls this on every render so the buttons stay in
+   * sync with the visible diff.
+   *
+   * @param {boolean} baseIsCurrent - Whether the selected base equals the current state
    */
-  protected updateDiffNotice(): void {
-    const identical: boolean = this.isBaseSameCurrent();
-
+  protected syncActionButtons(baseIsCurrent: boolean): void {
     if (this.restoreSelectedButton) {
-      (this.restoreSelectedButton as HTMLButtonElement).disabled = identical;
+      (this.restoreSelectedButton as HTMLButtonElement).disabled = baseIsCurrent;
       DomHelper.update(this.restoreSelectedButton, {
-        classes: identical ? { add: 'is-disabled' } : { remove: 'is-disabled' },
+        classes: baseIsCurrent ? { add: 'is-disabled' } : { remove: 'is-disabled' },
       });
     }
 
-    if (this.removeSelectedButton) {
-      const noVersion: boolean = this.viewState.selectedBaseId === ORIGINAL_BASE_ID;
+    // Only a real captured version can be removed or labelled; the synthetic baseline has none.
+    const noVersion: boolean = this.viewState.selectedBaseId === ORIGINAL_BASE_ID;
 
+    if (this.removeSelectedButton) {
       (this.removeSelectedButton as HTMLButtonElement).disabled = noVersion;
       DomHelper.update(this.removeSelectedButton, {
         classes: noVersion ? { add: 'is-disabled' } : { remove: 'is-disabled' },
@@ -689,53 +587,11 @@ export class HistoryModal extends Modal {
     }
 
     if (this.labelSelectedButton) {
-      /**
-       * Only a real captured version can carry a label; the synthetic baseline
-       * has no version to tag, so the action is disabled there.
-       */
-      const noVersion: boolean = this.viewState.selectedBaseId === ORIGINAL_BASE_ID;
-
       (this.labelSelectedButton as HTMLButtonElement).disabled = noVersion;
       DomHelper.update(this.labelSelectedButton, {
         classes: noVersion ? { add: 'is-disabled' } : { remove: 'is-disabled' },
       });
     }
-
-    this.diffHeader.updateNotice(identical ? this.getEmptyDiffText() : null);
-  }
-
-  /**
-   * Resolves the label for the diff's base (left) side, matching the version
-   * names used in the rail. A picked version shows its custom label or, when
-   * unlabeled, its derived action (created/modified/cleared); the Original
-   * entry (the only base when no snapshots exist) shows "Original".
-   *
-   * @return {string} The base-side label
-   */
-  protected getBaseLabel(): string {
-    if (this.viewState.selectedBaseId !== ORIGINAL_BASE_ID) {
-      const versions: FileVersion[] = this.snapshot.getVersions();
-      const version: FileVersion | null = this.snapshot.getVersion(this.viewState.selectedBaseId);
-
-      if (version) {
-        return this.versionList.resolvePrimaryLabel(version, versions);
-      }
-    }
-
-    return this.plugin.t('modal.version.original');
-  }
-
-  /**
-   * Shows or hides the side-by-side column header and, when shown, labels the
-   * left column with the picked base and the right column with the current
-   * state. It is shown for the two-column side-by-side mode (including the
-   * identical-content case, so the header does not vanish when the diff is
-   * empty) and hidden in the single-column modes.
-   */
-  protected updateColumnsHeader(): void {
-    const visible: boolean = this.viewState.currentDisplayMode === DiffOutputFormatType.side;
-
-    this.diffHeader.updateColumnsHeader(visible ? this.getBaseLabel() : null);
   }
 
   /**
@@ -881,7 +737,7 @@ export class HistoryModal extends Modal {
       icon: 'file-text',
       label: this.plugin.t('modal.mode.patch'),
       onClick: (): void => {
-        this.showCleanPatch();
+        this.diffPresenter.refresh(DiffViewMode.patch);
       },
     });
 
@@ -889,7 +745,7 @@ export class HistoryModal extends Modal {
       icon: 'pilcrow',
       label: this.plugin.t('modal.mode.inline'),
       onClick: (): void => {
-        this.renderInlineDiff();
+        this.diffPresenter.refresh(DiffViewMode.inline);
       },
     });
 
@@ -897,7 +753,7 @@ export class HistoryModal extends Modal {
       icon: 'align-justify',
       label: this.plugin.t('modal.mode.line-by-line'),
       onClick: (): void => {
-        this.renderDiff(DiffOutputFormatType.line);
+        this.diffPresenter.refresh(DiffOutputFormatType.line);
       },
     });
 
@@ -905,7 +761,7 @@ export class HistoryModal extends Modal {
       icon: 'columns-2',
       label: this.plugin.t('modal.mode.side-by-side'),
       onClick: (): void => {
-        this.renderDiff(DiffOutputFormatType.side);
+        this.diffPresenter.refresh(DiffOutputFormatType.side);
       },
     });
 
@@ -969,7 +825,7 @@ export class HistoryModal extends Modal {
 
     this.viewState.selectedBaseId = id;
     this.versionList.render();
-    this.refreshActiveView();
+    this.diffPresenter.refreshActive();
   }
 
   /**
@@ -1016,11 +872,11 @@ export class HistoryModal extends Modal {
       snapshotsService: this.snapshotsService,
       diffContainer: (): HTMLElement | undefined => this.diffContainerEl,
       displayMode: (): DiffRenderMode => this.viewState.currentDisplayMode,
-      getHunks: (): Diff.StructuredPatchHunk[] => this.getHunks(),
+      getHunks: (): Diff.StructuredPatchHunk[] => this.diffPresenter.getHunks(),
       updateNavButtonsState: (): void => this.viewState.updateNavButtonsState(),
       onReverted: (): void => {
         this.viewState.activeHunkIndex = -1;
-        this.refreshActiveView();
+        this.diffPresenter.refreshActive();
       },
     };
   }
@@ -1038,206 +894,51 @@ export class HistoryModal extends Modal {
   protected makeDiffViewStateHost(): DiffViewStateHost {
     return {
       diffContainer: (): HTMLElement | undefined => this.diffContainerEl,
-      getHunks: (): Diff.StructuredPatchHunk[] => this.getHunks(),
+      getHunks: (): Diff.StructuredPatchHunk[] => this.diffPresenter.getHunks(),
     };
   }
 
   /**
-   * Re-renders whichever diff view is currently active. Used after the diff
-   * base or the file content changes so the visible output stays in sync with
-   * the selected mode without duplicating the mode dispatch at every call site.
-   */
-  protected refreshActiveView(): void {
-    switch (this.viewState.currentDisplayMode) {
-      case DiffViewMode.patch:
-        this.showCleanPatch();
-
-        return;
-      case DiffViewMode.inline:
-        this.renderInlineDiff();
-
-        return;
-      case DiffOutputFormatType.line:
-        this.renderDiff(DiffOutputFormatType.line);
-
-        return;
-      case DiffOutputFormatType.side:
-        this.renderDiff(DiffOutputFormatType.side);
-
-        return;
-      default:
-        assertNever(this.viewState.currentDisplayMode, 'diff display mode');
-    }
-  }
-
-  /**
-   * Resolves the content of the currently selected diff base. A picked
-   * intermediate version resolves to that version's captured content. The
-   * synthetic baseline entry (or a stale id whose version no longer exists)
-   * resolves to the LATEST captured snapshot, falling back to the original only
-   * when no snapshot exists. The branch logic lives in the pure
-   * BaseContentHelper so it can be unit-tested without the modal DOM.
+   * Builds the host adapter the owned {@link DiffPresenter} reads its shared
+   * state and collaborators through. It hands the presenter the modal's owned
+   * collaborators (view state, scroll sync, gutter reverts, diff header) as refs,
+   * exposes the live diff container as a lazy accessor, resolves the
+   * rail-matching base label through the version list, and takes the toolbar
+   * action-button sync back so the modal keeps owning which buttons to disable.
    *
-   * @return {string} The base content to diff the current state against
+   * @return {DiffPresenterHost} The host port for the diff-presentation collaborator
    */
-  protected getBaseContent(): string {
-    return BaseContentHelper.resolve(this.viewState.selectedBaseId, ORIGINAL_BASE_ID, {
-      versions: this.snapshot
-        .getVersions()
-        .map((version: FileVersion): string => version.getContent(this.snapshot.lineBreak)),
-      original: this.snapshot.getHistoryOriginalState(),
-      versionContent: (id: string): string | null =>
-        this.snapshot.getVersion(id)?.getContent(this.snapshot.lineBreak) ?? null,
-    });
+  protected makeDiffPresenterHost(): DiffPresenterHost {
+    return {
+      snapshot: this.snapshot,
+      plugin: this.plugin,
+      viewState: this.viewState,
+      scrollSync: this.scrollSync,
+      gutterReverts: this.gutterReverts,
+      diffHeader: this.diffHeader,
+      diffContainer: (): HTMLElementWithScrollSync | undefined => this.diffContainerEl,
+      resolvePrimaryLabel: (version: FileVersion, versions: FileVersion[]): string =>
+        this.versionList.resolvePrimaryLabel(version, versions),
+      syncActionButtons: (baseIsCurrent: boolean): void => this.syncActionButtons(baseIsCurrent),
+    };
   }
 
   /**
-   * Whether the current state is identical to the selected diff base.
-   * Used to render the "no changes" placeholder when the picked base matches
-   * the live content.
+   * Builds the host adapter the owned {@link KeyboardController} reads its shared
+   * state through. It hands the controller the owned version list (whose
+   * selection the rail keys walk), exposes the live diff container as a lazy
+   * accessor, and routes the confirm-before-delete flow back to the modal.
    *
-   * @return {boolean} True when base and current content are equal
+   * @return {KeyboardControllerHost} The host port for the keyboard collaborator
    */
-  protected isBaseSameCurrent(): boolean {
-    return this.getBaseContent() === this.snapshot.getLastState();
+  protected makeKeyboardControllerHost(): KeyboardControllerHost {
+    return {
+      versionList: this.versionList,
+      diffContainer: (): HTMLElement | undefined => this.diffContainerEl,
+      confirmRemoveSelectedVersion: (): void => {
+        void this.confirmRemoveSelectedVersion();
+      },
+    };
   }
 
-  /**
-   * Picks the placeholder text shown when the selected base equals the current
-   * state. A picked intermediate version that matches the live content reads
-   * "Identical to current" so the user understands the chosen base holds the
-   * same text, distinguishing it from the original-vs-current "No changes" case
-   * where the file simply was never modified.
-   *
-   * @return {string} The empty-diff placeholder text for the current base
-   */
-  protected getEmptyDiffText(): string {
-    return this.viewState.selectedBaseId === ORIGINAL_BASE_ID
-      ? this.plugin.t('modal.no-changes')
-      : this.plugin.t('modal.identical-to-current');
-  }
-
-  /**
-   * Computes the line-level hunks between the selected base and the current
-   * state. These back the inline per-hunk revert affordances and the
-   * next/previous navigation, and are recomputed on demand so the offsets always
-   * reflect the live content.
-   *
-   * @return {Diff.StructuredPatchHunk[]} The hunks, ordered top to bottom
-   */
-  protected getHunks(): Diff.StructuredPatchHunk[] {
-    return HunkHelper.diff(
-      this.getBaseContent().split(this.snapshot.lineBreak),
-      this.snapshot.getLastStateLines(),
-      this.snapshot.lineBreak,
-    );
-  }
-
-  /**
-   * Shows the clean patch in a readable format.
-   * Delegates the DOM rendering to {@link DiffRenderHelper}; the per-row revert
-   * affordances are skipped here because patch mode has no per-row structure to
-   * anchor them to, and the navigation buttons are refreshed at the end.
-   */
-  protected showCleanPatch(): void {
-    this.viewState.currentDisplayMode = DiffViewMode.patch;
-    this.viewState.updateButtonActiveStates();
-    this.scrollSync.cleanup();
-    this.updateDiffNotice();
-    this.updateColumnsHeader();
-
-    if (this.diffContainerEl) {
-      DiffRenderHelper.render({
-        baseLines: this.getBaseContent().split(this.snapshot.lineBreak),
-        currentLines: this.snapshot.getLastStateLines(),
-        lineBreak: this.snapshot.lineBreak,
-        mode: DiffViewMode.patch,
-        container: this.diffContainerEl,
-        filePath: this.snapshot?.file?.path ?? '',
-        plugin: this.plugin,
-      });
-    }
-
-    /**
-     * Patch mode has no per-row structure for inline revert and disables the
-     * navigation buttons (no anchors to step through).
-     */
-    this.viewState.updateNavButtonsState();
-  }
-
-  /**
-   * Renders an inline diff between the selected base and the current state,
-   * highlighting changed words inside modified lines instead of marking the
-   * whole line. Delegates the DOM rendering to {@link DiffRenderHelper}; the
-   * per-hunk revert affordances and the nav button refresh stay here because
-   * they are file-mode specific (they need a snapshot to write back to).
-   */
-  protected renderInlineDiff(): void {
-    this.viewState.currentDisplayMode = DiffViewMode.inline;
-    this.viewState.updateButtonActiveStates();
-    this.scrollSync.cleanup();
-    this.updateDiffNotice();
-    this.updateColumnsHeader();
-
-    if (this.diffContainerEl) {
-      DiffRenderHelper.render({
-        baseLines: this.getBaseContent().split(this.snapshot.lineBreak),
-        currentLines: this.snapshot.getLastStateLines(),
-        lineBreak: this.snapshot.lineBreak,
-        mode: DiffViewMode.inline,
-        container: this.diffContainerEl,
-        filePath: this.snapshot?.file?.path ?? '',
-        plugin: this.plugin,
-      });
-    }
-
-    /**
-     * Map the rendered inline rows back to hunks and place the per-hunk revert
-     * affordances; this also refreshes the navigation button state.
-     */
-    this.gutterReverts.attachInlineReverts();
-  }
-
-  /**
-   * Renders the diff view in the specified diff2html format (line-by-line or
-   * side-by-side). Delegates the DOM rendering to {@link DiffRenderHelper}; the
-   * per-hunk revert affordances and the side-by-side scroll sync stay here
-   * because they are file-mode specific.
-   *
-   * @param {DiffOutputFormatType} format - The format of the diff view (defaults to 'side-by-side')
-   */
-  protected renderDiff(format: DiffOutputFormatType = DiffOutputFormatType.side): void {
-    this.viewState.currentDisplayMode = format;
-    this.viewState.updateButtonActiveStates();
-    this.scrollSync.cleanup();
-    this.updateDiffNotice();
-    this.updateColumnsHeader();
-
-    if (this.diffContainerEl) {
-      DiffRenderHelper.render({
-        baseLines: this.getBaseContent().split(this.snapshot.lineBreak),
-        currentLines: this.snapshot.getLastStateLines(),
-        lineBreak: this.snapshot.lineBreak,
-        mode: format,
-        container: this.diffContainerEl,
-        filePath: this.snapshot?.file?.path ?? '',
-        plugin: this.plugin,
-      });
-    }
-
-    /**
-     * Map the rendered diff2html rows back to hunks and place the per-hunk
-     * revert affordances; this also refreshes the navigation button state.
-     */
-    this.gutterReverts.attachInlineReverts();
-
-    /**
-     * Side-by-side mode mirrors scroll between its two columns; the owned
-     * collaborator defers the listener setup until the diff2html DOM mounts and
-     * bails if the container is swapped before the timer fires.
-     */
-    if (format === DiffOutputFormatType.side) {
-      this.scrollSync.schedule();
-    }
-  }
 }

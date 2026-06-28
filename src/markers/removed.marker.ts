@@ -39,7 +39,7 @@ export class RemovedMarker extends GutterMarker {
    * @param {RevertLine | null} revert - Callback to revert the removed line, or null for no affordance
    */
   public constructor(
-    protected plugin: LineChangeTrackerPlugin,
+    public plugin: LineChangeTrackerPlugin,
     protected line: number = -1,
     protected revert: RevertLine | null = null,
   ) {

@@ -11,7 +11,7 @@ export abstract class BaseCommand {
    * @param {LineChangeTrackerPlugin} plugin - The plugin instance that manages this command
    */
   public constructor(
-    protected plugin: LineChangeTrackerPlugin,
+    public plugin: LineChangeTrackerPlugin,
   ) {
   }
 }

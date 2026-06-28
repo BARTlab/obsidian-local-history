@@ -67,7 +67,7 @@ export class MainSetting extends PluginSettingTab {
    * `PluginSettingTab.plugin` field to the concrete plugin type; the base
    * constructor assigns it at runtime.
    */
-  protected declare plugin: LineChangeTrackerPlugin;
+  public declare plugin: LineChangeTrackerPlugin;
 
   /**
    * The "Excluded paths" group, kept so a persisted pattern mutation can

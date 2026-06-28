@@ -3,6 +3,7 @@ import { Inject } from '@/decorators/inject.decorator';
 import { DiffScrollSync } from '@/modals/diff-scroll-sync';
 import { DiffViewState, type DiffViewStateHost } from '@/modals/diff-view-state';
 import { GutterRevertHandler, type GutterRevertHost } from '@/modals/gutter-revert-handler';
+import { ToolbarBuilder } from '@/modals/toolbar-builder';
 import { VersionList, type VersionListHost } from '@/components/version-list.component';
 import { assertNever } from '@/helpers/assert-never.helper';
 import { BaseContentHelper } from '@/helpers/base-content.helper';
@@ -20,11 +21,10 @@ import type {
   DiffRenderMode,
   HistoryModalOpenOptions,
   HTMLElementWithScrollSync,
-  ToolbarButtonConfig,
   VersionRemoveResult
 } from '@/types';
 import type * as Diff from 'diff';
-import { type App, Modal, Notice, SearchComponent, setIcon, type TFile } from 'obsidian';
+import { type App, Modal, Notice, SearchComponent, type TFile } from 'obsidian';
 
 /**
  * Modal dialog that displays the history of changes for a file.
@@ -825,15 +825,23 @@ export class HistoryModal extends Modal {
    * updateButtonActiveStates; the destructive actions still confirm before acting.
    */
   protected makeToolbar(): void {
+    const toolbarEl: HTMLElement | undefined = this.toolbarEl;
+
+    if (!toolbarEl) {
+      return;
+    }
+
+    const builder: ToolbarBuilder = new ToolbarBuilder(toolbarEl);
+
     /**
      * Destructive actions: each still asks for confirmation before acting. This
      * group leads the toolbar and is pushed to the left edge (its auto inline-end
      * margin in CSS) so the destructive pair reads as separate from the view
      * controls that follow on the right.
      */
-    const actionsGroup: HTMLElement = this.makeToolbarGroup('lct-modal-toolbar-actions');
+    const actionsGroup: HTMLElement = builder.addGroup('lct-modal-toolbar-actions');
 
-    this.makeToolbarButton(actionsGroup, {
+    builder.addButton(actionsGroup, {
       icon: 'rotate-ccw',
       label: this.plugin.t('modal.restore-original'),
       warning: true,
@@ -851,7 +859,7 @@ export class HistoryModal extends Modal {
       },
     });
 
-    this.makeToolbarButton(actionsGroup, {
+    builder.addButton(actionsGroup, {
       icon: 'trash-2',
       label: this.plugin.t('modal.remove-history'),
       warning: true,
@@ -876,9 +884,9 @@ export class HistoryModal extends Modal {
      * the rail filter that hides versions identical to the current state. The
      * filter is a toggle, so it carries the is-active accent while active.
      */
-    const filterGroup: HTMLElement = this.makeToolbarGroup('lct-modal-toolbar-filter');
+    const filterGroup: HTMLElement = builder.addGroup('lct-modal-toolbar-filter');
 
-    this.restoreSelectedButton = this.makeToolbarButton(filterGroup, {
+    this.restoreSelectedButton = builder.addButton(filterGroup, {
       icon: 'history',
       label: this.plugin.t('modal.restore-selected'),
       onClick: async (): Promise<void> => {
@@ -895,7 +903,7 @@ export class HistoryModal extends Modal {
       },
     });
 
-    this.removeSelectedButton = this.makeToolbarButton(filterGroup, {
+    this.removeSelectedButton = builder.addButton(filterGroup, {
       icon: 'list-x',
       label: this.plugin.t('modal.remove-selected'),
       onClick: (): void => {
@@ -903,7 +911,7 @@ export class HistoryModal extends Modal {
       },
     });
 
-    this.labelSelectedButton = this.makeToolbarButton(filterGroup, {
+    this.labelSelectedButton = builder.addButton(filterGroup, {
       icon: 'tag',
       label: this.plugin.t('modal.label-selected'),
       onClick: async (): Promise<void> => {
@@ -911,7 +919,7 @@ export class HistoryModal extends Modal {
       },
     });
 
-    this.hideIdenticalButton = this.makeToolbarButton(filterGroup, {
+    this.hideIdenticalButton = builder.addButton(filterGroup, {
       icon: 'eye-off',
       label: this.plugin.t('modal.hide-identical'),
       onClick: (): void => {
@@ -923,9 +931,9 @@ export class HistoryModal extends Modal {
      * Difference navigation: step between the diff hunks with wrap-around. The
      * buttons are disabled when the current diff has no hunks.
      */
-    const navGroup: HTMLElement = this.makeToolbarGroup('lct-modal-toolbar-nav');
+    const navGroup: HTMLElement = builder.addGroup('lct-modal-toolbar-nav');
 
-    this.viewState.navButtons.previous = this.makeToolbarButton(navGroup, {
+    this.viewState.navButtons.previous = builder.addButton(navGroup, {
       icon: 'chevron-up',
       label: this.plugin.t('modal.previous-difference'),
       onClick: (): void => {
@@ -933,7 +941,7 @@ export class HistoryModal extends Modal {
       },
     });
 
-    this.viewState.navButtons.next = this.makeToolbarButton(navGroup, {
+    this.viewState.navButtons.next = builder.addButton(navGroup, {
       icon: 'chevron-down',
       label: this.plugin.t('modal.next-difference'),
       onClick: (): void => {
@@ -942,9 +950,9 @@ export class HistoryModal extends Modal {
     });
 
     // View-mode toggles: the active mode is highlighted via is-active.
-    const modesGroup: HTMLElement = this.makeToolbarGroup('lct-modal-toolbar-modes');
+    const modesGroup: HTMLElement = builder.addGroup('lct-modal-toolbar-modes');
 
-    this.viewState.modeButtons.patch = this.makeToolbarButton(modesGroup, {
+    this.viewState.modeButtons.patch = builder.addButton(modesGroup, {
       icon: 'file-text',
       label: this.plugin.t('modal.mode.patch'),
       onClick: (): void => {
@@ -952,7 +960,7 @@ export class HistoryModal extends Modal {
       },
     });
 
-    this.viewState.modeButtons.inline = this.makeToolbarButton(modesGroup, {
+    this.viewState.modeButtons.inline = builder.addButton(modesGroup, {
       icon: 'pilcrow',
       label: this.plugin.t('modal.mode.inline'),
       onClick: (): void => {
@@ -960,7 +968,7 @@ export class HistoryModal extends Modal {
       },
     });
 
-    this.viewState.modeButtons.lineByLine = this.makeToolbarButton(modesGroup, {
+    this.viewState.modeButtons.lineByLine = builder.addButton(modesGroup, {
       icon: 'align-justify',
       label: this.plugin.t('modal.mode.line-by-line'),
       onClick: (): void => {
@@ -968,7 +976,7 @@ export class HistoryModal extends Modal {
       },
     });
 
-    this.viewState.modeButtons.sideBySide = this.makeToolbarButton(modesGroup, {
+    this.viewState.modeButtons.sideBySide = builder.addButton(modesGroup, {
       icon: 'columns-2',
       label: this.plugin.t('modal.mode.side-by-side'),
       onClick: (): void => {
@@ -978,24 +986,6 @@ export class HistoryModal extends Modal {
 
     // Set the initial active state.
     this.viewState.updateButtonActiveStates();
-  }
-
-  /**
-   * Creates one toolbar group: a flat row of icon buttons. The modifier class
-   * controls the group's placement (the destructive actions are pinned to the
-   * left edge, the rest are right-aligned) and is the only per-group styling
-   * hook now that the toolbar is built from plain elements rather than Setting
-   * rows.
-   *
-   * @param {string} modifier - The group's modifier class
-   * @return {HTMLElement} The created group container
-   */
-  protected makeToolbarGroup(modifier: string): HTMLElement {
-    return DomHelper.create({
-      tag: 'div',
-      classes: ['lct-modal-toolbar-group', modifier],
-      container: this.toolbarEl,
-    });
   }
 
   /**
@@ -1013,39 +1003,6 @@ export class HistoryModal extends Modal {
     }
 
     this.versionList.render();
-  }
-
-  /**
-   * Builds one accessible icon button inside a toolbar group, the same way the
-   * inline revert affordance is built: a native button carrying Obsidian's
-   * .clickable-icon look (hover background, size, and radius come from the
-   * theme), an aria-label that doubles as the hover tooltip, and a click
-   * handler. It shows only the icon but is never a label-less control for
-   * keyboard or screen-reader users. The warning option adds the destructive
-   * accent (.lct-toolbar-warning) for the restore-original and remove-history
-   * actions; the built-in mod-warning is avoided because on a button it paints a
-   * solid error fill that hides the icon.
-   *
-   * @param {HTMLElement} group - The toolbar group to append the button to
-   * @param {ToolbarButtonConfig} config - The button's icon, label, handler, and flags
-   * @return {HTMLButtonElement} The created button
-   */
-  protected makeToolbarButton(group: HTMLElement, config: ToolbarButtonConfig): HTMLButtonElement {
-    const button: HTMLButtonElement = DomHelper.create({
-      tag: 'button',
-      classes: config.warning ? ['clickable-icon', 'lct-toolbar-warning'] : ['clickable-icon'],
-      attributes: { 'aria-label': config.label, 'type': 'button' },
-      container: group,
-      events: {
-        click: (): void => {
-          void config.onClick();
-        },
-      },
-    });
-
-    setIcon(button, config.icon);
-
-    return button;
   }
 
   /**

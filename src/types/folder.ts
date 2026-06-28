@@ -1,5 +1,5 @@
 import type { FolderDeltaStatus, FolderTimelinePointKind } from '@/consts';
-import type { FunctionVoid, TranslationVars } from '@/types/ui';
+import type { TranslationVars } from '@/types/ui';
 
 /**
  * Callback fired when the user clicks a file row. The component passes the
@@ -25,24 +25,6 @@ export interface FolderTreeNode {
   external?: boolean;
   /** Child nodes (folders + files) when `isFolder` is true. */
   children: FolderTreeNode[];
-}
-
-/**
- * Toolbar button config used by the folder modal toolbar. Mirrors the shape the
- * file modal uses (icon id + accessible label + click handler) so both modals
- * present a consistent control surface. The `warning` flag adds the destructive
- * accent (`.lct-toolbar-warning`) for the restore-original and remove-history
- * actions, matching the file modal's classification.
- */
-export interface FolderToolbarButtonConfig {
-  /** The Obsidian (Lucide) icon id to render */
-  icon: string;
-  /** The text label exposed via tooltip and aria-label */
-  label: string;
-  /** The click handler */
-  onClick: FunctionVoid;
-  /** Whether to paint the destructive accent */
-  warning?: boolean;
 }
 
 /**

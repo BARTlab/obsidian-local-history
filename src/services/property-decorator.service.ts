@@ -5,7 +5,7 @@ import {
   getPropertyKey,
   queryMetadataEditor,
   queryPropertyRows,
-} from '@/helpers/properties-panel.adapter';
+} from '@/helpers/properties-panel.helper';
 import { diffFrontmatter, type FrontmatterChange } from '@/helpers/frontmatter-diff.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { SettingsService } from '@/services/settings.service';

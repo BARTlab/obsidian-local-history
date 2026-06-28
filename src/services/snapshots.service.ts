@@ -4,7 +4,7 @@ import { PathExcludeHelper } from '@/helpers/path-exclude.helper';
 import { PathHelper } from '@/helpers/path.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import { ObservableMap } from '@/maps/observable.map';
-import { ExternalChangeCapture, type ExternalChangeHost } from '@/services/external-change-capture';
+import { ExternalChangeCapture, type ExternalChangeHost } from '@/snapshots/external-change-capture';
 import type { SettingsService } from '@/services/settings.service';
 import { TOKENS } from '@/services/tokens';
 import { EditorOperations, type EditorBlock, type EditorOperationsHost } from '@/snapshots/editor-operations';

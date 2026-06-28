@@ -5,7 +5,7 @@ import { confirmAndRevertHunk } from '@/helpers/hunk-revert.helper';
 import { HunkHelper } from '@/helpers/hunk.helper';
 import type { ChangeLine } from '@/lines/change.line';
 import type { ArrayMap } from '@/maps/array.map';
-import { DotMarker } from '@/markers/char.marker';
+import { DotMarker } from '@/markers/dot.marker';
 import type { ModalsService } from '@/services/modals.service';
 import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';

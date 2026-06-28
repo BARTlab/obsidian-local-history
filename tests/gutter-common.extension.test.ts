@@ -19,7 +19,7 @@ import { ChangeType, DEFAULT_SETTINGS, IndicatorType } from '@/consts';
 import { GutterCommonExtension } from '@/extensions/gutter-common.extension';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import { TOKENS } from '@/services/tokens';
-import type { DotMarker } from '@/markers/char.marker';
+import type { DotMarker } from '@/markers/dot.marker';
 import type { EditorView } from '@codemirror/view';
 import type { RangeSet } from '@codemirror/state';
 import type { TFile } from 'obsidian';

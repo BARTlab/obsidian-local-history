@@ -9,7 +9,7 @@ import type { SnapshotsService } from '@/services/snapshots.service';
 import type { StatusbarService } from '@/services/statusbar.service';
 import type { StylesService } from '@/services/styles.service';
 import type { PropertyDecoratorService } from '@/services/property-decorator.service';
-import type { ReadingModeIndicatorService } from '@/extensions/reading-mode-indicator.extension';
+import type { ReadingModeIndicatorService } from '@/services/reading-mode-indicator.service';
 import type { TreeTabDecoratorService } from '@/services/tree-tab-decorator.service';
 import type { VersionActionsService } from '@/services/version-actions.service';
 

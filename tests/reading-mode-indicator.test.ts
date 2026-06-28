@@ -22,7 +22,7 @@
 import 'reflect-metadata';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { ChangeType } from '@/consts';
-import { ReadingModeIndicatorService } from '@/extensions/reading-mode-indicator.extension';
+import { ReadingModeIndicatorService } from '@/services/reading-mode-indicator.service';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { MarkdownPostProcessorContext } from 'obsidian';
 

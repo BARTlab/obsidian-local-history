@@ -3,7 +3,7 @@ import { Inject } from '@/decorators/inject.decorator';
 import { DiffScrollSync } from '@/modals/diff-scroll-sync';
 import { DiffViewState, type DiffViewStateHost } from '@/modals/diff-view-state';
 import { GutterRevertHandler, type GutterRevertHost } from '@/modals/gutter-revert-handler';
-import { VersionList, type VersionListHost } from '@/modals/version-list.component';
+import { VersionList, type VersionListHost } from '@/components/version-list.component';
 import { assertNever } from '@/helpers/assert-never.helper';
 import { BaseContentHelper } from '@/helpers/base-content.helper';
 import { DiffRenderHelper } from '@/helpers/diff-render.helper';

@@ -11,7 +11,7 @@ jest.mock('@codemirror/view', () => ({
 
 import { ChangeType, DEFAULT_SETTINGS } from '@/consts';
 import { BarMarker } from '@/markers/bar.marker';
-import { DotMarker } from '@/markers/char.marker';
+import { DotMarker } from '@/markers/dot.marker';
 import { RemovedMarker } from '@/markers/removed.marker';
 import { TOKENS } from '@/services/tokens';
 

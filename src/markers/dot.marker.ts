@@ -43,7 +43,7 @@ export class DotMarker extends GutterMarker {
    */
   public constructor(
     protected changes: ChangeType,
-    protected plugin: LineChangeTrackerPlugin,
+    public plugin: LineChangeTrackerPlugin,
     protected line: number = -1,
     protected revert: RevertLine | null = null,
   ) {

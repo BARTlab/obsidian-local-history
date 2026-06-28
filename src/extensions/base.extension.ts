@@ -14,7 +14,7 @@ export abstract class BaseExtension {
    */
   public constructor(
     protected view: EditorView | null,
-    protected plugin: LineChangeTrackerPlugin,
+    public plugin: LineChangeTrackerPlugin,
   ) {
   }
 }

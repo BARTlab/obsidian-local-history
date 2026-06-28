@@ -44,7 +44,7 @@ export class VersionActionsService implements Service {
    * @param {LineChangeTrackerPlugin} plugin - The plugin instance
    */
   public constructor(
-    protected plugin: LineChangeTrackerPlugin,
+    public plugin: LineChangeTrackerPlugin,
   ) {
   }
 

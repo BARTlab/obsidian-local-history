@@ -186,7 +186,7 @@ export class FolderHistoryModal extends Modal {
    */
   public constructor(
     public app: App,
-    protected plugin: LineChangeTrackerPlugin,
+    public plugin: LineChangeTrackerPlugin,
     rootPath: string,
     snapshots: FileSnapshot[],
   ) {

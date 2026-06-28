@@ -183,7 +183,7 @@ export class HistoryModal extends Modal {
    */
   public constructor(
     public app: App,
-    protected plugin: LineChangeTrackerPlugin,
+    public plugin: LineChangeTrackerPlugin,
     protected snapshot: FileSnapshot,
     options?: HistoryModalOpenOptions,
   ) {

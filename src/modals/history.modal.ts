@@ -1,8 +1,10 @@
 import { DIFF_SCROLL_STEP_PX, DiffOutputFormatType, DiffViewMode, ListSelectionDirection, NavigationDirection, ORIGINAL_BASE_ID, VersionListEdge } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
+import { DiffHeaderController } from '@/modals/diff-header-controller';
 import { DiffScrollSync } from '@/modals/diff-scroll-sync';
 import { DiffViewState, type DiffViewStateHost } from '@/modals/diff-view-state';
 import { GutterRevertHandler, type GutterRevertHost } from '@/modals/gutter-revert-handler';
+import { HistoryModalShell, type HistoryModalShellRegions } from '@/modals/history-modal-shell';
 import { ToolbarBuilder } from '@/modals/toolbar-builder';
 import { VersionList, type VersionListHost } from '@/components/version-list.component';
 import { assertNever } from '@/helpers/assert-never.helper';
@@ -138,6 +140,18 @@ export class HistoryModal extends Modal {
    * mutates the state through this reference while coordinating the renders.
    */
   protected readonly viewState: DiffViewState = new DiffViewState(this.makeDiffViewStateHost());
+
+  /**
+   * Diff-header collaborator the modal owns: it reveals or hides the above-diff
+   * notice and the side-by-side column header, the DOM logic both history modals
+   * share. The modal decides when each is shown and with what label; the
+   * controller owns the reveal/hide mechanics so the two modals stay in lockstep.
+   */
+  protected readonly diffHeader: DiffHeaderController = new DiffHeaderController(
+    (): HTMLElement | undefined => this.noticeEl,
+    (): HTMLElement | undefined => this.columnsHeaderEl,
+    this.plugin,
+  );
 
   /**
    * Toolbar button toggling hideIdenticalVersions, kept so its active (is-active)
@@ -567,146 +581,80 @@ export class HistoryModal extends Modal {
   }
 
   /**
-   * Creates the UI elements for the diff view.
-   *
-   * With the `hideRail` open option the left rail (search + version list) is
-   * not rendered and the diff/toolbar fill the modal. The panel uses this
-   * mode so it stays the sole navigator and there are no two competing version
-   * lists side by side. Without the option the rail is built as before.
+   * Builds the diff-view UI. The shared {@link HistoryModalShell} constructs the
+   * body / main / toolbar / notice / diff-block spine and relocates the native
+   * close button into the toolbar; this modal supplies the left rail and the
+   * focusable diff container, then fills the toolbar and renders the rail.
    */
   protected makeUI(): void {
-    /**
-     * Obsidian Settings-style shell: the body splits into a left navigation
-     * column (the version rail) and a right content column. The content column
-     * stacks the toolbar above the diff, so the rail runs full height on the
-     * left and the toolbar plus diff fill the right.
-     */
-    const bodyEl: HTMLElement = DomHelper.create({
-      tag: 'div',
-      classes: 'lct-modal-body',
-      container: this.contentEl,
-    });
-
-    const hideRail: boolean = this.options.hideRail === true;
-
-    if (!hideRail) {
-      this.railEl = DomHelper.create({
-        tag: 'div',
-        classes: 'lct-modal-rail',
-        container: bodyEl,
-      });
-    }
-
-    this.mainEl = DomHelper.create({
-      tag: 'div',
-      classes: 'lct-modal-main',
-      container: bodyEl,
-    });
-
-    // The toolbar lives at the top of the right content column, above the diff.
-    this.toolbarEl = DomHelper.create({
-      tag: 'div',
-      classes: 'lct-modal-toolbar',
-      container: this.mainEl,
-    });
-
-    this.makeToolbar();
+    const shell: HistoryModalShell = new HistoryModalShell(this.contentEl, this.modalEl);
 
     /**
-     * Pull the modal's native close button out of its floating top-right corner
-     * and append it as the last control in the toolbar, so it lines up with the
-     * other icon buttons instead of hovering apart. It drops the raised round
-     * look and wears the plain .clickable-icon look the rest of the row uses;
-     * the static position is restored in CSS.
+     * The diff output is focusable (tabindex 0) so the arrow keys scroll the
+     * diff while it holds focus; Delete is ignored here, since deleting a
+     * snapshot only makes sense from the version list.
      */
-    const closeButtonEl: HTMLElement | null = this.modalEl.querySelector<HTMLElement>('.modal-close-button');
-
-    if (closeButtonEl) {
-      closeButtonEl.classList.remove('mod-raised');
-      closeButtonEl.classList.add('clickable-icon');
-      this.toolbarEl.appendChild(closeButtonEl);
-    }
-
-    /**
-     * The rail (search + version list) is built only when not hidden. In
-     * rail-less mode the panel is the navigator and the modal acts as a pure
-     * viewer focused on the chosen version.
-     */
-    if (this.railEl) {
-      // Content search sits above the version timeline in the left rail.
-      this.searchEl = DomHelper.create({
-        tag: 'div',
-        classes: 'lct-rail-search',
-        container: this.railEl,
-      });
-
-      /**
-       * Version timeline lives in the left rail, under the search box. It is a
-       * focusable region (tabindex 0) so the arrow keys can walk the snapshots
-       * and Delete can drop the selected one while the list, not the diff, has
-       * focus.
-       */
-      this.versionsEl = DomHelper.create({
-        tag: 'div',
-        classes: 'lct-versions',
-        container: this.railEl,
-        attributes: { tabindex: '0' },
-        events: {
-          keydown: (event: Event): void => this.handleVersionsKeydown(event as KeyboardEvent),
-        },
-      });
-    }
-
-    /**
-     * Notice above the diff, hidden until the selected base equals the current
-     * state. It gives a single, mode-independent message so a blank diff is
-     * never left unexplained.
-     */
-    this.noticeEl = DomHelper.create({
-      tag: 'div',
-      classes: ['lct-diff-notice', 'lct-diff-notice-hidden'],
-      container: this.mainEl,
-    });
-
-    /**
-     * The diff block bundles the side-by-side column header and the diff output
-     * in one bordered box, so the header reads as part of the diff: it sits as a
-     * fixed row at the top of the block and the diff fills the rest below it.
-     */
-    const blockEl: HTMLElement = DomHelper.create({
-      tag: 'div',
-      classes: 'lct-diff-block',
-      container: this.mainEl,
-    });
-
-    /**
-     * Column header for the side-by-side mode, hidden in the single-column
-     * modes. It names the version each column shows (picked base vs current).
-     */
-    this.columnsHeaderEl = DomHelper.create({
-      tag: 'div',
-      classes: ['lct-diff-columns', 'lct-diff-columns-hidden'],
-      container: blockEl,
-    });
-
-    /**
-     * The diff output fills the rest of the block. Per-hunk revert lives inline
-     * inside the diff rows, not in a separate panel. It is focusable (tabindex 0)
-     * so the arrow keys scroll the diff while it holds focus; Delete is ignored
-     * here, since deleting a snapshot only makes sense from the version list.
-     */
-    this.diffContainerEl = DomHelper.create({
-      tag: 'div',
-      classes: 'diff-container',
-      container: blockEl,
-      attributes: { tabindex: '0' },
-      events: {
+    const regions: HistoryModalShellRegions = shell.build({
+      buildColumns: (bodyEl: HTMLElement): void => this.buildRail(bodyEl),
+      diffContainerAttributes: { tabindex: '0' },
+      diffContainerEvents: {
         keydown: (event: Event): void => this.handleDiffKeydown(event as KeyboardEvent),
       },
     });
 
+    this.mainEl = regions.mainEl;
+    this.toolbarEl = regions.toolbarEl;
+    this.noticeEl = regions.noticeEl;
+    this.columnsHeaderEl = regions.columnsHeaderEl;
+    this.diffContainerEl = regions.diffContainerEl;
+
+    this.makeToolbar();
+    shell.relocateCloseButton(this.toolbarEl);
+
     this.renderSearch();
     this.versionList.render();
+  }
+
+  /**
+   * Builds the left rail (content search above the version timeline) into the
+   * shell body. With the `hideRail` open option the rail is skipped so the diff
+   * and toolbar fill the modal: the panel becomes the sole navigator and there
+   * are no two competing version lists side by side.
+   *
+   * @param {HTMLElement} bodyEl - The shell body the rail is appended to
+   */
+  protected buildRail(bodyEl: HTMLElement): void {
+    if (this.options.hideRail === true) {
+      return;
+    }
+
+    this.railEl = DomHelper.create({
+      tag: 'div',
+      classes: 'lct-modal-rail',
+      container: bodyEl,
+    });
+
+    // Content search sits above the version timeline in the left rail.
+    this.searchEl = DomHelper.create({
+      tag: 'div',
+      classes: 'lct-rail-search',
+      container: this.railEl,
+    });
+
+    /**
+     * Version timeline lives in the left rail, under the search box. It is a
+     * focusable region (tabindex 0) so the arrow keys can walk the snapshots and
+     * Delete can drop the selected one while the list, not the diff, has focus.
+     */
+    this.versionsEl = DomHelper.create({
+      tag: 'div',
+      classes: 'lct-versions',
+      container: this.railEl,
+      attributes: { tabindex: '0' },
+      events: {
+        keydown: (event: Event): void => this.handleVersionsKeydown(event as KeyboardEvent),
+      },
+    });
   }
 
   /**
@@ -753,14 +701,7 @@ export class HistoryModal extends Modal {
       });
     }
 
-    if (!this.noticeEl) {
-      return;
-    }
-
-    DomHelper.update(this.noticeEl, {
-      text: identical ? this.getEmptyDiffText() : undefined,
-      classes: identical ? { remove: 'lct-diff-notice-hidden' } : { add: 'lct-diff-notice-hidden' },
-    });
+    this.diffHeader.updateNotice(identical ? this.getEmptyDiffText() : null);
   }
 
   /**
@@ -792,25 +733,9 @@ export class HistoryModal extends Modal {
    * empty) and hidden in the single-column modes.
    */
   protected updateColumnsHeader(): void {
-    if (!this.columnsHeaderEl) {
-      return;
-    }
-
     const visible: boolean = this.viewState.currentDisplayMode === DiffOutputFormatType.side;
 
-    if (!visible) {
-      DomHelper.update(this.columnsHeaderEl, { classes: { add: 'lct-diff-columns-hidden' } });
-
-      return;
-    }
-
-    DomHelper.update(this.columnsHeaderEl, {
-      classes: { remove: 'lct-diff-columns-hidden' },
-      children: [
-        { tag: 'div', classes: 'lct-diff-column-title', text: this.getBaseLabel() },
-        { tag: 'div', classes: 'lct-diff-column-title', text: this.plugin.t('modal.version.current') },
-      ],
-    });
+    this.diffHeader.updateColumnsHeader(visible ? this.getBaseLabel() : null);
   }
 
   /**

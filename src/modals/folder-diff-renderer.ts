@@ -3,6 +3,7 @@ import { assertNever } from '@/helpers/assert-never.helper';
 import { DiffRenderHelper } from '@/helpers/diff-render.helper';
 import { DomHelper } from '@/helpers/dom.helper';
 import { FolderDeltaHelper } from '@/helpers/folder-delta.helper';
+import { DiffHeaderController } from '@/modals/diff-header-controller';
 import type LineChangeTrackerPlugin from '@/main';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { DiffRenderMode, FolderDeltaResult } from '@/types';
@@ -100,10 +101,25 @@ export interface FolderDiffHost {
  */
 export class FolderDiffRenderer {
   /**
+   * Diff-header collaborator shared with the file modal: it owns the reveal /
+   * hide DOM mechanics for the above-diff notice and the side-by-side column
+   * header, so the two modals cannot drift. This renderer keeps the
+   * folder-specific decisions (which notice text, whether the header shows, its
+   * left label) and feeds the resolved values in.
+   */
+  protected readonly header: DiffHeaderController;
+
+  /**
    * @param {FolderDiffHost} host - The modal port the renderer reads its shared
    *   state through and reports each render back to.
    */
-  public constructor(protected readonly host: FolderDiffHost) {}
+  public constructor(protected readonly host: FolderDiffHost) {
+    this.header = new DiffHeaderController(
+      (): HTMLElement | undefined => this.host.noticeEl(),
+      (): HTMLElement | undefined => this.host.columnsHeaderEl(),
+      this.host.plugin,
+    );
+  }
 
   /**
    * Renders the diff for the currently-selected file at the currently-selected
@@ -157,18 +173,7 @@ export class FolderDiffRenderer {
    * @param {FolderDeltaResult | null} result - The compareAt result for the selected file
    */
   protected updateNotice(result: FolderDeltaResult | null): void {
-    const noticeEl: HTMLElement | undefined = this.host.noticeEl();
-
-    if (!noticeEl) {
-      return;
-    }
-
-    const text: string | null = this.resolveNoticeText(result);
-
-    DomHelper.update(noticeEl, {
-      text: text ?? undefined,
-      classes: text ? { remove: 'lct-diff-notice-hidden' } : { add: 'lct-diff-notice-hidden' },
-    });
+    this.header.updateNotice(this.resolveNoticeText(result));
   }
 
   /**
@@ -207,28 +212,10 @@ export class FolderDiffRenderer {
    * @param {FolderDeltaResult | null} result - The compareAt result for the selected file
    */
   protected updateColumnsHeader(result: FolderDeltaResult | null): void {
-    const columnsHeaderEl: HTMLElement | undefined = this.host.columnsHeaderEl();
-
-    if (!columnsHeaderEl) {
-      return;
-    }
-
     const sideBySide: boolean = this.host.displayMode() === DiffOutputFormatType.side;
+    const pointLabel: string | null =
+      sideBySide && result ? new Date(this.host.selectedTimestamp()).toLocaleString() : null;
 
-    if (!sideBySide || !result) {
-      DomHelper.update(columnsHeaderEl, { classes: { add: 'lct-diff-columns-hidden' } });
-
-      return;
-    }
-
-    const pointLabel: string = new Date(this.host.selectedTimestamp()).toLocaleString();
-
-    DomHelper.update(columnsHeaderEl, {
-      classes: { remove: 'lct-diff-columns-hidden' },
-      children: [
-        { tag: 'div', classes: 'lct-diff-column-title', text: pointLabel },
-        { tag: 'div', classes: 'lct-diff-column-title', text: this.host.plugin.t('modal.version.current') },
-      ],
-    });
+    this.header.updateColumnsHeader(pointLabel);
   }
 }

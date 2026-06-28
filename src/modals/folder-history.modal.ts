@@ -14,6 +14,7 @@ import {
 } from '@/modals/folder-action-handler';
 import { FolderDiffRenderer, type FolderDiffHost } from '@/modals/folder-diff-renderer';
 import { FolderTimelineRenderer, type FolderTimelineHost } from '@/modals/folder-timeline-renderer';
+import { HistoryModalShell, type HistoryModalShellRegions } from '@/modals/history-modal-shell';
 import { ToolbarBuilder } from '@/modals/toolbar-builder';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ModalsService } from '@/services/modals.service';
@@ -324,19 +325,49 @@ export class FolderHistoryModal extends Modal {
   }
 
   /**
-   * Builds the three-column shell plus the toolbar inside the main column.
-   * Reuses the same `.lct-modal-body / .lct-modal-rail / .lct-modal-main`
-   * class structure the file modal uses, so the existing flex / scroll
-   * policies apply; folder-specific adjustments hang off the
+   * Builds the three-column shell plus the toolbar inside the main column
+   * through the shared {@link HistoryModalShell}. The shell owns the body / main
+   * / toolbar / notice / diff-block spine and the close-button relocation both
+   * modals share; this modal supplies the folder body modifier and the rail plus
+   * the middle tree column, then fills the toolbar, mounts the tree, and renders
+   * the tree search. Folder-specific adjustments hang off the
    * `.lct-folder-history-modal` modifier added on the modal element.
    */
   protected makeUI(): void {
-    const bodyEl: HTMLElement = DomHelper.create({
-      tag: 'div',
-      classes: ['lct-modal-body', 'lct-folder-modal-body'],
-      container: this.contentEl,
+    const shell: HistoryModalShell = new HistoryModalShell(this.contentEl, this.modalEl);
+
+    const regions: HistoryModalShellRegions = shell.build({
+      bodyModifier: ['lct-folder-modal-body'],
+      buildColumns: (bodyEl: HTMLElement): void => this.buildNavColumns(bodyEl),
     });
 
+    this.mainEl = regions.mainEl;
+    this.toolbarEl = regions.toolbarEl;
+    this.noticeEl = regions.noticeEl;
+    this.columnsHeaderEl = regions.columnsHeaderEl;
+    this.diffContainerEl = regions.diffContainerEl;
+
+    this.makeToolbar();
+    shell.relocateCloseButton(this.toolbarEl);
+
+    if (this.treeEl) {
+      this.tree.mount(this.treeEl, (path: string): void => {
+        this.handleTreeSelection(path);
+      }, this.plugin);
+    }
+
+    this.renderTreeSearch();
+  }
+
+  /**
+   * Builds the folder modal's two navigation columns into the shell body: the
+   * timeline rail on the left and the middle tree column (a name-filter search
+   * above the scrollable file tree). Reuses the same `.lct-modal-rail` structure
+   * the file modal uses, with folder modifiers for the folder-specific layout.
+   *
+   * @param {HTMLElement} bodyEl - The shell body the columns are appended to
+   */
+  protected buildNavColumns(bodyEl: HTMLElement): void {
     this.railEl = DomHelper.create({
       tag: 'div',
       classes: ['lct-modal-rail', 'lct-folder-modal-rail'],
@@ -360,63 +391,6 @@ export class FolderHistoryModal extends Modal {
       classes: 'lct-folder-tree-scroll',
       container: this.treeColumnEl,
     });
-
-    this.mainEl = DomHelper.create({
-      tag: 'div',
-      classes: 'lct-modal-main',
-      container: bodyEl,
-    });
-
-    this.toolbarEl = DomHelper.create({
-      tag: 'div',
-      classes: 'lct-modal-toolbar',
-      container: this.mainEl,
-    });
-
-    this.makeToolbar();
-
-    /**
-     * Relocate the native close button into the toolbar, matching the file
-     * modal's pattern (see HistoryModal.makeUI) so the floating top-right
-     * glyph is replaced by an inline toolbar control.
-     */
-    const closeButtonEl: HTMLElement | null = this.modalEl.querySelector<HTMLElement>('.modal-close-button');
-
-    if (closeButtonEl) {
-      closeButtonEl.classList.remove('mod-raised');
-      closeButtonEl.classList.add('clickable-icon');
-      this.toolbarEl.appendChild(closeButtonEl);
-    }
-
-    this.noticeEl = DomHelper.create({
-      tag: 'div',
-      classes: ['lct-diff-notice', 'lct-diff-notice-hidden'],
-      container: this.mainEl,
-    });
-
-    const blockEl: HTMLElement = DomHelper.create({
-      tag: 'div',
-      classes: 'lct-diff-block',
-      container: this.mainEl,
-    });
-
-    this.columnsHeaderEl = DomHelper.create({
-      tag: 'div',
-      classes: ['lct-diff-columns', 'lct-diff-columns-hidden'],
-      container: blockEl,
-    });
-
-    this.diffContainerEl = DomHelper.create({
-      tag: 'div',
-      classes: 'diff-container',
-      container: blockEl,
-    });
-
-    this.tree.mount(this.treeEl, (path: string): void => {
-      this.handleTreeSelection(path);
-    }, this.plugin);
-
-    this.renderTreeSearch();
   }
 
   /**

@@ -6,13 +6,14 @@ import { Inject } from '@/decorators/inject.decorator';
 import { FolderTreeComponent } from '@/components/folder-tree.component';
 import { DomHelper } from '@/helpers/dom.helper';
 import { FolderDeltaHelper } from '@/helpers/folder-delta.helper';
-import { FolderTimelineHelper } from '@/helpers/folder-timeline.helper';
+import { DiffViewState } from '@/modals/diff-view-state';
 import {
   FolderActionHandler,
   type FolderActionHost,
   type FolderActionSelection,
 } from '@/modals/folder-action-handler';
 import { FolderDiffRenderer, type FolderDiffHost } from '@/modals/folder-diff-renderer';
+import { FolderSelectionModel } from '@/modals/folder-selection-model';
 import { FolderTimelineRenderer, type FolderTimelineHost } from '@/modals/folder-timeline-renderer';
 import { HistoryModalShell, type HistoryModalShellRegions } from '@/modals/history-modal-shell';
 import { ToolbarBuilder } from '@/modals/toolbar-builder';
@@ -78,22 +79,19 @@ export class FolderHistoryModal extends Modal {
   protected readonly snapshotsByPath: Map<string, FileSnapshot>;
 
   /**
-   * Timeline points synthesised once at open: every per-file capture, delete,
-   * and move-in under the root, newest-first. Re-synthesised when the file
-   * timeline changes (the toolbar actions trigger that).
+   * Pure timeline / selection model: owns the synthesised timeline and the
+   * selected point T, and answers the closest-version / selection / resync
+   * questions off the snapshot map without touching the DOM (unit-testable).
    */
-  protected timeline: FolderTimelinePoint[];
+  protected readonly selection: FolderSelectionModel;
 
   /**
-   * Currently selected timeline point T, in ms. Defaults to the newest point's
-   * timestamp; falls back to {@link Date.now} when the timeline is empty (a
-   * defensive value, since openFolderHistory rejects empty subtrees upstream
-   * so this modal is never opened with no snapshots).
+   * Shared diff-view state, reused from the file modal for the mode-button
+   * registry, the selected display mode, and the active-mode highlight so the
+   * two modals cannot drift. The folder modal has no version-base selection or
+   * hunk navigation, so only that display-mode surface is exercised.
    */
-  protected selectedTimestamp: number;
-
-  /** Currently selected display mode; same enum the file modal uses. */
-  protected currentDisplayMode: DiffRenderMode = DiffOutputFormatType.side;
+  protected readonly viewState: DiffViewState;
 
   /** Left rail container (timeline). */
   protected railEl?: HTMLElement;
@@ -151,14 +149,6 @@ export class FolderHistoryModal extends Modal {
    */
   protected readonly actionHandler: FolderActionHandler;
 
-  /** Mode toggle buttons, kept so the active accent can be flipped. */
-  protected modeButtons: {
-    patch?: HTMLElement;
-    inline?: HTMLElement;
-    lineByLine?: HTMLElement;
-    sideBySide?: HTMLElement;
-  } = {};
-
   /** Restore selected version button, disabled when no file is selected. */
   protected restoreSelectedButton?: HTMLButtonElement;
 
@@ -200,8 +190,11 @@ export class FolderHistoryModal extends Modal {
         snapshot,
       ]),
     );
-    this.timeline = FolderTimelineHelper.synthesize(snapshots, rootPath);
-    this.selectedTimestamp = this.timeline.length > 0 ? this.timeline[0].timestamp : Date.now();
+    this.selection = new FolderSelectionModel(snapshots, rootPath);
+    this.viewState = new DiffViewState({
+      diffContainer: (): HTMLElement | undefined => this.diffContainerEl,
+      getHunks: () => [],
+    });
     this.tree = new FolderTreeComponent();
     this.timelineRenderer = new FolderTimelineRenderer(this.makeTimelineHost());
     this.diffRenderer = new FolderDiffRenderer(this.makeDiffHost());
@@ -223,8 +216,8 @@ export class FolderHistoryModal extends Modal {
     return {
       plugin: this.plugin,
       railEl: (): HTMLElement | undefined => this.railEl,
-      timeline: (): FolderTimelinePoint[] => this.timeline,
-      selectedTimestamp: (): number => this.selectedTimestamp,
+      timeline: (): FolderTimelinePoint[] => this.selection.timeline,
+      selectedTimestamp: (): number => this.selection.selectedTimestamp,
       snapshotsByPath: (): Map<string, FileSnapshot> => this.snapshotsByPath,
       selectTimestamp: (timestamp: number): void => {
         this.selectTimestamp(timestamp);
@@ -251,8 +244,8 @@ export class FolderHistoryModal extends Modal {
       diffContainerEl: (): HTMLElement | undefined => this.diffContainerEl,
       noticeEl: (): HTMLElement | undefined => this.noticeEl,
       columnsHeaderEl: (): HTMLElement | undefined => this.columnsHeaderEl,
-      displayMode: (): DiffRenderMode => this.currentDisplayMode,
-      selectedTimestamp: (): number => this.selectedTimestamp,
+      displayMode: (): DiffRenderMode => this.viewState.currentDisplayMode,
+      selectedTimestamp: (): number => this.selection.selectedTimestamp,
       selectedPath: (): string | null => this.tree.getSelectedPath(),
       snapshotsByPath: (): Map<string, FileSnapshot> => this.snapshotsByPath,
       onDiffRendered: (): void => {
@@ -279,8 +272,9 @@ export class FolderHistoryModal extends Modal {
       modalsService: this.modalsService,
       versionActionsService: this.versionActionsService,
       snapshotsService: this.snapshotsService,
-      resolveSelection: (): FolderActionSelection | null => this.resolveSelection(),
-      resolveVersionAtT: (snapshot: FileSnapshot): FileVersion | null => this.resolveVersionAtT(snapshot),
+      resolveSelection: (): FolderActionSelection | null =>
+        this.selection.resolveSelection(this.tree.getSelectedPath(), this.snapshotsByPath),
+      resolveVersionAtT: (snapshot: FileSnapshot): FileVersion | null => this.selection.resolveVersionAtT(snapshot),
       removeFromMap: (path: string): void => {
         this.snapshotsByPath.delete(path);
       },
@@ -484,7 +478,7 @@ export class FolderHistoryModal extends Modal {
 
     const modesGroup: HTMLElement = builder.addGroup('lct-modal-toolbar-modes');
 
-    this.modeButtons.patch = builder.addButton(modesGroup, {
+    this.viewState.modeButtons.patch = builder.addButton(modesGroup, {
       icon: 'file-text',
       label: this.plugin.t('modal.mode.patch'),
       onClick: (): void => {
@@ -492,7 +486,7 @@ export class FolderHistoryModal extends Modal {
       },
     });
 
-    this.modeButtons.inline = builder.addButton(modesGroup, {
+    this.viewState.modeButtons.inline = builder.addButton(modesGroup, {
       icon: 'pilcrow',
       label: this.plugin.t('modal.mode.inline'),
       onClick: (): void => {
@@ -500,7 +494,7 @@ export class FolderHistoryModal extends Modal {
       },
     });
 
-    this.modeButtons.lineByLine = builder.addButton(modesGroup, {
+    this.viewState.modeButtons.lineByLine = builder.addButton(modesGroup, {
       icon: 'align-justify',
       label: this.plugin.t('modal.mode.line-by-line'),
       onClick: (): void => {
@@ -508,7 +502,7 @@ export class FolderHistoryModal extends Modal {
       },
     });
 
-    this.modeButtons.sideBySide = builder.addButton(modesGroup, {
+    this.viewState.modeButtons.sideBySide = builder.addButton(modesGroup, {
       icon: 'columns-2',
       label: this.plugin.t('modal.mode.side-by-side'),
       onClick: (): void => {
@@ -516,7 +510,7 @@ export class FolderHistoryModal extends Modal {
       },
     });
 
-    this.updateModeButtonActiveStates();
+    this.viewState.updateButtonActiveStates();
     this.updateActionButtonStates();
   }
 
@@ -552,41 +546,6 @@ export class FolderHistoryModal extends Modal {
   }
 
   /**
-   * Highlights the active mode button. Matches the file modal's accent
-   * behaviour (`is-active` on the active control, plain on the others) so the
-   * two modals are visually consistent.
-   */
-  protected updateModeButtonActiveStates(): void {
-    const active: HTMLElement | undefined = this.getActiveModeButton();
-
-    Object.values(this.modeButtons).forEach((button: HTMLElement | undefined): void => {
-      if (!button) {
-        return;
-      }
-
-      DomHelper.update(button, {
-        classes: button === active ? { add: 'is-active' } : { remove: 'is-active' },
-      });
-    });
-  }
-
-  /**
-   * Resolves the toolbar button corresponding to the current display mode.
-   *
-   * @return {HTMLElement | undefined} The active mode button, or undefined when none
-   */
-  protected getActiveModeButton(): HTMLElement | undefined {
-    const buttonByMode: Record<DiffRenderMode, HTMLElement | undefined> = {
-      [DiffViewMode.patch]: this.modeButtons.patch,
-      [DiffViewMode.inline]: this.modeButtons.inline,
-      [DiffOutputFormatType.line]: this.modeButtons.lineByLine,
-      [DiffOutputFormatType.side]: this.modeButtons.sideBySide,
-    };
-
-    return buttonByMode[this.currentDisplayMode];
-  }
-
-  /**
    * Sets the active display mode and re-renders the diff against the same
    * selected timeline point and selected file (AC5). A no-op when the mode is
    * already active.
@@ -594,12 +553,12 @@ export class FolderHistoryModal extends Modal {
    * @param {DiffRenderMode} mode - The mode to switch to
    */
   protected setDisplayMode(mode: DiffRenderMode): void {
-    if (this.currentDisplayMode === mode) {
+    if (this.viewState.currentDisplayMode === mode) {
       return;
     }
 
-    this.currentDisplayMode = mode;
-    this.updateModeButtonActiveStates();
+    this.viewState.currentDisplayMode = mode;
+    this.viewState.updateButtonActiveStates();
     this.refreshDiff();
   }
 
@@ -611,11 +570,11 @@ export class FolderHistoryModal extends Modal {
    * @param {number} timestamp - The new selected T
    */
   protected selectTimestamp(timestamp: number): void {
-    if (this.selectedTimestamp === timestamp) {
+    if (this.selection.selectedTimestamp === timestamp) {
       return;
     }
 
-    this.selectedTimestamp = timestamp;
+    this.selection.select(timestamp);
     this.timelineRenderer.render();
     this.refreshTree();
     this.refreshDiff();
@@ -633,8 +592,8 @@ export class FolderHistoryModal extends Modal {
     const entries: FolderTreeEntry[] = [];
 
     this.snapshotsByPath.forEach((snapshot: FileSnapshot, path: string): void => {
-      const result: FolderDeltaResult = FolderDeltaHelper.compareAt(snapshot, this.selectedTimestamp);
-      const closest: FileVersion | null = this.resolveVersionAtT(snapshot);
+      const result: FolderDeltaResult = FolderDeltaHelper.compareAt(snapshot, this.selection.selectedTimestamp);
+      const closest: FileVersion | null = this.selection.resolveVersionAtT(snapshot);
 
       /**
        * The badge follows the version closest to T: if that version was
@@ -675,90 +634,15 @@ export class FolderHistoryModal extends Modal {
   }
 
   /**
-   * Resolves the captured version of the given snapshot whose timestamp is
-   * closest to (but not after) the picked timeline point T. Returns null
-   * when no version qualifies, i.e. when T precedes every captured version: the
-   * caller falls back to the synthetic baseline branch in that case so the user
-   * can still restore the file's earliest known content.
-   *
-   * @param {FileSnapshot} snapshot - The file's snapshot
-   * @return {FileVersion | null} The closest version at/before T, or null
-   */
-  protected resolveVersionAtT(snapshot: FileSnapshot): FileVersion | null {
-    const versions: FileVersion[] = snapshot.getVersions();
-    let candidate: FileVersion | null = null;
-
-    versions.forEach((version: FileVersion): void => {
-      if (version.timestamp > this.selectedTimestamp) {
-        return;
-      }
-
-      if (!candidate || version.timestamp > candidate.timestamp) {
-        candidate = version;
-      }
-    });
-
-    return candidate;
-  }
-
-  /**
-   * Resolves the file currently focused in the tree back to its snapshot and
-   * the per-file delta at T in a single shot, so each handler can early-exit on
-   * an empty selection without re-computing the same lookup.
-   *
-   * @return {{ path: string; snapshot: FileSnapshot; result: FolderDeltaResult } | null}
-   */
-  protected resolveSelection(): { path: string; snapshot: FileSnapshot; result: FolderDeltaResult } | null {
-    const path: string | null = this.tree.getSelectedPath();
-
-    if (!path) {
-      return null;
-    }
-
-    const snapshot: FileSnapshot | undefined = this.snapshotsByPath.get(path);
-
-    if (!snapshot) {
-      return null;
-    }
-
-    return {
-      path,
-      snapshot,
-      result: FolderDeltaHelper.compareAt(snapshot, this.selectedTimestamp),
-    };
-  }
-
-  /**
-   * Re-synthesises the timeline from the current snapshot map, clamps the
-   * selected T to the nearest remaining point (defaults to the newest one when
-   * the original point is gone), and re-renders the rail. Used after a
-   * destructive action that removed a version or wiped a file's history so the
-   * rail does not surface stale entries.
+   * Re-synthesises the timeline through the pure {@link FolderSelectionModel}
+   * (clamping the selected T to the nearest remaining point) and re-renders the
+   * rail. Used after a destructive action that removed a version or wiped a
+   * file's history so the rail does not surface stale entries. The render also
+   * covers the now-empty subtree, where the rail falls back to its empty-state
+   * hint before the caller closes the modal.
    */
   protected resyncTimeline(): void {
-    this.timeline = FolderTimelineHelper.synthesize(
-      Array.from(this.snapshotsByPath.values()),
-      this.rootPath,
-    );
-
-    if (this.timeline.length === 0) {
-      /**
-       * The subtree is now empty; the caller closes the modal, but the rail
-       * still re-renders into the empty-state hint for safety.
-       */
-      this.timelineRenderer.render();
-
-      return;
-    }
-
-    const stillExists: boolean = this.timeline.some(
-      (point: FolderTimelinePoint): boolean => point.timestamp === this.selectedTimestamp,
-    );
-
-    if (!stillExists) {
-      this.selectedTimestamp = this.timeline[0].timestamp;
-    }
-
+    this.selection.resync(this.snapshotsByPath, this.rootPath);
     this.timelineRenderer.render();
   }
 }

@@ -14,6 +14,7 @@ import {
 } from '@/modals/folder-action-handler';
 import { FolderDiffRenderer, type FolderDiffHost } from '@/modals/folder-diff-renderer';
 import { FolderTimelineRenderer, type FolderTimelineHost } from '@/modals/folder-timeline-renderer';
+import { ToolbarBuilder } from '@/modals/toolbar-builder';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ModalsService } from '@/services/modals.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
@@ -24,11 +25,10 @@ import type { FileVersion } from '@/snapshots/file.version';
 import type {
   DiffRenderMode,
   FolderDeltaResult,
-  FolderToolbarButtonConfig,
   FolderTimelinePoint,
   FolderTreeEntry
 } from '@/types';
-import { type App, Modal, SearchComponent, setIcon } from 'obsidian';
+import { type App, Modal, SearchComponent } from 'obsidian';
 
 /**
  * Modal dialog that displays a folder-level history view. Three columns:
@@ -454,13 +454,17 @@ export class FolderHistoryModal extends Modal {
    * {@link ModalsService}, so behaviour cannot drift from the file modal.
    */
   protected makeToolbar(): void {
-    const actionsGroup: HTMLElement = DomHelper.create({
-      tag: 'div',
-      classes: ['lct-modal-toolbar-group', 'lct-modal-toolbar-actions'],
-      container: this.toolbarEl,
-    });
+    const toolbarEl: HTMLElement | undefined = this.toolbarEl;
 
-    this.restoreOriginalButton = this.makeToolbarButton(actionsGroup, {
+    if (!toolbarEl) {
+      return;
+    }
+
+    const builder: ToolbarBuilder = new ToolbarBuilder(toolbarEl);
+
+    const actionsGroup: HTMLElement = builder.addGroup('lct-modal-toolbar-actions');
+
+    this.restoreOriginalButton = builder.addButton(actionsGroup, {
       icon: 'rotate-ccw',
       label: this.plugin.t('modal.restore-original'),
       warning: true,
@@ -469,7 +473,7 @@ export class FolderHistoryModal extends Modal {
       },
     });
 
-    this.removeHistoryButton = this.makeToolbarButton(actionsGroup, {
+    this.removeHistoryButton = builder.addButton(actionsGroup, {
       icon: 'trash-2',
       label: this.plugin.t('modal.remove-history'),
       warning: true,
@@ -478,13 +482,9 @@ export class FolderHistoryModal extends Modal {
       },
     });
 
-    const filterGroup: HTMLElement = DomHelper.create({
-      tag: 'div',
-      classes: ['lct-modal-toolbar-group', 'lct-modal-toolbar-filter'],
-      container: this.toolbarEl,
-    });
+    const filterGroup: HTMLElement = builder.addGroup('lct-modal-toolbar-filter');
 
-    this.restoreSelectedButton = this.makeToolbarButton(filterGroup, {
+    this.restoreSelectedButton = builder.addButton(filterGroup, {
       icon: 'history',
       label: this.plugin.t('modal.restore-selected'),
       onClick: async (): Promise<void> => {
@@ -492,7 +492,7 @@ export class FolderHistoryModal extends Modal {
       },
     });
 
-    this.removeSelectedButton = this.makeToolbarButton(filterGroup, {
+    this.removeSelectedButton = builder.addButton(filterGroup, {
       icon: 'list-x',
       label: this.plugin.t('modal.remove-selected'),
       onClick: async (): Promise<void> => {
@@ -500,7 +500,7 @@ export class FolderHistoryModal extends Modal {
       },
     });
 
-    this.labelSelectedButton = this.makeToolbarButton(filterGroup, {
+    this.labelSelectedButton = builder.addButton(filterGroup, {
       icon: 'tag',
       label: this.plugin.t('modal.label-selected'),
       onClick: async (): Promise<void> => {
@@ -508,13 +508,9 @@ export class FolderHistoryModal extends Modal {
       },
     });
 
-    const modesGroup: HTMLElement = DomHelper.create({
-      tag: 'div',
-      classes: ['lct-modal-toolbar-group', 'lct-modal-toolbar-modes'],
-      container: this.toolbarEl,
-    });
+    const modesGroup: HTMLElement = builder.addGroup('lct-modal-toolbar-modes');
 
-    this.modeButtons.patch = this.makeToolbarButton(modesGroup, {
+    this.modeButtons.patch = builder.addButton(modesGroup, {
       icon: 'file-text',
       label: this.plugin.t('modal.mode.patch'),
       onClick: (): void => {
@@ -522,7 +518,7 @@ export class FolderHistoryModal extends Modal {
       },
     });
 
-    this.modeButtons.inline = this.makeToolbarButton(modesGroup, {
+    this.modeButtons.inline = builder.addButton(modesGroup, {
       icon: 'pilcrow',
       label: this.plugin.t('modal.mode.inline'),
       onClick: (): void => {
@@ -530,7 +526,7 @@ export class FolderHistoryModal extends Modal {
       },
     });
 
-    this.modeButtons.lineByLine = this.makeToolbarButton(modesGroup, {
+    this.modeButtons.lineByLine = builder.addButton(modesGroup, {
       icon: 'align-justify',
       label: this.plugin.t('modal.mode.line-by-line'),
       onClick: (): void => {
@@ -538,7 +534,7 @@ export class FolderHistoryModal extends Modal {
       },
     });
 
-    this.modeButtons.sideBySide = this.makeToolbarButton(modesGroup, {
+    this.modeButtons.sideBySide = builder.addButton(modesGroup, {
       icon: 'columns-2',
       label: this.plugin.t('modal.mode.side-by-side'),
       onClick: (): void => {
@@ -579,33 +575,6 @@ export class FolderHistoryModal extends Modal {
         classes: disabled ? { add: 'is-disabled' } : { remove: 'is-disabled' },
       });
     });
-  }
-
-  /**
-   * Renders one toolbar icon button: an accessible clickable-icon wearing the
-   * Obsidian button look, with an aria-label / tooltip so screen readers and
-   * keyboard users have a text label for the icon-only control.
-   *
-   * @param {HTMLElement} group - The toolbar group to append the button to
-   * @param {FolderToolbarButtonConfig} config - The button's icon, label, and handler
-   * @return {HTMLButtonElement} The created button
-   */
-  protected makeToolbarButton(group: HTMLElement, config: FolderToolbarButtonConfig): HTMLButtonElement {
-    const button: HTMLButtonElement = DomHelper.create({
-      tag: 'button',
-      classes: config.warning ? ['clickable-icon', 'lct-toolbar-warning'] : ['clickable-icon'],
-      attributes: { 'aria-label': config.label, 'type': 'button' },
-      container: group,
-      events: {
-        click: (): void => {
-          void config.onClick();
-        },
-      },
-    });
-
-    setIcon(button, config.icon);
-
-    return button;
   }
 
   /**

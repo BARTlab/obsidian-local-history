@@ -1,6 +1,5 @@
 import 'reflect-metadata';
 import { RECENT_CHANGES_VIEW_TYPE } from '@/consts';
-import { META_INJECT, META_ON_EVENT } from '@/decorators/meta-keys';
 import { refreshDecorationsEffect } from '@/extensions/refresh.effect';
 import { CommandsService } from '@/services/commands.service';
 import { EventsService } from '@/services/events.service';
@@ -12,12 +11,13 @@ import { SettingsService } from '@/services/settings.service';
 import { SnapshotsService } from '@/services/snapshots.service';
 import { StatusbarService } from '@/services/statusbar.service';
 import { StylesService } from '@/services/styles.service';
-import { type ServiceToken, TOKENS, tokenName } from '@/services/tokens';
+import { ServiceContainer } from '@/services/container';
+import { type ServiceToken, TOKENS } from '@/services/tokens';
 import { ReadingModeIndicatorService } from '@/services/reading-mode-indicator.service';
 import { PropertyDecoratorService } from '@/services/property-decorator.service';
 import { TreeTabDecoratorService } from '@/services/tree-tab-decorator.service';
 import { VersionActionsService } from '@/services/version-actions.service';
-import { type ClassConstructor, type Service, type TranslationVars } from '@/types';
+import type { TranslationVars } from '@/types';
 import { RecentChangesView } from '@/views/recent-changes.view';
 import type { EditorView } from '@codemirror/view';
 import EventEmitter from 'eventemitter3';
@@ -46,27 +46,12 @@ export default class LineChangeTrackerPlugin extends Plugin {
   protected emitter: EventEmitter = new EventEmitter();
 
   /**
-   * Container for all registered services.
-   * Maps service class constructors to their instances.
+   * Owns every registered service under one token-keyed map and runs their
+   * lifecycle. The plugin composes it (passing the emitter for @On wiring and
+   * itself as the service-constructor host) and delegates resolution and
+   * lifecycle to it, holding no DI map of its own.
    */
-  protected container: Map<ClassConstructor<Service>, Service> = new Map();
-
-  /**
-   * Token-keyed view of the same service instances as {@link container}.
-   * Maps each service's stable {@link ServiceToken} (a symbol, minification-safe)
-   * to its instance, so resolution by token does not depend on `constructor.name`
-   * surviving the bundle. Both maps point at the identical instances; they are
-   * populated together in {@link registerService}. The token path is the
-   * migration target; the legacy class/string paths are removed in C5.
-   */
-  protected tokenContainer: Map<symbol, Service> = new Map();
-
-  /**
-   * Services whose `init` has resolved successfully in the current lifecycle.
-   * Tracked so a fatal init can tear down only what was actually brought up,
-   * in reverse registration order.
-   */
-  protected initialized: Service[] = [];
+  private readonly serviceContainer: ServiceContainer = new ServiceContainer(this.emitter, this);
 
   /**
    * True only between a successful `onload` and the next `onunload`/teardown.
@@ -88,98 +73,33 @@ export default class LineChangeTrackerPlugin extends Plugin {
   public constructor(app: App, manifest: PluginManifest) {
     super(app, manifest);
 
-    this.registerService(SettingsService, TOKENS.settings);
-    this.registerService(I18nService, TOKENS.i18n);
-    this.registerService(StylesService, TOKENS.styles);
-    this.registerService(ModalsService, TOKENS.modals);
-    this.registerService(ExtensionsService, TOKENS.extensions);
-    this.registerService(StatusbarService, TOKENS.statusbar);
-    this.registerService(CommandsService, TOKENS.commands);
-    this.registerService(EventsService, TOKENS.events);
-    this.registerService(SnapshotsService, TOKENS.snapshots);
-    this.registerService(VersionActionsService, TOKENS.versionActions);
-    this.registerService(PersistenceService, TOKENS.persistence);
-    this.registerService(TreeTabDecoratorService, TOKENS.treeTabDecorator);
-    this.registerService(PropertyDecoratorService, TOKENS.propertyDecorator);
-    this.registerService(ReadingModeIndicatorService, TOKENS.readingModeIndicator);
+    this.serviceContainer.register(SettingsService, TOKENS.settings);
+    this.serviceContainer.register(I18nService, TOKENS.i18n);
+    this.serviceContainer.register(StylesService, TOKENS.styles);
+    this.serviceContainer.register(ModalsService, TOKENS.modals);
+    this.serviceContainer.register(ExtensionsService, TOKENS.extensions);
+    this.serviceContainer.register(StatusbarService, TOKENS.statusbar);
+    this.serviceContainer.register(CommandsService, TOKENS.commands);
+    this.serviceContainer.register(EventsService, TOKENS.events);
+    this.serviceContainer.register(SnapshotsService, TOKENS.snapshots);
+    this.serviceContainer.register(VersionActionsService, TOKENS.versionActions);
+    this.serviceContainer.register(PersistenceService, TOKENS.persistence);
+    this.serviceContainer.register(TreeTabDecoratorService, TOKENS.treeTabDecorator);
+    this.serviceContainer.register(PropertyDecoratorService, TOKENS.propertyDecorator);
+    this.serviceContainer.register(ReadingModeIndicatorService, TOKENS.readingModeIndicator);
   }
 
   /**
-   * Registers a service with the plugin.
-   * Creates an instance of the service, stores it in the container under both
-   * its class constructor and its stable token, and sets up event listeners for
-   * methods decorated with @On.
+   * Resolves a registered service by its stable token, delegating to the
+   * container. Injected consumers reach this through the plugin they hold.
    *
    * @template T - The service type
-   * @param {ClassConstructor<T>} provider - The service class constructor
-   * @param {ServiceToken<T>} [tokenKey] - The stable token to key the instance
-   *   by. Optional only for the back-compat window: every `main.ts` registration
-   *   passes one, and the token map is what lets resolution stop depending on
-   *   `constructor.name` once consumers migrate (C5).
-   */
-  public registerService<
-    T extends {} = Service
-  >(provider: ClassConstructor<T>, tokenKey?: ServiceToken<T>): void {
-    // eslint-disable-next-line new-cap
-    const inst = new provider(this);
-
-    this.container.set(provider, inst);
-
-    if (tokenKey) {
-      this.tokenContainer.set(tokenKey, inst);
-    }
-
-    for (const prop of Object.getOwnPropertyNames(Object.getPrototypeOf(inst))) {
-      const event: { name: string } | undefined = Reflect.getMetadata(META_ON_EVENT, inst, prop);
-      const inject: boolean | undefined = Reflect.getMetadata(META_INJECT, inst, prop);
-
-      if (!inject && event && prop in inst) {
-        const method: unknown = (inst as Record<string, unknown>)[prop];
-
-        if (typeof method === 'function') {
-          this.emitter.on(event.name, method as (...args: unknown[]) => void, inst);
-        }
-      }
-    }
-  }
-
-  /**
-   * Retrieves a service from the container.
-   *
-   * Resolution order:
-   * 1. A {@link ServiceToken} (symbol) resolves directly from the token map -
-   *    the stable, minification-safe path every consumer uses.
-   * 2. A class constructor resolves from the class-keyed map by identity.
-   *
-   * Both paths are independent of `constructor.name`, so resolution no longer
-   * depends on class names surviving minification (the bundle drops `keepNames`).
-   *
-   * @template T - The service type
-   * @param {ServiceToken<T> | ClassConstructor<T>} key - The token or class
-   *   constructor to resolve
+   * @param {ServiceToken<T>} token - The token to resolve
    * @return {T} The service instance
-   * @throws Error if the service is not registered
+   * @throws Error if no service is registered under the token
    */
-  public get<T extends {} = Service>(
-    key: ServiceToken<T> | ClassConstructor<T>
-  ): T {
-    if (!key) {
-      throw new Error('Service cannot be empty');
-    }
-
-    const service: T | undefined = typeof key === 'symbol'
-      ? this.tokenContainer.get(key) as T | undefined
-      : this.container.get(key) as T | undefined;
-
-    if (!service) {
-      const label: string = typeof key === 'symbol'
-        ? (tokenName(key) ?? key.toString())
-        : key.name;
-
-      throw new Error(`Service '${label}' not registered`);
-    }
-
-    return service;
+  public get<T extends {}>(token: ServiceToken<T>): T {
+    return this.serviceContainer.get(token);
   }
 
   /**
@@ -206,7 +126,7 @@ export default class LineChangeTrackerPlugin extends Plugin {
    * @return {string} The localized, interpolated string
    */
   public t(key: string, vars?: TranslationVars): string {
-    return this.get(I18nService).t(key, vars);
+    return this.get(TOKENS.i18n).t(key, vars);
   }
 
   /**
@@ -216,18 +136,18 @@ export default class LineChangeTrackerPlugin extends Plugin {
    * @return {Promise<void>} A promise that resolves when all services are loaded
    */
   public async onload(): Promise<void> {
-    const initFailed: boolean = await this.exec('init');
+    const initFailed: boolean = await this.serviceContainer.exec('init');
 
     if (initFailed) {
-      await this.teardown();
+      await this.serviceContainer.teardown();
 
       return;
     }
 
-    const loadFailed: boolean = await this.exec('load');
+    const loadFailed: boolean = await this.serviceContainer.exec('load');
 
     if (loadFailed) {
-      await this.teardown();
+      await this.serviceContainer.teardown();
 
       return;
     }
@@ -250,76 +170,7 @@ export default class LineChangeTrackerPlugin extends Plugin {
   public async onunload(): Promise<void> {
     this.ready = false;
 
-    await this.exec('unload');
-  }
-
-  /**
-   * Executes a method on all registered services in registration order.
-   * Each per-service call is isolated in try/catch so one failure does not
-   * abort the loop; remaining services still get a chance to run.
-   * For `init`, a successful call records the service in `initialized` so a
-   * subsequent fatal can tear down only what is actually up. `unload` clears
-   * the corresponding entry as the service goes down.
-   *
-   * @param {string} method - The method name to execute on each service
-   * @return {Promise<boolean>} True when at least one service threw, so the
-   *   caller can trigger teardown of the partial container.
-   */
-  protected async exec(method: keyof Service): Promise<boolean> {
-    let failed: boolean = false;
-
-    for (const provider of [...this.container.values()]) {
-      if (method in provider && typeof provider[method] === 'function') {
-        try {
-          await provider[method]();
-
-          if (method === 'init') {
-            this.initialized.push(provider);
-          } else if (method === 'unload') {
-            const idx: number = this.initialized.indexOf(provider);
-
-            if (idx >= 0) {
-              this.initialized.splice(idx, 1);
-            }
-          }
-        } catch (error) {
-          failed = true;
-          console.error(
-            `[obsidian-local-history] ${provider.constructor.name}.${method} failed:`,
-            error,
-          );
-        }
-      }
-    }
-
-    return failed;
-  }
-
-  /**
-   * Tears down services that were brought up by a partial `init`/`load`, in
-   * reverse registration order, so a fatal lifecycle failure never leaves a
-   * half-loaded plugin behind. Each per-service `unload` is
-   * isolated so one teardown failure does not block the rest.
-   *
-   * @return {Promise<void>} Resolves once teardown is complete.
-   */
-  protected async teardown(): Promise<void> {
-    this.ready = false;
-
-    for (const provider of [...this.initialized].reverse()) {
-      if ('unload' in provider && typeof provider.unload === 'function') {
-        try {
-          await provider.unload();
-        } catch (error) {
-          console.error(
-            `[obsidian-local-history] ${provider.constructor.name}.unload failed during teardown:`,
-            error,
-          );
-        }
-      }
-    }
-
-    this.initialized = [];
+    await this.serviceContainer.exec('unload');
   }
 
   /**

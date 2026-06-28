@@ -1,17 +1,16 @@
 import { META_INJECT } from '@/decorators/meta-keys';
-import type LineChangeTrackerPlugin from '@/main';
+import type { Container } from '@/services/container';
 import type { ServiceToken } from '@/services/tokens';
-import type { ClassConstructor, Service } from '@/types';
+import type { Service } from '@/types';
 
 /**
  * Decorator that injects a service dependency into a class property.
- * Creates a getter that retrieves the service from the plugin's container when accessed.
- * Prevents direct assignment to the decorated property to maintain a dependency injection pattern.
+ * Creates a getter that resolves the service from the plugin's container when
+ * the property is accessed and blocks direct assignment.
  *
- * Accepts a {@link ServiceToken} (the stable, minification-safe key every
- * consumer uses) or a class constructor. Both resolve independently of
- * `constructor.name`, so injection no longer depends on class names surviving
- * minification.
+ * Accepts a {@link ServiceToken} - the stable, minification-safe key every
+ * consumer uses - so injection never depends on class names surviving the
+ * bundle.
  *
  * Strict-mode invariant: every `@Inject(...)` field is declared with the
  * definite-assignment modifier (`field!: Type`). The decorator replaces the
@@ -21,8 +20,7 @@ import type { ClassConstructor, Service } from '@/types';
  * per field.
  *
  * @template T - The type of service to inject
- * @param {ServiceToken<T> | ClassConstructor<T>} cls - The token or class
- *   constructor to inject
+ * @param {ServiceToken<T>} token - The token to inject
  * @return {PropertyDecorator} A property decorator that replaces the property with a getter for the service
  *
  * @example
@@ -34,7 +32,7 @@ import type { ClassConstructor, Service } from '@/types';
  * ```
  */
 export const Inject = <T extends {}>(
-  cls: ServiceToken<T> | ClassConstructor<T>
+  token: ServiceToken<T>
 ): PropertyDecorator => {
   return (
     target: object,
@@ -44,10 +42,10 @@ export const Inject = <T extends {}>(
 
     Object.defineProperty(target, propertyKey, {
       get(): Service {
-        const plugin: LineChangeTrackerPlugin = this['plugin'];
+        const container: Container | undefined = this['plugin'];
 
-        if (plugin) {
-          return plugin.get(cls);
+        if (container) {
+          return container.get(token);
         }
 
         throw new Error(`"${target}" does not have a "plugin" property defined.`);

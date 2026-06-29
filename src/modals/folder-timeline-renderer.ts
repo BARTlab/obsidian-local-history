@@ -162,7 +162,7 @@ export class FolderTimelineRenderer {
       return false;
     }
 
-    const version: FileVersion | undefined = snapshot.getVersion(point.versionId) ?? undefined;
+    const version: FileVersion | undefined = snapshot.timeline.getVersion(point.versionId) ?? undefined;
 
     return version?.isExternal() === true;
   }

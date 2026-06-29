@@ -63,7 +63,7 @@ export class FolderTimelineHelper {
        * Capture points come from the version timeline, in stored order so a
        * tie on timestamp keeps the original sequence the snapshot recorded.
        */
-      for (const version of snapshot.versions ?? []) {
+      for (const version of snapshot.timeline.getStoredVersions()) {
         points.push({
           timestamp: version.timestamp,
           path,

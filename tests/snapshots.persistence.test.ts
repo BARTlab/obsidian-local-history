@@ -92,7 +92,7 @@ describe('SnapshotsService.serialize', () => {
       maxVersionAgeDays: 0,
     });
     expect(snapshot.getChangesLinesCount()).toBe(0);
-    expect(snapshot.hasVersions()).toBe(true);
+    expect(snapshot.timeline.hasVersions()).toBe(true);
 
     const payload = service.serialize();
     expect(payload.snapshots).toHaveLength(1);
@@ -101,7 +101,7 @@ describe('SnapshotsService.serialize', () => {
     // Round-trips back through restore with the timeline intact.
     const fresh = makeService(['timeline.md']);
     fresh.restore(payload.snapshots);
-    expect(fresh.getOne(file)?.getVersions()).toHaveLength(1);
+    expect(fresh.getOne(file)?.timeline.getVersions()).toHaveLength(1);
   });
 });
 
@@ -278,9 +278,9 @@ describe('SnapshotsService delta-encoded version round-trip', () => {
       versions.push(new FileVersion(lines, 1_700_000_000_000 + i * 1_000, label, external));
     }
 
-    // The façade owns the versions array; assign the materialized timeline
-    // directly (oldest-first) the way the timeline operators do internally.
-    snapshot.versions = versions;
+    // The timeline owns the versions array; adopt the materialized timeline
+    // directly (oldest-first) the way the restore path does internally.
+    snapshot.timeline.adopt(versions);
 
     return { service, file, versions };
   };
@@ -322,7 +322,7 @@ describe('SnapshotsService delta-encoded version round-trip', () => {
 
     // getVersions() returns newest-first; reverse back to the oldest-first order
     // the originals were authored in for a positional comparison.
-    const restored: FileVersion[] = [...(fresh.getOne(file)?.getVersions() ?? [])].reverse();
+    const restored: FileVersion[] = [...(fresh.getOne(file)?.timeline.getVersions() ?? [])].reverse();
 
     expect(restored).toHaveLength(versions.length);
 
@@ -342,7 +342,7 @@ describe('SnapshotsService delta-encoded version round-trip', () => {
     const fresh = makeService([PATH]);
     fresh.restore(parsed.snapshots);
 
-    const restored: FileVersion[] = [...(fresh.getOne(file)?.getVersions() ?? [])].reverse();
+    const restored: FileVersion[] = [...(fresh.getOne(file)?.timeline.getVersions() ?? [])].reverse();
 
     expect(restored[LABELED_INDEX].label).toBe(versions[LABELED_INDEX].label);
     expect(restored[LABELED_INDEX].label).toBe(`pinned ${LABELED_INDEX}`);
@@ -460,14 +460,14 @@ describe('SnapshotsService.restore - post-restore reconciliation (A1)', () => {
 
     // Before the debounce fires: no external version yet.
     const before: FileSnapshot = service.getOne(file) as FileSnapshot;
-    expect(before.versions.length).toBe(0);
+    expect(before.timeline.getStoredVersions().length).toBe(0);
 
     // Let the debounce timer fire and the async capture complete.
     await jest.runAllTimersAsync();
 
     const after: FileSnapshot = service.getOne(file) as FileSnapshot;
-    expect(after.versions.length).toBe(1);
-    expect(after.versions[0].isExternal()).toBe(true);
+    expect(after.timeline.getStoredVersions().length).toBe(1);
+    expect(after.timeline.getStoredVersions()[0].isExternal()).toBe(true);
     expect(after.getLastStateLines()).toEqual(['edited externally']);
   });
 
@@ -490,7 +490,7 @@ describe('SnapshotsService.restore - post-restore reconciliation (A1)', () => {
     await jest.runAllTimersAsync();
 
     const after: FileSnapshot = service.getOne(file) as FileSnapshot;
-    expect(after.versions.length).toBe(0);
+    expect(after.timeline.getStoredVersions().length).toBe(0);
   });
 
   it('A1-closed: performs no disk read for files NOT open in the editor at restore time', async () => {
@@ -519,6 +519,6 @@ describe('SnapshotsService.restore - post-restore reconciliation (A1)', () => {
 
     // No external version was captured (no disk read happened).
     const after: FileSnapshot = service.getOne(file) as FileSnapshot;
-    expect(after.versions.length).toBe(0);
+    expect(after.timeline.getStoredVersions().length).toBe(0);
   });
 });

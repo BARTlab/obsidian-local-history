@@ -276,7 +276,7 @@ export class FolderActionHandler {
      */
     if (file) {
       this.host.versionActionsService.removeSelected(file, version.id);
-    } else if (selection.snapshot.removeVersion(version.id)) {
+    } else if (selection.snapshot.timeline.removeVersion(version.id)) {
       this.host.snapshotsService.forceUpdate();
     }
 

@@ -80,21 +80,15 @@ export class FileSnapshot {
   public state: string[] = [];
 
   /**
-   * Ordered timeline of intermediate versions, oldest first. Each entry is a
-   * frozen copy of the file content at the moment it was captured. The original
-   * baseline (lines) and the live state are not stored here; the timeline holds
-   * only the points in between, which the history modal can diff against.
+   * The version-timeline sub-object: the one narrow surface over intermediate
+   * versions. It owns the ordered `versions` array (oldest first, one frozen copy
+   * of the file content per captured point, holding only the points between the
+   * baseline and the live state) together with the capture cadence, the no-op
+   * dedup, and the age/count eviction. Callers reach version queries through
+   * `snapshot.timeline`; the façade only rewires its own composite operations
+   * (capture, serialization, history adoption) to read and write it.
    */
-  public versions: FileVersion[] = [];
-
-  /**
-   * The version-timeline collaborator that owns the capture cadence, the no-op
-   * dedup, and the age/count eviction. It is a stateless operator over the
-   * façade-owned `versions` array (which external code assigns and mutates), so
-   * the façade passes that array in and writes the result back; the collaborator
-   * holds only the cadence counters.
-   */
-  protected timeline: VersionTimeline = new VersionTimeline();
+  public readonly timeline: VersionTimeline = new VersionTimeline();
 
   /**
    * Line break character used in the file.
@@ -203,7 +197,7 @@ export class FileSnapshot {
       state: [...this.state],
       tracker: this.trackers.getTrackerLines()
         .map((tracker: TrackerLine): ReturnType<TrackerLine['toJSON']> => tracker.toJSON()),
-      versions: VersionCodec.encode(this.versions, this.lineBreak),
+      versions: VersionCodec.encode([...this.timeline.getStoredVersions()], this.lineBreak),
     };
 
     /**
@@ -259,24 +253,15 @@ export class FileSnapshot {
     snapshot.path = typeof data.path === 'string' ? data.path : snapshot.path;
     snapshot.timestamp = typeof data.timestamp === 'number' ? data.timestamp : Date.now();
     snapshot.trackers.restore(tracker);
-    snapshot.versions = VersionCodec.decode(data.versions ?? [], lineBreak);
 
     /**
-     * Seed the timeline's time-gate counter from the newest restored
-     * version so the interval-based capture cadence is continuous across a
-     * restart. Without this the freshly constructed timeline would reset
-     * `lastVersionAt` to load-time and re-arm the time gate for the full
-     * interval even though a recent version is already on disk.
+     * Hand the decoded timeline to its owner, which adopts the array and seeds
+     * both cadence gates from it so the interval and edit-count capture cadence
+     * stay continuous across a restart (a freshly constructed timeline would
+     * otherwise reset both gates to load-time even though recent versions are
+     * already on disk).
      */
-    snapshot.timeline.seedLastVersionAtFromVersions(snapshot.versions);
-
-    /**
-     * A5: seed the edit-count gate from the number of versions in the current
-     * keyframe group so the counter is not artificially reset to 0 on every
-     * restart. A file with N versions already captured in the current group
-     * starts the gate at N % VERSION_KEYFRAME_INTERVAL instead of 0.
-     */
-    snapshot.timeline.seedEditsSinceVersionFromVersions(snapshot.versions);
+    snapshot.timeline.restore(VersionCodec.decode(data.versions ?? [], lineBreak));
 
     if (typeof data.deletedTimestamp === 'number') {
       snapshot.deletedTimestamp = data.deletedTimestamp;
@@ -413,9 +398,8 @@ export class FileSnapshot {
     force: boolean = false,
     label?: string,
   ): FileVersion | null {
-    const result = this.timeline.capture(
+    return this.timeline.capture(
       {
-        versions: this.versions,
         historyBaseline: this.getHistoryOriginalState(),
         lineBreak: this.lineBreak,
         options,
@@ -424,51 +408,6 @@ export class FileSnapshot {
       force,
       label,
     );
-
-    this.versions = result.versions;
-
-    return result.version;
-  }
-
-  /**
-   * Returns the intermediate versions, newest first, as a copy so callers
-   * cannot mutate the timeline.
-   *
-   * @return {FileVersion[]} The timeline versions, newest first
-   */
-  public getVersions(): FileVersion[] {
-    return this.timeline.getVersions(this.versions);
-  }
-
-  /**
-   * Finds an intermediate version by its id.
-   *
-   * @param {string} id - The version id to look up
-   * @return {FileVersion | null} The matching version, or null if absent
-   */
-  public getVersion(id: string): FileVersion | null {
-    return this.timeline.getVersion(this.versions, id);
-  }
-
-  /**
-   * Removes a single intermediate version from the timeline by its id, leaving
-   * the history baseline and every other version untouched. Used by the history
-   * modal to prune one captured point without wiping the whole timeline.
-   *
-   * @param {string} id - The id of the version to remove
-   * @return {boolean} True if a version was removed, false if no id matched
-   */
-  public removeVersion(id: string): boolean {
-    return this.timeline.removeVersion(this.versions, id);
-  }
-
-  /**
-   * Whether the snapshot has any intermediate versions on its timeline.
-   *
-   * @return {boolean} True when at least one version exists
-   */
-  public hasVersions(): boolean {
-    return this.timeline.hasVersions(this.versions);
   }
 
   /**
@@ -564,7 +503,7 @@ export class FileSnapshot {
     const result = SnapshotState.adoptHistory(historyLines, versions);
 
     this.historyLines = result.historyLines;
-    this.versions = result.versions;
+    this.timeline.adopt(result.versions);
 
     if (typeof deletedTimestamp === 'number') {
       this.deletedTimestamp = deletedTimestamp;

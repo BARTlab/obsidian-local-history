@@ -74,7 +74,7 @@ describe('VersionList', () => {
   const makeSnapshot = (current: string[], versionsOldestFirst: FileVersion[]): FileSnapshot => {
     const snapshot = new FileSnapshot(current.join('\n'));
 
-    snapshot.versions = versionsOldestFirst;
+    snapshot.timeline.adopt(versionsOldestFirst);
 
     return snapshot;
   };

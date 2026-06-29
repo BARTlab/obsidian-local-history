@@ -69,16 +69,16 @@ describe('snapshot perf', () => {
     // every capture take the cadence path (editThreshold 1) and then hit the
     // isDuplicateOfLatest compare, which returns null without pushing, so the
     // timeline length is fixed while the dedup compare is measured each call.
-    const latest = snapshot.getVersions()[0];
+    const latest = snapshot.timeline.getVersions()[0];
     const duplicate = latest.lines.slice();
-    const before = snapshot.getVersions().length;
+    const before = snapshot.timeline.getVersions().length;
 
     const median = measure(label, () => {
       snapshot.captureVersion(duplicate, OPEN_CAPTURE_OPTIONS, false);
     }, 100);
 
     expect(median).toBeGreaterThan(0);
-    expect(snapshot.getVersions().length).toBe(before);
+    expect(snapshot.timeline.getVersions().length).toBe(before);
     assertWithinBaseline(label, median);
   });
 
@@ -91,7 +91,7 @@ describe('snapshot perf', () => {
     // holding the length constant across iterations while the two eviction
     // passes (age filter then count filter) run on a full-size array each call.
     const capped: SnapshotCaptureOptions = { ...OPEN_CAPTURE_OPTIONS, maxVersions: large.versions };
-    const before = snapshot.getVersions().length;
+    const before = snapshot.timeline.getVersions().length;
     const body = buildLines(large.lines);
     let counter = 0;
 
@@ -102,7 +102,7 @@ describe('snapshot perf', () => {
     }, 100);
 
     expect(median).toBeGreaterThan(0);
-    expect(snapshot.getVersions().length).toBe(before);
+    expect(snapshot.timeline.getVersions().length).toBe(before);
     assertWithinBaseline(label, median);
   });
 });

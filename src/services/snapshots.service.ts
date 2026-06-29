@@ -309,8 +309,10 @@ export class SnapshotsService implements Service {
     tombstone.changes.clear();
     tombstone.historyLines = snapshot.getHistoryOriginalStateLines();
     tombstone.updateState(snapshot.getLastStateLines());
-    tombstone.versions = snapshot.versions.map(
-      (version: FileVersion): FileVersion => FileVersion.fromJSON(version.toJSON()),
+    tombstone.timeline.adopt(
+      snapshot.timeline.getStoredVersions().map(
+        (version: FileVersion): FileVersion => FileVersion.fromJSON(version.toJSON()),
+      ),
     );
     tombstone.timestamp = snapshot.timestamp;
     tombstone.deletedTimestamp = now;
@@ -381,7 +383,7 @@ export class SnapshotsService implements Service {
       }
 
       const isTombstone: boolean = snapshot.isTombstone();
-      const hasHistory: boolean = snapshot.getChangesLinesCount() > 0 || snapshot.hasVersions();
+      const hasHistory: boolean = snapshot.getChangesLinesCount() > 0 || snapshot.timeline.hasVersions();
 
       /**
        * Tombstones are kept unconditionally; live snapshots only when they
@@ -496,7 +498,7 @@ export class SnapshotsService implements Service {
 
         existing.adoptHistory(
           persisted.getHistoryOriginalStateLines(),
-          persisted.versions,
+          [...persisted.timeline.getStoredVersions()],
           persisted.deletedTimestamp,
         );
         this.forceUpdate();

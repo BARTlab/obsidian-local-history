@@ -22,7 +22,7 @@ const seedLiveSnapshot = (service: SnapshotsService, file: TFile): FileSnapshot 
   expect(snapshot).not.toBeNull();
 
   snapshot!.updateState(['one', 'two-edited', 'three']);
-  snapshot!.versions.push(new FileVersion(['one', 'two', 'three']));
+  snapshot!.timeline.adopt([new FileVersion(['one', 'two', 'three'])]);
 
   return snapshot as FileSnapshot;
 };
@@ -75,7 +75,7 @@ describe('SnapshotsService.markMoved', () => {
     const live: FileSnapshot = seedLiveSnapshot(service, source);
     const historyBefore: string[] = live.getHistoryOriginalStateLines();
     const stateBefore: string[] = live.getLastStateLines();
-    const versionsBefore: FileVersion[] = [...live.versions];
+    const versionsBefore: FileVersion[] = [...live.timeline.getStoredVersions()];
 
     service.markMoved('src/a.md', dest);
 
@@ -86,7 +86,7 @@ describe('SnapshotsService.markMoved', () => {
     expect(typeof tombstone!.deletedTimestamp).toBe('number');
     expect(tombstone!.getHistoryOriginalStateLines()).toEqual(historyBefore);
     expect(tombstone!.getLastStateLines()).toEqual(stateBefore);
-    expect(tombstone!.versions.map((version: FileVersion): string => version.getContent('\n')))
+    expect(tombstone!.timeline.getStoredVersions().map((version: FileVersion): string => version.getContent('\n')))
       .toEqual(versionsBefore.map((version: FileVersion): string => version.getContent('\n')));
   });
 

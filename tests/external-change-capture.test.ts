@@ -108,9 +108,9 @@ describe('ExternalChangeCapture', () => {
 
       await capture.capture(file);
 
-      expect(snapshot.versions.length).toBe(1);
-      expect(snapshot.versions[0].isExternal()).toBe(true);
-      expect(snapshot.versions[0].getLines()).toEqual(['one', 'two-external', 'three']);
+      expect(snapshot.timeline.getStoredVersions().length).toBe(1);
+      expect(snapshot.timeline.getStoredVersions()[0].isExternal()).toBe(true);
+      expect(snapshot.timeline.getStoredVersions()[0].getLines()).toEqual(['one', 'two-external', 'three']);
       expect(snapshot.getLastStateLines()).toEqual(['one', 'two-external', 'three']);
       expect(forceUpdate).toHaveBeenCalledTimes(1);
     });
@@ -125,7 +125,7 @@ describe('ExternalChangeCapture', () => {
 
       await capture.capture(file);
 
-      expect(snapshot.versions.length).toBe(0);
+      expect(snapshot.timeline.getStoredVersions().length).toBe(0);
       expect(forceUpdate).not.toHaveBeenCalled();
     });
 

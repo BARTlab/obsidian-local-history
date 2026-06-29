@@ -81,7 +81,7 @@ describe('FolderDiffRenderer', () => {
   const makeSnapshot = (base: string, current: string): FileSnapshot => {
     const snapshot = new FileSnapshot(base);
 
-    snapshot.versions = [new FileVersion(base.split('\n'), 100)];
+    snapshot.timeline.adopt([new FileVersion(base.split('\n'), 100)]);
     snapshot.updateState(current.split('\n'));
 
     return snapshot;

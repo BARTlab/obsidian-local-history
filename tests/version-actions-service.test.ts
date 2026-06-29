@@ -2,10 +2,12 @@ import 'reflect-metadata';
 import { describe, expect, it, jest } from '@jest/globals';
 
 // Replace the FileSnapshot with a thin in-memory double. The service only needs
-// getOne -> snapshot.file, getLastStateLines, lineBreak, captureVersion,
-// getVersion, getVersions, removeVersion, and we want to assert the modes
-// (force/labeled) the put-label path uses without pulling lodash-es ESM into
-// the CommonJS Jest runtime.
+// getOne -> snapshot.file, getLastStateLines, lineBreak, captureVersion, and the
+// timeline sub-object (getVersion, getVersions, removeVersion), and we want to
+// assert the modes (force/labeled) the put-label path uses without pulling
+// lodash-es ESM into the CommonJS Jest runtime.
+type VersionEntry = { id: string; lines: string[]; label?: string };
+
 jest.mock('@/snapshots/file.snapshot', () => ({
   FileSnapshot: class {
     public file: unknown;
@@ -13,49 +15,53 @@ jest.mock('@/snapshots/file.snapshot', () => ({
     public state: string[] = [];
     public captured: { lines: string[]; force: boolean; label?: string }[] = [];
     public removed: string[] = [];
-    public versionsList: { id: string; lines: string[]; label?: string }[] = [];
+    public versionsList: VersionEntry[] = [];
 
-    public constructor(file: unknown, state: string[], versions: { id: string; lines: string[]; label?: string }[] = []) {
+    // The version-query surface lives on the timeline sub-object, mirroring the
+    // real FileSnapshot; captureVersion stays a facade method (below).
+    public timeline: {
+      getVersion: (id: string) => (VersionEntry & { getLines: () => string[] }) | null;
+      getVersions: () => VersionEntry[];
+      removeVersion: (id: string) => boolean;
+    };
+
+    public constructor(file: unknown, state: string[], versions: VersionEntry[] = []) {
       this.file = file;
       this.state = state;
       this.versionsList = versions;
+
+      this.timeline = {
+        getVersion: (id: string): (VersionEntry & { getLines: () => string[] }) | null => {
+          const entry = this.versionsList.find((v) => v.id === id);
+
+          if (!entry) {
+            return null;
+          }
+
+          // Return the STORED reference (augmented with getLines), mirroring the
+          // real timeline.getVersion: a caller that sets .label must persist it
+          // onto the timeline entry, which labelVersion relies on.
+          return Object.assign(entry, { getLines: (): string[] => [...entry.lines] });
+        },
+        // Mirror the real timeline: newest first.
+        getVersions: (): VersionEntry[] => [...this.versionsList].reverse(),
+        removeVersion: (id: string): boolean => {
+          const index: number = this.versionsList.findIndex((v) => v.id === id);
+
+          if (index === -1) {
+            return false;
+          }
+
+          this.versionsList.splice(index, 1);
+          this.removed.push(id);
+
+          return true;
+        },
+      };
     }
 
     public getLastStateLines(): string[] {
       return [...this.state];
-    }
-
-    public getVersion(
-      id: string,
-    ): { id: string; lines: string[]; label?: string; getLines: () => string[] } | null {
-      const entry = this.versionsList.find((v) => v.id === id);
-
-      if (!entry) {
-        return null;
-      }
-
-      // Return the STORED reference (augmented with getLines), mirroring the
-      // real FileSnapshot.getVersion: a caller that sets .label must persist it
-      // onto the timeline entry, which labelVersion relies on.
-      return Object.assign(entry, { getLines: (): string[] => [...entry.lines] });
-    }
-
-    public getVersions(): { id: string; lines: string[]; label?: string }[] {
-      // Mirror the real snapshot: newest first.
-      return [...this.versionsList].reverse();
-    }
-
-    public removeVersion(id: string): boolean {
-      const index: number = this.versionsList.findIndex((v) => v.id === id);
-
-      if (index === -1) {
-        return false;
-      }
-
-      this.versionsList.splice(index, 1);
-      this.removed.push(id);
-
-      return true;
     }
 
     public captureVersion(

@@ -70,14 +70,14 @@ describe('FileSnapshot.captureVersion: label bypasses the duplicate-skip', () =>
 
     // Sanity check: an unlabeled forced capture of the baseline is skipped.
     expect(snapshot.captureVersion(['a'], opts, true)).toBeNull();
-    expect(snapshot.hasVersions()).toBe(false);
+    expect(snapshot.timeline.hasVersions()).toBe(false);
 
     // A labeled capture of the very same content is recorded as a pinned marker.
     const captured: FileVersion | null = snapshot.captureVersion(['a'], opts, true, 'pin');
     expect(captured).not.toBeNull();
     expect(captured?.isLabeled()).toBe(true);
     expect(captured?.label).toBe('pin');
-    expect(snapshot.getVersions()).toHaveLength(1);
+    expect(snapshot.timeline.getVersions()).toHaveLength(1);
   });
 
   it('still records a labeled capture when the latest stored version has the same content', () => {
@@ -88,9 +88,9 @@ describe('FileSnapshot.captureVersion: label bypasses the duplicate-skip', () =>
     // Unlabeled duplicate is skipped, labeled duplicate is recorded.
     expect(snapshot.captureVersion(['v1'], opts)).toBeNull();
     expect(snapshot.captureVersion(['v1'], opts, false, 'tag')).not.toBeNull();
-    expect(snapshot.getVersions()).toHaveLength(2);
+    expect(snapshot.timeline.getVersions()).toHaveLength(2);
     // Newest first: the labeled one leads.
-    expect(snapshot.getVersions()[0].isLabeled()).toBe(true);
+    expect(snapshot.timeline.getVersions()[0].isLabeled()).toBe(true);
   });
 });
 
@@ -181,9 +181,9 @@ describe('FileSnapshot.evictVersions: labeled versions are pinned', () => {
     snapshot.captureVersion(['fresh'], opts);
 
     // The unlabeled stale entry is evicted; the labeled stale one survives.
-    const surviving: string[][] = snapshot.getVersions().map((v: FileVersion): string[] => v.getLines());
+    const surviving: string[][] = snapshot.timeline.getVersions().map((v: FileVersion): string[] => v.getLines());
     expect(surviving).toEqual([['fresh'], ['old-labeled']]);
-    expect(snapshot.getVersions()[1].isLabeled()).toBe(true);
+    expect(snapshot.timeline.getVersions()[1].isLabeled()).toBe(true);
   });
 
   it('keeps labeled versions beyond the maxVersions count cap', () => {
@@ -199,9 +199,9 @@ describe('FileSnapshot.evictVersions: labeled versions are pinned', () => {
     snapshot.captureVersion(['u3'], opts);
     snapshot.captureVersion(['u4'], opts);
 
-    const lines: string[][] = snapshot.getVersions().map((v: FileVersion): string[] => v.getLines());
+    const lines: string[][] = snapshot.timeline.getVersions().map((v: FileVersion): string[] => v.getLines());
     // Newest first: two unlabeled (cap = 2) plus the pinned labeled marker.
     expect(lines).toEqual([['u4'], ['u3'], ['labeled']]);
-    expect(snapshot.getVersions()[2].isLabeled()).toBe(true);
+    expect(snapshot.timeline.getVersions()[2].isLabeled()).toBe(true);
   });
 });

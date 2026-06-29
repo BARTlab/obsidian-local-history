@@ -1,18 +1,28 @@
 import { MS_PER_DAY, VERSION_KEYFRAME_INTERVAL } from '@/consts';
 import { FileVersion } from '@/snapshots/file.version';
-import type { SnapshotCaptureOptions, VersionCaptureContext, VersionCaptureResult } from '@/types';
+import type { SnapshotCaptureOptions, VersionCaptureContext } from '@/types';
 
 /**
- * Stateless operator owning the version-timeline concern extracted from
- * FileSnapshot: the capture cadence, the no-op dedup, the append, and the
- * age/count eviction. It does NOT hold the `versions` array (that stays a
- * writable façade field external code assigns and mutates); every operation
- * takes the façade's array as an explicit argument and returns the result the
- * façade writes back. The cadence counters (`editsSinceVersion`, `lastVersionAt`)
- * are the only mutable state this collaborator owns, because they are referenced
- * nowhere outside the timeline logic.
+ * Owns the version-timeline concern extracted from FileSnapshot: the `versions`
+ * array (oldest first), the capture cadence, the no-op dedup, the append, and
+ * the age/count eviction. The array and the cadence counters (`editsSinceVersion`,
+ * `lastVersionAt`) live together here; no method threads the array in as a
+ * parameter. FileSnapshot holds one instance and exposes it as the
+ * `snapshot.timeline` sub-object; callers reach version queries through it, while
+ * the façade only rewires its own composite operations (capture, adoptHistory,
+ * serialization) to read and write this owner.
  */
 export class VersionTimeline {
+  /**
+   * The intermediate versions, oldest first. Each entry is a frozen copy of the
+   * file content at the moment it was captured; the original baseline and the
+   * live state are not stored here, only the points in between. Owned outright by
+   * the timeline: reads leave through the readonly `getStoredVersions()` view and
+   * the newest-first `getVersions()` copy, writes go through capture/restore/adopt
+   * so external code can neither reassign nor splice it.
+   */
+  protected versions: FileVersion[] = [];
+
   /**
    * Number of state updates accumulated since the last captured version. Drives
    * the edit-count gate of the capture cadence so versions are taken every N
@@ -29,7 +39,7 @@ export class VersionTimeline {
   /**
    * Records that the document changed since the last captured version and, when
    * the configured cadence is met, freezes the previous state as a new
-   * intermediate version on the timeline.
+   * intermediate version on the owned timeline.
    *
    * The current (newest) state is never stored as a version: the history modal
    * always has the live state available separately. A no-op capture is skipped:
@@ -39,24 +49,23 @@ export class VersionTimeline {
    * the user-supplied tag is always recorded, and the resulting version is exempt
    * from eviction.
    *
-   * @param {VersionCaptureContext} context - The façade-owned timeline, history
-   *   baseline, line break, and cadence/retention options
+   * @param {VersionCaptureContext} context - The history baseline, line break,
+   *   and cadence/retention options
    * @param {string[]} previousLines - The content to freeze (pre-edit state)
    * @param {boolean} force - Capture regardless of the cadence gates
    * @param {string} label - Optional user-supplied tag that pins the version
-   * @return {VersionCaptureResult} The captured version (or null) and the
-   *   timeline array the façade must adopt
+   * @return {FileVersion | null} The captured version, or null when none was taken
    */
   public capture(
     context: VersionCaptureContext,
     previousLines: string[],
     force: boolean = false,
     label?: string,
-  ): VersionCaptureResult {
-    const { versions, options } = context;
+  ): FileVersion | null {
+    const { options } = context;
 
     if (!options?.enabled || !Array.isArray(previousLines)) {
-      return { version: null, versions };
+      return null;
     }
 
     const labeled: boolean = typeof label === 'string' && label.length > 0;
@@ -64,7 +73,7 @@ export class VersionTimeline {
     this.editsSinceVersion += 1;
 
     if (!force && !this.isVersionDue(options)) {
-      return { version: null, versions };
+      return null;
     }
 
     /**
@@ -74,13 +83,15 @@ export class VersionTimeline {
      * captured immediately rather than waiting out the gate again. A label
      * bypasses the dedup: an intentional marker must land even on no-op content.
      */
-    if (!labeled && this.isDuplicateOfLatest(versions, previousLines, context.historyBaseline, context.lineBreak)) {
-      return { version: null, versions };
+    if (!labeled && this.isDuplicateOfLatest(previousLines, context.historyBaseline, context.lineBreak)) {
+      return null;
     }
 
     const version: FileVersion = new FileVersion(previousLines, undefined, label);
 
-    return { version, versions: this.pushVersion(versions, version, options) };
+    this.pushVersion(version, options);
+
+    return version;
   }
 
   /**
@@ -89,20 +100,14 @@ export class VersionTimeline {
    * timeline never holds an adjacent duplicate or a first version identical to
    * the original.
    *
-   * @param {FileVersion[]} versions - The current timeline, oldest first
    * @param {string[]} lines - The candidate content to freeze
    * @param {string} historyBaseline - The empty-timeline dedup reference
    * @param {string} lineBreak - The line break used to join candidate content
    * @return {boolean} True when the candidate duplicates the latest base
    */
-  protected isDuplicateOfLatest(
-    versions: FileVersion[],
-    lines: string[],
-    historyBaseline: string,
-    lineBreak: string,
-  ): boolean {
+  protected isDuplicateOfLatest(lines: string[], historyBaseline: string, lineBreak: string): boolean {
     const candidate: string = lines.join(lineBreak);
-    const latest: FileVersion | undefined = versions[versions.length - 1];
+    const latest: FileVersion | undefined = this.versions[this.versions.length - 1];
     /**
      * The timeline belongs to the history side, so the empty-timeline reference
      * is the history baseline (the persisted original), not the marker baseline.
@@ -128,53 +133,43 @@ export class VersionTimeline {
   }
 
   /**
-   * Appends a version to the timeline, resets the cadence counters, and trims the
-   * timeline by evicting expired then excess entries. Returns the resulting array
-   * (the eviction may filter it) for the façade to store.
+   * Appends a version to the owned timeline, resets the cadence counters, and
+   * trims the timeline by evicting expired then excess entries.
    *
-   * @param {FileVersion[]} versions - The current timeline, oldest first
    * @param {FileVersion} version - The version to append
    * @param {SnapshotCaptureOptions} options - The capture cadence and retention caps
-   * @return {FileVersion[]} The timeline array after append and eviction
    */
-  protected pushVersion(
-    versions: FileVersion[],
-    version: FileVersion,
-    options: SnapshotCaptureOptions,
-  ): FileVersion[] {
-    versions.push(version);
+  protected pushVersion(version: FileVersion, options: SnapshotCaptureOptions): void {
+    this.versions.push(version);
 
     this.editsSinceVersion = 0;
     this.lastVersionAt = version.timestamp;
 
-    return this.evictVersions(versions, options);
+    this.evictVersions(options);
   }
 
   /**
-   * Trims the timeline to its retention caps, age first then count, mirroring the
-   * JetBrains Local History model where age is the primary bound and the count is
-   * a safety cap. Versions older than maxVersionAgeDays are dropped regardless of
-   * count, then any beyond maxVersions are dropped regardless of age. A cap of 0
-   * disables that dimension. Because versions are appended oldest-first, both
-   * passes evict from the front of the array.
+   * Trims the owned timeline to its retention caps, age first then count,
+   * mirroring the JetBrains Local History model where age is the primary bound
+   * and the count is a safety cap. Versions older than maxVersionAgeDays are
+   * dropped regardless of count, then any beyond maxVersions are dropped
+   * regardless of age. A cap of 0 disables that dimension. Because versions are
+   * appended oldest-first, both passes evict from the front of the array.
    *
    * Labeled versions are pinned: they are never dropped by either pass, so
    * an intentional user marker survives both the age window and the count cap.
    * The count cap counts only unlabeled entries, so a labeled version does not
    * push an unlabeled one out either.
    *
-   * @param {FileVersion[]} versions - The timeline to trim, oldest first
    * @param {SnapshotCaptureOptions} options - The retention caps to apply
-   * @return {FileVersion[]} The timeline array after eviction
    */
-  protected evictVersions(versions: FileVersion[], options: SnapshotCaptureOptions): FileVersion[] {
-    let result: FileVersion[] = versions;
+  protected evictVersions(options: SnapshotCaptureOptions): void {
     const maxAgeDays: number = options?.maxVersionAgeDays;
 
     if (typeof maxAgeDays === 'number' && maxAgeDays > 0) {
       const oldest: number = Date.now() - (maxAgeDays * MS_PER_DAY);
 
-      result = result.filter(
+      this.versions = this.versions.filter(
         (version: FileVersion): boolean => version.isLabeled() || version.timestamp >= oldest,
       );
     }
@@ -182,7 +177,7 @@ export class VersionTimeline {
     const maxVersions: number = options?.maxVersions;
 
     if (typeof maxVersions === 'number' && maxVersions > 0) {
-      const unlabeled: number = result.reduce(
+      const unlabeled: number = this.versions.reduce(
         (count: number, version: FileVersion): number => count + (version.isLabeled() ? 0 : 1),
         0,
       );
@@ -190,7 +185,7 @@ export class VersionTimeline {
       let toDrop: number = unlabeled - maxVersions;
 
       if (toDrop > 0) {
-        result = result.filter((version: FileVersion): boolean => {
+        this.versions = this.versions.filter((version: FileVersion): boolean => {
           if (toDrop <= 0 || version.isLabeled()) {
             return true;
           }
@@ -201,85 +196,116 @@ export class VersionTimeline {
         });
       }
     }
-
-    return result;
   }
 
   /**
    * Returns the intermediate versions, newest first, as a copy so callers cannot
-   * mutate the timeline.
+   * mutate the owned timeline.
    *
-   * @param {FileVersion[]} versions - The timeline, oldest first
    * @return {FileVersion[]} The timeline versions, newest first
    */
-  public getVersions(versions: FileVersion[]): FileVersion[] {
-    return [...versions].reverse();
+  public getVersions(): FileVersion[] {
+    return [...this.versions].reverse();
+  }
+
+  /**
+   * Returns the owned timeline in stored (oldest-first) order as a readonly live
+   * view. Distinct from getVersions() (a newest-first copy the UI rails consume):
+   * the serializer, the folder timeline, and the folder delta read the versions
+   * in capture order without paying for a reversal, while the readonly type keeps
+   * them from mutating the owner's array.
+   *
+   * @return {readonly FileVersion[]} The stored versions, oldest first
+   */
+  public getStoredVersions(): readonly FileVersion[] {
+    return this.versions;
   }
 
   /**
    * Finds an intermediate version by its id.
    *
-   * @param {FileVersion[]} versions - The timeline to search
    * @param {string} id - The version id to look up
    * @return {FileVersion | null} The matching version, or null if absent
    */
-  public getVersion(versions: FileVersion[], id: string): FileVersion | null {
-    return versions.find((version: FileVersion): boolean => version.id === id) ?? null;
+  public getVersion(id: string): FileVersion | null {
+    return this.versions.find((version: FileVersion): boolean => version.id === id) ?? null;
   }
 
   /**
-   * Removes a single intermediate version from the timeline by its id in place,
-   * leaving every other version untouched. Used by the history modal to prune one
-   * captured point without wiping the whole timeline.
+   * Removes a single intermediate version from the owned timeline by its id in
+   * place, leaving every other version untouched. Used by the history modal to
+   * prune one captured point without wiping the whole timeline.
    *
-   * @param {FileVersion[]} versions - The timeline to mutate, oldest first
    * @param {string} id - The id of the version to remove
    * @return {boolean} True if a version was removed, false if no id matched
    */
-  public removeVersion(versions: FileVersion[], id: string): boolean {
-    const index: number = versions.findIndex((version: FileVersion): boolean => version.id === id);
+  public removeVersion(id: string): boolean {
+    const index: number = this.versions.findIndex((version: FileVersion): boolean => version.id === id);
 
     if (index === -1) {
       return false;
     }
 
-    versions.splice(index, 1);
+    this.versions.splice(index, 1);
 
     return true;
   }
 
   /**
-   * Whether the timeline has any intermediate versions.
+   * Whether the owned timeline has any intermediate versions.
    *
-   * @param {FileVersion[]} versions - The timeline to inspect
    * @return {boolean} True when at least one version exists
    */
-  public hasVersions(versions: FileVersion[]): boolean {
-    return versions.length > 0;
+  public hasVersions(): boolean {
+    return this.versions.length > 0;
   }
 
   /**
-   * Seeds the time-gate counter on restore so the cadence is continuous across
-   * restarts. Without this the constructor-seeded `lastVersionAt`
-   * (set to `Date.now()` at restore time) would reset the time gate on every
-   * launch, so a file that already had a version captured an hour before the
-   * restart would not be eligible for the next time-gated capture until the
-   * full interval elapsed again.
+   * Restores a persisted timeline: adopts the decoded versions as the owned array
+   * and seeds both cadence gates from them so the capture cadence is continuous
+   * across a restart (the time gate from the newest version's timestamp, the edit
+   * gate from the current keyframe group). Used by FileSnapshot.fromJSON.
    *
-   * The seed is derived from the newest version's timestamp (the value the
-   * gate normally tracks after a capture). When the timeline is empty there is
-   * no prior capture to anchor against, so the constructor default stays in
-   * place. Only timestamps that strictly precede the current default are
-   * accepted, so a corrupt future-dated entry cannot push the gate forward.
-   *
-   * @param {FileVersion[]} versions - The restored timeline, oldest first
+   * @param {FileVersion[]} versions - The decoded timeline, oldest first
    */
-  public seedLastVersionAtFromVersions(versions: FileVersion[]): void {
-    if (!Array.isArray(versions) || versions.length === 0) {
+  public restore(versions: FileVersion[]): void {
+    this.versions = versions;
+    this.seedLastVersionAt();
+    this.seedEditsSinceVersion();
+  }
+
+  /**
+   * Replaces the owned timeline with an externally-provided array without
+   * touching the cadence gates. Used by FileSnapshot.adoptHistory (restore path)
+   * and the tombstone builder, which hand over an already-copied timeline and
+   * must not disturb the capture cadence the way a fresh restore does.
+   *
+   * @param {FileVersion[]} versions - The timeline to adopt, oldest first
+   */
+  public adopt(versions: FileVersion[]): void {
+    this.versions = versions;
+  }
+
+  /**
+   * Seeds the time-gate counter from the owned versions on restore so the cadence
+   * is continuous across restarts. Without this the constructor-seeded
+   * `lastVersionAt` (set to `Date.now()` at restore time) would reset the time
+   * gate on every launch, so a file that already had a version captured an hour
+   * before the restart would not be eligible for the next time-gated capture until
+   * the full interval elapsed again.
+   *
+   * The seed is derived from the newest version's timestamp (the value the gate
+   * normally tracks after a capture). When the timeline is empty there is no prior
+   * capture to anchor against, so the constructor default stays in place. Only
+   * timestamps that strictly precede the current default are accepted, so a
+   * corrupt future-dated entry cannot push the gate forward.
+   */
+  protected seedLastVersionAt(): void {
+    if (this.versions.length === 0) {
       return;
     }
 
-    const newest: FileVersion = versions[versions.length - 1];
+    const newest: FileVersion = this.versions[this.versions.length - 1];
     const timestamp: number = newest?.timestamp;
 
     if (typeof timestamp !== 'number' || timestamp >= this.lastVersionAt) {
@@ -290,33 +316,31 @@ export class VersionTimeline {
   }
 
   /**
-   * Seeds the edit-count gate on restore so the capture cadence is not
-   * artificially reset to 0 on every restart (A5). Without this, a file with
-   * an existing timeline always restarts with `editsSinceVersion = 0`,
+   * Seeds the edit-count gate from the owned versions on restore so the capture
+   * cadence is not artificially reset to 0 on every restart (A5). Without this, a
+   * file with an existing timeline always restarts with `editsSinceVersion = 0`,
    * effectively delaying the first post-restore version capture by a full
-   * `editThreshold` count even though several versions may already have been
-   * taken in the current keyframe group.
+   * `editThreshold` count even though several versions may already have been taken
+   * in the current keyframe group.
    *
    * The seed is derived from the number of persisted versions in the current
-   * keyframe group: `versions.length % VERSION_KEYFRAME_INTERVAL`. A group
-   * starts at index 0, 25, 50, etc. (one full keyframe interval apart), so
-   * a timeline of N versions has accumulated N % 25 entries since the most
-   * recent keyframe boundary. When the timeline is empty or the length is an
-   * exact multiple of the interval (i.e., the last version IS a keyframe),
-   * the count is 0 and the gate is not advanced.
+   * keyframe group: `versions.length % VERSION_KEYFRAME_INTERVAL`. A group starts
+   * at index 0, 25, 50, etc. (one full keyframe interval apart), so a timeline of
+   * N versions has accumulated N % 25 entries since the most recent keyframe
+   * boundary. When the timeline is empty or the length is an exact multiple of the
+   * interval (i.e., the last version IS a keyframe), the count is 0 and the gate is
+   * not advanced.
    *
    * The seeded value is the maximum of the computed count and any existing
-   * `editsSinceVersion` so a future call cannot deflate a counter that was
-   * already advanced by a capture since object creation.
-   *
-   * @param {FileVersion[]} versions - The restored timeline, oldest first
+   * `editsSinceVersion` so a future call cannot deflate a counter that was already
+   * advanced by a capture since object creation.
    */
-  public seedEditsSinceVersionFromVersions(versions: FileVersion[]): void {
-    if (!Array.isArray(versions) || versions.length === 0) {
+  protected seedEditsSinceVersion(): void {
+    if (this.versions.length === 0) {
       return;
     }
 
-    const count: number = versions.length % VERSION_KEYFRAME_INTERVAL;
+    const count: number = this.versions.length % VERSION_KEYFRAME_INTERVAL;
 
     if (count === 0) {
       return;

@@ -450,7 +450,7 @@ export class HistoryModal extends Modal {
    * @return {string} The initial selected base id
    */
   protected getInitialBaseId(): string {
-    const versions: FileVersion[] = this.snapshot.getVersions();
+    const versions: FileVersion[] = this.snapshot.timeline.getVersions();
     const requested: string | undefined = this.options.initialBaseId;
 
     if (requested && versions.some((version: FileVersion): boolean => version.id === requested)) {

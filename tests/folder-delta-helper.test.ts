@@ -25,9 +25,9 @@ const makeLiveSnapshot = (params: {
 
   snapshot.timestamp = params.createdAt;
   snapshot.historyLines = [...history];
-  snapshot.versions = (params.versions ?? []).map(
+  snapshot.timeline.adopt((params.versions ?? []).map(
     (entry: { timestamp: number; lines: string[] }): FileVersion => new FileVersion(entry.lines, entry.timestamp),
-  );
+  ));
   snapshot.updateState(params.state ?? history);
 
   return snapshot;
@@ -507,7 +507,7 @@ describe('FolderDeltaHelper.compareAt - returned content is detached', () => {
     result.base.push('tampered');
     result.current.push('tampered');
 
-    expect(snapshot.versions[0].getLines()).toEqual(['original']);
+    expect(snapshot.timeline.getStoredVersions()[0].getLines()).toEqual(['original']);
     expect(snapshot.state).toEqual(['live']);
   });
 

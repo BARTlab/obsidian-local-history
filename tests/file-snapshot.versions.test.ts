@@ -301,7 +301,7 @@ describe('FileSnapshot timeline persistence round-trip', () => {
     // neither is skipped by the no-op dedup guard.
     snapshot.captureVersion(['a', 'b1'], opts);
     snapshot.captureVersion(['a', 'B'], opts);
-    snapshot.updateState(['a', 'B2']);
+    snapshot.content.updateState(['a', 'B2']);
 
     const json = snapshot.toJSON();
     expect(json.versions).toHaveLength(2);

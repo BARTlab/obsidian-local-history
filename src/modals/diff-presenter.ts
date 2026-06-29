@@ -131,10 +131,10 @@ export class DiffPresenter {
     return BaseContentHelper.resolve(this.host.viewState.selectedBaseId, ORIGINAL_BASE_ID, {
       versions: this.host.snapshot.timeline
         .getVersions()
-        .map((version: FileVersion): string => version.getContent(this.host.snapshot.lineBreak)),
-      original: this.host.snapshot.getHistoryOriginalState(),
+        .map((version: FileVersion): string => version.getContent(this.host.snapshot.content.lineBreak)),
+      original: this.host.snapshot.content.getHistoryOriginalState(),
       versionContent: (id: string): string | null =>
-        this.host.snapshot.timeline.getVersion(id)?.getContent(this.host.snapshot.lineBreak) ?? null,
+        this.host.snapshot.timeline.getVersion(id)?.getContent(this.host.snapshot.content.lineBreak) ?? null,
     });
   }
 
@@ -146,7 +146,7 @@ export class DiffPresenter {
    * @return {boolean} True when base and current content are equal
    */
   public isBaseSameCurrent(): boolean {
-    return this.getBaseContent() === this.host.snapshot.getLastState();
+    return this.getBaseContent() === this.host.snapshot.content.getLastState();
   }
 
   /**
@@ -159,9 +159,9 @@ export class DiffPresenter {
    */
   public getHunks(): Diff.StructuredPatchHunk[] {
     return HunkHelper.diff(
-      this.getBaseContent().split(this.host.snapshot.lineBreak),
-      this.host.snapshot.getLastStateLines(),
-      this.host.snapshot.lineBreak,
+      this.getBaseContent().split(this.host.snapshot.content.lineBreak),
+      this.host.snapshot.content.getLastStateLines(),
+      this.host.snapshot.content.lineBreak,
     );
   }
 
@@ -180,9 +180,9 @@ export class DiffPresenter {
     }
 
     DiffRenderHelper.render({
-      baseLines: this.getBaseContent().split(this.host.snapshot.lineBreak),
-      currentLines: this.host.snapshot.getLastStateLines(),
-      lineBreak: this.host.snapshot.lineBreak,
+      baseLines: this.getBaseContent().split(this.host.snapshot.content.lineBreak),
+      currentLines: this.host.snapshot.content.getLastStateLines(),
+      lineBreak: this.host.snapshot.content.lineBreak,
       mode,
       container,
       filePath: this.host.snapshot?.file?.path ?? '',

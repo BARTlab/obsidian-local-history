@@ -148,7 +148,7 @@ export class ModalsService implements Service {
 
     const matched: Set<string> = SelectionHistoryHelper.match(
       selectable,
-      snapshot.getHistoryOriginalStateLines(),
+      snapshot.content.getHistoryOriginalStateLines(),
       needle,
     );
 

@@ -82,7 +82,7 @@ describe('FolderDiffRenderer', () => {
     const snapshot = new FileSnapshot(base);
 
     snapshot.timeline.adopt([new FileVersion(base.split('\n'), 100)]);
-    snapshot.updateState(current.split('\n'));
+    snapshot.content.updateState(current.split('\n'));
 
     return snapshot;
   };

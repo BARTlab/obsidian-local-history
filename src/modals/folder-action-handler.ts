@@ -171,9 +171,10 @@ export class FolderActionHandler {
        * so the tracker and the cached state stay in sync after the write.
        */
       const baseLines: string[] = selection.result.base;
-      const currentLines: string[] = selection.snapshot.getLastStateLines();
+      const currentLines: string[] = selection.snapshot.content.getLastStateLines();
+      const lineBreak: string = selection.snapshot.content.lineBreak;
 
-      if (baseLines.join(selection.snapshot.lineBreak) !== currentLines.join(selection.snapshot.lineBreak)) {
+      if (baseLines.join(lineBreak) !== currentLines.join(lineBreak)) {
         await this.host.snapshotsService.applyContent(file, baseLines, {
           start: 0,
           removeCount: currentLines.length,
@@ -205,7 +206,7 @@ export class FolderActionHandler {
     snapshot: FileSnapshot,
     result: FolderDeltaResult,
   ): Promise<void> {
-    const content: string = result.base.join(snapshot.lineBreak);
+    const content: string = result.base.join(snapshot.content.lineBreak);
 
     // A deleted file's old path may now be occupied by a different file
     // (recreated or renamed since deletion). `vault.create` throws on an
@@ -223,7 +224,7 @@ export class FolderActionHandler {
 
       snapshot.file = created;
       snapshot.deletedTimestamp = undefined;
-      snapshot.updateState(result.base);
+      snapshot.content.updateState(result.base);
       snapshot.updateChanges();
       this.host.snapshotsService.forceUpdate();
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -353,7 +354,7 @@ export class FolderActionHandler {
     }
 
     try {
-      const originalContent: string = selection.snapshot.getHistoryOriginalState();
+      const originalContent: string = selection.snapshot.content.getHistoryOriginalState();
 
       await this.host.app.vault.modify(file, originalContent);
       this.host.snapshotsService.wipeOne(file);

@@ -79,14 +79,14 @@ describe('SnapshotsService.captureExternalChange', () => {
 
     const before: FileSnapshot = service.getOne(file) as FileSnapshot;
     const versionsBefore: number = before.timeline.getStoredVersions().length;
-    const stateBefore: string[] = before.getLastStateLines();
+    const stateBefore: string[] = before.content.getLastStateLines();
 
     await service.captureExternalChange(file);
 
     const after: FileSnapshot = service.getOne(file) as FileSnapshot;
 
     expect(after.timeline.getStoredVersions().length).toBe(versionsBefore);
-    expect(after.getLastStateLines()).toEqual(stateBefore);
+    expect(after.content.getLastStateLines()).toEqual(stateBefore);
   });
 
   it('force-captures the new content with external=true on a hash divergence', async () => {
@@ -105,7 +105,7 @@ describe('SnapshotsService.captureExternalChange', () => {
 
     expect(captured.isExternal()).toBe(true);
     expect(captured.getLines()).toEqual(['one', 'two-external', 'three']);
-    expect(after.getLastStateLines()).toEqual(['one', 'two-external', 'three']);
+    expect(after.content.getLastStateLines()).toEqual(['one', 'two-external', 'three']);
 
     // A follow-up call with the same disk content is now a hash-match no-op:
     // updateState rewrote lastHash to the captured content, so the next pass
@@ -147,7 +147,7 @@ describe('SnapshotsService.captureExternalChange', () => {
     const snapshot: FileSnapshot | null = service.getOne(file);
 
     expect(snapshot).not.toBeNull();
-    expect(snapshot!.getOriginalStateLines()).toEqual(['fresh content', 'line two']);
+    expect(snapshot!.content.getOriginalStateLines()).toEqual(['fresh content', 'line two']);
     // No external version is recorded on first sight: there is no prior state
     // to diff against, so flagging the very first capture would be wrong.
     expect(snapshot!.timeline.getStoredVersions().length).toBe(0);
@@ -193,7 +193,7 @@ describe('SnapshotsService.captureExternalChange', () => {
 
     // State stays at the original capture; ignore-list short-circuits external.
     expect(snapshot.timeline.getStoredVersions().length).toBe(0);
-    expect(snapshot.getLastStateLines()).toEqual(['one']);
+    expect(snapshot.content.getLastStateLines()).toEqual(['one']);
   });
 
   it('is a no-op for a tombstone entry', async () => {
@@ -332,7 +332,7 @@ describe('SnapshotsService.captureExternalChange', () => {
 
     expect(snapshot.timeline.getStoredVersions().length).toBe(1);
     expect(snapshot.timeline.getStoredVersions()[0].isExternal()).toBe(true);
-    expect(snapshot.getLastStateLines()).toEqual(['alpha-external', 'beta']);
+    expect(snapshot.content.getLastStateLines()).toEqual(['alpha-external', 'beta']);
   });
 
   it('falls through when the file has no usable stat block', async () => {
@@ -369,7 +369,7 @@ describe('SnapshotsService.captureExternalChange', () => {
     // Use the production hash so the pre-filter genuinely matches: this
     // simulates the collision deterministically without depending on a known
     // 32-bit input pair.
-    snapshot.lastHash = TextHelper.hash(colliding);
+    snapshot.content.lastHash = TextHelper.hash(colliding);
     vault[file.path] = colliding;
 
     await service.captureExternalChange(file);
@@ -379,7 +379,7 @@ describe('SnapshotsService.captureExternalChange', () => {
     expect(after.timeline.getStoredVersions().length).toBe(1);
     expect(after.timeline.getStoredVersions()[0].isExternal()).toBe(true);
     expect(after.timeline.getStoredVersions()[0].getLines()).toEqual(['three', 'four']);
-    expect(after.getLastStateLines()).toEqual(['three', 'four']);
+    expect(after.content.getLastStateLines()).toEqual(['three', 'four']);
   });
 
   it('stays a no-op when the hash matches AND the content actually matches', async () => {
@@ -399,7 +399,7 @@ describe('SnapshotsService.captureExternalChange', () => {
     const after: FileSnapshot = service.getOne(file) as FileSnapshot;
 
     expect(after.timeline.getStoredVersions().length).toBe(versionsBefore);
-    expect(after.getLastStateLines()).toEqual(['one', 'two', 'three']);
+    expect(after.content.getLastStateLines()).toEqual(['one', 'two', 'three']);
   });
 });
 

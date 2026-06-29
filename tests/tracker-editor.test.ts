@@ -28,7 +28,7 @@ const lastLineIndex = (snapshot: FileSnapshot): number =>
     .map((line): number => line.currentPosition));
 
 const changeKeys = (snapshot: FileSnapshot): number[] =>
-  [...snapshot.getChanges().keys()]
+  [...snapshot.content.getChanges().keys()]
     .filter((key): key is number => typeof key === 'number')
     .sort((a: number, b: number): number => a - b);
 
@@ -40,7 +40,7 @@ describe('TrackerEditor removed-anchor clamping', () => {
     // The user types three lines, fully replacing the empty original. This is a
     // 1-line block replaced by 3 lines, i.e. delete + insert.
     snapshot.trackers.replaceBlock(0, 1, ['A', 'B', 'C']);
-    snapshot.updateState(['A', 'B', 'C']);
+    snapshot.content.updateState(['A', 'B', 'C']);
     snapshot.updateChanges();
 
     // No removed anchor may sit past the last real line (index 2 here).
@@ -62,7 +62,7 @@ describe('TrackerEditor removed-anchor clamping', () => {
     const snapshot = new FileSnapshot('');
 
     snapshot.trackers.replaceBlock(0, 1, ['A', 'B', 'C']);
-    snapshot.updateState(['A', 'B', 'C']);
+    snapshot.content.updateState(['A', 'B', 'C']);
     snapshot.updateChanges();
 
     // Delete the lines one by one from the top (line 0), mirroring repeated Del.
@@ -70,7 +70,7 @@ describe('TrackerEditor removed-anchor clamping', () => {
 
     states.forEach((state: string[]): void => {
       snapshot.trackers.removeTrackerOrLine(0);
-      snapshot.updateState(state.length ? state : ['']);
+      snapshot.content.updateState(state.length ? state : ['']);
       snapshot.updateChanges();
 
       const last: number = lastLineIndex(snapshot);
@@ -92,7 +92,7 @@ describe('TrackerEditor removed-anchor clamping', () => {
     const snapshot = new FileSnapshot('o1\no2\no3\no4\no5');
 
     snapshot.trackers.replaceBlock(0, 5, ['Z']);
-    snapshot.updateState(['Z']);
+    snapshot.content.updateState(['Z']);
     snapshot.updateChanges();
 
     // Only "Z" survives, at index 0. No removed anchor may exceed it.
@@ -114,14 +114,14 @@ describe('TrackerEditor removed-anchor clamping', () => {
 
     // Replace the interior block b, c with X, Y, Z -> a, X, Y, Z, d.
     snapshot.trackers.replaceBlock(1, 2, ['X', 'Y', 'Z']);
-    snapshot.updateState(['a', 'X', 'Y', 'Z', 'd']);
+    snapshot.content.updateState(['a', 'X', 'Y', 'Z', 'd']);
     snapshot.updateChanges();
 
     // b and c are removed; their anchor stays on the surviving "d" (index 4),
     // which is a real line, so this path is unchanged by the clamp.
     const last: number = lastLineIndex(snapshot);
 
-    expect(snapshot.getChanges(ChangeType.removed).size).toBeGreaterThan(0);
+    expect(snapshot.content.getChanges(ChangeType.removed).size).toBeGreaterThan(0);
 
     removedAnchors(snapshot).forEach((anchor: number): void => {
       expect(anchor).toBeLessThanOrEqual(last);

@@ -62,7 +62,7 @@ export class SessionStatusHelper {
       return FolderDeltaStatus.added;
     }
 
-    if (snapshot.getChangesLinesCount() > 0) {
+    if (snapshot.content.getChangesLinesCount() > 0) {
       return FolderDeltaStatus.modified;
     }
 

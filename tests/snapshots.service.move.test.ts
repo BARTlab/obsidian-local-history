@@ -21,7 +21,7 @@ const seedLiveSnapshot = (service: SnapshotsService, file: TFile): FileSnapshot 
 
   expect(snapshot).not.toBeNull();
 
-  snapshot!.updateState(['one', 'two-edited', 'three']);
+  snapshot!.content.updateState(['one', 'two-edited', 'three']);
   snapshot!.timeline.adopt([new FileVersion(['one', 'two', 'three'])]);
 
   return snapshot as FileSnapshot;
@@ -73,8 +73,8 @@ describe('SnapshotsService.markMoved', () => {
     const dest = makeFile('dst/a.md');
 
     const live: FileSnapshot = seedLiveSnapshot(service, source);
-    const historyBefore: string[] = live.getHistoryOriginalStateLines();
-    const stateBefore: string[] = live.getLastStateLines();
+    const historyBefore: string[] = live.content.getHistoryOriginalStateLines();
+    const stateBefore: string[] = live.content.getLastStateLines();
     const versionsBefore: FileVersion[] = [...live.timeline.getStoredVersions()];
 
     service.markMoved('src/a.md', dest);
@@ -84,8 +84,8 @@ describe('SnapshotsService.markMoved', () => {
     expect(tombstone).not.toBeNull();
     expect(tombstone!.isTombstone()).toBe(true);
     expect(typeof tombstone!.deletedTimestamp).toBe('number');
-    expect(tombstone!.getHistoryOriginalStateLines()).toEqual(historyBefore);
-    expect(tombstone!.getLastStateLines()).toEqual(stateBefore);
+    expect(tombstone!.content.getHistoryOriginalStateLines()).toEqual(historyBefore);
+    expect(tombstone!.content.getLastStateLines()).toEqual(stateBefore);
     expect(tombstone!.timeline.getStoredVersions().map((version: FileVersion): string => version.getContent('\n')))
       .toEqual(versionsBefore.map((version: FileVersion): string => version.getContent('\n')));
   });
@@ -101,9 +101,9 @@ describe('SnapshotsService.markMoved', () => {
 
     const tombstone: FileSnapshot = service.getOne(source) as FileSnapshot;
 
-    expect(tombstone.lines).toEqual([]);
+    expect(tombstone.content.lines).toEqual([]);
     expect(tombstone.trackers.getTrackerLines()).toEqual([]);
-    expect(tombstone.getChangesLinesCount()).toBe(0);
+    expect(tombstone.content.getChangesLinesCount()).toBe(0);
   });
 
   it('getList returns both records and only the destination is live', () => {

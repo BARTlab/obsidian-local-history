@@ -155,7 +155,7 @@ export class FolderDiffRenderer {
     DiffRenderHelper.render({
       baseLines: result.base,
       currentLines: result.current,
-      lineBreak: snapshot?.lineBreak ?? DEFAULT_LINE_BREAK,
+      lineBreak: snapshot?.content.lineBreak ?? DEFAULT_LINE_BREAK,
       mode: this.host.displayMode(),
       container: diffContainerEl,
       filePath: path ?? '',

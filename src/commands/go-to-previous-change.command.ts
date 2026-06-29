@@ -45,7 +45,7 @@ export class GoToPreviousChangeCommand extends BaseCommand implements Command {
    */
   public editorCallback = (editor: Editor): void => {
     const snapshot: FileSnapshot | null = this.snapshotsService.getOne();
-    const positions: number[] = snapshot?.getChangedPositions(this.settingsService.getEnabledTypes()) ?? [];
+    const positions: number[] = snapshot?.content.getChangedPositions(this.settingsService.getEnabledTypes()) ?? [];
 
     if (positions.length === 0) {
       new Notice(this.plugin.t('notice.no-changes-to-navigate'));

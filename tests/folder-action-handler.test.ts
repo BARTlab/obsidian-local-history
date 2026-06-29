@@ -103,7 +103,7 @@ describe('FolderActionHandler', () => {
   const liveSelection = (base: string = 'one', current: string = 'one-changed'): FolderActionSelection => {
     const snapshot = new FileSnapshot(base);
 
-    snapshot.updateState(current.split('\n'));
+    snapshot.content.updateState(current.split('\n'));
     snapshot.file = makeFile('a.md');
 
     const result: FolderDeltaResult = {

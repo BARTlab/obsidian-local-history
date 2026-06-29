@@ -46,7 +46,7 @@ export class FolderDeltaHelper {
 
     const existedAtT: boolean = FolderDeltaHelper.existedAtT(snapshot, timestamp);
     const existsNow: boolean = !snapshot.isTombstone();
-    const current: string[] = existsNow ? [...(snapshot.state ?? [])] : [];
+    const current: string[] = existsNow ? [...(snapshot.content.state ?? [])] : [];
 
     /**
      * The file is gone now and was already gone at T: there is nothing to show
@@ -197,10 +197,10 @@ export class FolderDeltaHelper {
       const lastChanged: number = snapshot.getLastChangedTimestamp();
 
       if (typeof lastChanged === 'number' && timestamp >= lastChanged) {
-        return snapshot.getLastStateLines();
+        return snapshot.content.getLastStateLines();
       }
 
-      return Array.isArray(snapshot.historyLines) ? [...snapshot.historyLines] : [];
+      return Array.isArray(snapshot.content.historyLines) ? [...snapshot.content.historyLines] : [];
     }
 
     for (let i: number = versions.length - 1; i >= 0; i -= 1) {
@@ -216,7 +216,7 @@ export class FolderDeltaHelper {
      * the file's earliest known content from the modal's point of view (see
      * FileSnapshot.adoptHistory on the marker vs. history baseline split).
      */
-    return Array.isArray(snapshot.historyLines) ? [...snapshot.historyLines] : [];
+    return Array.isArray(snapshot.content.historyLines) ? [...snapshot.content.historyLines] : [];
   }
 
   /**

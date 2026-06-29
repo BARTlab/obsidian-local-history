@@ -130,12 +130,12 @@ export class VersionList {
     const visibleIds: Set<string> = VersionSearchHelper.match(
       versions.map((version: FileVersion): SearchableVersion => ({
         id: version.id,
-        content: version.getContent(snapshot.lineBreak),
+        content: version.getContent(snapshot.content.lineBreak),
       })),
       this.host.searchQuery(),
     );
 
-    const currentContent: string = snapshot.getLastState();
+    const currentContent: string = snapshot.content.getLastState();
 
     const selectionIds: ReadonlySet<string> | undefined = this.host.selectionFilterIds();
 
@@ -154,7 +154,7 @@ export class VersionList {
         return false;
       }
 
-      return !this.host.hideIdenticalVersions() || version.getContent(snapshot.lineBreak) !== currentContent;
+      return !this.host.hideIdenticalVersions() || version.getContent(snapshot.content.lineBreak) !== currentContent;
     });
   }
 
@@ -258,7 +258,9 @@ export class VersionList {
    * @return {VersionDescription} The action kind plus the added/removed counts
    */
   public describe(version: FileVersion, versions: FileVersion[]): VersionDescription {
-    return VersionLabelHelper.walkNeighbour(version, versions, this.host.snapshot.getHistoryOriginalStateLines());
+    const historyLines: string[] = this.host.snapshot.content.getHistoryOriginalStateLines();
+
+    return VersionLabelHelper.walkNeighbour(version, versions, historyLines);
   }
 
   /**

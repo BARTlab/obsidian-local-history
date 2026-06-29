@@ -157,7 +157,7 @@ export class GutterRevertHandler {
       snapshotsService: this.host.snapshotsService,
       plugin: this.host.plugin,
       file,
-      currentLines: snapshot.getLastStateLines(),
+      currentLines: snapshot.content.getLastStateLines(),
       hunk,
       cancelText: this.host.plugin.t('modal.confirm.cancel'),
     });

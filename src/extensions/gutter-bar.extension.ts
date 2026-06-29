@@ -55,14 +55,14 @@ export class GutterBarExtension extends BaseExtension implements GutterConfig {
   public markers = (view: EditorView): RangeSet<BarMarker> => {
     const enable: ChangeType[] = this.settingsService.getEnabledTypes();
     const snapshot: FileSnapshot | null = this.snapshotsService.getOne();
-    const changes: ArrayMap<ChangeLine> | null = snapshot?.getChanges(enable) ?? null;
+    const changes: ArrayMap<ChangeLine> | null = snapshot?.content.getChanges(enable) ?? null;
     const builder = new RangeSetBuilder<BarMarker>();
 
     if (!this.isTypeLine() || !snapshot || !changes?.size) {
       return builder.finish();
     }
 
-    for (const pos of snapshot.getChangedPositions(enable)) {
+    for (const pos of snapshot.content.getChangedPositions(enable)) {
       if (pos >= view.state.doc.lines) {
         continue;
       }

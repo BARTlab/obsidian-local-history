@@ -274,7 +274,7 @@ export class HistoryModal extends Modal {
     }
 
     try {
-      const originalContent: string = this.snapshot.getHistoryOriginalState();
+      const originalContent: string = this.snapshot.content.getHistoryOriginalState();
       // snapshot.file is non-null when the snapshot was opened from a live file
       const file: TFile | null | undefined = this.snapshot.file;
 
@@ -321,8 +321,8 @@ export class HistoryModal extends Modal {
     if (this.viewState.selectedBaseId !== ORIGINAL_BASE_ID) {
       await this.versionActionsService.restoreSelected(file, this.viewState.selectedBaseId);
     } else {
-      const baseLines: string[] = this.diffPresenter.getBaseContent().split(this.snapshot.lineBreak);
-      const currentLines: string[] = this.snapshot.getLastStateLines();
+      const baseLines: string[] = this.diffPresenter.getBaseContent().split(this.snapshot.content.lineBreak);
+      const currentLines: string[] = this.snapshot.content.getLastStateLines();
 
       await this.snapshotsService.applyContent(file, baseLines, {
         start: 0,

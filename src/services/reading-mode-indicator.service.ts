@@ -265,7 +265,7 @@ export class ReadingModeIndicatorService implements Service {
     let bestPriority: number = TYPE_PRIORITY.length;
 
     for (let line = lineStart; line <= lineEnd; line++) {
-      const changeLine = snapshot.getChanges().get(line);
+      const changeLine = snapshot.content.getChanges().get(line);
 
       if (!changeLine) {
         continue;

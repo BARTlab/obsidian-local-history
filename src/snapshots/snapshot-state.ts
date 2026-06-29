@@ -3,163 +3,196 @@ import { TextHelper } from '@/helpers/text.helper';
 import { ChangeLine } from '@/lines/change.line';
 import type { TrackerLine } from '@/lines/tracker.line';
 import { ArrayMap } from '@/maps/array.map';
-import type { FileVersion } from '@/snapshots/file.version';
-import type { AdoptHistoryResult, UpdateStateResult } from '@/types';
 
 /**
- * Stateless operator owning the content/baselines/changes concern extracted from
- * FileSnapshot: the current state and its hash, the marker and history baselines,
- * the no-op/original-state queries, and the change-map recompute from the ordered
- * tracker. It does NOT hold the `state`/`lines`/`historyLines`/`changes`/`lastHash`
- * fields (those stay writable façade properties external code assigns and
- * mutates); every operation takes the façade's data as explicit arguments and
- * returns the result the façade writes back. The tracker is passed in by the
- * façade (sourced from TrackerEditor's getTracker): this collaborator neither
- * owns nor invalidates the tracker.
+ * Owns the content/baselines/changes concern FileSnapshot exposes as
+ * `snapshot.content`: the marker baseline (`lines`), the history baseline
+ * (`historyLines`), the current state (`state`) and its hash (`lastHash`), the
+ * change map (`changes`), and the line break used to join and split them. The
+ * fields live here, not on the façade, so no operation threads them in as a
+ * parameter and callers cannot pass mismatched arrays. Callers reach the
+ * state/baseline/change queries through this sub-object; the façade only rewires
+ * its own composite operations (construction, serialization, marker-baseline
+ * reset, change-map refresh, history adoption) to read and write this owner.
  */
 export class SnapshotState {
   /**
-   * Normalizes new content into a state line array and computes its hash. The
-   * façade assigns the returned `state` and `lastHash` back to its own fields.
+   * Marker baseline: the file content the change tracker measures against, the
+   * session origin the gutter markers compare the current state to. Seeded from
+   * the constructed content and re-established at the current state by the
+   * façade's marker-baseline reset.
+   */
+  public lines: string[] = [];
+
+  /**
+   * History baseline: the persisted original the history modal diffs against.
+   * Starts equal to the marker baseline; a restore overrides only this baseline
+   * (through adoptHistory) so the gutter stays session-scoped while the modal
+   * still diffs against the persisted original.
+   */
+  public historyLines: string[] = [];
+
+  /**
+   * Current content of the file as an array of lines: the most recent state,
+   * refreshed by updateState which also recomputes the hash.
+   */
+  public state: string[] = [];
+
+  /**
+   * Map of line numbers to their change information (added, changed, removed,
+   * restored). Rebuilt from the ordered tracker by updateChanges.
+   */
+  public changes: ArrayMap<ChangeLine> = new ArrayMap();
+
+  /**
+   * Hash of the last known state, used as a cheap change-detection pre-filter.
+   */
+  public lastHash: string | null = null;
+
+  /**
+   * Line break character used to split incoming content and join the owned line
+   * arrays for comparison. Defaults to '\n'.
+   */
+  public lineBreak: string = '\n';
+
+  /**
+   * Seeds the owned content from the initial file text: splits it into the marker
+   * baseline, copies that into the history baseline, and records the first state
+   * and its hash. A restore later overrides the history baseline independently.
+   *
+   * @param {string} content - The initial file content as a string
+   * @param {string} lineBreak - The line break used to split and join content
+   */
+  public constructor(content?: string, lineBreak?: string) {
+    if (lineBreak) {
+      this.lineBreak = lineBreak;
+    }
+
+    this.lines = content?.split(this.lineBreak) ?? [];
+    this.historyLines = [...this.lines];
+    this.updateState(this.lines);
+  }
+
+  /**
+   * Updates the current state from new content and refreshes the hash used for
+   * change detection. Accepts either a joined string or an array of lines.
    *
    * @param {string | string[]} content - The new content, as a string or lines
-   * @param {string} lineBreak - The line break used to split and join content
-   * @return {UpdateStateResult} The normalized state lines and their hash
    */
-  public static updateState(content: string | string[], lineBreak: string): UpdateStateResult {
-    const state: string[] = Array.isArray(content) ? [...content] : content.split(lineBreak);
-
-    return {
-      state,
-      lastHash: TextHelper.hash(state.join(lineBreak)),
-    };
+  public updateState(content: string | string[]): void {
+    this.state = Array.isArray(content) ? [...content] : content.split(this.lineBreak);
+    this.lastHash = TextHelper.hash(this.state.join(this.lineBreak));
   }
 
   /**
    * Whether the current state equals the marker baseline (the session origin the
    * gutter markers measure against).
    *
-   * @param {string[]} lines - The marker baseline lines
-   * @param {string[]} state - The current state lines
-   * @param {string} lineBreak - The line break used to join for comparison
    * @return {boolean} True when the current state matches the marker baseline
    */
-  public static isStateSameOriginal(lines: string[], state: string[], lineBreak: string): boolean {
-    return this.getOriginalState(lines, lineBreak) === this.getLastState(state, lineBreak);
+  public isStateSameOriginal(): boolean {
+    return this.getOriginalState() === this.getLastState();
   }
 
   /**
    * Joins the current state lines into a string.
    *
-   * @param {string[]} state - The current state lines
-   * @param {string} lineBreak - The line break used to join the lines
    * @return {string} The current state as a string
    */
-  public static getLastState(state: string[], lineBreak: string): string {
-    return state.join(lineBreak);
+  public getLastState(): string {
+    return this.state.join(this.lineBreak);
   }
 
   /**
    * Returns a copy of the current state lines so callers cannot mutate the field.
    *
-   * @param {string[]} state - The current state lines
    * @return {string[]} A copy of the current state lines
    */
-  public static getLastStateLines(state: string[]): string[] {
-    return [...state];
+  public getLastStateLines(): string[] {
+    return [...this.state];
   }
 
   /**
    * Joins the marker baseline lines (the session origin the gutter markers
    * measure against) into a string.
    *
-   * @param {string[]} lines - The marker baseline lines
-   * @param {string} lineBreak - The line break used to join the lines
    * @return {string} The marker baseline as a string
    */
-  public static getOriginalState(lines: string[], lineBreak: string): string {
-    return [...lines].join(lineBreak);
+  public getOriginalState(): string {
+    return [...this.lines].join(this.lineBreak);
   }
 
   /**
    * Returns a copy of the marker baseline lines so callers cannot mutate the field.
    *
-   * @param {string[]} lines - The marker baseline lines
    * @return {string[]} A copy of the marker baseline lines
    */
-  public static getOriginalStateLines(lines: string[]): string[] {
-    return [...lines];
+  public getOriginalStateLines(): string[] {
+    return [...this.lines];
   }
 
   /**
    * Joins the history baseline lines (the persisted original the history modal
    * diffs against) into a string.
    *
-   * @param {string[]} historyLines - The history baseline lines
-   * @param {string} lineBreak - The line break used to join the lines
    * @return {string} The history baseline as a string
    */
-  public static getHistoryOriginalState(historyLines: string[], lineBreak: string): string {
-    return [...historyLines].join(lineBreak);
+  public getHistoryOriginalState(): string {
+    return [...this.historyLines].join(this.lineBreak);
   }
 
   /**
    * Returns a copy of the history baseline lines so callers cannot mutate the field.
    *
-   * @param {string[]} historyLines - The history baseline lines
    * @return {string[]} A copy of the history baseline lines
    */
-  public static getHistoryOriginalStateLines(historyLines: string[]): string[] {
-    return [...historyLines];
+  public getHistoryOriginalStateLines(): string[] {
+    return [...this.historyLines];
   }
 
   /**
-   * Normalizes a persisted history baseline and version timeline into defensive
-   * copies for the façade to adopt without touching the marker baseline, the
-   * tracker, or the current state. Non-array inputs collapse to empty arrays,
-   * matching the original guard.
+   * Adopts a persisted history baseline as a defensive copy, leaving the marker
+   * baseline, the current state, and the change map untouched. Non-array input
+   * collapses to an empty array, matching the original guard.
    *
    * @param {string[]} historyLines - The persisted original (history baseline)
-   * @param {FileVersion[]} versions - The persisted version timeline, oldest first
-   * @return {AdoptHistoryResult} The normalized history baseline and timeline
    */
-  public static adoptHistory(historyLines: string[], versions: FileVersion[]): AdoptHistoryResult {
-    return {
-      historyLines: Array.isArray(historyLines) ? [...historyLines] : [],
-      versions: Array.isArray(versions) ? [...versions] : [],
-    };
+  public adoptHistory(historyLines: string[]): void {
+    this.historyLines = Array.isArray(historyLines) ? [...historyLines] : [];
   }
 
   /**
-   * Returns the change map, optionally filtered to the given change types. The
-   * façade owns the `changes` field; when a type filter is given a fresh filtered
-   * ArrayMap is returned, otherwise the live map is returned for direct use.
+   * Returns the owned change map, optionally filtered to the given change types.
+   * When a type filter is given a fresh filtered ArrayMap is returned, otherwise
+   * the live owned map is returned for direct use.
    *
-   * @param {ArrayMap<ChangeLine>} changes - The façade-owned change map
    * @param {ChangeType | ChangeType[]} type - Optional change types to filter by
    * @return {ArrayMap<ChangeLine>} The change map, filtered when a type is given
    */
-  public static getChanges(changes: ArrayMap<ChangeLine>, type?: ChangeType | ChangeType[]): ArrayMap<ChangeLine> {
+  public getChanges(type?: ChangeType | ChangeType[]): ArrayMap<ChangeLine> {
+    if (!this.changes) {
+      this.changes = new ArrayMap<ChangeLine>();
+    }
+
     if (type) {
       return ArrayMap.make(
-        changes
+        this.changes
           .filter((change: ChangeLine): boolean => change.has(type))
           .map((change: ChangeLine): ChangeLine => new ChangeLine(change.getLine(), change.getTypes())),
         (item: ChangeLine): number => item.getLine(),
       );
     }
 
-    return changes;
+    return this.changes;
   }
 
   /**
-   * Counts the lines marked changed, added, or removed in the change map.
+   * Counts the lines marked changed, added, or removed in the owned change map.
    *
-   * @param {ArrayMap<ChangeLine>} changes - The façade-owned change map
    * @return {number} The number of lines with changes
    */
-  public static getChangesLinesCount(changes: ArrayMap<ChangeLine>): number {
-    return this.getChanges(changes, [
+  public getChangesLinesCount(): number {
+    return this.getChanges([
       ChangeType.changed,
       ChangeType.whitespace,
       ChangeType.added,
@@ -171,11 +204,10 @@ export class SnapshotState {
    * Returns the 0-based positions of every changed line, ascending. Defaults to
    * the changed, added, restored, and removed types when none is given.
    *
-   * @param {ArrayMap<ChangeLine>} changes - The façade-owned change map
    * @param {ChangeType | ChangeType[]} type - Optional change types to include
    * @return {number[]} The unique changed line positions in ascending order
    */
-  public static getChangedPositions(changes: ArrayMap<ChangeLine>, type?: ChangeType | ChangeType[]): number[] {
+  public getChangedPositions(type?: ChangeType | ChangeType[]): number[] {
     const types: ChangeType | ChangeType[] = type ?? [
       ChangeType.changed,
       ChangeType.whitespace,
@@ -184,28 +216,28 @@ export class SnapshotState {
       ChangeType.removed,
     ];
 
-    return [...this.getChanges(changes, types).keys()]
+    return [...this.getChanges(types).keys()]
       .filter((line): line is number => typeof line === 'number')
       .sort((a: number, b: number): number => a - b);
   }
 
   /**
-   * Recomputes the change map from the ordered tracker. Clears the façade-owned
-   * change map and rebuilds it by classifying each tracker line as removed, added,
-   * restored, or changed at its current (or removed-at) position. The tracker is
-   * passed in by the façade; this collaborator never owns or invalidates it.
+   * Recomputes the owned change map from the ordered tracker. Clears the map and
+   * rebuilds it by classifying each tracker line as removed, added, restored, or
+   * changed at its current (or removed-at) position. The tracker belongs to the
+   * tracker sub-object and is passed in by the façade; this owner classifies it
+   * into its own change map without owning the tracker.
    *
-   * @param {ArrayMap<ChangeLine>} changes - The façade-owned change map to rebuild
    * @param {ArrayMap<TrackerLine>} tracker - The ordered tracker to classify
    */
-  public static updateChanges(changes: ArrayMap<ChangeLine>, tracker: ArrayMap<TrackerLine>): void {
+  public updateChanges(tracker: ArrayMap<TrackerLine>): void {
+    const changes: ArrayMap<ChangeLine> = this.getChanges();
+
     changes.clear();
 
     tracker.forEach((lineTracker: TrackerLine): void => {
-      /**
-       * Skip a missing or ghost tracker entry: it carries no current line to
-       * classify, so it contributes nothing to the change map.
-       */
+      // Skip a missing or ghost tracker entry: it carries no current line to
+      // classify, so it contributes nothing to the change map.
       if (!lineTracker || lineTracker.isStateGhost()) {
         return;
       }

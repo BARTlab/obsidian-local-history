@@ -85,9 +85,9 @@ export class VersionActionsService implements Service {
     }
 
     const baseLines: string[] = version.getLines();
-    const currentLines: string[] = snapshot.getLastStateLines();
+    const currentLines: string[] = snapshot.content.getLastStateLines();
 
-    if (baseLines.join(snapshot.lineBreak) === currentLines.join(snapshot.lineBreak)) {
+    if (baseLines.join(snapshot.content.lineBreak) === currentLines.join(snapshot.content.lineBreak)) {
       return { applied: false };
     }
 
@@ -166,7 +166,7 @@ export class VersionActionsService implements Service {
      * caps stay as configured; labeled versions are pinned against eviction.
      */
     const captured: FileVersion | null = snapshot.captureVersion(
-      snapshot.getLastStateLines(),
+      snapshot.content.getLastStateLines(),
       { ...this.getCaptureOptions(), enabled: true },
       true,
       trimmed,

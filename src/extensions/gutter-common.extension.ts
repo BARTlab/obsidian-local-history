@@ -76,14 +76,14 @@ export class GutterCommonExtension extends BaseExtension implements GutterConfig
       .filter((type: ChangeType): boolean => type !== ChangeType.removed);
 
     const snapshot: FileSnapshot | null = this.snapshotsService.getOne();
-    const changes: ArrayMap<ChangeLine> | null = snapshot?.getChanges(enable) ?? null;
+    const changes: ArrayMap<ChangeLine> | null = snapshot?.content.getChanges(enable) ?? null;
     const builder = new RangeSetBuilder<DotMarker>();
 
     if (!this.isTypeDot() || !snapshot || !changes?.size) {
       return builder.finish();
     }
 
-    for (const pos of snapshot.getChangedPositions(enable)) {
+    for (const pos of snapshot.content.getChangedPositions(enable)) {
       if (pos >= view.state.doc.lines) {
         continue;
       }
@@ -134,11 +134,11 @@ export class GutterCommonExtension extends BaseExtension implements GutterConfig
       return;
     }
 
-    const currentLines: string[] = snapshot.getLastStateLines();
+    const currentLines: string[] = snapshot.content.getLastStateLines();
     const hunks: Diff.StructuredPatchHunk[] = HunkHelper.diff(
-      snapshot.getOriginalStateLines(),
+      snapshot.content.getOriginalStateLines(),
       currentLines,
-      snapshot.lineBreak,
+      snapshot.content.lineBreak,
     );
 
     const hunk: Diff.StructuredPatchHunk | null = HunkHelper.hunkAtLine(hunks, line);

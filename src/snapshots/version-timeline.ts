@@ -264,7 +264,7 @@ export class VersionTimeline {
    * Restores a persisted timeline: adopts the decoded versions as the owned array
    * and seeds both cadence gates from them so the capture cadence is continuous
    * across a restart (the time gate from the newest version's timestamp, the edit
-   * gate from the current keyframe group). Used by FileSnapshot.fromJSON.
+   * gate from the current keyframe group). Used by SnapshotCodec.decode.
    *
    * @param {FileVersion[]} versions - The decoded timeline, oldest first
    */

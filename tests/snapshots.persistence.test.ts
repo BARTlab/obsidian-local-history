@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import { VERSION_KEYFRAME_INTERVAL } from '@/consts';
 import { SnapshotsService } from '@/services/snapshots.service';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
+import { SnapshotCodec } from '@/snapshots/snapshot-codec';
 import { FileVersion } from '@/snapshots/file.version';
 import type { SerializedFileSnapshot } from '@/types';
 import type { TFile } from 'obsidian';
@@ -37,10 +38,10 @@ describe('SnapshotsService.serialize', () => {
     expect(payload.snapshots[0].path).toBe('dirty.md');
   });
 
-  it('drops only the failing snapshot when one toJSON throws, never the whole payload', () => {
-    // A single corrupt snapshot whose toJSON throws must not abort the loop and
-    // lose every other file's history (which the persistence layer could then
-    // misread as an empty payload and wipe the vault on disk).
+  it('drops only the failing snapshot when one fails to serialize, never the whole payload', () => {
+    // A single corrupt snapshot whose serialization throws must not abort the
+    // loop and lose every other file's history (which the persistence layer
+    // could then misread as an empty payload and wipe the vault on disk).
     const service = makeService();
     const good = makeFile('good.md');
     const bad = makeFile('bad.md');
@@ -58,8 +59,8 @@ describe('SnapshotsService.serialize', () => {
     badSnapshot.content.updateState(['a', 'B']);
     badSnapshot.updateChanges();
 
-    badSnapshot.toJSON = (): never => {
-      throw new Error('toJSON boom');
+    badSnapshot.trackers.getTrackerLines = (): never => {
+      throw new Error('encode boom');
     };
 
     let payload: ReturnType<SnapshotsService['serialize']> | null = null;
@@ -112,7 +113,7 @@ describe('SnapshotsService.restore', () => {
     snapshot.content.updateState(['a', 'B', 'c']);
     snapshot.updateChanges();
 
-    return snapshot.toJSON();
+    return SnapshotCodec.encode(snapshot);
   };
 
   it('rebuilds a not-yet-captured file session-clean while keeping its history', () => {
@@ -209,7 +210,7 @@ describe('SnapshotsService.restore', () => {
 
     // Build a persisted tombstone payload: a snapshot that carries deletedTimestamp.
     const persisted = new FileSnapshot('a\nb', '\n', makeFile('a.md'));
-    const serialized: SerializedFileSnapshot = persisted.toJSON();
+    const serialized: SerializedFileSnapshot = SnapshotCodec.encode(persisted);
     serialized.deletedTimestamp = 1_700_000_000_000;
 
     service.restore([serialized]);
@@ -456,7 +457,7 @@ describe('SnapshotsService.restore - post-restore reconciliation (A1)', () => {
 
     // Restore from a payload that matches the session content.
     const persisted = new FileSnapshot('original content', '\n', file);
-    service.restore([persisted.toJSON()]);
+    service.restore([SnapshotCodec.encode(persisted)]);
 
     // Before the debounce fires: no external version yet.
     const before: FileSnapshot = service.getOne(file) as FileSnapshot;
@@ -485,7 +486,7 @@ describe('SnapshotsService.restore - post-restore reconciliation (A1)', () => {
     service.add(file, content);
 
     const persisted = new FileSnapshot(content, '\n', file);
-    service.restore([persisted.toJSON()]);
+    service.restore([SnapshotCodec.encode(persisted)]);
 
     await jest.runAllTimersAsync();
 
@@ -512,7 +513,7 @@ describe('SnapshotsService.restore - post-restore reconciliation (A1)', () => {
     // This must not trigger a vault read; if it does the mock throws and the
     // test fails.
     expect((): void => {
-      service.restore([persisted.toJSON()]);
+      service.restore([SnapshotCodec.encode(persisted)]);
     }).not.toThrow();
 
     await jest.runAllTimersAsync();

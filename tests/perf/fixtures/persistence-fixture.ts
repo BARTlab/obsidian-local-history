@@ -1,4 +1,5 @@
 import { FileSnapshot } from '@/snapshots/file.snapshot';
+import { SnapshotCodec } from '@/snapshots/snapshot-codec';
 import type {
   SerializedFileSnapshot,
   SerializedHistory,
@@ -105,7 +106,7 @@ function buildSerializedSnapshot(
     snapshot.captureVersion(previous, OPEN_CAPTURE_OPTIONS, true);
   }
 
-  const payload: SerializedFileSnapshot = snapshot.toJSON();
+  const payload: SerializedFileSnapshot = SnapshotCodec.encode(snapshot);
 
   payload.path = `notes/folder-${fileIndex % 50}/file-${fileIndex}.md`;
   payload.timestamp = timestamp;
@@ -143,7 +144,7 @@ export function buildSerializedHistory(size: PersistenceFixtureSize): Serialized
  * A spying plugin stub for the SnapshotsService and PersistenceService benches.
  * Holds an in-memory vault adapter whose mutating ops are counted so the bench
  * can prove no disk write escapes, plus a path-to-file map so
- * `restore` takes the live-file branch (FileSnapshot.fromJSON with a real file)
+ * `restore` takes the live-file branch (SnapshotCodec.decode with a real file)
  * for every fixture path rather than the orphan/tombstone branch.
  */
 export interface PluginStub {

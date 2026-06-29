@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 import { VERSION_KEYFRAME_INTERVAL } from '@/consts';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
+import { SnapshotCodec } from '@/snapshots/snapshot-codec';
 import { FileVersion } from '@/snapshots/file.version';
 import type { SerializedFileVersion, SnapshotCaptureOptions } from '@/types';
 
@@ -303,11 +304,11 @@ describe('FileSnapshot timeline persistence round-trip', () => {
     snapshot.captureVersion(['a', 'B'], opts);
     snapshot.content.updateState(['a', 'B2']);
 
-    const json = snapshot.toJSON();
+    const json = SnapshotCodec.encode(snapshot);
     expect(json.versions).toHaveLength(2);
     expect(json.versions?.[0]).not.toHaveProperty('id');
 
-    const restored = FileSnapshot.fromJSON(json);
+    const restored = SnapshotCodec.decode(json);
 
     const restoredVersions: FileVersion[] = restored.timeline.getVersions();
     expect(restoredVersions).toHaveLength(2);
@@ -323,10 +324,10 @@ describe('FileSnapshot timeline persistence round-trip', () => {
 
   it('tolerates a serialized snapshot without a versions field', () => {
     const snapshot = new FileSnapshot('a\nb', '\n');
-    const json = snapshot.toJSON();
+    const json = SnapshotCodec.encode(snapshot);
     delete json.versions;
 
-    const restored = FileSnapshot.fromJSON(json);
+    const restored = SnapshotCodec.decode(json);
 
     expect(restored.timeline.hasVersions()).toBe(false);
     expect(restored.timeline.getVersions()).toEqual([]);
@@ -357,12 +358,12 @@ describe('FileSnapshot timeline cadence continuity across restart', () => {
     nowSpy.mockReturnValue(newestCapturedAt);
     snapshot.captureVersion(['v2'], opts);
 
-    const json = snapshot.toJSON();
+    const json = SnapshotCodec.encode(snapshot);
 
-    // Restart moment: a fresh FileSnapshot.fromJSON happens now.
+    // Restart moment: a fresh SnapshotCodec.decode happens now.
     nowSpy.mockReturnValue(restartAt);
 
-    const restored = FileSnapshot.fromJSON(json);
+    const restored = SnapshotCodec.decode(json);
 
     // 30s after the newest capture, the 60s interval gate must NOT fire yet.
     nowSpy.mockReturnValue(restartAt);
@@ -385,11 +386,11 @@ describe('FileSnapshot timeline cadence continuity across restart', () => {
     const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(base);
 
     const snapshot = new FileSnapshot('a', '\n');
-    const json = snapshot.toJSON();
+    const json = SnapshotCodec.encode(snapshot);
     expect(json.versions).toEqual([]);
 
     nowSpy.mockReturnValue(base + 500);
-    const restored = FileSnapshot.fromJSON(json);
+    const restored = SnapshotCodec.decode(json);
 
     expect(restored.captureVersion(['x'], options({ intervalMs: 1000 }))).toBeNull();
     expect(restored.timeline.hasVersions()).toBe(false);
@@ -397,12 +398,12 @@ describe('FileSnapshot timeline cadence continuity across restart', () => {
 
   it('round-trips an older history payload without versions byte-identically', () => {
     const snapshot = new FileSnapshot('a\nb', '\n');
-    const json = snapshot.toJSON();
+    const json = SnapshotCodec.encode(snapshot);
     delete json.versions;
 
     const serialized: string = JSON.stringify(json);
-    const restored = FileSnapshot.fromJSON(JSON.parse(serialized));
-    const reSerialized: string = JSON.stringify(restored.toJSON());
+    const restored = SnapshotCodec.decode(JSON.parse(serialized));
+    const reSerialized: string = JSON.stringify(SnapshotCodec.encode(restored));
 
     // Restored payload must not have grown a new lastVersionAt-style field; the
     // versions array re-appears as an empty list (constructor default), so
@@ -454,7 +455,7 @@ describe('FileSnapshot version codec wiring', () => {
     // Flag the newest captured version as external so the round-trip carries it.
     snapshot.timeline.getStoredVersions()[snapshot.timeline.getStoredVersions().length - 1].external = true;
 
-    const restored = FileSnapshot.fromJSON(snapshot.toJSON());
+    const restored = SnapshotCodec.decode(SnapshotCodec.encode(snapshot));
 
     // Oldest-first comparison so the decoded delta chain lines up with capture.
     expect(restored.timeline.getStoredVersions().map((v: FileVersion): string[] => v.getLines())).toEqual([
@@ -492,7 +493,7 @@ describe('FileSnapshot version codec wiring', () => {
 
     expect(snapshot.timeline.getStoredVersions()).toHaveLength(count);
 
-    const entries: SerializedFileVersion[] | undefined = snapshot.toJSON().versions;
+    const entries: SerializedFileVersion[] | undefined = SnapshotCodec.encode(snapshot).versions;
     expect(entries).toHaveLength(count);
 
     const deltas = (entries ?? []).filter(
@@ -508,7 +509,7 @@ describe('FileSnapshot version codec wiring', () => {
     expect(deltas.length).toBe(count - 2);
 
     // The delta-bearing payload still restores every version verbatim.
-    const restored = FileSnapshot.fromJSON(snapshot.toJSON());
+    const restored = SnapshotCodec.decode(SnapshotCodec.encode(snapshot));
     expect(restored.timeline.getStoredVersions().map((v: FileVersion): string[] => v.getLines())).toEqual(
       snapshot.timeline.getStoredVersions().map((v: FileVersion): string[] => v.getLines()),
     );
@@ -516,7 +517,7 @@ describe('FileSnapshot version codec wiring', () => {
 
   it('restores an all-keyframe (version-1) versions array unchanged', () => {
     const snapshot = new FileSnapshot('seed', '\n');
-    const json = snapshot.toJSON();
+    const json = SnapshotCodec.encode(snapshot);
 
     // Hand-build a legacy v1 payload: every entry carries full lines, no deltas.
     json.versions = [
@@ -525,7 +526,7 @@ describe('FileSnapshot version codec wiring', () => {
       { timestamp: 300, lines: ['a', 'b', 'c'], external: true },
     ];
 
-    const restored = FileSnapshot.fromJSON(json);
+    const restored = SnapshotCodec.decode(json);
 
     expect(restored.timeline.getStoredVersions().map((v: FileVersion): string[] => v.getLines())).toEqual([
       ['a'],
@@ -539,12 +540,12 @@ describe('FileSnapshot version codec wiring', () => {
 
   it('decodes to [] when versions is undefined without throwing', () => {
     const snapshot = new FileSnapshot('a\nb', '\n');
-    const json = snapshot.toJSON();
+    const json = SnapshotCodec.encode(snapshot);
     json.versions = undefined;
 
     let restored!: FileSnapshot;
     expect((): void => {
-      restored = FileSnapshot.fromJSON(json);
+      restored = SnapshotCodec.decode(json);
     }).not.toThrow();
     expect(restored.timeline.getStoredVersions()).toEqual([]);
     expect(restored.timeline.hasVersions()).toBe(false);

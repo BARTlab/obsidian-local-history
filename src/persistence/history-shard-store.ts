@@ -290,7 +290,7 @@ export class HistoryShardStore {
    * Whether a parsed value is a structurally usable {@link SerializedShard}: a
    * numeric `version` and a `snapshot` whose minimal shape (path string, finite
    * timestamp, `lines`/`tracker` arrays) survives retention math and reaches
-   * `FileSnapshot.fromJSON` without resurrecting junk. This mirrors the
+   * `SnapshotCodec.decode` without resurrecting junk. This mirrors the
    * per-entry predicate that the monolithic `readDisk` applied, now
    * at shard granularity.
    *
@@ -313,7 +313,7 @@ export class HistoryShardStore {
 
   /**
    * Whether a serialized snapshot has the minimum well-formed shape required to
-   * survive retention math and reach `FileSnapshot.fromJSON`. Required: `path` is
+   * survive retention math and reach `SnapshotCodec.decode`. Required: `path` is
    * a string, `timestamp` is a finite number, `lines` and `tracker` are arrays.
    * A non-finite timestamp is rejected so a malformed entry cannot pose as fresh
    * history.

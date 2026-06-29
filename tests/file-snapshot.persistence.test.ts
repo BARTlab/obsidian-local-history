@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { ChangeType } from '@/consts';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
+import { SnapshotCodec } from '@/snapshots/snapshot-codec';
 import { TrackerLine } from '@/lines/tracker.line';
 import type { SerializedFileSnapshot, SerializedTrackerLine } from '@/types';
 
@@ -23,7 +24,7 @@ const positionsWithType = (snapshot: FileSnapshot, type: ChangeType): number[] =
 describe('FileSnapshot serialize/deserialize round-trip', () => {
   it('preserves a clean snapshot baseline and state', () => {
     const snapshot = new FileSnapshot('a\nb\nc', '\n', makeFile('a.md'));
-    const restored = FileSnapshot.fromJSON(snapshot.toJSON(), makeFile('a.md'));
+    const restored = SnapshotCodec.decode(SnapshotCodec.encode(snapshot), makeFile('a.md'));
 
     expect(restored.content.getOriginalStateLines()).toEqual(['a', 'b', 'c']);
     expect(restored.content.getLastStateLines()).toEqual(['a', 'b', 'c']);
@@ -38,7 +39,7 @@ describe('FileSnapshot serialize/deserialize round-trip', () => {
     snapshot.content.updateState(['a', 'B', 'c']);
     snapshot.updateChanges();
 
-    const restored = FileSnapshot.fromJSON(snapshot.toJSON());
+    const restored = SnapshotCodec.decode(SnapshotCodec.encode(snapshot));
 
     expect(positionsWithType(restored, ChangeType.changed)).toEqual([1]);
     expect(restored.content.getChangesLinesCount()).toBe(1);
@@ -60,7 +61,7 @@ describe('FileSnapshot serialize/deserialize round-trip', () => {
       removed: positionsWithType(snapshot, ChangeType.removed),
     };
 
-    const restored = FileSnapshot.fromJSON(snapshot.toJSON());
+    const restored = SnapshotCodec.decode(SnapshotCodec.encode(snapshot));
 
     expect(positionsWithType(restored, ChangeType.added)).toEqual(before.added);
     expect(positionsWithType(restored, ChangeType.removed)).toEqual(before.removed);
@@ -73,7 +74,7 @@ describe('FileSnapshot serialize/deserialize round-trip', () => {
     snapshot.content.updateState(['a', 'b', 'C']);
     snapshot.updateChanges();
 
-    const restored = FileSnapshot.fromJSON(snapshot.toJSON());
+    const restored = SnapshotCodec.decode(SnapshotCodec.encode(snapshot));
 
     expect(restored.trackers.findCurrentLine(0)?.current).toBe('a');
     expect(restored.trackers.findCurrentLine(2)?.current).toBe('C');
@@ -82,7 +83,7 @@ describe('FileSnapshot serialize/deserialize round-trip', () => {
 
   it('assigns fresh, unique ids to restored tracker lines', () => {
     const snapshot = new FileSnapshot('a\nb\nc');
-    const restored = FileSnapshot.fromJSON(snapshot.toJSON());
+    const restored = SnapshotCodec.decode(SnapshotCodec.encode(snapshot));
 
     const ids: string[] = restored.trackers.getTrackerLines().map((line: TrackerLine): string => line.id);
 
@@ -101,7 +102,7 @@ describe('FileSnapshot serialize/deserialize round-trip', () => {
     snapshot.content.updateState(['A', 'b']);
     snapshot.updateChanges();
 
-    const restored = FileSnapshot.fromJSON(snapshot.toJSON());
+    const restored = SnapshotCodec.decode(SnapshotCodec.encode(snapshot));
 
     expect(restored.content.lineBreak).toBe('\r\n');
     expect(restored.content.getLastState()).toBe('A\r\nb');
@@ -110,7 +111,7 @@ describe('FileSnapshot serialize/deserialize round-trip', () => {
 
   it('toJSON records the file path and omits tracker ids', () => {
     const snapshot = new FileSnapshot('a\nb', '\n', makeFile('notes/x.md'));
-    const json = snapshot.toJSON();
+    const json = SnapshotCodec.encode(snapshot);
 
     expect(json.path).toBe('notes/x.md');
     expect(json.tracker).toHaveLength(2);
@@ -118,7 +119,7 @@ describe('FileSnapshot serialize/deserialize round-trip', () => {
   });
 });
 
-describe('FileSnapshot.fromJSON malformed-input guards', () => {
+describe('SnapshotCodec.decode malformed-input guards', () => {
   it('returns an empty-lines snapshot when `lines` is absent', () => {
     const data = {
       path: 'a.md',
@@ -129,7 +130,7 @@ describe('FileSnapshot.fromJSON malformed-input guards', () => {
       versions: [],
     } as unknown as SerializedFileSnapshot;
 
-    const restored = FileSnapshot.fromJSON(data);
+    const restored = SnapshotCodec.decode(data);
 
     // An absent `lines` falls back to []; the constructor's split of "" yields
     // [""] (the same shape an empty file produces), which is the safe default.
@@ -148,7 +149,7 @@ describe('FileSnapshot.fromJSON malformed-input guards', () => {
       versions: [],
     } as unknown as SerializedFileSnapshot;
 
-    const restored = FileSnapshot.fromJSON(data);
+    const restored = SnapshotCodec.decode(data);
 
     expect(restored.trackers.getTrackerLines()).toEqual([]);
     expect(restored.content.getOriginalStateLines()).toEqual(['a', 'b']);
@@ -164,7 +165,7 @@ describe('FileSnapshot.fromJSON malformed-input guards', () => {
       versions: [],
     } as unknown as SerializedFileSnapshot;
 
-    const restored = FileSnapshot.fromJSON(data);
+    const restored = SnapshotCodec.decode(data);
 
     expect(restored.content.lineBreak).toBe('\n');
     expect(restored.content.getLastState()).toBe('a\nb');
@@ -208,7 +209,7 @@ describe('FileSnapshot marker/history baseline split', () => {
     // The on-disk lines carry the history baseline so the modal can diff against
     // the persisted original after a restart; the session marker baseline is not
     // persisted.
-    expect(snapshot.toJSON().lines).toEqual(['h1', 'h2', 'h3']);
+    expect(SnapshotCodec.encode(snapshot).lines).toEqual(['h1', 'h2', 'h3']);
   });
 
   it('adoptHistory overrides only the history baseline and versions', () => {
@@ -240,7 +241,7 @@ describe('FileSnapshot.resetMarkerBaseline - eager session re-baseline at restor
     snapshot.content.updateState(['a', 'B', 'c']);
     snapshot.updateChanges();
 
-    const restored = FileSnapshot.fromJSON(snapshot.toJSON());
+    const restored = SnapshotCodec.decode(SnapshotCodec.encode(snapshot));
 
     // The restored snapshot still reports its full history diff before re-baseline.
     expect(restored.content.getChangesLinesCount()).toBe(1);
@@ -265,7 +266,7 @@ describe('FileSnapshot.resetMarkerBaseline - eager session re-baseline at restor
     snapshot.content.updateState(['a', 'B', 'c']);
     snapshot.updateChanges();
 
-    const restored = FileSnapshot.fromJSON(snapshot.toJSON());
+    const restored = SnapshotCodec.decode(SnapshotCodec.encode(snapshot));
 
     restored.resetMarkerBaseline();
     expect(restored.content.getChangesLinesCount()).toBe(0);

@@ -58,9 +58,11 @@ export class FileSnapshot {
   /**
    * Array of tracker lines that maintain the history and state of each line.
    * Each TrackerLine object tracks a single line's original position, current position,
-   * content, and change status.
+   * content, and change status. Encapsulated: outside code reads it through the
+   * narrow getTrackerLines view and clears it through resetTrackers, never by
+   * reassigning the field.
    */
-  public tracker: TrackerLine[] = [];
+  protected tracker: TrackerLine[] = [];
 
   /**
    * The tracker-index collaborator that owns the lazily built current-position
@@ -75,7 +77,7 @@ export class FileSnapshot {
    * shifts, restores, removals, block replacement) over the façade-owned
    * `tracker` array and invalidates the shared index after each one. It is a
    * stateless operator over the passed-in array; the array itself stays a
-   * writable façade field external code assigns and mutates.
+   * façade-owned field the façade threads in as a parameter.
    */
   protected editor: TrackerEditor = new TrackerEditor(this.index);
 
@@ -617,6 +619,31 @@ export class FileSnapshot {
 
     this.index.invalidate();
     this.updateChanges();
+  }
+
+  /**
+   * The narrow read surface over the tracker: the raw tracker lines in insertion
+   * order as a readonly view, so callers can iterate and inspect (or reconcile a
+   * single line through its own methods) without reassigning or reshaping the
+   * array. Returns the live array rather than a copy because the change-detector
+   * self-heal consumes it on the keystroke hot path.
+   *
+   * @return {readonly TrackerLine[]} The tracker lines in insertion order
+   */
+  public getTrackerLines(): readonly TrackerLine[] {
+    return this.tracker;
+  }
+
+  /**
+   * Clears the tracker so the snapshot carries no line-change state. The explicit
+   * operation external callers use in place of reassigning the field: the
+   * tombstone and cross-directory-move paths reset it because the session marker
+   * view is meaningless once the live file is gone. The shared current-position
+   * index is invalidated since the tracker set changed.
+   */
+  public resetTrackers(): void {
+    this.tracker = [];
+    this.index.invalidate();
   }
 
   /**

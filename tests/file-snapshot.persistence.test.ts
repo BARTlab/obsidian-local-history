@@ -84,14 +84,14 @@ describe('FileSnapshot serialize/deserialize round-trip', () => {
     const snapshot = new FileSnapshot('a\nb\nc');
     const restored = FileSnapshot.fromJSON(snapshot.toJSON());
 
-    const ids: string[] = restored.tracker.map((line: TrackerLine): string => line.id);
+    const ids: string[] = restored.getTrackerLines().map((line: TrackerLine): string => line.id);
 
     // No empty ids and no duplicates across the restored tracker.
     expect(ids.every((id: string): boolean => typeof id === 'string' && id.length > 0)).toBe(true);
     expect(new Set(ids).size).toBe(ids.length);
 
     // Restored ids are independent objects from the source tracker.
-    const sourceIds: Set<string> = new Set(snapshot.tracker.map((line: TrackerLine): string => line.id));
+    const sourceIds: Set<string> = new Set(snapshot.getTrackerLines().map((line: TrackerLine): string => line.id));
     expect(ids.some((id: string): boolean => sourceIds.has(id))).toBe(false);
   });
 
@@ -135,7 +135,7 @@ describe('FileSnapshot.fromJSON malformed-input guards', () => {
     // [""] (the same shape an empty file produces), which is the safe default.
     expect(restored.getOriginalStateLines()).toEqual(['']);
     expect(restored.getLastStateLines()).toEqual(['a']);
-    expect(restored.tracker).toEqual([]);
+    expect(restored.getTrackerLines()).toEqual([]);
   });
 
   it('returns an empty-tracker snapshot when `tracker` is absent', () => {
@@ -150,7 +150,7 @@ describe('FileSnapshot.fromJSON malformed-input guards', () => {
 
     const restored = FileSnapshot.fromJSON(data);
 
-    expect(restored.tracker).toEqual([]);
+    expect(restored.getTrackerLines()).toEqual([]);
     expect(restored.getOriginalStateLines()).toEqual(['a', 'b']);
   });
 

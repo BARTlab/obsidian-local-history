@@ -215,7 +215,7 @@ export class ChangeDetectorExtension extends BaseExtension implements EditorExte
      * tracker back onto the live line, so a stale anchor self-clears on the
      * next edit instead of persisting until the user resets the baseline.
      */
-    for (const tracker of snapshot.tracker) {
+    for (const tracker of snapshot.getTrackerLines()) {
       if (!tracker.existedInCurrent) {
         continue;
       }

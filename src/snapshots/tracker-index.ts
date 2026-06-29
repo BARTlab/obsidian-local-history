@@ -3,9 +3,9 @@ import type { TrackerLine } from '@/lines/tracker.line';
 /**
  * Owns the current-position index cache and the read-only lookups over the
  * shared tracker array extracted from FileSnapshot. The tracker array itself
- * stays a writable façade field (external code assigns `snapshot.tracker = []`);
- * this collaborator never owns or copies it but indexes the array passed in per
- * call. It is the single owner of the lazily built `currentIndex` cache and its
+ * stays a façade-owned field threaded in as a parameter; this collaborator never
+ * owns or copies it but indexes the array passed in per call. It is the single
+ * owner of the lazily built `currentIndex` cache and its
  * `invalidate`/`get`/rebuild: TrackerEditor calls `invalidate()` after every
  * mutation it performs, and the façade hands one TrackerIndex instance to the
  * editor so invalidation lives in exactly one place.

@@ -21,7 +21,7 @@ const positionsWithType = (snapshot: FileSnapshot, type: ChangeType): number[] =
 // directly (first match in array order), used to assert the cached
 // current-position index never drifts from the tracker it indexes.
 const liveAt = (snapshot: FileSnapshot, pos: number): TrackerLine | null =>
-  snapshot.tracker.find(
+  snapshot.getTrackerLines().find(
     (line: TrackerLine): boolean => line.existedInCurrent && line.currentPosition === pos
   ) ?? null;
 
@@ -31,8 +31,8 @@ describe('FileSnapshot construction', () => {
 
     expect(snapshot.lines).toEqual(['a', 'b', 'c']);
     expect(snapshot.getLastStateLines()).toEqual(['a', 'b', 'c']);
-    expect(snapshot.tracker).toHaveLength(3);
-    expect(snapshot.tracker.every((line: TrackerLine): boolean => line.isStateOriginal())).toBe(true);
+    expect(snapshot.getTrackerLines()).toHaveLength(3);
+    expect(snapshot.getTrackerLines().every((line: TrackerLine): boolean => line.isStateOriginal())).toBe(true);
     expect(snapshot.getChangesLinesCount()).toBe(0);
   });
 

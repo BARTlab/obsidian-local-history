@@ -17,13 +17,13 @@ import { FileSnapshot } from '@/snapshots/file.snapshot';
  */
 
 const removedAnchors = (snapshot: FileSnapshot): number[] =>
-  snapshot.getTrackerLines()
+  snapshot.trackers.getTrackerLines()
     .filter((line): boolean => line.isStateRemoved())
     .map((line): number => line.removedAtPosition)
     .sort((a: number, b: number): number => a - b);
 
 const lastLineIndex = (snapshot: FileSnapshot): number =>
-  Math.max(...snapshot.getTrackerLines()
+  Math.max(...snapshot.trackers.getTrackerLines()
     .filter((line): boolean => line.existedInCurrent)
     .map((line): number => line.currentPosition));
 
@@ -39,7 +39,7 @@ describe('TrackerEditor removed-anchor clamping', () => {
 
     // The user types three lines, fully replacing the empty original. This is a
     // 1-line block replaced by 3 lines, i.e. delete + insert.
-    snapshot.replaceBlock(0, 1, ['A', 'B', 'C']);
+    snapshot.trackers.replaceBlock(0, 1, ['A', 'B', 'C']);
     snapshot.updateState(['A', 'B', 'C']);
     snapshot.updateChanges();
 
@@ -61,7 +61,7 @@ describe('TrackerEditor removed-anchor clamping', () => {
   it('keeps every removed anchor on a real line while deleting from the top', () => {
     const snapshot = new FileSnapshot('');
 
-    snapshot.replaceBlock(0, 1, ['A', 'B', 'C']);
+    snapshot.trackers.replaceBlock(0, 1, ['A', 'B', 'C']);
     snapshot.updateState(['A', 'B', 'C']);
     snapshot.updateChanges();
 
@@ -69,7 +69,7 @@ describe('TrackerEditor removed-anchor clamping', () => {
     const states: string[][] = [['B', 'C'], ['C'], []];
 
     states.forEach((state: string[]): void => {
-      snapshot.removeTrackerOrLine(0);
+      snapshot.trackers.removeTrackerOrLine(0);
       snapshot.updateState(state.length ? state : ['']);
       snapshot.updateChanges();
 
@@ -91,7 +91,7 @@ describe('TrackerEditor removed-anchor clamping', () => {
     // the pending doomed lines, or the early anchors orphan past the last line.
     const snapshot = new FileSnapshot('o1\no2\no3\no4\no5');
 
-    snapshot.replaceBlock(0, 5, ['Z']);
+    snapshot.trackers.replaceBlock(0, 5, ['Z']);
     snapshot.updateState(['Z']);
     snapshot.updateChanges();
 
@@ -113,7 +113,7 @@ describe('TrackerEditor removed-anchor clamping', () => {
     const snapshot = new FileSnapshot('a\nb\nc\nd');
 
     // Replace the interior block b, c with X, Y, Z -> a, X, Y, Z, d.
-    snapshot.replaceBlock(1, 2, ['X', 'Y', 'Z']);
+    snapshot.trackers.replaceBlock(1, 2, ['X', 'Y', 'Z']);
     snapshot.updateState(['a', 'X', 'Y', 'Z', 'd']);
     snapshot.updateChanges();
 

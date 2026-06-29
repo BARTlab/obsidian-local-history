@@ -145,7 +145,7 @@ describe('SnapshotsService.restore with live snapshots', () => {
 
     const snapshot: FileSnapshot = service.getOne(file) as FileSnapshot;
 
-    snapshot.findCurrentLine(1)?.change('B');
+    snapshot.trackers.findCurrentLine(1)?.change('B');
     snapshot.updateState(['a', 'B', 'c']);
     snapshot.updateChanges();
 
@@ -176,7 +176,7 @@ describe('SnapshotsService.restore orphan auto-tombstoning', () => {
 
     const snapshot: FileSnapshot = service.getOne(file) as FileSnapshot;
 
-    snapshot.findCurrentLine(0)?.change('X');
+    snapshot.trackers.findCurrentLine(0)?.change('X');
     snapshot.updateState(['X', 'y', 'z']);
     snapshot.updateChanges();
 
@@ -208,7 +208,7 @@ describe('SnapshotsService.restore orphan auto-tombstoning', () => {
 
     const snapshot: FileSnapshot = service.getOne(file) as FileSnapshot;
 
-    snapshot.findCurrentLine(1)?.change('B');
+    snapshot.trackers.findCurrentLine(1)?.change('B');
     snapshot.updateState(['a', 'B', 'c']);
     snapshot.updateChanges();
     snapshot.versions.push(new FileVersion(['a', 'mid', 'c']));

@@ -1,51 +1,150 @@
 import { assertNever } from '@/helpers/assert-never.helper';
 import { TrackerLine } from '@/lines/tracker.line';
 import { ArrayMap } from '@/maps/array.map';
-import type { TrackerIndex } from '@/snapshots/tracker-index';
-import type { KeysMatching, TrackerLineParams } from '@/types';
+import { TrackerIndex } from '@/snapshots/tracker-index';
+import type { KeysMatching, SerializedFileSnapshot, TrackerLineParams } from '@/types';
 
 /**
- * Owns the tracker mutation concern extracted from FileSnapshot: ordered reads,
- * moves, shifts, restores, removals, and block replacement over the shared
- * tracker array. The tracker array stays a façade-owned field threaded in as a
- * parameter; this collaborator mutates the array passed in but never owns or
- * copies it. Every mutation that can change a current position
- * or the tracker set calls `index.invalidate()` so the current-position cache is
- * rebuilt on next lookup; the `*Removed` shifts deliberately do NOT invalidate
- * because they touch `removedAtPosition`, not any current position. The façade
- * hands one TrackerIndex instance to the constructor so invalidation is owned in
- * exactly one place and never re-implemented on the façade.
+ * Owns the tracker array and the whole tracker surface FileSnapshot exposes as
+ * `snapshot.trackers`: ordered reads, moves, shifts, restores, removals, block
+ * replacement, the current-position lookups, the readonly view and the
+ * build/restore/reset lifecycle. The array is owned here (shared with the
+ * TrackerIndex it holds, which reads the same reference), not threaded in per
+ * call. Every mutation that can change a current position or the tracker set
+ * calls `index.invalidate()` so the current-position cache is rebuilt on next
+ * lookup; the `*Removed` shifts deliberately do NOT invalidate because they touch
+ * `removedAtPosition`, not any current position. The lifecycle operations
+ * (buildFromLines/restore/reset) mutate the array in place so the shared index
+ * always sees the same reference. This collaborator owns invalidation in exactly
+ * one place, so it is never re-implemented on the façade.
  */
 export class TrackerEditor {
   /**
-   * The current-position index whose cache this editor invalidates after each
-   * mutation and consults for its own findCurrentLine/findRemovedAt lookups. The
-   * façade shares the same instance with the index-side reads so the cache stays
-   * coherent across both collaborators.
+   * The tracker array this editor owns. TrackerLine objects each track a single
+   * line's original position, current position, content and change status. It is
+   * mutated in place (never reassigned) so the TrackerIndex below, which holds the
+   * same reference, always indexes the current set.
    */
-  protected index: TrackerIndex;
+  protected tracker: TrackerLine[] = [];
 
   /**
-   * Creates a tracker editor bound to the shared current-position index.
-   *
-   * @param {TrackerIndex} index - The index whose cache this editor invalidates
+   * The current-position index whose cache this editor invalidates after each
+   * mutation and consults for its own findCurrentLine/findRemovedAt lookups. It is
+   * built over the same tracker array this editor owns, so the cache stays coherent
+   * with every mutation.
    */
-  public constructor(index: TrackerIndex) {
-    this.index = index;
+  protected index: TrackerIndex = new TrackerIndex(this.tracker);
+
+  /**
+   * Rebuilds the tracker from a marker baseline: one original tracker line per
+   * baseline line, each marked same-as-original. Replaces the current set in place
+   * and invalidates the shared index. Used by the façade constructor and by the
+   * marker-baseline reset.
+   *
+   * @param {string[]} lines - The baseline lines to seed one tracker each
+   */
+  public buildFromLines(lines: string[]): void {
+    this.tracker.length = 0;
+
+    lines.forEach((line: string, index: number): void => {
+      this.tracker.push(new TrackerLine({
+        content: line,
+        originalPosition: index,
+        currentPosition: index,
+        contentSameOriginal: true,
+      }));
+    });
+
+    this.index.invalidate();
+  }
+
+  /**
+   * Restores the persisted tracker verbatim from a serialized payload, replacing
+   * the current set in place and invalidating the shared index. Used by the
+   * façade's deserialization path.
+   *
+   * @param {SerializedFileSnapshot['tracker']} serialized - The persisted tracker entries
+   */
+  public restore(serialized: SerializedFileSnapshot['tracker']): void {
+    this.tracker.length = 0;
+
+    serialized.forEach((line): void => {
+      this.tracker.push(TrackerLine.fromJSON(line));
+    });
+
+    this.index.invalidate();
+  }
+
+  /**
+   * Clears the tracker so the snapshot carries no line-change state, invalidating
+   * the shared index since the tracker set changed. Used by the tombstone and
+   * cross-directory-move paths where the session marker view is meaningless once
+   * the live file is gone.
+   */
+  public reset(): void {
+    this.tracker.length = 0;
+    this.index.invalidate();
+  }
+
+  /**
+   * The narrow read surface over the tracker: the raw tracker lines in insertion
+   * order as a readonly view, so callers can iterate and inspect (or reconcile a
+   * single line through its own methods) without reassigning or reshaping the
+   * array. Returns the live array rather than a copy because the change-detector
+   * self-heal consumes it on the keystroke hot path.
+   *
+   * @return {readonly TrackerLine[]} The tracker lines in insertion order
+   */
+  public getTrackerLines(): readonly TrackerLine[] {
+    return this.tracker;
+  }
+
+  /**
+   * Finds a tracker line at the specified current position.
+   * Searches for a tracker line that is currently at the given line number.
+   *
+   * @param {number} line - The line number to search for
+   * @param {number} to - Optional upper bound for range checking
+   * @return {TrackerLine | null} The tracker line at the specified position, or null if not found
+   */
+  public findCurrentLine(line: number, to?: number): TrackerLine | null {
+    return this.index.findCurrentLine(line, to);
+  }
+
+  /**
+   * Finds a tracker line originally at the specified position.
+   * Can search for lines based on their original or current position.
+   *
+   * @param {number} line - The line number to search for
+   * @param {number} to - Optional upper bound for range checking
+   * @param {boolean} visible - If true, searches by current position; if false, by original position
+   * @return {TrackerLine | null} The tracker line that was originally at the specified position, or null if not found
+   */
+  public findOriginalLine(line: number, to?: number, visible: boolean = true): TrackerLine | null {
+    return this.index.findOriginalLine(line, to, visible);
+  }
+
+  /**
+   * Finds a tracker line removed at the specified position.
+   * Searches for a tracker line that was removed at the given line number.
+   *
+   * @param {number} line - The line number where a line was removed
+   * @return {TrackerLine | null} The tracker line that was removed at the specified position, or null if not found
+   */
+  public findRemovedAt(line: number): TrackerLine | null {
+    return this.index.findRemovedAt(line);
   }
 
   /**
    * Gets the tracker lines with optional sorting and key mapping.
    * Returns an ArrayMap of tracker lines that can be sorted and keyed as specified.
    *
-   * @param {TrackerLine[]} tracker - The shared tracker array to order
    * @param {object} params - Optional parameters for sorting and keying the tracker lines
    * @param {string} params.keyBy - Property to use as the key in the returned ArrayMap
    * @param {Array|string} params.ordering - Property to sort by, or a tuple of property and direction
    * @return {ArrayMap<TrackerLine>} An ArrayMap of tracker lines
    */
   public getTracker(
-    tracker: TrackerLine[],
     params?: {
       keyBy?: KeysMatching<TrackerLine, number | string>;
       ordering?: KeysMatching<TrackerLine, number | string>
@@ -59,7 +158,7 @@ export class TrackerEditor {
 
     const sort: KeysMatching<TrackerLine, number | string> = Array.isArray(ordering) ? ordering[0] : ordering;
     const direction = Array.isArray(ordering) ? ordering[1] : 'asc';
-    const list: TrackerLine[] = [...tracker];
+    const list: TrackerLine[] = [...this.tracker];
 
     list.sort((a: TrackerLine, b: TrackerLine): number => {
       const va: string | number = a[sort];
@@ -103,13 +202,12 @@ export class TrackerEditor {
    * Moves a tracker line to a new position.
    * Shifts other lines as needed to accommodate the move.
    *
-   * @param {TrackerLine[]} tracker - The shared tracker array to mutate
    * @param {number} line - The current line number of the tracker to move
    * @param {number} position - The new position to move the tracker to
    * @return {TrackerLine | null} The moved tracker line, or null if no tracker was found at the specified line
    */
-  public moveTo(tracker: TrackerLine[], line: number, position: number): TrackerLine | null {
-    const found: TrackerLine | null = this.index.findCurrentLine(tracker, line);
+  public moveTo(line: number, position: number): TrackerLine | null {
+    const found: TrackerLine | null = this.index.findCurrentLine(line);
 
     if (!found) {
       return null;
@@ -120,11 +218,11 @@ export class TrackerEditor {
     }
 
     if (found.isCurrentLT(position)) {
-      this.shiftUp(tracker, line, found.getCurrentPositionOffset(position));
+      this.shiftUp(line, found.getCurrentPositionOffset(position));
     }
 
     if (found.isCurrentGT(position)) {
-      this.shiftDown(tracker, line, found.getCurrentPositionOffset(position));
+      this.shiftDown(line, found.getCurrentPositionOffset(position));
     }
 
     found.moveTo(position);
@@ -137,18 +235,17 @@ export class TrackerEditor {
    * Shifts tracker lines up by the specified offset.
    * Affects all tracker lines within the specified range.
    *
-   * @param {TrackerLine[]} tracker - The shared tracker array to mutate
    * @param {number} line - The starting line number of the range to shift
    * @param {number} to - Optional ending line number of the range to shift
    * @param {number} offset - Optional number of lines to shift by (defaults to 1)
    * @return {Record<number, TrackerLine[]>} A record mapping line numbers to arrays of tracker lines at those positions
    */
-  public shiftUp(tracker: TrackerLine[], line: number, to?: number, offset?: number): Record<number, TrackerLine[]> {
+  public shiftUp(line: number, to?: number, offset?: number): Record<number, TrackerLine[]> {
     const positions: Record<number, TrackerLine[]> = {};
 
     this.index.invalidate();
 
-    tracker.forEach((item: TrackerLine): void => {
+    this.tracker.forEach((item: TrackerLine): void => {
       if (item.isCurrentInRange(line, to)) {
         item.shiftUp(offset);
         (positions[item.currentPosition] || (positions[item.currentPosition] = [])).push(item);
@@ -162,25 +259,19 @@ export class TrackerEditor {
    * Shifts removed tracker lines up by the specified offset.
    * Affects all removed tracker lines within the specified range.
    *
-   * @param {TrackerLine[]} tracker - The shared tracker array to mutate
    * @param {number} line - The starting line number of the range to shift
    * @param {number} to - Optional ending line number of the range to shift
    * @param {number} offset - Optional number of lines to shift by (defaults to 1)
    * @return {Record<number, TrackerLine[]>} A record mapping line numbers to arrays of tracker lines at those positions
    */
-  public shiftUpRemoved(
-    tracker: TrackerLine[],
-    line: number,
-    to?: number,
-    offset?: number,
-  ): Record<number, TrackerLine[]> {
+  public shiftUpRemoved(line: number, to?: number, offset?: number): Record<number, TrackerLine[]> {
     const positions: Record<number, TrackerLine[]> = {};
 
     /**
      * Only removed lines are in range here, and shifting them touches their
      * removedAtPosition, not any current position, so the current index stays valid.
      */
-    tracker.forEach((item: TrackerLine): void => {
+    this.tracker.forEach((item: TrackerLine): void => {
       if (item.isRemoveInRange(line, to)) {
         item.shiftUp(offset);
         (positions[item.removedAtPosition] || (positions[item.removedAtPosition] = [])).push(item);
@@ -194,18 +285,17 @@ export class TrackerEditor {
    * Shifts tracker lines down by the specified offset.
    * Affects all tracker lines within the specified range.
    *
-   * @param {TrackerLine[]} tracker - The shared tracker array to mutate
    * @param {number} line - The starting line number of the range to shift
    * @param {number} to - Optional ending line number of the range to shift
    * @param {number} offset - Optional number of lines to shift by (defaults to 1)
    * @return {Record<number, TrackerLine[]>} A record mapping line numbers to arrays of tracker lines at those positions
    */
-  public shiftDown(tracker: TrackerLine[], line: number, to?: number, offset?: number): Record<number, TrackerLine[]> {
+  public shiftDown(line: number, to?: number, offset?: number): Record<number, TrackerLine[]> {
     const positions: Record<number, TrackerLine[]> = {};
 
     this.index.invalidate();
 
-    tracker.forEach((item: TrackerLine): void => {
+    this.tracker.forEach((item: TrackerLine): void => {
       if (item.isCurrentInRange(line, to)) {
         item.shiftDown(offset);
         (positions[item.currentPosition] || (positions[item.currentPosition] = [])).push(item);
@@ -219,25 +309,19 @@ export class TrackerEditor {
    * Shifts removed tracker lines down by the specified offset.
    * Affects all removed tracker lines within the specified range.
    *
-   * @param {TrackerLine[]} tracker - The shared tracker array to mutate
    * @param {number} line - The starting line number of the range to shift
    * @param {number} to - Optional ending line number of the range to shift
    * @param {number} offset - Optional number of lines to shift by (defaults to 1)
    * @return {Record<number, TrackerLine[]>} A record mapping line numbers to arrays of tracker lines at those positions
    */
-  public shiftDownRemoved(
-    tracker: TrackerLine[],
-    line: number,
-    to?: number,
-    offset?: number,
-  ): Record<number, TrackerLine[]> {
+  public shiftDownRemoved(line: number, to?: number, offset?: number): Record<number, TrackerLine[]> {
     const positions: Record<number, TrackerLine[]> = {};
 
     /**
      * Only removed lines are in range here, and shifting them touches their
      * removedAtPosition, not any current position, so the current index stays valid.
      */
-    tracker.forEach((item: TrackerLine): void => {
+    this.tracker.forEach((item: TrackerLine): void => {
       if (item.isRemoveInRange(line, to)) {
         item.shiftDown(offset);
         (positions[item.removedAtPosition] || (positions[item.removedAtPosition] = [])).push(item);
@@ -252,17 +336,16 @@ export class TrackerEditor {
    * If a removed tracker line is found at the position, it is restored.
    * Otherwise, a new tracker line is added.
    *
-   * @param {TrackerLine[]} tracker - The shared tracker array to mutate
    * @param {number | TrackerLine} line - The line number or tracker line to restore or add
    * @param {boolean} shift - Whether to shift other lines to accommodate the restored/added line
    * @return {TrackerLine} The restored or added tracker line
    */
-  public restoreOrAddTracker(tracker: TrackerLine[], line: number | TrackerLine, shift: boolean = true): TrackerLine {
-    const removed: TrackerLine | null = line instanceof TrackerLine ? line : this.index.findRemovedAt(tracker, line);
+  public restoreOrAddTracker(line: number | TrackerLine, shift: boolean = true): TrackerLine {
+    const removed: TrackerLine | null = line instanceof TrackerLine ? line : this.index.findRemovedAt(line);
     const index: number = line instanceof TrackerLine ? line.removedAtPosition : line;
 
     if (shift) {
-      this.shiftUp(tracker, index);
+      this.shiftUp(index);
     }
 
     if (removed) {
@@ -275,10 +358,10 @@ export class TrackerEditor {
     }
 
     if (shift) {
-      this.shiftUpRemoved(tracker, index);
+      this.shiftUpRemoved(index);
     }
 
-    return removed ?? this.addTrackerLine(tracker, { currentPosition: index });
+    return removed ?? this.addTrackerLine({ currentPosition: index });
   }
 
   /**
@@ -286,17 +369,12 @@ export class TrackerEditor {
    * If the line existed in the original state, it is marked as removed.
    * Otherwise, it is completely removed from the tracker array.
    *
-   * @param {TrackerLine[]} tracker - The shared tracker array to mutate
    * @param {number | TrackerLine} line - The line number or tracker line to remove
    * @param {boolean} shift - Whether to shift other lines to accommodate the removed line
    * @return {TrackerLine | null} The removed tracker line, or null if no tracker was found
    */
-  public removeTrackerOrLine(
-    tracker: TrackerLine[],
-    line: number | TrackerLine,
-    shift: boolean = true,
-  ): TrackerLine | null {
-    const found: TrackerLine | null = line instanceof TrackerLine ? line : this.index.findCurrentLine(tracker, line);
+  public removeTrackerOrLine(line: number | TrackerLine, shift: boolean = true): TrackerLine | null {
+    const found: TrackerLine | null = line instanceof TrackerLine ? line : this.index.findCurrentLine(line);
     const index: number = line instanceof TrackerLine ? line.currentPosition : line;
 
     if (!found) {
@@ -306,8 +384,8 @@ export class TrackerEditor {
     const existedInOriginal: boolean = found.existedInOriginal;
 
     if (shift) {
-      this.shiftDown(tracker, index + 1);
-      this.shiftDownRemoved(tracker, index + 1);
+      this.shiftDown(index + 1);
+      this.shiftDownRemoved(index + 1);
     }
 
     if (existedInOriginal) {
@@ -332,17 +410,17 @@ export class TrackerEditor {
        * orphaned anchor down to the last real line (the conventional "removed
        * below here" spot).
        */
-      const lastLine: number = this.lastCurrentLine(tracker);
+      const lastLine: number = this.lastCurrentLine();
 
       if (lastLine >= 0) {
-        for (const item of tracker) {
+        for (const item of this.tracker) {
           if (item.isStateRemoved() && item.removedAtPosition > lastLine) {
             item.removedAtPosition = lastLine;
           }
         }
       }
     } else {
-      this.removeTrackerLine(tracker, found);
+      this.removeTrackerLine(found);
     }
 
     /**
@@ -358,48 +436,26 @@ export class TrackerEditor {
    * Adds a new tracker line to the snapshot.
    * Creates a new TrackerLine instance with the provided parameters and adds it to the tracker array.
    *
-   * @param {TrackerLine[]} tracker - The shared tracker array to mutate
    * @param {TrackerLineParams} params - Optional parameters for the new tracker line
    * @return {TrackerLine} The newly created tracker line
    */
-  public addTrackerLine(tracker: TrackerLine[], params?: TrackerLineParams): TrackerLine {
+  public addTrackerLine(params?: TrackerLineParams): TrackerLine {
     const item = new TrackerLine(params);
 
-    tracker.push(item);
+    this.tracker.push(item);
     this.index.invalidate();
 
     return item;
   }
 
   /**
-   * Returns the highest current line position present in the document, or -1 when
-   * no line currently exists. Used to clamp a removed-line anchor so it can never
-   * point past the last real line.
-   *
-   * @param {TrackerLine[]} tracker - The shared tracker array to scan
-   * @return {number} The last current line index, or -1 when the document is empty
-   */
-  protected lastCurrentLine(tracker: TrackerLine[]): number {
-    let last: number = -1;
-
-    for (const item of tracker) {
-      if (item.existedInCurrent && item.currentPosition > last) {
-        last = item.currentPosition;
-      }
-    }
-
-    return last;
-  }
-
-  /**
    * Removes a tracker line from the snapshot.
    * Finds the tracker line by line number or reference and removes it from the tracker array.
    *
-   * @param {TrackerLine[]} tracker - The shared tracker array to mutate
    * @param {number | TrackerLine} line - The line number or tracker line to remove
    */
-  public removeTrackerLine(tracker: TrackerLine[], line: number | TrackerLine): void {
-    const index: number = tracker.findIndex((item: TrackerLine): boolean =>
+  public removeTrackerLine(line: number | TrackerLine): void {
+    const index: number = this.tracker.findIndex((item: TrackerLine): boolean =>
       line instanceof TrackerLine ? item.isEq(line) : item.isCurrentAt(line)
     );
 
@@ -407,7 +463,7 @@ export class TrackerEditor {
       return;
     }
 
-    tracker.splice(index, 1);
+    this.tracker.splice(index, 1);
     this.index.invalidate();
   }
 
@@ -429,12 +485,11 @@ export class TrackerEditor {
    * afterwards (updateState then updateChanges), so the written file content
    * stays the single source of truth for the diff view.
    *
-   * @param {TrackerLine[]} tracker - The shared tracker array to mutate
    * @param {number} startLine - The 0-based current position where the block begins
    * @param {number} removeCount - How many current lines the block currently spans
    * @param {string[]} newLines - The content the block should hold afterwards
    */
-  public replaceBlock(tracker: TrackerLine[], startLine: number, removeCount: number, newLines: string[]): void {
+  public replaceBlock(startLine: number, removeCount: number, newLines: string[]): void {
     const start: number = Math.max(0, startLine);
     const count: number = Math.max(0, removeCount);
     const replacement: string[] = newLines ?? [];
@@ -445,7 +500,7 @@ export class TrackerEditor {
        * original content flips contentSameOriginal, so the highlight clears.
        */
       for (let i: number = 0; i < count; i++) {
-        this.index.findCurrentLine(tracker, start + i)?.change(replacement[i]);
+        this.index.findCurrentLine(start + i)?.change(replacement[i]);
       }
 
       return;
@@ -460,7 +515,7 @@ export class TrackerEditor {
     const doomed: TrackerLine[] = [];
 
     for (let index: number = start; index < start + count; index++) {
-      const found: TrackerLine | null = this.index.findCurrentLine(tracker, index);
+      const found: TrackerLine | null = this.index.findCurrentLine(index);
 
       if (found) {
         doomed.push(found);
@@ -468,11 +523,30 @@ export class TrackerEditor {
     }
 
     replacement.forEach((content: string, offset: number): void => {
-      this.restoreOrAddTracker(tracker, start + offset)?.change(content);
+      this.restoreOrAddTracker(start + offset)?.change(content);
     });
 
     doomed.forEach((item: TrackerLine): void => {
-      this.removeTrackerOrLine(tracker, item);
+      this.removeTrackerOrLine(item);
     });
+  }
+
+  /**
+   * Returns the highest current line position present in the document, or -1 when
+   * no line currently exists. Used to clamp a removed-line anchor so it can never
+   * point past the last real line.
+   *
+   * @return {number} The last current line index, or -1 when the document is empty
+   */
+  protected lastCurrentLine(): number {
+    let last: number = -1;
+
+    for (const item of this.tracker) {
+      if (item.existedInCurrent && item.currentPosition > last) {
+        last = item.currentPosition;
+      }
+    }
+
+    return last;
   }
 }

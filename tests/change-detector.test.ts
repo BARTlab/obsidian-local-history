@@ -27,7 +27,7 @@ const positions = (snapshot: FileSnapshot, type: ChangeType): number[] =>
     .sort((a: number, b: number): number => a - b);
 
 const removedTrackerCount = (snapshot: FileSnapshot): number =>
-  snapshot.getTrackerLines().filter((line): boolean => line.isStateRemoved()).length;
+  snapshot.trackers.getTrackerLines().filter((line): boolean => line.isStateRemoved()).length;
 
 /**
  * Applies one editor transaction to `currentDoc` and feeds the resulting
@@ -132,7 +132,7 @@ describe('ChangeDetectorExtension multi-line delete', () => {
     expect(positions(snapshot, ChangeType.added)).toEqual([]);
     expect(positions(snapshot, ChangeType.changed)).toEqual([]);
     // The surviving original "d" sits at index 1 with no change marker.
-    expect(snapshot.findCurrentLine(1)?.isStateOriginal()).toBe(true);
+    expect(snapshot.trackers.findCurrentLine(1)?.isStateOriginal()).toBe(true);
   });
 });
 
@@ -174,8 +174,8 @@ describe('ChangeDetectorExtension restore', () => {
 
     expect(positions(snapshot, ChangeType.added)).toEqual([]);
     expect(positions(snapshot, ChangeType.removed)).toEqual([]);
-    expect(snapshot.findCurrentLine(1)?.isStateOriginal()).toBe(true);
-    expect(snapshot.findCurrentLine(2)?.isStateOriginal()).toBe(true);
+    expect(snapshot.trackers.findCurrentLine(1)?.isStateOriginal()).toBe(true);
+    expect(snapshot.trackers.findCurrentLine(2)?.isStateOriginal()).toBe(true);
   });
 });
 
@@ -196,8 +196,8 @@ describe('ChangeDetectorExtension line replacement (off-by-one regression)', () 
 
     // "a" and "d" are untouched originals; the three middle lines are new and
     // the two original middle lines are gone.
-    expect(snapshot.findCurrentLine(0)?.isStateOriginal()).toBe(true);
-    expect(snapshot.findCurrentLine(4)?.isStateOriginal()).toBe(true);
+    expect(snapshot.trackers.findCurrentLine(0)?.isStateOriginal()).toBe(true);
+    expect(snapshot.trackers.findCurrentLine(4)?.isStateOriginal()).toBe(true);
     expect(positions(snapshot, ChangeType.added)).toEqual([1, 2, 3]);
     expect(removedTrackerCount(snapshot)).toBe(2);
     expect(positions(snapshot, ChangeType.changed)).toEqual([]);
@@ -225,12 +225,12 @@ describe('ChangeDetectorExtension removed-anchor clamping', () => {
     });
 
     const last: number = Math.max(
-      ...snapshot.getTrackerLines()
+      ...snapshot.trackers.getTrackerLines()
         .filter((line): boolean => line.existedInCurrent)
         .map((line): number => line.currentPosition),
     );
 
-    snapshot.getTrackerLines()
+    snapshot.trackers.getTrackerLines()
       .filter((line): boolean => line.isStateRemoved())
       .forEach((line): void => {
         expect(line.removedAtPosition).toBeGreaterThanOrEqual(0);
@@ -265,13 +265,13 @@ describe('ChangeDetectorExtension removed-onto-added collapse at the document to
     step(snapshot, afterAdd, { from: lineRange(afterAdd, 1).from, to: lineRange(afterAdd, 2).from, insert: '' });
 
     const last: number = Math.max(
-      ...snapshot.getTrackerLines()
+      ...snapshot.trackers.getTrackerLines()
         .filter((line): boolean => line.existedInCurrent)
         .map((line): number => line.currentPosition),
     );
 
     // Every removed anchor stays on a real line (>= 0 and <= last current line).
-    snapshot.getTrackerLines()
+    snapshot.trackers.getTrackerLines()
       .filter((line): boolean => line.isStateRemoved())
       .forEach((line): void => {
         expect(line.removedAtPosition).toBeGreaterThanOrEqual(0);
@@ -321,7 +321,7 @@ describe('ChangeDetectorExtension prev-state desync', () => {
     expect(positions(snapshot, ChangeType.added)).toEqual([]);
     expect(positions(snapshot, ChangeType.changed)).toEqual([]);
     // The surviving original "d" sits at index 1 with no change marker.
-    expect(snapshot.findCurrentLine(1)?.isStateOriginal()).toBe(true);
+    expect(snapshot.trackers.findCurrentLine(1)?.isStateOriginal()).toBe(true);
   });
 
   it('keeps line mapping correct across a rapid edit/undo sequence', () => {
@@ -371,7 +371,7 @@ describe('ChangeDetectorExtension CRLF normalization', () => {
 
     step(snapshot, doc, { from, to, insert: 'B' });
 
-    const edited = snapshot.findCurrentLine(1);
+    const edited = snapshot.trackers.findCurrentLine(1);
 
     expect(edited?.current).toBe('B');
     expect(positions(snapshot, ChangeType.changed)).toEqual([1]);
@@ -385,7 +385,7 @@ describe('ChangeDetectorExtension CRLF normalization', () => {
 
     step(snapshot, 'a\nb\nc', { from, to, insert: 'B' });
 
-    const edited = snapshot.findCurrentLine(1);
+    const edited = snapshot.trackers.findCurrentLine(1);
 
     expect(edited?.current).toBe('B');
     expect(positions(snapshot, ChangeType.changed)).toEqual([1]);
@@ -419,7 +419,7 @@ describe('ChangeDetectorExtension empty-boundary-line rescue', () => {
     expect(positions(snapshot, ChangeType.removed)).toEqual([]);
     expect(positions(snapshot, ChangeType.changed)).toEqual([]);
     expect(removedTrackerCount(snapshot)).toBe(0);
-    expect(snapshot.findCurrentLine(5)?.isStateOriginal()).toBe(true);
+    expect(snapshot.trackers.findCurrentLine(5)?.isStateOriginal()).toBe(true);
   });
 
   it('delete-then-paste of an identical multi-line block ends clean', () => {
@@ -474,7 +474,7 @@ describe('ChangeDetectorExtension empty-boundary-line rescue', () => {
     expect(positions(snapshot, ChangeType.added)).toEqual([]);
     expect(positions(snapshot, ChangeType.changed)).toEqual([]);
     expect(removedTrackerCount(snapshot)).toBe(2);
-    expect(snapshot.findCurrentLine(1)?.isStateOriginal()).toBe(true);
+    expect(snapshot.trackers.findCurrentLine(1)?.isStateOriginal()).toBe(true);
   });
 
   it('insert without a trailing newline still modifies the empty line in place', () => {
@@ -510,9 +510,9 @@ describe('ChangeDetectorExtension tracker self-heal', () => {
 
     // Forge the drift: tracker[0]'s `current` claims '1' while the doc line
     // is '11111'. This is the persisted symptom from the user-reported bug.
-    snapshot.getTrackerLines()[0]!.current = '1';
-    snapshot.getTrackerLines()[0]!.contentSameOriginal = false;
-    snapshot.getTrackerLines()[0]!.changeAtPosition = 0;
+    snapshot.trackers.getTrackerLines()[0]!.current = '1';
+    snapshot.trackers.getTrackerLines()[0]!.contentSameOriginal = false;
+    snapshot.trackers.getTrackerLines()[0]!.changeAtPosition = 0;
 
     snapshot.updateChanges();
     expect(positions(snapshot, ChangeType.changed)).toContain(0);
@@ -524,8 +524,8 @@ describe('ChangeDetectorExtension tracker self-heal', () => {
       insert: '!',
     });
 
-    expect(snapshot.getTrackerLines()[0]!.current).toBe('11111');
-    expect(snapshot.getTrackerLines()[0]!.contentSameOriginal).toBe(true);
+    expect(snapshot.trackers.getTrackerLines()[0]!.current).toBe('11111');
+    expect(snapshot.trackers.getTrackerLines()[0]!.contentSameOriginal).toBe(true);
     expect(positions(snapshot, ChangeType.changed)).not.toContain(0);
   });
 });
@@ -558,9 +558,9 @@ describe('ChangeDetectorExtension scale (hot path)', () => {
     // The pasted lines never existed in the original, so deleting them leaves no
     // trace: the document is back to its original two original lines.
     expect(snapshot.getChangesLinesCount()).toBe(0);
-    expect(snapshot.getTrackerLines().filter((line): boolean => line.existedInCurrent)).toHaveLength(2);
-    expect(snapshot.findCurrentLine(0)?.isStateOriginal()).toBe(true);
-    expect(snapshot.findCurrentLine(1)?.isStateOriginal()).toBe(true);
+    expect(snapshot.trackers.getTrackerLines().filter((line): boolean => line.existedInCurrent)).toHaveLength(2);
+    expect(snapshot.trackers.findCurrentLine(0)?.isStateOriginal()).toBe(true);
+    expect(snapshot.trackers.findCurrentLine(1)?.isStateOriginal()).toBe(true);
 
     // Generous bound to stay stable on slow CI while still catching a regression
     // to the per-line sort/copy path (which runs into tens of seconds here).

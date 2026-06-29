@@ -26,7 +26,7 @@ describe('SnapshotsService.serialize', () => {
     service.add(dirty, 'a\nb');
 
     const dirtySnapshot = service.getOne(dirty)!;
-    dirtySnapshot.findCurrentLine(1)?.change('B');
+    dirtySnapshot.trackers.findCurrentLine(1)?.change('B');
     dirtySnapshot.updateState(['a', 'B']);
     dirtySnapshot.updateChanges();
 
@@ -49,12 +49,12 @@ describe('SnapshotsService.serialize', () => {
     service.add(bad, 'a\nb');
 
     const goodSnapshot = service.getOne(good)!;
-    goodSnapshot.findCurrentLine(1)?.change('B');
+    goodSnapshot.trackers.findCurrentLine(1)?.change('B');
     goodSnapshot.updateState(['a', 'B']);
     goodSnapshot.updateChanges();
 
     const badSnapshot = service.getOne(bad)!;
-    badSnapshot.findCurrentLine(1)?.change('B');
+    badSnapshot.trackers.findCurrentLine(1)?.change('B');
     badSnapshot.updateState(['a', 'B']);
     badSnapshot.updateChanges();
 
@@ -108,7 +108,7 @@ describe('SnapshotsService.serialize', () => {
 describe('SnapshotsService.restore', () => {
   const dirtySerialized = (path: string): SerializedFileSnapshot => {
     const snapshot = new FileSnapshot('a\nb\nc', '\n', makeFile(path));
-    snapshot.findCurrentLine(1)?.change('B');
+    snapshot.trackers.findCurrentLine(1)?.change('B');
     snapshot.updateState(['a', 'B', 'c']);
     snapshot.updateChanges();
 
@@ -181,7 +181,7 @@ describe('SnapshotsService.restore', () => {
 
     service.add(makeFile('a.md'), 'a\nb\nc');
     const live = service.getOne(makeFile('a.md'))!;
-    live.findCurrentLine(0)?.change('Z');
+    live.trackers.findCurrentLine(0)?.change('Z');
     live.updateState(['Z', 'b', 'c']);
     live.updateChanges();
 

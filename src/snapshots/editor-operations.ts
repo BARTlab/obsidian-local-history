@@ -100,7 +100,7 @@ export class EditorOperations {
       return false;
     }
 
-    snapshot.replaceBlock(block.start, block.removeCount, block.newLines);
+    snapshot.trackers.replaceBlock(block.start, block.removeCount, block.newLines);
     snapshot.updateState(lines);
     snapshot.updateChanges();
 

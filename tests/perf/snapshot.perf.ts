@@ -53,8 +53,8 @@ describe('snapshot perf', () => {
       // Walk the whole tracker range up by one then back down by one, so the
       // current positions return to their start and the next iteration measures
       // the same O(T) walk rather than a drifted one.
-      snapshot.shiftUp(0, last);
-      snapshot.shiftDown(0, last + 1);
+      snapshot.trackers.shiftUp(0, last);
+      snapshot.trackers.shiftDown(0, last + 1);
     }, 100);
 
     expect(median).toBeGreaterThan(0);

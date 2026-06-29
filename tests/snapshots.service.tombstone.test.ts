@@ -74,7 +74,7 @@ describe('SnapshotsService.markDeleted', () => {
     const tombstone: FileSnapshot = service.getOne(file) as FileSnapshot;
 
     expect(tombstone.lines).toEqual([]);
-    expect(tombstone.getTrackerLines()).toEqual([]);
+    expect(tombstone.trackers.getTrackerLines()).toEqual([]);
     expect(tombstone.getChangesLinesCount()).toBe(0);
   });
 

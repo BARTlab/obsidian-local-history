@@ -21,7 +21,7 @@ const makeClean = (path: string = 'a.md'): FileSnapshot =>
 const makeModified = (path: string = 'a.md'): FileSnapshot => {
   const snapshot: FileSnapshot = makeClean(path);
 
-  snapshot.findCurrentLine(1)?.change('B');
+  snapshot.trackers.findCurrentLine(1)?.change('B');
   snapshot.updateState(['a', 'B', 'c']);
   snapshot.updateChanges();
 

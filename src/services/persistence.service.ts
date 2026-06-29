@@ -1,9 +1,11 @@
-import { HISTORY_SHARD_DIR, KeepHistory, MS_PER_DAY, PluginEvent, SAVE_DEBOUNCE_MS } from '@/consts';
+import { HISTORY_SHARD_DIR, KeepHistory, PluginEvent, SAVE_DEBOUNCE_MS } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { On } from '@/decorators/on.decorator';
 import { ShardNameHelper } from '@/helpers/shard-name.helper';
 import type LineChangeTrackerPlugin from '@/main';
+import { AsyncSaveQueue } from '@/persistence/async-save-queue';
 import { HistoryShardStore, type LoadedShard } from '@/persistence/history-shard-store';
+import { RetentionPolicy, type RetentionCaps } from '@/persistence/retention-policy';
 import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import { TOKENS } from '@/services/tokens';
@@ -39,9 +41,6 @@ export class PersistenceService implements Service {
   @Inject(TOKENS.snapshots)
   protected snapshotsService!: SnapshotsService;
 
-  /** Pending debounced save timer handle, or null when no save is scheduled. */
-  protected saveTimer: ReturnType<typeof setTimeout> | null = null;
-
   /**
    * Guards restore so it runs at most once and never while a save is mid-flight
    * before the initial load has populated state.
@@ -49,16 +48,12 @@ export class PersistenceService implements Service {
   protected restored: boolean = false;
 
   /**
-   * Promise chain that serializes all on-disk writes (`saveToDisk` /
-   * `clearDisk`). Every public entry point appends its work as `.then(...)`,
-   * so writes run strictly in submission order and `unload` can await the
-   * tail to flush the queue before the plugin tears down.
-   *
-   * scheduleSave, unload, restoreFromDisk's re-save, and the
-   * settings-toggle path all hit the same file; without one chain they race
-   * `adapter.write` and last-writer-wins is non-deterministic.
+   * Serializes every on-disk write (`saveToDisk` / `clearDisk`) so they never
+   * race and owns the debounce that collapses rapid saves. scheduleSave, unload,
+   * restoreFromDisk's re-save, and the settings-toggle path all hit the same
+   * file; the queue keeps them strictly ordered with last-writer-wins semantics.
    */
-  protected writeQueue: Promise<void> = Promise.resolve();
+  protected queue: AsyncSaveQueue = new AsyncSaveQueue(SAVE_DEBOUNCE_MS);
 
   /**
    * Lazily-created IO collaborator that owns the on-disk shard directory.
@@ -108,10 +103,7 @@ export class PersistenceService implements Service {
    * @return {Promise<void>} Resolves when the queue is drained
    */
   public async unload(): Promise<void> {
-    if (this.saveTimer) {
-      clearTimeout(this.saveTimer);
-      this.saveTimer = null;
-    }
+    this.queue.cancelScheduled();
 
     this.enqueueSave();
 
@@ -233,128 +225,27 @@ export class PersistenceService implements Service {
   }
 
   /**
-   * Applies the retention caps to a list of serialized snapshots.
-   * Runs two independent passes: live snapshots are bounded by COUNT only
-   * (`retention.maxEntries`) and are deliberately NOT pruned by age, while
-   * tombstones (entries with `deletedTimestamp` set) keep BOTH caps
-   * (`retention.maxDeletedEntries` / `retention.maxDeletedAgeDays`).
-   * A cap of 0 disables that dimension for its bucket.
-   *
-   * Live files are no longer age-pruned (the prior contract dropped live
-   * entries past `retention.maxAgeDays`). That dropped age dimension caused a
-   * total-history wipe: in an idle vault every live snapshot eventually ages
-   * past `maxAgeDays`, retention then returned an empty set, and the save path
-   * cleared the entire shard directory even though those files still exist and
-   * still hold in-memory history. Bounding live files by count (and per-file
-   * version caps elsewhere) keeps storage in check without ever expiring a
-   * still-present file's history purely because it is old. A deleted file's
-   * recoverability window is a real policy, so tombstones still expire by age.
-   *
-   * Byte-budget (global maxStorageBytes) is intentionally out of scope. The
-   * existing multi-dimensional count-cap policy (maxEntries, maxDeletedEntries,
-   * maxVersions) is accepted as the retention strategy. A byte-budget
-   * dimension adds implementation complexity - it requires summing encoded sizes
-   * across shards and is sensitive to codec changes - without meaningfully
-   * improving the user-observable storage behaviour that count caps already bound.
+   * Prunes the serialized snapshots to the retained set by binding the current
+   * settings caps onto the pure {@link RetentionPolicy}. The two-bucket cap math
+   * (live files by count; tombstones by count and age) lives in the policy; this
+   * seam only reads the caps the user configured.
    *
    * @param {SerializedFileSnapshot[]} snapshots - The raw persisted snapshots
    * @return {SerializedFileSnapshot[]} The retained subset, newest first
    */
   protected applyRetention(snapshots: SerializedFileSnapshot[]): SerializedFileSnapshot[] {
-    if (!Array.isArray(snapshots)) {
-      return [];
-    }
+    const caps: RetentionCaps = {
+      maxEntries: this.settingsService.value('retention.maxEntries'),
+      maxDeletedEntries: this.settingsService.value('retention.maxDeletedEntries'),
+      maxDeletedAgeDays: this.settingsService.value('retention.maxDeletedAgeDays'),
+    };
 
-    const live: SerializedFileSnapshot[] = [];
-    const tombstones: SerializedFileSnapshot[] = [];
-
-    for (const item of snapshots) {
-      if (!item) {
-        continue;
-      }
-
-      if (typeof item.deletedTimestamp === 'number') {
-        tombstones.push(item);
-      } else {
-        live.push(item);
-      }
-    }
-
-    const keptLive: SerializedFileSnapshot[] = this.applyBucketRetention(
-      live,
-      this.settingsService.value('retention.maxEntries'),
-      /**
-       * Age cap forced to 0 (disabled) for live files on purpose: a still-present
-       * file must never lose its history just because it is old, otherwise an idle
-       * vault's entire on-disk history is eventually evicted and wiped. Only the
-       * count cap bounds live files here; `retention.maxAgeDays` is left to govern
-       * tombstones below.
-       */
-      0,
-      (item: SerializedFileSnapshot): number => item.timestamp,
-    );
-
-    const keptTombstones: SerializedFileSnapshot[] = this.applyBucketRetention(
-      tombstones,
-      this.settingsService.value('retention.maxDeletedEntries'),
-      this.settingsService.value('retention.maxDeletedAgeDays'),
-      /**
-       * Age a tombstone by its deletion time so the policy answers "how long do
-       * we keep deleted-file recoverability" rather than "how stale was the file
-       * when it was deleted".
-       */
-      (item: SerializedFileSnapshot): number => item.deletedTimestamp ?? item.timestamp,
-    );
-
-    return [...keptLive, ...keptTombstones];
+    return RetentionPolicy.apply(snapshots, caps);
   }
 
-  /**
-   * Runs a single retention pass on a bucket of serialized snapshots, dropping
-   * entries older than `maxAgeDays` (when > 0) and then capping by
-   * `maxEntries` (when > 0). The bucket's "age" is read through the supplied
-   * accessor so tombstones age by `deletedTimestamp`. Callers pass
-   * `maxAgeDays = 0` to disable age pruning entirely: the live bucket does this
-   * so a still-present file is never expired by age (see {@link applyRetention}).
-   *
-   * @param {SerializedFileSnapshot[]} bucket - The bucket to prune (not mutated)
-   * @param {number} maxEntries - Size cap for this bucket (0 disables)
-   * @param {number} maxAgeDays - Age cap in days for this bucket (0 disables)
-   * @param {(item: SerializedFileSnapshot) => number} ageOf - Reads the age timestamp from an item
-   * @return {SerializedFileSnapshot[]} The retained subset, newest first
-   */
-  protected applyBucketRetention(
-    bucket: SerializedFileSnapshot[],
-    maxEntries: number,
-    maxAgeDays: number,
-    ageOf: (item: SerializedFileSnapshot) => number,
-  ): SerializedFileSnapshot[] {
-    const oldest: number = maxAgeDays > 0 ? Date.now() - (maxAgeDays * MS_PER_DAY) : 0;
-
-    let kept: SerializedFileSnapshot[] = bucket.filter((item: SerializedFileSnapshot): boolean =>
-      oldest === 0 || ageOf(item) >= oldest
-    );
-
-    // Newest first so the size cap evicts the stalest entries.
-    kept.sort((a: SerializedFileSnapshot, b: SerializedFileSnapshot): number => ageOf(b) - ageOf(a));
-
-    if (maxEntries > 0 && kept.length > maxEntries) {
-      kept = kept.slice(0, maxEntries);
-    }
-
-    return kept;
-  }
-
-  /** Schedules a debounced write to disk, collapsing rapid updates into one. */
+  /** Schedules a debounced save, collapsing rapid updates into one. */
   protected scheduleSave(): void {
-    if (this.saveTimer) {
-      clearTimeout(this.saveTimer);
-    }
-
-    this.saveTimer = setTimeout((): void => {
-      this.saveTimer = null;
-      this.enqueueSave();
-    }, SAVE_DEBOUNCE_MS);
+    this.queue.schedule((): Promise<void> => this.saveToDisk());
   }
 
   /**
@@ -362,32 +253,22 @@ export class PersistenceService implements Service {
    * scheduled write completes.
    */
   protected enqueueSave(): void {
-    this.enqueue((): Promise<void> => this.saveToDisk());
+    this.queue.enqueue((): Promise<void> => this.saveToDisk());
   }
 
   /** Appends a clear to the write queue so it serializes with pending saves. */
   protected enqueueClear(): void {
-    this.enqueue((): Promise<void> => this.clearDisk());
+    this.queue.enqueue((): Promise<void> => this.clearDisk());
   }
 
   /**
-   * Appends one unit of work to the serialized write queue, isolating its
-   * failure. The stored `writeQueue` is always left in a FULFILLED state: a
-   * rejection from `work` is caught and logged here, never propagated into the
-   * chain. Without this, a single throwing unit would leave `writeQueue` as a
-   * rejected promise, and because every `enqueue` chains with `.then(onFulfilled)`
-   * (no rejection handler), that rejection would pass straight through and
-   * permanently starve every later save, clear, and the `unload` flush, leaving
-   * the on-disk history frozen at its last good state. Each unit is responsible
-   * for its own data-loss guards (see `saveToDisk`); this seam only guarantees
-   * the queue keeps running.
+   * The tail of the serialized write queue. Awaiting it flushes every write
+   * submitted so far, so {@link unload} can drain before the plugin tears down.
    *
-   * @param {() => Promise<void>} work - The queued unit of write work
+   * @return {Promise<void>} Resolves when the current write tail completes
    */
-  protected enqueue(work: () => Promise<void>): void {
-    this.writeQueue = this.writeQueue.then((): Promise<void> => work()).catch((error: unknown): void => {
-      console.error('Local history: a queued write failed; continuing with the next', error);
-    });
+  protected get writeQueue(): Promise<void> {
+    return this.queue.settled();
   }
 
   /**

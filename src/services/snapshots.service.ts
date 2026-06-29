@@ -219,7 +219,7 @@ export class SnapshotsService implements Service {
 
     snapshot.deletedTimestamp = Date.now();
     snapshot.lines = [];
-    snapshot.resetTrackers();
+    snapshot.trackers.reset();
     snapshot.changes.clear();
 
     this.forceUpdate();
@@ -305,7 +305,7 @@ export class SnapshotsService implements Service {
     tombstone.file = null;
     tombstone.path = oldPath;
     tombstone.lines = [];
-    tombstone.resetTrackers();
+    tombstone.trackers.reset();
     tombstone.changes.clear();
     tombstone.historyLines = snapshot.getHistoryOriginalStateLines();
     tombstone.updateState(snapshot.getLastStateLines());

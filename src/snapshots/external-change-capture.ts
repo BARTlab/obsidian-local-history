@@ -275,7 +275,7 @@ export class ExternalChangeCapture {
      */
     const previousLength: number = snapshot.state.length;
 
-    snapshot.replaceBlock(0, previousLength, newLines);
+    snapshot.trackers.replaceBlock(0, previousLength, newLines);
     snapshot.updateState(newLines);
     snapshot.updateChanges();
 

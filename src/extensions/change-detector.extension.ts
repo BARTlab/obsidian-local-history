@@ -153,7 +153,7 @@ export class ChangeDetectorExtension extends BaseExtension implements EditorExte
       if (oldCoreCount === newCoreCount && oldCoreCount > 0) {
         // Same number of lines in and out: each core line was edited in place.
         for (let i: number = 0; i < newCoreCount; i++) {
-          const tracker: TrackerLine | null = snapshot.findCurrentLine(newCoreStart + i);
+          const tracker: TrackerLine | null = snapshot.trackers.findCurrentLine(newCoreStart + i);
 
           tracker?.change(currentLines[newCoreStart + i]);
         }
@@ -169,7 +169,7 @@ export class ChangeDetectorExtension extends BaseExtension implements EditorExte
         const doomed: TrackerLine[] = [];
 
         for (let index: number = oldCoreStart; index <= oldCoreEnd; index++) {
-          const tracker: TrackerLine | null = snapshot.findCurrentLine(index);
+          const tracker: TrackerLine | null = snapshot.trackers.findCurrentLine(index);
 
           if (tracker) {
             doomed.push(tracker);
@@ -177,13 +177,13 @@ export class ChangeDetectorExtension extends BaseExtension implements EditorExte
         }
 
         for (let index: number = newCoreStart; index <= newCoreEnd; index++) {
-          const added: TrackerLine = snapshot.restoreOrAddTracker(index);
+          const added: TrackerLine = snapshot.trackers.restoreOrAddTracker(index);
 
           added?.change(currentLines[index]);
         }
 
         doomed.forEach((tracker: TrackerLine): void => {
-          snapshot.removeTrackerOrLine(tracker);
+          snapshot.trackers.removeTrackerOrLine(tracker);
         });
       }
 
@@ -192,11 +192,11 @@ export class ChangeDetectorExtension extends BaseExtension implements EditorExte
        * read after add/remove shifts, so it sits at its final new position.
        */
       if (prefixShared) {
-        snapshot.findCurrentLine(fromNewLine)?.change(currentLines[fromNewLine]);
+        snapshot.trackers.findCurrentLine(fromNewLine)?.change(currentLines[fromNewLine]);
       }
 
       if (suffixShared && toNewLine !== fromNewLine) {
-        snapshot.findCurrentLine(toNewLine)?.change(currentLines[toNewLine]);
+        snapshot.trackers.findCurrentLine(toNewLine)?.change(currentLines[toNewLine]);
       }
     }, true);
 
@@ -215,7 +215,7 @@ export class ChangeDetectorExtension extends BaseExtension implements EditorExte
      * tracker back onto the live line, so a stale anchor self-clears on the
      * next edit instead of persisting until the user resets the baseline.
      */
-    for (const tracker of snapshot.getTrackerLines()) {
+    for (const tracker of snapshot.trackers.getTrackerLines()) {
       if (!tracker.existedInCurrent) {
         continue;
       }

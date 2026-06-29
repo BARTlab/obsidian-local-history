@@ -34,7 +34,7 @@ describe('FileSnapshot serialize/deserialize round-trip', () => {
   it('restores a changed line as changed', () => {
     const snapshot = new FileSnapshot('a\nb\nc');
 
-    snapshot.findCurrentLine(1)?.change('B');
+    snapshot.trackers.findCurrentLine(1)?.change('B');
     snapshot.updateState(['a', 'B', 'c']);
     snapshot.updateChanges();
 
@@ -49,8 +49,8 @@ describe('FileSnapshot serialize/deserialize round-trip', () => {
     const snapshot = new FileSnapshot('a\nb\nc');
 
     // Remove the original middle line and add a brand new tail line.
-    snapshot.removeTrackerOrLine(1);
-    const added: TrackerLine = snapshot.restoreOrAddTracker(2, false);
+    snapshot.trackers.removeTrackerOrLine(1);
+    const added: TrackerLine = snapshot.trackers.restoreOrAddTracker(2, false);
     added.change('d');
     snapshot.updateState(['a', 'c', 'd']);
     snapshot.updateChanges();
@@ -69,35 +69,35 @@ describe('FileSnapshot serialize/deserialize round-trip', () => {
 
   it('keeps findCurrentLine working after restore (index rebuilt)', () => {
     const snapshot = new FileSnapshot('a\nb\nc');
-    snapshot.findCurrentLine(2)?.change('C');
+    snapshot.trackers.findCurrentLine(2)?.change('C');
     snapshot.updateState(['a', 'b', 'C']);
     snapshot.updateChanges();
 
     const restored = FileSnapshot.fromJSON(snapshot.toJSON());
 
-    expect(restored.findCurrentLine(0)?.current).toBe('a');
-    expect(restored.findCurrentLine(2)?.current).toBe('C');
-    expect(restored.findCurrentLine(99)).toBeNull();
+    expect(restored.trackers.findCurrentLine(0)?.current).toBe('a');
+    expect(restored.trackers.findCurrentLine(2)?.current).toBe('C');
+    expect(restored.trackers.findCurrentLine(99)).toBeNull();
   });
 
   it('assigns fresh, unique ids to restored tracker lines', () => {
     const snapshot = new FileSnapshot('a\nb\nc');
     const restored = FileSnapshot.fromJSON(snapshot.toJSON());
 
-    const ids: string[] = restored.getTrackerLines().map((line: TrackerLine): string => line.id);
+    const ids: string[] = restored.trackers.getTrackerLines().map((line: TrackerLine): string => line.id);
 
     // No empty ids and no duplicates across the restored tracker.
     expect(ids.every((id: string): boolean => typeof id === 'string' && id.length > 0)).toBe(true);
     expect(new Set(ids).size).toBe(ids.length);
 
     // Restored ids are independent objects from the source tracker.
-    const sourceIds: Set<string> = new Set(snapshot.getTrackerLines().map((line: TrackerLine): string => line.id));
+    const sourceIds: Set<string> = new Set(snapshot.trackers.getTrackerLines().map((line: TrackerLine): string => line.id));
     expect(ids.some((id: string): boolean => sourceIds.has(id))).toBe(false);
   });
 
   it('round-trips a custom line break', () => {
     const snapshot = new FileSnapshot('a\r\nb', '\r\n', makeFile('crlf.md'));
-    snapshot.findCurrentLine(0)?.change('A');
+    snapshot.trackers.findCurrentLine(0)?.change('A');
     snapshot.updateState(['A', 'b']);
     snapshot.updateChanges();
 
@@ -135,7 +135,7 @@ describe('FileSnapshot.fromJSON malformed-input guards', () => {
     // [""] (the same shape an empty file produces), which is the safe default.
     expect(restored.getOriginalStateLines()).toEqual(['']);
     expect(restored.getLastStateLines()).toEqual(['a']);
-    expect(restored.getTrackerLines()).toEqual([]);
+    expect(restored.trackers.getTrackerLines()).toEqual([]);
   });
 
   it('returns an empty-tracker snapshot when `tracker` is absent', () => {
@@ -150,7 +150,7 @@ describe('FileSnapshot.fromJSON malformed-input guards', () => {
 
     const restored = FileSnapshot.fromJSON(data);
 
-    expect(restored.getTrackerLines()).toEqual([]);
+    expect(restored.trackers.getTrackerLines()).toEqual([]);
     expect(restored.getOriginalStateLines()).toEqual(['a', 'b']);
   });
 
@@ -214,7 +214,7 @@ describe('FileSnapshot marker/history baseline split', () => {
   it('adoptHistory overrides only the history baseline and versions', () => {
     const snapshot = new FileSnapshot('m1\nm2\nm3');
 
-    snapshot.findCurrentLine(1)?.change('M2');
+    snapshot.trackers.findCurrentLine(1)?.change('M2');
     snapshot.updateState(['m1', 'M2', 'm3']);
     snapshot.updateChanges();
 
@@ -236,7 +236,7 @@ describe('FileSnapshot.resetMarkerBaseline - eager session re-baseline at restor
   it('clears a restored snapshot change count without touching the history baseline', () => {
     const snapshot = new FileSnapshot('a\nb\nc');
 
-    snapshot.findCurrentLine(1)?.change('B');
+    snapshot.trackers.findCurrentLine(1)?.change('B');
     snapshot.updateState(['a', 'B', 'c']);
     snapshot.updateChanges();
 
@@ -261,7 +261,7 @@ describe('FileSnapshot.resetMarkerBaseline - eager session re-baseline at restor
   it('registers a subsequent session edit as a change after re-baseline', () => {
     const snapshot = new FileSnapshot('a\nb\nc');
 
-    snapshot.findCurrentLine(1)?.change('B');
+    snapshot.trackers.findCurrentLine(1)?.change('B');
     snapshot.updateState(['a', 'B', 'c']);
     snapshot.updateChanges();
 
@@ -271,7 +271,7 @@ describe('FileSnapshot.resetMarkerBaseline - eager session re-baseline at restor
     expect(restored.getChangesLinesCount()).toBe(0);
 
     // A genuine edit this session is measured against the re-baselined origin.
-    restored.findCurrentLine(0)?.change('A');
+    restored.trackers.findCurrentLine(0)?.change('A');
     restored.updateState(['A', 'B', 'c']);
     restored.updateChanges();
 

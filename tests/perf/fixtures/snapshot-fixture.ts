@@ -94,7 +94,7 @@ export function buildEditedSnapshot(size: SnapshotFixtureSize): FileSnapshot {
   const edited: string[] = buildLines(size.lines);
 
   for (let i = 0; i < edited.length; i += 2) {
-    snapshot.findCurrentLine(i)?.change(`edited ${edited[i]}`);
+    snapshot.trackers.findCurrentLine(i)?.change(`edited ${edited[i]}`);
     edited[i] = `edited ${edited[i]}`;
   }
 

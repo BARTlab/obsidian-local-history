@@ -7,9 +7,9 @@ import type { KeysMatching, TrackerLineParams } from '@/types';
 /**
  * Owns the tracker mutation concern extracted from FileSnapshot: ordered reads,
  * moves, shifts, restores, removals, and block replacement over the shared
- * tracker array. The tracker array stays a writable façade field (external code
- * assigns `snapshot.tracker = []`); this collaborator mutates the array passed in
- * but never owns or copies it. Every mutation that can change a current position
+ * tracker array. The tracker array stays a façade-owned field threaded in as a
+ * parameter; this collaborator mutates the array passed in but never owns or
+ * copies it. Every mutation that can change a current position
  * or the tracker set calls `index.invalidate()` so the current-position cache is
  * rebuilt on next lookup; the `*Removed` shifts deliberately do NOT invalidate
  * because they touch `removedAtPosition`, not any current position. The façade

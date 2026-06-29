@@ -27,7 +27,7 @@ const positions = (snapshot: FileSnapshot, type: ChangeType): number[] =>
     .sort((a: number, b: number): number => a - b);
 
 const removedTrackerCount = (snapshot: FileSnapshot): number =>
-  snapshot.tracker.filter((line): boolean => line.isStateRemoved()).length;
+  snapshot.getTrackerLines().filter((line): boolean => line.isStateRemoved()).length;
 
 /**
  * Applies one editor transaction to `currentDoc` and feeds the resulting
@@ -225,12 +225,12 @@ describe('ChangeDetectorExtension removed-anchor clamping', () => {
     });
 
     const last: number = Math.max(
-      ...snapshot.tracker
+      ...snapshot.getTrackerLines()
         .filter((line): boolean => line.existedInCurrent)
         .map((line): number => line.currentPosition),
     );
 
-    snapshot.tracker
+    snapshot.getTrackerLines()
       .filter((line): boolean => line.isStateRemoved())
       .forEach((line): void => {
         expect(line.removedAtPosition).toBeGreaterThanOrEqual(0);
@@ -265,13 +265,13 @@ describe('ChangeDetectorExtension removed-onto-added collapse at the document to
     step(snapshot, afterAdd, { from: lineRange(afterAdd, 1).from, to: lineRange(afterAdd, 2).from, insert: '' });
 
     const last: number = Math.max(
-      ...snapshot.tracker
+      ...snapshot.getTrackerLines()
         .filter((line): boolean => line.existedInCurrent)
         .map((line): number => line.currentPosition),
     );
 
     // Every removed anchor stays on a real line (>= 0 and <= last current line).
-    snapshot.tracker
+    snapshot.getTrackerLines()
       .filter((line): boolean => line.isStateRemoved())
       .forEach((line): void => {
         expect(line.removedAtPosition).toBeGreaterThanOrEqual(0);
@@ -510,9 +510,9 @@ describe('ChangeDetectorExtension tracker self-heal', () => {
 
     // Forge the drift: tracker[0]'s `current` claims '1' while the doc line
     // is '11111'. This is the persisted symptom from the user-reported bug.
-    snapshot.tracker[0]!.current = '1';
-    snapshot.tracker[0]!.contentSameOriginal = false;
-    snapshot.tracker[0]!.changeAtPosition = 0;
+    snapshot.getTrackerLines()[0]!.current = '1';
+    snapshot.getTrackerLines()[0]!.contentSameOriginal = false;
+    snapshot.getTrackerLines()[0]!.changeAtPosition = 0;
 
     snapshot.updateChanges();
     expect(positions(snapshot, ChangeType.changed)).toContain(0);
@@ -524,8 +524,8 @@ describe('ChangeDetectorExtension tracker self-heal', () => {
       insert: '!',
     });
 
-    expect(snapshot.tracker[0]!.current).toBe('11111');
-    expect(snapshot.tracker[0]!.contentSameOriginal).toBe(true);
+    expect(snapshot.getTrackerLines()[0]!.current).toBe('11111');
+    expect(snapshot.getTrackerLines()[0]!.contentSameOriginal).toBe(true);
     expect(positions(snapshot, ChangeType.changed)).not.toContain(0);
   });
 });
@@ -558,7 +558,7 @@ describe('ChangeDetectorExtension scale (hot path)', () => {
     // The pasted lines never existed in the original, so deleting them leaves no
     // trace: the document is back to its original two original lines.
     expect(snapshot.getChangesLinesCount()).toBe(0);
-    expect(snapshot.tracker.filter((line): boolean => line.existedInCurrent)).toHaveLength(2);
+    expect(snapshot.getTrackerLines().filter((line): boolean => line.existedInCurrent)).toHaveLength(2);
     expect(snapshot.findCurrentLine(0)?.isStateOriginal()).toBe(true);
     expect(snapshot.findCurrentLine(1)?.isStateOriginal()).toBe(true);
 

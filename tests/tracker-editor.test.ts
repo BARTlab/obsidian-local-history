@@ -17,13 +17,13 @@ import { FileSnapshot } from '@/snapshots/file.snapshot';
  */
 
 const removedAnchors = (snapshot: FileSnapshot): number[] =>
-  snapshot.tracker
+  snapshot.getTrackerLines()
     .filter((line): boolean => line.isStateRemoved())
     .map((line): number => line.removedAtPosition)
     .sort((a: number, b: number): number => a - b);
 
 const lastLineIndex = (snapshot: FileSnapshot): number =>
-  Math.max(...snapshot.tracker
+  Math.max(...snapshot.getTrackerLines()
     .filter((line): boolean => line.existedInCurrent)
     .map((line): number => line.currentPosition));
 

@@ -6,7 +6,8 @@ import { ExternalChangeCapture, type ExternalChangeHost } from '@/snapshots/exte
 import type { SettingsService } from '@/services/settings.service';
 import { TOKENS } from '@/services/tokens';
 import { EditorOperations, type EditorBlock, type EditorOperationsHost } from '@/snapshots/editor-operations';
-import { FileSnapshot } from '@/snapshots/file.snapshot';
+import type { FileSnapshot } from '@/snapshots/file.snapshot';
+import { HistorySerializer, type HistorySerializerHost } from '@/snapshots/history-serializer';
 import { IgnoreListManager, type IgnoreListHost } from '@/snapshots/ignore-list';
 import { SnapshotRegistry, type SnapshotRegistryHost } from '@/snapshots/snapshot-registry';
 import type { SerializedFileSnapshot, SerializedHistory, Service, SnapshotCaptureOptions } from '@/types';
@@ -40,8 +41,14 @@ export class SnapshotsService implements Service {
    * service (not a DI service); reads the exclude pattern and routes the
    * invalid-pattern warning back through an {@link IgnoreListHost} port the
    * service builds.
+   *
+   * Exposed publicly as the single accessor for the manual ignore-list
+   * operations (add/remove/isIgnored/clear/list): callers reach it directly
+   * instead of through per-method service pass-throughs. The path-exclude
+   * decision stays behind {@link isExcludedPath} so capture-policy callers do
+   * not have to know exclusion is co-located on this collaborator.
    */
-  protected ignoreList: IgnoreListManager = new IgnoreListManager(this.makeIgnoreListHost());
+  public readonly ignoreList: IgnoreListManager = new IgnoreListManager(this.makeIgnoreListHost());
 
   /**
    * Plain collaborator that owns the external (off-editor) change detection
@@ -60,6 +67,19 @@ export class SnapshotsService implements Service {
    * port the service builds.
    */
   protected editorOperations: EditorOperations = new EditorOperations(this.makeEditorOperationsHost());
+
+  /**
+   * Plain collaborator that owns the history serialization concern: turning the
+   * tracked snapshots into a persistable payload and rebuilding them from one,
+   * including tombstone inclusion, the session-marker-baseline preservation on
+   * re-open, the orphan (missing-file) reconstruction, and the post-restore
+   * open-file reconcile pass. Owned by the service (not a DI service); works
+   * against the {@link SnapshotRegistry} and reaches the plugin (file lookup,
+   * open files, external-capture scheduling) through a
+   * {@link HistorySerializerHost} port the service builds.
+   */
+  protected historySerializer: HistorySerializer =
+    new HistorySerializer(this.registry, this.makeHistorySerializerHost());
 
   /**
    * Creates a new instance of SnapshotsService.
@@ -210,228 +230,46 @@ export class SnapshotsService implements Service {
 
   /**
    * Serializes all tracked snapshots into a plain, persistable structure.
-   * Includes live snapshots that carry actual history (a tracker with changes
-   * or a non-empty intermediate-version timeline) so pristine files do not
-   * bloat the store but a timeline is never lost just because the current
-   * state happens to match the original. Tombstones are ALWAYS included
-   * regardless of tracker/timeline emptiness: their final state plus
-   * `deletedTimestamp` is the only record of a deleted file's content and must
-   * survive a restart even when the live tracker was reset on `markDeleted`.
-   *
-   * The serialized `path` is taken from the map key (not from `snapshot.file`)
-   * so tombstones whose `file` reference is null (cross-directory move leaves
-   * a detached tombstone) still round-trip to disk under their last-known
-   * path.
+   * Delegates to the {@link HistorySerializer}, which owns the serialization
+   * rules (which snapshots to keep, tombstone inclusion, per-file failure
+   * isolation, and the advisory format version).
    *
    * @return {SerializedHistory} The versioned, serializable history payload
    */
   public serialize(): SerializedHistory {
-    const snapshots: SerializedFileSnapshot[] = [];
-
-    for (const [path, snapshot] of this.registry.entries()) {
-      if (!path) {
-        continue;
-      }
-
-      const isTombstone: boolean = snapshot.isTombstone();
-      const hasHistory: boolean = snapshot.content.getChangesLinesCount() > 0 || snapshot.timeline.hasVersions();
-
-      /**
-       * Tombstones are kept unconditionally; live snapshots only when they
-       * carry real history. The map key wins over snapshot.file?.path so a
-       * detached tombstone (file = null) still serializes under its path.
-       */
-      if (!isTombstone && !hasHistory) {
-        continue;
-      }
-
-      /**
-       * Isolate per-file serialization failure: a single corrupt snapshot whose
-       * `toJSON` (or its version encode) throws must drop only that file, never
-       * abort the whole loop. An unguarded throw here would propagate out of
-       * `serialize()` and lose the ENTIRE vault's payload for that save, which
-       * the persistence layer could then misread (an empty/failed payload) and
-       * act on destructively. Skipping the bad entry keeps every other file's
-       * history intact.
-       */
-      let payload: SerializedFileSnapshot;
-
-      try {
-        payload = snapshot.toJSON();
-      } catch (error) {
-        console.error('Local history: failed to serialize snapshot; skipping it', path, error);
-
-        continue;
-      }
-
-      payload.path = path;
-
-      snapshots.push(payload);
-    }
-
-    /**
-     * Format version 2 signals "may contain delta entries" in versions[].
-     * It is purely advisory: decode dispatches per entry on `lines` vs `delta`
-     * (VersionCodec.decode), so version-1 (all-keyframe) and version-2
-     * (delta-bearing) files restore identically and no reader branches on it.
-     */
-    return { version: 2, snapshots };
+    return this.historySerializer.serialize();
   }
 
   /**
-   * Restores snapshots from a previously serialized history payload, keeping the
-   * marker and history baselines separate.
-   *
-   * When the file was already captured this session, its session snapshot owns
-   * the MARKER baseline (the file content at this open) plus the live tracker and
-   * state, which must stay session-scoped so the gutter does not mark the whole
-   * file after a restart. The persisted HISTORY baseline and version timeline are
-   * adopted into that session snapshot, so the modal still diffs against the
-   * original and its captured versions without touching the markers.
-   *
-   * When the file is not open this session there is no session marker baseline to
-   * preserve, so the snapshot is rebuilt verbatim (marker and history baselines
-   * coincide).
-   *
-   * When the live file is gone (deleted while the plugin was off, or the entry
-   * was already a tombstone on disk) the snapshot is reconstructed as a
-   * tombstone under its persisted path so deleted-file history is never silently
-   * dropped on restart:
-   *
-   *   - a payload that already carries `deletedTimestamp` is rebuilt as that
-   *     same tombstone (the original deletion moment is preserved);
-   *   - a live payload whose file no longer resolves is auto-tombstoned with
-   *     `deletedTimestamp = data.timestamp`, treating the offline disappearance
-   *     as a delete that happened at the snapshot's last-known moment.
-   *
-   * Auto-tombstoning runs from `restoreFromDisk`, which itself runs from
-   * `onLayoutReady`, so the vault file index is fully populated by the time
-   * `getFileByPath` is consulted; a null result is a real absence, not a
-   * transient indexing miss.
-   *
-   * After the restore loop, any file currently open in the editor is
-   * re-checked via {@link scheduleExternalCapture} to catch a disk state that
-   * diverged from the restored snapshot state while the plugin was off (A1).
-   * Files not open in the editor are intentionally skipped (no disk read for
-   * unopened files). The debounce inside {@link scheduleExternalCapture} also
-   * coalesces any vault.modify event that fires immediately after restore into a
-   * single trailing pass, preventing double-capture.
+   * Restores snapshots from a previously serialized history payload. Delegates
+   * to the {@link HistorySerializer}, which owns the restore rules: preserving
+   * the session marker baseline while adopting the persisted history, rebuilding
+   * unopened files session-clean, reconstructing missing files as tombstones,
+   * and reconciling the open files against disk afterward.
    *
    * @param {SerializedFileSnapshot[]} snapshots - The serialized snapshots
    */
   public restore(snapshots: SerializedFileSnapshot[]): void {
-    if (!Array.isArray(snapshots)) {
-      return;
-    }
-
-    for (const data of snapshots) {
-      if (!data?.path) {
-        continue;
-      }
-
-      const file: TFile | null = this.plugin.getFileByPath(data.path);
-
-      if (!file) {
-        this.restoreOrphan(data);
-
-        continue;
-      }
-
-      const existing: FileSnapshot | undefined = this.registry.get(data.path);
-
-      if (existing) {
-        /**
-         * Preserve the session marker baseline, tracker, and state; adopt only
-         * the persisted history baseline and versions so the modal regains its
-         * time machine while the gutter stays session-scoped.
-         */
-        const persisted: FileSnapshot = FileSnapshot.fromJSON(data, file);
-
-        existing.adoptHistory(
-          persisted.content.getHistoryOriginalStateLines(),
-          [...persisted.timeline.getStoredVersions()],
-          persisted.deletedTimestamp,
-        );
-        this.forceUpdate();
-
-        continue;
-      }
-
-      /**
-       * A file that exists but was not captured this session yet: reconstruct it
-       * from disk, then collapse its session marker baseline onto the current
-       * state so it starts session-clean. Without this the restored snapshot
-       * carries its full history diff and the tree/tab decorator (which reads
-       * snapshots without opening them) would paint its folder as changed on a
-       * fresh launch, before the user edits anything this session.
-       */
-      const restored: FileSnapshot = FileSnapshot.fromJSON(data, file);
-
-      restored.resetMarkerBaseline();
-      this.registry.set(data.path, restored);
-    }
-
-    this.reconcileOpenFiles();
+    this.historySerializer.restore(snapshots);
   }
 
   /**
-   * Re-checks the disk state for every file currently open in the editor after
-   * a restore pass (A1). Calls {@link scheduleExternalCapture} for each open
-   * file that has a snapshot, which debounces the disk read + hash compare and
-   * fires a capture only when the on-disk content diverges from the restored
-   * state. Files not open in the editor are intentionally skipped: there is no
-   * visible editor surface for them and the performance cost of reading every
-   * tracked file on startup would be prohibitive.
+   * Builds the narrow {@link HistorySerializerHost} port the
+   * {@link HistorySerializer} reads its plugin-facing dependencies through: the
+   * vault file lookup (to resolve a persisted path to a live file), the open
+   * files (for the post-restore reconcile pass, empty when the plugin does not
+   * expose them), and the external-capture scheduling, keeping the plugin handle
+   * and the sibling collaborators owned by this service.
    *
-   * The debounce window inside {@link ExternalChangeCapture} acts as an
-   * async-safety valve: if a vault.modify event fires for the same file
-   * immediately after restore, its scheduleExternalCapture call resets the
-   * timer, so the two triggers coalesce into a single trailing disk read
-   * rather than a double-capture.
-   *
-   * A no-op when the plugin does not yet expose {@link getWorkspaceFiles}
-   * (test stubs or very early init paths that do not need the workspace).
+   * @return {HistorySerializerHost} The host port onto the serializer's deps
    */
-  protected reconcileOpenFiles(): void {
-    if (typeof this.plugin.getWorkspaceFiles !== 'function') {
-      return;
-    }
-
-    const openFiles: Set<TFile> = this.plugin.getWorkspaceFiles();
-
-    for (const file of openFiles) {
-      if (!file || !this.registry.has(file.path)) {
-        continue;
-      }
-
-      this.scheduleExternalCapture(file);
-    }
-  }
-
-  /**
-   * Reconstructs a serialized entry whose live file is missing as a tombstone.
-   * A payload that already carries `deletedTimestamp` is rebuilt verbatim so
-   * the original deletion moment survives a restart; a live payload whose file
-   * is gone is auto-tombstoned with `deletedTimestamp = data.timestamp` (the
-   * snapshot's last-known moment), keeping deleted-file history accessible
-   * even when the delete happened while the plugin was off.
-   *
-   * @param {SerializedFileSnapshot} data - The serialized snapshot
-   */
-  protected restoreOrphan(data: SerializedFileSnapshot): void {
-    const snapshot: FileSnapshot = FileSnapshot.fromJSON(data, null);
-
-    if (!snapshot.isTombstone()) {
-      snapshot.deletedTimestamp = data.timestamp;
-    }
-
-    /**
-     * Detach the file reference: the underlying TFile no longer exists, so the
-     * tombstone must not pretend to point at a live vault entry.
-     */
-    snapshot.file = null;
-
-    this.registry.set(data.path, snapshot);
+  protected makeHistorySerializerHost(): HistorySerializerHost {
+    return {
+      getFileByPath: (path: string): TFile | null => this.plugin.getFileByPath(path),
+      getOpenFiles: (): Set<TFile> =>
+        typeof this.plugin.getWorkspaceFiles === 'function' ? this.plugin.getWorkspaceFiles() : new Set<TFile>(),
+      scheduleExternalCapture: (file: TFile): void => this.scheduleExternalCapture(file),
+    };
   }
 
   /**
@@ -440,53 +278,6 @@ export class SnapshotsService implements Service {
    */
   public forceUpdate(): void {
     this.registry.forceUpdate();
-  }
-
-  /**
-   * Adds a file to the ignore list.
-   * Files in the ignore list will not have any changes tracked.
-   *
-   * @param {TFile} file - The file to add to the ignore list
-   */
-  public addToIgnoreList(file: TFile): void {
-    this.ignoreList.add(file);
-  }
-
-  /**
-   * Removes a file from the ignore list.
-   * The file will be eligible for change tracking again.
-   *
-   * @param {TFile} file - The file to remove from the ignore list
-   */
-  public removeFromIgnoreList(file: TFile): void {
-    this.ignoreList.remove(file);
-  }
-
-  /**
-   * Checks if a file is in the ignore list.
-   *
-   * @param {TFile} file - The file to check
-   * @return {boolean} True if the file is in the ignore list, false otherwise
-   */
-  public isInIgnoreList(file: TFile): boolean {
-    return this.ignoreList.isIgnored(file);
-  }
-
-  /**
-   * Clears all files from the ignore list.
-   * All files will be eligible for change tracking again.
-   */
-  public clearIgnoreList(): void {
-    this.ignoreList.clear();
-  }
-
-  /**
-   * Gets all files currently in the ignore list.
-   *
-   * @return {TFile[]} An array of files in the ignore list
-   */
-  public getIgnoreList(): TFile[] {
-    return this.ignoreList.list();
   }
 
   /**
@@ -585,7 +376,7 @@ export class SnapshotsService implements Service {
     const isExtensionAllowed: boolean = this.isInAllowedExtensions(file);
     const isExcluded: boolean = this.isExcludedPath(file);
     const isHasInList: boolean = this.isCaptured(file);
-    const isIgnored: boolean = this.isInIgnoreList(file);
+    const isIgnored: boolean = this.ignoreList.isIgnored(file);
 
     return isExtensionAllowed && !isExcluded && !isHasInList && !isIgnored;
   }
@@ -656,7 +447,7 @@ export class SnapshotsService implements Service {
       plugin: this.plugin,
       getSnapshot: (path: string): FileSnapshot | undefined => this.registry.get(path),
       isExternallyCapturable: (file: TFile): boolean =>
-        this.isInAllowedExtensions(file) && !this.isExcludedPath(file) && !this.isInIgnoreList(file),
+        this.isInAllowedExtensions(file) && !this.isExcludedPath(file) && !this.ignoreList.isIgnored(file),
       captureFirstSight: (file: TFile): Promise<void> => this.capture(file),
       getCaptureOptions: (): SnapshotCaptureOptions => this.getCaptureOptions(),
       forceUpdate: (): void => this.forceUpdate(),
@@ -693,7 +484,7 @@ export class SnapshotsService implements Service {
 
     if (target) {
       this.remove(target);
-      this.removeFromIgnoreList(target);
+      this.ignoreList.remove(target);
     }
 
     if (this.plugin.getActiveViewOfType()) {
@@ -793,7 +584,7 @@ export class SnapshotsService implements Service {
    */
   public wipe(): void {
     this.clear();
-    this.clearIgnoreList();
+    this.ignoreList.clear();
 
     if (this.plugin.getActiveViewOfType()) {
       this.plugin.forceUpdateEditor();

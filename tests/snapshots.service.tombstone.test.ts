@@ -93,19 +93,19 @@ describe('SnapshotsService.markDeleted', () => {
     expect(resolved!.isTombstone()).toBe(true);
   });
 
-  it('removeFromIgnoreList still succeeds after markDeleted', () => {
+  it('ignoreList.remove still succeeds after markDeleted', () => {
     const service = makeService();
     const file = makeFile('notes/a.md');
 
     seedLiveSnapshot(service, file);
-    service.addToIgnoreList(file);
+    service.ignoreList.add(file);
 
     expect(() => {
       service.markDeleted(file);
-      service.removeFromIgnoreList(file);
+      service.ignoreList.remove(file);
     }).not.toThrow();
 
-    expect(service.isInIgnoreList(file)).toBe(false);
+    expect(service.ignoreList.isIgnored(file)).toBe(false);
   });
 
   it('is a no-op when no snapshot exists at the path', () => {

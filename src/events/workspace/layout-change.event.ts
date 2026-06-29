@@ -39,12 +39,12 @@ export class WorkspaceLayoutChangeEvent extends BaseEvent {
 
     /**
      * Snapshot every collection into a local array before iteration so the
-     * mutating service calls below (wipeOne, removeFromIgnoreList) and the
+     * mutating service calls below (wipeOne, ignoreList.remove) and the
      * follow-up captures cannot re-enter the loops they are walking
      *.
      */
     const snapshots: FileSnapshot[] = this.snapshotsService.getList();
-    const ignored: TFile[] = this.snapshotsService.getIgnoreList();
+    const ignored: TFile[] = this.snapshotsService.ignoreList.list();
     const opened: TFile[] = [...openedFiles];
 
     const closedSnapshots: TFile[] = [];
@@ -92,7 +92,7 @@ export class WorkspaceLayoutChangeEvent extends BaseEvent {
     }
 
     for (const file of closedIgnored) {
-      this.snapshotsService.removeFromIgnoreList(file);
+      this.snapshotsService.ignoreList.remove(file);
     }
 
     for (const file of newlyOpened) {

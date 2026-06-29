@@ -226,7 +226,7 @@ export class PropertyDecoratorService implements Service {
    * - no snapshot for the current file: clear all decorations and return
    *
    * When a snapshot is found, {@link diffFrontmatter} is called with
-   * `snapshot.lines` (baseline) and `snapshot.state` (current).  The result
+   * `snapshot.content.lines` (baseline) and `snapshot.content.state` (current).  The result
    * together with the baseline key order is passed to {@link decorate}.
    */
   protected apply(): void {
@@ -264,8 +264,8 @@ export class PropertyDecoratorService implements Service {
       return;
     }
 
-    const changes: FrontmatterChange = diffFrontmatter(snapshot.lines, snapshot.state);
-    const snapshotKeyOrder: string[] = PropertyDecoratorService.extractKeyOrder(snapshot.lines);
+    const changes: FrontmatterChange = diffFrontmatter(snapshot.content.lines, snapshot.content.state);
+    const snapshotKeyOrder: string[] = PropertyDecoratorService.extractKeyOrder(snapshot.content.lines);
 
     this.decorate(editor, rows, changes, snapshotKeyOrder);
   }

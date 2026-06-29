@@ -64,7 +64,7 @@ function buildHandler(
 function buildTombstone(): FileSnapshot {
   const snapshot = new FileSnapshot('old.md');
 
-  snapshot.lineBreak = '\n';
+  snapshot.content.lineBreak = '\n';
   snapshot.deletedTimestamp = 1;
 
   return snapshot;

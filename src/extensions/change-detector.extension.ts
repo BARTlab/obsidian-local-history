@@ -232,9 +232,9 @@ export class ChangeDetectorExtension extends BaseExtension implements EditorExte
      * so a captured version preserves the earlier point. Cadence gating lives
      * in the snapshot, so this stays cheap on the keystroke path.
      */
-    snapshot.captureVersion(snapshot.getLastStateLines(), this.getCaptureOptions());
+    snapshot.captureVersion(snapshot.content.getLastStateLines(), this.getCaptureOptions());
 
-    snapshot.updateState(currentLines);
+    snapshot.content.updateState(currentLines);
     snapshot.updateChanges();
   }
 

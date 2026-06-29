@@ -28,7 +28,7 @@ const seedLiveSnapshot = (service: SnapshotsService, file: TFile): FileSnapshot 
 
   expect(snapshot).not.toBeNull();
 
-  snapshot!.updateState(['one', 'two-edited', 'three']);
+  snapshot!.content.updateState(['one', 'two-edited', 'three']);
   snapshot!.timeline.adopt([new FileVersion(['one', 'two', 'three'])]);
 
   return snapshot as FileSnapshot;
@@ -146,7 +146,7 @@ describe('SnapshotsService.restore with live snapshots', () => {
     const snapshot: FileSnapshot = service.getOne(file) as FileSnapshot;
 
     snapshot.trackers.findCurrentLine(1)?.change('B');
-    snapshot.updateState(['a', 'B', 'c']);
+    snapshot.content.updateState(['a', 'B', 'c']);
     snapshot.updateChanges();
 
     const payload = service.serialize();
@@ -162,8 +162,8 @@ describe('SnapshotsService.restore with live snapshots', () => {
     expect(restored!.file?.path).toBe('notes/a.md');
     // The session marker baseline is re-established on restore, so a not-yet-opened
     // live file starts session-clean; its current state and history are preserved.
-    expect(restored!.getChangesLinesCount()).toBe(0);
-    expect(restored!.getLastStateLines()).toEqual(['a', 'B', 'c']);
+    expect(restored!.content.getChangesLinesCount()).toBe(0);
+    expect(restored!.content.getLastStateLines()).toEqual(['a', 'B', 'c']);
   });
 });
 
@@ -177,7 +177,7 @@ describe('SnapshotsService.restore orphan auto-tombstoning', () => {
     const snapshot: FileSnapshot = service.getOne(file) as FileSnapshot;
 
     snapshot.trackers.findCurrentLine(0)?.change('X');
-    snapshot.updateState(['X', 'y', 'z']);
+    snapshot.content.updateState(['X', 'y', 'z']);
     snapshot.updateChanges();
 
     const payload = service.serialize();
@@ -209,7 +209,7 @@ describe('SnapshotsService.restore orphan auto-tombstoning', () => {
     const snapshot: FileSnapshot = service.getOne(file) as FileSnapshot;
 
     snapshot.trackers.findCurrentLine(1)?.change('B');
-    snapshot.updateState(['a', 'B', 'c']);
+    snapshot.content.updateState(['a', 'B', 'c']);
     snapshot.updateChanges();
     snapshot.timeline.adopt([new FileVersion(['a', 'mid', 'c'])]);
 
@@ -221,8 +221,8 @@ describe('SnapshotsService.restore orphan auto-tombstoning', () => {
 
     const restored: FileSnapshot = fresh.getOne(makeFile('lost/z.md')) as FileSnapshot;
 
-    expect(restored.getLastStateLines()).toEqual(['a', 'B', 'c']);
-    expect(restored.getHistoryOriginalStateLines()).toEqual(['a', 'b', 'c']);
+    expect(restored.content.getLastStateLines()).toEqual(['a', 'B', 'c']);
+    expect(restored.content.getHistoryOriginalStateLines()).toEqual(['a', 'b', 'c']);
     expect(restored.timeline.getStoredVersions()).toHaveLength(1);
     expect(restored.timeline.getStoredVersions()[0].getLines()).toEqual(['a', 'mid', 'c']);
   });
@@ -236,8 +236,8 @@ describe('SnapshotsService tombstone round-trip across serialize/restore', () =>
     seedLiveSnapshot(service, file);
 
     const live: FileSnapshot = service.getOne(file) as FileSnapshot;
-    const stateBefore: string[] = live.getLastStateLines();
-    const historyBefore: string[] = live.getHistoryOriginalStateLines();
+    const stateBefore: string[] = live.content.getLastStateLines();
+    const historyBefore: string[] = live.content.getHistoryOriginalStateLines();
     const versionsBefore: number = live.timeline.getStoredVersions().length;
 
     service.markDeleted(file);
@@ -252,8 +252,8 @@ describe('SnapshotsService tombstone round-trip across serialize/restore', () =>
     const restored: FileSnapshot = fresh.getOne(makeFile('notes/a.md')) as FileSnapshot;
 
     expect(restored.isTombstone()).toBe(true);
-    expect(restored.getLastStateLines()).toEqual(stateBefore);
-    expect(restored.getHistoryOriginalStateLines()).toEqual(historyBefore);
+    expect(restored.content.getLastStateLines()).toEqual(stateBefore);
+    expect(restored.content.getHistoryOriginalStateLines()).toEqual(historyBefore);
     expect(restored.timeline.getStoredVersions()).toHaveLength(versionsBefore);
   });
 

@@ -27,7 +27,7 @@ describe('SnapshotsService.serialize', () => {
 
     const dirtySnapshot = service.getOne(dirty)!;
     dirtySnapshot.trackers.findCurrentLine(1)?.change('B');
-    dirtySnapshot.updateState(['a', 'B']);
+    dirtySnapshot.content.updateState(['a', 'B']);
     dirtySnapshot.updateChanges();
 
     const payload = service.serialize();
@@ -50,12 +50,12 @@ describe('SnapshotsService.serialize', () => {
 
     const goodSnapshot = service.getOne(good)!;
     goodSnapshot.trackers.findCurrentLine(1)?.change('B');
-    goodSnapshot.updateState(['a', 'B']);
+    goodSnapshot.content.updateState(['a', 'B']);
     goodSnapshot.updateChanges();
 
     const badSnapshot = service.getOne(bad)!;
     badSnapshot.trackers.findCurrentLine(1)?.change('B');
-    badSnapshot.updateState(['a', 'B']);
+    badSnapshot.content.updateState(['a', 'B']);
     badSnapshot.updateChanges();
 
     badSnapshot.toJSON = (): never => {
@@ -91,7 +91,7 @@ describe('SnapshotsService.serialize', () => {
       maxVersions: 0,
       maxVersionAgeDays: 0,
     });
-    expect(snapshot.getChangesLinesCount()).toBe(0);
+    expect(snapshot.content.getChangesLinesCount()).toBe(0);
     expect(snapshot.timeline.hasVersions()).toBe(true);
 
     const payload = service.serialize();
@@ -109,7 +109,7 @@ describe('SnapshotsService.restore', () => {
   const dirtySerialized = (path: string): SerializedFileSnapshot => {
     const snapshot = new FileSnapshot('a\nb\nc', '\n', makeFile(path));
     snapshot.trackers.findCurrentLine(1)?.change('B');
-    snapshot.updateState(['a', 'B', 'c']);
+    snapshot.content.updateState(['a', 'B', 'c']);
     snapshot.updateChanges();
 
     return snapshot.toJSON();
@@ -127,13 +127,13 @@ describe('SnapshotsService.restore', () => {
     // The session marker baseline is re-established on the current state at
     // restore, so a fresh launch starts session-clean and the tree/tab decorator
     // paints nothing until the file is edited this session.
-    expect(restored?.getChangesLinesCount()).toBe(0);
-    expect(restored?.getOriginalStateLines()).toEqual(['a', 'B', 'c']);
+    expect(restored?.content.getChangesLinesCount()).toBe(0);
+    expect(restored?.content.getOriginalStateLines()).toEqual(['a', 'B', 'c']);
 
     // No data is lost: the current state and the persisted history baseline are
     // preserved, so the history modal still diffs against the original.
-    expect(restored?.getLastStateLines()).toEqual(['a', 'B', 'c']);
-    expect(restored?.getHistoryOriginalStateLines()).toEqual(['a', 'b', 'c']);
+    expect(restored?.content.getLastStateLines()).toEqual(['a', 'B', 'c']);
+    expect(restored?.content.getHistoryOriginalStateLines()).toEqual(['a', 'b', 'c']);
   });
 
   it('auto-tombstones entries whose live file no longer exists', () => {
@@ -159,7 +159,7 @@ describe('SnapshotsService.restore', () => {
     // Pristine session capture: the marker baseline is this open's content.
     service.add(makeFile('a.md'), 'x\ny\nz');
     const live = service.getOne(makeFile('a.md'))!;
-    expect(live.getChangesLinesCount()).toBe(0);
+    expect(live.content.getChangesLinesCount()).toBe(0);
 
     // The persisted history carries a different original ("a\nb\nc") and an edit.
     service.restore([dirtySerialized('a.md')]);
@@ -168,12 +168,12 @@ describe('SnapshotsService.restore', () => {
 
     // Markers stay session-scoped: the marker baseline and tracker are untouched,
     // so the gutter shows no change against this open's content.
-    expect(restored?.getChangesLinesCount()).toBe(0);
-    expect(restored?.getOriginalStateLines()).toEqual(['x', 'y', 'z']);
-    expect(restored?.getLastStateLines()).toEqual(['x', 'y', 'z']);
+    expect(restored?.content.getChangesLinesCount()).toBe(0);
+    expect(restored?.content.getOriginalStateLines()).toEqual(['x', 'y', 'z']);
+    expect(restored?.content.getLastStateLines()).toEqual(['x', 'y', 'z']);
 
     // The modal regains the persisted history baseline (the original birth state).
-    expect(restored?.getHistoryOriginalStateLines()).toEqual(['a', 'b', 'c']);
+    expect(restored?.content.getHistoryOriginalStateLines()).toEqual(['a', 'b', 'c']);
   });
 
   it('does not clobber an in-memory snapshot that already has changes', () => {
@@ -182,14 +182,14 @@ describe('SnapshotsService.restore', () => {
     service.add(makeFile('a.md'), 'a\nb\nc');
     const live = service.getOne(makeFile('a.md'))!;
     live.trackers.findCurrentLine(0)?.change('Z');
-    live.updateState(['Z', 'b', 'c']);
+    live.content.updateState(['Z', 'b', 'c']);
     live.updateChanges();
 
     service.restore([dirtySerialized('a.md')]);
 
     // The session state and marker baseline win; only history is adopted.
-    expect(service.getOne(makeFile('a.md'))?.getLastStateLines()).toEqual(['Z', 'b', 'c']);
-    expect(service.getOne(makeFile('a.md'))?.getOriginalStateLines()).toEqual(['a', 'b', 'c']);
+    expect(service.getOne(makeFile('a.md'))?.content.getLastStateLines()).toEqual(['Z', 'b', 'c']);
+    expect(service.getOne(makeFile('a.md'))?.content.getOriginalStateLines()).toEqual(['a', 'b', 'c']);
   });
 
   it('ignores malformed input', () => {
@@ -468,7 +468,7 @@ describe('SnapshotsService.restore - post-restore reconciliation (A1)', () => {
     const after: FileSnapshot = service.getOne(file) as FileSnapshot;
     expect(after.timeline.getStoredVersions().length).toBe(1);
     expect(after.timeline.getStoredVersions()[0].isExternal()).toBe(true);
-    expect(after.getLastStateLines()).toEqual(['edited externally']);
+    expect(after.content.getLastStateLines()).toEqual(['edited externally']);
   });
 
   it('A1-match: does not re-capture when disk content matches the restored snapshot state', async () => {

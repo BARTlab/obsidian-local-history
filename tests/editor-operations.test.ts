@@ -73,7 +73,7 @@ describe('EditorOperations', () => {
     expect(applied).toBe(true);
     // The cached state mirrors the written content so a later read sees the new
     // baseline.
-    expect((snapshot as FileSnapshot).getLastStateLines()).toEqual(['a', 'B', 'c']);
+    expect((snapshot as FileSnapshot).content.getLastStateLines()).toEqual(['a', 'B', 'c']);
     // The disk write joins on the snapshot's line break.
     expect(modify).toHaveBeenCalledTimes(1);
     expect(modify).toHaveBeenCalledWith(file!, 'a\nB\nc');

@@ -1,8 +1,5 @@
-import type { ChangeType } from '@/consts';
 import { TextHelper } from '@/helpers/text.helper';
-import type { ChangeLine } from '@/lines/change.line';
 import type { TrackerLine } from '@/lines/tracker.line';
-import { ArrayMap } from '@/maps/array.map';
 import type { FileVersion } from '@/snapshots/file.version';
 import { SnapshotState } from '@/snapshots/snapshot-state';
 import { SnapshotTimestamps } from '@/snapshots/snapshot-timestamps';
@@ -25,34 +22,21 @@ export class FileSnapshot {
   public id: string = TextHelper.rndId();
 
   /**
-   * Marker baseline: the file content the change tracker measures against. This
-   * is the file state at the moment the snapshot was created in the current app
-   * run, so the gutter markers stay session-scoped. The tracker is
-   * built from these lines and they never change for the life of the snapshot.
-   */
-  public lines: string[] = [];
-
-  /**
-   * History baseline: the persisted original the history modal diffs against
-   *. Defaults to the marker baseline (`lines`) so a freshly captured
-   * file has a single coherent origin. Restoring persisted history overrides
-   * only this baseline (and the version timeline) through adoptHistory, leaving
-   * the session marker baseline intact so the gutter does not mark the whole
-   * file after a restart.
-   */
-  public historyLines: string[] = [];
-
-  /**
    * Timestamp when this snapshot was created.
    * Used for tracking when changes occurred.
    */
   public timestamp: number = Date.now();
 
   /**
-   * Map of line numbers to their corresponding change information.
-   * Tracks what type of changes (added, modified, removed, restored) occurred at each line.
+   * The content sub-object: the one narrow surface over the file's content.
+   * It owns the marker baseline (`lines`), the history baseline (`historyLines`),
+   * the current state (`state`) and its hash (`lastHash`), the change map
+   * (`changes`), and the line break, and exposes the whole state/baseline/change
+   * query API. Callers reach content queries through `snapshot.content`; the
+   * façade only rewires its own composite operations (construction, serialization,
+   * marker-baseline reset, change-map refresh, history adoption) through it.
    */
-  public changes: ArrayMap<ChangeLine> = new ArrayMap();
+  public readonly content: SnapshotState;
 
   /**
    * The tracker sub-object: the one narrow surface over line-change tracking.
@@ -68,18 +52,6 @@ export class FileSnapshot {
   public readonly trackers: TrackerEditor = new TrackerEditor();
 
   /**
-   * Hash of the last known state of the file.
-   * Used to determine if the file has changed since the last update.
-   */
-  public lastHash: string | null = null;
-
-  /**
-   * Current content of the file as an array of lines.
-   * This represents the most recent state of the file.
-   */
-  public state: string[] = [];
-
-  /**
    * The version-timeline sub-object: the one narrow surface over intermediate
    * versions. It owns the ordered `versions` array (oldest first, one frozen copy
    * of the file content per captured point, holding only the points between the
@@ -89,12 +61,6 @@ export class FileSnapshot {
    * (capture, serialization, history adoption) to read and write it.
    */
   public readonly timeline: VersionTimeline = new VersionTimeline();
-
-  /**
-   * Line break character used in the file.
-   * Defaults to '\n' but can be specified during construction.
-   */
-  public lineBreak: string = '\n';
 
   /**
    * Reference to the Obsidian file object.
@@ -146,35 +112,22 @@ export class FileSnapshot {
 
   /**
    * Creates a new instance of FileSnapshot.
-   * Initializes the snapshot with the provided content, splits it into lines,
-   * creates tracker objects for each line, and saves the initial state.
+   * Seeds the content sub-object with the provided text, builds a tracker per
+   * baseline line, and records the initial state through the content owner.
    *
    * @param {string} content - The content of the file as a string
    * @param {string} lineBreak - The line break character used in the file (defaults to '\n')
    * @param {TFile | null} file - The Obsidian file object this snapshot belongs to
    */
   public constructor(content: string, lineBreak?: string, file?: TFile | null) {
-    if (lineBreak) {
-      this.lineBreak = lineBreak;
-    }
+    this.content = new SnapshotState(content, lineBreak);
 
     if (file) {
       this.file = file;
       this.path = file.path;
     }
 
-    this.lines = content?.split(this.lineBreak) ?? [];
-
-    /**
-     * The history baseline starts equal to the marker baseline; a restore can
-     * later override it independently via adoptHistory.
-     */
-    this.historyLines = [...this.lines];
-
-    this.trackers.buildFromLines(this.lines);
-
-    // Save the current content as the last document state.
-    this.updateState(this.lines);
+    this.trackers.buildFromLines(this.content.lines);
   }
 
   /**
@@ -191,13 +144,13 @@ export class FileSnapshot {
   public toJSON(): SerializedFileSnapshot {
     const payload: SerializedFileSnapshot = {
       path: this.file?.path ?? this.path,
-      lineBreak: this.lineBreak,
+      lineBreak: this.content.lineBreak,
       timestamp: this.timestamp,
-      lines: [...this.historyLines],
-      state: [...this.state],
+      lines: [...this.content.historyLines],
+      state: [...this.content.state],
       tracker: this.trackers.getTrackerLines()
         .map((tracker: TrackerLine): ReturnType<TrackerLine['toJSON']> => tracker.toJSON()),
-      versions: VersionCodec.encode([...this.timeline.getStoredVersions()], this.lineBreak),
+      versions: VersionCodec.encode([...this.timeline.getStoredVersions()], this.content.lineBreak),
     };
 
     /**
@@ -271,7 +224,7 @@ export class FileSnapshot {
       snapshot.movedIntoAt = data.movedIntoAt;
     }
 
-    snapshot.updateState(state);
+    snapshot.content.updateState(state);
     snapshot.updateChanges();
 
     return snapshot;
@@ -305,7 +258,7 @@ export class FileSnapshot {
    * @return {boolean} True if the content has changed and needs updating, false otherwise
    */
   public isNeedUpdate(content: string): boolean {
-    return this.lastHash !== TextHelper.hash(content);
+    return this.content.lastHash !== TextHelper.hash(content);
   }
 
   /**
@@ -325,12 +278,12 @@ export class FileSnapshot {
    * @return {boolean} True if the content differs from the stored state, false if identical
    */
   public isContentChanged(content: string): boolean {
-    if (this.lastHash !== TextHelper.hash(content)) {
+    if (this.content.lastHash !== TextHelper.hash(content)) {
       return true;
     }
 
-    const incoming: string[] = content.split(this.lineBreak);
-    const current: string[] = this.state;
+    const incoming: string[] = content.split(this.content.lineBreak);
+    const current: string[] = this.content.state;
 
     if (incoming.length !== current.length) {
       return true;
@@ -343,19 +296,6 @@ export class FileSnapshot {
     }
 
     return false;
-  }
-
-  /**
-   * Updates the current state of the file snapshot.
-   * Stores the new content and updates the hash for future change detection.
-   *
-   * @param {string | string[]} content - The new content of the file, either as a string or array of lines
-   */
-  public updateState(content: string | string[]): void {
-    const result = SnapshotState.updateState(content, this.lineBreak);
-
-    this.state = result.state;
-    this.lastHash = result.lastHash;
   }
 
   /**
@@ -400,177 +340,14 @@ export class FileSnapshot {
   ): FileVersion | null {
     return this.timeline.capture(
       {
-        historyBaseline: this.getHistoryOriginalState(),
-        lineBreak: this.lineBreak,
+        historyBaseline: this.content.getHistoryOriginalState(),
+        lineBreak: this.content.lineBreak,
         options,
       },
       previousLines,
       force,
       label,
     );
-  }
-
-  /**
-   * Checks if the current state is the same as the original state.
-   * Compares the content of the file when the snapshot was created with its current content.
-   *
-   * @return {boolean} True if the current state matches the original state, false otherwise
-   */
-  public isStateSameOriginal(): boolean {
-    return SnapshotState.isStateSameOriginal(this.lines, this.state, this.lineBreak);
-  }
-
-  /**
-   * Gets the current state of the file as a string.
-   * Joins the lines of the current state with the line break character.
-   *
-   * @return {string} The current state of the file as a string
-   */
-  public getLastState(): string {
-    return SnapshotState.getLastState(this.state, this.lineBreak);
-  }
-
-  /**
-   * Gets the current state of the file as an array of lines.
-   * Returns a copy of the state array to prevent direct modification.
-   *
-   * @return {string[]} The current state of the file as an array of lines
-   */
-  public getLastStateLines(): string[] {
-    return SnapshotState.getLastStateLines(this.state);
-  }
-
-  /**
-   * Gets the marker baseline as a string (the session origin the gutter markers
-   * measure against). Joins the marker baseline lines with the line break.
-   *
-   * @return {string} The marker baseline of the file as a string
-   */
-  public getOriginalState(): string {
-    return SnapshotState.getOriginalState(this.lines, this.lineBreak);
-  }
-
-  /**
-   * Gets the marker baseline as an array of lines (the session origin the gutter
-   * markers measure against). Returns a copy to prevent direct modification.
-   *
-   * @return {string[]} The marker baseline of the file as an array of lines
-   */
-  public getOriginalStateLines(): string[] {
-    return SnapshotState.getOriginalStateLines(this.lines);
-  }
-
-  /**
-   * Gets the HISTORY baseline as a string (the persisted original the history
-   * modal diffs against). Distinct from the marker baseline so a restored file
-   * keeps a stable origin for the time machine while the gutter stays
-   * session-scoped.
-   *
-   * @return {string} The history baseline of the file as a string
-   */
-  public getHistoryOriginalState(): string {
-    return SnapshotState.getHistoryOriginalState(this.historyLines, this.lineBreak);
-  }
-
-  /**
-   * Gets the HISTORY baseline as an array of lines (the persisted original the
-   * history modal diffs against). Returns a copy to prevent direct modification.
-   *
-   * @return {string[]} The history baseline of the file as an array of lines
-   */
-  public getHistoryOriginalStateLines(): string[] {
-    return SnapshotState.getHistoryOriginalStateLines(this.historyLines);
-  }
-
-  /**
-   * Adopts a persisted HISTORY baseline and version timeline into this
-   * (session-captured) snapshot without touching the marker baseline, the
-   * tracker, or the current state. Used by the restore path so reopening
-   * a file in a new app run keeps the gutter markers session-scoped (measured
-   * against the file content at this open) while the history modal still diffs
-   * against the persisted original and its captured versions.
-   *
-   * When the persisted snapshot carried a deletedTimestamp (i.e. it was a
-   * tombstone on disk), that value is synced onto this snapshot so tombstone
-   * data is never silently dropped when the session snapshot was created before
-   * the restore path ran (A8).
-   *
-   * @param {string[]} historyLines - The persisted original (history baseline)
-   * @param {FileVersion[]} versions - The persisted version timeline, oldest first
-   * @param {number | undefined} deletedTimestamp - The persisted tombstone marker, if any
-   */
-  public adoptHistory(historyLines: string[], versions: FileVersion[], deletedTimestamp?: number): void {
-    const result = SnapshotState.adoptHistory(historyLines, versions);
-
-    this.historyLines = result.historyLines;
-    this.timeline.adopt(result.versions);
-
-    if (typeof deletedTimestamp === 'number') {
-      this.deletedTimestamp = deletedTimestamp;
-    }
-  }
-
-  /**
-   * Re-establishes the session marker baseline at the current state, the eager
-   * form of the "re-established from the file content on the next open" contract
-   * that `toJSON` documents for the deliberately non-persisted marker baseline.
-   *
-   * `fromJSON` reconstructs the marker baseline from the persisted HISTORY
-   * original and restores the persisted tracker, so a restored snapshot reports
-   * its full history diff (`getChangesLinesCount() > 0`) before the file is ever
-   * opened this run. The session surfaces that read a snapshot WITHOUT opening it
-   * - the tree/tab decorator above all - would then paint a folder as changed on
-   * a fresh launch even though nothing changed this session. Calling this at
-   * restore collapses the marker baseline onto the current state so the snapshot
-   * starts session-clean (`none`), matching the gutter, which re-baselines to the
-   * editor content on open. The HISTORY baseline (`historyLines`) and the version
-   * timeline are untouched, so the history modal keeps diffing against the
-   * persisted original; only the session-scoped marker view is reset.
-   */
-  public resetMarkerBaseline(): void {
-    this.lines = [...this.state];
-
-    this.trackers.buildFromLines(this.lines);
-    this.updateChanges();
-  }
-
-  /**
-   * Gets the changes for the specified change types.
-   * If no type is specified, returns all changes.
-   *
-   * @param {ChangeType | ChangeType[]} type - Optional change type or array of change types to filter by
-   * @return {ArrayMap<ChangeLine>} A map of line numbers to their corresponding change information
-   */
-  public getChanges(type?: ChangeType | ChangeType[]): ArrayMap<ChangeLine> {
-    if (!this.changes) {
-      this.changes = new ArrayMap<ChangeLine>();
-    }
-
-    return SnapshotState.getChanges(this.changes, type);
-  }
-
-  /**
-   * Gets the total count of lines that have been changed, added, or removed.
-   * Used to display the number of changed lines in the status bar.
-   *
-   * @return {number} The number of lines with changes
-   */
-  public getChangesLinesCount(): number {
-    return SnapshotState.getChangesLinesCount(this.getChanges());
-  }
-
-  /**
-   * Gets the 0-based positions of every currently changed line, ascending.
-   * These are the same positions the line decorations are keyed by (the change
-   * map keys), so navigating across them lands the cursor exactly on the
-   * highlighted lines. Used by the "go to next/previous change" commands.
-   *
-   * @param {ChangeType | ChangeType[]} type - Optional change types to include;
-   *   defaults to changed, added, restored and removed
-   * @return {number[]} The unique changed line positions in ascending order
-   */
-  public getChangedPositions(type?: ChangeType | ChangeType[]): number[] {
-    return SnapshotState.getChangedPositions(this.getChanges(), type);
   }
 
   /**
@@ -615,11 +392,61 @@ export class FileSnapshot {
   }
 
   /**
+   * Adopts a persisted HISTORY baseline and version timeline into this
+   * (session-captured) snapshot without touching the marker baseline, the
+   * tracker, or the current state. Used by the restore path so reopening
+   * a file in a new app run keeps the gutter markers session-scoped (measured
+   * against the file content at this open) while the history modal still diffs
+   * against the persisted original and its captured versions.
+   *
+   * When the persisted snapshot carried a deletedTimestamp (i.e. it was a
+   * tombstone on disk), that value is synced onto this snapshot so tombstone
+   * data is never silently dropped when the session snapshot was created before
+   * the restore path ran (A8).
+   *
+   * @param {string[]} historyLines - The persisted original (history baseline)
+   * @param {FileVersion[]} versions - The persisted version timeline, oldest first
+   * @param {number | undefined} deletedTimestamp - The persisted tombstone marker, if any
+   */
+  public adoptHistory(historyLines: string[], versions: FileVersion[], deletedTimestamp?: number): void {
+    this.content.adoptHistory(historyLines);
+    this.timeline.adopt(Array.isArray(versions) ? [...versions] : []);
+
+    if (typeof deletedTimestamp === 'number') {
+      this.deletedTimestamp = deletedTimestamp;
+    }
+  }
+
+  /**
+   * Re-establishes the session marker baseline at the current state, the eager
+   * form of the "re-established from the file content on the next open" contract
+   * that `toJSON` documents for the deliberately non-persisted marker baseline.
+   *
+   * `fromJSON` reconstructs the marker baseline from the persisted HISTORY
+   * original and restores the persisted tracker, so a restored snapshot reports
+   * its full history diff (`getChangesLinesCount() > 0`) before the file is ever
+   * opened this run. The session surfaces that read a snapshot WITHOUT opening it
+   * - the tree/tab decorator above all - would then paint a folder as changed on
+   * a fresh launch even though nothing changed this session. Calling this at
+   * restore collapses the marker baseline onto the current state so the snapshot
+   * starts session-clean (`none`), matching the gutter, which re-baselines to the
+   * editor content on open. The HISTORY baseline (`historyLines`) and the version
+   * timeline are untouched, so the history modal keeps diffing against the
+   * persisted original; only the session-scoped marker view is reset.
+   */
+  public resetMarkerBaseline(): void {
+    this.content.lines = [...this.content.state];
+
+    this.trackers.buildFromLines(this.content.lines);
+    this.updateChanges();
+  }
+
+  /**
    * Updates the change map based on the current state of tracker lines.
    * Iterates through all tracker lines and adds appropriate change types
    * (added, removed, restored, changed) to the change map.
    */
   public updateChanges(): void {
-    SnapshotState.updateChanges(this.getChanges(), this.trackers.getTracker());
+    this.content.updateChanges(this.trackers.getTracker());
   }
 }

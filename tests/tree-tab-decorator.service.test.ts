@@ -21,7 +21,7 @@ const makeModified = (file: TFile | null, carriedPath?: string): FileSnapshot =>
   }
 
   snapshot.trackers.findCurrentLine(1)?.change('B');
-  snapshot.updateState(['a', 'B', 'c']);
+  snapshot.content.updateState(['a', 'B', 'c']);
   snapshot.updateChanges();
 
   return snapshot;

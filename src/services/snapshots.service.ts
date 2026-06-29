@@ -218,9 +218,9 @@ export class SnapshotsService implements Service {
     }
 
     snapshot.deletedTimestamp = Date.now();
-    snapshot.lines = [];
+    snapshot.content.lines = [];
     snapshot.trackers.reset();
-    snapshot.changes.clear();
+    snapshot.content.changes.clear();
 
     this.forceUpdate();
   }
@@ -300,15 +300,15 @@ export class SnapshotsService implements Service {
      * the same reason markDeleted drops them: they carry meaning only against a
      * live editor view, and the file is no longer there.
      */
-    const tombstone: FileSnapshot = new FileSnapshot('', snapshot.lineBreak);
+    const tombstone: FileSnapshot = new FileSnapshot('', snapshot.content.lineBreak);
 
     tombstone.file = null;
     tombstone.path = oldPath;
-    tombstone.lines = [];
+    tombstone.content.lines = [];
     tombstone.trackers.reset();
-    tombstone.changes.clear();
-    tombstone.historyLines = snapshot.getHistoryOriginalStateLines();
-    tombstone.updateState(snapshot.getLastStateLines());
+    tombstone.content.changes.clear();
+    tombstone.content.historyLines = snapshot.content.getHistoryOriginalStateLines();
+    tombstone.content.updateState(snapshot.content.getLastStateLines());
     tombstone.timeline.adopt(
       snapshot.timeline.getStoredVersions().map(
         (version: FileVersion): FileVersion => FileVersion.fromJSON(version.toJSON()),
@@ -383,7 +383,7 @@ export class SnapshotsService implements Service {
       }
 
       const isTombstone: boolean = snapshot.isTombstone();
-      const hasHistory: boolean = snapshot.getChangesLinesCount() > 0 || snapshot.timeline.hasVersions();
+      const hasHistory: boolean = snapshot.content.getChangesLinesCount() > 0 || snapshot.timeline.hasVersions();
 
       /**
        * Tombstones are kept unconditionally; live snapshots only when they
@@ -497,7 +497,7 @@ export class SnapshotsService implements Service {
         const persisted: FileSnapshot = FileSnapshot.fromJSON(data, file);
 
         existing.adoptHistory(
-          persisted.getHistoryOriginalStateLines(),
+          persisted.content.getHistoryOriginalStateLines(),
           [...persisted.timeline.getStoredVersions()],
           persisted.deletedTimestamp,
         );

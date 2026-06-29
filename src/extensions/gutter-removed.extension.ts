@@ -54,14 +54,14 @@ export class GutterRemovedExtension extends BaseExtension implements GutterConfi
    */
   public markers = (view: EditorView): RangeSet<RemovedMarker> => {
     const snapshot: FileSnapshot | null = this.snapshotsService.getOne();
-    const removed: ArrayMap<ChangeLine> | null = snapshot?.getChanges(ChangeType.removed) ?? null;
+    const removed: ArrayMap<ChangeLine> | null = snapshot?.content.getChanges(ChangeType.removed) ?? null;
     const builder: RangeSetBuilder<RemovedMarker> = new RangeSetBuilder<RemovedMarker>();
 
     if (!this.isTypeDot() || !this.isEnable() || !snapshot || !removed || removed.size === 0) {
       return builder.finish();
     }
 
-    for (const pos of snapshot.getChangedPositions(ChangeType.removed)) {
+    for (const pos of snapshot.content.getChangedPositions(ChangeType.removed)) {
       if (pos >= view.state.doc.lines || removed.has(pos - 1)) {
         continue;
       }
@@ -101,11 +101,11 @@ export class GutterRemovedExtension extends BaseExtension implements GutterConfi
       return;
     }
 
-    const currentLines: string[] = snapshot.getLastStateLines();
+    const currentLines: string[] = snapshot.content.getLastStateLines();
     const hunks: Diff.StructuredPatchHunk[] = HunkHelper.diff(
-      snapshot.getOriginalStateLines(),
+      snapshot.content.getOriginalStateLines(),
       currentLines,
-      snapshot.lineBreak,
+      snapshot.content.lineBreak,
     );
 
     /**

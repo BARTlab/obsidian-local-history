@@ -82,9 +82,11 @@ class TestableService extends ReadingModeIndicatorService {
  */
 function makeSnapshot(changeMap: ChangeMap): FileSnapshot {
   return {
-    getChanges: (): { get: (line: number) => Set<ChangeType> | undefined } => ({
-      get: (line: number): Set<ChangeType> | undefined => changeMap.get(line),
-    }),
+    content: {
+      getChanges: (): { get: (line: number) => Set<ChangeType> | undefined } => ({
+        get: (line: number): Set<ChangeType> | undefined => changeMap.get(line),
+      }),
+    },
   } as unknown as FileSnapshot;
 }
 

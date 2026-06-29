@@ -22,7 +22,7 @@ const makeModified = (path: string = 'a.md'): FileSnapshot => {
   const snapshot: FileSnapshot = makeClean(path);
 
   snapshot.trackers.findCurrentLine(1)?.change('B');
-  snapshot.updateState(['a', 'B', 'c']);
+  snapshot.content.updateState(['a', 'B', 'c']);
   snapshot.updateChanges();
 
   return snapshot;
@@ -46,7 +46,7 @@ describe('SessionStatusHelper.statusOf', () => {
   it('returns modified for a snapshot with changed lines (marker baseline)', () => {
     const snapshot: FileSnapshot = makeModified();
 
-    expect(snapshot.getChangesLinesCount()).toBeGreaterThan(0);
+    expect(snapshot.content.getChangesLinesCount()).toBeGreaterThan(0);
     expect(SessionStatusHelper.statusOf(snapshot)).toBe(FolderDeltaStatus.modified);
   });
 
@@ -60,7 +60,7 @@ describe('SessionStatusHelper.statusOf', () => {
     const snapshot: FileSnapshot = makeModified();
     snapshot.createdThisSession = true;
 
-    expect(snapshot.getChangesLinesCount()).toBeGreaterThan(0);
+    expect(snapshot.content.getChangesLinesCount()).toBeGreaterThan(0);
     expect(SessionStatusHelper.statusOf(snapshot)).toBe(FolderDeltaStatus.added);
   });
 });

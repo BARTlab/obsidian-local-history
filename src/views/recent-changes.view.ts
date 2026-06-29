@@ -269,7 +269,7 @@ export class RecentChangesView extends ItemView {
     const visibleIds: Set<string> = VersionSearchHelper.match(
       versions.map((version: FileVersion): SearchableVersion => ({
         id: version.id,
-        content: version.getContent(snapshot.lineBreak),
+        content: version.getContent(snapshot.content.lineBreak),
       })),
       this.searchQuery,
     );
@@ -487,7 +487,7 @@ export class RecentChangesView extends ItemView {
     versions: FileVersion[],
     snapshot: FileSnapshot,
   ): VersionDescription {
-    return VersionLabelHelper.walkNeighbour(version, versions, snapshot.getHistoryOriginalStateLines());
+    return VersionLabelHelper.walkNeighbour(version, versions, snapshot.content.getHistoryOriginalStateLines());
   }
 
   /**

@@ -12,7 +12,7 @@ import type { SerializedFileSnapshot } from '@/types';
 
 const positionsWithType = (snapshot: FileSnapshot, type: ChangeType): number[] =>
   snapshot
-    .getChanges(type)
+    .content.getChanges(type)
     .simplify()
     .map((change): number => change.getLine())
     .sort((a: number, b: number): number => a - b);
@@ -29,11 +29,11 @@ describe('FileSnapshot construction', () => {
   it('seeds one original tracker per line', () => {
     const snapshot = new FileSnapshot('a\nb\nc');
 
-    expect(snapshot.lines).toEqual(['a', 'b', 'c']);
-    expect(snapshot.getLastStateLines()).toEqual(['a', 'b', 'c']);
+    expect(snapshot.content.lines).toEqual(['a', 'b', 'c']);
+    expect(snapshot.content.getLastStateLines()).toEqual(['a', 'b', 'c']);
     expect(snapshot.trackers.getTrackerLines()).toHaveLength(3);
     expect(snapshot.trackers.getTrackerLines().every((line: TrackerLine): boolean => line.isStateOriginal())).toBe(true);
-    expect(snapshot.getChangesLinesCount()).toBe(0);
+    expect(snapshot.content.getChangesLinesCount()).toBe(0);
   });
 
   it('reports no pending update for identical content', () => {
@@ -52,7 +52,7 @@ describe('FileSnapshot single-line change', () => {
     snapshot.updateChanges();
 
     expect(positionsWithType(snapshot, ChangeType.changed)).toEqual([1]);
-    expect(snapshot.getChangesLinesCount()).toBe(1);
+    expect(snapshot.content.getChangesLinesCount()).toBe(1);
   });
 
   it('marks a line restored once its content returns to the original', () => {
@@ -98,7 +98,7 @@ describe('FileSnapshot add and remove', () => {
     snapshot.trackers.removeTrackerOrLine(added);
     snapshot.updateChanges();
 
-    expect(snapshot.getChangesLinesCount()).toBe(0);
+    expect(snapshot.content.getChangesLinesCount()).toBe(0);
   });
 });
 
@@ -194,16 +194,16 @@ describe('FileSnapshot.replaceBlock (per-hunk revert)', () => {
     snapshot.trackers.findCurrentLine(0)?.change('A');
     snapshot.trackers.findCurrentLine(2)?.change('C');
     snapshot.updateChanges();
-    expect(snapshot.getChangesLinesCount()).toBe(2);
+    expect(snapshot.content.getChangesLinesCount()).toBe(2);
 
     snapshot.trackers.replaceBlock(0, 1, ['a']);
-    snapshot.updateState(['a', 'b', 'C']);
+    snapshot.content.updateState(['a', 'b', 'C']);
     snapshot.updateChanges();
 
     // The reverted line is no longer changed; the untouched edit survives.
     expect(positionsWithType(snapshot, ChangeType.changed)).toEqual([2]);
     expect(snapshot.trackers.findCurrentLine(0)?.isStateChanged()).toBe(false);
-    expect(snapshot.getLastStateLines()).toEqual(['a', 'b', 'C']);
+    expect(snapshot.content.getLastStateLines()).toEqual(['a', 'b', 'C']);
   });
 
   it('removes an added line when its insertion block is reverted', () => {
@@ -211,16 +211,16 @@ describe('FileSnapshot.replaceBlock (per-hunk revert)', () => {
 
     // Insert a line, then revert that insertion (replace one current line with none).
     snapshot.trackers.restoreOrAddTracker(1)?.change('NEW');
-    snapshot.updateState(['a', 'NEW', 'b']);
+    snapshot.content.updateState(['a', 'NEW', 'b']);
     snapshot.updateChanges();
     expect(positionsWithType(snapshot, ChangeType.added)).toEqual([1]);
 
     snapshot.trackers.replaceBlock(1, 1, []);
-    snapshot.updateState(['a', 'b']);
+    snapshot.content.updateState(['a', 'b']);
     snapshot.updateChanges();
 
-    expect(snapshot.getChangesLinesCount()).toBe(0);
-    expect(snapshot.getLastStateLines()).toEqual(['a', 'b']);
+    expect(snapshot.content.getChangesLinesCount()).toBe(0);
+    expect(snapshot.content.getLastStateLines()).toEqual(['a', 'b']);
   });
 
   it('re-inserts a removed original line when its deletion block is reverted', () => {
@@ -228,17 +228,17 @@ describe('FileSnapshot.replaceBlock (per-hunk revert)', () => {
 
     // Remove the middle line, then revert the deletion by inserting it back.
     snapshot.trackers.removeTrackerOrLine(1);
-    snapshot.updateState(['a', 'c']);
+    snapshot.content.updateState(['a', 'c']);
     snapshot.updateChanges();
     expect(positionsWithType(snapshot, ChangeType.removed)).toEqual([1]);
 
     snapshot.trackers.replaceBlock(1, 0, ['b']);
-    snapshot.updateState(['a', 'b', 'c']);
+    snapshot.content.updateState(['a', 'b', 'c']);
     snapshot.updateChanges();
 
     // The original line is back and the snapshot reports no pending changes.
-    expect(snapshot.getChangesLinesCount()).toBe(0);
-    expect(snapshot.getLastStateLines()).toEqual(['a', 'b', 'c']);
+    expect(snapshot.content.getChangesLinesCount()).toBe(0);
+    expect(snapshot.content.getLastStateLines()).toEqual(['a', 'b', 'c']);
   });
 
   it('keeps later edits intact and correctly positioned when an earlier block is reverted', () => {
@@ -246,16 +246,16 @@ describe('FileSnapshot.replaceBlock (per-hunk revert)', () => {
 
     // Insert a block early and edit a later line, then revert only the insertion.
     snapshot.trackers.restoreOrAddTracker(1)?.change('INS');
-    snapshot.updateState(['a', 'INS', 'b', 'c', 'd']);
+    snapshot.content.updateState(['a', 'INS', 'b', 'c', 'd']);
     snapshot.trackers.findCurrentLine(4)?.change('D');
-    snapshot.updateState(['a', 'INS', 'b', 'c', 'D']);
+    snapshot.content.updateState(['a', 'INS', 'b', 'c', 'D']);
     snapshot.updateChanges();
     expect(positionsWithType(snapshot, ChangeType.added)).toEqual([1]);
     expect(positionsWithType(snapshot, ChangeType.changed)).toEqual([4]);
 
     // Revert the insertion at position 1; the later edit must shift to line 3.
     snapshot.trackers.replaceBlock(1, 1, []);
-    snapshot.updateState(['a', 'b', 'c', 'D']);
+    snapshot.content.updateState(['a', 'b', 'c', 'D']);
     snapshot.updateChanges();
 
     expect(positionsWithType(snapshot, ChangeType.added)).toEqual([]);
@@ -269,14 +269,14 @@ describe('FileSnapshot.replaceBlock (per-hunk revert)', () => {
     const snapshot = new FileSnapshot('a\nb\nc\nd\ne');
 
     snapshot.trackers.removeTrackerOrLine(1);
-    snapshot.updateState(['a', 'c', 'd', 'e']);
+    snapshot.content.updateState(['a', 'c', 'd', 'e']);
     snapshot.updateChanges();
     expect(positionsWithType(snapshot, ChangeType.removed)).toEqual([1]);
 
     // Replace the leading block (a, c) with three lines so the new block
     // straddles the removed marker at position 1: removeCount=2, newLines.length=3.
     snapshot.trackers.replaceBlock(0, 2, ['X', 'Y', 'Z']);
-    snapshot.updateState(['X', 'Y', 'Z', 'd', 'e']);
+    snapshot.content.updateState(['X', 'Y', 'Z', 'd', 'e']);
     snapshot.updateChanges();
 
     // Every replacement line lands on its expected current position and the
@@ -296,7 +296,7 @@ describe('FileSnapshot.replaceBlock (per-hunk revert)', () => {
 
     // The new live document holds exactly five lines: no doomed-or-restored
     // ghost stays on a current position past the visible end.
-    expect(snapshot.getLastStateLines()).toEqual(['X', 'Y', 'Z', 'd', 'e']);
+    expect(snapshot.content.getLastStateLines()).toEqual(['X', 'Y', 'Z', 'd', 'e']);
   });
 });
 
@@ -304,7 +304,7 @@ describe('FileSnapshot.getChangedPositions (navigation source)', () => {
   it('returns no positions for a pristine snapshot', () => {
     const snapshot = new FileSnapshot('a\nb\nc');
 
-    expect(snapshot.getChangedPositions()).toEqual([]);
+    expect(snapshot.content.getChangedPositions()).toEqual([]);
   });
 
   it('collects changed, added and removed positions in ascending order', () => {
@@ -315,13 +315,13 @@ describe('FileSnapshot.getChangedPositions (navigation source)', () => {
     snapshot.trackers.findCurrentLine(0)?.change('A');
     snapshot.trackers.findCurrentLine(3)?.change('D');
     snapshot.trackers.removeTrackerOrLine(1);
-    snapshot.updateState(['A', 'c', 'D', 'e']);
+    snapshot.content.updateState(['A', 'c', 'D', 'e']);
     snapshot.updateChanges();
 
     // Navigation offers exactly the highlighted lines: line 0 changed, line 1
     // (the removal marker), line 2 changed. The same set the decorations draw,
     // ascending, with no entry for the untouched trailing line.
-    expect(snapshot.getChangedPositions()).toEqual([0, 1, 2]);
+    expect(snapshot.content.getChangedPositions()).toEqual([0, 1, 2]);
     expect(positionsWithType(snapshot, ChangeType.changed)).toEqual([0, 2]);
     expect(positionsWithType(snapshot, ChangeType.removed)).toEqual([1]);
   });
@@ -332,14 +332,14 @@ describe('FileSnapshot.getChangedPositions (navigation source)', () => {
     snapshot.trackers.findCurrentLine(0)?.change('A');
     snapshot.trackers.findCurrentLine(2)?.change('C');
     snapshot.updateChanges();
-    expect(snapshot.getChangedPositions()).toEqual([0, 2]);
+    expect(snapshot.content.getChangedPositions()).toEqual([0, 2]);
 
     // Edit line 0 back to its original: it becomes a restored line, which is
     // still highlighted, so navigation keeps offering it. Line 2 stays changed.
     snapshot.trackers.findCurrentLine(0)?.change('a');
     snapshot.updateChanges();
 
-    expect(snapshot.getChangedPositions()).toEqual([0, 2]);
+    expect(snapshot.content.getChangedPositions()).toEqual([0, 2]);
     expect(positionsWithType(snapshot, ChangeType.restored)).toEqual([0]);
     expect(positionsWithType(snapshot, ChangeType.changed)).toEqual([2]);
   });
@@ -354,7 +354,7 @@ describe('FileSnapshot.getChangedPositions (navigation source)', () => {
     snapshot.updateChanges();
 
     // Restricting to "changed" drops the restored line from the navigation set.
-    expect(snapshot.getChangedPositions(ChangeType.changed)).toEqual([2]);
+    expect(snapshot.content.getChangedPositions(ChangeType.changed)).toEqual([2]);
   });
 });
 

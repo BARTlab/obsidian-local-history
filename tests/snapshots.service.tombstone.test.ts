@@ -23,7 +23,7 @@ const seedLiveSnapshot = (service: SnapshotsService, file: TFile): FileSnapshot 
 
   // Mutate the current state and push a version so we can assert that the
   // history baseline, current state, and timeline all survive a tombstone.
-  snapshot!.updateState(['one', 'two-edited', 'three']);
+  snapshot!.content.updateState(['one', 'two-edited', 'three']);
   snapshot!.timeline.adopt([new FileVersion(['one', 'two', 'three'])]);
 
   return snapshot as FileSnapshot;
@@ -50,16 +50,16 @@ describe('SnapshotsService.markDeleted', () => {
     const file = makeFile('notes/a.md');
 
     const live: FileSnapshot = seedLiveSnapshot(service, file);
-    const historyBefore: string[] = live.getHistoryOriginalStateLines();
-    const stateBefore: string[] = live.getLastStateLines();
+    const historyBefore: string[] = live.content.getHistoryOriginalStateLines();
+    const stateBefore: string[] = live.content.getLastStateLines();
     const versionsBefore: FileVersion[] = [...live.timeline.getStoredVersions()];
 
     service.markDeleted(file);
 
     const tombstone: FileSnapshot = service.getOne(file) as FileSnapshot;
 
-    expect(tombstone.getHistoryOriginalStateLines()).toEqual(historyBefore);
-    expect(tombstone.getLastStateLines()).toEqual(stateBefore);
+    expect(tombstone.content.getHistoryOriginalStateLines()).toEqual(historyBefore);
+    expect(tombstone.content.getLastStateLines()).toEqual(stateBefore);
     expect(tombstone.timeline.getStoredVersions()).toEqual(versionsBefore);
   });
 
@@ -73,9 +73,9 @@ describe('SnapshotsService.markDeleted', () => {
 
     const tombstone: FileSnapshot = service.getOne(file) as FileSnapshot;
 
-    expect(tombstone.lines).toEqual([]);
+    expect(tombstone.content.lines).toEqual([]);
     expect(tombstone.trackers.getTrackerLines()).toEqual([]);
-    expect(tombstone.getChangesLinesCount()).toBe(0);
+    expect(tombstone.content.getChangesLinesCount()).toBe(0);
   });
 
   it('getOne for a still-resolvable TFile returns the tombstone', () => {

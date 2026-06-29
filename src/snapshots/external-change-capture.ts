@@ -252,7 +252,7 @@ export class ExternalChangeCapture {
       return;
     }
 
-    const newLines: string[] = content.split(snapshot.lineBreak);
+    const newLines: string[] = content.split(snapshot.content.lineBreak);
     const captured: FileVersion | null = snapshot.captureVersion(newLines, this.host.getCaptureOptions(), true);
 
     if (captured) {
@@ -273,10 +273,10 @@ export class ExternalChangeCapture {
      * the tracker would still describe the pre-change content and the gutter
      * markers would drift out of sync with what the user sees in the editor.
      */
-    const previousLength: number = snapshot.state.length;
+    const previousLength: number = snapshot.content.state.length;
 
     snapshot.trackers.replaceBlock(0, previousLength, newLines);
-    snapshot.updateState(newLines);
+    snapshot.content.updateState(newLines);
     snapshot.updateChanges();
 
     this.host.forceUpdate();

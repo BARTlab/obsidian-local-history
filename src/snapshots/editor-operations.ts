@@ -101,10 +101,10 @@ export class EditorOperations {
     }
 
     snapshot.trackers.replaceBlock(block.start, block.removeCount, block.newLines);
-    snapshot.updateState(lines);
+    snapshot.content.updateState(lines);
     snapshot.updateChanges();
 
-    await this.host.plugin.app.vault.modify(file, lines.join(snapshot.lineBreak));
+    await this.host.plugin.app.vault.modify(file, lines.join(snapshot.content.lineBreak));
 
     if (this.host.plugin.getActiveViewOfType()) {
       this.host.plugin.forceUpdateEditor();

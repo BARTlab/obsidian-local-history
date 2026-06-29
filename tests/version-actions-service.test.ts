@@ -11,11 +11,17 @@ type VersionEntry = { id: string; lines: string[]; label?: string };
 jest.mock('@/snapshots/file.snapshot', () => ({
   FileSnapshot: class {
     public file: unknown;
-    public lineBreak: string = '\n';
-    public state: string[] = [];
     public captured: { lines: string[]; force: boolean; label?: string }[] = [];
     public removed: string[] = [];
     public versionsList: VersionEntry[] = [];
+
+    // The state/baseline surface lives on the content sub-object, mirroring the
+    // real FileSnapshot; captureVersion stays a facade method (below).
+    public content: {
+      lineBreak: string;
+      state: string[];
+      getLastStateLines: () => string[];
+    };
 
     // The version-query surface lives on the timeline sub-object, mirroring the
     // real FileSnapshot; captureVersion stays a facade method (below).
@@ -27,8 +33,13 @@ jest.mock('@/snapshots/file.snapshot', () => ({
 
     public constructor(file: unknown, state: string[], versions: VersionEntry[] = []) {
       this.file = file;
-      this.state = state;
       this.versionsList = versions;
+
+      this.content = {
+        lineBreak: '\n',
+        state,
+        getLastStateLines: (): string[] => [...this.content.state],
+      };
 
       this.timeline = {
         getVersion: (id: string): (VersionEntry & { getLines: () => string[] }) | null => {
@@ -58,10 +69,6 @@ jest.mock('@/snapshots/file.snapshot', () => ({
           return true;
         },
       };
-    }
-
-    public getLastStateLines(): string[] {
-      return [...this.state];
     }
 
     public captureVersion(
@@ -98,7 +105,7 @@ interface ServiceHarness {
     captured: { lines: string[]; force: boolean; label?: string }[];
     removed: string[];
     versionsList: { id: string; lines: string[]; label?: string }[];
-    getLastStateLines: () => string[];
+    content: { getLastStateLines: () => string[] };
   } | null;
 }
 

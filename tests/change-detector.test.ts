@@ -21,7 +21,7 @@ type UpdateArg = Parameters<ChangeDetectorExtension['update']>[0];
 
 const positions = (snapshot: FileSnapshot, type: ChangeType): number[] =>
   snapshot
-    .getChanges(type)
+    .content.getChanges(type)
     .simplify()
     .map((change): number => change.getLine())
     .sort((a: number, b: number): number => a - b);
@@ -92,7 +92,7 @@ describe('ChangeDetectorExtension single-line edits', () => {
     // Replace "a" with "a": docChanged is true but the content is identical.
     step(snapshot, 'a\nb', { from: lineRange('a\nb', 1).from, to: lineRange('a\nb', 1).to, insert: 'a' });
 
-    expect(snapshot.getChangesLinesCount()).toBe(0);
+    expect(snapshot.content.getChangesLinesCount()).toBe(0);
   });
 });
 
@@ -237,7 +237,7 @@ describe('ChangeDetectorExtension removed-anchor clamping', () => {
         expect(line.removedAtPosition).toBeLessThanOrEqual(last);
       });
 
-    [...snapshot.getChanges().keys()]
+    [...snapshot.content.getChanges().keys()]
       .filter((key): key is number => typeof key === 'number')
       .forEach((key: number): void => {
         expect(key).toBeGreaterThanOrEqual(0);
@@ -279,7 +279,7 @@ describe('ChangeDetectorExtension removed-onto-added collapse at the document to
       });
 
     // No change-map key escapes the real line range.
-    [...snapshot.getChanges().keys()]
+    [...snapshot.content.getChanges().keys()]
       .filter((key): key is number => typeof key === 'number')
       .forEach((key: number): void => {
         expect(key).toBeGreaterThanOrEqual(0);
@@ -287,7 +287,7 @@ describe('ChangeDetectorExtension removed-onto-added collapse at the document to
       });
 
     // Index 0 carries both the added line and the collapsed removed anchor.
-    const top = snapshot.getChanges().get(0);
+    const top = snapshot.content.getChanges().get(0);
 
     expect(top?.has(ChangeType.added)).toBe(true);
     expect(top?.has(ChangeType.removed)).toBe(true);
@@ -308,7 +308,7 @@ describe('ChangeDetectorExtension prev-state desync', () => {
     // no longer mirrors the editor doc (here it has a different line layout).
     // With prev sourced from this stale cache, lineAt(toA) would collapse the
     // removed range to zero lines and drop the deletion entirely.
-    snapshot.updateState(['aaaaaa', 'x']);
+    snapshot.content.updateState(['aaaaaa', 'x']);
 
     // Delete lines "b" and "c": a, b, c, d -> a, d.
     step(snapshot, 'a\nb\nc\nd', {
@@ -557,7 +557,7 @@ describe('ChangeDetectorExtension scale (hot path)', () => {
 
     // The pasted lines never existed in the original, so deleting them leaves no
     // trace: the document is back to its original two original lines.
-    expect(snapshot.getChangesLinesCount()).toBe(0);
+    expect(snapshot.content.getChangesLinesCount()).toBe(0);
     expect(snapshot.trackers.getTrackerLines().filter((line): boolean => line.existedInCurrent)).toHaveLength(2);
     expect(snapshot.trackers.findCurrentLine(0)?.isStateOriginal()).toBe(true);
     expect(snapshot.trackers.findCurrentLine(1)?.isStateOriginal()).toBe(true);

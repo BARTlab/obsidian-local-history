@@ -98,7 +98,7 @@ export function buildEditedSnapshot(size: SnapshotFixtureSize): FileSnapshot {
     edited[i] = `edited ${edited[i]}`;
   }
 
-  snapshot.updateState(edited);
+  snapshot.content.updateState(edited);
 
   return snapshot;
 }

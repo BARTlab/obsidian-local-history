@@ -24,11 +24,11 @@ const makeLiveSnapshot = (params: {
   const snapshot: FileSnapshot = new FileSnapshot(history.join('\n'), '\n', makeFile(params.path));
 
   snapshot.timestamp = params.createdAt;
-  snapshot.historyLines = [...history];
+  snapshot.content.historyLines = [...history];
   snapshot.timeline.adopt((params.versions ?? []).map(
     (entry: { timestamp: number; lines: string[] }): FileVersion => new FileVersion(entry.lines, entry.timestamp),
   ));
-  snapshot.updateState(params.state ?? history);
+  snapshot.content.updateState(params.state ?? history);
 
   return snapshot;
 };
@@ -508,7 +508,7 @@ describe('FolderDeltaHelper.compareAt - returned content is detached', () => {
     result.current.push('tampered');
 
     expect(snapshot.timeline.getStoredVersions()[0].getLines()).toEqual(['original']);
-    expect(snapshot.state).toEqual(['live']);
+    expect(snapshot.content.state).toEqual(['live']);
   });
 
   it('returns a copy of the history baseline when used as the fallback base', () => {
@@ -524,6 +524,6 @@ describe('FolderDeltaHelper.compareAt - returned content is detached', () => {
 
     result.base.push('tampered');
 
-    expect(snapshot.historyLines).toEqual(['baseline']);
+    expect(snapshot.content.historyLines).toEqual(['baseline']);
   });
 });

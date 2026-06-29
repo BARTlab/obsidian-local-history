@@ -7,13 +7,16 @@ import { describe, expect, it, jest } from '@jest/globals';
 jest.mock('@/snapshots/file.snapshot', () => ({
   FileSnapshot: class {
     public file: unknown;
-    public lines: string[];
-    public lineBreak: string;
+    public content: { lines: string[]; lineBreak: string };
 
     public constructor(content: string, lineBreak?: string, file?: unknown) {
+      const resolved: string = lineBreak ?? '\n';
+
       this.file = file;
-      this.lineBreak = lineBreak ?? '\n';
-      this.lines = typeof content === 'string' ? content.split(this.lineBreak) : [];
+      this.content = {
+        lineBreak: resolved,
+        lines: typeof content === 'string' ? content.split(resolved) : [],
+      };
     }
   },
 }));
@@ -227,7 +230,7 @@ describe('SnapshotsService lineBreak sniffing', () => {
     const snapshot = service.getOne(file);
 
     expect(snapshot).not.toBeNull();
-    expect((snapshot as { lineBreak: string }).lineBreak).toBe('\r\n');
+    expect((snapshot as { content: { lineBreak: string } }).content.lineBreak).toBe('\r\n');
   });
 
   it('falls back to \\n when content has no \\r\\n and no active editor view', () => {
@@ -239,7 +242,7 @@ describe('SnapshotsService lineBreak sniffing', () => {
     const snapshot = service.getOne(file);
 
     expect(snapshot).not.toBeNull();
-    expect((snapshot as { lineBreak: string }).lineBreak).toBe('\n');
+    expect((snapshot as { content: { lineBreak: string } }).content.lineBreak).toBe('\n');
   });
 
   it('uses the active editor state lineBreak over content sniffing', () => {
@@ -262,6 +265,6 @@ describe('SnapshotsService lineBreak sniffing', () => {
 
     expect(snapshot).not.toBeNull();
     // The editor state lineBreak must win over sniffing.
-    expect((snapshot as { lineBreak: string }).lineBreak).toBe('\r\n');
+    expect((snapshot as { content: { lineBreak: string } }).content.lineBreak).toBe('\r\n');
   });
 });

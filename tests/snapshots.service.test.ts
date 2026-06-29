@@ -153,15 +153,15 @@ describe('SnapshotsService delete', () => {
     const file = makeFile('a.md');
 
     service.add(file, 'x');
-    service.addToIgnoreList(file);
+    service.ignoreList.add(file);
     expect(service.getOne(file)).not.toBeNull();
-    expect(service.isInIgnoreList(file)).toBe(true);
+    expect(service.ignoreList.isIgnored(file)).toBe(true);
 
     service.remove(file);
-    service.removeFromIgnoreList(file);
+    service.ignoreList.remove(file);
 
     expect(service.getOne(file)).toBeNull();
-    expect(service.isInIgnoreList(file)).toBe(false);
+    expect(service.ignoreList.isIgnored(file)).toBe(false);
   });
 });
 

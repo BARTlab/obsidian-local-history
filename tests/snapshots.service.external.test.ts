@@ -185,7 +185,7 @@ describe('SnapshotsService.captureExternalChange', () => {
 
     service.add(file, 'one');
     vault[file.path] = 'one-external';
-    service.addToIgnoreList(file);
+    service.ignoreList.add(file);
 
     await service.captureExternalChange(file);
 

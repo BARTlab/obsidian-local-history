@@ -27,7 +27,7 @@ const makeSnapshotsServiceMock = (): {
   markMoved: jest.Mock;
   rename: jest.Mock;
   remove: jest.Mock;
-  removeFromIgnoreList: jest.Mock;
+  ignoreList: { remove: jest.Mock };
   captureExternalChange: jest.Mock;
   scheduleExternalCapture: jest.Mock;
 } => ({
@@ -35,7 +35,7 @@ const makeSnapshotsServiceMock = (): {
   markMoved: jest.fn(),
   rename: jest.fn(),
   remove: jest.fn(),
-  removeFromIgnoreList: jest.fn(),
+  ignoreList: { remove: jest.fn() },
   captureExternalChange: jest.fn().mockReturnValue(Promise.resolve()),
   scheduleExternalCapture: jest.fn(),
 });
@@ -63,8 +63,8 @@ describe('VaultDeleteEvent', () => {
     expect(service.markDeleted).toHaveBeenCalledTimes(1);
     expect(service.markDeleted).toHaveBeenCalledWith(file);
     expect(service.remove).not.toHaveBeenCalled();
-    expect(service.removeFromIgnoreList).toHaveBeenCalledTimes(1);
-    expect(service.removeFromIgnoreList).toHaveBeenCalledWith(file);
+    expect(service.ignoreList.remove).toHaveBeenCalledTimes(1);
+    expect(service.ignoreList.remove).toHaveBeenCalledWith(file);
   });
 
   it('short-circuits for non-file abstract files (folders)', () => {
@@ -76,7 +76,7 @@ describe('VaultDeleteEvent', () => {
 
     expect(service.markDeleted).not.toHaveBeenCalled();
     expect(service.remove).not.toHaveBeenCalled();
-    expect(service.removeFromIgnoreList).not.toHaveBeenCalled();
+    expect(service.ignoreList.remove).not.toHaveBeenCalled();
   });
 });
 
@@ -190,7 +190,7 @@ describe('VaultCreateEvent', () => {
     event: VaultCreateEvent;
     snapshots: {
       isInAllowedExtensions: jest.Mock;
-      addToIgnoreList: jest.Mock;
+      ignoreList: { add: jest.Mock };
       capture: jest.Mock;
       getOne: jest.Mock;
       markCreatedThisSession: jest.Mock;
@@ -198,7 +198,7 @@ describe('VaultCreateEvent', () => {
   } => {
     const snapshots = {
       isInAllowedExtensions: jest.fn().mockReturnValue(true),
-      addToIgnoreList: jest.fn(),
+      ignoreList: { add: jest.fn() },
       capture: jest.fn().mockReturnValue(Promise.resolve()),
       getOne: jest.fn().mockReturnValue(snapshot),
       markCreatedThisSession: jest.fn(),
@@ -225,7 +225,7 @@ describe('VaultCreateEvent', () => {
 
     expect(snapshots.capture).toHaveBeenCalledTimes(1);
     expect(snapshots.capture).toHaveBeenCalledWith(file);
-    expect(snapshots.addToIgnoreList).not.toHaveBeenCalled();
+    expect(snapshots.ignoreList.add).not.toHaveBeenCalled();
   });
 
   it('stamps createdThisSession on the captured snapshot', async () => {
@@ -255,8 +255,8 @@ describe('VaultCreateEvent', () => {
 
     event.handler(file);
 
-    expect(snapshots.addToIgnoreList).toHaveBeenCalledTimes(1);
-    expect(snapshots.addToIgnoreList).toHaveBeenCalledWith(file);
+    expect(snapshots.ignoreList.add).toHaveBeenCalledTimes(1);
+    expect(snapshots.ignoreList.add).toHaveBeenCalledWith(file);
     expect(snapshots.capture).not.toHaveBeenCalled();
   });
 
@@ -277,7 +277,7 @@ describe('VaultCreateEvent', () => {
     event.handler(folder);
 
     expect(snapshots.capture).not.toHaveBeenCalled();
-    expect(snapshots.addToIgnoreList).not.toHaveBeenCalled();
+    expect(snapshots.ignoreList.add).not.toHaveBeenCalled();
   });
 
   it('declares the vault.create event name', () => {
@@ -306,9 +306,11 @@ describe('WorkspaceLayoutChangeEvent', () => {
     calls: string[];
     service: {
       getList: jest.Mock;
-      getIgnoreList: jest.Mock;
+      ignoreList: {
+        list: jest.Mock;
+        remove: jest.Mock<(file: TFile) => void>;
+      };
       wipeOne: jest.Mock<(file: TFile) => void>;
-      removeFromIgnoreList: jest.Mock<(file: TFile) => void>;
       getOne: jest.Mock<(file: TFile) => FileSnapshot | null>;
       capture: jest.Mock<(file: TFile) => Promise<void>>;
     };
@@ -326,16 +328,18 @@ describe('WorkspaceLayoutChangeEvent', () => {
 
         return [...params.snapshots];
       }),
-      getIgnoreList: jest.fn().mockImplementation((): TFile[] => {
-        calls.push('getIgnoreList');
+      ignoreList: {
+        list: jest.fn().mockImplementation((): TFile[] => {
+          calls.push('ignoreList.list');
 
-        return [...params.ignored];
-      }),
+          return [...params.ignored];
+        }),
+        remove: jest.fn<(file: TFile) => void>().mockImplementation((file: TFile): void => {
+          calls.push(`ignoreList.remove:${file.path}`);
+        }),
+      },
       wipeOne: jest.fn<(file: TFile) => void>().mockImplementation((file: TFile): void => {
         calls.push(`wipeOne:${file.path}`);
-      }),
-      removeFromIgnoreList: jest.fn<(file: TFile) => void>().mockImplementation((file: TFile): void => {
-        calls.push(`removeFromIgnoreList:${file.path}`);
       }),
       getOne: jest.fn<(file: TFile) => FileSnapshot | null>().mockImplementation((file: TFile): FileSnapshot | null => {
         calls.push(`getOne:${file.path}`);
@@ -373,8 +377,8 @@ describe('WorkspaceLayoutChangeEvent', () => {
      * Two snapshots whose files are no longer open, two ignore-list entries
      * also no longer open, and two newly opened files. The handler must
      * collect every decision first and only then call the mutating service
-     * methods, so all reads (getList, getIgnoreList, getOne) happen before
-     * any write (wipeOne, removeFromIgnoreList, capture).
+     * methods, so all reads (getList, ignoreList.list, getOne) happen before
+     * any write (wipeOne, ignoreList.remove, capture).
      */
     const closedA: TFile = makeFile('notes/closed-a.md');
     const closedB: TFile = makeFile('notes/closed-b.md');
@@ -396,8 +400,8 @@ describe('WorkspaceLayoutChangeEvent', () => {
      * Find the index of the last read and the first write; the read group
      * must finish strictly before the write group starts.
      */
-    const reads: string[] = ['getList', 'getIgnoreList', 'getOne:notes/open-a.md', 'getOne:notes/open-b.md'];
-    const writePrefixes: string[] = ['wipeOne:', 'removeFromIgnoreList:', 'capture:'];
+    const reads: string[] = ['getList', 'ignoreList.list', 'getOne:notes/open-a.md', 'getOne:notes/open-b.md'];
+    const writePrefixes: string[] = ['wipeOne:', 'ignoreList.remove:', 'capture:'];
 
     const lastReadIndex: number = Math.max(
       ...reads.map((entry: string): number => calls.lastIndexOf(entry))
@@ -425,13 +429,13 @@ describe('WorkspaceLayoutChangeEvent', () => {
     event.handler();
 
     /**
-     * capture must run after getList/getIgnoreList/getOne, never between
-     * them. There is exactly one getList, one getIgnoreList, one getOne
+     * capture must run after getList/ignoreList.list/getOne, never between
+     * them. There is exactly one getList, one ignoreList.list, one getOne
      * before the single capture.
      */
     expect(calls).toEqual([
       'getList',
-      'getIgnoreList',
+      'ignoreList.list',
       'getOne:notes/new.md',
       'capture:notes/new.md',
     ]);
@@ -454,7 +458,7 @@ describe('WorkspaceLayoutChangeEvent', () => {
     expect(service.wipeOne).toHaveBeenCalledWith(closed);
     expect(service.capture).toHaveBeenCalledTimes(1);
     expect(service.capture).toHaveBeenCalledWith(opened);
-    expect(service.removeFromIgnoreList).not.toHaveBeenCalled();
+    expect(service.ignoreList.remove).not.toHaveBeenCalled();
   });
 
   it('skips wipe when keep-on-close is off, but still captures new files', () => {

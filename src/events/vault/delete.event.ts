@@ -36,6 +36,6 @@ export class VaultDeleteEvent extends BaseEvent {
     }
 
     this.snapshotsService.markDeleted(file);
-    this.snapshotsService.removeFromIgnoreList(file);
+    this.snapshotsService.ignoreList.remove(file);
   }
 }

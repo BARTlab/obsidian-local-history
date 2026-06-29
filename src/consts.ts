@@ -1,4 +1,4 @@
-import type { LineChangeTrackerSettings } from './types';
+import type { LineChangeTrackerSettings } from '@/types/settings';
 
 /**
  * Defines the types of visual indicators for line changes.

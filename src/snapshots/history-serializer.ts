@@ -1,4 +1,5 @@
-import { FileSnapshot } from '@/snapshots/file.snapshot';
+import type { FileSnapshot } from '@/snapshots/file.snapshot';
+import { SnapshotCodec } from '@/snapshots/snapshot-codec';
 import type { SnapshotRegistry } from '@/snapshots/snapshot-registry';
 import type { SerializedFileSnapshot, SerializedHistory } from '@/types';
 import type { TFile } from 'obsidian';
@@ -112,7 +113,7 @@ export class HistorySerializer {
 
       /**
        * Isolate per-file serialization failure: a single corrupt snapshot whose
-       * `toJSON` (or its version encode) throws must drop only that file, never
+       * `SnapshotCodec.encode` (or its version encode) throws must drop only that file, never
        * abort the whole loop. An unguarded throw here would propagate out of
        * `serialize()` and lose the ENTIRE vault's payload for that save, which
        * the persistence layer could then misread (an empty/failed payload) and
@@ -122,7 +123,7 @@ export class HistorySerializer {
       let payload: SerializedFileSnapshot;
 
       try {
-        payload = snapshot.toJSON();
+        payload = SnapshotCodec.encode(snapshot);
       } catch (error) {
         console.error('Local history: failed to serialize snapshot; skipping it', path, error);
 
@@ -210,7 +211,7 @@ export class HistorySerializer {
          * the persisted history baseline and versions so the modal regains its
          * time machine while the gutter stays session-scoped.
          */
-        const persisted: FileSnapshot = FileSnapshot.fromJSON(data, file);
+        const persisted: FileSnapshot = SnapshotCodec.decode(data, file);
 
         existing.adoptHistory(
           persisted.content.getHistoryOriginalStateLines(),
@@ -230,7 +231,7 @@ export class HistorySerializer {
        * snapshots without opening them) would paint its folder as changed on a
        * fresh launch, before the user edits anything this session.
        */
-      const restored: FileSnapshot = FileSnapshot.fromJSON(data, file);
+      const restored: FileSnapshot = SnapshotCodec.decode(data, file);
 
       restored.resetMarkerBaseline();
       this.registry.set(data.path, restored);
@@ -279,7 +280,7 @@ export class HistorySerializer {
    * @param {SerializedFileSnapshot} data - The serialized snapshot
    */
   protected restoreOrphan(data: SerializedFileSnapshot): void {
-    const snapshot: FileSnapshot = FileSnapshot.fromJSON(data, null);
+    const snapshot: FileSnapshot = SnapshotCodec.decode(data, null);
 
     if (!snapshot.isTombstone()) {
       snapshot.deletedTimestamp = data.timestamp;

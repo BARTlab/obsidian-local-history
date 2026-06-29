@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import { ChangeType } from '@/consts';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
+import { SnapshotCodec } from '@/snapshots/snapshot-codec';
 import type { TrackerLine } from '@/lines/tracker.line';
 import type { SerializedFileSnapshot } from '@/types';
 
@@ -390,7 +391,7 @@ describe('FileSnapshot tombstone and move markers', () => {
 
   it('omits both fields from toJSON when unset', () => {
     const snapshot = new FileSnapshot('a\nb');
-    const payload = snapshot.toJSON();
+    const payload = SnapshotCodec.encode(snapshot);
 
     expect(Object.prototype.hasOwnProperty.call(payload, 'deletedTimestamp')).toBe(false);
     expect(Object.prototype.hasOwnProperty.call(payload, 'movedIntoAt')).toBe(false);
@@ -401,7 +402,7 @@ describe('FileSnapshot tombstone and move markers', () => {
 
     snapshot.deletedTimestamp = 123456;
 
-    const payload = snapshot.toJSON();
+    const payload = SnapshotCodec.encode(snapshot);
 
     expect(payload.deletedTimestamp).toBe(123456);
     expect(Object.prototype.hasOwnProperty.call(payload, 'movedIntoAt')).toBe(false);
@@ -412,7 +413,7 @@ describe('FileSnapshot tombstone and move markers', () => {
 
     original.deletedTimestamp = 999;
 
-    const restored = FileSnapshot.fromJSON(original.toJSON());
+    const restored = SnapshotCodec.decode(SnapshotCodec.encode(original));
 
     expect(restored.deletedTimestamp).toBe(999);
     expect(restored.isTombstone()).toBe(true);
@@ -425,7 +426,7 @@ describe('FileSnapshot tombstone and move markers', () => {
 
     original.movedIntoAt = 555;
 
-    const restored = FileSnapshot.fromJSON(original.toJSON());
+    const restored = SnapshotCodec.decode(SnapshotCodec.encode(original));
 
     expect(restored.movedIntoAt).toBe(555);
     expect(restored.isMovedIn()).toBe(true);
@@ -439,7 +440,7 @@ describe('FileSnapshot tombstone and move markers', () => {
     original.deletedTimestamp = 1;
     original.movedIntoAt = 2;
 
-    const restored = FileSnapshot.fromJSON(original.toJSON());
+    const restored = SnapshotCodec.decode(SnapshotCodec.encode(original));
 
     expect(restored.isTombstone()).toBe(true);
     expect(restored.isMovedIn()).toBe(true);
@@ -460,7 +461,7 @@ describe('FileSnapshot tombstone and move markers', () => {
       movedIntoAt: 150,
     };
 
-    const restored = FileSnapshot.fromJSON(payload);
+    const restored = SnapshotCodec.decode(payload);
 
     expect(restored.isTombstone()).toBe(true);
     expect(restored.isMovedIn()).toBe(true);

@@ -587,7 +587,7 @@ export class PersistenceService implements Service {
 
   /**
    * Whether a serialized snapshot has the minimum well-formed shape required to
-   * survive retention math and reach `FileSnapshot.fromJSON` without falling
+   * survive retention math and reach `SnapshotCodec.decode` without falling
    * back to defaults that would resurrect junk. Required: `path` is a string,
    * `timestamp` is a finite number, `lines` and `tracker` are arrays. A
    * non-finite timestamp is treated as "skip" rather than `0` so a malformed

@@ -3,6 +3,7 @@ import { describe, expect, it } from '@jest/globals';
 
 import { ModalsService } from '@/services/modals.service';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
+import { SnapshotCodec } from '@/snapshots/snapshot-codec';
 import type { SerializedFileSnapshot } from '@/types';
 
 import { makeFile } from './helpers/builders';
@@ -75,7 +76,7 @@ describe('FileSnapshot path persistence', () => {
 
     snapshot.path = 'folder/gone.md';
 
-    expect(snapshot.toJSON().path).toBe('folder/gone.md');
+    expect(SnapshotCodec.encode(snapshot).path).toBe('folder/gone.md');
   });
 
   it('round-trips a null-file snapshot path through toJSON/fromJSON', () => {
@@ -83,8 +84,8 @@ describe('FileSnapshot path persistence', () => {
 
     snapshot.path = 'folder/gone.md';
 
-    const serialized: SerializedFileSnapshot = snapshot.toJSON();
-    const restored: FileSnapshot = FileSnapshot.fromJSON(serialized, null);
+    const serialized: SerializedFileSnapshot = SnapshotCodec.encode(snapshot);
+    const restored: FileSnapshot = SnapshotCodec.decode(serialized, null);
 
     expect(restored.path).toBe('folder/gone.md');
     expect(restored.file ?? null).toBeNull();

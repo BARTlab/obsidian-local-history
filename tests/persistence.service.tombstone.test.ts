@@ -29,7 +29,7 @@ const seedLiveSnapshot = (service: SnapshotsService, file: TFile): FileSnapshot 
   expect(snapshot).not.toBeNull();
 
   snapshot!.updateState(['one', 'two-edited', 'three']);
-  snapshot!.versions.push(new FileVersion(['one', 'two', 'three']));
+  snapshot!.timeline.adopt([new FileVersion(['one', 'two', 'three'])]);
 
   return snapshot as FileSnapshot;
 };
@@ -211,7 +211,7 @@ describe('SnapshotsService.restore orphan auto-tombstoning', () => {
     snapshot.trackers.findCurrentLine(1)?.change('B');
     snapshot.updateState(['a', 'B', 'c']);
     snapshot.updateChanges();
-    snapshot.versions.push(new FileVersion(['a', 'mid', 'c']));
+    snapshot.timeline.adopt([new FileVersion(['a', 'mid', 'c'])]);
 
     const payload = service.serialize();
 
@@ -223,8 +223,8 @@ describe('SnapshotsService.restore orphan auto-tombstoning', () => {
 
     expect(restored.getLastStateLines()).toEqual(['a', 'B', 'c']);
     expect(restored.getHistoryOriginalStateLines()).toEqual(['a', 'b', 'c']);
-    expect(restored.versions).toHaveLength(1);
-    expect(restored.versions[0].getLines()).toEqual(['a', 'mid', 'c']);
+    expect(restored.timeline.getStoredVersions()).toHaveLength(1);
+    expect(restored.timeline.getStoredVersions()[0].getLines()).toEqual(['a', 'mid', 'c']);
   });
 });
 
@@ -238,7 +238,7 @@ describe('SnapshotsService tombstone round-trip across serialize/restore', () =>
     const live: FileSnapshot = service.getOne(file) as FileSnapshot;
     const stateBefore: string[] = live.getLastStateLines();
     const historyBefore: string[] = live.getHistoryOriginalStateLines();
-    const versionsBefore: number = live.versions.length;
+    const versionsBefore: number = live.timeline.getStoredVersions().length;
 
     service.markDeleted(file);
 
@@ -254,7 +254,7 @@ describe('SnapshotsService tombstone round-trip across serialize/restore', () =>
     expect(restored.isTombstone()).toBe(true);
     expect(restored.getLastStateLines()).toEqual(stateBefore);
     expect(restored.getHistoryOriginalStateLines()).toEqual(historyBefore);
-    expect(restored.versions).toHaveLength(versionsBefore);
+    expect(restored.timeline.getStoredVersions()).toHaveLength(versionsBefore);
   });
 
   it('serialized cross-directory move round-trips as tombstone + live destination', () => {

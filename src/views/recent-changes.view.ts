@@ -244,7 +244,7 @@ export class RecentChangesView extends ItemView {
       return;
     }
 
-    const versions: FileVersion[] = snapshot.getVersions();
+    const versions: FileVersion[] = snapshot.timeline.getVersions();
 
     if (versions.length === 0) {
       DomHelper.update(this.listEl, {

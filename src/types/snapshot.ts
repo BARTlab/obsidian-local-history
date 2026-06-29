@@ -174,15 +174,13 @@ export interface VersionRemoveResult {
 }
 
 /**
- * The façade-owned inputs a capture attempt operates on. Bundles the timeline
- * array, the empty-timeline dedup reference (the history baseline), the line
- * break, and the cadence/retention options so the collaborator stays a stateless
- * operator over passed-in state without a long positional parameter list.
+ * The inputs a capture attempt reads besides the owned timeline. Bundles the
+ * empty-timeline dedup reference (the history baseline), the line break, and the
+ * cadence/retention options so VersionTimeline.capture reads them without a long
+ * positional parameter list. The versions array is not passed: the timeline owns
+ * it.
  */
 export interface VersionCaptureContext {
-  /** The current timeline, oldest first. The façade owns this array. */
-  versions: FileVersion[];
-
   /** The history baseline used as the dedup reference when the timeline is empty. */
   historyBaseline: string;
 
@@ -191,19 +189,4 @@ export interface VersionCaptureContext {
 
   /** The capture cadence configuration and retention caps. */
   options: SnapshotCaptureOptions;
-}
-
-/**
- * Outcome of a capture attempt. `version` is the freshly pushed version (or null
- * when the cadence/dedup gates skipped it), and `versions` is the timeline array
- * the façade must adopt: unchanged on a skip, or the appended-then-evicted array
- * on a capture. The façade owns the `versions` field, so the collaborator hands
- * the resulting array back rather than mutating a private copy.
- */
-export interface VersionCaptureResult {
-  /** The version pushed onto the timeline, or null when no version was taken. */
-  version: FileVersion | null;
-
-  /** The timeline array the façade must store after the attempt. */
-  versions: FileVersion[];
 }

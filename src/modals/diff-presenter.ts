@@ -129,12 +129,12 @@ export class DiffPresenter {
    */
   public getBaseContent(): string {
     return BaseContentHelper.resolve(this.host.viewState.selectedBaseId, ORIGINAL_BASE_ID, {
-      versions: this.host.snapshot
+      versions: this.host.snapshot.timeline
         .getVersions()
         .map((version: FileVersion): string => version.getContent(this.host.snapshot.lineBreak)),
       original: this.host.snapshot.getHistoryOriginalState(),
       versionContent: (id: string): string | null =>
-        this.host.snapshot.getVersion(id)?.getContent(this.host.snapshot.lineBreak) ?? null,
+        this.host.snapshot.timeline.getVersion(id)?.getContent(this.host.snapshot.lineBreak) ?? null,
     });
   }
 
@@ -261,8 +261,8 @@ export class DiffPresenter {
    */
   protected getBaseLabel(): string {
     if (this.host.viewState.selectedBaseId !== ORIGINAL_BASE_ID) {
-      const versions: FileVersion[] = this.host.snapshot.getVersions();
-      const version: FileVersion | null = this.host.snapshot.getVersion(this.host.viewState.selectedBaseId);
+      const versions: FileVersion[] = this.host.snapshot.timeline.getVersions();
+      const version: FileVersion | null = this.host.snapshot.timeline.getVersion(this.host.viewState.selectedBaseId);
 
       if (version) {
         return this.host.resolvePrimaryLabel(version, versions);

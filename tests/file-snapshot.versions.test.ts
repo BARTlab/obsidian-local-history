@@ -32,13 +32,13 @@ describe('FileSnapshot.captureVersion cadence: edit count', () => {
 
     expect(snapshot.captureVersion(['v1'], opts)).toBeNull();
     expect(snapshot.captureVersion(['v2'], opts)).toBeNull();
-    expect(snapshot.hasVersions()).toBe(false);
+    expect(snapshot.timeline.hasVersions()).toBe(false);
 
     // Third edit hits the threshold and captures the content passed at that call.
     const captured: FileVersion | null = snapshot.captureVersion(['v3'], opts);
 
     expect(captured).not.toBeNull();
-    expect(snapshot.getVersions()).toHaveLength(1);
+    expect(snapshot.timeline.getVersions()).toHaveLength(1);
     expect(captured?.getLines()).toEqual(['v3']);
   });
 
@@ -51,7 +51,7 @@ describe('FileSnapshot.captureVersion cadence: edit count', () => {
     snapshot.captureVersion(['e3'], opts); // 1 again, no capture
     snapshot.captureVersion(['e4'], opts); // 2 again, capture
 
-    expect(snapshot.getVersions()).toHaveLength(2);
+    expect(snapshot.timeline.getVersions()).toHaveLength(2);
   });
 });
 
@@ -69,7 +69,7 @@ describe('FileSnapshot.captureVersion cadence: elapsed time', () => {
 
     nowSpy.mockReturnValue(base + 1500);
     expect(snapshot.captureVersion(['due'], opts)).not.toBeNull();
-    expect(snapshot.getVersions()).toHaveLength(1);
+    expect(snapshot.timeline.getVersions()).toHaveLength(1);
   });
 
   it('does not capture when both gates are disabled (no spurious versions)', () => {
@@ -80,7 +80,7 @@ describe('FileSnapshot.captureVersion cadence: elapsed time', () => {
       snapshot.captureVersion([`edit-${i}`], opts);
     }
 
-    expect(snapshot.hasVersions()).toBe(false);
+    expect(snapshot.timeline.hasVersions()).toBe(false);
   });
 
   it('captures regardless of cadence when forced', () => {
@@ -88,7 +88,7 @@ describe('FileSnapshot.captureVersion cadence: elapsed time', () => {
     const opts = options({ intervalMs: 0, editThreshold: 0 });
 
     expect(snapshot.captureVersion(['forced'], opts, true)).not.toBeNull();
-    expect(snapshot.getVersions()).toHaveLength(1);
+    expect(snapshot.timeline.getVersions()).toHaveLength(1);
   });
 });
 
@@ -98,7 +98,7 @@ describe('FileSnapshot.captureVersion guards', () => {
 
     snapshot.captureVersion(['x'], options({ enabled: false, editThreshold: 1 }), true);
 
-    expect(snapshot.hasVersions()).toBe(false);
+    expect(snapshot.timeline.hasVersions()).toBe(false);
   });
 
   it('ignores non-array content', () => {
@@ -107,7 +107,7 @@ describe('FileSnapshot.captureVersion guards', () => {
     expect(
       snapshot.captureVersion(null as unknown as string[], options({ editThreshold: 1 }), true)
     ).toBeNull();
-    expect(snapshot.hasVersions()).toBe(false);
+    expect(snapshot.timeline.hasVersions()).toBe(false);
   });
 });
 
@@ -119,12 +119,12 @@ describe('FileSnapshot.captureVersion no-op dedup', () => {
     // The first qualifying capture freezes the pre-edit state, which still
     // equals the original here, so nothing should be stored.
     expect(snapshot.captureVersion(['a', 'b'], opts)).toBeNull();
-    expect(snapshot.hasVersions()).toBe(false);
+    expect(snapshot.timeline.hasVersions()).toBe(false);
 
     // Once the content diverges from the original it is captured normally.
     const captured: FileVersion | null = snapshot.captureVersion(['a', 'B'], opts);
     expect(captured).not.toBeNull();
-    expect(snapshot.getVersions()).toHaveLength(1);
+    expect(snapshot.timeline.getVersions()).toHaveLength(1);
     expect(captured?.getLines()).toEqual(['a', 'B']);
   });
 
@@ -135,12 +135,12 @@ describe('FileSnapshot.captureVersion no-op dedup', () => {
     expect(snapshot.captureVersion(['v1'], opts)).not.toBeNull();
     // Same content as the latest version: no adjacent duplicate is stored.
     expect(snapshot.captureVersion(['v1'], opts)).toBeNull();
-    expect(snapshot.getVersions()).toHaveLength(1);
+    expect(snapshot.timeline.getVersions()).toHaveLength(1);
 
     // A genuinely different edit right after the skipped no-op is captured at
     // once, since the cadence counters were not consumed by the skip.
     expect(snapshot.captureVersion(['v2'], opts)).not.toBeNull();
-    expect(snapshot.getVersions().map((v: FileVersion): string[] => v.getLines())).toEqual([
+    expect(snapshot.timeline.getVersions().map((v: FileVersion): string[] => v.getLines())).toEqual([
       ['v2'],
       ['v1'],
     ]);
@@ -152,7 +152,7 @@ describe('FileSnapshot.captureVersion no-op dedup', () => {
     // Forcing bypasses the cadence gates but not the no-op dedup: the original
     // baseline still equals the candidate, so no version is stored.
     expect(snapshot.captureVersion(['a'], options(), true)).toBeNull();
-    expect(snapshot.hasVersions()).toBe(false);
+    expect(snapshot.timeline.hasVersions()).toBe(false);
   });
 });
 
@@ -166,7 +166,7 @@ describe('FileSnapshot timeline bound', () => {
     }
 
     // Only the three newest survive; getVersions returns newest first.
-    const versions: FileVersion[] = snapshot.getVersions();
+    const versions: FileVersion[] = snapshot.timeline.getVersions();
     expect(versions).toHaveLength(3);
     expect(versions.map((version: FileVersion): string[] => version.getLines())).toEqual([
       ['v6'],
@@ -183,7 +183,7 @@ describe('FileSnapshot timeline bound', () => {
       snapshot.captureVersion([`v${i}`], opts);
     }
 
-    expect(snapshot.getVersions()).toHaveLength(10);
+    expect(snapshot.timeline.getVersions()).toHaveLength(10);
   });
 });
 
@@ -202,7 +202,7 @@ describe('FileSnapshot timeline age bound', () => {
     nowSpy.mockReturnValue(base - (20 * DAY));
     snapshot.captureVersion(['old-1'], opts);
     snapshot.captureVersion(['old-2'], opts);
-    expect(snapshot.getVersions()).toHaveLength(2);
+    expect(snapshot.timeline.getVersions()).toHaveLength(2);
 
     // A fresh capture at the present time evicts both stale versions (older
     // than 14 days) while keeping the new one.
@@ -210,7 +210,7 @@ describe('FileSnapshot timeline age bound', () => {
     const captured: FileVersion | null = snapshot.captureVersion(['fresh'], opts);
 
     expect(captured).not.toBeNull();
-    expect(snapshot.getVersions().map((v: FileVersion): string[] => v.getLines())).toEqual([['fresh']]);
+    expect(snapshot.timeline.getVersions().map((v: FileVersion): string[] => v.getLines())).toEqual([['fresh']]);
   });
 
   it('keeps versions within the age window', () => {
@@ -228,7 +228,7 @@ describe('FileSnapshot timeline age bound', () => {
     snapshot.captureVersion(['newest'], opts);
 
     // Both are within 14 days, so neither is evicted (newest first).
-    expect(snapshot.getVersions().map((v: FileVersion): string[] => v.getLines())).toEqual([
+    expect(snapshot.timeline.getVersions().map((v: FileVersion): string[] => v.getLines())).toEqual([
       ['newest'],
       ['recent'],
     ]);
@@ -248,7 +248,7 @@ describe('FileSnapshot timeline age bound', () => {
     nowSpy.mockReturnValue(base);
     snapshot.captureVersion(['now'], opts);
 
-    expect(snapshot.getVersions()).toHaveLength(2);
+    expect(snapshot.timeline.getVersions()).toHaveLength(2);
   });
 
   it('applies age first then the count cap', () => {
@@ -268,7 +268,7 @@ describe('FileSnapshot timeline age bound', () => {
     snapshot.captureVersion(['fresh-2'], opts);
     snapshot.captureVersion(['fresh-3'], opts);
 
-    expect(snapshot.getVersions().map((v: FileVersion): string[] => v.getLines())).toEqual([
+    expect(snapshot.timeline.getVersions().map((v: FileVersion): string[] => v.getLines())).toEqual([
       ['fresh-3'],
       ['fresh-2'],
     ]);
@@ -283,12 +283,12 @@ describe('FileSnapshot timeline ordering and lookup', () => {
     const first: FileVersion | null = snapshot.captureVersion(['first'], opts);
     const second: FileVersion | null = snapshot.captureVersion(['second'], opts);
 
-    const ordered: FileVersion[] = snapshot.getVersions();
+    const ordered: FileVersion[] = snapshot.timeline.getVersions();
     expect(ordered[0]).toBe(second);
     expect(ordered[1]).toBe(first);
 
-    expect(snapshot.getVersion(first!.id)?.getLines()).toEqual(['first']);
-    expect(snapshot.getVersion('missing')).toBeNull();
+    expect(snapshot.timeline.getVersion(first!.id)?.getLines()).toEqual(['first']);
+    expect(snapshot.timeline.getVersion('missing')).toBeNull();
   });
 });
 
@@ -309,7 +309,7 @@ describe('FileSnapshot timeline persistence round-trip', () => {
 
     const restored = FileSnapshot.fromJSON(json);
 
-    const restoredVersions: FileVersion[] = restored.getVersions();
+    const restoredVersions: FileVersion[] = restored.timeline.getVersions();
     expect(restoredVersions).toHaveLength(2);
     // Newest first: the second captured version leads.
     expect(restoredVersions[0].getLines()).toEqual(['a', 'B']);
@@ -328,8 +328,8 @@ describe('FileSnapshot timeline persistence round-trip', () => {
 
     const restored = FileSnapshot.fromJSON(json);
 
-    expect(restored.hasVersions()).toBe(false);
-    expect(restored.getVersions()).toEqual([]);
+    expect(restored.timeline.hasVersions()).toBe(false);
+    expect(restored.timeline.getVersions()).toEqual([]);
   });
 });
 
@@ -392,7 +392,7 @@ describe('FileSnapshot timeline cadence continuity across restart', () => {
     const restored = FileSnapshot.fromJSON(json);
 
     expect(restored.captureVersion(['x'], options({ intervalMs: 1000 }))).toBeNull();
-    expect(restored.hasVersions()).toBe(false);
+    expect(restored.timeline.hasVersions()).toBe(false);
   });
 
   it('round-trips an older history payload without versions byte-identically', () => {
@@ -424,22 +424,22 @@ describe('FileSnapshot.removeVersion', () => {
     snapshot.captureVersion(['v3'], opts);
 
     // getVersions is newest-first: [v3, v2, v1]. Drop the middle one.
-    const middleId: string = snapshot.getVersions()[1].id;
+    const middleId: string = snapshot.timeline.getVersions()[1].id;
 
-    expect(snapshot.removeVersion(middleId)).toBe(true);
-    expect(snapshot.getVersions().map((v: FileVersion): string[] => v.getLines())).toEqual([
+    expect(snapshot.timeline.removeVersion(middleId)).toBe(true);
+    expect(snapshot.timeline.getVersions().map((v: FileVersion): string[] => v.getLines())).toEqual([
       ['v3'],
       ['v1'],
     ]);
-    expect(snapshot.getVersion(middleId)).toBeNull();
+    expect(snapshot.timeline.getVersion(middleId)).toBeNull();
   });
 
   it('returns false and changes nothing when no version matches the id', () => {
     const snapshot = new FileSnapshot('a', '\n');
     snapshot.captureVersion(['v1'], options({ editThreshold: 1 }));
 
-    expect(snapshot.removeVersion('does-not-exist')).toBe(false);
-    expect(snapshot.getVersions()).toHaveLength(1);
+    expect(snapshot.timeline.removeVersion('does-not-exist')).toBe(false);
+    expect(snapshot.timeline.getVersions()).toHaveLength(1);
   });
 });
 
@@ -452,23 +452,23 @@ describe('FileSnapshot version codec wiring', () => {
     snapshot.captureVersion(['a', 'B'], opts, true, 'milestone');
     snapshot.captureVersion(['a', 'B', 'c'], opts, true);
     // Flag the newest captured version as external so the round-trip carries it.
-    snapshot.versions[snapshot.versions.length - 1].external = true;
+    snapshot.timeline.getStoredVersions()[snapshot.timeline.getStoredVersions().length - 1].external = true;
 
     const restored = FileSnapshot.fromJSON(snapshot.toJSON());
 
     // Oldest-first comparison so the decoded delta chain lines up with capture.
-    expect(restored.versions.map((v: FileVersion): string[] => v.getLines())).toEqual([
+    expect(restored.timeline.getStoredVersions().map((v: FileVersion): string[] => v.getLines())).toEqual([
       ['a', 'b1'],
       ['a', 'B'],
       ['a', 'B', 'c'],
     ]);
-    expect(restored.versions.map((v: FileVersion): number => v.timestamp)).toEqual(
-      snapshot.versions.map((v: FileVersion): number => v.timestamp),
+    expect(restored.timeline.getStoredVersions().map((v: FileVersion): number => v.timestamp)).toEqual(
+      snapshot.timeline.getStoredVersions().map((v: FileVersion): number => v.timestamp),
     );
-    expect(restored.versions[1].label).toBe('milestone');
-    expect(restored.versions[2].isExternal()).toBe(true);
-    expect(restored.versions[0].isLabeled()).toBe(false);
-    expect(restored.versions[0].isExternal()).toBe(false);
+    expect(restored.timeline.getStoredVersions()[1].label).toBe('milestone');
+    expect(restored.timeline.getStoredVersions()[2].isExternal()).toBe(true);
+    expect(restored.timeline.getStoredVersions()[0].isLabeled()).toBe(false);
+    expect(restored.timeline.getStoredVersions()[0].isExternal()).toBe(false);
   });
 
   it('engages the codec: a chain longer than the keyframe interval emits deltas', () => {
@@ -490,7 +490,7 @@ describe('FileSnapshot version codec wiring', () => {
       snapshot.captureVersion([...sharedLines, `tail-${i}`], opts);
     }
 
-    expect(snapshot.versions).toHaveLength(count);
+    expect(snapshot.timeline.getStoredVersions()).toHaveLength(count);
 
     const entries: SerializedFileVersion[] | undefined = snapshot.toJSON().versions;
     expect(entries).toHaveLength(count);
@@ -509,8 +509,8 @@ describe('FileSnapshot version codec wiring', () => {
 
     // The delta-bearing payload still restores every version verbatim.
     const restored = FileSnapshot.fromJSON(snapshot.toJSON());
-    expect(restored.versions.map((v: FileVersion): string[] => v.getLines())).toEqual(
-      snapshot.versions.map((v: FileVersion): string[] => v.getLines()),
+    expect(restored.timeline.getStoredVersions().map((v: FileVersion): string[] => v.getLines())).toEqual(
+      snapshot.timeline.getStoredVersions().map((v: FileVersion): string[] => v.getLines()),
     );
   });
 
@@ -527,14 +527,14 @@ describe('FileSnapshot version codec wiring', () => {
 
     const restored = FileSnapshot.fromJSON(json);
 
-    expect(restored.versions.map((v: FileVersion): string[] => v.getLines())).toEqual([
+    expect(restored.timeline.getStoredVersions().map((v: FileVersion): string[] => v.getLines())).toEqual([
       ['a'],
       ['a', 'b'],
       ['a', 'b', 'c'],
     ]);
-    expect(restored.versions.map((v: FileVersion): number => v.timestamp)).toEqual([100, 200, 300]);
-    expect(restored.versions[1].label).toBe('tag');
-    expect(restored.versions[2].isExternal()).toBe(true);
+    expect(restored.timeline.getStoredVersions().map((v: FileVersion): number => v.timestamp)).toEqual([100, 200, 300]);
+    expect(restored.timeline.getStoredVersions()[1].label).toBe('tag');
+    expect(restored.timeline.getStoredVersions()[2].isExternal()).toBe(true);
   });
 
   it('decodes to [] when versions is undefined without throwing', () => {
@@ -546,8 +546,8 @@ describe('FileSnapshot version codec wiring', () => {
     expect((): void => {
       restored = FileSnapshot.fromJSON(json);
     }).not.toThrow();
-    expect(restored.versions).toEqual([]);
-    expect(restored.hasVersions()).toBe(false);
+    expect(restored.timeline.getStoredVersions()).toEqual([]);
+    expect(restored.timeline.hasVersions()).toBe(false);
   });
 });
 

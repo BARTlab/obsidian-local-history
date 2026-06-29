@@ -96,7 +96,7 @@ describe('FolderTimelineRenderer', () => {
     const external = new FileVersion(['x'], 100, undefined, true);
     const snapshot = new FileSnapshot('x');
 
-    snapshot.versions = [external];
+    snapshot.timeline.adopt([external]);
     snapshotsByPath.set('a.md', snapshot);
 
     timeline = [
@@ -112,7 +112,7 @@ describe('FolderTimelineRenderer', () => {
     const local = new FileVersion(['x'], 100, undefined, false);
     const snapshot = new FileSnapshot('x');
 
-    snapshot.versions = [local];
+    snapshot.timeline.adopt([local]);
     snapshotsByPath.set('a.md', snapshot);
 
     timeline = [

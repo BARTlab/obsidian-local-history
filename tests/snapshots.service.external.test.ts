@@ -78,14 +78,14 @@ describe('SnapshotsService.captureExternalChange', () => {
     vault[file.path] = 'one\ntwo\nthree';
 
     const before: FileSnapshot = service.getOne(file) as FileSnapshot;
-    const versionsBefore: number = before.versions.length;
+    const versionsBefore: number = before.timeline.getStoredVersions().length;
     const stateBefore: string[] = before.getLastStateLines();
 
     await service.captureExternalChange(file);
 
     const after: FileSnapshot = service.getOne(file) as FileSnapshot;
 
-    expect(after.versions.length).toBe(versionsBefore);
+    expect(after.timeline.getStoredVersions().length).toBe(versionsBefore);
     expect(after.getLastStateLines()).toEqual(stateBefore);
   });
 
@@ -100,8 +100,8 @@ describe('SnapshotsService.captureExternalChange', () => {
 
     const after: FileSnapshot = service.getOne(file) as FileSnapshot;
 
-    expect(after.versions.length).toBe(1);
-    const captured: FileVersion = after.versions[0];
+    expect(after.timeline.getStoredVersions().length).toBe(1);
+    const captured: FileVersion = after.timeline.getStoredVersions()[0];
 
     expect(captured.isExternal()).toBe(true);
     expect(captured.getLines()).toEqual(['one', 'two-external', 'three']);
@@ -111,7 +111,7 @@ describe('SnapshotsService.captureExternalChange', () => {
     // updateState rewrote lastHash to the captured content, so the next pass
     // takes the early-return branch instead of duplicating the version.
     await service.captureExternalChange(file);
-    expect(after.versions.length).toBe(1);
+    expect(after.timeline.getStoredVersions().length).toBe(1);
   });
 
   it('bypasses the cadence gates so a single external change captures even with zero gates', async () => {
@@ -132,8 +132,8 @@ describe('SnapshotsService.captureExternalChange', () => {
 
     const after: FileSnapshot = service.getOne(file) as FileSnapshot;
 
-    expect(after.versions.length).toBe(1);
-    expect(after.versions[0].isExternal()).toBe(true);
+    expect(after.timeline.getStoredVersions().length).toBe(1);
+    expect(after.timeline.getStoredVersions()[0].isExternal()).toBe(true);
   });
 
   it('captures a first-sight file as a new snapshot without an external version', async () => {
@@ -150,7 +150,7 @@ describe('SnapshotsService.captureExternalChange', () => {
     expect(snapshot!.getOriginalStateLines()).toEqual(['fresh content', 'line two']);
     // No external version is recorded on first sight: there is no prior state
     // to diff against, so flagging the very first capture would be wrong.
-    expect(snapshot!.versions.length).toBe(0);
+    expect(snapshot!.timeline.getStoredVersions().length).toBe(0);
   });
 
   it('is a no-op for a wrong-extension file', async () => {
@@ -192,7 +192,7 @@ describe('SnapshotsService.captureExternalChange', () => {
     const snapshot: FileSnapshot = service.getOne(file) as FileSnapshot;
 
     // State stays at the original capture; ignore-list short-circuits external.
-    expect(snapshot.versions.length).toBe(0);
+    expect(snapshot.timeline.getStoredVersions().length).toBe(0);
     expect(snapshot.getLastStateLines()).toEqual(['one']);
   });
 
@@ -206,7 +206,7 @@ describe('SnapshotsService.captureExternalChange', () => {
 
     const before: FileSnapshot = service.getOne(file) as FileSnapshot;
     const deletedTimestampBefore: number | undefined = before.deletedTimestamp;
-    const versionsBefore: number = before.versions.length;
+    const versionsBefore: number = before.timeline.getStoredVersions().length;
 
     await service.captureExternalChange(file);
 
@@ -214,7 +214,7 @@ describe('SnapshotsService.captureExternalChange', () => {
 
     expect(after.isTombstone()).toBe(true);
     expect(after.deletedTimestamp).toBe(deletedTimestampBefore);
-    expect(after.versions.length).toBe(versionsBefore);
+    expect(after.timeline.getStoredVersions().length).toBe(versionsBefore);
   });
 
   it('keeps an external version evictable under the count cap', async () => {
@@ -233,14 +233,14 @@ describe('SnapshotsService.captureExternalChange', () => {
     // Pin a labeled version manually so the eviction count compares only
     // unlabeled (external) entries against maxVersions. A fixed past timestamp
     // (not Date.now()) keeps the assertion reproducible regardless of run date.
-    seeded.versions.push(new FileVersion(['initial'], 1000, 'pin'));
+    seeded.timeline.adopt([new FileVersion(['initial'], 1000, 'pin')]);
 
     vault[file.path] = 'changed-externally';
     await service.captureExternalChange(file);
 
     const after: FileSnapshot = service.getOne(file) as FileSnapshot;
-    const externalCount: number = after.versions.filter((v: FileVersion): boolean => v.isExternal()).length;
-    const labeledCount: number = after.versions.filter((v: FileVersion): boolean => v.isLabeled()).length;
+    const externalCount: number = after.timeline.getStoredVersions().filter((v: FileVersion): boolean => v.isExternal()).length;
+    const labeledCount: number = after.timeline.getStoredVersions().filter((v: FileVersion): boolean => v.isLabeled()).length;
 
     // The labeled marker is pinned; the external sits under the unlabeled cap
     // of 1 and is NOT exempt from eviction. With one labeled + one external,
@@ -258,7 +258,7 @@ describe('SnapshotsService.captureExternalChange', () => {
     await service.captureExternalChange(bumped);
 
     const final: FileSnapshot = service.getOne(bumped) as FileSnapshot;
-    const finalUnlabeled: FileVersion[] = final.versions.filter(
+    const finalUnlabeled: FileVersion[] = final.timeline.getStoredVersions().filter(
       (v: FileVersion): boolean => !v.isLabeled(),
     );
 
@@ -330,8 +330,8 @@ describe('SnapshotsService.captureExternalChange', () => {
 
     const snapshot: FileSnapshot = service.getOne(after) as FileSnapshot;
 
-    expect(snapshot.versions.length).toBe(1);
-    expect(snapshot.versions[0].isExternal()).toBe(true);
+    expect(snapshot.timeline.getStoredVersions().length).toBe(1);
+    expect(snapshot.timeline.getStoredVersions()[0].isExternal()).toBe(true);
     expect(snapshot.getLastStateLines()).toEqual(['alpha-external', 'beta']);
   });
 
@@ -349,8 +349,8 @@ describe('SnapshotsService.captureExternalChange', () => {
 
     const snapshot: FileSnapshot = service.getOne(file) as FileSnapshot;
 
-    expect(snapshot.versions.length).toBe(1);
-    expect(snapshot.versions[0].isExternal()).toBe(true);
+    expect(snapshot.timeline.getStoredVersions().length).toBe(1);
+    expect(snapshot.timeline.getStoredVersions()[0].isExternal()).toBe(true);
   });
 
   it('captures a hash-collision rewrite where the 32-bit hash matches but the content differs', async (): Promise<void> => {
@@ -376,9 +376,9 @@ describe('SnapshotsService.captureExternalChange', () => {
 
     const after: FileSnapshot = service.getOne(file) as FileSnapshot;
 
-    expect(after.versions.length).toBe(1);
-    expect(after.versions[0].isExternal()).toBe(true);
-    expect(after.versions[0].getLines()).toEqual(['three', 'four']);
+    expect(after.timeline.getStoredVersions().length).toBe(1);
+    expect(after.timeline.getStoredVersions()[0].isExternal()).toBe(true);
+    expect(after.timeline.getStoredVersions()[0].getLines()).toEqual(['three', 'four']);
     expect(after.getLastStateLines()).toEqual(['three', 'four']);
   });
 
@@ -392,13 +392,13 @@ describe('SnapshotsService.captureExternalChange', () => {
     vault[file.path] = 'one\ntwo\nthree';
 
     const snapshot: FileSnapshot = service.getOne(file) as FileSnapshot;
-    const versionsBefore: number = snapshot.versions.length;
+    const versionsBefore: number = snapshot.timeline.getStoredVersions().length;
 
     await service.captureExternalChange(file);
 
     const after: FileSnapshot = service.getOne(file) as FileSnapshot;
 
-    expect(after.versions.length).toBe(versionsBefore);
+    expect(after.timeline.getStoredVersions().length).toBe(versionsBefore);
     expect(after.getLastStateLines()).toEqual(['one', 'two', 'three']);
   });
 });
@@ -449,8 +449,8 @@ describe('SnapshotsService.scheduleExternalCapture', () => {
     const snapshot: FileSnapshot = service.getOne(file) as FileSnapshot;
 
     expect(reads).toBe(1);
-    expect(snapshot.versions.length).toBe(1);
-    expect(snapshot.versions[0].isExternal()).toBe(true);
+    expect(snapshot.timeline.getStoredVersions().length).toBe(1);
+    expect(snapshot.timeline.getStoredVersions()[0].isExternal()).toBe(true);
   });
 
   it('runs independent files concurrently without cross-debounce', async () => {
@@ -468,7 +468,7 @@ describe('SnapshotsService.scheduleExternalCapture', () => {
 
     await jest.runAllTimersAsync();
 
-    expect((service.getOne(fileA) as FileSnapshot).versions.length).toBe(1);
-    expect((service.getOne(fileB) as FileSnapshot).versions.length).toBe(1);
+    expect((service.getOne(fileA) as FileSnapshot).timeline.getStoredVersions().length).toBe(1);
+    expect((service.getOne(fileB) as FileSnapshot).timeline.getStoredVersions().length).toBe(1);
   });
 });

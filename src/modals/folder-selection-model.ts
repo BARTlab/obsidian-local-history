@@ -79,7 +79,7 @@ export class FolderSelectionModel {
    * @return {FileVersion | null} The closest version at/before T, or null
    */
   public resolveVersionAtT(snapshot: FileSnapshot): FileVersion | null {
-    const versions: FileVersion[] = snapshot.getVersions();
+    const versions: FileVersion[] = snapshot.timeline.getVersions();
     let candidate: FileVersion | null = null;
 
     versions.forEach((version: FileVersion): void => {

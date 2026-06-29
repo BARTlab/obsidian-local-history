@@ -141,7 +141,7 @@ function buildLiveSnapshot(fileIndex: number, shape: FolderFixtureShape): FileSn
     versions[v] = new FileVersion(lines, BASE_TS + v * STEP_MS);
   }
 
-  snapshot.versions = versions;
+  snapshot.timeline.adopt(versions);
   snapshot.timestamp = BASE_TS;
 
   return snapshot;

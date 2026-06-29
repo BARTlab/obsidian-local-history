@@ -137,7 +137,7 @@ export class ModalsService implements Service {
      * SelectionHistoryHelper expects versions oldest-first; getVersions() is
      * newest-first, so reverse before handing them off.
      */
-    const selectable: SelectableVersion[] = snapshot
+    const selectable: SelectableVersion[] = snapshot.timeline
       .getVersions()
       .slice()
       .reverse()
@@ -336,7 +336,7 @@ export class ModalsService implements Service {
       return null;
     }
 
-    const existing: FileVersion | null = snapshot.getVersion(versionId);
+    const existing: FileVersion | null = snapshot.timeline.getVersion(versionId);
 
     if (!existing) {
       return null;

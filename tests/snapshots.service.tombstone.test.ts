@@ -24,7 +24,7 @@ const seedLiveSnapshot = (service: SnapshotsService, file: TFile): FileSnapshot 
   // Mutate the current state and push a version so we can assert that the
   // history baseline, current state, and timeline all survive a tombstone.
   snapshot!.updateState(['one', 'two-edited', 'three']);
-  snapshot!.versions.push(new FileVersion(['one', 'two', 'three']));
+  snapshot!.timeline.adopt([new FileVersion(['one', 'two', 'three'])]);
 
   return snapshot as FileSnapshot;
 };
@@ -52,7 +52,7 @@ describe('SnapshotsService.markDeleted', () => {
     const live: FileSnapshot = seedLiveSnapshot(service, file);
     const historyBefore: string[] = live.getHistoryOriginalStateLines();
     const stateBefore: string[] = live.getLastStateLines();
-    const versionsBefore: FileVersion[] = [...live.versions];
+    const versionsBefore: FileVersion[] = [...live.timeline.getStoredVersions()];
 
     service.markDeleted(file);
 
@@ -60,7 +60,7 @@ describe('SnapshotsService.markDeleted', () => {
 
     expect(tombstone.getHistoryOriginalStateLines()).toEqual(historyBefore);
     expect(tombstone.getLastStateLines()).toEqual(stateBefore);
-    expect(tombstone.versions).toEqual(versionsBefore);
+    expect(tombstone.timeline.getStoredVersions()).toEqual(versionsBefore);
   });
 
   it('drops the session-only marker baseline and tracker on the tombstone', () => {

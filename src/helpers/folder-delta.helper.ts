@@ -153,7 +153,7 @@ export class FolderDeltaHelper {
   protected static firstSeenAt(snapshot: FileSnapshot): number {
     let earliest: number = typeof snapshot.timestamp === 'number' ? snapshot.timestamp : Number.POSITIVE_INFINITY;
 
-    const versions: FileVersion[] = Array.isArray(snapshot.versions) ? snapshot.versions : [];
+    const versions: readonly FileVersion[] = snapshot.timeline.getStoredVersions();
 
     for (const version of versions) {
       if (version && typeof version.timestamp === 'number' && version.timestamp < earliest) {
@@ -191,7 +191,7 @@ export class FolderDeltaHelper {
    * @return {string[]} The resolved base content as a fresh array of lines
    */
   protected static resolveBaseAt(snapshot: FileSnapshot, timestamp: number): string[] {
-    const versions: FileVersion[] = Array.isArray(snapshot.versions) ? snapshot.versions : [];
+    const versions: readonly FileVersion[] = snapshot.timeline.getStoredVersions();
 
     if (versions.length === 0 && !snapshot.isTombstone()) {
       const lastChanged: number = snapshot.getLastChangedTimestamp();

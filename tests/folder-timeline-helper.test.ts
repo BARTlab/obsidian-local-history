@@ -16,9 +16,9 @@ import { makeFile } from './helpers/builders';
 const makeLiveSnapshot = (path: string, versionTimestamps: number[] = []): FileSnapshot => {
   const snapshot: FileSnapshot = new FileSnapshot('one\ntwo\nthree', '\n', makeFile(path));
 
-  snapshot.versions = versionTimestamps.map(
+  snapshot.timeline.adopt(versionTimestamps.map(
     (timestamp: number): FileVersion => new FileVersion(['one', 'two', 'three'], timestamp),
-  );
+  ));
 
   return snapshot;
 };
@@ -190,7 +190,7 @@ describe('FolderTimelineHelper.synthesize - capture point carries its version id
       'move-in': points.find((point: FolderTimelinePoint): boolean => point.kind === FolderTimelinePointKind.moveIn),
     };
 
-    expect(byKind.capture?.versionId).toBe(snapshot.versions[0].id);
+    expect(byKind.capture?.versionId).toBe(snapshot.timeline.getStoredVersions()[0].id);
     expect(byKind.delete?.versionId).toBeUndefined();
     expect(byKind['move-in']?.versionId).toBeUndefined();
   });

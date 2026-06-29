@@ -125,7 +125,7 @@ export class VersionList {
    */
   public getVisibleVersions(): FileVersion[] {
     const snapshot: FileSnapshot = this.host.snapshot;
-    const versions: FileVersion[] = snapshot.getVersions();
+    const versions: FileVersion[] = snapshot.timeline.getVersions();
 
     const visibleIds: Set<string> = VersionSearchHelper.match(
       versions.map((version: FileVersion): SearchableVersion => ({
@@ -167,7 +167,7 @@ export class VersionList {
    * @return {string[]} The selectable base ids, top to bottom
    */
   public getSelectableIds(): string[] {
-    if (this.host.snapshot.getVersions().length === 0) {
+    if (this.host.snapshot.timeline.getVersions().length === 0) {
       return [ORIGINAL_BASE_ID];
     }
 
@@ -293,7 +293,7 @@ export class VersionList {
     }
 
     const snapshot: FileSnapshot = this.host.snapshot;
-    const versions: FileVersion[] = snapshot.getVersions();
+    const versions: FileVersion[] = snapshot.timeline.getVersions();
 
     /**
      * The rail is always visible: even a timeline-less file offers the single

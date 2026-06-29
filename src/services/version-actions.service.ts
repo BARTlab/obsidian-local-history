@@ -78,7 +78,7 @@ export class VersionActionsService implements Service {
       return { applied: false };
     }
 
-    const version: FileVersion | null = snapshot.getVersion(versionId);
+    const version: FileVersion | null = snapshot.timeline.getVersion(versionId);
 
     if (!version) {
       return { applied: false };
@@ -124,12 +124,12 @@ export class VersionActionsService implements Service {
      * prefer the older one (continues a downward walk after Delete) and fall
      * back to the newer one when nothing is below.
      */
-    const visible: FileVersion[] = snapshot.getVersions();
+    const visible: FileVersion[] = snapshot.timeline.getVersions();
     const index: number = visible.findIndex((version: FileVersion): boolean => version.id === versionId);
     const nextId: string | null =
       index === -1 ? null : visible[index + 1]?.id ?? visible[index - 1]?.id ?? null;
 
-    if (!snapshot.removeVersion(versionId)) {
+    if (!snapshot.timeline.removeVersion(versionId)) {
       return { removed: false, nextId: null };
     }
 
@@ -205,7 +205,7 @@ export class VersionActionsService implements Service {
       return null;
     }
 
-    const version: FileVersion | null = snapshot.getVersion(versionId);
+    const version: FileVersion | null = snapshot.timeline.getVersion(versionId);
 
     if (!version) {
       return null;

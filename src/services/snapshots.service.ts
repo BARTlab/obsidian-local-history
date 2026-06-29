@@ -1,16 +1,14 @@
-import { MapChangeAction, PluginEvent } from '@/consts';
+import { PluginEvent } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { PathExcludeHelper } from '@/helpers/path-exclude.helper';
-import { PathHelper } from '@/helpers/path.helper';
 import type LineChangeTrackerPlugin from '@/main';
-import { ObservableMap } from '@/maps/observable.map';
 import { ExternalChangeCapture, type ExternalChangeHost } from '@/snapshots/external-change-capture';
 import type { SettingsService } from '@/services/settings.service';
 import { TOKENS } from '@/services/tokens';
 import { EditorOperations, type EditorBlock, type EditorOperationsHost } from '@/snapshots/editor-operations';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
-import { FileVersion } from '@/snapshots/file.version';
 import { IgnoreListManager, type IgnoreListHost } from '@/snapshots/ignore-list';
+import { SnapshotRegistry, type SnapshotRegistryHost } from '@/snapshots/snapshot-registry';
 import type { SerializedFileSnapshot, SerializedHistory, Service, SnapshotCaptureOptions } from '@/types';
 import { Notice, type TFile } from 'obsidian';
 
@@ -25,23 +23,14 @@ export class SnapshotsService implements Service {
   protected settingsService!: SettingsService;
 
   /**
-   * Map of file paths to their corresponding snapshots.
-   * Uses ObservableMap to notify subscribers when snapshots change.
+   * Plain collaborator that owns the path-keyed registry concern: the observable
+   * map of paths to snapshots, the transient session-created path set, and the
+   * add/remove/rename/move/tombstone/rekey rules that keep those two in step.
+   * Owned by the service (not a DI service); reads the active editor line break
+   * and routes the external-capture forget back through a
+   * {@link SnapshotRegistryHost} port the service builds.
    */
-  protected fileSnapshots: ObservableMap<string, FileSnapshot> = new ObservableMap<string, FileSnapshot>();
-
-  /**
-   * Vault paths of files CREATED by the user in the current app session.
-   * Recorded by the `vault.create` handler regardless of the "ignore new
-   * files" setting, so the tree/tab decorator can paint a freshly
-   * created file as "added" even when that setting suppresses its snapshot (an
-   * ignored new file has no snapshot to carry `createdThisSession`). Transient:
-   * never persisted, so it resets to empty on restart and a created file stops
-   * reading as new once the session that made it ends. Kept in step with the
-   * snapshot map on remove/rename/move/clear so a stale path never tints a row
-   * that has since changed identity.
-   */
-  protected sessionCreatedPaths: Set<string> = new Set();
+  protected registry: SnapshotRegistry = new SnapshotRegistry(this.makeSnapshotRegistryHost());
 
   /**
    * Plain collaborator that owns the ignore-list and exclude-pattern concern:
@@ -87,7 +76,7 @@ export class SnapshotsService implements Service {
    * Sets up a subscription to emit an event when snapshots are updated.
    */
   public async init(): Promise<void> {
-    this.fileSnapshots.subscribe((): void => {
+    this.registry.subscribe((): void => {
       this.plugin.emit(PluginEvent.snapshotsUpdate);
     });
   }
@@ -116,7 +105,7 @@ export class SnapshotsService implements Service {
       return null;
     }
 
-    return this.fileSnapshots.get(currentFile.path) ?? null;
+    return this.registry.get(currentFile.path) ?? null;
   }
 
   /**
@@ -125,57 +114,42 @@ export class SnapshotsService implements Service {
    * @return {FileSnapshot[]} An array of all file snapshots
    */
   public getList(): FileSnapshot[] {
-    return [...this.fileSnapshots.values()];
+    return this.registry.getAll();
   }
 
   /**
-   * Adds a new snapshot for the specified file.
-   * Creates a FileSnapshot with the provided content and stores it in the map.
+   * Adds a new snapshot for the specified file. Delegates to the
+   * {@link SnapshotRegistry}, which builds a FileSnapshot with the detected line
+   * break and stores it under the file's path.
    *
    * @param {TFile} file - The file to create a snapshot for
    * @param {string} content - The content to snapshot
    */
   public add(file: TFile, content: string): void {
-    if (!file) {
-      return;
-    }
-
-    const activeLineBreak: string | undefined = this.plugin.getActiveEditorView()?.state.lineBreak;
-    const lineBreak: string = activeLineBreak ?? (content.includes('\r\n') ? '\r\n' : '\n');
-
-    this.fileSnapshots.set(
-      file.path,
-      new FileSnapshot(content, lineBreak, file)
-    );
+    this.registry.add(file, content);
   }
 
   /**
-   * Removes the snapshot for the specified file.
+   * Removes the snapshot for the specified file. Delegates to the
+   * {@link SnapshotRegistry}, which drops the map entry, the session-created
+   * mark, and the external-capture state for the path.
    *
    * @param {TFile} file - The file whose snapshot should be removed
    */
   public remove(file: TFile): void {
-    if (!file) {
-      return;
-    }
-
-    this.fileSnapshots.delete(file.path);
-    this.sessionCreatedPaths.delete(file.path);
-    this.externalCapture.forget(file.path);
+    this.registry.remove(file);
   }
 
   /**
    * Records that `path` was created by the user this session so the tree/tab
    * decorator can paint it as "added" even when the "ignore new files" setting
-   * suppressed its snapshot. Called by the `vault.create` handler. Transient and
-   * never persisted (see {@link sessionCreatedPaths}).
+   * suppressed its snapshot. Called by the `vault.create` handler. Delegates to
+   * the {@link SnapshotRegistry}, which owns the transient session-created set.
    *
    * @param {string} path - The vault-relative path of the created file
    */
   public markCreatedThisSession(path: string): void {
-    if (path) {
-      this.sessionCreatedPaths.add(path);
-    }
+    this.registry.markCreatedThisSession(path);
   }
 
   /**
@@ -186,174 +160,51 @@ export class SnapshotsService implements Service {
    * @return {ReadonlySet<string>} The session-created paths
    */
   public getSessionCreatedPaths(): ReadonlySet<string> {
-    return this.sessionCreatedPaths;
+    return this.registry.getSessionCreatedPaths();
   }
 
   /**
-   * Marks the snapshot for the given file as a tombstone instead of
-   * dropping it. The entry stays in the map under its current path so any
-   * folder view at that prefix can still surface it, and its `state`,
-   * `historyLines`, and `versions` are preserved so the file can be
-   * reconstructed from history. The session-only marker baseline (`lines`)
-   * and the live `tracker` are reset to empty arrays because they only
-   * carry meaning against a live editor view, and the file is gone.
-   *
-   * No-op when the file is missing or when no snapshot exists at the path
-   * (there is nothing to remember). Calling on an already-tombstoned entry
-   * is also a no-op: the existing `deletedTimestamp` is preserved so a
-   * later replay of the same delete signal cannot rewrite the original
-   * tombstone moment.
+   * Marks the snapshot for the given file as a tombstone instead of dropping it,
+   * preserving its history so a deleted file can still be reconstructed.
+   * Delegates to the {@link SnapshotRegistry}, which owns the tombstone rules.
    *
    * @param {TFile} file - The file that was deleted in the vault
    */
   public markDeleted(file: TFile): void {
-    if (!file) {
-      return;
-    }
-
-    const snapshot: FileSnapshot | undefined = this.fileSnapshots.get(file.path);
-
-    if (!snapshot || snapshot.isTombstone()) {
-      return;
-    }
-
-    snapshot.deletedTimestamp = Date.now();
-    snapshot.content.lines = [];
-    snapshot.trackers.reset();
-    snapshot.content.changes.clear();
-
-    this.forceUpdate();
+    this.registry.markDeleted(file);
   }
 
   /**
-   * Re-keys a snapshot after its file was renamed or moved.
-   * Moves the snapshot from the old path to the file's current path and updates
-   * the stored file reference, preserving the tracked history across the rename.
+   * Re-keys a snapshot after an in-place rename (same directory), preserving the
+   * tracked history across the rename. Delegates to the {@link SnapshotRegistry},
+   * which owns the re-key rules.
    *
    * @param {string} oldPath - The path the snapshot was previously keyed by
    * @param {TFile} file - The file in its renamed state (holding the new path)
    */
   public rename(oldPath: string, file: TFile): void {
-    if (!oldPath || !file || oldPath === file.path) {
-      return;
-    }
-
-    const snapshot: FileSnapshot | undefined = this.fileSnapshots.get(oldPath);
-
-    if (!snapshot) {
-      return;
-    }
-
-    snapshot.file = file;
-    snapshot.path = file.path;
-
-    this.fileSnapshots.delete(oldPath);
-    this.fileSnapshots.set(file.path, snapshot);
-    this.rekeySessionCreated(oldPath, file.path);
-    this.externalCapture.forget(oldPath);
+    this.registry.rename(oldPath, file);
   }
 
   /**
-   * Handles a cross-directory move: leaves a tombstone at `oldPath` and
-   * re-keys the live snapshot to the file's new path while stamping
-   * `movedIntoAt` with the call timestamp. The live snapshot's history baseline,
-   * version timeline, and current state travel with it so the file's captured
-   * history is continuous through the move; the tombstone left behind carries
-   * a full copy of those same fields so a folder view at the source prefix can
-   * still surface the file as deleted with its history intact.
-   *
-   * This method is the move-only entry point: it asserts that `oldPath` and the
-   * file's new path belong to different directories (an in-place rename
-   * stays a pure re-key through `rename`). Calling it without a directory
-   * change throws so a wiring bug surfaces immediately rather than littering a
-   * folder with phantom tombstones.
-   *
-   * No-op when `oldPath`, `file`, or the existing snapshot is missing: there is
-   * nothing to remember, and the move signal can be safely ignored.
+   * Handles a cross-directory move: leaves a tombstone at `oldPath` and re-keys
+   * the live snapshot to the file's new path, stamping `movedIntoAt`. Delegates
+   * to the {@link SnapshotRegistry}, which owns the move/tombstone rules.
    *
    * @param {string} oldPath - The path the snapshot was previously keyed by
    * @param {TFile} file - The file in its moved state (holding the new path)
    */
   public markMoved(oldPath: string, file: TFile): void {
-    if (!oldPath || !file || oldPath === file.path) {
-      return;
-    }
-
-    if (PathHelper.dirname(oldPath) === PathHelper.dirname(file.path)) {
-      throw new Error(
-        `SnapshotsService.markMoved called without a directory change: ${oldPath} -> ${file.path}`,
-      );
-    }
-
-    const snapshot: FileSnapshot | undefined = this.fileSnapshots.get(oldPath);
-
-    if (!snapshot) {
-      return;
-    }
-
-    const now: number = Date.now();
-
-    /**
-     * Build the tombstone first so its preserved fields capture the live state
-     * as it was before the move stamped movedIntoAt onto the migrating snapshot.
-     * Session-only marker baseline and tracker are dropped on the tombstone for
-     * the same reason markDeleted drops them: they carry meaning only against a
-     * live editor view, and the file is no longer there.
-     */
-    const tombstone: FileSnapshot = new FileSnapshot('', snapshot.content.lineBreak);
-
-    tombstone.file = null;
-    tombstone.path = oldPath;
-    tombstone.content.lines = [];
-    tombstone.trackers.reset();
-    tombstone.content.changes.clear();
-    tombstone.content.historyLines = snapshot.content.getHistoryOriginalStateLines();
-    tombstone.content.updateState(snapshot.content.getLastStateLines());
-    tombstone.timeline.adopt(
-      snapshot.timeline.getStoredVersions().map(
-        (version: FileVersion): FileVersion => FileVersion.fromJSON(version.toJSON()),
-      ),
-    );
-    tombstone.timestamp = snapshot.timestamp;
-    tombstone.deletedTimestamp = now;
-
-    /**
-     * Re-key the live snapshot to the destination path and stamp the move
-     * marker so the folder UI can colour it as added in the new directory even
-     * though its captured history is older.
-     */
-    snapshot.file = file;
-    snapshot.path = file.path;
-    snapshot.movedIntoAt = now;
-
-    this.fileSnapshots.delete(oldPath);
-    this.fileSnapshots.set(file.path, snapshot);
-    this.fileSnapshots.set(oldPath, tombstone);
-    this.rekeySessionCreated(oldPath, file.path);
+    this.registry.markMoved(oldPath, file);
   }
 
   /**
-   * Moves a session-created mark from `oldPath` to `newPath` when the file is
-   * renamed or moved, so a file created this session keeps reading as "added"
-   * at its new path and the stale old path drops out. A no-op when the file was
-   * not created this session.
-   *
-   * @param {string} oldPath - The path the file used to live at
-   * @param {string} newPath - The path the file now lives at
-   */
-  protected rekeySessionCreated(oldPath: string, newPath: string): void {
-    if (this.sessionCreatedPaths.delete(oldPath)) {
-      this.sessionCreatedPaths.add(newPath);
-    }
-  }
-
-  /**
-   * Clears all snapshots from the service.
-   * Removes all stored file snapshots.
+   * Clears all snapshots from the service. The {@link SnapshotRegistry} clears
+   * the snapshot map and the session-created marks; the external-capture state
+   * is reset here since the service composes both collaborators.
    */
   public clear(): void {
-    this.fileSnapshots.clear();
-    this.sessionCreatedPaths.clear();
+    this.registry.clear();
     this.externalCapture.clear();
   }
 
@@ -377,7 +228,7 @@ export class SnapshotsService implements Service {
   public serialize(): SerializedHistory {
     const snapshots: SerializedFileSnapshot[] = [];
 
-    for (const [path, snapshot] of this.fileSnapshots.entries()) {
+    for (const [path, snapshot] of this.registry.entries()) {
       if (!path) {
         continue;
       }
@@ -486,7 +337,7 @@ export class SnapshotsService implements Service {
         continue;
       }
 
-      const existing: FileSnapshot | undefined = this.fileSnapshots.get(data.path);
+      const existing: FileSnapshot | undefined = this.registry.get(data.path);
 
       if (existing) {
         /**
@@ -517,7 +368,7 @@ export class SnapshotsService implements Service {
       const restored: FileSnapshot = FileSnapshot.fromJSON(data, file);
 
       restored.resetMarkerBaseline();
-      this.fileSnapshots.set(data.path, restored);
+      this.registry.set(data.path, restored);
     }
 
     this.reconcileOpenFiles();
@@ -549,7 +400,7 @@ export class SnapshotsService implements Service {
     const openFiles: Set<TFile> = this.plugin.getWorkspaceFiles();
 
     for (const file of openFiles) {
-      if (!file || !this.fileSnapshots.has(file.path)) {
+      if (!file || !this.registry.has(file.path)) {
         continue;
       }
 
@@ -580,17 +431,15 @@ export class SnapshotsService implements Service {
      */
     snapshot.file = null;
 
-    this.fileSnapshots.set(data.path, snapshot);
+    this.registry.set(data.path, snapshot);
   }
 
   /**
-   * Forces an update of the snapshots.
-   * Triggers the observable map to notify subscribers.
-   *
-   * @return {void}
+   * Forces an update of the snapshots. Delegates to the {@link SnapshotRegistry},
+   * which triggers the observable map to notify subscribers.
    */
   public forceUpdate(): void {
-    return this.fileSnapshots.next(MapChangeAction.update);
+    this.registry.forceUpdate();
   }
 
   /**
@@ -670,6 +519,23 @@ export class SnapshotsService implements Service {
   }
 
   /**
+   * Builds the narrow {@link SnapshotRegistryHost} port the
+   * {@link SnapshotRegistry} reads its two outside dependencies through: the
+   * active editor's line break (so a captured snapshot matches the editor) and
+   * the external-capture forget (so a removed or relocated path leaves no stale
+   * capture state), keeping the plugin handle and the sibling collaborators
+   * owned by this service.
+   *
+   * @return {SnapshotRegistryHost} The host port onto the registry's outside deps
+   */
+  protected makeSnapshotRegistryHost(): SnapshotRegistryHost {
+    return {
+      getActiveEditorLineBreak: (): string | undefined => this.plugin.getActiveEditorView()?.state.lineBreak,
+      forgetExternalCapture: (path: string): void => this.externalCapture.forget(path),
+    };
+  }
+
+  /**
    * Builds the narrow {@link IgnoreListHost} port the {@link IgnoreListManager}
    * reads its exclude-pattern dependency through. Exposes the raw exclude
    * pattern from settings and the one-time invalid-pattern warning, keeping
@@ -699,7 +565,7 @@ export class SnapshotsService implements Service {
       return false;
     }
 
-    return this.fileSnapshots.has(file.path);
+    return this.registry.has(file.path);
   }
 
   /**
@@ -788,7 +654,7 @@ export class SnapshotsService implements Service {
   protected makeExternalChangeHost(): ExternalChangeHost {
     return {
       plugin: this.plugin,
-      getSnapshot: (path: string): FileSnapshot | undefined => this.fileSnapshots.get(path),
+      getSnapshot: (path: string): FileSnapshot | undefined => this.registry.get(path),
       isExternallyCapturable: (file: TFile): boolean =>
         this.isInAllowedExtensions(file) && !this.isExcludedPath(file) && !this.isInIgnoreList(file),
       captureFirstSight: (file: TFile): Promise<void> => this.capture(file),
@@ -903,15 +769,14 @@ export class SnapshotsService implements Service {
     const caseSensitive: boolean = this.settingsService.value('excludePathsCaseSensitive');
     const pathsToPurge: string[] = [];
 
-    for (const [path] of this.fileSnapshots.entries()) {
+    for (const [path] of this.registry.entries()) {
       if (path && PathExcludeHelper.isExcluded(path, excludePatterns, caseSensitive)) {
         pathsToPurge.push(path);
       }
     }
 
     for (const path of pathsToPurge) {
-      this.fileSnapshots.delete(path);
-      this.sessionCreatedPaths.delete(path);
+      this.registry.deleteByPath(path);
       this.externalCapture.forget(path);
     }
 

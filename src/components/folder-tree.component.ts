@@ -1,8 +1,8 @@
+import { FolderTreeModel } from '@/components/folder-tree-model';
 import { FolderDeltaStatus } from '@/consts';
 import { DomHelper } from '@/helpers/dom.helper';
 import type {
   DomElementConfig,
-  FolderTreeEntry,
   FolderTreeNode,
   FolderTreeSelectionHandler,
   FolderTreeTranslator,
@@ -45,11 +45,8 @@ export class FolderTreeComponent {
   /** Container the component renders into; null between dispose / re-mount. */
   protected container: HTMLElement | null = null;
 
-  /** Last computed root from {@link update}, used to normalize child paths. */
-  protected rootPath: string = '';
-
-  /** Last computed root node, retained so re-renders do not need re-input. */
-  protected rootNode: FolderTreeNode | null = null;
+  /** Pure tree model: owns the built node tree and its structural queries. */
+  protected readonly model: FolderTreeModel = new FolderTreeModel();
 
   /** Currently-selected file path, or null when nothing is selected yet. */
   protected selectedPath: string | null = null;
@@ -107,20 +104,19 @@ export class FolderTreeComponent {
       return;
     }
 
-    this.rootPath = this.normalizeRoot(params.rootPath);
-    this.rootNode = this.build(params.entries, this.rootPath);
+    this.model.build(params.entries, params.rootPath);
 
     /**
      * Reset selection when the previous file is no longer present so the diff
      * pane never points at a row that does not exist anymore. The first file
      * in render order is the natural fallback.
      */
-    if (this.selectedPath !== null && !this.containsFile(this.rootNode, this.selectedPath)) {
+    if (this.selectedPath !== null && !this.model.containsFile(this.selectedPath)) {
       this.selectedPath = null;
     }
 
     if (this.selectedPath === null) {
-      this.selectedPath = this.firstFilePath(this.rootNode);
+      this.selectedPath = this.model.firstFilePath();
     }
 
     this.render();
@@ -168,230 +164,12 @@ export class FolderTreeComponent {
     }
 
     this.container = null;
-    this.rootNode = null;
+    this.model.clear();
     this.selectedPath = null;
     this.collapsedFolders.clear();
     this.nameFilter = '';
     this.onSelect = null;
     this.plugin = null;
-  }
-
-  /**
-   * Normalizes a root path by trimming a trailing slash. The vault root is
-   * passed as an empty string, which matches the prefix used everywhere else
-   * in the plugin (see `FolderTimelineHelper`).
-   *
-   * @param {string} rootPath - The raw root path
-   * @return {string} The normalized root path (no trailing slash)
-   */
-  protected normalizeRoot(rootPath: string): string {
-    if (!rootPath) {
-      return '';
-    }
-
-    return rootPath.endsWith('/') ? rootPath.slice(0, -1) : rootPath;
-  }
-
-  /**
-   * Builds an in-memory tree from the changed-file entries. Entries whose
-   * status is `'none'` are skipped (only changed files render). Paths
-   * outside the root are skipped too, matching `FolderTimelineHelper`'s prefix
-   * semantics so the component is robust to a caller passing the whole map.
-   *
-   * @param {FolderTreeEntry[]} entries - The changed-file entries to materialise
-   * @param {string} rootPath - The normalized root path
-   * @return {FolderTreeNode} The synthetic root node (its children are the
-   *   top-level entries of the tree, the root itself never renders).
-   */
-  protected build(entries: FolderTreeEntry[], rootPath: string): FolderTreeNode {
-    const root: FolderTreeNode = {
-      path: rootPath,
-      name: '',
-      isFolder: true,
-      children: [],
-    };
-
-    const folderIndex: Map<string, FolderTreeNode> = new Map();
-
-    folderIndex.set(rootPath, root);
-
-    entries.forEach((entry: FolderTreeEntry): void => {
-      if (!entry || typeof entry.path !== 'string') {
-        return;
-      }
-
-      if (
-        entry.status !== FolderDeltaStatus.added
-        && entry.status !== FolderDeltaStatus.modified
-        && entry.status !== FolderDeltaStatus.deleted
-      ) {
-        return;
-      }
-
-      if (!this.isUnderRoot(entry.path, rootPath)) {
-        return;
-      }
-
-      const relative: string = this.relativeTo(entry.path, rootPath);
-      const segments: string[] = relative.split('/').filter((segment: string): boolean => segment.length > 0);
-
-      if (segments.length === 0) {
-        return;
-      }
-
-      let parent: FolderTreeNode = root;
-      let accumulatedRelative: string = '';
-
-      // Walk every segment but the last to materialise the ancestor folders.
-      for (let i: number = 0; i < segments.length - 1; i += 1) {
-        const segment: string = segments[i];
-
-        accumulatedRelative = accumulatedRelative ? `${accumulatedRelative}/${segment}` : segment;
-
-        const folderPath: string = rootPath ? `${rootPath}/${accumulatedRelative}` : accumulatedRelative;
-        let folder: FolderTreeNode | undefined = folderIndex.get(folderPath);
-
-        if (!folder) {
-          folder = {
-            path: folderPath,
-            name: segment,
-            isFolder: true,
-            children: [],
-          };
-
-          parent.children.push(folder);
-          folderIndex.set(folderPath, folder);
-        }
-
-        parent = folder;
-      }
-
-      const fileName: string = segments[segments.length - 1];
-
-      parent.children.push({
-        path: entry.path,
-        name: fileName,
-        isFolder: false,
-        status: entry.status,
-        external: entry.external === true,
-        children: [],
-      });
-    });
-
-    this.sortChildren(root);
-
-    return root;
-  }
-
-  /**
-   * Whether the given path lies under the root (`path === root` is excluded
-   * because the root itself is a folder, not a file we render). Mirrors the
-   * prefix check in `FolderTimelineHelper` so behaviour is consistent across
-   * the folder-modal surfaces.
-   *
-   * @param {string} path - The candidate vault-relative path
-   * @param {string} rootPath - The normalized root path
-   * @return {boolean} True when `path` is strictly under `rootPath`
-   */
-  protected isUnderRoot(path: string, rootPath: string): boolean {
-    if (!rootPath) {
-      return path.length > 0;
-    }
-
-    return path.startsWith(`${rootPath}/`);
-  }
-
-  /**
-   * Returns the portion of `path` relative to `rootPath`. The vault root
-   * (empty `rootPath`) returns `path` as-is.
-   *
-   * @param {string} path - The vault-relative file path
-   * @param {string} rootPath - The normalized root path
-   * @return {string} The path stripped of the root prefix
-   */
-  protected relativeTo(path: string, rootPath: string): string {
-    if (!rootPath) {
-      return path;
-    }
-
-    return path.slice(rootPath.length + 1);
-  }
-
-  /**
-   * Sorts a node's children recursively: folders before files, then by name
-   * alphabetically. The order is stable so two equal inputs render identically.
-   *
-   * @param {FolderTreeNode} node - The node whose children to sort
-   * @return {void}
-   */
-  protected sortChildren(node: FolderTreeNode): void {
-    node.children.sort((a: FolderTreeNode, b: FolderTreeNode): number => {
-      if (a.isFolder !== b.isFolder) {
-        return a.isFolder ? -1 : 1;
-      }
-
-      return a.name.localeCompare(b.name);
-    });
-
-    node.children.forEach((child: FolderTreeNode): void => {
-      if (child.isFolder) {
-        this.sortChildren(child);
-      }
-    });
-  }
-
-  /**
-   * Whether the tree contains the given file path. Used to decide whether the
-   * previous selection survives a re-render.
-   *
-   * @param {FolderTreeNode} node - The root node to search under
-   * @param {string} path - The file path to look for
-   * @return {boolean} True when a file node with that path exists
-   */
-  protected containsFile(node: FolderTreeNode | null, path: string): boolean {
-    if (!node) {
-      return false;
-    }
-
-    if (!node.isFolder && node.path === path) {
-      return true;
-    }
-
-    for (const child of node.children) {
-      if (this.containsFile(child, path)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  /**
-   * Returns the path of the first file in render order, or null when the tree
-   * has no files. Used to seed the default selection so the diff pane is not
-   * blank when changes exist.
-   *
-   * @param {FolderTreeNode} node - The root node
-   * @return {string | null} The first file path or null
-   */
-  protected firstFilePath(node: FolderTreeNode | null): string | null {
-    if (!node) {
-      return null;
-    }
-
-    for (const child of node.children) {
-      if (!child.isFolder) {
-        return child.path;
-      }
-
-      const nested: string | null = this.firstFilePath(child);
-
-      if (nested) {
-        return nested;
-      }
-    }
-
-    return null;
   }
 
   /**
@@ -409,8 +187,9 @@ export class FolderTreeComponent {
 
     this.container.empty();
 
-    const visibleChildren: FolderTreeNode[] = this.rootNode
-      ? this.rootNode.children.filter((child: FolderTreeNode): boolean => this.nodeVisible(child))
+    const root: FolderTreeNode | null = this.model.getRoot();
+    const visibleChildren: FolderTreeNode[] = root
+      ? root.children.filter((child: FolderTreeNode): boolean => FolderTreeModel.nodeVisible(child, this.nameFilter))
       : [];
 
     if (visibleChildren.length === 0) {
@@ -428,27 +207,6 @@ export class FolderTreeComponent {
     visibleChildren.forEach((child: FolderTreeNode): void => {
       this.renderNode(list, child, 0);
     });
-  }
-
-  /**
-   * Whether the node should render under the active name filter. A file matches
-   * when its name contains the filter substring; a folder matches when any of
-   * its descendant files match (so the ancestors of a hit stay visible). With
-   * an empty filter every node is visible.
-   *
-   * @param {FolderTreeNode} node - The node to test
-   * @return {boolean} True when the node (or its subtree) survives the filter
-   */
-  protected nodeVisible(node: FolderTreeNode): boolean {
-    if (!this.nameFilter) {
-      return true;
-    }
-
-    if (!node.isFolder) {
-      return node.name.toLowerCase().includes(this.nameFilter);
-    }
-
-    return node.children.some((child: FolderTreeNode): boolean => this.nodeVisible(child));
   }
 
   /**
@@ -563,7 +321,7 @@ export class FolderTreeComponent {
 
     if (!isCollapsed) {
       node.children.forEach((child: FolderTreeNode): void => {
-        if (this.nodeVisible(child)) {
+        if (FolderTreeModel.nodeVisible(child, this.nameFilter)) {
           this.renderNode(container, child, depth + 1);
         }
       });
@@ -682,7 +440,7 @@ export class FolderTreeComponent {
   /**
    * Maps the delta status to its row class. The three statuses are stable
    * tokens the modal CSS hooks into; rows with status `'none'` never
-   * reach this code path because they are filtered in {@link build}.
+   * reach this code path because they are filtered in {@link FolderTreeModel.build}.
    *
    * @param {FolderDeltaStatus} status - The per-file delta status
    * @return {string} The CSS class for the row's colour token

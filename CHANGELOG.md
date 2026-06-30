@@ -6,16 +6,40 @@ follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Line change bar moved to the editor gutter.** The line-style change
+  indicator now renders in its own gutter column instead of as a stripe in the
+  line's own margin, so adjacent changed lines read as one continuous vertical
+  bar.
+- Minimum supported Obsidian version raised to 1.11.0.
+
+### Fixed
+
+- **Change bars in quote blocks.** A change bar on a line inside a quote block
+  in Live Preview no longer merges with the blockquote marker and paints over
+  it; it is drawn as a separate bar, the same as on any other line.
+
 ## [1.1.0] - 2026-06-10
+
+### Added
+
+- **Reading-mode change indicators.** In reading mode, blocks whose source
+  lines changed now show a colored left border matching the editor's change
+  colors. Off by default; enable it in settings.
+- **File explorer and tab highlight.** File-explorer rows (with their parent
+  folders) and open tab headers are tinted by whether the file changed in the
+  current session. Toggle it in settings.
 
 ### Fixed
 
 - **Service resolution in the released build.** The bundled plugin could fail to
   resolve its own services, surfacing as repeated `Service 'SnapshotsService'
   not registered` errors and silently breaking change indicators, history
-  capture, and the editor gutter. Class names are now preserved in the build so
-  name-based dependency resolution works in the bundle, and lifecycle guards
-  keep a stale editor extension or event from touching services after unload.
+  capture, and the editor gutter. Services now resolve through stable symbol
+  tokens, so minifying the bundle can no longer rename a class and break
+  resolution, and lifecycle guards keep a stale editor extension or event from
+  touching services after unload.
 
 - **Sharded history storage.** History is now stored as one self-describing
   shard file per note under a `history/` folder instead of a single

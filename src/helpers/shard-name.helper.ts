@@ -73,6 +73,45 @@ export class ShardNameHelper {
   }
 
   /**
+   * Allocates a collision-free shard filename for a path against an arbitrary set
+   * of already-claimed names. The base name is {@link forPath}'s path hash; if it
+   * is taken, a numeric suffix is linear-probed before the `.json` extension so
+   * two distinct paths never share a filename. Keeps allocation next to the
+   * naming it probes: the live save path builds `taken` from its in-memory index,
+   * the migration pass builds it from the names claimed so far.
+   *
+   * @param {string} path - The vault-relative note path to name a shard for.
+   * @param {Set<string>} taken - Names already claimed (must not be reused).
+   * @return {string} A shard filename not present in `taken`.
+   */
+  public static allocate(path: string, taken: Set<string>): string {
+    const base: string = this.forPath(path);
+
+    if (!taken.has(base)) {
+      return base;
+    }
+
+    /**
+     * Probe `<hash>.json`, `<hash>-1.json`, `<hash>-2.json`, ... by splitting the
+     * base into its hash and extension so the suffix lands before `.json` and the
+     * file keeps a recognizable shard extension.
+     */
+    const dot: number = base.lastIndexOf('.');
+    const stem: string = dot === -1 ? base : base.slice(0, dot);
+    const ext: string = dot === -1 ? '' : base.slice(dot);
+
+    let suffix: number = 1;
+    let candidate: string = `${stem}-${suffix}${ext}`;
+
+    while (taken.has(candidate)) {
+      suffix += 1;
+      candidate = `${stem}-${suffix}${ext}`;
+    }
+
+    return candidate;
+  }
+
+  /**
    * Computes the raw 64-bit hex digest for a path (without the `.json`
    * extension). Two independent 32-bit FNV-1a lanes are run over the UTF-16 code
    * units, the second lane mixing in the byte index so the lanes decorrelate,

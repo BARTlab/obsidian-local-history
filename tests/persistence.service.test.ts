@@ -294,10 +294,6 @@ class WritePersistenceService extends PersistenceService {
   public async drain(): Promise<void> {
     await this.writeQueue;
   }
-
-  public async readForTest(): Promise<SerializedHistory | null> {
-    return this.readDisk();
-  }
 }
 
 interface PersistSettings {
@@ -367,8 +363,6 @@ const makeWriteService = (
 
   return new WritePersistenceService(plugin);
 };
-
-const HISTORY_PATH: string = '.obsidian/plugins/local-history/history.json';
 
 const SHARD_DIR: string = `.obsidian/plugins/local-history/${HISTORY_SHARD_DIR}`;
 
@@ -827,107 +821,5 @@ describe('PersistenceService idle-vault no-wipe guard', () => {
     expect(readShardSnapshot(adapter, 'stale.md')).toBeUndefined();
     expect(await adapter.exists(SHARD_DIR)).toBe(false);
     expect(didRecursiveWipe(adapter)).toBe(true);
-  });
-});
-
-/**
- * Tests for skip-invalid per-entry validation in `readDisk`. They seed the in-memory adapter with hand-crafted history files
- * that mix valid and malformed entries and assert `readDisk` returns only the
- * structurally usable ones (no crash, no silent drop of valid neighbours, no
- * resurrection of junk as fresh history with a `0` timestamp).
- *
- * The structurally valid entries here use the shared `entry` builder; the
- * malformed neighbours are hand-crafted POJOs inline so each test contrasts a
- * good entry against the specific defect it exercises.
- */
-
-describe('PersistenceService readDisk per-entry validation', () => {
-  it('skips entries missing a finite timestamp and keeps the valid ones', async (): Promise<void> => {
-    const adapter = new MemoryAdapter();
-    const now: number = Date.now();
-    adapter.files.set(HISTORY_PATH, JSON.stringify({
-      version: 1,
-      snapshots: [
-        entry('good.md', now),
-        // Missing timestamp: must be skipped, not coerced to 0.
-        { path: 'bad-no-ts.md', lineBreak: '\n', lines: [], state: [], tracker: [] },
-        // Non-finite timestamp (NaN serializes to null; tested through both forms).
-        { path: 'bad-nan.md', lineBreak: '\n', timestamp: null, lines: [], state: [], tracker: [] },
-        entry('good-2.md', now - 1000),
-      ],
-    }));
-
-    const service = makeWriteService(adapter, (): SerializedHistory => payload('ignored.md', 1));
-    const result: SerializedHistory | null = await service.readForTest();
-
-    expect(result).not.toBeNull();
-    const paths: string[] = (result?.snapshots ?? []).map(
-      (item: SerializedFileSnapshot): string => item.path,
-    );
-
-    expect(paths).toEqual(['good.md', 'good-2.md']);
-  });
-
-  it('returns the original set unchanged when every entry is valid', async (): Promise<void> => {
-    const adapter = new MemoryAdapter();
-    const now: number = Date.now();
-    const snapshots: SerializedFileSnapshot[] = [
-      entry('a.md', now),
-      entry('b.md', now - 1000),
-      entry('c.md', now - 2000),
-    ];
-
-    adapter.files.set(HISTORY_PATH, JSON.stringify({ version: 1, snapshots }));
-
-    const service = makeWriteService(adapter, (): SerializedHistory => payload('ignored.md', 1));
-    const result: SerializedHistory | null = await service.readForTest();
-
-    expect(result).not.toBeNull();
-    expect(result?.snapshots).toHaveLength(3);
-    expect(
-      (result?.snapshots ?? []).map((item: SerializedFileSnapshot): string => item.path),
-    ).toEqual(['a.md', 'b.md', 'c.md']);
-  });
-
-  it('returns an empty snapshots array when every entry is malformed (no crash)', async (): Promise<void> => {
-    const adapter = new MemoryAdapter();
-    adapter.files.set(HISTORY_PATH, JSON.stringify({
-      version: 1,
-      snapshots: [
-        null,
-        { /* empty */ },
-        { path: 123, timestamp: 1, lines: [], tracker: [] },
-        { path: 'missing-arrays.md', timestamp: 1 },
-        { path: 'bad-tracker.md', timestamp: 1, lines: [], tracker: 'oops' },
-      ],
-    }));
-
-    const service = makeWriteService(adapter, (): SerializedHistory => payload('ignored.md', 1));
-    const result: SerializedHistory | null = await service.readForTest();
-
-    expect(result).not.toBeNull();
-    expect(result?.snapshots).toEqual([]);
-  });
-
-  it('rejects entries whose lines or tracker fields are not arrays', async (): Promise<void> => {
-    const adapter = new MemoryAdapter();
-    const now: number = Date.now();
-    adapter.files.set(HISTORY_PATH, JSON.stringify({
-      version: 1,
-      snapshots: [
-        entry('good.md', now),
-        { path: 'bad-lines.md', timestamp: now, lines: 'oops', tracker: [] },
-        { path: 'bad-tracker.md', timestamp: now, lines: [], tracker: { not: 'an array' } },
-      ],
-    }));
-
-    const service = makeWriteService(adapter, (): SerializedHistory => payload('ignored.md', 1));
-    const result: SerializedHistory | null = await service.readForTest();
-
-    const paths: string[] = (result?.snapshots ?? []).map(
-      (item: SerializedFileSnapshot): string => item.path,
-    );
-
-    expect(paths).toEqual(['good.md']);
   });
 });

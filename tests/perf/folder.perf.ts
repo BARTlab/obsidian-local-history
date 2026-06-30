@@ -2,8 +2,8 @@ import 'reflect-metadata';
 
 import { describe, expect, it } from '@jest/globals';
 
-import { FolderDeltaHelper } from '@/helpers/folder-delta.helper';
-import { FolderTimelineHelper } from '@/helpers/folder-timeline.helper';
+import * as FolderDeltaHelper from '@/helpers/folder-delta.helper';
+import * as FolderTimelineHelper from '@/helpers/folder-timeline.helper';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FolderDeltaResult, FolderTimelinePoint } from '@/types';
 

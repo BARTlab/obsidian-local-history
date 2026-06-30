@@ -1,5 +1,5 @@
 import { ChangeType } from '@/consts';
-import { TextHelper } from '@/helpers/text.helper';
+import * as TextHelper from '@/helpers/text.helper';
 import { ChangeLine } from '@/lines/change.line';
 import type { TrackerLine } from '@/lines/tracker.line';
 import { ArrayMap } from '@/maps/array.map';

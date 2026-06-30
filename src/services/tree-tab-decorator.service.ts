@@ -1,7 +1,7 @@
 import { FolderDeltaStatus, PluginEvent } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { On } from '@/decorators/on.decorator';
-import { SessionStatusHelper } from '@/helpers/session-status.helper';
+import * as SessionStatusHelper from '@/helpers/session-status.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';

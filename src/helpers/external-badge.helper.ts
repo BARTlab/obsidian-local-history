@@ -18,54 +18,53 @@ import { setIcon } from 'obsidian';
  * The badge text is locale-resolved by the caller and passed in, so the helper
  * stays free of any plugin / i18n coupling.
  */
-export class ExternalBadgeHelper {
-  /** Lucide icon id mounted into every external badge. */
-  protected static readonly iconId: string = 'download-cloud';
 
-  /**
-   * Builds the inline external-change badge config. The icon id ships as
-   * `data-icon` on the wrapper so {@link paint} can mount the glyph after
-   * DomHelper builds the config tree; the text is rendered as both the visible
-   * label and the accessible name (`aria-label`) so assistive tech announces the
-   * marker. `aria-label` (not `title`) is used on purpose: Obsidian renders its
-   * own styled tooltip for `[aria-label]` elements, while `title` would add the
-   * unstyled native browser tooltip on top.
-   *
-   * @param {string} text - The locale-resolved badge label
-   * @return {DomElementConfig} The badge element config
-   */
-  public static make(text: string): DomElementConfig {
-    return {
-      tag: 'span',
-      classes: 'lct-version-external-badge',
-      attributes: { 'aria-label': text, 'data-icon': this.iconId },
-      children: [
-        { tag: 'span', classes: 'lct-version-external-badge-icon' },
-        { tag: 'span', classes: 'lct-version-external-badge-text', text },
-      ],
-    };
-  }
+/** Lucide icon id mounted into every external badge. */
+const iconId: string = 'download-cloud';
 
-  /**
-   * Walks the rendered subtree of `container` and applies Obsidian's `setIcon`
-   * to every external-badge icon slot {@link make} emitted. The icon id is read
-   * back from the `data-icon` attribute the config carried. Re-running it on
-   * every render keeps the icon in sync when a rail filters or re-orders rows.
-   *
-   * @param {HTMLElement} container - The subtree to scan for badge slots
-   */
-  public static paint(container: HTMLElement): void {
-    const badges: NodeListOf<HTMLElement> = container.querySelectorAll<HTMLElement>(
-      '.lct-version-external-badge',
-    );
+/**
+ * Builds the inline external-change badge config. The icon id ships as
+ * `data-icon` on the wrapper so {@link paint} can mount the glyph after
+ * DomHelper builds the config tree; the text is rendered as both the visible
+ * label and the accessible name (`aria-label`) so assistive tech announces the
+ * marker. `aria-label` (not `title`) is used on purpose: Obsidian renders its
+ * own styled tooltip for `[aria-label]` elements, while `title` would add the
+ * unstyled native browser tooltip on top.
+ *
+ * @param {string} text - The locale-resolved badge label
+ * @return {DomElementConfig} The badge element config
+ */
+export function make(text: string): DomElementConfig {
+  return {
+    tag: 'span',
+    classes: 'lct-version-external-badge',
+    attributes: { 'aria-label': text, 'data-icon': iconId },
+    children: [
+      { tag: 'span', classes: 'lct-version-external-badge-icon' },
+      { tag: 'span', classes: 'lct-version-external-badge-text', text },
+    ],
+  };
+}
 
-    badges.forEach((badge: HTMLElement): void => {
-      const iconId: string | null = badge.getAttribute('data-icon');
-      const slot: HTMLElement | null = badge.querySelector<HTMLElement>('.lct-version-external-badge-icon');
+/**
+ * Walks the rendered subtree of `container` and applies Obsidian's `setIcon`
+ * to every external-badge icon slot {@link make} emitted. The icon id is read
+ * back from the `data-icon` attribute the config carried. Re-running it on
+ * every render keeps the icon in sync when a rail filters or re-orders rows.
+ *
+ * @param {HTMLElement} container - The subtree to scan for badge slots
+ */
+export function paint(container: HTMLElement): void {
+  const badges: NodeListOf<HTMLElement> = container.querySelectorAll<HTMLElement>(
+    '.lct-version-external-badge',
+  );
 
-      if (iconId && slot) {
-        setIcon(slot, iconId);
-      }
-    });
-  }
+  badges.forEach((badge: HTMLElement): void => {
+    const badgeIconId: string | null = badge.getAttribute('data-icon');
+    const slot: HTMLElement | null = badge.querySelector<HTMLElement>('.lct-version-external-badge-icon');
+
+    if (badgeIconId && slot) {
+      setIcon(slot, badgeIconId);
+    }
+  });
 }

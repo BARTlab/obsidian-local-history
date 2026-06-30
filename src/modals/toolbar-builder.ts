@@ -1,4 +1,4 @@
-import { DomHelper } from '@/helpers/dom.helper';
+import * as DomHelper from '@/helpers/dom.helper';
 import type { ToolbarButtonConfig } from '@/types';
 import { setIcon } from 'obsidian';
 

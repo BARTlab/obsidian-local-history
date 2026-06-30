@@ -1,7 +1,7 @@
 import { HISTORY_SHARD_DIR, KeepHistory, PluginEvent, SAVE_DEBOUNCE_MS } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { On } from '@/decorators/on.decorator';
-import { ShardNameHelper } from '@/helpers/shard-name.helper';
+import * as ShardNameHelper from '@/helpers/shard-name.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import { AsyncSaveQueue } from '@/persistence/async-save-queue';
 import { HistoryShardStore, type LoadedShard } from '@/persistence/history-shard-store';

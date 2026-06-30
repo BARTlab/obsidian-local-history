@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import type { Change } from 'diff';
-import { WordDiffHelper } from '@/helpers/word-diff.helper';
+import * as WordDiffHelper from '@/helpers/word-diff.helper';
 import { WORD_DIFF_LENGTH_THRESHOLD, WORD_DIFF_PAIRING_THRESHOLD } from '@/consts';
 import type { InlineDiffLine } from '@/types';
 

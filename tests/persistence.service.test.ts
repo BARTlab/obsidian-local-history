@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { describe, expect, it, jest } from '@jest/globals';
 import { HISTORY_SHARD_DIR, KeepHistory, SAVE_DEBOUNCE_MS } from '@/consts';
-import { ShardNameHelper } from '@/helpers/shard-name.helper';
+import * as ShardNameHelper from '@/helpers/shard-name.helper';
 import { PersistenceService } from '@/services/persistence.service';
 import { TOKENS } from '@/services/tokens';
 import type { SerializedFileSnapshot, SerializedHistory, SerializedShard } from '@/types';

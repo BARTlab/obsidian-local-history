@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { DiffOutputFormatType, DiffViewMode } from '@/consts';
 import { GutterRevertHandler } from '@/modals/gutter-revert-handler';
 import type { GutterRevertHost } from '@/modals/gutter-revert-handler';
-import { HunkHelper } from '@/helpers/hunk.helper';
+import * as HunkHelper from '@/helpers/hunk.helper';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { ModalsService } from '@/services/modals.service';
 import type { SnapshotsService } from '@/services/snapshots.service';

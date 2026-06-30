@@ -1,8 +1,8 @@
 import { DEFAULT_LINE_BREAK, DiffOutputFormatType, FolderDeltaStatus } from '@/consts';
 import { assertNever } from '@/helpers/assert-never.helper';
-import { DiffRenderHelper } from '@/helpers/diff-render.helper';
-import { DomHelper } from '@/helpers/dom.helper';
-import { FolderDeltaHelper } from '@/helpers/folder-delta.helper';
+import * as DiffRenderHelper from '@/helpers/diff-render.helper';
+import * as DomHelper from '@/helpers/dom.helper';
+import * as FolderDeltaHelper from '@/helpers/folder-delta.helper';
 import { DiffHeaderController } from '@/modals/diff-header-controller';
 import type LineChangeTrackerPlugin from '@/main';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';

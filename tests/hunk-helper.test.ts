@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { HunkHelper } from '@/helpers/hunk.helper';
+import * as HunkHelper from '@/helpers/hunk.helper';
 
 /**
  * Tests for the per-hunk revert logic. They drive HunkHelper directly on

@@ -1,5 +1,5 @@
 import { Inject } from '@/decorators/inject.decorator';
-import { SelectionHistoryHelper } from '@/helpers/selection-history.helper';
+import * as SelectionHistoryHelper from '@/helpers/selection-history.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import { ConfirmModal } from '@/modals/confirm.modal';
 import { FolderHistoryModal } from '@/modals/folder-history.modal';

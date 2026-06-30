@@ -1,6 +1,6 @@
 import type { DataAdapter } from 'obsidian';
 
-import { ShardNameHelper } from '@/helpers/shard-name.helper';
+import * as ShardNameHelper from '@/helpers/shard-name.helper';
 import type { HistoryShardStore } from '@/persistence/history-shard-store';
 import type { SerializedFileSnapshot, SerializedHistory } from '@/types';
 

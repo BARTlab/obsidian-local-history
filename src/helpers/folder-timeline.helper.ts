@@ -25,149 +25,148 @@ export { FolderTimelinePointKind } from '@/consts';
  * iterable of snapshots so callers can pass `SnapshotsService.getList()`, an
  * `ObservableMap.values()`, or any unit-test fixture without adaptation.
  */
-export class FolderTimelineHelper {
-  /**
-   * Synthesises the folder timeline from the snapshots whose path starts with
-   * `rootPath`. See the class docs for the kinds emitted and the ordering
-   * contract; see {@link FolderTimelinePoint} for the per-point shape.
-   *
-   * An empty input or an empty subtree returns an empty array. A `rootPath`
-   * of `''` matches every snapshot, which is the natural "whole vault" case
-   * a future caller could use; today the folder modal always passes a real
-   * folder path.
-   *
-   * @param {Iterable<FileSnapshot>} snapshots - The snapshots to scan
-   * @param {string} rootPath - Vault-relative folder path (no trailing slash)
-   * @return {FolderTimelinePoint[]} Points sorted newest-first, stable on ties
-   */
-  public static synthesize(snapshots: Iterable<FileSnapshot>, rootPath: string): FolderTimelinePoint[] {
-    if (!snapshots) {
-      return [];
+
+/**
+ * Synthesises the folder timeline from the snapshots whose path starts with
+ * `rootPath`. See the module docs for the kinds emitted and the ordering
+ * contract; see {@link FolderTimelinePoint} for the per-point shape.
+ *
+ * An empty input or an empty subtree returns an empty array. A `rootPath`
+ * of `''` matches every snapshot, which is the natural "whole vault" case
+ * a future caller could use; today the folder modal always passes a real
+ * folder path.
+ *
+ * @param {Iterable<FileSnapshot>} snapshots - The snapshots to scan
+ * @param {string} rootPath - Vault-relative folder path (no trailing slash)
+ * @return {FolderTimelinePoint[]} Points sorted newest-first, stable on ties
+ */
+export function synthesize(snapshots: Iterable<FileSnapshot>, rootPath: string): FolderTimelinePoint[] {
+  if (!snapshots) {
+    return [];
+  }
+
+  const normalizedRoot: string = normalizeRoot(rootPath);
+  const points: FolderTimelinePoint[] = [];
+
+  for (const snapshot of snapshots) {
+    if (!snapshot) {
+      continue;
     }
 
-    const normalizedRoot: string = FolderTimelineHelper.normalizeRoot(rootPath);
-    const points: FolderTimelinePoint[] = [];
+    const path: string = pathOf(snapshot);
 
-    for (const snapshot of snapshots) {
-      if (!snapshot) {
-        continue;
-      }
-
-      const path: string = FolderTimelineHelper.pathOf(snapshot);
-
-      if (!FolderTimelineHelper.isUnderRoot(path, normalizedRoot)) {
-        continue;
-      }
-
-      /**
-       * Capture points come from the version timeline, in stored order so a
-       * tie on timestamp keeps the original sequence the snapshot recorded.
-       */
-      for (const version of snapshot.timeline.getStoredVersions()) {
-        points.push({
-          timestamp: version.timestamp,
-          path,
-          kind: FolderTimelinePointKind.capture,
-          dayKey: FolderTimelineHelper.dayKeyOf(version.timestamp),
-          versionId: version.id,
-        });
-      }
-
-      if (snapshot.isTombstone() && typeof snapshot.deletedTimestamp === 'number') {
-        points.push({
-          timestamp: snapshot.deletedTimestamp,
-          path,
-          kind: FolderTimelinePointKind.delete,
-          dayKey: FolderTimelineHelper.dayKeyOf(snapshot.deletedTimestamp),
-        });
-      }
-
-      if (snapshot.isMovedIn() && typeof snapshot.movedIntoAt === 'number') {
-        points.push({
-          timestamp: snapshot.movedIntoAt,
-          path,
-          kind: FolderTimelinePointKind.moveIn,
-          dayKey: FolderTimelineHelper.dayKeyOf(snapshot.movedIntoAt),
-        });
-      }
+    if (!isUnderRoot(path, normalizedRoot)) {
+      continue;
     }
 
     /**
-     * Newest first, ties preserve insertion order. V8's Array.prototype.sort
-     * is stable, so a comparator returning 0 keeps the original sequence.
+     * Capture points come from the version timeline, in stored order so a
+     * tie on timestamp keeps the original sequence the snapshot recorded.
      */
-    points.sort(
-      (a: FolderTimelinePoint, b: FolderTimelinePoint): number => b.timestamp - a.timestamp,
-    );
-
-    return points;
-  }
-
-  /**
-   * Returns the day-group key for a timestamp the same way {@link FileVersion.getDate}
-   * does, so a folder modal rail using the same string can match a file modal
-   * rail group heading for any version on the same calendar day.
-   *
-   * @param {number} timestamp - Capture timestamp in milliseconds
-   * @return {string} Localized day key, identical to `new Date(ts).toLocaleDateString()`
-   */
-  public static dayKeyOf(timestamp: number): string {
-    return new Date(timestamp).toLocaleDateString();
-  }
-
-  /**
-   * Resolves the vault-relative path of a snapshot. Prefers the attached
-   * `file.path` (live snapshots own a `TFile`), and falls back to the
-   * snapshot's carried `path`, which mirrors the canonical map key in
-   * `SnapshotsService.fileSnapshots`. The fallback is what keeps a restored
-   * snapshot whose `file` did not resolve (restore miss, detached tombstone or
-   * orphan) on the timeline after a reload, instead of being dropped by an empty
-   * path.
-   *
-   * A snapshot without any usable path (defensive: not expected in practice)
-   * contributes nothing to the timeline.
-   *
-   * @param {FileSnapshot} snapshot - The snapshot to inspect
-   * @return {string} The vault-relative path, or `''` when missing
-   */
-  protected static pathOf(snapshot: FileSnapshot): string {
-    return snapshot?.file?.path ?? snapshot?.path ?? '';
-  }
-
-  /**
-   * Strips a trailing slash from the root prefix so the matcher does not have
-   * to special-case it. An empty root matches every path (whole-vault scope).
-   *
-   * @param {string} rootPath - Caller-supplied folder root
-   * @return {string} Normalized root, never ending in a slash
-   */
-  protected static normalizeRoot(rootPath: string): string {
-    if (!rootPath) {
-      return '';
+    for (const version of snapshot.timeline.getStoredVersions()) {
+      points.push({
+        timestamp: version.timestamp,
+        path,
+        kind: FolderTimelinePointKind.capture,
+        dayKey: dayKeyOf(version.timestamp),
+        versionId: version.id,
+      });
     }
 
-    return rootPath.endsWith('/') ? rootPath.slice(0, -1) : rootPath;
+    if (snapshot.isTombstone() && typeof snapshot.deletedTimestamp === 'number') {
+      points.push({
+        timestamp: snapshot.deletedTimestamp,
+        path,
+        kind: FolderTimelinePointKind.delete,
+        dayKey: dayKeyOf(snapshot.deletedTimestamp),
+      });
+    }
+
+    if (snapshot.isMovedIn() && typeof snapshot.movedIntoAt === 'number') {
+      points.push({
+        timestamp: snapshot.movedIntoAt,
+        path,
+        kind: FolderTimelinePointKind.moveIn,
+        dayKey: dayKeyOf(snapshot.movedIntoAt),
+      });
+    }
   }
 
   /**
-   * Whether the given path is inside the root prefix. An empty root matches
-   * everything; an exact equality match is allowed (a snapshot keyed exactly at
-   * the root path is a degenerate but harmless case); otherwise the path must
-   * have `${root}/` as its prefix so `src/a.md` does not match the root `s`.
-   *
-   * @param {string} path - Vault-relative path to test
-   * @param {string} root - Normalized root prefix (no trailing slash)
-   * @return {boolean} True when `path` lives under `root`
+   * Newest first, ties preserve insertion order. V8's Array.prototype.sort
+   * is stable, so a comparator returning 0 keeps the original sequence.
    */
-  protected static isUnderRoot(path: string, root: string): boolean {
-    if (!path) {
-      return false;
-    }
+  points.sort(
+    (a: FolderTimelinePoint, b: FolderTimelinePoint): number => b.timestamp - a.timestamp,
+  );
 
-    if (!root) {
-      return true;
-    }
+  return points;
+}
 
-    return path === root || path.startsWith(`${root}/`);
+/**
+ * Returns the day-group key for a timestamp the same way {@link FileVersion.getDate}
+ * does, so a folder modal rail using the same string can match a file modal
+ * rail group heading for any version on the same calendar day.
+ *
+ * @param {number} timestamp - Capture timestamp in milliseconds
+ * @return {string} Localized day key, identical to `new Date(ts).toLocaleDateString()`
+ */
+export function dayKeyOf(timestamp: number): string {
+  return new Date(timestamp).toLocaleDateString();
+}
+
+/**
+ * Resolves the vault-relative path of a snapshot. Prefers the attached
+ * `file.path` (live snapshots own a `TFile`), and falls back to the
+ * snapshot's carried `path`, which mirrors the canonical map key in
+ * `SnapshotsService.fileSnapshots`. The fallback is what keeps a restored
+ * snapshot whose `file` did not resolve (restore miss, detached tombstone or
+ * orphan) on the timeline after a reload, instead of being dropped by an empty
+ * path.
+ *
+ * A snapshot without any usable path (defensive: not expected in practice)
+ * contributes nothing to the timeline.
+ *
+ * @param {FileSnapshot} snapshot - The snapshot to inspect
+ * @return {string} The vault-relative path, or `''` when missing
+ */
+function pathOf(snapshot: FileSnapshot): string {
+  return snapshot?.file?.path ?? snapshot?.path ?? '';
+}
+
+/**
+ * Strips a trailing slash from the root prefix so the matcher does not have
+ * to special-case it. An empty root matches every path (whole-vault scope).
+ *
+ * @param {string} rootPath - Caller-supplied folder root
+ * @return {string} Normalized root, never ending in a slash
+ */
+function normalizeRoot(rootPath: string): string {
+  if (!rootPath) {
+    return '';
   }
+
+  return rootPath.endsWith('/') ? rootPath.slice(0, -1) : rootPath;
+}
+
+/**
+ * Whether the given path is inside the root prefix. An empty root matches
+ * everything; an exact equality match is allowed (a snapshot keyed exactly at
+ * the root path is a degenerate but harmless case); otherwise the path must
+ * have `${root}/` as its prefix so `src/a.md` does not match the root `s`.
+ *
+ * @param {string} path - Vault-relative path to test
+ * @param {string} root - Normalized root prefix (no trailing slash)
+ * @return {boolean} True when `path` lives under `root`
+ */
+function isUnderRoot(path: string, root: string): boolean {
+  if (!path) {
+    return false;
+  }
+
+  if (!root) {
+    return true;
+  }
+
+  return path === root || path.startsWith(`${root}/`);
 }

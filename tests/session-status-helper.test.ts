@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { FolderDeltaStatus } from '@/consts';
-import { SessionStatusHelper } from '@/helpers/session-status.helper';
+import * as SessionStatusHelper from '@/helpers/session-status.helper';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 
 import { makeFile } from './helpers/builders';

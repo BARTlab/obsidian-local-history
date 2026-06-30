@@ -1,8 +1,8 @@
 import { PluginEvent, RECENT_CHANGES_VIEW_TYPE } from '@/consts';
-import { DomHelper } from '@/helpers/dom.helper';
-import { ExternalBadgeHelper } from '@/helpers/external-badge.helper';
-import { VersionLabelHelper } from '@/helpers/version-label.helper';
-import { VersionSearchHelper } from '@/helpers/version-search.helper';
+import * as DomHelper from '@/helpers/dom.helper';
+import * as ExternalBadgeHelper from '@/helpers/external-badge.helper';
+import * as VersionLabelHelper from '@/helpers/version-label.helper';
+import * as VersionSearchHelper from '@/helpers/version-search.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ModalsService } from '@/services/modals.service';
 import { TOKENS } from '@/services/tokens';

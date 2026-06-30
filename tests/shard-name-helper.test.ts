@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { ShardNameHelper } from '@/helpers/shard-name.helper';
+import * as ShardNameHelper from '@/helpers/shard-name.helper';
 
 /**
  * Unit tests for the deterministic shard naming helper. The

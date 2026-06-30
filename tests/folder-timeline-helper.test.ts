@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { describe, expect, it } from '@jest/globals';
 
 import { FolderTimelinePointKind } from '@/consts';
-import { FolderTimelineHelper } from '@/helpers/folder-timeline.helper';
+import * as FolderTimelineHelper from '@/helpers/folder-timeline.helper';
 import type { FolderTimelinePoint } from '@/types';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import { FileVersion } from '@/snapshots/file.version';

@@ -1,7 +1,7 @@
 import { DiffOutputFormatType, DiffViewMode, ORIGINAL_BASE_ID } from '@/consts';
 import type { NavigationDirection } from '@/consts';
-import { DomHelper } from '@/helpers/dom.helper';
-import { NavigationHelper } from '@/helpers/navigation.helper';
+import * as DomHelper from '@/helpers/dom.helper';
+import * as NavigationHelper from '@/helpers/navigation.helper';
 import type { DiffRenderMode } from '@/types';
 import type * as Diff from 'diff';
 

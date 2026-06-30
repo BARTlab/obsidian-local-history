@@ -1,7 +1,7 @@
 import { ObsidianEvent } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { BaseEvent } from '@/events/base.event';
-import { PathHelper } from '@/helpers/path.helper';
+import * as PathHelper from '@/helpers/path.helper';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import { TOKENS } from '@/services/tokens';
 import type { ObsidianEventName } from '@/types';

@@ -1,4 +1,4 @@
-import { DomHelper } from '@/helpers/dom.helper';
+import * as DomHelper from '@/helpers/dom.helper';
 
 /** Narrow translator surface: the controller only needs the current-column label. */
 export interface DiffHeaderTranslator {

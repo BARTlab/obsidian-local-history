@@ -1,4 +1,4 @@
-import { TextHelper } from '@/helpers/text.helper';
+import * as TextHelper from '@/helpers/text.helper';
 import type { FileVersion } from '@/snapshots/file.version';
 import { SnapshotState } from '@/snapshots/snapshot-state';
 import { SnapshotTimestamps } from '@/snapshots/snapshot-timestamps';

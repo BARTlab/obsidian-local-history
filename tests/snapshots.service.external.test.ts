@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals
 import { SnapshotsService } from '@/services/snapshots.service';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import { FileVersion } from '@/snapshots/file.version';
-import { TextHelper } from '@/helpers/text.helper';
+import * as TextHelper from '@/helpers/text.helper';
 import type { TFile } from 'obsidian';
 
 import { makeFile } from './helpers/builders';

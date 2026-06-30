@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { VersionLabelHelper } from '@/helpers/version-label.helper';
+import * as VersionLabelHelper from '@/helpers/version-label.helper';
 
 /**
  * Tests for the pure VersionLabelHelper. The helper derives a human

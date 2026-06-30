@@ -1,6 +1,6 @@
 import { FolderTreeModel } from '@/components/folder-tree-model';
 import { FolderDeltaStatus } from '@/consts';
-import { DomHelper } from '@/helpers/dom.helper';
+import * as DomHelper from '@/helpers/dom.helper';
 import type {
   DomElementConfig,
   FolderTreeNode,

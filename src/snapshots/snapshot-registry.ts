@@ -1,5 +1,5 @@
 import { MapChangeAction } from '@/consts';
-import { PathHelper } from '@/helpers/path.helper';
+import * as PathHelper from '@/helpers/path.helper';
 import { ObservableMap } from '@/maps/observable.map';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import { FileVersion } from '@/snapshots/file.version';

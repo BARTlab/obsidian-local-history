@@ -7,9 +7,9 @@ import 'reflect-metadata';
 import { beforeAll, describe, expect, it } from '@jest/globals';
 
 import { DiffOutputFormatType, DiffViewMode } from '@/consts';
-import { DiffRenderHelper } from '@/helpers/diff-render.helper';
-import { HunkHelper } from '@/helpers/hunk.helper';
-import { WordDiffHelper } from '@/helpers/word-diff.helper';
+import * as DiffRenderHelper from '@/helpers/diff-render.helper';
+import * as HunkHelper from '@/helpers/hunk.helper';
+import * as WordDiffHelper from '@/helpers/word-diff.helper';
 import type { DiffRenderMode, DiffRenderParams } from '@/types';
 
 import {

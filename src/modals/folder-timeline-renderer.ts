@@ -1,6 +1,6 @@
 import { FolderTimelinePointKind } from '@/consts';
-import { DomHelper } from '@/helpers/dom.helper';
-import { ExternalBadgeHelper } from '@/helpers/external-badge.helper';
+import * as DomHelper from '@/helpers/dom.helper';
+import * as ExternalBadgeHelper from '@/helpers/external-badge.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FileVersion } from '@/snapshots/file.version';

@@ -1,4 +1,4 @@
-import { DomHelper } from '@/helpers/dom.helper';
+import * as DomHelper from '@/helpers/dom.helper';
 
 /** The layout regions the shell builds and hands back to the owning modal. */
 export interface HistoryModalShellRegions {

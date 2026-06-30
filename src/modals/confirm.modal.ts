@@ -1,4 +1,4 @@
-import { DomHelper } from '@/helpers/dom.helper';
+import * as DomHelper from '@/helpers/dom.helper';
 import type { ConfirmModalConfig } from '@/types';
 import { type App, Modal } from 'obsidian';
 

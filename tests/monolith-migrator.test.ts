@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 import type { DataAdapter } from 'obsidian';
 import { HISTORY_SHARD_DIR } from '@/consts';
-import { ShardNameHelper } from '@/helpers/shard-name.helper';
+import * as ShardNameHelper from '@/helpers/shard-name.helper';
 import { HistoryShardStore } from '@/persistence/history-shard-store';
 import { MonolithMigrator } from '@/persistence/monolith-migrator';
 import type { SerializedFileSnapshot, SerializedHistory, SerializedShard } from '@/types';

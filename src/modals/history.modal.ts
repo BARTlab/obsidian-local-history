@@ -9,7 +9,7 @@ import { HistoryModalShell, type HistoryModalShellRegions } from '@/modals/histo
 import { KeyboardController, type KeyboardControllerHost } from '@/modals/keyboard-controller';
 import { ToolbarBuilder } from '@/modals/toolbar-builder';
 import { VersionList, type VersionListHost } from '@/components/version-list.component';
-import { DomHelper } from '@/helpers/dom.helper';
+import * as DomHelper from '@/helpers/dom.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ModalsService } from '@/services/modals.service';
 import type { SnapshotsService } from '@/services/snapshots.service';

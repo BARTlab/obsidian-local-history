@@ -10,6 +10,13 @@ const FNV_OFFSET_BASIS: number = 0x811c9dc5;
 const FNV_PRIME: number = 0x01000193;
 
 /**
+ * Width in hex characters of the digest emitted by {@link forPath} (two
+ * 32-bit lanes, 8 chars each). Exposed so callers and tests can assert the
+ * fixed length without hardcoding the magic number.
+ */
+export const DIGEST_LENGTH: number = 16;
+
+/**
  * Multiplies a 32-bit hash accumulator by the FNV prime using 16-bit limbs so
  * the intermediate products stay inside the 53-bit safe-integer range, then
  * folds the result back to an unsigned 32-bit value. Equivalent to
@@ -52,85 +59,75 @@ function toHex32(value: number): string {
  * (collision-prone across thousands of files), and widening it in place would
  * risk that hot path. A synchronous hash (rather than async WebCrypto) keeps
  * the helper trivially testable and free of any runtime-environment dependency.
+ *
+ * Computes the deterministic shard filename for a vault-relative path.
+ *
+ * @param {string} path - The vault-relative note path (the snapshot identity).
+ * @return {string} A stable `<hex>.json` filename, 16 hex chars + `.json`,
+ *   identical across calls for the same input.
  */
-export class ShardNameHelper {
-  /**
-   * Width in hex characters of the digest emitted by {@link forPath} (two
-   * 32-bit lanes, 8 chars each). Exposed so callers and tests can assert the
-   * fixed length without hardcoding the magic number.
-   */
-  public static readonly DIGEST_LENGTH: number = 16;
+export function forPath(path: string): string {
+  return `${digest(path)}.json`;
+}
 
-  /**
-   * Computes the deterministic shard filename for a vault-relative path.
-   *
-   * @param {string} path - The vault-relative note path (the snapshot identity).
-   * @return {string} A stable `<hex>.json` filename, 16 hex chars + `.json`,
-   *   identical across calls for the same input.
-   */
-  public static forPath(path: string): string {
-    return `${this.digest(path)}.json`;
+/**
+ * Allocates a collision-free shard filename for a path against an arbitrary set
+ * of already-claimed names. The base name is {@link forPath}'s path hash; if it
+ * is taken, a numeric suffix is linear-probed before the `.json` extension so
+ * two distinct paths never share a filename. Keeps allocation next to the
+ * naming it probes: the live save path builds `taken` from its in-memory index,
+ * the migration pass builds it from the names claimed so far.
+ *
+ * @param {string} path - The vault-relative note path to name a shard for.
+ * @param {Set<string>} taken - Names already claimed (must not be reused).
+ * @return {string} A shard filename not present in `taken`.
+ */
+export function allocate(path: string, taken: Set<string>): string {
+  const base: string = forPath(path);
+
+  if (!taken.has(base)) {
+    return base;
   }
 
   /**
-   * Allocates a collision-free shard filename for a path against an arbitrary set
-   * of already-claimed names. The base name is {@link forPath}'s path hash; if it
-   * is taken, a numeric suffix is linear-probed before the `.json` extension so
-   * two distinct paths never share a filename. Keeps allocation next to the
-   * naming it probes: the live save path builds `taken` from its in-memory index,
-   * the migration pass builds it from the names claimed so far.
-   *
-   * @param {string} path - The vault-relative note path to name a shard for.
-   * @param {Set<string>} taken - Names already claimed (must not be reused).
-   * @return {string} A shard filename not present in `taken`.
+   * Probe `<hash>.json`, `<hash>-1.json`, `<hash>-2.json`, ... by splitting the
+   * base into its hash and extension so the suffix lands before `.json` and the
+   * file keeps a recognizable shard extension.
    */
-  public static allocate(path: string, taken: Set<string>): string {
-    const base: string = this.forPath(path);
+  const dot: number = base.lastIndexOf('.');
+  const stem: string = dot === -1 ? base : base.slice(0, dot);
+  const ext: string = dot === -1 ? '' : base.slice(dot);
 
-    if (!taken.has(base)) {
-      return base;
-    }
+  let suffix: number = 1;
+  let candidate: string = `${stem}-${suffix}${ext}`;
 
-    /**
-     * Probe `<hash>.json`, `<hash>-1.json`, `<hash>-2.json`, ... by splitting the
-     * base into its hash and extension so the suffix lands before `.json` and the
-     * file keeps a recognizable shard extension.
-     */
-    const dot: number = base.lastIndexOf('.');
-    const stem: string = dot === -1 ? base : base.slice(0, dot);
-    const ext: string = dot === -1 ? '' : base.slice(dot);
-
-    let suffix: number = 1;
-    let candidate: string = `${stem}-${suffix}${ext}`;
-
-    while (taken.has(candidate)) {
-      suffix += 1;
-      candidate = `${stem}-${suffix}${ext}`;
-    }
-
-    return candidate;
+  while (taken.has(candidate)) {
+    suffix += 1;
+    candidate = `${stem}-${suffix}${ext}`;
   }
 
-  /**
-   * Computes the raw 64-bit hex digest for a path (without the `.json`
-   * extension). Two independent 32-bit FNV-1a lanes are run over the UTF-16 code
-   * units, the second lane mixing in the byte index so the lanes decorrelate,
-   * and the lanes are concatenated into a fixed-width 16-char hex string.
-   *
-   * @param {string} path - The string to hash.
-   * @return {string} A 16-character lowercase hex digest.
-   */
-  private static digest(path: string): string {
-    let lo: number = FNV_OFFSET_BASIS;
-    let hi: number = FNV_OFFSET_BASIS ^ 0x9e3779b9;
+  return candidate;
+}
 
-    for (let i: number = 0; i < path.length; i++) {
-      const code: number = path.charCodeAt(i);
+/**
+ * Computes the raw 64-bit hex digest for a path (without the `.json`
+ * extension). Two independent 32-bit FNV-1a lanes are run over the UTF-16 code
+ * units, the second lane mixing in the byte index so the lanes decorrelate,
+ * and the lanes are concatenated into a fixed-width 16-char hex string.
+ *
+ * @param {string} path - The string to hash.
+ * @return {string} A 16-character lowercase hex digest.
+ */
+function digest(path: string): string {
+  let lo: number = FNV_OFFSET_BASIS;
+  let hi: number = FNV_OFFSET_BASIS ^ 0x9e3779b9;
 
-      lo = multiplyFnvPrime((lo ^ code) >>> 0);
-      hi = multiplyFnvPrime((hi ^ (code + i)) >>> 0);
-    }
+  for (let i: number = 0; i < path.length; i++) {
+    const code: number = path.charCodeAt(i);
 
-    return `${toHex32(hi)}${toHex32(lo)}`;
+    lo = multiplyFnvPrime((lo ^ code) >>> 0);
+    hi = multiplyFnvPrime((hi ^ (code + i)) >>> 0);
   }
+
+  return `${toHex32(hi)}${toHex32(lo)}`;
 }

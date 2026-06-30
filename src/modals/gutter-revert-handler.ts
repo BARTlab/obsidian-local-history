@@ -1,5 +1,5 @@
 import { DiffOutputFormatType, DiffViewMode } from '@/consts';
-import { DomHelper } from '@/helpers/dom.helper';
+import * as DomHelper from '@/helpers/dom.helper';
 import { confirmAndRevertHunk } from '@/helpers/hunk-revert.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ModalsService } from '@/services/modals.service';

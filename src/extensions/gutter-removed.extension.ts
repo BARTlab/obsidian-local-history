@@ -1,7 +1,7 @@
 import { ChangeType, IndicatorType } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { confirmAndRevertHunk } from '@/helpers/hunk-revert.helper';
-import { HunkHelper } from '@/helpers/hunk.helper';
+import * as HunkHelper from '@/helpers/hunk.helper';
 import type { ChangeLine } from '@/lines/change.line';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ArrayMap } from '@/maps/array.map';

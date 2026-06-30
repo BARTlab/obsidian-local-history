@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 
 import { describe, expect, it } from '@jest/globals';
-import { ExternalBadgeHelper } from '@/helpers/external-badge.helper';
+import * as ExternalBadgeHelper from '@/helpers/external-badge.helper';
 import type { DomElementConfig } from '@/types';
 
 /**

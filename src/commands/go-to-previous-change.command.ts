@@ -1,6 +1,6 @@
 import { NavigationDirection } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
-import { NavigationHelper } from '@/helpers/navigation.helper';
+import * as NavigationHelper from '@/helpers/navigation.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';

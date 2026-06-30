@@ -13,18 +13,14 @@ import type { Menu, MenuItem } from 'obsidian';
  * - The cast is centralised here so call sites can write
  *   `MenuHelper.setSubmenu(item)` and receive a typed `Menu` back without any
  *   `// @ts-expect-error` or `as any` sprinkled across the codebase.
+ *
+ * Attaches a child submenu to the given parent menu item and returns the
+ * resulting `Menu` instance, fully typed. The returned menu accepts the usual
+ * `addItem`/`addSeparator` API.
+ *
+ * @param {MenuItem} item - The parent menu item to convert into a submenu anchor
+ * @return {Menu} The freshly created child menu that owns the submenu items
  */
-export class MenuHelper {
-  /**
-   * Attaches a child submenu to the given parent menu item and returns the
-   * resulting `Menu` instance, fully typed. The returned menu accepts the usual
-   * `addItem`/`addSeparator` API.
-   *
-   * @param {MenuItem} item - The parent menu item to convert into a submenu
-   *     anchor
-   * @return {Menu} The freshly created child menu that owns the submenu items
-   */
-  public static setSubmenu(item: MenuItem): Menu {
-    return (item as MenuItemWithSubmenu).setSubmenu();
-  }
+export function setSubmenu(item: MenuItem): Menu {
+  return (item as MenuItemWithSubmenu).setSubmenu();
 }

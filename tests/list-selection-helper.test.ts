@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { ListSelectionDirection } from '@/consts';
-import { ListSelectionHelper } from '@/helpers/list-selection.helper';
+import * as ListSelectionHelper from '@/helpers/list-selection.helper';
 
 /**
  * Tests for the history modal's keyboard navigation of the version rail. They

@@ -1,6 +1,6 @@
 import { DEFAULT_SETTINGS, IndicatorType, KeepHistory } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
-import { DomHelper } from '@/helpers/dom.helper';
+import * as DomHelper from '@/helpers/dom.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ModalsService } from '@/services/modals.service';
 import type { SettingsService } from '@/services/settings.service';

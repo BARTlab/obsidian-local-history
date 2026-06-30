@@ -4,8 +4,8 @@ import {
 } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { FolderTreeComponent } from '@/components/folder-tree.component';
-import { DomHelper } from '@/helpers/dom.helper';
-import { FolderDeltaHelper } from '@/helpers/folder-delta.helper';
+import * as DomHelper from '@/helpers/dom.helper';
+import * as FolderDeltaHelper from '@/helpers/folder-delta.helper';
 import { DiffViewState } from '@/modals/diff-view-state';
 import {
   FolderActionHandler,

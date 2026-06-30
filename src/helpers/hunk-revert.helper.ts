@@ -1,4 +1,4 @@
-import { HunkHelper } from '@/helpers/hunk.helper';
+import * as HunkHelper from '@/helpers/hunk.helper';
 import type { ModalsService } from '@/services/modals.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import type * as Diff from 'diff';

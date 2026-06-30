@@ -1,7 +1,7 @@
 import { ObsidianEvent } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { BaseEvent } from '@/events/base.event';
-import { MenuHelper } from '@/helpers/menu.helper';
+import * as MenuHelper from '@/helpers/menu.helper';
 import type { ModalsService } from '@/services/modals.service';
 import { TOKENS } from '@/services/tokens';
 import { type ObsidianEventName } from '@/types';

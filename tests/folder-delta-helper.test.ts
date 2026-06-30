@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { describe, expect, it } from '@jest/globals';
 
-import { FolderDeltaHelper } from '@/helpers/folder-delta.helper';
+import * as FolderDeltaHelper from '@/helpers/folder-delta.helper';
 import type { FolderDeltaResult } from '@/types';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import { FileVersion } from '@/snapshots/file.version';

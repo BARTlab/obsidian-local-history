@@ -1,10 +1,10 @@
 import { ORIGINAL_BASE_ID, VersionListEdge } from '@/consts';
 import type { ListSelectionDirection } from '@/consts';
-import { ExternalBadgeHelper } from '@/helpers/external-badge.helper';
-import { ListSelectionHelper } from '@/helpers/list-selection.helper';
-import { DomHelper } from '@/helpers/dom.helper';
-import { VersionLabelHelper } from '@/helpers/version-label.helper';
-import { VersionSearchHelper } from '@/helpers/version-search.helper';
+import * as ExternalBadgeHelper from '@/helpers/external-badge.helper';
+import * as ListSelectionHelper from '@/helpers/list-selection.helper';
+import * as DomHelper from '@/helpers/dom.helper';
+import * as VersionLabelHelper from '@/helpers/version-label.helper';
+import * as VersionSearchHelper from '@/helpers/version-search.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FileVersion } from '@/snapshots/file.version';

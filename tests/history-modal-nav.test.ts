@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 import { NavigationDirection } from '@/consts';
-import { NavigationHelper } from '@/helpers/navigation.helper';
+import * as NavigationHelper from '@/helpers/navigation.helper';
 
 /**
  * Tests for the history modal next/previous difference navigation. The

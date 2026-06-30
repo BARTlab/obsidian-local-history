@@ -1,4 +1,4 @@
-import { TextHelper } from '@/helpers/text.helper';
+import * as TextHelper from '@/helpers/text.helper';
 import type { SerializedTrackerLine, TrackerLineParams } from '@/types';
 
 /**

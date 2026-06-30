@@ -2,7 +2,7 @@
 
 import { describe, expect, it, beforeAll } from '@jest/globals';
 import { DiffOutputFormatType, DiffViewMode } from '@/consts';
-import { DiffRenderHelper } from '@/helpers/diff-render.helper';
+import * as DiffRenderHelper from '@/helpers/diff-render.helper';
 import type { DiffRenderParams, TranslationVars } from '@/types';
 import { installJsdomDomPolyfill } from './helpers/jsdom-dom';
 

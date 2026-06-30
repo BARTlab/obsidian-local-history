@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { VersionSearchHelper } from '@/helpers/version-search.helper';
+import * as VersionSearchHelper from '@/helpers/version-search.helper';
 import type { SearchableVersion } from '@/types';
 
 /**

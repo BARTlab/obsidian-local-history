@@ -1,5 +1,5 @@
 import { describe, expect, it } from '@jest/globals';
-import { SelectionHistoryHelper } from '@/helpers/selection-history.helper';
+import * as SelectionHistoryHelper from '@/helpers/selection-history.helper';
 import type { SelectableVersion } from '@/types';
 
 /**

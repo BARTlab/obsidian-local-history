@@ -81,15 +81,14 @@ export class SnapshotRegistry {
   }
 
   /**
-   * Subscribes a handler to snapshot-map changes and returns its unsubscribe
-   * handle. The service uses this seam in `init` to re-emit a plugin event so
-   * the tree/tab decorator refreshes when snapshots change.
+   * Subscribes a handler to snapshot-map changes. The service uses this seam in
+   * `init` to re-emit a plugin event so the tree/tab decorator refreshes when
+   * snapshots change.
    *
    * @param {ChangeHandler<string, FileSnapshot>} handler - The change handler
-   * @return {{ unsubscribe(): void }} The unsubscribe handle
    */
-  public subscribe(handler: ChangeHandler<string, FileSnapshot>): { unsubscribe(): void } {
-    return this.snapshots.subscribe(handler);
+  public subscribe(handler: ChangeHandler<string, FileSnapshot>): void {
+    this.snapshots.subscribe(handler);
   }
 
   /**

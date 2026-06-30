@@ -1,449 +1,180 @@
 # Architecture notes
 
-This document records the architectural decisions that are not obvious from the
-code ("why it is this way, not the other way") and the invariants that a comment
-in one file cannot express because they span several. It is intentionally short:
-it captures rationale and traps, not a tour of the codebase.
+Non-obvious decisions ("why this way, not the other") and invariants that span several
+files. Rationale and traps, not a code tour.
 
-The plugin uses a small service-oriented core (a DI container in `main.ts` holds
-the services; `@Inject` / `@On` decorators wire dependencies and Obsidian
-events). The data model centers on `FileSnapshot`, one per tracked file, holding
-the baselines, the live tracker, and the version timeline. All decisions below
-assume that shape.
+The core is service-oriented: a `ServiceContainer` (`src/services/container.ts`), composed
+in `main.ts`, holds the service singletons and runs their lifecycle. `@Inject` / `@On`
+decorators wire dependencies and Obsidian events; injection resolves by a stable symbol
+token (`src/services/tokens.ts`), never by class name. `FileSnapshot`, one per tracked
+file, is a façade over sub-objects that own the baselines, tracker, and version timeline.
 
 ## Decision records
 
 ### ADR-1: Two baselines per file, marker (session) vs history (persisted)
 
-Each `FileSnapshot` carries two origin points:
-
-- `lines` is the **marker baseline**: the file content at the moment it was
-  opened in the current app run. The gutter highlights and the change detector
-  measure against this. It is reset every session and is never persisted.
-- `historyLines` is the **history baseline**: the persisted original that the
-  diff modal and the "restore original" action compare against. It survives
-  restarts.
-
-On a fresh capture the two are equal (`historyLines` is seeded from `lines`).
-They diverge only at restore: when persisted history is adopted into a snapshot
-that already exists for this session, the marker baseline, tracker, and live
-state are kept untouched and only the history baseline plus the timeline are
-adopted.
-
-**Why:** notes live for weeks. A single baseline forces a bad choice. If the one
-baseline is the persisted original, the gutter slowly marks the entire file as
-"changed" across sessions. If it is the session origin, history cannot persist.
-Splitting the origin into two fields on one model is the smallest change that
-keeps a single source of truth for the document while letting the gutter stay
-"what changed this session" and the history stay "what changed since the file
-was born".
-
-**Rejected:** one shared baseline (forces the trade-off above); a second parallel
-snapshot object per file (duplicates the entire tracker/state machinery and
-doubles the keystroke-path work).
+`content.lines` is the session **marker baseline** (never persisted, reset each run); the
+persisted **history baseline** `content.historyLines` is what the diff modal compares
+against. One baseline cannot be both session-scoped and persistable; restore adopts only
+history plus the timeline, keeping the live marker baseline. **Rejected:** one shared baseline; a parallel snapshot per file (double machinery).
 
 ### ADR-2: Version semantics are a persisted label plus a derived action
 
-A timeline version stores its content, its timestamp, and an optional
-user-supplied `label`. It does **not** store a `kind`/action enum. The action
-shown in the UI (Created / Modified / Cleared, with line deltas) is derived at
-render time by diffing the version against its previous neighbour.
-
-**Why:** the action is fully derivable from content already stored, so persisting
-it would be redundant and could go stale if a neighbour is deleted. A custom
-label, by contrast, is genuine new information the user supplies, so that is the
-only thing worth storing.
-
-A labeled version is **pinned**: it is exempt from age/count eviction and is
-captured even when its content duplicates the latest version, because a label is
-an intentional marker that must not silently vanish.
-
-**Rejected:** storing a `kind` field per version (redundant, stale-prone);
-treating labeled versions like cadence versions (the label could be evicted or
-never form).
+A version stores content, timestamp, and optional user `label`, but no `kind`: the action
+(Created / Modified / Cleared with line deltas) is derived at render time by diffing against
+the previous neighbour. A labeled version is **pinned** (exempt from eviction, always
+captured) because it is user input that must not vanish. **Rejected:** a per-version `kind` field; treating labeled versions like cadence ones.
 
 ### ADR-3: Deleted and moved files become tombstones, not a separate store
 
-Vault delete does not drop the snapshot. It sets `deletedTimestamp` and keeps the
-final state, the history baseline, and the timeline so the file stays
-recoverable; only the session-only marker baseline and live tracker are cleared
-(they have meaning only against a live editor view). A cross-directory move
-leaves a tombstone at the old path and re-keys the live snapshot to the new path,
-stamping `movedIntoAt`; the timeline travels with the file. A rename **within**
-the same directory stays a pure re-key with no tombstone.
-
-**Why:** a deleted file is the most valuable history to keep, because you cannot
-recover it from anywhere else. Reusing the existing snapshot record avoids a
-parallel "deleted snapshots" store that would have to mirror every
-retention/serialize/restore rule the live store already makes. The
-tombstone-in-source / added-in-destination split gives each folder a locally
-correct view, matching JetBrains-style Local History.
-
-**Rejected:** a separate `DeletedSnapshotsStore` (parallel structure, duplicated
-rules); a `pathHistory` chain on the snapshot (re-introduces the cross-reference
-that the dual-view model deliberately avoids).
+Vault delete keeps the snapshot: it sets `deletedTimestamp` and preserves the final state,
+history baseline and timeline (clearing only the session marker baseline and tracker). A
+cross-directory move leaves a source tombstone and re-keys the live snapshot with
+`movedIntoAt`; an in-directory rename is a pure re-key. Reusing the record avoids a parallel
+store mirroring every live rule. **Rejected:** a separate `DeletedSnapshotsStore`; a `pathHistory` chain on the snapshot.
 
 ### ADR-4: Folder history is synthesized on demand, not stored
 
-There is no folder-level event log. `FolderTimelineHelper.synthesize` takes every
-snapshot under a folder prefix (live ones plus tombstones) and derives an ordered
-list of points from per-file facts already on disk: version timestamps
-(`capture`), `deletedTimestamp` (`delete`), and `movedIntoAt` (`move-in`). When a
-point T is picked, the file tree colours each file by comparing its state at T to
-its state **now** (delta-since-then), not to T-1.
+There is no folder event log: `synthesize` (`src/helpers/folder-timeline.helper.ts`) derives
+an ordered point list from per-file facts on disk (version timestamps, `deletedTimestamp`,
+`movedIntoAt`) for every snapshot under a prefix, colouring each file by its state at the
+picked T vs now. Those facts already exist per file, so a folder log would duplicate truth. **Rejected:** a `FolderHistory` store (parallel truth); pairwise T vs T-1 deltas.
 
-**Why:** every fact the folder view needs is already a byproduct of per-file
-capture/delete/move, so a persisted folder log would duplicate truth and raise a
-"which one is right after a restart" question. Computing newest-first on demand is
-cheap (one sort over at most a few hundred points). Delta-since-then answers the
-useful question ("what changed in this folder since this moment") instead of "what
-happened at this exact instant", which usually touches a single file.
+### ADR-5: External changes are captured via `vault.modify` guarded by a content check
 
-**Rejected:** a `FolderHistory` store (parallel source of truth, new write paths,
-new retention to tune); pairwise T vs T-1 deltas (rarely tells a story).
-
-### ADR-5: External changes are captured via `vault.modify` guarded by a content-equality check
-
-The Obsidian `modify` event fires for every write: editor flushes, the plugin's
-own revert writes, and genuine external changes (git pull, sync, an external
-editor). The handler reads the file from disk and compares its actual content
-to the snapshot's known state via `FileSnapshot.isContentChanged`: the 32-bit
-`lastHash` is a cheap pre-filter, but a hash match falls through to a
-line-by-line compare against `state` so a collision cannot mask a genuine
-external rewrite. A match is a no-op; a mismatch is a change the editor never
-saw, captured as a forced version flagged `external`. The flag drives a UI
-badge but does **not** pin the version (it obeys normal retention).
-
-**Why:** the handler has already read the full file, so an authoritative
-content compare costs one extra line walk on the rare hash-match path and
-removes the silent data-loss risk of a hash-only check; the hash still wins
-the common case as a fast pre-filter. The guard cleanly separates the three
-write sources without fragile "is this the active editor" heuristics (a git
-pull can rewrite the open file too). External changes are discrete events
-worth recording in full, but a chatty sync could produce many of them, so
-pinning them would bloat history with un-evictable entries. A distinct
-`external` flag (rather than a reserved label value) keeps system markers
-from colliding with user labels.
-
-**Rejected:** gating on "not the active file" (misses external rewrites of
-the open file); a debounce with no content check (cannot tell our own writes
-from external ones); a wider or crypto hash (still probabilistic, more cost
-on the hot path, and the file content is already in hand).
+`ExternalChangeCapture` reads the modified file and compares it via
+`FileSnapshot.isContentChanged`: the 32-bit `lastHash` pre-filters, but a match falls through
+to a line compare against `state`, so a collision cannot mask a rewrite. A real mismatch
+becomes a forced version flagged `external` (drives a UI badge, does **not** pin). **Rejected:** gating on "not the active file"; a debounce with no content check; a crypto
+hash (probabilistic, more hot-path cost).
 
 ### ADR-6: Plugin-owned localization with English fallback
 
-Localization ships `lang/<code>.json` catalogs selected by the language Obsidian
-writes to `localStorage`, with English as the universal fallback resolved per
-key. Obsidian's own internal i18next catalog is not read.
-
-**Why:** Obsidian exposes no public i18n API; its `window.i18next` is internal,
-minified, has unstable keys across releases, and contains no plugin strings, so
-reusing it is fragile. A plugin-owned dictionary keyed by the localStorage
-language is the community-standard approach. Every Obsidian language code resolves
-either to its own catalog or, per key, to English, so the UI never shows a raw
-key. Empty per-code stub catalogs are deliberately not shipped (they would bloat
-the bundle and break the catalog-parity test).
-
-**Rejected:** reading Obsidian's internal i18next at runtime (breaks on any
-update); shipping an empty catalog per language code (bundle bloat, no gain).
+Localization ships `lang/<code>.json` catalogs selected by the `localStorage` language, with
+English as the universal per-key fallback. Obsidian's own internal i18next is not read (it is
+minified, unstable across releases, and holds no plugin strings), and every code resolves to
+its catalog or, per key, to English, so no raw key ever shows. **Rejected:** reading Obsidian's internal i18next; an empty catalog per code (bloat, breaks
+the catalog-parity test).
 
 ### ADR-7: A separate folder modal plus a shared pure diff renderer
 
 Folder history is a separate `FolderHistoryModal` class, not a `mode` flag on the
-already-large file `HistoryModal`. The two modals share only the diff rendering,
-extracted into a stateless `DiffRenderHelper` that takes
-`{baseLines, currentLines, lineBreak, mode, container}` and returns hunk metadata.
-Scroll sync and per-hunk revert stay owned by the file modal because they are
-file-mode specific (revert needs a single owning file to write back); ADR-11 later
-moved each into its own collaborator that the file modal owns, but neither is
-shared with the folder modal.
+already-large `HistoryModal`, so no `mode` branch spreads through every method. The two share
+only diff rendering via the stateless `render` function (`src/helpers/diff-render.helper.ts`);
+scroll sync and per-hunk revert stay file-mode specific (ADR-11 collaborators). **Rejected:** a `mode` parameter on `HistoryModal`; a folder subclass extending it.
 
-**Why:** the file modal is already at the edge of "too many concerns in one
-class"; a `mode` branch in every method (toolbar, rail, search, key handlers,
-restore semantics) would make both modes harder to read. A separate class costs
-one wrapper file but keeps each modal flat. The diff renderer is the only piece
-both need verbatim, so it is the only thing extracted.
+### ADR-8: `FileSnapshot` is a façade over data-owning sub-objects
 
-**Rejected:** a `mode` parameter on `HistoryModal` (compounds existing
-complexity); a folder subclass extending `HistoryModal` (inheritance where the
-surfaces differ enough that overriding becomes the dominant pattern).
-
-### ADR-8: `FileSnapshot` is a façade over stateless collaborators
-
-`FileSnapshot` was decomposed into focused collaborators (version timeline,
-snapshot state, tracker index/editor, timestamps) under `src/snapshots/`, but it
-keeps its full public method and field surface. The collaborators are stateless
-operators: they take the snapshot's own arrays/maps as explicit arguments and
-return results; they never hold a private copy of a public field.
-
-**Why:** external code does not just read the snapshot's public fields, it assigns
-and mutates them in place (`snapshot.tracker = []`, `snapshot.versions.push(...)`,
-`snapshot.changes.clear()`). Getters proxying a collaborator's private copy would
-desync on the next external assignment. A façade over shared state keeps every
-external read, assignment, and in-place mutation working byte-identically while
-the logic lives in small testable units.
-
-**Rejected:** state-owning collaborators with getters (break external assignment
-and in-place mutation); leaving the class monolithic with comment banners (the
-decomposition goal was real units, not cosmetic grouping).
+`FileSnapshot` is a thin façade over three data-owning sub-objects (all `src/snapshots/`):
+`content` (`SnapshotState`: baselines, live state, hash, change map, line break), `trackers`
+(`TrackerEditor`: the tracker array and its position index), and `timeline`
+(`VersionTimeline`: ordered versions plus cadence and eviction). Callers read through the
+sub-object (`snapshot.content.lines`); each concern owns and invalidates its own state, and
+the façade only rewires composite operations (build, serialize, adopt). **Rejected:** stateless operators taking the arrays as arguments (mismatched-array hazard); a
+monolith with comment banners.
 
 ### ADR-9: The version timeline is persisted as a keyframe + delta chain
 
-A note edited over weeks accrues many timeline versions, and the only
-super-linear growth driver on disk is `versions[]`: storing each version's full
-`lines` costs O(versions x file size). The stateless `VersionCodec` under
-`src/snapshots/` encodes the materialized `FileVersion[]` into a keyframe + delta
-chain at the serialization boundary. Version `i` is a **keyframe** (full `lines`)
-when `i % VERSION_KEYFRAME_INTERVAL === 0`, otherwise a **delta**: a unified-diff
-string (the existing `diff` dependency, context 0) against version `i-1`. Encode
-is a pure function of `versions[]`, recomputed in full on every save; decode
-seeds from a keyframe and applies each following delta to rebuild the materialized
-array. The in-memory `FileVersion` / `VersionTimeline` and every consumer
-(`getLines`/`getContent`, the diff modal, restore, search) stay fully
-materialized and untouched: this is purely a serialization-boundary concern.
-
-**Why:** all consumers already read through `FileVersion.getLines()`, eviction
-already runs in-memory before serialize, and the codec self-anchors on its own
-keyframes, so a stateless re-encode each save buys the disk win with zero change
-to the hot read path and no incremental-delta bookkeeping. The format is a strict
-superset of the prior one (a v1 `{ timestamp, lines }` entry is already a valid
-keyframe), so existing `history.json` files decode with no migration code and no
-data loss; `SerializedHistory.version` is bumped to 2 only as a signal that
-deltas may be present, never as a decode branch.
-
-**Rejected:** deltas in the in-memory model (infects every consumer with
-materialization, trades disk for CPU on the read path); incremental on-disk delta
-maintenance on capture/eviction (fragile re-keyframing when the oldest entry is
-evicted); a one-shot migration pass over old files (needless code for an
-already-superset format); base64/gzip of the versions blob (opaque, kills the
-readable JSON; file-level gzip is an orthogonal concern).
+`versions[]` is the only super-linear on-disk growth driver. The stateless `VersionCodec`
+(`src/snapshots/version-codec.ts`) encodes the materialized `FileVersion[]` at the
+serialization boundary: version `i` is a **keyframe** when `i % VERSION_KEYFRAME_INTERVAL ===
+0`, else a **delta** (unified-diff against `i-1`). Encode is pure and recomputed each save;
+the in-memory timeline stays materialized, and the format is a strict superset of v1, so old
+files decode with no migration. **Rejected:** deltas in memory (infects every consumer); incremental on-disk maintenance;
+a migration pass; base64/gzip (opaque).
 
 ### ADR-10: History is one self-describing shard per snapshot, no index file
 
-History is stored as one shard file per snapshot under `<plugindir>/history/`,
-not one monolithic `history.json`. Each shard is `{ version, snapshot }`: a single
-serialized `FileSnapshot` plus the on-disk format version. The directory listing
-is the source of truth; there is deliberately **no manifest or index file**. A
-shard is named by a deterministic, synchronous >=64-bit hash of the
-vault-relative path (16 hex chars + `.json`), and the path inside the shard is the
-read-time identity. The stateless `HistoryShardStore` owns the IO mechanics
-(atomic write, fallback read, enumerate, remove, clear); `PersistenceService`
-keeps policy (debounce, write queue, retention, the dirty index, the enabled
-gate).
-
-Writes are per-shard atomic (`tmp -> bak -> rename`) and reads fall back
-`.json -> .bak -> .tmp`, so a crash between rename steps loses nothing for that
-shard. Saves are **dirty-only**: a save serializes all snapshots, applies the
-existing global retention in memory, then compares each kept snapshot's 64-bit
-content digest against an in-memory `Map<path, { name, digest }>` and writes only
-the shards whose digest changed, removing shards for paths that left the kept set
-(retention eviction, delete, cross-dir move re-key). A no-op save writes nothing.
-The astronomically-rare 64-bit name collision is resolved at allocation by
-linear-probing a `-N` suffix between the hash stem and `.json`, checked against
-the in-memory index (seeded from the real on-disk filenames returned by the
-directory enumeration), so two distinct notes can never share a filename and no
-per-write disk read is needed. Global retention math (live + tombstone buckets) is
-unchanged and runs over the full set in memory; only its on-disk effect changes
-from trimming one array to removing the evicted shards. On restore, if no shard
-directory exists yet but a legacy `history.json`/`.bak` does, it is split into
-shards once and the legacy files are removed only after every shard is written; a
-failure leaves the legacy file intact so the next restore retries.
-
-**Why:** a single `history.json` is a single point of failure: one corrupt or lost
-file costs the entire base, and every save rewrites the whole file. Sharding makes
-a corrupt or lost shard cost exactly one note's history while the rest load,
-recovering from `.bak`/`.tmp` where present, and a save touches only the file that
-changed. Directory enumeration as the source of truth avoids re-introducing the
-single point of failure being removed: an index file, if lost, would "lose"
-every shard it failed to list. A deterministic path hash keeps filenames
-length-safe (paths can exceed the 255-byte filename limit) and FS-safe (paths
-contain `/`), and being synchronous makes it deterministic and trivially testable.
-Dirty-only writes are required because blindly rewriting all shards turns one write
-into N atomic `tmp`+`rename` ops, which would make sharding worse than the monolith
-for IO.
-
-**Relationship to ADR-9 (version codec).** ADR-9 changes shard *contents* (it
-delta-encodes `versions[]` at the `FileSnapshot.toJSON/fromJSON` boundary and bumps
-the format version 1->2); this ADR changes shard *placement*. They compose
-cleanly. The shard `version` is read through from `serialize()`, never hardcoded,
-so ADR-9's 1->2 bump flows through with no shard-level change. The shard store is
-agnostic to delta vs full-text: it (de)serializes the whole `FileSnapshot` and
-never inspects `versions[]`, so encode/decode stays entirely in
-`FileSnapshot.toJSON/fromJSON` reached through `serialize()`/`restore()`. The two
-resilience layers are complementary, not redundant: the shard `.bak`/`.tmp`
-fallback (this ADR) recovers a whole snapshot file, while the codec keyframe-resync
-(ADR-9) repairs a corrupt delta inside an otherwise-loaded timeline. The migration
-carries each legacy snapshot through byte-for-byte (no re-encode), so a v1 or v2
-monolith migrates unchanged regardless of which format change landed first.
-
-**Rejected:** keeping the monolith (the failure mode being fixed); a manifest/index
-file listing shards (re-introduces the single point of failure); reversible path
-encoding for filenames (breaks on long or unicode paths); async WebCrypto SHA-256
-naming (extra async plus mobile-availability risk); rewriting all shards on every
-save (turns one write into N, worse IO than the monolith); a separate `migrated`
-marker file (re-introduces a single point of failure when the shard directory is
-already the source of truth).
+History is one `{ version, snapshot }` shard per snapshot under `<plugindir>/history/`; the
+directory listing is the source of truth, with no manifest or index file. A shard is named by
+a synchronous >=64-bit hash of the vault-relative path (16 hex + `.json`), and the path inside
+is the read-time identity. `HistoryShardStore` (`src/persistence/history-shard-store.ts`) owns
+the IO; `PersistenceService` keeps policy (the `AsyncSaveQueue` write queue, `RetentionPolicy`
+math, the dirty index, the enabled gate); `MonolithMigrator`
+(`src/persistence/monolith-migrator.ts`) owns the one-time legacy split. A single
+`history.json` would be one point of failure (a corrupt file costs the whole base); sharding
+makes a lost shard cost one note, and the shard `version` reads through from serialization, so
+ADR-9's format bump flows through untouched. **Rejected:** the monolith; a manifest/index file; reversible path encoding; async WebCrypto
+naming; rewriting all shards per save.
 
 ### ADR-11: Mega-files decompose into host-owned plain collaborators, not DI services
 
-The four largest files (`HistoryModal`, `FolderHistoryModal`, `SnapshotsService`,
-and `types.ts`) were decomposed into focused, single-concern units, following the
-same façade-over-collaborators shape ADR-8 established for `FileSnapshot`. The new
-units are **plain objects instantiated and owned by their host**, not DI services.
-Each reads its host's live state through a narrow per-collaborator host port (a
-small interface of lazy accessors plus callbacks the host builds), so the host
-keeps owning the shared state and the collaborator never holds a private copy of a
-field the host mutates in place. The host class becomes a thin coordinator that
-delegates to its collaborators.
+The largest files (`HistoryModal`, `FolderHistoryModal`, `SnapshotsService`, `types.ts`) were
+split into single-concern units on the façade shape of ADR-8: **plain objects owned by their
+host**, not DI services, each reading its host through a narrow per-collaborator host port
+(lazy accessors plus callbacks), so the host keeps owning shared state.
 
-The collaborators (`src/modals/`, `src/services/`, `src/snapshots/`):
+- `HistoryModal` (`src/modals/`) owns `DiffScrollSync`, `DiffViewState`, `GutterRevertHandler`,
+  `DiffPresenter`, `DiffHeaderController`, `KeyboardController`, plus the `VersionList` rail
+  (`src/components/version-list.component.ts`).
+- `FolderHistoryModal` (`src/modals/`) owns `FolderSelectionModel`, `FolderTimelineRenderer`,
+  `FolderDiffRenderer`, `FolderActionHandler`, reusing `DiffViewState` and `FolderTreeComponent`
+  (`src/components/`). Both build their chrome through the shared `HistoryModalShell` and
+  `ToolbarBuilder`.
+- `SnapshotsService` owns `SnapshotRegistry` (map + bookkeeping), `HistorySerializer`
+  (serialize/restore/reconcile), `ExternalChangeCapture`, `IgnoreListManager`,
+  `EditorOperations` (all `src/snapshots/`), keeping the CRUD delegates and capture gating.
+  `SnapshotCodec` (`src/snapshots/snapshot-codec.ts`) owns a snapshot's on-disk encode/decode,
+  calling `VersionCodec` for the timeline.
+- `types.ts` became a barrel'd `src/types/` directory; `../types` importers resolve against
+  the barrel with no churn.
 
-- `HistoryModal` owns `DiffScrollSync` (`src/modals/diff-scroll-sync.ts`,
-  scroll mirroring), `VersionList` (`src/modals/version-list.component.ts`, the
-  version rail + label/delta derivation, port `VersionListHost`),
-  `GutterRevertHandler` (`src/modals/gutter-revert-handler.ts`, revert affordances
-  + hunk-anchor resolution, port `GutterRevertHost`), and `DiffViewState`
-  (`src/modals/diff-view-state.ts`, diff-view fields + mode/nav button behaviour,
-  port `DiffViewStateHost`). Hunk navigation lives in `DiffViewState` and talks to
-  `GutterRevertHandler` only through the rendered DOM marker contract
-  (`lct-hunk-anchor` class + `data-lct-hunk` index) the handler sets and the
-  navigation reads.
-- `FolderHistoryModal` owns `FolderTimelineRenderer`
-  (`src/modals/folder-timeline-renderer.ts`, the timeline rail, port
-  `FolderTimelineHost`), `FolderDiffRenderer` (`src/modals/folder-diff-renderer.ts`,
-  the diff pane + notice + columns header, port `FolderDiffHost`), and
-  `FolderActionHandler` (`src/modals/folder-action-handler.ts`, the five toolbar
-  actions, port `FolderActionHost`).
-- `SnapshotsService` owns `ExternalChangeCapture`
-  (`src/services/external-change-capture.ts`, off-editor capture: debounce,
-  in-flight guard, last-seen precheck, hash-compared forced capture, port
-  `ExternalChangeHost`), `IgnoreListManager` (`src/snapshots/ignore-list.ts`, the
-  ignore set + path-exclude decision + warn-once guard, port `IgnoreListHost`), and
-  `EditorOperations` (`src/snapshots/editor-operations.ts`, the sole file-write
-  method `applyContent`, port `EditorOperationsHost`). The service keeps the
-  snapshot map, the CRUD, and the capture-gating predicates.
-- `types.ts` became a barrel'd `src/types/` directory (per-concern submodules
-  re-exported by `src/types/index.ts`); importers using the `../types` path keep
-  resolving against the barrel with no import-site churn.
-
-**Why plain collaborators, not DI.** The DI container resolves dependencies by
-`constructor.name` and depends on esbuild `keepNames`; it is reserved for the
-long-lived service singletons whose registration order is a load-bearing contract
-(see "Service and event ordering" below). Modal and service collaborators are
-short-lived helpers owned by a single host, so registering them as `@Inject`
-services would add no wiring value while putting the ordering invariants at risk.
-Owning them as plain objects keeps the container, its registration order, and the
-`keepNames` dependency untouched, while still giving each concern its
-own testable unit. The host-port seam (rather than passing the raw host in) keeps
-the host's protected fields protected: the collaborator sees only the narrow
-interface it needs, not the whole host surface.
-
-**Rejected:** registering each collaborator as a DI service (no wiring gain, risks
-the registration-ordering invariants); state-owning collaborators with their own
-copies of host fields (desync the moment the host reassigns or mutates a field in
-place, the same trap ADR-8 calls out); passing the raw host into each collaborator
-(leaks the entire host surface and re-introduces the coupling the extraction
-removes); rewriting every `../types` import to point at the new submodules
-(needless churn, the barrel resolves them).
+**Why plain collaborators, not DI:** the container resolves services by stable symbol tokens
+(`src/services/tokens.ts`), so class names minify freely and the build ships no `keepNames`
+(`esbuild.config.mjs`); it is reserved for the long-lived singletons whose registration order
+in `main.ts` is a load-bearing contract (see below). Short-lived host-owned collaborators gain
+no wiring value from `@Inject`, and the host-port seam keeps the host's protected fields
+protected. **Rejected:** registering each as a DI service; state-owning collaborators the host
+mutates in place (the ADR-8 trap); passing the raw host in; rewriting `../types` imports.
 
 ## Invariants and gotchas
 
-Each item below is a load-bearing assumption that is easy to break from a distance.
-
 ### Service and event ordering
 
-- **`SnapshotsService` must be registered before `PersistenceService`** in
-  `main.ts`. The session capture has to run before the deferred restore, or the
-  restore overwrites the live marker baseline (the bug ADR-1 fixes).
-- **`I18nService` must be registered before `CommandsService`.** Command `name`
-  fields call `plugin.t()` at construction; the catalogs must be registered
-  first. The container runs `init` in insertion order, so order is the contract.
-- **Vault event registration is deferred to `onLayoutReady`.** The startup file
-  scan emits `modify` events; registering earlier would produce phantom external
-  captures (ADR-5) for files that did not actually change externally.
+- **`SnapshotsService` registers before `PersistenceService`** in `main.ts`: session capture
+  must precede the deferred restore, else restore overwrites the marker baseline (ADR-1).
+- **`I18nService` registers before `CommandsService`:** command `name` fields call `plugin.t()`
+  at construction, and the container runs `init` in insertion order.
+- **Vault events register only at `onLayoutReady`:** the startup scan emits `modify` events, so
+  earlier would produce phantom external captures (ADR-5).
 
 ### Persistence
 
-- **History is one shard per snapshot, the directory is the source of truth.**
-  Each snapshot persists as one `{ version, snapshot }` shard under
-  `<plugindir>/history/`, named by a >=64-bit hash of its path; there is no index
-  or manifest file, so enumeration of the directory (not any stored list) is
-  authoritative on load (ADR-10).
-- **A save writes only the shards that changed.** Saves are dirty-only: the
-  in-memory path-to-shard index holds each shard's content digest, and a save
-  writes only shards whose digest changed and removes shards for paths dropped by
-  retention or deletion. A no-op save writes nothing; never rewrite all shards
-  (ADR-10).
-- **A shard recovers itself, never the whole base.** Per-shard atomic
-  `tmp -> bak -> rename` with `.json -> .bak -> .tmp` read fallback means a corrupt
-  or lost shard costs exactly one note's history; the rest still load (ADR-10).
-- **The marker baseline is never persisted.** `toJSON` writes `historyLines` as
-  its `lines` field; the session marker baseline is re-derived from the file on
-  the next open (ADR-1).
-- **Persist requires `keep = app`.** On-disk history is only read or written when
-  the persist flag is on and retention keeps history beyond a file close.
-- **Optional serialized fields are omitted when unset** (`label`, `external`,
-  `deletedTimestamp`, `movedIntoAt`) so older history files round-trip unchanged.
-  The on-disk format is versioned (`SerializedHistory.version`) for the same
-  reason.
-- **The version codec touches only serialization; in-memory stays materialized.**
-  `versions[]` is encoded as a keyframe + delta chain on disk (ADR-9), but the
-  in-memory `FileVersion[]` is always fully materialized, so no consumer ever
-  sees a delta. The encode is recomputed in full from the materialized array on
-  every save.
-- **The keyframe + delta format is a strict superset of v1, so old files need no
-  migration.** Decode dispatches per entry on `lines` vs `delta`; a v1 full-text
-  entry is just a keyframe. The version bump to 2 is a signal only, never a decode
-  branch.
-- **Decode is resilient and resyncs at keyframes.** A delta with no preceding
-  keyframe, or one that fails to apply, is skipped rather than thrown;
-  the chain resyncs at the next keyframe, so one corrupt delta loses at most the
-  segment up to that keyframe, never the whole load.
-- **Deltas transport lines joined on `\n` regardless of the file `lineBreak`.** A
-  tracked line is the split product of the file's `lineBreak` (`\n` or `\r\n`) and
-  so never contains a bare `\n`, which makes `\n`-join a lossless patch transport
-  even for CRLF files (the `diff` lib normalizes on `\n`).
+- **One shard per snapshot; the directory listing (no index/manifest) is authoritative** (ADR-10).
+- **Saves are dirty-only, and a lost shard recovers itself, never the whole base** (ADR-10).
+- **The marker baseline is never persisted** (`SnapshotCodec.encode` writes `historyLines` as
+  `lines`), and on-disk history needs `keep = app` (ADR-1).
+- **Optional fields (`label`, `external`, `deletedTimestamp`, `movedIntoAt`) are omitted when
+  unset** so old files round-trip.
+- **The version codec touches only serialization; the in-memory timeline stays materialized**
+  (ADR-9).
 
 ### Enum values are wire/UI contracts
 
-- Several string-enum member **values are byte-significant** and must not change:
-  they are interpolated into translation keys (`modal.mode.${mode}`,
-  `modal.version.action.${kind}`, `modal.folder.timeline.${kind}`) and are
-  deep-compared in tests. Never convert these to numeric enums or rename their
-  literal values: `DiffViewMode`, `VersionAction`, `FolderTimelinePointKind`,
-  `FolderDeltaStatus`, `WordDiffLineType`, and the navigation/selection direction
-  enums.
+- Several string-enum **values are byte-significant**: they are interpolated into translation
+  keys (`modal.mode.${mode}`, `modal.version.action.${kind}`, `modal.folder.timeline.${kind}`)
+  and deep-compared in tests. Never make them numeric or rename their values: `DiffViewMode`,
+  `VersionAction`, `FolderTimelinePointKind`, `FolderDeltaStatus`, `WordDiffLineType`, and the
+  navigation/selection direction enums.
 
 ### Timeline and retention
 
-- **Version eviction happens at capture only**, never in `fromJSON` or on restore.
-  A restored snapshot with stale versions trims them on the next capture; whole-
-  snapshot age retention on read bounds them until then.
-- **The `maxVersions` count cap counts only unlabeled versions.** Labeled
-  (pinned) versions are exempt, so pinning never silently pushes out adjacent
-  cadence history (ADR-2).
-- Eviction order is **age first, then count** (the JetBrains model: keep the
-  newest set within the time window, count is the safety cap). A cap of `0`
-  disables that dimension.
-- **`putLabel` forces the cadence `enabled` gate.** A user can disable automatic
-  capture but still drop a deliberate pin; honouring `enabled = false` would make
-  "Put label" a silent no-op.
+- **Version eviction happens at capture only**, never in decode or on restore.
+- **The count cap counts only unlabeled versions** (pinned are exempt); order is age first,
+  then count, and a cap of `0` disables that dimension (ADR-2).
+- **Putting a label forces the cadence `enabled` gate**, else a deliberate pin would no-op.
 
 ### Diff modal
 
-- **The gutter revert base is the original baseline**, because the gutter
-  highlights are computed against the original, so reverting a block reverts
-  exactly what the gutter shows.
+- **The gutter revert base is the original baseline,** so reverting a block reverts exactly what
+  the gutter shows.
 - The synthetic `ORIGINAL_BASE_ID` rail entry has **no version id**, so it is not
-  the concern of `VersionActionsService`; the modal handles its restore on a
-  small local path.
+  `VersionActionsService`'s concern; the modal restores it locally.
 
 ### Tooling
 
-- **`//noinspection`, `// eslint-disable-*`, and `@ts-ignore` must stay `//` line
-  comments.** Their suppression only works on a line comment directly above the
-  target; a JSDoc block silently breaks them. The repo's "no `//` comments" rule
-  targets descriptive prose, not these directives.
-- The catalog-parity test asserts every bundled `lang/*.json` has the **exact**
-  key set of `en.json` with no empty values, so adding a key to `en.json` means
-  adding it to every catalog.
+- **`//noinspection`, `// eslint-disable-*`, and `@ts-ignore` must stay `//` line comments:**
+  suppression works only on a line comment directly above the target, and a JSDoc block breaks
+  it. The "no `//` comments" rule targets prose, not these.
+- The catalog-parity test asserts every `lang/*.json` has the **exact** key set of `en.json`
+  with no empty values, so a new key in `en.json` must be added to every catalog.

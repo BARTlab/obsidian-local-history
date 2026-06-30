@@ -5,6 +5,7 @@ import { ShardNameHelper } from '@/helpers/shard-name.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import { AsyncSaveQueue } from '@/persistence/async-save-queue';
 import { HistoryShardStore, type LoadedShard } from '@/persistence/history-shard-store';
+import { MonolithMigrator } from '@/persistence/monolith-migrator';
 import { RetentionPolicy, type RetentionCaps } from '@/persistence/retention-policy';
 import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
@@ -163,13 +164,16 @@ export class PersistenceService implements Service {
       }
 
       /**
-       * One-time monolith-to-shard migration. When no shards
-       * exist yet but a legacy `history.json` (or its `.bak`) does, split it into
-       * shards and remove the legacy files before reading the shard dir. A
+       * One-time monolith-to-shard migration before reading the shard dir. A
        * migration failure leaves the legacy file intact and falls through to a
-       * (then-empty) shard read, so no history is lost.
+       * (then-empty) shard read, so no history is lost. The whole legacy concern
+       * lives in {@link MonolithMigrator}.
        */
-      await this.migrateMonolithIfNeeded();
+      await new MonolithMigrator(
+        this.plugin.app.vault.adapter,
+        this.getPluginDir(),
+        this.shardStore(),
+      ).migrate();
 
       const loaded: LoadedShard[] = await this.shardStore().readAll();
 
@@ -383,10 +387,10 @@ export class PersistenceService implements Service {
 
   /**
    * Allocates a shard filename for a path that has no index entry yet, resolving
-   * the astronomically-rare 64-bit hash collision. The base name is the path
-   * hash; if a different path already holds it in the index, a numeric suffix is
-   * linear-probed until free so two distinct notes never share a filename and one
-   * can never silently overwrite another.
+   * the astronomically-rare 64-bit hash collision. Binds the live in-memory index
+   * as the set of already-claimed names and defers the base-hash-plus-probe
+   * allocation to {@link ShardNameHelper.allocate}, so two distinct notes never
+   * share a filename and one can never silently overwrite another.
    *
    * @param {string} path - The vault-relative note path to name a shard for
    * @return {string} A shard filename not currently held by any other path
@@ -396,220 +400,7 @@ export class PersistenceService implements Service {
       [...this.shardIndex.values()].map((entry: ShardIndexEntry): string => entry.name),
     );
 
-    return this.allocateShardNameAgainst(path, taken);
-  }
-
-  /**
-   * Allocates a collision-free shard filename for a path against an arbitrary set
-   * of already-claimed names. The base name is the path hash; if it is taken, a
-   * numeric suffix is linear-probed before the `.json` extension so two distinct
-   * paths never share a filename. Shared by {@link allocateShardName} (probing
-   * the live index) and the migration pass (probing names claimed so far).
-   *
-   * @param {string} path - The vault-relative note path to name a shard for
-   * @param {Set<string>} taken - Names already claimed (must not be reused)
-   * @return {string} A shard filename not present in `taken`
-   */
-  protected allocateShardNameAgainst(path: string, taken: Set<string>): string {
-    const base: string = ShardNameHelper.forPath(path);
-
-    if (!taken.has(base)) {
-      return base;
-    }
-
-    /**
-     * Probe `<hash>.json`, `<hash>-1.json`, `<hash>-2.json`, ... by splitting the
-     * base into its hash and extension so the suffix lands before `.json` and the
-     * file keeps a recognizable shard extension.
-     */
-    const dot: number = base.lastIndexOf('.');
-    const stem: string = dot === -1 ? base : base.slice(0, dot);
-    const ext: string = dot === -1 ? '' : base.slice(dot);
-
-    let suffix: number = 1;
-    let candidate: string = `${stem}-${suffix}${ext}`;
-
-    while (taken.has(candidate)) {
-      suffix += 1;
-      candidate = `${stem}-${suffix}${ext}`;
-    }
-
-    return candidate;
-  }
-
-  /**
-   * Migrates a legacy monolithic `history.json` into per-note shards exactly once
-   *. Runs only when the shard directory holds no shards yet but a
-   * legacy file (or its `.bak`) still exists and parses: each legacy snapshot is
-   * written as its own shard, then the legacy `history.json`/`.bak`/`.tmp` files
-   * are removed. The shard `version` is carried through from the legacy file (no
-   * re-encode), so a version-1 or version-2 monolith migrates byte-for-byte per
-   * snapshot whether or not the delta codec has landed.
-   *
-   * Failure-safe: a write failure aborts before any legacy file is removed and
-   * logs, so the legacy file stays intact and the next restore retries. Once
-   * shards exist the legacy path is never consulted again (the guard sees a
-   * non-empty shard dir and returns immediately).
-   *
-   * @return {Promise<void>} Resolves once migration ran or was skipped
-   */
-  protected async migrateMonolithIfNeeded(): Promise<void> {
-    /**
-     * Skip migration the moment any shard exists: the shard dir is the source of
-     * truth, so a single prior shard means migration already happened (or the
-     * store is the live store) and the legacy path must never be reconsulted.
-     */
-    if ((await this.shardStore().listNames()).size > 0) {
-      return;
-    }
-
-    const legacy: SerializedHistory | null = await this.readDisk();
-
-    if (!legacy || legacy.snapshots.length === 0) {
-      return;
-    }
-
-    const store: HistoryShardStore = this.shardStore();
-    const taken: Set<string> = new Set();
-
-    try {
-      for (const snapshot of legacy.snapshots) {
-        const name: string = this.allocateShardNameAgainst(snapshot.path, taken);
-
-        taken.add(name);
-
-        await store.writeShard(name, { version: legacy.version, snapshot });
-      }
-    } catch (error) {
-      /**
-       * A write failed mid-migration. Leave the legacy file in place (no removal
-       * happens below) so the next restore retries; any partial shards written so
-       * far are harmless because the legacy file remains the recovery source until
-       * a full migration succeeds.
-       */
-      console.error('Local history: failed to migrate legacy history into shards', error);
-
-      return;
-    }
-
-    /**
-     * All shards landed: remove the legacy monolith and its atomic-write siblings
-     * so the one-time migration never runs again and disabled never resurfaces
-     * stale data.
-     */
-    await this.removeLegacyMonolith();
-  }
-
-  /**
-   * Removes the legacy monolithic `history.json` and its `.bak`/`.tmp` siblings
-   * after a successful migration. Best-effort and idempotent: a missing variant
-   * is fine and a per-variant failure is logged, not thrown, so a stubborn file
-   * cannot abort restore once the shards are already on disk.
-   *
-   * @return {Promise<void>} Resolves once all present legacy variants are gone
-   */
-  protected async removeLegacyMonolith(): Promise<void> {
-    const path: string = this.getHistoryPath();
-
-    for (const candidate of [path, `${path}.bak`, `${path}.tmp`]) {
-      try {
-        if (await this.plugin.app.vault.adapter.exists(candidate)) {
-          await this.plugin.app.vault.adapter.remove(candidate);
-        }
-      } catch (error) {
-        console.error('Local history: failed to remove legacy history file', candidate, error);
-      }
-    }
-  }
-
-  /**
-   * Reads and parses the legacy on-disk monolith, the one-time migration source
-   *. Tries the primary `history.json` first and falls back to its
-   * `.bak` sibling so a crash between the monolith's old `tmp -> bak -> rename`
-   * steps still yields a usable source. Returns null when neither variant is
-   * present or parses, so the migration caller treats a missing/corrupt monolith
-   * as "nothing to migrate" rather than throwing.
-   *
-   * Per-entry validation: each snapshot is checked against a minimal
-   * shape predicate (`isValidEntry`) and malformed entries are skipped so a few
-   * bad records do not poison retention math (`NaN >= oldest` is always false,
-   * silently dropping otherwise-valid entries) or crash downstream `fromJSON`.
-   *
-   * @return {Promise<SerializedHistory | null>} The parsed history, or null
-   */
-  protected async readDisk(): Promise<SerializedHistory | null> {
-    const path: string = this.getHistoryPath();
-
-    for (const candidate of [path, `${path}.bak`]) {
-      const parsed: SerializedHistory | null = await this.readMonolithVariant(candidate);
-
-      if (parsed !== null) {
-        return parsed;
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Reads and validates one legacy monolith variant (`history.json` or its
-   * `.bak`). Returns null when the file is absent, unreadable, not JSON, or has
-   * no `snapshots` array so {@link readDisk} can fall through to the next
-   * variant. Never throws.
-   *
-   * @param {string} path - The full vault-relative path of the variant
-   * @return {Promise<SerializedHistory | null>} The parsed history, or null
-   */
-  protected async readMonolithVariant(path: string): Promise<SerializedHistory | null> {
-    try {
-      if (!(await this.plugin.app.vault.adapter.exists(path))) {
-        return null;
-      }
-
-      const raw: string = await this.plugin.app.vault.adapter.read(path);
-      const parsed: SerializedHistory = JSON.parse(raw) as SerializedHistory;
-
-      if (!parsed || !Array.isArray(parsed.snapshots)) {
-        return null;
-      }
-
-      const valid: SerializedFileSnapshot[] = parsed.snapshots.filter(
-        (item: SerializedFileSnapshot): boolean => this.isValidEntry(item),
-      );
-
-      return { version: parsed.version, snapshots: valid };
-    } catch (error) {
-      console.error('Local history: failed to read persisted history', error);
-
-      return null;
-    }
-  }
-
-  /**
-   * Whether a serialized snapshot has the minimum well-formed shape required to
-   * survive retention math and reach `SnapshotCodec.decode` without falling
-   * back to defaults that would resurrect junk. Required: `path` is a string,
-   * `timestamp` is a finite number, `lines` and `tracker` are arrays. A
-   * non-finite timestamp is treated as "skip" rather than `0` so a malformed
-   * entry cannot pose as fresh history.
-   *
-   * @param {SerializedFileSnapshot} item - The candidate entry
-   * @return {boolean} True when the entry is structurally usable
-   */
-  protected isValidEntry(item: SerializedFileSnapshot): boolean {
-    if (!item || typeof item !== 'object') {
-      return false;
-    }
-
-    if (typeof item.path !== 'string') {
-      return false;
-    }
-
-    if (typeof item.timestamp !== 'number' || !Number.isFinite(item.timestamp)) {
-      return false;
-    }
-
-    return Array.isArray(item.lines) && Array.isArray(item.tracker);
+    return ShardNameHelper.allocate(path, taken);
   }
 
   /**
@@ -628,19 +419,8 @@ export class PersistenceService implements Service {
   }
 
   /**
-   * Resolves the absolute (vault-relative) path of the history file inside the
-   * plugin folder. Falls back to a sane default if the manifest dir is missing.
-   *
-   * @return {string} The vault-relative path to the history file
-   */
-  protected getHistoryPath(): string {
-    return `${this.getPluginDir()}/history.json`;
-  }
-
-  /**
    * Resolves the vault-relative path of the per-note shard directory inside the
-   * plugin folder. Resolved the same way as {@link getHistoryPath} but pointing
-   * at `<plugindir>/history` (ADR-10).
+   * plugin folder, pointing at `<plugindir>/history` (ADR-10).
    *
    * @return {string} The vault-relative path to the shard directory
    */
@@ -650,8 +430,9 @@ export class PersistenceService implements Service {
 
   /**
    * Resolves the plugin's own folder, falling back to a sane default if the
-   * manifest dir is missing. Shared by {@link getHistoryPath} (legacy monolith)
-   * and {@link getShardDir} (shard directory) so both resolve identically.
+   * manifest dir is missing. Shared by {@link getShardDir} (shard directory) and
+   * {@link MonolithMigrator} (which derives the legacy monolith path from it) so
+   * both resolve identically.
    *
    * @return {string} The vault-relative plugin directory
    */

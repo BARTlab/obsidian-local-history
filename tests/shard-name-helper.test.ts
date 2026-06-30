@@ -87,3 +87,28 @@ describe('ShardNameHelper.forPath', () => {
     expect(new Set<string>([a, b, c]).size).toBe(3);
   });
 });
+
+describe('ShardNameHelper.allocate', () => {
+  it('returns the plain base name when it is not already taken', () => {
+    const base: string = ShardNameHelper.forPath('a.md');
+
+    expect(ShardNameHelper.allocate('a.md', new Set<string>())).toBe(base);
+  });
+
+  it('probes a numeric suffix before the .json extension when the base collides', () => {
+    const base: string = ShardNameHelper.forPath('a.md');
+    const stem: string = base.replace(/\.json$/, '');
+
+    // Base taken -> first free suffix; base + first suffix taken -> next suffix.
+    expect(ShardNameHelper.allocate('a.md', new Set<string>([base]))).toBe(`${stem}-1.json`);
+    expect(ShardNameHelper.allocate('a.md', new Set<string>([base, `${stem}-1.json`]))).toBe(`${stem}-2.json`);
+  });
+
+  it('linear-probes past a run of claimed suffixes to the first free one', () => {
+    const base: string = ShardNameHelper.forPath('a.md');
+    const stem: string = base.replace(/\.json$/, '');
+    const taken: Set<string> = new Set<string>([base, `${stem}-1.json`, `${stem}-2.json`]);
+
+    expect(ShardNameHelper.allocate('a.md', taken)).toBe(`${stem}-3.json`);
+  });
+});

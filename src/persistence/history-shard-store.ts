@@ -291,7 +291,7 @@ export class HistoryShardStore {
    * numeric `version` and a `snapshot` whose minimal shape (path string, finite
    * timestamp, `lines`/`tracker` arrays) survives retention math and reaches
    * `SnapshotCodec.decode` without resurrecting junk. This mirrors the
-   * per-entry predicate that the monolithic `readDisk` applied, now
+   * per-entry predicate the legacy monolith reader applied, now
    * at shard granularity.
    *
    * @param {unknown} value - The parsed shard candidate.

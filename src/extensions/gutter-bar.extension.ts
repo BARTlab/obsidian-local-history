@@ -1,7 +1,7 @@
 import { ChangeType, IndicatorType } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
-import { BaseExtension } from '@/extensions/base.extension';
 import type { ChangeLine } from '@/lines/change.line';
+import type LineChangeTrackerPlugin from '@/main';
 import type { ArrayMap } from '@/maps/array.map';
 import { BarMarker } from '@/markers/bar.marker';
 import type { SettingsService } from '@/services/settings.service';
@@ -26,9 +26,14 @@ import type { EditorView } from '@codemirror/view';
  * present so a single line never stacks two markers.
  *
  * @implements {GutterConfig}
- * @extends {BaseExtension}
  */
-export class GutterBarExtension extends BaseExtension implements GutterConfig {
+export class GutterBarExtension implements GutterConfig {
+  public constructor(
+    protected view: EditorView | null,
+    public plugin: LineChangeTrackerPlugin,
+  ) {
+  }
+
   /** Service for accessing plugin settings. */
   @Inject(TOKENS.settings)
   protected settingsService!: SettingsService;

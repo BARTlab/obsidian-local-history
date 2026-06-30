@@ -1,5 +1,4 @@
 import type { MapChangeAction } from '@/consts';
-import type { BaseExtension } from '@/extensions/base.extension';
 import type { RangeSet } from '@codemirror/state';
 import type {
   BlockInfo,
@@ -75,9 +74,9 @@ export type ClassConstructor<T = {}> = {
 
 /**
  * Interface for CodeMirror editor extensions used in the plugin.
- * Extends both PluginValue and BaseExtension to provide editor functionality.
+ * Extends PluginValue to provide editor functionality.
  */
-export interface EditorExtension extends PluginValue, BaseExtension {
+export interface EditorExtension extends PluginValue {
   /** Optional decoration set for visual indicators */
   decorations?: DecorationSet;
 }
@@ -205,11 +204,11 @@ export type Handlers = {
 };
 
 /**
- * Gutter configuration mirrored from CodeMirror's `gutter()` options, extended
- * with this plugin's `BaseExtension` so gutter extensions can be built and
- * registered without importing CodeMirror's internal config type.
+ * Gutter configuration mirrored from CodeMirror's `gutter()` options, so gutter
+ * extensions can be built and registered without importing CodeMirror's internal
+ * config type.
  */
-export interface GutterConfig extends BaseExtension {
+export interface GutterConfig {
   /**
    An extra CSS class to be added to the wrapper (`cm-gutter`)
    element.

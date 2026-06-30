@@ -1,9 +1,9 @@
 import { ChangeType, IndicatorType } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
-import { BaseExtension } from '@/extensions/base.extension';
 import { confirmAndRevertHunk } from '@/helpers/hunk-revert.helper';
 import { HunkHelper } from '@/helpers/hunk.helper';
 import type { ChangeLine } from '@/lines/change.line';
+import type LineChangeTrackerPlugin from '@/main';
 import type { ArrayMap } from '@/maps/array.map';
 import { RemovedMarker } from '@/markers/removed.marker';
 import type { ModalsService } from '@/services/modals.service';
@@ -21,9 +21,14 @@ import type { EditorView } from '@codemirror/view';
  * Shows special markers in the gutter to indicate where lines have been removed.
  *
  * @implements {GutterConfig}
- * @extends {BaseExtension}
  */
-export class GutterRemovedExtension extends BaseExtension implements GutterConfig {
+export class GutterRemovedExtension implements GutterConfig {
+  public constructor(
+    protected view: EditorView | null,
+    public plugin: LineChangeTrackerPlugin,
+  ) {
+  }
+
   @Inject(TOKENS.settings)
   protected settingsService!: SettingsService;
 

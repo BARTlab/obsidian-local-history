@@ -1,5 +1,5 @@
-import { BaseCommand } from '@/commands/base.command';
 import { Inject } from '@/decorators/inject.decorator';
+import type LineChangeTrackerPlugin from '@/main';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import { TOKENS } from '@/services/tokens';
 import type { FunctionVoid } from '@/types';
@@ -9,10 +9,14 @@ import { type Command, Notice } from 'obsidian';
  * Command that resets all line tracker snapshots.
  * Clears tracked changes for all files and shows a notification.
  *
- * @extends {BaseCommand}
  * @implements {Command}
  */
-export class ResetLinesAllCommand extends BaseCommand implements Command {
+export class ResetLinesAllCommand implements Command {
+  public constructor(
+    public plugin: LineChangeTrackerPlugin,
+  ) {
+  }
+
   @Inject(TOKENS.snapshots)
   protected snapshotsService!: SnapshotsService;
 

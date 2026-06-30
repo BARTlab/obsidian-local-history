@@ -1,5 +1,5 @@
-import { BaseCommand } from '@/commands/base.command';
 import { Inject } from '@/decorators/inject.decorator';
+import type LineChangeTrackerPlugin from '@/main';
 import type { ModalsService } from '@/services/modals.service';
 import { TOKENS } from '@/services/tokens';
 import type { Command } from 'obsidian';
@@ -15,10 +15,14 @@ import type { Command } from 'obsidian';
  * modal itself is editor-independent and opens the same way in reading mode. The
  * inline line highlights remain editor-only (a documented limitation).
  *
- * @extends {BaseCommand}
  * @implements {Command}
  */
-export class ShowDiffCommand extends BaseCommand implements Command {
+export class ShowDiffCommand implements Command {
+  public constructor(
+    public plugin: LineChangeTrackerPlugin,
+  ) {
+  }
+
   @Inject(TOKENS.modals)
   protected modalService!: ModalsService;
 

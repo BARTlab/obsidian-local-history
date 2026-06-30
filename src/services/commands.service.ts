@@ -1,4 +1,3 @@
-import type { BaseCommand } from '@/commands/base.command';
 import { GoToNextChangeCommand } from '@/commands/go-to-next-change.command';
 import { GoToPreviousChangeCommand } from '@/commands/go-to-previous-change.command';
 import { ResetLinesAllCommand } from '@/commands/reset-lines-all.command';
@@ -50,11 +49,11 @@ export class CommandsService implements Service {
    * and registers it with the plugin.
    * Skip registration if a command with the same name already exists.
    *
-   * @template T - The command type, extending both BaseCommand and Obsidian Command
+   * @template T - The command type, an Obsidian Command
    * @param {ClassConstructor<T>} ClsCConstructor - The command class constructor
    */
-  protected register<T extends BaseCommand & Command>(ClsCConstructor: ClassConstructor<T>): void {
-    const command: BaseCommand & Command = this.factory<T>(ClsCConstructor);
+  protected register<T extends Command>(ClsCConstructor: ClassConstructor<T>): void {
+    const command: Command = this.factory<T>(ClsCConstructor);
 
     if (this.instances.has(command.id)) {
       return;
@@ -68,11 +67,11 @@ export class CommandsService implements Service {
    * Creates a new instance of a command.
    * Factory method that instantiates commands with the plugin instance.
    *
-   * @template T - The command type, extending both BaseCommand and Obsidian Command
+   * @template T - The command type, an Obsidian Command
    * @param {ClassConstructor<T>} ClsCConstructor - The command class constructor
    * @return {Command} A new instance of the command
    */
-  protected factory<T extends BaseCommand & Command>(ClsCConstructor: ClassConstructor<T>): BaseCommand & Command {
+  protected factory<T extends Command>(ClsCConstructor: ClassConstructor<T>): Command {
     return new ClsCConstructor(this.plugin);
   }
 }

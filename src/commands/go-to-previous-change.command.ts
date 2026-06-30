@@ -1,7 +1,7 @@
-import { BaseCommand } from '@/commands/base.command';
 import { NavigationDirection } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { NavigationHelper } from '@/helpers/navigation.helper';
+import type LineChangeTrackerPlugin from '@/main';
 import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import { TOKENS } from '@/services/tokens';
@@ -14,10 +14,14 @@ import { type Command, type Editor, Notice } from 'obsidian';
  * changed line when the cursor is at or before the first one. Does nothing
  * (beyond a brief notice) when the document has no tracked changes.
  *
- * @extends {BaseCommand}
  * @implements {Command}
  */
-export class GoToPreviousChangeCommand extends BaseCommand implements Command {
+export class GoToPreviousChangeCommand implements Command {
+  public constructor(
+    public plugin: LineChangeTrackerPlugin,
+  ) {
+  }
+
   @Inject(TOKENS.settings)
   protected settingsService!: SettingsService;
 

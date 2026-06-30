@@ -1,9 +1,9 @@
 import { ChangeType, IndicatorType } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
-import { BaseExtension } from '@/extensions/base.extension';
 import { confirmAndRevertHunk } from '@/helpers/hunk-revert.helper';
 import { HunkHelper } from '@/helpers/hunk.helper';
 import type { ChangeLine } from '@/lines/change.line';
+import type LineChangeTrackerPlugin from '@/main';
 import type { ArrayMap } from '@/maps/array.map';
 import { DotMarker } from '@/markers/dot.marker';
 import type { ModalsService } from '@/services/modals.service';
@@ -24,9 +24,14 @@ import { type EditorView } from '@codemirror/view';
  * Shows dots in the gutter for lines that have been added, modified, or restored.
  *
  * @implements {GutterConfig}
- * @extends {BaseExtension}
  */
-export class GutterCommonExtension extends BaseExtension implements GutterConfig {
+export class GutterCommonExtension implements GutterConfig {
+  public constructor(
+    protected view: EditorView | null,
+    public plugin: LineChangeTrackerPlugin,
+  ) {
+  }
+
   @Inject(TOKENS.settings)
   protected settingsService!: SettingsService;
 

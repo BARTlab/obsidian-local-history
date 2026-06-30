@@ -1,22 +1,27 @@
 import { Inject } from '@/decorators/inject.decorator';
-import { BaseExtension } from '@/extensions/base.extension';
 import type { TrackerLine } from '@/lines/tracker.line';
+import type LineChangeTrackerPlugin from '@/main';
 import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import { TOKENS } from '@/services/tokens';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { EditorExtension, SnapshotCaptureOptions } from '@/types';
 import { type EditorState, type Text } from '@codemirror/state';
-import { Decoration, type DecorationSet, type ViewUpdate } from '@codemirror/view';
+import { Decoration, type DecorationSet, type EditorView, type ViewUpdate } from '@codemirror/view';
 
 /**
  * Extension that detects changes in the editor and updates file snapshots.
  * Tracks line additions, modifications, and removals to maintain change history.
  *
  * @implements {EditorExtension}
- * @extends {BaseExtension}
  */
-export class ChangeDetectorExtension extends BaseExtension implements EditorExtension {
+export class ChangeDetectorExtension implements EditorExtension {
+  public constructor(
+    protected view: EditorView | null,
+    public plugin: LineChangeTrackerPlugin,
+  ) {
+  }
+
   @Inject(TOKENS.snapshots)
   protected snapshotsService!: SnapshotsService;
 

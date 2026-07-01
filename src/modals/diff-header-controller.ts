@@ -1,9 +1,5 @@
 import * as DomHelper from '@/helpers/dom.helper';
-
-/** Narrow translator surface: the controller only needs the current-column label. */
-export interface DiffHeaderTranslator {
-  t(key: string): string;
-}
+import type { DiffHeaderTranslator } from '@/modals/diff-header-controller.types';
 
 /**
  * Shared diff-header logic for the two history modals: the above-diff notice

@@ -1,12 +1,15 @@
 import { DiffOutputFormatType, DiffViewMode, NavigationDirection, ORIGINAL_BASE_ID } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { DiffHeaderController } from '@/modals/diff-header-controller';
-import { DiffPresenter, type DiffPresenterHost } from '@/modals/diff-presenter';
+import { DiffPresenter } from '@/modals/diff-presenter';
+import type { DiffPresenterHost } from '@/modals/diff-presenter.types';
 import { DiffScrollSync } from '@/modals/diff-scroll-sync';
 import { DiffViewState, type DiffViewStateHost } from '@/modals/diff-view-state';
-import { GutterRevertHandler, type GutterRevertHost } from '@/modals/gutter-revert-handler';
+import { GutterRevertHandler } from '@/modals/gutter-revert-handler';
+import type { GutterRevertHost } from '@/modals/gutter-revert-handler.types';
 import { HistoryModalShell, type HistoryModalShellRegions } from '@/modals/history-modal-shell';
-import { KeyboardController, type KeyboardControllerHost } from '@/modals/keyboard-controller';
+import { KeyboardController } from '@/modals/keyboard-controller';
+import type { KeyboardControllerHost } from '@/modals/keyboard-controller.types';
 import { ToolbarBuilder } from '@/modals/toolbar-builder';
 import { VersionList, type VersionListHost } from '@/components/version-list.component';
 import * as DomHelper from '@/helpers/dom.helper';

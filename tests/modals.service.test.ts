@@ -6,19 +6,27 @@ import { FileSnapshot } from '@/snapshots/file.snapshot';
 import { SnapshotCodec } from '@/snapshots/snapshot-codec';
 import type { SerializedFileSnapshot } from '@/types';
 
-import { makeFile } from './helpers/builders';
+import { makeFile, makeInjectHost } from './helpers/builders';
 
 /**
- * Exposes the protected `isUnderFolder` predicate without standing up the full
- * service (the `@Inject` decorator installs a throwing setter, and the real
- * constructor expects a live plugin). `Object.create` bypasses construction and
- * the method under test reads nothing but its two arguments.
+ * Exposes the protected `isUnderFolder` predicate on a real, fully-constructed
+ * service instance. The `@Inject` fields install throwing setters and resolve
+ * lazily through `plugin.get`, but `isUnderFolder` reads neither injected
+ * service, so a bare container host suffices; the method runs on genuine
+ * instance state instead of a prototype cast that bypassed construction.
  */
-type IsUnderFolderFn = (snapshot: FileSnapshot, rootPath: string) => boolean;
+class TestModalsService extends ModalsService {
+  public underFolder(snapshot: FileSnapshot, rootPath: string): boolean {
+    return this.isUnderFolder(snapshot, rootPath);
+  }
+}
 
-const isUnderFolder: IsUnderFolderFn = (
-  ModalsService.prototype as unknown as { isUnderFolder: IsUnderFolderFn }
-).isUnderFolder;
+const service: TestModalsService = new TestModalsService(
+  makeInjectHost() as unknown as ConstructorParameters<typeof ModalsService>[0],
+);
+
+const isUnderFolder = (snapshot: FileSnapshot, rootPath: string): boolean =>
+  service.underFolder(snapshot, rootPath);
 
 describe('ModalsService.isUnderFolder - path resolution', () => {
   it('places a live snapshot under its folder by file.path', () => {

@@ -3,11 +3,12 @@ import { describe, expect, it } from '@jest/globals';
 
 import { FolderDeltaStatus } from '@/consts';
 import { TreeTabDecoratorService } from '@/services/tree-tab-decorator.service';
+import { TOKENS } from '@/services/tokens';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import type { TFile } from 'obsidian';
 
-import { makeFile } from './helpers/builders';
+import { makeFile, makeInjectHost } from './helpers/builders';
 
 /**
  * Drives a snapshot through a real one-line edit so `getChangesLinesCount()`
@@ -28,26 +29,30 @@ const makeModified = (file: TFile | null, carriedPath?: string): FileSnapshot =>
 };
 
 /**
- * Exposes the protected `computeStatuses` without standing up the full service:
- * the `@Inject` decorators install throwing setters and the real wiring expects
- * a live plugin, so the method is invoked against a hand-built `this` whose only
- * collaborator is a stub `SnapshotsService`. The method reads nothing else.
+ * Exposes the protected `computeStatuses` on a real, fully-constructed service.
+ * The `@Inject(TOKENS.snapshots)` field resolves lazily through `plugin.get`, so
+ * the service is built over a container host that resolves the snapshots token to
+ * a stub reporting the given list and session-created paths. The method reads
+ * nothing else, so it runs on genuine instance state instead of a prototype cast
+ * that bypassed construction and hand-set `this`.
  */
-type ComputeStatusesFn = () => Map<string, FolderDeltaStatus>;
+class TestTreeTabDecoratorService extends TreeTabDecoratorService {
+  public statuses(): Map<string, FolderDeltaStatus> {
+    return this.computeStatuses();
+  }
+}
 
 const computeStatuses = (snapshots: FileSnapshot[], sessionCreated: string[] = []): Map<string, FolderDeltaStatus> => {
-  const stub = {
-    snapshotsService: {
-      getList: (): FileSnapshot[] => snapshots,
-      getSessionCreatedPaths: (): ReadonlySet<string> => new Set(sessionCreated),
-    } as unknown as SnapshotsService,
-  };
+  const snapshotsService = {
+    getList: (): FileSnapshot[] => snapshots,
+    getSessionCreatedPaths: (): ReadonlySet<string> => new Set(sessionCreated),
+  } as unknown as SnapshotsService;
 
-  const fn: ComputeStatusesFn = (
-    TreeTabDecoratorService.prototype as unknown as { computeStatuses: ComputeStatusesFn }
-  ).computeStatuses;
+  const host = makeInjectHost((token: unknown): unknown =>
+    token === TOKENS.snapshots ? snapshotsService : undefined,
+  ) as unknown as ConstructorParameters<typeof TreeTabDecoratorService>[0];
 
-  return fn.call(stub);
+  return new TestTreeTabDecoratorService(host).statuses();
 };
 
 describe('TreeTabDecoratorService.computeStatuses - path resolution', () => {

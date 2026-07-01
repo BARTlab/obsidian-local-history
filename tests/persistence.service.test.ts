@@ -405,13 +405,18 @@ describe('PersistenceService write queue', () => {
       return payload('overlap.md', counter);
     });
 
-    // First save sees a slow write, second is enqueued before the first
-    // finishes. With one queue the second must observe the first's output
-    // already in its shard (prior shard copied to .bak before the second rename).
-    adapter.writeDelay = 20;
+    // Arm the write gate so the first save parks mid-write and the second is
+    // enqueued behind it. With one queue the second must observe the first's
+    // output already in its shard (prior shard copied to .bak before the second
+    // rename). No real-time delay: the gate releases on command once the first
+    // write is genuinely in-flight.
+    const gate = adapter.deferWrites();
 
     service.triggerSave();
     service.triggerSave();
+
+    await gate.untilParked();
+    gate.release();
     await service.drain();
 
     const live: SerializedFileSnapshot | undefined = readShardSnapshot(adapter, 'overlap.md');
@@ -429,10 +434,16 @@ describe('PersistenceService write queue', () => {
     const adapter = new MemoryAdapter();
     const service = makeWriteService(adapter, (): SerializedHistory => payload('unload.md', 1));
 
-    adapter.writeDelay = 15;
+    // Arm the gate and hold the in-flight save parked: unload enqueues a final
+    // save and awaits the whole queue, so its promise cannot resolve until the
+    // parked write is released. No real-time delay.
+    const gate = adapter.deferWrites();
     service.triggerSave();
 
-    await service.unload();
+    const unloaded: Promise<void> = service.unload();
+    await gate.untilParked();
+    gate.release();
+    await unloaded;
 
     const snapshot: SerializedFileSnapshot | undefined = readShardSnapshot(adapter, 'unload.md');
     expect(snapshot).toBeDefined();

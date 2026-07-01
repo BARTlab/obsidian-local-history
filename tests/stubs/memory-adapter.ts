@@ -11,6 +11,73 @@ export interface AdapterCall {
 }
 
 /**
+ * A resolve-on-command gate for {@link MemoryAdapter} writes. While armed, every
+ * write parks on {@link block} until the owning test calls {@link release},
+ * letting the write-queue tests reproduce an in-flight write and its overlap
+ * deterministically, with no real-time delay. Ordering of park and release does
+ * not matter: {@link release} is sticky, so a write that reaches the gate after
+ * it opens passes straight through.
+ */
+export class DeferredWriteGate {
+  /** Whether the gate is open; once open, every write passes straight through. */
+  protected open: boolean = false;
+
+  /** Resolves {@link barrier}; reassigned by the constructor's executor. */
+  protected openBarrier: () => void = (): void => {};
+
+  /** Resolves {@link parked}; reassigned by the constructor's executor. */
+  protected markParked: () => void = (): void => {};
+
+  /** The barrier every parked write awaits until the gate opens. */
+  protected readonly barrier: Promise<void>;
+
+  /** Resolves the first time a write parks; backs {@link untilParked}. */
+  protected readonly parked: Promise<void>;
+
+  public constructor() {
+    this.barrier = new Promise<void>((resolve: () => void): void => {
+      this.openBarrier = resolve;
+    });
+
+    this.parked = new Promise<void>((resolve: () => void): void => {
+      this.markParked = resolve;
+    });
+  }
+
+  /**
+   * Parks the calling write until {@link release} opens the gate, signalling
+   * {@link untilParked} on the first park. Returns immediately once open.
+   *
+   * @return {Promise<void>} Resolves when the gate is (or becomes) open.
+   */
+  public async block(): Promise<void> {
+    if (this.open) {
+      return;
+    }
+
+    this.markParked();
+
+    await this.barrier;
+  }
+
+  /**
+   * Resolves the moment a write first parks on the gate, so a test can await a
+   * genuinely in-flight write before releasing it, with no real-time delay.
+   *
+   * @return {Promise<void>} Resolves on the first parked write.
+   */
+  public untilParked(): Promise<void> {
+    return this.parked;
+  }
+
+  /** Opens the gate so the parked write and every later write proceed. */
+  public release(): void {
+    this.open = true;
+    this.openBarrier();
+  }
+}
+
+/**
  * In-memory stand-in for Obsidian's `DataAdapter`, shared between the shard
  * store unit tests and the ported persistence tests. It
  * models a flat `Map<path, contents>` for files and a separate set of explicit
@@ -21,8 +88,9 @@ export interface AdapterCall {
  * The original inline fake in the persistence suite modelled only
  * `write/read/exists/rename/remove`; this promotes it to a shared stub and adds
  * the directory surface (`mkdir`, `rmdir`, `list`) the shard store needs, while
- * keeping `files`, `calls`, `writeDelay`, and `failNextRename` so existing
- * behaviour (the write queue, the rename-failure path) is preserved verbatim.
+ * keeping `files`, `calls`, and `failNextRename` so existing behaviour (the
+ * write queue, the rename-failure path) is preserved verbatim. Write ordering is
+ * driven by the explicit {@link deferWrites} gate rather than a real-time delay.
  */
 export class MemoryAdapter {
   /** The flat file map: vault-relative path to serialized contents. */
@@ -39,10 +107,12 @@ export class MemoryAdapter {
   public calls: AdapterCall[] = [];
 
   /**
-   * Optional artificial delay (ms) injected into `write`, used to exercise the
-   * service's write-queue serialization without real disk latency.
+   * The armed deferred write gate, or null when writes run unblocked. While
+   * armed (via {@link deferWrites}) every `write` parks on it until the test
+   * releases it, so the write-queue tests drive interleaving on command instead
+   * of racing a real-time delay.
    */
-  public writeDelay: number = 0;
+  protected writeGate: DeferredWriteGate | null = null;
 
   /**
    * When set, the next `rename` throws once and resets, simulating a crash
@@ -84,8 +154,10 @@ export class MemoryAdapter {
   }
 
   /**
-   * Writes a file's contents, honouring the optional `writeDelay` so a test can
-   * drive concurrent enqueues through the service's write queue.
+   * Writes a file's contents. When a deferred write gate is armed (via
+   * {@link deferWrites}) the write parks on it until the test releases it, so a
+   * test can drive concurrent enqueues through the service's write queue with no
+   * real-time delay.
    *
    * @param {string} path - The file path to write.
    * @param {string} data - The contents to store.
@@ -94,13 +166,28 @@ export class MemoryAdapter {
   public async write(path: string, data: string): Promise<void> {
     this.calls.push({ op: 'write', args: [path] });
 
-    if (this.writeDelay > 0) {
-      await new Promise<void>((resolve: () => void): void => {
-        setTimeout(resolve, this.writeDelay);
-      });
+    if (this.writeGate) {
+      await this.writeGate.block();
     }
 
     this.files.set(path, data);
+  }
+
+  /**
+   * Arms a deferred write gate so every subsequent `write` parks until the
+   * returned gate is released. Replaces the former millisecond `writeDelay`: the
+   * write-queue overlap and unload tests arm the gate, submit their overlapping
+   * work, await the in-flight write, then release it, driving interleaving
+   * deterministically with no real-time sleep.
+   *
+   * @return {DeferredWriteGate} The gate the test releases to let writes proceed.
+   */
+  public deferWrites(): DeferredWriteGate {
+    const gate: DeferredWriteGate = new DeferredWriteGate();
+
+    this.writeGate = gate;
+
+    return gate;
   }
 
   /**

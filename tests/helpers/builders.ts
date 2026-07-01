@@ -72,3 +72,21 @@ export const makeFolder = (path: string): TFolder => {
 
   return folder;
 };
+
+/**
+ * Builds a minimal container-shaped plugin host for an `@Inject`-decorated
+ * service under test. The decorator resolves each field through
+ * `this.plugin.get(token)`, so `resolve` maps a requested token to the stub the
+ * test wants injected; unmapped tokens resolve to undefined. This lets a test
+ * construct a real service instance over a lightweight host and drive its public
+ * seam, replacing the prototype-cast harnesses that bypassed construction.
+ *
+ * The token is typed `unknown` so this stays dependency-light; a caller compares
+ * against the concrete tokens it imports and casts the host to the service's
+ * constructor parameter at the call site.
+ */
+export const makeInjectHost = (
+  resolve: (token: unknown) => unknown = (): undefined => undefined,
+): { get: (token: unknown) => unknown } => ({
+  get: resolve,
+});

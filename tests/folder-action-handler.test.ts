@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { FolderDeltaStatus } from '@/consts';
 import { FolderActionHandler } from '@/modals/folder-action-handler';
-import type { FolderActionHost, FolderActionSelection } from '@/modals/folder-action-handler';
+import type { FolderActionHost, FolderActionSelection } from '@/modals/folder-action-handler.types';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import { FileVersion } from '@/snapshots/file.version';
 import type LineChangeTrackerPlugin from '@/main';

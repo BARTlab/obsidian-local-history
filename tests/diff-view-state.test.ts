@@ -3,7 +3,7 @@
 import { beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { DiffOutputFormatType, DiffViewMode, NavigationDirection } from '@/consts';
 import { DiffViewState } from '@/modals/diff-view-state';
-import type { DiffViewStateHost } from '@/modals/diff-view-state';
+import type { DiffViewStateHost } from '@/modals/diff-view-state.types';
 import type * as Diff from 'diff';
 
 /**

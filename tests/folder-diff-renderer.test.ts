@@ -3,7 +3,7 @@
 import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
 import { DiffOutputFormatType, DiffViewMode } from '@/consts';
 import { FolderDiffRenderer } from '@/modals/folder-diff-renderer';
-import type { FolderDiffHost } from '@/modals/folder-diff-renderer';
+import type { FolderDiffHost } from '@/modals/folder-diff-renderer.types';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import { FileVersion } from '@/snapshots/file.version';
 import type LineChangeTrackerPlugin from '@/main';

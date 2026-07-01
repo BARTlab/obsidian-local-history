@@ -3,20 +3,20 @@
  */
 
 /**
- * Regression tests for ReadingModeIndicatorService.
+ * Tests for ReadingModeIndicatorService, the reading-mode block indicator.
  *
- * Covers two behaviours:
+ * One suite covers the whole service surface:
+ * - resolveBlockChangeType: the highest-priority change type over a line range;
+ * - decorate: the post-processor callback (block with / without changes, guards);
+ * - clearAll: the residual-markup sweep across open preview leaves;
+ * - unregister (via unload) and init: registration behind the setting toggle.
  *
- * 1. clearAll() sweeps all open markdown leaves and removes `lct-rm-indicator`
- *    class and `data-lct-type` from every decorated element.
- * 2. unregister() calls clearAll() so toggling the setting off or unloading
- *    the plugin cleans residual markup immediately without a re-render.
- * 3. resolveBlockChangeType() returns the highest-priority ChangeType found in
- *    a line range, or null when the range has no recorded changes.
- *
- * Visual verification (the indicator visibly disappears from an open reading-
- * mode pane) is beyond the Jest boundary and requires a live Obsidian instance;
- * see docs/qa/render-protocol.md.
+ * The unit-level and decorate-path checks previously lived in two files that
+ * duplicated an identical obsidian mock and a testable subclass; they are merged
+ * here so the scaffolding exists once and no assertion is re-run across files.
+ * Visual verification (the indicator visibly appearing / disappearing in an open
+ * reading-mode pane) is beyond the Jest boundary and requires a live Obsidian
+ * instance; see docs/qa/render-protocol.md.
  */
 
 import 'reflect-metadata';
@@ -26,8 +26,9 @@ import { ReadingModeIndicatorService } from '@/services/reading-mode-indicator.s
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { MarkdownPostProcessorContext } from 'obsidian';
 
-// MarkdownPreviewRenderer is used at module load for its static method. Stub
-// it so the module can be imported without the real Obsidian runtime.
+// MarkdownPreviewRenderer is referenced at module load time. Stub obsidian so
+// the service module resolves without the real Obsidian runtime. MarkdownView is
+// used in clearAll() for the view cast.
 jest.mock('obsidian', () => ({
   MarkdownPreviewRenderer: {
     unregisterPostProcessor: jest.fn(),
@@ -36,13 +37,18 @@ jest.mock('obsidian', () => ({
 }));
 
 // ---------------------------------------------------------------------------
-// Minimal type aliases so test helpers stay readable without casting.
+// Type aliases
 // ---------------------------------------------------------------------------
 
 type ChangeMap = Map<number, Set<ChangeType>>;
 
+/** Helper so literal Map constructors are typed without casts. */
+function cm(entries: [number, Set<ChangeType>][]): ChangeMap {
+  return new Map(entries);
+}
+
 // ---------------------------------------------------------------------------
-// Exposed subclass - makes protected methods accessible in tests.
+// Testable subclass - exposes the protected surface without re-testing it.
 // ---------------------------------------------------------------------------
 
 class TestableService extends ReadingModeIndicatorService {
@@ -55,7 +61,16 @@ class TestableService extends ReadingModeIndicatorService {
   }
 
   public exposeClearAll(): void {
-    return this.clearAll();
+    this.clearAll();
+  }
+
+  /**
+   * Calls the protected decorate() method directly so tests can exercise the
+   * post-processor logic without going through the MarkdownPreviewRenderer
+   * registration path.
+   */
+  public exposeDecorate(el: HTMLElement, ctx: MarkdownPostProcessorContext): void {
+    this.decorate(el, ctx);
   }
 
   /** Directly set the processor reference so unregister() sees it. */
@@ -66,19 +81,19 @@ class TestableService extends ReadingModeIndicatorService {
     (this as unknown as { processor: unknown }).processor = fn;
   }
 
+  /** Returns the processor stored by register(), or undefined when not set. */
   public getProcessor(): unknown {
     return (this as unknown as { processor: unknown }).processor;
   }
 }
 
 // ---------------------------------------------------------------------------
-// Minimal mock snapshot factory.
+// Factories
 // ---------------------------------------------------------------------------
 
 /**
- * Builds a minimal FileSnapshot-like object whose getChanges() returns a Map
- * keyed by line number, each entry being a Set of ChangeType values present on
- * that line.
+ * Builds a minimal FileSnapshot whose getChanges().get(line) returns the
+ * corresponding Set from changeMap, or undefined when the line is absent.
  */
 function makeSnapshot(changeMap: ChangeMap): FileSnapshot {
   return {
@@ -90,25 +105,87 @@ function makeSnapshot(changeMap: ChangeMap): FileSnapshot {
   } as unknown as FileSnapshot;
 }
 
-// ---------------------------------------------------------------------------
-// Plugin mock factory.
-// ---------------------------------------------------------------------------
-
-function makeMockPlugin(leaves: { previewMode?: { containerEl: HTMLElement } | null }[]): unknown {
+/**
+ * Builds a minimal MarkdownPostProcessorContext whose getSectionInfo returns
+ * the given section info object (or null to simulate an embed/synthetic block).
+ */
+function makeCtx(
+  sourcePath: string,
+  sectionInfo: { lineStart: number; lineEnd: number; text: string } | null,
+): MarkdownPostProcessorContext {
   return {
+    sourcePath,
+    getSectionInfo: jest.fn((_el: HTMLElement) => sectionInfo),
+  } as unknown as MarkdownPostProcessorContext;
+}
+
+/**
+ * Builds a minimal plugin mock whose container resolves:
+ *   TOKENS.settings   -> settingsService with a configurable readingModeIndicator value
+ *   TOKENS.snapshots  -> snapshotsService with a configurable per-path snapshot
+ *   app.vault         -> getFileByPath returns a stub TFile (truthy) for any path
+ *   app.workspace     -> getLeavesOfType returns the given leaves
+ *   isReady           -> returns the given readyFlag (default true)
+ */
+function makePlugin(opts: {
+  readingModeIndicator?: boolean;
+  snapshot?: FileSnapshot | null;
+  leaves?: { previewMode?: { containerEl: HTMLElement } | null }[];
+  ready?: boolean;
+}): {
+  plugin: unknown;
+  registerMarkdownPostProcessor: ReturnType<typeof jest.fn>;
+} {
+  const registerMarkdownPostProcessor = jest.fn();
+
+  const plugin = {
+    isReady: (): boolean => opts.ready ?? true,
+    registerMarkdownPostProcessor,
     app: {
+      vault: {
+        getFileByPath: (_path: string): unknown => ({ path: _path }),
+      },
       workspace: {
         getLeavesOfType: (_type: string) =>
-          leaves.map((leaf) => ({
+          (opts.leaves ?? []).map((leaf) => ({
             view: {
               previewMode: leaf.previewMode ?? null,
             },
           })),
       },
     },
-    get: jest.fn(),
-    registerMarkdownPostProcessor: jest.fn(),
+    get: jest.fn((token: unknown) => {
+      // Overridden below with a TOKENS-aware implementation; the placeholder
+      // keeps the field a jest.fn so mockImplementation can replace it.
+      void token;
+
+      return undefined;
+    }),
   };
+
+  // Resolve real service stubs keyed by TOKENS. TOKENS is required lazily to
+  // avoid hoisting issues with the obsidian mock above.
+  const { TOKENS } = jest.requireActual<{ TOKENS: Record<string, symbol> }>(
+    '@/services/tokens',
+  );
+
+  (plugin.get as ReturnType<typeof jest.fn>).mockImplementation((token: unknown) => {
+    if (token === TOKENS.settings) {
+      return {
+        value: (_key: string): boolean => opts.readingModeIndicator ?? true,
+      };
+    }
+
+    if (token === TOKENS.snapshots) {
+      return {
+        getOne: (_file: unknown): FileSnapshot | null => opts.snapshot ?? null,
+      };
+    }
+
+    return undefined;
+  });
+
+  return { plugin, registerMarkdownPostProcessor };
 }
 
 // ---------------------------------------------------------------------------
@@ -119,7 +196,7 @@ describe('ReadingModeIndicatorService.resolveBlockChangeType', () => {
   let service: TestableService;
 
   beforeEach(() => {
-    const plugin = makeMockPlugin([]);
+    const { plugin } = makePlugin({});
 
     service = new TestableService(plugin as never);
   });
@@ -191,7 +268,141 @@ describe('ReadingModeIndicatorService.resolveBlockChangeType', () => {
 });
 
 // ---------------------------------------------------------------------------
-// clearAll
+// decorate - block with changes
+// ---------------------------------------------------------------------------
+
+describe('ReadingModeIndicatorService.decorate - block with changes', () => {
+  let service: TestableService;
+  let registerMarkdownPostProcessor: ReturnType<typeof jest.fn>;
+
+  beforeEach(() => {
+    const result = makePlugin({
+      readingModeIndicator: true,
+      snapshot: makeSnapshot(
+        cm([
+          [1, new Set([ChangeType.changed])],
+          [2, new Set([ChangeType.added])],
+        ]),
+      ),
+    });
+
+    registerMarkdownPostProcessor = result.registerMarkdownPostProcessor;
+    service = new TestableService(result.plugin as never);
+  });
+
+  it('adds lct-rm-indicator class when block lines contain changes', () => {
+    const el = document.createElement('p');
+    const ctx = makeCtx('note.md', { lineStart: 1, lineEnd: 2, text: 'content' });
+
+    service.exposeDecorate(el, ctx);
+
+    expect(el.classList.contains('lct-rm-indicator')).toBe(true);
+  });
+
+  it('sets data-lct-type to the highest-priority change type (added over changed)', () => {
+    const el = document.createElement('p');
+    // Lines 1..2 have changed and added; added wins (higher priority).
+    const ctx = makeCtx('note.md', { lineStart: 1, lineEnd: 2, text: 'content' });
+
+    service.exposeDecorate(el, ctx);
+
+    expect(el.getAttribute('data-lct-type')).toBe(ChangeType.added);
+  });
+
+  it('sets data-lct-type to changed when only changed lines are present', () => {
+    const snapshot = makeSnapshot(new Map([[0, new Set([ChangeType.changed])]]));
+    const { plugin } = makePlugin({ snapshot });
+    const svc = new TestableService(plugin as never);
+    const el = document.createElement('div');
+    const ctx = makeCtx('other.md', { lineStart: 0, lineEnd: 0, text: 'x' });
+
+    svc.exposeDecorate(el, ctx);
+
+    expect(el.getAttribute('data-lct-type')).toBe(ChangeType.changed);
+  });
+
+  it('registers a post-processor via plugin.registerMarkdownPostProcessor on init()', () => {
+    service.init();
+
+    expect(registerMarkdownPostProcessor).toHaveBeenCalledTimes(1);
+    expect(typeof (registerMarkdownPostProcessor.mock.calls[0] as unknown[])[0]).toBe('function');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// decorate - block with no changes
+// ---------------------------------------------------------------------------
+
+describe('ReadingModeIndicatorService.decorate - block with no changes', () => {
+  it('leaves the element untouched when no changes exist in the line range', () => {
+    const snapshot = makeSnapshot(
+      new Map([[10, new Set([ChangeType.added])]]),
+    );
+
+    const { plugin } = makePlugin({ snapshot });
+    const service = new TestableService(plugin as never);
+
+    const el = document.createElement('p');
+    // Range 0..3 has no changes; line 10 is outside the range.
+    const ctx = makeCtx('note.md', { lineStart: 0, lineEnd: 3, text: 'text' });
+
+    service.exposeDecorate(el, ctx);
+
+    expect(el.classList.contains('lct-rm-indicator')).toBe(false);
+    expect(el.hasAttribute('data-lct-type')).toBe(false);
+  });
+
+  it('removes stale indicator when block no longer has matching changes', () => {
+    // Simulate a block that was previously decorated but now has no changes.
+    const snapshot = makeSnapshot(new Map());
+    const { plugin } = makePlugin({ snapshot });
+    const service = new TestableService(plugin as never);
+
+    const el = document.createElement('p');
+
+    el.classList.add('lct-rm-indicator');
+    el.setAttribute('data-lct-type', 'added');
+
+    const ctx = makeCtx('note.md', { lineStart: 0, lineEnd: 2, text: 'x' });
+
+    service.exposeDecorate(el, ctx);
+
+    expect(el.classList.contains('lct-rm-indicator')).toBe(false);
+    expect(el.hasAttribute('data-lct-type')).toBe(false);
+  });
+
+  it('returns early without touching element when getSectionInfo returns null', () => {
+    const { plugin } = makePlugin({ snapshot: makeSnapshot(new Map()) });
+    const service = new TestableService(plugin as never);
+
+    const el = document.createElement('p');
+    const ctx = makeCtx('note.md', null);
+
+    // Must not throw and must not add the indicator.
+    expect(() => service.exposeDecorate(el, ctx)).not.toThrow();
+    expect(el.classList.contains('lct-rm-indicator')).toBe(false);
+  });
+
+  it('removes stale indicator and returns when no snapshot exists for the file', () => {
+    const { plugin } = makePlugin({ snapshot: null });
+    const service = new TestableService(plugin as never);
+
+    const el = document.createElement('div');
+
+    el.classList.add('lct-rm-indicator');
+    el.setAttribute('data-lct-type', 'changed');
+
+    const ctx = makeCtx('missing.md', { lineStart: 0, lineEnd: 0, text: '' });
+
+    service.exposeDecorate(el, ctx);
+
+    expect(el.classList.contains('lct-rm-indicator')).toBe(false);
+    expect(el.hasAttribute('data-lct-type')).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// clearAll - residual-markup sweep across open preview leaves
 // ---------------------------------------------------------------------------
 
 describe('ReadingModeIndicatorService.clearAll', () => {
@@ -217,7 +428,7 @@ describe('ReadingModeIndicatorService.clearAll', () => {
     clean.textContent = 'clean';
     container.appendChild(clean);
 
-    const plugin = makeMockPlugin([{ previewMode: { containerEl: container } }]);
+    const { plugin } = makePlugin({ leaves: [{ previewMode: { containerEl: container } }] });
     const service = new TestableService(plugin as never);
 
     service.exposeClearAll();
@@ -231,14 +442,14 @@ describe('ReadingModeIndicatorService.clearAll', () => {
 
   it('skips leaves whose previewMode.containerEl is absent', () => {
     // A leaf with no previewMode - must not throw.
-    const plugin = makeMockPlugin([{ previewMode: null }]);
+    const { plugin } = makePlugin({ leaves: [{ previewMode: null }] });
     const service = new TestableService(plugin as never);
 
     expect(() => service.exposeClearAll()).not.toThrow();
   });
 
   it('handles an empty workspace (no leaves) without error', () => {
-    const plugin = makeMockPlugin([]);
+    const { plugin } = makePlugin({});
     const service = new TestableService(plugin as never);
 
     expect(() => service.exposeClearAll()).not.toThrow();
@@ -259,10 +470,12 @@ describe('ReadingModeIndicatorService.clearAll', () => {
     el2.setAttribute('data-lct-type', 'restored');
     container2.appendChild(el2);
 
-    const plugin = makeMockPlugin([
-      { previewMode: { containerEl: container1 } },
-      { previewMode: { containerEl: container2 } },
-    ]);
+    const { plugin } = makePlugin({
+      leaves: [
+        { previewMode: { containerEl: container1 } },
+        { previewMode: { containerEl: container2 } },
+      ],
+    });
 
     const service = new TestableService(plugin as never);
 
@@ -274,7 +487,7 @@ describe('ReadingModeIndicatorService.clearAll', () => {
 });
 
 // ---------------------------------------------------------------------------
-// unregister triggers clearAll
+// unregister triggers clearAll (via unload)
 // ---------------------------------------------------------------------------
 
 describe('ReadingModeIndicatorService.unregister (via unload)', () => {
@@ -286,7 +499,7 @@ describe('ReadingModeIndicatorService.unregister (via unload)', () => {
     block.setAttribute('data-lct-type', 'changed');
     container.appendChild(block);
 
-    const plugin = makeMockPlugin([{ previewMode: { containerEl: container } }]);
+    const { plugin } = makePlugin({ leaves: [{ previewMode: { containerEl: container } }] });
     const service = new TestableService(plugin as never);
 
     // Simulate a registered processor so unregister() does not bail early.
@@ -299,9 +512,48 @@ describe('ReadingModeIndicatorService.unregister (via unload)', () => {
   });
 
   it('does not throw when unloading with no active processor', () => {
-    const plugin = makeMockPlugin([]);
+    const { plugin } = makePlugin({});
     const service = new TestableService(plugin as never);
 
     expect(() => service.unload()).not.toThrow();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// init - readingModeIndicator setting gates registration
+// ---------------------------------------------------------------------------
+
+describe('ReadingModeIndicatorService.init - readingModeIndicator off', () => {
+  it('does not call registerMarkdownPostProcessor when the setting is disabled', () => {
+    const { plugin, registerMarkdownPostProcessor } = makePlugin({
+      readingModeIndicator: false,
+    });
+
+    const service = new TestableService(plugin as never);
+
+    service.init();
+
+    expect(registerMarkdownPostProcessor).not.toHaveBeenCalled();
+  });
+
+  it('does not store a processor reference when the setting is disabled', () => {
+    const { plugin } = makePlugin({ readingModeIndicator: false });
+    const service = new TestableService(plugin as never);
+
+    service.init();
+
+    expect(service.getProcessor()).toBeUndefined();
+  });
+
+  it('registers a post-processor when the setting is enabled', () => {
+    const { plugin, registerMarkdownPostProcessor } = makePlugin({
+      readingModeIndicator: true,
+    });
+
+    const service = new TestableService(plugin as never);
+
+    service.init();
+
+    expect(registerMarkdownPostProcessor).toHaveBeenCalledTimes(1);
   });
 });

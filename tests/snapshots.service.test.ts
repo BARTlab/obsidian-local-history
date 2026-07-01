@@ -1,26 +1,10 @@
 import 'reflect-metadata';
 import { describe, expect, it, jest } from '@jest/globals';
 
-// Replace the real FileSnapshot so the test stays hermetic and does not pull
-// the lodash-es (ESM) chain into the CommonJS Jest runtime. Only the fields
-// touched by SnapshotsService rename/remove are needed here.
-jest.mock('@/snapshots/file.snapshot', () => ({
-  FileSnapshot: class {
-    public file: unknown;
-    public content: { lines: string[]; lineBreak: string };
-
-    public constructor(content: string, lineBreak?: string, file?: unknown) {
-      const resolved: string = lineBreak ?? '\n';
-
-      this.file = file;
-      this.content = {
-        lineBreak: resolved,
-        lines: typeof content === 'string' ? content.split(resolved) : [],
-      };
-    }
-  },
-}));
-
+// The real FileSnapshot is used directly (the lodash-es ESM chain is routed to
+// a CommonJS stub via jest.config moduleNameMapper), the same way the
+// serialize/restore suite does, so this suite runs against the genuine snapshot
+// API rather than a hand-rolled fake.
 import { SnapshotsService } from '@/services/snapshots.service';
 import * as obsidian from 'obsidian';
 

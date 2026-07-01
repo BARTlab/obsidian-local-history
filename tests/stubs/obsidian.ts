@@ -66,6 +66,26 @@ export class Modal {
 }
 
 /**
+ * Inert replacement for Obsidian's `Plugin` base class. The plugin entry point
+ * extends it, so the class must exist as a constructor for `src/main.ts` to be
+ * importable under Jest; no behavior is needed because tests never run its
+ * lifecycle.
+ */
+export class Plugin {}
+
+/**
+ * Inert replacement for Obsidian's `PluginSettingTab` base class, extended by
+ * the settings tab that `src/main.ts` pulls in transitively.
+ */
+export class PluginSettingTab {}
+
+/**
+ * Inert replacement for Obsidian's `ItemView` base class, extended by the
+ * recent-changes view that `src/main.ts` imports.
+ */
+export class ItemView {}
+
+/**
  * Inert replacement for Obsidian's `Setting` builder. Every chainable method
  * returns `this` so builder chains do not throw under test.
  */

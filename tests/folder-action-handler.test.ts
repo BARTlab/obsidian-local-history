@@ -32,7 +32,7 @@ import { makeFile } from './helpers/builders';
  *   tombstone, and every destructive action respects a declined confirm.
  *
  * The tombstone-restore disk branches (occupied / free / throw) are covered in
- * folder-history.modal.tombstone.test.ts; here the restore-selected dispatch is
+ * folder-action-handler.tombstone.test.ts; here the restore-selected dispatch is
  * asserted to reach that path, not its internals.
  *
  * Real {@link FileSnapshot} / {@link FileVersion} instances back the selection so

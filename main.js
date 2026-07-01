@@ -13,9 +13,9 @@ var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __commonJS = (cb, mod) => function __require() {
   return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
 };
-var __export = (target, all) => {
+var __export = (target2, all) => {
   for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
+    __defProp(target2, name, { get: all[name], enumerable: true });
 };
 var __copyProps = (to, from, except, desc) => {
   if (from && typeof from === "object" || typeof from === "function") {
@@ -25,21 +25,21 @@ var __copyProps = (to, from, except, desc) => {
   }
   return to;
 };
-var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
+var __toESM = (mod, isNodeMode, target2) => (target2 = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
   // If the importer is in node compatibility mode or this is not an ESM
   // file that has been converted to a CommonJS file using a Babel-
   // compatible transform (i.e. "__esModule" has not been set), then set
   // "default" to the CommonJS "module.exports" for node compatibility.
-  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
+  isNodeMode || !mod || !mod.__esModule ? __defProp(target2, "default", { value: mod, enumerable: true }) : target2,
   mod
 ));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-var __decorateClass = (decorators, target, key2, kind) => {
-  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc(target, key2) : target;
+var __decorateClass = (decorators, target2, key2, kind) => {
+  var result = kind > 1 ? void 0 : kind ? __getOwnPropDesc(target2, key2) : target2;
   for (var i = decorators.length - 1, decorator; i >= 0; i--)
     if (decorator = decorators[i])
-      result = (kind ? decorator(target, key2, result) : decorator(result)) || result;
-  if (kind && result) __defProp(target, key2, result);
+      result = (kind ? decorator(target2, key2, result) : decorator(result)) || result;
+  if (kind && result) __defProp(target2, key2, result);
   return result;
 };
 
@@ -58,9 +58,9 @@ var require_Reflect = __commonJS({
         if (typeof root2.Reflect === "undefined") {
           root2.Reflect = Reflect3;
         }
-        function makeExporter(target, previous) {
+        function makeExporter(target2, previous) {
           return function(key2, value) {
-            Object.defineProperty(target, key2, { configurable: true, writable: true, value });
+            Object.defineProperty(target2, key2, { configurable: true, writable: true, value });
             if (previous)
               previous(key2, value);
           };
@@ -115,130 +115,130 @@ var require_Reflect = __commonJS({
         var registrySymbol = supportsSymbol ? /* @__PURE__ */ Symbol.for("@reflect-metadata:registry") : void 0;
         var metadataRegistry = GetOrCreateMetadataRegistry();
         var metadataProvider = CreateMetadataProvider(metadataRegistry);
-        function decorate(decorators, target, propertyKey, attributes) {
+        function decorate(decorators, target2, propertyKey, attributes) {
           if (!IsUndefined(propertyKey)) {
             if (!IsArray(decorators))
               throw new TypeError();
-            if (!IsObject(target))
+            if (!IsObject(target2))
               throw new TypeError();
             if (!IsObject(attributes) && !IsUndefined(attributes) && !IsNull(attributes))
               throw new TypeError();
             if (IsNull(attributes))
               attributes = void 0;
             propertyKey = ToPropertyKey(propertyKey);
-            return DecorateProperty(decorators, target, propertyKey, attributes);
+            return DecorateProperty(decorators, target2, propertyKey, attributes);
           } else {
             if (!IsArray(decorators))
               throw new TypeError();
-            if (!IsConstructor(target))
+            if (!IsConstructor(target2))
               throw new TypeError();
-            return DecorateConstructor(decorators, target);
+            return DecorateConstructor(decorators, target2);
           }
         }
         exporter("decorate", decorate);
         function metadata(metadataKey, metadataValue) {
-          function decorator(target, propertyKey) {
-            if (!IsObject(target))
+          function decorator(target2, propertyKey) {
+            if (!IsObject(target2))
               throw new TypeError();
             if (!IsUndefined(propertyKey) && !IsPropertyKey(propertyKey))
               throw new TypeError();
-            OrdinaryDefineOwnMetadata(metadataKey, metadataValue, target, propertyKey);
+            OrdinaryDefineOwnMetadata(metadataKey, metadataValue, target2, propertyKey);
           }
           return decorator;
         }
         exporter("metadata", metadata);
-        function defineMetadata(metadataKey, metadataValue, target, propertyKey) {
-          if (!IsObject(target))
+        function defineMetadata(metadataKey, metadataValue, target2, propertyKey) {
+          if (!IsObject(target2))
             throw new TypeError();
           if (!IsUndefined(propertyKey))
             propertyKey = ToPropertyKey(propertyKey);
-          return OrdinaryDefineOwnMetadata(metadataKey, metadataValue, target, propertyKey);
+          return OrdinaryDefineOwnMetadata(metadataKey, metadataValue, target2, propertyKey);
         }
         exporter("defineMetadata", defineMetadata);
-        function hasMetadata(metadataKey, target, propertyKey) {
-          if (!IsObject(target))
+        function hasMetadata(metadataKey, target2, propertyKey) {
+          if (!IsObject(target2))
             throw new TypeError();
           if (!IsUndefined(propertyKey))
             propertyKey = ToPropertyKey(propertyKey);
-          return OrdinaryHasMetadata(metadataKey, target, propertyKey);
+          return OrdinaryHasMetadata(metadataKey, target2, propertyKey);
         }
         exporter("hasMetadata", hasMetadata);
-        function hasOwnMetadata(metadataKey, target, propertyKey) {
-          if (!IsObject(target))
+        function hasOwnMetadata(metadataKey, target2, propertyKey) {
+          if (!IsObject(target2))
             throw new TypeError();
           if (!IsUndefined(propertyKey))
             propertyKey = ToPropertyKey(propertyKey);
-          return OrdinaryHasOwnMetadata(metadataKey, target, propertyKey);
+          return OrdinaryHasOwnMetadata(metadataKey, target2, propertyKey);
         }
         exporter("hasOwnMetadata", hasOwnMetadata);
-        function getMetadata(metadataKey, target, propertyKey) {
-          if (!IsObject(target))
+        function getMetadata(metadataKey, target2, propertyKey) {
+          if (!IsObject(target2))
             throw new TypeError();
           if (!IsUndefined(propertyKey))
             propertyKey = ToPropertyKey(propertyKey);
-          return OrdinaryGetMetadata(metadataKey, target, propertyKey);
+          return OrdinaryGetMetadata(metadataKey, target2, propertyKey);
         }
         exporter("getMetadata", getMetadata);
-        function getOwnMetadata(metadataKey, target, propertyKey) {
-          if (!IsObject(target))
+        function getOwnMetadata(metadataKey, target2, propertyKey) {
+          if (!IsObject(target2))
             throw new TypeError();
           if (!IsUndefined(propertyKey))
             propertyKey = ToPropertyKey(propertyKey);
-          return OrdinaryGetOwnMetadata(metadataKey, target, propertyKey);
+          return OrdinaryGetOwnMetadata(metadataKey, target2, propertyKey);
         }
         exporter("getOwnMetadata", getOwnMetadata);
-        function getMetadataKeys(target, propertyKey) {
-          if (!IsObject(target))
+        function getMetadataKeys(target2, propertyKey) {
+          if (!IsObject(target2))
             throw new TypeError();
           if (!IsUndefined(propertyKey))
             propertyKey = ToPropertyKey(propertyKey);
-          return OrdinaryMetadataKeys(target, propertyKey);
+          return OrdinaryMetadataKeys(target2, propertyKey);
         }
         exporter("getMetadataKeys", getMetadataKeys);
-        function getOwnMetadataKeys(target, propertyKey) {
-          if (!IsObject(target))
+        function getOwnMetadataKeys(target2, propertyKey) {
+          if (!IsObject(target2))
             throw new TypeError();
           if (!IsUndefined(propertyKey))
             propertyKey = ToPropertyKey(propertyKey);
-          return OrdinaryOwnMetadataKeys(target, propertyKey);
+          return OrdinaryOwnMetadataKeys(target2, propertyKey);
         }
         exporter("getOwnMetadataKeys", getOwnMetadataKeys);
-        function deleteMetadata(metadataKey, target, propertyKey) {
-          if (!IsObject(target))
+        function deleteMetadata(metadataKey, target2, propertyKey) {
+          if (!IsObject(target2))
             throw new TypeError();
           if (!IsUndefined(propertyKey))
             propertyKey = ToPropertyKey(propertyKey);
-          if (!IsObject(target))
+          if (!IsObject(target2))
             throw new TypeError();
           if (!IsUndefined(propertyKey))
             propertyKey = ToPropertyKey(propertyKey);
           var provider = GetMetadataProvider(
-            target,
+            target2,
             propertyKey,
             /*Create*/
             false
           );
           if (IsUndefined(provider))
             return false;
-          return provider.OrdinaryDeleteMetadata(metadataKey, target, propertyKey);
+          return provider.OrdinaryDeleteMetadata(metadataKey, target2, propertyKey);
         }
         exporter("deleteMetadata", deleteMetadata);
-        function DecorateConstructor(decorators, target) {
+        function DecorateConstructor(decorators, target2) {
           for (var i = decorators.length - 1; i >= 0; --i) {
             var decorator = decorators[i];
-            var decorated = decorator(target);
+            var decorated = decorator(target2);
             if (!IsUndefined(decorated) && !IsNull(decorated)) {
               if (!IsConstructor(decorated))
                 throw new TypeError();
-              target = decorated;
+              target2 = decorated;
             }
           }
-          return target;
+          return target2;
         }
-        function DecorateProperty(decorators, target, propertyKey, descriptor) {
+        function DecorateProperty(decorators, target2, propertyKey, descriptor) {
           for (var i = decorators.length - 1; i >= 0; --i) {
             var decorator = decorators[i];
-            var decorated = decorator(target, propertyKey, descriptor);
+            var decorated = decorator(target2, propertyKey, descriptor);
             if (!IsUndefined(decorated) && !IsNull(decorated)) {
               if (!IsObject(decorated))
                 throw new TypeError();
@@ -307,13 +307,13 @@ var require_Reflect = __commonJS({
           if (ownKeys.length <= 0)
             return parentKeys;
           var set2 = new _Set();
-          var keys2 = [];
+          var keys = [];
           for (var _i = 0, ownKeys_1 = ownKeys; _i < ownKeys_1.length; _i++) {
             var key2 = ownKeys_1[_i];
             var hasKey = set2.has(key2);
             if (!hasKey) {
               set2.add(key2);
-              keys2.push(key2);
+              keys.push(key2);
             }
           }
           for (var _a = 0, parentKeys_1 = parentKeys; _a < parentKeys_1.length; _a++) {
@@ -321,10 +321,10 @@ var require_Reflect = __commonJS({
             var hasKey = set2.has(key2);
             if (!hasKey) {
               set2.add(key2);
-              keys2.push(key2);
+              keys.push(key2);
             }
           }
-          return keys2;
+          return keys;
         }
         function OrdinaryOwnMetadataKeys(O, P) {
           var provider = GetMetadataProvider(
@@ -712,7 +712,7 @@ var require_Reflect = __commonJS({
             metadataMap.set(MetadataKey, MetadataValue);
           }
           function OrdinaryOwnMetadataKeys2(O, P) {
-            var keys2 = [];
+            var keys = [];
             var metadataMap = GetOrCreateMetadataMap(
               O,
               P,
@@ -720,19 +720,19 @@ var require_Reflect = __commonJS({
               false
             );
             if (IsUndefined(metadataMap))
-              return keys2;
+              return keys;
             var keysObj = metadataMap.keys();
             var iterator = GetIterator(keysObj);
             var k = 0;
             while (true) {
               var next = IteratorStep(iterator);
               if (!next) {
-                keys2.length = k;
-                return keys2;
+                keys.length = k;
+                return keys;
               }
               var nextValue = IteratorValue(next);
               try {
-                keys2[k] = nextValue;
+                keys[k] = nextValue;
               } catch (e) {
                 try {
                   IteratorClose(iterator);
@@ -812,9 +812,9 @@ var require_Reflect = __commonJS({
           var MapIterator = (
             /** @class */
             (function() {
-              function MapIterator2(keys2, values, selector) {
+              function MapIterator2(keys, values, selector) {
                 this._index = 0;
-                this._keys = keys2;
+                this._keys = keys;
                 this._values = values;
                 this._selector = selector;
               }
@@ -973,115 +973,115 @@ var require_Reflect = __commonJS({
           }
         }
         function CreateSetPolyfill() {
-          var Set3 = (
+          var Set2 = (
             /** @class */
             (function() {
-              function Set4() {
+              function Set3() {
                 this._map = new _Map();
               }
-              Object.defineProperty(Set4.prototype, "size", {
+              Object.defineProperty(Set3.prototype, "size", {
                 get: function() {
                   return this._map.size;
                 },
                 enumerable: true,
                 configurable: true
               });
-              Set4.prototype.has = function(value) {
+              Set3.prototype.has = function(value) {
                 return this._map.has(value);
               };
-              Set4.prototype.add = function(value) {
+              Set3.prototype.add = function(value) {
                 return this._map.set(value, value), this;
               };
-              Set4.prototype.delete = function(value) {
+              Set3.prototype.delete = function(value) {
                 return this._map.delete(value);
               };
-              Set4.prototype.clear = function() {
+              Set3.prototype.clear = function() {
                 this._map.clear();
               };
-              Set4.prototype.keys = function() {
+              Set3.prototype.keys = function() {
                 return this._map.keys();
               };
-              Set4.prototype.values = function() {
+              Set3.prototype.values = function() {
                 return this._map.keys();
               };
-              Set4.prototype.entries = function() {
+              Set3.prototype.entries = function() {
                 return this._map.entries();
               };
-              Set4.prototype["@@iterator"] = function() {
+              Set3.prototype["@@iterator"] = function() {
                 return this.keys();
               };
-              Set4.prototype[iteratorSymbol] = function() {
+              Set3.prototype[iteratorSymbol] = function() {
                 return this.keys();
               };
-              return Set4;
+              return Set3;
             })()
           );
-          return Set3;
+          return Set2;
         }
         function CreateWeakMapPolyfill() {
           var UUID_SIZE = 16;
-          var keys2 = HashMap.create();
+          var keys = HashMap.create();
           var rootKey = CreateUniqueKey();
           return (
             /** @class */
             (function() {
-              function WeakMap3() {
+              function WeakMap2() {
                 this._key = CreateUniqueKey();
               }
-              WeakMap3.prototype.has = function(target) {
+              WeakMap2.prototype.has = function(target2) {
                 var table = GetOrCreateWeakMapTable(
-                  target,
+                  target2,
                   /*create*/
                   false
                 );
                 return table !== void 0 ? HashMap.has(table, this._key) : false;
               };
-              WeakMap3.prototype.get = function(target) {
+              WeakMap2.prototype.get = function(target2) {
                 var table = GetOrCreateWeakMapTable(
-                  target,
+                  target2,
                   /*create*/
                   false
                 );
                 return table !== void 0 ? HashMap.get(table, this._key) : void 0;
               };
-              WeakMap3.prototype.set = function(target, value) {
+              WeakMap2.prototype.set = function(target2, value) {
                 var table = GetOrCreateWeakMapTable(
-                  target,
+                  target2,
                   /*create*/
                   true
                 );
                 table[this._key] = value;
                 return this;
               };
-              WeakMap3.prototype.delete = function(target) {
+              WeakMap2.prototype.delete = function(target2) {
                 var table = GetOrCreateWeakMapTable(
-                  target,
+                  target2,
                   /*create*/
                   false
                 );
                 return table !== void 0 ? delete table[this._key] : false;
               };
-              WeakMap3.prototype.clear = function() {
+              WeakMap2.prototype.clear = function() {
                 this._key = CreateUniqueKey();
               };
-              return WeakMap3;
+              return WeakMap2;
             })()
           );
           function CreateUniqueKey() {
             var key2;
             do
               key2 = "@@WeakMap@@" + CreateUUID();
-            while (HashMap.has(keys2, key2));
-            keys2[key2] = true;
+            while (HashMap.has(keys, key2));
+            keys[key2] = true;
             return key2;
           }
-          function GetOrCreateWeakMapTable(target, create) {
-            if (!hasOwn.call(target, rootKey)) {
-              if (!create)
+          function GetOrCreateWeakMapTable(target2, create2) {
+            if (!hasOwn.call(target2, rootKey)) {
+              if (!create2)
                 return void 0;
-              Object.defineProperty(target, rootKey, { value: HashMap.create() });
+              Object.defineProperty(target2, rootKey, { value: HashMap.create() });
             }
-            return target[rootKey];
+            return target2[rootKey];
           }
           function FillRandomBytes(buffer, size) {
             for (var i = 0; i < size; ++i)
@@ -1480,7 +1480,7 @@ var require_template = __commonJS({
         v: hoganEscape,
         // triple stache
         t: coerceToString,
-        render: function render(context, partials, indent) {
+        render: function render2(context, partials, indent) {
           return this.ri([context], partials || {}, indent);
         },
         // render internal -- a hook for overrides that catches partials too
@@ -1940,7 +1940,6 @@ var DEFAULT_SETTINGS = {
   }
 };
 var SHOW_CHANGE_KEYS = ["show.changed", "show.restored", "show.added", "show.removed"];
-var STYLE_ID = "line-change-tracker-styles";
 var RECENT_CHANGES_VIEW_TYPE = "line-change-tracker-recent-changes";
 var STATUSBAR_ITEM_ID = "default";
 var ObsidianVaultEvent = /* @__PURE__ */ ((ObsidianVaultEvent2) => {
@@ -2058,35 +2057,27 @@ var OBSIDIAN_LANGUAGES = [
 ];
 var WORD_DIFF_LENGTH_THRESHOLD = 5e3;
 var WORD_DIFF_PAIRING_THRESHOLD = 20;
-var PLACEHOLDER_PATTERN = /\{(\w+)\}/g;
+var PLACEHOLDER_PATTERN = /\{(\w+)}/g;
 
 // src/extensions/refresh.effect.ts
 var import_state = require("@codemirror/state");
 var refreshDecorationsEffect = import_state.StateEffect.define();
 
-// src/commands/base.command.ts
-var BaseCommand = class {
-  /**
-   * Creates a new instance of BaseCommand.
-   *
-   * @param {LineChangeTrackerPlugin} plugin - The plugin instance that manages this command
-   */
-  constructor(plugin) {
-    this.plugin = plugin;
-  }
-};
+// src/decorators/meta-keys.ts
+var META_ON_EVENT = /* @__PURE__ */ Symbol("lct:on-event");
+var META_INJECT = /* @__PURE__ */ Symbol("lct:inject");
 
 // src/decorators/inject.decorator.ts
-var Inject = (cls) => {
-  return (target, propertyKey) => {
-    Reflect.defineMetadata("INJECT", true, target, propertyKey);
-    Object.defineProperty(target, propertyKey, {
+var Inject = (token2) => {
+  return (target2, propertyKey) => {
+    Reflect.defineMetadata(META_INJECT, true, target2, propertyKey);
+    Object.defineProperty(target2, propertyKey, {
       get() {
-        const plugin = this["plugin"];
-        if (plugin) {
-          return plugin.get(cls);
+        const container = this["plugin"];
+        if (container) {
+          return container.get(token2);
         }
-        throw new Error(`"${target}" does not have a "plugin" property defined.`);
+        throw new Error(`"${target2}" does not have a "plugin" property defined.`);
       },
       set(_value) {
         throw new Error("You cannot change the value of a property with a service");
@@ -2096,64 +2087,31 @@ var Inject = (cls) => {
 };
 
 // src/helpers/navigation.helper.ts
-var NavigationHelper = class _NavigationHelper {
-  /**
-   * Resolves the changed line to navigate to from the current cursor line.
-   * Targets are strictly after (for 'next') or strictly before (for
-   * 'previous') the cursor, so a cursor already sitting on a changed line still
-   * advances to a different one. With nothing strictly in the requested
-   * direction the search wraps to the opposite end of the set.
-   *
-   * @param {number[]} changedLines - The 0-based changed line positions, in any
-   *   order and possibly with duplicates
-   * @param {number} cursorLine - The 0-based line the cursor is currently on
-   * @param {NavigationDirection} direction - Which way to walk the set
-   * @return {number | null} The 0-based target line, or null when there are no
-   *   changed lines to navigate to
-   */
-  static target(changedLines, cursorLine, direction) {
-    const sorted = _NavigationHelper.normalize(changedLines);
-    if (sorted.length === 0) {
-      return null;
-    }
-    if (direction === "next" /* next */) {
-      const ahead = sorted.find((line) => line > cursorLine);
-      return ahead != null ? ahead : sorted[0];
-    }
-    const before = [...sorted].reverse().find((line) => line < cursorLine);
-    return before != null ? before : sorted[sorted.length - 1];
+function target(changedLines, cursorLine, direction) {
+  const sorted = normalize(changedLines);
+  if (sorted.length === 0) {
+    return null;
   }
-  /**
-   * Moves the editor cursor to the start of a 0-based target line and scrolls
-   * it into view. The line is clamped into the document's range and the column
-   * to that line's length, so a stale target (for example a changed line that
-   * no longer exists) can never throw or land off the document.
-   *
-   * @param {Editor} editor - The editor to move the cursor in
-   * @param {number} line - The 0-based line to place the cursor on
-   */
-  static moveCursor(editor, line) {
-    const lastLine = editor.lastLine();
-    const targetLine = Math.max(0, Math.min(lastLine, line));
-    const column = editor.getLine(targetLine).length;
-    editor.setCursor({ line: targetLine, ch: 0 });
-    editor.scrollIntoView({
-      from: { line: targetLine, ch: 0 },
-      to: { line: targetLine, ch: column }
-    }, true);
+  if (direction === "next" /* next */) {
+    const ahead = sorted.find((line) => line > cursorLine);
+    return ahead != null ? ahead : sorted[0];
   }
-  /**
-   * Sorts the changed line positions ascending and drops duplicates and any
-   * non-finite entries, yielding the canonical ordered set the target search
-   * relies on.
-   *
-   * @param {number[]} changedLines - The raw changed line positions
-   * @return {number[]} The unique, ascending, finite line positions
-   */
-  static normalize(changedLines) {
-    return [...new Set(changedLines != null ? changedLines : [])].filter((line) => Number.isFinite(line)).sort((a, b) => a - b);
-  }
-};
+  const before = [...sorted].reverse().find((line) => line < cursorLine);
+  return before != null ? before : sorted[sorted.length - 1];
+}
+function moveCursor(editor, line) {
+  const lastLine = editor.lastLine();
+  const targetLine = Math.max(0, Math.min(lastLine, line));
+  const column = editor.getLine(targetLine).length;
+  editor.setCursor({ line: targetLine, ch: 0 });
+  editor.scrollIntoView({
+    from: { line: targetLine, ch: 0 },
+    to: { line: targetLine, ch: column }
+  }, true);
+}
+function normalize(changedLines) {
+  return [...new Set(changedLines != null ? changedLines : [])].filter((line) => Number.isFinite(line)).sort((a, b) => a - b);
+}
 
 // src/services/tokens.ts
 var TOKEN_NAMES = /* @__PURE__ */ new Map();
@@ -2182,9 +2140,9 @@ var tokenName = (sym) => TOKEN_NAMES.get(sym);
 
 // src/commands/go-to-next-change.command.ts
 var import_obsidian = require("obsidian");
-var GoToNextChangeCommand = class extends BaseCommand {
-  constructor() {
-    super(...arguments);
+var GoToNextChangeCommand = class {
+  constructor(plugin) {
+    this.plugin = plugin;
     /**
      * Unique identifier for this command.
      * Used by Obsidian to register and reference the command.
@@ -2205,16 +2163,16 @@ var GoToNextChangeCommand = class extends BaseCommand {
     this.editorCallback = (editor) => {
       var _a;
       const snapshot = this.snapshotsService.getOne();
-      const positions = (_a = snapshot == null ? void 0 : snapshot.getChangedPositions(this.settingsService.getEnabledTypes())) != null ? _a : [];
+      const positions = (_a = snapshot == null ? void 0 : snapshot.content.getChangedPositions(this.settingsService.getEnabledTypes())) != null ? _a : [];
       if (positions.length === 0) {
         new import_obsidian.Notice(this.plugin.t("notice.no-changes-to-navigate"));
         return;
       }
-      const target = NavigationHelper.target(positions, editor.getCursor().line, "next" /* next */);
-      if (target === null) {
+      const target2 = target(positions, editor.getCursor().line, "next" /* next */);
+      if (target2 === null) {
         return;
       }
-      NavigationHelper.moveCursor(editor, target);
+      moveCursor(editor, target2);
     };
   }
 };
@@ -2227,9 +2185,9 @@ __decorateClass([
 
 // src/commands/go-to-previous-change.command.ts
 var import_obsidian2 = require("obsidian");
-var GoToPreviousChangeCommand = class extends BaseCommand {
-  constructor() {
-    super(...arguments);
+var GoToPreviousChangeCommand = class {
+  constructor(plugin) {
+    this.plugin = plugin;
     /**
      * Unique identifier for this command.
      * Used by Obsidian to register and reference the command.
@@ -2250,17 +2208,17 @@ var GoToPreviousChangeCommand = class extends BaseCommand {
     this.editorCallback = (editor) => {
       var _a;
       const snapshot = this.snapshotsService.getOne();
-      const positions = (_a = snapshot == null ? void 0 : snapshot.getChangedPositions(this.settingsService.getEnabledTypes())) != null ? _a : [];
+      const positions = (_a = snapshot == null ? void 0 : snapshot.content.getChangedPositions(this.settingsService.getEnabledTypes())) != null ? _a : [];
       if (positions.length === 0) {
         new import_obsidian2.Notice(this.plugin.t("notice.no-changes-to-navigate"));
         return;
       }
       const cursorLine = editor.getCursor().line;
-      const target = NavigationHelper.target(positions, cursorLine, "previous" /* previous */);
-      if (target === null) {
+      const target2 = target(positions, cursorLine, "previous" /* previous */);
+      if (target2 === null) {
         return;
       }
-      NavigationHelper.moveCursor(editor, target);
+      moveCursor(editor, target2);
     };
   }
 };
@@ -2273,9 +2231,9 @@ __decorateClass([
 
 // src/commands/reset-lines-all.command.ts
 var import_obsidian3 = require("obsidian");
-var ResetLinesAllCommand = class extends BaseCommand {
-  constructor() {
-    super(...arguments);
+var ResetLinesAllCommand = class {
+  constructor(plugin) {
+    this.plugin = plugin;
     /**
      * Unique identifier for this command.
      * Used by Obsidian to register and reference the command.
@@ -2302,9 +2260,9 @@ __decorateClass([
 
 // src/commands/reset-lines.command.ts
 var import_obsidian4 = require("obsidian");
-var ResetLinesCommand = class extends BaseCommand {
-  constructor() {
-    super(...arguments);
+var ResetLinesCommand = class {
+  constructor(plugin) {
+    this.plugin = plugin;
     /**
      * Unique identifier for this command.
      * Used by Obsidian to register and reference the command.
@@ -2330,9 +2288,9 @@ __decorateClass([
 ], ResetLinesCommand.prototype, "snapshotsService", 2);
 
 // src/commands/show-diff.command.ts
-var ShowDiffCommand = class extends BaseCommand {
-  constructor() {
-    super(...arguments);
+var ShowDiffCommand = class {
+  constructor(plugin) {
+    this.plugin = plugin;
     /**
      * Unique identifier for this command.
      * Used by Obsidian to register and reference the command.
@@ -2398,7 +2356,7 @@ var CommandsService = class {
    * and registers it with the plugin.
    * Skip registration if a command with the same name already exists.
    *
-   * @template T - The command type, extending both BaseCommand and Obsidian Command
+   * @template T - The command type, an Obsidian Command
    * @param {ClassConstructor<T>} ClsCConstructor - The command class constructor
    */
   register(ClsCConstructor) {
@@ -2413,7 +2371,7 @@ var CommandsService = class {
    * Creates a new instance of a command.
    * Factory method that instantiates commands with the plugin instance.
    *
-   * @template T - The command type, extending both BaseCommand and Obsidian Command
+   * @template T - The command type, an Obsidian Command
    * @param {ClassConstructor<T>} ClsCConstructor - The command class constructor
    * @return {Command} A new instance of the command
    */
@@ -2554,7 +2512,7 @@ var VaultCreateEvent = class extends BaseEvent {
     this.snapshotsService.markCreatedThisSession(file.path);
     if (this.settingsService.value("ignoreNewFiles")) {
       if (this.snapshotsService.isInAllowedExtensions(file)) {
-        this.snapshotsService.addToIgnoreList(file);
+        this.snapshotsService.ignoreList.add(file);
       }
       return;
     }
@@ -2594,7 +2552,7 @@ var VaultDeleteEvent = class extends BaseEvent {
       return;
     }
     this.snapshotsService.markDeleted(file);
-    this.snapshotsService.removeFromIgnoreList(file);
+    this.snapshotsService.ignoreList.remove(file);
   }
 };
 __decorateClass([
@@ -2634,34 +2592,16 @@ __decorateClass([
 ], VaultModifyEvent.prototype, "snapshotsService", 2);
 
 // src/helpers/path.helper.ts
-var PathHelper = class {
-  /**
-   * Returns the directory portion of a vault-relative path, without a trailing
-   * slash. A path with no slash (a file at the vault root) returns an empty
-   * string; an empty input returns an empty string too. The semantics mirror
-   * Node's `path.posix.dirname` for the cases this codebase uses, but stay
-   * inside a small explicit contract so a future change cannot drift.
-   *
-   * Examples:
-   * - `dirname('src/a.md')` returns `'src'`
-   * - `dirname('a.md')` returns `''`
-   * - `dirname('')` returns `''`
-   * - `dirname('a/b/c.md')` returns `'a/b'`
-   *
-   * @param {string} path - The vault-relative path
-   * @return {string} The directory portion, or an empty string for the root
-   */
-  static dirname(path) {
-    if (!path) {
-      return "";
-    }
-    const lastSlash = path.lastIndexOf("/");
-    if (lastSlash <= 0) {
-      return "";
-    }
-    return path.slice(0, lastSlash);
+function dirname(path) {
+  if (!path) {
+    return "";
   }
-};
+  const lastSlash = path.lastIndexOf("/");
+  if (lastSlash <= 0) {
+    return "";
+  }
+  return path.slice(0, lastSlash);
+}
 
 // src/events/vault/rename.event.ts
 var import_obsidian8 = require("obsidian");
@@ -2686,7 +2626,7 @@ var VaultRenameEvent = class extends BaseEvent {
     if (!(file instanceof import_obsidian8.TFile)) {
       return;
     }
-    if (PathHelper.dirname(oldPath) === PathHelper.dirname(file.path)) {
+    if (dirname(oldPath) === dirname(file.path)) {
       this.snapshotsService.rename(oldPath, file);
       return;
     }
@@ -2710,8 +2650,6 @@ var WorkspaceActiveLeafChangeEvent = class extends BaseEvent {
   /**
    * Handles the active leaf change event.
    * Forces an update of the snapshots to ensure they reflect the current state.
-   *
-   * @param {...any} args - Arguments passed by the event (not used in this handler)
    */
   handler(..._args) {
     if (!this.plugin.isReady()) {
@@ -2725,20 +2663,9 @@ __decorateClass([
 ], WorkspaceActiveLeafChangeEvent.prototype, "snapshotsService", 2);
 
 // src/helpers/menu.helper.ts
-var MenuHelper = class {
-  /**
-   * Attaches a child submenu to the given parent menu item and returns the
-   * resulting `Menu` instance, fully typed. The returned menu accepts the usual
-   * `addItem`/`addSeparator` API.
-   *
-   * @param {MenuItem} item - The parent menu item to convert into a submenu
-   *     anchor
-   * @return {Menu} The freshly created child menu that owns the submenu items
-   */
-  static setSubmenu(item) {
-    return item.setSubmenu();
-  }
-};
+function setSubmenu(item) {
+  return item.setSubmenu();
+}
 
 // src/events/workspace/editor-menu.event.ts
 var WorkspaceEditorMenuEvent = class extends BaseEvent {
@@ -2761,7 +2688,7 @@ var WorkspaceEditorMenuEvent = class extends BaseEvent {
   handler(menu, editor, _view) {
     menu.addItem((parent) => {
       parent.setTitle(this.plugin.t("menu.local-history")).setIcon("file-diff");
-      const submenu = MenuHelper.setSubmenu(parent);
+      const submenu = setSubmenu(parent);
       submenu.addItem((item) => {
         item.setTitle(this.plugin.t("menu.local-history.show-history")).setIcon("history").onClick(() => {
           this.modalService.diff();
@@ -2844,7 +2771,7 @@ var WorkspaceFilesMenuEvent = class extends BaseEvent {
     }
     menu.addItem((parent) => {
       parent.setTitle(this.plugin.t("menu.local-history")).setIcon("file-diff");
-      const submenu = MenuHelper.setSubmenu(parent);
+      const submenu = setSubmenu(parent);
       if (file instanceof import_obsidian9.TFile) {
         this.buildFileSubmenu(submenu, file);
         return;
@@ -2924,7 +2851,7 @@ var WorkspaceLayoutChangeEvent = class extends BaseEvent {
   handler() {
     const openedFiles = this.plugin.getWorkspaceFiles();
     const snapshots = this.snapshotsService.getList();
-    const ignored = this.snapshotsService.getIgnoreList();
+    const ignored = this.snapshotsService.ignoreList.list();
     const opened = [...openedFiles];
     const closedSnapshots = [];
     const closedIgnored = [];
@@ -2952,7 +2879,7 @@ var WorkspaceLayoutChangeEvent = class extends BaseEvent {
       this.snapshotsService.wipeOne(file);
     }
     for (const file of closedIgnored) {
-      this.snapshotsService.removeFromIgnoreList(file);
+      this.snapshotsService.ignoreList.remove(file);
     }
     for (const file of newlyOpened) {
       void this.snapshotsService.capture(file);
@@ -3094,25 +3021,18 @@ var EventsService = class {
   }
 };
 
-// src/extensions/base.extension.ts
-var BaseExtension = class {
-  /**
-   * Creates a new instance of BaseExtension.
-   *
-   * @param {EditorView | null} view - The CodeMirror editor view this extension is attached to
-   * @param {LineChangeTrackerPlugin} plugin - The plugin instance that manages this extension
-   */
-  constructor(view, plugin) {
-    this.view = view;
-    this.plugin = plugin;
-  }
-};
+// src/helpers/assert-never.helper.ts
+function assertNever(value, label) {
+  const suffix = label ? ` for ${label}` : "";
+  throw new Error(`Unexpected value "${String(value)}"${suffix}`);
+}
 
 // src/extensions/change-detector.extension.ts
 var import_view = require("@codemirror/view");
-var ChangeDetectorExtension = class extends BaseExtension {
-  constructor() {
-    super(...arguments);
+var ChangeDetectorExtension = class {
+  constructor(view, plugin) {
+    this.view = view;
+    this.plugin = plugin;
     /**
      * Set of decorations to be applied to the editor.
      * Initialized with an empty decoration set.
@@ -3125,11 +3045,11 @@ var ChangeDetectorExtension = class extends BaseExtension {
    *
    * @param {ViewUpdate} update - The view update event from CodeMirror
    */
-  update(update) {
-    if (!update.docChanged) {
+  update(update2) {
+    if (!update2.docChanged) {
       return;
     }
-    this.processIncrementalChanges(update);
+    this.processIncrementalChanges(update2);
   }
   /**
    * Processes incremental changes in the document.
@@ -3137,8 +3057,8 @@ var ChangeDetectorExtension = class extends BaseExtension {
    *
    * @param {ViewUpdate} update - The view update event from CodeMirror
    */
-  processIncrementalChanges(update) {
-    const currentContent = update.state.doc.toString();
+  processIncrementalChanges(update2) {
+    const currentContent = update2.state.doc.toString();
     const snapshot = this.snapshotsService.getOne();
     if (!snapshot || !currentContent) {
       return;
@@ -3146,7 +3066,7 @@ var ChangeDetectorExtension = class extends BaseExtension {
     if (!snapshot.isNeedUpdate(currentContent)) {
       return;
     }
-    this.computeIncrementalChanges(update);
+    this.computeIncrementalChanges(update2);
     this.snapshotsService.forceUpdate();
   }
   /**
@@ -3163,15 +3083,15 @@ var ChangeDetectorExtension = class extends BaseExtension {
    * @param {ViewUpdate} update - The view update event from CodeMirror
    * @return {void}
    */
-  computeIncrementalChanges(update) {
-    const state = update.state;
+  computeIncrementalChanges(update2) {
+    const state = update2.state;
     const currentLines = state.doc.toString().split(/\r?\n/);
     const snapshot = this.snapshotsService.getOne();
-    const prev = update.startState.doc;
+    const prev = update2.startState.doc;
     if (!snapshot) {
       return;
     }
-    update.changes.iterChanges((fromA, toA, fromB, toB) => {
+    update2.changes.iterChanges((fromA, toA, fromB, toB) => {
       var _a, _b;
       const fromOldLine = prev.lineAt(fromA).number - 1;
       const toOldLine = prev.lineAt(toA).number - 1;
@@ -3180,11 +3100,9 @@ var ChangeDetectorExtension = class extends BaseExtension {
       const prefixShared = fromB > state.doc.lineAt(fromB).from;
       let suffixShared = toB < state.doc.lineAt(toB).to;
       if (!prefixShared && !suffixShared) {
-        if (fromA === toA && toB > 0 && state.doc.sliceString(toB - 1, toB) === "\n") {
-          suffixShared = true;
-        } else if (fromB === toB && toA > 0 && prev.sliceString(toA - 1, toA) === "\n") {
-          suffixShared = true;
-        }
+        const isPureInsertEndingInNewline = fromA === toA && toB > 0 && state.doc.sliceString(toB - 1, toB) === "\n";
+        const isPureDeleteConsumingNewline = fromB === toB && toA > 0 && prev.sliceString(toA - 1, toA) === "\n";
+        suffixShared = isPureInsertEndingInNewline || isPureDeleteConsumingNewline;
       }
       const oldCoreStart = fromOldLine + (prefixShared ? 1 : 0);
       const oldCoreEnd = toOldLine - (suffixShared ? 1 : 0);
@@ -3194,33 +3112,33 @@ var ChangeDetectorExtension = class extends BaseExtension {
       const newCoreCount = Math.max(0, newCoreEnd - newCoreStart + 1);
       if (oldCoreCount === newCoreCount && oldCoreCount > 0) {
         for (let i = 0; i < newCoreCount; i++) {
-          const tracker = snapshot.findCurrentLine(newCoreStart + i);
+          const tracker = snapshot.trackers.findCurrentLine(newCoreStart + i);
           tracker == null ? void 0 : tracker.change(currentLines[newCoreStart + i]);
         }
       } else {
         const doomed = [];
         for (let index = oldCoreStart; index <= oldCoreEnd; index++) {
-          const tracker = snapshot.findCurrentLine(index);
+          const tracker = snapshot.trackers.findCurrentLine(index);
           if (tracker) {
             doomed.push(tracker);
           }
         }
         for (let index = newCoreStart; index <= newCoreEnd; index++) {
-          const added = snapshot.restoreOrAddTracker(index);
+          const added = snapshot.trackers.restoreOrAddTracker(index);
           added == null ? void 0 : added.change(currentLines[index]);
         }
         doomed.forEach((tracker) => {
-          snapshot.removeTrackerOrLine(tracker);
+          snapshot.trackers.removeTrackerOrLine(tracker);
         });
       }
       if (prefixShared) {
-        (_a = snapshot.findCurrentLine(fromNewLine)) == null ? void 0 : _a.change(currentLines[fromNewLine]);
+        (_a = snapshot.trackers.findCurrentLine(fromNewLine)) == null ? void 0 : _a.change(currentLines[fromNewLine]);
       }
       if (suffixShared && toNewLine !== fromNewLine) {
-        (_b = snapshot.findCurrentLine(toNewLine)) == null ? void 0 : _b.change(currentLines[toNewLine]);
+        (_b = snapshot.trackers.findCurrentLine(toNewLine)) == null ? void 0 : _b.change(currentLines[toNewLine]);
       }
     }, true);
-    for (const tracker of snapshot.tracker) {
+    for (const tracker of snapshot.trackers.getTrackerLines()) {
       if (!tracker.existedInCurrent) {
         continue;
       }
@@ -3229,8 +3147,8 @@ var ChangeDetectorExtension = class extends BaseExtension {
         tracker.change(actual);
       }
     }
-    snapshot.captureVersion(snapshot.getLastStateLines(), this.getCaptureOptions());
-    snapshot.updateState(currentLines);
+    snapshot.captureVersion(snapshot.content.getLastStateLines(), this.getCaptureOptions());
+    snapshot.content.updateState(currentLines);
     snapshot.updateChanges();
   }
   /**
@@ -3303,12 +3221,11 @@ var BarMarker = class _BarMarker extends import_view2.GutterMarker {
 
 // src/extensions/gutter-bar.extension.ts
 var import_state2 = require("@codemirror/state");
-var GutterBarExtension = class extends BaseExtension {
-  constructor() {
-    super(...arguments);
-    /**
-     * CSS class for the gutter wrapper element.
-     */
+var GutterBarExtension = class {
+  constructor(view, plugin) {
+    this.view = view;
+    this.plugin = plugin;
+    /** CSS class for the gutter wrapper element. */
     this.class = `lct lct-gutter-bar-col lct-${"line" /* line */}`;
     /**
      * Only render elements for changed lines, so unchanged lines leave no filler
@@ -3323,15 +3240,18 @@ var GutterBarExtension = class extends BaseExtension {
      */
     this.markers = (view) => {
       var _a;
-      const enable = this.getEnableTypes();
+      const enable = this.settingsService.getEnabledTypes();
       const snapshot = this.snapshotsService.getOne();
-      const changes = (_a = snapshot == null ? void 0 : snapshot.getChanges(enable)) != null ? _a : null;
+      const changes = (_a = snapshot == null ? void 0 : snapshot.content.getChanges(enable)) != null ? _a : null;
       const builder = new import_state2.RangeSetBuilder();
       if (!this.isTypeLine() || !snapshot || !(changes == null ? void 0 : changes.size)) {
         return builder.finish();
       }
-      for (let i = 0; i <= view.state.doc.lines - 1; i++) {
-        const change = changes.get(i);
+      for (const pos of snapshot.content.getChangedPositions(enable)) {
+        if (pos >= view.state.doc.lines) {
+          continue;
+        }
+        const change = changes.get(pos);
         if (!change) {
           continue;
         }
@@ -3340,7 +3260,7 @@ var GutterBarExtension = class extends BaseExtension {
         if (kind === null) {
           continue;
         }
-        const line = view.state.doc.line(i + 1);
+        const line = view.state.doc.line(pos + 1);
         builder.add(line.from, line.from, new BarMarker(kind));
       }
       return builder.finish();
@@ -3353,20 +3273,6 @@ var GutterBarExtension = class extends BaseExtension {
    */
   isTypeLine() {
     return this.settingsService.value("type") === "line" /* line */;
-  }
-  /**
-   * Gets the enabled change types from settings, including removed (drawn as a
-   * dash). Mirrors the former editor extension.
-   *
-   * @return {ChangeType[]} Array of enabled change types
-   */
-  getEnableTypes() {
-    return [
-      ...this.settingsService.value("show.changed") ? ["changed" /* changed */, "whitespace" /* whitespace */] : [],
-      ...this.settingsService.value("show.restored") ? ["restored" /* restored */] : [],
-      ...this.settingsService.value("show.added") ? ["added" /* added */] : [],
-      ...this.settingsService.value("show.removed") ? ["removed" /* removed */] : []
-    ];
   }
 };
 __decorateClass([
@@ -3694,8 +3600,8 @@ function leadingWs(string, segmenter) {
   if (segmenter) {
     return leadingAndTrailingWs(string, segmenter)[0];
   }
-  const match = string.match(/^\s*/);
-  return match ? match[0] : "";
+  const match3 = string.match(/^\s*/);
+  return match3 ? match3[0] : "";
 }
 function leadingAndTrailingWs(string, segmenter) {
   if (!segmenter) {
@@ -3704,9 +3610,9 @@ function leadingAndTrailingWs(string, segmenter) {
   if (segmenter.resolvedOptions().granularity != "word") {
     throw new Error('The segmenter passed must have a granularity of "word"');
   }
-  const segments = segment(string, segmenter);
-  const firstSeg = segments[0];
-  const lastSeg = segments[segments.length - 1];
+  const segments2 = segment(string, segmenter);
+  const firstSeg = segments2[0];
+  const lastSeg = segments2[segments2.length - 1];
   const head = /\s/.test(firstSeg) ? firstSeg : "";
   const tail = /\s/.test(lastSeg) ? lastSeg : "";
   return [head, tail];
@@ -4323,7 +4229,7 @@ function applyStructuredPatch(source, patch, options = {}) {
       patch = winToUnix(patch);
     }
   }
-  const lines = source.split("\n"), hunks = patch.hunks, compareLine = options.compareLine || ((lineNumber, line, operation, patchContent) => line === patchContent), fuzzFactor = options.fuzzFactor || 0;
+  const lines2 = source.split("\n"), hunks = patch.hunks, compareLine = options.compareLine || ((lineNumber, line, operation, patchContent) => line === patchContent), fuzzFactor = options.fuzzFactor || 0;
   let minLine = 0;
   if (fuzzFactor < 0 || !Number.isInteger(fuzzFactor)) {
     throw new Error("fuzzFactor must be a non-negative integer");
@@ -4345,17 +4251,17 @@ function applyStructuredPatch(source, patch, options = {}) {
   }
   if (removeEOFNL) {
     if (addEOFNL) {
-      if (!fuzzFactor && lines[lines.length - 1] == "") {
+      if (!fuzzFactor && lines2[lines2.length - 1] == "") {
         return false;
       }
-    } else if (lines[lines.length - 1] == "") {
-      lines.pop();
+    } else if (lines2[lines2.length - 1] == "") {
+      lines2.pop();
     } else if (!fuzzFactor) {
       return false;
     }
   } else if (addEOFNL) {
-    if (lines[lines.length - 1] != "") {
-      lines.push("");
+    if (lines2[lines2.length - 1] != "") {
+      lines2.push("");
     } else if (!fuzzFactor) {
       return false;
     }
@@ -4366,14 +4272,14 @@ function applyStructuredPatch(source, patch, options = {}) {
     for (; hunkLinesI < hunkLines.length; hunkLinesI++) {
       const hunkLine = hunkLines[hunkLinesI], operation = hunkLine.length > 0 ? hunkLine[0] : " ", content = hunkLine.length > 0 ? hunkLine.substr(1) : hunkLine;
       if (operation === "-") {
-        if (compareLine(toPos + 1, lines[toPos], operation, content)) {
+        if (compareLine(toPos + 1, lines2[toPos], operation, content)) {
           toPos++;
           nConsecutiveOldContextLines = 0;
         } else {
-          if (!maxErrors || lines[toPos] == null) {
+          if (!maxErrors || lines2[toPos] == null) {
             return null;
           }
-          patchedLines[patchedLinesLength] = lines[toPos];
+          patchedLines[patchedLinesLength] = lines2[toPos];
           return applyHunk(hunkLines, toPos + 1, maxErrors - 1, hunkLinesI, false, patchedLines, patchedLinesLength + 1);
         }
       }
@@ -4388,8 +4294,8 @@ function applyStructuredPatch(source, patch, options = {}) {
       }
       if (operation === " ") {
         nConsecutiveOldContextLines++;
-        patchedLines[patchedLinesLength] = lines[toPos];
-        if (compareLine(toPos + 1, lines[toPos], operation, content)) {
+        patchedLines[patchedLinesLength] = lines2[toPos];
+        if (compareLine(toPos + 1, lines2[toPos], operation, content)) {
           patchedLinesLength++;
           lastContextLineMatched = true;
           nextContextLineMustMatch = false;
@@ -4398,7 +4304,7 @@ function applyStructuredPatch(source, patch, options = {}) {
           if (nextContextLineMustMatch || !maxErrors) {
             return null;
           }
-          return lines[toPos] && (applyHunk(hunkLines, toPos + 1, maxErrors - 1, hunkLinesI + 1, false, patchedLines, patchedLinesLength + 1) || applyHunk(hunkLines, toPos + 1, maxErrors - 1, hunkLinesI, false, patchedLines, patchedLinesLength + 1)) || applyHunk(hunkLines, toPos, maxErrors - 1, hunkLinesI + 1, false, patchedLines, patchedLinesLength);
+          return lines2[toPos] && (applyHunk(hunkLines, toPos + 1, maxErrors - 1, hunkLinesI + 1, false, patchedLines, patchedLinesLength + 1) || applyHunk(hunkLines, toPos + 1, maxErrors - 1, hunkLinesI, false, patchedLines, patchedLinesLength + 1)) || applyHunk(hunkLines, toPos, maxErrors - 1, hunkLinesI + 1, false, patchedLines, patchedLinesLength);
         }
       }
     }
@@ -4415,7 +4321,7 @@ function applyStructuredPatch(source, patch, options = {}) {
   for (let i = 0; i < hunks.length; i++) {
     const hunk = hunks[i];
     let hunkResult;
-    const maxLine = lines.length - hunk.oldLines + fuzzFactor;
+    const maxLine = lines2.length - hunk.oldLines + fuzzFactor;
     let toPos;
     for (let maxErrors = 0; maxErrors <= fuzzFactor; maxErrors++) {
       toPos = hunk.oldStart + prevHunkOffset - 1;
@@ -4434,7 +4340,7 @@ function applyStructuredPatch(source, patch, options = {}) {
       return false;
     }
     for (let i2 = minLine; i2 < toPos; i2++) {
-      resultLines.push(lines[i2]);
+      resultLines.push(lines2[i2]);
     }
     for (let i2 = 0; i2 < hunkResult.patchedLines.length; i2++) {
       const line = hunkResult.patchedLines[i2];
@@ -4443,8 +4349,8 @@ function applyStructuredPatch(source, patch, options = {}) {
     minLine = hunkResult.oldLineLastI + 1;
     prevHunkOffset = toPos + 1 - hunk.oldStart;
   }
-  for (let i = minLine; i < lines.length; i++) {
-    resultLines.push(lines[i]);
+  for (let i = minLine; i < lines2.length; i++) {
+    resultLines.push(lines2[i]);
   }
   return resultLines.join("\n");
 }
@@ -4520,29 +4426,29 @@ function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, ne
     return diffLinesResultToPatch(diffLines(oldStr, newStr, optionsObj));
   } else {
     const { callback } = optionsObj;
-    diffLines(oldStr, newStr, Object.assign(Object.assign({}, optionsObj), { callback: (diff) => {
-      const patch = diffLinesResultToPatch(diff);
+    diffLines(oldStr, newStr, Object.assign(Object.assign({}, optionsObj), { callback: (diff2) => {
+      const patch = diffLinesResultToPatch(diff2);
       callback(patch);
     } }));
   }
-  function diffLinesResultToPatch(diff) {
-    if (!diff) {
+  function diffLinesResultToPatch(diff2) {
+    if (!diff2) {
       return;
     }
-    diff.push({ value: "", lines: [] });
-    function contextLines(lines) {
-      return lines.map(function(entry) {
+    diff2.push({ value: "", lines: [] });
+    function contextLines(lines2) {
+      return lines2.map(function(entry) {
         return " " + entry;
       });
     }
     const hunks = [];
     let oldRangeStart = 0, newRangeStart = 0, curRange = [], oldLine = 1, newLine = 1;
-    for (let i = 0; i < diff.length; i++) {
-      const current = diff[i], lines = current.lines || splitLines(current.value);
-      current.lines = lines;
+    for (let i = 0; i < diff2.length; i++) {
+      const current = diff2[i], lines2 = current.lines || splitLines(current.value);
+      current.lines = lines2;
       if (current.added || current.removed) {
         if (!oldRangeStart) {
-          const prev = diff[i - 1];
+          const prev = diff2[i - 1];
           oldRangeStart = oldLine;
           newRangeStart = newLine;
           if (prev) {
@@ -4551,23 +4457,23 @@ function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, ne
             newRangeStart -= curRange.length;
           }
         }
-        for (const line of lines) {
+        for (const line of lines2) {
           curRange.push((current.added ? "+" : "-") + line);
         }
         if (current.added) {
-          newLine += lines.length;
+          newLine += lines2.length;
         } else {
-          oldLine += lines.length;
+          oldLine += lines2.length;
         }
       } else {
         if (oldRangeStart) {
-          if (lines.length <= context * 2 && i < diff.length - 2) {
-            for (const line of contextLines(lines)) {
+          if (lines2.length <= context * 2 && i < diff2.length - 2) {
+            for (const line of contextLines(lines2)) {
               curRange.push(line);
             }
           } else {
-            const contextSize = Math.min(lines.length, context);
-            for (const line of contextLines(lines.slice(0, contextSize))) {
+            const contextSize = Math.min(lines2.length, context);
+            for (const line of contextLines(lines2.slice(0, contextSize))) {
               curRange.push(line);
             }
             const hunk = {
@@ -4583,8 +4489,8 @@ function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, ne
             curRange = [];
           }
         }
-        oldLine += lines.length;
-        newLine += lines.length;
+        oldLine += lines2.length;
+        newLine += lines2.length;
       }
     }
     for (const hunk of hunks) {
@@ -4709,90 +4615,78 @@ function splitLines(text) {
 }
 
 // src/helpers/hunk.helper.ts
-var HunkHelper = class _HunkHelper {
-  /**
-   * Computes the line-level hunks between a base text and the current text.
-   * Uses zero context so each hunk covers only the changed lines, which keeps
-   * a per-hunk revert scoped to exactly that block.
-   *
-   * @param {string[]} baseLines - The base content as an array of lines
-   * @param {string[]} currentLines - The current content as an array of lines
-   * @param {string} lineBreak - The line break used to join lines for diffing
-   * @return {Diff.StructuredPatchHunk[]} The hunks, ordered from top to bottom
-   */
-  static diff(baseLines, currentLines, lineBreak = "\n") {
-    const base = (baseLines != null ? baseLines : []).join(lineBreak);
-    const current = (currentLines != null ? currentLines : []).join(lineBreak);
-    if (base === current) {
-      return [];
+function diff(baseLines, currentLines, lineBreak = "\n") {
+  const base = (baseLines != null ? baseLines : []).join(lineBreak);
+  const current = (currentLines != null ? currentLines : []).join(lineBreak);
+  if (base === current) {
+    return [];
+  }
+  return structuredPatch("", "", base, current, "", "", { context: 0 }).hunks;
+}
+function baseLinesForHunk(hunk) {
+  var _a;
+  return ((_a = hunk == null ? void 0 : hunk.lines) != null ? _a : []).filter((line) => line !== NO_NEWLINE_MARKER && (line[0] === " " || line[0] === "-")).map((line) => line.slice(1));
+}
+function hunkAtLine(hunks, line) {
+  var _a;
+  if (!Array.isArray(hunks)) {
+    return null;
+  }
+  return (_a = hunks.find((hunk) => {
+    if (!hunk || hunk.newLines <= 0) {
+      return false;
     }
-    return structuredPatch("", "", base, current, "", "", { context: 0 }).hunks;
+    const start = hunk.newStart - 1;
+    return line >= start && line < start + hunk.newLines;
+  })) != null ? _a : null;
+}
+function revertHunk(currentLines, hunk) {
+  const lines2 = [...currentLines != null ? currentLines : []];
+  if (!hunk) {
+    return lines2;
   }
-  /**
-   * Extracts the base-side lines of a hunk (the context and removed lines),
-   * with their diff prefixes stripped and the no-newline marker dropped. These
-   * are exactly the lines that must replace the hunk's region in the current
-   * text to revert it.
-   *
-   * @param {Diff.StructuredPatchHunk} hunk - The hunk to read
-   * @return {string[]} The base-side line contents of the hunk
-   */
-  static baseLinesForHunk(hunk) {
-    var _a;
-    return ((_a = hunk == null ? void 0 : hunk.lines) != null ? _a : []).filter((line) => line !== NO_NEWLINE_MARKER && (line[0] === " " || line[0] === "-")).map((line) => line.slice(1));
+  const start = Math.max(0, Math.min(lines2.length, hunk.newStart - 1));
+  lines2.splice(start, Math.max(0, hunk.newLines), ...baseLinesForHunk(hunk));
+  return lines2;
+}
+function revertDescriptor(currentLines, hunk) {
+  const start = Math.max(0, Math.min((currentLines != null ? currentLines : []).length, hunk.newStart - 1));
+  return {
+    start,
+    removeCount: hunk.newLines,
+    newLines: baseLinesForHunk(hunk)
+  };
+}
+function classifyLine(line) {
+  if (line.startsWith("+")) {
+    return "added";
   }
-  /**
-   * Finds the hunk whose current-side region contains the given line, so a
-   * revert affordance placed on that line maps back to exactly one changed
-   * block. Only hunks that occupy at least one current line are considered (a
-   * pure deletion occupies none, so it has no line to click on the gutter and is
-   * skipped here). The region is the 0-based half-open interval
-   * [newStart - 1, newStart - 1 + newLines).
-   *
-   * @param {Diff.StructuredPatchHunk[]} hunks - The hunks to search, top to bottom
-   * @param {number} line - The 0-based current line to resolve
-   * @return {Diff.StructuredPatchHunk | null} The covering hunk, or null if none
-   */
-  static hunkAtLine(hunks, line) {
-    var _a;
-    if (!Array.isArray(hunks)) {
-      return null;
-    }
-    return (_a = hunks.find((hunk) => {
-      if (!hunk || hunk.newLines <= 0) {
-        return false;
-      }
-      const start = hunk.newStart - 1;
-      return line >= start && line < start + hunk.newLines;
-    })) != null ? _a : null;
+  if (line.startsWith("-")) {
+    return "removed";
   }
-  /**
-   * Reverts a single hunk against the current lines and returns the resulting
-   * lines. Only the region this hunk occupies in the current text is replaced
-   * by the hunk's base-side lines; every line outside the region is preserved
-   * verbatim.
-   *
-   * The replacement is positional against the live current text (via newStart
-   * and newLines), not against stale indices, so the offsets of all other hunks
-   * stay correct: reverting hunk N never disturbs hunk N+1, because the slice
-   * lengths of a single block edit cancel out for the untouched lines around it.
-   *
-   * @param {string[]} currentLines - The current content as an array of lines
-   * @param {Diff.StructuredPatchHunk} hunk - The hunk to revert
-   * @return {string[]} A new array of lines with only this hunk reverted
-   */
-  static revertHunk(currentLines, hunk) {
-    const lines = [...currentLines != null ? currentLines : []];
-    if (!hunk) {
-      return lines;
-    }
-    const start = Math.max(0, Math.min(lines.length, hunk.newStart - 1));
-    lines.splice(start, Math.max(0, hunk.newLines), ..._HunkHelper.baseLinesForHunk(hunk));
-    return lines;
-  }
-};
+  return "context";
+}
 
-// src/markers/char.marker.ts
+// src/helpers/hunk-revert.helper.ts
+async function confirmAndRevertHunk(request) {
+  const confirmed = await request.modalsService.confirm({
+    title: request.plugin.t("modal.confirm.revert.title"),
+    message: request.plugin.t("modal.confirm.revert.message"),
+    confirmText: request.plugin.t("modal.confirm.revert.button"),
+    cancelText: request.cancelText
+  });
+  if (!confirmed) {
+    return false;
+  }
+  await request.snapshotsService.applyContent(
+    request.file,
+    revertHunk(request.currentLines, request.hunk),
+    revertDescriptor(request.currentLines, request.hunk)
+  );
+  return true;
+}
+
+// src/markers/dot.marker.ts
 var import_view3 = require("@codemirror/view");
 var _DotMarker = class _DotMarker extends import_view3.GutterMarker {
   /**
@@ -4897,9 +4791,10 @@ var DotMarker = _DotMarker;
 // src/extensions/gutter-common.extension.ts
 var import_obsidian11 = require("obsidian");
 var import_state3 = require("@codemirror/state");
-var GutterCommonExtension = class extends BaseExtension {
-  constructor() {
-    super(...arguments);
+var GutterCommonExtension = class {
+  constructor(view, plugin) {
+    this.view = view;
+    this.plugin = plugin;
     /**
      * CSS class for the gutter element.
      * Combines the base plugin class with the dot indicator type.
@@ -4932,30 +4827,34 @@ var GutterCommonExtension = class extends BaseExtension {
      */
     this.markers = (view) => {
       var _a;
-      const enable = this.getEnableTypes();
+      const enable = this.settingsService.getEnabledTypes().filter((type) => type !== "removed" /* removed */);
       const snapshot = this.snapshotsService.getOne();
-      const changes = (_a = snapshot == null ? void 0 : snapshot.getChanges(enable)) != null ? _a : null;
+      const changes = (_a = snapshot == null ? void 0 : snapshot.content.getChanges(enable)) != null ? _a : null;
       const builder = new import_state3.RangeSetBuilder();
       if (!this.isTypeDot() || !snapshot || !(changes == null ? void 0 : changes.size)) {
         return builder.finish();
       }
-      for (let i = 0; i <= view.state.doc.lines - 1; i++) {
-        const line = view.state.doc.line(i + 1);
-        const change = changes.get(i);
-        if (change) {
-          const modify = change.getModify();
-          if (modify === null) {
-            continue;
-          }
-          builder.add(line.from, line.from, new DotMarker(
-            modify,
-            this.plugin,
-            i,
-            (target) => {
-              void this.revertBlockAt(target);
-            }
-          ));
+      for (const pos of snapshot.content.getChangedPositions(enable)) {
+        if (pos >= view.state.doc.lines) {
+          continue;
         }
+        const change = changes.get(pos);
+        if (!change) {
+          continue;
+        }
+        const modify = change.getModify();
+        if (modify === null) {
+          continue;
+        }
+        const line = view.state.doc.line(pos + 1);
+        builder.add(line.from, line.from, new DotMarker(
+          modify,
+          this.plugin,
+          pos,
+          (target2) => {
+            void this.revertBlockAt(target2);
+          }
+        ));
       }
       return builder.finish();
     };
@@ -4964,9 +4863,8 @@ var GutterCommonExtension = class extends BaseExtension {
    * Reverts the single changed block sitting at the given 0-based current line
    * back to the original baseline, leaving every other change intact. The hunks
    * are recomputed against the live content so the resolved block is never stale,
-   * the user confirms before the write, and the revert reuses the same plumbing
-   * as the history modal (HunkHelper to scope the block, SnapshotsService to
-   * apply it), which refreshes the editor highlights.
+   * then the block is handed to the shared confirm-and-revert helper the history
+   * modal also uses (confirm, scope the block, apply, refresh the highlights).
    *
    * @param {number} line - The 0-based current line the affordance was clicked on
    * @return {Promise<void>}
@@ -4976,34 +4874,24 @@ var GutterCommonExtension = class extends BaseExtension {
     if (!(snapshot == null ? void 0 : snapshot.file)) {
       return;
     }
-    const currentLines = snapshot.getLastStateLines();
-    const hunks = HunkHelper.diff(
-      snapshot.getOriginalStateLines(),
+    const currentLines = snapshot.content.getLastStateLines();
+    const hunks = diff(
+      snapshot.content.getOriginalStateLines(),
       currentLines,
-      snapshot.lineBreak
+      snapshot.content.lineBreak
     );
-    const hunk = HunkHelper.hunkAtLine(hunks, line);
+    const hunk = hunkAtLine(hunks, line);
     if (!hunk) {
       return;
     }
-    const confirmed = await this.modalsService.confirm({
-      title: this.plugin.t("modal.confirm.revert.title"),
-      message: this.plugin.t("modal.confirm.revert.message"),
-      confirmText: this.plugin.t("modal.confirm.revert.button")
+    await confirmAndRevertHunk({
+      modalsService: this.modalsService,
+      snapshotsService: this.snapshotsService,
+      plugin: this.plugin,
+      file: snapshot.file,
+      currentLines,
+      hunk
     });
-    if (!confirmed) {
-      return;
-    }
-    const start = Math.max(0, Math.min(currentLines.length, hunk.newStart - 1));
-    await this.snapshotsService.applyContent(
-      snapshot.file,
-      HunkHelper.revertHunk(currentLines, hunk),
-      {
-        start,
-        removeCount: hunk.newLines,
-        newLines: HunkHelper.baseLinesForHunk(hunk)
-      }
-    );
   }
   /**
    * Opens the gutter-specific context menu at the click position, prevents the
@@ -5032,21 +4920,6 @@ var GutterCommonExtension = class extends BaseExtension {
    */
   isTypeDot() {
     return this.settingsService.value("type") === "dot" /* dot */;
-  }
-  /**
-   * Gets the enabled change types from settings.
-   * Includes only the types that are enabled in the settings.
-   * Note: Unlike editor extension, this doesn't include 'removed' type
-   * as removed lines are handled separately.
-   *
-   * @return {ChangeType[]} Array of enabled change types
-   */
-  getEnableTypes() {
-    return [
-      ...this.settingsService.value("show.changed") ? ["changed" /* changed */, "whitespace" /* whitespace */] : [],
-      ...this.settingsService.value("show.restored") ? ["restored" /* restored */] : [],
-      ...this.settingsService.value("show.added") ? ["added" /* added */] : []
-    ];
   }
 };
 __decorateClass([
@@ -5135,9 +5008,10 @@ var RemovedMarker = _RemovedMarker;
 
 // src/extensions/gutter-removed.extension.ts
 var import_state4 = require("@codemirror/state");
-var GutterRemovedExtension = class extends BaseExtension {
-  constructor() {
-    super(...arguments);
+var GutterRemovedExtension = class {
+  constructor(view, plugin) {
+    this.view = view;
+    this.plugin = plugin;
     /**
      * CSS class for the gutter element.
      * Combines the base plugin class with the dot indicator type and remove a change type.
@@ -5158,23 +5032,23 @@ var GutterRemovedExtension = class extends BaseExtension {
     this.markers = (view) => {
       var _a;
       const snapshot = this.snapshotsService.getOne();
-      const removed = (_a = snapshot == null ? void 0 : snapshot.getChanges("removed" /* removed */)) != null ? _a : null;
+      const removed = (_a = snapshot == null ? void 0 : snapshot.content.getChanges("removed" /* removed */)) != null ? _a : null;
       const builder = new import_state4.RangeSetBuilder();
       if (!this.isTypeDot() || !this.isEnable() || !snapshot || !removed || removed.size === 0) {
         return builder.finish();
       }
-      for (let i = 1; i <= view.state.doc.lines; i++) {
-        const line = view.state.doc.line(i);
-        if (removed.has(line.number - 1) && (line.number < 2 || !removed.has(line.number - 2))) {
-          const currentLine = line.number - 1;
-          builder.add(line.from, line.from, new RemovedMarker(
-            this.plugin,
-            currentLine,
-            (target) => {
-              void this.revertRemovedAt(target);
-            }
-          ));
+      for (const pos of snapshot.content.getChangedPositions("removed" /* removed */)) {
+        if (pos >= view.state.doc.lines || removed.has(pos - 1)) {
+          continue;
         }
+        const line = view.state.doc.line(pos + 1);
+        builder.add(line.from, line.from, new RemovedMarker(
+          this.plugin,
+          pos,
+          (target2) => {
+            void this.revertRemovedAt(target2);
+          }
+        ));
       }
       return builder.finish();
     };
@@ -5198,11 +5072,11 @@ var GutterRemovedExtension = class extends BaseExtension {
     if (!(snapshot == null ? void 0 : snapshot.file)) {
       return;
     }
-    const currentLines = snapshot.getLastStateLines();
-    const hunks = HunkHelper.diff(
-      snapshot.getOriginalStateLines(),
+    const currentLines = snapshot.content.getLastStateLines();
+    const hunks = diff(
+      snapshot.content.getOriginalStateLines(),
       currentLines,
-      snapshot.lineBreak
+      snapshot.content.lineBreak
     );
     const insertionPoint = currentLine + 1;
     const hunk = hunks.find(
@@ -5211,25 +5085,15 @@ var GutterRemovedExtension = class extends BaseExtension {
     if (!hunk) {
       return;
     }
-    const confirmed = await this.modalsService.confirm({
-      title: this.plugin.t("modal.confirm.revert.title"),
-      message: this.plugin.t("modal.confirm.revert.message"),
-      confirmText: this.plugin.t("modal.confirm.revert.button"),
+    await confirmAndRevertHunk({
+      modalsService: this.modalsService,
+      snapshotsService: this.snapshotsService,
+      plugin: this.plugin,
+      file: snapshot.file,
+      currentLines,
+      hunk,
       cancelText: this.plugin.t("modal.confirm.cancel")
     });
-    if (!confirmed) {
-      return;
-    }
-    const start = Math.max(0, Math.min(currentLines.length, hunk.newStart - 1));
-    await this.snapshotsService.applyContent(
-      snapshot.file,
-      HunkHelper.revertHunk(currentLines, hunk),
-      {
-        start,
-        removeCount: hunk.newLines,
-        newLines: HunkHelper.baseLinesForHunk(hunk)
-      }
-    );
   }
   /**
    * Checks if the indicator type is set to 'dot'.
@@ -5330,1383 +5194,10 @@ var ExtensionsService = class {
       case "gutter" /* gutter */:
         return (0, import_view5.gutter)(new clsConstructor(null, plugin));
       default:
-        throw Error(`Unknown extension type "${type}" for "${(_a = clsConstructor == null ? void 0 : clsConstructor.name) != null ? _a : "unknown"}"`);
+        return assertNever(type, `extension "${(_a = clsConstructor == null ? void 0 : clsConstructor.name) != null ? _a : "unknown"}"`);
     }
   }
 };
-
-// node_modules/lodash-es/_freeGlobal.js
-var freeGlobal = typeof global == "object" && global && global.Object === Object && global;
-var freeGlobal_default = freeGlobal;
-
-// node_modules/lodash-es/_root.js
-var freeSelf = typeof self == "object" && self && self.Object === Object && self;
-var root = freeGlobal_default || freeSelf || Function("return this")();
-var root_default = root;
-
-// node_modules/lodash-es/_Symbol.js
-var Symbol2 = root_default.Symbol;
-var Symbol_default = Symbol2;
-
-// node_modules/lodash-es/_getRawTag.js
-var objectProto = Object.prototype;
-var hasOwnProperty = objectProto.hasOwnProperty;
-var nativeObjectToString = objectProto.toString;
-var symToStringTag = Symbol_default ? Symbol_default.toStringTag : void 0;
-function getRawTag(value) {
-  var isOwn = hasOwnProperty.call(value, symToStringTag), tag = value[symToStringTag];
-  try {
-    value[symToStringTag] = void 0;
-    var unmasked = true;
-  } catch (e) {
-  }
-  var result = nativeObjectToString.call(value);
-  if (unmasked) {
-    if (isOwn) {
-      value[symToStringTag] = tag;
-    } else {
-      delete value[symToStringTag];
-    }
-  }
-  return result;
-}
-var getRawTag_default = getRawTag;
-
-// node_modules/lodash-es/_objectToString.js
-var objectProto2 = Object.prototype;
-var nativeObjectToString2 = objectProto2.toString;
-function objectToString(value) {
-  return nativeObjectToString2.call(value);
-}
-var objectToString_default = objectToString;
-
-// node_modules/lodash-es/_baseGetTag.js
-var nullTag = "[object Null]";
-var undefinedTag = "[object Undefined]";
-var symToStringTag2 = Symbol_default ? Symbol_default.toStringTag : void 0;
-function baseGetTag(value) {
-  if (value == null) {
-    return value === void 0 ? undefinedTag : nullTag;
-  }
-  return symToStringTag2 && symToStringTag2 in Object(value) ? getRawTag_default(value) : objectToString_default(value);
-}
-var baseGetTag_default = baseGetTag;
-
-// node_modules/lodash-es/isObjectLike.js
-function isObjectLike(value) {
-  return value != null && typeof value == "object";
-}
-var isObjectLike_default = isObjectLike;
-
-// node_modules/lodash-es/isSymbol.js
-var symbolTag = "[object Symbol]";
-function isSymbol(value) {
-  return typeof value == "symbol" || isObjectLike_default(value) && baseGetTag_default(value) == symbolTag;
-}
-var isSymbol_default = isSymbol;
-
-// node_modules/lodash-es/_arrayMap.js
-function arrayMap(array, iteratee) {
-  var index = -1, length = array == null ? 0 : array.length, result = Array(length);
-  while (++index < length) {
-    result[index] = iteratee(array[index], index, array);
-  }
-  return result;
-}
-var arrayMap_default = arrayMap;
-
-// node_modules/lodash-es/isArray.js
-var isArray = Array.isArray;
-var isArray_default = isArray;
-
-// node_modules/lodash-es/_baseToString.js
-var INFINITY = 1 / 0;
-var symbolProto = Symbol_default ? Symbol_default.prototype : void 0;
-var symbolToString = symbolProto ? symbolProto.toString : void 0;
-function baseToString(value) {
-  if (typeof value == "string") {
-    return value;
-  }
-  if (isArray_default(value)) {
-    return arrayMap_default(value, baseToString) + "";
-  }
-  if (isSymbol_default(value)) {
-    return symbolToString ? symbolToString.call(value) : "";
-  }
-  var result = value + "";
-  return result == "0" && 1 / value == -INFINITY ? "-0" : result;
-}
-var baseToString_default = baseToString;
-
-// node_modules/lodash-es/isObject.js
-function isObject(value) {
-  var type = typeof value;
-  return value != null && (type == "object" || type == "function");
-}
-var isObject_default = isObject;
-
-// node_modules/lodash-es/identity.js
-function identity(value) {
-  return value;
-}
-var identity_default = identity;
-
-// node_modules/lodash-es/isFunction.js
-var asyncTag = "[object AsyncFunction]";
-var funcTag = "[object Function]";
-var genTag = "[object GeneratorFunction]";
-var proxyTag = "[object Proxy]";
-function isFunction(value) {
-  if (!isObject_default(value)) {
-    return false;
-  }
-  var tag = baseGetTag_default(value);
-  return tag == funcTag || tag == genTag || tag == asyncTag || tag == proxyTag;
-}
-var isFunction_default = isFunction;
-
-// node_modules/lodash-es/_coreJsData.js
-var coreJsData = root_default["__core-js_shared__"];
-var coreJsData_default = coreJsData;
-
-// node_modules/lodash-es/_isMasked.js
-var maskSrcKey = (function() {
-  var uid = /[^.]+$/.exec(coreJsData_default && coreJsData_default.keys && coreJsData_default.keys.IE_PROTO || "");
-  return uid ? "Symbol(src)_1." + uid : "";
-})();
-function isMasked(func) {
-  return !!maskSrcKey && maskSrcKey in func;
-}
-var isMasked_default = isMasked;
-
-// node_modules/lodash-es/_toSource.js
-var funcProto = Function.prototype;
-var funcToString = funcProto.toString;
-function toSource(func) {
-  if (func != null) {
-    try {
-      return funcToString.call(func);
-    } catch (e) {
-    }
-    try {
-      return func + "";
-    } catch (e) {
-    }
-  }
-  return "";
-}
-var toSource_default = toSource;
-
-// node_modules/lodash-es/_baseIsNative.js
-var reRegExpChar = /[\\^$.*+?()[\]{}|]/g;
-var reIsHostCtor = /^\[object .+?Constructor\]$/;
-var funcProto2 = Function.prototype;
-var objectProto3 = Object.prototype;
-var funcToString2 = funcProto2.toString;
-var hasOwnProperty2 = objectProto3.hasOwnProperty;
-var reIsNative = RegExp(
-  "^" + funcToString2.call(hasOwnProperty2).replace(reRegExpChar, "\\$&").replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g, "$1.*?") + "$"
-);
-function baseIsNative(value) {
-  if (!isObject_default(value) || isMasked_default(value)) {
-    return false;
-  }
-  var pattern = isFunction_default(value) ? reIsNative : reIsHostCtor;
-  return pattern.test(toSource_default(value));
-}
-var baseIsNative_default = baseIsNative;
-
-// node_modules/lodash-es/_getValue.js
-function getValue(object, key2) {
-  return object == null ? void 0 : object[key2];
-}
-var getValue_default = getValue;
-
-// node_modules/lodash-es/_getNative.js
-function getNative(object, key2) {
-  var value = getValue_default(object, key2);
-  return baseIsNative_default(value) ? value : void 0;
-}
-var getNative_default = getNative;
-
-// node_modules/lodash-es/_WeakMap.js
-var WeakMap2 = getNative_default(root_default, "WeakMap");
-var WeakMap_default = WeakMap2;
-
-// node_modules/lodash-es/_baseCreate.js
-var objectCreate = Object.create;
-var baseCreate = /* @__PURE__ */ (function() {
-  function object() {
-  }
-  return function(proto) {
-    if (!isObject_default(proto)) {
-      return {};
-    }
-    if (objectCreate) {
-      return objectCreate(proto);
-    }
-    object.prototype = proto;
-    var result = new object();
-    object.prototype = void 0;
-    return result;
-  };
-})();
-var baseCreate_default = baseCreate;
-
-// node_modules/lodash-es/_apply.js
-function apply(func, thisArg, args) {
-  switch (args.length) {
-    case 0:
-      return func.call(thisArg);
-    case 1:
-      return func.call(thisArg, args[0]);
-    case 2:
-      return func.call(thisArg, args[0], args[1]);
-    case 3:
-      return func.call(thisArg, args[0], args[1], args[2]);
-  }
-  return func.apply(thisArg, args);
-}
-var apply_default = apply;
-
-// node_modules/lodash-es/_copyArray.js
-function copyArray(source, array) {
-  var index = -1, length = source.length;
-  array || (array = Array(length));
-  while (++index < length) {
-    array[index] = source[index];
-  }
-  return array;
-}
-var copyArray_default = copyArray;
-
-// node_modules/lodash-es/_shortOut.js
-var HOT_COUNT = 800;
-var HOT_SPAN = 16;
-var nativeNow = Date.now;
-function shortOut(func) {
-  var count = 0, lastCalled = 0;
-  return function() {
-    var stamp = nativeNow(), remaining = HOT_SPAN - (stamp - lastCalled);
-    lastCalled = stamp;
-    if (remaining > 0) {
-      if (++count >= HOT_COUNT) {
-        return arguments[0];
-      }
-    } else {
-      count = 0;
-    }
-    return func.apply(void 0, arguments);
-  };
-}
-var shortOut_default = shortOut;
-
-// node_modules/lodash-es/constant.js
-function constant(value) {
-  return function() {
-    return value;
-  };
-}
-var constant_default = constant;
-
-// node_modules/lodash-es/_defineProperty.js
-var defineProperty = (function() {
-  try {
-    var func = getNative_default(Object, "defineProperty");
-    func({}, "", {});
-    return func;
-  } catch (e) {
-  }
-})();
-var defineProperty_default = defineProperty;
-
-// node_modules/lodash-es/_baseSetToString.js
-var baseSetToString = !defineProperty_default ? identity_default : function(func, string) {
-  return defineProperty_default(func, "toString", {
-    "configurable": true,
-    "enumerable": false,
-    "value": constant_default(string),
-    "writable": true
-  });
-};
-var baseSetToString_default = baseSetToString;
-
-// node_modules/lodash-es/_setToString.js
-var setToString = shortOut_default(baseSetToString_default);
-var setToString_default = setToString;
-
-// node_modules/lodash-es/_isIndex.js
-var MAX_SAFE_INTEGER = 9007199254740991;
-var reIsUint = /^(?:0|[1-9]\d*)$/;
-function isIndex(value, length) {
-  var type = typeof value;
-  length = length == null ? MAX_SAFE_INTEGER : length;
-  return !!length && (type == "number" || type != "symbol" && reIsUint.test(value)) && (value > -1 && value % 1 == 0 && value < length);
-}
-var isIndex_default = isIndex;
-
-// node_modules/lodash-es/_baseAssignValue.js
-function baseAssignValue(object, key2, value) {
-  if (key2 == "__proto__" && defineProperty_default) {
-    defineProperty_default(object, key2, {
-      "configurable": true,
-      "enumerable": true,
-      "value": value,
-      "writable": true
-    });
-  } else {
-    object[key2] = value;
-  }
-}
-var baseAssignValue_default = baseAssignValue;
-
-// node_modules/lodash-es/eq.js
-function eq(value, other) {
-  return value === other || value !== value && other !== other;
-}
-var eq_default = eq;
-
-// node_modules/lodash-es/_assignValue.js
-var objectProto4 = Object.prototype;
-var hasOwnProperty3 = objectProto4.hasOwnProperty;
-function assignValue(object, key2, value) {
-  var objValue = object[key2];
-  if (!(hasOwnProperty3.call(object, key2) && eq_default(objValue, value)) || value === void 0 && !(key2 in object)) {
-    baseAssignValue_default(object, key2, value);
-  }
-}
-var assignValue_default = assignValue;
-
-// node_modules/lodash-es/_copyObject.js
-function copyObject(source, props, object, customizer) {
-  var isNew = !object;
-  object || (object = {});
-  var index = -1, length = props.length;
-  while (++index < length) {
-    var key2 = props[index];
-    var newValue = customizer ? customizer(object[key2], source[key2], key2, object, source) : void 0;
-    if (newValue === void 0) {
-      newValue = source[key2];
-    }
-    if (isNew) {
-      baseAssignValue_default(object, key2, newValue);
-    } else {
-      assignValue_default(object, key2, newValue);
-    }
-  }
-  return object;
-}
-var copyObject_default = copyObject;
-
-// node_modules/lodash-es/_overRest.js
-var nativeMax = Math.max;
-function overRest(func, start, transform) {
-  start = nativeMax(start === void 0 ? func.length - 1 : start, 0);
-  return function() {
-    var args = arguments, index = -1, length = nativeMax(args.length - start, 0), array = Array(length);
-    while (++index < length) {
-      array[index] = args[start + index];
-    }
-    index = -1;
-    var otherArgs = Array(start + 1);
-    while (++index < start) {
-      otherArgs[index] = args[index];
-    }
-    otherArgs[start] = transform(array);
-    return apply_default(func, this, otherArgs);
-  };
-}
-var overRest_default = overRest;
-
-// node_modules/lodash-es/_baseRest.js
-function baseRest(func, start) {
-  return setToString_default(overRest_default(func, start, identity_default), func + "");
-}
-var baseRest_default = baseRest;
-
-// node_modules/lodash-es/isLength.js
-var MAX_SAFE_INTEGER2 = 9007199254740991;
-function isLength(value) {
-  return typeof value == "number" && value > -1 && value % 1 == 0 && value <= MAX_SAFE_INTEGER2;
-}
-var isLength_default = isLength;
-
-// node_modules/lodash-es/isArrayLike.js
-function isArrayLike(value) {
-  return value != null && isLength_default(value.length) && !isFunction_default(value);
-}
-var isArrayLike_default = isArrayLike;
-
-// node_modules/lodash-es/_isIterateeCall.js
-function isIterateeCall(value, index, object) {
-  if (!isObject_default(object)) {
-    return false;
-  }
-  var type = typeof index;
-  if (type == "number" ? isArrayLike_default(object) && isIndex_default(index, object.length) : type == "string" && index in object) {
-    return eq_default(object[index], value);
-  }
-  return false;
-}
-var isIterateeCall_default = isIterateeCall;
-
-// node_modules/lodash-es/_createAssigner.js
-function createAssigner(assigner) {
-  return baseRest_default(function(object, sources) {
-    var index = -1, length = sources.length, customizer = length > 1 ? sources[length - 1] : void 0, guard = length > 2 ? sources[2] : void 0;
-    customizer = assigner.length > 3 && typeof customizer == "function" ? (length--, customizer) : void 0;
-    if (guard && isIterateeCall_default(sources[0], sources[1], guard)) {
-      customizer = length < 3 ? void 0 : customizer;
-      length = 1;
-    }
-    object = Object(object);
-    while (++index < length) {
-      var source = sources[index];
-      if (source) {
-        assigner(object, source, index, customizer);
-      }
-    }
-    return object;
-  });
-}
-var createAssigner_default = createAssigner;
-
-// node_modules/lodash-es/_isPrototype.js
-var objectProto5 = Object.prototype;
-function isPrototype(value) {
-  var Ctor = value && value.constructor, proto = typeof Ctor == "function" && Ctor.prototype || objectProto5;
-  return value === proto;
-}
-var isPrototype_default = isPrototype;
-
-// node_modules/lodash-es/_baseTimes.js
-function baseTimes(n, iteratee) {
-  var index = -1, result = Array(n);
-  while (++index < n) {
-    result[index] = iteratee(index);
-  }
-  return result;
-}
-var baseTimes_default = baseTimes;
-
-// node_modules/lodash-es/_baseIsArguments.js
-var argsTag = "[object Arguments]";
-function baseIsArguments(value) {
-  return isObjectLike_default(value) && baseGetTag_default(value) == argsTag;
-}
-var baseIsArguments_default = baseIsArguments;
-
-// node_modules/lodash-es/isArguments.js
-var objectProto6 = Object.prototype;
-var hasOwnProperty4 = objectProto6.hasOwnProperty;
-var propertyIsEnumerable = objectProto6.propertyIsEnumerable;
-var isArguments = baseIsArguments_default(/* @__PURE__ */ (function() {
-  return arguments;
-})()) ? baseIsArguments_default : function(value) {
-  return isObjectLike_default(value) && hasOwnProperty4.call(value, "callee") && !propertyIsEnumerable.call(value, "callee");
-};
-var isArguments_default = isArguments;
-
-// node_modules/lodash-es/stubFalse.js
-function stubFalse() {
-  return false;
-}
-var stubFalse_default = stubFalse;
-
-// node_modules/lodash-es/isBuffer.js
-var freeExports = typeof exports == "object" && exports && !exports.nodeType && exports;
-var freeModule = freeExports && typeof module == "object" && module && !module.nodeType && module;
-var moduleExports = freeModule && freeModule.exports === freeExports;
-var Buffer2 = moduleExports ? root_default.Buffer : void 0;
-var nativeIsBuffer = Buffer2 ? Buffer2.isBuffer : void 0;
-var isBuffer = nativeIsBuffer || stubFalse_default;
-var isBuffer_default = isBuffer;
-
-// node_modules/lodash-es/_baseIsTypedArray.js
-var argsTag2 = "[object Arguments]";
-var arrayTag = "[object Array]";
-var boolTag = "[object Boolean]";
-var dateTag = "[object Date]";
-var errorTag = "[object Error]";
-var funcTag2 = "[object Function]";
-var mapTag = "[object Map]";
-var numberTag = "[object Number]";
-var objectTag = "[object Object]";
-var regexpTag = "[object RegExp]";
-var setTag = "[object Set]";
-var stringTag = "[object String]";
-var weakMapTag = "[object WeakMap]";
-var arrayBufferTag = "[object ArrayBuffer]";
-var dataViewTag = "[object DataView]";
-var float32Tag = "[object Float32Array]";
-var float64Tag = "[object Float64Array]";
-var int8Tag = "[object Int8Array]";
-var int16Tag = "[object Int16Array]";
-var int32Tag = "[object Int32Array]";
-var uint8Tag = "[object Uint8Array]";
-var uint8ClampedTag = "[object Uint8ClampedArray]";
-var uint16Tag = "[object Uint16Array]";
-var uint32Tag = "[object Uint32Array]";
-var typedArrayTags = {};
-typedArrayTags[float32Tag] = typedArrayTags[float64Tag] = typedArrayTags[int8Tag] = typedArrayTags[int16Tag] = typedArrayTags[int32Tag] = typedArrayTags[uint8Tag] = typedArrayTags[uint8ClampedTag] = typedArrayTags[uint16Tag] = typedArrayTags[uint32Tag] = true;
-typedArrayTags[argsTag2] = typedArrayTags[arrayTag] = typedArrayTags[arrayBufferTag] = typedArrayTags[boolTag] = typedArrayTags[dataViewTag] = typedArrayTags[dateTag] = typedArrayTags[errorTag] = typedArrayTags[funcTag2] = typedArrayTags[mapTag] = typedArrayTags[numberTag] = typedArrayTags[objectTag] = typedArrayTags[regexpTag] = typedArrayTags[setTag] = typedArrayTags[stringTag] = typedArrayTags[weakMapTag] = false;
-function baseIsTypedArray(value) {
-  return isObjectLike_default(value) && isLength_default(value.length) && !!typedArrayTags[baseGetTag_default(value)];
-}
-var baseIsTypedArray_default = baseIsTypedArray;
-
-// node_modules/lodash-es/_baseUnary.js
-function baseUnary(func) {
-  return function(value) {
-    return func(value);
-  };
-}
-var baseUnary_default = baseUnary;
-
-// node_modules/lodash-es/_nodeUtil.js
-var freeExports2 = typeof exports == "object" && exports && !exports.nodeType && exports;
-var freeModule2 = freeExports2 && typeof module == "object" && module && !module.nodeType && module;
-var moduleExports2 = freeModule2 && freeModule2.exports === freeExports2;
-var freeProcess = moduleExports2 && freeGlobal_default.process;
-var nodeUtil = (function() {
-  try {
-    var types = freeModule2 && freeModule2.require && freeModule2.require("util").types;
-    if (types) {
-      return types;
-    }
-    return freeProcess && freeProcess.binding && freeProcess.binding("util");
-  } catch (e) {
-  }
-})();
-var nodeUtil_default = nodeUtil;
-
-// node_modules/lodash-es/isTypedArray.js
-var nodeIsTypedArray = nodeUtil_default && nodeUtil_default.isTypedArray;
-var isTypedArray = nodeIsTypedArray ? baseUnary_default(nodeIsTypedArray) : baseIsTypedArray_default;
-var isTypedArray_default = isTypedArray;
-
-// node_modules/lodash-es/_arrayLikeKeys.js
-var objectProto7 = Object.prototype;
-var hasOwnProperty5 = objectProto7.hasOwnProperty;
-function arrayLikeKeys(value, inherited) {
-  var isArr = isArray_default(value), isArg = !isArr && isArguments_default(value), isBuff = !isArr && !isArg && isBuffer_default(value), isType = !isArr && !isArg && !isBuff && isTypedArray_default(value), skipIndexes = isArr || isArg || isBuff || isType, result = skipIndexes ? baseTimes_default(value.length, String) : [], length = result.length;
-  for (var key2 in value) {
-    if ((inherited || hasOwnProperty5.call(value, key2)) && !(skipIndexes && // Safari 9 has enumerable `arguments.length` in strict mode.
-    (key2 == "length" || // Node.js 0.10 has enumerable non-index properties on buffers.
-    isBuff && (key2 == "offset" || key2 == "parent") || // PhantomJS 2 has enumerable non-index properties on typed arrays.
-    isType && (key2 == "buffer" || key2 == "byteLength" || key2 == "byteOffset") || // Skip index properties.
-    isIndex_default(key2, length)))) {
-      result.push(key2);
-    }
-  }
-  return result;
-}
-var arrayLikeKeys_default = arrayLikeKeys;
-
-// node_modules/lodash-es/_overArg.js
-function overArg(func, transform) {
-  return function(arg) {
-    return func(transform(arg));
-  };
-}
-var overArg_default = overArg;
-
-// node_modules/lodash-es/_nativeKeys.js
-var nativeKeys = overArg_default(Object.keys, Object);
-var nativeKeys_default = nativeKeys;
-
-// node_modules/lodash-es/_baseKeys.js
-var objectProto8 = Object.prototype;
-var hasOwnProperty6 = objectProto8.hasOwnProperty;
-function baseKeys(object) {
-  if (!isPrototype_default(object)) {
-    return nativeKeys_default(object);
-  }
-  var result = [];
-  for (var key2 in Object(object)) {
-    if (hasOwnProperty6.call(object, key2) && key2 != "constructor") {
-      result.push(key2);
-    }
-  }
-  return result;
-}
-var baseKeys_default = baseKeys;
-
-// node_modules/lodash-es/keys.js
-function keys(object) {
-  return isArrayLike_default(object) ? arrayLikeKeys_default(object) : baseKeys_default(object);
-}
-var keys_default = keys;
-
-// node_modules/lodash-es/_nativeKeysIn.js
-function nativeKeysIn(object) {
-  var result = [];
-  if (object != null) {
-    for (var key2 in Object(object)) {
-      result.push(key2);
-    }
-  }
-  return result;
-}
-var nativeKeysIn_default = nativeKeysIn;
-
-// node_modules/lodash-es/_baseKeysIn.js
-var objectProto9 = Object.prototype;
-var hasOwnProperty7 = objectProto9.hasOwnProperty;
-function baseKeysIn(object) {
-  if (!isObject_default(object)) {
-    return nativeKeysIn_default(object);
-  }
-  var isProto = isPrototype_default(object), result = [];
-  for (var key2 in object) {
-    if (!(key2 == "constructor" && (isProto || !hasOwnProperty7.call(object, key2)))) {
-      result.push(key2);
-    }
-  }
-  return result;
-}
-var baseKeysIn_default = baseKeysIn;
-
-// node_modules/lodash-es/keysIn.js
-function keysIn(object) {
-  return isArrayLike_default(object) ? arrayLikeKeys_default(object, true) : baseKeysIn_default(object);
-}
-var keysIn_default = keysIn;
-
-// node_modules/lodash-es/_isKey.js
-var reIsDeepProp = /\.|\[(?:[^[\]]*|(["'])(?:(?!\1)[^\\]|\\.)*?\1)\]/;
-var reIsPlainProp = /^\w*$/;
-function isKey(value, object) {
-  if (isArray_default(value)) {
-    return false;
-  }
-  var type = typeof value;
-  if (type == "number" || type == "symbol" || type == "boolean" || value == null || isSymbol_default(value)) {
-    return true;
-  }
-  return reIsPlainProp.test(value) || !reIsDeepProp.test(value) || object != null && value in Object(object);
-}
-var isKey_default = isKey;
-
-// node_modules/lodash-es/_nativeCreate.js
-var nativeCreate = getNative_default(Object, "create");
-var nativeCreate_default = nativeCreate;
-
-// node_modules/lodash-es/_hashClear.js
-function hashClear() {
-  this.__data__ = nativeCreate_default ? nativeCreate_default(null) : {};
-  this.size = 0;
-}
-var hashClear_default = hashClear;
-
-// node_modules/lodash-es/_hashDelete.js
-function hashDelete(key2) {
-  var result = this.has(key2) && delete this.__data__[key2];
-  this.size -= result ? 1 : 0;
-  return result;
-}
-var hashDelete_default = hashDelete;
-
-// node_modules/lodash-es/_hashGet.js
-var HASH_UNDEFINED = "__lodash_hash_undefined__";
-var objectProto10 = Object.prototype;
-var hasOwnProperty8 = objectProto10.hasOwnProperty;
-function hashGet(key2) {
-  var data = this.__data__;
-  if (nativeCreate_default) {
-    var result = data[key2];
-    return result === HASH_UNDEFINED ? void 0 : result;
-  }
-  return hasOwnProperty8.call(data, key2) ? data[key2] : void 0;
-}
-var hashGet_default = hashGet;
-
-// node_modules/lodash-es/_hashHas.js
-var objectProto11 = Object.prototype;
-var hasOwnProperty9 = objectProto11.hasOwnProperty;
-function hashHas(key2) {
-  var data = this.__data__;
-  return nativeCreate_default ? data[key2] !== void 0 : hasOwnProperty9.call(data, key2);
-}
-var hashHas_default = hashHas;
-
-// node_modules/lodash-es/_hashSet.js
-var HASH_UNDEFINED2 = "__lodash_hash_undefined__";
-function hashSet(key2, value) {
-  var data = this.__data__;
-  this.size += this.has(key2) ? 0 : 1;
-  data[key2] = nativeCreate_default && value === void 0 ? HASH_UNDEFINED2 : value;
-  return this;
-}
-var hashSet_default = hashSet;
-
-// node_modules/lodash-es/_Hash.js
-function Hash(entries) {
-  var index = -1, length = entries == null ? 0 : entries.length;
-  this.clear();
-  while (++index < length) {
-    var entry = entries[index];
-    this.set(entry[0], entry[1]);
-  }
-}
-Hash.prototype.clear = hashClear_default;
-Hash.prototype["delete"] = hashDelete_default;
-Hash.prototype.get = hashGet_default;
-Hash.prototype.has = hashHas_default;
-Hash.prototype.set = hashSet_default;
-var Hash_default = Hash;
-
-// node_modules/lodash-es/_listCacheClear.js
-function listCacheClear() {
-  this.__data__ = [];
-  this.size = 0;
-}
-var listCacheClear_default = listCacheClear;
-
-// node_modules/lodash-es/_assocIndexOf.js
-function assocIndexOf(array, key2) {
-  var length = array.length;
-  while (length--) {
-    if (eq_default(array[length][0], key2)) {
-      return length;
-    }
-  }
-  return -1;
-}
-var assocIndexOf_default = assocIndexOf;
-
-// node_modules/lodash-es/_listCacheDelete.js
-var arrayProto = Array.prototype;
-var splice = arrayProto.splice;
-function listCacheDelete(key2) {
-  var data = this.__data__, index = assocIndexOf_default(data, key2);
-  if (index < 0) {
-    return false;
-  }
-  var lastIndex = data.length - 1;
-  if (index == lastIndex) {
-    data.pop();
-  } else {
-    splice.call(data, index, 1);
-  }
-  --this.size;
-  return true;
-}
-var listCacheDelete_default = listCacheDelete;
-
-// node_modules/lodash-es/_listCacheGet.js
-function listCacheGet(key2) {
-  var data = this.__data__, index = assocIndexOf_default(data, key2);
-  return index < 0 ? void 0 : data[index][1];
-}
-var listCacheGet_default = listCacheGet;
-
-// node_modules/lodash-es/_listCacheHas.js
-function listCacheHas(key2) {
-  return assocIndexOf_default(this.__data__, key2) > -1;
-}
-var listCacheHas_default = listCacheHas;
-
-// node_modules/lodash-es/_listCacheSet.js
-function listCacheSet(key2, value) {
-  var data = this.__data__, index = assocIndexOf_default(data, key2);
-  if (index < 0) {
-    ++this.size;
-    data.push([key2, value]);
-  } else {
-    data[index][1] = value;
-  }
-  return this;
-}
-var listCacheSet_default = listCacheSet;
-
-// node_modules/lodash-es/_ListCache.js
-function ListCache(entries) {
-  var index = -1, length = entries == null ? 0 : entries.length;
-  this.clear();
-  while (++index < length) {
-    var entry = entries[index];
-    this.set(entry[0], entry[1]);
-  }
-}
-ListCache.prototype.clear = listCacheClear_default;
-ListCache.prototype["delete"] = listCacheDelete_default;
-ListCache.prototype.get = listCacheGet_default;
-ListCache.prototype.has = listCacheHas_default;
-ListCache.prototype.set = listCacheSet_default;
-var ListCache_default = ListCache;
-
-// node_modules/lodash-es/_Map.js
-var Map2 = getNative_default(root_default, "Map");
-var Map_default = Map2;
-
-// node_modules/lodash-es/_mapCacheClear.js
-function mapCacheClear() {
-  this.size = 0;
-  this.__data__ = {
-    "hash": new Hash_default(),
-    "map": new (Map_default || ListCache_default)(),
-    "string": new Hash_default()
-  };
-}
-var mapCacheClear_default = mapCacheClear;
-
-// node_modules/lodash-es/_isKeyable.js
-function isKeyable(value) {
-  var type = typeof value;
-  return type == "string" || type == "number" || type == "symbol" || type == "boolean" ? value !== "__proto__" : value === null;
-}
-var isKeyable_default = isKeyable;
-
-// node_modules/lodash-es/_getMapData.js
-function getMapData(map, key2) {
-  var data = map.__data__;
-  return isKeyable_default(key2) ? data[typeof key2 == "string" ? "string" : "hash"] : data.map;
-}
-var getMapData_default = getMapData;
-
-// node_modules/lodash-es/_mapCacheDelete.js
-function mapCacheDelete(key2) {
-  var result = getMapData_default(this, key2)["delete"](key2);
-  this.size -= result ? 1 : 0;
-  return result;
-}
-var mapCacheDelete_default = mapCacheDelete;
-
-// node_modules/lodash-es/_mapCacheGet.js
-function mapCacheGet(key2) {
-  return getMapData_default(this, key2).get(key2);
-}
-var mapCacheGet_default = mapCacheGet;
-
-// node_modules/lodash-es/_mapCacheHas.js
-function mapCacheHas(key2) {
-  return getMapData_default(this, key2).has(key2);
-}
-var mapCacheHas_default = mapCacheHas;
-
-// node_modules/lodash-es/_mapCacheSet.js
-function mapCacheSet(key2, value) {
-  var data = getMapData_default(this, key2), size = data.size;
-  data.set(key2, value);
-  this.size += data.size == size ? 0 : 1;
-  return this;
-}
-var mapCacheSet_default = mapCacheSet;
-
-// node_modules/lodash-es/_MapCache.js
-function MapCache(entries) {
-  var index = -1, length = entries == null ? 0 : entries.length;
-  this.clear();
-  while (++index < length) {
-    var entry = entries[index];
-    this.set(entry[0], entry[1]);
-  }
-}
-MapCache.prototype.clear = mapCacheClear_default;
-MapCache.prototype["delete"] = mapCacheDelete_default;
-MapCache.prototype.get = mapCacheGet_default;
-MapCache.prototype.has = mapCacheHas_default;
-MapCache.prototype.set = mapCacheSet_default;
-var MapCache_default = MapCache;
-
-// node_modules/lodash-es/memoize.js
-var FUNC_ERROR_TEXT = "Expected a function";
-function memoize(func, resolver) {
-  if (typeof func != "function" || resolver != null && typeof resolver != "function") {
-    throw new TypeError(FUNC_ERROR_TEXT);
-  }
-  var memoized = function() {
-    var args = arguments, key2 = resolver ? resolver.apply(this, args) : args[0], cache = memoized.cache;
-    if (cache.has(key2)) {
-      return cache.get(key2);
-    }
-    var result = func.apply(this, args);
-    memoized.cache = cache.set(key2, result) || cache;
-    return result;
-  };
-  memoized.cache = new (memoize.Cache || MapCache_default)();
-  return memoized;
-}
-memoize.Cache = MapCache_default;
-var memoize_default = memoize;
-
-// node_modules/lodash-es/_memoizeCapped.js
-var MAX_MEMOIZE_SIZE = 500;
-function memoizeCapped(func) {
-  var result = memoize_default(func, function(key2) {
-    if (cache.size === MAX_MEMOIZE_SIZE) {
-      cache.clear();
-    }
-    return key2;
-  });
-  var cache = result.cache;
-  return result;
-}
-var memoizeCapped_default = memoizeCapped;
-
-// node_modules/lodash-es/_stringToPath.js
-var rePropName = /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]|(?=(?:\.|\[\])(?:\.|\[\]|$))/g;
-var reEscapeChar = /\\(\\)?/g;
-var stringToPath = memoizeCapped_default(function(string) {
-  var result = [];
-  if (string.charCodeAt(0) === 46) {
-    result.push("");
-  }
-  string.replace(rePropName, function(match, number, quote, subString) {
-    result.push(quote ? subString.replace(reEscapeChar, "$1") : number || match);
-  });
-  return result;
-});
-var stringToPath_default = stringToPath;
-
-// node_modules/lodash-es/toString.js
-function toString(value) {
-  return value == null ? "" : baseToString_default(value);
-}
-var toString_default = toString;
-
-// node_modules/lodash-es/_castPath.js
-function castPath(value, object) {
-  if (isArray_default(value)) {
-    return value;
-  }
-  return isKey_default(value, object) ? [value] : stringToPath_default(toString_default(value));
-}
-var castPath_default = castPath;
-
-// node_modules/lodash-es/_toKey.js
-var INFINITY2 = 1 / 0;
-function toKey(value) {
-  if (typeof value == "string" || isSymbol_default(value)) {
-    return value;
-  }
-  var result = value + "";
-  return result == "0" && 1 / value == -INFINITY2 ? "-0" : result;
-}
-var toKey_default = toKey;
-
-// node_modules/lodash-es/_baseGet.js
-function baseGet(object, path) {
-  path = castPath_default(path, object);
-  var index = 0, length = path.length;
-  while (object != null && index < length) {
-    object = object[toKey_default(path[index++])];
-  }
-  return index && index == length ? object : void 0;
-}
-var baseGet_default = baseGet;
-
-// node_modules/lodash-es/get.js
-function get(object, path, defaultValue) {
-  var result = object == null ? void 0 : baseGet_default(object, path);
-  return result === void 0 ? defaultValue : result;
-}
-var get_default = get;
-
-// node_modules/lodash-es/_getPrototype.js
-var getPrototype = overArg_default(Object.getPrototypeOf, Object);
-var getPrototype_default = getPrototype;
-
-// node_modules/lodash-es/isPlainObject.js
-var objectTag2 = "[object Object]";
-var funcProto3 = Function.prototype;
-var objectProto12 = Object.prototype;
-var funcToString3 = funcProto3.toString;
-var hasOwnProperty10 = objectProto12.hasOwnProperty;
-var objectCtorString = funcToString3.call(Object);
-function isPlainObject(value) {
-  if (!isObjectLike_default(value) || baseGetTag_default(value) != objectTag2) {
-    return false;
-  }
-  var proto = getPrototype_default(value);
-  if (proto === null) {
-    return true;
-  }
-  var Ctor = hasOwnProperty10.call(proto, "constructor") && proto.constructor;
-  return typeof Ctor == "function" && Ctor instanceof Ctor && funcToString3.call(Ctor) == objectCtorString;
-}
-var isPlainObject_default = isPlainObject;
-
-// node_modules/lodash-es/castArray.js
-function castArray() {
-  if (!arguments.length) {
-    return [];
-  }
-  var value = arguments[0];
-  return isArray_default(value) ? value : [value];
-}
-var castArray_default = castArray;
-
-// node_modules/lodash-es/_stackClear.js
-function stackClear() {
-  this.__data__ = new ListCache_default();
-  this.size = 0;
-}
-var stackClear_default = stackClear;
-
-// node_modules/lodash-es/_stackDelete.js
-function stackDelete(key2) {
-  var data = this.__data__, result = data["delete"](key2);
-  this.size = data.size;
-  return result;
-}
-var stackDelete_default = stackDelete;
-
-// node_modules/lodash-es/_stackGet.js
-function stackGet(key2) {
-  return this.__data__.get(key2);
-}
-var stackGet_default = stackGet;
-
-// node_modules/lodash-es/_stackHas.js
-function stackHas(key2) {
-  return this.__data__.has(key2);
-}
-var stackHas_default = stackHas;
-
-// node_modules/lodash-es/_stackSet.js
-var LARGE_ARRAY_SIZE = 200;
-function stackSet(key2, value) {
-  var data = this.__data__;
-  if (data instanceof ListCache_default) {
-    var pairs = data.__data__;
-    if (!Map_default || pairs.length < LARGE_ARRAY_SIZE - 1) {
-      pairs.push([key2, value]);
-      this.size = ++data.size;
-      return this;
-    }
-    data = this.__data__ = new MapCache_default(pairs);
-  }
-  data.set(key2, value);
-  this.size = data.size;
-  return this;
-}
-var stackSet_default = stackSet;
-
-// node_modules/lodash-es/_Stack.js
-function Stack(entries) {
-  var data = this.__data__ = new ListCache_default(entries);
-  this.size = data.size;
-}
-Stack.prototype.clear = stackClear_default;
-Stack.prototype["delete"] = stackDelete_default;
-Stack.prototype.get = stackGet_default;
-Stack.prototype.has = stackHas_default;
-Stack.prototype.set = stackSet_default;
-var Stack_default = Stack;
-
-// node_modules/lodash-es/_cloneBuffer.js
-var freeExports3 = typeof exports == "object" && exports && !exports.nodeType && exports;
-var freeModule3 = freeExports3 && typeof module == "object" && module && !module.nodeType && module;
-var moduleExports3 = freeModule3 && freeModule3.exports === freeExports3;
-var Buffer3 = moduleExports3 ? root_default.Buffer : void 0;
-var allocUnsafe = Buffer3 ? Buffer3.allocUnsafe : void 0;
-function cloneBuffer(buffer, isDeep) {
-  if (isDeep) {
-    return buffer.slice();
-  }
-  var length = buffer.length, result = allocUnsafe ? allocUnsafe(length) : new buffer.constructor(length);
-  buffer.copy(result);
-  return result;
-}
-var cloneBuffer_default = cloneBuffer;
-
-// node_modules/lodash-es/_DataView.js
-var DataView = getNative_default(root_default, "DataView");
-var DataView_default = DataView;
-
-// node_modules/lodash-es/_Promise.js
-var Promise2 = getNative_default(root_default, "Promise");
-var Promise_default = Promise2;
-
-// node_modules/lodash-es/_Set.js
-var Set2 = getNative_default(root_default, "Set");
-var Set_default = Set2;
-
-// node_modules/lodash-es/_getTag.js
-var mapTag2 = "[object Map]";
-var objectTag3 = "[object Object]";
-var promiseTag = "[object Promise]";
-var setTag2 = "[object Set]";
-var weakMapTag2 = "[object WeakMap]";
-var dataViewTag2 = "[object DataView]";
-var dataViewCtorString = toSource_default(DataView_default);
-var mapCtorString = toSource_default(Map_default);
-var promiseCtorString = toSource_default(Promise_default);
-var setCtorString = toSource_default(Set_default);
-var weakMapCtorString = toSource_default(WeakMap_default);
-var getTag = baseGetTag_default;
-if (DataView_default && getTag(new DataView_default(new ArrayBuffer(1))) != dataViewTag2 || Map_default && getTag(new Map_default()) != mapTag2 || Promise_default && getTag(Promise_default.resolve()) != promiseTag || Set_default && getTag(new Set_default()) != setTag2 || WeakMap_default && getTag(new WeakMap_default()) != weakMapTag2) {
-  getTag = function(value) {
-    var result = baseGetTag_default(value), Ctor = result == objectTag3 ? value.constructor : void 0, ctorString = Ctor ? toSource_default(Ctor) : "";
-    if (ctorString) {
-      switch (ctorString) {
-        case dataViewCtorString:
-          return dataViewTag2;
-        case mapCtorString:
-          return mapTag2;
-        case promiseCtorString:
-          return promiseTag;
-        case setCtorString:
-          return setTag2;
-        case weakMapCtorString:
-          return weakMapTag2;
-      }
-    }
-    return result;
-  };
-}
-var getTag_default = getTag;
-
-// node_modules/lodash-es/_Uint8Array.js
-var Uint8Array2 = root_default.Uint8Array;
-var Uint8Array_default = Uint8Array2;
-
-// node_modules/lodash-es/_cloneArrayBuffer.js
-function cloneArrayBuffer(arrayBuffer) {
-  var result = new arrayBuffer.constructor(arrayBuffer.byteLength);
-  new Uint8Array_default(result).set(new Uint8Array_default(arrayBuffer));
-  return result;
-}
-var cloneArrayBuffer_default = cloneArrayBuffer;
-
-// node_modules/lodash-es/_cloneTypedArray.js
-function cloneTypedArray(typedArray, isDeep) {
-  var buffer = isDeep ? cloneArrayBuffer_default(typedArray.buffer) : typedArray.buffer;
-  return new typedArray.constructor(buffer, typedArray.byteOffset, typedArray.length);
-}
-var cloneTypedArray_default = cloneTypedArray;
-
-// node_modules/lodash-es/_initCloneObject.js
-function initCloneObject(object) {
-  return typeof object.constructor == "function" && !isPrototype_default(object) ? baseCreate_default(getPrototype_default(object)) : {};
-}
-var initCloneObject_default = initCloneObject;
-
-// node_modules/lodash-es/_mapToArray.js
-function mapToArray(map) {
-  var index = -1, result = Array(map.size);
-  map.forEach(function(value, key2) {
-    result[++index] = [key2, value];
-  });
-  return result;
-}
-var mapToArray_default = mapToArray;
-
-// node_modules/lodash-es/_createBaseFor.js
-function createBaseFor(fromRight) {
-  return function(object, iteratee, keysFunc) {
-    var index = -1, iterable = Object(object), props = keysFunc(object), length = props.length;
-    while (length--) {
-      var key2 = props[fromRight ? length : ++index];
-      if (iteratee(iterable[key2], key2, iterable) === false) {
-        break;
-      }
-    }
-    return object;
-  };
-}
-var createBaseFor_default = createBaseFor;
-
-// node_modules/lodash-es/_baseFor.js
-var baseFor = createBaseFor_default();
-var baseFor_default = baseFor;
-
-// node_modules/lodash-es/_assignMergeValue.js
-function assignMergeValue(object, key2, value) {
-  if (value !== void 0 && !eq_default(object[key2], value) || value === void 0 && !(key2 in object)) {
-    baseAssignValue_default(object, key2, value);
-  }
-}
-var assignMergeValue_default = assignMergeValue;
-
-// node_modules/lodash-es/isArrayLikeObject.js
-function isArrayLikeObject(value) {
-  return isObjectLike_default(value) && isArrayLike_default(value);
-}
-var isArrayLikeObject_default = isArrayLikeObject;
-
-// node_modules/lodash-es/_safeGet.js
-function safeGet(object, key2) {
-  if (key2 === "constructor" && typeof object[key2] === "function") {
-    return;
-  }
-  if (key2 == "__proto__") {
-    return;
-  }
-  return object[key2];
-}
-var safeGet_default = safeGet;
-
-// node_modules/lodash-es/toPlainObject.js
-function toPlainObject(value) {
-  return copyObject_default(value, keysIn_default(value));
-}
-var toPlainObject_default = toPlainObject;
-
-// node_modules/lodash-es/_baseMergeDeep.js
-function baseMergeDeep(object, source, key2, srcIndex, mergeFunc, customizer, stack) {
-  var objValue = safeGet_default(object, key2), srcValue = safeGet_default(source, key2), stacked = stack.get(srcValue);
-  if (stacked) {
-    assignMergeValue_default(object, key2, stacked);
-    return;
-  }
-  var newValue = customizer ? customizer(objValue, srcValue, key2 + "", object, source, stack) : void 0;
-  var isCommon = newValue === void 0;
-  if (isCommon) {
-    var isArr = isArray_default(srcValue), isBuff = !isArr && isBuffer_default(srcValue), isTyped = !isArr && !isBuff && isTypedArray_default(srcValue);
-    newValue = srcValue;
-    if (isArr || isBuff || isTyped) {
-      if (isArray_default(objValue)) {
-        newValue = objValue;
-      } else if (isArrayLikeObject_default(objValue)) {
-        newValue = copyArray_default(objValue);
-      } else if (isBuff) {
-        isCommon = false;
-        newValue = cloneBuffer_default(srcValue, true);
-      } else if (isTyped) {
-        isCommon = false;
-        newValue = cloneTypedArray_default(srcValue, true);
-      } else {
-        newValue = [];
-      }
-    } else if (isPlainObject_default(srcValue) || isArguments_default(srcValue)) {
-      newValue = objValue;
-      if (isArguments_default(objValue)) {
-        newValue = toPlainObject_default(objValue);
-      } else if (!isObject_default(objValue) || isFunction_default(objValue)) {
-        newValue = initCloneObject_default(srcValue);
-      }
-    } else {
-      isCommon = false;
-    }
-  }
-  if (isCommon) {
-    stack.set(srcValue, newValue);
-    mergeFunc(newValue, srcValue, srcIndex, customizer, stack);
-    stack["delete"](srcValue);
-  }
-  assignMergeValue_default(object, key2, newValue);
-}
-var baseMergeDeep_default = baseMergeDeep;
-
-// node_modules/lodash-es/_baseMerge.js
-function baseMerge(object, source, srcIndex, customizer, stack) {
-  if (object === source) {
-    return;
-  }
-  baseFor_default(source, function(srcValue, key2) {
-    stack || (stack = new Stack_default());
-    if (isObject_default(srcValue)) {
-      baseMergeDeep_default(object, source, key2, srcIndex, baseMerge, customizer, stack);
-    } else {
-      var newValue = customizer ? customizer(safeGet_default(object, key2), srcValue, key2 + "", object, source, stack) : void 0;
-      if (newValue === void 0) {
-        newValue = srcValue;
-      }
-      assignMergeValue_default(object, key2, newValue);
-    }
-  }, keysIn_default);
-}
-var baseMerge_default = baseMerge;
-
-// node_modules/lodash-es/_baseToPairs.js
-function baseToPairs(object, props) {
-  return arrayMap_default(props, function(key2) {
-    return [key2, object[key2]];
-  });
-}
-var baseToPairs_default = baseToPairs;
-
-// node_modules/lodash-es/_setToPairs.js
-function setToPairs(set2) {
-  var index = -1, result = Array(set2.size);
-  set2.forEach(function(value) {
-    result[++index] = [value, value];
-  });
-  return result;
-}
-var setToPairs_default = setToPairs;
-
-// node_modules/lodash-es/_createToPairs.js
-var mapTag3 = "[object Map]";
-var setTag3 = "[object Set]";
-function createToPairs(keysFunc) {
-  return function(object) {
-    var tag = getTag_default(object);
-    if (tag == mapTag3) {
-      return mapToArray_default(object);
-    }
-    if (tag == setTag3) {
-      return setToPairs_default(object);
-    }
-    return baseToPairs_default(object, keysFunc(object));
-  };
-}
-var createToPairs_default = createToPairs;
-
-// node_modules/lodash-es/toPairs.js
-var toPairs = createToPairs_default(keys_default);
-var toPairs_default = toPairs;
-
-// node_modules/lodash-es/isString.js
-var stringTag2 = "[object String]";
-function isString(value) {
-  return typeof value == "string" || !isArray_default(value) && isObjectLike_default(value) && baseGetTag_default(value) == stringTag2;
-}
-var isString_default = isString;
-
-// node_modules/lodash-es/isNumber.js
-var numberTag2 = "[object Number]";
-function isNumber(value) {
-  return typeof value == "number" || isObjectLike_default(value) && baseGetTag_default(value) == numberTag2;
-}
-var isNumber_default = isNumber;
-
-// node_modules/lodash-es/isUndefined.js
-function isUndefined(value) {
-  return value === void 0;
-}
-var isUndefined_default = isUndefined;
-
-// node_modules/lodash-es/merge.js
-var merge = createAssigner_default(function(object, source, srcIndex) {
-  baseMerge_default(object, source, srcIndex);
-});
-var merge_default = merge;
-
-// node_modules/lodash-es/_baseSet.js
-function baseSet(object, path, value, customizer) {
-  if (!isObject_default(object)) {
-    return object;
-  }
-  path = castPath_default(path, object);
-  var index = -1, length = path.length, lastIndex = length - 1, nested = object;
-  while (nested != null && ++index < length) {
-    var key2 = toKey_default(path[index]), newValue = value;
-    if (key2 === "__proto__" || key2 === "constructor" || key2 === "prototype") {
-      return object;
-    }
-    if (index != lastIndex) {
-      var objValue = nested[key2];
-      newValue = customizer ? customizer(objValue, key2, nested) : void 0;
-      if (newValue === void 0) {
-        newValue = isObject_default(objValue) ? objValue : isIndex_default(path[index + 1]) ? [] : {};
-      }
-    }
-    assignValue_default(nested, key2, newValue);
-    nested = nested[key2];
-  }
-  return object;
-}
-var baseSet_default = baseSet;
-
-// node_modules/lodash-es/set.js
-function set(object, path, value) {
-  return object == null ? object : baseSet_default(object, path, value);
-}
-var set_default = set;
 
 // lang/am.json
 var am_default = {
@@ -14121,11 +12612,11 @@ var I18nService = class _I18nService {
   static resolve(catalogs, language, key2) {
     const all = catalogs != null ? catalogs : {};
     const active = all[language];
-    if (active && isString_default(active[key2])) {
+    if (active && typeof active[key2] === "string") {
       return active[key2];
     }
     const fallback = all[FALLBACK_LANGUAGE];
-    if (fallback && isString_default(fallback[key2])) {
+    if (fallback && typeof fallback[key2] === "string") {
       return fallback[key2];
     }
     return null;
@@ -14143,9 +12634,9 @@ var I18nService = class _I18nService {
     if (!vars) {
       return template;
     }
-    return template.replace(PLACEHOLDER_PATTERN, (match, name) => {
+    return template.replace(PLACEHOLDER_PATTERN, (match3, name) => {
       const value = vars[name];
-      return value === void 0 ? match : String(value);
+      return value === void 0 ? match3 : String(value);
     });
   }
   /**
@@ -14196,217 +12687,1372 @@ var I18nService = class _I18nService {
 };
 
 // src/helpers/selection-history.helper.ts
-var SelectionHistoryHelper = class _SelectionHistoryHelper {
-  /**
-   * Resolves the ids of the versions where the selection text was added or
-   * removed at that point on the timeline.
-   *
-   * Each version is diffed against its previous neighbour in the supplied
-   * order (the oldest entry is diffed against `baselineLines`). A version is
-   * included when any line added or removed by that neighbour-diff contains
-   * the selection text. For a multi-line selection, every non-empty selection
-   * line must appear in the added or removed lines of the same side, so the
-   * filter matches genuine block edits rather than coincidental single-line
-   * overlaps.
-   *
-   * The match is case-sensitive and substring-based on the changed lines,
-   * mirroring how a user reads the diff.
-   *
-   * @param {SelectableVersion[]} versions - The timeline versions in oldest-first order
-   * @param {string[]} baselineLines - The history baseline lines, used as the previous neighbour for the oldest version
-   * @param {string} selection - The selection text to look for in added/removed lines
-   * @return {Set<string>} The ids of the matching versions; empty when the selection is empty
-   */
-  static match(versions, baselineLines, selection) {
-    var _a;
-    const matched = /* @__PURE__ */ new Set();
-    const list = versions != null ? versions : [];
-    const needle = (selection != null ? selection : "").trim();
-    if (needle === "" || list.length === 0) {
-      return matched;
-    }
-    const selectionLines = _SelectionHistoryHelper.toSelectionLines(needle);
-    if (selectionLines.length === 0) {
-      return matched;
-    }
-    const baseline = baselineLines != null ? baselineLines : [];
-    let previous = baseline;
-    for (const version of list) {
-      const current = (_a = version == null ? void 0 : version.lines) != null ? _a : [];
-      const { added, removed } = _SelectionHistoryHelper.collectChangedLines(previous, current);
-      if (_SelectionHistoryHelper.allLinesPresent(selectionLines, added) || _SelectionHistoryHelper.allLinesPresent(selectionLines, removed)) {
-        matched.add(version.id);
-      }
-      previous = current;
-    }
+function match(versions, baselineLines, selection) {
+  var _a;
+  const matched = /* @__PURE__ */ new Set();
+  const list = versions != null ? versions : [];
+  const needle = (selection != null ? selection : "").trim();
+  if (needle === "" || list.length === 0) {
     return matched;
   }
-  /**
-   * Splits the selection into non-empty trimmed lines. Empty lines inside the
-   * selection are dropped so a block selection ending on a blank line still
-   * matches when only the content lines appear in the diff. When the entire
-   * selection is whitespace the returned list is empty and the caller treats
-   * the selection as a no-op.
-   *
-   * @param {string} selection - The trimmed selection text
-   * @return {string[]} The selection split into non-empty lines
-   */
-  static toSelectionLines(selection) {
-    return selection.split(/\r?\n/).map((line) => line.trim()).filter((line) => line.length > 0);
+  const selectionLines = toSelectionLines(needle);
+  if (selectionLines.length === 0) {
+    return matched;
   }
-  /**
-   * Collects the added and removed lines between two contents using a
-   * structured patch with zero context, so each hunk's lines are exactly the
-   * changed lines on either side. A trailing newline is appended to both texts
-   * before diffing for the same reason as in VersionLabelHelper: without it the
-   * last "no-newline" run gets merged into a coarser block and inflates the
-   * counts.
-   *
-   * @param {string[]} previous - The previous content as lines
-   * @param {string[]} current - The current content as lines
-   * @return {{ added: string[]; removed: string[] }} The plain content of added/removed lines
-   */
-  static collectChangedLines(previous, current) {
-    const added = [];
-    const removed = [];
-    if (previous.length === 0 && current.length === 0) {
-      return { added, removed };
+  let previous = baselineLines != null ? baselineLines : [];
+  for (const version of list) {
+    const current = (_a = version == null ? void 0 : version.lines) != null ? _a : [];
+    const { added, removed } = collectChangedLines(previous, current);
+    if (allLinesPresent(selectionLines, added) || allLinesPresent(selectionLines, removed)) {
+      matched.add(version.id);
     }
-    const normalize = (lines) => lines.map(
-      (line) => line.endsWith("\r") ? line.slice(0, -1) : line
-    );
-    const previousText = `${normalize(previous).join("\n")}
-`;
-    const currentText = `${normalize(current).join("\n")}
-`;
-    if (previousText === currentText) {
-      return { added, removed };
-    }
-    const hunks = structuredPatch("", "", previousText, currentText, "", "", { context: 0 }).hunks;
-    for (const hunk of hunks) {
-      for (const line of hunk.lines) {
-        if (line.startsWith("+")) {
-          added.push(line.slice(1));
-        } else if (line.startsWith("-")) {
-          removed.push(line.slice(1));
-        }
-      }
-    }
+    previous = current;
+  }
+  return matched;
+}
+function toSelectionLines(selection) {
+  return selection.split(/\r?\n/).map((line) => line.trim()).filter((line) => line.length > 0);
+}
+function collectChangedLines(previous, current) {
+  const added = [];
+  const removed = [];
+  if (previous.length === 0 && current.length === 0) {
     return { added, removed };
   }
-  /**
-   * Whether every selection line appears as a substring of at least one of the
-   * supplied changed lines. Used to keep multi-line selections from matching
-   * versions where only a single fragment overlaps; for single-line selections
-   * the check reduces to "at least one changed line contains the selection".
-   *
-   * @param {string[]} selectionLines - The non-empty selection lines to look for
-   * @param {string[]} changedLines - The added or removed lines from a single side
-   * @return {boolean} True when every selection line is found in at least one changed line
-   */
-  static allLinesPresent(selectionLines, changedLines) {
-    if (changedLines.length === 0) {
-      return false;
-    }
-    return selectionLines.every((selectionLine) => changedLines.some(
-      (changedLine) => changedLine.includes(selectionLine)
-    ));
+  const normalize2 = (lines2) => lines2.map(
+    (line) => line.endsWith("\r") ? line.slice(0, -1) : line
+  );
+  const previousText = `${normalize2(previous).join("\n")}
+`;
+  const currentText = `${normalize2(current).join("\n")}
+`;
+  if (previousText === currentText) {
+    return { added, removed };
   }
+  const hunks = structuredPatch("", "", previousText, currentText, "", "", { context: 0 }).hunks;
+  for (const hunk of hunks) {
+    for (const line of hunk.lines) {
+      const kind = classifyLine(line);
+      if (kind === "added") {
+        added.push(line.slice(1));
+      }
+      if (kind === "removed") {
+        removed.push(line.slice(1));
+      }
+    }
+  }
+  return { added, removed };
+}
+function allLinesPresent(selectionLines, changedLines) {
+  if (changedLines.length === 0) {
+    return false;
+  }
+  return selectionLines.every((selectionLine) => changedLines.some(
+    (changedLine) => changedLine.includes(selectionLine)
+  ));
+}
+
+// node_modules/lodash-es/_freeGlobal.js
+var freeGlobal = typeof global == "object" && global && global.Object === Object && global;
+var freeGlobal_default = freeGlobal;
+
+// node_modules/lodash-es/_root.js
+var freeSelf = typeof self == "object" && self && self.Object === Object && self;
+var root = freeGlobal_default || freeSelf || Function("return this")();
+var root_default = root;
+
+// node_modules/lodash-es/_Symbol.js
+var Symbol2 = root_default.Symbol;
+var Symbol_default = Symbol2;
+
+// node_modules/lodash-es/_getRawTag.js
+var objectProto = Object.prototype;
+var hasOwnProperty = objectProto.hasOwnProperty;
+var nativeObjectToString = objectProto.toString;
+var symToStringTag = Symbol_default ? Symbol_default.toStringTag : void 0;
+function getRawTag(value) {
+  var isOwn = hasOwnProperty.call(value, symToStringTag), tag = value[symToStringTag];
+  try {
+    value[symToStringTag] = void 0;
+    var unmasked = true;
+  } catch (e) {
+  }
+  var result = nativeObjectToString.call(value);
+  if (unmasked) {
+    if (isOwn) {
+      value[symToStringTag] = tag;
+    } else {
+      delete value[symToStringTag];
+    }
+  }
+  return result;
+}
+var getRawTag_default = getRawTag;
+
+// node_modules/lodash-es/_objectToString.js
+var objectProto2 = Object.prototype;
+var nativeObjectToString2 = objectProto2.toString;
+function objectToString(value) {
+  return nativeObjectToString2.call(value);
+}
+var objectToString_default = objectToString;
+
+// node_modules/lodash-es/_baseGetTag.js
+var nullTag = "[object Null]";
+var undefinedTag = "[object Undefined]";
+var symToStringTag2 = Symbol_default ? Symbol_default.toStringTag : void 0;
+function baseGetTag(value) {
+  if (value == null) {
+    return value === void 0 ? undefinedTag : nullTag;
+  }
+  return symToStringTag2 && symToStringTag2 in Object(value) ? getRawTag_default(value) : objectToString_default(value);
+}
+var baseGetTag_default = baseGetTag;
+
+// node_modules/lodash-es/isObjectLike.js
+function isObjectLike(value) {
+  return value != null && typeof value == "object";
+}
+var isObjectLike_default = isObjectLike;
+
+// node_modules/lodash-es/isSymbol.js
+var symbolTag = "[object Symbol]";
+function isSymbol(value) {
+  return typeof value == "symbol" || isObjectLike_default(value) && baseGetTag_default(value) == symbolTag;
+}
+var isSymbol_default = isSymbol;
+
+// node_modules/lodash-es/_arrayMap.js
+function arrayMap(array, iteratee) {
+  var index = -1, length = array == null ? 0 : array.length, result = Array(length);
+  while (++index < length) {
+    result[index] = iteratee(array[index], index, array);
+  }
+  return result;
+}
+var arrayMap_default = arrayMap;
+
+// node_modules/lodash-es/isArray.js
+var isArray = Array.isArray;
+var isArray_default = isArray;
+
+// node_modules/lodash-es/_baseToString.js
+var INFINITY = 1 / 0;
+var symbolProto = Symbol_default ? Symbol_default.prototype : void 0;
+var symbolToString = symbolProto ? symbolProto.toString : void 0;
+function baseToString(value) {
+  if (typeof value == "string") {
+    return value;
+  }
+  if (isArray_default(value)) {
+    return arrayMap_default(value, baseToString) + "";
+  }
+  if (isSymbol_default(value)) {
+    return symbolToString ? symbolToString.call(value) : "";
+  }
+  var result = value + "";
+  return result == "0" && 1 / value == -INFINITY ? "-0" : result;
+}
+var baseToString_default = baseToString;
+
+// node_modules/lodash-es/isObject.js
+function isObject(value) {
+  var type = typeof value;
+  return value != null && (type == "object" || type == "function");
+}
+var isObject_default = isObject;
+
+// node_modules/lodash-es/identity.js
+function identity(value) {
+  return value;
+}
+var identity_default = identity;
+
+// node_modules/lodash-es/isFunction.js
+var asyncTag = "[object AsyncFunction]";
+var funcTag = "[object Function]";
+var genTag = "[object GeneratorFunction]";
+var proxyTag = "[object Proxy]";
+function isFunction(value) {
+  if (!isObject_default(value)) {
+    return false;
+  }
+  var tag = baseGetTag_default(value);
+  return tag == funcTag || tag == genTag || tag == asyncTag || tag == proxyTag;
+}
+var isFunction_default = isFunction;
+
+// node_modules/lodash-es/_coreJsData.js
+var coreJsData = root_default["__core-js_shared__"];
+var coreJsData_default = coreJsData;
+
+// node_modules/lodash-es/_isMasked.js
+var maskSrcKey = (function() {
+  var uid = /[^.]+$/.exec(coreJsData_default && coreJsData_default.keys && coreJsData_default.keys.IE_PROTO || "");
+  return uid ? "Symbol(src)_1." + uid : "";
+})();
+function isMasked(func) {
+  return !!maskSrcKey && maskSrcKey in func;
+}
+var isMasked_default = isMasked;
+
+// node_modules/lodash-es/_toSource.js
+var funcProto = Function.prototype;
+var funcToString = funcProto.toString;
+function toSource(func) {
+  if (func != null) {
+    try {
+      return funcToString.call(func);
+    } catch (e) {
+    }
+    try {
+      return func + "";
+    } catch (e) {
+    }
+  }
+  return "";
+}
+var toSource_default = toSource;
+
+// node_modules/lodash-es/_baseIsNative.js
+var reRegExpChar = /[\\^$.*+?()[\]{}|]/g;
+var reIsHostCtor = /^\[object .+?Constructor\]$/;
+var funcProto2 = Function.prototype;
+var objectProto3 = Object.prototype;
+var funcToString2 = funcProto2.toString;
+var hasOwnProperty2 = objectProto3.hasOwnProperty;
+var reIsNative = RegExp(
+  "^" + funcToString2.call(hasOwnProperty2).replace(reRegExpChar, "\\$&").replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g, "$1.*?") + "$"
+);
+function baseIsNative(value) {
+  if (!isObject_default(value) || isMasked_default(value)) {
+    return false;
+  }
+  var pattern = isFunction_default(value) ? reIsNative : reIsHostCtor;
+  return pattern.test(toSource_default(value));
+}
+var baseIsNative_default = baseIsNative;
+
+// node_modules/lodash-es/_getValue.js
+function getValue(object, key2) {
+  return object == null ? void 0 : object[key2];
+}
+var getValue_default = getValue;
+
+// node_modules/lodash-es/_getNative.js
+function getNative(object, key2) {
+  var value = getValue_default(object, key2);
+  return baseIsNative_default(value) ? value : void 0;
+}
+var getNative_default = getNative;
+
+// node_modules/lodash-es/_baseCreate.js
+var objectCreate = Object.create;
+var baseCreate = /* @__PURE__ */ (function() {
+  function object() {
+  }
+  return function(proto) {
+    if (!isObject_default(proto)) {
+      return {};
+    }
+    if (objectCreate) {
+      return objectCreate(proto);
+    }
+    object.prototype = proto;
+    var result = new object();
+    object.prototype = void 0;
+    return result;
+  };
+})();
+var baseCreate_default = baseCreate;
+
+// node_modules/lodash-es/_apply.js
+function apply(func, thisArg, args) {
+  switch (args.length) {
+    case 0:
+      return func.call(thisArg);
+    case 1:
+      return func.call(thisArg, args[0]);
+    case 2:
+      return func.call(thisArg, args[0], args[1]);
+    case 3:
+      return func.call(thisArg, args[0], args[1], args[2]);
+  }
+  return func.apply(thisArg, args);
+}
+var apply_default = apply;
+
+// node_modules/lodash-es/_copyArray.js
+function copyArray(source, array) {
+  var index = -1, length = source.length;
+  array || (array = Array(length));
+  while (++index < length) {
+    array[index] = source[index];
+  }
+  return array;
+}
+var copyArray_default = copyArray;
+
+// node_modules/lodash-es/_shortOut.js
+var HOT_COUNT = 800;
+var HOT_SPAN = 16;
+var nativeNow = Date.now;
+function shortOut(func) {
+  var count = 0, lastCalled = 0;
+  return function() {
+    var stamp = nativeNow(), remaining = HOT_SPAN - (stamp - lastCalled);
+    lastCalled = stamp;
+    if (remaining > 0) {
+      if (++count >= HOT_COUNT) {
+        return arguments[0];
+      }
+    } else {
+      count = 0;
+    }
+    return func.apply(void 0, arguments);
+  };
+}
+var shortOut_default = shortOut;
+
+// node_modules/lodash-es/constant.js
+function constant(value) {
+  return function() {
+    return value;
+  };
+}
+var constant_default = constant;
+
+// node_modules/lodash-es/_defineProperty.js
+var defineProperty = (function() {
+  try {
+    var func = getNative_default(Object, "defineProperty");
+    func({}, "", {});
+    return func;
+  } catch (e) {
+  }
+})();
+var defineProperty_default = defineProperty;
+
+// node_modules/lodash-es/_baseSetToString.js
+var baseSetToString = !defineProperty_default ? identity_default : function(func, string) {
+  return defineProperty_default(func, "toString", {
+    "configurable": true,
+    "enumerable": false,
+    "value": constant_default(string),
+    "writable": true
+  });
 };
+var baseSetToString_default = baseSetToString;
+
+// node_modules/lodash-es/_setToString.js
+var setToString = shortOut_default(baseSetToString_default);
+var setToString_default = setToString;
+
+// node_modules/lodash-es/_isIndex.js
+var MAX_SAFE_INTEGER = 9007199254740991;
+var reIsUint = /^(?:0|[1-9]\d*)$/;
+function isIndex(value, length) {
+  var type = typeof value;
+  length = length == null ? MAX_SAFE_INTEGER : length;
+  return !!length && (type == "number" || type != "symbol" && reIsUint.test(value)) && (value > -1 && value % 1 == 0 && value < length);
+}
+var isIndex_default = isIndex;
+
+// node_modules/lodash-es/_baseAssignValue.js
+function baseAssignValue(object, key2, value) {
+  if (key2 == "__proto__" && defineProperty_default) {
+    defineProperty_default(object, key2, {
+      "configurable": true,
+      "enumerable": true,
+      "value": value,
+      "writable": true
+    });
+  } else {
+    object[key2] = value;
+  }
+}
+var baseAssignValue_default = baseAssignValue;
+
+// node_modules/lodash-es/eq.js
+function eq(value, other) {
+  return value === other || value !== value && other !== other;
+}
+var eq_default = eq;
+
+// node_modules/lodash-es/_assignValue.js
+var objectProto4 = Object.prototype;
+var hasOwnProperty3 = objectProto4.hasOwnProperty;
+function assignValue(object, key2, value) {
+  var objValue = object[key2];
+  if (!(hasOwnProperty3.call(object, key2) && eq_default(objValue, value)) || value === void 0 && !(key2 in object)) {
+    baseAssignValue_default(object, key2, value);
+  }
+}
+var assignValue_default = assignValue;
+
+// node_modules/lodash-es/_copyObject.js
+function copyObject(source, props, object, customizer) {
+  var isNew = !object;
+  object || (object = {});
+  var index = -1, length = props.length;
+  while (++index < length) {
+    var key2 = props[index];
+    var newValue = customizer ? customizer(object[key2], source[key2], key2, object, source) : void 0;
+    if (newValue === void 0) {
+      newValue = source[key2];
+    }
+    if (isNew) {
+      baseAssignValue_default(object, key2, newValue);
+    } else {
+      assignValue_default(object, key2, newValue);
+    }
+  }
+  return object;
+}
+var copyObject_default = copyObject;
+
+// node_modules/lodash-es/_overRest.js
+var nativeMax = Math.max;
+function overRest(func, start, transform) {
+  start = nativeMax(start === void 0 ? func.length - 1 : start, 0);
+  return function() {
+    var args = arguments, index = -1, length = nativeMax(args.length - start, 0), array = Array(length);
+    while (++index < length) {
+      array[index] = args[start + index];
+    }
+    index = -1;
+    var otherArgs = Array(start + 1);
+    while (++index < start) {
+      otherArgs[index] = args[index];
+    }
+    otherArgs[start] = transform(array);
+    return apply_default(func, this, otherArgs);
+  };
+}
+var overRest_default = overRest;
+
+// node_modules/lodash-es/_baseRest.js
+function baseRest(func, start) {
+  return setToString_default(overRest_default(func, start, identity_default), func + "");
+}
+var baseRest_default = baseRest;
+
+// node_modules/lodash-es/isLength.js
+var MAX_SAFE_INTEGER2 = 9007199254740991;
+function isLength(value) {
+  return typeof value == "number" && value > -1 && value % 1 == 0 && value <= MAX_SAFE_INTEGER2;
+}
+var isLength_default = isLength;
+
+// node_modules/lodash-es/isArrayLike.js
+function isArrayLike(value) {
+  return value != null && isLength_default(value.length) && !isFunction_default(value);
+}
+var isArrayLike_default = isArrayLike;
+
+// node_modules/lodash-es/_isIterateeCall.js
+function isIterateeCall(value, index, object) {
+  if (!isObject_default(object)) {
+    return false;
+  }
+  var type = typeof index;
+  if (type == "number" ? isArrayLike_default(object) && isIndex_default(index, object.length) : type == "string" && index in object) {
+    return eq_default(object[index], value);
+  }
+  return false;
+}
+var isIterateeCall_default = isIterateeCall;
+
+// node_modules/lodash-es/_createAssigner.js
+function createAssigner(assigner) {
+  return baseRest_default(function(object, sources) {
+    var index = -1, length = sources.length, customizer = length > 1 ? sources[length - 1] : void 0, guard = length > 2 ? sources[2] : void 0;
+    customizer = assigner.length > 3 && typeof customizer == "function" ? (length--, customizer) : void 0;
+    if (guard && isIterateeCall_default(sources[0], sources[1], guard)) {
+      customizer = length < 3 ? void 0 : customizer;
+      length = 1;
+    }
+    object = Object(object);
+    while (++index < length) {
+      var source = sources[index];
+      if (source) {
+        assigner(object, source, index, customizer);
+      }
+    }
+    return object;
+  });
+}
+var createAssigner_default = createAssigner;
+
+// node_modules/lodash-es/_isPrototype.js
+var objectProto5 = Object.prototype;
+function isPrototype(value) {
+  var Ctor = value && value.constructor, proto = typeof Ctor == "function" && Ctor.prototype || objectProto5;
+  return value === proto;
+}
+var isPrototype_default = isPrototype;
+
+// node_modules/lodash-es/_baseTimes.js
+function baseTimes(n, iteratee) {
+  var index = -1, result = Array(n);
+  while (++index < n) {
+    result[index] = iteratee(index);
+  }
+  return result;
+}
+var baseTimes_default = baseTimes;
+
+// node_modules/lodash-es/_baseIsArguments.js
+var argsTag = "[object Arguments]";
+function baseIsArguments(value) {
+  return isObjectLike_default(value) && baseGetTag_default(value) == argsTag;
+}
+var baseIsArguments_default = baseIsArguments;
+
+// node_modules/lodash-es/isArguments.js
+var objectProto6 = Object.prototype;
+var hasOwnProperty4 = objectProto6.hasOwnProperty;
+var propertyIsEnumerable = objectProto6.propertyIsEnumerable;
+var isArguments = baseIsArguments_default(/* @__PURE__ */ (function() {
+  return arguments;
+})()) ? baseIsArguments_default : function(value) {
+  return isObjectLike_default(value) && hasOwnProperty4.call(value, "callee") && !propertyIsEnumerable.call(value, "callee");
+};
+var isArguments_default = isArguments;
+
+// node_modules/lodash-es/stubFalse.js
+function stubFalse() {
+  return false;
+}
+var stubFalse_default = stubFalse;
+
+// node_modules/lodash-es/isBuffer.js
+var freeExports = typeof exports == "object" && exports && !exports.nodeType && exports;
+var freeModule = freeExports && typeof module == "object" && module && !module.nodeType && module;
+var moduleExports = freeModule && freeModule.exports === freeExports;
+var Buffer2 = moduleExports ? root_default.Buffer : void 0;
+var nativeIsBuffer = Buffer2 ? Buffer2.isBuffer : void 0;
+var isBuffer = nativeIsBuffer || stubFalse_default;
+var isBuffer_default = isBuffer;
+
+// node_modules/lodash-es/_baseIsTypedArray.js
+var argsTag2 = "[object Arguments]";
+var arrayTag = "[object Array]";
+var boolTag = "[object Boolean]";
+var dateTag = "[object Date]";
+var errorTag = "[object Error]";
+var funcTag2 = "[object Function]";
+var mapTag = "[object Map]";
+var numberTag = "[object Number]";
+var objectTag = "[object Object]";
+var regexpTag = "[object RegExp]";
+var setTag = "[object Set]";
+var stringTag = "[object String]";
+var weakMapTag = "[object WeakMap]";
+var arrayBufferTag = "[object ArrayBuffer]";
+var dataViewTag = "[object DataView]";
+var float32Tag = "[object Float32Array]";
+var float64Tag = "[object Float64Array]";
+var int8Tag = "[object Int8Array]";
+var int16Tag = "[object Int16Array]";
+var int32Tag = "[object Int32Array]";
+var uint8Tag = "[object Uint8Array]";
+var uint8ClampedTag = "[object Uint8ClampedArray]";
+var uint16Tag = "[object Uint16Array]";
+var uint32Tag = "[object Uint32Array]";
+var typedArrayTags = {};
+typedArrayTags[float32Tag] = typedArrayTags[float64Tag] = typedArrayTags[int8Tag] = typedArrayTags[int16Tag] = typedArrayTags[int32Tag] = typedArrayTags[uint8Tag] = typedArrayTags[uint8ClampedTag] = typedArrayTags[uint16Tag] = typedArrayTags[uint32Tag] = true;
+typedArrayTags[argsTag2] = typedArrayTags[arrayTag] = typedArrayTags[arrayBufferTag] = typedArrayTags[boolTag] = typedArrayTags[dataViewTag] = typedArrayTags[dateTag] = typedArrayTags[errorTag] = typedArrayTags[funcTag2] = typedArrayTags[mapTag] = typedArrayTags[numberTag] = typedArrayTags[objectTag] = typedArrayTags[regexpTag] = typedArrayTags[setTag] = typedArrayTags[stringTag] = typedArrayTags[weakMapTag] = false;
+function baseIsTypedArray(value) {
+  return isObjectLike_default(value) && isLength_default(value.length) && !!typedArrayTags[baseGetTag_default(value)];
+}
+var baseIsTypedArray_default = baseIsTypedArray;
+
+// node_modules/lodash-es/_baseUnary.js
+function baseUnary(func) {
+  return function(value) {
+    return func(value);
+  };
+}
+var baseUnary_default = baseUnary;
+
+// node_modules/lodash-es/_nodeUtil.js
+var freeExports2 = typeof exports == "object" && exports && !exports.nodeType && exports;
+var freeModule2 = freeExports2 && typeof module == "object" && module && !module.nodeType && module;
+var moduleExports2 = freeModule2 && freeModule2.exports === freeExports2;
+var freeProcess = moduleExports2 && freeGlobal_default.process;
+var nodeUtil = (function() {
+  try {
+    var types = freeModule2 && freeModule2.require && freeModule2.require("util").types;
+    if (types) {
+      return types;
+    }
+    return freeProcess && freeProcess.binding && freeProcess.binding("util");
+  } catch (e) {
+  }
+})();
+var nodeUtil_default = nodeUtil;
+
+// node_modules/lodash-es/isTypedArray.js
+var nodeIsTypedArray = nodeUtil_default && nodeUtil_default.isTypedArray;
+var isTypedArray = nodeIsTypedArray ? baseUnary_default(nodeIsTypedArray) : baseIsTypedArray_default;
+var isTypedArray_default = isTypedArray;
+
+// node_modules/lodash-es/_arrayLikeKeys.js
+var objectProto7 = Object.prototype;
+var hasOwnProperty5 = objectProto7.hasOwnProperty;
+function arrayLikeKeys(value, inherited) {
+  var isArr = isArray_default(value), isArg = !isArr && isArguments_default(value), isBuff = !isArr && !isArg && isBuffer_default(value), isType = !isArr && !isArg && !isBuff && isTypedArray_default(value), skipIndexes = isArr || isArg || isBuff || isType, result = skipIndexes ? baseTimes_default(value.length, String) : [], length = result.length;
+  for (var key2 in value) {
+    if ((inherited || hasOwnProperty5.call(value, key2)) && !(skipIndexes && // Safari 9 has enumerable `arguments.length` in strict mode.
+    (key2 == "length" || // Node.js 0.10 has enumerable non-index properties on buffers.
+    isBuff && (key2 == "offset" || key2 == "parent") || // PhantomJS 2 has enumerable non-index properties on typed arrays.
+    isType && (key2 == "buffer" || key2 == "byteLength" || key2 == "byteOffset") || // Skip index properties.
+    isIndex_default(key2, length)))) {
+      result.push(key2);
+    }
+  }
+  return result;
+}
+var arrayLikeKeys_default = arrayLikeKeys;
+
+// node_modules/lodash-es/_overArg.js
+function overArg(func, transform) {
+  return function(arg) {
+    return func(transform(arg));
+  };
+}
+var overArg_default = overArg;
+
+// node_modules/lodash-es/_nativeKeysIn.js
+function nativeKeysIn(object) {
+  var result = [];
+  if (object != null) {
+    for (var key2 in Object(object)) {
+      result.push(key2);
+    }
+  }
+  return result;
+}
+var nativeKeysIn_default = nativeKeysIn;
+
+// node_modules/lodash-es/_baseKeysIn.js
+var objectProto8 = Object.prototype;
+var hasOwnProperty6 = objectProto8.hasOwnProperty;
+function baseKeysIn(object) {
+  if (!isObject_default(object)) {
+    return nativeKeysIn_default(object);
+  }
+  var isProto = isPrototype_default(object), result = [];
+  for (var key2 in object) {
+    if (!(key2 == "constructor" && (isProto || !hasOwnProperty6.call(object, key2)))) {
+      result.push(key2);
+    }
+  }
+  return result;
+}
+var baseKeysIn_default = baseKeysIn;
+
+// node_modules/lodash-es/keysIn.js
+function keysIn(object) {
+  return isArrayLike_default(object) ? arrayLikeKeys_default(object, true) : baseKeysIn_default(object);
+}
+var keysIn_default = keysIn;
+
+// node_modules/lodash-es/_isKey.js
+var reIsDeepProp = /\.|\[(?:[^[\]]*|(["'])(?:(?!\1)[^\\]|\\.)*?\1)\]/;
+var reIsPlainProp = /^\w*$/;
+function isKey(value, object) {
+  if (isArray_default(value)) {
+    return false;
+  }
+  var type = typeof value;
+  if (type == "number" || type == "symbol" || type == "boolean" || value == null || isSymbol_default(value)) {
+    return true;
+  }
+  return reIsPlainProp.test(value) || !reIsDeepProp.test(value) || object != null && value in Object(object);
+}
+var isKey_default = isKey;
+
+// node_modules/lodash-es/_nativeCreate.js
+var nativeCreate = getNative_default(Object, "create");
+var nativeCreate_default = nativeCreate;
+
+// node_modules/lodash-es/_hashClear.js
+function hashClear() {
+  this.__data__ = nativeCreate_default ? nativeCreate_default(null) : {};
+  this.size = 0;
+}
+var hashClear_default = hashClear;
+
+// node_modules/lodash-es/_hashDelete.js
+function hashDelete(key2) {
+  var result = this.has(key2) && delete this.__data__[key2];
+  this.size -= result ? 1 : 0;
+  return result;
+}
+var hashDelete_default = hashDelete;
+
+// node_modules/lodash-es/_hashGet.js
+var HASH_UNDEFINED = "__lodash_hash_undefined__";
+var objectProto9 = Object.prototype;
+var hasOwnProperty7 = objectProto9.hasOwnProperty;
+function hashGet(key2) {
+  var data = this.__data__;
+  if (nativeCreate_default) {
+    var result = data[key2];
+    return result === HASH_UNDEFINED ? void 0 : result;
+  }
+  return hasOwnProperty7.call(data, key2) ? data[key2] : void 0;
+}
+var hashGet_default = hashGet;
+
+// node_modules/lodash-es/_hashHas.js
+var objectProto10 = Object.prototype;
+var hasOwnProperty8 = objectProto10.hasOwnProperty;
+function hashHas(key2) {
+  var data = this.__data__;
+  return nativeCreate_default ? data[key2] !== void 0 : hasOwnProperty8.call(data, key2);
+}
+var hashHas_default = hashHas;
+
+// node_modules/lodash-es/_hashSet.js
+var HASH_UNDEFINED2 = "__lodash_hash_undefined__";
+function hashSet(key2, value) {
+  var data = this.__data__;
+  this.size += this.has(key2) ? 0 : 1;
+  data[key2] = nativeCreate_default && value === void 0 ? HASH_UNDEFINED2 : value;
+  return this;
+}
+var hashSet_default = hashSet;
+
+// node_modules/lodash-es/_Hash.js
+function Hash(entries) {
+  var index = -1, length = entries == null ? 0 : entries.length;
+  this.clear();
+  while (++index < length) {
+    var entry = entries[index];
+    this.set(entry[0], entry[1]);
+  }
+}
+Hash.prototype.clear = hashClear_default;
+Hash.prototype["delete"] = hashDelete_default;
+Hash.prototype.get = hashGet_default;
+Hash.prototype.has = hashHas_default;
+Hash.prototype.set = hashSet_default;
+var Hash_default = Hash;
+
+// node_modules/lodash-es/_listCacheClear.js
+function listCacheClear() {
+  this.__data__ = [];
+  this.size = 0;
+}
+var listCacheClear_default = listCacheClear;
+
+// node_modules/lodash-es/_assocIndexOf.js
+function assocIndexOf(array, key2) {
+  var length = array.length;
+  while (length--) {
+    if (eq_default(array[length][0], key2)) {
+      return length;
+    }
+  }
+  return -1;
+}
+var assocIndexOf_default = assocIndexOf;
+
+// node_modules/lodash-es/_listCacheDelete.js
+var arrayProto = Array.prototype;
+var splice = arrayProto.splice;
+function listCacheDelete(key2) {
+  var data = this.__data__, index = assocIndexOf_default(data, key2);
+  if (index < 0) {
+    return false;
+  }
+  var lastIndex = data.length - 1;
+  if (index == lastIndex) {
+    data.pop();
+  } else {
+    splice.call(data, index, 1);
+  }
+  --this.size;
+  return true;
+}
+var listCacheDelete_default = listCacheDelete;
+
+// node_modules/lodash-es/_listCacheGet.js
+function listCacheGet(key2) {
+  var data = this.__data__, index = assocIndexOf_default(data, key2);
+  return index < 0 ? void 0 : data[index][1];
+}
+var listCacheGet_default = listCacheGet;
+
+// node_modules/lodash-es/_listCacheHas.js
+function listCacheHas(key2) {
+  return assocIndexOf_default(this.__data__, key2) > -1;
+}
+var listCacheHas_default = listCacheHas;
+
+// node_modules/lodash-es/_listCacheSet.js
+function listCacheSet(key2, value) {
+  var data = this.__data__, index = assocIndexOf_default(data, key2);
+  if (index < 0) {
+    ++this.size;
+    data.push([key2, value]);
+  } else {
+    data[index][1] = value;
+  }
+  return this;
+}
+var listCacheSet_default = listCacheSet;
+
+// node_modules/lodash-es/_ListCache.js
+function ListCache(entries) {
+  var index = -1, length = entries == null ? 0 : entries.length;
+  this.clear();
+  while (++index < length) {
+    var entry = entries[index];
+    this.set(entry[0], entry[1]);
+  }
+}
+ListCache.prototype.clear = listCacheClear_default;
+ListCache.prototype["delete"] = listCacheDelete_default;
+ListCache.prototype.get = listCacheGet_default;
+ListCache.prototype.has = listCacheHas_default;
+ListCache.prototype.set = listCacheSet_default;
+var ListCache_default = ListCache;
+
+// node_modules/lodash-es/_Map.js
+var Map2 = getNative_default(root_default, "Map");
+var Map_default = Map2;
+
+// node_modules/lodash-es/_mapCacheClear.js
+function mapCacheClear() {
+  this.size = 0;
+  this.__data__ = {
+    "hash": new Hash_default(),
+    "map": new (Map_default || ListCache_default)(),
+    "string": new Hash_default()
+  };
+}
+var mapCacheClear_default = mapCacheClear;
+
+// node_modules/lodash-es/_isKeyable.js
+function isKeyable(value) {
+  var type = typeof value;
+  return type == "string" || type == "number" || type == "symbol" || type == "boolean" ? value !== "__proto__" : value === null;
+}
+var isKeyable_default = isKeyable;
+
+// node_modules/lodash-es/_getMapData.js
+function getMapData(map, key2) {
+  var data = map.__data__;
+  return isKeyable_default(key2) ? data[typeof key2 == "string" ? "string" : "hash"] : data.map;
+}
+var getMapData_default = getMapData;
+
+// node_modules/lodash-es/_mapCacheDelete.js
+function mapCacheDelete(key2) {
+  var result = getMapData_default(this, key2)["delete"](key2);
+  this.size -= result ? 1 : 0;
+  return result;
+}
+var mapCacheDelete_default = mapCacheDelete;
+
+// node_modules/lodash-es/_mapCacheGet.js
+function mapCacheGet(key2) {
+  return getMapData_default(this, key2).get(key2);
+}
+var mapCacheGet_default = mapCacheGet;
+
+// node_modules/lodash-es/_mapCacheHas.js
+function mapCacheHas(key2) {
+  return getMapData_default(this, key2).has(key2);
+}
+var mapCacheHas_default = mapCacheHas;
+
+// node_modules/lodash-es/_mapCacheSet.js
+function mapCacheSet(key2, value) {
+  var data = getMapData_default(this, key2), size = data.size;
+  data.set(key2, value);
+  this.size += data.size == size ? 0 : 1;
+  return this;
+}
+var mapCacheSet_default = mapCacheSet;
+
+// node_modules/lodash-es/_MapCache.js
+function MapCache(entries) {
+  var index = -1, length = entries == null ? 0 : entries.length;
+  this.clear();
+  while (++index < length) {
+    var entry = entries[index];
+    this.set(entry[0], entry[1]);
+  }
+}
+MapCache.prototype.clear = mapCacheClear_default;
+MapCache.prototype["delete"] = mapCacheDelete_default;
+MapCache.prototype.get = mapCacheGet_default;
+MapCache.prototype.has = mapCacheHas_default;
+MapCache.prototype.set = mapCacheSet_default;
+var MapCache_default = MapCache;
+
+// node_modules/lodash-es/memoize.js
+var FUNC_ERROR_TEXT = "Expected a function";
+function memoize(func, resolver) {
+  if (typeof func != "function" || resolver != null && typeof resolver != "function") {
+    throw new TypeError(FUNC_ERROR_TEXT);
+  }
+  var memoized = function() {
+    var args = arguments, key2 = resolver ? resolver.apply(this, args) : args[0], cache = memoized.cache;
+    if (cache.has(key2)) {
+      return cache.get(key2);
+    }
+    var result = func.apply(this, args);
+    memoized.cache = cache.set(key2, result) || cache;
+    return result;
+  };
+  memoized.cache = new (memoize.Cache || MapCache_default)();
+  return memoized;
+}
+memoize.Cache = MapCache_default;
+var memoize_default = memoize;
+
+// node_modules/lodash-es/_memoizeCapped.js
+var MAX_MEMOIZE_SIZE = 500;
+function memoizeCapped(func) {
+  var result = memoize_default(func, function(key2) {
+    if (cache.size === MAX_MEMOIZE_SIZE) {
+      cache.clear();
+    }
+    return key2;
+  });
+  var cache = result.cache;
+  return result;
+}
+var memoizeCapped_default = memoizeCapped;
+
+// node_modules/lodash-es/_stringToPath.js
+var rePropName = /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]|(?=(?:\.|\[\])(?:\.|\[\]|$))/g;
+var reEscapeChar = /\\(\\)?/g;
+var stringToPath = memoizeCapped_default(function(string) {
+  var result = [];
+  if (string.charCodeAt(0) === 46) {
+    result.push("");
+  }
+  string.replace(rePropName, function(match3, number, quote, subString) {
+    result.push(quote ? subString.replace(reEscapeChar, "$1") : number || match3);
+  });
+  return result;
+});
+var stringToPath_default = stringToPath;
+
+// node_modules/lodash-es/toString.js
+function toString(value) {
+  return value == null ? "" : baseToString_default(value);
+}
+var toString_default = toString;
+
+// node_modules/lodash-es/_castPath.js
+function castPath(value, object) {
+  if (isArray_default(value)) {
+    return value;
+  }
+  return isKey_default(value, object) ? [value] : stringToPath_default(toString_default(value));
+}
+var castPath_default = castPath;
+
+// node_modules/lodash-es/_toKey.js
+var INFINITY2 = 1 / 0;
+function toKey(value) {
+  if (typeof value == "string" || isSymbol_default(value)) {
+    return value;
+  }
+  var result = value + "";
+  return result == "0" && 1 / value == -INFINITY2 ? "-0" : result;
+}
+var toKey_default = toKey;
+
+// node_modules/lodash-es/_baseGet.js
+function baseGet(object, path) {
+  path = castPath_default(path, object);
+  var index = 0, length = path.length;
+  while (object != null && index < length) {
+    object = object[toKey_default(path[index++])];
+  }
+  return index && index == length ? object : void 0;
+}
+var baseGet_default = baseGet;
+
+// node_modules/lodash-es/get.js
+function get(object, path, defaultValue) {
+  var result = object == null ? void 0 : baseGet_default(object, path);
+  return result === void 0 ? defaultValue : result;
+}
+var get_default = get;
+
+// node_modules/lodash-es/_getPrototype.js
+var getPrototype = overArg_default(Object.getPrototypeOf, Object);
+var getPrototype_default = getPrototype;
+
+// node_modules/lodash-es/isPlainObject.js
+var objectTag2 = "[object Object]";
+var funcProto3 = Function.prototype;
+var objectProto11 = Object.prototype;
+var funcToString3 = funcProto3.toString;
+var hasOwnProperty9 = objectProto11.hasOwnProperty;
+var objectCtorString = funcToString3.call(Object);
+function isPlainObject(value) {
+  if (!isObjectLike_default(value) || baseGetTag_default(value) != objectTag2) {
+    return false;
+  }
+  var proto = getPrototype_default(value);
+  if (proto === null) {
+    return true;
+  }
+  var Ctor = hasOwnProperty9.call(proto, "constructor") && proto.constructor;
+  return typeof Ctor == "function" && Ctor instanceof Ctor && funcToString3.call(Ctor) == objectCtorString;
+}
+var isPlainObject_default = isPlainObject;
+
+// node_modules/lodash-es/castArray.js
+function castArray() {
+  if (!arguments.length) {
+    return [];
+  }
+  var value = arguments[0];
+  return isArray_default(value) ? value : [value];
+}
+var castArray_default = castArray;
+
+// node_modules/lodash-es/_stackClear.js
+function stackClear() {
+  this.__data__ = new ListCache_default();
+  this.size = 0;
+}
+var stackClear_default = stackClear;
+
+// node_modules/lodash-es/_stackDelete.js
+function stackDelete(key2) {
+  var data = this.__data__, result = data["delete"](key2);
+  this.size = data.size;
+  return result;
+}
+var stackDelete_default = stackDelete;
+
+// node_modules/lodash-es/_stackGet.js
+function stackGet(key2) {
+  return this.__data__.get(key2);
+}
+var stackGet_default = stackGet;
+
+// node_modules/lodash-es/_stackHas.js
+function stackHas(key2) {
+  return this.__data__.has(key2);
+}
+var stackHas_default = stackHas;
+
+// node_modules/lodash-es/_stackSet.js
+var LARGE_ARRAY_SIZE = 200;
+function stackSet(key2, value) {
+  var data = this.__data__;
+  if (data instanceof ListCache_default) {
+    var pairs = data.__data__;
+    if (!Map_default || pairs.length < LARGE_ARRAY_SIZE - 1) {
+      pairs.push([key2, value]);
+      this.size = ++data.size;
+      return this;
+    }
+    data = this.__data__ = new MapCache_default(pairs);
+  }
+  data.set(key2, value);
+  this.size = data.size;
+  return this;
+}
+var stackSet_default = stackSet;
+
+// node_modules/lodash-es/_Stack.js
+function Stack(entries) {
+  var data = this.__data__ = new ListCache_default(entries);
+  this.size = data.size;
+}
+Stack.prototype.clear = stackClear_default;
+Stack.prototype["delete"] = stackDelete_default;
+Stack.prototype.get = stackGet_default;
+Stack.prototype.has = stackHas_default;
+Stack.prototype.set = stackSet_default;
+var Stack_default = Stack;
+
+// node_modules/lodash-es/_cloneBuffer.js
+var freeExports3 = typeof exports == "object" && exports && !exports.nodeType && exports;
+var freeModule3 = freeExports3 && typeof module == "object" && module && !module.nodeType && module;
+var moduleExports3 = freeModule3 && freeModule3.exports === freeExports3;
+var Buffer3 = moduleExports3 ? root_default.Buffer : void 0;
+var allocUnsafe = Buffer3 ? Buffer3.allocUnsafe : void 0;
+function cloneBuffer(buffer, isDeep) {
+  if (isDeep) {
+    return buffer.slice();
+  }
+  var length = buffer.length, result = allocUnsafe ? allocUnsafe(length) : new buffer.constructor(length);
+  buffer.copy(result);
+  return result;
+}
+var cloneBuffer_default = cloneBuffer;
+
+// node_modules/lodash-es/_Uint8Array.js
+var Uint8Array2 = root_default.Uint8Array;
+var Uint8Array_default = Uint8Array2;
+
+// node_modules/lodash-es/_cloneArrayBuffer.js
+function cloneArrayBuffer(arrayBuffer) {
+  var result = new arrayBuffer.constructor(arrayBuffer.byteLength);
+  new Uint8Array_default(result).set(new Uint8Array_default(arrayBuffer));
+  return result;
+}
+var cloneArrayBuffer_default = cloneArrayBuffer;
+
+// node_modules/lodash-es/_cloneTypedArray.js
+function cloneTypedArray(typedArray, isDeep) {
+  var buffer = isDeep ? cloneArrayBuffer_default(typedArray.buffer) : typedArray.buffer;
+  return new typedArray.constructor(buffer, typedArray.byteOffset, typedArray.length);
+}
+var cloneTypedArray_default = cloneTypedArray;
+
+// node_modules/lodash-es/_initCloneObject.js
+function initCloneObject(object) {
+  return typeof object.constructor == "function" && !isPrototype_default(object) ? baseCreate_default(getPrototype_default(object)) : {};
+}
+var initCloneObject_default = initCloneObject;
+
+// node_modules/lodash-es/_createBaseFor.js
+function createBaseFor(fromRight) {
+  return function(object, iteratee, keysFunc) {
+    var index = -1, iterable = Object(object), props = keysFunc(object), length = props.length;
+    while (length--) {
+      var key2 = props[fromRight ? length : ++index];
+      if (iteratee(iterable[key2], key2, iterable) === false) {
+        break;
+      }
+    }
+    return object;
+  };
+}
+var createBaseFor_default = createBaseFor;
+
+// node_modules/lodash-es/_baseFor.js
+var baseFor = createBaseFor_default();
+var baseFor_default = baseFor;
+
+// node_modules/lodash-es/_assignMergeValue.js
+function assignMergeValue(object, key2, value) {
+  if (value !== void 0 && !eq_default(object[key2], value) || value === void 0 && !(key2 in object)) {
+    baseAssignValue_default(object, key2, value);
+  }
+}
+var assignMergeValue_default = assignMergeValue;
+
+// node_modules/lodash-es/isArrayLikeObject.js
+function isArrayLikeObject(value) {
+  return isObjectLike_default(value) && isArrayLike_default(value);
+}
+var isArrayLikeObject_default = isArrayLikeObject;
+
+// node_modules/lodash-es/_safeGet.js
+function safeGet(object, key2) {
+  if (key2 === "constructor" && typeof object[key2] === "function") {
+    return;
+  }
+  if (key2 == "__proto__") {
+    return;
+  }
+  return object[key2];
+}
+var safeGet_default = safeGet;
+
+// node_modules/lodash-es/toPlainObject.js
+function toPlainObject(value) {
+  return copyObject_default(value, keysIn_default(value));
+}
+var toPlainObject_default = toPlainObject;
+
+// node_modules/lodash-es/_baseMergeDeep.js
+function baseMergeDeep(object, source, key2, srcIndex, mergeFunc, customizer, stack) {
+  var objValue = safeGet_default(object, key2), srcValue = safeGet_default(source, key2), stacked = stack.get(srcValue);
+  if (stacked) {
+    assignMergeValue_default(object, key2, stacked);
+    return;
+  }
+  var newValue = customizer ? customizer(objValue, srcValue, key2 + "", object, source, stack) : void 0;
+  var isCommon = newValue === void 0;
+  if (isCommon) {
+    var isArr = isArray_default(srcValue), isBuff = !isArr && isBuffer_default(srcValue), isTyped = !isArr && !isBuff && isTypedArray_default(srcValue);
+    newValue = srcValue;
+    if (isArr || isBuff || isTyped) {
+      if (isArray_default(objValue)) {
+        newValue = objValue;
+      } else if (isArrayLikeObject_default(objValue)) {
+        newValue = copyArray_default(objValue);
+      } else if (isBuff) {
+        isCommon = false;
+        newValue = cloneBuffer_default(srcValue, true);
+      } else if (isTyped) {
+        isCommon = false;
+        newValue = cloneTypedArray_default(srcValue, true);
+      } else {
+        newValue = [];
+      }
+    } else if (isPlainObject_default(srcValue) || isArguments_default(srcValue)) {
+      newValue = objValue;
+      if (isArguments_default(objValue)) {
+        newValue = toPlainObject_default(objValue);
+      } else if (!isObject_default(objValue) || isFunction_default(objValue)) {
+        newValue = initCloneObject_default(srcValue);
+      }
+    } else {
+      isCommon = false;
+    }
+  }
+  if (isCommon) {
+    stack.set(srcValue, newValue);
+    mergeFunc(newValue, srcValue, srcIndex, customizer, stack);
+    stack["delete"](srcValue);
+  }
+  assignMergeValue_default(object, key2, newValue);
+}
+var baseMergeDeep_default = baseMergeDeep;
+
+// node_modules/lodash-es/_baseMerge.js
+function baseMerge(object, source, srcIndex, customizer, stack) {
+  if (object === source) {
+    return;
+  }
+  baseFor_default(source, function(srcValue, key2) {
+    stack || (stack = new Stack_default());
+    if (isObject_default(srcValue)) {
+      baseMergeDeep_default(object, source, key2, srcIndex, baseMerge, customizer, stack);
+    } else {
+      var newValue = customizer ? customizer(safeGet_default(object, key2), srcValue, key2 + "", object, source, stack) : void 0;
+      if (newValue === void 0) {
+        newValue = srcValue;
+      }
+      assignMergeValue_default(object, key2, newValue);
+    }
+  }, keysIn_default);
+}
+var baseMerge_default = baseMerge;
+
+// node_modules/lodash-es/merge.js
+var merge = createAssigner_default(function(object, source, srcIndex) {
+  baseMerge_default(object, source, srcIndex);
+});
+var merge_default = merge;
+
+// node_modules/lodash-es/_baseSet.js
+function baseSet(object, path, value, customizer) {
+  if (!isObject_default(object)) {
+    return object;
+  }
+  path = castPath_default(path, object);
+  var index = -1, length = path.length, lastIndex = length - 1, nested = object;
+  while (nested != null && ++index < length) {
+    var key2 = toKey_default(path[index]), newValue = value;
+    if (key2 === "__proto__" || key2 === "constructor" || key2 === "prototype") {
+      return object;
+    }
+    if (index != lastIndex) {
+      var objValue = nested[key2];
+      newValue = customizer ? customizer(objValue, key2, nested) : void 0;
+      if (newValue === void 0) {
+        newValue = isObject_default(objValue) ? objValue : isIndex_default(path[index + 1]) ? [] : {};
+      }
+    }
+    assignValue_default(nested, key2, newValue);
+    nested = nested[key2];
+  }
+  return object;
+}
+var baseSet_default = baseSet;
+
+// node_modules/lodash-es/set.js
+function set(object, path, value) {
+  return object == null ? object : baseSet_default(object, path, value);
+}
+var set_default = set;
 
 // src/helpers/dom.helper.ts
 var import_obsidian12 = require("obsidian");
-var DomHelper = class _DomHelper {
-  /**
-   * Creates a DOM element based on the provided configuration.
-   * @param {DomElementConfig} config - Configuration object for the element
-   * @return {HTMLElement} The created HTML element with proper typing
-   */
-  static create(config) {
-    const element = document.createElement(config.tag);
-    this.update(element, config);
-    if (config.container) {
-      config.container.appendChild(element);
-    }
-    return element;
+function create(config) {
+  const element = document.createElement(config.tag);
+  update(element, config);
+  if (config.container) {
+    config.container.appendChild(element);
   }
-  /**
-   * Creates a DocumentFragment with child elements based on the provided configuration.
-   * @param {DomElementConfig[]} children - Array of child element configurations
-   * @return {DocumentFragment} The created DocumentFragment with child elements
-   */
-  static createFragment(children) {
-    const fragment = document.createDocumentFragment();
-    children.forEach((childConfig) => {
-      fragment.appendChild(_DomHelper.create(childConfig));
+  return element;
+}
+function createFragment(children) {
+  const fragment = document.createDocumentFragment();
+  children.forEach((childConfig) => {
+    fragment.appendChild(create(childConfig));
+  });
+  return fragment;
+}
+function update(element, config) {
+  var _a, _b;
+  if (!element) {
+    return;
+  }
+  if (config.classes) {
+    if (Array.isArray(config.classes) || typeof config.classes === "string") {
+      element.classList.add(
+        ...castArray_default(config.classes)
+      );
+    }
+    if (isPlainObject_default(config.classes)) {
+      element.classList.add(
+        ...castArray_default((_a = config.classes.add) != null ? _a : [])
+      );
+      element.classList.remove(
+        ...castArray_default((_b = config.classes.remove) != null ? _b : [])
+      );
+    }
+  }
+  if (config.text !== void 0) {
+    element.textContent = config.text;
+  }
+  if (config.attributes) {
+    Object.entries(config.attributes).forEach(([key2, value]) => {
+      try {
+        element.setAttribute(key2, value);
+      } catch (e) {
+      }
     });
-    return fragment;
   }
-  /**
-   * Updates an existing DOM element based on the provided configuration.
-   * @param {HTMLElement} element - The element to update
-   * @param {DomUpdateConfig} config - Configuration object for updating the element
-   * @return {void}
-   */
-  static update(element, config) {
-    var _a, _b;
-    if (!element) {
-      return;
-    }
-    if (config.classes) {
-      if (isArray_default(config.classes) || isString_default(config.classes)) {
-        element.classList.add(
-          ...castArray_default(config.classes)
-        );
+  if (config.styles) {
+    Object.entries(config.styles).forEach(([key2, value]) => {
+      if (value === void 0) {
+        return;
       }
-      if (isPlainObject_default(config.classes)) {
-        element.classList.add(
-          ...castArray_default((_a = config.classes.add) != null ? _a : [])
-        );
-        element.classList.remove(
-          ...castArray_default((_b = config.classes.remove) != null ? _b : [])
-        );
+      try {
+        const cssName = key2.startsWith("--") ? key2 : key2.replace(/[A-Z]/g, (match3) => `-${match3.toLowerCase()}`);
+        element.style.setProperty(cssName, String(value));
+      } catch (e) {
       }
-    }
-    if (!isUndefined_default(config.text)) {
-      element.textContent = config.text;
-    }
-    if (!isUndefined_default(config.html)) {
-      element.empty();
-      element.appendChild((0, import_obsidian12.sanitizeHTMLToDom)(config.html));
-    }
-    if (config.attributes) {
-      toPairs_default(config.attributes).forEach(([key2, value]) => {
-        try {
-          element.setAttribute(key2, value);
-        } catch (_error) {
-        }
-      });
-    }
-    if (config.styles) {
-      toPairs_default(config.styles).forEach(([key2, value]) => {
-        if (isUndefined_default(value)) {
-          return;
-        }
-        try {
-          const cssName = key2.startsWith("--") ? key2 : key2.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`);
-          element.style.setProperty(cssName, String(value));
-        } catch (_error) {
-        }
-      });
-    }
-    if (config.events) {
-      toPairs_default(config.events).forEach(([eventType, handler]) => {
-        element.addEventListener(eventType, handler);
-      });
-    }
-    if (config.children) {
-      config.children.forEach((childConfig) => {
-        element.appendChild(_DomHelper.create(childConfig));
-      });
-    }
+    });
   }
-};
+  if (config.events) {
+    Object.entries(config.events).forEach(([eventType, handler]) => {
+      element.addEventListener(eventType, handler);
+    });
+  }
+  if (config.children) {
+    config.children.forEach((childConfig) => {
+      element.appendChild(create(childConfig));
+    });
+  }
+}
+function setSanitizedHtml(element, html2) {
+  element.empty();
+  element.appendChild((0, import_obsidian12.sanitizeHTMLToDom)(html2));
+}
 
 // src/modals/confirm.modal.ts
 var import_obsidian13 = require("obsidian");
@@ -14439,8 +14085,8 @@ var ConfirmModal = class extends import_obsidian13.Modal {
    * @override
    */
   onOpen() {
-    DomHelper.update(this.modalEl, { classes: { add: "lct-confirm-modal" } });
-    DomHelper.update(this.contentEl, {
+    update(this.modalEl, { classes: { add: "lct-confirm-modal" } });
+    update(this.contentEl, {
       children: [
         {
           tag: "div",
@@ -14506,10 +14152,261 @@ var ConfirmModal = class extends import_obsidian13.Modal {
    * @return {Promise<boolean>} Promise that resolves to true if confirmed, false if canceled
    */
   async confirm() {
-    return new Promise((resolve) => {
-      this.resolvePromise = resolve;
+    return new Promise((resolve2) => {
+      this.resolvePromise = resolve2;
       this.open();
     });
+  }
+};
+
+// src/components/folder-tree-model.ts
+var FolderTreeModel = class _FolderTreeModel {
+  constructor() {
+    /** The built tree's synthetic root, or null before the first {@link build}. */
+    this.rootNode = null;
+  }
+  /**
+   * Rebuilds the owned tree from a fresh `(entries, rootPath)` pair. The root
+   * path is normalized here so callers can hand over the raw value. Entries
+   * whose status is `'none'` and entries outside the root are dropped; the
+   * result is the synthetic root whose children are the top-level rows.
+   *
+   * @param {FolderTreeEntry[]} entries - The changed-file entries to materialise
+   * @param {string} rootPath - The raw root path (normalized internally)
+   * @return {void}
+   */
+  build(entries, rootPath) {
+    this.rootNode = _FolderTreeModel.buildTree(entries, _FolderTreeModel.normalizeRoot(rootPath));
+  }
+  /**
+   * Returns the current synthetic root node, or null before the first build.
+   * The renderer walks its children to draw the tree.
+   *
+   * @return {FolderTreeNode | null} The synthetic root node or null
+   */
+  getRoot() {
+    return this.rootNode;
+  }
+  /**
+   * Whether the owned tree contains a file node with the given path. Used to
+   * decide whether the previous selection survives a re-render.
+   *
+   * @param {string} path - The file path to look for
+   * @return {boolean} True when a file node with that path exists
+   */
+  containsFile(path) {
+    return _FolderTreeModel.hasFile(this.rootNode, path);
+  }
+  /**
+   * Returns the path of the first file in render order, or null when the tree
+   * has no files. Used to seed the default selection so the diff pane is not
+   * blank when changes exist.
+   *
+   * @return {string | null} The first file path or null
+   */
+  firstFilePath() {
+    return _FolderTreeModel.firstFileUnder(this.rootNode);
+  }
+  /**
+   * Drops the owned tree so a disposed component leaves no stale reference.
+   *
+   * @return {void}
+   */
+  clear() {
+    this.rootNode = null;
+  }
+  /**
+   * Whether the node should render under the active name filter. A file matches
+   * when its name contains the filter substring; a folder matches when any of
+   * its descendant files match (so the ancestors of a hit stay visible). With
+   * an empty filter every node is visible. The filter is a view concern owned
+   * by the component, so it is passed in rather than read from model state.
+   *
+   * @param {FolderTreeNode} node - The node to test
+   * @param {string} nameFilter - The lower-cased name filter (empty shows all)
+   * @return {boolean} True when the node (or its subtree) survives the filter
+   */
+  static nodeVisible(node, nameFilter) {
+    if (!nameFilter) {
+      return true;
+    }
+    if (!node.isFolder) {
+      return node.name.toLowerCase().includes(nameFilter);
+    }
+    return node.children.some((child) => _FolderTreeModel.nodeVisible(child, nameFilter));
+  }
+  /**
+   * Normalizes a root path by trimming a trailing slash. The vault root is
+   * passed as an empty string, which matches the prefix used everywhere else
+   * in the plugin (see `FolderTimelineHelper`).
+   *
+   * @param {string} rootPath - The raw root path
+   * @return {string} The normalized root path (no trailing slash)
+   */
+  static normalizeRoot(rootPath) {
+    if (!rootPath) {
+      return "";
+    }
+    return rootPath.endsWith("/") ? rootPath.slice(0, -1) : rootPath;
+  }
+  /**
+   * Builds an in-memory tree from the changed-file entries. Entries whose
+   * status is `'none'` are skipped (only changed files render). Paths
+   * outside the root are skipped too, matching `FolderTimelineHelper`'s prefix
+   * semantics so the model is robust to a caller passing the whole map.
+   *
+   * @param {FolderTreeEntry[]} entries - The changed-file entries to materialise
+   * @param {string} rootPath - The normalized root path
+   * @return {FolderTreeNode} The synthetic root node (its children are the
+   *   top-level entries of the tree, the root itself never renders).
+   */
+  static buildTree(entries, rootPath) {
+    const root2 = {
+      path: rootPath,
+      name: "",
+      isFolder: true,
+      children: []
+    };
+    const folderIndex = /* @__PURE__ */ new Map();
+    folderIndex.set(rootPath, root2);
+    entries.forEach((entry) => {
+      if (!entry || typeof entry.path !== "string") {
+        return;
+      }
+      if (entry.status !== "added" /* added */ && entry.status !== "modified" /* modified */ && entry.status !== "deleted" /* deleted */) {
+        return;
+      }
+      if (!_FolderTreeModel.isUnderRoot(entry.path, rootPath)) {
+        return;
+      }
+      const relative = _FolderTreeModel.relativeTo(entry.path, rootPath);
+      const segments2 = relative.split("/").filter((segment3) => segment3.length > 0);
+      if (segments2.length === 0) {
+        return;
+      }
+      let parent = root2;
+      let accumulatedRelative = "";
+      for (let i = 0; i < segments2.length - 1; i += 1) {
+        const segment3 = segments2[i];
+        accumulatedRelative = accumulatedRelative ? `${accumulatedRelative}/${segment3}` : segment3;
+        const folderPath = rootPath ? `${rootPath}/${accumulatedRelative}` : accumulatedRelative;
+        let folder = folderIndex.get(folderPath);
+        if (!folder) {
+          folder = {
+            path: folderPath,
+            name: segment3,
+            isFolder: true,
+            children: []
+          };
+          parent.children.push(folder);
+          folderIndex.set(folderPath, folder);
+        }
+        parent = folder;
+      }
+      const fileName = segments2[segments2.length - 1];
+      parent.children.push({
+        path: entry.path,
+        name: fileName,
+        isFolder: false,
+        status: entry.status,
+        external: entry.external === true,
+        children: []
+      });
+    });
+    _FolderTreeModel.sortChildren(root2);
+    return root2;
+  }
+  /**
+   * Whether the given path lies under the root (`path === root` is excluded
+   * because the root itself is a folder, not a file we render). Mirrors the
+   * prefix check in `FolderTimelineHelper` so behaviour is consistent across
+   * the folder-modal surfaces.
+   *
+   * @param {string} path - The candidate vault-relative path
+   * @param {string} rootPath - The normalized root path
+   * @return {boolean} True when `path` is strictly under `rootPath`
+   */
+  static isUnderRoot(path, rootPath) {
+    if (!rootPath) {
+      return path.length > 0;
+    }
+    return path.startsWith(`${rootPath}/`);
+  }
+  /**
+   * Returns the portion of `path` relative to `rootPath`. The vault root
+   * (empty `rootPath`) returns `path` as-is.
+   *
+   * @param {string} path - The vault-relative file path
+   * @param {string} rootPath - The normalized root path
+   * @return {string} The path stripped of the root prefix
+   */
+  static relativeTo(path, rootPath) {
+    if (!rootPath) {
+      return path;
+    }
+    return path.slice(rootPath.length + 1);
+  }
+  /**
+   * Sorts a node's children recursively: folders before files, then by name
+   * alphabetically. The order is stable so two equal inputs render identically.
+   *
+   * @param {FolderTreeNode} node - The node whose children to sort
+   * @return {void}
+   */
+  static sortChildren(node) {
+    node.children.sort((a, b) => {
+      if (a.isFolder !== b.isFolder) {
+        return a.isFolder ? -1 : 1;
+      }
+      return a.name.localeCompare(b.name);
+    });
+    node.children.forEach((child) => {
+      if (child.isFolder) {
+        _FolderTreeModel.sortChildren(child);
+      }
+    });
+  }
+  /**
+   * Whether the subtree under `node` contains the given file path.
+   *
+   * @param {FolderTreeNode | null} node - The node to search under
+   * @param {string} path - The file path to look for
+   * @return {boolean} True when a file node with that path exists
+   */
+  static hasFile(node, path) {
+    if (!node) {
+      return false;
+    }
+    if (!node.isFolder && node.path === path) {
+      return true;
+    }
+    for (const child of node.children) {
+      if (_FolderTreeModel.hasFile(child, path)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  /**
+   * Returns the path of the first file in render order under `node`, or null.
+   *
+   * @param {FolderTreeNode | null} node - The node to search under
+   * @return {string | null} The first file path or null
+   */
+  static firstFileUnder(node) {
+    if (!node) {
+      return null;
+    }
+    for (const child of node.children) {
+      if (!child.isFolder) {
+        return child.path;
+      }
+      const nested = _FolderTreeModel.firstFileUnder(child);
+      if (nested) {
+        return nested;
+      }
+    }
+    return null;
   }
 };
 
@@ -14517,25 +14414,13 @@ var ConfirmModal = class extends import_obsidian13.Modal {
 var import_obsidian14 = require("obsidian");
 var FolderTreeComponent = class {
   constructor() {
-    /**
-     * Container the component renders into; null between dispose / re-mount.
-     */
+    /** Container the component renders into; null between dispose / re-mount. */
     this.container = null;
-    /**
-     * Last computed root from {@link update}, used to normalize child paths.
-     */
-    this.rootPath = "";
-    /**
-     * Last computed root node, retained so re-renders do not need re-input.
-     */
-    this.rootNode = null;
-    /**
-     * Currently-selected file path, or null when nothing is selected yet.
-     */
+    /** Pure tree model: owns the built node tree and its structural queries. */
+    this.model = new FolderTreeModel();
+    /** Currently-selected file path, or null when nothing is selected yet. */
     this.selectedPath = null;
-    /**
-     * Collapsed folder paths; absence in this set means "expanded" (initial).
-     */
+    /** Collapsed folder paths; absence in this set means "expanded" (initial). */
     this.collapsedFolders = /* @__PURE__ */ new Set();
     /**
      * Case-insensitive substring filter applied to file names at render time.
@@ -14545,13 +14430,9 @@ var FolderTreeComponent = class {
      * a collapsed branch are still revealed.
      */
     this.nameFilter = "";
-    /**
-     * Selection callback wired by the parent modal; no-op until set.
-     */
+    /** Selection callback wired by the parent modal; no-op until set. */
     this.onSelect = null;
-    /**
-     * Translator used for the empty-state hint; echoes keys when unset.
-     */
+    /** Translator used for the empty-state hint; echoes keys when unset. */
     this.plugin = null;
   }
   /**
@@ -14583,13 +14464,12 @@ var FolderTreeComponent = class {
     if (!this.container) {
       return;
     }
-    this.rootPath = this.normalizeRoot(params.rootPath);
-    this.rootNode = this.build(params.entries, this.rootPath);
-    if (this.selectedPath !== null && !this.containsFile(this.rootNode, this.selectedPath)) {
+    this.model.build(params.entries, params.rootPath);
+    if (this.selectedPath !== null && !this.model.containsFile(this.selectedPath)) {
       this.selectedPath = null;
     }
     if (this.selectedPath === null) {
-      this.selectedPath = this.firstFilePath(this.rootNode);
+      this.selectedPath = this.model.firstFilePath();
     }
     this.render();
   }
@@ -14630,188 +14510,12 @@ var FolderTreeComponent = class {
       this.container.empty();
     }
     this.container = null;
-    this.rootNode = null;
+    this.model.clear();
     this.selectedPath = null;
     this.collapsedFolders.clear();
     this.nameFilter = "";
     this.onSelect = null;
     this.plugin = null;
-  }
-  /**
-   * Normalizes a root path by trimming a trailing slash. The vault root is
-   * passed as an empty string, which matches the prefix used everywhere else
-   * in the plugin (see `FolderTimelineHelper`).
-   *
-   * @param {string} rootPath - The raw root path
-   * @return {string} The normalized root path (no trailing slash)
-   */
-  normalizeRoot(rootPath) {
-    if (!rootPath) {
-      return "";
-    }
-    return rootPath.endsWith("/") ? rootPath.slice(0, -1) : rootPath;
-  }
-  /**
-   * Builds an in-memory tree from the changed-file entries. Entries whose
-   * status is `'none'` are skipped (only changed files render). Paths
-   * outside the root are skipped too, matching `FolderTimelineHelper`'s prefix
-   * semantics so the component is robust to a caller passing the whole map.
-   *
-   * @param {FolderTreeEntry[]} entries - The changed-file entries to materialise
-   * @param {string} rootPath - The normalized root path
-   * @return {FolderTreeNode} The synthetic root node (its children are the
-   *   top-level entries of the tree, the root itself never renders).
-   */
-  build(entries, rootPath) {
-    const root2 = {
-      path: rootPath,
-      name: "",
-      isFolder: true,
-      children: []
-    };
-    const folderIndex = /* @__PURE__ */ new Map();
-    folderIndex.set(rootPath, root2);
-    entries.forEach((entry) => {
-      if (!entry || !isString_default(entry.path)) {
-        return;
-      }
-      if (entry.status !== "added" /* added */ && entry.status !== "modified" /* modified */ && entry.status !== "deleted" /* deleted */) {
-        return;
-      }
-      if (!this.isUnderRoot(entry.path, rootPath)) {
-        return;
-      }
-      const relative = this.relativeTo(entry.path, rootPath);
-      const segments = relative.split("/").filter((segment3) => segment3.length > 0);
-      if (segments.length === 0) {
-        return;
-      }
-      let parent = root2;
-      let accumulatedRelative = "";
-      for (let i = 0; i < segments.length - 1; i += 1) {
-        const segment3 = segments[i];
-        accumulatedRelative = accumulatedRelative ? `${accumulatedRelative}/${segment3}` : segment3;
-        const folderPath = rootPath ? `${rootPath}/${accumulatedRelative}` : accumulatedRelative;
-        let folder = folderIndex.get(folderPath);
-        if (!folder) {
-          folder = {
-            path: folderPath,
-            name: segment3,
-            isFolder: true,
-            children: []
-          };
-          parent.children.push(folder);
-          folderIndex.set(folderPath, folder);
-        }
-        parent = folder;
-      }
-      const fileName = segments[segments.length - 1];
-      parent.children.push({
-        path: entry.path,
-        name: fileName,
-        isFolder: false,
-        status: entry.status,
-        external: entry.external === true,
-        children: []
-      });
-    });
-    this.sortChildren(root2);
-    return root2;
-  }
-  /**
-   * Whether the given path lies under the root (`path === root` is excluded
-   * because the root itself is a folder, not a file we render). Mirrors the
-   * prefix check in `FolderTimelineHelper` so behaviour is consistent across
-   * the folder-modal surfaces.
-   *
-   * @param {string} path - The candidate vault-relative path
-   * @param {string} rootPath - The normalized root path
-   * @return {boolean} True when `path` is strictly under `rootPath`
-   */
-  isUnderRoot(path, rootPath) {
-    if (!rootPath) {
-      return path.length > 0;
-    }
-    return path.startsWith(`${rootPath}/`);
-  }
-  /**
-   * Returns the portion of `path` relative to `rootPath`. The vault root
-   * (empty `rootPath`) returns `path` as-is.
-   *
-   * @param {string} path - The vault-relative file path
-   * @param {string} rootPath - The normalized root path
-   * @return {string} The path stripped of the root prefix
-   */
-  relativeTo(path, rootPath) {
-    if (!rootPath) {
-      return path;
-    }
-    return path.slice(rootPath.length + 1);
-  }
-  /**
-   * Sorts a node's children recursively: folders before files, then by name
-   * alphabetically. The order is stable so two equal inputs render identically.
-   *
-   * @param {FolderTreeNode} node - The node whose children to sort
-   * @return {void}
-   */
-  sortChildren(node) {
-    node.children.sort((a, b) => {
-      if (a.isFolder !== b.isFolder) {
-        return a.isFolder ? -1 : 1;
-      }
-      return a.name.localeCompare(b.name);
-    });
-    node.children.forEach((child) => {
-      if (child.isFolder) {
-        this.sortChildren(child);
-      }
-    });
-  }
-  /**
-   * Whether the tree contains the given file path. Used to decide whether the
-   * previous selection survives a re-render.
-   *
-   * @param {FolderTreeNode} node - The root node to search under
-   * @param {string} path - The file path to look for
-   * @return {boolean} True when a file node with that path exists
-   */
-  containsFile(node, path) {
-    if (!node) {
-      return false;
-    }
-    if (!node.isFolder && node.path === path) {
-      return true;
-    }
-    for (const child of node.children) {
-      if (this.containsFile(child, path)) {
-        return true;
-      }
-    }
-    return false;
-  }
-  /**
-   * Returns the path of the first file in render order, or null when the tree
-   * has no files. Used to seed the default selection so the diff pane is not
-   * blank when changes exist.
-   *
-   * @param {FolderTreeNode} node - The root node
-   * @return {string | null} The first file path or null
-   */
-  firstFilePath(node) {
-    if (!node) {
-      return null;
-    }
-    for (const child of node.children) {
-      if (!child.isFolder) {
-        return child.path;
-      }
-      const nested = this.firstFilePath(child);
-      if (nested) {
-        return nested;
-      }
-    }
-    return null;
   }
   /**
    * Renders the current tree state into the mounted container. The container
@@ -14826,12 +14530,13 @@ var FolderTreeComponent = class {
       return;
     }
     this.container.empty();
-    const visibleChildren = this.rootNode ? this.rootNode.children.filter((child) => this.nodeVisible(child)) : [];
+    const root2 = this.model.getRoot();
+    const visibleChildren = root2 ? root2.children.filter((child) => FolderTreeModel.nodeVisible(child, this.nameFilter)) : [];
     if (visibleChildren.length === 0) {
       this.renderEmpty(this.container);
       return;
     }
-    const list = DomHelper.create({
+    const list = create({
       tag: "div",
       classes: ["nav-files-container", "lct-folder-tree"],
       container: this.container
@@ -14839,24 +14544,6 @@ var FolderTreeComponent = class {
     visibleChildren.forEach((child) => {
       this.renderNode(list, child, 0);
     });
-  }
-  /**
-   * Whether the node should render under the active name filter. A file matches
-   * when its name contains the filter substring; a folder matches when any of
-   * its descendant files match (so the ancestors of a hit stay visible). With
-   * an empty filter every node is visible.
-   *
-   * @param {FolderTreeNode} node - The node to test
-   * @return {boolean} True when the node (or its subtree) survives the filter
-   */
-  nodeVisible(node) {
-    if (!this.nameFilter) {
-      return true;
-    }
-    if (!node.isFolder) {
-      return node.name.toLowerCase().includes(this.nameFilter);
-    }
-    return node.children.some((child) => this.nodeVisible(child));
   }
   /**
    * Renders the empty-state hint when the tree contains no changed files. The
@@ -14872,7 +14559,7 @@ var FolderTreeComponent = class {
     const fallback = "No changes in this folder for the selected point.";
     const resolved = this.plugin ? this.plugin.t("folder-tree.empty") : null;
     const text = resolved && resolved !== "folder-tree.empty" ? resolved : fallback;
-    DomHelper.create({
+    create({
       tag: "div",
       classes: "lct-folder-tree-empty",
       text,
@@ -14909,7 +14596,7 @@ var FolderTreeComponent = class {
    */
   renderFolder(container, node, depth) {
     const isCollapsed = this.nameFilter ? false : this.collapsedFolders.has(node.path);
-    const row = DomHelper.create({
+    const row = create({
       tag: "div",
       classes: [
         "tree-item-self",
@@ -14929,19 +14616,19 @@ var FolderTreeComponent = class {
       },
       container
     });
-    const chevron = DomHelper.create({
+    const chevron = create({
       tag: "span",
       classes: ["tree-item-icon", "collapse-icon", "lct-folder-tree-chevron"],
       container: row
     });
     (0, import_obsidian14.setIcon)(chevron, isCollapsed ? "chevron-right" : "chevron-down");
-    const icon = DomHelper.create({
+    const icon = create({
       tag: "span",
       classes: "lct-folder-tree-icon",
       container: row
     });
     (0, import_obsidian14.setIcon)(icon, "folder");
-    DomHelper.create({
+    create({
       tag: "span",
       classes: ["tree-item-inner", "nav-folder-title-content", "lct-folder-tree-name"],
       text: node.name,
@@ -14949,7 +14636,7 @@ var FolderTreeComponent = class {
     });
     if (!isCollapsed) {
       node.children.forEach((child) => {
-        if (this.nodeVisible(child)) {
+        if (FolderTreeModel.nodeVisible(child, this.nameFilter)) {
           this.renderNode(container, child, depth + 1);
         }
       });
@@ -14993,14 +14680,14 @@ var FolderTreeComponent = class {
       },
       container
     };
-    const row = DomHelper.create(config);
-    const icon = DomHelper.create({
+    const row = create(config);
+    const icon = create({
       tag: "span",
       classes: "lct-folder-tree-icon",
       container: row
     });
     (0, import_obsidian14.setIcon)(icon, "file");
-    DomHelper.create({
+    create({
       tag: "span",
       classes: ["tree-item-inner", "nav-file-title-content", "lct-folder-tree-name"],
       text: node.name,
@@ -15025,7 +14712,7 @@ var FolderTreeComponent = class {
     const fallback = "external";
     const resolved = this.plugin ? this.plugin.t("version.badge.external") : null;
     const text = resolved && resolved !== "version.badge.external" ? resolved : fallback;
-    const badge = DomHelper.create({
+    const badge = create({
       tag: "span",
       classes: "lct-version-external-badge",
       // `aria-label` only (no `title`): Obsidian renders its own styled tooltip
@@ -15034,13 +14721,13 @@ var FolderTreeComponent = class {
       attributes: { "aria-label": text },
       container: row
     });
-    const slot = DomHelper.create({
+    const slot = create({
       tag: "span",
       classes: "lct-version-external-badge-icon",
       container: badge
     });
     (0, import_obsidian14.setIcon)(slot, "download-cloud");
-    DomHelper.create({
+    create({
       tag: "span",
       classes: "lct-version-external-badge-text",
       text,
@@ -15050,7 +14737,7 @@ var FolderTreeComponent = class {
   /**
    * Maps the delta status to its row class. The three statuses are stable
    * tokens the modal CSS hooks into; rows with status `'none'` never
-   * reach this code path because they are filtered in {@link build}.
+   * reach this code path because they are filtered in {@link FolderTreeModel.build}.
    *
    * @param {FolderDeltaStatus} status - The per-file delta status
    * @return {string} The CSS class for the row's colour token
@@ -15099,303 +14786,235 @@ var FolderTreeComponent = class {
 };
 
 // src/helpers/folder-delta.helper.ts
-var FolderDeltaHelper = class _FolderDeltaHelper {
-  /**
-   * Compares the snapshot's state at the timeline point T to its current
-   * state. See the class docs for the full status grid and the resolution
-   * rules; see {@link FolderDeltaResult} for the returned shape.
-   *
-   * The helper is defensive about a missing snapshot (returns `'none'` with
-   * empty content) so callers iterating over a possibly-stale map can pass
-   * `undefined` without guarding every call site.
-   *
-   * @param {FileSnapshot} snapshot - The snapshot to inspect (live or tombstone)
-   * @param {number} timestamp - The chosen folder-timeline point T, in ms
-   * @return {FolderDeltaResult} The resolved base / current / status triple
-   */
-  static compareAt(snapshot, timestamp) {
-    var _a;
-    if (!snapshot) {
-      return { status: "none" /* none */, base: [], current: [] };
-    }
-    const existedAtT = _FolderDeltaHelper.existedAtT(snapshot, timestamp);
-    const existsNow = !snapshot.isTombstone();
-    const current = existsNow ? [...(_a = snapshot.state) != null ? _a : []] : [];
-    if (!existsNow && !existedAtT) {
-      return { status: "none" /* none */, base: [], current: [] };
-    }
-    if (!existedAtT) {
-      return { status: "added" /* added */, base: [], current };
-    }
-    const base = _FolderDeltaHelper.resolveBaseAt(snapshot, timestamp);
-    if (!existsNow) {
-      return { status: "deleted" /* deleted */, base, current: [] };
-    }
-    return {
-      status: _FolderDeltaHelper.contentEquals(base, current) ? "none" /* none */ : "modified" /* modified */,
-      base,
-      current
-    };
+function compareAt(snapshot, timestamp) {
+  var _a;
+  if (!snapshot) {
+    return { status: "none" /* none */, base: [], current: [] };
   }
-  /**
-   * Whether the snapshot represented a file present at its current path at T.
-   * The answer drives the added / deleted / modified grid in {@link compareAt},
-   * and crucially it is evaluated per the file's CURRENT path so a move shows up
-   * as a deletion at the old path and an addition at the new one.
-   *
-   * Three cases:
-   *
-   * - Tombstone: existed at T when it was first seen at/before T and deleted at
-   *   or AFTER T (`deletedTimestamp >= T`, inclusive). Inclusive on the delete
-   *   instant so the file is still surfaced as `'deleted'` on the very timeline
-   *   point that represents its deletion (or its move-out, which leaves a
-   *   tombstone stamped at the move instant); an exclusive bound hid the deleted
-   *   file on its own point and made the newest snapshot look empty.
-   *
-   * - Moved-in live snapshot: the file appears at its destination path only
-   *   strictly AFTER the move (`movedIntoAt < T`). At and before the move instant
-   *   it is treated as not-yet-here, so the move-in timeline point renders it as
-   *   freshly `'added'` to the folder (green) while the tombstone left at the old
-   *   path renders as `'deleted'` (red): together they read as a move. Its
-   *   pre-move captured history belongs to the old path and is deliberately not
-   *   consulted for existence at the new one.
-   *
-   * - Plain live snapshot: existed at T when its earliest known moment
-   *   ({@link firstSeenAt}) is at/before T. The floor is the earliest of the
-   *   snapshot's `timestamp` and its version timestamps, NOT `timestamp` alone:
-   *   `timestamp` is reset to `Date.now()` whenever the snapshot object is
-   *   rebuilt, so it drifts NEWER than the file's own captured history and using
-   *   it alone misclassified long-lived files as `'added'` (empty base, all-green
-   *   diff) at every point before it.
-   *
-   * @param {FileSnapshot} snapshot - The snapshot under inspection
-   * @param {number} timestamp - The chosen timeline point T, in ms
-   * @return {boolean} True when the file was present at its current path at T
-   */
-  static existedAtT(snapshot, timestamp) {
-    if (snapshot.isTombstone()) {
-      if (_FolderDeltaHelper.firstSeenAt(snapshot) > timestamp) {
-        return false;
-      }
-      return isNumber_default(snapshot.deletedTimestamp) && snapshot.deletedTimestamp >= timestamp;
-    }
-    if (snapshot.isMovedIn()) {
-      return isNumber_default(snapshot.movedIntoAt) && snapshot.movedIntoAt < timestamp;
-    }
-    return _FolderDeltaHelper.firstSeenAt(snapshot) <= timestamp;
+  const existed = existedAtT(snapshot, timestamp);
+  const existsNow = !snapshot.isTombstone();
+  const current = existsNow ? [...(_a = snapshot.content.state) != null ? _a : []] : [];
+  if (!existsNow && !existed) {
+    return { status: "none" /* none */, base: [], current: [] };
   }
-  /**
-   * Resolves the earliest moment the file is known to have existed: the minimum
-   * of the snapshot's creation `timestamp` and every captured version timestamp.
-   * Versions are recorded with their true historical timestamps, so the earliest
-   * one is an older, more reliable existence floor than `timestamp`, which drifts
-   * to "now" each time the snapshot object is rebuilt (see {@link existedAtT}).
-   *
-   * Falls back to `+Infinity` when neither a numeric `timestamp` nor any version
-   * timestamp is available, so a degenerate snapshot is treated as never having
-   * existed rather than as existing since the epoch.
-   *
-   * @param {FileSnapshot} snapshot - The snapshot whose existence floor to resolve
-   * @return {number} The earliest known timestamp, or `+Infinity` when unknown
-   */
-  static firstSeenAt(snapshot) {
-    let earliest = isNumber_default(snapshot.timestamp) ? snapshot.timestamp : Number.POSITIVE_INFINITY;
-    const versions = Array.isArray(snapshot.versions) ? snapshot.versions : [];
-    for (const version of versions) {
-      if (version && isNumber_default(version.timestamp) && version.timestamp < earliest) {
-        earliest = version.timestamp;
-      }
-    }
-    return earliest;
+  if (!existed) {
+    return { status: "added" /* added */, base: [], current };
   }
-  /**
-   * Resolves the file's content at T as the captured version whose timestamp
-   * is the latest at or before T, falling back to the persisted history
-   * baseline when no version qualifies. The snapshot's `versions` array is
-   * stored oldest-first (by capture order), so scanning back from the end
-   * finds the qualifying version in one pass.
-   *
-   * No-version live files are a special case (handled first). A file edited
-   * once below the capture cadence has no intermediate versions, so only two
-   * states are known: the history baseline (earliest) and the current state,
-   * reached at the file's last-change moment ({@link FileSnapshot.getLastChangedTimestamp},
-   * the file's mtime). Treating that moment as the single transition, the
-   * content at T is the current state for any T at/after it (so the file reads
-   * as unchanged - `'none'` - since T) and the baseline before it. Without this,
-   * a no-version file always diffs the baseline against the current state and
-   * so shows as `'modified'` at every timeline point, even the newest.
-   * Tombstones keep the baseline fallback: their captured-or-baseline content is
-   * the recoverable starting point and their current side is empty regardless.
-   *
-   * Returns a copy of the lines so the caller cannot mutate the underlying
-   * version or the history baseline through the returned reference.
-   *
-   * @param {FileSnapshot} snapshot - The snapshot whose content to resolve
-   * @param {number} timestamp - The chosen timeline point T, in ms
-   * @return {string[]} The resolved base content as a fresh array of lines
-   */
-  static resolveBaseAt(snapshot, timestamp) {
-    const versions = Array.isArray(snapshot.versions) ? snapshot.versions : [];
-    if (versions.length === 0 && !snapshot.isTombstone()) {
-      const lastChanged = snapshot.getLastChangedTimestamp();
-      if (isNumber_default(lastChanged) && timestamp >= lastChanged) {
-        return snapshot.getLastStateLines();
-      }
-      return Array.isArray(snapshot.historyLines) ? [...snapshot.historyLines] : [];
-    }
-    for (let i = versions.length - 1; i >= 0; i -= 1) {
-      const version = versions[i];
-      if (version && isNumber_default(version.timestamp) && version.timestamp <= timestamp) {
-        return version.getLines();
-      }
-    }
-    return Array.isArray(snapshot.historyLines) ? [...snapshot.historyLines] : [];
+  const base = resolveBaseAt(snapshot, timestamp);
+  if (!existsNow) {
+    return { status: "deleted" /* deleted */, base, current: [] };
   }
-  /**
-   * Line-by-line equality used to decide `modified` vs `none` for two live
-   * states. Cheaper than joining the arrays and comparing strings because the
-   * common case (identical) short-circuits on the first mismatching index.
-   *
-   * @param {string[]} a - First line array
-   * @param {string[]} b - Second line array
-   * @return {boolean} True when both arrays have the same length and contents
-   */
-  static contentEquals(a, b) {
-    if (a.length !== b.length) {
+  return {
+    status: contentEquals(base, current) ? "none" /* none */ : "modified" /* modified */,
+    base,
+    current
+  };
+}
+function existedAtT(snapshot, timestamp) {
+  if (snapshot.isTombstone()) {
+    if (firstSeenAt(snapshot) > timestamp) {
       return false;
     }
-    for (let i = 0; i < a.length; i += 1) {
-      if (a[i] !== b[i]) {
-        return false;
-      }
-    }
-    return true;
+    return typeof snapshot.deletedTimestamp === "number" && snapshot.deletedTimestamp >= timestamp;
   }
-};
+  if (snapshot.isMovedIn()) {
+    return typeof snapshot.movedIntoAt === "number" && snapshot.movedIntoAt < timestamp;
+  }
+  return firstSeenAt(snapshot) <= timestamp;
+}
+function firstSeenAt(snapshot) {
+  let earliest = typeof snapshot.timestamp === "number" ? snapshot.timestamp : Number.POSITIVE_INFINITY;
+  const versions = snapshot.timeline.getStoredVersions();
+  for (const version of versions) {
+    if (version && typeof version.timestamp === "number" && version.timestamp < earliest) {
+      earliest = version.timestamp;
+    }
+  }
+  return earliest;
+}
+function resolveBaseAt(snapshot, timestamp) {
+  const versions = snapshot.timeline.getStoredVersions();
+  if (versions.length === 0 && !snapshot.isTombstone()) {
+    const lastChanged = snapshot.getLastChangedTimestamp();
+    if (typeof lastChanged === "number" && timestamp >= lastChanged) {
+      return snapshot.content.getLastStateLines();
+    }
+    return Array.isArray(snapshot.content.historyLines) ? [...snapshot.content.historyLines] : [];
+  }
+  for (let i = versions.length - 1; i >= 0; i -= 1) {
+    const version = versions[i];
+    if (version && typeof version.timestamp === "number" && version.timestamp <= timestamp) {
+      return version.getLines();
+    }
+  }
+  return Array.isArray(snapshot.content.historyLines) ? [...snapshot.content.historyLines] : [];
+}
+function contentEquals(a, b) {
+  if (a.length !== b.length) {
+    return false;
+  }
+  for (let i = 0; i < a.length; i += 1) {
+    if (a[i] !== b[i]) {
+      return false;
+    }
+  }
+  return true;
+}
 
-// src/helpers/folder-timeline.helper.ts
-var FolderTimelineHelper = class _FolderTimelineHelper {
+// src/modals/diff-view-state.ts
+var DiffViewState = class {
   /**
-   * Synthesises the folder timeline from the snapshots whose path starts with
-   * `rootPath`. See the class docs for the kinds emitted and the ordering
-   * contract; see {@link FolderTimelinePoint} for the per-point shape.
-   *
-   * An empty input or an empty subtree returns an empty array. A `rootPath`
-   * of `''` matches every snapshot, which is the natural "whole vault" case
-   * a future caller could use; today the folder modal always passes a real
-   * folder path.
-   *
-   * @param {Iterable<FileSnapshot>} snapshots - The snapshots to scan
-   * @param {string} rootPath - Vault-relative folder path (no trailing slash)
-   * @return {FolderTimelinePoint[]} Points sorted newest-first, stable on ties
+   * @param {DiffViewStateHost} host - The modal port the state reads the live
+   *   diff container and hunks back through.
    */
-  static synthesize(snapshots, rootPath) {
-    var _a;
-    if (!snapshots) {
-      return [];
+  constructor(host) {
+    this.host = host;
+    /**
+     * Id of the currently selected diff base. Set on open to the latest captured
+     * version (so the modal opens on "what changed since the last save"), or to
+     * the Original entry when the file has no snapshots yet. May be changed to any
+     * other version's id to diff the current state against that earlier point.
+     */
+    this.selectedBaseId = ORIGINAL_BASE_ID;
+    /**
+     * Current content-search query for the version rail. An empty string shows
+     * every version; a non-empty query keeps only versions whose captured content
+     * contains it (case-insensitive). It never affects the selected diff base.
+     */
+    this.searchQuery = "";
+    /**
+     * Whether the rail hides intermediate versions whose captured content is
+     * identical to the current state. Off by default so the full timeline shows;
+     * toggled from the toolbar. It is a view-only filter over the rail list and
+     * never changes the selected diff base.
+     */
+    this.hideIdenticalVersions = false;
+    /**
+     * The current display mode for the diff view. One of the four
+     * {@link DiffRenderMode} values (patch, inline, line-by-line, side-by-side).
+     * Defaults to side-by-side.
+     */
+    this.currentDisplayMode = "side-by-side" /* side */;
+    /**
+     * Index of the difference currently focused by the next/previous navigation,
+     * or -1 when none is focused yet. It indexes into the hunks computed for the
+     * selected base, and is reset whenever the diff changes (base switch, revert,
+     * or content change) so a stale index can never highlight the wrong block.
+     */
+    this.activeHunkIndex = -1;
+    /**
+     * References to the mode toggle buttons.
+     * Used to update the active state when switching between diff modes.
+     */
+    this.modeButtons = {};
+    /**
+     * References to the next/previous difference navigation buttons, kept so they
+     * can be disabled when the current diff has no hunks to walk.
+     */
+    this.navButtons = {};
+  }
+  /**
+   * Gets the currently active button based on the current display mode.
+   * Returns the button element that corresponds to the active diff view mode.
+   *
+   * @return {HTMLElement | undefined} The active button element, or undefined if no mode is active
+   */
+  getActiveButton() {
+    const buttonByMode = {
+      ["patch" /* patch */]: this.modeButtons.patch,
+      ["inline" /* inline */]: this.modeButtons.inline,
+      ["line-by-line" /* line */]: this.modeButtons.lineByLine,
+      ["side-by-side" /* side */]: this.modeButtons.sideBySide
+    };
+    return buttonByMode[this.currentDisplayMode];
+  }
+  /** Updates the active state of mode buttons based on the current display mode. */
+  updateButtonActiveStates() {
+    Object.values(this.modeButtons).forEach((button) => {
+      update(
+        button,
+        { classes: { remove: "is-active" } }
+      );
+    });
+    const activeButton = this.getActiveButton();
+    if (!activeButton) {
+      return;
     }
-    const normalizedRoot = _FolderTimelineHelper.normalizeRoot(rootPath);
-    const points = [];
-    for (const snapshot of snapshots) {
-      if (!snapshot) {
-        continue;
-      }
-      const path = _FolderTimelineHelper.pathOf(snapshot);
-      if (!_FolderTimelineHelper.isUnderRoot(path, normalizedRoot)) {
-        continue;
-      }
-      for (const version of (_a = snapshot.versions) != null ? _a : []) {
-        points.push({
-          timestamp: version.timestamp,
-          path,
-          kind: "capture" /* capture */,
-          dayKey: _FolderTimelineHelper.dayKeyOf(version.timestamp),
-          versionId: version.id
-        });
-      }
-      if (snapshot.isTombstone() && isNumber_default(snapshot.deletedTimestamp)) {
-        points.push({
-          timestamp: snapshot.deletedTimestamp,
-          path,
-          kind: "delete" /* delete */,
-          dayKey: _FolderTimelineHelper.dayKeyOf(snapshot.deletedTimestamp)
-        });
-      }
-      if (snapshot.isMovedIn() && isNumber_default(snapshot.movedIntoAt)) {
-        points.push({
-          timestamp: snapshot.movedIntoAt,
-          path,
-          kind: "move-in" /* moveIn */,
-          dayKey: _FolderTimelineHelper.dayKeyOf(snapshot.movedIntoAt)
-        });
-      }
-    }
-    points.sort(
-      (a, b) => b.timestamp - a.timestamp
+    update(
+      activeButton,
+      { classes: { add: "is-active" } }
     );
-    return points;
   }
   /**
-   * Returns the day-group key for a timestamp the same way {@link FileVersion.getDate}
-   * does, so a folder modal rail using the same string can match a file modal
-   * rail group heading for any version on the same calendar day.
+   * Moves the difference focus to the next or previous hunk and brings it into
+   * view. The target index is resolved by the same pure NavigationHelper.target
+   * used by the editor change-navigation commands, fed the hunk indices as the
+   * "changed lines" and the current active index as the cursor, so the walk
+   * wraps around at both ends (past the last hunk returns to the first, before
+   * the first returns to the last). With no hunks it is a safe no-op.
    *
-   * @param {number} timestamp - Capture timestamp in milliseconds
-   * @return {string} Localized day key, identical to `new Date(ts).toLocaleDateString()`
+   * @param {NavigationDirection} direction - Which way to step through the hunks
    */
-  static dayKeyOf(timestamp) {
-    return new Date(timestamp).toLocaleDateString();
-  }
-  /**
-   * Resolves the vault-relative path of a snapshot. Prefers the attached
-   * `file.path` (live snapshots own a `TFile`), and falls back to the
-   * snapshot's carried `path`, which mirrors the canonical map key in
-   * `SnapshotsService.fileSnapshots`. The fallback is what keeps a restored
-   * snapshot whose `file` did not resolve (restore miss, detached tombstone or
-   * orphan) on the timeline after a reload, instead of being dropped by an empty
-   * path.
-   *
-   * A snapshot without any usable path (defensive: not expected in practice)
-   * contributes nothing to the timeline.
-   *
-   * @param {FileSnapshot} snapshot - The snapshot to inspect
-   * @return {string} The vault-relative path, or `''` when missing
-   */
-  static pathOf(snapshot) {
-    var _a, _b, _c;
-    return (_c = (_b = (_a = snapshot == null ? void 0 : snapshot.file) == null ? void 0 : _a.path) != null ? _b : snapshot == null ? void 0 : snapshot.path) != null ? _c : "";
-  }
-  /**
-   * Strips a trailing slash from the root prefix so the matcher does not have
-   * to special-case it. An empty root matches every path (whole-vault scope).
-   *
-   * @param {string} rootPath - Caller-supplied folder root
-   * @return {string} Normalized root, never ending in a slash
-   */
-  static normalizeRoot(rootPath) {
-    if (!rootPath) {
-      return "";
+  goToDifference(direction) {
+    const count = this.host.getHunks().length;
+    if (count === 0) {
+      return;
     }
-    return rootPath.endsWith("/") ? rootPath.slice(0, -1) : rootPath;
+    const indices = Array.from({ length: count }, (_unused, index) => index);
+    const target2 = target(indices, this.activeHunkIndex, direction);
+    if (target2 === null) {
+      return;
+    }
+    this.activeHunkIndex = target2;
+    this.focusHunk(target2);
   }
   /**
-   * Whether the given path is inside the root prefix. An empty root matches
-   * everything; an exact equality match is allowed (a snapshot keyed exactly at
-   * the root path is a degenerate but harmless case); otherwise the path must
-   * have `${root}/` as its prefix so `src/a.md` does not match the root `s`.
+   * Highlights the hunk at the given index inside the diff and scrolls it into
+   * view, so the difference the navigation buttons moved to is visible and
+   * marked active. The target is the hunk's anchor row inside the rendered diff
+   * (the same row that carries the inline revert affordance), so navigation
+   * works against the diff itself now that the separate difference panel is
+   * gone. Every other anchor row loses the active marker first. Patch mode has
+   * no per-row anchors, so this is a safe no-op there.
    *
-   * @param {string} path - Vault-relative path to test
-   * @param {string} root - Normalized root prefix (no trailing slash)
-   * @return {boolean} True when `path` lives under `root`
+   * @param {number} index - The hunk index to focus
    */
-  static isUnderRoot(path, root2) {
-    if (!path) {
-      return false;
+  focusHunk(index) {
+    var _a;
+    const container = this.host.diffContainer();
+    if (!container) {
+      return;
     }
-    if (!root2) {
-      return true;
+    const anchors = Array.from(
+      container.querySelectorAll(".lct-hunk-anchor")
+    );
+    anchors.forEach((anchor) => {
+      const anchorIndex = Number(anchor.dataset.lctHunk);
+      update(anchor, { classes: anchorIndex === index ? { add: "is-active" } : { remove: "is-active" } });
+    });
+    (_a = anchors.find((anchor) => Number(anchor.dataset.lctHunk) === index)) == null ? void 0 : _a.scrollIntoView({ block: "nearest" });
+  }
+  /**
+   * Enables or disables the next/previous difference buttons based on whether
+   * the current diff has any hunks to walk, and drops a stale active index when
+   * the diff no longer has that many hunks. A diff with zero hunks leaves both
+   * buttons disabled so a click is an ignored no-op. Patch mode is also disabled:
+   * it renders a plain <pre> with no per-row anchors to scroll to, so stepping
+   * between differences has nothing to focus there.
+   */
+  updateNavButtonsState() {
+    const count = this.host.getHunks().length;
+    const disabled = count === 0 || this.currentDisplayMode === "patch" /* patch */;
+    [this.navButtons.previous, this.navButtons.next].forEach((button) => {
+      if (!button) {
+        return;
+      }
+      button.disabled = disabled;
+      update(button, { classes: disabled ? { add: "is-disabled" } : { remove: "is-disabled" } });
+    });
+    if (this.activeHunkIndex >= count) {
+      this.activeHunkIndex = -1;
     }
-    return path === root2 || path.startsWith(`${root2}/`);
   }
 };
 
@@ -15452,8 +15071,9 @@ var FolderActionHandler = class {
       await this.host.versionActionsService.restoreSelected(file, version.id);
     } else {
       const baseLines = selection.result.base;
-      const currentLines = selection.snapshot.getLastStateLines();
-      if (baseLines.join(selection.snapshot.lineBreak) !== currentLines.join(selection.snapshot.lineBreak)) {
+      const currentLines = selection.snapshot.content.getLastStateLines();
+      const lineBreak = selection.snapshot.content.lineBreak;
+      if (baseLines.join(lineBreak) !== currentLines.join(lineBreak)) {
         await this.host.snapshotsService.applyContent(file, baseLines, {
           start: 0,
           removeCount: currentLines.length,
@@ -15479,7 +15099,7 @@ var FolderActionHandler = class {
    * @return {Promise<void>}
    */
   async restoreTombstoneSelection(path, snapshot, result) {
-    const content = result.base.join(snapshot.lineBreak);
+    const content = result.base.join(snapshot.content.lineBreak);
     if (this.host.app.vault.getAbstractFileByPath(path) !== null) {
       new import_obsidian15.Notice(this.host.plugin.t("notice.file-restore-path-occupied"));
       return;
@@ -15488,7 +15108,7 @@ var FolderActionHandler = class {
       const created = await this.host.app.vault.create(path, content);
       snapshot.file = created;
       snapshot.deletedTimestamp = void 0;
-      snapshot.updateState(result.base);
+      snapshot.content.updateState(result.base);
       snapshot.updateChanges();
       this.host.snapshotsService.forceUpdate();
     } catch (_error) {
@@ -15527,7 +15147,7 @@ var FolderActionHandler = class {
     const file = (_a = selection.snapshot.file) != null ? _a : null;
     if (file) {
       this.host.versionActionsService.removeSelected(file, version.id);
-    } else if (selection.snapshot.removeVersion(version.id)) {
+    } else if (selection.snapshot.timeline.removeVersion(version.id)) {
       this.host.snapshotsService.forceUpdate();
     }
     this.host.resyncTimeline();
@@ -15591,7 +15211,7 @@ var FolderActionHandler = class {
       return;
     }
     try {
-      const originalContent = selection.snapshot.getHistoryOriginalState();
+      const originalContent = selection.snapshot.content.getHistoryOriginalState();
       await this.host.app.vault.modify(file, originalContent);
       this.host.snapshotsService.wipeOne(file);
       this.host.removeFromMap(selection.path);
@@ -15641,235 +15261,145 @@ var FolderActionHandler = class {
 };
 
 // src/helpers/word-diff.helper.ts
-var WordDiffHelper = class _WordDiffHelper {
-  /**
-   * Splits a pair of lines into word-level segments. Each segment carries its
-   * text and whether it was added (present only in the new line), removed
-   * (present only in the old line), or unchanged (shared by both). An empty
-   * side yields a single added or removed segment for the non-empty side, and
-   * two identical lines yield a single unchanged segment.
-   *
-   * When the combined character length of both sides exceeds
-   * {@link WORD_DIFF_LENGTH_THRESHOLD}, the O(n*m) diff is skipped entirely:
-   * the method returns one removed segment for the old text and one added
-   * segment for the new text. This keeps the modal responsive on very long
-   * lines (minified JS, base64 blobs) while preserving full word-diff quality
-   * for all normal lines.
-   *
-   * @param {string} oldText - The old (base) line text
-   * @param {string} newText - The new (current) line text
-   * @return {Diff.Change[]} Ordered word-level segments
-   */
-  static segments(oldText, newText) {
-    const old = oldText != null ? oldText : "";
-    const next = newText != null ? newText : "";
-    if (old.length + next.length > WORD_DIFF_LENGTH_THRESHOLD) {
-      const result = [];
-      if (old.length > 0) {
-        result.push({ value: old, removed: true, added: false, count: 1 });
-      }
-      if (next.length > 0) {
-        result.push({ value: next, added: true, removed: false, count: 1 });
-      }
-      return result;
-    }
-    return diffWords(old, next);
-  }
-  /**
-   * Turns a base text and a current text into an ordered list of inline diff
-   * lines. A removed block immediately followed by an added block is treated as
-   * a modification. When both blocks are at most {@link WORD_DIFF_PAIRING_THRESHOLD}
-   * lines, similarity-based greedy matching pairs each removed line with the most
-   * similar added line (by word-overlap ratio). This corrects false "modified" pairs
-   * caused by reordered-line edits. When either block exceeds the threshold, lines
-   * fall back to positional pairing to bound O(n*m) scoring work. Any surplus old
-   * lines in the block become pure removals and any surplus new lines become pure
-   * additions. A removed block with no added block after it stays a pure removal,
-   * and an added block with no removed block before it stays a pure addition.
-   *
-   * @param {string} base - The base (older) content
-   * @param {string} current - The current (newer) content
-   * @return {InlineDiffLine[]} The inline diff lines, ordered top to bottom
-   */
-  static lines(base, current) {
-    const changes = diffLines(base != null ? base : "", current != null ? current : "");
+function segments(oldText, newText) {
+  const old = oldText != null ? oldText : "";
+  const next = newText != null ? newText : "";
+  if (old.length + next.length > WORD_DIFF_LENGTH_THRESHOLD) {
     const result = [];
-    for (let index = 0; index < changes.length; index++) {
-      const change = changes[index];
-      if (!change.added && !change.removed) {
-        _WordDiffHelper.splitLines(change.value).forEach((text) => {
-          result.push({ type: "context" /* context */, oldText: text, newText: text });
-        });
-        continue;
-      }
-      if (change.removed) {
-        const next = changes[index + 1];
-        const removedLines = _WordDiffHelper.splitLines(change.value);
-        if (next == null ? void 0 : next.added) {
-          const addedLines = _WordDiffHelper.splitLines(next.value);
-          _WordDiffHelper.pairAndEmit(removedLines, addedLines, result);
-          index++;
-          continue;
-        }
-        removedLines.forEach((text) => {
-          result.push({ type: "removed" /* removed */, oldText: text });
-        });
-        continue;
-      }
-      _WordDiffHelper.splitLines(change.value).forEach((text) => {
-        result.push({ type: "added" /* added */, newText: text });
-      });
+    if (old.length > 0) {
+      result.push({ value: old, removed: true, added: false, count: 1 });
+    }
+    if (next.length > 0) {
+      result.push({ value: next, added: true, removed: false, count: 1 });
     }
     return result;
   }
-  /**
-   * Pairs removed lines with added lines and appends the resulting
-   * {@link InlineDiffLine} entries to `result`. When both blocks are within
-   * {@link WORD_DIFF_PAIRING_THRESHOLD}, a greedy similarity match is used.
-   * Otherwise lines are paired by array position.
-   *
-   * Greedy algorithm (O(n*m)):
-   * 1. Score every (removed_i, added_j) pair with {@link wordOverlapRatio}.
-   * 2. Pick the highest-scoring pair, record it, remove both from the pool.
-   * 3. Repeat until no candidates remain.
-   * 4. Remaining unmatched lines are emitted as pure removals or additions.
-   * 5. Emit all pairs sorted by their original removed-line index for stable
-   *    top-to-bottom rendering order.
-   *
-   * @param {string[]} removedLines - Lines from the removed block
-   * @param {string[]} addedLines - Lines from the added block
-   * @param {InlineDiffLine[]} result - Array to append results to
-   */
-  static pairAndEmit(removedLines, addedLines, result) {
-    const useGreedy = removedLines.length <= WORD_DIFF_PAIRING_THRESHOLD && addedLines.length <= WORD_DIFF_PAIRING_THRESHOLD;
-    if (!useGreedy) {
-      _WordDiffHelper.positionalPair(removedLines, addedLines, result);
-      return;
-    }
-    _WordDiffHelper.greedyPair(removedLines, addedLines, result);
-  }
-  /**
-   * Pairs lines by position (original behaviour). The shorter block determines
-   * how many modified pairs are emitted; surplus lines from either side become
-   * pure removals or additions.
-   */
-  static positionalPair(removedLines, addedLines, result) {
-    const paired = Math.min(removedLines.length, addedLines.length);
-    for (let i = 0; i < paired; i++) {
-      result.push({ type: "modified" /* modified */, oldText: removedLines[i], newText: addedLines[i] });
-    }
-    for (let i = paired; i < removedLines.length; i++) {
-      result.push({ type: "removed" /* removed */, oldText: removedLines[i] });
-    }
-    for (let i = paired; i < addedLines.length; i++) {
-      result.push({ type: "added" /* added */, newText: addedLines[i] });
-    }
-  }
-  /**
-   * Pairs lines by greedy best-match on word-overlap similarity. Pairs are
-   * emitted in ascending order of the original removed-line index.
-   */
-  static greedyPair(removedLines, addedLines, result) {
-    const availableAdded = new Set(addedLines.map((_, i) => i));
-    const pairs = [];
-    const unmatchedRemoved = [];
-    for (let ri = 0; ri < removedLines.length; ri++) {
-      let bestScore = -1;
-      let bestAi = -1;
-      for (const ai of availableAdded) {
-        const score = _WordDiffHelper.wordOverlapRatio(removedLines[ri], addedLines[ai]);
-        if (score > bestScore) {
-          bestScore = score;
-          bestAi = ai;
-        }
-      }
-      if (bestAi >= 0) {
-        pairs.push({ removedIdx: ri, addedIdx: bestAi });
-        availableAdded.delete(bestAi);
-      } else {
-        unmatchedRemoved.push(ri);
-      }
-    }
-    pairs.sort(
-      (a, b) => a.removedIdx - b.removedIdx
-    );
-    let unmatchedRemovedIdx = 0;
-    for (const pair of pairs) {
-      while (unmatchedRemovedIdx < unmatchedRemoved.length && unmatchedRemoved[unmatchedRemovedIdx] < pair.removedIdx) {
-        result.push({ type: "removed" /* removed */, oldText: removedLines[unmatchedRemoved[unmatchedRemovedIdx]] });
-        unmatchedRemovedIdx++;
-      }
-      result.push({
-        type: "modified" /* modified */,
-        oldText: removedLines[pair.removedIdx],
-        newText: addedLines[pair.addedIdx]
+  return diffWords(old, next);
+}
+function lines(base, current) {
+  const changes = diffLines(base != null ? base : "", current != null ? current : "");
+  const result = [];
+  for (let index = 0; index < changes.length; index++) {
+    const change = changes[index];
+    if (!change.added && !change.removed) {
+      splitLines2(change.value).forEach((text) => {
+        result.push({ type: "context" /* context */, oldText: text, newText: text });
       });
+      continue;
     }
-    while (unmatchedRemovedIdx < unmatchedRemoved.length) {
+    if (change.removed) {
+      const next = changes[index + 1];
+      const removedLines = splitLines2(change.value);
+      if (next == null ? void 0 : next.added) {
+        const addedLines = splitLines2(next.value);
+        pairAndEmit(removedLines, addedLines, result);
+        index++;
+        continue;
+      }
+      removedLines.forEach((text) => {
+        result.push({ type: "removed" /* removed */, oldText: text });
+      });
+      continue;
+    }
+    splitLines2(change.value).forEach((text) => {
+      result.push({ type: "added" /* added */, newText: text });
+    });
+  }
+  return result;
+}
+function pairAndEmit(removedLines, addedLines, result) {
+  const useGreedy = removedLines.length <= WORD_DIFF_PAIRING_THRESHOLD && addedLines.length <= WORD_DIFF_PAIRING_THRESHOLD;
+  if (!useGreedy) {
+    positionalPair(removedLines, addedLines, result);
+    return;
+  }
+  greedyPair(removedLines, addedLines, result);
+}
+function positionalPair(removedLines, addedLines, result) {
+  const paired = Math.min(removedLines.length, addedLines.length);
+  for (let i = 0; i < paired; i++) {
+    result.push({ type: "modified" /* modified */, oldText: removedLines[i], newText: addedLines[i] });
+  }
+  for (let i = paired; i < removedLines.length; i++) {
+    result.push({ type: "removed" /* removed */, oldText: removedLines[i] });
+  }
+  for (let i = paired; i < addedLines.length; i++) {
+    result.push({ type: "added" /* added */, newText: addedLines[i] });
+  }
+}
+function greedyPair(removedLines, addedLines, result) {
+  const availableAdded = new Set(addedLines.map((_, i) => i));
+  const pairs = [];
+  const unmatchedRemoved = [];
+  for (let ri = 0; ri < removedLines.length; ri++) {
+    let bestScore = -1;
+    let bestAi = -1;
+    for (const ai of availableAdded) {
+      const score = wordOverlapRatio(removedLines[ri], addedLines[ai]);
+      if (score > bestScore) {
+        bestScore = score;
+        bestAi = ai;
+      }
+    }
+    if (bestAi >= 0) {
+      pairs.push({ removedIdx: ri, addedIdx: bestAi });
+      availableAdded.delete(bestAi);
+    } else {
+      unmatchedRemoved.push(ri);
+    }
+  }
+  pairs.sort(
+    (a, b) => a.removedIdx - b.removedIdx
+  );
+  let unmatchedRemovedIdx = 0;
+  for (const pair of pairs) {
+    while (unmatchedRemovedIdx < unmatchedRemoved.length && unmatchedRemoved[unmatchedRemovedIdx] < pair.removedIdx) {
       result.push({ type: "removed" /* removed */, oldText: removedLines[unmatchedRemoved[unmatchedRemovedIdx]] });
       unmatchedRemovedIdx++;
     }
-    for (const ai of Array.from(availableAdded).sort((a, b) => a - b)) {
-      result.push({ type: "added" /* added */, newText: addedLines[ai] });
+    result.push({
+      type: "modified" /* modified */,
+      oldText: removedLines[pair.removedIdx],
+      newText: addedLines[pair.addedIdx]
+    });
+  }
+  while (unmatchedRemovedIdx < unmatchedRemoved.length) {
+    result.push({ type: "removed" /* removed */, oldText: removedLines[unmatchedRemoved[unmatchedRemovedIdx]] });
+    unmatchedRemovedIdx++;
+  }
+  for (const ai of Array.from(availableAdded).sort((a, b) => a - b)) {
+    result.push({ type: "added" /* added */, newText: addedLines[ai] });
+  }
+}
+function wordOverlapRatio(a, b) {
+  var _a, _b;
+  const wordsA = a.trim().split(/\s+/).filter(Boolean);
+  const wordsB = b.trim().split(/\s+/).filter(Boolean);
+  if (wordsA.length === 0 && wordsB.length === 0) {
+    return 0;
+  }
+  const freqA = /* @__PURE__ */ new Map();
+  for (const w of wordsA) {
+    freqA.set(w, ((_a = freqA.get(w)) != null ? _a : 0) + 1);
+  }
+  let intersection = 0;
+  for (const w of wordsB) {
+    const countA = (_b = freqA.get(w)) != null ? _b : 0;
+    if (countA > 0) {
+      intersection++;
+      freqA.set(w, countA - 1);
     }
   }
-  /**
-   * Computes the word-overlap ratio between two lines. The metric is the
-   * Jaccard similarity of the two lines' word multisets: the size of the
-   * intersection divided by the size of the union. Words are extracted by
-   * splitting on whitespace. An empty-vs-empty pair returns 0 (no similarity
-   * signal; treat as unmatched rather than trivially equal).
-   *
-   * The choice of word-overlap ratio over normalized Levenshtein is deliberate:
-   * it is O(n+m) in the number of words (after building a frequency map) and
-   * captures semantic similarity better than character-edit distance for typical
-   * prose and identifier-heavy code lines.
-   *
-   * @param {string} a - First line
-   * @param {string} b - Second line
-   * @return {number} Similarity in [0, 1]; higher means more similar
-   */
-  static wordOverlapRatio(a, b) {
-    var _a, _b;
-    const wordsA = a.trim().split(/\s+/).filter(Boolean);
-    const wordsB = b.trim().split(/\s+/).filter(Boolean);
-    if (wordsA.length === 0 && wordsB.length === 0) {
-      return 0;
-    }
-    const freqA = /* @__PURE__ */ new Map();
-    for (const w of wordsA) {
-      freqA.set(w, ((_a = freqA.get(w)) != null ? _a : 0) + 1);
-    }
-    let intersection = 0;
-    for (const w of wordsB) {
-      const countA = (_b = freqA.get(w)) != null ? _b : 0;
-      if (countA > 0) {
-        intersection++;
-        freqA.set(w, countA - 1);
-      }
-    }
-    const union = wordsA.length + wordsB.length - intersection;
-    return union === 0 ? 0 : intersection / union;
+  const union = wordsA.length + wordsB.length - intersection;
+  return union === 0 ? 0 : intersection / union;
+}
+function splitLines2(value) {
+  if (value === "") {
+    return [];
   }
-  /**
-   * Splits a diff block value into its constituent lines. The diff library
-   * appends a trailing newline to every block, which would otherwise yield a
-   * spurious empty final line, so a single trailing newline is dropped before
-   * splitting. The single line-ending normalization point for the diff surface
-   *: split on `/\r?\n/` so CRLF content does not leave a stray `\r`
-   * on every row.
-   *
-   * @param {string} value - The raw block value from the diff library
-   * @return {string[]} The lines of the block
-   */
-  static splitLines(value) {
-    if (value === "") {
-      return [];
-    }
-    const normalized = value.replace(/\r?\n$/, "");
-    return normalized.split(/\r?\n/);
-  }
-};
+  const normalized = value.replace(/\r?\n$/, "");
+  return normalized.split(/\r?\n/);
+}
 
 // node_modules/diff2html/lib-esm/types.js
 var LineType;
@@ -15926,13 +15456,13 @@ function unifyPath(path) {
 }
 function hashCode(text) {
   let i, chr, len;
-  let hash = 0;
+  let hash2 = 0;
   for (i = 0, len = text.length; i < len; i++) {
     chr = text.charCodeAt(i);
-    hash = (hash << 5) - hash + chr;
-    hash |= 0;
+    hash2 = (hash2 << 5) - hash2 + chr;
+    hash2 |= 0;
   }
-  return hash;
+  return hash2;
 }
 function max(arr) {
   const length = arr.length;
@@ -16555,8 +16085,8 @@ function leadingWs2(string, segmenter) {
   if (segmenter) {
     return leadingAndTrailingWs2(string, segmenter)[0];
   }
-  const match = string.match(/^\s*/);
-  return match ? match[0] : "";
+  const match3 = string.match(/^\s*/);
+  return match3 ? match3[0] : "";
 }
 function leadingAndTrailingWs2(string, segmenter) {
   if (!segmenter) {
@@ -16565,9 +16095,9 @@ function leadingAndTrailingWs2(string, segmenter) {
   if (segmenter.resolvedOptions().granularity != "word") {
     throw new Error('The segmenter passed must have a granularity of "word"');
   }
-  const segments = segment2(string, segmenter);
-  const firstSeg = segments[0];
-  const lastSeg = segments[segments.length - 1];
+  const segments2 = segment2(string, segmenter);
+  const firstSeg = segments2[0];
+  const lastSeg = segments2[segments2.length - 1];
   const head = /\s/.test(firstSeg) ? firstSeg : "";
   const tail = /\s/.test(lastSeg) ? lastSeg : "";
   return [head, tail];
@@ -16938,11 +16468,11 @@ function diffHighlight(diffLine1, diffLine2, isCombined, config = {}) {
       }
     };
   }
-  const diff = diffStyle === "char" ? diffChars(line1.content, line2.content) : diffWordsWithSpace2(line1.content, line2.content);
+  const diff2 = diffStyle === "char" ? diffChars(line1.content, line2.content) : diffWordsWithSpace2(line1.content, line2.content);
   const changedWords = [];
   if (diffStyle === "word" && matching === "words") {
-    const removed = diff.filter((element) => element.removed);
-    const added = diff.filter((element) => element.added);
+    const removed = diff2.filter((element) => element.removed);
+    const added = diff2.filter((element) => element.added);
     const chunks = matcher(added, removed);
     chunks.forEach((chunk) => {
       if (chunk[0].length === 1 && chunk[1].length === 1) {
@@ -16954,7 +16484,7 @@ function diffHighlight(diffLine1, diffLine2, isCombined, config = {}) {
       }
     });
   }
-  const highlightedLine = diff.reduce((highlightedLine2, part) => {
+  const highlightedLine = diff2.reduce((highlightedLine2, part) => {
     const elemType = part.added ? "ins" : part.removed ? "del" : null;
     const addClass = changedWords.indexOf(part) > -1 ? ' class="d2h-change"' : "";
     const escapedValue = escapeForHtml(part.value);
@@ -17056,7 +16586,7 @@ var LineByLineRenderer = class {
   generateFileHtml(file) {
     const matcher2 = newMatcherFn(newDistanceFn((e) => deconstructLine(e.content, file.isCombined).content));
     return file.blocks.map((block) => {
-      let lines = this.hoganUtils.render(genericTemplatesPath, "block-header", {
+      let lines2 = this.hoganUtils.render(genericTemplatesPath, "block-header", {
         CSSLineClass,
         blockHeader: file.isTooBig ? block.header : escapeForHtml(block.header),
         lineClass: "d2h-code-linenumber",
@@ -17066,13 +16596,13 @@ var LineByLineRenderer = class {
         if (oldLines.length && newLines.length && !contextLines.length) {
           this.applyRematchMatching(oldLines, newLines, matcher2).map(([oldLines2, newLines2]) => {
             const { left, right } = this.processChangedLines(file, file.isCombined, oldLines2, newLines2);
-            lines += left;
-            lines += right;
+            lines2 += left;
+            lines2 += right;
           });
         } else if (contextLines.length) {
           contextLines.forEach((line) => {
             const { prefix, content } = deconstructLine(line.content, file.isCombined);
-            lines += this.generateSingleLineHtml(file, {
+            lines2 += this.generateSingleLineHtml(file, {
               type: CSSLineClass.CONTEXT,
               prefix,
               content,
@@ -17082,13 +16612,13 @@ var LineByLineRenderer = class {
           });
         } else if (oldLines.length || newLines.length) {
           const { left, right } = this.processChangedLines(file, file.isCombined, oldLines, newLines);
-          lines += left;
-          lines += right;
+          lines2 += left;
+          lines2 += right;
         } else {
           console.error("Unknown state reached while processing groups of lines", contextLines, oldLines, newLines);
         }
       });
-      return lines;
+      return lines2;
     }).join("\n");
   }
   applyLineGroupping(block) {
@@ -17134,15 +16664,15 @@ var LineByLineRenderer = class {
     for (let i = 0; i < maxLinesNumber; i++) {
       const oldLine = oldLines[i];
       const newLine = newLines[i];
-      const diff = oldLine !== void 0 && newLine !== void 0 ? diffHighlight(oldLine.content, newLine.content, isCombined, this.config) : void 0;
-      const preparedOldLine = oldLine !== void 0 && oldLine.oldNumber !== void 0 ? Object.assign(Object.assign({}, diff !== void 0 ? {
-        prefix: diff.oldLine.prefix,
-        content: diff.oldLine.content,
+      const diff2 = oldLine !== void 0 && newLine !== void 0 ? diffHighlight(oldLine.content, newLine.content, isCombined, this.config) : void 0;
+      const preparedOldLine = oldLine !== void 0 && oldLine.oldNumber !== void 0 ? Object.assign(Object.assign({}, diff2 !== void 0 ? {
+        prefix: diff2.oldLine.prefix,
+        content: diff2.oldLine.content,
         type: CSSLineClass.DELETE_CHANGES
       } : Object.assign(Object.assign({}, deconstructLine(oldLine.content, isCombined)), { type: toCSSClass(oldLine.type) })), { oldNumber: oldLine.oldNumber, newNumber: oldLine.newNumber }) : void 0;
-      const preparedNewLine = newLine !== void 0 && newLine.newNumber !== void 0 ? Object.assign(Object.assign({}, diff !== void 0 ? {
-        prefix: diff.newLine.prefix,
-        content: diff.newLine.content,
+      const preparedNewLine = newLine !== void 0 && newLine.newNumber !== void 0 ? Object.assign(Object.assign({}, diff2 !== void 0 ? {
+        prefix: diff2.newLine.prefix,
+        content: diff2.newLine.content,
         type: CSSLineClass.INSERT_CHANGES
       } : Object.assign(Object.assign({}, deconstructLine(newLine.content, isCombined)), { type: toCSSClass(newLine.type) })), { oldNumber: newLine.oldNumber, newNumber: newLine.newNumber }) : void 0;
       const { left, right } = this.generateLineHtml(file, preparedOldLine, preparedNewLine);
@@ -17326,15 +16856,15 @@ var SideBySideRenderer = class {
     for (let i = 0; i < maxLinesNumber; i++) {
       const oldLine = oldLines[i];
       const newLine = newLines[i];
-      const diff = oldLine !== void 0 && newLine !== void 0 ? diffHighlight(oldLine.content, newLine.content, isCombined, this.config) : void 0;
-      const preparedOldLine = oldLine !== void 0 && oldLine.oldNumber !== void 0 ? Object.assign(Object.assign({}, diff !== void 0 ? {
-        prefix: diff.oldLine.prefix,
-        content: diff.oldLine.content,
+      const diff2 = oldLine !== void 0 && newLine !== void 0 ? diffHighlight(oldLine.content, newLine.content, isCombined, this.config) : void 0;
+      const preparedOldLine = oldLine !== void 0 && oldLine.oldNumber !== void 0 ? Object.assign(Object.assign({}, diff2 !== void 0 ? {
+        prefix: diff2.oldLine.prefix,
+        content: diff2.oldLine.content,
         type: CSSLineClass.DELETE_CHANGES
       } : Object.assign(Object.assign({}, deconstructLine(oldLine.content, isCombined)), { type: toCSSClass(oldLine.type) })), { number: oldLine.oldNumber }) : void 0;
-      const preparedNewLine = newLine !== void 0 && newLine.newNumber !== void 0 ? Object.assign(Object.assign({}, diff !== void 0 ? {
-        prefix: diff.newLine.prefix,
-        content: diff.newLine.content,
+      const preparedNewLine = newLine !== void 0 && newLine.newNumber !== void 0 ? Object.assign(Object.assign({}, diff2 !== void 0 ? {
+        prefix: diff2.newLine.prefix,
+        content: diff2.newLine.content,
         type: CSSLineClass.INSERT_CHANGES
       } : Object.assign(Object.assign({}, deconstructLine(newLine.content, isCombined)), { type: toCSSClass(newLine.type) })), { number: newLine.newNumber }) : void 0;
       const { left, right } = this.generateLineHtml(preparedOldLine, preparedNewLine);
@@ -17818,301 +17348,284 @@ function html(diffInput, configuration = {}) {
 
 // src/helpers/diff-render.helper.ts
 var import_obsidian16 = require("obsidian");
-var DiffRenderHelper = class _DiffRenderHelper {
-  /**
-   * Renders the diff in the requested mode into the supplied container. The
-   * container is fully replaced on every call (no incremental update), so the
-   * caller can re-render on a mode toggle or a content change without having
-   * to clear it first.
-   *
-   * @param {DiffRenderParams} params - The render parameters
-   * @return {{ hunks: Diff.StructuredPatchHunk[] }} The line-level hunks the
-   *   renderer used, in top-to-bottom order, so the caller can attach per-hunk
-   *   navigation and revert affordances against the same indices.
-   */
-  static render(params) {
-    const hunks = HunkHelper.diff(
-      params.baseLines,
-      params.currentLines,
-      params.lineBreak
-    );
-    switch (params.mode) {
-      case "patch" /* patch */:
-        _DiffRenderHelper.renderPatch(params);
-        break;
-      case "inline" /* inline */:
-        _DiffRenderHelper.renderInline(params);
-        break;
-      case "line-by-line" /* line */:
-      case "side-by-side" /* side */:
-        _DiffRenderHelper.renderDiff2Html(params, params.mode);
-        break;
-    }
-    return { hunks };
+function render(params) {
+  const hunks = diff(
+    params.baseLines,
+    params.currentLines,
+    params.lineBreak
+  );
+  switch (params.mode) {
+    case "patch" /* patch */:
+      renderPatch(params);
+      break;
+    case "inline" /* inline */:
+      renderInline(params);
+      break;
+    case "line-by-line" /* line */:
+    case "side-by-side" /* side */:
+      renderDiff2Html(params, params.mode);
+      break;
+    default:
+      assertNever(params.mode, "diff render mode");
   }
-  /**
-   * Builds the unified clean patch text (context size 0). When the base equals
-   * the current state the helper returns the minimal empty-patch shape the
-   * modal used to produce inline, so a no-change selection still renders a
-   * sensible header instead of an empty pane.
-   *
-   * @param {DiffRenderParams} params - The render parameters
-   * @return {string} The unified patch text
-   */
-  static buildCleanPatch(params) {
-    const base = params.baseLines.join(params.lineBreak);
-    const current = params.currentLines.join(params.lineBreak);
-    if (base !== current) {
-      return createTwoFilesPatch(
-        params.filePath,
-        params.filePath,
-        base,
-        current,
-        "",
-        "",
-        {
-          context: 0
-        }
-      );
-    }
-    return `--- ${params.filePath}	
+  return { hunks };
+}
+function buildCleanPatch(params) {
+  const base = params.baseLines.join(params.lineBreak);
+  const current = params.currentLines.join(params.lineBreak);
+  if (base !== current) {
+    return createTwoFilesPatch(
+      params.filePath,
+      params.filePath,
+      base,
+      current,
+      "",
+      "",
+      {
+        context: 0
+      }
+    );
+  }
+  return `--- ${params.filePath}	
 +++ ${params.filePath}	
 `;
-  }
-  /**
-   * Builds the unified diff text with maximum context, which is what diff2html
-   * consumes. When the base equals the current state the helper returns a
-   * synthetic full-content header so diff2html still renders the file as
-   * unchanged context instead of producing nothing.
-   *
-   * @param {DiffRenderParams} params - The render parameters
-   * @return {string} The unified diff text consumed by diff2html
-   */
-  static buildDiff2HtmlInput(params) {
-    const base = params.baseLines.join(params.lineBreak);
-    const current = params.currentLines.join(params.lineBreak);
-    if (base !== current) {
-      return createTwoFilesPatch(
-        params.filePath,
-        params.filePath,
-        base,
-        current,
-        "",
-        "",
-        {
-          context: Number.MAX_SAFE_INTEGER
-        }
-      );
-    }
-    return [
-      "===================================================================",
-      `--- ${params.filePath}	`,
-      `+++ ${params.filePath}	`,
-      `@@ -1,${params.baseLines.length} +1,${params.currentLines.length} @@`,
-      params.currentLines.map((content) => ` ${content}`).join("\n"),
-      "\\ No newline at end of file"
-    ].join("\n");
-  }
-  /**
-   * Renders the patch mode into the container: a `<pre>` with the unified clean
-   * patch plus a copy-to-clipboard button.
-   *
-   * @param {DiffRenderParams} params - The render parameters
-   */
-  static renderPatch(params) {
-    const patch = _DiffRenderHelper.buildCleanPatch(params);
-    const handlerClick = () => {
-      navigator.clipboard.writeText(patch).then(() => {
-        new import_obsidian16.Notice(params.plugin.t("notice.copied"));
-      });
-    };
-    DomHelper.update(
-      params.container,
+}
+function buildDiff2HtmlInput(params) {
+  const base = params.baseLines.join(params.lineBreak);
+  const current = params.currentLines.join(params.lineBreak);
+  if (base !== current) {
+    return createTwoFilesPatch(
+      params.filePath,
+      params.filePath,
+      base,
+      current,
+      "",
+      "",
       {
-        children: [
-          {
-            tag: "div",
-            classes: "lct-patch-container",
-            children: [
-              {
-                tag: "pre",
-                classes: "lct-patch-text",
-                text: patch
-              },
-              {
-                tag: "button",
-                classes: ["lct-patch-copy-button", "mod-outline"],
-                events: {
-                  click: handlerClick
-                }
-              }
-            ]
-          }
-        ]
+        context: Number.MAX_SAFE_INTEGER
       }
     );
-    const copyButton = params.container.querySelector(".lct-patch-copy-button");
-    if (copyButton) {
-      (0, import_obsidian16.setIcon)(copyButton, "copy");
-      copyButton.setAttribute("aria-label", params.plugin.t("modal.copy"));
-      copyButton.setAttribute("title", params.plugin.t("modal.copy"));
+  }
+  return [
+    "===================================================================",
+    `--- ${params.filePath}	`,
+    `+++ ${params.filePath}	`,
+    `@@ -1,${params.baseLines.length} +1,${params.currentLines.length} @@`,
+    params.currentLines.map((content) => ` ${content}`).join("\n"),
+    "\\ No newline at end of file"
+  ].join("\n");
+}
+function renderPatch(params) {
+  const patch = buildCleanPatch(params);
+  const handlerClick = () => {
+    navigator.clipboard.writeText(patch).then(() => {
+      new import_obsidian16.Notice(params.plugin.t("notice.copied"));
+    });
+  };
+  update(
+    params.container,
+    {
+      children: [
+        {
+          tag: "div",
+          classes: "lct-patch-container",
+          children: [
+            {
+              tag: "pre",
+              classes: "lct-patch-text",
+              text: patch
+            },
+            {
+              tag: "button",
+              classes: ["lct-patch-copy-button", "mod-outline"],
+              events: {
+                click: handlerClick
+              }
+            }
+          ]
+        }
+      ]
     }
+  );
+  const copyButton = params.container.querySelector(".lct-patch-copy-button");
+  if (copyButton) {
+    (0, import_obsidian16.setIcon)(copyButton, "copy");
+    copyButton.setAttribute("aria-label", params.plugin.t("modal.copy"));
+    copyButton.setAttribute("title", params.plugin.t("modal.copy"));
   }
-  /**
-   * Renders the inline mode into the container: one row per line, with
-   * word-level spans inside modified lines, plain text inside pure additions
-   * and removals, and a leading sign gutter to keep the row kind readable when
-   * the colours are not enough on their own.
-   *
-   * @param {DiffRenderParams} params - The render parameters
-   */
-  static renderInline(params) {
-    const base = params.baseLines.join(params.lineBreak);
-    const current = params.currentLines.join(params.lineBreak);
-    const diffLines2 = WordDiffHelper.lines(base, current);
-    const rows = [];
-    diffLines2.forEach((line) => {
-      var _a, _b, _c, _d, _e;
-      if (line.type === "context" /* context */) {
-        rows.push(_DiffRenderHelper.makeInlineRow("context", " ", [{ tag: "span", text: (_a = line.oldText) != null ? _a : "" }]));
-        return;
-      }
-      if (line.type === "added" /* added */) {
-        rows.push(_DiffRenderHelper.makeInlineRow("added", "+", [{ tag: "span", text: (_b = line.newText) != null ? _b : "" }]));
-        return;
-      }
-      if (line.type === "removed" /* removed */) {
-        rows.push(_DiffRenderHelper.makeInlineRow("removed", "-", [{ tag: "span", text: (_c = line.oldText) != null ? _c : "" }]));
-        return;
-      }
-      rows.push(_DiffRenderHelper.makeInlineRow(
-        "modified",
-        "~",
-        _DiffRenderHelper.makeInlineWordSpans((_d = line.oldText) != null ? _d : "", (_e = line.newText) != null ? _e : "")
-      ));
-    });
-    DomHelper.update(params.container, {
-      children: [{ tag: "div", classes: "lct-inline-container", children: rows }]
-    });
-  }
-  /**
-   * Renders one of the two diff2html modes (line-by-line or side-by-side) into
-   * the container using the same custom templates the modal used before the
-   * extraction, so the resulting DOM is byte-for-byte identical.
-   *
-   * @param {DiffRenderParams} params - The render parameters
-   * @param {DiffOutputFormatType} format - The diff2html output format
-   */
-  static renderDiff2Html(params, format) {
-    const diffHtml = html(_DiffRenderHelper.buildDiff2HtmlInput(params), {
-      drawFileList: false,
-      matching: "lines",
-      outputFormat: format,
-      renderNothingWhenEmpty: true,
-      rawTemplates: {
-        "line-by-line-file-diff": `
-           {{{diffs}}}
-        `,
-        "side-by-side-file-diff": `
-          <div class="d2h-side-column">
-            <div class="d2h-side-column-wrapper">
-                <div class="d2h-side-column-container">
-                  {{{diffs.left}}}
-              </div>
+}
+function renderInline(params) {
+  const base = params.baseLines.join(params.lineBreak);
+  const current = params.currentLines.join(params.lineBreak);
+  const diffLines2 = lines(base, current);
+  const rows = [];
+  diffLines2.forEach((line) => {
+    var _a, _b, _c, _d, _e;
+    if (line.type === "context" /* context */) {
+      rows.push(makeInlineRow("context", " ", [{ tag: "span", text: (_a = line.oldText) != null ? _a : "" }]));
+      return;
+    }
+    if (line.type === "added" /* added */) {
+      rows.push(makeInlineRow("added", "+", [{ tag: "span", text: (_b = line.newText) != null ? _b : "" }]));
+      return;
+    }
+    if (line.type === "removed" /* removed */) {
+      rows.push(makeInlineRow("removed", "-", [{ tag: "span", text: (_c = line.oldText) != null ? _c : "" }]));
+      return;
+    }
+    rows.push(makeInlineRow(
+      "modified",
+      "~",
+      makeInlineWordSpans((_d = line.oldText) != null ? _d : "", (_e = line.newText) != null ? _e : "")
+    ));
+  });
+  update(params.container, {
+    children: [{ tag: "div", classes: "lct-inline-container", children: rows }]
+  });
+}
+function renderDiff2Html(params, format) {
+  const diffHtml = html(buildDiff2HtmlInput(params), {
+    drawFileList: false,
+    matching: "lines",
+    outputFormat: format,
+    renderNothingWhenEmpty: true,
+    rawTemplates: {
+      "line-by-line-file-diff": `
+         {{{diffs}}}
+      `,
+      "side-by-side-file-diff": `
+        <div class="d2h-side-column">
+          <div class="d2h-side-column-wrapper">
+              <div class="d2h-side-column-container">
+                {{{diffs.left}}}
             </div>
           </div>
-          <div class="d2h-side-column">
-            <div class="d2h-side-column-wrapper">
-                <div class="d2h-side-column-container">
-                  {{{diffs.right}}}
-              </div>
+        </div>
+        <div class="d2h-side-column">
+          <div class="d2h-side-column-wrapper">
+              <div class="d2h-side-column-container">
+                {{{diffs.right}}}
             </div>
           </div>
-        `,
-        "generic-wrapper": `
-          <div class="d2h-wrapper d2h-${format === "line-by-line" /* line */ ? "line" : "side"}">
-            <div class="d2h-container">
-                {{{content}}}
-            </div>
+        </div>
+      `,
+      "generic-wrapper": `
+        <div class="d2h-wrapper d2h-${format === "line-by-line" /* line */ ? "line" : "side"}">
+          <div class="d2h-container">
+              {{{content}}}
           </div>
-        `,
-        "generic-block-header": `
-          <div class="d2h-code-row-wrapper d2h-code-header-wrapper {{CSSLineClass.INFO}}">
-              <div class="d2h-code-linenumber {{CSSLineClass.INFO}}"></div>
-              <div class="d2h-code-linecontent {{CSSLineClass.INFO}}">
-                  <div class="d2h-code-line d2h-code-row">
-                    <span class="d2h-code-line-prefix">&nbsp;</span>
-                    <span class="d2h-code-line-ctn">
-                      {{#blockHeader}}{{{blockHeader}}}{{/blockHeader}}{{^blockHeader}}&nbsp;{{/blockHeader}}
-                    </span>
-                  </div>
-              </div>
-          </div>
-        `,
-        "generic-line": `
-          <div class="d2h-code-row-wrapper {{type}}">
-            <div class="d2h-code-linenumber {{type}}">
-              {{{lineNumber}}}
-            </div>
-            <div class="d2h-code-linecontent {{type}}">
+        </div>
+      `,
+      "generic-block-header": `
+        <div class="d2h-code-row-wrapper d2h-code-header-wrapper {{CSSLineClass.INFO}}">
+            <div class="d2h-code-linenumber {{CSSLineClass.INFO}}"></div>
+            <div class="d2h-code-linecontent {{CSSLineClass.INFO}}">
                 <div class="d2h-code-line d2h-code-row">
-                  {{#prefix}}
-                      <span class="d2h-code-line-prefix">{{{prefix}}}</span>
-                  {{/prefix}}
-                  {{^prefix}}
-                      <span class="d2h-code-line-prefix">&nbsp;</span>
-                  {{/prefix}}
-                  {{#content}}
-                      <span class="d2h-code-line-ctn">{{{content}}}</span>
-                  {{/content}}
-                  {{^content}}
-                      <span class="d2h-code-line-ctn"><br></span>
-                  {{/content}}
+                  <span class="d2h-code-line-prefix">&nbsp;</span>
+                  <span class="d2h-code-line-ctn">
+                    {{#blockHeader}}{{{blockHeader}}}{{/blockHeader}}{{^blockHeader}}&nbsp;{{/blockHeader}}
+                  </span>
                 </div>
             </div>
         </div>
-        `
-      }
+      `,
+      "generic-line": `
+        <div class="d2h-code-row-wrapper {{type}}">
+          <div class="d2h-code-linenumber {{type}}">
+            {{{lineNumber}}}
+          </div>
+          <div class="d2h-code-linecontent {{type}}">
+              <div class="d2h-code-line d2h-code-row">
+                {{#prefix}}
+                    <span class="d2h-code-line-prefix">{{{prefix}}}</span>
+                {{/prefix}}
+                {{^prefix}}
+                    <span class="d2h-code-line-prefix">&nbsp;</span>
+                {{/prefix}}
+                {{#content}}
+                    <span class="d2h-code-line-ctn">{{{content}}}</span>
+                {{/content}}
+                {{^content}}
+                    <span class="d2h-code-line-ctn"><br></span>
+                {{/content}}
+              </div>
+          </div>
+      </div>
+      `
+    }
+  });
+  setSanitizedHtml(params.container, diffHtml);
+}
+function makeInlineRow(kind, sign, content) {
+  return {
+    tag: "div",
+    classes: ["lct-inline-row", `lct-inline-${kind}`],
+    children: [
+      { tag: "span", classes: "lct-inline-sign", text: sign },
+      { tag: "span", classes: "lct-inline-content", children: content }
+    ]
+  };
+}
+function makeInlineWordSpans(oldText, newText) {
+  return segments(oldText, newText).map((segment3) => {
+    const classes = segment3.added ? "lct-word-added" : segment3.removed ? "lct-word-removed" : void 0;
+    return classes ? { tag: "span", classes, text: segment3.value } : { tag: "span", text: segment3.value };
+  });
+}
+
+// src/modals/diff-header-controller.ts
+var DiffHeaderController = class {
+  /**
+   * @param {() => HTMLElement | undefined} noticeEl - The live notice element, or undefined pre-shell.
+   * @param {() => HTMLElement | undefined} columnsHeaderEl - The live column header, or undefined pre-shell.
+   * @param {DiffHeaderTranslator} translator - Resolves the current-column label.
+   */
+  constructor(noticeEl, columnsHeaderEl, translator) {
+    this.noticeEl = noticeEl;
+    this.columnsHeaderEl = columnsHeaderEl;
+    this.translator = translator;
+  }
+  /**
+   * Shows the above-diff notice with the given text, or hides it when the text
+   * is null. A hidden notice keeps its previous text (nothing is cleared), so a
+   * later reveal without new text repaints the last banner.
+   *
+   * @param {string | null} text - The notice text, or null to hide the banner
+   */
+  updateNotice(text) {
+    const noticeEl = this.noticeEl();
+    if (!noticeEl) {
+      return;
+    }
+    update(noticeEl, {
+      text: text != null ? text : void 0,
+      classes: text ? { remove: "lct-diff-notice-hidden" } : { add: "lct-diff-notice-hidden" }
     });
-    DomHelper.update(
-      params.container,
-      { html: diffHtml }
-    );
   }
   /**
-   * Builds one inline diff row: a sign gutter (a space, plus, minus, or tilde)
-   * and the line content made of the provided spans.
+   * Shows the side-by-side column header with the given base label on the left
+   * and the current-state label on the right, or hides it when the base label is
+   * null. The caller decides visibility (side-by-side mode, and for the folder
+   * modal a resolved delta) by passing null to hide; the controller never
+   * inspects the display mode itself.
    *
-   * @param {string} kind - The row kind, used as a modifier class
-   * @param {string} sign - The leading sign character for the row
-   * @param {DomElementConfig[]} content - The content spans for the line
-   * @return {DomElementConfig} The row element config
+   * @param {string | null} baseLabel - The left-column label, or null to hide the header
    */
-  static makeInlineRow(kind, sign, content) {
-    return {
-      tag: "div",
-      classes: ["lct-inline-row", `lct-inline-${kind}`],
+  updateColumnsHeader(baseLabel) {
+    const columnsHeaderEl = this.columnsHeaderEl();
+    if (!columnsHeaderEl) {
+      return;
+    }
+    if (baseLabel === null) {
+      update(columnsHeaderEl, { classes: { add: "lct-diff-columns-hidden" } });
+      return;
+    }
+    update(columnsHeaderEl, {
+      classes: { remove: "lct-diff-columns-hidden" },
       children: [
-        { tag: "span", classes: "lct-inline-sign", text: sign },
-        { tag: "span", classes: "lct-inline-content", children: content }
+        { tag: "div", classes: "lct-diff-column-title", text: baseLabel },
+        { tag: "div", classes: "lct-diff-column-title", text: this.translator.t("modal.version.current") }
       ]
-    };
-  }
-  /**
-   * Computes the word-level spans for a modified line as one flowing sequence:
-   * unchanged words plain, removed words marked for deletion, added words
-   * marked for insertion, all kept in their original order. This is what lets
-   * the inline mode show a wording change as a single line instead of a
-   * before/after pair.
-   *
-   * @param {string} oldText - The old (base) line text
-   * @param {string} newText - The new (current) line text
-   * @return {DomElementConfig[]} The ordered span configs for the merged line
-   */
-  static makeInlineWordSpans(oldText, newText) {
-    return WordDiffHelper.segments(oldText, newText).map((segment3) => {
-      const classes = segment3.added ? "lct-word-added" : segment3.removed ? "lct-word-removed" : void 0;
-      return classes ? { tag: "span", classes, text: segment3.value } : { tag: "span", text: segment3.value };
     });
   }
 };
@@ -18125,6 +17638,11 @@ var FolderDiffRenderer = class {
    */
   constructor(host) {
     this.host = host;
+    this.header = new DiffHeaderController(
+      () => this.host.noticeEl(),
+      () => this.host.columnsHeaderEl(),
+      this.host.plugin
+    );
   }
   /**
    * Renders the diff for the currently-selected file at the currently-selected
@@ -18142,18 +17660,18 @@ var FolderDiffRenderer = class {
     }
     const path = this.host.selectedPath();
     const snapshot = path ? this.host.snapshotsByPath().get(path) : void 0;
-    const result = snapshot ? FolderDeltaHelper.compareAt(snapshot, this.host.selectedTimestamp()) : null;
+    const result = snapshot ? compareAt(snapshot, this.host.selectedTimestamp()) : null;
     this.updateNotice(result);
     this.updateColumnsHeader(result);
     this.host.onDiffRendered();
     if (!result) {
-      DomHelper.update(diffContainerEl, { text: "" });
+      update(diffContainerEl, { text: "" });
       return;
     }
-    DiffRenderHelper.render({
+    render({
       baseLines: result.base,
       currentLines: result.current,
-      lineBreak: (_a = snapshot == null ? void 0 : snapshot.lineBreak) != null ? _a : DEFAULT_LINE_BREAK,
+      lineBreak: (_a = snapshot == null ? void 0 : snapshot.content.lineBreak) != null ? _a : DEFAULT_LINE_BREAK,
       mode: this.host.displayMode(),
       container: diffContainerEl,
       filePath: path != null ? path : "",
@@ -18170,15 +17688,7 @@ var FolderDiffRenderer = class {
    * @param {FolderDeltaResult | null} result - The compareAt result for the selected file
    */
   updateNotice(result) {
-    const noticeEl = this.host.noticeEl();
-    if (!noticeEl) {
-      return;
-    }
-    const text = this.resolveNoticeText(result);
-    DomHelper.update(noticeEl, {
-      text: text != null ? text : void 0,
-      classes: text ? { remove: "lct-diff-notice-hidden" } : { add: "lct-diff-notice-hidden" }
-    });
+    this.header.updateNotice(this.resolveNoticeText(result));
   }
   /**
    * Picks the inline-English notice text for the selected file's status, or
@@ -18199,8 +17709,10 @@ var FolderDiffRenderer = class {
         return this.host.plugin.t("modal.folder.notice.deleted");
       case "none" /* none */:
         return this.host.plugin.t("modal.folder.notice.unchanged");
-      default:
+      case "modified" /* modified */:
         return null;
+      default:
+        return assertNever(result.status, "folder delta status");
     }
   }
   /**
@@ -18212,75 +17724,217 @@ var FolderDiffRenderer = class {
    * @param {FolderDeltaResult | null} result - The compareAt result for the selected file
    */
   updateColumnsHeader(result) {
-    const columnsHeaderEl = this.host.columnsHeaderEl();
-    if (!columnsHeaderEl) {
-      return;
-    }
     const sideBySide = this.host.displayMode() === "side-by-side" /* side */;
-    if (!sideBySide || !result) {
-      DomHelper.update(columnsHeaderEl, { classes: { add: "lct-diff-columns-hidden" } });
+    const pointLabel = sideBySide && result ? new Date(this.host.selectedTimestamp()).toLocaleString() : null;
+    this.header.updateColumnsHeader(pointLabel);
+  }
+};
+
+// src/helpers/folder-timeline.helper.ts
+function synthesize(snapshots, rootPath) {
+  if (!snapshots) {
+    return [];
+  }
+  const normalizedRoot = normalizeRoot(rootPath);
+  const points = [];
+  for (const snapshot of snapshots) {
+    if (!snapshot) {
+      continue;
+    }
+    const path = pathOf(snapshot);
+    if (!isUnderRoot(path, normalizedRoot)) {
+      continue;
+    }
+    for (const version of snapshot.timeline.getStoredVersions()) {
+      points.push({
+        timestamp: version.timestamp,
+        path,
+        kind: "capture" /* capture */,
+        dayKey: dayKeyOf(version.timestamp),
+        versionId: version.id
+      });
+    }
+    if (snapshot.isTombstone() && typeof snapshot.deletedTimestamp === "number") {
+      points.push({
+        timestamp: snapshot.deletedTimestamp,
+        path,
+        kind: "delete" /* delete */,
+        dayKey: dayKeyOf(snapshot.deletedTimestamp)
+      });
+    }
+    if (snapshot.isMovedIn() && typeof snapshot.movedIntoAt === "number") {
+      points.push({
+        timestamp: snapshot.movedIntoAt,
+        path,
+        kind: "move-in" /* moveIn */,
+        dayKey: dayKeyOf(snapshot.movedIntoAt)
+      });
+    }
+  }
+  points.sort(
+    (a, b) => b.timestamp - a.timestamp
+  );
+  return points;
+}
+function dayKeyOf(timestamp) {
+  return new Date(timestamp).toLocaleDateString();
+}
+function pathOf(snapshot) {
+  var _a, _b, _c;
+  return (_c = (_b = (_a = snapshot == null ? void 0 : snapshot.file) == null ? void 0 : _a.path) != null ? _b : snapshot == null ? void 0 : snapshot.path) != null ? _c : "";
+}
+function normalizeRoot(rootPath) {
+  if (!rootPath) {
+    return "";
+  }
+  return rootPath.endsWith("/") ? rootPath.slice(0, -1) : rootPath;
+}
+function isUnderRoot(path, root2) {
+  if (!path) {
+    return false;
+  }
+  if (!root2) {
+    return true;
+  }
+  return path === root2 || path.startsWith(`${root2}/`);
+}
+
+// src/modals/folder-selection-model.ts
+var FolderSelectionModel = class {
+  /**
+   * @param {FileSnapshot[]} snapshots - The snapshots under the folder root
+   * @param {string} rootPath - The vault-relative folder path
+   */
+  constructor(snapshots, rootPath) {
+    this.timelinePoints = synthesize(snapshots, rootPath);
+    this.selectedT = this.timelinePoints.length > 0 ? this.timelinePoints[0].timestamp : Date.now();
+  }
+  /**
+   * The synthesised timeline points, newest-first.
+   *
+   * @return {FolderTimelinePoint[]} The timeline points
+   */
+  get timeline() {
+    return this.timelinePoints;
+  }
+  /**
+   * The currently selected timeline point T, in ms.
+   *
+   * @return {number} The selected T
+   */
+  get selectedTimestamp() {
+    return this.selectedT;
+  }
+  /**
+   * Pins a new selected timeline point T. The caller decides whether to re-render
+   * after the change; this only moves the model's selection.
+   *
+   * @param {number} timestamp - The new selected T
+   */
+  select(timestamp) {
+    this.selectedT = timestamp;
+  }
+  /**
+   * Resolves the captured version of the given snapshot whose timestamp is
+   * closest to (but not after) the selected T. Returns null when no version
+   * qualifies, i.e. when T precedes every captured version: the caller falls back
+   * to the synthetic baseline branch in that case so the user can still restore
+   * the file's earliest known content.
+   *
+   * @param {FileSnapshot} snapshot - The file's snapshot
+   * @return {FileVersion | null} The closest version at/before T, or null
+   */
+  resolveVersionAtT(snapshot) {
+    const versions = snapshot.timeline.getVersions();
+    let candidate = null;
+    versions.forEach((version) => {
+      if (version.timestamp > this.selectedT) {
+        return;
+      }
+      if (!candidate || version.timestamp > candidate.timestamp) {
+        candidate = version;
+      }
+    });
+    return candidate;
+  }
+  /**
+   * Resolves the tree-selected file back to its snapshot and the per-file delta at
+   * T in a single shot, so each handler can early-exit on an empty selection
+   * without re-computing the same lookup. The selected path (owned by the tree
+   * component) and the snapshot map (owned by the modal) are passed in, keeping
+   * the model DOM-free.
+   *
+   * @param {string | null} selectedPath - The tree's selected file path, or null
+   * @param {Map<string, FileSnapshot>} snapshotsByPath - The snapshot map keyed by path
+   * @return {FolderActionSelection | null} The resolved selection, or null
+   */
+  resolveSelection(selectedPath, snapshotsByPath) {
+    if (!selectedPath) {
+      return null;
+    }
+    const snapshot = snapshotsByPath.get(selectedPath);
+    if (!snapshot) {
+      return null;
+    }
+    return {
+      path: selectedPath,
+      snapshot,
+      result: compareAt(snapshot, this.selectedT)
+    };
+  }
+  /**
+   * Re-synthesises the timeline from the live snapshot map and clamps the selected
+   * T to the nearest remaining point (defaults to the newest one when the original
+   * point is gone). Used after a destructive action that removed a version or wiped
+   * a file's history so the rail does not surface stale entries. Leaves T untouched
+   * when the subtree is now empty; the caller re-renders the empty-state rail.
+   *
+   * @param {Map<string, FileSnapshot>} snapshotsByPath - The live snapshot map
+   * @param {string} rootPath - The vault-relative folder path
+   */
+  resync(snapshotsByPath, rootPath) {
+    this.timelinePoints = synthesize(
+      Array.from(snapshotsByPath.values()),
+      rootPath
+    );
+    if (this.timelinePoints.length === 0) {
       return;
     }
-    const pointLabel = new Date(this.host.selectedTimestamp()).toLocaleString();
-    DomHelper.update(columnsHeaderEl, {
-      classes: { remove: "lct-diff-columns-hidden" },
-      children: [
-        { tag: "div", classes: "lct-diff-column-title", text: pointLabel },
-        { tag: "div", classes: "lct-diff-column-title", text: this.host.plugin.t("modal.version.current") }
-      ]
-    });
+    const stillExists = this.timelinePoints.some(
+      (point) => point.timestamp === this.selectedT
+    );
+    if (!stillExists) {
+      this.selectedT = this.timelinePoints[0].timestamp;
+    }
   }
 };
 
 // src/helpers/external-badge.helper.ts
 var import_obsidian17 = require("obsidian");
-var ExternalBadgeHelper = class {
-  /**
-   * Builds the inline external-change badge config. The icon id ships as
-   * `data-icon` on the wrapper so {@link paint} can mount the glyph after
-   * DomHelper builds the config tree; the text is rendered as both the visible
-   * label and the accessible name (`aria-label`) so assistive tech announces the
-   * marker. `aria-label` (not `title`) is used on purpose: Obsidian renders its
-   * own styled tooltip for `[aria-label]` elements, while `title` would add the
-   * unstyled native browser tooltip on top.
-   *
-   * @param {string} text - The locale-resolved badge label
-   * @return {DomElementConfig} The badge element config
-   */
-  static make(text) {
-    return {
-      tag: "span",
-      classes: "lct-version-external-badge",
-      attributes: { "aria-label": text, "data-icon": this.iconId },
-      children: [
-        { tag: "span", classes: "lct-version-external-badge-icon" },
-        { tag: "span", classes: "lct-version-external-badge-text", text }
-      ]
-    };
-  }
-  /**
-   * Walks the rendered subtree of `container` and applies Obsidian's `setIcon`
-   * to every external-badge icon slot {@link make} emitted. The icon id is read
-   * back from the `data-icon` attribute the config carried. Re-running it on
-   * every render keeps the icon in sync when a rail filters or re-orders rows.
-   *
-   * @param {HTMLElement} container - The subtree to scan for badge slots
-   */
-  static paint(container) {
-    const badges = container.querySelectorAll(
-      ".lct-version-external-badge"
-    );
-    badges.forEach((badge) => {
-      const iconId = badge.getAttribute("data-icon");
-      const slot = badge.querySelector(".lct-version-external-badge-icon");
-      if (iconId && slot) {
-        (0, import_obsidian17.setIcon)(slot, iconId);
-      }
-    });
-  }
-};
-/** Lucide icon id mounted into every external badge. */
-ExternalBadgeHelper.iconId = "download-cloud";
+var iconId = "download-cloud";
+function make(text) {
+  return {
+    tag: "span",
+    classes: "lct-version-external-badge",
+    attributes: { "aria-label": text, "data-icon": iconId },
+    children: [
+      { tag: "span", classes: "lct-version-external-badge-icon" },
+      { tag: "span", classes: "lct-version-external-badge-text", text }
+    ]
+  };
+}
+function paint(container) {
+  const badges = container.querySelectorAll(
+    ".lct-version-external-badge"
+  );
+  badges.forEach((badge) => {
+    const badgeIconId = badge.getAttribute("data-icon");
+    const slot = badge.querySelector(".lct-version-external-badge-icon");
+    if (badgeIconId && slot) {
+      (0, import_obsidian17.setIcon)(slot, badgeIconId);
+    }
+  });
+}
 
 // src/modals/folder-timeline-renderer.ts
 var FolderTimelineRenderer = class {
@@ -18324,7 +17978,7 @@ var FolderTimelineRenderer = class {
         text: this.host.plugin.t("modal.no-versions-match")
       });
     }
-    DomHelper.update(railEl, {
+    update(railEl, {
       children: [
         {
           tag: "div",
@@ -18333,7 +17987,7 @@ var FolderTimelineRenderer = class {
         }
       ]
     });
-    ExternalBadgeHelper.paint(railEl);
+    paint(railEl);
   }
   /**
    * Whether the given timeline point comes from an external-change capture
@@ -18354,7 +18008,7 @@ var FolderTimelineRenderer = class {
     if (!snapshot) {
       return false;
     }
-    const version = (_a = snapshot.getVersion(point.versionId)) != null ? _a : void 0;
+    const version = (_a = snapshot.timeline.getVersion(point.versionId)) != null ? _a : void 0;
     return (version == null ? void 0 : version.isExternal()) === true;
   }
   /**
@@ -18375,7 +18029,7 @@ var FolderTimelineRenderer = class {
       { tag: "span", classes: "lct-version-label", text: shortName }
     ];
     if (external) {
-      labelChildren.push(ExternalBadgeHelper.make(this.host.plugin.t("version.badge.external")));
+      labelChildren.push(make(this.host.plugin.t("version.badge.external")));
     }
     return {
       tag: "div",
@@ -18400,16 +18054,12 @@ var FolderTimelineRenderer = class {
    * @return {string} The human-readable kind label
    */
   kindLabel(kind) {
-    switch (kind) {
-      case "capture" /* capture */:
-        return this.host.plugin.t("modal.folder.timeline.capture");
-      case "delete" /* delete */:
-        return this.host.plugin.t("modal.folder.timeline.delete");
-      case "move-in" /* moveIn */:
-        return this.host.plugin.t("modal.folder.timeline.move-in");
-      default:
-        return kind;
-    }
+    const keyByKind = {
+      ["capture" /* capture */]: "modal.folder.timeline.capture",
+      ["delete" /* delete */]: "modal.folder.timeline.delete",
+      ["move-in" /* moveIn */]: "modal.folder.timeline.move-in"
+    };
+    return this.host.plugin.t(keyByKind[kind]);
   }
   /**
    * Returns the last path segment of a vault-relative path. Used as the rail
@@ -18424,9 +18074,146 @@ var FolderTimelineRenderer = class {
   }
 };
 
-// src/modals/folder-history.modal.ts
+// src/modals/history-modal-shell.ts
+var HistoryModalShell = class {
+  /**
+   * @param {HTMLElement} contentEl - The modal content element the body is appended to.
+   * @param {HTMLElement} modalEl - The modal root element the close button lives on.
+   */
+  constructor(contentEl, modalEl) {
+    this.contentEl = contentEl;
+    this.modalEl = modalEl;
+  }
+  /**
+   * Builds the shell spine and returns the created regions. The caller fills the
+   * navigation columns through {@link HistoryModalShellConfig.buildColumns}, then
+   * populates the returned `toolbarEl` and calls {@link relocateCloseButton} so
+   * the close button lands as the last toolbar control.
+   *
+   * @param {HistoryModalShellConfig} config - The per-modal shell configuration
+   * @return {HistoryModalShellRegions} The created layout regions
+   */
+  build(config) {
+    var _a;
+    const bodyEl = create({
+      tag: "div",
+      classes: ["lct-modal-body", ...(_a = config.bodyModifier) != null ? _a : []],
+      container: this.contentEl
+    });
+    config.buildColumns(bodyEl);
+    const mainEl = create({
+      tag: "div",
+      classes: "lct-modal-main",
+      container: bodyEl
+    });
+    const toolbarEl = create({
+      tag: "div",
+      classes: "lct-modal-toolbar",
+      container: mainEl
+    });
+    const noticeEl = create({
+      tag: "div",
+      classes: ["lct-diff-notice", "lct-diff-notice-hidden"],
+      container: mainEl
+    });
+    const blockEl = create({
+      tag: "div",
+      classes: "lct-diff-block",
+      container: mainEl
+    });
+    const columnsHeaderEl = create({
+      tag: "div",
+      classes: ["lct-diff-columns", "lct-diff-columns-hidden"],
+      container: blockEl
+    });
+    const diffContainerEl = create({
+      tag: "div",
+      classes: "diff-container",
+      container: blockEl,
+      attributes: config.diffContainerAttributes,
+      events: config.diffContainerEvents
+    });
+    return { bodyEl, mainEl, toolbarEl, noticeEl, columnsHeaderEl, diffContainerEl };
+  }
+  /**
+   * Pulls the modal's native close button out of its floating top-right corner
+   * and appends it as the last control in the toolbar, so it lines up with the
+   * other icon buttons instead of hovering apart. It drops the raised round look
+   * for the plain .clickable-icon look the rest of the row uses; the static
+   * position is restored in CSS. A no-op when the close button is absent.
+   *
+   * @param {HTMLElement} toolbarEl - The toolbar the close button is moved into
+   */
+  relocateCloseButton(toolbarEl) {
+    const closeButtonEl = this.modalEl.querySelector(".modal-close-button");
+    if (closeButtonEl) {
+      closeButtonEl.classList.remove("mod-raised");
+      closeButtonEl.classList.add("clickable-icon");
+      toolbarEl.appendChild(closeButtonEl);
+    }
+  }
+};
+
+// src/modals/toolbar-builder.ts
 var import_obsidian18 = require("obsidian");
-var FolderHistoryModal = class extends import_obsidian18.Modal {
+var ToolbarBuilder = class {
+  /**
+   * @param {HTMLElement} container - The toolbar element groups are appended to.
+   */
+  constructor(container) {
+    this.container = container;
+  }
+  /**
+   * Creates one toolbar group: a flat row of icon buttons. The modifier class
+   * controls the group's placement (the destructive actions are pinned to the
+   * left edge, the rest are right-aligned) and is the only per-group styling
+   * hook now that the toolbar is built from plain elements rather than Setting
+   * rows.
+   *
+   * @param {string} modifier - The group's modifier class
+   * @return {HTMLElement} The created group container
+   */
+  addGroup(modifier) {
+    return create({
+      tag: "div",
+      classes: ["lct-modal-toolbar-group", modifier],
+      container: this.container
+    });
+  }
+  /**
+   * Builds one accessible icon button inside a toolbar group: a native button
+   * carrying Obsidian's .clickable-icon look (hover background, size, and radius
+   * come from the theme), an aria-label that doubles as the hover tooltip, and a
+   * click handler. It shows only the icon but is never a label-less control for
+   * keyboard or screen-reader users. The warning option adds the destructive
+   * accent (.lct-toolbar-warning) for the restore-original and remove-history
+   * actions; the built-in mod-warning is avoided because on a button it paints a
+   * solid error fill that hides the icon.
+   *
+   * @param {HTMLElement} group - The toolbar group to append the button to
+   * @param {ToolbarButtonConfig} config - The button's icon, label, handler, and flags
+   * @return {HTMLButtonElement} The created button
+   */
+  addButton(group, config) {
+    const button = create({
+      tag: "button",
+      classes: config.warning ? ["clickable-icon", "lct-toolbar-warning"] : ["clickable-icon"],
+      attributes: { "aria-label": config.label, "type": "button" },
+      container: group,
+      events: {
+        click: () => {
+          void config.onClick();
+        }
+      }
+    });
+    (0, import_obsidian18.setIcon)(button, config.icon);
+    return button;
+  }
+};
+
+// src/modals/folder-history.modal.ts
+var import_obsidian19 = require("obsidian");
+var FolderHistoryModal = class extends import_obsidian19.Modal {
   /**
    * Builds a new folder history modal. The caller is expected to have filtered
    * the snapshots to the folder root (see {@link ModalsService.openFolderHistory})
@@ -18442,14 +18229,6 @@ var FolderHistoryModal = class extends import_obsidian18.Modal {
     super(app);
     this.app = app;
     this.plugin = plugin;
-    /**
-     * Currently selected display mode; same enum the file modal uses.
-     */
-    this.currentDisplayMode = "side-by-side" /* side */;
-    /**
-     * Mode toggle buttons, kept so the active accent can be flipped.
-     */
-    this.modeButtons = {};
     this.rootPath = rootPath;
     this.snapshotsByPath = new Map(
       snapshots.map((snapshot) => {
@@ -18460,8 +18239,11 @@ var FolderHistoryModal = class extends import_obsidian18.Modal {
         ];
       })
     );
-    this.timeline = FolderTimelineHelper.synthesize(snapshots, rootPath);
-    this.selectedTimestamp = this.timeline.length > 0 ? this.timeline[0].timestamp : Date.now();
+    this.selection = new FolderSelectionModel(snapshots, rootPath);
+    this.viewState = new DiffViewState({
+      diffContainer: () => this.diffContainerEl,
+      getHunks: () => []
+    });
     this.tree = new FolderTreeComponent();
     this.timelineRenderer = new FolderTimelineRenderer(this.makeTimelineHost());
     this.diffRenderer = new FolderDiffRenderer(this.makeDiffHost());
@@ -18482,8 +18264,8 @@ var FolderHistoryModal = class extends import_obsidian18.Modal {
     return {
       plugin: this.plugin,
       railEl: () => this.railEl,
-      timeline: () => this.timeline,
-      selectedTimestamp: () => this.selectedTimestamp,
+      timeline: () => this.selection.timeline,
+      selectedTimestamp: () => this.selection.selectedTimestamp,
       snapshotsByPath: () => this.snapshotsByPath,
       selectTimestamp: (timestamp) => {
         this.selectTimestamp(timestamp);
@@ -18509,8 +18291,8 @@ var FolderHistoryModal = class extends import_obsidian18.Modal {
       diffContainerEl: () => this.diffContainerEl,
       noticeEl: () => this.noticeEl,
       columnsHeaderEl: () => this.columnsHeaderEl,
-      displayMode: () => this.currentDisplayMode,
-      selectedTimestamp: () => this.selectedTimestamp,
+      displayMode: () => this.viewState.currentDisplayMode,
+      selectedTimestamp: () => this.selection.selectedTimestamp,
       selectedPath: () => this.tree.getSelectedPath(),
       snapshotsByPath: () => this.snapshotsByPath,
       onDiffRendered: () => {
@@ -18536,8 +18318,8 @@ var FolderHistoryModal = class extends import_obsidian18.Modal {
       modalsService: this.modalsService,
       versionActionsService: this.versionActionsService,
       snapshotsService: this.snapshotsService,
-      resolveSelection: () => this.resolveSelection(),
-      resolveVersionAtT: (snapshot) => this.resolveVersionAtT(snapshot),
+      resolveSelection: () => this.selection.resolveSelection(this.tree.getSelectedPath(), this.snapshotsByPath),
+      resolveVersionAtT: (snapshot) => this.selection.resolveVersionAtT(snapshot),
       removeFromMap: (path) => {
         this.snapshotsByPath.delete(path);
       },
@@ -18561,7 +18343,7 @@ var FolderHistoryModal = class extends import_obsidian18.Modal {
    */
   onOpen() {
     this.makeUI();
-    DomHelper.update(this.modalEl, { classes: { add: ["lct-diff-modal", "lct-folder-history-modal"] } });
+    update(this.modalEl, { classes: { add: ["lct-diff-modal", "lct-folder-history-modal"] } });
     this.timelineRenderer.render();
     this.refreshTree();
     this.refreshDiff();
@@ -18577,79 +18359,63 @@ var FolderHistoryModal = class extends import_obsidian18.Modal {
     this.contentEl.empty();
   }
   /**
-   * Builds the three-column shell plus the toolbar inside the main column.
-   * Reuses the same `.lct-modal-body / .lct-modal-rail / .lct-modal-main`
-   * class structure the file modal uses, so the existing flex / scroll
-   * policies apply; folder-specific adjustments hang off the
+   * Builds the three-column shell plus the toolbar inside the main column
+   * through the shared {@link HistoryModalShell}. The shell owns the body / main
+   * / toolbar / notice / diff-block spine and the close-button relocation both
+   * modals share; this modal supplies the folder body modifier and the rail plus
+   * the middle tree column, then fills the toolbar, mounts the tree, and renders
+   * the tree search. Folder-specific adjustments hang off the
    * `.lct-folder-history-modal` modifier added on the modal element.
    */
   makeUI() {
-    const bodyEl = DomHelper.create({
-      tag: "div",
-      classes: ["lct-modal-body", "lct-folder-modal-body"],
-      container: this.contentEl
+    const shell = new HistoryModalShell(this.contentEl, this.modalEl);
+    const regions = shell.build({
+      bodyModifier: ["lct-folder-modal-body"],
+      buildColumns: (bodyEl) => this.buildNavColumns(bodyEl)
     });
-    this.railEl = DomHelper.create({
+    this.mainEl = regions.mainEl;
+    this.toolbarEl = regions.toolbarEl;
+    this.noticeEl = regions.noticeEl;
+    this.columnsHeaderEl = regions.columnsHeaderEl;
+    this.diffContainerEl = regions.diffContainerEl;
+    this.makeToolbar();
+    shell.relocateCloseButton(this.toolbarEl);
+    if (this.treeEl) {
+      this.tree.mount(this.treeEl, (path) => {
+        this.handleTreeSelection(path);
+      }, this.plugin);
+    }
+    this.renderTreeSearch();
+  }
+  /**
+   * Builds the folder modal's two navigation columns into the shell body: the
+   * timeline rail on the left and the middle tree column (a name-filter search
+   * above the scrollable file tree). Reuses the same `.lct-modal-rail` structure
+   * the file modal uses, with folder modifiers for the folder-specific layout.
+   *
+   * @param {HTMLElement} bodyEl - The shell body the columns are appended to
+   */
+  buildNavColumns(bodyEl) {
+    this.railEl = create({
       tag: "div",
       classes: ["lct-modal-rail", "lct-folder-modal-rail"],
       container: bodyEl
     });
-    this.treeColumnEl = DomHelper.create({
+    this.treeColumnEl = create({
       tag: "div",
       classes: "lct-folder-modal-tree",
       container: bodyEl
     });
-    this.treeSearchEl = DomHelper.create({
+    this.treeSearchEl = create({
       tag: "div",
       classes: ["lct-rail-search", "lct-folder-tree-search"],
       container: this.treeColumnEl
     });
-    this.treeEl = DomHelper.create({
+    this.treeEl = create({
       tag: "div",
       classes: "lct-folder-tree-scroll",
       container: this.treeColumnEl
     });
-    this.mainEl = DomHelper.create({
-      tag: "div",
-      classes: "lct-modal-main",
-      container: bodyEl
-    });
-    this.toolbarEl = DomHelper.create({
-      tag: "div",
-      classes: "lct-modal-toolbar",
-      container: this.mainEl
-    });
-    this.makeToolbar();
-    const closeButtonEl = this.modalEl.querySelector(".modal-close-button");
-    if (closeButtonEl) {
-      closeButtonEl.classList.remove("mod-raised");
-      closeButtonEl.classList.add("clickable-icon");
-      this.toolbarEl.appendChild(closeButtonEl);
-    }
-    this.noticeEl = DomHelper.create({
-      tag: "div",
-      classes: ["lct-diff-notice", "lct-diff-notice-hidden"],
-      container: this.mainEl
-    });
-    const blockEl = DomHelper.create({
-      tag: "div",
-      classes: "lct-diff-block",
-      container: this.mainEl
-    });
-    this.columnsHeaderEl = DomHelper.create({
-      tag: "div",
-      classes: ["lct-diff-columns", "lct-diff-columns-hidden"],
-      container: blockEl
-    });
-    this.diffContainerEl = DomHelper.create({
-      tag: "div",
-      classes: "diff-container",
-      container: blockEl
-    });
-    this.tree.mount(this.treeEl, (path) => {
-      this.handleTreeSelection(path);
-    }, this.plugin);
-    this.renderTreeSearch();
   }
   /**
    * Renders the name-filter search box above the tree. Typing filters the tree
@@ -18666,7 +18432,7 @@ var FolderHistoryModal = class extends import_obsidian18.Modal {
     const key2 = "modal.folder.filter-files";
     const resolved = this.plugin.t(key2);
     const placeholder = resolved && resolved !== key2 ? resolved : "Filter files by name";
-    new import_obsidian18.SearchComponent(this.treeSearchEl).setPlaceholder(placeholder).setValue("").onChange((value) => {
+    new import_obsidian19.SearchComponent(this.treeSearchEl).setPlaceholder(placeholder).setValue("").onChange((value) => {
       this.tree.setNameFilter(value);
     });
   }
@@ -18680,12 +18446,13 @@ var FolderHistoryModal = class extends import_obsidian18.Modal {
    * {@link ModalsService}, so behaviour cannot drift from the file modal.
    */
   makeToolbar() {
-    const actionsGroup = DomHelper.create({
-      tag: "div",
-      classes: ["lct-modal-toolbar-group", "lct-modal-toolbar-actions"],
-      container: this.toolbarEl
-    });
-    this.restoreOriginalButton = this.makeToolbarButton(actionsGroup, {
+    const toolbarEl = this.toolbarEl;
+    if (!toolbarEl) {
+      return;
+    }
+    const builder = new ToolbarBuilder(toolbarEl);
+    const actionsGroup = builder.addGroup("lct-modal-toolbar-actions");
+    this.restoreOriginalButton = builder.addButton(actionsGroup, {
       icon: "rotate-ccw",
       label: this.plugin.t("modal.restore-original"),
       warning: true,
@@ -18693,7 +18460,7 @@ var FolderHistoryModal = class extends import_obsidian18.Modal {
         await this.actionHandler.handleRestoreOriginal();
       }
     });
-    this.removeHistoryButton = this.makeToolbarButton(actionsGroup, {
+    this.removeHistoryButton = builder.addButton(actionsGroup, {
       icon: "trash-2",
       label: this.plugin.t("modal.remove-history"),
       warning: true,
@@ -18701,66 +18468,58 @@ var FolderHistoryModal = class extends import_obsidian18.Modal {
         await this.actionHandler.handleRemoveHistory();
       }
     });
-    const filterGroup = DomHelper.create({
-      tag: "div",
-      classes: ["lct-modal-toolbar-group", "lct-modal-toolbar-filter"],
-      container: this.toolbarEl
-    });
-    this.restoreSelectedButton = this.makeToolbarButton(filterGroup, {
+    const filterGroup = builder.addGroup("lct-modal-toolbar-filter");
+    this.restoreSelectedButton = builder.addButton(filterGroup, {
       icon: "history",
       label: this.plugin.t("modal.restore-selected"),
       onClick: async () => {
         await this.actionHandler.handleRestoreSelected();
       }
     });
-    this.removeSelectedButton = this.makeToolbarButton(filterGroup, {
+    this.removeSelectedButton = builder.addButton(filterGroup, {
       icon: "list-x",
       label: this.plugin.t("modal.remove-selected"),
       onClick: async () => {
         await this.actionHandler.handleRemoveSelected();
       }
     });
-    this.labelSelectedButton = this.makeToolbarButton(filterGroup, {
+    this.labelSelectedButton = builder.addButton(filterGroup, {
       icon: "tag",
       label: this.plugin.t("modal.label-selected"),
       onClick: async () => {
         await this.actionHandler.handleLabelSelected();
       }
     });
-    const modesGroup = DomHelper.create({
-      tag: "div",
-      classes: ["lct-modal-toolbar-group", "lct-modal-toolbar-modes"],
-      container: this.toolbarEl
-    });
-    this.modeButtons.patch = this.makeToolbarButton(modesGroup, {
+    const modesGroup = builder.addGroup("lct-modal-toolbar-modes");
+    this.viewState.modeButtons.patch = builder.addButton(modesGroup, {
       icon: "file-text",
       label: this.plugin.t("modal.mode.patch"),
       onClick: () => {
         this.setDisplayMode("patch" /* patch */);
       }
     });
-    this.modeButtons.inline = this.makeToolbarButton(modesGroup, {
+    this.viewState.modeButtons.inline = builder.addButton(modesGroup, {
       icon: "pilcrow",
       label: this.plugin.t("modal.mode.inline"),
       onClick: () => {
         this.setDisplayMode("inline" /* inline */);
       }
     });
-    this.modeButtons.lineByLine = this.makeToolbarButton(modesGroup, {
+    this.viewState.modeButtons.lineByLine = builder.addButton(modesGroup, {
       icon: "align-justify",
       label: this.plugin.t("modal.mode.line-by-line"),
       onClick: () => {
         this.setDisplayMode("line-by-line" /* line */);
       }
     });
-    this.modeButtons.sideBySide = this.makeToolbarButton(modesGroup, {
+    this.viewState.modeButtons.sideBySide = builder.addButton(modesGroup, {
       icon: "columns-2",
       label: this.plugin.t("modal.mode.side-by-side"),
       onClick: () => {
         this.setDisplayMode("side-by-side" /* side */);
       }
     });
-    this.updateModeButtonActiveStates();
+    this.viewState.updateButtonActiveStates();
     this.updateActionButtonStates();
   }
   /**
@@ -18786,69 +18545,10 @@ var FolderHistoryModal = class extends import_obsidian18.Modal {
         return;
       }
       button.disabled = disabled;
-      DomHelper.update(button, {
+      update(button, {
         classes: disabled ? { add: "is-disabled" } : { remove: "is-disabled" }
       });
     });
-  }
-  /**
-   * Renders one toolbar icon button: an accessible clickable-icon wearing the
-   * Obsidian button look, with an aria-label / tooltip so screen readers and
-   * keyboard users have a text label for the icon-only control.
-   *
-   * @param {HTMLElement} group - The toolbar group to append the button to
-   * @param {FolderToolbarButtonConfig} config - The button's icon, label, and handler
-   * @return {HTMLButtonElement} The created button
-   */
-  makeToolbarButton(group, config) {
-    const button = DomHelper.create({
-      tag: "button",
-      classes: config.warning ? ["clickable-icon", "lct-toolbar-warning"] : ["clickable-icon"],
-      attributes: { "aria-label": config.label, "type": "button" },
-      container: group,
-      events: {
-        click: () => {
-          void config.onClick();
-        }
-      }
-    });
-    (0, import_obsidian18.setIcon)(button, config.icon);
-    return button;
-  }
-  /**
-   * Highlights the active mode button. Matches the file modal's accent
-   * behaviour (`is-active` on the active control, plain on the others) so the
-   * two modals are visually consistent.
-   */
-  updateModeButtonActiveStates() {
-    const active = this.getActiveModeButton();
-    Object.values(this.modeButtons).forEach((button) => {
-      if (!button) {
-        return;
-      }
-      DomHelper.update(button, {
-        classes: button === active ? { add: "is-active" } : { remove: "is-active" }
-      });
-    });
-  }
-  /**
-   * Resolves the toolbar button corresponding to the current display mode.
-   *
-   * @return {HTMLElement | undefined} The active mode button, or undefined when none
-   */
-  getActiveModeButton() {
-    switch (this.currentDisplayMode) {
-      case "patch" /* patch */:
-        return this.modeButtons.patch;
-      case "inline" /* inline */:
-        return this.modeButtons.inline;
-      case "line-by-line" /* line */:
-        return this.modeButtons.lineByLine;
-      case "side-by-side" /* side */:
-        return this.modeButtons.sideBySide;
-      default:
-        return void 0;
-    }
   }
   /**
    * Sets the active display mode and re-renders the diff against the same
@@ -18858,11 +18558,11 @@ var FolderHistoryModal = class extends import_obsidian18.Modal {
    * @param {DiffRenderMode} mode - The mode to switch to
    */
   setDisplayMode(mode) {
-    if (this.currentDisplayMode === mode) {
+    if (this.viewState.currentDisplayMode === mode) {
       return;
     }
-    this.currentDisplayMode = mode;
-    this.updateModeButtonActiveStates();
+    this.viewState.currentDisplayMode = mode;
+    this.viewState.updateButtonActiveStates();
     this.refreshDiff();
   }
   /**
@@ -18873,10 +18573,10 @@ var FolderHistoryModal = class extends import_obsidian18.Modal {
    * @param {number} timestamp - The new selected T
    */
   selectTimestamp(timestamp) {
-    if (this.selectedTimestamp === timestamp) {
+    if (this.selection.selectedTimestamp === timestamp) {
       return;
     }
-    this.selectedTimestamp = timestamp;
+    this.selection.select(timestamp);
     this.timelineRenderer.render();
     this.refreshTree();
     this.refreshDiff();
@@ -18892,8 +18592,8 @@ var FolderHistoryModal = class extends import_obsidian18.Modal {
   refreshTree() {
     const entries = [];
     this.snapshotsByPath.forEach((snapshot, path) => {
-      const result = FolderDeltaHelper.compareAt(snapshot, this.selectedTimestamp);
-      const closest = this.resolveVersionAtT(snapshot);
+      const result = compareAt(snapshot, this.selection.selectedTimestamp);
+      const closest = this.selection.resolveVersionAtT(snapshot);
       entries.push({
         path,
         status: result.status,
@@ -18923,117 +18623,16 @@ var FolderHistoryModal = class extends import_obsidian18.Modal {
     this.refreshDiff();
   }
   /**
-   * Resolves the captured version of the given snapshot whose timestamp is
-   * closest to (but not after) the picked timeline point T. Returns null
-   * when no version qualifies, i.e. when T precedes every captured version: the
-   * caller falls back to the synthetic baseline branch in that case so the user
-   * can still restore the file's earliest known content.
-   *
-   * @param {FileSnapshot} snapshot - The file's snapshot
-   * @return {FileVersion | null} The closest version at/before T, or null
-   */
-  resolveVersionAtT(snapshot) {
-    const versions = snapshot.getVersions();
-    let candidate = null;
-    versions.forEach((version) => {
-      if (version.timestamp > this.selectedTimestamp) {
-        return;
-      }
-      if (!candidate || version.timestamp > candidate.timestamp) {
-        candidate = version;
-      }
-    });
-    return candidate;
-  }
-  /**
-   * Resolves the file currently focused in the tree back to its snapshot and
-   * the per-file delta at T in a single shot, so each handler can early-exit on
-   * an empty selection without re-computing the same lookup.
-   *
-   * @return {{ path: string; snapshot: FileSnapshot; result: FolderDeltaResult } | null}
-   */
-  resolveSelection() {
-    const path = this.tree.getSelectedPath();
-    if (!path) {
-      return null;
-    }
-    const snapshot = this.snapshotsByPath.get(path);
-    if (!snapshot) {
-      return null;
-    }
-    return {
-      path,
-      snapshot,
-      result: FolderDeltaHelper.compareAt(snapshot, this.selectedTimestamp)
-    };
-  }
-  /**
-   * Re-synthesises the timeline from the current snapshot map, clamps the
-   * selected T to the nearest remaining point (defaults to the newest one when
-   * the original point is gone), and re-renders the rail. Used after a
-   * destructive action that removed a version or wiped a file's history so the
-   * rail does not surface stale entries.
+   * Re-synthesises the timeline through the pure {@link FolderSelectionModel}
+   * (clamping the selected T to the nearest remaining point) and re-renders the
+   * rail. Used after a destructive action that removed a version or wiped a
+   * file's history so the rail does not surface stale entries. The render also
+   * covers the now-empty subtree, where the rail falls back to its empty-state
+   * hint before the caller closes the modal.
    */
   resyncTimeline() {
-    this.timeline = FolderTimelineHelper.synthesize(
-      Array.from(this.snapshotsByPath.values()),
-      this.rootPath
-    );
-    if (this.timeline.length === 0) {
-      this.timelineRenderer.render();
-      return;
-    }
-    const stillExists = this.timeline.some(
-      (point) => point.timestamp === this.selectedTimestamp
-    );
-    if (!stillExists) {
-      this.selectedTimestamp = this.timeline[0].timestamp;
-    }
+    this.selection.resync(this.snapshotsByPath, this.rootPath);
     this.timelineRenderer.render();
-  }
-  /**
-   * Returns the timeline this modal was opened against. Exposed for tests
-   * and for the toolbar actions, which need to know which version is closest
-   * to the picked T for the selected file.
-   *
-   * @return {FolderTimelinePoint[]} The timeline points, newest-first
-   */
-  getTimeline() {
-    return this.timeline;
-  }
-  /**
-   * Returns the currently selected timeline point T. Exposed for tests and
-   * the toolbar actions.
-   *
-   * @return {number} The selected T in ms
-   */
-  getSelectedTimestamp() {
-    return this.selectedTimestamp;
-  }
-  /**
-   * Returns the snapshot map keyed by path. Exposed so the toolbar
-   * actions can resolve the tree-selected file back to its snapshot
-   * without re-filtering the service map.
-   *
-   * @return {Map<string, FileSnapshot>} The snapshot map
-   */
-  getSnapshotsByPath() {
-    return this.snapshotsByPath;
-  }
-  /**
-   * Re-runs the per-file delta against the given path at the current T.
-   * Exposed so the toolbar actions can derive the base / current content
-   * for the selected file when invoking VersionActionsService.
-   *
-   * @param {string} path - The vault-relative file path
-   * @return {FolderDeltaStatus} The status at T, `'none'` when the path is unknown
-   */
-  statusAt(path) {
-    const snapshot = this.snapshotsByPath.get(path);
-    if (!snapshot) {
-      return "none" /* none */;
-    }
-    return FolderDeltaHelper.compareAt(snapshot, this.selectedTimestamp).status;
   }
 };
 __decorateClass([
@@ -19045,6 +18644,204 @@ __decorateClass([
 __decorateClass([
   Inject(TOKENS.versionActions)
 ], FolderHistoryModal.prototype, "versionActionsService", 2);
+
+// src/helpers/base-content.helper.ts
+function resolve(selectedBaseId, baselineId, snapshot) {
+  if (selectedBaseId !== baselineId) {
+    const content = snapshot.versionContent(selectedBaseId);
+    if (content !== null) {
+      return content;
+    }
+  }
+  const latest = snapshot.versions[0];
+  return latest != null ? latest : snapshot.original;
+}
+
+// src/modals/diff-presenter.ts
+var DiffPresenter = class {
+  /**
+   * @param {DiffPresenterHost} host - The modal port the presenter reads its
+   *   shared state and collaborators through.
+   */
+  constructor(host) {
+    this.host = host;
+  }
+  /**
+   * Renders the diff in the given mode: sets it active, highlights its toolbar
+   * button, tears down any prior scroll sync, refreshes the notice and columns
+   * header, writes the diff DOM, and runs the per-mode finalisation. This is the
+   * single render entry the toolbar buttons and the modal call.
+   *
+   * @param {DiffRenderMode} mode - The diff mode to render
+   */
+  refresh(mode) {
+    this.host.viewState.currentDisplayMode = mode;
+    this.host.viewState.updateButtonActiveStates();
+    this.host.scrollSync.cleanup();
+    this.updateDiffNotice();
+    this.updateColumnsHeader();
+    this.renderContent(mode);
+    this.finalizeRender(mode);
+  }
+  /**
+   * Re-renders whichever diff mode is currently active. Used after the diff base
+   * or the file content changes so the visible output stays in sync without
+   * duplicating the mode dispatch at every call site.
+   */
+  refreshActive() {
+    this.refresh(this.host.viewState.currentDisplayMode);
+  }
+  /**
+   * Resolves the content of the currently selected diff base. A picked
+   * intermediate version resolves to that version's captured content. The
+   * synthetic baseline entry (or a stale id whose version no longer exists)
+   * resolves to the LATEST captured snapshot, falling back to the original only
+   * when no snapshot exists. The branch logic lives in the pure
+   * BaseContentHelper so it can be unit-tested without the modal DOM.
+   *
+   * @return {string} The base content to diff the current state against
+   */
+  getBaseContent() {
+    return resolve(this.host.viewState.selectedBaseId, ORIGINAL_BASE_ID, {
+      versions: this.host.snapshot.timeline.getVersions().map((version) => version.getContent(this.host.snapshot.content.lineBreak)),
+      original: this.host.snapshot.content.getHistoryOriginalState(),
+      versionContent: (id) => {
+        var _a, _b;
+        return (_b = (_a = this.host.snapshot.timeline.getVersion(id)) == null ? void 0 : _a.getContent(this.host.snapshot.content.lineBreak)) != null ? _b : null;
+      }
+    });
+  }
+  /**
+   * Whether the current state is identical to the selected diff base. Used to
+   * render the "no changes" placeholder when the picked base matches the live
+   * content.
+   *
+   * @return {boolean} True when base and current content are equal
+   */
+  isBaseSameCurrent() {
+    return this.getBaseContent() === this.host.snapshot.content.getLastState();
+  }
+  /**
+   * Computes the line-level hunks between the selected base and the current
+   * state. These back the inline per-hunk revert affordances and the
+   * next/previous navigation, and are recomputed on demand so the offsets always
+   * reflect the live content.
+   *
+   * @return {Diff.StructuredPatchHunk[]} The hunks, ordered top to bottom
+   */
+  getHunks() {
+    return diff(
+      this.getBaseContent().split(this.host.snapshot.content.lineBreak),
+      this.host.snapshot.content.getLastStateLines(),
+      this.host.snapshot.content.lineBreak
+    );
+  }
+  /**
+   * Writes the diff DOM for the given mode into the live container. A no-op
+   * before the container exists; the surrounding state updates still run so the
+   * notice, columns header, and button state stay consistent.
+   *
+   * @param {DiffRenderMode} mode - The diff mode to render
+   */
+  renderContent(mode) {
+    var _a, _b, _c;
+    const container = this.host.diffContainer();
+    if (!container) {
+      return;
+    }
+    render({
+      baseLines: this.getBaseContent().split(this.host.snapshot.content.lineBreak),
+      currentLines: this.host.snapshot.content.getLastStateLines(),
+      lineBreak: this.host.snapshot.content.lineBreak,
+      mode,
+      container,
+      filePath: (_c = (_b = (_a = this.host.snapshot) == null ? void 0 : _a.file) == null ? void 0 : _b.path) != null ? _c : "",
+      plugin: this.host.plugin
+    });
+  }
+  /**
+   * Runs the mode-specific tail after the diff DOM is written. Patch mode has no
+   * per-row structure, so it only refreshes the (disabled) nav buttons; the
+   * inline and diff2html modes place the per-hunk revert affordances (which also
+   * refresh the nav buttons), and side-by-side additionally schedules the
+   * two-column scroll sync.
+   *
+   * @param {DiffRenderMode} mode - The mode that was just rendered
+   */
+  finalizeRender(mode) {
+    switch (mode) {
+      case "patch" /* patch */:
+        this.host.viewState.updateNavButtonsState();
+        return;
+      case "inline" /* inline */:
+        this.host.gutterReverts.attachInlineReverts();
+        return;
+      case "line-by-line" /* line */:
+        this.host.gutterReverts.attachInlineReverts();
+        return;
+      case "side-by-side" /* side */:
+        this.host.gutterReverts.attachInlineReverts();
+        this.host.scrollSync.schedule();
+        return;
+      default:
+        assertNever(mode, "diff display mode");
+    }
+  }
+  /**
+   * Shows or hides the above-diff notice and syncs the toolbar action buttons,
+   * both driven by whether the selected base resolves to the current content.
+   * The notice is revealed, with the same text the empty-diff placeholder uses,
+   * whenever the base equals current; otherwise it is hidden. The modal owns the
+   * matching button-disable policy, driven by the base-vs-current fact this
+   * passes it.
+   */
+  updateDiffNotice() {
+    const identical = this.isBaseSameCurrent();
+    this.host.syncActionButtons(identical);
+    this.host.diffHeader.updateNotice(identical ? this.getEmptyDiffText() : null);
+  }
+  /**
+   * Shows or hides the side-by-side column header and, when shown, labels the
+   * left column with the picked base and the right column with the current
+   * state. It is shown for the two-column side-by-side mode (including the
+   * identical-content case, so the header does not vanish when the diff is
+   * empty) and hidden in the single-column modes.
+   */
+  updateColumnsHeader() {
+    const visible = this.host.viewState.currentDisplayMode === "side-by-side" /* side */;
+    this.host.diffHeader.updateColumnsHeader(visible ? this.getBaseLabel() : null);
+  }
+  /**
+   * Resolves the label for the diff's base (left) side, matching the version
+   * names used in the rail. A picked version shows its custom label or, when
+   * unlabeled, its derived action (created/modified/cleared); the Original
+   * entry (the only base when no snapshots exist) shows "Original".
+   *
+   * @return {string} The base-side label
+   */
+  getBaseLabel() {
+    if (this.host.viewState.selectedBaseId !== ORIGINAL_BASE_ID) {
+      const versions = this.host.snapshot.timeline.getVersions();
+      const version = this.host.snapshot.timeline.getVersion(this.host.viewState.selectedBaseId);
+      if (version) {
+        return this.host.resolvePrimaryLabel(version, versions);
+      }
+    }
+    return this.host.plugin.t("modal.version.original");
+  }
+  /**
+   * Picks the placeholder text shown when the selected base equals the current
+   * state. A picked intermediate version that matches the live content reads
+   * "Identical to current" so the user understands the chosen base holds the
+   * same text, distinguishing it from the original-vs-current "No changes" case
+   * where the file simply was never modified.
+   *
+   * @return {string} The empty-diff placeholder text for the current base
+   */
+  getEmptyDiffText() {
+    return this.host.viewState.selectedBaseId === ORIGINAL_BASE_ID ? this.host.plugin.t("modal.no-changes") : this.host.plugin.t("modal.identical-to-current");
+  }
+};
 
 // src/modals/diff-scroll-sync.ts
 var DiffScrollSync = class {
@@ -19142,172 +18939,8 @@ var DiffScrollSync = class {
   }
 };
 
-// src/modals/diff-view-state.ts
-var DiffViewState = class {
-  /**
-   * @param {DiffViewStateHost} host - The modal port the state reads the live
-   *   diff container and hunks back through.
-   */
-  constructor(host) {
-    this.host = host;
-    /**
-     * Id of the currently selected diff base. Set on open to the latest captured
-     * version (so the modal opens on "what changed since the last save"), or to
-     * the Original entry when the file has no snapshots yet. May be changed to any
-     * other version's id to diff the current state against that earlier point.
-     */
-    this.selectedBaseId = ORIGINAL_BASE_ID;
-    /**
-     * Current content-search query for the version rail. An empty string shows
-     * every version; a non-empty query keeps only versions whose captured content
-     * contains it (case-insensitive). It never affects the selected diff base.
-     */
-    this.searchQuery = "";
-    /**
-     * Whether the rail hides intermediate versions whose captured content is
-     * identical to the current state. Off by default so the full timeline shows;
-     * toggled from the toolbar. It is a view-only filter over the rail list and
-     * never changes the selected diff base.
-     */
-    this.hideIdenticalVersions = false;
-    /**
-     * The current display mode for the diff view. One of the four
-     * {@link DiffRenderMode} values (patch, inline, line-by-line, side-by-side).
-     * Defaults to side-by-side.
-     */
-    this.currentDisplayMode = "side-by-side" /* side */;
-    /**
-     * Index of the difference currently focused by the next/previous navigation,
-     * or -1 when none is focused yet. It indexes into the hunks computed for the
-     * selected base, and is reset whenever the diff changes (base switch, revert,
-     * or content change) so a stale index can never highlight the wrong block.
-     */
-    this.activeHunkIndex = -1;
-    /**
-     * References to the mode toggle buttons.
-     * Used to update the active state when switching between diff modes.
-     */
-    this.modeButtons = {};
-    /**
-     * References to the next/previous difference navigation buttons, kept so they
-     * can be disabled when the current diff has no hunks to walk.
-     */
-    this.navButtons = {};
-  }
-  /**
-   * Gets the currently active button based on the current display mode.
-   * Returns the button element that corresponds to the active diff view mode.
-   *
-   * @return {HTMLElement | undefined} The active button element, or undefined if no mode is active
-   */
-  getActiveButton() {
-    switch (this.currentDisplayMode) {
-      case "patch" /* patch */:
-        return this.modeButtons.patch;
-      case "inline" /* inline */:
-        return this.modeButtons.inline;
-      case "line-by-line" /* line */:
-        return this.modeButtons.lineByLine;
-      case "side-by-side" /* side */:
-        return this.modeButtons.sideBySide;
-      default:
-        return void 0;
-    }
-  }
-  /**
-   * Updates the active state of mode buttons based on the current display mode.
-   */
-  updateButtonActiveStates() {
-    Object.values(this.modeButtons).forEach((button) => {
-      DomHelper.update(
-        button,
-        { classes: { remove: "is-active" } }
-      );
-    });
-    const activeButton = this.getActiveButton();
-    if (!activeButton) {
-      return;
-    }
-    DomHelper.update(
-      activeButton,
-      { classes: { add: "is-active" } }
-    );
-  }
-  /**
-   * Moves the difference focus to the next or previous hunk and brings it into
-   * view. The target index is resolved by the same pure NavigationHelper.target
-   * used by the editor change-navigation commands, fed the hunk indices as the
-   * "changed lines" and the current active index as the cursor, so the walk
-   * wraps around at both ends (past the last hunk returns to the first, before
-   * the first returns to the last). With no hunks it is a safe no-op.
-   *
-   * @param {NavigationDirection} direction - Which way to step through the hunks
-   */
-  goToDifference(direction) {
-    const count = this.host.getHunks().length;
-    if (count === 0) {
-      return;
-    }
-    const indices = Array.from({ length: count }, (_unused, index) => index);
-    const target = NavigationHelper.target(indices, this.activeHunkIndex, direction);
-    if (target === null) {
-      return;
-    }
-    this.activeHunkIndex = target;
-    this.focusHunk(target);
-  }
-  /**
-   * Highlights the hunk at the given index inside the diff and scrolls it into
-   * view, so the difference the navigation buttons moved to is visible and
-   * marked active. The target is the hunk's anchor row inside the rendered diff
-   * (the same row that carries the inline revert affordance), so navigation
-   * works against the diff itself now that the separate difference panel is
-   * gone. Every other anchor row loses the active marker first. Patch mode has
-   * no per-row anchors, so this is a safe no-op there.
-   *
-   * @param {number} index - The hunk index to focus
-   */
-  focusHunk(index) {
-    var _a;
-    const container = this.host.diffContainer();
-    if (!container) {
-      return;
-    }
-    const anchors = Array.from(
-      container.querySelectorAll(".lct-hunk-anchor")
-    );
-    anchors.forEach((anchor) => {
-      const anchorIndex = Number(anchor.dataset.lctHunk);
-      DomHelper.update(anchor, { classes: anchorIndex === index ? { add: "is-active" } : { remove: "is-active" } });
-    });
-    (_a = anchors.find((anchor) => Number(anchor.dataset.lctHunk) === index)) == null ? void 0 : _a.scrollIntoView({ block: "nearest" });
-  }
-  /**
-   * Enables or disables the next/previous difference buttons based on whether
-   * the current diff has any hunks to walk, and drops a stale active index when
-   * the diff no longer has that many hunks. A diff with zero hunks leaves both
-   * buttons disabled so a click is an ignored no-op. Patch mode is also disabled:
-   * it renders a plain <pre> with no per-row anchors to scroll to, so stepping
-   * between differences has nothing to focus there.
-   */
-  updateNavButtonsState() {
-    const count = this.host.getHunks().length;
-    const disabled = count === 0 || this.currentDisplayMode === "patch" /* patch */;
-    [this.navButtons.previous, this.navButtons.next].forEach((button) => {
-      if (!button) {
-        return;
-      }
-      button.disabled = disabled;
-      DomHelper.update(button, { classes: disabled ? { add: "is-disabled" } : { remove: "is-disabled" } });
-    });
-    if (this.activeHunkIndex >= count) {
-      this.activeHunkIndex = -1;
-    }
-  }
-};
-
 // src/modals/gutter-revert-handler.ts
-var import_obsidian19 = require("obsidian");
+var import_obsidian20 = require("obsidian");
 var GutterRevertHandler = class {
   /**
    * @param {GutterRevertHost} host - The modal port the handler reads its shared
@@ -19345,12 +18978,12 @@ var GutterRevertHandler = class {
   /**
    * Reverts a single hunk of the current diff back to the selected base and
    * leaves every other change intact. The hunk is resolved fresh from getHunks
-   * (against the live content) by its index, the user confirms before the write,
-   * and the revert reuses the same plumbing the editor gutter uses: HunkHelper to
-   * scope the block, SnapshotsService.applyContent to write it and refresh the
-   * highlights. The host is then notified so the active view is re-rendered and
-   * the diff reflects the new content. A stale index (the diff changed under the
-   * click) is a safe no-op.
+   * (against the live content) by its index, then handed to the shared
+   * confirm-and-revert helper the editor gutter also uses (confirm, scope the
+   * block, apply, refresh the highlights). When the revert is applied the host
+   * is notified so the active view is re-rendered and the diff reflects the new
+   * content. A stale index (the diff changed under the click) or a declined
+   * confirm is a safe no-op.
    *
    * @param {number} index - The index of the hunk to revert in the current diff
    * @return {Promise<void>}
@@ -19366,26 +18999,18 @@ var GutterRevertHandler = class {
     if (!hunk) {
       return;
     }
-    const confirmed = await this.host.modalsService.confirm({
-      title: this.host.plugin.t("modal.confirm.revert.title"),
-      message: this.host.plugin.t("modal.confirm.revert.message"),
-      confirmText: this.host.plugin.t("modal.confirm.revert.button"),
+    const applied = await confirmAndRevertHunk({
+      modalsService: this.host.modalsService,
+      snapshotsService: this.host.snapshotsService,
+      plugin: this.host.plugin,
+      file,
+      currentLines: snapshot.content.getLastStateLines(),
+      hunk,
       cancelText: this.host.plugin.t("modal.confirm.cancel")
     });
-    if (!confirmed) {
+    if (!applied) {
       return;
     }
-    const currentLines = snapshot.getLastStateLines();
-    const start = Math.max(0, Math.min(currentLines.length, hunk.newStart - 1));
-    await this.host.snapshotsService.applyContent(
-      file,
-      HunkHelper.revertHunk(currentLines, hunk),
-      {
-        start,
-        removeCount: hunk.newLines,
-        newLines: HunkHelper.baseLinesForHunk(hunk)
-      }
-    );
     this.host.onReverted();
   }
   /**
@@ -19531,7 +19156,7 @@ var GutterRevertHandler = class {
    */
   makeRevertAffordance(gutter2, index) {
     const label = this.host.plugin.t("modal.revert-hunk");
-    const button = DomHelper.create({
+    const button = create({
       tag: "button",
       classes: ["lct-hunk-revert", "clickable-icon"],
       attributes: { "aria-label": label, "type": "button" },
@@ -19544,7 +19169,7 @@ var GutterRevertHandler = class {
         }
       }
     });
-    (0, import_obsidian19.setIcon)(button, "undo-2");
+    (0, import_obsidian20.setIcon)(button, "undo-2");
   }
   /**
    * The live diff container, narrowed to a non-null element. The public entry
@@ -19559,686 +19184,14 @@ var GutterRevertHandler = class {
   }
 };
 
-// src/helpers/list-selection.helper.ts
-var ListSelectionHelper = class {
+// src/modals/keyboard-controller.ts
+var KeyboardController = class {
   /**
-   * Resolves the id the selection moves to when an arrow key is pressed.
-   *
-   * @param {string[]} ids - The selectable ids in their displayed order
-   * @param {string} currentId - The currently selected id
-   * @param {ListSelectionDirection} direction - Which way to step
-   * @return {string | null} The new selected id, the same id at a list edge, or
-   *   null when the list is empty
-   */
-  static step(ids, currentId, direction) {
-    const list = ids != null ? ids : [];
-    if (list.length === 0) {
-      return null;
-    }
-    const found = list.indexOf(currentId);
-    const start = found === -1 ? 0 : found;
-    const step = direction === "down" /* down */ ? 1 : -1;
-    const next = Math.max(0, Math.min(list.length - 1, start + step));
-    return list[next];
-  }
-};
-
-// src/helpers/version-label.helper.ts
-var VersionLabelHelper = class _VersionLabelHelper {
-  /**
-   * Describes the transition from previous to current as an action plus the
-   * line-level delta. Symmetric in shape: both empty inputs are handled, and
-   * the result is well-defined even when the two contents are identical (kind
-   * is "modified" with zero added and zero removed, which the UI can render or
-   * suppress as it sees fit).
-   *
-   * @param {string[]} previousLines - The previous content as an array of lines
-   * @param {string[]} currentLines - The current content as an array of lines
-   * @return {VersionDescription} The action kind plus the added/removed counts
-   */
-  static describe(previousLines, currentLines) {
-    const previous = previousLines != null ? previousLines : [];
-    const current = currentLines != null ? currentLines : [];
-    const previousEmpty = _VersionLabelHelper.isEmpty(previous);
-    const currentEmpty = _VersionLabelHelper.isEmpty(current);
-    const { added, removed } = _VersionLabelHelper.countDelta(previous, current);
-    if (previousEmpty && !currentEmpty) {
-      return { kind: "created" /* created */, added, removed };
-    }
-    if (!previousEmpty && currentEmpty) {
-      return { kind: "cleared" /* cleared */, added, removed };
-    }
-    return { kind: "modified" /* modified */, added, removed };
-  }
-  /**
-   * Computes the action description for a version against its previous
-   * neighbour on a timeline. The neighbour is the next-older captured version
-   * (the entry at index + 1 in a newest-first array), or `fallbackLines` when
-   * the version is the oldest one on the timeline (index + 1 is out of bounds).
-   *
-   * This is the shared neighbour-walk that both the history modal rail and the
-   * recent-changes panel use to derive action labels and line deltas, extracted
-   * here so neither caller duplicates the index arithmetic.
-   *
-   * @param {FileVersion} version - The version to describe
-   * @param {FileVersion[]} versions - The full timeline, newest first
-   * @param {string[]} fallbackLines - Lines to use as the previous state when
-   *   `version` is the oldest entry (typically the file's history baseline)
-   * @return {VersionDescription} The action kind plus the added/removed counts
-   */
-  static walkNeighbour(version, versions, fallbackLines) {
-    const index = versions.indexOf(version);
-    const previous = index >= 0 ? versions[index + 1] : void 0;
-    const previousLines = previous ? previous.getLines() : fallbackLines;
-    return _VersionLabelHelper.describe(previousLines, version.getLines());
-  }
-  /**
-   * Formats the inline line delta string from a describe result. Returns an
-   * empty string when both added and removed are zero so a no-op capture does
-   * not show a cluttered `+0 -0` row. The formatted string uses the supplied
-   * translation function so the output is localised at the call site without
-   * the helper having any Obsidian or service dependency.
-   *
-   * @param {VersionDescription} description - The describe result
-   * @param {(key: string, vars?: TranslationVars) => string} t - The
-   *   translation function bound to the active locale
-   * @return {string} The formatted delta string, or empty string for no-ops
-   */
-  static formatDelta(description, t) {
-    if (description.added === 0 && description.removed === 0) {
-      return "";
-    }
-    return t("modal.version.delta", {
-      added: String(description.added),
-      removed: String(description.removed)
-    });
-  }
-  /**
-   * Whether a line array represents empty content (no lines, or only empty
-   * lines). Treating a single empty-string line as empty matches how a brand
-   * new file is captured.
-   *
-   * @param {string[]} lines - The lines to inspect
-   * @return {boolean} True when there is no meaningful content
-   */
-  static isEmpty(lines) {
-    if (lines.length === 0) {
-      return true;
-    }
-    return lines.every((line) => line === "");
-  }
-  /**
-   * Counts added and removed lines between two contents using a structured
-   * patch with zero context, so each hunk's lines are exactly the changed
-   * lines on either side. A trailing newline is appended to both texts before
-   * diffing: without it the diff library merges the last "no-newline" run into
-   * a coarser block (e.g. a single-line edit can leak into the following
-   * unchanged line), inflating both counts. The newline is then ignored as a
-   * meta marker, leaving only true `+`/`-` lines counted.
-   *
-   * @param {string[]} previous - The previous content as lines
-   * @param {string[]} current - The current content as lines
-   * @return {{ added: number; removed: number }} The line delta
-   */
-  static countDelta(previous, current) {
-    const previousEmpty = _VersionLabelHelper.isEmpty(previous);
-    const currentEmpty = _VersionLabelHelper.isEmpty(current);
-    if (previousEmpty && currentEmpty) {
-      return { added: 0, removed: 0 };
-    }
-    if (previousEmpty) {
-      return { added: current.filter((line) => line !== "").length, removed: 0 };
-    }
-    if (currentEmpty) {
-      return { added: 0, removed: previous.filter((line) => line !== "").length };
-    }
-    const previousText = `${previous.join("\n")}
-`;
-    const currentText = `${current.join("\n")}
-`;
-    if (previousText === currentText) {
-      return { added: 0, removed: 0 };
-    }
-    const hunks = structuredPatch("", "", previousText, currentText, "", "", { context: 0 }).hunks;
-    let added = 0;
-    let removed = 0;
-    for (const hunk of hunks) {
-      for (const line of hunk.lines) {
-        if (line.startsWith("+")) {
-          added += 1;
-        } else if (line.startsWith("-")) {
-          removed += 1;
-        }
-      }
-    }
-    return { added, removed };
-  }
-};
-
-// src/helpers/version-search.helper.ts
-var VersionSearchHelper = class {
-  /**
-   * Resolves the ids of the versions visible for a given search query.
-   *
-   * @param {SearchableVersion[]} versions - The timeline versions to filter
-   * @param {string} query - The raw search query (trimmed and lower-cased here)
-   * @return {Set<string>} The ids of the matching versions; every version's id
-   *   when the query is empty
-   */
-  static match(versions, query) {
-    const list = versions != null ? versions : [];
-    const needle = (query != null ? query : "").trim().toLowerCase();
-    if (needle === "") {
-      return new Set(list.map((version) => version.id));
-    }
-    return new Set(
-      list.filter((version) => {
-        var _a;
-        return ((_a = version.content) != null ? _a : "").toLowerCase().includes(needle);
-      }).map((version) => version.id)
-    );
-  }
-};
-
-// src/modals/version-list.component.ts
-var VersionList = class {
-  /**
-   * @param {VersionListHost} host - The modal port the component reads its
-   *   shared state through and reports selection changes to.
+   * @param {KeyboardControllerHost} host - The modal port the controller reads
+   *   its shared state through and routes the delete flow to.
    */
   constructor(host) {
     this.host = host;
-  }
-  /**
-   * The intermediate versions currently shown in the rail, newest first, after
-   * the content search and the hide-identical filter. The hide-identical filter
-   * drops versions whose captured content equals the live state (picking one
-   * would diff to nothing); the search keeps only versions matching the query.
-   * Shared by the rail render and the post-delete selection so "the next visible
-   * version" means the same list in both.
-   *
-   * @return {FileVersion[]} The visible versions, newest first
-   */
-  getVisibleVersions() {
-    const snapshot = this.host.snapshot;
-    const versions = snapshot.getVersions();
-    const visibleIds = VersionSearchHelper.match(
-      versions.map((version) => ({
-        id: version.id,
-        content: version.getContent(snapshot.lineBreak)
-      })),
-      this.host.searchQuery()
-    );
-    const currentContent = snapshot.getLastState();
-    const selectionIds = this.host.selectionFilterIds();
-    return versions.filter((version) => {
-      if (!visibleIds.has(version.id)) {
-        return false;
-      }
-      if (selectionIds !== void 0 && !selectionIds.has(version.id)) {
-        return false;
-      }
-      return !this.host.hideIdenticalVersions() || version.getContent(snapshot.lineBreak) !== currentContent;
-    });
-  }
-  /**
-   * The ids selectable in the rail, in rendered order. With captured snapshots
-   * these are the currently visible versions (after the search and
-   * hide-identical filters) newest-first; with no snapshots it is the single
-   * Original entry. This is the list the arrow keys walk.
-   *
-   * @return {string[]} The selectable base ids, top to bottom
-   */
-  getSelectableIds() {
-    if (this.host.snapshot.getVersions().length === 0) {
-      return [ORIGINAL_BASE_ID];
-    }
-    return this.getVisibleVersions().map((version) => version.id);
-  }
-  /**
-   * Moves the rail selection one entry up or down and keeps it in view. The
-   * order matches the rendered list (the baseline on top, then the visible
-   * versions newest-first), so down moves toward older snapshots. The walk is
-   * delegated to the pure ListSelectionHelper and clamps at both ends. A move
-   * that resolves to the already-selected entry (an edge) is a no-op.
-   *
-   * @param {ListSelectionDirection} direction - Which way to move the selection
-   */
-  moveSelection(direction) {
-    const current = this.host.selectedBaseId();
-    const next = ListSelectionHelper.step(this.getSelectableIds(), current, direction);
-    if (next === null || next === current) {
-      return;
-    }
-    this.host.selectBase(next);
-    this.scrollActiveIntoView();
-  }
-  /**
-   * Jumps the rail selection to the first (baseline) or last (oldest visible
-   * version) entry, backing the Home/End keys. A no-op when that edge is already
-   * selected or the list is empty.
-   *
-   * @param {VersionListEdge} edge - Which end of the list to select
-   */
-  moveSelectionToEdge(edge) {
-    const ids = this.getSelectableIds();
-    const target = edge === "first" /* first */ ? ids[0] : ids[ids.length - 1];
-    if (!target || target === this.host.selectedBaseId()) {
-      return;
-    }
-    this.host.selectBase(target);
-    this.scrollActiveIntoView();
-  }
-  /**
-   * Scrolls the currently selected version entry into view inside the rail, so
-   * an arrow-key move that lands on an off-screen snapshot brings it into sight.
-   */
-  scrollActiveIntoView() {
-    var _a, _b;
-    (_b = (_a = this.host.versionsEl()) == null ? void 0 : _a.querySelector(".lct-version-item.is-active")) == null ? void 0 : _b.scrollIntoView({ block: "nearest" });
-  }
-  /**
-   * Returns the primary label shown for a captured version: the user's custom
-   * label when present, otherwise the derived action text translated from
-   * VersionLabelHelper.describe against the version's previous neighbour. For
-   * the oldest version on the timeline the previous neighbour is the history
-   * baseline.
-   *
-   * @param {FileVersion} version - The version to label
-   * @param {FileVersion[]} versions - The full timeline, newest first
-   * @return {string} The primary label string
-   */
-  resolvePrimaryLabel(version, versions) {
-    if (version.isLabeled()) {
-      return version.label;
-    }
-    const description = this.describe(version, versions);
-    return this.host.plugin.t(`modal.version.action.${description.kind}`);
-  }
-  /**
-   * Computes the derived action description for a version against its previous
-   * neighbour. The neighbour is the next-older captured version, or the file's
-   * history baseline when the version is the oldest one on the timeline. The
-   * result drives both the rail primary label (when no custom label is set) and
-   * the inline line delta shown on the row.
-   *
-   * @param {FileVersion} version - The version to describe
-   * @param {FileVersion[]} versions - The full timeline, newest first
-   * @return {VersionDescription} The action kind plus the added/removed counts
-   */
-  describe(version, versions) {
-    return VersionLabelHelper.walkNeighbour(version, versions, this.host.snapshot.getHistoryOriginalStateLines());
-  }
-  /**
-   * Formats the inline line delta shown on a rail row. Returns an empty string
-   * when both added and removed are zero so the row stays clean for no-op
-   * captures (e.g. a labeled version pinned at unchanged content).
-   *
-   * @param {VersionDescription} description - The describe result
-   * @return {string} The formatted delta or empty string
-   */
-  formatDelta(description) {
-    return VersionLabelHelper.formatDelta(description, this.host.plugin.t.bind(this.host.plugin));
-  }
-  /**
-   * Renders the version timeline as a list of selectable diff bases, grouped
-   * under a heading per day. With captured snapshots the list is the real
-   * versions, newest first, each in its capture day's group; the topmost
-   * (the latest snapshot) is the default base and shows what changed since the
-   * last save. With no snapshots yet the list is a single Original entry (the
-   * file's birth state vs the current content), placed in the day group of the
-   * file's last update. The rail is never hidden: when a query matches no
-   * version it shows just a no-results hint, leaving the current selection
-   * untouched. Selecting an entry sets it as the diff base and re-renders the
-   * active view.
-   */
-  render() {
-    const versionsEl = this.host.versionsEl();
-    if (!versionsEl) {
-      return;
-    }
-    const snapshot = this.host.snapshot;
-    const versions = snapshot.getVersions();
-    DomHelper.update(versionsEl, { classes: { remove: "lct-versions-empty" } });
-    const matched = this.getVisibleVersions();
-    const entries = versions.length === 0 ? [
-      {
-        id: ORIGINAL_BASE_ID,
-        label: this.host.plugin.t("modal.version.original"),
-        day: snapshot.getLastChangedDate(),
-        meta: snapshot.getLastChangedDateTime(),
-        delta: "",
-        external: false
-      }
-    ] : matched.map((version) => {
-      const description = this.describe(version, versions);
-      return {
-        id: version.id,
-        label: this.resolvePrimaryLabel(version, versions),
-        day: version.getDate(),
-        meta: version.getDateTime(),
-        delta: this.formatDelta(description),
-        external: version.isExternal()
-      };
-    });
-    const groups = [];
-    entries.forEach((entry) => {
-      let group = groups[groups.length - 1];
-      if (!group || group.label !== entry.day) {
-        group = { label: entry.day, entries: [] };
-        groups.push(group);
-      }
-      group.entries.push(entry);
-    });
-    const items = [];
-    groups.forEach((group) => {
-      items.push({ tag: "div", classes: "lct-versions-day", text: group.label });
-      group.entries.forEach((entry) => {
-        items.push(this.makeItem(entry));
-      });
-    });
-    if (versions.length > 0 && matched.length === 0) {
-      items.push({
-        tag: "div",
-        classes: "lct-versions-no-results",
-        text: this.host.plugin.t("modal.no-versions-match")
-      });
-    }
-    DomHelper.update(versionsEl, {
-      children: [
-        {
-          tag: "div",
-          classes: "lct-versions-list",
-          children: items
-        }
-      ]
-    });
-    ExternalBadgeHelper.paint(versionsEl);
-  }
-  /**
-   * Builds a single selectable version list entry config.
-   * The active entry carries a highlight class; clicking selects that base. A
-   * version captured from an external change renders a small badge
-   * next to the primary label so the user can tell external states apart from
-   * editor edits without opening the diff.
-   *
-   * @param {RailEntry} entry - The rail entry to render
-   * @return {DomElementConfig} A DomHelper element config for the entry
-   */
-  makeItem(entry) {
-    const active = this.host.selectedBaseId() === entry.id;
-    const labelChildren = [
-      { tag: "span", classes: "lct-version-label", text: entry.label }
-    ];
-    if (entry.external) {
-      labelChildren.push(ExternalBadgeHelper.make(this.host.plugin.t("version.badge.external")));
-    }
-    const children = [
-      { tag: "span", classes: "lct-version-label-row", children: labelChildren }
-    ];
-    if (entry.meta) {
-      children.push({ tag: "span", classes: "lct-version-meta", text: entry.meta });
-    }
-    if (entry.delta) {
-      children.push({ tag: "span", classes: "lct-version-delta", text: entry.delta });
-    }
-    return {
-      tag: "div",
-      classes: active ? ["lct-version-item", "is-active"] : ["lct-version-item"],
-      events: {
-        click: () => {
-          this.host.selectBase(entry.id);
-        }
-      },
-      children
-    };
-  }
-};
-
-// src/helpers/base-content.helper.ts
-var BaseContentHelper = class {
-  /**
-   * Resolves the base content to diff the current state against.
-   *
-   * @param {string} selectedBaseId - The picked base id (the synthetic baseline
-   *   sentinel or an intermediate version id)
-   * @param {string} baselineId - The sentinel id that marks the synthetic
-   *   baseline entry
-   * @param {BaseContentSnapshot} snapshot - The reduced snapshot view to read
-   * @return {string} The base content for the diff
-   */
-  static resolve(selectedBaseId, baselineId, snapshot) {
-    if (selectedBaseId !== baselineId) {
-      const content = snapshot.versionContent(selectedBaseId);
-      if (content !== null) {
-        return content;
-      }
-    }
-    const latest = snapshot.versions[0];
-    return latest != null ? latest : snapshot.original;
-  }
-};
-
-// src/modals/history.modal.ts
-var import_obsidian20 = require("obsidian");
-var HistoryModal = class extends import_obsidian20.Modal {
-  /**
-   * Creates a new instance of HistoryModal.
-   *
-   * @param {App} app - The Obsidian app instance
-   * @param {LineChangeTrackerPlugin} plugin - The plugin instance
-   * @param {FileSnapshot} snapshot - The file snapshot to display history for
-   * @param {HistoryModalOpenOptions} options - Optional open options (initialBaseId, hideRail)
-   */
-  constructor(app, plugin, snapshot, options) {
-    super(app);
-    this.app = app;
-    this.plugin = plugin;
-    this.snapshot = snapshot;
-    /**
-     * Side-by-side scroll-synchronisation collaborator the modal owns. It
-     * carries the deferred-setup timer and the per-container listener cleanup
-     * that previously lived on the modal; it reads the live diff container back
-     * through the resolver so it can bail when the container is swapped mid-flight.
-     */
-    this.scrollSync = new DiffScrollSync(
-      () => this.diffContainerEl
-    );
-    /**
-     * Version-list collaborator the modal owns. It renders the left-rail
-     * timeline, walks the selection with the keyboard, and derives the per-row
-     * labels/deltas; it reads the live selection and the search/hide-identical
-     * filters back through the host adapter below and reports a selection change
-     * via `selectBase` so the modal keeps coordinating the diff render.
-     */
-    this.versionList = new VersionList(this.makeVersionListHost());
-    /**
-     * Gutter-revert collaborator the modal owns. It decorates each rendered
-     * hunk with an anchor marker and an inline revert affordance, resolves the
-     * anchor row across every diff render mode, and reverts a single hunk on click;
-     * it reads the live diff container, display mode, and hunks back through the
-     * host adapter below and reports a completed revert via `onReverted` so the
-     * modal drops the stale focus and re-renders the active diff.
-     */
-    this.gutterReverts = new GutterRevertHandler(this.makeGutterRevertHost());
-    /**
-     * Diff-view-state collaborator the modal owns. It holds the diff-view
-     * state - the selected base, the active display mode, the focused hunk index,
-     * the hide-identical rail filter, and the content-search query - together with
-     * the toolbar mode/nav button registries, and owns the active-mode highlight,
-     * the next/previous difference walk, and the nav-button enablement; it reads
-     * the live diff container and hunks back through the host adapter below so the
-     * focus and button state always match the rendered diff. The modal reads and
-     * mutates the state through this reference while coordinating the renders.
-     */
-    this.viewState = new DiffViewState(this.makeDiffViewStateHost());
-    this.options = options != null ? options : {};
-  }
-  /**
-   * Lifecycle method called when the modal is opened.
-   * Sets up the UI, adds CSS classes, sets the title based on the snapshot state,
-   * and renders the diff view.
-   * Does nothing if no snapshot is provided.
-   *
-   * @override
-   */
-  onOpen() {
-    if (!this.snapshot) {
-      return;
-    }
-    this.viewState.selectedBaseId = this.getInitialBaseId();
-    this.makeUI();
-    DomHelper.update(
-      this.modalEl,
-      { classes: { add: "lct-diff-modal" } }
-    );
-    this.renderDiff();
-  }
-  /**
-   * Lifecycle method called when the modal is closed.
-   * Cleans up by emptying the content element and removing scroll sync listeners.
-   *
-   * @override
-   */
-  onClose() {
-    this.scrollSync.cleanup();
-    this.contentEl.empty();
-  }
-  /**
-   * Restores the file to its original state and resets the history tracking.
-   * Writes the original content back to the file and clears the snapshot.
-   */
-  async restoreOriginalFile() {
-    if (!this.snapshot) {
-      return;
-    }
-    try {
-      const originalContent = this.snapshot.getHistoryOriginalState();
-      const file = this.snapshot.file;
-      if (!file) {
-        return;
-      }
-      await this.app.vault.modify(file, originalContent);
-      this.snapshotsService.wipeOne(file);
-      new import_obsidian20.Notice(this.plugin.t("notice.file-restored"));
-      this.close();
-    } catch (_error) {
-      new import_obsidian20.Notice(this.plugin.t("notice.file-restore-failed"));
-    }
-  }
-  /**
-   * Rewrites the whole file to the currently selected base (a picked version,
-   * the latest snapshot, or the original). Unlike restoreOriginalFile this keeps
-   * the history baseline and the version timeline intact, so it is a plain
-   * content revert to a chosen point rather than a reset: the prior content
-   * simply becomes the next captured version on the following edit. Reuses the
-   * same SnapshotsService.applyContent path the per-hunk revert uses, scoping the
-   * "block" to the entire file. A no-op when the base already equals the current
-   * state (the button is disabled in that case anyway). The modal stays open and
-   * the active view is re-rendered so the diff reflects the new content.
-   */
-  async restoreSelectedVersion() {
-    var _a, _b;
-    const file = (_b = (_a = this.snapshot) == null ? void 0 : _a.file) != null ? _b : void 0;
-    if (!file || this.isBaseSameCurrent()) {
-      return;
-    }
-    if (this.viewState.selectedBaseId !== ORIGINAL_BASE_ID) {
-      await this.versionActionsService.restoreSelected(file, this.viewState.selectedBaseId);
-    } else {
-      const baseLines = this.getBaseContent().split(this.snapshot.lineBreak);
-      const currentLines = this.snapshot.getLastStateLines();
-      await this.snapshotsService.applyContent(file, baseLines, {
-        start: 0,
-        removeCount: currentLines.length,
-        newLines: baseLines
-      });
-    }
-    this.viewState.activeHunkIndex = -1;
-    this.refreshActiveView();
-  }
-  /**
-   * Deletes the selected version from the timeline, leaving the history baseline
-   * and the file content untouched. Only a real captured version can be removed,
-   * so this is a no-op for the synthetic baseline (the button is disabled there
-   * anyway). The selection moves to the next visible version below the deleted
-   * one (the older neighbour), falling back to the one above it and then to the
-   * baseline when nothing is below. The change is persisted via the snapshots
-   * service, and the rail and active view are re-rendered so the dropped version
-   * no longer appears.
-   */
-  removeSelectedVersion() {
-    var _a, _b;
-    if (this.viewState.selectedBaseId === ORIGINAL_BASE_ID) {
-      return;
-    }
-    const result = this.versionActionsService.removeSelected(
-      (_b = (_a = this.snapshot) == null ? void 0 : _a.file) != null ? _b : null,
-      this.viewState.selectedBaseId
-    );
-    if (!result.removed) {
-      return;
-    }
-    const visibleIds = new Set(
-      this.versionList.getVisibleVersions().map((version) => version.id)
-    );
-    const nextId = result.nextId && visibleIds.has(result.nextId) ? result.nextId : ORIGINAL_BASE_ID;
-    this.viewState.selectedBaseId = nextId;
-    this.viewState.activeHunkIndex = -1;
-    this.versionList.render();
-    this.refreshActiveView();
-  }
-  /**
-   * Labels the selected version in place: prompts for a tag through the shared
-   * ModalsService.labelVersion entry point and, on a non-empty result, marks
-   * that captured version. Unlike the editor-submenu Put label, which
-   * pins the current content as a new version, this tags the slice the user is
-   * looking at in the rail. A no-op for the synthetic baseline (the button is
-   * disabled there anyway) and for a cancelled/blank prompt. On success the
-   * rail and the active diff are re-rendered so the new label shows on the row
-   * and in the side-by-side column header.
-   *
-   * @return {Promise<void>}
-   */
-  async labelSelectedVersion() {
-    var _a, _b;
-    if (this.viewState.selectedBaseId === ORIGINAL_BASE_ID) {
-      return;
-    }
-    const labeled = await this.modalsService.labelVersion(
-      (_b = (_a = this.snapshot) == null ? void 0 : _a.file) != null ? _b : null,
-      this.viewState.selectedBaseId
-    );
-    if (!labeled) {
-      return;
-    }
-    this.versionList.render();
-    this.refreshActiveView();
-  }
-  /**
-   * Asks for confirmation and, if granted, deletes the selected version, then
-   * returns focus to the version list so further arrow/Delete keys keep working.
-   * Shared by the toolbar remove button and the Delete key on the focused list,
-   * so both follow the same confirm-before-delete flow. A no-op for the
-   * synthetic baseline, which has no captured version to remove.
-   *
-   * @return {Promise<void>}
-   */
-  async confirmRemoveSelectedVersion() {
-    var _a;
-    if (this.viewState.selectedBaseId === ORIGINAL_BASE_ID) {
-      return;
-    }
-    const confirmed = await this.modalsService.confirm({
-      title: this.plugin.t("modal.confirm.remove-version.title"),
-      message: this.plugin.t("modal.confirm.remove-version.message"),
-      confirmText: this.plugin.t("modal.confirm.remove-version.button"),
-      cancelText: this.plugin.t("modal.confirm.cancel")
-    });
-    if (confirmed) {
-      this.removeSelectedVersion();
-      (_a = this.versionsEl) == null ? void 0 : _a.focus();
-    }
   }
   /**
    * Handles a key press while the version list holds focus. The up/down arrows
@@ -20254,24 +19207,24 @@ var HistoryModal = class extends import_obsidian20.Modal {
     switch (event.key) {
       case "ArrowDown":
         event.preventDefault();
-        this.versionList.moveSelection("down" /* down */);
+        this.host.versionList.moveSelection("down" /* down */);
         return;
       case "ArrowUp":
         event.preventDefault();
-        this.versionList.moveSelection("up" /* up */);
+        this.host.versionList.moveSelection("up" /* up */);
         return;
       case "Home":
         event.preventDefault();
-        this.versionList.moveSelectionToEdge("first" /* first */);
+        this.host.versionList.moveSelectionToEdge("first" /* first */);
         return;
       case "End":
         event.preventDefault();
-        this.versionList.moveSelectionToEdge("last" /* last */);
+        this.host.versionList.moveSelectionToEdge("last" /* last */);
         return;
       case "Delete":
       case "Backspace":
         event.preventDefault();
-        void this.confirmRemoveSelectedVersion();
+        this.host.confirmRemoveSelectedVersion();
         return;
       default:
         return;
@@ -20324,6 +19277,626 @@ var HistoryModal = class extends import_obsidian20.Modal {
     }
   }
   /**
+   * Resolves the scrollable element of the diff pane for the active view mode:
+   * the patch container, the inline container, the line-by-line wrapper, or the
+   * first side-by-side column wrapper (its scroll is mirrored to the other
+   * column by the scroll-sync). Returns null before any diff is rendered.
+   *
+   * @return {HTMLElement | null} The diff scroll container, or null
+   */
+  getDiffScroller() {
+    var _a, _b;
+    return (_b = (_a = this.host.diffContainer()) == null ? void 0 : _a.querySelector(
+      ".lct-patch-container, .lct-inline-container, .d2h-wrapper.d2h-line, .d2h-side-column-wrapper"
+    )) != null ? _b : null;
+  }
+};
+
+// src/helpers/list-selection.helper.ts
+function step(ids, currentId, direction) {
+  const list = ids != null ? ids : [];
+  if (list.length === 0) {
+    return null;
+  }
+  const found = list.indexOf(currentId);
+  const start = found === -1 ? 0 : found;
+  const step2 = direction === "down" /* down */ ? 1 : -1;
+  const next = Math.max(0, Math.min(list.length - 1, start + step2));
+  return list[next];
+}
+
+// src/helpers/version-label.helper.ts
+function describe(previousLines, currentLines) {
+  const previous = previousLines != null ? previousLines : [];
+  const current = currentLines != null ? currentLines : [];
+  const previousEmpty = isEmpty(previous);
+  const currentEmpty = isEmpty(current);
+  const { added, removed } = countDelta(previous, current);
+  if (previousEmpty && !currentEmpty) {
+    return { kind: "created" /* created */, added, removed };
+  }
+  if (!previousEmpty && currentEmpty) {
+    return { kind: "cleared" /* cleared */, added, removed };
+  }
+  return { kind: "modified" /* modified */, added, removed };
+}
+function walkNeighbour(version, versions, fallbackLines) {
+  const index = versions.indexOf(version);
+  const previous = index >= 0 ? versions[index + 1] : void 0;
+  const previousLines = previous ? previous.getLines() : fallbackLines;
+  return describe(previousLines, version.getLines());
+}
+function formatDelta(description, t) {
+  if (description.added === 0 && description.removed === 0) {
+    return "";
+  }
+  return t("modal.version.delta", {
+    added: String(description.added),
+    removed: String(description.removed)
+  });
+}
+function isEmpty(lines2) {
+  if (lines2.length === 0) {
+    return true;
+  }
+  return lines2.every((line) => line === "");
+}
+function countDelta(previous, current) {
+  const previousEmpty = isEmpty(previous);
+  const currentEmpty = isEmpty(current);
+  if (previousEmpty && currentEmpty) {
+    return { added: 0, removed: 0 };
+  }
+  if (previousEmpty) {
+    return { added: current.filter((line) => line !== "").length, removed: 0 };
+  }
+  if (currentEmpty) {
+    return { added: 0, removed: previous.filter((line) => line !== "").length };
+  }
+  const previousText = `${previous.join("\n")}
+`;
+  const currentText = `${current.join("\n")}
+`;
+  if (previousText === currentText) {
+    return { added: 0, removed: 0 };
+  }
+  const hunks = structuredPatch("", "", previousText, currentText, "", "", { context: 0 }).hunks;
+  let added = 0;
+  let removed = 0;
+  for (const hunk of hunks) {
+    for (const line of hunk.lines) {
+      const kind = classifyLine(line);
+      if (kind === "added") {
+        added += 1;
+      }
+      if (kind === "removed") {
+        removed += 1;
+      }
+    }
+  }
+  return { added, removed };
+}
+
+// src/helpers/version-search.helper.ts
+function match2(versions, query) {
+  const list = versions != null ? versions : [];
+  const needle = (query != null ? query : "").trim().toLowerCase();
+  if (needle === "") {
+    return new Set(list.map((version) => version.id));
+  }
+  return new Set(
+    list.filter((version) => {
+      var _a;
+      return ((_a = version.content) != null ? _a : "").toLowerCase().includes(needle);
+    }).map((version) => version.id)
+  );
+}
+
+// src/components/version-list.component.ts
+var VersionList = class {
+  /**
+   * @param {VersionListHost} host - The modal port the component reads its
+   *   shared state through and reports selection changes to.
+   */
+  constructor(host) {
+    this.host = host;
+  }
+  /**
+   * The intermediate versions currently shown in the rail, newest first, after
+   * the content search and the hide-identical filter. The hide-identical filter
+   * drops versions whose captured content equals the live state (picking one
+   * would diff to nothing); the search keeps only versions matching the query.
+   * Shared by the rail render and the post-delete selection so "the next visible
+   * version" means the same list in both.
+   *
+   * @return {FileVersion[]} The visible versions, newest first
+   */
+  getVisibleVersions() {
+    const snapshot = this.host.snapshot;
+    const versions = snapshot.timeline.getVersions();
+    const visibleIds = match2(
+      versions.map((version) => ({
+        id: version.id,
+        content: version.getContent(snapshot.content.lineBreak)
+      })),
+      this.host.searchQuery()
+    );
+    const currentContent = snapshot.content.getLastState();
+    const selectionIds = this.host.selectionFilterIds();
+    return versions.filter((version) => {
+      if (!visibleIds.has(version.id)) {
+        return false;
+      }
+      if (selectionIds !== void 0 && !selectionIds.has(version.id)) {
+        return false;
+      }
+      return !this.host.hideIdenticalVersions() || version.getContent(snapshot.content.lineBreak) !== currentContent;
+    });
+  }
+  /**
+   * The ids selectable in the rail, in rendered order. With captured snapshots
+   * these are the currently visible versions (after the search and
+   * hide-identical filters) newest-first; with no snapshots it is the single
+   * Original entry. This is the list the arrow keys walk.
+   *
+   * @return {string[]} The selectable base ids, top to bottom
+   */
+  getSelectableIds() {
+    if (this.host.snapshot.timeline.getVersions().length === 0) {
+      return [ORIGINAL_BASE_ID];
+    }
+    return this.getVisibleVersions().map((version) => version.id);
+  }
+  /**
+   * Moves the rail selection one entry up or down and keeps it in view. The
+   * order matches the rendered list (the baseline on top, then the visible
+   * versions newest-first), so down moves toward older snapshots. The walk is
+   * delegated to the pure ListSelectionHelper and clamps at both ends. A move
+   * that resolves to the already-selected entry (an edge) is a no-op.
+   *
+   * @param {ListSelectionDirection} direction - Which way to move the selection
+   */
+  moveSelection(direction) {
+    const current = this.host.selectedBaseId();
+    const next = step(this.getSelectableIds(), current, direction);
+    if (next === null || next === current) {
+      return;
+    }
+    this.host.selectBase(next);
+    this.scrollActiveIntoView();
+  }
+  /**
+   * Jumps the rail selection to the first (baseline) or last (oldest visible
+   * version) entry, backing the Home/End keys. A no-op when that edge is already
+   * selected or the list is empty.
+   *
+   * @param {VersionListEdge} edge - Which end of the list to select
+   */
+  moveSelectionToEdge(edge) {
+    const ids = this.getSelectableIds();
+    const target2 = edge === "first" /* first */ ? ids[0] : ids[ids.length - 1];
+    if (!target2 || target2 === this.host.selectedBaseId()) {
+      return;
+    }
+    this.host.selectBase(target2);
+    this.scrollActiveIntoView();
+  }
+  /**
+   * Scrolls the currently selected version entry into view inside the rail, so
+   * an arrow-key move that lands on an off-screen snapshot brings it into sight.
+   */
+  scrollActiveIntoView() {
+    var _a, _b;
+    (_b = (_a = this.host.versionsEl()) == null ? void 0 : _a.querySelector(".lct-version-item.is-active")) == null ? void 0 : _b.scrollIntoView({ block: "nearest" });
+  }
+  /**
+   * Returns the primary label shown for a captured version: the user's custom
+   * label when present, otherwise the derived action text translated from
+   * VersionLabelHelper.describe against the version's previous neighbour. For
+   * the oldest version on the timeline the previous neighbour is the history
+   * baseline.
+   *
+   * @param {FileVersion} version - The version to label
+   * @param {FileVersion[]} versions - The full timeline, newest first
+   * @return {string} The primary label string
+   */
+  resolvePrimaryLabel(version, versions) {
+    if (version.isLabeled()) {
+      return version.label;
+    }
+    const description = this.describe(version, versions);
+    return this.host.plugin.t(`modal.version.action.${description.kind}`);
+  }
+  /**
+   * Computes the derived action description for a version against its previous
+   * neighbour. The neighbour is the next-older captured version, or the file's
+   * history baseline when the version is the oldest one on the timeline. The
+   * result drives both the rail primary label (when no custom label is set) and
+   * the inline line delta shown on the row.
+   *
+   * @param {FileVersion} version - The version to describe
+   * @param {FileVersion[]} versions - The full timeline, newest first
+   * @return {VersionDescription} The action kind plus the added/removed counts
+   */
+  describe(version, versions) {
+    const historyLines = this.host.snapshot.content.getHistoryOriginalStateLines();
+    return walkNeighbour(version, versions, historyLines);
+  }
+  /**
+   * Formats the inline line delta shown on a rail row. Returns an empty string
+   * when both added and removed are zero so the row stays clean for no-op
+   * captures (e.g. a labeled version pinned at unchanged content).
+   *
+   * @param {VersionDescription} description - The describe result
+   * @return {string} The formatted delta or empty string
+   */
+  formatDelta(description) {
+    return formatDelta(description, this.host.plugin.t.bind(this.host.plugin));
+  }
+  /**
+   * Renders the version timeline as a list of selectable diff bases, grouped
+   * under a heading per day. With captured snapshots the list is the real
+   * versions, newest first, each in its capture day's group; the topmost
+   * (the latest snapshot) is the default base and shows what changed since the
+   * last save. With no snapshots yet the list is a single Original entry (the
+   * file's birth state vs the current content), placed in the day group of the
+   * file's last update. The rail is never hidden: when a query matches no
+   * version it shows just a no-results hint, leaving the current selection
+   * untouched. Selecting an entry sets it as the diff base and re-renders the
+   * active view.
+   */
+  render() {
+    const versionsEl = this.host.versionsEl();
+    if (!versionsEl) {
+      return;
+    }
+    const snapshot = this.host.snapshot;
+    const versions = snapshot.timeline.getVersions();
+    update(versionsEl, { classes: { remove: "lct-versions-empty" } });
+    const matched = this.getVisibleVersions();
+    const entries = versions.length === 0 ? [
+      {
+        id: ORIGINAL_BASE_ID,
+        label: this.host.plugin.t("modal.version.original"),
+        day: snapshot.getLastChangedDate(),
+        meta: snapshot.getLastChangedDateTime(),
+        delta: "",
+        external: false
+      }
+    ] : matched.map((version) => {
+      const description = this.describe(version, versions);
+      return {
+        id: version.id,
+        label: this.resolvePrimaryLabel(version, versions),
+        day: version.getDate(),
+        meta: version.getDateTime(),
+        delta: this.formatDelta(description),
+        external: version.isExternal()
+      };
+    });
+    const groups = [];
+    entries.forEach((entry) => {
+      let group = groups[groups.length - 1];
+      if (!group || group.label !== entry.day) {
+        group = { label: entry.day, entries: [] };
+        groups.push(group);
+      }
+      group.entries.push(entry);
+    });
+    const items = [];
+    groups.forEach((group) => {
+      items.push({ tag: "div", classes: "lct-versions-day", text: group.label });
+      group.entries.forEach((entry) => {
+        items.push(this.makeItem(entry));
+      });
+    });
+    if (versions.length > 0 && matched.length === 0) {
+      items.push({
+        tag: "div",
+        classes: "lct-versions-no-results",
+        text: this.host.plugin.t("modal.no-versions-match")
+      });
+    }
+    update(versionsEl, {
+      children: [
+        {
+          tag: "div",
+          classes: "lct-versions-list",
+          children: items
+        }
+      ]
+    });
+    paint(versionsEl);
+  }
+  /**
+   * Builds a single selectable version list entry config.
+   * The active entry carries a highlight class; clicking selects that base. A
+   * version captured from an external change renders a small badge
+   * next to the primary label so the user can tell external states apart from
+   * editor edits without opening the diff.
+   *
+   * @param {RailEntry} entry - The rail entry to render
+   * @return {DomElementConfig} A DomHelper element config for the entry
+   */
+  makeItem(entry) {
+    const active = this.host.selectedBaseId() === entry.id;
+    const labelChildren = [
+      { tag: "span", classes: "lct-version-label", text: entry.label }
+    ];
+    if (entry.external) {
+      labelChildren.push(make(this.host.plugin.t("version.badge.external")));
+    }
+    const children = [
+      { tag: "span", classes: "lct-version-label-row", children: labelChildren }
+    ];
+    if (entry.meta) {
+      children.push({ tag: "span", classes: "lct-version-meta", text: entry.meta });
+    }
+    if (entry.delta) {
+      children.push({ tag: "span", classes: "lct-version-delta", text: entry.delta });
+    }
+    return {
+      tag: "div",
+      classes: active ? ["lct-version-item", "is-active"] : ["lct-version-item"],
+      events: {
+        click: () => {
+          this.host.selectBase(entry.id);
+        }
+      },
+      children
+    };
+  }
+};
+
+// src/modals/history.modal.ts
+var import_obsidian21 = require("obsidian");
+var HistoryModal = class extends import_obsidian21.Modal {
+  /**
+   * Creates a new instance of HistoryModal.
+   *
+   * @param {App} app - The Obsidian app instance
+   * @param {LineChangeTrackerPlugin} plugin - The plugin instance
+   * @param {FileSnapshot} snapshot - The file snapshot to display history for
+   * @param {HistoryModalOpenOptions} options - Optional open options (initialBaseId, hideRail)
+   */
+  constructor(app, plugin, snapshot, options) {
+    super(app);
+    this.app = app;
+    this.plugin = plugin;
+    this.snapshot = snapshot;
+    /**
+     * Side-by-side scroll-synchronisation collaborator the modal owns. It
+     * carries the deferred-setup timer and the per-container listener cleanup
+     * that previously lived on the modal; it reads the live diff container back
+     * through the resolver so it can bail when the container is swapped mid-flight.
+     */
+    this.scrollSync = new DiffScrollSync(
+      () => this.diffContainerEl
+    );
+    /**
+     * Version-list collaborator the modal owns. It renders the left-rail
+     * timeline, walks the selection with the keyboard, and derives the per-row
+     * labels/deltas; it reads the live selection and the search/hide-identical
+     * filters back through the host adapter below and reports a selection change
+     * via `selectBase` so the modal keeps coordinating the diff render.
+     */
+    this.versionList = new VersionList(this.makeVersionListHost());
+    /**
+     * Gutter-revert collaborator the modal owns. It decorates each rendered
+     * hunk with an anchor marker and an inline revert affordance, resolves the
+     * anchor row across every diff render mode, and reverts a single hunk on click;
+     * it reads the live diff container, display mode, and hunks back through the
+     * host adapter below and reports a completed revert via `onReverted` so the
+     * modal drops the stale focus and re-renders the active diff.
+     */
+    this.gutterReverts = new GutterRevertHandler(this.makeGutterRevertHost());
+    /**
+     * Diff-view-state collaborator the modal owns. It holds the diff-view
+     * state - the selected base, the active display mode, the focused hunk index,
+     * the hide-identical rail filter, and the content-search query - together with
+     * the toolbar mode/nav button registries, and owns the active-mode highlight,
+     * the next/previous difference walk, and the nav-button enablement; it reads
+     * the live diff container and hunks back through the host adapter below so the
+     * focus and button state always match the rendered diff. The modal reads and
+     * mutates the state through this reference while coordinating the renders.
+     */
+    this.viewState = new DiffViewState(this.makeDiffViewStateHost());
+    /**
+     * Diff-header collaborator the modal owns: it reveals or hides the above-diff
+     * notice and the side-by-side column header, the DOM logic both history modals
+     * share. The modal decides when each is shown and with what label; the
+     * controller owns the reveal/hide mechanics so the two modals stay in lockstep.
+     */
+    this.diffHeader = new DiffHeaderController(
+      () => this.noticeEl,
+      () => this.columnsHeaderEl,
+      this.plugin
+    );
+    /**
+     * Diff-presentation collaborator the modal owns: it holds the diff render
+     * pipeline behind refresh(mode) - base-content resolution, hunk computation,
+     * the four render modes, and the notice/columns-header updates driven through
+     * the shared DiffHeaderController. The modal decides when to render and routes
+     * the toolbar action-button state back through the host, while the presenter
+     * reads the live diff container and drives the owned collaborators.
+     */
+    this.diffPresenter = new DiffPresenter(this.makeDiffPresenterHost());
+    /**
+     * Keyboard-navigation collaborator the modal owns: it handles the version-rail
+     * and diff-pane keydown events (arrow/Home/End/Page navigation, Delete). It
+     * walks the selection through the owned VersionList and reads the live diff
+     * container back through the host, routing the confirm-before-delete flow to
+     * the modal.
+     */
+    this.keyboard = new KeyboardController(this.makeKeyboardControllerHost());
+    this.options = options != null ? options : {};
+  }
+  /**
+   * Lifecycle method called when the modal is opened.
+   * Sets up the UI, adds CSS classes, sets the title based on the snapshot state,
+   * and renders the diff view.
+   * Does nothing if no snapshot is provided.
+   *
+   * @override
+   */
+  onOpen() {
+    if (!this.snapshot) {
+      return;
+    }
+    this.viewState.selectedBaseId = this.getInitialBaseId();
+    this.makeUI();
+    update(
+      this.modalEl,
+      { classes: { add: "lct-diff-modal" } }
+    );
+    this.diffPresenter.refresh("side-by-side" /* side */);
+  }
+  /**
+   * Lifecycle method called when the modal is closed.
+   * Cleans up by emptying the content element and removing scroll sync listeners.
+   *
+   * @override
+   */
+  onClose() {
+    this.scrollSync.cleanup();
+    this.contentEl.empty();
+  }
+  /**
+   * Restores the file to its original state and resets the history tracking.
+   * Writes the original content back to the file and clears the snapshot.
+   */
+  async restoreOriginalFile() {
+    if (!this.snapshot) {
+      return;
+    }
+    try {
+      const originalContent = this.snapshot.content.getHistoryOriginalState();
+      const file = this.snapshot.file;
+      if (!file) {
+        return;
+      }
+      await this.app.vault.modify(file, originalContent);
+      this.snapshotsService.wipeOne(file);
+      new import_obsidian21.Notice(this.plugin.t("notice.file-restored"));
+      this.close();
+    } catch (_error) {
+      new import_obsidian21.Notice(this.plugin.t("notice.file-restore-failed"));
+    }
+  }
+  /**
+   * Rewrites the whole file to the currently selected base (a picked version,
+   * the latest snapshot, or the original). Unlike restoreOriginalFile this keeps
+   * the history baseline and the version timeline intact, so it is a plain
+   * content revert to a chosen point rather than a reset: the prior content
+   * simply becomes the next captured version on the following edit. Reuses the
+   * same SnapshotsService.applyContent path the per-hunk revert uses, scoping the
+   * "block" to the entire file. A no-op when the base already equals the current
+   * state (the button is disabled in that case anyway). The modal stays open and
+   * the active view is re-rendered so the diff reflects the new content.
+   */
+  async restoreSelectedVersion() {
+    var _a, _b;
+    const file = (_b = (_a = this.snapshot) == null ? void 0 : _a.file) != null ? _b : void 0;
+    if (!file || this.diffPresenter.isBaseSameCurrent()) {
+      return;
+    }
+    if (this.viewState.selectedBaseId !== ORIGINAL_BASE_ID) {
+      await this.versionActionsService.restoreSelected(file, this.viewState.selectedBaseId);
+    } else {
+      const baseLines = this.diffPresenter.getBaseContent().split(this.snapshot.content.lineBreak);
+      const currentLines = this.snapshot.content.getLastStateLines();
+      await this.snapshotsService.applyContent(file, baseLines, {
+        start: 0,
+        removeCount: currentLines.length,
+        newLines: baseLines
+      });
+    }
+    this.viewState.activeHunkIndex = -1;
+    this.diffPresenter.refreshActive();
+  }
+  /**
+   * Deletes the selected version from the timeline, leaving the history baseline
+   * and the file content untouched. Only a real captured version can be removed,
+   * so this is a no-op for the synthetic baseline (the button is disabled there
+   * anyway). The selection moves to the next visible version below the deleted
+   * one (the older neighbour), falling back to the one above it and then to the
+   * baseline when nothing is below. The change is persisted via the snapshots
+   * service, and the rail and active view are re-rendered so the dropped version
+   * no longer appears.
+   */
+  removeSelectedVersion() {
+    var _a, _b;
+    if (this.viewState.selectedBaseId === ORIGINAL_BASE_ID) {
+      return;
+    }
+    const result = this.versionActionsService.removeSelected(
+      (_b = (_a = this.snapshot) == null ? void 0 : _a.file) != null ? _b : null,
+      this.viewState.selectedBaseId
+    );
+    if (!result.removed) {
+      return;
+    }
+    const visibleIds = new Set(
+      this.versionList.getVisibleVersions().map((version) => version.id)
+    );
+    this.viewState.selectedBaseId = result.nextId && visibleIds.has(result.nextId) ? result.nextId : ORIGINAL_BASE_ID;
+    this.viewState.activeHunkIndex = -1;
+    this.versionList.render();
+    this.diffPresenter.refreshActive();
+  }
+  /**
+   * Labels the selected version in place: prompts for a tag through the shared
+   * ModalsService.labelVersion entry point and, on a non-empty result, marks
+   * that captured version. Unlike the editor-submenu Put label, which
+   * pins the current content as a new version, this tags the slice the user is
+   * looking at in the rail. A no-op for the synthetic baseline (the button is
+   * disabled there anyway) and for a cancelled/blank prompt. On success the
+   * rail and the active diff are re-rendered so the new label shows on the row
+   * and in the side-by-side column header.
+   *
+   * @return {Promise<void>}
+   */
+  async labelSelectedVersion() {
+    var _a, _b;
+    if (this.viewState.selectedBaseId === ORIGINAL_BASE_ID) {
+      return;
+    }
+    const labeled = await this.modalsService.labelVersion(
+      (_b = (_a = this.snapshot) == null ? void 0 : _a.file) != null ? _b : null,
+      this.viewState.selectedBaseId
+    );
+    if (!labeled) {
+      return;
+    }
+    this.versionList.render();
+    this.diffPresenter.refreshActive();
+  }
+  /**
+   * Asks for confirmation and, if granted, deletes the selected version, then
+   * returns focus to the version list so further arrow/Delete keys keep working.
+   * Shared by the toolbar remove button and the Delete key on the focused list,
+   * so both follow the same confirm-before-delete flow. A no-op for the
+   * synthetic baseline, which has no captured version to remove.
+   *
+   * @return {Promise<void>}
+   */
+  async confirmRemoveSelectedVersion() {
+    var _a;
+    if (this.viewState.selectedBaseId === ORIGINAL_BASE_ID) {
+      return;
+    }
+    const confirmed = await this.modalsService.confirm({
+      title: this.plugin.t("modal.confirm.remove-version.title"),
+      message: this.plugin.t("modal.confirm.remove-version.message"),
+      confirmText: this.plugin.t("modal.confirm.remove-version.button"),
+      cancelText: this.plugin.t("modal.confirm.cancel")
+    });
+    if (confirmed) {
+      this.removeSelectedVersion();
+      (_a = this.versionsEl) == null ? void 0 : _a.focus();
+    }
+  }
+  /**
    * Resolves the base to select when the modal opens. With an open option
    * `initialBaseId` naming a real version the modal opens focused on that
    * version; otherwise it defaults to the latest captured version (the top
@@ -20335,7 +19908,7 @@ var HistoryModal = class extends import_obsidian20.Modal {
    * @return {string} The initial selected base id
    */
   getInitialBaseId() {
-    const versions = this.snapshot.getVersions();
+    const versions = this.snapshot.timeline.getVersions();
     const requested = this.options.initialBaseId;
     if (requested && versions.some((version) => version.id === requested)) {
       return requested;
@@ -20351,184 +19924,93 @@ var HistoryModal = class extends import_obsidian20.Modal {
     return versions.length > 0 ? versions[0].id : ORIGINAL_BASE_ID;
   }
   /**
-   * Resolves the scrollable element of the diff pane for the active view mode:
-   * the patch container, the inline container, the line-by-line wrapper, or the
-   * first side-by-side column wrapper (its scroll is mirrored to the other
-   * column by the scroll-sync). Returns null before any diff is rendered.
-   *
-   * @return {HTMLElement | null} The diff scroll container, or null
-   */
-  getDiffScroller() {
-    var _a, _b;
-    return (_b = (_a = this.diffContainerEl) == null ? void 0 : _a.querySelector(
-      ".lct-patch-container, .lct-inline-container, .d2h-wrapper.d2h-line, .d2h-side-column-wrapper"
-    )) != null ? _b : null;
-  }
-  /**
-   * Creates the UI elements for the diff view.
-   *
-   * With the `hideRail` open option the left rail (search + version list) is
-   * not rendered and the diff/toolbar fill the modal. The panel uses this
-   * mode so it stays the sole navigator and there are no two competing version
-   * lists side by side. Without the option the rail is built as before.
+   * Builds the diff-view UI. The shared {@link HistoryModalShell} constructs the
+   * body / main / toolbar / notice / diff-block spine and relocates the native
+   * close button into the toolbar; this modal supplies the left rail and the
+   * focusable diff container, then fills the toolbar and renders the rail.
    */
   makeUI() {
-    const bodyEl = DomHelper.create({
-      tag: "div",
-      classes: "lct-modal-body",
-      container: this.contentEl
-    });
-    const hideRail = this.options.hideRail === true;
-    if (!hideRail) {
-      this.railEl = DomHelper.create({
-        tag: "div",
-        classes: "lct-modal-rail",
-        container: bodyEl
-      });
-    }
-    this.mainEl = DomHelper.create({
-      tag: "div",
-      classes: "lct-modal-main",
-      container: bodyEl
-    });
-    this.toolbarEl = DomHelper.create({
-      tag: "div",
-      classes: "lct-modal-toolbar",
-      container: this.mainEl
-    });
-    this.makeToolbar();
-    const closeButtonEl = this.modalEl.querySelector(".modal-close-button");
-    if (closeButtonEl) {
-      closeButtonEl.classList.remove("mod-raised");
-      closeButtonEl.classList.add("clickable-icon");
-      this.toolbarEl.appendChild(closeButtonEl);
-    }
-    if (this.railEl) {
-      this.searchEl = DomHelper.create({
-        tag: "div",
-        classes: "lct-rail-search",
-        container: this.railEl
-      });
-      this.versionsEl = DomHelper.create({
-        tag: "div",
-        classes: "lct-versions",
-        container: this.railEl,
-        attributes: { tabindex: "0" },
-        events: {
-          keydown: (event) => this.handleVersionsKeydown(event)
-        }
-      });
-    }
-    this.noticeEl = DomHelper.create({
-      tag: "div",
-      classes: ["lct-diff-notice", "lct-diff-notice-hidden"],
-      container: this.mainEl
-    });
-    const blockEl = DomHelper.create({
-      tag: "div",
-      classes: "lct-diff-block",
-      container: this.mainEl
-    });
-    this.columnsHeaderEl = DomHelper.create({
-      tag: "div",
-      classes: ["lct-diff-columns", "lct-diff-columns-hidden"],
-      container: blockEl
-    });
-    this.diffContainerEl = DomHelper.create({
-      tag: "div",
-      classes: "diff-container",
-      container: blockEl,
-      attributes: { tabindex: "0" },
-      events: {
-        keydown: (event) => this.handleDiffKeydown(event)
+    const shell = new HistoryModalShell(this.contentEl, this.modalEl);
+    const regions = shell.build({
+      buildColumns: (bodyEl) => this.buildRail(bodyEl),
+      diffContainerAttributes: { tabindex: "0" },
+      diffContainerEvents: {
+        keydown: (event) => this.keyboard.handleDiffKeydown(event)
       }
     });
+    this.mainEl = regions.mainEl;
+    this.toolbarEl = regions.toolbarEl;
+    this.noticeEl = regions.noticeEl;
+    this.columnsHeaderEl = regions.columnsHeaderEl;
+    this.diffContainerEl = regions.diffContainerEl;
+    this.makeToolbar();
+    shell.relocateCloseButton(this.toolbarEl);
     this.renderSearch();
     this.versionList.render();
   }
   /**
-   * Shows or hides the above-diff notice and syncs the restore-selected button's
-   * enabled state, both driven by whether the selected base resolves to the
-   * current content. The notice is revealed, with the same text the empty-diff
-   * placeholder uses, whenever the base equals current (the original-vs-current
-   * "no changes" case or a picked version identical to current); otherwise it is
-   * hidden. In that same identical case there is nothing to restore, so the
-   * restore-selected button is disabled. The remove-selected button is disabled
-   * whenever the synthetic baseline is selected, since only a real captured
-   * version can be deleted. Called by every render path so all stay in sync with
-   * the visible diff.
+   * Builds the left rail (content search above the version timeline) into the
+   * shell body. With the `hideRail` open option the rail is skipped so the diff
+   * and toolbar fill the modal: the panel becomes the sole navigator and there
+   * are no two competing version lists side by side.
+   *
+   * @param {HTMLElement} bodyEl - The shell body the rail is appended to
    */
-  updateDiffNotice() {
-    const identical = this.isBaseSameCurrent();
+  buildRail(bodyEl) {
+    if (this.options.hideRail === true) {
+      return;
+    }
+    this.railEl = create({
+      tag: "div",
+      classes: "lct-modal-rail",
+      container: bodyEl
+    });
+    this.searchEl = create({
+      tag: "div",
+      classes: "lct-rail-search",
+      container: this.railEl
+    });
+    this.versionsEl = create({
+      tag: "div",
+      classes: "lct-versions",
+      container: this.railEl,
+      attributes: { tabindex: "0" },
+      events: {
+        keydown: (event) => this.keyboard.handleVersionsKeydown(event)
+      }
+    });
+  }
+  /**
+   * Syncs the restore/remove/label toolbar action buttons for the current base.
+   * In the base-equals-current case there is nothing to restore, so the
+   * restore-selected button is disabled; the remove-selected and label-selected
+   * buttons are disabled whenever the synthetic baseline is selected, since only
+   * a real captured version can be deleted or labelled. The presenter passes the
+   * base-vs-current fact and calls this on every render so the buttons stay in
+   * sync with the visible diff.
+   *
+   * @param {boolean} baseIsCurrent - Whether the selected base equals the current state
+   */
+  syncActionButtons(baseIsCurrent) {
     if (this.restoreSelectedButton) {
-      this.restoreSelectedButton.disabled = identical;
-      DomHelper.update(this.restoreSelectedButton, {
-        classes: identical ? { add: "is-disabled" } : { remove: "is-disabled" }
+      this.restoreSelectedButton.disabled = baseIsCurrent;
+      update(this.restoreSelectedButton, {
+        classes: baseIsCurrent ? { add: "is-disabled" } : { remove: "is-disabled" }
       });
     }
+    const noVersion = this.viewState.selectedBaseId === ORIGINAL_BASE_ID;
     if (this.removeSelectedButton) {
-      const noVersion = this.viewState.selectedBaseId === ORIGINAL_BASE_ID;
       this.removeSelectedButton.disabled = noVersion;
-      DomHelper.update(this.removeSelectedButton, {
+      update(this.removeSelectedButton, {
         classes: noVersion ? { add: "is-disabled" } : { remove: "is-disabled" }
       });
     }
     if (this.labelSelectedButton) {
-      const noVersion = this.viewState.selectedBaseId === ORIGINAL_BASE_ID;
       this.labelSelectedButton.disabled = noVersion;
-      DomHelper.update(this.labelSelectedButton, {
+      update(this.labelSelectedButton, {
         classes: noVersion ? { add: "is-disabled" } : { remove: "is-disabled" }
       });
     }
-    if (!this.noticeEl) {
-      return;
-    }
-    DomHelper.update(this.noticeEl, {
-      text: identical ? this.getEmptyDiffText() : void 0,
-      classes: identical ? { remove: "lct-diff-notice-hidden" } : { add: "lct-diff-notice-hidden" }
-    });
-  }
-  /**
-   * Resolves the label for the diff's base (left) side, matching the version
-   * names used in the rail. A picked version shows its custom label or, when
-   * unlabeled, its derived action (created/modified/cleared); the Original
-   * entry (the only base when no snapshots exist) shows "Original".
-   *
-   * @return {string} The base-side label
-   */
-  getBaseLabel() {
-    if (this.viewState.selectedBaseId !== ORIGINAL_BASE_ID) {
-      const versions = this.snapshot.getVersions();
-      const version = this.snapshot.getVersion(this.viewState.selectedBaseId);
-      if (version) {
-        return this.versionList.resolvePrimaryLabel(version, versions);
-      }
-    }
-    return this.plugin.t("modal.version.original");
-  }
-  /**
-   * Shows or hides the side-by-side column header and, when shown, labels the
-   * left column with the picked base and the right column with the current
-   * state. It is shown for the two-column side-by-side mode (including the
-   * identical-content case, so the header does not vanish when the diff is
-   * empty) and hidden in the single-column modes.
-   */
-  updateColumnsHeader() {
-    if (!this.columnsHeaderEl) {
-      return;
-    }
-    const visible = this.viewState.currentDisplayMode === "side-by-side" /* side */;
-    if (!visible) {
-      DomHelper.update(this.columnsHeaderEl, { classes: { add: "lct-diff-columns-hidden" } });
-      return;
-    }
-    DomHelper.update(this.columnsHeaderEl, {
-      classes: { remove: "lct-diff-columns-hidden" },
-      children: [
-        { tag: "div", classes: "lct-diff-column-title", text: this.getBaseLabel() },
-        { tag: "div", classes: "lct-diff-column-title", text: this.plugin.t("modal.version.current") }
-      ]
-    });
   }
   /**
    * Builds the top toolbar controls as icon buttons grouped by purpose: the
@@ -20542,8 +20024,13 @@ var HistoryModal = class extends import_obsidian20.Modal {
    * updateButtonActiveStates; the destructive actions still confirm before acting.
    */
   makeToolbar() {
-    const actionsGroup = this.makeToolbarGroup("lct-modal-toolbar-actions");
-    this.makeToolbarButton(actionsGroup, {
+    const toolbarEl = this.toolbarEl;
+    if (!toolbarEl) {
+      return;
+    }
+    const builder = new ToolbarBuilder(toolbarEl);
+    const actionsGroup = builder.addGroup("lct-modal-toolbar-actions");
+    builder.addButton(actionsGroup, {
       icon: "rotate-ccw",
       label: this.plugin.t("modal.restore-original"),
       warning: true,
@@ -20559,7 +20046,7 @@ var HistoryModal = class extends import_obsidian20.Modal {
         }
       }
     });
-    this.makeToolbarButton(actionsGroup, {
+    builder.addButton(actionsGroup, {
       icon: "trash-2",
       label: this.plugin.t("modal.remove-history"),
       warning: true,
@@ -20577,8 +20064,8 @@ var HistoryModal = class extends import_obsidian20.Modal {
         }
       }
     });
-    const filterGroup = this.makeToolbarGroup("lct-modal-toolbar-filter");
-    this.restoreSelectedButton = this.makeToolbarButton(filterGroup, {
+    const filterGroup = builder.addGroup("lct-modal-toolbar-filter");
+    this.restoreSelectedButton = builder.addButton(filterGroup, {
       icon: "history",
       label: this.plugin.t("modal.restore-selected"),
       onClick: async () => {
@@ -20593,89 +20080,72 @@ var HistoryModal = class extends import_obsidian20.Modal {
         }
       }
     });
-    this.removeSelectedButton = this.makeToolbarButton(filterGroup, {
+    this.removeSelectedButton = builder.addButton(filterGroup, {
       icon: "list-x",
       label: this.plugin.t("modal.remove-selected"),
       onClick: () => {
         void this.confirmRemoveSelectedVersion();
       }
     });
-    this.labelSelectedButton = this.makeToolbarButton(filterGroup, {
+    this.labelSelectedButton = builder.addButton(filterGroup, {
       icon: "tag",
       label: this.plugin.t("modal.label-selected"),
       onClick: async () => {
         await this.labelSelectedVersion();
       }
     });
-    this.hideIdenticalButton = this.makeToolbarButton(filterGroup, {
+    this.hideIdenticalButton = builder.addButton(filterGroup, {
       icon: "eye-off",
       label: this.plugin.t("modal.hide-identical"),
       onClick: () => {
         this.toggleHideIdentical();
       }
     });
-    const navGroup = this.makeToolbarGroup("lct-modal-toolbar-nav");
-    this.viewState.navButtons.previous = this.makeToolbarButton(navGroup, {
+    const navGroup = builder.addGroup("lct-modal-toolbar-nav");
+    this.viewState.navButtons.previous = builder.addButton(navGroup, {
       icon: "chevron-up",
       label: this.plugin.t("modal.previous-difference"),
       onClick: () => {
         this.viewState.goToDifference("previous" /* previous */);
       }
     });
-    this.viewState.navButtons.next = this.makeToolbarButton(navGroup, {
+    this.viewState.navButtons.next = builder.addButton(navGroup, {
       icon: "chevron-down",
       label: this.plugin.t("modal.next-difference"),
       onClick: () => {
         this.viewState.goToDifference("next" /* next */);
       }
     });
-    const modesGroup = this.makeToolbarGroup("lct-modal-toolbar-modes");
-    this.viewState.modeButtons.patch = this.makeToolbarButton(modesGroup, {
+    const modesGroup = builder.addGroup("lct-modal-toolbar-modes");
+    this.viewState.modeButtons.patch = builder.addButton(modesGroup, {
       icon: "file-text",
       label: this.plugin.t("modal.mode.patch"),
       onClick: () => {
-        this.showCleanPatch();
+        this.diffPresenter.refresh("patch" /* patch */);
       }
     });
-    this.viewState.modeButtons.inline = this.makeToolbarButton(modesGroup, {
+    this.viewState.modeButtons.inline = builder.addButton(modesGroup, {
       icon: "pilcrow",
       label: this.plugin.t("modal.mode.inline"),
       onClick: () => {
-        this.renderInlineDiff();
+        this.diffPresenter.refresh("inline" /* inline */);
       }
     });
-    this.viewState.modeButtons.lineByLine = this.makeToolbarButton(modesGroup, {
+    this.viewState.modeButtons.lineByLine = builder.addButton(modesGroup, {
       icon: "align-justify",
       label: this.plugin.t("modal.mode.line-by-line"),
       onClick: () => {
-        this.renderDiff("line-by-line" /* line */);
+        this.diffPresenter.refresh("line-by-line" /* line */);
       }
     });
-    this.viewState.modeButtons.sideBySide = this.makeToolbarButton(modesGroup, {
+    this.viewState.modeButtons.sideBySide = builder.addButton(modesGroup, {
       icon: "columns-2",
       label: this.plugin.t("modal.mode.side-by-side"),
       onClick: () => {
-        this.renderDiff("side-by-side" /* side */);
+        this.diffPresenter.refresh("side-by-side" /* side */);
       }
     });
     this.viewState.updateButtonActiveStates();
-  }
-  /**
-   * Creates one toolbar group: a flat row of icon buttons. The modifier class
-   * controls the group's placement (the destructive actions are pinned to the
-   * left edge, the rest are right-aligned) and is the only per-group styling
-   * hook now that the toolbar is built from plain elements rather than Setting
-   * rows.
-   *
-   * @param {string} modifier - The group's modifier class
-   * @return {HTMLElement} The created group container
-   */
-  makeToolbarGroup(modifier) {
-    return DomHelper.create({
-      tag: "div",
-      classes: ["lct-modal-toolbar-group", modifier],
-      container: this.toolbarEl
-    });
   }
   /**
    * Flips the hide-identical rail filter, syncs the toggle button's active
@@ -20685,41 +20155,11 @@ var HistoryModal = class extends import_obsidian20.Modal {
   toggleHideIdentical() {
     this.viewState.hideIdenticalVersions = !this.viewState.hideIdenticalVersions;
     if (this.hideIdenticalButton) {
-      DomHelper.update(this.hideIdenticalButton, {
+      update(this.hideIdenticalButton, {
         classes: this.viewState.hideIdenticalVersions ? { add: "is-active" } : { remove: "is-active" }
       });
     }
     this.versionList.render();
-  }
-  /**
-   * Builds one accessible icon button inside a toolbar group, the same way the
-   * inline revert affordance is built: a native button carrying Obsidian's
-   * .clickable-icon look (hover background, size, and radius come from the
-   * theme), an aria-label that doubles as the hover tooltip, and a click
-   * handler. It shows only the icon but is never a label-less control for
-   * keyboard or screen-reader users. The warning option adds the destructive
-   * accent (.lct-toolbar-warning) for the restore-original and remove-history
-   * actions; the built-in mod-warning is avoided because on a button it paints a
-   * solid error fill that hides the icon.
-   *
-   * @param {HTMLElement} group - The toolbar group to append the button to
-   * @param {ToolbarButtonConfig} config - The button's icon, label, handler, and flags
-   * @return {HTMLButtonElement} The created button
-   */
-  makeToolbarButton(group, config) {
-    const button = DomHelper.create({
-      tag: "button",
-      classes: config.warning ? ["clickable-icon", "lct-toolbar-warning"] : ["clickable-icon"],
-      attributes: { "aria-label": config.label, "type": "button" },
-      container: group,
-      events: {
-        click: () => {
-          void config.onClick();
-        }
-      }
-    });
-    (0, import_obsidian20.setIcon)(button, config.icon);
-    return button;
   }
   /**
    * Renders the content-search box above the version list. The box filters the
@@ -20732,8 +20172,8 @@ var HistoryModal = class extends import_obsidian20.Modal {
     if (!this.searchEl) {
       return;
     }
-    DomHelper.update(this.searchEl, { classes: { remove: "lct-rail-search-empty" } });
-    new import_obsidian20.SearchComponent(this.searchEl).setPlaceholder(this.plugin.t("modal.search-versions")).setValue(this.viewState.searchQuery).onChange((value) => {
+    update(this.searchEl, { classes: { remove: "lct-rail-search-empty" } });
+    new import_obsidian21.SearchComponent(this.searchEl).setPlaceholder(this.plugin.t("modal.search-versions")).setValue(this.viewState.searchQuery).onChange((value) => {
       this.viewState.searchQuery = value;
       this.versionList.render();
     });
@@ -20753,7 +20193,7 @@ var HistoryModal = class extends import_obsidian20.Modal {
     }
     this.viewState.selectedBaseId = id;
     this.versionList.render();
-    this.refreshActiveView();
+    this.diffPresenter.refreshActive();
   }
   /**
    * Builds the host adapter the owned {@link VersionList} reads its shared state
@@ -20798,11 +20238,11 @@ var HistoryModal = class extends import_obsidian20.Modal {
       snapshotsService: this.snapshotsService,
       diffContainer: () => this.diffContainerEl,
       displayMode: () => this.viewState.currentDisplayMode,
-      getHunks: () => this.getHunks(),
+      getHunks: () => this.diffPresenter.getHunks(),
       updateNavButtonsState: () => this.viewState.updateNavButtonsState(),
       onReverted: () => {
         this.viewState.activeHunkIndex = -1;
-        this.refreshActiveView();
+        this.diffPresenter.refreshActive();
       }
     };
   }
@@ -20819,169 +20259,48 @@ var HistoryModal = class extends import_obsidian20.Modal {
   makeDiffViewStateHost() {
     return {
       diffContainer: () => this.diffContainerEl,
-      getHunks: () => this.getHunks()
+      getHunks: () => this.diffPresenter.getHunks()
     };
   }
   /**
-   * Re-renders whichever diff view is currently active. Used after the diff
-   * base or the file content changes so the visible output stays in sync with
-   * the selected mode without duplicating the mode dispatch at every call site.
+   * Builds the host adapter the owned {@link DiffPresenter} reads its shared
+   * state and collaborators through. It hands the presenter the modal's owned
+   * collaborators (view state, scroll sync, gutter reverts, diff header) as refs,
+   * exposes the live diff container as a lazy accessor, resolves the
+   * rail-matching base label through the version list, and takes the toolbar
+   * action-button sync back so the modal keeps owning which buttons to disable.
+   *
+   * @return {DiffPresenterHost} The host port for the diff-presentation collaborator
    */
-  refreshActiveView() {
-    switch (this.viewState.currentDisplayMode) {
-      case "patch" /* patch */:
-        this.showCleanPatch();
-        return;
-      case "inline" /* inline */:
-        this.renderInlineDiff();
-        return;
-      case "line-by-line" /* line */:
-        this.renderDiff("line-by-line" /* line */);
-        return;
-      default:
-        this.renderDiff("side-by-side" /* side */);
-    }
+  makeDiffPresenterHost() {
+    return {
+      snapshot: this.snapshot,
+      plugin: this.plugin,
+      viewState: this.viewState,
+      scrollSync: this.scrollSync,
+      gutterReverts: this.gutterReverts,
+      diffHeader: this.diffHeader,
+      diffContainer: () => this.diffContainerEl,
+      resolvePrimaryLabel: (version, versions) => this.versionList.resolvePrimaryLabel(version, versions),
+      syncActionButtons: (baseIsCurrent) => this.syncActionButtons(baseIsCurrent)
+    };
   }
   /**
-   * Resolves the content of the currently selected diff base. A picked
-   * intermediate version resolves to that version's captured content. The
-   * synthetic baseline entry (or a stale id whose version no longer exists)
-   * resolves to the LATEST captured snapshot, falling back to the original only
-   * when no snapshot exists. The branch logic lives in the pure
-   * BaseContentHelper so it can be unit-tested without the modal DOM.
+   * Builds the host adapter the owned {@link KeyboardController} reads its shared
+   * state through. It hands the controller the owned version list (whose
+   * selection the rail keys walk), exposes the live diff container as a lazy
+   * accessor, and routes the confirm-before-delete flow back to the modal.
    *
-   * @return {string} The base content to diff the current state against
+   * @return {KeyboardControllerHost} The host port for the keyboard collaborator
    */
-  getBaseContent() {
-    return BaseContentHelper.resolve(this.viewState.selectedBaseId, ORIGINAL_BASE_ID, {
-      versions: this.snapshot.getVersions().map((version) => version.getContent(this.snapshot.lineBreak)),
-      original: this.snapshot.getHistoryOriginalState(),
-      versionContent: (id) => {
-        var _a, _b;
-        return (_b = (_a = this.snapshot.getVersion(id)) == null ? void 0 : _a.getContent(this.snapshot.lineBreak)) != null ? _b : null;
+  makeKeyboardControllerHost() {
+    return {
+      versionList: this.versionList,
+      diffContainer: () => this.diffContainerEl,
+      confirmRemoveSelectedVersion: () => {
+        void this.confirmRemoveSelectedVersion();
       }
-    });
-  }
-  /**
-   * Whether the current state is identical to the selected diff base.
-   * Used to render the "no changes" placeholder when the picked base matches
-   * the live content.
-   *
-   * @return {boolean} True when base and current content are equal
-   */
-  isBaseSameCurrent() {
-    return this.getBaseContent() === this.snapshot.getLastState();
-  }
-  /**
-   * Picks the placeholder text shown when the selected base equals the current
-   * state. A picked intermediate version that matches the live content reads
-   * "Identical to current" so the user understands the chosen base holds the
-   * same text, distinguishing it from the original-vs-current "No changes" case
-   * where the file simply was never modified.
-   *
-   * @return {string} The empty-diff placeholder text for the current base
-   */
-  getEmptyDiffText() {
-    return this.viewState.selectedBaseId === ORIGINAL_BASE_ID ? this.plugin.t("modal.no-changes") : this.plugin.t("modal.identical-to-current");
-  }
-  /**
-   * Computes the line-level hunks between the selected base and the current
-   * state. These back the inline per-hunk revert affordances and the
-   * next/previous navigation, and are recomputed on demand so the offsets always
-   * reflect the live content.
-   *
-   * @return {Diff.StructuredPatchHunk[]} The hunks, ordered top to bottom
-   */
-  getHunks() {
-    return HunkHelper.diff(
-      this.getBaseContent().split(this.snapshot.lineBreak),
-      this.snapshot.getLastStateLines(),
-      this.snapshot.lineBreak
-    );
-  }
-  /**
-   * Shows the clean patch in a readable format.
-   * Delegates the DOM rendering to {@link DiffRenderHelper}; the per-row revert
-   * affordances are skipped here because patch mode has no per-row structure to
-   * anchor them to, and the navigation buttons are refreshed at the end.
-   */
-  showCleanPatch() {
-    var _a, _b, _c;
-    this.viewState.currentDisplayMode = "patch" /* patch */;
-    this.viewState.updateButtonActiveStates();
-    this.scrollSync.cleanup();
-    this.updateDiffNotice();
-    this.updateColumnsHeader();
-    if (this.diffContainerEl) {
-      DiffRenderHelper.render({
-        baseLines: this.getBaseContent().split(this.snapshot.lineBreak),
-        currentLines: this.snapshot.getLastStateLines(),
-        lineBreak: this.snapshot.lineBreak,
-        mode: "patch" /* patch */,
-        container: this.diffContainerEl,
-        filePath: (_c = (_b = (_a = this.snapshot) == null ? void 0 : _a.file) == null ? void 0 : _b.path) != null ? _c : "",
-        plugin: this.plugin
-      });
-    }
-    this.viewState.updateNavButtonsState();
-  }
-  /**
-   * Renders an inline diff between the selected base and the current state,
-   * highlighting changed words inside modified lines instead of marking the
-   * whole line. Delegates the DOM rendering to {@link DiffRenderHelper}; the
-   * per-hunk revert affordances and the nav button refresh stay here because
-   * they are file-mode specific (they need a snapshot to write back to).
-   */
-  renderInlineDiff() {
-    var _a, _b, _c;
-    this.viewState.currentDisplayMode = "inline" /* inline */;
-    this.viewState.updateButtonActiveStates();
-    this.scrollSync.cleanup();
-    this.updateDiffNotice();
-    this.updateColumnsHeader();
-    if (this.diffContainerEl) {
-      DiffRenderHelper.render({
-        baseLines: this.getBaseContent().split(this.snapshot.lineBreak),
-        currentLines: this.snapshot.getLastStateLines(),
-        lineBreak: this.snapshot.lineBreak,
-        mode: "inline" /* inline */,
-        container: this.diffContainerEl,
-        filePath: (_c = (_b = (_a = this.snapshot) == null ? void 0 : _a.file) == null ? void 0 : _b.path) != null ? _c : "",
-        plugin: this.plugin
-      });
-    }
-    this.gutterReverts.attachInlineReverts();
-  }
-  /**
-   * Renders the diff view in the specified diff2html format (line-by-line or
-   * side-by-side). Delegates the DOM rendering to {@link DiffRenderHelper}; the
-   * per-hunk revert affordances and the side-by-side scroll sync stay here
-   * because they are file-mode specific.
-   *
-   * @param {DiffOutputFormatType} format - The format of the diff view (defaults to 'side-by-side')
-   */
-  renderDiff(format = "side-by-side" /* side */) {
-    var _a, _b, _c;
-    this.viewState.currentDisplayMode = format;
-    this.viewState.updateButtonActiveStates();
-    this.scrollSync.cleanup();
-    this.updateDiffNotice();
-    this.updateColumnsHeader();
-    if (this.diffContainerEl) {
-      DiffRenderHelper.render({
-        baseLines: this.getBaseContent().split(this.snapshot.lineBreak),
-        currentLines: this.snapshot.getLastStateLines(),
-        lineBreak: this.snapshot.lineBreak,
-        mode: format,
-        container: this.diffContainerEl,
-        filePath: (_c = (_b = (_a = this.snapshot) == null ? void 0 : _a.file) == null ? void 0 : _b.path) != null ? _c : "",
-        plugin: this.plugin
-      });
-    }
-    this.gutterReverts.attachInlineReverts();
-    if (format === "side-by-side" /* side */) {
-      this.scrollSync.schedule();
-    }
+    };
   }
 };
 __decorateClass([
@@ -20995,8 +20314,8 @@ __decorateClass([
 ], HistoryModal.prototype, "versionActionsService", 2);
 
 // src/modals/prompt.modal.ts
-var import_obsidian21 = require("obsidian");
-var PromptModal = class extends import_obsidian21.Modal {
+var import_obsidian22 = require("obsidian");
+var PromptModal = class extends import_obsidian22.Modal {
   /**
    * Creates a new instance of PromptModal.
    *
@@ -21028,8 +20347,8 @@ var PromptModal = class extends import_obsidian21.Modal {
    * @override
    */
   onOpen() {
-    DomHelper.update(this.modalEl, { classes: { add: "lct-prompt-modal" } });
-    DomHelper.update(this.contentEl, {
+    update(this.modalEl, { classes: { add: "lct-prompt-modal" } });
+    update(this.contentEl, {
       children: [
         {
           tag: "div",
@@ -21111,8 +20430,8 @@ var PromptModal = class extends import_obsidian21.Modal {
    * @return {Promise<string | null>} Promise that resolves to the entered text or null
    */
   async prompt() {
-    return new Promise((resolve) => {
-      this.resolvePromise = resolve;
+    return new Promise((resolve2) => {
+      this.resolvePromise = resolve2;
       this.open();
     });
   }
@@ -21128,7 +20447,7 @@ var PromptModal = class extends import_obsidian21.Modal {
 };
 
 // src/services/modals.service.ts
-var import_obsidian22 = require("obsidian");
+var import_obsidian23 = require("obsidian");
 var ModalsService = class {
   /**
    * Creates a new instance of ModalsService.
@@ -21207,13 +20526,13 @@ var ModalsService = class {
       new HistoryModal(this.plugin.app, this.plugin, snapshot).open();
       return true;
     }
-    const selectable = snapshot.getVersions().slice().reverse().map((version) => ({
+    const selectable = snapshot.timeline.getVersions().slice().reverse().map((version) => ({
       id: version.id,
       lines: version.getLines()
     }));
-    const matched = SelectionHistoryHelper.match(
+    const matched = match(
       selectable,
-      snapshot.getHistoryOriginalStateLines(),
+      snapshot.content.getHistoryOriginalStateLines(),
       needle
     );
     new HistoryModal(this.plugin.app, this.plugin, snapshot, { selectionFilterIds: matched }).open();
@@ -21237,13 +20556,13 @@ var ModalsService = class {
    */
   openFolderHistory(folder) {
     if (!folder) {
-      new import_obsidian22.Notice(this.plugin.t("notice.no-folder-history"));
+      new import_obsidian23.Notice(this.plugin.t("notice.no-folder-history"));
       return false;
     }
     const rootPath = folder.path;
     const snapshots = this.snapshotsService.getList().filter((snapshot) => this.isUnderFolder(snapshot, rootPath));
     if (snapshots.length === 0) {
-      new import_obsidian22.Notice(this.plugin.t("notice.no-folder-history"));
+      new import_obsidian23.Notice(this.plugin.t("notice.no-folder-history"));
       return false;
     }
     new FolderHistoryModal(this.plugin.app, this.plugin, rootPath, snapshots).open();
@@ -21316,8 +20635,8 @@ var ModalsService = class {
    * @return {Promise<FileVersion | null>} The captured version, or null on a no-op
    */
   async putLabel(file, configOverride) {
-    const target = file != null ? file : this.plugin.getActiveFile();
-    if (!this.snapshotsService.getOne(target)) {
+    const target2 = file != null ? file : this.plugin.getActiveFile();
+    if (!this.snapshotsService.getOne(target2)) {
       return null;
     }
     const config = {
@@ -21332,7 +20651,7 @@ var ModalsService = class {
     if (entered === null || entered.trim().length === 0) {
       return null;
     }
-    return this.versionActionsService.putLabel(target, entered);
+    return this.versionActionsService.putLabel(target2, entered);
   }
   /**
    * Labels an EXISTING captured version: asks for a tag through the PromptModal
@@ -21351,12 +20670,12 @@ var ModalsService = class {
    * @return {Promise<FileVersion | null>} The labeled version, or null on a no-op
    */
   async labelVersion(file, versionId, configOverride) {
-    const target = file != null ? file : this.plugin.getActiveFile();
-    const snapshot = this.snapshotsService.getOne(target);
+    const target2 = file != null ? file : this.plugin.getActiveFile();
+    const snapshot = this.snapshotsService.getOne(target2);
     if (!snapshot) {
       return null;
     }
-    const existing = snapshot.getVersion(versionId);
+    const existing = snapshot.timeline.getVersion(versionId);
     if (!existing) {
       return null;
     }
@@ -21373,7 +20692,7 @@ var ModalsService = class {
     if (entered === null || entered.trim().length === 0) {
       return null;
     }
-    return this.versionActionsService.label(target, versionId, entered);
+    return this.versionActionsService.label(target2, versionId, entered);
   }
 };
 __decorateClass([
@@ -21385,59 +20704,109 @@ __decorateClass([
 
 // src/decorators/on.decorator.ts
 var On = (name) => {
-  return (target, propertyKey) => {
-    return Reflect.defineMetadata("ON_EVENT", { name }, target, propertyKey);
+  return (target2, propertyKey) => {
+    return Reflect.defineMetadata(META_ON_EVENT, { name }, target2, propertyKey);
   };
 };
 
 // src/helpers/shard-name.helper.ts
 var FNV_OFFSET_BASIS = 2166136261;
 var FNV_PRIME = 16777619;
-function multiplyFnvPrime(hash) {
-  const lo = (hash & 65535) * FNV_PRIME;
-  const hi = (hash >>> 16) * FNV_PRIME & 65535;
+function multiplyFnvPrime(hash2) {
+  const lo = (hash2 & 65535) * FNV_PRIME;
+  const hi = (hash2 >>> 16) * FNV_PRIME & 65535;
   return (hi << 16 >>> 0) + lo >>> 0;
 }
 function toHex32(value) {
   return (value >>> 0).toString(16).padStart(8, "0");
 }
-var ShardNameHelper = class {
+function forPath(path) {
+  return `${digest(path)}.json`;
+}
+function allocate(path, taken) {
+  const base = forPath(path);
+  if (!taken.has(base)) {
+    return base;
+  }
+  const dot = base.lastIndexOf(".");
+  const stem = dot === -1 ? base : base.slice(0, dot);
+  const ext = dot === -1 ? "" : base.slice(dot);
+  let suffix = 1;
+  let candidate = `${stem}-${suffix}${ext}`;
+  while (taken.has(candidate)) {
+    suffix += 1;
+    candidate = `${stem}-${suffix}${ext}`;
+  }
+  return candidate;
+}
+function digest(path) {
+  let lo = FNV_OFFSET_BASIS;
+  let hi = FNV_OFFSET_BASIS ^ 2654435769;
+  for (let i = 0; i < path.length; i++) {
+    const code = path.charCodeAt(i);
+    lo = multiplyFnvPrime((lo ^ code) >>> 0);
+    hi = multiplyFnvPrime((hi ^ code + i) >>> 0);
+  }
+  return `${toHex32(hi)}${toHex32(lo)}`;
+}
+
+// src/persistence/async-save-queue.ts
+var AsyncSaveQueue = class {
   /**
-   * Computes the deterministic shard filename for a vault-relative path.
-   *
-   * @param {string} path - The vault-relative note path (the snapshot identity).
-   * @return {string} A stable `<hex>.json` filename, 16 hex chars + `.json`,
-   *   identical across calls for the same input.
+   * @param {number} debounceMs - Debounce window {@link schedule} collapses rapid calls into
    */
-  static forPath(path) {
-    return `${this.digest(path)}.json`;
+  constructor(debounceMs) {
+    this.debounceMs = debounceMs;
+    /** Pending debounced timer handle, or null when nothing is scheduled. */
+    this.timer = null;
+    /** Tail of the serialized write chain; every enqueue appends to it. */
+    this.chain = Promise.resolve();
   }
   /**
-   * Computes the raw 64-bit hex digest for a path (without the `.json`
-   * extension). Two independent 32-bit FNV-1a lanes are run over the UTF-16 code
-   * units, the second lane mixing in the byte index so the lanes decorrelate,
-   * and the lanes are concatenated into a fixed-width 16-char hex string.
+   * Schedules a debounced run of `work`, collapsing rapid calls into one. Each
+   * call cancels the pending timer and restarts it, so only the last scheduled
+   * work is enqueued once the window elapses.
    *
-   * @param {string} path - The string to hash.
-   * @return {string} A 16-character lowercase hex digest.
+   * @param {() => Promise<void>} work - The unit to enqueue when the window elapses
    */
-  static digest(path) {
-    let lo = FNV_OFFSET_BASIS;
-    let hi = FNV_OFFSET_BASIS ^ 2654435769;
-    for (let i = 0; i < path.length; i++) {
-      const code = path.charCodeAt(i);
-      lo = multiplyFnvPrime((lo ^ code) >>> 0);
-      hi = multiplyFnvPrime((hi ^ code + i) >>> 0);
+  schedule(work) {
+    if (this.timer) {
+      clearTimeout(this.timer);
     }
-    return `${toHex32(hi)}${toHex32(lo)}`;
+    this.timer = setTimeout(() => {
+      this.timer = null;
+      this.enqueue(work);
+    }, this.debounceMs);
+  }
+  /**
+   * Appends one unit of work to the serialized chain so it runs after every
+   * previously enqueued unit completes. A rejection from `work` is caught and
+   * logged here, never propagated, so the chain keeps running.
+   *
+   * @param {() => Promise<void>} work - The queued unit of write work
+   */
+  enqueue(work) {
+    this.chain = this.chain.then(() => work()).catch((error) => {
+      console.error("Local history: a queued write failed; continuing with the next", error);
+    });
+  }
+  /** Cancels a pending debounced run, if any, so no scheduled work fires. */
+  cancelScheduled() {
+    if (this.timer) {
+      clearTimeout(this.timer);
+      this.timer = null;
+    }
+  }
+  /**
+   * The tail of the write chain. Await it to flush every enqueued unit that has
+   * been submitted so far (used by teardown to drain before the plugin unloads).
+   *
+   * @return {Promise<void>} Resolves when the current tail has completed
+   */
+  settled() {
+    return this.chain;
   }
 };
-/**
- * Width in hex characters of the digest emitted by {@link forPath} (two
- * 32-bit lanes, 8 chars each). Exposed so callers and tests can assert the
- * fixed length without hardcoding the magic number.
- */
-ShardNameHelper.DIGEST_LENGTH = 16;
 
 // src/persistence/history-shard-store.ts
 var HistoryShardStore = class {
@@ -21659,8 +21028,8 @@ var HistoryShardStore = class {
    * Whether a parsed value is a structurally usable {@link SerializedShard}: a
    * numeric `version` and a `snapshot` whose minimal shape (path string, finite
    * timestamp, `lines`/`tracker` arrays) survives retention math and reaches
-   * `FileSnapshot.fromJSON` without resurrecting junk. This mirrors the
-   * per-entry predicate that the monolithic `readDisk` applied, now
+   * `SnapshotCodec.decode` without resurrecting junk. This mirrors the
+   * per-entry predicate the legacy monolith reader applied, now
    * at shard granularity.
    *
    * @param {unknown} value - The parsed shard candidate.
@@ -21671,14 +21040,14 @@ var HistoryShardStore = class {
       return false;
     }
     const shard = value;
-    if (!isNumber_default(shard.version) || !Number.isFinite(shard.version)) {
+    if (typeof shard.version !== "number" || !Number.isFinite(shard.version)) {
       return false;
     }
     return this.isValidSnapshot(shard.snapshot);
   }
   /**
    * Whether a serialized snapshot has the minimum well-formed shape required to
-   * survive retention math and reach `FileSnapshot.fromJSON`. Required: `path` is
+   * survive retention math and reach `SnapshotCodec.decode`. Required: `path` is
    * a string, `timestamp` is a finite number, `lines` and `tracker` are arrays.
    * A non-finite timestamp is rejected so a malformed entry cannot pose as fresh
    * history.
@@ -21690,10 +21059,10 @@ var HistoryShardStore = class {
     if (!item || typeof item !== "object") {
       return false;
     }
-    if (!isString_default(item.path)) {
+    if (typeof item.path !== "string") {
       return false;
     }
-    if (!isNumber_default(item.timestamp) || !Number.isFinite(item.timestamp)) {
+    if (typeof item.timestamp !== "number" || !Number.isFinite(item.timestamp)) {
       return false;
     }
     return Array.isArray(item.lines) && Array.isArray(item.tracker);
@@ -21723,6 +21092,260 @@ var HistoryShardStore = class {
   }
 };
 
+// src/persistence/monolith-migrator.ts
+var MonolithMigrator = class {
+  /**
+   * Creates a migrator bound to one adapter, one plugin directory, and one shard
+   * store.
+   *
+   * @param {DataAdapter} adapter - The vault data adapter used to read and remove
+   *   the legacy monolith files.
+   * @param {string} pluginDir - The resolved (vault-relative) plugin directory
+   *   that holds the legacy `history.json`.
+   * @param {HistoryShardStore} store - The shard store the legacy snapshots are
+   *   written into and probed against for the skip-when-already-sharded guard.
+   */
+  constructor(adapter, pluginDir, store) {
+    this.adapter = adapter;
+    this.store = store;
+    this.historyPath = `${pluginDir}/history.json`;
+  }
+  /**
+   * Migrates a legacy monolithic `history.json` into per-note shards exactly once
+   *. Runs only when the shard directory holds no shards yet but a
+   * legacy file (or its `.bak`) still exists and parses: each legacy snapshot is
+   * written as its own shard, then the legacy `history.json`/`.bak`/`.tmp` files
+   * are removed. The shard `version` is carried through from the legacy file (no
+   * re-encode), so a version-1 or version-2 monolith migrates byte-for-byte per
+   * snapshot whether or not the delta codec has landed.
+   *
+   * Failure-safe: a write failure aborts before any legacy file is removed and
+   * logs, so the legacy file stays intact and the next restore retries. Once
+   * shards exist the legacy path is never consulted again (the guard sees a
+   * non-empty shard dir and returns immediately).
+   *
+   * @return {Promise<void>} Resolves once migration ran or was skipped
+   */
+  async migrate() {
+    if ((await this.store.listNames()).size > 0) {
+      return;
+    }
+    const legacy = await this.readLegacy();
+    if (!legacy || legacy.snapshots.length === 0) {
+      return;
+    }
+    const taken = /* @__PURE__ */ new Set();
+    try {
+      for (const snapshot of legacy.snapshots) {
+        const name = allocate(snapshot.path, taken);
+        taken.add(name);
+        await this.store.writeShard(name, { version: legacy.version, snapshot });
+      }
+    } catch (error) {
+      console.error("Local history: failed to migrate legacy history into shards", error);
+      return;
+    }
+    await this.removeLegacy();
+  }
+  /**
+   * Reads and parses the legacy on-disk monolith, the one-time migration source
+   *. Tries the primary `history.json` first and falls back to its
+   * `.bak` sibling so a crash between the monolith's old `tmp -> bak -> rename`
+   * steps still yields a usable source. Returns null when neither variant is
+   * present or parses, so the migration caller treats a missing/corrupt monolith
+   * as "nothing to migrate" rather than throwing.
+   *
+   * Per-entry validation: each snapshot is checked against a minimal
+   * shape predicate (`isValidEntry`) and malformed entries are skipped so a few
+   * bad records do not poison retention math (`NaN >= oldest` is always false,
+   * silently dropping otherwise-valid entries) or crash downstream
+   * `SnapshotCodec.decode`.
+   *
+   * @return {Promise<SerializedHistory | null>} The parsed history, or null
+   */
+  async readLegacy() {
+    for (const candidate of [this.historyPath, `${this.historyPath}.bak`]) {
+      const parsed = await this.readVariant(candidate);
+      if (parsed !== null) {
+        return parsed;
+      }
+    }
+    return null;
+  }
+  /**
+   * Reads and validates one legacy monolith variant (`history.json` or its
+   * `.bak`). Returns null when the file is absent, unreadable, not JSON, or has
+   * no `snapshots` array so {@link readLegacy} can fall through to the next
+   * variant. Never throws.
+   *
+   * @param {string} path - The full vault-relative path of the variant
+   * @return {Promise<SerializedHistory | null>} The parsed history, or null
+   */
+  async readVariant(path) {
+    try {
+      if (!await this.adapter.exists(path)) {
+        return null;
+      }
+      const raw = await this.adapter.read(path);
+      const parsed = JSON.parse(raw);
+      if (!parsed || !Array.isArray(parsed.snapshots)) {
+        return null;
+      }
+      const valid = parsed.snapshots.filter(
+        (item) => this.isValidEntry(item)
+      );
+      return { version: parsed.version, snapshots: valid };
+    } catch (error) {
+      console.error("Local history: failed to read persisted history", error);
+      return null;
+    }
+  }
+  /**
+   * Whether a serialized snapshot has the minimum well-formed shape required to
+   * survive retention math and reach `SnapshotCodec.decode` without falling
+   * back to defaults that would resurrect junk. Required: `path` is a string,
+   * `timestamp` is a finite number, `lines` and `tracker` are arrays. A
+   * non-finite timestamp is treated as "skip" rather than `0` so a malformed
+   * entry cannot pose as fresh history.
+   *
+   * @param {SerializedFileSnapshot} item - The candidate entry
+   * @return {boolean} True when the entry is structurally usable
+   */
+  isValidEntry(item) {
+    if (!item || typeof item !== "object") {
+      return false;
+    }
+    if (typeof item.path !== "string") {
+      return false;
+    }
+    if (typeof item.timestamp !== "number" || !Number.isFinite(item.timestamp)) {
+      return false;
+    }
+    return Array.isArray(item.lines) && Array.isArray(item.tracker);
+  }
+  /**
+   * Removes the legacy monolithic `history.json` and its `.bak`/`.tmp` siblings
+   * after a successful migration. Best-effort and idempotent: a missing variant
+   * is fine and a per-variant failure is logged, not thrown, so a stubborn file
+   * cannot abort restore once the shards are already on disk.
+   *
+   * @return {Promise<void>} Resolves once all present legacy variants are gone
+   */
+  async removeLegacy() {
+    for (const candidate of [this.historyPath, `${this.historyPath}.bak`, `${this.historyPath}.tmp`]) {
+      try {
+        if (await this.adapter.exists(candidate)) {
+          await this.adapter.remove(candidate);
+        }
+      } catch (error) {
+        console.error("Local history: failed to remove legacy history file", candidate, error);
+      }
+    }
+  }
+};
+
+// src/persistence/retention-policy.ts
+var RetentionPolicy = class _RetentionPolicy {
+  /**
+   * Applies the retention caps to a list of serialized snapshots.
+   * Runs two independent passes: live snapshots are bounded by COUNT only
+   * (`maxEntries`) and are deliberately NOT pruned by age, while tombstones
+   * (entries with `deletedTimestamp` set) keep BOTH caps (`maxDeletedEntries` /
+   * `maxDeletedAgeDays`). A cap of 0 disables that dimension for its bucket.
+   *
+   * Live files are no longer age-pruned (the prior contract dropped live
+   * entries past a `maxAgeDays`). That dropped age dimension caused a
+   * total-history wipe: in an idle vault every live snapshot eventually ages
+   * past `maxAgeDays`, retention then returned an empty set, and the save path
+   * cleared the entire shard directory even though those files still exist and
+   * still hold in-memory history. Bounding live files by count (and per-file
+   * version caps elsewhere) keeps storage in check without ever expiring a
+   * still-present file's history purely because it is old. A deleted file's
+   * recoverability window is a real policy, so tombstones still expire by age.
+   *
+   * Byte-budget (global maxStorageBytes) is intentionally out of scope. The
+   * existing multi-dimensional count-cap policy (maxEntries, maxDeletedEntries,
+   * maxVersions) is accepted as the retention strategy. A byte-budget
+   * dimension adds implementation complexity - it requires summing encoded sizes
+   * across shards and is sensitive to codec changes - without meaningfully
+   * improving the user-observable storage behaviour that count caps already bound.
+   *
+   * @param {SerializedFileSnapshot[]} snapshots - The raw persisted snapshots
+   * @param {RetentionCaps} caps - The count/age caps read from settings
+   * @return {SerializedFileSnapshot[]} The retained subset, newest first
+   */
+  static apply(snapshots, caps) {
+    if (!Array.isArray(snapshots)) {
+      return [];
+    }
+    const live = [];
+    const tombstones = [];
+    for (const item of snapshots) {
+      if (!item) {
+        continue;
+      }
+      if (typeof item.deletedTimestamp === "number") {
+        tombstones.push(item);
+      } else {
+        live.push(item);
+      }
+    }
+    const keptLive = _RetentionPolicy.applyBucket(
+      live,
+      caps.maxEntries,
+      /**
+       * Age cap forced to 0 (disabled) for live files on purpose: a still-present
+       * file must never lose its history just because it is old, otherwise an idle
+       * vault's entire on-disk history is eventually evicted and wiped. Only the
+       * count cap bounds live files here; the age cap is left to govern tombstones
+       * below.
+       */
+      0,
+      (item) => item.timestamp
+    );
+    const keptTombstones = _RetentionPolicy.applyBucket(
+      tombstones,
+      caps.maxDeletedEntries,
+      caps.maxDeletedAgeDays,
+      /**
+       * Age a tombstone by its deletion time so the policy answers "how long do
+       * we keep deleted-file recoverability" rather than "how stale was the file
+       * when it was deleted".
+       */
+      (item) => {
+        var _a;
+        return (_a = item.deletedTimestamp) != null ? _a : item.timestamp;
+      }
+    );
+    return [...keptLive, ...keptTombstones];
+  }
+  /**
+   * Runs a single retention pass on a bucket of serialized snapshots, dropping
+   * entries older than `maxAgeDays` (when > 0) and then capping by `maxEntries`
+   * (when > 0). The bucket's "age" is read through the supplied accessor so
+   * tombstones age by `deletedTimestamp`. Callers pass `maxAgeDays = 0` to
+   * disable age pruning entirely: the live bucket does this so a still-present
+   * file is never expired by age (see {@link RetentionPolicy.apply}).
+   *
+   * @param {SerializedFileSnapshot[]} bucket - The bucket to prune (not mutated)
+   * @param {number} maxEntries - Size cap for this bucket (0 disables)
+   * @param {number} maxAgeDays - Age cap in days for this bucket (0 disables)
+   * @param {(item: SerializedFileSnapshot) => number} ageOf - Reads the age timestamp from an item
+   * @return {SerializedFileSnapshot[]} The retained subset, newest first
+   */
+  static applyBucket(bucket, maxEntries, maxAgeDays, ageOf) {
+    const oldest = maxAgeDays > 0 ? Date.now() - maxAgeDays * MS_PER_DAY : 0;
+    let kept = bucket.filter(
+      (item) => oldest === 0 || ageOf(item) >= oldest
+    );
+    kept.sort((a, b) => ageOf(b) - ageOf(a));
+    if (maxEntries > 0 && kept.length > maxEntries) {
+      kept = kept.slice(0, maxEntries);
+    }
+    return kept;
+  }
+};
+
 // src/services/persistence.service.ts
 var PersistenceService = class {
   /**
@@ -21733,25 +21356,17 @@ var PersistenceService = class {
   constructor(plugin) {
     this.plugin = plugin;
     /**
-     * Pending debounced save timer handle, or null when no save is scheduled.
-     */
-    this.saveTimer = null;
-    /**
      * Guards restore so it runs at most once and never while a save is mid-flight
      * before the initial load has populated state.
      */
     this.restored = false;
     /**
-     * Promise chain that serializes all on-disk writes (`saveToDisk` /
-     * `clearDisk`). Every public entry point appends its work as `.then(...)`,
-     * so writes run strictly in submission order and `unload` can await the
-     * tail to flush the queue before the plugin tears down.
-     *
-     * scheduleSave, unload, restoreFromDisk's re-save, and the
-     * settings-toggle path all hit the same file; without one chain they race
-     * `adapter.write` and last-writer-wins is non-deterministic.
+     * Serializes every on-disk write (`saveToDisk` / `clearDisk`) so they never
+     * race and owns the debounce that collapses rapid saves. scheduleSave, unload,
+     * restoreFromDisk's re-save, and the settings-toggle path all hit the same
+     * file; the queue keeps them strictly ordered with last-writer-wins semantics.
      */
-    this.writeQueue = Promise.resolve();
+    this.queue = new AsyncSaveQueue(SAVE_DEBOUNCE_MS);
     /**
      * Lazily-created IO collaborator that owns the on-disk shard directory.
      * Resolved through {@link shardStore} so the adapter and resolved shard
@@ -21788,10 +21403,7 @@ var PersistenceService = class {
    * @return {Promise<void>} Resolves when the queue is drained
    */
   async unload() {
-    if (this.saveTimer) {
-      clearTimeout(this.saveTimer);
-      this.saveTimer = null;
-    }
+    this.queue.cancelScheduled();
     this.enqueueSave();
     await this.writeQueue;
   }
@@ -21823,7 +21435,11 @@ var PersistenceService = class {
         this.enqueueClear();
         return;
       }
-      await this.migrateMonolithIfNeeded();
+      await new MonolithMigrator(
+        this.plugin.app.vault.adapter,
+        this.getPluginDir(),
+        this.shardStore()
+      ).migrate();
       const loaded = await this.shardStore().readAll();
       const byPath = /* @__PURE__ */ new Map();
       const snapshots = [];
@@ -21835,7 +21451,7 @@ var PersistenceService = class {
       this.shardIndex.clear();
       for (const snapshot of kept) {
         this.shardIndex.set(snapshot.path, {
-          name: (_a = byPath.get(snapshot)) != null ? _a : ShardNameHelper.forPath(snapshot.path),
+          name: (_a = byPath.get(snapshot)) != null ? _a : forPath(snapshot.path),
           digest: this.contentDigest(snapshot)
         });
       }
@@ -21851,146 +21467,45 @@ var PersistenceService = class {
     }
   }
   /**
-   * Applies the retention caps to a list of serialized snapshots.
-   * Runs two independent passes: live snapshots are bounded by COUNT only
-   * (`retention.maxEntries`) and are deliberately NOT pruned by age, while
-   * tombstones (entries with `deletedTimestamp` set) keep BOTH caps
-   * (`retention.maxDeletedEntries` / `retention.maxDeletedAgeDays`).
-   * A cap of 0 disables that dimension for its bucket.
-   *
-   * Live files are no longer age-pruned (the prior contract dropped live
-   * entries past `retention.maxAgeDays`). That dropped age dimension caused a
-   * total-history wipe: in an idle vault every live snapshot eventually ages
-   * past `maxAgeDays`, retention then returned an empty set, and the save path
-   * cleared the entire shard directory even though those files still exist and
-   * still hold in-memory history. Bounding live files by count (and per-file
-   * version caps elsewhere) keeps storage in check without ever expiring a
-   * still-present file's history purely because it is old. A deleted file's
-   * recoverability window is a real policy, so tombstones still expire by age.
-   *
-   * Byte-budget (global maxStorageBytes) is intentionally out of scope. The
-   * existing multi-dimensional count-cap policy (maxEntries, maxDeletedEntries,
-   * maxVersions) is accepted as the retention strategy. A byte-budget
-   * dimension adds implementation complexity - it requires summing encoded sizes
-   * across shards and is sensitive to codec changes - without meaningfully
-   * improving the user-observable storage behaviour that count caps already bound.
+   * Prunes the serialized snapshots to the retained set by binding the current
+   * settings caps onto the pure {@link RetentionPolicy}. The two-bucket cap math
+   * (live files by count; tombstones by count and age) lives in the policy; this
+   * seam only reads the caps the user configured.
    *
    * @param {SerializedFileSnapshot[]} snapshots - The raw persisted snapshots
    * @return {SerializedFileSnapshot[]} The retained subset, newest first
    */
   applyRetention(snapshots) {
-    if (!Array.isArray(snapshots)) {
-      return [];
-    }
-    const live = [];
-    const tombstones = [];
-    for (const item of snapshots) {
-      if (!item) {
-        continue;
-      }
-      if (isNumber_default(item.deletedTimestamp)) {
-        tombstones.push(item);
-      } else {
-        live.push(item);
-      }
-    }
-    const keptLive = this.applyBucketRetention(
-      live,
-      this.settingsService.value("retention.maxEntries"),
-      /**
-       * Age cap forced to 0 (disabled) for live files on purpose: a still-present
-       * file must never lose its history just because it is old, otherwise an idle
-       * vault's entire on-disk history is eventually evicted and wiped. Only the
-       * count cap bounds live files here; `retention.maxAgeDays` is left to govern
-       * tombstones below.
-       */
-      0,
-      (item) => item.timestamp
-    );
-    const keptTombstones = this.applyBucketRetention(
-      tombstones,
-      this.settingsService.value("retention.maxDeletedEntries"),
-      this.settingsService.value("retention.maxDeletedAgeDays"),
-      /**
-       * Age a tombstone by its deletion time so the policy answers "how long do
-       * we keep deleted-file recoverability" rather than "how stale was the file
-       * when it was deleted".
-       */
-      (item) => {
-        var _a;
-        return (_a = item.deletedTimestamp) != null ? _a : item.timestamp;
-      }
-    );
-    return [...keptLive, ...keptTombstones];
+    const caps = {
+      maxEntries: this.settingsService.value("retention.maxEntries"),
+      maxDeletedEntries: this.settingsService.value("retention.maxDeletedEntries"),
+      maxDeletedAgeDays: this.settingsService.value("retention.maxDeletedAgeDays")
+    };
+    return RetentionPolicy.apply(snapshots, caps);
   }
-  /**
-   * Runs a single retention pass on a bucket of serialized snapshots, dropping
-   * entries older than `maxAgeDays` (when > 0) and then capping by
-   * `maxEntries` (when > 0). The bucket's "age" is read through the supplied
-   * accessor so tombstones age by `deletedTimestamp`. Callers pass
-   * `maxAgeDays = 0` to disable age pruning entirely: the live bucket does this
-   * so a still-present file is never expired by age (see {@link applyRetention}).
-   *
-   * @param {SerializedFileSnapshot[]} bucket - The bucket to prune (not mutated)
-   * @param {number} maxEntries - Size cap for this bucket (0 disables)
-   * @param {number} maxAgeDays - Age cap in days for this bucket (0 disables)
-   * @param {(item: SerializedFileSnapshot) => number} ageOf - Reads the age timestamp from an item
-   * @return {SerializedFileSnapshot[]} The retained subset, newest first
-   */
-  applyBucketRetention(bucket, maxEntries, maxAgeDays, ageOf) {
-    const oldest = maxAgeDays > 0 ? Date.now() - maxAgeDays * MS_PER_DAY : 0;
-    let kept = bucket.filter(
-      (item) => oldest === 0 || ageOf(item) >= oldest
-    );
-    kept.sort((a, b) => ageOf(b) - ageOf(a));
-    if (maxEntries > 0 && kept.length > maxEntries) {
-      kept = kept.slice(0, maxEntries);
-    }
-    return kept;
-  }
-  /**
-   * Schedules a debounced write to disk, collapsing rapid updates into one.
-   */
+  /** Schedules a debounced save, collapsing rapid updates into one. */
   scheduleSave() {
-    if (this.saveTimer) {
-      clearTimeout(this.saveTimer);
-    }
-    this.saveTimer = setTimeout(() => {
-      this.saveTimer = null;
-      this.enqueueSave();
-    }, SAVE_DEBOUNCE_MS);
+    this.queue.schedule(() => this.saveToDisk());
   }
   /**
    * Appends a save to the write queue so it runs after every previously
    * scheduled write completes.
    */
   enqueueSave() {
-    this.enqueue(() => this.saveToDisk());
+    this.queue.enqueue(() => this.saveToDisk());
   }
-  /**
-   * Appends a clear to the write queue so it serializes with pending saves.
-   */
+  /** Appends a clear to the write queue so it serializes with pending saves. */
   enqueueClear() {
-    this.enqueue(() => this.clearDisk());
+    this.queue.enqueue(() => this.clearDisk());
   }
   /**
-   * Appends one unit of work to the serialized write queue, isolating its
-   * failure. The stored `writeQueue` is always left in a FULFILLED state: a
-   * rejection from `work` is caught and logged here, never propagated into the
-   * chain. Without this, a single throwing unit would leave `writeQueue` as a
-   * rejected promise, and because every `enqueue` chains with `.then(onFulfilled)`
-   * (no rejection handler), that rejection would pass straight through and
-   * permanently starve every later save, clear, and the `unload` flush, leaving
-   * the on-disk history frozen at its last good state. Each unit is responsible
-   * for its own data-loss guards (see `saveToDisk`); this seam only guarantees
-   * the queue keeps running.
+   * The tail of the serialized write queue. Awaiting it flushes every write
+   * submitted so far, so {@link unload} can drain before the plugin tears down.
    *
-   * @param {() => Promise<void>} work - The queued unit of write work
+   * @return {Promise<void>} Resolves when the current write tail completes
    */
-  enqueue(work) {
-    this.writeQueue = this.writeQueue.then(() => work()).catch((error) => {
-      console.error("Local history: a queued write failed; continuing with the next", error);
-    });
+  get writeQueue() {
+    return this.queue.settled();
   }
   /**
    * Serializes the current snapshots and reconciles them to the shard directory.
@@ -22031,15 +21546,15 @@ var PersistenceService = class {
     const keptPaths = /* @__PURE__ */ new Set();
     for (const snapshot of kept) {
       keptPaths.add(snapshot.path);
-      const digest = this.contentDigest(snapshot);
+      const digest2 = this.contentDigest(snapshot);
       const existing = this.shardIndex.get(snapshot.path);
-      if (existing && existing.digest === digest) {
+      if (existing && existing.digest === digest2) {
         continue;
       }
       const name = (_a = existing == null ? void 0 : existing.name) != null ? _a : this.allocateShardName(snapshot.path);
       try {
         await store.writeShard(name, { version: payload.version, snapshot });
-        this.shardIndex.set(snapshot.path, { name, digest });
+        this.shardIndex.set(snapshot.path, { name, digest: digest2 });
       } catch (error) {
         console.error("Local history: failed to persist history shard", snapshot.path, error);
       }
@@ -22054,10 +21569,10 @@ var PersistenceService = class {
   }
   /**
    * Allocates a shard filename for a path that has no index entry yet, resolving
-   * the astronomically-rare 64-bit hash collision. The base name is the path
-   * hash; if a different path already holds it in the index, a numeric suffix is
-   * linear-probed until free so two distinct notes never share a filename and one
-   * can never silently overwrite another.
+   * the astronomically-rare 64-bit hash collision. Binds the live in-memory index
+   * as the set of already-claimed names and defers the base-hash-plus-probe
+   * allocation to {@link ShardNameHelper.allocate}, so two distinct notes never
+   * share a filename and one can never silently overwrite another.
    *
    * @param {string} path - The vault-relative note path to name a shard for
    * @return {string} A shard filename not currently held by any other path
@@ -22066,171 +21581,7 @@ var PersistenceService = class {
     const taken = new Set(
       [...this.shardIndex.values()].map((entry) => entry.name)
     );
-    return this.allocateShardNameAgainst(path, taken);
-  }
-  /**
-   * Allocates a collision-free shard filename for a path against an arbitrary set
-   * of already-claimed names. The base name is the path hash; if it is taken, a
-   * numeric suffix is linear-probed before the `.json` extension so two distinct
-   * paths never share a filename. Shared by {@link allocateShardName} (probing
-   * the live index) and the migration pass (probing names claimed so far).
-   *
-   * @param {string} path - The vault-relative note path to name a shard for
-   * @param {Set<string>} taken - Names already claimed (must not be reused)
-   * @return {string} A shard filename not present in `taken`
-   */
-  allocateShardNameAgainst(path, taken) {
-    const base = ShardNameHelper.forPath(path);
-    if (!taken.has(base)) {
-      return base;
-    }
-    const dot = base.lastIndexOf(".");
-    const stem = dot === -1 ? base : base.slice(0, dot);
-    const ext = dot === -1 ? "" : base.slice(dot);
-    let suffix = 1;
-    let candidate = `${stem}-${suffix}${ext}`;
-    while (taken.has(candidate)) {
-      suffix += 1;
-      candidate = `${stem}-${suffix}${ext}`;
-    }
-    return candidate;
-  }
-  /**
-   * Migrates a legacy monolithic `history.json` into per-note shards exactly once
-   *. Runs only when the shard directory holds no shards yet but a
-   * legacy file (or its `.bak`) still exists and parses: each legacy snapshot is
-   * written as its own shard, then the legacy `history.json`/`.bak`/`.tmp` files
-   * are removed. The shard `version` is carried through from the legacy file (no
-   * re-encode), so a version-1 or version-2 monolith migrates byte-for-byte per
-   * snapshot whether or not the delta codec has landed.
-   *
-   * Failure-safe: a write failure aborts before any legacy file is removed and
-   * logs, so the legacy file stays intact and the next restore retries. Once
-   * shards exist the legacy path is never consulted again (the guard sees a
-   * non-empty shard dir and returns immediately).
-   *
-   * @return {Promise<void>} Resolves once migration ran or was skipped
-   */
-  async migrateMonolithIfNeeded() {
-    if ((await this.shardStore().listNames()).size > 0) {
-      return;
-    }
-    const legacy = await this.readDisk();
-    if (!legacy || legacy.snapshots.length === 0) {
-      return;
-    }
-    const store = this.shardStore();
-    const taken = /* @__PURE__ */ new Set();
-    try {
-      for (const snapshot of legacy.snapshots) {
-        const name = this.allocateShardNameAgainst(snapshot.path, taken);
-        taken.add(name);
-        await store.writeShard(name, { version: legacy.version, snapshot });
-      }
-    } catch (error) {
-      console.error("Local history: failed to migrate legacy history into shards", error);
-      return;
-    }
-    await this.removeLegacyMonolith();
-  }
-  /**
-   * Removes the legacy monolithic `history.json` and its `.bak`/`.tmp` siblings
-   * after a successful migration. Best-effort and idempotent: a missing variant
-   * is fine and a per-variant failure is logged, not thrown, so a stubborn file
-   * cannot abort restore once the shards are already on disk.
-   *
-   * @return {Promise<void>} Resolves once all present legacy variants are gone
-   */
-  async removeLegacyMonolith() {
-    const path = this.getHistoryPath();
-    for (const candidate of [path, `${path}.bak`, `${path}.tmp`]) {
-      try {
-        if (await this.plugin.app.vault.adapter.exists(candidate)) {
-          await this.plugin.app.vault.adapter.remove(candidate);
-        }
-      } catch (error) {
-        console.error("Local history: failed to remove legacy history file", candidate, error);
-      }
-    }
-  }
-  /**
-   * Reads and parses the legacy on-disk monolith, the one-time migration source
-   *. Tries the primary `history.json` first and falls back to its
-   * `.bak` sibling so a crash between the monolith's old `tmp -> bak -> rename`
-   * steps still yields a usable source. Returns null when neither variant is
-   * present or parses, so the migration caller treats a missing/corrupt monolith
-   * as "nothing to migrate" rather than throwing.
-   *
-   * Per-entry validation: each snapshot is checked against a minimal
-   * shape predicate (`isValidEntry`) and malformed entries are skipped so a few
-   * bad records do not poison retention math (`NaN >= oldest` is always false,
-   * silently dropping otherwise-valid entries) or crash downstream `fromJSON`.
-   *
-   * @return {Promise<SerializedHistory | null>} The parsed history, or null
-   */
-  async readDisk() {
-    const path = this.getHistoryPath();
-    for (const candidate of [path, `${path}.bak`]) {
-      const parsed = await this.readMonolithVariant(candidate);
-      if (parsed !== null) {
-        return parsed;
-      }
-    }
-    return null;
-  }
-  /**
-   * Reads and validates one legacy monolith variant (`history.json` or its
-   * `.bak`). Returns null when the file is absent, unreadable, not JSON, or has
-   * no `snapshots` array so {@link readDisk} can fall through to the next
-   * variant. Never throws.
-   *
-   * @param {string} path - The full vault-relative path of the variant
-   * @return {Promise<SerializedHistory | null>} The parsed history, or null
-   */
-  async readMonolithVariant(path) {
-    try {
-      if (!await this.plugin.app.vault.adapter.exists(path)) {
-        return null;
-      }
-      const raw = await this.plugin.app.vault.adapter.read(path);
-      const parsed = JSON.parse(raw);
-      if (!parsed || !Array.isArray(parsed.snapshots)) {
-        return null;
-      }
-      const valid = parsed.snapshots.filter(
-        (item) => this.isValidEntry(item)
-      );
-      return { version: parsed.version, snapshots: valid };
-    } catch (error) {
-      console.error("Local history: failed to read persisted history", error);
-      return null;
-    }
-  }
-  /**
-   * Whether a serialized snapshot has the minimum well-formed shape required to
-   * survive retention math and reach `FileSnapshot.fromJSON` without falling
-   * back to defaults that would resurrect junk. Required: `path` is a string,
-   * `timestamp` is a finite number, `lines` and `tracker` are arrays. A
-   * non-finite timestamp is treated as "skip" rather than `0` so a malformed
-   * entry cannot pose as fresh history.
-   *
-   * @param {SerializedFileSnapshot} item - The candidate entry
-   * @return {boolean} True when the entry is structurally usable
-   */
-  isValidEntry(item) {
-    if (!item || typeof item !== "object") {
-      return false;
-    }
-    if (!isString_default(item.path)) {
-      return false;
-    }
-    if (!isNumber_default(item.timestamp) || !Number.isFinite(item.timestamp)) {
-      return false;
-    }
-    if (!Array.isArray(item.lines) || !Array.isArray(item.tracker)) {
-      return false;
-    }
-    return true;
+    return allocate(path, taken);
   }
   /**
    * Wipes the on-disk shard directory and resets the in-memory index.
@@ -22247,18 +21598,8 @@ var PersistenceService = class {
     this.shardIndex.clear();
   }
   /**
-   * Resolves the absolute (vault-relative) path of the history file inside the
-   * plugin folder. Falls back to a sane default if the manifest dir is missing.
-   *
-   * @return {string} The vault-relative path to the history file
-   */
-  getHistoryPath() {
-    return `${this.getPluginDir()}/history.json`;
-  }
-  /**
    * Resolves the vault-relative path of the per-note shard directory inside the
-   * plugin folder. Resolved the same way as {@link getHistoryPath} but pointing
-   * at `<plugindir>/history` (ADR-10).
+   * plugin folder, pointing at `<plugindir>/history` (ADR-10).
    *
    * @return {string} The vault-relative path to the shard directory
    */
@@ -22267,8 +21608,9 @@ var PersistenceService = class {
   }
   /**
    * Resolves the plugin's own folder, falling back to a sane default if the
-   * manifest dir is missing. Shared by {@link getHistoryPath} (legacy monolith)
-   * and {@link getShardDir} (shard directory) so both resolve identically.
+   * manifest dir is missing. Shared by {@link getShardDir} (shard directory) and
+   * {@link MonolithMigrator} (which derives the legacy monolith path from it) so
+   * both resolve identically.
    *
    * @return {string} The vault-relative plugin directory
    */
@@ -22301,7 +21643,7 @@ var PersistenceService = class {
    * @return {string} A deterministic content digest string
    */
   contentDigest(snapshot) {
-    return ShardNameHelper.forPath(JSON.stringify(snapshot));
+    return forPath(JSON.stringify(snapshot));
   }
   /**
    * Whether history should be persisted to disk right now.
@@ -22443,18 +21785,321 @@ _PathExcludeHelper.MAX_PATH_LENGTH = 4096;
 _PathExcludeHelper.cache = /* @__PURE__ */ new Map();
 var PathExcludeHelper = _PathExcludeHelper;
 
-// src/settings/main.setting.ts
-var import_obsidian23 = require("obsidian");
-var MainSetting = class extends import_obsidian23.PluginSettingTab {
-  constructor() {
-    super(...arguments);
+// src/settings/exclude-patterns-editor.ts
+var ExcludePatternsEditor = class {
+  /**
+   * @param {ExcludePatternsEditorHost} host - The tab-side operations the editor
+   *   delegates to (read, persist, translate).
+   */
+  constructor(host) {
+    this.host = host;
     /**
      * Every dynamic row currently in the excluded-paths group (the empty-state
      * hint, pattern rows, and the unsaved new-pattern row). Tracked so
-     * {@link refreshPatternRows} can remove exactly the rows this editor owns,
-     * leaving the group header, its "+" button, and the static rows intact.
+     * {@link refreshRows} can remove exactly the rows this editor owns, leaving the
+     * group header, its "+" button, and the static rows intact.
      */
-    this.excludeRows = [];
+    this.rows = [];
+  }
+  /**
+   * Renders the dynamic pattern rows into the group and remembers the group so a
+   * later persisted mutation can rebuild them in place. Resets the insertion
+   * anchor first, since the case-sensitivity toggle that sets it is appended by
+   * the tab only after this call.
+   *
+   * @param {SettingGroup} group - The "Excluded paths" native setting group
+   */
+  render(group) {
+    this.group = group;
+    this.anchor = void 0;
+    this.renderRows(group, [...this.host.getPatterns()]);
+  }
+  /**
+   * Records the row above which refreshed pattern rows are inserted (the
+   * case-sensitivity toggle, appended last by the tab). Until it is set the rows
+   * stay where the group appended them.
+   *
+   * @param {Setting} setting - The insertion-anchor row
+   */
+  setAnchor(setting) {
+    this.anchor = setting;
+  }
+  /**
+   * Appends a new unsaved pattern row already in edit mode. When such a row is
+   * already open, re-focuses it instead of stacking another. The empty-state
+   * hint hides while the unsaved row is open and returns on cancel; a successful
+   * save persists and rebuilds the pattern rows in place.
+   */
+  startAdd() {
+    var _a, _b;
+    const group = this.group;
+    if (!group) {
+      return;
+    }
+    if (this.newRow) {
+      (_a = this.newInput) == null ? void 0 : _a.inputEl.focus();
+      return;
+    }
+    (_b = this.hint) == null ? void 0 : _b.settingEl.addClass("lct-row-hidden");
+    group.addSetting((setting) => {
+      this.placeRow(setting);
+      this.newRow = setting;
+      this.newInput = this.renderEditor(
+        setting,
+        "",
+        (value) => this.append(value),
+        () => {
+          var _a2;
+          setting.settingEl.remove();
+          this.rows = this.rows.filter((row) => row !== setting);
+          this.newRow = void 0;
+          this.newInput = void 0;
+          (_a2 = this.hint) == null ? void 0 : _a2.settingEl.removeClass("lct-row-hidden");
+        }
+      );
+    });
+  }
+  /**
+   * Tracks a dynamic pattern row and keeps it above the case-sensitivity toggle.
+   * On the initial render the toggle does not exist yet, so rows stay where the
+   * group appended them (right after the description); on an in-place refresh or
+   * an added row the group appends to its end, which is below the toggle, so the
+   * row's element is moved up before the anchor.
+   *
+   * @param {Setting} setting - The freshly appended dynamic row
+   */
+  placeRow(setting) {
+    var _a;
+    this.rows.push(setting);
+    (_a = this.anchor) == null ? void 0 : _a.settingEl.before(setting.settingEl);
+  }
+  /**
+   * Renders the dynamic pattern rows into the group: a hint row while the list
+   * is empty, otherwise one display-mode row per pattern. Resets the
+   * row-tracking state first, so the call is also the second half of an in-place
+   * refresh.
+   *
+   * @param {SettingGroup} group - The "Excluded paths" native setting group
+   * @param {string[]} patterns - The pattern list to render rows for
+   */
+  renderRows(group, patterns) {
+    this.hint = void 0;
+    this.newRow = void 0;
+    this.newInput = void 0;
+    this.rows = [];
+    if (patterns.length === 0) {
+      group.addSetting((setting) => {
+        this.placeRow(setting);
+        this.hint = setting.setDesc(this.host.t("setting.exclude-paths.empty"));
+      });
+    }
+    patterns.forEach((pattern, index) => {
+      group.addSetting((setting) => {
+        this.placeRow(setting);
+        this.renderDisplay(setting, pattern, index);
+      });
+    });
+  }
+  /**
+   * Rebuilds the pattern rows in place after a persisted mutation: removes every
+   * dynamic row this editor added to the group (the header, its "+" button, and
+   * the static rows stay) and renders fresh rows from the given list. No-ops when
+   * the group has not rendered yet.
+   *
+   * @param {string[]} patterns - The persisted pattern list the rows must match
+   */
+  refreshRows(patterns) {
+    const group = this.group;
+    if (!group) {
+      return;
+    }
+    for (const row of this.rows) {
+      row.settingEl.remove();
+    }
+    this.renderRows(group, patterns);
+  }
+  /**
+   * Renders (or restores) a pattern row's display mode: the pattern as the row
+   * name plus ghost edit and remove icon-buttons. Edit swaps the same row into
+   * edit mode in place; remove persists the shortened list.
+   *
+   * @param {Setting} setting - The row to render into (cleared first)
+   * @param {string} pattern - The pattern this row shows
+   * @param {number} index - The index of the pattern in the list
+   */
+  renderDisplay(setting, pattern, index) {
+    setting.clear();
+    setting.controlEl.empty();
+    setting.settingEl.removeClass("lct-exclude-edit");
+    setting.setName(pattern);
+    setting.addExtraButton(
+      (button) => button.setIcon("pencil").setTooltip(this.host.t("setting.exclude-paths.edit")).onClick(() => {
+        this.renderEditor(
+          setting,
+          pattern,
+          (value) => this.replace(index, value),
+          () => {
+            this.renderDisplay(setting, pattern, index);
+          }
+        );
+      })
+    );
+    setting.addExtraButton(
+      (button) => button.setIcon("trash").setTooltip(this.host.t("setting.exclude-paths.remove")).onClick(() => {
+        this.remove(index);
+      })
+    );
+  }
+  /**
+   * Swaps a pattern row into edit mode: a text field spanning the free row width
+   * plus save/cancel icon-buttons. Enter saves, Escape cancels. A failed save
+   * surfaces the validation message inline under the field and keeps the row in
+   * edit mode; a successful save persists, which rebuilds the pattern rows in
+   * place.
+   *
+   * @param {Setting} setting - The row to render into (cleared first)
+   * @param {string} initial - The initial field value (the current pattern, or
+   *   empty for a new row)
+   * @param {(value: string) => string | null} commit - Persists the entered
+   *   value; returns an error message to surface inline, or null on success
+   * @param {() => void} cancel - Restores the row (or removes it, for an unsaved
+   *   new row)
+   * @return {TextComponent | undefined} The text component, for re-focus
+   */
+  renderEditor(setting, initial, commit, cancel) {
+    setting.clear();
+    setting.controlEl.empty();
+    setting.setName("");
+    setting.settingEl.addClass("lct-exclude-edit");
+    const errorEl = setting.controlEl.createDiv({ cls: "lct-setting-error" });
+    let input;
+    const save = () => {
+      var _a;
+      const message = commit((_a = input == null ? void 0 : input.getValue()) != null ? _a : "");
+      errorEl.setText(message != null ? message : "");
+    };
+    setting.addText((text) => {
+      input = text;
+      text.setPlaceholder(this.host.t("setting.exclude-paths.placeholder")).setValue(initial);
+      text.inputEl.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          save();
+          return;
+        }
+        if (event.key === "Escape") {
+          event.preventDefault();
+          cancel();
+        }
+      });
+    });
+    setting.addExtraButton(
+      (button) => button.setIcon("check").setTooltip(this.host.t("setting.exclude-paths.save")).onClick(() => {
+        save();
+      })
+    );
+    setting.addExtraButton(
+      (button) => button.setIcon("x").setTooltip(this.host.t("setting.exclude-paths.cancel")).onClick(() => {
+        cancel();
+      })
+    );
+    input == null ? void 0 : input.inputEl.focus();
+    return input;
+  }
+  /**
+   * Validates a candidate exclude pattern: it must be non-blank and compile as a
+   * regular expression. Blank entries are rejected here even though the matcher
+   * tolerates them, because a stored blank row is dead weight the user would have
+   * to clean up by hand.
+   *
+   * @param {string} value - The trimmed candidate pattern
+   * @return {string | null} An error message, or null when the pattern is valid
+   */
+  validate(value) {
+    if (value === "" || !PathExcludeHelper.isValid(value)) {
+      return this.host.t("setting.exclude-paths.error");
+    }
+    return null;
+  }
+  /**
+   * Validates and persists a replacement for the pattern at `index`. The list is
+   * re-read from the host at invocation time so edits made since the rows
+   * rendered are preserved.
+   *
+   * @param {number} index - The index of the pattern being edited
+   * @param {string} value - The raw field value
+   * @return {string | null} An error message to surface inline, or null once
+   *   persisted
+   */
+  replace(index, value) {
+    const trimmed = value.trim();
+    const message = this.validate(trimmed);
+    if (message !== null) {
+      return message;
+    }
+    const next = [...this.host.getPatterns()];
+    next[index] = trimmed;
+    this.commit(next);
+    return null;
+  }
+  /**
+   * Validates and persists a new pattern appended to the list. The list is
+   * re-read from the host at invocation time so edits made since the rows
+   * rendered are preserved.
+   *
+   * @param {string} value - The raw field value
+   * @return {string | null} An error message to surface inline, or null once
+   *   persisted
+   */
+  append(value) {
+    const trimmed = value.trim();
+    const message = this.validate(trimmed);
+    if (message !== null) {
+      return message;
+    }
+    this.commit([...this.host.getPatterns(), trimmed]);
+    return null;
+  }
+  /**
+   * Removes the pattern at `index` and rebuilds the pattern rows in place.
+   *
+   * @param {number} index - The index of the pattern to remove
+   */
+  remove(index) {
+    const next = this.host.getPatterns().filter((_pattern, at) => at !== index);
+    this.commit(next);
+  }
+  /**
+   * Persists a replacement pattern list through the host and rebuilds the
+   * pattern rows in place so they match it. Only the dynamic rows are touched:
+   * the rest of the tab keeps its DOM and focus.
+   *
+   * @param {string[]} patterns - The full replacement pattern list
+   */
+  commit(patterns) {
+    this.host.persist(patterns);
+    this.refreshRows(patterns);
+  }
+};
+
+// src/settings/main.setting.ts
+var import_obsidian24 = require("obsidian");
+var MainSetting = class extends import_obsidian24.PluginSettingTab {
+  constructor() {
+    super(...arguments);
+    /**
+     * The dynamic pattern-list editor of the excluded-paths group. Reads the
+     * current list, persists a replacement (and syncs the purge button), and
+     * translates through this tab; the tab keeps the surrounding section wiring.
+     */
+    this.excludePatternsEditor = new ExcludePatternsEditor({
+      getPatterns: () => this.settingsService.value("excludePaths"),
+      persist: (patterns) => {
+        this.settingsService.update("excludePaths", patterns);
+        this.updatePurgeButtonState();
+      },
+      t: (key2) => this.plugin.t(key2)
+    });
   }
   /**
    * Renders the settings UI as native setting groups in a fixed order, with
@@ -22480,7 +22125,7 @@ var MainSetting = class extends import_obsidian23.PluginSettingTab {
    * @param {HTMLElement} containerEl - The settings tab container
    */
   renderGeneral(containerEl) {
-    const group = new import_obsidian23.SettingGroup(containerEl).setHeading(this.plugin.t("setting.general-heading"));
+    const group = new import_obsidian24.SettingGroup(containerEl).setHeading(this.plugin.t("setting.general-heading"));
     group.addSetting((setting) => {
       setting.setName(this.plugin.t("setting.type.name")).setDesc(this.plugin.t("setting.type.desc")).addDropdown(
         (dropdown) => dropdown.addOption("line" /* line */, this.plugin.t("setting.type.option.line")).addOption("dot" /* dot */, this.plugin.t("setting.type.option.dot")).setValue(this.settingsService.value("type")).onChange((value) => {
@@ -22536,290 +22181,32 @@ var MainSetting = class extends import_obsidian23.PluginSettingTab {
   }
   /**
    * Renders the "Excluded paths" group: the add control as the group header's
-   * native "+" button, a description row, one dynamic row per configured
-   * pattern (second in the group, right under the description), and the
-   * case-sensitivity toggle last. The toggle row doubles as the insertion
-   * anchor that keeps refreshed pattern rows above it (see
-   * {@link placePatternRow}).
+   * native "+" button, a description row, the dynamic pattern rows (owned by
+   * {@link ExcludePatternsEditor}), and the case-sensitivity toggle last. The
+   * toggle row doubles as the insertion anchor that keeps refreshed pattern rows
+   * above it.
    *
    * @param {HTMLElement} containerEl - The settings tab container
    */
   renderExcludePaths(containerEl) {
-    const group = new import_obsidian23.SettingGroup(containerEl).setHeading(this.plugin.t("setting.exclude-paths.name"));
-    this.excludeGroup = group;
-    this.caseSensitiveRow = void 0;
+    const group = new import_obsidian24.SettingGroup(containerEl).setHeading(this.plugin.t("setting.exclude-paths.name"));
     group.addExtraButton(
       (button) => button.setIcon("plus").setTooltip(this.plugin.t("setting.exclude-paths.add")).onClick(() => {
-        this.startAddPattern(group);
+        this.excludePatternsEditor.startAdd();
       })
     );
     group.addSetting((setting) => {
       setting.setDesc(this.plugin.t("setting.exclude-paths.desc"));
     });
-    this.renderPatternRows(group, [...this.settingsService.value("excludePaths")]);
+    this.excludePatternsEditor.render(group);
     group.addSetting((setting) => {
-      this.caseSensitiveRow = setting;
+      this.excludePatternsEditor.setAnchor(setting);
       setting.setName(this.plugin.t("setting.exclude-paths-case-sensitive.name")).setDesc(this.plugin.t("setting.exclude-paths-case-sensitive.desc")).addToggle(
         (toggle) => toggle.setValue(this.settingsService.value("excludePathsCaseSensitive")).onChange((value) => {
           this.settingsService.update("excludePathsCaseSensitive", value);
         })
       );
     });
-  }
-  /**
-   * Tracks a dynamic pattern row and keeps it above the case-sensitivity
-   * toggle. On the initial render the toggle does not exist yet, so rows stay
-   * where the group appended them (right after the description); on an
-   * in-place refresh or an added row the group appends to its end, which is
-   * below the toggle, so the row's element is moved up before the anchor.
-   *
-   * @param {Setting} setting - The freshly appended dynamic row
-   */
-  placePatternRow(setting) {
-    var _a;
-    this.excludeRows.push(setting);
-    (_a = this.caseSensitiveRow) == null ? void 0 : _a.settingEl.before(setting.settingEl);
-  }
-  /**
-   * Renders the dynamic pattern rows into the group: a hint row while the list
-   * is empty, otherwise one display-mode row per pattern. Resets the
-   * row-tracking state first, so the call is also the second half of an
-   * in-place refresh.
-   *
-   * @param {SettingGroup} group - The "Excluded paths" native setting group
-   * @param {string[]} patterns - The pattern list to render rows for
-   */
-  renderPatternRows(group, patterns) {
-    this.excludeHint = void 0;
-    this.newPatternRow = void 0;
-    this.newPatternInput = void 0;
-    this.excludeRows = [];
-    if (patterns.length === 0) {
-      group.addSetting((setting) => {
-        this.placePatternRow(setting);
-        this.excludeHint = setting.setDesc(this.plugin.t("setting.exclude-paths.empty"));
-      });
-    }
-    patterns.forEach((pattern, index) => {
-      group.addSetting((setting) => {
-        this.placePatternRow(setting);
-        this.renderPatternDisplay(setting, pattern, index);
-      });
-    });
-  }
-  /**
-   * Rebuilds the pattern rows in place after a persisted mutation: removes
-   * every dynamic row this editor added to the group (the header, its "+"
-   * button, and the static rows stay) and renders fresh rows from the given
-   * list. No-ops when the group has not rendered yet.
-   *
-   * @param {string[]} patterns - The persisted pattern list the rows must match
-   */
-  refreshPatternRows(patterns) {
-    const group = this.excludeGroup;
-    if (!group) {
-      return;
-    }
-    for (const row of this.excludeRows) {
-      row.settingEl.remove();
-    }
-    this.renderPatternRows(group, patterns);
-  }
-  /**
-   * Renders (or restores) a pattern row's display mode: the pattern as the row
-   * name plus ghost edit and remove icon-buttons. Edit swaps the same row into
-   * edit mode in place; remove persists the shortened list.
-   *
-   * @param {Setting} setting - The row to render into (cleared first)
-   * @param {string} pattern - The pattern this row shows
-   * @param {number} index - The index of the pattern in the list
-   */
-  renderPatternDisplay(setting, pattern, index) {
-    setting.clear();
-    setting.controlEl.empty();
-    setting.settingEl.removeClass("lct-exclude-edit");
-    setting.setName(pattern);
-    setting.addExtraButton(
-      (button) => button.setIcon("pencil").setTooltip(this.plugin.t("setting.exclude-paths.edit")).onClick(() => {
-        this.renderPatternEditor(
-          setting,
-          pattern,
-          (value) => this.replacePattern(index, value),
-          () => {
-            this.renderPatternDisplay(setting, pattern, index);
-          }
-        );
-      })
-    );
-    setting.addExtraButton(
-      (button) => button.setIcon("trash").setTooltip(this.plugin.t("setting.exclude-paths.remove")).onClick(() => {
-        this.removePattern(index);
-      })
-    );
-  }
-  /**
-   * Swaps a pattern row into edit mode: a text field spanning the free row
-   * width plus save/cancel icon-buttons. Enter saves, Escape cancels. A failed
-   * save surfaces the validation message inline under the field and keeps the
-   * row in edit mode; a successful save persists, which rebuilds the pattern
-   * rows in place.
-   *
-   * @param {Setting} setting - The row to render into (cleared first)
-   * @param {string} initial - The initial field value (the current pattern, or
-   *   empty for a new row)
-   * @param {(value: string) => string | null} commit - Persists the entered
-   *   value; returns an error message to surface inline, or null on success
-   * @param {() => void} cancel - Restores the row (or removes it, for an
-   *   unsaved new row)
-   * @return {TextComponent | undefined} The text component, for re-focus
-   */
-  renderPatternEditor(setting, initial, commit, cancel) {
-    setting.clear();
-    setting.controlEl.empty();
-    setting.setName("");
-    setting.settingEl.addClass("lct-exclude-edit");
-    const errorEl = setting.controlEl.createDiv({ cls: "lct-setting-error" });
-    let input;
-    const save = () => {
-      var _a;
-      const message = commit((_a = input == null ? void 0 : input.getValue()) != null ? _a : "");
-      errorEl.setText(message != null ? message : "");
-    };
-    setting.addText((text) => {
-      input = text;
-      text.setPlaceholder(this.plugin.t("setting.exclude-paths.placeholder")).setValue(initial);
-      text.inputEl.addEventListener("keydown", (event) => {
-        if (event.key === "Enter") {
-          event.preventDefault();
-          save();
-          return;
-        }
-        if (event.key === "Escape") {
-          event.preventDefault();
-          cancel();
-        }
-      });
-    });
-    setting.addExtraButton(
-      (button) => button.setIcon("check").setTooltip(this.plugin.t("setting.exclude-paths.save")).onClick(() => {
-        save();
-      })
-    );
-    setting.addExtraButton(
-      (button) => button.setIcon("x").setTooltip(this.plugin.t("setting.exclude-paths.cancel")).onClick(() => {
-        cancel();
-      })
-    );
-    input == null ? void 0 : input.inputEl.focus();
-    return input;
-  }
-  /**
-   * Appends a new unsaved pattern row already in edit mode. When such a row is
-   * already open, re-focuses it instead of stacking another. The empty-state
-   * hint hides while the unsaved row is open and returns on cancel; a
-   * successful save persists and rebuilds the pattern rows in place.
-   *
-   * @param {SettingGroup} group - The native setting group the row is appended to
-   */
-  startAddPattern(group) {
-    var _a, _b;
-    if (this.newPatternRow) {
-      (_a = this.newPatternInput) == null ? void 0 : _a.inputEl.focus();
-      return;
-    }
-    (_b = this.excludeHint) == null ? void 0 : _b.settingEl.addClass("lct-row-hidden");
-    group.addSetting((setting) => {
-      this.placePatternRow(setting);
-      this.newPatternRow = setting;
-      this.newPatternInput = this.renderPatternEditor(
-        setting,
-        "",
-        (value) => this.appendPattern(value),
-        () => {
-          var _a2;
-          setting.settingEl.remove();
-          this.excludeRows = this.excludeRows.filter((row) => row !== setting);
-          this.newPatternRow = void 0;
-          this.newPatternInput = void 0;
-          (_a2 = this.excludeHint) == null ? void 0 : _a2.settingEl.removeClass("lct-row-hidden");
-        }
-      );
-    });
-  }
-  /**
-   * Validates a candidate exclude pattern: it must be non-blank and compile as
-   * a regular expression. Blank entries are rejected here even though the
-   * matcher tolerates them, because a stored blank row is dead weight the user
-   * would have to clean up by hand.
-   *
-   * @param {string} value - The trimmed candidate pattern
-   * @return {string | null} An error message, or null when the pattern is valid
-   */
-  validatePattern(value) {
-    if (value === "" || !PathExcludeHelper.isValid(value)) {
-      return this.plugin.t("setting.exclude-paths.error");
-    }
-    return null;
-  }
-  /**
-   * Validates and persists a replacement for the pattern at `index`. The list
-   * is re-read from the settings service at invocation time so edits made
-   * since the rows rendered are preserved.
-   *
-   * @param {number} index - The index of the pattern being edited
-   * @param {string} value - The raw field value
-   * @return {string | null} An error message to surface inline, or null once
-   *   persisted
-   */
-  replacePattern(index, value) {
-    const trimmed = value.trim();
-    const message = this.validatePattern(trimmed);
-    if (message !== null) {
-      return message;
-    }
-    const next = [...this.settingsService.value("excludePaths")];
-    next[index] = trimmed;
-    this.persistPatterns(next);
-    return null;
-  }
-  /**
-   * Validates and persists a new pattern appended to the list. The list is
-   * re-read from the settings service at invocation time so edits made since
-   * the rows rendered are preserved.
-   *
-   * @param {string} value - The raw field value
-   * @return {string | null} An error message to surface inline, or null once
-   *   persisted
-   */
-  appendPattern(value) {
-    const trimmed = value.trim();
-    const message = this.validatePattern(trimmed);
-    if (message !== null) {
-      return message;
-    }
-    this.persistPatterns([...this.settingsService.value("excludePaths"), trimmed]);
-    return null;
-  }
-  /**
-   * Removes the pattern at `index` and rebuilds the pattern rows in place.
-   *
-   * @param {number} index - The index of the pattern to remove
-   */
-  removePattern(index) {
-    const next = this.settingsService.value("excludePaths").filter((_pattern, at) => at !== index);
-    this.persistPatterns(next);
-  }
-  /**
-   * Persists a replacement pattern list and rebuilds the pattern rows in place
-   * so they match the persisted list. Only the dynamic rows are touched: the
-   * rest of the tab keeps its DOM and focus.
-   *
-   * @param {string[]} patterns - The full replacement pattern list
-   */
-  persistPatterns(patterns) {
-    this.settingsService.update("excludePaths", patterns);
-    this.refreshPatternRows(patterns);
-    this.updatePurgeButtonState();
   }
   /**
    * Reports whether at least one non-blank exclude pattern is configured.
@@ -22850,7 +22237,7 @@ var MainSetting = class extends import_obsidian23.PluginSettingTab {
    * @param {HTMLElement} containerEl - The settings tab container
    */
   renderSnapshots(containerEl) {
-    const group = new import_obsidian23.SettingGroup(containerEl).setHeading(this.plugin.t("setting.snapshots-heading"));
+    const group = new import_obsidian24.SettingGroup(containerEl).setHeading(this.plugin.t("setting.snapshots-heading"));
     group.addSetting((setting) => {
       setting.setName(this.plugin.t("setting.snapshots-enabled.name")).setDesc(this.plugin.t("setting.snapshots-enabled.desc")).addToggle(
         (toggle) => toggle.setValue(this.settingsService.value("snapshots.enabled")).onChange((value) => {
@@ -22904,7 +22291,7 @@ var MainSetting = class extends import_obsidian23.PluginSettingTab {
    * @param {HTMLElement} containerEl - The settings tab container
    */
   renderShow(containerEl) {
-    const group = new import_obsidian23.SettingGroup(containerEl).setHeading(this.plugin.t("setting.show-heading"));
+    const group = new import_obsidian24.SettingGroup(containerEl).setHeading(this.plugin.t("setting.show-heading"));
     group.addSetting((setting) => {
       setting.setDesc(this.plugin.t("setting.show.desc"));
     });
@@ -22930,7 +22317,7 @@ var MainSetting = class extends import_obsidian23.PluginSettingTab {
    * @param {HTMLElement} containerEl - The settings tab container
    */
   renderLine(containerEl) {
-    const group = new import_obsidian23.SettingGroup(containerEl).setHeading(this.plugin.t("setting.line-heading"));
+    const group = new import_obsidian24.SettingGroup(containerEl).setHeading(this.plugin.t("setting.line-heading"));
     group.addSetting((setting) => {
       setting.setName(this.plugin.t("setting.line-width.name")).setDesc(this.plugin.t("setting.line-width.desc")).addSlider(
         (slider) => slider.setLimits(1, 5, 1).setValue(this.settingsService.value("line.width")).setDynamicTooltip().onChange((value) => {
@@ -22946,10 +22333,10 @@ var MainSetting = class extends import_obsidian23.PluginSettingTab {
    * @param {HTMLElement} containerEl - The settings tab container
    */
   renderGutter(containerEl) {
-    const group = new import_obsidian23.SettingGroup(containerEl).setHeading(this.plugin.t("setting.gutter-heading.name"));
+    const group = new import_obsidian24.SettingGroup(containerEl).setHeading(this.plugin.t("setting.gutter-heading.name"));
     group.addSetting((setting) => {
       setting.setDesc(
-        DomHelper.createFragment([
+        createFragment([
           {
             tag: "div",
             children: [
@@ -23000,7 +22387,7 @@ var MainSetting = class extends import_obsidian23.PluginSettingTab {
    * @param {HTMLElement} containerEl - The settings tab container
    */
   renderCleanup(containerEl) {
-    const group = new import_obsidian23.SettingGroup(containerEl).setHeading(this.plugin.t("setting.cleanup-heading"));
+    const group = new import_obsidian24.SettingGroup(containerEl).setHeading(this.plugin.t("setting.cleanup-heading"));
     group.addSetting((setting) => {
       setting.setName(this.plugin.t("setting.keep.name")).setDesc(this.plugin.t("setting.keep.desc")).addDropdown(
         (dropdown) => dropdown.addOption("app" /* app */, this.plugin.t("setting.keep.option.app")).addOption("file" /* file */, this.plugin.t("setting.keep.option.file")).setValue(this.settingsService.value("keep")).onChange((value) => {
@@ -23050,7 +22437,7 @@ var MainSetting = class extends import_obsidian23.PluginSettingTab {
           }
           const count = this.snapshotsService.purgeExcluded();
           const message = count === 0 ? this.plugin.t("notice.purge-excluded.no-match") : this.plugin.t("notice.purge-excluded").replace("{count}", String(count));
-          new import_obsidian23.Notice(message);
+          new import_obsidian24.Notice(message);
         });
       });
     });
@@ -23248,111 +22635,7 @@ var SettingsService = class _SettingsService {
   }
 };
 
-// src/maps/observable.map.ts
-var ObservableMap = class extends Map {
-  constructor() {
-    super(...arguments);
-    /**
-     * Set of change handler functions that are notified when the map changes.
-     * Each handler is called with the action type and relevant key/value.
-     */
-    this.listeners = /* @__PURE__ */ new Set();
-  }
-  /**
-   * Subscribes a handler function to be called when the map changes.
-   * Returns an object with an unsubscribe method to remove the handler.
-   *
-   * @param {Function} handler - The function to call when the map changes
-   * @return {Object} An object with an unsubscribe method
-   */
-  subscribe(handler) {
-    this.listeners.add(handler);
-    const listeners = this.listeners;
-    return {
-      unsubscribe() {
-        listeners.delete(handler);
-      }
-    };
-  }
-  /**
-   * Unsubscribes a handler function from map change notifications.
-   *
-   * @param {Function} handler - The handler function to remove
-   */
-  unsubscribe(handler) {
-    this.listeners.delete(handler);
-  }
-  /**
-   * Notifies all subscribed handlers of a change to the map.
-   * Called internally by the set, delete, and clear methods.
-   *
-   * Iterates over a snapshot of the listener set, so a handler that
-   * subscribes or unsubscribes during dispatch cannot corrupt the
-   * in-progress iteration (re-entrancy safety).
-   *
-   * @param {string} action - The type of change that occurred
-   * @param {*} key - The key that was affected (if applicable)
-   * @param {*} value - The value that was affected (if applicable)
-   */
-  next(action, key2, value) {
-    for (const listener of [...this.listeners]) {
-      listener(action, key2, value);
-    }
-  }
-  /**
-   * Sets a key-value pair in the map and notifies listeners of the change.
-   * Only notifies listeners if the value has changed or if force is true.
-   *
-   * @param {*} key - The key to set
-   * @param {*} value - The value to set
-   * @param {boolean} force - Whether to force notification even if the value hasn't changed
-   * @return {this} This map instance for method chaining
-   * @override
-   */
-  set(key2, value, force) {
-    const hadKey = this.has(key2);
-    const prev = this.get(key2);
-    super.set(key2, value);
-    if (force || !hadKey || prev !== value) {
-      this.next("set" /* set */, key2, value);
-    }
-    return this;
-  }
-  /**
-   * Deletes a key-value pair from the map and notifies listeners of the change.
-   * Only notifies listeners if a key was actually deleted or if force is true.
-   *
-   * @param {*} key - The key to delete
-   * @param {boolean} force - Whether to force notification even if no key was deleted
-   * @return {boolean} True if the key was deleted, false otherwise
-   * @override
-   */
-  delete(key2, force) {
-    const result = super.delete(key2);
-    if (force || result) {
-      this.next("delete" /* delete */, key2);
-    }
-    return result;
-  }
-  /**
-   * Clears all key-value pairs from the map and notifies listeners of the change.
-   * Only notifies listeners if the map wasn't empty or if force is true.
-   *
-   * @param {boolean} force - Whether to force notification even if the map was empty
-   * @return {number} The number of key-value pairs that were in the map before clearing
-   * @override
-   */
-  clear(force) {
-    const size = this.size;
-    super.clear();
-    if (force || size > 0) {
-      this.next("clear" /* clear */);
-    }
-    return size;
-  }
-};
-
-// src/services/external-change-capture.ts
+// src/snapshots/external-change-capture.ts
 var _ExternalChangeCapture = class _ExternalChangeCapture {
   /**
    * Creates a new ExternalChangeCapture bound to its owning service's host port.
@@ -23478,14 +22761,14 @@ var _ExternalChangeCapture = class _ExternalChangeCapture {
       this.rememberLastSeen(file);
       return;
     }
-    const newLines = content.split(snapshot.lineBreak);
+    const newLines = content.split(snapshot.content.lineBreak);
     const captured = snapshot.captureVersion(newLines, this.host.getCaptureOptions(), true);
     if (captured) {
       captured.external = true;
     }
-    const previousLength = snapshot.state.length;
-    snapshot.replaceBlock(0, previousLength, newLines);
-    snapshot.updateState(newLines);
+    const previousLength = snapshot.content.state.length;
+    snapshot.trackers.replaceBlock(0, previousLength, newLines);
+    snapshot.content.updateState(newLines);
     snapshot.updateChanges();
     this.host.forceUpdate();
     this.rememberLastSeen(file);
@@ -23615,15 +22898,15 @@ var EditorOperations = class {
    * @param {EditorBlock} block - The single block that changed, in tracker terms
    * @return {Promise<boolean>} True if the change was applied, false otherwise
    */
-  async applyContent(file, lines, block) {
+  async applyContent(file, lines2, block) {
     const snapshot = this.host.getSnapshot(file);
-    if (!file || !snapshot || !Array.isArray(lines)) {
+    if (!file || !snapshot || !Array.isArray(lines2)) {
       return false;
     }
-    snapshot.replaceBlock(block.start, block.removeCount, block.newLines);
-    snapshot.updateState(lines);
+    snapshot.trackers.replaceBlock(block.start, block.removeCount, block.newLines);
+    snapshot.content.updateState(lines2);
     snapshot.updateChanges();
-    await this.host.plugin.app.vault.modify(file, lines.join(snapshot.lineBreak));
+    await this.host.plugin.app.vault.modify(file, lines2.join(snapshot.content.lineBreak));
     if (this.host.plugin.getActiveViewOfType()) {
       this.host.plugin.forceUpdateEditor();
     }
@@ -23634,47 +22917,400 @@ var EditorOperations = class {
 
 // src/helpers/text.helper.ts
 var idCounter = 0;
-var TextHelper = class {
+function hash(content) {
+  let hash2 = 0;
+  for (let i = 0; i < content.length; i++) {
+    hash2 = (hash2 << 5) - hash2 + content.charCodeAt(i);
+    hash2 |= 0;
+  }
+  return Math.abs(hash2).toString();
+}
+function rndId(prefix) {
+  idCounter += 1;
+  return `${prefix != null ? prefix : ""}${idCounter.toString(36)}`;
+}
+function isWhitespaceDiff(a, b) {
+  return a !== b && a.replace(/\s+/g, "") === b.replace(/\s+/g, "");
+}
+
+// src/lines/change.line.ts
+var ChangeLine = class {
   /**
-   * Generates a hash from a string content.
-   * Uses a simple algorithm to convert the string to a numeric hash.
+   * Creates a new instance of ChangeLine.
    *
-   * @param {string} content - The string to hash
-   * @return {string} The hash as a string (absolute value)
+   * @param {number} line - The line number this change applies to
+   * @param {ChangeType[]} types - Array of change types applied to this line
    */
-  static hash(content) {
-    let hash = 0;
-    for (let i = 0; i < content.length; i++) {
-      hash = (hash << 5) - hash + content.charCodeAt(i);
-      hash |= 0;
+  constructor(line, types) {
+    this.line = line;
+    this.types = types;
+  }
+  /**
+   * Adds a change type to this line if it doesn't already have that type.
+   * Prevents duplicate change types for the same line.
+   *
+   * @param {ChangeType} type - The change type to add
+   * @return {void}
+   */
+  add(type) {
+    if (!this.has(type)) {
+      this.types.push(type);
     }
-    return Math.abs(hash).toString();
   }
   /**
-   * Generates a unique alphanumeric identifier.
-   * Increments a monotonic counter and renders it in base 36 (alphanumeric),
-   * optionally prefixed. Unlike a Math.random scheme it never yields empty,
-   * truncated, or colliding ids, which TrackerLine.isEq and key rely on.
+   * Checks if this line has a specific change type or any of the types in an array.
    *
-   * @param {string} prefix - Optional prefix to add to the beginning of the ID
-   * @return {string} A unique alphanumeric string that can be used as an identifier
+   * @param {ChangeType | ChangeType[]} type - A single change type or array of change types to check for
+   * @return {boolean} True if the line has any of the specified change types, false otherwise
    */
-  static rndId(prefix) {
-    idCounter += 1;
-    return `${prefix != null ? prefix : ""}${idCounter.toString(36)}`;
+  has(type) {
+    const list = Array.isArray(type) ? type : [type];
+    return this.types.some((item) => list.includes(item));
   }
   /**
-   * Whether two strings differ only in whitespace: they are not equal, yet they
-   * collapse to the same text once every whitespace run is stripped. Used to tag
-   * a changed line as a whitespace-only edit so reformatting noise (trailing
-   * spaces, tab/space swaps, re-alignment) reads apart from real content edits.
+   * Gets all change types applied to this line.
+   * Returns a copy of the internal array to prevent direct modification.
    *
-   * @param {string} a - The original line content
-   * @param {string} b - The current line content
-   * @return {boolean} True when the only difference is whitespace
+   * @return {ChangeType[]} Array of change types applied to this line
    */
-  static isWhitespaceDiff(a, b) {
-    return a !== b && a.replace(/\s+/g, "") === b.replace(/\s+/g, "");
+  getTypes() {
+    return [...this.types];
+  }
+  /**
+   * Gets the first non-removed change type for this line.
+   * Used to determine the primary modification type for display purposes.
+   *
+   * @return {ChangeType | null} The first change type that is not 'removed', or null if none exists
+   */
+  getModify() {
+    var _a;
+    return (_a = this.types.find((type) => type !== "removed" /* removed */)) != null ? _a : null;
+  }
+  /**
+   * Gets the line number this change applies to.
+   *
+   * @return {number} The line number
+   */
+  getLine() {
+    return this.line;
+  }
+};
+
+// src/maps/array.map.ts
+var ArrayMap = class extends Map {
+  /**
+   * Creates an ArrayMap from an array of objects.
+   * Uses either a property key or a function to determine the map keys.
+   *
+   * @template R - The type of objects in the input array
+   * @template K - The key of R that has a string or number value
+   * @param {Array} list - The array of objects to convert to an ArrayMap
+   * @param {string|Function} key - Either a property name of R or a function that extracts a key from an R object
+   * @return {ArrayMap} A new ArrayMap with the objects from the input array
+   */
+  static make(list, key2) {
+    return new this(
+      list.map((item) => [
+        typeof key2 === "function" ? key2(item) : item[key2],
+        item
+      ])
+    );
+  }
+  /**
+   * Converts the map values to a simple array.
+   * Useful for performing array operations on the map values.
+   *
+   * @return {Array} An array containing all values from the map
+   */
+  simplify() {
+    return [...this.values()];
+  }
+  /**
+   * Creates a new array with all elements from the map that pass the test implemented by the provided function.
+   * Converts the map to an array and uses Array.prototype.filter.
+   *
+   * @param {Array} args - Arguments to pass to Array.prototype.filter
+   * @return {Array} A new array with the elements that pass the test
+   */
+  filter(...args) {
+    return this.simplify().filter(...args);
+  }
+};
+
+// src/snapshots/snapshot-state.ts
+var SnapshotState = class {
+  /**
+   * Seeds the owned content from the initial file text: splits it into the marker
+   * baseline, copies that into the history baseline, and records the first state
+   * and its hash. A restore later overrides the history baseline independently.
+   *
+   * @param {string} content - The initial file content as a string
+   * @param {string} lineBreak - The line break used to split and join content
+   */
+  constructor(content, lineBreak) {
+    /**
+     * Marker baseline: the file content the change tracker measures against, the
+     * session origin the gutter markers compare the current state to. Seeded from
+     * the constructed content and re-established at the current state by the
+     * façade's marker-baseline reset.
+     */
+    this.lines = [];
+    /**
+     * History baseline: the persisted original the history modal diffs against.
+     * Starts equal to the marker baseline; a restore overrides only this baseline
+     * (through adoptHistory) so the gutter stays session-scoped while the modal
+     * still diffs against the persisted original.
+     */
+    this.historyLines = [];
+    /**
+     * Current content of the file as an array of lines: the most recent state,
+     * refreshed by updateState which also recomputes the hash.
+     */
+    this.state = [];
+    /**
+     * Map of line numbers to their change information (added, changed, removed,
+     * restored). Rebuilt from the ordered tracker by updateChanges.
+     */
+    this.changes = new ArrayMap();
+    /**
+     * Hash of the last known state, used as a cheap change-detection pre-filter.
+     */
+    this.lastHash = null;
+    /**
+     * Line break character used to split incoming content and join the owned line
+     * arrays for comparison. Defaults to '\n'.
+     */
+    this.lineBreak = "\n";
+    var _a;
+    if (lineBreak) {
+      this.lineBreak = lineBreak;
+    }
+    this.lines = (_a = content == null ? void 0 : content.split(this.lineBreak)) != null ? _a : [];
+    this.historyLines = [...this.lines];
+    this.updateState(this.lines);
+  }
+  /**
+   * Updates the current state from new content and refreshes the hash used for
+   * change detection. Accepts either a joined string or an array of lines.
+   *
+   * @param {string | string[]} content - The new content, as a string or lines
+   */
+  updateState(content) {
+    this.state = Array.isArray(content) ? [...content] : content.split(this.lineBreak);
+    this.lastHash = hash(this.state.join(this.lineBreak));
+  }
+  /**
+   * Whether the current state equals the marker baseline (the session origin the
+   * gutter markers measure against).
+   *
+   * @return {boolean} True when the current state matches the marker baseline
+   */
+  isStateSameOriginal() {
+    return this.getOriginalState() === this.getLastState();
+  }
+  /**
+   * Joins the current state lines into a string.
+   *
+   * @return {string} The current state as a string
+   */
+  getLastState() {
+    return this.state.join(this.lineBreak);
+  }
+  /**
+   * Returns a copy of the current state lines so callers cannot mutate the field.
+   *
+   * @return {string[]} A copy of the current state lines
+   */
+  getLastStateLines() {
+    return [...this.state];
+  }
+  /**
+   * Joins the marker baseline lines (the session origin the gutter markers
+   * measure against) into a string.
+   *
+   * @return {string} The marker baseline as a string
+   */
+  getOriginalState() {
+    return [...this.lines].join(this.lineBreak);
+  }
+  /**
+   * Returns a copy of the marker baseline lines so callers cannot mutate the field.
+   *
+   * @return {string[]} A copy of the marker baseline lines
+   */
+  getOriginalStateLines() {
+    return [...this.lines];
+  }
+  /**
+   * Joins the history baseline lines (the persisted original the history modal
+   * diffs against) into a string.
+   *
+   * @return {string} The history baseline as a string
+   */
+  getHistoryOriginalState() {
+    return [...this.historyLines].join(this.lineBreak);
+  }
+  /**
+   * Returns a copy of the history baseline lines so callers cannot mutate the field.
+   *
+   * @return {string[]} A copy of the history baseline lines
+   */
+  getHistoryOriginalStateLines() {
+    return [...this.historyLines];
+  }
+  /**
+   * Adopts a persisted history baseline as a defensive copy, leaving the marker
+   * baseline, the current state, and the change map untouched. Non-array input
+   * collapses to an empty array, matching the original guard.
+   *
+   * @param {string[]} historyLines - The persisted original (history baseline)
+   */
+  adoptHistory(historyLines) {
+    this.historyLines = Array.isArray(historyLines) ? [...historyLines] : [];
+  }
+  /**
+   * Returns the owned change map, optionally filtered to the given change types.
+   * When a type filter is given a fresh filtered ArrayMap is returned, otherwise
+   * the live owned map is returned for direct use.
+   *
+   * @param {ChangeType | ChangeType[]} type - Optional change types to filter by
+   * @return {ArrayMap<ChangeLine>} The change map, filtered when a type is given
+   */
+  getChanges(type) {
+    if (!this.changes) {
+      this.changes = new ArrayMap();
+    }
+    if (type) {
+      return ArrayMap.make(
+        this.changes.filter((change) => change.has(type)).map((change) => new ChangeLine(change.getLine(), change.getTypes())),
+        (item) => item.getLine()
+      );
+    }
+    return this.changes;
+  }
+  /**
+   * Counts the lines marked changed, added, or removed in the owned change map.
+   *
+   * @return {number} The number of lines with changes
+   */
+  getChangesLinesCount() {
+    return this.getChanges([
+      "changed" /* changed */,
+      "whitespace" /* whitespace */,
+      "added" /* added */,
+      "removed" /* removed */
+    ]).size;
+  }
+  /**
+   * Returns the 0-based positions of every changed line, ascending. Defaults to
+   * the changed, added, restored, and removed types when none is given.
+   *
+   * @param {ChangeType | ChangeType[]} type - Optional change types to include
+   * @return {number[]} The unique changed line positions in ascending order
+   */
+  getChangedPositions(type) {
+    const types = type != null ? type : [
+      "changed" /* changed */,
+      "whitespace" /* whitespace */,
+      "added" /* added */,
+      "restored" /* restored */,
+      "removed" /* removed */
+    ];
+    return [...this.getChanges(types).keys()].filter((line) => typeof line === "number").sort((a, b) => a - b);
+  }
+  /**
+   * Recomputes the owned change map from the ordered tracker. Clears the map and
+   * rebuilds it by classifying each tracker line as removed, added, restored, or
+   * changed at its current (or removed-at) position. The tracker belongs to the
+   * tracker sub-object and is passed in by the façade; this owner classifies it
+   * into its own change map without owning the tracker.
+   *
+   * @param {ArrayMap<TrackerLine>} tracker - The ordered tracker to classify
+   */
+  updateChanges(tracker) {
+    const changes = this.getChanges();
+    changes.clear();
+    tracker.forEach((lineTracker) => {
+      var _a, _b, _c;
+      if (!lineTracker || lineTracker.isStateGhost()) {
+        return;
+      }
+      const position = lineTracker.isStateRemoved() ? lineTracker.removedAtPosition : lineTracker.currentPosition;
+      const line = (_a = changes.get(position)) != null ? _a : new ChangeLine(position, []);
+      if (!changes.has(position)) {
+        changes.set(position, line);
+      }
+      if (lineTracker.isStateRemoved()) {
+        line.add("removed" /* removed */);
+        return;
+      }
+      if (lineTracker.isStateAdded()) {
+        line.add("added" /* added */);
+        return;
+      }
+      if (lineTracker.isStateRestored()) {
+        line.add("restored" /* restored */);
+        return;
+      }
+      if (lineTracker.isStateChanged()) {
+        const whitespaceOnly = isWhitespaceDiff(
+          (_b = lineTracker.original) != null ? _b : "",
+          (_c = lineTracker.current) != null ? _c : ""
+        );
+        line.add(whitespaceOnly ? "whitespace" /* whitespace */ : "changed" /* changed */);
+        return;
+      }
+    });
+  }
+};
+
+// src/snapshots/snapshot-timestamps.ts
+var SnapshotTimestamps = class _SnapshotTimestamps {
+  /**
+   * Resolves the timestamp of the file's last update. Prefers the file's
+   * modification time (the real last-change moment of the live content), and
+   * falls back to the snapshot's creation time when no file stat is available
+   * (for example a detached snapshot in tests).
+   *
+   * @param {TFile | null} file - The file reference, if any
+   * @param {number} timestamp - The snapshot creation time, used as the fallback
+   * @return {number} The last-change timestamp in milliseconds
+   */
+  static getLastChangedTimestamp(file, timestamp) {
+    var _a, _b;
+    return (_b = (_a = file == null ? void 0 : file.stat) == null ? void 0 : _a.mtime) != null ? _b : timestamp;
+  }
+  /**
+   * Retrieves the last modified date and time as a localized string.
+   *
+   * @param {TFile | null} file - The file reference, if any
+   * @param {number} timestamp - The snapshot creation time, used as the fallback
+   * @return {string} The date and time of the last change in a localized string format.
+   */
+  static getLastChangedDateTime(file, timestamp) {
+    return new Date(_SnapshotTimestamps.getLastChangedTimestamp(file, timestamp)).toLocaleString();
+  }
+  /**
+   * Retrieves the last modified day as a localized date string (no time), used
+   * as the day-group key and label for the baseline entry in the history modal.
+   *
+   * @param {TFile | null} file - The file reference, if any
+   * @param {number} timestamp - The snapshot creation time, used as the fallback
+   * @return {string} The localized last-change date
+   */
+  static getLastChangedDate(file, timestamp) {
+    return new Date(_SnapshotTimestamps.getLastChangedTimestamp(file, timestamp)).toLocaleDateString();
+  }
+  /**
+   * Retrieves the last modified time of day as a localized string, shown as the
+   * baseline entry's meta once its day lives in the group heading.
+   *
+   * @param {TFile | null} file - The file reference, if any
+   * @param {number} timestamp - The snapshot creation time, used as the fallback
+   * @return {string} The localized last-change time
+   */
+  static getLastChangedTime(file, timestamp) {
+    return new Date(_SnapshotTimestamps.getLastChangedTimestamp(file, timestamp)).toLocaleTimeString();
   }
 };
 
@@ -23687,10 +23323,8 @@ var TrackerLine = class _TrackerLine {
    * @param {TrackerLineParams} params - Optional parameters to initialize the tracker line
    */
   constructor(params) {
-    /**
-     * Unique identifier for this tracker line.
-     */
-    this.id = TextHelper.rndId();
+    /** Unique identifier for this tracker line. */
+    this.id = rndId();
     /**
      * The original position (line number) in the document
      * Value of -1 indicates the line didn't exist in the original document
@@ -23723,13 +23357,9 @@ var TrackerLine = class _TrackerLine {
      * Used for efficient content comparison
      */
     this.hash = null;
-    /**
-     * Original content of the line (for development use only)
-     */
+    /** Original content of the line (for development use only) */
     this.original = null;
-    /**
-     * Current content of the line (for development use only)
-     */
+    /** Current content of the line (for development use only) */
     this.current = null;
     /**
      * Timestamp when the line was removed
@@ -23754,15 +23384,15 @@ var TrackerLine = class _TrackerLine {
       currentPosition,
       contentSameOriginal
     } = params != null ? params : {};
-    if (isNumber_default(originalPosition)) {
+    if (typeof originalPosition === "number") {
       this.originalPosition = originalPosition;
     }
-    if (isNumber_default(currentPosition)) {
+    if (typeof currentPosition === "number") {
       this.currentPosition = currentPosition;
     }
-    if (isString_default(content)) {
+    if (typeof content === "string") {
       this.current = content;
-      this.hash = TextHelper.hash(content);
+      this.hash = hash(content);
     }
     if (contentSameOriginal === true) {
       this.original = content != null ? content : null;
@@ -23824,7 +23454,7 @@ var TrackerLine = class _TrackerLine {
    * @return {boolean} True if the line has a content hash, false otherwise
    */
   get contentHashed() {
-    return isString_default(this.hash) && !!this.hash;
+    return typeof this.hash === "string" && !!this.hash;
   }
   /**
    * Checks if this tracker line is equal to another tracker line.
@@ -24042,15 +23672,15 @@ var TrackerLine = class _TrackerLine {
    * @param {number} line - Optional line number where the change occurred (defaults to current position)
    */
   change(content, line) {
-    if (!isString_default(content) || !this.existedInCurrent) {
+    if (typeof content !== "string" || !this.existedInCurrent) {
       return;
     }
-    const hash = TextHelper.hash(content);
-    if (hash === this.hash && this.contentSameOriginal) {
+    const hash2 = hash(content);
+    if (hash2 === this.hash && this.contentSameOriginal) {
       return;
     }
     this.current = content;
-    this.contentSameOriginal = this.hash === hash;
+    this.contentSameOriginal = this.hash === hash2;
     this.changeAtPosition = line != null ? line : this.currentPosition;
     this.changedTimeStamp = Date.now();
   }
@@ -24116,471 +23746,284 @@ var TrackerLine = class _TrackerLine {
    */
   static fromJSON(data) {
     const tracker = new _TrackerLine();
-    if (isNumber_default(data == null ? void 0 : data.originalPosition)) {
+    if (typeof (data == null ? void 0 : data.originalPosition) === "number") {
       tracker.originalPosition = data.originalPosition;
     }
-    if (isNumber_default(data == null ? void 0 : data.currentPosition)) {
+    if (typeof (data == null ? void 0 : data.currentPosition) === "number") {
       tracker.currentPosition = data.currentPosition;
     }
-    if (isNumber_default(data == null ? void 0 : data.removedAtPosition)) {
+    if (typeof (data == null ? void 0 : data.removedAtPosition) === "number") {
       tracker.removedAtPosition = data.removedAtPosition;
     }
-    if (isNumber_default(data == null ? void 0 : data.changeAtPosition)) {
+    if (typeof (data == null ? void 0 : data.changeAtPosition) === "number") {
       tracker.changeAtPosition = data.changeAtPosition;
     }
-    if ((data == null ? void 0 : data.contentSameOriginal) === true) {
+    if (data == null ? void 0 : data.contentSameOriginal) {
       tracker.contentSameOriginal = true;
     }
-    if (isString_default(data == null ? void 0 : data.hash)) {
+    if (typeof (data == null ? void 0 : data.hash) === "string") {
       tracker.hash = data.hash;
     }
-    if (isString_default(data == null ? void 0 : data.original)) {
+    if (typeof (data == null ? void 0 : data.original) === "string") {
       tracker.original = data.original;
     }
-    if (isString_default(data == null ? void 0 : data.current)) {
+    if (typeof (data == null ? void 0 : data.current) === "string") {
       tracker.current = data.current;
     }
-    if (isNumber_default(data == null ? void 0 : data.removedTimeStamp)) {
+    if (typeof (data == null ? void 0 : data.removedTimeStamp) === "number") {
       tracker.removedTimeStamp = data.removedTimeStamp;
     }
-    if (isNumber_default(data == null ? void 0 : data.changedTimeStamp)) {
+    if (typeof (data == null ? void 0 : data.changedTimeStamp) === "number") {
       tracker.changedTimeStamp = data.changedTimeStamp;
     }
-    if (isNumber_default(data == null ? void 0 : data.addedTimeStamp)) {
+    if (typeof (data == null ? void 0 : data.addedTimeStamp) === "number") {
       tracker.addedTimeStamp = data.addedTimeStamp;
     }
     return tracker;
   }
 };
 
-// src/maps/array.map.ts
-var ArrayMap = class extends Map {
+// src/snapshots/tracker-index.ts
+var TrackerIndex = class {
   /**
-   * Creates an ArrayMap from an array of objects.
-   * Uses either a property key or a function to determine the map keys.
+   * Binds the index to the shared tracker array it reads.
    *
-   * @template R - The type of objects in the input array
-   * @template K - The key of R that has a string or number value
-   * @param {Array} list - The array of objects to convert to an ArrayMap
-   * @param {string|Function} key - Either a property name of R or a function that extracts a key from an R object
-   * @return {ArrayMap} A new ArrayMap with the objects from the input array
+   * @param {TrackerLine[]} tracker - The shared tracker array, owned jointly with TrackerEditor
    */
-  static make(list, key2) {
-    return new this(
-      list.map((item) => [isFunction_default(key2) ? key2(item) : item[key2], item])
-    );
+  constructor(tracker) {
+    /**
+     * Lazily built index from a current line position to the tracker living there.
+     * Covers only lines present in the current document and lets findCurrentLine
+     * resolve in O(1) on the change-detection hot path instead of sorting and
+     * copying the whole tracker each call. Null means stale: it is rebuilt on the
+     * next lookup. Any mutation of a current position or of the tracker set must
+     * call invalidate().
+     */
+    this.currentIndex = null;
+    this.tracker = tracker;
   }
   /**
-   * Converts the map values to a simple array.
-   * Useful for performing array operations on the map values.
-   *
-   * @return {Array} An array containing all values from the map
+   * Marks the current-position index as stale so it is rebuilt on next lookup.
+   * Called by every mutation that can change a current position or the tracker set.
    */
-  simplify() {
-    return [...this.values()];
+  invalidate() {
+    this.currentIndex = null;
   }
   /**
-   * Finds the first element in the map that satisfies the provided testing function.
-   * Converts the map to an array and uses Array.prototype.find.
+   * Returns the current-position index, building it lazily when stale.
+   * Maps each current line position to the tracker present there; lines absent
+   * from the current document are skipped. On a position collision the first
+   * tracker in array order wins, keeping the result deterministic.
    *
-   * @param {Array} args - Arguments to pass to Array.prototype.find
-   * @return {*} The first element that satisfies the testing function, or undefined if none is found
+   * @return {Map<number, TrackerLine>} Index from current position to tracker
    */
-  find(...args) {
-    return this.simplify().find(...args);
-  }
-  /**
-   * Executes a reducer function on each element of the map.
-   * Converts the map to an array and uses Array.prototype.reduce.
-   *
-   * @param {Array} args - Arguments to pass to Array.prototype.reduce
-   * @return {*} The value that results from running the reducer
-   */
-  reduce(...args) {
-    return this.simplify().reduce(...args);
-  }
-  /**
-   * Finds the index of the first element in the map that satisfies the provided testing function.
-   * Converts the map to an array and uses Array.prototype.findIndex.
-   *
-   * @param {Array} args - Arguments to pass to Array.prototype.findIndex
-   * @return {number} The index of the first element that satisfies the testing function, or -1 if none is found
-   */
-  findIndex(...args) {
-    return this.simplify().findIndex(...args);
-  }
-  /**
-   * Creates a new array with all elements from the map that pass the test implemented by the provided function.
-   * Converts the map to an array and uses Array.prototype.filter.
-   *
-   * @param {Array} args - Arguments to pass to Array.prototype.filter
-   * @return {Array} A new array with the elements that pass the test
-   */
-  filter(...args) {
-    return this.simplify().filter(...args);
-  }
-};
-
-// src/lines/change.line.ts
-var ChangeLine = class {
-  /**
-   * Creates a new instance of ChangeLine.
-   *
-   * @param {number} line - The line number this change applies to
-   * @param {ChangeType[]} types - Array of change types applied to this line
-   */
-  constructor(line, types) {
-    this.line = line;
-    this.types = types;
-  }
-  /**
-   * Adds a change type to this line if it doesn't already have that type.
-   * Prevents duplicate change types for the same line.
-   *
-   * @param {ChangeType} type - The change type to add
-   * @return {void}
-   */
-  add(type) {
-    if (!this.has(type)) {
-      this.types.push(type);
+  get() {
+    if (this.currentIndex) {
+      return this.currentIndex;
     }
+    const index = /* @__PURE__ */ new Map();
+    for (const item of this.tracker) {
+      if (item.existedInCurrent && !index.has(item.currentPosition)) {
+        index.set(item.currentPosition, item);
+      }
+    }
+    this.currentIndex = index;
+    return index;
   }
   /**
-   * Checks if this line has a specific change type or any of the types in an array.
+   * Finds a tracker line at the specified current position.
+   * Searches for a tracker line that is currently at the given line number.
    *
-   * @param {ChangeType | ChangeType[]} type - A single change type or array of change types to check for
-   * @return {boolean} True if the line has any of the specified change types, false otherwise
+   * @param {number} line - The line number to search for
+   * @param {number} to - Optional upper bound for range checking
+   * @return {TrackerLine | null} The tracker line at the specified position, or null if not found
    */
-  has(type) {
-    const list = isArray_default(type) ? type : [type];
-    return this.types.some((item) => list.includes(item));
+  findCurrentLine(line, to) {
+    const found = this.get().get(line);
+    if (!found) {
+      return null;
+    }
+    return found.isCurrentInRange(0, to) ? found : null;
   }
   /**
-   * Gets all change types applied to this line.
-   * Returns a copy of the internal array to prevent direct modification.
+   * Finds a tracker line originally at the specified position.
+   * Can search for lines based on their original or current position.
    *
-   * @return {ChangeType[]} Array of change types applied to this line
+   * @param {number} line - The line number to search for
+   * @param {number} to - Optional upper bound for range checking
+   * @param {boolean} visible - If true, searches by current position; if false, by original position
+   * @return {TrackerLine | null} The tracker line that was originally at the specified position, or null if not found
    */
-  getTypes() {
-    return [...this.types];
-  }
-  /**
-   * Gets the first non-removed change type for this line.
-   * Used to determine the primary modification type for display purposes.
-   *
-   * @return {ChangeType | null} The first change type that is not 'removed', or null if none exists
-   */
-  getModify() {
+  findOriginalLine(line, to, visible = true) {
     var _a;
-    return (_a = this.types.find((type) => type !== "removed" /* removed */)) != null ? _a : null;
+    return (_a = this.tracker.find(
+      (item) => (visible ? item.isCurrentAt(line) : item.isOriginAt(line)) && item.existedInOriginal && item.isOriginalInRange(0, to)
+    )) != null ? _a : null;
   }
   /**
-   * Gets the line number this change applies to.
+   * Finds a tracker line removed at the specified position.
+   * Searches for a tracker line that was removed at the given line number.
    *
-   * @return {number} The line number
+   * @param {number} line - The line number where a line was removed
+   * @return {TrackerLine | null} The tracker line that was removed at the specified position, or null if not found
    */
-  getLine() {
-    return this.line;
-  }
-};
-
-// src/snapshots/snapshot-state.ts
-var SnapshotState = class {
-  /**
-   * Normalizes new content into a state line array and computes its hash. The
-   * façade assigns the returned `state` and `lastHash` back to its own fields.
-   *
-   * @param {string | string[]} content - The new content, as a string or lines
-   * @param {string} lineBreak - The line break used to split and join content
-   * @return {UpdateStateResult} The normalized state lines and their hash
-   */
-  static updateState(content, lineBreak) {
-    const state = isArray_default(content) ? [...content] : content.split(lineBreak);
-    return {
-      state,
-      lastHash: TextHelper.hash(state.join(lineBreak))
-    };
-  }
-  /**
-   * Whether the current state equals the marker baseline (the session origin the
-   * gutter markers measure against).
-   *
-   * @param {string[]} lines - The marker baseline lines
-   * @param {string[]} state - The current state lines
-   * @param {string} lineBreak - The line break used to join for comparison
-   * @return {boolean} True when the current state matches the marker baseline
-   */
-  static isStateSameOriginal(lines, state, lineBreak) {
-    return this.getOriginalState(lines, lineBreak) === this.getLastState(state, lineBreak);
-  }
-  /**
-   * Joins the current state lines into a string.
-   *
-   * @param {string[]} state - The current state lines
-   * @param {string} lineBreak - The line break used to join the lines
-   * @return {string} The current state as a string
-   */
-  static getLastState(state, lineBreak) {
-    return state.join(lineBreak);
-  }
-  /**
-   * Returns a copy of the current state lines so callers cannot mutate the field.
-   *
-   * @param {string[]} state - The current state lines
-   * @return {string[]} A copy of the current state lines
-   */
-  static getLastStateLines(state) {
-    return [...state];
-  }
-  /**
-   * Joins the marker baseline lines (the session origin the gutter markers
-   * measure against) into a string.
-   *
-   * @param {string[]} lines - The marker baseline lines
-   * @param {string} lineBreak - The line break used to join the lines
-   * @return {string} The marker baseline as a string
-   */
-  static getOriginalState(lines, lineBreak) {
-    return [...lines].join(lineBreak);
-  }
-  /**
-   * Returns a copy of the marker baseline lines so callers cannot mutate the field.
-   *
-   * @param {string[]} lines - The marker baseline lines
-   * @return {string[]} A copy of the marker baseline lines
-   */
-  static getOriginalStateLines(lines) {
-    return [...lines];
-  }
-  /**
-   * Joins the history baseline lines (the persisted original the history modal
-   * diffs against) into a string.
-   *
-   * @param {string[]} historyLines - The history baseline lines
-   * @param {string} lineBreak - The line break used to join the lines
-   * @return {string} The history baseline as a string
-   */
-  static getHistoryOriginalState(historyLines, lineBreak) {
-    return [...historyLines].join(lineBreak);
-  }
-  /**
-   * Returns a copy of the history baseline lines so callers cannot mutate the field.
-   *
-   * @param {string[]} historyLines - The history baseline lines
-   * @return {string[]} A copy of the history baseline lines
-   */
-  static getHistoryOriginalStateLines(historyLines) {
-    return [...historyLines];
-  }
-  /**
-   * Normalizes a persisted history baseline and version timeline into defensive
-   * copies for the façade to adopt without touching the marker baseline, the
-   * tracker, or the current state. Non-array inputs collapse to empty arrays,
-   * matching the original guard.
-   *
-   * @param {string[]} historyLines - The persisted original (history baseline)
-   * @param {FileVersion[]} versions - The persisted version timeline, oldest first
-   * @return {AdoptHistoryResult} The normalized history baseline and timeline
-   */
-  static adoptHistory(historyLines, versions) {
-    return {
-      historyLines: isArray_default(historyLines) ? [...historyLines] : [],
-      versions: isArray_default(versions) ? [...versions] : []
-    };
-  }
-  /**
-   * Returns the change map, optionally filtered to the given change types. The
-   * façade owns the `changes` field; when a type filter is given a fresh filtered
-   * ArrayMap is returned, otherwise the live map is returned for direct use.
-   *
-   * @param {ArrayMap<ChangeLine>} changes - The façade-owned change map
-   * @param {ChangeType | ChangeType[]} type - Optional change types to filter by
-   * @return {ArrayMap<ChangeLine>} The change map, filtered when a type is given
-   */
-  static getChanges(changes, type) {
-    if (type) {
-      return ArrayMap.make(
-        changes.filter((change) => change.has(type)).map((change) => new ChangeLine(change.getLine(), change.getTypes())),
-        (item) => item.getLine()
-      );
+  findRemovedAt(line) {
+    let found = null;
+    for (const item of this.tracker) {
+      if (item.isStateRemovedAt(line) && (!found || item.removedTimeStamp > found.removedTimeStamp)) {
+        found = item;
+      }
     }
-    return changes;
-  }
-  /**
-   * Counts the lines marked changed, added, or removed in the change map.
-   *
-   * @param {ArrayMap<ChangeLine>} changes - The façade-owned change map
-   * @return {number} The number of lines with changes
-   */
-  static getChangesLinesCount(changes) {
-    return this.getChanges(changes, [
-      "changed" /* changed */,
-      "whitespace" /* whitespace */,
-      "added" /* added */,
-      "removed" /* removed */
-    ]).size;
-  }
-  /**
-   * Returns the 0-based positions of every changed line, ascending. Defaults to
-   * the changed, added, restored, and removed types when none is given.
-   *
-   * @param {ArrayMap<ChangeLine>} changes - The façade-owned change map
-   * @param {ChangeType | ChangeType[]} type - Optional change types to include
-   * @return {number[]} The unique changed line positions in ascending order
-   */
-  static getChangedPositions(changes, type) {
-    const types = type != null ? type : [
-      "changed" /* changed */,
-      "whitespace" /* whitespace */,
-      "added" /* added */,
-      "restored" /* restored */,
-      "removed" /* removed */
-    ];
-    return [...this.getChanges(changes, types).keys()].filter((line) => isNumber_default(line)).sort((a, b) => a - b);
-  }
-  /**
-   * Recomputes the change map from the ordered tracker. Clears the façade-owned
-   * change map and rebuilds it by classifying each tracker line as removed, added,
-   * restored, or changed at its current (or removed-at) position. The tracker is
-   * passed in by the façade; this collaborator never owns or invalidates it.
-   *
-   * @param {ArrayMap<ChangeLine>} changes - The façade-owned change map to rebuild
-   * @param {ArrayMap<TrackerLine>} tracker - The ordered tracker to classify
-   */
-  static updateChanges(changes, tracker) {
-    changes.clear();
-    tracker.forEach((lineTracker) => {
-      var _a, _b, _c;
-      if (!lineTracker || lineTracker.isStateGhost()) {
-        return;
-      }
-      const position = lineTracker.isStateRemoved() ? lineTracker.removedAtPosition : lineTracker.currentPosition;
-      const line = (_a = changes.get(position)) != null ? _a : new ChangeLine(position, []);
-      if (!changes.has(position)) {
-        changes.set(position, line);
-      }
-      if (lineTracker.isStateRemoved()) {
-        line.add("removed" /* removed */);
-        return;
-      }
-      if (lineTracker.isStateAdded()) {
-        line.add("added" /* added */);
-        return;
-      }
-      if (lineTracker.isStateRestored()) {
-        line.add("restored" /* restored */);
-        return;
-      }
-      if (lineTracker.isStateChanged()) {
-        const whitespaceOnly = TextHelper.isWhitespaceDiff(
-          (_b = lineTracker.original) != null ? _b : "",
-          (_c = lineTracker.current) != null ? _c : ""
-        );
-        line.add(whitespaceOnly ? "whitespace" /* whitespace */ : "changed" /* changed */);
-        return;
-      }
-    });
-  }
-};
-
-// src/snapshots/snapshot-timestamps.ts
-var SnapshotTimestamps = class _SnapshotTimestamps {
-  /**
-   * Resolves the timestamp of the file's last update. Prefers the file's
-   * modification time (the real last-change moment of the live content), and
-   * falls back to the snapshot's creation time when no file stat is available
-   * (for example a detached snapshot in tests).
-   *
-   * @param {TFile | null} file - The file reference, if any
-   * @param {number} timestamp - The snapshot creation time, used as the fallback
-   * @return {number} The last-change timestamp in milliseconds
-   */
-  static getLastChangedTimestamp(file, timestamp) {
-    var _a, _b;
-    return (_b = (_a = file == null ? void 0 : file.stat) == null ? void 0 : _a.mtime) != null ? _b : timestamp;
-  }
-  /**
-   * Retrieves the last modified date and time as a localized string.
-   *
-   * @param {TFile | null} file - The file reference, if any
-   * @param {number} timestamp - The snapshot creation time, used as the fallback
-   * @return {string} The date and time of the last change in a localized string format.
-   */
-  static getLastChangedDateTime(file, timestamp) {
-    return new Date(_SnapshotTimestamps.getLastChangedTimestamp(file, timestamp)).toLocaleString();
-  }
-  /**
-   * Retrieves the last modified day as a localized date string (no time), used
-   * as the day-group key and label for the baseline entry in the history modal.
-   *
-   * @param {TFile | null} file - The file reference, if any
-   * @param {number} timestamp - The snapshot creation time, used as the fallback
-   * @return {string} The localized last-change date
-   */
-  static getLastChangedDate(file, timestamp) {
-    return new Date(_SnapshotTimestamps.getLastChangedTimestamp(file, timestamp)).toLocaleDateString();
-  }
-  /**
-   * Retrieves the last modified time of day as a localized string, shown as the
-   * baseline entry's meta once its day lives in the group heading.
-   *
-   * @param {TFile | null} file - The file reference, if any
-   * @param {number} timestamp - The snapshot creation time, used as the fallback
-   * @return {string} The localized last-change time
-   */
-  static getLastChangedTime(file, timestamp) {
-    return new Date(_SnapshotTimestamps.getLastChangedTimestamp(file, timestamp)).toLocaleTimeString();
+    return found;
   }
 };
 
 // src/snapshots/tracker-editor.ts
 var TrackerEditor = class {
+  constructor() {
+    /**
+     * The tracker array this editor owns. TrackerLine objects each track a single
+     * line's original position, current position, content and change status. It is
+     * mutated in place (never reassigned) so the TrackerIndex below, which holds the
+     * same reference, always indexes the current set.
+     */
+    this.tracker = [];
+    /**
+     * The current-position index whose cache this editor invalidates after each
+     * mutation and consults for its own findCurrentLine/findRemovedAt lookups. It is
+     * built over the same tracker array this editor owns, so the cache stays coherent
+     * with every mutation.
+     */
+    this.index = new TrackerIndex(this.tracker);
+  }
   /**
-   * Creates a tracker editor bound to the shared current-position index.
+   * Rebuilds the tracker from a marker baseline: one original tracker line per
+   * baseline line, each marked same-as-original. Replaces the current set in place
+   * and invalidates the shared index. Used by the façade constructor and by the
+   * marker-baseline reset.
    *
-   * @param {TrackerIndex} index - The index whose cache this editor invalidates
+   * @param {string[]} lines - The baseline lines to seed one tracker each
    */
-  constructor(index) {
-    this.index = index;
+  buildFromLines(lines2) {
+    this.tracker.length = 0;
+    lines2.forEach((line, index) => {
+      this.tracker.push(new TrackerLine({
+        content: line,
+        originalPosition: index,
+        currentPosition: index,
+        contentSameOriginal: true
+      }));
+    });
+    this.index.invalidate();
+  }
+  /**
+   * Restores the persisted tracker verbatim from a serialized payload, replacing
+   * the current set in place and invalidating the shared index. Used by the
+   * façade's deserialization path.
+   *
+   * @param {SerializedFileSnapshot['tracker']} serialized - The persisted tracker entries
+   */
+  restore(serialized) {
+    this.tracker.length = 0;
+    serialized.forEach((line) => {
+      this.tracker.push(TrackerLine.fromJSON(line));
+    });
+    this.index.invalidate();
+  }
+  /**
+   * Clears the tracker so the snapshot carries no line-change state, invalidating
+   * the shared index since the tracker set changed. Used by the tombstone and
+   * cross-directory-move paths where the session marker view is meaningless once
+   * the live file is gone.
+   */
+  reset() {
+    this.tracker.length = 0;
+    this.index.invalidate();
+  }
+  /**
+   * The narrow read surface over the tracker: the raw tracker lines in insertion
+   * order as a readonly view, so callers can iterate and inspect (or reconcile a
+   * single line through its own methods) without reassigning or reshaping the
+   * array. Returns the live array rather than a copy because the change-detector
+   * self-heal consumes it on the keystroke hot path.
+   *
+   * @return {readonly TrackerLine[]} The tracker lines in insertion order
+   */
+  getTrackerLines() {
+    return this.tracker;
+  }
+  /**
+   * Finds a tracker line at the specified current position.
+   * Searches for a tracker line that is currently at the given line number.
+   *
+   * @param {number} line - The line number to search for
+   * @param {number} to - Optional upper bound for range checking
+   * @return {TrackerLine | null} The tracker line at the specified position, or null if not found
+   */
+  findCurrentLine(line, to) {
+    return this.index.findCurrentLine(line, to);
+  }
+  /**
+   * Finds a tracker line originally at the specified position.
+   * Can search for lines based on their original or current position.
+   *
+   * @param {number} line - The line number to search for
+   * @param {number} to - Optional upper bound for range checking
+   * @param {boolean} visible - If true, searches by current position; if false, by original position
+   * @return {TrackerLine | null} The tracker line that was originally at the specified position, or null if not found
+   */
+  findOriginalLine(line, to, visible = true) {
+    return this.index.findOriginalLine(line, to, visible);
+  }
+  /**
+   * Finds a tracker line removed at the specified position.
+   * Searches for a tracker line that was removed at the given line number.
+   *
+   * @param {number} line - The line number where a line was removed
+   * @return {TrackerLine | null} The tracker line that was removed at the specified position, or null if not found
+   */
+  findRemovedAt(line) {
+    return this.index.findRemovedAt(line);
   }
   /**
    * Gets the tracker lines with optional sorting and key mapping.
    * Returns an ArrayMap of tracker lines that can be sorted and keyed as specified.
    *
-   * @param {TrackerLine[]} tracker - The shared tracker array to order
    * @param {object} params - Optional parameters for sorting and keying the tracker lines
    * @param {string} params.keyBy - Property to use as the key in the returned ArrayMap
    * @param {Array|string} params.ordering - Property to sort by, or a tuple of property and direction
    * @return {ArrayMap<TrackerLine>} An ArrayMap of tracker lines
    */
-  getTracker(tracker, params) {
+  getTracker(params) {
     const {
       keyBy = "key",
       ordering = "key"
     } = params != null ? params : {};
-    const sort = isArray_default(ordering) ? ordering[0] : ordering;
-    const direction = isArray_default(ordering) ? ordering[1] : "asc";
-    const list = [...tracker];
+    const sort = Array.isArray(ordering) ? ordering[0] : ordering;
+    const direction = Array.isArray(ordering) ? ordering[1] : "asc";
+    const list = [...this.tracker];
     list.sort((a, b) => {
       const va = a[sort];
       const vb = b[sort];
       switch (direction) {
         case "asc":
-          if (isNumber_default(va) && isNumber_default(vb)) {
+          if (typeof va === "number" && typeof vb === "number") {
             return va - vb;
           }
-          if (isString_default(va) && isString_default(vb)) {
+          if (typeof va === "string" && typeof vb === "string") {
             return va.localeCompare(vb);
           }
           break;
         case "dsc":
-          if (isNumber_default(va) && isNumber_default(vb)) {
+          if (typeof va === "number" && typeof vb === "number") {
             return vb - va;
           }
-          if (isString_default(va) && isString_default(vb)) {
+          if (typeof va === "string" && typeof vb === "string") {
             return vb.localeCompare(va);
           }
           break;
+        default:
+          assertNever(direction, "sort direction");
       }
       return 0;
     });
@@ -24590,13 +24033,12 @@ var TrackerEditor = class {
    * Moves a tracker line to a new position.
    * Shifts other lines as needed to accommodate the move.
    *
-   * @param {TrackerLine[]} tracker - The shared tracker array to mutate
    * @param {number} line - The current line number of the tracker to move
    * @param {number} position - The new position to move the tracker to
    * @return {TrackerLine | null} The moved tracker line, or null if no tracker was found at the specified line
    */
-  moveTo(tracker, line, position) {
-    const found = this.index.findCurrentLine(tracker, line);
+  moveTo(line, position) {
+    const found = this.index.findCurrentLine(line);
     if (!found) {
       return null;
     }
@@ -24604,10 +24046,10 @@ var TrackerEditor = class {
       return found;
     }
     if (found.isCurrentLT(position)) {
-      this.shiftUp(tracker, line, found.getCurrentPositionOffset(position));
+      this.shiftUp(line, found.getCurrentPositionOffset(position));
     }
     if (found.isCurrentGT(position)) {
-      this.shiftDown(tracker, line, found.getCurrentPositionOffset(position));
+      this.shiftDown(line, found.getCurrentPositionOffset(position));
     }
     found.moveTo(position);
     this.index.invalidate();
@@ -24617,16 +24059,15 @@ var TrackerEditor = class {
    * Shifts tracker lines up by the specified offset.
    * Affects all tracker lines within the specified range.
    *
-   * @param {TrackerLine[]} tracker - The shared tracker array to mutate
    * @param {number} line - The starting line number of the range to shift
    * @param {number} to - Optional ending line number of the range to shift
    * @param {number} offset - Optional number of lines to shift by (defaults to 1)
    * @return {Record<number, TrackerLine[]>} A record mapping line numbers to arrays of tracker lines at those positions
    */
-  shiftUp(tracker, line, to, offset) {
+  shiftUp(line, to, offset) {
     const positions = {};
     this.index.invalidate();
-    tracker.forEach((item) => {
+    this.tracker.forEach((item) => {
       if (item.isCurrentInRange(line, to)) {
         item.shiftUp(offset);
         (positions[item.currentPosition] || (positions[item.currentPosition] = [])).push(item);
@@ -24638,15 +24079,14 @@ var TrackerEditor = class {
    * Shifts removed tracker lines up by the specified offset.
    * Affects all removed tracker lines within the specified range.
    *
-   * @param {TrackerLine[]} tracker - The shared tracker array to mutate
    * @param {number} line - The starting line number of the range to shift
    * @param {number} to - Optional ending line number of the range to shift
    * @param {number} offset - Optional number of lines to shift by (defaults to 1)
    * @return {Record<number, TrackerLine[]>} A record mapping line numbers to arrays of tracker lines at those positions
    */
-  shiftUpRemoved(tracker, line, to, offset) {
+  shiftUpRemoved(line, to, offset) {
     const positions = {};
-    tracker.forEach((item) => {
+    this.tracker.forEach((item) => {
       if (item.isRemoveInRange(line, to)) {
         item.shiftUp(offset);
         (positions[item.removedAtPosition] || (positions[item.removedAtPosition] = [])).push(item);
@@ -24658,16 +24098,15 @@ var TrackerEditor = class {
    * Shifts tracker lines down by the specified offset.
    * Affects all tracker lines within the specified range.
    *
-   * @param {TrackerLine[]} tracker - The shared tracker array to mutate
    * @param {number} line - The starting line number of the range to shift
    * @param {number} to - Optional ending line number of the range to shift
    * @param {number} offset - Optional number of lines to shift by (defaults to 1)
    * @return {Record<number, TrackerLine[]>} A record mapping line numbers to arrays of tracker lines at those positions
    */
-  shiftDown(tracker, line, to, offset) {
+  shiftDown(line, to, offset) {
     const positions = {};
     this.index.invalidate();
-    tracker.forEach((item) => {
+    this.tracker.forEach((item) => {
       if (item.isCurrentInRange(line, to)) {
         item.shiftDown(offset);
         (positions[item.currentPosition] || (positions[item.currentPosition] = [])).push(item);
@@ -24679,15 +24118,14 @@ var TrackerEditor = class {
    * Shifts removed tracker lines down by the specified offset.
    * Affects all removed tracker lines within the specified range.
    *
-   * @param {TrackerLine[]} tracker - The shared tracker array to mutate
    * @param {number} line - The starting line number of the range to shift
    * @param {number} to - Optional ending line number of the range to shift
    * @param {number} offset - Optional number of lines to shift by (defaults to 1)
    * @return {Record<number, TrackerLine[]>} A record mapping line numbers to arrays of tracker lines at those positions
    */
-  shiftDownRemoved(tracker, line, to, offset) {
+  shiftDownRemoved(line, to, offset) {
     const positions = {};
-    tracker.forEach((item) => {
+    this.tracker.forEach((item) => {
       if (item.isRemoveInRange(line, to)) {
         item.shiftDown(offset);
         (positions[item.removedAtPosition] || (positions[item.removedAtPosition] = [])).push(item);
@@ -24700,59 +24138,57 @@ var TrackerEditor = class {
    * If a removed tracker line is found at the position, it is restored.
    * Otherwise, a new tracker line is added.
    *
-   * @param {TrackerLine[]} tracker - The shared tracker array to mutate
    * @param {number | TrackerLine} line - The line number or tracker line to restore or add
    * @param {boolean} shift - Whether to shift other lines to accommodate the restored/added line
    * @return {TrackerLine} The restored or added tracker line
    */
-  restoreOrAddTracker(tracker, line, shift = true) {
-    const removed = line instanceof TrackerLine ? line : this.index.findRemovedAt(tracker, line);
+  restoreOrAddTracker(line, shift = true) {
+    const removed = line instanceof TrackerLine ? line : this.index.findRemovedAt(line);
     const index = line instanceof TrackerLine ? line.removedAtPosition : line;
     if (shift) {
-      this.shiftUp(tracker, index);
+      this.shiftUp(index);
     }
     if (removed) {
       removed.restore(index);
       this.index.invalidate();
     }
     if (shift) {
-      this.shiftUpRemoved(tracker, index);
+      this.shiftUpRemoved(index);
     }
-    return removed != null ? removed : this.addTrackerLine(tracker, { currentPosition: index });
+    return removed != null ? removed : this.addTrackerLine({ currentPosition: index });
   }
   /**
    * Removes a tracker line or marks it as removed.
    * If the line existed in the original state, it is marked as removed.
    * Otherwise, it is completely removed from the tracker array.
    *
-   * @param {TrackerLine[]} tracker - The shared tracker array to mutate
    * @param {number | TrackerLine} line - The line number or tracker line to remove
    * @param {boolean} shift - Whether to shift other lines to accommodate the removed line
    * @return {TrackerLine | null} The removed tracker line, or null if no tracker was found
    */
-  removeTrackerOrLine(tracker, line, shift = true) {
-    const found = line instanceof TrackerLine ? line : this.index.findCurrentLine(tracker, line);
+  removeTrackerOrLine(line, shift = true) {
+    const found = line instanceof TrackerLine ? line : this.index.findCurrentLine(line);
     const index = line instanceof TrackerLine ? line.currentPosition : line;
     if (!found) {
       return null;
     }
     const existedInOriginal = found.existedInOriginal;
     if (shift) {
-      this.shiftDown(tracker, index + 1);
-      this.shiftDownRemoved(tracker, index + 1);
+      this.shiftDown(index + 1);
+      this.shiftDownRemoved(index + 1);
     }
     if (existedInOriginal) {
       found.remove();
-      const lastLine = this.lastCurrentLine(tracker);
+      const lastLine = this.lastCurrentLine();
       if (lastLine >= 0) {
-        for (const item of tracker) {
+        for (const item of this.tracker) {
           if (item.isStateRemoved() && item.removedAtPosition > lastLine) {
             item.removedAtPosition = lastLine;
           }
         }
       }
     } else {
-      this.removeTrackerLine(tracker, found);
+      this.removeTrackerLine(found);
     }
     this.index.invalidate();
     return found;
@@ -24761,48 +24197,29 @@ var TrackerEditor = class {
    * Adds a new tracker line to the snapshot.
    * Creates a new TrackerLine instance with the provided parameters and adds it to the tracker array.
    *
-   * @param {TrackerLine[]} tracker - The shared tracker array to mutate
    * @param {TrackerLineParams} params - Optional parameters for the new tracker line
    * @return {TrackerLine} The newly created tracker line
    */
-  addTrackerLine(tracker, params) {
+  addTrackerLine(params) {
     const item = new TrackerLine(params);
-    tracker.push(item);
+    this.tracker.push(item);
     this.index.invalidate();
     return item;
-  }
-  /**
-   * Returns the highest current line position present in the document, or -1 when
-   * no line currently exists. Used to clamp a removed-line anchor so it can never
-   * point past the last real line.
-   *
-   * @param {TrackerLine[]} tracker - The shared tracker array to scan
-   * @return {number} The last current line index, or -1 when the document is empty
-   */
-  lastCurrentLine(tracker) {
-    let last = -1;
-    for (const item of tracker) {
-      if (item.existedInCurrent && item.currentPosition > last) {
-        last = item.currentPosition;
-      }
-    }
-    return last;
   }
   /**
    * Removes a tracker line from the snapshot.
    * Finds the tracker line by line number or reference and removes it from the tracker array.
    *
-   * @param {TrackerLine[]} tracker - The shared tracker array to mutate
    * @param {number | TrackerLine} line - The line number or tracker line to remove
    */
-  removeTrackerLine(tracker, line) {
-    const index = tracker.findIndex(
+  removeTrackerLine(line) {
+    const index = this.tracker.findIndex(
       (item) => line instanceof TrackerLine ? item.isEq(line) : item.isCurrentAt(line)
     );
     if (index === -1) {
       return;
     }
-    tracker.splice(index, 1);
+    this.tracker.splice(index, 1);
     this.index.invalidate();
   }
   /**
@@ -24823,129 +24240,51 @@ var TrackerEditor = class {
    * afterwards (updateState then updateChanges), so the written file content
    * stays the single source of truth for the diff view.
    *
-   * @param {TrackerLine[]} tracker - The shared tracker array to mutate
    * @param {number} startLine - The 0-based current position where the block begins
    * @param {number} removeCount - How many current lines the block currently spans
    * @param {string[]} newLines - The content the block should hold afterwards
    */
-  replaceBlock(tracker, startLine, removeCount, newLines) {
+  replaceBlock(startLine, removeCount, newLines) {
     var _a;
     const start = Math.max(0, startLine);
     const count = Math.max(0, removeCount);
     const replacement = newLines != null ? newLines : [];
     if (count === replacement.length && count > 0) {
       for (let i = 0; i < count; i++) {
-        (_a = this.index.findCurrentLine(tracker, start + i)) == null ? void 0 : _a.change(replacement[i]);
+        (_a = this.index.findCurrentLine(start + i)) == null ? void 0 : _a.change(replacement[i]);
       }
       return;
     }
     const doomed = [];
     for (let index = start; index < start + count; index++) {
-      const found = this.index.findCurrentLine(tracker, index);
+      const found = this.index.findCurrentLine(index);
       if (found) {
         doomed.push(found);
       }
     }
     replacement.forEach((content, offset) => {
       var _a2;
-      (_a2 = this.restoreOrAddTracker(tracker, start + offset)) == null ? void 0 : _a2.change(content);
+      (_a2 = this.restoreOrAddTracker(start + offset)) == null ? void 0 : _a2.change(content);
     });
     doomed.forEach((item) => {
-      this.removeTrackerOrLine(tracker, item);
+      this.removeTrackerOrLine(item);
     });
   }
-};
-
-// src/snapshots/tracker-index.ts
-var TrackerIndex = class {
-  constructor() {
-    /**
-     * Lazily built index from a current line position to the tracker living there.
-     * Covers only lines present in the current document and lets findCurrentLine
-     * resolve in O(1) on the change-detection hot path instead of sorting and
-     * copying the whole tracker each call. Null means stale: it is rebuilt on the
-     * next lookup. Any mutation of a current position or of the tracker set must
-     * call invalidate().
-     */
-    this.currentIndex = null;
-  }
   /**
-   * Marks the current-position index as stale so it is rebuilt on next lookup.
-   * Called by every mutation that can change a current position or the tracker set.
-   */
-  invalidate() {
-    this.currentIndex = null;
-  }
-  /**
-   * Returns the current-position index, building it lazily when stale.
-   * Maps each current line position to the tracker present there; lines absent
-   * from the current document are skipped. On a position collision the first
-   * tracker in array order wins, keeping the result deterministic.
+   * Returns the highest current line position present in the document, or -1 when
+   * no line currently exists. Used to clamp a removed-line anchor so it can never
+   * point past the last real line.
    *
-   * @param {TrackerLine[]} tracker - The shared tracker array to index
-   * @return {Map<number, TrackerLine>} Index from current position to tracker
+   * @return {number} The last current line index, or -1 when the document is empty
    */
-  get(tracker) {
-    if (this.currentIndex) {
-      return this.currentIndex;
-    }
-    const index = /* @__PURE__ */ new Map();
-    for (const item of tracker) {
-      if (item.existedInCurrent && !index.has(item.currentPosition)) {
-        index.set(item.currentPosition, item);
+  lastCurrentLine() {
+    let last = -1;
+    for (const item of this.tracker) {
+      if (item.existedInCurrent && item.currentPosition > last) {
+        last = item.currentPosition;
       }
     }
-    this.currentIndex = index;
-    return index;
-  }
-  /**
-   * Finds a tracker line at the specified current position.
-   * Searches for a tracker line that is currently at the given line number.
-   *
-   * @param {TrackerLine[]} tracker - The shared tracker array to search
-   * @param {number} line - The line number to search for
-   * @param {number} to - Optional upper bound for range checking
-   * @return {TrackerLine | null} The tracker line at the specified position, or null if not found
-   */
-  findCurrentLine(tracker, line, to) {
-    const found = this.get(tracker).get(line);
-    if (!found) {
-      return null;
-    }
-    return found.isCurrentInRange(0, to) ? found : null;
-  }
-  /**
-   * Finds a tracker line originally at the specified position.
-   * Can search for lines based on their original or current position.
-   *
-   * @param {TrackerLine[]} tracker - The shared tracker array to search
-   * @param {number} line - The line number to search for
-   * @param {number} to - Optional upper bound for range checking
-   * @param {boolean} visible - If true, searches by current position; if false, by original position
-   * @return {TrackerLine | null} The tracker line that was originally at the specified position, or null if not found
-   */
-  findOriginalLine(tracker, line, to, visible = true) {
-    var _a;
-    return (_a = tracker.find(
-      (item) => (visible ? item.isCurrentAt(line) : item.isOriginAt(line)) && item.existedInOriginal && item.isOriginalInRange(0, to)
-    )) != null ? _a : null;
-  }
-  /**
-   * Finds a tracker line removed at the specified position.
-   * Searches for a tracker line that was removed at the given line number.
-   *
-   * @param {TrackerLine[]} tracker - The shared tracker array to search
-   * @param {number} line - The line number where a line was removed
-   * @return {TrackerLine | null} The tracker line that was removed at the specified position, or null if not found
-   */
-  findRemovedAt(tracker, line) {
-    let found = null;
-    for (const item of tracker) {
-      if (item.isStateRemovedAt(line) && (!found || item.removedTimeStamp > found.removedTimeStamp)) {
-        found = item;
-      }
-    }
-    return found;
+    return last;
   }
 };
 
@@ -24959,25 +24298,21 @@ var FileVersion = class _FileVersion {
    * @param {string} label - Optional user-supplied tag pinning this version
    * @param {boolean} external - Optional flag marking this version as an external change
    */
-  constructor(lines, timestamp, label, external) {
+  constructor(lines2, timestamp, label, external) {
     /**
      * Unique identifier for this version, generated on creation. Used as a stable
      * key for the version list in the UI and to address a picked diff base.
      */
-    this.id = TextHelper.rndId();
-    /**
-     * Timestamp (ms) when this version was captured.
-     */
+    this.id = rndId();
+    /** Timestamp (ms) when this version was captured. */
     this.timestamp = Date.now();
-    /**
-     * The file content at capture time, as an array of lines.
-     */
+    /** The file content at capture time, as an array of lines. */
     this.lines = [];
-    this.lines = [...lines != null ? lines : []];
-    if (isNumber_default(timestamp)) {
+    this.lines = [...lines2 != null ? lines2 : []];
+    if (typeof timestamp === "number") {
       this.timestamp = timestamp;
     }
-    if (isString_default(label) && label.length > 0) {
+    if (typeof label === "string" && label.length > 0) {
       this.label = label;
     }
     if (external === true) {
@@ -24991,7 +24326,7 @@ var FileVersion = class _FileVersion {
    * @return {boolean} True when a non-empty label is set
    */
   isLabeled() {
-    return isString_default(this.label) && this.label.length > 0;
+    return typeof this.label === "string" && this.label.length > 0;
   }
   /**
    * Whether this version was captured from an external-change event (git pull,
@@ -25078,9 +24413,566 @@ var FileVersion = class _FileVersion {
     return new _FileVersion(
       Array.isArray(data == null ? void 0 : data.lines) ? data.lines : [],
       data == null ? void 0 : data.timestamp,
-      isString_default(data == null ? void 0 : data.label) ? data.label : void 0,
+      typeof (data == null ? void 0 : data.label) === "string" ? data.label : void 0,
       (data == null ? void 0 : data.external) === true
     );
+  }
+};
+
+// src/snapshots/version-timeline.ts
+var VersionTimeline = class {
+  constructor() {
+    /**
+     * The intermediate versions, oldest first. Each entry is a frozen copy of the
+     * file content at the moment it was captured; the original baseline and the
+     * live state are not stored here, only the points in between. Owned outright by
+     * the timeline: reads leave through the readonly `getStoredVersions()` view and
+     * the newest-first `getVersions()` copy, writes go through capture/restore/adopt
+     * so external code can neither reassign nor splice it.
+     */
+    this.versions = [];
+    /**
+     * Number of state updates accumulated since the last captured version. Drives
+     * the edit-count gate of the capture cadence so versions are taken every N
+     * edits rather than on every keystroke-driven update.
+     */
+    this.editsSinceVersion = 0;
+    /**
+     * Timestamp (ms) of the last captured version, or the timeline's creation time
+     * when no version has been captured yet. Drives the time gate of the cadence.
+     */
+    this.lastVersionAt = Date.now();
+  }
+  /**
+   * Records that the document changed since the last captured version and, when
+   * the configured cadence is met, freezes the previous state as a new
+   * intermediate version on the owned timeline.
+   *
+   * The current (newest) state is never stored as a version: the history modal
+   * always has the live state available separately. A no-op capture is skipped:
+   * when the content to freeze equals the most recent stored version (or the
+   * history baseline when none exist), no version is pushed. A label-carrying
+   * capture is treated as a pinned marker: it bypasses the duplicate-skip so
+   * the user-supplied tag is always recorded, and the resulting version is exempt
+   * from eviction.
+   *
+   * @param {VersionCaptureContext} context - The history baseline, line break,
+   *   and cadence/retention options
+   * @param {string[]} previousLines - The content to freeze (pre-edit state)
+   * @param {boolean} force - Capture regardless of the cadence gates
+   * @param {string} label - Optional user-supplied tag that pins the version
+   * @return {FileVersion | null} The captured version, or null when none was taken
+   */
+  capture(context, previousLines, force = false, label) {
+    const { options } = context;
+    if (!(options == null ? void 0 : options.enabled) || !Array.isArray(previousLines)) {
+      return null;
+    }
+    const labeled = typeof label === "string" && label.length > 0;
+    this.editsSinceVersion += 1;
+    if (!force && !this.isVersionDue(options)) {
+      return null;
+    }
+    if (!labeled && this.isDuplicateOfLatest(previousLines, context.historyBaseline, context.lineBreak)) {
+      return null;
+    }
+    const version = new FileVersion(previousLines, void 0, label);
+    this.pushVersion(version, options);
+    return version;
+  }
+  /**
+   * Whether the given content equals the latest stored version, or the history
+   * baseline when no version exists yet. Used to skip a no-op capture so the
+   * timeline never holds an adjacent duplicate or a first version identical to
+   * the original.
+   *
+   * @param {string[]} lines - The candidate content to freeze
+   * @param {string} historyBaseline - The empty-timeline dedup reference
+   * @param {string} lineBreak - The line break used to join candidate content
+   * @return {boolean} True when the candidate duplicates the latest base
+   */
+  isDuplicateOfLatest(lines2, historyBaseline, lineBreak) {
+    const candidate = lines2.join(lineBreak);
+    const latest = this.versions[this.versions.length - 1];
+    const reference = latest ? latest.getContent(lineBreak) : historyBaseline;
+    return candidate === reference;
+  }
+  /**
+   * Decides whether the cadence gates allow a new version right now. Either gate
+   * (edit count or elapsed time) can trigger a capture; a gate set to 0 is
+   * disabled and never triggers on its own.
+   *
+   * @param {SnapshotCaptureOptions} options - The capture cadence configuration
+   * @return {boolean} True if a version should be captured
+   */
+  isVersionDue(options) {
+    const byEdits = options.editThreshold > 0 && this.editsSinceVersion >= options.editThreshold;
+    const byTime = options.intervalMs > 0 && Date.now() - this.lastVersionAt >= options.intervalMs;
+    return byEdits || byTime;
+  }
+  /**
+   * Appends a version to the owned timeline, resets the cadence counters, and
+   * trims the timeline by evicting expired then excess entries.
+   *
+   * @param {FileVersion} version - The version to append
+   * @param {SnapshotCaptureOptions} options - The capture cadence and retention caps
+   */
+  pushVersion(version, options) {
+    this.versions.push(version);
+    this.editsSinceVersion = 0;
+    this.lastVersionAt = version.timestamp;
+    this.evictVersions(options);
+  }
+  /**
+   * Trims the owned timeline to its retention caps, age first then count,
+   * mirroring the JetBrains Local History model where age is the primary bound
+   * and the count is a safety cap. Versions older than maxVersionAgeDays are
+   * dropped regardless of count, then any beyond maxVersions are dropped
+   * regardless of age. A cap of 0 disables that dimension. Because versions are
+   * appended oldest-first, both passes evict from the front of the array.
+   *
+   * Labeled versions are pinned: they are never dropped by either pass, so
+   * an intentional user marker survives both the age window and the count cap.
+   * The count cap counts only unlabeled entries, so a labeled version does not
+   * push an unlabeled one out either.
+   *
+   * @param {SnapshotCaptureOptions} options - The retention caps to apply
+   */
+  evictVersions(options) {
+    const maxAgeDays = options == null ? void 0 : options.maxVersionAgeDays;
+    if (typeof maxAgeDays === "number" && maxAgeDays > 0) {
+      const oldest = Date.now() - maxAgeDays * MS_PER_DAY;
+      this.versions = this.versions.filter(
+        (version) => version.isLabeled() || version.timestamp >= oldest
+      );
+    }
+    const maxVersions = options == null ? void 0 : options.maxVersions;
+    if (typeof maxVersions === "number" && maxVersions > 0) {
+      const unlabeled = this.versions.reduce(
+        (count, version) => count + (version.isLabeled() ? 0 : 1),
+        0
+      );
+      let toDrop = unlabeled - maxVersions;
+      if (toDrop > 0) {
+        this.versions = this.versions.filter((version) => {
+          if (toDrop <= 0 || version.isLabeled()) {
+            return true;
+          }
+          toDrop -= 1;
+          return false;
+        });
+      }
+    }
+  }
+  /**
+   * Returns the intermediate versions, newest first, as a copy so callers cannot
+   * mutate the owned timeline.
+   *
+   * @return {FileVersion[]} The timeline versions, newest first
+   */
+  getVersions() {
+    return [...this.versions].reverse();
+  }
+  /**
+   * Returns the owned timeline in stored (oldest-first) order as a readonly live
+   * view. Distinct from getVersions() (a newest-first copy the UI rails consume):
+   * the serializer, the folder timeline, and the folder delta read the versions
+   * in capture order without paying for a reversal, while the readonly type keeps
+   * them from mutating the owner's array.
+   *
+   * @return {readonly FileVersion[]} The stored versions, oldest first
+   */
+  getStoredVersions() {
+    return this.versions;
+  }
+  /**
+   * Finds an intermediate version by its id.
+   *
+   * @param {string} id - The version id to look up
+   * @return {FileVersion | null} The matching version, or null if absent
+   */
+  getVersion(id) {
+    var _a;
+    return (_a = this.versions.find((version) => version.id === id)) != null ? _a : null;
+  }
+  /**
+   * Removes a single intermediate version from the owned timeline by its id in
+   * place, leaving every other version untouched. Used by the history modal to
+   * prune one captured point without wiping the whole timeline.
+   *
+   * @param {string} id - The id of the version to remove
+   * @return {boolean} True if a version was removed, false if no id matched
+   */
+  removeVersion(id) {
+    const index = this.versions.findIndex((version) => version.id === id);
+    if (index === -1) {
+      return false;
+    }
+    this.versions.splice(index, 1);
+    return true;
+  }
+  /**
+   * Whether the owned timeline has any intermediate versions.
+   *
+   * @return {boolean} True when at least one version exists
+   */
+  hasVersions() {
+    return this.versions.length > 0;
+  }
+  /**
+   * Restores a persisted timeline: adopts the decoded versions as the owned array
+   * and seeds both cadence gates from them so the capture cadence is continuous
+   * across a restart (the time gate from the newest version's timestamp, the edit
+   * gate from the current keyframe group). Used by SnapshotCodec.decode.
+   *
+   * @param {FileVersion[]} versions - The decoded timeline, oldest first
+   */
+  restore(versions) {
+    this.versions = versions;
+    this.seedLastVersionAt();
+    this.seedEditsSinceVersion();
+  }
+  /**
+   * Replaces the owned timeline with an externally-provided array without
+   * touching the cadence gates. Used by FileSnapshot.adoptHistory (restore path)
+   * and the tombstone builder, which hand over an already-copied timeline and
+   * must not disturb the capture cadence the way a fresh restore does.
+   *
+   * @param {FileVersion[]} versions - The timeline to adopt, oldest first
+   */
+  adopt(versions) {
+    this.versions = versions;
+  }
+  /**
+   * Seeds the time-gate counter from the owned versions on restore so the cadence
+   * is continuous across restarts. Without this the constructor-seeded
+   * `lastVersionAt` (set to `Date.now()` at restore time) would reset the time
+   * gate on every launch, so a file that already had a version captured an hour
+   * before the restart would not be eligible for the next time-gated capture until
+   * the full interval elapsed again.
+   *
+   * The seed is derived from the newest version's timestamp (the value the gate
+   * normally tracks after a capture). When the timeline is empty there is no prior
+   * capture to anchor against, so the constructor default stays in place. Only
+   * timestamps that strictly precede the current default are accepted, so a
+   * corrupt future-dated entry cannot push the gate forward.
+   */
+  seedLastVersionAt() {
+    if (this.versions.length === 0) {
+      return;
+    }
+    const newest = this.versions[this.versions.length - 1];
+    const timestamp = newest == null ? void 0 : newest.timestamp;
+    if (typeof timestamp !== "number" || timestamp >= this.lastVersionAt) {
+      return;
+    }
+    this.lastVersionAt = timestamp;
+  }
+  /**
+   * Seeds the edit-count gate from the owned versions on restore so the capture
+   * cadence is not artificially reset to 0 on every restart (A5). Without this, a
+   * file with an existing timeline always restarts with `editsSinceVersion = 0`,
+   * effectively delaying the first post-restore version capture by a full
+   * `editThreshold` count even though several versions may already have been taken
+   * in the current keyframe group.
+   *
+   * The seed is derived from the number of persisted versions in the current
+   * keyframe group: `versions.length % VERSION_KEYFRAME_INTERVAL`. A group starts
+   * at index 0, 25, 50, etc. (one full keyframe interval apart), so a timeline of
+   * N versions has accumulated N % 25 entries since the most recent keyframe
+   * boundary. When the timeline is empty or the length is an exact multiple of the
+   * interval (i.e., the last version IS a keyframe), the count is 0 and the gate is
+   * not advanced.
+   *
+   * The seeded value is the maximum of the computed count and any existing
+   * `editsSinceVersion` so a future call cannot deflate a counter that was already
+   * advanced by a capture since object creation.
+   */
+  seedEditsSinceVersion() {
+    if (this.versions.length === 0) {
+      return;
+    }
+    const count = this.versions.length % VERSION_KEYFRAME_INTERVAL;
+    if (count === 0) {
+      return;
+    }
+    this.editsSinceVersion = Math.max(this.editsSinceVersion, count);
+  }
+};
+
+// src/snapshots/file.snapshot.ts
+var FileSnapshot = class {
+  /**
+   * Creates a new instance of FileSnapshot.
+   * Seeds the content sub-object with the provided text, builds a tracker per
+   * baseline line, and records the initial state through the content owner.
+   *
+   * @param {string} content - The content of the file as a string
+   * @param {string} lineBreak - The line break character used in the file (defaults to '\n')
+   * @param {TFile | null} file - The Obsidian file object this snapshot belongs to
+   */
+  constructor(content, lineBreak, file) {
+    /**
+     * Unique identifier for this snapshot.
+     * Generated randomly when the snapshot is created.
+     */
+    this.id = rndId();
+    /**
+     * Timestamp when this snapshot was created.
+     * Used for tracking when changes occurred.
+     */
+    this.timestamp = Date.now();
+    /**
+     * The tracker sub-object: the one narrow surface over line-change tracking.
+     * It owns the tracker array (one TrackerLine per line, each tracking a line's
+     * original/current position, content and change status) and the current-position
+     * index cache, and exposes the whole tracker API - ordered reads, moves, shifts,
+     * restores, removals, block replacement, the position lookups, the readonly view
+     * and the build/restore/reset lifecycle. Callers reach tracking through
+     * `snapshot.trackers`; the façade only rewires its own composite operations
+     * (construction, serialization, marker-baseline reset, change-map refresh)
+     * through it.
+     */
+    this.trackers = new TrackerEditor();
+    /**
+     * The version-timeline sub-object: the one narrow surface over intermediate
+     * versions. It owns the ordered `versions` array (oldest first, one frozen copy
+     * of the file content per captured point, holding only the points between the
+     * baseline and the live state) together with the capture cadence, the no-op
+     * dedup, and the age/count eviction. Callers reach version queries through
+     * `snapshot.timeline`; the façade only rewires its own composite operations
+     * (capture, serialization, history adoption) to read and write it.
+     */
+    this.timeline = new VersionTimeline();
+    /**
+     * Canonical vault-relative path of the snapshot, decoupled from a live
+     * `TFile`. This mirrors the key the snapshot is stored under in
+     * `SnapshotsService.fileSnapshots` and survives a reload: a restored snapshot
+     * whose `file` did not resolve (restore miss, tombstone, orphan, detached
+     * cross-directory move) still carries its path here, so folder-history path
+     * resolution no longer depends on `file?.path` being non-null. Every map
+     * insert in `SnapshotsService` sets this field; `SnapshotCodec.encode`
+     * persists it (`file?.path ?? path`) and `SnapshotCodec.decode` restores it
+     * from the serialized path.
+     */
+    this.path = "";
+    /**
+     * Transient "added in this app run" marker: set to `true` only
+     * when the file was created by the user in the vault during the current
+     * session (the post-layout-ready `vault.create` capture path stamps it). It
+     * is the only reliable "created this run" signal, since `firstSeenAt` /
+     * absence of `historyLines` cannot tell a newly created file from a
+     * first-opened pre-existing one. It is deliberately NOT persisted:
+     * `SnapshotCodec.encode` never writes it and `SnapshotCodec.decode` never
+     * reads it, so a snapshot restored from
+     * `history.json` after a restart comes back falsy and the tree/tab decorator
+     * stops painting it green once the session that created it ends.
+     */
+    this.createdThisSession = false;
+    this.content = new SnapshotState(content, lineBreak);
+    if (file) {
+      this.file = file;
+      this.path = file.path;
+    }
+    this.trackers.buildFromLines(this.content.lines);
+  }
+  /**
+   * Whether this snapshot is a tombstone for a deleted file. True when
+   * `deletedTimestamp` is set; false for a live snapshot.
+   *
+   * @return {boolean} True when the snapshot represents a deleted file
+   */
+  isTombstone() {
+    return typeof this.deletedTimestamp === "number";
+  }
+  /**
+   * Whether this snapshot was re-keyed to a new path by a cross-directory move
+   *. True when `movedIntoAt` is set; false otherwise.
+   *
+   * @return {boolean} True when the snapshot carries a move-in marker
+   */
+  isMovedIn() {
+    return typeof this.movedIntoAt === "number";
+  }
+  /**
+   * Checks if the file content has changed since the last update.
+   * Compares the hash of the provided content with the stored hash.
+   *
+   * @param {string} content - The current content of the file to check
+   * @return {boolean} True if the content has changed and needs updating, false otherwise
+   */
+  isNeedUpdate(content) {
+    return this.content.lastHash !== hash(content);
+  }
+  /**
+   * Authoritative content-equality check for the external-change guard
+   *. Uses the 32-bit `lastHash` as a cheap pre-filter: a hash
+   * mismatch is always a real change, but a hash match falls through to an
+   * actual line-by-line compare against the snapshot's known `state` so a
+   * collision (two distinct contents that hash to the same 32-bit value)
+   * cannot make a genuine external rewrite look identical.
+   *
+   * The comparison splits the incoming content on the snapshot's own
+   * `lineBreak` (the same separator used when `state` was filled), so a
+   * change that differs only in trailing whitespace or line count is detected
+   * even when the hashes collide.
+   *
+   * @param {string} content - The current content of the file to check
+   * @return {boolean} True if the content differs from the stored state, false if identical
+   */
+  isContentChanged(content) {
+    if (this.content.lastHash !== hash(content)) {
+      return true;
+    }
+    const incoming = content.split(this.content.lineBreak);
+    const current = this.content.state;
+    if (incoming.length !== current.length) {
+      return true;
+    }
+    for (let i = 0; i < incoming.length; i++) {
+      if (incoming[i] !== current[i]) {
+        return true;
+      }
+    }
+    return false;
+  }
+  /**
+   * Records that the document changed since the last captured version and,
+   * when the configured cadence is met, freezes the previous state as a new
+   * intermediate version on the timeline.
+   *
+   * IMPORTANT: this must be called with the state BEFORE the latest edit was
+   * applied (typically the snapshot's current state right before updateState),
+   * so the captured version preserves the earlier point rather than the new
+   * one. The current (newest) state is never stored as a version: the history
+   * modal always has the live state available separately.
+   *
+   * Cadence: a version is captured when capture is enabled and either the edit
+   * count since the last version reached editThreshold, or intervalMs elapsed
+   * since the last version. A gate set to 0 is treated as disabled; when both
+   * gates are 0 only the explicit force path captures. The timeline is bounded
+   * primarily by age (maxVersionAgeDays) and secondarily by count (maxVersions),
+   * evicting the oldest entries first so it cannot grow without limit.
+   *
+   * A no-op capture is skipped: when the content to freeze equals the most
+   * recent stored version (or the original baseline when none exist), no version
+   * is pushed. This keeps the timeline from holding adjacent duplicate entries
+   * or a first version identical to the original, which would otherwise diff
+   * identically and make switching the base appear to change nothing.
+   *
+   * A label-carrying capture is treated as a pinned marker: it bypasses
+   * the duplicate-skip so the user-supplied tag is always recorded, and the
+   * resulting version is exempt from eviction in evictVersions.
+   *
+   * @param {string[]} previousLines - The content to freeze (pre-edit state)
+   * @param {SnapshotCaptureOptions} options - The capture cadence configuration
+   * @param {boolean} force - Capture regardless of the cadence gates
+   * @param {string} label - Optional user-supplied tag that pins the version
+   * @return {FileVersion | null} The captured version, or null if none was taken
+   */
+  captureVersion(previousLines, options, force = false, label) {
+    return this.timeline.capture(
+      {
+        historyBaseline: this.content.getHistoryOriginalState(),
+        lineBreak: this.content.lineBreak,
+        options
+      },
+      previousLines,
+      force,
+      label
+    );
+  }
+  /**
+   * Resolves the timestamp of the file's last update. Prefers the file's
+   * modification time (the real last-change moment of the live content), and
+   * falls back to the snapshot's creation time when no file stat is available
+   * (for example a detached snapshot in tests).
+   *
+   * @return {number} The last-change timestamp in milliseconds
+   */
+  getLastChangedTimestamp() {
+    return SnapshotTimestamps.getLastChangedTimestamp(this.file, this.timestamp);
+  }
+  /**
+   * Retrieves the last modified date and time as a localized string.
+   *
+   * @return {string} The date and time of the last change in a localized string format.
+   */
+  getLastChangedDateTime() {
+    return SnapshotTimestamps.getLastChangedDateTime(this.file, this.timestamp);
+  }
+  /**
+   * Retrieves the last modified day as a localized date string (no time), used
+   * as the day-group key and label for the baseline entry in the history modal.
+   *
+   * @return {string} The localized last-change date
+   */
+  getLastChangedDate() {
+    return SnapshotTimestamps.getLastChangedDate(this.file, this.timestamp);
+  }
+  /**
+   * Retrieves the last modified time of day as a localized string, shown as the
+   * baseline entry's meta once its day lives in the group heading.
+   *
+   * @return {string} The localized last-change time
+   */
+  getLastChangedTime() {
+    return SnapshotTimestamps.getLastChangedTime(this.file, this.timestamp);
+  }
+  /**
+   * Adopts a persisted HISTORY baseline and version timeline into this
+   * (session-captured) snapshot without touching the marker baseline, the
+   * tracker, or the current state. Used by the restore path so reopening
+   * a file in a new app run keeps the gutter markers session-scoped (measured
+   * against the file content at this open) while the history modal still diffs
+   * against the persisted original and its captured versions.
+   *
+   * When the persisted snapshot carried a deletedTimestamp (i.e. it was a
+   * tombstone on disk), that value is synced onto this snapshot so tombstone
+   * data is never silently dropped when the session snapshot was created before
+   * the restore path ran (A8).
+   *
+   * @param {string[]} historyLines - The persisted original (history baseline)
+   * @param {FileVersion[]} versions - The persisted version timeline, oldest first
+   * @param {number | undefined} deletedTimestamp - The persisted tombstone marker, if any
+   */
+  adoptHistory(historyLines, versions, deletedTimestamp) {
+    this.content.adoptHistory(historyLines);
+    this.timeline.adopt(Array.isArray(versions) ? [...versions] : []);
+    if (typeof deletedTimestamp === "number") {
+      this.deletedTimestamp = deletedTimestamp;
+    }
+  }
+  /**
+   * Re-establishes the session marker baseline at the current state, the eager
+   * form of the "re-established from the file content on the next open" contract
+   * that `SnapshotCodec.encode` documents for the deliberately non-persisted
+   * marker baseline.
+   *
+   * `SnapshotCodec.decode` reconstructs the marker baseline from the persisted HISTORY
+   * original and restores the persisted tracker, so a restored snapshot reports
+   * its full history diff (`getChangesLinesCount() > 0`) before the file is ever
+   * opened this run. The session surfaces that read a snapshot WITHOUT opening it
+   * - the tree/tab decorator above all - would then paint a folder as changed on
+   * a fresh launch even though nothing changed this session. Calling this at
+   * restore collapses the marker baseline onto the current state so the snapshot
+   * starts session-clean (`none`), matching the gutter, which re-baselines to the
+   * editor content on open. The HISTORY baseline (`historyLines`) and the version
+   * timeline are untouched, so the history modal keeps diffing against the
+   * persisted original; only the session-scoped marker view is reset.
+   */
+  resetMarkerBaseline() {
+    this.content.lines = [...this.content.state];
+    this.trackers.buildFromLines(this.content.lines);
+    this.updateChanges();
+  }
+  /**
+   * Updates the change map based on the current state of tracker lines.
+   * Iterates through all tracker lines and adds appropriate change types
+   * (added, removed, restored, changed) to the change map.
+   */
+  updateChanges() {
+    this.content.updateChanges(this.trackers.getTracker());
   }
 };
 
@@ -25155,14 +25047,14 @@ var VersionCodec = class _VersionCodec {
       if (entry === null || typeof entry !== "object") {
         continue;
       }
-      const lines = _VersionCodec.materialize(entry, prev);
-      if (lines === null) {
+      const lines2 = _VersionCodec.materialize(entry, prev);
+      if (lines2 === null) {
         continue;
       }
-      prev = lines;
+      prev = lines2;
       versions.push(
         new FileVersion(
-          lines,
+          lines2,
           entry.timestamp,
           typeof entry.label === "string" ? entry.label : void 0,
           entry.external === true
@@ -25216,988 +25108,240 @@ var VersionCodec = class _VersionCodec {
   }
 };
 
-// src/snapshots/version-timeline.ts
-var VersionTimeline = class {
-  constructor() {
-    /**
-     * Number of state updates accumulated since the last captured version. Drives
-     * the edit-count gate of the capture cadence so versions are taken every N
-     * edits rather than on every keystroke-driven update.
-     */
-    this.editsSinceVersion = 0;
-    /**
-     * Timestamp (ms) of the last captured version, or the timeline's creation time
-     * when no version has been captured yet. Drives the time gate of the cadence.
-     */
-    this.lastVersionAt = Date.now();
-  }
+// src/snapshots/snapshot-codec.ts
+var SnapshotCodec = class {
   /**
-   * Records that the document changed since the last captured version and, when
-   * the configured cadence is met, freezes the previous state as a new
-   * intermediate version on the timeline.
+   * Serializes a snapshot into a plain object for on-disk persistence. Persists
+   * the HISTORY baseline, the current state, and the full tracker so the
+   * highlights can be restored verbatim. The session-scoped marker baseline is
+   * intentionally not persisted (it is re-established from the file content on the
+   * next open) and the change map is omitted because it is recomputed from the
+   * tracker on restore.
    *
-   * The current (newest) state is never stored as a version: the history modal
-   * always has the live state available separately. A no-op capture is skipped:
-   * when the content to freeze equals the most recent stored version (or the
-   * history baseline when none exist), no version is pushed. A label-carrying
-   * capture is treated as a pinned marker: it bypasses the duplicate-skip so
-   * the user-supplied tag is always recorded, and the resulting version is exempt
-   * from eviction.
-   *
-   * @param {VersionCaptureContext} context - The façade-owned timeline, history
-   *   baseline, line break, and cadence/retention options
-   * @param {string[]} previousLines - The content to freeze (pre-edit state)
-   * @param {boolean} force - Capture regardless of the cadence gates
-   * @param {string} label - Optional user-supplied tag that pins the version
-   * @return {VersionCaptureResult} The captured version (or null) and the
-   *   timeline array the façade must adopt
-   */
-  capture(context, previousLines, force = false, label) {
-    const { versions, options } = context;
-    if (!(options == null ? void 0 : options.enabled) || !isArray_default(previousLines)) {
-      return { version: null, versions };
-    }
-    const labeled = isString_default(label) && label.length > 0;
-    this.editsSinceVersion += 1;
-    if (!force && !this.isVersionDue(options)) {
-      return { version: null, versions };
-    }
-    if (!labeled && this.isDuplicateOfLatest(versions, previousLines, context.historyBaseline, context.lineBreak)) {
-      return { version: null, versions };
-    }
-    const version = new FileVersion(previousLines, void 0, label);
-    return { version, versions: this.pushVersion(versions, version, options) };
-  }
-  /**
-   * Whether the given content equals the latest stored version, or the history
-   * baseline when no version exists yet. Used to skip a no-op capture so the
-   * timeline never holds an adjacent duplicate or a first version identical to
-   * the original.
-   *
-   * @param {FileVersion[]} versions - The current timeline, oldest first
-   * @param {string[]} lines - The candidate content to freeze
-   * @param {string} historyBaseline - The empty-timeline dedup reference
-   * @param {string} lineBreak - The line break used to join candidate content
-   * @return {boolean} True when the candidate duplicates the latest base
-   */
-  isDuplicateOfLatest(versions, lines, historyBaseline, lineBreak) {
-    const candidate = lines.join(lineBreak);
-    const latest = versions[versions.length - 1];
-    const reference = latest ? latest.getContent(lineBreak) : historyBaseline;
-    return candidate === reference;
-  }
-  /**
-   * Decides whether the cadence gates allow a new version right now. Either gate
-   * (edit count or elapsed time) can trigger a capture; a gate set to 0 is
-   * disabled and never triggers on its own.
-   *
-   * @param {SnapshotCaptureOptions} options - The capture cadence configuration
-   * @return {boolean} True if a version should be captured
-   */
-  isVersionDue(options) {
-    const byEdits = options.editThreshold > 0 && this.editsSinceVersion >= options.editThreshold;
-    const byTime = options.intervalMs > 0 && Date.now() - this.lastVersionAt >= options.intervalMs;
-    return byEdits || byTime;
-  }
-  /**
-   * Appends a version to the timeline, resets the cadence counters, and trims the
-   * timeline by evicting expired then excess entries. Returns the resulting array
-   * (the eviction may filter it) for the façade to store.
-   *
-   * @param {FileVersion[]} versions - The current timeline, oldest first
-   * @param {FileVersion} version - The version to append
-   * @param {SnapshotCaptureOptions} options - The capture cadence and retention caps
-   * @return {FileVersion[]} The timeline array after append and eviction
-   */
-  pushVersion(versions, version, options) {
-    versions.push(version);
-    this.editsSinceVersion = 0;
-    this.lastVersionAt = version.timestamp;
-    return this.evictVersions(versions, options);
-  }
-  /**
-   * Trims the timeline to its retention caps, age first then count, mirroring the
-   * JetBrains Local History model where age is the primary bound and the count is
-   * a safety cap. Versions older than maxVersionAgeDays are dropped regardless of
-   * count, then any beyond maxVersions are dropped regardless of age. A cap of 0
-   * disables that dimension. Because versions are appended oldest-first, both
-   * passes evict from the front of the array.
-   *
-   * Labeled versions are pinned: they are never dropped by either pass, so
-   * an intentional user marker survives both the age window and the count cap.
-   * The count cap counts only unlabeled entries, so a labeled version does not
-   * push an unlabeled one out either.
-   *
-   * @param {FileVersion[]} versions - The timeline to trim, oldest first
-   * @param {SnapshotCaptureOptions} options - The retention caps to apply
-   * @return {FileVersion[]} The timeline array after eviction
-   */
-  evictVersions(versions, options) {
-    let result = versions;
-    const maxAgeDays = options == null ? void 0 : options.maxVersionAgeDays;
-    if (isNumber_default(maxAgeDays) && maxAgeDays > 0) {
-      const oldest = Date.now() - maxAgeDays * MS_PER_DAY;
-      result = result.filter(
-        (version) => version.isLabeled() || version.timestamp >= oldest
-      );
-    }
-    const maxVersions = options == null ? void 0 : options.maxVersions;
-    if (isNumber_default(maxVersions) && maxVersions > 0) {
-      const unlabeled = result.reduce(
-        (count, version) => count + (version.isLabeled() ? 0 : 1),
-        0
-      );
-      let toDrop = unlabeled - maxVersions;
-      if (toDrop > 0) {
-        result = result.filter((version) => {
-          if (toDrop <= 0 || version.isLabeled()) {
-            return true;
-          }
-          toDrop -= 1;
-          return false;
-        });
-      }
-    }
-    return result;
-  }
-  /**
-   * Returns the intermediate versions, newest first, as a copy so callers cannot
-   * mutate the timeline.
-   *
-   * @param {FileVersion[]} versions - The timeline, oldest first
-   * @return {FileVersion[]} The timeline versions, newest first
-   */
-  getVersions(versions) {
-    return [...versions].reverse();
-  }
-  /**
-   * Finds an intermediate version by its id.
-   *
-   * @param {FileVersion[]} versions - The timeline to search
-   * @param {string} id - The version id to look up
-   * @return {FileVersion | null} The matching version, or null if absent
-   */
-  getVersion(versions, id) {
-    var _a;
-    return (_a = versions.find((version) => version.id === id)) != null ? _a : null;
-  }
-  /**
-   * Removes a single intermediate version from the timeline by its id in place,
-   * leaving every other version untouched. Used by the history modal to prune one
-   * captured point without wiping the whole timeline.
-   *
-   * @param {FileVersion[]} versions - The timeline to mutate, oldest first
-   * @param {string} id - The id of the version to remove
-   * @return {boolean} True if a version was removed, false if no id matched
-   */
-  removeVersion(versions, id) {
-    const index = versions.findIndex((version) => version.id === id);
-    if (index === -1) {
-      return false;
-    }
-    versions.splice(index, 1);
-    return true;
-  }
-  /**
-   * Whether the timeline has any intermediate versions.
-   *
-   * @param {FileVersion[]} versions - The timeline to inspect
-   * @return {boolean} True when at least one version exists
-   */
-  hasVersions(versions) {
-    return versions.length > 0;
-  }
-  /**
-   * Seeds the time-gate counter on restore so the cadence is continuous across
-   * restarts. Without this the constructor-seeded `lastVersionAt`
-   * (set to `Date.now()` at restore time) would reset the time gate on every
-   * launch, so a file that already had a version captured an hour before the
-   * restart would not be eligible for the next time-gated capture until the
-   * full interval elapsed again.
-   *
-   * The seed is derived from the newest version's timestamp (the value the
-   * gate normally tracks after a capture). When the timeline is empty there is
-   * no prior capture to anchor against, so the constructor default stays in
-   * place. Only timestamps that strictly precede the current default are
-   * accepted, so a corrupt future-dated entry cannot push the gate forward.
-   *
-   * @param {FileVersion[]} versions - The restored timeline, oldest first
-   */
-  seedLastVersionAtFromVersions(versions) {
-    if (!isArray_default(versions) || versions.length === 0) {
-      return;
-    }
-    const newest = versions[versions.length - 1];
-    const timestamp = newest == null ? void 0 : newest.timestamp;
-    if (!isNumber_default(timestamp) || timestamp >= this.lastVersionAt) {
-      return;
-    }
-    this.lastVersionAt = timestamp;
-  }
-  /**
-   * Seeds the edit-count gate on restore so the capture cadence is not
-   * artificially reset to 0 on every restart (A5). Without this, a file with
-   * an existing timeline always restarts with `editsSinceVersion = 0`,
-   * effectively delaying the first post-restore version capture by a full
-   * `editThreshold` count even though several versions may already have been
-   * taken in the current keyframe group.
-   *
-   * The seed is derived from the number of persisted versions in the current
-   * keyframe group: `versions.length % VERSION_KEYFRAME_INTERVAL`. A group
-   * starts at index 0, 25, 50, etc. (one full keyframe interval apart), so
-   * a timeline of N versions has accumulated N % 25 entries since the most
-   * recent keyframe boundary. When the timeline is empty or the length is an
-   * exact multiple of the interval (i.e., the last version IS a keyframe),
-   * the count is 0 and the gate is not advanced.
-   *
-   * The seeded value is the maximum of the computed count and any existing
-   * `editsSinceVersion` so a future call cannot deflate a counter that was
-   * already advanced by a capture since object creation.
-   *
-   * @param {FileVersion[]} versions - The restored timeline, oldest first
-   */
-  seedEditsSinceVersionFromVersions(versions) {
-    if (!isArray_default(versions) || versions.length === 0) {
-      return;
-    }
-    const count = versions.length % VERSION_KEYFRAME_INTERVAL;
-    if (count === 0) {
-      return;
-    }
-    this.editsSinceVersion = Math.max(this.editsSinceVersion, count);
-  }
-};
-
-// src/snapshots/file.snapshot.ts
-var FileSnapshot = class _FileSnapshot {
-  /**
-   * Creates a new instance of FileSnapshot.
-   * Initializes the snapshot with the provided content, splits it into lines,
-   * creates tracker objects for each line, and saves the initial state.
-   *
-   * @param {string} content - The content of the file as a string
-   * @param {string} lineBreak - The line break character used in the file (defaults to '\n')
-   * @param {TFile | null} file - The Obsidian file object this snapshot belongs to
-   */
-  constructor(content, lineBreak, file) {
-    /**
-     * Unique identifier for this snapshot.
-     * Generated randomly when the snapshot is created.
-     */
-    this.id = TextHelper.rndId();
-    /**
-     * Marker baseline: the file content the change tracker measures against. This
-     * is the file state at the moment the snapshot was created in the current app
-     * run, so the gutter markers stay session-scoped. The tracker is
-     * built from these lines and they never change for the life of the snapshot.
-     */
-    this.lines = [];
-    /**
-     * History baseline: the persisted original the history modal diffs against
-     *. Defaults to the marker baseline (`lines`) so a freshly captured
-     * file has a single coherent origin. Restoring persisted history overrides
-     * only this baseline (and the version timeline) through adoptHistory, leaving
-     * the session marker baseline intact so the gutter does not mark the whole
-     * file after a restart.
-     */
-    this.historyLines = [];
-    /**
-     * Timestamp when this snapshot was created.
-     * Used for tracking when changes occurred.
-     */
-    this.timestamp = Date.now();
-    /**
-     * Map of line numbers to their corresponding change information.
-     * Tracks what type of changes (added, modified, removed, restored) occurred at each line.
-     */
-    this.changes = new ArrayMap();
-    /**
-     * Array of tracker lines that maintain the history and state of each line.
-     * Each TrackerLine object tracks a single line's original position, current position,
-     * content, and change status.
-     */
-    this.tracker = [];
-    /**
-     * The tracker-index collaborator that owns the lazily built current-position
-     * cache and the read-only tracker lookups (findCurrentLine/findOriginalLine/
-     * findRemovedAt) over the façade-owned `tracker` array. The same instance is
-     * handed to the tracker editor so cache invalidation lives in one place.
-     */
-    this.index = new TrackerIndex();
-    /**
-     * The tracker-editor collaborator that performs every tracker mutation (moves,
-     * shifts, restores, removals, block replacement) over the façade-owned
-     * `tracker` array and invalidates the shared index after each one. It is a
-     * stateless operator over the passed-in array; the array itself stays a
-     * writable façade field external code assigns and mutates.
-     */
-    this.editor = new TrackerEditor(this.index);
-    /**
-     * Hash of the last known state of the file.
-     * Used to determine if the file has changed since the last update.
-     */
-    this.lastHash = null;
-    /**
-     * Current content of the file as an array of lines.
-     * This represents the most recent state of the file.
-     */
-    this.state = [];
-    /**
-     * Ordered timeline of intermediate versions, oldest first. Each entry is a
-     * frozen copy of the file content at the moment it was captured. The original
-     * baseline (lines) and the live state are not stored here; the timeline holds
-     * only the points in between, which the history modal can diff against.
-     */
-    this.versions = [];
-    /**
-     * The version-timeline collaborator that owns the capture cadence, the no-op
-     * dedup, and the age/count eviction. It is a stateless operator over the
-     * façade-owned `versions` array (which external code assigns and mutates), so
-     * the façade passes that array in and writes the result back; the collaborator
-     * holds only the cadence counters.
-     */
-    this.timeline = new VersionTimeline();
-    /**
-     * Line break character used in the file.
-     * Defaults to '\n' but can be specified during construction.
-     */
-    this.lineBreak = "\n";
-    /**
-     * Canonical vault-relative path of the snapshot, decoupled from a live
-     * `TFile`. This mirrors the key the snapshot is stored under in
-     * `SnapshotsService.fileSnapshots` and survives a reload: a restored snapshot
-     * whose `file` did not resolve (restore miss, tombstone, orphan, detached
-     * cross-directory move) still carries its path here, so folder-history path
-     * resolution no longer depends on `file?.path` being non-null. Every map
-     * insert in `SnapshotsService` sets this field; `toJSON` persists it
-     * (`file?.path ?? path`) and `fromJSON` restores it from the serialized path.
-     */
-    this.path = "";
-    /**
-     * Transient "added in this app run" marker: set to `true` only
-     * when the file was created by the user in the vault during the current
-     * session (the post-layout-ready `vault.create` capture path stamps it). It
-     * is the only reliable "created this run" signal, since `firstSeenAt` /
-     * absence of `historyLines` cannot tell a newly created file from a
-     * first-opened pre-existing one. It is deliberately NOT persisted: `toJSON`
-     * never writes it and `fromJSON` never reads it, so a snapshot restored from
-     * `history.json` after a restart comes back falsy and the tree/tab decorator
-     * stops painting it green once the session that created it ends.
-     */
-    this.createdThisSession = false;
-    var _a;
-    if (lineBreak) {
-      this.lineBreak = lineBreak;
-    }
-    if (file) {
-      this.file = file;
-      this.path = file.path;
-    }
-    this.lines = (_a = content == null ? void 0 : content.split(this.lineBreak)) != null ? _a : [];
-    this.historyLines = [...this.lines];
-    this.tracker = this.lines.map((line, index) => new TrackerLine({
-      content: line,
-      originalPosition: index,
-      currentPosition: index,
-      contentSameOriginal: true
-    }));
-    this.updateState(this.lines);
-  }
-  /**
-   * Serializes this snapshot into a plain object for on-disk persistence.
-   * Persists the HISTORY baseline (so the modal can diff against the original
-   * across restarts), the current state, and the full tracker so the highlights
-   * can be restored verbatim. The session-scoped marker baseline is intentionally
-   * not persisted: it is re-established from the file content on the next open
-   *. The change map is omitted because it is recomputed from the tracker
-   * on restore.
-   *
+   * @param {FileSnapshot} snapshot - The snapshot to serialize
    * @return {SerializedFileSnapshot} The plain serialized representation
    */
-  toJSON() {
+  static encode(snapshot) {
     var _a, _b;
     const payload = {
-      path: (_b = (_a = this.file) == null ? void 0 : _a.path) != null ? _b : this.path,
-      lineBreak: this.lineBreak,
-      timestamp: this.timestamp,
-      lines: [...this.historyLines],
-      state: [...this.state],
-      tracker: this.tracker.map((tracker) => tracker.toJSON()),
-      versions: VersionCodec.encode(this.versions, this.lineBreak)
+      path: (_b = (_a = snapshot.file) == null ? void 0 : _a.path) != null ? _b : snapshot.path,
+      lineBreak: snapshot.content.lineBreak,
+      timestamp: snapshot.timestamp,
+      lines: [...snapshot.content.historyLines],
+      state: [...snapshot.content.state],
+      tracker: snapshot.trackers.getTrackerLines().map((tracker) => tracker.toJSON()),
+      versions: VersionCodec.encode([...snapshot.timeline.getStoredVersions()], snapshot.content.lineBreak)
     };
-    if (isNumber_default(this.deletedTimestamp)) {
-      payload.deletedTimestamp = this.deletedTimestamp;
+    if (typeof snapshot.deletedTimestamp === "number") {
+      payload.deletedTimestamp = snapshot.deletedTimestamp;
     }
-    if (isNumber_default(this.movedIntoAt)) {
-      payload.movedIntoAt = this.movedIntoAt;
+    if (typeof snapshot.movedIntoAt === "number") {
+      payload.movedIntoAt = snapshot.movedIntoAt;
     }
     return payload;
   }
   /**
-   * Rebuilds a snapshot from its serialized form.
-   * Reconstructs the original baseline through the constructor, then replaces
-   * the auto-generated tracker and current state with the persisted ones and
-   * recomputes the change map. The file reference is attached separately by the
-   * caller since serialized data only carries the path.
+   * Rebuilds a snapshot from its serialized form. Reconstructs the marker
+   * baseline through the constructor, then replaces the auto-generated tracker and
+   * current state with the persisted ones and recomputes the change map. The file
+   * reference is attached separately by the caller since serialized data only
+   * carries the path.
    *
    * @param {SerializedFileSnapshot} data - The serialized snapshot
    * @param {TFile | null} file - The file this snapshot belongs to, if known
    * @return {FileSnapshot} The reconstructed snapshot
    */
-  static fromJSON(data, file) {
+  static decode(data, file) {
     var _a;
-    const lineBreak = isString_default(data.lineBreak) ? data.lineBreak : "\n";
-    const lines = Array.isArray(data.lines) ? data.lines : [];
+    const lineBreak = typeof data.lineBreak === "string" ? data.lineBreak : "\n";
+    const lines2 = Array.isArray(data.lines) ? data.lines : [];
     const tracker = Array.isArray(data.tracker) ? data.tracker : [];
     const state = Array.isArray(data.state) ? data.state : [];
-    const snapshot = new _FileSnapshot(
-      lines.join(lineBreak),
-      lineBreak,
-      file
-    );
-    snapshot.path = isString_default(data.path) ? data.path : snapshot.path;
-    snapshot.timestamp = isNumber_default(data.timestamp) ? data.timestamp : Date.now();
-    snapshot.tracker = tracker.map((line) => TrackerLine.fromJSON(line));
-    snapshot.versions = VersionCodec.decode((_a = data.versions) != null ? _a : [], lineBreak);
-    snapshot.timeline.seedLastVersionAtFromVersions(snapshot.versions);
-    snapshot.timeline.seedEditsSinceVersionFromVersions(snapshot.versions);
-    if (isNumber_default(data.deletedTimestamp)) {
+    const snapshot = new FileSnapshot(lines2.join(lineBreak), lineBreak, file);
+    snapshot.path = typeof data.path === "string" ? data.path : snapshot.path;
+    snapshot.timestamp = typeof data.timestamp === "number" ? data.timestamp : Date.now();
+    snapshot.trackers.restore(tracker);
+    snapshot.timeline.restore(VersionCodec.decode((_a = data.versions) != null ? _a : [], lineBreak));
+    if (typeof data.deletedTimestamp === "number") {
       snapshot.deletedTimestamp = data.deletedTimestamp;
     }
-    if (isNumber_default(data.movedIntoAt)) {
+    if (typeof data.movedIntoAt === "number") {
       snapshot.movedIntoAt = data.movedIntoAt;
     }
-    snapshot.index.invalidate();
-    snapshot.updateState(state);
+    snapshot.content.updateState(state);
     snapshot.updateChanges();
     return snapshot;
   }
+};
+
+// src/snapshots/history-serializer.ts
+var HistorySerializer = class {
   /**
-   * Whether this snapshot is a tombstone for a deleted file. True when
-   * `deletedTimestamp` is set; false for a live snapshot.
+   * Creates a new HistorySerializer bound to the registry it serializes and its
+   * owning service's host port.
    *
-   * @return {boolean} True when the snapshot represents a deleted file
+   * @param {SnapshotRegistry} registry - The snapshot map to serialize/restore
+   * @param {HistorySerializerHost} host - The narrow port onto the plugin deps
    */
-  isTombstone() {
-    return isNumber_default(this.deletedTimestamp);
+  constructor(registry, host) {
+    this.registry = registry;
+    this.host = host;
   }
   /**
-   * Whether this snapshot was re-keyed to a new path by a cross-directory move
-   *. True when `movedIntoAt` is set; false otherwise.
+   * Serializes all tracked snapshots into a plain, persistable structure.
+   * Includes live snapshots that carry actual history (a tracker with changes
+   * or a non-empty intermediate-version timeline) so pristine files do not
+   * bloat the store but a timeline is never lost just because the current
+   * state happens to match the original. Tombstones are ALWAYS included
+   * regardless of tracker/timeline emptiness: their final state plus
+   * `deletedTimestamp` is the only record of a deleted file's content and must
+   * survive a restart even when the live tracker was reset on `markDeleted`.
    *
-   * @return {boolean} True when the snapshot carries a move-in marker
+   * The serialized `path` is taken from the map key (not from `snapshot.file`)
+   * so tombstones whose `file` reference is null (cross-directory move leaves
+   * a detached tombstone) still round-trip to disk under their last-known
+   * path.
+   *
+   * @return {SerializedHistory} The versioned, serializable history payload
    */
-  isMovedIn() {
-    return isNumber_default(this.movedIntoAt);
-  }
-  /**
-   * Checks if the file content has changed since the last update.
-   * Compares the hash of the provided content with the stored hash.
-   *
-   * @param {string} content - The current content of the file to check
-   * @return {boolean} True if the content has changed and needs updating, false otherwise
-   */
-  isNeedUpdate(content) {
-    return this.lastHash !== TextHelper.hash(content);
-  }
-  /**
-   * Authoritative content-equality check for the external-change guard
-   *. Uses the 32-bit `lastHash` as a cheap pre-filter: a hash
-   * mismatch is always a real change, but a hash match falls through to an
-   * actual line-by-line compare against the snapshot's known `state` so a
-   * collision (two distinct contents that hash to the same 32-bit value)
-   * cannot make a genuine external rewrite look identical.
-   *
-   * The comparison splits the incoming content on the snapshot's own
-   * `lineBreak` (the same separator used when `state` was filled), so a
-   * change that differs only in trailing whitespace or line count is detected
-   * even when the hashes collide.
-   *
-   * @param {string} content - The current content of the file to check
-   * @return {boolean} True if the content differs from the stored state, false if identical
-   */
-  isContentChanged(content) {
-    if (this.lastHash !== TextHelper.hash(content)) {
-      return true;
-    }
-    const incoming = content.split(this.lineBreak);
-    const current = this.state;
-    if (incoming.length !== current.length) {
-      return true;
-    }
-    for (let i = 0; i < incoming.length; i++) {
-      if (incoming[i] !== current[i]) {
-        return true;
+  serialize() {
+    const snapshots = [];
+    for (const [path, snapshot] of this.registry.entries()) {
+      if (!path) {
+        continue;
       }
+      const isTombstone = snapshot.isTombstone();
+      const hasHistory = snapshot.content.getChangesLinesCount() > 0 || snapshot.timeline.hasVersions();
+      if (!isTombstone && !hasHistory) {
+        continue;
+      }
+      let payload;
+      try {
+        payload = SnapshotCodec.encode(snapshot);
+      } catch (error) {
+        console.error("Local history: failed to serialize snapshot; skipping it", path, error);
+        continue;
+      }
+      payload.path = path;
+      snapshots.push(payload);
     }
-    return false;
+    return { version: 2, snapshots };
   }
   /**
-   * Updates the current state of the file snapshot.
-   * Stores the new content and updates the hash for future change detection.
+   * Restores snapshots from a previously serialized history payload, keeping the
+   * marker and history baselines separate.
    *
-   * @param {string | string[]} content - The new content of the file, either as a string or array of lines
+   * When the file was already captured this session, its session snapshot owns
+   * the MARKER baseline (the file content at this open) plus the live tracker and
+   * state, which must stay session-scoped so the gutter does not mark the whole
+   * file after a restart. The persisted HISTORY baseline and version timeline are
+   * adopted into that session snapshot, so the modal still diffs against the
+   * original and its captured versions without touching the markers.
+   *
+   * When the file is not open this session there is no session marker baseline to
+   * preserve, so the snapshot is rebuilt verbatim (marker and history baselines
+   * coincide).
+   *
+   * When the live file is gone (deleted while the plugin was off, or the entry
+   * was already a tombstone on disk) the snapshot is reconstructed as a
+   * tombstone under its persisted path so deleted-file history is never silently
+   * dropped on restart:
+   *
+   *   - a payload that already carries `deletedTimestamp` is rebuilt as that
+   *     same tombstone (the original deletion moment is preserved);
+   *   - a live payload whose file no longer resolves is auto-tombstoned with
+   *     `deletedTimestamp = data.timestamp`, treating the offline disappearance
+   *     as a delete that happened at the snapshot's last-known moment.
+   *
+   * Auto-tombstoning runs from `restoreFromDisk`, which itself runs from
+   * `onLayoutReady`, so the vault file index is fully populated by the time
+   * `getFileByPath` is consulted; a null result is a real absence, not a
+   * transient indexing miss.
+   *
+   * After the restore loop, any file currently open in the editor is
+   * re-checked via {@link scheduleExternalCapture} to catch a disk state that
+   * diverged from the restored snapshot state while the plugin was off (A1).
+   * Files not open in the editor are intentionally skipped (no disk read for
+   * unopened files). The debounce inside {@link scheduleExternalCapture} also
+   * coalesces any vault.modify event that fires immediately after restore into a
+   * single trailing pass, preventing double-capture.
+   *
+   * @param {SerializedFileSnapshot[]} snapshots - The serialized snapshots
    */
-  updateState(content) {
-    const result = SnapshotState.updateState(content, this.lineBreak);
-    this.state = result.state;
-    this.lastHash = result.lastHash;
+  restore(snapshots) {
+    if (!Array.isArray(snapshots)) {
+      return;
+    }
+    for (const data of snapshots) {
+      if (!(data == null ? void 0 : data.path)) {
+        continue;
+      }
+      const file = this.host.getFileByPath(data.path);
+      if (!file) {
+        this.restoreOrphan(data);
+        continue;
+      }
+      const existing = this.registry.get(data.path);
+      if (existing) {
+        const persisted = SnapshotCodec.decode(data, file);
+        existing.adoptHistory(
+          persisted.content.getHistoryOriginalStateLines(),
+          [...persisted.timeline.getStoredVersions()],
+          persisted.deletedTimestamp
+        );
+        this.registry.forceUpdate();
+        continue;
+      }
+      const restored = SnapshotCodec.decode(data, file);
+      restored.resetMarkerBaseline();
+      this.registry.set(data.path, restored);
+    }
+    this.reconcileOpenFiles();
   }
   /**
-   * Records that the document changed since the last captured version and,
-   * when the configured cadence is met, freezes the previous state as a new
-   * intermediate version on the timeline.
+   * Re-checks the disk state for every file currently open in the editor after
+   * a restore pass (A1). Calls {@link scheduleExternalCapture} for each open
+   * file that has a snapshot, which debounces the disk read + hash compare and
+   * fires a capture only when the on-disk content diverges from the restored
+   * state. Files not open in the editor are intentionally skipped: there is no
+   * visible editor surface for them and the performance cost of reading every
+   * tracked file on startup would be prohibitive.
    *
-   * IMPORTANT: this must be called with the state BEFORE the latest edit was
-   * applied (typically the snapshot's current state right before updateState),
-   * so the captured version preserves the earlier point rather than the new
-   * one. The current (newest) state is never stored as a version: the history
-   * modal always has the live state available separately.
+   * The debounce window inside {@link ExternalChangeCapture} acts as an
+   * async-safety valve: if a vault.modify event fires for the same file
+   * immediately after restore, its scheduleExternalCapture call resets the
+   * timer, so the two triggers coalesce into a single trailing disk read
+   * rather than a double-capture.
    *
-   * Cadence: a version is captured when capture is enabled and either the edit
-   * count since the last version reached editThreshold, or intervalMs elapsed
-   * since the last version. A gate set to 0 is treated as disabled; when both
-   * gates are 0 only the explicit force path captures. The timeline is bounded
-   * primarily by age (maxVersionAgeDays) and secondarily by count (maxVersions),
-   * evicting the oldest entries first so it cannot grow without limit.
-   *
-   * A no-op capture is skipped: when the content to freeze equals the most
-   * recent stored version (or the original baseline when none exist), no version
-   * is pushed. This keeps the timeline from holding adjacent duplicate entries
-   * or a first version identical to the original, which would otherwise diff
-   * identically and make switching the base appear to change nothing.
-   *
-   * A label-carrying capture is treated as a pinned marker: it bypasses
-   * the duplicate-skip so the user-supplied tag is always recorded, and the
-   * resulting version is exempt from eviction in evictVersions.
-   *
-   * @param {string[]} previousLines - The content to freeze (pre-edit state)
-   * @param {SnapshotCaptureOptions} options - The capture cadence configuration
-   * @param {boolean} force - Capture regardless of the cadence gates
-   * @param {string} label - Optional user-supplied tag that pins the version
-   * @return {FileVersion | null} The captured version, or null if none was taken
+   * A no-op when the plugin does not yet expose its open files (test stubs or
+   * very early init paths that do not need the workspace), which the host
+   * surfaces as an empty set.
    */
-  captureVersion(previousLines, options, force = false, label) {
-    const result = this.timeline.capture(
-      {
-        versions: this.versions,
-        historyBaseline: this.getHistoryOriginalState(),
-        lineBreak: this.lineBreak,
-        options
-      },
-      previousLines,
-      force,
-      label
-    );
-    this.versions = result.versions;
-    return result.version;
-  }
-  /**
-   * Returns the intermediate versions, newest first, as a copy so callers
-   * cannot mutate the timeline.
-   *
-   * @return {FileVersion[]} The timeline versions, newest first
-   */
-  getVersions() {
-    return this.timeline.getVersions(this.versions);
-  }
-  /**
-   * Finds an intermediate version by its id.
-   *
-   * @param {string} id - The version id to look up
-   * @return {FileVersion | null} The matching version, or null if absent
-   */
-  getVersion(id) {
-    return this.timeline.getVersion(this.versions, id);
-  }
-  /**
-   * Removes a single intermediate version from the timeline by its id, leaving
-   * the history baseline and every other version untouched. Used by the history
-   * modal to prune one captured point without wiping the whole timeline.
-   *
-   * @param {string} id - The id of the version to remove
-   * @return {boolean} True if a version was removed, false if no id matched
-   */
-  removeVersion(id) {
-    return this.timeline.removeVersion(this.versions, id);
-  }
-  /**
-   * Whether the snapshot has any intermediate versions on its timeline.
-   *
-   * @return {boolean} True when at least one version exists
-   */
-  hasVersions() {
-    return this.timeline.hasVersions(this.versions);
-  }
-  /**
-   * Checks if the current state is the same as the original state.
-   * Compares the content of the file when the snapshot was created with its current content.
-   *
-   * @return {boolean} True if the current state matches the original state, false otherwise
-   */
-  isStateSameOriginal() {
-    return SnapshotState.isStateSameOriginal(this.lines, this.state, this.lineBreak);
-  }
-  /**
-   * Gets the current state of the file as a string.
-   * Joins the lines of the current state with the line break character.
-   *
-   * @return {string} The current state of the file as a string
-   */
-  getLastState() {
-    return SnapshotState.getLastState(this.state, this.lineBreak);
-  }
-  /**
-   * Gets the current state of the file as an array of lines.
-   * Returns a copy of the state array to prevent direct modification.
-   *
-   * @return {string[]} The current state of the file as an array of lines
-   */
-  getLastStateLines() {
-    return SnapshotState.getLastStateLines(this.state);
-  }
-  /**
-   * Gets the marker baseline as a string (the session origin the gutter markers
-   * measure against). Joins the marker baseline lines with the line break.
-   *
-   * @return {string} The marker baseline of the file as a string
-   */
-  getOriginalState() {
-    return SnapshotState.getOriginalState(this.lines, this.lineBreak);
-  }
-  /**
-   * Gets the marker baseline as an array of lines (the session origin the gutter
-   * markers measure against). Returns a copy to prevent direct modification.
-   *
-   * @return {string[]} The marker baseline of the file as an array of lines
-   */
-  getOriginalStateLines() {
-    return SnapshotState.getOriginalStateLines(this.lines);
-  }
-  /**
-   * Gets the HISTORY baseline as a string (the persisted original the history
-   * modal diffs against). Distinct from the marker baseline so a restored file
-   * keeps a stable origin for the time machine while the gutter stays
-   * session-scoped.
-   *
-   * @return {string} The history baseline of the file as a string
-   */
-  getHistoryOriginalState() {
-    return SnapshotState.getHistoryOriginalState(this.historyLines, this.lineBreak);
-  }
-  /**
-   * Gets the HISTORY baseline as an array of lines (the persisted original the
-   * history modal diffs against). Returns a copy to prevent direct modification.
-   *
-   * @return {string[]} The history baseline of the file as an array of lines
-   */
-  getHistoryOriginalStateLines() {
-    return SnapshotState.getHistoryOriginalStateLines(this.historyLines);
-  }
-  /**
-   * Adopts a persisted HISTORY baseline and version timeline into this
-   * (session-captured) snapshot without touching the marker baseline, the
-   * tracker, or the current state. Used by the restore path so reopening
-   * a file in a new app run keeps the gutter markers session-scoped (measured
-   * against the file content at this open) while the history modal still diffs
-   * against the persisted original and its captured versions.
-   *
-   * When the persisted snapshot carried a deletedTimestamp (i.e. it was a
-   * tombstone on disk), that value is synced onto this snapshot so tombstone
-   * data is never silently dropped when the session snapshot was created before
-   * the restore path ran (A8).
-   *
-   * @param {string[]} historyLines - The persisted original (history baseline)
-   * @param {FileVersion[]} versions - The persisted version timeline, oldest first
-   * @param {number | undefined} deletedTimestamp - The persisted tombstone marker, if any
-   */
-  adoptHistory(historyLines, versions, deletedTimestamp) {
-    const result = SnapshotState.adoptHistory(historyLines, versions);
-    this.historyLines = result.historyLines;
-    this.versions = result.versions;
-    if (isNumber_default(deletedTimestamp)) {
-      this.deletedTimestamp = deletedTimestamp;
+  reconcileOpenFiles() {
+    for (const file of this.host.getOpenFiles()) {
+      if (!file || !this.registry.has(file.path)) {
+        continue;
+      }
+      this.host.scheduleExternalCapture(file);
     }
   }
   /**
-   * Re-establishes the session marker baseline at the current state, the eager
-   * form of the "re-established from the file content on the next open" contract
-   * that `toJSON` documents for the deliberately non-persisted marker baseline.
+   * Reconstructs a serialized entry whose live file is missing as a tombstone.
+   * A payload that already carries `deletedTimestamp` is rebuilt verbatim so
+   * the original deletion moment survives a restart; a live payload whose file
+   * is gone is auto-tombstoned with `deletedTimestamp = data.timestamp` (the
+   * snapshot's last-known moment), keeping deleted-file history accessible
+   * even when the delete happened while the plugin was off.
    *
-   * `fromJSON` reconstructs the marker baseline from the persisted HISTORY
-   * original and restores the persisted tracker, so a restored snapshot reports
-   * its full history diff (`getChangesLinesCount() > 0`) before the file is ever
-   * opened this run. The session surfaces that read a snapshot WITHOUT opening it
-   * - the tree/tab decorator above all - would then paint a folder as changed on
-   * a fresh launch even though nothing changed this session. Calling this at
-   * restore collapses the marker baseline onto the current state so the snapshot
-   * starts session-clean (`none`), matching the gutter, which re-baselines to the
-   * editor content on open. The HISTORY baseline (`historyLines`) and the version
-   * timeline are untouched, so the history modal keeps diffing against the
-   * persisted original; only the session-scoped marker view is reset.
+   * @param {SerializedFileSnapshot} data - The serialized snapshot
    */
-  resetMarkerBaseline() {
-    this.lines = [...this.state];
-    this.tracker = this.lines.map((line, index) => new TrackerLine({
-      content: line,
-      originalPosition: index,
-      currentPosition: index,
-      contentSameOriginal: true
-    }));
-    this.index.invalidate();
-    this.updateChanges();
-  }
-  /**
-   * Gets the changes for the specified change types.
-   * If no type is specified, returns all changes.
-   *
-   * @param {ChangeType | ChangeType[]} type - Optional change type or array of change types to filter by
-   * @return {ArrayMap<ChangeLine>} A map of line numbers to their corresponding change information
-   */
-  getChanges(type) {
-    if (!this.changes) {
-      this.changes = new ArrayMap();
+  restoreOrphan(data) {
+    const snapshot = SnapshotCodec.decode(data, null);
+    if (!snapshot.isTombstone()) {
+      snapshot.deletedTimestamp = data.timestamp;
     }
-    return SnapshotState.getChanges(this.changes, type);
-  }
-  /**
-   * Gets the total count of lines that have been changed, added, or removed.
-   * Used to display the number of changed lines in the status bar.
-   *
-   * @return {number} The number of lines with changes
-   */
-  getChangesLinesCount() {
-    return SnapshotState.getChangesLinesCount(this.getChanges());
-  }
-  /**
-   * Gets the 0-based positions of every currently changed line, ascending.
-   * These are the same positions the line decorations are keyed by (the change
-   * map keys), so navigating across them lands the cursor exactly on the
-   * highlighted lines. Used by the "go to next/previous change" commands.
-   *
-   * @param {ChangeType | ChangeType[]} type - Optional change types to include;
-   *   defaults to changed, added, restored and removed
-   * @return {number[]} The unique changed line positions in ascending order
-   */
-  getChangedPositions(type) {
-    return SnapshotState.getChangedPositions(this.getChanges(), type);
-  }
-  /**
-   * Resolves the timestamp of the file's last update. Prefers the file's
-   * modification time (the real last-change moment of the live content), and
-   * falls back to the snapshot's creation time when no file stat is available
-   * (for example a detached snapshot in tests).
-   *
-   * @return {number} The last-change timestamp in milliseconds
-   */
-  getLastChangedTimestamp() {
-    return SnapshotTimestamps.getLastChangedTimestamp(this.file, this.timestamp);
-  }
-  /**
-   * Retrieves the last modified date and time as a localized string.
-   *
-   * @return {string} The date and time of the last change in a localized string format.
-   */
-  getLastChangedDateTime() {
-    return SnapshotTimestamps.getLastChangedDateTime(this.file, this.timestamp);
-  }
-  /**
-   * Retrieves the last modified day as a localized date string (no time), used
-   * as the day-group key and label for the baseline entry in the history modal.
-   *
-   * @return {string} The localized last-change date
-   */
-  getLastChangedDate() {
-    return SnapshotTimestamps.getLastChangedDate(this.file, this.timestamp);
-  }
-  /**
-   * Retrieves the last modified time of day as a localized string, shown as the
-   * baseline entry's meta once its day lives in the group heading.
-   *
-   * @return {string} The localized last-change time
-   */
-  getLastChangedTime() {
-    return SnapshotTimestamps.getLastChangedTime(this.file, this.timestamp);
-  }
-  /**
-   * Updates the change map based on the current state of tracker lines.
-   * Iterates through all tracker lines and adds appropriate change types
-   * (added, removed, restored, changed) to the change map.
-   */
-  updateChanges() {
-    SnapshotState.updateChanges(this.getChanges(), this.getTracker());
-  }
-  /**
-   * Finds a tracker line at the specified current position.
-   * Searches for a tracker line that is currently at the given line number.
-   *
-   * @param {number} line - The line number to search for
-   * @param {number} to - Optional upper bound for range checking
-   * @return {TrackerLine | null} The tracker line at the specified position, or null if not found
-   */
-  findCurrentLine(line, to) {
-    return this.index.findCurrentLine(this.tracker, line, to);
-  }
-  /**
-   * Finds a tracker line originally at the specified position.
-   * Can search for lines based on their original or current position.
-   *
-   * @param {number} line - The line number to search for
-   * @param {number} to - Optional upper bound for range checking
-   * @param {boolean} visible - If true, searches by current position; if false, by original position
-   * @return {TrackerLine | null} The tracker line that was originally at the specified position, or null if not found
-   */
-  findOriginalLine(line, to, visible = true) {
-    return this.index.findOriginalLine(this.tracker, line, to, visible);
-  }
-  /**
-   * Finds a tracker line removed at the specified position.
-   * Searches for a tracker line that was removed at the given line number.
-   *
-   * @param {number} line - The line number where a line was removed
-   * @return {TrackerLine | null} The tracker line that was removed at the specified position, or null if not found
-   */
-  findRemovedAt(line) {
-    return this.index.findRemovedAt(this.tracker, line);
-  }
-  /**
-   * Gets the tracker lines with optional sorting and key mapping.
-   * Returns an ArrayMap of tracker lines that can be sorted and keyed as specified.
-   *
-   * @param {object} params - Optional parameters for sorting and keying the tracker lines
-   * @param {string} params.keyBy - Property to use as the key in the returned ArrayMap
-   * @param {Array|string} params.ordering - Property to sort by, or a tuple of property and direction
-   * @return {ArrayMap<TrackerLine>} An ArrayMap of tracker lines
-   */
-  getTracker(params) {
-    return this.editor.getTracker(this.tracker, params);
-  }
-  /**
-   * Moves a tracker line to a new position.
-   * Shifts other lines as needed to accommodate the move.
-   *
-   * @param {number} line - The current line number of the tracker to move
-   * @param {number} position - The new position to move the tracker to
-   * @return {TrackerLine | null} The moved tracker line, or null if no tracker was found at the specified line
-   */
-  moveTo(line, position) {
-    return this.editor.moveTo(this.tracker, line, position);
-  }
-  /**
-   * Shifts tracker lines up by the specified offset.
-   * Affects all tracker lines within the specified range.
-   *
-   * @param {number} line - The starting line number of the range to shift
-   * @param {number} to - Optional ending line number of the range to shift
-   * @param {number} offset - Optional number of lines to shift by (defaults to 1)
-   * @return {Record<number, TrackerLine[]>} A record mapping line numbers to arrays of tracker lines at those positions
-   */
-  shiftUp(line, to, offset) {
-    return this.editor.shiftUp(this.tracker, line, to, offset);
-  }
-  /**
-   * Shifts removed tracker lines up by the specified offset.
-   * Affects all removed tracker lines within the specified range.
-   *
-   * @param {number} line - The starting line number of the range to shift
-   * @param {number} to - Optional ending line number of the range to shift
-   * @param {number} offset - Optional number of lines to shift by (defaults to 1)
-   * @return {Record<number, TrackerLine[]>} A record mapping line numbers to arrays of tracker lines at those positions
-   */
-  shiftUpRemoved(line, to, offset) {
-    return this.editor.shiftUpRemoved(this.tracker, line, to, offset);
-  }
-  /**
-   * Shifts tracker lines down by the specified offset.
-   * Affects all tracker lines within the specified range.
-   *
-   * @param {number} line - The starting line number of the range to shift
-   * @param {number} to - Optional ending line number of the range to shift
-   * @param {number} offset - Optional number of lines to shift by (defaults to 1)
-   * @return {Record<number, TrackerLine[]>} A record mapping line numbers to arrays of tracker lines at those positions
-   */
-  shiftDown(line, to, offset) {
-    return this.editor.shiftDown(this.tracker, line, to, offset);
-  }
-  /**
-   * Shifts removed tracker lines down by the specified offset.
-   * Affects all removed tracker lines within the specified range.
-   *
-   * @param {number} line - The starting line number of the range to shift
-   * @param {number} to - Optional ending line number of the range to shift
-   * @param {number} offset - Optional number of lines to shift by (defaults to 1)
-   * @return {Record<number, TrackerLine[]>} A record mapping line numbers to arrays of tracker lines at those positions
-   */
-  shiftDownRemoved(line, to, offset) {
-    return this.editor.shiftDownRemoved(this.tracker, line, to, offset);
-  }
-  /**
-   * Restores a removed tracker line or adds a new one at the specified position.
-   * If a removed tracker line is found at the position, it is restored.
-   * Otherwise, a new tracker line is added.
-   *
-   * @param {number | TrackerLine} line - The line number or tracker line to restore or add
-   * @param {boolean} shift - Whether to shift other lines to accommodate the restored/added line
-   * @return {TrackerLine} The restored or added tracker line
-   */
-  restoreOrAddTracker(line, shift = true) {
-    return this.editor.restoreOrAddTracker(this.tracker, line, shift);
-  }
-  /**
-   * Removes a tracker line or marks it as removed.
-   * If the line existed in the original state, it is marked as removed.
-   * Otherwise, it is completely removed from the tracker array.
-   *
-   * @param {number | TrackerLine} line - The line number or tracker line to remove
-   * @param {boolean} shift - Whether to shift other lines to accommodate the removed line
-   * @return {TrackerLine | null} The removed tracker line, or null if no tracker was found
-   */
-  removeTrackerOrLine(line, shift = true) {
-    return this.editor.removeTrackerOrLine(this.tracker, line, shift);
-  }
-  /**
-   * Adds a new tracker line to the snapshot.
-   * Creates a new TrackerLine instance with the provided parameters and adds it to the tracker array.
-   *
-   * @param {TrackerLineParams} params - Optional parameters for the new tracker line
-   * @return {TrackerLine} The newly created tracker line
-   */
-  addTrackerLine(params) {
-    return this.editor.addTrackerLine(this.tracker, params);
-  }
-  /**
-   * Removes a tracker line from the snapshot.
-   * Finds the tracker line by line number or reference and removes it from the tracker array.
-   *
-   * @param {number | TrackerLine} line - The line number or tracker line to remove
-   */
-  removeTrackerLine(line) {
-    this.editor.removeTrackerLine(this.tracker, line);
-  }
-  /**
-   * Replaces a contiguous block of current lines in the tracker with new content,
-   * keeping the original baseline intact. This is the model-level counterpart of
-   * a single-block edit: it is used when a region of the document is rewritten
-   * outside the editor (for example a per-hunk revert from the history modal),
-   * so the tracker and its highlights stay consistent with the new content even
-   * when the change did not flow through the CodeMirror change detector.
-   *
-   * The block spanning [startLine, startLine + removeCount) is mapped onto
-   * newLines. When the counts match, each line is edited in place so a revert to
-   * the original content correctly clears or restores its highlight. When they
-   * differ, the block is treated as a delete plus insert (mirroring the change
-   * detector), which keeps positions correct for every line after the block.
-   *
-   * The caller is responsible for updating the cached state and the change map
-   * afterwards (updateState then updateChanges), so the written file content
-   * stays the single source of truth for the diff view.
-   *
-   * @param {number} startLine - The 0-based current position where the block begins
-   * @param {number} removeCount - How many current lines the block currently spans
-   * @param {string[]} newLines - The content the block should hold afterwards
-   */
-  replaceBlock(startLine, removeCount, newLines) {
-    this.editor.replaceBlock(this.tracker, startLine, removeCount, newLines);
+    snapshot.file = null;
+    this.registry.set(data.path, snapshot);
   }
 };
 
@@ -26318,21 +25462,105 @@ var IgnoreListManager = class {
   }
 };
 
-// src/services/snapshots.service.ts
-var import_obsidian24 = require("obsidian");
-var SnapshotsService = class {
-  /**
-   * Creates a new instance of SnapshotsService.
-   *
-   * @param {LineChangeTrackerPlugin} plugin - The plugin instance
-   */
-  constructor(plugin) {
-    this.plugin = plugin;
+// src/maps/observable.map.ts
+var ObservableMap = class extends Map {
+  constructor() {
+    super(...arguments);
     /**
-     * Map of file paths to their corresponding snapshots.
-     * Uses ObservableMap to notify subscribers when snapshots change.
+     * Set of change handler functions that are notified when the map changes.
+     * Each handler is called with the action type and relevant key/value.
      */
-    this.fileSnapshots = new ObservableMap();
+    this.listeners = /* @__PURE__ */ new Set();
+  }
+  /**
+   * Subscribes a handler function to be called when the map changes.
+   *
+   * @param {ChangeHandler<K, V>} handler - The function to call when the map changes
+   */
+  subscribe(handler) {
+    this.listeners.add(handler);
+  }
+  /**
+   * Notifies all subscribed handlers of a change to the map.
+   * Called internally by the set, delete, and clear methods.
+   *
+   * Iterates over a snapshot of the listener set, so a handler that
+   * subscribes during dispatch cannot corrupt the in-progress iteration
+   * (re-entrancy safety).
+   *
+   * @param {string} action - The type of change that occurred
+   * @param {*} key - The key that was affected (if applicable)
+   * @param {*} value - The value that was affected (if applicable)
+   */
+  next(action, key2, value) {
+    for (const listener of [...this.listeners]) {
+      listener(action, key2, value);
+    }
+  }
+  /**
+   * Sets a key-value pair in the map and notifies listeners of the change.
+   * Only notifies listeners if the key is new or the value has changed.
+   *
+   * @param {*} key - The key to set
+   * @param {*} value - The value to set
+   * @return {this} This map instance for method chaining
+   * @override
+   */
+  set(key2, value) {
+    const hadKey = this.has(key2);
+    const prev = this.get(key2);
+    super.set(key2, value);
+    if (!hadKey || prev !== value) {
+      this.next("set" /* set */, key2, value);
+    }
+    return this;
+  }
+  /**
+   * Deletes a key-value pair from the map and notifies listeners of the change.
+   * Only notifies listeners if a key was actually deleted.
+   *
+   * @param {*} key - The key to delete
+   * @return {boolean} True if the key was deleted, false otherwise
+   * @override
+   */
+  delete(key2) {
+    const result = super.delete(key2);
+    if (result) {
+      this.next("delete" /* delete */, key2);
+    }
+    return result;
+  }
+  /**
+   * Clears all key-value pairs from the map and notifies listeners of the change.
+   * Only notifies listeners if the map wasn't empty.
+   *
+   * @return {number} The number of key-value pairs that were in the map before clearing
+   * @override
+   */
+  clear() {
+    const size = this.size;
+    super.clear();
+    if (size > 0) {
+      this.next("clear" /* clear */);
+    }
+    return size;
+  }
+};
+
+// src/snapshots/snapshot-registry.ts
+var SnapshotRegistry = class {
+  /**
+   * Creates a new SnapshotRegistry bound to its owning service's host port.
+   *
+   * @param {SnapshotRegistryHost} host - The narrow port onto the two outside deps
+   */
+  constructor(host) {
+    this.host = host;
+    /**
+     * Map of file paths to their corresponding snapshots. Uses ObservableMap to
+     * notify subscribers when snapshots change.
+     */
+    this.snapshots = new ObservableMap();
     /**
      * Vault paths of files CREATED by the user in the current app session.
      * Recorded by the `vault.create` handler regardless of the "ignore new
@@ -26345,95 +25573,107 @@ var SnapshotsService = class {
      * that has since changed identity.
      */
     this.sessionCreatedPaths = /* @__PURE__ */ new Set();
-    /**
-     * Plain collaborator that owns the ignore-list and exclude-pattern concern:
-     * the per-file ignore set (files the user opted out of tracking) and the
-     * path-exclude decision (a configured regexp that vetoes tracking for whole
-     * folders), including the warn-once guard for an invalid pattern. Owned by the
-     * service (not a DI service); reads the exclude pattern and routes the
-     * invalid-pattern warning back through an {@link IgnoreListHost} port the
-     * service builds.
-     */
-    this.ignoreList = new IgnoreListManager(this.makeIgnoreListHost());
-    /**
-     * Plain collaborator that owns the external (off-editor) change detection
-     * concern: the per-path debounce, the in-flight guard, the stat-based
-     * last-seen pre-check, and the disk-read + hash-compare capture flow. Owned
-     * by the service (not a DI service); reads the snapshot map and capture
-     * gating back through an {@link ExternalChangeHost} port the service builds.
-     */
-    this.externalCapture = new ExternalChangeCapture(this.makeExternalChangeHost());
-    /**
-     * Plain collaborator that owns the out-of-editor file-write concern: applying
-     * a reverted block to a file (snapshot resync + disk write + editor refresh).
-     * Owned by the service (not a DI service); reads the snapshot map and routes
-     * the post-write forced update back through an {@link EditorOperationsHost}
-     * port the service builds.
-     */
-    this.editorOperations = new EditorOperations(this.makeEditorOperationsHost());
   }
   /**
-   * Initializes the service.
-   * Sets up a subscription to emit an event when snapshots are updated.
-   */
-  async init() {
-    this.fileSnapshots.subscribe(() => {
-      this.plugin.emit("snapshots:update" /* snapshotsUpdate */);
-    });
-  }
-  /**
-   * Loads snapshots for all files in the workspace.
-   * Called when the plugin is loaded.
-   */
-  async load() {
-    for (const file of [...this.plugin.getWorkspaceFiles().values()]) {
-      await this.capture(file);
-    }
-  }
-  /**
-   * Gets a snapshot for a specific file.
-   * If no file is provided, use the active file.
+   * Subscribes a handler to snapshot-map changes. The service uses this seam in
+   * `init` to re-emit a plugin event so the tree/tab decorator refreshes when
+   * snapshots change.
    *
-   * @param {TFile} file - The file to get the snapshot for, or null to use the active file
-   * @return {FileSnapshot|null} The file snapshot, or null if no snapshot exists
+   * @param {ChangeHandler<string, FileSnapshot>} handler - The change handler
    */
-  getOne(file) {
-    var _a;
-    const currentFile = file != null ? file : this.plugin.getActiveFile();
-    if (!currentFile) {
-      return null;
-    }
-    return (_a = this.fileSnapshots.get(currentFile.path)) != null ? _a : null;
+  subscribe(handler) {
+    this.snapshots.subscribe(handler);
   }
   /**
-   * Gets all snapshots.
+   * Gets the snapshot currently keyed by `path`, or undefined when the path has
+   * no snapshot.
+   *
+   * @param {string} path - The vault-relative path to look up
+   * @return {FileSnapshot | undefined} The snapshot, or undefined
+   */
+  get(path) {
+    return this.snapshots.get(path);
+  }
+  /**
+   * Checks whether a snapshot exists for `path`.
+   *
+   * @param {string} path - The vault-relative path to check
+   * @return {boolean} True when a snapshot is keyed by the path
+   */
+  has(path) {
+    return this.snapshots.has(path);
+  }
+  /**
+   * Gets a copy of all snapshots currently in the registry.
    *
    * @return {FileSnapshot[]} An array of all file snapshots
    */
-  getList() {
-    return [...this.fileSnapshots.values()];
+  getAll() {
+    return [...this.snapshots.values()];
   }
   /**
-   * Adds a new snapshot for the specified file.
-   * Creates a FileSnapshot with the provided content and stores it in the map.
+   * Iterates the `[path, snapshot]` pairs in the registry. The path is the map
+   * key, which wins over `snapshot.file?.path` so a detached tombstone (file =
+   * null) still surfaces under its last-known path.
+   *
+   * @return {IterableIterator<[string, FileSnapshot]>} The path/snapshot pairs
+   */
+  entries() {
+    return this.snapshots.entries();
+  }
+  /**
+   * The set of vault paths created by the user this session. Read by the
+   * tree/tab decorator to tint created files as "added" independently of whether
+   * a snapshot exists for them.
+   *
+   * @return {ReadonlySet<string>} The session-created paths
+   */
+  getSessionCreatedPaths() {
+    return this.sessionCreatedPaths;
+  }
+  /**
+   * Notifies the observable snapshot map that a snapshot mutated so subscribers
+   * (the editor, the tree/tab decorator) refresh.
+   */
+  forceUpdate() {
+    this.snapshots.next("update" /* update */);
+  }
+  /**
+   * Adds a new snapshot for the specified file. Creates a FileSnapshot with the
+   * provided content and stores it under the file's path. The line break comes
+   * from the active editor view when one is open (so the snapshot matches the
+   * editor), falling back to detecting it from the content.
    *
    * @param {TFile} file - The file to create a snapshot for
    * @param {string} content - The content to snapshot
    */
   add(file, content) {
-    var _a;
     if (!file) {
       return;
     }
-    const activeLineBreak = (_a = this.plugin.getActiveEditorView()) == null ? void 0 : _a.state.lineBreak;
+    const activeLineBreak = this.host.getActiveEditorLineBreak();
     const lineBreak = activeLineBreak != null ? activeLineBreak : content.includes("\r\n") ? "\r\n" : "\n";
-    this.fileSnapshots.set(
+    this.snapshots.set(
       file.path,
       new FileSnapshot(content, lineBreak, file)
     );
   }
   /**
-   * Removes the snapshot for the specified file.
+   * Inserts a fully constructed snapshot under `path`, bypassing the content
+   * line-break detection of {@link add}. Used by the restore path, which
+   * reconstructs a snapshot from its serialized form (history, tracker, and
+   * version timeline already populated) rather than from raw content.
+   *
+   * @param {string} path - The vault-relative path to key the snapshot under
+   * @param {FileSnapshot} snapshot - The pre-built snapshot to store
+   */
+  set(path, snapshot) {
+    this.snapshots.set(path, snapshot);
+  }
+  /**
+   * Removes the snapshot for the specified file: drops it from the map, clears
+   * any session-created mark for its path, and forgets its external-capture
+   * state so a stale timer cannot fire against the now-absent path.
    *
    * @param {TFile} file - The file whose snapshot should be removed
    */
@@ -26441,9 +25681,19 @@ var SnapshotsService = class {
     if (!file) {
       return;
     }
-    this.fileSnapshots.delete(file.path);
-    this.sessionCreatedPaths.delete(file.path);
-    this.externalCapture.forget(file.path);
+    this.deleteByPath(file.path);
+    this.host.forgetExternalCapture(file.path);
+  }
+  /**
+   * Drops the snapshot and any session-created mark keyed by `path`. The shared
+   * delete primitive behind {@link remove} (which also forgets external-capture
+   * state) and the exclude purge (which forgets external-capture state itself).
+   *
+   * @param {string} path - The vault-relative path to delete
+   */
+  deleteByPath(path) {
+    this.snapshots.delete(path);
+    this.sessionCreatedPaths.delete(path);
   }
   /**
    * Records that `path` was created by the user this session so the tree/tab
@@ -26457,16 +25707,6 @@ var SnapshotsService = class {
     if (path) {
       this.sessionCreatedPaths.add(path);
     }
-  }
-  /**
-   * The set of vault paths created by the user this session. Read by the
-   * tree/tab decorator to tint created files as "added" independently of whether
-   * a snapshot exists for them.
-   *
-   * @return {ReadonlySet<string>} The session-created paths
-   */
-  getSessionCreatedPaths() {
-    return this.sessionCreatedPaths;
   }
   /**
    * Marks the snapshot for the given file as a tombstone instead of
@@ -26489,14 +25729,14 @@ var SnapshotsService = class {
     if (!file) {
       return;
     }
-    const snapshot = this.fileSnapshots.get(file.path);
+    const snapshot = this.snapshots.get(file.path);
     if (!snapshot || snapshot.isTombstone()) {
       return;
     }
     snapshot.deletedTimestamp = Date.now();
-    snapshot.lines = [];
-    snapshot.tracker = [];
-    snapshot.changes.clear();
+    snapshot.content.lines = [];
+    snapshot.trackers.reset();
+    snapshot.content.changes.clear();
     this.forceUpdate();
   }
   /**
@@ -26511,16 +25751,16 @@ var SnapshotsService = class {
     if (!oldPath || !file || oldPath === file.path) {
       return;
     }
-    const snapshot = this.fileSnapshots.get(oldPath);
+    const snapshot = this.snapshots.get(oldPath);
     if (!snapshot) {
       return;
     }
     snapshot.file = file;
     snapshot.path = file.path;
-    this.fileSnapshots.delete(oldPath);
-    this.fileSnapshots.set(file.path, snapshot);
+    this.snapshots.delete(oldPath);
+    this.snapshots.set(file.path, snapshot);
     this.rekeySessionCreated(oldPath, file.path);
-    this.externalCapture.forget(oldPath);
+    this.host.forgetExternalCapture(oldPath);
   }
   /**
    * Handles a cross-directory move: leaves a tombstone at `oldPath` and
@@ -26547,35 +25787,37 @@ var SnapshotsService = class {
     if (!oldPath || !file || oldPath === file.path) {
       return;
     }
-    if (PathHelper.dirname(oldPath) === PathHelper.dirname(file.path)) {
+    if (dirname(oldPath) === dirname(file.path)) {
       throw new Error(
-        `SnapshotsService.markMoved called without a directory change: ${oldPath} -> ${file.path}`
+        `SnapshotRegistry.markMoved called without a directory change: ${oldPath} -> ${file.path}`
       );
     }
-    const snapshot = this.fileSnapshots.get(oldPath);
+    const snapshot = this.snapshots.get(oldPath);
     if (!snapshot) {
       return;
     }
     const now = Date.now();
-    const tombstone = new FileSnapshot("", snapshot.lineBreak);
+    const tombstone = new FileSnapshot("", snapshot.content.lineBreak);
     tombstone.file = null;
     tombstone.path = oldPath;
-    tombstone.lines = [];
-    tombstone.tracker = [];
-    tombstone.changes.clear();
-    tombstone.historyLines = snapshot.getHistoryOriginalStateLines();
-    tombstone.updateState(snapshot.getLastStateLines());
-    tombstone.versions = snapshot.versions.map(
-      (version) => FileVersion.fromJSON(version.toJSON())
+    tombstone.content.lines = [];
+    tombstone.trackers.reset();
+    tombstone.content.changes.clear();
+    tombstone.content.historyLines = snapshot.content.getHistoryOriginalStateLines();
+    tombstone.content.updateState(snapshot.content.getLastStateLines());
+    tombstone.timeline.adopt(
+      snapshot.timeline.getStoredVersions().map(
+        (version) => FileVersion.fromJSON(version.toJSON())
+      )
     );
     tombstone.timestamp = snapshot.timestamp;
     tombstone.deletedTimestamp = now;
     snapshot.file = file;
     snapshot.path = file.path;
     snapshot.movedIntoAt = now;
-    this.fileSnapshots.delete(oldPath);
-    this.fileSnapshots.set(file.path, snapshot);
-    this.fileSnapshots.set(oldPath, tombstone);
+    this.snapshots.delete(oldPath);
+    this.snapshots.set(file.path, snapshot);
+    this.snapshots.set(oldPath, tombstone);
     this.rekeySessionCreated(oldPath, file.path);
   }
   /**
@@ -26593,223 +25835,249 @@ var SnapshotsService = class {
     }
   }
   /**
-   * Clears all snapshots from the service.
-   * Removes all stored file snapshots.
+   * Clears every snapshot and every session-created mark from the registry.
+   * External-capture state is reset by the owning service, which composes both
+   * collaborators.
    */
   clear() {
-    this.fileSnapshots.clear();
+    this.snapshots.clear();
     this.sessionCreatedPaths.clear();
+  }
+};
+
+// src/services/snapshots.service.ts
+var import_obsidian25 = require("obsidian");
+var SnapshotsService = class {
+  /**
+   * Creates a new instance of SnapshotsService.
+   *
+   * @param {LineChangeTrackerPlugin} plugin - The plugin instance
+   */
+  constructor(plugin) {
+    this.plugin = plugin;
+    /**
+     * Plain collaborator that owns the path-keyed registry concern: the observable
+     * map of paths to snapshots, the transient session-created path set, and the
+     * add/remove/rename/move/tombstone/rekey rules that keep those two in step.
+     * Owned by the service (not a DI service); reads the active editor line break
+     * and routes the external-capture forget back through a
+     * {@link SnapshotRegistryHost} port the service builds.
+     */
+    this.registry = new SnapshotRegistry(this.makeSnapshotRegistryHost());
+    /**
+     * Plain collaborator that owns the ignore-list and exclude-pattern concern:
+     * the per-file ignore set (files the user opted out of tracking) and the
+     * path-exclude decision (a configured regexp that vetoes tracking for whole
+     * folders), including the warn-once guard for an invalid pattern. Owned by the
+     * service (not a DI service); reads the exclude pattern and routes the
+     * invalid-pattern warning back through an {@link IgnoreListHost} port the
+     * service builds.
+     *
+     * Exposed publicly as the single accessor for the manual ignore-list
+     * operations (add/remove/isIgnored/clear/list): callers reach it directly
+     * instead of through per-method service pass-throughs. The path-exclude
+     * decision stays behind {@link isExcludedPath} so capture-policy callers do
+     * not have to know exclusion is co-located on this collaborator.
+     */
+    this.ignoreList = new IgnoreListManager(this.makeIgnoreListHost());
+    /**
+     * Plain collaborator that owns the external (off-editor) change detection
+     * concern: the per-path debounce, the in-flight guard, the stat-based
+     * last-seen pre-check, and the disk-read + hash-compare capture flow. Owned
+     * by the service (not a DI service); reads the snapshot map and capture
+     * gating back through an {@link ExternalChangeHost} port the service builds.
+     */
+    this.externalCapture = new ExternalChangeCapture(this.makeExternalChangeHost());
+    /**
+     * Plain collaborator that owns the out-of-editor file-write concern: applying
+     * a reverted block to a file (snapshot resync + disk write + editor refresh).
+     * Owned by the service (not a DI service); reads the snapshot map and routes
+     * the post-write forced update back through an {@link EditorOperationsHost}
+     * port the service builds.
+     */
+    this.editorOperations = new EditorOperations(this.makeEditorOperationsHost());
+    /**
+     * Plain collaborator that owns the history serialization concern: turning the
+     * tracked snapshots into a persistable payload and rebuilding them from one,
+     * including tombstone inclusion, the session-marker-baseline preservation on
+     * re-open, the orphan (missing-file) reconstruction, and the post-restore
+     * open-file reconcile pass. Owned by the service (not a DI service); works
+     * against the {@link SnapshotRegistry} and reaches the plugin (file lookup,
+     * open files, external-capture scheduling) through a
+     * {@link HistorySerializerHost} port the service builds.
+     */
+    this.historySerializer = new HistorySerializer(this.registry, this.makeHistorySerializerHost());
+  }
+  /**
+   * Initializes the service.
+   * Sets up a subscription to emit an event when snapshots are updated.
+   */
+  async init() {
+    this.registry.subscribe(() => {
+      this.plugin.emit("snapshots:update" /* snapshotsUpdate */);
+    });
+  }
+  /**
+   * Loads snapshots for all files in the workspace.
+   * Called when the plugin is loaded.
+   */
+  async load() {
+    for (const file of [...this.plugin.getWorkspaceFiles().values()]) {
+      await this.capture(file);
+    }
+  }
+  /**
+   * Gets a snapshot for a specific file.
+   * If no file is provided, use the active file.
+   *
+   * @param {TFile} file - The file to get the snapshot for, or null to use the active file
+   * @return {FileSnapshot|null} The file snapshot, or null if no snapshot exists
+   */
+  getOne(file) {
+    var _a;
+    const currentFile = file != null ? file : this.plugin.getActiveFile();
+    if (!currentFile) {
+      return null;
+    }
+    return (_a = this.registry.get(currentFile.path)) != null ? _a : null;
+  }
+  /**
+   * Gets all snapshots.
+   *
+   * @return {FileSnapshot[]} An array of all file snapshots
+   */
+  getList() {
+    return this.registry.getAll();
+  }
+  /**
+   * Adds a new snapshot for the specified file. Delegates to the
+   * {@link SnapshotRegistry}, which builds a FileSnapshot with the detected line
+   * break and stores it under the file's path.
+   *
+   * @param {TFile} file - The file to create a snapshot for
+   * @param {string} content - The content to snapshot
+   */
+  add(file, content) {
+    this.registry.add(file, content);
+  }
+  /**
+   * Removes the snapshot for the specified file. Delegates to the
+   * {@link SnapshotRegistry}, which drops the map entry, the session-created
+   * mark, and the external-capture state for the path.
+   *
+   * @param {TFile} file - The file whose snapshot should be removed
+   */
+  remove(file) {
+    this.registry.remove(file);
+  }
+  /**
+   * Records that `path` was created by the user this session so the tree/tab
+   * decorator can paint it as "added" even when the "ignore new files" setting
+   * suppressed its snapshot. Called by the `vault.create` handler. Delegates to
+   * the {@link SnapshotRegistry}, which owns the transient session-created set.
+   *
+   * @param {string} path - The vault-relative path of the created file
+   */
+  markCreatedThisSession(path) {
+    this.registry.markCreatedThisSession(path);
+  }
+  /**
+   * The set of vault paths created by the user this session. Read by the
+   * tree/tab decorator to tint created files as "added" independently of whether
+   * a snapshot exists for them.
+   *
+   * @return {ReadonlySet<string>} The session-created paths
+   */
+  getSessionCreatedPaths() {
+    return this.registry.getSessionCreatedPaths();
+  }
+  /**
+   * Marks the snapshot for the given file as a tombstone instead of dropping it,
+   * preserving its history so a deleted file can still be reconstructed.
+   * Delegates to the {@link SnapshotRegistry}, which owns the tombstone rules.
+   *
+   * @param {TFile} file - The file that was deleted in the vault
+   */
+  markDeleted(file) {
+    this.registry.markDeleted(file);
+  }
+  /**
+   * Re-keys a snapshot after an in-place rename (same directory), preserving the
+   * tracked history across the rename. Delegates to the {@link SnapshotRegistry},
+   * which owns the re-key rules.
+   *
+   * @param {string} oldPath - The path the snapshot was previously keyed by
+   * @param {TFile} file - The file in its renamed state (holding the new path)
+   */
+  rename(oldPath, file) {
+    this.registry.rename(oldPath, file);
+  }
+  /**
+   * Handles a cross-directory move: leaves a tombstone at `oldPath` and re-keys
+   * the live snapshot to the file's new path, stamping `movedIntoAt`. Delegates
+   * to the {@link SnapshotRegistry}, which owns the move/tombstone rules.
+   *
+   * @param {string} oldPath - The path the snapshot was previously keyed by
+   * @param {TFile} file - The file in its moved state (holding the new path)
+   */
+  markMoved(oldPath, file) {
+    this.registry.markMoved(oldPath, file);
+  }
+  /**
+   * Clears all snapshots from the service. The {@link SnapshotRegistry} clears
+   * the snapshot map and the session-created marks; the external-capture state
+   * is reset here since the service composes both collaborators.
+   */
+  clear() {
+    this.registry.clear();
     this.externalCapture.clear();
   }
   /**
    * Serializes all tracked snapshots into a plain, persistable structure.
-   * Includes live snapshots that carry actual history (a tracker with changes
-   * or a non-empty intermediate-version timeline) so pristine files do not
-   * bloat the store but a timeline is never lost just because the current
-   * state happens to match the original. Tombstones are ALWAYS included
-   * regardless of tracker/timeline emptiness: their final state plus
-   * `deletedTimestamp` is the only record of a deleted file's content and must
-   * survive a restart even when the live tracker was reset on `markDeleted`.
-   *
-   * The serialized `path` is taken from the map key (not from `snapshot.file`)
-   * so tombstones whose `file` reference is null (cross-directory move leaves
-   * a detached tombstone) still round-trip to disk under their last-known
-   * path.
+   * Delegates to the {@link HistorySerializer}, which owns the serialization
+   * rules (which snapshots to keep, tombstone inclusion, per-file failure
+   * isolation, and the advisory format version).
    *
    * @return {SerializedHistory} The versioned, serializable history payload
    */
   serialize() {
-    const snapshots = [];
-    for (const [path, snapshot] of this.fileSnapshots.entries()) {
-      if (!path) {
-        continue;
-      }
-      const isTombstone = snapshot.isTombstone();
-      const hasHistory = snapshot.getChangesLinesCount() > 0 || snapshot.hasVersions();
-      if (!isTombstone && !hasHistory) {
-        continue;
-      }
-      let payload;
-      try {
-        payload = snapshot.toJSON();
-      } catch (error) {
-        console.error("Local history: failed to serialize snapshot; skipping it", path, error);
-        continue;
-      }
-      payload.path = path;
-      snapshots.push(payload);
-    }
-    return { version: 2, snapshots };
+    return this.historySerializer.serialize();
   }
   /**
-   * Restores snapshots from a previously serialized history payload, keeping the
-   * marker and history baselines separate.
-   *
-   * When the file was already captured this session, its session snapshot owns
-   * the MARKER baseline (the file content at this open) plus the live tracker and
-   * state, which must stay session-scoped so the gutter does not mark the whole
-   * file after a restart. The persisted HISTORY baseline and version timeline are
-   * adopted into that session snapshot, so the modal still diffs against the
-   * original and its captured versions without touching the markers.
-   *
-   * When the file is not open this session there is no session marker baseline to
-   * preserve, so the snapshot is rebuilt verbatim (marker and history baselines
-   * coincide).
-   *
-   * When the live file is gone (deleted while the plugin was off, or the entry
-   * was already a tombstone on disk) the snapshot is reconstructed as a
-   * tombstone under its persisted path so deleted-file history is never silently
-   * dropped on restart:
-   *
-   *   - a payload that already carries `deletedTimestamp` is rebuilt as that
-   *     same tombstone (the original deletion moment is preserved);
-   *   - a live payload whose file no longer resolves is auto-tombstoned with
-   *     `deletedTimestamp = data.timestamp`, treating the offline disappearance
-   *     as a delete that happened at the snapshot's last-known moment.
-   *
-   * Auto-tombstoning runs from `restoreFromDisk`, which itself runs from
-   * `onLayoutReady`, so the vault file index is fully populated by the time
-   * `getFileByPath` is consulted; a null result is a real absence, not a
-   * transient indexing miss.
-   *
-   * After the restore loop, any file currently open in the editor is
-   * re-checked via {@link scheduleExternalCapture} to catch a disk state that
-   * diverged from the restored snapshot state while the plugin was off (A1).
-   * Files not open in the editor are intentionally skipped (no disk read for
-   * unopened files). The debounce inside {@link scheduleExternalCapture} also
-   * coalesces any vault.modify event that fires immediately after restore into a
-   * single trailing pass, preventing double-capture.
+   * Restores snapshots from a previously serialized history payload. Delegates
+   * to the {@link HistorySerializer}, which owns the restore rules: preserving
+   * the session marker baseline while adopting the persisted history, rebuilding
+   * unopened files session-clean, reconstructing missing files as tombstones,
+   * and reconciling the open files against disk afterward.
    *
    * @param {SerializedFileSnapshot[]} snapshots - The serialized snapshots
    */
   restore(snapshots) {
-    if (!Array.isArray(snapshots)) {
-      return;
-    }
-    for (const data of snapshots) {
-      if (!(data == null ? void 0 : data.path)) {
-        continue;
-      }
-      const file = this.plugin.getFileByPath(data.path);
-      if (!file) {
-        this.restoreOrphan(data);
-        continue;
-      }
-      const existing = this.fileSnapshots.get(data.path);
-      if (existing) {
-        const persisted = FileSnapshot.fromJSON(data, file);
-        existing.adoptHistory(
-          persisted.getHistoryOriginalStateLines(),
-          persisted.versions,
-          persisted.deletedTimestamp
-        );
-        this.forceUpdate();
-        continue;
-      }
-      const restored = FileSnapshot.fromJSON(data, file);
-      restored.resetMarkerBaseline();
-      this.fileSnapshots.set(data.path, restored);
-    }
-    this.reconcileOpenFiles();
+    this.historySerializer.restore(snapshots);
   }
   /**
-   * Re-checks the disk state for every file currently open in the editor after
-   * a restore pass (A1). Calls {@link scheduleExternalCapture} for each open
-   * file that has a snapshot, which debounces the disk read + hash compare and
-   * fires a capture only when the on-disk content diverges from the restored
-   * state. Files not open in the editor are intentionally skipped: there is no
-   * visible editor surface for them and the performance cost of reading every
-   * tracked file on startup would be prohibitive.
+   * Builds the narrow {@link HistorySerializerHost} port the
+   * {@link HistorySerializer} reads its plugin-facing dependencies through: the
+   * vault file lookup (to resolve a persisted path to a live file), the open
+   * files (for the post-restore reconcile pass, empty when the plugin does not
+   * expose them), and the external-capture scheduling, keeping the plugin handle
+   * and the sibling collaborators owned by this service.
    *
-   * The debounce window inside {@link ExternalChangeCapture} acts as an
-   * async-safety valve: if a vault.modify event fires for the same file
-   * immediately after restore, its scheduleExternalCapture call resets the
-   * timer, so the two triggers coalesce into a single trailing disk read
-   * rather than a double-capture.
-   *
-   * A no-op when the plugin does not yet expose {@link getWorkspaceFiles}
-   * (test stubs or very early init paths that do not need the workspace).
+   * @return {HistorySerializerHost} The host port onto the serializer's deps
    */
-  reconcileOpenFiles() {
-    if (typeof this.plugin.getWorkspaceFiles !== "function") {
-      return;
-    }
-    const openFiles = this.plugin.getWorkspaceFiles();
-    for (const file of openFiles) {
-      if (!file || !this.fileSnapshots.has(file.path)) {
-        continue;
-      }
-      this.scheduleExternalCapture(file);
-    }
+  makeHistorySerializerHost() {
+    return {
+      getFileByPath: (path) => this.plugin.getFileByPath(path),
+      getOpenFiles: () => typeof this.plugin.getWorkspaceFiles === "function" ? this.plugin.getWorkspaceFiles() : /* @__PURE__ */ new Set(),
+      scheduleExternalCapture: (file) => this.scheduleExternalCapture(file)
+    };
   }
   /**
-   * Reconstructs a serialized entry whose live file is missing as a tombstone.
-   * A payload that already carries `deletedTimestamp` is rebuilt verbatim so
-   * the original deletion moment survives a restart; a live payload whose file
-   * is gone is auto-tombstoned with `deletedTimestamp = data.timestamp` (the
-   * snapshot's last-known moment), keeping deleted-file history accessible
-   * even when the delete happened while the plugin was off.
-   *
-   * @param {SerializedFileSnapshot} data - The serialized snapshot
-   */
-  restoreOrphan(data) {
-    const snapshot = FileSnapshot.fromJSON(data, null);
-    if (!snapshot.isTombstone()) {
-      snapshot.deletedTimestamp = data.timestamp;
-    }
-    snapshot.file = null;
-    this.fileSnapshots.set(data.path, snapshot);
-  }
-  /**
-   * Forces an update of the snapshots.
-   * Triggers the observable map to notify subscribers.
-   *
-   * @return {void}
+   * Forces an update of the snapshots. Delegates to the {@link SnapshotRegistry},
+   * which triggers the observable map to notify subscribers.
    */
   forceUpdate() {
-    return this.fileSnapshots.next("update" /* update */);
-  }
-  /**
-   * Adds a file to the ignore list.
-   * Files in the ignore list will not have any changes tracked.
-   *
-   * @param {TFile} file - The file to add to the ignore list
-   */
-  addToIgnoreList(file) {
-    this.ignoreList.add(file);
-  }
-  /**
-   * Removes a file from the ignore list.
-   * The file will be eligible for change tracking again.
-   *
-   * @param {TFile} file - The file to remove from the ignore list
-   */
-  removeFromIgnoreList(file) {
-    this.ignoreList.remove(file);
-  }
-  /**
-   * Checks if a file is in the ignore list.
-   *
-   * @param {TFile} file - The file to check
-   * @return {boolean} True if the file is in the ignore list, false otherwise
-   */
-  isInIgnoreList(file) {
-    return this.ignoreList.isIgnored(file);
-  }
-  /**
-   * Clears all files from the ignore list.
-   * All files will be eligible for change tracking again.
-   */
-  clearIgnoreList() {
-    this.ignoreList.clear();
-  }
-  /**
-   * Gets all files currently in the ignore list.
-   *
-   * @return {TFile[]} An array of files in the ignore list
-   */
-  getIgnoreList() {
-    return this.ignoreList.list();
+    this.registry.forceUpdate();
   }
   /**
    * Checks if a file is a plain text file based on its extension.
@@ -26836,6 +26104,25 @@ var SnapshotsService = class {
     return this.ignoreList.isExcluded(file);
   }
   /**
+   * Builds the narrow {@link SnapshotRegistryHost} port the
+   * {@link SnapshotRegistry} reads its two outside dependencies through: the
+   * active editor's line break (so a captured snapshot matches the editor) and
+   * the external-capture forget (so a removed or relocated path leaves no stale
+   * capture state), keeping the plugin handle and the sibling collaborators
+   * owned by this service.
+   *
+   * @return {SnapshotRegistryHost} The host port onto the registry's outside deps
+   */
+  makeSnapshotRegistryHost() {
+    return {
+      getActiveEditorLineBreak: () => {
+        var _a;
+        return (_a = this.plugin.getActiveEditorView()) == null ? void 0 : _a.state.lineBreak;
+      },
+      forgetExternalCapture: (path) => this.externalCapture.forget(path)
+    };
+  }
+  /**
    * Builds the narrow {@link IgnoreListHost} port the {@link IgnoreListManager}
    * reads its exclude-pattern dependency through. Exposes the raw exclude
    * pattern from settings and the one-time invalid-pattern warning, keeping
@@ -26849,7 +26136,7 @@ var SnapshotsService = class {
       getExcludePatterns: () => this.settingsService.value("excludePaths"),
       getExcludePathsCaseSensitive: () => this.settingsService.value("excludePathsCaseSensitive"),
       notifyInvalidPattern: () => {
-        new import_obsidian24.Notice(this.plugin.t("notice.invalid-exclude-pattern"));
+        new import_obsidian25.Notice(this.plugin.t("notice.invalid-exclude-pattern"));
       }
     };
   }
@@ -26863,7 +26150,7 @@ var SnapshotsService = class {
     if (!file) {
       return false;
     }
-    return this.fileSnapshots.has(file.path);
+    return this.registry.has(file.path);
   }
   /**
    * Determines if a file can be captured for change tracking.
@@ -26881,7 +26168,7 @@ var SnapshotsService = class {
     const isExtensionAllowed = this.isInAllowedExtensions(file);
     const isExcluded = this.isExcludedPath(file);
     const isHasInList = this.isCaptured(file);
-    const isIgnored = this.isInIgnoreList(file);
+    const isIgnored = this.ignoreList.isIgnored(file);
     return isExtensionAllowed && !isExcluded && !isHasInList && !isIgnored;
   }
   /**
@@ -26943,8 +26230,8 @@ var SnapshotsService = class {
   makeExternalChangeHost() {
     return {
       plugin: this.plugin,
-      getSnapshot: (path) => this.fileSnapshots.get(path),
-      isExternallyCapturable: (file) => this.isInAllowedExtensions(file) && !this.isExcludedPath(file) && !this.isInIgnoreList(file),
+      getSnapshot: (path) => this.registry.get(path),
+      isExternallyCapturable: (file) => this.isInAllowedExtensions(file) && !this.isExcludedPath(file) && !this.ignoreList.isIgnored(file),
       captureFirstSight: (file) => this.capture(file),
       getCaptureOptions: () => this.getCaptureOptions(),
       forceUpdate: () => this.forceUpdate()
@@ -26975,10 +26262,10 @@ var SnapshotsService = class {
    */
   wipeOne(file) {
     const current = this.plugin.getActiveFile();
-    const target = file != null ? file : current;
-    if (target) {
-      this.remove(target);
-      this.removeFromIgnoreList(target);
+    const target2 = file != null ? file : current;
+    if (target2) {
+      this.remove(target2);
+      this.ignoreList.remove(target2);
     }
     if (this.plugin.getActiveViewOfType()) {
       this.plugin.forceUpdateEditor();
@@ -27002,8 +26289,8 @@ var SnapshotsService = class {
    * @param {EditorBlock} block - The single block that changed, in tracker terms
    * @return {Promise<boolean>} True if the change was applied, false otherwise
    */
-  applyContent(file, lines, block) {
-    return this.editorOperations.applyContent(file, lines, block);
+  applyContent(file, lines2, block) {
+    return this.editorOperations.applyContent(file, lines2, block);
   }
   /**
    * Builds the narrow {@link EditorOperationsHost} port the
@@ -27040,14 +26327,13 @@ var SnapshotsService = class {
     const excludePatterns = this.settingsService.value("excludePaths");
     const caseSensitive = this.settingsService.value("excludePathsCaseSensitive");
     const pathsToPurge = [];
-    for (const [path] of this.fileSnapshots.entries()) {
+    for (const [path] of this.registry.entries()) {
       if (path && PathExcludeHelper.isExcluded(path, excludePatterns, caseSensitive)) {
         pathsToPurge.push(path);
       }
     }
     for (const path of pathsToPurge) {
-      this.fileSnapshots.delete(path);
-      this.sessionCreatedPaths.delete(path);
+      this.registry.deleteByPath(path);
       this.externalCapture.forget(path);
     }
     if (pathsToPurge.length > 0) {
@@ -27061,7 +26347,7 @@ var SnapshotsService = class {
    */
   wipe() {
     this.clear();
-    this.clearIgnoreList();
+    this.ignoreList.clear();
     if (this.plugin.getActiveViewOfType()) {
       this.plugin.forceUpdateEditor();
     }
@@ -27073,7 +26359,7 @@ __decorateClass([
 ], SnapshotsService.prototype, "settingsService", 2);
 
 // src/services/statusbar.service.ts
-var import_obsidian25 = require("obsidian");
+var import_obsidian26 = require("obsidian");
 var StatusbarService = class {
   /**
    * Creates a new instance of StatusbarService.
@@ -27105,11 +26391,11 @@ var StatusbarService = class {
     var _a, _b;
     const view = (_a = this.plugin.app.workspace.getMostRecentLeaf()) == null ? void 0 : _a.view;
     const snapshot = this.snapshotsService.getOne();
-    if (!view || !(view instanceof import_obsidian25.MarkdownView) || !snapshot) {
+    if (!view || !(view instanceof import_obsidian26.MarkdownView) || !snapshot) {
       this.clear();
       return;
     }
-    this.update(this.plugin.t("status.lines-changed", { count: (_b = snapshot.getChangesLinesCount()) != null ? _b : 0 }));
+    this.update(this.plugin.t("status.lines-changed", { count: (_b = snapshot.content.getChangesLinesCount()) != null ? _b : 0 }));
   }
   /**
    * Clears a status bar item by hiding it and removing its text.
@@ -27193,72 +26479,25 @@ __decorateClass([
 ], StatusbarService.prototype, "updateFileStatus", 1);
 
 // src/services/styles.service.ts
+var LINE_WIDTH_VAR = "--lct-line-width";
+var LINE_BORDER_RADIUS_VAR = "--lct-line-border-radius";
 var StylesService = class {
-  /**
-   * Creates a new instance of StylesService.
-   *
-   * @param {LineChangeTrackerPlugin} plugin - The plugin instance
-   */
   constructor(plugin) {
     this.plugin = plugin;
   }
-  /**
-   * Initializes the service by creating a style tag.
-   * Called during plugin initialization.
-   */
-  init() {
-    this.createStyleTag();
-  }
-  /**
-   * Loads the service by updating the CSS styles.
-   * Called after initialization to apply initial styles.
-   */
+  /** Applies the initial marker geometry from current settings. */
   load() {
     this.update();
   }
   update() {
-    if (!this.sheet) {
-      return;
-    }
     const width = this.settingsService.value("line.width");
-    this.sheet.setText(`
-        .lct,
-        .lct-rm-indicator {
-          --lct-color-${"changed" /* changed */}: var(--color-blue);
-          --lct-color-${"restored" /* restored */}: var(--text-faint);
-          --lct-color-${"added" /* added */}: var(--color-orange);
-          --lct-color-${"removed" /* removed */}: var(--color-base-100);
-          --lct-color-${"whitespace" /* whitespace */}: var(--color-yellow);
-          --lct-line-width: ${width}px;
-          --lct-line-border-radius: ${(width / 2).toFixed(0)}px;
-        }
-    `);
+    document.body.style.setProperty(LINE_WIDTH_VAR, `${width}px`);
+    document.body.style.setProperty(LINE_BORDER_RADIUS_VAR, `${(width / 2).toFixed(0)}px`);
   }
-  /**
-   * Unloads the service by removing the style element from the DOM.
-   * Called when the plugin is disabled or unloaded.
-   * Performs a safety check to ensure the sheet exists before attempting removal.
-   */
+  /** Clears the custom properties this service set on the document body. */
   unload() {
-    if (!this.sheet) {
-      return;
-    }
-    this.sheet.remove();
-  }
-  /**
-   * Creates a style tag in the document head.
-   * Either finds an existing style element with the plugin's style ID or creates a new one.
-   * Sets appropriate attributes and appends it to the document head if needed.
-   * Assigns the created/found element to the sheet property for later use.
-   */
-  createStyleTag() {
-    const styleSheet = document.getElementById(STYLE_ID) || document.createElement("style");
-    styleSheet.setAttribute("type", "text/css");
-    styleSheet.setAttribute("id", STYLE_ID);
-    if (!styleSheet.parentElement) {
-      document.head.appendChild(styleSheet);
-    }
-    this.sheet = styleSheet;
+    document.body.style.removeProperty(LINE_WIDTH_VAR);
+    document.body.style.removeProperty(LINE_BORDER_RADIUS_VAR);
   }
 };
 __decorateClass([
@@ -27268,8 +26507,119 @@ __decorateClass([
   On("settings:update" /* settingsUpdate */)
 ], StylesService.prototype, "update", 1);
 
-// src/extensions/reading-mode-indicator.extension.ts
-var import_obsidian26 = require("obsidian");
+// src/services/container.ts
+var ServiceContainer = class {
+  constructor(emitter, host) {
+    this.emitter = emitter;
+    this.host = host;
+    /** Registered services keyed by their stable token, in registration order. */
+    this.services = /* @__PURE__ */ new Map();
+    /**
+     * Services whose `init` resolved successfully in the current lifecycle, so a
+     * fatal init tears down only what is actually up, in reverse registration
+     * order.
+     */
+    this.initialized = [];
+  }
+  /**
+   * Registers a service under its token: instantiates it with the host, stores
+   * it in the token map, and wires every @On-decorated method to the emitter.
+   *
+   * @template T - The service type
+   * @param {ClassConstructor<T>} provider - The service class constructor
+   * @param {ServiceToken<T>} token - The stable token to key the instance by
+   */
+  register(provider, token2) {
+    const inst = new provider(this.host);
+    this.services.set(token2, inst);
+    for (const prop of Object.getOwnPropertyNames(Object.getPrototypeOf(inst))) {
+      const event = Reflect.getMetadata(META_ON_EVENT, inst, prop);
+      const inject = Reflect.getMetadata(META_INJECT, inst, prop);
+      if (!inject && event && prop in inst) {
+        const method = inst[prop];
+        if (typeof method === "function") {
+          this.emitter.on(event.name, method, inst);
+        }
+      }
+    }
+  }
+  /**
+   * Resolves a registered service by its token.
+   *
+   * @template T - The service type
+   * @param {ServiceToken<T>} token - The token to resolve
+   * @return {T} The service instance
+   * @throws Error if no service is registered under the token
+   */
+  get(token2) {
+    var _a;
+    const service = this.services.get(token2);
+    if (!service) {
+      throw new Error(`Service '${(_a = tokenName(token2)) != null ? _a : token2.toString()}' not registered`);
+    }
+    return service;
+  }
+  /**
+   * Executes a lifecycle method on every service in registration order. Each
+   * call is isolated in try/catch so one failure does not abort the loop. A
+   * successful `init` records the service so teardown reverses only what came
+   * up; `unload` clears the corresponding entry.
+   *
+   * @param {keyof Service} method - The lifecycle method to run on each service
+   * @return {Promise<boolean>} True when at least one service threw, so the
+   *   caller can tear down the partial container.
+   */
+  async exec(method) {
+    let failed = false;
+    for (const provider of [...this.services.values()]) {
+      if (method in provider && typeof provider[method] === "function") {
+        try {
+          await provider[method]();
+          if (method === "init") {
+            this.initialized.push(provider);
+          } else if (method === "unload") {
+            const idx = this.initialized.indexOf(provider);
+            if (idx >= 0) {
+              this.initialized.splice(idx, 1);
+            }
+          }
+        } catch (error) {
+          failed = true;
+          console.error(
+            `[obsidian-local-history] ${provider.constructor.name}.${method} failed:`,
+            error
+          );
+        }
+      }
+    }
+    return failed;
+  }
+  /**
+   * Tears down the services brought up by a partial `init`/`load`, in reverse
+   * registration order, each isolated so one teardown failure does not block
+   * the rest.
+   *
+   * @return {Promise<void>} Resolves once teardown is complete.
+   */
+  async teardown() {
+    for (const provider of [...this.initialized].reverse()) {
+      if ("unload" in provider && typeof provider.unload === "function") {
+        try {
+          await provider.unload();
+        } catch (error) {
+          console.error(
+            `[obsidian-local-history] ${provider.constructor.name}.unload failed during teardown:`,
+            error
+          );
+        }
+      }
+    }
+    this.initialized.length = 0;
+  }
+};
+
+// src/services/reading-mode-indicator.service.ts
+var import_obsidian27 = require("obsidian");
 var CLASS_INDICATOR = "lct-rm-indicator";
 var TYPE_PRIORITY = [
   "added" /* added */,
@@ -27338,7 +26688,7 @@ var ReadingModeIndicatorService = class {
     if (!this.processor) {
       return;
     }
-    import_obsidian26.MarkdownPreviewRenderer.unregisterPostProcessor(this.processor);
+    import_obsidian27.MarkdownPreviewRenderer.unregisterPostProcessor(this.processor);
     this.processor = void 0;
     this.clearAll();
   }
@@ -27433,17 +26783,16 @@ var ReadingModeIndicatorService = class {
     let best = null;
     let bestPriority = TYPE_PRIORITY.length;
     for (let line = lineStart; line <= lineEnd; line++) {
-      const changeLine = snapshot.getChanges().get(line);
+      const changeLine = snapshot.content.getChanges().get(line);
       if (!changeLine) {
         continue;
       }
-      for (const type of TYPE_PRIORITY) {
-        const priority = TYPE_PRIORITY.indexOf(type);
-        if (priority < bestPriority && changeLine.has(type)) {
-          best = type;
-          bestPriority = priority;
-          break;
-        }
+      const priority = TYPE_PRIORITY.findIndex(
+        (type) => changeLine.has(type)
+      );
+      if (priority !== -1 && priority < bestPriority) {
+        best = TYPE_PRIORITY[priority];
+        bestPriority = priority;
       }
       if (bestPriority === 0) {
         break;
@@ -27462,7 +26811,7 @@ __decorateClass([
   On("settings:update" /* settingsUpdate */)
 ], ReadingModeIndicatorService.prototype, "onSettingsUpdate", 1);
 
-// src/helpers/properties-panel.adapter.ts
+// src/helpers/properties-panel.helper.ts
 var METADATA_EDITOR_SEL = ".metadata-properties";
 var METADATA_PROPERTY_SEL = ".metadata-property";
 var PROP_KEY_ATTR = "data-property-key";
@@ -27477,21 +26826,21 @@ function getPropertyKey(row) {
 }
 
 // src/helpers/frontmatter-diff.helper.ts
-var import_obsidian27 = require("obsidian");
+var import_obsidian28 = require("obsidian");
 var EMPTY = { added: [], modified: [], removed: [] };
-function extractYamlBlock(lines) {
-  if (!lines.length || lines[0].trim() !== "---") {
+function extractYamlBlock(lines2) {
+  if (!lines2.length || lines2[0].trim() !== "---") {
     return null;
   }
-  const closeIdx = lines.indexOf("---", 1);
+  const closeIdx = lines2.indexOf("---", 1);
   if (closeIdx === -1) {
     return null;
   }
-  return lines.slice(1, closeIdx).join("\n");
+  return lines2.slice(1, closeIdx).join("\n");
 }
 function parseBlock(yaml) {
   try {
-    const parsed = (0, import_obsidian27.parseYaml)(yaml);
+    const parsed = (0, import_obsidian28.parseYaml)(yaml);
     if (parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)) {
       return parsed;
     }
@@ -27532,7 +26881,7 @@ function diffFrontmatter(oldLines, newLines) {
 }
 
 // src/services/property-decorator.service.ts
-var import_obsidian28 = require("obsidian");
+var import_obsidian29 = require("obsidian");
 var _PropertyDecoratorService = class _PropertyDecoratorService {
   /**
    * Creates a new instance of PropertyDecoratorService.
@@ -27669,7 +27018,7 @@ var _PropertyDecoratorService = class _PropertyDecoratorService {
    * - no snapshot for the current file: clear all decorations and return
    *
    * When a snapshot is found, {@link diffFrontmatter} is called with
-   * `snapshot.lines` (baseline) and `snapshot.state` (current).  The result
+   * `snapshot.content.lines` (baseline) and `snapshot.content.state` (current).  The result
    * together with the baseline key order is passed to {@link decorate}.
    */
   apply() {
@@ -27695,8 +27044,8 @@ var _PropertyDecoratorService = class _PropertyDecoratorService {
       this.decorate(editor, rows, { added: [], modified: [], removed: [] }, []);
       return;
     }
-    const changes = diffFrontmatter(snapshot.lines, snapshot.state);
-    const snapshotKeyOrder = _PropertyDecoratorService.extractKeyOrder(snapshot.lines);
+    const changes = diffFrontmatter(snapshot.content.lines, snapshot.content.state);
+    const snapshotKeyOrder = _PropertyDecoratorService.extractKeyOrder(snapshot.content.lines);
     this.decorate(editor, rows, changes, snapshotKeyOrder);
   }
   /**
@@ -27725,20 +27074,19 @@ var _PropertyDecoratorService = class _PropertyDecoratorService {
       if (key2 === null) {
         continue;
       }
-      if (addedSet.has(key2)) {
-        if (!row.classList.contains(_PropertyDecoratorService.CLASS_ADDED)) {
-          row.classList.remove(_PropertyDecoratorService.CLASS_MODIFIED);
-          row.classList.add(_PropertyDecoratorService.CLASS_ADDED);
-          row.setAttribute("title", `property "${key2}" added`);
-        }
-      } else if (modifiedSet.has(key2)) {
-        if (!row.classList.contains(_PropertyDecoratorService.CLASS_MODIFIED)) {
-          row.classList.remove(_PropertyDecoratorService.CLASS_ADDED);
-          row.classList.add(_PropertyDecoratorService.CLASS_MODIFIED);
-          row.setAttribute("title", `property "${key2}" modified`);
-        }
-      } else if (row.classList.contains(_PropertyDecoratorService.CLASS_ADDED) || row.classList.contains(_PropertyDecoratorService.CLASS_MODIFIED)) {
-        row.classList.remove(_PropertyDecoratorService.CLASS_ADDED, _PropertyDecoratorService.CLASS_MODIFIED);
+      const status = addedSet.has(key2) ? "added" : modifiedSet.has(key2) ? "modified" : "clean";
+      const decoration = _PropertyDecoratorService.ROW_DECORATIONS[status];
+      const alreadyDecorated = decoration.classToAdd !== null ? row.classList.contains(decoration.classToAdd) : !row.classList.contains(_PropertyDecoratorService.CLASS_ADDED) && !row.classList.contains(_PropertyDecoratorService.CLASS_MODIFIED);
+      if (alreadyDecorated) {
+        continue;
+      }
+      row.classList.remove(...decoration.classToRemove);
+      if (decoration.classToAdd !== null) {
+        row.classList.add(decoration.classToAdd);
+      }
+      if (decoration.title !== null) {
+        row.setAttribute("title", `property "${key2}" ${decoration.title}`);
+      } else {
         row.removeAttribute("title");
       }
     }
@@ -27899,17 +27247,17 @@ var _PropertyDecoratorService = class _PropertyDecoratorService {
    * @param {string[]} lines - File content split into lines (baseline snapshot)
    * @returns {string[]} Top-level YAML key names in declaration order
    */
-  static extractKeyOrder(lines) {
-    if (!lines.length || lines[0].trim() !== "---") {
+  static extractKeyOrder(lines2) {
+    if (!lines2.length || lines2[0].trim() !== "---") {
       return [];
     }
-    const closeIdx = lines.indexOf("---", 1);
+    const closeIdx = lines2.indexOf("---", 1);
     if (closeIdx === -1) {
       return [];
     }
-    const yaml = lines.slice(1, closeIdx).join("\n");
+    const yaml = lines2.slice(1, closeIdx).join("\n");
     try {
-      const parsed = (0, import_obsidian28.parseYaml)(yaml);
+      const parsed = (0, import_obsidian29.parseYaml)(yaml);
       if (parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)) {
         return Object.keys(parsed);
       }
@@ -27931,6 +27279,24 @@ _PropertyDecoratorService.CLASS_MODIFIED = "lct-prop-modified";
 _PropertyDecoratorService.CLASS_REMOVED = "lct-prop-removed";
 /** CSS class applied to synthetic ghost rows injected for removed properties. */
 _PropertyDecoratorService.CLASS_GHOST = "lct-prop-ghost";
+/** Class/title plan per row status, driving the single apply step in decorate(). */
+_PropertyDecoratorService.ROW_DECORATIONS = {
+  added: {
+    classToAdd: _PropertyDecoratorService.CLASS_ADDED,
+    classToRemove: [_PropertyDecoratorService.CLASS_MODIFIED],
+    title: "added"
+  },
+  modified: {
+    classToAdd: _PropertyDecoratorService.CLASS_MODIFIED,
+    classToRemove: [_PropertyDecoratorService.CLASS_ADDED],
+    title: "modified"
+  },
+  clean: {
+    classToAdd: null,
+    classToRemove: [_PropertyDecoratorService.CLASS_ADDED, _PropertyDecoratorService.CLASS_MODIFIED],
+    title: null
+  }
+};
 __decorateClass([
   Inject(TOKENS.settings)
 ], _PropertyDecoratorService.prototype, "settingsService", 2);
@@ -27943,54 +27309,30 @@ __decorateClass([
 var PropertyDecoratorService = _PropertyDecoratorService;
 
 // src/helpers/session-status.helper.ts
-var SessionStatusHelper = class {
-  /**
-   * Resolves the session change status of a single snapshot. Pure and total:
-   * it never throws and never touches anything outside the snapshot, so callers
-   * iterating a possibly-stale map can pass any live or tombstone snapshot.
-   *
-   * @param {FileSnapshot} snapshot - The snapshot to classify (live or tombstone)
-   * @return {FolderDeltaStatus} One of `added`, `modified`, or `none`
-   */
-  static statusOf(snapshot) {
-    if (snapshot.isTombstone()) {
-      return "none" /* none */;
-    }
-    if (snapshot.createdThisSession) {
-      return "added" /* added */;
-    }
-    if (snapshot.getChangesLinesCount() > 0) {
-      return "modified" /* modified */;
-    }
+function statusOf(snapshot) {
+  if (snapshot.isTombstone()) {
     return "none" /* none */;
   }
-  /**
-   * Collects every ancestor folder path of the given changed file paths, so the
-   * decorator can tint each containing folder a single change colour. Pure
-   * and total: it walks the `/`-separated path of each file upward, emitting one
-   * entry per intermediate folder and stopping at the vault root, which has no
-   * folder row to paint and is therefore never included.
-   *
-   * For `a/b/c.md` it yields `a` and `a/b`; the set deduplicates folders shared
-   * by sibling files, so a folder appears once regardless of how many changed
-   * descendants it has.
-   *
-   * @param {Iterable<string>} changedPaths - Vault paths of changed files
-   * @return {Set<string>} The set of ancestor folder paths to tint
-   */
-  static ancestorFolderPaths(changedPaths) {
-    const folders = /* @__PURE__ */ new Set();
-    for (const path of changedPaths) {
-      const parts = path.split("/");
-      let prefix = "";
-      for (let i = 0; i < parts.length - 1; i++) {
-        prefix = prefix ? `${prefix}/${parts[i]}` : parts[i];
-        folders.add(prefix);
-      }
-    }
-    return folders;
+  if (snapshot.createdThisSession) {
+    return "added" /* added */;
   }
-};
+  if (snapshot.content.getChangesLinesCount() > 0) {
+    return "modified" /* modified */;
+  }
+  return "none" /* none */;
+}
+function ancestorFolderPaths(changedPaths) {
+  const folders = /* @__PURE__ */ new Set();
+  for (const path of changedPaths) {
+    const parts = path.split("/");
+    let prefix = "";
+    for (let i = 0; i < parts.length - 1; i++) {
+      prefix = prefix ? `${prefix}/${parts[i]}` : parts[i];
+      folders.add(prefix);
+    }
+  }
+  return folders;
+}
 
 // src/services/tree-tab-decorator.service.ts
 var _TreeTabDecoratorService = class _TreeTabDecoratorService {
@@ -28247,7 +27589,7 @@ var _TreeTabDecoratorService = class _TreeTabDecoratorService {
       if (!path) {
         continue;
       }
-      const status = SessionStatusHelper.statusOf(snapshot);
+      const status = statusOf(snapshot);
       if (status !== "none" /* none */) {
         statuses.set(path, status);
       }
@@ -28256,7 +27598,7 @@ var _TreeTabDecoratorService = class _TreeTabDecoratorService {
       statuses.set(path, "added" /* added */);
     }
     const filePaths = [...statuses.keys()];
-    for (const folder of SessionStatusHelper.ancestorFolderPaths(filePaths)) {
+    for (const folder of ancestorFolderPaths(filePaths)) {
       statuses.set(folder, "modified" /* modified */);
     }
     return statuses;
@@ -28379,9 +27721,7 @@ var _TreeTabDecoratorService = class _TreeTabDecoratorService {
  * churn never triggers a per-keystroke full-tree sweep.
  */
 _TreeTabDecoratorService.debounceMs = 100;
-/**
- * Obsidian view type id of the native file explorer leaf.
- */
+/** Obsidian view type id of the native file explorer leaf. */
 _TreeTabDecoratorService.fileExplorerType = "file-explorer";
 /**
  * Obsidian view type id of a markdown editor leaf, the only leaves whose tab
@@ -28446,20 +27786,20 @@ var VersionActionsService = class {
   async restoreSelected(file, versionId) {
     var _a;
     const snapshot = this.snapshotsService.getOne(file);
-    const target = (_a = snapshot == null ? void 0 : snapshot.file) != null ? _a : null;
-    if (!snapshot || !target) {
+    const target2 = (_a = snapshot == null ? void 0 : snapshot.file) != null ? _a : null;
+    if (!snapshot || !target2) {
       return { applied: false };
     }
-    const version = snapshot.getVersion(versionId);
+    const version = snapshot.timeline.getVersion(versionId);
     if (!version) {
       return { applied: false };
     }
     const baseLines = version.getLines();
-    const currentLines = snapshot.getLastStateLines();
-    if (baseLines.join(snapshot.lineBreak) === currentLines.join(snapshot.lineBreak)) {
+    const currentLines = snapshot.content.getLastStateLines();
+    if (baseLines.join(snapshot.content.lineBreak) === currentLines.join(snapshot.content.lineBreak)) {
       return { applied: false };
     }
-    await this.snapshotsService.applyContent(target, baseLines, {
+    await this.snapshotsService.applyContent(target2, baseLines, {
       start: 0,
       removeCount: currentLines.length,
       newLines: baseLines
@@ -28483,10 +27823,10 @@ var VersionActionsService = class {
     if (!snapshot) {
       return { removed: false, nextId: null };
     }
-    const visible = snapshot.getVersions();
+    const visible = snapshot.timeline.getVersions();
     const index = visible.findIndex((version) => version.id === versionId);
     const nextId = index === -1 ? null : (_d = (_c = (_a = visible[index + 1]) == null ? void 0 : _a.id) != null ? _c : (_b = visible[index - 1]) == null ? void 0 : _b.id) != null ? _d : null;
-    if (!snapshot.removeVersion(versionId)) {
+    if (!snapshot.timeline.removeVersion(versionId)) {
       return { removed: false, nextId: null };
     }
     this.snapshotsService.forceUpdate();
@@ -28507,12 +27847,12 @@ var VersionActionsService = class {
    */
   putLabel(file, label) {
     const snapshot = this.snapshotsService.getOne(file);
-    const trimmed = isString_default(label) ? label.trim() : "";
+    const trimmed = typeof label === "string" ? label.trim() : "";
     if (!snapshot || trimmed.length === 0) {
       return null;
     }
     const captured = snapshot.captureVersion(
-      snapshot.getLastStateLines(),
+      snapshot.content.getLastStateLines(),
       { ...this.getCaptureOptions(), enabled: true },
       true,
       trimmed
@@ -28542,11 +27882,11 @@ var VersionActionsService = class {
    */
   label(file, versionId, label) {
     const snapshot = this.snapshotsService.getOne(file);
-    const trimmed = isString_default(label) ? label.trim() : "";
+    const trimmed = typeof label === "string" ? label.trim() : "";
     if (!snapshot || trimmed.length === 0) {
       return null;
     }
-    const version = snapshot.getVersion(versionId);
+    const version = snapshot.timeline.getVersion(versionId);
     if (!version) {
       return null;
     }
@@ -28580,8 +27920,8 @@ __decorateClass([
 ], VersionActionsService.prototype, "settingsService", 2);
 
 // src/views/recent-changes.view.ts
-var import_obsidian29 = require("obsidian");
-var RecentChangesView = class extends import_obsidian29.ItemView {
+var import_obsidian30 = require("obsidian");
+var RecentChangesView = class extends import_obsidian30.ItemView {
   /**
    * Creates a new instance of RecentChangesView.
    *
@@ -28651,16 +27991,16 @@ var RecentChangesView = class extends import_obsidian29.ItemView {
   async onOpen() {
     this.contentEl.empty();
     this.contentEl.addClass("lct-recent-changes-view");
-    const searchEl = DomHelper.create({
+    const searchEl = create({
       tag: "div",
       classes: "lct-recent-changes-search",
       container: this.contentEl
     });
-    this.searchComponent = new import_obsidian29.SearchComponent(searchEl).setPlaceholder(this.plugin.t("modal.search-versions")).onChange((value) => {
+    this.searchComponent = new import_obsidian30.SearchComponent(searchEl).setPlaceholder(this.plugin.t("modal.search-versions")).onChange((value) => {
       this.searchQuery = value;
       this.render();
     });
-    this.listEl = DomHelper.create({
+    this.listEl = create({
       tag: "div",
       classes: "lct-recent-changes-list",
       container: this.contentEl
@@ -28728,7 +28068,7 @@ var RecentChangesView = class extends import_obsidian29.ItemView {
     const file = this.plugin.getActiveFile();
     const snapshot = this.plugin.get(TOKENS.snapshots).getOne(file);
     if (!file || !snapshot) {
-      DomHelper.update(this.listEl, {
+      update(this.listEl, {
         children: [
           {
             tag: "div",
@@ -28739,9 +28079,9 @@ var RecentChangesView = class extends import_obsidian29.ItemView {
       });
       return;
     }
-    const versions = snapshot.getVersions();
+    const versions = snapshot.timeline.getVersions();
     if (versions.length === 0) {
-      DomHelper.update(this.listEl, {
+      update(this.listEl, {
         children: [
           {
             tag: "div",
@@ -28752,10 +28092,10 @@ var RecentChangesView = class extends import_obsidian29.ItemView {
       });
       return;
     }
-    const visibleIds = VersionSearchHelper.match(
+    const visibleIds = match2(
       versions.map((version) => ({
         id: version.id,
-        content: version.getContent(snapshot.lineBreak)
+        content: version.getContent(snapshot.content.lineBreak)
       })),
       this.searchQuery
     );
@@ -28763,7 +28103,7 @@ var RecentChangesView = class extends import_obsidian29.ItemView {
       (version) => visibleIds.has(version.id)
     );
     if (matched.length === 0) {
-      DomHelper.update(this.listEl, {
+      update(this.listEl, {
         children: [
           {
             tag: "div",
@@ -28774,12 +28114,12 @@ var RecentChangesView = class extends import_obsidian29.ItemView {
       });
       return;
     }
-    DomHelper.update(this.listEl, {
+    update(this.listEl, {
       children: matched.map(
         (version) => this.makeRow(version, versions, snapshot, file)
       )
     });
-    ExternalBadgeHelper.paint(this.listEl);
+    paint(this.listEl);
   }
   /**
    * Builds the DomHelper config for a single timeline row. Mirrors the modal
@@ -28803,7 +28143,7 @@ var RecentChangesView = class extends import_obsidian29.ItemView {
       { tag: "span", classes: "lct-recent-changes-label", text: label }
     ];
     if (version.isExternal()) {
-      labelChildren.push(ExternalBadgeHelper.make(this.plugin.t("version.badge.external")));
+      labelChildren.push(make(this.plugin.t("version.badge.external")));
     }
     const children = [
       { tag: "span", classes: "lct-recent-changes-label-row", children: labelChildren },
@@ -28845,7 +28185,7 @@ var RecentChangesView = class extends import_obsidian29.ItemView {
    */
   openRowMenu(event, file, version) {
     event.preventDefault();
-    const menu = new import_obsidian29.Menu();
+    const menu = new import_obsidian30.Menu();
     const modalsService = this.plugin.get(TOKENS.modals);
     const versionActionsService = this.plugin.get(TOKENS.versionActions);
     menu.addItem((item) => {
@@ -28918,7 +28258,7 @@ var RecentChangesView = class extends import_obsidian29.ItemView {
    * @return {VersionDescription} The action kind plus the added/removed counts
    */
   describeVersion(version, versions, snapshot) {
-    return VersionLabelHelper.walkNeighbour(version, versions, snapshot.getHistoryOriginalStateLines());
+    return walkNeighbour(version, versions, snapshot.content.getHistoryOriginalStateLines());
   }
   /**
    * Formats the inline line delta shown on a row. Returns an empty string when
@@ -28929,7 +28269,7 @@ var RecentChangesView = class extends import_obsidian29.ItemView {
    * @return {string} The formatted delta or empty string
    */
   formatDelta(description) {
-    return VersionLabelHelper.formatDelta(description, this.plugin.t.bind(this.plugin));
+    return formatDelta(description, this.plugin.t.bind(this.plugin));
   }
   /**
    * Opens the history modal in rail-less mode focused on the given version, so
@@ -28955,8 +28295,8 @@ var import_index = __toESM(require_eventemitter3(), 1);
 var eventemitter3_default = import_index.default;
 
 // src/main.ts
-var import_obsidian30 = require("obsidian");
-var LineChangeTrackerPlugin = class extends import_obsidian30.Plugin {
+var import_obsidian31 = require("obsidian");
+var LineChangeTrackerPlugin = class extends import_obsidian31.Plugin {
   /**
    * Creates a new instance of the LineChangeTrackerPlugin.
    * Registers all required services during initialization.
@@ -28972,25 +28312,12 @@ var LineChangeTrackerPlugin = class extends import_obsidian30.Plugin {
      */
     this.emitter = new eventemitter3_default();
     /**
-     * Container for all registered services.
-     * Maps service class constructors to their instances.
+     * Owns every registered service under one token-keyed map and runs their
+     * lifecycle. The plugin composes it (passing the emitter for @On wiring and
+     * itself as the service-constructor host) and delegates resolution and
+     * lifecycle to it, holding no DI map of its own.
      */
-    this.container = /* @__PURE__ */ new Map();
-    /**
-     * Token-keyed view of the same service instances as {@link container}.
-     * Maps each service's stable {@link ServiceToken} (a symbol, minification-safe)
-     * to its instance, so resolution by token does not depend on `constructor.name`
-     * surviving the bundle. Both maps point at the identical instances; they are
-     * populated together in {@link registerService}. The token path is the
-     * migration target; the legacy class/string paths are removed in C5.
-     */
-    this.tokenContainer = /* @__PURE__ */ new Map();
-    /**
-     * Services whose `init` has resolved successfully in the current lifecycle.
-     * Tracked so a fatal init can tear down only what was actually brought up,
-     * in reverse registration order.
-     */
-    this.initialized = [];
+    this.serviceContainer = new ServiceContainer(this.emitter, this);
     /**
      * True only between a successful `onload` and the next `onunload`/teardown.
      * Editor extensions and workspace event handlers live in Obsidian's lifecycle,
@@ -29000,79 +28327,32 @@ var LineChangeTrackerPlugin = class extends import_obsidian30.Plugin {
      * instead of resolving an injected service against a half-built container.
      */
     this.ready = false;
-    this.registerService(SettingsService, TOKENS.settings);
-    this.registerService(I18nService, TOKENS.i18n);
-    this.registerService(StylesService, TOKENS.styles);
-    this.registerService(ModalsService, TOKENS.modals);
-    this.registerService(ExtensionsService, TOKENS.extensions);
-    this.registerService(StatusbarService, TOKENS.statusbar);
-    this.registerService(CommandsService, TOKENS.commands);
-    this.registerService(EventsService, TOKENS.events);
-    this.registerService(SnapshotsService, TOKENS.snapshots);
-    this.registerService(VersionActionsService, TOKENS.versionActions);
-    this.registerService(PersistenceService, TOKENS.persistence);
-    this.registerService(TreeTabDecoratorService, TOKENS.treeTabDecorator);
-    this.registerService(PropertyDecoratorService, TOKENS.propertyDecorator);
-    this.registerService(ReadingModeIndicatorService, TOKENS.readingModeIndicator);
+    this.serviceContainer.register(SettingsService, TOKENS.settings);
+    this.serviceContainer.register(I18nService, TOKENS.i18n);
+    this.serviceContainer.register(StylesService, TOKENS.styles);
+    this.serviceContainer.register(ModalsService, TOKENS.modals);
+    this.serviceContainer.register(ExtensionsService, TOKENS.extensions);
+    this.serviceContainer.register(StatusbarService, TOKENS.statusbar);
+    this.serviceContainer.register(CommandsService, TOKENS.commands);
+    this.serviceContainer.register(EventsService, TOKENS.events);
+    this.serviceContainer.register(SnapshotsService, TOKENS.snapshots);
+    this.serviceContainer.register(VersionActionsService, TOKENS.versionActions);
+    this.serviceContainer.register(PersistenceService, TOKENS.persistence);
+    this.serviceContainer.register(TreeTabDecoratorService, TOKENS.treeTabDecorator);
+    this.serviceContainer.register(PropertyDecoratorService, TOKENS.propertyDecorator);
+    this.serviceContainer.register(ReadingModeIndicatorService, TOKENS.readingModeIndicator);
   }
   /**
-   * Registers a service with the plugin.
-   * Creates an instance of the service, stores it in the container under both
-   * its class constructor and its stable token, and sets up event listeners for
-   * methods decorated with @On.
+   * Resolves a registered service by its stable token, delegating to the
+   * container. Injected consumers reach this through the plugin they hold.
    *
    * @template T - The service type
-   * @param {ClassConstructor<T>} provider - The service class constructor
-   * @param {ServiceToken<T>} [tokenKey] - The stable token to key the instance
-   *   by. Optional only for the back-compat window: every `main.ts` registration
-   *   passes one, and the token map is what lets resolution stop depending on
-   *   `constructor.name` once consumers migrate (C5).
-   */
-  registerService(provider, tokenKey) {
-    const inst = new provider(this);
-    this.container.set(provider, inst);
-    if (tokenKey) {
-      this.tokenContainer.set(tokenKey, inst);
-    }
-    for (const prop of Object.getOwnPropertyNames(Object.getPrototypeOf(inst))) {
-      const event = Reflect.getMetadata("ON_EVENT", inst, prop);
-      const inject = Reflect.getMetadata("INJECT", inst, prop);
-      if (!inject && event && prop in inst) {
-        const method = inst[prop];
-        if (isFunction_default(method)) {
-          this.emitter.on(event.name, method, inst);
-        }
-      }
-    }
-  }
-  /**
-   * Retrieves a service from the container.
-   *
-   * Resolution order:
-   * 1. A {@link ServiceToken} (symbol) resolves directly from the token map -
-   *    the stable, minification-safe path every consumer uses.
-   * 2. A class constructor resolves from the class-keyed map by identity.
-   *
-   * Both paths are independent of `constructor.name`, so resolution no longer
-   * depends on class names surviving minification (the bundle drops `keepNames`).
-   *
-   * @template T - The service type
-   * @param {ServiceToken<T> | ClassConstructor<T>} key - The token or class
-   *   constructor to resolve
+   * @param {ServiceToken<T>} token - The token to resolve
    * @return {T} The service instance
-   * @throws Error if the service is not registered
+   * @throws Error if no service is registered under the token
    */
-  get(key2) {
-    var _a;
-    if (!key2) {
-      throw new Error("Service cannot be empty");
-    }
-    const service = typeof key2 === "symbol" ? this.tokenContainer.get(key2) : this.container.get(key2);
-    if (!service) {
-      const label = typeof key2 === "symbol" ? (_a = tokenName(key2)) != null ? _a : key2.toString() : key2.name;
-      throw new Error(`Service '${label}' not registered`);
-    }
-    return service;
+  get(token2) {
+    return this.serviceContainer.get(token2);
   }
   /**
    * Whether the plugin finished loading and has not been torn down. Surfaces
@@ -29097,7 +28377,7 @@ var LineChangeTrackerPlugin = class extends import_obsidian30.Plugin {
    * @return {string} The localized, interpolated string
    */
   t(key2, vars) {
-    return this.get(I18nService).t(key2, vars);
+    return this.get(TOKENS.i18n).t(key2, vars);
   }
   /**
    * Lifecycle method called when the plugin is loaded.
@@ -29106,14 +28386,14 @@ var LineChangeTrackerPlugin = class extends import_obsidian30.Plugin {
    * @return {Promise<void>} A promise that resolves when all services are loaded
    */
   async onload() {
-    const initFailed = await this.exec("init");
+    const initFailed = await this.serviceContainer.exec("init");
     if (initFailed) {
-      await this.teardown();
+      await this.serviceContainer.teardown();
       return;
     }
-    const loadFailed = await this.exec("load");
+    const loadFailed = await this.serviceContainer.exec("load");
     if (loadFailed) {
-      await this.teardown();
+      await this.serviceContainer.teardown();
       return;
     }
     this.registerView(
@@ -29131,74 +28411,11 @@ var LineChangeTrackerPlugin = class extends import_obsidian30.Plugin {
    */
   async onunload() {
     this.ready = false;
-    await this.exec("unload");
-  }
-  /**
-   * Executes a method on all registered services in registration order.
-   * Each per-service call is isolated in try/catch so one failure does not
-   * abort the loop; remaining services still get a chance to run.
-   * For `init`, a successful call records the service in `initialized` so a
-   * subsequent fatal can tear down only what is actually up. `unload` clears
-   * the corresponding entry as the service goes down.
-   *
-   * @param {string} method - The method name to execute on each service
-   * @return {Promise<boolean>} True when at least one service threw, so the
-   *   caller can trigger teardown of the partial container.
-   */
-  async exec(method) {
-    let failed = false;
-    for (const provider of [...this.container.values()]) {
-      if (method in provider && isFunction_default(provider[method])) {
-        try {
-          await provider[method]();
-          if (method === "init") {
-            this.initialized.push(provider);
-          } else if (method === "unload") {
-            const idx = this.initialized.indexOf(provider);
-            if (idx >= 0) {
-              this.initialized.splice(idx, 1);
-            }
-          }
-        } catch (error) {
-          failed = true;
-          console.error(
-            `[obsidian-local-history] ${provider.constructor.name}.${method} failed:`,
-            error
-          );
-        }
-      }
-    }
-    return failed;
-  }
-  /**
-   * Tears down services that were brought up by a partial `init`/`load`, in
-   * reverse registration order, so a fatal lifecycle failure never leaves a
-   * half-loaded plugin behind. Each per-service `unload` is
-   * isolated so one teardown failure does not block the rest.
-   *
-   * @return {Promise<void>} Resolves once teardown is complete.
-   */
-  async teardown() {
-    this.ready = false;
-    for (const provider of [...this.initialized].reverse()) {
-      if ("unload" in provider && isFunction_default(provider.unload)) {
-        try {
-          await provider.unload();
-        } catch (error) {
-          console.error(
-            `[obsidian-local-history] ${provider.constructor.name}.unload failed during teardown:`,
-            error
-          );
-        }
-      }
-    }
-    this.initialized = [];
+    await this.serviceContainer.exec("unload");
   }
   /**
    * Emits an event with the given name and payload.
    *
-   * @param {string} name - The name of the event to emit
-   * @param {unknown[]} payload - Additional data to pass with the event
    * @return {boolean} True if the event had listeners, false otherwise
    */
   emit(name, ...payload) {
@@ -29206,22 +28423,12 @@ var LineChangeTrackerPlugin = class extends import_obsidian30.Plugin {
   }
   /**
    * Registers an event listener for the specified event.
-   *
-   * @param {string} name - The name of the event to listen for
-   * @param {Function} fn - The callback function to execute when the event is emitted
-   * @param {unknown} context - The context to bind the callback function to
-   * @return {EventEmitter<string | symbol, unknown>} The event emitter instance for chaining
    */
   on(name, fn, context) {
     return this.emitter.on(name, fn, context);
   }
   /**
    * Removes an event listener for the specified event.
-   *
-   * @param {string} name - The name of the event to remove the listener from
-   * @param {Function} fn - The callback function to remove
-   * @param {unknown} context - The context that was used when the listener was added
-   * @return {EventEmitter<string | symbol, unknown>} The event emitter instance for chaining
    */
   off(name, fn, context) {
     return this.emitter.off(name, fn, context);
@@ -29262,7 +28469,7 @@ var LineChangeTrackerPlugin = class extends import_obsidian30.Plugin {
    * @return {MarkdownView | null} The active markdown view, or null if none is active
    */
   getActiveViewOfType() {
-    return this.app.workspace.getActiveViewOfType(import_obsidian30.MarkdownView);
+    return this.app.workspace.getActiveViewOfType(import_obsidian31.MarkdownView);
   }
   /**
    * Gets the active file.
@@ -29283,7 +28490,7 @@ var LineChangeTrackerPlugin = class extends import_obsidian30.Plugin {
    */
   getFileByPath(path) {
     const file = this.app.vault.getAbstractFileByPath(path);
-    return file instanceof import_obsidian30.TFile ? file : null;
+    return file instanceof import_obsidian31.TFile ? file : null;
   }
   /**
    * Reveals the Recent changes panel in the right sidebar.

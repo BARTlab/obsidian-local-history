@@ -7,6 +7,14 @@ body {
   --lct-status-deleted: var(--color-base-100);
   --lct-prop-removed: var(--text-muted);
 }
+.lct,
+.lct-rm-indicator {
+  --lct-color-changed: var(--color-blue);
+  --lct-color-restored: var(--text-faint);
+  --lct-color-added: var(--color-orange);
+  --lct-color-removed: var(--color-base-100);
+  --lct-color-whitespace: var(--color-yellow);
+}
 .modal.lct-diff-modal {
   width: 90vw;
   height: 80vh;

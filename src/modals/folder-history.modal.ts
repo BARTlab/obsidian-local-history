@@ -7,15 +7,15 @@ import { FolderTreeComponent } from '@/components/folder-tree.component';
 import * as DomHelper from '@/helpers/dom.helper';
 import * as FolderDeltaHelper from '@/helpers/folder-delta.helper';
 import { DiffViewState } from '@/modals/diff-view-state';
-import {
-  FolderActionHandler,
-  type FolderActionHost,
-  type FolderActionSelection,
-} from '@/modals/folder-action-handler';
-import { FolderDiffRenderer, type FolderDiffHost } from '@/modals/folder-diff-renderer';
+import { FolderActionHandler } from '@/modals/folder-action-handler';
+import type { FolderActionHost, FolderActionSelection } from '@/modals/folder-action-handler.types';
+import { FolderDiffRenderer } from '@/modals/folder-diff-renderer';
+import type { FolderDiffHost } from '@/modals/folder-diff-renderer.types';
 import { FolderSelectionModel } from '@/modals/folder-selection-model';
-import { FolderTimelineRenderer, type FolderTimelineHost } from '@/modals/folder-timeline-renderer';
-import { HistoryModalShell, type HistoryModalShellRegions } from '@/modals/history-modal-shell';
+import { FolderTimelineRenderer } from '@/modals/folder-timeline-renderer';
+import type { FolderTimelineHost } from '@/modals/folder-timeline-renderer.types';
+import { HistoryModalShell } from '@/modals/history-modal-shell';
+import type { HistoryModalShellRegions } from '@/modals/history-modal-shell.types';
 import { ToolbarBuilder } from '@/modals/toolbar-builder';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ModalsService } from '@/services/modals.service';

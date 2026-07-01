@@ -1,6 +1,6 @@
 import * as FolderDeltaHelper from '@/helpers/folder-delta.helper';
 import * as FolderTimelineHelper from '@/helpers/folder-timeline.helper';
-import type { FolderActionSelection } from '@/modals/folder-action-handler';
+import type { FolderActionSelection } from '@/modals/folder-action-handler.types';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FileVersion } from '@/snapshots/file.version';
 import type { FolderTimelinePoint } from '@/types';

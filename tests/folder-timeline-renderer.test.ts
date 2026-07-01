@@ -3,7 +3,7 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { FolderTimelinePointKind } from '@/consts';
 import { FolderTimelineRenderer } from '@/modals/folder-timeline-renderer';
-import type { FolderTimelineHost } from '@/modals/folder-timeline-renderer';
+import type { FolderTimelineHost } from '@/modals/folder-timeline-renderer.types';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import { FileVersion } from '@/snapshots/file.version';
 import type LineChangeTrackerPlugin from '@/main';

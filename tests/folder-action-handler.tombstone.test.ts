@@ -1,7 +1,8 @@
 import 'reflect-metadata';
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
-import { FolderActionHandler, type FolderActionHost } from '@/modals/folder-action-handler';
+import { FolderActionHandler } from '@/modals/folder-action-handler';
+import type { FolderActionHost } from '@/modals/folder-action-handler.types';
 import { FolderDeltaStatus } from '@/consts';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import * as obsidian from 'obsidian';

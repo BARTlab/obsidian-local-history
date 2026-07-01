@@ -1,12 +1,5 @@
+import type { DiffContainerResolver } from '@/modals/diff-scroll-sync.types';
 import type { FunctionVoid, HTMLElementWithScrollSync } from '@/types';
-
-/**
- * Resolves the diff container the host is currently rendering into, or
- * `undefined` before any diff has been mounted. The deferred setup re-reads it
- * to bail when the container was swapped (rapid mode switch) before the timer
- * fired, so no listeners attach to stale DOM.
- */
-type DiffContainerResolver = () => HTMLElementWithScrollSync | undefined;
 
 /**
  * Scroll-synchronisation collaborator for the side-by-side diff view.

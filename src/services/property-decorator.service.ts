@@ -32,6 +32,43 @@ import type { FileSnapshot } from '@/snapshots/file.snapshot';
  */
 export class PropertyDecoratorService implements Service {
   /**
+   * Debounce window (ms) for scheduling an apply sweep. Matches the value
+   * used by TreeTabDecoratorService so the two decorators stay in lockstep.
+   */
+  protected static readonly debounceMs: number = 100;
+
+  /** CSS class applied to the row element for an added property. */
+  protected static readonly CLASS_ADDED = 'lct-prop-added';
+
+  /** CSS class applied to the row element for a modified property. */
+  protected static readonly CLASS_MODIFIED = 'lct-prop-modified';
+
+  /** CSS class applied to the row element for a removed (ghost) property. */
+  protected static readonly CLASS_REMOVED = 'lct-prop-removed';
+
+  /** CSS class applied to synthetic ghost rows injected for removed properties. */
+  protected static readonly CLASS_GHOST = 'lct-prop-ghost';
+
+  /** Class/title plan per row status, driving the single apply step in decorate(). */
+  protected static readonly ROW_DECORATIONS: Record<RowStatus, RowDecoration> = {
+    added: {
+      classToAdd: PropertyDecoratorService.CLASS_ADDED,
+      classToRemove: [PropertyDecoratorService.CLASS_MODIFIED],
+      title: 'added',
+    },
+    modified: {
+      classToAdd: PropertyDecoratorService.CLASS_MODIFIED,
+      classToRemove: [PropertyDecoratorService.CLASS_ADDED],
+      title: 'modified',
+    },
+    clean: {
+      classToAdd: null,
+      classToRemove: [PropertyDecoratorService.CLASS_ADDED, PropertyDecoratorService.CLASS_MODIFIED],
+      title: null,
+    },
+  };
+
+  /**
    * Service for reading plugin settings, used to gate decoration behind the
    * `propertiesHighlight` toggle (mirrors the `treeHighlight` gate in
    * {@link TreeTabDecoratorService}).
@@ -45,12 +82,6 @@ export class PropertyDecoratorService implements Service {
    */
   @Inject(TOKENS.snapshots)
   protected snapshotsService!: SnapshotsService;
-
-  /**
-   * Debounce window (ms) for scheduling an apply sweep. Matches the value
-   * used by TreeTabDecoratorService so the two decorators stay in lockstep.
-   */
-  protected static readonly debounceMs: number = 100;
 
   /**
    * The pending debounce timer, or undefined when none is in flight.
@@ -90,6 +121,110 @@ export class PropertyDecoratorService implements Service {
   public constructor(
     public plugin: LineChangeTrackerPlugin,
   ) {
+  }
+
+  /**
+   * Returns the first live row element whose property key comes after
+   * `removedKey` in `snapshotKeyOrder`.
+   *
+   * This is the surviving-neighbor strategy from PLAN.md risk #4: scan forward
+   * through the baseline key order starting from the position after `removedKey`
+   * and return the first entry that has a live row in `liveRowByKey`.
+   *
+   * When all keys after `removedKey` are also removed, returns null so the
+   * ghost is appended at the end.
+   *
+   * @param {string} removedKey - The key whose position to anchor
+   * @param {string[]} snapshotKeyOrder - All keys in the baseline snapshot, in order
+   * @param {Map<string, HTMLElement>} liveRowByKey - Live rows indexed by key
+   * @returns {HTMLElement | null} The neighbor row to insert before, or null
+   */
+  protected static findNeighborRow(
+    removedKey: string,
+    snapshotKeyOrder: string[],
+    liveRowByKey: Map<string, HTMLElement>,
+  ): HTMLElement | null {
+    const idx = snapshotKeyOrder.indexOf(removedKey);
+
+    if (idx === -1) {
+      return null;
+    }
+
+    for (let i = idx + 1; i < snapshotKeyOrder.length; i++) {
+      const candidateKey = snapshotKeyOrder[i];
+      const liveRow = liveRowByKey.get(candidateKey);
+
+      if (liveRow) {
+        return liveRow;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Builds a synthetic ghost row element representing a deleted property key.
+   *
+   * The element mimics the structure of a real `.metadata-property` row
+   * (same class, same `data-property-key` attribute) so the CSS rules in
+   * `.lct-prop-ghost` and `.lct-prop-removed` apply automatically.
+   *
+   * @param {string} key - The property key name to display
+   * @returns {HTMLElement} The ghost row element (not yet inserted into DOM)
+   */
+  protected static buildGhostRow(key: string): HTMLElement {
+    const ghost = document.createElement('div');
+    ghost.classList.add(
+      'metadata-property',
+      PropertyDecoratorService.CLASS_GHOST,
+      PropertyDecoratorService.CLASS_REMOVED,
+    );
+    ghost.setAttribute('data-property-key', key);
+    ghost.setAttribute('title', `property "${key}" removed`);
+
+    const keyCell = document.createElement('div');
+    keyCell.classList.add('metadata-property-key');
+    keyCell.textContent = key;
+    ghost.appendChild(keyCell);
+
+    return ghost;
+  }
+
+  /**
+   * Extracts the top-level key names from the frontmatter block of `lines` in
+   * their declaration order.  Returns an empty array when no frontmatter block
+   * is present or the block cannot be parsed.
+   *
+   * This is used by {@link apply} to obtain the baseline key order that
+   * {@link injectGhosts} needs for the surviving-neighbor insertion strategy.
+   *
+   * @param {string[]} lines - File content split into lines (baseline snapshot)
+   * @returns {string[]} Top-level YAML key names in declaration order
+   */
+  protected static extractKeyOrder(lines: string[]): string[] {
+    if (!lines.length || lines[0].trim() !== '---') {
+      return [];
+    }
+
+    const closeIdx = lines.indexOf('---', 1);
+
+    if (closeIdx === -1) {
+      return [];
+    }
+
+    const yaml = lines.slice(1, closeIdx).join('\n');
+
+    try {
+      const parsed: unknown = parseYaml(yaml);
+
+      if (parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        return Object.keys(parsed as Record<string, unknown>);
+      }
+    } catch {
+      // Malformed YAML - degrade gracefully.
+    }
+
+    return [];
   }
 
   /**
@@ -261,37 +396,6 @@ export class PropertyDecoratorService implements Service {
     this.decorate(editor, rows, changes, snapshotKeyOrder);
   }
 
-  /** CSS class applied to the row element for an added property. */
-  protected static readonly CLASS_ADDED = 'lct-prop-added';
-
-  /** CSS class applied to the row element for a modified property. */
-  protected static readonly CLASS_MODIFIED = 'lct-prop-modified';
-
-  /** CSS class applied to the row element for a removed (ghost) property. */
-  protected static readonly CLASS_REMOVED = 'lct-prop-removed';
-
-  /** CSS class applied to synthetic ghost rows injected for removed properties. */
-  protected static readonly CLASS_GHOST = 'lct-prop-ghost';
-
-  /** Class/title plan per row status, driving the single apply step in decorate(). */
-  protected static readonly ROW_DECORATIONS: Record<RowStatus, RowDecoration> = {
-    added: {
-      classToAdd: PropertyDecoratorService.CLASS_ADDED,
-      classToRemove: [PropertyDecoratorService.CLASS_MODIFIED],
-      title: 'added',
-    },
-    modified: {
-      classToAdd: PropertyDecoratorService.CLASS_MODIFIED,
-      classToRemove: [PropertyDecoratorService.CLASS_ADDED],
-      title: 'modified',
-    },
-    clean: {
-      classToAdd: null,
-      classToRemove: [PropertyDecoratorService.CLASS_ADDED, PropertyDecoratorService.CLASS_MODIFIED],
-      title: null,
-    },
-  };
-
   /**
    * Decorates existing property rows for added and modified states, clears
    * decorations from rows that are no longer in any change set, and delegates
@@ -440,73 +544,6 @@ export class PropertyDecoratorService implements Service {
   }
 
   /**
-   * Returns the first live row element whose property key comes after
-   * `removedKey` in `snapshotKeyOrder`.
-   *
-   * This is the surviving-neighbor strategy from PLAN.md risk #4: scan forward
-   * through the baseline key order starting from the position after `removedKey`
-   * and return the first entry that has a live row in `liveRowByKey`.
-   *
-   * When all keys after `removedKey` are also removed, returns null so the
-   * ghost is appended at the end.
-   *
-   * @param {string} removedKey - The key whose position to anchor
-   * @param {string[]} snapshotKeyOrder - All keys in the baseline snapshot, in order
-   * @param {Map<string, HTMLElement>} liveRowByKey - Live rows indexed by key
-   * @returns {HTMLElement | null} The neighbor row to insert before, or null
-   */
-  protected static findNeighborRow(
-    removedKey: string,
-    snapshotKeyOrder: string[],
-    liveRowByKey: Map<string, HTMLElement>,
-  ): HTMLElement | null {
-    const idx = snapshotKeyOrder.indexOf(removedKey);
-
-    if (idx === -1) {
-      return null;
-    }
-
-    for (let i = idx + 1; i < snapshotKeyOrder.length; i++) {
-      const candidateKey = snapshotKeyOrder[i];
-      const liveRow = liveRowByKey.get(candidateKey);
-
-      if (liveRow) {
-        return liveRow;
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Builds a synthetic ghost row element representing a deleted property key.
-   *
-   * The element mimics the structure of a real `.metadata-property` row
-   * (same class, same `data-property-key` attribute) so the CSS rules in
-   * `.lct-prop-ghost` and `.lct-prop-removed` apply automatically.
-   *
-   * @param {string} key - The property key name to display
-   * @returns {HTMLElement} The ghost row element (not yet inserted into DOM)
-   */
-  protected static buildGhostRow(key: string): HTMLElement {
-    const ghost = document.createElement('div');
-    ghost.classList.add(
-      'metadata-property',
-      PropertyDecoratorService.CLASS_GHOST,
-      PropertyDecoratorService.CLASS_REMOVED,
-    );
-    ghost.setAttribute('data-property-key', key);
-    ghost.setAttribute('title', `property "${key}" removed`);
-
-    const keyCell = document.createElement('div');
-    keyCell.classList.add('metadata-property-key');
-    keyCell.textContent = key;
-    ghost.appendChild(keyCell);
-
-    return ghost;
-  }
-
-  /**
    * (Re)attaches the MutationObserver to `contentEl` when the element changes.
    *
    * Observes `{ childList: true, subtree: true }` (never `attributes`) so the
@@ -537,42 +574,5 @@ export class PropertyDecoratorService implements Service {
 
     this.observer.observe(contentEl, { childList: true, subtree: true });
     this.observed = contentEl;
-  }
-
-  /**
-   * Extracts the top-level key names from the frontmatter block of `lines` in
-   * their declaration order.  Returns an empty array when no frontmatter block
-   * is present or the block cannot be parsed.
-   *
-   * This is used by {@link apply} to obtain the baseline key order that
-   * {@link injectGhosts} needs for the surviving-neighbor insertion strategy.
-   *
-   * @param {string[]} lines - File content split into lines (baseline snapshot)
-   * @returns {string[]} Top-level YAML key names in declaration order
-   */
-  protected static extractKeyOrder(lines: string[]): string[] {
-    if (!lines.length || lines[0].trim() !== '---') {
-      return [];
-    }
-
-    const closeIdx = lines.indexOf('---', 1);
-
-    if (closeIdx === -1) {
-      return [];
-    }
-
-    const yaml = lines.slice(1, closeIdx).join('\n');
-
-    try {
-      const parsed: unknown = parseYaml(yaml);
-
-      if (parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)) {
-        return Object.keys(parsed as Record<string, unknown>);
-      }
-    } catch {
-      // Malformed YAML - degrade gracefully.
-    }
-
-    return [];
   }
 }

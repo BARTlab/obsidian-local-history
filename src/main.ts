@@ -46,14 +46,6 @@ export default class LineChangeTrackerPlugin extends Plugin {
   protected emitter: EventEmitter = new EventEmitter();
 
   /**
-   * Owns every registered service under one token-keyed map and runs their
-   * lifecycle. The plugin composes it (passing the emitter for @On wiring and
-   * itself as the service-constructor host) and delegates resolution and
-   * lifecycle to it, holding no DI map of its own.
-   */
-  private readonly serviceContainer: ServiceContainer = new ServiceContainer(this.emitter, this);
-
-  /**
    * True only between a successful `onload` and the next `onunload`/teardown.
    * Editor extensions and workspace event handlers live in Obsidian's lifecycle,
    * not the container's, so they can fire before services are up or after the
@@ -62,6 +54,14 @@ export default class LineChangeTrackerPlugin extends Plugin {
    * instead of resolving an injected service against a half-built container.
    */
   protected ready: boolean = false;
+
+  /**
+   * Owns every registered service under one token-keyed map and runs their
+   * lifecycle. The plugin composes it (passing the emitter for @On wiring and
+   * itself as the service-constructor host) and delegates resolution and
+   * lifecycle to it, holding no DI map of its own.
+   */
+  private readonly serviceContainer: ServiceContainer = new ServiceContainer(this.emitter, this);
 
   /**
    * Creates a new instance of the LineChangeTrackerPlugin.

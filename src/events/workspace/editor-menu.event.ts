@@ -34,14 +34,14 @@ import type { Editor, MarkdownView, Menu, MenuItem } from 'obsidian';
  * @extends {BaseEvent}
  */
 export class WorkspaceEditorMenuEvent extends BaseEvent {
-  @Inject(TOKENS.modals)
-  protected modalService!: ModalsService;
-
   /**
    * The name of the Obsidian event to handle.
    * Set to the workspace.editorMenu event.
    */
   public name: ObsidianEventName = ObsidianEvent.workspace.editorMenu;
+
+  @Inject(TOKENS.modals)
+  protected modalService!: ModalsService;
 
   /**
    * Handles the editor menu event by adding the "Local history" parent item

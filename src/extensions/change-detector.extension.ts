@@ -16,11 +16,11 @@ import { Decoration, type DecorationSet, type EditorView, type ViewUpdate } from
  * @implements {EditorExtension}
  */
 export class ChangeDetectorExtension implements EditorExtension {
-  public constructor(
-    protected view: EditorView | null,
-    public plugin: LineChangeTrackerPlugin,
-  ) {
-  }
+  /**
+   * Set of decorations to be applied to the editor.
+   * Initialized with an empty decoration set.
+   */
+  public decorations: DecorationSet = Decoration.none;
 
   @Inject(TOKENS.snapshots)
   protected snapshotsService!: SnapshotsService;
@@ -29,11 +29,11 @@ export class ChangeDetectorExtension implements EditorExtension {
   @Inject(TOKENS.settings)
   protected settingsService!: SettingsService;
 
-  /**
-   * Set of decorations to be applied to the editor.
-   * Initialized with an empty decoration set.
-   */
-  public decorations: DecorationSet = Decoration.none;
+  public constructor(
+    protected view: EditorView | null,
+    public plugin: LineChangeTrackerPlugin,
+  ) {
+  }
 
   /**
    * Handles updates to the editor view.
@@ -47,29 +47,6 @@ export class ChangeDetectorExtension implements EditorExtension {
     }
 
     this.processIncrementalChanges(update);
-  }
-
-  /**
-   * Processes incremental changes in the document.
-   * Checks if the content has changed and computes the changes if needed.
-   *
-   * @param {ViewUpdate} update - The view update event from CodeMirror
-   */
-  protected processIncrementalChanges(update: ViewUpdate): void {
-    const currentContent: string = update.state.doc.toString();
-    const snapshot: FileSnapshot | null = this.snapshotsService.getOne();
-
-    if (!snapshot || !currentContent) {
-      return;
-    }
-
-    // Skip when the content has not changed, detected by the snapshot hash.
-    if (!snapshot.isNeedUpdate(currentContent)) {
-      return;
-    }
-
-    this.computeIncrementalChanges(update);
-    this.snapshotsService.forceUpdate();
   }
 
   /**
@@ -241,6 +218,29 @@ export class ChangeDetectorExtension implements EditorExtension {
 
     snapshot.content.updateState(currentLines);
     snapshot.updateChanges();
+  }
+
+  /**
+   * Processes incremental changes in the document.
+   * Checks if the content has changed and computes the changes if needed.
+   *
+   * @param {ViewUpdate} update - The view update event from CodeMirror
+   */
+  protected processIncrementalChanges(update: ViewUpdate): void {
+    const currentContent: string = update.state.doc.toString();
+    const snapshot: FileSnapshot | null = this.snapshotsService.getOne();
+
+    if (!snapshot || !currentContent) {
+      return;
+    }
+
+    // Skip when the content has not changed, detected by the snapshot hash.
+    if (!snapshot.isNeedUpdate(currentContent)) {
+      return;
+    }
+
+    this.computeIncrementalChanges(update);
+    this.snapshotsService.forceUpdate();
   }
 
   /**

@@ -30,24 +30,6 @@ export class SettingsService implements Service {
   }
 
   /**
-   * Initializes the service.
-   * Loads saved settings data and added the settings tab to the plugin.
-   */
-  public async init(): Promise<void> {
-    const saved: unknown = SettingsService.migrateExcludePaths(await this.plugin.loadData());
-
-    /**
-     * Deep-merge into a fresh clone so partial saved data keeps nested defaults
-     * (e.g. a saved `show.changed` does not drop the other `show.*` keys) and
-     * DEFAULT_SETTINGS stays untouched. The exclude-paths migration runs on the
-     * raw payload first so merge only ever sees an array (merging an array
-     * default with a saved string corrupts the value index-by-index).
-     */
-    this.data = merge({}, DEFAULT_SETTINGS, saved);
-    this.plugin.addSettingTab(new MainSetting(this.plugin.app, this.plugin));
-  }
-
-  /**
    * Normalizes a saved `excludePaths` value to the structured `string[]` shape
    * (C3) before the settings merge runs. Historic installs stored it as a single
    * regular-expression string; this shim wraps that legacy string in a one-element
@@ -79,6 +61,24 @@ export class SettingsService implements Service {
     }
 
     return saved;
+  }
+
+  /**
+   * Initializes the service.
+   * Loads saved settings data and added the settings tab to the plugin.
+   */
+  public async init(): Promise<void> {
+    const saved: unknown = SettingsService.migrateExcludePaths(await this.plugin.loadData());
+
+    /**
+     * Deep-merge into a fresh clone so partial saved data keeps nested defaults
+     * (e.g. a saved `show.changed` does not drop the other `show.*` keys) and
+     * DEFAULT_SETTINGS stays untouched. The exclude-paths migration runs on the
+     * raw payload first so merge only ever sees an array (merging an array
+     * default with a saved string corrupts the value index-by-index).
+     */
+    this.data = merge({}, DEFAULT_SETTINGS, saved);
+    this.plugin.addSettingTab(new MainSetting(this.plugin.app, this.plugin));
   }
 
   /**

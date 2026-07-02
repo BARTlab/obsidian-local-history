@@ -25,19 +25,6 @@ import { Notice, type TFile } from 'obsidian';
  * @implements {Service}
  */
 export class SnapshotsService implements Service {
-  @Inject(TOKENS.settings)
-  protected settingsService!: SettingsService;
-
-  /**
-   * Plain collaborator that owns the path-keyed registry concern: the observable
-   * map of paths to snapshots, the transient session-created path set, and the
-   * add/remove/rename/move/tombstone/rekey rules that keep those two in step.
-   * Owned by the service (not a DI service); reads the active editor line break
-   * and routes the external-capture forget back through a
-   * {@link SnapshotRegistryHost} port the service builds.
-   */
-  protected registry: SnapshotRegistry = new SnapshotRegistry(this.makeSnapshotRegistryHost());
-
   /**
    * Plain collaborator that owns the ignore-list and exclude-pattern concern:
    * the per-file ignore set (files the user opted out of tracking) and the
@@ -54,6 +41,19 @@ export class SnapshotsService implements Service {
    * not have to know exclusion is co-located on this collaborator.
    */
   public readonly ignoreList: IgnoreListManager = new IgnoreListManager(this.makeIgnoreListHost());
+
+  @Inject(TOKENS.settings)
+  protected settingsService!: SettingsService;
+
+  /**
+   * Plain collaborator that owns the path-keyed registry concern: the observable
+   * map of paths to snapshots, the transient session-created path set, and the
+   * add/remove/rename/move/tombstone/rekey rules that keep those two in step.
+   * Owned by the service (not a DI service); reads the active editor line break
+   * and routes the external-capture forget back through a
+   * {@link SnapshotRegistryHost} port the service builds.
+   */
+  protected registry: SnapshotRegistry = new SnapshotRegistry(this.makeSnapshotRegistryHost());
 
   /**
    * Plain collaborator that owns the external (off-editor) change detection
@@ -259,25 +259,6 @@ export class SnapshotsService implements Service {
   }
 
   /**
-   * Builds the narrow {@link HistorySerializerHost} port the
-   * {@link HistorySerializer} reads its plugin-facing dependencies through: the
-   * vault file lookup (to resolve a persisted path to a live file), the open
-   * files (for the post-restore reconcile pass, empty when the plugin does not
-   * expose them), and the external-capture scheduling, keeping the plugin handle
-   * and the sibling collaborators owned by this service.
-   *
-   * @return {HistorySerializerHost} The host port onto the serializer's deps
-   */
-  protected makeHistorySerializerHost(): HistorySerializerHost {
-    return {
-      getFileByPath: (path: string): TFile | null => this.plugin.getFileByPath(path),
-      getOpenFiles: (): Set<TFile> =>
-        typeof this.plugin.getWorkspaceFiles === 'function' ? this.plugin.getWorkspaceFiles() : new Set<TFile>(),
-      scheduleExternalCapture: (file: TFile): void => this.scheduleExternalCapture(file),
-    };
-  }
-
-  /**
    * Forces an update of the snapshots. Delegates to the {@link SnapshotRegistry},
    * which triggers the observable map to notify subscribers.
    */
@@ -312,42 +293,6 @@ export class SnapshotsService implements Service {
    */
   public isExcludedPath(file: TFile): boolean {
     return this.ignoreList.isExcluded(file);
-  }
-
-  /**
-   * Builds the narrow {@link SnapshotRegistryHost} port the
-   * {@link SnapshotRegistry} reads its two outside dependencies through: the
-   * active editor's line break (so a captured snapshot matches the editor) and
-   * the external-capture forget (so a removed or relocated path leaves no stale
-   * capture state), keeping the plugin handle and the sibling collaborators
-   * owned by this service.
-   *
-   * @return {SnapshotRegistryHost} The host port onto the registry's outside deps
-   */
-  protected makeSnapshotRegistryHost(): SnapshotRegistryHost {
-    return {
-      getActiveEditorLineBreak: (): string | undefined => this.plugin.getActiveEditorView()?.state.lineBreak,
-      forgetExternalCapture: (path: string): void => this.externalCapture.forget(path),
-    };
-  }
-
-  /**
-   * Builds the narrow {@link IgnoreListHost} port the {@link IgnoreListManager}
-   * reads its exclude-pattern dependency through. Exposes the raw exclude
-   * pattern from settings and the one-time invalid-pattern warning, keeping
-   * settings access and Notice construction owned by this service while the
-   * manager owns the ignore set and the warn-once guard.
-   *
-   * @return {IgnoreListHost} The host port onto the exclude-pattern dependency
-   */
-  protected makeIgnoreListHost(): IgnoreListHost {
-    return {
-      getExcludePatterns: (): string[] => this.settingsService.value('excludePaths'),
-      getExcludePathsCaseSensitive: (): boolean => this.settingsService.value('excludePathsCaseSensitive'),
-      notifyInvalidPattern: (): void => {
-        new Notice(this.plugin.t('notice.invalid-exclude-pattern'));
-      },
-    };
   }
 
   /**
@@ -438,45 +383,6 @@ export class SnapshotsService implements Service {
   }
 
   /**
-   * Builds the narrow {@link ExternalChangeHost} port the
-   * {@link ExternalChangeCapture} collaborator reads its shared state through.
-   * Exposes the plugin, the snapshot lookup, the external-capture gating, the
-   * first-sight capture, the capture cadence options, and the forced update,
-   * keeping the snapshot map and CRUD owned by this service while the
-   * collaborator owns the debounce/in-flight/last-seen machinery.
-   *
-   * @return {ExternalChangeHost} The host port onto the snapshot state
-   */
-  protected makeExternalChangeHost(): ExternalChangeHost {
-    return {
-      plugin: this.plugin,
-      getSnapshot: (path: string): FileSnapshot | undefined => this.registry.get(path),
-      isExternallyCapturable: (file: TFile): boolean =>
-        this.isInAllowedExtensions(file) && !this.isExcludedPath(file) && !this.ignoreList.isIgnored(file),
-      captureFirstSight: (file: TFile): Promise<void> => this.capture(file),
-      getCaptureOptions: (): SnapshotCaptureOptions => this.getCaptureOptions(),
-      forceUpdate: (): void => this.forceUpdate(),
-    };
-  }
-
-  /**
-   * Reads the current capture cadence and retention caps into a plain options
-   * object for the snapshot model. Mirrors the helper in change-detector and
-   * version-actions so eviction stays aligned across every capture source.
-   *
-   * @return {SnapshotCaptureOptions} The capture cadence configuration
-   */
-  protected getCaptureOptions(): SnapshotCaptureOptions {
-    return {
-      enabled: this.settingsService.value('snapshots.enabled'),
-      intervalMs: this.settingsService.value('snapshots.intervalMs'),
-      editThreshold: this.settingsService.value('snapshots.editThreshold'),
-      maxVersions: this.settingsService.value('snapshots.maxVersions'),
-      maxVersionAgeDays: this.settingsService.value('snapshots.maxVersionAgeDays'),
-    };
-  }
-
-  /**
    * Removes a snapshot for a specific file.
    * If no file is provided, use the active file.
    * Forces an editor update and recaptures the file if it's the active file.
@@ -526,23 +432,6 @@ export class SnapshotsService implements Service {
     block: EditorBlock,
   ): Promise<boolean> {
     return this.editorOperations.applyContent(file, lines, block);
-  }
-
-  /**
-   * Builds the narrow {@link EditorOperationsHost} port the
-   * {@link EditorOperations} collaborator reads its shared state through.
-   * Exposes the plugin (for the disk write and the active-view check), the
-   * snapshot lookup, and the forced update, keeping the snapshot map and CRUD
-   * owned by this service while the collaborator owns the file-write flow.
-   *
-   * @return {EditorOperationsHost} The host port onto the snapshot state
-   */
-  protected makeEditorOperationsHost(): EditorOperationsHost {
-    return {
-      plugin: this.plugin,
-      getSnapshot: (file?: TFile | null): FileSnapshot | null => this.getOne(file),
-      forceUpdate: (): void => this.forceUpdate(),
-    };
   }
 
   /**
@@ -596,5 +485,116 @@ export class SnapshotsService implements Service {
     }
 
     void this.capture();
+  }
+
+  /**
+   * Builds the narrow {@link HistorySerializerHost} port the
+   * {@link HistorySerializer} reads its plugin-facing dependencies through: the
+   * vault file lookup (to resolve a persisted path to a live file), the open
+   * files (for the post-restore reconcile pass, empty when the plugin does not
+   * expose them), and the external-capture scheduling, keeping the plugin handle
+   * and the sibling collaborators owned by this service.
+   *
+   * @return {HistorySerializerHost} The host port onto the serializer's deps
+   */
+  protected makeHistorySerializerHost(): HistorySerializerHost {
+    return {
+      getFileByPath: (path: string): TFile | null => this.plugin.getFileByPath(path),
+      getOpenFiles: (): Set<TFile> =>
+        typeof this.plugin.getWorkspaceFiles === 'function' ? this.plugin.getWorkspaceFiles() : new Set<TFile>(),
+      scheduleExternalCapture: (file: TFile): void => this.scheduleExternalCapture(file),
+    };
+  }
+
+  /**
+   * Builds the narrow {@link SnapshotRegistryHost} port the
+   * {@link SnapshotRegistry} reads its two outside dependencies through: the
+   * active editor's line break (so a captured snapshot matches the editor) and
+   * the external-capture forget (so a removed or relocated path leaves no stale
+   * capture state), keeping the plugin handle and the sibling collaborators
+   * owned by this service.
+   *
+   * @return {SnapshotRegistryHost} The host port onto the registry's outside deps
+   */
+  protected makeSnapshotRegistryHost(): SnapshotRegistryHost {
+    return {
+      getActiveEditorLineBreak: (): string | undefined => this.plugin.getActiveEditorView()?.state.lineBreak,
+      forgetExternalCapture: (path: string): void => this.externalCapture.forget(path),
+    };
+  }
+
+  /**
+   * Builds the narrow {@link IgnoreListHost} port the {@link IgnoreListManager}
+   * reads its exclude-pattern dependency through. Exposes the raw exclude
+   * pattern from settings and the one-time invalid-pattern warning, keeping
+   * settings access and Notice construction owned by this service while the
+   * manager owns the ignore set and the warn-once guard.
+   *
+   * @return {IgnoreListHost} The host port onto the exclude-pattern dependency
+   */
+  protected makeIgnoreListHost(): IgnoreListHost {
+    return {
+      getExcludePatterns: (): string[] => this.settingsService.value('excludePaths'),
+      getExcludePathsCaseSensitive: (): boolean => this.settingsService.value('excludePathsCaseSensitive'),
+      notifyInvalidPattern: (): void => {
+        new Notice(this.plugin.t('notice.invalid-exclude-pattern'));
+      },
+    };
+  }
+
+  /**
+   * Builds the narrow {@link ExternalChangeHost} port the
+   * {@link ExternalChangeCapture} collaborator reads its shared state through.
+   * Exposes the plugin, the snapshot lookup, the external-capture gating, the
+   * first-sight capture, the capture cadence options, and the forced update,
+   * keeping the snapshot map and CRUD owned by this service while the
+   * collaborator owns the debounce/in-flight/last-seen machinery.
+   *
+   * @return {ExternalChangeHost} The host port onto the snapshot state
+   */
+  protected makeExternalChangeHost(): ExternalChangeHost {
+    return {
+      plugin: this.plugin,
+      getSnapshot: (path: string): FileSnapshot | undefined => this.registry.get(path),
+      isExternallyCapturable: (file: TFile): boolean =>
+        this.isInAllowedExtensions(file) && !this.isExcludedPath(file) && !this.ignoreList.isIgnored(file),
+      captureFirstSight: (file: TFile): Promise<void> => this.capture(file),
+      getCaptureOptions: (): SnapshotCaptureOptions => this.getCaptureOptions(),
+      forceUpdate: (): void => this.forceUpdate(),
+    };
+  }
+
+  /**
+   * Reads the current capture cadence and retention caps into a plain options
+   * object for the snapshot model. Mirrors the helper in change-detector and
+   * version-actions so eviction stays aligned across every capture source.
+   *
+   * @return {SnapshotCaptureOptions} The capture cadence configuration
+   */
+  protected getCaptureOptions(): SnapshotCaptureOptions {
+    return {
+      enabled: this.settingsService.value('snapshots.enabled'),
+      intervalMs: this.settingsService.value('snapshots.intervalMs'),
+      editThreshold: this.settingsService.value('snapshots.editThreshold'),
+      maxVersions: this.settingsService.value('snapshots.maxVersions'),
+      maxVersionAgeDays: this.settingsService.value('snapshots.maxVersionAgeDays'),
+    };
+  }
+
+  /**
+   * Builds the narrow {@link EditorOperationsHost} port the
+   * {@link EditorOperations} collaborator reads its shared state through.
+   * Exposes the plugin (for the disk write and the active-view check), the
+   * snapshot lookup, and the forced update, keeping the snapshot map and CRUD
+   * owned by this service while the collaborator owns the file-write flow.
+   *
+   * @return {EditorOperationsHost} The host port onto the snapshot state
+   */
+  protected makeEditorOperationsHost(): EditorOperationsHost {
+    return {
+      plugin: this.plugin,
+      getSnapshot: (file?: TFile | null): FileSnapshot | null => this.getOne(file),
+      forceUpdate: (): void => this.forceUpdate(),
+    };
   }
 }

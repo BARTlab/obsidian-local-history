@@ -21,14 +21,14 @@ import type { MarkdownView, Menu, MenuItem } from 'obsidian';
  * @extends {BaseEvent}
  */
 export class WorkspaceViewportMenuEvent extends BaseEvent {
-  @Inject(TOKENS.settings)
-  protected settingsService!: SettingsService;
-
   /**
    * The name of the Obsidian event to handle.
    * Set to the workspace.markdown-viewport-menu event.
    */
   public name: ObsidianEventName = ObsidianEvent.workspace.viewportMenu;
+
+  @Inject(TOKENS.settings)
+  protected settingsService!: SettingsService;
 
   /**
    * Handles the viewport menu event by adding the "Show changes" toggle (checked

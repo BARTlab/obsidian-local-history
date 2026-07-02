@@ -12,14 +12,6 @@ import { type Command, Notice } from 'obsidian';
  * @implements {Command}
  */
 export class ResetLinesCommand implements Command {
-  public constructor(
-    public plugin: LineChangeTrackerPlugin,
-  ) {
-  }
-
-  @Inject(TOKENS.snapshots)
-  protected snapshotsService!: SnapshotsService;
-
   /**
    * Unique identifier for this command.
    * Used by Obsidian to register and reference the command.
@@ -41,4 +33,12 @@ export class ResetLinesCommand implements Command {
 
     new Notice(this.plugin.t('notice.current-snapshot-deleted'));
   };
+
+  @Inject(TOKENS.snapshots)
+  protected snapshotsService!: SnapshotsService;
+
+  public constructor(
+    public plugin: LineChangeTrackerPlugin,
+  ) {
+  }
 }

@@ -42,21 +42,6 @@ import { type MarkdownView, type View, type WorkspaceLeaf } from 'obsidian';
  */
 export class TreeTabDecoratorService implements Service {
   /**
-   * Service for reading the current set of file snapshots, the source the
-   * session status is derived from.
-   */
-  @Inject(TOKENS.snapshots)
-  protected snapshotsService!: SnapshotsService;
-
-  /**
-   * Service for reading the plugin settings, used to gate the whole decorator
-   * behind the `treeHighlight` toggle: off clears every applied class and
-   * paints nothing further, on re-applies the current statuses live.
-   */
-  @Inject(TOKENS.settings)
-  protected settingsService!: SettingsService;
-
-  /**
    * Debounce window (ms) for a tree sweep. A burst of `snapshotsUpdate` events
    * within this window collapses into a single trailing apply, so per-keystroke
    * churn never triggers a per-keystroke full-tree sweep.
@@ -82,6 +67,21 @@ export class TreeTabDecoratorService implements Service {
     TreeTabDecoratorService.classFor(FolderDeltaStatus.added),
     TreeTabDecoratorService.classFor(FolderDeltaStatus.modified),
   ];
+
+  /**
+   * Service for reading the current set of file snapshots, the source the
+   * session status is derived from.
+   */
+  @Inject(TOKENS.snapshots)
+  protected snapshotsService!: SnapshotsService;
+
+  /**
+   * Service for reading the plugin settings, used to gate the whole decorator
+   * behind the `treeHighlight` toggle: off clears every applied class and
+   * paints nothing further, on re-applies the current statuses live.
+   */
+  @Inject(TOKENS.settings)
+  protected settingsService!: SettingsService;
 
   /**
    * Last status applied per vault path, so an apply only mutates rows whose

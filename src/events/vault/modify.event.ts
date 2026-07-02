@@ -21,14 +21,14 @@ import { type TAbstractFile, TFile } from 'obsidian';
  * @extends {BaseEvent}
  */
 export class VaultModifyEvent extends BaseEvent {
-  @Inject(TOKENS.snapshots)
-  protected snapshotsService!: SnapshotsService;
-
   /**
    * The name of the Obsidian event to handle.
    * Set to the vault.modify event.
    */
   public readonly name: ObsidianEventName = ObsidianEvent.vault.modify;
+
+  @Inject(TOKENS.snapshots)
+  protected snapshotsService!: SnapshotsService;
 
   /**
    * Handles the vault modify event. Routes to

@@ -18,14 +18,6 @@ import type { Command } from 'obsidian';
  * @implements {Command}
  */
 export class ShowDiffCommand implements Command {
-  public constructor(
-    public plugin: LineChangeTrackerPlugin,
-  ) {
-  }
-
-  @Inject(TOKENS.modals)
-  protected modalService!: ModalsService;
-
   /**
    * Unique identifier for this command.
    * Used by Obsidian to register and reference the command.
@@ -57,4 +49,12 @@ export class ShowDiffCommand implements Command {
 
     return this.modalService.diff();
   };
+
+  @Inject(TOKENS.modals)
+  protected modalService!: ModalsService;
+
+  public constructor(
+    public plugin: LineChangeTrackerPlugin,
+  ) {
+  }
 }

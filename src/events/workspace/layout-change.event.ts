@@ -16,17 +16,17 @@ import type { TFile } from 'obsidian';
  * @extends {BaseEvent}
  */
 export class WorkspaceLayoutChangeEvent extends BaseEvent {
-  @Inject(TOKENS.snapshots)
-  protected snapshotsService!: SnapshotsService;
-
-  @Inject(TOKENS.settings)
-  protected settingsService!: SettingsService;
-
   /**
    * The name of the Obsidian event to handle.
    * Set to the workspace.layoutChange event.
    */
   public name: ObsidianEventName = ObsidianEvent.workspace.layoutChange;
+
+  @Inject(TOKENS.snapshots)
+  protected snapshotsService!: SnapshotsService;
+
+  @Inject(TOKENS.settings)
+  protected settingsService!: SettingsService;
 
   /**
    * Handles the layout change event by managing snapshots.

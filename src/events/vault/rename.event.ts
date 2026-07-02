@@ -17,14 +17,14 @@ import { type TAbstractFile, TFile } from 'obsidian';
  * @extends {BaseEvent}
  */
 export class VaultRenameEvent extends BaseEvent {
-  @Inject(TOKENS.snapshots)
-  protected snapshotsService!: SnapshotsService;
-
   /**
    * The name of the Obsidian event to handle.
    * Set to the vault.rename event.
    */
   public readonly name: ObsidianEventName = ObsidianEvent.vault.rename;
+
+  @Inject(TOKENS.snapshots)
+  protected snapshotsService!: SnapshotsService;
 
   /**
    * Handles the vault rename event. Routes to `markMoved` when the directory

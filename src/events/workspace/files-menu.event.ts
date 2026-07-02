@@ -35,14 +35,14 @@ import { Notice } from 'obsidian';
  * @extends {BaseEvent}
  */
 export class WorkspaceFilesMenuEvent extends BaseEvent {
-  @Inject(TOKENS.modals)
-  protected modalService!: ModalsService;
-
   /**
    * The name of the Obsidian event to handle.
    * Set to the workspace.fileMenu event.
    */
   public name: ObsidianEventName = ObsidianEvent.workspace.fileMenu;
+
+  @Inject(TOKENS.modals)
+  protected modalService!: ModalsService;
 
   /**
    * Handles the file-menu event by adding the "Local history" parent and

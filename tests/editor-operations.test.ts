@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { EditorOperations } from '@/snapshots/editor-operations';
-import type { EditorOperationsHost } from '@/snapshots/editor-operations';
+import type { EditorOperationsHost } from '@/snapshots/editor-operations.types';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import type LineChangeTrackerPlugin from '@/main';
 import type { TFile } from 'obsidian';

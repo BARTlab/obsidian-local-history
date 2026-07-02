@@ -1,5 +1,5 @@
 import { NO_NEWLINE_MARKER } from '@/consts';
-import type { EditorBlock } from '@/snapshots/editor-operations';
+import type { EditorBlock } from '@/types';
 import * as Diff from 'diff';
 
 /** Classification of a single structured-patch line by its diff prefix. */

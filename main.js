@@ -1975,6 +1975,15 @@ var ORIGINAL_BASE_ID = "original";
 var DIFF_SCROLL_STEP_PX = 48;
 var NO_NEWLINE_MARKER = "\\ No newline at end of file";
 var REVERT_GLYPH = "\u21A9";
+var LINE_WIDTH_VAR = "--lct-line-width";
+var LINE_BORDER_RADIUS_VAR = "--lct-line-border-radius";
+var CLASS_INDICATOR = "lct-rm-indicator";
+var TYPE_PRIORITY = [
+  "added" /* added */,
+  "changed" /* changed */,
+  "whitespace" /* whitespace */,
+  "restored" /* restored */
+];
 var MS_PER_DAY = 24 * 60 * 60 * 1e3;
 var SAVE_DEBOUNCE_MS = 1500;
 var HISTORY_SHARD_DIR = "history";
@@ -3052,24 +3061,6 @@ var ChangeDetectorExtension = class {
     this.processIncrementalChanges(update2);
   }
   /**
-   * Processes incremental changes in the document.
-   * Checks if the content has changed and computes the changes if needed.
-   *
-   * @param {ViewUpdate} update - The view update event from CodeMirror
-   */
-  processIncrementalChanges(update2) {
-    const currentContent = update2.state.doc.toString();
-    const snapshot = this.snapshotsService.getOne();
-    if (!snapshot || !currentContent) {
-      return;
-    }
-    if (!snapshot.isNeedUpdate(currentContent)) {
-      return;
-    }
-    this.computeIncrementalChanges(update2);
-    this.snapshotsService.forceUpdate();
-  }
-  /**
    * Computes incremental changes in the document based on the ViewUpdate.
    * Tracks line additions, modifications, and removals to maintain change history.
    * Updates the file snapshot with the new state after processing all changes.
@@ -3150,6 +3141,24 @@ var ChangeDetectorExtension = class {
     snapshot.captureVersion(snapshot.content.getLastStateLines(), this.getCaptureOptions());
     snapshot.content.updateState(currentLines);
     snapshot.updateChanges();
+  }
+  /**
+   * Processes incremental changes in the document.
+   * Checks if the content has changed and computes the changes if needed.
+   *
+   * @param {ViewUpdate} update - The view update event from CodeMirror
+   */
+  processIncrementalChanges(update2) {
+    const currentContent = update2.state.doc.toString();
+    const snapshot = this.snapshotsService.getOne();
+    if (!snapshot || !currentContent) {
+      return;
+    }
+    if (!snapshot.isNeedUpdate(currentContent)) {
+      return;
+    }
+    this.computeIncrementalChanges(update2);
+    this.snapshotsService.forceUpdate();
   }
   /**
    * Reads the current intermediate-snapshot cadence settings into a plain
@@ -12535,26 +12544,6 @@ var I18nService = class _I18nService {
     this.warnOnMissing = false;
   }
   /**
-   * Initializes the service by registering the bundled catalogs and detecting the
-   * active language and the dev flag. Registration runs before any `t` call so a
-   * key resolves to its translation rather than falling back to the raw key.
-   */
-  init() {
-    this.register(BUNDLED_CATALOGS);
-    this.language = _I18nService.detectLanguage();
-    this.warnOnMissing = _I18nService.isDevBuild();
-  }
-  /**
-   * Registers the available translation catalogs. Called once during init with the
-   * bundled catalogs; exposed as a method so the loading strategy is separate from
-   * resolution and so tests can seed fixtures directly.
-   *
-   * @param {TranslationCatalogs} catalogs - Map of language code to its catalog
-   */
-  register(catalogs) {
-    this.catalogs = catalogs != null ? catalogs : {};
-  }
-  /**
    * Reports whether a language code is one Obsidian can set, so the plugin
    * recognizes it as a supported UI language. Every supported code resolves to a
    * catalog: its own when bundled, otherwise the English fallback. Codes outside
@@ -12581,22 +12570,6 @@ var I18nService = class _I18nService {
   static resolveCatalogLanguage(catalogs, language) {
     const all = catalogs != null ? catalogs : {};
     return all[language] ? language : FALLBACK_LANGUAGE;
-  }
-  /**
-   * Translates a dotted key to a user-facing string in the active language,
-   * falling back to English when the active language lacks the key, and
-   * interpolating any `{name}` placeholders from the supplied vars.
-   *
-   * @param {string} key - The dotted translation key (e.g. `modal.restore`)
-   * @param {TranslationVars} [vars] - Values for `{name}` placeholders
-   * @return {string} The localized, interpolated string
-   */
-  t(key2, vars) {
-    const resolved = _I18nService.resolve(this.catalogs, this.language, key2);
-    if (resolved === null && this.warnOnMissing) {
-      console.warn(`[i18n] missing translation key: ${key2}`);
-    }
-    return _I18nService.interpolate(resolved != null ? resolved : key2, vars);
   }
   /**
    * Resolves the raw (un-interpolated) string for a key, trying the active
@@ -12683,6 +12656,42 @@ var I18nService = class _I18nService {
     } catch (e) {
       return false;
     }
+  }
+  /**
+   * Initializes the service by registering the bundled catalogs and detecting the
+   * active language and the dev flag. Registration runs before any `t` call so a
+   * key resolves to its translation rather than falling back to the raw key.
+   */
+  init() {
+    this.register(BUNDLED_CATALOGS);
+    this.language = _I18nService.detectLanguage();
+    this.warnOnMissing = _I18nService.isDevBuild();
+  }
+  /**
+   * Registers the available translation catalogs. Called once during init with the
+   * bundled catalogs; exposed as a method so the loading strategy is separate from
+   * resolution and so tests can seed fixtures directly.
+   *
+   * @param {TranslationCatalogs} catalogs - Map of language code to its catalog
+   */
+  register(catalogs) {
+    this.catalogs = catalogs != null ? catalogs : {};
+  }
+  /**
+   * Translates a dotted key to a user-facing string in the active language,
+   * falling back to English when the active language lacks the key, and
+   * interpolating any `{name}` placeholders from the supplied vars.
+   *
+   * @param {string} key - The dotted translation key (e.g. `modal.restore`)
+   * @param {TranslationVars} [vars] - Values for `{name}` placeholders
+   * @return {string} The localized, interpolated string
+   */
+  t(key2, vars) {
+    const resolved = _I18nService.resolve(this.catalogs, this.language, key2);
+    if (resolved === null && this.warnOnMissing) {
+      console.warn(`[i18n] missing translation key: ${key2}`);
+    }
+    return _I18nService.interpolate(resolved != null ? resolved : key2, vars);
   }
 };
 
@@ -14166,56 +14175,6 @@ var FolderTreeModel = class _FolderTreeModel {
     this.rootNode = null;
   }
   /**
-   * Rebuilds the owned tree from a fresh `(entries, rootPath)` pair. The root
-   * path is normalized here so callers can hand over the raw value. Entries
-   * whose status is `'none'` and entries outside the root are dropped; the
-   * result is the synthetic root whose children are the top-level rows.
-   *
-   * @param {FolderTreeEntry[]} entries - The changed-file entries to materialise
-   * @param {string} rootPath - The raw root path (normalized internally)
-   * @return {void}
-   */
-  build(entries, rootPath) {
-    this.rootNode = _FolderTreeModel.buildTree(entries, _FolderTreeModel.normalizeRoot(rootPath));
-  }
-  /**
-   * Returns the current synthetic root node, or null before the first build.
-   * The renderer walks its children to draw the tree.
-   *
-   * @return {FolderTreeNode | null} The synthetic root node or null
-   */
-  getRoot() {
-    return this.rootNode;
-  }
-  /**
-   * Whether the owned tree contains a file node with the given path. Used to
-   * decide whether the previous selection survives a re-render.
-   *
-   * @param {string} path - The file path to look for
-   * @return {boolean} True when a file node with that path exists
-   */
-  containsFile(path) {
-    return _FolderTreeModel.hasFile(this.rootNode, path);
-  }
-  /**
-   * Returns the path of the first file in render order, or null when the tree
-   * has no files. Used to seed the default selection so the diff pane is not
-   * blank when changes exist.
-   *
-   * @return {string | null} The first file path or null
-   */
-  firstFilePath() {
-    return _FolderTreeModel.firstFileUnder(this.rootNode);
-  }
-  /**
-   * Drops the owned tree so a disposed component leaves no stale reference.
-   *
-   * @return {void}
-   */
-  clear() {
-    this.rootNode = null;
-  }
-  /**
    * Whether the node should render under the active name filter. A file matches
    * when its name contains the filter substring; a folder matches when any of
    * its descendant files match (so the ancestors of a hit stay visible). With
@@ -14407,6 +14366,56 @@ var FolderTreeModel = class _FolderTreeModel {
       }
     }
     return null;
+  }
+  /**
+   * Rebuilds the owned tree from a fresh `(entries, rootPath)` pair. The root
+   * path is normalized here so callers can hand over the raw value. Entries
+   * whose status is `'none'` and entries outside the root are dropped; the
+   * result is the synthetic root whose children are the top-level rows.
+   *
+   * @param {FolderTreeEntry[]} entries - The changed-file entries to materialise
+   * @param {string} rootPath - The raw root path (normalized internally)
+   * @return {void}
+   */
+  build(entries, rootPath) {
+    this.rootNode = _FolderTreeModel.buildTree(entries, _FolderTreeModel.normalizeRoot(rootPath));
+  }
+  /**
+   * Returns the current synthetic root node, or null before the first build.
+   * The renderer walks its children to draw the tree.
+   *
+   * @return {FolderTreeNode | null} The synthetic root node or null
+   */
+  getRoot() {
+    return this.rootNode;
+  }
+  /**
+   * Whether the owned tree contains a file node with the given path. Used to
+   * decide whether the previous selection survives a re-render.
+   *
+   * @param {string} path - The file path to look for
+   * @return {boolean} True when a file node with that path exists
+   */
+  containsFile(path) {
+    return _FolderTreeModel.hasFile(this.rootNode, path);
+  }
+  /**
+   * Returns the path of the first file in render order, or null when the tree
+   * has no files. Used to seed the default selection so the diff pane is not
+   * blank when changes exist.
+   *
+   * @return {string | null} The first file path or null
+   */
+  firstFilePath() {
+    return _FolderTreeModel.firstFileUnder(this.rootNode);
+  }
+  /**
+   * Drops the owned tree so a disposed component leaves no stale reference.
+   *
+   * @return {void}
+   */
+  clear() {
+    this.rootNode = null;
   }
 };
 
@@ -15085,37 +15094,6 @@ var FolderActionHandler = class {
     this.host.refreshDiff();
   }
   /**
-   * Promotes a tombstone back to a live snapshot for AC4: writes the resolved
-   * base content to disk at the snapshot's old path through
-   * {@link App.vault.create}, attaches the resulting file to the snapshot, and
-   * clears the tombstone marker so the entry becomes live in the map without
-   * losing its captured versions or history baseline. A best-effort path: on a
-   * vault error a Notice surfaces the failure and the tombstone stays as-is so
-   * the user can retry.
-   *
-   * @param {string} path - The vault-relative old path of the deleted file
-   * @param {FileSnapshot} snapshot - The tombstone snapshot to promote
-   * @param {FolderDeltaResult} result - The compareAt result carrying the base content at T
-   * @return {Promise<void>}
-   */
-  async restoreTombstoneSelection(path, snapshot, result) {
-    const content = result.base.join(snapshot.content.lineBreak);
-    if (this.host.app.vault.getAbstractFileByPath(path) !== null) {
-      new import_obsidian15.Notice(this.host.plugin.t("notice.file-restore-path-occupied"));
-      return;
-    }
-    try {
-      const created = await this.host.app.vault.create(path, content);
-      snapshot.file = created;
-      snapshot.deletedTimestamp = void 0;
-      snapshot.content.updateState(result.base);
-      snapshot.updateChanges();
-      this.host.snapshotsService.forceUpdate();
-    } catch (_error) {
-      new import_obsidian15.Notice(this.host.plugin.t("notice.file-restore-failed"));
-    }
-  }
-  /**
    * Handler for the "Remove selected version" toolbar button. Drops the version
    * closest to T from the tree-selected file's timeline, then
    * re-synthesises the folder timeline and re-renders the tree so the rail and
@@ -15257,6 +15235,37 @@ var FolderActionHandler = class {
     this.host.resyncTimeline();
     this.host.refreshTree();
     this.host.refreshDiff();
+  }
+  /**
+   * Promotes a tombstone back to a live snapshot for AC4: writes the resolved
+   * base content to disk at the snapshot's old path through
+   * {@link App.vault.create}, attaches the resulting file to the snapshot, and
+   * clears the tombstone marker so the entry becomes live in the map without
+   * losing its captured versions or history baseline. A best-effort path: on a
+   * vault error a Notice surfaces the failure and the tombstone stays as-is so
+   * the user can retry.
+   *
+   * @param {string} path - The vault-relative old path of the deleted file
+   * @param {FileSnapshot} snapshot - The tombstone snapshot to promote
+   * @param {FolderDeltaResult} result - The compareAt result carrying the base content at T
+   * @return {Promise<void>}
+   */
+  async restoreTombstoneSelection(path, snapshot, result) {
+    const content = result.base.join(snapshot.content.lineBreak);
+    if (this.host.app.vault.getAbstractFileByPath(path) !== null) {
+      new import_obsidian15.Notice(this.host.plugin.t("notice.file-restore-path-occupied"));
+      return;
+    }
+    try {
+      const created = await this.host.app.vault.create(path, content);
+      snapshot.file = created;
+      snapshot.deletedTimestamp = void 0;
+      snapshot.content.updateState(result.base);
+      snapshot.updateChanges();
+      this.host.snapshotsService.forceUpdate();
+    } catch (_error) {
+      new import_obsidian15.Notice(this.host.plugin.t("notice.file-restore-failed"));
+    }
   }
 };
 
@@ -18250,6 +18259,30 @@ var FolderHistoryModal = class extends import_obsidian19.Modal {
     this.actionHandler = new FolderActionHandler(this.makeActionHost());
   }
   /**
+   * Lifecycle hook called when the modal opens. Builds the three-column shell,
+   * renders the timeline rail, mounts the tree against the current T, and
+   * renders the diff for the default-selected file.
+   *
+   * @override
+   */
+  onOpen() {
+    this.makeUI();
+    update(this.modalEl, { classes: { add: ["lct-diff-modal", "lct-folder-history-modal"] } });
+    this.timelineRenderer.render();
+    this.refreshTree();
+    this.refreshDiff();
+  }
+  /**
+   * Lifecycle hook called when the modal closes. Disposes the tree component
+   * so it releases its DOM and references, then clears the modal content.
+   *
+   * @override
+   */
+  onClose() {
+    this.tree.dispose();
+    this.contentEl.empty();
+  }
+  /**
    * Builds the narrow host port the {@link FolderTimelineRenderer} reads the
    * modal's shared state through. The accessors are lazy so the renderer always
    * sees the live timeline, selected T, rail container, and snapshot map, and
@@ -18333,30 +18366,6 @@ var FolderHistoryModal = class extends import_obsidian19.Modal {
         this.refreshDiff();
       }
     };
-  }
-  /**
-   * Lifecycle hook called when the modal opens. Builds the three-column shell,
-   * renders the timeline rail, mounts the tree against the current T, and
-   * renders the diff for the default-selected file.
-   *
-   * @override
-   */
-  onOpen() {
-    this.makeUI();
-    update(this.modalEl, { classes: { add: ["lct-diff-modal", "lct-folder-history-modal"] } });
-    this.timelineRenderer.render();
-    this.refreshTree();
-    this.refreshDiff();
-  }
-  /**
-   * Lifecycle hook called when the modal closes. Disposes the tree component
-   * so it releases its DOM and references, then clears the modal content.
-   *
-   * @override
-   */
-  onClose() {
-    this.tree.dispose();
-    this.contentEl.empty();
   }
   /**
    * Builds the three-column shell plus the toolbar inside the main column
@@ -20569,30 +20578,6 @@ var ModalsService = class {
     return true;
   }
   /**
-   * Whether a snapshot's path lies under the given folder prefix. Matches the
-   * same prefix rule {@link FolderTimelineHelper} uses (exact equality or a
-   * `${root}/` prefix) so the snapshot lookup in the modal and the timeline
-   * synthesis agree on what "under this folder" means. The vault-root case
-   * (empty `rootPath`) matches every snapshot, which is consistent but only
-   * reachable from a future caller that explicitly asks for whole-vault
-   * history.
-   *
-   * @param {FileSnapshot} snapshot - The snapshot under inspection
-   * @param {string} rootPath - The folder's vault-relative path
-   * @return {boolean} True when the snapshot lives under the folder
-   */
-  isUnderFolder(snapshot, rootPath) {
-    var _a, _b, _c;
-    const path = (_c = (_b = (_a = snapshot == null ? void 0 : snapshot.file) == null ? void 0 : _a.path) != null ? _b : snapshot == null ? void 0 : snapshot.path) != null ? _c : "";
-    if (!path) {
-      return false;
-    }
-    if (!rootPath) {
-      return true;
-    }
-    return path === rootPath || path.startsWith(`${rootPath}/`);
-  }
-  /**
    * Shows a confirmation dialog with the specified configuration.
    * Creates a ConfirmModal instance and returns a promise that resolves with the user's choice.
    *
@@ -20693,6 +20678,30 @@ var ModalsService = class {
       return null;
     }
     return this.versionActionsService.label(target2, versionId, entered);
+  }
+  /**
+   * Whether a snapshot's path lies under the given folder prefix. Matches the
+   * same prefix rule {@link FolderTimelineHelper} uses (exact equality or a
+   * `${root}/` prefix) so the snapshot lookup in the modal and the timeline
+   * synthesis agree on what "under this folder" means. The vault-root case
+   * (empty `rootPath`) matches every snapshot, which is consistent but only
+   * reachable from a future caller that explicitly asks for whole-vault
+   * history.
+   *
+   * @param {FileSnapshot} snapshot - The snapshot under inspection
+   * @param {string} rootPath - The folder's vault-relative path
+   * @return {boolean} True when the snapshot lives under the folder
+   */
+  isUnderFolder(snapshot, rootPath) {
+    var _a, _b, _c;
+    const path = (_c = (_b = (_a = snapshot == null ? void 0 : snapshot.file) == null ? void 0 : _a.path) != null ? _b : snapshot == null ? void 0 : snapshot.path) != null ? _c : "";
+    if (!path) {
+      return false;
+    }
+    if (!rootPath) {
+      return true;
+    }
+    return path === rootPath || path.startsWith(`${rootPath}/`);
   }
 };
 __decorateClass([
@@ -22522,15 +22531,6 @@ var SettingsService = class _SettingsService {
     this.data = merge_default({}, DEFAULT_SETTINGS);
   }
   /**
-   * Initializes the service.
-   * Loads saved settings data and added the settings tab to the plugin.
-   */
-  async init() {
-    const saved = _SettingsService.migrateExcludePaths(await this.plugin.loadData());
-    this.data = merge_default({}, DEFAULT_SETTINGS, saved);
-    this.plugin.addSettingTab(new MainSetting(this.plugin.app, this.plugin));
-  }
-  /**
    * Normalizes a saved `excludePaths` value to the structured `string[]` shape
    * (C3) before the settings merge runs. Historic installs stored it as a single
    * regular-expression string; this shim wraps that legacy string in a one-element
@@ -22558,6 +22558,15 @@ var SettingsService = class _SettingsService {
       delete record.excludePaths;
     }
     return saved;
+  }
+  /**
+   * Initializes the service.
+   * Loads saved settings data and added the settings tab to the plugin.
+   */
+  async init() {
+    const saved = _SettingsService.migrateExcludePaths(await this.plugin.loadData());
+    this.data = merge_default({}, DEFAULT_SETTINGS, saved);
+    this.plugin.addSettingTab(new MainSetting(this.plugin.app, this.plugin));
   }
   /**
    * Gets a copy of all settings values.
@@ -23400,6 +23409,51 @@ var TrackerLine = class _TrackerLine {
     }
   }
   /**
+   * Rebuilds a tracker line from its serialized form.
+   * Creates a new instance (so a fresh, collision-free id is generated) and
+   * restores every persisted state field verbatim.
+   *
+   * @param {SerializedTrackerLine} data - The serialized tracker line
+   * @return {TrackerLine} The reconstructed tracker line
+   */
+  static fromJSON(data) {
+    const tracker = new _TrackerLine();
+    if (typeof (data == null ? void 0 : data.originalPosition) === "number") {
+      tracker.originalPosition = data.originalPosition;
+    }
+    if (typeof (data == null ? void 0 : data.currentPosition) === "number") {
+      tracker.currentPosition = data.currentPosition;
+    }
+    if (typeof (data == null ? void 0 : data.removedAtPosition) === "number") {
+      tracker.removedAtPosition = data.removedAtPosition;
+    }
+    if (typeof (data == null ? void 0 : data.changeAtPosition) === "number") {
+      tracker.changeAtPosition = data.changeAtPosition;
+    }
+    if (data == null ? void 0 : data.contentSameOriginal) {
+      tracker.contentSameOriginal = true;
+    }
+    if (typeof (data == null ? void 0 : data.hash) === "string") {
+      tracker.hash = data.hash;
+    }
+    if (typeof (data == null ? void 0 : data.original) === "string") {
+      tracker.original = data.original;
+    }
+    if (typeof (data == null ? void 0 : data.current) === "string") {
+      tracker.current = data.current;
+    }
+    if (typeof (data == null ? void 0 : data.removedTimeStamp) === "number") {
+      tracker.removedTimeStamp = data.removedTimeStamp;
+    }
+    if (typeof (data == null ? void 0 : data.changedTimeStamp) === "number") {
+      tracker.changedTimeStamp = data.changedTimeStamp;
+    }
+    if (typeof (data == null ? void 0 : data.addedTimeStamp) === "number") {
+      tracker.addedTimeStamp = data.addedTimeStamp;
+    }
+    return tracker;
+  }
+  /**
    * Gets a unique key for this tracker line.
    * Combines position information with a prefix indicating if the line exists in the current document,
    * and the line's unique ID.
@@ -23735,51 +23789,6 @@ var TrackerLine = class _TrackerLine {
       changedTimeStamp: this.changedTimeStamp,
       addedTimeStamp: this.addedTimeStamp
     };
-  }
-  /**
-   * Rebuilds a tracker line from its serialized form.
-   * Creates a new instance (so a fresh, collision-free id is generated) and
-   * restores every persisted state field verbatim.
-   *
-   * @param {SerializedTrackerLine} data - The serialized tracker line
-   * @return {TrackerLine} The reconstructed tracker line
-   */
-  static fromJSON(data) {
-    const tracker = new _TrackerLine();
-    if (typeof (data == null ? void 0 : data.originalPosition) === "number") {
-      tracker.originalPosition = data.originalPosition;
-    }
-    if (typeof (data == null ? void 0 : data.currentPosition) === "number") {
-      tracker.currentPosition = data.currentPosition;
-    }
-    if (typeof (data == null ? void 0 : data.removedAtPosition) === "number") {
-      tracker.removedAtPosition = data.removedAtPosition;
-    }
-    if (typeof (data == null ? void 0 : data.changeAtPosition) === "number") {
-      tracker.changeAtPosition = data.changeAtPosition;
-    }
-    if (data == null ? void 0 : data.contentSameOriginal) {
-      tracker.contentSameOriginal = true;
-    }
-    if (typeof (data == null ? void 0 : data.hash) === "string") {
-      tracker.hash = data.hash;
-    }
-    if (typeof (data == null ? void 0 : data.original) === "string") {
-      tracker.original = data.original;
-    }
-    if (typeof (data == null ? void 0 : data.current) === "string") {
-      tracker.current = data.current;
-    }
-    if (typeof (data == null ? void 0 : data.removedTimeStamp) === "number") {
-      tracker.removedTimeStamp = data.removedTimeStamp;
-    }
-    if (typeof (data == null ? void 0 : data.changedTimeStamp) === "number") {
-      tracker.changedTimeStamp = data.changedTimeStamp;
-    }
-    if (typeof (data == null ? void 0 : data.addedTimeStamp) === "number") {
-      tracker.addedTimeStamp = data.addedTimeStamp;
-    }
-    return tracker;
   }
 };
 
@@ -24320,6 +24329,20 @@ var FileVersion = class _FileVersion {
     }
   }
   /**
+   * Rebuilds a version from its serialized form, assigning a fresh id.
+   *
+   * @param {SerializedFileVersion} data - The serialized version
+   * @return {FileVersion} The reconstructed version
+   */
+  static fromJSON(data) {
+    return new _FileVersion(
+      Array.isArray(data == null ? void 0 : data.lines) ? data.lines : [],
+      data == null ? void 0 : data.timestamp,
+      typeof (data == null ? void 0 : data.label) === "string" ? data.label : void 0,
+      (data == null ? void 0 : data.external) === true
+    );
+  }
+  /**
    * Whether this version carries a user-supplied label and is therefore pinned
    * (exempt from the duplicate-skip and eviction).
    *
@@ -24403,20 +24426,6 @@ var FileVersion = class _FileVersion {
     }
     return data;
   }
-  /**
-   * Rebuilds a version from its serialized form, assigning a fresh id.
-   *
-   * @param {SerializedFileVersion} data - The serialized version
-   * @return {FileVersion} The reconstructed version
-   */
-  static fromJSON(data) {
-    return new _FileVersion(
-      Array.isArray(data == null ? void 0 : data.lines) ? data.lines : [],
-      data == null ? void 0 : data.timestamp,
-      typeof (data == null ? void 0 : data.label) === "string" ? data.label : void 0,
-      (data == null ? void 0 : data.external) === true
-    );
-  }
 };
 
 // src/snapshots/version-timeline.ts
@@ -24479,6 +24488,85 @@ var VersionTimeline = class {
     const version = new FileVersion(previousLines, void 0, label);
     this.pushVersion(version, options);
     return version;
+  }
+  /**
+   * Returns the intermediate versions, newest first, as a copy so callers cannot
+   * mutate the owned timeline.
+   *
+   * @return {FileVersion[]} The timeline versions, newest first
+   */
+  getVersions() {
+    return [...this.versions].reverse();
+  }
+  /**
+   * Returns the owned timeline in stored (oldest-first) order as a readonly live
+   * view. Distinct from getVersions() (a newest-first copy the UI rails consume):
+   * the serializer, the folder timeline, and the folder delta read the versions
+   * in capture order without paying for a reversal, while the readonly type keeps
+   * them from mutating the owner's array.
+   *
+   * @return {readonly FileVersion[]} The stored versions, oldest first
+   */
+  getStoredVersions() {
+    return this.versions;
+  }
+  /**
+   * Finds an intermediate version by its id.
+   *
+   * @param {string} id - The version id to look up
+   * @return {FileVersion | null} The matching version, or null if absent
+   */
+  getVersion(id) {
+    var _a;
+    return (_a = this.versions.find((version) => version.id === id)) != null ? _a : null;
+  }
+  /**
+   * Removes a single intermediate version from the owned timeline by its id in
+   * place, leaving every other version untouched. Used by the history modal to
+   * prune one captured point without wiping the whole timeline.
+   *
+   * @param {string} id - The id of the version to remove
+   * @return {boolean} True if a version was removed, false if no id matched
+   */
+  removeVersion(id) {
+    const index = this.versions.findIndex((version) => version.id === id);
+    if (index === -1) {
+      return false;
+    }
+    this.versions.splice(index, 1);
+    return true;
+  }
+  /**
+   * Whether the owned timeline has any intermediate versions.
+   *
+   * @return {boolean} True when at least one version exists
+   */
+  hasVersions() {
+    return this.versions.length > 0;
+  }
+  /**
+   * Restores a persisted timeline: adopts the decoded versions as the owned array
+   * and seeds both cadence gates from them so the capture cadence is continuous
+   * across a restart (the time gate from the newest version's timestamp, the edit
+   * gate from the current keyframe group). Used by SnapshotCodec.decode.
+   *
+   * @param {FileVersion[]} versions - The decoded timeline, oldest first
+   */
+  restore(versions) {
+    this.versions = versions;
+    this.seedLastVersionAt();
+    this.seedEditsSinceVersion();
+  }
+  /**
+   * Replaces the owned timeline with an externally-provided array without
+   * touching the cadence gates. Used by FileSnapshot.adoptHistory (restore path)
+   * and the tombstone builder, which hand over an already-copied timeline and
+   * must not disturb the capture cadence the way a fresh restore does.
+   *
+   * @param {FileVersion[]} versions - The timeline to adopt, oldest first
+   */
+  adopt(versions) {
+    this.versions = versions;
   }
   /**
    * Whether the given content equals the latest stored version, or the history
@@ -24563,85 +24651,6 @@ var VersionTimeline = class {
         });
       }
     }
-  }
-  /**
-   * Returns the intermediate versions, newest first, as a copy so callers cannot
-   * mutate the owned timeline.
-   *
-   * @return {FileVersion[]} The timeline versions, newest first
-   */
-  getVersions() {
-    return [...this.versions].reverse();
-  }
-  /**
-   * Returns the owned timeline in stored (oldest-first) order as a readonly live
-   * view. Distinct from getVersions() (a newest-first copy the UI rails consume):
-   * the serializer, the folder timeline, and the folder delta read the versions
-   * in capture order without paying for a reversal, while the readonly type keeps
-   * them from mutating the owner's array.
-   *
-   * @return {readonly FileVersion[]} The stored versions, oldest first
-   */
-  getStoredVersions() {
-    return this.versions;
-  }
-  /**
-   * Finds an intermediate version by its id.
-   *
-   * @param {string} id - The version id to look up
-   * @return {FileVersion | null} The matching version, or null if absent
-   */
-  getVersion(id) {
-    var _a;
-    return (_a = this.versions.find((version) => version.id === id)) != null ? _a : null;
-  }
-  /**
-   * Removes a single intermediate version from the owned timeline by its id in
-   * place, leaving every other version untouched. Used by the history modal to
-   * prune one captured point without wiping the whole timeline.
-   *
-   * @param {string} id - The id of the version to remove
-   * @return {boolean} True if a version was removed, false if no id matched
-   */
-  removeVersion(id) {
-    const index = this.versions.findIndex((version) => version.id === id);
-    if (index === -1) {
-      return false;
-    }
-    this.versions.splice(index, 1);
-    return true;
-  }
-  /**
-   * Whether the owned timeline has any intermediate versions.
-   *
-   * @return {boolean} True when at least one version exists
-   */
-  hasVersions() {
-    return this.versions.length > 0;
-  }
-  /**
-   * Restores a persisted timeline: adopts the decoded versions as the owned array
-   * and seeds both cadence gates from them so the capture cadence is continuous
-   * across a restart (the time gate from the newest version's timestamp, the edit
-   * gate from the current keyframe group). Used by SnapshotCodec.decode.
-   *
-   * @param {FileVersion[]} versions - The decoded timeline, oldest first
-   */
-  restore(versions) {
-    this.versions = versions;
-    this.seedLastVersionAt();
-    this.seedEditsSinceVersion();
-  }
-  /**
-   * Replaces the owned timeline with an externally-provided array without
-   * touching the cadence gates. Used by FileSnapshot.adoptHistory (restore path)
-   * and the tombstone builder, which hand over an already-copied timeline and
-   * must not disturb the capture cadence the way a fresh restore does.
-   *
-   * @param {FileVersion[]} versions - The timeline to adopt, oldest first
-   */
-  adopt(versions) {
-    this.versions = versions;
   }
   /**
    * Seeds the time-gate counter from the owned versions on restore so the cadence
@@ -25821,6 +25830,15 @@ var SnapshotRegistry = class {
     this.rekeySessionCreated(oldPath, file.path);
   }
   /**
+   * Clears every snapshot and every session-created mark from the registry.
+   * External-capture state is reset by the owning service, which composes both
+   * collaborators.
+   */
+  clear() {
+    this.snapshots.clear();
+    this.sessionCreatedPaths.clear();
+  }
+  /**
    * Moves a session-created mark from `oldPath` to `newPath` when the file is
    * renamed or moved, so a file created this session keeps reading as "added"
    * at its new path and the stale old path drops out. A no-op when the file was
@@ -25834,15 +25852,6 @@ var SnapshotRegistry = class {
       this.sessionCreatedPaths.add(newPath);
     }
   }
-  /**
-   * Clears every snapshot and every session-created mark from the registry.
-   * External-capture state is reset by the owning service, which composes both
-   * collaborators.
-   */
-  clear() {
-    this.snapshots.clear();
-    this.sessionCreatedPaths.clear();
-  }
 };
 
 // src/services/snapshots.service.ts
@@ -25855,15 +25864,6 @@ var SnapshotsService = class {
    */
   constructor(plugin) {
     this.plugin = plugin;
-    /**
-     * Plain collaborator that owns the path-keyed registry concern: the observable
-     * map of paths to snapshots, the transient session-created path set, and the
-     * add/remove/rename/move/tombstone/rekey rules that keep those two in step.
-     * Owned by the service (not a DI service); reads the active editor line break
-     * and routes the external-capture forget back through a
-     * {@link SnapshotRegistryHost} port the service builds.
-     */
-    this.registry = new SnapshotRegistry(this.makeSnapshotRegistryHost());
     /**
      * Plain collaborator that owns the ignore-list and exclude-pattern concern:
      * the per-file ignore set (files the user opted out of tracking) and the
@@ -25880,6 +25880,15 @@ var SnapshotsService = class {
      * not have to know exclusion is co-located on this collaborator.
      */
     this.ignoreList = new IgnoreListManager(this.makeIgnoreListHost());
+    /**
+     * Plain collaborator that owns the path-keyed registry concern: the observable
+     * map of paths to snapshots, the transient session-created path set, and the
+     * add/remove/rename/move/tombstone/rekey rules that keep those two in step.
+     * Owned by the service (not a DI service); reads the active editor line break
+     * and routes the external-capture forget back through a
+     * {@link SnapshotRegistryHost} port the service builds.
+     */
+    this.registry = new SnapshotRegistry(this.makeSnapshotRegistryHost());
     /**
      * Plain collaborator that owns the external (off-editor) change detection
      * concern: the per-path debounce, the in-flight guard, the stat-based
@@ -26056,23 +26065,6 @@ var SnapshotsService = class {
     this.historySerializer.restore(snapshots);
   }
   /**
-   * Builds the narrow {@link HistorySerializerHost} port the
-   * {@link HistorySerializer} reads its plugin-facing dependencies through: the
-   * vault file lookup (to resolve a persisted path to a live file), the open
-   * files (for the post-restore reconcile pass, empty when the plugin does not
-   * expose them), and the external-capture scheduling, keeping the plugin handle
-   * and the sibling collaborators owned by this service.
-   *
-   * @return {HistorySerializerHost} The host port onto the serializer's deps
-   */
-  makeHistorySerializerHost() {
-    return {
-      getFileByPath: (path) => this.plugin.getFileByPath(path),
-      getOpenFiles: () => typeof this.plugin.getWorkspaceFiles === "function" ? this.plugin.getWorkspaceFiles() : /* @__PURE__ */ new Set(),
-      scheduleExternalCapture: (file) => this.scheduleExternalCapture(file)
-    };
-  }
-  /**
    * Forces an update of the snapshots. Delegates to the {@link SnapshotRegistry},
    * which triggers the observable map to notify subscribers.
    */
@@ -26102,43 +26094,6 @@ var SnapshotsService = class {
    */
   isExcludedPath(file) {
     return this.ignoreList.isExcluded(file);
-  }
-  /**
-   * Builds the narrow {@link SnapshotRegistryHost} port the
-   * {@link SnapshotRegistry} reads its two outside dependencies through: the
-   * active editor's line break (so a captured snapshot matches the editor) and
-   * the external-capture forget (so a removed or relocated path leaves no stale
-   * capture state), keeping the plugin handle and the sibling collaborators
-   * owned by this service.
-   *
-   * @return {SnapshotRegistryHost} The host port onto the registry's outside deps
-   */
-  makeSnapshotRegistryHost() {
-    return {
-      getActiveEditorLineBreak: () => {
-        var _a;
-        return (_a = this.plugin.getActiveEditorView()) == null ? void 0 : _a.state.lineBreak;
-      },
-      forgetExternalCapture: (path) => this.externalCapture.forget(path)
-    };
-  }
-  /**
-   * Builds the narrow {@link IgnoreListHost} port the {@link IgnoreListManager}
-   * reads its exclude-pattern dependency through. Exposes the raw exclude
-   * pattern from settings and the one-time invalid-pattern warning, keeping
-   * settings access and Notice construction owned by this service while the
-   * manager owns the ignore set and the warn-once guard.
-   *
-   * @return {IgnoreListHost} The host port onto the exclude-pattern dependency
-   */
-  makeIgnoreListHost() {
-    return {
-      getExcludePatterns: () => this.settingsService.value("excludePaths"),
-      getExcludePathsCaseSensitive: () => this.settingsService.value("excludePathsCaseSensitive"),
-      notifyInvalidPattern: () => {
-        new import_obsidian25.Notice(this.plugin.t("notice.invalid-exclude-pattern"));
-      }
-    };
   }
   /**
    * Checks if a file has already been captured (has a snapshot).
@@ -26218,42 +26173,6 @@ var SnapshotsService = class {
     this.externalCapture.schedule(file);
   }
   /**
-   * Builds the narrow {@link ExternalChangeHost} port the
-   * {@link ExternalChangeCapture} collaborator reads its shared state through.
-   * Exposes the plugin, the snapshot lookup, the external-capture gating, the
-   * first-sight capture, the capture cadence options, and the forced update,
-   * keeping the snapshot map and CRUD owned by this service while the
-   * collaborator owns the debounce/in-flight/last-seen machinery.
-   *
-   * @return {ExternalChangeHost} The host port onto the snapshot state
-   */
-  makeExternalChangeHost() {
-    return {
-      plugin: this.plugin,
-      getSnapshot: (path) => this.registry.get(path),
-      isExternallyCapturable: (file) => this.isInAllowedExtensions(file) && !this.isExcludedPath(file) && !this.ignoreList.isIgnored(file),
-      captureFirstSight: (file) => this.capture(file),
-      getCaptureOptions: () => this.getCaptureOptions(),
-      forceUpdate: () => this.forceUpdate()
-    };
-  }
-  /**
-   * Reads the current capture cadence and retention caps into a plain options
-   * object for the snapshot model. Mirrors the helper in change-detector and
-   * version-actions so eviction stays aligned across every capture source.
-   *
-   * @return {SnapshotCaptureOptions} The capture cadence configuration
-   */
-  getCaptureOptions() {
-    return {
-      enabled: this.settingsService.value("snapshots.enabled"),
-      intervalMs: this.settingsService.value("snapshots.intervalMs"),
-      editThreshold: this.settingsService.value("snapshots.editThreshold"),
-      maxVersions: this.settingsService.value("snapshots.maxVersions"),
-      maxVersionAgeDays: this.settingsService.value("snapshots.maxVersionAgeDays")
-    };
-  }
-  /**
    * Removes a snapshot for a specific file.
    * If no file is provided, use the active file.
    * Forces an editor update and recaptures the file if it's the active file.
@@ -26291,22 +26210,6 @@ var SnapshotsService = class {
    */
   applyContent(file, lines2, block) {
     return this.editorOperations.applyContent(file, lines2, block);
-  }
-  /**
-   * Builds the narrow {@link EditorOperationsHost} port the
-   * {@link EditorOperations} collaborator reads its shared state through.
-   * Exposes the plugin (for the disk write and the active-view check), the
-   * snapshot lookup, and the forced update, keeping the snapshot map and CRUD
-   * owned by this service while the collaborator owns the file-write flow.
-   *
-   * @return {EditorOperationsHost} The host port onto the snapshot state
-   */
-  makeEditorOperationsHost() {
-    return {
-      plugin: this.plugin,
-      getSnapshot: (file) => this.getOne(file),
-      forceUpdate: () => this.forceUpdate()
-    };
   }
   /**
    * Deletes every snapshot whose path currently matches the configured exclude
@@ -26352,6 +26255,112 @@ var SnapshotsService = class {
       this.plugin.forceUpdateEditor();
     }
     void this.capture();
+  }
+  /**
+   * Builds the narrow {@link HistorySerializerHost} port the
+   * {@link HistorySerializer} reads its plugin-facing dependencies through: the
+   * vault file lookup (to resolve a persisted path to a live file), the open
+   * files (for the post-restore reconcile pass, empty when the plugin does not
+   * expose them), and the external-capture scheduling, keeping the plugin handle
+   * and the sibling collaborators owned by this service.
+   *
+   * @return {HistorySerializerHost} The host port onto the serializer's deps
+   */
+  makeHistorySerializerHost() {
+    return {
+      getFileByPath: (path) => this.plugin.getFileByPath(path),
+      getOpenFiles: () => typeof this.plugin.getWorkspaceFiles === "function" ? this.plugin.getWorkspaceFiles() : /* @__PURE__ */ new Set(),
+      scheduleExternalCapture: (file) => this.scheduleExternalCapture(file)
+    };
+  }
+  /**
+   * Builds the narrow {@link SnapshotRegistryHost} port the
+   * {@link SnapshotRegistry} reads its two outside dependencies through: the
+   * active editor's line break (so a captured snapshot matches the editor) and
+   * the external-capture forget (so a removed or relocated path leaves no stale
+   * capture state), keeping the plugin handle and the sibling collaborators
+   * owned by this service.
+   *
+   * @return {SnapshotRegistryHost} The host port onto the registry's outside deps
+   */
+  makeSnapshotRegistryHost() {
+    return {
+      getActiveEditorLineBreak: () => {
+        var _a;
+        return (_a = this.plugin.getActiveEditorView()) == null ? void 0 : _a.state.lineBreak;
+      },
+      forgetExternalCapture: (path) => this.externalCapture.forget(path)
+    };
+  }
+  /**
+   * Builds the narrow {@link IgnoreListHost} port the {@link IgnoreListManager}
+   * reads its exclude-pattern dependency through. Exposes the raw exclude
+   * pattern from settings and the one-time invalid-pattern warning, keeping
+   * settings access and Notice construction owned by this service while the
+   * manager owns the ignore set and the warn-once guard.
+   *
+   * @return {IgnoreListHost} The host port onto the exclude-pattern dependency
+   */
+  makeIgnoreListHost() {
+    return {
+      getExcludePatterns: () => this.settingsService.value("excludePaths"),
+      getExcludePathsCaseSensitive: () => this.settingsService.value("excludePathsCaseSensitive"),
+      notifyInvalidPattern: () => {
+        new import_obsidian25.Notice(this.plugin.t("notice.invalid-exclude-pattern"));
+      }
+    };
+  }
+  /**
+   * Builds the narrow {@link ExternalChangeHost} port the
+   * {@link ExternalChangeCapture} collaborator reads its shared state through.
+   * Exposes the plugin, the snapshot lookup, the external-capture gating, the
+   * first-sight capture, the capture cadence options, and the forced update,
+   * keeping the snapshot map and CRUD owned by this service while the
+   * collaborator owns the debounce/in-flight/last-seen machinery.
+   *
+   * @return {ExternalChangeHost} The host port onto the snapshot state
+   */
+  makeExternalChangeHost() {
+    return {
+      plugin: this.plugin,
+      getSnapshot: (path) => this.registry.get(path),
+      isExternallyCapturable: (file) => this.isInAllowedExtensions(file) && !this.isExcludedPath(file) && !this.ignoreList.isIgnored(file),
+      captureFirstSight: (file) => this.capture(file),
+      getCaptureOptions: () => this.getCaptureOptions(),
+      forceUpdate: () => this.forceUpdate()
+    };
+  }
+  /**
+   * Reads the current capture cadence and retention caps into a plain options
+   * object for the snapshot model. Mirrors the helper in change-detector and
+   * version-actions so eviction stays aligned across every capture source.
+   *
+   * @return {SnapshotCaptureOptions} The capture cadence configuration
+   */
+  getCaptureOptions() {
+    return {
+      enabled: this.settingsService.value("snapshots.enabled"),
+      intervalMs: this.settingsService.value("snapshots.intervalMs"),
+      editThreshold: this.settingsService.value("snapshots.editThreshold"),
+      maxVersions: this.settingsService.value("snapshots.maxVersions"),
+      maxVersionAgeDays: this.settingsService.value("snapshots.maxVersionAgeDays")
+    };
+  }
+  /**
+   * Builds the narrow {@link EditorOperationsHost} port the
+   * {@link EditorOperations} collaborator reads its shared state through.
+   * Exposes the plugin (for the disk write and the active-view check), the
+   * snapshot lookup, and the forced update, keeping the snapshot map and CRUD
+   * owned by this service while the collaborator owns the file-write flow.
+   *
+   * @return {EditorOperationsHost} The host port onto the snapshot state
+   */
+  makeEditorOperationsHost() {
+    return {
+      plugin: this.plugin,
+      getSnapshot: (file) => this.getOne(file),
+      forceUpdate: () => this.forceUpdate()
+    };
   }
 };
 __decorateClass([
@@ -26479,8 +26488,6 @@ __decorateClass([
 ], StatusbarService.prototype, "updateFileStatus", 1);
 
 // src/services/styles.service.ts
-var LINE_WIDTH_VAR = "--lct-line-width";
-var LINE_BORDER_RADIUS_VAR = "--lct-line-border-radius";
 var StylesService = class {
   constructor(plugin) {
     this.plugin = plugin;
@@ -26620,13 +26627,6 @@ var ServiceContainer = class {
 
 // src/services/reading-mode-indicator.service.ts
 var import_obsidian27 = require("obsidian");
-var CLASS_INDICATOR = "lct-rm-indicator";
-var TYPE_PRIORITY = [
-  "added" /* added */,
-  "changed" /* changed */,
-  "whitespace" /* whitespace */,
-  "restored" /* restored */
-];
 var ReadingModeIndicatorService = class {
   /**
    * Creates a new instance of ReadingModeIndicatorService.
@@ -26918,6 +26918,90 @@ var _PropertyDecoratorService = class _PropertyDecoratorService {
     this.ghostMap = /* @__PURE__ */ new Map();
   }
   /**
+   * Returns the first live row element whose property key comes after
+   * `removedKey` in `snapshotKeyOrder`.
+   *
+   * This is the surviving-neighbor strategy from PLAN.md risk #4: scan forward
+   * through the baseline key order starting from the position after `removedKey`
+   * and return the first entry that has a live row in `liveRowByKey`.
+   *
+   * When all keys after `removedKey` are also removed, returns null so the
+   * ghost is appended at the end.
+   *
+   * @param {string} removedKey - The key whose position to anchor
+   * @param {string[]} snapshotKeyOrder - All keys in the baseline snapshot, in order
+   * @param {Map<string, HTMLElement>} liveRowByKey - Live rows indexed by key
+   * @returns {HTMLElement | null} The neighbor row to insert before, or null
+   */
+  static findNeighborRow(removedKey, snapshotKeyOrder, liveRowByKey) {
+    const idx = snapshotKeyOrder.indexOf(removedKey);
+    if (idx === -1) {
+      return null;
+    }
+    for (let i = idx + 1; i < snapshotKeyOrder.length; i++) {
+      const candidateKey = snapshotKeyOrder[i];
+      const liveRow = liveRowByKey.get(candidateKey);
+      if (liveRow) {
+        return liveRow;
+      }
+    }
+    return null;
+  }
+  /**
+   * Builds a synthetic ghost row element representing a deleted property key.
+   *
+   * The element mimics the structure of a real `.metadata-property` row
+   * (same class, same `data-property-key` attribute) so the CSS rules in
+   * `.lct-prop-ghost` and `.lct-prop-removed` apply automatically.
+   *
+   * @param {string} key - The property key name to display
+   * @returns {HTMLElement} The ghost row element (not yet inserted into DOM)
+   */
+  static buildGhostRow(key2) {
+    const ghost = document.createElement("div");
+    ghost.classList.add(
+      "metadata-property",
+      _PropertyDecoratorService.CLASS_GHOST,
+      _PropertyDecoratorService.CLASS_REMOVED
+    );
+    ghost.setAttribute("data-property-key", key2);
+    ghost.setAttribute("title", `property "${key2}" removed`);
+    const keyCell = document.createElement("div");
+    keyCell.classList.add("metadata-property-key");
+    keyCell.textContent = key2;
+    ghost.appendChild(keyCell);
+    return ghost;
+  }
+  /**
+   * Extracts the top-level key names from the frontmatter block of `lines` in
+   * their declaration order.  Returns an empty array when no frontmatter block
+   * is present or the block cannot be parsed.
+   *
+   * This is used by {@link apply} to obtain the baseline key order that
+   * {@link injectGhosts} needs for the surviving-neighbor insertion strategy.
+   *
+   * @param {string[]} lines - File content split into lines (baseline snapshot)
+   * @returns {string[]} Top-level YAML key names in declaration order
+   */
+  static extractKeyOrder(lines2) {
+    if (!lines2.length || lines2[0].trim() !== "---") {
+      return [];
+    }
+    const closeIdx = lines2.indexOf("---", 1);
+    if (closeIdx === -1) {
+      return [];
+    }
+    const yaml = lines2.slice(1, closeIdx).join("\n");
+    try {
+      const parsed = (0, import_obsidian29.parseYaml)(yaml);
+      if (parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)) {
+        return Object.keys(parsed);
+      }
+    } catch (e) {
+    }
+    return [];
+  }
+  /**
    * Wires the refresh triggers and schedules the initial decoration.
    *
    * The three workspace events that carry no plugin event (layout-change,
@@ -27153,61 +27237,6 @@ var _PropertyDecoratorService = class _PropertyDecoratorService {
     }
   }
   /**
-   * Returns the first live row element whose property key comes after
-   * `removedKey` in `snapshotKeyOrder`.
-   *
-   * This is the surviving-neighbor strategy from PLAN.md risk #4: scan forward
-   * through the baseline key order starting from the position after `removedKey`
-   * and return the first entry that has a live row in `liveRowByKey`.
-   *
-   * When all keys after `removedKey` are also removed, returns null so the
-   * ghost is appended at the end.
-   *
-   * @param {string} removedKey - The key whose position to anchor
-   * @param {string[]} snapshotKeyOrder - All keys in the baseline snapshot, in order
-   * @param {Map<string, HTMLElement>} liveRowByKey - Live rows indexed by key
-   * @returns {HTMLElement | null} The neighbor row to insert before, or null
-   */
-  static findNeighborRow(removedKey, snapshotKeyOrder, liveRowByKey) {
-    const idx = snapshotKeyOrder.indexOf(removedKey);
-    if (idx === -1) {
-      return null;
-    }
-    for (let i = idx + 1; i < snapshotKeyOrder.length; i++) {
-      const candidateKey = snapshotKeyOrder[i];
-      const liveRow = liveRowByKey.get(candidateKey);
-      if (liveRow) {
-        return liveRow;
-      }
-    }
-    return null;
-  }
-  /**
-   * Builds a synthetic ghost row element representing a deleted property key.
-   *
-   * The element mimics the structure of a real `.metadata-property` row
-   * (same class, same `data-property-key` attribute) so the CSS rules in
-   * `.lct-prop-ghost` and `.lct-prop-removed` apply automatically.
-   *
-   * @param {string} key - The property key name to display
-   * @returns {HTMLElement} The ghost row element (not yet inserted into DOM)
-   */
-  static buildGhostRow(key2) {
-    const ghost = document.createElement("div");
-    ghost.classList.add(
-      "metadata-property",
-      _PropertyDecoratorService.CLASS_GHOST,
-      _PropertyDecoratorService.CLASS_REMOVED
-    );
-    ghost.setAttribute("data-property-key", key2);
-    ghost.setAttribute("title", `property "${key2}" removed`);
-    const keyCell = document.createElement("div");
-    keyCell.classList.add("metadata-property-key");
-    keyCell.textContent = key2;
-    ghost.appendChild(keyCell);
-    return ghost;
-  }
-  /**
    * (Re)attaches the MutationObserver to `contentEl` when the element changes.
    *
    * Observes `{ childList: true, subtree: true }` (never `attributes`) so the
@@ -27235,35 +27264,6 @@ var _PropertyDecoratorService = class _PropertyDecoratorService {
     });
     this.observer.observe(contentEl, { childList: true, subtree: true });
     this.observed = contentEl;
-  }
-  /**
-   * Extracts the top-level key names from the frontmatter block of `lines` in
-   * their declaration order.  Returns an empty array when no frontmatter block
-   * is present or the block cannot be parsed.
-   *
-   * This is used by {@link apply} to obtain the baseline key order that
-   * {@link injectGhosts} needs for the surviving-neighbor insertion strategy.
-   *
-   * @param {string[]} lines - File content split into lines (baseline snapshot)
-   * @returns {string[]} Top-level YAML key names in declaration order
-   */
-  static extractKeyOrder(lines2) {
-    if (!lines2.length || lines2[0].trim() !== "---") {
-      return [];
-    }
-    const closeIdx = lines2.indexOf("---", 1);
-    if (closeIdx === -1) {
-      return [];
-    }
-    const yaml = lines2.slice(1, closeIdx).join("\n");
-    try {
-      const parsed = (0, import_obsidian29.parseYaml)(yaml);
-      if (parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)) {
-        return Object.keys(parsed);
-      }
-    } catch (e) {
-    }
-    return [];
   }
 };
 /**
@@ -27940,6 +27940,15 @@ var RecentChangesView = class extends import_obsidian30.ItemView {
     this.searchQuery = "";
   }
   /**
+   * Resolves the view type id this view exposes. Convenience for the reveal
+   * entry point (and tests) so callers do not have to import the constant.
+   *
+   * @return {string} The view type id
+   */
+  static get viewType() {
+    return RECENT_CHANGES_VIEW_TYPE;
+  }
+  /**
    * Returns the stable view type id used to register and look up the view.
    *
    * @return {string} The view type id
@@ -27966,15 +27975,6 @@ var RecentChangesView = class extends import_obsidian30.ItemView {
    */
   getIcon() {
     return "history";
-  }
-  /**
-   * Resolves the view type id this view exposes. Convenience for the reveal
-   * entry point (and tests) so callers do not have to import the constant.
-   *
-   * @return {string} The view type id
-   */
-  static get viewType() {
-    return RECENT_CHANGES_VIEW_TYPE;
   }
   /**
    * Lifecycle hook called when Obsidian opens the view.
@@ -28312,13 +28312,6 @@ var LineChangeTrackerPlugin = class extends import_obsidian31.Plugin {
      */
     this.emitter = new eventemitter3_default();
     /**
-     * Owns every registered service under one token-keyed map and runs their
-     * lifecycle. The plugin composes it (passing the emitter for @On wiring and
-     * itself as the service-constructor host) and delegates resolution and
-     * lifecycle to it, holding no DI map of its own.
-     */
-    this.serviceContainer = new ServiceContainer(this.emitter, this);
-    /**
      * True only between a successful `onload` and the next `onunload`/teardown.
      * Editor extensions and workspace event handlers live in Obsidian's lifecycle,
      * not the container's, so they can fire before services are up or after the
@@ -28327,6 +28320,13 @@ var LineChangeTrackerPlugin = class extends import_obsidian31.Plugin {
      * instead of resolving an injected service against a half-built container.
      */
     this.ready = false;
+    /**
+     * Owns every registered service under one token-keyed map and runs their
+     * lifecycle. The plugin composes it (passing the emitter for @On wiring and
+     * itself as the service-constructor host) and delegates resolution and
+     * lifecycle to it, holding no DI map of its own.
+     */
+    this.serviceContainer = new ServiceContainer(this.emitter, this);
     this.serviceContainer.register(SettingsService, TOKENS.settings);
     this.serviceContainer.register(I18nService, TOKENS.i18n);
     this.serviceContainer.register(StylesService, TOKENS.styles);

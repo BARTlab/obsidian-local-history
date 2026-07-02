@@ -19,61 +19,6 @@ export class FolderTreeModel {
   protected rootNode: FolderTreeNode | null = null;
 
   /**
-   * Rebuilds the owned tree from a fresh `(entries, rootPath)` pair. The root
-   * path is normalized here so callers can hand over the raw value. Entries
-   * whose status is `'none'` and entries outside the root are dropped; the
-   * result is the synthetic root whose children are the top-level rows.
-   *
-   * @param {FolderTreeEntry[]} entries - The changed-file entries to materialise
-   * @param {string} rootPath - The raw root path (normalized internally)
-   * @return {void}
-   */
-  public build(entries: FolderTreeEntry[], rootPath: string): void {
-    this.rootNode = FolderTreeModel.buildTree(entries, FolderTreeModel.normalizeRoot(rootPath));
-  }
-
-  /**
-   * Returns the current synthetic root node, or null before the first build.
-   * The renderer walks its children to draw the tree.
-   *
-   * @return {FolderTreeNode | null} The synthetic root node or null
-   */
-  public getRoot(): FolderTreeNode | null {
-    return this.rootNode;
-  }
-
-  /**
-   * Whether the owned tree contains a file node with the given path. Used to
-   * decide whether the previous selection survives a re-render.
-   *
-   * @param {string} path - The file path to look for
-   * @return {boolean} True when a file node with that path exists
-   */
-  public containsFile(path: string): boolean {
-    return FolderTreeModel.hasFile(this.rootNode, path);
-  }
-
-  /**
-   * Returns the path of the first file in render order, or null when the tree
-   * has no files. Used to seed the default selection so the diff pane is not
-   * blank when changes exist.
-   *
-   * @return {string | null} The first file path or null
-   */
-  public firstFilePath(): string | null {
-    return FolderTreeModel.firstFileUnder(this.rootNode);
-  }
-
-  /**
-   * Drops the owned tree so a disposed component leaves no stale reference.
-   *
-   * @return {void}
-   */
-  public clear(): void {
-    this.rootNode = null;
-  }
-
-  /**
    * Whether the node should render under the active name filter. A file matches
    * when its name contains the filter substring; a folder matches when any of
    * its descendant files match (so the ancestors of a hit stay visible). With
@@ -309,5 +254,60 @@ export class FolderTreeModel {
     }
 
     return null;
+  }
+
+  /**
+   * Rebuilds the owned tree from a fresh `(entries, rootPath)` pair. The root
+   * path is normalized here so callers can hand over the raw value. Entries
+   * whose status is `'none'` and entries outside the root are dropped; the
+   * result is the synthetic root whose children are the top-level rows.
+   *
+   * @param {FolderTreeEntry[]} entries - The changed-file entries to materialise
+   * @param {string} rootPath - The raw root path (normalized internally)
+   * @return {void}
+   */
+  public build(entries: FolderTreeEntry[], rootPath: string): void {
+    this.rootNode = FolderTreeModel.buildTree(entries, FolderTreeModel.normalizeRoot(rootPath));
+  }
+
+  /**
+   * Returns the current synthetic root node, or null before the first build.
+   * The renderer walks its children to draw the tree.
+   *
+   * @return {FolderTreeNode | null} The synthetic root node or null
+   */
+  public getRoot(): FolderTreeNode | null {
+    return this.rootNode;
+  }
+
+  /**
+   * Whether the owned tree contains a file node with the given path. Used to
+   * decide whether the previous selection survives a re-render.
+   *
+   * @param {string} path - The file path to look for
+   * @return {boolean} True when a file node with that path exists
+   */
+  public containsFile(path: string): boolean {
+    return FolderTreeModel.hasFile(this.rootNode, path);
+  }
+
+  /**
+   * Returns the path of the first file in render order, or null when the tree
+   * has no files. Used to seed the default selection so the diff pane is not
+   * blank when changes exist.
+   *
+   * @return {string | null} The first file path or null
+   */
+  public firstFilePath(): string | null {
+    return FolderTreeModel.firstFileUnder(this.rootNode);
+  }
+
+  /**
+   * Drops the owned tree so a disposed component leaves no stale reference.
+   *
+   * @return {void}
+   */
+  public clear(): void {
+    this.rootNode = null;
   }
 }

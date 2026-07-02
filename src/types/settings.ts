@@ -1,4 +1,4 @@
-import type { IndicatorType, KeepHistory } from '@/consts';
+import type { IndicatorType, KeepHistory } from '@/types/settings-enums';
 
 /**
  * Configuration interface for the Line Change Tracker plugin settings.

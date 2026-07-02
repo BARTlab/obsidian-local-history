@@ -23,17 +23,17 @@ import { type TAbstractFile, TFile } from 'obsidian';
  * @extends {BaseEvent}
  */
 export class VaultCreateEvent extends BaseEvent {
-  @Inject(TOKENS.settings)
-  protected settingsService!: SettingsService;
-
-  @Inject(TOKENS.snapshots)
-  protected snapshotsService!: SnapshotsService;
-
   /**
    * The name of the Obsidian event to handle.
    * Set to the vault.create event.
    */
   public name: ObsidianEventName = ObsidianEvent.vault.create;
+
+  @Inject(TOKENS.settings)
+  protected settingsService!: SettingsService;
+
+  @Inject(TOKENS.snapshots)
+  protected snapshotsService!: SnapshotsService;
 
   /**
    * Handles the vault create event. When the "ignore new files" setting is on,

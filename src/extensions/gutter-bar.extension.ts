@@ -28,20 +28,6 @@ import type { EditorView } from '@codemirror/view';
  * @implements {GutterConfig}
  */
 export class GutterBarExtension implements GutterConfig {
-  public constructor(
-    protected view: EditorView | null,
-    public plugin: LineChangeTrackerPlugin,
-  ) {
-  }
-
-  /** Service for accessing plugin settings. */
-  @Inject(TOKENS.settings)
-  protected settingsService!: SettingsService;
-
-  /** Service for managing file snapshots. */
-  @Inject(TOKENS.snapshots)
-  protected snapshotsService!: SnapshotsService;
-
   /** CSS class for the gutter wrapper element. */
   public class: string = `lct lct-gutter-bar-col lct-${IndicatorType.line}`;
 
@@ -99,6 +85,20 @@ export class GutterBarExtension implements GutterConfig {
 
     return builder.finish();
   };
+
+  /** Service for accessing plugin settings. */
+  @Inject(TOKENS.settings)
+  protected settingsService!: SettingsService;
+
+  /** Service for managing file snapshots. */
+  @Inject(TOKENS.snapshots)
+  protected snapshotsService!: SnapshotsService;
+
+  public constructor(
+    protected view: EditorView | null,
+    public plugin: LineChangeTrackerPlugin,
+  ) {
+  }
 
   /**
    * Whether the indicator type is `line`.

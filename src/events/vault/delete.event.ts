@@ -15,14 +15,14 @@ import { type TAbstractFile, TFile } from 'obsidian';
  * @extends {BaseEvent}
  */
 export class VaultDeleteEvent extends BaseEvent {
-  @Inject(TOKENS.snapshots)
-  protected snapshotsService!: SnapshotsService;
-
   /**
    * The name of the Obsidian event to handle.
    * Set to the vault.delete event.
    */
   public readonly name: ObsidianEventName = ObsidianEvent.vault.delete;
+
+  @Inject(TOKENS.snapshots)
+  protected snapshotsService!: SnapshotsService;
 
   /**
    * Handles the vault delete event by tombstoning the snapshot and dropping

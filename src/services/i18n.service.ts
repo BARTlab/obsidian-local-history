@@ -51,28 +51,6 @@ export class I18nService implements Service {
   }
 
   /**
-   * Initializes the service by registering the bundled catalogs and detecting the
-   * active language and the dev flag. Registration runs before any `t` call so a
-   * key resolves to its translation rather than falling back to the raw key.
-   */
-  public init(): void {
-    this.register(BUNDLED_CATALOGS);
-    this.language = I18nService.detectLanguage();
-    this.warnOnMissing = I18nService.isDevBuild();
-  }
-
-  /**
-   * Registers the available translation catalogs. Called once during init with the
-   * bundled catalogs; exposed as a method so the loading strategy is separate from
-   * resolution and so tests can seed fixtures directly.
-   *
-   * @param {TranslationCatalogs} catalogs - Map of language code to its catalog
-   */
-  public register(catalogs: TranslationCatalogs): void {
-    this.catalogs = catalogs ?? {};
-  }
-
-  /**
    * Reports whether a language code is one Obsidian can set, so the plugin
    * recognizes it as a supported UI language. Every supported code resolves to a
    * catalog: its own when bundled, otherwise the English fallback. Codes outside
@@ -101,25 +79,6 @@ export class I18nService implements Service {
     const all: TranslationCatalogs = catalogs ?? {};
 
     return all[language] ? language : FALLBACK_LANGUAGE;
-  }
-
-  /**
-   * Translates a dotted key to a user-facing string in the active language,
-   * falling back to English when the active language lacks the key, and
-   * interpolating any `{name}` placeholders from the supplied vars.
-   *
-   * @param {string} key - The dotted translation key (e.g. `modal.restore`)
-   * @param {TranslationVars} [vars] - Values for `{name}` placeholders
-   * @return {string} The localized, interpolated string
-   */
-  public t(key: string, vars?: TranslationVars): string {
-    const resolved: string | null = I18nService.resolve(this.catalogs, this.language, key);
-
-    if (resolved === null && this.warnOnMissing) {
-      console.warn(`[i18n] missing translation key: ${key}`);
-    }
-
-    return I18nService.interpolate(resolved ?? key, vars);
   }
 
   /**
@@ -227,5 +186,46 @@ export class I18nService implements Service {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * Initializes the service by registering the bundled catalogs and detecting the
+   * active language and the dev flag. Registration runs before any `t` call so a
+   * key resolves to its translation rather than falling back to the raw key.
+   */
+  public init(): void {
+    this.register(BUNDLED_CATALOGS);
+    this.language = I18nService.detectLanguage();
+    this.warnOnMissing = I18nService.isDevBuild();
+  }
+
+  /**
+   * Registers the available translation catalogs. Called once during init with the
+   * bundled catalogs; exposed as a method so the loading strategy is separate from
+   * resolution and so tests can seed fixtures directly.
+   *
+   * @param {TranslationCatalogs} catalogs - Map of language code to its catalog
+   */
+  public register(catalogs: TranslationCatalogs): void {
+    this.catalogs = catalogs ?? {};
+  }
+
+  /**
+   * Translates a dotted key to a user-facing string in the active language,
+   * falling back to English when the active language lacks the key, and
+   * interpolating any `{name}` placeholders from the supplied vars.
+   *
+   * @param {string} key - The dotted translation key (e.g. `modal.restore`)
+   * @param {TranslationVars} [vars] - Values for `{name}` placeholders
+   * @return {string} The localized, interpolated string
+   */
+  public t(key: string, vars?: TranslationVars): string {
+    const resolved: string | null = I18nService.resolve(this.catalogs, this.language, key);
+
+    if (resolved === null && this.warnOnMissing) {
+      console.warn(`[i18n] missing translation key: ${key}`);
+    }
+
+    return I18nService.interpolate(resolved ?? key, vars);
   }
 }

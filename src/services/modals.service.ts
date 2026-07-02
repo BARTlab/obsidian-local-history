@@ -197,33 +197,6 @@ export class ModalsService implements Service {
   }
 
   /**
-   * Whether a snapshot's path lies under the given folder prefix. Matches the
-   * same prefix rule {@link FolderTimelineHelper} uses (exact equality or a
-   * `${root}/` prefix) so the snapshot lookup in the modal and the timeline
-   * synthesis agree on what "under this folder" means. The vault-root case
-   * (empty `rootPath`) matches every snapshot, which is consistent but only
-   * reachable from a future caller that explicitly asks for whole-vault
-   * history.
-   *
-   * @param {FileSnapshot} snapshot - The snapshot under inspection
-   * @param {string} rootPath - The folder's vault-relative path
-   * @return {boolean} True when the snapshot lives under the folder
-   */
-  protected isUnderFolder(snapshot: FileSnapshot, rootPath: string): boolean {
-    const path: string = snapshot?.file?.path ?? snapshot?.path ?? '';
-
-    if (!path) {
-      return false;
-    }
-
-    if (!rootPath) {
-      return true;
-    }
-
-    return path === rootPath || path.startsWith(`${rootPath}/`);
-  }
-
-  /**
    * Shows a confirmation dialog with the specified configuration.
    * Creates a ConfirmModal instance and returns a promise that resolves with the user's choice.
    *
@@ -363,5 +336,32 @@ export class ModalsService implements Service {
     }
 
     return this.versionActionsService.label(target, versionId, entered);
+  }
+
+  /**
+   * Whether a snapshot's path lies under the given folder prefix. Matches the
+   * same prefix rule {@link FolderTimelineHelper} uses (exact equality or a
+   * `${root}/` prefix) so the snapshot lookup in the modal and the timeline
+   * synthesis agree on what "under this folder" means. The vault-root case
+   * (empty `rootPath`) matches every snapshot, which is consistent but only
+   * reachable from a future caller that explicitly asks for whole-vault
+   * history.
+   *
+   * @param {FileSnapshot} snapshot - The snapshot under inspection
+   * @param {string} rootPath - The folder's vault-relative path
+   * @return {boolean} True when the snapshot lives under the folder
+   */
+  protected isUnderFolder(snapshot: FileSnapshot, rootPath: string): boolean {
+    const path: string = snapshot?.file?.path ?? snapshot?.path ?? '';
+
+    if (!path) {
+      return false;
+    }
+
+    if (!rootPath) {
+      return true;
+    }
+
+    return path === rootPath || path.startsWith(`${rootPath}/`);
   }
 }

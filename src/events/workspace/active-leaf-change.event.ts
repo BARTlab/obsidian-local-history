@@ -13,14 +13,14 @@ import type { ObsidianEventName, WorkspaceEventArgs } from '@/types';
  * @extends {BaseEvent}
  */
 export class WorkspaceActiveLeafChangeEvent extends BaseEvent {
-  @Inject(TOKENS.snapshots)
-  protected snapshotsService!: SnapshotsService;
-
   /**
    * The name of the Obsidian event to handle.
    * Set to the workspace.activeLeafChange event.
    */
   public readonly name: ObsidianEventName = ObsidianEvent.workspace.activeLeafChange;
+
+  @Inject(TOKENS.snapshots)
+  protected snapshotsService!: SnapshotsService;
 
   /**
    * Handles the active leaf change event.

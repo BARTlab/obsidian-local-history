@@ -26,21 +26,6 @@ import { type EditorView } from '@codemirror/view';
  * @implements {GutterConfig}
  */
 export class GutterCommonExtension implements GutterConfig {
-  public constructor(
-    protected view: EditorView | null,
-    public plugin: LineChangeTrackerPlugin,
-  ) {
-  }
-
-  @Inject(TOKENS.settings)
-  protected settingsService!: SettingsService;
-
-  @Inject(TOKENS.snapshots)
-  protected snapshotsService!: SnapshotsService;
-
-  @Inject(TOKENS.modals)
-  protected modalsService!: ModalsService;
-
   /**
    * CSS class for the gutter element.
    * Combines the base plugin class with the dot indicator type.
@@ -121,6 +106,21 @@ export class GutterCommonExtension implements GutterConfig {
 
     return builder.finish();
   };
+
+  @Inject(TOKENS.settings)
+  protected settingsService!: SettingsService;
+
+  @Inject(TOKENS.snapshots)
+  protected snapshotsService!: SnapshotsService;
+
+  @Inject(TOKENS.modals)
+  protected modalsService!: ModalsService;
+
+  public constructor(
+    protected view: EditorView | null,
+    public plugin: LineChangeTrackerPlugin,
+  ) {
+  }
 
   /**
    * Reverts the single changed block sitting at the given 0-based current line

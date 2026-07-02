@@ -14,14 +14,14 @@ import type { TFile } from 'obsidian';
  * @extends {BaseEvent}
  */
 export class WorkspaceFileOpenEvent extends BaseEvent {
-  @Inject(TOKENS.snapshots)
-  protected snapshotsService!: SnapshotsService;
-
   /**
    * The name of the Obsidian event to handle.
    * Set to the workspace.fileOpen event.
    */
   public name: ObsidianEventName = ObsidianEvent.workspace.fileOpen;
+
+  @Inject(TOKENS.snapshots)
+  protected snapshotsService!: SnapshotsService;
 
   /**
    * Handles the file open event by capturing a snapshot of the file.

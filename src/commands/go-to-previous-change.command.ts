@@ -17,17 +17,6 @@ import { type Command, type Editor, Notice } from 'obsidian';
  * @implements {Command}
  */
 export class GoToPreviousChangeCommand implements Command {
-  public constructor(
-    public plugin: LineChangeTrackerPlugin,
-  ) {
-  }
-
-  @Inject(TOKENS.settings)
-  protected settingsService!: SettingsService;
-
-  @Inject(TOKENS.snapshots)
-  protected snapshotsService!: SnapshotsService;
-
   /**
    * Unique identifier for this command.
    * Used by Obsidian to register and reference the command.
@@ -66,4 +55,15 @@ export class GoToPreviousChangeCommand implements Command {
 
     NavigationHelper.moveCursor(editor, target);
   };
+
+  @Inject(TOKENS.settings)
+  protected settingsService!: SettingsService;
+
+  @Inject(TOKENS.snapshots)
+  protected snapshotsService!: SnapshotsService;
+
+  public constructor(
+    public plugin: LineChangeTrackerPlugin,
+  ) {
+  }
 }

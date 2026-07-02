@@ -65,6 +65,21 @@ export class FileVersion {
   }
 
   /**
+   * Rebuilds a version from its serialized form, assigning a fresh id.
+   *
+   * @param {SerializedFileVersion} data - The serialized version
+   * @return {FileVersion} The reconstructed version
+   */
+  public static fromJSON(data: SerializedFileVersion): FileVersion {
+    return new FileVersion(
+      Array.isArray(data?.lines) ? data.lines : [],
+      data?.timestamp,
+      typeof data?.label === 'string' ? data.label : undefined,
+      data?.external === true,
+    );
+  }
+
+  /**
    * Whether this version carries a user-supplied label and is therefore pinned
    * (exempt from the duplicate-skip and eviction).
    *
@@ -157,20 +172,5 @@ export class FileVersion {
     }
 
     return data;
-  }
-
-  /**
-   * Rebuilds a version from its serialized form, assigning a fresh id.
-   *
-   * @param {SerializedFileVersion} data - The serialized version
-   * @return {FileVersion} The reconstructed version
-   */
-  public static fromJSON(data: SerializedFileVersion): FileVersion {
-    return new FileVersion(
-      Array.isArray(data?.lines) ? data.lines : [],
-      data?.timestamp,
-      typeof data?.label === 'string' ? data.label : undefined,
-      data?.external === true,
-    );
   }
 }

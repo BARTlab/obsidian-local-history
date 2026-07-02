@@ -19,17 +19,17 @@ import { GutterMarker } from '@codemirror/view';
  * @extends GutterMarker
  */
 export class RemovedMarker extends GutterMarker {
-  @Inject(TOKENS.settings)
-  protected settingsService!: SettingsService;
-
-  @Inject(TOKENS.i18n)
-  protected i18nService!: I18nService;
-
   /**
    * CSS class applied to the gutter marker element.
    * Combines the dot indicator type with the removed change type.
    */
   public elementClass: string = `lct-${IndicatorType.dot} lct-${ChangeType.removed}`;
+
+  @Inject(TOKENS.settings)
+  protected settingsService!: SettingsService;
+
+  @Inject(TOKENS.i18n)
+  protected i18nService!: I18nService;
 
   /**
    * Creates a new instance of RemovedMarker.

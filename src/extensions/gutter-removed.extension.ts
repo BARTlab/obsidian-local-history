@@ -35,6 +35,21 @@ export class GutterRemovedExtension implements GutterConfig {
    */
   public renderEmptyElements: boolean = false;
 
+  @Inject(TOKENS.settings)
+  protected settingsService!: SettingsService;
+
+  @Inject(TOKENS.snapshots)
+  protected snapshotsService!: SnapshotsService;
+
+  @Inject(TOKENS.modals)
+  protected modalsService!: ModalsService;
+
+  public constructor(
+    protected view: EditorView | null,
+    public plugin: LineChangeTrackerPlugin,
+  ) {
+  }
+
   /**
    * Creates markers for the gutter to indicate removed lines.
    * Returns a RangeSet of RemovedMarker instances for positions where lines were removed.
@@ -69,21 +84,6 @@ export class GutterRemovedExtension implements GutterConfig {
 
     return builder.finish();
   };
-
-  @Inject(TOKENS.settings)
-  protected settingsService!: SettingsService;
-
-  @Inject(TOKENS.snapshots)
-  protected snapshotsService!: SnapshotsService;
-
-  @Inject(TOKENS.modals)
-  protected modalsService!: ModalsService;
-
-  public constructor(
-    protected view: EditorView | null,
-    public plugin: LineChangeTrackerPlugin,
-  ) {
-  }
 
   /**
    * Reverts a removed-line deletion directly from the gutter without opening

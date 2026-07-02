@@ -29,6 +29,17 @@ export class GoToPreviousChangeCommand implements Command {
    */
   public name: string = this.plugin.t('command.go-to-previous-change');
 
+  @Inject(TOKENS.settings)
+  protected settingsService!: SettingsService;
+
+  @Inject(TOKENS.snapshots)
+  protected snapshotsService!: SnapshotsService;
+
+  public constructor(
+    public plugin: LineChangeTrackerPlugin,
+  ) {
+  }
+
   /**
    * Callback executed when the command runs in an editor context.
    * Resolves the previous changed line from the current snapshot and moves the
@@ -55,15 +66,4 @@ export class GoToPreviousChangeCommand implements Command {
 
     NavigationHelper.moveCursor(editor, target);
   };
-
-  @Inject(TOKENS.settings)
-  protected settingsService!: SettingsService;
-
-  @Inject(TOKENS.snapshots)
-  protected snapshotsService!: SnapshotsService;
-
-  public constructor(
-    public plugin: LineChangeTrackerPlugin,
-  ) {
-  }
 }

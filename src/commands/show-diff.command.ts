@@ -30,6 +30,14 @@ export class ShowDiffCommand implements Command {
    */
   public name: string = this.plugin.t('command.show-diff');
 
+  @Inject(TOKENS.modals)
+  protected modalService!: ModalsService;
+
+  public constructor(
+    public plugin: LineChangeTrackerPlugin,
+  ) {
+  }
+
   /**
    * Callback that both gates and runs the command.
    * When `checking` is true it reports whether the command is available (the
@@ -49,12 +57,4 @@ export class ShowDiffCommand implements Command {
 
     return this.modalService.diff();
   };
-
-  @Inject(TOKENS.modals)
-  protected modalService!: ModalsService;
-
-  public constructor(
-    public plugin: LineChangeTrackerPlugin,
-  ) {
-  }
 }

@@ -23,6 +23,8 @@ export default [
       'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
       'new-cap': ['error', { capIsNew: false }],
       'max-params': ['warn', 4],
+      // One class per file; type/const neighbors are policed by scripts/check-class-purity.mjs.
+      'max-classes-per-file': ['warn', 1],
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': ['warn', {
         argsIgnorePattern: '^_',
@@ -30,6 +32,31 @@ export default [
       }],
       '@typescript-eslint/no-inferrable-types': 'off',
       '@typescript-eslint/explicit-member-accessibility': ['warn', { accessibility: 'explicit' }],
+      // Canonical member order. Getters/setters share the method ranks (the
+      // nested arrays merge them into one rank), so no separate accessor
+      // groups exist. Abstract members form *-abstract-* groups that are
+      // intentionally absent from this list: they stay unranked.
+      '@typescript-eslint/member-ordering': ['warn', {
+        default: {
+          memberTypes: [
+            'signature',
+            'public-static-field',
+            'protected-static-field',
+            'private-static-field',
+            'public-instance-field',
+            'protected-instance-field',
+            'private-instance-field',
+            'constructor',
+            ['public-static-method', 'public-static-get', 'public-static-set'],
+            ['protected-static-method', 'protected-static-get', 'protected-static-set'],
+            ['private-static-method', 'private-static-get', 'private-static-set'],
+            ['public-instance-method', 'public-instance-get', 'public-instance-set'],
+            ['protected-instance-method', 'protected-instance-get', 'protected-instance-set'],
+            ['private-instance-method', 'private-instance-get', 'private-instance-set'],
+          ],
+          order: 'as-written',
+        },
+      }],
       '@typescript-eslint/consistent-type-imports': ['warn', { prefer: 'type-imports' }],
       '@typescript-eslint/array-type': ['warn', { default: 'array' }],
 

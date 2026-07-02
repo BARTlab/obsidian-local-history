@@ -1,5 +1,5 @@
 import { META_INJECT } from '@/decorators/meta-keys';
-import type { Container } from '@/services/container';
+import type { Container } from '@/services/container.types';
 import type { ServiceToken } from '@/services/tokens';
 import type { Service } from '@/types';
 

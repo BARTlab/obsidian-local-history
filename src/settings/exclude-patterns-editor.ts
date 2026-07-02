@@ -1,16 +1,6 @@
 import { PathExcludeHelper } from '@/helpers/path-exclude.helper';
+import type { ExcludePatternsEditorHost } from '@/settings/exclude-patterns-editor.types';
 import type { ExtraButtonComponent, Setting, SettingGroup, TextComponent } from 'obsidian';
-
-/**
- * The three operations the exclude-patterns editor cannot own itself: reading
- * the current pattern list, persisting a replacement list (which also syncs any
- * dependent tab state, such as the purge button), and translation.
- */
-export interface ExcludePatternsEditorHost {
-  getPatterns(): string[];
-  persist(patterns: string[]): void;
-  t(key: string): string;
-}
 
 /**
  * The excluded-paths pattern editor, extracted from the settings tab

@@ -13,7 +13,8 @@ import type { HistoryModalShellRegions } from '@/modals/history-modal-shell.type
 import { KeyboardController } from '@/modals/keyboard-controller';
 import type { KeyboardControllerHost } from '@/modals/keyboard-controller.types';
 import { ToolbarBuilder } from '@/modals/toolbar-builder';
-import { VersionList, type VersionListHost } from '@/components/version-list.component';
+import { VersionList } from '@/components/version-list.component';
+import type { VersionListHost } from '@/components/version-list.component.types';
 import * as DomHelper from '@/helpers/dom.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ModalsService } from '@/services/modals.service';

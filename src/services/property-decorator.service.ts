@@ -8,22 +8,13 @@ import {
 } from '@/helpers/properties-panel.helper';
 import { diffFrontmatter, type FrontmatterChange } from '@/helpers/frontmatter-diff.helper';
 import type LineChangeTrackerPlugin from '@/main';
+import type { RowDecoration, RowStatus } from '@/services/property-decorator.service.types';
 import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import { TOKENS } from '@/services/tokens';
 import type { Service } from '@/types';
 import { parseYaml, type MarkdownView } from 'obsidian';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
-
-/** Decoration status a property row resolves to from the frontmatter diff. */
-type RowStatus = 'added' | 'modified' | 'clean';
-
-/** Class and title plan applied to a property row for a given RowStatus. */
-type RowDecoration = {
-  classToAdd: string | null;
-  classToRemove: string[];
-  title: string | null;
-};
 
 /**
  * Service that adds visual change indicators to the Obsidian Properties panel

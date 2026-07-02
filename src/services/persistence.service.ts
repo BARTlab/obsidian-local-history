@@ -7,22 +7,11 @@ import { AsyncSaveQueue } from '@/persistence/async-save-queue';
 import { HistoryShardStore, type LoadedShard } from '@/persistence/history-shard-store';
 import { MonolithMigrator } from '@/persistence/monolith-migrator';
 import { RetentionPolicy, type RetentionCaps } from '@/persistence/retention-policy';
+import type { ShardIndexEntry } from '@/services/persistence.service.types';
 import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import { TOKENS } from '@/services/tokens';
 import type { SerializedFileSnapshot, SerializedHistory, Service } from '@/types';
-
-/**
- * One in-memory index entry for a persisted shard: the on-disk filename to write
- * or remove it under, and a >=64-bit content digest of its serialized snapshot.
- * The save path diffs the live digest against this to write only
- * changed shards, and reuses `name` for collision-aware naming so two distinct
- * notes never share a filename.
- */
-interface ShardIndexEntry {
-  name: string;
-  digest: string;
-}
 
 /**
  * Service responsible for persisting file history to disk so it survives an

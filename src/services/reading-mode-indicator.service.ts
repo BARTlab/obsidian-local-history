@@ -1,4 +1,4 @@
-import { ChangeType, PluginEvent } from '@/consts';
+import { type ChangeType, CLASS_INDICATOR, PluginEvent, TYPE_PRIORITY } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { On } from '@/decorators/on.decorator';
 import type LineChangeTrackerPlugin from '@/main';
@@ -14,26 +14,6 @@ import {
   type MarkdownView,
   type WorkspaceLeaf,
 } from 'obsidian';
-
-/**
- * CSS class applied to a reading-mode block when any of its source lines are
- * decorated. The data-lct-type attribute carries the highest-priority change
- * type so CSS can color the indicator without extra classes.
- */
-const CLASS_INDICATOR = 'lct-rm-indicator';
-
-/**
- * Priority order for picking a representative change type when multiple types
- * appear in the same block. Lower index = higher priority (added > changed >
- * whitespace > restored). Removed lines are never present as HTML blocks in
- * reading mode, so they are excluded here.
- */
-const TYPE_PRIORITY: ChangeType[] = [
-  ChangeType.added,
-  ChangeType.changed,
-  ChangeType.whitespace,
-  ChangeType.restored,
-];
 
 /**
  * Service that registers a MarkdownPostProcessor to show block-level change

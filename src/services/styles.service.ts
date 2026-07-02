@@ -1,13 +1,10 @@
-import { PluginEvent } from '@/consts';
+import { LINE_BORDER_RADIUS_VAR, LINE_WIDTH_VAR, PluginEvent } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { On as _On } from '@/decorators/on.decorator';
 import type LineChangeTrackerPlugin from '@/main';
 import type { SettingsService } from '@/services/settings.service';
 import { TOKENS } from '@/services/tokens';
 import type { Service } from '@/types';
-
-const LINE_WIDTH_VAR: string = '--lct-line-width';
-const LINE_BORDER_RADIUS_VAR: string = '--lct-line-border-radius';
 
 /**
  * Keeps the settings-driven line-marker geometry in sync with the styles.

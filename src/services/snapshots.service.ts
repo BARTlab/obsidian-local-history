@@ -2,15 +2,20 @@ import { PluginEvent } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { PathExcludeHelper } from '@/helpers/path-exclude.helper';
 import type LineChangeTrackerPlugin from '@/main';
-import { ExternalChangeCapture, type ExternalChangeHost } from '@/snapshots/external-change-capture';
+import { ExternalChangeCapture } from '@/snapshots/external-change-capture';
+import type { ExternalChangeHost } from '@/snapshots/external-change-capture.types';
 import type { SettingsService } from '@/services/settings.service';
 import { TOKENS } from '@/services/tokens';
-import { EditorOperations, type EditorBlock, type EditorOperationsHost } from '@/snapshots/editor-operations';
+import { EditorOperations } from '@/snapshots/editor-operations';
+import type { EditorOperationsHost } from '@/snapshots/editor-operations.types';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
-import { HistorySerializer, type HistorySerializerHost } from '@/snapshots/history-serializer';
-import { IgnoreListManager, type IgnoreListHost } from '@/snapshots/ignore-list';
-import { SnapshotRegistry, type SnapshotRegistryHost } from '@/snapshots/snapshot-registry';
-import type { SerializedFileSnapshot, SerializedHistory, Service, SnapshotCaptureOptions } from '@/types';
+import { HistorySerializer } from '@/snapshots/history-serializer';
+import type { HistorySerializerHost } from '@/snapshots/history-serializer.types';
+import { IgnoreListManager } from '@/snapshots/ignore-list';
+import type { IgnoreListHost } from '@/snapshots/ignore-list.types';
+import { SnapshotRegistry } from '@/snapshots/snapshot-registry';
+import type { SnapshotRegistryHost } from '@/snapshots/snapshot-registry.types';
+import type { EditorBlock, SerializedFileSnapshot, SerializedHistory, Service, SnapshotCaptureOptions } from '@/types';
 import { Notice, type TFile } from 'obsidian';
 
 /**

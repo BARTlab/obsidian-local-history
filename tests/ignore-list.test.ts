@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { IgnoreListManager } from '@/snapshots/ignore-list';
-import type { IgnoreListHost } from '@/snapshots/ignore-list';
+import type { IgnoreListHost } from '@/snapshots/ignore-list.types';
 import type { TFile } from 'obsidian';
 
 import { makeFile } from './helpers/builders';

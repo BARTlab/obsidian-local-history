@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { ExternalChangeCapture } from '@/snapshots/external-change-capture';
-import type { ExternalChangeHost } from '@/snapshots/external-change-capture';
+import type { ExternalChangeHost } from '@/snapshots/external-change-capture.types';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import type LineChangeTrackerPlugin from '@/main';
 import type { SnapshotCaptureOptions } from '@/types';

@@ -99,52 +99,6 @@ export class FolderActionHandler {
   }
 
   /**
-   * Promotes a tombstone back to a live snapshot for AC4: writes the resolved
-   * base content to disk at the snapshot's old path through
-   * {@link App.vault.create}, attaches the resulting file to the snapshot, and
-   * clears the tombstone marker so the entry becomes live in the map without
-   * losing its captured versions or history baseline. A best-effort path: on a
-   * vault error a Notice surfaces the failure and the tombstone stays as-is so
-   * the user can retry.
-   *
-   * @param {string} path - The vault-relative old path of the deleted file
-   * @param {FileSnapshot} snapshot - The tombstone snapshot to promote
-   * @param {FolderDeltaResult} result - The compareAt result carrying the base content at T
-   * @return {Promise<void>}
-   */
-  protected async restoreTombstoneSelection(
-    path: string,
-    snapshot: FileSnapshot,
-    result: FolderDeltaResult,
-  ): Promise<void> {
-    const content: string = result.base.join(snapshot.content.lineBreak);
-
-    // A deleted file's old path may now be occupied by a different file
-    // (recreated or renamed since deletion). `vault.create` throws on an
-    // existing path and the generic catch below would hide the cause from the
-    // user; pre-check here and surface a distinct notice so they can resolve
-    // the collision manually instead of seeing a vague "restore failed".
-    if (this.host.app.vault.getAbstractFileByPath(path) !== null) {
-      new Notice(this.host.plugin.t('notice.file-restore-path-occupied'));
-
-      return;
-    }
-
-    try {
-      const created: TFile = await this.host.app.vault.create(path, content);
-
-      snapshot.file = created;
-      snapshot.deletedTimestamp = undefined;
-      snapshot.content.updateState(result.base);
-      snapshot.updateChanges();
-      this.host.snapshotsService.forceUpdate();
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_error) {
-      new Notice(this.host.plugin.t('notice.file-restore-failed'));
-    }
-  }
-
-  /**
    * Handler for the "Remove selected version" toolbar button. Drops the version
    * closest to T from the tree-selected file's timeline, then
    * re-synthesises the folder timeline and re-renders the tree so the rail and
@@ -328,5 +282,51 @@ export class FolderActionHandler {
     this.host.resyncTimeline();
     this.host.refreshTree();
     this.host.refreshDiff();
+  }
+
+  /**
+   * Promotes a tombstone back to a live snapshot for AC4: writes the resolved
+   * base content to disk at the snapshot's old path through
+   * {@link App.vault.create}, attaches the resulting file to the snapshot, and
+   * clears the tombstone marker so the entry becomes live in the map without
+   * losing its captured versions or history baseline. A best-effort path: on a
+   * vault error a Notice surfaces the failure and the tombstone stays as-is so
+   * the user can retry.
+   *
+   * @param {string} path - The vault-relative old path of the deleted file
+   * @param {FileSnapshot} snapshot - The tombstone snapshot to promote
+   * @param {FolderDeltaResult} result - The compareAt result carrying the base content at T
+   * @return {Promise<void>}
+   */
+  protected async restoreTombstoneSelection(
+    path: string,
+    snapshot: FileSnapshot,
+    result: FolderDeltaResult,
+  ): Promise<void> {
+    const content: string = result.base.join(snapshot.content.lineBreak);
+
+    // A deleted file's old path may now be occupied by a different file
+    // (recreated or renamed since deletion). `vault.create` throws on an
+    // existing path and the generic catch below would hide the cause from the
+    // user; pre-check here and surface a distinct notice so they can resolve
+    // the collision manually instead of seeing a vague "restore failed".
+    if (this.host.app.vault.getAbstractFileByPath(path) !== null) {
+      new Notice(this.host.plugin.t('notice.file-restore-path-occupied'));
+
+      return;
+    }
+
+    try {
+      const created: TFile = await this.host.app.vault.create(path, content);
+
+      snapshot.file = created;
+      snapshot.deletedTimestamp = undefined;
+      snapshot.content.updateState(result.base);
+      snapshot.updateChanges();
+      this.host.snapshotsService.forceUpdate();
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_error) {
+      new Notice(this.host.plugin.t('notice.file-restore-failed'));
+    }
   }
 }

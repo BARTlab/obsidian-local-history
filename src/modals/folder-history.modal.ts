@@ -202,6 +202,34 @@ export class FolderHistoryModal extends Modal {
   }
 
   /**
+   * Lifecycle hook called when the modal opens. Builds the three-column shell,
+   * renders the timeline rail, mounts the tree against the current T, and
+   * renders the diff for the default-selected file.
+   *
+   * @override
+   */
+  public onOpen(): void {
+    this.makeUI();
+
+    DomHelper.update(this.modalEl, { classes: { add: ['lct-diff-modal', 'lct-folder-history-modal'] } });
+
+    this.timelineRenderer.render();
+    this.refreshTree();
+    this.refreshDiff();
+  }
+
+  /**
+   * Lifecycle hook called when the modal closes. Disposes the tree component
+   * so it releases its DOM and references, then clears the modal content.
+   *
+   * @override
+   */
+  public onClose(): void {
+    this.tree.dispose();
+    this.contentEl.empty();
+  }
+
+  /**
    * Builds the narrow host port the {@link FolderTimelineRenderer} reads the
    * modal's shared state through. The accessors are lazy so the renderer always
    * sees the live timeline, selected T, rail container, and snapshot map, and
@@ -288,34 +316,6 @@ export class FolderHistoryModal extends Modal {
         this.refreshDiff();
       },
     };
-  }
-
-  /**
-   * Lifecycle hook called when the modal opens. Builds the three-column shell,
-   * renders the timeline rail, mounts the tree against the current T, and
-   * renders the diff for the default-selected file.
-   *
-   * @override
-   */
-  public onOpen(): void {
-    this.makeUI();
-
-    DomHelper.update(this.modalEl, { classes: { add: ['lct-diff-modal', 'lct-folder-history-modal'] } });
-
-    this.timelineRenderer.render();
-    this.refreshTree();
-    this.refreshDiff();
-  }
-
-  /**
-   * Lifecycle hook called when the modal closes. Disposes the tree component
-   * so it releases its DOM and references, then clears the modal content.
-   *
-   * @override
-   */
-  public onClose(): void {
-    this.tree.dispose();
-    this.contentEl.empty();
   }
 
   /**

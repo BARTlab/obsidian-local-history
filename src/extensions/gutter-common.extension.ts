@@ -53,6 +53,21 @@ export class GutterCommonExtension implements GutterConfig {
     },
   };
 
+  @Inject(TOKENS.settings)
+  protected settingsService!: SettingsService;
+
+  @Inject(TOKENS.snapshots)
+  protected snapshotsService!: SnapshotsService;
+
+  @Inject(TOKENS.modals)
+  protected modalsService!: ModalsService;
+
+  public constructor(
+    protected view: EditorView | null,
+    public plugin: LineChangeTrackerPlugin,
+  ) {
+  }
+
   /**
    * Creates markers for the gutter-based online changes.
    * Returns a RangeSet of DotMarker instances for lines with changes.
@@ -106,21 +121,6 @@ export class GutterCommonExtension implements GutterConfig {
 
     return builder.finish();
   };
-
-  @Inject(TOKENS.settings)
-  protected settingsService!: SettingsService;
-
-  @Inject(TOKENS.snapshots)
-  protected snapshotsService!: SnapshotsService;
-
-  @Inject(TOKENS.modals)
-  protected modalsService!: ModalsService;
-
-  public constructor(
-    protected view: EditorView | null,
-    public plugin: LineChangeTrackerPlugin,
-  ) {
-  }
 
   /**
    * Reverts the single changed block sitting at the given 0-based current line

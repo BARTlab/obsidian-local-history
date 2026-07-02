@@ -37,6 +37,20 @@ export class GutterBarExtension implements GutterConfig {
    */
   public renderEmptyElements: boolean = false;
 
+  /** Service for accessing plugin settings. */
+  @Inject(TOKENS.settings)
+  protected settingsService!: SettingsService;
+
+  /** Service for managing file snapshots. */
+  @Inject(TOKENS.snapshots)
+  protected snapshotsService!: SnapshotsService;
+
+  public constructor(
+    protected view: EditorView | null,
+    public plugin: LineChangeTrackerPlugin,
+  ) {
+  }
+
   /**
    * Builds one bar marker for every changed line in the current snapshot.
    *
@@ -85,20 +99,6 @@ export class GutterBarExtension implements GutterConfig {
 
     return builder.finish();
   };
-
-  /** Service for accessing plugin settings. */
-  @Inject(TOKENS.settings)
-  protected settingsService!: SettingsService;
-
-  /** Service for managing file snapshots. */
-  @Inject(TOKENS.snapshots)
-  protected snapshotsService!: SnapshotsService;
-
-  public constructor(
-    protected view: EditorView | null,
-    public plugin: LineChangeTrackerPlugin,
-  ) {
-  }
 
   /**
    * Whether the indicator type is `line`.

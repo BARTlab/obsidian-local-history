@@ -29,6 +29,17 @@ export class GoToNextChangeCommand implements Command {
    */
   public name: string = this.plugin.t('command.go-to-next-change');
 
+  @Inject(TOKENS.settings)
+  protected settingsService!: SettingsService;
+
+  @Inject(TOKENS.snapshots)
+  protected snapshotsService!: SnapshotsService;
+
+  public constructor(
+    public plugin: LineChangeTrackerPlugin,
+  ) {
+  }
+
   /**
    * Callback executed when the command runs in an editor context.
    * Resolves the next changed line from the current snapshot and moves the
@@ -54,15 +65,4 @@ export class GoToNextChangeCommand implements Command {
 
     NavigationHelper.moveCursor(editor, target);
   };
-
-  @Inject(TOKENS.settings)
-  protected settingsService!: SettingsService;
-
-  @Inject(TOKENS.snapshots)
-  protected snapshotsService!: SnapshotsService;
-
-  public constructor(
-    public plugin: LineChangeTrackerPlugin,
-  ) {
-  }
 }

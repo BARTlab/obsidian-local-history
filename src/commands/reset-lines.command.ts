@@ -24,6 +24,14 @@ export class ResetLinesCommand implements Command {
    */
   public name: string = this.plugin.t('command.reset-lines');
 
+  @Inject(TOKENS.snapshots)
+  protected snapshotsService!: SnapshotsService;
+
+  public constructor(
+    public plugin: LineChangeTrackerPlugin,
+  ) {
+  }
+
   /**
    * Callback function executed when the command is triggered in an editor context.
    * Deletes the snapshot for the current document and shows a notification.
@@ -33,12 +41,4 @@ export class ResetLinesCommand implements Command {
 
     new Notice(this.plugin.t('notice.current-snapshot-deleted'));
   };
-
-  @Inject(TOKENS.snapshots)
-  protected snapshotsService!: SnapshotsService;
-
-  public constructor(
-    public plugin: LineChangeTrackerPlugin,
-  ) {
-  }
 }

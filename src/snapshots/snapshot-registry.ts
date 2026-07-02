@@ -343,6 +343,16 @@ export class SnapshotRegistry {
   }
 
   /**
+   * Clears every snapshot and every session-created mark from the registry.
+   * External-capture state is reset by the owning service, which composes both
+   * collaborators.
+   */
+  public clear(): void {
+    this.snapshots.clear();
+    this.sessionCreatedPaths.clear();
+  }
+
+  /**
    * Moves a session-created mark from `oldPath` to `newPath` when the file is
    * renamed or moved, so a file created this session keeps reading as "added"
    * at its new path and the stale old path drops out. A no-op when the file was
@@ -355,15 +365,5 @@ export class SnapshotRegistry {
     if (this.sessionCreatedPaths.delete(oldPath)) {
       this.sessionCreatedPaths.add(newPath);
     }
-  }
-
-  /**
-   * Clears every snapshot and every session-created mark from the registry.
-   * External-capture state is reset by the owning service, which composes both
-   * collaborators.
-   */
-  public clear(): void {
-    this.snapshots.clear();
-    this.sessionCreatedPaths.clear();
   }
 }

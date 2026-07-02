@@ -37,6 +37,15 @@ import {
  * @extends PluginSettingTab
  */
 export class MainSetting extends PluginSettingTab {
+  /**
+   * The plugin instance.
+   * Used to access plugin functionality.
+   * Declared (not assigned) here only to narrow the inherited
+   * `PluginSettingTab.plugin` field to the concrete plugin type; the base
+   * constructor assigns it at runtime.
+   */
+  public declare plugin: LineChangeTrackerPlugin;
+
   @Inject(TOKENS.settings)
   protected settingsService!: SettingsService;
 
@@ -49,15 +58,6 @@ export class MainSetting extends PluginSettingTab {
    */
   @Inject(TOKENS.modals)
   protected modalsService!: ModalsService;
-
-  /**
-   * The plugin instance.
-   * Used to access plugin functionality.
-   * Declared (not assigned) here only to narrow the inherited
-   * `PluginSettingTab.plugin` field to the concrete plugin type; the base
-   * constructor assigns it at runtime.
-   */
-  public declare plugin: LineChangeTrackerPlugin;
 
   /**
    * The dynamic pattern-list editor of the excluded-paths group. Reads the

@@ -62,6 +62,16 @@ export class RecentChangesView extends ItemView {
   }
 
   /**
+   * Resolves the view type id this view exposes. Convenience for the reveal
+   * entry point (and tests) so callers do not have to import the constant.
+   *
+   * @return {string} The view type id
+   */
+  public static get viewType(): string {
+    return RECENT_CHANGES_VIEW_TYPE;
+  }
+
+  /**
    * Returns the stable view type id used to register and look up the view.
    *
    * @return {string} The view type id
@@ -90,16 +100,6 @@ export class RecentChangesView extends ItemView {
    */
   public getIcon(): IconName {
     return 'history';
-  }
-
-  /**
-   * Resolves the view type id this view exposes. Convenience for the reveal
-   * entry point (and tests) so callers do not have to import the constant.
-   *
-   * @return {string} The view type id
-   */
-  public static get viewType(): string {
-    return RECENT_CHANGES_VIEW_TYPE;
   }
 
   /**

@@ -76,6 +76,104 @@ export class TrackerLine {
   public addedTimeStamp: number = Date.now();
 
   /**
+   * Creates a new instance of TrackerLine.
+   * Initializes the line tracker with optional parameters for content and position.
+   *
+   * @param {TrackerLineParams} params - Optional parameters to initialize the tracker line
+   */
+  public constructor(params?: TrackerLineParams) {
+    const {
+      content,
+      originalPosition,
+      currentPosition,
+      contentSameOriginal,
+    } = params ?? {};
+
+    if (typeof originalPosition === 'number') {
+      this.originalPosition = originalPosition;
+    }
+
+    if (typeof currentPosition === 'number') {
+      this.currentPosition = currentPosition;
+    }
+
+    if (typeof content === 'string') {
+      this.current = content;
+      this.hash = TextHelper.hash(content);
+    }
+
+    if (contentSameOriginal === true) {
+      this.original = content ?? null;
+      this.contentSameOriginal = this.existedInOriginal && this.contentHashed;
+    }
+  }
+
+  /**
+   * Rebuilds a tracker line from its serialized form.
+   * Creates a new instance (so a fresh, collision-free id is generated) and
+   * restores every persisted state field verbatim.
+   *
+   * @param {SerializedTrackerLine} data - The serialized tracker line
+   * @return {TrackerLine} The reconstructed tracker line
+   */
+  public static fromJSON(data: SerializedTrackerLine): TrackerLine {
+    const tracker: TrackerLine = new TrackerLine();
+
+    /**
+     * Defensive deserialization: each numeric field is coerced via a
+     * `typeof` number check (so a non-number from a corrupt history.json falls
+     * back to the field's safe default, e.g. -1), and content/hash strings are guarded so
+     * `change()` / `contentHashed` keep their invariants. Booleans default to
+     * the existing class default when missing.
+     */
+    if (typeof data?.originalPosition === 'number') {
+      tracker.originalPosition = data.originalPosition;
+    }
+
+    if (typeof data?.currentPosition === 'number') {
+      tracker.currentPosition = data.currentPosition;
+    }
+
+    if (typeof data?.removedAtPosition === 'number') {
+      tracker.removedAtPosition = data.removedAtPosition;
+    }
+
+    if (typeof data?.changeAtPosition === 'number') {
+      tracker.changeAtPosition = data.changeAtPosition;
+    }
+
+    if (data?.contentSameOriginal) {
+      tracker.contentSameOriginal = true;
+    }
+
+    if (typeof data?.hash === 'string') {
+      tracker.hash = data.hash;
+    }
+
+    if (typeof data?.original === 'string') {
+      tracker.original = data.original;
+    }
+
+    if (typeof data?.current === 'string') {
+      tracker.current = data.current;
+    }
+
+    if (typeof data?.removedTimeStamp === 'number') {
+      tracker.removedTimeStamp = data.removedTimeStamp;
+    }
+
+    if (typeof data?.changedTimeStamp === 'number') {
+      tracker.changedTimeStamp = data.changedTimeStamp;
+    }
+
+    if (typeof data?.addedTimeStamp === 'number') {
+      tracker.addedTimeStamp = data.addedTimeStamp;
+    }
+
+    return tracker;
+  }
+
+  /**
    * Gets a unique key for this tracker line.
    * Combines position information with a prefix indicating if the line exists in the current document,
    * and the line's unique ID.
@@ -137,39 +235,6 @@ export class TrackerLine {
    */
   public get contentHashed(): boolean {
     return typeof this.hash === 'string' && !!this.hash;
-  }
-
-  /**
-   * Creates a new instance of TrackerLine.
-   * Initializes the line tracker with optional parameters for content and position.
-   *
-   * @param {TrackerLineParams} params - Optional parameters to initialize the tracker line
-   */
-  public constructor(params?: TrackerLineParams) {
-    const {
-      content,
-      originalPosition,
-      currentPosition,
-      contentSameOriginal,
-    } = params ?? {};
-
-    if (typeof originalPosition === 'number') {
-      this.originalPosition = originalPosition;
-    }
-
-    if (typeof currentPosition === 'number') {
-      this.currentPosition = currentPosition;
-    }
-
-    if (typeof content === 'string') {
-      this.current = content;
-      this.hash = TextHelper.hash(content);
-    }
-
-    if (contentSameOriginal === true) {
-      this.original = content ?? null;
-      this.contentSameOriginal = this.existedInOriginal && this.contentHashed;
-    }
   }
 
   /**
@@ -494,70 +559,5 @@ export class TrackerLine {
       changedTimeStamp: this.changedTimeStamp,
       addedTimeStamp: this.addedTimeStamp,
     };
-  }
-
-  /**
-   * Rebuilds a tracker line from its serialized form.
-   * Creates a new instance (so a fresh, collision-free id is generated) and
-   * restores every persisted state field verbatim.
-   *
-   * @param {SerializedTrackerLine} data - The serialized tracker line
-   * @return {TrackerLine} The reconstructed tracker line
-   */
-  public static fromJSON(data: SerializedTrackerLine): TrackerLine {
-    const tracker: TrackerLine = new TrackerLine();
-
-    /**
-     * Defensive deserialization: each numeric field is coerced via a
-     * `typeof` number check (so a non-number from a corrupt history.json falls
-     * back to the field's safe default, e.g. -1), and content/hash strings are guarded so
-     * `change()` / `contentHashed` keep their invariants. Booleans default to
-     * the existing class default when missing.
-     */
-    if (typeof data?.originalPosition === 'number') {
-      tracker.originalPosition = data.originalPosition;
-    }
-
-    if (typeof data?.currentPosition === 'number') {
-      tracker.currentPosition = data.currentPosition;
-    }
-
-    if (typeof data?.removedAtPosition === 'number') {
-      tracker.removedAtPosition = data.removedAtPosition;
-    }
-
-    if (typeof data?.changeAtPosition === 'number') {
-      tracker.changeAtPosition = data.changeAtPosition;
-    }
-
-    if (data?.contentSameOriginal) {
-      tracker.contentSameOriginal = true;
-    }
-
-    if (typeof data?.hash === 'string') {
-      tracker.hash = data.hash;
-    }
-
-    if (typeof data?.original === 'string') {
-      tracker.original = data.original;
-    }
-
-    if (typeof data?.current === 'string') {
-      tracker.current = data.current;
-    }
-
-    if (typeof data?.removedTimeStamp === 'number') {
-      tracker.removedTimeStamp = data.removedTimeStamp;
-    }
-
-    if (typeof data?.changedTimeStamp === 'number') {
-      tracker.changedTimeStamp = data.changedTimeStamp;
-    }
-
-    if (typeof data?.addedTimeStamp === 'number') {
-      tracker.addedTimeStamp = data.addedTimeStamp;
-    }
-
-    return tracker;
   }
 }

@@ -95,6 +95,94 @@ export class VersionTimeline {
   }
 
   /**
+   * Returns the intermediate versions, newest first, as a copy so callers cannot
+   * mutate the owned timeline.
+   *
+   * @return {FileVersion[]} The timeline versions, newest first
+   */
+  public getVersions(): FileVersion[] {
+    return [...this.versions].reverse();
+  }
+
+  /**
+   * Returns the owned timeline in stored (oldest-first) order as a readonly live
+   * view. Distinct from getVersions() (a newest-first copy the UI rails consume):
+   * the serializer, the folder timeline, and the folder delta read the versions
+   * in capture order without paying for a reversal, while the readonly type keeps
+   * them from mutating the owner's array.
+   *
+   * @return {readonly FileVersion[]} The stored versions, oldest first
+   */
+  public getStoredVersions(): readonly FileVersion[] {
+    return this.versions;
+  }
+
+  /**
+   * Finds an intermediate version by its id.
+   *
+   * @param {string} id - The version id to look up
+   * @return {FileVersion | null} The matching version, or null if absent
+   */
+  public getVersion(id: string): FileVersion | null {
+    return this.versions.find((version: FileVersion): boolean => version.id === id) ?? null;
+  }
+
+  /**
+   * Removes a single intermediate version from the owned timeline by its id in
+   * place, leaving every other version untouched. Used by the history modal to
+   * prune one captured point without wiping the whole timeline.
+   *
+   * @param {string} id - The id of the version to remove
+   * @return {boolean} True if a version was removed, false if no id matched
+   */
+  public removeVersion(id: string): boolean {
+    const index: number = this.versions.findIndex((version: FileVersion): boolean => version.id === id);
+
+    if (index === -1) {
+      return false;
+    }
+
+    this.versions.splice(index, 1);
+
+    return true;
+  }
+
+  /**
+   * Whether the owned timeline has any intermediate versions.
+   *
+   * @return {boolean} True when at least one version exists
+   */
+  public hasVersions(): boolean {
+    return this.versions.length > 0;
+  }
+
+  /**
+   * Restores a persisted timeline: adopts the decoded versions as the owned array
+   * and seeds both cadence gates from them so the capture cadence is continuous
+   * across a restart (the time gate from the newest version's timestamp, the edit
+   * gate from the current keyframe group). Used by SnapshotCodec.decode.
+   *
+   * @param {FileVersion[]} versions - The decoded timeline, oldest first
+   */
+  public restore(versions: FileVersion[]): void {
+    this.versions = versions;
+    this.seedLastVersionAt();
+    this.seedEditsSinceVersion();
+  }
+
+  /**
+   * Replaces the owned timeline with an externally-provided array without
+   * touching the cadence gates. Used by FileSnapshot.adoptHistory (restore path)
+   * and the tombstone builder, which hand over an already-copied timeline and
+   * must not disturb the capture cadence the way a fresh restore does.
+   *
+   * @param {FileVersion[]} versions - The timeline to adopt, oldest first
+   */
+  public adopt(versions: FileVersion[]): void {
+    this.versions = versions;
+  }
+
+  /**
    * Whether the given content equals the latest stored version, or the history
    * baseline when no version exists yet. Used to skip a no-op capture so the
    * timeline never holds an adjacent duplicate or a first version identical to
@@ -196,94 +284,6 @@ export class VersionTimeline {
         });
       }
     }
-  }
-
-  /**
-   * Returns the intermediate versions, newest first, as a copy so callers cannot
-   * mutate the owned timeline.
-   *
-   * @return {FileVersion[]} The timeline versions, newest first
-   */
-  public getVersions(): FileVersion[] {
-    return [...this.versions].reverse();
-  }
-
-  /**
-   * Returns the owned timeline in stored (oldest-first) order as a readonly live
-   * view. Distinct from getVersions() (a newest-first copy the UI rails consume):
-   * the serializer, the folder timeline, and the folder delta read the versions
-   * in capture order without paying for a reversal, while the readonly type keeps
-   * them from mutating the owner's array.
-   *
-   * @return {readonly FileVersion[]} The stored versions, oldest first
-   */
-  public getStoredVersions(): readonly FileVersion[] {
-    return this.versions;
-  }
-
-  /**
-   * Finds an intermediate version by its id.
-   *
-   * @param {string} id - The version id to look up
-   * @return {FileVersion | null} The matching version, or null if absent
-   */
-  public getVersion(id: string): FileVersion | null {
-    return this.versions.find((version: FileVersion): boolean => version.id === id) ?? null;
-  }
-
-  /**
-   * Removes a single intermediate version from the owned timeline by its id in
-   * place, leaving every other version untouched. Used by the history modal to
-   * prune one captured point without wiping the whole timeline.
-   *
-   * @param {string} id - The id of the version to remove
-   * @return {boolean} True if a version was removed, false if no id matched
-   */
-  public removeVersion(id: string): boolean {
-    const index: number = this.versions.findIndex((version: FileVersion): boolean => version.id === id);
-
-    if (index === -1) {
-      return false;
-    }
-
-    this.versions.splice(index, 1);
-
-    return true;
-  }
-
-  /**
-   * Whether the owned timeline has any intermediate versions.
-   *
-   * @return {boolean} True when at least one version exists
-   */
-  public hasVersions(): boolean {
-    return this.versions.length > 0;
-  }
-
-  /**
-   * Restores a persisted timeline: adopts the decoded versions as the owned array
-   * and seeds both cadence gates from them so the capture cadence is continuous
-   * across a restart (the time gate from the newest version's timestamp, the edit
-   * gate from the current keyframe group). Used by SnapshotCodec.decode.
-   *
-   * @param {FileVersion[]} versions - The decoded timeline, oldest first
-   */
-  public restore(versions: FileVersion[]): void {
-    this.versions = versions;
-    this.seedLastVersionAt();
-    this.seedEditsSinceVersion();
-  }
-
-  /**
-   * Replaces the owned timeline with an externally-provided array without
-   * touching the cadence gates. Used by FileSnapshot.adoptHistory (restore path)
-   * and the tombstone builder, which hand over an already-copied timeline and
-   * must not disturb the capture cadence the way a fresh restore does.
-   *
-   * @param {FileVersion[]} versions - The timeline to adopt, oldest first
-   */
-  public adopt(versions: FileVersion[]): void {
-    this.versions = versions;
   }
 
   /**

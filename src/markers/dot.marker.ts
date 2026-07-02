@@ -15,6 +15,12 @@ import { GutterMarker } from '@codemirror/view';
  * @extends GutterMarker
  */
 export class DotMarker extends GutterMarker {
+  /**
+   * CSS class applied to the gutter marker element.
+   * Combines the dot indicator type with the specific change type.
+   */
+  public elementClass: string;
+
   @Inject(TOKENS.settings)
   protected settingsService!: SettingsService;
 
@@ -26,12 +32,6 @@ export class DotMarker extends GutterMarker {
    * Characters are retrieved from plugin settings.
    */
   protected char: { [key: string]: string };
-
-  /**
-   * CSS class applied to the gutter marker element.
-   * Combines the dot indicator type with the specific change type.
-   */
-  public elementClass: string;
 
   /**
    * Creates a new instance of DotMarker.

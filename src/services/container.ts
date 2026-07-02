@@ -1,16 +1,8 @@
 import { META_INJECT, META_ON_EVENT } from '@/decorators/meta-keys';
+import type { Container } from '@/services/container.types';
 import { type ServiceToken, tokenName } from '@/services/tokens';
 import type { ClassConstructor, Service } from '@/types';
 import type EventEmitter from 'eventemitter3';
-
-/**
- * Narrow resolution surface an injected consumer depends on: resolve a
- * registered service by its stable token. Consumers type against this instead
- * of the full plugin, so the container's read side is their only DI coupling.
- */
-export interface Container {
-  get<T extends {}>(token: ServiceToken<T>): T;
-}
 
 /**
  * Owns the plugin's service instances under one insertion-ordered, symbol-keyed

@@ -3,7 +3,7 @@
 import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
 import { ListSelectionDirection, ORIGINAL_BASE_ID, VersionAction, VersionListEdge } from '@/consts';
 import { VersionList } from '@/components/version-list.component';
-import type { VersionListHost } from '@/components/version-list.component';
+import type { VersionListHost } from '@/components/version-list.component.types';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import { FileVersion } from '@/snapshots/file.version';
 import type LineChangeTrackerPlugin from '@/main';

@@ -7,6 +7,7 @@ import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import { TOKENS } from '@/services/tokens';
 import { ExcludePatternsEditor } from '@/settings/exclude-patterns-editor';
+import type { RetentionKey } from '@/settings/main.setting.types';
 import {
   type ButtonComponent,
   type DropdownComponent,
@@ -19,12 +20,6 @@ import {
   type TextComponent,
   type ToggleComponent
 } from 'obsidian';
-
-/**
- * The four stored-history retention caps rendered in the cleanup group, keyed
- * by their `retention.*` settings path segment.
- */
-type RetentionKey = 'maxEntries' | 'maxAgeDays' | 'maxDeletedEntries' | 'maxDeletedAgeDays';
 
 /**
  * Settings tab for the Line Change Tracker plugin.

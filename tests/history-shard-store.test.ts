@@ -2,7 +2,7 @@ import { describe, expect, it } from '@jest/globals';
 import type { DataAdapter } from 'obsidian';
 
 import { HistoryShardStore } from '@/persistence/history-shard-store';
-import type { LoadedShard } from '@/persistence/history-shard-store';
+import type { LoadedShard } from '@/persistence/history-shard-store.types';
 import type { SerializedFileSnapshot, SerializedShard } from '@/types';
 
 import { MemoryAdapter } from './stubs/memory-adapter';

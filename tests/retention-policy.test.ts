@@ -1,7 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { MS_PER_DAY } from '@/consts';
-import { RetentionPolicy, type RetentionCaps } from '@/persistence/retention-policy';
+import { RetentionPolicy } from '@/persistence/retention-policy';
+import type { RetentionCaps } from '@/persistence/retention-policy.types';
 import type { SerializedFileSnapshot } from '@/types';
 
 /**

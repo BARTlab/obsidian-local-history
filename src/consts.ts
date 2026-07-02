@@ -352,6 +352,39 @@ export const NO_NEWLINE_MARKER: string = '\\ No newline at end of file';
 export const REVERT_GLYPH: string = '↩';
 
 /**
+ * CSS custom property carrying the settings-driven line-marker bar width. Set on
+ * `document.body` so it cascades to the editor gutter bars and the reading-mode
+ * indicators.
+ */
+export const LINE_WIDTH_VAR: string = '--lct-line-width';
+
+/**
+ * CSS custom property carrying the settings-driven line-marker corner radius,
+ * written on `document.body` alongside {@link LINE_WIDTH_VAR}.
+ */
+export const LINE_BORDER_RADIUS_VAR: string = '--lct-line-border-radius';
+
+/**
+ * CSS class applied to a reading-mode block when any of its source lines are
+ * decorated. The data-lct-type attribute carries the highest-priority change
+ * type so CSS can color the indicator without extra classes.
+ */
+export const CLASS_INDICATOR = 'lct-rm-indicator';
+
+/**
+ * Priority order for picking a representative change type when multiple types
+ * appear in the same block. Lower index = higher priority (added > changed >
+ * whitespace > restored). Removed lines are never present as HTML blocks in
+ * reading mode, so they are excluded here.
+ */
+export const TYPE_PRIORITY: ChangeType[] = [
+  ChangeType.added,
+  ChangeType.changed,
+  ChangeType.whitespace,
+  ChangeType.restored,
+];
+
+/**
  * Number of milliseconds in a day, used to translate an age cap (in days) from
  * settings into a timestamp comparison when evicting old entries or versions.
  */

@@ -934,6 +934,55 @@ body {
   }
 }
 
+/* ---- gutter bar hover affordance ---- */
+/* Gated on the `lct-hover-affordance` body class that StylesService toggles from
+ * the gutter-hover-panel setting: when the setting is off the class is absent
+ * and none of these rules apply (no widening, no pointer, no extended hit zone).
+ * A hovered change marker widens to 2x its resting stripe; the whole column is
+ * the hit target, so the pointer catches the marker before any visual change and
+ * never has to aim at the thin stripe. JetBrains gutter stripe is the reference. */
+body.lct-hover-affordance .cm-gutter.lct-gutter-bar-col {
+  /* Reserve the extended hit width statically (2x the stripe): the reserved
+   * cell IS the hit zone, so hover/click land on the full width the moment the
+   * pointer enters, before the bar changes. Reserving (rather than overflowing a
+   * pseudo-element into the neighbouring line-number gutter) keeps the hit test
+   * free of sibling-gutter stacking, and because the width is fixed whether or
+   * not the marker is hovered, the editor text never shifts on hover. The tall
+   * full-line cell gives the narrow target an easy vertical run (Fitts). */
+  min-width: calc(var(--lct-line-width) * 2);
+
+  /* Pointer over the whole reserved cell: the cursor promises the click the
+   * hover panel will handle. Only changed lines render a cell, so unchanged
+   * lines keep the default cursor. */
+  .cm-gutterElement {
+    cursor: pointer;
+  }
+
+  /* Grow only via transform, never width: a composited scale reflows nothing and
+   * stays inside the reserved column, so the editor text never shifts on hover
+   * (a hover layout jump is a rejection criterion). This single transition
+   * property is the stylesheet's first animation. */
+  .lct-gutter-bar {
+    transition: transform 150ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  /* Widen the resting stripe to fill the reserved 2x on hover. The left origin
+   * pins the run's leading edge, so a seam-merged run keeps its continuous left
+   * contour and the seam bridge (a vertical overlap) stays effective at both
+   * widths. The removed dash rides the same rule and widens like the bars. */
+  .cm-gutterElement:hover .lct-gutter-bar {
+    transform: scaleX(2);
+    transform-origin: left center;
+  }
+}
+
+/* Reduced-motion users still get the widening, just without the eased growth. */
+@media (prefers-reduced-motion: reduce) {
+  body.lct-hover-affordance .cm-gutter.lct-gutter-bar-col .lct-gutter-bar {
+    transition: none;
+  }
+}
+
 .cm-gutter {
   &.lct-dot {
     min-width: 20px;

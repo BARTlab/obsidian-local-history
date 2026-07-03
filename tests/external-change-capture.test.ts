@@ -159,6 +159,30 @@ describe('ExternalChangeCapture', () => {
       expect(markers(snapshot, ChangeType.removed)).toEqual([]);
     });
 
+    it('keeps a removed-line anchor when the resync lands different content at its position', async () => {
+      const file = makeFile('notes/a.md', { stat: { mtime: 1, size: 1 } });
+      const snapshot = track(file.path, 'alpha\nbeta\ngamma\ndelta');
+
+      // The detector processed the deletion of line 2: an anchor remains.
+      snapshot.trackers.removeTrackerOrLine(1);
+      snapshot.content.updateState(['alpha', 'gamma', 'delta']);
+      snapshot.updateChanges();
+
+      expect(markers(snapshot, ChangeType.removed)).toEqual([1]);
+
+      // A lagged editor insert of a DIFFERENT line at the anchor position
+      // reaches the model through the auto-save resync. The deletion record
+      // must survive; only identical content may fold the anchor back.
+      vault[file.path] = 'alpha\nfresh\ngamma\ndelta';
+
+      const capture = new ExternalChangeCapture(makeHost());
+
+      await capture.capture(file);
+
+      expect(markers(snapshot, ChangeType.added)).toEqual([1]);
+      expect(markers(snapshot, ChangeType.removed)).toHaveLength(1);
+    });
+
     it('is a no-op when the disk content matches the known snapshot state', async () => {
       const file = makeFile('notes/a.md', { stat: { mtime: 1, size: 1 } });
       const snapshot = track(file.path, 'one\ntwo\nthree');

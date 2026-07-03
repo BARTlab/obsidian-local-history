@@ -1,4 +1,5 @@
 import { assertNever } from '@/helpers/assert-never.helper';
+import * as TextHelper from '@/helpers/text.helper';
 import { TrackerLine } from '@/lines/tracker.line';
 import { ArrayMap } from '@/maps/array.map';
 import { TrackerIndex } from '@/snapshots/tracker-index';
@@ -336,12 +337,21 @@ export class TrackerEditor {
    * If a removed tracker line is found at the position, it is restored.
    * Otherwise, a new tracker line is added.
    *
+   * When `content` is given, a removed anchor is restored only if the content
+   * it held at deletion time matches: re-inserting the deleted line as it was
+   * (undo, paste-back) folds the anchor back, while unrelated new content
+   * typed at the anchor position adds a fresh tracker and leaves the deletion
+   * record visible. A content-blind restore here silently converted a removal
+   * plus an insertion into a single "changed" line, losing the removed marker.
+   *
    * @param {number | TrackerLine} line - The line number or tracker line to restore or add
    * @param {boolean} shift - Whether to shift other lines to accommodate the restored/added line
+   * @param {string} content - Optional content the restored anchor's last content must match
    * @return {TrackerLine} The restored or added tracker line
    */
-  public restoreOrAddTracker(line: number | TrackerLine, shift: boolean = true): TrackerLine {
-    const removed: TrackerLine | null = line instanceof TrackerLine ? line : this.index.findRemovedAt(line);
+  public restoreOrAddTracker(line: number | TrackerLine, shift: boolean = true, content?: string): TrackerLine {
+    const contentHash: string | undefined = typeof content === 'string' ? TextHelper.hash(content) : undefined;
+    const removed: TrackerLine | null = line instanceof TrackerLine ? line : this.index.findRemovedAt(line, contentHash);
     const index: number = line instanceof TrackerLine ? line.removedAtPosition : line;
 
     if (shift) {
@@ -523,7 +533,7 @@ export class TrackerEditor {
     }
 
     replacement.forEach((content: string, offset: number): void => {
-      this.restoreOrAddTracker(start + offset)?.change(content);
+      this.restoreOrAddTracker(start + offset, true, content)?.change(content);
     });
 
     doomed.forEach((item: TrackerLine): void => {

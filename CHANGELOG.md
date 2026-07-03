@@ -30,6 +30,11 @@ follows [Semantic Versioning](https://semver.org/).
   captured as an external rewrite and replaced the entire tracked state, so
   every line lit up as new after a single inserted line. The capture now
   applies a minimal per-line resync, keeping the markers of untouched lines.
+- **The removed-line marker survives new text typed in its place.** A new
+  line entered at a deleted line's position no longer silently revives the
+  deleted line as a "changed" one, which erased the removal record; the new
+  line is marked as added and the removal marker stays. Undo and pasting the
+  line back exactly as it was still clear the marker cleanly.
 
 ## [1.1.0] - 2026-06-10
 

@@ -167,7 +167,7 @@ export class ChangeDetectorExtension implements EditorExtension {
         }
 
         for (let index: number = newCoreStart; index <= newCoreEnd; index++) {
-          const added: TrackerLine = snapshot.trackers.restoreOrAddTracker(index);
+          const added: TrackerLine = snapshot.trackers.restoreOrAddTracker(index, true, currentLines[index]);
 
           added?.change(currentLines[index]);
         }

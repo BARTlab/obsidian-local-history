@@ -19,6 +19,12 @@ follows [Semantic Versioning](https://semver.org/).
 - **Change bars in quote blocks.** A change bar on a line inside a quote block
   in Live Preview no longer merges with the blockquote marker and paints over
   it; it is drawn as a separate bar, the same as on any other line.
+- **Table cells no longer track or mark changes.** Obsidian mounts a small
+  editor inside every Live Preview table cell and runs plugin extensions in
+  it; the plugin treated each cell's one-line document as the whole note.
+  Typing in a table cell no longer phantom-marks line 1 of the note, gutter
+  markers no longer appear inside table cells, and a bogus one-line "version"
+  of a single cell can no longer be captured into the note's history.
 
 ## [1.1.0] - 2026-06-10
 

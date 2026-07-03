@@ -15,6 +15,8 @@ jest.mock('@codemirror/view', () => ({
   Decoration: { none: {}, line: (): unknown => ({}) },
 }));
 
+import { editorInfoField } from 'obsidian';
+import type { StateField } from '@codemirror/state';
 import { IndicatorType } from '@/consts';
 import { GutterRemovedExtension } from '@/extensions/gutter-removed.extension';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
@@ -98,12 +100,23 @@ const makePlugin = (overrides: {
 
 /**
  * Builds a fake EditorView backed by a real EditorState for the given document
- * string, exposing state and doc the extension reads during markers().
+ * string, exposing state and doc the extension reads during markers(). The
+ * inert `dom` satisfies the nested-editor guard's DOM fallback (reads as a
+ * root editor); `nested: true` initializes `editorInfoField` with a foreign
+ * outer view so the guard classifies the view as a table-cell sub-editor.
  */
-const makeView = (doc: string): EditorView => {
-  const state = EditorState.create({ doc });
+const makeView = (doc: string, nested: boolean = false): EditorView => {
+  // The runtime field is the jest stub (StateField<unknown>); retype the real
+  // obsidian declaration to match so init can return a plain test double.
+  const infoField = editorInfoField as unknown as StateField<unknown>;
+  const view = { dom: { closest: (): Element | null => null } } as unknown as EditorView;
+  const extensions = nested
+    ? [infoField.init((): unknown => ({ editor: { cm: {} } }))]
+    : [];
 
-  return { state } as unknown as EditorView;
+  Object.assign(view, { state: EditorState.create({ doc, extensions }) });
+
+  return view;
 };
 
 /**
@@ -413,5 +426,30 @@ describe('GutterRemovedExtension revertRemovedAt - revert affordance', () => {
     await callRevertRemovedAt(ext, 1);
 
     expect(applyContent).not.toHaveBeenCalled();
+  });
+});
+
+describe('GutterRemovedExtension nested cell editors', () => {
+  // Obsidian instantiates the gutter inside every Live Preview table cell
+  // editor; a removed anchor whose position fits the cell's tiny doc must not
+  // paint the cell, only the root editor.
+  it('renders no removed anchors inside a nested cell editor', () => {
+    const doc = 'a\nb\nc\nd';
+    const snapshot = new FileSnapshot(doc);
+    // Delete line 2 ("b"): the anchor lands at position 1.
+    applyEdit(snapshot, doc, {
+      from: lineFrom(doc, 1) + 1,
+      to: lineFrom(doc, 2) + 1,
+      insert: '',
+    });
+
+    const { plugin } = makePlugin({ snapshotOverride: snapshot });
+    const ext = new GutterRemovedExtension(null as unknown as ViewArg, plugin);
+    const cellDoc = 'x\ny';
+
+    // The same two-line doc renders the anchor in a root editor...
+    expect(collectMarkers(ext.markers(makeView(cellDoc)))).toHaveLength(1);
+    // ...and nothing in a nested cell sub-editor.
+    expect(collectMarkers(ext.markers(makeView(cellDoc, true)))).toHaveLength(0);
   });
 });

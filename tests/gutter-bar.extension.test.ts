@@ -15,6 +15,8 @@ jest.mock('@codemirror/view', () => ({
   Decoration: { none: {}, line: (): unknown => ({}) },
 }));
 
+import { editorInfoField } from 'obsidian';
+import type { StateField } from '@codemirror/state';
 import { ChangeType, IndicatorType } from '@/consts';
 import { GutterBarExtension } from '@/extensions/gutter-bar.extension';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
@@ -95,12 +97,23 @@ const makePlugin = (overrides: ShowFlags & {
 
 /**
  * Builds a fake EditorView backed by a real EditorState for the given document
- * string, exposing the state and doc the extension reads during markers().
+ * string, exposing the state and doc the extension reads during markers(). The
+ * inert `dom` satisfies the nested-editor guard's DOM fallback (reads as a
+ * root editor); `nested: true` initializes `editorInfoField` with a foreign
+ * outer view so the guard classifies the view as a table-cell sub-editor.
  */
-const makeView = (doc: string): EditorView => {
-  const state = EditorState.create({ doc });
+const makeView = (doc: string, nested: boolean = false): EditorView => {
+  // The runtime field is the jest stub (StateField<unknown>); retype the real
+  // obsidian declaration to match so init can return a plain test double.
+  const infoField = editorInfoField as unknown as StateField<unknown>;
+  const view = { dom: { closest: (): Element | null => null } } as unknown as EditorView;
+  const extensions = nested
+    ? [infoField.init((): unknown => ({ editor: { cm: {} } }))]
+    : [];
 
-  return { state } as unknown as EditorView;
+  Object.assign(view, { state: EditorState.create({ doc, extensions }) });
+
+  return view;
 };
 
 /**
@@ -392,5 +405,26 @@ describe('GutterBarExtension markers - out-of-range positions (boundary)', () =>
 
     // Only the in-range change survives; the position-5 change is skipped.
     expect(markers).toEqual([{ from: lineFrom(viewDoc, 2), type: ChangeType.changed }]);
+  });
+});
+
+describe('GutterBarExtension nested cell editors', () => {
+  // Obsidian instantiates the gutter inside every Live Preview table cell
+  // editor; a file change whose position fits the cell's tiny doc must not
+  // paint the cell, only the root editor.
+  it('renders no bars inside a nested cell editor', () => {
+    const doc = 'a\nb';
+    const snapshot = new FileSnapshot(doc);
+    // Edit line 2 ("b" -> "B"): the change sits at position 1.
+    applyEdit(snapshot, doc, { from: lineFrom(doc, 2), to: lineFrom(doc, 2) + 1, insert: 'B' });
+
+    const { plugin } = makePlugin({ snapshotOverride: snapshot });
+    const ext = new GutterBarExtension(null as unknown as ViewArg, plugin);
+    const cellDoc = 'x\ny';
+
+    // The same two-line doc renders the bar in a root editor...
+    expect(collectMarkers(ext.markers(makeView(cellDoc)))).toHaveLength(1);
+    // ...and nothing in a nested cell sub-editor.
+    expect(collectMarkers(ext.markers(makeView(cellDoc, true)))).toHaveLength(0);
   });
 });

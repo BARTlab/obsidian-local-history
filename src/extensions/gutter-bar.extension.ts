@@ -1,5 +1,6 @@
 import { ChangeType, IndicatorType } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
+import { isNestedEditor } from '@/helpers/nested-editor.helper';
 import type { ChangeLine } from '@/lines/change.line';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ArrayMap } from '@/maps/array.map';
@@ -63,7 +64,9 @@ export class GutterBarExtension implements GutterConfig {
     const changes: ArrayMap<ChangeLine> | null = snapshot?.content.getChanges(enable) ?? null;
     const builder = new RangeSetBuilder<BarMarker>();
 
-    if (!this.isTypeLine() || !snapshot || !changes?.size) {
+    // Snapshot positions are file lines; a nested cell editor's doc is only
+    // the cell text, so any marker rendered there would be misplaced.
+    if (isNestedEditor(view) || !this.isTypeLine() || !snapshot || !changes?.size) {
       return builder.finish();
     }
 

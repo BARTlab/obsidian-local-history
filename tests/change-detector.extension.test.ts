@@ -695,3 +695,81 @@ describe('ChangeDetectorExtension nested cell editors', () => {
     expect(snapshot.content.getLastStateLines()).toEqual(['a', 'b', 'c']);
   });
 });
+
+describe('ChangeDetectorExtension multi-range doomed-capture coordinates', () => {
+  // In one transaction with several ranges, each earlier range's add/remove
+  // shifts the tracker set toward the final document. The doomed-capture loop
+  // resolves old-document line numbers, so without offsetting by the running
+  // line delta a later range records the wrong originals as removed and the
+  // self-heal pass marks an untouched survivor as changed.
+  it('records the destroyed originals, not shifted survivors, for a later range', () => {
+    const doc = 'aaa\nbbb\nccc\nddd\neee';
+    const snapshot = new FileSnapshot(doc);
+
+    // One transaction: insert "XXX" at the top and delete whole lines ccc, ddd
+    // -> XXX, aaa, bbb, eee. The deletion range is processed after the insert
+    // has already pushed every tracker down by one line.
+    step(snapshot, doc, [
+      { from: lineRange(doc, 1).from, insert: 'XXX\n' },
+      { from: lineRange(doc, 3).from, to: lineRange(doc, 5).from, insert: '' },
+    ]);
+
+    const removedOriginals: (string | null)[] = snapshot.trackers.getTrackerLines()
+      .filter((line): boolean => line.isStateRemoved())
+      .map((line): string | null => line.original)
+      .sort();
+
+    expect(removedOriginals).toEqual(['ccc', 'ddd']);
+
+    const survivor = snapshot.trackers.getTrackerLines().find((line): boolean => line.original === 'bbb');
+
+    expect(survivor?.isStateOriginal()).toBe(true);
+    expect(survivor?.currentPosition).toBe(2);
+
+    // Only the inserted line is new; nothing else is added or changed.
+    expect(positions(snapshot, ChangeType.added)).toEqual([0]);
+    expect(positions(snapshot, ChangeType.changed)).toEqual([]);
+    expect(removedTrackerCount(snapshot)).toBe(2);
+  });
+
+  it('keeps two mid-line splits in one transaction independent', () => {
+    const doc = 'ab\ncd\nef\ngh';
+    const snapshot = new FileSnapshot(doc);
+
+    // Split "ab" after "a" and "ef" after "e" in one transaction
+    // -> a, b, cd, e, f, gh. Each split is one changed + one added line.
+    step(snapshot, doc, [
+      { from: lineRange(doc, 1).from + 1, insert: '\n' },
+      { from: lineRange(doc, 3).from + 1, insert: '\n' },
+    ]);
+
+    expect(positions(snapshot, ChangeType.changed)).toEqual([0, 3]);
+    expect(positions(snapshot, ChangeType.added)).toEqual([1, 4]);
+    expect(positions(snapshot, ChangeType.removed)).toEqual([]);
+    expect(snapshot.trackers.findCurrentLine(2)?.isStateOriginal()).toBe(true);
+    expect(snapshot.trackers.findCurrentLine(5)?.isStateOriginal()).toBe(true);
+  });
+
+  it('maps a later in-place whole-line replacement onto the right shifted tracker', () => {
+    const doc = 'aaa\nbbb\nccc\nddd';
+    const snapshot = new FileSnapshot(doc);
+
+    // Insert "XXX" at the top, then replace whole line "ccc" with "CCC" in one
+    // transaction -> XXX, aaa, bbb, CCC, ddd. The equal-counts in-place edit runs
+    // after the insert shifted every tracker down, so it must still land on ccc.
+    step(snapshot, doc, [
+      { from: lineRange(doc, 1).from, insert: 'XXX\n' },
+      { from: lineRange(doc, 3).from, to: lineRange(doc, 3).to, insert: 'CCC' },
+    ]);
+
+    expect(positions(snapshot, ChangeType.added)).toEqual([0]);
+    expect(positions(snapshot, ChangeType.changed)).toEqual([3]);
+    expect(positions(snapshot, ChangeType.removed)).toEqual([]);
+    // The changed line at index 3 is the original "ccc" edited in place, not a
+    // survivor an earlier range shifted into that slot.
+    expect(snapshot.trackers.findCurrentLine(3)?.original).toBe('ccc');
+    expect(snapshot.trackers.findCurrentLine(1)?.isStateOriginal()).toBe(true);
+    expect(snapshot.trackers.findCurrentLine(2)?.isStateOriginal()).toBe(true);
+    expect(snapshot.trackers.findCurrentLine(4)?.isStateOriginal()).toBe(true);
+  });
+});

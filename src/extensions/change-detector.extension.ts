@@ -86,6 +86,9 @@ export class ChangeDetectorExtension implements EditorExtension {
       return;
     }
 
+    // Running net line delta of the transaction ranges already processed below.
+    let lineShift: number = 0;
+
     update.changes.iterChanges((fromA: number, toA: number, fromB: number, toB: number): void => {
       // Line numbers (0-based) touched by this change in the old and new docs.
       const fromOldLine: number = prev.lineAt(fromA).number - 1;
@@ -158,8 +161,17 @@ export class ChangeDetectorExtension implements EditorExtension {
          */
         const doomed: TrackerLine[] = [];
 
+        /**
+         * Old-document indices (oldCoreStart..oldCoreEnd, derived from
+         * prev.lineAt) do not carry the shifts that earlier ranges of this same
+         * transaction already applied to the tracker set. Offset by the running
+         * delta so the doomed lookup hits the tracker that now represents the old
+         * line this range destroys, not a survivor an earlier range moved into
+         * that slot. New-document lookups (boundary and in-place) already reflect
+         * the shift and stay unoffset.
+         */
         for (let index: number = oldCoreStart; index <= oldCoreEnd; index++) {
-          const tracker: TrackerLine | null = snapshot.trackers.findCurrentLine(index);
+          const tracker: TrackerLine | null = snapshot.trackers.findCurrentLine(index + lineShift);
 
           if (tracker) {
             doomed.push(tracker);
@@ -176,6 +188,9 @@ export class ChangeDetectorExtension implements EditorExtension {
           snapshot.trackers.removeTrackerOrLine(tracker);
         });
       }
+
+      // Advance the running shift by this range's net line count (new minus old).
+      lineShift += toNewLine - fromNewLine - (toOldLine - fromOldLine);
 
       /**
        * Update the content of the surviving boundary lines. The suffix line is

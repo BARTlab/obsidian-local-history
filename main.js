@@ -3036,6 +3036,22 @@ function assertNever(value, label) {
   throw new Error(`Unexpected value "${String(value)}"${suffix}`);
 }
 
+// src/helpers/nested-editor.helper.ts
+var import_obsidian11 = require("obsidian");
+var infoField = import_obsidian11.editorInfoField;
+function isNestedEditor(view) {
+  var _a;
+  if (!view) {
+    return false;
+  }
+  const info = view.state.field(infoField, false);
+  const outer = (_a = info == null ? void 0 : info.editor) == null ? void 0 : _a.cm;
+  if (outer) {
+    return outer !== view;
+  }
+  return view.dom.closest(".table-cell-wrapper") !== null;
+}
+
 // src/extensions/change-detector.extension.ts
 var import_view = require("@codemirror/view");
 var ChangeDetectorExtension = class {
@@ -3055,7 +3071,7 @@ var ChangeDetectorExtension = class {
    * @param {ViewUpdate} update - The view update event from CodeMirror
    */
   update(update2) {
-    if (!update2.docChanged) {
+    if (!update2.docChanged || isNestedEditor(update2.view)) {
       return;
     }
     this.processIncrementalChanges(update2);
@@ -3115,7 +3131,7 @@ var ChangeDetectorExtension = class {
           }
         }
         for (let index = newCoreStart; index <= newCoreEnd; index++) {
-          const added = snapshot.trackers.restoreOrAddTracker(index);
+          const added = snapshot.trackers.restoreOrAddTracker(index, true, currentLines[index]);
           added == null ? void 0 : added.change(currentLines[index]);
         }
         doomed.forEach((tracker) => {
@@ -3253,7 +3269,7 @@ var GutterBarExtension = class {
       const snapshot = this.snapshotsService.getOne();
       const changes = (_a = snapshot == null ? void 0 : snapshot.content.getChanges(enable)) != null ? _a : null;
       const builder = new import_state2.RangeSetBuilder();
-      if (!this.isTypeLine() || !snapshot || !(changes == null ? void 0 : changes.size)) {
+      if (isNestedEditor(view) || !this.isTypeLine() || !snapshot || !(changes == null ? void 0 : changes.size)) {
         return builder.finish();
       }
       for (const pos of snapshot.content.getChangedPositions(enable)) {
@@ -3816,6 +3832,23 @@ function tokenize(value, options) {
     }
   }
   return retLines;
+}
+
+// node_modules/diff/libesm/diff/array.js
+var ArrayDiff = class extends Diff {
+  tokenize(value) {
+    return value.slice();
+  }
+  join(value) {
+    return value;
+  }
+  removeEmpty(value) {
+    return value;
+  }
+};
+var arrayDiff = new ArrayDiff();
+function diffArrays(oldArr, newArr, options) {
+  return arrayDiff.diff(oldArr, newArr, options);
 }
 
 // node_modules/diff/libesm/patch/line-endings.js
@@ -4798,7 +4831,7 @@ __decorateClass([
 var DotMarker = _DotMarker;
 
 // src/extensions/gutter-common.extension.ts
-var import_obsidian11 = require("obsidian");
+var import_obsidian12 = require("obsidian");
 var import_state3 = require("@codemirror/state");
 var GutterCommonExtension = class {
   constructor(view, plugin) {
@@ -4840,7 +4873,7 @@ var GutterCommonExtension = class {
       const snapshot = this.snapshotsService.getOne();
       const changes = (_a = snapshot == null ? void 0 : snapshot.content.getChanges(enable)) != null ? _a : null;
       const builder = new import_state3.RangeSetBuilder();
-      if (!this.isTypeDot() || !snapshot || !(changes == null ? void 0 : changes.size)) {
+      if (isNestedEditor(view) || !this.isTypeDot() || !snapshot || !(changes == null ? void 0 : changes.size)) {
         return builder.finish();
       }
       for (const pos of snapshot.content.getChangedPositions(enable)) {
@@ -4913,7 +4946,7 @@ var GutterCommonExtension = class {
    */
   openGutterMenu(event) {
     event.preventDefault();
-    const menu = new import_obsidian11.Menu();
+    const menu = new import_obsidian12.Menu();
     const shown = this.settingsService.isShowChangesEnabled();
     menu.addItem((item) => {
       item.setTitle(this.plugin.t("menu.show-changes")).setIcon("eye").setChecked(shown).onClick(() => {
@@ -5043,7 +5076,7 @@ var GutterRemovedExtension = class {
       const snapshot = this.snapshotsService.getOne();
       const removed = (_a = snapshot == null ? void 0 : snapshot.content.getChanges("removed" /* removed */)) != null ? _a : null;
       const builder = new import_state4.RangeSetBuilder();
-      if (!this.isTypeDot() || !this.isEnable() || !snapshot || !removed || removed.size === 0) {
+      if (isNestedEditor(view) || !this.isTypeDot() || !this.isEnable() || !snapshot || !removed || removed.size === 0) {
         return builder.finish();
       }
       for (const pos of snapshot.content.getChangedPositions("removed" /* removed */)) {
@@ -13988,7 +14021,7 @@ function set(object, path, value) {
 var set_default = set;
 
 // src/helpers/dom.helper.ts
-var import_obsidian12 = require("obsidian");
+var import_obsidian13 = require("obsidian");
 function create(config) {
   const element = document.createElement(config.tag);
   update(element, config);
@@ -14060,12 +14093,12 @@ function update(element, config) {
 }
 function setSanitizedHtml(element, html2) {
   element.empty();
-  element.appendChild((0, import_obsidian12.sanitizeHTMLToDom)(html2));
+  element.appendChild((0, import_obsidian13.sanitizeHTMLToDom)(html2));
 }
 
 // src/modals/confirm.modal.ts
-var import_obsidian13 = require("obsidian");
-var ConfirmModal = class extends import_obsidian13.Modal {
+var import_obsidian14 = require("obsidian");
+var ConfirmModal = class extends import_obsidian14.Modal {
   /**
    * Creates a new instance of ConfirmModal.
    *
@@ -14420,7 +14453,7 @@ var FolderTreeModel = class _FolderTreeModel {
 };
 
 // src/components/folder-tree.component.ts
-var import_obsidian14 = require("obsidian");
+var import_obsidian15 = require("obsidian");
 var FolderTreeComponent = class {
   constructor() {
     /** Container the component renders into; null between dispose / re-mount. */
@@ -14630,13 +14663,13 @@ var FolderTreeComponent = class {
       classes: ["tree-item-icon", "collapse-icon", "lct-folder-tree-chevron"],
       container: row
     });
-    (0, import_obsidian14.setIcon)(chevron, isCollapsed ? "chevron-right" : "chevron-down");
+    (0, import_obsidian15.setIcon)(chevron, isCollapsed ? "chevron-right" : "chevron-down");
     const icon = create({
       tag: "span",
       classes: "lct-folder-tree-icon",
       container: row
     });
-    (0, import_obsidian14.setIcon)(icon, "folder");
+    (0, import_obsidian15.setIcon)(icon, "folder");
     create({
       tag: "span",
       classes: ["tree-item-inner", "nav-folder-title-content", "lct-folder-tree-name"],
@@ -14695,7 +14728,7 @@ var FolderTreeComponent = class {
       classes: "lct-folder-tree-icon",
       container: row
     });
-    (0, import_obsidian14.setIcon)(icon, "file");
+    (0, import_obsidian15.setIcon)(icon, "file");
     create({
       tag: "span",
       classes: ["tree-item-inner", "nav-file-title-content", "lct-folder-tree-name"],
@@ -14735,7 +14768,7 @@ var FolderTreeComponent = class {
       classes: "lct-version-external-badge-icon",
       container: badge
     });
-    (0, import_obsidian14.setIcon)(slot, "download-cloud");
+    (0, import_obsidian15.setIcon)(slot, "download-cloud");
     create({
       tag: "span",
       classes: "lct-version-external-badge-text",
@@ -15028,7 +15061,7 @@ var DiffViewState = class {
 };
 
 // src/modals/folder-action-handler.ts
-var import_obsidian15 = require("obsidian");
+var import_obsidian16 = require("obsidian");
 var FolderActionHandler = class {
   /**
    * @param {FolderActionHost} host - The modal port the handler reads its shared
@@ -15193,9 +15226,9 @@ var FolderActionHandler = class {
       await this.host.app.vault.modify(file, originalContent);
       this.host.snapshotsService.wipeOne(file);
       this.host.removeFromMap(selection.path);
-      new import_obsidian15.Notice(this.host.plugin.t("notice.file-restored"));
+      new import_obsidian16.Notice(this.host.plugin.t("notice.file-restored"));
     } catch (_error) {
-      new import_obsidian15.Notice(this.host.plugin.t("notice.file-restore-failed"));
+      new import_obsidian16.Notice(this.host.plugin.t("notice.file-restore-failed"));
       return;
     }
     this.host.resyncTimeline();
@@ -15253,7 +15286,7 @@ var FolderActionHandler = class {
   async restoreTombstoneSelection(path, snapshot, result) {
     const content = result.base.join(snapshot.content.lineBreak);
     if (this.host.app.vault.getAbstractFileByPath(path) !== null) {
-      new import_obsidian15.Notice(this.host.plugin.t("notice.file-restore-path-occupied"));
+      new import_obsidian16.Notice(this.host.plugin.t("notice.file-restore-path-occupied"));
       return;
     }
     try {
@@ -15264,7 +15297,7 @@ var FolderActionHandler = class {
       snapshot.updateChanges();
       this.host.snapshotsService.forceUpdate();
     } catch (_error) {
-      new import_obsidian15.Notice(this.host.plugin.t("notice.file-restore-failed"));
+      new import_obsidian16.Notice(this.host.plugin.t("notice.file-restore-failed"));
     }
   }
 };
@@ -17356,7 +17389,7 @@ function html(diffInput, configuration = {}) {
 }
 
 // src/helpers/diff-render.helper.ts
-var import_obsidian16 = require("obsidian");
+var import_obsidian17 = require("obsidian");
 function render(params) {
   const hunks = diff(
     params.baseLines,
@@ -17428,7 +17461,7 @@ function renderPatch(params) {
   const patch = buildCleanPatch(params);
   const handlerClick = () => {
     navigator.clipboard.writeText(patch).then(() => {
-      new import_obsidian16.Notice(params.plugin.t("notice.copied"));
+      new import_obsidian17.Notice(params.plugin.t("notice.copied"));
     });
   };
   update(
@@ -17458,7 +17491,7 @@ function renderPatch(params) {
   );
   const copyButton = params.container.querySelector(".lct-patch-copy-button");
   if (copyButton) {
-    (0, import_obsidian16.setIcon)(copyButton, "copy");
+    (0, import_obsidian17.setIcon)(copyButton, "copy");
     copyButton.setAttribute("aria-label", params.plugin.t("modal.copy"));
     copyButton.setAttribute("title", params.plugin.t("modal.copy"));
   }
@@ -17919,7 +17952,7 @@ var FolderSelectionModel = class {
 };
 
 // src/helpers/external-badge.helper.ts
-var import_obsidian17 = require("obsidian");
+var import_obsidian18 = require("obsidian");
 var iconId = "download-cloud";
 function make(text) {
   return {
@@ -17940,7 +17973,7 @@ function paint(container) {
     const badgeIconId = badge.getAttribute("data-icon");
     const slot = badge.querySelector(".lct-version-external-badge-icon");
     if (badgeIconId && slot) {
-      (0, import_obsidian17.setIcon)(slot, badgeIconId);
+      (0, import_obsidian18.setIcon)(slot, badgeIconId);
     }
   });
 }
@@ -18164,7 +18197,7 @@ var HistoryModalShell = class {
 };
 
 // src/modals/toolbar-builder.ts
-var import_obsidian18 = require("obsidian");
+var import_obsidian19 = require("obsidian");
 var ToolbarBuilder = class {
   /**
    * @param {HTMLElement} container - The toolbar element groups are appended to.
@@ -18215,14 +18248,14 @@ var ToolbarBuilder = class {
         }
       }
     });
-    (0, import_obsidian18.setIcon)(button, config.icon);
+    (0, import_obsidian19.setIcon)(button, config.icon);
     return button;
   }
 };
 
 // src/modals/folder-history.modal.ts
-var import_obsidian19 = require("obsidian");
-var FolderHistoryModal = class extends import_obsidian19.Modal {
+var import_obsidian20 = require("obsidian");
+var FolderHistoryModal = class extends import_obsidian20.Modal {
   /**
    * Builds a new folder history modal. The caller is expected to have filtered
    * the snapshots to the folder root (see {@link ModalsService.openFolderHistory})
@@ -18441,7 +18474,7 @@ var FolderHistoryModal = class extends import_obsidian19.Modal {
     const key2 = "modal.folder.filter-files";
     const resolved = this.plugin.t(key2);
     const placeholder = resolved && resolved !== key2 ? resolved : "Filter files by name";
-    new import_obsidian19.SearchComponent(this.treeSearchEl).setPlaceholder(placeholder).setValue("").onChange((value) => {
+    new import_obsidian20.SearchComponent(this.treeSearchEl).setPlaceholder(placeholder).setValue("").onChange((value) => {
       this.tree.setNameFilter(value);
     });
   }
@@ -18949,7 +18982,7 @@ var DiffScrollSync = class {
 };
 
 // src/modals/gutter-revert-handler.ts
-var import_obsidian20 = require("obsidian");
+var import_obsidian21 = require("obsidian");
 var GutterRevertHandler = class {
   /**
    * @param {GutterRevertHost} host - The modal port the handler reads its shared
@@ -19178,7 +19211,7 @@ var GutterRevertHandler = class {
         }
       }
     });
-    (0, import_obsidian20.setIcon)(button, "undo-2");
+    (0, import_obsidian21.setIcon)(button, "undo-2");
   }
   /**
    * The live diff container, narrowed to a non-null element. The public entry
@@ -19658,8 +19691,8 @@ var VersionList = class {
 };
 
 // src/modals/history.modal.ts
-var import_obsidian21 = require("obsidian");
-var HistoryModal = class extends import_obsidian21.Modal {
+var import_obsidian22 = require("obsidian");
+var HistoryModal = class extends import_obsidian22.Modal {
   /**
    * Creates a new instance of HistoryModal.
    *
@@ -19786,10 +19819,10 @@ var HistoryModal = class extends import_obsidian21.Modal {
       }
       await this.app.vault.modify(file, originalContent);
       this.snapshotsService.wipeOne(file);
-      new import_obsidian21.Notice(this.plugin.t("notice.file-restored"));
+      new import_obsidian22.Notice(this.plugin.t("notice.file-restored"));
       this.close();
     } catch (_error) {
-      new import_obsidian21.Notice(this.plugin.t("notice.file-restore-failed"));
+      new import_obsidian22.Notice(this.plugin.t("notice.file-restore-failed"));
     }
   }
   /**
@@ -20182,7 +20215,7 @@ var HistoryModal = class extends import_obsidian21.Modal {
       return;
     }
     update(this.searchEl, { classes: { remove: "lct-rail-search-empty" } });
-    new import_obsidian21.SearchComponent(this.searchEl).setPlaceholder(this.plugin.t("modal.search-versions")).setValue(this.viewState.searchQuery).onChange((value) => {
+    new import_obsidian22.SearchComponent(this.searchEl).setPlaceholder(this.plugin.t("modal.search-versions")).setValue(this.viewState.searchQuery).onChange((value) => {
       this.viewState.searchQuery = value;
       this.versionList.render();
     });
@@ -20323,8 +20356,8 @@ __decorateClass([
 ], HistoryModal.prototype, "versionActionsService", 2);
 
 // src/modals/prompt.modal.ts
-var import_obsidian22 = require("obsidian");
-var PromptModal = class extends import_obsidian22.Modal {
+var import_obsidian23 = require("obsidian");
+var PromptModal = class extends import_obsidian23.Modal {
   /**
    * Creates a new instance of PromptModal.
    *
@@ -20456,7 +20489,7 @@ var PromptModal = class extends import_obsidian22.Modal {
 };
 
 // src/services/modals.service.ts
-var import_obsidian23 = require("obsidian");
+var import_obsidian24 = require("obsidian");
 var ModalsService = class {
   /**
    * Creates a new instance of ModalsService.
@@ -20565,13 +20598,13 @@ var ModalsService = class {
    */
   openFolderHistory(folder) {
     if (!folder) {
-      new import_obsidian23.Notice(this.plugin.t("notice.no-folder-history"));
+      new import_obsidian24.Notice(this.plugin.t("notice.no-folder-history"));
       return false;
     }
     const rootPath = folder.path;
     const snapshots = this.snapshotsService.getList().filter((snapshot) => this.isUnderFolder(snapshot, rootPath));
     if (snapshots.length === 0) {
-      new import_obsidian23.Notice(this.plugin.t("notice.no-folder-history"));
+      new import_obsidian24.Notice(this.plugin.t("notice.no-folder-history"));
       return false;
     }
     new FolderHistoryModal(this.plugin.app, this.plugin, rootPath, snapshots).open();
@@ -22092,8 +22125,8 @@ var ExcludePatternsEditor = class {
 };
 
 // src/settings/main.setting.ts
-var import_obsidian24 = require("obsidian");
-var MainSetting = class extends import_obsidian24.PluginSettingTab {
+var import_obsidian25 = require("obsidian");
+var MainSetting = class extends import_obsidian25.PluginSettingTab {
   constructor() {
     super(...arguments);
     /**
@@ -22134,7 +22167,7 @@ var MainSetting = class extends import_obsidian24.PluginSettingTab {
    * @param {HTMLElement} containerEl - The settings tab container
    */
   renderGeneral(containerEl) {
-    const group = new import_obsidian24.SettingGroup(containerEl).setHeading(this.plugin.t("setting.general-heading"));
+    const group = new import_obsidian25.SettingGroup(containerEl).setHeading(this.plugin.t("setting.general-heading"));
     group.addSetting((setting) => {
       setting.setName(this.plugin.t("setting.type.name")).setDesc(this.plugin.t("setting.type.desc")).addDropdown(
         (dropdown) => dropdown.addOption("line" /* line */, this.plugin.t("setting.type.option.line")).addOption("dot" /* dot */, this.plugin.t("setting.type.option.dot")).setValue(this.settingsService.value("type")).onChange((value) => {
@@ -22198,7 +22231,7 @@ var MainSetting = class extends import_obsidian24.PluginSettingTab {
    * @param {HTMLElement} containerEl - The settings tab container
    */
   renderExcludePaths(containerEl) {
-    const group = new import_obsidian24.SettingGroup(containerEl).setHeading(this.plugin.t("setting.exclude-paths.name"));
+    const group = new import_obsidian25.SettingGroup(containerEl).setHeading(this.plugin.t("setting.exclude-paths.name"));
     group.addExtraButton(
       (button) => button.setIcon("plus").setTooltip(this.plugin.t("setting.exclude-paths.add")).onClick(() => {
         this.excludePatternsEditor.startAdd();
@@ -22246,7 +22279,7 @@ var MainSetting = class extends import_obsidian24.PluginSettingTab {
    * @param {HTMLElement} containerEl - The settings tab container
    */
   renderSnapshots(containerEl) {
-    const group = new import_obsidian24.SettingGroup(containerEl).setHeading(this.plugin.t("setting.snapshots-heading"));
+    const group = new import_obsidian25.SettingGroup(containerEl).setHeading(this.plugin.t("setting.snapshots-heading"));
     group.addSetting((setting) => {
       setting.setName(this.plugin.t("setting.snapshots-enabled.name")).setDesc(this.plugin.t("setting.snapshots-enabled.desc")).addToggle(
         (toggle) => toggle.setValue(this.settingsService.value("snapshots.enabled")).onChange((value) => {
@@ -22300,7 +22333,7 @@ var MainSetting = class extends import_obsidian24.PluginSettingTab {
    * @param {HTMLElement} containerEl - The settings tab container
    */
   renderShow(containerEl) {
-    const group = new import_obsidian24.SettingGroup(containerEl).setHeading(this.plugin.t("setting.show-heading"));
+    const group = new import_obsidian25.SettingGroup(containerEl).setHeading(this.plugin.t("setting.show-heading"));
     group.addSetting((setting) => {
       setting.setDesc(this.plugin.t("setting.show.desc"));
     });
@@ -22326,7 +22359,7 @@ var MainSetting = class extends import_obsidian24.PluginSettingTab {
    * @param {HTMLElement} containerEl - The settings tab container
    */
   renderLine(containerEl) {
-    const group = new import_obsidian24.SettingGroup(containerEl).setHeading(this.plugin.t("setting.line-heading"));
+    const group = new import_obsidian25.SettingGroup(containerEl).setHeading(this.plugin.t("setting.line-heading"));
     group.addSetting((setting) => {
       setting.setName(this.plugin.t("setting.line-width.name")).setDesc(this.plugin.t("setting.line-width.desc")).addSlider(
         (slider) => slider.setLimits(1, 5, 1).setValue(this.settingsService.value("line.width")).setDynamicTooltip().onChange((value) => {
@@ -22342,7 +22375,7 @@ var MainSetting = class extends import_obsidian24.PluginSettingTab {
    * @param {HTMLElement} containerEl - The settings tab container
    */
   renderGutter(containerEl) {
-    const group = new import_obsidian24.SettingGroup(containerEl).setHeading(this.plugin.t("setting.gutter-heading.name"));
+    const group = new import_obsidian25.SettingGroup(containerEl).setHeading(this.plugin.t("setting.gutter-heading.name"));
     group.addSetting((setting) => {
       setting.setDesc(
         createFragment([
@@ -22396,7 +22429,7 @@ var MainSetting = class extends import_obsidian24.PluginSettingTab {
    * @param {HTMLElement} containerEl - The settings tab container
    */
   renderCleanup(containerEl) {
-    const group = new import_obsidian24.SettingGroup(containerEl).setHeading(this.plugin.t("setting.cleanup-heading"));
+    const group = new import_obsidian25.SettingGroup(containerEl).setHeading(this.plugin.t("setting.cleanup-heading"));
     group.addSetting((setting) => {
       setting.setName(this.plugin.t("setting.keep.name")).setDesc(this.plugin.t("setting.keep.desc")).addDropdown(
         (dropdown) => dropdown.addOption("app" /* app */, this.plugin.t("setting.keep.option.app")).addOption("file" /* file */, this.plugin.t("setting.keep.option.file")).setValue(this.settingsService.value("keep")).onChange((value) => {
@@ -22446,7 +22479,7 @@ var MainSetting = class extends import_obsidian24.PluginSettingTab {
           }
           const count = this.snapshotsService.purgeExcluded();
           const message = count === 0 ? this.plugin.t("notice.purge-excluded.no-match") : this.plugin.t("notice.purge-excluded").replace("{count}", String(count));
-          new import_obsidian24.Notice(message);
+          new import_obsidian25.Notice(message);
         });
       });
     });
@@ -22775,8 +22808,7 @@ var _ExternalChangeCapture = class _ExternalChangeCapture {
     if (captured) {
       captured.external = true;
     }
-    const previousLength = snapshot.content.state.length;
-    snapshot.trackers.replaceBlock(0, previousLength, newLines);
+    this.applyLineDiff(snapshot, snapshot.content.state, newLines);
     snapshot.content.updateState(newLines);
     snapshot.updateChanges();
     this.host.forceUpdate();
@@ -22837,6 +22869,45 @@ var _ExternalChangeCapture = class _ExternalChangeCapture {
       await this.capture(file);
     } finally {
       this.inFlight.delete(path);
+    }
+  }
+  /**
+   * Applies the divergence between the model's known lines and the disk lines
+   * as a minimal per-hunk tracker update: untouched lines keep their trackers
+   * (and markers), a same-count hunk edits its lines in place, and only
+   * genuinely new or destroyed lines are added or removed.
+   *
+   * Hunks are applied bottom-up so the current-position coordinates of the
+   * earlier hunks stay valid while the later ones shift the tracker index,
+   * mirroring the reverse iteration of the change detector.
+   *
+   * @param {FileSnapshot} snapshot - The snapshot whose tracker to resync
+   * @param {string[]} previous - The model's known state lines
+   * @param {string[]} next - The disk content lines to converge onto
+   */
+  applyLineDiff(snapshot, previous, next) {
+    const parts = diffArrays(previous, next);
+    const hunks = [];
+    let position = 0;
+    for (const part of parts) {
+      if (part.removed) {
+        hunks.push({ start: position, removeCount: part.value.length, lines: [] });
+        position += part.value.length;
+        continue;
+      }
+      if (!part.added) {
+        position += part.value.length;
+        continue;
+      }
+      const last = hunks[hunks.length - 1];
+      if (last && last.lines.length === 0 && last.start + last.removeCount === position) {
+        last.lines = part.value.slice();
+      } else {
+        hunks.push({ start: position, removeCount: 0, lines: part.value.slice() });
+      }
+    }
+    for (let index = hunks.length - 1; index >= 0; index--) {
+      snapshot.trackers.replaceBlock(hunks[index].start, hunks[index].removeCount, hunks[index].lines);
     }
   }
   /**
@@ -23368,7 +23439,11 @@ var TrackerLine = class _TrackerLine {
     this.hash = null;
     /** Original content of the line (for development use only) */
     this.original = null;
-    /** Current content of the line (for development use only) */
+    /**
+     * Current content of the line. Load-bearing: the change detector's
+     * self-heal pass re-syncs it against the live document, and
+     * `lastContentHash()` gates removed-anchor restoration on it.
+     */
     this.current = null;
     /**
      * Timestamp when the line was removed
@@ -23546,6 +23621,18 @@ var TrackerLine = class _TrackerLine {
    */
   isStateRemovedAt(line) {
     return !this.existedInCurrent && this.existedInOriginal && this.removedAtPosition === line;
+  }
+  /**
+   * Hash of the content this line last held: the edited content for a line
+   * `change()` has touched, the original one otherwise. For a removed anchor
+   * this is the content the line carried at deletion time, which is what an
+   * undo or a paste-back re-inserts; the baseline `hash` would reject a
+   * modified line's own return.
+   *
+   * @return {string | null} The last-content hash, or null when no content was ever recorded
+   */
+  lastContentHash() {
+    return typeof this.current === "string" ? hash(this.current) : this.hash;
   }
   /**
    * Checks if this line has been added.
@@ -23872,16 +23959,25 @@ var TrackerIndex = class {
   /**
    * Finds a tracker line removed at the specified position.
    * Searches for a tracker line that was removed at the given line number.
+   * When `contentHash` is given, only an anchor whose last-held-content hash
+   * matches is returned: an undo or paste-back re-inserting the line as it was
+   * at deletion time finds its anchor, while unrelated new content typed at
+   * the same position leaves the anchor (and its removed marker) in place.
    *
    * @param {number} line - The line number where a line was removed
+   * @param {string} contentHash - Optional last-content hash the anchor must match
    * @return {TrackerLine | null} The tracker line that was removed at the specified position, or null if not found
    */
-  findRemovedAt(line) {
+  findRemovedAt(line, contentHash) {
     let found = null;
     for (const item of this.tracker) {
-      if (item.isStateRemovedAt(line) && (!found || item.removedTimeStamp > found.removedTimeStamp)) {
-        found = item;
+      if (!item.isStateRemovedAt(line) || found && item.removedTimeStamp <= found.removedTimeStamp) {
+        continue;
       }
+      if (contentHash !== void 0 && item.lastContentHash() !== contentHash) {
+        continue;
+      }
+      found = item;
     }
     return found;
   }
@@ -24147,12 +24243,21 @@ var TrackerEditor = class {
    * If a removed tracker line is found at the position, it is restored.
    * Otherwise, a new tracker line is added.
    *
+   * When `content` is given, a removed anchor is restored only if the content
+   * it held at deletion time matches: re-inserting the deleted line as it was
+   * (undo, paste-back) folds the anchor back, while unrelated new content
+   * typed at the anchor position adds a fresh tracker and leaves the deletion
+   * record visible. A content-blind restore here silently converted a removal
+   * plus an insertion into a single "changed" line, losing the removed marker.
+   *
    * @param {number | TrackerLine} line - The line number or tracker line to restore or add
    * @param {boolean} shift - Whether to shift other lines to accommodate the restored/added line
+   * @param {string} content - Optional content the restored anchor's last content must match
    * @return {TrackerLine} The restored or added tracker line
    */
-  restoreOrAddTracker(line, shift = true) {
-    const removed = line instanceof TrackerLine ? line : this.index.findRemovedAt(line);
+  restoreOrAddTracker(line, shift = true, content) {
+    const contentHash = typeof content === "string" ? hash(content) : void 0;
+    const removed = line instanceof TrackerLine ? line : this.index.findRemovedAt(line, contentHash);
     const index = line instanceof TrackerLine ? line.removedAtPosition : line;
     if (shift) {
       this.shiftUp(index);
@@ -24273,7 +24378,7 @@ var TrackerEditor = class {
     }
     replacement.forEach((content, offset) => {
       var _a2;
-      (_a2 = this.restoreOrAddTracker(start + offset)) == null ? void 0 : _a2.change(content);
+      (_a2 = this.restoreOrAddTracker(start + offset, true, content)) == null ? void 0 : _a2.change(content);
     });
     doomed.forEach((item) => {
       this.removeTrackerOrLine(item);
@@ -25855,7 +25960,7 @@ var SnapshotRegistry = class {
 };
 
 // src/services/snapshots.service.ts
-var import_obsidian25 = require("obsidian");
+var import_obsidian26 = require("obsidian");
 var SnapshotsService = class {
   /**
    * Creates a new instance of SnapshotsService.
@@ -26306,7 +26411,7 @@ var SnapshotsService = class {
       getExcludePatterns: () => this.settingsService.value("excludePaths"),
       getExcludePathsCaseSensitive: () => this.settingsService.value("excludePathsCaseSensitive"),
       notifyInvalidPattern: () => {
-        new import_obsidian25.Notice(this.plugin.t("notice.invalid-exclude-pattern"));
+        new import_obsidian26.Notice(this.plugin.t("notice.invalid-exclude-pattern"));
       }
     };
   }
@@ -26368,7 +26473,7 @@ __decorateClass([
 ], SnapshotsService.prototype, "settingsService", 2);
 
 // src/services/statusbar.service.ts
-var import_obsidian26 = require("obsidian");
+var import_obsidian27 = require("obsidian");
 var StatusbarService = class {
   /**
    * Creates a new instance of StatusbarService.
@@ -26400,7 +26505,7 @@ var StatusbarService = class {
     var _a, _b;
     const view = (_a = this.plugin.app.workspace.getMostRecentLeaf()) == null ? void 0 : _a.view;
     const snapshot = this.snapshotsService.getOne();
-    if (!view || !(view instanceof import_obsidian26.MarkdownView) || !snapshot) {
+    if (!view || !(view instanceof import_obsidian27.MarkdownView) || !snapshot) {
       this.clear();
       return;
     }
@@ -26626,7 +26731,7 @@ var ServiceContainer = class {
 };
 
 // src/services/reading-mode-indicator.service.ts
-var import_obsidian27 = require("obsidian");
+var import_obsidian28 = require("obsidian");
 var ReadingModeIndicatorService = class {
   /**
    * Creates a new instance of ReadingModeIndicatorService.
@@ -26688,7 +26793,7 @@ var ReadingModeIndicatorService = class {
     if (!this.processor) {
       return;
     }
-    import_obsidian27.MarkdownPreviewRenderer.unregisterPostProcessor(this.processor);
+    import_obsidian28.MarkdownPreviewRenderer.unregisterPostProcessor(this.processor);
     this.processor = void 0;
     this.clearAll();
   }
@@ -26826,7 +26931,7 @@ function getPropertyKey(row) {
 }
 
 // src/helpers/frontmatter-diff.helper.ts
-var import_obsidian28 = require("obsidian");
+var import_obsidian29 = require("obsidian");
 var EMPTY = { added: [], modified: [], removed: [] };
 function extractYamlBlock(lines2) {
   if (!lines2.length || lines2[0].trim() !== "---") {
@@ -26840,7 +26945,7 @@ function extractYamlBlock(lines2) {
 }
 function parseBlock(yaml) {
   try {
-    const parsed = (0, import_obsidian28.parseYaml)(yaml);
+    const parsed = (0, import_obsidian29.parseYaml)(yaml);
     if (parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)) {
       return parsed;
     }
@@ -26881,7 +26986,7 @@ function diffFrontmatter(oldLines, newLines) {
 }
 
 // src/services/property-decorator.service.ts
-var import_obsidian29 = require("obsidian");
+var import_obsidian30 = require("obsidian");
 var _PropertyDecoratorService = class _PropertyDecoratorService {
   /**
    * Creates a new instance of PropertyDecoratorService.
@@ -26993,7 +27098,7 @@ var _PropertyDecoratorService = class _PropertyDecoratorService {
     }
     const yaml = lines2.slice(1, closeIdx).join("\n");
     try {
-      const parsed = (0, import_obsidian29.parseYaml)(yaml);
+      const parsed = (0, import_obsidian30.parseYaml)(yaml);
       if (parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)) {
         return Object.keys(parsed);
       }
@@ -27920,8 +28025,8 @@ __decorateClass([
 ], VersionActionsService.prototype, "settingsService", 2);
 
 // src/views/recent-changes.view.ts
-var import_obsidian30 = require("obsidian");
-var RecentChangesView = class extends import_obsidian30.ItemView {
+var import_obsidian31 = require("obsidian");
+var RecentChangesView = class extends import_obsidian31.ItemView {
   /**
    * Creates a new instance of RecentChangesView.
    *
@@ -27996,7 +28101,7 @@ var RecentChangesView = class extends import_obsidian30.ItemView {
       classes: "lct-recent-changes-search",
       container: this.contentEl
     });
-    this.searchComponent = new import_obsidian30.SearchComponent(searchEl).setPlaceholder(this.plugin.t("modal.search-versions")).onChange((value) => {
+    this.searchComponent = new import_obsidian31.SearchComponent(searchEl).setPlaceholder(this.plugin.t("modal.search-versions")).onChange((value) => {
       this.searchQuery = value;
       this.render();
     });
@@ -28185,7 +28290,7 @@ var RecentChangesView = class extends import_obsidian30.ItemView {
    */
   openRowMenu(event, file, version) {
     event.preventDefault();
-    const menu = new import_obsidian30.Menu();
+    const menu = new import_obsidian31.Menu();
     const modalsService = this.plugin.get(TOKENS.modals);
     const versionActionsService = this.plugin.get(TOKENS.versionActions);
     menu.addItem((item) => {
@@ -28295,8 +28400,8 @@ var import_index = __toESM(require_eventemitter3(), 1);
 var eventemitter3_default = import_index.default;
 
 // src/main.ts
-var import_obsidian31 = require("obsidian");
-var LineChangeTrackerPlugin = class extends import_obsidian31.Plugin {
+var import_obsidian32 = require("obsidian");
+var LineChangeTrackerPlugin = class extends import_obsidian32.Plugin {
   /**
    * Creates a new instance of the LineChangeTrackerPlugin.
    * Registers all required services during initialization.
@@ -28469,7 +28574,7 @@ var LineChangeTrackerPlugin = class extends import_obsidian31.Plugin {
    * @return {MarkdownView | null} The active markdown view, or null if none is active
    */
   getActiveViewOfType() {
-    return this.app.workspace.getActiveViewOfType(import_obsidian31.MarkdownView);
+    return this.app.workspace.getActiveViewOfType(import_obsidian32.MarkdownView);
   }
   /**
    * Gets the active file.
@@ -28490,7 +28595,7 @@ var LineChangeTrackerPlugin = class extends import_obsidian31.Plugin {
    */
   getFileByPath(path) {
     const file = this.app.vault.getAbstractFileByPath(path);
-    return file instanceof import_obsidian31.TFile ? file : null;
+    return file instanceof import_obsidian32.TFile ? file : null;
   }
   /**
    * Reveals the Recent changes panel in the right sidebar.

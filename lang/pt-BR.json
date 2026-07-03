@@ -159,5 +159,7 @@
   "notice.purge-excluded": "Histórico local: {count} snapshot(s) de caminhos excluídos foram limpos.",
   "notice.purge-excluded.no-match": "Histórico local: nenhum histórico armazenado corresponde aos caminhos excluídos.",
   "setting.reading-mode-indicator.name": "Mostrar indicadores no modo de leitura",
-  "setting.reading-mode-indicator.desc": "Decorar os blocos renderizados no modo de leitura com uma borda esquerda colorida nas cores do indicador de edição (modificado, adicionado, espaços, restaurado). Desativado por padrão; tem um pequeno custo por bloco a cada re-renderização do modo de leitura."
+  "setting.reading-mode-indicator.desc": "Decorar os blocos renderizados no modo de leitura com uma borda esquerda colorida nas cores do indicador de edição (modificado, adicionado, espaços, restaurado). Desativado por padrão; tem um pequeno custo por bloco a cada re-renderização do modo de leitura.",
+  "setting.gutter-hover-panel.name": "Mostrar painel ao passar o mouse sobre os marcadores de alteração",
+  "setting.gutter-hover-panel.desc": "Passe o mouse sobre um marcador de alteração na margem para abrir um painel com a versão anterior dessa linha. De lá você pode reverter a alteração, copiar o texto antigo ou abrir o histórico do arquivo. Ativado por padrão. Aplica-se ao indicador de linha vertical."
 }

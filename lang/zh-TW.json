@@ -159,5 +159,7 @@
   "notice.purge-excluded": "本機歷史:已清除排除路徑的 {count} 個快照。",
   "notice.purge-excluded.no-match": "本機歷史:沒有與排除路徑相符的已儲存歷史。",
   "setting.reading-mode-indicator.name": "在閱讀模式中顯示指示器",
-  "setting.reading-mode-indicator.desc": "在閱讀模式中為呈現的區塊加上彩色左邊框,顏色與即時編輯指示器一致(變更、新增、空白、還原)。預設關閉;每次閱讀模式重新呈現時每個區塊有少量負擔。"
+  "setting.reading-mode-indicator.desc": "在閱讀模式中為呈現的區塊加上彩色左邊框,顏色與即時編輯指示器一致(變更、新增、空白、還原)。預設關閉;每次閱讀模式重新呈現時每個區塊有少量負擔。",
+  "setting.gutter-hover-panel.name": "在變更標記上停留時顯示面板",
+  "setting.gutter-hover-panel.desc": "將滑鼠停留在邊欄的變更標記上，即可開啟一個面板，顯示該行的上一個版本。在面板中可以復原此變更、複製舊文字或開啟檔案歷史。預設開啟。適用於垂直線指示器。"
 }

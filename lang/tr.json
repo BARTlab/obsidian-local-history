@@ -159,5 +159,7 @@
   "notice.purge-excluded": "Yerel geçmiş: hariç tutulan yollar için {count} anlık görüntü temizlendi.",
   "notice.purge-excluded.no-match": "Yerel geçmiş: hariç tutulan yollarla eşleşen kayıtlı geçmiş yok.",
   "setting.reading-mode-indicator.name": "Okuma modunda göstergeleri göster",
-  "setting.reading-mode-indicator.desc": "Okuma modunda işlenen blokları, düzenleme göstergesi renkleriyle (değiştirildi, eklendi, boşluk, geri yüklendi) eşleşen renkli bir sol kenarlıkla süsle. Varsayılan olarak kapalı; okuma modunun her yeniden işlenmesinde blok başına küçük bir maliyeti vardır."
+  "setting.reading-mode-indicator.desc": "Okuma modunda işlenen blokları, düzenleme göstergesi renkleriyle (değiştirildi, eklendi, boşluk, geri yüklendi) eşleşen renkli bir sol kenarlıkla süsle. Varsayılan olarak kapalı; okuma modunun her yeniden işlenmesinde blok başına küçük bir maliyeti vardır.",
+  "setting.gutter-hover-panel.name": "Değişiklik işaretleyicilerinin üzerine gelince panel göster",
+  "setting.gutter-hover-panel.desc": "Bir panel açmak için oluktaki değişiklik işaretleyicisinin üzerine gelin; panel o satırın önceki sürümünü gösterir. Panelden değişikliği geri alabilir, eski metni kopyalayabilir veya dosya geçmişini açabilirsiniz. Varsayılan olarak açık. Dikey çizgi göstergesi için geçerlidir."
 }

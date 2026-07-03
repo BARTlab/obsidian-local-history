@@ -159,5 +159,7 @@
   "notice.purge-excluded": "Lokale geschiedenis: {count} snapshot(s) voor uitgesloten paden opgeschoond.",
   "notice.purge-excluded.no-match": "Lokale geschiedenis: geen opgeslagen geschiedenis komt overeen met de uitgesloten paden.",
   "setting.reading-mode-indicator.name": "Indicatoren tonen in leesmodus",
-  "setting.reading-mode-indicator.desc": "Gerenderde blokken in de leesmodus markeren met een gekleurde linkerrand in de kleuren van de bewerkingsindicator (gewijzigd, toegevoegd, witruimte, hersteld). Standaard uit; geeft een kleine kost per blok bij elke re-render van de leesmodus."
+  "setting.reading-mode-indicator.desc": "Gerenderde blokken in de leesmodus markeren met een gekleurde linkerrand in de kleuren van de bewerkingsindicator (gewijzigd, toegevoegd, witruimte, hersteld). Standaard uit; geeft een kleine kost per blok bij elke re-render van de leesmodus.",
+  "setting.gutter-hover-panel.name": "Zwevend paneel tonen bij wijzigingsmarkeringen",
+  "setting.gutter-hover-panel.desc": "Beweeg de muis over een wijzigingsmarkering in de kantlijn om een paneel te openen met de vorige versie van die regel. Van daaruit kun je de wijziging terugdraaien, de oude tekst kopiëren of de bestandsgeschiedenis openen. Standaard ingeschakeld. Geldt voor de verticale-lijnindicator."
 }

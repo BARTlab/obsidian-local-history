@@ -159,5 +159,7 @@
   "notice.purge-excluded": "Lokal historik: rensade {count} ögonblicksbild(er) för exkluderade sökvägar.",
   "notice.purge-excluded.no-match": "Lokal historik: ingen sparad historik matchar de exkluderade sökvägarna.",
   "setting.reading-mode-indicator.name": "Visa indikatorer i läsläge",
-  "setting.reading-mode-indicator.desc": "Markera renderade block i läsläget med en färgad vänsterkant i redigeringsindikatorns färger (ändrad, tillagd, blanksteg, återställd). Av som standard; ger en liten kostnad per block vid varje omrendering i läsläget."
+  "setting.reading-mode-indicator.desc": "Markera renderade block i läsläget med en färgad vänsterkant i redigeringsindikatorns färger (ändrad, tillagd, blanksteg, återställd). Av som standard; ger en liten kostnad per block vid varje omrendering i läsläget.",
+  "setting.gutter-hover-panel.name": "Visa panel när muspekaren är över ändringsmarkörer",
+  "setting.gutter-hover-panel.desc": "Håll muspekaren över en ändringsmarkör i marginalen för att öppna en panel med den föregående versionen av den raden. Därifrån kan du ångra ändringen, kopiera den gamla texten eller öppna filhistoriken. På som standard. Gäller för den vertikala linjeindikatorn."
 }

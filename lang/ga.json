@@ -159,5 +159,7 @@
   "notice.purge-excluded": "Stair áitiúil: glanadh {count} snapshot do chosáin eisiata.",
   "notice.purge-excluded.no-match": "Stair áitiúil: níl aon stair stóráilte ag teacht leis na cosáin eisiata.",
   "setting.reading-mode-indicator.name": "Taispeáin táscairí sa mhód léitheoireachta",
-  "setting.reading-mode-indicator.desc": "Maisigh bloic rindreáilte sa mhód léitheoireachta le himeall clé daite a mheaitseálann dathanna an táscaire eagarthóireachta (athraithe, curtha leis, spás bán, athchóirithe). Múchta de réir réamhshocraithe; tá costas beag in aghaidh an bhloic ar gach athrindreáil sa mhód léitheoireachta."
+  "setting.reading-mode-indicator.desc": "Maisigh bloic rindreáilte sa mhód léitheoireachta le himeall clé daite a mheaitseálann dathanna an táscaire eagarthóireachta (athraithe, curtha leis, spás bán, athchóirithe). Múchta de réir réamhshocraithe; tá costas beag in aghaidh an bhloic ar gach athrindreáil sa mhód léitheoireachta.",
+  "setting.gutter-hover-panel.name": "Taispeáin painéal agus tú ag ainliú os cionn marcóirí athraithe",
+  "setting.gutter-hover-panel.desc": "Ainligh os cionn marcóir athraithe san imeall chun painéal a oscailt leis an leagan roimhe seo den líne sin. As sin is féidir leat an t-athrú a chur ar ais, an seantéacs a chóipeáil, nó stair an chomhaid a oscailt. Cumasaithe de réir réamhshocraithe. Baineann sé leis an táscaire líne inghearach."
 }

@@ -159,5 +159,7 @@
   "notice.purge-excluded": "Historial local: s'han purgat {count} instantànies de camins exclosos.",
   "notice.purge-excluded.no-match": "Historial local: cap historial desat coincideix amb els camins exclosos.",
   "setting.reading-mode-indicator.name": "Mostra indicadors en mode de lectura",
-  "setting.reading-mode-indicator.desc": "Decora els blocs renderitzats en mode de lectura amb una vora esquerra de color que coincideix amb els colors de l'indicador d'edició (modificat, afegit, espais, restaurat). Desactivat per defecte; té un petit cost per bloc a cada renderització del mode de lectura."
+  "setting.reading-mode-indicator.desc": "Decora els blocs renderitzats en mode de lectura amb una vora esquerra de color que coincideix amb els colors de l'indicador d'edició (modificat, afegit, espais, restaurat). Desactivat per defecte; té un petit cost per bloc a cada renderització del mode de lectura.",
+  "setting.gutter-hover-panel.name": "Mostra un tauler en passar el cursor pels marcadors de canvi",
+  "setting.gutter-hover-panel.desc": "Passa el cursor per un marcador de canvi al marge per obrir un tauler amb la versió anterior d'aquella línia. Des d'allà pots revertir el canvi, copiar el text antic o obrir l'historial del fitxer. Activat per defecte. S'aplica a l'indicador de línia vertical."
 }

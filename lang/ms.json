@@ -159,5 +159,7 @@
   "notice.purge-excluded": "Sejarah setempat: {count} snapshot untuk laluan yang dikecualikan dibersihkan.",
   "notice.purge-excluded.no-match": "Sejarah setempat: tiada sejarah tersimpan yang sepadan dengan laluan yang dikecualikan.",
   "setting.reading-mode-indicator.name": "Tunjukkan penunjuk dalam mod baca",
-  "setting.reading-mode-indicator.desc": "Hiasi blok yang dipaparkan dalam mod baca dengan jidar kiri berwarna mengikut warna penunjuk suntingan (diubah, ditambah, ruang putih, dipulihkan). Dimatikan secara lalai; ada kos kecil bagi setiap blok pada setiap paparan semula mod baca."
+  "setting.reading-mode-indicator.desc": "Hiasi blok yang dipaparkan dalam mod baca dengan jidar kiri berwarna mengikut warna penunjuk suntingan (diubah, ditambah, ruang putih, dipulihkan). Dimatikan secara lalai; ada kos kecil bagi setiap blok pada setiap paparan semula mod baca.",
+  "setting.gutter-hover-panel.name": "Tunjukkan panel apabila kursor di atas penanda perubahan",
+  "setting.gutter-hover-panel.desc": "Halakan kursor ke penanda perubahan di parit untuk membuka panel yang menunjukkan versi sebelumnya bagi baris itu. Dari situ anda boleh mengundurkan perubahan, menyalin teks lama, atau membuka sejarah fail. Hidup secara lalai. Digunakan untuk penunjuk garisan menegak."
 }

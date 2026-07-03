@@ -159,5 +159,7 @@
   "notice.purge-excluded": "Helyi előzmények: {count} pillanatkép törölve a kizárt útvonalakhoz.",
   "notice.purge-excluded.no-match": "Helyi előzmények: egyetlen tárolt előzmény sem felel meg a kizárt útvonalaknak.",
   "setting.reading-mode-indicator.name": "Jelzők megjelenítése olvasó módban",
-  "setting.reading-mode-indicator.desc": "Az olvasó módban megjelenített blokkok színes bal szegélyt kapnak a szerkesztésjelző színeivel (módosítva, hozzáadva, szóköz, visszaállítva). Alapértelmezés szerint kikapcsolva; minden olvasó módbeli újrarendereléskor kis többletköltség blokkonként."
+  "setting.reading-mode-indicator.desc": "Az olvasó módban megjelenített blokkok színes bal szegélyt kapnak a szerkesztésjelző színeivel (módosítva, hozzáadva, szóköz, visszaállítva). Alapértelmezés szerint kikapcsolva; minden olvasó módbeli újrarendereléskor kis többletköltség blokkonként.",
+  "setting.gutter-hover-panel.name": "Panel megjelenítése a változásjelzők fölé húzva",
+  "setting.gutter-hover-panel.desc": "Vidd az egeret a margón lévő változásjelző fölé, hogy megnyíljon egy panel az adott sor korábbi változatával. Innen visszavonhatod a változást, kimásolhatod a régi szöveget vagy megnyithatod a fájl előzményeit. Alapértelmezetten bekapcsolva. A függőleges vonal jelzőre vonatkozik."
 }

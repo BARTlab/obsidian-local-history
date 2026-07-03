@@ -159,5 +159,7 @@
   "notice.purge-excluded": "Lokálna história: odstránených {count} snímok pre vylúčené cesty.",
   "notice.purge-excluded.no-match": "Lokálna história: žiadna uložená história nezodpovedá vylúčeným cestám.",
   "setting.reading-mode-indicator.name": "Zobrazovať indikátory v režime čítania",
-  "setting.reading-mode-indicator.desc": "Označovať vykreslené bloky v režime čítania farebným ľavým okrajom vo farbách indikátora úprav (zmenené, pridané, biele znaky, obnovené). Predvolene vypnuté; pridáva malú záťaž na každý blok pri každom prekreslení režimu čítania."
+  "setting.reading-mode-indicator.desc": "Označovať vykreslené bloky v režime čítania farebným ľavým okrajom vo farbách indikátora úprav (zmenené, pridané, biele znaky, obnovené). Predvolene vypnuté; pridáva malú záťaž na každý blok pri každom prekreslení režimu čítania.",
+  "setting.gutter-hover-panel.name": "Zobraziť panel pri prejdení myšou na značky zmien",
+  "setting.gutter-hover-panel.desc": "Prejdite myšou na značku zmeny na okraji a otvorí sa panel s predchádzajúcou verziou daného riadka. Odtiaľ môžete vrátiť zmenu, skopírovať starý text alebo otvoriť históriu súboru. V predvolenom nastavení zapnuté. Platí pre indikátor zvislej čiary."
 }

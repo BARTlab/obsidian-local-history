@@ -159,5 +159,7 @@
   "notice.purge-excluded": "Mahalliy tarix: istisno qilingan yoʻllar uchun {count} ta surat tozalandi.",
   "notice.purge-excluded.no-match": "Mahalliy tarix: istisno qilingan yoʻllarga mos saqlangan tarix yoʻq.",
   "setting.reading-mode-indicator.name": "Oʻqish rejimida indikatorlarni koʻrsatish",
-  "setting.reading-mode-indicator.desc": "Oʻqish rejimida koʻrsatilgan bloklarni tahrirlash indikatori ranglariga (oʻzgartirilgan, qoʻshilgan, boʻsh joy, tiklangan) mos rangli chap hoshiya bilan bezash. Standart holatda oʻchirilgan; oʻqish rejimining har bir qayta chizilishida har blok uchun ozgina xarajat bor."
+  "setting.reading-mode-indicator.desc": "Oʻqish rejimida koʻrsatilgan bloklarni tahrirlash indikatori ranglariga (oʻzgartirilgan, qoʻshilgan, boʻsh joy, tiklangan) mos rangli chap hoshiya bilan bezash. Standart holatda oʻchirilgan; oʻqish rejimining har bir qayta chizilishida har blok uchun ozgina xarajat bor.",
+  "setting.gutter-hover-panel.name": "Oʻzgarish belgilariga kursor olib borilganda panelni koʻrsatish",
+  "setting.gutter-hover-panel.desc": "Oʻsha satrning oldingi versiyasini koʻrsatuvchi panelni ochish uchun kursorni hoshiyadagi oʻzgarish belgisiga olib boring. U yerdan oʻzgarishni qaytarishingiz, eski matnni nusxalashingiz yoki fayl tarixini ochishingiz mumkin. Standart holatda yoqilgan. Vertikal chiziq indikatoriga tegishli."
 }

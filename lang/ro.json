@@ -159,5 +159,7 @@
   "notice.purge-excluded": "Istoric local: au fost curățate {count} instantanee pentru căile excluse.",
   "notice.purge-excluded.no-match": "Istoric local: niciun istoric stocat nu corespunde căilor excluse.",
   "setting.reading-mode-indicator.name": "Afișează indicatori în modul de citire",
-  "setting.reading-mode-indicator.desc": "Decorează blocurile redate în modul de citire cu o margine stângă colorată în culorile indicatorului de editare (modificat, adăugat, spații, restaurat). Dezactivat implicit; are un mic cost per bloc la fiecare re-redare a modului de citire."
+  "setting.reading-mode-indicator.desc": "Decorează blocurile redate în modul de citire cu o margine stângă colorată în culorile indicatorului de editare (modificat, adăugat, spații, restaurat). Dezactivat implicit; are un mic cost per bloc la fiecare re-redare a modului de citire.",
+  "setting.gutter-hover-panel.name": "Afișează un panou la trecerea cu mouse-ul peste marcajele de modificare",
+  "setting.gutter-hover-panel.desc": "Treci cu mouse-ul peste un marcaj de modificare din margine pentru a deschide un panou cu versiunea anterioară a acelei linii. De acolo poți anula modificarea, copia textul vechi sau deschide istoricul fișierului. Activat implicit. Se aplică indicatorului cu linie verticală."
 }

@@ -159,5 +159,7 @@
   "notice.purge-excluded": "Historique local : {count} instantané(s) purgé(s) pour les chemins exclus.",
   "notice.purge-excluded.no-match": "Historique local : aucun historique enregistré ne correspond aux chemins exclus.",
   "setting.reading-mode-indicator.name": "Afficher les indicateurs en mode lecture",
-  "setting.reading-mode-indicator.desc": "Décorer les blocs rendus en mode lecture d'une bordure gauche colorée reprenant les couleurs de l'indicateur d'édition (modifié, ajouté, espaces, restauré). Désactivé par défaut ; entraîne un léger coût par bloc à chaque rendu du mode lecture."
+  "setting.reading-mode-indicator.desc": "Décorer les blocs rendus en mode lecture d'une bordure gauche colorée reprenant les couleurs de l'indicateur d'édition (modifié, ajouté, espaces, restauré). Désactivé par défaut ; entraîne un léger coût par bloc à chaque rendu du mode lecture.",
+  "setting.gutter-hover-panel.name": "Afficher un panneau au survol des marqueurs de modification",
+  "setting.gutter-hover-panel.desc": "Survolez un marqueur de modification dans la gouttière pour ouvrir un panneau affichant la version précédente de cette ligne. Vous pouvez y annuler la modification, copier l'ancien texte ou ouvrir l'historique du fichier. Activé par défaut. S'applique à l'indicateur de ligne verticale."
 }

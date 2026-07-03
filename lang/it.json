@@ -159,5 +159,7 @@
   "notice.purge-excluded": "Cronologia locale: eliminati {count} snapshot per i percorsi esclusi.",
   "notice.purge-excluded.no-match": "Cronologia locale: nessuna cronologia salvata corrisponde ai percorsi esclusi.",
   "setting.reading-mode-indicator.name": "Mostra indicatori in modalità lettura",
-  "setting.reading-mode-indicator.desc": "Decora i blocchi renderizzati in modalità lettura con un bordo sinistro colorato nei colori dell'indicatore di modifica (modificato, aggiunto, spazi, ripristinato). Disattivato per impostazione predefinita; comporta un piccolo costo per blocco a ogni re-rendering della modalità lettura."
+  "setting.reading-mode-indicator.desc": "Decora i blocchi renderizzati in modalità lettura con un bordo sinistro colorato nei colori dell'indicatore di modifica (modificato, aggiunto, spazi, ripristinato). Disattivato per impostazione predefinita; comporta un piccolo costo per blocco a ogni re-rendering della modalità lettura.",
+  "setting.gutter-hover-panel.name": "Mostra un pannello al passaggio del mouse sui marcatori di modifica",
+  "setting.gutter-hover-panel.desc": "Passa il mouse su un marcatore di modifica nel margine per aprire un pannello con la versione precedente di quella riga. Da lì puoi annullare la modifica, copiare il testo precedente o aprire la cronologia del file. Attivo per impostazione predefinita. Si applica all'indicatore a linea verticale."
 }

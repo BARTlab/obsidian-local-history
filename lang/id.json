@@ -159,5 +159,7 @@
   "notice.purge-excluded": "Riwayat lokal: {count} snapshot untuk jalur yang dikecualikan dibersihkan.",
   "notice.purge-excluded.no-match": "Riwayat lokal: tidak ada riwayat tersimpan yang cocok dengan jalur yang dikecualikan.",
   "setting.reading-mode-indicator.name": "Tampilkan indikator di mode baca",
-  "setting.reading-mode-indicator.desc": "Hiasi blok yang dirender di mode baca dengan garis tepi kiri berwarna sesuai warna indikator penyuntingan (diubah, ditambahkan, spasi, dipulihkan). Nonaktif secara bawaan; ada sedikit biaya per blok pada setiap render ulang mode baca."
+  "setting.reading-mode-indicator.desc": "Hiasi blok yang dirender di mode baca dengan garis tepi kiri berwarna sesuai warna indikator penyuntingan (diubah, ditambahkan, spasi, dipulihkan). Nonaktif secara bawaan; ada sedikit biaya per blok pada setiap render ulang mode baca.",
+  "setting.gutter-hover-panel.name": "Tampilkan panel saat penanda perubahan disorot kursor",
+  "setting.gutter-hover-panel.desc": "Arahkan kursor ke penanda perubahan di selokan untuk membuka panel berisi versi sebelumnya dari baris tersebut. Dari sana Anda dapat membatalkan perubahan, menyalin teks lama, atau membuka riwayat berkas. Aktif secara bawaan. Berlaku untuk indikator garis vertikal."
 }

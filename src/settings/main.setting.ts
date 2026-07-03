@@ -439,6 +439,19 @@ export class MainSetting extends PluginSettingTab {
       .setHeading(this.plugin.t('setting.gutter-heading.name'));
 
     group.addSetting((setting: Setting): void => {
+      setting
+        .setName(this.plugin.t('setting.gutter-hover-panel.name'))
+        .setDesc(this.plugin.t('setting.gutter-hover-panel.desc'))
+        .addToggle((toggle: ToggleComponent): ToggleComponent =>
+          toggle
+            .setValue(this.settingsService.value('gutterHoverPanel'))
+            .onChange((value: boolean): void => {
+              this.settingsService.update('gutterHoverPanel', value);
+            })
+        );
+    });
+
+    group.addSetting((setting: Setting): void => {
       setting.setDesc(
         DomHelper.createFragment([
           {

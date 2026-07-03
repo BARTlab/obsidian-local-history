@@ -15,6 +15,20 @@
  * shown) should spy on these as needed.
  */
 
+import { StateField } from '@codemirror/state';
+
+/**
+ * Real CodeMirror StateField standing in for Obsidian's `editorInfoField`.
+ * A test makes a view look like a main or nested editor by creating its state
+ * with `editorInfoField.init(() => info)`; states created without the field
+ * resolve to `undefined` through `state.field(field, false)`, the same as a
+ * plain non-Obsidian editor.
+ */
+export const editorInfoField = StateField.define<unknown>({
+  create: (): unknown => null,
+  update: (value: unknown): unknown => value,
+});
+
 /**
  * Inert replacement for Obsidian's `Notice` toast. Records its message so a
  * test can assert on it if needed, but otherwise does nothing.

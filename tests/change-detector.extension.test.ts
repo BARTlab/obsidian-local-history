@@ -10,6 +10,8 @@ jest.mock('@codemirror/view', () => ({
   Decoration: { none: {} },
 }));
 
+import { editorInfoField } from 'obsidian';
+import type { StateField } from '@codemirror/state';
 import { ChangeType } from '@/consts';
 import { ChangeDetectorExtension } from '@/extensions/change-detector.extension';
 import { TOKENS } from '@/services/tokens';
@@ -177,6 +179,7 @@ describe('ChangeDetectorExtension restore', () => {
     expect(snapshot.trackers.findCurrentLine(1)?.isStateOriginal()).toBe(true);
     expect(snapshot.trackers.findCurrentLine(2)?.isStateOriginal()).toBe(true);
   });
+
 });
 
 describe('ChangeDetectorExtension line replacement (off-by-one regression)', () => {
@@ -566,4 +569,55 @@ describe('ChangeDetectorExtension scale (hot path)', () => {
     // to the per-line sort/copy path (which runs into tens of seconds here).
     expect(elapsed).toBeLessThan(8000);
   }, 30000);
+});
+
+describe('ChangeDetectorExtension nested cell editors', () => {
+  // Typing in a Live Preview table cell fires the detector inside the cell's
+  // own editor, whose doc holds only the cell text. Without the guard that
+  // edit was mapped onto file line 0 (phantom marker on line 1 of the note)
+  // and updateState collapsed the tracked content to the single cell line,
+  // from where a bogus one-line version could reach the stored history.
+  it('ignores updates coming from a nested cell editor', () => {
+    const snapshot = new FileSnapshot('a\nb\nc');
+    // The cell's mini-document: one line of cell text, then a typed character.
+    const start: EditorState = EditorState.create({ doc: 'cell' });
+    const tr = start.update({ changes: { from: 4, insert: 'x' } });
+
+    const snapshotsService = { getOne: (): FileSnapshot => snapshot, forceUpdate: (): void => undefined };
+    const settingsService = { value: (): unknown => false };
+    const plugin = {
+      get: (key: unknown): unknown => (key === TOKENS.settings ? settingsService : snapshotsService),
+    };
+
+    // A view whose state carries an editorInfoField pointing at a foreign
+    // outer view: the shape Obsidian gives a table-cell sub-editor. The
+    // runtime field is the jest stub (StateField<unknown>); retype the real
+    // obsidian declaration to match so init can return a plain test double.
+    const infoField = editorInfoField as unknown as StateField<unknown>;
+    const nestedView = {
+      dom: { closest: (): Element | null => null },
+      state: EditorState.create({
+        doc: 'cellx',
+        extensions: [infoField.init((): unknown => ({ editor: { cm: {} } }))],
+      }),
+    };
+
+    const ext = new ChangeDetectorExtension(
+      nestedView as unknown as ViewArg,
+      plugin as unknown as PluginArg,
+    );
+
+    ext.update({
+      view: nestedView,
+      docChanged: true,
+      changes: tr.changes,
+      startState: tr.startState,
+      state: tr.state,
+    } as unknown as UpdateArg);
+
+    // The file snapshot is untouched: no phantom change on line 0 and the
+    // tracked state still mirrors the file, not the cell.
+    expect(snapshot.content.getChangesLinesCount()).toBe(0);
+    expect(snapshot.content.getLastStateLines()).toEqual(['a', 'b', 'c']);
+  });
 });

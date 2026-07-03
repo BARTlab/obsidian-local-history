@@ -882,6 +882,14 @@ body {
   position: relative;
 }
 
+/* Nested sub-editors (Live Preview table cells) instantiate every registered
+ * gutter too. The marker builders bail out there in code; this removes the
+ * empty columns themselves, whose reserved min-width would still indent every
+ * cell. */
+.cm-editor .cm-editor .cm-gutter.lct {
+  display: none;
+}
+
 /* The line-mode change bar lives in its own narrow gutter column. Adjacent
  * changed lines produce stacked gutter elements with no padding, so the bars
  * read as one continuous vertical stroke. Hosted in a real CodeMirror gutter,

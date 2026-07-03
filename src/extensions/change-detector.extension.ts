@@ -1,4 +1,5 @@
 import { Inject } from '@/decorators/inject.decorator';
+import { isNestedEditor } from '@/helpers/nested-editor.helper';
 import type { TrackerLine } from '@/lines/tracker.line';
 import type LineChangeTrackerPlugin from '@/main';
 import type { SettingsService } from '@/services/settings.service';
@@ -42,7 +43,14 @@ export class ChangeDetectorExtension implements EditorExtension {
    * @param {ViewUpdate} update - The view update event from CodeMirror
    */
   public update(update: ViewUpdate): void {
-    if (!update.docChanged) {
+    /**
+     * A nested sub-editor (a Live Preview table cell) reports changes in
+     * cell-local coordinates over a document that is only the cell text;
+     * feeding those into the file snapshot would mark the wrong lines and
+     * collapse the tracked state to the cell content. The real edit arrives
+     * separately through the outer editor's own update.
+     */
+    if (!update.docChanged || isNestedEditor(update.view)) {
       return;
     }
 

@@ -2,6 +2,7 @@ import { ChangeType, IndicatorType } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { confirmAndRevertHunk } from '@/helpers/hunk-revert.helper';
 import * as HunkHelper from '@/helpers/hunk.helper';
+import { isNestedEditor } from '@/helpers/nested-editor.helper';
 import type { ChangeLine } from '@/lines/change.line';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ArrayMap } from '@/maps/array.map';
@@ -84,7 +85,9 @@ export class GutterCommonExtension implements GutterConfig {
     const changes: ArrayMap<ChangeLine> | null = snapshot?.content.getChanges(enable) ?? null;
     const builder = new RangeSetBuilder<DotMarker>();
 
-    if (!this.isTypeDot() || !snapshot || !changes?.size) {
+    // Snapshot positions are file lines; a nested cell editor's doc is only
+    // the cell text, so any marker rendered there would be misplaced.
+    if (isNestedEditor(view) || !this.isTypeDot() || !snapshot || !changes?.size) {
       return builder.finish();
     }
 

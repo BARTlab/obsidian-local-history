@@ -2,6 +2,7 @@ import { ChangeType, IndicatorType } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { confirmAndRevertHunk } from '@/helpers/hunk-revert.helper';
 import * as HunkHelper from '@/helpers/hunk.helper';
+import { isNestedEditor } from '@/helpers/nested-editor.helper';
 import type { ChangeLine } from '@/lines/change.line';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ArrayMap } from '@/maps/array.map';
@@ -62,7 +63,9 @@ export class GutterRemovedExtension implements GutterConfig {
     const removed: ArrayMap<ChangeLine> | null = snapshot?.content.getChanges(ChangeType.removed) ?? null;
     const builder: RangeSetBuilder<RemovedMarker> = new RangeSetBuilder<RemovedMarker>();
 
-    if (!this.isTypeDot() || !this.isEnable() || !snapshot || !removed || removed.size === 0) {
+    // Snapshot positions are file lines; a nested cell editor's doc is only
+    // the cell text, so any marker rendered there would be misplaced.
+    if (isNestedEditor(view) || !this.isTypeDot() || !this.isEnable() || !snapshot || !removed || removed.size === 0) {
       return builder.finish();
     }
 

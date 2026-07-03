@@ -1,15 +1,18 @@
-import { ChangeType, IndicatorType } from '@/consts';
+import { GutterHoverPanel } from '@/components/gutter-hover-panel';
+import type { GutterHoverPanelHost } from '@/components/gutter-hover-panel.types';
+import { ChangeType, IndicatorType, PluginEvent } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
 import { isNestedEditor } from '@/helpers/nested-editor.helper';
 import type { ChangeLine } from '@/lines/change.line';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ArrayMap } from '@/maps/array.map';
 import { BarMarker } from '@/markers/bar.marker';
+import type { I18nService } from '@/services/i18n.service';
 import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import { TOKENS } from '@/services/tokens';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
-import type { GutterConfig } from '@/types';
+import type { GutterConfig, Handlers } from '@/types';
 import { type Line, type RangeSet, RangeSetBuilder } from '@codemirror/state';
 import type { EditorView } from '@codemirror/view';
 
@@ -38,6 +41,30 @@ export class GutterBarExtension implements GutterConfig {
    */
   public renderEmptyElements: boolean = false;
 
+  /**
+   * Opens the hover panel from a bar marker on pointer dwell and closes it when
+   * the pointer leaves. Wired on the gutter (not the marker) so the marker stays
+   * about change semantics; a hover resolves the gutter element under the pointer
+   * and its 0-based line, and only a real marker cell (never the empty column,
+   * which has no element) opens a panel.
+   */
+  public domEventHandlers: Handlers = {
+    mouseover: (view, line, event): boolean => {
+      const anchor = (event.target as HTMLElement | null)?.closest<HTMLElement>('.cm-gutterElement');
+
+      if (anchor) {
+        this.hoverPanel().enter(view.state.doc.lineAt(line.from).number - 1, anchor);
+      }
+
+      return false;
+    },
+    mouseout: (): boolean => {
+      this.panel?.leave();
+
+      return false;
+    },
+  };
+
   /** Service for accessing plugin settings. */
   @Inject(TOKENS.settings)
   protected settingsService!: SettingsService;
@@ -45,6 +72,18 @@ export class GutterBarExtension implements GutterConfig {
   /** Service for managing file snapshots. */
   @Inject(TOKENS.snapshots)
   protected snapshotsService!: SnapshotsService;
+
+  /** Service for translations, used for the hover panel's accessible label. */
+  @Inject(TOKENS.i18n)
+  protected i18nService!: I18nService;
+
+  /**
+   * Hover panel controller, created on first hover (one panel opens at a time
+   * across views). Lazy so constructing the extension stays side-effect free;
+   * {@link hoverPanel} wires its dismissal and teardown on creation. Null until
+   * the first hover.
+   */
+  protected panel: GutterHoverPanel | null = null;
 
   public constructor(
     protected view: EditorView | null,
@@ -102,6 +141,42 @@ export class GutterBarExtension implements GutterConfig {
 
     return builder.finish();
   };
+
+  /**
+   * Lazily builds the hover panel controller and wires its lifecycle to the
+   * plugin: a snapshot refresh (which rebuilds the gutter and dislodges the
+   * anchor) or a settings change dismisses it, and plugin unload detaches those
+   * listeners and disposes it. Created on first hover so constructing the
+   * extension stays side-effect free.
+   *
+   * @return {GutterHoverPanel} The shared hover panel controller
+   */
+  protected hoverPanel(): GutterHoverPanel {
+    if (this.panel) {
+      return this.panel;
+    }
+
+    const host: GutterHoverPanelHost = {
+      isEnabled: (): boolean => this.settingsService.value('gutterHoverPanel'),
+      getContainer: (): HTMLElement => document.body,
+      ariaLabel: (): string => this.i18nService.t('menu.local-history'),
+    };
+
+    const panel: GutterHoverPanel = new GutterHoverPanel(host);
+    const dismiss = (): void => panel.dismiss();
+
+    this.plugin.on(PluginEvent.snapshotsUpdate, dismiss);
+    this.plugin.on(PluginEvent.settingsUpdate, dismiss);
+    this.plugin.register((): void => {
+      this.plugin.off(PluginEvent.snapshotsUpdate, dismiss);
+      this.plugin.off(PluginEvent.settingsUpdate, dismiss);
+      panel.destroy();
+    });
+
+    this.panel = panel;
+
+    return panel;
+  }
 
   /**
    * Whether the indicator type is `line`.

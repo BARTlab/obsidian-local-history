@@ -543,6 +543,9 @@ body {
 .cm-gutters {
   position: relative;
 }
+.cm-editor .cm-editor .cm-gutter.lct {
+  display: none;
+}
 .cm-gutter.lct-gutter-bar-col {
   min-width: var(--lct-line-width);
   padding: 0;

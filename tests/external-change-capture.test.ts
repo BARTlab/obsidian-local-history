@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { ChangeType } from '@/consts';
 import { ExternalChangeCapture } from '@/snapshots/external-change-capture';
 import type { ExternalChangeHost } from '@/snapshots/external-change-capture.types';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
@@ -82,6 +83,21 @@ describe('ExternalChangeCapture', () => {
     return snapshot;
   };
 
+  /**
+   * Sorted 0-based line positions currently carrying a marker of `type`,
+   * read from the snapshot's change map the same way the gutter does.
+   *
+   * @param {FileSnapshot} snapshot - The snapshot whose markers to read
+   * @param {ChangeType} type - The marker type to collect
+   * @return {number[]} The marked line positions in ascending order
+   */
+  const markers = (snapshot: FileSnapshot, type: ChangeType): number[] =>
+    snapshot
+      .content.getChanges(type)
+      .simplify()
+      .map((change): number => change.getLine())
+      .sort((a: number, b: number): number => a - b);
+
   beforeEach((): void => {
     snapshots = new Map();
     vault = {};
@@ -113,6 +129,34 @@ describe('ExternalChangeCapture', () => {
       expect(snapshot.timeline.getStoredVersions()[0].getLines()).toEqual(['one', 'two-external', 'three']);
       expect(snapshot.content.getLastStateLines()).toEqual(['one', 'two-external', 'three']);
       expect(forceUpdate).toHaveBeenCalledTimes(1);
+    });
+
+    it('resyncs a lagging model line-by-line instead of remarking the whole document', async () => {
+      const file = makeFile('notes/a.md', { stat: { mtime: 1, size: 1 } });
+      const snapshot = track(file.path, 'alpha\nbeta\ngamma\ndelta');
+
+      // An editor edit the detector processed: line 2 changed in place.
+      snapshot.trackers.findCurrentLine(1)?.change('beta2');
+      snapshot.content.updateState(['alpha', 'beta2', 'gamma', 'delta']);
+      snapshot.updateChanges();
+
+      expect(markers(snapshot, ChangeType.changed)).toEqual([1]);
+
+      // The editor also inserted one line, but that update never reached the
+      // detector (a skipped ViewUpdate leaves the model one line behind), and
+      // the auto-save then flushed the full document to disk. The capture must
+      // resync only the genuinely new line; nuking the whole tracked block
+      // repaints every line of the note as added after a single insertion.
+      vault[file.path] = 'alpha\nbeta2\ninserted\ngamma\ndelta';
+
+      const capture = new ExternalChangeCapture(makeHost());
+
+      await capture.capture(file);
+
+      expect(snapshot.content.getLastStateLines()).toEqual(['alpha', 'beta2', 'inserted', 'gamma', 'delta']);
+      expect(markers(snapshot, ChangeType.added)).toEqual([2]);
+      expect(markers(snapshot, ChangeType.changed)).toEqual([1]);
+      expect(markers(snapshot, ChangeType.removed)).toEqual([]);
     });
 
     it('is a no-op when the disk content matches the known snapshot state', async () => {

@@ -25,6 +25,11 @@ follows [Semantic Versioning](https://semver.org/).
   Typing in a table cell no longer phantom-marks line 1 of the note, gutter
   markers no longer appear inside table cells, and a bogus one-line "version"
   of a single cell can no longer be captured into the note's history.
+- **Auto-save no longer repaints the whole note as added.** When the tracked
+  model lagged the editor by one missed update, the next auto-save was
+  captured as an external rewrite and replaced the entire tracked state, so
+  every line lit up as new after a single inserted line. The capture now
+  applies a minimal per-line resync, keeping the markers of untouched lines.
 
 ## [1.1.0] - 2026-06-10
 

@@ -1,4 +1,5 @@
 import type { ExternalChangeHost } from '@/snapshots/external-change-capture.types';
+import * as Diff from 'diff';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FileVersion } from '@/snapshots/file.version';
 import type { TFile } from 'obsidian';
@@ -210,15 +211,16 @@ export class ExternalChangeCapture {
     }
 
     /**
-     * Bring the tracker in line with the new content the same way applyContent
-     * does for the per-hunk revert path: rewrite the whole current span as a
-     * single block, then refresh the cached state and change map. Without this,
-     * the tracker would still describe the pre-change content and the gutter
+     * Bring the tracker in line with the new content as a minimal per-hunk
+     * update, then refresh the cached state and change map. Without this, the
+     * tracker would still describe the pre-change content and the gutter
      * markers would drift out of sync with what the user sees in the editor.
+     * Rewriting the whole current span as one block instead would destroy and
+     * re-add the tracker of every line, so a model that lags the editor by a
+     * single skipped update (the disk write is the editor's own auto-save)
+     * would repaint the entire note as added after one inserted line.
      */
-    const previousLength: number = snapshot.content.state.length;
-
-    snapshot.trackers.replaceBlock(0, previousLength, newLines);
+    this.applyLineDiff(snapshot, snapshot.content.state, newLines);
     snapshot.content.updateState(newLines);
     snapshot.updateChanges();
 
@@ -295,6 +297,58 @@ export class ExternalChangeCapture {
       await this.capture(file);
     } finally {
       this.inFlight.delete(path);
+    }
+  }
+
+  /**
+   * Applies the divergence between the model's known lines and the disk lines
+   * as a minimal per-hunk tracker update: untouched lines keep their trackers
+   * (and markers), a same-count hunk edits its lines in place, and only
+   * genuinely new or destroyed lines are added or removed.
+   *
+   * Hunks are applied bottom-up so the current-position coordinates of the
+   * earlier hunks stay valid while the later ones shift the tracker index,
+   * mirroring the reverse iteration of the change detector.
+   *
+   * @param {FileSnapshot} snapshot - The snapshot whose tracker to resync
+   * @param {string[]} previous - The model's known state lines
+   * @param {string[]} next - The disk content lines to converge onto
+   */
+  protected applyLineDiff(snapshot: FileSnapshot, previous: string[], next: string[]): void {
+    const parts: Diff.ArrayChange<string>[] = Diff.diffArrays(previous, next);
+    const hunks: { start: number; removeCount: number; lines: string[] }[] = [];
+    let position: number = 0;
+
+    for (const part of parts) {
+      if (part.removed) {
+        hunks.push({ start: position, removeCount: part.value.length, lines: [] });
+        position += part.value.length;
+
+        continue;
+      }
+
+      if (!part.added) {
+        position += part.value.length;
+
+        continue;
+      }
+
+      const last: { start: number; removeCount: number; lines: string[] } | undefined = hunks[hunks.length - 1];
+
+      /**
+       * An added run right after its removed run is one replacement hunk;
+       * folding them lets replaceBlock take the in-place edit path when the
+       * line counts match instead of a destroy-and-re-add.
+       */
+      if (last && last.lines.length === 0 && last.start + last.removeCount === position) {
+        last.lines = part.value.slice();
+      } else {
+        hunks.push({ start: position, removeCount: 0, lines: part.value.slice() });
+      }
+    }
+
+    for (let index: number = hunks.length - 1; index >= 0; index--) {
+      snapshot.trackers.replaceBlock(hunks[index].start, hunks[index].removeCount, hunks[index].lines);
     }
   }
 

@@ -90,6 +90,37 @@ describe('SnapshotsService path excludes', () => {
     expect(service.canCapture(tracked)).toBe(true);
   });
 
+  it('never tracks files inside the plugin own directory (self-tracking guard)', () => {
+    const settingsService = {
+      value: (path: string): unknown =>
+        (({ allowedExtensions: 'md, json', excludePaths: [] }) as Record<string, unknown>)[path] ?? '',
+    };
+
+    const plugin = {
+      getActiveEditorView: (): undefined => undefined,
+      get: (): unknown => settingsService,
+      t: (key: string): string => key,
+      manifest: { dir: '.obsidian/plugins/local-history', id: 'local-history' },
+      app: { vault: { configDir: '.obsidian' } },
+    } as unknown as PluginArg;
+
+    const service = new SnapshotsService(plugin);
+
+    const shard = makeFile('.obsidian/plugins/local-history/history/abc0000000000000.json');
+    const data = makeFile('.obsidian/plugins/local-history/data.json');
+    const outside = makeFile('notes/keep.json');
+
+    // The plugin's own shards and data are excluded regardless of extension, so
+    // the store can never recursively capture its own output.
+    expect(service.isExcludedPath(shard)).toBe(true);
+    expect(service.isExcludedPath(data)).toBe(true);
+    expect(service.canCapture(shard)).toBe(false);
+
+    // A same-extension note outside the plugin folder stays trackable.
+    expect(service.isExcludedPath(outside)).toBe(false);
+    expect(service.canCapture(outside)).toBe(true);
+  });
+
   it('excludes nothing when the pattern is empty', () => {
     const service = makeServiceWithSettings({
       allowedExtensions: 'md',

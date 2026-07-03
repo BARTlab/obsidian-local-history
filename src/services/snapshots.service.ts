@@ -292,7 +292,7 @@ export class SnapshotsService implements Service {
    * @return {boolean} True if the file path is excluded from tracking
    */
   public isExcludedPath(file: TFile): boolean {
-    return this.ignoreList.isExcluded(file);
+    return this.isOwnPluginPath(file.path) || this.ignoreList.isExcluded(file);
   }
 
   /**
@@ -485,6 +485,33 @@ export class SnapshotsService implements Service {
     }
 
     void this.capture();
+  }
+
+  /**
+   * Whether a vault path lives inside the plugin's own folder (its history
+   * shards, `data.json`, and any other plugin data). Such a path is NEVER
+   * tracked: capturing a shard would record the plugin's own output as a note,
+   * and since each save rewrites a shard that then looks like a new change, the
+   * plugin would build a history-of-its-own-history that balloons the store
+   * save over save. The check compares the vault-relative path against the
+   * manifest dir (falling back to `<configDir>/plugins/<id>` when the manifest
+   * carries no dir), matching the folder itself and everything beneath it. It
+   * degrades to `false` when no plugin dir can be resolved, so a bare test stub
+   * or an unusual host cannot crash the trackable decision.
+   *
+   * @param {string} path - The vault-relative path to test
+   * @return {boolean} True when the path is inside the plugin's own directory
+   */
+  protected isOwnPluginPath(path: string): boolean {
+    const configDir: string | undefined = this.plugin.app?.vault?.configDir;
+    const dir: string | undefined = this.plugin.manifest?.dir
+      ?? (configDir ? `${configDir}/plugins/${this.plugin.manifest?.id ?? ''}` : undefined);
+
+    if (!dir) {
+      return false;
+    }
+
+    return path === dir || path.startsWith(`${dir}/`);
   }
 
   /**

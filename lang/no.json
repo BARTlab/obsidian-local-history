@@ -159,5 +159,7 @@
   "notice.purge-excluded": "Lokal historikk: fjernet {count} øyeblikksbilde(r) for ekskluderte stier.",
   "notice.purge-excluded.no-match": "Lokal historikk: ingen lagret historikk samsvarer med de ekskluderte stiene.",
   "setting.reading-mode-indicator.name": "Vis indikatorer i lesemodus",
-  "setting.reading-mode-indicator.desc": "Marker gjengitte blokker i lesemodus med en farget venstre kant i redigeringsindikatorens farger (endret, lagt til, blanktegn, gjenopprettet). Av som standard; gir en liten kostnad per blokk ved hver gjengivelse i lesemodus."
+  "setting.reading-mode-indicator.desc": "Marker gjengitte blokker i lesemodus med en farget venstre kant i redigeringsindikatorens farger (endret, lagt til, blanktegn, gjenopprettet). Av som standard; gir en liten kostnad per blokk ved hver gjengivelse i lesemodus.",
+  "setting.gutter-hover-panel.name": "Vis panel når du holder over endringsmarkører",
+  "setting.gutter-hover-panel.desc": "Hold musepekeren over en endringsmarkør i margen for å åpne et panel med den forrige versjonen av den linjen. Derfra kan du tilbakestille endringen, kopiere den gamle teksten eller åpne filhistorikken. På som standard. Gjelder den vertikale linjeindikatoren."
 }

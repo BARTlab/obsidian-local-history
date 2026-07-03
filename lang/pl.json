@@ -159,5 +159,7 @@
   "notice.purge-excluded": "Historia lokalna: usunięto {count} migawek dla wykluczonych ścieżek.",
   "notice.purge-excluded.no-match": "Historia lokalna: żadna zapisana historia nie pasuje do wykluczonych ścieżek.",
   "setting.reading-mode-indicator.name": "Pokazuj wskaźniki w trybie czytania",
-  "setting.reading-mode-indicator.desc": "Oznaczaj wyrenderowane bloki w trybie czytania kolorową lewą krawędzią w kolorach wskaźnika edycji (zmienione, dodane, białe znaki, przywrócone). Domyślnie wyłączone; dodaje niewielki koszt dla każdego bloku przy każdym renderowaniu trybu czytania."
+  "setting.reading-mode-indicator.desc": "Oznaczaj wyrenderowane bloki w trybie czytania kolorową lewą krawędzią w kolorach wskaźnika edycji (zmienione, dodane, białe znaki, przywrócone). Domyślnie wyłączone; dodaje niewielki koszt dla każdego bloku przy każdym renderowaniu trybu czytania.",
+  "setting.gutter-hover-panel.name": "Pokaż panel po najechaniu na znaczniki zmian",
+  "setting.gutter-hover-panel.desc": "Najedź kursorem na znacznik zmiany na marginesie, aby otworzyć panel z poprzednią wersją tego wiersza. Z panelu możesz cofnąć zmianę, skopiować stary tekst lub otworzyć historię pliku. Domyślnie włączone. Dotyczy wskaźnika w postaci pionowej linii."
 }

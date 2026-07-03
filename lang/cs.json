@@ -159,5 +159,7 @@
   "notice.purge-excluded": "Lokální historie: odstraněno {count} snímků pro vyloučené cesty.",
   "notice.purge-excluded.no-match": "Lokální historie: žádná uložená historie neodpovídá vyloučeným cestám.",
   "setting.reading-mode-indicator.name": "Zobrazovat indikátory v režimu čtení",
-  "setting.reading-mode-indicator.desc": "Označovat vykreslené bloky v režimu čtení barevným levým okrajem v barvách indikátoru úprav (změněno, přidáno, bílé znaky, obnoveno). Ve výchozím stavu vypnuto; přidává malou zátěž na každý blok při každém překreslení režimu čtení."
+  "setting.reading-mode-indicator.desc": "Označovat vykreslené bloky v režimu čtení barevným levým okrajem v barvách indikátoru úprav (změněno, přidáno, bílé znaky, obnoveno). Ve výchozím stavu vypnuto; přidává malou zátěž na každý blok při každém překreslení režimu čtení.",
+  "setting.gutter-hover-panel.name": "Zobrazit panel při najetí na značky změn",
+  "setting.gutter-hover-panel.desc": "Najeďte myší na značku změny na okraji a otevře se panel s předchozí verzí daného řádku. Odtud můžete vrátit změnu, zkopírovat starý text nebo otevřít historii souboru. Ve výchozím nastavení zapnuto. Platí pro indikátor svislé čáry."
 }

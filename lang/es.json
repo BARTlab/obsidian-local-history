@@ -159,5 +159,7 @@
   "notice.purge-excluded": "Historial local: se purgaron {count} instantánea(s) de rutas excluidas.",
   "notice.purge-excluded.no-match": "Historial local: ningún historial almacenado coincide con las rutas excluidas.",
   "setting.reading-mode-indicator.name": "Mostrar indicadores en modo lectura",
-  "setting.reading-mode-indicator.desc": "Decorar los bloques renderizados en modo lectura con un borde izquierdo de color que coincide con los colores del indicador de edición (modificado, añadido, espacios, restaurado). Desactivado por defecto; tiene un pequeño coste por bloque en cada renderizado del modo lectura."
+  "setting.reading-mode-indicator.desc": "Decorar los bloques renderizados en modo lectura con un borde izquierdo de color que coincide con los colores del indicador de edición (modificado, añadido, espacios, restaurado). Desactivado por defecto; tiene un pequeño coste por bloque en cada renderizado del modo lectura.",
+  "setting.gutter-hover-panel.name": "Mostrar un panel al pasar el ratón sobre los marcadores de cambio",
+  "setting.gutter-hover-panel.desc": "Pasa el ratón sobre un marcador de cambio en el margen para abrir un panel con la versión anterior de esa línea. Desde ahí puedes revertir el cambio, copiar el texto antiguo o abrir el historial del archivo. Activado de forma predeterminada. Se aplica al indicador de línea vertical."
 }

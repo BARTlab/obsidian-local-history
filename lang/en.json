@@ -159,5 +159,7 @@
   "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
   "notice.purge-excluded.no-match": "Local history: no stored history matches the excluded paths.",
   "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render.",
+  "setting.gutter-hover-panel.name": "Show hover panel on change markers",
+  "setting.gutter-hover-panel.desc": "Hover a change marker in the gutter to open a panel with the previous version of that line. From there you can revert the change, copy the old text, or open the file history. Enabled by default. Applies to the vertical line indicator."
 }

@@ -184,6 +184,7 @@ export const DEFAULT_SETTINGS: LineChangeTrackerSettings = {
   treeHighlight: true,
   propertiesHighlight: true,
   readingModeIndicator: false,
+  gutterHoverPanel: true,
 
   retention: {
     maxEntries: 200,

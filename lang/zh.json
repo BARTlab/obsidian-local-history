@@ -159,5 +159,7 @@
   "notice.purge-excluded": "本地历史:已清除排除路径的 {count} 个快照。",
   "notice.purge-excluded.no-match": "本地历史:没有与排除路径匹配的已存储历史。",
   "setting.reading-mode-indicator.name": "在阅读模式中显示指示器",
-  "setting.reading-mode-indicator.desc": "在阅读模式中为渲染的块添加彩色左边框,颜色与实时编辑指示器一致(更改、添加、空白、恢复)。默认关闭;每次阅读模式重新渲染时每个块有少量开销。"
+  "setting.reading-mode-indicator.desc": "在阅读模式中为渲染的块添加彩色左边框,颜色与实时编辑指示器一致(更改、添加、空白、恢复)。默认关闭;每次阅读模式重新渲染时每个块有少量开销。",
+  "setting.gutter-hover-panel.name": "在更改标记上悬停时显示面板",
+  "setting.gutter-hover-panel.desc": "将鼠标悬停在边栏的更改标记上，即可打开一个面板，显示该行的上一个版本。在面板中可以撤销此更改、复制旧文本或打开文件历史。默认开启。适用于竖线指示器。"
 }

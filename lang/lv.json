@@ -159,5 +159,7 @@
   "notice.purge-excluded": "Lokālā vēsture: iztīrīti {count} momentuzņēmumi izslēgtajiem ceļiem.",
   "notice.purge-excluded.no-match": "Lokālā vēsture: neviena saglabātā vēsture neatbilst izslēgtajiem ceļiem.",
   "setting.reading-mode-indicator.name": "Rādīt indikatorus lasīšanas režīmā",
-  "setting.reading-mode-indicator.desc": "Lasīšanas režīmā attēlotajiem blokiem pievienot krāsainu kreiso malu rediģēšanas indikatora krāsās (mainīts, pievienots, atstarpes, atjaunots). Pēc noklusējuma izslēgts; katrā lasīšanas režīma pārzīmēšanā ir nelielas izmaksas par bloku."
+  "setting.reading-mode-indicator.desc": "Lasīšanas režīmā attēlotajiem blokiem pievienot krāsainu kreiso malu rediģēšanas indikatora krāsās (mainīts, pievienots, atstarpes, atjaunots). Pēc noklusējuma izslēgts; katrā lasīšanas režīma pārzīmēšanā ir nelielas izmaksas par bloku.",
+  "setting.gutter-hover-panel.name": "Rādīt paneli, novietojot kursoru virs izmaiņu marķieriem",
+  "setting.gutter-hover-panel.desc": "Novietojiet kursoru virs izmaiņu marķiera malā, lai atvērtu paneli ar šīs rindas iepriekšējo versiju. No turienes varat atsaukt izmaiņu, kopēt veco tekstu vai atvērt faila vēsturi. Pēc noklusējuma ieslēgts. Attiecas uz vertikālās līnijas indikatoru."
 }

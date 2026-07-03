@@ -64,6 +64,18 @@ describe('SettingsService init', () => {
     expect(service.value('excludePaths')).toEqual([]);
   });
 
+  it('defaults gutterHoverPanel to true and backfills it for older saved data', async () => {
+    const fresh = makeService(null);
+    await fresh.init();
+    expect(fresh.value('gutterHoverPanel')).toBe(true);
+
+    // Data saved before the setting existed has no key; the deep-merge must
+    // supply the default rather than leave the gutter hover panel undefined.
+    const legacy = makeService({ show: { changed: false } });
+    await legacy.init();
+    expect(legacy.value('gutterHoverPanel')).toBe(true);
+  });
+
   it('migrates a legacy excludePaths string into a single-element array (C3)', async () => {
     // Older installs stored excludePaths as a single regex string. The migration
     // shim wraps the whole string in a one-element array, preserving its exact

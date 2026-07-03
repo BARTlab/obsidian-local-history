@@ -94,4 +94,12 @@ export interface LineChangeTrackerSettings {
    * small runtime cost per block on every re-render.
    */
   readingModeIndicator: boolean;
+  /**
+   * Whether hovering a change marker in the gutter opens the hover panel. This
+   * single switch gates the whole feature: the extended hit zone, the marker
+   * widening on hover, and the panel itself, which shows the previous version
+   * of the line with revert, copy, and open-history actions. On by default;
+   * applies to the vertical line indicator only.
+   */
+  gutterHoverPanel: boolean;
 }

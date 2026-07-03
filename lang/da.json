@@ -159,5 +159,7 @@
   "notice.purge-excluded": "Lokal historik: ryddede {count} snapshot(s) for udelukkede stier.",
   "notice.purge-excluded.no-match": "Lokal historik: ingen gemt historik matcher de udelukkede stier.",
   "setting.reading-mode-indicator.name": "Vis indikatorer i læsetilstand",
-  "setting.reading-mode-indicator.desc": "Markér renderede blokke i læsetilstand med en farvet venstre kant i redigeringsindikatorens farver (ændret, tilføjet, blanktegn, gendannet). Slået fra som standard; har en lille omkostning pr. blok ved hver gengivelse i læsetilstand."
+  "setting.reading-mode-indicator.desc": "Markér renderede blokke i læsetilstand med en farvet venstre kant i redigeringsindikatorens farver (ændret, tilføjet, blanktegn, gendannet). Slået fra som standard; har en lille omkostning pr. blok ved hver gengivelse i læsetilstand.",
+  "setting.gutter-hover-panel.name": "Vis panel, når musen holdes over ændringsmarkører",
+  "setting.gutter-hover-panel.desc": "Hold musen over en ændringsmarkør i margenen for at åbne et panel med den forrige version af den linje. Derfra kan du fortryde ændringen, kopiere den gamle tekst eller åbne filhistorikken. Slået til som standard. Gælder for den lodrette linjeindikator."
 }

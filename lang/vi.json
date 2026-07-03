@@ -159,5 +159,7 @@
   "notice.purge-excluded": "Lịch sử cục bộ: đã xóa {count} ảnh chụp cho các đường dẫn bị loại trừ.",
   "notice.purge-excluded.no-match": "Lịch sử cục bộ: không có lịch sử đã lưu nào khớp với các đường dẫn bị loại trừ.",
   "setting.reading-mode-indicator.name": "Hiện chỉ báo trong chế độ đọc",
-  "setting.reading-mode-indicator.desc": "Trang trí các khối được hiển thị trong chế độ đọc bằng viền trái có màu trùng với màu chỉ báo chỉnh sửa (thay đổi, thêm, khoảng trắng, khôi phục). Mặc định tắt; tốn một chút chi phí cho mỗi khối ở mỗi lần hiển thị lại chế độ đọc."
+  "setting.reading-mode-indicator.desc": "Trang trí các khối được hiển thị trong chế độ đọc bằng viền trái có màu trùng với màu chỉ báo chỉnh sửa (thay đổi, thêm, khoảng trắng, khôi phục). Mặc định tắt; tốn một chút chi phí cho mỗi khối ở mỗi lần hiển thị lại chế độ đọc.",
+  "setting.gutter-hover-panel.name": "Hiện bảng khi di chuột qua dấu thay đổi",
+  "setting.gutter-hover-panel.desc": "Di chuột qua một dấu thay đổi ở lề để mở bảng hiển thị phiên bản trước của dòng đó. Từ đó bạn có thể hoàn tác thay đổi, sao chép văn bản cũ hoặc mở lịch sử tệp. Bật theo mặc định. Áp dụng cho chỉ báo đường kẻ dọc."
 }

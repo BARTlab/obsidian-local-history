@@ -159,5 +159,7 @@
   "notice.purge-excluded": "Lokaler Verlauf: {count} Snapshot(s) für ausgeschlossene Pfade entfernt.",
   "notice.purge-excluded.no-match": "Lokaler Verlauf: kein gespeicherter Verlauf entspricht den ausgeschlossenen Pfaden.",
   "setting.reading-mode-indicator.name": "Indikatoren im Lesemodus anzeigen",
-  "setting.reading-mode-indicator.desc": "Gerenderte Blöcke im Lesemodus mit einem farbigen linken Rand in den Farben des Bearbeitungsindikators markieren (geändert, hinzugefügt, Leerzeichen, wiederhergestellt). Standardmäßig deaktiviert; verursacht geringe Kosten pro Block bei jedem Neurendern des Lesemodus."
+  "setting.reading-mode-indicator.desc": "Gerenderte Blöcke im Lesemodus mit einem farbigen linken Rand in den Farben des Bearbeitungsindikators markieren (geändert, hinzugefügt, Leerzeichen, wiederhergestellt). Standardmäßig deaktiviert; verursacht geringe Kosten pro Block bei jedem Neurendern des Lesemodus.",
+  "setting.gutter-hover-panel.name": "Schwebepanel an Änderungsmarkierungen anzeigen",
+  "setting.gutter-hover-panel.desc": "Fahren Sie mit der Maus über eine Änderungsmarkierung am Rand, um ein Panel mit der vorherigen Version dieser Zeile zu öffnen. Von dort können Sie die Änderung rückgängig machen, den alten Text kopieren oder den Dateiverlauf öffnen. Standardmäßig aktiviert. Gilt für den vertikalen Linienindikator."
 }

@@ -159,5 +159,7 @@
   "notice.purge-excluded": "Historiku lokal: u pastruan {count} fotografi për shtigjet e përjashtuara.",
   "notice.purge-excluded.no-match": "Historiku lokal: asnjë historik i ruajtur nuk përputhet me shtigjet e përjashtuara.",
   "setting.reading-mode-indicator.name": "Shfaq tregues në mënyrën e leximit",
-  "setting.reading-mode-indicator.desc": "Zbukuro blloqet e shfaqura në mënyrën e leximit me një kufi të majtë me ngjyrë sipas ngjyrave të treguesit të redaktimit (ndryshuar, shtuar, hapësira, rikthyer). I çaktivizuar si parazgjedhje; ka një kosto të vogël për bllok në çdo rishfaqje të mënyrës së leximit."
+  "setting.reading-mode-indicator.desc": "Zbukuro blloqet e shfaqura në mënyrën e leximit me një kufi të majtë me ngjyrë sipas ngjyrave të treguesit të redaktimit (ndryshuar, shtuar, hapësira, rikthyer). I çaktivizuar si parazgjedhje; ka një kosto të vogël për bllok në çdo rishfaqje të mënyrës së leximit.",
+  "setting.gutter-hover-panel.name": "Shfaq një panel kur kalon kursori mbi shënuesit e ndryshimeve",
+  "setting.gutter-hover-panel.desc": "Kalo kursorin mbi një shënues ndryshimi në anë për të hapur një panel me versionin e mëparshëm të asaj rreshti. Prej andej mund ta kthesh ndryshimin, të kopjosh tekstin e vjetër ose të hapësh historikun e skedarit. I aktivizuar si parazgjedhje. Zbatohet për treguesin me vijë vertikale."
 }

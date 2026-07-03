@@ -159,5 +159,7 @@
   "notice.purge-excluded": "Paikallinen historia: poistettiin {count} tilannekuvaa poissuljetuilta poluilta.",
   "notice.purge-excluded.no-match": "Paikallinen historia: mikään tallennettu historia ei vastaa poissuljettuja polkuja.",
   "setting.reading-mode-indicator.name": "Näytä ilmaisimet lukutilassa",
-  "setting.reading-mode-indicator.desc": "Merkitse renderöidyt lohkot lukutilassa värillisellä vasemmalla reunuksella muokkausilmaisimen väreissä (muutettu, lisätty, välilyönnit, palautettu). Oletuksena pois päältä; aiheuttaa pienen kustannuksen lohkoa kohden jokaisella lukutilan uudelleenrenderöinnillä."
+  "setting.reading-mode-indicator.desc": "Merkitse renderöidyt lohkot lukutilassa värillisellä vasemmalla reunuksella muokkausilmaisimen väreissä (muutettu, lisätty, välilyönnit, palautettu). Oletuksena pois päältä; aiheuttaa pienen kustannuksen lohkoa kohden jokaisella lukutilan uudelleenrenderöinnillä.",
+  "setting.gutter-hover-panel.name": "Näytä paneeli, kun osoitin viedään muutosmerkkien päälle",
+  "setting.gutter-hover-panel.desc": "Vie osoitin reunuksessa olevan muutosmerkin päälle avataksesi paneelin, jossa näkyy kyseisen rivin edellinen versio. Siitä voit kumota muutoksen, kopioida vanhan tekstin tai avata tiedoston historian. Oletuksena käytössä. Koskee pystyviivailmaisinta."
 }

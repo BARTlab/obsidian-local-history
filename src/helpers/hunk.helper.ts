@@ -17,9 +17,29 @@ export type HunkLineKind = 'added' | 'removed' | 'context';
  */
 
 /**
+ * Joins lines for diffing with a trailing line break so every line, including
+ * the last, is newline-terminated. Without the terminator a deletion touching
+ * the final line of a file that has no trailing newline diffs as a mixed hunk
+ * (a "no newline at end of file" marker with paired add/remove lines) instead
+ * of a clean pure deletion, which every downstream hunk consumer then fails to
+ * recognize. An empty list stays empty so it does not read as one blank line.
+ *
+ * @param {string[]} lines - The content as an array of lines
+ * @param {string} lineBreak - The line break used to join and terminate lines
+ * @return {string} The joined, newline-terminated text (empty for no lines)
+ */
+function terminate(lines: string[], lineBreak: string): string {
+  const list: string[] = lines ?? [];
+
+  return list.length ? list.join(lineBreak) + lineBreak : '';
+}
+
+/**
  * Computes the line-level hunks between a base text and the current text.
  * Uses zero context so each hunk covers only the changed lines, which keeps
- * a per-hunk revert scoped to exactly that block.
+ * a per-hunk revert scoped to exactly that block. Both sides are terminated
+ * with a trailing line break so a last-line deletion produces a pure-deletion
+ * hunk like every other line, keeping hunk shapes uniform for all consumers.
  *
  * @param {string[]} baseLines - The base content as an array of lines
  * @param {string[]} currentLines - The current content as an array of lines
@@ -31,8 +51,8 @@ export function diff(
   currentLines: string[],
   lineBreak: string = '\n',
 ): Diff.StructuredPatchHunk[] {
-  const base: string = (baseLines ?? []).join(lineBreak);
-  const current: string = (currentLines ?? []).join(lineBreak);
+  const base: string = terminate(baseLines, lineBreak);
+  const current: string = terminate(currentLines, lineBreak);
 
   if (base === current) {
     return [];

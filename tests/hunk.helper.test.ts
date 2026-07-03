@@ -22,6 +22,28 @@ describe('HunkHelper.diff', () => {
 
     expect(hunks).toHaveLength(2);
   });
+
+  it('encodes a last-line deletion as a pure-deletion hunk', () => {
+    // Deleting the final line of a file with no trailing newline must diff as a
+    // clean pure deletion (newLines === 0), not a mixed "no newline" hunk, so
+    // the gutter revert path can find it. The reinsertion point is the end of
+    // the current text: newStart === currentLines.length + 1 (3 here).
+    const [hunk] = HunkHelper.diff(['A', 'B', 'C'], ['A', 'B']);
+
+    expect(hunk.newLines).toBe(0);
+    expect(hunk.newStart).toBe(3);
+    expect(HunkHelper.baseLinesForHunk(hunk)).toEqual(['C']);
+  });
+
+  it('encodes a multi-line trailing deletion as a pure-deletion hunk', () => {
+    // Deleting several trailing lines collapses to a single pure-deletion hunk
+    // whose reinsertion point is one past the surviving line.
+    const [hunk] = HunkHelper.diff(['A', 'B', 'C'], ['A']);
+
+    expect(hunk.newLines).toBe(0);
+    expect(hunk.newStart).toBe(2);
+    expect(HunkHelper.baseLinesForHunk(hunk)).toEqual(['B', 'C']);
+  });
 });
 
 describe('HunkHelper.revertHunk', () => {

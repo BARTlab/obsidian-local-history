@@ -17,7 +17,7 @@ jest.mock('@codemirror/view', () => ({
 
 import { editorInfoField } from 'obsidian';
 import type { StateField } from '@codemirror/state';
-import { IndicatorType } from '@/consts';
+import { ChangeType, IndicatorType } from '@/consts';
 import { GutterRemovedExtension } from '@/extensions/gutter-removed.extension';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import { TOKENS } from '@/services/tokens';
@@ -362,6 +362,45 @@ describe('GutterRemovedExtension revertRemovedAt - revert affordance', () => {
 
     // Reverting the deletion of "b" restores the original four-line document.
     expect(revertedLines).toEqual(['a', 'b', 'c', 'd']);
+  });
+
+  it('reverts a deletion of the last line of a file without a trailing newline', async () => {
+    // Regression: deleting the final line of a no-trailing-newline file used to
+    // emit a mixed "no newline" hunk that the pure-deletion matcher missed, so
+    // the gutter revert was a silent no-op. The removed anchor is clamped onto
+    // the last surviving line (index 1), and the reinsertion point sits at the
+    // end of the doc, so the matcher must accept that clamped shape.
+    const doc = 'a\nb\nc';
+    const snap = new FileSnapshot(doc);
+
+    snap.file = { path: 'note.md' } as unknown as TFile;
+    // Delete line 3 ("c") together with its leading newline: results in "a\nb".
+    applyEdit(snap, doc, {
+      from: lineFrom(doc, 2) + 1,
+      to: lineFrom(doc, 3) + 1,
+      insert: '',
+    });
+
+    // The anchor is clamped to the last current line (index 1).
+    expect(snap.content.getChangedPositions(ChangeType.removed)).toEqual([1]);
+
+    const applyContent = jest.fn(() => Promise.resolve());
+    const { plugin } = makePlugin({
+      snapshotOverride: snap,
+      confirmResult: true,
+      applyContent,
+    });
+
+    const ext = new GutterRemovedExtension(null as unknown as ViewArg, plugin);
+
+    await callRevertRemovedAt(ext, 1);
+
+    expect(applyContent).toHaveBeenCalledTimes(1);
+
+    const [, revertedLines] = applyContent.mock.calls[0] as unknown as [unknown, string[], unknown];
+
+    // Reverting the deletion of "c" restores the original three-line document.
+    expect(revertedLines).toEqual(['a', 'b', 'c']);
   });
 
   it('does not call applyContent when the user declines the confirm', async () => {

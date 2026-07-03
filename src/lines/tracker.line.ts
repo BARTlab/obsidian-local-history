@@ -52,7 +52,11 @@ export class TrackerLine {
   /** Original content of the line (for development use only) */
   public original: string | null = null;
 
-  /** Current content of the line (for development use only) */
+  /**
+   * Current content of the line. Load-bearing: the change detector's
+   * self-heal pass re-syncs it against the live document, and
+   * `lastContentHash()` gates removed-anchor restoration on it.
+   */
   public current: string | null = null;
 
   /**
@@ -276,6 +280,19 @@ export class TrackerLine {
    */
   public isStateRemovedAt(line: number): boolean {
     return !this.existedInCurrent && this.existedInOriginal && this.removedAtPosition === line;
+  }
+
+  /**
+   * Hash of the content this line last held: the edited content for a line
+   * `change()` has touched, the original one otherwise. For a removed anchor
+   * this is the content the line carried at deletion time, which is what an
+   * undo or a paste-back re-inserts; the baseline `hash` would reject a
+   * modified line's own return.
+   *
+   * @return {string | null} The last-content hash, or null when no content was ever recorded
+   */
+  public lastContentHash(): string | null {
+    return typeof this.current === 'string' ? TextHelper.hash(this.current) : this.hash;
   }
 
   /**

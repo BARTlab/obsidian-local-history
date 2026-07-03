@@ -180,6 +180,80 @@ describe('ChangeDetectorExtension restore', () => {
     expect(snapshot.trackers.findCurrentLine(2)?.isStateOriginal()).toBe(true);
   });
 
+  it('keeps the removed anchor when a different line is typed at its position', () => {
+    const snapshot = new FileSnapshot('a\nb\nc\nd');
+
+    // Delete the whole line "b" including its newline: an anchor appears.
+    const afterDelete: string = step(snapshot, 'a\nb\nc\nd', {
+      from: lineRange('a\nb\nc\nd', 2).from,
+      to: lineRange('a\nb\nc\nd', 3).from,
+      insert: '',
+    });
+
+    expect(positions(snapshot, ChangeType.removed)).toEqual([1]);
+
+    // Enter at the anchor spot, then type unrelated content there. The anchor
+    // must survive: the deleted original was not brought back, so folding the
+    // removal into a "changed" line silently loses the deletion record.
+    const afterEnter: string = step(snapshot, afterDelete, { from: lineRange(afterDelete, 1).to, insert: '\n' });
+
+    step(snapshot, afterEnter, { from: lineRange(afterEnter, 2).from, insert: 'fresh' });
+
+    expect(positions(snapshot, ChangeType.added)).toEqual([1]);
+    expect(positions(snapshot, ChangeType.removed)).toHaveLength(1);
+    expect(positions(snapshot, ChangeType.changed)).toEqual([]);
+  });
+
+  it('folds the anchor back when undo re-inserts a modified line as it was before deletion', () => {
+    const snapshot = new FileSnapshot('a\nb\nc\nd');
+
+    // Edit line 2 first, so its content diverges from the baseline.
+    const afterEdit: string = step(snapshot, 'a\nb\nc\nd', {
+      from: lineRange('a\nb\nc\nd', 2).from,
+      to: lineRange('a\nb\nc\nd', 2).to,
+      insert: 'B!',
+    });
+
+    expect(positions(snapshot, ChangeType.changed)).toEqual([1]);
+
+    // Delete the modified line entirely: the anchor records the deletion.
+    const afterDelete: string = step(snapshot, afterEdit, {
+      from: lineRange(afterEdit, 2).from,
+      to: lineRange(afterEdit, 3).from,
+      insert: '',
+    });
+
+    expect(positions(snapshot, ChangeType.removed)).toEqual([1]);
+
+    // Ctrl+Z: one transaction re-inserting the line with its PRE-DELETION
+    // content (not the baseline one). The anchor must fold back and the line
+    // must return with its previous "changed" marker, not stay a brand-new
+    // added line next to a stale removal record.
+    step(snapshot, afterDelete, { from: lineRange(afterDelete, 2).from, insert: 'B!\n' });
+
+    expect(positions(snapshot, ChangeType.removed)).toEqual([]);
+    expect(positions(snapshot, ChangeType.added)).toEqual([]);
+    expect(positions(snapshot, ChangeType.changed)).toEqual([1]);
+  });
+
+  it('restores the anchor cleanly when the deleted line is re-inserted verbatim', () => {
+    const snapshot = new FileSnapshot('a\nb\nc\nd');
+
+    const afterDelete: string = step(snapshot, 'a\nb\nc\nd', {
+      from: lineRange('a\nb\nc\nd', 2).from,
+      to: lineRange('a\nb\nc\nd', 3).from,
+      insert: '',
+    });
+
+    expect(positions(snapshot, ChangeType.removed)).toEqual([1]);
+
+    // One transaction re-inserting the exact deleted line (paste / undo path).
+    step(snapshot, afterDelete, { from: lineRange(afterDelete, 1).to, insert: '\nb' });
+
+    expect(positions(snapshot, ChangeType.added)).toEqual([]);
+    expect(positions(snapshot, ChangeType.removed)).toEqual([]);
+    expect(positions(snapshot, ChangeType.changed)).toEqual([]);
+  });
 });
 
 describe('ChangeDetectorExtension line replacement (off-by-one regression)', () => {

@@ -111,11 +111,16 @@ export class TrackerIndex {
   /**
    * Finds a tracker line removed at the specified position.
    * Searches for a tracker line that was removed at the given line number.
+   * When `contentHash` is given, only an anchor whose last-held-content hash
+   * matches is returned: an undo or paste-back re-inserting the line as it was
+   * at deletion time finds its anchor, while unrelated new content typed at
+   * the same position leaves the anchor (and its removed marker) in place.
    *
    * @param {number} line - The line number where a line was removed
+   * @param {string} contentHash - Optional last-content hash the anchor must match
    * @return {TrackerLine | null} The tracker line that was removed at the specified position, or null if not found
    */
-  public findRemovedAt(line: number): TrackerLine | null {
+  public findRemovedAt(line: number, contentHash?: string): TrackerLine | null {
     /**
      * Pick the most recently removed line at the position (highest timestamp)
      * by scanning the tracker once, without sorting or copying it.
@@ -123,9 +128,16 @@ export class TrackerIndex {
     let found: TrackerLine | null = null;
 
     for (const item of this.tracker) {
-      if (item.isStateRemovedAt(line) && (!found || item.removedTimeStamp > found.removedTimeStamp)) {
-        found = item;
+      if (!item.isStateRemovedAt(line) || (found && item.removedTimeStamp <= found.removedTimeStamp)) {
+        continue;
       }
+
+      // Hash only the rare position candidates, not every tracked line.
+      if (contentHash !== undefined && item.lastContentHash() !== contentHash) {
+        continue;
+      }
+
+      found = item;
     }
 
     return found;

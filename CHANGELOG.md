@@ -2,6 +2,12 @@
 
 All notable user-facing changes to this plugin are documented here.
 
+## [Unreleased]
+
+### Fixed
+
+- Reverting the deletion of a file's last line from the gutter now works when the file has no trailing newline. The revert affordance rendered but did nothing, because a last-line deletion produced an irregular diff hunk that the revert path could not match.
+
 ## [2.0.0] - 2026-07-06
 
 First release published to the Obsidian community plugin directory. Since the last public release (1.0.1) the plugin grew from a live line-change highlighter into a full on-disk local-history system: a per-file version timeline, a four-view diff, restore and revert, folder history, and recovery of deleted, moved, and externally changed files.

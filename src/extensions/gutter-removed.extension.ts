@@ -96,8 +96,11 @@ export class GutterRemovedExtension implements GutterConfig {
    * (HunkHelper + SnapshotsService.applyContent).
    *
    * A removed-line marker sits at the first current line after the deletion
-   * gap, so the hunk's 1-based newStart equals currentLine + 1. A stale index
-   * (no matching hunk in the live diff) is a safe no-op.
+   * gap, so the hunk's 1-based newStart equals currentLine + 1, except when the
+   * deletion touched the file's last line: with no line after the gap the anchor
+   * is clamped onto the last current line and the reinsertion point sits at the
+   * end of the doc (newStart = currentLines.length + 1). A stale index (no
+   * matching hunk in the live diff) is a safe no-op.
    *
    * @param {number} currentLine - The 0-based current line the marker sits on
    * @return {Promise<void>}
@@ -122,10 +125,20 @@ export class GutterRemovedExtension implements GutterConfig {
      * reinserted. The gutter marker is placed on the line at currentLine
      * (0-based), which is line.number - 1 from the doc. That maps to
      * newStart = currentLine + 1.
+     *
+     * A deletion that touched the file's last line has no surviving line after
+     * the gap, so its anchor is clamped down onto the last current line. There
+     * the reinsertion point sits one past the marker (at the end of the doc),
+     * so newStart = currentLine + 2 = currentLines.length + 1. Accept that shape
+     * too, but only when the marker is on the last line, to keep every other
+     * deletion matched by its exact insertion point.
      */
     const insertionPoint: number = currentLine + 1;
+    const eofInsertionPoint: number = currentLines.length + 1;
+    const isLastLine: boolean = currentLine === currentLines.length - 1;
     const hunk: Diff.StructuredPatchHunk | undefined = hunks.find(
-      (h: Diff.StructuredPatchHunk): boolean => h.newLines === 0 && h.newStart === insertionPoint,
+      (h: Diff.StructuredPatchHunk): boolean =>
+        h.newLines === 0 && (h.newStart === insertionPoint || (isLastLine && h.newStart === eofInsertionPoint)),
     );
 
     if (!hunk) {

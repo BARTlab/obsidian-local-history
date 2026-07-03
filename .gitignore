@@ -97,6 +97,7 @@ temp/
 Thumbs.db
 
 # obsidian
+.obsidian/
 data.json
 history.json
 history/

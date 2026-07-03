@@ -22,10 +22,13 @@ It complements Obsidian [Sync version history](https://obsidian.md/help/sync/ver
 
 ## Screenshots
 
-[<img src="screenshots/editor-lines.png" alt="editor lines" width="300">](screenshots/editor-lines.png)
-[<img src="screenshots/editor-gutters.png" alt="editor gutters" width="300">](screenshots/editor-gutters.png)
-[<img src="screenshots/diff-side-by-side.png" alt="diff side by side" width="300">](screenshots/diff-side-by-side.png)
-[<img src="screenshots/diff-patch.png" alt="diff patch" width="300">](screenshots/diff-patch.png)
+| Per-line change markers | Gutter bar and file/tab tinting |
+| :---: | :---: |
+| [<img src="screenshots/editor-lines.png" alt="Per-line change markers in the editor" width="380">](screenshots/editor-lines.png) | [<img src="screenshots/editor-gutters.png" alt="Gutter change bar with file-explorer and tab tinting" width="380">](screenshots/editor-gutters.png) |
+| **Diff, side by side** | **Diff, line by line** |
+| [<img src="screenshots/diff-side-by-side.png" alt="Side-by-side diff of two versions" width="380">](screenshots/diff-side-by-side.png) | [<img src="screenshots/diff-line-by-line.png" alt="Line-by-line diff of two versions" width="380">](screenshots/diff-line-by-line.png) |
+| **Diff, copyable patch** | **Settings** |
+| [<img src="screenshots/diff-patch.png" alt="Zero-context patch view you can copy" width="380">](screenshots/diff-patch.png) | [<img src="screenshots/settings.png" alt="Plugin settings tab" width="380">](screenshots/settings.png) |
 
 ## Installation
 

@@ -15,9 +15,16 @@ import type { Service } from '@/types';
  * they cascade to both the editor gutter bars and the reading-mode indicators.
  * No `<style>` element is injected (Obsidian guidelines discourage it).
  *
+ * It also toggles the `lct-hover-affordance` body class from the
+ * gutter-hover-panel setting, which styles.scss keys the gutter marker's hover
+ * widening and extended hit zone on, so one switch gates the whole affordance.
+ *
  * @implements {Service}
  */
 export class StylesService implements Service {
+  /** Body class gating the gutter marker hover affordance (styles.scss keys on it). */
+  protected static readonly HOVER_AFFORDANCE_CLASS = 'lct-hover-affordance';
+
   /** Service for accessing plugin settings. */
   @Inject(TOKENS.settings)
   protected settingsService!: SettingsService;
@@ -34,7 +41,9 @@ export class StylesService implements Service {
 
   /**
    * Writes the settings-driven marker geometry as CSS custom properties on the
-   * document body. Triggered on settings changes via the @_On decorator.
+   * document body and toggles the hover-affordance class from the
+   * gutter-hover-panel setting. Triggered on settings changes via the @_On
+   * decorator, so the toggle applies live without an editor rebuild.
    */
   @_On(PluginEvent.settingsUpdate)
   public update(): void {
@@ -42,11 +51,16 @@ export class StylesService implements Service {
 
     document.body.style.setProperty(LINE_WIDTH_VAR, `${width}px`);
     document.body.style.setProperty(LINE_BORDER_RADIUS_VAR, `${(width / 2).toFixed(0)}px`);
+    document.body.classList.toggle(
+      StylesService.HOVER_AFFORDANCE_CLASS,
+      this.settingsService.value('gutterHoverPanel'),
+    );
   }
 
-  /** Clears the custom properties this service set on the document body. */
+  /** Clears the custom properties and hover-affordance class this service set. */
   public unload(): void {
     document.body.style.removeProperty(LINE_WIDTH_VAR);
     document.body.style.removeProperty(LINE_BORDER_RADIUS_VAR);
+    document.body.classList.remove(StylesService.HOVER_AFFORDANCE_CLASS);
   }
 }

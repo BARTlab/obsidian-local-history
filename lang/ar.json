@@ -70,6 +70,8 @@
   "setting.line-heading": "مؤشر الخط",
   "setting.line-width.name": "العرض",
   "setting.line-width.desc": "عرض مؤشر الخط العمودي (بالبكسل).",
+  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "مؤشر الهامش",
   "setting.gutter-heading.prefix": "أحرف مؤشر النوع في الهامش (",
   "setting.gutter-heading.suffix": ").",

@@ -23,10 +23,12 @@
 body {
   // Tint strength shared by every change colour (markers, tree/tab, folders):
   // the percentage of the hue kept when it is mixed with `transparent`, so the
-  // whole palette softens from one knob. 75% reads ~25% paler than the raw theme
-  // colour while staying legible; override it in a snippet to taste (100% = the
-  // original hard contrast). Kept on `body` so it inherits to the editor `.lct`
-  // tokens as well.
+  // whole palette softens from one knob. This declaration is only a static
+  // fallback for the pre-load frame: StylesService writes the "Marker intensity"
+  // setting into the same variable inline on `body` (default 75), so the inline
+  // value wins once the plugin is ready. A snippet overriding it must therefore
+  // use `!important` to beat that inline value. Kept on `body` so it inherits to
+  // the editor `.lct` tokens as well.
   --lct-tint-strength: 75%;
 
   --lct-status-added: color-mix(in srgb, var(--color-orange) var(--lct-tint-strength), transparent);

@@ -70,6 +70,8 @@
   "setting.line-heading": "Satır göstergesi",
   "setting.line-width.name": "Genişlik",
   "setting.line-width.desc": "Dikey çizgi göstergesinin genişliği (piksel cinsinden).",
+  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Oluk göstergesi",
   "setting.gutter-heading.prefix": "Oluk tür göstergesinin karakterleri (",
   "setting.gutter-heading.suffix": ").",

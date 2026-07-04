@@ -70,6 +70,8 @@
   "setting.line-heading": "Táscaire líne",
   "setting.line-width.name": "Leithead",
   "setting.line-width.desc": "Leithead an táscaire líne inghearaí (i bpicteilíní).",
+  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Táscaire imill",
   "setting.gutter-heading.prefix": "Carachtair de tháscaire cineáil an imill (",
   "setting.gutter-heading.suffix": ").",

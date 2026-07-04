@@ -70,6 +70,8 @@
   "setting.line-heading": "מחוון שורה",
   "setting.line-width.name": "רוחב",
   "setting.line-width.desc": "רוחב מחוון הקו האנכי (בפיקסלים).",
+  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "מחוון שוליים",
   "setting.gutter-heading.prefix": "תווי מחוון הסוג בשוליים (",
   "setting.gutter-heading.suffix": ").",

@@ -197,6 +197,21 @@ export class MainSetting extends PluginSettingTab {
 
     group.addSetting((setting: Setting): void => {
       setting
+        .setName(this.plugin.t('setting.marker-intensity.name'))
+        .setDesc(this.plugin.t('setting.marker-intensity.desc'))
+        .addSlider((slider: SliderComponent): SliderComponent =>
+          slider
+            .setLimits(10, 100, 5)
+            .setValue(this.settingsService.value('markerIntensity'))
+            .setDynamicTooltip()
+            .onChange((value: number): void => {
+              this.settingsService.update('markerIntensity', value);
+            })
+        );
+    });
+
+    group.addSetting((setting: Setting): void => {
+      setting
         .setName(this.plugin.t('setting.persist.name'))
         .setDesc(this.plugin.t('setting.persist.desc'))
         .addToggle((toggle: ToggleComponent): ToggleComponent =>

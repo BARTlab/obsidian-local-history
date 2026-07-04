@@ -24,24 +24,31 @@ import { TOKENS } from '@/services/tokens';
 type PluginArg = ConstructorParameters<typeof StylesService>[0];
 
 const HOVER_CLASS = 'lct-hover-affordance';
+const TINT_STRENGTH_VAR = '--lct-tint-strength';
 
 interface SettingOverrides {
   gutterHoverPanel?: boolean;
   lineWidth?: number;
+  markerIntensity?: number;
 }
 
 /**
  * Builds a StylesService over a fake plugin whose container resolves a settings
- * stub. The stub answers the two paths update() reads: `line.width` for the
- * geometry properties and `gutterHoverPanel` for the hover-affordance class.
+ * stub. The stub answers the three paths update() reads: `line.width` for the
+ * geometry properties, `markerIntensity` for the tint-strength property, and
+ * `gutterHoverPanel` for the hover-affordance class.
  */
 const makeService = (overrides: SettingOverrides = {}): StylesService => {
-  const { gutterHoverPanel = true, lineWidth = 2 } = overrides;
+  const { gutterHoverPanel = true, lineWidth = 2, markerIntensity = 75 } = overrides;
 
   const settingsService = {
     value: (path: string): unknown => {
       if (path === 'line.width') {
         return lineWidth;
+      }
+
+      if (path === 'markerIntensity') {
+        return markerIntensity;
       }
 
       if (path === 'gutterHoverPanel') {
@@ -105,5 +112,39 @@ describe('StylesService hover-affordance body class', () => {
     service.unload();
 
     expect(document.body.classList.contains(HOVER_CLASS)).toBe(false);
+  });
+});
+
+describe('StylesService marker intensity', () => {
+  it('writes the intensity as a percentage into the tint-strength property', () => {
+    makeService({ markerIntensity: 40 }).update();
+
+    expect(document.body.style.getPropertyValue(TINT_STRENGTH_VAR)).toBe('40%');
+  });
+
+  it('sets the property on load() from the initial setting', () => {
+    makeService({ markerIntensity: 100 }).load();
+
+    expect(document.body.style.getPropertyValue(TINT_STRENGTH_VAR)).toBe('100%');
+  });
+
+  it('overwrites a previously-set value on the next update (live re-run)', () => {
+    // The @_On(settingsUpdate) hook re-runs update() on every settings change,
+    // so moving the slider must rewrite the property. Seed a prior value to
+    // model the feature having already been applied at a different intensity.
+    document.body.style.setProperty(TINT_STRENGTH_VAR, '75%');
+
+    makeService({ markerIntensity: 20 }).update();
+
+    expect(document.body.style.getPropertyValue(TINT_STRENGTH_VAR)).toBe('20%');
+  });
+
+  it('removes the property on unload() so teardown leaves no residue', () => {
+    const service = makeService({ markerIntensity: 60 });
+    service.load();
+
+    service.unload();
+
+    expect(document.body.style.getPropertyValue(TINT_STRENGTH_VAR)).toBe('');
   });
 });

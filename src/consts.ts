@@ -185,6 +185,7 @@ export const DEFAULT_SETTINGS: LineChangeTrackerSettings = {
   propertiesHighlight: true,
   readingModeIndicator: false,
   gutterHoverPanel: true,
+  markerIntensity: 75,
 
   retention: {
     maxEntries: 200,
@@ -356,6 +357,16 @@ export const LINE_WIDTH_VAR: string = '--lct-line-width';
  * written on `document.body` alongside {@link LINE_WIDTH_VAR}.
  */
 export const LINE_BORDER_RADIUS_VAR: string = '--lct-line-border-radius';
+
+/**
+ * CSS custom property carrying the settings-driven marker intensity: the
+ * percentage of the raw theme hue kept before it is mixed toward transparency.
+ * Written on `document.body` by StylesService so it cascades to every change
+ * surface (editor markers, reading-mode bars, and file-tree / tab / properties
+ * tints). styles.scss declares a static fallback of the same default for the
+ * pre-load frame before StylesService writes the settings value.
+ */
+export const TINT_STRENGTH_VAR: string = '--lct-tint-strength';
 
 /**
  * CSS class applied to a reading-mode block when any of its source lines are

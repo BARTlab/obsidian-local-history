@@ -70,6 +70,8 @@
   "setting.line-heading": "ตัวบ่งชี้บรรทัด",
   "setting.line-width.name": "ความกว้าง",
   "setting.line-width.desc": "ความกว้างของตัวบ่งชี้เส้นแนวตั้ง (เป็นพิกเซล)",
+  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "ตัวบ่งชี้ในแถบขอบ",
   "setting.gutter-heading.prefix": "อักขระของตัวบ่งชี้ชนิดในแถบขอบ (",
   "setting.gutter-heading.suffix": ").",

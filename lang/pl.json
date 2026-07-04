@@ -70,6 +70,8 @@
   "setting.line-heading": "Wskaźnik liniowy",
   "setting.line-width.name": "Szerokość",
   "setting.line-width.desc": "Szerokość pionowego wskaźnika liniowego (w pikselach).",
+  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Wskaźnik na marginesie",
   "setting.gutter-heading.prefix": "Znaki wskaźnika typu na marginesie (",
   "setting.gutter-heading.suffix": ").",

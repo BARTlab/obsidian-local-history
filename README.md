@@ -22,9 +22,9 @@ It complements Obsidian [Sync version history](https://obsidian.md/help/sync/ver
 
 ## Screenshots
 
-| Per-line change markers | Gutter bar and file/tab tinting |
+| Gutter change bars in the editor | Gutter hover panel |
 | :---: | :---: |
-| [<img src="screenshots/editor-lines.png" alt="Per-line change markers in the editor" width="380">](screenshots/editor-lines.png) | [<img src="screenshots/editor-gutters.png" alt="Gutter change bar with file-explorer and tab tinting" width="380">](screenshots/editor-gutters.png) |
+| [<img src="screenshots/editor-gutters.png" alt="Gutter change bars marking edited lines" width="380">](screenshots/editor-gutters.png) | [<img src="screenshots/editor-hover-panel.png" alt="Gutter hover panel showing the previous version of a changed line" width="380">](screenshots/editor-hover-panel.png) |
 | **Diff, side by side** | **Diff, line by line** |
 | [<img src="screenshots/diff-side-by-side.png" alt="Side-by-side diff of two versions" width="380">](screenshots/diff-side-by-side.png) | [<img src="screenshots/diff-line-by-line.png" alt="Line-by-line diff of two versions" width="380">](screenshots/diff-line-by-line.png) |
 | **Diff, copyable patch** | **Settings** |

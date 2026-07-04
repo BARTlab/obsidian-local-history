@@ -1,24 +1,8 @@
 # Changelog
 
-All notable user-facing changes to this plugin are documented here. 
-The format  is based on [Keep a Changelog](https://keepachangelog.com/), and the project  follows [Semantic Versioning](https://semver.org/).
+All notable user-facing changes to this plugin are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/), and the project  follows [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
-
-### Added
-
-- **Gutter hover panel.** Hover a change marker in the editor gutter to open a panel with the previous version of that line, then revert the change, copy the old text, or open the file history from it. Enabled by default; toggle it with the "Show hover panel on change markers" setting.
-
-### Fixed
-
-- Pressing Enter in the middle of a line (or pasting/deleting a multi-line block mid-line) no longer marks every line below the edit as changed. The change detector now adds or removes a tracker for the extra line created or swallowed by a mid-line split or join, so the lines after the edit keep their real change state.
-- Reverting a block from the history modal back to its original content no longer leaves phantom added/removed markers when the block's line count changed (for example, reverting a line that was split in two). A reverted line whose content matches the original folds back onto its own tracker instead of being counted as a removal plus an addition.
-- Consecutive changed lines in the gutter bar column now merge into one continuous vertical bar. Each line's bar used to render as its own rounded segment, leaving a micro-gap at every line boundary.
-- Reverting the deletion of a file's last line from the gutter now works when the file has no trailing newline. The revert affordance rendered but did nothing, because a last-line deletion produced an irregular diff hunk that the revert path could not match.
-- Making several edits in a single action (for example inserting a line at the top of a note while deleting other lines lower down, or an undo that replays several changes at once) no longer records the wrong lines as removed or marks an untouched line as changed. Each edit in the batch is now mapped against the line positions the earlier edits in the same batch already shifted.
-- A note that mixes Windows (CRLF) and Unix (LF) line endings no longer loses change tracking on some lines. The baseline is now split into lines the same way the editor sees them, so an edited line stays tracked and an untouched line is never marked as changed by mistake.
-
-## [2.0.0] - 2026-07-06
+## [2.0.0] - 2026-07-08
 
 First release published to the Obsidian community plugin directory. Since the last public release (1.0.1) the plugin grew from a live line-change highlighter into a full on-disk local-history system: a per-file version timeline, a four-view diff, restore and revert, folder history, and recovery of deleted, moved, and externally changed files.
 
@@ -29,6 +13,7 @@ First release published to the Obsidian community plugin directory. Since the la
 - **Four diff views.** The history modal offers side-by-side, line-by-line, word-level inline highlighting, and a clean zero-context patch you can copy.
 - **Version rail with search.** Pick any captured version as the diff base and filter the rail by content. Each version shows what it did (Created, Modified, Cleared) with line-level deltas.
 - **Restore and revert.** Restore the whole file to any version or to its original state, delete a single version, or revert one changed block straight from the editor gutter.
+- **Gutter hover panel.** Hover a change marker in the editor gutter to open a panel with the previous version of that line, then revert the change, copy the old text, or open the file history from it. Enabled by default; toggle it with the "Show hover panel on change markers" setting.
 - **Custom labels.** Pin any version with a label; pinned versions are exempt from retention eviction.
 - **Recent changes panel.** A right-sidebar panel lists the active file's timeline with action, date, and line deltas inline, with restore/delete/label actions on each row.
 - **Folder history.** Open history for a whole folder to see which files changed since any point in time, with a timeline rail and a changes-only file tree.
@@ -78,6 +63,12 @@ First release published to the Obsidian community plugin directory. Since the la
 - **Localized gutter revert.** The editor gutter's revert-block confirmation follows the UI language instead of being English-only.
 - **Quieter exclude-pattern input.** Typing an incomplete or invalid path-exclude pattern in settings no longer spams repeated notifications.
 - **Reading-mode indicator cleanup.** Turning change indicators off clears the indicators already drawn in reading mode instead of leaving them until the next reload.
+- **Mid-line split and join tracking.** Pressing Enter in the middle of a line (or pasting/deleting a multi-line block mid-line) no longer marks every line below the edit as changed. The change detector now adds or removes a tracker for the extra line created or swallowed by a mid-line split or join, so the lines after the edit keep their real change state.
+- **Block revert phantoms.** Reverting a block from the history modal back to its original content no longer leaves phantom added/removed markers when the block's line count changed (for example, reverting a line that was split in two). A reverted line whose content matches the original folds back onto its own tracker instead of being counted as a removal plus an addition.
+- **Continuous gutter bar.** Consecutive changed lines in the gutter bar column now merge into one continuous vertical bar. Each line's bar used to render as its own rounded segment, leaving a micro-gap at every line boundary.
+- **Last-line revert without a trailing newline.** Reverting the deletion of a file's last line from the gutter now works when the file has no trailing newline. The revert affordance rendered but did nothing, because a last-line deletion produced an irregular diff hunk that the revert path could not match.
+- **Batched multi-edit actions.** Making several edits in a single action (for example inserting a line at the top of a note while deleting other lines lower down, or an undo that replays several changes at once) no longer records the wrong lines as removed or marks an untouched line as changed. Each edit in the batch is now mapped against the line positions the earlier edits in the same batch already shifted.
+- **Mixed CRLF/LF baselines.** A note that mixes Windows (CRLF) and Unix (LF) line endings no longer loses change tracking on some lines. The baseline is now split into lines the same way the editor sees them, so an edited line stays tracked and an untouched line is never marked as changed by mistake.
 - Various change-tracking correctness fixes for added, removed, and restored line detection.
 ## [1.0.1] - 2025-07-24
 

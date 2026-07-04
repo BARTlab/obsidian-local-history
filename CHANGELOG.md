@@ -5,6 +5,10 @@ The format  is based on [Keep a Changelog](https://keepachangelog.com/), and the
 
 ## [Unreleased]
 
+### Added
+
+- **Gutter hover panel.** Hover a change marker in the editor gutter to open a panel with the previous version of that line, then revert the change, copy the old text, or open the file history from it. Enabled by default; toggle it with the "Show hover panel on change markers" setting.
+
 ### Fixed
 
 - Pressing Enter in the middle of a line (or pasting/deleting a multi-line block mid-line) no longer marks every line below the edit as changed. The change detector now adds or removes a tracker for the extra line created or swallowed by a mid-line split or join, so the lines after the edit keep their real change state.

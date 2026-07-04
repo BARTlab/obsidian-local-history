@@ -666,6 +666,10 @@ body.lct-hover-affordance .cm-gutter.lct-gutter-bar-col .cm-gutterElement:hover 
   width: var(--icon-s);
   height: var(--icon-s);
 }
+.lct-hover-panel-action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
 .lct-inline-container .lct-word-added,
 .lct-hover-panel .lct-word-added {
   background-color: rgba(var(--color-green-rgb), 0.4);

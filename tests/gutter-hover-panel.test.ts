@@ -399,6 +399,86 @@ describe('GutterHoverPanel', () => {
     expect(panel.getState()).toBe(GutterHoverPanelState.open);
   });
 
+  it('disables the copy button on a purely added line so it never confirms an empty copy', (): void => {
+    content = {
+      kind: GutterHoverPanelContentKind.added,
+      lines: [[segment('new line', true, false)]],
+    };
+
+    const panel: GutterHoverPanel = build();
+
+    panel.enter(3, anchor);
+    jest.advanceTimersByTime(OPEN_DELAY);
+
+    const copy: HTMLButtonElement = actionButtons()[1];
+
+    expect(copy.disabled).toBe(true);
+    // Clicking the disabled button is inert: the host copy never runs, so nothing
+    // is written to the clipboard and no "Copied!" notice is shown for a line with
+    // no previous version.
+    copy.click();
+    expect(copySpy).not.toHaveBeenCalled();
+    // Revert and history stay usable around the disabled copy.
+    expect(actionButtons()[0].disabled).toBe(false);
+    expect(actionButtons()[2].disabled).toBe(false);
+  });
+
+  it('keeps the copy button enabled and copying for the removed state', (): void => {
+    content = {
+      kind: GutterHoverPanelContentKind.removed,
+      lines: [[segment('gone', false, true)]],
+    };
+
+    const panel: GutterHoverPanel = build();
+
+    panel.enter(5, anchor);
+    jest.advanceTimersByTime(OPEN_DELAY);
+
+    const copy: HTMLButtonElement = actionButtons()[1];
+
+    expect(copy.disabled).toBe(false);
+    copy.click();
+    expect(copySpy).toHaveBeenCalledWith(5);
+  });
+
+  it('re-evaluates the copy disabled state per marker and keeps the Tab cycle between revert and history', (): void => {
+    const other: HTMLElement = document.createElement('div');
+
+    other.className = 'cm-gutterElement';
+    scroller.appendChild(other);
+    stubRect(other, { top: 300, left: 10, right: 14, bottom: 320, width: 4, height: 20 });
+
+    const panel: GutterHoverPanel = build();
+
+    // Opens on a changed marker: copy is live.
+    panel.enter(3, anchor);
+    jest.advanceTimersByTime(OPEN_DELAY);
+    expect(actionButtons()[1].disabled).toBe(false);
+
+    // Re-anchors onto an added marker without a second panel: copy goes disabled.
+    content = { kind: GutterHoverPanelContentKind.added, lines: [[segment('added', true, false)]] };
+    panel.enter(9, other);
+    expect(document.querySelectorAll('.lct-hover-panel')).toHaveLength(1);
+
+    const buttons: HTMLButtonElement[] = actionButtons();
+
+    expect(buttons[1].disabled).toBe(true);
+
+    // The Tab cycle wraps history -> revert, so it never lands on the disabled
+    // copy (the browser skips a disabled control natively; jsdom performs no
+    // sequential focus traversal, so this asserts the boundary wrap).
+    const last: HTMLButtonElement = buttons[buttons.length - 1];
+
+    last.focus();
+    last.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+    expect(document.activeElement).toBe(buttons[0]);
+
+    // Back onto a changed marker: copy is live again.
+    content = changedModel();
+    panel.enter(3, anchor);
+    expect(actionButtons()[1].disabled).toBe(false);
+  });
+
   it('opens history through the host and closes the panel', (): void => {
     const panel: GutterHoverPanel = build();
 

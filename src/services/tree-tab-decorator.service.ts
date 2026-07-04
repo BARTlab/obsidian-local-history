@@ -6,7 +6,13 @@ import type LineChangeTrackerPlugin from '@/main';
 import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import { TOKENS } from '@/services/tokens';
-import type { NativeFileExplorerItem, NativeFileExplorerView, NativeWorkspaceLeaf, Service } from '@/types';
+import type {
+  NativeFileExplorerItem,
+  NativeFileExplorerView,
+  NativeMetadataCache,
+  NativeWorkspaceLeaf,
+  Service,
+} from '@/types';
 import { type MarkdownView, type View, type WorkspaceLeaf } from 'obsidian';
 
 /**
@@ -420,6 +426,17 @@ export class TreeTabDecoratorService implements Service {
       statuses.set(path, FolderDeltaStatus.added);
     }
 
+    // Drop file paths hidden by a visibility filter before deriving folders, so
+    // neither the file row nor its ancestor folders are tinted: our own exclude
+    // patterns (a snapshot captured before the path was excluded outlives the
+    // capture-time gate) and Obsidian's "Excluded files" setting (a folder whose
+    // only session changes are hidden files should not be painted over).
+    for (const path of [...statuses.keys()]) {
+      if (!this.isPaintablePath(path)) {
+        statuses.delete(path);
+      }
+    }
+
     const filePaths: string[] = [...statuses.keys()];
 
     for (const folder of SessionStatusHelper.ancestorFolderPaths(filePaths)) {
@@ -427,6 +444,28 @@ export class TreeTabDecoratorService implements Service {
     }
 
     return statuses;
+  }
+
+  /**
+   * Whether a changed file path may tint its row and ancestor folders. Suppressed
+   * when the path matches one of our own exclude patterns or is hidden by
+   * Obsidian's "Excluded files" visibility filter, so a folder whose only session
+   * changes are filtered-out files stops painting. The Obsidian check is an
+   * undocumented runtime method reached defensively: when it is absent (or no app
+   * is wired) the path is treated as visible, so the behaviour never regresses.
+   *
+   * @param {string} path - The vault-relative file path
+   * @return {boolean} True when the path may be painted
+   */
+  protected isPaintablePath(path: string): boolean {
+    if (this.snapshotsService.isPathExcluded(path)) {
+      return false;
+    }
+
+    const cache: NativeMetadataCache | undefined =
+      this.plugin.app?.metadataCache as NativeMetadataCache | undefined;
+
+    return typeof cache?.isUserIgnored !== 'function' || !cache.isUserIgnored(path);
   }
 
   /**

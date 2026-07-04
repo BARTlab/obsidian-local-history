@@ -21,9 +21,25 @@
 // `body` the theme variables are in scope, so the palette resolves and cascades
 // to every descendant (modal tree and native rows/tabs alike).
 body {
-  --lct-status-added: var(--color-orange);
-  --lct-status-modified: var(--color-blue);
+  // Tint strength shared by every change colour (markers, tree/tab, folders):
+  // the percentage of the hue kept when it is mixed with `transparent`, so the
+  // whole palette softens from one knob. 75% reads ~25% paler than the raw theme
+  // colour while staying legible; override it in a snippet to taste (100% = the
+  // original hard contrast). Kept on `body` so it inherits to the editor `.lct`
+  // tokens as well.
+  --lct-tint-strength: 75%;
+
+  --lct-status-added: color-mix(in srgb, var(--color-orange) var(--lct-tint-strength), transparent);
+  --lct-status-modified: color-mix(in srgb, var(--color-blue) var(--lct-tint-strength), transparent);
   --lct-status-deleted: var(--color-base-100);
+
+  // Folder (directory) tints default to the file status colour but resolve
+  // through their own tokens, so a snippet can recolour only folders without
+  // touching the file rows. Only added/modified exist: a folder is never deleted
+  // on a native surface.
+  --lct-dir-added: var(--lct-status-added);
+  --lct-dir-modified: var(--lct-status-modified);
+
   // Ghost-row text colour: resolves to --text-muted so removed property keys
   // have legible contrast in light themes where --color-base-100 is near-white.
   --lct-prop-removed: var(--text-muted);
@@ -42,11 +58,15 @@ body {
 // Obsidian sets on body, the same reason the status palette above sits on body.
 .lct,
 .lct-rm-indicator {
-  --lct-color-changed: var(--color-blue);
-  --lct-color-restored: var(--text-faint);
-  --lct-color-added: var(--color-orange);
-  --lct-color-removed: var(--color-base-100);
-  --lct-color-whitespace: var(--color-yellow);
+  // Softened by the shared --lct-tint-strength (inherited from body) the same way
+  // as the tree/tab palette, so a gutter bar, a reading-mode border, and a file
+  // row all read at one intensity. Mixed toward transparent, so a bar composites
+  // paler over the editor background and a glyph/border eases off its hard hue.
+  --lct-color-changed: color-mix(in srgb, var(--color-blue) var(--lct-tint-strength), transparent);
+  --lct-color-restored: color-mix(in srgb, var(--text-faint) var(--lct-tint-strength), transparent);
+  --lct-color-added: color-mix(in srgb, var(--color-orange) var(--lct-tint-strength), transparent);
+  --lct-color-removed: color-mix(in srgb, var(--color-base-100) var(--lct-tint-strength), transparent);
+  --lct-color-whitespace: color-mix(in srgb, var(--color-yellow) var(--lct-tint-strength), transparent);
   // Vertical overlap a joined gutter bar adds below itself to cover the seam
   // between adjacent gutter elements (line-height rounding leaves up to ~2px
   // unpainted between them). The surplus hides under the opaque next bar.
@@ -1337,10 +1357,11 @@ body.lct-hover-affordance .cm-gutter.lct-gutter-bar-col {
 // the property itself rather than chase specificity. We also pin the
 // `--nav-item-color*` custom properties so themes that colour the label by
 // resolving that variable (instead of `color`) pick up the tint too.
+// File rows resolve the file status palette; folder rows resolve the separate
+// --lct-dir-* palette (which defaults to the same colours) so a snippet can
+// recolour folders alone. Split into two selector groups for that reason.
 .nav-file-title.lct-tree-added,
-.nav-file-title.lct-tree-added .nav-file-title-content,
-.nav-folder-title.lct-tree-added,
-.nav-folder-title.lct-tree-added .nav-folder-title-content {
+.nav-file-title.lct-tree-added .nav-file-title-content {
   --nav-item-color: var(--lct-status-added);
   --nav-item-color-hover: var(--lct-status-added);
   --nav-item-color-active: var(--lct-status-added);
@@ -1348,13 +1369,27 @@ body.lct-hover-affordance .cm-gutter.lct-gutter-bar-col {
 }
 
 .nav-file-title.lct-tree-modified,
-.nav-file-title.lct-tree-modified .nav-file-title-content,
-.nav-folder-title.lct-tree-modified,
-.nav-folder-title.lct-tree-modified .nav-folder-title-content {
+.nav-file-title.lct-tree-modified .nav-file-title-content {
   --nav-item-color: var(--lct-status-modified);
   --nav-item-color-hover: var(--lct-status-modified);
   --nav-item-color-active: var(--lct-status-modified);
   color: var(--lct-status-modified) !important;
+}
+
+.nav-folder-title.lct-tree-added,
+.nav-folder-title.lct-tree-added .nav-folder-title-content {
+  --nav-item-color: var(--lct-dir-added);
+  --nav-item-color-hover: var(--lct-dir-added);
+  --nav-item-color-active: var(--lct-dir-added);
+  color: var(--lct-dir-added) !important;
+}
+
+.nav-folder-title.lct-tree-modified,
+.nav-folder-title.lct-tree-modified .nav-folder-title-content {
+  --nav-item-color: var(--lct-dir-modified);
+  --nav-item-color-hover: var(--lct-dir-modified);
+  --nav-item-color-active: var(--lct-dir-modified);
+  color: var(--lct-dir-modified) !important;
 }
 
 // Tab headers: the class lands on the tab header element; the visible label is
@@ -1628,63 +1663,47 @@ body.lct-hover-affordance .cm-gutter.lct-gutter-bar-col {
 
 /* ---- reading-mode change indicators (B4) ---- */
 // Block-level change indicators applied by ReadingModeIndicatorService via a
-// MarkdownPostProcessor. A left border tinted by the dominant change type
-// colours each rendered block whose source lines contain a change. Colors
-// resolve through the --lct-color-* variables set by StylesService, matching
-// the live-edit gutter colours exactly.
+// MarkdownPostProcessor. The signal is a single thin marker bar parked in the
+// left margin OUTSIDE the block box, tinted by the dominant change type through
+// the --lct-color-* variables (the same palette as the live-edit gutter).
 //
-// The indicator is a 3 px left border with a translucent background tint so the
-// block content remains fully readable. No layout shift: border-left moves the
-// content 3 px inward via padding-left compensation.
+// It is an absolutely-positioned pseudo-element sitting clear of the content by
+// a small gap, so it paints on neither the block's background nor its borders:
+// a blockquote, callout, code block, or table keeps its native styling intact,
+// and the bar never reads as a quote accent on the block's own left edge. This
+// is why there is no background tint and no blockquote-specific branch anymore
+// (both previously bled into blocks that own their fill or left border). Out of
+// flow, so it introduces no layout shift.
+//
+// The bar's gap and width are exposed as custom properties so a snippet can
+// nudge them; drop the gap toward 0 if a narrow reading margin clips the bar.
 .lct-rm-indicator {
-  border-left: 3px solid transparent;
-  padding-left: 3px;
+  position: relative;
 
-  &[data-lct-type="changed"] {
-    border-left-color: var(--lct-color-changed);
-    background-color: color-mix(in srgb, var(--lct-color-changed) 8%, transparent);
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(-1 * (var(--lct-rm-gap, 6px) + var(--lct-rm-bar-width, 3px)));
+    width: var(--lct-rm-bar-width, 3px);
+    border-radius: var(--lct-rm-bar-width, 3px);
+    background-color: transparent;
   }
 
-  &[data-lct-type="added"] {
-    border-left-color: var(--lct-color-added);
-    background-color: color-mix(in srgb, var(--lct-color-added) 8%, transparent);
+  &[data-lct-type="changed"]::before {
+    background-color: var(--lct-color-changed);
   }
 
-  &[data-lct-type="whitespace"] {
-    border-left-color: var(--lct-color-whitespace);
-    background-color: color-mix(in srgb, var(--lct-color-whitespace) 8%, transparent);
+  &[data-lct-type="added"]::before {
+    background-color: var(--lct-color-added);
   }
 
-  &[data-lct-type="restored"] {
-    border-left-color: var(--lct-color-restored);
-    background-color: color-mix(in srgb, var(--lct-color-restored) 8%, transparent);
-  }
-}
-
-// Quote sections: .markdown-rendered blockquote draws its own
-// border-inline-start with --blockquote-border-color, so the indicator border
-// on the section wrapper would sit next to it as a double line. Drop the
-// indicator border (and its padding compensation, restoring the undecorated
-// geometry) and recolour the quote's own border by overriding the variable on
-// the wrapper; it inherits into the blockquote and any nested quotes. The
-// translucent background tint stays as the block-level change signal.
-.lct-rm-indicator:has(> blockquote) {
-  border-left: none;
-  padding-left: 0;
-
-  &[data-lct-type="changed"] {
-    --blockquote-border-color: var(--lct-color-changed);
+  &[data-lct-type="whitespace"]::before {
+    background-color: var(--lct-color-whitespace);
   }
 
-  &[data-lct-type="added"] {
-    --blockquote-border-color: var(--lct-color-added);
-  }
-
-  &[data-lct-type="whitespace"] {
-    --blockquote-border-color: var(--lct-color-whitespace);
-  }
-
-  &[data-lct-type="restored"] {
-    --blockquote-border-color: var(--lct-color-restored);
+  &[data-lct-type="restored"]::before {
+    background-color: var(--lct-color-restored);
   }
 }

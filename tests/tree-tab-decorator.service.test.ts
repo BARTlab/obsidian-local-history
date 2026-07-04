@@ -32,9 +32,10 @@ const makeModified = (file: TFile | null, carriedPath?: string): FileSnapshot =>
  * Exposes the protected `computeStatuses` on a real, fully-constructed service.
  * The `@Inject(TOKENS.snapshots)` field resolves lazily through `plugin.get`, so
  * the service is built over a container host that resolves the snapshots token to
- * a stub reporting the given list and session-created paths. The method reads
- * nothing else, so it runs on genuine instance state instead of a prototype cast
- * that bypassed construction and hand-set `this`.
+ * a stub reporting the given list, session-created paths, and exclude decision.
+ * The host also carries an `app.metadataCache.isUserIgnored` stub for the
+ * Obsidian visibility filter. The method reads nothing else, so it runs on
+ * genuine instance state instead of a prototype cast that bypassed construction.
  */
 class TestTreeTabDecoratorService extends TreeTabDecoratorService {
   public statuses(): Map<string, FolderDeltaStatus> {
@@ -42,15 +43,28 @@ class TestTreeTabDecoratorService extends TreeTabDecoratorService {
   }
 }
 
-const computeStatuses = (snapshots: FileSnapshot[], sessionCreated: string[] = []): Map<string, FolderDeltaStatus> => {
+interface ComputeOpts {
+  /** Paths reported as created this session. */
+  sessionCreated?: string[];
+  /** Paths the snapshots service reports as excluded (our patterns). */
+  excluded?: string[];
+  /** Paths Obsidian's visibility filter hides (metadataCache.isUserIgnored). */
+  ignored?: string[];
+}
+
+const computeStatuses = (snapshots: FileSnapshot[], opts: ComputeOpts = {}): Map<string, FolderDeltaStatus> => {
+  const { sessionCreated = [], excluded = [], ignored = [] } = opts;
+
   const snapshotsService = {
     getList: (): FileSnapshot[] => snapshots,
     getSessionCreatedPaths: (): ReadonlySet<string> => new Set(sessionCreated),
+    isPathExcluded: (path: string): boolean => excluded.includes(path),
   } as unknown as SnapshotsService;
 
-  const host = makeInjectHost((token: unknown): unknown =>
-    token === TOKENS.snapshots ? snapshotsService : undefined,
-  ) as unknown as ConstructorParameters<typeof TreeTabDecoratorService>[0];
+  const host = {
+    ...makeInjectHost((token: unknown): unknown => (token === TOKENS.snapshots ? snapshotsService : undefined)),
+    app: { metadataCache: { isUserIgnored: (path: string): boolean => ignored.includes(path) } },
+  } as unknown as ConstructorParameters<typeof TreeTabDecoratorService>[0];
 
   return new TestTreeTabDecoratorService(host).statuses();
 };
@@ -105,5 +119,37 @@ describe('TreeTabDecoratorService.computeStatuses - path resolution', () => {
     const statuses = computeStatuses([rootRestored, nestedRestored]);
 
     expect(statuses.size).toBe(0);
+  });
+});
+
+describe('TreeTabDecoratorService.computeStatuses - visibility filters', () => {
+  it('paints neither the file nor its folders when the path is excluded by our patterns', () => {
+    const statuses = computeStatuses([makeModified(makeFile('Templates/note.md'))], {
+      excluded: ['Templates/note.md'],
+    });
+
+    expect(statuses.size).toBe(0);
+  });
+
+  it('paints neither the file nor its folders when Obsidian hides the path', () => {
+    const statuses = computeStatuses([makeModified(makeFile('folder/sub/note.md'))], {
+      ignored: ['folder/sub/note.md'],
+    });
+
+    expect(statuses.size).toBe(0);
+  });
+
+  it('keeps a folder tinted when it still holds a visible changed file next to a hidden one', () => {
+    // Two changed files share a folder; one is hidden by Obsidian. The folder
+    // stays modified because the visible sibling still contributes, but the
+    // hidden file row itself is not painted.
+    const statuses = computeStatuses(
+      [makeModified(makeFile('folder/visible.md')), makeModified(makeFile('folder/hidden.md'))],
+      { ignored: ['folder/hidden.md'] },
+    );
+
+    expect(statuses.get('folder/visible.md')).toBe(FolderDeltaStatus.modified);
+    expect(statuses.has('folder/hidden.md')).toBe(false);
+    expect(statuses.get('folder')).toBe(FolderDeltaStatus.modified);
   });
 });

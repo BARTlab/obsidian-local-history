@@ -2,18 +2,21 @@
 
 /* src/styles.scss */
 body {
-  --lct-status-added: var(--color-orange);
-  --lct-status-modified: var(--color-blue);
+  --lct-tint-strength: 75%;
+  --lct-status-added: color-mix(in srgb, var(--color-orange) var(--lct-tint-strength), transparent);
+  --lct-status-modified: color-mix(in srgb, var(--color-blue) var(--lct-tint-strength), transparent);
   --lct-status-deleted: var(--color-base-100);
+  --lct-dir-added: var(--lct-status-added);
+  --lct-dir-modified: var(--lct-status-modified);
   --lct-prop-removed: var(--text-muted);
 }
 .lct,
 .lct-rm-indicator {
-  --lct-color-changed: var(--color-blue);
-  --lct-color-restored: var(--text-faint);
-  --lct-color-added: var(--color-orange);
-  --lct-color-removed: var(--color-base-100);
-  --lct-color-whitespace: var(--color-yellow);
+  --lct-color-changed: color-mix(in srgb, var(--color-blue) var(--lct-tint-strength), transparent);
+  --lct-color-restored: color-mix(in srgb, var(--text-faint) var(--lct-tint-strength), transparent);
+  --lct-color-added: color-mix(in srgb, var(--color-orange) var(--lct-tint-strength), transparent);
+  --lct-color-removed: color-mix(in srgb, var(--color-base-100) var(--lct-tint-strength), transparent);
+  --lct-color-whitespace: color-mix(in srgb, var(--color-yellow) var(--lct-tint-strength), transparent);
   --lct-line-seam: 2px;
 }
 .modal.lct-diff-modal {
@@ -769,22 +772,32 @@ body.lct-hover-affordance .cm-gutter.lct-gutter-bar-col .cm-gutterElement:hover 
   text-decoration: line-through;
 }
 .nav-file-title.lct-tree-added,
-.nav-file-title.lct-tree-added .nav-file-title-content,
-.nav-folder-title.lct-tree-added,
-.nav-folder-title.lct-tree-added .nav-folder-title-content {
+.nav-file-title.lct-tree-added .nav-file-title-content {
   --nav-item-color: var(--lct-status-added);
   --nav-item-color-hover: var(--lct-status-added);
   --nav-item-color-active: var(--lct-status-added);
   color: var(--lct-status-added) !important;
 }
 .nav-file-title.lct-tree-modified,
-.nav-file-title.lct-tree-modified .nav-file-title-content,
-.nav-folder-title.lct-tree-modified,
-.nav-folder-title.lct-tree-modified .nav-folder-title-content {
+.nav-file-title.lct-tree-modified .nav-file-title-content {
   --nav-item-color: var(--lct-status-modified);
   --nav-item-color-hover: var(--lct-status-modified);
   --nav-item-color-active: var(--lct-status-modified);
   color: var(--lct-status-modified) !important;
+}
+.nav-folder-title.lct-tree-added,
+.nav-folder-title.lct-tree-added .nav-folder-title-content {
+  --nav-item-color: var(--lct-dir-added);
+  --nav-item-color-hover: var(--lct-dir-added);
+  --nav-item-color-active: var(--lct-dir-added);
+  color: var(--lct-dir-added) !important;
+}
+.nav-folder-title.lct-tree-modified,
+.nav-folder-title.lct-tree-modified .nav-folder-title-content {
+  --nav-item-color: var(--lct-dir-modified);
+  --nav-item-color-hover: var(--lct-dir-modified);
+  --nav-item-color-active: var(--lct-dir-modified);
+  color: var(--lct-dir-modified) !important;
 }
 .workspace-tab-header.lct-tree-added,
 .workspace-tab-header.lct-tree-added .workspace-tab-header-inner-title {
@@ -944,38 +957,27 @@ body.lct-hover-affordance .cm-gutter.lct-gutter-bar-col .cm-gutterElement:hover 
   color: var(--lct-prop-removed);
 }
 .lct-rm-indicator {
-  border-left: 3px solid transparent;
-  padding-left: 3px;
+  position: relative;
 }
-.lct-rm-indicator[data-lct-type=changed] {
-  border-left-color: var(--lct-color-changed);
-  background-color: color-mix(in srgb, var(--lct-color-changed) 8%, transparent);
+.lct-rm-indicator::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(-1 * (var(--lct-rm-gap, 6px) + var(--lct-rm-bar-width, 3px)));
+  width: var(--lct-rm-bar-width, 3px);
+  border-radius: var(--lct-rm-bar-width, 3px);
+  background-color: transparent;
 }
-.lct-rm-indicator[data-lct-type=added] {
-  border-left-color: var(--lct-color-added);
-  background-color: color-mix(in srgb, var(--lct-color-added) 8%, transparent);
+.lct-rm-indicator[data-lct-type=changed]::before {
+  background-color: var(--lct-color-changed);
 }
-.lct-rm-indicator[data-lct-type=whitespace] {
-  border-left-color: var(--lct-color-whitespace);
-  background-color: color-mix(in srgb, var(--lct-color-whitespace) 8%, transparent);
+.lct-rm-indicator[data-lct-type=added]::before {
+  background-color: var(--lct-color-added);
 }
-.lct-rm-indicator[data-lct-type=restored] {
-  border-left-color: var(--lct-color-restored);
-  background-color: color-mix(in srgb, var(--lct-color-restored) 8%, transparent);
+.lct-rm-indicator[data-lct-type=whitespace]::before {
+  background-color: var(--lct-color-whitespace);
 }
-.lct-rm-indicator:has(> blockquote) {
-  border-left: none;
-  padding-left: 0;
-}
-.lct-rm-indicator:has(> blockquote)[data-lct-type=changed] {
-  --blockquote-border-color: var(--lct-color-changed);
-}
-.lct-rm-indicator:has(> blockquote)[data-lct-type=added] {
-  --blockquote-border-color: var(--lct-color-added);
-}
-.lct-rm-indicator:has(> blockquote)[data-lct-type=whitespace] {
-  --blockquote-border-color: var(--lct-color-whitespace);
-}
-.lct-rm-indicator:has(> blockquote)[data-lct-type=restored] {
-  --blockquote-border-color: var(--lct-color-restored);
+.lct-rm-indicator[data-lct-type=restored]::before {
+  background-color: var(--lct-color-restored);
 }

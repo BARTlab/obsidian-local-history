@@ -2,8 +2,11 @@
 
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { GutterHoverPanel } from '@/components/gutter-hover-panel';
-import { GutterHoverPanelState } from '@/components/gutter-hover-panel.types';
-import type { GutterHoverPanelHost } from '@/components/gutter-hover-panel.types';
+import { resolveHoverPanelContent } from '@/components/gutter-hover-panel-content';
+import { GutterHoverPanelContentKind, GutterHoverPanelState } from '@/components/gutter-hover-panel.types';
+import type { GutterHoverPanelContent, GutterHoverPanelHost } from '@/components/gutter-hover-panel.types';
+import * as HunkHelper from '@/helpers/hunk.helper';
+import type * as Diff from 'diff';
 
 /**
  * Tests for {@link GutterHoverPanel}, the shell of the JetBrains-style gutter
@@ -34,6 +37,24 @@ describe('GutterHoverPanel', () => {
   let anchor: HTMLElement;
   let enabled: boolean;
   let host: GutterHoverPanelHost;
+  let content: GutterHoverPanelContent | null;
+  let revertSpy: jest.Mock;
+  let copySpy: jest.Mock;
+  let historySpy: jest.Mock;
+
+  /** A single word segment for a fake content model. */
+  const segment = (text: string, added: boolean, removed: boolean): { text: string; added: boolean; removed: boolean } =>
+    ({ text, added, removed });
+
+  /** A one-line changed model with a dropped word (a removed span). */
+  const changedModel = (): GutterHoverPanelContent => ({
+    kind: GutterHoverPanelContentKind.changed,
+    lines: [[segment('the ', false, false), segment('quick ', false, true), segment('brown fox', false, false)]],
+  });
+
+  /** The panel's action buttons, in tab order. */
+  const actionButtons = (): HTMLButtonElement[] =>
+    Array.from(document.body.querySelectorAll<HTMLButtonElement>('.lct-hover-panel-action'));
 
   /**
    * Overrides an element's layout rect so positioning is testable under jsdom,
@@ -57,6 +78,12 @@ describe('GutterHoverPanel', () => {
   const build = (): GutterHoverPanel =>
     new GutterHoverPanel(host, { openDelayMs: OPEN_DELAY, closeDelayMs: CLOSE_DELAY });
 
+  /** Drains the microtask queue so a settled action promise runs its close. */
+  const flush = async (): Promise<void> => {
+    await Promise.resolve();
+    await Promise.resolve();
+  };
+
   beforeEach((): void => {
     jest.useFakeTimers();
     enabled = true;
@@ -67,10 +94,26 @@ describe('GutterHoverPanel', () => {
     scroller.appendChild(anchor);
     document.body.appendChild(scroller);
     stubRect(anchor, { top: 100, left: 10, right: 14, bottom: 120, width: 4, height: 20 });
+    content = changedModel();
+    revertSpy = jest.fn((): Promise<void> => Promise.resolve());
+    copySpy = jest.fn();
+    historySpy = jest.fn();
     host = {
       isEnabled: (): boolean => enabled,
       getContainer: (): HTMLElement => document.body,
       ariaLabel: (): string => ARIA_LABEL,
+      resolveContent: (): GutterHoverPanelContent | null => content,
+      actionLabels: () => ({ revert: 'Revert', copy: 'Copy', history: 'History' }),
+      applyIcon: (): void => {
+        // No-op: Obsidian's setIcon is unavailable under jsdom.
+      },
+      revert: (line: number): Promise<void> => revertSpy(line) as Promise<void>,
+      copyOldText: (line: number): void => {
+        copySpy(line);
+      },
+      openHistory: (): void => {
+        historySpy();
+      },
     };
   });
 
@@ -261,5 +304,222 @@ describe('GutterHoverPanel', () => {
     // (theme tokens), never inline, so the panel tracks the active theme.
     expect(element.style.color).toBe('');
     expect(element.style.backgroundColor).toBe('');
+  });
+
+  it('renders the changed state with the hunk base-side content and word-level removed spans', (): void => {
+    const panel: GutterHoverPanel = build();
+
+    panel.enter(3, anchor);
+    jest.advanceTimersByTime(OPEN_DELAY);
+
+    const slot: HTMLElement = document.body.querySelector('.lct-hover-panel-content') as HTMLElement;
+
+    expect(slot.classList.contains('lct-hover-panel-content-changed')).toBe(true);
+    expect(slot.querySelector('.lct-hover-panel-line')).not.toBeNull();
+    // A dropped word renders through the existing diff span class.
+    expect(slot.querySelector('.lct-word-removed')?.textContent).toBe('quick ');
+    expect(slot.querySelector('.lct-word-added')).toBeNull();
+  });
+
+  it('renders the added state without old text', (): void => {
+    content = {
+      kind: GutterHoverPanelContentKind.added,
+      lines: [[segment('new line', true, false)]],
+    };
+
+    const panel: GutterHoverPanel = build();
+
+    panel.enter(3, anchor);
+    jest.advanceTimersByTime(OPEN_DELAY);
+
+    const slot: HTMLElement = document.body.querySelector('.lct-hover-panel-content') as HTMLElement;
+
+    expect(slot.classList.contains('lct-hover-panel-content-added')).toBe(true);
+    expect(slot.querySelector('.lct-word-added')?.textContent).toBe('new line');
+    // No previous version: nothing renders as old (removed) text.
+    expect(slot.querySelector('.lct-word-removed')).toBeNull();
+  });
+
+  it('renders the removed state with the deleted line', (): void => {
+    content = {
+      kind: GutterHoverPanelContentKind.removed,
+      lines: [[segment('gone', false, true)]],
+    };
+
+    const panel: GutterHoverPanel = build();
+
+    panel.enter(3, anchor);
+    jest.advanceTimersByTime(OPEN_DELAY);
+
+    const slot: HTMLElement = document.body.querySelector('.lct-hover-panel-content') as HTMLElement;
+
+    expect(slot.classList.contains('lct-hover-panel-content-removed')).toBe(true);
+    expect(slot.querySelector('.lct-word-removed')?.textContent).toBe('gone');
+  });
+
+  it('renders three focusable action buttons with translated aria-labels', (): void => {
+    const panel: GutterHoverPanel = build();
+
+    panel.enter(3, anchor);
+    jest.advanceTimersByTime(OPEN_DELAY);
+
+    const buttons: HTMLButtonElement[] = actionButtons();
+
+    expect(buttons).toHaveLength(3);
+    expect(buttons.map((button: HTMLButtonElement): string => button.tagName)).toEqual(['BUTTON', 'BUTTON', 'BUTTON']);
+    expect(buttons.map((button: HTMLButtonElement): string | null => button.getAttribute('aria-label')))
+      .toEqual(['Revert', 'Copy', 'History']);
+    buttons.forEach((button: HTMLButtonElement): void => expect(button.getAttribute('type')).toBe('button'));
+  });
+
+  it('reverts the change through the host and closes after the confirm settles', async (): Promise<void> => {
+    const panel: GutterHoverPanel = build();
+
+    panel.enter(4, anchor);
+    jest.advanceTimersByTime(OPEN_DELAY);
+    actionButtons()[0].click();
+
+    expect(revertSpy).toHaveBeenCalledWith(4);
+
+    await flush();
+
+    expect(panelEl()).toBeNull();
+    expect(panel.getState()).toBe(GutterHoverPanelState.closed);
+  });
+
+  it('copies the old text through the host and leaves the panel open', (): void => {
+    const panel: GutterHoverPanel = build();
+
+    panel.enter(4, anchor);
+    jest.advanceTimersByTime(OPEN_DELAY);
+    actionButtons()[1].click();
+
+    expect(copySpy).toHaveBeenCalledWith(4);
+    expect(panelEl()).not.toBeNull();
+    expect(panel.getState()).toBe(GutterHoverPanelState.open);
+  });
+
+  it('opens history through the host and closes the panel', (): void => {
+    const panel: GutterHoverPanel = build();
+
+    panel.enter(4, anchor);
+    jest.advanceTimersByTime(OPEN_DELAY);
+    actionButtons()[2].click();
+
+    expect(historySpy).toHaveBeenCalledTimes(1);
+    expect(panelEl()).toBeNull();
+    expect(panel.getState()).toBe(GutterHoverPanelState.closed);
+  });
+
+  it('traps Tab within the action buttons so focus cycles', (): void => {
+    const panel: GutterHoverPanel = build();
+
+    panel.enter(3, anchor);
+    jest.advanceTimersByTime(OPEN_DELAY);
+
+    const buttons: HTMLButtonElement[] = actionButtons();
+    const last: HTMLButtonElement = buttons[buttons.length - 1];
+
+    // Tab off the last button wraps to the first.
+    last.focus();
+    last.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+    expect(document.activeElement).toBe(buttons[0]);
+
+    // Shift+Tab off the first wraps back to the last.
+    buttons[0].dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true, bubbles: true }));
+    expect(document.activeElement).toBe(last);
+  });
+
+  it('closes on Escape and returns focus to the editor', (): void => {
+    const editor: HTMLTextAreaElement = document.createElement('textarea');
+
+    document.body.appendChild(editor);
+    editor.focus();
+    expect(document.activeElement).toBe(editor);
+
+    const panel: GutterHoverPanel = build();
+
+    panel.enter(3, anchor);
+    jest.advanceTimersByTime(OPEN_DELAY);
+    // Focus enters the panel, then Escape dismisses it.
+    actionButtons()[0].focus();
+    expect(document.activeElement).not.toBe(editor);
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+
+    expect(panelEl()).toBeNull();
+    expect(document.activeElement).toBe(editor);
+  });
+});
+
+/**
+ * Tests for {@link resolveHoverPanelContent}, the pure resolver the gutter host
+ * builds the panel from. It maps a hovered line to the display model and the
+ * block the actions operate on, so these assert the three marker states, that
+ * the revert hunk matches what the gutter revert resolves at that line, and that
+ * the copy payload is the hunk's base-side text. Pure, so it runs without jsdom.
+ */
+describe('resolveHoverPanelContent', () => {
+  it('resolves a changed line to base-side content, removed spans, and the gutter revert hunk', (): void => {
+    const base: string[] = ['the quick brown fox'];
+    const current: string[] = ['the brown fox'];
+    const resolution = resolveHoverPanelContent(base, current, '\n', 0);
+
+    expect(resolution).not.toBeNull();
+    expect(resolution?.content.kind).toBe(GutterHoverPanelContentKind.changed);
+    expect((resolution?.content.lines[0] ?? []).some((seg): boolean => seg.removed && seg.text.includes('quick')))
+      .toBe(true);
+
+    // The action hunk is exactly the block the dot gutter revert resolves at the line.
+    const expected: Diff.StructuredPatchHunk | null = HunkHelper.hunkAtLine(HunkHelper.diff(base, current, '\n'), 0);
+
+    expect(resolution?.hunk).toEqual(expected);
+    expect(HunkHelper.revertHunk(current, resolution?.hunk as Diff.StructuredPatchHunk)).toEqual(base);
+    expect(resolution?.baseText).toBe('the quick brown fox');
+  });
+
+  it('resolves an added line to the added state with no old text', (): void => {
+    const base: string[] = ['a', 'c'];
+    const current: string[] = ['a', 'b', 'c'];
+    const resolution = resolveHoverPanelContent(base, current, '\n', 1);
+
+    expect(resolution?.content.kind).toBe(GutterHoverPanelContentKind.added);
+
+    const segments = (resolution?.content.lines ?? []).flat();
+
+    expect(segments.some((seg): boolean => seg.added && seg.text.includes('b'))).toBe(true);
+    expect(segments.some((seg): boolean => seg.removed)).toBe(false);
+    expect(resolution?.baseText).toBe('');
+    // Reverting removes the added line.
+    expect(HunkHelper.revertHunk(current, resolution?.hunk as Diff.StructuredPatchHunk)).toEqual(base);
+  });
+
+  it('resolves a removed dash to the deleted base line and the pure-deletion revert hunk', (): void => {
+    const base: string[] = ['a', 'b', 'c'];
+    const current: string[] = ['a', 'c'];
+    // The removed dash sits on the first current line after the gap.
+    const resolution = resolveHoverPanelContent(base, current, '\n', 1);
+
+    expect(resolution?.content.kind).toBe(GutterHoverPanelContentKind.removed);
+    expect((resolution?.content.lines ?? []).flat().some((seg): boolean => seg.removed && seg.text.includes('b')))
+      .toBe(true);
+    expect(resolution?.baseText).toBe('b');
+    expect(resolution?.hunk.newLines).toBe(0);
+    expect(HunkHelper.revertHunk(current, resolution?.hunk as Diff.StructuredPatchHunk)).toEqual(base);
+  });
+
+  it('resolves a last-line deletion through the clamped end-of-file anchor', (): void => {
+    const base: string[] = ['a', 'b', 'c'];
+    const current: string[] = ['a', 'b'];
+    // Deleting the last line clamps the anchor onto the new last line.
+    const resolution = resolveHoverPanelContent(base, current, '\n', 1);
+
+    expect(resolution?.content.kind).toBe(GutterHoverPanelContentKind.removed);
+    expect(resolution?.baseText).toBe('c');
+    expect(HunkHelper.revertHunk(current, resolution?.hunk as Diff.StructuredPatchHunk)).toEqual(base);
+  });
+
+  it('returns null when no change block covers the line', (): void => {
+    expect(resolveHoverPanelContent(['a', 'b'], ['a', 'b'], '\n', 0)).toBeNull();
   });
 });

@@ -8,6 +8,7 @@ All notable user-facing changes to this plugin are documented here.
 
 - Reverting the deletion of a file's last line from the gutter now works when the file has no trailing newline. The revert affordance rendered but did nothing, because a last-line deletion produced an irregular diff hunk that the revert path could not match.
 - Making several edits in a single action (for example inserting a line at the top of a note while deleting other lines lower down, or an undo that replays several changes at once) no longer records the wrong lines as removed or marks an untouched line as changed. Each edit in the batch is now mapped against the line positions the earlier edits in the same batch already shifted.
+- A note that mixes Windows (CRLF) and Unix (LF) line endings no longer loses change tracking on some lines. The baseline is now split into lines the same way the editor sees them, so an edited line stays tracked and an untouched line is never marked as changed by mistake.
 
 ## [2.0.0] - 2026-07-06
 

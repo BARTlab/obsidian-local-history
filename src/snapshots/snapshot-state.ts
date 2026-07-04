@@ -50,8 +50,10 @@ export class SnapshotState {
   public lastHash: string | null = null;
 
   /**
-   * Line break character used to split incoming content and join the owned line
-   * arrays for comparison. Defaults to '\n'.
+   * Line break used to JOIN the owned line arrays back into content (hashing,
+   * comparison, disk writes). Incoming content is always split on `/\r?\n/`, so a
+   * mixed-ending document decomposes into the same lines the editor sees; this
+   * convention only decides how those lines are rejoined. Defaults to '\n'.
    */
   public lineBreak: string = '\n';
 
@@ -61,14 +63,17 @@ export class SnapshotState {
    * and its hash. A restore later overrides the history baseline independently.
    *
    * @param {string} content - The initial file content as a string
-   * @param {string} lineBreak - The line break used to split and join content
+   * @param {string} lineBreak - The line break used to rejoin the owned lines
    */
   public constructor(content?: string, lineBreak?: string) {
     if (lineBreak) {
       this.lineBreak = lineBreak;
     }
 
-    this.lines = content?.split(this.lineBreak) ?? [];
+    // Split on `/\r?\n/`, not `lineBreak`: a file with mixed CRLF and lone-LF
+    // endings must decompose into the same lines the change detector and editor
+    // see, otherwise the baseline holds fewer lines than the live document.
+    this.lines = content?.split(/\r?\n/) ?? [];
     this.historyLines = [...this.lines];
     this.updateState(this.lines);
   }
@@ -80,7 +85,10 @@ export class SnapshotState {
    * @param {string | string[]} content - The new content, as a string or lines
    */
   public updateState(content: string | string[]): void {
-    this.state = Array.isArray(content) ? [...content] : content.split(this.lineBreak);
+    // A string is split on `/\r?\n/` (not `lineBreak`) for the same reason the
+    // baseline is: mixed endings must yield the same lines the editor sees. The
+    // join back below stays on `lineBreak`, the write-back convention.
+    this.state = Array.isArray(content) ? [...content] : content.split(/\r?\n/);
     this.lastHash = TextHelper.hash(this.state.join(this.lineBreak));
   }
 

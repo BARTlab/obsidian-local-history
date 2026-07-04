@@ -169,10 +169,9 @@ export class FileSnapshot {
    * collision (two distinct contents that hash to the same 32-bit value)
    * cannot make a genuine external rewrite look identical.
    *
-   * The comparison splits the incoming content on the snapshot's own
-   * `lineBreak` (the same separator used when `state` was filled), so a
-   * change that differs only in trailing whitespace or line count is detected
-   * even when the hashes collide.
+   * The comparison splits the incoming content on `/\r?\n/` (the same separator
+   * used when `state` was filled), so a change that differs only in trailing
+   * whitespace or line count is detected even when the hashes collide.
    *
    * @param {string} content - The current content of the file to check
    * @return {boolean} True if the content differs from the stored state, false if identical
@@ -182,7 +181,7 @@ export class FileSnapshot {
       return true;
     }
 
-    const incoming: string[] = content.split(this.content.lineBreak);
+    const incoming: string[] = content.split(/\r?\n/);
     const current: string[] = this.content.state;
 
     if (incoming.length !== current.length) {

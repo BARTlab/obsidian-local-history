@@ -212,11 +212,15 @@ export const DEFAULT_SETTINGS: LineChangeTrackerSettings = {
     removed: true,
   },
 
+  // Default dot-gutter glyphs, one per change kind, chosen to read at a glance
+  // like a diff: '+' added (new line), '−' removed (line gone), '~' changed
+  // (differs from original), '↺' restored (edited then reverted). Whitespace-only
+  // changes reuse the 'changed' glyph. All configurable in settings.
   gutter: {
-    changed: '⥂',
-    added: '⤷',
-    restored: '⤺',
-    removed: '⤎',
+    changed: '~',
+    added: '+',
+    restored: '↺',
+    removed: '−',
   },
 };
 

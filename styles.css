@@ -539,6 +539,8 @@ body {
   display: none;
 }
 .cm-gutter.lct-gutter-bar-col {
+  position: relative;
+  z-index: 5;
   min-width: var(--lct-line-width);
   padding: 0;
 }

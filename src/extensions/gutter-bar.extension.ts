@@ -1,18 +1,27 @@
 import { GutterHoverPanel } from '@/components/gutter-hover-panel';
-import type { GutterHoverPanelHost } from '@/components/gutter-hover-panel.types';
+import { resolveHoverPanelContent } from '@/components/gutter-hover-panel-content';
+import type {
+  GutterHoverPanelActionLabels,
+  GutterHoverPanelContent,
+  GutterHoverPanelHost,
+  GutterHoverPanelResolution,
+} from '@/components/gutter-hover-panel.types';
 import { ChangeType, IndicatorType, PluginEvent } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
+import { confirmAndRevertHunk } from '@/helpers/hunk-revert.helper';
 import { isNestedEditor } from '@/helpers/nested-editor.helper';
 import type { ChangeLine } from '@/lines/change.line';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ArrayMap } from '@/maps/array.map';
 import { BarMarker } from '@/markers/bar.marker';
 import type { I18nService } from '@/services/i18n.service';
+import type { ModalsService } from '@/services/modals.service';
 import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import { TOKENS } from '@/services/tokens';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { GutterConfig, Handlers } from '@/types';
+import { Notice, setIcon } from 'obsidian';
 import { type Line, type RangeSet, RangeSetBuilder } from '@codemirror/state';
 import type { EditorView } from '@codemirror/view';
 
@@ -73,9 +82,13 @@ export class GutterBarExtension implements GutterConfig {
   @Inject(TOKENS.snapshots)
   protected snapshotsService!: SnapshotsService;
 
-  /** Service for translations, used for the hover panel's accessible label. */
+  /** Service for translations, used for the hover panel's labels. */
   @Inject(TOKENS.i18n)
   protected i18nService!: I18nService;
+
+  /** Service for opening the history modal from the hover panel. */
+  @Inject(TOKENS.modals)
+  protected modalsService!: ModalsService;
 
   /**
    * Hover panel controller, created on first hover (one panel opens at a time
@@ -160,6 +173,18 @@ export class GutterBarExtension implements GutterConfig {
       isEnabled: (): boolean => this.settingsService.value('gutterHoverPanel'),
       getContainer: (): HTMLElement => document.body,
       ariaLabel: (): string => this.i18nService.t('menu.local-history'),
+      resolveContent: (line: number): GutterHoverPanelContent | null => this.resolveHover(line)?.content ?? null,
+      actionLabels: (): GutterHoverPanelActionLabels => ({
+        revert: this.i18nService.t('modal.revert-hunk'),
+        copy: this.i18nService.t('modal.copy'),
+        history: this.i18nService.t('menu.local-history.show-history'),
+      }),
+      applyIcon: (element: HTMLElement, icon: string): void => setIcon(element, icon),
+      revert: (line: number): Promise<void> => this.revertHover(line),
+      copyOldText: (line: number): void => this.copyHover(line),
+      openHistory: (): void => {
+        this.modalsService.diff();
+      },
     };
 
     const panel: GutterHoverPanel = new GutterHoverPanel(host);
@@ -176,6 +201,89 @@ export class GutterBarExtension implements GutterConfig {
     this.panel = panel;
 
     return panel;
+  }
+
+  /**
+   * Resolves the hovered line against the current snapshot into the panel's
+   * display model plus the block its actions operate on, or null when no
+   * snapshot or no change block covers the line. The diff is computed against the
+   * live snapshot content, the same inputs the gutter reverts diff against.
+   *
+   * @param {number} line - The 0-based hovered line
+   * @return {GutterHoverPanelResolution | null} The resolution, or null
+   */
+  protected resolveHover(line: number): GutterHoverPanelResolution | null {
+    const snapshot: FileSnapshot | null = this.snapshotsService.getOne();
+
+    if (!snapshot?.file) {
+      return null;
+    }
+
+    return resolveHoverPanelContent(
+      snapshot.content.getOriginalStateLines(),
+      snapshot.content.getLastStateLines(),
+      snapshot.content.lineBreak,
+      line,
+    );
+  }
+
+  /**
+   * Reverts the hovered change block back to the base through the shared
+   * confirm-and-revert helper the dot and removed gutters also use, resolving the
+   * hunk fresh against the live content so it is never stale. A missing snapshot
+   * or unresolved block is a safe no-op.
+   *
+   * @param {number} line - The 0-based hovered line
+   * @return {Promise<void>}
+   */
+  protected async revertHover(line: number): Promise<void> {
+    const snapshot: FileSnapshot | null = this.snapshotsService.getOne();
+
+    if (!snapshot?.file) {
+      return;
+    }
+
+    const currentLines: string[] = snapshot.content.getLastStateLines();
+    const resolution: GutterHoverPanelResolution | null = resolveHoverPanelContent(
+      snapshot.content.getOriginalStateLines(),
+      currentLines,
+      snapshot.content.lineBreak,
+      line,
+    );
+
+    if (!resolution) {
+      return;
+    }
+
+    await confirmAndRevertHunk({
+      modalsService: this.modalsService,
+      snapshotsService: this.snapshotsService,
+      plugin: this.plugin,
+      file: snapshot.file,
+      currentLines,
+      hunk: resolution.hunk,
+      cancelText: this.plugin.t('modal.confirm.cancel'),
+    });
+  }
+
+  /**
+   * Copies the hovered block's base-side text to the clipboard and confirms with
+   * a notice, mirroring the diff modal's copy affordance. A missing snapshot or
+   * unresolved block is a safe no-op.
+   *
+   * @param {number} line - The 0-based hovered line
+   * @return {void}
+   */
+  protected copyHover(line: number): void {
+    const resolution: GutterHoverPanelResolution | null = this.resolveHover(line);
+
+    if (!resolution) {
+      return;
+    }
+
+    void navigator.clipboard.writeText(resolution.baseText).then((): void => {
+      new Notice(this.plugin.t('notice.copied'));
+    });
   }
 
   /**

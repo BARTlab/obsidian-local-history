@@ -1,4 +1,5 @@
 import type {
+  GutterHoverPanelContent,
   GutterHoverPanelHost,
   GutterHoverPanelTimings,
 } from '@/components/gutter-hover-panel.types';
@@ -8,10 +9,11 @@ import type { FunctionVoid } from '@/types';
 /**
  * Hand-rolled anchored panel that appears next to a hovered gutter bar marker
  * after a short dwell and disappears predictably (ADR D-001: a controller-owned
- * absolutely-positioned div, not an Obsidian `HoverPopover` or `Menu`). This is
- * the shell only: it owns the open/close state machine, the viewport-clamped
- * positioning, and every listener and timer, mounting an empty content slot that
- * a later task fills with the old line and its actions.
+ * absolutely-positioned div, not an Obsidian `HoverPopover` or `Menu`). It owns
+ * the open/close state machine, the viewport-clamped positioning, and every
+ * listener and timer, and it fills the panel from the host: the previous version
+ * of the hovered line (word-level old-vs-new spans) and three actions (revert
+ * this change, copy the old text, open history).
  *
  * State machine: `closed -> pending(open delay) -> open -> closing(close delay)
  * -> closed`. The pointer moving from the marker into the panel keeps it open
@@ -33,6 +35,12 @@ export class GutterHoverPanel {
   /** The mounted panel element, or null while closed/pending. */
   protected panel: HTMLElement | null = null;
 
+  /** The content slot, re-rendered when the panel re-anchors to another marker. */
+  protected contentSlot: HTMLElement | null = null;
+
+  /** The action buttons, in tab order, used by the in-panel focus trap. */
+  protected actionButtons: HTMLButtonElement[] = [];
+
   /** The gutter element the panel is anchored to, captured at hover. */
   protected anchor: HTMLElement | null = null;
 
@@ -41,6 +49,9 @@ export class GutterHoverPanel {
 
   /** The editor scroller listened to for the scroll-dismiss, resolved on mount. */
   protected scrollTarget: HTMLElement | null = null;
+
+  /** The element focused when the panel opened, restored when a focused panel closes. */
+  protected previouslyFocused: HTMLElement | null = null;
 
   /** Pending open-delay timer, or null when no open is scheduled. */
   protected openTimer: ReturnType<typeof setTimeout> | null = null;
@@ -55,7 +66,8 @@ export class GutterHoverPanel {
   protected destroyed: boolean = false;
 
   /**
-   * @param {GutterHoverPanelHost} host - Environment port (gate, mount target, label).
+   * @param {GutterHoverPanelHost} host - Environment port (gate, mount target,
+   *   label, content, actions).
    * @param {GutterHoverPanelTimings} timings - Open/close delays; defaults sit in
    *   the 150-300 ms dwell / ~200 ms grace band the design specifies.
    */
@@ -76,8 +88,8 @@ export class GutterHoverPanel {
 
   /**
    * The 0-based line the anchored marker sits on, or -1 while closed. Confirms
-   * the hovered line reached the controller; the content task reads it to look
-   * up the previous version of that line.
+   * the hovered line reached the controller and drives which change block the
+   * content and actions read.
    *
    * @return {number} The anchored 0-based line, or -1
    */
@@ -87,9 +99,9 @@ export class GutterHoverPanel {
 
   /**
    * Hover intent over a marker: schedules the open after the dwell, or re-anchors
-   * an already-open panel to the new marker (never a second panel). A disabled
-   * feature or a destroyed controller is a no-op, so no panel is ever created
-   * while the setting is off.
+   * an already-open panel to the new marker (never a second panel), re-rendering
+   * its content for the new line. A disabled feature or a destroyed controller is
+   * a no-op, so no panel is ever created while the setting is off.
    *
    * @param {number} line - The 0-based line of the hovered marker
    * @param {HTMLElement} anchor - The gutter element to position against
@@ -108,6 +120,7 @@ export class GutterHoverPanel {
 
       if (anchor !== this.anchor) {
         this.anchor = anchor;
+        this.renderContent();
         this.reposition();
       }
 
@@ -175,8 +188,10 @@ export class GutterHoverPanel {
 
   /**
    * Mounts the panel once the open dwell elapses: builds the element with its
-   * `dialog` role and empty content slot, appends it to the host container,
-   * wires the hover-bridge and dismissal listeners, and positions it.
+   * `dialog` role, renders the hovered line's content into it, appends the action
+   * row, wires the hover-bridge, focus-trap, and dismissal listeners, and
+   * positions it. Records the previously focused element so a keyboard dismissal
+   * can hand focus back to the editor.
    */
   protected mount(): void {
     this.openTimer = null;
@@ -188,20 +203,25 @@ export class GutterHoverPanel {
       return;
     }
 
+    this.previouslyFocused = document.activeElement as HTMLElement | null;
+
     const panel: HTMLElement = document.createElement('div');
 
     panel.className = 'lct-hover-panel';
     panel.setAttribute('role', 'dialog');
     panel.setAttribute('aria-label', this.host.ariaLabel());
 
-    // Empty content slot: a later task renders the old line and actions here.
     const content: HTMLElement = document.createElement('div');
 
     content.className = 'lct-hover-panel-content';
     panel.appendChild(content);
 
-    this.host.getContainer().appendChild(panel);
     this.panel = panel;
+    this.contentSlot = content;
+    this.renderContent();
+    panel.appendChild(this.buildActions());
+
+    this.host.getContainer().appendChild(panel);
     this.state = GutterHoverPanelState.open;
 
     this.wireListeners(panel);
@@ -209,9 +229,126 @@ export class GutterHoverPanel {
   }
 
   /**
+   * Fills the content slot with the hovered line's model: a modifier class for
+   * the marker state and one row per content line, each row a run of word
+   * segments carrying the shared diff span classes (removed for dropped words,
+   * added for inserted ones). A line that resolves to no change block leaves the
+   * slot empty. Rebuilt from scratch on every anchor change.
+   */
+  protected renderContent(): void {
+    const slot: HTMLElement | null = this.contentSlot;
+
+    if (!slot) {
+      return;
+    }
+
+    slot.replaceChildren();
+    slot.className = 'lct-hover-panel-content';
+
+    const model: GutterHoverPanelContent | null = this.host.resolveContent(this.line);
+
+    if (!model) {
+      return;
+    }
+
+    slot.classList.add(`lct-hover-panel-content-${model.kind}`);
+
+    for (const segments of model.lines) {
+      const row: HTMLElement = document.createElement('div');
+
+      row.className = 'lct-hover-panel-line';
+
+      for (const segment of segments) {
+        const span: HTMLElement = document.createElement('span');
+
+        if (segment.added) {
+          span.className = 'lct-word-added';
+        } else if (segment.removed) {
+          span.className = 'lct-word-removed';
+        }
+
+        span.textContent = segment.text;
+        row.appendChild(span);
+      }
+
+      slot.appendChild(row);
+    }
+  }
+
+  /**
+   * Builds the action row: revert this change, copy the old text, open history.
+   * Each is a real focusable `button` with a translated `aria-label` and a Lucide
+   * icon (set through the host so the controller keeps no Obsidian import).
+   *
+   * @return {HTMLElement} The action row element
+   */
+  protected buildActions(): HTMLElement {
+    const labels = this.host.actionLabels();
+    const row: HTMLElement = document.createElement('div');
+
+    row.className = 'lct-hover-panel-actions';
+    this.actionButtons = [
+      this.buildAction(row, 'undo-2', labels.revert, (): void => this.onRevert()),
+      this.buildAction(row, 'copy', labels.copy, (): void => this.onCopy()),
+      this.buildAction(row, 'history', labels.history, (): void => this.onHistory()),
+    ];
+
+    return row;
+  }
+
+  /**
+   * Builds one action button, appends it to the row, and wires its click. Click
+   * propagation is stopped so it never reaches the editor beneath the panel.
+   *
+   * @param {HTMLElement} row - The action row to append to
+   * @param {string} icon - The Lucide icon id
+   * @param {string} label - The translated accessible label
+   * @param {FunctionVoid} handler - The click handler
+   * @return {HTMLButtonElement} The built button
+   */
+  protected buildAction(row: HTMLElement, icon: string, label: string, handler: FunctionVoid): HTMLButtonElement {
+    const button: HTMLButtonElement = document.createElement('button');
+
+    button.type = 'button';
+    button.className = 'lct-hover-panel-action clickable-icon';
+    button.setAttribute('aria-label', label);
+    this.host.applyIcon(button, icon);
+    button.addEventListener('click', (event: MouseEvent): void => {
+      event.preventDefault();
+      event.stopPropagation();
+      handler();
+    });
+    row.appendChild(button);
+
+    return button;
+  }
+
+  /**
+   * Reverts the hovered change block through the host (which confirms first), then
+   * closes the panel once the confirm settles, whether it was accepted or
+   * declined. A successful revert also redraws the gutter, which dismisses the
+   * panel through the host's snapshot subscription; the explicit close covers the
+   * declined case and is idempotent.
+   */
+  protected onRevert(): void {
+    void this.host.revert(this.line).then((): void => this.dismiss());
+  }
+
+  /** Copies the hovered block's old text through the host; the panel stays open. */
+  protected onCopy(): void {
+    this.host.copyOldText(this.line);
+  }
+
+  /** Opens the file history through the host and closes the panel. */
+  protected onHistory(): void {
+    this.host.openHistory();
+    this.dismiss();
+  }
+
+  /**
    * Adds the panel-scoped listeners and records their removers so unmount can run
    * them: the hover bridge (pointer into the panel keeps it open, out of it
-   * starts the close grace), Escape, and editor scroll.
+   * starts the close grace), the Tab focus trap, Escape, and editor scroll.
    *
    * @param {HTMLElement} panel - The freshly mounted panel element
    */
@@ -223,6 +360,8 @@ export class GutterHoverPanel {
 
     const onPanelLeave: FunctionVoid = (): void => this.leave();
 
+    const onPanelKeyDown = (event: KeyboardEvent): void => this.trapTab(event);
+
     const onKeyDown = (event: KeyboardEvent): void => {
       if (event.key === 'Escape') {
         this.dismiss();
@@ -233,10 +372,12 @@ export class GutterHoverPanel {
 
     panel.addEventListener('mouseenter', onPanelEnter);
     panel.addEventListener('mouseleave', onPanelLeave);
+    panel.addEventListener('keydown', onPanelKeyDown);
     document.addEventListener('keydown', onKeyDown);
     this.cleanups.push((): void => {
       panel.removeEventListener('mouseenter', onPanelEnter);
       panel.removeEventListener('mouseleave', onPanelLeave);
+      panel.removeEventListener('keydown', onPanelKeyDown);
       document.removeEventListener('keydown', onKeyDown);
     });
 
@@ -249,6 +390,33 @@ export class GutterHoverPanel {
 
       target.addEventListener('scroll', onScroll);
       this.cleanups.push((): void => target.removeEventListener('scroll', onScroll));
+    }
+  }
+
+  /**
+   * Keeps Tab within the action buttons once focus is inside the panel: Tab off
+   * the last button wraps to the first and Shift+Tab off the first wraps to the
+   * last, so the panel's actions form a closed keyboard cycle. How focus first
+   * enters the hover-triggered panel is a separate, deferred keyboard-reach
+   * question; this only governs the cycle once it is in.
+   *
+   * @param {KeyboardEvent} event - The panel keydown
+   */
+  protected trapTab(event: KeyboardEvent): void {
+    if (event.key !== 'Tab' || this.actionButtons.length === 0) {
+      return;
+    }
+
+    const active: Element | null = document.activeElement;
+    const first: HTMLButtonElement = this.actionButtons[0];
+    const last: HTMLButtonElement = this.actionButtons[this.actionButtons.length - 1];
+
+    if (!event.shiftKey && active === last) {
+      event.preventDefault();
+      first.focus();
+    } else if (event.shiftKey && active === first) {
+      event.preventDefault();
+      last.focus();
     }
   }
 
@@ -286,11 +454,14 @@ export class GutterHoverPanel {
   }
 
   /**
-   * Removes the panel from the DOM, runs every registered listener remover, and
-   * returns the controller to the closed state. The single teardown path for
-   * both the pointer close and every host-driven dismissal.
+   * Removes the panel from the DOM, runs every registered listener remover, hands
+   * focus back to the editor when the panel being torn down held it, and returns
+   * the controller to the closed state. The single teardown path for both the
+   * pointer close and every host-driven dismissal.
    */
   protected unmount(): void {
+    const heldFocus: boolean = this.panel?.contains(document.activeElement) ?? false;
+
     for (const cleanup of this.cleanups) {
       cleanup();
     }
@@ -298,7 +469,15 @@ export class GutterHoverPanel {
     this.cleanups = [];
     this.panel?.remove();
     this.panel = null;
+    this.contentSlot = null;
+    this.actionButtons = [];
     this.scrollTarget = null;
+
+    if (heldFocus) {
+      this.previouslyFocused?.focus();
+    }
+
+    this.previouslyFocused = null;
     this.reset();
   }
 

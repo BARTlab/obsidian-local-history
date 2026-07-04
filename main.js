@@ -1933,11 +1933,15 @@ var DEFAULT_SETTINGS = {
     added: true,
     removed: true
   },
+  // Default dot-gutter glyphs, one per change kind, chosen to read at a glance
+  // like a diff: '+' added (new line), '−' removed (line gone), '~' changed
+  // (differs from original), '↺' restored (edited then reverted). Whitespace-only
+  // changes reuse the 'changed' glyph. All configurable in settings.
   gutter: {
-    changed: "\u2942",
-    added: "\u2937",
-    restored: "\u293A",
-    removed: "\u290E"
+    changed: "~",
+    added: "+",
+    restored: "\u21BA",
+    removed: "\u2212"
   }
 };
 var SHOW_CHANGE_KEYS = ["show.changed", "show.restored", "show.added", "show.removed"];

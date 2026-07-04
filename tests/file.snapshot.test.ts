@@ -281,6 +281,131 @@ describe('FileSnapshot.replaceBlock (per-hunk revert)', () => {
     expect(snapshot.trackers.findCurrentLine(3)?.current).toBe('D');
   });
 
+  /**
+   * Regression guards for the boundary-pairing blindness of the counts-differ
+   * branch: a replacement line whose content matches a doomed original's
+   * baseline must fold back onto that tracker. Dooming it and re-adding the
+   * same content anchored the original as removed and brought its own text
+   * back as a phantom added line, so reverting a mid-line split or join to the
+   * exact baseline still showed added/removed markers.
+   */
+  it('reverting a mid-line split back to the baseline leaves no markers', () => {
+    const snapshot = new FileSnapshot('x\nhello world\ny');
+
+    // The change detector records a mid-line split as changed + added.
+    snapshot.trackers.restoreOrAddTracker(2, true, 'world')?.change('world');
+    snapshot.trackers.findCurrentLine(1)?.change('hello');
+    snapshot.content.updateState(['x', 'hello', 'world', 'y']);
+    snapshot.updateChanges();
+    expect(positionsWithType(snapshot, ChangeType.changed)).toEqual([1]);
+    expect(positionsWithType(snapshot, ChangeType.added)).toEqual([2]);
+
+    // Revert the hunk: replace the 2-line block with the baseline line.
+    snapshot.trackers.replaceBlock(1, 2, ['hello world']);
+    snapshot.content.updateState(['x', 'hello world', 'y']);
+    snapshot.updateChanges();
+
+    expect(positionsWithType(snapshot, ChangeType.added)).toEqual([]);
+    expect(positionsWithType(snapshot, ChangeType.removed)).toEqual([]);
+    expect(positionsWithType(snapshot, ChangeType.changed)).toEqual([]);
+    expect(snapshot.trackers.findCurrentLine(2)?.current).toBe('y');
+  });
+
+  it('reverting a mid-line join back to the baseline leaves no markers', () => {
+    const snapshot = new FileSnapshot('x\nhello\nworld\ny');
+
+    // The change detector records a join as changed + a removed anchor.
+    snapshot.trackers.findCurrentLine(1)?.change('hello world');
+    snapshot.trackers.removeTrackerOrLine(2);
+    snapshot.content.updateState(['x', 'hello world', 'y']);
+    snapshot.updateChanges();
+    expect(positionsWithType(snapshot, ChangeType.changed)).toEqual([1]);
+    expect(positionsWithType(snapshot, ChangeType.removed)).toEqual([2]);
+
+    // Revert the hunk: replace the joined line with the two baseline lines.
+    snapshot.trackers.replaceBlock(1, 1, ['hello', 'world']);
+    snapshot.content.updateState(['x', 'hello', 'world', 'y']);
+    snapshot.updateChanges();
+
+    expect(positionsWithType(snapshot, ChangeType.added)).toEqual([]);
+    expect(positionsWithType(snapshot, ChangeType.removed)).toEqual([]);
+    expect(positionsWithType(snapshot, ChangeType.changed)).toEqual([]);
+    expect(snapshot.trackers.findCurrentLine(3)?.current).toBe('y');
+  });
+
+  /**
+   * Anchor-placement guards for blocks that reach the document end: the
+   * counts-differ pass removes unpaired lines first, and clamping against the
+   * temporarily shrunken document used to pin anchors above the block (nothing
+   * ever lifts an anchor back up). The clamp is deferred to the final pass, so
+   * anchors settle on the conventional "removed below here" line.
+   */
+  it('keeps the anchors of an EOF block shrink on the replacement line', () => {
+    const snapshot = new FileSnapshot('a\nb\nc');
+
+    snapshot.trackers.replaceBlock(1, 2, ['X']);
+    snapshot.content.updateState(['a', 'X']);
+    snapshot.updateChanges();
+
+    expect(positionsWithType(snapshot, ChangeType.removed)).toEqual([1]);
+  });
+
+  it('keeps the doomed anchor of an EOF block grow at the last real line', () => {
+    const snapshot = new FileSnapshot('a\nb\nc');
+
+    snapshot.trackers.replaceBlock(1, 2, ['b', 'X', 'Y']);
+    snapshot.content.updateState(['a', 'b', 'X', 'Y']);
+    snapshot.updateChanges();
+
+    expect(positionsWithType(snapshot, ChangeType.removed)).toEqual([3]);
+  });
+
+  it('does not drag a pre-existing anchor above an EOF block being grown', () => {
+    const snapshot = new FileSnapshot('a\nb\nc');
+
+    snapshot.trackers.removeTrackerOrLine(2);
+    snapshot.content.updateState(['a', 'b']);
+    snapshot.updateChanges();
+    expect(positionsWithType(snapshot, ChangeType.removed)).toEqual([1]);
+
+    snapshot.trackers.replaceBlock(1, 1, ['P', 'Q']);
+    snapshot.content.updateState(['a', 'P', 'Q']);
+    snapshot.updateChanges();
+
+    expect(positionsWithType(snapshot, ChangeType.removed)).toEqual([2]);
+  });
+
+  it('converges an EOF replace-then-revert roundtrip back to a clean state', () => {
+    const snapshot = new FileSnapshot('a\nb');
+
+    snapshot.trackers.replaceBlock(1, 1, ['P', 'Q']);
+    snapshot.content.updateState(['a', 'P', 'Q']);
+    snapshot.updateChanges();
+
+    snapshot.trackers.replaceBlock(1, 2, ['b']);
+    snapshot.content.updateState(['a', 'b']);
+    snapshot.updateChanges();
+
+    expect(positionsWithType(snapshot, ChangeType.added)).toEqual([]);
+    expect(positionsWithType(snapshot, ChangeType.removed)).toEqual([]);
+    expect(positionsWithType(snapshot, ChangeType.changed)).toEqual([]);
+  });
+
+  it('keeps a surviving original positioned after unpaired inserts and removals around it', () => {
+    const snapshot = new FileSnapshot('a\nb\nt');
+
+    // Replace the block (a, b) with (N, b, M): "b" must survive in place.
+    snapshot.trackers.replaceBlock(0, 2, ['N', 'b', 'M']);
+    snapshot.content.updateState(['N', 'b', 'M', 't']);
+    snapshot.updateChanges();
+
+    expect(snapshot.trackers.findCurrentLine(0)?.current).toBe('N');
+    expect(snapshot.trackers.findCurrentLine(1)?.isStateOriginal()).toBe(true);
+    expect(snapshot.trackers.findCurrentLine(2)?.current).toBe('M');
+    expect(snapshot.trackers.findCurrentLine(3)?.current).toBe('t');
+    expect(positionsWithType(snapshot, ChangeType.changed)).toEqual([]);
+  });
+
   it('places every replacement on its expected current position when the block straddles tracked and removed lines', () => {
     // Start from a, b, c, d, e; remove the middle line b so the tracker holds
     // a removed marker at removedAtPosition=1 alongside a@0, c@1, d@2, e@3.

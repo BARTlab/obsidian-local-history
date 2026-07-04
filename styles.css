@@ -14,6 +14,7 @@ body {
   --lct-color-added: var(--color-orange);
   --lct-color-removed: var(--color-base-100);
   --lct-color-whitespace: var(--color-yellow);
+  --lct-line-seam: 2px;
 }
 .modal.lct-diff-modal {
   width: 90vw;
@@ -558,6 +559,15 @@ body {
   width: var(--lct-line-width);
   height: 100%;
   border-radius: var(--lct-line-border-radius);
+}
+.cm-gutter.lct-gutter-bar-col .lct-join-down .lct-gutter-bar {
+  height: calc(100% + var(--lct-line-seam));
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.cm-gutter.lct-gutter-bar-col .lct-join-up .lct-gutter-bar {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
 }
 .cm-gutter.lct-gutter-bar-col .lct-changed .lct-gutter-bar {
   background-color: var(--lct-color-changed);

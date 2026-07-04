@@ -8,12 +8,19 @@ import { ChangeDetectorExtension } from '@/extensions/change-detector.extension'
 // classes load under the Node test environment without a DOM. applyEdit also
 // instantiates ChangeDetectorExtension which reads Decoration.none at field-init
 // time, so that must be stubbed too.
-jest.mock('@codemirror/view', () => ({
-  GutterMarker: class {
-    public eq(_other: unknown): boolean { return false; }
-  },
-  Decoration: { none: {}, line: (): unknown => ({}) },
-}));
+jest.mock('@codemirror/view', () => {
+  // GutterMarker must inherit the real RangeValue: a bare class stub lacks
+  // startSide/endSide, and RangeSet.iter() then silently skips a range
+  // anchored at position 0 (a marker on the first line).
+  const { RangeValue } = jest.requireActual<typeof import('@codemirror/state')>('@codemirror/state');
+
+  return {
+    GutterMarker: class extends RangeValue {
+      public eq(_other: unknown): boolean { return false; }
+    },
+    Decoration: { none: {}, line: (): unknown => ({}) },
+  };
+});
 
 import { editorInfoField } from 'obsidian';
 import type { StateField } from '@codemirror/state';
@@ -405,6 +412,92 @@ describe('GutterBarExtension markers - out-of-range positions (boundary)', () =>
 
     // Only the in-range change survives; the position-5 change is skipped.
     expect(markers).toEqual([{ from: lineFrom(viewDoc, 2), type: ChangeType.changed }]);
+  });
+});
+
+describe('GutterBarExtension run joins', () => {
+  /**
+   * Collects every {from, cls} pair from the marker set so the join classes
+   * (lct-join-up / lct-join-down) set by BarMarker are observable.
+   */
+  const runMarkerClasses = (snapshot: FileSnapshot, viewDoc: string): { from: number; cls: string }[] => {
+    const { plugin } = makePlugin({ snapshotOverride: snapshot });
+    const ext = new GutterBarExtension(null as unknown as ViewArg, plugin);
+    const cursor = ext.markers(makeView(viewDoc)).iter();
+    const result: { from: number; cls: string }[] = [];
+
+    while (cursor.value !== null) {
+      result.push({ from: cursor.from, cls: cursor.value.elementClass });
+      cursor.next();
+    }
+
+    return result;
+  };
+
+  it('joins a run of consecutive bars: down, both, up', () => {
+    const doc = 'a\nb';
+    const snapshot = new FileSnapshot(doc);
+
+    applyEdit(snapshot, doc, { from: lineFrom(doc, 1) + 1, insert: '\nX\nY\nZ' });
+
+    const viewDoc = 'a\nX\nY\nZ\nb';
+
+    expect(runMarkerClasses(snapshot, viewDoc)).toEqual([
+      { from: lineFrom(viewDoc, 2), cls: 'lct-line lct-added lct-join-down' },
+      { from: lineFrom(viewDoc, 3), cls: 'lct-line lct-added lct-join-up lct-join-down' },
+      { from: lineFrom(viewDoc, 4), cls: 'lct-line lct-added lct-join-up' },
+    ]);
+  });
+
+  it('leaves a single bar without join classes', () => {
+    const doc = 'a\nb\nc';
+    const snapshot = new FileSnapshot(doc);
+
+    applyEdit(snapshot, doc, { from: lineFrom(doc, 2), to: lineFrom(doc, 2) + 1, insert: 'B' });
+
+    const viewDoc = 'a\nB\nc';
+
+    expect(runMarkerClasses(snapshot, viewDoc)).toEqual([
+      { from: lineFrom(viewDoc, 2), cls: 'lct-line lct-changed' },
+    ]);
+  });
+
+  it('joins across a kind switch (changed above, added below)', () => {
+    const doc = 'a\nbcd\ne';
+    const snapshot = new FileSnapshot(doc);
+
+    // Mid-line split: line 2 keeps its tracker (changed), line 3 is added.
+    applyEdit(snapshot, doc, { from: lineFrom(doc, 2) + 1, insert: '\n' });
+
+    const viewDoc = 'a\nb\ncd\ne';
+
+    expect(runMarkerClasses(snapshot, viewDoc)).toEqual([
+      { from: lineFrom(viewDoc, 2), cls: 'lct-line lct-changed lct-join-down' },
+      { from: lineFrom(viewDoc, 3), cls: 'lct-line lct-added lct-join-up' },
+    ]);
+  });
+
+  it('does not join across a pure removed dash', () => {
+    const doc = 'a\nb\nc\nd';
+    const snapshot = new FileSnapshot(doc);
+
+    // Delete line 2, then edit the lines around the anchor's resting line.
+    const afterDelete = applyEdit(snapshot, doc, { from: lineFrom(doc, 2), to: lineFrom(doc, 3), insert: '' });
+    const afterFirst = applyEdit(snapshot, afterDelete, { from: 0, to: 1, insert: 'A' });
+
+    applyEdit(snapshot, afterFirst, {
+      from: lineFrom(afterFirst, 3),
+      to: lineFrom(afterFirst, 3) + 1,
+      insert: 'D',
+    });
+
+    const viewDoc = 'A\nc\nD';
+
+    expect(runMarkerClasses(snapshot, viewDoc)).toEqual([
+      { from: lineFrom(viewDoc, 1), cls: 'lct-line lct-changed' },
+      { from: lineFrom(viewDoc, 2), cls: 'lct-line lct-removed' },
+      { from: lineFrom(viewDoc, 3), cls: 'lct-line lct-changed' },
+    ]);
   });
 });
 

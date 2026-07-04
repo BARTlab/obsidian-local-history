@@ -8,12 +8,19 @@ import { ChangeDetectorExtension } from '@/extensions/change-detector.extension'
 // module so both classes load under the Node test environment without a DOM.
 // ChangeDetectorExtension reads Decoration.none at field-init time, so that
 // must be included in the stub too.
-jest.mock('@codemirror/view', () => ({
-  GutterMarker: class {
-    public eq(_other: unknown): boolean { return false; }
-  },
-  Decoration: { none: {}, line: (): unknown => ({}) },
-}));
+jest.mock('@codemirror/view', () => {
+  // GutterMarker must inherit the real RangeValue: a bare class stub lacks
+  // startSide/endSide, and RangeSet.iter() then silently skips a range
+  // anchored at position 0 (a marker on the first line).
+  const { RangeValue } = jest.requireActual<typeof import('@codemirror/state')>('@codemirror/state');
+
+  return {
+    GutterMarker: class extends RangeValue {
+      public eq(_other: unknown): boolean { return false; }
+    },
+    Decoration: { none: {}, line: (): unknown => ({}) },
+  };
+});
 
 import { editorInfoField } from 'obsidian';
 import type { StateField } from '@codemirror/state';

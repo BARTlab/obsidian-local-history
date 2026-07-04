@@ -3111,10 +3111,11 @@ var ChangeDetectorExtension = class {
         const isPureDeleteConsumingNewline = fromB === toB && toA > 0 && prev.sliceString(toA - 1, toA) === "\n";
         suffixShared = isPureInsertEndingInNewline || isPureDeleteConsumingNewline;
       }
+      const suffixPaired = suffixShared && !(prefixShared && fromOldLine === toOldLine) && !(prefixShared && fromNewLine === toNewLine);
       const oldCoreStart = fromOldLine + (prefixShared ? 1 : 0);
-      const oldCoreEnd = toOldLine - (suffixShared ? 1 : 0);
+      const oldCoreEnd = toOldLine - (suffixPaired ? 1 : 0);
       const newCoreStart = fromNewLine + (prefixShared ? 1 : 0);
-      const newCoreEnd = toNewLine - (suffixShared ? 1 : 0);
+      const newCoreEnd = toNewLine - (suffixPaired ? 1 : 0);
       const oldCoreCount = Math.max(0, oldCoreEnd - oldCoreStart + 1);
       const newCoreCount = Math.max(0, newCoreEnd - newCoreStart + 1);
       if (oldCoreCount === newCoreCount && oldCoreCount > 0) {
@@ -3141,7 +3142,7 @@ var ChangeDetectorExtension = class {
       if (prefixShared) {
         (_a = snapshot.trackers.findCurrentLine(fromNewLine)) == null ? void 0 : _a.change(currentLines[fromNewLine]);
       }
-      if (suffixShared && toNewLine !== fromNewLine) {
+      if (suffixPaired && toNewLine !== fromNewLine) {
         (_b = snapshot.trackers.findCurrentLine(toNewLine)) == null ? void 0 : _b.change(currentLines[toNewLine]);
       }
     }, true);
@@ -3205,12 +3206,26 @@ var BarMarker = class _BarMarker extends import_view2.GutterMarker {
   /**
    * Creates a new BarMarker.
    *
+   * The join flags mark run continuation: a bar whose neighbouring line also
+   * carries a full bar. CSS uses them to stretch the bar over the sub-pixel
+   * seam between gutter elements and to drop the rounding on the shared edge,
+   * so consecutive changed lines read as one continuous stroke.
+   *
    * @param {ChangeType} changes - The change kind this bar represents
+   * @param {boolean} joinUp - Whether the line above also carries a full bar
+   * @param {boolean} joinDown - Whether the line below also carries a full bar
    */
-  constructor(changes) {
+  constructor(changes, joinUp = false, joinDown = false) {
     super();
     this.changes = changes;
-    this.elementClass = `lct-${"line" /* line */} lct-${this.changes}`;
+    this.joinUp = joinUp;
+    this.joinDown = joinDown;
+    this.elementClass = [
+      `lct-${"line" /* line */}`,
+      `lct-${this.changes}`,
+      ...joinUp ? ["lct-join-up"] : [],
+      ...joinDown ? ["lct-join-down"] : []
+    ].join(" ");
   }
   /**
    * Renders the bar element. The bar fills the gutter element height; the
@@ -3225,14 +3240,15 @@ var BarMarker = class _BarMarker extends import_view2.GutterMarker {
     return bar;
   }
   /**
-   * Two bar markers are equal when they share the change kind.
+   * Two bar markers are equal when they share the change kind and both join
+   * flags (a run-boundary change must re-render the element classes).
    *
    * @param {BarMarker} other - The marker to compare with
    * @return {boolean} True when equal
    * @override
    */
   eq(other) {
-    return other instanceof _BarMarker && this.changes === other.changes;
+    return other instanceof _BarMarker && this.changes === other.changes && this.joinUp === other.joinUp && this.joinDown === other.joinDown;
   }
   /**
    * Gets the change kind of this marker.
@@ -3272,6 +3288,7 @@ var GutterBarExtension = class {
       if (isNestedEditor(view) || !this.isTypeLine() || !snapshot || !(changes == null ? void 0 : changes.size)) {
         return builder.finish();
       }
+      const kinds = /* @__PURE__ */ new Map();
       for (const pos of snapshot.content.getChangedPositions(enable)) {
         if (pos >= view.state.doc.lines) {
           continue;
@@ -3285,8 +3302,18 @@ var GutterBarExtension = class {
         if (kind === null) {
           continue;
         }
+        kinds.set(pos, kind);
+      }
+      const isBar = (pos) => {
+        const kind = kinds.get(pos);
+        return kind !== void 0 && kind !== "removed" /* removed */;
+      };
+      const positions = [...kinds.keys()].sort((a, b) => a - b);
+      for (const pos of positions) {
+        const kind = kinds.get(pos);
+        const joins = kind !== "removed" /* removed */;
         const line = view.state.doc.line(pos + 1);
-        builder.add(line.from, line.from, new BarMarker(kind));
+        builder.add(line.from, line.from, new BarMarker(kind, joins && isBar(pos - 1), joins && isBar(pos + 1)));
       }
       return builder.finish();
     };
@@ -24278,9 +24305,13 @@ var TrackerEditor = class {
    *
    * @param {number | TrackerLine} line - The line number or tracker line to remove
    * @param {boolean} shift - Whether to shift other lines to accommodate the removed line
+   * @param {boolean} clamp - Whether to re-clamp removed anchors right away. A caller
+   *   removing several lines mid-operation (replaceBlock) defers the clamp to its own
+   *   final pass: clamping against a temporarily shrunken document pins anchors above
+   *   the block, and nothing ever lifts an anchor back up
    * @return {TrackerLine | null} The removed tracker line, or null if no tracker was found
    */
-  removeTrackerOrLine(line, shift = true) {
+  removeTrackerOrLine(line, shift = true, clamp = true) {
     const found = line instanceof TrackerLine ? line : this.index.findCurrentLine(line);
     const index = line instanceof TrackerLine ? line.currentPosition : line;
     if (!found) {
@@ -24293,13 +24324,8 @@ var TrackerEditor = class {
     }
     if (existedInOriginal) {
       found.remove();
-      const lastLine = this.lastCurrentLine();
-      if (lastLine >= 0) {
-        for (const item of this.tracker) {
-          if (item.isStateRemoved() && item.removedAtPosition > lastLine) {
-            item.removedAtPosition = lastLine;
-          }
-        }
+      if (clamp) {
+        this.clampRemovedAnchors();
       }
     } else {
       this.removeTrackerLine(found);
@@ -24376,13 +24402,59 @@ var TrackerEditor = class {
         doomed.push(found);
       }
     }
+    const claims = /* @__PURE__ */ new Map();
+    let scanFrom = 0;
+    replacement.forEach((content, offset) => {
+      const contentHash = hash(content);
+      for (let i = scanFrom; i < doomed.length; i++) {
+        if (doomed[i].existedInOriginal && doomed[i].hash === contentHash) {
+          claims.set(offset, doomed[i]);
+          scanFrom = i + 1;
+          break;
+        }
+      }
+    });
+    const survivors = new Set(claims.values());
+    doomed.forEach((item) => {
+      if (!survivors.has(item)) {
+        this.removeTrackerOrLine(item, true, false);
+      }
+    });
     replacement.forEach((content, offset) => {
       var _a2;
+      const survivor = claims.get(offset);
+      if (survivor) {
+        survivor.change(content);
+        return;
+      }
       (_a2 = this.restoreOrAddTracker(start + offset, true, content)) == null ? void 0 : _a2.change(content);
     });
-    doomed.forEach((item) => {
-      this.removeTrackerOrLine(item);
-    });
+    this.clampRemovedAnchors();
+  }
+  /**
+   * Keeps every removed-line anchor on a real line. Shifts around a block
+   * whose line count changes (delete + insert, in either order) can advance an
+   * anchor past the last real line, and the removed gutter, which can only
+   * mark a real line, would orphan it above the title.
+   *
+   * Clamps ALL removed anchors, not just the one a caller touched: while a
+   * multi-line block is processed, `lastCurrentLine` is inflated by doomed
+   * lines that are still current, so an early anchor can stay below it and
+   * escape a single-anchor clamp. Clamping the whole removed set on every call
+   * means the final call (when only survivors remain) pulls every orphaned
+   * anchor down to the last real line (the conventional "removed below here"
+   * spot). No-op while no line currently exists: there is nothing to clamp to.
+   */
+  clampRemovedAnchors() {
+    const lastLine = this.lastCurrentLine();
+    if (lastLine < 0) {
+      return;
+    }
+    for (const item of this.tracker) {
+      if (item.isStateRemoved() && item.removedAtPosition > lastLine) {
+        item.removedAtPosition = lastLine;
+      }
+    }
   }
   /**
    * Returns the highest current line position present in the document, or -1 when

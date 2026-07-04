@@ -381,9 +381,17 @@ export class TrackerEditor {
    *
    * @param {number | TrackerLine} line - The line number or tracker line to remove
    * @param {boolean} shift - Whether to shift other lines to accommodate the removed line
+   * @param {boolean} clamp - Whether to re-clamp removed anchors right away. A caller
+   *   removing several lines mid-operation (replaceBlock) defers the clamp to its own
+   *   final pass: clamping against a temporarily shrunken document pins anchors above
+   *   the block, and nothing ever lifts an anchor back up
    * @return {TrackerLine | null} The removed tracker line, or null if no tracker was found
    */
-  public removeTrackerOrLine(line: number | TrackerLine, shift: boolean = true): TrackerLine | null {
+  public removeTrackerOrLine(
+    line: number | TrackerLine,
+    shift: boolean = true,
+    clamp: boolean = true,
+  ): TrackerLine | null {
     const found: TrackerLine | null = line instanceof TrackerLine ? line : this.index.findCurrentLine(line);
     const index: number = line instanceof TrackerLine ? line.currentPosition : line;
 
@@ -401,33 +409,8 @@ export class TrackerEditor {
     if (existedInOriginal) {
       found.remove();
 
-      /**
-       * Keep every removed-line anchor on a real line. A block replaced
-       * by a different line count is processed as delete + insert, removing the
-       * doomed originals AFTER the replacements are inserted; each insert advances
-       * the removed anchors (shiftUpRemoved). When the replaced block sits at the
-       * document end (or the whole document is replaced, e.g. an empty file typed
-       * full of new lines), an anchor is shifted past the last real line and the
-       * removed gutter, which can only mark a real line, orphans it above the
-       * title.
-       *
-       * Re-clamp ALL removed anchors here, not just `found`: when many originals
-       * shrink to fewer lines, several doomed originals are still current (not yet
-       * removed) while the first ones are processed, so `lastCurrentLine` is
-       * inflated by the pending doomed lines and an early anchor stays below it,
-       * escaping a `found`-only clamp. Clamping the whole removed set on every
-       * removal means the final removal (when only survivors remain) pulls every
-       * orphaned anchor down to the last real line (the conventional "removed
-       * below here" spot).
-       */
-      const lastLine: number = this.lastCurrentLine();
-
-      if (lastLine >= 0) {
-        for (const item of this.tracker) {
-          if (item.isStateRemoved() && item.removedAtPosition > lastLine) {
-            item.removedAtPosition = lastLine;
-          }
-        }
+      if (clamp) {
+        this.clampRemovedAnchors();
       }
     } else {
       this.removeTrackerLine(found);
@@ -519,8 +502,7 @@ export class TrackerEditor {
     /**
      * Counts differ: delete the old block and insert the replacement, matching
      * the change detector so destroyed originals are removed and replacements
-     * added without mismapping. Capture the doomed lines first, insert the new
-     * ones, then remove the originals by reference.
+     * added without mismapping.
      */
     const doomed: TrackerLine[] = [];
 
@@ -532,13 +514,94 @@ export class TrackerEditor {
       }
     }
 
+    /**
+     * Pair each replacement line with the first doomed original whose baseline
+     * content matches, scanning monotonically so pairs keep their relative
+     * order. A revert to the base content must fold back onto the original
+     * tracker: dooming it and re-adding the same content anchored the original
+     * as removed and brought its own text back as a phantom added line (the
+     * same boundary-pairing blindness the change detector had for mid-line
+     * splits and joins). Unpaired lines keep the delete + insert flow.
+     */
+    const claims = new Map<number, TrackerLine>();
+    let scanFrom: number = 0;
+
     replacement.forEach((content: string, offset: number): void => {
+      const contentHash: string = TextHelper.hash(content);
+
+      for (let i: number = scanFrom; i < doomed.length; i++) {
+        if (doomed[i].existedInOriginal && doomed[i].hash === contentHash) {
+          claims.set(offset, doomed[i]);
+          scanFrom = i + 1;
+          break;
+        }
+      }
+    });
+
+    /**
+     * Unpaired doomed lines go first so the survivors compact onto consecutive
+     * positions from the block start; each unpaired insert below then shifts
+     * them one step further down, which lands every survivor exactly on its
+     * replacement offset by the time that offset is processed. The clamp is
+     * deferred to the final pass below: clamping against the temporarily
+     * shrunken document would pin anchors above the block, and shiftUpRemoved
+     * never lifts an anchor sitting below the insert position back up.
+     */
+    const survivors: Set<TrackerLine> = new Set(claims.values());
+
+    doomed.forEach((item: TrackerLine): void => {
+      if (!survivors.has(item)) {
+        this.removeTrackerOrLine(item, true, false);
+      }
+    });
+
+    replacement.forEach((content: string, offset: number): void => {
+      const survivor: TrackerLine | undefined = claims.get(offset);
+
+      if (survivor) {
+        survivor.change(content);
+
+        return;
+      }
+
       this.restoreOrAddTracker(start + offset, true, content)?.change(content);
     });
 
-    doomed.forEach((item: TrackerLine): void => {
-      this.removeTrackerOrLine(item);
-    });
+    /**
+     * The placement pass ends with inserts, whose shiftUpRemoved can advance a
+     * removed anchor past the last real line when the block sits at the
+     * document end; removals run first here, so their own clamping cannot see
+     * the final line count. Re-clamp once the block has its final shape.
+     */
+    this.clampRemovedAnchors();
+  }
+
+  /**
+   * Keeps every removed-line anchor on a real line. Shifts around a block
+   * whose line count changes (delete + insert, in either order) can advance an
+   * anchor past the last real line, and the removed gutter, which can only
+   * mark a real line, would orphan it above the title.
+   *
+   * Clamps ALL removed anchors, not just the one a caller touched: while a
+   * multi-line block is processed, `lastCurrentLine` is inflated by doomed
+   * lines that are still current, so an early anchor can stay below it and
+   * escape a single-anchor clamp. Clamping the whole removed set on every call
+   * means the final call (when only survivors remain) pulls every orphaned
+   * anchor down to the last real line (the conventional "removed below here"
+   * spot). No-op while no line currently exists: there is nothing to clamp to.
+   */
+  protected clampRemovedAnchors(): void {
+    const lastLine: number = this.lastCurrentLine();
+
+    if (lastLine < 0) {
+      return;
+    }
+
+    for (const item of this.tracker) {
+      if (item.isStateRemoved() && item.removedAtPosition > lastLine) {
+        item.removedAtPosition = lastLine;
+      }
+    }
   }
 
   /**

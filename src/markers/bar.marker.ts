@@ -26,12 +26,28 @@ export class BarMarker extends GutterMarker {
   /**
    * Creates a new BarMarker.
    *
+   * The join flags mark run continuation: a bar whose neighbouring line also
+   * carries a full bar. CSS uses them to stretch the bar over the sub-pixel
+   * seam between gutter elements and to drop the rounding on the shared edge,
+   * so consecutive changed lines read as one continuous stroke.
+   *
    * @param {ChangeType} changes - The change kind this bar represents
+   * @param {boolean} joinUp - Whether the line above also carries a full bar
+   * @param {boolean} joinDown - Whether the line below also carries a full bar
    */
-  public constructor(protected changes: ChangeType) {
+  public constructor(
+    protected changes: ChangeType,
+    protected joinUp: boolean = false,
+    protected joinDown: boolean = false,
+  ) {
     super();
 
-    this.elementClass = `lct-${IndicatorType.line} lct-${this.changes}`;
+    this.elementClass = [
+      `lct-${IndicatorType.line}`,
+      `lct-${this.changes}`,
+      ...(joinUp ? ['lct-join-up'] : []),
+      ...(joinDown ? ['lct-join-down'] : []),
+    ].join(' ');
   }
 
   /**
@@ -50,14 +66,18 @@ export class BarMarker extends GutterMarker {
   }
 
   /**
-   * Two bar markers are equal when they share the change kind.
+   * Two bar markers are equal when they share the change kind and both join
+   * flags (a run-boundary change must re-render the element classes).
    *
    * @param {BarMarker} other - The marker to compare with
    * @return {boolean} True when equal
    * @override
    */
   public eq(other: BarMarker): boolean {
-    return other instanceof BarMarker && this.changes === other.changes;
+    return other instanceof BarMarker &&
+      this.changes === other.changes &&
+      this.joinUp === other.joinUp &&
+      this.joinDown === other.joinDown;
   }
 
   /**

@@ -3,7 +3,7 @@ import type {
   GutterHoverPanelHost,
   GutterHoverPanelTimings,
 } from '@/components/gutter-hover-panel.types';
-import { GutterHoverPanelState } from '@/components/gutter-hover-panel.types';
+import { GutterHoverPanelContentKind, GutterHoverPanelState } from '@/components/gutter-hover-panel.types';
 import type { FunctionVoid } from '@/types';
 
 /**
@@ -40,6 +40,9 @@ export class GutterHoverPanel {
 
   /** The action buttons, in tab order, used by the in-panel focus trap. */
   protected actionButtons: HTMLButtonElement[] = [];
+
+  /** The copy action, disabled on a purely added line where the base side is empty. */
+  protected copyButton: HTMLButtonElement | null = null;
 
   /** The gutter element the panel is anchored to, captured at hover. */
   protected anchor: HTMLElement | null = null;
@@ -218,8 +221,10 @@ export class GutterHoverPanel {
 
     this.panel = panel;
     this.contentSlot = content;
-    this.renderContent();
+    // Build the action row before rendering content so the copy button exists
+    // when renderContent sets its disabled state for the resolved marker kind.
     panel.appendChild(this.buildActions());
+    this.renderContent();
 
     this.host.getContainer().appendChild(panel);
     this.state = GutterHoverPanelState.open;
@@ -246,6 +251,14 @@ export class GutterHoverPanel {
     slot.className = 'lct-hover-panel-content';
 
     const model: GutterHoverPanelContent | null = this.host.resolveContent(this.line);
+
+    // A purely added line has no previous version, so its base side is empty:
+    // disable copy there so it never writes an empty string yet still confirms a
+    // copy (the changed/removed states carry base-side text to copy). A native
+    // disabled button is skipped by Tab, so the action cycle stays coherent.
+    if (this.copyButton) {
+      this.copyButton.disabled = model?.kind === GutterHoverPanelContentKind.added;
+    }
 
     if (!model) {
       return;
@@ -287,11 +300,13 @@ export class GutterHoverPanel {
     const row: HTMLElement = document.createElement('div');
 
     row.className = 'lct-hover-panel-actions';
-    this.actionButtons = [
-      this.buildAction(row, 'undo-2', labels.revert, (): void => this.onRevert()),
-      this.buildAction(row, 'copy', labels.copy, (): void => this.onCopy()),
-      this.buildAction(row, 'history', labels.history, (): void => this.onHistory()),
-    ];
+
+    const revert: HTMLButtonElement = this.buildAction(row, 'undo-2', labels.revert, (): void => this.onRevert());
+    const copy: HTMLButtonElement = this.buildAction(row, 'copy', labels.copy, (): void => this.onCopy());
+    const history: HTMLButtonElement = this.buildAction(row, 'history', labels.history, (): void => this.onHistory());
+
+    this.copyButton = copy;
+    this.actionButtons = [revert, copy, history];
 
     return row;
   }
@@ -471,6 +486,7 @@ export class GutterHoverPanel {
     this.panel = null;
     this.contentSlot = null;
     this.actionButtons = [];
+    this.copyButton = null;
     this.scrollTarget = null;
 
     if (heldFocus) {

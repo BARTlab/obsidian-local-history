@@ -3222,6 +3222,8 @@ var _GutterHoverPanel = class _GutterHoverPanel {
     this.contentSlot = null;
     /** The action buttons, in tab order, used by the in-panel focus trap. */
     this.actionButtons = [];
+    /** The copy action, disabled on a purely added line where the base side is empty. */
+    this.copyButton = null;
     /** The gutter element the panel is anchored to, captured at hover. */
     this.anchor = null;
     /** The 0-based line the anchored marker sits on (-1 when closed). */
@@ -3350,8 +3352,8 @@ var _GutterHoverPanel = class _GutterHoverPanel {
     panel.appendChild(content);
     this.panel = panel;
     this.contentSlot = content;
-    this.renderContent();
     panel.appendChild(this.buildActions());
+    this.renderContent();
     this.host.getContainer().appendChild(panel);
     this.state = "open" /* open */;
     this.wireListeners(panel);
@@ -3372,6 +3374,9 @@ var _GutterHoverPanel = class _GutterHoverPanel {
     slot.replaceChildren();
     slot.className = "lct-hover-panel-content";
     const model = this.host.resolveContent(this.line);
+    if (this.copyButton) {
+      this.copyButton.disabled = (model == null ? void 0 : model.kind) === "added" /* added */;
+    }
     if (!model) {
       return;
     }
@@ -3403,11 +3408,11 @@ var _GutterHoverPanel = class _GutterHoverPanel {
     const labels = this.host.actionLabels();
     const row = document.createElement("div");
     row.className = "lct-hover-panel-actions";
-    this.actionButtons = [
-      this.buildAction(row, "undo-2", labels.revert, () => this.onRevert()),
-      this.buildAction(row, "copy", labels.copy, () => this.onCopy()),
-      this.buildAction(row, "history", labels.history, () => this.onHistory())
-    ];
+    const revert = this.buildAction(row, "undo-2", labels.revert, () => this.onRevert());
+    const copy = this.buildAction(row, "copy", labels.copy, () => this.onCopy());
+    const history = this.buildAction(row, "history", labels.history, () => this.onHistory());
+    this.copyButton = copy;
+    this.actionButtons = [revert, copy, history];
     return row;
   }
   /**
@@ -3557,6 +3562,7 @@ var _GutterHoverPanel = class _GutterHoverPanel {
     this.panel = null;
     this.contentSlot = null;
     this.actionButtons = [];
+    this.copyButton = null;
     this.scrollTarget = null;
     if (heldFocus) {
       (_d = this.previouslyFocused) == null ? void 0 : _d.focus();

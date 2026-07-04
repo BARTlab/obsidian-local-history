@@ -1116,6 +1116,14 @@ body.lct-hover-affordance .cm-gutter.lct-gutter-bar-col {
     width: var(--icon-s);
     height: var(--icon-s);
   }
+
+  // Copy is disabled on a purely added line (no previous version to copy). Mirror
+  // the modal toolbar's disabled affordance so it reads as inactive and refuses
+  // clicks, rather than looking live but doing nothing (a dead click).
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
 }
 
 /* ---- word-level diff spans (shared) ---- */

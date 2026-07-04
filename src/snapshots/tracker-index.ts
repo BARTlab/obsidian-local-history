@@ -132,6 +132,15 @@ export class TrackerIndex {
         continue;
       }
 
+      /**
+       * Content-first identity policy: the matching anchor is chosen by its
+       * deletion-time content, not by baseline order. When several just-removed
+       * anchors share this position (a block replace clears its block before
+       * re-inserting), a resurrection can adopt a baseline position that inverts
+       * the survivors' relative order. That crossing mirrors a baseline-content
+       * revert folding by content regardless of order, and stays cosmetic: no
+       * consumer reads originalPosition ordering.
+       */
       // Hash only the rare position candidates, not every tracked line.
       if (contentHash !== undefined && item.lastContentHash() !== contentHash) {
         continue;

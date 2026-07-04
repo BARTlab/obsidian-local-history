@@ -316,6 +316,47 @@ describe('FileSnapshot.replaceBlock (per-hunk revert)', () => {
     // ghost stays on a current position past the visible end.
     expect(snapshot.content.getLastStateLines()).toEqual(['X', 'Y', 'Z', 'd', 'e']);
   });
+
+  /**
+   * Identity of a content-matched resurrection is content-first (pinned
+   * policy): when the counts-differ pass re-inserts a line whose content
+   * matches a just-doomed sibling's deletion-time content, the resurrection
+   * follows the content, not the baseline order. Two edits re-inserted in
+   * swapped order therefore adopt each other's baseline identity. The markers
+   * stay correct; the crossing is intentional and locked here so a future
+   * switch to order-preservation trips this guard.
+   */
+  it('resurrects a content-matched anchor by content, not by baseline order', () => {
+    const snapshot = new FileSnapshot('b\nk');
+
+    // Edit both lines, then replace the block with the two edits in swapped
+    // order plus a fresh line: 'w' and 'v' each match a doomed line's
+    // deletion-time content, so both fold back; 'z' is a new added line.
+    snapshot.trackers.findCurrentLine(0)?.change('v');
+    snapshot.trackers.findCurrentLine(1)?.change('w');
+    snapshot.content.updateState(['v', 'w']);
+    snapshot.updateChanges();
+
+    snapshot.trackers.replaceBlock(0, 2, ['w', 'v', 'z']);
+    snapshot.content.updateState(['w', 'v', 'z']);
+    snapshot.updateChanges();
+
+    // Markers are correct either way: the two folds read as changed, the fresh
+    // line as added, nothing left removed.
+    expect(positionsWithType(snapshot, ChangeType.changed)).toEqual([0, 1]);
+    expect(positionsWithType(snapshot, ChangeType.added)).toEqual([2]);
+    expect(positionsWithType(snapshot, ChangeType.removed)).toEqual([]);
+
+    // Content-first identity: line 0 ('w') resurrects the tracker that last
+    // held 'w' (baseline position 1), line 1 ('v') the one that last held 'v'
+    // (baseline position 0). The survivors' baseline order is inverted, and
+    // that crossing is the pinned, intended policy.
+    expect(snapshot.trackers.findCurrentLine(0)?.current).toBe('w');
+    expect(snapshot.trackers.findCurrentLine(0)?.originalPosition).toBe(1);
+    expect(snapshot.trackers.findCurrentLine(1)?.current).toBe('v');
+    expect(snapshot.trackers.findCurrentLine(1)?.originalPosition).toBe(0);
+    expect(snapshot.trackers.findCurrentLine(2)?.originalPosition).toBe(-1);
+  });
 });
 
 describe('FileSnapshot.getChangedPositions (navigation source)', () => {

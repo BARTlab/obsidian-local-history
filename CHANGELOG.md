@@ -13,7 +13,7 @@ First release published to the Obsidian community plugin directory. Since the la
 - **Four diff views.** The history modal offers side-by-side, line-by-line, word-level inline highlighting, and a clean zero-context patch you can copy.
 - **Version rail with search.** Pick any captured version as the diff base and filter the rail by content. Each version shows what it did (Created, Modified, Cleared) with line-level deltas.
 - **Restore and revert.** Restore the whole file to any version or to its original state, delete a single version, or revert one changed block straight from the editor gutter.
-- **Gutter hover panel.** Hover a change marker in the editor gutter to open a panel with the previous version of that line, then revert the change, copy the old text, or open the file history from it. Enabled by default; toggle it with the "Show hover panel on change markers" setting.
+- **Gutter hover panel.** Hover a change marker in the editor gutter to open a panel with the previous version of that line, then revert the change, copy the old text, or open the file history from it. The panel widens to fit the previous version up to the editor width, shows a muted placeholder for a blank or whitespace-only change, and stays closed on a marker whose line is already back to its original content. Enabled by default; toggle it with the "Show hover panel on change markers" setting.
 - **Custom labels.** Pin any version with a label; pinned versions are exempt from retention eviction.
 - **Recent changes panel.** A right-sidebar panel lists the active file's timeline with action, date, and line deltas inline, with restore/delete/label actions on each row.
 - **Folder history.** Open history for a whole folder to see which files changed since any point in time, with a timeline rail and a changes-only file tree.
@@ -31,6 +31,7 @@ First release published to the Obsidian community plugin directory. Since the la
 ### Changed
 
 - **Line change bar renders in the editor gutter.** The line-style change indicator renders in its own gutter column instead of as a stripe in the line's own margin, so adjacent changed lines read as one continuous vertical bar.
+- **Dot gutter defaults to diff-style glyphs.** The character indicator now defaults to `+` added, `−` removed, `~` changed, and `↺` restored, so each marker reads at a glance instead of using abstract arrows. Every glyph stays configurable in settings.
 - Indicators are session-scoped: the gutter shows what changed since you opened the file in the current app run, while the on-disk history remembers changes across sessions, so long-lived notes no longer drift toward "all changed".
 - The history modal uses a three-pane layout (version rail, icon toolbar, diff pane) with next/previous difference navigation and a toggle to hide versions identical to the current content.
 - The diff base for the modal's baseline entry compares the current document against the latest captured version instead of the original.

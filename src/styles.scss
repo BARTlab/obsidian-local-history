@@ -479,18 +479,9 @@ body {
         }
       }
 
-      .lct-word-added {
-        background-color: rgba(var(--color-green-rgb), 0.4);
-        border-radius: var(--radius-s);
-      }
-
-      // Removed words live inline next to their replacement on a modified line,
-      // so a strikethrough keeps them readable as the deleted text.
-      .lct-word-removed {
-        background-color: rgba(var(--color-red-rgb), 0.4);
-        border-radius: var(--radius-s);
-        text-decoration: line-through;
-      }
+      // The word-level add/remove spans (.lct-word-added / .lct-word-removed) are
+      // styled once in the shared "word-level diff spans" block below, so the modal
+      // inline diff and the gutter hover panel paint them identically.
     }
 
     // general
@@ -1022,6 +1013,13 @@ body.lct-hover-affordance .cm-gutter.lct-gutter-bar-col {
   border-radius: var(--radius-s);
   box-shadow: var(--shadow-s);
 
+  /* Stack the previous-version content over the action row; the shared 8pt step is
+   * the gap the content/action hairline separator sits in (the separator itself
+   * rides the action row's top border). */
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-2);
+
   /* Entrance plays on mount with no JS reflow; transform and opacity only, so it
    * composites and never shifts the editor text. */
   animation: lct-hover-panel-in 120ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
@@ -1043,6 +1041,104 @@ body.lct-hover-affordance .cm-gutter.lct-gutter-bar-col {
 @media (prefers-reduced-motion: reduce) {
   .lct-hover-panel {
     animation: none;
+  }
+}
+
+/* ---- gutter hover panel content ---- */
+/* Fills the shell built above: the previous-version content (word-segmented diff
+ * lines) over a compact icon-button action row, divided by a hairline. Panel-
+ * scoped and theme-token only, so it never leaks into the editor and tracks light
+ * and dark. The word segments reuse the history modal's inline-diff spans (the
+ * shared block below), so a changed line reads the same here as in the modal. */
+.lct-hover-panel-content {
+  // The previous version of the hovered line(s), in the editor's text face (not
+  // the UI face) so it reads like document content, matching the modal's inline
+  // diff. Height-bounded with its own scroll so a tall hunk never grows the
+  // floating panel off-screen; the action row below stays put.
+  max-height: 40vh;
+  overflow-y: auto;
+  font-family: var(--font-text);
+  line-height: var(--line-height-normal);
+
+  // A marker line that resolves to no block leaves the slot empty; collapse it so
+  // no stray gap or separator shows above the actions.
+  &:empty {
+    display: none;
+  }
+}
+
+// One previous-version line: keep its leading indentation and wrap long lines
+// within the panel width instead of overflowing (the modal inline-row rule).
+.lct-hover-panel-line {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+// Pure add / pure remove states wash the whole block with the same faint tint the
+// modal gives a pure add/remove row, so the panel reads as "an added block" or "a
+// removed block" at a glance while the word spans carry the detail. The changed
+// state needs no wash: its removed/added word spans already show old-vs-new, so it
+// stays flush like a modal changed row. The wash colour (green/red) is the diff
+// encoding; the status colour (blue/orange/base) is already carried by the marker
+// the panel anchors to, so it is deliberately not repeated inside the panel.
+.lct-hover-panel-content-added,
+.lct-hover-panel-content-removed {
+  padding: var(--size-4-1) var(--size-4-2);
+  border-radius: var(--radius-s);
+}
+
+.lct-hover-panel-content-added {
+  background-color: rgba(var(--color-green-rgb), 0.12);
+}
+
+.lct-hover-panel-content-removed {
+  background-color: rgba(var(--color-red-rgb), 0.12);
+}
+
+// Action row: revert, copy old text, open history as one compact icon-button
+// group, divided from the content above by a hairline (the toolbars-and-action-
+// groups pattern: grouped surface actions behind a separator). The buttons reuse
+// Obsidian's .clickable-icon look (size, radius, hover background), so only the
+// group layout, the separator, and a consistent icon size are set here.
+.lct-hover-panel-actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--size-4-1);
+  padding-top: var(--size-4-2);
+  border-top: var(--border-width) solid var(--background-modifier-border);
+}
+
+.lct-hover-panel-action {
+  flex: none;
+
+  .svg-icon {
+    width: var(--icon-s);
+    height: var(--icon-s);
+  }
+}
+
+/* ---- word-level diff spans (shared) ---- */
+/* Inline word-diff highlights shared by the history modal's inline diff
+ * (.lct-inline-container) and the gutter hover panel (.lct-hover-panel), so a
+ * changed line reads identically on both surfaces (consistency with the app's own
+ * diff language). Removed words are struck through over a red wash, added words
+ * carry a green wash; both resolve from the same --color-red-rgb /
+ * --color-green-rgb tokens as every other diff tint, so the surfaces track the
+ * theme in lockstep. */
+.lct-inline-container,
+.lct-hover-panel {
+  .lct-word-added {
+    background-color: rgba(var(--color-green-rgb), 0.4);
+    border-radius: var(--radius-s);
+  }
+
+  // Removed words sit inline next to their replacement on a changed line, so the
+  // strikethrough keeps them legible as the deleted text.
+  .lct-word-removed {
+    background-color: rgba(var(--color-red-rgb), 0.4);
+    border-radius: var(--radius-s);
+    text-decoration: line-through;
   }
 }
 

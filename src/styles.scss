@@ -891,6 +891,15 @@ body {
  * the bar never shares a pseudo-element with the theme's blockquote marker
  * (`.cm-line::before`), which is what the former `.cm-line` bar fought with. */
 .cm-gutter.lct-gutter-bar-col {
+  /* The adjacent line-number gutter's active-line element overlaps this narrow
+   * column. It is transparent here (the bar shows through), but sits on top in
+   * hit-testing and swallows the pointer, so a real hover never reaches the bar:
+   * no widen, no hover panel (only a synthetic dispatch got through). Raise the
+   * column into its own stacking context so its markers win the pointer in their
+   * own strip. The column is a few px wide and left of the digits, so it never
+   * covers the line numbers, and the panel (fixed, layer 30) is unaffected. */
+  position: relative;
+  z-index: 5;
   min-width: var(--lct-line-width);
   padding: 0;
 

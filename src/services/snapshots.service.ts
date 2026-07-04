@@ -296,6 +296,26 @@ export class SnapshotsService implements Service {
   }
 
   /**
+   * Path-based mirror of {@link isExcludedPath} for callers that hold only a
+   * vault-relative path and no live `TFile` (the tree decorator reconciling
+   * folder tints after a reload, where a restored snapshot may have no file yet).
+   * A path is excluded when it sits inside the plugin's own data directory or
+   * matches any configured exclude pattern, using the same patterns and
+   * case-sensitivity as capture. Skips the once-per-bad-list invalid-pattern
+   * warning, which the capture path already surfaces.
+   *
+   * @param {string} path - The vault-relative path to test
+   * @return {boolean} True when the path is excluded from tracking
+   */
+  public isPathExcluded(path: string): boolean {
+    return this.isOwnPluginPath(path) || PathExcludeHelper.isExcluded(
+      path,
+      this.settingsService.value('excludePaths'),
+      this.settingsService.value('excludePathsCaseSensitive'),
+    );
+  }
+
+  /**
    * Checks if a file has already been captured (has a snapshot).
    *
    * @param {TFile} file - The file to check

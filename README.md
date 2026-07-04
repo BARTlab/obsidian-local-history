@@ -11,7 +11,7 @@ It complements Obsidian [Sync version history](https://obsidian.md/help/sync/ver
 
 - Live per-line highlighting in Source and Live Preview modes. Changed, added, removed, restored, and whitespace-only lines each get their own marker, shown as a colored gutter bar or a single gutter character. Markers are session-scoped and clear when a line returns to its original state.
 - Whitespace-only edits get a distinct indicator color so you can tell them apart from real content changes.
-- File-explorer rows and workspace tab headers tint by what changed this session, so the tree and tab bar agree with the editor gutter at a glance.
+- File-explorer rows and workspace tab headers tint by what changed this session, so the tree and tab bar agree with the editor gutter at a glance. Folders whose only changes are in files hidden by Obsidian's excluded-files filter or your own exclude patterns stay untinted.
 - Optional reading-mode block indicators and a properties-panel diff, each toggled in settings.
 - On-disk timeline per file, captured on an edit-count and time interval so it records meaningful points rather than every keystroke, with independent retention caps for live files and for deleted-file tombstones. Pin any version with a label to protect it from eviction.
 - Diff modal with four views (side-by-side, line-by-line, word-level inline, and a clean zero-context patch you can copy), a searchable version rail, and next/previous difference navigation.
@@ -65,6 +65,16 @@ The indicator colors resolve from CSS variables, so a snippet can recolor every 
 /* Or target a single change type on the gutter bar directly. */
 .cm-gutter.lct-gutter-bar-col .lct-added .lct-gutter-bar {
     background-color: #4ecdc4;
+}
+
+/* Global intensity of every change colour (markers, file tree, tabs): the share
+   of the hue kept before it is blended with transparency. 100% is the original
+   hard contrast, lower is paler. Folders resolve their own --lct-dir-* colours,
+   defaulting to the file-status colours, so you can recolor directories alone. */
+body {
+    --lct-tint-strength: 60%;
+    --lct-dir-modified: var(--color-purple);
+    --lct-dir-added: var(--color-green);
 }
 ```
 

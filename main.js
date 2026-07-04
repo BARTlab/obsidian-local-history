@@ -27045,6 +27045,25 @@ var SnapshotsService = class {
     return this.isOwnPluginPath(file.path) || this.ignoreList.isExcluded(file);
   }
   /**
+   * Path-based mirror of {@link isExcludedPath} for callers that hold only a
+   * vault-relative path and no live `TFile` (the tree decorator reconciling
+   * folder tints after a reload, where a restored snapshot may have no file yet).
+   * A path is excluded when it sits inside the plugin's own data directory or
+   * matches any configured exclude pattern, using the same patterns and
+   * case-sensitivity as capture. Skips the once-per-bad-list invalid-pattern
+   * warning, which the capture path already surfaces.
+   *
+   * @param {string} path - The vault-relative path to test
+   * @return {boolean} True when the path is excluded from tracking
+   */
+  isPathExcluded(path) {
+    return this.isOwnPluginPath(path) || PathExcludeHelper.isExcluded(
+      path,
+      this.settingsService.value("excludePaths"),
+      this.settingsService.value("excludePathsCaseSensitive")
+    );
+  }
+  /**
    * Checks if a file has already been captured (has a snapshot).
    *
    * @param {TFile} file - The file to check
@@ -28578,11 +28597,35 @@ var _TreeTabDecoratorService = class _TreeTabDecoratorService {
     for (const path of this.snapshotsService.getSessionCreatedPaths()) {
       statuses.set(path, "added" /* added */);
     }
+    for (const path of [...statuses.keys()]) {
+      if (!this.isPaintablePath(path)) {
+        statuses.delete(path);
+      }
+    }
     const filePaths = [...statuses.keys()];
     for (const folder of ancestorFolderPaths(filePaths)) {
       statuses.set(folder, "modified" /* modified */);
     }
     return statuses;
+  }
+  /**
+   * Whether a changed file path may tint its row and ancestor folders. Suppressed
+   * when the path matches one of our own exclude patterns or is hidden by
+   * Obsidian's "Excluded files" visibility filter, so a folder whose only session
+   * changes are filtered-out files stops painting. The Obsidian check is an
+   * undocumented runtime method reached defensively: when it is absent (or no app
+   * is wired) the path is treated as visible, so the behaviour never regresses.
+   *
+   * @param {string} path - The vault-relative file path
+   * @return {boolean} True when the path may be painted
+   */
+  isPaintablePath(path) {
+    var _a;
+    if (this.snapshotsService.isPathExcluded(path)) {
+      return false;
+    }
+    const cache = (_a = this.plugin.app) == null ? void 0 : _a.metadataCache;
+    return typeof (cache == null ? void 0 : cache.isUserIgnored) !== "function" || !cache.isUserIgnored(path);
   }
   /**
    * Sets a single row's status class: removes both managed classes, then adds

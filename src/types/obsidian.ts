@@ -124,6 +124,20 @@ export interface NativeFileExplorerView {
 }
 
 /**
+ * The undocumented ignore-filter slice of Obsidian's `MetadataCache`.
+ * `isUserIgnored(path)` reports whether a vault-relative path is hidden by the
+ * user's "Excluded files" setting (Files and links), the same filter that fades
+ * those files in the explorer and drops them from search. It is optional because
+ * it is a core internal absent from the published typings (1.13.0), so every
+ * access stays defensive and the caller degrades to "not ignored" when it is
+ * missing. Reached through this local augmentation instead of an `as any` cast.
+ */
+export interface NativeMetadataCache {
+  /** Whether the path matches the user's "Excluded files" visibility filter. */
+  isUserIgnored?(path: string): boolean;
+}
+
+/**
  * The undocumented tab-header slice of an Obsidian `WorkspaceLeaf`.
  * `tabHeaderEl` is the `.workspace-tab-header` element rendered for the leaf in
  * its tab bar, the node the decorator tints by its open file's session status.

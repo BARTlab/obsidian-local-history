@@ -19,8 +19,8 @@ First release published to the Obsidian community plugin directory. Since the la
 - **Folder history.** Open history for a whole folder to see which files changed since any point in time, with a timeline rail and a changes-only file tree.
 - **Deleted and moved files are recoverable.** Deleting a file keeps its final state and timeline as a tombstone; moving a file across folders carries its history to the destination and leaves a tombstone behind.
 - **External change capture.** Changes the editor never saw (git pull, sync, an external editor) are detected and captured as their own versions, marked with an inline badge.
-- **Reading-mode change indicators.** In reading mode, blocks whose source lines changed show a colored left border matching the editor's change colors. Off by default; enable it in settings.
-- **File explorer and tab highlight.** File-explorer rows (with their parent folders) and open tab headers are tinted by whether the file changed in the current session. Toggle it in settings.
+- **Reading-mode change indicators.** In reading mode, blocks whose source lines changed are marked by a thin change-colored bar in the left margin, matching the editor's change colors and sitting clear of the block so blockquotes, callouts, and code blocks keep their own styling. Off by default; enable it in settings.
+- **File explorer and tab highlight.** File-explorer rows (with their parent folders) and open tab headers are tinted by whether the file changed in the current session. A folder is not tinted when its only changed files are hidden by Obsidian's Excluded files setting or by the plugin's own exclude patterns, so the tree never lights up for a change you cannot see. Folders resolve their own `--lct-dir-*` CSS colours, overridable independently of the file rows. Toggle it in settings.
 - **Context submenu** on the editor, files, and folders (Show History, Show History for Selection, Put label, Recent changes).
 - **Gutter context toggle.** Right-click the editor gutter to show or hide all change indicators.
 - **Change navigation commands.** Go to next change and go to previous change.
@@ -32,6 +32,7 @@ First release published to the Obsidian community plugin directory. Since the la
 
 - **Line change bar renders in the editor gutter.** The line-style change indicator renders in its own gutter column instead of as a stripe in the line's own margin, so adjacent changed lines read as one continuous vertical bar.
 - **Dot gutter defaults to diff-style glyphs.** The character indicator now defaults to `+` added, `−` removed, `~` changed, and `↺` restored, so each marker reads at a glance instead of using abstract arrows. Every glyph stays configurable in settings.
+- **Softer highlight colours.** Change markers and the file-explorer/tab tints render at a reduced opacity through a new `--lct-tint-strength` CSS variable (default 75%, roughly 25% paler), so the indicators read less harshly; raise it toward 100% in a snippet to restore the previous hard contrast.
 - Indicators are session-scoped: the gutter shows what changed since you opened the file in the current app run, while the on-disk history remembers changes across sessions, so long-lived notes no longer drift toward "all changed".
 - The history modal uses a three-pane layout (version rail, icon toolbar, diff pane) with next/previous difference navigation and a toggle to hide versions identical to the current content.
 - The diff base for the modal's baseline entry compares the current document against the latest captured version instead of the original.

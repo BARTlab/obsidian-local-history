@@ -1910,6 +1910,7 @@ var DEFAULT_SETTINGS = {
   treeHighlight: true,
   propertiesHighlight: true,
   readingModeIndicator: false,
+  gutterHoverPanel: true,
   retention: {
     maxEntries: 200,
     maxAgeDays: 30,
@@ -3098,6 +3099,7 @@ var ChangeDetectorExtension = class {
     if (!snapshot) {
       return;
     }
+    let lineShift = 0;
     update2.changes.iterChanges((fromA, toA, fromB, toB) => {
       var _a, _b;
       const fromOldLine = prev.lineAt(fromA).number - 1;
@@ -3126,7 +3128,7 @@ var ChangeDetectorExtension = class {
       } else {
         const doomed = [];
         for (let index = oldCoreStart; index <= oldCoreEnd; index++) {
-          const tracker = snapshot.trackers.findCurrentLine(index);
+          const tracker = snapshot.trackers.findCurrentLine(index + lineShift);
           if (tracker) {
             doomed.push(tracker);
           }
@@ -3139,6 +3141,7 @@ var ChangeDetectorExtension = class {
           snapshot.trackers.removeTrackerOrLine(tracker);
         });
       }
+      lineShift += toNewLine - fromNewLine - (toOldLine - fromOldLine);
       if (prefixShared) {
         (_a = snapshot.trackers.findCurrentLine(fromNewLine)) == null ? void 0 : _a.change(currentLines[fromNewLine]);
       }
@@ -3200,139 +3203,392 @@ __decorateClass([
   Inject(TOKENS.settings)
 ], ChangeDetectorExtension.prototype, "settingsService", 2);
 
-// src/markers/bar.marker.ts
-var import_view2 = require("@codemirror/view");
-var BarMarker = class _BarMarker extends import_view2.GutterMarker {
+// src/components/gutter-hover-panel.ts
+var _GutterHoverPanel = class _GutterHoverPanel {
   /**
-   * Creates a new BarMarker.
-   *
-   * The join flags mark run continuation: a bar whose neighbouring line also
-   * carries a full bar. CSS uses them to stretch the bar over the sub-pixel
-   * seam between gutter elements and to drop the rounding on the shared edge,
-   * so consecutive changed lines read as one continuous stroke.
-   *
-   * @param {ChangeType} changes - The change kind this bar represents
-   * @param {boolean} joinUp - Whether the line above also carries a full bar
-   * @param {boolean} joinDown - Whether the line below also carries a full bar
+   * @param {GutterHoverPanelHost} host - Environment port (gate, mount target,
+   *   label, content, actions).
+   * @param {GutterHoverPanelTimings} timings - Open/close delays; defaults sit in
+   *   the 150-300 ms dwell / ~200 ms grace band the design specifies.
    */
-  constructor(changes, joinUp = false, joinDown = false) {
-    super();
-    this.changes = changes;
-    this.joinUp = joinUp;
-    this.joinDown = joinDown;
-    this.elementClass = [
-      `lct-${"line" /* line */}`,
-      `lct-${this.changes}`,
-      ...joinUp ? ["lct-join-up"] : [],
-      ...joinDown ? ["lct-join-down"] : []
-    ].join(" ");
+  constructor(host, timings = { openDelayMs: 200, closeDelayMs: 200 }) {
+    this.host = host;
+    this.timings = timings;
+    /** Current lifecycle state; drives the transition guards and is test-visible. */
+    this.state = "closed" /* closed */;
+    /** The mounted panel element, or null while closed/pending. */
+    this.panel = null;
+    /** The content slot, re-rendered when the panel re-anchors to another marker. */
+    this.contentSlot = null;
+    /** The action buttons, in tab order, used by the in-panel focus trap. */
+    this.actionButtons = [];
+    /** The gutter element the panel is anchored to, captured at hover. */
+    this.anchor = null;
+    /** The 0-based line the anchored marker sits on (-1 when closed). */
+    this.line = -1;
+    /** The editor scroller listened to for the scroll-dismiss, resolved on mount. */
+    this.scrollTarget = null;
+    /** The element focused when the panel opened, restored when a focused panel closes. */
+    this.previouslyFocused = null;
+    /** Pending open-delay timer, or null when no open is scheduled. */
+    this.openTimer = null;
+    /** Pending close-delay timer, or null when no close is scheduled. */
+    this.closeTimer = null;
+    /** Listener removers registered on mount, run once on unmount. */
+    this.cleanups = [];
+    /** True after {@link destroy}, so a late hover cannot resurrect the panel. */
+    this.destroyed = false;
   }
   /**
-   * Renders the bar element. The bar fills the gutter element height; the
-   * removed dash height is overridden in CSS.
+   * The current lifecycle state, so tests can assert the machine directly.
    *
-   * @return {Node} The bar DOM node
-   * @override
+   * @return {GutterHoverPanelState} The current state
    */
-  toDOM() {
-    const bar = document.createElement("span");
-    bar.addClass("lct-gutter-bar");
-    return bar;
+  getState() {
+    return this.state;
   }
   /**
-   * Two bar markers are equal when they share the change kind and both join
-   * flags (a run-boundary change must re-render the element classes).
+   * The 0-based line the anchored marker sits on, or -1 while closed. Confirms
+   * the hovered line reached the controller and drives which change block the
+   * content and actions read.
    *
-   * @param {BarMarker} other - The marker to compare with
-   * @return {boolean} True when equal
-   * @override
+   * @return {number} The anchored 0-based line, or -1
    */
-  eq(other) {
-    return other instanceof _BarMarker && this.changes === other.changes && this.joinUp === other.joinUp && this.joinDown === other.joinDown;
+  getLine() {
+    return this.line;
   }
   /**
-   * Gets the change kind of this marker.
+   * Hover intent over a marker: schedules the open after the dwell, or re-anchors
+   * an already-open panel to the new marker (never a second panel), re-rendering
+   * its content for the new line. A disabled feature or a destroyed controller is
+   * a no-op, so no panel is ever created while the setting is off.
    *
-   * @return {ChangeType} The change kind
+   * @param {number} line - The 0-based line of the hovered marker
+   * @param {HTMLElement} anchor - The gutter element to position against
    */
-  getChangeType() {
-    return this.changes;
-  }
-};
-
-// src/extensions/gutter-bar.extension.ts
-var import_state2 = require("@codemirror/state");
-var GutterBarExtension = class {
-  constructor(view, plugin) {
-    this.view = view;
-    this.plugin = plugin;
-    /** CSS class for the gutter wrapper element. */
-    this.class = `lct lct-gutter-bar-col lct-${"line" /* line */}`;
-    /**
-     * Only render elements for changed lines, so unchanged lines leave no filler
-     * and the column reads as discrete strokes per change run.
-     */
-    this.renderEmptyElements = false;
-    /**
-     * Builds one bar marker for every changed line in the current snapshot.
-     *
-     * @param {EditorView} view - The editor view
-     * @return {RangeSet<BarMarker>} The bar markers
-     */
-    this.markers = (view) => {
-      var _a;
-      const enable = this.settingsService.getEnabledTypes();
-      const snapshot = this.snapshotsService.getOne();
-      const changes = (_a = snapshot == null ? void 0 : snapshot.content.getChanges(enable)) != null ? _a : null;
-      const builder = new import_state2.RangeSetBuilder();
-      if (isNestedEditor(view) || !this.isTypeLine() || !snapshot || !(changes == null ? void 0 : changes.size)) {
-        return builder.finish();
+  enter(line, anchor) {
+    if (this.destroyed || !this.host.isEnabled()) {
+      return;
+    }
+    this.clearCloseTimer();
+    if (this.state === "open" /* open */ || this.state === "closing" /* closing */) {
+      this.state = "open" /* open */;
+      this.line = line;
+      if (anchor !== this.anchor) {
+        this.anchor = anchor;
+        this.renderContent();
+        this.reposition();
       }
-      const kinds = /* @__PURE__ */ new Map();
-      for (const pos of snapshot.content.getChangedPositions(enable)) {
-        if (pos >= view.state.doc.lines) {
-          continue;
+      return;
+    }
+    this.anchor = anchor;
+    this.line = line;
+    if (this.state === "pending" /* pending */) {
+      return;
+    }
+    this.state = "pending" /* pending */;
+    this.openTimer = setTimeout(() => this.mount(), this.timings.openDelayMs);
+  }
+  /**
+   * The pointer left the marker. Before the dwell elapses this cancels the
+   * pending open (no panel is created); while open it starts the close grace,
+   * which a move into the panel or back onto the marker cancels.
+   */
+  leave() {
+    if (this.state === "pending" /* pending */) {
+      this.clearOpenTimer();
+      this.reset();
+      return;
+    }
+    if (this.state === "open" /* open */) {
+      this.state = "closing" /* closing */;
+      this.closeTimer = setTimeout(() => this.unmount(), this.timings.closeDelayMs);
+    }
+  }
+  /**
+   * Closes the panel immediately, cancelling any pending open or close. This is
+   * the entry point for every non-pointer dismissal the host drives: a document
+   * change, an active-leaf change, or the feature being switched off.
+   */
+  dismiss() {
+    this.clearOpenTimer();
+    if (this.panel) {
+      this.unmount();
+      return;
+    }
+    this.reset();
+  }
+  /**
+   * Tears the controller down for good: dismisses any open panel and blocks
+   * further opens. Idempotent, so it is safe to wire to both view teardown and
+   * plugin unload.
+   */
+  destroy() {
+    this.destroyed = true;
+    this.dismiss();
+  }
+  /**
+   * Mounts the panel once the open dwell elapses: builds the element with its
+   * `dialog` role, renders the hovered line's content into it, appends the action
+   * row, wires the hover-bridge, focus-trap, and dismissal listeners, and
+   * positions it. Records the previously focused element so a keyboard dismissal
+   * can hand focus back to the editor.
+   */
+  mount() {
+    this.openTimer = null;
+    if (!this.anchor || this.destroyed) {
+      this.reset();
+      return;
+    }
+    this.previouslyFocused = document.activeElement;
+    const panel = document.createElement("div");
+    panel.className = "lct-hover-panel";
+    panel.setAttribute("role", "dialog");
+    panel.setAttribute("aria-label", this.host.ariaLabel());
+    const content = document.createElement("div");
+    content.className = "lct-hover-panel-content";
+    panel.appendChild(content);
+    this.panel = panel;
+    this.contentSlot = content;
+    this.renderContent();
+    panel.appendChild(this.buildActions());
+    this.host.getContainer().appendChild(panel);
+    this.state = "open" /* open */;
+    this.wireListeners(panel);
+    this.reposition();
+  }
+  /**
+   * Fills the content slot with the hovered line's model: a modifier class for
+   * the marker state and one row per content line, each row a run of word
+   * segments carrying the shared diff span classes (removed for dropped words,
+   * added for inserted ones). A line that resolves to no change block leaves the
+   * slot empty. Rebuilt from scratch on every anchor change.
+   */
+  renderContent() {
+    const slot = this.contentSlot;
+    if (!slot) {
+      return;
+    }
+    slot.replaceChildren();
+    slot.className = "lct-hover-panel-content";
+    const model = this.host.resolveContent(this.line);
+    if (!model) {
+      return;
+    }
+    slot.classList.add(`lct-hover-panel-content-${model.kind}`);
+    for (const segments2 of model.lines) {
+      const row = document.createElement("div");
+      row.className = "lct-hover-panel-line";
+      for (const segment3 of segments2) {
+        const span = document.createElement("span");
+        if (segment3.added) {
+          span.className = "lct-word-added";
+        } else if (segment3.removed) {
+          span.className = "lct-word-removed";
         }
-        const change = changes.get(pos);
-        if (!change) {
-          continue;
-        }
-        const modify = change.getModify();
-        const kind = modify != null ? modify : change.has("removed" /* removed */) ? "removed" /* removed */ : null;
-        if (kind === null) {
-          continue;
-        }
-        kinds.set(pos, kind);
+        span.textContent = segment3.text;
+        row.appendChild(span);
       }
-      const isBar = (pos) => {
-        const kind = kinds.get(pos);
-        return kind !== void 0 && kind !== "removed" /* removed */;
-      };
-      const positions = [...kinds.keys()].sort((a, b) => a - b);
-      for (const pos of positions) {
-        const kind = kinds.get(pos);
-        const joins = kind !== "removed" /* removed */;
-        const line = view.state.doc.line(pos + 1);
-        builder.add(line.from, line.from, new BarMarker(kind, joins && isBar(pos - 1), joins && isBar(pos + 1)));
-      }
-      return builder.finish();
+      slot.appendChild(row);
+    }
+  }
+  /**
+   * Builds the action row: revert this change, copy the old text, open history.
+   * Each is a real focusable `button` with a translated `aria-label` and a Lucide
+   * icon (set through the host so the controller keeps no Obsidian import).
+   *
+   * @return {HTMLElement} The action row element
+   */
+  buildActions() {
+    const labels = this.host.actionLabels();
+    const row = document.createElement("div");
+    row.className = "lct-hover-panel-actions";
+    this.actionButtons = [
+      this.buildAction(row, "undo-2", labels.revert, () => this.onRevert()),
+      this.buildAction(row, "copy", labels.copy, () => this.onCopy()),
+      this.buildAction(row, "history", labels.history, () => this.onHistory())
+    ];
+    return row;
+  }
+  /**
+   * Builds one action button, appends it to the row, and wires its click. Click
+   * propagation is stopped so it never reaches the editor beneath the panel.
+   *
+   * @param {HTMLElement} row - The action row to append to
+   * @param {string} icon - The Lucide icon id
+   * @param {string} label - The translated accessible label
+   * @param {FunctionVoid} handler - The click handler
+   * @return {HTMLButtonElement} The built button
+   */
+  buildAction(row, icon, label, handler) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "lct-hover-panel-action clickable-icon";
+    button.setAttribute("aria-label", label);
+    this.host.applyIcon(button, icon);
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      handler();
+    });
+    row.appendChild(button);
+    return button;
+  }
+  /**
+   * Reverts the hovered change block through the host (which confirms first), then
+   * closes the panel once the confirm settles, whether it was accepted or
+   * declined. A successful revert also redraws the gutter, which dismisses the
+   * panel through the host's snapshot subscription; the explicit close covers the
+   * declined case and is idempotent.
+   */
+  onRevert() {
+    void this.host.revert(this.line).then(() => this.dismiss());
+  }
+  /** Copies the hovered block's old text through the host; the panel stays open. */
+  onCopy() {
+    this.host.copyOldText(this.line);
+  }
+  /** Opens the file history through the host and closes the panel. */
+  onHistory() {
+    this.host.openHistory();
+    this.dismiss();
+  }
+  /**
+   * Adds the panel-scoped listeners and records their removers so unmount can run
+   * them: the hover bridge (pointer into the panel keeps it open, out of it
+   * starts the close grace), the Tab focus trap, Escape, and editor scroll.
+   *
+   * @param {HTMLElement} panel - The freshly mounted panel element
+   */
+  wireListeners(panel) {
+    var _a, _b;
+    const onPanelEnter = () => {
+      this.clearCloseTimer();
+      this.state = "open" /* open */;
     };
+    const onPanelLeave = () => this.leave();
+    const onPanelKeyDown = (event) => this.trapTab(event);
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") {
+        this.dismiss();
+      }
+    };
+    const onScroll = () => this.dismiss();
+    panel.addEventListener("mouseenter", onPanelEnter);
+    panel.addEventListener("mouseleave", onPanelLeave);
+    panel.addEventListener("keydown", onPanelKeyDown);
+    document.addEventListener("keydown", onKeyDown);
+    this.cleanups.push(() => {
+      panel.removeEventListener("mouseenter", onPanelEnter);
+      panel.removeEventListener("mouseleave", onPanelLeave);
+      panel.removeEventListener("keydown", onPanelKeyDown);
+      document.removeEventListener("keydown", onKeyDown);
+    });
+    this.scrollTarget = (_b = (_a = this.anchor) == null ? void 0 : _a.closest(".cm-scroller")) != null ? _b : null;
+    if (this.scrollTarget) {
+      const target2 = this.scrollTarget;
+      target2.addEventListener("scroll", onScroll);
+      this.cleanups.push(() => target2.removeEventListener("scroll", onScroll));
+    }
   }
   /**
-   * Whether the indicator type is `line`.
+   * Keeps Tab within the action buttons once focus is inside the panel: Tab off
+   * the last button wraps to the first and Shift+Tab off the first wraps to the
+   * last, so the panel's actions form a closed keyboard cycle. How focus first
+   * enters the hover-triggered panel is a separate, deferred keyboard-reach
+   * question; this only governs the cycle once it is in.
    *
-   * @return {boolean} True in line mode
+   * @param {KeyboardEvent} event - The panel keydown
    */
-  isTypeLine() {
-    return this.settingsService.value("type") === "line" /* line */;
+  trapTab(event) {
+    if (event.key !== "Tab" || this.actionButtons.length === 0) {
+      return;
+    }
+    const active = document.activeElement;
+    const first = this.actionButtons[0];
+    const last = this.actionButtons[this.actionButtons.length - 1];
+    if (!event.shiftKey && active === last) {
+      event.preventDefault();
+      first.focus();
+    } else if (event.shiftKey && active === first) {
+      event.preventDefault();
+      last.focus();
+    }
+  }
+  /**
+   * Positions the panel to the right of the anchored gutter element at the
+   * marker's vertical position, flipping to the left and clamping to the viewport
+   * so it never renders off-screen. Uses `position: fixed` (from CSS) with
+   * viewport coordinates, so it needs no scroll-offset math.
+   */
+  reposition() {
+    if (!this.panel || !this.anchor) {
+      return;
+    }
+    const gap = _GutterHoverPanel.GAP_PX;
+    const rect = this.anchor.getBoundingClientRect();
+    const width = this.panel.offsetWidth;
+    const height = this.panel.offsetHeight;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    let left = rect.right + gap;
+    if (left + width > viewportWidth - gap) {
+      left = rect.left - gap - width;
+    }
+    left = Math.max(gap, Math.min(left, viewportWidth - gap - width));
+    const top = Math.max(gap, Math.min(rect.top, viewportHeight - gap - height));
+    this.panel.style.left = `${Math.round(left)}px`;
+    this.panel.style.top = `${Math.round(top)}px`;
+  }
+  /**
+   * Removes the panel from the DOM, runs every registered listener remover, hands
+   * focus back to the editor when the panel being torn down held it, and returns
+   * the controller to the closed state. The single teardown path for both the
+   * pointer close and every host-driven dismissal.
+   */
+  unmount() {
+    var _a, _b, _c, _d;
+    const heldFocus = (_b = (_a = this.panel) == null ? void 0 : _a.contains(document.activeElement)) != null ? _b : false;
+    for (const cleanup of this.cleanups) {
+      cleanup();
+    }
+    this.cleanups = [];
+    (_c = this.panel) == null ? void 0 : _c.remove();
+    this.panel = null;
+    this.contentSlot = null;
+    this.actionButtons = [];
+    this.scrollTarget = null;
+    if (heldFocus) {
+      (_d = this.previouslyFocused) == null ? void 0 : _d.focus();
+    }
+    this.previouslyFocused = null;
+    this.reset();
+  }
+  /** Cancels a pending open timer, if any. */
+  clearOpenTimer() {
+    if (this.openTimer !== null) {
+      clearTimeout(this.openTimer);
+      this.openTimer = null;
+    }
+  }
+  /** Cancels a pending close timer, if any. */
+  clearCloseTimer() {
+    if (this.closeTimer !== null) {
+      clearTimeout(this.closeTimer);
+      this.closeTimer = null;
+    }
+  }
+  /** Clears the anchor state and returns the machine to closed. */
+  reset() {
+    this.clearCloseTimer();
+    this.state = "closed" /* closed */;
+    this.anchor = null;
+    this.line = -1;
   }
 };
-__decorateClass([
-  Inject(TOKENS.settings)
-], GutterBarExtension.prototype, "settingsService", 2);
-__decorateClass([
-  Inject(TOKENS.snapshots)
-], GutterBarExtension.prototype, "snapshotsService", 2);
+/** Gap (px) between the gutter marker and the panel, and viewport margin. */
+_GutterHoverPanel.GAP_PX = 8;
+var GutterHoverPanel = _GutterHoverPanel;
 
 // node_modules/diff/libesm/diff/base.js
 var Diff = class {
@@ -4684,9 +4940,13 @@ function splitLines(text) {
 }
 
 // src/helpers/hunk.helper.ts
+function terminate(lines2, lineBreak) {
+  const list = lines2 != null ? lines2 : [];
+  return list.length ? list.join(lineBreak) + lineBreak : "";
+}
 function diff(baseLines, currentLines, lineBreak = "\n") {
-  const base = (baseLines != null ? baseLines : []).join(lineBreak);
-  const current = (currentLines != null ? currentLines : []).join(lineBreak);
+  const base = terminate(baseLines, lineBreak);
+  const current = terminate(currentLines, lineBreak);
   if (base === current) {
     return [];
   }
@@ -4736,6 +4996,183 @@ function classifyLine(line) {
   return "context";
 }
 
+// src/helpers/word-diff.helper.ts
+function segments(oldText, newText) {
+  const old = oldText != null ? oldText : "";
+  const next = newText != null ? newText : "";
+  if (old.length + next.length > WORD_DIFF_LENGTH_THRESHOLD) {
+    const result = [];
+    if (old.length > 0) {
+      result.push({ value: old, removed: true, added: false, count: 1 });
+    }
+    if (next.length > 0) {
+      result.push({ value: next, added: true, removed: false, count: 1 });
+    }
+    return result;
+  }
+  return diffWords(old, next);
+}
+function lines(base, current) {
+  const changes = diffLines(base != null ? base : "", current != null ? current : "");
+  const result = [];
+  for (let index = 0; index < changes.length; index++) {
+    const change = changes[index];
+    if (!change.added && !change.removed) {
+      splitLines2(change.value).forEach((text) => {
+        result.push({ type: "context" /* context */, oldText: text, newText: text });
+      });
+      continue;
+    }
+    if (change.removed) {
+      const next = changes[index + 1];
+      const removedLines = splitLines2(change.value);
+      if (next == null ? void 0 : next.added) {
+        const addedLines = splitLines2(next.value);
+        pairAndEmit(removedLines, addedLines, result);
+        index++;
+        continue;
+      }
+      removedLines.forEach((text) => {
+        result.push({ type: "removed" /* removed */, oldText: text });
+      });
+      continue;
+    }
+    splitLines2(change.value).forEach((text) => {
+      result.push({ type: "added" /* added */, newText: text });
+    });
+  }
+  return result;
+}
+function pairAndEmit(removedLines, addedLines, result) {
+  const useGreedy = removedLines.length <= WORD_DIFF_PAIRING_THRESHOLD && addedLines.length <= WORD_DIFF_PAIRING_THRESHOLD;
+  if (!useGreedy) {
+    positionalPair(removedLines, addedLines, result);
+    return;
+  }
+  greedyPair(removedLines, addedLines, result);
+}
+function positionalPair(removedLines, addedLines, result) {
+  const paired = Math.min(removedLines.length, addedLines.length);
+  for (let i = 0; i < paired; i++) {
+    result.push({ type: "modified" /* modified */, oldText: removedLines[i], newText: addedLines[i] });
+  }
+  for (let i = paired; i < removedLines.length; i++) {
+    result.push({ type: "removed" /* removed */, oldText: removedLines[i] });
+  }
+  for (let i = paired; i < addedLines.length; i++) {
+    result.push({ type: "added" /* added */, newText: addedLines[i] });
+  }
+}
+function greedyPair(removedLines, addedLines, result) {
+  const availableAdded = new Set(addedLines.map((_, i) => i));
+  const pairs = [];
+  const unmatchedRemoved = [];
+  for (let ri = 0; ri < removedLines.length; ri++) {
+    let bestScore = -1;
+    let bestAi = -1;
+    for (const ai of availableAdded) {
+      const score = wordOverlapRatio(removedLines[ri], addedLines[ai]);
+      if (score > bestScore) {
+        bestScore = score;
+        bestAi = ai;
+      }
+    }
+    if (bestAi >= 0) {
+      pairs.push({ removedIdx: ri, addedIdx: bestAi });
+      availableAdded.delete(bestAi);
+    } else {
+      unmatchedRemoved.push(ri);
+    }
+  }
+  pairs.sort(
+    (a, b) => a.removedIdx - b.removedIdx
+  );
+  let unmatchedRemovedIdx = 0;
+  for (const pair of pairs) {
+    while (unmatchedRemovedIdx < unmatchedRemoved.length && unmatchedRemoved[unmatchedRemovedIdx] < pair.removedIdx) {
+      result.push({ type: "removed" /* removed */, oldText: removedLines[unmatchedRemoved[unmatchedRemovedIdx]] });
+      unmatchedRemovedIdx++;
+    }
+    result.push({
+      type: "modified" /* modified */,
+      oldText: removedLines[pair.removedIdx],
+      newText: addedLines[pair.addedIdx]
+    });
+  }
+  while (unmatchedRemovedIdx < unmatchedRemoved.length) {
+    result.push({ type: "removed" /* removed */, oldText: removedLines[unmatchedRemoved[unmatchedRemovedIdx]] });
+    unmatchedRemovedIdx++;
+  }
+  for (const ai of Array.from(availableAdded).sort((a, b) => a - b)) {
+    result.push({ type: "added" /* added */, newText: addedLines[ai] });
+  }
+}
+function wordOverlapRatio(a, b) {
+  var _a, _b;
+  const wordsA = a.trim().split(/\s+/).filter(Boolean);
+  const wordsB = b.trim().split(/\s+/).filter(Boolean);
+  if (wordsA.length === 0 && wordsB.length === 0) {
+    return 0;
+  }
+  const freqA = /* @__PURE__ */ new Map();
+  for (const w of wordsA) {
+    freqA.set(w, ((_a = freqA.get(w)) != null ? _a : 0) + 1);
+  }
+  let intersection = 0;
+  for (const w of wordsB) {
+    const countA = (_b = freqA.get(w)) != null ? _b : 0;
+    if (countA > 0) {
+      intersection++;
+      freqA.set(w, countA - 1);
+    }
+  }
+  const union = wordsA.length + wordsB.length - intersection;
+  return union === 0 ? 0 : intersection / union;
+}
+function splitLines2(value) {
+  if (value === "") {
+    return [];
+  }
+  const normalized = value.replace(/\r?\n$/, "");
+  return normalized.split(/\r?\n/);
+}
+
+// src/components/gutter-hover-panel-content.ts
+function resolveHoverPanelContent(baseLines, currentLines, lineBreak, line) {
+  var _a;
+  const hunks = diff(baseLines, currentLines, lineBreak);
+  const hunk = (_a = hunkAtLine(hunks, line)) != null ? _a : deletionHunkAt(hunks, line, currentLines.length);
+  if (!hunk) {
+    return null;
+  }
+  const baseBlock = baseLinesForHunk(hunk);
+  const currentBlock = currentLinesForHunk(hunk);
+  const kind = baseBlock.length === 0 ? "added" /* added */ : currentBlock.length === 0 ? "removed" /* removed */ : "changed" /* changed */;
+  const lines2 = lines(baseBlock.join(lineBreak), currentBlock.join(lineBreak)).map(
+    (row) => {
+      var _a2, _b;
+      return segments((_a2 = row.oldText) != null ? _a2 : "", (_b = row.newText) != null ? _b : "").map(toSegment);
+    }
+  );
+  return { content: { kind, lines: lines2 }, hunk, baseText: baseBlock.join(lineBreak) };
+}
+function deletionHunkAt(hunks, line, currentLength) {
+  var _a;
+  const insertionPoint = line + 1;
+  const eofInsertionPoint = currentLength + 1;
+  const isLastLine = line === currentLength - 1;
+  return (_a = hunks.find(
+    (hunk) => hunk.newLines === 0 && (hunk.newStart === insertionPoint || isLastLine && hunk.newStart === eofInsertionPoint)
+  )) != null ? _a : null;
+}
+function currentLinesForHunk(hunk) {
+  var _a;
+  return ((_a = hunk == null ? void 0 : hunk.lines) != null ? _a : []).filter((line) => line !== NO_NEWLINE_MARKER && (line[0] === " " || line[0] === "+")).map((line) => line.slice(1));
+}
+function toSegment(change) {
+  return { text: change.value, added: change.added === true, removed: change.removed === true };
+}
+
 // src/helpers/hunk-revert.helper.ts
 async function confirmAndRevertHunk(request) {
   const confirmed = await request.modalsService.confirm({
@@ -4754,6 +5191,293 @@ async function confirmAndRevertHunk(request) {
   );
   return true;
 }
+
+// src/markers/bar.marker.ts
+var import_view2 = require("@codemirror/view");
+var BarMarker = class _BarMarker extends import_view2.GutterMarker {
+  /**
+   * Creates a new BarMarker.
+   *
+   * The join flags mark run continuation: a bar whose neighbouring line also
+   * carries a full bar. CSS uses them to stretch the bar over the sub-pixel
+   * seam between gutter elements and to drop the rounding on the shared edge,
+   * so consecutive changed lines read as one continuous stroke.
+   *
+   * @param {ChangeType} changes - The change kind this bar represents
+   * @param {boolean} joinUp - Whether the line above also carries a full bar
+   * @param {boolean} joinDown - Whether the line below also carries a full bar
+   */
+  constructor(changes, joinUp = false, joinDown = false) {
+    super();
+    this.changes = changes;
+    this.joinUp = joinUp;
+    this.joinDown = joinDown;
+    this.elementClass = [
+      `lct-${"line" /* line */}`,
+      `lct-${this.changes}`,
+      ...joinUp ? ["lct-join-up"] : [],
+      ...joinDown ? ["lct-join-down"] : []
+    ].join(" ");
+  }
+  /**
+   * Renders the bar element. The bar fills the gutter element height; the
+   * removed dash height is overridden in CSS.
+   *
+   * @return {Node} The bar DOM node
+   * @override
+   */
+  toDOM() {
+    const bar = document.createElement("span");
+    bar.addClass("lct-gutter-bar");
+    return bar;
+  }
+  /**
+   * Two bar markers are equal when they share the change kind and both join
+   * flags (a run-boundary change must re-render the element classes).
+   *
+   * @param {BarMarker} other - The marker to compare with
+   * @return {boolean} True when equal
+   * @override
+   */
+  eq(other) {
+    return other instanceof _BarMarker && this.changes === other.changes && this.joinUp === other.joinUp && this.joinDown === other.joinDown;
+  }
+  /**
+   * Gets the change kind of this marker.
+   *
+   * @return {ChangeType} The change kind
+   */
+  getChangeType() {
+    return this.changes;
+  }
+};
+
+// src/extensions/gutter-bar.extension.ts
+var import_obsidian12 = require("obsidian");
+var import_state2 = require("@codemirror/state");
+var GutterBarExtension = class {
+  constructor(view, plugin) {
+    this.view = view;
+    this.plugin = plugin;
+    /** CSS class for the gutter wrapper element. */
+    this.class = `lct lct-gutter-bar-col lct-${"line" /* line */}`;
+    /**
+     * Only render elements for changed lines, so unchanged lines leave no filler
+     * and the column reads as discrete strokes per change run.
+     */
+    this.renderEmptyElements = false;
+    /**
+     * Opens the hover panel from a bar marker on pointer dwell and closes it when
+     * the pointer leaves. Wired on the gutter (not the marker) so the marker stays
+     * about change semantics; a hover resolves the gutter element under the pointer
+     * and its 0-based line, and only a real marker cell (never the empty column,
+     * which has no element) opens a panel.
+     */
+    this.domEventHandlers = {
+      mouseover: (view, line, event) => {
+        var _a;
+        const anchor = (_a = event.target) == null ? void 0 : _a.closest(".cm-gutterElement");
+        if (anchor) {
+          this.hoverPanel().enter(view.state.doc.lineAt(line.from).number - 1, anchor);
+        }
+        return false;
+      },
+      mouseout: () => {
+        var _a;
+        (_a = this.panel) == null ? void 0 : _a.leave();
+        return false;
+      }
+    };
+    /**
+     * Hover panel controller, created on first hover (one panel opens at a time
+     * across views). Lazy so constructing the extension stays side-effect free;
+     * {@link hoverPanel} wires its dismissal and teardown on creation. Null until
+     * the first hover.
+     */
+    this.panel = null;
+    /**
+     * Builds one bar marker for every changed line in the current snapshot.
+     *
+     * @param {EditorView} view - The editor view
+     * @return {RangeSet<BarMarker>} The bar markers
+     */
+    this.markers = (view) => {
+      var _a;
+      const enable = this.settingsService.getEnabledTypes();
+      const snapshot = this.snapshotsService.getOne();
+      const changes = (_a = snapshot == null ? void 0 : snapshot.content.getChanges(enable)) != null ? _a : null;
+      const builder = new import_state2.RangeSetBuilder();
+      if (isNestedEditor(view) || !this.isTypeLine() || !snapshot || !(changes == null ? void 0 : changes.size)) {
+        return builder.finish();
+      }
+      const kinds = /* @__PURE__ */ new Map();
+      for (const pos of snapshot.content.getChangedPositions(enable)) {
+        if (pos >= view.state.doc.lines) {
+          continue;
+        }
+        const change = changes.get(pos);
+        if (!change) {
+          continue;
+        }
+        const modify = change.getModify();
+        const kind = modify != null ? modify : change.has("removed" /* removed */) ? "removed" /* removed */ : null;
+        if (kind === null) {
+          continue;
+        }
+        kinds.set(pos, kind);
+      }
+      const isBar = (pos) => {
+        const kind = kinds.get(pos);
+        return kind !== void 0 && kind !== "removed" /* removed */;
+      };
+      const positions = [...kinds.keys()].sort((a, b) => a - b);
+      for (const pos of positions) {
+        const kind = kinds.get(pos);
+        const joins = kind !== "removed" /* removed */;
+        const line = view.state.doc.line(pos + 1);
+        builder.add(line.from, line.from, new BarMarker(kind, joins && isBar(pos - 1), joins && isBar(pos + 1)));
+      }
+      return builder.finish();
+    };
+  }
+  /**
+   * Lazily builds the hover panel controller and wires its lifecycle to the
+   * plugin: a snapshot refresh (which rebuilds the gutter and dislodges the
+   * anchor) or a settings change dismisses it, and plugin unload detaches those
+   * listeners and disposes it. Created on first hover so constructing the
+   * extension stays side-effect free.
+   *
+   * @return {GutterHoverPanel} The shared hover panel controller
+   */
+  hoverPanel() {
+    if (this.panel) {
+      return this.panel;
+    }
+    const host = {
+      isEnabled: () => this.settingsService.value("gutterHoverPanel"),
+      getContainer: () => document.body,
+      ariaLabel: () => this.i18nService.t("menu.local-history"),
+      resolveContent: (line) => {
+        var _a, _b;
+        return (_b = (_a = this.resolveHover(line)) == null ? void 0 : _a.content) != null ? _b : null;
+      },
+      actionLabels: () => ({
+        revert: this.i18nService.t("modal.revert-hunk"),
+        copy: this.i18nService.t("modal.copy"),
+        history: this.i18nService.t("menu.local-history.show-history")
+      }),
+      applyIcon: (element, icon) => (0, import_obsidian12.setIcon)(element, icon),
+      revert: (line) => this.revertHover(line),
+      copyOldText: (line) => this.copyHover(line),
+      openHistory: () => {
+        this.modalsService.diff();
+      }
+    };
+    const panel = new GutterHoverPanel(host);
+    const dismiss = () => panel.dismiss();
+    this.plugin.on("snapshots:update" /* snapshotsUpdate */, dismiss);
+    this.plugin.on("settings:update" /* settingsUpdate */, dismiss);
+    this.plugin.register(() => {
+      this.plugin.off("snapshots:update" /* snapshotsUpdate */, dismiss);
+      this.plugin.off("settings:update" /* settingsUpdate */, dismiss);
+      panel.destroy();
+    });
+    this.panel = panel;
+    return panel;
+  }
+  /**
+   * Resolves the hovered line against the current snapshot into the panel's
+   * display model plus the block its actions operate on, or null when no
+   * snapshot or no change block covers the line. The diff is computed against the
+   * live snapshot content, the same inputs the gutter reverts diff against.
+   *
+   * @param {number} line - The 0-based hovered line
+   * @return {GutterHoverPanelResolution | null} The resolution, or null
+   */
+  resolveHover(line) {
+    const snapshot = this.snapshotsService.getOne();
+    if (!(snapshot == null ? void 0 : snapshot.file)) {
+      return null;
+    }
+    return resolveHoverPanelContent(
+      snapshot.content.getOriginalStateLines(),
+      snapshot.content.getLastStateLines(),
+      snapshot.content.lineBreak,
+      line
+    );
+  }
+  /**
+   * Reverts the hovered change block back to the base through the shared
+   * confirm-and-revert helper the dot and removed gutters also use, resolving the
+   * hunk fresh against the live content so it is never stale. A missing snapshot
+   * or unresolved block is a safe no-op.
+   *
+   * @param {number} line - The 0-based hovered line
+   * @return {Promise<void>}
+   */
+  async revertHover(line) {
+    const snapshot = this.snapshotsService.getOne();
+    if (!(snapshot == null ? void 0 : snapshot.file)) {
+      return;
+    }
+    const currentLines = snapshot.content.getLastStateLines();
+    const resolution = resolveHoverPanelContent(
+      snapshot.content.getOriginalStateLines(),
+      currentLines,
+      snapshot.content.lineBreak,
+      line
+    );
+    if (!resolution) {
+      return;
+    }
+    await confirmAndRevertHunk({
+      modalsService: this.modalsService,
+      snapshotsService: this.snapshotsService,
+      plugin: this.plugin,
+      file: snapshot.file,
+      currentLines,
+      hunk: resolution.hunk,
+      cancelText: this.plugin.t("modal.confirm.cancel")
+    });
+  }
+  /**
+   * Copies the hovered block's base-side text to the clipboard and confirms with
+   * a notice, mirroring the diff modal's copy affordance. A missing snapshot or
+   * unresolved block is a safe no-op.
+   *
+   * @param {number} line - The 0-based hovered line
+   * @return {void}
+   */
+  copyHover(line) {
+    const resolution = this.resolveHover(line);
+    if (!resolution) {
+      return;
+    }
+    void navigator.clipboard.writeText(resolution.baseText).then(() => {
+      new import_obsidian12.Notice(this.plugin.t("notice.copied"));
+    });
+  }
+  /**
+   * Whether the indicator type is `line`.
+   *
+   * @return {boolean} True in line mode
+   */
+  isTypeLine() {
+    return this.settingsService.value("type") === "line" /* line */;
+  }
+};
+__decorateClass([
+  Inject(TOKENS.settings)
+], GutterBarExtension.prototype, "settingsService", 2);
+__decorateClass([
+  Inject(TOKENS.snapshots)
+], GutterBarExtension.prototype, "snapshotsService", 2);
+__decorateClass([
+  Inject(TOKENS.i18n)
+], GutterBarExtension.prototype, "i18nService", 2);
+__decorateClass([
+  Inject(TOKENS.modals)
+], GutterBarExtension.prototype, "modalsService", 2);
 
 // src/markers/dot.marker.ts
 var import_view3 = require("@codemirror/view");
@@ -4858,7 +5582,7 @@ __decorateClass([
 var DotMarker = _DotMarker;
 
 // src/extensions/gutter-common.extension.ts
-var import_obsidian12 = require("obsidian");
+var import_obsidian13 = require("obsidian");
 var import_state3 = require("@codemirror/state");
 var GutterCommonExtension = class {
   constructor(view, plugin) {
@@ -4973,7 +5697,7 @@ var GutterCommonExtension = class {
    */
   openGutterMenu(event) {
     event.preventDefault();
-    const menu = new import_obsidian12.Menu();
+    const menu = new import_obsidian13.Menu();
     const shown = this.settingsService.isShowChangesEnabled();
     menu.addItem((item) => {
       item.setTitle(this.plugin.t("menu.show-changes")).setIcon("eye").setChecked(shown).onClick(() => {
@@ -5130,8 +5854,11 @@ var GutterRemovedExtension = class {
    * (HunkHelper + SnapshotsService.applyContent).
    *
    * A removed-line marker sits at the first current line after the deletion
-   * gap, so the hunk's 1-based newStart equals currentLine + 1. A stale index
-   * (no matching hunk in the live diff) is a safe no-op.
+   * gap, so the hunk's 1-based newStart equals currentLine + 1, except when the
+   * deletion touched the file's last line: with no line after the gap the anchor
+   * is clamped onto the last current line and the reinsertion point sits at the
+   * end of the doc (newStart = currentLines.length + 1). A stale index (no
+   * matching hunk in the live diff) is a safe no-op.
    *
    * @param {number} currentLine - The 0-based current line the marker sits on
    * @return {Promise<void>}
@@ -5148,8 +5875,10 @@ var GutterRemovedExtension = class {
       snapshot.content.lineBreak
     );
     const insertionPoint = currentLine + 1;
+    const eofInsertionPoint = currentLines.length + 1;
+    const isLastLine = currentLine === currentLines.length - 1;
     const hunk = hunks.find(
-      (h) => h.newLines === 0 && h.newStart === insertionPoint
+      (h) => h.newLines === 0 && (h.newStart === insertionPoint || isLastLine && h.newStart === eofInsertionPoint)
     );
     if (!hunk) {
       return;
@@ -5430,7 +6159,9 @@ var am_default = {
   "notice.purge-excluded": "\u12A0\u12AB\u1263\u1262\u12EB\u12CA \u1273\u122A\u12AD\u1366 \u1208\u1270\u1308\u1208\u1209 \u12F1\u12AB\u12CE\u127D {count} \u1245\u133D\u1260\u1273\u12CA \u1245\u1302\u12CE\u127D \u1338\u12F5\u1270\u12CB\u120D\u1362",
   "notice.purge-excluded.no-match": "\u12A0\u12AB\u1263\u1262\u12EB\u12CA \u1273\u122A\u12AD\u1366 \u12A8\u1270\u1308\u1208\u1209 \u12F1\u12AB\u12CE\u127D \u130B\u122D \u12E8\u121A\u12DB\u1218\u12F5 \u12E8\u1270\u1240\u1218\u1320 \u1273\u122A\u12AD \u12E8\u1208\u121D\u1362",
   "setting.reading-mode-indicator.name": "\u1260\u1295\u1263\u1265 \u1201\u1290\u1273 \u1320\u124B\u121A\u12CE\u127D\u1295 \u12A0\u1233\u12ED",
-  "setting.reading-mode-indicator.desc": "\u1260\u1295\u1263\u1265 \u1201\u1290\u1273 \u12E8\u1270\u1233\u1209 \u1265\u120E\u12AE\u127D\u1295 \u12A8\u12A0\u122D\u1275\u12D6\u1275 \u1320\u124B\u121A \u1240\u1208\u121E\u127D (\u12E8\u1270\u1240\u12E8\u1228\u1363 \u12E8\u1270\u1328\u1218\u1228\u1363 \u12AD\u134D\u1275 \u1266\u1273\u1363 \u12E8\u1270\u1218\u1208\u1230) \u130B\u122D \u1260\u121A\u12DB\u1218\u12F5 \u1263\u1208\u1240\u1208\u121D \u12E8\u130D\u122B \u12F5\u1295\u1260\u122D \u12A0\u1235\u130C\u1325\u1362 \u1260\u1290\u1263\u122A \u1320\u134D\u1277\u120D\u1364 \u1260\u12A5\u12EB\u1295\u12F3\u1295\u12F1 \u12E8\u1295\u1263\u1265 \u1201\u1290\u1273 \u12F3\u130D\u121D \u1218\u1233\u120D \u1208\u12A5\u12EB\u1295\u12F3\u1295\u12F1 \u1265\u120E\u12AD \u1275\u1295\u123D \u12C8\u132A \u12A0\u1208\u12CD\u1362"
+  "setting.reading-mode-indicator.desc": "\u1260\u1295\u1263\u1265 \u1201\u1290\u1273 \u12E8\u1270\u1233\u1209 \u1265\u120E\u12AE\u127D\u1295 \u12A8\u12A0\u122D\u1275\u12D6\u1275 \u1320\u124B\u121A \u1240\u1208\u121E\u127D (\u12E8\u1270\u1240\u12E8\u1228\u1363 \u12E8\u1270\u1328\u1218\u1228\u1363 \u12AD\u134D\u1275 \u1266\u1273\u1363 \u12E8\u1270\u1218\u1208\u1230) \u130B\u122D \u1260\u121A\u12DB\u1218\u12F5 \u1263\u1208\u1240\u1208\u121D \u12E8\u130D\u122B \u12F5\u1295\u1260\u122D \u12A0\u1235\u130C\u1325\u1362 \u1260\u1290\u1263\u122A \u1320\u134D\u1277\u120D\u1364 \u1260\u12A5\u12EB\u1295\u12F3\u1295\u12F1 \u12E8\u1295\u1263\u1265 \u1201\u1290\u1273 \u12F3\u130D\u121D \u1218\u1233\u120D \u1208\u12A5\u12EB\u1295\u12F3\u1295\u12F1 \u1265\u120E\u12AD \u1275\u1295\u123D \u12C8\u132A \u12A0\u1208\u12CD\u1362",
+  "setting.gutter-hover-panel.name": "\u1260\u1208\u12CD\u1325 \u121D\u120D\u12AD\u1276\u127D \u120B\u12ED \u1232\u12EB\u1295\u12E3\u1265\u1261 \u1353\u1290\u120D \u12A0\u1233\u12ED",
+  "setting.gutter-hover-panel.desc": "\u12E8\u12DA\u12EB\u1295 \u1218\u1235\u1218\u122D \u1240\u12F3\u121A \u1235\u122A\u1275 \u12E8\u121A\u12EB\u1233\u12ED \u1353\u1290\u120D \u1208\u1218\u12AD\u1348\u1275 \u1218\u12F3\u134A\u1271\u1295 \u1260\u12F3\u122D\u127B\u12CD \u120B\u12ED \u1263\u1208\u12CD \u12E8\u1208\u12CD\u1325 \u121D\u120D\u12AD\u1275 \u120B\u12ED \u12EB\u1295\u12E3\u1265\u1261\u1362 \u12A8\u12DA\u12EB \u1208\u12CD\u1321\u1295 \u1218\u1218\u1208\u1235\u1363 \u12A0\u122E\u130C\u12CD\u1295 \u133D\u1211\u134D \u1218\u1245\u12F3\u1275 \u12C8\u12ED\u121D \u12E8\u134B\u12ED\u1209\u1295 \u1273\u122A\u12AD \u1218\u12AD\u1348\u1275 \u12ED\u127D\u120B\u1209\u1362 \u1260\u1290\u1263\u122A \u12E8\u1260\u122B\u1362 \u1260\u1240\u1325\u1273 \u1218\u1235\u1218\u122D \u1320\u124B\u121A \u120B\u12ED \u1270\u1348\u133B\u121A \u12ED\u1206\u1293\u120D\u1362"
 };
 
 // lang/ar.json
@@ -5595,7 +6326,9 @@ var ar_default = {
   "notice.purge-excluded": "\u0627\u0644\u0633\u062C\u0644 \u0627\u0644\u0645\u062D\u0644\u064A: \u062A\u0645 \u0645\u0633\u062D {count} \u0644\u0642\u0637\u0629 \u0644\u0644\u0645\u0633\u0627\u0631\u0627\u062A \u0627\u0644\u0645\u0633\u062A\u0628\u0639\u062F\u0629.",
   "notice.purge-excluded.no-match": "\u0627\u0644\u0633\u062C\u0644 \u0627\u0644\u0645\u062D\u0644\u064A: \u0644\u0627 \u064A\u0648\u062C\u062F \u0633\u062C\u0644 \u0645\u062E\u0632\u0651\u0646 \u064A\u0637\u0627\u0628\u0642 \u0627\u0644\u0645\u0633\u0627\u0631\u0627\u062A \u0627\u0644\u0645\u0633\u062A\u0628\u0639\u062F\u0629.",
   "setting.reading-mode-indicator.name": "\u0639\u0631\u0636 \u0627\u0644\u0645\u0624\u0634\u0631\u0627\u062A \u0641\u064A \u0648\u0636\u0639 \u0627\u0644\u0642\u0631\u0627\u0621\u0629",
-  "setting.reading-mode-indicator.desc": "\u062A\u0632\u064A\u064A\u0646 \u0627\u0644\u0643\u062A\u0644 \u0627\u0644\u0645\u0639\u0631\u0648\u0636\u0629 \u0641\u064A \u0648\u0636\u0639 \u0627\u0644\u0642\u0631\u0627\u0621\u0629 \u0628\u062D\u062F \u0623\u064A\u0633\u0631 \u0645\u0644\u0648\u0646 \u064A\u0637\u0627\u0628\u0642 \u0623\u0644\u0648\u0627\u0646 \u0645\u0624\u0634\u0631 \u0627\u0644\u062A\u062D\u0631\u064A\u0631 (\u0645\u0639\u062F\u0651\u0644\u060C \u0645\u0636\u0627\u0641\u060C \u0645\u0633\u0627\u0641\u0627\u062A\u060C \u0645\u0633\u062A\u0639\u0627\u062F). \u0645\u0639\u0637\u0651\u0644 \u0627\u0641\u062A\u0631\u0627\u0636\u064A\u064B\u0627\u061B \u0644\u0647 \u062A\u0643\u0644\u0641\u0629 \u0635\u063A\u064A\u0631\u0629 \u0644\u0643\u0644 \u0643\u062A\u0644\u0629 \u0639\u0646\u062F \u0643\u0644 \u0625\u0639\u0627\u062F\u0629 \u0639\u0631\u0636 \u0644\u0648\u0636\u0639 \u0627\u0644\u0642\u0631\u0627\u0621\u0629."
+  "setting.reading-mode-indicator.desc": "\u062A\u0632\u064A\u064A\u0646 \u0627\u0644\u0643\u062A\u0644 \u0627\u0644\u0645\u0639\u0631\u0648\u0636\u0629 \u0641\u064A \u0648\u0636\u0639 \u0627\u0644\u0642\u0631\u0627\u0621\u0629 \u0628\u062D\u062F \u0623\u064A\u0633\u0631 \u0645\u0644\u0648\u0646 \u064A\u0637\u0627\u0628\u0642 \u0623\u0644\u0648\u0627\u0646 \u0645\u0624\u0634\u0631 \u0627\u0644\u062A\u062D\u0631\u064A\u0631 (\u0645\u0639\u062F\u0651\u0644\u060C \u0645\u0636\u0627\u0641\u060C \u0645\u0633\u0627\u0641\u0627\u062A\u060C \u0645\u0633\u062A\u0639\u0627\u062F). \u0645\u0639\u0637\u0651\u0644 \u0627\u0641\u062A\u0631\u0627\u0636\u064A\u064B\u0627\u061B \u0644\u0647 \u062A\u0643\u0644\u0641\u0629 \u0635\u063A\u064A\u0631\u0629 \u0644\u0643\u0644 \u0643\u062A\u0644\u0629 \u0639\u0646\u062F \u0643\u0644 \u0625\u0639\u0627\u062F\u0629 \u0639\u0631\u0636 \u0644\u0648\u0636\u0639 \u0627\u0644\u0642\u0631\u0627\u0621\u0629.",
+  "setting.gutter-hover-panel.name": "\u0625\u0638\u0647\u0627\u0631 \u0644\u0648\u062D\u0629 \u0639\u0646\u062F \u062A\u0645\u0631\u064A\u0631 \u0627\u0644\u0645\u0624\u0634\u0631 \u0641\u0648\u0642 \u0639\u0644\u0627\u0645\u0627\u062A \u0627\u0644\u062A\u063A\u064A\u064A\u0631",
+  "setting.gutter-hover-panel.desc": "\u0645\u0631\u0651\u0631 \u0627\u0644\u0645\u0624\u0634\u0631 \u0641\u0648\u0642 \u0639\u0644\u0627\u0645\u0629 \u062A\u063A\u064A\u064A\u0631 \u0641\u064A \u0627\u0644\u0647\u0627\u0645\u0634 \u0644\u0641\u062A\u062D \u0644\u0648\u062D\u0629 \u062A\u0639\u0631\u0636 \u0627\u0644\u0646\u0633\u062E\u0629 \u0627\u0644\u0633\u0627\u0628\u0642\u0629 \u0645\u0646 \u0630\u0644\u0643 \u0627\u0644\u0633\u0637\u0631. \u0645\u0646 \u0647\u0646\u0627\u0643 \u064A\u0645\u0643\u0646\u0643 \u0627\u0644\u062A\u0631\u0627\u062C\u0639 \u0639\u0646 \u0627\u0644\u062A\u063A\u064A\u064A\u0631 \u0623\u0648 \u0646\u0633\u062E \u0627\u0644\u0646\u0635 \u0627\u0644\u0642\u062F\u064A\u0645 \u0623\u0648 \u0641\u062A\u062D \u0633\u062C\u0644 \u0627\u0644\u0645\u0644\u0641. \u0645\u064F\u0641\u0639\u0651\u0644 \u0627\u0641\u062A\u0631\u0627\u0636\u064A\u064B\u0627. \u064A\u0646\u0637\u0628\u0642 \u0639\u0644\u0649 \u0645\u0624\u0634\u0631 \u0627\u0644\u062E\u0637 \u0627\u0644\u0639\u0645\u0648\u062F\u064A."
 };
 
 // lang/be.json
@@ -5760,7 +6493,9 @@ var be_default = {
   "notice.purge-excluded": "\u041B\u0430\u043A\u0430\u043B\u044C\u043D\u0430\u044F \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044F: \u0432\u044B\u0434\u0430\u043B\u0435\u043D\u0430 {count} \u0437\u0434\u044B\u043C\u043A\u0430\u045E \u0434\u043B\u044F \u0432\u044B\u043A\u043B\u044E\u0447\u0430\u043D\u044B\u0445 \u0448\u043B\u044F\u0445\u043E\u045E.",
   "notice.purge-excluded.no-match": "\u041B\u0430\u043A\u0430\u043B\u044C\u043D\u0430\u044F \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044F: \u043D\u044F\u043C\u0430 \u0437\u0430\u0445\u0430\u0432\u0430\u043D\u0430\u0439 \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u0456, \u044F\u043A\u0430\u044F \u0430\u0434\u043F\u0430\u0432\u044F\u0434\u0430\u0435 \u0432\u044B\u043A\u043B\u044E\u0447\u0430\u043D\u044B\u043C \u0448\u043B\u044F\u0445\u0430\u043C.",
   "setting.reading-mode-indicator.name": "\u041F\u0430\u043A\u0430\u0437\u0432\u0430\u0446\u044C \u0456\u043D\u0434\u044B\u043A\u0430\u0442\u0430\u0440\u044B \u045E \u0440\u044D\u0436\u044B\u043C\u0435 \u0447\u044B\u0442\u0430\u043D\u043D\u044F",
-  "setting.reading-mode-indicator.desc": "\u041F\u0430\u0437\u043D\u0430\u0447\u0430\u0446\u044C \u0430\u0434\u043B\u044E\u0441\u0442\u0440\u0430\u0432\u0430\u043D\u044B\u044F \u0431\u043B\u043E\u043A\u0456 \u045E \u0440\u044D\u0436\u044B\u043C\u0435 \u0447\u044B\u0442\u0430\u043D\u043D\u044F \u043A\u0430\u043B\u044F\u0440\u043E\u0432\u0430\u0439 \u043B\u0435\u0432\u0430\u0439 \u043C\u044F\u0436\u043E\u0439 \u0443 \u043A\u043E\u043B\u0435\u0440\u0430\u0445 \u0456\u043D\u0434\u044B\u043A\u0430\u0442\u0430\u0440\u0430 \u043F\u0440\u0430\u0432\u0430\u043A (\u0437\u043C\u0435\u043D\u0435\u043D\u0430, \u0434\u0430\u0434\u0430\u0434\u0437\u0435\u043D\u0430, \u043F\u0440\u0430\u0431\u0435\u043B\u044B, \u0430\u0434\u043D\u043E\u045E\u043B\u0435\u043D\u0430). \u041F\u0440\u0430\u0434\u0432\u044B\u0437\u043D\u0430\u0447\u0430\u043D\u0430 \u0432\u044B\u043A\u043B\u044E\u0447\u0430\u043D\u0430; \u0434\u0430\u0434\u0430\u0435 \u043D\u0435\u0432\u044F\u043B\u0456\u043A\u0443\u044E \u043D\u0430\u0433\u0440\u0443\u0437\u043A\u0443 \u043D\u0430 \u043A\u043E\u0436\u043D\u044B \u0431\u043B\u043E\u043A \u043F\u0440\u044B \u043F\u0435\u0440\u0430\u043C\u0430\u043B\u0451\u045E\u0446\u044B \u0440\u044D\u0436\u044B\u043C\u0443 \u0447\u044B\u0442\u0430\u043D\u043D\u044F."
+  "setting.reading-mode-indicator.desc": "\u041F\u0430\u0437\u043D\u0430\u0447\u0430\u0446\u044C \u0430\u0434\u043B\u044E\u0441\u0442\u0440\u0430\u0432\u0430\u043D\u044B\u044F \u0431\u043B\u043E\u043A\u0456 \u045E \u0440\u044D\u0436\u044B\u043C\u0435 \u0447\u044B\u0442\u0430\u043D\u043D\u044F \u043A\u0430\u043B\u044F\u0440\u043E\u0432\u0430\u0439 \u043B\u0435\u0432\u0430\u0439 \u043C\u044F\u0436\u043E\u0439 \u0443 \u043A\u043E\u043B\u0435\u0440\u0430\u0445 \u0456\u043D\u0434\u044B\u043A\u0430\u0442\u0430\u0440\u0430 \u043F\u0440\u0430\u0432\u0430\u043A (\u0437\u043C\u0435\u043D\u0435\u043D\u0430, \u0434\u0430\u0434\u0430\u0434\u0437\u0435\u043D\u0430, \u043F\u0440\u0430\u0431\u0435\u043B\u044B, \u0430\u0434\u043D\u043E\u045E\u043B\u0435\u043D\u0430). \u041F\u0440\u0430\u0434\u0432\u044B\u0437\u043D\u0430\u0447\u0430\u043D\u0430 \u0432\u044B\u043A\u043B\u044E\u0447\u0430\u043D\u0430; \u0434\u0430\u0434\u0430\u0435 \u043D\u0435\u0432\u044F\u043B\u0456\u043A\u0443\u044E \u043D\u0430\u0433\u0440\u0443\u0437\u043A\u0443 \u043D\u0430 \u043A\u043E\u0436\u043D\u044B \u0431\u043B\u043E\u043A \u043F\u0440\u044B \u043F\u0435\u0440\u0430\u043C\u0430\u043B\u0451\u045E\u0446\u044B \u0440\u044D\u0436\u044B\u043C\u0443 \u0447\u044B\u0442\u0430\u043D\u043D\u044F.",
+  "setting.gutter-hover-panel.name": "\u041F\u0430\u043A\u0430\u0437\u0432\u0430\u0446\u044C \u0443\u0441\u043F\u043B\u044B\u0432\u0430\u043B\u044C\u043D\u0443\u044E \u043F\u0430\u043D\u044D\u043B\u044C \u043A\u0430\u043B\u044F \u043C\u0430\u0440\u043A\u0435\u0440\u0430\u045E \u0437\u043C\u0435\u043D",
+  "setting.gutter-hover-panel.desc": "\u041D\u0430\u0432\u044F\u0434\u0437\u0456\u0446\u0435 \u043A\u0443\u0440\u0441\u043E\u0440 \u043D\u0430 \u043C\u0430\u0440\u043A\u0435\u0440 \u0437\u043C\u0435\u043D\u044B \u043D\u0430 \u043F\u0430\u043B\u044F\u0445, \u043A\u0430\u0431 \u0430\u0434\u043A\u0440\u044B\u0446\u044C \u043F\u0430\u043D\u044D\u043B\u044C \u0437 \u043F\u0430\u043F\u044F\u0440\u044D\u0434\u043D\u044F\u0439 \u0432\u0435\u0440\u0441\u0456\u044F\u0439 \u0433\u044D\u0442\u0430\u0433\u0430 \u0440\u0430\u0434\u043A\u0430. \u0410\u0434\u0442\u0443\u043B\u044C \u043C\u043E\u0436\u043D\u0430 \u0430\u0434\u043A\u0430\u0446\u0456\u0446\u044C \u0437\u043C\u0435\u043D\u0443, \u0441\u043A\u0430\u043F\u0456\u044F\u0432\u0430\u0446\u044C \u0441\u0442\u0430\u0440\u044B \u0442\u044D\u043A\u0441\u0442 \u0430\u0431\u043E \u0430\u0434\u043A\u0440\u044B\u0446\u044C \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044E \u0444\u0430\u0439\u043B\u0430. \u0423\u043A\u043B\u044E\u0447\u0430\u043D\u0430 \u043F\u0430 \u0437\u043C\u0430\u045E\u0447\u0430\u043D\u043D\u0456. \u041F\u0440\u0430\u0446\u0443\u0435 \u0437 \u0456\u043D\u0434\u044B\u043A\u0430\u0442\u0430\u0440\u0430\u043C \u0443 \u0432\u044B\u0433\u043B\u044F\u0434\u0437\u0435 \u0432\u0435\u0440\u0442\u044B\u043A\u0430\u043B\u044C\u043D\u0430\u0439 \u043B\u0456\u043D\u0456\u0456."
 };
 
 // lang/bn.json
@@ -5925,7 +6660,9 @@ var bn_default = {
   "notice.purge-excluded": "\u09B8\u09CD\u09A5\u09BE\u09A8\u09C0\u09AF\u09BC \u0987\u09A4\u09BF\u09B9\u09BE\u09B8: \u09AC\u09BE\u09A6 \u09A6\u09C7\u0993\u09AF\u09BC\u09BE \u09AA\u09BE\u09A5\u09C7\u09B0 {count}\u099F\u09BF \u09B8\u09CD\u09A8\u09CD\u09AF\u09BE\u09AA\u09B6\u099F \u09AA\u09B0\u09BF\u09B7\u09CD\u0995\u09BE\u09B0 \u0995\u09B0\u09BE \u09B9\u09AF\u09BC\u09C7\u099B\u09C7\u0964",
   "notice.purge-excluded.no-match": "\u09B8\u09CD\u09A5\u09BE\u09A8\u09C0\u09AF\u09BC \u0987\u09A4\u09BF\u09B9\u09BE\u09B8: \u09AC\u09BE\u09A6 \u09A6\u09C7\u0993\u09AF\u09BC\u09BE \u09AA\u09BE\u09A5\u09C7\u09B0 \u09B8\u09BE\u09A5\u09C7 \u09AE\u09C7\u09B2\u09C7 \u098F\u09AE\u09A8 \u0995\u09CB\u09A8\u09CB \u09B8\u0982\u09B0\u0995\u09CD\u09B7\u09BF\u09A4 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09A8\u09C7\u0987\u0964",
   "setting.reading-mode-indicator.name": "\u09AA\u09A1\u09BC\u09BE\u09B0 \u09AE\u09CB\u09A1\u09C7 \u09A8\u09BF\u09B0\u09CD\u09A6\u09C7\u09B6\u0995 \u09A6\u09C7\u0996\u09BE\u09A8",
-  "setting.reading-mode-indicator.desc": "\u09AA\u09A1\u09BC\u09BE\u09B0 \u09AE\u09CB\u09A1\u09C7 \u09B0\u09C7\u09A8\u09CD\u09A1\u09BE\u09B0 \u0995\u09B0\u09BE \u09AC\u09CD\u09B2\u0995\u0997\u09C1\u09B2\u09CB\u0995\u09C7 \u09B8\u09AE\u09CD\u09AA\u09BE\u09A6\u09A8\u09BE \u09A8\u09BF\u09B0\u09CD\u09A6\u09C7\u09B6\u0995\u09C7\u09B0 \u09B0\u0999\u09C7\u09B0 (\u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09BF\u09A4, \u09AF\u09CB\u0997 \u0995\u09B0\u09BE, \u09AB\u09BE\u0981\u0995\u09BE \u09B8\u09CD\u09A5\u09BE\u09A8, \u09AA\u09C1\u09A8\u09B0\u09C1\u09A6\u09CD\u09A7\u09BE\u09B0 \u0995\u09B0\u09BE) \u09B8\u09BE\u09A5\u09C7 \u09AE\u09C7\u09B2\u09BE\u09A8\u09CB \u09B0\u0999\u09BF\u09A8 \u09AC\u09BE\u09AE \u09AA\u09CD\u09B0\u09BE\u09A8\u09CD\u09A4 \u09A6\u09BF\u09AF\u09BC\u09C7 \u09B8\u09BE\u099C\u09BE\u09A8\u0964 \u09A1\u09BF\u09AB\u09B2\u09CD\u099F\u09AD\u09BE\u09AC\u09C7 \u09AC\u09A8\u09CD\u09A7; \u09AA\u09A1\u09BC\u09BE\u09B0 \u09AE\u09CB\u09A1\u09C7\u09B0 \u09AA\u09CD\u09B0\u09A4\u09BF\u099F\u09BF \u09AA\u09C1\u09A8\u0983\u09B0\u09C7\u09A8\u09CD\u09A1\u09BE\u09B0\u09C7 \u09AA\u09CD\u09B0\u09A4\u09BF \u09AC\u09CD\u09B2\u0995\u09C7 \u09B8\u09BE\u09AE\u09BE\u09A8\u09CD\u09AF \u0996\u09B0\u099A \u09B9\u09AF\u09BC\u0964"
+  "setting.reading-mode-indicator.desc": "\u09AA\u09A1\u09BC\u09BE\u09B0 \u09AE\u09CB\u09A1\u09C7 \u09B0\u09C7\u09A8\u09CD\u09A1\u09BE\u09B0 \u0995\u09B0\u09BE \u09AC\u09CD\u09B2\u0995\u0997\u09C1\u09B2\u09CB\u0995\u09C7 \u09B8\u09AE\u09CD\u09AA\u09BE\u09A6\u09A8\u09BE \u09A8\u09BF\u09B0\u09CD\u09A6\u09C7\u09B6\u0995\u09C7\u09B0 \u09B0\u0999\u09C7\u09B0 (\u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09BF\u09A4, \u09AF\u09CB\u0997 \u0995\u09B0\u09BE, \u09AB\u09BE\u0981\u0995\u09BE \u09B8\u09CD\u09A5\u09BE\u09A8, \u09AA\u09C1\u09A8\u09B0\u09C1\u09A6\u09CD\u09A7\u09BE\u09B0 \u0995\u09B0\u09BE) \u09B8\u09BE\u09A5\u09C7 \u09AE\u09C7\u09B2\u09BE\u09A8\u09CB \u09B0\u0999\u09BF\u09A8 \u09AC\u09BE\u09AE \u09AA\u09CD\u09B0\u09BE\u09A8\u09CD\u09A4 \u09A6\u09BF\u09AF\u09BC\u09C7 \u09B8\u09BE\u099C\u09BE\u09A8\u0964 \u09A1\u09BF\u09AB\u09B2\u09CD\u099F\u09AD\u09BE\u09AC\u09C7 \u09AC\u09A8\u09CD\u09A7; \u09AA\u09A1\u09BC\u09BE\u09B0 \u09AE\u09CB\u09A1\u09C7\u09B0 \u09AA\u09CD\u09B0\u09A4\u09BF\u099F\u09BF \u09AA\u09C1\u09A8\u0983\u09B0\u09C7\u09A8\u09CD\u09A1\u09BE\u09B0\u09C7 \u09AA\u09CD\u09B0\u09A4\u09BF \u09AC\u09CD\u09B2\u0995\u09C7 \u09B8\u09BE\u09AE\u09BE\u09A8\u09CD\u09AF \u0996\u09B0\u099A \u09B9\u09AF\u09BC\u0964",
+  "setting.gutter-hover-panel.name": "\u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u099A\u09BF\u09B9\u09CD\u09A8\u09C7 \u09B9\u09CB\u09AD\u09BE\u09B0 \u0995\u09B0\u09B2\u09C7 \u09AA\u09CD\u09AF\u09BE\u09A8\u09C7\u09B2 \u09A6\u09C7\u0996\u09BE\u09A8",
+  "setting.gutter-hover-panel.desc": "\u09B8\u09C7\u0987 \u09B2\u09BE\u0987\u09A8\u09C7\u09B0 \u0986\u0997\u09C7\u09B0 \u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3\u09B8\u09B9 \u098F\u0995\u099F\u09BF \u09AA\u09CD\u09AF\u09BE\u09A8\u09C7\u09B2 \u0996\u09C1\u09B2\u09A4\u09C7 \u0997\u09BE\u099F\u09BE\u09B0\u09C7 \u09A5\u09BE\u0995\u09BE \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u099A\u09BF\u09B9\u09CD\u09A8\u09C7\u09B0 \u0989\u09AA\u09B0 \u09AE\u09BE\u0989\u09B8 \u09B0\u09BE\u0996\u09C1\u09A8\u0964 \u09B8\u09C7\u0996\u09BE\u09A8 \u09A5\u09C7\u0995\u09C7 \u0986\u09AA\u09A8\u09BF \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8\u099F\u09BF \u09AB\u09BF\u09B0\u09BF\u09AF\u09BC\u09C7 \u09A8\u09BF\u09A4\u09C7, \u09AA\u09C1\u09B0\u09CB\u09A8\u09CB \u09B2\u09C7\u0996\u09BE \u0985\u09A8\u09C1\u09B2\u09BF\u09AA\u09BF \u0995\u09B0\u09A4\u09C7 \u09AC\u09BE \u09AB\u09BE\u0987\u09B2\u09C7\u09B0 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u0996\u09C1\u09B2\u09A4\u09C7 \u09AA\u09BE\u09B0\u09C7\u09A8\u0964 \u09A1\u09BF\u09AB\u09B2\u09CD\u099F\u09AD\u09BE\u09AC\u09C7 \u099A\u09BE\u09B2\u09C1\u0964 \u0989\u09B2\u09CD\u09B2\u09AE\u09CD\u09AC \u09B0\u09C7\u0996\u09BE \u09A8\u09BF\u09B0\u09CD\u09A6\u09C7\u09B6\u0995\u09C7\u09B0 \u0995\u09CD\u09B7\u09C7\u09A4\u09CD\u09B0\u09C7 \u09AA\u09CD\u09B0\u09AF\u09CB\u099C\u09CD\u09AF\u0964"
 };
 
 // lang/ca.json
@@ -6090,7 +6827,9 @@ var ca_default = {
   "notice.purge-excluded": "Historial local: s'han purgat {count} instant\xE0nies de camins exclosos.",
   "notice.purge-excluded.no-match": "Historial local: cap historial desat coincideix amb els camins exclosos.",
   "setting.reading-mode-indicator.name": "Mostra indicadors en mode de lectura",
-  "setting.reading-mode-indicator.desc": "Decora els blocs renderitzats en mode de lectura amb una vora esquerra de color que coincideix amb els colors de l'indicador d'edici\xF3 (modificat, afegit, espais, restaurat). Desactivat per defecte; t\xE9 un petit cost per bloc a cada renderitzaci\xF3 del mode de lectura."
+  "setting.reading-mode-indicator.desc": "Decora els blocs renderitzats en mode de lectura amb una vora esquerra de color que coincideix amb els colors de l'indicador d'edici\xF3 (modificat, afegit, espais, restaurat). Desactivat per defecte; t\xE9 un petit cost per bloc a cada renderitzaci\xF3 del mode de lectura.",
+  "setting.gutter-hover-panel.name": "Mostra un tauler en passar el cursor pels marcadors de canvi",
+  "setting.gutter-hover-panel.desc": "Passa el cursor per un marcador de canvi al marge per obrir un tauler amb la versi\xF3 anterior d'aquella l\xEDnia. Des d'all\xE0 pots revertir el canvi, copiar el text antic o obrir l'historial del fitxer. Activat per defecte. S'aplica a l'indicador de l\xEDnia vertical."
 };
 
 // lang/cs.json
@@ -6255,7 +6994,9 @@ var cs_default = {
   "notice.purge-excluded": "Lok\xE1ln\xED historie: odstran\u011Bno {count} sn\xEDmk\u016F pro vylou\u010Den\xE9 cesty.",
   "notice.purge-excluded.no-match": "Lok\xE1ln\xED historie: \u017E\xE1dn\xE1 ulo\u017Een\xE1 historie neodpov\xEDd\xE1 vylou\u010Den\xFDm cest\xE1m.",
   "setting.reading-mode-indicator.name": "Zobrazovat indik\xE1tory v re\u017Eimu \u010Dten\xED",
-  "setting.reading-mode-indicator.desc": "Ozna\u010Dovat vykreslen\xE9 bloky v re\u017Eimu \u010Dten\xED barevn\xFDm lev\xFDm okrajem v barv\xE1ch indik\xE1toru \xFAprav (zm\u011Bn\u011Bno, p\u0159id\xE1no, b\xEDl\xE9 znaky, obnoveno). Ve v\xFDchoz\xEDm stavu vypnuto; p\u0159id\xE1v\xE1 malou z\xE1t\u011B\u017E na ka\u017Ed\xFD blok p\u0159i ka\u017Ed\xE9m p\u0159ekreslen\xED re\u017Eimu \u010Dten\xED."
+  "setting.reading-mode-indicator.desc": "Ozna\u010Dovat vykreslen\xE9 bloky v re\u017Eimu \u010Dten\xED barevn\xFDm lev\xFDm okrajem v barv\xE1ch indik\xE1toru \xFAprav (zm\u011Bn\u011Bno, p\u0159id\xE1no, b\xEDl\xE9 znaky, obnoveno). Ve v\xFDchoz\xEDm stavu vypnuto; p\u0159id\xE1v\xE1 malou z\xE1t\u011B\u017E na ka\u017Ed\xFD blok p\u0159i ka\u017Ed\xE9m p\u0159ekreslen\xED re\u017Eimu \u010Dten\xED.",
+  "setting.gutter-hover-panel.name": "Zobrazit panel p\u0159i najet\xED na zna\u010Dky zm\u011Bn",
+  "setting.gutter-hover-panel.desc": "Naje\u010Fte my\u0161\xED na zna\u010Dku zm\u011Bny na okraji a otev\u0159e se panel s p\u0159edchoz\xED verz\xED dan\xE9ho \u0159\xE1dku. Odtud m\u016F\u017Eete vr\xE1tit zm\u011Bnu, zkop\xEDrovat star\xFD text nebo otev\u0159\xEDt historii souboru. Ve v\xFDchoz\xEDm nastaven\xED zapnuto. Plat\xED pro indik\xE1tor svisl\xE9 \u010D\xE1ry."
 };
 
 // lang/da.json
@@ -6420,7 +7161,9 @@ var da_default = {
   "notice.purge-excluded": "Lokal historik: ryddede {count} snapshot(s) for udelukkede stier.",
   "notice.purge-excluded.no-match": "Lokal historik: ingen gemt historik matcher de udelukkede stier.",
   "setting.reading-mode-indicator.name": "Vis indikatorer i l\xE6setilstand",
-  "setting.reading-mode-indicator.desc": "Mark\xE9r renderede blokke i l\xE6setilstand med en farvet venstre kant i redigeringsindikatorens farver (\xE6ndret, tilf\xF8jet, blanktegn, gendannet). Sl\xE5et fra som standard; har en lille omkostning pr. blok ved hver gengivelse i l\xE6setilstand."
+  "setting.reading-mode-indicator.desc": "Mark\xE9r renderede blokke i l\xE6setilstand med en farvet venstre kant i redigeringsindikatorens farver (\xE6ndret, tilf\xF8jet, blanktegn, gendannet). Sl\xE5et fra som standard; har en lille omkostning pr. blok ved hver gengivelse i l\xE6setilstand.",
+  "setting.gutter-hover-panel.name": "Vis panel, n\xE5r musen holdes over \xE6ndringsmark\xF8rer",
+  "setting.gutter-hover-panel.desc": "Hold musen over en \xE6ndringsmark\xF8r i margenen for at \xE5bne et panel med den forrige version af den linje. Derfra kan du fortryde \xE6ndringen, kopiere den gamle tekst eller \xE5bne filhistorikken. Sl\xE5et til som standard. G\xE6lder for den lodrette linjeindikator."
 };
 
 // lang/de.json
@@ -6585,7 +7328,9 @@ var de_default = {
   "notice.purge-excluded": "Lokaler Verlauf: {count} Snapshot(s) f\xFCr ausgeschlossene Pfade entfernt.",
   "notice.purge-excluded.no-match": "Lokaler Verlauf: kein gespeicherter Verlauf entspricht den ausgeschlossenen Pfaden.",
   "setting.reading-mode-indicator.name": "Indikatoren im Lesemodus anzeigen",
-  "setting.reading-mode-indicator.desc": "Gerenderte Bl\xF6cke im Lesemodus mit einem farbigen linken Rand in den Farben des Bearbeitungsindikators markieren (ge\xE4ndert, hinzugef\xFCgt, Leerzeichen, wiederhergestellt). Standardm\xE4\xDFig deaktiviert; verursacht geringe Kosten pro Block bei jedem Neurendern des Lesemodus."
+  "setting.reading-mode-indicator.desc": "Gerenderte Bl\xF6cke im Lesemodus mit einem farbigen linken Rand in den Farben des Bearbeitungsindikators markieren (ge\xE4ndert, hinzugef\xFCgt, Leerzeichen, wiederhergestellt). Standardm\xE4\xDFig deaktiviert; verursacht geringe Kosten pro Block bei jedem Neurendern des Lesemodus.",
+  "setting.gutter-hover-panel.name": "Schwebepanel an \xC4nderungsmarkierungen anzeigen",
+  "setting.gutter-hover-panel.desc": "Fahren Sie mit der Maus \xFCber eine \xC4nderungsmarkierung am Rand, um ein Panel mit der vorherigen Version dieser Zeile zu \xF6ffnen. Von dort k\xF6nnen Sie die \xC4nderung r\xFCckg\xE4ngig machen, den alten Text kopieren oder den Dateiverlauf \xF6ffnen. Standardm\xE4\xDFig aktiviert. Gilt f\xFCr den vertikalen Linienindikator."
 };
 
 // lang/en.json
@@ -6750,7 +7495,9 @@ var en_default = {
   "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
   "notice.purge-excluded.no-match": "Local history: no stored history matches the excluded paths.",
   "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render.",
+  "setting.gutter-hover-panel.name": "Show hover panel on change markers",
+  "setting.gutter-hover-panel.desc": "Hover a change marker in the gutter to open a panel with the previous version of that line. From there you can revert the change, copy the old text, or open the file history. Enabled by default. Applies to the vertical line indicator."
 };
 
 // lang/en-GB.json
@@ -6915,7 +7662,9 @@ var en_GB_default = {
   "notice.purge-excluded": "Local history: purged {count} snapshot(s) for excluded paths.",
   "notice.purge-excluded.no-match": "Local history: no stored history matches the excluded paths.",
   "setting.reading-mode-indicator.name": "Show indicators in reading mode",
-  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render."
+  "setting.reading-mode-indicator.desc": "Decorate rendered blocks in reading mode with a colored left border matching the live-edit indicator colours (changed, added, whitespace, restored). Off by default; has a small per-block cost on every reading-mode re-render.",
+  "setting.gutter-hover-panel.name": "Show hover panel on change markers",
+  "setting.gutter-hover-panel.desc": "Hover a change marker in the gutter to open a panel with the previous version of that line. From there you can revert the change, copy the old text, or open the file history. Enabled by default. Applies to the vertical line indicator."
 };
 
 // lang/es.json
@@ -7080,7 +7829,9 @@ var es_default = {
   "notice.purge-excluded": "Historial local: se purgaron {count} instant\xE1nea(s) de rutas excluidas.",
   "notice.purge-excluded.no-match": "Historial local: ning\xFAn historial almacenado coincide con las rutas excluidas.",
   "setting.reading-mode-indicator.name": "Mostrar indicadores en modo lectura",
-  "setting.reading-mode-indicator.desc": "Decorar los bloques renderizados en modo lectura con un borde izquierdo de color que coincide con los colores del indicador de edici\xF3n (modificado, a\xF1adido, espacios, restaurado). Desactivado por defecto; tiene un peque\xF1o coste por bloque en cada renderizado del modo lectura."
+  "setting.reading-mode-indicator.desc": "Decorar los bloques renderizados en modo lectura con un borde izquierdo de color que coincide con los colores del indicador de edici\xF3n (modificado, a\xF1adido, espacios, restaurado). Desactivado por defecto; tiene un peque\xF1o coste por bloque en cada renderizado del modo lectura.",
+  "setting.gutter-hover-panel.name": "Mostrar un panel al pasar el rat\xF3n sobre los marcadores de cambio",
+  "setting.gutter-hover-panel.desc": "Pasa el rat\xF3n sobre un marcador de cambio en el margen para abrir un panel con la versi\xF3n anterior de esa l\xEDnea. Desde ah\xED puedes revertir el cambio, copiar el texto antiguo o abrir el historial del archivo. Activado de forma predeterminada. Se aplica al indicador de l\xEDnea vertical."
 };
 
 // lang/fa.json
@@ -7245,7 +7996,9 @@ var fa_default = {
   "notice.purge-excluded": "\u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u0645\u062D\u0644\u06CC: {count} \u0639\u06A9\u0633 \u0641\u0648\u0631\u06CC \u0628\u0631\u0627\u06CC \u0645\u0633\u06CC\u0631\u0647\u0627\u06CC \u0645\u0633\u062A\u062B\u0646\u0627 \u067E\u0627\u06A9 \u0634\u062F.",
   "notice.purge-excluded.no-match": "\u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u0645\u062D\u0644\u06CC: \u0647\u06CC\u0686 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u0630\u062E\u06CC\u0631\u0647\u200C\u0634\u062F\u0647\u200C\u0627\u06CC \u0628\u0627 \u0645\u0633\u06CC\u0631\u0647\u0627\u06CC \u0645\u0633\u062A\u062B\u0646\u0627 \u0645\u0637\u0627\u0628\u0642\u062A \u0646\u062F\u0627\u0631\u062F.",
   "setting.reading-mode-indicator.name": "\u0646\u0645\u0627\u06CC\u0634 \u0646\u0634\u0627\u0646\u06AF\u0631\u0647\u0627 \u062F\u0631 \u062D\u0627\u0644\u062A \u062E\u0648\u0627\u0646\u062F\u0646",
-  "setting.reading-mode-indicator.desc": "\u062A\u0632\u06CC\u06CC\u0646 \u0628\u0644\u0648\u06A9\u200C\u0647\u0627\u06CC \u0646\u0645\u0627\u06CC\u0634\u200C\u062F\u0627\u062F\u0647\u200C\u0634\u062F\u0647 \u062F\u0631 \u062D\u0627\u0644\u062A \u062E\u0648\u0627\u0646\u062F\u0646 \u0628\u0627 \u062D\u0627\u0634\u06CC\u0647 \u0686\u067E \u0631\u0646\u06AF\u06CC \u0645\u0637\u0627\u0628\u0642 \u0631\u0646\u06AF\u200C\u0647\u0627\u06CC \u0646\u0634\u0627\u0646\u06AF\u0631 \u0648\u06CC\u0631\u0627\u06CC\u0634 (\u062A\u063A\u06CC\u06CC\u0631\u06CC\u0627\u0641\u062A\u0647\u060C \u0627\u0641\u0632\u0648\u062F\u0647\u060C \u0641\u0627\u0635\u0644\u0647\u060C \u0628\u0627\u0632\u06CC\u0627\u0628\u06CC\u200C\u0634\u062F\u0647). \u0628\u0647\u200C\u0637\u0648\u0631 \u067E\u06CC\u0634\u200C\u0641\u0631\u0636 \u062E\u0627\u0645\u0648\u0634 \u0627\u0633\u062A\u061B \u062F\u0631 \u0647\u0631 \u0628\u0627\u0631 \u0646\u0645\u0627\u06CC\u0634 \u0645\u062C\u062F\u062F \u062D\u0627\u0644\u062A \u062E\u0648\u0627\u0646\u062F\u0646 \u0647\u0632\u06CC\u0646\u0647 \u06A9\u0645\u06CC \u0628\u0647 \u0627\u0632\u0627\u06CC \u0647\u0631 \u0628\u0644\u0648\u06A9 \u062F\u0627\u0631\u062F."
+  "setting.reading-mode-indicator.desc": "\u062A\u0632\u06CC\u06CC\u0646 \u0628\u0644\u0648\u06A9\u200C\u0647\u0627\u06CC \u0646\u0645\u0627\u06CC\u0634\u200C\u062F\u0627\u062F\u0647\u200C\u0634\u062F\u0647 \u062F\u0631 \u062D\u0627\u0644\u062A \u062E\u0648\u0627\u0646\u062F\u0646 \u0628\u0627 \u062D\u0627\u0634\u06CC\u0647 \u0686\u067E \u0631\u0646\u06AF\u06CC \u0645\u0637\u0627\u0628\u0642 \u0631\u0646\u06AF\u200C\u0647\u0627\u06CC \u0646\u0634\u0627\u0646\u06AF\u0631 \u0648\u06CC\u0631\u0627\u06CC\u0634 (\u062A\u063A\u06CC\u06CC\u0631\u06CC\u0627\u0641\u062A\u0647\u060C \u0627\u0641\u0632\u0648\u062F\u0647\u060C \u0641\u0627\u0635\u0644\u0647\u060C \u0628\u0627\u0632\u06CC\u0627\u0628\u06CC\u200C\u0634\u062F\u0647). \u0628\u0647\u200C\u0637\u0648\u0631 \u067E\u06CC\u0634\u200C\u0641\u0631\u0636 \u062E\u0627\u0645\u0648\u0634 \u0627\u0633\u062A\u061B \u062F\u0631 \u0647\u0631 \u0628\u0627\u0631 \u0646\u0645\u0627\u06CC\u0634 \u0645\u062C\u062F\u062F \u062D\u0627\u0644\u062A \u062E\u0648\u0627\u0646\u062F\u0646 \u0647\u0632\u06CC\u0646\u0647 \u06A9\u0645\u06CC \u0628\u0647 \u0627\u0632\u0627\u06CC \u0647\u0631 \u0628\u0644\u0648\u06A9 \u062F\u0627\u0631\u062F.",
+  "setting.gutter-hover-panel.name": "\u0646\u0645\u0627\u06CC\u0634 \u067E\u0646\u0644 \u0647\u0646\u06AF\u0627\u0645 \u0646\u06AF\u0647\u200C\u062F\u0627\u0634\u062A\u0646 \u0646\u0634\u0627\u0646\u06AF\u0631 \u0631\u0648\u06CC \u0646\u0634\u0627\u0646\u0647\u200C\u0647\u0627\u06CC \u062A\u063A\u06CC\u06CC\u0631",
+  "setting.gutter-hover-panel.desc": "\u0646\u0634\u0627\u0646\u06AF\u0631 \u0645\u0627\u0648\u0633 \u0631\u0627 \u0631\u0648\u06CC \u06CC\u06A9 \u0646\u0634\u0627\u0646\u0647\u0654 \u062A\u063A\u06CC\u06CC\u0631 \u062F\u0631 \u062D\u0627\u0634\u06CC\u0647 \u0646\u06AF\u0647 \u062F\u0627\u0631\u06CC\u062F \u062A\u0627 \u067E\u0646\u0644\u06CC \u0628\u0627 \u0646\u0633\u062E\u0647\u0654 \u0642\u0628\u0644\u06CC \u0622\u0646 \u062E\u0637 \u0628\u0627\u0632 \u0634\u0648\u062F. \u0627\u0632 \u0622\u0646\u062C\u0627 \u0645\u06CC\u200C\u062A\u0648\u0627\u0646\u06CC\u062F \u062A\u063A\u06CC\u06CC\u0631 \u0631\u0627 \u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u06CC\u062F\u060C \u0645\u062A\u0646 \u0642\u062F\u06CC\u0645\u06CC \u0631\u0627 \u06A9\u067E\u06CC \u06A9\u0646\u06CC\u062F \u06CC\u0627 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647\u0654 \u0641\u0627\u06CC\u0644 \u0631\u0627 \u0628\u0627\u0632 \u06A9\u0646\u06CC\u062F. \u0628\u0647\u200C\u0637\u0648\u0631 \u067E\u06CC\u0634\u200C\u0641\u0631\u0636 \u0631\u0648\u0634\u0646 \u0627\u0633\u062A. \u0628\u0631\u0627\u06CC \u0646\u0634\u0627\u0646\u06AF\u0631 \u062E\u0637 \u0639\u0645\u0648\u062F\u06CC \u06A9\u0627\u0631\u0628\u0631\u062F \u062F\u0627\u0631\u062F."
 };
 
 // lang/fi.json
@@ -7410,7 +8163,9 @@ var fi_default = {
   "notice.purge-excluded": "Paikallinen historia: poistettiin {count} tilannekuvaa poissuljetuilta poluilta.",
   "notice.purge-excluded.no-match": "Paikallinen historia: mik\xE4\xE4n tallennettu historia ei vastaa poissuljettuja polkuja.",
   "setting.reading-mode-indicator.name": "N\xE4yt\xE4 ilmaisimet lukutilassa",
-  "setting.reading-mode-indicator.desc": "Merkitse render\xF6idyt lohkot lukutilassa v\xE4rillisell\xE4 vasemmalla reunuksella muokkausilmaisimen v\xE4reiss\xE4 (muutettu, lis\xE4tty, v\xE4lily\xF6nnit, palautettu). Oletuksena pois p\xE4\xE4lt\xE4; aiheuttaa pienen kustannuksen lohkoa kohden jokaisella lukutilan uudelleenrender\xF6innill\xE4."
+  "setting.reading-mode-indicator.desc": "Merkitse render\xF6idyt lohkot lukutilassa v\xE4rillisell\xE4 vasemmalla reunuksella muokkausilmaisimen v\xE4reiss\xE4 (muutettu, lis\xE4tty, v\xE4lily\xF6nnit, palautettu). Oletuksena pois p\xE4\xE4lt\xE4; aiheuttaa pienen kustannuksen lohkoa kohden jokaisella lukutilan uudelleenrender\xF6innill\xE4.",
+  "setting.gutter-hover-panel.name": "N\xE4yt\xE4 paneeli, kun osoitin vied\xE4\xE4n muutosmerkkien p\xE4\xE4lle",
+  "setting.gutter-hover-panel.desc": "Vie osoitin reunuksessa olevan muutosmerkin p\xE4\xE4lle avataksesi paneelin, jossa n\xE4kyy kyseisen rivin edellinen versio. Siit\xE4 voit kumota muutoksen, kopioida vanhan tekstin tai avata tiedoston historian. Oletuksena k\xE4yt\xF6ss\xE4. Koskee pystyviivailmaisinta."
 };
 
 // lang/fr.json
@@ -7575,7 +8330,9 @@ var fr_default = {
   "notice.purge-excluded": "Historique local : {count} instantan\xE9(s) purg\xE9(s) pour les chemins exclus.",
   "notice.purge-excluded.no-match": "Historique local : aucun historique enregistr\xE9 ne correspond aux chemins exclus.",
   "setting.reading-mode-indicator.name": "Afficher les indicateurs en mode lecture",
-  "setting.reading-mode-indicator.desc": "D\xE9corer les blocs rendus en mode lecture d'une bordure gauche color\xE9e reprenant les couleurs de l'indicateur d'\xE9dition (modifi\xE9, ajout\xE9, espaces, restaur\xE9). D\xE9sactiv\xE9 par d\xE9faut ; entra\xEEne un l\xE9ger co\xFBt par bloc \xE0 chaque rendu du mode lecture."
+  "setting.reading-mode-indicator.desc": "D\xE9corer les blocs rendus en mode lecture d'une bordure gauche color\xE9e reprenant les couleurs de l'indicateur d'\xE9dition (modifi\xE9, ajout\xE9, espaces, restaur\xE9). D\xE9sactiv\xE9 par d\xE9faut ; entra\xEEne un l\xE9ger co\xFBt par bloc \xE0 chaque rendu du mode lecture.",
+  "setting.gutter-hover-panel.name": "Afficher un panneau au survol des marqueurs de modification",
+  "setting.gutter-hover-panel.desc": "Survolez un marqueur de modification dans la goutti\xE8re pour ouvrir un panneau affichant la version pr\xE9c\xE9dente de cette ligne. Vous pouvez y annuler la modification, copier l'ancien texte ou ouvrir l'historique du fichier. Activ\xE9 par d\xE9faut. S'applique \xE0 l'indicateur de ligne verticale."
 };
 
 // lang/ga.json
@@ -7740,7 +8497,9 @@ var ga_default = {
   "notice.purge-excluded": "Stair \xE1iti\xFAil: glanadh {count} snapshot do chos\xE1in eisiata.",
   "notice.purge-excluded.no-match": "Stair \xE1iti\xFAil: n\xEDl aon stair st\xF3r\xE1ilte ag teacht leis na cos\xE1in eisiata.",
   "setting.reading-mode-indicator.name": "Taispe\xE1in t\xE1scair\xED sa mh\xF3d l\xE9itheoireachta",
-  "setting.reading-mode-indicator.desc": "Maisigh bloic rindre\xE1ilte sa mh\xF3d l\xE9itheoireachta le himeall cl\xE9 daite a mheaitse\xE1lann dathanna an t\xE1scaire eagarth\xF3ireachta (athraithe, curtha leis, sp\xE1s b\xE1n, athch\xF3irithe). M\xFAchta de r\xE9ir r\xE9amhshocraithe; t\xE1 costas beag in aghaidh an bhloic ar gach athrindre\xE1il sa mh\xF3d l\xE9itheoireachta."
+  "setting.reading-mode-indicator.desc": "Maisigh bloic rindre\xE1ilte sa mh\xF3d l\xE9itheoireachta le himeall cl\xE9 daite a mheaitse\xE1lann dathanna an t\xE1scaire eagarth\xF3ireachta (athraithe, curtha leis, sp\xE1s b\xE1n, athch\xF3irithe). M\xFAchta de r\xE9ir r\xE9amhshocraithe; t\xE1 costas beag in aghaidh an bhloic ar gach athrindre\xE1il sa mh\xF3d l\xE9itheoireachta.",
+  "setting.gutter-hover-panel.name": "Taispe\xE1in pain\xE9al agus t\xFA ag ainli\xFA os cionn marc\xF3ir\xED athraithe",
+  "setting.gutter-hover-panel.desc": "Ainligh os cionn marc\xF3ir athraithe san imeall chun pain\xE9al a oscailt leis an leagan roimhe seo den l\xEDne sin. As sin is f\xE9idir leat an t-athr\xFA a chur ar ais, an seant\xE9acs a ch\xF3ipe\xE1il, n\xF3 stair an chomhaid a oscailt. Cumasaithe de r\xE9ir r\xE9amhshocraithe. Baineann s\xE9 leis an t\xE1scaire l\xEDne inghearach."
 };
 
 // lang/he.json
@@ -7905,7 +8664,9 @@ var he_default = {
   "notice.purge-excluded": "\u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05DE\u05E7\u05D5\u05DE\u05D9\u05EA: \u05E0\u05DE\u05D7\u05E7\u05D5 {count} \u05EA\u05DE\u05D5\u05E0\u05D5\u05EA \u05DE\u05E6\u05D1 \u05E2\u05D1\u05D5\u05E8 \u05E0\u05EA\u05D9\u05D1\u05D9\u05DD \u05DE\u05D5\u05D7\u05E8\u05D2\u05D9\u05DD.",
   "notice.purge-excluded.no-match": "\u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05DE\u05E7\u05D5\u05DE\u05D9\u05EA: \u05D0\u05D9\u05DF \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05E9\u05DE\u05D5\u05E8\u05D4 \u05D4\u05EA\u05D5\u05D0\u05DE\u05EA \u05DC\u05E0\u05EA\u05D9\u05D1\u05D9\u05DD \u05DE\u05D5\u05D7\u05E8\u05D2\u05D9\u05DD.",
   "setting.reading-mode-indicator.name": "\u05D4\u05E6\u05D2\u05EA \u05DE\u05D7\u05D5\u05D5\u05E0\u05D9\u05DD \u05D1\u05DE\u05E6\u05D1 \u05E7\u05E8\u05D9\u05D0\u05D4",
-  "setting.reading-mode-indicator.desc": "\u05E2\u05D9\u05D8\u05D5\u05E8 \u05D1\u05DC\u05D5\u05E7\u05D9\u05DD \u05DE\u05E2\u05D5\u05D1\u05D3\u05D9\u05DD \u05D1\u05DE\u05E6\u05D1 \u05E7\u05E8\u05D9\u05D0\u05D4 \u05D1\u05D2\u05D1\u05D5\u05DC \u05E9\u05DE\u05D0\u05DC\u05D9 \u05E6\u05D1\u05E2\u05D5\u05E0\u05D9 \u05D4\u05EA\u05D5\u05D0\u05DD \u05D0\u05EA \u05E6\u05D1\u05E2\u05D9 \u05DE\u05D7\u05D5\u05D5\u05DF \u05D4\u05E2\u05E8\u05D9\u05DB\u05D4 (\u05E9\u05D5\u05E0\u05D4, \u05E0\u05D5\u05E1\u05E3, \u05E8\u05D5\u05D5\u05D7\u05D9\u05DD, \u05E9\u05D5\u05D7\u05D6\u05E8). \u05DB\u05D1\u05D5\u05D9 \u05DB\u05D1\u05E8\u05D9\u05E8\u05EA \u05DE\u05D7\u05D3\u05DC; \u05D9\u05E9 \u05E2\u05DC\u05D5\u05EA \u05E7\u05D8\u05E0\u05D4 \u05DC\u05DB\u05DC \u05D1\u05DC\u05D5\u05E7 \u05D1\u05DB\u05DC \u05E2\u05D9\u05D1\u05D5\u05D3 \u05DE\u05D7\u05D3\u05E9 \u05E9\u05DC \u05DE\u05E6\u05D1 \u05D4\u05E7\u05E8\u05D9\u05D0\u05D4."
+  "setting.reading-mode-indicator.desc": "\u05E2\u05D9\u05D8\u05D5\u05E8 \u05D1\u05DC\u05D5\u05E7\u05D9\u05DD \u05DE\u05E2\u05D5\u05D1\u05D3\u05D9\u05DD \u05D1\u05DE\u05E6\u05D1 \u05E7\u05E8\u05D9\u05D0\u05D4 \u05D1\u05D2\u05D1\u05D5\u05DC \u05E9\u05DE\u05D0\u05DC\u05D9 \u05E6\u05D1\u05E2\u05D5\u05E0\u05D9 \u05D4\u05EA\u05D5\u05D0\u05DD \u05D0\u05EA \u05E6\u05D1\u05E2\u05D9 \u05DE\u05D7\u05D5\u05D5\u05DF \u05D4\u05E2\u05E8\u05D9\u05DB\u05D4 (\u05E9\u05D5\u05E0\u05D4, \u05E0\u05D5\u05E1\u05E3, \u05E8\u05D5\u05D5\u05D7\u05D9\u05DD, \u05E9\u05D5\u05D7\u05D6\u05E8). \u05DB\u05D1\u05D5\u05D9 \u05DB\u05D1\u05E8\u05D9\u05E8\u05EA \u05DE\u05D7\u05D3\u05DC; \u05D9\u05E9 \u05E2\u05DC\u05D5\u05EA \u05E7\u05D8\u05E0\u05D4 \u05DC\u05DB\u05DC \u05D1\u05DC\u05D5\u05E7 \u05D1\u05DB\u05DC \u05E2\u05D9\u05D1\u05D5\u05D3 \u05DE\u05D7\u05D3\u05E9 \u05E9\u05DC \u05DE\u05E6\u05D1 \u05D4\u05E7\u05E8\u05D9\u05D0\u05D4.",
+  "setting.gutter-hover-panel.name": "\u05D4\u05E6\u05D2\u05EA \u05D7\u05DC\u05D5\u05E0\u05D9\u05EA \u05D1\u05E2\u05EA \u05DE\u05E2\u05D1\u05E8 \u05E2\u05DD \u05D4\u05E2\u05DB\u05D1\u05E8 \u05E2\u05DC \u05E1\u05DE\u05E0\u05D9 \u05E9\u05D9\u05E0\u05D5\u05D9",
+  "setting.gutter-hover-panel.desc": "\u05D4\u05E2\u05D1\u05E8 \u05D0\u05EA \u05D4\u05E2\u05DB\u05D1\u05E8 \u05DE\u05E2\u05DC \u05E1\u05DE\u05DF \u05E9\u05D9\u05E0\u05D5\u05D9 \u05D1\u05E9\u05D5\u05DC\u05D9\u05D9\u05DD \u05DB\u05D3\u05D9 \u05DC\u05E4\u05EA\u05D5\u05D7 \u05D7\u05DC\u05D5\u05E0\u05D9\u05EA \u05E2\u05DD \u05D4\u05D2\u05E8\u05E1\u05D4 \u05D4\u05E7\u05D5\u05D3\u05DE\u05EA \u05E9\u05DC \u05D0\u05D5\u05EA\u05D4 \u05E9\u05D5\u05E8\u05D4. \u05DE\u05E9\u05DD \u05D0\u05E4\u05E9\u05E8 \u05DC\u05D1\u05D8\u05DC \u05D0\u05EA \u05D4\u05E9\u05D9\u05E0\u05D5\u05D9, \u05DC\u05D4\u05E2\u05EA\u05D9\u05E7 \u05D0\u05EA \u05D4\u05D8\u05E7\u05E1\u05D8 \u05D4\u05D9\u05E9\u05DF \u05D0\u05D5 \u05DC\u05E4\u05EA\u05D5\u05D7 \u05D0\u05EA \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D9\u05EA \u05D4\u05E7\u05D5\u05D1\u05E5. \u05DE\u05D5\u05E4\u05E2\u05DC \u05DB\u05D1\u05E8\u05D9\u05E8\u05EA \u05DE\u05D7\u05D3\u05DC. \u05D7\u05DC \u05E2\u05DC \u05DE\u05D7\u05D5\u05D5\u05DF \u05D4\u05E7\u05D5 \u05D4\u05D0\u05E0\u05DB\u05D9."
 };
 
 // lang/hu.json
@@ -8070,7 +8831,9 @@ var hu_default = {
   "notice.purge-excluded": "Helyi el\u0151zm\xE9nyek: {count} pillanatk\xE9p t\xF6r\xF6lve a kiz\xE1rt \xFAtvonalakhoz.",
   "notice.purge-excluded.no-match": "Helyi el\u0151zm\xE9nyek: egyetlen t\xE1rolt el\u0151zm\xE9ny sem felel meg a kiz\xE1rt \xFAtvonalaknak.",
   "setting.reading-mode-indicator.name": "Jelz\u0151k megjelen\xEDt\xE9se olvas\xF3 m\xF3dban",
-  "setting.reading-mode-indicator.desc": "Az olvas\xF3 m\xF3dban megjelen\xEDtett blokkok sz\xEDnes bal szeg\xE9lyt kapnak a szerkeszt\xE9sjelz\u0151 sz\xEDneivel (m\xF3dos\xEDtva, hozz\xE1adva, sz\xF3k\xF6z, vissza\xE1ll\xEDtva). Alap\xE9rtelmez\xE9s szerint kikapcsolva; minden olvas\xF3 m\xF3dbeli \xFAjrarenderel\xE9skor kis t\xF6bbletk\xF6lts\xE9g blokkonk\xE9nt."
+  "setting.reading-mode-indicator.desc": "Az olvas\xF3 m\xF3dban megjelen\xEDtett blokkok sz\xEDnes bal szeg\xE9lyt kapnak a szerkeszt\xE9sjelz\u0151 sz\xEDneivel (m\xF3dos\xEDtva, hozz\xE1adva, sz\xF3k\xF6z, vissza\xE1ll\xEDtva). Alap\xE9rtelmez\xE9s szerint kikapcsolva; minden olvas\xF3 m\xF3dbeli \xFAjrarenderel\xE9skor kis t\xF6bbletk\xF6lts\xE9g blokkonk\xE9nt.",
+  "setting.gutter-hover-panel.name": "Panel megjelen\xEDt\xE9se a v\xE1ltoz\xE1sjelz\u0151k f\xF6l\xE9 h\xFAzva",
+  "setting.gutter-hover-panel.desc": "Vidd az egeret a marg\xF3n l\xE9v\u0151 v\xE1ltoz\xE1sjelz\u0151 f\xF6l\xE9, hogy megny\xEDljon egy panel az adott sor kor\xE1bbi v\xE1ltozat\xE1val. Innen visszavonhatod a v\xE1ltoz\xE1st, kim\xE1solhatod a r\xE9gi sz\xF6veget vagy megnyithatod a f\xE1jl el\u0151zm\xE9nyeit. Alap\xE9rtelmezetten bekapcsolva. A f\xFCgg\u0151leges vonal jelz\u0151re vonatkozik."
 };
 
 // lang/id.json
@@ -8235,7 +8998,9 @@ var id_default = {
   "notice.purge-excluded": "Riwayat lokal: {count} snapshot untuk jalur yang dikecualikan dibersihkan.",
   "notice.purge-excluded.no-match": "Riwayat lokal: tidak ada riwayat tersimpan yang cocok dengan jalur yang dikecualikan.",
   "setting.reading-mode-indicator.name": "Tampilkan indikator di mode baca",
-  "setting.reading-mode-indicator.desc": "Hiasi blok yang dirender di mode baca dengan garis tepi kiri berwarna sesuai warna indikator penyuntingan (diubah, ditambahkan, spasi, dipulihkan). Nonaktif secara bawaan; ada sedikit biaya per blok pada setiap render ulang mode baca."
+  "setting.reading-mode-indicator.desc": "Hiasi blok yang dirender di mode baca dengan garis tepi kiri berwarna sesuai warna indikator penyuntingan (diubah, ditambahkan, spasi, dipulihkan). Nonaktif secara bawaan; ada sedikit biaya per blok pada setiap render ulang mode baca.",
+  "setting.gutter-hover-panel.name": "Tampilkan panel saat penanda perubahan disorot kursor",
+  "setting.gutter-hover-panel.desc": "Arahkan kursor ke penanda perubahan di selokan untuk membuka panel berisi versi sebelumnya dari baris tersebut. Dari sana Anda dapat membatalkan perubahan, menyalin teks lama, atau membuka riwayat berkas. Aktif secara bawaan. Berlaku untuk indikator garis vertikal."
 };
 
 // lang/it.json
@@ -8400,7 +9165,9 @@ var it_default = {
   "notice.purge-excluded": "Cronologia locale: eliminati {count} snapshot per i percorsi esclusi.",
   "notice.purge-excluded.no-match": "Cronologia locale: nessuna cronologia salvata corrisponde ai percorsi esclusi.",
   "setting.reading-mode-indicator.name": "Mostra indicatori in modalit\xE0 lettura",
-  "setting.reading-mode-indicator.desc": "Decora i blocchi renderizzati in modalit\xE0 lettura con un bordo sinistro colorato nei colori dell'indicatore di modifica (modificato, aggiunto, spazi, ripristinato). Disattivato per impostazione predefinita; comporta un piccolo costo per blocco a ogni re-rendering della modalit\xE0 lettura."
+  "setting.reading-mode-indicator.desc": "Decora i blocchi renderizzati in modalit\xE0 lettura con un bordo sinistro colorato nei colori dell'indicatore di modifica (modificato, aggiunto, spazi, ripristinato). Disattivato per impostazione predefinita; comporta un piccolo costo per blocco a ogni re-rendering della modalit\xE0 lettura.",
+  "setting.gutter-hover-panel.name": "Mostra un pannello al passaggio del mouse sui marcatori di modifica",
+  "setting.gutter-hover-panel.desc": "Passa il mouse su un marcatore di modifica nel margine per aprire un pannello con la versione precedente di quella riga. Da l\xEC puoi annullare la modifica, copiare il testo precedente o aprire la cronologia del file. Attivo per impostazione predefinita. Si applica all'indicatore a linea verticale."
 };
 
 // lang/ja.json
@@ -8565,7 +9332,9 @@ var ja_default = {
   "notice.purge-excluded": "\u30ED\u30FC\u30AB\u30EB\u5C65\u6B74: \u9664\u5916\u30D1\u30B9\u306E\u30B9\u30CA\u30C3\u30D7\u30B7\u30E7\u30C3\u30C8\u3092 {count} \u4EF6\u524A\u9664\u3057\u307E\u3057\u305F\u3002",
   "notice.purge-excluded.no-match": "\u30ED\u30FC\u30AB\u30EB\u5C65\u6B74: \u9664\u5916\u30D1\u30B9\u306B\u4E00\u81F4\u3059\u308B\u4FDD\u5B58\u6E08\u307F\u5C65\u6B74\u306F\u3042\u308A\u307E\u305B\u3093\u3002",
   "setting.reading-mode-indicator.name": "\u95B2\u89A7\u30E2\u30FC\u30C9\u3067\u30A4\u30F3\u30B8\u30B1\u30FC\u30BF\u30FC\u3092\u8868\u793A",
-  "setting.reading-mode-indicator.desc": "\u95B2\u89A7\u30E2\u30FC\u30C9\u3067\u63CF\u753B\u3055\u308C\u305F\u30D6\u30ED\u30C3\u30AF\u3092\u3001\u7DE8\u96C6\u30A4\u30F3\u30B8\u30B1\u30FC\u30BF\u30FC\u306E\u8272 (\u5909\u66F4\u30FB\u8FFD\u52A0\u30FB\u7A7A\u767D\u30FB\u5FA9\u5143) \u306B\u5408\u308F\u305B\u305F\u8272\u4ED8\u304D\u306E\u5DE6\u30DC\u30FC\u30C0\u30FC\u3067\u88C5\u98FE\u3057\u307E\u3059\u3002\u65E2\u5B9A\u3067\u306F\u7121\u52B9\u3067\u3059\u3002\u95B2\u89A7\u30E2\u30FC\u30C9\u306E\u518D\u63CF\u753B\u3054\u3068\u306B\u30D6\u30ED\u30C3\u30AF\u3042\u305F\u308A\u308F\u305A\u304B\u306A\u30B3\u30B9\u30C8\u304C\u304B\u304B\u308A\u307E\u3059\u3002"
+  "setting.reading-mode-indicator.desc": "\u95B2\u89A7\u30E2\u30FC\u30C9\u3067\u63CF\u753B\u3055\u308C\u305F\u30D6\u30ED\u30C3\u30AF\u3092\u3001\u7DE8\u96C6\u30A4\u30F3\u30B8\u30B1\u30FC\u30BF\u30FC\u306E\u8272 (\u5909\u66F4\u30FB\u8FFD\u52A0\u30FB\u7A7A\u767D\u30FB\u5FA9\u5143) \u306B\u5408\u308F\u305B\u305F\u8272\u4ED8\u304D\u306E\u5DE6\u30DC\u30FC\u30C0\u30FC\u3067\u88C5\u98FE\u3057\u307E\u3059\u3002\u65E2\u5B9A\u3067\u306F\u7121\u52B9\u3067\u3059\u3002\u95B2\u89A7\u30E2\u30FC\u30C9\u306E\u518D\u63CF\u753B\u3054\u3068\u306B\u30D6\u30ED\u30C3\u30AF\u3042\u305F\u308A\u308F\u305A\u304B\u306A\u30B3\u30B9\u30C8\u304C\u304B\u304B\u308A\u307E\u3059\u3002",
+  "setting.gutter-hover-panel.name": "\u5909\u66F4\u30DE\u30FC\u30AB\u30FC\u306E\u30DB\u30D0\u30FC\u6642\u306B\u30D1\u30CD\u30EB\u3092\u8868\u793A",
+  "setting.gutter-hover-panel.desc": "\u30AC\u30BF\u30FC\u306E\u5909\u66F4\u30DE\u30FC\u30AB\u30FC\u306B\u30DE\u30A6\u30B9\u3092\u91CD\u306D\u308B\u3068\u3001\u305D\u306E\u884C\u306E\u4EE5\u524D\u306E\u30D0\u30FC\u30B8\u30E7\u30F3\u3092\u8868\u793A\u3059\u308B\u30D1\u30CD\u30EB\u304C\u958B\u304D\u307E\u3059\u3002\u30D1\u30CD\u30EB\u304B\u3089\u5909\u66F4\u3092\u5143\u306B\u623B\u3059\u3001\u53E4\u3044\u30C6\u30AD\u30B9\u30C8\u3092\u30B3\u30D4\u30FC\u3059\u308B\u3001\u30D5\u30A1\u30A4\u30EB\u5C65\u6B74\u3092\u958B\u304F\u3053\u3068\u304C\u3067\u304D\u307E\u3059\u3002\u65E2\u5B9A\u3067\u6709\u52B9\u3002\u7E26\u7DDA\u30A4\u30F3\u30B8\u30B1\u30FC\u30BF\u30FC\u306B\u9069\u7528\u3055\u308C\u307E\u3059\u3002"
 };
 
 // lang/ka.json
@@ -8730,7 +9499,9 @@ var ka_default = {
   "notice.purge-excluded": "\u10DA\u10DD\u10D9\u10D0\u10DA\u10E3\u10E0\u10D8 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D0: \u10D2\u10D0\u10E1\u10E3\u10E4\u10D7\u10D0\u10D5\u10D3\u10D0 {count} \u10D0\u10DC\u10D0\u10D1\u10D4\u10ED\u10D3\u10D8 \u10D2\u10D0\u10DB\u10DD\u10E0\u10D8\u10EA\u10EE\u10E3\u10DA\u10D8 \u10D2\u10D6\u10D4\u10D1\u10D8\u10E1\u10D7\u10D5\u10D8\u10E1.",
   "notice.purge-excluded.no-match": "\u10DA\u10DD\u10D9\u10D0\u10DA\u10E3\u10E0\u10D8 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D0: \u10E8\u10D4\u10DC\u10D0\u10EE\u10E3\u10DA\u10D8 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D0 \u10D2\u10D0\u10DB\u10DD\u10E0\u10D8\u10EA\u10EE\u10E3\u10DA\u10D8 \u10D2\u10D6\u10D4\u10D1\u10D8\u10E1\u10D7\u10D5\u10D8\u10E1 \u10D0\u10E0 \u10DB\u10DD\u10D8\u10EB\u10D4\u10D1\u10DC\u10D0.",
   "setting.reading-mode-indicator.name": "\u10D8\u10DC\u10D3\u10D8\u10D9\u10D0\u10E2\u10DD\u10E0\u10D4\u10D1\u10D8\u10E1 \u10E9\u10D5\u10D4\u10DC\u10D4\u10D1\u10D0 \u10D9\u10D8\u10D7\u10EE\u10D5\u10D8\u10E1 \u10E0\u10D4\u10DF\u10D8\u10DB\u10E8\u10D8",
-  "setting.reading-mode-indicator.desc": "\u10D9\u10D8\u10D7\u10EE\u10D5\u10D8\u10E1 \u10E0\u10D4\u10DF\u10D8\u10DB\u10E8\u10D8 \u10D2\u10D0\u10DB\u10DD\u10E1\u10D0\u10EE\u10E3\u10DA\u10D8 \u10D1\u10DA\u10DD\u10D9\u10D4\u10D1\u10D8\u10E1 \u10DB\u10DD\u10DC\u10D8\u10E8\u10D5\u10DC\u10D0 \u10E4\u10D4\u10E0\u10D0\u10D3\u10D8 \u10DB\u10D0\u10E0\u10EA\u10EE\u10D4\u10DC\u10D0 \u10D9\u10D8\u10D3\u10D8\u10D7, \u10E0\u10DD\u10DB\u10D4\u10DA\u10D8\u10EA \u10D4\u10DB\u10D7\u10EE\u10D5\u10D4\u10D5\u10D0 \u10E0\u10D4\u10D3\u10D0\u10E5\u10E2\u10D8\u10E0\u10D4\u10D1\u10D8\u10E1 \u10D8\u10DC\u10D3\u10D8\u10D9\u10D0\u10E2\u10DD\u10E0\u10D8\u10E1 \u10E4\u10D4\u10E0\u10D4\u10D1\u10E1 (\u10E8\u10D4\u10EA\u10D5\u10DA\u10D8\u10DA\u10D8, \u10D3\u10D0\u10DB\u10D0\u10E2\u10D4\u10D1\u10E3\u10DA\u10D8, \u10F0\u10D0\u10E0\u10D4\u10D4\u10D1\u10D8, \u10D0\u10E6\u10D3\u10D2\u10D4\u10DC\u10D8\u10DA\u10D8). \u10DC\u10D0\u10D2\u10E3\u10DA\u10D8\u10E1\u10EE\u10DB\u10D4\u10D5\u10D0\u10D3 \u10D2\u10D0\u10DB\u10DD\u10E0\u10D7\u10E3\u10DA\u10D8\u10D0; \u10D9\u10D8\u10D7\u10EE\u10D5\u10D8\u10E1 \u10E0\u10D4\u10DF\u10D8\u10DB\u10D8\u10E1 \u10E7\u10DD\u10D5\u10D4\u10DA \u10EE\u10D4\u10DA\u10D0\u10EE\u10D0\u10DA \u10D2\u10D0\u10DB\u10DD\u10E1\u10D0\u10EE\u10D5\u10D0\u10D6\u10D4 \u10D7\u10D8\u10D7\u10DD \u10D1\u10DA\u10DD\u10D9\u10D6\u10D4 \u10DB\u10EA\u10D8\u10E0\u10D4 \u10D3\u10D0\u10DC\u10D0\u10EE\u10D0\u10E0\u10EF\u10D8 \u10D0\u10E5\u10D5\u10E1."
+  "setting.reading-mode-indicator.desc": "\u10D9\u10D8\u10D7\u10EE\u10D5\u10D8\u10E1 \u10E0\u10D4\u10DF\u10D8\u10DB\u10E8\u10D8 \u10D2\u10D0\u10DB\u10DD\u10E1\u10D0\u10EE\u10E3\u10DA\u10D8 \u10D1\u10DA\u10DD\u10D9\u10D4\u10D1\u10D8\u10E1 \u10DB\u10DD\u10DC\u10D8\u10E8\u10D5\u10DC\u10D0 \u10E4\u10D4\u10E0\u10D0\u10D3\u10D8 \u10DB\u10D0\u10E0\u10EA\u10EE\u10D4\u10DC\u10D0 \u10D9\u10D8\u10D3\u10D8\u10D7, \u10E0\u10DD\u10DB\u10D4\u10DA\u10D8\u10EA \u10D4\u10DB\u10D7\u10EE\u10D5\u10D4\u10D5\u10D0 \u10E0\u10D4\u10D3\u10D0\u10E5\u10E2\u10D8\u10E0\u10D4\u10D1\u10D8\u10E1 \u10D8\u10DC\u10D3\u10D8\u10D9\u10D0\u10E2\u10DD\u10E0\u10D8\u10E1 \u10E4\u10D4\u10E0\u10D4\u10D1\u10E1 (\u10E8\u10D4\u10EA\u10D5\u10DA\u10D8\u10DA\u10D8, \u10D3\u10D0\u10DB\u10D0\u10E2\u10D4\u10D1\u10E3\u10DA\u10D8, \u10F0\u10D0\u10E0\u10D4\u10D4\u10D1\u10D8, \u10D0\u10E6\u10D3\u10D2\u10D4\u10DC\u10D8\u10DA\u10D8). \u10DC\u10D0\u10D2\u10E3\u10DA\u10D8\u10E1\u10EE\u10DB\u10D4\u10D5\u10D0\u10D3 \u10D2\u10D0\u10DB\u10DD\u10E0\u10D7\u10E3\u10DA\u10D8\u10D0; \u10D9\u10D8\u10D7\u10EE\u10D5\u10D8\u10E1 \u10E0\u10D4\u10DF\u10D8\u10DB\u10D8\u10E1 \u10E7\u10DD\u10D5\u10D4\u10DA \u10EE\u10D4\u10DA\u10D0\u10EE\u10D0\u10DA \u10D2\u10D0\u10DB\u10DD\u10E1\u10D0\u10EE\u10D5\u10D0\u10D6\u10D4 \u10D7\u10D8\u10D7\u10DD \u10D1\u10DA\u10DD\u10D9\u10D6\u10D4 \u10DB\u10EA\u10D8\u10E0\u10D4 \u10D3\u10D0\u10DC\u10D0\u10EE\u10D0\u10E0\u10EF\u10D8 \u10D0\u10E5\u10D5\u10E1.",
+  "setting.gutter-hover-panel.name": "\u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10DB\u10D0\u10E0\u10D9\u10D4\u10E0\u10D6\u10D4 \u10D9\u10E3\u10E0\u10E1\u10DD\u10E0\u10D8\u10E1 \u10DB\u10D8\u10E2\u10D0\u10DC\u10D8\u10E1\u10D0\u10E1 \u10DE\u10D0\u10DC\u10D4\u10DA\u10D8\u10E1 \u10E9\u10D5\u10D4\u10DC\u10D4\u10D1\u10D0",
+  "setting.gutter-hover-panel.desc": "\u10DB\u10D8\u10D8\u10E2\u10D0\u10DC\u10D4\u10D7 \u10D9\u10E3\u10E0\u10E1\u10DD\u10E0\u10D8 \u10D2\u10D5\u10D4\u10E0\u10D3\u10D8\u10D7 \u10D5\u10D4\u10DA\u10E8\u10D8 \u10D0\u10E0\u10E1\u10D4\u10D1\u10E3\u10DA \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10DB\u10D0\u10E0\u10D9\u10D4\u10E0\u10D6\u10D4, \u10E0\u10DD\u10DB \u10D2\u10D0\u10D8\u10EE\u10E1\u10DC\u10D0\u10E1 \u10DE\u10D0\u10DC\u10D4\u10DA\u10D8 \u10D0\u10DB \u10E1\u10E2\u10E0\u10D8\u10E5\u10DD\u10DC\u10D8\u10E1 \u10EC\u10D8\u10DC\u10D0 \u10D5\u10D4\u10E0\u10E1\u10D8\u10D8\u10D7. \u10D8\u10E5\u10D8\u10D3\u10D0\u10DC \u10E8\u10D4\u10D2\u10D8\u10EB\u10DA\u10D8\u10D0\u10D7 \u10D3\u10D0\u10D0\u10D1\u10E0\u10E3\u10DC\u10DD\u10D7 \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D0, \u10D3\u10D0\u10D0\u10D9\u10DD\u10DE\u10D8\u10E0\u10DD\u10D7 \u10EB\u10D5\u10D4\u10DA\u10D8 \u10E2\u10D4\u10E5\u10E1\u10E2\u10D8 \u10D0\u10DC \u10D2\u10D0\u10EE\u10E1\u10DC\u10D0\u10D7 \u10E4\u10D0\u10D8\u10DA\u10D8\u10E1 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D0. \u10DC\u10D0\u10D2\u10E3\u10DA\u10D8\u10E1\u10EE\u10DB\u10D4\u10D5\u10D0\u10D3 \u10E9\u10D0\u10E0\u10D7\u10E3\u10DA\u10D8\u10D0. \u10D5\u10E0\u10EA\u10D4\u10DA\u10D3\u10D4\u10D1\u10D0 \u10D5\u10D4\u10E0\u10E2\u10D8\u10D9\u10D0\u10DA\u10E3\u10E0\u10D8 \u10EE\u10D0\u10D6\u10D8\u10E1 \u10D8\u10DC\u10D3\u10D8\u10D9\u10D0\u10E2\u10DD\u10E0\u10D6\u10D4."
 };
 
 // lang/kh.json
@@ -8895,7 +9666,9 @@ var kh_default = {
   "notice.purge-excluded": "\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u1798\u17BC\u179B\u178A\u17D2\u178B\u17B6\u1793\u17D6 \u1794\u17B6\u1793\u179F\u1798\u17D2\u17A2\u17B6\u178F snapshot \u1785\u17C6\u1793\u17BD\u1793 {count} \u179F\u1798\u17D2\u179A\u17B6\u1794\u17CB\u1795\u17D2\u179B\u17BC\u179C\u178A\u17C2\u179B\u178F\u17D2\u179A\u17BC\u179C\u1794\u17B6\u1793\u178A\u1780\u1785\u17C1\u1789\u17D4",
   "notice.purge-excluded.no-match": "\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u1798\u17BC\u179B\u178A\u17D2\u178B\u17B6\u1793\u17D6 \u1782\u17D2\u1798\u17B6\u1793\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u178A\u17C2\u179B\u1794\u17B6\u1793\u179A\u1780\u17D2\u179F\u17B6\u1791\u17BB\u1780\u178F\u17D2\u179A\u17BC\u179C\u1793\u17B9\u1784\u1795\u17D2\u179B\u17BC\u179C\u178A\u17C2\u179B\u178F\u17D2\u179A\u17BC\u179C\u1794\u17B6\u1793\u178A\u1780\u1785\u17C1\u1789\u1791\u17C1\u17D4",
   "setting.reading-mode-indicator.name": "\u1794\u1784\u17D2\u17A0\u17B6\u1789\u179F\u1789\u17D2\u1789\u17B6\u179F\u1798\u17D2\u1782\u17B6\u179B\u17CB\u1793\u17C5\u1780\u17D2\u1793\u17BB\u1784\u179A\u1794\u17C0\u1794\u17A2\u17B6\u1793",
-  "setting.reading-mode-indicator.desc": "\u178F\u17BB\u1794\u178F\u17C2\u1784\u1794\u17D2\u179B\u17BB\u1780\u178A\u17C2\u179B\u1794\u17B6\u1793\u1794\u1784\u17D2\u17A0\u17B6\u1789\u1793\u17C5\u1780\u17D2\u1793\u17BB\u1784\u179A\u1794\u17C0\u1794\u17A2\u17B6\u1793\u178A\u17C4\u1799\u179F\u17CA\u17BB\u1798\u1781\u17B6\u1784\u1786\u17D2\u179C\u17C1\u1784\u1798\u17B6\u1793\u1796\u178E\u17CC\u178A\u17C2\u179B\u178F\u17D2\u179A\u17BC\u179C\u1793\u17B9\u1784\u1796\u178E\u17CC\u179F\u1789\u17D2\u1789\u17B6\u179F\u1798\u17D2\u1782\u17B6\u179B\u17CB\u1780\u17B6\u179A\u1780\u17C2\u179F\u1798\u17D2\u179A\u17BD\u179B (\u1794\u17B6\u1793\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A \u1794\u17B6\u1793\u1794\u1793\u17D2\u1790\u17C2\u1798 \u1785\u1793\u17D2\u179B\u17C4\u17C7 \u1794\u17B6\u1793\u179F\u17D2\u178A\u17B6\u179A)\u17D4 \u1794\u17B7\u1791\u178F\u17B6\u1798\u179B\u17C6\u1793\u17B6\u17C6\u178A\u17BE\u1798; \u1798\u17B6\u1793\u178F\u1798\u17D2\u179B\u17C3\u178F\u17B7\u1785\u178F\u17BD\u1785\u1780\u17D2\u1793\u17BB\u1784\u1798\u17BD\u1799\u1794\u17D2\u179B\u17BB\u1780\u1793\u17C5\u179A\u17B6\u179B\u17CB\u1780\u17B6\u179A\u1794\u1784\u17D2\u17A0\u17B6\u1789\u179A\u1794\u17C0\u1794\u17A2\u17B6\u1793\u17A1\u17BE\u1784\u179C\u17B7\u1789\u17D4"
+  "setting.reading-mode-indicator.desc": "\u178F\u17BB\u1794\u178F\u17C2\u1784\u1794\u17D2\u179B\u17BB\u1780\u178A\u17C2\u179B\u1794\u17B6\u1793\u1794\u1784\u17D2\u17A0\u17B6\u1789\u1793\u17C5\u1780\u17D2\u1793\u17BB\u1784\u179A\u1794\u17C0\u1794\u17A2\u17B6\u1793\u178A\u17C4\u1799\u179F\u17CA\u17BB\u1798\u1781\u17B6\u1784\u1786\u17D2\u179C\u17C1\u1784\u1798\u17B6\u1793\u1796\u178E\u17CC\u178A\u17C2\u179B\u178F\u17D2\u179A\u17BC\u179C\u1793\u17B9\u1784\u1796\u178E\u17CC\u179F\u1789\u17D2\u1789\u17B6\u179F\u1798\u17D2\u1782\u17B6\u179B\u17CB\u1780\u17B6\u179A\u1780\u17C2\u179F\u1798\u17D2\u179A\u17BD\u179B (\u1794\u17B6\u1793\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A \u1794\u17B6\u1793\u1794\u1793\u17D2\u1790\u17C2\u1798 \u1785\u1793\u17D2\u179B\u17C4\u17C7 \u1794\u17B6\u1793\u179F\u17D2\u178A\u17B6\u179A)\u17D4 \u1794\u17B7\u1791\u178F\u17B6\u1798\u179B\u17C6\u1793\u17B6\u17C6\u178A\u17BE\u1798; \u1798\u17B6\u1793\u178F\u1798\u17D2\u179B\u17C3\u178F\u17B7\u1785\u178F\u17BD\u1785\u1780\u17D2\u1793\u17BB\u1784\u1798\u17BD\u1799\u1794\u17D2\u179B\u17BB\u1780\u1793\u17C5\u179A\u17B6\u179B\u17CB\u1780\u17B6\u179A\u1794\u1784\u17D2\u17A0\u17B6\u1789\u179A\u1794\u17C0\u1794\u17A2\u17B6\u1793\u17A1\u17BE\u1784\u179C\u17B7\u1789\u17D4",
+  "setting.gutter-hover-panel.name": "\u1794\u1784\u17D2\u17A0\u17B6\u1789\u1795\u17D2\u1791\u17B6\u17C6\u1784\u1796\u17C1\u179B\u178A\u17B6\u1780\u17CB\u1791\u179F\u17D2\u179F\u1793\u17CD\u1791\u17D2\u179A\u1793\u17B7\u1785\u179B\u17BE\u179F\u1789\u17D2\u1789\u17B6\u179F\u1798\u17D2\u1782\u17B6\u179B\u17CB\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A",
+  "setting.gutter-hover-panel.desc": "\u178A\u17B6\u1780\u17CB\u1791\u179F\u17D2\u179F\u1793\u17CD\u1791\u17D2\u179A\u1793\u17B7\u1785\u179B\u17BE\u179F\u1789\u17D2\u1789\u17B6\u179F\u1798\u17D2\u1782\u17B6\u179B\u17CB\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1793\u17C5\u1782\u17C2\u1798 \u178A\u17BE\u1798\u17D2\u1794\u17B8\u1794\u17BE\u1780\u1795\u17D2\u1791\u17B6\u17C6\u1784\u178A\u17C2\u179B\u1794\u1784\u17D2\u17A0\u17B6\u1789\u1780\u17C6\u178E\u17C2\u1798\u17BB\u1793\u1793\u17C3\u1794\u1793\u17D2\u1791\u17B6\u178F\u17CB\u1793\u17C4\u17C7\u17D4 \u1796\u17B8\u1791\u17B8\u1793\u17C4\u17C7 \u17A2\u17D2\u1793\u1780\u17A2\u17B6\u1785\u178F\u17D2\u179A\u17A1\u1794\u17CB\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A \u1785\u1798\u17D2\u179B\u1784\u17A2\u178F\u17D2\u1790\u1794\u1791\u1785\u17B6\u179F\u17CB \u17AC\u1794\u17BE\u1780\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u17AF\u1780\u179F\u17B6\u179A\u17D4 \u1794\u17BE\u1780\u178F\u17B6\u1798\u179B\u17C6\u1793\u17B6\u17C6\u178A\u17BE\u1798\u17D4 \u17A2\u1793\u17BB\u179C\u178F\u17D2\u178F\u1785\u17C6\u1796\u17C4\u17C7\u179F\u1789\u17D2\u1789\u17B6\u1794\u1784\u17D2\u17A0\u17B6\u1789\u1794\u1793\u17D2\u1791\u17B6\u178F\u17CB\u1794\u1789\u17D2\u1788\u179A\u17D4"
 };
 
 // lang/ko.json
@@ -9060,7 +9833,9 @@ var ko_default = {
   "notice.purge-excluded": "\uB85C\uCEEC \uAE30\uB85D: \uC81C\uC678\uB41C \uACBD\uB85C\uC758 \uC2A4\uB0C5\uC0F7 {count}\uAC1C\uB97C \uBE44\uC6E0\uC2B5\uB2C8\uB2E4.",
   "notice.purge-excluded.no-match": "\uB85C\uCEEC \uAE30\uB85D: \uC81C\uC678\uB41C \uACBD\uB85C\uC640 \uC77C\uCE58\uD558\uB294 \uC800\uC7A5\uB41C \uAE30\uB85D\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.",
   "setting.reading-mode-indicator.name": "\uC77D\uAE30 \uBAA8\uB4DC\uC5D0\uC11C \uD45C\uC2DC\uAE30 \uBCF4\uC774\uAE30",
-  "setting.reading-mode-indicator.desc": "\uC77D\uAE30 \uBAA8\uB4DC\uC5D0\uC11C \uB80C\uB354\uB9C1\uB41C \uBE14\uB85D\uC744 \uD3B8\uC9D1 \uD45C\uC2DC\uAE30 \uC0C9\uC0C1(\uBCC0\uACBD, \uCD94\uAC00, \uACF5\uBC31, \uBCF5\uC6D0)\uACFC \uC77C\uCE58\uD558\uB294 \uC0C9\uC0C1\uC758 \uC67C\uCABD \uD14C\uB450\uB9AC\uB85C \uC7A5\uC2DD\uD569\uB2C8\uB2E4. \uAE30\uBCF8\uAC12\uC740 \uAEBC\uC9D0\uC774\uBA70, \uC77D\uAE30 \uBAA8\uB4DC\uB97C \uB2E4\uC2DC \uB80C\uB354\uB9C1\uD560 \uB54C\uB9C8\uB2E4 \uBE14\uB85D\uB2F9 \uC57D\uAC04\uC758 \uBE44\uC6A9\uC774 \uBC1C\uC0DD\uD569\uB2C8\uB2E4."
+  "setting.reading-mode-indicator.desc": "\uC77D\uAE30 \uBAA8\uB4DC\uC5D0\uC11C \uB80C\uB354\uB9C1\uB41C \uBE14\uB85D\uC744 \uD3B8\uC9D1 \uD45C\uC2DC\uAE30 \uC0C9\uC0C1(\uBCC0\uACBD, \uCD94\uAC00, \uACF5\uBC31, \uBCF5\uC6D0)\uACFC \uC77C\uCE58\uD558\uB294 \uC0C9\uC0C1\uC758 \uC67C\uCABD \uD14C\uB450\uB9AC\uB85C \uC7A5\uC2DD\uD569\uB2C8\uB2E4. \uAE30\uBCF8\uAC12\uC740 \uAEBC\uC9D0\uC774\uBA70, \uC77D\uAE30 \uBAA8\uB4DC\uB97C \uB2E4\uC2DC \uB80C\uB354\uB9C1\uD560 \uB54C\uB9C8\uB2E4 \uBE14\uB85D\uB2F9 \uC57D\uAC04\uC758 \uBE44\uC6A9\uC774 \uBC1C\uC0DD\uD569\uB2C8\uB2E4.",
+  "setting.gutter-hover-panel.name": "\uBCC0\uACBD \uD45C\uC2DD\uC5D0 \uB9C8\uC6B0\uC2A4\uB97C \uC62C\uB9AC\uBA74 \uD328\uB110 \uD45C\uC2DC",
+  "setting.gutter-hover-panel.desc": "\uC5EC\uBC31\uC758 \uBCC0\uACBD \uD45C\uC2DD \uC704\uC5D0 \uB9C8\uC6B0\uC2A4\uB97C \uC62C\uB9AC\uBA74 \uD574\uB2F9 \uC904\uC758 \uC774\uC804 \uBC84\uC804\uC744 \uBCF4\uC5EC \uC8FC\uB294 \uD328\uB110\uC774 \uC5F4\uB9BD\uB2C8\uB2E4. \uD328\uB110\uC5D0\uC11C \uBCC0\uACBD \uB418\uB3CC\uB9AC\uAE30, \uC774\uC804 \uD14D\uC2A4\uD2B8 \uBCF5\uC0AC, \uD30C\uC77C \uAE30\uB85D \uC5F4\uAE30\uB97C \uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4. \uAE30\uBCF8\uAC12\uC740 \uCF1C\uC9D0\uC785\uB2C8\uB2E4. \uC138\uB85C\uC120 \uD45C\uC2DC\uAE30\uC5D0 \uC801\uC6A9\uB429\uB2C8\uB2E4."
 };
 
 // lang/lv.json
@@ -9225,7 +10000,9 @@ var lv_default = {
   "notice.purge-excluded": "Lok\u0101l\u0101 v\u0113sture: izt\u012Br\u012Bti {count} momentuz\u0146\u0113mumi izsl\u0113gtajiem ce\u013Ciem.",
   "notice.purge-excluded.no-match": "Lok\u0101l\u0101 v\u0113sture: neviena saglab\u0101t\u0101 v\u0113sture neatbilst izsl\u0113gtajiem ce\u013Ciem.",
   "setting.reading-mode-indicator.name": "R\u0101d\u012Bt indikatorus las\u012B\u0161anas re\u017E\u012Bm\u0101",
-  "setting.reading-mode-indicator.desc": "Las\u012B\u0161anas re\u017E\u012Bm\u0101 att\u0113lotajiem blokiem pievienot kr\u0101sainu kreiso malu redi\u0123\u0113\u0161anas indikatora kr\u0101s\u0101s (main\u012Bts, pievienots, atstarpes, atjaunots). P\u0113c noklus\u0113juma izsl\u0113gts; katr\u0101 las\u012B\u0161anas re\u017E\u012Bma p\u0101rz\u012Bm\u0113\u0161an\u0101 ir nelielas izmaksas par bloku."
+  "setting.reading-mode-indicator.desc": "Las\u012B\u0161anas re\u017E\u012Bm\u0101 att\u0113lotajiem blokiem pievienot kr\u0101sainu kreiso malu redi\u0123\u0113\u0161anas indikatora kr\u0101s\u0101s (main\u012Bts, pievienots, atstarpes, atjaunots). P\u0113c noklus\u0113juma izsl\u0113gts; katr\u0101 las\u012B\u0161anas re\u017E\u012Bma p\u0101rz\u012Bm\u0113\u0161an\u0101 ir nelielas izmaksas par bloku.",
+  "setting.gutter-hover-panel.name": "R\u0101d\u012Bt paneli, novietojot kursoru virs izmai\u0146u mar\u0137ieriem",
+  "setting.gutter-hover-panel.desc": "Novietojiet kursoru virs izmai\u0146u mar\u0137iera mal\u0101, lai atv\u0113rtu paneli ar \u0161\u012Bs rindas iepriek\u0161\u0113jo versiju. No turienes varat atsaukt izmai\u0146u, kop\u0113t veco tekstu vai atv\u0113rt faila v\u0113sturi. P\u0113c noklus\u0113juma iesl\u0113gts. Attiecas uz vertik\u0101l\u0101s l\u012Bnijas indikatoru."
 };
 
 // lang/ms.json
@@ -9390,7 +10167,9 @@ var ms_default = {
   "notice.purge-excluded": "Sejarah setempat: {count} snapshot untuk laluan yang dikecualikan dibersihkan.",
   "notice.purge-excluded.no-match": "Sejarah setempat: tiada sejarah tersimpan yang sepadan dengan laluan yang dikecualikan.",
   "setting.reading-mode-indicator.name": "Tunjukkan penunjuk dalam mod baca",
-  "setting.reading-mode-indicator.desc": "Hiasi blok yang dipaparkan dalam mod baca dengan jidar kiri berwarna mengikut warna penunjuk suntingan (diubah, ditambah, ruang putih, dipulihkan). Dimatikan secara lalai; ada kos kecil bagi setiap blok pada setiap paparan semula mod baca."
+  "setting.reading-mode-indicator.desc": "Hiasi blok yang dipaparkan dalam mod baca dengan jidar kiri berwarna mengikut warna penunjuk suntingan (diubah, ditambah, ruang putih, dipulihkan). Dimatikan secara lalai; ada kos kecil bagi setiap blok pada setiap paparan semula mod baca.",
+  "setting.gutter-hover-panel.name": "Tunjukkan panel apabila kursor di atas penanda perubahan",
+  "setting.gutter-hover-panel.desc": "Halakan kursor ke penanda perubahan di parit untuk membuka panel yang menunjukkan versi sebelumnya bagi baris itu. Dari situ anda boleh mengundurkan perubahan, menyalin teks lama, atau membuka sejarah fail. Hidup secara lalai. Digunakan untuk penunjuk garisan menegak."
 };
 
 // lang/ne.json
@@ -9555,7 +10334,9 @@ var ne_default = {
   "notice.purge-excluded": "\u0938\u094D\u0925\u093E\u0928\u0940\u092F \u0907\u0924\u093F\u0939\u093E\u0938: \u092C\u0939\u093F\u0937\u094D\u0915\u0943\u0924 \u092E\u093E\u0930\u094D\u0917\u0939\u0930\u0942\u0915\u093E {count} \u0938\u094D\u0928\u094D\u092F\u093E\u092A\u0938\u091F \u0938\u092B\u093E \u0917\u0930\u093F\u092F\u094B\u0964",
   "notice.purge-excluded.no-match": "\u0938\u094D\u0925\u093E\u0928\u0940\u092F \u0907\u0924\u093F\u0939\u093E\u0938: \u092C\u0939\u093F\u0937\u094D\u0915\u0943\u0924 \u092E\u093E\u0930\u094D\u0917\u0939\u0930\u0942\u0938\u0901\u0917 \u092E\u093F\u0932\u094D\u0928\u0947 \u0915\u0941\u0928\u0948 \u0938\u0919\u094D\u0917\u094D\u0930\u0939\u093F\u0924 \u0907\u0924\u093F\u0939\u093E\u0938 \u091B\u0948\u0928\u0964",
   "setting.reading-mode-indicator.name": "\u092A\u0922\u094D\u0928\u0947 \u092E\u094B\u0921\u092E\u093E \u0938\u0942\u091A\u0915\u0939\u0930\u0942 \u0926\u0947\u0916\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D",
-  "setting.reading-mode-indicator.desc": "\u092A\u0922\u094D\u0928\u0947 \u092E\u094B\u0921\u092E\u093E \u0930\u0947\u0928\u094D\u0921\u0930 \u0917\u0930\u093F\u090F\u0915\u093E \u092C\u094D\u0932\u0915\u0939\u0930\u0942\u0932\u093E\u0908 \u0938\u092E\u094D\u092A\u093E\u0926\u0928 \u0938\u0942\u091A\u0915\u0915\u093E \u0930\u0919\u0939\u0930\u0942 (\u092A\u0930\u093F\u0935\u0930\u094D\u0924\u093F\u0924, \u0925\u092A\u093F\u090F\u0915\u094B, \u0916\u093E\u0932\u0940 \u0938\u094D\u0925\u093E\u0928, \u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u093F\u0924) \u0938\u0901\u0917 \u092E\u093F\u0932\u094D\u0928\u0947 \u0930\u0919\u094D\u0917\u0940\u0928 \u092C\u093E\u092F\u093E\u0901 \u0915\u093F\u0928\u093E\u0930\u093E\u0932\u0947 \u0938\u091C\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D\u0964 \u092A\u0942\u0930\u094D\u0935\u0928\u093F\u0930\u094D\u0927\u093E\u0930\u093F\u0924 \u0930\u0942\u092A\u092E\u093E \u092C\u0928\u094D\u0926; \u092A\u0922\u094D\u0928\u0947 \u092E\u094B\u0921\u0915\u094B \u0939\u0930\u0947\u0915 \u092A\u0941\u0928\u0903 \u0930\u0947\u0928\u094D\u0921\u0930\u092E\u093E \u092A\u094D\u0930\u0924\u093F \u092C\u094D\u0932\u0915 \u0925\u094B\u0930\u0948 \u0932\u093E\u0917\u0924 \u0932\u093E\u0917\u094D\u091B\u0964"
+  "setting.reading-mode-indicator.desc": "\u092A\u0922\u094D\u0928\u0947 \u092E\u094B\u0921\u092E\u093E \u0930\u0947\u0928\u094D\u0921\u0930 \u0917\u0930\u093F\u090F\u0915\u093E \u092C\u094D\u0932\u0915\u0939\u0930\u0942\u0932\u093E\u0908 \u0938\u092E\u094D\u092A\u093E\u0926\u0928 \u0938\u0942\u091A\u0915\u0915\u093E \u0930\u0919\u0939\u0930\u0942 (\u092A\u0930\u093F\u0935\u0930\u094D\u0924\u093F\u0924, \u0925\u092A\u093F\u090F\u0915\u094B, \u0916\u093E\u0932\u0940 \u0938\u094D\u0925\u093E\u0928, \u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u093F\u0924) \u0938\u0901\u0917 \u092E\u093F\u0932\u094D\u0928\u0947 \u0930\u0919\u094D\u0917\u0940\u0928 \u092C\u093E\u092F\u093E\u0901 \u0915\u093F\u0928\u093E\u0930\u093E\u0932\u0947 \u0938\u091C\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D\u0964 \u092A\u0942\u0930\u094D\u0935\u0928\u093F\u0930\u094D\u0927\u093E\u0930\u093F\u0924 \u0930\u0942\u092A\u092E\u093E \u092C\u0928\u094D\u0926; \u092A\u0922\u094D\u0928\u0947 \u092E\u094B\u0921\u0915\u094B \u0939\u0930\u0947\u0915 \u092A\u0941\u0928\u0903 \u0930\u0947\u0928\u094D\u0921\u0930\u092E\u093E \u092A\u094D\u0930\u0924\u093F \u092C\u094D\u0932\u0915 \u0925\u094B\u0930\u0948 \u0932\u093E\u0917\u0924 \u0932\u093E\u0917\u094D\u091B\u0964",
+  "setting.gutter-hover-panel.name": "\u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u091A\u093F\u0928\u094D\u0939\u092E\u093E \u0939\u094B\u092D\u0930 \u0917\u0930\u094D\u0926\u093E \u092A\u094D\u092F\u093E\u0928\u0932 \u0926\u0947\u0916\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D",
+  "setting.gutter-hover-panel.desc": "\u0924\u094D\u092F\u094B \u0932\u093E\u0907\u0928\u0915\u094B \u0905\u0918\u093F\u0932\u094D\u0932\u094B \u0938\u0902\u0938\u094D\u0915\u0930\u0923 \u0926\u0947\u0916\u093E\u0909\u0928\u0947 \u092A\u094D\u092F\u093E\u0928\u0932 \u0916\u094B\u0932\u094D\u0928 \u0917\u091F\u0930\u092E\u093E \u0930\u0939\u0947\u0915\u094B \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u091A\u093F\u0928\u094D\u0939\u092E\u093E\u0925\u093F \u092E\u093E\u0909\u0938 \u0932\u0948\u091C\u093E\u0928\u0941\u0939\u094B\u0938\u094D\u0964 \u0924\u094D\u092F\u0939\u093E\u0901\u092C\u093E\u091F \u0924\u092A\u093E\u0908\u0902 \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u0909\u0932\u094D\u091F\u093E\u0909\u0928, \u092A\u0941\u0930\u093E\u0928\u094B \u092A\u093E\u0920 \u092A\u094D\u0930\u0924\u093F\u0932\u093F\u092A\u093F \u0917\u0930\u094D\u0928 \u0935\u093E \u092B\u093E\u0907\u0932 \u0907\u0924\u093F\u0939\u093E\u0938 \u0916\u094B\u0932\u094D\u0928 \u0938\u0915\u094D\u0928\u0941\u0939\u0941\u0928\u094D\u091B\u0964 \u092A\u0942\u0930\u094D\u0935\u0928\u093F\u0930\u094D\u0927\u093E\u0930\u093F\u0924 \u0930\u0942\u092A\u092E\u093E \u0938\u0915\u094D\u0930\u093F\u092F\u0964 \u0920\u093E\u0921\u094B \u0930\u0947\u0916\u093E \u0938\u0942\u091A\u0915\u092E\u093E \u0932\u093E\u0917\u0942 \u0939\u0941\u0928\u094D\u091B\u0964"
 };
 
 // lang/nl.json
@@ -9720,7 +10501,9 @@ var nl_default = {
   "notice.purge-excluded": "Lokale geschiedenis: {count} snapshot(s) voor uitgesloten paden opgeschoond.",
   "notice.purge-excluded.no-match": "Lokale geschiedenis: geen opgeslagen geschiedenis komt overeen met de uitgesloten paden.",
   "setting.reading-mode-indicator.name": "Indicatoren tonen in leesmodus",
-  "setting.reading-mode-indicator.desc": "Gerenderde blokken in de leesmodus markeren met een gekleurde linkerrand in de kleuren van de bewerkingsindicator (gewijzigd, toegevoegd, witruimte, hersteld). Standaard uit; geeft een kleine kost per blok bij elke re-render van de leesmodus."
+  "setting.reading-mode-indicator.desc": "Gerenderde blokken in de leesmodus markeren met een gekleurde linkerrand in de kleuren van de bewerkingsindicator (gewijzigd, toegevoegd, witruimte, hersteld). Standaard uit; geeft een kleine kost per blok bij elke re-render van de leesmodus.",
+  "setting.gutter-hover-panel.name": "Zwevend paneel tonen bij wijzigingsmarkeringen",
+  "setting.gutter-hover-panel.desc": "Beweeg de muis over een wijzigingsmarkering in de kantlijn om een paneel te openen met de vorige versie van die regel. Van daaruit kun je de wijziging terugdraaien, de oude tekst kopi\xEBren of de bestandsgeschiedenis openen. Standaard ingeschakeld. Geldt voor de verticale-lijnindicator."
 };
 
 // lang/no.json
@@ -9885,7 +10668,9 @@ var no_default = {
   "notice.purge-excluded": "Lokal historikk: fjernet {count} \xF8yeblikksbilde(r) for ekskluderte stier.",
   "notice.purge-excluded.no-match": "Lokal historikk: ingen lagret historikk samsvarer med de ekskluderte stiene.",
   "setting.reading-mode-indicator.name": "Vis indikatorer i lesemodus",
-  "setting.reading-mode-indicator.desc": "Marker gjengitte blokker i lesemodus med en farget venstre kant i redigeringsindikatorens farger (endret, lagt til, blanktegn, gjenopprettet). Av som standard; gir en liten kostnad per blokk ved hver gjengivelse i lesemodus."
+  "setting.reading-mode-indicator.desc": "Marker gjengitte blokker i lesemodus med en farget venstre kant i redigeringsindikatorens farger (endret, lagt til, blanktegn, gjenopprettet). Av som standard; gir en liten kostnad per blokk ved hver gjengivelse i lesemodus.",
+  "setting.gutter-hover-panel.name": "Vis panel n\xE5r du holder over endringsmark\xF8rer",
+  "setting.gutter-hover-panel.desc": "Hold musepekeren over en endringsmark\xF8r i margen for \xE5 \xE5pne et panel med den forrige versjonen av den linjen. Derfra kan du tilbakestille endringen, kopiere den gamle teksten eller \xE5pne filhistorikken. P\xE5 som standard. Gjelder den vertikale linjeindikatoren."
 };
 
 // lang/pl.json
@@ -10050,7 +10835,9 @@ var pl_default = {
   "notice.purge-excluded": "Historia lokalna: usuni\u0119to {count} migawek dla wykluczonych \u015Bcie\u017Cek.",
   "notice.purge-excluded.no-match": "Historia lokalna: \u017Cadna zapisana historia nie pasuje do wykluczonych \u015Bcie\u017Cek.",
   "setting.reading-mode-indicator.name": "Pokazuj wska\u017Aniki w trybie czytania",
-  "setting.reading-mode-indicator.desc": "Oznaczaj wyrenderowane bloki w trybie czytania kolorow\u0105 lew\u0105 kraw\u0119dzi\u0105 w kolorach wska\u017Anika edycji (zmienione, dodane, bia\u0142e znaki, przywr\xF3cone). Domy\u015Blnie wy\u0142\u0105czone; dodaje niewielki koszt dla ka\u017Cdego bloku przy ka\u017Cdym renderowaniu trybu czytania."
+  "setting.reading-mode-indicator.desc": "Oznaczaj wyrenderowane bloki w trybie czytania kolorow\u0105 lew\u0105 kraw\u0119dzi\u0105 w kolorach wska\u017Anika edycji (zmienione, dodane, bia\u0142e znaki, przywr\xF3cone). Domy\u015Blnie wy\u0142\u0105czone; dodaje niewielki koszt dla ka\u017Cdego bloku przy ka\u017Cdym renderowaniu trybu czytania.",
+  "setting.gutter-hover-panel.name": "Poka\u017C panel po najechaniu na znaczniki zmian",
+  "setting.gutter-hover-panel.desc": "Najed\u017A kursorem na znacznik zmiany na marginesie, aby otworzy\u0107 panel z poprzedni\u0105 wersj\u0105 tego wiersza. Z panelu mo\u017Cesz cofn\u0105\u0107 zmian\u0119, skopiowa\u0107 stary tekst lub otworzy\u0107 histori\u0119 pliku. Domy\u015Blnie w\u0142\u0105czone. Dotyczy wska\u017Anika w postaci pionowej linii."
 };
 
 // lang/pt.json
@@ -10215,7 +11002,9 @@ var pt_default = {
   "notice.purge-excluded": "Hist\xF3rico local: foram purgados {count} instant\xE2neo(s) de caminhos exclu\xEDdos.",
   "notice.purge-excluded.no-match": "Hist\xF3rico local: nenhum hist\xF3rico guardado corresponde aos caminhos exclu\xEDdos.",
   "setting.reading-mode-indicator.name": "Mostrar indicadores no modo de leitura",
-  "setting.reading-mode-indicator.desc": "Decorar os blocos renderizados no modo de leitura com uma margem esquerda colorida nas cores do indicador de edi\xE7\xE3o (modificado, adicionado, espa\xE7os, restaurado). Desativado por predefini\xE7\xE3o; tem um pequeno custo por bloco em cada re-renderiza\xE7\xE3o do modo de leitura."
+  "setting.reading-mode-indicator.desc": "Decorar os blocos renderizados no modo de leitura com uma margem esquerda colorida nas cores do indicador de edi\xE7\xE3o (modificado, adicionado, espa\xE7os, restaurado). Desativado por predefini\xE7\xE3o; tem um pequeno custo por bloco em cada re-renderiza\xE7\xE3o do modo de leitura.",
+  "setting.gutter-hover-panel.name": "Mostrar painel ao passar o rato sobre os marcadores de altera\xE7\xE3o",
+  "setting.gutter-hover-panel.desc": "Passe o rato sobre um marcador de altera\xE7\xE3o na margem para abrir um painel com a vers\xE3o anterior dessa linha. A partir da\xED pode reverter a altera\xE7\xE3o, copiar o texto antigo ou abrir o hist\xF3rico do ficheiro. Ativado por predefini\xE7\xE3o. Aplica-se ao indicador de linha vertical."
 };
 
 // lang/pt-BR.json
@@ -10380,7 +11169,9 @@ var pt_BR_default = {
   "notice.purge-excluded": "Hist\xF3rico local: {count} snapshot(s) de caminhos exclu\xEDdos foram limpos.",
   "notice.purge-excluded.no-match": "Hist\xF3rico local: nenhum hist\xF3rico armazenado corresponde aos caminhos exclu\xEDdos.",
   "setting.reading-mode-indicator.name": "Mostrar indicadores no modo de leitura",
-  "setting.reading-mode-indicator.desc": "Decorar os blocos renderizados no modo de leitura com uma borda esquerda colorida nas cores do indicador de edi\xE7\xE3o (modificado, adicionado, espa\xE7os, restaurado). Desativado por padr\xE3o; tem um pequeno custo por bloco a cada re-renderiza\xE7\xE3o do modo de leitura."
+  "setting.reading-mode-indicator.desc": "Decorar os blocos renderizados no modo de leitura com uma borda esquerda colorida nas cores do indicador de edi\xE7\xE3o (modificado, adicionado, espa\xE7os, restaurado). Desativado por padr\xE3o; tem um pequeno custo por bloco a cada re-renderiza\xE7\xE3o do modo de leitura.",
+  "setting.gutter-hover-panel.name": "Mostrar painel ao passar o mouse sobre os marcadores de altera\xE7\xE3o",
+  "setting.gutter-hover-panel.desc": "Passe o mouse sobre um marcador de altera\xE7\xE3o na margem para abrir um painel com a vers\xE3o anterior dessa linha. De l\xE1 voc\xEA pode reverter a altera\xE7\xE3o, copiar o texto antigo ou abrir o hist\xF3rico do arquivo. Ativado por padr\xE3o. Aplica-se ao indicador de linha vertical."
 };
 
 // lang/ro.json
@@ -10545,7 +11336,9 @@ var ro_default = {
   "notice.purge-excluded": "Istoric local: au fost cur\u0103\u021Bate {count} instantanee pentru c\u0103ile excluse.",
   "notice.purge-excluded.no-match": "Istoric local: niciun istoric stocat nu corespunde c\u0103ilor excluse.",
   "setting.reading-mode-indicator.name": "Afi\u0219eaz\u0103 indicatori \xEEn modul de citire",
-  "setting.reading-mode-indicator.desc": "Decoreaz\u0103 blocurile redate \xEEn modul de citire cu o margine st\xE2ng\u0103 colorat\u0103 \xEEn culorile indicatorului de editare (modificat, ad\u0103ugat, spa\u021Bii, restaurat). Dezactivat implicit; are un mic cost per bloc la fiecare re-redare a modului de citire."
+  "setting.reading-mode-indicator.desc": "Decoreaz\u0103 blocurile redate \xEEn modul de citire cu o margine st\xE2ng\u0103 colorat\u0103 \xEEn culorile indicatorului de editare (modificat, ad\u0103ugat, spa\u021Bii, restaurat). Dezactivat implicit; are un mic cost per bloc la fiecare re-redare a modului de citire.",
+  "setting.gutter-hover-panel.name": "Afi\u0219eaz\u0103 un panou la trecerea cu mouse-ul peste marcajele de modificare",
+  "setting.gutter-hover-panel.desc": "Treci cu mouse-ul peste un marcaj de modificare din margine pentru a deschide un panou cu versiunea anterioar\u0103 a acelei linii. De acolo po\u021Bi anula modificarea, copia textul vechi sau deschide istoricul fi\u0219ierului. Activat implicit. Se aplic\u0103 indicatorului cu linie vertical\u0103."
 };
 
 // lang/ru.json
@@ -10710,7 +11503,9 @@ var ru_default = {
   "notice.purge-excluded": "\u041B\u043E\u043A\u0430\u043B\u044C\u043D\u0430\u044F \u0438\u0441\u0442\u043E\u0440\u0438\u044F: \u0443\u0434\u0430\u043B\u0435\u043D\u043E {count} \u0441\u043D\u0438\u043C\u043A\u043E\u0432 \u0434\u043B\u044F \u0438\u0441\u043A\u043B\u044E\u0447\u0451\u043D\u043D\u044B\u0445 \u043F\u0443\u0442\u0435\u0439.",
   "notice.purge-excluded.no-match": "\u041B\u043E\u043A\u0430\u043B\u044C\u043D\u0430\u044F \u0438\u0441\u0442\u043E\u0440\u0438\u044F: \u043D\u0435\u0442 \u0441\u043E\u0445\u0440\u0430\u043D\u0451\u043D\u043D\u043E\u0439 \u0438\u0441\u0442\u043E\u0440\u0438\u0438, \u0441\u043E\u0432\u043F\u0430\u0434\u0430\u044E\u0449\u0435\u0439 \u0441 \u0438\u0441\u043A\u043B\u044E\u0447\u0451\u043D\u043D\u044B\u043C\u0438 \u043F\u0443\u0442\u044F\u043C\u0438.",
   "setting.reading-mode-indicator.name": "\u041F\u043E\u043A\u0430\u0437\u044B\u0432\u0430\u0442\u044C \u0438\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u044B \u0432 \u0440\u0435\u0436\u0438\u043C\u0435 \u0447\u0442\u0435\u043D\u0438\u044F",
-  "setting.reading-mode-indicator.desc": "\u041F\u043E\u043C\u0435\u0447\u0430\u0442\u044C \u043E\u0442\u0440\u0438\u0441\u043E\u0432\u0430\u043D\u043D\u044B\u0435 \u0431\u043B\u043E\u043A\u0438 \u0432 \u0440\u0435\u0436\u0438\u043C\u0435 \u0447\u0442\u0435\u043D\u0438\u044F \u0446\u0432\u0435\u0442\u043D\u043E\u0439 \u043B\u0435\u0432\u043E\u0439 \u0433\u0440\u0430\u043D\u0438\u0446\u0435\u0439 \u0432 \u0446\u0432\u0435\u0442\u0430\u0445 \u0438\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u0430 \u043F\u0440\u0430\u0432\u043E\u043A (\u0438\u0437\u043C\u0435\u043D\u0435\u043D\u043E, \u0434\u043E\u0431\u0430\u0432\u043B\u0435\u043D\u043E, \u043F\u0440\u043E\u0431\u0435\u043B\u044B, \u0432\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u043E). \u041F\u043E \u0443\u043C\u043E\u043B\u0447\u0430\u043D\u0438\u044E \u0432\u044B\u043A\u043B\u044E\u0447\u0435\u043D\u043E; \u0434\u043E\u0431\u0430\u0432\u043B\u044F\u0435\u0442 \u043D\u0435\u0431\u043E\u043B\u044C\u0448\u0443\u044E \u043D\u0430\u0433\u0440\u0443\u0437\u043A\u0443 \u043D\u0430 \u043A\u0430\u0436\u0434\u044B\u0439 \u0431\u043B\u043E\u043A \u043F\u0440\u0438 \u043F\u0435\u0440\u0435\u0440\u0438\u0441\u043E\u0432\u043A\u0435 \u0440\u0435\u0436\u0438\u043C\u0430 \u0447\u0442\u0435\u043D\u0438\u044F."
+  "setting.reading-mode-indicator.desc": "\u041F\u043E\u043C\u0435\u0447\u0430\u0442\u044C \u043E\u0442\u0440\u0438\u0441\u043E\u0432\u0430\u043D\u043D\u044B\u0435 \u0431\u043B\u043E\u043A\u0438 \u0432 \u0440\u0435\u0436\u0438\u043C\u0435 \u0447\u0442\u0435\u043D\u0438\u044F \u0446\u0432\u0435\u0442\u043D\u043E\u0439 \u043B\u0435\u0432\u043E\u0439 \u0433\u0440\u0430\u043D\u0438\u0446\u0435\u0439 \u0432 \u0446\u0432\u0435\u0442\u0430\u0445 \u0438\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u0430 \u043F\u0440\u0430\u0432\u043E\u043A (\u0438\u0437\u043C\u0435\u043D\u0435\u043D\u043E, \u0434\u043E\u0431\u0430\u0432\u043B\u0435\u043D\u043E, \u043F\u0440\u043E\u0431\u0435\u043B\u044B, \u0432\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u043E). \u041F\u043E \u0443\u043C\u043E\u043B\u0447\u0430\u043D\u0438\u044E \u0432\u044B\u043A\u043B\u044E\u0447\u0435\u043D\u043E; \u0434\u043E\u0431\u0430\u0432\u043B\u044F\u0435\u0442 \u043D\u0435\u0431\u043E\u043B\u044C\u0448\u0443\u044E \u043D\u0430\u0433\u0440\u0443\u0437\u043A\u0443 \u043D\u0430 \u043A\u0430\u0436\u0434\u044B\u0439 \u0431\u043B\u043E\u043A \u043F\u0440\u0438 \u043F\u0435\u0440\u0435\u0440\u0438\u0441\u043E\u0432\u043A\u0435 \u0440\u0435\u0436\u0438\u043C\u0430 \u0447\u0442\u0435\u043D\u0438\u044F.",
+  "setting.gutter-hover-panel.name": "\u041F\u043E\u043A\u0430\u0437\u044B\u0432\u0430\u0442\u044C \u0432\u0441\u043F\u043B\u044B\u0432\u0430\u044E\u0449\u0443\u044E \u043F\u0430\u043D\u0435\u043B\u044C \u0443 \u043C\u0430\u0440\u043A\u0435\u0440\u043E\u0432 \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0439",
+  "setting.gutter-hover-panel.desc": "\u041D\u0430\u0432\u0435\u0434\u0438\u0442\u0435 \u043A\u0443\u0440\u0441\u043E\u0440 \u043D\u0430 \u043C\u0430\u0440\u043A\u0435\u0440 \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044F \u043D\u0430 \u043F\u043E\u043B\u044F\u0445, \u0447\u0442\u043E\u0431\u044B \u043E\u0442\u043A\u0440\u044B\u0442\u044C \u043F\u0430\u043D\u0435\u043B\u044C \u0441 \u043F\u0440\u0435\u0434\u044B\u0434\u0443\u0449\u0435\u0439 \u0432\u0435\u0440\u0441\u0438\u0435\u0439 \u044D\u0442\u043E\u0439 \u0441\u0442\u0440\u043E\u043A\u0438. \u041E\u0442\u0442\u0443\u0434\u0430 \u043C\u043E\u0436\u043D\u043E \u043E\u0442\u043A\u0430\u0442\u0438\u0442\u044C \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0435, \u0441\u043A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u0442\u044C \u0441\u0442\u0430\u0440\u044B\u0439 \u0442\u0435\u043A\u0441\u0442 \u0438\u043B\u0438 \u043E\u0442\u043A\u0440\u044B\u0442\u044C \u0438\u0441\u0442\u043E\u0440\u0438\u044E \u0444\u0430\u0439\u043B\u0430. \u0412\u043A\u043B\u044E\u0447\u0435\u043D\u043E \u043F\u043E \u0443\u043C\u043E\u043B\u0447\u0430\u043D\u0438\u044E. \u0420\u0430\u0431\u043E\u0442\u0430\u0435\u0442 \u0441 \u0438\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u043E\u043C \u0432 \u0432\u0438\u0434\u0435 \u0432\u0435\u0440\u0442\u0438\u043A\u0430\u043B\u044C\u043D\u043E\u0439 \u043B\u0438\u043D\u0438\u0438."
 };
 
 // lang/sk.json
@@ -10875,7 +11670,9 @@ var sk_default = {
   "notice.purge-excluded": "Lok\xE1lna hist\xF3ria: odstr\xE1nen\xFDch {count} sn\xEDmok pre vyl\xFA\u010Den\xE9 cesty.",
   "notice.purge-excluded.no-match": "Lok\xE1lna hist\xF3ria: \u017Eiadna ulo\u017Een\xE1 hist\xF3ria nezodpoved\xE1 vyl\xFA\u010Den\xFDm cest\xE1m.",
   "setting.reading-mode-indicator.name": "Zobrazova\u0165 indik\xE1tory v re\u017Eime \u010D\xEDtania",
-  "setting.reading-mode-indicator.desc": "Ozna\u010Dova\u0165 vykreslen\xE9 bloky v re\u017Eime \u010D\xEDtania farebn\xFDm \u013Eav\xFDm okrajom vo farb\xE1ch indik\xE1tora \xFAprav (zmenen\xE9, pridan\xE9, biele znaky, obnoven\xE9). Predvolene vypnut\xE9; prid\xE1va mal\xFA z\xE1\u0165a\u017E na ka\u017Ed\xFD blok pri ka\u017Edom prekreslen\xED re\u017Eimu \u010D\xEDtania."
+  "setting.reading-mode-indicator.desc": "Ozna\u010Dova\u0165 vykreslen\xE9 bloky v re\u017Eime \u010D\xEDtania farebn\xFDm \u013Eav\xFDm okrajom vo farb\xE1ch indik\xE1tora \xFAprav (zmenen\xE9, pridan\xE9, biele znaky, obnoven\xE9). Predvolene vypnut\xE9; prid\xE1va mal\xFA z\xE1\u0165a\u017E na ka\u017Ed\xFD blok pri ka\u017Edom prekreslen\xED re\u017Eimu \u010D\xEDtania.",
+  "setting.gutter-hover-panel.name": "Zobrazi\u0165 panel pri prejden\xED my\u0161ou na zna\u010Dky zmien",
+  "setting.gutter-hover-panel.desc": "Prejdite my\u0161ou na zna\u010Dku zmeny na okraji a otvor\xED sa panel s predch\xE1dzaj\xFAcou verziou dan\xE9ho riadka. Odtia\u013E m\xF4\u017Eete vr\xE1ti\u0165 zmenu, skop\xEDrova\u0165 star\xFD text alebo otvori\u0165 hist\xF3riu s\xFAboru. V predvolenom nastaven\xED zapnut\xE9. Plat\xED pre indik\xE1tor zvislej \u010Diary."
 };
 
 // lang/sq.json
@@ -11040,7 +11837,9 @@ var sq_default = {
   "notice.purge-excluded": "Historiku lokal: u pastruan {count} fotografi p\xEBr shtigjet e p\xEBrjashtuara.",
   "notice.purge-excluded.no-match": "Historiku lokal: asnj\xEB historik i ruajtur nuk p\xEBrputhet me shtigjet e p\xEBrjashtuara.",
   "setting.reading-mode-indicator.name": "Shfaq tregues n\xEB m\xEBnyr\xEBn e leximit",
-  "setting.reading-mode-indicator.desc": "Zbukuro blloqet e shfaqura n\xEB m\xEBnyr\xEBn e leximit me nj\xEB kufi t\xEB majt\xEB me ngjyr\xEB sipas ngjyrave t\xEB treguesit t\xEB redaktimit (ndryshuar, shtuar, hap\xEBsira, rikthyer). I \xE7aktivizuar si parazgjedhje; ka nj\xEB kosto t\xEB vog\xEBl p\xEBr bllok n\xEB \xE7do rishfaqje t\xEB m\xEBnyr\xEBs s\xEB leximit."
+  "setting.reading-mode-indicator.desc": "Zbukuro blloqet e shfaqura n\xEB m\xEBnyr\xEBn e leximit me nj\xEB kufi t\xEB majt\xEB me ngjyr\xEB sipas ngjyrave t\xEB treguesit t\xEB redaktimit (ndryshuar, shtuar, hap\xEBsira, rikthyer). I \xE7aktivizuar si parazgjedhje; ka nj\xEB kosto t\xEB vog\xEBl p\xEBr bllok n\xEB \xE7do rishfaqje t\xEB m\xEBnyr\xEBs s\xEB leximit.",
+  "setting.gutter-hover-panel.name": "Shfaq nj\xEB panel kur kalon kursori mbi sh\xEBnuesit e ndryshimeve",
+  "setting.gutter-hover-panel.desc": "Kalo kursorin mbi nj\xEB sh\xEBnues ndryshimi n\xEB an\xEB p\xEBr t\xEB hapur nj\xEB panel me versionin e m\xEBparsh\xEBm t\xEB asaj rreshti. Prej andej mund ta kthesh ndryshimin, t\xEB kopjosh tekstin e vjet\xEBr ose t\xEB hap\xEBsh historikun e skedarit. I aktivizuar si parazgjedhje. Zbatohet p\xEBr treguesin me vij\xEB vertikale."
 };
 
 // lang/sr.json
@@ -11205,7 +12004,9 @@ var sr_default = {
   "notice.purge-excluded": "\u041B\u043E\u043A\u0430\u043B\u043D\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0430: \u0443\u043A\u043B\u043E\u045A\u0435\u043D\u043E {count} \u0441\u043D\u0438\u043C\u0430\u043A\u0430 \u0437\u0430 \u0438\u0441\u043A\u0459\u0443\u0447\u0435\u043D\u0435 \u043F\u0443\u0442\u0430\u045A\u0435.",
   "notice.purge-excluded.no-match": "\u041B\u043E\u043A\u0430\u043B\u043D\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0430: \u043D\u0438\u0458\u0435\u0434\u043D\u0430 \u0441\u0430\u0447\u0443\u0432\u0430\u043D\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0430 \u0441\u0435 \u043D\u0435 \u043F\u043E\u043A\u043B\u0430\u043F\u0430 \u0441\u0430 \u0438\u0441\u043A\u0459\u0443\u0447\u0435\u043D\u0438\u043C \u043F\u0443\u0442\u0430\u045A\u0430\u043C\u0430.",
   "setting.reading-mode-indicator.name": "\u041F\u0440\u0438\u043A\u0430\u0436\u0438 \u0438\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u0435 \u0443 \u0440\u0435\u0436\u0438\u043C\u0443 \u0447\u0438\u0442\u0430\u045A\u0430",
-  "setting.reading-mode-indicator.desc": "\u041E\u0437\u043D\u0430\u0447\u0438 \u0438\u0441\u0446\u0440\u0442\u0430\u043D\u0435 \u0431\u043B\u043E\u043A\u043E\u0432\u0435 \u0443 \u0440\u0435\u0436\u0438\u043C\u0443 \u0447\u0438\u0442\u0430\u045A\u0430 \u043E\u0431\u043E\u0458\u0435\u043D\u043E\u043C \u043B\u0435\u0432\u043E\u043C \u0438\u0432\u0438\u0446\u043E\u043C \u0443 \u0431\u043E\u0458\u0430\u043C\u0430 \u0438\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u0430 \u0443\u0440\u0435\u0452\u0438\u0432\u0430\u045A\u0430 (\u0438\u0437\u043C\u0435\u045A\u0435\u043D\u043E, \u0434\u043E\u0434\u0430\u0442\u043E, \u0440\u0430\u0437\u043C\u0430\u0446\u0438, \u0432\u0440\u0430\u045B\u0435\u043D\u043E). \u041F\u043E\u0434\u0440\u0430\u0437\u0443\u043C\u0435\u0432\u0430\u043D\u043E \u0438\u0441\u043A\u0459\u0443\u0447\u0435\u043D\u043E; \u0434\u043E\u0434\u0430\u0458\u0435 \u043C\u0430\u043B\u0438 \u0442\u0440\u043E\u0448\u0430\u043A \u043F\u043E \u0431\u043B\u043E\u043A\u0443 \u043F\u0440\u0438 \u0441\u0432\u0430\u043A\u043E\u043C \u0438\u0441\u0446\u0440\u0442\u0430\u0432\u0430\u045A\u0443 \u0440\u0435\u0436\u0438\u043C\u0430 \u0447\u0438\u0442\u0430\u045A\u0430."
+  "setting.reading-mode-indicator.desc": "\u041E\u0437\u043D\u0430\u0447\u0438 \u0438\u0441\u0446\u0440\u0442\u0430\u043D\u0435 \u0431\u043B\u043E\u043A\u043E\u0432\u0435 \u0443 \u0440\u0435\u0436\u0438\u043C\u0443 \u0447\u0438\u0442\u0430\u045A\u0430 \u043E\u0431\u043E\u0458\u0435\u043D\u043E\u043C \u043B\u0435\u0432\u043E\u043C \u0438\u0432\u0438\u0446\u043E\u043C \u0443 \u0431\u043E\u0458\u0430\u043C\u0430 \u0438\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u0430 \u0443\u0440\u0435\u0452\u0438\u0432\u0430\u045A\u0430 (\u0438\u0437\u043C\u0435\u045A\u0435\u043D\u043E, \u0434\u043E\u0434\u0430\u0442\u043E, \u0440\u0430\u0437\u043C\u0430\u0446\u0438, \u0432\u0440\u0430\u045B\u0435\u043D\u043E). \u041F\u043E\u0434\u0440\u0430\u0437\u0443\u043C\u0435\u0432\u0430\u043D\u043E \u0438\u0441\u043A\u0459\u0443\u0447\u0435\u043D\u043E; \u0434\u043E\u0434\u0430\u0458\u0435 \u043C\u0430\u043B\u0438 \u0442\u0440\u043E\u0448\u0430\u043A \u043F\u043E \u0431\u043B\u043E\u043A\u0443 \u043F\u0440\u0438 \u0441\u0432\u0430\u043A\u043E\u043C \u0438\u0441\u0446\u0440\u0442\u0430\u0432\u0430\u045A\u0443 \u0440\u0435\u0436\u0438\u043C\u0430 \u0447\u0438\u0442\u0430\u045A\u0430.",
+  "setting.gutter-hover-panel.name": "\u041F\u0440\u0438\u043A\u0430\u0436\u0438 \u043F\u0430\u043D\u0435\u043B \u043F\u0440\u0438 \u043F\u0440\u0435\u043B\u0430\u0441\u043A\u0443 \u043C\u0438\u0448\u0430 \u043F\u0440\u0435\u043A\u043E \u043E\u0437\u043D\u0430\u043A\u0430 \u0438\u0437\u043C\u0435\u043D\u0430",
+  "setting.gutter-hover-panel.desc": "\u041F\u0440\u0435\u0452\u0438\u0442\u0435 \u043C\u0438\u0448\u0435\u043C \u043F\u0440\u0435\u043A\u043E \u043E\u0437\u043D\u0430\u043A\u0435 \u0438\u0437\u043C\u0435\u043D\u0435 \u043D\u0430 \u043C\u0430\u0440\u0433\u0438\u043D\u0438 \u0434\u0430 \u0431\u0438\u0441\u0442\u0435 \u043E\u0442\u0432\u043E\u0440\u0438\u043B\u0438 \u043F\u0430\u043D\u0435\u043B \u0441\u0430 \u043F\u0440\u0435\u0442\u0445\u043E\u0434\u043D\u043E\u043C \u0432\u0435\u0440\u0437\u0438\u0458\u043E\u043C \u0442\u043E\u0433 \u0440\u0435\u0434\u0430. \u041E\u0434\u0430\u0442\u043B\u0435 \u043C\u043E\u0436\u0435\u0442\u0435 \u0432\u0440\u0430\u0442\u0438\u0442\u0438 \u0438\u0437\u043C\u0435\u043D\u0443, \u043A\u043E\u043F\u0438\u0440\u0430\u0442\u0438 \u0441\u0442\u0430\u0440\u0438 \u0442\u0435\u043A\u0441\u0442 \u0438\u043B\u0438 \u043E\u0442\u0432\u043E\u0440\u0438\u0442\u0438 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0443 \u0434\u0430\u0442\u043E\u0442\u0435\u043A\u0435. \u041F\u043E\u0434\u0440\u0430\u0437\u0443\u043C\u0435\u0432\u0430\u043D\u043E \u0443\u043A\u0459\u0443\u0447\u0435\u043D\u043E. \u041F\u0440\u0438\u043C\u0435\u045A\u0443\u0458\u0435 \u0441\u0435 \u043D\u0430 \u0438\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440 \u0432\u0435\u0440\u0442\u0438\u043A\u0430\u043B\u043D\u0435 \u043B\u0438\u043D\u0438\u0458\u0435."
 };
 
 // lang/sv.json
@@ -11370,7 +12171,9 @@ var sv_default = {
   "notice.purge-excluded": "Lokal historik: rensade {count} \xF6gonblicksbild(er) f\xF6r exkluderade s\xF6kv\xE4gar.",
   "notice.purge-excluded.no-match": "Lokal historik: ingen sparad historik matchar de exkluderade s\xF6kv\xE4garna.",
   "setting.reading-mode-indicator.name": "Visa indikatorer i l\xE4sl\xE4ge",
-  "setting.reading-mode-indicator.desc": "Markera renderade block i l\xE4sl\xE4get med en f\xE4rgad v\xE4nsterkant i redigeringsindikatorns f\xE4rger (\xE4ndrad, tillagd, blanksteg, \xE5terst\xE4lld). Av som standard; ger en liten kostnad per block vid varje omrendering i l\xE4sl\xE4get."
+  "setting.reading-mode-indicator.desc": "Markera renderade block i l\xE4sl\xE4get med en f\xE4rgad v\xE4nsterkant i redigeringsindikatorns f\xE4rger (\xE4ndrad, tillagd, blanksteg, \xE5terst\xE4lld). Av som standard; ger en liten kostnad per block vid varje omrendering i l\xE4sl\xE4get.",
+  "setting.gutter-hover-panel.name": "Visa panel n\xE4r muspekaren \xE4r \xF6ver \xE4ndringsmark\xF6rer",
+  "setting.gutter-hover-panel.desc": "H\xE5ll muspekaren \xF6ver en \xE4ndringsmark\xF6r i marginalen f\xF6r att \xF6ppna en panel med den f\xF6reg\xE5ende versionen av den raden. D\xE4rifr\xE5n kan du \xE5ngra \xE4ndringen, kopiera den gamla texten eller \xF6ppna filhistoriken. P\xE5 som standard. G\xE4ller f\xF6r den vertikala linjeindikatorn."
 };
 
 // lang/th.json
@@ -11535,7 +12338,9 @@ var th_default = {
   "notice.purge-excluded": "\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E43\u0E19\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07: \u0E25\u0E49\u0E32\u0E07\u0E2A\u0E41\u0E19\u0E1B\u0E0A\u0E47\u0E2D\u0E15 {count} \u0E23\u0E32\u0E22\u0E01\u0E32\u0E23\u0E02\u0E2D\u0E07\u0E40\u0E2A\u0E49\u0E19\u0E17\u0E32\u0E07\u0E17\u0E35\u0E48\u0E22\u0E01\u0E40\u0E27\u0E49\u0E19",
   "notice.purge-excluded.no-match": "\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E43\u0E19\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07: \u0E44\u0E21\u0E48\u0E21\u0E35\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E17\u0E35\u0E48\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E44\u0E27\u0E49\u0E15\u0E23\u0E07\u0E01\u0E31\u0E1A\u0E40\u0E2A\u0E49\u0E19\u0E17\u0E32\u0E07\u0E17\u0E35\u0E48\u0E22\u0E01\u0E40\u0E27\u0E49\u0E19",
   "setting.reading-mode-indicator.name": "\u0E41\u0E2A\u0E14\u0E07\u0E15\u0E31\u0E27\u0E1A\u0E48\u0E07\u0E0A\u0E35\u0E49\u0E43\u0E19\u0E42\u0E2B\u0E21\u0E14\u0E2D\u0E48\u0E32\u0E19",
-  "setting.reading-mode-indicator.desc": "\u0E15\u0E01\u0E41\u0E15\u0E48\u0E07\u0E1A\u0E25\u0E47\u0E2D\u0E01\u0E17\u0E35\u0E48\u0E41\u0E2A\u0E14\u0E07\u0E1C\u0E25\u0E43\u0E19\u0E42\u0E2B\u0E21\u0E14\u0E2D\u0E48\u0E32\u0E19\u0E14\u0E49\u0E27\u0E22\u0E02\u0E2D\u0E1A\u0E0B\u0E49\u0E32\u0E22\u0E2A\u0E35\u0E17\u0E35\u0E48\u0E15\u0E23\u0E07\u0E01\u0E31\u0E1A\u0E2A\u0E35\u0E02\u0E2D\u0E07\u0E15\u0E31\u0E27\u0E1A\u0E48\u0E07\u0E0A\u0E35\u0E49\u0E01\u0E32\u0E23\u0E41\u0E01\u0E49\u0E44\u0E02 (\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07 \u0E40\u0E1E\u0E34\u0E48\u0E21 \u0E0A\u0E48\u0E2D\u0E07\u0E27\u0E48\u0E32\u0E07 \u0E01\u0E39\u0E49\u0E04\u0E37\u0E19) \u0E1B\u0E34\u0E14\u0E42\u0E14\u0E22\u0E04\u0E48\u0E32\u0E40\u0E23\u0E34\u0E48\u0E21\u0E15\u0E49\u0E19 \u0E21\u0E35\u0E04\u0E48\u0E32\u0E43\u0E0A\u0E49\u0E08\u0E48\u0E32\u0E22\u0E40\u0E25\u0E47\u0E01\u0E19\u0E49\u0E2D\u0E22\u0E15\u0E48\u0E2D\u0E1A\u0E25\u0E47\u0E2D\u0E01\u0E17\u0E38\u0E01\u0E04\u0E23\u0E31\u0E49\u0E07\u0E17\u0E35\u0E48\u0E41\u0E2A\u0E14\u0E07\u0E1C\u0E25\u0E42\u0E2B\u0E21\u0E14\u0E2D\u0E48\u0E32\u0E19\u0E43\u0E2B\u0E21\u0E48"
+  "setting.reading-mode-indicator.desc": "\u0E15\u0E01\u0E41\u0E15\u0E48\u0E07\u0E1A\u0E25\u0E47\u0E2D\u0E01\u0E17\u0E35\u0E48\u0E41\u0E2A\u0E14\u0E07\u0E1C\u0E25\u0E43\u0E19\u0E42\u0E2B\u0E21\u0E14\u0E2D\u0E48\u0E32\u0E19\u0E14\u0E49\u0E27\u0E22\u0E02\u0E2D\u0E1A\u0E0B\u0E49\u0E32\u0E22\u0E2A\u0E35\u0E17\u0E35\u0E48\u0E15\u0E23\u0E07\u0E01\u0E31\u0E1A\u0E2A\u0E35\u0E02\u0E2D\u0E07\u0E15\u0E31\u0E27\u0E1A\u0E48\u0E07\u0E0A\u0E35\u0E49\u0E01\u0E32\u0E23\u0E41\u0E01\u0E49\u0E44\u0E02 (\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07 \u0E40\u0E1E\u0E34\u0E48\u0E21 \u0E0A\u0E48\u0E2D\u0E07\u0E27\u0E48\u0E32\u0E07 \u0E01\u0E39\u0E49\u0E04\u0E37\u0E19) \u0E1B\u0E34\u0E14\u0E42\u0E14\u0E22\u0E04\u0E48\u0E32\u0E40\u0E23\u0E34\u0E48\u0E21\u0E15\u0E49\u0E19 \u0E21\u0E35\u0E04\u0E48\u0E32\u0E43\u0E0A\u0E49\u0E08\u0E48\u0E32\u0E22\u0E40\u0E25\u0E47\u0E01\u0E19\u0E49\u0E2D\u0E22\u0E15\u0E48\u0E2D\u0E1A\u0E25\u0E47\u0E2D\u0E01\u0E17\u0E38\u0E01\u0E04\u0E23\u0E31\u0E49\u0E07\u0E17\u0E35\u0E48\u0E41\u0E2A\u0E14\u0E07\u0E1C\u0E25\u0E42\u0E2B\u0E21\u0E14\u0E2D\u0E48\u0E32\u0E19\u0E43\u0E2B\u0E21\u0E48",
+  "setting.gutter-hover-panel.name": "\u0E41\u0E2A\u0E14\u0E07\u0E41\u0E1C\u0E07\u0E40\u0E21\u0E37\u0E48\u0E2D\u0E0A\u0E35\u0E49\u0E40\u0E21\u0E32\u0E2A\u0E4C\u0E17\u0E35\u0E48\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E2B\u0E21\u0E32\u0E22\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07",
+  "setting.gutter-hover-panel.desc": "\u0E0A\u0E35\u0E49\u0E40\u0E21\u0E32\u0E2A\u0E4C\u0E17\u0E35\u0E48\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E2B\u0E21\u0E32\u0E22\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E43\u0E19\u0E41\u0E16\u0E1A\u0E02\u0E2D\u0E1A\u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E40\u0E1B\u0E34\u0E14\u0E41\u0E1C\u0E07\u0E17\u0E35\u0E48\u0E41\u0E2A\u0E14\u0E07\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19\u0E01\u0E48\u0E2D\u0E19\u0E2B\u0E19\u0E49\u0E32\u0E02\u0E2D\u0E07\u0E1A\u0E23\u0E23\u0E17\u0E31\u0E14\u0E19\u0E31\u0E49\u0E19 \u0E08\u0E32\u0E01\u0E15\u0E23\u0E07\u0E19\u0E31\u0E49\u0E19\u0E04\u0E38\u0E13\u0E2A\u0E32\u0E21\u0E32\u0E23\u0E16\u0E22\u0E49\u0E2D\u0E19\u0E01\u0E25\u0E31\u0E1A\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07 \u0E04\u0E31\u0E14\u0E25\u0E2D\u0E01\u0E02\u0E49\u0E2D\u0E04\u0E27\u0E32\u0E21\u0E40\u0E14\u0E34\u0E21 \u0E2B\u0E23\u0E37\u0E2D\u0E40\u0E1B\u0E34\u0E14\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E44\u0E1F\u0E25\u0E4C\u0E44\u0E14\u0E49 \u0E40\u0E1B\u0E34\u0E14\u0E43\u0E0A\u0E49\u0E07\u0E32\u0E19\u0E15\u0E32\u0E21\u0E04\u0E48\u0E32\u0E40\u0E23\u0E34\u0E48\u0E21\u0E15\u0E49\u0E19 \u0E43\u0E0A\u0E49\u0E01\u0E31\u0E1A\u0E15\u0E31\u0E27\u0E1A\u0E48\u0E07\u0E0A\u0E35\u0E49\u0E40\u0E2A\u0E49\u0E19\u0E41\u0E19\u0E27\u0E15\u0E31\u0E49\u0E07"
 };
 
 // lang/tr.json
@@ -11700,7 +12505,9 @@ var tr_default = {
   "notice.purge-excluded": "Yerel ge\xE7mi\u015F: hari\xE7 tutulan yollar i\xE7in {count} anl\u0131k g\xF6r\xFCnt\xFC temizlendi.",
   "notice.purge-excluded.no-match": "Yerel ge\xE7mi\u015F: hari\xE7 tutulan yollarla e\u015Fle\u015Fen kay\u0131tl\u0131 ge\xE7mi\u015F yok.",
   "setting.reading-mode-indicator.name": "Okuma modunda g\xF6stergeleri g\xF6ster",
-  "setting.reading-mode-indicator.desc": "Okuma modunda i\u015Flenen bloklar\u0131, d\xFCzenleme g\xF6stergesi renkleriyle (de\u011Fi\u015Ftirildi, eklendi, bo\u015Fluk, geri y\xFCklendi) e\u015Fle\u015Fen renkli bir sol kenarl\u0131kla s\xFCsle. Varsay\u0131lan olarak kapal\u0131; okuma modunun her yeniden i\u015Flenmesinde blok ba\u015F\u0131na k\xFC\xE7\xFCk bir maliyeti vard\u0131r."
+  "setting.reading-mode-indicator.desc": "Okuma modunda i\u015Flenen bloklar\u0131, d\xFCzenleme g\xF6stergesi renkleriyle (de\u011Fi\u015Ftirildi, eklendi, bo\u015Fluk, geri y\xFCklendi) e\u015Fle\u015Fen renkli bir sol kenarl\u0131kla s\xFCsle. Varsay\u0131lan olarak kapal\u0131; okuma modunun her yeniden i\u015Flenmesinde blok ba\u015F\u0131na k\xFC\xE7\xFCk bir maliyeti vard\u0131r.",
+  "setting.gutter-hover-panel.name": "De\u011Fi\u015Fiklik i\u015Faretleyicilerinin \xFCzerine gelince panel g\xF6ster",
+  "setting.gutter-hover-panel.desc": "Bir panel a\xE7mak i\xE7in oluktaki de\u011Fi\u015Fiklik i\u015Faretleyicisinin \xFCzerine gelin; panel o sat\u0131r\u0131n \xF6nceki s\xFCr\xFCm\xFCn\xFC g\xF6sterir. Panelden de\u011Fi\u015Fikli\u011Fi geri alabilir, eski metni kopyalayabilir veya dosya ge\xE7mi\u015Fini a\xE7abilirsiniz. Varsay\u0131lan olarak a\xE7\u0131k. Dikey \xE7izgi g\xF6stergesi i\xE7in ge\xE7erlidir."
 };
 
 // lang/uk.json
@@ -11865,7 +12672,9 @@ var uk_default = {
   "notice.purge-excluded": "\u041B\u043E\u043A\u0430\u043B\u044C\u043D\u0430 \u0456\u0441\u0442\u043E\u0440\u0456\u044F: \u0432\u0438\u0434\u0430\u043B\u0435\u043D\u043E {count} \u0437\u043D\u0456\u043C\u043A\u0456\u0432 \u0434\u043B\u044F \u0432\u0438\u043A\u043B\u044E\u0447\u0435\u043D\u0438\u0445 \u0448\u043B\u044F\u0445\u0456\u0432.",
   "notice.purge-excluded.no-match": "\u041B\u043E\u043A\u0430\u043B\u044C\u043D\u0430 \u0456\u0441\u0442\u043E\u0440\u0456\u044F: \u043D\u0435\u043C\u0430\u0454 \u0437\u0431\u0435\u0440\u0435\u0436\u0435\u043D\u043E\u0457 \u0456\u0441\u0442\u043E\u0440\u0456\u0457, \u0449\u043E \u0432\u0456\u0434\u043F\u043E\u0432\u0456\u0434\u0430\u0454 \u0432\u0438\u043A\u043B\u044E\u0447\u0435\u043D\u0438\u043C \u0448\u043B\u044F\u0445\u0430\u043C.",
   "setting.reading-mode-indicator.name": "\u041F\u043E\u043A\u0430\u0437\u0443\u0432\u0430\u0442\u0438 \u0456\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u0438 \u0432 \u0440\u0435\u0436\u0438\u043C\u0456 \u0447\u0438\u0442\u0430\u043D\u043D\u044F",
-  "setting.reading-mode-indicator.desc": "\u041F\u043E\u0437\u043D\u0430\u0447\u0430\u0442\u0438 \u0432\u0456\u0434\u0442\u0432\u043E\u0440\u0435\u043D\u0456 \u0431\u043B\u043E\u043A\u0438 \u0432 \u0440\u0435\u0436\u0438\u043C\u0456 \u0447\u0438\u0442\u0430\u043D\u043D\u044F \u043A\u043E\u043B\u044C\u043E\u0440\u043E\u0432\u043E\u044E \u043B\u0456\u0432\u043E\u044E \u043C\u0435\u0436\u0435\u044E \u0432 \u043A\u043E\u043B\u044C\u043E\u0440\u0430\u0445 \u0456\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u0430 \u0440\u0435\u0434\u0430\u0433\u0443\u0432\u0430\u043D\u043D\u044F (\u0437\u043C\u0456\u043D\u0435\u043D\u043E, \u0434\u043E\u0434\u0430\u043D\u043E, \u043F\u0440\u043E\u0431\u0456\u043B\u0438, \u0432\u0456\u0434\u043D\u043E\u0432\u043B\u0435\u043D\u043E). \u0422\u0438\u043F\u043E\u0432\u043E \u0432\u0438\u043C\u043A\u043D\u0435\u043D\u043E; \u0434\u043E\u0434\u0430\u0454 \u043D\u0435\u0432\u0435\u043B\u0438\u043A\u0435 \u043D\u0430\u0432\u0430\u043D\u0442\u0430\u0436\u0435\u043D\u043D\u044F \u043D\u0430 \u043A\u043E\u0436\u0435\u043D \u0431\u043B\u043E\u043A \u043F\u0456\u0434 \u0447\u0430\u0441 \u043F\u0435\u0440\u0435\u043C\u0430\u043B\u044C\u043E\u0432\u0443\u0432\u0430\u043D\u043D\u044F \u0440\u0435\u0436\u0438\u043C\u0443 \u0447\u0438\u0442\u0430\u043D\u043D\u044F."
+  "setting.reading-mode-indicator.desc": "\u041F\u043E\u0437\u043D\u0430\u0447\u0430\u0442\u0438 \u0432\u0456\u0434\u0442\u0432\u043E\u0440\u0435\u043D\u0456 \u0431\u043B\u043E\u043A\u0438 \u0432 \u0440\u0435\u0436\u0438\u043C\u0456 \u0447\u0438\u0442\u0430\u043D\u043D\u044F \u043A\u043E\u043B\u044C\u043E\u0440\u043E\u0432\u043E\u044E \u043B\u0456\u0432\u043E\u044E \u043C\u0435\u0436\u0435\u044E \u0432 \u043A\u043E\u043B\u044C\u043E\u0440\u0430\u0445 \u0456\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u0430 \u0440\u0435\u0434\u0430\u0433\u0443\u0432\u0430\u043D\u043D\u044F (\u0437\u043C\u0456\u043D\u0435\u043D\u043E, \u0434\u043E\u0434\u0430\u043D\u043E, \u043F\u0440\u043E\u0431\u0456\u043B\u0438, \u0432\u0456\u0434\u043D\u043E\u0432\u043B\u0435\u043D\u043E). \u0422\u0438\u043F\u043E\u0432\u043E \u0432\u0438\u043C\u043A\u043D\u0435\u043D\u043E; \u0434\u043E\u0434\u0430\u0454 \u043D\u0435\u0432\u0435\u043B\u0438\u043A\u0435 \u043D\u0430\u0432\u0430\u043D\u0442\u0430\u0436\u0435\u043D\u043D\u044F \u043D\u0430 \u043A\u043E\u0436\u0435\u043D \u0431\u043B\u043E\u043A \u043F\u0456\u0434 \u0447\u0430\u0441 \u043F\u0435\u0440\u0435\u043C\u0430\u043B\u044C\u043E\u0432\u0443\u0432\u0430\u043D\u043D\u044F \u0440\u0435\u0436\u0438\u043C\u0443 \u0447\u0438\u0442\u0430\u043D\u043D\u044F.",
+  "setting.gutter-hover-panel.name": "\u041F\u043E\u043A\u0430\u0437\u0443\u0432\u0430\u0442\u0438 \u0441\u043F\u043B\u0438\u0432\u043D\u0443 \u043F\u0430\u043D\u0435\u043B\u044C \u0431\u0456\u043B\u044F \u043C\u0430\u0440\u043A\u0435\u0440\u0456\u0432 \u0437\u043C\u0456\u043D",
+  "setting.gutter-hover-panel.desc": "\u041D\u0430\u0432\u0435\u0434\u0456\u0442\u044C \u043A\u0443\u0440\u0441\u043E\u0440 \u043D\u0430 \u043C\u0430\u0440\u043A\u0435\u0440 \u0437\u043C\u0456\u043D\u0438 \u043D\u0430 \u043F\u043E\u043B\u044F\u0445, \u0449\u043E\u0431 \u0432\u0456\u0434\u043A\u0440\u0438\u0442\u0438 \u043F\u0430\u043D\u0435\u043B\u044C \u0456\u0437 \u043F\u043E\u043F\u0435\u0440\u0435\u0434\u043D\u044C\u043E\u044E \u0432\u0435\u0440\u0441\u0456\u0454\u044E \u0446\u044C\u043E\u0433\u043E \u0440\u044F\u0434\u043A\u0430. \u0417\u0432\u0456\u0434\u0442\u0438 \u043C\u043E\u0436\u043D\u0430 \u0432\u0456\u0434\u043A\u043E\u0442\u0438\u0442\u0438 \u0437\u043C\u0456\u043D\u0443, \u0441\u043A\u043E\u043F\u0456\u044E\u0432\u0430\u0442\u0438 \u0441\u0442\u0430\u0440\u0438\u0439 \u0442\u0435\u043A\u0441\u0442 \u0430\u0431\u043E \u0432\u0456\u0434\u043A\u0440\u0438\u0442\u0438 \u0456\u0441\u0442\u043E\u0440\u0456\u044E \u0444\u0430\u0439\u043B\u0443. \u0423\u0432\u0456\u043C\u043A\u043D\u0435\u043D\u043E \u0437\u0430 \u0437\u0430\u043C\u043E\u0432\u0447\u0443\u0432\u0430\u043D\u043D\u044F\u043C. \u041F\u0440\u0430\u0446\u044E\u0454 \u0437 \u0456\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u043E\u043C \u0443 \u0432\u0438\u0433\u043B\u044F\u0434\u0456 \u0432\u0435\u0440\u0442\u0438\u043A\u0430\u043B\u044C\u043D\u043E\u0457 \u043B\u0456\u043D\u0456\u0457."
 };
 
 // lang/uz.json
@@ -12030,7 +12839,9 @@ var uz_default = {
   "notice.purge-excluded": "Mahalliy tarix: istisno qilingan yo\u02BBllar uchun {count} ta surat tozalandi.",
   "notice.purge-excluded.no-match": "Mahalliy tarix: istisno qilingan yo\u02BBllarga mos saqlangan tarix yo\u02BBq.",
   "setting.reading-mode-indicator.name": "O\u02BBqish rejimida indikatorlarni ko\u02BBrsatish",
-  "setting.reading-mode-indicator.desc": "O\u02BBqish rejimida ko\u02BBrsatilgan bloklarni tahrirlash indikatori ranglariga (o\u02BBzgartirilgan, qo\u02BBshilgan, bo\u02BBsh joy, tiklangan) mos rangli chap hoshiya bilan bezash. Standart holatda o\u02BBchirilgan; o\u02BBqish rejimining har bir qayta chizilishida har blok uchun ozgina xarajat bor."
+  "setting.reading-mode-indicator.desc": "O\u02BBqish rejimida ko\u02BBrsatilgan bloklarni tahrirlash indikatori ranglariga (o\u02BBzgartirilgan, qo\u02BBshilgan, bo\u02BBsh joy, tiklangan) mos rangli chap hoshiya bilan bezash. Standart holatda o\u02BBchirilgan; o\u02BBqish rejimining har bir qayta chizilishida har blok uchun ozgina xarajat bor.",
+  "setting.gutter-hover-panel.name": "O\u02BBzgarish belgilariga kursor olib borilganda panelni ko\u02BBrsatish",
+  "setting.gutter-hover-panel.desc": "O\u02BBsha satrning oldingi versiyasini ko\u02BBrsatuvchi panelni ochish uchun kursorni hoshiyadagi o\u02BBzgarish belgisiga olib boring. U yerdan o\u02BBzgarishni qaytarishingiz, eski matnni nusxalashingiz yoki fayl tarixini ochishingiz mumkin. Standart holatda yoqilgan. Vertikal chiziq indikatoriga tegishli."
 };
 
 // lang/vi.json
@@ -12195,7 +13006,9 @@ var vi_default = {
   "notice.purge-excluded": "L\u1ECBch s\u1EED c\u1EE5c b\u1ED9: \u0111\xE3 x\xF3a {count} \u1EA3nh ch\u1EE5p cho c\xE1c \u0111\u01B0\u1EDDng d\u1EABn b\u1ECB lo\u1EA1i tr\u1EEB.",
   "notice.purge-excluded.no-match": "L\u1ECBch s\u1EED c\u1EE5c b\u1ED9: kh\xF4ng c\xF3 l\u1ECBch s\u1EED \u0111\xE3 l\u01B0u n\xE0o kh\u1EDBp v\u1EDBi c\xE1c \u0111\u01B0\u1EDDng d\u1EABn b\u1ECB lo\u1EA1i tr\u1EEB.",
   "setting.reading-mode-indicator.name": "Hi\u1EC7n ch\u1EC9 b\xE1o trong ch\u1EBF \u0111\u1ED9 \u0111\u1ECDc",
-  "setting.reading-mode-indicator.desc": "Trang tr\xED c\xE1c kh\u1ED1i \u0111\u01B0\u1EE3c hi\u1EC3n th\u1ECB trong ch\u1EBF \u0111\u1ED9 \u0111\u1ECDc b\u1EB1ng vi\u1EC1n tr\xE1i c\xF3 m\xE0u tr\xF9ng v\u1EDBi m\xE0u ch\u1EC9 b\xE1o ch\u1EC9nh s\u1EEDa (thay \u0111\u1ED5i, th\xEAm, kho\u1EA3ng tr\u1EAFng, kh\xF4i ph\u1EE5c). M\u1EB7c \u0111\u1ECBnh t\u1EAFt; t\u1ED1n m\u1ED9t ch\xFAt chi ph\xED cho m\u1ED7i kh\u1ED1i \u1EDF m\u1ED7i l\u1EA7n hi\u1EC3n th\u1ECB l\u1EA1i ch\u1EBF \u0111\u1ED9 \u0111\u1ECDc."
+  "setting.reading-mode-indicator.desc": "Trang tr\xED c\xE1c kh\u1ED1i \u0111\u01B0\u1EE3c hi\u1EC3n th\u1ECB trong ch\u1EBF \u0111\u1ED9 \u0111\u1ECDc b\u1EB1ng vi\u1EC1n tr\xE1i c\xF3 m\xE0u tr\xF9ng v\u1EDBi m\xE0u ch\u1EC9 b\xE1o ch\u1EC9nh s\u1EEDa (thay \u0111\u1ED5i, th\xEAm, kho\u1EA3ng tr\u1EAFng, kh\xF4i ph\u1EE5c). M\u1EB7c \u0111\u1ECBnh t\u1EAFt; t\u1ED1n m\u1ED9t ch\xFAt chi ph\xED cho m\u1ED7i kh\u1ED1i \u1EDF m\u1ED7i l\u1EA7n hi\u1EC3n th\u1ECB l\u1EA1i ch\u1EBF \u0111\u1ED9 \u0111\u1ECDc.",
+  "setting.gutter-hover-panel.name": "Hi\u1EC7n b\u1EA3ng khi di chu\u1ED9t qua d\u1EA5u thay \u0111\u1ED5i",
+  "setting.gutter-hover-panel.desc": "Di chu\u1ED9t qua m\u1ED9t d\u1EA5u thay \u0111\u1ED5i \u1EDF l\u1EC1 \u0111\u1EC3 m\u1EDF b\u1EA3ng hi\u1EC3n th\u1ECB phi\xEAn b\u1EA3n tr\u01B0\u1EDBc c\u1EE7a d\xF2ng \u0111\xF3. T\u1EEB \u0111\xF3 b\u1EA1n c\xF3 th\u1EC3 ho\xE0n t\xE1c thay \u0111\u1ED5i, sao ch\xE9p v\u0103n b\u1EA3n c\u0169 ho\u1EB7c m\u1EDF l\u1ECBch s\u1EED t\u1EC7p. B\u1EADt theo m\u1EB7c \u0111\u1ECBnh. \xC1p d\u1EE5ng cho ch\u1EC9 b\xE1o \u0111\u01B0\u1EDDng k\u1EBB d\u1ECDc."
 };
 
 // lang/zh.json
@@ -12360,7 +13173,9 @@ var zh_default = {
   "notice.purge-excluded": "\u672C\u5730\u5386\u53F2:\u5DF2\u6E05\u9664\u6392\u9664\u8DEF\u5F84\u7684 {count} \u4E2A\u5FEB\u7167\u3002",
   "notice.purge-excluded.no-match": "\u672C\u5730\u5386\u53F2:\u6CA1\u6709\u4E0E\u6392\u9664\u8DEF\u5F84\u5339\u914D\u7684\u5DF2\u5B58\u50A8\u5386\u53F2\u3002",
   "setting.reading-mode-indicator.name": "\u5728\u9605\u8BFB\u6A21\u5F0F\u4E2D\u663E\u793A\u6307\u793A\u5668",
-  "setting.reading-mode-indicator.desc": "\u5728\u9605\u8BFB\u6A21\u5F0F\u4E2D\u4E3A\u6E32\u67D3\u7684\u5757\u6DFB\u52A0\u5F69\u8272\u5DE6\u8FB9\u6846,\u989C\u8272\u4E0E\u5B9E\u65F6\u7F16\u8F91\u6307\u793A\u5668\u4E00\u81F4(\u66F4\u6539\u3001\u6DFB\u52A0\u3001\u7A7A\u767D\u3001\u6062\u590D)\u3002\u9ED8\u8BA4\u5173\u95ED;\u6BCF\u6B21\u9605\u8BFB\u6A21\u5F0F\u91CD\u65B0\u6E32\u67D3\u65F6\u6BCF\u4E2A\u5757\u6709\u5C11\u91CF\u5F00\u9500\u3002"
+  "setting.reading-mode-indicator.desc": "\u5728\u9605\u8BFB\u6A21\u5F0F\u4E2D\u4E3A\u6E32\u67D3\u7684\u5757\u6DFB\u52A0\u5F69\u8272\u5DE6\u8FB9\u6846,\u989C\u8272\u4E0E\u5B9E\u65F6\u7F16\u8F91\u6307\u793A\u5668\u4E00\u81F4(\u66F4\u6539\u3001\u6DFB\u52A0\u3001\u7A7A\u767D\u3001\u6062\u590D)\u3002\u9ED8\u8BA4\u5173\u95ED;\u6BCF\u6B21\u9605\u8BFB\u6A21\u5F0F\u91CD\u65B0\u6E32\u67D3\u65F6\u6BCF\u4E2A\u5757\u6709\u5C11\u91CF\u5F00\u9500\u3002",
+  "setting.gutter-hover-panel.name": "\u5728\u66F4\u6539\u6807\u8BB0\u4E0A\u60AC\u505C\u65F6\u663E\u793A\u9762\u677F",
+  "setting.gutter-hover-panel.desc": "\u5C06\u9F20\u6807\u60AC\u505C\u5728\u8FB9\u680F\u7684\u66F4\u6539\u6807\u8BB0\u4E0A\uFF0C\u5373\u53EF\u6253\u5F00\u4E00\u4E2A\u9762\u677F\uFF0C\u663E\u793A\u8BE5\u884C\u7684\u4E0A\u4E00\u4E2A\u7248\u672C\u3002\u5728\u9762\u677F\u4E2D\u53EF\u4EE5\u64A4\u9500\u6B64\u66F4\u6539\u3001\u590D\u5236\u65E7\u6587\u672C\u6216\u6253\u5F00\u6587\u4EF6\u5386\u53F2\u3002\u9ED8\u8BA4\u5F00\u542F\u3002\u9002\u7528\u4E8E\u7AD6\u7EBF\u6307\u793A\u5668\u3002"
 };
 
 // lang/zh-TW.json
@@ -12525,7 +13340,9 @@ var zh_TW_default = {
   "notice.purge-excluded": "\u672C\u6A5F\u6B77\u53F2:\u5DF2\u6E05\u9664\u6392\u9664\u8DEF\u5F91\u7684 {count} \u500B\u5FEB\u7167\u3002",
   "notice.purge-excluded.no-match": "\u672C\u6A5F\u6B77\u53F2:\u6C92\u6709\u8207\u6392\u9664\u8DEF\u5F91\u76F8\u7B26\u7684\u5DF2\u5132\u5B58\u6B77\u53F2\u3002",
   "setting.reading-mode-indicator.name": "\u5728\u95B1\u8B80\u6A21\u5F0F\u4E2D\u986F\u793A\u6307\u793A\u5668",
-  "setting.reading-mode-indicator.desc": "\u5728\u95B1\u8B80\u6A21\u5F0F\u4E2D\u70BA\u5448\u73FE\u7684\u5340\u584A\u52A0\u4E0A\u5F69\u8272\u5DE6\u908A\u6846,\u984F\u8272\u8207\u5373\u6642\u7DE8\u8F2F\u6307\u793A\u5668\u4E00\u81F4(\u8B8A\u66F4\u3001\u65B0\u589E\u3001\u7A7A\u767D\u3001\u9084\u539F)\u3002\u9810\u8A2D\u95DC\u9589;\u6BCF\u6B21\u95B1\u8B80\u6A21\u5F0F\u91CD\u65B0\u5448\u73FE\u6642\u6BCF\u500B\u5340\u584A\u6709\u5C11\u91CF\u8CA0\u64D4\u3002"
+  "setting.reading-mode-indicator.desc": "\u5728\u95B1\u8B80\u6A21\u5F0F\u4E2D\u70BA\u5448\u73FE\u7684\u5340\u584A\u52A0\u4E0A\u5F69\u8272\u5DE6\u908A\u6846,\u984F\u8272\u8207\u5373\u6642\u7DE8\u8F2F\u6307\u793A\u5668\u4E00\u81F4(\u8B8A\u66F4\u3001\u65B0\u589E\u3001\u7A7A\u767D\u3001\u9084\u539F)\u3002\u9810\u8A2D\u95DC\u9589;\u6BCF\u6B21\u95B1\u8B80\u6A21\u5F0F\u91CD\u65B0\u5448\u73FE\u6642\u6BCF\u500B\u5340\u584A\u6709\u5C11\u91CF\u8CA0\u64D4\u3002",
+  "setting.gutter-hover-panel.name": "\u5728\u8B8A\u66F4\u6A19\u8A18\u4E0A\u505C\u7559\u6642\u986F\u793A\u9762\u677F",
+  "setting.gutter-hover-panel.desc": "\u5C07\u6ED1\u9F20\u505C\u7559\u5728\u908A\u6B04\u7684\u8B8A\u66F4\u6A19\u8A18\u4E0A\uFF0C\u5373\u53EF\u958B\u555F\u4E00\u500B\u9762\u677F\uFF0C\u986F\u793A\u8A72\u884C\u7684\u4E0A\u4E00\u500B\u7248\u672C\u3002\u5728\u9762\u677F\u4E2D\u53EF\u4EE5\u5FA9\u539F\u6B64\u8B8A\u66F4\u3001\u8907\u88FD\u820A\u6587\u5B57\u6216\u958B\u555F\u6A94\u6848\u6B77\u53F2\u3002\u9810\u8A2D\u958B\u555F\u3002\u9069\u7528\u65BC\u5782\u76F4\u7DDA\u6307\u793A\u5668\u3002"
 };
 
 // src/helpers/i18n.helper.ts
@@ -14048,7 +14865,7 @@ function set(object, path, value) {
 var set_default = set;
 
 // src/helpers/dom.helper.ts
-var import_obsidian13 = require("obsidian");
+var import_obsidian14 = require("obsidian");
 function create(config) {
   const element = document.createElement(config.tag);
   update(element, config);
@@ -14120,12 +14937,12 @@ function update(element, config) {
 }
 function setSanitizedHtml(element, html2) {
   element.empty();
-  element.appendChild((0, import_obsidian13.sanitizeHTMLToDom)(html2));
+  element.appendChild((0, import_obsidian14.sanitizeHTMLToDom)(html2));
 }
 
 // src/modals/confirm.modal.ts
-var import_obsidian14 = require("obsidian");
-var ConfirmModal = class extends import_obsidian14.Modal {
+var import_obsidian15 = require("obsidian");
+var ConfirmModal = class extends import_obsidian15.Modal {
   /**
    * Creates a new instance of ConfirmModal.
    *
@@ -14480,7 +15297,7 @@ var FolderTreeModel = class _FolderTreeModel {
 };
 
 // src/components/folder-tree.component.ts
-var import_obsidian15 = require("obsidian");
+var import_obsidian16 = require("obsidian");
 var FolderTreeComponent = class {
   constructor() {
     /** Container the component renders into; null between dispose / re-mount. */
@@ -14690,13 +15507,13 @@ var FolderTreeComponent = class {
       classes: ["tree-item-icon", "collapse-icon", "lct-folder-tree-chevron"],
       container: row
     });
-    (0, import_obsidian15.setIcon)(chevron, isCollapsed ? "chevron-right" : "chevron-down");
+    (0, import_obsidian16.setIcon)(chevron, isCollapsed ? "chevron-right" : "chevron-down");
     const icon = create({
       tag: "span",
       classes: "lct-folder-tree-icon",
       container: row
     });
-    (0, import_obsidian15.setIcon)(icon, "folder");
+    (0, import_obsidian16.setIcon)(icon, "folder");
     create({
       tag: "span",
       classes: ["tree-item-inner", "nav-folder-title-content", "lct-folder-tree-name"],
@@ -14755,7 +15572,7 @@ var FolderTreeComponent = class {
       classes: "lct-folder-tree-icon",
       container: row
     });
-    (0, import_obsidian15.setIcon)(icon, "file");
+    (0, import_obsidian16.setIcon)(icon, "file");
     create({
       tag: "span",
       classes: ["tree-item-inner", "nav-file-title-content", "lct-folder-tree-name"],
@@ -14795,7 +15612,7 @@ var FolderTreeComponent = class {
       classes: "lct-version-external-badge-icon",
       container: badge
     });
-    (0, import_obsidian15.setIcon)(slot, "download-cloud");
+    (0, import_obsidian16.setIcon)(slot, "download-cloud");
     create({
       tag: "span",
       classes: "lct-version-external-badge-text",
@@ -15088,7 +15905,7 @@ var DiffViewState = class {
 };
 
 // src/modals/folder-action-handler.ts
-var import_obsidian16 = require("obsidian");
+var import_obsidian17 = require("obsidian");
 var FolderActionHandler = class {
   /**
    * @param {FolderActionHost} host - The modal port the handler reads its shared
@@ -15253,9 +16070,9 @@ var FolderActionHandler = class {
       await this.host.app.vault.modify(file, originalContent);
       this.host.snapshotsService.wipeOne(file);
       this.host.removeFromMap(selection.path);
-      new import_obsidian16.Notice(this.host.plugin.t("notice.file-restored"));
+      new import_obsidian17.Notice(this.host.plugin.t("notice.file-restored"));
     } catch (_error) {
-      new import_obsidian16.Notice(this.host.plugin.t("notice.file-restore-failed"));
+      new import_obsidian17.Notice(this.host.plugin.t("notice.file-restore-failed"));
       return;
     }
     this.host.resyncTimeline();
@@ -15313,7 +16130,7 @@ var FolderActionHandler = class {
   async restoreTombstoneSelection(path, snapshot, result) {
     const content = result.base.join(snapshot.content.lineBreak);
     if (this.host.app.vault.getAbstractFileByPath(path) !== null) {
-      new import_obsidian16.Notice(this.host.plugin.t("notice.file-restore-path-occupied"));
+      new import_obsidian17.Notice(this.host.plugin.t("notice.file-restore-path-occupied"));
       return;
     }
     try {
@@ -15324,151 +16141,10 @@ var FolderActionHandler = class {
       snapshot.updateChanges();
       this.host.snapshotsService.forceUpdate();
     } catch (_error) {
-      new import_obsidian16.Notice(this.host.plugin.t("notice.file-restore-failed"));
+      new import_obsidian17.Notice(this.host.plugin.t("notice.file-restore-failed"));
     }
   }
 };
-
-// src/helpers/word-diff.helper.ts
-function segments(oldText, newText) {
-  const old = oldText != null ? oldText : "";
-  const next = newText != null ? newText : "";
-  if (old.length + next.length > WORD_DIFF_LENGTH_THRESHOLD) {
-    const result = [];
-    if (old.length > 0) {
-      result.push({ value: old, removed: true, added: false, count: 1 });
-    }
-    if (next.length > 0) {
-      result.push({ value: next, added: true, removed: false, count: 1 });
-    }
-    return result;
-  }
-  return diffWords(old, next);
-}
-function lines(base, current) {
-  const changes = diffLines(base != null ? base : "", current != null ? current : "");
-  const result = [];
-  for (let index = 0; index < changes.length; index++) {
-    const change = changes[index];
-    if (!change.added && !change.removed) {
-      splitLines2(change.value).forEach((text) => {
-        result.push({ type: "context" /* context */, oldText: text, newText: text });
-      });
-      continue;
-    }
-    if (change.removed) {
-      const next = changes[index + 1];
-      const removedLines = splitLines2(change.value);
-      if (next == null ? void 0 : next.added) {
-        const addedLines = splitLines2(next.value);
-        pairAndEmit(removedLines, addedLines, result);
-        index++;
-        continue;
-      }
-      removedLines.forEach((text) => {
-        result.push({ type: "removed" /* removed */, oldText: text });
-      });
-      continue;
-    }
-    splitLines2(change.value).forEach((text) => {
-      result.push({ type: "added" /* added */, newText: text });
-    });
-  }
-  return result;
-}
-function pairAndEmit(removedLines, addedLines, result) {
-  const useGreedy = removedLines.length <= WORD_DIFF_PAIRING_THRESHOLD && addedLines.length <= WORD_DIFF_PAIRING_THRESHOLD;
-  if (!useGreedy) {
-    positionalPair(removedLines, addedLines, result);
-    return;
-  }
-  greedyPair(removedLines, addedLines, result);
-}
-function positionalPair(removedLines, addedLines, result) {
-  const paired = Math.min(removedLines.length, addedLines.length);
-  for (let i = 0; i < paired; i++) {
-    result.push({ type: "modified" /* modified */, oldText: removedLines[i], newText: addedLines[i] });
-  }
-  for (let i = paired; i < removedLines.length; i++) {
-    result.push({ type: "removed" /* removed */, oldText: removedLines[i] });
-  }
-  for (let i = paired; i < addedLines.length; i++) {
-    result.push({ type: "added" /* added */, newText: addedLines[i] });
-  }
-}
-function greedyPair(removedLines, addedLines, result) {
-  const availableAdded = new Set(addedLines.map((_, i) => i));
-  const pairs = [];
-  const unmatchedRemoved = [];
-  for (let ri = 0; ri < removedLines.length; ri++) {
-    let bestScore = -1;
-    let bestAi = -1;
-    for (const ai of availableAdded) {
-      const score = wordOverlapRatio(removedLines[ri], addedLines[ai]);
-      if (score > bestScore) {
-        bestScore = score;
-        bestAi = ai;
-      }
-    }
-    if (bestAi >= 0) {
-      pairs.push({ removedIdx: ri, addedIdx: bestAi });
-      availableAdded.delete(bestAi);
-    } else {
-      unmatchedRemoved.push(ri);
-    }
-  }
-  pairs.sort(
-    (a, b) => a.removedIdx - b.removedIdx
-  );
-  let unmatchedRemovedIdx = 0;
-  for (const pair of pairs) {
-    while (unmatchedRemovedIdx < unmatchedRemoved.length && unmatchedRemoved[unmatchedRemovedIdx] < pair.removedIdx) {
-      result.push({ type: "removed" /* removed */, oldText: removedLines[unmatchedRemoved[unmatchedRemovedIdx]] });
-      unmatchedRemovedIdx++;
-    }
-    result.push({
-      type: "modified" /* modified */,
-      oldText: removedLines[pair.removedIdx],
-      newText: addedLines[pair.addedIdx]
-    });
-  }
-  while (unmatchedRemovedIdx < unmatchedRemoved.length) {
-    result.push({ type: "removed" /* removed */, oldText: removedLines[unmatchedRemoved[unmatchedRemovedIdx]] });
-    unmatchedRemovedIdx++;
-  }
-  for (const ai of Array.from(availableAdded).sort((a, b) => a - b)) {
-    result.push({ type: "added" /* added */, newText: addedLines[ai] });
-  }
-}
-function wordOverlapRatio(a, b) {
-  var _a, _b;
-  const wordsA = a.trim().split(/\s+/).filter(Boolean);
-  const wordsB = b.trim().split(/\s+/).filter(Boolean);
-  if (wordsA.length === 0 && wordsB.length === 0) {
-    return 0;
-  }
-  const freqA = /* @__PURE__ */ new Map();
-  for (const w of wordsA) {
-    freqA.set(w, ((_a = freqA.get(w)) != null ? _a : 0) + 1);
-  }
-  let intersection = 0;
-  for (const w of wordsB) {
-    const countA = (_b = freqA.get(w)) != null ? _b : 0;
-    if (countA > 0) {
-      intersection++;
-      freqA.set(w, countA - 1);
-    }
-  }
-  const union = wordsA.length + wordsB.length - intersection;
-  return union === 0 ? 0 : intersection / union;
-}
-function splitLines2(value) {
-  if (value === "") {
-    return [];
-  }
-  const normalized = value.replace(/\r?\n$/, "");
-  return normalized.split(/\r?\n/);
-}
 
 // node_modules/diff2html/lib-esm/types.js
 var LineType;
@@ -17416,7 +18092,7 @@ function html(diffInput, configuration = {}) {
 }
 
 // src/helpers/diff-render.helper.ts
-var import_obsidian17 = require("obsidian");
+var import_obsidian18 = require("obsidian");
 function render(params) {
   const hunks = diff(
     params.baseLines,
@@ -17488,7 +18164,7 @@ function renderPatch(params) {
   const patch = buildCleanPatch(params);
   const handlerClick = () => {
     navigator.clipboard.writeText(patch).then(() => {
-      new import_obsidian17.Notice(params.plugin.t("notice.copied"));
+      new import_obsidian18.Notice(params.plugin.t("notice.copied"));
     });
   };
   update(
@@ -17518,7 +18194,7 @@ function renderPatch(params) {
   );
   const copyButton = params.container.querySelector(".lct-patch-copy-button");
   if (copyButton) {
-    (0, import_obsidian17.setIcon)(copyButton, "copy");
+    (0, import_obsidian18.setIcon)(copyButton, "copy");
     copyButton.setAttribute("aria-label", params.plugin.t("modal.copy"));
     copyButton.setAttribute("title", params.plugin.t("modal.copy"));
   }
@@ -17979,7 +18655,7 @@ var FolderSelectionModel = class {
 };
 
 // src/helpers/external-badge.helper.ts
-var import_obsidian18 = require("obsidian");
+var import_obsidian19 = require("obsidian");
 var iconId = "download-cloud";
 function make(text) {
   return {
@@ -18000,7 +18676,7 @@ function paint(container) {
     const badgeIconId = badge.getAttribute("data-icon");
     const slot = badge.querySelector(".lct-version-external-badge-icon");
     if (badgeIconId && slot) {
-      (0, import_obsidian18.setIcon)(slot, badgeIconId);
+      (0, import_obsidian19.setIcon)(slot, badgeIconId);
     }
   });
 }
@@ -18224,7 +18900,7 @@ var HistoryModalShell = class {
 };
 
 // src/modals/toolbar-builder.ts
-var import_obsidian19 = require("obsidian");
+var import_obsidian20 = require("obsidian");
 var ToolbarBuilder = class {
   /**
    * @param {HTMLElement} container - The toolbar element groups are appended to.
@@ -18275,14 +18951,14 @@ var ToolbarBuilder = class {
         }
       }
     });
-    (0, import_obsidian19.setIcon)(button, config.icon);
+    (0, import_obsidian20.setIcon)(button, config.icon);
     return button;
   }
 };
 
 // src/modals/folder-history.modal.ts
-var import_obsidian20 = require("obsidian");
-var FolderHistoryModal = class extends import_obsidian20.Modal {
+var import_obsidian21 = require("obsidian");
+var FolderHistoryModal = class extends import_obsidian21.Modal {
   /**
    * Builds a new folder history modal. The caller is expected to have filtered
    * the snapshots to the folder root (see {@link ModalsService.openFolderHistory})
@@ -18501,7 +19177,7 @@ var FolderHistoryModal = class extends import_obsidian20.Modal {
     const key2 = "modal.folder.filter-files";
     const resolved = this.plugin.t(key2);
     const placeholder = resolved && resolved !== key2 ? resolved : "Filter files by name";
-    new import_obsidian20.SearchComponent(this.treeSearchEl).setPlaceholder(placeholder).setValue("").onChange((value) => {
+    new import_obsidian21.SearchComponent(this.treeSearchEl).setPlaceholder(placeholder).setValue("").onChange((value) => {
       this.tree.setNameFilter(value);
     });
   }
@@ -19009,7 +19685,7 @@ var DiffScrollSync = class {
 };
 
 // src/modals/gutter-revert-handler.ts
-var import_obsidian21 = require("obsidian");
+var import_obsidian22 = require("obsidian");
 var GutterRevertHandler = class {
   /**
    * @param {GutterRevertHost} host - The modal port the handler reads its shared
@@ -19238,7 +19914,7 @@ var GutterRevertHandler = class {
         }
       }
     });
-    (0, import_obsidian21.setIcon)(button, "undo-2");
+    (0, import_obsidian22.setIcon)(button, "undo-2");
   }
   /**
    * The live diff container, narrowed to a non-null element. The public entry
@@ -19718,8 +20394,8 @@ var VersionList = class {
 };
 
 // src/modals/history.modal.ts
-var import_obsidian22 = require("obsidian");
-var HistoryModal = class extends import_obsidian22.Modal {
+var import_obsidian23 = require("obsidian");
+var HistoryModal = class extends import_obsidian23.Modal {
   /**
    * Creates a new instance of HistoryModal.
    *
@@ -19846,10 +20522,10 @@ var HistoryModal = class extends import_obsidian22.Modal {
       }
       await this.app.vault.modify(file, originalContent);
       this.snapshotsService.wipeOne(file);
-      new import_obsidian22.Notice(this.plugin.t("notice.file-restored"));
+      new import_obsidian23.Notice(this.plugin.t("notice.file-restored"));
       this.close();
     } catch (_error) {
-      new import_obsidian22.Notice(this.plugin.t("notice.file-restore-failed"));
+      new import_obsidian23.Notice(this.plugin.t("notice.file-restore-failed"));
     }
   }
   /**
@@ -20242,7 +20918,7 @@ var HistoryModal = class extends import_obsidian22.Modal {
       return;
     }
     update(this.searchEl, { classes: { remove: "lct-rail-search-empty" } });
-    new import_obsidian22.SearchComponent(this.searchEl).setPlaceholder(this.plugin.t("modal.search-versions")).setValue(this.viewState.searchQuery).onChange((value) => {
+    new import_obsidian23.SearchComponent(this.searchEl).setPlaceholder(this.plugin.t("modal.search-versions")).setValue(this.viewState.searchQuery).onChange((value) => {
       this.viewState.searchQuery = value;
       this.versionList.render();
     });
@@ -20383,8 +21059,8 @@ __decorateClass([
 ], HistoryModal.prototype, "versionActionsService", 2);
 
 // src/modals/prompt.modal.ts
-var import_obsidian23 = require("obsidian");
-var PromptModal = class extends import_obsidian23.Modal {
+var import_obsidian24 = require("obsidian");
+var PromptModal = class extends import_obsidian24.Modal {
   /**
    * Creates a new instance of PromptModal.
    *
@@ -20516,7 +21192,7 @@ var PromptModal = class extends import_obsidian23.Modal {
 };
 
 // src/services/modals.service.ts
-var import_obsidian24 = require("obsidian");
+var import_obsidian25 = require("obsidian");
 var ModalsService = class {
   /**
    * Creates a new instance of ModalsService.
@@ -20625,13 +21301,13 @@ var ModalsService = class {
    */
   openFolderHistory(folder) {
     if (!folder) {
-      new import_obsidian24.Notice(this.plugin.t("notice.no-folder-history"));
+      new import_obsidian25.Notice(this.plugin.t("notice.no-folder-history"));
       return false;
     }
     const rootPath = folder.path;
     const snapshots = this.snapshotsService.getList().filter((snapshot) => this.isUnderFolder(snapshot, rootPath));
     if (snapshots.length === 0) {
-      new import_obsidian24.Notice(this.plugin.t("notice.no-folder-history"));
+      new import_obsidian25.Notice(this.plugin.t("notice.no-folder-history"));
       return false;
     }
     new FolderHistoryModal(this.plugin.app, this.plugin, rootPath, snapshots).open();
@@ -22152,8 +22828,8 @@ var ExcludePatternsEditor = class {
 };
 
 // src/settings/main.setting.ts
-var import_obsidian25 = require("obsidian");
-var MainSetting = class extends import_obsidian25.PluginSettingTab {
+var import_obsidian26 = require("obsidian");
+var MainSetting = class extends import_obsidian26.PluginSettingTab {
   constructor() {
     super(...arguments);
     /**
@@ -22194,7 +22870,7 @@ var MainSetting = class extends import_obsidian25.PluginSettingTab {
    * @param {HTMLElement} containerEl - The settings tab container
    */
   renderGeneral(containerEl) {
-    const group = new import_obsidian25.SettingGroup(containerEl).setHeading(this.plugin.t("setting.general-heading"));
+    const group = new import_obsidian26.SettingGroup(containerEl).setHeading(this.plugin.t("setting.general-heading"));
     group.addSetting((setting) => {
       setting.setName(this.plugin.t("setting.type.name")).setDesc(this.plugin.t("setting.type.desc")).addDropdown(
         (dropdown) => dropdown.addOption("line" /* line */, this.plugin.t("setting.type.option.line")).addOption("dot" /* dot */, this.plugin.t("setting.type.option.dot")).setValue(this.settingsService.value("type")).onChange((value) => {
@@ -22258,7 +22934,7 @@ var MainSetting = class extends import_obsidian25.PluginSettingTab {
    * @param {HTMLElement} containerEl - The settings tab container
    */
   renderExcludePaths(containerEl) {
-    const group = new import_obsidian25.SettingGroup(containerEl).setHeading(this.plugin.t("setting.exclude-paths.name"));
+    const group = new import_obsidian26.SettingGroup(containerEl).setHeading(this.plugin.t("setting.exclude-paths.name"));
     group.addExtraButton(
       (button) => button.setIcon("plus").setTooltip(this.plugin.t("setting.exclude-paths.add")).onClick(() => {
         this.excludePatternsEditor.startAdd();
@@ -22306,7 +22982,7 @@ var MainSetting = class extends import_obsidian25.PluginSettingTab {
    * @param {HTMLElement} containerEl - The settings tab container
    */
   renderSnapshots(containerEl) {
-    const group = new import_obsidian25.SettingGroup(containerEl).setHeading(this.plugin.t("setting.snapshots-heading"));
+    const group = new import_obsidian26.SettingGroup(containerEl).setHeading(this.plugin.t("setting.snapshots-heading"));
     group.addSetting((setting) => {
       setting.setName(this.plugin.t("setting.snapshots-enabled.name")).setDesc(this.plugin.t("setting.snapshots-enabled.desc")).addToggle(
         (toggle) => toggle.setValue(this.settingsService.value("snapshots.enabled")).onChange((value) => {
@@ -22360,7 +23036,7 @@ var MainSetting = class extends import_obsidian25.PluginSettingTab {
    * @param {HTMLElement} containerEl - The settings tab container
    */
   renderShow(containerEl) {
-    const group = new import_obsidian25.SettingGroup(containerEl).setHeading(this.plugin.t("setting.show-heading"));
+    const group = new import_obsidian26.SettingGroup(containerEl).setHeading(this.plugin.t("setting.show-heading"));
     group.addSetting((setting) => {
       setting.setDesc(this.plugin.t("setting.show.desc"));
     });
@@ -22386,7 +23062,7 @@ var MainSetting = class extends import_obsidian25.PluginSettingTab {
    * @param {HTMLElement} containerEl - The settings tab container
    */
   renderLine(containerEl) {
-    const group = new import_obsidian25.SettingGroup(containerEl).setHeading(this.plugin.t("setting.line-heading"));
+    const group = new import_obsidian26.SettingGroup(containerEl).setHeading(this.plugin.t("setting.line-heading"));
     group.addSetting((setting) => {
       setting.setName(this.plugin.t("setting.line-width.name")).setDesc(this.plugin.t("setting.line-width.desc")).addSlider(
         (slider) => slider.setLimits(1, 5, 1).setValue(this.settingsService.value("line.width")).setDynamicTooltip().onChange((value) => {
@@ -22402,7 +23078,14 @@ var MainSetting = class extends import_obsidian25.PluginSettingTab {
    * @param {HTMLElement} containerEl - The settings tab container
    */
   renderGutter(containerEl) {
-    const group = new import_obsidian25.SettingGroup(containerEl).setHeading(this.plugin.t("setting.gutter-heading.name"));
+    const group = new import_obsidian26.SettingGroup(containerEl).setHeading(this.plugin.t("setting.gutter-heading.name"));
+    group.addSetting((setting) => {
+      setting.setName(this.plugin.t("setting.gutter-hover-panel.name")).setDesc(this.plugin.t("setting.gutter-hover-panel.desc")).addToggle(
+        (toggle) => toggle.setValue(this.settingsService.value("gutterHoverPanel")).onChange((value) => {
+          this.settingsService.update("gutterHoverPanel", value);
+        })
+      );
+    });
     group.addSetting((setting) => {
       setting.setDesc(
         createFragment([
@@ -22456,7 +23139,7 @@ var MainSetting = class extends import_obsidian25.PluginSettingTab {
    * @param {HTMLElement} containerEl - The settings tab container
    */
   renderCleanup(containerEl) {
-    const group = new import_obsidian25.SettingGroup(containerEl).setHeading(this.plugin.t("setting.cleanup-heading"));
+    const group = new import_obsidian26.SettingGroup(containerEl).setHeading(this.plugin.t("setting.cleanup-heading"));
     group.addSetting((setting) => {
       setting.setName(this.plugin.t("setting.keep.name")).setDesc(this.plugin.t("setting.keep.desc")).addDropdown(
         (dropdown) => dropdown.addOption("app" /* app */, this.plugin.t("setting.keep.option.app")).addOption("file" /* file */, this.plugin.t("setting.keep.option.file")).setValue(this.settingsService.value("keep")).onChange((value) => {
@@ -22506,7 +23189,7 @@ var MainSetting = class extends import_obsidian25.PluginSettingTab {
           }
           const count = this.snapshotsService.purgeExcluded();
           const message = count === 0 ? this.plugin.t("notice.purge-excluded.no-match") : this.plugin.t("notice.purge-excluded").replace("{count}", String(count));
-          new import_obsidian25.Notice(message);
+          new import_obsidian26.Notice(message);
         });
       });
     });
@@ -22830,7 +23513,7 @@ var _ExternalChangeCapture = class _ExternalChangeCapture {
       this.rememberLastSeen(file);
       return;
     }
-    const newLines = content.split(snapshot.content.lineBreak);
+    const newLines = content.split(/\r?\n/);
     const captured = snapshot.captureVersion(newLines, this.host.getCaptureOptions(), true);
     if (captured) {
       captured.external = true;
@@ -23152,7 +23835,7 @@ var SnapshotState = class {
    * and its hash. A restore later overrides the history baseline independently.
    *
    * @param {string} content - The initial file content as a string
-   * @param {string} lineBreak - The line break used to split and join content
+   * @param {string} lineBreak - The line break used to rejoin the owned lines
    */
   constructor(content, lineBreak) {
     /**
@@ -23184,15 +23867,17 @@ var SnapshotState = class {
      */
     this.lastHash = null;
     /**
-     * Line break character used to split incoming content and join the owned line
-     * arrays for comparison. Defaults to '\n'.
+     * Line break used to JOIN the owned line arrays back into content (hashing,
+     * comparison, disk writes). Incoming content is always split on `/\r?\n/`, so a
+     * mixed-ending document decomposes into the same lines the editor sees; this
+     * convention only decides how those lines are rejoined. Defaults to '\n'.
      */
     this.lineBreak = "\n";
     var _a;
     if (lineBreak) {
       this.lineBreak = lineBreak;
     }
-    this.lines = (_a = content == null ? void 0 : content.split(this.lineBreak)) != null ? _a : [];
+    this.lines = (_a = content == null ? void 0 : content.split(/\r?\n/)) != null ? _a : [];
     this.historyLines = [...this.lines];
     this.updateState(this.lines);
   }
@@ -23203,7 +23888,7 @@ var SnapshotState = class {
    * @param {string | string[]} content - The new content, as a string or lines
    */
   updateState(content) {
-    this.state = Array.isArray(content) ? [...content] : content.split(this.lineBreak);
+    this.state = Array.isArray(content) ? [...content] : content.split(/\r?\n/);
     this.lastHash = hash(this.state.join(this.lineBreak));
   }
   /**
@@ -24998,10 +25683,9 @@ var FileSnapshot = class {
    * collision (two distinct contents that hash to the same 32-bit value)
    * cannot make a genuine external rewrite look identical.
    *
-   * The comparison splits the incoming content on the snapshot's own
-   * `lineBreak` (the same separator used when `state` was filled), so a
-   * change that differs only in trailing whitespace or line count is detected
-   * even when the hashes collide.
+   * The comparison splits the incoming content on `/\r?\n/` (the same separator
+   * used when `state` was filled), so a change that differs only in trailing
+   * whitespace or line count is detected even when the hashes collide.
    *
    * @param {string} content - The current content of the file to check
    * @return {boolean} True if the content differs from the stored state, false if identical
@@ -25010,7 +25694,7 @@ var FileSnapshot = class {
     if (this.content.lastHash !== hash(content)) {
       return true;
     }
-    const incoming = content.split(this.content.lineBreak);
+    const incoming = content.split(/\r?\n/);
     const current = this.content.state;
     if (incoming.length !== current.length) {
       return true;
@@ -26032,7 +26716,7 @@ var SnapshotRegistry = class {
 };
 
 // src/services/snapshots.service.ts
-var import_obsidian26 = require("obsidian");
+var import_obsidian27 = require("obsidian");
 var SnapshotsService = class {
   /**
    * Creates a new instance of SnapshotsService.
@@ -26507,7 +27191,7 @@ var SnapshotsService = class {
       getExcludePatterns: () => this.settingsService.value("excludePaths"),
       getExcludePathsCaseSensitive: () => this.settingsService.value("excludePathsCaseSensitive"),
       notifyInvalidPattern: () => {
-        new import_obsidian26.Notice(this.plugin.t("notice.invalid-exclude-pattern"));
+        new import_obsidian27.Notice(this.plugin.t("notice.invalid-exclude-pattern"));
       }
     };
   }
@@ -26569,7 +27253,7 @@ __decorateClass([
 ], SnapshotsService.prototype, "settingsService", 2);
 
 // src/services/statusbar.service.ts
-var import_obsidian27 = require("obsidian");
+var import_obsidian28 = require("obsidian");
 var StatusbarService = class {
   /**
    * Creates a new instance of StatusbarService.
@@ -26601,7 +27285,7 @@ var StatusbarService = class {
     var _a, _b;
     const view = (_a = this.plugin.app.workspace.getMostRecentLeaf()) == null ? void 0 : _a.view;
     const snapshot = this.snapshotsService.getOne();
-    if (!view || !(view instanceof import_obsidian27.MarkdownView) || !snapshot) {
+    if (!view || !(view instanceof import_obsidian28.MarkdownView) || !snapshot) {
       this.clear();
       return;
     }
@@ -26689,7 +27373,7 @@ __decorateClass([
 ], StatusbarService.prototype, "updateFileStatus", 1);
 
 // src/services/styles.service.ts
-var StylesService = class {
+var _StylesService = class _StylesService {
   constructor(plugin) {
     this.plugin = plugin;
   }
@@ -26701,19 +27385,27 @@ var StylesService = class {
     const width = this.settingsService.value("line.width");
     document.body.style.setProperty(LINE_WIDTH_VAR, `${width}px`);
     document.body.style.setProperty(LINE_BORDER_RADIUS_VAR, `${(width / 2).toFixed(0)}px`);
+    document.body.classList.toggle(
+      _StylesService.HOVER_AFFORDANCE_CLASS,
+      this.settingsService.value("gutterHoverPanel")
+    );
   }
-  /** Clears the custom properties this service set on the document body. */
+  /** Clears the custom properties and hover-affordance class this service set. */
   unload() {
     document.body.style.removeProperty(LINE_WIDTH_VAR);
     document.body.style.removeProperty(LINE_BORDER_RADIUS_VAR);
+    document.body.classList.remove(_StylesService.HOVER_AFFORDANCE_CLASS);
   }
 };
+/** Body class gating the gutter marker hover affordance (styles.scss keys on it). */
+_StylesService.HOVER_AFFORDANCE_CLASS = "lct-hover-affordance";
 __decorateClass([
   Inject(TOKENS.settings)
-], StylesService.prototype, "settingsService", 2);
+], _StylesService.prototype, "settingsService", 2);
 __decorateClass([
   On("settings:update" /* settingsUpdate */)
-], StylesService.prototype, "update", 1);
+], _StylesService.prototype, "update", 1);
+var StylesService = _StylesService;
 
 // src/services/container.ts
 var ServiceContainer = class {
@@ -26827,7 +27519,7 @@ var ServiceContainer = class {
 };
 
 // src/services/reading-mode-indicator.service.ts
-var import_obsidian28 = require("obsidian");
+var import_obsidian29 = require("obsidian");
 var ReadingModeIndicatorService = class {
   /**
    * Creates a new instance of ReadingModeIndicatorService.
@@ -26889,7 +27581,7 @@ var ReadingModeIndicatorService = class {
     if (!this.processor) {
       return;
     }
-    import_obsidian28.MarkdownPreviewRenderer.unregisterPostProcessor(this.processor);
+    import_obsidian29.MarkdownPreviewRenderer.unregisterPostProcessor(this.processor);
     this.processor = void 0;
     this.clearAll();
   }
@@ -27027,7 +27719,7 @@ function getPropertyKey(row) {
 }
 
 // src/helpers/frontmatter-diff.helper.ts
-var import_obsidian29 = require("obsidian");
+var import_obsidian30 = require("obsidian");
 var EMPTY = { added: [], modified: [], removed: [] };
 function extractYamlBlock(lines2) {
   if (!lines2.length || lines2[0].trim() !== "---") {
@@ -27041,7 +27733,7 @@ function extractYamlBlock(lines2) {
 }
 function parseBlock(yaml) {
   try {
-    const parsed = (0, import_obsidian29.parseYaml)(yaml);
+    const parsed = (0, import_obsidian30.parseYaml)(yaml);
     if (parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)) {
       return parsed;
     }
@@ -27082,7 +27774,7 @@ function diffFrontmatter(oldLines, newLines) {
 }
 
 // src/services/property-decorator.service.ts
-var import_obsidian30 = require("obsidian");
+var import_obsidian31 = require("obsidian");
 var _PropertyDecoratorService = class _PropertyDecoratorService {
   /**
    * Creates a new instance of PropertyDecoratorService.
@@ -27194,7 +27886,7 @@ var _PropertyDecoratorService = class _PropertyDecoratorService {
     }
     const yaml = lines2.slice(1, closeIdx).join("\n");
     try {
-      const parsed = (0, import_obsidian30.parseYaml)(yaml);
+      const parsed = (0, import_obsidian31.parseYaml)(yaml);
       if (parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)) {
         return Object.keys(parsed);
       }
@@ -28121,8 +28813,8 @@ __decorateClass([
 ], VersionActionsService.prototype, "settingsService", 2);
 
 // src/views/recent-changes.view.ts
-var import_obsidian31 = require("obsidian");
-var RecentChangesView = class extends import_obsidian31.ItemView {
+var import_obsidian32 = require("obsidian");
+var RecentChangesView = class extends import_obsidian32.ItemView {
   /**
    * Creates a new instance of RecentChangesView.
    *
@@ -28197,7 +28889,7 @@ var RecentChangesView = class extends import_obsidian31.ItemView {
       classes: "lct-recent-changes-search",
       container: this.contentEl
     });
-    this.searchComponent = new import_obsidian31.SearchComponent(searchEl).setPlaceholder(this.plugin.t("modal.search-versions")).onChange((value) => {
+    this.searchComponent = new import_obsidian32.SearchComponent(searchEl).setPlaceholder(this.plugin.t("modal.search-versions")).onChange((value) => {
       this.searchQuery = value;
       this.render();
     });
@@ -28386,7 +29078,7 @@ var RecentChangesView = class extends import_obsidian31.ItemView {
    */
   openRowMenu(event, file, version) {
     event.preventDefault();
-    const menu = new import_obsidian31.Menu();
+    const menu = new import_obsidian32.Menu();
     const modalsService = this.plugin.get(TOKENS.modals);
     const versionActionsService = this.plugin.get(TOKENS.versionActions);
     menu.addItem((item) => {
@@ -28496,8 +29188,8 @@ var import_index = __toESM(require_eventemitter3(), 1);
 var eventemitter3_default = import_index.default;
 
 // src/main.ts
-var import_obsidian32 = require("obsidian");
-var LineChangeTrackerPlugin = class extends import_obsidian32.Plugin {
+var import_obsidian33 = require("obsidian");
+var LineChangeTrackerPlugin = class extends import_obsidian33.Plugin {
   /**
    * Creates a new instance of the LineChangeTrackerPlugin.
    * Registers all required services during initialization.
@@ -28670,7 +29362,7 @@ var LineChangeTrackerPlugin = class extends import_obsidian32.Plugin {
    * @return {MarkdownView | null} The active markdown view, or null if none is active
    */
   getActiveViewOfType() {
-    return this.app.workspace.getActiveViewOfType(import_obsidian32.MarkdownView);
+    return this.app.workspace.getActiveViewOfType(import_obsidian33.MarkdownView);
   }
   /**
    * Gets the active file.
@@ -28691,7 +29383,7 @@ var LineChangeTrackerPlugin = class extends import_obsidian32.Plugin {
    */
   getFileByPath(path) {
     const file = this.app.vault.getAbstractFileByPath(path);
-    return file instanceof import_obsidian32.TFile ? file : null;
+    return file instanceof import_obsidian33.TFile ? file : null;
   }
   /**
    * Reveals the Recent changes panel in the right sidebar.

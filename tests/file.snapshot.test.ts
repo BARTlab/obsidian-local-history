@@ -43,6 +43,23 @@ describe('FileSnapshot construction', () => {
     expect(snapshot.isNeedUpdate('a\nb\nc')).toBe(false);
     expect(snapshot.isNeedUpdate('a\nB\nc')).toBe(true);
   });
+
+  it('decomposes mixed CRLF/LF content into one tracker per editor line', () => {
+    // A file mixing '\r\n' and a lone '\n' must split on /\r?\n/, matching the
+    // editor and change detector, so the baseline holds a tracker per real line
+    // rather than merging the lone-LF pair into a composite 'b\nc' entry.
+    const snapshot = new FileSnapshot('a\r\nb\nc', '\r\n');
+
+    expect(snapshot.content.lines).toEqual(['a', 'b', 'c']);
+    expect(snapshot.trackers.getTrackerLines()).toHaveLength(3);
+    expect(snapshot.trackers.findCurrentLine(2)?.current).toBe('c');
+
+    // No tracker carries a raw line break (no composite 'b\nc' survived).
+    const carriesBreak = (line: TrackerLine): boolean =>
+      /[\r\n]/.test(line.original ?? '') || /[\r\n]/.test(line.current ?? '');
+
+    expect(snapshot.trackers.getTrackerLines().some(carriesBreak)).toBe(false);
+  });
 });
 
 describe('FileSnapshot single-line change', () => {

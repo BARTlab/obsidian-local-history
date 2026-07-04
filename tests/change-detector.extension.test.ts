@@ -469,6 +469,32 @@ describe('ChangeDetectorExtension CRLF normalization', () => {
   });
 });
 
+describe('ChangeDetectorExtension mixed line endings', () => {
+  // A file mixing '\r\n' with a lone '\n' desyncs the baseline from the editor
+  // when the baseline is split on the single '\r\n' convention: the last line
+  // gets no tracker, so an edit to it is lost and the self-heal pass falsely
+  // marks an untouched neighbour. Splitting the baseline on /\r?\n/ (as the
+  // detector already does) keeps the two line sets aligned.
+  it('tracks an edit on the line after a lone LF and spares its neighbour', () => {
+    const doc = 'a\r\nb\nc';
+    const snapshot = new FileSnapshot(doc, '\r\n');
+
+    // The baseline holds a tracker for every real line, including the last.
+    expect(snapshot.trackers.findCurrentLine(2)?.current).toBe('c');
+
+    // Append '!' to the third line ('c').
+    step(snapshot, doc, { from: lineRange(doc, 3).to, insert: '!' });
+
+    const edited = snapshot.trackers.findCurrentLine(2);
+
+    expect(edited?.current).toBe('c!');
+    // Only the edited line is marked; line 'b' (index 1) is untouched.
+    expect(positions(snapshot, ChangeType.changed)).toEqual([2]);
+    expect(positions(snapshot, ChangeType.added)).toEqual([]);
+    expect(positions(snapshot, ChangeType.removed)).toEqual([]);
+  });
+});
+
 describe('ChangeDetectorExtension empty-boundary-line rescue', () => {
   // A pure insertion that lands at the start of an empty boundary line (most
   // commonly the trailing empty line of a doc that ends with `\n`) reads as

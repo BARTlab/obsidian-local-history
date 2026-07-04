@@ -61,7 +61,10 @@ export class GutterBarExtension implements GutterConfig {
     mouseover: (view, line, event): boolean => {
       const anchor = (event.target as HTMLElement | null)?.closest<HTMLElement>('.cm-gutterElement');
 
-      if (anchor) {
+      // A restored marker means the line is already back to its original content:
+      // there is no previous version to show, copy, or revert, so no panel opens
+      // on it. The marker tags its gutter element with the kind class.
+      if (anchor && !anchor.classList.contains(`lct-${ChangeType.restored}`)) {
         this.hoverPanel().enter(view.state.doc.lineAt(line.from).number - 1, anchor);
       }
 
@@ -201,6 +204,7 @@ export class GutterBarExtension implements GutterConfig {
         copy: this.i18nService.t('modal.copy'),
         history: this.i18nService.t('menu.local-history.show-history'),
       }),
+      emptyLabel: (): string => this.i18nService.t('gutter.hover-panel.empty-line'),
       applyIcon: (element: HTMLElement, icon: string): void => setIcon(element, icon),
       revert: (line: number): Promise<void> => this.revertHover(line),
       copyOldText: (line: number): void => this.copyHover(line),

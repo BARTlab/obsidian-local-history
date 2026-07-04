@@ -50,6 +50,7 @@ describe('GutterHoverPanel', () => {
   const changedModel = (): GutterHoverPanelContent => ({
     kind: GutterHoverPanelContentKind.changed,
     lines: [[segment('the ', false, false), segment('quick ', false, true), segment('brown fox', false, false)]],
+    blank: false,
   });
 
   /** The panel's action buttons, in tab order. */
@@ -104,6 +105,7 @@ describe('GutterHoverPanel', () => {
       ariaLabel: (): string => ARIA_LABEL,
       resolveContent: (): GutterHoverPanelContent | null => content,
       actionLabels: () => ({ revert: 'Revert', copy: 'Copy', history: 'History' }),
+      emptyLabel: (): string => '(empty line)',
       applyIcon: (): void => {
         // No-op: Obsidian's setIcon is unavailable under jsdom.
       },
@@ -289,6 +291,40 @@ describe('GutterHoverPanel', () => {
     expect(Number.parseInt(panelEl()?.style.left ?? '', 10)).toBeLessThan(1010);
   });
 
+  it('caps its max-width to the editor area when an editor ancestor is present', (): void => {
+    // Wrap the anchor in a .cm-editor whose width the cap reads: 300 - 2*gap(8) = 284.
+    const editor: HTMLElement = document.createElement('div');
+
+    editor.className = 'cm-editor';
+    document.body.appendChild(editor);
+    editor.appendChild(scroller);
+    stubRect(editor, { width: 300, left: 0, right: 300, top: 0, bottom: 600, height: 600 });
+
+    const panel: GutterHoverPanel = build();
+
+    panel.enter(3, anchor);
+    jest.advanceTimersByTime(OPEN_DELAY);
+
+    expect(panelEl()?.style.maxWidth).toBe('284px');
+  });
+
+  it('caps its max-width to the hard limit on a wide editor', (): void => {
+    const editor: HTMLElement = document.createElement('div');
+
+    editor.className = 'cm-editor';
+    document.body.appendChild(editor);
+    editor.appendChild(scroller);
+    // A 2000px editor exceeds the 520px hard cap, so the hard cap wins.
+    stubRect(editor, { width: 2000, left: 0, right: 2000, top: 0, bottom: 600, height: 600 });
+
+    const panel: GutterHoverPanel = build();
+
+    panel.enter(3, anchor);
+    jest.advanceTimersByTime(OPEN_DELAY);
+
+    expect(panelEl()?.style.maxWidth).toBe('520px');
+  });
+
   it('carries dialog semantics and leaves colour to the stylesheet', (): void => {
     const panel: GutterHoverPanel = build();
 
@@ -325,6 +361,7 @@ describe('GutterHoverPanel', () => {
     content = {
       kind: GutterHoverPanelContentKind.added,
       lines: [[segment('new line', true, false)]],
+      blank: false,
     };
 
     const panel: GutterHoverPanel = build();
@@ -344,6 +381,7 @@ describe('GutterHoverPanel', () => {
     content = {
       kind: GutterHoverPanelContentKind.removed,
       lines: [[segment('gone', false, true)]],
+      blank: false,
     };
 
     const panel: GutterHoverPanel = build();
@@ -403,6 +441,7 @@ describe('GutterHoverPanel', () => {
     content = {
       kind: GutterHoverPanelContentKind.added,
       lines: [[segment('new line', true, false)]],
+      blank: false,
     };
 
     const panel: GutterHoverPanel = build();
@@ -427,6 +466,7 @@ describe('GutterHoverPanel', () => {
     content = {
       kind: GutterHoverPanelContentKind.removed,
       lines: [[segment('gone', false, true)]],
+      blank: false,
     };
 
     const panel: GutterHoverPanel = build();
@@ -439,6 +479,26 @@ describe('GutterHoverPanel', () => {
     expect(copy.disabled).toBe(false);
     copy.click();
     expect(copySpy).toHaveBeenCalledWith(5);
+  });
+
+  it('renders a muted placeholder and disables copy for a blank change', (): void => {
+    content = { kind: GutterHoverPanelContentKind.removed, lines: [], blank: true };
+
+    const panel: GutterHoverPanel = build();
+
+    panel.enter(3, anchor);
+    jest.advanceTimersByTime(OPEN_DELAY);
+
+    const slot: HTMLElement = document.body.querySelector('.lct-hover-panel-content') as HTMLElement;
+    const placeholder: HTMLElement | null = slot.querySelector('.lct-hover-panel-empty');
+
+    // The placeholder stands in for the empty content, and no green/red wash is
+    // applied (the blank branch skips the content-kind modifier class).
+    expect(placeholder?.textContent).toBe('(empty line)');
+    expect(slot.classList.contains('lct-hover-panel-content-removed')).toBe(false);
+    expect(slot.querySelector('.lct-word-removed')).toBeNull();
+    // Nothing meaningful to copy on a blank line.
+    expect(actionButtons()[1].disabled).toBe(true);
   });
 
   it('re-evaluates the copy disabled state per marker and keeps the Tab cycle between revert and history', (): void => {
@@ -456,7 +516,7 @@ describe('GutterHoverPanel', () => {
     expect(actionButtons()[1].disabled).toBe(false);
 
     // Re-anchors onto an added marker without a second panel: copy goes disabled.
-    content = { kind: GutterHoverPanelContentKind.added, lines: [[segment('added', true, false)]] };
+    content = { kind: GutterHoverPanelContentKind.added, lines: [[segment('added', true, false)]], blank: false };
     panel.enter(9, other);
     expect(document.querySelectorAll('.lct-hover-panel')).toHaveLength(1);
 
@@ -601,5 +661,25 @@ describe('resolveHoverPanelContent', () => {
 
   it('returns null when no change block covers the line', (): void => {
     expect(resolveHoverPanelContent(['a', 'b'], ['a', 'b'], '\n', 0)).toBeNull();
+  });
+
+  it('flags a blank added line as blank, and a real added line as not blank', (): void => {
+    // An inserted empty line: added state, but no visible text on either side.
+    const blankAdded = resolveHoverPanelContent(['a', 'b'], ['a', '', 'b'], '\n', 1);
+
+    expect(blankAdded?.content.kind).toBe(GutterHoverPanelContentKind.added);
+    expect(blankAdded?.content.blank).toBe(true);
+
+    // An inserted line with real text is added but not blank.
+    const realAdded = resolveHoverPanelContent(['a', 'b'], ['a', 'x', 'b'], '\n', 1);
+
+    expect(realAdded?.content.blank).toBe(false);
+  });
+
+  it('flags a whitespace-only line as blank', (): void => {
+    // A line changed to only spaces carries no visible text: treated as blank.
+    const resolution = resolveHoverPanelContent(['a', 'b'], ['a', '   ', 'b'], '\n', 1);
+
+    expect(resolution?.content.blank).toBe(true);
   });
 });

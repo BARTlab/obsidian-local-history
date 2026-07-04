@@ -120,6 +120,7 @@
   "modal.no-versions-match": "No versions match the search",
   "modal.revert-hunk": "Revert this change",
   "gutter.revert": "Revert this change",
+  "gutter.hover-panel.empty-line": "(empty line)",
   "modal.copy": "Copy",
   "modal.put-label.title": "Put label",
   "modal.put-label.message": "Tag the current content with a short label.",

@@ -120,6 +120,7 @@
   "modal.no-versions-match": "Nicio versiune nu corespunde căutării",
   "modal.revert-hunk": "Revino asupra acestei modificări",
   "gutter.revert": "Anulează această modificare",
+  "gutter.hover-panel.empty-line": "(linie goală)",
   "modal.copy": "Copiază",
   "modal.put-label.title": "Pune etichetă",
   "modal.put-label.message": "Marchează conținutul curent cu o etichetă scurtă.",

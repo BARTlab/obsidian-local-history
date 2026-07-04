@@ -120,6 +120,7 @@
   "modal.no-versions-match": "Nenhuma versão corresponde à pesquisa",
   "modal.revert-hunk": "Reverter esta alteração",
   "gutter.revert": "Reverter esta alteração",
+  "gutter.hover-panel.empty-line": "(linha vazia)",
   "modal.copy": "Copiar",
   "modal.put-label.title": "Colocar etiqueta",
   "modal.put-label.message": "Marque o conteúdo atual com uma etiqueta curta.",

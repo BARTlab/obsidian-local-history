@@ -120,6 +120,7 @@
   "modal.no-versions-match": "Tidak ada versi yang cocok dengan pencarian",
   "modal.revert-hunk": "Kembalikan perubahan ini",
   "gutter.revert": "Batalkan perubahan ini",
+  "gutter.hover-panel.empty-line": "(baris kosong)",
   "modal.copy": "Salin",
   "modal.put-label.title": "Beri label",
   "modal.put-label.message": "Tandai konten saat ini dengan label singkat.",

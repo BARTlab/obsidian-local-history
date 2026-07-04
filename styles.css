@@ -601,7 +601,7 @@ body.lct-hover-affordance .cm-gutter.lct-gutter-bar-col .cm-gutterElement:hover 
   z-index: var(--layer-popover, 30);
   box-sizing: border-box;
   min-width: 180px;
-  max-width: 320px;
+  max-width: 520px;
   padding: var(--size-4-2);
   color: var(--text-normal);
   font-size: var(--font-ui-small);
@@ -652,6 +652,10 @@ body.lct-hover-affordance .cm-gutter.lct-gutter-bar-col .cm-gutterElement:hover 
 }
 .lct-hover-panel-content-removed {
   background-color: rgba(var(--color-red-rgb), 0.12);
+}
+.lct-hover-panel-empty {
+  color: var(--text-faint);
+  font-style: italic;
 }
 .lct-hover-panel-actions {
   display: flex;

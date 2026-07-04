@@ -120,6 +120,7 @@
   "modal.no-versions-match": "没有匹配搜索的版本",
   "modal.revert-hunk": "还原此更改",
   "gutter.revert": "撤销此更改",
+  "gutter.hover-panel.empty-line": "（空行）",
   "modal.copy": "复制",
   "modal.put-label.title": "添加标签",
   "modal.put-label.message": "用简短标签标记当前内容。",

@@ -120,6 +120,7 @@
   "modal.no-versions-match": "Níl aon leagan ag meaitseáil an chuardaigh",
   "modal.revert-hunk": "Fill an t-athrú seo",
   "gutter.revert": "Cuir an t-athrú seo ar ais",
+  "gutter.hover-panel.empty-line": "(líne fholamh)",
   "modal.copy": "Cóipeáil",
   "modal.put-label.title": "Cuir lipéad air",
   "modal.put-label.message": "Marcáil an t-ábhar reatha le lipéad gearr.",

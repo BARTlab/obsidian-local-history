@@ -39,6 +39,13 @@ export interface GutterHoverPanelContent {
   kind: GutterHoverPanelContentKind;
   /** The content lines, each a list of word segments, top to bottom. */
   lines: GutterHoverPanelSegment[][];
+  /**
+   * True when the change carries no visible text on either side (a blank or
+   * whitespace-only line). The controller then renders a muted placeholder
+   * instead of an empty tinted block and disables copy, since there is nothing
+   * meaningful to copy.
+   */
+  blank: boolean;
 }
 
 /**
@@ -120,6 +127,15 @@ export interface GutterHoverPanelHost {
    * @return {GutterHoverPanelActionLabels} The three button labels
    */
   actionLabels(): GutterHoverPanelActionLabels;
+
+  /**
+   * The localized placeholder shown in place of the content when the hovered
+   * change carries no visible text (a blank or whitespace-only line), so the
+   * panel never renders an empty tinted block.
+   *
+   * @return {string} The placeholder text
+   */
+  emptyLabel(): string;
 
   /**
    * Sets a Lucide icon on an action button, kept on the host so the controller

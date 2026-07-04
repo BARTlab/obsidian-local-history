@@ -120,6 +120,7 @@
   "modal.no-versions-match": "ከፍለጋው ጋር የሚዛመዱ ስሪቶች የሉም",
   "modal.revert-hunk": "ይህን ለውጥ መልስ",
   "gutter.revert": "ይህን ለውጥ መልስ",
+  "gutter.hover-panel.empty-line": "(ባዶ መስመር)",
   "modal.copy": "ቅዳ",
   "modal.put-label.title": "መለያ አስቀምጥ",
   "modal.put-label.message": "የአሁኑን ይዘት በአጭር መለያ ምልክት ያድርጉ።",

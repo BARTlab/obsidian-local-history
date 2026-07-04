@@ -120,6 +120,7 @@
   "modal.no-versions-match": "Nincs a keresésnek megfelelő verzió",
   "modal.revert-hunk": "Módosítás visszavonása",
   "gutter.revert": "Változás visszavonása",
+  "gutter.hover-panel.empty-line": "(üres sor)",
   "modal.copy": "Másolás",
   "modal.put-label.title": "Címke elhelyezése",
   "modal.put-label.message": "Jelölje meg az aktuális tartalmat egy rövid címkével.",

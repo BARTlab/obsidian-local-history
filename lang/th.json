@@ -120,6 +120,7 @@
   "modal.no-versions-match": "ไม่มีเวอร์ชันที่ตรงกับการค้นหา",
   "modal.revert-hunk": "ย้อนกลับการเปลี่ยนแปลงนี้",
   "gutter.revert": "ย้อนกลับการเปลี่ยนแปลงนี้",
+  "gutter.hover-panel.empty-line": "(บรรทัดว่าง)",
   "modal.copy": "คัดลอก",
   "modal.put-label.title": "ใส่ป้ายกำกับ",
   "modal.put-label.message": "ทำเครื่องหมายเนื้อหาปัจจุบันด้วยป้ายกำกับสั้น ๆ",

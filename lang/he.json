@@ -120,6 +120,7 @@
   "modal.no-versions-match": "אין גרסאות התואמות לחיפוש",
   "modal.revert-hunk": "ביטול שינוי זה",
   "gutter.revert": "בטל שינוי זה",
+  "gutter.hover-panel.empty-line": "(שורה ריקה)",
   "modal.copy": "העתקה",
   "modal.put-label.title": "הוסף תווית",
   "modal.put-label.message": "סמנו את התוכן הנוכחי בתווית קצרה.",

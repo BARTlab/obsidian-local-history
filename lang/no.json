@@ -120,6 +120,7 @@
   "modal.no-versions-match": "Ingen versjoner samsvarer med søket",
   "modal.revert-hunk": "Tilbakestill denne endringen",
   "gutter.revert": "Tilbakestill denne endringen",
+  "gutter.hover-panel.empty-line": "(tom linje)",
   "modal.copy": "Kopier",
   "modal.put-label.title": "Sett etikett",
   "modal.put-label.message": "Merk gjeldende innhold med en kort etikett.",

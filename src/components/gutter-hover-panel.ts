@@ -29,6 +29,9 @@ export class GutterHoverPanel {
   /** Gap (px) between the gutter marker and the panel, and viewport margin. */
   protected static readonly GAP_PX: number = 8;
 
+  /** Hard cap (px) on the panel width; the editor area may lower it further. */
+  protected static readonly MAX_WIDTH_PX: number = 520;
+
   /** Current lifecycle state; drives the transition guards and is test-visible. */
   protected state: GutterHoverPanelState = GutterHoverPanelState.closed;
 
@@ -252,15 +255,29 @@ export class GutterHoverPanel {
 
     const model: GutterHoverPanelContent | null = this.host.resolveContent(this.line);
 
-    // A purely added line has no previous version, so its base side is empty:
-    // disable copy there so it never writes an empty string yet still confirms a
-    // copy (the changed/removed states carry base-side text to copy). A native
-    // disabled button is skipped by Tab, so the action cycle stays coherent.
+    // Copy writes the block's base-side text, so disable it where there is
+    // nothing meaningful to copy: a purely added line (no previous version) or a
+    // blank/whitespace-only change. The changed/removed states carry base-side
+    // text to copy. A native disabled button is skipped by Tab, so the action
+    // cycle stays coherent.
     if (this.copyButton) {
-      this.copyButton.disabled = model?.kind === GutterHoverPanelContentKind.added;
+      this.copyButton.disabled = model?.kind === GutterHoverPanelContentKind.added || model?.blank === true;
     }
 
     if (!model) {
+      return;
+    }
+
+    // A blank or whitespace-only change has no visible text: show a muted
+    // placeholder instead of an empty tinted block so the panel never reads as
+    // unfinished (no content-kind wash is applied in this branch).
+    if (model.blank) {
+      const placeholder: HTMLElement = document.createElement('div');
+
+      placeholder.className = 'lct-hover-panel-empty';
+      placeholder.textContent = this.host.emptyLabel();
+      slot.appendChild(placeholder);
+
       return;
     }
 
@@ -436,6 +453,27 @@ export class GutterHoverPanel {
   }
 
   /**
+   * Caps the panel's max-width to the editor area (bounded by
+   * {@link GutterHoverPanel.MAX_WIDTH_PX}) so a long previous-version line grows
+   * the panel only up to the width of the note it annotates, not past it. Falls
+   * back to the viewport when the editor cannot be resolved from the anchor. The
+   * CSS min-width still wins on a very narrow editor, and the viewport clamp in
+   * {@link reposition} keeps the result on-screen.
+   */
+  protected capWidth(): void {
+    if (!this.panel) {
+      return;
+    }
+
+    const editor: HTMLElement | null = this.anchor?.closest<HTMLElement>('.cm-editor') ?? null;
+    const editorWidth: number = editor?.getBoundingClientRect().width ?? window.innerWidth;
+    const available: number = editorWidth - GutterHoverPanel.GAP_PX * 2;
+    const cap: number = Math.min(GutterHoverPanel.MAX_WIDTH_PX, Math.max(0, available));
+
+    this.panel.style.maxWidth = `${Math.round(cap)}px`;
+  }
+
+  /**
    * Positions the panel to the right of the anchored gutter element at the
    * marker's vertical position, flipping to the left and clamping to the viewport
    * so it never renders off-screen. Uses `position: fixed` (from CSS) with
@@ -445,6 +483,11 @@ export class GutterHoverPanel {
     if (!this.panel || !this.anchor) {
       return;
     }
+
+    // Cap the width to the editor area before measuring, so a long previous-
+    // version line grows the panel wide enough to read but never past the width
+    // of the note it annotates. Done first so offsetWidth reflects the final cap.
+    this.capWidth();
 
     const gap: number = GutterHoverPanel.GAP_PX;
     const rect: DOMRect = this.anchor.getBoundingClientRect();

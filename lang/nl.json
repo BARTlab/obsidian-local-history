@@ -120,6 +120,7 @@
   "modal.no-versions-match": "Geen versies komen overeen met de zoekopdracht",
   "modal.revert-hunk": "Deze wijziging terugdraaien",
   "gutter.revert": "Deze wijziging terugdraaien",
+  "gutter.hover-panel.empty-line": "(lege regel)",
   "modal.copy": "Kopiëren",
   "modal.put-label.title": "Label toevoegen",
   "modal.put-label.message": "Geef de huidige inhoud een kort label.",

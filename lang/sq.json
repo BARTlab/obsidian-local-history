@@ -120,6 +120,7 @@
   "modal.no-versions-match": "Asnjë version nuk përputhet me kërkimin",
   "modal.revert-hunk": "Ktheje këtë ndryshim",
   "gutter.revert": "Kthe këtë ndryshim",
+  "gutter.hover-panel.empty-line": "(rresht bosh)",
   "modal.copy": "Kopjo",
   "modal.put-label.title": "Vendos etiketë",
   "modal.put-label.message": "Shëno përmbajtjen aktuale me një etiketë të shkurtër.",

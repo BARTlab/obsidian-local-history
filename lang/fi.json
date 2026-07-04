@@ -120,6 +120,7 @@
   "modal.no-versions-match": "Mikään versio ei vastaa hakua",
   "modal.revert-hunk": "Peru tämä muutos",
   "gutter.revert": "Kumoa tämä muutos",
+  "gutter.hover-panel.empty-line": "(tyhjä rivi)",
   "modal.copy": "Kopioi",
   "modal.put-label.title": "Lisää tunniste",
   "modal.put-label.message": "Merkitse nykyinen sisältö lyhyellä tunnisteella.",

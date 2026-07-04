@@ -120,6 +120,7 @@
   "modal.no-versions-match": "Neviena versija neatbilst meklējumam",
   "modal.revert-hunk": "Atsaukt šo izmaiņu",
   "gutter.revert": "Atsaukt šo izmaiņu",
+  "gutter.hover-panel.empty-line": "(tukša rinda)",
   "modal.copy": "Kopēt",
   "modal.put-label.title": "Pievienot etiķeti",
   "modal.put-label.message": "Atzīmējiet pašreizējo saturu ar īsu etiķeti.",

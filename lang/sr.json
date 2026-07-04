@@ -120,6 +120,7 @@
   "modal.no-versions-match": "Ниједна верзија не одговара претрази",
   "modal.revert-hunk": "Опозови ову измену",
   "gutter.revert": "Врати ову измену",
+  "gutter.hover-panel.empty-line": "(празан ред)",
   "modal.copy": "Копирај",
   "modal.put-label.title": "Постави ознаку",
   "modal.put-label.message": "Означите тренутни садржај кратком ознаком.",

@@ -120,6 +120,7 @@
   "modal.no-versions-match": "検索に一致するバージョンがありません",
   "modal.revert-hunk": "この変更を元に戻す",
   "gutter.revert": "この変更を元に戻す",
+  "gutter.hover-panel.empty-line": "（空行）",
   "modal.copy": "コピー",
   "modal.put-label.title": "ラベルを付ける",
   "modal.put-label.message": "現在の内容に短いラベルを付けます。",

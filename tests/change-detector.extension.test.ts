@@ -138,6 +138,106 @@ describe('ChangeDetectorExtension multi-line delete', () => {
   });
 });
 
+describe('ChangeDetectorExtension mid-line split and join', () => {
+  /**
+   * Regression guard: the suffix boundary must not pair with an old line the
+   * prefix boundary already owns. When it did, a mid-line Enter (or a mid-line
+   * multi-line paste/delete) left the tracker set one line out of sync and the
+   * self-heal pass flooded every line below the edit with a `changed` marker.
+   */
+  it('pressing Enter mid-line marks only the split pair, not the tail', () => {
+    const doc = 'a\nbcd\ne\nf';
+    const snapshot = new FileSnapshot(doc);
+
+    // Split "bcd" after "b" -> a, b, cd, e, f.
+    step(snapshot, doc, { from: lineRange(doc, 2).from + 1, insert: '\n' });
+
+    expect(positions(snapshot, ChangeType.changed)).toEqual([1]);
+    expect(positions(snapshot, ChangeType.added)).toEqual([2]);
+    expect(positions(snapshot, ChangeType.removed)).toEqual([]);
+    expect(snapshot.trackers.findCurrentLine(3)?.isStateOriginal()).toBe(true);
+    expect(snapshot.trackers.findCurrentLine(4)?.isStateOriginal()).toBe(true);
+  });
+
+  it('pressing Enter mid-line on an already-changed line keeps the tail clean', () => {
+    const snapshot = new FileSnapshot('a\nbcd\ne\nf');
+
+    // Edit line 2 first so it already carries a changed marker, then split it.
+    const afterEdit = step(snapshot, 'a\nbcd\ne\nf', {
+      from: lineRange('a\nbcd\ne\nf', 2).from,
+      to: lineRange('a\nbcd\ne\nf', 2).to,
+      insert: 'bxd',
+    });
+
+    step(snapshot, afterEdit, { from: lineRange(afterEdit, 2).from + 2, insert: '\n' });
+
+    expect(positions(snapshot, ChangeType.changed)).toEqual([1]);
+    expect(positions(snapshot, ChangeType.added)).toEqual([2]);
+    expect(snapshot.trackers.findCurrentLine(3)?.isStateOriginal()).toBe(true);
+    expect(snapshot.trackers.findCurrentLine(4)?.isStateOriginal()).toBe(true);
+  });
+
+  it('joining two lines with Backspace marks only the joined line, not the tail', () => {
+    const doc = 'a\nb\nc\nd';
+    const snapshot = new FileSnapshot(doc);
+
+    // Delete the newline between "b" and "c" -> a, bc, d.
+    const joinFrom = lineRange(doc, 2).to;
+
+    step(snapshot, doc, { from: joinFrom, to: joinFrom + 1, insert: '' });
+
+    expect(positions(snapshot, ChangeType.changed)).toEqual([1]);
+    expect(positions(snapshot, ChangeType.added)).toEqual([]);
+    expect(removedTrackerCount(snapshot)).toBe(1);
+    expect(snapshot.trackers.findCurrentLine(2)?.isStateOriginal()).toBe(true);
+  });
+
+  it('splitting and re-joining a line converges back to a restored state', () => {
+    const doc = 'a\nbcd\ne';
+    const snapshot = new FileSnapshot(doc);
+    const splitPos = lineRange(doc, 2).from + 1;
+
+    const afterSplit = step(snapshot, doc, { from: splitPos, insert: '\n' });
+
+    step(snapshot, afterSplit, { from: splitPos, to: splitPos + 1, insert: '' });
+
+    expect(positions(snapshot, ChangeType.changed)).toEqual([]);
+    expect(positions(snapshot, ChangeType.added)).toEqual([]);
+    expect(positions(snapshot, ChangeType.restored)).toEqual([1]);
+    expect(snapshot.trackers.findCurrentLine(2)?.isStateOriginal()).toBe(true);
+  });
+
+  it('pasting a multi-line block mid-line adds the new lines and keeps the tail', () => {
+    const doc = 'a\nbcd\ne\nf';
+    const snapshot = new FileSnapshot(doc);
+
+    // Paste "X\nY\nZ" after "b" -> a, bX, Y, Zcd, e, f.
+    step(snapshot, doc, { from: lineRange(doc, 2).from + 1, insert: 'X\nY\nZ' });
+
+    expect(positions(snapshot, ChangeType.changed)).toEqual([1]);
+    expect(positions(snapshot, ChangeType.added)).toEqual([2, 3]);
+    expect(snapshot.trackers.findCurrentLine(4)?.isStateOriginal()).toBe(true);
+    expect(snapshot.trackers.findCurrentLine(5)?.isStateOriginal()).toBe(true);
+  });
+
+  it('deleting from mid-line to a later mid-line removes the swallowed lines only', () => {
+    const doc = 'a\nbcd\nef\ngh\nz';
+    const snapshot = new FileSnapshot(doc);
+
+    // Delete from after "b" (line 2) to after "g" (line 4) -> a, bh, z.
+    step(snapshot, doc, {
+      from: lineRange(doc, 2).from + 1,
+      to: lineRange(doc, 4).from + 1,
+      insert: '',
+    });
+
+    expect(positions(snapshot, ChangeType.changed)).toEqual([1]);
+    expect(positions(snapshot, ChangeType.added)).toEqual([]);
+    expect(removedTrackerCount(snapshot)).toBe(2);
+    expect(snapshot.trackers.findCurrentLine(2)?.isStateOriginal()).toBe(true);
+  });
+});
+
 describe('ChangeDetectorExtension restore', () => {
   it('marks a line restored when its content returns to the original', () => {
     const snapshot = new FileSnapshot('a\nb\nc');

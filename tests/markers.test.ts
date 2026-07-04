@@ -83,4 +83,21 @@ describe('BarMarker', () => {
     expect(a.eq(c)).toBe(false);
     expect(a.getChangeType()).toBe(ChangeType.changed);
   });
+
+  it('tags run continuation with join classes', () => {
+    expect(new BarMarker(ChangeType.changed, true, true).elementClass)
+      .toBe('lct-line lct-changed lct-join-up lct-join-down');
+    expect(new BarMarker(ChangeType.changed, false, true).elementClass)
+      .toBe('lct-line lct-changed lct-join-down');
+    expect(new BarMarker(ChangeType.changed, true, false).elementClass)
+      .toBe('lct-line lct-changed lct-join-up');
+  });
+
+  it('treats markers with different join flags as not equal', () => {
+    const plain = new BarMarker(ChangeType.changed);
+    const joined = new BarMarker(ChangeType.changed, false, true);
+
+    expect(plain.eq(joined)).toBe(false);
+    expect(joined.eq(new BarMarker(ChangeType.changed, false, true))).toBe(true);
+  });
 });

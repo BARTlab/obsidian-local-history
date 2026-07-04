@@ -122,6 +122,8 @@ export class GutterBarExtension implements GutterConfig {
       return builder.finish();
     }
 
+    const kinds = new Map<number, ChangeType>();
+
     for (const pos of snapshot.content.getChangedPositions(enable)) {
       if (pos >= view.state.doc.lines) {
         continue;
@@ -147,9 +149,29 @@ export class GutterBarExtension implements GutterConfig {
         continue;
       }
 
+      kinds.set(pos, kind);
+    }
+
+    /**
+     * A bar joins its neighbour when both lines carry a full bar, so CSS can
+     * bridge the sub-pixel seam between the gutter elements and flatten the
+     * shared edge. The removed dash is not a bar: it neither joins nor lets
+     * the bars around it join across the anchor.
+     */
+    const isBar = (pos: number): boolean => {
+      const kind: ChangeType | undefined = kinds.get(pos);
+
+      return kind !== undefined && kind !== ChangeType.removed;
+    };
+
+    const positions: number[] = [...kinds.keys()].sort((a: number, b: number): number => a - b);
+
+    for (const pos of positions) {
+      const kind: ChangeType = kinds.get(pos) as ChangeType;
+      const joins: boolean = kind !== ChangeType.removed;
       const line: Line = view.state.doc.line(pos + 1);
 
-      builder.add(line.from, line.from, new BarMarker(kind));
+      builder.add(line.from, line.from, new BarMarker(kind, joins && isBar(pos - 1), joins && isBar(pos + 1)));
     }
 
     return builder.finish();

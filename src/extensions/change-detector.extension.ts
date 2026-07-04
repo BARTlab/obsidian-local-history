@@ -132,13 +132,29 @@ export class ChangeDetectorExtension implements EditorExtension {
       }
 
       /**
+       * A shared suffix only keeps its tracker (old toOldLine surviving as new
+       * toNewLine) while the prefix pairing has not already consumed that line
+       * on either side. A mid-line split (Enter inside a line: one old line,
+       * two new lines) and a mid-line join (Backspace at a line start: two old
+       * lines, one new line) share prefix AND suffix of the same single line;
+       * pairing the suffix there would map one old line onto two new lines (or
+       * two old lines onto one), so no tracker is added/removed for the extra
+       * line, the tail drifts by one, and the self-heal pass floods every line
+       * below the edit with a `changed` marker. In those cases the suffix line
+       * belongs to the core instead: added on a split, removed on a join.
+       */
+      const suffixPaired: boolean = suffixShared &&
+        !(prefixShared && fromOldLine === toOldLine) &&
+        !(prefixShared && fromNewLine === toNewLine);
+
+      /**
        * The "core" lines are the ones wholly replaced: every old core line is
        * gone and every new core line is brand new.
        */
       const oldCoreStart: number = fromOldLine + (prefixShared ? 1 : 0);
-      const oldCoreEnd: number = toOldLine - (suffixShared ? 1 : 0);
+      const oldCoreEnd: number = toOldLine - (suffixPaired ? 1 : 0);
       const newCoreStart: number = fromNewLine + (prefixShared ? 1 : 0);
-      const newCoreEnd: number = toNewLine - (suffixShared ? 1 : 0);
+      const newCoreEnd: number = toNewLine - (suffixPaired ? 1 : 0);
 
       const oldCoreCount: number = Math.max(0, oldCoreEnd - oldCoreStart + 1);
       const newCoreCount: number = Math.max(0, newCoreEnd - newCoreStart + 1);
@@ -200,7 +216,7 @@ export class ChangeDetectorExtension implements EditorExtension {
         snapshot.trackers.findCurrentLine(fromNewLine)?.change(currentLines[fromNewLine]);
       }
 
-      if (suffixShared && toNewLine !== fromNewLine) {
+      if (suffixPaired && toNewLine !== fromNewLine) {
         snapshot.trackers.findCurrentLine(toNewLine)?.change(currentLines[toNewLine]);
       }
     }, true);

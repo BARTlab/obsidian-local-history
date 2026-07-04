@@ -1,11 +1,15 @@
 # Changelog
 
-All notable user-facing changes to this plugin are documented here.
+All notable user-facing changes to this plugin are documented here. 
+The format  is based on [Keep a Changelog](https://keepachangelog.com/), and the project  follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
 ### Fixed
 
+- Pressing Enter in the middle of a line (or pasting/deleting a multi-line block mid-line) no longer marks every line below the edit as changed. The change detector now adds or removes a tracker for the extra line created or swallowed by a mid-line split or join, so the lines after the edit keep their real change state.
+- Reverting a block from the history modal back to its original content no longer leaves phantom added/removed markers when the block's line count changed (for example, reverting a line that was split in two). A reverted line whose content matches the original folds back onto its own tracker instead of being counted as a removal plus an addition.
+- Consecutive changed lines in the gutter bar column now merge into one continuous vertical bar. Each line's bar used to render as its own rounded segment, leaving a micro-gap at every line boundary.
 - Reverting the deletion of a file's last line from the gutter now works when the file has no trailing newline. The revert affordance rendered but did nothing, because a last-line deletion produced an irregular diff hunk that the revert path could not match.
 - Making several edits in a single action (for example inserting a line at the top of a note while deleting other lines lower down, or an undo that replays several changes at once) no longer records the wrong lines as removed or marks an untouched line as changed. Each edit in the batch is now mapped against the line positions the earlier edits in the same batch already shifted.
 - A note that mixes Windows (CRLF) and Unix (LF) line endings no longer loses change tracking on some lines. The baseline is now split into lines the same way the editor sees them, so an edited line stays tracked and an untouched line is never marked as changed by mistake.

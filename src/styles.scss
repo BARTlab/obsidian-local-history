@@ -47,6 +47,10 @@ body {
   --lct-color-added: var(--color-orange);
   --lct-color-removed: var(--color-base-100);
   --lct-color-whitespace: var(--color-yellow);
+  // Vertical overlap a joined gutter bar adds below itself to cover the seam
+  // between adjacent gutter elements (line-height rounding leaves up to ~2px
+  // unpainted between them). The surplus hides under the opaque next bar.
+  --lct-line-seam: 2px;
 }
 
 /* ---- modal ---- */
@@ -908,6 +912,21 @@ body {
     width: var(--lct-line-width);
     height: 100%;
     border-radius: var(--lct-line-border-radius);
+  }
+
+  /* Run continuation (classes set by BarMarker): a bar followed by another
+   * bar stretches down over the inter-element seam, and both sides of the
+   * shared edge drop their rounding, so a run of changed lines reads as one
+   * continuous stroke instead of per-line segments with micro-gaps. */
+  .lct-join-down .lct-gutter-bar {
+    height: calc(100% + var(--lct-line-seam));
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .lct-join-up .lct-gutter-bar {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
   }
 
   .lct-changed .lct-gutter-bar {

@@ -102,4 +102,13 @@ export interface LineChangeTrackerSettings {
    * applies to the vertical line indicator only.
    */
   gutterHoverPanel: boolean;
+  /**
+   * Overall intensity (10-100) of every change colour: the editor gutter
+   * markers, the reading-mode bars, and the file-tree / tab / properties tints.
+   * Written to the `--lct-tint-strength` CSS variable by StylesService, where it
+   * is the percentage of the raw theme hue kept before it is mixed toward
+   * transparency, so one knob softens or intensifies every change surface at
+   * once. Higher is more vivid (100 = the original hard contrast), lower is paler.
+   */
+  markerIntensity: number;
 }

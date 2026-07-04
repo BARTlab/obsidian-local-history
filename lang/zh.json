@@ -70,6 +70,8 @@
   "setting.line-heading": "行指示器",
   "setting.line-width.name": "宽度",
   "setting.line-width.desc": "竖线指示器的宽度（以像素为单位）。",
+  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "边栏指示器",
   "setting.gutter-heading.prefix": "边栏类型指示器的字符（",
   "setting.gutter-heading.suffix": "）。",

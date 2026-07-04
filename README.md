@@ -67,14 +67,16 @@ The indicator colors resolve from CSS variables, so a snippet can recolor every 
     background-color: #4ecdc4;
 }
 
-/* Global intensity of every change colour (markers, file tree, tabs): the share
-   of the hue kept before it is blended with transparency. 100% is the original
-   hard contrast, lower is paler. Folders resolve their own --lct-dir-* colours,
-   defaulting to the file-status colours, so you can recolor directories alone. */
+/* Recolor directories independently of the file rows. Folders resolve their own
+   --lct-dir-* colours, defaulting to the file-status colours. The global colour
+   intensity (the share of the hue kept before it is blended with transparency)
+   is now the "Marker intensity" setting; a snippet can still override the
+   underlying --lct-tint-strength, but must use !important to beat the value the
+   plugin writes inline on <body>. */
 body {
-    --lct-tint-strength: 60%;
     --lct-dir-modified: var(--color-purple);
     --lct-dir-added: var(--color-green);
+    /* --lct-tint-strength: 60% !important; */
 }
 ```
 

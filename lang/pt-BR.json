@@ -70,6 +70,8 @@
   "setting.line-heading": "Indicador de linha",
   "setting.line-width.name": "Largura",
   "setting.line-width.desc": "Largura do indicador de linha vertical (em pixels).",
+  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Indicador na margem",
   "setting.gutter-heading.prefix": "Caracteres do indicador de tipo na margem (",
   "setting.gutter-heading.suffix": ").",

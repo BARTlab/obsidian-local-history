@@ -120,6 +120,7 @@
   "modal.no-versions-match": "Žiadne verzie nezodpovedajú hľadaniu",
   "modal.revert-hunk": "Vrátiť túto zmenu",
   "gutter.revert": "Vrátiť túto zmenu",
+  "gutter.hover-panel.empty-line": "(prázdny riadok)",
   "modal.copy": "Kopírovať",
   "modal.put-label.title": "Pridať štítok",
   "modal.put-label.message": "Označte aktuálny obsah krátkym štítkom.",

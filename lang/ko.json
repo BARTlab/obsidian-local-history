@@ -120,6 +120,7 @@
   "modal.no-versions-match": "검색과 일치하는 버전이 없습니다",
   "modal.revert-hunk": "이 변경 되돌리기",
   "gutter.revert": "이 변경 되돌리기",
+  "gutter.hover-panel.empty-line": "(빈 줄)",
   "modal.copy": "복사",
   "modal.put-label.title": "라벨 지정",
   "modal.put-label.message": "현재 내용에 짧은 라벨을 지정합니다.",

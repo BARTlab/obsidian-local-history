@@ -120,6 +120,7 @@
   "modal.no-versions-match": "Aucune version ne correspond à la recherche",
   "modal.revert-hunk": "Annuler cette modification",
   "gutter.revert": "Annuler cette modification",
+  "gutter.hover-panel.empty-line": "(ligne vide)",
   "modal.copy": "Copier",
   "modal.put-label.title": "Poser une étiquette",
   "modal.put-label.message": "Marquez le contenu actuel avec une courte étiquette.",

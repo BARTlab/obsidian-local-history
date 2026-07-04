@@ -120,6 +120,7 @@
   "modal.no-versions-match": "ძიებას ვერსიები არ ემთხვევა",
   "modal.revert-hunk": "ამ ცვლილების დაბრუნება",
   "gutter.revert": "ამ ცვლილების დაბრუნება",
+  "gutter.hover-panel.empty-line": "(ცარიელი ხაზი)",
   "modal.copy": "კოპირება",
   "modal.put-label.title": "იარლიყის მინიჭება",
   "modal.put-label.message": "მონიშნეთ მიმდინარე შინაარსი მოკლე იარლიყით.",

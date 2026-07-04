@@ -120,6 +120,7 @@
   "modal.no-versions-match": "खोजसँग कुनै संस्करण मेल खाँदैन",
   "modal.revert-hunk": "यो परिवर्तन फिर्ता गर्नुहोस्",
   "gutter.revert": "यो परिवर्तन उल्टाउनुहोस्",
+  "gutter.hover-panel.empty-line": "(खाली रेखा)",
   "modal.copy": "प्रतिलिपि गर्नुहोस्",
   "modal.put-label.title": "लेबल राख्नुहोस्",
   "modal.put-label.message": "हालको सामग्रीलाई छोटो लेबलले चिन्ह लगाउनुहोस्।",

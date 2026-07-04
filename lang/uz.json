@@ -120,6 +120,7 @@
   "modal.no-versions-match": "Qidiruvga mos versiyalar yoʻq",
   "modal.revert-hunk": "Bu oʻzgarishni qaytarish",
   "gutter.revert": "Bu oʻzgarishni qaytarish",
+  "gutter.hover-panel.empty-line": "(bo'sh qator)",
   "modal.copy": "Nusxalash",
   "modal.put-label.title": "Yorliq qoʻyish",
   "modal.put-label.message": "Joriy mazmunni qisqa yorliq bilan belgilang.",

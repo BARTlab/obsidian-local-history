@@ -120,6 +120,7 @@
   "modal.no-versions-match": "Không có phiên bản nào khớp với tìm kiếm",
   "modal.revert-hunk": "Hoàn nguyên thay đổi này",
   "gutter.revert": "Hoàn tác thay đổi này",
+  "gutter.hover-panel.empty-line": "(dòng trống)",
   "modal.copy": "Sao chép",
   "modal.put-label.title": "Gắn nhãn",
   "modal.put-label.message": "Đánh dấu nội dung hiện tại bằng một nhãn ngắn.",

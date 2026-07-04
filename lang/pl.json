@@ -120,6 +120,7 @@
   "modal.no-versions-match": "Brak wersji pasujących do wyszukiwania",
   "modal.revert-hunk": "Wycofaj tę zmianę",
   "gutter.revert": "Cofnij tę zmianę",
+  "gutter.hover-panel.empty-line": "(pusty wiersz)",
   "modal.copy": "Kopiuj",
   "modal.put-label.title": "Dodaj etykietę",
   "modal.put-label.message": "Oznacz bieżącą zawartość krótką etykietą.",

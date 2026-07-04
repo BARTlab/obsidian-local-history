@@ -3375,9 +3375,16 @@ var _GutterHoverPanel = class _GutterHoverPanel {
     slot.className = "lct-hover-panel-content";
     const model = this.host.resolveContent(this.line);
     if (this.copyButton) {
-      this.copyButton.disabled = (model == null ? void 0 : model.kind) === "added" /* added */;
+      this.copyButton.disabled = (model == null ? void 0 : model.kind) === "added" /* added */ || (model == null ? void 0 : model.blank) === true;
     }
     if (!model) {
+      return;
+    }
+    if (model.blank) {
+      const placeholder = document.createElement("div");
+      placeholder.className = "lct-hover-panel-empty";
+      placeholder.textContent = this.host.emptyLabel();
+      slot.appendChild(placeholder);
       return;
     }
     slot.classList.add(`lct-hover-panel-content-${model.kind}`);
@@ -3521,6 +3528,25 @@ var _GutterHoverPanel = class _GutterHoverPanel {
     }
   }
   /**
+   * Caps the panel's max-width to the editor area (bounded by
+   * {@link GutterHoverPanel.MAX_WIDTH_PX}) so a long previous-version line grows
+   * the panel only up to the width of the note it annotates, not past it. Falls
+   * back to the viewport when the editor cannot be resolved from the anchor. The
+   * CSS min-width still wins on a very narrow editor, and the viewport clamp in
+   * {@link reposition} keeps the result on-screen.
+   */
+  capWidth() {
+    var _a, _b, _c;
+    if (!this.panel) {
+      return;
+    }
+    const editor = (_b = (_a = this.anchor) == null ? void 0 : _a.closest(".cm-editor")) != null ? _b : null;
+    const editorWidth = (_c = editor == null ? void 0 : editor.getBoundingClientRect().width) != null ? _c : window.innerWidth;
+    const available = editorWidth - _GutterHoverPanel.GAP_PX * 2;
+    const cap = Math.min(_GutterHoverPanel.MAX_WIDTH_PX, Math.max(0, available));
+    this.panel.style.maxWidth = `${Math.round(cap)}px`;
+  }
+  /**
    * Positions the panel to the right of the anchored gutter element at the
    * marker's vertical position, flipping to the left and clamping to the viewport
    * so it never renders off-screen. Uses `position: fixed` (from CSS) with
@@ -3530,6 +3556,7 @@ var _GutterHoverPanel = class _GutterHoverPanel {
     if (!this.panel || !this.anchor) {
       return;
     }
+    this.capWidth();
     const gap = _GutterHoverPanel.GAP_PX;
     const rect = this.anchor.getBoundingClientRect();
     const width = this.panel.offsetWidth;
@@ -3594,6 +3621,8 @@ var _GutterHoverPanel = class _GutterHoverPanel {
 };
 /** Gap (px) between the gutter marker and the panel, and viewport margin. */
 _GutterHoverPanel.GAP_PX = 8;
+/** Hard cap (px) on the panel width; the editor area may lower it further. */
+_GutterHoverPanel.MAX_WIDTH_PX = 520;
 var GutterHoverPanel = _GutterHoverPanel;
 
 // node_modules/diff/libesm/diff/base.js
@@ -5160,7 +5189,8 @@ function resolveHoverPanelContent(baseLines, currentLines, lineBreak, line) {
       return segments((_a2 = row.oldText) != null ? _a2 : "", (_b = row.newText) != null ? _b : "").map(toSegment);
     }
   );
-  return { content: { kind, lines: lines2 }, hunk, baseText: baseBlock.join(lineBreak) };
+  const blank = !hasVisibleText(baseBlock) && !hasVisibleText(currentBlock);
+  return { content: { kind, lines: lines2, blank }, hunk, baseText: baseBlock.join(lineBreak) };
 }
 function deletionHunkAt(hunks, line, currentLength) {
   var _a;
@@ -5174,6 +5204,9 @@ function deletionHunkAt(hunks, line, currentLength) {
 function currentLinesForHunk(hunk) {
   var _a;
   return ((_a = hunk == null ? void 0 : hunk.lines) != null ? _a : []).filter((line) => line !== NO_NEWLINE_MARKER && (line[0] === " " || line[0] === "+")).map((line) => line.slice(1));
+}
+function hasVisibleText(lines2) {
+  return lines2.some((line) => line.trim().length > 0);
 }
 function toSegment(change) {
   return { text: change.value, added: change.added === true, removed: change.removed === true };
@@ -5283,7 +5316,7 @@ var GutterBarExtension = class {
       mouseover: (view, line, event) => {
         var _a;
         const anchor = (_a = event.target) == null ? void 0 : _a.closest(".cm-gutterElement");
-        if (anchor) {
+        if (anchor && !anchor.classList.contains(`lct-${"restored" /* restored */}`)) {
           this.hoverPanel().enter(view.state.doc.lineAt(line.from).number - 1, anchor);
         }
         return false;
@@ -5372,6 +5405,7 @@ var GutterBarExtension = class {
         copy: this.i18nService.t("modal.copy"),
         history: this.i18nService.t("menu.local-history.show-history")
       }),
+      emptyLabel: () => this.i18nService.t("gutter.hover-panel.empty-line"),
       applyIcon: (element, icon) => (0, import_obsidian12.setIcon)(element, icon),
       revert: (line) => this.revertHover(line),
       copyOldText: (line) => this.copyHover(line),
@@ -6126,6 +6160,7 @@ var am_default = {
   "modal.no-versions-match": "\u12A8\u134D\u1208\u130B\u12CD \u130B\u122D \u12E8\u121A\u12DB\u1218\u12F1 \u1235\u122A\u1276\u127D \u12E8\u1209\u121D",
   "modal.revert-hunk": "\u12ED\u1205\u1295 \u1208\u12CD\u1325 \u1218\u120D\u1235",
   "gutter.revert": "\u12ED\u1205\u1295 \u1208\u12CD\u1325 \u1218\u120D\u1235",
+  "gutter.hover-panel.empty-line": "(\u1263\u12F6 \u1218\u1235\u1218\u122D)",
   "modal.copy": "\u1245\u12F3",
   "modal.put-label.title": "\u1218\u1208\u12EB \u12A0\u1235\u1240\u121D\u1325",
   "modal.put-label.message": "\u12E8\u12A0\u1201\u1291\u1295 \u12ED\u12D8\u1275 \u1260\u12A0\u132D\u122D \u1218\u1208\u12EB \u121D\u120D\u12AD\u1275 \u12EB\u12F5\u122D\u1309\u1362",
@@ -6293,6 +6328,7 @@ var ar_default = {
   "modal.no-versions-match": "\u0644\u0627 \u062A\u0648\u062C\u062F \u0625\u0635\u062F\u0627\u0631\u0627\u062A \u062A\u0637\u0627\u0628\u0642 \u0627\u0644\u0628\u062D\u062B",
   "modal.revert-hunk": "\u0627\u0644\u062A\u0631\u0627\u062C\u0639 \u0639\u0646 \u0647\u0630\u0627 \u0627\u0644\u062A\u063A\u064A\u064A\u0631",
   "gutter.revert": "\u0627\u0644\u062A\u0631\u0627\u062C\u0639 \u0639\u0646 \u0647\u0630\u0627 \u0627\u0644\u062A\u063A\u064A\u064A\u0631",
+  "gutter.hover-panel.empty-line": "(\u0633\u0637\u0631 \u0641\u0627\u0631\u063A)",
   "modal.copy": "\u0646\u0633\u062E",
   "modal.put-label.title": "\u0648\u0636\u0639 \u062A\u0633\u0645\u064A\u0629",
   "modal.put-label.message": "\u0636\u0639 \u062A\u0633\u0645\u064A\u0629 \u0642\u0635\u064A\u0631\u0629 \u0639\u0644\u0649 \u0627\u0644\u0645\u062D\u062A\u0648\u0649 \u0627\u0644\u062D\u0627\u0644\u064A.",
@@ -6460,6 +6496,7 @@ var be_default = {
   "modal.no-versions-match": "\u041D\u044F\u043C\u0430 \u0432\u0435\u0440\u0441\u0456\u0439, \u0448\u0442\u043E \u0430\u0434\u043F\u0430\u0432\u044F\u0434\u0430\u044E\u0446\u044C \u043F\u043E\u0448\u0443\u043A\u0443",
   "modal.revert-hunk": "\u0410\u0434\u043A\u0430\u0446\u0456\u0446\u044C \u0433\u044D\u0442\u0443\u044E \u0437\u043C\u0435\u043D\u0443",
   "gutter.revert": "\u0410\u0434\u043A\u0430\u0446\u0456\u0446\u044C \u0433\u044D\u0442\u0443 \u0437\u043C\u0435\u043D\u0443",
+  "gutter.hover-panel.empty-line": "(\u043F\u0443\u0441\u0442\u044B \u0440\u0430\u0434\u043E\u043A)",
   "modal.copy": "\u041A\u0430\u043F\u0456\u044F\u0432\u0430\u0446\u044C",
   "modal.put-label.title": "\u041F\u0430\u0441\u0442\u0430\u0432\u0456\u0446\u044C \u043C\u0435\u0442\u043A\u0443",
   "modal.put-label.message": "\u0410\u0434\u0437\u043D\u0430\u0447\u0446\u0435 \u0431\u044F\u0433\u0443\u0447\u0430\u0435 \u0437\u043C\u0435\u0441\u0446\u0456\u0432\u0430 \u043A\u0430\u0440\u043E\u0442\u043A\u0430\u0439 \u043C\u0435\u0442\u043A\u0430\u0439.",
@@ -6627,6 +6664,7 @@ var bn_default = {
   "modal.no-versions-match": "\u0985\u09A8\u09C1\u09B8\u09A8\u09CD\u09A7\u09BE\u09A8\u09C7\u09B0 \u09B8\u09BE\u09A5\u09C7 \u0995\u09CB\u09A8\u09CB \u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3 \u09AE\u09C7\u09B2\u09C7 \u09A8\u09BE",
   "modal.revert-hunk": "\u098F\u0987 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u09AA\u09CD\u09B0\u09A4\u09CD\u09AF\u09BE\u09AC\u09B0\u09CD\u09A4\u09A8 \u0995\u09B0\u09C1\u09A8",
   "gutter.revert": "\u098F\u0987 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8\u099F\u09BF \u09AB\u09BF\u09B0\u09BF\u09AF\u09BC\u09C7 \u09A8\u09BF\u09A8",
+  "gutter.hover-panel.empty-line": "(\u0996\u09BE\u09B2\u09BF \u09B2\u09BE\u0987\u09A8)",
   "modal.copy": "\u0985\u09A8\u09C1\u09B2\u09BF\u09AA\u09BF",
   "modal.put-label.title": "\u09B2\u09C7\u09AC\u09C7\u09B2 \u09A6\u09BF\u09A8",
   "modal.put-label.message": "\u09AC\u09B0\u09CD\u09A4\u09AE\u09BE\u09A8 \u09AC\u09BF\u09B7\u09AF\u09BC\u09AC\u09B8\u09CD\u09A4\u09C1\u0995\u09C7 \u098F\u0995\u099F\u09BF \u099B\u09CB\u099F \u09B2\u09C7\u09AC\u09C7\u09B2 \u09A6\u09BF\u09AF\u09BC\u09C7 \u099A\u09BF\u09B9\u09CD\u09A8\u09BF\u09A4 \u0995\u09B0\u09C1\u09A8\u0964",
@@ -6794,6 +6832,7 @@ var ca_default = {
   "modal.no-versions-match": "Cap versi\xF3 coincideix amb la cerca",
   "modal.revert-hunk": "Reverteix aquest canvi",
   "gutter.revert": "Reverteix aquest canvi",
+  "gutter.hover-panel.empty-line": "(l\xEDnia buida)",
   "modal.copy": "Copia",
   "modal.put-label.title": "Posa una etiqueta",
   "modal.put-label.message": "Marca el contingut actual amb una etiqueta curta.",
@@ -6961,6 +7000,7 @@ var cs_default = {
   "modal.no-versions-match": "\u017D\xE1dn\xE9 verze neodpov\xEDdaj\xED hled\xE1n\xED",
   "modal.revert-hunk": "Vr\xE1tit tuto zm\u011Bnu",
   "gutter.revert": "Vr\xE1tit tuto zm\u011Bnu",
+  "gutter.hover-panel.empty-line": "(pr\xE1zdn\xFD \u0159\xE1dek)",
   "modal.copy": "Kop\xEDrovat",
   "modal.put-label.title": "P\u0159idat \u0161t\xEDtek",
   "modal.put-label.message": "Ozna\u010Dte aktu\xE1ln\xED obsah kr\xE1tk\xFDm \u0161t\xEDtkem.",
@@ -7128,6 +7168,7 @@ var da_default = {
   "modal.no-versions-match": "Ingen versioner matcher s\xF8gningen",
   "modal.revert-hunk": "Tilbagef\xF8r denne \xE6ndring",
   "gutter.revert": "Fortryd denne \xE6ndring",
+  "gutter.hover-panel.empty-line": "(tom linje)",
   "modal.copy": "Kopier",
   "modal.put-label.title": "S\xE6t etiket",
   "modal.put-label.message": "Mark\xE9r det aktuelle indhold med en kort etiket.",
@@ -7295,6 +7336,7 @@ var de_default = {
   "modal.no-versions-match": "Keine Versionen entsprechen der Suche",
   "modal.revert-hunk": "Diese \xC4nderung zur\xFCcknehmen",
   "gutter.revert": "Diese \xC4nderung r\xFCckg\xE4ngig machen",
+  "gutter.hover-panel.empty-line": "(leere Zeile)",
   "modal.copy": "Kopieren",
   "modal.put-label.title": "Label setzen",
   "modal.put-label.message": "Den aktuellen Inhalt mit einem kurzen Label versehen.",
@@ -7462,6 +7504,7 @@ var en_default = {
   "modal.no-versions-match": "No versions match the search",
   "modal.revert-hunk": "Revert this change",
   "gutter.revert": "Revert this change",
+  "gutter.hover-panel.empty-line": "(empty line)",
   "modal.copy": "Copy",
   "modal.put-label.title": "Put label",
   "modal.put-label.message": "Tag the current content with a short label.",
@@ -7629,6 +7672,7 @@ var en_GB_default = {
   "modal.no-versions-match": "No versions match the search",
   "modal.revert-hunk": "Revert this change",
   "gutter.revert": "Revert this change",
+  "gutter.hover-panel.empty-line": "(empty line)",
   "modal.copy": "Copy",
   "modal.put-label.title": "Put label",
   "modal.put-label.message": "Tag the current content with a short label.",
@@ -7796,6 +7840,7 @@ var es_default = {
   "modal.no-versions-match": "Ninguna versi\xF3n coincide con la b\xFAsqueda",
   "modal.revert-hunk": "Revertir este cambio",
   "gutter.revert": "Revertir este cambio",
+  "gutter.hover-panel.empty-line": "(l\xEDnea vac\xEDa)",
   "modal.copy": "Copiar",
   "modal.put-label.title": "Poner etiqueta",
   "modal.put-label.message": "Marca el contenido actual con una etiqueta corta.",
@@ -7963,6 +8008,7 @@ var fa_default = {
   "modal.no-versions-match": "\u0647\u06CC\u0686 \u0646\u0633\u062E\u0647\u200C\u0627\u06CC \u0628\u0627 \u062C\u0633\u062A\u200C\u0648\u062C\u0648 \u0645\u0637\u0627\u0628\u0642\u062A \u0646\u062F\u0627\u0631\u062F",
   "modal.revert-hunk": "\u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u06CC \u0627\u06CC\u0646 \u062A\u063A\u06CC\u06CC\u0631",
   "gutter.revert": "\u0628\u0627\u0632\u06AF\u0631\u062F\u0627\u0646\u062F\u0646 \u0627\u06CC\u0646 \u062A\u063A\u06CC\u06CC\u0631",
+  "gutter.hover-panel.empty-line": "(\u062E\u0637 \u062E\u0627\u0644\u06CC)",
   "modal.copy": "\u06A9\u067E\u06CC",
   "modal.put-label.title": "\u06AF\u0630\u0627\u0634\u062A\u0646 \u0628\u0631\u0686\u0633\u0628",
   "modal.put-label.message": "\u0645\u062D\u062A\u0648\u0627\u06CC \u0641\u0639\u0644\u06CC \u0631\u0627 \u0628\u0627 \u06CC\u06A9 \u0628\u0631\u0686\u0633\u0628 \u06A9\u0648\u062A\u0627\u0647 \u0639\u0644\u0627\u0645\u062A\u200C\u06AF\u0630\u0627\u0631\u06CC \u06A9\u0646\u06CC\u062F.",
@@ -8130,6 +8176,7 @@ var fi_default = {
   "modal.no-versions-match": "Mik\xE4\xE4n versio ei vastaa hakua",
   "modal.revert-hunk": "Peru t\xE4m\xE4 muutos",
   "gutter.revert": "Kumoa t\xE4m\xE4 muutos",
+  "gutter.hover-panel.empty-line": "(tyhj\xE4 rivi)",
   "modal.copy": "Kopioi",
   "modal.put-label.title": "Lis\xE4\xE4 tunniste",
   "modal.put-label.message": "Merkitse nykyinen sis\xE4lt\xF6 lyhyell\xE4 tunnisteella.",
@@ -8297,6 +8344,7 @@ var fr_default = {
   "modal.no-versions-match": "Aucune version ne correspond \xE0 la recherche",
   "modal.revert-hunk": "Annuler cette modification",
   "gutter.revert": "Annuler cette modification",
+  "gutter.hover-panel.empty-line": "(ligne vide)",
   "modal.copy": "Copier",
   "modal.put-label.title": "Poser une \xE9tiquette",
   "modal.put-label.message": "Marquez le contenu actuel avec une courte \xE9tiquette.",
@@ -8464,6 +8512,7 @@ var ga_default = {
   "modal.no-versions-match": "N\xEDl aon leagan ag meaitse\xE1il an chuardaigh",
   "modal.revert-hunk": "Fill an t-athr\xFA seo",
   "gutter.revert": "Cuir an t-athr\xFA seo ar ais",
+  "gutter.hover-panel.empty-line": "(l\xEDne fholamh)",
   "modal.copy": "C\xF3ipe\xE1il",
   "modal.put-label.title": "Cuir lip\xE9ad air",
   "modal.put-label.message": "Marc\xE1il an t-\xE1bhar reatha le lip\xE9ad gearr.",
@@ -8631,6 +8680,7 @@ var he_default = {
   "modal.no-versions-match": "\u05D0\u05D9\u05DF \u05D2\u05E8\u05E1\u05D0\u05D5\u05EA \u05D4\u05EA\u05D5\u05D0\u05DE\u05D5\u05EA \u05DC\u05D7\u05D9\u05E4\u05D5\u05E9",
   "modal.revert-hunk": "\u05D1\u05D9\u05D8\u05D5\u05DC \u05E9\u05D9\u05E0\u05D5\u05D9 \u05D6\u05D4",
   "gutter.revert": "\u05D1\u05D8\u05DC \u05E9\u05D9\u05E0\u05D5\u05D9 \u05D6\u05D4",
+  "gutter.hover-panel.empty-line": "(\u05E9\u05D5\u05E8\u05D4 \u05E8\u05D9\u05E7\u05D4)",
   "modal.copy": "\u05D4\u05E2\u05EA\u05E7\u05D4",
   "modal.put-label.title": "\u05D4\u05D5\u05E1\u05E3 \u05EA\u05D5\u05D5\u05D9\u05EA",
   "modal.put-label.message": "\u05E1\u05DE\u05E0\u05D5 \u05D0\u05EA \u05D4\u05EA\u05D5\u05DB\u05DF \u05D4\u05E0\u05D5\u05DB\u05D7\u05D9 \u05D1\u05EA\u05D5\u05D5\u05D9\u05EA \u05E7\u05E6\u05E8\u05D4.",
@@ -8798,6 +8848,7 @@ var hu_default = {
   "modal.no-versions-match": "Nincs a keres\xE9snek megfelel\u0151 verzi\xF3",
   "modal.revert-hunk": "M\xF3dos\xEDt\xE1s visszavon\xE1sa",
   "gutter.revert": "V\xE1ltoz\xE1s visszavon\xE1sa",
+  "gutter.hover-panel.empty-line": "(\xFCres sor)",
   "modal.copy": "M\xE1sol\xE1s",
   "modal.put-label.title": "C\xEDmke elhelyez\xE9se",
   "modal.put-label.message": "Jel\xF6lje meg az aktu\xE1lis tartalmat egy r\xF6vid c\xEDmk\xE9vel.",
@@ -8965,6 +9016,7 @@ var id_default = {
   "modal.no-versions-match": "Tidak ada versi yang cocok dengan pencarian",
   "modal.revert-hunk": "Kembalikan perubahan ini",
   "gutter.revert": "Batalkan perubahan ini",
+  "gutter.hover-panel.empty-line": "(baris kosong)",
   "modal.copy": "Salin",
   "modal.put-label.title": "Beri label",
   "modal.put-label.message": "Tandai konten saat ini dengan label singkat.",
@@ -9132,6 +9184,7 @@ var it_default = {
   "modal.no-versions-match": "Nessuna versione corrisponde alla ricerca",
   "modal.revert-hunk": "Ripristina questa modifica",
   "gutter.revert": "Annulla questa modifica",
+  "gutter.hover-panel.empty-line": "(riga vuota)",
   "modal.copy": "Copia",
   "modal.put-label.title": "Applica etichetta",
   "modal.put-label.message": "Contrassegna il contenuto corrente con una breve etichetta.",
@@ -9299,6 +9352,7 @@ var ja_default = {
   "modal.no-versions-match": "\u691C\u7D22\u306B\u4E00\u81F4\u3059\u308B\u30D0\u30FC\u30B8\u30E7\u30F3\u304C\u3042\u308A\u307E\u305B\u3093",
   "modal.revert-hunk": "\u3053\u306E\u5909\u66F4\u3092\u5143\u306B\u623B\u3059",
   "gutter.revert": "\u3053\u306E\u5909\u66F4\u3092\u5143\u306B\u623B\u3059",
+  "gutter.hover-panel.empty-line": "\uFF08\u7A7A\u884C\uFF09",
   "modal.copy": "\u30B3\u30D4\u30FC",
   "modal.put-label.title": "\u30E9\u30D9\u30EB\u3092\u4ED8\u3051\u308B",
   "modal.put-label.message": "\u73FE\u5728\u306E\u5185\u5BB9\u306B\u77ED\u3044\u30E9\u30D9\u30EB\u3092\u4ED8\u3051\u307E\u3059\u3002",
@@ -9466,6 +9520,7 @@ var ka_default = {
   "modal.no-versions-match": "\u10EB\u10D8\u10D4\u10D1\u10D0\u10E1 \u10D5\u10D4\u10E0\u10E1\u10D8\u10D4\u10D1\u10D8 \u10D0\u10E0 \u10D4\u10DB\u10D7\u10EE\u10D5\u10D4\u10D5\u10D0",
   "modal.revert-hunk": "\u10D0\u10DB \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10D3\u10D0\u10D1\u10E0\u10E3\u10DC\u10D4\u10D1\u10D0",
   "gutter.revert": "\u10D0\u10DB \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10D3\u10D0\u10D1\u10E0\u10E3\u10DC\u10D4\u10D1\u10D0",
+  "gutter.hover-panel.empty-line": "(\u10EA\u10D0\u10E0\u10D8\u10D4\u10DA\u10D8 \u10EE\u10D0\u10D6\u10D8)",
   "modal.copy": "\u10D9\u10DD\u10DE\u10D8\u10E0\u10D4\u10D1\u10D0",
   "modal.put-label.title": "\u10D8\u10D0\u10E0\u10DA\u10D8\u10E7\u10D8\u10E1 \u10DB\u10D8\u10DC\u10D8\u10ED\u10D4\u10D1\u10D0",
   "modal.put-label.message": "\u10DB\u10DD\u10DC\u10D8\u10E8\u10DC\u10D4\u10D7 \u10DB\u10D8\u10DB\u10D3\u10D8\u10DC\u10D0\u10E0\u10D4 \u10E8\u10D8\u10DC\u10D0\u10D0\u10E0\u10E1\u10D8 \u10DB\u10DD\u10D9\u10DA\u10D4 \u10D8\u10D0\u10E0\u10DA\u10D8\u10E7\u10D8\u10D7.",
@@ -9633,6 +9688,7 @@ var kh_default = {
   "modal.no-versions-match": "\u1782\u17D2\u1798\u17B6\u1793\u1780\u17C6\u178E\u17C2\u178A\u17C2\u179B\u178F\u17D2\u179A\u17BC\u179C\u1793\u17B9\u1784\u1780\u17B6\u179A\u179F\u17D2\u179C\u17C2\u1784\u179A\u1780\u1791\u17C1",
   "modal.revert-hunk": "\u178F\u17D2\u179A\u17A1\u1794\u17CB\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1793\u17C1\u17C7\u179C\u17B7\u1789",
   "gutter.revert": "\u178F\u17D2\u179A\u17A1\u1794\u17CB\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1793\u17C1\u17C7",
+  "gutter.hover-panel.empty-line": "(\u1794\u1793\u17D2\u1791\u17B6\u178F\u17CB\u1791\u1791\u17C1)",
   "modal.copy": "\u1785\u1798\u17D2\u179B\u1784",
   "modal.put-label.title": "\u178A\u17B6\u1780\u17CB\u179F\u17D2\u179B\u17B6\u1780",
   "modal.put-label.message": "\u179F\u1798\u17D2\u1782\u17B6\u179B\u17CB\u1781\u17D2\u179B\u17B9\u1798\u179F\u17B6\u179A\u1794\u1785\u17D2\u1785\u17BB\u1794\u17D2\u1794\u1793\u17D2\u1793\u178A\u17C4\u1799\u179F\u17D2\u179B\u17B6\u1780\u1781\u17D2\u179B\u17B8\u17D4",
@@ -9800,6 +9856,7 @@ var ko_default = {
   "modal.no-versions-match": "\uAC80\uC0C9\uACFC \uC77C\uCE58\uD558\uB294 \uBC84\uC804\uC774 \uC5C6\uC2B5\uB2C8\uB2E4",
   "modal.revert-hunk": "\uC774 \uBCC0\uACBD \uB418\uB3CC\uB9AC\uAE30",
   "gutter.revert": "\uC774 \uBCC0\uACBD \uB418\uB3CC\uB9AC\uAE30",
+  "gutter.hover-panel.empty-line": "(\uBE48 \uC904)",
   "modal.copy": "\uBCF5\uC0AC",
   "modal.put-label.title": "\uB77C\uBCA8 \uC9C0\uC815",
   "modal.put-label.message": "\uD604\uC7AC \uB0B4\uC6A9\uC5D0 \uC9E7\uC740 \uB77C\uBCA8\uC744 \uC9C0\uC815\uD569\uB2C8\uB2E4.",
@@ -9967,6 +10024,7 @@ var lv_default = {
   "modal.no-versions-match": "Neviena versija neatbilst mekl\u0113jumam",
   "modal.revert-hunk": "Atsaukt \u0161o izmai\u0146u",
   "gutter.revert": "Atsaukt \u0161o izmai\u0146u",
+  "gutter.hover-panel.empty-line": "(tuk\u0161a rinda)",
   "modal.copy": "Kop\u0113t",
   "modal.put-label.title": "Pievienot eti\u0137eti",
   "modal.put-label.message": "Atz\u012Bm\u0113jiet pa\u0161reiz\u0113jo saturu ar \u012Bsu eti\u0137eti.",
@@ -10134,6 +10192,7 @@ var ms_default = {
   "modal.no-versions-match": "Tiada versi sepadan dengan carian",
   "modal.revert-hunk": "Patah balik perubahan ini",
   "gutter.revert": "Undurkan perubahan ini",
+  "gutter.hover-panel.empty-line": "(baris kosong)",
   "modal.copy": "Salin",
   "modal.put-label.title": "Letak label",
   "modal.put-label.message": "Tandakan kandungan semasa dengan label ringkas.",
@@ -10301,6 +10360,7 @@ var ne_default = {
   "modal.no-versions-match": "\u0916\u094B\u091C\u0938\u0901\u0917 \u0915\u0941\u0928\u0948 \u0938\u0902\u0938\u094D\u0915\u0930\u0923 \u092E\u0947\u0932 \u0916\u093E\u0901\u0926\u0948\u0928",
   "modal.revert-hunk": "\u092F\u094B \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u092B\u093F\u0930\u094D\u0924\u093E \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
   "gutter.revert": "\u092F\u094B \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u0909\u0932\u094D\u091F\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D",
+  "gutter.hover-panel.empty-line": "(\u0916\u093E\u0932\u0940 \u0930\u0947\u0916\u093E)",
   "modal.copy": "\u092A\u094D\u0930\u0924\u093F\u0932\u093F\u092A\u093F \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
   "modal.put-label.title": "\u0932\u0947\u092C\u0932 \u0930\u093E\u0916\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
   "modal.put-label.message": "\u0939\u093E\u0932\u0915\u094B \u0938\u093E\u092E\u0917\u094D\u0930\u0940\u0932\u093E\u0908 \u091B\u094B\u091F\u094B \u0932\u0947\u092C\u0932\u0932\u0947 \u091A\u093F\u0928\u094D\u0939 \u0932\u0917\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
@@ -10468,6 +10528,7 @@ var nl_default = {
   "modal.no-versions-match": "Geen versies komen overeen met de zoekopdracht",
   "modal.revert-hunk": "Deze wijziging terugdraaien",
   "gutter.revert": "Deze wijziging terugdraaien",
+  "gutter.hover-panel.empty-line": "(lege regel)",
   "modal.copy": "Kopi\xEBren",
   "modal.put-label.title": "Label toevoegen",
   "modal.put-label.message": "Geef de huidige inhoud een kort label.",
@@ -10635,6 +10696,7 @@ var no_default = {
   "modal.no-versions-match": "Ingen versjoner samsvarer med s\xF8ket",
   "modal.revert-hunk": "Tilbakestill denne endringen",
   "gutter.revert": "Tilbakestill denne endringen",
+  "gutter.hover-panel.empty-line": "(tom linje)",
   "modal.copy": "Kopier",
   "modal.put-label.title": "Sett etikett",
   "modal.put-label.message": "Merk gjeldende innhold med en kort etikett.",
@@ -10802,6 +10864,7 @@ var pl_default = {
   "modal.no-versions-match": "Brak wersji pasuj\u0105cych do wyszukiwania",
   "modal.revert-hunk": "Wycofaj t\u0119 zmian\u0119",
   "gutter.revert": "Cofnij t\u0119 zmian\u0119",
+  "gutter.hover-panel.empty-line": "(pusty wiersz)",
   "modal.copy": "Kopiuj",
   "modal.put-label.title": "Dodaj etykiet\u0119",
   "modal.put-label.message": "Oznacz bie\u017C\u0105c\u0105 zawarto\u015B\u0107 kr\xF3tk\u0105 etykiet\u0105.",
@@ -10969,6 +11032,7 @@ var pt_default = {
   "modal.no-versions-match": "Nenhuma vers\xE3o corresponde \xE0 pesquisa",
   "modal.revert-hunk": "Reverter esta altera\xE7\xE3o",
   "gutter.revert": "Reverter esta altera\xE7\xE3o",
+  "gutter.hover-panel.empty-line": "(linha vazia)",
   "modal.copy": "Copiar",
   "modal.put-label.title": "Colocar etiqueta",
   "modal.put-label.message": "Marque o conte\xFAdo atual com uma etiqueta curta.",
@@ -11136,6 +11200,7 @@ var pt_BR_default = {
   "modal.no-versions-match": "Nenhuma vers\xE3o corresponde \xE0 pesquisa",
   "modal.revert-hunk": "Reverter esta altera\xE7\xE3o",
   "gutter.revert": "Reverter esta altera\xE7\xE3o",
+  "gutter.hover-panel.empty-line": "(linha vazia)",
   "modal.copy": "Copiar",
   "modal.put-label.title": "Colocar r\xF3tulo",
   "modal.put-label.message": "Marque o conte\xFAdo atual com um r\xF3tulo curto.",
@@ -11303,6 +11368,7 @@ var ro_default = {
   "modal.no-versions-match": "Nicio versiune nu corespunde c\u0103ut\u0103rii",
   "modal.revert-hunk": "Revino asupra acestei modific\u0103ri",
   "gutter.revert": "Anuleaz\u0103 aceast\u0103 modificare",
+  "gutter.hover-panel.empty-line": "(linie goal\u0103)",
   "modal.copy": "Copiaz\u0103",
   "modal.put-label.title": "Pune etichet\u0103",
   "modal.put-label.message": "Marcheaz\u0103 con\u021Binutul curent cu o etichet\u0103 scurt\u0103.",
@@ -11470,6 +11536,7 @@ var ru_default = {
   "modal.no-versions-match": "\u041D\u0435\u0442 \u0432\u0435\u0440\u0441\u0438\u0439, \u0441\u043E\u043E\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0443\u044E\u0449\u0438\u0445 \u043F\u043E\u0438\u0441\u043A\u0443",
   "modal.revert-hunk": "\u041E\u0442\u043A\u0430\u0442\u0438\u0442\u044C \u044D\u0442\u043E \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0435",
   "gutter.revert": "\u041E\u0442\u043A\u0430\u0442\u0438\u0442\u044C \u044D\u0442\u043E \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0435",
+  "gutter.hover-panel.empty-line": "(\u043F\u0443\u0441\u0442\u0430\u044F \u0441\u0442\u0440\u043E\u043A\u0430)",
   "modal.copy": "\u041A\u043E\u043F\u0438\u0440\u043E\u0432\u0430\u0442\u044C",
   "modal.put-label.title": "\u041F\u043E\u0441\u0442\u0430\u0432\u0438\u0442\u044C \u043C\u0435\u0442\u043A\u0443",
   "modal.put-label.message": "\u041E\u0442\u043C\u0435\u0442\u044C\u0442\u0435 \u0442\u0435\u043A\u0443\u0449\u0435\u0435 \u0441\u043E\u0434\u0435\u0440\u0436\u0438\u043C\u043E\u0435 \u043A\u043E\u0440\u043E\u0442\u043A\u043E\u0439 \u043C\u0435\u0442\u043A\u043E\u0439.",
@@ -11637,6 +11704,7 @@ var sk_default = {
   "modal.no-versions-match": "\u017Diadne verzie nezodpovedaj\xFA h\u013Eadaniu",
   "modal.revert-hunk": "Vr\xE1ti\u0165 t\xFAto zmenu",
   "gutter.revert": "Vr\xE1ti\u0165 t\xFAto zmenu",
+  "gutter.hover-panel.empty-line": "(pr\xE1zdny riadok)",
   "modal.copy": "Kop\xEDrova\u0165",
   "modal.put-label.title": "Prida\u0165 \u0161t\xEDtok",
   "modal.put-label.message": "Ozna\u010Dte aktu\xE1lny obsah kr\xE1tkym \u0161t\xEDtkom.",
@@ -11804,6 +11872,7 @@ var sq_default = {
   "modal.no-versions-match": "Asnj\xEB version nuk p\xEBrputhet me k\xEBrkimin",
   "modal.revert-hunk": "Ktheje k\xEBt\xEB ndryshim",
   "gutter.revert": "Kthe k\xEBt\xEB ndryshim",
+  "gutter.hover-panel.empty-line": "(rresht bosh)",
   "modal.copy": "Kopjo",
   "modal.put-label.title": "Vendos etiket\xEB",
   "modal.put-label.message": "Sh\xEBno p\xEBrmbajtjen aktuale me nj\xEB etiket\xEB t\xEB shkurt\xEBr.",
@@ -11971,6 +12040,7 @@ var sr_default = {
   "modal.no-versions-match": "\u041D\u0438\u0458\u0435\u0434\u043D\u0430 \u0432\u0435\u0440\u0437\u0438\u0458\u0430 \u043D\u0435 \u043E\u0434\u0433\u043E\u0432\u0430\u0440\u0430 \u043F\u0440\u0435\u0442\u0440\u0430\u0437\u0438",
   "modal.revert-hunk": "\u041E\u043F\u043E\u0437\u043E\u0432\u0438 \u043E\u0432\u0443 \u0438\u0437\u043C\u0435\u043D\u0443",
   "gutter.revert": "\u0412\u0440\u0430\u0442\u0438 \u043E\u0432\u0443 \u0438\u0437\u043C\u0435\u043D\u0443",
+  "gutter.hover-panel.empty-line": "(\u043F\u0440\u0430\u0437\u0430\u043D \u0440\u0435\u0434)",
   "modal.copy": "\u041A\u043E\u043F\u0438\u0440\u0430\u0458",
   "modal.put-label.title": "\u041F\u043E\u0441\u0442\u0430\u0432\u0438 \u043E\u0437\u043D\u0430\u043A\u0443",
   "modal.put-label.message": "\u041E\u0437\u043D\u0430\u0447\u0438\u0442\u0435 \u0442\u0440\u0435\u043D\u0443\u0442\u043D\u0438 \u0441\u0430\u0434\u0440\u0436\u0430\u0458 \u043A\u0440\u0430\u0442\u043A\u043E\u043C \u043E\u0437\u043D\u0430\u043A\u043E\u043C.",
@@ -12138,6 +12208,7 @@ var sv_default = {
   "modal.no-versions-match": "Inga versioner matchar s\xF6kningen",
   "modal.revert-hunk": "\xC5terst\xE4ll den h\xE4r \xE4ndringen",
   "gutter.revert": "\xC5ngra denna \xE4ndring",
+  "gutter.hover-panel.empty-line": "(tom rad)",
   "modal.copy": "Kopiera",
   "modal.put-label.title": "S\xE4tt etikett",
   "modal.put-label.message": "M\xE4rk det aktuella inneh\xE5llet med en kort etikett.",
@@ -12305,6 +12376,7 @@ var th_default = {
   "modal.no-versions-match": "\u0E44\u0E21\u0E48\u0E21\u0E35\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19\u0E17\u0E35\u0E48\u0E15\u0E23\u0E07\u0E01\u0E31\u0E1A\u0E01\u0E32\u0E23\u0E04\u0E49\u0E19\u0E2B\u0E32",
   "modal.revert-hunk": "\u0E22\u0E49\u0E2D\u0E19\u0E01\u0E25\u0E31\u0E1A\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E19\u0E35\u0E49",
   "gutter.revert": "\u0E22\u0E49\u0E2D\u0E19\u0E01\u0E25\u0E31\u0E1A\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E19\u0E35\u0E49",
+  "gutter.hover-panel.empty-line": "(\u0E1A\u0E23\u0E23\u0E17\u0E31\u0E14\u0E27\u0E48\u0E32\u0E07)",
   "modal.copy": "\u0E04\u0E31\u0E14\u0E25\u0E2D\u0E01",
   "modal.put-label.title": "\u0E43\u0E2A\u0E48\u0E1B\u0E49\u0E32\u0E22\u0E01\u0E33\u0E01\u0E31\u0E1A",
   "modal.put-label.message": "\u0E17\u0E33\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E2B\u0E21\u0E32\u0E22\u0E40\u0E19\u0E37\u0E49\u0E2D\u0E2B\u0E32\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19\u0E14\u0E49\u0E27\u0E22\u0E1B\u0E49\u0E32\u0E22\u0E01\u0E33\u0E01\u0E31\u0E1A\u0E2A\u0E31\u0E49\u0E19 \u0E46",
@@ -12472,6 +12544,7 @@ var tr_default = {
   "modal.no-versions-match": "Aramayla e\u015Fle\u015Fen s\xFCr\xFCm yok",
   "modal.revert-hunk": "Bu de\u011Fi\u015Fikli\u011Fi geri al",
   "gutter.revert": "Bu de\u011Fi\u015Fikli\u011Fi geri al",
+  "gutter.hover-panel.empty-line": "(bo\u015F sat\u0131r)",
   "modal.copy": "Kopyala",
   "modal.put-label.title": "Etiket koy",
   "modal.put-label.message": "Ge\xE7erli i\xE7eri\u011Fi k\u0131sa bir etiketle i\u015Faretleyin.",
@@ -12639,6 +12712,7 @@ var uk_default = {
   "modal.no-versions-match": "\u041D\u0435\u043C\u0430\u0454 \u0432\u0435\u0440\u0441\u0456\u0439, \u0449\u043E \u0432\u0456\u0434\u043F\u043E\u0432\u0456\u0434\u0430\u044E\u0442\u044C \u043F\u043E\u0448\u0443\u043A\u0443",
   "modal.revert-hunk": "\u0412\u0456\u0434\u043A\u043E\u0442\u0438\u0442\u0438 \u0446\u044E \u0437\u043C\u0456\u043D\u0443",
   "gutter.revert": "\u0412\u0456\u0434\u043A\u043E\u0442\u0438\u0442\u0438 \u0446\u044E \u0437\u043C\u0456\u043D\u0443",
+  "gutter.hover-panel.empty-line": "(\u043F\u043E\u0440\u043E\u0436\u043D\u0456\u0439 \u0440\u044F\u0434\u043E\u043A)",
   "modal.copy": "\u041A\u043E\u043F\u0456\u044E\u0432\u0430\u0442\u0438",
   "modal.put-label.title": "\u041F\u043E\u0441\u0442\u0430\u0432\u0438\u0442\u0438 \u043C\u0456\u0442\u043A\u0443",
   "modal.put-label.message": "\u041F\u043E\u0437\u043D\u0430\u0447\u0442\u0435 \u043F\u043E\u0442\u043E\u0447\u043D\u0438\u0439 \u0432\u043C\u0456\u0441\u0442 \u043A\u043E\u0440\u043E\u0442\u043A\u043E\u044E \u043C\u0456\u0442\u043A\u043E\u044E.",
@@ -12806,6 +12880,7 @@ var uz_default = {
   "modal.no-versions-match": "Qidiruvga mos versiyalar yo\u02BBq",
   "modal.revert-hunk": "Bu o\u02BBzgarishni qaytarish",
   "gutter.revert": "Bu o\u02BBzgarishni qaytarish",
+  "gutter.hover-panel.empty-line": "(bo'sh qator)",
   "modal.copy": "Nusxalash",
   "modal.put-label.title": "Yorliq qo\u02BByish",
   "modal.put-label.message": "Joriy mazmunni qisqa yorliq bilan belgilang.",
@@ -12973,6 +13048,7 @@ var vi_default = {
   "modal.no-versions-match": "Kh\xF4ng c\xF3 phi\xEAn b\u1EA3n n\xE0o kh\u1EDBp v\u1EDBi t\xECm ki\u1EBFm",
   "modal.revert-hunk": "Ho\xE0n nguy\xEAn thay \u0111\u1ED5i n\xE0y",
   "gutter.revert": "Ho\xE0n t\xE1c thay \u0111\u1ED5i n\xE0y",
+  "gutter.hover-panel.empty-line": "(d\xF2ng tr\u1ED1ng)",
   "modal.copy": "Sao ch\xE9p",
   "modal.put-label.title": "G\u1EAFn nh\xE3n",
   "modal.put-label.message": "\u0110\xE1nh d\u1EA5u n\u1ED9i dung hi\u1EC7n t\u1EA1i b\u1EB1ng m\u1ED9t nh\xE3n ng\u1EAFn.",
@@ -13140,6 +13216,7 @@ var zh_default = {
   "modal.no-versions-match": "\u6CA1\u6709\u5339\u914D\u641C\u7D22\u7684\u7248\u672C",
   "modal.revert-hunk": "\u8FD8\u539F\u6B64\u66F4\u6539",
   "gutter.revert": "\u64A4\u9500\u6B64\u66F4\u6539",
+  "gutter.hover-panel.empty-line": "\uFF08\u7A7A\u884C\uFF09",
   "modal.copy": "\u590D\u5236",
   "modal.put-label.title": "\u6DFB\u52A0\u6807\u7B7E",
   "modal.put-label.message": "\u7528\u7B80\u77ED\u6807\u7B7E\u6807\u8BB0\u5F53\u524D\u5185\u5BB9\u3002",
@@ -13307,6 +13384,7 @@ var zh_TW_default = {
   "modal.no-versions-match": "\u6C92\u6709\u7B26\u5408\u641C\u5C0B\u7684\u7248\u672C",
   "modal.revert-hunk": "\u9084\u539F\u6B64\u8B8A\u66F4",
   "gutter.revert": "\u5FA9\u539F\u6B64\u8B8A\u66F4",
+  "gutter.hover-panel.empty-line": "\uFF08\u7A7A\u884C\uFF09",
   "modal.copy": "\u8907\u88FD",
   "modal.put-label.title": "\u52A0\u4E0A\u6A19\u7C64",
   "modal.put-label.message": "\u4EE5\u7C21\u77ED\u6A19\u7C64\u6A19\u8A18\u76EE\u524D\u5167\u5BB9\u3002",

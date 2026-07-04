@@ -120,6 +120,7 @@
   "modal.no-versions-match": "Нет версий, соответствующих поиску",
   "modal.revert-hunk": "Откатить это изменение",
   "gutter.revert": "Откатить это изменение",
+  "gutter.hover-panel.empty-line": "(пустая строка)",
   "modal.copy": "Копировать",
   "modal.put-label.title": "Поставить метку",
   "modal.put-label.message": "Отметьте текущее содержимое короткой меткой.",

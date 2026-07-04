@@ -120,6 +120,7 @@
   "modal.no-versions-match": "គ្មានកំណែដែលត្រូវនឹងការស្វែងរកទេ",
   "modal.revert-hunk": "ត្រឡប់ការផ្លាស់ប្ដូរនេះវិញ",
   "gutter.revert": "ត្រឡប់ការផ្លាស់ប្ដូរនេះ",
+  "gutter.hover-panel.empty-line": "(បន្ទាត់ទទេ)",
   "modal.copy": "ចម្លង",
   "modal.put-label.title": "ដាក់ស្លាក",
   "modal.put-label.message": "សម្គាល់ខ្លឹមសារបច្ចុប្បន្នដោយស្លាកខ្លី។",

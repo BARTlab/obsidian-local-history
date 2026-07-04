@@ -120,6 +120,7 @@
   "modal.no-versions-match": "لا توجد إصدارات تطابق البحث",
   "modal.revert-hunk": "التراجع عن هذا التغيير",
   "gutter.revert": "التراجع عن هذا التغيير",
+  "gutter.hover-panel.empty-line": "(سطر فارغ)",
   "modal.copy": "نسخ",
   "modal.put-label.title": "وضع تسمية",
   "modal.put-label.message": "ضع تسمية قصيرة على المحتوى الحالي.",

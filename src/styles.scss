@@ -1013,7 +1013,10 @@ body.lct-hover-affordance .cm-gutter.lct-gutter-bar-col {
   z-index: var(--layer-popover, 30);
   box-sizing: border-box;
   min-width: 180px;
-  max-width: 320px;
+
+  /* Fallback cap; the controller lowers max-width to the editor area at mount so
+   * a long previous-version line never grows the panel past the note it annotates. */
+  max-width: 520px;
   padding: var(--size-4-2);
   color: var(--text-normal);
   font-size: var(--font-ui-small);
@@ -1102,6 +1105,15 @@ body.lct-hover-affordance .cm-gutter.lct-gutter-bar-col {
 
 .lct-hover-panel-content-removed {
   background-color: rgba(var(--color-red-rgb), 0.12);
+}
+
+// A blank or whitespace-only change has no text to show; a muted italic
+// placeholder stands in for the content block so the panel never renders an
+// empty tinted rectangle. The faint text token keeps it clearly secondary, and
+// no green/red wash is applied (the branch skips the content-kind modifier).
+.lct-hover-panel-empty {
+  color: var(--text-faint);
+  font-style: italic;
 }
 
 // Action row: revert, copy old text, open history as one compact icon-button

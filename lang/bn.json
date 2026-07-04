@@ -120,6 +120,7 @@
   "modal.no-versions-match": "অনুসন্ধানের সাথে কোনো সংস্করণ মেলে না",
   "modal.revert-hunk": "এই পরিবর্তন প্রত্যাবর্তন করুন",
   "gutter.revert": "এই পরিবর্তনটি ফিরিয়ে নিন",
+  "gutter.hover-panel.empty-line": "(খালি লাইন)",
   "modal.copy": "অনুলিপি",
   "modal.put-label.title": "লেবেল দিন",
   "modal.put-label.message": "বর্তমান বিষয়বস্তুকে একটি ছোট লেবেল দিয়ে চিহ্নিত করুন।",

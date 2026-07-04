@@ -120,6 +120,7 @@
   "modal.no-versions-match": "Keine Versionen entsprechen der Suche",
   "modal.revert-hunk": "Diese Änderung zurücknehmen",
   "gutter.revert": "Diese Änderung rückgängig machen",
+  "gutter.hover-panel.empty-line": "(leere Zeile)",
   "modal.copy": "Kopieren",
   "modal.put-label.title": "Label setzen",
   "modal.put-label.message": "Den aktuellen Inhalt mit einem kurzen Label versehen.",

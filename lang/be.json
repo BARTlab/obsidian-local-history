@@ -120,6 +120,7 @@
   "modal.no-versions-match": "Няма версій, што адпавядаюць пошуку",
   "modal.revert-hunk": "Адкаціць гэтую змену",
   "gutter.revert": "Адкаціць гэту змену",
+  "gutter.hover-panel.empty-line": "(пусты радок)",
   "modal.copy": "Капіяваць",
   "modal.put-label.title": "Паставіць метку",
   "modal.put-label.message": "Адзначце бягучае змесціва кароткай меткай.",

@@ -120,6 +120,7 @@
   "modal.no-versions-match": "Inga versioner matchar sökningen",
   "modal.revert-hunk": "Återställ den här ändringen",
   "gutter.revert": "Ångra denna ändring",
+  "gutter.hover-panel.empty-line": "(tom rad)",
   "modal.copy": "Kopiera",
   "modal.put-label.title": "Sätt etikett",
   "modal.put-label.message": "Märk det aktuella innehållet med en kort etikett.",

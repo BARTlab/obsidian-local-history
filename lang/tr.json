@@ -120,6 +120,7 @@
   "modal.no-versions-match": "Aramayla eşleşen sürüm yok",
   "modal.revert-hunk": "Bu değişikliği geri al",
   "gutter.revert": "Bu değişikliği geri al",
+  "gutter.hover-panel.empty-line": "(boş satır)",
   "modal.copy": "Kopyala",
   "modal.put-label.title": "Etiket koy",
   "modal.put-label.message": "Geçerli içeriği kısa bir etiketle işaretleyin.",

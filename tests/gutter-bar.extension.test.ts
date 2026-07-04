@@ -266,6 +266,47 @@ describe('GutterBarExtension markers - one bar per changed line, keyed by kind',
   });
 });
 
+describe('GutterBarExtension hover panel gating', () => {
+  /**
+   * Builds a mouseover event whose gutter element carries the given kind class,
+   * mirroring what BarMarker.elementClass sets on the .cm-gutterElement. No real
+   * DOM is needed: closest/classList are plain stub methods.
+   */
+  const mouseoverEvent = (kindClass: string): unknown => ({
+    target: {
+      closest: (selector: string): unknown =>
+        selector === '.cm-gutterElement'
+          ? { classList: { contains: (c: string): boolean => c === kindClass } }
+          : null,
+    },
+  });
+
+  it('opens the panel on a changed marker but never on a restored one', () => {
+    const { plugin } = makePlugin({});
+    const ext = new GutterBarExtension(null as unknown as ViewArg, plugin);
+
+    // Replace the lazily-built controller with a spy so no real panel/lifecycle
+    // is created; we only assert whether the handler decides to open one.
+    const enterSpy = jest.fn();
+
+    jest.spyOn(ext as unknown as { hoverPanel: () => unknown }, 'hoverPanel')
+      .mockReturnValue({ enter: enterSpy });
+
+    const view = makeView('a\nb\nc');
+    const line = view.state.doc.line(2);
+    type MouseHandler = (v: EditorView, l: typeof line, e: unknown) => boolean;
+    const mouseover = ext.domEventHandlers.mouseover as unknown as MouseHandler;
+
+    // A restored line is already back to its original content: no panel opens.
+    mouseover(view, line, mouseoverEvent(`lct-${ChangeType.restored}`));
+    expect(enterSpy).not.toHaveBeenCalled();
+
+    // A changed marker opens the panel, anchored to the 0-based line (2 -> 1).
+    mouseover(view, line, mouseoverEvent(`lct-${ChangeType.changed}`));
+    expect(enterSpy).toHaveBeenCalledWith(1, expect.anything());
+  });
+});
+
 describe('GutterBarExtension markers - enabled-type filtering (parametrized over settings)', () => {
   interface FilterCase {
     kind: string;

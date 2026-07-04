@@ -61,7 +61,12 @@ export function resolveHoverPanelContent(
       WordDiffHelper.segments(row.oldText ?? '', row.newText ?? '').map(toSegment),
     );
 
-  return { content: { kind, lines }, hunk, baseText: baseBlock.join(lineBreak) };
+  // A change whose base and current sides both hold no visible text (a blank or
+  // whitespace-only line) renders as a muted placeholder rather than an empty
+  // tinted block; the controller also disables copy on it.
+  const blank: boolean = !hasVisibleText(baseBlock) && !hasVisibleText(currentBlock);
+
+  return { content: { kind, lines, blank }, hunk, baseText: baseBlock.join(lineBreak) };
 }
 
 /**
@@ -102,6 +107,18 @@ function currentLinesForHunk(hunk: Diff.StructuredPatchHunk): string[] {
   return (hunk?.lines ?? [])
     .filter((line: string): boolean => line !== NO_NEWLINE_MARKER && (line[0] === ' ' || line[0] === '+'))
     .map((line: string): string => line.slice(1));
+}
+
+/**
+ * Whether a block of lines holds any visible (non-whitespace) text. Used to
+ * detect a blank or whitespace-only change, which the panel shows as a muted
+ * placeholder instead of an empty tinted block.
+ *
+ * @param {string[]} lines - The block's lines
+ * @return {boolean} True when at least one line has a non-whitespace character
+ */
+function hasVisibleText(lines: string[]): boolean {
+  return lines.some((line: string): boolean => line.trim().length > 0);
 }
 
 /**

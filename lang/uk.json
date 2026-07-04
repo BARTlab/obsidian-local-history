@@ -120,6 +120,7 @@
   "modal.no-versions-match": "Немає версій, що відповідають пошуку",
   "modal.revert-hunk": "Відкотити цю зміну",
   "gutter.revert": "Відкотити цю зміну",
+  "gutter.hover-panel.empty-line": "(порожній рядок)",
   "modal.copy": "Копіювати",
   "modal.put-label.title": "Поставити мітку",
   "modal.put-label.message": "Позначте поточний вміст короткою міткою.",

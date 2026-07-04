@@ -120,6 +120,7 @@
   "modal.no-versions-match": "هیچ نسخه‌ای با جست‌وجو مطابقت ندارد",
   "modal.revert-hunk": "بازگردانی این تغییر",
   "gutter.revert": "بازگرداندن این تغییر",
+  "gutter.hover-panel.empty-line": "(خط خالی)",
   "modal.copy": "کپی",
   "modal.put-label.title": "گذاشتن برچسب",
   "modal.put-label.message": "محتوای فعلی را با یک برچسب کوتاه علامت‌گذاری کنید.",

@@ -1,7 +1,8 @@
 import 'reflect-metadata';
 import { describe, expect, it } from '@jest/globals';
 
-import { FolderTimelinePointKind } from '@/consts';
+import { FolderDeltaStatus, FolderTimelinePointKind } from '@/consts';
+import * as FolderDeltaHelper from '@/helpers/folder-delta.helper';
 import * as FolderTimelineHelper from '@/helpers/folder-timeline.helper';
 import type { FolderTimelinePoint } from '@/types';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
@@ -315,5 +316,70 @@ describe('FolderTimelineHelper.synthesize - day grouping keys', () => {
     const points: FolderTimelinePoint[] = FolderTimelineHelper.synthesize([snapshot], 'root');
 
     expect(points[0].dayKey).toBe(version.getDate());
+  });
+});
+
+describe('FolderTimelineHelper.synthesize - unversioned changed files', () => {
+  /**
+   * A file changed below the capture cadence has no stored version, so before
+   * this fix it contributed no timeline point at all and a folder holding only
+   * it opened an empty modal (no rail, an all-`none` tree). The synthesizer now
+   * emits one synthetic ORIGIN point so the modal has a selectable T at which
+   * the tree row and diff appear.
+   */
+  it('emits one origin point for a born-under-tracking file with no versions', () => {
+    const snapshot: FileSnapshot = new FileSnapshot('', '\n', makeFile('root/new.md'));
+
+    snapshot.timestamp = 1_000;
+    snapshot.content.updateState(['hello', 'world']);
+
+    const points: FolderTimelinePoint[] = FolderTimelineHelper.synthesize([snapshot], 'root');
+
+    expect(points).toHaveLength(1);
+    expect(points[0]).toEqual(expect.objectContaining({
+      kind: FolderTimelinePointKind.capture,
+      path: 'root/new.md',
+    }));
+    // Strictly before first-seen so compareAt reads the file as `added`.
+    expect(points[0].timestamp).toBe(999);
+    expect(points[0].versionId).toBeUndefined();
+    expect(FolderDeltaHelper.compareAt(snapshot, points[0].timestamp).status)
+      .toBe(FolderDeltaStatus.added);
+  });
+
+  it('emits one origin point for a pre-existing file edited below the cadence', () => {
+    const snapshot: FileSnapshot = new FileSnapshot(
+      'one\ntwo\nthree',
+      '\n',
+      makeFile('root/edited.md', { stat: { mtime: 5_000, size: 0 } }),
+    );
+
+    snapshot.timestamp = 1_000;
+    snapshot.content.updateState(['one', 'two', 'three', 'four']);
+
+    const points: FolderTimelinePoint[] = FolderTimelineHelper.synthesize([snapshot], 'root');
+
+    expect(points).toHaveLength(1);
+    // At first-seen but before the last change, so the baseline is the "before".
+    expect(points[0].timestamp).toBe(1_000);
+    expect(FolderDeltaHelper.compareAt(snapshot, points[0].timestamp).status)
+      .toBe(FolderDeltaStatus.modified);
+  });
+
+  it('emits no origin point for an unversioned file unchanged since its origin', () => {
+    const snapshot: FileSnapshot = new FileSnapshot('one\ntwo\nthree', '\n', makeFile('root/same.md'));
+
+    expect(FolderTimelineHelper.synthesize([snapshot], 'root')).toEqual([]);
+  });
+
+  it('does not add an origin point when the file already has captured versions', () => {
+    const snapshot: FileSnapshot = makeLiveSnapshot('root/v.md', [2_000]);
+
+    snapshot.content.updateState(['one', 'two', 'three', 'four']);
+
+    const points: FolderTimelinePoint[] = FolderTimelineHelper.synthesize([snapshot], 'root');
+
+    expect(points).toHaveLength(1);
+    expect(points[0].timestamp).toBe(2_000);
   });
 });

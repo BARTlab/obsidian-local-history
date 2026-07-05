@@ -281,24 +281,30 @@ export default class LineChangeTrackerPlugin extends Plugin {
   /**
    * Reveals the Recent changes panel in the right sidebar.
    *
-   * Reuses an existing leaf when one is already open so a second invocation
-   * focuses the panel rather than spawning a duplicate. Falls back to creating
-   * a fresh right-sidebar leaf when none exists; if the right sidebar is
-   * unavailable (no leaf granted), the call resolves silently without an
-   * error so menu and command entry points stay safe.
+   * Reuses a HEALTHY existing leaf (one whose view actually reconstructed) so a
+   * second invocation focuses the panel rather than spawning a duplicate. A
+   * persisted tab whose view did not reconstruct after a plugin reload is a
+   * "ghost" leaf: `getLeavesOfType` still matches it, but revealing it shows a
+   * dead pane. Such a ghost (or a fresh right-sidebar leaf when none exists) is
+   * rebuilt through `setViewState` so the entry point always lands on a working
+   * panel. When the right sidebar is unavailable the call resolves silently so
+   * menu and command entry points stay safe.
    *
    * @return {Promise<void>} Resolves once the leaf is created and revealed
    */
   public async revealRecentChanges(): Promise<void> {
     const existing: WorkspaceLeaf[] = this.app.workspace.getLeavesOfType(RECENT_CHANGES_VIEW_TYPE);
+    const healthy: WorkspaceLeaf | undefined = existing.find(
+      (leaf: WorkspaceLeaf): boolean => leaf.view instanceof RecentChangesView,
+    );
 
-    if (existing.length > 0) {
-      await this.app.workspace.revealLeaf(existing[0]);
+    if (healthy) {
+      await this.app.workspace.revealLeaf(healthy);
 
       return;
     }
 
-    const leaf: WorkspaceLeaf | null = this.app.workspace.getRightLeaf(false);
+    const leaf: WorkspaceLeaf | null = existing[0] ?? this.app.workspace.getRightLeaf(false);
 
     if (!leaf) {
       return;
@@ -311,24 +317,30 @@ export default class LineChangeTrackerPlugin extends Plugin {
   /**
    * Reveals the vault-wide changes panel in the right sidebar.
    *
-   * Mirrors {@link revealRecentChanges}: reuses an existing leaf when one is
-   * open so a second invocation focuses the panel rather than spawning a
-   * duplicate, and falls back to a fresh right-sidebar leaf otherwise. When the
-   * right sidebar is unavailable the call resolves silently so the command entry
-   * point stays safe.
+   * Mirrors {@link revealRecentChanges}: reuses a HEALTHY existing leaf so a
+   * second invocation focuses the panel rather than spawning a duplicate, and
+   * rebuilds a post-reload "ghost" leaf (or a fresh right-sidebar leaf when none
+   * exists) through `setViewState` so the command always lands on a working
+   * panel. Without the ghost rebuild, a persisted-but-dead tab left by a reload
+   * would be revealed as an empty pane and the panel could never be shown again.
+   * When the right sidebar is unavailable the call resolves silently so the
+   * command entry point stays safe.
    *
    * @return {Promise<void>} Resolves once the leaf is created and revealed
    */
   public async revealVaultChanges(): Promise<void> {
     const existing: WorkspaceLeaf[] = this.app.workspace.getLeavesOfType(VAULT_CHANGES_VIEW_TYPE);
+    const healthy: WorkspaceLeaf | undefined = existing.find(
+      (leaf: WorkspaceLeaf): boolean => leaf.view instanceof VaultChangesView,
+    );
 
-    if (existing.length > 0) {
-      await this.app.workspace.revealLeaf(existing[0]);
+    if (healthy) {
+      await this.app.workspace.revealLeaf(healthy);
 
       return;
     }
 
-    const leaf: WorkspaceLeaf | null = this.app.workspace.getRightLeaf(false);
+    const leaf: WorkspaceLeaf | null = existing[0] ?? this.app.workspace.getRightLeaf(false);
 
     if (!leaf) {
       return;
@@ -358,16 +370,26 @@ export default class LineChangeTrackerPlugin extends Plugin {
       return;
     }
 
-    settings.update('vaultChangesAutoRevealed', true);
-
+    // Already docked (a persisted leaf survived): honour it and latch so we
+    // never re-add the tab from here on.
     if (this.app.workspace.getLeavesOfType(VAULT_CHANGES_VIEW_TYPE).length > 0) {
+      settings.update('vaultChangesAutoRevealed', true);
+
       return;
     }
 
-    await this.app.workspace.getRightLeaf(false)?.setViewState({
-      type: VAULT_CHANGES_VIEW_TYPE,
-      active: false,
-    });
+    const leaf: WorkspaceLeaf | null = this.app.workspace.getRightLeaf(false);
+
+    // The right sidebar was not available this run (collapsed or not yet
+    // granted a leaf): leave the flag unset so the one-shot dock is retried on
+    // the next load instead of latching on a failed attempt and never showing.
+    if (!leaf) {
+      return;
+    }
+
+    await leaf.setViewState({ type: VAULT_CHANGES_VIEW_TYPE, active: false });
+
+    settings.update('vaultChangesAutoRevealed', true);
   }
 
   /**

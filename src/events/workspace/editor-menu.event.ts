@@ -11,7 +11,7 @@ import type { Editor, MarkdownView, Menu, MenuItem } from 'obsidian';
  * Event handler for Obsidian's editor menu event.
  *
  * Adds a "Local history" PhpStorm-style submenu to the editor's
- * context menu with four entries:
+ * context menu with five entries:
  *
  * 1. Show History: opens the full history modal (rail visible).
  * 2. Show History for Selection: opens the modal pre-filtered to versions where
@@ -21,7 +21,8 @@ import type { Editor, MarkdownView, Menu, MenuItem } from 'obsidian';
  *    dead handler.
  * 3. Put label: prompts for a label and captures a pinned labeled version of
  *    the active file's current content via VersionActionsService.
- * 4. Recent changes: reveals the right-sidebar Recent changes panel.
+ * 4. Recent changes: reveals the file-scoped right-sidebar Recent changes panel.
+ * 5. Vault changes: reveals the vault-wide changes panel.
  *
  * The "Show changes" gutter toggle lives in the viewport (gutter) menu and is
  * intentionally NOT mirrored here: scope is the editor context menu only.
@@ -100,6 +101,15 @@ export class WorkspaceEditorMenuEvent extends BaseEvent {
           .setIcon('clock')
           .onClick((): void => {
             void this.plugin.revealRecentChanges();
+          });
+      });
+
+      submenu.addItem((item: MenuItem): void => {
+        item
+          .setTitle(this.plugin.t('view.vault-changes.title'))
+          .setIcon('folder-git-2')
+          .onClick((): void => {
+            void this.plugin.revealVaultChanges();
           });
       });
     });

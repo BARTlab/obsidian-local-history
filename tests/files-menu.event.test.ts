@@ -96,6 +96,7 @@ const makeModalsServiceMock = (): {
 const makePlugin = (
   service: ReturnType<typeof makeModalsServiceMock>,
   reveal: jest.Mock,
+  revealVault: jest.Mock,
 ): LineChangeTrackerPlugin => {
   const container = new Map<unknown, unknown>([
     [TOKENS.modals, service as unknown as ModalsService],
@@ -105,21 +106,24 @@ const makePlugin = (
     get: (key: unknown): unknown => container.get(key),
     t: (key: string): string => key,
     revealRecentChanges: reveal,
+    revealVaultChanges: revealVault,
   } as unknown as LineChangeTrackerPlugin;
 };
 
 describe('WorkspaceFilesMenuEvent', () => {
   let service: ReturnType<typeof makeModalsServiceMock>;
   let reveal: jest.Mock;
+  let revealVault: jest.Mock;
   let event: WorkspaceFilesMenuEvent;
 
   beforeEach((): void => {
     service = makeModalsServiceMock();
     reveal = jest.fn();
-    event = new WorkspaceFilesMenuEvent(makePlugin(service, reveal));
+    revealVault = jest.fn();
+    event = new WorkspaceFilesMenuEvent(makePlugin(service, reveal, revealVault));
   });
 
-  it('adds a Local history parent with a 3-entry submenu for TFile', () => {
+  it('adds a Local history parent with a 4-entry submenu for TFile', () => {
     const file: TFile = makeFile('notes/a.md');
     const menu = makeMenu();
 
@@ -136,6 +140,7 @@ describe('WorkspaceFilesMenuEvent', () => {
       'menu.local-history.show-history',
       'menu.local-history.put-label',
       'menu.local-history.recent-changes',
+      'view.vault-changes.title',
     ]);
   });
 
@@ -179,6 +184,19 @@ describe('WorkspaceFilesMenuEvent', () => {
     expect(reveal).toHaveBeenCalledTimes(1);
   });
 
+  it('routes Vault changes on a TFile to plugin.revealVaultChanges', () => {
+    const file: TFile = makeFile('notes/a.md');
+    const menu = makeMenu();
+
+    event.handler(menu as unknown as Parameters<WorkspaceFilesMenuEvent['handler']>[0], file, 'file-explorer');
+
+    const submenu = menu.children[0];
+    submenu.items[3].click?.();
+
+    expect(revealVault).toHaveBeenCalledTimes(1);
+    expect(reveal).not.toHaveBeenCalled();
+  });
+
   it('routes Put label on a TFile to ModalsService.putLabel(file)', () => {
     const file: TFile = makeFile('notes/a.md');
     const menu = makeMenu();
@@ -192,7 +210,7 @@ describe('WorkspaceFilesMenuEvent', () => {
     expect(service.putLabel).toHaveBeenCalledWith(file);
   });
 
-  it('adds a Local history parent with a 2-entry submenu for TFolder', () => {
+  it('adds a Local history parent with a 3-entry submenu for TFolder', () => {
     const folder: TFolder = makeFolder('notes');
     const menu = makeMenu();
 
@@ -206,6 +224,7 @@ describe('WorkspaceFilesMenuEvent', () => {
     expect(titles).toEqual([
       'menu.local-history.show-history',
       'menu.local-history.recent-changes',
+      'view.vault-changes.title',
     ]);
   });
 
@@ -232,6 +251,19 @@ describe('WorkspaceFilesMenuEvent', () => {
     submenu.items[1].click?.();
 
     expect(reveal).toHaveBeenCalledTimes(1);
+  });
+
+  it('routes Vault changes on a TFolder to plugin.revealVaultChanges', () => {
+    const folder: TFolder = makeFolder('notes');
+    const menu = makeMenu();
+
+    event.handler(menu as unknown as Parameters<WorkspaceFilesMenuEvent['handler']>[0], folder, 'file-explorer');
+
+    const submenu = menu.children[0];
+    submenu.items[2].click?.();
+
+    expect(revealVault).toHaveBeenCalledTimes(1);
+    expect(reveal).not.toHaveBeenCalled();
   });
 
   it('short-circuits for a TAbstractFile that is neither a TFile nor a TFolder', () => {

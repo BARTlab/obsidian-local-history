@@ -522,7 +522,7 @@ export class SnapshotsService implements Service {
    * @param {string} path - The vault-relative path to test
    * @return {boolean} True when the path is inside the plugin's own directory
    */
-  protected isOwnPluginPath(path: string): boolean {
+  public isOwnPluginPath(path: string): boolean {
     const configDir: string | undefined = this.plugin.app?.vault?.configDir;
     const dir: string | undefined = this.plugin.manifest?.dir
       ?? (configDir ? `${configDir}/plugins/${this.plugin.manifest?.id ?? ''}` : undefined);

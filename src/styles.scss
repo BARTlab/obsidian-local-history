@@ -870,6 +870,89 @@ body {
   }
 }
 
+/* ---- vault changes panel ---- */
+// Right-sidebar panel listing every file changed against its history origin,
+// rendered by the shared folder-tree component (tree or flat). Mirrors the
+// recent-changes panel's compact sidebar padding; the header (search + layout
+// toggle) stays pinned while the list scrolls.
+.workspace-leaf-content[data-type='line-change-tracker-vault-changes'] {
+  .lct-vault-changes-view {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+    padding: var(--size-4-3) var(--size-4-2);
+  }
+
+  .lct-vault-changes-header {
+    flex: none;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--size-4-1);
+    padding-bottom: var(--size-4-2);
+
+    .lct-vault-changes-search {
+      flex: 1;
+      min-width: 0;
+
+      .search-input-container {
+        width: 100%;
+      }
+    }
+
+    .lct-vault-changes-layout-toggle {
+      flex: none;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: var(--size-4-1);
+    }
+
+    // The active layout button takes the accent-over-hover treatment the modal
+    // toolbar toggles use, so the current layout reads as pressed rather than as
+    // a primary call-to-action.
+    .lct-vault-changes-layout-button.is-active {
+      color: var(--text-accent);
+      background-color: var(--background-modifier-hover);
+    }
+  }
+
+  // The list fills the remaining height and owns its scroll so the header stays
+  // put on a long list.
+  .lct-vault-changes-list {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+  }
+}
+
+/* ---- vault changes flat layout ---- */
+// Flat layout of the shared folder tree: one row per changed file, the
+// status-coloured name stacked over its muted containing path, so a file stays
+// locatable without the folder scaffolding. Only the flat panel uses these; the
+// nested tree keeps its single-line indented rows.
+.lct-folder-tree-flat {
+  .lct-folder-tree-flat-file {
+    align-items: flex-start;
+  }
+
+  .lct-folder-tree-flat-main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: var(--line-height-tight);
+  }
+
+  .lct-folder-tree-path {
+    color: var(--text-faint);
+    font-size: var(--font-ui-smaller);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
 /* ---- confirm modal ---- */
 .modal.lct-confirm-modal {
   // A bare Modal leaves its content flush against the edges; restore a

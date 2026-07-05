@@ -1,10 +1,10 @@
 import type { LineChangeTrackerSettings } from '@/types/settings';
-import { IndicatorType, KeepHistory } from '@/types/settings-enums';
+import { ChangesLayout, IndicatorType, KeepHistory } from '@/types/settings-enums';
 
 // Re-exported so existing `@/consts` importers of the settings enums keep their
 // path; the enums live in a leaf module that neither `consts.ts` nor
 // `types/settings.ts` imports back into, which breaks the consts<->settings cycle.
-export { IndicatorType, KeepHistory };
+export { ChangesLayout, IndicatorType, KeepHistory };
 
 /**
  * Defines the types of changes that can be tracked in a file.
@@ -186,6 +186,7 @@ export const DEFAULT_SETTINGS: LineChangeTrackerSettings = {
   readingModeIndicator: false,
   gutterHoverPanel: true,
   markerIntensity: 75,
+  vaultChangesLayout: ChangesLayout.tree,
 
   retention: {
     maxEntries: 200,
@@ -239,6 +240,14 @@ export const SHOW_CHANGE_KEYS = ['show.changed', 'show.restored', 'show.added', 
  * leaf instead of spawning duplicates.
  */
 export const RECENT_CHANGES_VIEW_TYPE: string = 'line-change-tracker-recent-changes';
+
+/**
+ * Stable view type id for the vault-wide changes panel. Registered with Obsidian
+ * once at plugin load so the right sidebar can host one whole-vault changes
+ * navigator at a time, and used by the reveal entry point to focus the existing
+ * leaf instead of spawning duplicates.
+ */
+export const VAULT_CHANGES_VIEW_TYPE: string = 'line-change-tracker-vault-changes';
 
 /**
  * Default ID for the plugin's status bar item.

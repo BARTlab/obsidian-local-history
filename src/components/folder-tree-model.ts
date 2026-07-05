@@ -231,6 +231,30 @@ export class FolderTreeModel {
   }
 
   /**
+   * Collects every file leaf under `node` into `acc`, depth-first in render
+   * order. Folder nodes are recursed into but never collected; only file leaves
+   * land in the accumulator. Used by the flat layout, which lists files without
+   * their folder scaffolding.
+   *
+   * @param {FolderTreeNode | null} node - The node to walk
+   * @param {FolderTreeNode[]} acc - The accumulator collecting file leaves
+   * @return {void}
+   */
+  protected static collectFiles(node: FolderTreeNode | null, acc: FolderTreeNode[]): void {
+    if (!node) {
+      return;
+    }
+
+    for (const child of node.children) {
+      if (child.isFolder) {
+        FolderTreeModel.collectFiles(child, acc);
+      } else {
+        acc.push(child);
+      }
+    }
+  }
+
+  /**
    * Returns the path of the first file in render order under `node`, or null.
    *
    * @param {FolderTreeNode | null} node - The node to search under
@@ -300,6 +324,20 @@ export class FolderTreeModel {
    */
   public firstFilePath(): string | null {
     return FolderTreeModel.firstFileUnder(this.rootNode);
+  }
+
+  /**
+   * Returns every file leaf in the built tree, in render order. The flat layout
+   * renders these directly (sorted by full path), skipping the folder rows.
+   *
+   * @return {FolderTreeNode[]} The file leaves of the current tree
+   */
+  public allFiles(): FolderTreeNode[] {
+    const acc: FolderTreeNode[] = [];
+
+    FolderTreeModel.collectFiles(this.rootNode, acc);
+
+    return acc;
   }
 
   /**

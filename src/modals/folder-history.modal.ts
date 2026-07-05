@@ -82,8 +82,14 @@ export class FolderHistoryModal extends Modal {
    * Pure timeline / selection model: owns the synthesised timeline and the
    * selected point T, and answers the closest-version / selection / resync
    * questions off the snapshot map without touching the DOM (unit-testable).
+   *
+   * Named `selectionModel`, not `selection`, on purpose: Obsidian's `Modal`
+   * base assigns its own `this.selection` (the captured `{win, range, focusEl}`
+   * it restores on close) during `open()`, before `onOpen()` runs. A field
+   * named `selection` here would be clobbered by that write, and every
+   * `resolveVersionAtT` call would throw "not a function". Do not rename back.
    */
-  protected readonly selection: FolderSelectionModel;
+  protected readonly selectionModel: FolderSelectionModel;
 
   /**
    * Shared diff-view state, reused from the file modal for the mode-button
@@ -190,7 +196,7 @@ export class FolderHistoryModal extends Modal {
         snapshot,
       ]),
     );
-    this.selection = new FolderSelectionModel(snapshots, rootPath);
+    this.selectionModel = new FolderSelectionModel(snapshots, rootPath);
     this.viewState = new DiffViewState({
       diffContainer: (): HTMLElement | undefined => this.diffContainerEl,
       getHunks: () => [],
@@ -244,8 +250,8 @@ export class FolderHistoryModal extends Modal {
     return {
       plugin: this.plugin,
       railEl: (): HTMLElement | undefined => this.railEl,
-      timeline: (): FolderTimelinePoint[] => this.selection.timeline,
-      selectedTimestamp: (): number => this.selection.selectedTimestamp,
+      timeline: (): FolderTimelinePoint[] => this.selectionModel.timeline,
+      selectedTimestamp: (): number => this.selectionModel.selectedTimestamp,
       snapshotsByPath: (): Map<string, FileSnapshot> => this.snapshotsByPath,
       selectTimestamp: (timestamp: number): void => {
         this.selectTimestamp(timestamp);
@@ -273,7 +279,7 @@ export class FolderHistoryModal extends Modal {
       noticeEl: (): HTMLElement | undefined => this.noticeEl,
       columnsHeaderEl: (): HTMLElement | undefined => this.columnsHeaderEl,
       displayMode: (): DiffRenderMode => this.viewState.currentDisplayMode,
-      selectedTimestamp: (): number => this.selection.selectedTimestamp,
+      selectedTimestamp: (): number => this.selectionModel.selectedTimestamp,
       selectedPath: (): string | null => this.tree.getSelectedPath(),
       snapshotsByPath: (): Map<string, FileSnapshot> => this.snapshotsByPath,
       onDiffRendered: (): void => {
@@ -301,8 +307,9 @@ export class FolderHistoryModal extends Modal {
       versionActionsService: this.versionActionsService,
       snapshotsService: this.snapshotsService,
       resolveSelection: (): FolderActionSelection | null =>
-        this.selection.resolveSelection(this.tree.getSelectedPath(), this.snapshotsByPath),
-      resolveVersionAtT: (snapshot: FileSnapshot): FileVersion | null => this.selection.resolveVersionAtT(snapshot),
+        this.selectionModel.resolveSelection(this.tree.getSelectedPath(), this.snapshotsByPath),
+      resolveVersionAtT: (snapshot: FileSnapshot): FileVersion | null =>
+        this.selectionModel.resolveVersionAtT(snapshot),
       removeFromMap: (path: string): void => {
         this.snapshotsByPath.delete(path);
       },
@@ -570,11 +577,11 @@ export class FolderHistoryModal extends Modal {
    * @param {number} timestamp - The new selected T
    */
   protected selectTimestamp(timestamp: number): void {
-    if (this.selection.selectedTimestamp === timestamp) {
+    if (this.selectionModel.selectedTimestamp === timestamp) {
       return;
     }
 
-    this.selection.select(timestamp);
+    this.selectionModel.select(timestamp);
     this.timelineRenderer.render();
     this.refreshTree();
     this.refreshDiff();
@@ -592,8 +599,8 @@ export class FolderHistoryModal extends Modal {
     const entries: FolderTreeEntry[] = [];
 
     this.snapshotsByPath.forEach((snapshot: FileSnapshot, path: string): void => {
-      const result: FolderDeltaResult = FolderDeltaHelper.compareAt(snapshot, this.selection.selectedTimestamp);
-      const closest: FileVersion | null = this.selection.resolveVersionAtT(snapshot);
+      const result: FolderDeltaResult = FolderDeltaHelper.compareAt(snapshot, this.selectionModel.selectedTimestamp);
+      const closest: FileVersion | null = this.selectionModel.resolveVersionAtT(snapshot);
 
       /**
        * The badge follows the version closest to T: if that version was
@@ -605,6 +612,7 @@ export class FolderHistoryModal extends Modal {
         path,
         status: result.status,
         external: closest?.isExternal() === true,
+        date: closest?.getDateTime(),
       });
     });
 
@@ -642,7 +650,7 @@ export class FolderHistoryModal extends Modal {
    * hint before the caller closes the modal.
    */
   protected resyncTimeline(): void {
-    this.selection.resync(this.snapshotsByPath, this.rootPath);
+    this.selectionModel.resync(this.snapshotsByPath, this.rootPath);
     this.timelineRenderer.render();
   }
 }

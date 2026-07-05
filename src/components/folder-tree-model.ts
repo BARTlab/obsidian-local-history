@@ -139,6 +139,7 @@ export class FolderTreeModel {
         isFolder: false,
         status: entry.status,
         external: entry.external === true,
+        date: entry.date,
         children: [],
       });
     });

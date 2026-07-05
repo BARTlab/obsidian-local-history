@@ -81,8 +81,10 @@ describe('VaultChangesHelper.collectEntries', () => {
     ]);
 
     expect(entries).toEqual([
-      { path: 'changed.md', status: FolderDeltaStatus.modified, external: false },
+      expect.objectContaining({ path: 'changed.md', status: FolderDeltaStatus.modified, external: false }),
     ]);
+    // Each entry now carries the file's last-changed datetime for the row tooltip.
+    expect(typeof entries[0].date).toBe('string');
   });
 
   it('resolves the path from the carried path when the live file is gone', () => {
@@ -119,7 +121,8 @@ describe('VaultChangesHelper.collectEntries', () => {
     const entries = VaultChangesHelper.collectEntries([snapshot]);
 
     expect(entries).toEqual([
-      { path: 'gone.md', status: FolderDeltaStatus.deleted, external: false },
+      expect.objectContaining({ path: 'gone.md', status: FolderDeltaStatus.deleted, external: false }),
     ]);
+    expect(typeof entries[0].date).toBe('string');
   });
 });

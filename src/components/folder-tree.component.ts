@@ -434,7 +434,7 @@ export class FolderTreeComponent {
     const config: DomElementConfig = {
       tag: 'div',
       classes,
-      attributes: { 'data-path': node.path },
+      attributes: { 'data-path': node.path, 'aria-label': this.rowTooltip(node) },
       styles: { paddingInlineStart: `calc(var(--size-4-2) + ${depth * 16}px)` },
       events: {
         click: (event: Event): void => {
@@ -498,7 +498,7 @@ export class FolderTreeComponent {
     const row: HTMLElement = DomHelper.create({
       tag: 'div',
       classes,
-      attributes: { 'data-path': node.path },
+      attributes: { 'data-path': node.path, 'aria-label': this.rowTooltip(node) },
       events: {
         click: (event: Event): void => {
           event.preventDefault();
@@ -527,13 +527,13 @@ export class FolderTreeComponent {
 
     if (slash >= 0) {
       // The containing path shares the file's line, muted and truncated with an
-      // ellipsis (the CSS caps it); the full vault path rides `aria-label` so
-      // hovering reveals the complete location without widening the row.
+      // ellipsis (the CSS caps it). The full location, date, and external note
+      // ride the ROW's aria-label (see rowTooltip), so the path carries no
+      // tooltip of its own.
       DomHelper.create({
         tag: 'span',
         classes: 'lct-folder-tree-path',
         text: node.path.slice(0, slash),
-        attributes: { 'aria-label': node.path },
         container: row,
       });
     }
@@ -544,35 +544,19 @@ export class FolderTreeComponent {
   }
 
   /**
-   * Renders the inline external-change badge on a file row: a
-   * Lucide `download-cloud` glyph plus a short text label, marked with an
-   * `aria-label` so assistive tech announces the badge. The text is an inline
-   * English literal here and is propagated to every catalog; until then it
-   * shows in English on every locale even when the translator is wired, matching the rest of the folder modal's inline
-   * literals (see FolderHistoryModal.kindLabel).
+   * Renders the inline external-change badge on a file row: an icon-only
+   * `download-cloud` glyph right-aligned by CSS. The badge carries NO tooltip of
+   * its own: the word "external" rides the ROW's aria-label (see
+   * {@link rowTooltip}) so the whole row is one hover target instead of three
+   * competing ones (path, icon, row).
    *
    * @param {HTMLElement} row - The file row to append the badge to
    * @return {void}
    */
   protected renderExternalBadge(row: HTMLElement): void {
-    const fallback: string = 'external';
-    const resolved: string | null = this.plugin ? this.plugin.t('version.badge.external') : null;
-    /**
-     * Same translator-fallback contract as renderEmpty: unit tests can mount
-     * the component without a translator and still see the English literal.
-     */
-    const text: string = resolved && resolved !== 'version.badge.external' ? resolved : fallback;
-
-    // Icon-only badge: the glyph carries the meaning and the `aria-label`
-    // supplies the word "external" as a hover tooltip, so a long text label does
-    // not crowd the file row (the folder tree and the vault panel both render
-    // narrow rows). `aria-label` only (no `title`): Obsidian renders its own
-    // styled tooltip for `[aria-label]` elements, while `title` would stack the
-    // unstyled native browser tooltip on top.
     const badge: HTMLElement = DomHelper.create({
       tag: 'span',
       classes: ['lct-version-external-badge', 'lct-version-external-badge-icon-only'],
-      attributes: { 'aria-label': text },
       container: row,
     });
 
@@ -583,6 +567,44 @@ export class FolderTreeComponent {
     });
 
     setIcon(slot, 'download-cloud');
+  }
+
+  /**
+   * Builds the file row's hover tooltip: the full vault path, then the change
+   * date (when known), then the word "external" (when the row is an external
+   * capture). Joined with newlines so Obsidian's aria-label tooltip stacks them.
+   * This is the single hover target for the row; the path span and the badge
+   * carry no tooltip of their own.
+   *
+   * @param {FolderTreeNode} node - The file node to describe
+   * @return {string} The composed multi-line tooltip text
+   */
+  protected rowTooltip(node: FolderTreeNode): string {
+    const parts: string[] = [node.path];
+
+    if (node.date) {
+      parts.push(node.date);
+    }
+
+    if (node.external) {
+      parts.push(this.externalLabel());
+    }
+
+    return parts.join('\n');
+  }
+
+  /**
+   * Resolves the localized "external" word for the row tooltip, echoing the
+   * English literal when no translator is wired (the same fallback contract as
+   * {@link renderEmpty}) so unit tests without a translator still read sensibly.
+   *
+   * @return {string} The localized (or fallback) external label
+   */
+  protected externalLabel(): string {
+    const fallback: string = 'external';
+    const resolved: string | null = this.plugin ? this.plugin.t('version.badge.external') : null;
+
+    return resolved && resolved !== 'version.badge.external' ? resolved : fallback;
   }
 
   /**

@@ -13,6 +13,7 @@ It complements Obsidian [Sync version history](https://obsidian.md/help/sync/ver
 - Whitespace-only edits get a distinct indicator color so you can tell them apart from real content changes.
 - File-explorer rows and workspace tab headers tint by what changed this session, so the tree and tab bar agree with the editor gutter at a glance. Folders whose only changes are in files hidden by Obsidian's excluded-files filter or your own exclude patterns stay untinted.
 - Optional reading-mode block indicators and a properties-panel diff, each toggled in settings.
+- A single "Marker intensity" setting scales how strong every change colour reads (editor markers, reading-mode bars, file-tree and tab tints) at once.
 - On-disk timeline per file, captured on an edit-count and time interval so it records meaningful points rather than every keystroke, with independent retention caps for live files and for deleted-file tombstones. Pin any version with a label to protect it from eviction.
 - Diff modal with four views (side-by-side, line-by-line, word-level inline, and a clean zero-context patch you can copy), a searchable version rail, and next/previous difference navigation.
 - Restore a whole file to any version or to its original state, or revert a single changed block straight from the editor gutter.

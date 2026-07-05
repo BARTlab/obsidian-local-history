@@ -69,10 +69,6 @@ body {
   --lct-color-added: color-mix(in srgb, var(--color-orange) var(--lct-tint-strength), transparent);
   --lct-color-removed: color-mix(in srgb, var(--color-base-100) var(--lct-tint-strength), transparent);
   --lct-color-whitespace: color-mix(in srgb, var(--color-yellow) var(--lct-tint-strength), transparent);
-  // Vertical overlap a joined gutter bar adds below itself to cover the seam
-  // between adjacent gutter elements (line-height rounding leaves up to ~2px
-  // unpainted between them). The surplus hides under the opaque next bar.
-  --lct-line-seam: 2px;
 }
 
 /* ---- modal ---- */
@@ -881,7 +877,13 @@ body {
     flex-direction: column;
     min-height: 0;
     height: 100%;
-    padding: var(--size-4-3) var(--size-4-2);
+
+    // Extra bottom padding clears Obsidian's status bar, which floats over the
+    // bottom of the right sidebar. Reserving the gap HERE (outside the scroll
+    // viewport) rather than inside the list keeps the scrollable region - and
+    // its scrollbar track - fully above the status bar, instead of the list
+    // extending under it with only the last row padded clear at max scroll.
+    padding: var(--size-4-3) var(--size-4-2) var(--size-4-8);
   }
 
   .lct-vault-changes-header {
@@ -919,13 +921,12 @@ body {
   }
 
   // The list fills the remaining height and owns its scroll so the header stays
-  // put on a long list. The bottom padding lets the last row scroll clear of
-  // Obsidian's status bar, which floats over the bottom of the sidebar.
+  // put on a long list. Status-bar clearance lives on the view's bottom padding
+  // (outside this scroll viewport), so the list needs no inner bottom padding.
   .lct-vault-changes-list {
     flex: 1;
     min-height: 0;
     overflow: auto;
-    padding-bottom: var(--size-4-8);
   }
 
   // In the narrow sidebar the tree should fit the panel width and let long paths
@@ -1031,12 +1032,13 @@ body {
     border-radius: var(--lct-line-border-radius);
   }
 
-  /* Run continuation (classes set by BarMarker): a bar followed by another
-   * bar stretches down over the inter-element seam, and both sides of the
-   * shared edge drop their rounding, so a run of changed lines reads as one
-   * continuous stroke instead of per-line segments with micro-gaps. */
+  /* Run continuation (classes set by BarMarker): both sides of the shared edge
+   * drop their rounding, so a run of changed lines reads as one continuous
+   * stroke instead of per-line rounded segments. The bars are translucent
+   * (color-mix toward transparent), so they must not overlap to bridge the
+   * sub-pixel inter-element seam: a height overlap double-composites two
+   * translucent layers into a visibly darker band at every line boundary. */
   .lct-join-down .lct-gutter-bar {
-    height: calc(100% + var(--lct-line-seam));
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
   }
@@ -1626,12 +1628,16 @@ body.lct-hover-affordance .cm-gutter.lct-gutter-bar-col {
   padding: 2px;
 }
 
-// The folder tree mounts the file row as a flex row (icon + name + badge), so
-// the badge should not stretch the row's height. Resetting the badge's vertical
-// alignment keeps the file row's existing 1-line cadence.
+// The folder tree mounts the file row as a flex row (icon + name + [path] +
+// badge). Push the badge to the row's trailing edge with an auto inline-start
+// margin so it forms one consistent right-aligned status column in every case:
+// the nested tree (badge after the name), the flat layout with a path (after
+// the ellipsised path), and a flat root file with no path. Without this the
+// badge floated wherever the preceding content ended, so its x-position jumped
+// between rows and between the tree and flat views.
 .lct-folder-tree .lct-folder-tree-row.lct-folder-tree-file {
   .lct-version-external-badge {
-    margin-inline-start: var(--size-4-1);
+    margin-inline-start: auto;
   }
 }
 

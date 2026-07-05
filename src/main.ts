@@ -163,8 +163,8 @@ export default class LineChangeTrackerPlugin extends Plugin {
       (leaf: WorkspaceLeaf): VaultChangesView => new VaultChangesView(leaf, this),
     );
 
-    this.addRibbonIcon('folder-git-2', this.t('command.open-vault-changes'), (): void => {
-      void this.revealVaultChanges();
+    this.app.workspace.onLayoutReady((): void => {
+      void this.autoDockVaultChanges();
     });
 
     this.ready = true;
@@ -336,6 +336,38 @@ export default class LineChangeTrackerPlugin extends Plugin {
 
     await leaf.setViewState({ type: VAULT_CHANGES_VIEW_TYPE, active: true });
     await this.app.workspace.revealLeaf(leaf);
+  }
+
+  /**
+   * Docks the vault changes panel into the right sidebar once, the first time
+   * the plugin ever loads, so its tab is present there without a ribbon icon.
+   * Obsidian has no API to add a bare button to a sidebar, so a docked leaf (its
+   * tab icon) is the sidebar-native entry point. The one-shot
+   * `vaultChangesAutoRevealed` flag is set on the first attempt so a user who
+   * later closes the panel is respected: from then on Obsidian's own workspace
+   * persistence decides whether the leaf comes back, and this never re-adds it.
+   * The leaf is created inactive so the dock does not steal focus on startup;
+   * the command still opens/focuses it on demand.
+   *
+   * @return {Promise<void>} Resolves once the one-shot dock attempt completes
+   */
+  public async autoDockVaultChanges(): Promise<void> {
+    const settings: SettingsService = this.get(TOKENS.settings);
+
+    if (settings.value('vaultChangesAutoRevealed')) {
+      return;
+    }
+
+    settings.update('vaultChangesAutoRevealed', true);
+
+    if (this.app.workspace.getLeavesOfType(VAULT_CHANGES_VIEW_TYPE).length > 0) {
+      return;
+    }
+
+    await this.app.workspace.getRightLeaf(false)?.setViewState({
+      type: VAULT_CHANGES_VIEW_TYPE,
+      active: false,
+    });
   }
 
   /**

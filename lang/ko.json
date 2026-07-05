@@ -71,7 +71,7 @@
   "setting.line-heading": "줄 표시기",
   "setting.line-width.name": "너비",
   "setting.line-width.desc": "세로선 표시기의 너비(픽셀 단위).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "여백 표시기",
   "setting.gutter-heading.prefix": "여백 유형 표시기 문자 (",

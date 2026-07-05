@@ -17,7 +17,7 @@ It complements Obsidian [Sync version history](https://obsidian.md/help/sync/ver
 - Diff modal with four views (side-by-side, line-by-line, word-level inline, and a clean zero-context patch you can copy), a searchable version rail, and next/previous difference navigation.
 - Restore a whole file to any version or to its original state, or revert a single changed block straight from the editor gutter.
 - Recent changes side panel listing the active file's timeline with action, date, and line deltas.
-- Vault changes side panel: a whole-vault list of every file that still differs from its history origin (modified, added under tracking, or deleted), shown as a folder tree or a flat path-annotated list and filterable by name. Open it from the ribbon icon or the command palette.
+- Vault changes side panel: a whole-vault list of every file that still differs from its history origin (modified, added under tracking, or deleted), shown as a folder tree or a flat path-annotated list and filterable by name. It docks into the right sidebar on first load; reopen it any time from the command palette.
 - Folder history: a changes-only file tree plus a timeline rail for a whole folder, with restore, delete, and label actions on the selected file.
 - Deleted and moved files are kept as recoverable tombstones instead of being dropped; changes the editor never saw (a git pull, a sync, an external editor) are detected, captured, and marked with an inline badge.
 

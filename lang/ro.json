@@ -71,7 +71,7 @@
   "setting.line-heading": "Indicator de linie",
   "setting.line-width.name": "Lățime",
   "setting.line-width.desc": "Lățimea indicatorului de linie verticală (în pixeli).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Indicator în margine",
   "setting.gutter-heading.prefix": "Caracterele indicatorului de tip din margine (",

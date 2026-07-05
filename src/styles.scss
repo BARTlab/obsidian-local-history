@@ -919,32 +919,44 @@ body {
   }
 
   // The list fills the remaining height and owns its scroll so the header stays
-  // put on a long list.
+  // put on a long list. The bottom padding lets the last row scroll clear of
+  // Obsidian's status bar, which floats over the bottom of the sidebar.
   .lct-vault-changes-list {
     flex: 1;
     min-height: 0;
     overflow: auto;
+    padding-bottom: var(--size-4-8);
+  }
+
+  // In the narrow sidebar the tree should fit the panel width and let long paths
+  // truncate, not force a horizontal scroll: override the modal tree's
+  // max-content width (which the folder-history modal relies on for its wide
+  // scrollable column).
+  .lct-folder-tree {
+    min-width: 0;
   }
 }
 
 /* ---- vault changes flat layout ---- */
-// Flat layout of the shared folder tree: one row per changed file, the
-// status-coloured name stacked over its muted containing path, so a file stays
-// locatable without the folder scaffolding. Only the flat panel uses these; the
-// nested tree keeps its single-line indented rows.
+// Flat layout of the shared folder tree: one row per changed file with no folder
+// scaffolding. The status-coloured name and its containing path share a single
+// line: the name keeps its natural width and the muted path fills the rest,
+// truncating with an ellipsis (the full vault path shows on hover via the row's
+// aria-label). Only the flat panel uses these; the nested tree keeps its
+// indented rows.
 .lct-folder-tree-flat {
-  .lct-folder-tree-flat-file {
-    align-items: flex-start;
-  }
-
-  .lct-folder-tree-flat-main {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    line-height: var(--line-height-tight);
+  .lct-folder-tree-name {
+    // Allow the name to shrink if it is very long, so a long name never pushes
+    // the truncating path out of the row entirely.
+    flex: 0 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .lct-folder-tree-path {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin-inline-start: var(--size-4-2);
     color: var(--text-faint);
     font-size: var(--font-ui-smaller);
     white-space: nowrap;
@@ -1379,6 +1391,14 @@ body.lct-hover-affordance .cm-gutter.lct-gutter-bar-col {
   min-width: max-content;
   overflow: visible;
 
+  // Lay each row out as a flex line so the leading glyph sits centred against
+  // the name instead of riding the text baseline (the icon is an inline-flex SVG
+  // whose baseline would otherwise nudge it above the text).
+  .lct-folder-tree-row {
+    display: flex;
+    align-items: center;
+  }
+
   .lct-folder-tree-chevron,
   .lct-folder-tree-icon {
     display: inline-flex;
@@ -1596,6 +1616,14 @@ body.lct-hover-affordance .cm-gutter.lct-gutter-bar-col {
     text-transform: lowercase;
     letter-spacing: 0.02em;
   }
+}
+
+// Icon-only variant used on the folder-tree file rows (folder modal + vault
+// panel): no text label, so tighten the chip to a square around the glyph. The
+// word "external" is supplied as the badge's aria-label tooltip instead.
+.lct-version-external-badge-icon-only {
+  gap: 0;
+  padding: 2px;
 }
 
 // The folder tree mounts the file row as a flex row (icon + name + badge), so

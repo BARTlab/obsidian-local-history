@@ -95,6 +95,7 @@ export class MainSetting extends PluginSettingTab {
     this.renderExcludePaths(containerEl);
     this.renderSnapshots(containerEl);
     this.renderShow(containerEl);
+    this.renderMarkerIntensity(containerEl);
     this.renderLine(containerEl);
     this.renderGutter(containerEl);
     this.renderCleanup(containerEl);
@@ -191,21 +192,6 @@ export class MainSetting extends PluginSettingTab {
             .setValue(this.settingsService.value('readingModeIndicator'))
             .onChange((value: boolean): void => {
               this.settingsService.update('readingModeIndicator', value);
-            })
-        );
-    });
-
-    group.addSetting((setting: Setting): void => {
-      setting
-        .setName(this.plugin.t('setting.marker-intensity.name'))
-        .setDesc(this.plugin.t('setting.marker-intensity.desc'))
-        .addSlider((slider: SliderComponent): SliderComponent =>
-          slider
-            .setLimits(10, 100, 5)
-            .setValue(this.settingsService.value('markerIntensity'))
-            .setDynamicTooltip()
-            .onChange((value: number): void => {
-              this.settingsService.update('markerIntensity', value);
             })
         );
     });
@@ -419,6 +405,35 @@ export class MainSetting extends PluginSettingTab {
   }
 
   /**
+   * Renders the "Marker intensity" group: a single slider driving the shared
+   * `--lct-tint-strength` colour intensity for every change surface. Sits on its
+   * own between "Show indicator for" and "Line indicator" because it is a
+   * cross-cutting colour knob, not specific to the line or gutter indicator. The
+   * group heading names the control, so the row carries only the description and
+   * the slider.
+   *
+   * @param {HTMLElement} containerEl - The settings tab container
+   */
+  protected renderMarkerIntensity(containerEl: HTMLElement): void {
+    const group: SettingGroup = new SettingGroup(containerEl)
+      .setHeading(this.plugin.t('setting.marker-intensity-heading'));
+
+    group.addSetting((setting: Setting): void => {
+      setting
+        .setDesc(this.plugin.t('setting.marker-intensity.desc'))
+        .addSlider((slider: SliderComponent): SliderComponent =>
+          slider
+            .setLimits(10, 100, 5)
+            .setValue(this.settingsService.value('markerIntensity'))
+            .setDynamicTooltip()
+            .onChange((value: number): void => {
+              this.settingsService.update('markerIntensity', value);
+            })
+        );
+    });
+  }
+
+  /**
    * Renders the "Line indicator" group with the width slider.
    *
    * @param {HTMLElement} containerEl - The settings tab container
@@ -456,7 +471,39 @@ export class MainSetting extends PluginSettingTab {
     group.addSetting((setting: Setting): void => {
       setting
         .setName(this.plugin.t('setting.gutter-hover-panel.name'))
-        .setDesc(this.plugin.t('setting.gutter-hover-panel.desc'))
+        // The gutter-symbol help (the unicode-table link) rides this row's
+        // description instead of a standalone desc-only row: both belong to the
+        // gutter group, and folding them removes an awkward name-less row above
+        // the symbol inputs.
+        .setDesc(
+          DomHelper.createFragment([
+            {
+              tag: 'div',
+              text: this.plugin.t('setting.gutter-hover-panel.desc')
+            },
+            {
+              tag: 'div',
+              children: [
+                {
+                  tag: 'span',
+                  text: this.plugin.t('setting.gutter-heading.prefix')
+                },
+                {
+                  tag: 'a',
+                  text: 'https://symbl.cc/en/unicode-table/',
+                  attributes: {
+                    href: 'https://symbl.cc/en/unicode-table/',
+                    target: '_blank'
+                  }
+                },
+                {
+                  tag: 'span',
+                  text: this.plugin.t('setting.gutter-heading.suffix')
+                }
+              ]
+            }
+          ])
+        )
         .addToggle((toggle: ToggleComponent): ToggleComponent =>
           toggle
             .setValue(this.settingsService.value('gutterHoverPanel'))
@@ -464,34 +511,6 @@ export class MainSetting extends PluginSettingTab {
               this.settingsService.update('gutterHoverPanel', value);
             })
         );
-    });
-
-    group.addSetting((setting: Setting): void => {
-      setting.setDesc(
-        DomHelper.createFragment([
-          {
-            tag: 'div',
-            children: [
-              {
-                tag: 'span',
-                text: this.plugin.t('setting.gutter-heading.prefix')
-              },
-              {
-                tag: 'a',
-                text: 'https://symbl.cc/en/unicode-table/',
-                attributes: {
-                  href: 'https://symbl.cc/en/unicode-table/',
-                  target: '_blank'
-                }
-              },
-              {
-                tag: 'span',
-                text: this.plugin.t('setting.gutter-heading.suffix')
-              }
-            ]
-          }
-        ])
-      );
     });
 
     const symbols: ['changed' | 'added' | 'restored' | 'removed', string][] = [

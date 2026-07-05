@@ -71,7 +71,7 @@
   "setting.line-heading": "行インジケーター",
   "setting.line-width.name": "幅",
   "setting.line-width.desc": "縦線インジケーターの幅（ピクセル単位）。",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "ガターインジケーター",
   "setting.gutter-heading.prefix": "ガターの種類インジケーターの文字（",

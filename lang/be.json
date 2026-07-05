@@ -71,7 +71,7 @@
   "setting.line-heading": "Лінейны індыкатар",
   "setting.line-width.name": "Шырыня",
   "setting.line-width.desc": "Шырыня вертыкальнага лінейнага індыкатара (у пікселях).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Індыкатар на палях",
   "setting.gutter-heading.prefix": "Сімвалы індыкатара тыпу на палях (",

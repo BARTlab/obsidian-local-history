@@ -1906,7 +1906,7 @@ var DEFAULT_SETTINGS = {
   allowedExtensions: "md, txt, csv, json, yaml",
   excludePaths: [],
   excludePathsCaseSensitive: false,
-  ignoreNewFiles: true,
+  ignoreNewFiles: false,
   treeHighlight: true,
   propertiesHighlight: true,
   readingModeIndicator: false,
@@ -2548,6 +2548,9 @@ var VaultCreateEvent = class extends BaseEvent {
     if (!(file instanceof import_obsidian5.TFile)) {
       return;
     }
+    if (this.snapshotsService.isOwnPluginPath(file.path)) {
+      return;
+    }
     this.snapshotsService.markCreatedThisSession(file.path);
     if (this.settingsService.value("ignoreNewFiles")) {
       if (this.snapshotsService.isInAllowedExtensions(file)) {
@@ -2749,6 +2752,11 @@ var WorkspaceEditorMenuEvent = class extends BaseEvent {
           void this.plugin.revealRecentChanges();
         });
       });
+      submenu.addItem((item) => {
+        item.setTitle(this.plugin.t("view.vault-changes.title")).setIcon("folder-git-2").onClick(() => {
+          void this.plugin.revealVaultChanges();
+        });
+      });
     });
   }
 };
@@ -2845,6 +2853,11 @@ var WorkspaceFilesMenuEvent = class extends BaseEvent {
         void this.plugin.revealRecentChanges();
       });
     });
+    submenu.addItem((item) => {
+      item.setTitle(this.plugin.t("view.vault-changes.title")).setIcon("folder-git-2").onClick(() => {
+        void this.plugin.revealVaultChanges();
+      });
+    });
   }
   /**
    * Fills the submenu for a TFolder target with Show History and Recent
@@ -2863,6 +2876,11 @@ var WorkspaceFilesMenuEvent = class extends BaseEvent {
     submenu.addItem((item) => {
       item.setTitle(this.plugin.t("menu.local-history.recent-changes")).setIcon("clock").onClick(() => {
         void this.plugin.revealRecentChanges();
+      });
+    });
+    submenu.addItem((item) => {
+      item.setTitle(this.plugin.t("view.vault-changes.title")).setIcon("folder-git-2").onClick(() => {
+        void this.plugin.revealVaultChanges();
       });
     });
   }
@@ -15611,6 +15629,7 @@ var FolderTreeModel = class _FolderTreeModel {
         isFolder: false,
         status: entry.status,
         external: entry.external === true,
+        date: entry.date,
         children: []
       });
     });
@@ -16116,7 +16135,7 @@ var FolderTreeComponent = class {
     const config = {
       tag: "div",
       classes,
-      attributes: { "data-path": node.path },
+      attributes: { "data-path": node.path, "aria-label": this.rowTooltip(node) },
       styles: { paddingInlineStart: `calc(var(--size-4-2) + ${depth * 16}px)` },
       events: {
         click: (event) => {
@@ -16172,7 +16191,7 @@ var FolderTreeComponent = class {
     const row = create({
       tag: "div",
       classes,
-      attributes: { "data-path": node.path },
+      attributes: { "data-path": node.path, "aria-label": this.rowTooltip(node) },
       events: {
         click: (event) => {
           event.preventDefault();
@@ -16199,7 +16218,6 @@ var FolderTreeComponent = class {
         tag: "span",
         classes: "lct-folder-tree-path",
         text: node.path.slice(0, slash),
-        attributes: { "aria-label": node.path },
         container: row
       });
     }
@@ -16208,24 +16226,19 @@ var FolderTreeComponent = class {
     }
   }
   /**
-   * Renders the inline external-change badge on a file row: a
-   * Lucide `download-cloud` glyph plus a short text label, marked with an
-   * `aria-label` so assistive tech announces the badge. The text is an inline
-   * English literal here and is propagated to every catalog; until then it
-   * shows in English on every locale even when the translator is wired, matching the rest of the folder modal's inline
-   * literals (see FolderHistoryModal.kindLabel).
+   * Renders the inline external-change badge on a file row: an icon-only
+   * `download-cloud` glyph right-aligned by CSS. The badge carries NO tooltip of
+   * its own: the word "external" rides the ROW's aria-label (see
+   * {@link rowTooltip}) so the whole row is one hover target instead of three
+   * competing ones (path, icon, row).
    *
    * @param {HTMLElement} row - The file row to append the badge to
    * @return {void}
    */
   renderExternalBadge(row) {
-    const fallback = "external";
-    const resolved = this.plugin ? this.plugin.t("version.badge.external") : null;
-    const text = resolved && resolved !== "version.badge.external" ? resolved : fallback;
     const badge = create({
       tag: "span",
       classes: ["lct-version-external-badge", "lct-version-external-badge-icon-only"],
-      attributes: { "aria-label": text },
       container: row
     });
     const slot = create({
@@ -16234,6 +16247,38 @@ var FolderTreeComponent = class {
       container: badge
     });
     (0, import_obsidian16.setIcon)(slot, "download-cloud");
+  }
+  /**
+   * Builds the file row's hover tooltip: the full vault path, then the change
+   * date (when known), then the word "external" (when the row is an external
+   * capture). Joined with newlines so Obsidian's aria-label tooltip stacks them.
+   * This is the single hover target for the row; the path span and the badge
+   * carry no tooltip of their own.
+   *
+   * @param {FolderTreeNode} node - The file node to describe
+   * @return {string} The composed multi-line tooltip text
+   */
+  rowTooltip(node) {
+    const parts = [node.path];
+    if (node.date) {
+      parts.push(node.date);
+    }
+    if (node.external) {
+      parts.push(this.externalLabel());
+    }
+    return parts.join("\n");
+  }
+  /**
+   * Resolves the localized "external" word for the row tooltip, echoing the
+   * English literal when no translator is wired (the same fallback contract as
+   * {@link renderEmpty}) so unit tests without a translator still read sensibly.
+   *
+   * @return {string} The localized (or fallback) external label
+   */
+  externalLabel() {
+    const fallback = "external";
+    const resolved = this.plugin ? this.plugin.t("version.badge.external") : null;
+    return resolved && resolved !== "version.badge.external" ? resolved : fallback;
   }
   /**
    * Maps the delta status to its row class. The three statuses are stable
@@ -18709,6 +18754,7 @@ function html(diffInput, configuration = {}) {
 // src/helpers/diff-render.helper.ts
 var import_obsidian18 = require("obsidian");
 function render(params) {
+  params.container.empty();
   const hunks = diff(
     params.baseLines,
     params.currentLines,
@@ -18980,6 +19026,7 @@ var DiffHeaderController = class {
       update(columnsHeaderEl, { classes: { add: "lct-diff-columns-hidden" } });
       return;
     }
+    columnsHeaderEl.empty();
     update(columnsHeaderEl, {
       classes: { remove: "lct-diff-columns-hidden" },
       children: [
@@ -19092,6 +19139,7 @@ var FolderDiffRenderer = class {
 
 // src/helpers/folder-timeline.helper.ts
 function synthesize(snapshots, rootPath) {
+  var _a, _b, _c;
   if (!snapshots) {
     return [];
   }
@@ -19105,7 +19153,7 @@ function synthesize(snapshots, rootPath) {
     if (!isUnderRoot(path, normalizedRoot)) {
       continue;
     }
-    for (const version of snapshot.timeline.getStoredVersions()) {
+    for (const version of (_c = (_b = (_a = snapshot.timeline) == null ? void 0 : _a.getStoredVersions) == null ? void 0 : _b.call(_a)) != null ? _c : []) {
       points.push({
         timestamp: version.timestamp,
         path,
@@ -19130,11 +19178,54 @@ function synthesize(snapshots, rootPath) {
         dayKey: dayKeyOf(snapshot.movedIntoAt)
       });
     }
+    const originPoint = unversionedOriginPoint(snapshot, path);
+    if (originPoint) {
+      points.push(originPoint);
+    }
   }
   points.sort(
     (a, b) => b.timestamp - a.timestamp
   );
   return points;
+}
+function unversionedOriginPoint(snapshot, path) {
+  if (snapshot.isTombstone() || snapshot.isMovedIn()) {
+    return null;
+  }
+  if (!snapshot.content || !snapshot.timeline) {
+    return null;
+  }
+  if (snapshot.timeline.getStoredVersions().length > 0) {
+    return null;
+  }
+  const origin = snapshot.content.getHistoryOriginalStateLines();
+  const current = snapshot.content.getLastStateLines();
+  if (linesEqual(origin, current)) {
+    return null;
+  }
+  const firstSeen = typeof snapshot.timestamp === "number" ? snapshot.timestamp : snapshot.getLastChangedTimestamp();
+  const lastChanged = snapshot.getLastChangedTimestamp();
+  const timestamp = isBlankLines(origin) ? firstSeen - 1 : Math.min(firstSeen, lastChanged - 1);
+  return {
+    timestamp,
+    path,
+    kind: "capture" /* capture */,
+    dayKey: dayKeyOf(timestamp)
+  };
+}
+function isBlankLines(lines2) {
+  return lines2.length === 0 || lines2.length === 1 && lines2[0] === "";
+}
+function linesEqual(a, b) {
+  if (a.length !== b.length) {
+    return false;
+  }
+  for (let i = 0; i < a.length; i += 1) {
+    if (a[i] !== b[i]) {
+      return false;
+    }
+  }
+  return true;
 }
 function dayKeyOf(timestamp) {
   return new Date(timestamp).toLocaleDateString();
@@ -19311,12 +19402,14 @@ var FolderTimelineRenderer = class {
    * timestamp matches the currently selected T.
    */
   render() {
+    var _a;
     const railEl = this.host.railEl();
     if (!railEl) {
       return;
     }
     const groups = [];
-    this.host.timeline().forEach((point) => {
+    const timeline = (_a = this.host.timeline()) != null ? _a : [];
+    timeline.forEach((point) => {
       let group = groups[groups.length - 1];
       if (!group || group.label !== point.dayKey) {
         group = { label: point.dayKey, points: [] };
@@ -19338,6 +19431,7 @@ var FolderTimelineRenderer = class {
         text: this.host.plugin.t("modal.no-versions-match")
       });
     }
+    railEl.empty();
     update(railEl, {
       children: [
         {
@@ -19599,7 +19693,7 @@ var FolderHistoryModal = class extends import_obsidian21.Modal {
         ];
       })
     );
-    this.selection = new FolderSelectionModel(snapshots, rootPath);
+    this.selectionModel = new FolderSelectionModel(snapshots, rootPath);
     this.viewState = new DiffViewState({
       diffContainer: () => this.diffContainerEl,
       getHunks: () => []
@@ -19648,8 +19742,8 @@ var FolderHistoryModal = class extends import_obsidian21.Modal {
     return {
       plugin: this.plugin,
       railEl: () => this.railEl,
-      timeline: () => this.selection.timeline,
-      selectedTimestamp: () => this.selection.selectedTimestamp,
+      timeline: () => this.selectionModel.timeline,
+      selectedTimestamp: () => this.selectionModel.selectedTimestamp,
       snapshotsByPath: () => this.snapshotsByPath,
       selectTimestamp: (timestamp) => {
         this.selectTimestamp(timestamp);
@@ -19676,7 +19770,7 @@ var FolderHistoryModal = class extends import_obsidian21.Modal {
       noticeEl: () => this.noticeEl,
       columnsHeaderEl: () => this.columnsHeaderEl,
       displayMode: () => this.viewState.currentDisplayMode,
-      selectedTimestamp: () => this.selection.selectedTimestamp,
+      selectedTimestamp: () => this.selectionModel.selectedTimestamp,
       selectedPath: () => this.tree.getSelectedPath(),
       snapshotsByPath: () => this.snapshotsByPath,
       onDiffRendered: () => {
@@ -19702,8 +19796,8 @@ var FolderHistoryModal = class extends import_obsidian21.Modal {
       modalsService: this.modalsService,
       versionActionsService: this.versionActionsService,
       snapshotsService: this.snapshotsService,
-      resolveSelection: () => this.selection.resolveSelection(this.tree.getSelectedPath(), this.snapshotsByPath),
-      resolveVersionAtT: (snapshot) => this.selection.resolveVersionAtT(snapshot),
+      resolveSelection: () => this.selectionModel.resolveSelection(this.tree.getSelectedPath(), this.snapshotsByPath),
+      resolveVersionAtT: (snapshot) => this.selectionModel.resolveVersionAtT(snapshot),
       removeFromMap: (path) => {
         this.snapshotsByPath.delete(path);
       },
@@ -19933,10 +20027,10 @@ var FolderHistoryModal = class extends import_obsidian21.Modal {
    * @param {number} timestamp - The new selected T
    */
   selectTimestamp(timestamp) {
-    if (this.selection.selectedTimestamp === timestamp) {
+    if (this.selectionModel.selectedTimestamp === timestamp) {
       return;
     }
-    this.selection.select(timestamp);
+    this.selectionModel.select(timestamp);
     this.timelineRenderer.render();
     this.refreshTree();
     this.refreshDiff();
@@ -19952,12 +20046,13 @@ var FolderHistoryModal = class extends import_obsidian21.Modal {
   refreshTree() {
     const entries = [];
     this.snapshotsByPath.forEach((snapshot, path) => {
-      const result = compareAt(snapshot, this.selection.selectedTimestamp);
-      const closest = this.selection.resolveVersionAtT(snapshot);
+      const result = compareAt(snapshot, this.selectionModel.selectedTimestamp);
+      const closest = this.selectionModel.resolveVersionAtT(snapshot);
       entries.push({
         path,
         status: result.status,
-        external: (closest == null ? void 0 : closest.isExternal()) === true
+        external: (closest == null ? void 0 : closest.isExternal()) === true,
+        date: closest == null ? void 0 : closest.getDateTime()
       });
     });
     this.tree.update({ entries, rootPath: this.rootPath });
@@ -19991,7 +20086,7 @@ var FolderHistoryModal = class extends import_obsidian21.Modal {
    * hint before the caller closes the modal.
    */
   resyncTimeline() {
-    this.selection.resync(this.snapshotsByPath, this.rootPath);
+    this.selectionModel.resync(this.snapshotsByPath, this.rootPath);
     this.timelineRenderer.render();
   }
 };
@@ -20957,6 +21052,7 @@ var VersionList = class {
         text: this.host.plugin.t("modal.no-versions-match")
       });
     }
+    versionsEl.empty();
     update(versionsEl, {
       children: [
         {
@@ -22816,6 +22912,12 @@ var PersistenceService = class {
         });
       }
       this.snapshotsService.restore(kept);
+      for (const restored of this.snapshotsService.serialize().snapshots) {
+        const entry = this.shardIndex.get(restored.path);
+        if (entry) {
+          entry.digest = this.contentDigest(restored);
+        }
+      }
       if (kept.length > 0) {
         this.plugin.forceUpdateEditor();
       }
@@ -29911,7 +30013,12 @@ function collectEntries(snapshots, include) {
     if (status === "none" /* none */) {
       continue;
     }
-    entries.push({ path, status, external: latestIsExternal(snapshot) });
+    entries.push({
+      path,
+      status,
+      external: latestIsExternal(snapshot),
+      date: snapshot.getLastChangedDateTime()
+    });
   }
   return entries;
 }
@@ -30371,21 +30478,28 @@ var LineChangeTrackerPlugin = class extends import_obsidian34.Plugin {
   /**
    * Reveals the Recent changes panel in the right sidebar.
    *
-   * Reuses an existing leaf when one is already open so a second invocation
-   * focuses the panel rather than spawning a duplicate. Falls back to creating
-   * a fresh right-sidebar leaf when none exists; if the right sidebar is
-   * unavailable (no leaf granted), the call resolves silently without an
-   * error so menu and command entry points stay safe.
+   * Reuses a HEALTHY existing leaf (one whose view actually reconstructed) so a
+   * second invocation focuses the panel rather than spawning a duplicate. A
+   * persisted tab whose view did not reconstruct after a plugin reload is a
+   * "ghost" leaf: `getLeavesOfType` still matches it, but revealing it shows a
+   * dead pane. Such a ghost (or a fresh right-sidebar leaf when none exists) is
+   * rebuilt through `setViewState` so the entry point always lands on a working
+   * panel. When the right sidebar is unavailable the call resolves silently so
+   * menu and command entry points stay safe.
    *
    * @return {Promise<void>} Resolves once the leaf is created and revealed
    */
   async revealRecentChanges() {
+    var _a;
     const existing = this.app.workspace.getLeavesOfType(RECENT_CHANGES_VIEW_TYPE);
-    if (existing.length > 0) {
-      await this.app.workspace.revealLeaf(existing[0]);
+    const healthy = existing.find(
+      (leaf2) => leaf2.view instanceof RecentChangesView
+    );
+    if (healthy) {
+      await this.app.workspace.revealLeaf(healthy);
       return;
     }
-    const leaf = this.app.workspace.getRightLeaf(false);
+    const leaf = (_a = existing[0]) != null ? _a : this.app.workspace.getRightLeaf(false);
     if (!leaf) {
       return;
     }
@@ -30395,21 +30509,28 @@ var LineChangeTrackerPlugin = class extends import_obsidian34.Plugin {
   /**
    * Reveals the vault-wide changes panel in the right sidebar.
    *
-   * Mirrors {@link revealRecentChanges}: reuses an existing leaf when one is
-   * open so a second invocation focuses the panel rather than spawning a
-   * duplicate, and falls back to a fresh right-sidebar leaf otherwise. When the
-   * right sidebar is unavailable the call resolves silently so the ribbon and
-   * command entry points stay safe.
+   * Mirrors {@link revealRecentChanges}: reuses a HEALTHY existing leaf so a
+   * second invocation focuses the panel rather than spawning a duplicate, and
+   * rebuilds a post-reload "ghost" leaf (or a fresh right-sidebar leaf when none
+   * exists) through `setViewState` so the command always lands on a working
+   * panel. Without the ghost rebuild, a persisted-but-dead tab left by a reload
+   * would be revealed as an empty pane and the panel could never be shown again.
+   * When the right sidebar is unavailable the call resolves silently so the
+   * command entry point stays safe.
    *
    * @return {Promise<void>} Resolves once the leaf is created and revealed
    */
   async revealVaultChanges() {
+    var _a;
     const existing = this.app.workspace.getLeavesOfType(VAULT_CHANGES_VIEW_TYPE);
-    if (existing.length > 0) {
-      await this.app.workspace.revealLeaf(existing[0]);
+    const healthy = existing.find(
+      (leaf2) => leaf2.view instanceof VaultChangesView
+    );
+    if (healthy) {
+      await this.app.workspace.revealLeaf(healthy);
       return;
     }
-    const leaf = this.app.workspace.getRightLeaf(false);
+    const leaf = (_a = existing[0]) != null ? _a : this.app.workspace.getRightLeaf(false);
     if (!leaf) {
       return;
     }
@@ -30430,19 +30551,20 @@ var LineChangeTrackerPlugin = class extends import_obsidian34.Plugin {
    * @return {Promise<void>} Resolves once the one-shot dock attempt completes
    */
   async autoDockVaultChanges() {
-    var _a;
     const settings = this.get(TOKENS.settings);
     if (settings.value("vaultChangesAutoRevealed")) {
       return;
     }
-    settings.update("vaultChangesAutoRevealed", true);
     if (this.app.workspace.getLeavesOfType(VAULT_CHANGES_VIEW_TYPE).length > 0) {
+      settings.update("vaultChangesAutoRevealed", true);
       return;
     }
-    await ((_a = this.app.workspace.getRightLeaf(false)) == null ? void 0 : _a.setViewState({
-      type: VAULT_CHANGES_VIEW_TYPE,
-      active: false
-    }));
+    const leaf = this.app.workspace.getRightLeaf(false);
+    if (!leaf) {
+      return;
+    }
+    await leaf.setViewState({ type: VAULT_CHANGES_VIEW_TYPE, active: false });
+    settings.update("vaultChangesAutoRevealed", true);
   }
   /**
    * Gets all Markdown files currently open in the workspace.

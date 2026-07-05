@@ -136,6 +136,36 @@ version; right-click opens a context menu. No command entry: reveal it from
 - **Action:** Switch to a never-edited note with no history (or close all editors).
 - **Pass:** The list is replaced by the single muted hint ("No version history for the active file.") with no stale rows; switching back to a tracked file restores its list.
 
+## Vault-changes view
+
+The vault-changes view (`src/views/vault-changes.view.ts`) is a right-sidebar
+`ItemView` (`.lct-vault-changes-view`) listing every file that still differs from
+its history origin across the whole vault: modified files, files added under
+tracking, and deleted files (tombstones, struck through). It is rendered by the
+shared `FolderTreeComponent` in either a nested tree or a flat list
+(`.lct-folder-tree-flat`, each file's containing path shown inline). A header
+(`.lct-vault-changes-header`) holds a name filter and the tree/flat toggle
+(`.lct-vault-changes-layout-button`, the active one carries `is-active`). It
+reacts to the internal snapshots-update event. Clicking a live file opens it; a
+deleted file shows a notice. The panel auto-docks into the right sidebar once on
+first load; reopen it from the **Open vault changes panel** command
+(`plugin.revealVaultChanges()`).
+
+### Scenario V1 - Whole-vault listing and status colours
+- **Setup:** A vault with at least one modified, one newly added, and one deleted tracked file.
+- **Action:** Open the panel (command palette -> Open vault changes panel).
+- **Pass:** Every changed file shows with its status colour (added, modified, deleted struck through); unchanged tracked files do not appear; the leading file/folder glyph is vertically centred on the name, not riding above it.
+
+### Scenario V2 - Tree/flat toggle and path display
+- **Setup:** The panel open with changed files in nested folders.
+- **Action:** Click the flat-list toggle in the header, then the tree toggle.
+- **Pass:** Flat mode lists every file on one line with its muted containing path truncated by an ellipsis (hover reveals the full path); tree mode restores the nested folders; the active toggle is highlighted and the choice survives reopening the panel.
+
+### Scenario V3 - Status-bar clearance and deleted file
+- **Setup:** The panel open with more rows than fit the sidebar height, including a deleted file.
+- **Action:** Scroll to the bottom, then click the deleted file.
+- **Pass:** The last row scrolls clear of the floating status bar (not hidden behind it); clicking the deleted file shows the "file was deleted" notice rather than opening a blank editor.
+
 ## Gutter markers
 
 The change gutter is CodeMirror gutter extensions per editor. In dot mode

@@ -314,8 +314,8 @@ export default class LineChangeTrackerPlugin extends Plugin {
    * Mirrors {@link revealRecentChanges}: reuses an existing leaf when one is
    * open so a second invocation focuses the panel rather than spawning a
    * duplicate, and falls back to a fresh right-sidebar leaf otherwise. When the
-   * right sidebar is unavailable the call resolves silently so the ribbon and
-   * command entry points stay safe.
+   * right sidebar is unavailable the call resolves silently so the command entry
+   * point stays safe.
    *
    * @return {Promise<void>} Resolves once the leaf is created and revealed
    */

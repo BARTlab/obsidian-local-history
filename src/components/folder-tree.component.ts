@@ -516,27 +516,25 @@ export class FolderTreeComponent {
 
     setIcon(icon, 'file');
 
-    const main: HTMLElement = DomHelper.create({
-      tag: 'span',
-      classes: 'lct-folder-tree-flat-main',
-      container: row,
-    });
-
     DomHelper.create({
       tag: 'span',
       classes: ['tree-item-inner', 'nav-file-title-content', 'lct-folder-tree-name'],
       text: node.name,
-      container: main,
+      container: row,
     });
 
     const slash: number = node.path.lastIndexOf('/');
 
     if (slash >= 0) {
+      // The containing path shares the file's line, muted and truncated with an
+      // ellipsis (the CSS caps it); the full vault path rides `aria-label` so
+      // hovering reveals the complete location without widening the row.
       DomHelper.create({
         tag: 'span',
         classes: 'lct-folder-tree-path',
         text: node.path.slice(0, slash),
-        container: main,
+        attributes: { 'aria-label': node.path },
+        container: row,
       });
     }
 
@@ -565,12 +563,15 @@ export class FolderTreeComponent {
      */
     const text: string = resolved && resolved !== 'version.badge.external' ? resolved : fallback;
 
+    // Icon-only badge: the glyph carries the meaning and the `aria-label`
+    // supplies the word "external" as a hover tooltip, so a long text label does
+    // not crowd the file row (the folder tree and the vault panel both render
+    // narrow rows). `aria-label` only (no `title`): Obsidian renders its own
+    // styled tooltip for `[aria-label]` elements, while `title` would stack the
+    // unstyled native browser tooltip on top.
     const badge: HTMLElement = DomHelper.create({
       tag: 'span',
-      classes: 'lct-version-external-badge',
-      // `aria-label` only (no `title`): Obsidian renders its own styled tooltip
-      // for `[aria-label]` elements, while `title` adds the unstyled native
-      // browser tooltip on top.
+      classes: ['lct-version-external-badge', 'lct-version-external-badge-icon-only'],
       attributes: { 'aria-label': text },
       container: row,
     });
@@ -582,13 +583,6 @@ export class FolderTreeComponent {
     });
 
     setIcon(slot, 'download-cloud');
-
-    DomHelper.create({
-      tag: 'span',
-      classes: 'lct-version-external-badge-text',
-      text,
-      container: badge,
-    });
   }
 
   /**

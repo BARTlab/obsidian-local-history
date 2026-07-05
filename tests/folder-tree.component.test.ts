@@ -283,7 +283,11 @@ describe('FolderTreeComponent', () => {
       const nested: HTMLElement | null = host.querySelector<HTMLElement>('[data-path="a/b/nested.md"]');
       const root: HTMLElement | null = host.querySelector<HTMLElement>('[data-path="root.md"]');
 
-      expect(nested?.querySelector('.lct-folder-tree-path')?.textContent).toBe('a/b');
+      const path: HTMLElement | null | undefined = nested?.querySelector<HTMLElement>('.lct-folder-tree-path');
+
+      expect(path?.textContent).toBe('a/b');
+      // The full vault path rides aria-label so hovering reveals the location.
+      expect(path?.getAttribute('aria-label')).toBe('a/b/nested.md');
       expect(root?.querySelector('.lct-folder-tree-path')).toBeNull();
     });
 
@@ -323,6 +327,23 @@ describe('FolderTreeComponent', () => {
 
       expect(host.querySelector('.lct-folder-tree-empty')).not.toBeNull();
       expect(host.querySelectorAll('.lct-folder-tree-flat-file').length).toBe(0);
+    });
+  });
+
+  describe('external badge is icon-only with a tooltip', () => {
+    it('renders the badge glyph and aria-label but no text label', (): void => {
+      component.update({
+        entries: [{ path: 'notes/ext.md', status: FolderDeltaStatus.modified, external: true }],
+        rootPath: 'notes',
+      });
+
+      const badge: HTMLElement | null = host.querySelector<HTMLElement>('.lct-version-external-badge');
+
+      expect(badge).not.toBeNull();
+      expect(badge?.classList.contains('lct-version-external-badge-icon-only')).toBe(true);
+      expect(badge?.getAttribute('aria-label')).toBe('external');
+      expect(badge?.querySelector('.lct-version-external-badge-icon')).not.toBeNull();
+      expect(badge?.querySelector('.lct-version-external-badge-text')).toBeNull();
     });
   });
 

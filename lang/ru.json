@@ -71,7 +71,7 @@
   "setting.line-heading": "Линейный индикатор",
   "setting.line-width.name": "Ширина",
   "setting.line-width.desc": "Ширина вертикального линейного индикатора (в пикселях).",
-  "setting.marker-intensity.name": "Интенсивность маркеров",
+  "setting.marker-intensity-heading": "Интенсивность маркеров",
   "setting.marker-intensity.desc": "Общая интенсивность всех цветов изменений (маркеры редактора, дерево, вкладки, режим чтения). Больше - ярче, меньше - бледнее.",
   "setting.gutter-heading.name": "Индикатор на полях",
   "setting.gutter-heading.prefix": "Символы индикатора типа на полях (",

@@ -71,7 +71,7 @@
   "setting.line-heading": "Zeilenindikator",
   "setting.line-width.name": "Breite",
   "setting.line-width.desc": "Breite des vertikalen Linienindikators (in Pixeln).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Randindikator",
   "setting.gutter-heading.prefix": "Zeichen des Rand-Typindikators (",

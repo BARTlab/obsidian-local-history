@@ -116,4 +116,12 @@ export interface LineChangeTrackerSettings {
    * list. Persisted so the toggle in the panel header survives a restart.
    */
   vaultChangesLayout: ChangesLayout;
+  /**
+   * Internal one-shot flag: whether the vault changes panel has already been
+   * auto-docked into the right sidebar. Set the first time the plugin loads so
+   * the panel's tab appears there without a ribbon icon; afterwards Obsidian's
+   * own workspace persistence keeps (or drops) the leaf, so it is never
+   * re-added and a user who closes it is respected. Not surfaced in the UI.
+   */
+  vaultChangesAutoRevealed: boolean;
 }

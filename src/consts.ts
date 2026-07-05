@@ -187,6 +187,7 @@ export const DEFAULT_SETTINGS: LineChangeTrackerSettings = {
   gutterHoverPanel: true,
   markerIntensity: 75,
   vaultChangesLayout: ChangesLayout.tree,
+  vaultChangesAutoRevealed: false,
 
   retention: {
     maxEntries: 200,

@@ -71,7 +71,7 @@
   "setting.line-heading": "Indicateur de ligne",
   "setting.line-width.name": "Largeur",
   "setting.line-width.desc": "Largeur de l'indicateur en ligne verticale (en pixels).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Indicateur de gouttière",
   "setting.gutter-heading.prefix": "Caractères de l'indicateur de type dans la gouttière (",

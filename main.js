@@ -1913,6 +1913,7 @@ var DEFAULT_SETTINGS = {
   gutterHoverPanel: true,
   markerIntensity: 75,
   vaultChangesLayout: "tree" /* tree */,
+  vaultChangesAutoRevealed: false,
   retention: {
     maxEntries: 200,
     maxAgeDays: 30,
@@ -6139,7 +6140,7 @@ var am_default = {
   "setting.line-heading": "\u12E8\u1218\u1235\u1218\u122D \u12A0\u1218\u120D\u12AB\u127D",
   "setting.line-width.name": "\u1235\u134B\u1275",
   "setting.line-width.desc": "\u12E8\u1240\u1325\u1273 \u1218\u1235\u1218\u122D \u12A0\u1218\u120D\u12AB\u127D \u1235\u134B\u1275 (\u1260\u1352\u12AD\u1230\u120E\u127D)\u1362",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "\u12E8\u12F3\u122D\u127B \u12A0\u1218\u120D\u12AB\u127D",
   "setting.gutter-heading.prefix": "\u12E8\u12F3\u122D\u127B \u12D3\u12ED\u1290\u1275 \u12A0\u1218\u120D\u12AB\u127D \u1241\u121D\u134A\u12CE\u127D (",
@@ -6315,7 +6316,7 @@ var ar_default = {
   "setting.line-heading": "\u0645\u0624\u0634\u0631 \u0627\u0644\u062E\u0637",
   "setting.line-width.name": "\u0627\u0644\u0639\u0631\u0636",
   "setting.line-width.desc": "\u0639\u0631\u0636 \u0645\u0624\u0634\u0631 \u0627\u0644\u062E\u0637 \u0627\u0644\u0639\u0645\u0648\u062F\u064A (\u0628\u0627\u0644\u0628\u0643\u0633\u0644).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "\u0645\u0624\u0634\u0631 \u0627\u0644\u0647\u0627\u0645\u0634",
   "setting.gutter-heading.prefix": "\u0623\u062D\u0631\u0641 \u0645\u0624\u0634\u0631 \u0627\u0644\u0646\u0648\u0639 \u0641\u064A \u0627\u0644\u0647\u0627\u0645\u0634 (",
@@ -6491,7 +6492,7 @@ var be_default = {
   "setting.line-heading": "\u041B\u0456\u043D\u0435\u0439\u043D\u044B \u0456\u043D\u0434\u044B\u043A\u0430\u0442\u0430\u0440",
   "setting.line-width.name": "\u0428\u044B\u0440\u044B\u043D\u044F",
   "setting.line-width.desc": "\u0428\u044B\u0440\u044B\u043D\u044F \u0432\u0435\u0440\u0442\u044B\u043A\u0430\u043B\u044C\u043D\u0430\u0433\u0430 \u043B\u0456\u043D\u0435\u0439\u043D\u0430\u0433\u0430 \u0456\u043D\u0434\u044B\u043A\u0430\u0442\u0430\u0440\u0430 (\u0443 \u043F\u0456\u043A\u0441\u0435\u043B\u044F\u0445).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "\u0406\u043D\u0434\u044B\u043A\u0430\u0442\u0430\u0440 \u043D\u0430 \u043F\u0430\u043B\u044F\u0445",
   "setting.gutter-heading.prefix": "\u0421\u0456\u043C\u0432\u0430\u043B\u044B \u0456\u043D\u0434\u044B\u043A\u0430\u0442\u0430\u0440\u0430 \u0442\u044B\u043F\u0443 \u043D\u0430 \u043F\u0430\u043B\u044F\u0445 (",
@@ -6667,7 +6668,7 @@ var bn_default = {
   "setting.line-heading": "\u09B2\u09BE\u0987\u09A8 \u09A8\u09BF\u09B0\u09CD\u09A6\u09C7\u09B6\u0995",
   "setting.line-width.name": "\u09AA\u09CD\u09B0\u09B8\u09CD\u09A5",
   "setting.line-width.desc": "\u0989\u09B2\u09CD\u09B2\u09AE\u09CD\u09AC \u09B0\u09C7\u0996\u09BE \u09A8\u09BF\u09B0\u09CD\u09A6\u09C7\u09B6\u0995\u09C7\u09B0 \u09AA\u09CD\u09B0\u09B8\u09CD\u09A5 (\u09AA\u09BF\u0995\u09CD\u09B8\u09C7\u09B2\u09C7)\u0964",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "\u0997\u09BE\u099F\u09BE\u09B0 \u09A8\u09BF\u09B0\u09CD\u09A6\u09C7\u09B6\u0995",
   "setting.gutter-heading.prefix": "\u0997\u09BE\u099F\u09BE\u09B0 \u09A7\u09B0\u09A8 \u09A8\u09BF\u09B0\u09CD\u09A6\u09C7\u09B6\u0995\u09C7\u09B0 \u0985\u0995\u09CD\u09B7\u09B0 (",
@@ -6843,7 +6844,7 @@ var ca_default = {
   "setting.line-heading": "Indicador de l\xEDnia",
   "setting.line-width.name": "Amplada",
   "setting.line-width.desc": "Amplada de l'indicador de l\xEDnia vertical (en p\xEDxels).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Indicador del marge",
   "setting.gutter-heading.prefix": "Car\xE0cters de l'indicador de tipus del marge (",
@@ -7019,7 +7020,7 @@ var cs_default = {
   "setting.line-heading": "\u0158\xE1dkov\xFD indik\xE1tor",
   "setting.line-width.name": "\u0160\xED\u0159ka",
   "setting.line-width.desc": "\u0160\xED\u0159ka svisl\xE9ho \u0159\xE1dkov\xE9ho indik\xE1toru (v pixelech).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Indik\xE1tor na okraji",
   "setting.gutter-heading.prefix": "Znaky indik\xE1toru typu na okraji (",
@@ -7195,7 +7196,7 @@ var da_default = {
   "setting.line-heading": "Linjeindikator",
   "setting.line-width.name": "Bredde",
   "setting.line-width.desc": "Bredde p\xE5 den lodrette linjeindikator (i pixels).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Margenindikator",
   "setting.gutter-heading.prefix": "Tegn for margentypeindikatoren (",
@@ -7371,7 +7372,7 @@ var de_default = {
   "setting.line-heading": "Zeilenindikator",
   "setting.line-width.name": "Breite",
   "setting.line-width.desc": "Breite des vertikalen Linienindikators (in Pixeln).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Randindikator",
   "setting.gutter-heading.prefix": "Zeichen des Rand-Typindikators (",
@@ -7547,7 +7548,7 @@ var en_default = {
   "setting.line-heading": "Line indicator",
   "setting.line-width.name": "Width",
   "setting.line-width.desc": "Width of the vertical line indicator (in pixels).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Gutter indicator",
   "setting.gutter-heading.prefix": "Chars of the gutter type indicator (",
@@ -7723,7 +7724,7 @@ var en_GB_default = {
   "setting.line-heading": "Line indicator",
   "setting.line-width.name": "Width",
   "setting.line-width.desc": "Width of the vertical line indicator (in pixels).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Gutter indicator",
   "setting.gutter-heading.prefix": "Chars of the gutter type indicator (",
@@ -7899,7 +7900,7 @@ var es_default = {
   "setting.line-heading": "Indicador de l\xEDnea",
   "setting.line-width.name": "Ancho",
   "setting.line-width.desc": "Ancho del indicador de l\xEDnea vertical (en p\xEDxeles).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Indicador de margen",
   "setting.gutter-heading.prefix": "Caracteres del indicador de tipo del margen (",
@@ -8075,7 +8076,7 @@ var fa_default = {
   "setting.line-heading": "\u0646\u0634\u0627\u0646\u06AF\u0631 \u062E\u0637",
   "setting.line-width.name": "\u067E\u0647\u0646\u0627",
   "setting.line-width.desc": "\u067E\u0647\u0646\u0627\u06CC \u0646\u0634\u0627\u0646\u06AF\u0631 \u062E\u0637 \u0639\u0645\u0648\u062F\u06CC (\u0628\u0647 \u067E\u06CC\u06A9\u0633\u0644).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "\u0646\u0634\u0627\u0646\u06AF\u0631 \u062D\u0627\u0634\u06CC\u0647",
   "setting.gutter-heading.prefix": "\u0646\u0648\u06CC\u0633\u0647\u200C\u0647\u0627\u06CC \u0646\u0634\u0627\u0646\u06AF\u0631 \u0646\u0648\u0639 \u062F\u0631 \u062D\u0627\u0634\u06CC\u0647 (",
@@ -8251,7 +8252,7 @@ var fi_default = {
   "setting.line-heading": "Riviloilmaisin",
   "setting.line-width.name": "Leveys",
   "setting.line-width.desc": "Pystysuoran riviloilmaisimen leveys (pikselein\xE4).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Reunusilmaisin",
   "setting.gutter-heading.prefix": "Reunustyyppi-ilmaisimen merkit (",
@@ -8427,7 +8428,7 @@ var fr_default = {
   "setting.line-heading": "Indicateur de ligne",
   "setting.line-width.name": "Largeur",
   "setting.line-width.desc": "Largeur de l'indicateur en ligne verticale (en pixels).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Indicateur de goutti\xE8re",
   "setting.gutter-heading.prefix": "Caract\xE8res de l'indicateur de type dans la goutti\xE8re (",
@@ -8603,7 +8604,7 @@ var ga_default = {
   "setting.line-heading": "T\xE1scaire l\xEDne",
   "setting.line-width.name": "Leithead",
   "setting.line-width.desc": "Leithead an t\xE1scaire l\xEDne ingheara\xED (i bpicteil\xEDn\xED).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "T\xE1scaire imill",
   "setting.gutter-heading.prefix": "Carachtair de th\xE1scaire cine\xE1il an imill (",
@@ -8779,7 +8780,7 @@ var he_default = {
   "setting.line-heading": "\u05DE\u05D7\u05D5\u05D5\u05DF \u05E9\u05D5\u05E8\u05D4",
   "setting.line-width.name": "\u05E8\u05D5\u05D7\u05D1",
   "setting.line-width.desc": "\u05E8\u05D5\u05D7\u05D1 \u05DE\u05D7\u05D5\u05D5\u05DF \u05D4\u05E7\u05D5 \u05D4\u05D0\u05E0\u05DB\u05D9 (\u05D1\u05E4\u05D9\u05E7\u05E1\u05DC\u05D9\u05DD).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "\u05DE\u05D7\u05D5\u05D5\u05DF \u05E9\u05D5\u05DC\u05D9\u05D9\u05DD",
   "setting.gutter-heading.prefix": "\u05EA\u05D5\u05D5\u05D9 \u05DE\u05D7\u05D5\u05D5\u05DF \u05D4\u05E1\u05D5\u05D2 \u05D1\u05E9\u05D5\u05DC\u05D9\u05D9\u05DD (",
@@ -8955,7 +8956,7 @@ var hu_default = {
   "setting.line-heading": "Sorjelz\u0151",
   "setting.line-width.name": "Sz\xE9less\xE9g",
   "setting.line-width.desc": "A f\xFCgg\u0151leges sorjelz\u0151 sz\xE9less\xE9ge (k\xE9ppontban).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Marg\xF3jelz\u0151",
   "setting.gutter-heading.prefix": "A marg\xF3t\xEDpus-jelz\u0151 karakterei (",
@@ -9131,7 +9132,7 @@ var id_default = {
   "setting.line-heading": "Indikator baris",
   "setting.line-width.name": "Lebar",
   "setting.line-width.desc": "Lebar indikator garis vertikal (dalam piksel).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Indikator selokan",
   "setting.gutter-heading.prefix": "Karakter indikator tipe selokan (",
@@ -9307,7 +9308,7 @@ var it_default = {
   "setting.line-heading": "Indicatore di riga",
   "setting.line-width.name": "Larghezza",
   "setting.line-width.desc": "Larghezza dell'indicatore a linea verticale (in pixel).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Indicatore nel margine",
   "setting.gutter-heading.prefix": "Caratteri dell'indicatore di tipo nel margine (",
@@ -9483,7 +9484,7 @@ var ja_default = {
   "setting.line-heading": "\u884C\u30A4\u30F3\u30B8\u30B1\u30FC\u30BF\u30FC",
   "setting.line-width.name": "\u5E45",
   "setting.line-width.desc": "\u7E26\u7DDA\u30A4\u30F3\u30B8\u30B1\u30FC\u30BF\u30FC\u306E\u5E45\uFF08\u30D4\u30AF\u30BB\u30EB\u5358\u4F4D\uFF09\u3002",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "\u30AC\u30BF\u30FC\u30A4\u30F3\u30B8\u30B1\u30FC\u30BF\u30FC",
   "setting.gutter-heading.prefix": "\u30AC\u30BF\u30FC\u306E\u7A2E\u985E\u30A4\u30F3\u30B8\u30B1\u30FC\u30BF\u30FC\u306E\u6587\u5B57\uFF08",
@@ -9659,7 +9660,7 @@ var ka_default = {
   "setting.line-heading": "\u10EE\u10D0\u10D6\u10D8\u10E1 \u10D8\u10DC\u10D3\u10D8\u10D9\u10D0\u10E2\u10DD\u10E0\u10D8",
   "setting.line-width.name": "\u10E1\u10D8\u10D2\u10D0\u10DC\u10D4",
   "setting.line-width.desc": "\u10D5\u10D4\u10E0\u10E2\u10D8\u10D9\u10D0\u10DA\u10E3\u10E0\u10D8 \u10EE\u10D0\u10D6\u10D8\u10E1 \u10D8\u10DC\u10D3\u10D8\u10D9\u10D0\u10E2\u10DD\u10E0\u10D8\u10E1 \u10E1\u10D8\u10D2\u10D0\u10DC\u10D4 (\u10DE\u10D8\u10E5\u10E1\u10D4\u10DA\u10D4\u10D1\u10E8\u10D8).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "\u10D2\u10D5\u10D4\u10E0\u10D3\u10D8\u10D7\u10D8 \u10D5\u10D4\u10DA\u10D8\u10E1 \u10D8\u10DC\u10D3\u10D8\u10D9\u10D0\u10E2\u10DD\u10E0\u10D8",
   "setting.gutter-heading.prefix": "\u10D2\u10D5\u10D4\u10E0\u10D3\u10D8\u10D7\u10D8 \u10D5\u10D4\u10DA\u10D8\u10E1 \u10E2\u10D8\u10DE\u10D8\u10E1 \u10D8\u10DC\u10D3\u10D8\u10D9\u10D0\u10E2\u10DD\u10E0\u10D8\u10E1 \u10E1\u10D8\u10DB\u10D1\u10DD\u10DA\u10DD\u10D4\u10D1\u10D8 (",
@@ -9835,7 +9836,7 @@ var kh_default = {
   "setting.line-heading": "\u179F\u1789\u17D2\u1789\u17B6\u179F\u1798\u17D2\u1782\u17B6\u179B\u17CB\u1794\u1793\u17D2\u1791\u17B6\u178F\u17CB",
   "setting.line-width.name": "\u1791\u1791\u17B9\u1784",
   "setting.line-width.desc": "\u1791\u1791\u17B9\u1784\u1793\u17C3\u179F\u1789\u17D2\u1789\u17B6\u179F\u1798\u17D2\u1782\u17B6\u179B\u17CB\u1794\u1793\u17D2\u1791\u17B6\u178F\u17CB\u1794\u1789\u17D2\u1788\u179A (\u1782\u17B7\u178F\u1787\u17B6\u1797\u17B8\u1780\u179F\u17C2\u179B)\u17D4",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "\u179F\u1789\u17D2\u1789\u17B6\u179F\u1798\u17D2\u1782\u17B6\u179B\u17CB\u1793\u17C5\u1782\u17C2\u1798",
   "setting.gutter-heading.prefix": "\u178F\u17BD\u17A2\u1780\u17D2\u179F\u179A\u1793\u17C3\u179F\u1789\u17D2\u1789\u17B6\u179F\u1798\u17D2\u1782\u17B6\u179B\u17CB\u1794\u17D2\u179A\u1797\u17C1\u1791\u1793\u17C5\u1782\u17C2\u1798 (",
@@ -10011,7 +10012,7 @@ var ko_default = {
   "setting.line-heading": "\uC904 \uD45C\uC2DC\uAE30",
   "setting.line-width.name": "\uB108\uBE44",
   "setting.line-width.desc": "\uC138\uB85C\uC120 \uD45C\uC2DC\uAE30\uC758 \uB108\uBE44(\uD53D\uC140 \uB2E8\uC704).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "\uC5EC\uBC31 \uD45C\uC2DC\uAE30",
   "setting.gutter-heading.prefix": "\uC5EC\uBC31 \uC720\uD615 \uD45C\uC2DC\uAE30 \uBB38\uC790 (",
@@ -10187,7 +10188,7 @@ var lv_default = {
   "setting.line-heading": "Rindas indikators",
   "setting.line-width.name": "Platums",
   "setting.line-width.desc": "Vertik\u0101l\u0101 rindas indikatora platums (pikse\u013Cos).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Malas indikators",
   "setting.gutter-heading.prefix": "Malas tipa indikatora rakstz\u012Bmes (",
@@ -10363,7 +10364,7 @@ var ms_default = {
   "setting.line-heading": "Penunjuk baris",
   "setting.line-width.name": "Lebar",
   "setting.line-width.desc": "Lebar penunjuk garisan menegak (dalam piksel).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Penunjuk parit",
   "setting.gutter-heading.prefix": "Aksara penunjuk jenis parit (",
@@ -10539,7 +10540,7 @@ var ne_default = {
   "setting.line-heading": "\u0932\u093E\u0907\u0928 \u0938\u0942\u091A\u0915",
   "setting.line-width.name": "\u091A\u094C\u0921\u093E\u0907",
   "setting.line-width.desc": "\u0920\u093E\u0921\u094B \u0930\u0947\u0916\u093E \u0938\u0942\u091A\u0915\u0915\u094B \u091A\u094C\u0921\u093E\u0907 (\u092A\u093F\u0915\u094D\u0938\u0947\u0932\u092E\u093E)\u0964",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "\u0917\u091F\u0930 \u0938\u0942\u091A\u0915",
   "setting.gutter-heading.prefix": "\u0917\u091F\u0930 \u092A\u094D\u0930\u0915\u093E\u0930 \u0938\u0942\u091A\u0915\u0915\u093E \u0905\u0915\u094D\u0937\u0930\u0939\u0930\u0942 (",
@@ -10715,7 +10716,7 @@ var nl_default = {
   "setting.line-heading": "Regelindicator",
   "setting.line-width.name": "Breedte",
   "setting.line-width.desc": "Breedte van de verticale lijnindicator (in pixels).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Kantlijnindicator",
   "setting.gutter-heading.prefix": "Tekens van de type-indicator in de kantlijn (",
@@ -10891,7 +10892,7 @@ var no_default = {
   "setting.line-heading": "Linjeindikator",
   "setting.line-width.name": "Bredde",
   "setting.line-width.desc": "Bredde p\xE5 den vertikale linjeindikatoren (i piksler).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Margindikator",
   "setting.gutter-heading.prefix": "Tegn for margtypeindikatoren (",
@@ -11067,7 +11068,7 @@ var pl_default = {
   "setting.line-heading": "Wska\u017Anik liniowy",
   "setting.line-width.name": "Szeroko\u015B\u0107",
   "setting.line-width.desc": "Szeroko\u015B\u0107 pionowego wska\u017Anika liniowego (w pikselach).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Wska\u017Anik na marginesie",
   "setting.gutter-heading.prefix": "Znaki wska\u017Anika typu na marginesie (",
@@ -11243,7 +11244,7 @@ var pt_default = {
   "setting.line-heading": "Indicador de linha",
   "setting.line-width.name": "Largura",
   "setting.line-width.desc": "Largura do indicador de linha vertical (em p\xEDxeis).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Indicador na margem",
   "setting.gutter-heading.prefix": "Caracteres do indicador de tipo na margem (",
@@ -11419,7 +11420,7 @@ var pt_BR_default = {
   "setting.line-heading": "Indicador de linha",
   "setting.line-width.name": "Largura",
   "setting.line-width.desc": "Largura do indicador de linha vertical (em pixels).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Indicador na margem",
   "setting.gutter-heading.prefix": "Caracteres do indicador de tipo na margem (",
@@ -11595,7 +11596,7 @@ var ro_default = {
   "setting.line-heading": "Indicator de linie",
   "setting.line-width.name": "L\u0103\u021Bime",
   "setting.line-width.desc": "L\u0103\u021Bimea indicatorului de linie vertical\u0103 (\xEEn pixeli).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Indicator \xEEn margine",
   "setting.gutter-heading.prefix": "Caracterele indicatorului de tip din margine (",
@@ -11771,7 +11772,7 @@ var ru_default = {
   "setting.line-heading": "\u041B\u0438\u043D\u0435\u0439\u043D\u044B\u0439 \u0438\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440",
   "setting.line-width.name": "\u0428\u0438\u0440\u0438\u043D\u0430",
   "setting.line-width.desc": "\u0428\u0438\u0440\u0438\u043D\u0430 \u0432\u0435\u0440\u0442\u0438\u043A\u0430\u043B\u044C\u043D\u043E\u0433\u043E \u043B\u0438\u043D\u0435\u0439\u043D\u043E\u0433\u043E \u0438\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u0430 (\u0432 \u043F\u0438\u043A\u0441\u0435\u043B\u044F\u0445).",
-  "setting.marker-intensity.name": "\u0418\u043D\u0442\u0435\u043D\u0441\u0438\u0432\u043D\u043E\u0441\u0442\u044C \u043C\u0430\u0440\u043A\u0435\u0440\u043E\u0432",
+  "setting.marker-intensity-heading": "\u0418\u043D\u0442\u0435\u043D\u0441\u0438\u0432\u043D\u043E\u0441\u0442\u044C \u043C\u0430\u0440\u043A\u0435\u0440\u043E\u0432",
   "setting.marker-intensity.desc": "\u041E\u0431\u0449\u0430\u044F \u0438\u043D\u0442\u0435\u043D\u0441\u0438\u0432\u043D\u043E\u0441\u0442\u044C \u0432\u0441\u0435\u0445 \u0446\u0432\u0435\u0442\u043E\u0432 \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0439 (\u043C\u0430\u0440\u043A\u0435\u0440\u044B \u0440\u0435\u0434\u0430\u043A\u0442\u043E\u0440\u0430, \u0434\u0435\u0440\u0435\u0432\u043E, \u0432\u043A\u043B\u0430\u0434\u043A\u0438, \u0440\u0435\u0436\u0438\u043C \u0447\u0442\u0435\u043D\u0438\u044F). \u0411\u043E\u043B\u044C\u0448\u0435 - \u044F\u0440\u0447\u0435, \u043C\u0435\u043D\u044C\u0448\u0435 - \u0431\u043B\u0435\u0434\u043D\u0435\u0435.",
   "setting.gutter-heading.name": "\u0418\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440 \u043D\u0430 \u043F\u043E\u043B\u044F\u0445",
   "setting.gutter-heading.prefix": "\u0421\u0438\u043C\u0432\u043E\u043B\u044B \u0438\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u0430 \u0442\u0438\u043F\u0430 \u043D\u0430 \u043F\u043E\u043B\u044F\u0445 (",
@@ -11947,7 +11948,7 @@ var sk_default = {
   "setting.line-heading": "Riadkov\xFD indik\xE1tor",
   "setting.line-width.name": "\u0160\xEDrka",
   "setting.line-width.desc": "\u0160\xEDrka zvisl\xE9ho riadkov\xE9ho indik\xE1tora (v pixeloch).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Indik\xE1tor na okraji",
   "setting.gutter-heading.prefix": "Znaky indik\xE1tora typu na okraji (",
@@ -12123,7 +12124,7 @@ var sq_default = {
   "setting.line-heading": "Treguesi i rreshtit",
   "setting.line-width.name": "Gjer\xEBsia",
   "setting.line-width.desc": "Gjer\xEBsia e treguesit vertikal t\xEB rreshtit (n\xEB piksele).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Treguesi an\xEBsor",
   "setting.gutter-heading.prefix": "Shenjat e treguesit t\xEB llojit an\xEBsor (",
@@ -12299,7 +12300,7 @@ var sr_default = {
   "setting.line-heading": "\u041B\u0438\u043D\u0438\u0458\u0441\u043A\u0438 \u0438\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440",
   "setting.line-width.name": "\u0428\u0438\u0440\u0438\u043D\u0430",
   "setting.line-width.desc": "\u0428\u0438\u0440\u0438\u043D\u0430 \u0432\u0435\u0440\u0442\u0438\u043A\u0430\u043B\u043D\u043E\u0433 \u043B\u0438\u043D\u0438\u0458\u0441\u043A\u043E\u0433 \u0438\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u0430 (\u0443 \u043F\u0438\u043A\u0441\u0435\u043B\u0438\u043C\u0430).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "\u0418\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440 \u043D\u0430 \u043C\u0430\u0440\u0433\u0438\u043D\u0438",
   "setting.gutter-heading.prefix": "\u0417\u043D\u0430\u0446\u0438 \u0438\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u0430 \u0442\u0438\u043F\u0430 \u043D\u0430 \u043C\u0430\u0440\u0433\u0438\u043D\u0438 (",
@@ -12475,7 +12476,7 @@ var sv_default = {
   "setting.line-heading": "Radindikator",
   "setting.line-width.name": "Bredd",
   "setting.line-width.desc": "Bredd p\xE5 den vertikala linjeindikatorn (i pixlar).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Marginalindikator",
   "setting.gutter-heading.prefix": "Tecken f\xF6r marginaltypsindikatorn (",
@@ -12651,7 +12652,7 @@ var th_default = {
   "setting.line-heading": "\u0E15\u0E31\u0E27\u0E1A\u0E48\u0E07\u0E0A\u0E35\u0E49\u0E1A\u0E23\u0E23\u0E17\u0E31\u0E14",
   "setting.line-width.name": "\u0E04\u0E27\u0E32\u0E21\u0E01\u0E27\u0E49\u0E32\u0E07",
   "setting.line-width.desc": "\u0E04\u0E27\u0E32\u0E21\u0E01\u0E27\u0E49\u0E32\u0E07\u0E02\u0E2D\u0E07\u0E15\u0E31\u0E27\u0E1A\u0E48\u0E07\u0E0A\u0E35\u0E49\u0E40\u0E2A\u0E49\u0E19\u0E41\u0E19\u0E27\u0E15\u0E31\u0E49\u0E07 (\u0E40\u0E1B\u0E47\u0E19\u0E1E\u0E34\u0E01\u0E40\u0E0B\u0E25)",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "\u0E15\u0E31\u0E27\u0E1A\u0E48\u0E07\u0E0A\u0E35\u0E49\u0E43\u0E19\u0E41\u0E16\u0E1A\u0E02\u0E2D\u0E1A",
   "setting.gutter-heading.prefix": "\u0E2D\u0E31\u0E01\u0E02\u0E23\u0E30\u0E02\u0E2D\u0E07\u0E15\u0E31\u0E27\u0E1A\u0E48\u0E07\u0E0A\u0E35\u0E49\u0E0A\u0E19\u0E34\u0E14\u0E43\u0E19\u0E41\u0E16\u0E1A\u0E02\u0E2D\u0E1A (",
@@ -12827,7 +12828,7 @@ var tr_default = {
   "setting.line-heading": "Sat\u0131r g\xF6stergesi",
   "setting.line-width.name": "Geni\u015Flik",
   "setting.line-width.desc": "Dikey \xE7izgi g\xF6stergesinin geni\u015Fli\u011Fi (piksel cinsinden).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Oluk g\xF6stergesi",
   "setting.gutter-heading.prefix": "Oluk t\xFCr g\xF6stergesinin karakterleri (",
@@ -13003,7 +13004,7 @@ var uk_default = {
   "setting.line-heading": "\u041B\u0456\u043D\u0456\u0439\u043D\u0438\u0439 \u0456\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440",
   "setting.line-width.name": "\u0428\u0438\u0440\u0438\u043D\u0430",
   "setting.line-width.desc": "\u0428\u0438\u0440\u0438\u043D\u0430 \u0432\u0435\u0440\u0442\u0438\u043A\u0430\u043B\u044C\u043D\u043E\u0433\u043E \u043B\u0456\u043D\u0456\u0439\u043D\u043E\u0433\u043E \u0456\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u0430 (\u0443 \u043F\u0456\u043A\u0441\u0435\u043B\u044F\u0445).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "\u0406\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440 \u043D\u0430 \u043F\u043E\u043B\u044F\u0445",
   "setting.gutter-heading.prefix": "\u0421\u0438\u043C\u0432\u043E\u043B\u0438 \u0456\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u0430 \u0442\u0438\u043F\u0443 \u043D\u0430 \u043F\u043E\u043B\u044F\u0445 (",
@@ -13179,7 +13180,7 @@ var uz_default = {
   "setting.line-heading": "Qator indikatori",
   "setting.line-width.name": "Kengligi",
   "setting.line-width.desc": "Vertikal chiziq indikatorining kengligi (piksellarda).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Hoshiya indikatori",
   "setting.gutter-heading.prefix": "Hoshiya tur indikatorining belgilari (",
@@ -13355,7 +13356,7 @@ var vi_default = {
   "setting.line-heading": "Ch\u1EC9 b\xE1o d\xF2ng",
   "setting.line-width.name": "\u0110\u1ED9 r\u1ED9ng",
   "setting.line-width.desc": "\u0110\u1ED9 r\u1ED9ng c\u1EE7a ch\u1EC9 b\xE1o \u0111\u01B0\u1EDDng k\u1EBB d\u1ECDc (t\xEDnh b\u1EB1ng pixel).",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "Ch\u1EC9 b\xE1o \u1EDF l\u1EC1",
   "setting.gutter-heading.prefix": "K\xFD t\u1EF1 c\u1EE7a ch\u1EC9 b\xE1o ki\u1EC3u \u1EDF l\u1EC1 (",
@@ -13531,7 +13532,7 @@ var zh_default = {
   "setting.line-heading": "\u884C\u6307\u793A\u5668",
   "setting.line-width.name": "\u5BBD\u5EA6",
   "setting.line-width.desc": "\u7AD6\u7EBF\u6307\u793A\u5668\u7684\u5BBD\u5EA6\uFF08\u4EE5\u50CF\u7D20\u4E3A\u5355\u4F4D\uFF09\u3002",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "\u8FB9\u680F\u6307\u793A\u5668",
   "setting.gutter-heading.prefix": "\u8FB9\u680F\u7C7B\u578B\u6307\u793A\u5668\u7684\u5B57\u7B26\uFF08",
@@ -13707,7 +13708,7 @@ var zh_TW_default = {
   "setting.line-heading": "\u884C\u6307\u793A\u5668",
   "setting.line-width.name": "\u5BEC\u5EA6",
   "setting.line-width.desc": "\u5782\u76F4\u7DDA\u6307\u793A\u5668\u7684\u5BEC\u5EA6\uFF08\u4EE5\u50CF\u7D20\u70BA\u55AE\u4F4D\uFF09\u3002",
-  "setting.marker-intensity.name": "Marker intensity",
+  "setting.marker-intensity-heading": "Marker intensity",
   "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
   "setting.gutter-heading.name": "\u908A\u6B04\u6307\u793A\u5668",
   "setting.gutter-heading.prefix": "\u908A\u6B04\u985E\u578B\u6307\u793A\u5668\u7684\u5B57\u5143\uFF08",
@@ -16186,16 +16187,11 @@ var FolderTreeComponent = class {
       container: row
     });
     (0, import_obsidian16.setIcon)(icon, "file");
-    const main = create({
-      tag: "span",
-      classes: "lct-folder-tree-flat-main",
-      container: row
-    });
     create({
       tag: "span",
       classes: ["tree-item-inner", "nav-file-title-content", "lct-folder-tree-name"],
       text: node.name,
-      container: main
+      container: row
     });
     const slash = node.path.lastIndexOf("/");
     if (slash >= 0) {
@@ -16203,7 +16199,8 @@ var FolderTreeComponent = class {
         tag: "span",
         classes: "lct-folder-tree-path",
         text: node.path.slice(0, slash),
-        container: main
+        attributes: { "aria-label": node.path },
+        container: row
       });
     }
     if (node.external) {
@@ -16227,10 +16224,7 @@ var FolderTreeComponent = class {
     const text = resolved && resolved !== "version.badge.external" ? resolved : fallback;
     const badge = create({
       tag: "span",
-      classes: "lct-version-external-badge",
-      // `aria-label` only (no `title`): Obsidian renders its own styled tooltip
-      // for `[aria-label]` elements, while `title` adds the unstyled native
-      // browser tooltip on top.
+      classes: ["lct-version-external-badge", "lct-version-external-badge-icon-only"],
       attributes: { "aria-label": text },
       container: row
     });
@@ -16240,12 +16234,6 @@ var FolderTreeComponent = class {
       container: badge
     });
     (0, import_obsidian16.setIcon)(slot, "download-cloud");
-    create({
-      tag: "span",
-      classes: "lct-version-external-badge-text",
-      text,
-      container: badge
-    });
   }
   /**
    * Maps the delta status to its row class. The three statuses are stable
@@ -23485,6 +23473,7 @@ var MainSetting = class extends import_obsidian26.PluginSettingTab {
     this.renderExcludePaths(containerEl);
     this.renderSnapshots(containerEl);
     this.renderShow(containerEl);
+    this.renderMarkerIntensity(containerEl);
     this.renderLine(containerEl);
     this.renderGutter(containerEl);
     this.renderCleanup(containerEl);
@@ -23540,13 +23529,6 @@ var MainSetting = class extends import_obsidian26.PluginSettingTab {
       setting.setName(this.plugin.t("setting.reading-mode-indicator.name")).setDesc(this.plugin.t("setting.reading-mode-indicator.desc")).addToggle(
         (toggle) => toggle.setValue(this.settingsService.value("readingModeIndicator")).onChange((value) => {
           this.settingsService.update("readingModeIndicator", value);
-        })
-      );
-    });
-    group.addSetting((setting) => {
-      setting.setName(this.plugin.t("setting.marker-intensity.name")).setDesc(this.plugin.t("setting.marker-intensity.desc")).addSlider(
-        (slider) => slider.setLimits(10, 100, 5).setValue(this.settingsService.value("markerIntensity")).setDynamicTooltip().onChange((value) => {
-          this.settingsService.update("markerIntensity", value);
         })
       );
     });
@@ -23691,6 +23673,26 @@ var MainSetting = class extends import_obsidian26.PluginSettingTab {
     });
   }
   /**
+   * Renders the "Marker intensity" group: a single slider driving the shared
+   * `--lct-tint-strength` colour intensity for every change surface. Sits on its
+   * own between "Show indicator for" and "Line indicator" because it is a
+   * cross-cutting colour knob, not specific to the line or gutter indicator. The
+   * group heading names the control, so the row carries only the description and
+   * the slider.
+   *
+   * @param {HTMLElement} containerEl - The settings tab container
+   */
+  renderMarkerIntensity(containerEl) {
+    const group = new import_obsidian26.SettingGroup(containerEl).setHeading(this.plugin.t("setting.marker-intensity-heading"));
+    group.addSetting((setting) => {
+      setting.setDesc(this.plugin.t("setting.marker-intensity.desc")).addSlider(
+        (slider) => slider.setLimits(10, 100, 5).setValue(this.settingsService.value("markerIntensity")).setDynamicTooltip().onChange((value) => {
+          this.settingsService.update("markerIntensity", value);
+        })
+      );
+    });
+  }
+  /**
    * Renders the "Line indicator" group with the width slider.
    *
    * @param {HTMLElement} containerEl - The settings tab container
@@ -23714,15 +23716,12 @@ var MainSetting = class extends import_obsidian26.PluginSettingTab {
   renderGutter(containerEl) {
     const group = new import_obsidian26.SettingGroup(containerEl).setHeading(this.plugin.t("setting.gutter-heading.name"));
     group.addSetting((setting) => {
-      setting.setName(this.plugin.t("setting.gutter-hover-panel.name")).setDesc(this.plugin.t("setting.gutter-hover-panel.desc")).addToggle(
-        (toggle) => toggle.setValue(this.settingsService.value("gutterHoverPanel")).onChange((value) => {
-          this.settingsService.update("gutterHoverPanel", value);
-        })
-      );
-    });
-    group.addSetting((setting) => {
-      setting.setDesc(
+      setting.setName(this.plugin.t("setting.gutter-hover-panel.name")).setDesc(
         createFragment([
+          {
+            tag: "div",
+            text: this.plugin.t("setting.gutter-hover-panel.desc")
+          },
           {
             tag: "div",
             children: [
@@ -23745,6 +23744,10 @@ var MainSetting = class extends import_obsidian26.PluginSettingTab {
             ]
           }
         ])
+      ).addToggle(
+        (toggle) => toggle.setValue(this.settingsService.value("gutterHoverPanel")).onChange((value) => {
+          this.settingsService.update("gutterHoverPanel", value);
+        })
       );
     });
     const symbols = [
@@ -30270,8 +30273,8 @@ var LineChangeTrackerPlugin = class extends import_obsidian34.Plugin {
       VAULT_CHANGES_VIEW_TYPE,
       (leaf) => new VaultChangesView(leaf, this)
     );
-    this.addRibbonIcon("folder-git-2", this.t("command.open-vault-changes"), () => {
-      void this.revealVaultChanges();
+    this.app.workspace.onLayoutReady(() => {
+      void this.autoDockVaultChanges();
     });
     this.ready = true;
     this.forceUpdateEditor();
@@ -30412,6 +30415,34 @@ var LineChangeTrackerPlugin = class extends import_obsidian34.Plugin {
     }
     await leaf.setViewState({ type: VAULT_CHANGES_VIEW_TYPE, active: true });
     await this.app.workspace.revealLeaf(leaf);
+  }
+  /**
+   * Docks the vault changes panel into the right sidebar once, the first time
+   * the plugin ever loads, so its tab is present there without a ribbon icon.
+   * Obsidian has no API to add a bare button to a sidebar, so a docked leaf (its
+   * tab icon) is the sidebar-native entry point. The one-shot
+   * `vaultChangesAutoRevealed` flag is set on the first attempt so a user who
+   * later closes the panel is respected: from then on Obsidian's own workspace
+   * persistence decides whether the leaf comes back, and this never re-adds it.
+   * The leaf is created inactive so the dock does not steal focus on startup;
+   * the command still opens/focuses it on demand.
+   *
+   * @return {Promise<void>} Resolves once the one-shot dock attempt completes
+   */
+  async autoDockVaultChanges() {
+    var _a;
+    const settings = this.get(TOKENS.settings);
+    if (settings.value("vaultChangesAutoRevealed")) {
+      return;
+    }
+    settings.update("vaultChangesAutoRevealed", true);
+    if (this.app.workspace.getLeavesOfType(VAULT_CHANGES_VIEW_TYPE).length > 0) {
+      return;
+    }
+    await ((_a = this.app.workspace.getRightLeaf(false)) == null ? void 0 : _a.setViewState({
+      type: VAULT_CHANGES_VIEW_TYPE,
+      active: false
+    }));
   }
   /**
    * Gets all Markdown files currently open in the workspace.

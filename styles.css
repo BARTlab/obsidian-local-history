@@ -563,17 +563,20 @@ body {
   flex: 1;
   min-height: 0;
   overflow: auto;
+  padding-bottom: var(--size-4-8);
 }
-.lct-folder-tree-flat .lct-folder-tree-flat-file {
-  align-items: flex-start;
-}
-.lct-folder-tree-flat .lct-folder-tree-flat-main {
-  display: flex;
-  flex-direction: column;
+.workspace-leaf-content[data-type=line-change-tracker-vault-changes] .lct-folder-tree {
   min-width: 0;
-  line-height: var(--line-height-tight);
+}
+.lct-folder-tree-flat .lct-folder-tree-name {
+  flex: 0 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .lct-folder-tree-flat .lct-folder-tree-path {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-inline-start: var(--size-4-2);
   color: var(--text-faint);
   font-size: var(--font-ui-smaller);
   white-space: nowrap;
@@ -799,6 +802,10 @@ body.lct-hover-affordance .cm-gutter.lct-gutter-bar-col .cm-gutterElement:hover 
   min-width: max-content;
   overflow: visible;
 }
+.lct-folder-tree .lct-folder-tree-row {
+  display: flex;
+  align-items: center;
+}
 .lct-folder-tree .lct-folder-tree-chevron,
 .lct-folder-tree .lct-folder-tree-icon {
   display: inline-flex;
@@ -922,6 +929,10 @@ body.lct-hover-affordance .cm-gutter.lct-gutter-bar-col .cm-gutterElement:hover 
   font-weight: var(--font-medium);
   text-transform: lowercase;
   letter-spacing: 0.02em;
+}
+.lct-version-external-badge-icon-only {
+  gap: 0;
+  padding: 2px;
 }
 .lct-folder-tree .lct-folder-tree-row.lct-folder-tree-file .lct-version-external-badge {
   margin-inline-start: var(--size-4-1);

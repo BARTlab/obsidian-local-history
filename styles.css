@@ -17,7 +17,6 @@ body {
   --lct-color-added: color-mix(in srgb, var(--color-orange) var(--lct-tint-strength), transparent);
   --lct-color-removed: color-mix(in srgb, var(--color-base-100) var(--lct-tint-strength), transparent);
   --lct-color-whitespace: color-mix(in srgb, var(--color-yellow) var(--lct-tint-strength), transparent);
-  --lct-line-seam: 2px;
 }
 .modal.lct-diff-modal {
   width: 90vw;
@@ -531,7 +530,7 @@ body {
   flex-direction: column;
   min-height: 0;
   height: 100%;
-  padding: var(--size-4-3) var(--size-4-2);
+  padding: var(--size-4-3) var(--size-4-2) var(--size-4-8);
 }
 .workspace-leaf-content[data-type=line-change-tracker-vault-changes] .lct-vault-changes-header {
   flex: none;
@@ -563,7 +562,6 @@ body {
   flex: 1;
   min-height: 0;
   overflow: auto;
-  padding-bottom: var(--size-4-8);
 }
 .workspace-leaf-content[data-type=line-change-tracker-vault-changes] .lct-folder-tree {
   min-width: 0;
@@ -614,7 +612,6 @@ body {
   border-radius: var(--lct-line-border-radius);
 }
 .cm-gutter.lct-gutter-bar-col .lct-join-down .lct-gutter-bar {
-  height: calc(100% + var(--lct-line-seam));
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
 }
@@ -935,7 +932,7 @@ body.lct-hover-affordance .cm-gutter.lct-gutter-bar-col .cm-gutterElement:hover 
   padding: 2px;
 }
 .lct-folder-tree .lct-folder-tree-row.lct-folder-tree-file .lct-version-external-badge {
-  margin-inline-start: var(--size-4-1);
+  margin-inline-start: auto;
 }
 .lct-patch-container {
   position: relative;

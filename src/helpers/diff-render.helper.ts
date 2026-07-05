@@ -44,6 +44,14 @@ import { Notice, setIcon } from 'obsidian';
  *   navigation and revert affordances against the same indices.
  */
 export function render(params: DiffRenderParams): { hunks: Diff.StructuredPatchHunk[] } {
+  // Every mode fully rebuilds the container, and callers re-render into the same
+  // container on each mode / selection / T change. renderPatch and renderInline
+  // append their content (via DomHelper.update), so without clearing first they
+  // would stack a second copy under the previous one on every re-render; the
+  // diff2html branch already clears via setSanitizedHtml. Clear once here so the
+  // replace-on-render contract is uniform across all four modes.
+  params.container.empty();
+
   const hunks: Diff.StructuredPatchHunk[] = HunkHelper.diff(
     params.baseLines,
     params.currentLines,

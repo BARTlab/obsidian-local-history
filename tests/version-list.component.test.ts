@@ -7,6 +7,7 @@ import type { VersionListHost } from '@/components/version-list.component.types'
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import { FileVersion } from '@/snapshots/file.version';
 import type LineChangeTrackerPlugin from '@/main';
+import { installJsdomDomPolyfill } from './helpers/jsdom-dom';
 
 /**
  * Tests for {@link VersionList}, the left-rail version-list collaborator
@@ -34,6 +35,8 @@ describe('VersionList', () => {
    * active row, so a no-op stub keeps the move observable without throwing.
    */
   beforeAll((): void => {
+    installJsdomDomPolyfill();
+
     (Element.prototype as unknown as { scrollIntoView: () => void }).scrollIntoView = (): void => {
       // no-op under jsdom
     };
@@ -261,6 +264,21 @@ describe('VersionList', () => {
 
       expect(rows).toHaveLength(2);
       expect(versionsEl.querySelectorAll('.lct-versions-day').length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('replaces the rail on re-render instead of stacking a second copy', () => {
+      const v1 = new FileVersion(['alpha'], 1);
+      const v2 = new FileVersion(['beta'], 2);
+      const list = new VersionList(makeHost(makeSnapshot(['current'], [v1, v2])));
+
+      // The file modal re-renders the list on every selection / filter change,
+      // so three renders must leave exactly one list, not three stacked copies.
+      list.render();
+      list.render();
+      list.render();
+
+      expect(versionsEl.querySelectorAll('.lct-versions-list')).toHaveLength(1);
+      expect(versionsEl.querySelectorAll('.lct-version-item')).toHaveLength(2);
     });
 
     it('marks the row for the selected base as active', () => {

@@ -1,6 +1,6 @@
 /** @jest-environment jsdom */
 
-import { beforeEach, describe, expect, it } from '@jest/globals';
+import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
 import { FolderTimelinePointKind } from '@/consts';
 import { FolderTimelineRenderer } from '@/modals/folder-timeline-renderer';
 import type { FolderTimelineHost } from '@/modals/folder-timeline-renderer.types';
@@ -8,6 +8,7 @@ import { FileSnapshot } from '@/snapshots/file.snapshot';
 import { FileVersion } from '@/snapshots/file.version';
 import type LineChangeTrackerPlugin from '@/main';
 import type { FolderTimelinePoint } from '@/types';
+import { installJsdomDomPolyfill } from './helpers/jsdom-dom';
 
 /**
  * Tests for {@link FolderTimelineRenderer}, the left-rail timeline
@@ -29,6 +30,15 @@ import type { FolderTimelinePoint } from '@/types';
  * so the external-badge derivation runs against the genuine version flag.
  */
 describe('FolderTimelineRenderer', () => {
+  /**
+   * jsdom does not implement HTMLElement.empty (Obsidian augments the prototype
+   * at runtime). render() calls empty() to clear the rail before rebuilding it,
+   * so the shared polyfill must be installed for every test.
+   */
+  beforeAll((): void => {
+    installJsdomDomPolyfill();
+  });
+
   let railEl: HTMLElement | undefined;
   let timeline: FolderTimelinePoint[];
   let selectedTimestamp: number;
@@ -81,6 +91,28 @@ describe('FolderTimelineRenderer', () => {
     // The second point (timestamp 90) is the selected one.
     expect(items[1].classList.contains('is-active')).toBe(true);
     expect(items[0].classList.contains('is-active')).toBe(false);
+  });
+
+  it('replaces the rail on re-render instead of stacking a second copy', () => {
+    timeline = [
+      { timestamp: 100, path: 'a.md', kind: FolderTimelinePointKind.capture, dayKey: 'Mon' },
+      { timestamp: 90, path: 'b.md', kind: FolderTimelinePointKind.capture, dayKey: 'Mon' },
+      { timestamp: 50, path: 'c.md', kind: FolderTimelinePointKind.delete, dayKey: 'Sun' },
+    ];
+
+    const renderer = new FolderTimelineRenderer(makeHost());
+
+    // render() runs on every T change (each rail click re-pins T). Three renders
+    // must leave exactly one rail, not three stacked day-block copies.
+    renderer.render();
+    renderer.render();
+    renderer.render();
+
+    const rail = railEl as HTMLElement;
+
+    expect(rail.querySelectorAll('.lct-versions').length).toBe(1);
+    expect(rail.querySelectorAll('.lct-versions-day').length).toBe(2);
+    expect(rail.querySelectorAll('.lct-version-item').length).toBe(3);
   });
 
   it('renders a no-results hint on an empty timeline', () => {

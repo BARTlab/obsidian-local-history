@@ -124,6 +124,18 @@ describe('DiffRenderHelper', () => {
       expect(patchText?.textContent ?? '').toContain('+++ notes/a.md');
       expect(patchText?.textContent ?? '').not.toContain('@@');
     });
+
+    it('replaces the container on re-render instead of stacking a second copy', (): void => {
+      const target: HTMLDivElement = container();
+
+      // The modal re-renders into the same container on every mode / selection /
+      // T change; three patch renders must leave exactly one patch container.
+      DiffRenderHelper.render(params(['one'], ['two'], DiffViewMode.patch, target));
+      DiffRenderHelper.render(params(['one'], ['two'], DiffViewMode.patch, target));
+      DiffRenderHelper.render(params(['one'], ['two'], DiffViewMode.patch, target));
+
+      expect(target.querySelectorAll('.lct-patch-container')).toHaveLength(1);
+    });
   });
 
   describe('inline mode', () => {

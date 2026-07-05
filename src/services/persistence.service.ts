@@ -201,6 +201,24 @@ export class PersistenceService implements Service {
 
       this.snapshotsService.restore(kept);
 
+      /**
+       * restore() rebuilds unopened files session-clean, so an unchanged snapshot
+       * no longer serializes byte-identically to the shard just loaded (its change
+       * markers and added-timestamps are reset). Re-seed each still-serialized
+       * snapshot's digest from its POST-restore form so the first save diffs
+       * against what serialize() actually produces and skips it, instead of
+       * rewriting every shard on every startup (the full-persist burst). Paths that
+       * go clean after restore keep their on-disk digest, so the removal pass still
+       * evicts them.
+       */
+      for (const restored of this.snapshotsService.serialize().snapshots) {
+        const entry: ShardIndexEntry | undefined = this.shardIndex.get(restored.path);
+
+        if (entry) {
+          entry.digest = this.contentDigest(restored);
+        }
+      }
+
       if (kept.length > 0) {
         this.plugin.forceUpdateEditor();
       }

@@ -408,6 +408,101 @@ describe('PersistenceService retention evicts shards from disk', () => {
 });
 
 /**
+ * Test-only subclass that drives the restore path (normally deferred to
+ * onLayoutReady) and then the save path, so a test can prove the first save
+ * after restore performs no phantom shard IO.
+ */
+class RestorePersistenceService extends PersistenceService {
+  public runRestore(): Promise<void> {
+    return this.restoreFromDisk();
+  }
+
+  public triggerSave(): void {
+    this.enqueueSave();
+  }
+
+  public async drain(): Promise<void> {
+    await this.writeQueue;
+  }
+}
+
+/**
+ * Restore must not trigger a phantom full rewrite. restore() rebuilds unopened
+ * files session-clean, so the in-memory snapshot no longer serializes byte
+ * identically to the shard just loaded (its change markers and added-timestamps
+ * are reset). The service re-seeds the shard index from the POST-restore
+ * serialization, so the first save after startup diffs against what serialize()
+ * actually produces and skips the unchanged shard. Without that, every shard is
+ * rewritten on every launch (the full-persist burst).
+ */
+describe('PersistenceService restore does not phantom-rewrite shards', () => {
+  it('skips a shard whose only change is restore rebuilding it session-clean', async (): Promise<void> => {
+    const adapter = new MemoryAdapter();
+
+    // The on-disk form a prior session persisted, and the different-but-equivalent
+    // form serialize() yields after restore rebuilds it session-clean (modelled
+    // as the same path with a reset timestamp).
+    const onDisk: SerializedFileSnapshot = { ...entry('a.md', 100), state: ['a', 'B'] };
+    const postRestore: SerializedFileSnapshot = { ...entry('a.md', 200), state: ['a', 'B'] };
+
+    await adapter.write(shardPath('a.md'), JSON.stringify({ version: 2, snapshot: onDisk }));
+
+    const snapshotsService = {
+      // serialize() is only consulted after restore(); it yields the session-clean form.
+      serialize: (): SerializedHistory => ({ version: 2, snapshots: [postRestore] }),
+      restore: (): void => {
+        // Real restore rebuilds session-clean; the disk/serialize divergence models it.
+      },
+    };
+
+    const settings = {
+      value: (path: string): unknown => {
+        if (path === 'persist') {
+          return true;
+        }
+
+        if (path === 'keep') {
+          return KeepHistory.app;
+        }
+
+        return 0;
+      },
+    };
+
+    const plugin = {
+      get: (key: unknown): unknown => {
+        if (key === TOKENS.settings) {
+          return settings;
+        }
+
+        if (key === TOKENS.snapshots) {
+          return snapshotsService;
+        }
+
+        return undefined;
+      },
+      app: { vault: { adapter } },
+      manifest: { dir: PLUGIN_DIR, id: 'local-history' },
+      forceUpdateEditor: (): void => {
+        // no-op
+      },
+    } as unknown as PluginArg;
+
+    const service = new RestorePersistenceService(plugin);
+
+    await service.runRestore();
+
+    // Ignore restore-time IO; assert only the first save after restore.
+    adapter.calls = [];
+
+    service.triggerSave();
+    await service.drain();
+
+    expect(totalShardWrites(adapter.calls)).toBe(0);
+  });
+});
+
+/**
  * Reads back a shard file from the adapter and returns its embedded snapshot
  * timestamp, asserting it is present so a test can verify which content landed.
  */

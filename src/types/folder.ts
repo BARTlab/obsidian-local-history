@@ -23,6 +23,12 @@ export interface FolderTreeNode {
   status?: FolderDeltaStatus;
   /** Whether the file's delta point at T is an external-change capture. */
   external?: boolean;
+  /**
+   * Localized date string shown in the row tooltip (the file's last-changed
+   * time in the vault panel, the version-at-T time in the folder modal).
+   * Optional: undefined omits the date line from the tooltip.
+   */
+  date?: string;
   /** Child nodes (folders + files) when `isFolder` is true. */
   children: FolderTreeNode[];
 }
@@ -86,6 +92,13 @@ export interface FolderTreeEntry {
    * badge, not for the row's visibility or its status colour token.
    */
   external?: boolean;
+  /**
+   * Optional localized date string for the file row's tooltip: the file's
+   * last-changed time in the vault panel, the version-at-T time in the folder
+   * modal. Optional so earlier callers and unit tests can omit it; the tooltip
+   * simply drops the date line when it is absent.
+   */
+  date?: string;
 }
 
 /**

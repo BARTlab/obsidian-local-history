@@ -137,7 +137,12 @@ export function collectEntries(
       continue;
     }
 
-    entries.push({ path, status, external: latestIsExternal(snapshot) });
+    entries.push({
+      path,
+      status,
+      external: latestIsExternal(snapshot),
+      date: snapshot.getLastChangedDateTime(),
+    });
   }
 
   return entries;

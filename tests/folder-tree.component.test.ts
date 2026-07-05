@@ -286,8 +286,10 @@ describe('FolderTreeComponent', () => {
       const path: HTMLElement | null | undefined = nested?.querySelector<HTMLElement>('.lct-folder-tree-path');
 
       expect(path?.textContent).toBe('a/b');
-      // The full vault path rides aria-label so hovering reveals the location.
-      expect(path?.getAttribute('aria-label')).toBe('a/b/nested.md');
+      // The path span carries no tooltip of its own: the full location rides the
+      // ROW's aria-label so the whole row is one hover target.
+      expect(path?.hasAttribute('aria-label')).toBe(false);
+      expect(nested?.getAttribute('aria-label')).toBe('a/b/nested.md');
       expect(root?.querySelector('.lct-folder-tree-path')).toBeNull();
     });
 
@@ -330,8 +332,8 @@ describe('FolderTreeComponent', () => {
     });
   });
 
-  describe('external badge is icon-only with a tooltip', () => {
-    it('renders the badge glyph and aria-label but no text label', (): void => {
+  describe('external badge is icon-only, tooltip rides the row', () => {
+    it('renders the icon-only badge with no tooltip of its own', (): void => {
       component.update({
         entries: [{ path: 'notes/ext.md', status: FolderDeltaStatus.modified, external: true }],
         rootPath: 'notes',
@@ -341,9 +343,36 @@ describe('FolderTreeComponent', () => {
 
       expect(badge).not.toBeNull();
       expect(badge?.classList.contains('lct-version-external-badge-icon-only')).toBe(true);
-      expect(badge?.getAttribute('aria-label')).toBe('external');
+      expect(badge?.hasAttribute('aria-label')).toBe(false);
       expect(badge?.querySelector('.lct-version-external-badge-icon')).not.toBeNull();
       expect(badge?.querySelector('.lct-version-external-badge-text')).toBeNull();
+    });
+
+    it('puts the full path and the external word on the row tooltip', (): void => {
+      component.update({
+        entries: [{ path: 'notes/ext.md', status: FolderDeltaStatus.modified, external: true }],
+        rootPath: 'notes',
+      });
+
+      const row: HTMLElement | null = host.querySelector<HTMLElement>('[data-path="notes/ext.md"]');
+
+      expect(row?.getAttribute('aria-label')).toBe('notes/ext.md\nexternal');
+    });
+
+    it('includes the change date in the row tooltip when the entry carries one', (): void => {
+      component.update({
+        entries: [{
+          path: 'notes/dated.md',
+          status: FolderDeltaStatus.modified,
+          external: true,
+          date: '01/02/2026, 10:00',
+        }],
+        rootPath: 'notes',
+      });
+
+      const row: HTMLElement | null = host.querySelector<HTMLElement>('[data-path="notes/dated.md"]');
+
+      expect(row?.getAttribute('aria-label')).toBe('notes/dated.md\n01/02/2026, 10:00\nexternal');
     });
   });
 

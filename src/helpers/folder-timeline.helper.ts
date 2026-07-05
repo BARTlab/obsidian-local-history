@@ -61,9 +61,12 @@ export function synthesize(snapshots: Iterable<FileSnapshot>, rootPath: string):
 
     /**
      * Capture points come from the version timeline, in stored order so a
-     * tie on timestamp keeps the original sequence the snapshot recorded.
+     * tie on timestamp keeps the original sequence the snapshot recorded. The
+     * `?? []` guards a malformed snapshot (e.g. a missing history shard left the
+     * timeline unpopulated) so a bad entry is skipped rather than crashing the
+     * whole rail.
      */
-    for (const version of snapshot.timeline.getStoredVersions()) {
+    for (const version of snapshot.timeline?.getStoredVersions?.() ?? []) {
       points.push({
         timestamp: version.timestamp,
         path,
@@ -90,6 +93,12 @@ export function synthesize(snapshots: Iterable<FileSnapshot>, rootPath: string):
         dayKey: dayKeyOf(snapshot.movedIntoAt),
       });
     }
+
+    const originPoint: FolderTimelinePoint | null = unversionedOriginPoint(snapshot, path);
+
+    if (originPoint) {
+      points.push(originPoint);
+    }
   }
 
   /**
@@ -101,6 +110,106 @@ export function synthesize(snapshots: Iterable<FileSnapshot>, rootPath: string):
   );
 
   return points;
+}
+
+/**
+ * Synthesises a single ORIGIN point for a live snapshot that has changed since
+ * its history baseline but captured no intermediate version yet. Such a file is
+ * invisible to the version / tombstone / move points above, so a folder holding
+ * only that file would open an empty modal (no rail, an all-`none` tree) even
+ * though the file genuinely changed - the same whole-history change the
+ * vault-changes panel already surfaces (see VaultChangesHelper.statusOf). One
+ * synthetic point gives the modal a selectable T at which FolderDeltaHelper.compareAt
+ * resolves the baseline as the "before" side, so the tree row and diff appear.
+ *
+ * Returns null when the file has captured versions (the real points already
+ * cover it), is a tombstone or a move-in (their own points exist), or is
+ * unchanged since its origin (nothing to show).
+ *
+ * The point's timestamp decides the delta status `compareAt` reports:
+ * - A file born under tracking (blank origin) reads as `added`, so the point
+ *   sits strictly BEFORE the file's first-seen instant (existed-at-T is false).
+ * - A pre-existing file edited below the capture cadence reads as `modified`,
+ *   so the point sits at/after first-seen but strictly BEFORE the last change,
+ *   the window in which `resolveBaseAt` hands back the history baseline rather
+ *   than the live state.
+ *
+ * @param {FileSnapshot} snapshot - The snapshot to inspect (live or tombstone)
+ * @param {string} path - The snapshot's resolved vault-relative path
+ * @return {FolderTimelinePoint | null} The synthetic origin point, or null
+ */
+function unversionedOriginPoint(snapshot: FileSnapshot, path: string): FolderTimelinePoint | null {
+  if (snapshot.isTombstone() || snapshot.isMovedIn()) {
+    return null;
+  }
+
+  // Defensive: a partially-loaded snapshot (missing history shard) can lack its
+  // content or timeline sub-objects; skip it rather than throw inside synthesize.
+  if (!snapshot.content || !snapshot.timeline) {
+    return null;
+  }
+
+  if (snapshot.timeline.getStoredVersions().length > 0) {
+    return null;
+  }
+
+  const origin: string[] = snapshot.content.getHistoryOriginalStateLines();
+  const current: string[] = snapshot.content.getLastStateLines();
+
+  if (linesEqual(origin, current)) {
+    return null;
+  }
+
+  const firstSeen: number = typeof snapshot.timestamp === 'number'
+    ? snapshot.timestamp
+    : snapshot.getLastChangedTimestamp();
+
+  const lastChanged: number = snapshot.getLastChangedTimestamp();
+
+  const timestamp: number = isBlankLines(origin)
+    ? firstSeen - 1
+    : Math.min(firstSeen, lastChanged - 1);
+
+  return {
+    timestamp,
+    path,
+    kind: FolderTimelinePointKind.capture,
+    dayKey: dayKeyOf(timestamp),
+  };
+}
+
+/**
+ * Whether a line array carries no real content: empty, or a single empty line
+ * (how a blank file decomposes). Mirrors `VaultChangesHelper.isBlankContent` so
+ * a file born under tracking is told apart from an ordinary edit.
+ *
+ * @param {string[]} lines - The line array to test
+ * @return {boolean} True when the array holds no content
+ */
+function isBlankLines(lines: string[]): boolean {
+  return lines.length === 0 || (lines.length === 1 && lines[0] === '');
+}
+
+/**
+ * Line-by-line equality, short-circuiting on the first mismatch. Cheaper than
+ * joining both sides for the common identical case.
+ *
+ * @param {string[]} a - First line array
+ * @param {string[]} b - Second line array
+ * @return {boolean} True when both arrays have the same length and contents
+ */
+function linesEqual(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+
+  for (let i: number = 0; i < a.length; i += 1) {
+    if (a[i] !== b[i]) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 /**

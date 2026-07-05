@@ -295,6 +295,12 @@ export class VersionList {
       });
     }
 
+    // DomHelper.update appends children rather than replacing them, and the file
+    // modal re-renders the list on every selection / filter change. Without
+    // clearing first, each re-render would stack another full list under the
+    // previous one, so empty the container before rebuilding it.
+    versionsEl.empty();
+
     DomHelper.update(versionsEl, {
       children: [
         {

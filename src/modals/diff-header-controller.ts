@@ -68,6 +68,11 @@ export class DiffHeaderController {
       return;
     }
 
+    // DomHelper.update appends children, and this runs on every diff render (and
+    // on each hide/show toggle). Clear first so the two column titles are not
+    // stacked on top of the previous render's copies.
+    columnsHeaderEl.empty();
+
     DomHelper.update(columnsHeaderEl, {
       classes: { remove: 'lct-diff-columns-hidden' },
       children: [

@@ -41,8 +41,13 @@ export class FolderTimelineRenderer {
     type RailGroup = { label: string; points: FolderTimelinePoint[] };
 
     const groups: RailGroup[] = [];
+    // Defensive: a malformed / partially-loaded state (e.g. a corrupt data.json
+    // or missing history shards) can leave the model without a timeline array;
+    // fall back to empty so the rail renders its no-results hint instead of
+    // throwing on `.forEach` of undefined.
+    const timeline: FolderTimelinePoint[] = this.host.timeline() ?? [];
 
-    this.host.timeline().forEach((point: FolderTimelinePoint): void => {
+    timeline.forEach((point: FolderTimelinePoint): void => {
       let group: RailGroup | undefined = groups[groups.length - 1];
 
       if (!group || group.label !== point.dayKey) {
@@ -75,6 +80,12 @@ export class FolderTimelineRenderer {
         text: this.host.plugin.t('modal.no-versions-match'),
       });
     }
+
+    // DomHelper.update appends children rather than replacing them, and render()
+    // runs on every T change (each rail click re-pins T). Without clearing first,
+    // every re-render would stack another full timeline copy under the previous
+    // one, so empty the rail before rebuilding it.
+    railEl.empty();
 
     DomHelper.update(railEl, {
       children: [

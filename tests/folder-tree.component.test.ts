@@ -1,7 +1,7 @@
 /** @jest-environment jsdom */
 
 import { describe, expect, it, beforeAll, beforeEach } from '@jest/globals';
-import { FolderDeltaStatus } from '@/consts';
+import { ChangesLayout, FolderDeltaStatus } from '@/consts';
 import { FolderTreeComponent } from '@/components/folder-tree.component';
 import type { FolderTreeEntry } from '@/types';
 import { installJsdomDomPolyfill } from './helpers/jsdom-dom';
@@ -253,6 +253,76 @@ describe('FolderTreeComponent', () => {
       const empty: HTMLElement | null = host.querySelector('.lct-folder-tree-empty');
 
       expect(empty).not.toBeNull();
+    });
+  });
+
+  describe('flat layout renders a path-annotated file list', () => {
+    it('lists every changed file as a flat row with no folder rows', (): void => {
+      component.update({ entries: fixture(), rootPath: 'notes' });
+      component.setLayout(ChangesLayout.flat);
+
+      const fileRows: NodeListOf<HTMLElement> = host.querySelectorAll<HTMLElement>('.lct-folder-tree-flat-file');
+      const paths: string[] = Array.from(fileRows).map(
+        (row: HTMLElement): string => row.getAttribute('data-path') ?? '',
+      );
+
+      expect(paths).toEqual(['notes/direct-modified.md', 'notes/sub/added.md', 'notes/sub/deleted.md']);
+      expect(host.querySelectorAll('.lct-folder-tree-folder').length).toBe(0);
+    });
+
+    it('shows the containing path for a nested file and none for a root file', (): void => {
+      component.setLayout(ChangesLayout.flat);
+      component.update({
+        entries: [
+          { path: 'root.md', status: FolderDeltaStatus.modified },
+          { path: 'a/b/nested.md', status: FolderDeltaStatus.added },
+        ],
+        rootPath: '',
+      });
+
+      const nested: HTMLElement | null = host.querySelector<HTMLElement>('[data-path="a/b/nested.md"]');
+      const root: HTMLElement | null = host.querySelector<HTMLElement>('[data-path="root.md"]');
+
+      expect(nested?.querySelector('.lct-folder-tree-path')?.textContent).toBe('a/b');
+      expect(root?.querySelector('.lct-folder-tree-path')).toBeNull();
+    });
+
+    it('keeps the status colour token on flat rows', (): void => {
+      component.update({ entries: fixture(), rootPath: 'notes' });
+      component.setLayout(ChangesLayout.flat);
+
+      const deleted: HTMLElement | null = host.querySelector<HTMLElement>('[data-path="notes/sub/deleted.md"]');
+
+      expect(deleted?.classList.contains('lct-tree-deleted')).toBe(true);
+    });
+
+    it('applies the name filter in flat layout', (): void => {
+      component.update({ entries: fixture(), rootPath: 'notes' });
+      component.setLayout(ChangesLayout.flat);
+      component.setNameFilter('added');
+
+      const paths: string[] = Array.from(
+        host.querySelectorAll<HTMLElement>('.lct-folder-tree-flat-file'),
+      ).map((row: HTMLElement): string => row.getAttribute('data-path') ?? '');
+
+      expect(paths).toEqual(['notes/sub/added.md']);
+    });
+
+    it('emits the selection callback when a flat row is clicked', (): void => {
+      component.update({ entries: fixture(), rootPath: 'notes' });
+      component.setLayout(ChangesLayout.flat);
+
+      host.querySelector<HTMLElement>('[data-path="notes/sub/deleted.md"]')?.click();
+
+      expect(selectedPaths).toEqual(['notes/sub/deleted.md']);
+    });
+
+    it('shows the empty hint in flat layout when nothing changed', (): void => {
+      component.setLayout(ChangesLayout.flat);
+      component.update({ entries: [], rootPath: 'notes' });
+
+      expect(host.querySelector('.lct-folder-tree-empty')).not.toBeNull();
+      expect(host.querySelectorAll('.lct-folder-tree-flat-file').length).toBe(0);
     });
   });
 

@@ -1,5 +1,5 @@
 import { FolderTreeModel } from '@/components/folder-tree-model';
-import { FolderDeltaStatus } from '@/consts';
+import { ChangesLayout, FolderDeltaStatus } from '@/consts';
 import * as DomHelper from '@/helpers/dom.helper';
 import type {
   DomElementConfig,
@@ -53,6 +53,14 @@ export class FolderTreeComponent {
 
   /** Collapsed folder paths; absence in this set means "expanded" (initial). */
   protected collapsedFolders: Set<string> = new Set();
+
+  /**
+   * Active layout. `tree` renders the nested folder scaffolding (the folder
+   * modal's only mode); `flat` renders a single sorted file list with each
+   * file's containing path shown inline. A view concern like the name filter:
+   * it never rebuilds the node tree, so it survives across `update` calls.
+   */
+  protected layout: ChangesLayout = ChangesLayout.tree;
 
   /**
    * Case-insensitive substring filter applied to file names at render time.
@@ -152,6 +160,23 @@ export class FolderTreeComponent {
   }
 
   /**
+   * Switches the layout and re-renders. A no-op when the layout is unchanged so
+   * a redundant toggle does not thrash the DOM. Like the name filter, this never
+   * rebuilds the node tree, so the selection and collapse state are preserved.
+   *
+   * @param {ChangesLayout} layout - The layout to render in
+   * @return {void}
+   */
+  public setLayout(layout: ChangesLayout): void {
+    if (layout === this.layout) {
+      return;
+    }
+
+    this.layout = layout;
+    this.render();
+  }
+
+  /**
    * Tears the component down: drops references and clears the container so
    * the modal can dispose without leaving stale DOM. The expand/collapse map
    * is cleared too, which is the documented lifetime boundary (AC4).
@@ -187,13 +212,31 @@ export class FolderTreeComponent {
 
     this.container.empty();
 
+    if (this.layout === ChangesLayout.flat) {
+      this.renderFlat(this.container);
+
+      return;
+    }
+
+    this.renderTree(this.container);
+  }
+
+  /**
+   * Renders the nested folder tree: the top-level entries and, recursively, the
+   * children of every expanded folder. Emits the empty-state hint when no
+   * changed file survives the active name filter.
+   *
+   * @param {HTMLElement} container - The host container to render into
+   * @return {void}
+   */
+  protected renderTree(container: HTMLElement): void {
     const root: FolderTreeNode | null = this.model.getRoot();
     const visibleChildren: FolderTreeNode[] = root
       ? root.children.filter((child: FolderTreeNode): boolean => FolderTreeModel.nodeVisible(child, this.nameFilter))
       : [];
 
     if (visibleChildren.length === 0) {
-      this.renderEmpty(this.container);
+      this.renderEmpty(container);
 
       return;
     }
@@ -201,11 +244,44 @@ export class FolderTreeComponent {
     const list: HTMLElement = DomHelper.create({
       tag: 'div',
       classes: ['nav-files-container', 'lct-folder-tree'],
-      container: this.container,
+      container,
     });
 
     visibleChildren.forEach((child: FolderTreeNode): void => {
       this.renderNode(list, child, 0);
+    });
+  }
+
+  /**
+   * Renders the flat layout: every changed file as one row, sorted by full path,
+   * with no folder scaffolding. Each row shows the file name and its containing
+   * path inline so the file stays locatable without the tree. Honors the active
+   * name filter and emits the same empty-state hint as the tree when nothing
+   * matches.
+   *
+   * @param {HTMLElement} container - The host container to render into
+   * @return {void}
+   */
+  protected renderFlat(container: HTMLElement): void {
+    const files: FolderTreeNode[] = this.model
+      .allFiles()
+      .filter((file: FolderTreeNode): boolean => FolderTreeModel.nodeVisible(file, this.nameFilter))
+      .sort((a: FolderTreeNode, b: FolderTreeNode): number => a.path.localeCompare(b.path));
+
+    if (files.length === 0) {
+      this.renderEmpty(container);
+
+      return;
+    }
+
+    const list: HTMLElement = DomHelper.create({
+      tag: 'div',
+      classes: ['nav-files-container', 'lct-folder-tree', 'lct-folder-tree-flat'],
+      container,
+    });
+
+    files.forEach((file: FolderTreeNode): void => {
+      this.renderFlatFile(list, file);
     });
   }
 
@@ -385,6 +461,84 @@ export class FolderTreeComponent {
       text: node.name,
       container: row,
     });
+
+    if (node.external) {
+      this.renderExternalBadge(row);
+    }
+  }
+
+  /**
+   * Renders a single file row in the flat layout: the status-coloured file name
+   * stacked over its containing path (muted), with no depth indentation. Shares
+   * the tree file row's status class, selection handling, and external badge so
+   * the two layouts read consistently; only the structure differs (a name+path
+   * stack instead of an indented single line). A file at the vault root shows no
+   * path line.
+   *
+   * @param {HTMLElement} container - The host container
+   * @param {FolderTreeNode} node - The file node
+   * @return {void}
+   */
+  protected renderFlatFile(container: HTMLElement, node: FolderTreeNode): void {
+    const statusClass: string = this.statusClassName(node.status);
+    const classes: string[] = [
+      'tree-item-self',
+      'nav-file-title',
+      'is-clickable',
+      'lct-folder-tree-row',
+      'lct-folder-tree-file',
+      'lct-folder-tree-flat-file',
+      statusClass,
+    ];
+
+    if (this.selectedPath === node.path) {
+      classes.push('is-active');
+    }
+
+    const row: HTMLElement = DomHelper.create({
+      tag: 'div',
+      classes,
+      attributes: { 'data-path': node.path },
+      events: {
+        click: (event: Event): void => {
+          event.preventDefault();
+          this.selectFile(node.path);
+        },
+      },
+      container,
+    });
+
+    const icon: HTMLElement = DomHelper.create({
+      tag: 'span',
+      classes: 'lct-folder-tree-icon',
+      container: row,
+    });
+
+    setIcon(icon, 'file');
+
+    const main: HTMLElement = DomHelper.create({
+      tag: 'span',
+      classes: 'lct-folder-tree-flat-main',
+      container: row,
+    });
+
+    DomHelper.create({
+      tag: 'span',
+      classes: ['tree-item-inner', 'nav-file-title-content', 'lct-folder-tree-name'],
+      text: node.name,
+      container: main,
+    });
+
+    const slash: number = node.path.lastIndexOf('/');
+
+    if (slash >= 0) {
+      DomHelper.create({
+        tag: 'span',
+        classes: 'lct-folder-tree-path',
+        text: node.path.slice(0, slash),
+        container: main,
+      });
+    }
 
     if (node.external) {
       this.renderExternalBadge(row);

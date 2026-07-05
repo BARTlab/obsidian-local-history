@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { RECENT_CHANGES_VIEW_TYPE } from '@/consts';
+import { RECENT_CHANGES_VIEW_TYPE, VAULT_CHANGES_VIEW_TYPE } from '@/consts';
 import { refreshDecorationsEffect } from '@/extensions/refresh.effect';
 import { CommandsService } from '@/services/commands.service';
 import { EventsService } from '@/services/events.service';
@@ -19,6 +19,7 @@ import { TreeTabDecoratorService } from '@/services/tree-tab-decorator.service';
 import { VersionActionsService } from '@/services/version-actions.service';
 import type { TranslationVars } from '@/types';
 import { RecentChangesView } from '@/views/recent-changes.view';
+import { VaultChangesView } from '@/views/vault-changes.view';
 import type { EditorView } from '@codemirror/view';
 import EventEmitter from 'eventemitter3';
 import {
@@ -156,6 +157,15 @@ export default class LineChangeTrackerPlugin extends Plugin {
       RECENT_CHANGES_VIEW_TYPE,
       (leaf: WorkspaceLeaf): RecentChangesView => new RecentChangesView(leaf, this),
     );
+
+    this.registerView(
+      VAULT_CHANGES_VIEW_TYPE,
+      (leaf: WorkspaceLeaf): VaultChangesView => new VaultChangesView(leaf, this),
+    );
+
+    this.addRibbonIcon('folder-git-2', this.t('command.open-vault-changes'), (): void => {
+      void this.revealVaultChanges();
+    });
 
     this.ready = true;
     this.forceUpdateEditor();
@@ -295,6 +305,36 @@ export default class LineChangeTrackerPlugin extends Plugin {
     }
 
     await leaf.setViewState({ type: RECENT_CHANGES_VIEW_TYPE, active: true });
+    await this.app.workspace.revealLeaf(leaf);
+  }
+
+  /**
+   * Reveals the vault-wide changes panel in the right sidebar.
+   *
+   * Mirrors {@link revealRecentChanges}: reuses an existing leaf when one is
+   * open so a second invocation focuses the panel rather than spawning a
+   * duplicate, and falls back to a fresh right-sidebar leaf otherwise. When the
+   * right sidebar is unavailable the call resolves silently so the ribbon and
+   * command entry points stay safe.
+   *
+   * @return {Promise<void>} Resolves once the leaf is created and revealed
+   */
+  public async revealVaultChanges(): Promise<void> {
+    const existing: WorkspaceLeaf[] = this.app.workspace.getLeavesOfType(VAULT_CHANGES_VIEW_TYPE);
+
+    if (existing.length > 0) {
+      await this.app.workspace.revealLeaf(existing[0]);
+
+      return;
+    }
+
+    const leaf: WorkspaceLeaf | null = this.app.workspace.getRightLeaf(false);
+
+    if (!leaf) {
+      return;
+    }
+
+    await leaf.setViewState({ type: VAULT_CHANGES_VIEW_TYPE, active: true });
     await this.app.workspace.revealLeaf(leaf);
   }
 

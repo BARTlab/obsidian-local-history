@@ -4,6 +4,7 @@
   "command.reset-lines-all": "Återställ alla radspårningsögonblicksbilder",
   "command.reset-lines": "Återställ radspårningsögonblicksbild för aktuellt dokument",
   "command.show-diff": "Visa alla ändringar i aktuellt dokument",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "Inga ändringar att navigera",
   "notice.all-snapshots-deleted": "Alla ögonblicksbilder borttagna",
   "notice.current-snapshot-deleted": "Aktuell ögonblicksbild borttagen",
@@ -138,6 +139,11 @@
   "view.recent-changes.menu.restore": "Återställ denna version",
   "view.recent-changes.menu.delete": "Ta bort version",
   "view.recent-changes.menu.put-label": "Sätt etikett",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "Sätt etikett på vald version",
   "modal.label-version.message": "Märk denna version med en kort etikett.",
   "notice.no-folder-history": "Ingen mapphistorik ännu.",

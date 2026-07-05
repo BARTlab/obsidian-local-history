@@ -1,4 +1,4 @@
-import type { IndicatorType, KeepHistory } from '@/types/settings-enums';
+import type { ChangesLayout, IndicatorType, KeepHistory } from '@/types/settings-enums';
 
 /**
  * Configuration interface for the Line Change Tracker plugin settings.
@@ -111,4 +111,9 @@ export interface LineChangeTrackerSettings {
    * once. Higher is more vivid (100 = the original hard contrast), lower is paler.
    */
   markerIntensity: number;
+  /**
+   * Layout of the vault-wide changes panel: a nested folder tree or a flat file
+   * list. Persisted so the toggle in the panel header survives a restart.
+   */
+  vaultChangesLayout: ChangesLayout;
 }

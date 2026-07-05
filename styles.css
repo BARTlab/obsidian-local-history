@@ -526,6 +526,60 @@ body {
   font-size: var(--font-ui-smaller);
   font-family: var(--font-monospace);
 }
+.workspace-leaf-content[data-type=line-change-tracker-vault-changes] .lct-vault-changes-view {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  padding: var(--size-4-3) var(--size-4-2);
+}
+.workspace-leaf-content[data-type=line-change-tracker-vault-changes] .lct-vault-changes-header {
+  flex: none;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--size-4-1);
+  padding-bottom: var(--size-4-2);
+}
+.workspace-leaf-content[data-type=line-change-tracker-vault-changes] .lct-vault-changes-header .lct-vault-changes-search {
+  flex: 1;
+  min-width: 0;
+}
+.workspace-leaf-content[data-type=line-change-tracker-vault-changes] .lct-vault-changes-header .lct-vault-changes-search .search-input-container {
+  width: 100%;
+}
+.workspace-leaf-content[data-type=line-change-tracker-vault-changes] .lct-vault-changes-header .lct-vault-changes-layout-toggle {
+  flex: none;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--size-4-1);
+}
+.workspace-leaf-content[data-type=line-change-tracker-vault-changes] .lct-vault-changes-header .lct-vault-changes-layout-button.is-active {
+  color: var(--text-accent);
+  background-color: var(--background-modifier-hover);
+}
+.workspace-leaf-content[data-type=line-change-tracker-vault-changes] .lct-vault-changes-list {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.lct-folder-tree-flat .lct-folder-tree-flat-file {
+  align-items: flex-start;
+}
+.lct-folder-tree-flat .lct-folder-tree-flat-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: var(--line-height-tight);
+}
+.lct-folder-tree-flat .lct-folder-tree-path {
+  color: var(--text-faint);
+  font-size: var(--font-ui-smaller);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .modal.lct-confirm-modal .modal-content {
   padding: var(--size-4-4) var(--size-4-6);
 }

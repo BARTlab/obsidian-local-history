@@ -15,3 +15,13 @@ export enum KeepHistory {
   app = 'app',
   file = 'file',
 }
+
+/**
+ * Layout of the vault-wide changes panel: a nested folder tree, or a flat file
+ * list that shows each file's containing path inline. Persisted so the user's
+ * choice survives a restart. The member values are the literal layout strings.
+ */
+export enum ChangesLayout {
+  tree = 'tree',
+  flat = 'flat',
+}

@@ -1,5 +1,6 @@
 import { GoToNextChangeCommand } from '@/commands/go-to-next-change.command';
 import { GoToPreviousChangeCommand } from '@/commands/go-to-previous-change.command';
+import { OpenVaultChangesCommand } from '@/commands/open-vault-changes.command';
 import { ResetLinesAllCommand } from '@/commands/reset-lines-all.command';
 import { ResetLinesCommand } from '@/commands/reset-lines.command';
 import { ShowDiffCommand } from '@/commands/show-diff.command';
@@ -41,6 +42,7 @@ export class CommandsService implements Service {
     this.register(ShowDiffCommand);
     this.register(GoToNextChangeCommand);
     this.register(GoToPreviousChangeCommand);
+    this.register(OpenVaultChangesCommand);
   }
 
   /**

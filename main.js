@@ -1912,6 +1912,7 @@ var DEFAULT_SETTINGS = {
   readingModeIndicator: false,
   gutterHoverPanel: true,
   markerIntensity: 75,
+  vaultChangesLayout: "tree" /* tree */,
   retention: {
     maxEntries: 200,
     maxAgeDays: 30,
@@ -1947,6 +1948,7 @@ var DEFAULT_SETTINGS = {
 };
 var SHOW_CHANGE_KEYS = ["show.changed", "show.restored", "show.added", "show.removed"];
 var RECENT_CHANGES_VIEW_TYPE = "line-change-tracker-recent-changes";
+var VAULT_CHANGES_VIEW_TYPE = "line-change-tracker-vault-changes";
 var STATUSBAR_ITEM_ID = "default";
 var ObsidianVaultEvent = /* @__PURE__ */ ((ObsidianVaultEvent2) => {
   ObsidianVaultEvent2["create"] = "vault.create";
@@ -2245,6 +2247,25 @@ __decorateClass([
   Inject(TOKENS.snapshots)
 ], GoToPreviousChangeCommand.prototype, "snapshotsService", 2);
 
+// src/commands/open-vault-changes.command.ts
+var OpenVaultChangesCommand = class {
+  constructor(plugin) {
+    this.plugin = plugin;
+    /** Unique identifier Obsidian registers and references the command by. */
+    this.id = "tracker-open-vault-changes";
+    /** Display name shown in the command palette, localized. */
+    this.name = this.plugin.t("command.open-vault-changes");
+    /**
+     * Reveals (or focuses) the vault-wide changes panel.
+     *
+     * @return {void}
+     */
+    this.callback = () => {
+      void this.plugin.revealVaultChanges();
+    };
+  }
+};
+
 // src/commands/reset-lines-all.command.ts
 var import_obsidian3 = require("obsidian");
 var ResetLinesAllCommand = class {
@@ -2365,6 +2386,7 @@ var CommandsService = class {
     this.register(ShowDiffCommand);
     this.register(GoToNextChangeCommand);
     this.register(GoToPreviousChangeCommand);
+    this.register(OpenVaultChangesCommand);
   }
   /**
    * Registers a command with Obsidian.
@@ -6050,6 +6072,7 @@ var am_default = {
   "command.reset-lines-all": "\u1201\u1209\u1295\u121D \u12E8\u1218\u1235\u1218\u122D \u1218\u12A8\u1273\u1270\u12EB \u1245\u133D\u1260\u1273\u12CA \u1245\u1302\u12CE\u127D \u12F3\u130D\u121D \u12A0\u1235\u1300\u121D\u122D",
   "command.reset-lines": "\u12E8\u12A0\u1201\u1291\u1295 \u1230\u1290\u12F5 \u12E8\u1218\u1235\u1218\u122D \u1218\u12A8\u1273\u1270\u12EB \u1245\u133D\u1260\u1273\u12CA \u1245\u1302 \u12F3\u130D\u121D \u12A0\u1235\u1300\u121D\u122D",
   "command.show-diff": "\u12E8\u12A0\u1201\u1291\u1295 \u1230\u1290\u12F5 \u1201\u1209\u1295\u121D \u1208\u12CD\u1326\u127D \u12A0\u1233\u12ED",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "\u1208\u1218\u12F3\u1230\u1235 \u121D\u1295\u121D \u1208\u12CD\u1326\u127D \u12E8\u1209\u121D",
   "notice.all-snapshots-deleted": "\u1201\u1209\u121D \u12E8\u1245\u133D\u1260\u1273\u12CA \u1245\u1302 \u12CD\u1202\u1265 \u1270\u1230\u122D\u12DF\u120D",
   "notice.current-snapshot-deleted": "\u12E8\u12A0\u1201\u1291 \u12E8\u1245\u133D\u1260\u1273\u12CA \u1245\u1302 \u12CD\u1202\u1265 \u1270\u1230\u122D\u12DF\u120D",
@@ -6184,6 +6207,11 @@ var am_default = {
   "view.recent-changes.menu.restore": "\u12ED\u1205\u1295 \u1235\u122A\u1275 \u1218\u120D\u1235",
   "view.recent-changes.menu.delete": "\u1235\u122A\u1275 \u1230\u122D\u12DD",
   "view.recent-changes.menu.put-label": "\u1218\u1208\u12EB \u12A0\u1235\u1240\u121D\u1325",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "\u12E8\u1270\u1218\u1228\u1320\u12CD\u1295 \u1235\u122A\u1275 \u1218\u1208\u12EB \u1235\u1325",
   "modal.label-version.message": "\u12ED\u1205\u1295 \u1235\u122A\u1275 \u1260\u12A0\u132D\u122D \u1218\u1208\u12EB \u121D\u120D\u12AD\u1275 \u12EB\u12F5\u122D\u1309\u1362",
   "notice.no-folder-history": "\u12A5\u1235\u12AB\u1201\u1295 \u12E8\u12A0\u1243\u134A \u1273\u122A\u12AD \u12E8\u1208\u121D\u1362",
@@ -6220,6 +6248,7 @@ var ar_default = {
   "command.reset-lines-all": "\u0625\u0639\u0627\u062F\u0629 \u062A\u0639\u064A\u064A\u0646 \u062C\u0645\u064A\u0639 \u0644\u0642\u0637\u0627\u062A \u0645\u062A\u062A\u0628\u0651\u0639 \u0627\u0644\u0623\u0633\u0637\u0631",
   "command.reset-lines": "\u0625\u0639\u0627\u062F\u0629 \u062A\u0639\u064A\u064A\u0646 \u0644\u0642\u0637\u0629 \u0645\u062A\u062A\u0628\u0651\u0639 \u0627\u0644\u0623\u0633\u0637\u0631 \u0644\u0644\u0645\u0633\u062A\u0646\u062F \u0627\u0644\u062D\u0627\u0644\u064A",
   "command.show-diff": "\u0639\u0631\u0636 \u062C\u0645\u064A\u0639 \u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0627\u0644\u0645\u0633\u062A\u0646\u062F \u0627\u0644\u062D\u0627\u0644\u064A",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "\u0644\u0627 \u062A\u0648\u062C\u062F \u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0644\u0644\u062A\u0646\u0642\u0644 \u0628\u064A\u0646\u0647\u0627",
   "notice.all-snapshots-deleted": "\u062A\u0645 \u062D\u0630\u0641 \u062C\u0645\u064A\u0639 \u0628\u064A\u0627\u0646\u0627\u062A \u0627\u0644\u0644\u0642\u0637\u0627\u062A",
   "notice.current-snapshot-deleted": "\u062A\u0645 \u062D\u0630\u0641 \u0628\u064A\u0627\u0646\u0627\u062A \u0627\u0644\u0644\u0642\u0637\u0629 \u0627\u0644\u062D\u0627\u0644\u064A\u0629",
@@ -6354,6 +6383,11 @@ var ar_default = {
   "view.recent-changes.menu.restore": "\u0627\u0633\u062A\u0639\u0627\u062F\u0629 \u0647\u0630\u0627 \u0627\u0644\u0625\u0635\u062F\u0627\u0631",
   "view.recent-changes.menu.delete": "\u062D\u0630\u0641 \u0627\u0644\u0625\u0635\u062F\u0627\u0631",
   "view.recent-changes.menu.put-label": "\u0648\u0636\u0639 \u062A\u0633\u0645\u064A\u0629",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "\u062A\u0633\u0645\u064A\u0629 \u0627\u0644\u0625\u0635\u062F\u0627\u0631 \u0627\u0644\u0645\u062D\u062F\u062F",
   "modal.label-version.message": "\u0636\u0639 \u062A\u0633\u0645\u064A\u0629 \u0642\u0635\u064A\u0631\u0629 \u0639\u0644\u0649 \u0647\u0630\u0627 \u0627\u0644\u0625\u0635\u062F\u0627\u0631.",
   "notice.no-folder-history": "\u0644\u0627 \u064A\u0648\u062C\u062F \u0633\u062C\u0644 \u0644\u0644\u0645\u062C\u0644\u062F \u0628\u0639\u062F.",
@@ -6390,6 +6424,7 @@ var be_default = {
   "command.reset-lines-all": "\u0421\u043A\u0456\u043D\u0443\u0446\u044C \u0437\u0434\u044B\u043C\u043A\u0456 \u0442\u0440\u044D\u043A\u0435\u0440\u0430 \u0440\u0430\u0434\u043A\u043E\u045E \u0434\u043B\u044F \u045E\u0441\u0456\u0445 \u0444\u0430\u0439\u043B\u0430\u045E",
   "command.reset-lines": "\u0421\u043A\u0456\u043D\u0443\u0446\u044C \u0437\u0434\u044B\u043C\u0430\u043A \u0442\u0440\u044D\u043A\u0435\u0440\u0430 \u0440\u0430\u0434\u043A\u043E\u045E \u0431\u044F\u0433\u0443\u0447\u0430\u0433\u0430 \u0434\u0430\u043A\u0443\u043C\u0435\u043D\u0442\u0430",
   "command.show-diff": "\u041F\u0430\u043A\u0430\u0437\u0430\u0446\u044C \u0443\u0441\u0435 \u0437\u043C\u0435\u043D\u044B \u0431\u044F\u0433\u0443\u0447\u0430\u0433\u0430 \u0434\u0430\u043A\u0443\u043C\u0435\u043D\u0442\u0430",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "\u041D\u044F\u043C\u0430 \u0437\u043C\u0435\u043D \u0434\u043B\u044F \u043D\u0430\u0432\u0456\u0433\u0430\u0446\u044B\u0456",
   "notice.all-snapshots-deleted": "\u0423\u0441\u0435 \u0434\u0430\u0434\u0437\u0435\u043D\u044B\u044F \u0437\u0434\u044B\u043C\u043A\u0430\u045E \u0432\u044B\u0434\u0430\u043B\u0435\u043D\u044B",
   "notice.current-snapshot-deleted": "\u0414\u0430\u0434\u0437\u0435\u043D\u044B\u044F \u0431\u044F\u0433\u0443\u0447\u0430\u0433\u0430 \u0437\u0434\u044B\u043C\u043A\u0430 \u0432\u044B\u0434\u0430\u043B\u0435\u043D\u044B",
@@ -6524,6 +6559,11 @@ var be_default = {
   "view.recent-changes.menu.restore": "\u0410\u0434\u043D\u0430\u0432\u0456\u0446\u044C \u0433\u044D\u0442\u0443 \u0432\u0435\u0440\u0441\u0456\u044E",
   "view.recent-changes.menu.delete": "\u0412\u044B\u0434\u0430\u043B\u0456\u0446\u044C \u0432\u0435\u0440\u0441\u0456\u044E",
   "view.recent-changes.menu.put-label": "\u041F\u0430\u0441\u0442\u0430\u0432\u0456\u0446\u044C \u043C\u0435\u0442\u043A\u0443",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "\u041F\u0430\u0437\u043D\u0430\u0447\u044B\u0446\u044C \u0432\u044B\u0431\u0440\u0430\u043D\u0443\u044E \u0432\u0435\u0440\u0441\u0456\u044E",
   "modal.label-version.message": "\u0410\u0434\u0437\u043D\u0430\u0447\u0446\u0435 \u0433\u044D\u0442\u0443 \u0432\u0435\u0440\u0441\u0456\u044E \u043A\u0430\u0440\u043E\u0442\u043A\u0430\u0439 \u043C\u0435\u0442\u043A\u0430\u0439.",
   "notice.no-folder-history": "\u0413\u0456\u0441\u0442\u043E\u0440\u044B\u0456 \u043F\u0430\u043F\u043A\u0456 \u043F\u0430\u043A\u0443\u043B\u044C \u043D\u044F\u043C\u0430.",
@@ -6560,6 +6600,7 @@ var bn_default = {
   "command.reset-lines-all": "\u09B8\u09AE\u09B8\u09CD\u09A4 \u09B2\u09BE\u0987\u09A8 \u099F\u09CD\u09B0\u09CD\u09AF\u09BE\u0995\u09BE\u09B0 \u09B8\u09CD\u09A8\u09CD\u09AF\u09BE\u09AA\u09B6\u099F \u09B0\u09BF\u09B8\u09C7\u099F \u0995\u09B0\u09C1\u09A8",
   "command.reset-lines": "\u09AC\u09B0\u09CD\u09A4\u09AE\u09BE\u09A8 \u09A8\u09A5\u09BF\u09B0 \u09B2\u09BE\u0987\u09A8 \u099F\u09CD\u09B0\u09CD\u09AF\u09BE\u0995\u09BE\u09B0 \u09B8\u09CD\u09A8\u09CD\u09AF\u09BE\u09AA\u09B6\u099F \u09B0\u09BF\u09B8\u09C7\u099F \u0995\u09B0\u09C1\u09A8",
   "command.show-diff": "\u09AC\u09B0\u09CD\u09A4\u09AE\u09BE\u09A8 \u09A8\u09A5\u09BF\u09B0 \u09B8\u09AE\u09B8\u09CD\u09A4 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u09A6\u09C7\u0996\u09BE\u09A8",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "\u09A8\u09C7\u09AD\u09BF\u0997\u09C7\u099F \u0995\u09B0\u09BE\u09B0 \u09AE\u09A4\u09CB \u0995\u09CB\u09A8\u09CB \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u09A8\u09C7\u0987",
   "notice.all-snapshots-deleted": "\u09B8\u09AE\u09B8\u09CD\u09A4 \u09B8\u09CD\u09A8\u09CD\u09AF\u09BE\u09AA\u09B6\u099F \u09A1\u09C7\u099F\u09BE \u09AE\u09C1\u099B\u09C7 \u09AB\u09C7\u09B2\u09BE \u09B9\u09AF\u09BC\u09C7\u099B\u09C7",
   "notice.current-snapshot-deleted": "\u09AC\u09B0\u09CD\u09A4\u09AE\u09BE\u09A8 \u09B8\u09CD\u09A8\u09CD\u09AF\u09BE\u09AA\u09B6\u099F \u09A1\u09C7\u099F\u09BE \u09AE\u09C1\u099B\u09C7 \u09AB\u09C7\u09B2\u09BE \u09B9\u09AF\u09BC\u09C7\u099B\u09C7",
@@ -6694,6 +6735,11 @@ var bn_default = {
   "view.recent-changes.menu.restore": "\u098F\u0987 \u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3\u099F\u09BF \u09AA\u09C1\u09A8\u09B0\u09C1\u09A6\u09CD\u09A7\u09BE\u09B0 \u0995\u09B0\u09C1\u09A8",
   "view.recent-changes.menu.delete": "\u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3 \u09AE\u09C1\u099B\u09C1\u09A8",
   "view.recent-changes.menu.put-label": "\u09B2\u09C7\u09AC\u09C7\u09B2 \u09A6\u09BF\u09A8",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "\u09A8\u09BF\u09B0\u09CD\u09AC\u09BE\u099A\u09BF\u09A4 \u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3\u09C7 \u09B2\u09C7\u09AC\u09C7\u09B2 \u09A6\u09BF\u09A8",
   "modal.label-version.message": "\u098F\u0987 \u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3\u099F\u09BF\u0995\u09C7 \u098F\u0995\u099F\u09BF \u099B\u09CB\u099F \u09B2\u09C7\u09AC\u09C7\u09B2 \u09A6\u09BF\u09AF\u09BC\u09C7 \u099A\u09BF\u09B9\u09CD\u09A8\u09BF\u09A4 \u0995\u09B0\u09C1\u09A8\u0964",
   "notice.no-folder-history": "\u098F\u0996\u09A8\u0993 \u0995\u09CB\u09A8\u09CB \u09AB\u09CB\u09B2\u09CD\u09A1\u09BE\u09B0 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09A8\u09C7\u0987\u0964",
@@ -6730,6 +6776,7 @@ var ca_default = {
   "command.reset-lines-all": "Reinicia totes les instant\xE0nies del seguidor de l\xEDnies",
   "command.reset-lines": "Reinicia la instant\xE0nia del seguidor de l\xEDnies del document actual",
   "command.show-diff": "Mostra tots els canvis del document actual",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "No hi ha canvis per navegar",
   "notice.all-snapshots-deleted": "S'han eliminat totes les dades d'instant\xE0nies",
   "notice.current-snapshot-deleted": "S'han eliminat les dades de la instant\xE0nia actual",
@@ -6864,6 +6911,11 @@ var ca_default = {
   "view.recent-changes.menu.restore": "Restaura aquesta versi\xF3",
   "view.recent-changes.menu.delete": "Elimina la versi\xF3",
   "view.recent-changes.menu.put-label": "Posa una etiqueta",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "Etiqueta la versi\xF3 seleccionada",
   "modal.label-version.message": "Marca aquesta versi\xF3 amb una etiqueta curta.",
   "notice.no-folder-history": "Encara no hi ha historial de carpeta.",
@@ -6900,6 +6952,7 @@ var cs_default = {
   "command.reset-lines-all": "Resetovat sn\xEDmky sledov\xE1n\xED \u0159\xE1dk\u016F u v\u0161ech soubor\u016F",
   "command.reset-lines": "Resetovat sn\xEDmek sledov\xE1n\xED \u0159\xE1dk\u016F aktu\xE1ln\xEDho dokumentu",
   "command.show-diff": "Zobrazit v\u0161echny zm\u011Bny aktu\xE1ln\xEDho dokumentu",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "\u017D\xE1dn\xE9 zm\u011Bny k proch\xE1zen\xED",
   "notice.all-snapshots-deleted": "V\u0161echna data sn\xEDmk\u016F byla smaz\xE1na",
   "notice.current-snapshot-deleted": "Data aktu\xE1ln\xEDho sn\xEDmku byla smaz\xE1na",
@@ -7034,6 +7087,11 @@ var cs_default = {
   "view.recent-changes.menu.restore": "Obnovit tuto verzi",
   "view.recent-changes.menu.delete": "Smazat verzi",
   "view.recent-changes.menu.put-label": "P\u0159idat \u0161t\xEDtek",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "Ozna\u010Dit vybranou verzi",
   "modal.label-version.message": "Ozna\u010Dte tuto verzi kr\xE1tk\xFDm \u0161t\xEDtkem.",
   "notice.no-folder-history": "Zat\xEDm \u017E\xE1dn\xE1 historie slo\u017Eky.",
@@ -7070,6 +7128,7 @@ var da_default = {
   "command.reset-lines-all": "Nulstil alle linjesporings-\xF8jebliksbilleder",
   "command.reset-lines": "Nulstil linjesporings-\xF8jebliksbillede for aktuelt dokument",
   "command.show-diff": "Vis alle \xE6ndringer i aktuelt dokument",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "Ingen \xE6ndringer at navigere",
   "notice.all-snapshots-deleted": "Alle \xF8jebliksbilleder slettet",
   "notice.current-snapshot-deleted": "Aktuelt \xF8jebliksbillede slettet",
@@ -7204,6 +7263,11 @@ var da_default = {
   "view.recent-changes.menu.restore": "Gendan denne version",
   "view.recent-changes.menu.delete": "Slet version",
   "view.recent-changes.menu.put-label": "S\xE6t etiket",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "S\xE6t etiket p\xE5 valgt version",
   "modal.label-version.message": "Mark\xE9r denne version med en kort etiket.",
   "notice.no-folder-history": "Ingen mappehistorik endnu.",
@@ -7240,6 +7304,7 @@ var de_default = {
   "command.reset-lines-all": "Alle Zeilen-Tracker-Snapshots zur\xFCcksetzen",
   "command.reset-lines": "Zeilen-Tracker-Snapshot des aktuellen Dokuments zur\xFCcksetzen",
   "command.show-diff": "Alle \xC4nderungen des aktuellen Dokuments anzeigen",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "Keine \xC4nderungen zum Navigieren",
   "notice.all-snapshots-deleted": "Alle Snapshot-Daten gel\xF6scht",
   "notice.current-snapshot-deleted": "Aktuelle Snapshot-Daten gel\xF6scht",
@@ -7374,6 +7439,11 @@ var de_default = {
   "view.recent-changes.menu.restore": "Diese Version wiederherstellen",
   "view.recent-changes.menu.delete": "Version l\xF6schen",
   "view.recent-changes.menu.put-label": "Label setzen",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "Ausgew\xE4hlte Version mit Label versehen",
   "modal.label-version.message": "Diese Version mit einem kurzen Label versehen.",
   "notice.no-folder-history": "Noch kein Ordnerverlauf.",
@@ -7410,6 +7480,7 @@ var en_default = {
   "command.reset-lines-all": "Reset all lines tracker snapshots",
   "command.reset-lines": "Reset lines tracker snapshot of current document",
   "command.show-diff": "Show all changes of current document",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "No changes to navigate",
   "notice.all-snapshots-deleted": "All snapshot data deleted",
   "notice.current-snapshot-deleted": "Current snapshot data deleted",
@@ -7544,6 +7615,11 @@ var en_default = {
   "view.recent-changes.menu.restore": "Restore this version",
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "Label selected version",
   "modal.label-version.message": "Tag this version with a short label.",
   "notice.no-folder-history": "No folder history yet.",
@@ -7580,6 +7656,7 @@ var en_GB_default = {
   "command.reset-lines-all": "Reset all lines tracker snapshots",
   "command.reset-lines": "Reset lines tracker snapshot of current document",
   "command.show-diff": "Show all changes of current document",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "No changes to navigate",
   "notice.all-snapshots-deleted": "All snapshot data deleted",
   "notice.current-snapshot-deleted": "Current snapshot data deleted",
@@ -7714,6 +7791,11 @@ var en_GB_default = {
   "view.recent-changes.menu.restore": "Restore this version",
   "view.recent-changes.menu.delete": "Delete version",
   "view.recent-changes.menu.put-label": "Put label",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "Label selected version",
   "modal.label-version.message": "Tag this version with a short label.",
   "notice.no-folder-history": "No folder history yet.",
@@ -7750,6 +7832,7 @@ var es_default = {
   "command.reset-lines-all": "Restablecer todas las instant\xE1neas del rastreador de l\xEDneas",
   "command.reset-lines": "Restablecer la instant\xE1nea del rastreador de l\xEDneas del documento actual",
   "command.show-diff": "Mostrar todos los cambios del documento actual",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "No hay cambios para navegar",
   "notice.all-snapshots-deleted": "Se eliminaron todos los datos de instant\xE1neas",
   "notice.current-snapshot-deleted": "Se eliminaron los datos de la instant\xE1nea actual",
@@ -7884,6 +7967,11 @@ var es_default = {
   "view.recent-changes.menu.restore": "Restaurar esta versi\xF3n",
   "view.recent-changes.menu.delete": "Eliminar versi\xF3n",
   "view.recent-changes.menu.put-label": "Poner etiqueta",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "Etiquetar la versi\xF3n seleccionada",
   "modal.label-version.message": "Marca esta versi\xF3n con una etiqueta corta.",
   "notice.no-folder-history": "A\xFAn no hay historial de carpeta.",
@@ -7920,6 +8008,7 @@ var fa_default = {
   "command.reset-lines-all": "\u0628\u0627\u0632\u0646\u0634\u0627\u0646\u06CC \u0647\u0645\u0647 \u0639\u06A9\u0633\u200C\u0647\u0627\u06CC \u0641\u0648\u0631\u06CC \u0631\u062F\u06CC\u0627\u0628 \u062E\u0637\u0648\u0637",
   "command.reset-lines": "\u0628\u0627\u0632\u0646\u0634\u0627\u0646\u06CC \u0639\u06A9\u0633 \u0641\u0648\u0631\u06CC \u0631\u062F\u06CC\u0627\u0628 \u062E\u0637\u0648\u0637 \u0633\u0646\u062F \u0641\u0639\u0644\u06CC",
   "command.show-diff": "\u0646\u0645\u0627\u06CC\u0634 \u0647\u0645\u0647 \u062A\u063A\u06CC\u06CC\u0631\u0627\u062A \u0633\u0646\u062F \u0641\u0639\u0644\u06CC",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "\u062A\u063A\u06CC\u06CC\u0631\u06CC \u0628\u0631\u0627\u06CC \u067E\u06CC\u0645\u0627\u06CC\u0634 \u0648\u062C\u0648\u062F \u0646\u062F\u0627\u0631\u062F",
   "notice.all-snapshots-deleted": "\u0647\u0645\u0647 \u062F\u0627\u062F\u0647\u200C\u0647\u0627\u06CC \u0639\u06A9\u0633 \u0641\u0648\u0631\u06CC \u062D\u0630\u0641 \u0634\u062F",
   "notice.current-snapshot-deleted": "\u062F\u0627\u062F\u0647\u200C\u0647\u0627\u06CC \u0639\u06A9\u0633 \u0641\u0648\u0631\u06CC \u0641\u0639\u0644\u06CC \u062D\u0630\u0641 \u0634\u062F",
@@ -8054,6 +8143,11 @@ var fa_default = {
   "view.recent-changes.menu.restore": "\u0628\u0627\u0632\u06CC\u0627\u0628\u06CC \u0627\u06CC\u0646 \u0646\u0633\u062E\u0647",
   "view.recent-changes.menu.delete": "\u062D\u0630\u0641 \u0646\u0633\u062E\u0647",
   "view.recent-changes.menu.put-label": "\u06AF\u0630\u0627\u0634\u062A\u0646 \u0628\u0631\u0686\u0633\u0628",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "\u0628\u0631\u0686\u0633\u0628\u200C\u06AF\u0630\u0627\u0631\u06CC \u0646\u0633\u062E\u0647 \u0627\u0646\u062A\u062E\u0627\u0628\u200C\u0634\u062F\u0647",
   "modal.label-version.message": "\u0627\u06CC\u0646 \u0646\u0633\u062E\u0647 \u0631\u0627 \u0628\u0627 \u06CC\u06A9 \u0628\u0631\u0686\u0633\u0628 \u06A9\u0648\u062A\u0627\u0647 \u0639\u0644\u0627\u0645\u062A\u200C\u06AF\u0630\u0627\u0631\u06CC \u06A9\u0646\u06CC\u062F.",
   "notice.no-folder-history": "\u0647\u0646\u0648\u0632 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647\u200C\u0627\u06CC \u0628\u0631\u0627\u06CC \u067E\u0648\u0634\u0647 \u0648\u062C\u0648\u062F \u0646\u062F\u0627\u0631\u062F.",
@@ -8090,6 +8184,7 @@ var fi_default = {
   "command.reset-lines-all": "Nollaa kaikki riviseurannan tilannevedokset",
   "command.reset-lines": "Nollaa nykyisen asiakirjan riviseurannan tilannevedos",
   "command.show-diff": "N\xE4yt\xE4 nykyisen asiakirjan kaikki muutokset",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "Ei muutoksia, joiden v\xE4lill\xE4 liikkua",
   "notice.all-snapshots-deleted": "Kaikki tilannevedostiedot poistettu",
   "notice.current-snapshot-deleted": "Nykyiset tilannevedostiedot poistettu",
@@ -8224,6 +8319,11 @@ var fi_default = {
   "view.recent-changes.menu.restore": "Palauta t\xE4m\xE4 versio",
   "view.recent-changes.menu.delete": "Poista versio",
   "view.recent-changes.menu.put-label": "Lis\xE4\xE4 tunniste",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "Merkitse valittu versio",
   "modal.label-version.message": "Merkitse t\xE4m\xE4 versio lyhyell\xE4 tunnisteella.",
   "notice.no-folder-history": "Ei viel\xE4 kansiohistoriaa.",
@@ -8260,6 +8360,7 @@ var fr_default = {
   "command.reset-lines-all": "R\xE9initialiser tous les instantan\xE9s du suivi des lignes",
   "command.reset-lines": "R\xE9initialiser l'instantan\xE9 du suivi des lignes du document actuel",
   "command.show-diff": "Afficher toutes les modifications du document actuel",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "Aucune modification \xE0 parcourir",
   "notice.all-snapshots-deleted": "Toutes les donn\xE9es d'instantan\xE9 supprim\xE9es",
   "notice.current-snapshot-deleted": "Donn\xE9es de l'instantan\xE9 actuel supprim\xE9es",
@@ -8394,6 +8495,11 @@ var fr_default = {
   "view.recent-changes.menu.restore": "Restaurer cette version",
   "view.recent-changes.menu.delete": "Supprimer la version",
   "view.recent-changes.menu.put-label": "Poser une \xE9tiquette",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "\xC9tiqueter la version s\xE9lectionn\xE9e",
   "modal.label-version.message": "Marquez cette version avec une courte \xE9tiquette.",
   "notice.no-folder-history": "Aucun historique de dossier pour le moment.",
@@ -8430,6 +8536,7 @@ var ga_default = {
   "command.reset-lines-all": "Athshocraigh gach roghbhl\xFAire de lorgaire na l\xEDnte",
   "command.reset-lines": "Athshocraigh roghbhl\xFAire lorgaire l\xEDnte na c\xE1ip\xE9ise reatha",
   "command.show-diff": "Taispe\xE1in gach athr\xFA sa ch\xE1ip\xE9is reatha",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "N\xEDl aon athr\xFA le nasclean\xFAint",
   "notice.all-snapshots-deleted": "Scriosadh gach sonra roghbhl\xFAire",
   "notice.current-snapshot-deleted": "Scriosadh sonra\xED an roghbhl\xFAire reatha",
@@ -8564,6 +8671,11 @@ var ga_default = {
   "view.recent-changes.menu.restore": "Athch\xF3irigh an leagan seo",
   "view.recent-changes.menu.delete": "Scrios an leagan",
   "view.recent-changes.menu.put-label": "Cuir lip\xE9ad air",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "Cuir lip\xE9ad ar an leagan roghnaithe",
   "modal.label-version.message": "Marc\xE1il an leagan seo le lip\xE9ad gearr.",
   "notice.no-folder-history": "N\xEDl aon stair fillte\xE1in f\xF3s.",
@@ -8600,6 +8712,7 @@ var he_default = {
   "command.reset-lines-all": "\u05D0\u05D9\u05E4\u05D5\u05E1 \u05DB\u05DC \u05EA\u05E6\u05DC\u05D5\u05DE\u05D9 \u05DE\u05E2\u05E7\u05D1 \u05D4\u05E9\u05D5\u05E8\u05D5\u05EA",
   "command.reset-lines": "\u05D0\u05D9\u05E4\u05D5\u05E1 \u05EA\u05E6\u05DC\u05D5\u05DD \u05DE\u05E2\u05E7\u05D1 \u05D4\u05E9\u05D5\u05E8\u05D5\u05EA \u05E9\u05DC \u05D4\u05DE\u05E1\u05DE\u05DA \u05D4\u05E0\u05D5\u05DB\u05D7\u05D9",
   "command.show-diff": "\u05D4\u05E6\u05D2\u05EA \u05DB\u05DC \u05D4\u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05D1\u05DE\u05E1\u05DE\u05DA \u05D4\u05E0\u05D5\u05DB\u05D7\u05D9",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "\u05D0\u05D9\u05DF \u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05DC\u05E0\u05D9\u05D5\u05D5\u05D8",
   "notice.all-snapshots-deleted": "\u05DB\u05DC \u05E0\u05EA\u05D5\u05E0\u05D9 \u05D4\u05EA\u05E6\u05DC\u05D5\u05DE\u05D9\u05DD \u05E0\u05DE\u05D7\u05E7\u05D5",
   "notice.current-snapshot-deleted": "\u05E0\u05EA\u05D5\u05E0\u05D9 \u05D4\u05EA\u05E6\u05DC\u05D5\u05DD \u05D4\u05E0\u05D5\u05DB\u05D7\u05D9 \u05E0\u05DE\u05D7\u05E7\u05D5",
@@ -8734,6 +8847,11 @@ var he_default = {
   "view.recent-changes.menu.restore": "\u05E9\u05D7\u05D6\u05E8 \u05D2\u05E8\u05E1\u05D4 \u05D6\u05D5",
   "view.recent-changes.menu.delete": "\u05DE\u05D7\u05E7 \u05D2\u05E8\u05E1\u05D4",
   "view.recent-changes.menu.put-label": "\u05D4\u05D5\u05E1\u05E3 \u05EA\u05D5\u05D5\u05D9\u05EA",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "\u05D4\u05D5\u05E1\u05E3 \u05EA\u05D5\u05D5\u05D9\u05EA \u05DC\u05D2\u05E8\u05E1\u05D4 \u05E9\u05E0\u05D1\u05D7\u05E8\u05D4",
   "modal.label-version.message": "\u05E1\u05DE\u05E0\u05D5 \u05D2\u05E8\u05E1\u05D4 \u05D6\u05D5 \u05D1\u05EA\u05D5\u05D5\u05D9\u05EA \u05E7\u05E6\u05E8\u05D4.",
   "notice.no-folder-history": "\u05D0\u05D9\u05DF \u05E2\u05D3\u05D9\u05D9\u05DF \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D9\u05EA \u05EA\u05D9\u05E7\u05D9\u05D9\u05D4.",
@@ -8770,6 +8888,7 @@ var hu_default = {
   "command.reset-lines-all": "\xD6sszes sork\xF6vet\xE9si pillanatk\xE9p vissza\xE1ll\xEDt\xE1sa",
   "command.reset-lines": "Az aktu\xE1lis dokumentum sork\xF6vet\xE9si pillanatk\xE9p\xE9nek vissza\xE1ll\xEDt\xE1sa",
   "command.show-diff": "Az aktu\xE1lis dokumentum \xF6sszes m\xF3dos\xEDt\xE1s\xE1nak megjelen\xEDt\xE9se",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "Nincs m\xF3dos\xEDt\xE1s, amelyek k\xF6z\xF6tt l\xE9pkedni lehetne",
   "notice.all-snapshots-deleted": "Az \xF6sszes pillanatk\xE9p-adat t\xF6r\xF6lve",
   "notice.current-snapshot-deleted": "Az aktu\xE1lis pillanatk\xE9p-adatok t\xF6r\xF6lve",
@@ -8904,6 +9023,11 @@ var hu_default = {
   "view.recent-changes.menu.restore": "Verzi\xF3 vissza\xE1ll\xEDt\xE1sa",
   "view.recent-changes.menu.delete": "Verzi\xF3 t\xF6rl\xE9se",
   "view.recent-changes.menu.put-label": "C\xEDmke elhelyez\xE9se",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "Kijel\xF6lt verzi\xF3 c\xEDmk\xE9z\xE9se",
   "modal.label-version.message": "Jel\xF6lje meg ezt a verzi\xF3t egy r\xF6vid c\xEDmk\xE9vel.",
   "notice.no-folder-history": "M\xE9g nincs mappael\u0151zm\xE9ny.",
@@ -8940,6 +9064,7 @@ var id_default = {
   "command.reset-lines-all": "Setel ulang semua snapshot pelacak baris",
   "command.reset-lines": "Setel ulang snapshot pelacak baris dokumen saat ini",
   "command.show-diff": "Tampilkan semua perubahan dokumen saat ini",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "Tidak ada perubahan untuk dijelajahi",
   "notice.all-snapshots-deleted": "Semua data snapshot dihapus",
   "notice.current-snapshot-deleted": "Data snapshot saat ini dihapus",
@@ -9074,6 +9199,11 @@ var id_default = {
   "view.recent-changes.menu.restore": "Pulihkan versi ini",
   "view.recent-changes.menu.delete": "Hapus versi",
   "view.recent-changes.menu.put-label": "Beri label",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "Beri label versi yang dipilih",
   "modal.label-version.message": "Tandai versi ini dengan label singkat.",
   "notice.no-folder-history": "Belum ada riwayat folder.",
@@ -9110,6 +9240,7 @@ var it_default = {
   "command.reset-lines-all": "Reimposta tutte le istantanee del tracker delle righe",
   "command.reset-lines": "Reimposta l'istantanea del tracker delle righe del documento corrente",
   "command.show-diff": "Mostra tutte le modifiche del documento corrente",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "Nessuna modifica da scorrere",
   "notice.all-snapshots-deleted": "Tutti i dati delle istantanee eliminati",
   "notice.current-snapshot-deleted": "Dati dell'istantanea corrente eliminati",
@@ -9244,6 +9375,11 @@ var it_default = {
   "view.recent-changes.menu.restore": "Ripristina questa versione",
   "view.recent-changes.menu.delete": "Elimina versione",
   "view.recent-changes.menu.put-label": "Applica etichetta",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "Etichetta la versione selezionata",
   "modal.label-version.message": "Contrassegna questa versione con una breve etichetta.",
   "notice.no-folder-history": "Ancora nessuna cronologia della cartella.",
@@ -9280,6 +9416,7 @@ var ja_default = {
   "command.reset-lines-all": "\u3059\u3079\u3066\u306E\u884C\u30C8\u30E9\u30C3\u30AB\u30FC\u30B9\u30CA\u30C3\u30D7\u30B7\u30E7\u30C3\u30C8\u3092\u30EA\u30BB\u30C3\u30C8",
   "command.reset-lines": "\u73FE\u5728\u306E\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\u306E\u884C\u30C8\u30E9\u30C3\u30AB\u30FC\u30B9\u30CA\u30C3\u30D7\u30B7\u30E7\u30C3\u30C8\u3092\u30EA\u30BB\u30C3\u30C8",
   "command.show-diff": "\u73FE\u5728\u306E\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\u306E\u3059\u3079\u3066\u306E\u5909\u66F4\u3092\u8868\u793A",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "\u79FB\u52D5\u3067\u304D\u308B\u5909\u66F4\u304C\u3042\u308A\u307E\u305B\u3093",
   "notice.all-snapshots-deleted": "\u3059\u3079\u3066\u306E\u30B9\u30CA\u30C3\u30D7\u30B7\u30E7\u30C3\u30C8\u30C7\u30FC\u30BF\u3092\u524A\u9664\u3057\u307E\u3057\u305F",
   "notice.current-snapshot-deleted": "\u73FE\u5728\u306E\u30B9\u30CA\u30C3\u30D7\u30B7\u30E7\u30C3\u30C8\u30C7\u30FC\u30BF\u3092\u524A\u9664\u3057\u307E\u3057\u305F",
@@ -9414,6 +9551,11 @@ var ja_default = {
   "view.recent-changes.menu.restore": "\u3053\u306E\u30D0\u30FC\u30B8\u30E7\u30F3\u306B\u5FA9\u5143",
   "view.recent-changes.menu.delete": "\u30D0\u30FC\u30B8\u30E7\u30F3\u3092\u524A\u9664",
   "view.recent-changes.menu.put-label": "\u30E9\u30D9\u30EB\u3092\u4ED8\u3051\u308B",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "\u9078\u629E\u3057\u305F\u30D0\u30FC\u30B8\u30E7\u30F3\u306B\u30E9\u30D9\u30EB\u3092\u4ED8\u3051\u308B",
   "modal.label-version.message": "\u3053\u306E\u30D0\u30FC\u30B8\u30E7\u30F3\u306B\u77ED\u3044\u30E9\u30D9\u30EB\u3092\u4ED8\u3051\u307E\u3059\u3002",
   "notice.no-folder-history": "\u30D5\u30A9\u30EB\u30C0\u30FC\u5C65\u6B74\u306F\u307E\u3060\u3042\u308A\u307E\u305B\u3093\u3002",
@@ -9450,6 +9592,7 @@ var ka_default = {
   "command.reset-lines-all": "\u10EE\u10D0\u10D6\u10D4\u10D1\u10D8\u10E1 \u10DB\u10D7\u10D5\u10D0\u10DA\u10D7\u10D5\u10D0\u10DA\u10D8\u10E1 \u10E7\u10D5\u10D4\u10DA\u10D0 \u10E1\u10EC\u10E0\u10D0\u10E4\u10D8 \u10D0\u10E1\u10DA\u10D8\u10E1 \u10D2\u10D0\u10D3\u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D5\u10D0",
   "command.reset-lines": "\u10DB\u10D8\u10DB\u10D3\u10D8\u10DC\u10D0\u10E0\u10D4 \u10D3\u10DD\u10D9\u10E3\u10DB\u10D4\u10DC\u10E2\u10D8\u10E1 \u10EE\u10D0\u10D6\u10D4\u10D1\u10D8\u10E1 \u10DB\u10D7\u10D5\u10D0\u10DA\u10D7\u10D5\u10D0\u10DA\u10D8\u10E1 \u10E1\u10EC\u10E0\u10D0\u10E4\u10D8 \u10D0\u10E1\u10DA\u10D8\u10E1 \u10D2\u10D0\u10D3\u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D5\u10D0",
   "command.show-diff": "\u10DB\u10D8\u10DB\u10D3\u10D8\u10DC\u10D0\u10E0\u10D4 \u10D3\u10DD\u10D9\u10E3\u10DB\u10D4\u10DC\u10E2\u10D8\u10E1 \u10E7\u10D5\u10D4\u10DA\u10D0 \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10E9\u10D5\u10D4\u10DC\u10D4\u10D1\u10D0",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "\u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10D8 \u10DC\u10D0\u10D5\u10D8\u10D2\u10D0\u10EA\u10D8\u10D8\u10E1\u10D7\u10D5\u10D8\u10E1 \u10D0\u10E0 \u10D0\u10E0\u10D8\u10E1",
   "notice.all-snapshots-deleted": "\u10E1\u10EC\u10E0\u10D0\u10E4\u10D8 \u10D0\u10E1\u10DA\u10D4\u10D1\u10D8\u10E1 \u10E7\u10D5\u10D4\u10DA\u10D0 \u10DB\u10DD\u10DC\u10D0\u10EA\u10D4\u10DB\u10D8 \u10EC\u10D0\u10D8\u10E8\u10D0\u10DA\u10D0",
   "notice.current-snapshot-deleted": "\u10DB\u10D8\u10DB\u10D3\u10D8\u10DC\u10D0\u10E0\u10D4 \u10E1\u10EC\u10E0\u10D0\u10E4\u10D8 \u10D0\u10E1\u10DA\u10D8\u10E1 \u10DB\u10DD\u10DC\u10D0\u10EA\u10D4\u10DB\u10D4\u10D1\u10D8 \u10EC\u10D0\u10D8\u10E8\u10D0\u10DA\u10D0",
@@ -9584,6 +9727,11 @@ var ka_default = {
   "view.recent-changes.menu.restore": "\u10D0\u10DB \u10D5\u10D4\u10E0\u10E1\u10D8\u10D8\u10E1 \u10D0\u10E6\u10D3\u10D2\u10D4\u10DC\u10D0",
   "view.recent-changes.menu.delete": "\u10D5\u10D4\u10E0\u10E1\u10D8\u10D8\u10E1 \u10EC\u10D0\u10E8\u10DA\u10D0",
   "view.recent-changes.menu.put-label": "\u10D8\u10D0\u10E0\u10DA\u10D8\u10E7\u10D8\u10E1 \u10DB\u10D8\u10DC\u10D8\u10ED\u10D4\u10D1\u10D0",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "\u10DB\u10DD\u10DC\u10D8\u10E8\u10DC\u10E3\u10DA\u10D8 \u10D5\u10D4\u10E0\u10E1\u10D8\u10D8\u10E1 \u10D8\u10D0\u10E0\u10DA\u10D8\u10E7\u10D8\u10D7 \u10D0\u10E6\u10DC\u10D8\u10E8\u10D5\u10DC\u10D0",
   "modal.label-version.message": "\u10DB\u10DD\u10DC\u10D8\u10E8\u10DC\u10D4\u10D7 \u10D4\u10E1 \u10D5\u10D4\u10E0\u10E1\u10D8\u10D0 \u10DB\u10DD\u10D9\u10DA\u10D4 \u10D8\u10D0\u10E0\u10DA\u10D8\u10E7\u10D8\u10D7.",
   "notice.no-folder-history": "\u10E1\u10D0\u10E5\u10D0\u10E6\u10D0\u10DA\u10D3\u10D8\u10E1 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D0 \u10EF\u10D4\u10E0 \u10D0\u10E0 \u10D0\u10E0\u10D8\u10E1.",
@@ -9620,6 +9768,7 @@ var kh_default = {
   "command.reset-lines-all": "\u1780\u17C6\u178E\u178F\u17CB\u17A1\u17BE\u1784\u179C\u17B7\u1789\u1793\u17BC\u179C\u179A\u17BC\u1794\u1790\u178F\u178F\u17B6\u1798\u178A\u17B6\u1793\u1794\u1793\u17D2\u1791\u17B6\u178F\u17CB\u1791\u17B6\u17C6\u1784\u17A2\u179F\u17CB",
   "command.reset-lines": "\u1780\u17C6\u178E\u178F\u17CB\u17A1\u17BE\u1784\u179C\u17B7\u1789\u1793\u17BC\u179C\u179A\u17BC\u1794\u1790\u178F\u178F\u17B6\u1798\u178A\u17B6\u1793\u1794\u1793\u17D2\u1791\u17B6\u178F\u17CB\u1793\u17C3\u17AF\u1780\u179F\u17B6\u179A\u1794\u1785\u17D2\u1785\u17BB\u1794\u17D2\u1794\u1793\u17D2\u1793",
   "command.show-diff": "\u1794\u1784\u17D2\u17A0\u17B6\u1789\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1791\u17B6\u17C6\u1784\u17A2\u179F\u17CB\u1793\u17C3\u17AF\u1780\u179F\u17B6\u179A\u1794\u1785\u17D2\u1785\u17BB\u1794\u17D2\u1794\u1793\u17D2\u1793",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "\u1782\u17D2\u1798\u17B6\u1793\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u179F\u1798\u17D2\u179A\u17B6\u1794\u17CB\u1791\u17C5\u1780\u17B6\u1793\u17CB\u1791\u17C1",
   "notice.all-snapshots-deleted": "\u1794\u17B6\u1793\u179B\u17BB\u1794\u1791\u17B7\u1793\u17D2\u1793\u1793\u17D0\u1799\u179A\u17BC\u1794\u1790\u178F\u1791\u17B6\u17C6\u1784\u17A2\u179F\u17CB",
   "notice.current-snapshot-deleted": "\u1794\u17B6\u1793\u179B\u17BB\u1794\u1791\u17B7\u1793\u17D2\u1793\u1793\u17D0\u1799\u179A\u17BC\u1794\u1790\u178F\u1794\u1785\u17D2\u1785\u17BB\u1794\u17D2\u1794\u1793\u17D2\u1793",
@@ -9754,6 +9903,11 @@ var kh_default = {
   "view.recent-changes.menu.restore": "\u179F\u17D2\u178A\u17B6\u179A\u1780\u17C6\u178E\u17C2\u1793\u17C1\u17C7",
   "view.recent-changes.menu.delete": "\u179B\u17BB\u1794\u1780\u17C6\u178E\u17C2",
   "view.recent-changes.menu.put-label": "\u178A\u17B6\u1780\u17CB\u179F\u17D2\u179B\u17B6\u1780",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "\u178A\u17B6\u1780\u17CB\u179F\u17D2\u179B\u17B6\u1780\u1780\u17C6\u178E\u17C2\u178A\u17C2\u179B\u1794\u17B6\u1793\u1787\u17D2\u179A\u17BE\u179F",
   "modal.label-version.message": "\u179F\u1798\u17D2\u1782\u17B6\u179B\u17CB\u1780\u17C6\u178E\u17C2\u1793\u17C1\u17C7\u178A\u17C4\u1799\u179F\u17D2\u179B\u17B6\u1780\u1781\u17D2\u179B\u17B8\u17D4",
   "notice.no-folder-history": "\u1798\u17B7\u1793\u1791\u17B6\u1793\u17CB\u1798\u17B6\u1793\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u1790\u178F\u1793\u17C5\u17A1\u17BE\u1799\u1791\u17C1\u17D4",
@@ -9790,6 +9944,7 @@ var ko_default = {
   "command.reset-lines-all": "\uBAA8\uB4E0 \uC904 \uCD94\uC801 \uC2A4\uB0C5\uC0F7 \uCD08\uAE30\uD654",
   "command.reset-lines": "\uD604\uC7AC \uBB38\uC11C\uC758 \uC904 \uCD94\uC801 \uC2A4\uB0C5\uC0F7 \uCD08\uAE30\uD654",
   "command.show-diff": "\uD604\uC7AC \uBB38\uC11C\uC758 \uBAA8\uB4E0 \uBCC0\uACBD \uC0AC\uD56D \uD45C\uC2DC",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "\uC774\uB3D9\uD560 \uBCC0\uACBD \uC0AC\uD56D\uC774 \uC5C6\uC2B5\uB2C8\uB2E4",
   "notice.all-snapshots-deleted": "\uBAA8\uB4E0 \uC2A4\uB0C5\uC0F7 \uB370\uC774\uD130\uB97C \uC0AD\uC81C\uD588\uC2B5\uB2C8\uB2E4",
   "notice.current-snapshot-deleted": "\uD604\uC7AC \uC2A4\uB0C5\uC0F7 \uB370\uC774\uD130\uB97C \uC0AD\uC81C\uD588\uC2B5\uB2C8\uB2E4",
@@ -9924,6 +10079,11 @@ var ko_default = {
   "view.recent-changes.menu.restore": "\uC774 \uBC84\uC804 \uBCF5\uC6D0",
   "view.recent-changes.menu.delete": "\uBC84\uC804 \uC0AD\uC81C",
   "view.recent-changes.menu.put-label": "\uB77C\uBCA8 \uC9C0\uC815",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "\uC120\uD0DD\uD55C \uBC84\uC804\uC5D0 \uB77C\uBCA8 \uC9C0\uC815",
   "modal.label-version.message": "\uC774 \uBC84\uC804\uC5D0 \uC9E7\uC740 \uB77C\uBCA8\uC744 \uC9C0\uC815\uD569\uB2C8\uB2E4.",
   "notice.no-folder-history": "\uD3F4\uB354 \uAE30\uB85D\uC774 \uC544\uC9C1 \uC5C6\uC2B5\uB2C8\uB2E4.",
@@ -9960,6 +10120,7 @@ var lv_default = {
   "command.reset-lines-all": "Atiestat\u012Bt visus rindu izseko\u0161anas momentuz\u0146\u0113mumus",
   "command.reset-lines": "Atiestat\u012Bt pa\u0161reiz\u0113j\u0101 dokumenta rindu izseko\u0161anas momentuz\u0146\u0113mumu",
   "command.show-diff": "R\u0101d\u012Bt visas pa\u0161reiz\u0113j\u0101 dokumenta izmai\u0146as",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "Nav izmai\u0146u, starp kur\u0101m p\u0101rvietoties",
   "notice.all-snapshots-deleted": "Visi momentuz\u0146\u0113mumu dati dz\u0113sti",
   "notice.current-snapshot-deleted": "Pa\u0161reiz\u0113jie momentuz\u0146\u0113muma dati dz\u0113sti",
@@ -10094,6 +10255,11 @@ var lv_default = {
   "view.recent-changes.menu.restore": "Atjaunot \u0161o versiju",
   "view.recent-changes.menu.delete": "Dz\u0113st versiju",
   "view.recent-changes.menu.put-label": "Pievienot eti\u0137eti",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "Pievienot eti\u0137eti atlas\u012Btajai versijai",
   "modal.label-version.message": "Atz\u012Bm\u0113jiet \u0161o versiju ar \u012Bsu eti\u0137eti.",
   "notice.no-folder-history": "V\u0113l nav mapes v\u0113stures.",
@@ -10130,6 +10296,7 @@ var ms_default = {
   "command.reset-lines-all": "Tetapkan semula semua snapshot penjejak baris",
   "command.reset-lines": "Tetapkan semula snapshot penjejak baris dokumen semasa",
   "command.show-diff": "Tunjukkan semua perubahan dokumen semasa",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "Tiada perubahan untuk dilayari",
   "notice.all-snapshots-deleted": "Semua data snapshot dipadamkan",
   "notice.current-snapshot-deleted": "Data snapshot semasa dipadamkan",
@@ -10264,6 +10431,11 @@ var ms_default = {
   "view.recent-changes.menu.restore": "Pulihkan versi ini",
   "view.recent-changes.menu.delete": "Padam versi",
   "view.recent-changes.menu.put-label": "Letak label",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "Labelkan versi yang dipilih",
   "modal.label-version.message": "Tandakan versi ini dengan label ringkas.",
   "notice.no-folder-history": "Belum ada sejarah folder.",
@@ -10300,6 +10472,7 @@ var ne_default = {
   "command.reset-lines-all": "\u0938\u092C\u0948 \u0932\u093E\u0907\u0928 \u091F\u094D\u0930\u094D\u092F\u093E\u0915\u0930 \u0938\u094D\u0928\u094D\u092F\u093E\u092A\u0938\u091F\u0939\u0930\u0942 \u0930\u093F\u0938\u0947\u091F \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
   "command.reset-lines": "\u0939\u093E\u0932\u0915\u094B \u0915\u093E\u0917\u091C\u093E\u0924\u0915\u094B \u0932\u093E\u0907\u0928 \u091F\u094D\u0930\u094D\u092F\u093E\u0915\u0930 \u0938\u094D\u0928\u094D\u092F\u093E\u092A\u0938\u091F \u0930\u093F\u0938\u0947\u091F \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
   "command.show-diff": "\u0939\u093E\u0932\u0915\u094B \u0915\u093E\u0917\u091C\u093E\u0924\u0915\u093E \u0938\u092C\u0948 \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928\u0939\u0930\u0942 \u0926\u0947\u0916\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "\u0928\u0947\u092D\u093F\u0917\u0947\u091F \u0917\u0930\u094D\u0928\u0915\u093E \u0932\u093E\u0917\u093F \u0915\u0941\u0928\u0948 \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u091B\u0948\u0928",
   "notice.all-snapshots-deleted": "\u0938\u092C\u0948 \u0938\u094D\u0928\u094D\u092F\u093E\u092A\u0938\u091F \u0921\u0947\u091F\u093E \u092E\u0947\u091F\u093E\u0907\u092F\u094B",
   "notice.current-snapshot-deleted": "\u0939\u093E\u0932\u0915\u094B \u0938\u094D\u0928\u094D\u092F\u093E\u092A\u0938\u091F \u0921\u0947\u091F\u093E \u092E\u0947\u091F\u093E\u0907\u092F\u094B",
@@ -10434,6 +10607,11 @@ var ne_default = {
   "view.recent-changes.menu.restore": "\u092F\u094B \u0938\u0902\u0938\u094D\u0915\u0930\u0923 \u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u0928\u093E \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
   "view.recent-changes.menu.delete": "\u0938\u0902\u0938\u094D\u0915\u0930\u0923 \u092E\u0947\u091F\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D",
   "view.recent-changes.menu.put-label": "\u0932\u0947\u092C\u0932 \u0930\u093E\u0916\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "\u091A\u092F\u0928 \u0917\u0930\u093F\u090F\u0915\u094B \u0938\u0902\u0938\u094D\u0915\u0930\u0923\u092E\u093E \u0932\u0947\u092C\u0932 \u0930\u093E\u0916\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
   "modal.label-version.message": "\u092F\u094B \u0938\u0902\u0938\u094D\u0915\u0930\u0923\u0932\u093E\u0908 \u091B\u094B\u091F\u094B \u0932\u0947\u092C\u0932\u0932\u0947 \u091A\u093F\u0928\u094D\u0939 \u0932\u0917\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
   "notice.no-folder-history": "\u0905\u0939\u093F\u0932\u0947\u0938\u092E\u094D\u092E \u092B\u094B\u0932\u094D\u0921\u0930 \u0907\u0924\u093F\u0939\u093E\u0938 \u091B\u0948\u0928\u0964",
@@ -10470,6 +10648,7 @@ var nl_default = {
   "command.reset-lines-all": "Alle momentopnamen van de regeltracker opnieuw instellen",
   "command.reset-lines": "Momentopname van de regeltracker van het huidige document opnieuw instellen",
   "command.show-diff": "Alle wijzigingen van het huidige document tonen",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "Geen wijzigingen om doorheen te navigeren",
   "notice.all-snapshots-deleted": "Alle momentopnamegegevens verwijderd",
   "notice.current-snapshot-deleted": "Gegevens van huidige momentopname verwijderd",
@@ -10604,6 +10783,11 @@ var nl_default = {
   "view.recent-changes.menu.restore": "Deze versie herstellen",
   "view.recent-changes.menu.delete": "Versie verwijderen",
   "view.recent-changes.menu.put-label": "Label toevoegen",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "Geselecteerde versie labelen",
   "modal.label-version.message": "Geef deze versie een kort label.",
   "notice.no-folder-history": "Nog geen mapgeschiedenis.",
@@ -10640,6 +10824,7 @@ var no_default = {
   "command.reset-lines-all": "Tilbakestill alle linjesporings-\xF8yeblikksbilder",
   "command.reset-lines": "Tilbakestill linjesporings-\xF8yeblikksbilde for gjeldende dokument",
   "command.show-diff": "Vis alle endringer i gjeldende dokument",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "Ingen endringer \xE5 navigere",
   "notice.all-snapshots-deleted": "Alle \xF8yeblikksbilder slettet",
   "notice.current-snapshot-deleted": "Gjeldende \xF8yeblikksbilde slettet",
@@ -10774,6 +10959,11 @@ var no_default = {
   "view.recent-changes.menu.restore": "Gjenopprett denne versjonen",
   "view.recent-changes.menu.delete": "Slett versjon",
   "view.recent-changes.menu.put-label": "Sett etikett",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "Sett etikett p\xE5 valgt versjon",
   "modal.label-version.message": "Merk denne versjonen med en kort etikett.",
   "notice.no-folder-history": "Ingen mappehistorikk enn\xE5.",
@@ -10810,6 +11000,7 @@ var pl_default = {
   "command.reset-lines-all": "Zresetuj migawki \u015Bledzenia linii dla wszystkich plik\xF3w",
   "command.reset-lines": "Zresetuj migawk\u0119 \u015Bledzenia linii bie\u017C\u0105cego dokumentu",
   "command.show-diff": "Poka\u017C wszystkie zmiany bie\u017C\u0105cego dokumentu",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "Brak zmian do nawigacji",
   "notice.all-snapshots-deleted": "Usuni\u0119to wszystkie dane migawek",
   "notice.current-snapshot-deleted": "Usuni\u0119to dane bie\u017C\u0105cej migawki",
@@ -10944,6 +11135,11 @@ var pl_default = {
   "view.recent-changes.menu.restore": "Przywr\xF3\u0107 t\u0119 wersj\u0119",
   "view.recent-changes.menu.delete": "Usu\u0144 wersj\u0119",
   "view.recent-changes.menu.put-label": "Dodaj etykiet\u0119",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "Oznacz wybran\u0105 wersj\u0119",
   "modal.label-version.message": "Oznacz t\u0119 wersj\u0119 kr\xF3tk\u0105 etykiet\u0105.",
   "notice.no-folder-history": "Brak historii folderu.",
@@ -10980,6 +11176,7 @@ var pt_default = {
   "command.reset-lines-all": "Repor todas as capturas do rastreador de linhas",
   "command.reset-lines": "Repor a captura do rastreador de linhas do documento atual",
   "command.show-diff": "Mostrar todas as altera\xE7\xF5es do documento atual",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "N\xE3o h\xE1 altera\xE7\xF5es para navegar",
   "notice.all-snapshots-deleted": "Todos os dados de capturas eliminados",
   "notice.current-snapshot-deleted": "Dados da captura atual eliminados",
@@ -11114,6 +11311,11 @@ var pt_default = {
   "view.recent-changes.menu.restore": "Restaurar esta vers\xE3o",
   "view.recent-changes.menu.delete": "Eliminar vers\xE3o",
   "view.recent-changes.menu.put-label": "Colocar etiqueta",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "Etiquetar a vers\xE3o selecionada",
   "modal.label-version.message": "Marque esta vers\xE3o com uma etiqueta curta.",
   "notice.no-folder-history": "Ainda n\xE3o h\xE1 hist\xF3rico da pasta.",
@@ -11150,6 +11352,7 @@ var pt_BR_default = {
   "command.reset-lines-all": "Redefinir todos os instant\xE2neos do rastreador de linhas",
   "command.reset-lines": "Redefinir o instant\xE2neo do rastreador de linhas do documento atual",
   "command.show-diff": "Mostrar todas as altera\xE7\xF5es do documento atual",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "N\xE3o h\xE1 altera\xE7\xF5es para navegar",
   "notice.all-snapshots-deleted": "Todos os dados de instant\xE2neos exclu\xEDdos",
   "notice.current-snapshot-deleted": "Dados do instant\xE2neo atual exclu\xEDdos",
@@ -11284,6 +11487,11 @@ var pt_BR_default = {
   "view.recent-changes.menu.restore": "Restaurar esta vers\xE3o",
   "view.recent-changes.menu.delete": "Excluir vers\xE3o",
   "view.recent-changes.menu.put-label": "Colocar r\xF3tulo",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "Rotular a vers\xE3o selecionada",
   "modal.label-version.message": "Marque esta vers\xE3o com um r\xF3tulo curto.",
   "notice.no-folder-history": "Ainda n\xE3o h\xE1 hist\xF3rico da pasta.",
@@ -11320,6 +11528,7 @@ var ro_default = {
   "command.reset-lines-all": "Reseteaz\u0103 instantaneele de urm\u0103rire a liniilor pentru toate fi\u0219ierele",
   "command.reset-lines": "Reseteaz\u0103 instantaneul de urm\u0103rire a liniilor pentru documentul curent",
   "command.show-diff": "Afi\u0219eaz\u0103 toate modific\u0103rile documentului curent",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "Nicio modificare de parcurs",
   "notice.all-snapshots-deleted": "Toate datele instantaneelor au fost \u0219terse",
   "notice.current-snapshot-deleted": "Datele instantaneului curent au fost \u0219terse",
@@ -11454,6 +11663,11 @@ var ro_default = {
   "view.recent-changes.menu.restore": "Restaureaz\u0103 aceast\u0103 versiune",
   "view.recent-changes.menu.delete": "\u0218terge versiunea",
   "view.recent-changes.menu.put-label": "Pune etichet\u0103",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "Eticheteaz\u0103 versiunea selectat\u0103",
   "modal.label-version.message": "Marcheaz\u0103 aceast\u0103 versiune cu o etichet\u0103 scurt\u0103.",
   "notice.no-folder-history": "\xCEnc\u0103 nu exist\u0103 istoric al dosarului.",
@@ -11490,6 +11704,7 @@ var ru_default = {
   "command.reset-lines-all": "\u0421\u0431\u0440\u043E\u0441\u0438\u0442\u044C \u0441\u043D\u0438\u043C\u043A\u0438 \u0442\u0440\u0435\u043A\u0435\u0440\u0430 \u0434\u043B\u044F \u0432\u0441\u0435\u0445 \u0444\u0430\u0439\u043B\u043E\u0432",
   "command.reset-lines": "\u0421\u0431\u0440\u043E\u0441\u0438\u0442\u044C \u0441\u043D\u0438\u043C\u043E\u043A \u0442\u0440\u0435\u043A\u0435\u0440\u0430 \u0442\u0435\u043A\u0443\u0449\u0435\u0433\u043E \u0434\u043E\u043A\u0443\u043C\u0435\u043D\u0442\u0430",
   "command.show-diff": "\u041F\u043E\u043A\u0430\u0437\u0430\u0442\u044C \u0432\u0441\u0435 \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044F \u0442\u0435\u043A\u0443\u0449\u0435\u0433\u043E \u0434\u043E\u043A\u0443\u043C\u0435\u043D\u0442\u0430",
+  "command.open-vault-changes": "\u041E\u0442\u043A\u0440\u044B\u0442\u044C \u043F\u0430\u043D\u0435\u043B\u044C \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0439 \u0445\u0440\u0430\u043D\u0438\u043B\u0438\u0449\u0430",
   "notice.no-changes-to-navigate": "\u041D\u0435\u0442 \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0439 \u0434\u043B\u044F \u043D\u0430\u0432\u0438\u0433\u0430\u0446\u0438\u0438",
   "notice.all-snapshots-deleted": "\u0412\u0441\u0435 \u0434\u0430\u043D\u043D\u044B\u0435 \u0441\u043D\u0438\u043C\u043A\u043E\u0432 \u0443\u0434\u0430\u043B\u0435\u043D\u044B",
   "notice.current-snapshot-deleted": "\u0414\u0430\u043D\u043D\u044B\u0435 \u0442\u0435\u043A\u0443\u0449\u0435\u0433\u043E \u0441\u043D\u0438\u043C\u043A\u0430 \u0443\u0434\u0430\u043B\u0435\u043D\u044B",
@@ -11624,6 +11839,11 @@ var ru_default = {
   "view.recent-changes.menu.restore": "\u0412\u043E\u0441\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u044C \u044D\u0442\u0443 \u0432\u0435\u0440\u0441\u0438\u044E",
   "view.recent-changes.menu.delete": "\u0423\u0434\u0430\u043B\u0438\u0442\u044C \u0432\u0435\u0440\u0441\u0438\u044E",
   "view.recent-changes.menu.put-label": "\u041F\u043E\u0441\u0442\u0430\u0432\u0438\u0442\u044C \u043C\u0435\u0442\u043A\u0443",
+  "view.vault-changes.title": "\u0418\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044F \u0445\u0440\u0430\u043D\u0438\u043B\u0438\u0449\u0430",
+  "view.vault-changes.search-placeholder": "\u0424\u0438\u043B\u044C\u0442\u0440 \u043F\u043E \u0438\u043C\u0435\u043D\u0438 \u0444\u0430\u0439\u043B\u0430",
+  "view.vault-changes.layout.tree": "\u0414\u0435\u0440\u0435\u0432\u043E",
+  "view.vault-changes.layout.flat": "\u041F\u043B\u043E\u0441\u043A\u0438\u0439 \u0441\u043F\u0438\u0441\u043E\u043A",
+  "view.vault-changes.deleted-notice": "\u0424\u0430\u0439\u043B \u0443\u0434\u0430\u043B\u0451\u043D; \u0435\u0433\u043E \u0438\u0441\u0442\u043E\u0440\u0438\u044F \u0441\u043E\u0445\u0440\u0430\u043D\u0435\u043D\u0430.",
   "modal.label-selected": "\u041F\u043E\u0441\u0442\u0430\u0432\u0438\u0442\u044C \u043C\u0435\u0442\u043A\u0443 \u043D\u0430 \u0432\u044B\u0431\u0440\u0430\u043D\u043D\u0443\u044E \u0432\u0435\u0440\u0441\u0438\u044E",
   "modal.label-version.message": "\u041E\u0442\u043C\u0435\u0442\u044C\u0442\u0435 \u044D\u0442\u0443 \u0432\u0435\u0440\u0441\u0438\u044E \u043A\u043E\u0440\u043E\u0442\u043A\u043E\u0439 \u043C\u0435\u0442\u043A\u043E\u0439.",
   "notice.no-folder-history": "\u0418\u0441\u0442\u043E\u0440\u0438\u0438 \u043F\u0430\u043F\u043A\u0438 \u043F\u043E\u043A\u0430 \u043D\u0435\u0442.",
@@ -11660,6 +11880,7 @@ var sk_default = {
   "command.reset-lines-all": "Resetova\u0165 sn\xEDmky sledovania riadkov pre v\u0161etky s\xFAbory",
   "command.reset-lines": "Resetova\u0165 sn\xEDmku sledovania riadkov aktu\xE1lneho dokumentu",
   "command.show-diff": "Zobrazi\u0165 v\u0161etky zmeny aktu\xE1lneho dokumentu",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "\u017Diadne zmeny na prech\xE1dzanie",
   "notice.all-snapshots-deleted": "V\u0161etky d\xE1ta sn\xEDmok boli odstr\xE1nen\xE9",
   "notice.current-snapshot-deleted": "D\xE1ta aktu\xE1lnej sn\xEDmky boli odstr\xE1nen\xE9",
@@ -11794,6 +12015,11 @@ var sk_default = {
   "view.recent-changes.menu.restore": "Obnovi\u0165 t\xFAto verziu",
   "view.recent-changes.menu.delete": "Odstr\xE1ni\u0165 verziu",
   "view.recent-changes.menu.put-label": "Prida\u0165 \u0161t\xEDtok",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "Ozna\u010Di\u0165 vybran\xFA verziu",
   "modal.label-version.message": "Ozna\u010Dte t\xFAto verziu kr\xE1tkym \u0161t\xEDtkom.",
   "notice.no-folder-history": "Zatia\u013E \u017Eiadna hist\xF3ria prie\u010Dinka.",
@@ -11830,6 +12056,7 @@ var sq_default = {
   "command.reset-lines-all": "Rivendos t\xEB gjitha fotot e ndjekjes s\xEB rreshtave",
   "command.reset-lines": "Rivendos foton e ndjekjes s\xEB rreshtave t\xEB dokumentit aktual",
   "command.show-diff": "Shfaq t\xEB gjitha ndryshimet e dokumentit aktual",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "Nuk ka ndryshime p\xEBr t\xEB l\xEBvizur",
   "notice.all-snapshots-deleted": "U fshin\xEB t\xEB gjitha t\xEB dh\xEBnat e fotove",
   "notice.current-snapshot-deleted": "U fshin\xEB t\xEB dh\xEBnat e fotos aktuale",
@@ -11964,6 +12191,11 @@ var sq_default = {
   "view.recent-changes.menu.restore": "Rikthe k\xEBt\xEB version",
   "view.recent-changes.menu.delete": "Fshi versionin",
   "view.recent-changes.menu.put-label": "Vendos etiket\xEB",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "Etiketo versionin e zgjedhur",
   "modal.label-version.message": "Sh\xEBno k\xEBt\xEB version me nj\xEB etiket\xEB t\xEB shkurt\xEBr.",
   "notice.no-folder-history": "Ende nuk ka historik dosjeje.",
@@ -12000,6 +12232,7 @@ var sr_default = {
   "command.reset-lines-all": "\u0420\u0435\u0441\u0435\u0442\u0443\u0458 \u0441\u043D\u0438\u043C\u043A\u0435 \u043F\u0440\u0430\u0442\u0438\u043E\u0446\u0430 \u043B\u0438\u043D\u0438\u0458\u0430 \u0437\u0430 \u0441\u0432\u0435 \u0444\u0430\u0458\u043B\u043E\u0432\u0435",
   "command.reset-lines": "\u0420\u0435\u0441\u0435\u0442\u0443\u0458 \u0441\u043D\u0438\u043C\u0430\u043A \u043F\u0440\u0430\u0442\u0438\u043E\u0446\u0430 \u043B\u0438\u043D\u0438\u0458\u0430 \u0442\u0435\u043A\u0443\u045B\u0435\u0433 \u0434\u043E\u043A\u0443\u043C\u0435\u043D\u0442\u0430",
   "command.show-diff": "\u041F\u0440\u0438\u043A\u0430\u0436\u0438 \u0441\u0432\u0435 \u0438\u0437\u043C\u0435\u043D\u0435 \u0442\u0435\u043A\u0443\u045B\u0435\u0433 \u0434\u043E\u043A\u0443\u043C\u0435\u043D\u0442\u0430",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "\u041D\u0435\u043C\u0430 \u0438\u0437\u043C\u0435\u043D\u0430 \u0437\u0430 \u043D\u0430\u0432\u0438\u0433\u0430\u0446\u0438\u0458\u0443",
   "notice.all-snapshots-deleted": "\u0421\u0432\u0438 \u043F\u043E\u0434\u0430\u0446\u0438 \u0441\u043D\u0438\u043C\u0430\u043A\u0430 \u0441\u0443 \u043E\u0431\u0440\u0438\u0441\u0430\u043D\u0438",
   "notice.current-snapshot-deleted": "\u041F\u043E\u0434\u0430\u0446\u0438 \u0442\u0435\u043A\u0443\u045B\u0435\u0433 \u0441\u043D\u0438\u043C\u043A\u0430 \u0441\u0443 \u043E\u0431\u0440\u0438\u0441\u0430\u043D\u0438",
@@ -12134,6 +12367,11 @@ var sr_default = {
   "view.recent-changes.menu.restore": "\u0412\u0440\u0430\u0442\u0438 \u043E\u0432\u0443 \u0432\u0435\u0440\u0437\u0438\u0458\u0443",
   "view.recent-changes.menu.delete": "\u041E\u0431\u0440\u0438\u0448\u0438 \u0432\u0435\u0440\u0437\u0438\u0458\u0443",
   "view.recent-changes.menu.put-label": "\u041F\u043E\u0441\u0442\u0430\u0432\u0438 \u043E\u0437\u043D\u0430\u043A\u0443",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "\u041E\u0437\u043D\u0430\u0447\u0438 \u0438\u0437\u0430\u0431\u0440\u0430\u043D\u0443 \u0432\u0435\u0440\u0437\u0438\u0458\u0443",
   "modal.label-version.message": "\u041E\u0437\u043D\u0430\u0447\u0438\u0442\u0435 \u043E\u0432\u0443 \u0432\u0435\u0440\u0437\u0438\u0458\u0443 \u043A\u0440\u0430\u0442\u043A\u043E\u043C \u043E\u0437\u043D\u0430\u043A\u043E\u043C.",
   "notice.no-folder-history": "\u0408\u043E\u0448 \u043D\u0435\u043C\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0435 \u0444\u0430\u0441\u0446\u0438\u043A\u043B\u0435.",
@@ -12170,6 +12408,7 @@ var sv_default = {
   "command.reset-lines-all": "\xC5terst\xE4ll alla radsp\xE5rnings\xF6gonblicksbilder",
   "command.reset-lines": "\xC5terst\xE4ll radsp\xE5rnings\xF6gonblicksbild f\xF6r aktuellt dokument",
   "command.show-diff": "Visa alla \xE4ndringar i aktuellt dokument",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "Inga \xE4ndringar att navigera",
   "notice.all-snapshots-deleted": "Alla \xF6gonblicksbilder borttagna",
   "notice.current-snapshot-deleted": "Aktuell \xF6gonblicksbild borttagen",
@@ -12304,6 +12543,11 @@ var sv_default = {
   "view.recent-changes.menu.restore": "\xC5terst\xE4ll denna version",
   "view.recent-changes.menu.delete": "Ta bort version",
   "view.recent-changes.menu.put-label": "S\xE4tt etikett",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "S\xE4tt etikett p\xE5 vald version",
   "modal.label-version.message": "M\xE4rk denna version med en kort etikett.",
   "notice.no-folder-history": "Ingen mapphistorik \xE4nnu.",
@@ -12340,6 +12584,7 @@ var th_default = {
   "command.reset-lines-all": "\u0E23\u0E35\u0E40\u0E0B\u0E47\u0E15\u0E2A\u0E41\u0E19\u0E47\u0E1B\u0E0A\u0E47\u0E2D\u0E15\u0E02\u0E2D\u0E07\u0E15\u0E31\u0E27\u0E15\u0E34\u0E14\u0E15\u0E32\u0E21\u0E1A\u0E23\u0E23\u0E17\u0E31\u0E14\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14",
   "command.reset-lines": "\u0E23\u0E35\u0E40\u0E0B\u0E47\u0E15\u0E2A\u0E41\u0E19\u0E47\u0E1B\u0E0A\u0E47\u0E2D\u0E15\u0E02\u0E2D\u0E07\u0E15\u0E31\u0E27\u0E15\u0E34\u0E14\u0E15\u0E32\u0E21\u0E1A\u0E23\u0E23\u0E17\u0E31\u0E14\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E40\u0E2D\u0E01\u0E2A\u0E32\u0E23\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19",
   "command.show-diff": "\u0E41\u0E2A\u0E14\u0E07\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14\u0E02\u0E2D\u0E07\u0E40\u0E2D\u0E01\u0E2A\u0E32\u0E23\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "\u0E44\u0E21\u0E48\u0E21\u0E35\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E43\u0E2B\u0E49\u0E44\u0E1B\u0E22\u0E31\u0E07",
   "notice.all-snapshots-deleted": "\u0E25\u0E1A\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E2A\u0E41\u0E19\u0E47\u0E1B\u0E0A\u0E47\u0E2D\u0E15\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14\u0E41\u0E25\u0E49\u0E27",
   "notice.current-snapshot-deleted": "\u0E25\u0E1A\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E2A\u0E41\u0E19\u0E47\u0E1B\u0E0A\u0E47\u0E2D\u0E15\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19\u0E41\u0E25\u0E49\u0E27",
@@ -12474,6 +12719,11 @@ var th_default = {
   "view.recent-changes.menu.restore": "\u0E01\u0E39\u0E49\u0E04\u0E37\u0E19\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19\u0E19\u0E35\u0E49",
   "view.recent-changes.menu.delete": "\u0E25\u0E1A\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19",
   "view.recent-changes.menu.put-label": "\u0E43\u0E2A\u0E48\u0E1B\u0E49\u0E32\u0E22\u0E01\u0E33\u0E01\u0E31\u0E1A",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "\u0E43\u0E2A\u0E48\u0E1B\u0E49\u0E32\u0E22\u0E01\u0E33\u0E01\u0E31\u0E1A\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19\u0E17\u0E35\u0E48\u0E40\u0E25\u0E37\u0E2D\u0E01",
   "modal.label-version.message": "\u0E17\u0E33\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E2B\u0E21\u0E32\u0E22\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19\u0E19\u0E35\u0E49\u0E14\u0E49\u0E27\u0E22\u0E1B\u0E49\u0E32\u0E22\u0E01\u0E33\u0E01\u0E31\u0E1A\u0E2A\u0E31\u0E49\u0E19 \u0E46",
   "notice.no-folder-history": "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E42\u0E1F\u0E25\u0E40\u0E14\u0E2D\u0E23\u0E4C",
@@ -12510,6 +12760,7 @@ var tr_default = {
   "command.reset-lines-all": "T\xFCm sat\u0131r izleyici anl\u0131k g\xF6r\xFCnt\xFClerini s\u0131f\u0131rla",
   "command.reset-lines": "Ge\xE7erli belgenin sat\u0131r izleyici anl\u0131k g\xF6r\xFCnt\xFCs\xFCn\xFC s\u0131f\u0131rla",
   "command.show-diff": "Ge\xE7erli belgenin t\xFCm de\u011Fi\u015Fikliklerini g\xF6ster",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "Gezilecek de\u011Fi\u015Fiklik yok",
   "notice.all-snapshots-deleted": "T\xFCm anl\u0131k g\xF6r\xFCnt\xFC verileri silindi",
   "notice.current-snapshot-deleted": "Ge\xE7erli anl\u0131k g\xF6r\xFCnt\xFC verileri silindi",
@@ -12644,6 +12895,11 @@ var tr_default = {
   "view.recent-changes.menu.restore": "Bu s\xFCr\xFCm\xFC geri y\xFCkle",
   "view.recent-changes.menu.delete": "S\xFCr\xFCm\xFC sil",
   "view.recent-changes.menu.put-label": "Etiket koy",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "Se\xE7ilen s\xFCr\xFCm\xFC etiketle",
   "modal.label-version.message": "Bu s\xFCr\xFCm\xFC k\u0131sa bir etiketle i\u015Faretleyin.",
   "notice.no-folder-history": "Hen\xFCz klas\xF6r ge\xE7mi\u015Fi yok.",
@@ -12680,6 +12936,7 @@ var uk_default = {
   "command.reset-lines-all": "\u0421\u043A\u0438\u043D\u0443\u0442\u0438 \u0437\u043D\u0456\u043C\u043A\u0438 \u0442\u0440\u0435\u043A\u0435\u0440\u0430 \u0440\u044F\u0434\u043A\u0456\u0432 \u0434\u043B\u044F \u0432\u0441\u0456\u0445 \u0444\u0430\u0439\u043B\u0456\u0432",
   "command.reset-lines": "\u0421\u043A\u0438\u043D\u0443\u0442\u0438 \u0437\u043D\u0456\u043C\u043E\u043A \u0442\u0440\u0435\u043A\u0435\u0440\u0430 \u0440\u044F\u0434\u043A\u0456\u0432 \u043F\u043E\u0442\u043E\u0447\u043D\u043E\u0433\u043E \u0434\u043E\u043A\u0443\u043C\u0435\u043D\u0442\u0430",
   "command.show-diff": "\u041F\u043E\u043A\u0430\u0437\u0430\u0442\u0438 \u0432\u0441\u0456 \u0437\u043C\u0456\u043D\u0438 \u043F\u043E\u0442\u043E\u0447\u043D\u043E\u0433\u043E \u0434\u043E\u043A\u0443\u043C\u0435\u043D\u0442\u0430",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "\u041D\u0435\u043C\u0430\u0454 \u0437\u043C\u0456\u043D \u0434\u043B\u044F \u043D\u0430\u0432\u0456\u0433\u0430\u0446\u0456\u0457",
   "notice.all-snapshots-deleted": "\u0423\u0441\u0456 \u0434\u0430\u043D\u0456 \u0437\u043D\u0456\u043C\u043A\u0456\u0432 \u0432\u0438\u0434\u0430\u043B\u0435\u043D\u043E",
   "notice.current-snapshot-deleted": "\u0414\u0430\u043D\u0456 \u043F\u043E\u0442\u043E\u0447\u043D\u043E\u0433\u043E \u0437\u043D\u0456\u043C\u043A\u0430 \u0432\u0438\u0434\u0430\u043B\u0435\u043D\u043E",
@@ -12814,6 +13071,11 @@ var uk_default = {
   "view.recent-changes.menu.restore": "\u0412\u0456\u0434\u043D\u043E\u0432\u0438\u0442\u0438 \u0446\u044E \u0432\u0435\u0440\u0441\u0456\u044E",
   "view.recent-changes.menu.delete": "\u0412\u0438\u0434\u0430\u043B\u0438\u0442\u0438 \u0432\u0435\u0440\u0441\u0456\u044E",
   "view.recent-changes.menu.put-label": "\u041F\u043E\u0441\u0442\u0430\u0432\u0438\u0442\u0438 \u043C\u0456\u0442\u043A\u0443",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "\u041F\u043E\u0437\u043D\u0430\u0447\u0438\u0442\u0438 \u0432\u0438\u0431\u0440\u0430\u043D\u0443 \u0432\u0435\u0440\u0441\u0456\u044E",
   "modal.label-version.message": "\u041F\u043E\u0437\u043D\u0430\u0447\u0442\u0435 \u0446\u044E \u0432\u0435\u0440\u0441\u0456\u044E \u043A\u043E\u0440\u043E\u0442\u043A\u043E\u044E \u043C\u0456\u0442\u043A\u043E\u044E.",
   "notice.no-folder-history": "\u0406\u0441\u0442\u043E\u0440\u0456\u0457 \u0442\u0435\u043A\u0438 \u043F\u043E\u043A\u0438 \u043D\u0435\u043C\u0430\u0454.",
@@ -12850,6 +13112,7 @@ var uz_default = {
   "command.reset-lines-all": "Barcha qatorlar kuzatuvchisi suratlarini tiklash",
   "command.reset-lines": "Joriy hujjatning qatorlar kuzatuvchisi suratini tiklash",
   "command.show-diff": "Joriy hujjatning barcha o\u02BBzgarishlarini ko\u02BBrsatish",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "Harakatlanish uchun o\u02BBzgarishlar yo\u02BBq",
   "notice.all-snapshots-deleted": "Barcha surat ma\u02BClumotlari o\u02BBchirildi",
   "notice.current-snapshot-deleted": "Joriy surat ma\u02BClumotlari o\u02BBchirildi",
@@ -12984,6 +13247,11 @@ var uz_default = {
   "view.recent-changes.menu.restore": "Bu versiyani tiklash",
   "view.recent-changes.menu.delete": "Versiyani o\u02BBchirish",
   "view.recent-changes.menu.put-label": "Yorliq qo\u02BByish",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "Tanlangan versiyaga yorliq qo\u02BByish",
   "modal.label-version.message": "Bu versiyani qisqa yorliq bilan belgilang.",
   "notice.no-folder-history": "Hozircha papka tarixi yo\u02BBq.",
@@ -13020,6 +13288,7 @@ var vi_default = {
   "command.reset-lines-all": "\u0110\u1EB7t l\u1EA1i t\u1EA5t c\u1EA3 \u1EA3nh ch\u1EE5p c\u1EE7a tr\xECnh theo d\xF5i d\xF2ng",
   "command.reset-lines": "\u0110\u1EB7t l\u1EA1i \u1EA3nh ch\u1EE5p c\u1EE7a tr\xECnh theo d\xF5i d\xF2ng cho t\xE0i li\u1EC7u hi\u1EC7n t\u1EA1i",
   "command.show-diff": "Hi\u1EC3n th\u1ECB t\u1EA5t c\u1EA3 thay \u0111\u1ED5i c\u1EE7a t\xE0i li\u1EC7u hi\u1EC7n t\u1EA1i",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "Kh\xF4ng c\xF3 thay \u0111\u1ED5i n\xE0o \u0111\u1EC3 di chuy\u1EC3n t\u1EDBi",
   "notice.all-snapshots-deleted": "\u0110\xE3 x\xF3a to\xE0n b\u1ED9 d\u1EEF li\u1EC7u \u1EA3nh ch\u1EE5p",
   "notice.current-snapshot-deleted": "\u0110\xE3 x\xF3a d\u1EEF li\u1EC7u \u1EA3nh ch\u1EE5p hi\u1EC7n t\u1EA1i",
@@ -13154,6 +13423,11 @@ var vi_default = {
   "view.recent-changes.menu.restore": "Kh\xF4i ph\u1EE5c phi\xEAn b\u1EA3n n\xE0y",
   "view.recent-changes.menu.delete": "X\xF3a phi\xEAn b\u1EA3n",
   "view.recent-changes.menu.put-label": "G\u1EAFn nh\xE3n",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "G\u1EAFn nh\xE3n phi\xEAn b\u1EA3n \u0111\xE3 ch\u1ECDn",
   "modal.label-version.message": "\u0110\xE1nh d\u1EA5u phi\xEAn b\u1EA3n n\xE0y b\u1EB1ng m\u1ED9t nh\xE3n ng\u1EAFn.",
   "notice.no-folder-history": "Ch\u01B0a c\xF3 l\u1ECBch s\u1EED th\u01B0 m\u1EE5c.",
@@ -13190,6 +13464,7 @@ var zh_default = {
   "command.reset-lines-all": "\u91CD\u7F6E\u6240\u6709\u884C\u8FFD\u8E2A\u5FEB\u7167",
   "command.reset-lines": "\u91CD\u7F6E\u5F53\u524D\u6587\u6863\u7684\u884C\u8FFD\u8E2A\u5FEB\u7167",
   "command.show-diff": "\u663E\u793A\u5F53\u524D\u6587\u6863\u7684\u6240\u6709\u66F4\u6539",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "\u6CA1\u6709\u53EF\u8DF3\u8F6C\u7684\u66F4\u6539",
   "notice.all-snapshots-deleted": "\u5DF2\u5220\u9664\u6240\u6709\u5FEB\u7167\u6570\u636E",
   "notice.current-snapshot-deleted": "\u5DF2\u5220\u9664\u5F53\u524D\u5FEB\u7167\u6570\u636E",
@@ -13324,6 +13599,11 @@ var zh_default = {
   "view.recent-changes.menu.restore": "\u6062\u590D\u6B64\u7248\u672C",
   "view.recent-changes.menu.delete": "\u5220\u9664\u7248\u672C",
   "view.recent-changes.menu.put-label": "\u6DFB\u52A0\u6807\u7B7E",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "\u4E3A\u6240\u9009\u7248\u672C\u6DFB\u52A0\u6807\u7B7E",
   "modal.label-version.message": "\u7528\u7B80\u77ED\u6807\u7B7E\u6807\u8BB0\u6B64\u7248\u672C\u3002",
   "notice.no-folder-history": "\u5C1A\u65E0\u6587\u4EF6\u5939\u5386\u53F2\u3002",
@@ -13360,6 +13640,7 @@ var zh_TW_default = {
   "command.reset-lines-all": "\u91CD\u8A2D\u6240\u6709\u884C\u8FFD\u8E64\u5FEB\u7167",
   "command.reset-lines": "\u91CD\u8A2D\u76EE\u524D\u6587\u4EF6\u7684\u884C\u8FFD\u8E64\u5FEB\u7167",
   "command.show-diff": "\u986F\u793A\u76EE\u524D\u6587\u4EF6\u7684\u6240\u6709\u8B8A\u66F4",
+  "command.open-vault-changes": "Open vault changes panel",
   "notice.no-changes-to-navigate": "\u6C92\u6709\u53EF\u8DF3\u81F3\u7684\u8B8A\u66F4",
   "notice.all-snapshots-deleted": "\u5DF2\u522A\u9664\u6240\u6709\u5FEB\u7167\u8CC7\u6599",
   "notice.current-snapshot-deleted": "\u5DF2\u522A\u9664\u76EE\u524D\u5FEB\u7167\u8CC7\u6599",
@@ -13494,6 +13775,11 @@ var zh_TW_default = {
   "view.recent-changes.menu.restore": "\u9084\u539F\u6B64\u7248\u672C",
   "view.recent-changes.menu.delete": "\u522A\u9664\u7248\u672C",
   "view.recent-changes.menu.put-label": "\u52A0\u4E0A\u6A19\u7C64",
+  "view.vault-changes.title": "Vault changes",
+  "view.vault-changes.search-placeholder": "Filter by file name",
+  "view.vault-changes.layout.tree": "Tree",
+  "view.vault-changes.layout.flat": "Flat list",
+  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
   "modal.label-selected": "\u70BA\u6240\u9078\u7248\u672C\u52A0\u4E0A\u6A19\u7C64",
   "modal.label-version.message": "\u4EE5\u7C21\u77ED\u6A19\u7C64\u6A19\u8A18\u6B64\u7248\u672C\u3002",
   "notice.no-folder-history": "\u5C1A\u7121\u8CC7\u6599\u593E\u6B77\u53F2\u3002",
@@ -15402,6 +15688,28 @@ var FolderTreeModel = class _FolderTreeModel {
     return false;
   }
   /**
+   * Collects every file leaf under `node` into `acc`, depth-first in render
+   * order. Folder nodes are recursed into but never collected; only file leaves
+   * land in the accumulator. Used by the flat layout, which lists files without
+   * their folder scaffolding.
+   *
+   * @param {FolderTreeNode | null} node - The node to walk
+   * @param {FolderTreeNode[]} acc - The accumulator collecting file leaves
+   * @return {void}
+   */
+  static collectFiles(node, acc) {
+    if (!node) {
+      return;
+    }
+    for (const child of node.children) {
+      if (child.isFolder) {
+        _FolderTreeModel.collectFiles(child, acc);
+      } else {
+        acc.push(child);
+      }
+    }
+  }
+  /**
    * Returns the path of the first file in render order under `node`, or null.
    *
    * @param {FolderTreeNode | null} node - The node to search under
@@ -15465,6 +15773,17 @@ var FolderTreeModel = class _FolderTreeModel {
     return _FolderTreeModel.firstFileUnder(this.rootNode);
   }
   /**
+   * Returns every file leaf in the built tree, in render order. The flat layout
+   * renders these directly (sorted by full path), skipping the folder rows.
+   *
+   * @return {FolderTreeNode[]} The file leaves of the current tree
+   */
+  allFiles() {
+    const acc = [];
+    _FolderTreeModel.collectFiles(this.rootNode, acc);
+    return acc;
+  }
+  /**
    * Drops the owned tree so a disposed component leaves no stale reference.
    *
    * @return {void}
@@ -15486,6 +15805,13 @@ var FolderTreeComponent = class {
     this.selectedPath = null;
     /** Collapsed folder paths; absence in this set means "expanded" (initial). */
     this.collapsedFolders = /* @__PURE__ */ new Set();
+    /**
+     * Active layout. `tree` renders the nested folder scaffolding (the folder
+     * modal's only mode); `flat` renders a single sorted file list with each
+     * file's containing path shown inline. A view concern like the name filter:
+     * it never rebuilds the node tree, so it survives across `update` calls.
+     */
+    this.layout = "tree" /* tree */;
     /**
      * Case-insensitive substring filter applied to file names at render time.
      * Empty shows the whole tree. A view-only concern: it never rebuilds the
@@ -15563,6 +15889,21 @@ var FolderTreeComponent = class {
     this.render();
   }
   /**
+   * Switches the layout and re-renders. A no-op when the layout is unchanged so
+   * a redundant toggle does not thrash the DOM. Like the name filter, this never
+   * rebuilds the node tree, so the selection and collapse state are preserved.
+   *
+   * @param {ChangesLayout} layout - The layout to render in
+   * @return {void}
+   */
+  setLayout(layout) {
+    if (layout === this.layout) {
+      return;
+    }
+    this.layout = layout;
+    this.render();
+  }
+  /**
    * Tears the component down: drops references and clears the container so
    * the modal can dispose without leaving stale DOM. The expand/collapse map
    * is cleared too, which is the documented lifetime boundary (AC4).
@@ -15594,19 +15935,59 @@ var FolderTreeComponent = class {
       return;
     }
     this.container.empty();
+    if (this.layout === "flat" /* flat */) {
+      this.renderFlat(this.container);
+      return;
+    }
+    this.renderTree(this.container);
+  }
+  /**
+   * Renders the nested folder tree: the top-level entries and, recursively, the
+   * children of every expanded folder. Emits the empty-state hint when no
+   * changed file survives the active name filter.
+   *
+   * @param {HTMLElement} container - The host container to render into
+   * @return {void}
+   */
+  renderTree(container) {
     const root2 = this.model.getRoot();
     const visibleChildren = root2 ? root2.children.filter((child) => FolderTreeModel.nodeVisible(child, this.nameFilter)) : [];
     if (visibleChildren.length === 0) {
-      this.renderEmpty(this.container);
+      this.renderEmpty(container);
       return;
     }
     const list = create({
       tag: "div",
       classes: ["nav-files-container", "lct-folder-tree"],
-      container: this.container
+      container
     });
     visibleChildren.forEach((child) => {
       this.renderNode(list, child, 0);
+    });
+  }
+  /**
+   * Renders the flat layout: every changed file as one row, sorted by full path,
+   * with no folder scaffolding. Each row shows the file name and its containing
+   * path inline so the file stays locatable without the tree. Honors the active
+   * name filter and emits the same empty-state hint as the tree when nothing
+   * matches.
+   *
+   * @param {HTMLElement} container - The host container to render into
+   * @return {void}
+   */
+  renderFlat(container) {
+    const files = this.model.allFiles().filter((file) => FolderTreeModel.nodeVisible(file, this.nameFilter)).sort((a, b) => a.path.localeCompare(b.path));
+    if (files.length === 0) {
+      this.renderEmpty(container);
+      return;
+    }
+    const list = create({
+      tag: "div",
+      classes: ["nav-files-container", "lct-folder-tree", "lct-folder-tree-flat"],
+      container
+    });
+    files.forEach((file) => {
+      this.renderFlatFile(list, file);
     });
   }
   /**
@@ -15757,6 +16138,74 @@ var FolderTreeComponent = class {
       text: node.name,
       container: row
     });
+    if (node.external) {
+      this.renderExternalBadge(row);
+    }
+  }
+  /**
+   * Renders a single file row in the flat layout: the status-coloured file name
+   * stacked over its containing path (muted), with no depth indentation. Shares
+   * the tree file row's status class, selection handling, and external badge so
+   * the two layouts read consistently; only the structure differs (a name+path
+   * stack instead of an indented single line). A file at the vault root shows no
+   * path line.
+   *
+   * @param {HTMLElement} container - The host container
+   * @param {FolderTreeNode} node - The file node
+   * @return {void}
+   */
+  renderFlatFile(container, node) {
+    const statusClass = this.statusClassName(node.status);
+    const classes = [
+      "tree-item-self",
+      "nav-file-title",
+      "is-clickable",
+      "lct-folder-tree-row",
+      "lct-folder-tree-file",
+      "lct-folder-tree-flat-file",
+      statusClass
+    ];
+    if (this.selectedPath === node.path) {
+      classes.push("is-active");
+    }
+    const row = create({
+      tag: "div",
+      classes,
+      attributes: { "data-path": node.path },
+      events: {
+        click: (event) => {
+          event.preventDefault();
+          this.selectFile(node.path);
+        }
+      },
+      container
+    });
+    const icon = create({
+      tag: "span",
+      classes: "lct-folder-tree-icon",
+      container: row
+    });
+    (0, import_obsidian16.setIcon)(icon, "file");
+    const main = create({
+      tag: "span",
+      classes: "lct-folder-tree-flat-main",
+      container: row
+    });
+    create({
+      tag: "span",
+      classes: ["tree-item-inner", "nav-file-title-content", "lct-folder-tree-name"],
+      text: node.name,
+      container: main
+    });
+    const slash = node.path.lastIndexOf("/");
+    if (slash >= 0) {
+      create({
+        tag: "span",
+        classes: "lct-folder-tree-path",
+        text: node.path.slice(0, slash),
+        container: main
+      });
+    }
     if (node.external) {
       this.renderExternalBadge(row);
     }
@@ -29414,13 +29863,306 @@ var RecentChangesView = class extends import_obsidian32.ItemView {
   }
 };
 
+// src/helpers/vault-changes.helper.ts
+function isBlankContent(lines2) {
+  return lines2.length === 0 || lines2.length === 1 && lines2[0] === "";
+}
+function contentEquals2(a, b) {
+  if (a.length !== b.length) {
+    return false;
+  }
+  for (let i = 0; i < a.length; i += 1) {
+    if (a[i] !== b[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+function latestIsExternal(snapshot) {
+  const versions = snapshot.timeline.getVersions();
+  return versions.length > 0 && versions[0].isExternal();
+}
+function statusOf2(snapshot) {
+  if (snapshot.isTombstone()) {
+    return "deleted" /* deleted */;
+  }
+  const origin = snapshot.content.getHistoryOriginalStateLines();
+  const current = snapshot.content.getLastStateLines();
+  if (snapshot.createdThisSession || isBlankContent(origin) && !isBlankContent(current)) {
+    return "added" /* added */;
+  }
+  if (!contentEquals2(origin, current)) {
+    return "modified" /* modified */;
+  }
+  return "none" /* none */;
+}
+function collectEntries(snapshots, include) {
+  var _a, _b;
+  const entries = [];
+  for (const snapshot of snapshots) {
+    const path = (_b = (_a = snapshot.file) == null ? void 0 : _a.path) != null ? _b : snapshot.path;
+    if (!path || include && !include(path)) {
+      continue;
+    }
+    const status = statusOf2(snapshot);
+    if (status === "none" /* none */) {
+      continue;
+    }
+    entries.push({ path, status, external: latestIsExternal(snapshot) });
+  }
+  return entries;
+}
+
+// src/views/vault-changes.view.ts
+var import_obsidian33 = require("obsidian");
+var VaultChangesView = class extends import_obsidian33.ItemView {
+  /**
+   * Creates a new instance of VaultChangesView.
+   *
+   * @param {WorkspaceLeaf} leaf - The workspace leaf hosting this view
+   * @param {LineChangeTrackerPlugin} plugin - The plugin instance, retained so
+   *   the view can reach services through the DI container
+   */
+  constructor(leaf, plugin) {
+    super(leaf);
+    this.plugin = plugin;
+    /** The tree/flat renderer; mounted on open, disposed on close. */
+    this.tree = new FolderTreeComponent();
+  }
+  /**
+   * Resolves the view type id this view exposes. Convenience for the reveal
+   * entry point (and tests) so callers do not have to import the constant.
+   *
+   * @return {string} The view type id
+   */
+  static get viewType() {
+    return VAULT_CHANGES_VIEW_TYPE;
+  }
+  /**
+   * Returns the stable view type id used to register and look up the view.
+   *
+   * @return {string} The view type id
+   * @override
+   */
+  getViewType() {
+    return VAULT_CHANGES_VIEW_TYPE;
+  }
+  /**
+   * Returns the user-facing title rendered in the sidebar tab.
+   *
+   * @return {string} The localized display text
+   * @override
+   */
+  getDisplayText() {
+    return this.plugin.t("view.vault-changes.title");
+  }
+  /**
+   * Returns the Lucide icon id rendered in the sidebar tab. A file tree reads as
+   * "changed files across the vault".
+   *
+   * @return {IconName} The Lucide icon id
+   * @override
+   */
+  getIcon() {
+    return "folder-git-2";
+  }
+  /**
+   * Lifecycle hook called when Obsidian opens the view. Builds the header
+   * (search + layout toggle), mounts the tree, subscribes to snapshot updates,
+   * and renders the initial state. The subscription is torn down through the
+   * Component `register` cleanup so a detach leaks nothing.
+   *
+   * @return {Promise<void>} Resolves once the host is prepared
+   * @override
+   */
+  async onOpen() {
+    this.contentEl.empty();
+    this.contentEl.addClass("lct-vault-changes-view");
+    this.buildHeader(this.contentEl);
+    const listEl = create({
+      tag: "div",
+      classes: "lct-vault-changes-list",
+      container: this.contentEl
+    });
+    this.tree.mount(listEl, (path) => this.openPath(path), this.plugin);
+    this.tree.setLayout(this.currentLayout());
+    const onSnapshotUpdate = () => this.render();
+    this.plugin.on("snapshots:update" /* snapshotsUpdate */, onSnapshotUpdate, this);
+    this.register(() => {
+      this.plugin.off("snapshots:update" /* snapshotsUpdate */, onSnapshotUpdate, this);
+    });
+    this.render();
+  }
+  /**
+   * Lifecycle hook called when Obsidian closes the view. Disposes the tree and
+   * clears the content host so a re-open starts clean. Component lifetime handles
+   * the registered event ref.
+   *
+   * @return {Promise<void>} Resolves once the host is cleared
+   * @override
+   */
+  async onClose() {
+    this.tree.dispose();
+    this.contentEl.empty();
+    this.searchComponent = void 0;
+    this.treeButton = void 0;
+    this.flatButton = void 0;
+  }
+  /**
+   * Builds the header row: a name-filter search box and the tree/flat layout
+   * toggle. The search drives the tree's name filter; the toggle persists the
+   * choice and re-lays out the list without rebuilding it.
+   *
+   * @param {HTMLElement} container - The content host to build the header into
+   * @return {void}
+   */
+  buildHeader(container) {
+    const header = create({
+      tag: "div",
+      classes: "lct-vault-changes-header",
+      container
+    });
+    const searchEl = create({
+      tag: "div",
+      classes: "lct-vault-changes-search",
+      container: header
+    });
+    this.searchComponent = new import_obsidian33.SearchComponent(searchEl).setPlaceholder(this.plugin.t("view.vault-changes.search-placeholder")).onChange((value) => {
+      this.tree.setNameFilter(value);
+    });
+    const toggle = create({
+      tag: "div",
+      classes: "lct-vault-changes-layout-toggle",
+      container: header
+    });
+    this.treeButton = this.makeToggleButton(
+      toggle,
+      "folder-tree",
+      this.plugin.t("view.vault-changes.layout.tree"),
+      "tree" /* tree */
+    );
+    this.flatButton = this.makeToggleButton(
+      toggle,
+      "list",
+      this.plugin.t("view.vault-changes.layout.flat"),
+      "flat" /* flat */
+    );
+    this.updateToggleActive(this.currentLayout());
+  }
+  /**
+   * Builds one layout-toggle icon button. Reuses Obsidian's `clickable-icon`
+   * look; the active layout's button is marked with `is-active` (see
+   * {@link updateToggleActive}). Clicking applies and persists the layout.
+   *
+   * @param {HTMLElement} container - The toggle group container
+   * @param {IconName} icon - The Lucide icon id for the button
+   * @param {string} label - The accessible label / tooltip
+   * @param {ChangesLayout} layout - The layout this button selects
+   * @return {HTMLElement} The created button element
+   */
+  makeToggleButton(container, icon, label, layout) {
+    const button = create({
+      tag: "div",
+      classes: ["clickable-icon", "lct-vault-changes-layout-button"],
+      attributes: { "aria-label": label },
+      events: {
+        click: () => this.applyLayout(layout)
+      },
+      container
+    });
+    (0, import_obsidian33.setIcon)(button, icon);
+    return button;
+  }
+  /**
+   * Applies and persists a layout choice, then re-lays out the list. A no-op
+   * beyond the persist when the layout is unchanged (the tree component ignores
+   * a same-layout call), so a redundant click is cheap.
+   *
+   * @param {ChangesLayout} layout - The layout to switch to
+   * @return {void}
+   */
+  applyLayout(layout) {
+    this.settingsService().update("vaultChangesLayout", layout);
+    this.tree.setLayout(layout);
+    this.updateToggleActive(layout);
+  }
+  /**
+   * Marks the active layout's toggle button and clears the other, so the header
+   * reflects the current layout.
+   *
+   * @param {ChangesLayout} layout - The currently active layout
+   * @return {void}
+   */
+  updateToggleActive(layout) {
+    var _a, _b;
+    (_a = this.treeButton) == null ? void 0 : _a.classList.toggle("is-active", layout === "tree" /* tree */);
+    (_b = this.flatButton) == null ? void 0 : _b.classList.toggle("is-active", layout === "flat" /* flat */);
+  }
+  /**
+   * Collects the vault-wide changed-file entries and hands them to the tree,
+   * rooted at the vault root so every changed file shows. Excluded paths (our
+   * own patterns and the plugin's own data dir) are filtered out so the panel
+   * never lists a file the rest of the plugin ignores.
+   *
+   * @return {void}
+   */
+  render() {
+    const snapshots = this.snapshotsService();
+    const entries = collectEntries(
+      snapshots.getList(),
+      (path) => !snapshots.isPathExcluded(path)
+    );
+    this.tree.update({ entries, rootPath: "" });
+  }
+  /**
+   * Opens the file at `path` in the active leaf. A deleted file (tombstone) has
+   * no live file to open, so the panel reports an inline notice rather than
+   * silently doing nothing.
+   *
+   * @param {string} path - The vault-relative path of the clicked file
+   * @return {void}
+   */
+  openPath(path) {
+    const file = this.plugin.getFileByPath(path);
+    if (!file) {
+      new import_obsidian33.Notice(this.plugin.t("view.vault-changes.deleted-notice"));
+      return;
+    }
+    void this.app.workspace.getLeaf(false).openFile(file);
+  }
+  /**
+   * The persisted layout choice, defaulting through the settings default.
+   *
+   * @return {ChangesLayout} The current layout
+   */
+  currentLayout() {
+    return this.settingsService().value("vaultChangesLayout");
+  }
+  /**
+   * Resolves the snapshots service through the DI container.
+   *
+   * @return {SnapshotsService} The snapshots service
+   */
+  snapshotsService() {
+    return this.plugin.get(TOKENS.snapshots);
+  }
+  /**
+   * Resolves the settings service through the DI container.
+   *
+   * @return {SettingsService} The settings service
+   */
+  settingsService() {
+    return this.plugin.get(TOKENS.settings);
+  }
+};
+
 // node_modules/eventemitter3/index.mjs
 var import_index = __toESM(require_eventemitter3(), 1);
 var eventemitter3_default = import_index.default;
 
 // src/main.ts
-var import_obsidian33 = require("obsidian");
-var LineChangeTrackerPlugin = class extends import_obsidian33.Plugin {
+var import_obsidian34 = require("obsidian");
+var LineChangeTrackerPlugin = class extends import_obsidian34.Plugin {
   /**
    * Creates a new instance of the LineChangeTrackerPlugin.
    * Registers all required services during initialization.
@@ -29524,6 +30266,13 @@ var LineChangeTrackerPlugin = class extends import_obsidian33.Plugin {
       RECENT_CHANGES_VIEW_TYPE,
       (leaf) => new RecentChangesView(leaf, this)
     );
+    this.registerView(
+      VAULT_CHANGES_VIEW_TYPE,
+      (leaf) => new VaultChangesView(leaf, this)
+    );
+    this.addRibbonIcon("folder-git-2", this.t("command.open-vault-changes"), () => {
+      void this.revealVaultChanges();
+    });
     this.ready = true;
     this.forceUpdateEditor();
   }
@@ -29593,7 +30342,7 @@ var LineChangeTrackerPlugin = class extends import_obsidian33.Plugin {
    * @return {MarkdownView | null} The active markdown view, or null if none is active
    */
   getActiveViewOfType() {
-    return this.app.workspace.getActiveViewOfType(import_obsidian33.MarkdownView);
+    return this.app.workspace.getActiveViewOfType(import_obsidian34.MarkdownView);
   }
   /**
    * Gets the active file.
@@ -29614,7 +30363,7 @@ var LineChangeTrackerPlugin = class extends import_obsidian33.Plugin {
    */
   getFileByPath(path) {
     const file = this.app.vault.getAbstractFileByPath(path);
-    return file instanceof import_obsidian33.TFile ? file : null;
+    return file instanceof import_obsidian34.TFile ? file : null;
   }
   /**
    * Reveals the Recent changes panel in the right sidebar.
@@ -29638,6 +30387,30 @@ var LineChangeTrackerPlugin = class extends import_obsidian33.Plugin {
       return;
     }
     await leaf.setViewState({ type: RECENT_CHANGES_VIEW_TYPE, active: true });
+    await this.app.workspace.revealLeaf(leaf);
+  }
+  /**
+   * Reveals the vault-wide changes panel in the right sidebar.
+   *
+   * Mirrors {@link revealRecentChanges}: reuses an existing leaf when one is
+   * open so a second invocation focuses the panel rather than spawning a
+   * duplicate, and falls back to a fresh right-sidebar leaf otherwise. When the
+   * right sidebar is unavailable the call resolves silently so the ribbon and
+   * command entry points stay safe.
+   *
+   * @return {Promise<void>} Resolves once the leaf is created and revealed
+   */
+  async revealVaultChanges() {
+    const existing = this.app.workspace.getLeavesOfType(VAULT_CHANGES_VIEW_TYPE);
+    if (existing.length > 0) {
+      await this.app.workspace.revealLeaf(existing[0]);
+      return;
+    }
+    const leaf = this.app.workspace.getRightLeaf(false);
+    if (!leaf) {
+      return;
+    }
+    await leaf.setViewState({ type: VAULT_CHANGES_VIEW_TYPE, active: true });
     await this.app.workspace.revealLeaf(leaf);
   }
   /**

@@ -61,6 +61,14 @@ export class VaultCreateEvent extends BaseEvent {
       return;
     }
 
+    // The plugin's own history shards (`<plugin dir>/history/*.json[.tmp]`) are
+    // created inside the vault, so vault.create fires for them too. They are
+    // never trackable; skip them before markCreatedThisSession so the plugin
+    // does not track a history of its own history.
+    if (this.snapshotsService.isOwnPluginPath(file.path)) {
+      return;
+    }
+
     /**
      * Record the created path for the tree/tab decorator BEFORE the ignore-list
      * branch. A file created this session reads as "added" in the tree

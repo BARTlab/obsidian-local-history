@@ -190,6 +190,7 @@ describe('VaultCreateEvent', () => {
     event: VaultCreateEvent;
     snapshots: {
       isInAllowedExtensions: jest.Mock;
+      isOwnPluginPath: jest.Mock;
       ignoreList: { add: jest.Mock };
       capture: jest.Mock;
       getOne: jest.Mock;
@@ -198,6 +199,7 @@ describe('VaultCreateEvent', () => {
   } => {
     const snapshots = {
       isInAllowedExtensions: jest.fn().mockReturnValue(true),
+      isOwnPluginPath: jest.fn().mockReturnValue(false),
       ignoreList: { add: jest.fn() },
       capture: jest.fn().mockReturnValue(Promise.resolve()),
       getOne: jest.fn().mockReturnValue(snapshot),
@@ -276,6 +278,19 @@ describe('VaultCreateEvent', () => {
 
     event.handler(folder);
 
+    expect(snapshots.capture).not.toHaveBeenCalled();
+    expect(snapshots.ignoreList.add).not.toHaveBeenCalled();
+  });
+
+  it('skips the plugin history-shard files before marking or capturing', () => {
+    const { event, snapshots } = makeCreateContext(false);
+    snapshots.isOwnPluginPath.mockReturnValue(true);
+    const shard: TFile = makeFile('.obsidian/plugins/local-history/history/abc.json');
+
+    event.handler(shard);
+
+    expect(snapshots.isOwnPluginPath).toHaveBeenCalledWith('.obsidian/plugins/local-history/history/abc.json');
+    expect(snapshots.markCreatedThisSession).not.toHaveBeenCalled();
     expect(snapshots.capture).not.toHaveBeenCalled();
     expect(snapshots.ignoreList.add).not.toHaveBeenCalled();
   });

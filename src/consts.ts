@@ -180,7 +180,7 @@ export const DEFAULT_SETTINGS: LineChangeTrackerSettings = {
   allowedExtensions: 'md, txt, csv, json, yaml',
   excludePaths: [],
   excludePathsCaseSensitive: false,
-  ignoreNewFiles: true,
+  ignoreNewFiles: false,
   treeHighlight: true,
   propertiesHighlight: true,
   readingModeIndicator: false,

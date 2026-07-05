@@ -80,6 +80,7 @@ const makeModalsServiceMock = (): {
 const makePlugin = (
   service: ReturnType<typeof makeModalsServiceMock>,
   reveal: jest.Mock,
+  revealVault: jest.Mock,
 ): LineChangeTrackerPlugin => {
   const container: Map<unknown, unknown> = new Map<unknown, unknown>([
     [TOKENS.modals, service as unknown as ModalsService],
@@ -89,6 +90,7 @@ const makePlugin = (
     get: (key: unknown): unknown => container.get(key),
     t: (key: string): string => key,
     revealRecentChanges: reveal,
+    revealVaultChanges: revealVault,
   } as unknown as LineChangeTrackerPlugin;
 };
 
@@ -100,19 +102,21 @@ type HandlerArgs = Parameters<WorkspaceEditorMenuEvent['handler']>;
 describe('WorkspaceEditorMenuEvent', () => {
   let service: ReturnType<typeof makeModalsServiceMock>;
   let reveal: jest.Mock;
+  let revealVault: jest.Mock;
   let event: WorkspaceEditorMenuEvent;
 
   beforeEach((): void => {
     service = makeModalsServiceMock();
     reveal = jest.fn();
-    event = new WorkspaceEditorMenuEvent(makePlugin(service, reveal));
+    revealVault = jest.fn();
+    event = new WorkspaceEditorMenuEvent(makePlugin(service, reveal, revealVault));
   });
 
   it('declares the workspace.editor-menu event name', () => {
     expect(event.name).toBe('workspace.editor-menu');
   });
 
-  it('adds a Local history parent with the four PhpStorm-style submenu entries', () => {
+  it('adds a Local history parent with the five PhpStorm-style submenu entries', () => {
     const menu = makeMenu();
 
     event.handler(menu as unknown as HandlerArgs[0], makeEditor(''), {} as MarkdownView);
@@ -129,6 +133,7 @@ describe('WorkspaceEditorMenuEvent', () => {
       'menu.local-history.show-history-selection',
       'menu.local-history.put-label',
       'menu.local-history.recent-changes',
+      'view.vault-changes.title',
     ]);
   });
 
@@ -167,5 +172,15 @@ describe('WorkspaceEditorMenuEvent', () => {
     menu.children[0].items[3].click?.();
 
     expect(reveal).toHaveBeenCalledTimes(1);
+  });
+
+  it('routes Vault changes to plugin.revealVaultChanges', () => {
+    const menu = makeMenu();
+
+    event.handler(menu as unknown as HandlerArgs[0], makeEditor(''), {} as MarkdownView);
+    menu.children[0].items[4].click?.();
+
+    expect(revealVault).toHaveBeenCalledTimes(1);
+    expect(reveal).not.toHaveBeenCalled();
   });
 });

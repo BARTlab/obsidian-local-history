@@ -14,14 +14,15 @@ import { Notice } from 'obsidian';
  * Mirrors the editor context menu's PhpStorm-style submenu on
  * vault entries:
  *
- * - On a `TFile`, the parent "Local history" expands to three entries: Show
+ * - On a `TFile`, the parent "Local history" expands to four entries: Show
  *   History (opens the diff modal via ModalsService.diff), Put label (prompts
- *   for a label via ModalsService.putLabel), and Recent changes (reveals the
- *   right-sidebar panel via plugin.revealRecentChanges).
- * - On a `TFolder`, the parent expands to two entries: Show History (opens
- *   the folder history modal via ModalsService.openFolderHistory) and Recent changes. Put label is omitted on
- *   folders: a folder has no captured content of its own, so the label entry
- *   has no defined target.
+ *   for a label via ModalsService.putLabel), Recent changes (reveals the
+ *   file-scoped right-sidebar panel via plugin.revealRecentChanges), and Vault
+ *   changes (reveals the vault-wide panel via plugin.revealVaultChanges).
+ * - On a `TFolder`, the parent expands to three entries: Show History (opens
+ *   the folder history modal via ModalsService.openFolderHistory), Recent
+ *   changes, and Vault changes. Put label is omitted on folders: a folder has
+ *   no captured content of its own, so the label entry has no defined target.
  * - Any other `TAbstractFile` (neither file nor folder) short-circuits before
  *   the parent item is added, so the menu surface is unchanged.
  *
@@ -113,6 +114,15 @@ export class WorkspaceFilesMenuEvent extends BaseEvent {
           void this.plugin.revealRecentChanges();
         });
     });
+
+    submenu.addItem((item: MenuItem): void => {
+      item
+        .setTitle(this.plugin.t('view.vault-changes.title'))
+        .setIcon('folder-git-2')
+        .onClick((): void => {
+          void this.plugin.revealVaultChanges();
+        });
+    });
   }
 
   /**
@@ -139,6 +149,15 @@ export class WorkspaceFilesMenuEvent extends BaseEvent {
         .setIcon('clock')
         .onClick((): void => {
           void this.plugin.revealRecentChanges();
+        });
+    });
+
+    submenu.addItem((item: MenuItem): void => {
+      item
+        .setTitle(this.plugin.t('view.vault-changes.title'))
+        .setIcon('folder-git-2')
+        .onClick((): void => {
+          void this.plugin.revealVaultChanges();
         });
     });
   }

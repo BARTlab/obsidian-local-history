@@ -1,11 +1,13 @@
 import { FolderTreeComponent } from '@/components/folder-tree.component';
-import { ChangesLayout, PluginEvent, VAULT_CHANGES_VIEW_TYPE } from '@/consts';
+import { ChangesLayout, type KeepHistory, PluginEvent, VAULT_CHANGES_VIEW_TYPE } from '@/consts';
 import * as DomHelper from '@/helpers/dom.helper';
+import { resolveOrigin } from '@/helpers/origin.helper';
 import * as VaultChangesHelper from '@/helpers/vault-changes.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import { TOKENS } from '@/services/tokens';
+import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FolderTreeEntry } from '@/types';
 import {
   type IconName,
@@ -19,12 +21,14 @@ import {
 
 /**
  * Right-sidebar navigator listing every file the plugin still sees as changed
- * against its history origin: modified files, files born under tracking
- * (added), and deleted files kept as tombstones. Unlike the Recent changes
- * panel (which times one active file's versions) this is vault-wide and
- * whole-history: it survives a restart because the status is measured against
- * the persisted origin, not the session marker baseline (see
- * {@link VaultChangesHelper}).
+ * against the RESOLVED origin (see `resolveOrigin`): modified files, files born
+ * under tracking (added), and deleted files kept as tombstones. Because it
+ * diffs against the same origin the change map feeds the tree, gutter and tab
+ * decorators, the panel lists exactly the set the tree paints at every `keep`
+ * level - bounded by retention at `keep=persist` (so it survives a restart but
+ * does not grow unbounded), session-scoped at `keep=file`/`app`. Unlike the
+ * Recent changes panel (which times one active file's versions) this is
+ * vault-wide (see {@link VaultChangesHelper}).
  *
  * The list is rendered by the shared {@link FolderTreeComponent}, in either a
  * nested folder tree or a flat file list (each file's path shown inline). The
@@ -271,8 +275,10 @@ export class VaultChangesView extends ItemView {
    */
   protected render(): void {
     const snapshots: SnapshotsService = this.snapshotsService();
+    const keep: KeepHistory = this.settingsService().value('keep');
     const entries: FolderTreeEntry[] = VaultChangesHelper.collectEntries(
       snapshots.getList(),
+      (snapshot: FileSnapshot): string[] => resolveOrigin(snapshot, keep),
       (path: string): boolean => !snapshots.isPathExcluded(path),
     );
 

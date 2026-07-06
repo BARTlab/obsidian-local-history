@@ -55,10 +55,8 @@ export interface LineChangeTrackerSettings {
 
   /** Type of indicator to use for showing changes */
   type: IndicatorType;
-  /** History retention policy */
+  /** History retention policy and durability (file < app < persist) */
   keep: KeepHistory;
-  /** Persist history to disk so it survives an app restart */
-  persist: boolean;
   /** File extensions that are allowed for tracking (comma-separated) */
   allowedExtensions: string;
   /**

@@ -196,18 +196,6 @@ export class MainSetting extends PluginSettingTab {
         );
     });
 
-    group.addSetting((setting: Setting): void => {
-      setting
-        .setName(this.plugin.t('setting.persist.name'))
-        .setDesc(this.plugin.t('setting.persist.desc'))
-        .addToggle((toggle: ToggleComponent): ToggleComponent =>
-          toggle
-            .setValue(this.settingsService.value('persist'))
-            .onChange((value: boolean): void => {
-              this.settingsService.update('persist', value);
-            })
-        );
-    });
   }
 
   /**

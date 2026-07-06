@@ -175,8 +175,7 @@ export enum MapChangeAction {
  */
 export const DEFAULT_SETTINGS: LineChangeTrackerSettings = {
   type: IndicatorType.line,
-  keep: KeepHistory.app,
-  persist: true,
+  keep: KeepHistory.persist,
   allowedExtensions: 'md, txt, csv, json, yaml',
   excludePaths: [],
   excludePathsCaseSensitive: false,

@@ -65,12 +65,8 @@ const shardPath = (notePath: string): string => `${SHARD_DIR}/${ShardNameHelper.
 const makeService = (adapter: MemoryAdapter): ResiliencePersistenceService => {
   const settings = {
     value: (path: string): unknown => {
-      if (path === 'persist') {
-        return true;
-      }
-
       if (path === 'keep') {
-        return KeepHistory.app;
+        return KeepHistory.persist;
       }
 
       return 0;
@@ -221,12 +217,8 @@ const makeSaveService = (
 ): RenameFailurePersistenceService => {
   const settings = {
     value: (path: string): unknown => {
-      if (path === 'persist') {
-        return true;
-      }
-
       if (path === 'keep') {
-        return KeepHistory.app;
+        return KeepHistory.persist;
       }
 
       return 0;

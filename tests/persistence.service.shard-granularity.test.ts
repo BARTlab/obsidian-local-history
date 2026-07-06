@@ -67,12 +67,8 @@ const makeService = (
 ): GranularityPersistenceService => {
   const settings = {
     value: (path: string): unknown => {
-      if (path === 'persist') {
-        return true;
-      }
-
       if (path === 'keep') {
-        return KeepHistory.app;
+        return KeepHistory.persist;
       }
 
       return 0;
@@ -157,12 +153,8 @@ const makeRetentionService = (
 ): GranularityPersistenceService => {
   const settings = {
     value: (path: string): unknown => {
-      if (path === 'persist') {
-        return true;
-      }
-
       if (path === 'keep') {
-        return KeepHistory.app;
+        return KeepHistory.persist;
       }
 
       if (path === 'retention.maxEntries') {
@@ -457,12 +449,8 @@ describe('PersistenceService restore does not phantom-rewrite shards', () => {
 
     const settings = {
       value: (path: string): unknown => {
-        if (path === 'persist') {
-          return true;
-        }
-
         if (path === 'keep') {
-          return KeepHistory.app;
+          return KeepHistory.persist;
         }
 
         return 0;

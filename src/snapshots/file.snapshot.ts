@@ -250,6 +250,18 @@ export class FileSnapshot {
   }
 
   /**
+   * Returns a copy of the OLDEST retained version's lines, or undefined when the
+   * timeline is empty. Delegates to the timeline so its internals stay
+   * encapsulated; the origin resolver uses this as the sliding persist origin,
+   * falling back to the history baseline only when no version survives.
+   *
+   * @return {string[] | undefined} The oldest retained version's lines, or undefined when empty
+   */
+  public getOldestRetainedLines(): string[] | undefined {
+    return this.timeline.getOldestRetainedLines();
+  }
+
+  /**
    * Resolves the timestamp of the file's last update. Prefers the file's
    * modification time (the real last-change moment of the live content), and
    * falls back to the snapshot's creation time when no file stat is available

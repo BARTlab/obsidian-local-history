@@ -118,6 +118,20 @@ export class VersionTimeline {
   }
 
   /**
+   * Returns a copy of the OLDEST retained version's lines, or undefined when the
+   * timeline holds no versions. The oldest survivor is the sliding origin the
+   * persist-keep resolver diffs against: because versions are stored oldest-first
+   * and eviction trims from the front, `versions[0]` is the earliest state
+   * retention still keeps. Reads through `getLines()` so the returned array is a
+   * fresh copy callers cannot use to mutate the owned timeline.
+   *
+   * @return {string[] | undefined} The oldest retained version's lines, or undefined when empty
+   */
+  public getOldestRetainedLines(): string[] | undefined {
+    return this.versions[0]?.getLines();
+  }
+
+  /**
    * Finds an intermediate version by its id.
    *
    * @param {string} id - The version id to look up

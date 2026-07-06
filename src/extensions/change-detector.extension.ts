@@ -6,6 +6,7 @@ import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import { TOKENS } from '@/services/tokens';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
+import type { FileVersion } from '@/snapshots/file.version';
 import type { EditorExtension, SnapshotCaptureOptions } from '@/types';
 import { type EditorState, type Text } from '@codemirror/state';
 import { Decoration, type DecorationSet, type EditorView, type ViewUpdate } from '@codemirror/view';
@@ -253,10 +254,26 @@ export class ChangeDetectorExtension implements EditorExtension {
      * so a captured version preserves the earlier point. Cadence gating lives
      * in the snapshot, so this stays cheap on the keystroke path.
      */
-    snapshot.captureVersion(snapshot.content.getLastStateLines(), this.getCaptureOptions());
+    const captured: FileVersion | null = snapshot.captureVersion(
+      snapshot.content.getLastStateLines(),
+      this.getCaptureOptions(),
+    );
 
     snapshot.content.updateState(currentLines);
     snapshot.updateChanges();
+
+    /**
+     * A capture can evict the oldest version and slide the keep=persist origin.
+     * Re-seed the change map against the new origin AFTER updateState, so the
+     * re-seed reconciles the resolved origin onto the live document (not the
+     * pre-edit state captured above) and the next incremental edit still maps to
+     * the right line. Gated on an actual capture: a null capture pushes nothing,
+     * so eviction cannot have run and the origin cannot have slid. The service
+     * no-ops at keep=file/app and when the oldest version is unchanged.
+     */
+    if (captured) {
+      this.snapshotsService.reseedOriginIfSlid(snapshot);
+    }
   }
 
   /**

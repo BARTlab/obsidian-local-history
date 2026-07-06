@@ -395,3 +395,106 @@ describe('FileSnapshot.seedTrackerFromOrigin - diff-seed the change map at the p
     expect(snapshot.content.getLastStateLines()).toEqual(current);
   });
 });
+
+describe('FileSnapshot.reseedIfOriginSlid - re-seed when a capture slides the sliding origin', () => {
+  it('re-seeds the change map onto the new oldest version after an eviction slides the origin', () => {
+    const snapshot = new FileSnapshot('a\nb\nc\nd');
+
+    // Two retained versions, oldest first, and a live document past both.
+    snapshot.captureVersion(['a', 'B', 'c', 'd'], captureOptions({ maxVersions: 5 }), true);
+    snapshot.captureVersion(['a', 'B', 'C', 'd'], captureOptions({ maxVersions: 5 }), true);
+    snapshot.content.updateState(['a', 'B', 'C', 'E']);
+
+    // The persist origin is the OLDEST retained version, so the change map spans
+    // both later edits (lines 2 and 3).
+    const origin: string[] = resolveOrigin(snapshot, KeepHistory.persist);
+
+    expect(origin).toEqual(['a', 'B', 'c', 'd']);
+
+    snapshot.seedTrackerFromOrigin(origin);
+
+    expect(snapshot.content.getChangedPositions([ChangeType.changed])).toEqual([2, 3]);
+
+    // A later capture evicts the oldest version (maxVersions 2 over three versions),
+    // sliding the origin forward to the second version.
+    snapshot.captureVersion(['a', 'B', 'C', 'E'], captureOptions({ maxVersions: 2 }), true);
+
+    const slidOrigin: string[] = resolveOrigin(snapshot, KeepHistory.persist);
+
+    expect(slidOrigin).toEqual(['a', 'B', 'C', 'd']);
+    expect(snapshot.reseedIfOriginSlid(slidOrigin)).toBe(true);
+
+    // The change map is now bounded by retention: only the change past the NEW
+    // oldest version (line 3) remains lit.
+    expect(snapshot.content.getChangedPositions([ChangeType.changed])).toEqual([3]);
+    expect(snapshot.content.getLastStateLines()).toEqual(['a', 'B', 'C', 'E']);
+  });
+
+  it('does not re-seed when a capture leaves the oldest version unchanged', () => {
+    const snapshot = new FileSnapshot('a\nb\nc');
+
+    snapshot.captureVersion(['a', 'B', 'c'], captureOptions({ maxVersions: 5 }), true);
+    snapshot.content.updateState(['a', 'B', 'C']);
+
+    const origin: string[] = resolveOrigin(snapshot, KeepHistory.persist);
+
+    snapshot.seedTrackerFromOrigin(origin);
+
+    const before: number[] = snapshot.content.getChangedPositions([ChangeType.changed]);
+
+    // A second capture that does not evict the oldest (headroom under maxVersions)
+    // leaves the origin where it was.
+    snapshot.captureVersion(['a', 'B', 'C'], captureOptions({ maxVersions: 5 }), true);
+
+    const unchangedOrigin: string[] = resolveOrigin(snapshot, KeepHistory.persist);
+
+    expect(unchangedOrigin).toEqual(['a', 'B', 'c']);
+    expect(snapshot.reseedIfOriginSlid(unchangedOrigin)).toBe(false);
+    expect(snapshot.content.getChangedPositions([ChangeType.changed])).toEqual(before);
+  });
+
+  it('is a no-op at keep=file/app, whose origin is always the session marker baseline', () => {
+    const snapshot = new FileSnapshot('a\nb\nc');
+
+    snapshot.content.updateState(['a', 'B', 'c']);
+    snapshot.captureVersion(['a', 'B', 'c'], captureOptions({ maxVersions: 5 }), true);
+
+    // At keep=app the origin resolves to the marker baseline itself, so the
+    // slide check can never fire however the timeline moves.
+    const origin: string[] = resolveOrigin(snapshot, KeepHistory.app);
+
+    expect(origin).toEqual(['a', 'b', 'c']);
+    expect(snapshot.reseedIfOriginSlid(origin)).toBe(false);
+  });
+
+  it('preserves incremental alignment when a slide re-seed fires between edits', () => {
+    const snapshot = new FileSnapshot('a\nb\nc\nd');
+
+    // Mid-session: two retained versions and a document seeded against the oldest.
+    snapshot.captureVersion(['a', 'B', 'c', 'd'], captureOptions({ maxVersions: 5 }), true);
+    snapshot.captureVersion(['a', 'B', 'C', 'd'], captureOptions({ maxVersions: 5 }), true);
+    snapshot.content.updateState(['a', 'B', 'C', 'd']);
+    snapshot.seedTrackerFromOrigin(resolveOrigin(snapshot, KeepHistory.persist));
+
+    // Edit 1: line 3 d -> D, applied incrementally the way the change detector does.
+    snapshot.trackers.findCurrentLine(3)?.change('D');
+    snapshot.content.updateState(['a', 'B', 'C', 'D']);
+    snapshot.updateChanges();
+
+    // A later capture freezes this state and, at maxVersions 2 over three versions,
+    // evicts the oldest so the persist origin slides forward between the two edits.
+    snapshot.captureVersion(['a', 'B', 'C', 'D'], captureOptions({ maxVersions: 2 }), true);
+
+    expect(snapshot.reseedIfOriginSlid(resolveOrigin(snapshot, KeepHistory.persist))).toBe(true);
+    expect(snapshot.content.getChangedPositions([ChangeType.changed])).toEqual([3]);
+
+    // Edit 2 AFTER the slide re-seed: line 0 a -> A. It must land on line 0 alone,
+    // the seeded change on line 3 must persist, and no untouched line may flood -
+    // the tracker stayed mapped to the live document across the re-seed.
+    snapshot.trackers.findCurrentLine(0)?.change('A');
+    snapshot.content.updateState(['A', 'B', 'C', 'D']);
+    snapshot.updateChanges();
+
+    expect(snapshot.content.getChangedPositions([ChangeType.changed])).toEqual([0, 3]);
+  });
+});

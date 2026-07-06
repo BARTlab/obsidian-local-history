@@ -133,6 +133,7 @@ const makeHarness = (snapshotInit?: {
     getOne: (_file?: TFile | null): unknown => snapshot,
     applyContent,
     forceUpdate,
+    reseedOriginIfSlid: vi.fn((): boolean => false),
   };
 
   const settingsService = {

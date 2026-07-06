@@ -226,6 +226,17 @@ export class ExternalChangeCapture {
     snapshot.content.updateState(newLines);
     snapshot.updateChanges();
 
+    /**
+     * A forced external capture pushes a version and may evict the oldest, sliding
+     * the keep=persist origin. Re-seed the change map against the new origin now,
+     * before the forced update, so the gutter and tree reflect the retention-bounded
+     * origin without waiting for the next in-editor edit. A no-op when nothing was
+     * captured, at keep=file/app, or when the oldest version is unchanged.
+     */
+    if (captured) {
+      this.host.reseedOriginIfSlid(snapshot);
+    }
+
     this.host.forceUpdate();
     this.rememberLastSeen(file);
   }

@@ -173,6 +173,15 @@ export class VersionActionsService implements Service {
     );
 
     if (captured) {
+      /**
+       * A labeled capture pins a new version but its eviction pass can still drop a
+       * now-aged oldest unlabeled version, sliding the keep=persist origin. Re-seed
+       * the change map against the new origin before notifying subscribers so the
+       * gutter and tree stay bounded by retention. The current state is unchanged
+       * by a label, so the re-seed reconciles the origin onto the live document. A
+       * no-op at keep=file/app and when the oldest version is unchanged.
+       */
+      this.snapshotsService.reseedOriginIfSlid(snapshot);
       this.snapshotsService.forceUpdate();
     }
 

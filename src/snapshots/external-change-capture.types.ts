@@ -53,6 +53,17 @@ export interface ExternalChangeHost {
   getCaptureOptions(): SnapshotCaptureOptions;
 
   /**
+   * Re-seeds the snapshot's change map when the force-captured external version
+   * slid its resolved persist origin (a no-op at `keep=file`/`app` and when the
+   * oldest version is unchanged). Routed through the host so the durability gate
+   * and the origin resolver stay owned by the service.
+   *
+   * @param {FileSnapshot} snapshot - The snapshot whose origin may have slid
+   * @return {boolean} True when the baseline slid and the change map was re-seeded
+   */
+  reseedOriginIfSlid(snapshot: FileSnapshot): boolean;
+
+  /**
    * Notifies the observable snapshot map that a capture mutated a snapshot so
    * subscribers (the editor, the tree/tab decorator) refresh.
    */

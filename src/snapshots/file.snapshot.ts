@@ -382,6 +382,39 @@ export class FileSnapshot {
   }
 
   /**
+   * Re-seeds the change map when the resolved origin has slid off the current
+   * marker baseline, the live-session counterpart of the persist-restore
+   * seedTrackerFromOrigin. At keep=persist the marker baseline must always equal
+   * the resolved origin (the oldest retained version); a capture that evicts that
+   * version slides the origin forward, so the caller re-resolves it and hands the
+   * new origin in here.
+   *
+   * When the passed origin already equals the marker baseline nothing moved, so
+   * this is a no-op and returns false: a capture that leaves the oldest version
+   * untouched costs only a line compare and never churns the tracker. Otherwise it
+   * delegates to seedTrackerFromOrigin, which redefines the change map against the
+   * new origin while keeping the tracker aligned with the live document, and
+   * returns true. The snapshot stays settings-agnostic: the caller owns the
+   * keep-gate and the origin resolution and passes only the resolved lines.
+   *
+   * @param {string[]} origin - The freshly resolved origin lines
+   * @return {boolean} True when the baseline slid and the tracker was re-seeded
+   */
+  public reseedIfOriginSlid(origin: string[]): boolean {
+    const baseline: string[] = this.content.lines;
+
+    if (origin.length === baseline.length
+      && origin.every((line: string, index: number): boolean => line === baseline[index])
+    ) {
+      return false;
+    }
+
+    this.seedTrackerFromOrigin(origin);
+
+    return true;
+  }
+
+  /**
    * Updates the change map based on the current state of tracker lines.
    * Iterates through all tracker lines and adds appropriate change types
    * (added, removed, restored, changed) to the change map.

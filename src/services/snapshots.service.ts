@@ -1,5 +1,6 @@
-import { PluginEvent } from '@/consts';
+import { KeepHistory, PluginEvent } from '@/consts';
 import { Inject } from '@/decorators/inject.decorator';
+import { resolveOrigin } from '@/helpers/origin.helper';
 import { PathExcludeHelper } from '@/helpers/path-exclude.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import { ExternalChangeCapture } from '@/snapshots/external-change-capture';
@@ -403,6 +404,27 @@ export class SnapshotsService implements Service {
   }
 
   /**
+   * Re-seeds a snapshot's change map when a capture has slid its resolved origin.
+   * The single place the durability level meets the origin resolver: it is a no-op
+   * unless `keep === persist` (only the sliding-origin level moves; `file`/`app`
+   * measure against the fixed session marker baseline), then it resolves the
+   * current persist origin and asks the snapshot to re-seed only if that origin has
+   * actually moved off the marker baseline. Called by every live-session capture
+   * source after the state update, so a weeks-long `keep=persist` session keeps the
+   * one cached change map bounded by retention without waiting for a reload.
+   *
+   * @param {FileSnapshot} snapshot - The snapshot whose origin may have slid
+   * @return {boolean} True when the baseline slid and the change map was re-seeded
+   */
+  public reseedOriginIfSlid(snapshot: FileSnapshot): boolean {
+    if (this.settingsService.value('keep') !== KeepHistory.persist) {
+      return false;
+    }
+
+    return snapshot.reseedIfOriginSlid(resolveOrigin(snapshot, KeepHistory.persist));
+  }
+
+  /**
    * Removes a snapshot for a specific file.
    * If no file is provided, use the active file.
    * Forces an editor update and recaptures the file if it's the active file.
@@ -607,6 +629,7 @@ export class SnapshotsService implements Service {
         this.isInAllowedExtensions(file) && !this.isExcludedPath(file) && !this.ignoreList.isIgnored(file),
       captureFirstSight: (file: TFile): Promise<void> => this.capture(file),
       getCaptureOptions: (): SnapshotCaptureOptions => this.getCaptureOptions(),
+      reseedOriginIfSlid: (snapshot: FileSnapshot): boolean => this.reseedOriginIfSlid(snapshot),
       forceUpdate: (): void => this.forceUpdate(),
     };
   }

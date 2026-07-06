@@ -36,6 +36,7 @@ describe('ExternalChangeCapture', () => {
   let capturable: boolean;
   let firstSight: Mock<(file: TFile) => Promise<void>>;
   let forceUpdate: Mock;
+  let reseedOriginIfSlid: Mock<(snapshot: FileSnapshot) => boolean>;
   let read: Mock<(file: TFile) => Promise<string>>;
 
   const captureOptions: SnapshotCaptureOptions = {
@@ -61,6 +62,7 @@ describe('ExternalChangeCapture', () => {
       isExternallyCapturable: (): boolean => capturable,
       captureFirstSight: (file: TFile): Promise<void> => firstSight(file),
       getCaptureOptions: (): SnapshotCaptureOptions => captureOptions,
+      reseedOriginIfSlid: (snapshot: FileSnapshot): boolean => reseedOriginIfSlid(snapshot),
       forceUpdate: (): void => {
         forceUpdate();
       },
@@ -104,6 +106,9 @@ describe('ExternalChangeCapture', () => {
     capturable = true;
     firstSight = vi.fn(() => Promise.resolve());
     forceUpdate = vi.fn();
+    // Default to the service no-op (keep=file/app, or nothing slid); a persist-slide
+    // case overrides it with the real reseed to lock the wiring.
+    reseedOriginIfSlid = vi.fn(() => false);
     read = vi.fn((file: TFile) => {
       if (!(file.path in vault)) {
         return Promise.reject(new Error(`No content for ${file.path}`));
@@ -129,6 +134,36 @@ describe('ExternalChangeCapture', () => {
       expect(snapshot.timeline.getStoredVersions()[0].getLines()).toEqual(['one', 'two-external', 'three']);
       expect(snapshot.content.getLastStateLines()).toEqual(['one', 'two-external', 'three']);
       expect(forceUpdate).toHaveBeenCalledTimes(1);
+    });
+
+    it('asks the host to re-seed the origin after a divergent capture, before forcing the update', async () => {
+      const file = makeFile('notes/a.md', { stat: { mtime: 1, size: 1 } });
+      const snapshot = track(file.path, 'one\ntwo\nthree');
+
+      vault[file.path] = 'one\ntwo-external\nthree';
+
+      const capture = new ExternalChangeCapture(makeHost());
+
+      await capture.capture(file);
+
+      // The capture landed a version, so the origin may have slid: the wiring must
+      // route the re-seed through the host for exactly the captured snapshot.
+      expect(reseedOriginIfSlid).toHaveBeenCalledTimes(1);
+      expect(reseedOriginIfSlid).toHaveBeenCalledWith(snapshot);
+    });
+
+    it('does not re-seed the origin when the disk content matches (no capture)', async () => {
+      const file = makeFile('notes/a.md', { stat: { mtime: 1, size: 1 } });
+      track(file.path, 'one\ntwo\nthree');
+
+      vault[file.path] = 'one\ntwo\nthree';
+
+      const capture = new ExternalChangeCapture(makeHost());
+
+      await capture.capture(file);
+
+      // A hash-match read captures nothing, so nothing can have slid the origin.
+      expect(reseedOriginIfSlid).not.toHaveBeenCalled();
     });
 
     it('resyncs a lagging model line-by-line instead of remarking the whole document', async () => {

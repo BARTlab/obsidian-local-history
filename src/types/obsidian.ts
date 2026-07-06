@@ -17,14 +17,11 @@ import {
 export interface EventTriggerElement {
   /**
    * Subscribes to an event.
-   * @param args - Event subscription arguments
-   * @returns EventRef - Reference to the event subscription for cleanup
    */
   on(...args: unknown[]): EventRef;
 
   /**
    * Unsubscribes from an event.
-   * @param args - Event unsubscription arguments
    */
   off(...args: unknown[]): void;
 }

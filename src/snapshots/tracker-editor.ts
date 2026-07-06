@@ -4,6 +4,7 @@ import { TrackerLine } from '@/lines/tracker.line';
 import { ArrayMap } from '@/maps/array.map';
 import { TrackerIndex } from '@/snapshots/tracker-index';
 import type { KeysMatching, SerializedFileSnapshot, TrackerLineParams } from '@/types';
+import * as Diff from 'diff';
 
 /**
  * Owns the tracker array and the whole tracker surface FileSnapshot exposes as
@@ -461,6 +462,60 @@ export class TrackerEditor {
 
     this.tracker.splice(index, 1);
     this.index.invalidate();
+  }
+
+  /**
+   * Converges the tracker's CURRENT view from `previous` onto `next` as a minimal
+   * per-hunk update: untouched lines keep their trackers (and their markers), a
+   * same-count hunk edits its lines in place, and only genuinely new or destroyed
+   * lines are added or removed. The caller guarantees the tracker's current
+   * positions match `previous` (the change detector after a keystroke, the disk
+   * resync against the model's known state, or a freshly `buildFromLines(previous)`
+   * seed), so the diff coordinates line up with the live tracker.
+   *
+   * Hunks are applied bottom-up so the current-position coordinates of the earlier
+   * hunks stay valid while the later ones shift the tracker index, mirroring the
+   * reverse iteration of the change detector. An added run right after its removed
+   * run is folded into one replacement hunk so replaceBlock takes the in-place edit
+   * path (preserving matched originals) instead of a destroy-and-re-add.
+   *
+   * The caller updates the cached state and the change map afterwards
+   * (updateState then updateChanges); this method only mutates the tracker.
+   *
+   * @param {string[]} previous - The lines the tracker's current view currently holds
+   * @param {string[]} next - The lines to converge the current view onto
+   */
+  public reconcile(previous: string[], next: string[]): void {
+    const parts: Diff.ArrayChange<string>[] = Diff.diffArrays(previous, next);
+    const hunks: { start: number; removeCount: number; lines: string[] }[] = [];
+    let position: number = 0;
+
+    for (const part of parts) {
+      if (part.removed) {
+        hunks.push({ start: position, removeCount: part.value.length, lines: [] });
+        position += part.value.length;
+
+        continue;
+      }
+
+      if (!part.added) {
+        position += part.value.length;
+
+        continue;
+      }
+
+      const last: { start: number; removeCount: number; lines: string[] } | undefined = hunks[hunks.length - 1];
+
+      if (last && last.lines.length === 0 && last.start + last.removeCount === position) {
+        last.lines = part.value.slice();
+      } else {
+        hunks.push({ start: position, removeCount: 0, lines: part.value.slice() });
+      }
+    }
+
+    for (let index: number = hunks.length - 1; index >= 0; index--) {
+      this.replaceBlock(hunks[index].start, hunks[index].removeCount, hunks[index].lines);
+    }
   }
 
   /**

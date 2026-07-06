@@ -1,5 +1,4 @@
 import type { ExternalChangeHost } from '@/snapshots/external-change-capture.types';
-import * as Diff from 'diff';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FileVersion } from '@/snapshots/file.version';
 import type { TFile } from 'obsidian';
@@ -318,41 +317,7 @@ export class ExternalChangeCapture {
    * @param {string[]} next - The disk content lines to converge onto
    */
   protected applyLineDiff(snapshot: FileSnapshot, previous: string[], next: string[]): void {
-    const parts: Diff.ArrayChange<string>[] = Diff.diffArrays(previous, next);
-    const hunks: { start: number; removeCount: number; lines: string[] }[] = [];
-    let position: number = 0;
-
-    for (const part of parts) {
-      if (part.removed) {
-        hunks.push({ start: position, removeCount: part.value.length, lines: [] });
-        position += part.value.length;
-
-        continue;
-      }
-
-      if (!part.added) {
-        position += part.value.length;
-
-        continue;
-      }
-
-      const last: { start: number; removeCount: number; lines: string[] } | undefined = hunks[hunks.length - 1];
-
-      /**
-       * An added run right after its removed run is one replacement hunk;
-       * folding them lets replaceBlock take the in-place edit path when the
-       * line counts match instead of a destroy-and-re-add.
-       */
-      if (last && last.lines.length === 0 && last.start + last.removeCount === position) {
-        last.lines = part.value.slice();
-      } else {
-        hunks.push({ start: position, removeCount: 0, lines: part.value.slice() });
-      }
-    }
-
-    for (let index: number = hunks.length - 1; index >= 0; index--) {
-      snapshot.trackers.replaceBlock(hunks[index].start, hunks[index].removeCount, hunks[index].lines);
-    }
+    snapshot.trackers.reconcile(previous, next);
   }
 
   /**

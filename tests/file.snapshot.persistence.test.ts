@@ -1,11 +1,33 @@
 import { describe, expect, it } from 'vitest';
-import { ChangeType } from '@/consts';
+import { ChangeType, KeepHistory } from '@/consts';
+import * as HunkHelper from '@/helpers/hunk.helper';
+import { resolveOrigin } from '@/helpers/origin.helper';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import { SnapshotCodec } from '@/snapshots/snapshot-codec';
 import { TrackerLine } from '@/lines/tracker.line';
-import type { SerializedFileSnapshot, SerializedTrackerLine } from '@/types';
+import type { SerializedFileSnapshot, SerializedTrackerLine, SnapshotCaptureOptions } from '@/types';
 
 import { makeFile } from './helpers/builders';
+
+/** Every capture cadence gate open so a forced capture always lands a version. */
+const captureOptions = (overrides: Partial<SnapshotCaptureOptions> = {}): SnapshotCaptureOptions => ({
+  enabled: true,
+  intervalMs: 0,
+  editThreshold: 0,
+  maxVersions: 0,
+  maxVersionAgeDays: 0,
+  ...overrides,
+});
+
+/**
+ * The new-side positions a diff touches: for every hunk, each of its current-side
+ * lines. Mirrors what the change map records for a pure modification, so a seeded
+ * change map can be asserted equal to a direct HunkHelper.diff of origin vs current.
+ */
+const diffPositions = (origin: string[], current: string[]): number[] =>
+  HunkHelper.diff(origin, current, '\n')
+    .flatMap((hunk): number[] =>
+      Array.from({ length: hunk.newLines }, (_unused, offset): number => hunk.newStart - 1 + offset));
 
 /**
  * Round-trip tests for FileSnapshot persistence. They drive the snapshot
@@ -277,5 +299,99 @@ describe('FileSnapshot.resetMarkerBaseline - eager session re-baseline at restor
     restored.updateChanges();
 
     expect(restored.content.getChangesLinesCount()).toBe(1);
+  });
+});
+
+describe('FileSnapshot.seedTrackerFromOrigin - diff-seed the change map at the persist restore path', () => {
+  it('makes the change map mean changes-vs-origin, equal to a direct diff of origin vs current', () => {
+    const origin: string[] = ['a', 'b', 'c', 'd'];
+    const current: string[] = ['a', 'B', 'c', 'D'];
+
+    // The current state is the live document; the origin is the resolved persist
+    // origin the change map must be measured against.
+    const snapshot = new FileSnapshot(origin.join('\n'));
+    snapshot.content.updateState(current);
+
+    snapshot.seedTrackerFromOrigin(origin);
+
+    expect(snapshot.content.getChangesLinesCount()).toBeGreaterThan(0);
+    // The changed positions equal a direct HunkHelper.diff(origin, current).
+    expect(snapshot.content.getChangedPositions([ChangeType.changed])).toEqual(diffPositions(origin, current));
+    // The marker baseline is now the origin; the current state is untouched.
+    expect(snapshot.content.getOriginalStateLines()).toEqual(origin);
+    expect(snapshot.content.getLastStateLines()).toEqual(current);
+  });
+
+  it('paints nothing when the current content equals the resolved origin', () => {
+    const origin: string[] = ['a', 'b', 'c'];
+
+    const snapshot = new FileSnapshot(origin.join('\n'));
+    snapshot.content.updateState(origin);
+
+    snapshot.seedTrackerFromOrigin(origin);
+
+    expect(snapshot.content.getChangesLinesCount()).toBe(0);
+  });
+
+  it('keeps the tracker aligned with the live document: an incremental edit lands on the right line', () => {
+    const origin: string[] = ['a', 'b', 'c'];
+    const current: string[] = ['a', 'B', 'c'];
+
+    const snapshot = new FileSnapshot(origin.join('\n'));
+    snapshot.content.updateState(current);
+    snapshot.seedTrackerFromOrigin(origin);
+
+    // A single incremental edit, applied exactly as the change detector does:
+    // find the tracker at the edited current line and rewrite its content.
+    snapshot.trackers.findCurrentLine(0)?.change('A');
+    snapshot.content.updateState(['A', 'B', 'c']);
+    snapshot.updateChanges();
+
+    // Only the seeded change (line 1) and the fresh edit (line 0) are lit; the
+    // untouched line 2 never flooded, so the tracker stayed mapped to the doc.
+    expect(snapshot.content.getChangedPositions([ChangeType.changed])).toEqual([0, 1]);
+  });
+
+  it('seeds from the sliding persist origin resolved after a serialize/decode round-trip', () => {
+    // Build a real history: baseline a,b,c, an intermediate captured version
+    // a,B,c (the sliding origin), and a later current state a,B,C.
+    const snapshot = new FileSnapshot('a\nb\nc');
+    snapshot.trackers.findCurrentLine(1)?.change('B');
+    snapshot.content.updateState(['a', 'B', 'c']);
+    snapshot.updateChanges();
+    snapshot.captureVersion(['a', 'B', 'c'], captureOptions(), true);
+    snapshot.trackers.findCurrentLine(2)?.change('C');
+    snapshot.content.updateState(['a', 'B', 'C']);
+    snapshot.updateChanges();
+
+    const restored = SnapshotCodec.decode(SnapshotCodec.encode(snapshot));
+    const origin: string[] = resolveOrigin(restored, KeepHistory.persist);
+
+    // The resolved persist origin is the oldest retained version, not the history
+    // baseline, so the change map is bounded by retention.
+    expect(origin).toEqual(['a', 'B', 'c']);
+
+    restored.seedTrackerFromOrigin(origin);
+
+    expect(restored.content.getChangesLinesCount()).toBeGreaterThan(0);
+    expect(restored.content.getChangedPositions([ChangeType.changed]))
+      .toEqual(diffPositions(origin, restored.content.getLastStateLines()));
+    // The history baseline stays the full original so the modal is unaffected.
+    expect(restored.content.getHistoryOriginalStateLines()).toEqual(['a', 'b', 'c']);
+  });
+
+  it('marks a removed line and preserves alignment when the origin has an extra line', () => {
+    const origin: string[] = ['a', 'b', 'c'];
+    const current: string[] = ['a', 'c'];
+
+    const snapshot = new FileSnapshot(origin.join('\n'));
+    snapshot.content.updateState(current);
+    snapshot.seedTrackerFromOrigin(origin);
+
+    // The deleted middle line is recorded as removed, and the surviving lines keep
+    // their trackers so an edit still maps correctly.
+    expect(snapshot.content.getChangesLinesCount()).toBeGreaterThan(0);
+    expect(snapshot.content.getChanges(ChangeType.removed).size).toBe(1);
+    expect(snapshot.content.getLastStateLines()).toEqual(current);
   });
 });

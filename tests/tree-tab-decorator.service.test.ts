@@ -29,6 +29,30 @@ const makeModified = (file: TFile | null, carriedPath?: string): FileSnapshot =>
 };
 
 /**
+ * Builds a snapshot as the persist restore path leaves it: the change map is
+ * diff-seeded from the resolved origin (here `a\nb\nc`) against a diverging live
+ * document, so it reports its changes-vs-origin and the decorator paints it after
+ * a reload without the file ever being opened this session. Passing `origin`
+ * equal to the current content yields a truly-unchanged restored file.
+ */
+const makeRestoredPersist = (
+  file: TFile | null,
+  carriedPath?: string,
+  origin: string[] = ['a', 'b', 'c'],
+): FileSnapshot => {
+  const snapshot: FileSnapshot = new FileSnapshot('a\nb\nc', '\n', file);
+
+  if (carriedPath !== undefined) {
+    snapshot.path = carriedPath;
+  }
+
+  snapshot.content.updateState(['a', 'B', 'c']);
+  snapshot.seedTrackerFromOrigin(origin);
+
+  return snapshot;
+};
+
+/**
  * Exposes the protected `computeStatuses` on a real, fully-constructed service.
  * The `@Inject(TOKENS.snapshots)` field resolves lazily through `plugin.get`, so
  * the service is built over a container host that resolves the snapshots token to
@@ -104,19 +128,31 @@ describe('TreeTabDecoratorService.computeStatuses - path resolution', () => {
     expect(statuses.has('stale')).toBe(false);
   });
 
-  it('paints nothing for a restored snapshot re-baselined session-clean (root and nested alike)', () => {
-    // A snapshot restored from disk carries its full history diff until the
-    // session marker baseline is re-established. `restore` calls
-    // resetMarkerBaseline so a fresh launch starts clean: the decorator must
-    // paint neither the file rows nor their folders, consistently for a root
-    // file and a nested one.
-    const rootRestored = makeModified(makeFile('root-note.md'));
-    const nestedRestored = makeModified(makeFile('folder/sub/note.md'));
-
-    rootRestored.resetMarkerBaseline();
-    nestedRestored.resetMarkerBaseline();
+  it('paints a restored keep=persist snapshot with real diffs, root and nested alike', () => {
+    // At keep=persist the restore path diff-seeds the change map from the resolved
+    // origin, so a file whose live content diverges from its origin reports its
+    // changes-vs-origin and survives the reload. The decorator must paint the file
+    // rows AND their ancestor folders, consistently for a root file and a nested
+    // one (the reported blank-tree bug is fixed).
+    const rootRestored = makeRestoredPersist(makeFile('root-note.md'));
+    const nestedRestored = makeRestoredPersist(makeFile('folder/sub/note.md'));
 
     const statuses = computeStatuses([rootRestored, nestedRestored]);
+
+    expect(statuses.get('root-note.md')).toBe(FolderDeltaStatus.modified);
+    expect(statuses.get('folder/sub/note.md')).toBe(FolderDeltaStatus.modified);
+    expect(statuses.get('folder/sub')).toBe(FolderDeltaStatus.modified);
+    expect(statuses.get('folder')).toBe(FolderDeltaStatus.modified);
+  });
+
+  it('paints nothing for a restored file whose content equals its resolved origin', () => {
+    // When the live document matches the resolved origin the diff-seed yields no
+    // changes, so a truly-unchanged restored file paints neither its row nor its
+    // folders (no false positives), root and nested alike.
+    const rootClean = makeRestoredPersist(makeFile('root-note.md'), undefined, ['a', 'B', 'c']);
+    const nestedClean = makeRestoredPersist(makeFile('folder/sub/note.md'), undefined, ['a', 'B', 'c']);
+
+    const statuses = computeStatuses([rootClean, nestedClean]);
 
     expect(statuses.size).toBe(0);
   });

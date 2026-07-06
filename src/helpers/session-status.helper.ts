@@ -25,11 +25,12 @@ export { FolderDeltaStatus } from '@/consts';
  *   from history after a restart comes back falsy and stops being painted green.
  * - `modified` - `getChangesLinesCount() > 0` against the marker baseline, the
  *   exact change set the gutter paints, so the tree and the gutter agree
- *   by construction. The marker baseline is session-scoped: a restored snapshot
- *   is re-baselined onto its current state at restore (see
- *   `FileSnapshot.resetMarkerBaseline`), so on a fresh launch every restored file
- *   reads `none` and the tree paints nothing until the user edits it this
- *   session, consistently for root and nested files alike.
+ *   by construction. The marker baseline is the resolved origin: at `keep=persist`
+ *   the restore path diff-seeds it from the sliding origin (see
+ *   `FileSnapshot.seedTrackerFromOrigin`), so a restored file reports its
+ *   changes-vs-origin and the tree paints it after a reload, bounded by retention;
+ *   at `keep=file`/`app` the baseline is session-scoped (never restored), so those
+ *   modes read `none` on a fresh launch, consistently for root and nested files.
  * - `none` - nothing changed this session worth painting on a native surface.
  *
  * `added` wins over `modified` because a file created this session that has

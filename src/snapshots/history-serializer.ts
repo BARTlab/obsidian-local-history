@@ -1,3 +1,5 @@
+import { KeepHistory } from '@/consts';
+import { resolveOrigin } from '@/helpers/origin.helper';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { HistorySerializerHost } from '@/snapshots/history-serializer.types';
 import { SnapshotCodec } from '@/snapshots/snapshot-codec';
@@ -184,15 +186,18 @@ export class HistorySerializer {
 
       /**
        * A file that exists but was not captured this session yet: reconstruct it
-       * from disk, then collapse its session marker baseline onto the current
-       * state so it starts session-clean. Without this the restored snapshot
-       * carries its full history diff and the tree/tab decorator (which reads
-       * snapshots without opening them) would paint its folder as changed on a
-       * fresh launch, before the user edits anything this session.
+       * from disk, then redefine its change map to mean "changes vs the resolved
+       * origin". The restore path is persist-gated (it runs only when persistence
+       * is enabled), so the origin is the sliding persist origin: the oldest
+       * retained version, falling back to the history baseline. Seeding from it
+       * makes the restored snapshot report its changes-vs-origin so the gutter, the
+       * tree/tab decorator, and every other marker-derived surface agree and survive
+       * the reload, bounded by retention rather than growing to everything-since
+       * day-one.
        */
       const restored: FileSnapshot = SnapshotCodec.decode(data, file);
 
-      restored.resetMarkerBaseline();
+      restored.seedTrackerFromOrigin(resolveOrigin(restored, KeepHistory.persist));
       this.registry.set(data.path, restored);
     }
 

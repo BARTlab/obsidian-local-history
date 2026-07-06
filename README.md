@@ -48,7 +48,7 @@ Open Settings, then Community plugins, then Local history. Most options are self
 
 - Any retention or snapshot count/age field accepts `0` to disable that particular cap.
 - **Excluded paths** are regular-expression patterns, each matched independently against the vault-relative path; a file is excluded when any pattern matches. Patterns are case-insensitive unless "Case-sensitive path exclusion" is on.
-- **Persist history across restarts** requires "Keep history until" set to app close.
+- **Keep history until** is a single ordered choice for how long tracked history lives: `file close` (drop it when you close the file), `app close` (keep it for the session), or `kept across restarts` (persist it to disk). At `kept across restarts` the highlighted change set (file tree, tab headers, editor gutter, and vault changes panel) is bounded by your retention caps: a file whose changes all predate the retention window drops off those status surfaces, while its full per-file history stays browsable in the history modal.
 
 ### Custom CSS example
 

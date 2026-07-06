@@ -1,4 +1,5 @@
 import { FolderDeltaStatus } from '@/consts';
+import { restoreWholeVersion } from '@/helpers/version-restore.helper';
 import type { FolderActionHost, FolderActionSelection } from '@/modals/folder-action-handler.types';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FileVersion } from '@/snapshots/file.version';
@@ -81,17 +82,13 @@ export class FolderActionHandler {
        * same applyContent path the file modal's ORIGINAL_BASE_ID branch uses
        * so the tracker and the cached state stay in sync after the write.
        */
-      const baseLines: string[] = selection.result.base;
-      const currentLines: string[] = selection.snapshot.content.getLastStateLines();
-      const lineBreak: string = selection.snapshot.content.lineBreak;
-
-      if (baseLines.join(lineBreak) !== currentLines.join(lineBreak)) {
-        await this.host.snapshotsService.applyContent(file, baseLines, {
-          start: 0,
-          removeCount: currentLines.length,
-          newLines: baseLines,
-        });
-      }
+      await restoreWholeVersion({
+        snapshotsService: this.host.snapshotsService,
+        file,
+        baseLines: selection.result.base,
+        currentLines: selection.snapshot.content.getLastStateLines(),
+        lineBreak: selection.snapshot.content.lineBreak,
+      });
     }
 
     this.host.refreshTree();

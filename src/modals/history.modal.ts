@@ -16,6 +16,7 @@ import { ToolbarBuilder } from '@/modals/toolbar-builder';
 import { VersionList } from '@/components/version-list.component';
 import type { VersionListHost } from '@/components/version-list.component.types';
 import * as DomHelper from '@/helpers/dom.helper';
+import { restoreWholeVersion } from '@/helpers/version-restore.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ModalsService } from '@/services/modals.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
@@ -327,13 +328,12 @@ export class HistoryModal extends Modal {
     if (this.viewState.selectedBaseId !== ORIGINAL_BASE_ID) {
       await this.versionActionsService.restoreSelected(file, this.viewState.selectedBaseId);
     } else {
-      const baseLines: string[] = this.diffPresenter.getBaseContent().split(this.snapshot.content.lineBreak);
-      const currentLines: string[] = this.snapshot.content.getLastStateLines();
-
-      await this.snapshotsService.applyContent(file, baseLines, {
-        start: 0,
-        removeCount: currentLines.length,
-        newLines: baseLines,
+      await restoreWholeVersion({
+        snapshotsService: this.snapshotsService,
+        file,
+        baseLines: this.diffPresenter.getBaseContent().split(this.snapshot.content.lineBreak),
+        currentLines: this.snapshot.content.getLastStateLines(),
+        lineBreak: this.snapshot.content.lineBreak,
       });
     }
 

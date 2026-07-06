@@ -1,4 +1,5 @@
 import { Inject } from '@/decorators/inject.decorator';
+import { restoreWholeVersion } from '@/helpers/version-restore.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
@@ -84,20 +85,15 @@ export class VersionActionsService implements Service {
       return { applied: false };
     }
 
-    const baseLines: string[] = version.getLines();
-    const currentLines: string[] = snapshot.content.getLastStateLines();
-
-    if (baseLines.join(snapshot.content.lineBreak) === currentLines.join(snapshot.content.lineBreak)) {
-      return { applied: false };
-    }
-
-    await this.snapshotsService.applyContent(target, baseLines, {
-      start: 0,
-      removeCount: currentLines.length,
-      newLines: baseLines,
+    const applied: boolean = await restoreWholeVersion({
+      snapshotsService: this.snapshotsService,
+      file: target,
+      baseLines: version.getLines(),
+      currentLines: snapshot.content.getLastStateLines(),
+      lineBreak: snapshot.content.lineBreak,
     });
 
-    return { applied: true };
+    return { applied };
   }
 
   /**

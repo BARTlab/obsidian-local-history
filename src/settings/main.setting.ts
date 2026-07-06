@@ -598,7 +598,7 @@ export class MainSetting extends PluginSettingTab {
 
           return button
             .setButtonText(this.plugin.t('setting.purge-excluded.name'))
-            .setWarning()
+            .setDestructive()
             .onClick(async (): Promise<void> => {
               /**
                * The purge is irreversible, so it is gated behind a confirm

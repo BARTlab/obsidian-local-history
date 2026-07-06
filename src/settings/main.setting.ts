@@ -103,8 +103,8 @@ export class MainSetting extends PluginSettingTab {
 
   /**
    * Renders the "General" group: indicator type, tracked extensions, the
-   * new-files filter, the three highlight surfaces (file tree, properties
-   * panel, reading mode), and history persistence.
+   * new-files filter, and the three highlight surfaces (file tree, properties
+   * panel, reading mode).
    *
    * @param {HTMLElement} containerEl - The settings tab container
    */
@@ -544,8 +544,9 @@ export class MainSetting extends PluginSettingTab {
         .setDesc(this.plugin.t('setting.keep.desc'))
         .addDropdown((dropdown: DropdownComponent): DropdownComponent =>
           dropdown
-            .addOption(KeepHistory.app, this.plugin.t('setting.keep.option.app'))
             .addOption(KeepHistory.file, this.plugin.t('setting.keep.option.file'))
+            .addOption(KeepHistory.app, this.plugin.t('setting.keep.option.app'))
+            .addOption(KeepHistory.persist, this.plugin.t('setting.keep.option.persist'))
             .setValue(this.settingsService.value('keep'))
             .onChange((value: string): void => {
               this.settingsService.update('keep', value as KeepHistory);

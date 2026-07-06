@@ -2,6 +2,16 @@
 
 All notable user-facing changes to this plugin are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/), and the project  follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+
+- **History retention is a single three-way choice.** The separate "Persist history across restarts" toggle is gone, folded into one **Keep history until** setting with three ordered levels: file close, app close, and kept across restarts. At the kept-across-restarts level the highlighted change set is bounded by your retention caps (a sliding origin), so a file whose changes all predate the retention window drops from the vault changes panel and the file tree while its full history stays browsable in the history modal. There is no automatic migration: pick your preferred level once after upgrading.
+
+### Fixed
+
+- **Change surfaces agree after a restart.** At the kept-across-restarts level the file tree, tab headers, editor gutter, and vault changes panel now show the same changed set after a reload, instead of the tree and gutter going blank while the panel still listed the changed files.
+
 ## [2.0.0] - 2026-07-08
 
 First release published to the Obsidian community plugin directory. Since the last public release (1.0.1) the plugin grew from a live line-change highlighter into a full on-disk local-history system: a per-file version timeline, a four-view diff, restore and revert, folder history, and recovery of deleted, moved, and externally changed files.
@@ -86,6 +96,7 @@ First release published to the Obsidian community plugin directory. Since the la
 
 - Initial release: live highlighting of changed, added, removed, and restored lines with line or gutter indicators, a built-in side-by-side and line-by-line diff modal, patch export, and configurable appearance and history settings.
 
+[Unreleased]: https://github.com/bartlab/obsidian-local-history/compare/2.0.0...HEAD
 [2.0.0]: https://github.com/bartlab/obsidian-local-history/compare/1.0.1...2.0.0
 [1.0.1]: https://github.com/bartlab/obsidian-local-history/compare/1.0.0...1.0.1
 [1.0.0]: https://github.com/bartlab/obsidian-local-history/releases/tag/1.0.0

@@ -10,6 +10,11 @@ import * as path from 'path';
  * to a blank string in a translated language. English is the reference set
  * because it is the catalog every key is guaranteed to exist in.
  *
+ * A third guard covers a small allow-list of feature strings (FEATURE_KEYS)
+ * that must be genuinely localized, not left byte-equal to the English source.
+ * Key parity alone does not catch this: a value equal to en is a valid fallback,
+ * so late-added surfaces can ship in English across most catalogs unnoticed.
+ *
  * Catalogs are discovered automatically via fs.readdirSync so any new lang/*.json
  * file is included without a manual test edit.
  */
@@ -36,6 +41,25 @@ for (const file of allFiles) {
   const lang = file.replace(/\.json$/, '');
   catalogs[lang] = require(path.join(LANG_DIR, file)) as Catalog;
 }
+
+/**
+ * Feature strings that must be genuinely localized in every non-English catalog,
+ * not left on the English fallback. These arrived late (the vault changes panel
+ * and the marker-intensity control) and originally shipped in English across
+ * every catalog but ru; this guard keeps a new or reset catalog from regressing
+ * them back to the fallback. en-GB is exempt: British English is legitimately
+ * identical to the en reference for these strings.
+ */
+const FEATURE_KEYS: string[] = [
+  'command.open-vault-changes',
+  'setting.marker-intensity-heading',
+  'setting.marker-intensity.desc',
+  'view.vault-changes.title',
+  'view.vault-changes.search-placeholder',
+  'view.vault-changes.layout.tree',
+  'view.vault-changes.layout.flat',
+  'view.vault-changes.deleted-notice',
+];
 
 describe('translation catalogs', () => {
   it('en has at least one key', () => {
@@ -66,6 +90,15 @@ describe('translation catalogs', () => {
 
         expect(empty).toEqual([]);
       });
+
+      if (language !== 'en-GB') {
+        it('localizes the feature keys (no English fallback left)', () => {
+          const untranslated: string[] = FEATURE_KEYS
+            .filter((key: string): boolean => catalog[key] === en_catalog[key]);
+
+          expect(untranslated).toEqual([]);
+        });
+      }
     });
   }
 });

@@ -481,15 +481,13 @@ export class PersistenceService implements Service {
   }
 
   /**
-   * Whether history should be persisted to disk right now.
-   * Requires the explicit persist toggle and a retention policy that keeps
-   * history beyond a single file close (file-scoped history is never persisted
-   * since it is meant to vanish when the file is closed).
+   * Whether history should be persisted to disk right now. True only at the most
+   * durable keep level (`persist`); the session-scoped (`app`) and
+   * file-scoped (`file`) levels are never written to disk.
    *
    * @return {boolean} True when persistence is active
    */
   protected isPersistEnabled(): boolean {
-    return this.settingsService.value('persist')
-      && this.settingsService.value('keep') === KeepHistory.app;
+    return this.settingsService.value('keep') === KeepHistory.persist;
   }
 }

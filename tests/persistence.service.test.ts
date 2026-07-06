@@ -297,21 +297,16 @@ class WritePersistenceService extends PersistenceService {
 }
 
 interface PersistSettings {
-  persist: boolean;
   keep: KeepHistory;
 }
 
 const makeWriteService = (
   adapter: MemoryAdapter,
   serialize: () => SerializedHistory,
-  persistSettings: PersistSettings = { persist: true, keep: KeepHistory.app },
+  persistSettings: PersistSettings = { keep: KeepHistory.persist },
 ): WritePersistenceService => {
   const settings = {
     value: (path: string): unknown => {
-      if (path === 'persist') {
-        return persistSettings.persist;
-      }
-
       if (path === 'keep') {
         return persistSettings.keep;
       }
@@ -489,7 +484,7 @@ describe('PersistenceService write queue', () => {
     const service = makeWriteService(
       adapter,
       (): SerializedHistory => payload('ignored.md', 1),
-      { persist: false, keep: KeepHistory.app },
+      { keep: KeepHistory.app },
     );
 
     service.triggerClear();
@@ -646,12 +641,8 @@ const makeRetentionWriteService = (
 ): WritePersistenceService => {
   const settings = {
     value: (path: string): unknown => {
-      if (path === 'persist') {
-        return true;
-      }
-
       if (path === 'keep') {
-        return KeepHistory.app;
+        return KeepHistory.persist;
       }
 
       if (path === 'retention.maxEntries') {

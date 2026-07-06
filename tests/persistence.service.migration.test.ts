@@ -36,7 +36,6 @@ class MigrationPersistenceService extends PersistenceService {
 }
 
 interface PersistSettings {
-  persist: boolean;
   keep: KeepHistory;
 }
 
@@ -60,14 +59,10 @@ const shardPath = (notePath: string): string => `${SHARD_DIR}/${ShardNameHelper.
  */
 const makeService = (
   adapter: MemoryAdapter,
-  persistSettings: PersistSettings = { persist: true, keep: KeepHistory.app },
+  persistSettings: PersistSettings = { keep: KeepHistory.persist },
 ): MigrationPersistenceService => {
   const settings = {
     value: (path: string): unknown => {
-      if (path === 'persist') {
-        return persistSettings.persist;
-      }
-
       if (path === 'keep') {
         return persistSettings.keep;
       }

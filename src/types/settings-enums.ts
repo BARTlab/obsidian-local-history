@@ -8,12 +8,16 @@ export enum IndicatorType {
 }
 
 /**
- * Defines how long to keep change history.
- * Controls whether changes are tracked until the app is closed or until the file is closed.
+ * Ordered durability of change history, from least to most durable:
+ * `file` < `app` < `persist`. `file` drops the history when the file is closed,
+ * `app` keeps it only for the running session, and `persist` writes it to disk
+ * so it survives an app restart. A single linear choice: there is no separate
+ * persist toggle to combine with it.
  */
 export enum KeepHistory {
   app = 'app',
   file = 'file',
+  persist = 'persist',
 }
 
 /**

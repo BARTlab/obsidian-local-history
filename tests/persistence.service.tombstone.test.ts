@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 
 import type { SnapshotsService } from '@/services/snapshots.service';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';

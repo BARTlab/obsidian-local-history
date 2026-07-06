@@ -1,10 +1,10 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 import { EditorState, type StateField } from '@codemirror/state';
 import { editorInfoField } from 'obsidian';
 import { isNestedEditor } from '@/helpers/nested-editor.helper';
 import type { EditorView } from '@codemirror/view';
 
-// The runtime field is the jest stub (StateField<unknown>); retype the real
+// The runtime field is the mocked stub (StateField<unknown>); retype the real
 // obsidian declaration to match so init can return plain test doubles.
 const infoField = editorInfoField as unknown as StateField<unknown>;
 

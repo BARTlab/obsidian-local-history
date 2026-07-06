@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 import { OpenVaultChangesCommand } from '@/commands/open-vault-changes.command';
 
 type PluginArg = ConstructorParameters<typeof OpenVaultChangesCommand>[0];

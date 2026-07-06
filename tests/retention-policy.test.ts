@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 
 import { MS_PER_DAY } from '@/consts';
 import { RetentionPolicy } from '@/persistence/retention-policy';

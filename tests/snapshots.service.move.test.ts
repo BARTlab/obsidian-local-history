@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 
 import * as PathHelper from '@/helpers/path.helper';
 import type { SnapshotsService } from '@/services/snapshots.service';

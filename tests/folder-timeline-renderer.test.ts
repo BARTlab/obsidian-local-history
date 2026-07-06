@@ -1,6 +1,6 @@
-/** @jest-environment jsdom */
+/** @vitest-environment jsdom */
 
-import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
+import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { FolderTimelinePointKind } from '@/consts';
 import { FolderTimelineRenderer } from '@/modals/folder-timeline-renderer';
 import type { FolderTimelineHost } from '@/modals/folder-timeline-renderer.types';

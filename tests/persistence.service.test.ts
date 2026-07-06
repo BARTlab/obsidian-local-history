@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it, vi } from 'vitest';
 import { HISTORY_SHARD_DIR, KeepHistory, SAVE_DEBOUNCE_MS } from '@/consts';
 import * as ShardNameHelper from '@/helpers/shard-name.helper';
 import { PersistenceService } from '@/services/persistence.service';
@@ -500,7 +500,7 @@ describe('PersistenceService write queue', () => {
   });
 
   it('debounced saves are coalesced and routed through the queue', async (): Promise<void> => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
 
     try {
       const adapter = new MemoryAdapter();
@@ -515,8 +515,8 @@ describe('PersistenceService write queue', () => {
       service.onSnapshotsUpdate();
       service.onSnapshotsUpdate();
 
-      jest.advanceTimersByTime(SAVE_DEBOUNCE_MS + 1);
-      jest.useRealTimers();
+      vi.advanceTimersByTime(SAVE_DEBOUNCE_MS + 1);
+      vi.useRealTimers();
       await service.drain();
 
       // Only one serialize call happened because the timer collapsed the three triggers.
@@ -525,7 +525,7 @@ describe('PersistenceService write queue', () => {
       expect(snapshot).toBeDefined();
       expect(snapshot?.timestamp).toBe(1);
     } finally {
-      jest.useRealTimers();
+      vi.useRealTimers();
     }
   });
 });

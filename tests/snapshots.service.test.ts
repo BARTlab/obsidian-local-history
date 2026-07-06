@@ -1,8 +1,8 @@
 import 'reflect-metadata';
-import { describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it, vi } from 'vitest';
 
 // The real FileSnapshot is used directly (the lodash-es ESM chain is routed to
-// a CommonJS stub via jest.config moduleNameMapper), the same way the
+// a stub via the vitest resolve alias), the same way the
 // serialize/restore suite does, so this suite runs against the genuine snapshot
 // API rather than a hand-rolled fake.
 import { SnapshotsService } from '@/services/snapshots.service';
@@ -134,7 +134,7 @@ describe('SnapshotsService path excludes', () => {
   });
 
   it('excludes nothing on an invalid regexp so tracking continues', () => {
-    const notice = jest.spyOn(obsidian, 'Notice').mockImplementation(
+    const notice = vi.spyOn(obsidian, 'Notice').mockImplementation(
       function(this: unknown): void {
         // Inert: swallow construction so the "new Notice(...)" call is counted
         // without needing a real Obsidian toast.

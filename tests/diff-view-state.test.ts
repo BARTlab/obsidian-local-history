@@ -1,6 +1,6 @@
-/** @jest-environment jsdom */
+/** @vitest-environment jsdom */
 
-import { beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DiffOutputFormatType, DiffViewMode, NavigationDirection } from '@/consts';
 import { DiffViewState } from '@/modals/diff-view-state';
 import type { DiffViewStateHost } from '@/modals/diff-view-state.types';
@@ -156,7 +156,7 @@ describe('DiffViewState', () => {
       mountAnchors(2);
       const state = new DiffViewState(makeHost());
       const target = container.querySelectorAll<HTMLElement>('.lct-hunk-anchor')[1];
-      const scrollSpy = jest.spyOn(target, 'scrollIntoView');
+      const scrollSpy = vi.spyOn(target, 'scrollIntoView');
 
       state.focusHunk(1);
 

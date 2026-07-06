@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { IgnoreListManager } from '@/snapshots/ignore-list';
 import type { IgnoreListHost } from '@/snapshots/ignore-list.types';
 import type { TFile } from 'obsidian';
@@ -18,16 +18,16 @@ import { makeFile } from './helpers/builders';
  * {@link IgnoreListHost} stub so the service is never in the loop.
  */
 
-/** Builds a minimal {@link IgnoreListHost} stub backed by jest.fn(). */
+/** Builds a minimal {@link IgnoreListHost} stub backed by vi.fn(). */
 const makeHost = (patterns: string[] = [], caseSensitive: boolean = false): {
   host: IgnoreListHost;
-  getExcludePatterns: jest.Mock<() => string[]>;
-  getExcludePathsCaseSensitive: jest.Mock<() => boolean>;
-  notifyInvalidPattern: jest.Mock<() => void>;
+  getExcludePatterns: Mock<() => string[]>;
+  getExcludePathsCaseSensitive: Mock<() => boolean>;
+  notifyInvalidPattern: Mock<() => void>;
 } => {
-  const getExcludePatterns = jest.fn<() => string[]>(() => patterns);
-  const getExcludePathsCaseSensitive = jest.fn<() => boolean>(() => caseSensitive);
-  const notifyInvalidPattern = jest.fn<() => void>();
+  const getExcludePatterns = vi.fn<() => string[]>(() => patterns);
+  const getExcludePathsCaseSensitive = vi.fn<() => boolean>(() => caseSensitive);
+  const notifyInvalidPattern = vi.fn<() => void>();
 
   const host: IgnoreListHost = {
     getExcludePatterns,
@@ -190,9 +190,9 @@ describe('IgnoreListManager - warn-once guard (invalid pattern)', () => {
 
   it('fires again when the bad pattern text changes to a new bad pattern', () => {
     let patterns: string[] = ['[bad1'];
-    const getExcludePatterns = jest.fn<() => string[]>(() => patterns);
-    const getExcludePathsCaseSensitive = jest.fn<() => boolean>(() => false);
-    const notifyInvalidPattern = jest.fn<() => void>();
+    const getExcludePatterns = vi.fn<() => string[]>(() => patterns);
+    const getExcludePathsCaseSensitive = vi.fn<() => boolean>(() => false);
+    const notifyInvalidPattern = vi.fn<() => void>();
     const host: IgnoreListHost = { getExcludePatterns, getExcludePathsCaseSensitive, notifyInvalidPattern };
     const manager = new IgnoreListManager(host);
 
@@ -206,9 +206,9 @@ describe('IgnoreListManager - warn-once guard (invalid pattern)', () => {
 
   it('resets the guard when the pattern becomes valid after being bad', () => {
     let patterns: string[] = ['[bad'];
-    const getExcludePatterns = jest.fn<() => string[]>(() => patterns);
-    const getExcludePathsCaseSensitive = jest.fn<() => boolean>(() => false);
-    const notifyInvalidPattern = jest.fn<() => void>();
+    const getExcludePatterns = vi.fn<() => string[]>(() => patterns);
+    const getExcludePathsCaseSensitive = vi.fn<() => boolean>(() => false);
+    const notifyInvalidPattern = vi.fn<() => void>();
     const host: IgnoreListHost = { getExcludePatterns, getExcludePathsCaseSensitive, notifyInvalidPattern };
     const manager = new IgnoreListManager(host);
 

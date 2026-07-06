@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { VERSION_KEYFRAME_INTERVAL } from '@/consts';
 import { SnapshotsService } from '@/services/snapshots.service';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
@@ -432,11 +432,11 @@ describe('SnapshotsService.restore - post-restore reconciliation (A1)', () => {
   };
 
   beforeEach((): void => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
   });
 
   afterEach((): void => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   it('A1-stale: schedules a re-capture for an open file whose disk content diverges from restored state', async () => {
@@ -464,7 +464,7 @@ describe('SnapshotsService.restore - post-restore reconciliation (A1)', () => {
     expect(before.timeline.getStoredVersions().length).toBe(0);
 
     // Let the debounce timer fire and the async capture complete.
-    await jest.runAllTimersAsync();
+    await vi.runAllTimersAsync();
 
     const after: FileSnapshot = service.getOne(file) as FileSnapshot;
     expect(after.timeline.getStoredVersions().length).toBe(1);
@@ -488,7 +488,7 @@ describe('SnapshotsService.restore - post-restore reconciliation (A1)', () => {
     const persisted = new FileSnapshot(content, '\n', file);
     service.restore([SnapshotCodec.encode(persisted)]);
 
-    await jest.runAllTimersAsync();
+    await vi.runAllTimersAsync();
 
     const after: FileSnapshot = service.getOne(file) as FileSnapshot;
     expect(after.timeline.getStoredVersions().length).toBe(0);
@@ -516,7 +516,7 @@ describe('SnapshotsService.restore - post-restore reconciliation (A1)', () => {
       service.restore([SnapshotCodec.encode(persisted)]);
     }).not.toThrow();
 
-    await jest.runAllTimersAsync();
+    await vi.runAllTimersAsync();
 
     // No external version was captured (no disk read happened).
     const after: FileSnapshot = service.getOne(file) as FileSnapshot;

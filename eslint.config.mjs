@@ -94,15 +94,16 @@ export default [
     },
   },
   {
-    // Test tree: same stylistic baseline as src, with jest+node environment
-    // globals and a few minimal, justified relaxations for test-only code.
+    // Test tree: same stylistic baseline as src, with a node+browser
+    // environment and a few minimal, justified relaxations for test-only code.
+    // The vitest API (describe/it/expect/vi) is imported explicitly per file,
+    // so no test-runner globals are declared here.
     files: ['tests/**/*.ts'],
     languageOptions: {
       parser: tsParser,
       ecmaVersion: 'latest',
       sourceType: 'module',
       globals: {
-        ...globals.jest,
         ...globals.node,
         ...globals.browser,
         ...globals.es2021,

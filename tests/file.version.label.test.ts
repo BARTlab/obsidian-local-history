@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import { FileVersion } from '@/snapshots/file.version';
 import type { SerializedFileVersion, SnapshotCaptureOptions } from '@/types';
@@ -21,7 +21,7 @@ const options = (overrides: Partial<SnapshotCaptureOptions> = {}): SnapshotCaptu
 });
 
 afterEach((): void => {
-  jest.restoreAllMocks();
+  vi.restoreAllMocks();
 });
 
 describe('FileVersion label round-trip', () => {
@@ -166,7 +166,7 @@ describe('FileSnapshot.evictVersions: labeled versions are pinned', () => {
 
   it('keeps a labeled version older than maxVersionAgeDays while dropping unlabeled stale entries', () => {
     const base: number = 10_000_000_000;
-    const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(base);
+    const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(base);
 
     const snapshot = new FileSnapshot('a', '\n');
     const opts = options({ editThreshold: 1, maxVersionAgeDays: 14 });

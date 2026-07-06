@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { FolderDeltaStatus } from '@/consts';
 import { FolderActionHandler } from '@/modals/folder-action-handler';
 import type { FolderActionHost, FolderActionSelection } from '@/modals/folder-action-handler.types';
@@ -44,18 +44,18 @@ describe('FolderActionHandler', () => {
   let confirmResult: boolean;
   let labelResult: FileVersion | null;
 
-  let confirm: jest.Mock<() => Promise<boolean>>;
-  let restoreSelected: jest.Mock<(file: TFile, id: string) => Promise<void>>;
-  let removeSelected: jest.Mock<(file: TFile, id: string) => void>;
-  let labelVersion: jest.Mock<() => Promise<FileVersion | null>>;
-  let applyContent: jest.Mock<(...args: unknown[]) => Promise<boolean>>;
-  let wipeOne: jest.Mock<(file: TFile) => void>;
-  let forceUpdate: jest.Mock<() => void>;
-  let modify: jest.Mock<(file: TFile, content: string) => Promise<void>>;
-  let removeFromMap: jest.Mock<(path: string) => void>;
-  let resyncTimeline: jest.Mock<() => void>;
-  let refreshTree: jest.Mock<() => void>;
-  let refreshDiff: jest.Mock<() => void>;
+  let confirm: Mock<() => Promise<boolean>>;
+  let restoreSelected: Mock<(file: TFile, id: string) => Promise<void>>;
+  let removeSelected: Mock<(file: TFile, id: string) => void>;
+  let labelVersion: Mock<() => Promise<FileVersion | null>>;
+  let applyContent: Mock<(...args: unknown[]) => Promise<boolean>>;
+  let wipeOne: Mock<(file: TFile) => void>;
+  let forceUpdate: Mock<() => void>;
+  let modify: Mock<(file: TFile, content: string) => Promise<void>>;
+  let removeFromMap: Mock<(path: string) => void>;
+  let resyncTimeline: Mock<() => void>;
+  let refreshTree: Mock<() => void>;
+  let refreshDiff: Mock<() => void>;
 
   const plugin = {
     t: (key: string): string => key,
@@ -120,18 +120,18 @@ describe('FolderActionHandler', () => {
     versionAtT = null;
     confirmResult = true;
     labelResult = null;
-    confirm = jest.fn(() => Promise.resolve(confirmResult));
-    restoreSelected = jest.fn();
-    removeSelected = jest.fn();
-    labelVersion = jest.fn(() => Promise.resolve(labelResult));
-    applyContent = jest.fn(() => Promise.resolve(true));
-    wipeOne = jest.fn();
-    forceUpdate = jest.fn();
-    modify = jest.fn(() => Promise.resolve());
-    removeFromMap = jest.fn();
-    resyncTimeline = jest.fn();
-    refreshTree = jest.fn();
-    refreshDiff = jest.fn();
+    confirm = vi.fn(() => Promise.resolve(confirmResult));
+    restoreSelected = vi.fn();
+    removeSelected = vi.fn();
+    labelVersion = vi.fn(() => Promise.resolve(labelResult));
+    applyContent = vi.fn(() => Promise.resolve(true));
+    wipeOne = vi.fn();
+    forceUpdate = vi.fn();
+    modify = vi.fn(() => Promise.resolve());
+    removeFromMap = vi.fn();
+    resyncTimeline = vi.fn();
+    refreshTree = vi.fn();
+    refreshDiff = vi.fn();
   });
 
   describe('handleRestoreSelected', () => {

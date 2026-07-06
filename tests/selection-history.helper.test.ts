@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 import * as SelectionHistoryHelper from '@/helpers/selection-history.helper';
 import type { SelectableVersion } from '@/types';
 

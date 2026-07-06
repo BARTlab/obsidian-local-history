@@ -261,7 +261,7 @@ export function checkBudget(label: string, measuredMs: number, baseline: Baselin
 /**
  * Acquire an exclusive cross-process lock on the baseline file by creating a
  * lockfile with the `wx` flag (fails if it already exists). Perf benches run
- * across parallel Jest workers, so record-mode writes must be serialised or
+ * across parallel vitest workers, so record-mode writes must be serialised or
  * concurrent read-modify-write would lose entries. Spins briefly with a
  * synchronous backoff; the critical section is a single small file write, so
  * contention clears in microseconds.

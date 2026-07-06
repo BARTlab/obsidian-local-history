@@ -1,6 +1,6 @@
-/** @jest-environment jsdom */
+/** @vitest-environment jsdom */
 import 'reflect-metadata';
-import { describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it, vi } from 'vitest';
 
 import EventEmitter from 'eventemitter3';
 
@@ -52,7 +52,7 @@ describe('Registry/lifecycle guards', (): void => {
     }
 
     it('skips the second registration of the same event class', (): void => {
-      const registerEvent = jest.fn();
+      const registerEvent = vi.fn();
       const plugin = ({
         app: { workspace: {}, vault: {} },
         registerEvent,
@@ -96,7 +96,7 @@ describe('Registry/lifecycle guards', (): void => {
      * Mirrors the post-fix `emit` body (`this.emitter.emit(name, ...payload)`)
      * against the same eventemitter3 the plugin uses, without importing
      * `main.ts` (which transitively pulls in obsidian-only `PluginSettingTab`
-     * and breaks the Jest environment).
+     * and breaks the test environment).
      *
      * The point of the regression is purely the spread: pre-fix code passed
      * `(name, payload)`, so handlers received `(arrayOfArgs)` instead of
@@ -104,7 +104,7 @@ describe('Registry/lifecycle guards', (): void => {
      */
     it('delivers emit(name, a, b) as separate handler args, not as a single array', (): void => {
       const emitter = new EventEmitter();
-      const handler = jest.fn();
+      const handler = vi.fn();
       emitter.on('test.event', handler);
 
       const emit = (name: string, ...payload: unknown[]): boolean =>

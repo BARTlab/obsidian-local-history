@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 import * as BaseContentHelper from '@/helpers/base-content.helper';
 import type { BaseContentSnapshot } from '@/types';
 

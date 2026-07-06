@@ -108,7 +108,7 @@ npm install
 npm run dev        # build in watch mode
 npm run build      # type-check and build for production
 npm run lint       # run ESLint
-npm test           # run the Jest suite
+npm test           # run the vitest suite
 ```
 
 For the architectural rationale and history-model invariants, see [ARCHITECTURE.md](ARCHITECTURE.md). For the release history, see [CHANGELOG.md](CHANGELOG.md).

@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it, vi, type Mock } from 'vitest';
 
 import { WorkspaceViewportMenuEvent } from '@/events/workspace/viewport-menu.event';
 import type LineChangeTrackerPlugin from '@/main';
@@ -22,7 +22,7 @@ type RecordedItem = {
 };
 
 interface MockMenu {
-  addItem: jest.Mock;
+  addItem: Mock;
   items: RecordedItem[];
 }
 
@@ -60,7 +60,7 @@ const makeMenuItem = (record: RecordedItem): unknown => {
 
 const makeMenu = (): MockMenu => {
   const items: RecordedItem[] = [];
-  const addItem = jest.fn((build: (item: unknown) => void): unknown => {
+  const addItem = vi.fn((build: (item: unknown) => void): unknown => {
     const record: RecordedItem = {
       section: '',
       title: '',
@@ -75,7 +75,7 @@ const makeMenu = (): MockMenu => {
     return undefined;
   });
 
-  return { addItem: addItem as unknown as jest.Mock, items };
+  return { addItem: addItem as unknown as Mock, items };
 };
 
 /**
@@ -87,11 +87,11 @@ const makeContext = (
   shown: boolean,
 ): {
   event: WorkspaceViewportMenuEvent;
-  settings: { isShowChangesEnabled: jest.Mock; toggleShowChanges: jest.Mock };
+  settings: { isShowChangesEnabled: Mock; toggleShowChanges: Mock };
 } => {
   const settings = {
-    isShowChangesEnabled: jest.fn().mockReturnValue(shown),
-    toggleShowChanges: jest.fn(),
+    isShowChangesEnabled: vi.fn().mockReturnValue(shown),
+    toggleShowChanges: vi.fn(),
   };
 
   const container: Map<unknown, unknown> = new Map<unknown, unknown>([

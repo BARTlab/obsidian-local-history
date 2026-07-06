@@ -1,8 +1,8 @@
 /**
- * CommonJS-friendly stand-in for the handful of lodash-es predicates the engine
- * imports. lodash-es ships ESM only, which the CommonJS Jest runtime cannot
- * require directly; mapping the bare specifier here lets the real FileSnapshot,
- * TrackerLine and ArrayMap load under test without pulling the ESM chain.
+ * Stand-in for the handful of lodash-es predicates the engine imports. The
+ * bare `lodash-es` specifier is routed here via the vitest resolve alias so the
+ * real FileSnapshot, TrackerLine and ArrayMap load under test against a small,
+ * deterministic implementation rather than the full lodash-es dependency chain.
  * The implementations match lodash semantics for the values used in this code.
  */
 export const isArray = (value: unknown): value is unknown[] => Array.isArray(value);

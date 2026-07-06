@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it, vi, type Mock } from 'vitest';
 
 import { WorkspaceActiveLeafChangeEvent } from '@/events/workspace/active-leaf-change.event';
 import type LineChangeTrackerPlugin from '@/main';
@@ -15,9 +15,9 @@ const makeContext = (
   ready: boolean,
 ): {
   event: WorkspaceActiveLeafChangeEvent;
-  snapshots: { forceUpdate: jest.Mock };
+  snapshots: { forceUpdate: Mock };
 } => {
-  const snapshots = { forceUpdate: jest.fn() };
+  const snapshots = { forceUpdate: vi.fn() };
 
   const container: Map<unknown, unknown> = new Map<unknown, unknown>([
     [TOKENS.snapshots, snapshots as unknown as SnapshotsService],

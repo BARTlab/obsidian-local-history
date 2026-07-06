@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  */
 
 /**
@@ -15,23 +15,24 @@
  * duplicated an identical obsidian mock and a testable subclass; they are merged
  * here so the scaffolding exists once and no assertion is re-run across files.
  * Visual verification (the indicator visibly appearing / disappearing in an open
- * reading-mode pane) is beyond the Jest boundary and requires a live Obsidian
+ * reading-mode pane) is beyond the vitest boundary and requires a live Obsidian
  * instance; see docs/qa/render-protocol.md.
  */
 
 import 'reflect-metadata';
-import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ChangeType } from '@/consts';
 import { ReadingModeIndicatorService } from '@/services/reading-mode-indicator.service';
+import { TOKENS } from '@/services/tokens';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { MarkdownPostProcessorContext } from 'obsidian';
 
 // MarkdownPreviewRenderer is referenced at module load time. Stub obsidian so
 // the service module resolves without the real Obsidian runtime. MarkdownView is
 // used in clearAll() for the view cast.
-jest.mock('obsidian', () => ({
+vi.mock('obsidian', () => ({
   MarkdownPreviewRenderer: {
-    unregisterPostProcessor: jest.fn(),
+    unregisterPostProcessor: vi.fn(),
   },
   MarkdownView: class MarkdownView {},
 }));
@@ -115,7 +116,7 @@ function makeCtx(
 ): MarkdownPostProcessorContext {
   return {
     sourcePath,
-    getSectionInfo: jest.fn((_el: HTMLElement) => sectionInfo),
+    getSectionInfo: vi.fn((_el: HTMLElement) => sectionInfo),
   } as unknown as MarkdownPostProcessorContext;
 }
 
@@ -134,9 +135,9 @@ function makePlugin(opts: {
   ready?: boolean;
 }): {
   plugin: unknown;
-  registerMarkdownPostProcessor: ReturnType<typeof jest.fn>;
+  registerMarkdownPostProcessor: ReturnType<typeof vi.fn>;
 } {
-  const registerMarkdownPostProcessor = jest.fn();
+  const registerMarkdownPostProcessor = vi.fn();
 
   const plugin = {
     isReady: (): boolean => opts.ready ?? true,
@@ -154,22 +155,18 @@ function makePlugin(opts: {
           })),
       },
     },
-    get: jest.fn((token: unknown) => {
+    get: vi.fn((token: unknown) => {
       // Overridden below with a TOKENS-aware implementation; the placeholder
-      // keeps the field a jest.fn so mockImplementation can replace it.
+      // keeps the field a vi.fn so mockImplementation can replace it.
       void token;
 
       return undefined;
     }),
   };
 
-  // Resolve real service stubs keyed by TOKENS. TOKENS is required lazily to
-  // avoid hoisting issues with the obsidian mock above.
-  const { TOKENS } = jest.requireActual<{ TOKENS: Record<string, symbol> }>(
-    '@/services/tokens',
-  );
-
-  (plugin.get as ReturnType<typeof jest.fn>).mockImplementation((token: unknown) => {
+  // Resolve real service stubs keyed by TOKENS. tokens.ts is type-only over
+  // obsidian, so a static import is safe under the hoisted obsidian mock above.
+  (plugin.get as ReturnType<typeof vi.fn>).mockImplementation((token: unknown) => {
     if (token === TOKENS.settings) {
       return {
         value: (_key: string): boolean => opts.readingModeIndicator ?? true,
@@ -273,7 +270,7 @@ describe('ReadingModeIndicatorService.resolveBlockChangeType', () => {
 
 describe('ReadingModeIndicatorService.decorate - block with changes', () => {
   let service: TestableService;
-  let registerMarkdownPostProcessor: ReturnType<typeof jest.fn>;
+  let registerMarkdownPostProcessor: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     const result = makePlugin({
@@ -503,7 +500,7 @@ describe('ReadingModeIndicatorService.unregister (via unload)', () => {
     const service = new TestableService(plugin as never);
 
     // Simulate a registered processor so unregister() does not bail early.
-    service.setProcessor({ getSectionInfo: jest.fn() } as unknown as MarkdownPostProcessorContext);
+    service.setProcessor({ getSectionInfo: vi.fn() } as unknown as MarkdownPostProcessorContext);
     service.unload();
 
     expect(block.classList.contains('lct-rm-indicator')).toBe(false);

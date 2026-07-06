@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 
 import * as FolderDeltaHelper from '@/helpers/folder-delta.helper';
 import * as FolderTimelineHelper from '@/helpers/folder-timeline.helper';

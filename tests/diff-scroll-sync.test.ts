@@ -1,6 +1,6 @@
-/** @jest-environment jsdom */
+/** @vitest-environment jsdom */
 
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DiffScrollSync } from '@/modals/diff-scroll-sync';
 import type { HTMLElementWithScrollSync } from '@/types';
 
@@ -46,10 +46,10 @@ describe('DiffScrollSync', () => {
   };
 
   beforeEach((): void => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     // Run rAF synchronously so the reentrancy guard's "clear on next frame"
     // happens within the test without real animation timing.
-    jest.spyOn(globalThis, 'requestAnimationFrame').mockImplementation(
+    vi.spyOn(globalThis, 'requestAnimationFrame').mockImplementation(
       (callback: FrameRequestCallback): number => {
         callback(0);
 
@@ -60,9 +60,9 @@ describe('DiffScrollSync', () => {
   });
 
   afterEach((): void => {
-    jest.runOnlyPendingTimers();
-    jest.useRealTimers();
-    jest.restoreAllMocks();
+    vi.runOnlyPendingTimers();
+    vi.useRealTimers();
+    vi.restoreAllMocks();
     document.body.innerHTML = '';
   });
 
@@ -75,7 +75,7 @@ describe('DiffScrollSync', () => {
     leftWrapper.dispatchEvent(new Event('scroll'));
     expect(rightWrapper.scrollTop).toBe(0);
 
-    jest.runAllTimers();
+    vi.runAllTimers();
 
     leftWrapper.scrollTop = 120;
     leftWrapper.scrollLeft = 15;
@@ -89,7 +89,7 @@ describe('DiffScrollSync', () => {
     const sync = new DiffScrollSync((): HTMLElementWithScrollSync => container);
 
     sync.schedule();
-    jest.runAllTimers();
+    vi.runAllTimers();
 
     rightWrapper.scrollTop = 77;
     rightWrapper.scrollLeft = 9;
@@ -103,7 +103,7 @@ describe('DiffScrollSync', () => {
     const sync = new DiffScrollSync((): HTMLElementWithScrollSync => container);
 
     sync.schedule();
-    jest.runAllTimers();
+    vi.runAllTimers();
 
     // The right column tracks scroll requests so we can prove the guard stops
     // the left->right handler from re-triggering the right->left handler.
@@ -135,7 +135,7 @@ describe('DiffScrollSync', () => {
     sync.schedule();
     // Rapid mode switch: the modal replaced the diff container before setup ran.
     live = buildContainer();
-    jest.runAllTimers();
+    vi.runAllTimers();
 
     leftWrapper.scrollTop = 50;
     leftWrapper.dispatchEvent(new Event('scroll'));
@@ -148,7 +148,7 @@ describe('DiffScrollSync', () => {
     const sync = new DiffScrollSync((): HTMLElementWithScrollSync => container);
 
     sync.schedule();
-    jest.runAllTimers();
+    vi.runAllTimers();
 
     // No cleanup closure is stored because setup found fewer than two wrappers.
     expect(container._scrollSyncCleanup).toBeUndefined();
@@ -159,7 +159,7 @@ describe('DiffScrollSync', () => {
 
     sync.schedule();
     sync.cleanup();
-    jest.runAllTimers();
+    vi.runAllTimers();
 
     leftWrapper.scrollTop = 33;
     leftWrapper.dispatchEvent(new Event('scroll'));
@@ -170,7 +170,7 @@ describe('DiffScrollSync', () => {
     const sync = new DiffScrollSync((): HTMLElementWithScrollSync => container);
 
     sync.schedule();
-    jest.runAllTimers();
+    vi.runAllTimers();
     expect(container._scrollSyncCleanup).toBeDefined();
 
     sync.cleanup();

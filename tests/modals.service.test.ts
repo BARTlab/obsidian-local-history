@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 
 import { ModalsService } from '@/services/modals.service';
 import { FileSnapshot } from '@/snapshots/file.snapshot';

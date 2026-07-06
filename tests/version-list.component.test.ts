@@ -1,6 +1,6 @@
-/** @jest-environment jsdom */
+/** @vitest-environment jsdom */
 
-import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
+import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { ListSelectionDirection, ORIGINAL_BASE_ID, VersionAction, VersionListEdge } from '@/consts';
 import { VersionList } from '@/components/version-list.component';
 import type { VersionListHost } from '@/components/version-list.component.types';

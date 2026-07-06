@@ -1,11 +1,11 @@
 import 'reflect-metadata';
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 
 /**
  * Module-load smoke test for the plugin entry point.
  *
  * `src/main.ts` wires the whole plugin graph (every service, view, modal and
- * extension) at import time. Nothing else imports it under Jest, so a broken
+ * extension) at import time. Nothing else imports it under vitest, so a broken
  * import - a bad decorator, a missing export, a top-level throw anywhere in the
  * transitive graph - would otherwise slip past the suite. Importing it here
  * through the obsidian stub turns any such regression into a failing test.

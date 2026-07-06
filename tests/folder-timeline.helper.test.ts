@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 
 import { FolderDeltaStatus, FolderTimelinePointKind } from '@/consts';
 import * as FolderDeltaHelper from '@/helpers/folder-delta.helper';

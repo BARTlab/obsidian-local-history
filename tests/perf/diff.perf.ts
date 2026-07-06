@@ -1,10 +1,10 @@
 /**
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  */
 
 import 'reflect-metadata';
 
-import { beforeAll, describe, expect, it } from '@jest/globals';
+import { beforeAll, describe, expect, it } from 'vitest';
 
 import { DiffOutputFormatType, DiffViewMode } from '@/consts';
 import * as DiffRenderHelper from '@/helpers/diff-render.helper';

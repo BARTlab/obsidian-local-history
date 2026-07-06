@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 
 import { FolderDeltaStatus } from '@/consts';
 import * as SessionStatusHelper from '@/helpers/session-status.helper';

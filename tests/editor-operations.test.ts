@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { EditorOperations } from '@/snapshots/editor-operations';
 import type { EditorOperationsHost } from '@/snapshots/editor-operations.types';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
@@ -26,9 +26,9 @@ import { makeFile } from './helpers/builders';
 describe('EditorOperations', () => {
   let snapshot: FileSnapshot | null;
   let file: TFile | null;
-  let modify: jest.Mock<(target: TFile, content: string) => Promise<void>>;
-  let forceUpdate: jest.Mock;
-  let forceUpdateEditor: jest.Mock;
+  let modify: Mock<(target: TFile, content: string) => Promise<void>>;
+  let forceUpdate: Mock;
+  let forceUpdateEditor: Mock;
   let activeView: unknown;
 
   const makeHost = (): EditorOperationsHost => {
@@ -57,9 +57,9 @@ describe('EditorOperations', () => {
     file = makeFile('note.md');
     snapshot = new FileSnapshot('a\nb\nc');
     snapshot.file = file;
-    modify = jest.fn(() => Promise.resolve());
-    forceUpdate = jest.fn();
-    forceUpdateEditor = jest.fn();
+    modify = vi.fn(() => Promise.resolve());
+    forceUpdate = vi.fn();
+    forceUpdateEditor = vi.fn();
     // No active markdown view by default; an editor-bound test opts in.
     activeView = null;
   });

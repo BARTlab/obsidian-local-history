@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 import * as TextHelper from '@/helpers/text.helper';
 import { TrackerLine } from '@/lines/tracker.line';
 

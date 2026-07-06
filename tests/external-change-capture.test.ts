@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { ChangeType } from '@/consts';
 import { ExternalChangeCapture } from '@/snapshots/external-change-capture';
 import type { ExternalChangeHost } from '@/snapshots/external-change-capture.types';
@@ -34,9 +34,9 @@ describe('ExternalChangeCapture', () => {
   let snapshots: Map<string, FileSnapshot>;
   let vault: Record<string, string>;
   let capturable: boolean;
-  let firstSight: jest.Mock<(file: TFile) => Promise<void>>;
-  let forceUpdate: jest.Mock;
-  let read: jest.Mock<(file: TFile) => Promise<string>>;
+  let firstSight: Mock<(file: TFile) => Promise<void>>;
+  let forceUpdate: Mock;
+  let read: Mock<(file: TFile) => Promise<string>>;
 
   const captureOptions: SnapshotCaptureOptions = {
     enabled: true,
@@ -102,9 +102,9 @@ describe('ExternalChangeCapture', () => {
     snapshots = new Map();
     vault = {};
     capturable = true;
-    firstSight = jest.fn(() => Promise.resolve());
-    forceUpdate = jest.fn();
-    read = jest.fn((file: TFile) => {
+    firstSight = vi.fn(() => Promise.resolve());
+    forceUpdate = vi.fn();
+    read = vi.fn((file: TFile) => {
       if (!(file.path in vault)) {
         return Promise.reject(new Error(`No content for ${file.path}`));
       }
@@ -262,11 +262,11 @@ describe('ExternalChangeCapture', () => {
 
   describe('schedule (debounce)', () => {
     beforeEach((): void => {
-      jest.useFakeTimers();
+      vi.useFakeTimers();
     });
 
     afterEach((): void => {
-      jest.useRealTimers();
+      vi.useRealTimers();
     });
 
     it('coalesces a burst of modify events for one path into a single trailing capture', async () => {
@@ -284,7 +284,7 @@ describe('ExternalChangeCapture', () => {
       // No disk read until the debounce window elapses.
       expect(read).not.toHaveBeenCalled();
 
-      jest.advanceTimersByTime(150);
+      vi.advanceTimersByTime(150);
       await flushMicrotasks();
 
       // Only the trailing call ran the read despite three scheduled events.
@@ -302,7 +302,7 @@ describe('ExternalChangeCapture', () => {
       capture.schedule(file);
       capture.forget(file.path);
 
-      jest.advanceTimersByTime(150);
+      vi.advanceTimersByTime(150);
       await flushMicrotasks();
 
       expect(read).not.toHaveBeenCalled();

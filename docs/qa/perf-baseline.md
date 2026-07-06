@@ -3,7 +3,7 @@
 The perf suite (`tests/perf/**.perf.ts`) microbenchmarks the plugin's pure hot
 paths (snapshot, persistence, folder timeline/delta, diff/hunk/word rendering)
 and gates each measured minimum against a committed baseline. It is a separate
-Jest project (`jest.config.perf.js`), so `npm test` never pays the bench cost.
+vitest project (`vitest.config.perf.ts`), so `npm test` never pays the bench cost.
 
 ## How to run
 

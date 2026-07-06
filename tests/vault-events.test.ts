@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it, vi, type Mock } from 'vitest';
 
 import { VaultCreateEvent } from '@/events/vault/create.event';
 import { VaultDeleteEvent } from '@/events/vault/delete.event';
@@ -23,21 +23,21 @@ import { makeTFile as makeFile } from './helpers/builders';
  * `plugin.get(TOKENS.snapshots)`, so the plugin stub below returns this mock.
  */
 const makeSnapshotsServiceMock = (): {
-  markDeleted: jest.Mock;
-  markMoved: jest.Mock;
-  rename: jest.Mock;
-  remove: jest.Mock;
-  ignoreList: { remove: jest.Mock };
-  captureExternalChange: jest.Mock;
-  scheduleExternalCapture: jest.Mock;
+  markDeleted: Mock;
+  markMoved: Mock;
+  rename: Mock;
+  remove: Mock;
+  ignoreList: { remove: Mock };
+  captureExternalChange: Mock;
+  scheduleExternalCapture: Mock;
 } => ({
-  markDeleted: jest.fn(),
-  markMoved: jest.fn(),
-  rename: jest.fn(),
-  remove: jest.fn(),
-  ignoreList: { remove: jest.fn() },
-  captureExternalChange: jest.fn().mockReturnValue(Promise.resolve()),
-  scheduleExternalCapture: jest.fn(),
+  markDeleted: vi.fn(),
+  markMoved: vi.fn(),
+  rename: vi.fn(),
+  remove: vi.fn(),
+  ignoreList: { remove: vi.fn() },
+  captureExternalChange: vi.fn().mockReturnValue(Promise.resolve()),
+  scheduleExternalCapture: vi.fn(),
 });
 
 const makePlugin = (
@@ -189,24 +189,24 @@ describe('VaultCreateEvent', () => {
   ): {
     event: VaultCreateEvent;
     snapshots: {
-      isInAllowedExtensions: jest.Mock;
-      isOwnPluginPath: jest.Mock;
-      ignoreList: { add: jest.Mock };
-      capture: jest.Mock;
-      getOne: jest.Mock;
-      markCreatedThisSession: jest.Mock;
+      isInAllowedExtensions: Mock;
+      isOwnPluginPath: Mock;
+      ignoreList: { add: Mock };
+      capture: Mock;
+      getOne: Mock;
+      markCreatedThisSession: Mock;
     };
   } => {
     const snapshots = {
-      isInAllowedExtensions: jest.fn().mockReturnValue(true),
-      isOwnPluginPath: jest.fn().mockReturnValue(false),
-      ignoreList: { add: jest.fn() },
-      capture: jest.fn().mockReturnValue(Promise.resolve()),
-      getOne: jest.fn().mockReturnValue(snapshot),
-      markCreatedThisSession: jest.fn(),
+      isInAllowedExtensions: vi.fn().mockReturnValue(true),
+      isOwnPluginPath: vi.fn().mockReturnValue(false),
+      ignoreList: { add: vi.fn() },
+      capture: vi.fn().mockReturnValue(Promise.resolve()),
+      getOne: vi.fn().mockReturnValue(snapshot),
+      markCreatedThisSession: vi.fn(),
     };
 
-    const settings = { value: jest.fn().mockReturnValue(ignoreNewFiles) };
+    const settings = { value: vi.fn().mockReturnValue(ignoreNewFiles) };
     const container: Map<unknown, unknown> = new Map<unknown, unknown>([
       [TOKENS.snapshots, snapshots],
       [TOKENS.settings, settings],
@@ -320,14 +320,14 @@ describe('WorkspaceLayoutChangeEvent', () => {
     event: WorkspaceLayoutChangeEvent;
     calls: string[];
     service: {
-      getList: jest.Mock;
+      getList: Mock;
       ignoreList: {
-        list: jest.Mock;
-        remove: jest.Mock<(file: TFile) => void>;
+        list: Mock;
+        remove: Mock<(file: TFile) => void>;
       };
-      wipeOne: jest.Mock<(file: TFile) => void>;
-      getOne: jest.Mock<(file: TFile) => FileSnapshot | null>;
-      capture: jest.Mock<(file: TFile) => Promise<void>>;
+      wipeOne: Mock<(file: TFile) => void>;
+      getOne: Mock<(file: TFile) => FileSnapshot | null>;
+      capture: Mock<(file: TFile) => Promise<void>>;
     };
   } => {
     const calls: string[] = [];
@@ -338,30 +338,30 @@ describe('WorkspaceLayoutChangeEvent', () => {
       );
 
     const service = {
-      getList: jest.fn().mockImplementation((): FileSnapshot[] => {
+      getList: vi.fn().mockImplementation((): FileSnapshot[] => {
         calls.push('getList');
 
         return [...params.snapshots];
       }),
       ignoreList: {
-        list: jest.fn().mockImplementation((): TFile[] => {
+        list: vi.fn().mockImplementation((): TFile[] => {
           calls.push('ignoreList.list');
 
           return [...params.ignored];
         }),
-        remove: jest.fn<(file: TFile) => void>().mockImplementation((file: TFile): void => {
+        remove: vi.fn<(file: TFile) => void>().mockImplementation((file: TFile): void => {
           calls.push(`ignoreList.remove:${file.path}`);
         }),
       },
-      wipeOne: jest.fn<(file: TFile) => void>().mockImplementation((file: TFile): void => {
+      wipeOne: vi.fn<(file: TFile) => void>().mockImplementation((file: TFile): void => {
         calls.push(`wipeOne:${file.path}`);
       }),
-      getOne: jest.fn<(file: TFile) => FileSnapshot | null>().mockImplementation((file: TFile): FileSnapshot | null => {
+      getOne: vi.fn<(file: TFile) => FileSnapshot | null>().mockImplementation((file: TFile): FileSnapshot | null => {
         calls.push(`getOne:${file.path}`);
 
         return tracked.has(file.path) ? ({} as FileSnapshot) : null;
       }),
-      capture: jest.fn<(file: TFile) => Promise<void>>().mockImplementation((file: TFile): Promise<void> => {
+      capture: vi.fn<(file: TFile) => Promise<void>>().mockImplementation((file: TFile): Promise<void> => {
         calls.push(`capture:${file.path}`);
 
         return Promise.resolve();
@@ -369,7 +369,7 @@ describe('WorkspaceLayoutChangeEvent', () => {
     };
 
     const settings = {
-      value: jest.fn().mockReturnValue(params.keepOnClose ? KeepHistory.file : KeepHistory.app),
+      value: vi.fn().mockReturnValue(params.keepOnClose ? KeepHistory.file : KeepHistory.app),
     };
 
     const container = new Map<unknown, unknown>([
@@ -538,7 +538,7 @@ describe('EventsService registration', () => {
           },
         },
       },
-      registerEvent: jest.fn(),
+      registerEvent: vi.fn(),
       get: (key: string): unknown => (key === 'SnapshotsService' ? service : undefined),
     } as unknown as LineChangeTrackerPlugin;
 

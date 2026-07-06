@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it, vi, type Mock, type MockInstance } from 'vitest';
 
 import { GoToPreviousChangeCommand } from '@/commands/go-to-previous-change.command';
 import { ChangeType } from '@/consts';
@@ -19,8 +19,8 @@ const ENABLED_TYPES: ChangeType[] = [ChangeType.added, ChangeType.changed];
  * `new Notice(...)` is counted without standing up a real toast (spying on an
  * ES6 class without a mock implementation throws on `new`).
  */
-const spyNotice = (): jest.SpiedClass<typeof obsidian.Notice> =>
-  jest.spyOn(obsidian, 'Notice').mockImplementation(
+const spyNotice = (): MockInstance<typeof obsidian.Notice> =>
+  vi.spyOn(obsidian, 'Notice').mockImplementation(
     (function(this: unknown): void {
       // Inert: record the construction only.
     }) as unknown as (message?: string | DocumentFragment) => obsidian.Notice,
@@ -57,17 +57,17 @@ const makeContext = (
   positions: number[] | null,
 ): {
   command: GoToPreviousChangeCommand;
-  getChangedPositions: jest.Mock<(types: ChangeType[]) => number[]>;
+  getChangedPositions: Mock<(types: ChangeType[]) => number[]>;
 } => {
-  const getChangedPositions = jest.fn<(types: ChangeType[]) => number[]>()
+  const getChangedPositions = vi.fn<(types: ChangeType[]) => number[]>()
     .mockReturnValue(positions ?? []);
 
   const snapshot: FileSnapshot | null = positions === null
     ? null
     : ({ content: { getChangedPositions } } as unknown as FileSnapshot);
 
-  const snapshots = { getOne: jest.fn().mockReturnValue(snapshot) };
-  const settings = { getEnabledTypes: jest.fn().mockReturnValue(ENABLED_TYPES) };
+  const snapshots = { getOne: vi.fn().mockReturnValue(snapshot) };
+  const settings = { getEnabledTypes: vi.fn().mockReturnValue(ENABLED_TYPES) };
 
   const container: Map<unknown, unknown> = new Map<unknown, unknown>([
     [TOKENS.snapshots, snapshots as unknown as SnapshotsService],

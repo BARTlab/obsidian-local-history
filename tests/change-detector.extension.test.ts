@@ -1,12 +1,12 @@
 import 'reflect-metadata';
-import { describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it, vi } from 'vitest';
 import { type ChangeSpec, EditorState } from '@codemirror/state';
 
 // The change detector imports Decoration from @codemirror/view at class-field
 // init time. Stub the view layer so the engine loads under the node test
 // environment without touching the DOM; computeIncrementalChanges never reads
 // the decoration value.
-jest.mock('@codemirror/view', () => ({
+vi.mock('@codemirror/view', () => ({
   Decoration: { none: {} },
 }));
 
@@ -791,7 +791,7 @@ describe('ChangeDetectorExtension nested cell editors', () => {
 
     // A view whose state carries an editorInfoField pointing at a foreign
     // outer view: the shape Obsidian gives a table-cell sub-editor. The
-    // runtime field is the jest stub (StateField<unknown>); retype the real
+    // runtime field is the mocked stub (StateField<unknown>); retype the real
     // obsidian declaration to match so init can return a plain test double.
     const infoField = editorInfoField as unknown as StateField<unknown>;
     const nestedView = {

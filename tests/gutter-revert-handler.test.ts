@@ -1,6 +1,6 @@
-/** @jest-environment jsdom */
+/** @vitest-environment jsdom */
 
-import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { DiffOutputFormatType, DiffViewMode } from '@/consts';
 import { GutterRevertHandler } from '@/modals/gutter-revert-handler';
 import type { GutterRevertHost } from '@/modals/gutter-revert-handler.types';
@@ -36,8 +36,8 @@ describe('GutterRevertHandler', () => {
   let hunks: Diff.StructuredPatchHunk[];
   let snapshot: FileSnapshot;
   let confirmResult: boolean;
-  let applyContent: jest.Mock;
-  let onReverted: jest.Mock;
+  let applyContent: Mock;
+  let onReverted: Mock;
   let navRefreshed: number;
 
   const plugin = {
@@ -107,8 +107,8 @@ describe('GutterRevertHandler', () => {
     document.body.appendChild(container);
     displayMode = DiffOutputFormatType.line;
     confirmResult = true;
-    applyContent = jest.fn(() => Promise.resolve());
-    onReverted = jest.fn();
+    applyContent = vi.fn(() => Promise.resolve());
+    onReverted = vi.fn();
     navRefreshed = 0;
     // Base "a\nB\nc" vs current "a\nb\nc": a single modified middle line, so the
     // hunk's newStart is 2 (the current-side line of the change).

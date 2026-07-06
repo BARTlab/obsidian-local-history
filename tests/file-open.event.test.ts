@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it, vi, type Mock } from 'vitest';
 
 import { WorkspaceFileOpenEvent } from '@/events/workspace/file-open.event';
 import type LineChangeTrackerPlugin from '@/main';
@@ -16,9 +16,9 @@ import { makeTFile as makeFile } from './helpers/builders';
  */
 const makeContext = (): {
   event: WorkspaceFileOpenEvent;
-  snapshots: { capture: jest.Mock };
+  snapshots: { capture: Mock };
 } => {
-  const snapshots = { capture: jest.fn().mockReturnValue(Promise.resolve()) };
+  const snapshots = { capture: vi.fn().mockReturnValue(Promise.resolve()) };
 
   const container: Map<unknown, unknown> = new Map<unknown, unknown>([
     [TOKENS.snapshots, snapshots as unknown as SnapshotsService],

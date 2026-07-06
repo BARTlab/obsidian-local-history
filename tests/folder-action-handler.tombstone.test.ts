@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock, type MockInstance } from 'vitest';
 
 import { FolderActionHandler } from '@/modals/folder-action-handler';
 import type { FolderActionHost } from '@/modals/folder-action-handler.types';
@@ -51,13 +51,13 @@ function buildTombstone(): FileSnapshot {
  * are stubbed so the handler can complete after the branch runs.
  *
  * @param {object} vault - Vault stub with `getAbstractFileByPath` and `create`
- * @param {jest.Mock} forceUpdate - Spy for `snapshotsService.forceUpdate`
+ * @param {Mock} forceUpdate - Spy for `snapshotsService.forceUpdate`
  * @param {FileSnapshot} snapshot - The tombstone snapshot to restore
  * @return {FolderActionHost} The focused host
  */
 function makeHost(
-  vault: { getAbstractFileByPath: jest.Mock; create: jest.Mock },
-  forceUpdate: jest.Mock,
+  vault: { getAbstractFileByPath: Mock; create: Mock },
+  forceUpdate: Mock,
   snapshot: FileSnapshot,
 ): FolderActionHost {
   return {
@@ -66,17 +66,17 @@ function makeHost(
     modalsService: { confirm: (): Promise<boolean> => Promise.resolve(true) },
     snapshotsService: { forceUpdate },
     resolveSelection: () => ({ path: OLD_PATH, snapshot, result }),
-    resyncTimeline: jest.fn(),
-    refreshTree: jest.fn(),
-    refreshDiff: jest.fn(),
+    resyncTimeline: vi.fn(),
+    refreshTree: vi.fn(),
+    refreshDiff: vi.fn(),
   } as unknown as FolderActionHost;
 }
 
 describe('FolderActionHandler tombstone restore (disk branches)', () => {
-  let notice: jest.SpiedClass<typeof obsidian.Notice>;
+  let notice: MockInstance<typeof obsidian.Notice>;
 
   beforeEach(() => {
-    notice = jest.spyOn(obsidian, 'Notice').mockImplementation(
+    notice = vi.spyOn(obsidian, 'Notice').mockImplementation(
       (function(this: unknown): void {
         // Inert: record the construction without standing up a real toast.
       }) as unknown as (message?: string | DocumentFragment) => obsidian.Notice,
@@ -88,9 +88,9 @@ describe('FolderActionHandler tombstone restore (disk branches)', () => {
   });
 
   it('surfaces the distinct notice and skips create when the path is occupied', async () => {
-    const getAbstractFileByPath = jest.fn().mockReturnValue({ path: OLD_PATH });
-    const create = jest.fn();
-    const forceUpdate = jest.fn();
+    const getAbstractFileByPath = vi.fn().mockReturnValue({ path: OLD_PATH });
+    const create = vi.fn();
+    const forceUpdate = vi.fn();
     const host = makeHost({ getAbstractFileByPath, create }, forceUpdate, buildTombstone());
 
     await new FolderActionHandler(host).handleRestoreSelected();
@@ -103,15 +103,15 @@ describe('FolderActionHandler tombstone restore (disk branches)', () => {
 
   it('recreates the file and promotes the snapshot when the old path is free', async () => {
     const recreated = { path: OLD_PATH } as unknown as TFile;
-    const getAbstractFileByPath = jest.fn().mockReturnValue(null);
-    const create = jest.fn(
+    const getAbstractFileByPath = vi.fn().mockReturnValue(null);
+    const create = vi.fn(
       (_path: string, _content: string): Promise<unknown> => Promise.resolve(recreated),
     );
 
-    const forceUpdate = jest.fn();
+    const forceUpdate = vi.fn();
     const snapshot = buildTombstone();
     const host = makeHost(
-      { getAbstractFileByPath, create: create as unknown as jest.Mock },
+      { getAbstractFileByPath, create: create as unknown as Mock },
       forceUpdate,
       snapshot,
     );
@@ -126,14 +126,14 @@ describe('FolderActionHandler tombstone restore (disk branches)', () => {
   });
 
   it('falls back to the generic notice when create throws on a free path', async () => {
-    const getAbstractFileByPath = jest.fn().mockReturnValue(null);
-    const create = jest.fn(
+    const getAbstractFileByPath = vi.fn().mockReturnValue(null);
+    const create = vi.fn(
       (_path: string, _content: string): Promise<unknown> => Promise.reject(new Error('boom')),
     );
 
-    const forceUpdate = jest.fn();
+    const forceUpdate = vi.fn();
     const host = makeHost(
-      { getAbstractFileByPath, create: create as unknown as jest.Mock },
+      { getAbstractFileByPath, create: create as unknown as Mock },
       forceUpdate,
       buildTombstone(),
     );

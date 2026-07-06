@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it, vi, type Mock } from 'vitest';
 
 import { MapChangeAction } from '@/consts';
 import { ObservableMap } from '@/maps/observable.map';
@@ -14,20 +14,20 @@ describe('ObservableMap re-entrant dispatch', (): void => {
     const map: ObservableMap<string, number> = new ObservableMap<string, number>();
     const calls: string[] = [];
 
-    const lateListener: ChangeHandler<string, number> = jest.fn(
+    const lateListener: ChangeHandler<string, number> = vi.fn(
       (action: MapChangeAction): void => {
         calls.push(`late:${action}`);
       }
     );
 
-    const subscriber: ChangeHandler<string, number> = jest.fn(
+    const subscriber: ChangeHandler<string, number> = vi.fn(
       (action: MapChangeAction): void => {
         calls.push(`sub:${action}`);
         map.subscribe(lateListener);
       }
     );
 
-    const listenerTail: ChangeHandler<string, number> = jest.fn(
+    const listenerTail: ChangeHandler<string, number> = vi.fn(
       (action: MapChangeAction): void => {
         calls.push(`tail:${action}`);
       }
@@ -48,7 +48,7 @@ describe('ObservableMap re-entrant dispatch', (): void => {
 
   it('keeps normal set/delete/clear notification behaviour', (): void => {
     const map: ObservableMap<string, number> = new ObservableMap<string, number>();
-    const handler: ChangeHandler<string, number> = jest.fn();
+    const handler: ChangeHandler<string, number> = vi.fn();
 
     map.subscribe(handler);
 
@@ -56,22 +56,22 @@ describe('ObservableMap re-entrant dispatch', (): void => {
     expect(handler).toHaveBeenCalledWith(MapChangeAction.set, 'a', 1);
 
     // Same value -> no notification.
-    (handler as jest.Mock).mockClear();
+    (handler as Mock).mockClear();
     map.set('a', 1);
     expect(handler).not.toHaveBeenCalled();
 
-    (handler as jest.Mock).mockClear();
+    (handler as Mock).mockClear();
     map.delete('a');
     expect(handler).toHaveBeenCalledWith(MapChangeAction.delete, 'a', undefined);
 
     // Delete missing -> no notification.
-    (handler as jest.Mock).mockClear();
+    (handler as Mock).mockClear();
     map.delete('missing');
     expect(handler).not.toHaveBeenCalled();
 
-    (handler as jest.Mock).mockClear();
+    (handler as Mock).mockClear();
     map.set('b', 2);
-    (handler as jest.Mock).mockClear();
+    (handler as Mock).mockClear();
     map.clear();
     expect(handler).toHaveBeenCalledWith(MapChangeAction.clear, undefined, undefined);
   });

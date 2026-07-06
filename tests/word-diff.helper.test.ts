@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 import type { Change } from 'diff';
 import * as WordDiffHelper from '@/helpers/word-diff.helper';
 import { WORD_DIFF_LENGTH_THRESHOLD, WORD_DIFF_PAIRING_THRESHOLD } from '@/consts';

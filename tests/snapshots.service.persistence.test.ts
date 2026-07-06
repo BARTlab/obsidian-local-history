@@ -116,7 +116,7 @@ describe('SnapshotsService.restore', () => {
     return SnapshotCodec.encode(snapshot);
   };
 
-  it('rebuilds a not-yet-captured file session-clean while keeping its history', () => {
+  it('diff-seeds a not-yet-captured file change map from the resolved persist origin', () => {
     const service = makeService(['a.md']);
 
     service.restore([dirtySerialized('a.md')]);
@@ -125,11 +125,13 @@ describe('SnapshotsService.restore', () => {
     expect(restored).not.toBeNull();
     expect(restored?.file?.path).toBe('a.md');
 
-    // The session marker baseline is re-established on the current state at
-    // restore, so a fresh launch starts session-clean and the tree/tab decorator
-    // paints nothing until the file is edited this session.
-    expect(restored?.content.getChangesLinesCount()).toBe(0);
-    expect(restored?.content.getOriginalStateLines()).toEqual(['a', 'B', 'c']);
+    // At keep=persist the restore path diff-seeds the change map from the resolved
+    // origin (here the history baseline, since the timeline holds no versions), so
+    // the restored file reports its changes-vs-origin and the tree/tab decorator
+    // paints it after a reload without opening it this session.
+    expect(restored?.content.getChangesLinesCount()).toBe(1);
+    // The marker baseline is now the resolved origin, not the current state.
+    expect(restored?.content.getOriginalStateLines()).toEqual(['a', 'b', 'c']);
 
     // No data is lost: the current state and the persisted history baseline are
     // preserved, so the history modal still diffs against the original.

@@ -354,6 +354,34 @@ export class FileSnapshot {
   }
 
   /**
+   * Redefines the change map to mean "changes vs the resolved origin" while keeping
+   * the tracker aligned with the live document. Adopts `origin` as the marker
+   * baseline, rebuilds the tracker from it, then reconciles the tracker's current
+   * view onto the current state via a minimal line diff, so the single cached
+   * change map carries the changes-since-origin and every marker-derived surface
+   * (gutter, tree/tab, status bar, reading-mode, properties, next/prev nav) follows
+   * from it at once.
+   *
+   * This is the persist-restore counterpart of resetMarkerBaseline: instead of
+   * collapsing the baseline onto the current state (session-clean), it seeds the
+   * baseline from the persisted sliding origin so a restored snapshot reports its
+   * changes-vs-origin and survives a reload. The reconcile keeps every untouched
+   * line's tracker (and marker) in place and edits only genuinely changed lines, so
+   * the tracker's current positions stay mapped to the live document and an
+   * incremental edit from the change detector lands on the correct line.
+   *
+   * @param {string[]} origin - The resolved origin lines to diff the current state against
+   */
+  public seedTrackerFromOrigin(origin: string[]): void {
+    const baseline: string[] = [...origin];
+
+    this.content.lines = baseline;
+    this.trackers.buildFromLines(baseline);
+    this.trackers.reconcile(baseline, this.content.state);
+    this.updateChanges();
+  }
+
+  /**
    * Updates the change map based on the current state of tracker lines.
    * Iterates through all tracker lines and adds appropriate change types
    * (added, removed, restored, changed) to the change map.

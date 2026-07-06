@@ -160,9 +160,10 @@ describe('SnapshotsService.restore with live snapshots', () => {
     expect(restored).not.toBeNull();
     expect(restored!.isTombstone()).toBe(false);
     expect(restored!.file?.path).toBe('notes/a.md');
-    // The session marker baseline is re-established on restore, so a not-yet-opened
-    // live file starts session-clean; its current state and history are preserved.
-    expect(restored!.content.getChangesLinesCount()).toBe(0);
+    // At keep=persist the restore path diff-seeds the change map from the resolved
+    // origin (the history baseline here, no versions), so a not-yet-opened live file
+    // reports its changes-vs-origin; its current state and history are preserved.
+    expect(restored!.content.getChangesLinesCount()).toBe(1);
     expect(restored!.content.getLastStateLines()).toEqual(['a', 'B', 'c']);
   });
 });

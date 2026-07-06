@@ -1,6 +1,6 @@
-/** @jest-environment jsdom */
+/** @vitest-environment jsdom */
 
-import { afterEach, beforeAll, describe, expect, it } from '@jest/globals';
+import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { ConfirmModal } from '@/modals/confirm.modal';
 import type { ConfirmModalConfig } from '@/types';
 import type { App } from 'obsidian';

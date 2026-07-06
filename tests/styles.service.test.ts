@@ -1,5 +1,5 @@
 /**
- * @jest-environment jsdom
+ * @vitest-environment jsdom
  */
 
 /**
@@ -17,7 +17,7 @@
  */
 
 import 'reflect-metadata';
-import { afterEach, describe, expect, it } from '@jest/globals';
+import { afterEach, describe, expect, it } from 'vitest';
 import { StylesService } from '@/services/styles.service';
 import { TOKENS } from '@/services/tokens';
 

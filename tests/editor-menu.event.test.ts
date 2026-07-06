@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 
 import { WorkspaceEditorMenuEvent } from '@/events/workspace/editor-menu.event';
 import type LineChangeTrackerPlugin from '@/main';
@@ -23,7 +23,7 @@ type RecordedItem = {
  * submenu into the item via `setSubmenu()`.
  */
 interface MockMenu {
-  addItem: jest.Mock;
+  addItem: Mock;
   items: RecordedItem[];
   children: MockMenu[];
 }
@@ -54,7 +54,7 @@ const makeMenuItem = (record: RecordedItem, submenu: MockMenu): unknown => {
 const makeMenu = (): MockMenu => {
   const items: RecordedItem[] = [];
   const children: MockMenu[] = [];
-  const addItem = jest.fn((build: (item: unknown) => void): unknown => {
+  const addItem = vi.fn((build: (item: unknown) => void): unknown => {
     const record: RecordedItem = { title: '', icon: '', click: undefined };
     const childSubmenu: MockMenu = makeMenu();
     children.push(childSubmenu);
@@ -64,23 +64,23 @@ const makeMenu = (): MockMenu => {
     return undefined;
   });
 
-  return { addItem: addItem as unknown as jest.Mock, items, children };
+  return { addItem: addItem as unknown as Mock, items, children };
 };
 
 const makeModalsServiceMock = (): {
-  diff: jest.Mock;
-  diffForSelection: jest.Mock;
-  putLabel: jest.Mock<() => Promise<unknown>>;
+  diff: Mock;
+  diffForSelection: Mock;
+  putLabel: Mock<() => Promise<unknown>>;
 } => ({
-  diff: jest.fn(),
-  diffForSelection: jest.fn(),
-  putLabel: jest.fn(async (): Promise<unknown> => null) as unknown as jest.Mock<() => Promise<unknown>>,
+  diff: vi.fn(),
+  diffForSelection: vi.fn(),
+  putLabel: vi.fn(async (): Promise<unknown> => null) as unknown as Mock<() => Promise<unknown>>,
 });
 
 const makePlugin = (
   service: ReturnType<typeof makeModalsServiceMock>,
-  reveal: jest.Mock,
-  revealVault: jest.Mock,
+  reveal: Mock,
+  revealVault: Mock,
 ): LineChangeTrackerPlugin => {
   const container: Map<unknown, unknown> = new Map<unknown, unknown>([
     [TOKENS.modals, service as unknown as ModalsService],
@@ -101,14 +101,14 @@ type HandlerArgs = Parameters<WorkspaceEditorMenuEvent['handler']>;
 
 describe('WorkspaceEditorMenuEvent', () => {
   let service: ReturnType<typeof makeModalsServiceMock>;
-  let reveal: jest.Mock;
-  let revealVault: jest.Mock;
+  let reveal: Mock;
+  let revealVault: Mock;
   let event: WorkspaceEditorMenuEvent;
 
   beforeEach((): void => {
     service = makeModalsServiceMock();
-    reveal = jest.fn();
-    revealVault = jest.fn();
+    reveal = vi.fn();
+    revealVault = vi.fn();
     event = new WorkspaceEditorMenuEvent(makePlugin(service, reveal, revealVault));
   });
 

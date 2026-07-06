@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 import * as VersionSearchHelper from '@/helpers/version-search.helper';
 import type { SearchableVersion } from '@/types';
 

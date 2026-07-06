@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 
 import { WorkspaceFilesMenuEvent } from '@/events/workspace/files-menu.event';
 import type LineChangeTrackerPlugin from '@/main';
@@ -23,12 +23,12 @@ type RecordedItem = {
 
 /**
  * Recorded shape of a mock Menu so a test can walk into the parent's submenu
- * by index. `addItem` is a jest mock that synchronously invokes the builder
+ * by index. `addItem` is a vitest mock that synchronously invokes the builder
  * callback, captures the resulting RecordedItem, and threads a freshly built
  * submenu into the item via `setSubmenu()`.
  */
 interface MockMenu {
-  addItem: jest.Mock;
+  addItem: Mock;
   items: RecordedItem[];
   children: MockMenu[];
 }
@@ -66,7 +66,7 @@ const makeMenuItem = (record: RecordedItem, submenu: MockMenu): unknown => {
 const makeMenu = (): MockMenu => {
   const items: RecordedItem[] = [];
   const children: MockMenu[] = [];
-  const addItem = jest.fn((build: (item: unknown) => void): unknown => {
+  const addItem = vi.fn((build: (item: unknown) => void): unknown => {
     const record: RecordedItem = { title: '', icon: '', click: undefined };
     const childSubmenu: MockMenu = makeMenu();
     children.push(childSubmenu);
@@ -76,27 +76,27 @@ const makeMenu = (): MockMenu => {
     return undefined;
   });
 
-  return { addItem: addItem as unknown as jest.Mock, items, children };
+  return { addItem: addItem as unknown as Mock, items, children };
 };
 
 const makeModalsServiceMock = (): {
-  diff: jest.Mock<(file?: unknown) => boolean>;
-  openFolderHistory: jest.Mock<(folder?: unknown) => boolean>;
-  putLabel: jest.Mock<(file?: unknown) => Promise<unknown>>;
+  diff: Mock<(file?: unknown) => boolean>;
+  openFolderHistory: Mock<(folder?: unknown) => boolean>;
+  putLabel: Mock<(file?: unknown) => Promise<unknown>>;
 } => ({
-  diff: jest.fn((_file?: unknown): boolean => true) as unknown as jest.Mock<(file?: unknown) => boolean>,
-  openFolderHistory: jest.fn((_folder?: unknown): boolean => false) as unknown as jest.Mock<
+  diff: vi.fn((_file?: unknown): boolean => true) as unknown as Mock<(file?: unknown) => boolean>,
+  openFolderHistory: vi.fn((_folder?: unknown): boolean => false) as unknown as Mock<
     (folder?: unknown) => boolean
   >,
-  putLabel: jest.fn(async (_file?: unknown): Promise<unknown> => null) as unknown as jest.Mock<
+  putLabel: vi.fn(async (_file?: unknown): Promise<unknown> => null) as unknown as Mock<
     (file?: unknown) => Promise<unknown>
   >,
 });
 
 const makePlugin = (
   service: ReturnType<typeof makeModalsServiceMock>,
-  reveal: jest.Mock,
-  revealVault: jest.Mock,
+  reveal: Mock,
+  revealVault: Mock,
 ): LineChangeTrackerPlugin => {
   const container = new Map<unknown, unknown>([
     [TOKENS.modals, service as unknown as ModalsService],
@@ -112,14 +112,14 @@ const makePlugin = (
 
 describe('WorkspaceFilesMenuEvent', () => {
   let service: ReturnType<typeof makeModalsServiceMock>;
-  let reveal: jest.Mock;
-  let revealVault: jest.Mock;
+  let reveal: Mock;
+  let revealVault: Mock;
   let event: WorkspaceFilesMenuEvent;
 
   beforeEach((): void => {
     service = makeModalsServiceMock();
-    reveal = jest.fn();
-    revealVault = jest.fn();
+    reveal = vi.fn();
+    revealVault = vi.fn();
     event = new WorkspaceFilesMenuEvent(makePlugin(service, reveal, revealVault));
   });
 

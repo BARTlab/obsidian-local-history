@@ -1,11 +1,11 @@
 import 'reflect-metadata';
-import { describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it, vi } from 'vitest';
 
 // DotMarker and RemovedMarker extend GutterMarker from @codemirror/view. Stub
 // the view layer with a trivial base class so the markers load under the node
 // test environment without the DOM. toDOM is not exercised here (it needs a
 // document); the test checks the settings-derived elementClass and char state.
-jest.mock('@codemirror/view', () => ({
+vi.mock('@codemirror/view', () => ({
   GutterMarker: class {},
 }));
 

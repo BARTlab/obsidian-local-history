@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it, vi } from 'vitest';
 import { type ChangeSpec, EditorState } from '@codemirror/state';
 import { ChangeDetectorExtension } from '@/extensions/change-detector.extension';
 
@@ -8,11 +8,11 @@ import { ChangeDetectorExtension } from '@/extensions/change-detector.extension'
 // classes load under the Node test environment without a DOM. applyEdit also
 // instantiates ChangeDetectorExtension which reads Decoration.none at field-init
 // time, so that must be stubbed too.
-jest.mock('@codemirror/view', () => {
+vi.mock('@codemirror/view', async () => {
   // GutterMarker must inherit the real RangeValue: a bare class stub lacks
   // startSide/endSide, and RangeSet.iter() then silently skips a range
   // anchored at position 0 (a marker on the first line).
-  const { RangeValue } = jest.requireActual<typeof import('@codemirror/state')>('@codemirror/state');
+  const { RangeValue } = await vi.importActual<{ RangeValue: typeof RangeValueCtor }>('@codemirror/state');
 
   return {
     GutterMarker: class extends RangeValue {
@@ -23,7 +23,7 @@ jest.mock('@codemirror/view', () => {
 });
 
 import { editorInfoField } from 'obsidian';
-import type { StateField } from '@codemirror/state';
+import type { RangeValue as RangeValueCtor, StateField } from '@codemirror/state';
 import { ChangeType, IndicatorType } from '@/consts';
 import { GutterBarExtension } from '@/extensions/gutter-bar.extension';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
@@ -85,7 +85,7 @@ const makePlugin = (overrides: ShowFlags & {
 
   const snapshotsService = {
     getOne: (): FileSnapshot | null => snapshotOverride,
-    forceUpdate: jest.fn(),
+    forceUpdate: vi.fn(),
   };
 
   const services: Map<unknown, unknown> = new Map<unknown, unknown>([
@@ -110,7 +110,7 @@ const makePlugin = (overrides: ShowFlags & {
  * outer view so the guard classifies the view as a table-cell sub-editor.
  */
 const makeView = (doc: string, nested: boolean = false): EditorView => {
-  // The runtime field is the jest stub (StateField<unknown>); retype the real
+  // The runtime field is the mocked stub (StateField<unknown>); retype the real
   // obsidian declaration to match so init can return a plain test double.
   const infoField = editorInfoField as unknown as StateField<unknown>;
   const view = { dom: { closest: (): Element | null => null } } as unknown as EditorView;
@@ -287,9 +287,9 @@ describe('GutterBarExtension hover panel gating', () => {
 
     // Replace the lazily-built controller with a spy so no real panel/lifecycle
     // is created; we only assert whether the handler decides to open one.
-    const enterSpy = jest.fn();
+    const enterSpy = vi.fn();
 
-    jest.spyOn(ext as unknown as { hoverPanel: () => unknown }, 'hoverPanel')
+    vi.spyOn(ext as unknown as { hoverPanel: () => unknown }, 'hoverPanel')
       .mockReturnValue({ enter: enterSpy });
 
     const view = makeView('a\nb\nc');

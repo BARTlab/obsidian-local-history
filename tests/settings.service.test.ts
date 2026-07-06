@@ -1,8 +1,8 @@
-import { describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it, vi } from 'vitest';
 
 // MainSetting pulls the Obsidian and settings-UI chain; replace it with a no-op
 // so the settings service can be constructed and initialized in isolation.
-jest.mock('@/settings/main.setting', () => ({
+vi.mock('@/settings/main.setting', () => ({
   MainSetting: class {},
 }));
 

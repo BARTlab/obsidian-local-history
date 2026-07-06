@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 
 import { FolderDeltaStatus } from '@/consts';
 import { TreeTabDecoratorService } from '@/services/tree-tab-decorator.service';

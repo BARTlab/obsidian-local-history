@@ -1,6 +1,6 @@
-/** @jest-environment jsdom */
+/** @vitest-environment jsdom */
 
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { GutterHoverPanel } from '@/components/gutter-hover-panel';
 import { resolveHoverPanelContent } from '@/components/gutter-hover-panel-content';
 import { GutterHoverPanelContentKind, GutterHoverPanelState } from '@/components/gutter-hover-panel.types';
@@ -38,9 +38,9 @@ describe('GutterHoverPanel', () => {
   let enabled: boolean;
   let host: GutterHoverPanelHost;
   let content: GutterHoverPanelContent | null;
-  let revertSpy: jest.Mock;
-  let copySpy: jest.Mock;
-  let historySpy: jest.Mock;
+  let revertSpy: Mock;
+  let copySpy: Mock;
+  let historySpy: Mock;
 
   /** A single word segment for a fake content model. */
   const segment = (text: string, added: boolean, removed: boolean): { text: string; added: boolean; removed: boolean } =>
@@ -86,7 +86,7 @@ describe('GutterHoverPanel', () => {
   };
 
   beforeEach((): void => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     enabled = true;
     scroller = document.createElement('div');
     scroller.className = 'cm-scroller';
@@ -96,9 +96,9 @@ describe('GutterHoverPanel', () => {
     document.body.appendChild(scroller);
     stubRect(anchor, { top: 100, left: 10, right: 14, bottom: 120, width: 4, height: 20 });
     content = changedModel();
-    revertSpy = jest.fn((): Promise<void> => Promise.resolve());
-    copySpy = jest.fn();
-    historySpy = jest.fn();
+    revertSpy = vi.fn((): Promise<void> => Promise.resolve());
+    copySpy = vi.fn();
+    historySpy = vi.fn();
     host = {
       isEnabled: (): boolean => enabled,
       getContainer: (): HTMLElement => document.body,
@@ -120,8 +120,8 @@ describe('GutterHoverPanel', () => {
   });
 
   afterEach((): void => {
-    jest.clearAllTimers();
-    jest.useRealTimers();
+    vi.clearAllTimers();
+    vi.useRealTimers();
     document.body.innerHTML = '';
   });
 
@@ -133,7 +133,7 @@ describe('GutterHoverPanel', () => {
     expect(panelEl()).toBeNull();
     expect(panel.getState()).toBe(GutterHoverPanelState.pending);
 
-    jest.advanceTimersByTime(OPEN_DELAY);
+    vi.advanceTimersByTime(OPEN_DELAY);
 
     const element: HTMLElement | null = panelEl();
 
@@ -157,7 +157,7 @@ describe('GutterHoverPanel', () => {
     const panel: GutterHoverPanel = build();
 
     panel.enter(3, anchor);
-    jest.advanceTimersByTime(OPEN_DELAY);
+    vi.advanceTimersByTime(OPEN_DELAY);
     // Move the pointer onto a different marker while the panel is open.
     panel.enter(9, other);
 
@@ -171,9 +171,9 @@ describe('GutterHoverPanel', () => {
     const panel: GutterHoverPanel = build();
 
     panel.enter(3, anchor);
-    jest.advanceTimersByTime(OPEN_DELAY - 1);
+    vi.advanceTimersByTime(OPEN_DELAY - 1);
     panel.leave();
-    jest.advanceTimersByTime(OPEN_DELAY);
+    vi.advanceTimersByTime(OPEN_DELAY);
 
     expect(panelEl()).toBeNull();
     expect(panel.getState()).toBe(GutterHoverPanelState.closed);
@@ -183,7 +183,7 @@ describe('GutterHoverPanel', () => {
     const panel: GutterHoverPanel = build();
 
     panel.enter(3, anchor);
-    jest.advanceTimersByTime(OPEN_DELAY);
+    vi.advanceTimersByTime(OPEN_DELAY);
 
     const element: HTMLElement = panelEl() as HTMLElement;
 
@@ -193,24 +193,24 @@ describe('GutterHoverPanel', () => {
 
     // Pointer reaches the panel before the grace elapses: it stays open.
     element.dispatchEvent(new Event('mouseenter'));
-    jest.advanceTimersByTime(CLOSE_DELAY);
+    vi.advanceTimersByTime(CLOSE_DELAY);
     expect(panelEl()).not.toBeNull();
     expect(panel.getState()).toBe(GutterHoverPanelState.open);
 
     // Pointer leaves the panel: the grace runs out and it unmounts.
     element.dispatchEvent(new Event('mouseleave'));
     expect(panel.getState()).toBe(GutterHoverPanelState.closing);
-    jest.advanceTimersByTime(CLOSE_DELAY);
+    vi.advanceTimersByTime(CLOSE_DELAY);
     expect(panelEl()).toBeNull();
     expect(panel.getState()).toBe(GutterHoverPanelState.closed);
   });
 
   it('closes on Escape and detaches its document key listener', (): void => {
-    const removeSpy = jest.spyOn(document, 'removeEventListener');
+    const removeSpy = vi.spyOn(document, 'removeEventListener');
     const panel: GutterHoverPanel = build();
 
     panel.enter(3, anchor);
-    jest.advanceTimersByTime(OPEN_DELAY);
+    vi.advanceTimersByTime(OPEN_DELAY);
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
 
     expect(panelEl()).toBeNull();
@@ -219,11 +219,11 @@ describe('GutterHoverPanel', () => {
   });
 
   it('closes when the editor scroller scrolls and detaches the scroll listener', (): void => {
-    const removeSpy = jest.spyOn(scroller, 'removeEventListener');
+    const removeSpy = vi.spyOn(scroller, 'removeEventListener');
     const panel: GutterHoverPanel = build();
 
     panel.enter(3, anchor);
-    jest.advanceTimersByTime(OPEN_DELAY);
+    vi.advanceTimersByTime(OPEN_DELAY);
     scroller.dispatchEvent(new Event('scroll'));
 
     expect(panelEl()).toBeNull();
@@ -234,7 +234,7 @@ describe('GutterHoverPanel', () => {
     const panel: GutterHoverPanel = build();
 
     panel.enter(3, anchor);
-    jest.advanceTimersByTime(OPEN_DELAY);
+    vi.advanceTimersByTime(OPEN_DELAY);
     panel.dismiss();
 
     expect(panelEl()).toBeNull();
@@ -246,7 +246,7 @@ describe('GutterHoverPanel', () => {
 
     panel.enter(3, anchor);
     panel.dismiss();
-    jest.advanceTimersByTime(OPEN_DELAY);
+    vi.advanceTimersByTime(OPEN_DELAY);
 
     expect(panelEl()).toBeNull();
     expect(panel.getState()).toBe(GutterHoverPanelState.closed);
@@ -256,13 +256,13 @@ describe('GutterHoverPanel', () => {
     const panel: GutterHoverPanel = build();
 
     panel.enter(3, anchor);
-    jest.advanceTimersByTime(OPEN_DELAY);
+    vi.advanceTimersByTime(OPEN_DELAY);
     panel.destroy();
     expect(panelEl()).toBeNull();
 
     // A late hover after teardown must not resurrect the panel.
     panel.enter(3, anchor);
-    jest.advanceTimersByTime(OPEN_DELAY);
+    vi.advanceTimersByTime(OPEN_DELAY);
     expect(panelEl()).toBeNull();
     expect(panel.getState()).toBe(GutterHoverPanelState.closed);
   });
@@ -273,7 +273,7 @@ describe('GutterHoverPanel', () => {
     const panel: GutterHoverPanel = build();
 
     panel.enter(3, anchor);
-    jest.advanceTimersByTime(OPEN_DELAY);
+    vi.advanceTimersByTime(OPEN_DELAY);
 
     expect(panelEl()).toBeNull();
     expect(panel.getState()).toBe(GutterHoverPanelState.closed);
@@ -285,7 +285,7 @@ describe('GutterHoverPanel', () => {
     const panel: GutterHoverPanel = build();
 
     panel.enter(3, anchor);
-    jest.advanceTimersByTime(OPEN_DELAY);
+    vi.advanceTimersByTime(OPEN_DELAY);
 
     // Right placement (1020 + gap) overflows innerWidth, so it flips left of the marker.
     expect(Number.parseInt(panelEl()?.style.left ?? '', 10)).toBeLessThan(1010);
@@ -303,7 +303,7 @@ describe('GutterHoverPanel', () => {
     const panel: GutterHoverPanel = build();
 
     panel.enter(3, anchor);
-    jest.advanceTimersByTime(OPEN_DELAY);
+    vi.advanceTimersByTime(OPEN_DELAY);
 
     expect(panelEl()?.style.maxWidth).toBe('284px');
   });
@@ -320,7 +320,7 @@ describe('GutterHoverPanel', () => {
     const panel: GutterHoverPanel = build();
 
     panel.enter(3, anchor);
-    jest.advanceTimersByTime(OPEN_DELAY);
+    vi.advanceTimersByTime(OPEN_DELAY);
 
     expect(panelEl()?.style.maxWidth).toBe('520px');
   });
@@ -329,7 +329,7 @@ describe('GutterHoverPanel', () => {
     const panel: GutterHoverPanel = build();
 
     panel.enter(3, anchor);
-    jest.advanceTimersByTime(OPEN_DELAY);
+    vi.advanceTimersByTime(OPEN_DELAY);
 
     const element: HTMLElement = panelEl() as HTMLElement;
 
@@ -346,7 +346,7 @@ describe('GutterHoverPanel', () => {
     const panel: GutterHoverPanel = build();
 
     panel.enter(3, anchor);
-    jest.advanceTimersByTime(OPEN_DELAY);
+    vi.advanceTimersByTime(OPEN_DELAY);
 
     const slot: HTMLElement = document.body.querySelector('.lct-hover-panel-content') as HTMLElement;
 
@@ -367,7 +367,7 @@ describe('GutterHoverPanel', () => {
     const panel: GutterHoverPanel = build();
 
     panel.enter(3, anchor);
-    jest.advanceTimersByTime(OPEN_DELAY);
+    vi.advanceTimersByTime(OPEN_DELAY);
 
     const slot: HTMLElement = document.body.querySelector('.lct-hover-panel-content') as HTMLElement;
 
@@ -387,7 +387,7 @@ describe('GutterHoverPanel', () => {
     const panel: GutterHoverPanel = build();
 
     panel.enter(3, anchor);
-    jest.advanceTimersByTime(OPEN_DELAY);
+    vi.advanceTimersByTime(OPEN_DELAY);
 
     const slot: HTMLElement = document.body.querySelector('.lct-hover-panel-content') as HTMLElement;
 
@@ -399,7 +399,7 @@ describe('GutterHoverPanel', () => {
     const panel: GutterHoverPanel = build();
 
     panel.enter(3, anchor);
-    jest.advanceTimersByTime(OPEN_DELAY);
+    vi.advanceTimersByTime(OPEN_DELAY);
 
     const buttons: HTMLButtonElement[] = actionButtons();
 
@@ -414,7 +414,7 @@ describe('GutterHoverPanel', () => {
     const panel: GutterHoverPanel = build();
 
     panel.enter(4, anchor);
-    jest.advanceTimersByTime(OPEN_DELAY);
+    vi.advanceTimersByTime(OPEN_DELAY);
     actionButtons()[0].click();
 
     expect(revertSpy).toHaveBeenCalledWith(4);
@@ -429,7 +429,7 @@ describe('GutterHoverPanel', () => {
     const panel: GutterHoverPanel = build();
 
     panel.enter(4, anchor);
-    jest.advanceTimersByTime(OPEN_DELAY);
+    vi.advanceTimersByTime(OPEN_DELAY);
     actionButtons()[1].click();
 
     expect(copySpy).toHaveBeenCalledWith(4);
@@ -447,7 +447,7 @@ describe('GutterHoverPanel', () => {
     const panel: GutterHoverPanel = build();
 
     panel.enter(3, anchor);
-    jest.advanceTimersByTime(OPEN_DELAY);
+    vi.advanceTimersByTime(OPEN_DELAY);
 
     const copy: HTMLButtonElement = actionButtons()[1];
 
@@ -472,7 +472,7 @@ describe('GutterHoverPanel', () => {
     const panel: GutterHoverPanel = build();
 
     panel.enter(5, anchor);
-    jest.advanceTimersByTime(OPEN_DELAY);
+    vi.advanceTimersByTime(OPEN_DELAY);
 
     const copy: HTMLButtonElement = actionButtons()[1];
 
@@ -487,7 +487,7 @@ describe('GutterHoverPanel', () => {
     const panel: GutterHoverPanel = build();
 
     panel.enter(3, anchor);
-    jest.advanceTimersByTime(OPEN_DELAY);
+    vi.advanceTimersByTime(OPEN_DELAY);
 
     const slot: HTMLElement = document.body.querySelector('.lct-hover-panel-content') as HTMLElement;
     const placeholder: HTMLElement | null = slot.querySelector('.lct-hover-panel-empty');
@@ -512,7 +512,7 @@ describe('GutterHoverPanel', () => {
 
     // Opens on a changed marker: copy is live.
     panel.enter(3, anchor);
-    jest.advanceTimersByTime(OPEN_DELAY);
+    vi.advanceTimersByTime(OPEN_DELAY);
     expect(actionButtons()[1].disabled).toBe(false);
 
     // Re-anchors onto an added marker without a second panel: copy goes disabled.
@@ -543,7 +543,7 @@ describe('GutterHoverPanel', () => {
     const panel: GutterHoverPanel = build();
 
     panel.enter(4, anchor);
-    jest.advanceTimersByTime(OPEN_DELAY);
+    vi.advanceTimersByTime(OPEN_DELAY);
     actionButtons()[2].click();
 
     expect(historySpy).toHaveBeenCalledTimes(1);
@@ -555,7 +555,7 @@ describe('GutterHoverPanel', () => {
     const panel: GutterHoverPanel = build();
 
     panel.enter(3, anchor);
-    jest.advanceTimersByTime(OPEN_DELAY);
+    vi.advanceTimersByTime(OPEN_DELAY);
 
     const buttons: HTMLButtonElement[] = actionButtons();
     const last: HTMLButtonElement = buttons[buttons.length - 1];
@@ -580,7 +580,7 @@ describe('GutterHoverPanel', () => {
     const panel: GutterHoverPanel = build();
 
     panel.enter(3, anchor);
-    jest.advanceTimersByTime(OPEN_DELAY);
+    vi.advanceTimersByTime(OPEN_DELAY);
     // Focus enters the panel, then Escape dismisses it.
     actionButtons()[0].focus();
     expect(document.activeElement).not.toBe(editor);

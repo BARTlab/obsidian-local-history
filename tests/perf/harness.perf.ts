@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 
 import {
   ABS_SLACK_MS,
@@ -16,7 +16,7 @@ function baselineWith(label: string, medianMs: number): Baseline {
 }
 
 /**
- * Self-test for the perf harness. Runs under jest.config.perf.js only (named
+ * Self-test for the perf harness. Runs under vitest.config.perf.ts only (named
  * *.perf.ts so the default `npm test` never picks it up). Proves the harness
  * contracts the later benches rely on: measure returns a positive minimum and
  * honours warmup, the gate is lenient when a baseline label is missing, the

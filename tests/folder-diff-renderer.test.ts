@@ -1,6 +1,6 @@
-/** @jest-environment jsdom */
+/** @vitest-environment jsdom */
 
-import { beforeAll, beforeEach, describe, expect, it } from '@jest/globals';
+import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { DiffOutputFormatType, DiffViewMode } from '@/consts';
 import { FolderDiffRenderer } from '@/modals/folder-diff-renderer';
 import type { FolderDiffHost } from '@/modals/folder-diff-renderer.types';

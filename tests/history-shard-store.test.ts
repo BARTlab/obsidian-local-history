@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 import type { DataAdapter } from 'obsidian';
 
 import { HistoryShardStore } from '@/persistence/history-shard-store';

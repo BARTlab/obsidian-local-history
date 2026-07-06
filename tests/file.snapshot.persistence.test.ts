@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 import { ChangeType } from '@/consts';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import { SnapshotCodec } from '@/snapshots/snapshot-codec';

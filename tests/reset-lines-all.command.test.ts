@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it, vi, type Mock, type MockInstance } from 'vitest';
 
 import { ResetLinesAllCommand } from '@/commands/reset-lines-all.command';
 import type { SnapshotsService } from '@/services/snapshots.service';
@@ -13,8 +13,8 @@ type PluginArg = ConstructorParameters<typeof ResetLinesAllCommand>[0];
  * `new Notice(...)` is counted without standing up a real toast (spying on an
  * ES6 class without a mock implementation throws on `new`).
  */
-const spyNotice = (): jest.SpiedClass<typeof obsidian.Notice> =>
-  jest.spyOn(obsidian, 'Notice').mockImplementation(
+const spyNotice = (): MockInstance<typeof obsidian.Notice> =>
+  vi.spyOn(obsidian, 'Notice').mockImplementation(
     (function(this: unknown): void {
       // Inert: record the construction only.
     }) as unknown as (message?: string | DocumentFragment) => obsidian.Notice,
@@ -27,9 +27,9 @@ const spyNotice = (): jest.SpiedClass<typeof obsidian.Notice> =>
  */
 const makeContext = (): {
   command: ResetLinesAllCommand;
-  snapshots: { wipe: jest.Mock; wipeOne: jest.Mock };
+  snapshots: { wipe: Mock; wipeOne: Mock };
 } => {
-  const snapshots = { wipe: jest.fn(), wipeOne: jest.fn() };
+  const snapshots = { wipe: vi.fn(), wipeOne: vi.fn() };
 
   const container: Map<unknown, unknown> = new Map<unknown, unknown>([
     [TOKENS.snapshots, snapshots as unknown as SnapshotsService],

@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, vi, type Mock, type MockInstance } from 'vitest';
 
 import { BaseEvent } from '@/events/base.event';
 import type LineChangeTrackerPlugin from '@/main';
@@ -14,21 +14,21 @@ import { flushMicrotasks } from './helpers/async-utils';
  * matters here. Returning a sentinel keeps the EventRef contract.
  */
 const makeFakeTrigger = (): {
-  on: jest.Mock;
+  on: Mock;
   captured: { name?: string; callback?: (...args: unknown[]) => unknown };
 } => {
   const captured: { name?: string; callback?: (...args: unknown[]) => unknown } = {};
-  const on = jest.fn((name: string, callback: (...args: unknown[]) => unknown): { ref: true } => {
+  const on = vi.fn((name: string, callback: (...args: unknown[]) => unknown): { ref: true } => {
     captured.name = name;
     captured.callback = callback;
 
     return { ref: true };
   });
 
-  return { on: on as unknown as jest.Mock, captured };
+  return { on: on as unknown as Mock, captured };
 };
 
-const makePlugin = (trigger: { on: jest.Mock }): LineChangeTrackerPlugin => ({
+const makePlugin = (trigger: { on: Mock }): LineChangeTrackerPlugin => ({
   app: {
     workspace: trigger as unknown,
     vault: trigger as unknown,
@@ -62,10 +62,10 @@ class HappyEvent extends BaseEvent {
 }
 
 describe('BaseEvent.dispatch', () => {
-  let errorSpy: jest.SpiedFunction<typeof console.error>;
+  let errorSpy: MockInstance<typeof console.error>;
 
   beforeEach(() => {
-    errorSpy = jest.spyOn(console, 'error').mockImplementation((): void => undefined);
+    errorSpy = vi.spyOn(console, 'error').mockImplementation((): void => undefined);
   });
 
   afterEach(() => {

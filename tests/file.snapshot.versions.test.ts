@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { VERSION_KEYFRAME_INTERVAL } from '@/consts';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
 import { SnapshotCodec } from '@/snapshots/snapshot-codec';
@@ -23,7 +23,7 @@ const options = (overrides: Partial<SnapshotCaptureOptions> = {}): SnapshotCaptu
 });
 
 afterEach((): void => {
-  jest.restoreAllMocks();
+  vi.restoreAllMocks();
 });
 
 describe('FileSnapshot.captureVersion cadence: edit count', () => {
@@ -59,7 +59,7 @@ describe('FileSnapshot.captureVersion cadence: edit count', () => {
 describe('FileSnapshot.captureVersion cadence: elapsed time', () => {
   it('captures only once the time interval has elapsed', () => {
     const base: number = 1_000_000;
-    const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(base);
+    const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(base);
 
     // Construction reads Date.now for lastVersionAt; pin it to the base.
     const snapshot = new FileSnapshot('a');
@@ -193,7 +193,7 @@ describe('FileSnapshot timeline age bound', () => {
 
   it('evicts versions older than maxVersionAgeDays on the next capture', () => {
     const base: number = 10_000_000_000;
-    const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(base);
+    const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(base);
 
     const snapshot = new FileSnapshot('a');
     const opts = options({ editThreshold: 1, maxVersionAgeDays: 14 });
@@ -216,7 +216,7 @@ describe('FileSnapshot timeline age bound', () => {
 
   it('keeps versions within the age window', () => {
     const base: number = 10_000_000_000;
-    const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(base);
+    const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(base);
 
     const snapshot = new FileSnapshot('a');
     const opts = options({ editThreshold: 1, maxVersionAgeDays: 14 });
@@ -237,7 +237,7 @@ describe('FileSnapshot timeline age bound', () => {
 
   it('disables the age rule when maxVersionAgeDays is 0', () => {
     const base: number = 10_000_000_000;
-    const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(base);
+    const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(base);
 
     const snapshot = new FileSnapshot('a');
     const opts = options({ editThreshold: 1, maxVersions: 0, maxVersionAgeDays: 0 });
@@ -254,7 +254,7 @@ describe('FileSnapshot timeline age bound', () => {
 
   it('applies age first then the count cap', () => {
     const base: number = 10_000_000_000;
-    const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(base);
+    const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(base);
 
     const snapshot = new FileSnapshot('a');
     const opts = options({ editThreshold: 1, maxVersions: 2, maxVersionAgeDays: 14 });
@@ -348,7 +348,7 @@ describe('FileSnapshot timeline cadence continuity across restart', () => {
     const newestCapturedAt: number = base - 30_000;
     const restartAt: number = base;
 
-    const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(base - 90_000);
+    const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(base - 90_000);
 
     const snapshot = new FileSnapshot('a', '\n');
     const opts = options({ editThreshold: 1, intervalMs });
@@ -383,7 +383,7 @@ describe('FileSnapshot timeline cadence continuity across restart', () => {
      * load-time, so a 1-second interval should not be due immediately.
      */
     const base: number = 20_000_000_000;
-    const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(base);
+    const nowSpy = vi.spyOn(Date, 'now').mockReturnValue(base);
 
     const snapshot = new FileSnapshot('a', '\n');
     const json = SnapshotCodec.encode(snapshot);

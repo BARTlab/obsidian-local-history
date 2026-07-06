@@ -351,7 +351,10 @@ export class TrackerEditor {
    */
   public restoreOrAddTracker(line: number | TrackerLine, shift: boolean = true, content?: string): TrackerLine {
     const contentHash: string | undefined = typeof content === 'string' ? TextHelper.hash(content) : undefined;
-    const removed: TrackerLine | null = line instanceof TrackerLine ? line : this.index.findRemovedAt(line, contentHash);
+    const removed: TrackerLine | null = line instanceof TrackerLine
+      ? line
+      : this.index.findRemovedAt(line, contentHash);
+
     const index: number = line instanceof TrackerLine ? line.removedAtPosition : line;
 
     if (shift) {

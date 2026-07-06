@@ -1,6 +1,6 @@
-/** @jest-environment jsdom */
+/** @vitest-environment jsdom */
 
-import { describe, expect, it, beforeAll } from '@jest/globals';
+import { describe, expect, it, beforeAll } from 'vitest';
 import { DiffOutputFormatType, DiffViewMode } from '@/consts';
 import * as DiffRenderHelper from '@/helpers/diff-render.helper';
 import type { DiffRenderParams, TranslationVars } from '@/types';

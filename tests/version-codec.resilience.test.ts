@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 
 import { VERSION_KEYFRAME_INTERVAL } from '@/consts';
 import { FileVersion } from '@/snapshots/file.version';

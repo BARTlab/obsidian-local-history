@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { beforeEach, describe, expect, it, vi, type Mock } from 'vitest';
 import { type ChangeSpec, EditorState } from '@codemirror/state';
 import { ChangeDetectorExtension } from '@/extensions/change-detector.extension';
 
@@ -8,11 +8,11 @@ import { ChangeDetectorExtension } from '@/extensions/change-detector.extension'
 // module so both classes load under the Node test environment without a DOM.
 // ChangeDetectorExtension reads Decoration.none at field-init time, so that
 // must be included in the stub too.
-jest.mock('@codemirror/view', () => {
+vi.mock('@codemirror/view', async () => {
   // GutterMarker must inherit the real RangeValue: a bare class stub lacks
   // startSide/endSide, and RangeSet.iter() then silently skips a range
   // anchored at position 0 (a marker on the first line).
-  const { RangeValue } = jest.requireActual<typeof import('@codemirror/state')>('@codemirror/state');
+  const { RangeValue } = await vi.importActual<{ RangeValue: typeof RangeValueCtor }>('@codemirror/state');
 
   return {
     GutterMarker: class extends RangeValue {
@@ -23,7 +23,7 @@ jest.mock('@codemirror/view', () => {
 });
 
 import { editorInfoField } from 'obsidian';
-import type { StateField } from '@codemirror/state';
+import type { RangeValue as RangeValueCtor, StateField } from '@codemirror/state';
 import { ChangeType, IndicatorType } from '@/consts';
 import { GutterRemovedExtension } from '@/extensions/gutter-removed.extension';
 import { FileSnapshot } from '@/snapshots/file.snapshot';
@@ -54,18 +54,18 @@ type PluginArg = ConstructorParameters<ExtCtor>[1];
 const makePlugin = (overrides: {
   snapshotOverride?: FileSnapshot | null;
   confirmResult?: boolean;
-  applyContent?: jest.Mock;
+  applyContent?: Mock;
   indicatorType?: IndicatorType;
   showRemoved?: boolean;
 }): {
   plugin: PluginArg;
-  snapshotsService: { getOne: () => FileSnapshot | null; applyContent: jest.Mock; forceUpdate: jest.Mock };
-  modalsService: { confirm: jest.Mock };
+  snapshotsService: { getOne: () => FileSnapshot | null; applyContent: Mock; forceUpdate: Mock };
+  modalsService: { confirm: Mock };
 } => {
   const {
     snapshotOverride = null,
     confirmResult = true,
-    applyContent = jest.fn(() => Promise.resolve()),
+    applyContent = vi.fn(() => Promise.resolve()),
     indicatorType = IndicatorType.dot,
     showRemoved = true,
   } = overrides;
@@ -83,11 +83,11 @@ const makePlugin = (overrides: {
   const snapshotsService = {
     getOne: (): FileSnapshot | null => snapshotOverride,
     applyContent,
-    forceUpdate: jest.fn(),
+    forceUpdate: vi.fn(),
   };
 
   const modalsService = {
-    confirm: jest.fn(() => Promise.resolve(confirmResult)),
+    confirm: vi.fn(() => Promise.resolve(confirmResult)),
   };
 
   const services: Map<unknown, unknown> = new Map<unknown, unknown>([
@@ -113,7 +113,7 @@ const makePlugin = (overrides: {
  * outer view so the guard classifies the view as a table-cell sub-editor.
  */
 const makeView = (doc: string, nested: boolean = false): EditorView => {
-  // The runtime field is the jest stub (StateField<unknown>); retype the real
+  // The runtime field is the mocked stub (StateField<unknown>); retype the real
   // obsidian declaration to match so init can return a plain test double.
   const infoField = editorInfoField as unknown as StateField<unknown>;
   const view = { dom: { closest: (): Element | null => null } } as unknown as EditorView;
@@ -350,7 +350,7 @@ describe('GutterRemovedExtension revertRemovedAt - revert affordance', () => {
       insert: '',
     });
 
-    const applyContent = jest.fn(() => Promise.resolve());
+    const applyContent = vi.fn(() => Promise.resolve());
     const { plugin } = makePlugin({
       snapshotOverride: snap,
       confirmResult: true,
@@ -391,7 +391,7 @@ describe('GutterRemovedExtension revertRemovedAt - revert affordance', () => {
     // The anchor is clamped to the last current line (index 1).
     expect(snap.content.getChangedPositions(ChangeType.removed)).toEqual([1]);
 
-    const applyContent = jest.fn(() => Promise.resolve());
+    const applyContent = vi.fn(() => Promise.resolve());
     const { plugin } = makePlugin({
       snapshotOverride: snap,
       confirmResult: true,
@@ -421,7 +421,7 @@ describe('GutterRemovedExtension revertRemovedAt - revert affordance', () => {
       insert: '',
     });
 
-    const applyContent = jest.fn(() => Promise.resolve());
+    const applyContent = vi.fn(() => Promise.resolve());
     const { plugin } = makePlugin({
       snapshotOverride: snap,
       confirmResult: false,
@@ -436,7 +436,7 @@ describe('GutterRemovedExtension revertRemovedAt - revert affordance', () => {
   });
 
   it('does nothing when there is no snapshot or no file', async () => {
-    const applyContent = jest.fn(() => Promise.resolve());
+    const applyContent = vi.fn(() => Promise.resolve());
     const { plugin } = makePlugin({ snapshotOverride: null, applyContent });
     const ext = new GutterRemovedExtension(null as unknown as ViewArg, plugin);
 
@@ -458,7 +458,7 @@ describe('GutterRemovedExtension revertRemovedAt - revert affordance', () => {
       insert: 'B',
     });
 
-    const applyContent = jest.fn(() => Promise.resolve());
+    const applyContent = vi.fn(() => Promise.resolve());
     const { plugin } = makePlugin({
       snapshotOverride: snap,
       confirmResult: true,

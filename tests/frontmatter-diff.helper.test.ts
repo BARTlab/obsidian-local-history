@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 import { diffFrontmatter } from '@/helpers/frontmatter-diff.helper';
 import type { FrontmatterChange } from '@/helpers/frontmatter-diff.helper';
 

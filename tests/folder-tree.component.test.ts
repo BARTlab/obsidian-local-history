@@ -1,6 +1,6 @@
-/** @jest-environment jsdom */
+/** @vitest-environment jsdom */
 
-import { describe, expect, it, beforeAll, beforeEach } from '@jest/globals';
+import { describe, expect, it, beforeAll, beforeEach } from 'vitest';
 import { ChangesLayout, FolderDeltaStatus } from '@/consts';
 import { FolderTreeComponent } from '@/components/folder-tree.component';
 import type { FolderTreeEntry } from '@/types';

@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { afterEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { I18nService, OBSIDIAN_LANGUAGES } from '@/services/i18n.service';
 import type { TranslationCatalogs } from '@/types';
 
@@ -63,7 +63,7 @@ const makeService = (language: string, warnOnMissing = false): TestI18nService =
 };
 
 afterEach(() => {
-  jest.restoreAllMocks();
+  vi.restoreAllMocks();
 });
 
 describe('I18nService.resolve', () => {
@@ -197,7 +197,7 @@ describe('I18nService.t', () => {
   });
 
   it('warns about a missing key only when the dev flag is set', () => {
-    const warn = jest.spyOn(console, 'warn').mockImplementation((): void => undefined);
+    const warn = vi.spyOn(console, 'warn').mockImplementation((): void => undefined);
 
     makeService('ru', true).t('missing.key');
     expect(warn).toHaveBeenCalledWith('[i18n] missing translation key: missing.key');

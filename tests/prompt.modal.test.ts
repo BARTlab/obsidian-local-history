@@ -1,12 +1,12 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 import { PromptModal } from '@/modals/prompt.modal';
 import type { App } from 'obsidian';
 
 /**
  * Unit tests for PromptModal.
  *
- * The Jest runtime is configured with the default `node` environment and no
- * jsdom is installed, so these tests do not exercise the rendered DOM. They
+ * This file runs under the default `node` test environment (no jsdom
+ * docblock), so these tests do not exercise the rendered DOM. They
  * focus on the modal's promise contract instead, which is the public surface
  * the rest of the plugin depends on:
  * - confirm with text resolves to that text,

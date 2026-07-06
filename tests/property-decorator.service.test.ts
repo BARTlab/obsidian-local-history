@@ -1,4 +1,4 @@
-/** @jest-environment jsdom */
+/** @vitest-environment jsdom */
 
 /**
  * Tests for {@link PropertyDecoratorService}.
@@ -14,7 +14,7 @@
  */
 
 import 'reflect-metadata';
-import { beforeEach, describe, expect, it } from '@jest/globals';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { PropertyDecoratorService } from '@/services/property-decorator.service';
 import type { FrontmatterChange } from '@/helpers/frontmatter-diff.helper';
 import type LineChangeTrackerPlugin from '@/main';

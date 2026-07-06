@@ -1,14 +1,14 @@
 import 'reflect-metadata';
-import { describe, expect, it, jest } from '@jest/globals';
+import { describe, expect, it, vi, type Mock } from 'vitest';
 
 // Replace the FileSnapshot with a thin in-memory double. The service only needs
 // getOne -> snapshot.file, getLastStateLines, lineBreak, captureVersion, and the
 // timeline sub-object (getVersion, getVersions, removeVersion), and we want to
 // assert the modes (force/labeled) the put-label path uses without pulling
-// lodash-es ESM into the CommonJS Jest runtime.
+// the real FileSnapshot's lodash-es dependency chain into the suite.
 type VersionEntry = { id: string; lines: string[]; label?: string };
 
-jest.mock('@/snapshots/file.snapshot', () => ({
+vi.mock('@/snapshots/file.snapshot', () => ({
   FileSnapshot: class {
     public file: unknown;
     public captured: { lines: string[]; force: boolean; label?: string }[] = [];
@@ -98,8 +98,8 @@ import { makeFile } from './helpers/builders';
 
 interface ServiceHarness {
   service: VersionActionsService;
-  applyContent: jest.Mock;
-  forceUpdate: jest.Mock;
+  applyContent: Mock;
+  forceUpdate: Mock;
   snapshot: {
     file: TFile;
     captured: { lines: string[]; force: boolean; label?: string }[];
@@ -114,8 +114,8 @@ const makeHarness = (snapshotInit?: {
   state: string[];
   versions?: { id: string; lines: string[]; label?: string }[];
 } | null): ServiceHarness => {
-  const applyContent: jest.Mock = jest.fn(async (): Promise<boolean> => true) as unknown as jest.Mock;
-  const forceUpdate: jest.Mock = jest.fn();
+  const applyContent: Mock = vi.fn(async (): Promise<boolean> => true) as unknown as Mock;
+  const forceUpdate: Mock = vi.fn();
 
   // FileSnapshot is mocked above to a thin double; the constructor signature
   // matches the mock, not the real class.

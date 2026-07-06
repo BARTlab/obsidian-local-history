@@ -1,11 +1,11 @@
 /**
- * Minimal CommonJS-friendly stand-in for the `obsidian` module under Jest.
+ * Minimal stand-in for the `obsidian` module under vitest.
  *
  * The real `obsidian` package ships type declarations only (no runtime
  * implementation), because at runtime the bundle treats it as an external
  * provided by the Obsidian app. Any source file that imports a runtime *value*
  * from `obsidian` (for example `Notice`) therefore cannot be resolved by the
- * Jest module resolver. This stub provides inert constructors for the handful
+ * vitest module resolver. This stub provides inert constructors for the handful
  * of values the plugin imports as values, so services can be unit-tested
  * without pulling in the Obsidian app. Types are erased at compile time and do
  * not need a stub.
@@ -82,7 +82,7 @@ export class Modal {
 /**
  * Inert replacement for Obsidian's `Plugin` base class. The plugin entry point
  * extends it, so the class must exist as a constructor for `src/main.ts` to be
- * importable under Jest; no behavior is needed because tests never run its
+ * importable under vitest; no behavior is needed because tests never run its
  * lifecycle.
  */
 export class Plugin {}
@@ -169,7 +169,7 @@ export class SettingGroup {
  * Inert replacement for Obsidian's `setIcon`. Records the requested icon name
  * on the element so tests can assert on it; otherwise does nothing because the
  * real implementation paints SVG markup from Lucide which is irrelevant under
- * Jest.
+ * vitest.
  *
  * @param {HTMLElement | { dataset?: Record<string, string> }} element - The element to mark
  * @param {string} iconName - The icon name to record

@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 import { ShowDiffCommand } from '@/commands/show-diff.command';
 
 type PluginArg = ConstructorParameters<typeof ShowDiffCommand>[0];

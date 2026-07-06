@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it } from 'vitest';
 import { HISTORY_SHARD_DIR, KeepHistory } from '@/consts';
 import * as ShardNameHelper from '@/helpers/shard-name.helper';
 import { PersistenceService } from '@/services/persistence.service';

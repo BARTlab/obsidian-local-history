@@ -1,6 +1,6 @@
-/** @jest-environment jsdom */
+/** @vitest-environment jsdom */
 
-import { beforeAll, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as DomHelper from '@/helpers/dom.helper';
 import { installJsdomDomPolyfill } from './helpers/jsdom-dom';
 
@@ -183,7 +183,7 @@ describe('DomHelper', () => {
 
   describe('update events and children', () => {
     it('attaches an event listener that fires on dispatch', () => {
-      const handler: (event: Event) => void = jest.fn();
+      const handler: (event: Event) => void = vi.fn();
 
       DomHelper.update(host, { events: { click: handler } });
       host.dispatchEvent(new Event('click'));

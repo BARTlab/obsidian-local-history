@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { SnapshotsService } from '@/services/snapshots.service';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
@@ -405,11 +405,11 @@ describe('SnapshotsService.captureExternalChange', () => {
 
 describe('SnapshotsService.scheduleExternalCapture', () => {
   beforeEach((): void => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
   });
 
   afterEach((): void => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   it('coalesces a burst of modify events into a single disk read + capture', async () => {
@@ -444,7 +444,7 @@ describe('SnapshotsService.scheduleExternalCapture', () => {
     // queue between/after timers, so the trailing capture's async chain
     // (disk read + capture) completes deterministically with no real-timer
     // microtask flush.
-    await jest.runAllTimersAsync();
+    await vi.runAllTimersAsync();
 
     const snapshot: FileSnapshot = service.getOne(file) as FileSnapshot;
 
@@ -466,7 +466,7 @@ describe('SnapshotsService.scheduleExternalCapture', () => {
     service.scheduleExternalCapture(fileA);
     service.scheduleExternalCapture(fileB);
 
-    await jest.runAllTimersAsync();
+    await vi.runAllTimersAsync();
 
     expect((service.getOne(fileA) as FileSnapshot).timeline.getStoredVersions().length).toBe(1);
     expect((service.getOne(fileB) as FileSnapshot).timeline.getStoredVersions().length).toBe(1);

@@ -131,21 +131,9 @@ describe('RecentChangesView', () => {
       row.querySelector('.lct-recent-changes-label')?.textContent);
 
   beforeAll((): void => {
+    // The shared polyfill installs both `empty` and `addClass`, the Obsidian
+    // HTMLElement augmentations jsdom lacks that the view's `onOpen` path calls.
     installJsdomDomPolyfill();
-
-    /**
-     * The view tags its content host with `addClass`, another Obsidian
-     * HTMLElement augmentation jsdom lacks (the shared polyfill only ships
-     * `empty`). Install an idempotent shim so `onOpen` runs without throwing.
-     */
-    const proto: { addClass?: (cls: string) => void } =
-      HTMLElement.prototype as unknown as { addClass?: (cls: string) => void };
-
-    if (!proto.addClass) {
-      proto.addClass = function addClassImpl(this: HTMLElement, cls: string): void {
-        this.classList.add(cls);
-      };
-    }
   });
 
   beforeEach((): void => {

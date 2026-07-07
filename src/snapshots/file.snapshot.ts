@@ -32,7 +32,7 @@ export class FileSnapshot {
    * (`changes`), and the line break, and exposes the whole state/baseline/change
    * query API. Callers reach content queries through `snapshot.content`; the
    * façade only rewires its own composite operations (construction, serialization,
-   * marker-baseline reset, change-map refresh, history adoption) through it.
+   * marker-baseline seeding, change-map refresh, history adoption) through it.
    */
   public readonly content: SnapshotState;
 
@@ -44,7 +44,7 @@ export class FileSnapshot {
    * restores, removals, block replacement, the position lookups, the readonly view
    * and the build/restore/reset lifecycle. Callers reach tracking through
    * `snapshot.trackers`; the façade only rewires its own composite operations
-   * (construction, serialization, marker-baseline reset, change-map refresh)
+   * (construction, serialization, marker-baseline seeding, change-map refresh)
    * through it.
    */
   public readonly trackers: TrackerEditor = new TrackerEditor();
@@ -329,31 +329,6 @@ export class FileSnapshot {
   }
 
   /**
-   * Re-establishes the session marker baseline at the current state, the eager
-   * form of the "re-established from the file content on the next open" contract
-   * that `SnapshotCodec.encode` documents for the deliberately non-persisted
-   * marker baseline.
-   *
-   * `SnapshotCodec.decode` reconstructs the marker baseline from the persisted HISTORY
-   * original and restores the persisted tracker, so a restored snapshot reports
-   * its full history diff (`getChangesLinesCount() > 0`) before the file is ever
-   * opened this run. The session surfaces that read a snapshot WITHOUT opening it
-   * - the tree/tab decorator above all - would then paint a folder as changed on
-   * a fresh launch even though nothing changed this session. Calling this at
-   * restore collapses the marker baseline onto the current state so the snapshot
-   * starts session-clean (`none`), matching the gutter, which re-baselines to the
-   * editor content on open. The HISTORY baseline (`historyLines`) and the version
-   * timeline are untouched, so the history modal keeps diffing against the
-   * persisted original; only the session-scoped marker view is reset.
-   */
-  public resetMarkerBaseline(): void {
-    this.content.lines = [...this.content.state];
-
-    this.trackers.buildFromLines(this.content.lines);
-    this.updateChanges();
-  }
-
-  /**
    * Redefines the change map to mean "changes vs the resolved origin" while keeping
    * the tracker aligned with the live document. Adopts `origin` as the marker
    * baseline, rebuilds the tracker from it, then reconciles the tracker's current
@@ -362,10 +337,10 @@ export class FileSnapshot {
    * (gutter, tree/tab, status bar, reading-mode, properties, next/prev nav) follows
    * from it at once.
    *
-   * This is the persist-restore counterpart of resetMarkerBaseline: instead of
-   * collapsing the baseline onto the current state (session-clean), it seeds the
-   * baseline from the persisted sliding origin so a restored snapshot reports its
-   * changes-vs-origin and survives a reload. The reconcile keeps every untouched
+   * At the persist restore path, rather than collapsing the baseline onto the
+   * current state (session-clean), it seeds the baseline from the persisted
+   * sliding origin so a restored snapshot reports its changes-vs-origin and
+   * survives a reload. The reconcile keeps every untouched
    * line's tracker (and marker) in place and edits only genuinely changed lines, so
    * the tracker's current positions stay mapped to the live document and an
    * incremental edit from the change detector lands on the correct line.

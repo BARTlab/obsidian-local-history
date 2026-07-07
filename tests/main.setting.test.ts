@@ -115,7 +115,10 @@ describe('MainSetting', () => {
     );
     expect(purgeButton).toBeDefined();
     expect(purgeButton?.buttonText).toBe('setting.purge-excluded.name');
+    // Destructive primary (setDestructive().setCta()): the filled red styling the
+    // deprecated setWarning() used to give, so the irreversible purge stays loud.
     expect(purgeButton?.destructive).toBe(true);
+    expect(purgeButton?.cta).toBe(true);
   });
 
   it('disables the purge button while no usable exclude pattern is configured and enables it once one is', () => {

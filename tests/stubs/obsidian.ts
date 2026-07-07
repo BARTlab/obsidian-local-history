@@ -253,14 +253,15 @@ export class Menu {
 /**
  * Inert stand-in for Obsidian's `ButtonComponent`, fired by
  * {@link Setting.addButton}. Records the state the settings tab drives through
- * it - the button text, the destructive flag, the disabled state its purge
- * gating flips, and the click handler - so a suite can assert the gating and
- * invoke the handler directly.
+ * it - the button text, the destructive and cta flags, the disabled state its
+ * purge gating flips, and the click handler - so a suite can assert the gating,
+ * the destructive-primary styling, and invoke the handler directly.
  */
 export class ButtonComponent {
   public buttonText = '';
   public disabled = false;
   public destructive = false;
+  public cta = false;
   public clickHandler?: (event?: unknown) => unknown;
 
   public setButtonText(text: string): this {
@@ -277,6 +278,12 @@ export class ButtonComponent {
 
   public setDestructive(): this {
     this.destructive = true;
+
+    return this;
+  }
+
+  public setCta(): this {
+    this.cta = true;
 
     return this;
   }

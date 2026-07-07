@@ -41,7 +41,7 @@ export function resolveHoverPanelContent(
 ): GutterHoverPanelResolution | null {
   const hunks: Diff.StructuredPatchHunk[] = HunkHelper.diff(baseLines, currentLines, lineBreak);
   const hunk: Diff.StructuredPatchHunk | null =
-    HunkHelper.hunkAtLine(hunks, line) ?? deletionHunkAt(hunks, line, currentLines.length);
+    HunkHelper.hunkAtLine(hunks, line) ?? HunkHelper.deletionHunkAt(hunks, line, currentLines.length);
 
   if (!hunk) {
     return null;
@@ -67,32 +67,6 @@ export function resolveHoverPanelContent(
   const blank: boolean = !hasVisibleText(baseBlock) && !hasVisibleText(currentBlock);
 
   return { content: { kind, lines, blank }, hunk, baseText: baseBlock.join(lineBreak) };
-}
-
-/**
- * Finds the pure-deletion hunk a removed dash on the given line sits on, matched
- * the same way the removed-gutter revert matches it: the 1-based reinsertion
- * point is `line + 1`, except a deletion that touched the file's last line
- * clamps its anchor onto the last current line and reinserts one past the end
- * (`length + 1`), accepted only when the marker is on the last line.
- *
- * @param {Diff.StructuredPatchHunk[]} hunks - The hunks of the current diff
- * @param {number} line - The 0-based line the removed dash sits on
- * @param {number} currentLength - The current line count
- * @return {Diff.StructuredPatchHunk | null} The deletion hunk, or null
- */
-function deletionHunkAt(
-  hunks: Diff.StructuredPatchHunk[],
-  line: number,
-  currentLength: number,
-): Diff.StructuredPatchHunk | null {
-  const insertionPoint: number = line + 1;
-  const eofInsertionPoint: number = currentLength + 1;
-  const isLastLine: boolean = line === currentLength - 1;
-
-  return hunks.find((hunk: Diff.StructuredPatchHunk): boolean =>
-    hunk.newLines === 0 && (hunk.newStart === insertionPoint || (isLastLine && hunk.newStart === eofInsertionPoint)),
-  ) ?? null;
 }
 
 /**

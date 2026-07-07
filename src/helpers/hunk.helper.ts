@@ -105,6 +105,42 @@ export function hunkAtLine(hunks: Diff.StructuredPatchHunk[], line: number): Dif
 }
 
 /**
+ * Finds the pure-deletion hunk a removed-line marker on the given line sits on.
+ * A deletion occupies no current line, so it has no covering region; instead it
+ * is anchored to the first surviving line after the gap, whose 1-based
+ * reinsertion point is `line + 1`. When the deletion touched the file's last
+ * line there is no line after the gap, so the anchor is clamped onto the last
+ * current line and the reinsertion point sits one past the end
+ * (`currentLength + 1`); that shape is accepted only when the marker is on the
+ * last line, so every other deletion stays matched by its exact insertion point.
+ *
+ * The gutter revert and the hover panel both resolve a removed dash through this
+ * single rule so they act on the same hunk.
+ *
+ * @param {Diff.StructuredPatchHunk[]} hunks - The hunks to search, top to bottom
+ * @param {number} line - The 0-based line the removed marker sits on
+ * @param {number} currentLength - The current line count
+ * @return {Diff.StructuredPatchHunk | null} The deletion hunk, or null if none
+ */
+export function deletionHunkAt(
+  hunks: Diff.StructuredPatchHunk[],
+  line: number,
+  currentLength: number,
+): Diff.StructuredPatchHunk | null {
+  if (!Array.isArray(hunks)) {
+    return null;
+  }
+
+  const insertionPoint: number = line + 1;
+  const eofInsertionPoint: number = currentLength + 1;
+  const isLastLine: boolean = line === currentLength - 1;
+
+  return hunks.find((hunk: Diff.StructuredPatchHunk): boolean =>
+    hunk.newLines === 0 && (hunk.newStart === insertionPoint || (isLastLine && hunk.newStart === eofInsertionPoint)),
+  ) ?? null;
+}
+
+/**
  * Reverts a single hunk against the current lines and returns the resulting
  * lines. Only the region this hunk occupies in the current text is replaced
  * by the hunk's base-side lines; every line outside the region is preserved

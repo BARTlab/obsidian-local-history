@@ -119,27 +119,7 @@ export class GutterRemovedExtension implements GutterConfig {
       snapshot.content.lineBreak,
     );
 
-    /**
-     * Pure-deletion hunks have newLines === 0; their newStart is the 1-based
-     * insertion point - the line before which the removed content would be
-     * reinserted. The gutter marker is placed on the line at currentLine
-     * (0-based), which is line.number - 1 from the doc. That maps to
-     * newStart = currentLine + 1.
-     *
-     * A deletion that touched the file's last line has no surviving line after
-     * the gap, so its anchor is clamped down onto the last current line. There
-     * the reinsertion point sits one past the marker (at the end of the doc),
-     * so newStart = currentLine + 2 = currentLines.length + 1. Accept that shape
-     * too, but only when the marker is on the last line, to keep every other
-     * deletion matched by its exact insertion point.
-     */
-    const insertionPoint: number = currentLine + 1;
-    const eofInsertionPoint: number = currentLines.length + 1;
-    const isLastLine: boolean = currentLine === currentLines.length - 1;
-    const hunk: Diff.StructuredPatchHunk | undefined = hunks.find(
-      (h: Diff.StructuredPatchHunk): boolean =>
-        h.newLines === 0 && (h.newStart === insertionPoint || (isLastLine && h.newStart === eofInsertionPoint)),
-    );
+    const hunk: Diff.StructuredPatchHunk | null = HunkHelper.deletionHunkAt(hunks, currentLine, currentLines.length);
 
     if (!hunk) {
       return;

@@ -51,3 +51,18 @@ export function rndId(prefix?: string): string {
 export function isWhitespaceDiff(a: string, b: string): boolean {
   return a !== b && a.replace(/\s+/g, '') === b.replace(/\s+/g, '');
 }
+
+/**
+ * Splits document content into the lines the editor sees. Always splits on
+ * `/\r?\n/`, never the stored `lineBreak`, so a file mixing CRLF and lone-LF
+ * endings decomposes into the same line set the change detector, editor, and
+ * diff surface hold. This is the single home of that invariant: every
+ * document-decomposition site routes through it instead of re-inlining the
+ * split. It never trims or filters.
+ *
+ * @param {string} content - The document content to decompose
+ * @return {string[]} The content split into lines on `/\r?\n/`
+ */
+export function splitLines(content: string): string[] {
+  return content.split(/\r?\n/);
+}

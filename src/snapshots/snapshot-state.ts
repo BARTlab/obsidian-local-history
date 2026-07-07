@@ -73,7 +73,7 @@ export class SnapshotState {
     // Split on `/\r?\n/`, not `lineBreak`: a file with mixed CRLF and lone-LF
     // endings must decompose into the same lines the change detector and editor
     // see, otherwise the baseline holds fewer lines than the live document.
-    this.lines = content?.split(/\r?\n/) ?? [];
+    this.lines = content === undefined ? [] : TextHelper.splitLines(content);
     this.historyLines = [...this.lines];
     this.updateState(this.lines);
   }
@@ -88,7 +88,7 @@ export class SnapshotState {
     // A string is split on `/\r?\n/` (not `lineBreak`) for the same reason the
     // baseline is: mixed endings must yield the same lines the editor sees. The
     // join back below stays on `lineBreak`, the write-back convention.
-    this.state = Array.isArray(content) ? [...content] : content.split(/\r?\n/);
+    this.state = Array.isArray(content) ? [...content] : TextHelper.splitLines(content);
     this.lastHash = TextHelper.hash(this.state.join(this.lineBreak));
   }
 

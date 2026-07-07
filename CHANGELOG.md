@@ -2,19 +2,9 @@
 
 All notable user-facing changes to this plugin are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/), and the project  follows [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
-
-### Changed
-
-- **History retention is a single three-way choice.** The separate "Persist history across restarts" toggle is gone, folded into one **Keep history until** setting with three ordered levels: file close, app close, and kept across restarts. At the kept-across-restarts level the highlighted change set is bounded by your retention caps (a sliding origin), so a file whose changes all predate the retention window drops from the vault changes panel and the file tree while its full history stays browsable in the history modal. There is no automatic migration: pick your preferred level once after upgrading.
-
-### Fixed
-
-- **Change surfaces agree after a restart.** At the kept-across-restarts level the file tree, tab headers, editor gutter, and vault changes panel now show the same changed set after a reload, instead of the tree and gutter going blank while the panel still listed the changed files.
-
 ## [2.0.0] - 2026-07-08
 
-First release published to the Obsidian community plugin directory. Since the last public release (1.0.1) the plugin grew from a live line-change highlighter into a full on-disk local-history system: a per-file version timeline, a four-view diff, restore and revert, folder history, and recovery of deleted, moved, and externally changed files.
+First public release to the Obsidian community plugin directory. Since the last public release (1.0.1) the plugin grew from a live line-change highlighter into a full on-disk local-history system: a per-file version timeline, a four-view diff, restore and revert, folder history, and recovery of deleted, moved, and externally changed files.
 
 ### Added
 
@@ -32,22 +22,23 @@ First release published to the Obsidian community plugin directory. Since the la
 - **External change capture.** Changes the editor never saw (git pull, sync, an external editor) are detected and captured as their own versions, marked with an inline badge.
 - **Reading-mode change indicators.** In reading mode, blocks whose source lines changed are marked by a thin change-colored bar in the left margin, matching the editor's change colors and sitting clear of the block so blockquotes, callouts, and code blocks keep their own styling. Off by default; enable it in settings.
 - **File explorer and tab highlight.** File-explorer rows (with their parent folders) and open tab headers are tinted by whether the file changed in the current session. A folder is not tinted when its only changed files are hidden by Obsidian's Excluded files setting or by the plugin's own exclude patterns, so the tree never lights up for a change you cannot see. Folders resolve their own `--lct-dir-*` CSS colours, overridable independently of the file rows. Toggle it in settings.
-- **Context submenu** on the editor, files, and folders (Show History, Show History for Selection, Put label, Recent changes).
+- **Context submenu** on the editor, files, and folders (Show History, Show History for Selection, Put label, Recent changes, Vault changes).
 - **Gutter context toggle.** Right-click the editor gutter to show or hide all change indicators.
 - **Change navigation commands.** Go to next change and go to previous change.
 - **Path exclusion.** A case-insensitive regular expression excludes files from tracking (defaults to Templates folders and Excalidraw drawings).
 - **Localization** following Obsidian's UI language, with bundled catalogs and an English fallback for every supported language code.
 - **Retention controls.** Independent caps for live-file history (count and age), deleted-file tombstones (count and age), and per-file timeline versions (count and age). Any cap can be set to 0 to disable it.
+- **Keep history until.** One ordered setting controls how long tracked history is kept: until the file is closed, until Obsidian is closed, or kept across restarts (the default). At the kept-across-restarts level the highlighted change set is bounded by your retention caps (a sliding origin), so a file whose changes all predate the retention window drops from the vault changes panel and the file tree together, while its full history stays browsable in the history modal. Every change surface (file tree, tab headers, editor gutter, and vault changes panel) shows that same set and stays consistent across a restart.
 
 ### Changed
 
 - **Line change bar renders in the editor gutter.** The line-style change indicator renders in its own gutter column instead of as a stripe in the line's own margin, so adjacent changed lines read as one continuous vertical bar.
 - **Dot gutter defaults to diff-style glyphs.** The character indicator now defaults to `+` added, `−` removed, `~` changed, and `↺` restored, so each marker reads at a glance instead of using abstract arrows. Every glyph stays configurable in settings.
 - **Adjustable marker intensity.** Change markers, reading-mode bars, and the file-explorer/tab/properties tints all render at an adjustable intensity, set with the new **Marker intensity** slider (default 75%, roughly 25% paler than the raw theme colour). Lower it for a subtler look or raise it toward 100% for the original hard contrast; it drives the shared `--lct-tint-strength` CSS variable behind the scenes.
-- Indicators are session-scoped: the gutter shows what changed since you opened the file in the current app run, while the on-disk history remembers changes across sessions, so long-lived notes no longer drift toward "all changed".
+- Indicators follow the **Keep history until** setting: at the file-close and app-close levels the gutter shows what changed since you opened the file in the current app run; at the kept-across-restarts level it shows changes against the retained origin and survives a reload. Either way the on-disk history keeps the full record, so long-lived notes no longer drift toward "all changed".
 - The history modal uses a three-pane layout (version rail, icon toolbar, diff pane) with next/previous difference navigation and a toggle to hide versions identical to the current content.
 - The diff base for the modal's baseline entry compares the current document against the latest captured version instead of the original.
-- Minimum supported Obsidian version is 1.11.0.
+- Minimum supported Obsidian version is 1.13.0.
 
 ### Fixed
 
@@ -96,7 +87,6 @@ First release published to the Obsidian community plugin directory. Since the la
 
 - Initial release: live highlighting of changed, added, removed, and restored lines with line or gutter indicators, a built-in side-by-side and line-by-line diff modal, patch export, and configurable appearance and history settings.
 
-[Unreleased]: https://github.com/bartlab/obsidian-local-history/compare/2.0.0...HEAD
 [2.0.0]: https://github.com/bartlab/obsidian-local-history/compare/1.0.1...2.0.0
 [1.0.1]: https://github.com/bartlab/obsidian-local-history/compare/1.0.0...1.0.1
 [1.0.0]: https://github.com/bartlab/obsidian-local-history/releases/tag/1.0.0

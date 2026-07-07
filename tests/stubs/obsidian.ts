@@ -94,10 +94,146 @@ export class Plugin {}
 export class PluginSettingTab {}
 
 /**
- * Inert replacement for Obsidian's `ItemView` base class, extended by the
- * recent-changes view that `src/main.ts` imports.
+ * Inert stand-in for Obsidian's `ItemView` base class, extended by the
+ * recent-changes view. Real Obsidian mounts a `containerEl`/`contentEl` pair and
+ * derives `app` from the hosting leaf; this double reproduces just that surface
+ * (plus the no-op `registerEvent`/`registerDomEvent`/`register` cleanup hooks a
+ * view drives) so a real view instance can run `onOpen`/`render`/`onClose` under
+ * jsdom without throwing. All DOM nodes are created in the constructor, so
+ * importing this module in the default node environment never touches `document`
+ * until a suite actually mounts a view under jsdom.
  */
-export class ItemView {}
+export class ItemView {
+  public leaf: unknown;
+  public app: unknown;
+  public containerEl: HTMLElement;
+  public contentEl: HTMLElement;
+
+  public constructor(leaf?: unknown) {
+    this.leaf = leaf ?? {};
+    this.app = (leaf as { app?: unknown } | undefined)?.app ?? { workspace: { on: (): unknown => undefined } };
+    this.containerEl = document.createElement('div');
+    this.contentEl = document.createElement('div');
+    this.containerEl.appendChild(this.contentEl);
+  }
+
+  public registerEvent(_ref?: unknown): void {
+    // Inert: a view routes native subscriptions through here; the ref is a no-op.
+  }
+
+  public registerDomEvent(): void {
+    // Inert dom-event registration.
+  }
+
+  public register(_cleanup?: unknown): void {
+    // Inert: Component cleanup registration, torn down implicitly under test.
+  }
+}
+
+/**
+ * Inert stand-in for Obsidian's `SearchComponent`. Backs the search box the
+ * recent-changes view builds in `onOpen`: it mounts a real `<input>` so a suite
+ * can drive filtering by dispatching a native `input` event, and `onChange`
+ * wires that event through to the view's handler. `setValue` updates the field
+ * WITHOUT firing `onChange`, matching the real component (the view relies on
+ * that when it clears the box on a file switch).
+ */
+export class SearchComponent {
+  public inputEl: HTMLInputElement;
+
+  public constructor(containerEl?: HTMLElement) {
+    this.inputEl = document.createElement('input');
+    this.inputEl.type = 'search';
+
+    if (containerEl) {
+      containerEl.appendChild(this.inputEl);
+    }
+  }
+
+  public setPlaceholder(placeholder: string): this {
+    this.inputEl.placeholder = placeholder;
+
+    return this;
+  }
+
+  public onChange(cb: (value: string) => void): this {
+    this.inputEl.addEventListener('input', (): void => cb(this.inputEl.value));
+
+    return this;
+  }
+
+  public setValue(value: string): this {
+    this.inputEl.value = value;
+
+    return this;
+  }
+
+  public getValue(): string {
+    return this.inputEl.value;
+  }
+}
+
+/** Recorded shape of a menu item the {@link Menu} double captured. */
+export interface RecordedMenuItem {
+  title: string;
+  icon: string;
+  onClick?: (event?: unknown) => unknown;
+}
+
+/** The chainable builder passed to a {@link Menu} `addItem` callback. */
+export interface MenuItemBuilder {
+  setTitle(title: string): MenuItemBuilder;
+  setIcon(icon: string): MenuItemBuilder;
+  onClick(handler: (event?: unknown) => unknown): MenuItemBuilder;
+}
+
+/**
+ * Inert stand-in for Obsidian's `Menu`. The recent-changes view constructs its
+ * per-row context menu internally, so the double records every constructed
+ * instance on the static `instances` registry and captures each item's title,
+ * icon, and `onClick` as the view builds it. A suite reads back the latest
+ * instance to fire a specific item (e.g. the row revert) and assert its effect.
+ * `showAtMouseEvent` is a no-op: no DOM menu is mounted under test.
+ */
+export class Menu {
+  public static instances: Menu[] = [];
+
+  public items: RecordedMenuItem[] = [];
+
+  public constructor() {
+    Menu.instances.push(this);
+  }
+
+  public addItem(build: (item: MenuItemBuilder) => void): this {
+    const record: RecordedMenuItem = { title: '', icon: '' };
+    const item: MenuItemBuilder = {
+      setTitle: (title: string): MenuItemBuilder => {
+        record.title = title;
+
+        return item;
+      },
+      setIcon: (icon: string): MenuItemBuilder => {
+        record.icon = icon;
+
+        return item;
+      },
+      onClick: (handler: (event?: unknown) => unknown): MenuItemBuilder => {
+        record.onClick = handler;
+
+        return item;
+      },
+    };
+
+    build(item);
+    this.items.push(record);
+
+    return this;
+  }
+
+  public showAtMouseEvent(): void {
+    // Inert: no native menu is shown under test.
+  }
+}
 
 /**
  * Inert replacement for Obsidian's `Setting` builder. Every chainable method

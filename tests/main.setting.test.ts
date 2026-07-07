@@ -3,6 +3,7 @@
 import 'reflect-metadata';
 import { beforeAll, beforeEach, describe, expect, it, vi, type Mock, type MockInstance } from 'vitest';
 
+import { DEFAULT_SETTINGS } from '@/consts';
 import type LineChangeTrackerPlugin from '@/main';
 import { TOKENS } from '@/services/tokens';
 import { MainSetting } from '@/settings/main.setting';
@@ -11,7 +12,7 @@ import * as obsidian from 'obsidian';
 
 import { makeInjectHost } from './helpers/builders';
 import { installJsdomDomPolyfill } from './helpers/jsdom-dom';
-import { type ButtonComponent, SettingGroup } from './stubs/obsidian';
+import { type ButtonComponent, SettingGroup, TextComponent } from './stubs/obsidian';
 
 /**
  * Behavior suite for {@link MainSetting}, the plugin's settings tab. It drives a
@@ -102,6 +103,7 @@ describe('MainSetting', () => {
     snapshots = { purgeExcluded: vi.fn().mockReturnValue(0) };
     modals = { confirm: vi.fn().mockResolvedValue(true) };
     SettingGroup.instances.length = 0;
+    TextComponent.instances.length = 0;
   });
 
   it('builds every section group in the documented order and assigns the destructive purge button', () => {
@@ -174,5 +176,89 @@ describe('MainSetting', () => {
     expect(notice).toHaveBeenCalledWith('notice.purge-excluded');
 
     notice.mockRestore();
+  });
+
+  /** The number-constrained rows the tab builds: the snapshot thresholds and the retention caps. */
+  const numberInputs = (): TextComponent[] =>
+    TextComponent.instances.filter((text: TextComponent): boolean =>
+      text.inputEl.classList.contains('lct-input-number'),
+    );
+
+  /** The gutter-symbol rows the tab builds, one per change type. */
+  const gutterInputs = (): TextComponent[] =>
+    TextComponent.instances.filter((text: TextComponent): boolean =>
+      text.inputEl.classList.contains('lct-gutter-char-input'),
+    );
+
+  it('constrains every snapshot and retention numeric row to a bounded native number input', () => {
+    mountTab();
+
+    const inputs: TextComponent[] = numberInputs();
+
+    // Four snapshot thresholds plus four retention caps all pass through constrainNumberInput.
+    expect(inputs).toHaveLength(8);
+
+    inputs.forEach((text: TextComponent): void => {
+      expect(text.inputEl.type).toBe('number');
+      expect(text.inputEl.min).toBe('0');
+      expect(text.inputEl.step).toBe('1');
+    });
+  });
+
+  it('constrains every gutter-symbol row to a single character with the gutter width class', () => {
+    mountTab();
+
+    const inputs: TextComponent[] = gutterInputs();
+
+    // One symbol input per change type: changed, added, restored, removed.
+    expect(inputs).toHaveLength(4);
+
+    inputs.forEach((text: TextComponent): void => {
+      expect(text.inputEl.maxLength).toBe(1);
+      expect(text.inputEl.classList.contains('lct-gutter-char-input')).toBe(true);
+    });
+  });
+
+  it('routes a numeric-row edit through toCount, clamping negatives to zero and passing a valid count through', () => {
+    mountTab();
+
+    // The first numeric row display() builds is the snapshot edit threshold, whose
+    // change handler routes the raw string straight through toCount to the store.
+    const editThreshold: TextComponent = numberInputs()[0];
+
+    editThreshold.changeHandler?.('-5');
+    expect(settings.update).toHaveBeenLastCalledWith('snapshots.editThreshold', 0);
+
+    editThreshold.changeHandler?.('42');
+    expect(settings.update).toHaveBeenLastCalledWith('snapshots.editThreshold', 42);
+  });
+
+  it('falls a numeric-row edit back to the row default when the value is blank or non-numeric', () => {
+    mountTab();
+
+    const editThreshold: TextComponent = numberInputs()[0];
+    const fallback: number = DEFAULT_SETTINGS.snapshots.editThreshold;
+
+    editThreshold.changeHandler?.('');
+    expect(settings.update).toHaveBeenLastCalledWith('snapshots.editThreshold', fallback);
+
+    editThreshold.changeHandler?.('not-a-number');
+    expect(settings.update).toHaveBeenLastCalledWith('snapshots.editThreshold', fallback);
+  });
+
+  it('feeds the allowed-extensions text row through verbatim and back to the default when cleared', () => {
+    mountTab();
+
+    // The lone unconstrained text row (neither numeric nor gutter class) is the allowed-extensions field.
+    const text: TextComponent | undefined = TextComponent.instances.find((candidate: TextComponent): boolean =>
+      !candidate.inputEl.classList.contains('lct-input-number')
+      && !candidate.inputEl.classList.contains('lct-gutter-char-input'),
+    );
+
+    text?.changeHandler?.('md,txt');
+    expect(settings.update).toHaveBeenLastCalledWith('allowedExtensions', 'md,txt');
+
+    text?.changeHandler?.('');
+    expect(settings.update).toHaveBeenLastCalledWith('allowedExtensions', DEFAULT_SETTINGS.allowedExtensions);
   });
 });

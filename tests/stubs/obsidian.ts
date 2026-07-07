@@ -88,10 +88,25 @@ export class Modal {
 export class Plugin {}
 
 /**
- * Inert replacement for Obsidian's `PluginSettingTab` base class, extended by
- * the settings tab that `src/main.ts` pulls in transitively.
+ * Stand-in for Obsidian's `PluginSettingTab` base class, extended by the
+ * settings tab. Real Obsidian's constructor stores the `app` and owning
+ * `plugin` and mounts a `containerEl` the tab renders into; this double
+ * reproduces just that surface so a real tab instance can run `display()` under
+ * jsdom. The `containerEl` is created in the constructor, so importing this
+ * module in the default node environment never touches `document` until a suite
+ * actually mounts a tab under jsdom.
  */
-export class PluginSettingTab {}
+export class PluginSettingTab {
+  public app: unknown;
+  public plugin: unknown;
+  public containerEl: HTMLElement;
+
+  public constructor(app?: unknown, plugin?: unknown) {
+    this.app = app;
+    this.plugin = plugin;
+    this.containerEl = document.createElement('div');
+  }
+}
 
 /**
  * Inert stand-in for Obsidian's `ItemView` base class, extended by the
@@ -236,53 +251,163 @@ export class Menu {
 }
 
 /**
- * Inert replacement for Obsidian's `Setting` builder. Every chainable method
- * returns `this` so builder chains do not throw under test.
+ * Inert stand-in for Obsidian's `ButtonComponent`, fired by
+ * {@link Setting.addButton}. Records the state the settings tab drives through
+ * it - the button text, the destructive flag, the disabled state its purge
+ * gating flips, and the click handler - so a suite can assert the gating and
+ * invoke the handler directly.
  */
-export class Setting {
-  public setName(): this {
+export class ButtonComponent {
+  public buttonText = '';
+  public disabled = false;
+  public destructive = false;
+  public clickHandler?: (event?: unknown) => unknown;
+
+  public setButtonText(text: string): this {
+    this.buttonText = text;
+
     return this;
   }
 
-  public setDesc(): this {
+  public setDisabled(disabled: boolean): this {
+    this.disabled = disabled;
+
     return this;
   }
 
-  public setHeading(): this {
+  public setDestructive(): this {
+    this.destructive = true;
+
     return this;
   }
 
-  public addText(): this {
+  public onClick(handler: (event?: unknown) => unknown): this {
+    this.clickHandler = handler;
+
+    return this;
+  }
+}
+
+/** Inert stand-in for Obsidian's `ToggleComponent`, fired by {@link Setting.addToggle}. */
+export class ToggleComponent {
+  public setValue(_value?: unknown): this {
     return this;
   }
 
-  public addToggle(): this {
+  public onChange(_handler: (value: boolean) => unknown): this {
+    return this;
+  }
+}
+
+/** Inert stand-in for Obsidian's `SliderComponent`, fired by {@link Setting.addSlider}. */
+export class SliderComponent {
+  public setLimits(_min: number, _max: number, _step: number): this {
     return this;
   }
 
-  public addDropdown(): this {
+  public setValue(_value?: unknown): this {
     return this;
   }
 
-  public addSlider(): this {
+  public setDynamicTooltip(): this {
     return this;
   }
 
-  public addButton(): this {
+  public onChange(_handler: (value: number) => unknown): this {
+    return this;
+  }
+}
+
+/** Inert stand-in for Obsidian's `DropdownComponent`, fired by {@link Setting.addDropdown}. */
+export class DropdownComponent {
+  public addOption(_value: string, _label: string): this {
+    return this;
+  }
+
+  public setValue(_value?: unknown): this {
+    return this;
+  }
+
+  public onChange(_handler: (value: string) => unknown): this {
     return this;
   }
 }
 
 /**
- * Inert replacement for Obsidian's `SettingGroup` (app 1.11+). Mirrors the
- * builder surface the settings tab uses: `setHeading` and `addExtraButton`
- * chain, `addSetting` synchronously invokes its callback with a fresh inert
- * `Setting` so row-construction code runs under test.
+ * Stand-in for Obsidian's `Setting` builder. The naming/description setters and
+ * the inert `addText` return `this` so builder chains do not throw; the
+ * `addToggle`/`addDropdown`/`addSlider`/`addButton` builders fire their callback
+ * with an inert component double so the tab's row bodies actually run (the purge
+ * button, for one, is only assigned inside its `addButton` callback).
+ *
+ * `addText` stays inert on purpose: firing it would run the tab's numeric/gutter
+ * input constraints, which reach into a real `inputEl` (and its `addClass`
+ * augmentation) that none of the behaviors under test need mounted.
  */
-export class SettingGroup {
-  public listEl: HTMLElement = document.createElement('div');
+export class Setting {
+  public setName(_name?: unknown): this {
+    return this;
+  }
+
+  public setDesc(_desc?: unknown): this {
+    return this;
+  }
 
   public setHeading(): this {
+    return this;
+  }
+
+  public addText(_cb?: unknown): this {
+    return this;
+  }
+
+  public addToggle(cb: (toggle: ToggleComponent) => unknown): this {
+    cb(new ToggleComponent());
+
+    return this;
+  }
+
+  public addDropdown(cb: (dropdown: DropdownComponent) => unknown): this {
+    cb(new DropdownComponent());
+
+    return this;
+  }
+
+  public addSlider(cb: (slider: SliderComponent) => unknown): this {
+    cb(new SliderComponent());
+
+    return this;
+  }
+
+  public addButton(cb: (button: ButtonComponent) => unknown): this {
+    cb(new ButtonComponent());
+
+    return this;
+  }
+}
+
+/**
+ * Stand-in for Obsidian's `SettingGroup` (app 1.11+). Mirrors the builder
+ * surface the settings tab uses: `setHeading` (whose heading it records) and
+ * `addExtraButton` chain, and `addSetting` synchronously invokes its callback
+ * with a fresh {@link Setting} so row-construction code runs under test. Every
+ * constructed group is recorded on the static `instances` registry so a suite
+ * can assert the tab built the expected sections, in order, by their headings -
+ * the same capture pattern the {@link Menu} double uses.
+ */
+export class SettingGroup {
+  public static instances: SettingGroup[] = [];
+
+  public listEl: HTMLElement = document.createElement('div');
+  public heading?: string;
+
+  public constructor(_containerEl?: HTMLElement) {
+    SettingGroup.instances.push(this);
+  }
+
+  public setHeading(heading?: string): this {
+    this.heading = heading;
+
     return this;
   }
 

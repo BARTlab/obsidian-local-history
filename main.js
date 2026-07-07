@@ -1901,8 +1901,7 @@ var import_reflect_metadata = __toESM(require_Reflect());
 // src/consts.ts
 var DEFAULT_SETTINGS = {
   type: "line" /* line */,
-  keep: "app" /* app */,
-  persist: true,
+  keep: "persist" /* persist */,
   allowedExtensions: "md, txt, csv, json, yaml",
   excludePaths: [],
   excludePathsCaseSensitive: false,
@@ -3100,6 +3099,27 @@ function isNestedEditor(view) {
   return view.dom.closest(".table-cell-wrapper") !== null;
 }
 
+// src/helpers/text.helper.ts
+var idCounter = 0;
+function hash(content) {
+  let hash2 = 0;
+  for (let i = 0; i < content.length; i++) {
+    hash2 = (hash2 << 5) - hash2 + content.charCodeAt(i);
+    hash2 |= 0;
+  }
+  return Math.abs(hash2).toString();
+}
+function rndId(prefix) {
+  idCounter += 1;
+  return `${prefix != null ? prefix : ""}${idCounter.toString(36)}`;
+}
+function isWhitespaceDiff(a, b) {
+  return a !== b && a.replace(/\s+/g, "") === b.replace(/\s+/g, "");
+}
+function splitLines(content) {
+  return content.split(/\r?\n/);
+}
+
 // src/extensions/change-detector.extension.ts
 var import_view = require("@codemirror/view");
 var ChangeDetectorExtension = class {
@@ -3140,7 +3160,7 @@ var ChangeDetectorExtension = class {
    */
   computeIncrementalChanges(update2) {
     const state = update2.state;
-    const currentLines = state.doc.toString().split(/\r?\n/);
+    const currentLines = splitLines(state.doc.toString());
     const snapshot = this.snapshotsService.getOne();
     const prev = update2.startState.doc;
     if (!snapshot) {
@@ -3205,9 +3225,15 @@ var ChangeDetectorExtension = class {
         tracker.change(actual);
       }
     }
-    snapshot.captureVersion(snapshot.content.getLastStateLines(), this.getCaptureOptions());
+    const captured = snapshot.captureVersion(
+      snapshot.content.getLastStateLines(),
+      this.getCaptureOptions()
+    );
     snapshot.content.updateState(currentLines);
     snapshot.updateChanges();
+    if (captured) {
+      this.snapshotsService.reseedOriginIfSlid(snapshot);
+    }
   }
   /**
    * Processes incremental changes in the document.
@@ -4851,7 +4877,7 @@ function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, ne
     const hunks = [];
     let oldRangeStart = 0, newRangeStart = 0, curRange = [], oldLine = 1, newLine = 1;
     for (let i = 0; i < diff2.length; i++) {
-      const current = diff2[i], lines2 = current.lines || splitLines(current.value);
+      const current = diff2[i], lines2 = current.lines || splitLines2(current.value);
       current.lines = lines2;
       if (current.added || current.removed) {
         if (!oldRangeStart) {
@@ -5010,7 +5036,7 @@ function createTwoFilesPatch(oldFileName, newFileName, oldStr, newStr, oldHeader
     } }));
   }
 }
-function splitLines(text) {
+function splitLines2(text) {
   const hasTrailingNl = text.endsWith("\n");
   const result = text.split("\n").map((line) => line + "\n");
   if (hasTrailingNl) {
@@ -5050,6 +5076,18 @@ function hunkAtLine(hunks, line) {
     const start = hunk.newStart - 1;
     return line >= start && line < start + hunk.newLines;
   })) != null ? _a : null;
+}
+function deletionHunkAt(hunks, line, currentLength) {
+  var _a;
+  if (!Array.isArray(hunks)) {
+    return null;
+  }
+  const insertionPoint = line + 1;
+  const eofInsertionPoint = currentLength + 1;
+  const isLastLine = line === currentLength - 1;
+  return (_a = hunks.find(
+    (hunk) => hunk.newLines === 0 && (hunk.newStart === insertionPoint || isLastLine && hunk.newStart === eofInsertionPoint)
+  )) != null ? _a : null;
 }
 function revertHunk(currentLines, hunk) {
   const lines2 = [...currentLines != null ? currentLines : []];
@@ -5100,16 +5138,16 @@ function lines(base, current) {
   for (let index = 0; index < changes.length; index++) {
     const change = changes[index];
     if (!change.added && !change.removed) {
-      splitLines2(change.value).forEach((text) => {
+      splitLines3(change.value).forEach((text) => {
         result.push({ type: "context" /* context */, oldText: text, newText: text });
       });
       continue;
     }
     if (change.removed) {
       const next = changes[index + 1];
-      const removedLines = splitLines2(change.value);
+      const removedLines = splitLines3(change.value);
       if (next == null ? void 0 : next.added) {
-        const addedLines = splitLines2(next.value);
+        const addedLines = splitLines3(next.value);
         pairAndEmit(removedLines, addedLines, result);
         index++;
         continue;
@@ -5119,7 +5157,7 @@ function lines(base, current) {
       });
       continue;
     }
-    splitLines2(change.value).forEach((text) => {
+    splitLines3(change.value).forEach((text) => {
       result.push({ type: "added" /* added */, newText: text });
     });
   }
@@ -5211,12 +5249,12 @@ function wordOverlapRatio(a, b) {
   const union = wordsA.length + wordsB.length - intersection;
   return union === 0 ? 0 : intersection / union;
 }
-function splitLines2(value) {
+function splitLines3(value) {
   if (value === "") {
     return [];
   }
   const normalized = value.replace(/\r?\n$/, "");
-  return normalized.split(/\r?\n/);
+  return splitLines(normalized);
 }
 
 // src/components/gutter-hover-panel-content.ts
@@ -5238,15 +5276,6 @@ function resolveHoverPanelContent(baseLines, currentLines, lineBreak, line) {
   );
   const blank = !hasVisibleText(baseBlock) && !hasVisibleText(currentBlock);
   return { content: { kind, lines: lines2, blank }, hunk, baseText: baseBlock.join(lineBreak) };
-}
-function deletionHunkAt(hunks, line, currentLength) {
-  var _a;
-  const insertionPoint = line + 1;
-  const eofInsertionPoint = currentLength + 1;
-  const isLastLine = line === currentLength - 1;
-  return (_a = hunks.find(
-    (hunk) => hunk.newLines === 0 && (hunk.newStart === insertionPoint || isLastLine && hunk.newStart === eofInsertionPoint)
-  )) != null ? _a : null;
 }
 function currentLinesForHunk(hunk) {
   var _a;
@@ -5961,12 +5990,7 @@ var GutterRemovedExtension = class {
       currentLines,
       snapshot.content.lineBreak
     );
-    const insertionPoint = currentLine + 1;
-    const eofInsertionPoint = currentLines.length + 1;
-    const isLastLine = currentLine === currentLines.length - 1;
-    const hunk = hunks.find(
-      (h) => h.newLines === 0 && (h.newStart === insertionPoint || isLastLine && h.newStart === eofInsertionPoint)
-    );
+    const hunk = deletionHunkAt(hunks, currentLine, currentLines.length);
     if (!hunk) {
       return;
     }
@@ -6091,7 +6115,7 @@ var am_default = {
   "command.reset-lines-all": "\u1201\u1209\u1295\u121D \u12E8\u1218\u1235\u1218\u122D \u1218\u12A8\u1273\u1270\u12EB \u1245\u133D\u1260\u1273\u12CA \u1245\u1302\u12CE\u127D \u12F3\u130D\u121D \u12A0\u1235\u1300\u121D\u122D",
   "command.reset-lines": "\u12E8\u12A0\u1201\u1291\u1295 \u1230\u1290\u12F5 \u12E8\u1218\u1235\u1218\u122D \u1218\u12A8\u1273\u1270\u12EB \u1245\u133D\u1260\u1273\u12CA \u1245\u1302 \u12F3\u130D\u121D \u12A0\u1235\u1300\u121D\u122D",
   "command.show-diff": "\u12E8\u12A0\u1201\u1291\u1295 \u1230\u1290\u12F5 \u1201\u1209\u1295\u121D \u1208\u12CD\u1326\u127D \u12A0\u1233\u12ED",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "\u12E8\u1218\u12EB\u12E3 \u1208\u12CD\u1326\u127D \u1353\u1290\u120D\u1295 \u12AD\u1348\u1275",
   "notice.no-changes-to-navigate": "\u1208\u1218\u12F3\u1230\u1235 \u121D\u1295\u121D \u1208\u12CD\u1326\u127D \u12E8\u1209\u121D",
   "notice.all-snapshots-deleted": "\u1201\u1209\u121D \u12E8\u1245\u133D\u1260\u1273\u12CA \u1245\u1302 \u12CD\u1202\u1265 \u1270\u1230\u122D\u12DF\u120D",
   "notice.current-snapshot-deleted": "\u12E8\u12A0\u1201\u1291 \u12E8\u1245\u133D\u1260\u1273\u12CA \u1245\u1302 \u12CD\u1202\u1265 \u1270\u1230\u122D\u12DF\u120D",
@@ -6126,14 +6150,13 @@ var am_default = {
   "setting.keep.desc": "\u12E8\u12AD\u1208\u1233 \u1273\u122A\u12AD\u1295 \u12E8\u121B\u133D\u12F3\u1275 \u1235\u120D\u1275",
   "setting.keep.option.app": "\u1218\u1270\u130D\u1260\u122A\u12EB \u1218\u12D8\u130B\u1275",
   "setting.keep.option.file": "\u134B\u12ED\u120D \u1218\u12D8\u130B\u1275",
+  "setting.keep.option.persist": "\u12A5\u1295\u12F0\u1308\u1293 \u1232\u1300\u1218\u122D \u12ED\u1246\u12EB\u120D",
   "setting.ignore-new-files.name": "\u12A0\u12F2\u1235 \u134B\u12ED\u120E\u127D\u1295 \u127D\u120B \u1260\u120D",
   "setting.ignore-new-files.desc": "\u12AD\u1275\u1275\u120D \u12A8\u1270\u1300\u1218\u1228 \u1260\u128B\u120B \u12E8\u1270\u1348\u1320\u1229 \u134B\u12ED\u120E\u127D \u12CD\u1235\u1325 \u1208\u12CD\u1326\u127D\u1295 \u12A0\u1275\u12A8\u1273\u1270\u120D",
   "setting.tree-highlight.name": "\u1260\u134B\u12ED\u120D \u12DB\u134D \u12A5\u1293 \u1275\u122E\u127D \u12CD\u1235\u1325 \u1208\u12CD\u1326\u127D\u1295 \u12A0\u1309\u120D\u1270",
   "setting.tree-highlight.desc": "\u1260\u1264\u1270\u129B\u12CD \u12E8\u134B\u12ED\u120D \u12A0\u1233\u123D \u12CD\u1235\u1325 \u12EB\u1209 \u134B\u12ED\u120E\u127D\u1295 \u12A5\u1293 \u12A0\u1243\u134A\u12CE\u127D\u1295\u1363 \u12A5\u1295\u12F2\u1201\u121D \u12E8\u1270\u12A8\u1348\u1271 \u134B\u12ED\u120E\u127D\u1295 \u12E8\u1275\u122D \u12A0\u122D\u12D5\u1235\u1276\u127D \u1260\u12DA\u1205 \u12AD\u134D\u1208 \u130A\u12DC \u1260\u1270\u1208\u12C8\u1320\u12CD \u1218\u1220\u1228\u1275 \u1240\u1208\u121D \u1235\u1325 (\u1208\u1270\u123B\u123B\u1208 \u12A0\u121D\u1260\u122D\u1363 \u1208\u1273\u12A8\u1208 \u12A0\u1228\u1295\u1313\u12F4)\u1362",
   "setting.properties-highlight.name": "\u1260\u1263\u1205\u122A\u12EB\u1275 \u1353\u1290\u120D \u12CD\u1235\u1325 \u1208\u12CD\u1326\u127D\u1295 \u12A0\u12F5\u121D\u1245",
   "setting.properties-highlight.desc": "\u12E8\u1270\u1328\u1218\u1229\u1363 \u12E8\u1270\u1240\u12E8\u1229 \u12A5\u1293 \u12E8\u1270\u12C8\u1308\u12F1 \u12E8 frontmatter \u1241\u120D\u134E\u127D\u1295 \u1260 Obsidian \u1263\u1205\u122A\u12EB\u1275 \u1353\u1290\u120D \u12CD\u1235\u1325 \u12A0\u1233\u12ED\u1362 \u1201\u1209\u1295\u121D \u12E8\u1263\u1205\u122A \u1208\u12CD\u1325 \u121D\u120D\u12AD\u1275 \u1208\u1218\u12F0\u1260\u1245 \u12A0\u1230\u1293\u12AD\u120D\u1362",
-  "setting.persist.name": "\u1273\u122A\u12AD\u1295 \u1260\u12F3\u130D\u121D \u121B\u1235\u1300\u1218\u122E\u127D \u1218\u12AB\u12A8\u120D \u12A0\u1246\u12ED",
-  "setting.persist.desc": '\u121D\u120D\u12AD\u1276\u127D \u12F3\u130D\u121D \u121B\u1235\u1300\u1218\u122D\u1295 \u12A5\u1295\u12F2\u1270\u122D\u1349 \u1273\u122A\u12AD\u1295 \u12C8\u12F0 \u12F2\u1235\u12AD \u12A0\u1235\u1240\u121D\u1325\u1362 "\u1273\u122A\u12AD\u1295 \u12A5\u1235\u12A8\u1218\u127C \u121B\u1246\u12E8\u1275" \u12C8\u12F0 \u1218\u1270\u130D\u1260\u122A\u12EB \u1218\u12D8\u130B\u1275 \u1218\u12CB\u1240\u122D \u12ED\u1320\u12ED\u1243\u120D\u1362',
   "setting.max-entries.name": "\u12A8\u134D\u1270\u129B \u12E8\u1270\u12A8\u121B\u1279 \u134B\u12ED\u120E\u127D",
   "setting.max-entries.desc": "\u1260\u12F2\u1235\u12AD \u120B\u12ED \u121D\u1295 \u12EB\u1205\u120D \u12E8\u134B\u12ED\u120D \u1273\u122A\u12AE\u127D \u12A5\u1295\u12F0\u121A\u1246\u12E9 \u12C8\u1230\u1295\u1362 \u1260\u1218\u1300\u1218\u122A\u12EB \u1260\u1323\u121D \u12A0\u122E\u130C\u12CE\u1279 \u12ED\u12C8\u1308\u12F3\u1209\u1362 \u1208\u121B\u1230\u1293\u12A8\u120D \u12C8\u12F0 0 \u12EB\u1240\u1293\u1265\u1229\u1362",
   "setting.max-age-days.name": "\u12A8\u134D\u1270\u129B \u12E8\u1273\u122A\u12AD \u12D5\u12F5\u121C (\u1240\u1293\u1275)",
@@ -6158,8 +6181,8 @@ var am_default = {
   "setting.line-heading": "\u12E8\u1218\u1235\u1218\u122D \u12A0\u1218\u120D\u12AB\u127D",
   "setting.line-width.name": "\u1235\u134B\u1275",
   "setting.line-width.desc": "\u12E8\u1240\u1325\u1273 \u1218\u1235\u1218\u122D \u12A0\u1218\u120D\u12AB\u127D \u1235\u134B\u1275 (\u1260\u1352\u12AD\u1230\u120E\u127D)\u1362",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "\u12E8\u121D\u120D\u12AD\u1275 \u1325\u1295\u12AB\u122C",
+  "setting.marker-intensity.desc": "\u12E8\u1201\u1209\u121D \u12E8\u1208\u12CD\u1325 \u1240\u1208\u121E\u127D \u12A0\u1320\u1243\u120B\u12ED \u1325\u1295\u12AB\u122C (\u12E8\u12A0\u122D\u1273\u12D2 \u121D\u120D\u12AD\u1276\u127D\u1363 \u12DB\u134D\u1363 \u1275\u122E\u127D\u1363 \u12E8\u1295\u1263\u1265 \u1201\u1290\u1273)\u1362 \u12A8\u134D \u12EB\u1208 \u12ED\u1260\u120D\u1325 \u12F0\u121B\u1245\u1363 \u12DD\u1245 \u12EB\u1208 \u12ED\u1260\u120D\u1325 \u1348\u12DB\u12DB\u1362",
   "setting.gutter-heading.name": "\u12E8\u12F3\u122D\u127B \u12A0\u1218\u120D\u12AB\u127D",
   "setting.gutter-heading.prefix": "\u12E8\u12F3\u122D\u127B \u12D3\u12ED\u1290\u1275 \u12A0\u1218\u120D\u12AB\u127D \u1241\u121D\u134A\u12CE\u127D (",
   "setting.gutter-heading.suffix": ").",
@@ -6226,11 +6249,11 @@ var am_default = {
   "view.recent-changes.menu.restore": "\u12ED\u1205\u1295 \u1235\u122A\u1275 \u1218\u120D\u1235",
   "view.recent-changes.menu.delete": "\u1235\u122A\u1275 \u1230\u122D\u12DD",
   "view.recent-changes.menu.put-label": "\u1218\u1208\u12EB \u12A0\u1235\u1240\u121D\u1325",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "\u12E8\u1218\u12EB\u12E3 \u1208\u12CD\u1326\u127D",
+  "view.vault-changes.search-placeholder": "\u1260\u134B\u12ED\u120D \u1235\u121D \u12A0\u1323\u122B",
+  "view.vault-changes.layout.tree": "\u12DB\u134D",
+  "view.vault-changes.layout.flat": "\u1320\u134D\u1323\u134B \u12DD\u122D\u12DD\u122D",
+  "view.vault-changes.deleted-notice": "\u12ED\u1205 \u134B\u12ED\u120D \u1270\u1230\u122D\u12DF\u120D\u1364 \u1273\u122A\u12A9 \u1270\u1320\u1265\u1246 \u12ED\u1308\u129B\u120D\u1362",
   "modal.label-selected": "\u12E8\u1270\u1218\u1228\u1320\u12CD\u1295 \u1235\u122A\u1275 \u1218\u1208\u12EB \u1235\u1325",
   "modal.label-version.message": "\u12ED\u1205\u1295 \u1235\u122A\u1275 \u1260\u12A0\u132D\u122D \u1218\u1208\u12EB \u121D\u120D\u12AD\u1275 \u12EB\u12F5\u122D\u1309\u1362",
   "notice.no-folder-history": "\u12A5\u1235\u12AB\u1201\u1295 \u12E8\u12A0\u1243\u134A \u1273\u122A\u12AD \u12E8\u1208\u121D\u1362",
@@ -6267,7 +6290,7 @@ var ar_default = {
   "command.reset-lines-all": "\u0625\u0639\u0627\u062F\u0629 \u062A\u0639\u064A\u064A\u0646 \u062C\u0645\u064A\u0639 \u0644\u0642\u0637\u0627\u062A \u0645\u062A\u062A\u0628\u0651\u0639 \u0627\u0644\u0623\u0633\u0637\u0631",
   "command.reset-lines": "\u0625\u0639\u0627\u062F\u0629 \u062A\u0639\u064A\u064A\u0646 \u0644\u0642\u0637\u0629 \u0645\u062A\u062A\u0628\u0651\u0639 \u0627\u0644\u0623\u0633\u0637\u0631 \u0644\u0644\u0645\u0633\u062A\u0646\u062F \u0627\u0644\u062D\u0627\u0644\u064A",
   "command.show-diff": "\u0639\u0631\u0636 \u062C\u0645\u064A\u0639 \u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0627\u0644\u0645\u0633\u062A\u0646\u062F \u0627\u0644\u062D\u0627\u0644\u064A",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "\u0641\u062A\u062D \u0644\u0648\u062D\u0629 \u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0627\u0644\u0642\u0628\u0648",
   "notice.no-changes-to-navigate": "\u0644\u0627 \u062A\u0648\u062C\u062F \u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0644\u0644\u062A\u0646\u0642\u0644 \u0628\u064A\u0646\u0647\u0627",
   "notice.all-snapshots-deleted": "\u062A\u0645 \u062D\u0630\u0641 \u062C\u0645\u064A\u0639 \u0628\u064A\u0627\u0646\u0627\u062A \u0627\u0644\u0644\u0642\u0637\u0627\u062A",
   "notice.current-snapshot-deleted": "\u062A\u0645 \u062D\u0630\u0641 \u0628\u064A\u0627\u0646\u0627\u062A \u0627\u0644\u0644\u0642\u0637\u0629 \u0627\u0644\u062D\u0627\u0644\u064A\u0629",
@@ -6302,14 +6325,13 @@ var ar_default = {
   "setting.keep.desc": "\u0627\u0633\u062A\u0631\u0627\u062A\u064A\u062C\u064A\u0629 \u062A\u0646\u0638\u064A\u0641 \u0633\u062C\u0644 \u0627\u0644\u0645\u0631\u0627\u062C\u0639\u0627\u062A",
   "setting.keep.option.app": "\u0625\u063A\u0644\u0627\u0642 \u0627\u0644\u062A\u0637\u0628\u064A\u0642",
   "setting.keep.option.file": "\u0625\u063A\u0644\u0627\u0642 \u0627\u0644\u0645\u0644\u0641",
+  "setting.keep.option.persist": "\u064A\u064F\u062D\u0641\u0638 \u0639\u0628\u0631 \u0639\u0645\u0644\u064A\u0627\u062A \u0625\u0639\u0627\u062F\u0629 \u0627\u0644\u062A\u0634\u063A\u064A\u0644",
   "setting.ignore-new-files.name": "\u062A\u062C\u0627\u0647\u0644 \u0627\u0644\u0645\u0644\u0641\u0627\u062A \u0627\u0644\u062C\u062F\u064A\u062F\u0629",
   "setting.ignore-new-files.desc": "\u0639\u062F\u0645 \u062A\u062A\u0628\u0651\u0639 \u0627\u0644\u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0641\u064A \u0627\u0644\u0645\u0644\u0641\u0627\u062A \u0627\u0644\u0645\u064F\u0646\u0634\u0623\u0629 \u0628\u0639\u062F \u0628\u062F\u0621 \u0627\u0644\u062A\u062A\u0628\u0651\u0639",
   "setting.tree-highlight.name": "\u0625\u0628\u0631\u0627\u0632 \u0627\u0644\u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0641\u064A \u0634\u062C\u0631\u0629 \u0627\u0644\u0645\u0644\u0641\u0627\u062A \u0648\u0627\u0644\u062A\u0628\u0648\u064A\u0628\u0627\u062A",
   "setting.tree-highlight.desc": "\u062A\u0644\u0648\u064A\u0646 \u0627\u0644\u0645\u0644\u0641\u0627\u062A \u0648\u0627\u0644\u0645\u062C\u0644\u062F\u0627\u062A \u0641\u064A \u0645\u0633\u062A\u0643\u0634\u0641 \u0627\u0644\u0645\u0644\u0641\u0627\u062A \u0627\u0644\u0623\u0635\u0644\u064A\u060C \u0648\u0639\u0646\u0627\u0648\u064A\u0646 \u062A\u0628\u0648\u064A\u0628\u0627\u062A \u0627\u0644\u0645\u0644\u0641\u0627\u062A \u0627\u0644\u0645\u0641\u062A\u0648\u062D\u0629\u060C \u062D\u0633\u0628 \u0645\u0627 \u062A\u063A\u064A\u0651\u0631 \u0641\u064A \u0647\u0630\u0647 \u0627\u0644\u062C\u0644\u0633\u0629 (\u0643\u0647\u0631\u0645\u0627\u0646\u064A \u0644\u0644\u0645\u0639\u062F\u0651\u0644\u060C \u0623\u062E\u0636\u0631 \u0644\u0644\u0645\u0636\u0627\u0641).",
   "setting.properties-highlight.name": "\u0625\u0628\u0631\u0627\u0632 \u0627\u0644\u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0641\u064A \u0644\u0648\u062D\u0629 \u0627\u0644\u062E\u0635\u0627\u0626\u0635",
   "setting.properties-highlight.desc": "\u0639\u0631\u0636 \u0645\u0641\u0627\u062A\u064A\u062D frontmatter \u0627\u0644\u0645\u0636\u0627\u0641\u0629 \u0648\u0627\u0644\u0645\u0639\u062F\u0644\u0629 \u0648\u0627\u0644\u0645\u062D\u0630\u0648\u0641\u0629 \u0641\u064A \u0644\u0648\u062D\u0629 \u062E\u0635\u0627\u0626\u0635 Obsidian. \u0639\u0637\u0651\u0644 \u0627\u0644\u062E\u064A\u0627\u0631 \u0644\u0625\u062E\u0641\u0627\u0621 \u0643\u0644 \u062A\u0645\u064A\u064A\u0632 \u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0627\u0644\u062E\u0635\u0627\u0626\u0635.",
-  "setting.persist.name": "\u0627\u0644\u0627\u062D\u062A\u0641\u0627\u0638 \u0628\u0627\u0644\u0633\u062C\u0644 \u0639\u0628\u0631 \u0639\u0645\u0644\u064A\u0627\u062A \u0625\u0639\u0627\u062F\u0629 \u0627\u0644\u062A\u0634\u063A\u064A\u0644",
-  "setting.persist.desc": '\u0627\u062D\u0641\u0638 \u0627\u0644\u0633\u062C\u0644 \u0639\u0644\u0649 \u0627\u0644\u0642\u0631\u0635 \u0644\u062A\u0628\u0642\u0649 \u0627\u0644\u0625\u0628\u0631\u0627\u0632\u0627\u062A \u0628\u0639\u062F \u0625\u0639\u0627\u062F\u0629 \u0627\u0644\u062A\u0634\u063A\u064A\u0644. \u064A\u062A\u0637\u0644\u0628 \u0636\u0628\u0637 "\u0627\u0644\u0627\u062D\u062A\u0641\u0627\u0638 \u0628\u0627\u0644\u0633\u062C\u0644 \u062D\u062A\u0649" \u0639\u0644\u0649 \u0625\u063A\u0644\u0627\u0642 \u0627\u0644\u062A\u0637\u0628\u064A\u0642.',
   "setting.max-entries.name": "\u0627\u0644\u062D\u062F \u0627\u0644\u0623\u0642\u0635\u0649 \u0644\u0644\u0645\u0644\u0641\u0627\u062A \u0627\u0644\u0645\u062E\u0632\u064E\u0651\u0646\u0629",
   "setting.max-entries.desc": "\u062D\u062F \u0623\u0642\u0635\u0649 \u0644\u0639\u062F\u062F \u0633\u062C\u0644\u0627\u062A \u0627\u0644\u0645\u0644\u0641\u0627\u062A \u0627\u0644\u0645\u062D\u0641\u0648\u0638\u0629 \u0639\u0644\u0649 \u0627\u0644\u0642\u0631\u0635. \u062A\u064F\u062D\u0630\u0641 \u0627\u0644\u0623\u0642\u062F\u0645 \u0623\u0648\u0644\u064B\u0627. \u0627\u0636\u0628\u0637\u0647 \u0639\u0644\u0649 0 \u0644\u0644\u062A\u0639\u0637\u064A\u0644.",
   "setting.max-age-days.name": "\u0623\u0642\u0635\u0649 \u0639\u0645\u0631 \u0644\u0644\u0633\u062C\u0644 (\u0623\u064A\u0627\u0645)",
@@ -6334,8 +6356,8 @@ var ar_default = {
   "setting.line-heading": "\u0645\u0624\u0634\u0631 \u0627\u0644\u062E\u0637",
   "setting.line-width.name": "\u0627\u0644\u0639\u0631\u0636",
   "setting.line-width.desc": "\u0639\u0631\u0636 \u0645\u0624\u0634\u0631 \u0627\u0644\u062E\u0637 \u0627\u0644\u0639\u0645\u0648\u062F\u064A (\u0628\u0627\u0644\u0628\u0643\u0633\u0644).",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "\u0634\u062F\u0629 \u0627\u0644\u0639\u0644\u0627\u0645\u0627\u062A",
+  "setting.marker-intensity.desc": "\u0627\u0644\u0634\u062F\u0629 \u0627\u0644\u0625\u062C\u0645\u0627\u0644\u064A\u0629 \u0644\u0643\u0644 \u0644\u0648\u0646 \u062A\u063A\u064A\u064A\u0631 (\u0639\u0644\u0627\u0645\u0627\u062A \u0627\u0644\u0645\u062D\u0631\u0631\u060C \u0627\u0644\u0634\u062C\u0631\u0629\u060C \u0639\u0644\u0627\u0645\u0627\u062A \u0627\u0644\u062A\u0628\u0648\u064A\u0628\u060C \u0648\u0636\u0639 \u0627\u0644\u0642\u0631\u0627\u0621\u0629). \u0627\u0644\u0623\u0639\u0644\u0649 \u0623\u0643\u062B\u0631 \u0648\u0636\u0648\u062D\u064B\u0627\u060C \u0648\u0627\u0644\u0623\u062F\u0646\u0649 \u0623\u0643\u062B\u0631 \u0628\u0647\u062A\u0627\u0646\u064B\u0627.",
   "setting.gutter-heading.name": "\u0645\u0624\u0634\u0631 \u0627\u0644\u0647\u0627\u0645\u0634",
   "setting.gutter-heading.prefix": "\u0623\u062D\u0631\u0641 \u0645\u0624\u0634\u0631 \u0627\u0644\u0646\u0648\u0639 \u0641\u064A \u0627\u0644\u0647\u0627\u0645\u0634 (",
   "setting.gutter-heading.suffix": ").",
@@ -6402,11 +6424,11 @@ var ar_default = {
   "view.recent-changes.menu.restore": "\u0627\u0633\u062A\u0639\u0627\u062F\u0629 \u0647\u0630\u0627 \u0627\u0644\u0625\u0635\u062F\u0627\u0631",
   "view.recent-changes.menu.delete": "\u062D\u0630\u0641 \u0627\u0644\u0625\u0635\u062F\u0627\u0631",
   "view.recent-changes.menu.put-label": "\u0648\u0636\u0639 \u062A\u0633\u0645\u064A\u0629",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "\u062A\u063A\u064A\u064A\u0631\u0627\u062A \u0627\u0644\u0642\u0628\u0648",
+  "view.vault-changes.search-placeholder": "\u0627\u0644\u062A\u0635\u0641\u064A\u0629 \u062D\u0633\u0628 \u0627\u0633\u0645 \u0627\u0644\u0645\u0644\u0641",
+  "view.vault-changes.layout.tree": "\u0634\u062C\u0631\u0629",
+  "view.vault-changes.layout.flat": "\u0642\u0627\u0626\u0645\u0629 \u0645\u0633\u0637\u062D\u0629",
+  "view.vault-changes.deleted-notice": "\u062A\u0645 \u062D\u0630\u0641 \u0647\u0630\u0627 \u0627\u0644\u0645\u0644\u0641\u061B \u062A\u0645 \u0627\u0644\u0627\u062D\u062A\u0641\u0627\u0638 \u0628\u0633\u062C\u0644\u0647.",
   "modal.label-selected": "\u062A\u0633\u0645\u064A\u0629 \u0627\u0644\u0625\u0635\u062F\u0627\u0631 \u0627\u0644\u0645\u062D\u062F\u062F",
   "modal.label-version.message": "\u0636\u0639 \u062A\u0633\u0645\u064A\u0629 \u0642\u0635\u064A\u0631\u0629 \u0639\u0644\u0649 \u0647\u0630\u0627 \u0627\u0644\u0625\u0635\u062F\u0627\u0631.",
   "notice.no-folder-history": "\u0644\u0627 \u064A\u0648\u062C\u062F \u0633\u062C\u0644 \u0644\u0644\u0645\u062C\u0644\u062F \u0628\u0639\u062F.",
@@ -6443,7 +6465,7 @@ var be_default = {
   "command.reset-lines-all": "\u0421\u043A\u0456\u043D\u0443\u0446\u044C \u0437\u0434\u044B\u043C\u043A\u0456 \u0442\u0440\u044D\u043A\u0435\u0440\u0430 \u0440\u0430\u0434\u043A\u043E\u045E \u0434\u043B\u044F \u045E\u0441\u0456\u0445 \u0444\u0430\u0439\u043B\u0430\u045E",
   "command.reset-lines": "\u0421\u043A\u0456\u043D\u0443\u0446\u044C \u0437\u0434\u044B\u043C\u0430\u043A \u0442\u0440\u044D\u043A\u0435\u0440\u0430 \u0440\u0430\u0434\u043A\u043E\u045E \u0431\u044F\u0433\u0443\u0447\u0430\u0433\u0430 \u0434\u0430\u043A\u0443\u043C\u0435\u043D\u0442\u0430",
   "command.show-diff": "\u041F\u0430\u043A\u0430\u0437\u0430\u0446\u044C \u0443\u0441\u0435 \u0437\u043C\u0435\u043D\u044B \u0431\u044F\u0433\u0443\u0447\u0430\u0433\u0430 \u0434\u0430\u043A\u0443\u043C\u0435\u043D\u0442\u0430",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "\u0410\u0434\u043A\u0440\u044B\u0446\u044C \u043F\u0430\u043D\u044D\u043B\u044C \u0437\u043C\u0435\u043D\u0430\u045E \u0441\u0445\u043E\u0432\u0456\u0448\u0447\u0430",
   "notice.no-changes-to-navigate": "\u041D\u044F\u043C\u0430 \u0437\u043C\u0435\u043D \u0434\u043B\u044F \u043D\u0430\u0432\u0456\u0433\u0430\u0446\u044B\u0456",
   "notice.all-snapshots-deleted": "\u0423\u0441\u0435 \u0434\u0430\u0434\u0437\u0435\u043D\u044B\u044F \u0437\u0434\u044B\u043C\u043A\u0430\u045E \u0432\u044B\u0434\u0430\u043B\u0435\u043D\u044B",
   "notice.current-snapshot-deleted": "\u0414\u0430\u0434\u0437\u0435\u043D\u044B\u044F \u0431\u044F\u0433\u0443\u0447\u0430\u0433\u0430 \u0437\u0434\u044B\u043C\u043A\u0430 \u0432\u044B\u0434\u0430\u043B\u0435\u043D\u044B",
@@ -6478,14 +6500,13 @@ var be_default = {
   "setting.keep.desc": "\u0421\u0442\u0440\u0430\u0442\u044D\u0433\u0456\u044F \u0430\u0447\u044B\u0441\u0442\u043A\u0456 \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u0456 \u0440\u044D\u0432\u0456\u0437\u0456\u0439",
   "setting.keep.option.app": "\u0417\u0430\u043A\u0440\u044B\u0446\u0446\u044F \u043F\u0440\u0430\u0433\u0440\u0430\u043C\u044B",
   "setting.keep.option.file": "\u0417\u0430\u043A\u0440\u044B\u0446\u0446\u044F \u0444\u0430\u0439\u043B\u0430",
+  "setting.keep.option.persist": "\u0417\u0430\u0445\u043E\u045E\u0432\u0430\u0435\u0446\u0446\u0430 \u043F\u0430\u0441\u043B\u044F \u043F\u0435\u0440\u0430\u0437\u0430\u043F\u0443\u0441\u043A\u0443",
   "setting.ignore-new-files.name": "\u0406\u0433\u043D\u0430\u0440\u0430\u0432\u0430\u0446\u044C \u043D\u043E\u0432\u044B\u044F \u0444\u0430\u0439\u043B\u044B",
   "setting.ignore-new-files.desc": "\u041D\u0435 \u0430\u0434\u0441\u043E\u0447\u0432\u0430\u0446\u044C \u0437\u043C\u0435\u043D\u044B \u045E \u0444\u0430\u0439\u043B\u0430\u0445, \u0441\u0442\u0432\u043E\u0440\u0430\u043D\u044B\u0445 \u043F\u0430\u0441\u043B\u044F \u043F\u0430\u0447\u0430\u0442\u043A\u0443 \u0430\u0434\u0441\u043E\u0447\u0432\u0430\u043D\u043D\u044F",
   "setting.tree-highlight.name": "\u041F\u0430\u0434\u0441\u0432\u0435\u0447\u0432\u0430\u0446\u044C \u0437\u043C\u0435\u043D\u044B \u045E \u0434\u0440\u044D\u0432\u0435 \u0444\u0430\u0439\u043B\u0430\u045E \u0456 \u045E\u043A\u043B\u0430\u0434\u043A\u0430\u0445",
   "setting.tree-highlight.desc": "\u0410\u0444\u0430\u0440\u0431\u043E\u045E\u0432\u0430\u0446\u044C \u0444\u0430\u0439\u043B\u044B \u0456 \u043F\u0430\u043F\u043A\u0456 \u045E \u0440\u043E\u0434\u043D\u044B\u043C \u043F\u0440\u0430\u0432\u0430\u0434\u043D\u0456\u043A\u0443 \u0444\u0430\u0439\u043B\u0430\u045E, \u0430 \u0442\u0430\u043A\u0441\u0430\u043C\u0430 \u0437\u0430\u0433\u0430\u043B\u043E\u045E\u043A\u0456 \u045E\u043A\u043B\u0430\u0434\u0430\u043A \u0430\u0434\u043A\u0440\u044B\u0442\u044B\u0445 \u0444\u0430\u0439\u043B\u0430\u045E \u043F\u0430\u0432\u043E\u0434\u043B\u0435 \u0442\u0430\u0433\u043E, \u0448\u0442\u043E \u0437\u043C\u044F\u043D\u0456\u043B\u0430\u0441\u044F \u045E \u0433\u044D\u0442\u0430\u0439 \u0441\u0435\u0441\u0456\u0456 (\u0431\u0443\u0440\u0448\u0442\u044B\u043D\u0430\u0432\u044B \u0434\u043B\u044F \u0437\u043C\u0435\u043D\u0435\u043D\u0430\u0433\u0430, \u0437\u044F\u043B\u0451\u043D\u044B \u0434\u043B\u044F \u0434\u0430\u0434\u0430\u0434\u0437\u0435\u043D\u0430\u0433\u0430).",
   "setting.properties-highlight.name": "\u041F\u0430\u0434\u0441\u0432\u0435\u0447\u0432\u0430\u0446\u044C \u0437\u043C\u0435\u043D\u044B \u045E \u043F\u0430\u043D\u044D\u043B\u0456 \u045E\u043B\u0430\u0441\u0446\u0456\u0432\u0430\u0441\u0446\u0435\u0439",
   "setting.properties-highlight.desc": "\u041F\u0430\u043A\u0430\u0437\u0432\u0430\u0446\u044C \u0434\u0430\u0434\u0430\u0434\u0437\u0435\u043D\u044B\u044F, \u0437\u043C\u0435\u043D\u0435\u043D\u044B\u044F \u0456 \u0432\u044B\u0434\u0430\u043B\u0435\u043D\u044B\u044F \u043A\u043B\u044E\u0447\u044B frontmatter \u0443 \u043F\u0430\u043D\u044D\u043B\u0456 \u045E\u043B\u0430\u0441\u0446\u0456\u0432\u0430\u0441\u0446\u0435\u0439 Obsidian. \u0410\u0434\u043A\u043B\u044E\u0447\u044B\u0446\u0435, \u043A\u0430\u0431 \u043F\u0440\u044B\u0431\u0440\u0430\u0446\u044C \u0443\u0441\u044E \u043F\u0430\u0434\u0441\u0432\u0435\u0442\u043A\u0443 \u0437\u043C\u0435\u043D \u0443\u043B\u0430\u0441\u0446\u0456\u0432\u0430\u0441\u0446\u0435\u0439.",
-  "setting.persist.name": "\u0417\u0430\u0445\u043E\u045E\u0432\u0430\u0446\u044C \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044E \u043F\u0430\u043C\u0456\u0436 \u043F\u0435\u0440\u0430\u0437\u0430\u043F\u0443\u0441\u043A\u0430\u043C\u0456",
-  "setting.persist.desc": '\u0417\u0430\u0445\u043E\u045E\u0432\u0430\u0446\u044C \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044E \u043D\u0430 \u0434\u044B\u0441\u043A, \u043A\u0430\u0431 \u043F\u0430\u0434\u0441\u0432\u0435\u0442\u043A\u0456 \u043F\u0435\u0440\u0430\u0436\u044B\u0432\u0430\u043B\u0456 \u043F\u0435\u0440\u0430\u0437\u0430\u043F\u0443\u0441\u043A. \u041F\u0430\u0442\u0440\u0430\u0431\u0443\u0435, \u043A\u0430\u0431 \u043F\u0430\u0440\u0430\u043C\u0435\u0442\u0440 "\u0417\u0430\u0445\u043E\u045E\u0432\u0430\u0446\u044C \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044E \u0434\u0430" \u0431\u044B\u045E \u0443\u0441\u0442\u0430\u043B\u044F\u0432\u0430\u043D\u044B \u043D\u0430 \u0437\u0430\u043A\u0440\u044B\u0446\u0446\u0451 \u043F\u0440\u0430\u0433\u0440\u0430\u043C\u044B.',
   "setting.max-entries.name": "\u041C\u0430\u043A\u0441\u0456\u043C\u0443\u043C \u0437\u0430\u0445\u0430\u0432\u0430\u043D\u044B\u0445 \u0444\u0430\u0439\u043B\u0430\u045E",
   "setting.max-entries.desc": "\u0410\u0431\u043C\u0435\u0436\u0430\u0432\u0430\u043D\u043D\u0435 \u043A\u043E\u043B\u044C\u043A\u0430\u0441\u0446\u0456 \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u0439 \u0444\u0430\u0439\u043B\u0430\u045E, \u0448\u0442\u043E \u0437\u0430\u0445\u043E\u045E\u0432\u0430\u044E\u0446\u0446\u0430 \u043D\u0430 \u0434\u044B\u0441\u043A\u0443. \u0421\u043F\u0430\u0447\u0430\u0442\u043A\u0443 \u0432\u044B\u0434\u0430\u043B\u044F\u044E\u0446\u0446\u0430 \u043D\u0430\u0439\u0441\u0442\u0430\u0440\u044D\u0439\u0448\u044B\u044F. \u0423\u0441\u0442\u0430\u043B\u044E\u0439\u0446\u0435 0, \u043A\u0430\u0431 \u0430\u0434\u043A\u043B\u044E\u0447\u044B\u0446\u044C.",
   "setting.max-age-days.name": "\u041C\u0430\u043A\u0441\u0456\u043C\u0430\u043B\u044C\u043D\u044B \u045E\u0437\u0440\u043E\u0441\u0442 \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u0456 (\u0434\u043D\u0456)",
@@ -6510,8 +6531,8 @@ var be_default = {
   "setting.line-heading": "\u041B\u0456\u043D\u0435\u0439\u043D\u044B \u0456\u043D\u0434\u044B\u043A\u0430\u0442\u0430\u0440",
   "setting.line-width.name": "\u0428\u044B\u0440\u044B\u043D\u044F",
   "setting.line-width.desc": "\u0428\u044B\u0440\u044B\u043D\u044F \u0432\u0435\u0440\u0442\u044B\u043A\u0430\u043B\u044C\u043D\u0430\u0433\u0430 \u043B\u0456\u043D\u0435\u0439\u043D\u0430\u0433\u0430 \u0456\u043D\u0434\u044B\u043A\u0430\u0442\u0430\u0440\u0430 (\u0443 \u043F\u0456\u043A\u0441\u0435\u043B\u044F\u0445).",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "\u0406\u043D\u0442\u044D\u043D\u0441\u0456\u045E\u043D\u0430\u0441\u0446\u044C \u043C\u0430\u0440\u043A\u0435\u0440\u0430\u045E",
+  "setting.marker-intensity.desc": "\u0410\u0433\u0443\u043B\u044C\u043D\u0430\u044F \u0456\u043D\u0442\u044D\u043D\u0441\u0456\u045E\u043D\u0430\u0441\u0446\u044C \u0443\u0441\u0456\u0445 \u043A\u043E\u043B\u0435\u0440\u0430\u045E \u0437\u043C\u0435\u043D (\u043C\u0430\u0440\u043A\u0435\u0440\u044B \u0440\u044D\u0434\u0430\u043A\u0442\u0430\u0440\u0430, \u0434\u0440\u044D\u0432\u0430, \u0443\u043A\u043B\u0430\u0434\u043A\u0456, \u0440\u044D\u0436\u044B\u043C \u0447\u044B\u0442\u0430\u043D\u043D\u044F). \u0411\u043E\u043B\u044C\u0448: \u044F\u0440\u0447\u044D\u0439, \u043C\u0435\u043D\u0448: \u0431\u043B\u044F\u0434\u043D\u0435\u0439.",
   "setting.gutter-heading.name": "\u0406\u043D\u0434\u044B\u043A\u0430\u0442\u0430\u0440 \u043D\u0430 \u043F\u0430\u043B\u044F\u0445",
   "setting.gutter-heading.prefix": "\u0421\u0456\u043C\u0432\u0430\u043B\u044B \u0456\u043D\u0434\u044B\u043A\u0430\u0442\u0430\u0440\u0430 \u0442\u044B\u043F\u0443 \u043D\u0430 \u043F\u0430\u043B\u044F\u0445 (",
   "setting.gutter-heading.suffix": ").",
@@ -6578,11 +6599,11 @@ var be_default = {
   "view.recent-changes.menu.restore": "\u0410\u0434\u043D\u0430\u0432\u0456\u0446\u044C \u0433\u044D\u0442\u0443 \u0432\u0435\u0440\u0441\u0456\u044E",
   "view.recent-changes.menu.delete": "\u0412\u044B\u0434\u0430\u043B\u0456\u0446\u044C \u0432\u0435\u0440\u0441\u0456\u044E",
   "view.recent-changes.menu.put-label": "\u041F\u0430\u0441\u0442\u0430\u0432\u0456\u0446\u044C \u043C\u0435\u0442\u043A\u0443",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "\u0417\u043C\u0435\u043D\u044B \u0441\u0445\u043E\u0432\u0456\u0448\u0447\u0430",
+  "view.vault-changes.search-placeholder": "\u0424\u0456\u043B\u044C\u0442\u0440 \u043F\u0430 \u0456\u043C\u0435\u043D\u0456 \u0444\u0430\u0439\u043B\u0430",
+  "view.vault-changes.layout.tree": "\u0414\u0440\u044D\u0432\u0430",
+  "view.vault-changes.layout.flat": "\u041F\u043B\u043E\u0441\u043A\u0456 \u0441\u043F\u0456\u0441",
+  "view.vault-changes.deleted-notice": "\u0413\u044D\u0442\u044B \u0444\u0430\u0439\u043B \u0432\u044B\u0434\u0430\u043B\u0435\u043D\u044B; \u044F\u0433\u043E \u0433\u0456\u0441\u0442\u043E\u0440\u044B\u044F \u0437\u0430\u0445\u0430\u0432\u0430\u043D\u0430.",
   "modal.label-selected": "\u041F\u0430\u0437\u043D\u0430\u0447\u044B\u0446\u044C \u0432\u044B\u0431\u0440\u0430\u043D\u0443\u044E \u0432\u0435\u0440\u0441\u0456\u044E",
   "modal.label-version.message": "\u0410\u0434\u0437\u043D\u0430\u0447\u0446\u0435 \u0433\u044D\u0442\u0443 \u0432\u0435\u0440\u0441\u0456\u044E \u043A\u0430\u0440\u043E\u0442\u043A\u0430\u0439 \u043C\u0435\u0442\u043A\u0430\u0439.",
   "notice.no-folder-history": "\u0413\u0456\u0441\u0442\u043E\u0440\u044B\u0456 \u043F\u0430\u043F\u043A\u0456 \u043F\u0430\u043A\u0443\u043B\u044C \u043D\u044F\u043C\u0430.",
@@ -6619,7 +6640,7 @@ var bn_default = {
   "command.reset-lines-all": "\u09B8\u09AE\u09B8\u09CD\u09A4 \u09B2\u09BE\u0987\u09A8 \u099F\u09CD\u09B0\u09CD\u09AF\u09BE\u0995\u09BE\u09B0 \u09B8\u09CD\u09A8\u09CD\u09AF\u09BE\u09AA\u09B6\u099F \u09B0\u09BF\u09B8\u09C7\u099F \u0995\u09B0\u09C1\u09A8",
   "command.reset-lines": "\u09AC\u09B0\u09CD\u09A4\u09AE\u09BE\u09A8 \u09A8\u09A5\u09BF\u09B0 \u09B2\u09BE\u0987\u09A8 \u099F\u09CD\u09B0\u09CD\u09AF\u09BE\u0995\u09BE\u09B0 \u09B8\u09CD\u09A8\u09CD\u09AF\u09BE\u09AA\u09B6\u099F \u09B0\u09BF\u09B8\u09C7\u099F \u0995\u09B0\u09C1\u09A8",
   "command.show-diff": "\u09AC\u09B0\u09CD\u09A4\u09AE\u09BE\u09A8 \u09A8\u09A5\u09BF\u09B0 \u09B8\u09AE\u09B8\u09CD\u09A4 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u09A6\u09C7\u0996\u09BE\u09A8",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "\u09AD\u09B2\u09CD\u099F \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u09AA\u09CD\u09AF\u09BE\u09A8\u09C7\u09B2 \u0996\u09C1\u09B2\u09C1\u09A8",
   "notice.no-changes-to-navigate": "\u09A8\u09C7\u09AD\u09BF\u0997\u09C7\u099F \u0995\u09B0\u09BE\u09B0 \u09AE\u09A4\u09CB \u0995\u09CB\u09A8\u09CB \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u09A8\u09C7\u0987",
   "notice.all-snapshots-deleted": "\u09B8\u09AE\u09B8\u09CD\u09A4 \u09B8\u09CD\u09A8\u09CD\u09AF\u09BE\u09AA\u09B6\u099F \u09A1\u09C7\u099F\u09BE \u09AE\u09C1\u099B\u09C7 \u09AB\u09C7\u09B2\u09BE \u09B9\u09AF\u09BC\u09C7\u099B\u09C7",
   "notice.current-snapshot-deleted": "\u09AC\u09B0\u09CD\u09A4\u09AE\u09BE\u09A8 \u09B8\u09CD\u09A8\u09CD\u09AF\u09BE\u09AA\u09B6\u099F \u09A1\u09C7\u099F\u09BE \u09AE\u09C1\u099B\u09C7 \u09AB\u09C7\u09B2\u09BE \u09B9\u09AF\u09BC\u09C7\u099B\u09C7",
@@ -6654,14 +6675,13 @@ var bn_default = {
   "setting.keep.desc": "\u09B8\u0982\u09B6\u09CB\u09A7\u09A8 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09AA\u09B0\u09BF\u09B7\u09CD\u0995\u09BE\u09B0 \u0995\u09B0\u09BE\u09B0 \u0995\u09CC\u09B6\u09B2",
   "setting.keep.option.app": "\u0985\u09CD\u09AF\u09BE\u09AA \u09AC\u09A8\u09CD\u09A7",
   "setting.keep.option.file": "\u09AB\u09BE\u0987\u09B2 \u09AC\u09A8\u09CD\u09A7",
+  "setting.keep.option.persist": "\u09B0\u09BF\u09B8\u09CD\u099F\u09BE\u09B0\u09CD\u099F\u09C7\u09B0 \u09AA\u09B0\u09C7\u0993 \u09B8\u0982\u09B0\u0995\u09CD\u09B7\u09BF\u09A4",
   "setting.ignore-new-files.name": "\u09A8\u09A4\u09C1\u09A8 \u09AB\u09BE\u0987\u09B2 \u0989\u09AA\u09C7\u0995\u09CD\u09B7\u09BE \u0995\u09B0\u09C1\u09A8",
   "setting.ignore-new-files.desc": "\u099F\u09CD\u09B0\u09CD\u09AF\u09BE\u0995\u09BF\u0982 \u09B6\u09C1\u09B0\u09C1 \u09B9\u0993\u09AF\u09BC\u09BE\u09B0 \u09AA\u09B0\u09C7 \u09A4\u09C8\u09B0\u09BF \u09AB\u09BE\u0987\u09B2\u09C7\u09B0 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u099F\u09CD\u09B0\u09CD\u09AF\u09BE\u0995 \u0995\u09B0\u09AC\u09C7\u09A8 \u09A8\u09BE",
   "setting.tree-highlight.name": "\u09AB\u09BE\u0987\u09B2 \u099F\u09CD\u09B0\u09BF \u098F\u09AC\u0982 \u099F\u09CD\u09AF\u09BE\u09AC\u09C7 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u09B9\u09BE\u0987\u09B2\u09BE\u0987\u099F \u0995\u09B0\u09C1\u09A8",
   "setting.tree-highlight.desc": "\u09A8\u09C7\u099F\u09BF\u09AD \u09AB\u09BE\u0987\u09B2 \u098F\u0995\u09CD\u09B8\u09AA\u09CD\u09B2\u09CB\u09B0\u09BE\u09B0\u09C7 \u09AB\u09BE\u0987\u09B2 \u0993 \u09AB\u09CB\u09B2\u09CD\u09A1\u09BE\u09B0, \u098F\u09AC\u0982 \u0996\u09CB\u09B2\u09BE \u09AB\u09BE\u0987\u09B2\u09C7\u09B0 \u099F\u09CD\u09AF\u09BE\u09AC \u09B9\u09C7\u09A1\u09BE\u09B0 \u098F\u0987 \u09B8\u09C7\u09B6\u09A8\u09C7 \u09AF\u09BE \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09BF\u09A4 \u09B9\u09AF\u09BC\u09C7\u099B\u09C7 \u09A4\u09BE \u0985\u09A8\u09C1\u09B8\u09BE\u09B0\u09C7 \u09B0\u0999 \u0995\u09B0\u09C1\u09A8 (\u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09BF\u09A4\u09C7\u09B0 \u099C\u09A8\u09CD\u09AF \u0985\u09CD\u09AF\u09BE\u09AE\u09CD\u09AC\u09BE\u09B0, \u09AF\u09CB\u0997 \u0995\u09B0\u09BE\u09B0 \u099C\u09A8\u09CD\u09AF \u09B8\u09AC\u09C1\u099C)\u0964",
   "setting.properties-highlight.name": "\u09AA\u09CD\u09B0\u09CB\u09AA\u09BE\u09B0\u09CD\u099F\u09BF \u09AA\u09CD\u09AF\u09BE\u09A8\u09C7\u09B2\u09C7 \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u09B9\u09BE\u0987\u09B2\u09BE\u0987\u099F \u0995\u09B0\u09C1\u09A8",
   "setting.properties-highlight.desc": "Obsidian-\u098F\u09B0 \u09AA\u09CD\u09B0\u09CB\u09AA\u09BE\u09B0\u09CD\u099F\u09BF \u09AA\u09CD\u09AF\u09BE\u09A8\u09C7\u09B2\u09C7 \u09AF\u09CB\u0997 \u0995\u09B0\u09BE, \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09BF\u09A4 \u0993 \u09B8\u09B0\u09BE\u09A8\u09CB frontmatter \u0995\u09C0 \u09A6\u09C7\u0996\u09BE\u09A8\u0964 \u09AA\u09CD\u09B0\u09CB\u09AA\u09BE\u09B0\u09CD\u099F\u09BF \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8\u09C7\u09B0 \u09B8\u09AC \u099A\u09BF\u09B9\u09CD\u09A8 \u09B2\u09C1\u0995\u09BE\u09A4\u09C7 \u09A8\u09BF\u09B7\u09CD\u0995\u09CD\u09B0\u09BF\u09AF\u09BC \u0995\u09B0\u09C1\u09A8\u0964",
-  "setting.persist.name": "\u09B0\u09BF\u09B8\u09CD\u099F\u09BE\u09B0\u09CD\u099F\u09C7\u09B0 \u09AA\u09B0\u09C7\u0993 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09A7\u09B0\u09C7 \u09B0\u09BE\u0996\u09C1\u09A8",
-  "setting.persist.desc": '\u09A1\u09BF\u09B8\u09CD\u0995\u09C7 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09B8\u0982\u09B0\u0995\u09CD\u09B7\u09A3 \u0995\u09B0\u09C1\u09A8 \u09AF\u09BE\u09A4\u09C7 \u09B9\u09BE\u0987\u09B2\u09BE\u0987\u099F\u0997\u09C1\u09B2\u09CB \u09B0\u09BF\u09B8\u09CD\u099F\u09BE\u09B0\u09CD\u099F\u09C7\u09B0 \u09AA\u09B0\u09C7\u0993 \u09A5\u09BE\u0995\u09C7\u0964 "\u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09B0\u09BE\u0996\u09C1\u09A8 \u09AF\u09A4\u0995\u09CD\u09B7\u09A3" \u0985\u09CD\u09AF\u09BE\u09AA \u09AC\u09A8\u09CD\u09A7\u09C7 \u09B8\u09C7\u099F \u0995\u09B0\u09BE \u09AA\u09CD\u09B0\u09AF\u09BC\u09CB\u099C\u09A8\u0964',
   "setting.max-entries.name": "\u09B8\u09B0\u09CD\u09AC\u09BE\u09A7\u09BF\u0995 \u09B8\u0982\u09B0\u0995\u09CD\u09B7\u09BF\u09A4 \u09AB\u09BE\u0987\u09B2",
   "setting.max-entries.desc": "\u09A1\u09BF\u09B8\u09CD\u0995\u09C7 \u0995\u09A4\u0997\u09C1\u09B2\u09CB \u09AB\u09BE\u0987\u09B2 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09B0\u09BE\u0996\u09BE \u09B9\u09AC\u09C7 \u09A4\u09BE\u09B0 \u09B8\u09C0\u09AE\u09BE\u0964 \u09B8\u09AC\u099A\u09C7\u09AF\u09BC\u09C7 \u09AA\u09C1\u09B0\u09CB\u09A8\u09CB\u0997\u09C1\u09B2\u09CB \u0986\u0997\u09C7 \u09B8\u09B0\u09BE\u09A8\u09CB \u09B9\u09AF\u09BC\u0964 \u09A8\u09BF\u09B7\u09CD\u0995\u09CD\u09B0\u09BF\u09AF\u09BC \u0995\u09B0\u09A4\u09C7 0 \u09B8\u09C7\u099F \u0995\u09B0\u09C1\u09A8\u0964",
   "setting.max-age-days.name": "\u09B8\u09B0\u09CD\u09AC\u09BE\u09A7\u09BF\u0995 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8\u09C7\u09B0 \u09AC\u09AF\u09BC\u09B8 (\u09A6\u09BF\u09A8)",
@@ -6686,8 +6706,8 @@ var bn_default = {
   "setting.line-heading": "\u09B2\u09BE\u0987\u09A8 \u09A8\u09BF\u09B0\u09CD\u09A6\u09C7\u09B6\u0995",
   "setting.line-width.name": "\u09AA\u09CD\u09B0\u09B8\u09CD\u09A5",
   "setting.line-width.desc": "\u0989\u09B2\u09CD\u09B2\u09AE\u09CD\u09AC \u09B0\u09C7\u0996\u09BE \u09A8\u09BF\u09B0\u09CD\u09A6\u09C7\u09B6\u0995\u09C7\u09B0 \u09AA\u09CD\u09B0\u09B8\u09CD\u09A5 (\u09AA\u09BF\u0995\u09CD\u09B8\u09C7\u09B2\u09C7)\u0964",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "\u09AE\u09BE\u09B0\u09CD\u0995\u09BE\u09B0 \u09A4\u09C0\u09AC\u09CD\u09B0\u09A4\u09BE",
+  "setting.marker-intensity.desc": "\u09AA\u09CD\u09B0\u09A4\u09BF\u099F\u09BF \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8 \u09B0\u0999\u09C7\u09B0 \u09B8\u09BE\u09AE\u0997\u09CD\u09B0\u09BF\u0995 \u09A4\u09C0\u09AC\u09CD\u09B0\u09A4\u09BE (\u098F\u09A1\u09BF\u099F\u09B0 \u09AE\u09BE\u09B0\u09CD\u0995\u09BE\u09B0, \u099F\u09CD\u09B0\u09BF, \u099F\u09CD\u09AF\u09BE\u09AC, \u09AA\u09A0\u09A8 \u09AE\u09CB\u09A1)\u0964 \u09AC\u09C7\u09B6\u09BF \u09B9\u09B2\u09C7 \u0986\u09B0\u0993 \u0989\u099C\u09CD\u099C\u09CD\u09AC\u09B2, \u0995\u09AE \u09B9\u09B2\u09C7 \u0986\u09B0\u0993 \u09AB\u09CD\u09AF\u09BE\u0995\u09BE\u09B6\u09C7\u0964",
   "setting.gutter-heading.name": "\u0997\u09BE\u099F\u09BE\u09B0 \u09A8\u09BF\u09B0\u09CD\u09A6\u09C7\u09B6\u0995",
   "setting.gutter-heading.prefix": "\u0997\u09BE\u099F\u09BE\u09B0 \u09A7\u09B0\u09A8 \u09A8\u09BF\u09B0\u09CD\u09A6\u09C7\u09B6\u0995\u09C7\u09B0 \u0985\u0995\u09CD\u09B7\u09B0 (",
   "setting.gutter-heading.suffix": ")\u0964",
@@ -6754,11 +6774,11 @@ var bn_default = {
   "view.recent-changes.menu.restore": "\u098F\u0987 \u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3\u099F\u09BF \u09AA\u09C1\u09A8\u09B0\u09C1\u09A6\u09CD\u09A7\u09BE\u09B0 \u0995\u09B0\u09C1\u09A8",
   "view.recent-changes.menu.delete": "\u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3 \u09AE\u09C1\u099B\u09C1\u09A8",
   "view.recent-changes.menu.put-label": "\u09B2\u09C7\u09AC\u09C7\u09B2 \u09A6\u09BF\u09A8",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "\u09AD\u09B2\u09CD\u099F \u09AA\u09B0\u09BF\u09AC\u09B0\u09CD\u09A4\u09A8",
+  "view.vault-changes.search-placeholder": "\u09AB\u09BE\u0987\u09B2\u09C7\u09B0 \u09A8\u09BE\u09AE \u09A6\u09BF\u09AF\u09BC\u09C7 \u09AB\u09BF\u09B2\u09CD\u099F\u09BE\u09B0 \u0995\u09B0\u09C1\u09A8",
+  "view.vault-changes.layout.tree": "\u099F\u09CD\u09B0\u09BF",
+  "view.vault-changes.layout.flat": "\u09B8\u09AE\u09A4\u09B2 \u09A4\u09BE\u09B2\u09BF\u0995\u09BE",
+  "view.vault-changes.deleted-notice": "\u098F\u0987 \u09AB\u09BE\u0987\u09B2\u099F\u09BF \u09AE\u09C1\u099B\u09C7 \u09AB\u09C7\u09B2\u09BE \u09B9\u09AF\u09BC\u09C7\u099B\u09C7; \u098F\u09B0 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09B0\u09BE\u0996\u09BE \u09B9\u09AF\u09BC\u09C7\u099B\u09C7\u0964",
   "modal.label-selected": "\u09A8\u09BF\u09B0\u09CD\u09AC\u09BE\u099A\u09BF\u09A4 \u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3\u09C7 \u09B2\u09C7\u09AC\u09C7\u09B2 \u09A6\u09BF\u09A8",
   "modal.label-version.message": "\u098F\u0987 \u09B8\u0982\u09B8\u09CD\u0995\u09B0\u09A3\u099F\u09BF\u0995\u09C7 \u098F\u0995\u099F\u09BF \u099B\u09CB\u099F \u09B2\u09C7\u09AC\u09C7\u09B2 \u09A6\u09BF\u09AF\u09BC\u09C7 \u099A\u09BF\u09B9\u09CD\u09A8\u09BF\u09A4 \u0995\u09B0\u09C1\u09A8\u0964",
   "notice.no-folder-history": "\u098F\u0996\u09A8\u0993 \u0995\u09CB\u09A8\u09CB \u09AB\u09CB\u09B2\u09CD\u09A1\u09BE\u09B0 \u0987\u09A4\u09BF\u09B9\u09BE\u09B8 \u09A8\u09C7\u0987\u0964",
@@ -6795,7 +6815,7 @@ var ca_default = {
   "command.reset-lines-all": "Reinicia totes les instant\xE0nies del seguidor de l\xEDnies",
   "command.reset-lines": "Reinicia la instant\xE0nia del seguidor de l\xEDnies del document actual",
   "command.show-diff": "Mostra tots els canvis del document actual",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "Obre el tauler de canvis del magatzem",
   "notice.no-changes-to-navigate": "No hi ha canvis per navegar",
   "notice.all-snapshots-deleted": "S'han eliminat totes les dades d'instant\xE0nies",
   "notice.current-snapshot-deleted": "S'han eliminat les dades de la instant\xE0nia actual",
@@ -6830,14 +6850,13 @@ var ca_default = {
   "setting.keep.desc": "Estrat\xE8gia per netejar l'historial de revisions",
   "setting.keep.option.app": "Tancar l'aplicaci\xF3",
   "setting.keep.option.file": "Tancar el fitxer",
+  "setting.keep.option.persist": "Es mant\xE9 entre reinicis",
   "setting.ignore-new-files.name": "Ignora els fitxers nous",
   "setting.ignore-new-files.desc": "No facis el seguiment dels canvis en fitxers creats despr\xE9s d'iniciar el seguiment",
   "setting.tree-highlight.name": "Ressalta els canvis a l'arbre de fitxers i a les pestanyes",
   "setting.tree-highlight.desc": "Acoloreix els fitxers i les carpetes a l'explorador de fitxers natiu, i les cap\xE7aleres de pestanya dels fitxers oberts, segons el que ha canviat en aquesta sessi\xF3 (ambre per a modificat, verd per a afegit).",
   "setting.properties-highlight.name": "Ressalta els canvis al panell de propietats",
   "setting.properties-highlight.desc": "Mostra les claus de frontmatter afegides, modificades i eliminades al panell de propietats d'Obsidian. Desactiva-ho per amagar tota la decoraci\xF3 de canvis de propietats.",
-  "setting.persist.name": "Conserva l'historial entre reinicis",
-  "setting.persist.desc": "Desa l'historial al disc perqu\xE8 els ressaltats sobrevisquin a un reinici. Cal que \xABconserva l'historial fins a\xBB estigui definit a tancar l'aplicaci\xF3.",
   "setting.max-entries.name": "M\xE0xim de fitxers emmagatzemats",
   "setting.max-entries.desc": "L\xEDmit de quants historials de fitxers es conserven al disc. Els m\xE9s antics s'eliminen primer. Defineix-ho a 0 per desactivar-ho.",
   "setting.max-age-days.name": "Antiguitat m\xE0xima de l'historial (dies)",
@@ -6862,8 +6881,8 @@ var ca_default = {
   "setting.line-heading": "Indicador de l\xEDnia",
   "setting.line-width.name": "Amplada",
   "setting.line-width.desc": "Amplada de l'indicador de l\xEDnia vertical (en p\xEDxels).",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "Intensitat dels marcadors",
+  "setting.marker-intensity.desc": "Intensitat general de tots els colors de canvi (marcadors de l'editor, arbre, pestanyes, mode de lectura). Com m\xE9s alt, m\xE9s viu; com m\xE9s baix, m\xE9s p\xE0l\xB7lid.",
   "setting.gutter-heading.name": "Indicador del marge",
   "setting.gutter-heading.prefix": "Car\xE0cters de l'indicador de tipus del marge (",
   "setting.gutter-heading.suffix": ").",
@@ -6930,11 +6949,11 @@ var ca_default = {
   "view.recent-changes.menu.restore": "Restaura aquesta versi\xF3",
   "view.recent-changes.menu.delete": "Elimina la versi\xF3",
   "view.recent-changes.menu.put-label": "Posa una etiqueta",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "Canvis del magatzem",
+  "view.vault-changes.search-placeholder": "Filtra per nom de fitxer",
+  "view.vault-changes.layout.tree": "Arbre",
+  "view.vault-changes.layout.flat": "Llista plana",
+  "view.vault-changes.deleted-notice": "Aquest fitxer s'ha suprimit; se'n conserva l'historial.",
   "modal.label-selected": "Etiqueta la versi\xF3 seleccionada",
   "modal.label-version.message": "Marca aquesta versi\xF3 amb una etiqueta curta.",
   "notice.no-folder-history": "Encara no hi ha historial de carpeta.",
@@ -6971,7 +6990,7 @@ var cs_default = {
   "command.reset-lines-all": "Resetovat sn\xEDmky sledov\xE1n\xED \u0159\xE1dk\u016F u v\u0161ech soubor\u016F",
   "command.reset-lines": "Resetovat sn\xEDmek sledov\xE1n\xED \u0159\xE1dk\u016F aktu\xE1ln\xEDho dokumentu",
   "command.show-diff": "Zobrazit v\u0161echny zm\u011Bny aktu\xE1ln\xEDho dokumentu",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "Otev\u0159\xEDt panel zm\u011Bn trezoru",
   "notice.no-changes-to-navigate": "\u017D\xE1dn\xE9 zm\u011Bny k proch\xE1zen\xED",
   "notice.all-snapshots-deleted": "V\u0161echna data sn\xEDmk\u016F byla smaz\xE1na",
   "notice.current-snapshot-deleted": "Data aktu\xE1ln\xEDho sn\xEDmku byla smaz\xE1na",
@@ -7006,14 +7025,13 @@ var cs_default = {
   "setting.keep.desc": "Strategie \u010Di\u0161t\u011Bn\xED historie reviz\xED",
   "setting.keep.option.app": "Zav\u0159en\xED aplikace",
   "setting.keep.option.file": "Zav\u0159en\xED souboru",
+  "setting.keep.option.persist": "Zachov\xE1no mezi restarty",
   "setting.ignore-new-files.name": "Ignorovat nov\xE9 soubory",
   "setting.ignore-new-files.desc": "Nesledovat zm\u011Bny v souborech vytvo\u0159en\xFDch po zah\xE1jen\xED sledov\xE1n\xED",
   "setting.tree-highlight.name": "Zv\xFDraznit zm\u011Bny ve stromu soubor\u016F a na kart\xE1ch",
   "setting.tree-highlight.desc": "Obarv\xED soubory a slo\u017Eky v nativn\xEDm pr\u016Fzkumn\xEDku soubor\u016F a z\xE1hlav\xED karet otev\u0159en\xFDch soubor\u016F podle toho, co se v t\xE9to relaci zm\u011Bnilo (oran\u017Eov\xE1 pro upraven\xE9, zelen\xE1 pro p\u0159idan\xE9).",
   "setting.properties-highlight.name": "Zv\xFDraz\u0148ovat zm\u011Bny v panelu vlastnost\xED",
   "setting.properties-highlight.desc": "Zobrazovat p\u0159idan\xE9, zm\u011Bn\u011Bn\xE9 a odebran\xE9 kl\xED\u010De frontmatteru v panelu vlastnost\xED Obsidianu. Vypnut\xEDm skryjete ve\u0161ker\xE9 zv\xFDrazn\u011Bn\xED zm\u011Bn vlastnost\xED.",
-  "setting.persist.name": "Zachovat historii mezi restarty",
-  "setting.persist.desc": 'Ukl\xE1dat historii na disk, aby zv\xFDrazn\u011Bn\xED p\u0159e\u010Dkala restart. Vy\u017Eaduje nastaven\xED "Uchov\xE1vat historii do" na zav\u0159en\xED aplikace.',
   "setting.max-entries.name": "Maximum ulo\u017Een\xFDch soubor\u016F",
   "setting.max-entries.desc": "Limit po\u010Dtu histori\xED soubor\u016F uchov\xE1van\xFDch na disku. Nejstar\u0161\xED se odstra\u0148uj\xED jako prvn\xED. Nastavte 0 pro vypnut\xED.",
   "setting.max-age-days.name": "Maxim\xE1ln\xED st\xE1\u0159\xED historie (dny)",
@@ -7038,8 +7056,8 @@ var cs_default = {
   "setting.line-heading": "\u0158\xE1dkov\xFD indik\xE1tor",
   "setting.line-width.name": "\u0160\xED\u0159ka",
   "setting.line-width.desc": "\u0160\xED\u0159ka svisl\xE9ho \u0159\xE1dkov\xE9ho indik\xE1toru (v pixelech).",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "Intenzita zna\u010Dek",
+  "setting.marker-intensity.desc": "Celkov\xE1 intenzita v\u0161ech barev zm\u011Bn (zna\u010Dky editoru, strom, karty, re\u017Eim \u010Dten\xED). Vy\u0161\u0161\xED je v\xFDrazn\u011Bj\u0161\xED, ni\u017E\u0161\xED je bled\u0161\xED.",
   "setting.gutter-heading.name": "Indik\xE1tor na okraji",
   "setting.gutter-heading.prefix": "Znaky indik\xE1toru typu na okraji (",
   "setting.gutter-heading.suffix": ").",
@@ -7106,11 +7124,11 @@ var cs_default = {
   "view.recent-changes.menu.restore": "Obnovit tuto verzi",
   "view.recent-changes.menu.delete": "Smazat verzi",
   "view.recent-changes.menu.put-label": "P\u0159idat \u0161t\xEDtek",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "Zm\u011Bny trezoru",
+  "view.vault-changes.search-placeholder": "Filtrovat podle n\xE1zvu souboru",
+  "view.vault-changes.layout.tree": "Strom",
+  "view.vault-changes.layout.flat": "Ploch\xFD seznam",
+  "view.vault-changes.deleted-notice": "Tento soubor byl smaz\xE1n; jeho historie je zachov\xE1na.",
   "modal.label-selected": "Ozna\u010Dit vybranou verzi",
   "modal.label-version.message": "Ozna\u010Dte tuto verzi kr\xE1tk\xFDm \u0161t\xEDtkem.",
   "notice.no-folder-history": "Zat\xEDm \u017E\xE1dn\xE1 historie slo\u017Eky.",
@@ -7147,7 +7165,7 @@ var da_default = {
   "command.reset-lines-all": "Nulstil alle linjesporings-\xF8jebliksbilleder",
   "command.reset-lines": "Nulstil linjesporings-\xF8jebliksbillede for aktuelt dokument",
   "command.show-diff": "Vis alle \xE6ndringer i aktuelt dokument",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "\xC5bn panel med boks\xE6ndringer",
   "notice.no-changes-to-navigate": "Ingen \xE6ndringer at navigere",
   "notice.all-snapshots-deleted": "Alle \xF8jebliksbilleder slettet",
   "notice.current-snapshot-deleted": "Aktuelt \xF8jebliksbillede slettet",
@@ -7182,14 +7200,13 @@ var da_default = {
   "setting.keep.desc": "Strategi for oprydning af revisionshistorik",
   "setting.keep.option.app": "Appen lukkes",
   "setting.keep.option.file": "Filen lukkes",
+  "setting.keep.option.persist": "Bevares p\xE5 tv\xE6rs af genstarter",
   "setting.ignore-new-files.name": "Ignorer nye filer",
   "setting.ignore-new-files.desc": "Spor ikke \xE6ndringer i filer, der er oprettet, efter sporingen blev startet",
   "setting.tree-highlight.name": "Fremh\xE6v \xE6ndringer i filtr\xE6et og fanerne",
   "setting.tree-highlight.desc": "Farv filer og mapper i den indbyggede filstifinder samt fanebladene for \xE5bne filer efter, hvad der er \xE6ndret i denne session (rav for \xE6ndret, gr\xF8n for tilf\xF8jet).",
   "setting.properties-highlight.name": "Fremh\xE6v \xE6ndringer i egenskabspanelet",
   "setting.properties-highlight.desc": "Vis tilf\xF8jede, \xE6ndrede og fjernede frontmatter-n\xF8gler i Obsidians egenskabspanel. Sl\xE5 fra for at skjule al markering af egenskabs\xE6ndringer.",
-  "setting.persist.name": "Bevar historik p\xE5 tv\xE6rs af genstarter",
-  "setting.persist.desc": 'Gem historik p\xE5 disken, s\xE5 fremh\xE6vninger overlever en genstart. Kr\xE6ver, at "Behold historik indtil" er sat til Appen lukkes.',
   "setting.max-entries.name": "Maks. gemte filer",
   "setting.max-entries.desc": "Gr\xE6nse for, hvor mange filhistorikker der beholdes p\xE5 disken. De \xE6ldste fjernes f\xF8rst. S\xE6t til 0 for at deaktivere.",
   "setting.max-age-days.name": "Maks. historikalder (dage)",
@@ -7214,8 +7231,8 @@ var da_default = {
   "setting.line-heading": "Linjeindikator",
   "setting.line-width.name": "Bredde",
   "setting.line-width.desc": "Bredde p\xE5 den lodrette linjeindikator (i pixels).",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "Mark\xF8rintensitet",
+  "setting.marker-intensity.desc": "Samlet intensitet af alle \xE6ndringsfarver (editormark\xF8rer, tr\xE6, faneblade, l\xE6setilstand). H\xF8jere er mere levende, lavere er blegere.",
   "setting.gutter-heading.name": "Margenindikator",
   "setting.gutter-heading.prefix": "Tegn for margentypeindikatoren (",
   "setting.gutter-heading.suffix": ").",
@@ -7282,11 +7299,11 @@ var da_default = {
   "view.recent-changes.menu.restore": "Gendan denne version",
   "view.recent-changes.menu.delete": "Slet version",
   "view.recent-changes.menu.put-label": "S\xE6t etiket",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "Boks\xE6ndringer",
+  "view.vault-changes.search-placeholder": "Filtr\xE9r efter filnavn",
+  "view.vault-changes.layout.tree": "Tr\xE6",
+  "view.vault-changes.layout.flat": "Flad liste",
+  "view.vault-changes.deleted-notice": "Denne fil blev slettet; dens historik bevares.",
   "modal.label-selected": "S\xE6t etiket p\xE5 valgt version",
   "modal.label-version.message": "Mark\xE9r denne version med en kort etiket.",
   "notice.no-folder-history": "Ingen mappehistorik endnu.",
@@ -7323,7 +7340,7 @@ var de_default = {
   "command.reset-lines-all": "Alle Zeilen-Tracker-Snapshots zur\xFCcksetzen",
   "command.reset-lines": "Zeilen-Tracker-Snapshot des aktuellen Dokuments zur\xFCcksetzen",
   "command.show-diff": "Alle \xC4nderungen des aktuellen Dokuments anzeigen",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "Panel f\xFCr Tresor\xE4nderungen \xF6ffnen",
   "notice.no-changes-to-navigate": "Keine \xC4nderungen zum Navigieren",
   "notice.all-snapshots-deleted": "Alle Snapshot-Daten gel\xF6scht",
   "notice.current-snapshot-deleted": "Aktuelle Snapshot-Daten gel\xF6scht",
@@ -7358,14 +7375,13 @@ var de_default = {
   "setting.keep.desc": "Strategie zum Bereinigen des Revisionsverlaufs",
   "setting.keep.option.app": "App schlie\xDFen",
   "setting.keep.option.file": "Datei schlie\xDFen",
+  "setting.keep.option.persist": "\xDCber Neustarts hinweg",
   "setting.ignore-new-files.name": "Neue Dateien ignorieren",
   "setting.ignore-new-files.desc": "\xC4nderungen in Dateien, die nach dem Start der Erfassung erstellt wurden, nicht erfassen",
   "setting.tree-highlight.name": "\xC4nderungen im Dateibaum und in Tabs hervorheben",
   "setting.tree-highlight.desc": "F\xE4rbt Dateien und Ordner im nativen Datei-Explorer sowie die Tab-K\xF6pfe ge\xF6ffneter Dateien danach, was in dieser Sitzung ge\xE4ndert wurde (Bernstein f\xFCr ge\xE4ndert, Gr\xFCn f\xFCr hinzugef\xFCgt).",
   "setting.properties-highlight.name": "\xC4nderungen im Eigenschaften-Panel hervorheben",
   "setting.properties-highlight.desc": "Hinzugef\xFCgte, ge\xE4nderte und entfernte Frontmatter-Schl\xFCssel im Obsidian-Eigenschaften-Panel anzeigen. Deaktivieren, um alle Eigenschafts-Diff-Markierungen zu unterdr\xFCcken.",
-  "setting.persist.name": "Verlauf \xFCber Neustarts hinweg beibehalten",
-  "setting.persist.desc": 'Verlauf auf der Festplatte speichern, damit Hervorhebungen einen Neustart \xFCberdauern. Erfordert, dass "Verlauf behalten bis" auf App schlie\xDFen gesetzt ist.',
   "setting.max-entries.name": "Maximal gespeicherte Dateien",
   "setting.max-entries.desc": "Obergrenze f\xFCr die Anzahl der auf der Festplatte gespeicherten Dateiverl\xE4ufe. Die \xE4ltesten werden zuerst entfernt. Auf 0 setzen, um zu deaktivieren.",
   "setting.max-age-days.name": "Maximales Verlaufsalter (Tage)",
@@ -7390,8 +7406,8 @@ var de_default = {
   "setting.line-heading": "Zeilenindikator",
   "setting.line-width.name": "Breite",
   "setting.line-width.desc": "Breite des vertikalen Linienindikators (in Pixeln).",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "Markierungsintensit\xE4t",
+  "setting.marker-intensity.desc": "Gesamtintensit\xE4t aller \xC4nderungsfarben (Editor-Markierungen, Baum, Tabs, Lesemodus). H\xF6her ist kr\xE4ftiger, niedriger ist blasser.",
   "setting.gutter-heading.name": "Randindikator",
   "setting.gutter-heading.prefix": "Zeichen des Rand-Typindikators (",
   "setting.gutter-heading.suffix": ").",
@@ -7458,11 +7474,11 @@ var de_default = {
   "view.recent-changes.menu.restore": "Diese Version wiederherstellen",
   "view.recent-changes.menu.delete": "Version l\xF6schen",
   "view.recent-changes.menu.put-label": "Label setzen",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "Tresor\xE4nderungen",
+  "view.vault-changes.search-placeholder": "Nach Dateiname filtern",
+  "view.vault-changes.layout.tree": "Baum",
+  "view.vault-changes.layout.flat": "Flache Liste",
+  "view.vault-changes.deleted-notice": "Diese Datei wurde gel\xF6scht; ihr Verlauf bleibt erhalten.",
   "modal.label-selected": "Ausgew\xE4hlte Version mit Label versehen",
   "modal.label-version.message": "Diese Version mit einem kurzen Label versehen.",
   "notice.no-folder-history": "Noch kein Ordnerverlauf.",
@@ -7531,17 +7547,16 @@ var en_default = {
   "setting.general-heading": "General",
   "setting.cleanup-heading": "History cleanup",
   "setting.keep.name": "Keep history until",
-  "setting.keep.desc": "Strategy for cleaning up revision history",
+  "setting.keep.desc": "How long change history is kept: until the file closes, until the app closes, or across restarts.",
   "setting.keep.option.app": "App close",
   "setting.keep.option.file": "File close",
+  "setting.keep.option.persist": "Kept across restarts",
   "setting.ignore-new-files.name": "Ignore new files",
   "setting.ignore-new-files.desc": "Don't track changes in files created after tracking started",
   "setting.tree-highlight.name": "Highlight changes in file tree and tabs",
   "setting.tree-highlight.desc": "Tint files and folders in the native file explorer, and the tab headers of open files, by what changed this session (amber for modified, green for added).",
   "setting.properties-highlight.name": "Highlight changes in Properties panel",
   "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
-  "setting.persist.name": "Persist history across restarts",
-  "setting.persist.desc": 'Save history to disk so highlights survive a restart. Requires "keep history until" set to app close.',
   "setting.max-entries.name": "Max stored files",
   "setting.max-entries.desc": "Cap on how many file histories are kept on disk. Oldest are evicted first. Set to 0 to disable.",
   "setting.max-age-days.name": "Max history age (days)",
@@ -7710,14 +7725,13 @@ var en_GB_default = {
   "setting.keep.desc": "Strategy for cleaning up revision history",
   "setting.keep.option.app": "App close",
   "setting.keep.option.file": "File close",
+  "setting.keep.option.persist": "Kept across restarts",
   "setting.ignore-new-files.name": "Ignore new files",
   "setting.ignore-new-files.desc": "Don't track changes in files created after tracking started",
   "setting.tree-highlight.name": "Highlight changes in file tree and tabs",
   "setting.tree-highlight.desc": "Tint files and folders in the native file explorer, and the tab headers of open files, by what changed this session (amber for modified, green for added).",
   "setting.properties-highlight.name": "Highlight changes in Properties panel",
   "setting.properties-highlight.desc": "Show added, modified, and removed frontmatter keys in the Obsidian Properties panel. Disable to suppress all property-diff decoration.",
-  "setting.persist.name": "Persist history across restarts",
-  "setting.persist.desc": 'Save history to disk so highlights survive a restart. Requires "keep history until" set to app close.',
   "setting.max-entries.name": "Max stored files",
   "setting.max-entries.desc": "Cap on how many file histories are kept on disk. Oldest are evicted first. Set to 0 to disable.",
   "setting.max-age-days.name": "Max history age (days)",
@@ -7851,7 +7865,7 @@ var es_default = {
   "command.reset-lines-all": "Restablecer todas las instant\xE1neas del rastreador de l\xEDneas",
   "command.reset-lines": "Restablecer la instant\xE1nea del rastreador de l\xEDneas del documento actual",
   "command.show-diff": "Mostrar todos los cambios del documento actual",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "Abrir el panel de cambios del almac\xE9n",
   "notice.no-changes-to-navigate": "No hay cambios para navegar",
   "notice.all-snapshots-deleted": "Se eliminaron todos los datos de instant\xE1neas",
   "notice.current-snapshot-deleted": "Se eliminaron los datos de la instant\xE1nea actual",
@@ -7886,14 +7900,13 @@ var es_default = {
   "setting.keep.desc": "Estrategia para limpiar el historial de revisiones",
   "setting.keep.option.app": "Cerrar la aplicaci\xF3n",
   "setting.keep.option.file": "Cerrar el archivo",
+  "setting.keep.option.persist": "Se conserva entre reinicios",
   "setting.ignore-new-files.name": "Ignorar archivos nuevos",
   "setting.ignore-new-files.desc": "No rastrear cambios en archivos creados despu\xE9s de iniciar el rastreo",
   "setting.tree-highlight.name": "Resaltar cambios en el \xE1rbol de archivos y las pesta\xF1as",
   "setting.tree-highlight.desc": "Colorea los archivos y carpetas del explorador de archivos nativo, y las cabeceras de pesta\xF1a de los archivos abiertos, seg\xFAn lo que cambi\xF3 en esta sesi\xF3n (\xE1mbar para modificado, verde para a\xF1adido).",
   "setting.properties-highlight.name": "Resaltar cambios en el panel de propiedades",
   "setting.properties-highlight.desc": "Mostrar las claves de frontmatter a\xF1adidas, modificadas y eliminadas en el panel de propiedades de Obsidian. Desact\xEDvalo para ocultar toda la decoraci\xF3n de cambios de propiedades.",
-  "setting.persist.name": "Conservar el historial entre reinicios",
-  "setting.persist.desc": 'Guardar el historial en el disco para que los resaltados sobrevivan a un reinicio. Requiere que "Conservar el historial hasta" est\xE9 en cerrar la aplicaci\xF3n.',
   "setting.max-entries.name": "M\xE1ximo de archivos almacenados",
   "setting.max-entries.desc": "L\xEDmite de cu\xE1ntos historiales de archivos se conservan en el disco. Los m\xE1s antiguos se eliminan primero. Ponlo en 0 para desactivar.",
   "setting.max-age-days.name": "Antig\xFCedad m\xE1xima del historial (d\xEDas)",
@@ -7918,8 +7931,8 @@ var es_default = {
   "setting.line-heading": "Indicador de l\xEDnea",
   "setting.line-width.name": "Ancho",
   "setting.line-width.desc": "Ancho del indicador de l\xEDnea vertical (en p\xEDxeles).",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "Intensidad de los marcadores",
+  "setting.marker-intensity.desc": "Intensidad general de todos los colores de cambio (marcadores del editor, \xE1rbol, pesta\xF1as, modo lectura). Cuanto m\xE1s alto, m\xE1s vivo; cuanto m\xE1s bajo, m\xE1s p\xE1lido.",
   "setting.gutter-heading.name": "Indicador de margen",
   "setting.gutter-heading.prefix": "Caracteres del indicador de tipo del margen (",
   "setting.gutter-heading.suffix": ").",
@@ -7986,11 +7999,11 @@ var es_default = {
   "view.recent-changes.menu.restore": "Restaurar esta versi\xF3n",
   "view.recent-changes.menu.delete": "Eliminar versi\xF3n",
   "view.recent-changes.menu.put-label": "Poner etiqueta",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "Cambios del almac\xE9n",
+  "view.vault-changes.search-placeholder": "Filtrar por nombre de archivo",
+  "view.vault-changes.layout.tree": "\xC1rbol",
+  "view.vault-changes.layout.flat": "Lista plana",
+  "view.vault-changes.deleted-notice": "Este archivo se elimin\xF3; se conserva su historial.",
   "modal.label-selected": "Etiquetar la versi\xF3n seleccionada",
   "modal.label-version.message": "Marca esta versi\xF3n con una etiqueta corta.",
   "notice.no-folder-history": "A\xFAn no hay historial de carpeta.",
@@ -8027,7 +8040,7 @@ var fa_default = {
   "command.reset-lines-all": "\u0628\u0627\u0632\u0646\u0634\u0627\u0646\u06CC \u0647\u0645\u0647 \u0639\u06A9\u0633\u200C\u0647\u0627\u06CC \u0641\u0648\u0631\u06CC \u0631\u062F\u06CC\u0627\u0628 \u062E\u0637\u0648\u0637",
   "command.reset-lines": "\u0628\u0627\u0632\u0646\u0634\u0627\u0646\u06CC \u0639\u06A9\u0633 \u0641\u0648\u0631\u06CC \u0631\u062F\u06CC\u0627\u0628 \u062E\u0637\u0648\u0637 \u0633\u0646\u062F \u0641\u0639\u0644\u06CC",
   "command.show-diff": "\u0646\u0645\u0627\u06CC\u0634 \u0647\u0645\u0647 \u062A\u063A\u06CC\u06CC\u0631\u0627\u062A \u0633\u0646\u062F \u0641\u0639\u0644\u06CC",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "\u0628\u0627\u0632 \u06A9\u0631\u062F\u0646 \u067E\u0646\u0644 \u062A\u063A\u06CC\u06CC\u0631\u0627\u062A \u0627\u0646\u0628\u0627\u0631",
   "notice.no-changes-to-navigate": "\u062A\u063A\u06CC\u06CC\u0631\u06CC \u0628\u0631\u0627\u06CC \u067E\u06CC\u0645\u0627\u06CC\u0634 \u0648\u062C\u0648\u062F \u0646\u062F\u0627\u0631\u062F",
   "notice.all-snapshots-deleted": "\u0647\u0645\u0647 \u062F\u0627\u062F\u0647\u200C\u0647\u0627\u06CC \u0639\u06A9\u0633 \u0641\u0648\u0631\u06CC \u062D\u0630\u0641 \u0634\u062F",
   "notice.current-snapshot-deleted": "\u062F\u0627\u062F\u0647\u200C\u0647\u0627\u06CC \u0639\u06A9\u0633 \u0641\u0648\u0631\u06CC \u0641\u0639\u0644\u06CC \u062D\u0630\u0641 \u0634\u062F",
@@ -8062,14 +8075,13 @@ var fa_default = {
   "setting.keep.desc": "\u0631\u0627\u0647\u0628\u0631\u062F \u067E\u0627\u06A9\u200C\u0633\u0627\u0632\u06CC \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u0628\u0627\u0632\u0646\u06AF\u0631\u06CC\u200C\u0647\u0627",
   "setting.keep.option.app": "\u0628\u0633\u062A\u0646 \u0628\u0631\u0646\u0627\u0645\u0647",
   "setting.keep.option.file": "\u0628\u0633\u062A\u0646 \u067E\u0631\u0648\u0646\u062F\u0647",
+  "setting.keep.option.persist": "\u067E\u0633 \u0627\u0632 \u0631\u0627\u0647\u200C\u0627\u0646\u062F\u0627\u0632\u06CC \u0645\u062C\u062F\u062F \u062D\u0641\u0638 \u0645\u06CC\u200C\u0634\u0648\u062F",
   "setting.ignore-new-files.name": "\u0646\u0627\u062F\u06CC\u062F\u0647\u200C\u06AF\u0631\u0641\u062A\u0646 \u067E\u0631\u0648\u0646\u062F\u0647\u200C\u0647\u0627\u06CC \u062C\u062F\u06CC\u062F",
   "setting.ignore-new-files.desc": "\u062A\u063A\u06CC\u06CC\u0631\u0627\u062A \u062F\u0631 \u067E\u0631\u0648\u0646\u062F\u0647\u200C\u0647\u0627\u06CC\u06CC \u06A9\u0647 \u067E\u0633 \u0627\u0632 \u0622\u063A\u0627\u0632 \u0631\u062F\u06CC\u0627\u0628\u06CC \u0633\u0627\u062E\u062A\u0647 \u0634\u062F\u0647\u200C\u0627\u0646\u062F \u0631\u0627 \u0631\u062F\u06CC\u0627\u0628\u06CC \u0646\u06A9\u0646",
   "setting.tree-highlight.name": "\u0628\u0631\u062C\u0633\u062A\u0647\u200C\u0633\u0627\u0632\u06CC \u062A\u063A\u06CC\u06CC\u0631\u0627\u062A \u062F\u0631 \u062F\u0631\u062E\u062A \u067E\u0631\u0648\u0646\u062F\u0647\u200C\u0647\u0627 \u0648 \u0632\u0628\u0627\u0646\u0647\u200C\u0647\u0627",
   "setting.tree-highlight.desc": "\u067E\u0631\u0648\u0646\u062F\u0647\u200C\u0647\u0627 \u0648 \u067E\u0648\u0634\u0647\u200C\u0647\u0627 \u062F\u0631 \u06A9\u0627\u0648\u0634\u06AF\u0631 \u067E\u0631\u0648\u0646\u062F\u0647 \u0628\u0648\u0645\u06CC \u0648 \u0633\u0631\u062A\u06CC\u062A\u0631 \u0632\u0628\u0627\u0646\u0647\u200C\u0647\u0627\u06CC \u067E\u0631\u0648\u0646\u062F\u0647\u200C\u0647\u0627\u06CC \u0628\u0627\u0632 \u0631\u0627 \u0628\u0631 \u0627\u0633\u0627\u0633 \u0622\u0646\u0686\u0647 \u062F\u0631 \u0627\u06CC\u0646 \u0646\u0634\u0633\u062A \u062A\u063A\u06CC\u06CC\u0631 \u06A9\u0631\u062F\u0647 \u0631\u0646\u06AF \u0645\u06CC\u200C\u06A9\u0646\u062F (\u06A9\u0647\u0631\u0628\u0627\u06CC\u06CC \u0628\u0631\u0627\u06CC \u062A\u063A\u06CC\u06CC\u0631\u200C\u06CC\u0627\u0641\u062A\u0647\u060C \u0633\u0628\u0632 \u0628\u0631\u0627\u06CC \u0627\u0641\u0632\u0648\u062F\u0647\u200C\u0634\u062F\u0647).",
   "setting.properties-highlight.name": "\u0628\u0631\u062C\u0633\u062A\u0647\u200C\u0633\u0627\u0632\u06CC \u062A\u063A\u06CC\u06CC\u0631\u0627\u062A \u062F\u0631 \u067E\u0646\u0644 \u0648\u06CC\u0698\u06AF\u06CC\u200C\u0647\u0627",
   "setting.properties-highlight.desc": "\u0646\u0645\u0627\u06CC\u0634 \u06A9\u0644\u06CC\u062F\u0647\u0627\u06CC frontmatter \u0627\u0641\u0632\u0648\u062F\u0647\u060C \u062A\u063A\u06CC\u06CC\u0631\u06CC\u0627\u0641\u062A\u0647 \u0648 \u062D\u0630\u0641\u200C\u0634\u062F\u0647 \u062F\u0631 \u067E\u0646\u0644 \u0648\u06CC\u0698\u06AF\u06CC\u200C\u0647\u0627\u06CC Obsidian. \u0628\u0631\u0627\u06CC \u067E\u0646\u0647\u0627\u0646 \u06A9\u0631\u062F\u0646 \u0647\u0645\u0647 \u0646\u0634\u0627\u0646\u0647\u200C\u06AF\u0630\u0627\u0631\u06CC \u062A\u063A\u06CC\u06CC\u0631\u0627\u062A \u0648\u06CC\u0698\u06AF\u06CC\u200C\u0647\u0627 \u063A\u06CC\u0631\u0641\u0639\u0627\u0644 \u06A9\u0646\u06CC\u062F.",
-  "setting.persist.name": "\u062D\u0641\u0638 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u067E\u0633 \u0627\u0632 \u0631\u0627\u0647\u200C\u0627\u0646\u062F\u0627\u0632\u06CC \u0645\u062C\u062F\u062F",
-  "setting.persist.desc": '\u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u0631\u0627 \u0631\u0648\u06CC \u062F\u06CC\u0633\u06A9 \u0630\u062E\u06CC\u0631\u0647 \u06A9\u0646 \u062A\u0627 \u0628\u0631\u062C\u0633\u062A\u0647\u200C\u0633\u0627\u0632\u06CC\u200C\u0647\u0627 \u067E\u0633 \u0627\u0632 \u0631\u0627\u0647\u200C\u0627\u0646\u062F\u0627\u0632\u06CC \u0645\u062C\u062F\u062F \u0628\u0627\u0642\u06CC \u0628\u0645\u0627\u0646\u0646\u062F. \u0628\u0647 \u062A\u0646\u0638\u06CC\u0645 "\u0646\u06AF\u0647\u062F\u0627\u0631\u06CC \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u062A\u0627" \u0631\u0648\u06CC \u0628\u0633\u062A\u0646 \u0628\u0631\u0646\u0627\u0645\u0647 \u0646\u06CC\u0627\u0632 \u062F\u0627\u0631\u062F.',
   "setting.max-entries.name": "\u0628\u06CC\u0634\u06CC\u0646\u0647 \u067E\u0631\u0648\u0646\u062F\u0647\u200C\u0647\u0627\u06CC \u0630\u062E\u06CC\u0631\u0647\u200C\u0634\u062F\u0647",
   "setting.max-entries.desc": "\u0633\u0642\u0641 \u062A\u0639\u062F\u0627\u062F \u062A\u0627\u0631\u06CC\u062E\u0686\u0647\u200C\u0647\u0627\u06CC \u067E\u0631\u0648\u0646\u062F\u0647 \u06A9\u0647 \u0631\u0648\u06CC \u062F\u06CC\u0633\u06A9 \u0646\u06AF\u0647 \u062F\u0627\u0634\u062A\u0647 \u0645\u06CC\u200C\u0634\u0648\u0646\u062F. \u0642\u062F\u06CC\u0645\u06CC\u200C\u062A\u0631\u06CC\u0646\u200C\u0647\u0627 \u0627\u0628\u062A\u062F\u0627 \u062D\u0630\u0641 \u0645\u06CC\u200C\u0634\u0648\u0646\u062F. \u0628\u0631\u0627\u06CC \u063A\u06CC\u0631\u0641\u0639\u0627\u0644\u200C\u06A9\u0631\u062F\u0646 \u0631\u0648\u06CC 0 \u062A\u0646\u0638\u06CC\u0645 \u06A9\u0646\u06CC\u062F.",
   "setting.max-age-days.name": "\u0628\u06CC\u0634\u06CC\u0646\u0647 \u0639\u0645\u0631 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 (\u0631\u0648\u0632)",
@@ -8094,8 +8106,8 @@ var fa_default = {
   "setting.line-heading": "\u0646\u0634\u0627\u0646\u06AF\u0631 \u062E\u0637",
   "setting.line-width.name": "\u067E\u0647\u0646\u0627",
   "setting.line-width.desc": "\u067E\u0647\u0646\u0627\u06CC \u0646\u0634\u0627\u0646\u06AF\u0631 \u062E\u0637 \u0639\u0645\u0648\u062F\u06CC (\u0628\u0647 \u067E\u06CC\u06A9\u0633\u0644).",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "\u0634\u062F\u062A \u0646\u0634\u0627\u0646\u06AF\u0631\u0647\u0627",
+  "setting.marker-intensity.desc": "\u0634\u062F\u062A \u06A9\u0644\u06CC \u0647\u0645\u0647 \u0631\u0646\u06AF\u200C\u0647\u0627\u06CC \u062A\u063A\u06CC\u06CC\u0631 (\u0646\u0634\u0627\u0646\u06AF\u0631\u0647\u0627\u06CC \u0648\u06CC\u0631\u0627\u06CC\u0634\u06AF\u0631\u060C \u062F\u0631\u062E\u062A\u060C \u0632\u0628\u0627\u0646\u0647\u200C\u0647\u0627\u060C \u062D\u0627\u0644\u062A \u062E\u0648\u0627\u0646\u062F\u0646). \u0628\u0627\u0644\u0627\u062A\u0631 \u0648\u0627\u0636\u062D\u200C\u062A\u0631 \u0648 \u067E\u0627\u06CC\u06CC\u0646\u200C\u062A\u0631 \u06A9\u0645\u200C\u0631\u0646\u06AF\u200C\u062A\u0631 \u0627\u0633\u062A.",
   "setting.gutter-heading.name": "\u0646\u0634\u0627\u0646\u06AF\u0631 \u062D\u0627\u0634\u06CC\u0647",
   "setting.gutter-heading.prefix": "\u0646\u0648\u06CC\u0633\u0647\u200C\u0647\u0627\u06CC \u0646\u0634\u0627\u0646\u06AF\u0631 \u0646\u0648\u0639 \u062F\u0631 \u062D\u0627\u0634\u06CC\u0647 (",
   "setting.gutter-heading.suffix": ").",
@@ -8162,11 +8174,11 @@ var fa_default = {
   "view.recent-changes.menu.restore": "\u0628\u0627\u0632\u06CC\u0627\u0628\u06CC \u0627\u06CC\u0646 \u0646\u0633\u062E\u0647",
   "view.recent-changes.menu.delete": "\u062D\u0630\u0641 \u0646\u0633\u062E\u0647",
   "view.recent-changes.menu.put-label": "\u06AF\u0630\u0627\u0634\u062A\u0646 \u0628\u0631\u0686\u0633\u0628",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "\u062A\u063A\u06CC\u06CC\u0631\u0627\u062A \u0627\u0646\u0628\u0627\u0631",
+  "view.vault-changes.search-placeholder": "\u0641\u06CC\u0644\u062A\u0631 \u0628\u0631 \u0627\u0633\u0627\u0633 \u0646\u0627\u0645 \u0641\u0627\u06CC\u0644",
+  "view.vault-changes.layout.tree": "\u062F\u0631\u062E\u062A",
+  "view.vault-changes.layout.flat": "\u0641\u0647\u0631\u0633\u062A \u062A\u062E\u062A",
+  "view.vault-changes.deleted-notice": "\u0627\u06CC\u0646 \u0641\u0627\u06CC\u0644 \u062D\u0630\u0641 \u0634\u062F\u061B \u062A\u0627\u0631\u06CC\u062E\u0686\u0647 \u0622\u0646 \u062D\u0641\u0638 \u0634\u062F\u0647 \u0627\u0633\u062A.",
   "modal.label-selected": "\u0628\u0631\u0686\u0633\u0628\u200C\u06AF\u0630\u0627\u0631\u06CC \u0646\u0633\u062E\u0647 \u0627\u0646\u062A\u062E\u0627\u0628\u200C\u0634\u062F\u0647",
   "modal.label-version.message": "\u0627\u06CC\u0646 \u0646\u0633\u062E\u0647 \u0631\u0627 \u0628\u0627 \u06CC\u06A9 \u0628\u0631\u0686\u0633\u0628 \u06A9\u0648\u062A\u0627\u0647 \u0639\u0644\u0627\u0645\u062A\u200C\u06AF\u0630\u0627\u0631\u06CC \u06A9\u0646\u06CC\u062F.",
   "notice.no-folder-history": "\u0647\u0646\u0648\u0632 \u062A\u0627\u0631\u06CC\u062E\u0686\u0647\u200C\u0627\u06CC \u0628\u0631\u0627\u06CC \u067E\u0648\u0634\u0647 \u0648\u062C\u0648\u062F \u0646\u062F\u0627\u0631\u062F.",
@@ -8203,7 +8215,7 @@ var fi_default = {
   "command.reset-lines-all": "Nollaa kaikki riviseurannan tilannevedokset",
   "command.reset-lines": "Nollaa nykyisen asiakirjan riviseurannan tilannevedos",
   "command.show-diff": "N\xE4yt\xE4 nykyisen asiakirjan kaikki muutokset",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "Avaa holvin muutospaneeli",
   "notice.no-changes-to-navigate": "Ei muutoksia, joiden v\xE4lill\xE4 liikkua",
   "notice.all-snapshots-deleted": "Kaikki tilannevedostiedot poistettu",
   "notice.current-snapshot-deleted": "Nykyiset tilannevedostiedot poistettu",
@@ -8238,14 +8250,13 @@ var fi_default = {
   "setting.keep.desc": "Versiohistorian siivoamisstrategia",
   "setting.keep.option.app": "Sovellus suljetaan",
   "setting.keep.option.file": "Tiedosto suljetaan",
+  "setting.keep.option.persist": "S\xE4ilytet\xE4\xE4n uudelleenk\xE4ynnistysten yli",
   "setting.ignore-new-files.name": "Ohita uudet tiedostot",
   "setting.ignore-new-files.desc": "\xC4l\xE4 seuraa muutoksia tiedostoissa, jotka on luotu seurannan aloittamisen j\xE4lkeen",
   "setting.tree-highlight.name": "Korosta muutokset tiedostopuussa ja v\xE4lilehdiss\xE4",
   "setting.tree-highlight.desc": "V\xE4rj\xE4\xE4 natiivin tiedostoselaimen tiedostot ja kansiot sek\xE4 avoinna olevien tiedostojen v\xE4lilehtien otsikot sen mukaan, mik\xE4 t\xE4ss\xE4 istunnossa muuttui (keltainen muokatulle, vihre\xE4 lis\xE4tylle).",
   "setting.properties-highlight.name": "Korosta muutokset ominaisuuspaneelissa",
   "setting.properties-highlight.desc": "N\xE4yt\xE4 lis\xE4tyt, muutetut ja poistetut frontmatter-avaimet Obsidianin ominaisuuspaneelissa. Poista k\xE4yt\xF6st\xE4 piilottaaksesi kaikki ominaisuusmuutosten korostukset.",
-  "setting.persist.name": "S\xE4ilyt\xE4 historia uudelleenk\xE4ynnistysten yli",
-  "setting.persist.desc": 'Tallenna historia levylle, jotta korostukset s\xE4ilyv\xE4t uudelleenk\xE4ynnistyksen yli. Edellytt\xE4\xE4, ett\xE4 "S\xE4ilyt\xE4 historiaa kunnes" on asetettu arvoon Sovellus suljetaan.',
   "setting.max-entries.name": "Tallennettujen tiedostojen enimm\xE4ism\xE4\xE4r\xE4",
   "setting.max-entries.desc": "Yl\xE4raja sille, kuinka monta tiedostohistoriaa levylle s\xE4ilytet\xE4\xE4n. Vanhimmat poistetaan ensin. Aseta arvoon 0 poistaaksesi k\xE4yt\xF6st\xE4.",
   "setting.max-age-days.name": "Historian enimm\xE4isik\xE4 (p\xE4iv\xE4\xE4)",
@@ -8270,8 +8281,8 @@ var fi_default = {
   "setting.line-heading": "Riviloilmaisin",
   "setting.line-width.name": "Leveys",
   "setting.line-width.desc": "Pystysuoran riviloilmaisimen leveys (pikselein\xE4).",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "Merkkien voimakkuus",
+  "setting.marker-intensity.desc": "Kaikkien muutosv\xE4rien yleinen voimakkuus (editorin merkit, puu, v\xE4lilehdet, lukutila). Suurempi on kirkkaampi, pienempi on haaleampi.",
   "setting.gutter-heading.name": "Reunusilmaisin",
   "setting.gutter-heading.prefix": "Reunustyyppi-ilmaisimen merkit (",
   "setting.gutter-heading.suffix": ").",
@@ -8338,11 +8349,11 @@ var fi_default = {
   "view.recent-changes.menu.restore": "Palauta t\xE4m\xE4 versio",
   "view.recent-changes.menu.delete": "Poista versio",
   "view.recent-changes.menu.put-label": "Lis\xE4\xE4 tunniste",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "Holvin muutokset",
+  "view.vault-changes.search-placeholder": "Suodata tiedostonimen mukaan",
+  "view.vault-changes.layout.tree": "Puu",
+  "view.vault-changes.layout.flat": "Litte\xE4 luettelo",
+  "view.vault-changes.deleted-notice": "T\xE4m\xE4 tiedosto poistettiin; sen historia s\xE4ilytet\xE4\xE4n.",
   "modal.label-selected": "Merkitse valittu versio",
   "modal.label-version.message": "Merkitse t\xE4m\xE4 versio lyhyell\xE4 tunnisteella.",
   "notice.no-folder-history": "Ei viel\xE4 kansiohistoriaa.",
@@ -8379,7 +8390,7 @@ var fr_default = {
   "command.reset-lines-all": "R\xE9initialiser tous les instantan\xE9s du suivi des lignes",
   "command.reset-lines": "R\xE9initialiser l'instantan\xE9 du suivi des lignes du document actuel",
   "command.show-diff": "Afficher toutes les modifications du document actuel",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "Ouvrir le panneau des modifications du coffre",
   "notice.no-changes-to-navigate": "Aucune modification \xE0 parcourir",
   "notice.all-snapshots-deleted": "Toutes les donn\xE9es d'instantan\xE9 supprim\xE9es",
   "notice.current-snapshot-deleted": "Donn\xE9es de l'instantan\xE9 actuel supprim\xE9es",
@@ -8414,14 +8425,13 @@ var fr_default = {
   "setting.keep.desc": "Strat\xE9gie de nettoyage de l'historique des r\xE9visions",
   "setting.keep.option.app": "Fermeture de l'application",
   "setting.keep.option.file": "Fermeture du fichier",
+  "setting.keep.option.persist": "Conserv\xE9 apr\xE8s red\xE9marrage",
   "setting.ignore-new-files.name": "Ignorer les nouveaux fichiers",
   "setting.ignore-new-files.desc": "Ne pas suivre les modifications des fichiers cr\xE9\xE9s apr\xE8s le d\xE9marrage du suivi",
   "setting.tree-highlight.name": "Mettre en \xE9vidence les changements dans l'arborescence et les onglets",
   "setting.tree-highlight.desc": "Colore les fichiers et dossiers de l'explorateur de fichiers natif, ainsi que les en-t\xEAtes d'onglet des fichiers ouverts, selon ce qui a chang\xE9 durant cette session (ambre pour modifi\xE9, vert pour ajout\xE9).",
   "setting.properties-highlight.name": "Surligner les modifications dans le panneau des propri\xE9t\xE9s",
   "setting.properties-highlight.desc": "Afficher les cl\xE9s de frontmatter ajout\xE9es, modifi\xE9es et supprim\xE9es dans le panneau des propri\xE9t\xE9s d'Obsidian. D\xE9sactivez pour masquer toute d\xE9coration des diff\xE9rences de propri\xE9t\xE9s.",
-  "setting.persist.name": "Conserver l'historique entre les red\xE9marrages",
-  "setting.persist.desc": `Enregistrer l'historique sur le disque pour que les surlignages survivent \xE0 un red\xE9marrage. N\xE9cessite que "Conserver l'historique jusqu'\xE0" soit r\xE9gl\xE9 sur la fermeture de l'application.`,
   "setting.max-entries.name": "Nombre maximal de fichiers stock\xE9s",
   "setting.max-entries.desc": "Limite du nombre d'historiques de fichiers conserv\xE9s sur le disque. Les plus anciens sont supprim\xE9s en premier. R\xE9glez sur 0 pour d\xE9sactiver.",
   "setting.max-age-days.name": "\xC2ge maximal de l'historique (jours)",
@@ -8446,8 +8456,8 @@ var fr_default = {
   "setting.line-heading": "Indicateur de ligne",
   "setting.line-width.name": "Largeur",
   "setting.line-width.desc": "Largeur de l'indicateur en ligne verticale (en pixels).",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "Intensit\xE9 des marqueurs",
+  "setting.marker-intensity.desc": "Intensit\xE9 globale de toutes les couleurs de modification (marqueurs de l'\xE9diteur, arborescence, onglets, mode lecture). Plus \xE9lev\xE9 est plus vif, plus bas est plus p\xE2le.",
   "setting.gutter-heading.name": "Indicateur de goutti\xE8re",
   "setting.gutter-heading.prefix": "Caract\xE8res de l'indicateur de type dans la goutti\xE8re (",
   "setting.gutter-heading.suffix": ").",
@@ -8514,11 +8524,11 @@ var fr_default = {
   "view.recent-changes.menu.restore": "Restaurer cette version",
   "view.recent-changes.menu.delete": "Supprimer la version",
   "view.recent-changes.menu.put-label": "Poser une \xE9tiquette",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "Modifications du coffre",
+  "view.vault-changes.search-placeholder": "Filtrer par nom de fichier",
+  "view.vault-changes.layout.tree": "Arborescence",
+  "view.vault-changes.layout.flat": "Liste plate",
+  "view.vault-changes.deleted-notice": "Ce fichier a \xE9t\xE9 supprim\xE9 ; son historique est conserv\xE9.",
   "modal.label-selected": "\xC9tiqueter la version s\xE9lectionn\xE9e",
   "modal.label-version.message": "Marquez cette version avec une courte \xE9tiquette.",
   "notice.no-folder-history": "Aucun historique de dossier pour le moment.",
@@ -8555,7 +8565,7 @@ var ga_default = {
   "command.reset-lines-all": "Athshocraigh gach roghbhl\xFAire de lorgaire na l\xEDnte",
   "command.reset-lines": "Athshocraigh roghbhl\xFAire lorgaire l\xEDnte na c\xE1ip\xE9ise reatha",
   "command.show-diff": "Taispe\xE1in gach athr\xFA sa ch\xE1ip\xE9is reatha",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "Oscail pain\xE9al athruithe na taisce",
   "notice.no-changes-to-navigate": "N\xEDl aon athr\xFA le nasclean\xFAint",
   "notice.all-snapshots-deleted": "Scriosadh gach sonra roghbhl\xFAire",
   "notice.current-snapshot-deleted": "Scriosadh sonra\xED an roghbhl\xFAire reatha",
@@ -8590,14 +8600,13 @@ var ga_default = {
   "setting.keep.desc": "Strait\xE9is chun stair na leasuithe a ghlanadh",
   "setting.keep.option.app": "D\xFAnadh an aip",
   "setting.keep.option.file": "D\xFAnadh an comhad",
+  "setting.keep.option.persist": "Coinnithe thar atosuithe",
   "setting.ignore-new-files.name": "D\xE9an neamhaird de chomhaid nua",
   "setting.ignore-new-files.desc": "N\xE1 lorg athruithe i gcomhaid a crutha\xEDodh tar \xE9is don lorg tos\xFA",
   "setting.tree-highlight.name": "Aibhsigh athruithe i gcrann na gcomhad agus sna cluais\xEDn\xED",
   "setting.tree-highlight.desc": "Dathaigh comhaid agus fillte\xE1in i mbrabhs\xE1la\xED d\xFAchasach na gcomhad, agus ceannt\xE1sca cluais\xEDn\xED na gcomhad oscailte, de r\xE9ir ar athra\xEDodh sa seisi\xFAn seo (\xF3mra do mhodhnaithe, glas don bhreisithe).",
   "setting.properties-highlight.name": "Aibhsigh athruithe sa phain\xE9al Air\xEDonna",
   "setting.properties-highlight.desc": "Taispe\xE1in eochracha frontmatter a cuireadh leis, a athra\xEDodh agus a baineadh i bpain\xE9al Air\xEDonna Obsidian. D\xEDchumasaigh chun gach maisi\xFA difr\xEDochta air\xEDonna a cheilt.",
-  "setting.persist.name": "Coinnigh an stair tr\xED atosuithe",
-  "setting.persist.desc": 'S\xE1bh\xE1il an stair ar an diosca ionas go maireann na haibhsithe tr\xED atos\xFA. N\xED m\xF3r "coinnigh an stair go dt\xED" a shocr\xFA ar dh\xFAnadh an aip.',
   "setting.max-entries.name": "Uasmh\xE9id comhad st\xF3r\xE1ilte",
   "setting.max-entries.desc": "Teorainn ar l\xEDon na staireanna comhaid a choinn\xEDtear ar an diosca. D\xEDbr\xEDtear na cinn is sine ar dt\xFAs. Socraigh ar 0 lena dh\xEDchumas\xFA.",
   "setting.max-age-days.name": "Uasaois staire (laethanta)",
@@ -8622,8 +8631,8 @@ var ga_default = {
   "setting.line-heading": "T\xE1scaire l\xEDne",
   "setting.line-width.name": "Leithead",
   "setting.line-width.desc": "Leithead an t\xE1scaire l\xEDne ingheara\xED (i bpicteil\xEDn\xED).",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "D\xE9ine na marc\xF3ir\xED",
+  "setting.marker-intensity.desc": "D\xE9ine ioml\xE1n gach dath athraithe (marc\xF3ir\xED an eagarth\xF3ra, crann, cluais\xEDn\xED, m\xF3d l\xE9itheoireachta). Is gile \xE9 n\xEDos airde, is b\xE1ine \xE9 n\xEDos \xEDsle.",
   "setting.gutter-heading.name": "T\xE1scaire imill",
   "setting.gutter-heading.prefix": "Carachtair de th\xE1scaire cine\xE1il an imill (",
   "setting.gutter-heading.suffix": ").",
@@ -8690,11 +8699,11 @@ var ga_default = {
   "view.recent-changes.menu.restore": "Athch\xF3irigh an leagan seo",
   "view.recent-changes.menu.delete": "Scrios an leagan",
   "view.recent-changes.menu.put-label": "Cuir lip\xE9ad air",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "Athruithe na taisce",
+  "view.vault-changes.search-placeholder": "Scag de r\xE9ir ainm comhaid",
+  "view.vault-changes.layout.tree": "Crann",
+  "view.vault-changes.layout.flat": "Liosta cothrom",
+  "view.vault-changes.deleted-notice": "Scriosadh an comhad seo; coinn\xEDtear a stair.",
   "modal.label-selected": "Cuir lip\xE9ad ar an leagan roghnaithe",
   "modal.label-version.message": "Marc\xE1il an leagan seo le lip\xE9ad gearr.",
   "notice.no-folder-history": "N\xEDl aon stair fillte\xE1in f\xF3s.",
@@ -8731,7 +8740,7 @@ var he_default = {
   "command.reset-lines-all": "\u05D0\u05D9\u05E4\u05D5\u05E1 \u05DB\u05DC \u05EA\u05E6\u05DC\u05D5\u05DE\u05D9 \u05DE\u05E2\u05E7\u05D1 \u05D4\u05E9\u05D5\u05E8\u05D5\u05EA",
   "command.reset-lines": "\u05D0\u05D9\u05E4\u05D5\u05E1 \u05EA\u05E6\u05DC\u05D5\u05DD \u05DE\u05E2\u05E7\u05D1 \u05D4\u05E9\u05D5\u05E8\u05D5\u05EA \u05E9\u05DC \u05D4\u05DE\u05E1\u05DE\u05DA \u05D4\u05E0\u05D5\u05DB\u05D7\u05D9",
   "command.show-diff": "\u05D4\u05E6\u05D2\u05EA \u05DB\u05DC \u05D4\u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05D1\u05DE\u05E1\u05DE\u05DA \u05D4\u05E0\u05D5\u05DB\u05D7\u05D9",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "\u05E4\u05EA\u05D7 \u05D0\u05EA \u05DC\u05D5\u05D7 \u05E9\u05D9\u05E0\u05D5\u05D9\u05D9 \u05D4\u05DB\u05E1\u05E4\u05EA",
   "notice.no-changes-to-navigate": "\u05D0\u05D9\u05DF \u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05DC\u05E0\u05D9\u05D5\u05D5\u05D8",
   "notice.all-snapshots-deleted": "\u05DB\u05DC \u05E0\u05EA\u05D5\u05E0\u05D9 \u05D4\u05EA\u05E6\u05DC\u05D5\u05DE\u05D9\u05DD \u05E0\u05DE\u05D7\u05E7\u05D5",
   "notice.current-snapshot-deleted": "\u05E0\u05EA\u05D5\u05E0\u05D9 \u05D4\u05EA\u05E6\u05DC\u05D5\u05DD \u05D4\u05E0\u05D5\u05DB\u05D7\u05D9 \u05E0\u05DE\u05D7\u05E7\u05D5",
@@ -8766,14 +8775,13 @@ var he_default = {
   "setting.keep.desc": "\u05D0\u05E1\u05D8\u05E8\u05D8\u05D2\u05D9\u05D4 \u05DC\u05E0\u05D9\u05E7\u05D5\u05D9 \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D9\u05EA \u05D4\u05D2\u05E8\u05E1\u05D0\u05D5\u05EA",
   "setting.keep.option.app": "\u05E1\u05D2\u05D9\u05E8\u05EA \u05D4\u05D9\u05D9\u05E9\u05D5\u05DD",
   "setting.keep.option.file": "\u05E1\u05D2\u05D9\u05E8\u05EA \u05D4\u05E7\u05D5\u05D1\u05E5",
+  "setting.keep.option.persist": "\u05E0\u05E9\u05DE\u05E8 \u05D1\u05D9\u05DF \u05D4\u05E4\u05E2\u05DC\u05D5\u05EA \u05DE\u05D7\u05D3\u05E9",
   "setting.ignore-new-files.name": "\u05D4\u05EA\u05E2\u05DC\u05DE\u05D5\u05EA \u05DE\u05E7\u05D1\u05E6\u05D9\u05DD \u05D7\u05D3\u05E9\u05D9\u05DD",
   "setting.ignore-new-files.desc": "\u05D0\u05DC \u05EA\u05E2\u05E7\u05D5\u05D1 \u05D0\u05D7\u05E8 \u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05D1\u05E7\u05D1\u05E6\u05D9\u05DD \u05E9\u05E0\u05D5\u05E6\u05E8\u05D5 \u05DC\u05D0\u05D7\u05E8 \u05EA\u05D7\u05D9\u05DC\u05EA \u05D4\u05DE\u05E2\u05E7\u05D1",
   "setting.tree-highlight.name": "\u05D4\u05D3\u05D2\u05E9\u05EA \u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05D1\u05E2\u05E5 \u05D4\u05E7\u05D1\u05E6\u05D9\u05DD \u05D5\u05D1\u05DC\u05E9\u05D5\u05E0\u05D9\u05D5\u05EA",
   "setting.tree-highlight.desc": "\u05E6\u05D1\u05D9\u05E2\u05EA \u05E7\u05D1\u05E6\u05D9\u05DD \u05D5\u05EA\u05D9\u05E7\u05D9\u05D5\u05EA \u05D1\u05E1\u05D9\u05D9\u05E8 \u05D4\u05E7\u05D1\u05E6\u05D9\u05DD \u05D4\u05DE\u05D5\u05D1\u05E0\u05D4, \u05D5\u05DB\u05D5\u05EA\u05E8\u05D5\u05EA \u05D4\u05DC\u05E9\u05D5\u05E0\u05D9\u05D5\u05EA \u05E9\u05DC \u05E7\u05D1\u05E6\u05D9\u05DD \u05E4\u05EA\u05D5\u05D7\u05D9\u05DD, \u05DC\u05E4\u05D9 \u05DE\u05D4 \u05E9\u05D4\u05E9\u05EA\u05E0\u05D4 \u05D1\u05DE\u05D4\u05DC\u05DA \u05D4\u05E4\u05E2\u05DC\u05D4 \u05D6\u05D5 (\u05E2\u05E0\u05D1\u05E8 \u05DC\u05E9\u05D5\u05E0\u05D4, \u05D9\u05E8\u05D5\u05E7 \u05DC\u05E0\u05D5\u05E1\u05E3).",
   "setting.properties-highlight.name": "\u05D4\u05D3\u05D2\u05E9\u05EA \u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD \u05D1\u05D7\u05DC\u05D5\u05E0\u05D9\u05EA \u05D4\u05DE\u05D0\u05E4\u05D9\u05D9\u05E0\u05D9\u05DD",
   "setting.properties-highlight.desc": "\u05D4\u05E6\u05D2\u05EA \u05DE\u05E4\u05EA\u05D7\u05D5\u05EA frontmatter \u05E9\u05E0\u05D5\u05E1\u05E4\u05D5, \u05E9\u05D5\u05E0\u05D5 \u05D0\u05D5 \u05D4\u05D5\u05E1\u05E8\u05D5 \u05D1\u05D7\u05DC\u05D5\u05E0\u05D9\u05EA \u05D4\u05DE\u05D0\u05E4\u05D9\u05D9\u05E0\u05D9\u05DD \u05E9\u05DC Obsidian. \u05DB\u05D1\u05D5 \u05DB\u05D3\u05D9 \u05DC\u05D4\u05E1\u05EA\u05D9\u05E8 \u05D0\u05EA \u05DB\u05DC \u05E1\u05D9\u05DE\u05D5\u05DF \u05E9\u05D9\u05E0\u05D5\u05D9\u05D9 \u05D4\u05DE\u05D0\u05E4\u05D9\u05D9\u05E0\u05D9\u05DD.",
-  "setting.persist.name": "\u05E9\u05DE\u05D9\u05E8\u05EA \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05D1\u05D9\u05DF \u05D4\u05E4\u05E2\u05DC\u05D5\u05EA \u05DE\u05D7\u05D3\u05E9",
-  "setting.persist.desc": '\u05E9\u05DE\u05D5\u05E8 \u05D0\u05EA \u05D4\u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05DC\u05D3\u05D9\u05E1\u05E7 \u05DB\u05D3\u05D9 \u05E9\u05D4\u05D4\u05D3\u05D2\u05E9\u05D5\u05EA \u05D9\u05E9\u05E8\u05D3\u05D5 \u05D4\u05E4\u05E2\u05DC\u05D4 \u05DE\u05D7\u05D3\u05E9. \u05D3\u05D5\u05E8\u05E9 \u05D4\u05D2\u05D3\u05E8\u05EA "\u05E9\u05DE\u05D9\u05E8\u05EA \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05E2\u05D3" \u05DC\u05E1\u05D2\u05D9\u05E8\u05EA \u05D4\u05D9\u05D9\u05E9\u05D5\u05DD.',
   "setting.max-entries.name": "\u05DE\u05E7\u05E1\u05D9\u05DE\u05D5\u05DD \u05E7\u05D1\u05E6\u05D9\u05DD \u05E9\u05DE\u05D5\u05E8\u05D9\u05DD",
   "setting.max-entries.desc": "\u05DE\u05D2\u05D1\u05DC\u05D4 \u05E2\u05DC \u05DE\u05E1\u05E4\u05E8 \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D5\u05EA \u05D4\u05E7\u05D1\u05E6\u05D9\u05DD \u05D4\u05E0\u05E9\u05DE\u05E8\u05D5\u05EA \u05D1\u05D3\u05D9\u05E1\u05E7. \u05D4\u05D9\u05E9\u05E0\u05D9\u05DD \u05D1\u05D9\u05D5\u05EA\u05E8 \u05DE\u05E4\u05D5\u05E0\u05D9\u05DD \u05EA\u05D7\u05D9\u05DC\u05D4. \u05D4\u05D2\u05D3\u05E8 \u05DC-0 \u05DC\u05D1\u05D9\u05D8\u05D5\u05DC.",
   "setting.max-age-days.name": "\u05D2\u05D9\u05DC \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05DE\u05E8\u05D1\u05D9 (\u05D9\u05DE\u05D9\u05DD)",
@@ -8798,8 +8806,8 @@ var he_default = {
   "setting.line-heading": "\u05DE\u05D7\u05D5\u05D5\u05DF \u05E9\u05D5\u05E8\u05D4",
   "setting.line-width.name": "\u05E8\u05D5\u05D7\u05D1",
   "setting.line-width.desc": "\u05E8\u05D5\u05D7\u05D1 \u05DE\u05D7\u05D5\u05D5\u05DF \u05D4\u05E7\u05D5 \u05D4\u05D0\u05E0\u05DB\u05D9 (\u05D1\u05E4\u05D9\u05E7\u05E1\u05DC\u05D9\u05DD).",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "\u05E2\u05D5\u05E6\u05DE\u05EA \u05D4\u05E1\u05DE\u05E0\u05D9\u05DD",
+  "setting.marker-intensity.desc": "\u05D4\u05E2\u05D5\u05E6\u05DE\u05D4 \u05D4\u05DB\u05D5\u05DC\u05DC\u05EA \u05E9\u05DC \u05DB\u05DC \u05E6\u05D1\u05E2\u05D9 \u05D4\u05E9\u05D9\u05E0\u05D5\u05D9 (\u05E1\u05DE\u05E0\u05D9 \u05D4\u05E2\u05D5\u05E8\u05DA, \u05E2\u05E5, \u05DC\u05E9\u05D5\u05E0\u05D9\u05D5\u05EA, \u05DE\u05E6\u05D1 \u05E7\u05E8\u05D9\u05D0\u05D4). \u05D2\u05D1\u05D5\u05D4 \u05D9\u05D5\u05EA\u05E8 \u05D7\u05D9 \u05D9\u05D5\u05EA\u05E8, \u05E0\u05DE\u05D5\u05DA \u05D9\u05D5\u05EA\u05E8 \u05D7\u05D9\u05D5\u05D5\u05E8 \u05D9\u05D5\u05EA\u05E8.",
   "setting.gutter-heading.name": "\u05DE\u05D7\u05D5\u05D5\u05DF \u05E9\u05D5\u05DC\u05D9\u05D9\u05DD",
   "setting.gutter-heading.prefix": "\u05EA\u05D5\u05D5\u05D9 \u05DE\u05D7\u05D5\u05D5\u05DF \u05D4\u05E1\u05D5\u05D2 \u05D1\u05E9\u05D5\u05DC\u05D9\u05D9\u05DD (",
   "setting.gutter-heading.suffix": ").",
@@ -8866,11 +8874,11 @@ var he_default = {
   "view.recent-changes.menu.restore": "\u05E9\u05D7\u05D6\u05E8 \u05D2\u05E8\u05E1\u05D4 \u05D6\u05D5",
   "view.recent-changes.menu.delete": "\u05DE\u05D7\u05E7 \u05D2\u05E8\u05E1\u05D4",
   "view.recent-changes.menu.put-label": "\u05D4\u05D5\u05E1\u05E3 \u05EA\u05D5\u05D5\u05D9\u05EA",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "\u05E9\u05D9\u05E0\u05D5\u05D9\u05D9 \u05D4\u05DB\u05E1\u05E4\u05EA",
+  "view.vault-changes.search-placeholder": "\u05E1\u05D9\u05E0\u05D5\u05DF \u05DC\u05E4\u05D9 \u05E9\u05DD \u05E7\u05D5\u05D1\u05E5",
+  "view.vault-changes.layout.tree": "\u05E2\u05E5",
+  "view.vault-changes.layout.flat": "\u05E8\u05E9\u05D9\u05DE\u05D4 \u05E9\u05D8\u05D5\u05D7\u05D4",
+  "view.vault-changes.deleted-notice": "\u05E7\u05D5\u05D1\u05E5 \u05D6\u05D4 \u05E0\u05DE\u05D7\u05E7; \u05D4\u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D4 \u05E9\u05DC\u05D5 \u05E0\u05E9\u05DE\u05E8\u05EA.",
   "modal.label-selected": "\u05D4\u05D5\u05E1\u05E3 \u05EA\u05D5\u05D5\u05D9\u05EA \u05DC\u05D2\u05E8\u05E1\u05D4 \u05E9\u05E0\u05D1\u05D7\u05E8\u05D4",
   "modal.label-version.message": "\u05E1\u05DE\u05E0\u05D5 \u05D2\u05E8\u05E1\u05D4 \u05D6\u05D5 \u05D1\u05EA\u05D5\u05D5\u05D9\u05EA \u05E7\u05E6\u05E8\u05D4.",
   "notice.no-folder-history": "\u05D0\u05D9\u05DF \u05E2\u05D3\u05D9\u05D9\u05DF \u05D4\u05D9\u05E1\u05D8\u05D5\u05E8\u05D9\u05D9\u05EA \u05EA\u05D9\u05E7\u05D9\u05D9\u05D4.",
@@ -8907,7 +8915,7 @@ var hu_default = {
   "command.reset-lines-all": "\xD6sszes sork\xF6vet\xE9si pillanatk\xE9p vissza\xE1ll\xEDt\xE1sa",
   "command.reset-lines": "Az aktu\xE1lis dokumentum sork\xF6vet\xE9si pillanatk\xE9p\xE9nek vissza\xE1ll\xEDt\xE1sa",
   "command.show-diff": "Az aktu\xE1lis dokumentum \xF6sszes m\xF3dos\xEDt\xE1s\xE1nak megjelen\xEDt\xE9se",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "T\xE1rol\xF3 v\xE1ltoz\xE1sainak panelj\xE9nek megnyit\xE1sa",
   "notice.no-changes-to-navigate": "Nincs m\xF3dos\xEDt\xE1s, amelyek k\xF6z\xF6tt l\xE9pkedni lehetne",
   "notice.all-snapshots-deleted": "Az \xF6sszes pillanatk\xE9p-adat t\xF6r\xF6lve",
   "notice.current-snapshot-deleted": "Az aktu\xE1lis pillanatk\xE9p-adatok t\xF6r\xF6lve",
@@ -8942,14 +8950,13 @@ var hu_default = {
   "setting.keep.desc": "A rev\xEDzi\xF3s el\u0151zm\xE9nyek tiszt\xEDt\xE1s\xE1nak strat\xE9gi\xE1ja",
   "setting.keep.option.app": "Alkalmaz\xE1s bez\xE1r\xE1sa",
   "setting.keep.option.file": "F\xE1jl bez\xE1r\xE1sa",
+  "setting.keep.option.persist": "\xDAjraind\xEDt\xE1sok k\xF6z\xF6tt meg\u0151rizve",
   "setting.ignore-new-files.name": "\xDAj f\xE1jlok mell\u0151z\xE9se",
   "setting.ignore-new-files.desc": "Ne k\xF6vesse a k\xF6vet\xE9s ind\xEDt\xE1sa ut\xE1n l\xE9trehozott f\xE1jlok m\xF3dos\xEDt\xE1sait",
   "setting.tree-highlight.name": "V\xE1ltoz\xE1sok kiemel\xE9se a f\xE1jlf\xE1ban \xE9s a f\xFCleken",
   "setting.tree-highlight.desc": "A nat\xEDv f\xE1jlb\xF6ng\xE9sz\u0151 f\xE1jljainak \xE9s mapp\xE1inak, valamint a megnyitott f\xE1jlok f\xFClfejl\xE9ceinek sz\xEDnez\xE9se aszerint, hogy mi v\xE1ltozott ebben a munkamenetben (borosty\xE1n a m\xF3dos\xEDtotthoz, z\xF6ld a hozz\xE1adotthoz).",
   "setting.properties-highlight.name": "V\xE1ltoz\xE1sok kiemel\xE9se a Tulajdons\xE1gok panelen",
   "setting.properties-highlight.desc": "A hozz\xE1adott, m\xF3dos\xEDtott \xE9s elt\xE1vol\xEDtott frontmatter-kulcsok megjelen\xEDt\xE9se az Obsidian Tulajdons\xE1gok panelj\xE9n. Kapcsolja ki a tulajdons\xE1gv\xE1ltoz\xE1sok jel\xF6l\xE9s\xE9nek elrejt\xE9s\xE9hez.",
-  "setting.persist.name": "El\u0151zm\xE9nyek meg\u0151rz\xE9se \xFAjraind\xEDt\xE1sokon \xE1t",
-  "setting.persist.desc": 'Mentse az el\u0151zm\xE9nyeket lemezre, hogy a kiemel\xE9sek t\xFAl\xE9ljenek egy \xFAjraind\xEDt\xE1st. Ehhez az "El\u0151zm\xE9nyek meg\u0151rz\xE9se eddig" be\xE1ll\xEDt\xE1snak az Alkalmaz\xE1s bez\xE1r\xE1sa \xE9rt\xE9ken kell \xE1llnia.',
   "setting.max-entries.name": "T\xE1rolt f\xE1jlok maxim\xE1lis sz\xE1ma",
   "setting.max-entries.desc": "Korl\xE1t arra, h\xE1ny f\xE1jl el\u0151zm\xE9nye marad meg a lemezen. A legr\xE9gebbiek t\xF6rl\u0151dnek el\u0151sz\xF6r. \xC1ll\xEDtsa 0-ra a kikapcsol\xE1shoz.",
   "setting.max-age-days.name": "El\u0151zm\xE9nyek maxim\xE1lis kora (nap)",
@@ -8974,8 +8981,8 @@ var hu_default = {
   "setting.line-heading": "Sorjelz\u0151",
   "setting.line-width.name": "Sz\xE9less\xE9g",
   "setting.line-width.desc": "A f\xFCgg\u0151leges sorjelz\u0151 sz\xE9less\xE9ge (k\xE9ppontban).",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "Jel\xF6l\u0151k intenzit\xE1sa",
+  "setting.marker-intensity.desc": "Az \xF6sszes v\xE1ltoz\xE1ssz\xEDn \xE1ltal\xE1nos intenzit\xE1sa (szerkeszt\u0151jel\xF6l\u0151k, fa, lapok, olvas\xE1si m\xF3d). A magasabb \xE9l\xE9nkebb, az alacsonyabb halv\xE1nyabb.",
   "setting.gutter-heading.name": "Marg\xF3jelz\u0151",
   "setting.gutter-heading.prefix": "A marg\xF3t\xEDpus-jelz\u0151 karakterei (",
   "setting.gutter-heading.suffix": ").",
@@ -9042,11 +9049,11 @@ var hu_default = {
   "view.recent-changes.menu.restore": "Verzi\xF3 vissza\xE1ll\xEDt\xE1sa",
   "view.recent-changes.menu.delete": "Verzi\xF3 t\xF6rl\xE9se",
   "view.recent-changes.menu.put-label": "C\xEDmke elhelyez\xE9se",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "T\xE1rol\xF3 v\xE1ltoz\xE1sai",
+  "view.vault-changes.search-placeholder": "Sz\u0171r\xE9s f\xE1jln\xE9v szerint",
+  "view.vault-changes.layout.tree": "Fa",
+  "view.vault-changes.layout.flat": "Lapos lista",
+  "view.vault-changes.deleted-notice": "Ez a f\xE1jl t\xF6rl\u0151d\xF6tt; az el\u0151zm\xE9nyei megmaradnak.",
   "modal.label-selected": "Kijel\xF6lt verzi\xF3 c\xEDmk\xE9z\xE9se",
   "modal.label-version.message": "Jel\xF6lje meg ezt a verzi\xF3t egy r\xF6vid c\xEDmk\xE9vel.",
   "notice.no-folder-history": "M\xE9g nincs mappael\u0151zm\xE9ny.",
@@ -9083,7 +9090,7 @@ var id_default = {
   "command.reset-lines-all": "Setel ulang semua snapshot pelacak baris",
   "command.reset-lines": "Setel ulang snapshot pelacak baris dokumen saat ini",
   "command.show-diff": "Tampilkan semua perubahan dokumen saat ini",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "Buka panel perubahan vault",
   "notice.no-changes-to-navigate": "Tidak ada perubahan untuk dijelajahi",
   "notice.all-snapshots-deleted": "Semua data snapshot dihapus",
   "notice.current-snapshot-deleted": "Data snapshot saat ini dihapus",
@@ -9118,14 +9125,13 @@ var id_default = {
   "setting.keep.desc": "Strategi untuk membersihkan riwayat revisi",
   "setting.keep.option.app": "Aplikasi ditutup",
   "setting.keep.option.file": "Berkas ditutup",
+  "setting.keep.option.persist": "Disimpan setelah dimulai ulang",
   "setting.ignore-new-files.name": "Abaikan berkas baru",
   "setting.ignore-new-files.desc": "Jangan lacak perubahan pada berkas yang dibuat setelah pelacakan dimulai",
   "setting.tree-highlight.name": "Sorot perubahan di pohon berkas dan tab",
   "setting.tree-highlight.desc": "Warnai berkas dan folder di penjelajah berkas bawaan, serta tajuk tab berkas yang terbuka, berdasarkan apa yang berubah pada sesi ini (kuning untuk diubah, hijau untuk ditambah).",
   "setting.properties-highlight.name": "Sorot perubahan di panel Properti",
   "setting.properties-highlight.desc": "Tampilkan kunci frontmatter yang ditambahkan, diubah, dan dihapus di panel Properti Obsidian. Nonaktifkan untuk menyembunyikan semua penandaan perubahan properti.",
-  "setting.persist.name": "Pertahankan riwayat setelah dimulai ulang",
-  "setting.persist.desc": 'Simpan riwayat ke disk agar sorotan bertahan setelah dimulai ulang. Memerlukan "simpan riwayat hingga" disetel ke aplikasi ditutup.',
   "setting.max-entries.name": "Maks berkas tersimpan",
   "setting.max-entries.desc": "Batas jumlah riwayat berkas yang disimpan di disk. Yang terlama dihapus lebih dahulu. Setel ke 0 untuk menonaktifkan.",
   "setting.max-age-days.name": "Usia maks riwayat (hari)",
@@ -9150,8 +9156,8 @@ var id_default = {
   "setting.line-heading": "Indikator baris",
   "setting.line-width.name": "Lebar",
   "setting.line-width.desc": "Lebar indikator garis vertikal (dalam piksel).",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "Intensitas penanda",
+  "setting.marker-intensity.desc": "Intensitas keseluruhan setiap warna perubahan (penanda editor, pohon, tab, mode baca). Lebih tinggi lebih cerah, lebih rendah lebih pucat.",
   "setting.gutter-heading.name": "Indikator selokan",
   "setting.gutter-heading.prefix": "Karakter indikator tipe selokan (",
   "setting.gutter-heading.suffix": ").",
@@ -9218,11 +9224,11 @@ var id_default = {
   "view.recent-changes.menu.restore": "Pulihkan versi ini",
   "view.recent-changes.menu.delete": "Hapus versi",
   "view.recent-changes.menu.put-label": "Beri label",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "Perubahan vault",
+  "view.vault-changes.search-placeholder": "Filter berdasarkan nama berkas",
+  "view.vault-changes.layout.tree": "Pohon",
+  "view.vault-changes.layout.flat": "Daftar datar",
+  "view.vault-changes.deleted-notice": "Berkas ini telah dihapus; riwayatnya disimpan.",
   "modal.label-selected": "Beri label versi yang dipilih",
   "modal.label-version.message": "Tandai versi ini dengan label singkat.",
   "notice.no-folder-history": "Belum ada riwayat folder.",
@@ -9259,7 +9265,7 @@ var it_default = {
   "command.reset-lines-all": "Reimposta tutte le istantanee del tracker delle righe",
   "command.reset-lines": "Reimposta l'istantanea del tracker delle righe del documento corrente",
   "command.show-diff": "Mostra tutte le modifiche del documento corrente",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "Apri il pannello delle modifiche del vault",
   "notice.no-changes-to-navigate": "Nessuna modifica da scorrere",
   "notice.all-snapshots-deleted": "Tutti i dati delle istantanee eliminati",
   "notice.current-snapshot-deleted": "Dati dell'istantanea corrente eliminati",
@@ -9294,14 +9300,13 @@ var it_default = {
   "setting.keep.desc": "Strategia per la pulizia della cronologia delle revisioni",
   "setting.keep.option.app": "Chiusura dell'app",
   "setting.keep.option.file": "Chiusura del file",
+  "setting.keep.option.persist": "Mantenuto dopo il riavvio",
   "setting.ignore-new-files.name": "Ignora i nuovi file",
   "setting.ignore-new-files.desc": "Non tracciare le modifiche nei file creati dopo l'avvio del tracciamento",
   "setting.tree-highlight.name": "Evidenzia le modifiche nell'albero dei file e nelle schede",
   "setting.tree-highlight.desc": "Colora i file e le cartelle nell'esploratore file nativo e le intestazioni delle schede dei file aperti in base a ci\xF2 che \xE8 cambiato in questa sessione (ambra per modificato, verde per aggiunto).",
   "setting.properties-highlight.name": "Evidenzia le modifiche nel pannello delle propriet\xE0",
   "setting.properties-highlight.desc": "Mostra le chiavi del frontmatter aggiunte, modificate e rimosse nel pannello delle propriet\xE0 di Obsidian. Disattiva per nascondere tutta la decorazione delle differenze di propriet\xE0.",
-  "setting.persist.name": "Mantieni la cronologia tra i riavvii",
-  "setting.persist.desc": `Salva la cronologia su disco in modo che le evidenziazioni sopravvivano a un riavvio. Richiede che "Conserva la cronologia fino a" sia impostato sulla chiusura dell'app.`,
   "setting.max-entries.name": "Numero massimo di file memorizzati",
   "setting.max-entries.desc": "Limite di quante cronologie di file vengono conservate su disco. Le pi\xF9 vecchie vengono rimosse per prime. Imposta su 0 per disattivare.",
   "setting.max-age-days.name": "Et\xE0 massima della cronologia (giorni)",
@@ -9326,8 +9331,8 @@ var it_default = {
   "setting.line-heading": "Indicatore di riga",
   "setting.line-width.name": "Larghezza",
   "setting.line-width.desc": "Larghezza dell'indicatore a linea verticale (in pixel).",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "Intensit\xE0 dei marcatori",
+  "setting.marker-intensity.desc": "Intensit\xE0 complessiva di tutti i colori di modifica (marcatori dell'editor, albero, schede, modalit\xE0 lettura). Pi\xF9 alto \xE8 pi\xF9 vivido, pi\xF9 basso \xE8 pi\xF9 pallido.",
   "setting.gutter-heading.name": "Indicatore nel margine",
   "setting.gutter-heading.prefix": "Caratteri dell'indicatore di tipo nel margine (",
   "setting.gutter-heading.suffix": ").",
@@ -9394,11 +9399,11 @@ var it_default = {
   "view.recent-changes.menu.restore": "Ripristina questa versione",
   "view.recent-changes.menu.delete": "Elimina versione",
   "view.recent-changes.menu.put-label": "Applica etichetta",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "Modifiche del vault",
+  "view.vault-changes.search-placeholder": "Filtra per nome file",
+  "view.vault-changes.layout.tree": "Albero",
+  "view.vault-changes.layout.flat": "Elenco semplice",
+  "view.vault-changes.deleted-notice": "Questo file \xE8 stato eliminato; la sua cronologia \xE8 conservata.",
   "modal.label-selected": "Etichetta la versione selezionata",
   "modal.label-version.message": "Contrassegna questa versione con una breve etichetta.",
   "notice.no-folder-history": "Ancora nessuna cronologia della cartella.",
@@ -9435,7 +9440,7 @@ var ja_default = {
   "command.reset-lines-all": "\u3059\u3079\u3066\u306E\u884C\u30C8\u30E9\u30C3\u30AB\u30FC\u30B9\u30CA\u30C3\u30D7\u30B7\u30E7\u30C3\u30C8\u3092\u30EA\u30BB\u30C3\u30C8",
   "command.reset-lines": "\u73FE\u5728\u306E\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\u306E\u884C\u30C8\u30E9\u30C3\u30AB\u30FC\u30B9\u30CA\u30C3\u30D7\u30B7\u30E7\u30C3\u30C8\u3092\u30EA\u30BB\u30C3\u30C8",
   "command.show-diff": "\u73FE\u5728\u306E\u30C9\u30AD\u30E5\u30E1\u30F3\u30C8\u306E\u3059\u3079\u3066\u306E\u5909\u66F4\u3092\u8868\u793A",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "Vault \u306E\u5909\u66F4\u30D1\u30CD\u30EB\u3092\u958B\u304F",
   "notice.no-changes-to-navigate": "\u79FB\u52D5\u3067\u304D\u308B\u5909\u66F4\u304C\u3042\u308A\u307E\u305B\u3093",
   "notice.all-snapshots-deleted": "\u3059\u3079\u3066\u306E\u30B9\u30CA\u30C3\u30D7\u30B7\u30E7\u30C3\u30C8\u30C7\u30FC\u30BF\u3092\u524A\u9664\u3057\u307E\u3057\u305F",
   "notice.current-snapshot-deleted": "\u73FE\u5728\u306E\u30B9\u30CA\u30C3\u30D7\u30B7\u30E7\u30C3\u30C8\u30C7\u30FC\u30BF\u3092\u524A\u9664\u3057\u307E\u3057\u305F",
@@ -9470,14 +9475,13 @@ var ja_default = {
   "setting.keep.desc": "\u30EA\u30D3\u30B8\u30E7\u30F3\u5C65\u6B74\u3092\u6574\u7406\u3059\u308B\u65B9\u6CD5",
   "setting.keep.option.app": "\u30A2\u30D7\u30EA\u3092\u9589\u3058\u308B\u307E\u3067",
   "setting.keep.option.file": "\u30D5\u30A1\u30A4\u30EB\u3092\u9589\u3058\u308B\u307E\u3067",
+  "setting.keep.option.persist": "\u518D\u8D77\u52D5\u5F8C\u3082\u4FDD\u6301",
   "setting.ignore-new-files.name": "\u65B0\u898F\u30D5\u30A1\u30A4\u30EB\u3092\u7121\u8996",
   "setting.ignore-new-files.desc": "\u8FFD\u8DE1\u958B\u59CB\u5F8C\u306B\u4F5C\u6210\u3055\u308C\u305F\u30D5\u30A1\u30A4\u30EB\u306E\u5909\u66F4\u3092\u8FFD\u8DE1\u3057\u307E\u305B\u3093",
   "setting.tree-highlight.name": "\u30D5\u30A1\u30A4\u30EB\u30C4\u30EA\u30FC\u3068\u30BF\u30D6\u3067\u5909\u66F4\u3092\u5F37\u8ABF\u8868\u793A",
   "setting.tree-highlight.desc": "\u30CD\u30A4\u30C6\u30A3\u30D6\u306E\u30D5\u30A1\u30A4\u30EB\u30A8\u30AF\u30B9\u30D7\u30ED\u30FC\u30E9\u30FC\u5185\u306E\u30D5\u30A1\u30A4\u30EB\u3068\u30D5\u30A9\u30EB\u30C0\u30FC\u3001\u304A\u3088\u3073\u958B\u3044\u3066\u3044\u308B\u30D5\u30A1\u30A4\u30EB\u306E\u30BF\u30D6\u30D8\u30C3\u30C0\u30FC\u3092\u3001\u3053\u306E\u30BB\u30C3\u30B7\u30E7\u30F3\u3067\u5909\u66F4\u3055\u308C\u305F\u5185\u5BB9\u306B\u5FDC\u3058\u3066\u8272\u4ED8\u3051\u3057\u307E\u3059\uFF08\u5909\u66F4\u306F\u7425\u73C0\u8272\u3001\u8FFD\u52A0\u306F\u7DD1\u8272\uFF09\u3002",
   "setting.properties-highlight.name": "\u30D7\u30ED\u30D1\u30C6\u30A3\u30D1\u30CD\u30EB\u3067\u5909\u66F4\u3092\u30CF\u30A4\u30E9\u30A4\u30C8",
   "setting.properties-highlight.desc": "\u8FFD\u52A0\u30FB\u5909\u66F4\u30FB\u524A\u9664\u3055\u308C\u305F\u30D5\u30ED\u30F3\u30C8\u30DE\u30BF\u30FC\u306E\u30AD\u30FC\u3092 Obsidian \u306E\u30D7\u30ED\u30D1\u30C6\u30A3\u30D1\u30CD\u30EB\u306B\u8868\u793A\u3057\u307E\u3059\u3002\u7121\u52B9\u306B\u3059\u308B\u3068\u30D7\u30ED\u30D1\u30C6\u30A3\u5DEE\u5206\u306E\u88C5\u98FE\u3092\u3059\u3079\u3066\u975E\u8868\u793A\u306B\u3057\u307E\u3059\u3002",
-  "setting.persist.name": "\u518D\u8D77\u52D5\u5F8C\u3082\u5C65\u6B74\u3092\u4FDD\u6301",
-  "setting.persist.desc": "\u5C65\u6B74\u3092\u30C7\u30A3\u30B9\u30AF\u306B\u4FDD\u5B58\u3057\u3001\u518D\u8D77\u52D5\u5F8C\u3082\u30CF\u30A4\u30E9\u30A4\u30C8\u304C\u6B8B\u308B\u3088\u3046\u306B\u3057\u307E\u3059\u3002\u300C\u5C65\u6B74\u3092\u4FDD\u6301\u3059\u308B\u671F\u9593\u300D\u3092\u30A2\u30D7\u30EA\u3092\u9589\u3058\u308B\u307E\u3067\u306B\u8A2D\u5B9A\u3059\u308B\u5FC5\u8981\u304C\u3042\u308A\u307E\u3059\u3002",
   "setting.max-entries.name": "\u4FDD\u5B58\u3059\u308B\u30D5\u30A1\u30A4\u30EB\u306E\u6700\u5927\u6570",
   "setting.max-entries.desc": "\u30C7\u30A3\u30B9\u30AF\u306B\u4FDD\u6301\u3059\u308B\u30D5\u30A1\u30A4\u30EB\u5C65\u6B74\u306E\u6570\u306E\u4E0A\u9650\u3067\u3059\u3002\u53E4\u3044\u3082\u306E\u304B\u3089\u9806\u306B\u524A\u9664\u3055\u308C\u307E\u3059\u30020 \u306B\u8A2D\u5B9A\u3059\u308B\u3068\u7121\u52B9\u306B\u306A\u308A\u307E\u3059\u3002",
   "setting.max-age-days.name": "\u5C65\u6B74\u306E\u6700\u5927\u4FDD\u6301\u65E5\u6570\uFF08\u65E5\uFF09",
@@ -9502,8 +9506,8 @@ var ja_default = {
   "setting.line-heading": "\u884C\u30A4\u30F3\u30B8\u30B1\u30FC\u30BF\u30FC",
   "setting.line-width.name": "\u5E45",
   "setting.line-width.desc": "\u7E26\u7DDA\u30A4\u30F3\u30B8\u30B1\u30FC\u30BF\u30FC\u306E\u5E45\uFF08\u30D4\u30AF\u30BB\u30EB\u5358\u4F4D\uFF09\u3002",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "\u30DE\u30FC\u30AB\u30FC\u306E\u5F37\u5EA6",
+  "setting.marker-intensity.desc": "\u3059\u3079\u3066\u306E\u5909\u66F4\u8272\u306E\u5168\u4F53\u7684\u306A\u5F37\u5EA6\uFF08\u30A8\u30C7\u30A3\u30BF\u30FC\u306E\u30DE\u30FC\u30AB\u30FC\u3001\u30C4\u30EA\u30FC\u3001\u30BF\u30D6\u3001\u95B2\u89A7\u30E2\u30FC\u30C9\uFF09\u3002\u9AD8\u3044\u307B\u3069\u9BAE\u3084\u304B\u306B\u3001\u4F4E\u3044\u307B\u3069\u6DE1\u304F\u306A\u308A\u307E\u3059\u3002",
   "setting.gutter-heading.name": "\u30AC\u30BF\u30FC\u30A4\u30F3\u30B8\u30B1\u30FC\u30BF\u30FC",
   "setting.gutter-heading.prefix": "\u30AC\u30BF\u30FC\u306E\u7A2E\u985E\u30A4\u30F3\u30B8\u30B1\u30FC\u30BF\u30FC\u306E\u6587\u5B57\uFF08",
   "setting.gutter-heading.suffix": "\uFF09\u3002",
@@ -9570,11 +9574,11 @@ var ja_default = {
   "view.recent-changes.menu.restore": "\u3053\u306E\u30D0\u30FC\u30B8\u30E7\u30F3\u306B\u5FA9\u5143",
   "view.recent-changes.menu.delete": "\u30D0\u30FC\u30B8\u30E7\u30F3\u3092\u524A\u9664",
   "view.recent-changes.menu.put-label": "\u30E9\u30D9\u30EB\u3092\u4ED8\u3051\u308B",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "Vault \u306E\u5909\u66F4",
+  "view.vault-changes.search-placeholder": "\u30D5\u30A1\u30A4\u30EB\u540D\u3067\u7D5E\u308A\u8FBC\u3080",
+  "view.vault-changes.layout.tree": "\u30C4\u30EA\u30FC",
+  "view.vault-changes.layout.flat": "\u30D5\u30E9\u30C3\u30C8\u30EA\u30B9\u30C8",
+  "view.vault-changes.deleted-notice": "\u3053\u306E\u30D5\u30A1\u30A4\u30EB\u306F\u524A\u9664\u3055\u308C\u307E\u3057\u305F\u3002\u5C65\u6B74\u306F\u4FDD\u6301\u3055\u308C\u3066\u3044\u307E\u3059\u3002",
   "modal.label-selected": "\u9078\u629E\u3057\u305F\u30D0\u30FC\u30B8\u30E7\u30F3\u306B\u30E9\u30D9\u30EB\u3092\u4ED8\u3051\u308B",
   "modal.label-version.message": "\u3053\u306E\u30D0\u30FC\u30B8\u30E7\u30F3\u306B\u77ED\u3044\u30E9\u30D9\u30EB\u3092\u4ED8\u3051\u307E\u3059\u3002",
   "notice.no-folder-history": "\u30D5\u30A9\u30EB\u30C0\u30FC\u5C65\u6B74\u306F\u307E\u3060\u3042\u308A\u307E\u305B\u3093\u3002",
@@ -9611,7 +9615,7 @@ var ka_default = {
   "command.reset-lines-all": "\u10EE\u10D0\u10D6\u10D4\u10D1\u10D8\u10E1 \u10DB\u10D7\u10D5\u10D0\u10DA\u10D7\u10D5\u10D0\u10DA\u10D8\u10E1 \u10E7\u10D5\u10D4\u10DA\u10D0 \u10E1\u10EC\u10E0\u10D0\u10E4\u10D8 \u10D0\u10E1\u10DA\u10D8\u10E1 \u10D2\u10D0\u10D3\u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D5\u10D0",
   "command.reset-lines": "\u10DB\u10D8\u10DB\u10D3\u10D8\u10DC\u10D0\u10E0\u10D4 \u10D3\u10DD\u10D9\u10E3\u10DB\u10D4\u10DC\u10E2\u10D8\u10E1 \u10EE\u10D0\u10D6\u10D4\u10D1\u10D8\u10E1 \u10DB\u10D7\u10D5\u10D0\u10DA\u10D7\u10D5\u10D0\u10DA\u10D8\u10E1 \u10E1\u10EC\u10E0\u10D0\u10E4\u10D8 \u10D0\u10E1\u10DA\u10D8\u10E1 \u10D2\u10D0\u10D3\u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D5\u10D0",
   "command.show-diff": "\u10DB\u10D8\u10DB\u10D3\u10D8\u10DC\u10D0\u10E0\u10D4 \u10D3\u10DD\u10D9\u10E3\u10DB\u10D4\u10DC\u10E2\u10D8\u10E1 \u10E7\u10D5\u10D4\u10DA\u10D0 \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10E9\u10D5\u10D4\u10DC\u10D4\u10D1\u10D0",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "\u10E1\u10D0\u10EA\u10D0\u10D5\u10D8\u10E1 \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10D8\u10E1 \u10DE\u10D0\u10DC\u10D4\u10DA\u10D8\u10E1 \u10D2\u10D0\u10EE\u10E1\u10DC\u10D0",
   "notice.no-changes-to-navigate": "\u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10D8 \u10DC\u10D0\u10D5\u10D8\u10D2\u10D0\u10EA\u10D8\u10D8\u10E1\u10D7\u10D5\u10D8\u10E1 \u10D0\u10E0 \u10D0\u10E0\u10D8\u10E1",
   "notice.all-snapshots-deleted": "\u10E1\u10EC\u10E0\u10D0\u10E4\u10D8 \u10D0\u10E1\u10DA\u10D4\u10D1\u10D8\u10E1 \u10E7\u10D5\u10D4\u10DA\u10D0 \u10DB\u10DD\u10DC\u10D0\u10EA\u10D4\u10DB\u10D8 \u10EC\u10D0\u10D8\u10E8\u10D0\u10DA\u10D0",
   "notice.current-snapshot-deleted": "\u10DB\u10D8\u10DB\u10D3\u10D8\u10DC\u10D0\u10E0\u10D4 \u10E1\u10EC\u10E0\u10D0\u10E4\u10D8 \u10D0\u10E1\u10DA\u10D8\u10E1 \u10DB\u10DD\u10DC\u10D0\u10EA\u10D4\u10DB\u10D4\u10D1\u10D8 \u10EC\u10D0\u10D8\u10E8\u10D0\u10DA\u10D0",
@@ -9646,14 +9650,13 @@ var ka_default = {
   "setting.keep.desc": "\u10D2\u10D0\u10D3\u10D0\u10E1\u10D8\u10DC\u10EF\u10D5\u10D4\u10D1\u10D8\u10E1 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D8\u10E1 \u10D2\u10D0\u10E1\u10E3\u10E4\u10D7\u10D0\u10D5\u10D4\u10D1\u10D8\u10E1 \u10E1\u10E2\u10E0\u10D0\u10E2\u10D4\u10D2\u10D8\u10D0",
   "setting.keep.option.app": "\u10D0\u10DE\u10DA\u10D8\u10D9\u10D0\u10EA\u10D8\u10D8\u10E1 \u10D3\u10D0\u10EE\u10E3\u10E0\u10D5\u10D0",
   "setting.keep.option.file": "\u10E4\u10D0\u10D8\u10DA\u10D8\u10E1 \u10D3\u10D0\u10EE\u10E3\u10E0\u10D5\u10D0",
+  "setting.keep.option.persist": "\u10E8\u10D4\u10DC\u10D0\u10E0\u10E9\u10E3\u10DC\u10D3\u10D4\u10D1\u10D0 \u10D2\u10D0\u10D3\u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D5\u10D8\u10E1 \u10E8\u10D4\u10DB\u10D3\u10D4\u10D2",
   "setting.ignore-new-files.name": "\u10D0\u10EE\u10D0\u10DA\u10D8 \u10E4\u10D0\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10D8\u10D2\u10DC\u10DD\u10E0\u10D8\u10E0\u10D4\u10D1\u10D0",
   "setting.ignore-new-files.desc": "\u10DC\u10E3 \u10D7\u10D5\u10D0\u10DA\u10E7\u10E3\u10E0\u10E1 \u10D0\u10D3\u10D4\u10D5\u10DC\u10D4\u10D1 \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10E1 \u10E4\u10D0\u10D8\u10DA\u10D4\u10D1\u10E8\u10D8, \u10E0\u10DD\u10DB\u10DA\u10D4\u10D1\u10D8\u10EA \u10D7\u10D5\u10D0\u10DA\u10D3\u10D4\u10D5\u10DC\u10D4\u10D1\u10D8\u10E1 \u10D3\u10D0\u10EC\u10E7\u10D4\u10D1\u10D8\u10E1 \u10E8\u10D4\u10DB\u10D3\u10D4\u10D2 \u10E8\u10D4\u10D8\u10E5\u10DB\u10DC\u10D0",
   "setting.tree-highlight.name": "\u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10D8\u10E1 \u10DB\u10DD\u10DC\u10D8\u10E8\u10D5\u10DC\u10D0 \u10E4\u10D0\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10EE\u10D4\u10E8\u10D8 \u10D3\u10D0 \u10E9\u10D0\u10DC\u10D0\u10E0\u10D7\u10D4\u10D1\u10E8\u10D8",
   "setting.tree-highlight.desc": "\u10E8\u10D4\u10E6\u10D4\u10D1\u10D0\u10D5\u10E1 \u10E4\u10D0\u10D8\u10DA\u10D4\u10D1\u10E1\u10D0 \u10D3\u10D0 \u10E1\u10D0\u10E5\u10D0\u10E6\u10D0\u10DA\u10D3\u10D4\u10D4\u10D1\u10E1 \u10E9\u10D0\u10E8\u10D4\u10DC\u10D4\u10D1\u10E3\u10DA \u10E4\u10D0\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10DB\u10D9\u10D5\u10DA\u10D4\u10D5\u10D0\u10E0\u10E8\u10D8, \u10D0\u10D2\u10E0\u10D4\u10D7\u10D5\u10D4 \u10E6\u10D8\u10D0 \u10E4\u10D0\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10E9\u10D0\u10DC\u10D0\u10E0\u10D7\u10D4\u10D1\u10D8\u10E1 \u10E1\u10D0\u10D7\u10D0\u10E3\u10E0\u10D4\u10D1\u10E1 \u10D8\u10DB\u10D8\u10E1 \u10DB\u10D8\u10EE\u10D4\u10D3\u10D5\u10D8\u10D7, \u10E0\u10D0 \u10E8\u10D4\u10D8\u10EA\u10D5\u10D0\u10DA\u10D0 \u10D0\u10DB \u10E1\u10D4\u10E1\u10D8\u10D0\u10E8\u10D8 (\u10E5\u10D0\u10E0\u10D5\u10D8\u10E1\u10E4\u10D4\u10E0\u10D8 \u10E8\u10D4\u10EA\u10D5\u10DA\u10D8\u10DA\u10D8\u10E1\u10D7\u10D5\u10D8\u10E1, \u10DB\u10EC\u10D5\u10D0\u10DC\u10D4 \u10D3\u10D0\u10DB\u10D0\u10E2\u10D4\u10D1\u10E3\u10DA\u10D8\u10E1\u10D7\u10D5\u10D8\u10E1).",
   "setting.properties-highlight.name": "\u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10D8\u10E1 \u10D2\u10D0\u10DB\u10DD\u10D9\u10D5\u10D4\u10D7\u10D0 \u10D7\u10D5\u10D8\u10E1\u10D4\u10D1\u10D4\u10D1\u10D8\u10E1 \u10DE\u10D0\u10DC\u10D4\u10DA\u10E8\u10D8",
   "setting.properties-highlight.desc": "\u10D3\u10D0\u10DB\u10D0\u10E2\u10D4\u10D1\u10E3\u10DA\u10D8, \u10E8\u10D4\u10EA\u10D5\u10DA\u10D8\u10DA\u10D8 \u10D3\u10D0 \u10EC\u10D0\u10E8\u10DA\u10D8\u10DA\u10D8 frontmatter \u10D2\u10D0\u10E1\u10D0\u10E6\u10D4\u10D1\u10D4\u10D1\u10D8\u10E1 \u10E9\u10D5\u10D4\u10DC\u10D4\u10D1\u10D0 Obsidian-\u10D8\u10E1 \u10D7\u10D5\u10D8\u10E1\u10D4\u10D1\u10D4\u10D1\u10D8\u10E1 \u10DE\u10D0\u10DC\u10D4\u10DA\u10E8\u10D8. \u10D2\u10D0\u10DB\u10DD\u10E0\u10D7\u10D4\u10D7, \u10E0\u10DD\u10DB \u10D3\u10D0\u10D8\u10DB\u10D0\u10DA\u10DD\u10E1 \u10D7\u10D5\u10D8\u10E1\u10D4\u10D1\u10D4\u10D1\u10D8\u10E1 \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10D8\u10E1 \u10E7\u10D5\u10D4\u10DA\u10D0 \u10D0\u10E6\u10DC\u10D8\u10E8\u10D5\u10DC\u10D0.",
-  "setting.persist.name": "\u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D8\u10E1 \u10E8\u10D4\u10DC\u10D0\u10E0\u10E9\u10E3\u10DC\u10D4\u10D1\u10D0 \u10D2\u10D0\u10D3\u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D5\u10D4\u10D1\u10E1 \u10E8\u10DD\u10E0\u10D8\u10E1",
-  "setting.persist.desc": '\u10E8\u10D4\u10D8\u10DC\u10D0\u10EE\u10D4\u10D7 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D0 \u10D3\u10D8\u10E1\u10D9\u10D6\u10D4, \u10E0\u10D0\u10D7\u10D0 \u10D2\u10D0\u10DB\u10DD\u10E7\u10DD\u10E4\u10D4\u10D1\u10D8 \u10D2\u10D0\u10D3\u10D0\u10E2\u10D5\u10D8\u10E0\u10D7\u10D5\u10D0\u10E1 \u10D2\u10D0\u10D3\u10D0\u10E3\u10E0\u10E9\u10D4\u10E1. \u10DB\u10DD\u10D8\u10D7\u10EE\u10DD\u10D5\u10E1, \u10E0\u10DD\u10DB "\u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D8\u10E1 \u10E8\u10D4\u10DC\u10D0\u10EE\u10D5\u10D0 \u10D5\u10D8\u10D3\u10E0\u10D4" \u10D3\u10D0\u10E7\u10D4\u10DC\u10D4\u10D1\u10E3\u10DA\u10D8 \u10D8\u10E7\u10DD\u10E1 \u10D0\u10DE\u10DA\u10D8\u10D9\u10D0\u10EA\u10D8\u10D8\u10E1 \u10D3\u10D0\u10EE\u10E3\u10E0\u10D5\u10D0\u10D6\u10D4.',
   "setting.max-entries.name": "\u10E8\u10D4\u10DC\u10D0\u10EE\u10E3\u10DA\u10D8 \u10E4\u10D0\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10DB\u10D0\u10E5\u10E1\u10D8\u10DB\u10E3\u10DB\u10D8",
   "setting.max-entries.desc": "\u10D6\u10E6\u10D5\u10D0\u10E0\u10D8 \u10D8\u10DB\u10D8\u10E1\u10D0, \u10D7\u10E3 \u10E0\u10D0\u10DB\u10D3\u10D4\u10DC\u10D8 \u10E4\u10D0\u10D8\u10DA\u10D8\u10E1 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D0 \u10D8\u10DC\u10D0\u10EE\u10D4\u10D1\u10D0 \u10D3\u10D8\u10E1\u10D9\u10D6\u10D4. \u10EF\u10D4\u10E0 \u10E3\u10EB\u10D5\u10D4\u10DA\u10D4\u10E1\u10D4\u10D1\u10D8 \u10D8\u10E8\u10DA\u10D4\u10D1\u10D0. \u10D2\u10D0\u10E1\u10D0\u10D7\u10D8\u10E8\u10D0\u10D3 \u10D3\u10D0\u10D0\u10E7\u10D4\u10DC\u10D4\u10D7 0-\u10D6\u10D4.",
   "setting.max-age-days.name": "\u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D8\u10E1 \u10DB\u10D0\u10E5\u10E1\u10D8\u10DB\u10D0\u10DA\u10E3\u10E0\u10D8 \u10D0\u10E1\u10D0\u10D9\u10D8 (\u10D3\u10E6\u10D4)",
@@ -9678,8 +9681,8 @@ var ka_default = {
   "setting.line-heading": "\u10EE\u10D0\u10D6\u10D8\u10E1 \u10D8\u10DC\u10D3\u10D8\u10D9\u10D0\u10E2\u10DD\u10E0\u10D8",
   "setting.line-width.name": "\u10E1\u10D8\u10D2\u10D0\u10DC\u10D4",
   "setting.line-width.desc": "\u10D5\u10D4\u10E0\u10E2\u10D8\u10D9\u10D0\u10DA\u10E3\u10E0\u10D8 \u10EE\u10D0\u10D6\u10D8\u10E1 \u10D8\u10DC\u10D3\u10D8\u10D9\u10D0\u10E2\u10DD\u10E0\u10D8\u10E1 \u10E1\u10D8\u10D2\u10D0\u10DC\u10D4 (\u10DE\u10D8\u10E5\u10E1\u10D4\u10DA\u10D4\u10D1\u10E8\u10D8).",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "\u10DB\u10D0\u10E0\u10D9\u10D4\u10E0\u10D4\u10D1\u10D8\u10E1 \u10D8\u10DC\u10E2\u10D4\u10DC\u10E1\u10D8\u10D5\u10DD\u10D1\u10D0",
+  "setting.marker-intensity.desc": "\u10E7\u10D5\u10D4\u10DA\u10D0 \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D8\u10E1 \u10E4\u10D4\u10E0\u10D8\u10E1 \u10E1\u10D0\u10D4\u10E0\u10D7\u10DD \u10D8\u10DC\u10E2\u10D4\u10DC\u10E1\u10D8\u10D5\u10DD\u10D1\u10D0 (\u10E0\u10D4\u10D3\u10D0\u10E5\u10E2\u10DD\u10E0\u10D8\u10E1 \u10DB\u10D0\u10E0\u10D9\u10D4\u10E0\u10D4\u10D1\u10D8, \u10EE\u10D4, \u10E9\u10D0\u10DC\u10D0\u10E0\u10D7\u10D4\u10D1\u10D8, \u10D9\u10D8\u10D7\u10EE\u10D5\u10D8\u10E1 \u10E0\u10D4\u10DF\u10D8\u10DB\u10D8). \u10DB\u10D0\u10E6\u10D0\u10DA\u10D8 \u10E3\u10E4\u10E0\u10DD \u10DC\u10D0\u10D7\u10D4\u10DA\u10D8\u10D0, \u10D3\u10D0\u10D1\u10D0\u10DA\u10D8 \u10E3\u10E4\u10E0\u10DD \u10E4\u10D4\u10E0\u10DB\u10D9\u10E0\u10D7\u10D0\u10DA\u10D8.",
   "setting.gutter-heading.name": "\u10D2\u10D5\u10D4\u10E0\u10D3\u10D8\u10D7\u10D8 \u10D5\u10D4\u10DA\u10D8\u10E1 \u10D8\u10DC\u10D3\u10D8\u10D9\u10D0\u10E2\u10DD\u10E0\u10D8",
   "setting.gutter-heading.prefix": "\u10D2\u10D5\u10D4\u10E0\u10D3\u10D8\u10D7\u10D8 \u10D5\u10D4\u10DA\u10D8\u10E1 \u10E2\u10D8\u10DE\u10D8\u10E1 \u10D8\u10DC\u10D3\u10D8\u10D9\u10D0\u10E2\u10DD\u10E0\u10D8\u10E1 \u10E1\u10D8\u10DB\u10D1\u10DD\u10DA\u10DD\u10D4\u10D1\u10D8 (",
   "setting.gutter-heading.suffix": ").",
@@ -9746,11 +9749,11 @@ var ka_default = {
   "view.recent-changes.menu.restore": "\u10D0\u10DB \u10D5\u10D4\u10E0\u10E1\u10D8\u10D8\u10E1 \u10D0\u10E6\u10D3\u10D2\u10D4\u10DC\u10D0",
   "view.recent-changes.menu.delete": "\u10D5\u10D4\u10E0\u10E1\u10D8\u10D8\u10E1 \u10EC\u10D0\u10E8\u10DA\u10D0",
   "view.recent-changes.menu.put-label": "\u10D8\u10D0\u10E0\u10DA\u10D8\u10E7\u10D8\u10E1 \u10DB\u10D8\u10DC\u10D8\u10ED\u10D4\u10D1\u10D0",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "\u10E1\u10D0\u10EA\u10D0\u10D5\u10D8\u10E1 \u10EA\u10D5\u10DA\u10D8\u10DA\u10D4\u10D1\u10D4\u10D1\u10D8",
+  "view.vault-changes.search-placeholder": "\u10E4\u10D8\u10DA\u10E2\u10E0\u10D8 \u10E4\u10D0\u10D8\u10DA\u10D8\u10E1 \u10E1\u10D0\u10EE\u10D4\u10DA\u10D8\u10D7",
+  "view.vault-changes.layout.tree": "\u10EE\u10D4",
+  "view.vault-changes.layout.flat": "\u10D1\u10E0\u10E2\u10E7\u10D4\u10DA\u10D8 \u10E1\u10D8\u10D0",
+  "view.vault-changes.deleted-notice": "\u10D4\u10E1 \u10E4\u10D0\u10D8\u10DA\u10D8 \u10EC\u10D0\u10D8\u10E8\u10D0\u10DA\u10D0; \u10DB\u10D8\u10E1\u10D8 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D0 \u10E8\u10D4\u10DC\u10D0\u10EE\u10E3\u10DA\u10D8\u10D0.",
   "modal.label-selected": "\u10DB\u10DD\u10DC\u10D8\u10E8\u10DC\u10E3\u10DA\u10D8 \u10D5\u10D4\u10E0\u10E1\u10D8\u10D8\u10E1 \u10D8\u10D0\u10E0\u10DA\u10D8\u10E7\u10D8\u10D7 \u10D0\u10E6\u10DC\u10D8\u10E8\u10D5\u10DC\u10D0",
   "modal.label-version.message": "\u10DB\u10DD\u10DC\u10D8\u10E8\u10DC\u10D4\u10D7 \u10D4\u10E1 \u10D5\u10D4\u10E0\u10E1\u10D8\u10D0 \u10DB\u10DD\u10D9\u10DA\u10D4 \u10D8\u10D0\u10E0\u10DA\u10D8\u10E7\u10D8\u10D7.",
   "notice.no-folder-history": "\u10E1\u10D0\u10E5\u10D0\u10E6\u10D0\u10DA\u10D3\u10D8\u10E1 \u10D8\u10E1\u10E2\u10DD\u10E0\u10D8\u10D0 \u10EF\u10D4\u10E0 \u10D0\u10E0 \u10D0\u10E0\u10D8\u10E1.",
@@ -9787,7 +9790,7 @@ var kh_default = {
   "command.reset-lines-all": "\u1780\u17C6\u178E\u178F\u17CB\u17A1\u17BE\u1784\u179C\u17B7\u1789\u1793\u17BC\u179C\u179A\u17BC\u1794\u1790\u178F\u178F\u17B6\u1798\u178A\u17B6\u1793\u1794\u1793\u17D2\u1791\u17B6\u178F\u17CB\u1791\u17B6\u17C6\u1784\u17A2\u179F\u17CB",
   "command.reset-lines": "\u1780\u17C6\u178E\u178F\u17CB\u17A1\u17BE\u1784\u179C\u17B7\u1789\u1793\u17BC\u179C\u179A\u17BC\u1794\u1790\u178F\u178F\u17B6\u1798\u178A\u17B6\u1793\u1794\u1793\u17D2\u1791\u17B6\u178F\u17CB\u1793\u17C3\u17AF\u1780\u179F\u17B6\u179A\u1794\u1785\u17D2\u1785\u17BB\u1794\u17D2\u1794\u1793\u17D2\u1793",
   "command.show-diff": "\u1794\u1784\u17D2\u17A0\u17B6\u1789\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1791\u17B6\u17C6\u1784\u17A2\u179F\u17CB\u1793\u17C3\u17AF\u1780\u179F\u17B6\u179A\u1794\u1785\u17D2\u1785\u17BB\u1794\u17D2\u1794\u1793\u17D2\u1793",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "\u1794\u17BE\u1780\u1795\u17D2\u1791\u17B6\u17C6\u1784\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178F\u17BC\u179A vault",
   "notice.no-changes-to-navigate": "\u1782\u17D2\u1798\u17B6\u1793\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u179F\u1798\u17D2\u179A\u17B6\u1794\u17CB\u1791\u17C5\u1780\u17B6\u1793\u17CB\u1791\u17C1",
   "notice.all-snapshots-deleted": "\u1794\u17B6\u1793\u179B\u17BB\u1794\u1791\u17B7\u1793\u17D2\u1793\u1793\u17D0\u1799\u179A\u17BC\u1794\u1790\u178F\u1791\u17B6\u17C6\u1784\u17A2\u179F\u17CB",
   "notice.current-snapshot-deleted": "\u1794\u17B6\u1793\u179B\u17BB\u1794\u1791\u17B7\u1793\u17D2\u1793\u1793\u17D0\u1799\u179A\u17BC\u1794\u1790\u178F\u1794\u1785\u17D2\u1785\u17BB\u1794\u17D2\u1794\u1793\u17D2\u1793",
@@ -9822,14 +9825,13 @@ var kh_default = {
   "setting.keep.desc": "\u1799\u17BB\u1791\u17D2\u1792\u179F\u17B6\u179F\u17D2\u178F\u17D2\u179A\u179F\u1798\u17D2\u179A\u17B6\u1794\u17CB\u179F\u1798\u17D2\u17A2\u17B6\u178F\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u1780\u17C6\u178E\u17C2",
   "setting.keep.option.app": "\u1794\u17B7\u1791\u1780\u1798\u17D2\u1798\u179C\u17B7\u1792\u17B8",
   "setting.keep.option.file": "\u1794\u17B7\u1791\u17AF\u1780\u179F\u17B6\u179A",
+  "setting.keep.option.persist": "\u179A\u1780\u17D2\u179F\u17B6\u1791\u17BB\u1780\u1791\u17C4\u17C7\u1794\u17BE\u1785\u17B6\u1794\u17CB\u1795\u17D2\u178F\u17BE\u1798\u17A1\u17BE\u1784\u179C\u17B7\u1789",
   "setting.ignore-new-files.name": "\u1798\u17B7\u1793\u179A\u17B6\u1794\u17CB\u1794\u1789\u17D2\u1785\u17BC\u179B\u17AF\u1780\u179F\u17B6\u179A\u1790\u17D2\u1798\u17B8",
   "setting.ignore-new-files.desc": "\u1780\u17BB\u17C6\u178F\u17B6\u1798\u178A\u17B6\u1793\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1793\u17C5\u1780\u17D2\u1793\u17BB\u1784\u17AF\u1780\u179F\u17B6\u179A\u178A\u17C2\u179B\u1794\u1784\u17D2\u1780\u17BE\u178F\u17A1\u17BE\u1784\u1794\u1793\u17D2\u1791\u17B6\u1794\u17CB\u1796\u17B8\u1780\u17B6\u179A\u178F\u17B6\u1798\u178A\u17B6\u1793\u1794\u17B6\u1793\u1785\u17B6\u1794\u17CB\u1795\u17D2\u178A\u17BE\u1798",
   "setting.tree-highlight.name": "\u1794\u1793\u17D2\u179B\u17B7\u1785\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1793\u17C5\u1780\u17D2\u1793\u17BB\u1784\u1798\u17C2\u1780\u1792\u17B6\u1784\u17AF\u1780\u179F\u17B6\u179A \u1793\u17B7\u1784\u1795\u17D2\u1791\u17B6\u17C6\u1784",
   "setting.tree-highlight.desc": "\u178A\u17B6\u1780\u17CB\u1796\u178E\u17CC\u17AF\u1780\u179F\u17B6\u179A \u1793\u17B7\u1784\u1790\u178F\u1793\u17C5\u1780\u17D2\u1793\u17BB\u1784\u1780\u1798\u17D2\u1798\u179C\u17B7\u1792\u17B8\u179A\u17BB\u1780\u179A\u1780\u17AF\u1780\u179F\u17B6\u179A\u178A\u17BE\u1798 \u1793\u17B7\u1784\u1780\u17D2\u1794\u17B6\u179B\u1795\u17D2\u1791\u17B6\u17C6\u1784\u1793\u17C3\u17AF\u1780\u179F\u17B6\u179A\u178A\u17C2\u179B\u1794\u17BE\u1780 \u178F\u17B6\u1798\u17A2\u17D2\u179C\u17B8\u178A\u17C2\u179B\u1794\u17B6\u1793\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1780\u17D2\u1793\u17BB\u1784\u179C\u1782\u17D2\u1782\u1793\u17C1\u17C7 (\u1796\u178E\u17CC\u17A2\u17C6\u1796\u17B7\u179B\u179F\u1798\u17D2\u179A\u17B6\u1794\u17CB\u1780\u17C2\u1794\u17D2\u179A\u17C2 \u1794\u17C3\u178F\u1784\u179F\u1798\u17D2\u179A\u17B6\u1794\u17CB\u1794\u1793\u17D2\u1790\u17C2\u1798)\u17D4",
   "setting.properties-highlight.name": "\u1794\u1793\u17D2\u179B\u17B7\u1785\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u1793\u17C5\u1780\u17D2\u1793\u17BB\u1784\u1795\u17D2\u1791\u17B6\u17C6\u1784\u179B\u1780\u17D2\u1781\u178E\u179F\u1798\u17D2\u1794\u178F\u17D2\u178F\u17B7",
   "setting.properties-highlight.desc": "\u1794\u1784\u17D2\u17A0\u17B6\u1789\u1782\u17D2\u179A\u17B6\u1794\u17CB\u1785\u17BB\u1785 frontmatter \u178A\u17C2\u179B\u1794\u17B6\u1793\u1794\u1793\u17D2\u1790\u17C2\u1798 \u1780\u17C2\u1794\u17D2\u179A\u17C2 \u1793\u17B7\u1784\u179B\u17BB\u1794\u1785\u17C1\u1789 \u1793\u17C5\u1780\u17D2\u1793\u17BB\u1784\u1795\u17D2\u1791\u17B6\u17C6\u1784\u179B\u1780\u17D2\u1781\u178E\u179F\u1798\u17D2\u1794\u178F\u17D2\u178F\u17B7\u179A\u1794\u179F\u17CB Obsidian\u17D4 \u1794\u17B7\u1791\u178A\u17BE\u1798\u17D2\u1794\u17B8\u179B\u17B6\u1780\u17CB\u179F\u1789\u17D2\u1789\u17B6\u179F\u1798\u17D2\u1782\u17B6\u179B\u17CB\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178A\u17BC\u179A\u179B\u1780\u17D2\u1781\u178E\u179F\u1798\u17D2\u1794\u178F\u17D2\u178F\u17B7\u1791\u17B6\u17C6\u1784\u17A2\u179F\u17CB\u17D4",
-  "setting.persist.name": "\u179A\u1780\u17D2\u179F\u17B6\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u1794\u1793\u17D2\u1791\u17B6\u1794\u17CB\u1796\u17B8\u1780\u17B6\u179A\u1785\u17B6\u1794\u17CB\u1795\u17D2\u178A\u17BE\u1798\u17A1\u17BE\u1784\u179C\u17B7\u1789",
-  "setting.persist.desc": '\u179A\u1780\u17D2\u179F\u17B6\u1791\u17BB\u1780\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u1791\u17C5\u1790\u17B6\u179F\u178A\u17BE\u1798\u17D2\u1794\u17B8\u17B1\u17D2\u1799\u1780\u17B6\u179A\u1794\u1793\u17D2\u179B\u17B7\u1785\u1793\u17C5\u178F\u17C2\u1798\u17B6\u1793\u1794\u1793\u17D2\u1791\u17B6\u1794\u17CB\u1796\u17B8\u1780\u17B6\u179A\u1785\u17B6\u1794\u17CB\u1795\u17D2\u178A\u17BE\u1798\u17A1\u17BE\u1784\u179C\u17B7\u1789\u17D4 \u1791\u17B6\u1798\u1791\u17B6\u179A\u17B1\u17D2\u1799 "\u179A\u1780\u17D2\u179F\u17B6\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u179A\u17A0\u17BC\u178F\u178A\u179B\u17CB" \u1780\u17C6\u178E\u178F\u17CB\u1791\u17C5\u1794\u17B7\u1791\u1780\u1798\u17D2\u1798\u179C\u17B7\u1792\u17B8\u17D4',
   "setting.max-entries.name": "\u1785\u17C6\u1793\u17BD\u1793\u17AF\u1780\u179F\u17B6\u179A\u178A\u17C2\u179B\u179A\u1780\u17D2\u179F\u17B6\u1791\u17BB\u1780\u17A2\u178F\u17B7\u1794\u179A\u1798\u17B6",
   "setting.max-entries.desc": "\u1780\u1798\u17D2\u179A\u17B7\u178F\u1780\u17C6\u178E\u178F\u17CB\u1793\u17C3\u1785\u17C6\u1793\u17BD\u1793\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u17AF\u1780\u179F\u17B6\u179A\u178A\u17C2\u179B\u179A\u1780\u17D2\u179F\u17B6\u1791\u17BB\u1780\u1793\u17C5\u179B\u17BE\u1790\u17B6\u179F\u17D4 \u17AF\u1780\u179F\u17B6\u179A\u1785\u17B6\u179F\u17CB\u1794\u17C6\u1795\u17BB\u178F\u178F\u17D2\u179A\u17BC\u179C\u179B\u17BB\u1794\u1785\u17C1\u1789\u1798\u17BB\u1793\u17D4 \u1780\u17C6\u178E\u178F\u17CB\u1791\u17C5 0 \u178A\u17BE\u1798\u17D2\u1794\u17B8\u1794\u17B7\u1791\u17D4",
   "setting.max-age-days.name": "\u17A2\u17B6\u1799\u17BB\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u17A2\u178F\u17B7\u1794\u179A\u1798\u17B6 (\u1790\u17D2\u1784\u17C3)",
@@ -9854,8 +9856,8 @@ var kh_default = {
   "setting.line-heading": "\u179F\u1789\u17D2\u1789\u17B6\u179F\u1798\u17D2\u1782\u17B6\u179B\u17CB\u1794\u1793\u17D2\u1791\u17B6\u178F\u17CB",
   "setting.line-width.name": "\u1791\u1791\u17B9\u1784",
   "setting.line-width.desc": "\u1791\u1791\u17B9\u1784\u1793\u17C3\u179F\u1789\u17D2\u1789\u17B6\u179F\u1798\u17D2\u1782\u17B6\u179B\u17CB\u1794\u1793\u17D2\u1791\u17B6\u178F\u17CB\u1794\u1789\u17D2\u1788\u179A (\u1782\u17B7\u178F\u1787\u17B6\u1797\u17B8\u1780\u179F\u17C2\u179B)\u17D4",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "\u17A2\u17B6\u17C6\u1784\u178F\u1784\u17CB\u179F\u17CA\u17B8\u178F\u17C1\u1793\u17C3\u179F\u1789\u17D2\u1789\u17B6\u179F\u1798\u17D2\u1782\u17B6\u179B\u17CB",
+  "setting.marker-intensity.desc": "\u17A2\u17B6\u17C6\u1784\u178F\u1784\u17CB\u179F\u17CA\u17B8\u178F\u17C1\u179F\u179A\u17BB\u1794\u1793\u17C3\u1796\u178E\u17CC\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178F\u17BC\u179A\u1793\u17B8\u1798\u17BD\u1799\u17D7 (\u179F\u1789\u17D2\u1789\u17B6\u179F\u1798\u17D2\u1782\u17B6\u179B\u17CB\u1780\u1798\u17D2\u1798\u179C\u17B7\u1792\u17B8\u1793\u17B7\u1796\u1793\u17D2\u1792 \u1798\u17C2\u1780\u1792\u17B6\u1784 \u1795\u17D2\u1791\u17B6\u17C6\u1784 \u179A\u1794\u17C0\u1794\u17A2\u17B6\u1793)\u17D4 \u1781\u17D2\u1796\u179F\u17CB\u1787\u17B6\u1784\u1780\u17B6\u1793\u17CB\u178F\u17C2\u1785\u17D2\u1794\u17B6\u179F\u17CB \u1791\u17B6\u1794\u1787\u17B6\u1784\u1780\u17B6\u1793\u17CB\u178F\u17C2\u179F\u17D2\u179A\u17A2\u17B6\u1794\u17CB\u17D4",
   "setting.gutter-heading.name": "\u179F\u1789\u17D2\u1789\u17B6\u179F\u1798\u17D2\u1782\u17B6\u179B\u17CB\u1793\u17C5\u1782\u17C2\u1798",
   "setting.gutter-heading.prefix": "\u178F\u17BD\u17A2\u1780\u17D2\u179F\u179A\u1793\u17C3\u179F\u1789\u17D2\u1789\u17B6\u179F\u1798\u17D2\u1782\u17B6\u179B\u17CB\u1794\u17D2\u179A\u1797\u17C1\u1791\u1793\u17C5\u1782\u17C2\u1798 (",
   "setting.gutter-heading.suffix": ")\u17D4",
@@ -9922,11 +9924,11 @@ var kh_default = {
   "view.recent-changes.menu.restore": "\u179F\u17D2\u178A\u17B6\u179A\u1780\u17C6\u178E\u17C2\u1793\u17C1\u17C7",
   "view.recent-changes.menu.delete": "\u179B\u17BB\u1794\u1780\u17C6\u178E\u17C2",
   "view.recent-changes.menu.put-label": "\u178A\u17B6\u1780\u17CB\u179F\u17D2\u179B\u17B6\u1780",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "\u1780\u17B6\u179A\u1795\u17D2\u179B\u17B6\u179F\u17CB\u1794\u17D2\u178F\u17BC\u179A vault",
+  "view.vault-changes.search-placeholder": "\u178F\u17D2\u179A\u1784\u178F\u17B6\u1798\u1788\u17D2\u1798\u17C4\u17C7\u17AF\u1780\u179F\u17B6\u179A",
+  "view.vault-changes.layout.tree": "\u1798\u17C2\u1780\u1792\u17B6\u1784",
+  "view.vault-changes.layout.flat": "\u1794\u1789\u17D2\u1787\u17B8\u179A\u17B6\u1794\u179F\u17D2\u1798\u17BE",
+  "view.vault-changes.deleted-notice": "\u17AF\u1780\u179F\u17B6\u179A\u1793\u17C1\u17C7\u178F\u17D2\u179A\u17BC\u179C\u1794\u17B6\u1793\u179B\u17BB\u1794\u17D4 \u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u179A\u1794\u179F\u17CB\u179C\u17B6\u178F\u17D2\u179A\u17BC\u179C\u1794\u17B6\u1793\u179A\u1780\u17D2\u179F\u17B6\u1791\u17BB\u1780\u17D4",
   "modal.label-selected": "\u178A\u17B6\u1780\u17CB\u179F\u17D2\u179B\u17B6\u1780\u1780\u17C6\u178E\u17C2\u178A\u17C2\u179B\u1794\u17B6\u1793\u1787\u17D2\u179A\u17BE\u179F",
   "modal.label-version.message": "\u179F\u1798\u17D2\u1782\u17B6\u179B\u17CB\u1780\u17C6\u178E\u17C2\u1793\u17C1\u17C7\u178A\u17C4\u1799\u179F\u17D2\u179B\u17B6\u1780\u1781\u17D2\u179B\u17B8\u17D4",
   "notice.no-folder-history": "\u1798\u17B7\u1793\u1791\u17B6\u1793\u17CB\u1798\u17B6\u1793\u1794\u17D2\u179A\u179C\u178F\u17D2\u178F\u17B7\u1790\u178F\u1793\u17C5\u17A1\u17BE\u1799\u1791\u17C1\u17D4",
@@ -9963,7 +9965,7 @@ var ko_default = {
   "command.reset-lines-all": "\uBAA8\uB4E0 \uC904 \uCD94\uC801 \uC2A4\uB0C5\uC0F7 \uCD08\uAE30\uD654",
   "command.reset-lines": "\uD604\uC7AC \uBB38\uC11C\uC758 \uC904 \uCD94\uC801 \uC2A4\uB0C5\uC0F7 \uCD08\uAE30\uD654",
   "command.show-diff": "\uD604\uC7AC \uBB38\uC11C\uC758 \uBAA8\uB4E0 \uBCC0\uACBD \uC0AC\uD56D \uD45C\uC2DC",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "\uBCF4\uAD00\uD568 \uBCC0\uACBD \uD328\uB110 \uC5F4\uAE30",
   "notice.no-changes-to-navigate": "\uC774\uB3D9\uD560 \uBCC0\uACBD \uC0AC\uD56D\uC774 \uC5C6\uC2B5\uB2C8\uB2E4",
   "notice.all-snapshots-deleted": "\uBAA8\uB4E0 \uC2A4\uB0C5\uC0F7 \uB370\uC774\uD130\uB97C \uC0AD\uC81C\uD588\uC2B5\uB2C8\uB2E4",
   "notice.current-snapshot-deleted": "\uD604\uC7AC \uC2A4\uB0C5\uC0F7 \uB370\uC774\uD130\uB97C \uC0AD\uC81C\uD588\uC2B5\uB2C8\uB2E4",
@@ -9998,14 +10000,13 @@ var ko_default = {
   "setting.keep.desc": "\uC218\uC815 \uAE30\uB85D\uC744 \uC815\uB9AC\uD558\uB294 \uBC29\uC2DD",
   "setting.keep.option.app": "\uC571 \uC885\uB8CC \uC2DC",
   "setting.keep.option.file": "\uD30C\uC77C \uB2EB\uC744 \uB54C",
+  "setting.keep.option.persist": "\uC7AC\uC2DC\uC791 \uD6C4\uC5D0\uB3C4 \uC720\uC9C0",
   "setting.ignore-new-files.name": "\uC0C8 \uD30C\uC77C \uBB34\uC2DC",
   "setting.ignore-new-files.desc": "\uCD94\uC801\uC774 \uC2DC\uC791\uB41C \uD6C4 \uC0DD\uC131\uB41C \uD30C\uC77C\uC758 \uBCC0\uACBD\uC740 \uCD94\uC801\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4",
   "setting.tree-highlight.name": "\uD30C\uC77C \uD2B8\uB9AC\uC640 \uD0ED\uC5D0\uC11C \uBCC0\uACBD \uC0AC\uD56D \uAC15\uC870",
   "setting.tree-highlight.desc": "\uAE30\uBCF8 \uD30C\uC77C \uD0D0\uC0C9\uAE30\uC758 \uD30C\uC77C\uACFC \uD3F4\uB354, \uADF8\uB9AC\uACE0 \uC5F4\uB9B0 \uD30C\uC77C\uC758 \uD0ED \uD5E4\uB354\uB97C \uC774\uBC88 \uC138\uC158\uC5D0\uC11C \uBCC0\uACBD\uB41C \uB0B4\uC6A9\uC5D0 \uB530\uB77C \uC0C9\uCE60\uD569\uB2C8\uB2E4 (\uC218\uC815\uC740 \uD638\uBC15\uC0C9, \uCD94\uAC00\uB294 \uB179\uC0C9).",
   "setting.properties-highlight.name": "\uC18D\uC131 \uD328\uB110\uC5D0\uC11C \uBCC0\uACBD \uC0AC\uD56D \uAC15\uC870",
   "setting.properties-highlight.desc": "\uCD94\uAC00, \uC218\uC815, \uC81C\uAC70\uB41C \uD504\uB7F0\uD2B8\uB9E4\uD130 \uD0A4\uB97C Obsidian \uC18D\uC131 \uD328\uB110\uC5D0 \uD45C\uC2DC\uD569\uB2C8\uB2E4. \uBE44\uD65C\uC131\uD654\uD558\uBA74 \uC18D\uC131 \uBCC0\uACBD \uD45C\uC2DC\uAC00 \uBAA8\uB450 \uC228\uACA8\uC9D1\uB2C8\uB2E4.",
-  "setting.persist.name": "\uC7AC\uC2DC\uC791 \uD6C4\uC5D0\uB3C4 \uAE30\uB85D \uC720\uC9C0",
-  "setting.persist.desc": '\uC7AC\uC2DC\uC791 \uD6C4\uC5D0\uB3C4 \uAC15\uC870 \uD45C\uC2DC\uAC00 \uC720\uC9C0\uB418\uB3C4\uB85D \uAE30\uB85D\uC744 \uB514\uC2A4\uD06C\uC5D0 \uC800\uC7A5\uD569\uB2C8\uB2E4. "\uAE30\uB85D \uBCF4\uAD00 \uAE30\uC900"\uC774 \uC571 \uC885\uB8CC \uC2DC\uB85C \uC124\uC815\uB418\uC5B4 \uC788\uC5B4\uC57C \uD569\uB2C8\uB2E4.',
   "setting.max-entries.name": "\uCD5C\uB300 \uC800\uC7A5 \uD30C\uC77C \uC218",
   "setting.max-entries.desc": "\uB514\uC2A4\uD06C\uC5D0 \uBCF4\uAD00\uD560 \uD30C\uC77C \uAE30\uB85D \uC218\uC758 \uC0C1\uD55C\uC785\uB2C8\uB2E4. \uC624\uB798\uB41C \uAC83\uBD80\uD130 \uBA3C\uC800 \uC81C\uAC70\uB429\uB2C8\uB2E4. 0\uC73C\uB85C \uC124\uC815\uD558\uBA74 \uBE44\uD65C\uC131\uD654\uB429\uB2C8\uB2E4.",
   "setting.max-age-days.name": "\uCD5C\uB300 \uAE30\uB85D \uBCF4\uAD00 \uAE30\uAC04(\uC77C)",
@@ -10030,8 +10031,8 @@ var ko_default = {
   "setting.line-heading": "\uC904 \uD45C\uC2DC\uAE30",
   "setting.line-width.name": "\uB108\uBE44",
   "setting.line-width.desc": "\uC138\uB85C\uC120 \uD45C\uC2DC\uAE30\uC758 \uB108\uBE44(\uD53D\uC140 \uB2E8\uC704).",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "\uB9C8\uCEE4 \uAC15\uB3C4",
+  "setting.marker-intensity.desc": "\uBAA8\uB4E0 \uBCC0\uACBD \uC0C9\uC0C1\uC758 \uC804\uCCB4 \uAC15\uB3C4(\uD3B8\uC9D1\uAE30 \uB9C8\uCEE4, \uD2B8\uB9AC, \uD0ED, \uC77D\uAE30 \uBAA8\uB4DC). \uB192\uC744\uC218\uB85D \uC120\uBA85\uD558\uACE0 \uB0AE\uC744\uC218\uB85D \uC605\uC5B4\uC9D1\uB2C8\uB2E4.",
   "setting.gutter-heading.name": "\uC5EC\uBC31 \uD45C\uC2DC\uAE30",
   "setting.gutter-heading.prefix": "\uC5EC\uBC31 \uC720\uD615 \uD45C\uC2DC\uAE30 \uBB38\uC790 (",
   "setting.gutter-heading.suffix": ").",
@@ -10098,11 +10099,11 @@ var ko_default = {
   "view.recent-changes.menu.restore": "\uC774 \uBC84\uC804 \uBCF5\uC6D0",
   "view.recent-changes.menu.delete": "\uBC84\uC804 \uC0AD\uC81C",
   "view.recent-changes.menu.put-label": "\uB77C\uBCA8 \uC9C0\uC815",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "\uBCF4\uAD00\uD568 \uBCC0\uACBD",
+  "view.vault-changes.search-placeholder": "\uD30C\uC77C \uC774\uB984\uC73C\uB85C \uD544\uD130\uB9C1",
+  "view.vault-changes.layout.tree": "\uD2B8\uB9AC",
+  "view.vault-changes.layout.flat": "\uD3C9\uBA74 \uBAA9\uB85D",
+  "view.vault-changes.deleted-notice": "\uC774 \uD30C\uC77C\uC740 \uC0AD\uC81C\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uAE30\uB85D\uC740 \uC720\uC9C0\uB429\uB2C8\uB2E4.",
   "modal.label-selected": "\uC120\uD0DD\uD55C \uBC84\uC804\uC5D0 \uB77C\uBCA8 \uC9C0\uC815",
   "modal.label-version.message": "\uC774 \uBC84\uC804\uC5D0 \uC9E7\uC740 \uB77C\uBCA8\uC744 \uC9C0\uC815\uD569\uB2C8\uB2E4.",
   "notice.no-folder-history": "\uD3F4\uB354 \uAE30\uB85D\uC774 \uC544\uC9C1 \uC5C6\uC2B5\uB2C8\uB2E4.",
@@ -10139,7 +10140,7 @@ var lv_default = {
   "command.reset-lines-all": "Atiestat\u012Bt visus rindu izseko\u0161anas momentuz\u0146\u0113mumus",
   "command.reset-lines": "Atiestat\u012Bt pa\u0161reiz\u0113j\u0101 dokumenta rindu izseko\u0161anas momentuz\u0146\u0113mumu",
   "command.show-diff": "R\u0101d\u012Bt visas pa\u0161reiz\u0113j\u0101 dokumenta izmai\u0146as",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "Atv\u0113rt glab\u0101tavas izmai\u0146u paneli",
   "notice.no-changes-to-navigate": "Nav izmai\u0146u, starp kur\u0101m p\u0101rvietoties",
   "notice.all-snapshots-deleted": "Visi momentuz\u0146\u0113mumu dati dz\u0113sti",
   "notice.current-snapshot-deleted": "Pa\u0161reiz\u0113jie momentuz\u0146\u0113muma dati dz\u0113sti",
@@ -10174,14 +10175,13 @@ var lv_default = {
   "setting.keep.desc": "Strat\u0113\u0123ija p\u0101rskatu v\u0113stures t\u012Br\u012B\u0161anai",
   "setting.keep.option.app": "Lietotnes aizv\u0113r\u0161anai",
   "setting.keep.option.file": "Faila aizv\u0113r\u0161anai",
+  "setting.keep.option.persist": "Saglab\u0101ts starp restart\u0113\u0161an\u0101m",
   "setting.ignore-new-files.name": "Ignor\u0113t jaunus failus",
   "setting.ignore-new-files.desc": "Neizsekot izmai\u0146as failos, kas izveidoti p\u0113c izseko\u0161anas s\u0101k\u0161anas",
   "setting.tree-highlight.name": "Izcelt izmai\u0146as failu kok\u0101 un ciln\u0113s",
   "setting.tree-highlight.desc": "Iekr\u0101so failus un mapes viet\u0113j\u0101 failu p\u0101rl\u016Bk\u0101, k\u0101 ar\u012B atv\u0113rto failu ci\u013C\u0146u galvenes atbilsto\u0161i tam, kas main\u012Bjies \u0161aj\u0101 sesij\u0101 (dzintarkr\u0101sa main\u012Btajiem, za\u013Ca pievienotajiem).",
   "setting.properties-highlight.name": "Izcelt izmai\u0146as rekviz\u012Btu panel\u012B",
   "setting.properties-highlight.desc": "R\u0101d\u012Bt pievienot\u0101s, main\u012Bt\u0101s un no\u0146emt\u0101s frontmatter atsl\u0113gas Obsidian rekviz\u012Btu panel\u012B. Atsp\u0113jojiet, lai pasl\u0113ptu visu rekviz\u012Btu izmai\u0146u mar\u0137\u0113jumu.",
-  "setting.persist.name": "Saglab\u0101t v\u0113sturi starp restartiem",
-  "setting.persist.desc": 'Saglab\u0101t v\u0113sturi disk\u0101, lai izc\u0113lumi saglab\u0101tos p\u0113c restarta. Nepiecie\u0161ams, lai "Saglab\u0101t v\u0113sturi l\u012Bdz" b\u016Btu iestat\u012Bts uz Lietotnes aizv\u0113r\u0161anai.',
   "setting.max-entries.name": "Maks. saglab\u0101to failu skaits",
   "setting.max-entries.desc": "Ierobe\u017Eojums tam, cik failu v\u0113stures tiek glab\u0101tas disk\u0101. Vec\u0101k\u0101s tiek dz\u0113stas vispirms. Iestatiet uz 0, lai atsp\u0113jotu.",
   "setting.max-age-days.name": "Maks. v\u0113stures vecums (dienas)",
@@ -10206,8 +10206,8 @@ var lv_default = {
   "setting.line-heading": "Rindas indikators",
   "setting.line-width.name": "Platums",
   "setting.line-width.desc": "Vertik\u0101l\u0101 rindas indikatora platums (pikse\u013Cos).",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "Mar\u0137ieru intensit\u0101te",
+  "setting.marker-intensity.desc": "Visu izmai\u0146u kr\u0101su kop\u0113j\u0101 intensit\u0101te (redaktora mar\u0137ieri, koks, cilnes, las\u012B\u0161anas re\u017E\u012Bms). Augst\u0101ka ir spilgt\u0101ka, zem\u0101ka ir b\u0101l\u0101ka.",
   "setting.gutter-heading.name": "Malas indikators",
   "setting.gutter-heading.prefix": "Malas tipa indikatora rakstz\u012Bmes (",
   "setting.gutter-heading.suffix": ").",
@@ -10274,11 +10274,11 @@ var lv_default = {
   "view.recent-changes.menu.restore": "Atjaunot \u0161o versiju",
   "view.recent-changes.menu.delete": "Dz\u0113st versiju",
   "view.recent-changes.menu.put-label": "Pievienot eti\u0137eti",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "Glab\u0101tavas izmai\u0146as",
+  "view.vault-changes.search-placeholder": "Filtr\u0113t p\u0113c faila nosaukuma",
+  "view.vault-changes.layout.tree": "Koks",
+  "view.vault-changes.layout.flat": "Plakans saraksts",
+  "view.vault-changes.deleted-notice": "\u0160is fails tika dz\u0113sts; t\u0101 v\u0113sture tiek saglab\u0101ta.",
   "modal.label-selected": "Pievienot eti\u0137eti atlas\u012Btajai versijai",
   "modal.label-version.message": "Atz\u012Bm\u0113jiet \u0161o versiju ar \u012Bsu eti\u0137eti.",
   "notice.no-folder-history": "V\u0113l nav mapes v\u0113stures.",
@@ -10315,7 +10315,7 @@ var ms_default = {
   "command.reset-lines-all": "Tetapkan semula semua snapshot penjejak baris",
   "command.reset-lines": "Tetapkan semula snapshot penjejak baris dokumen semasa",
   "command.show-diff": "Tunjukkan semua perubahan dokumen semasa",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "Buka panel perubahan vault",
   "notice.no-changes-to-navigate": "Tiada perubahan untuk dilayari",
   "notice.all-snapshots-deleted": "Semua data snapshot dipadamkan",
   "notice.current-snapshot-deleted": "Data snapshot semasa dipadamkan",
@@ -10350,14 +10350,13 @@ var ms_default = {
   "setting.keep.desc": "Strategi untuk membersihkan sejarah semakan",
   "setting.keep.option.app": "Apl ditutup",
   "setting.keep.option.file": "Fail ditutup",
+  "setting.keep.option.persist": "Disimpan merentas mula semula",
   "setting.ignore-new-files.name": "Abaikan fail baharu",
   "setting.ignore-new-files.desc": "Jangan jejak perubahan pada fail yang dicipta selepas penjejakan bermula",
   "setting.tree-highlight.name": "Serlahkan perubahan dalam pepohon fail dan tab",
   "setting.tree-highlight.desc": "Warnakan fail dan folder dalam penjelajah fail asli, serta pengepala tab bagi fail yang dibuka, mengikut apa yang berubah dalam sesi ini (kuning untuk diubah, hijau untuk ditambah).",
   "setting.properties-highlight.name": "Serlahkan perubahan dalam panel Sifat",
   "setting.properties-highlight.desc": "Tunjukkan kunci frontmatter yang ditambah, diubah dan dibuang dalam panel Sifat Obsidian. Nyahaktifkan untuk menyembunyikan semua penandaan perubahan sifat.",
-  "setting.persist.name": "Kekalkan sejarah merentas mula semula",
-  "setting.persist.desc": 'Simpan sejarah ke cakera supaya sorotan kekal selepas mula semula. Memerlukan "simpan sejarah sehingga" ditetapkan kepada apl ditutup.',
   "setting.max-entries.name": "Maks fail tersimpan",
   "setting.max-entries.desc": "Had bilangan sejarah fail yang disimpan dalam cakera. Yang terlama dibuang dahulu. Tetapkan kepada 0 untuk lumpuhkan.",
   "setting.max-age-days.name": "Usia maks sejarah (hari)",
@@ -10382,8 +10381,8 @@ var ms_default = {
   "setting.line-heading": "Penunjuk baris",
   "setting.line-width.name": "Lebar",
   "setting.line-width.desc": "Lebar penunjuk garisan menegak (dalam piksel).",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "Keamatan penanda",
+  "setting.marker-intensity.desc": "Keamatan keseluruhan setiap warna perubahan (penanda editor, pokok, tab, mod bacaan). Lebih tinggi lebih terang, lebih rendah lebih pucat.",
   "setting.gutter-heading.name": "Penunjuk parit",
   "setting.gutter-heading.prefix": "Aksara penunjuk jenis parit (",
   "setting.gutter-heading.suffix": ").",
@@ -10450,11 +10449,11 @@ var ms_default = {
   "view.recent-changes.menu.restore": "Pulihkan versi ini",
   "view.recent-changes.menu.delete": "Padam versi",
   "view.recent-changes.menu.put-label": "Letak label",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "Perubahan vault",
+  "view.vault-changes.search-placeholder": "Tapis mengikut nama fail",
+  "view.vault-changes.layout.tree": "Pokok",
+  "view.vault-changes.layout.flat": "Senarai rata",
+  "view.vault-changes.deleted-notice": "Fail ini telah dipadam; sejarahnya disimpan.",
   "modal.label-selected": "Labelkan versi yang dipilih",
   "modal.label-version.message": "Tandakan versi ini dengan label ringkas.",
   "notice.no-folder-history": "Belum ada sejarah folder.",
@@ -10491,7 +10490,7 @@ var ne_default = {
   "command.reset-lines-all": "\u0938\u092C\u0948 \u0932\u093E\u0907\u0928 \u091F\u094D\u0930\u094D\u092F\u093E\u0915\u0930 \u0938\u094D\u0928\u094D\u092F\u093E\u092A\u0938\u091F\u0939\u0930\u0942 \u0930\u093F\u0938\u0947\u091F \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
   "command.reset-lines": "\u0939\u093E\u0932\u0915\u094B \u0915\u093E\u0917\u091C\u093E\u0924\u0915\u094B \u0932\u093E\u0907\u0928 \u091F\u094D\u0930\u094D\u092F\u093E\u0915\u0930 \u0938\u094D\u0928\u094D\u092F\u093E\u092A\u0938\u091F \u0930\u093F\u0938\u0947\u091F \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
   "command.show-diff": "\u0939\u093E\u0932\u0915\u094B \u0915\u093E\u0917\u091C\u093E\u0924\u0915\u093E \u0938\u092C\u0948 \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928\u0939\u0930\u0942 \u0926\u0947\u0916\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "\u092D\u0932\u094D\u091F \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u092A\u094D\u092F\u093E\u0928\u0932 \u0916\u094B\u0932\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
   "notice.no-changes-to-navigate": "\u0928\u0947\u092D\u093F\u0917\u0947\u091F \u0917\u0930\u094D\u0928\u0915\u093E \u0932\u093E\u0917\u093F \u0915\u0941\u0928\u0948 \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u091B\u0948\u0928",
   "notice.all-snapshots-deleted": "\u0938\u092C\u0948 \u0938\u094D\u0928\u094D\u092F\u093E\u092A\u0938\u091F \u0921\u0947\u091F\u093E \u092E\u0947\u091F\u093E\u0907\u092F\u094B",
   "notice.current-snapshot-deleted": "\u0939\u093E\u0932\u0915\u094B \u0938\u094D\u0928\u094D\u092F\u093E\u092A\u0938\u091F \u0921\u0947\u091F\u093E \u092E\u0947\u091F\u093E\u0907\u092F\u094B",
@@ -10526,14 +10525,13 @@ var ne_default = {
   "setting.keep.desc": "\u0938\u0902\u0936\u094B\u0927\u0928 \u0907\u0924\u093F\u0939\u093E\u0938 \u0938\u092B\u093E \u0917\u0930\u094D\u0928\u0947 \u0930\u0923\u0928\u0940\u0924\u093F",
   "setting.keep.option.app": "\u090F\u092A \u092C\u0928\u094D\u0926",
   "setting.keep.option.file": "\u092B\u093E\u0907\u0932 \u092C\u0928\u094D\u0926",
+  "setting.keep.option.persist": "\u092A\u0941\u0928\u0903 \u0938\u0941\u0930\u0941 \u0917\u0930\u0947 \u092A\u0928\u093F \u0930\u093E\u0916\u093F\u0928\u094D\u091B",
   "setting.ignore-new-files.name": "\u0928\u092F\u093E\u0901 \u092B\u093E\u0907\u0932\u0939\u0930\u0942 \u092C\u0947\u0935\u093E\u0938\u094D\u0924\u093E \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
   "setting.ignore-new-files.desc": "\u091F\u094D\u0930\u094D\u092F\u093E\u0915\u093F\u0919 \u0938\u0941\u0930\u0941 \u092D\u090F\u092A\u091B\u093F \u0938\u093F\u0930\u094D\u091C\u0928\u093E \u0917\u0930\u093F\u090F\u0915\u093E \u092B\u093E\u0907\u0932\u0939\u0930\u0942\u092E\u093E \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u091F\u094D\u0930\u094D\u092F\u093E\u0915 \u0928\u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
   "setting.tree-highlight.name": "\u092B\u093E\u0907\u0932 \u0930\u0942\u0916 \u0930 \u091F\u094D\u092F\u093E\u092C\u0939\u0930\u0942\u092E\u093E \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928\u0939\u0930\u0942 \u0939\u093E\u0907\u0932\u093E\u0907\u091F \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
   "setting.tree-highlight.desc": "\u0928\u0947\u091F\u093F\u092D \u092B\u093E\u0907\u0932 \u090F\u0915\u094D\u0938\u092A\u094D\u0932\u094B\u0930\u0930\u092E\u093E \u092B\u093E\u0907\u0932 \u0930 \u092B\u094B\u0932\u094D\u0921\u0930\u0939\u0930\u0942, \u0930 \u0916\u0941\u0932\u093E \u092B\u093E\u0907\u0932\u0939\u0930\u0942\u0915\u094B \u091F\u094D\u092F\u093E\u092C \u0939\u0947\u0921\u0930\u0939\u0930\u0942\u0932\u093E\u0908 \u092F\u0938 \u0938\u0924\u094D\u0930\u092E\u093E \u0915\u0947 \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u092D\u092F\u094B \u0924\u094D\u092F\u0938\u0905\u0928\u0941\u0938\u093E\u0930 \u0930\u0919 \u0932\u0917\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D (\u092A\u0930\u093F\u092E\u093E\u0930\u094D\u091C\u093F\u0924\u0915\u093E \u0932\u093E\u0917\u093F \u0905\u092E\u094D\u092C\u0930, \u0925\u092A\u093F\u090F\u0915\u093E\u0915\u093E \u0932\u093E\u0917\u093F \u0939\u0930\u093F\u092F\u094B)\u0964",
   "setting.properties-highlight.name": "\u0917\u0941\u0923 \u092A\u094D\u092F\u093E\u0928\u0932\u092E\u093E \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928\u0939\u0930\u0942 \u0939\u093E\u0907\u0932\u093E\u0907\u091F \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
   "setting.properties-highlight.desc": "Obsidian \u0917\u0941\u0923 \u092A\u094D\u092F\u093E\u0928\u0932\u092E\u093E \u0925\u092A\u093F\u090F\u0915\u093E, \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u0917\u0930\u093F\u090F\u0915\u093E \u0930 \u0939\u091F\u093E\u0907\u090F\u0915\u093E frontmatter \u0915\u0941\u091E\u094D\u091C\u0940\u0939\u0930\u0942 \u0926\u0947\u0916\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D\u0964 \u0917\u0941\u0923 \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928\u0915\u093E \u0938\u092C\u0948 \u091A\u093F\u0928\u094D\u0939 \u0932\u0941\u0915\u093E\u0909\u0928 \u0928\u093F\u0937\u094D\u0915\u094D\u0930\u093F\u092F \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
-  "setting.persist.name": "\u092A\u0941\u0928\u0903 \u0938\u0941\u0930\u0941 \u092D\u090F\u092A\u091B\u093F \u092A\u0928\u093F \u0907\u0924\u093F\u0939\u093E\u0938 \u0930\u093E\u0916\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
-  "setting.persist.desc": '\u0939\u093E\u0907\u0932\u093E\u0907\u091F\u0939\u0930\u0942 \u092A\u0941\u0928\u0903 \u0938\u0941\u0930\u0941\u092A\u091B\u093F \u092A\u0928\u093F \u0930\u0939\u0942\u0928\u094D \u092D\u0928\u0947\u0930 \u0907\u0924\u093F\u0939\u093E\u0938 \u0921\u093F\u0938\u094D\u0915\u092E\u093E \u0938\u0941\u0930\u0915\u094D\u0937\u093F\u0924 \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964 "\u0907\u0924\u093F\u0939\u093E\u0938 \u0930\u093E\u0916\u094D\u0928\u0947 \u0905\u0935\u0927\u093F" \u090F\u092A \u092C\u0928\u094D\u0926\u092E\u093E \u0938\u0947\u091F \u0917\u0930\u094D\u0928 \u0906\u0935\u0936\u094D\u092F\u0915 \u091B\u0964',
   "setting.max-entries.name": "\u0905\u0927\u093F\u0915\u0924\u092E \u0938\u0941\u0930\u0915\u094D\u0937\u093F\u0924 \u092B\u093E\u0907\u0932\u0939\u0930\u0942",
   "setting.max-entries.desc": "\u0921\u093F\u0938\u094D\u0915\u092E\u093E \u0915\u0924\u093F \u092B\u093E\u0907\u0932 \u0907\u0924\u093F\u0939\u093E\u0938 \u0930\u093E\u0916\u094D\u0928\u0947 \u092D\u0928\u094D\u0928\u0947 \u0938\u0940\u092E\u093E\u0964 \u0938\u092C\u0948\u092D\u0928\u094D\u0926\u093E \u092A\u0941\u0930\u093E\u0928\u093E\u0939\u0930\u0942 \u092A\u0939\u093F\u0932\u0947 \u0939\u091F\u093E\u0907\u0928\u094D\u091B\u0928\u094D\u0964 \u0905\u0938\u0915\u094D\u0937\u092E \u092A\u093E\u0930\u094D\u0928 0 \u0938\u0947\u091F \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
   "setting.max-age-days.name": "\u0905\u0927\u093F\u0915\u0924\u092E \u0907\u0924\u093F\u0939\u093E\u0938 \u0909\u092E\u0947\u0930 (\u0926\u093F\u0928)",
@@ -10558,8 +10556,8 @@ var ne_default = {
   "setting.line-heading": "\u0932\u093E\u0907\u0928 \u0938\u0942\u091A\u0915",
   "setting.line-width.name": "\u091A\u094C\u0921\u093E\u0907",
   "setting.line-width.desc": "\u0920\u093E\u0921\u094B \u0930\u0947\u0916\u093E \u0938\u0942\u091A\u0915\u0915\u094B \u091A\u094C\u0921\u093E\u0907 (\u092A\u093F\u0915\u094D\u0938\u0947\u0932\u092E\u093E)\u0964",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "\u092E\u093E\u0930\u094D\u0915\u0930 \u0924\u0940\u0935\u094D\u0930\u0924\u093E",
+  "setting.marker-intensity.desc": "\u0938\u092C\u0948 \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928 \u0930\u0919\u0939\u0930\u0942\u0915\u094B \u0938\u092E\u0917\u094D\u0930 \u0924\u0940\u0935\u094D\u0930\u0924\u093E (\u0938\u092E\u094D\u092A\u093E\u0926\u0915 \u092E\u093E\u0930\u094D\u0915\u0930, \u0930\u0942\u0916, \u091F\u094D\u092F\u093E\u092C, \u092A\u0920\u0928 \u092E\u094B\u0921)\u0964 \u0909\u091A\u094D\u091A \u092D\u090F\u092E\u093E \u092C\u0922\u0940 \u091A\u092E\u094D\u0915\u093F\u0932\u094B, \u0915\u092E \u092D\u090F\u092E\u093E \u092C\u0922\u0940 \u092B\u093F\u0915\u094D\u0915\u093E\u0964",
   "setting.gutter-heading.name": "\u0917\u091F\u0930 \u0938\u0942\u091A\u0915",
   "setting.gutter-heading.prefix": "\u0917\u091F\u0930 \u092A\u094D\u0930\u0915\u093E\u0930 \u0938\u0942\u091A\u0915\u0915\u093E \u0905\u0915\u094D\u0937\u0930\u0939\u0930\u0942 (",
   "setting.gutter-heading.suffix": ")\u0964",
@@ -10626,11 +10624,11 @@ var ne_default = {
   "view.recent-changes.menu.restore": "\u092F\u094B \u0938\u0902\u0938\u094D\u0915\u0930\u0923 \u092A\u0941\u0928\u0930\u094D\u0938\u094D\u0925\u093E\u092A\u0928\u093E \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
   "view.recent-changes.menu.delete": "\u0938\u0902\u0938\u094D\u0915\u0930\u0923 \u092E\u0947\u091F\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D",
   "view.recent-changes.menu.put-label": "\u0932\u0947\u092C\u0932 \u0930\u093E\u0916\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "\u092D\u0932\u094D\u091F \u092A\u0930\u093F\u0935\u0930\u094D\u0924\u0928\u0939\u0930\u0942",
+  "view.vault-changes.search-placeholder": "\u092B\u093E\u0907\u0932 \u0928\u093E\u092E\u0926\u094D\u0935\u093E\u0930\u093E \u092B\u093F\u0932\u094D\u091F\u0930 \u0917\u0930\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
+  "view.vault-changes.layout.tree": "\u0930\u0942\u0916",
+  "view.vault-changes.layout.flat": "\u0938\u092E\u0924\u0932 \u0938\u0942\u091A\u0940",
+  "view.vault-changes.deleted-notice": "\u092F\u094B \u092B\u093E\u0907\u0932 \u092E\u0947\u091F\u093E\u0907\u092F\u094B; \u092F\u0938\u0915\u094B \u0907\u0924\u093F\u0939\u093E\u0938 \u0930\u093E\u0916\u093F\u090F\u0915\u094B \u091B\u0964",
   "modal.label-selected": "\u091A\u092F\u0928 \u0917\u0930\u093F\u090F\u0915\u094B \u0938\u0902\u0938\u094D\u0915\u0930\u0923\u092E\u093E \u0932\u0947\u092C\u0932 \u0930\u093E\u0916\u094D\u0928\u0941\u0939\u094B\u0938\u094D",
   "modal.label-version.message": "\u092F\u094B \u0938\u0902\u0938\u094D\u0915\u0930\u0923\u0932\u093E\u0908 \u091B\u094B\u091F\u094B \u0932\u0947\u092C\u0932\u0932\u0947 \u091A\u093F\u0928\u094D\u0939 \u0932\u0917\u093E\u0909\u0928\u0941\u0939\u094B\u0938\u094D\u0964",
   "notice.no-folder-history": "\u0905\u0939\u093F\u0932\u0947\u0938\u092E\u094D\u092E \u092B\u094B\u0932\u094D\u0921\u0930 \u0907\u0924\u093F\u0939\u093E\u0938 \u091B\u0948\u0928\u0964",
@@ -10667,7 +10665,7 @@ var nl_default = {
   "command.reset-lines-all": "Alle momentopnamen van de regeltracker opnieuw instellen",
   "command.reset-lines": "Momentopname van de regeltracker van het huidige document opnieuw instellen",
   "command.show-diff": "Alle wijzigingen van het huidige document tonen",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "Paneel met kluiswijzigingen openen",
   "notice.no-changes-to-navigate": "Geen wijzigingen om doorheen te navigeren",
   "notice.all-snapshots-deleted": "Alle momentopnamegegevens verwijderd",
   "notice.current-snapshot-deleted": "Gegevens van huidige momentopname verwijderd",
@@ -10702,14 +10700,13 @@ var nl_default = {
   "setting.keep.desc": "Strategie voor het opschonen van de revisiegeschiedenis",
   "setting.keep.option.app": "App sluiten",
   "setting.keep.option.file": "Bestand sluiten",
+  "setting.keep.option.persist": "Behouden na herstart",
   "setting.ignore-new-files.name": "Nieuwe bestanden negeren",
   "setting.ignore-new-files.desc": "Wijzigingen niet bijhouden in bestanden die zijn aangemaakt nadat het bijhouden is gestart",
   "setting.tree-highlight.name": "Wijzigingen markeren in de bestandsboom en tabbladen",
   "setting.tree-highlight.desc": "Kleurt bestanden en mappen in de native bestandsverkenner en de tabkoppen van geopende bestanden op basis van wat in deze sessie is gewijzigd (amber voor gewijzigd, groen voor toegevoegd).",
   "setting.properties-highlight.name": "Wijzigingen markeren in het eigenschappenpaneel",
   "setting.properties-highlight.desc": "Toegevoegde, gewijzigde en verwijderde frontmatter-sleutels tonen in het Obsidian-eigenschappenpaneel. Schakel uit om alle markering van eigenschapswijzigingen te onderdrukken.",
-  "setting.persist.name": "Geschiedenis behouden na herstart",
-  "setting.persist.desc": 'Geschiedenis op schijf opslaan zodat markeringen een herstart overleven. Vereist dat "Geschiedenis bewaren tot" is ingesteld op app sluiten.',
   "setting.max-entries.name": "Maximaal opgeslagen bestanden",
   "setting.max-entries.desc": "Limiet voor hoeveel bestandsgeschiedenissen op schijf worden bewaard. De oudste worden als eerste verwijderd. Stel in op 0 om uit te schakelen.",
   "setting.max-age-days.name": "Maximale leeftijd geschiedenis (dagen)",
@@ -10734,8 +10731,8 @@ var nl_default = {
   "setting.line-heading": "Regelindicator",
   "setting.line-width.name": "Breedte",
   "setting.line-width.desc": "Breedte van de verticale lijnindicator (in pixels).",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "Markeringsintensiteit",
+  "setting.marker-intensity.desc": "Algehele intensiteit van alle wijzigingskleuren (editormarkeringen, boom, tabbladen, leesmodus). Hoger is levendiger, lager is bleker.",
   "setting.gutter-heading.name": "Kantlijnindicator",
   "setting.gutter-heading.prefix": "Tekens van de type-indicator in de kantlijn (",
   "setting.gutter-heading.suffix": ").",
@@ -10802,11 +10799,11 @@ var nl_default = {
   "view.recent-changes.menu.restore": "Deze versie herstellen",
   "view.recent-changes.menu.delete": "Versie verwijderen",
   "view.recent-changes.menu.put-label": "Label toevoegen",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "Kluiswijzigingen",
+  "view.vault-changes.search-placeholder": "Filteren op bestandsnaam",
+  "view.vault-changes.layout.tree": "Boom",
+  "view.vault-changes.layout.flat": "Platte lijst",
+  "view.vault-changes.deleted-notice": "Dit bestand is verwijderd; de geschiedenis blijft bewaard.",
   "modal.label-selected": "Geselecteerde versie labelen",
   "modal.label-version.message": "Geef deze versie een kort label.",
   "notice.no-folder-history": "Nog geen mapgeschiedenis.",
@@ -10843,7 +10840,7 @@ var no_default = {
   "command.reset-lines-all": "Tilbakestill alle linjesporings-\xF8yeblikksbilder",
   "command.reset-lines": "Tilbakestill linjesporings-\xF8yeblikksbilde for gjeldende dokument",
   "command.show-diff": "Vis alle endringer i gjeldende dokument",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "\xC5pne panel for hvelvendringer",
   "notice.no-changes-to-navigate": "Ingen endringer \xE5 navigere",
   "notice.all-snapshots-deleted": "Alle \xF8yeblikksbilder slettet",
   "notice.current-snapshot-deleted": "Gjeldende \xF8yeblikksbilde slettet",
@@ -10878,14 +10875,13 @@ var no_default = {
   "setting.keep.desc": "Strategi for opprydding av revisjonshistorikk",
   "setting.keep.option.app": "Appen lukkes",
   "setting.keep.option.file": "Filen lukkes",
+  "setting.keep.option.persist": "Beholdes mellom omstarter",
   "setting.ignore-new-files.name": "Ignorer nye filer",
   "setting.ignore-new-files.desc": "Ikke spor endringer i filer som er opprettet etter at sporingen startet",
   "setting.tree-highlight.name": "Fremhev endringer i filtreet og fanene",
   "setting.tree-highlight.desc": "Farg filer og mapper i det innebygde filutforskeren samt fanetitlene for \xE5pne filer etter hva som er endret i denne \xF8kten (rav for endret, gr\xF8nn for lagt til).",
   "setting.properties-highlight.name": "Uthev endringer i egenskapspanelet",
   "setting.properties-highlight.desc": "Vis frontmatter-n\xF8kler som er lagt til, endret eller fjernet i Obsidians egenskapspanel. Sl\xE5 av for \xE5 skjule all markering av egenskapsendringer.",
-  "setting.persist.name": "Behold historikk p\xE5 tvers av omstarter",
-  "setting.persist.desc": 'Lagre historikk p\xE5 disk slik at uthevinger overlever en omstart. Krever at "Behold historikk til" er satt til Appen lukkes.',
   "setting.max-entries.name": "Maks. lagrede filer",
   "setting.max-entries.desc": "Grense for hvor mange filhistorikker som beholdes p\xE5 disk. De eldste fjernes f\xF8rst. Sett til 0 for \xE5 deaktivere.",
   "setting.max-age-days.name": "Maks. historikkalder (dager)",
@@ -10910,8 +10906,8 @@ var no_default = {
   "setting.line-heading": "Linjeindikator",
   "setting.line-width.name": "Bredde",
   "setting.line-width.desc": "Bredde p\xE5 den vertikale linjeindikatoren (i piksler).",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "Mark\xF8rintensitet",
+  "setting.marker-intensity.desc": "Samlet intensitet for alle endringsfarger (editormark\xF8rer, tre, faner, lesemodus). H\xF8yere er mer levende, lavere er blekere.",
   "setting.gutter-heading.name": "Margindikator",
   "setting.gutter-heading.prefix": "Tegn for margtypeindikatoren (",
   "setting.gutter-heading.suffix": ").",
@@ -10978,11 +10974,11 @@ var no_default = {
   "view.recent-changes.menu.restore": "Gjenopprett denne versjonen",
   "view.recent-changes.menu.delete": "Slett versjon",
   "view.recent-changes.menu.put-label": "Sett etikett",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "Hvelvendringer",
+  "view.vault-changes.search-placeholder": "Filtrer etter filnavn",
+  "view.vault-changes.layout.tree": "Tre",
+  "view.vault-changes.layout.flat": "Flat liste",
+  "view.vault-changes.deleted-notice": "Denne filen ble slettet; historikken beholdes.",
   "modal.label-selected": "Sett etikett p\xE5 valgt versjon",
   "modal.label-version.message": "Merk denne versjonen med en kort etikett.",
   "notice.no-folder-history": "Ingen mappehistorikk enn\xE5.",
@@ -11019,7 +11015,7 @@ var pl_default = {
   "command.reset-lines-all": "Zresetuj migawki \u015Bledzenia linii dla wszystkich plik\xF3w",
   "command.reset-lines": "Zresetuj migawk\u0119 \u015Bledzenia linii bie\u017C\u0105cego dokumentu",
   "command.show-diff": "Poka\u017C wszystkie zmiany bie\u017C\u0105cego dokumentu",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "Otw\xF3rz panel zmian skarbca",
   "notice.no-changes-to-navigate": "Brak zmian do nawigacji",
   "notice.all-snapshots-deleted": "Usuni\u0119to wszystkie dane migawek",
   "notice.current-snapshot-deleted": "Usuni\u0119to dane bie\u017C\u0105cej migawki",
@@ -11054,14 +11050,13 @@ var pl_default = {
   "setting.keep.desc": "Strategia czyszczenia historii wersji",
   "setting.keep.option.app": "Zamkni\u0119cia aplikacji",
   "setting.keep.option.file": "Zamkni\u0119cia pliku",
+  "setting.keep.option.persist": "Zachowane po ponownym uruchomieniu",
   "setting.ignore-new-files.name": "Ignoruj nowe pliki",
   "setting.ignore-new-files.desc": "Nie \u015Bled\u017A zmian w plikach utworzonych po rozpocz\u0119ciu \u015Bledzenia",
   "setting.tree-highlight.name": "Wyr\xF3\u017Cnij zmiany w drzewie plik\xF3w i na kartach",
   "setting.tree-highlight.desc": "Koloruje pliki i foldery w natywnym eksploratorze plik\xF3w oraz nag\u0142\xF3wki kart otwartych plik\xF3w wed\u0142ug tego, co zmieni\u0142o si\u0119 w tej sesji (bursztyn dla zmodyfikowanych, zielony dla dodanych).",
   "setting.properties-highlight.name": "Pod\u015Bwietlaj zmiany w panelu w\u0142a\u015Bciwo\u015Bci",
   "setting.properties-highlight.desc": "Pokazuj dodane, zmienione i usuni\u0119te klucze frontmatter w panelu w\u0142a\u015Bciwo\u015Bci Obsidian. Wy\u0142\u0105cz, aby ukry\u0107 ca\u0142e oznaczanie zmian w\u0142a\u015Bciwo\u015Bci.",
-  "setting.persist.name": "Zachowuj histori\u0119 mi\u0119dzy ponownymi uruchomieniami",
-  "setting.persist.desc": 'Zapisuj histori\u0119 na dysku, aby pod\u015Bwietlenia przetrwa\u0142y ponowne uruchomienie. Wymaga ustawienia opcji "Przechowuj histori\u0119 do" na zamkni\u0119cie aplikacji.',
   "setting.max-entries.name": "Maksymalna liczba przechowywanych plik\xF3w",
   "setting.max-entries.desc": "Limit liczby historii plik\xF3w przechowywanych na dysku. Najstarsze s\u0105 usuwane jako pierwsze. Ustaw 0, aby wy\u0142\u0105czy\u0107.",
   "setting.max-age-days.name": "Maksymalny wiek historii (dni)",
@@ -11086,8 +11081,8 @@ var pl_default = {
   "setting.line-heading": "Wska\u017Anik liniowy",
   "setting.line-width.name": "Szeroko\u015B\u0107",
   "setting.line-width.desc": "Szeroko\u015B\u0107 pionowego wska\u017Anika liniowego (w pikselach).",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "Intensywno\u015B\u0107 znacznik\xF3w",
+  "setting.marker-intensity.desc": "Og\xF3lna intensywno\u015B\u0107 wszystkich kolor\xF3w zmian (znaczniki edytora, drzewo, karty, tryb czytania). Wy\u017Csza jest \u017Cywsza, ni\u017Csza jest bledsza.",
   "setting.gutter-heading.name": "Wska\u017Anik na marginesie",
   "setting.gutter-heading.prefix": "Znaki wska\u017Anika typu na marginesie (",
   "setting.gutter-heading.suffix": ").",
@@ -11154,11 +11149,11 @@ var pl_default = {
   "view.recent-changes.menu.restore": "Przywr\xF3\u0107 t\u0119 wersj\u0119",
   "view.recent-changes.menu.delete": "Usu\u0144 wersj\u0119",
   "view.recent-changes.menu.put-label": "Dodaj etykiet\u0119",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "Zmiany skarbca",
+  "view.vault-changes.search-placeholder": "Filtruj wed\u0142ug nazwy pliku",
+  "view.vault-changes.layout.tree": "Drzewo",
+  "view.vault-changes.layout.flat": "Lista p\u0142aska",
+  "view.vault-changes.deleted-notice": "Ten plik zosta\u0142 usuni\u0119ty; jego historia jest zachowana.",
   "modal.label-selected": "Oznacz wybran\u0105 wersj\u0119",
   "modal.label-version.message": "Oznacz t\u0119 wersj\u0119 kr\xF3tk\u0105 etykiet\u0105.",
   "notice.no-folder-history": "Brak historii folderu.",
@@ -11195,7 +11190,7 @@ var pt_default = {
   "command.reset-lines-all": "Repor todas as capturas do rastreador de linhas",
   "command.reset-lines": "Repor a captura do rastreador de linhas do documento atual",
   "command.show-diff": "Mostrar todas as altera\xE7\xF5es do documento atual",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "Abrir o painel de altera\xE7\xF5es do cofre",
   "notice.no-changes-to-navigate": "N\xE3o h\xE1 altera\xE7\xF5es para navegar",
   "notice.all-snapshots-deleted": "Todos os dados de capturas eliminados",
   "notice.current-snapshot-deleted": "Dados da captura atual eliminados",
@@ -11230,14 +11225,13 @@ var pt_default = {
   "setting.keep.desc": "Estrat\xE9gia de limpeza do hist\xF3rico de revis\xF5es",
   "setting.keep.option.app": "Fecho da aplica\xE7\xE3o",
   "setting.keep.option.file": "Fecho do ficheiro",
+  "setting.keep.option.persist": "Mantido entre rein\xEDcios",
   "setting.ignore-new-files.name": "Ignorar ficheiros novos",
   "setting.ignore-new-files.desc": "N\xE3o rastrear altera\xE7\xF5es em ficheiros criados depois de o rastreio come\xE7ar",
   "setting.tree-highlight.name": "Real\xE7ar altera\xE7\xF5es na \xE1rvore de ficheiros e nos separadores",
   "setting.tree-highlight.desc": "Colore ficheiros e pastas no explorador de ficheiros nativo, e os cabe\xE7alhos dos separadores dos ficheiros abertos, conforme o que mudou nesta sess\xE3o (\xE2mbar para modificado, verde para adicionado).",
   "setting.properties-highlight.name": "Real\xE7ar altera\xE7\xF5es no painel de propriedades",
   "setting.properties-highlight.desc": "Mostrar as chaves de frontmatter adicionadas, modificadas e removidas no painel de propriedades do Obsidian. Desative para ocultar toda a decora\xE7\xE3o de altera\xE7\xF5es de propriedades.",
-  "setting.persist.name": "Manter o hist\xF3rico entre rein\xEDcios",
-  "setting.persist.desc": 'Guardar o hist\xF3rico no disco para que os destaques sobrevivam a um rein\xEDcio. Requer que "Manter o hist\xF3rico at\xE9" esteja definido como fecho da aplica\xE7\xE3o.',
   "setting.max-entries.name": "M\xE1ximo de ficheiros armazenados",
   "setting.max-entries.desc": "Limite de quantos hist\xF3ricos de ficheiros s\xE3o mantidos no disco. Os mais antigos s\xE3o removidos primeiro. Defina como 0 para desativar.",
   "setting.max-age-days.name": "Idade m\xE1xima do hist\xF3rico (dias)",
@@ -11262,8 +11256,8 @@ var pt_default = {
   "setting.line-heading": "Indicador de linha",
   "setting.line-width.name": "Largura",
   "setting.line-width.desc": "Largura do indicador de linha vertical (em p\xEDxeis).",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "Intensidade dos marcadores",
+  "setting.marker-intensity.desc": "Intensidade geral de todas as cores de altera\xE7\xE3o (marcadores do editor, \xE1rvore, separadores, modo de leitura). Mais alto \xE9 mais v\xEDvido, mais baixo \xE9 mais claro.",
   "setting.gutter-heading.name": "Indicador na margem",
   "setting.gutter-heading.prefix": "Caracteres do indicador de tipo na margem (",
   "setting.gutter-heading.suffix": ").",
@@ -11330,11 +11324,11 @@ var pt_default = {
   "view.recent-changes.menu.restore": "Restaurar esta vers\xE3o",
   "view.recent-changes.menu.delete": "Eliminar vers\xE3o",
   "view.recent-changes.menu.put-label": "Colocar etiqueta",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "Altera\xE7\xF5es do cofre",
+  "view.vault-changes.search-placeholder": "Filtrar por nome do ficheiro",
+  "view.vault-changes.layout.tree": "\xC1rvore",
+  "view.vault-changes.layout.flat": "Lista plana",
+  "view.vault-changes.deleted-notice": "Este ficheiro foi eliminado; o seu hist\xF3rico \xE9 mantido.",
   "modal.label-selected": "Etiquetar a vers\xE3o selecionada",
   "modal.label-version.message": "Marque esta vers\xE3o com uma etiqueta curta.",
   "notice.no-folder-history": "Ainda n\xE3o h\xE1 hist\xF3rico da pasta.",
@@ -11371,7 +11365,7 @@ var pt_BR_default = {
   "command.reset-lines-all": "Redefinir todos os instant\xE2neos do rastreador de linhas",
   "command.reset-lines": "Redefinir o instant\xE2neo do rastreador de linhas do documento atual",
   "command.show-diff": "Mostrar todas as altera\xE7\xF5es do documento atual",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "Abrir o painel de altera\xE7\xF5es do cofre",
   "notice.no-changes-to-navigate": "N\xE3o h\xE1 altera\xE7\xF5es para navegar",
   "notice.all-snapshots-deleted": "Todos os dados de instant\xE2neos exclu\xEDdos",
   "notice.current-snapshot-deleted": "Dados do instant\xE2neo atual exclu\xEDdos",
@@ -11406,14 +11400,13 @@ var pt_BR_default = {
   "setting.keep.desc": "Estrat\xE9gia de limpeza do hist\xF3rico de revis\xF5es",
   "setting.keep.option.app": "Fechamento do aplicativo",
   "setting.keep.option.file": "Fechamento do arquivo",
+  "setting.keep.option.persist": "Mantido entre reinicializa\xE7\xF5es",
   "setting.ignore-new-files.name": "Ignorar arquivos novos",
   "setting.ignore-new-files.desc": "N\xE3o rastrear altera\xE7\xF5es em arquivos criados depois que o rastreamento come\xE7ou",
   "setting.tree-highlight.name": "Destacar altera\xE7\xF5es na \xE1rvore de arquivos e nas abas",
   "setting.tree-highlight.desc": "Colore arquivos e pastas no explorador de arquivos nativo, e os cabe\xE7alhos das abas dos arquivos abertos, conforme o que mudou nesta sess\xE3o (\xE2mbar para modificado, verde para adicionado).",
   "setting.properties-highlight.name": "Destacar altera\xE7\xF5es no painel de propriedades",
   "setting.properties-highlight.desc": "Mostrar as chaves de frontmatter adicionadas, modificadas e removidas no painel de propriedades do Obsidian. Desative para ocultar toda a decora\xE7\xE3o de altera\xE7\xF5es de propriedades.",
-  "setting.persist.name": "Manter o hist\xF3rico entre reinicializa\xE7\xF5es",
-  "setting.persist.desc": 'Salvar o hist\xF3rico no disco para que os destaques sobrevivam a uma reinicializa\xE7\xE3o. Requer que "Manter o hist\xF3rico at\xE9" esteja definido como fechamento do aplicativo.',
   "setting.max-entries.name": "M\xE1ximo de arquivos armazenados",
   "setting.max-entries.desc": "Limite de quantos hist\xF3ricos de arquivos s\xE3o mantidos no disco. Os mais antigos s\xE3o removidos primeiro. Defina como 0 para desativar.",
   "setting.max-age-days.name": "Idade m\xE1xima do hist\xF3rico (dias)",
@@ -11438,8 +11431,8 @@ var pt_BR_default = {
   "setting.line-heading": "Indicador de linha",
   "setting.line-width.name": "Largura",
   "setting.line-width.desc": "Largura do indicador de linha vertical (em pixels).",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "Intensidade dos marcadores",
+  "setting.marker-intensity.desc": "Intensidade geral de todas as cores de altera\xE7\xE3o (marcadores do editor, \xE1rvore, abas, modo de leitura). Mais alto \xE9 mais v\xEDvido, mais baixo \xE9 mais claro.",
   "setting.gutter-heading.name": "Indicador na margem",
   "setting.gutter-heading.prefix": "Caracteres do indicador de tipo na margem (",
   "setting.gutter-heading.suffix": ").",
@@ -11506,11 +11499,11 @@ var pt_BR_default = {
   "view.recent-changes.menu.restore": "Restaurar esta vers\xE3o",
   "view.recent-changes.menu.delete": "Excluir vers\xE3o",
   "view.recent-changes.menu.put-label": "Colocar r\xF3tulo",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "Altera\xE7\xF5es do cofre",
+  "view.vault-changes.search-placeholder": "Filtrar por nome do arquivo",
+  "view.vault-changes.layout.tree": "\xC1rvore",
+  "view.vault-changes.layout.flat": "Lista plana",
+  "view.vault-changes.deleted-notice": "Este arquivo foi exclu\xEDdo; seu hist\xF3rico \xE9 mantido.",
   "modal.label-selected": "Rotular a vers\xE3o selecionada",
   "modal.label-version.message": "Marque esta vers\xE3o com um r\xF3tulo curto.",
   "notice.no-folder-history": "Ainda n\xE3o h\xE1 hist\xF3rico da pasta.",
@@ -11547,7 +11540,7 @@ var ro_default = {
   "command.reset-lines-all": "Reseteaz\u0103 instantaneele de urm\u0103rire a liniilor pentru toate fi\u0219ierele",
   "command.reset-lines": "Reseteaz\u0103 instantaneul de urm\u0103rire a liniilor pentru documentul curent",
   "command.show-diff": "Afi\u0219eaz\u0103 toate modific\u0103rile documentului curent",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "Deschide panoul de modific\u0103ri ale seifului",
   "notice.no-changes-to-navigate": "Nicio modificare de parcurs",
   "notice.all-snapshots-deleted": "Toate datele instantaneelor au fost \u0219terse",
   "notice.current-snapshot-deleted": "Datele instantaneului curent au fost \u0219terse",
@@ -11582,14 +11575,13 @@ var ro_default = {
   "setting.keep.desc": "Strategie de cur\u0103\u021Bare a istoricului de revizii",
   "setting.keep.option.app": "\xCEnchiderea aplica\u021Biei",
   "setting.keep.option.file": "\xCEnchiderea fi\u0219ierului",
+  "setting.keep.option.persist": "P\u0103strat \xEEntre reporniri",
   "setting.ignore-new-files.name": "Ignor\u0103 fi\u0219ierele noi",
   "setting.ignore-new-files.desc": "Nu urm\u0103ri modific\u0103rile din fi\u0219ierele create dup\u0103 \xEEnceperea urm\u0103ririi",
   "setting.tree-highlight.name": "Eviden\u021Biaz\u0103 modific\u0103rile \xEEn arborele de fi\u0219iere \u0219i \xEEn file",
   "setting.tree-highlight.desc": "Coloreaz\u0103 fi\u0219ierele \u0219i folderele din exploratorul de fi\u0219iere nativ, precum \u0219i antetele filelor fi\u0219ierelor deschise, \xEEn func\u021Bie de ce s-a schimbat \xEEn aceast\u0103 sesiune (chihlimbar pentru modificat, verde pentru ad\u0103ugat).",
   "setting.properties-highlight.name": "Eviden\u021Biaz\u0103 modific\u0103rile \xEEn panoul de propriet\u0103\u021Bi",
   "setting.properties-highlight.desc": "Afi\u0219eaz\u0103 cheile de frontmatter ad\u0103ugate, modificate \u0219i eliminate \xEEn panoul de propriet\u0103\u021Bi din Obsidian. Dezactiveaz\u0103 pentru a ascunde toat\u0103 decorarea diferen\u021Belor de propriet\u0103\u021Bi.",
-  "setting.persist.name": "P\u0103streaz\u0103 istoricul \xEEntre reporniri",
-  "setting.persist.desc": 'Salveaz\u0103 istoricul pe disc, astfel \xEEnc\xE2t eviden\u021Bierile s\u0103 supravie\u021Buiasc\u0103 unei reporniri. Necesit\u0103 ca op\u021Biunea "P\u0103streaz\u0103 istoricul p\xE2n\u0103 la" s\u0103 fie setat\u0103 la \xEEnchiderea aplica\u021Biei.',
   "setting.max-entries.name": "Num\u0103r maxim de fi\u0219iere stocate",
   "setting.max-entries.desc": "Limita num\u0103rului de istorice de fi\u0219iere p\u0103strate pe disc. Cele mai vechi sunt eliminate primele. Seta\u021Bi la 0 pentru a dezactiva.",
   "setting.max-age-days.name": "Vechimea maxim\u0103 a istoricului (zile)",
@@ -11614,8 +11606,8 @@ var ro_default = {
   "setting.line-heading": "Indicator de linie",
   "setting.line-width.name": "L\u0103\u021Bime",
   "setting.line-width.desc": "L\u0103\u021Bimea indicatorului de linie vertical\u0103 (\xEEn pixeli).",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "Intensitatea marcajelor",
+  "setting.marker-intensity.desc": "Intensitatea general\u0103 a tuturor culorilor de modificare (marcaje editor, arbore, file, mod citire). Mai mare este mai viu, mai mic este mai palid.",
   "setting.gutter-heading.name": "Indicator \xEEn margine",
   "setting.gutter-heading.prefix": "Caracterele indicatorului de tip din margine (",
   "setting.gutter-heading.suffix": ").",
@@ -11682,11 +11674,11 @@ var ro_default = {
   "view.recent-changes.menu.restore": "Restaureaz\u0103 aceast\u0103 versiune",
   "view.recent-changes.menu.delete": "\u0218terge versiunea",
   "view.recent-changes.menu.put-label": "Pune etichet\u0103",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "Modific\u0103rile seifului",
+  "view.vault-changes.search-placeholder": "Filtreaz\u0103 dup\u0103 numele fi\u0219ierului",
+  "view.vault-changes.layout.tree": "Arbore",
+  "view.vault-changes.layout.flat": "List\u0103 simpl\u0103",
+  "view.vault-changes.deleted-notice": "Acest fi\u0219ier a fost \u0219ters; istoricul s\u0103u este p\u0103strat.",
   "modal.label-selected": "Eticheteaz\u0103 versiunea selectat\u0103",
   "modal.label-version.message": "Marcheaz\u0103 aceast\u0103 versiune cu o etichet\u0103 scurt\u0103.",
   "notice.no-folder-history": "\xCEnc\u0103 nu exist\u0103 istoric al dosarului.",
@@ -11758,14 +11750,13 @@ var ru_default = {
   "setting.keep.desc": "\u0421\u0442\u0440\u0430\u0442\u0435\u0433\u0438\u044F \u043E\u0447\u0438\u0441\u0442\u043A\u0438 \u0438\u0441\u0442\u043E\u0440\u0438\u0438 \u0440\u0435\u0432\u0438\u0437\u0438\u0439",
   "setting.keep.option.app": "\u0417\u0430\u043A\u0440\u044B\u0442\u0438\u044F \u043F\u0440\u0438\u043B\u043E\u0436\u0435\u043D\u0438\u044F",
   "setting.keep.option.file": "\u0417\u0430\u043A\u0440\u044B\u0442\u0438\u044F \u0444\u0430\u0439\u043B\u0430",
+  "setting.keep.option.persist": "\u0421\u043E\u0445\u0440\u0430\u043D\u044F\u0435\u0442\u0441\u044F \u043C\u0435\u0436\u0434\u0443 \u043F\u0435\u0440\u0435\u0437\u0430\u043F\u0443\u0441\u043A\u0430\u043C\u0438",
   "setting.ignore-new-files.name": "\u0418\u0433\u043D\u043E\u0440\u0438\u0440\u043E\u0432\u0430\u0442\u044C \u043D\u043E\u0432\u044B\u0435 \u0444\u0430\u0439\u043B\u044B",
   "setting.ignore-new-files.desc": "\u041D\u0435 \u043E\u0442\u0441\u043B\u0435\u0436\u0438\u0432\u0430\u0442\u044C \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044F \u0432 \u0444\u0430\u0439\u043B\u0430\u0445, \u0441\u043E\u0437\u0434\u0430\u043D\u043D\u044B\u0445 \u043F\u043E\u0441\u043B\u0435 \u043D\u0430\u0447\u0430\u043B\u0430 \u043E\u0442\u0441\u043B\u0435\u0436\u0438\u0432\u0430\u043D\u0438\u044F",
   "setting.tree-highlight.name": "\u041F\u043E\u0434\u0441\u0432\u0435\u0447\u0438\u0432\u0430\u0442\u044C \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044F \u0432 \u0434\u0435\u0440\u0435\u0432\u0435 \u0444\u0430\u0439\u043B\u043E\u0432 \u0438 \u0432\u043A\u043B\u0430\u0434\u043A\u0430\u0445",
   "setting.tree-highlight.desc": "\u041E\u043A\u0440\u0430\u0448\u0438\u0432\u0430\u0435\u0442 \u0444\u0430\u0439\u043B\u044B \u0438 \u043F\u0430\u043F\u043A\u0438 \u0432 \u043D\u0430\u0442\u0438\u0432\u043D\u043E\u043C \u043F\u0440\u043E\u0432\u043E\u0434\u043D\u0438\u043A\u0435 \u0444\u0430\u0439\u043B\u043E\u0432, \u0430 \u0442\u0430\u043A\u0436\u0435 \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043A\u0438 \u0432\u043A\u043B\u0430\u0434\u043E\u043A \u043E\u0442\u043A\u0440\u044B\u0442\u044B\u0445 \u0444\u0430\u0439\u043B\u043E\u0432 \u043F\u043E \u0442\u043E\u043C\u0443, \u0447\u0442\u043E \u0438\u0437\u043C\u0435\u043D\u0438\u043B\u043E\u0441\u044C \u0437\u0430 \u044D\u0442\u0443 \u0441\u0435\u0441\u0441\u0438\u044E (\u044F\u043D\u0442\u0430\u0440\u043D\u044B\u0439 \u0434\u043B\u044F \u0438\u0437\u043C\u0435\u043D\u0451\u043D\u043D\u044B\u0445, \u0437\u0435\u043B\u0451\u043D\u044B\u0439 \u0434\u043B\u044F \u0434\u043E\u0431\u0430\u0432\u043B\u0435\u043D\u043D\u044B\u0445).",
   "setting.properties-highlight.name": "\u041F\u043E\u0434\u0441\u0432\u0435\u0447\u0438\u0432\u0430\u0442\u044C \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u044F \u0432 \u043F\u0430\u043D\u0435\u043B\u0438 \u0441\u0432\u043E\u0439\u0441\u0442\u0432",
   "setting.properties-highlight.desc": "\u041F\u043E\u043A\u0430\u0437\u044B\u0432\u0430\u0442\u044C \u0434\u043E\u0431\u0430\u0432\u043B\u0435\u043D\u043D\u044B\u0435, \u0438\u0437\u043C\u0435\u043D\u0451\u043D\u043D\u044B\u0435 \u0438 \u0443\u0434\u0430\u043B\u0451\u043D\u043D\u044B\u0435 \u043A\u043B\u044E\u0447\u0438 frontmatter \u0432 \u043F\u0430\u043D\u0435\u043B\u0438 \u0441\u0432\u043E\u0439\u0441\u0442\u0432 Obsidian. \u041E\u0442\u043A\u043B\u044E\u0447\u0438\u0442\u0435, \u0447\u0442\u043E\u0431\u044B \u0443\u0431\u0440\u0430\u0442\u044C \u0432\u0441\u044E \u043F\u043E\u0434\u0441\u0432\u0435\u0442\u043A\u0443 \u0438\u0437\u043C\u0435\u043D\u0435\u043D\u0438\u0439 \u0441\u0432\u043E\u0439\u0441\u0442\u0432.",
-  "setting.persist.name": "\u0421\u043E\u0445\u0440\u0430\u043D\u044F\u0442\u044C \u0438\u0441\u0442\u043E\u0440\u0438\u044E \u043C\u0435\u0436\u0434\u0443 \u043F\u0435\u0440\u0435\u0437\u0430\u043F\u0443\u0441\u043A\u0430\u043C\u0438",
-  "setting.persist.desc": '\u0421\u043E\u0445\u0440\u0430\u043D\u044F\u0442\u044C \u0438\u0441\u0442\u043E\u0440\u0438\u044E \u043D\u0430 \u0434\u0438\u0441\u043A, \u0447\u0442\u043E\u0431\u044B \u043F\u043E\u0434\u0441\u0432\u0435\u0442\u043A\u0438 \u043F\u0435\u0440\u0435\u0436\u0438\u0432\u0430\u043B\u0438 \u043F\u0435\u0440\u0435\u0437\u0430\u043F\u0443\u0441\u043A. \u0422\u0440\u0435\u0431\u0443\u0435\u0442, \u0447\u0442\u043E\u0431\u044B \u043F\u0430\u0440\u0430\u043C\u0435\u0442\u0440 "\u0425\u0440\u0430\u043D\u0438\u0442\u044C \u0438\u0441\u0442\u043E\u0440\u0438\u044E \u0434\u043E" \u0431\u044B\u043B \u0443\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D \u043D\u0430 \u0437\u0430\u043A\u0440\u044B\u0442\u0438\u0435 \u043F\u0440\u0438\u043B\u043E\u0436\u0435\u043D\u0438\u044F.',
   "setting.max-entries.name": "\u041C\u0430\u043A\u0441\u0438\u043C\u0443\u043C \u0445\u0440\u0430\u043D\u0438\u043C\u044B\u0445 \u0444\u0430\u0439\u043B\u043E\u0432",
   "setting.max-entries.desc": "\u041E\u0433\u0440\u0430\u043D\u0438\u0447\u0435\u043D\u0438\u0435 \u043D\u0430 \u043A\u043E\u043B\u0438\u0447\u0435\u0441\u0442\u0432\u043E \u0438\u0441\u0442\u043E\u0440\u0438\u0439 \u0444\u0430\u0439\u043B\u043E\u0432, \u0445\u0440\u0430\u043D\u0438\u043C\u044B\u0445 \u043D\u0430 \u0434\u0438\u0441\u043A\u0435. \u0421\u043D\u0430\u0447\u0430\u043B\u0430 \u0443\u0434\u0430\u043B\u044F\u044E\u0442\u0441\u044F \u0441\u0430\u043C\u044B\u0435 \u0441\u0442\u0430\u0440\u044B\u0435. \u0423\u0441\u0442\u0430\u043D\u043E\u0432\u0438\u0442\u0435 0, \u0447\u0442\u043E\u0431\u044B \u043E\u0442\u043A\u043B\u044E\u0447\u0438\u0442\u044C.",
   "setting.max-age-days.name": "\u041C\u0430\u043A\u0441\u0438\u043C\u0430\u043B\u044C\u043D\u044B\u0439 \u0432\u043E\u0437\u0440\u0430\u0441\u0442 \u0438\u0441\u0442\u043E\u0440\u0438\u0438 (\u0434\u043D\u0438)",
@@ -11899,7 +11890,7 @@ var sk_default = {
   "command.reset-lines-all": "Resetova\u0165 sn\xEDmky sledovania riadkov pre v\u0161etky s\xFAbory",
   "command.reset-lines": "Resetova\u0165 sn\xEDmku sledovania riadkov aktu\xE1lneho dokumentu",
   "command.show-diff": "Zobrazi\u0165 v\u0161etky zmeny aktu\xE1lneho dokumentu",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "Otvori\u0165 panel zmien trezora",
   "notice.no-changes-to-navigate": "\u017Diadne zmeny na prech\xE1dzanie",
   "notice.all-snapshots-deleted": "V\u0161etky d\xE1ta sn\xEDmok boli odstr\xE1nen\xE9",
   "notice.current-snapshot-deleted": "D\xE1ta aktu\xE1lnej sn\xEDmky boli odstr\xE1nen\xE9",
@@ -11934,14 +11925,13 @@ var sk_default = {
   "setting.keep.desc": "Strat\xE9gia \u010Distenia hist\xF3rie rev\xEDzi\xED",
   "setting.keep.option.app": "Zatvorenia aplik\xE1cie",
   "setting.keep.option.file": "Zatvorenia s\xFAboru",
+  "setting.keep.option.persist": "Zachovan\xE9 medzi re\u0161tartmi",
   "setting.ignore-new-files.name": "Ignorova\u0165 nov\xE9 s\xFAbory",
   "setting.ignore-new-files.desc": "Nesledova\u0165 zmeny v s\xFAboroch vytvoren\xFDch po za\u010Dat\xED sledovania",
   "setting.tree-highlight.name": "Zv\xFDrazni\u0165 zmeny v strome s\xFAborov a na kart\xE1ch",
   "setting.tree-highlight.desc": "Zafarb\xED s\xFAbory a prie\u010Dinky v nat\xEDvnom prehliada\u010Di s\xFAborov a hlavi\u010Dky kariet otvoren\xFDch s\xFAborov pod\u013Ea toho, \u010Do sa v tejto rel\xE1cii zmenilo (jant\xE1rov\xE1 pre upraven\xE9, zelen\xE1 pre pridan\xE9).",
   "setting.properties-highlight.name": "Zv\xFDraz\u0148ova\u0165 zmeny v paneli vlastnost\xED",
   "setting.properties-highlight.desc": "Zobrazova\u0165 pridan\xE9, zmenen\xE9 a odstr\xE1nen\xE9 k\u013E\xFA\u010De frontmatteru v paneli vlastnost\xED Obsidianu. Vypnut\xEDm skryjete cel\xE9 zv\xFDraznenie zmien vlastnost\xED.",
-  "setting.persist.name": "Zachova\u0165 hist\xF3riu medzi re\u0161tartmi",
-  "setting.persist.desc": 'Uklada\u0165 hist\xF3riu na disk, aby zv\xFDraznenia pre\u017Eili re\u0161tart. Vy\u017Eaduje nastavenie "Uchov\xE1va\u0165 hist\xF3riu do" na zatvorenie aplik\xE1cie.',
   "setting.max-entries.name": "Maximum ulo\u017Een\xFDch s\xFAborov",
   "setting.max-entries.desc": "Limit po\u010Dtu hist\xF3ri\xED s\xFAborov uchov\xE1van\xFDch na disku. Najstar\u0161ie sa odstra\u0148uj\xFA ako prv\xE9. Nastavte 0 na vypnutie.",
   "setting.max-age-days.name": "Maxim\xE1lny vek hist\xF3rie (dni)",
@@ -11966,8 +11956,8 @@ var sk_default = {
   "setting.line-heading": "Riadkov\xFD indik\xE1tor",
   "setting.line-width.name": "\u0160\xEDrka",
   "setting.line-width.desc": "\u0160\xEDrka zvisl\xE9ho riadkov\xE9ho indik\xE1tora (v pixeloch).",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "Intenzita zna\u010Diek",
+  "setting.marker-intensity.desc": "Celkov\xE1 intenzita v\u0161etk\xFDch farieb zmien (zna\u010Dky editora, strom, karty, re\u017Eim \u010D\xEDtania). Vy\u0161\u0161ia je v\xFDraznej\u0161ia, ni\u017E\u0161ia je bled\u0161ia.",
   "setting.gutter-heading.name": "Indik\xE1tor na okraji",
   "setting.gutter-heading.prefix": "Znaky indik\xE1tora typu na okraji (",
   "setting.gutter-heading.suffix": ").",
@@ -12034,11 +12024,11 @@ var sk_default = {
   "view.recent-changes.menu.restore": "Obnovi\u0165 t\xFAto verziu",
   "view.recent-changes.menu.delete": "Odstr\xE1ni\u0165 verziu",
   "view.recent-changes.menu.put-label": "Prida\u0165 \u0161t\xEDtok",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "Zmeny trezora",
+  "view.vault-changes.search-placeholder": "Filtrova\u0165 pod\u013Ea n\xE1zvu s\xFAboru",
+  "view.vault-changes.layout.tree": "Strom",
+  "view.vault-changes.layout.flat": "Ploch\xFD zoznam",
+  "view.vault-changes.deleted-notice": "Tento s\xFAbor bol odstr\xE1nen\xFD; jeho hist\xF3ria sa zachov\xE1va.",
   "modal.label-selected": "Ozna\u010Di\u0165 vybran\xFA verziu",
   "modal.label-version.message": "Ozna\u010Dte t\xFAto verziu kr\xE1tkym \u0161t\xEDtkom.",
   "notice.no-folder-history": "Zatia\u013E \u017Eiadna hist\xF3ria prie\u010Dinka.",
@@ -12075,7 +12065,7 @@ var sq_default = {
   "command.reset-lines-all": "Rivendos t\xEB gjitha fotot e ndjekjes s\xEB rreshtave",
   "command.reset-lines": "Rivendos foton e ndjekjes s\xEB rreshtave t\xEB dokumentit aktual",
   "command.show-diff": "Shfaq t\xEB gjitha ndryshimet e dokumentit aktual",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "Hap panelin e ndryshimeve t\xEB kasafort\xEBs",
   "notice.no-changes-to-navigate": "Nuk ka ndryshime p\xEBr t\xEB l\xEBvizur",
   "notice.all-snapshots-deleted": "U fshin\xEB t\xEB gjitha t\xEB dh\xEBnat e fotove",
   "notice.current-snapshot-deleted": "U fshin\xEB t\xEB dh\xEBnat e fotos aktuale",
@@ -12110,14 +12100,13 @@ var sq_default = {
   "setting.keep.desc": "Strategjia p\xEBr pastrimin e historis\xEB s\xEB rishikimeve",
   "setting.keep.option.app": "Mbyllja e aplikacionit",
   "setting.keep.option.file": "Mbyllja e skedarit",
+  "setting.keep.option.persist": "Ruhet mes rinisjeve",
   "setting.ignore-new-files.name": "Shp\xEBrfill skedar\xEBt e rinj",
   "setting.ignore-new-files.desc": "Mos i ndiq ndryshimet n\xEB skedar\xEBt e krijuar pasi filloi ndjekja",
   "setting.tree-highlight.name": "Thekso ndryshimet n\xEB pem\xEBn e skedar\xEBve dhe n\xEB skedat",
   "setting.tree-highlight.desc": "Ngjyros skedar\xEBt dhe dosjet n\xEB shfletuesin vendas t\xEB skedar\xEBve, si dhe titujt e skedave t\xEB skedar\xEBve t\xEB hapur, sipas asaj q\xEB ndryshoi n\xEB k\xEBt\xEB sesion (qelibar p\xEBr t\xEB modifikuarit, jeshile p\xEBr t\xEB shtuarit).",
   "setting.properties-highlight.name": "Thekso ndryshimet n\xEB panelin e vetive",
   "setting.properties-highlight.desc": "Shfaq \xE7el\xEBsat e frontmatter t\xEB shtuar, t\xEB ndryshuar dhe t\xEB hequr n\xEB panelin e vetive t\xEB Obsidian. \xC7aktivizoje p\xEBr t\xEB fshehur gjith\xEB sh\xEBnjimin e ndryshimeve t\xEB vetive.",
-  "setting.persist.name": "Ruaj historin\xEB gjat\xEB rinisjeve",
-  "setting.persist.desc": 'Ruaj historin\xEB n\xEB disk q\xEB theksimet t\xEB mbijetojn\xEB nj\xEB rinisje. K\xEBrkon q\xEB "Ruaj historin\xEB deri" t\xEB jet\xEB vendosur te Mbyllja e aplikacionit.',
   "setting.max-entries.name": "Maks. skedar\xEB t\xEB ruajtur",
   "setting.max-entries.desc": "Kufiri se sa histori skedar\xEBsh mbahen n\xEB disk. M\xEB t\xEB vjetrat hiqen t\xEB parat. Vendos te 0 p\xEBr ta \xE7aktivizuar.",
   "setting.max-age-days.name": "Mosha maks. e historis\xEB (dit\xEB)",
@@ -12142,8 +12131,8 @@ var sq_default = {
   "setting.line-heading": "Treguesi i rreshtit",
   "setting.line-width.name": "Gjer\xEBsia",
   "setting.line-width.desc": "Gjer\xEBsia e treguesit vertikal t\xEB rreshtit (n\xEB piksele).",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "Intensiteti i sh\xEBnuesve",
+  "setting.marker-intensity.desc": "Intensiteti i p\xEBrgjithsh\xEBm i t\xEB gjitha ngjyrave t\xEB ndryshimit (sh\xEBnuesit e redaktorit, pema, skedat, modaliteti i leximit). M\xEB i lart\xEB \xEBsht\xEB m\xEB i gjall\xEB, m\xEB i ul\xEBt \xEBsht\xEB m\xEB i zbeht\xEB.",
   "setting.gutter-heading.name": "Treguesi an\xEBsor",
   "setting.gutter-heading.prefix": "Shenjat e treguesit t\xEB llojit an\xEBsor (",
   "setting.gutter-heading.suffix": ").",
@@ -12210,11 +12199,11 @@ var sq_default = {
   "view.recent-changes.menu.restore": "Rikthe k\xEBt\xEB version",
   "view.recent-changes.menu.delete": "Fshi versionin",
   "view.recent-changes.menu.put-label": "Vendos etiket\xEB",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "Ndryshimet e kasafort\xEBs",
+  "view.vault-changes.search-placeholder": "Filtro sipas emrit t\xEB skedarit",
+  "view.vault-changes.layout.tree": "Pem\xEB",
+  "view.vault-changes.layout.flat": "List\xEB e shesht\xEB",
+  "view.vault-changes.deleted-notice": "Ky skedar u fshi; historiku i tij ruhet.",
   "modal.label-selected": "Etiketo versionin e zgjedhur",
   "modal.label-version.message": "Sh\xEBno k\xEBt\xEB version me nj\xEB etiket\xEB t\xEB shkurt\xEBr.",
   "notice.no-folder-history": "Ende nuk ka historik dosjeje.",
@@ -12251,7 +12240,7 @@ var sr_default = {
   "command.reset-lines-all": "\u0420\u0435\u0441\u0435\u0442\u0443\u0458 \u0441\u043D\u0438\u043C\u043A\u0435 \u043F\u0440\u0430\u0442\u0438\u043E\u0446\u0430 \u043B\u0438\u043D\u0438\u0458\u0430 \u0437\u0430 \u0441\u0432\u0435 \u0444\u0430\u0458\u043B\u043E\u0432\u0435",
   "command.reset-lines": "\u0420\u0435\u0441\u0435\u0442\u0443\u0458 \u0441\u043D\u0438\u043C\u0430\u043A \u043F\u0440\u0430\u0442\u0438\u043E\u0446\u0430 \u043B\u0438\u043D\u0438\u0458\u0430 \u0442\u0435\u043A\u0443\u045B\u0435\u0433 \u0434\u043E\u043A\u0443\u043C\u0435\u043D\u0442\u0430",
   "command.show-diff": "\u041F\u0440\u0438\u043A\u0430\u0436\u0438 \u0441\u0432\u0435 \u0438\u0437\u043C\u0435\u043D\u0435 \u0442\u0435\u043A\u0443\u045B\u0435\u0433 \u0434\u043E\u043A\u0443\u043C\u0435\u043D\u0442\u0430",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "\u041E\u0442\u0432\u043E\u0440\u0438 \u043F\u0430\u043D\u0435\u043B \u0438\u0437\u043C\u0435\u043D\u0430 \u0442\u0440\u0435\u0437\u043E\u0440\u0430",
   "notice.no-changes-to-navigate": "\u041D\u0435\u043C\u0430 \u0438\u0437\u043C\u0435\u043D\u0430 \u0437\u0430 \u043D\u0430\u0432\u0438\u0433\u0430\u0446\u0438\u0458\u0443",
   "notice.all-snapshots-deleted": "\u0421\u0432\u0438 \u043F\u043E\u0434\u0430\u0446\u0438 \u0441\u043D\u0438\u043C\u0430\u043A\u0430 \u0441\u0443 \u043E\u0431\u0440\u0438\u0441\u0430\u043D\u0438",
   "notice.current-snapshot-deleted": "\u041F\u043E\u0434\u0430\u0446\u0438 \u0442\u0435\u043A\u0443\u045B\u0435\u0433 \u0441\u043D\u0438\u043C\u043A\u0430 \u0441\u0443 \u043E\u0431\u0440\u0438\u0441\u0430\u043D\u0438",
@@ -12286,14 +12275,13 @@ var sr_default = {
   "setting.keep.desc": "\u0421\u0442\u0440\u0430\u0442\u0435\u0433\u0438\u0458\u0430 \u0447\u0438\u0448\u045B\u0435\u045A\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0435 \u0440\u0435\u0432\u0438\u0437\u0438\u0458\u0430",
   "setting.keep.option.app": "\u0417\u0430\u0442\u0432\u0430\u0440\u0430\u045A\u0430 \u0430\u043F\u043B\u0438\u043A\u0430\u0446\u0438\u0458\u0435",
   "setting.keep.option.file": "\u0417\u0430\u0442\u0432\u0430\u0440\u0430\u045A\u0430 \u0444\u0430\u0458\u043B\u0430",
+  "setting.keep.option.persist": "\u0427\u0443\u0432\u0430 \u0441\u0435 \u0438\u0437\u043C\u0435\u0452\u0443 \u043F\u043E\u043D\u043E\u0432\u043D\u0438\u0445 \u043F\u043E\u043A\u0440\u0435\u0442\u0430\u045A\u0430",
   "setting.ignore-new-files.name": "\u0417\u0430\u043D\u0435\u043C\u0430\u0440\u0438 \u043D\u043E\u0432\u0435 \u0444\u0430\u0458\u043B\u043E\u0432\u0435",
   "setting.ignore-new-files.desc": "\u041D\u0435 \u043F\u0440\u0430\u0442\u0438 \u0438\u0437\u043C\u0435\u043D\u0435 \u0443 \u0444\u0430\u0458\u043B\u043E\u0432\u0438\u043C\u0430 \u043D\u0430\u043F\u0440\u0430\u0432\u0459\u0435\u043D\u0438\u043C \u043D\u0430\u043A\u043E\u043D \u043F\u043E\u0447\u0435\u0442\u043A\u0430 \u043F\u0440\u0430\u045B\u0435\u045A\u0430",
   "setting.tree-highlight.name": "\u0418\u0441\u0442\u0430\u043A\u043D\u0438 \u0438\u0437\u043C\u0435\u043D\u0435 \u0443 \u0441\u0442\u0430\u0431\u043B\u0443 \u0434\u0430\u0442\u043E\u0442\u0435\u043A\u0430 \u0438 \u043A\u0430\u0440\u0442\u0438\u0446\u0430\u043C\u0430",
   "setting.tree-highlight.desc": "\u0411\u043E\u0458\u0438 \u0434\u0430\u0442\u043E\u0442\u0435\u043A\u0435 \u0438 \u0444\u0430\u0441\u0446\u0438\u043A\u043B\u0435 \u0443 \u0438\u0437\u0432\u043E\u0440\u043D\u043E\u043C \u043F\u0440\u0435\u0433\u043B\u0435\u0434\u0430\u0447\u0443 \u0434\u0430\u0442\u043E\u0442\u0435\u043A\u0430 \u0438 \u0437\u0430\u0433\u043B\u0430\u0432\u0459\u0430 \u043A\u0430\u0440\u0442\u0438\u0446\u0430 \u043E\u0442\u0432\u043E\u0440\u0435\u043D\u0438\u0445 \u0434\u0430\u0442\u043E\u0442\u0435\u043A\u0430 \u043F\u0440\u0435\u043C\u0430 \u043E\u043D\u043E\u043C\u0435 \u0448\u0442\u043E \u0458\u0435 \u043F\u0440\u043E\u043C\u0435\u045A\u0435\u043D\u043E \u0443 \u043E\u0432\u043E\u0458 \u0441\u0435\u0441\u0438\u0458\u0438 (\u045B\u0438\u043B\u0438\u0431\u0430\u0440\u043D\u0430 \u0437\u0430 \u0438\u0437\u043C\u0435\u045A\u0435\u043D\u043E, \u0437\u0435\u043B\u0435\u043D\u0430 \u0437\u0430 \u0434\u043E\u0434\u0430\u0442\u043E).",
   "setting.properties-highlight.name": "\u0418\u0441\u0442\u0430\u043A\u043D\u0438 \u0438\u0437\u043C\u0435\u043D\u0435 \u0443 \u043F\u0430\u043D\u0435\u043B\u0443 \u0441\u0432\u043E\u0458\u0441\u0442\u0430\u0432\u0430",
   "setting.properties-highlight.desc": "\u041F\u0440\u0438\u043A\u0430\u0436\u0438 \u0434\u043E\u0434\u0430\u0442\u0435, \u0438\u0437\u043C\u0435\u045A\u0435\u043D\u0435 \u0438 \u0443\u043A\u043B\u043E\u045A\u0435\u043D\u0435 frontmatter \u043A\u0459\u0443\u0447\u0435\u0432\u0435 \u0443 Obsidian \u043F\u0430\u043D\u0435\u043B\u0443 \u0441\u0432\u043E\u0458\u0441\u0442\u0430\u0432\u0430. \u0418\u0441\u043A\u0459\u0443\u0447\u0438\u0442\u0435 \u0434\u0430 \u0431\u0438\u0441\u0442\u0435 \u0443\u043A\u043B\u043E\u043D\u0438\u043B\u0438 \u0441\u0432\u0435 \u043E\u0437\u043D\u0430\u0447\u0430\u0432\u0430\u045A\u0435 \u0438\u0437\u043C\u0435\u043D\u0430 \u0441\u0432\u043E\u0458\u0441\u0442\u0430\u0432\u0430.",
-  "setting.persist.name": "\u0417\u0430\u0434\u0440\u0436\u0438 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0443 \u0438\u0437\u043C\u0435\u0452\u0443 \u043F\u043E\u043D\u043E\u0432\u043D\u0438\u0445 \u043F\u043E\u043A\u0440\u0435\u0442\u0430\u045A\u0430",
-  "setting.persist.desc": '\u0427\u0443\u0432\u0430\u0458 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0443 \u043D\u0430 \u0434\u0438\u0441\u043A\u0443 \u0434\u0430 \u0431\u0438 \u0438\u0441\u0442\u0438\u0446\u0430\u045A\u0430 \u043F\u0440\u0435\u0436\u0438\u0432\u0435\u043B\u0430 \u043F\u043E\u043D\u043E\u0432\u043D\u043E \u043F\u043E\u043A\u0440\u0435\u0442\u0430\u045A\u0435. \u0417\u0430\u0445\u0442\u0435\u0432\u0430 \u0434\u0430 \u043E\u043F\u0446\u0438\u0458\u0430 "\u0427\u0443\u0432\u0430\u0458 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0443 \u0434\u043E" \u0431\u0443\u0434\u0435 \u043F\u043E\u0434\u0435\u0448\u0435\u043D\u0430 \u043D\u0430 \u0437\u0430\u0442\u0432\u0430\u0440\u0430\u045A\u0435 \u0430\u043F\u043B\u0438\u043A\u0430\u0446\u0438\u0458\u0435.',
   "setting.max-entries.name": "\u041D\u0430\u0458\u0432\u0438\u0448\u0435 \u0441\u0430\u0447\u0443\u0432\u0430\u043D\u0438\u0445 \u0444\u0430\u0458\u043B\u043E\u0432\u0430",
   "setting.max-entries.desc": "\u041E\u0433\u0440\u0430\u043D\u0438\u0447\u0435\u045A\u0435 \u0431\u0440\u043E\u0458\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0430 \u0444\u0430\u0458\u043B\u043E\u0432\u0430 \u043A\u043E\u0458\u0435 \u0441\u0435 \u0447\u0443\u0432\u0430\u0458\u0443 \u043D\u0430 \u0434\u0438\u0441\u043A\u0443. \u041F\u0440\u0432\u043E \u0441\u0435 \u0443\u043A\u043B\u0430\u045A\u0430\u0458\u0443 \u043D\u0430\u0458\u0441\u0442\u0430\u0440\u0438\u0458\u0435. \u041F\u043E\u0441\u0442\u0430\u0432\u0438\u0442\u0435 \u043D\u0430 0 \u0434\u0430 \u0438\u0441\u043A\u0459\u0443\u0447\u0438\u0442\u0435.",
   "setting.max-age-days.name": "\u041D\u0430\u0458\u0432\u0435\u045B\u0430 \u0441\u0442\u0430\u0440\u043E\u0441\u0442 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0435 (\u0434\u0430\u043D\u0438)",
@@ -12318,8 +12306,8 @@ var sr_default = {
   "setting.line-heading": "\u041B\u0438\u043D\u0438\u0458\u0441\u043A\u0438 \u0438\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440",
   "setting.line-width.name": "\u0428\u0438\u0440\u0438\u043D\u0430",
   "setting.line-width.desc": "\u0428\u0438\u0440\u0438\u043D\u0430 \u0432\u0435\u0440\u0442\u0438\u043A\u0430\u043B\u043D\u043E\u0433 \u043B\u0438\u043D\u0438\u0458\u0441\u043A\u043E\u0433 \u0438\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u0430 (\u0443 \u043F\u0438\u043A\u0441\u0435\u043B\u0438\u043C\u0430).",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "\u0418\u043D\u0442\u0435\u043D\u0437\u0438\u0442\u0435\u0442 \u043C\u0430\u0440\u043A\u0435\u0440\u0430",
+  "setting.marker-intensity.desc": "\u0423\u043A\u0443\u043F\u043D\u0438 \u0438\u043D\u0442\u0435\u043D\u0437\u0438\u0442\u0435\u0442 \u0441\u0432\u0438\u0445 \u0431\u043E\u0458\u0430 \u0438\u0437\u043C\u0435\u043D\u0430 (\u043C\u0430\u0440\u043A\u0435\u0440\u0438 \u0443\u0440\u0435\u0452\u0438\u0432\u0430\u0447\u0430, \u0441\u0442\u0430\u0431\u043B\u043E, \u043A\u0430\u0440\u0442\u0438\u0446\u0435, \u0440\u0435\u0436\u0438\u043C \u0447\u0438\u0442\u0430\u045A\u0430). \u0412\u0438\u0448\u0435 \u0458\u0435 \u0436\u0438\u0432\u0459\u0435, \u043D\u0438\u0436\u0435 \u0458\u0435 \u0431\u043B\u0435\u0452\u0435.",
   "setting.gutter-heading.name": "\u0418\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440 \u043D\u0430 \u043C\u0430\u0440\u0433\u0438\u043D\u0438",
   "setting.gutter-heading.prefix": "\u0417\u043D\u0430\u0446\u0438 \u0438\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u0430 \u0442\u0438\u043F\u0430 \u043D\u0430 \u043C\u0430\u0440\u0433\u0438\u043D\u0438 (",
   "setting.gutter-heading.suffix": ").",
@@ -12386,11 +12374,11 @@ var sr_default = {
   "view.recent-changes.menu.restore": "\u0412\u0440\u0430\u0442\u0438 \u043E\u0432\u0443 \u0432\u0435\u0440\u0437\u0438\u0458\u0443",
   "view.recent-changes.menu.delete": "\u041E\u0431\u0440\u0438\u0448\u0438 \u0432\u0435\u0440\u0437\u0438\u0458\u0443",
   "view.recent-changes.menu.put-label": "\u041F\u043E\u0441\u0442\u0430\u0432\u0438 \u043E\u0437\u043D\u0430\u043A\u0443",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "\u0418\u0437\u043C\u0435\u043D\u0435 \u0442\u0440\u0435\u0437\u043E\u0440\u0430",
+  "view.vault-changes.search-placeholder": "\u0424\u0438\u043B\u0442\u0440\u0438\u0440\u0430\u0458 \u043F\u043E \u0438\u043C\u0435\u043D\u0443 \u0434\u0430\u0442\u043E\u0442\u0435\u043A\u0435",
+  "view.vault-changes.layout.tree": "\u0421\u0442\u0430\u0431\u043B\u043E",
+  "view.vault-changes.layout.flat": "\u0420\u0430\u0432\u0430\u043D \u0441\u043F\u0438\u0441\u0430\u043A",
+  "view.vault-changes.deleted-notice": "\u041E\u0432\u0430 \u0434\u0430\u0442\u043E\u0442\u0435\u043A\u0430 \u0458\u0435 \u043E\u0431\u0440\u0438\u0441\u0430\u043D\u0430; \u045A\u0435\u043D\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0430 \u0458\u0435 \u0441\u0430\u0447\u0443\u0432\u0430\u043D\u0430.",
   "modal.label-selected": "\u041E\u0437\u043D\u0430\u0447\u0438 \u0438\u0437\u0430\u0431\u0440\u0430\u043D\u0443 \u0432\u0435\u0440\u0437\u0438\u0458\u0443",
   "modal.label-version.message": "\u041E\u0437\u043D\u0430\u0447\u0438\u0442\u0435 \u043E\u0432\u0443 \u0432\u0435\u0440\u0437\u0438\u0458\u0443 \u043A\u0440\u0430\u0442\u043A\u043E\u043C \u043E\u0437\u043D\u0430\u043A\u043E\u043C.",
   "notice.no-folder-history": "\u0408\u043E\u0448 \u043D\u0435\u043C\u0430 \u0438\u0441\u0442\u043E\u0440\u0438\u0458\u0435 \u0444\u0430\u0441\u0446\u0438\u043A\u043B\u0435.",
@@ -12427,7 +12415,7 @@ var sv_default = {
   "command.reset-lines-all": "\xC5terst\xE4ll alla radsp\xE5rnings\xF6gonblicksbilder",
   "command.reset-lines": "\xC5terst\xE4ll radsp\xE5rnings\xF6gonblicksbild f\xF6r aktuellt dokument",
   "command.show-diff": "Visa alla \xE4ndringar i aktuellt dokument",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "\xD6ppna panelen f\xF6r valv\xE4ndringar",
   "notice.no-changes-to-navigate": "Inga \xE4ndringar att navigera",
   "notice.all-snapshots-deleted": "Alla \xF6gonblicksbilder borttagna",
   "notice.current-snapshot-deleted": "Aktuell \xF6gonblicksbild borttagen",
@@ -12462,14 +12450,13 @@ var sv_default = {
   "setting.keep.desc": "Strategi f\xF6r att rensa revisionshistorik",
   "setting.keep.option.app": "Appen st\xE4ngs",
   "setting.keep.option.file": "Filen st\xE4ngs",
+  "setting.keep.option.persist": "Beh\xE5lls mellan omstarter",
   "setting.ignore-new-files.name": "Ignorera nya filer",
   "setting.ignore-new-files.desc": "Sp\xE5ra inte \xE4ndringar i filer som skapats efter att sp\xE5rningen startade",
   "setting.tree-highlight.name": "Markera \xE4ndringar i filtr\xE4det och flikarna",
   "setting.tree-highlight.desc": "F\xE4rgar filer och mappar i den inbyggda filhanteraren samt flikrubrikerna f\xF6r \xF6ppna filer efter vad som \xE4ndrats i denna session (b\xE4rnsten f\xF6r \xE4ndrat, gr\xF6nt f\xF6r tillagt).",
   "setting.properties-highlight.name": "Markera \xE4ndringar i egenskapspanelen",
   "setting.properties-highlight.desc": "Visa tillagda, \xE4ndrade och borttagna frontmatter-nycklar i Obsidians egenskapspanel. Inaktivera f\xF6r att d\xF6lja all markering av egenskaps\xE4ndringar.",
-  "setting.persist.name": "Beh\xE5ll historik mellan omstarter",
-  "setting.persist.desc": 'Spara historik p\xE5 disk s\xE5 att markeringar \xF6verlever en omstart. Kr\xE4ver att "Beh\xE5ll historik tills" \xE4r inst\xE4llt p\xE5 Appen st\xE4ngs.',
   "setting.max-entries.name": "Max antal sparade filer",
   "setting.max-entries.desc": "Gr\xE4ns f\xF6r hur m\xE5nga filhistoriker som beh\xE5lls p\xE5 disk. De \xE4ldsta tas bort f\xF6rst. St\xE4ll in p\xE5 0 f\xF6r att inaktivera.",
   "setting.max-age-days.name": "Maximal historik\xE5lder (dagar)",
@@ -12494,8 +12481,8 @@ var sv_default = {
   "setting.line-heading": "Radindikator",
   "setting.line-width.name": "Bredd",
   "setting.line-width.desc": "Bredd p\xE5 den vertikala linjeindikatorn (i pixlar).",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "Mark\xF6rintensitet",
+  "setting.marker-intensity.desc": "Total intensitet f\xF6r alla \xE4ndringsf\xE4rger (editormark\xF6rer, tr\xE4d, flikar, l\xE4sl\xE4ge). H\xF6gre \xE4r mer levande, l\xE4gre \xE4r blekare.",
   "setting.gutter-heading.name": "Marginalindikator",
   "setting.gutter-heading.prefix": "Tecken f\xF6r marginaltypsindikatorn (",
   "setting.gutter-heading.suffix": ").",
@@ -12562,11 +12549,11 @@ var sv_default = {
   "view.recent-changes.menu.restore": "\xC5terst\xE4ll denna version",
   "view.recent-changes.menu.delete": "Ta bort version",
   "view.recent-changes.menu.put-label": "S\xE4tt etikett",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "Valv\xE4ndringar",
+  "view.vault-changes.search-placeholder": "Filtrera efter filnamn",
+  "view.vault-changes.layout.tree": "Tr\xE4d",
+  "view.vault-changes.layout.flat": "Platt lista",
+  "view.vault-changes.deleted-notice": "Den h\xE4r filen togs bort; dess historik beh\xE5lls.",
   "modal.label-selected": "S\xE4tt etikett p\xE5 vald version",
   "modal.label-version.message": "M\xE4rk denna version med en kort etikett.",
   "notice.no-folder-history": "Ingen mapphistorik \xE4nnu.",
@@ -12603,7 +12590,7 @@ var th_default = {
   "command.reset-lines-all": "\u0E23\u0E35\u0E40\u0E0B\u0E47\u0E15\u0E2A\u0E41\u0E19\u0E47\u0E1B\u0E0A\u0E47\u0E2D\u0E15\u0E02\u0E2D\u0E07\u0E15\u0E31\u0E27\u0E15\u0E34\u0E14\u0E15\u0E32\u0E21\u0E1A\u0E23\u0E23\u0E17\u0E31\u0E14\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14",
   "command.reset-lines": "\u0E23\u0E35\u0E40\u0E0B\u0E47\u0E15\u0E2A\u0E41\u0E19\u0E47\u0E1B\u0E0A\u0E47\u0E2D\u0E15\u0E02\u0E2D\u0E07\u0E15\u0E31\u0E27\u0E15\u0E34\u0E14\u0E15\u0E32\u0E21\u0E1A\u0E23\u0E23\u0E17\u0E31\u0E14\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E40\u0E2D\u0E01\u0E2A\u0E32\u0E23\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19",
   "command.show-diff": "\u0E41\u0E2A\u0E14\u0E07\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14\u0E02\u0E2D\u0E07\u0E40\u0E2D\u0E01\u0E2A\u0E32\u0E23\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "\u0E40\u0E1B\u0E34\u0E14\u0E41\u0E1C\u0E07\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E02\u0E2D\u0E07 vault",
   "notice.no-changes-to-navigate": "\u0E44\u0E21\u0E48\u0E21\u0E35\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E43\u0E2B\u0E49\u0E44\u0E1B\u0E22\u0E31\u0E07",
   "notice.all-snapshots-deleted": "\u0E25\u0E1A\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E2A\u0E41\u0E19\u0E47\u0E1B\u0E0A\u0E47\u0E2D\u0E15\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14\u0E41\u0E25\u0E49\u0E27",
   "notice.current-snapshot-deleted": "\u0E25\u0E1A\u0E02\u0E49\u0E2D\u0E21\u0E39\u0E25\u0E2A\u0E41\u0E19\u0E47\u0E1B\u0E0A\u0E47\u0E2D\u0E15\u0E1B\u0E31\u0E08\u0E08\u0E38\u0E1A\u0E31\u0E19\u0E41\u0E25\u0E49\u0E27",
@@ -12638,14 +12625,13 @@ var th_default = {
   "setting.keep.desc": "\u0E01\u0E25\u0E22\u0E38\u0E17\u0E18\u0E4C\u0E43\u0E19\u0E01\u0E32\u0E23\u0E25\u0E49\u0E32\u0E07\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E01\u0E32\u0E23\u0E41\u0E01\u0E49\u0E44\u0E02",
   "setting.keep.option.app": "\u0E1B\u0E34\u0E14\u0E41\u0E2D\u0E1B",
   "setting.keep.option.file": "\u0E1B\u0E34\u0E14\u0E44\u0E1F\u0E25\u0E4C",
+  "setting.keep.option.persist": "\u0E40\u0E01\u0E47\u0E1A\u0E44\u0E27\u0E49\u0E41\u0E21\u0E49\u0E40\u0E23\u0E34\u0E48\u0E21\u0E42\u0E1B\u0E23\u0E41\u0E01\u0E23\u0E21\u0E43\u0E2B\u0E21\u0E48",
   "setting.ignore-new-files.name": "\u0E25\u0E30\u0E40\u0E27\u0E49\u0E19\u0E44\u0E1F\u0E25\u0E4C\u0E43\u0E2B\u0E21\u0E48",
   "setting.ignore-new-files.desc": "\u0E44\u0E21\u0E48\u0E15\u0E34\u0E14\u0E15\u0E32\u0E21\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E43\u0E19\u0E44\u0E1F\u0E25\u0E4C\u0E17\u0E35\u0E48\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E02\u0E36\u0E49\u0E19\u0E2B\u0E25\u0E31\u0E07\u0E08\u0E32\u0E01\u0E40\u0E23\u0E34\u0E48\u0E21\u0E01\u0E32\u0E23\u0E15\u0E34\u0E14\u0E15\u0E32\u0E21",
   "setting.tree-highlight.name": "\u0E40\u0E19\u0E49\u0E19\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E43\u0E19\u0E41\u0E1C\u0E19\u0E1C\u0E31\u0E07\u0E44\u0E1F\u0E25\u0E4C\u0E41\u0E25\u0E30\u0E41\u0E17\u0E47\u0E1A",
   "setting.tree-highlight.desc": "\u0E25\u0E07\u0E2A\u0E35\u0E44\u0E1F\u0E25\u0E4C\u0E41\u0E25\u0E30\u0E42\u0E1F\u0E25\u0E40\u0E14\u0E2D\u0E23\u0E4C\u0E43\u0E19\u0E15\u0E31\u0E27\u0E2A\u0E33\u0E23\u0E27\u0E08\u0E44\u0E1F\u0E25\u0E4C\u0E14\u0E31\u0E49\u0E07\u0E40\u0E14\u0E34\u0E21 \u0E41\u0E25\u0E30\u0E2A\u0E48\u0E27\u0E19\u0E2B\u0E31\u0E27\u0E41\u0E17\u0E47\u0E1A\u0E02\u0E2D\u0E07\u0E44\u0E1F\u0E25\u0E4C\u0E17\u0E35\u0E48\u0E40\u0E1B\u0E34\u0E14\u0E2D\u0E22\u0E39\u0E48 \u0E15\u0E32\u0E21\u0E2A\u0E34\u0E48\u0E07\u0E17\u0E35\u0E48\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E43\u0E19\u0E40\u0E0B\u0E2A\u0E0A\u0E31\u0E19\u0E19\u0E35\u0E49 (\u0E2A\u0E35\u0E2D\u0E33\u0E1E\u0E31\u0E19\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E17\u0E35\u0E48\u0E41\u0E01\u0E49\u0E44\u0E02 \u0E2A\u0E35\u0E40\u0E02\u0E35\u0E22\u0E27\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E17\u0E35\u0E48\u0E40\u0E1E\u0E34\u0E48\u0E21)",
   "setting.properties-highlight.name": "\u0E44\u0E2E\u0E44\u0E25\u0E15\u0E4C\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E43\u0E19\u0E41\u0E1C\u0E07\u0E04\u0E38\u0E13\u0E2A\u0E21\u0E1A\u0E31\u0E15\u0E34",
   "setting.properties-highlight.desc": "\u0E41\u0E2A\u0E14\u0E07\u0E04\u0E35\u0E22\u0E4C frontmatter \u0E17\u0E35\u0E48\u0E16\u0E39\u0E01\u0E40\u0E1E\u0E34\u0E48\u0E21 \u0E41\u0E01\u0E49\u0E44\u0E02 \u0E41\u0E25\u0E30\u0E25\u0E1A\u0E43\u0E19\u0E41\u0E1C\u0E07\u0E04\u0E38\u0E13\u0E2A\u0E21\u0E1A\u0E31\u0E15\u0E34\u0E02\u0E2D\u0E07 Obsidian \u0E1B\u0E34\u0E14\u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E0B\u0E48\u0E2D\u0E19\u0E01\u0E32\u0E23\u0E15\u0E01\u0E41\u0E15\u0E48\u0E07\u0E04\u0E27\u0E32\u0E21\u0E41\u0E15\u0E01\u0E15\u0E48\u0E32\u0E07\u0E02\u0E2D\u0E07\u0E04\u0E38\u0E13\u0E2A\u0E21\u0E1A\u0E31\u0E15\u0E34\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14",
-  "setting.persist.name": "\u0E04\u0E07\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E44\u0E27\u0E49\u0E41\u0E21\u0E49\u0E23\u0E35\u0E2A\u0E15\u0E32\u0E23\u0E4C\u0E17",
-  "setting.persist.desc": '\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E25\u0E07\u0E14\u0E34\u0E2A\u0E01\u0E4C\u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E43\u0E2B\u0E49\u0E44\u0E2E\u0E44\u0E25\u0E15\u0E4C\u0E22\u0E31\u0E07\u0E04\u0E07\u0E2D\u0E22\u0E39\u0E48\u0E2B\u0E25\u0E31\u0E07\u0E23\u0E35\u0E2A\u0E15\u0E32\u0E23\u0E4C\u0E17 \u0E15\u0E49\u0E2D\u0E07\u0E15\u0E31\u0E49\u0E07 "\u0E40\u0E01\u0E47\u0E1A\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E44\u0E27\u0E49\u0E08\u0E19\u0E16\u0E36\u0E07" \u0E40\u0E1B\u0E47\u0E19\u0E1B\u0E34\u0E14\u0E41\u0E2D\u0E1B',
   "setting.max-entries.name": "\u0E08\u0E33\u0E19\u0E27\u0E19\u0E44\u0E1F\u0E25\u0E4C\u0E17\u0E35\u0E48\u0E08\u0E31\u0E14\u0E40\u0E01\u0E47\u0E1A\u0E2A\u0E39\u0E07\u0E2A\u0E38\u0E14",
   "setting.max-entries.desc": "\u0E02\u0E35\u0E14\u0E08\u0E33\u0E01\u0E31\u0E14\u0E08\u0E33\u0E19\u0E27\u0E19\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E44\u0E1F\u0E25\u0E4C\u0E17\u0E35\u0E48\u0E40\u0E01\u0E47\u0E1A\u0E44\u0E27\u0E49\u0E43\u0E19\u0E14\u0E34\u0E2A\u0E01\u0E4C \u0E44\u0E1F\u0E25\u0E4C\u0E40\u0E01\u0E48\u0E32\u0E2A\u0E38\u0E14\u0E08\u0E30\u0E16\u0E39\u0E01\u0E25\u0E1A\u0E2D\u0E2D\u0E01\u0E01\u0E48\u0E2D\u0E19 \u0E15\u0E31\u0E49\u0E07\u0E40\u0E1B\u0E47\u0E19 0 \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E1B\u0E34\u0E14\u0E43\u0E0A\u0E49\u0E07\u0E32\u0E19",
   "setting.max-age-days.name": "\u0E2D\u0E32\u0E22\u0E38\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E2A\u0E39\u0E07\u0E2A\u0E38\u0E14 (\u0E27\u0E31\u0E19)",
@@ -12670,8 +12656,8 @@ var th_default = {
   "setting.line-heading": "\u0E15\u0E31\u0E27\u0E1A\u0E48\u0E07\u0E0A\u0E35\u0E49\u0E1A\u0E23\u0E23\u0E17\u0E31\u0E14",
   "setting.line-width.name": "\u0E04\u0E27\u0E32\u0E21\u0E01\u0E27\u0E49\u0E32\u0E07",
   "setting.line-width.desc": "\u0E04\u0E27\u0E32\u0E21\u0E01\u0E27\u0E49\u0E32\u0E07\u0E02\u0E2D\u0E07\u0E15\u0E31\u0E27\u0E1A\u0E48\u0E07\u0E0A\u0E35\u0E49\u0E40\u0E2A\u0E49\u0E19\u0E41\u0E19\u0E27\u0E15\u0E31\u0E49\u0E07 (\u0E40\u0E1B\u0E47\u0E19\u0E1E\u0E34\u0E01\u0E40\u0E0B\u0E25)",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "\u0E04\u0E27\u0E32\u0E21\u0E40\u0E02\u0E49\u0E21\u0E02\u0E2D\u0E07\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E2B\u0E21\u0E32\u0E22",
+  "setting.marker-intensity.desc": "\u0E04\u0E27\u0E32\u0E21\u0E40\u0E02\u0E49\u0E21\u0E42\u0E14\u0E22\u0E23\u0E27\u0E21\u0E02\u0E2D\u0E07\u0E2A\u0E35\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14 (\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E2B\u0E21\u0E32\u0E22\u0E43\u0E19\u0E15\u0E31\u0E27\u0E41\u0E01\u0E49\u0E44\u0E02 \u0E15\u0E49\u0E19\u0E44\u0E21\u0E49 \u0E41\u0E17\u0E47\u0E1A \u0E42\u0E2B\u0E21\u0E14\u0E2D\u0E48\u0E32\u0E19) \u0E2A\u0E39\u0E07\u0E02\u0E36\u0E49\u0E19\u0E08\u0E30\u0E2A\u0E14\u0E43\u0E2A\u0E02\u0E36\u0E49\u0E19 \u0E15\u0E48\u0E33\u0E25\u0E07\u0E08\u0E30\u0E08\u0E32\u0E07\u0E25\u0E07",
   "setting.gutter-heading.name": "\u0E15\u0E31\u0E27\u0E1A\u0E48\u0E07\u0E0A\u0E35\u0E49\u0E43\u0E19\u0E41\u0E16\u0E1A\u0E02\u0E2D\u0E1A",
   "setting.gutter-heading.prefix": "\u0E2D\u0E31\u0E01\u0E02\u0E23\u0E30\u0E02\u0E2D\u0E07\u0E15\u0E31\u0E27\u0E1A\u0E48\u0E07\u0E0A\u0E35\u0E49\u0E0A\u0E19\u0E34\u0E14\u0E43\u0E19\u0E41\u0E16\u0E1A\u0E02\u0E2D\u0E1A (",
   "setting.gutter-heading.suffix": ").",
@@ -12738,11 +12724,11 @@ var th_default = {
   "view.recent-changes.menu.restore": "\u0E01\u0E39\u0E49\u0E04\u0E37\u0E19\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19\u0E19\u0E35\u0E49",
   "view.recent-changes.menu.delete": "\u0E25\u0E1A\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19",
   "view.recent-changes.menu.put-label": "\u0E43\u0E2A\u0E48\u0E1B\u0E49\u0E32\u0E22\u0E01\u0E33\u0E01\u0E31\u0E1A",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "\u0E01\u0E32\u0E23\u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E41\u0E1B\u0E25\u0E07\u0E02\u0E2D\u0E07 vault",
+  "view.vault-changes.search-placeholder": "\u0E01\u0E23\u0E2D\u0E07\u0E15\u0E32\u0E21\u0E0A\u0E37\u0E48\u0E2D\u0E44\u0E1F\u0E25\u0E4C",
+  "view.vault-changes.layout.tree": "\u0E15\u0E49\u0E19\u0E44\u0E21\u0E49",
+  "view.vault-changes.layout.flat": "\u0E23\u0E32\u0E22\u0E01\u0E32\u0E23\u0E41\u0E1A\u0E1A\u0E41\u0E1A\u0E19",
+  "view.vault-changes.deleted-notice": "\u0E44\u0E1F\u0E25\u0E4C\u0E19\u0E35\u0E49\u0E16\u0E39\u0E01\u0E25\u0E1A\u0E41\u0E25\u0E49\u0E27 \u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E02\u0E2D\u0E07\u0E44\u0E1F\u0E25\u0E4C\u0E22\u0E31\u0E07\u0E04\u0E07\u0E16\u0E39\u0E01\u0E40\u0E01\u0E47\u0E1A\u0E44\u0E27\u0E49",
   "modal.label-selected": "\u0E43\u0E2A\u0E48\u0E1B\u0E49\u0E32\u0E22\u0E01\u0E33\u0E01\u0E31\u0E1A\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19\u0E17\u0E35\u0E48\u0E40\u0E25\u0E37\u0E2D\u0E01",
   "modal.label-version.message": "\u0E17\u0E33\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E2B\u0E21\u0E32\u0E22\u0E40\u0E27\u0E2D\u0E23\u0E4C\u0E0A\u0E31\u0E19\u0E19\u0E35\u0E49\u0E14\u0E49\u0E27\u0E22\u0E1B\u0E49\u0E32\u0E22\u0E01\u0E33\u0E01\u0E31\u0E1A\u0E2A\u0E31\u0E49\u0E19 \u0E46",
   "notice.no-folder-history": "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E1B\u0E23\u0E30\u0E27\u0E31\u0E15\u0E34\u0E42\u0E1F\u0E25\u0E40\u0E14\u0E2D\u0E23\u0E4C",
@@ -12779,7 +12765,7 @@ var tr_default = {
   "command.reset-lines-all": "T\xFCm sat\u0131r izleyici anl\u0131k g\xF6r\xFCnt\xFClerini s\u0131f\u0131rla",
   "command.reset-lines": "Ge\xE7erli belgenin sat\u0131r izleyici anl\u0131k g\xF6r\xFCnt\xFCs\xFCn\xFC s\u0131f\u0131rla",
   "command.show-diff": "Ge\xE7erli belgenin t\xFCm de\u011Fi\u015Fikliklerini g\xF6ster",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "Kasa de\u011Fi\u015Fiklikleri panelini a\xE7",
   "notice.no-changes-to-navigate": "Gezilecek de\u011Fi\u015Fiklik yok",
   "notice.all-snapshots-deleted": "T\xFCm anl\u0131k g\xF6r\xFCnt\xFC verileri silindi",
   "notice.current-snapshot-deleted": "Ge\xE7erli anl\u0131k g\xF6r\xFCnt\xFC verileri silindi",
@@ -12814,14 +12800,13 @@ var tr_default = {
   "setting.keep.desc": "D\xFCzeltme ge\xE7mi\u015Fini temizleme stratejisi",
   "setting.keep.option.app": "Uygulama kapan\u0131\u015F\u0131",
   "setting.keep.option.file": "Dosya kapan\u0131\u015F\u0131",
+  "setting.keep.option.persist": "Yeniden ba\u015Flatmalar aras\u0131nda saklan\u0131r",
   "setting.ignore-new-files.name": "Yeni dosyalar\u0131 yok say",
   "setting.ignore-new-files.desc": "\u0130zleme ba\u015Flad\u0131ktan sonra olu\u015Fturulan dosyalardaki de\u011Fi\u015Fiklikleri izleme",
   "setting.tree-highlight.name": "Dosya a\u011Fac\u0131nda ve sekmelerde de\u011Fi\u015Fiklikleri vurgula",
   "setting.tree-highlight.desc": "Yerel dosya gezginindeki dosya ve klas\xF6rleri ve a\xE7\u0131k dosyalar\u0131n sekme ba\u015Fl\u0131klar\u0131n\u0131 bu oturumda nelerin de\u011Fi\u015Fti\u011Fine g\xF6re renklendirir (de\u011Fi\u015Ftirilen i\xE7in kehribar, eklenen i\xE7in ye\u015Fil).",
   "setting.properties-highlight.name": "\xD6zellikler panelinde de\u011Fi\u015Fiklikleri vurgula",
   "setting.properties-highlight.desc": "Eklenen, de\u011Fi\u015Ftirilen ve kald\u0131r\u0131lan frontmatter anahtarlar\u0131n\u0131 Obsidian \xD6zellikler panelinde g\xF6ster. T\xFCm \xF6zellik fark\u0131 i\u015Faretlemelerini gizlemek i\xE7in devre d\u0131\u015F\u0131 b\u0131rak\u0131n.",
-  "setting.persist.name": "Ge\xE7mi\u015Fi yeniden ba\u015Flatmalar aras\u0131nda koru",
-  "setting.persist.desc": 'Vurgular yeniden ba\u015Flatmadan sonra da kals\u0131n diye ge\xE7mi\u015Fi diske kaydet. "Ge\xE7mi\u015Fi \u015Fu zamana kadar tut" ayar\u0131n\u0131n uygulama kapan\u0131\u015F\u0131na ayarlanmas\u0131n\u0131 gerektirir.',
   "setting.max-entries.name": "Saklanan en fazla dosya",
   "setting.max-entries.desc": "Diskte tutulan dosya ge\xE7mi\u015Fi say\u0131s\u0131n\u0131n \xFCst s\u0131n\u0131r\u0131. En eskiler \xF6nce \xE7\u0131kar\u0131l\u0131r. Devre d\u0131\u015F\u0131 b\u0131rakmak i\xE7in 0 olarak ayarlay\u0131n.",
   "setting.max-age-days.name": "En fazla ge\xE7mi\u015F ya\u015F\u0131 (g\xFCn)",
@@ -12846,8 +12831,8 @@ var tr_default = {
   "setting.line-heading": "Sat\u0131r g\xF6stergesi",
   "setting.line-width.name": "Geni\u015Flik",
   "setting.line-width.desc": "Dikey \xE7izgi g\xF6stergesinin geni\u015Fli\u011Fi (piksel cinsinden).",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "\u0130\u015Faret\xE7i yo\u011Funlu\u011Fu",
+  "setting.marker-intensity.desc": "T\xFCm de\u011Fi\u015Fiklik renklerinin genel yo\u011Funlu\u011Fu (d\xFCzenleyici i\u015Faret\xE7ileri, a\u011Fa\xE7, sekmeler, okuma modu). Y\xFCksek daha canl\u0131, d\xFC\u015F\xFCk daha soluktur.",
   "setting.gutter-heading.name": "Oluk g\xF6stergesi",
   "setting.gutter-heading.prefix": "Oluk t\xFCr g\xF6stergesinin karakterleri (",
   "setting.gutter-heading.suffix": ").",
@@ -12914,11 +12899,11 @@ var tr_default = {
   "view.recent-changes.menu.restore": "Bu s\xFCr\xFCm\xFC geri y\xFCkle",
   "view.recent-changes.menu.delete": "S\xFCr\xFCm\xFC sil",
   "view.recent-changes.menu.put-label": "Etiket koy",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "Kasa de\u011Fi\u015Fiklikleri",
+  "view.vault-changes.search-placeholder": "Dosya ad\u0131na g\xF6re filtrele",
+  "view.vault-changes.layout.tree": "A\u011Fa\xE7",
+  "view.vault-changes.layout.flat": "D\xFCz liste",
+  "view.vault-changes.deleted-notice": "Bu dosya silindi; ge\xE7mi\u015Fi saklan\u0131yor.",
   "modal.label-selected": "Se\xE7ilen s\xFCr\xFCm\xFC etiketle",
   "modal.label-version.message": "Bu s\xFCr\xFCm\xFC k\u0131sa bir etiketle i\u015Faretleyin.",
   "notice.no-folder-history": "Hen\xFCz klas\xF6r ge\xE7mi\u015Fi yok.",
@@ -12955,7 +12940,7 @@ var uk_default = {
   "command.reset-lines-all": "\u0421\u043A\u0438\u043D\u0443\u0442\u0438 \u0437\u043D\u0456\u043C\u043A\u0438 \u0442\u0440\u0435\u043A\u0435\u0440\u0430 \u0440\u044F\u0434\u043A\u0456\u0432 \u0434\u043B\u044F \u0432\u0441\u0456\u0445 \u0444\u0430\u0439\u043B\u0456\u0432",
   "command.reset-lines": "\u0421\u043A\u0438\u043D\u0443\u0442\u0438 \u0437\u043D\u0456\u043C\u043E\u043A \u0442\u0440\u0435\u043A\u0435\u0440\u0430 \u0440\u044F\u0434\u043A\u0456\u0432 \u043F\u043E\u0442\u043E\u0447\u043D\u043E\u0433\u043E \u0434\u043E\u043A\u0443\u043C\u0435\u043D\u0442\u0430",
   "command.show-diff": "\u041F\u043E\u043A\u0430\u0437\u0430\u0442\u0438 \u0432\u0441\u0456 \u0437\u043C\u0456\u043D\u0438 \u043F\u043E\u0442\u043E\u0447\u043D\u043E\u0433\u043E \u0434\u043E\u043A\u0443\u043C\u0435\u043D\u0442\u0430",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "\u0412\u0456\u0434\u043A\u0440\u0438\u0442\u0438 \u043F\u0430\u043D\u0435\u043B\u044C \u0437\u043C\u0456\u043D \u0441\u0445\u043E\u0432\u0438\u0449\u0430",
   "notice.no-changes-to-navigate": "\u041D\u0435\u043C\u0430\u0454 \u0437\u043C\u0456\u043D \u0434\u043B\u044F \u043D\u0430\u0432\u0456\u0433\u0430\u0446\u0456\u0457",
   "notice.all-snapshots-deleted": "\u0423\u0441\u0456 \u0434\u0430\u043D\u0456 \u0437\u043D\u0456\u043C\u043A\u0456\u0432 \u0432\u0438\u0434\u0430\u043B\u0435\u043D\u043E",
   "notice.current-snapshot-deleted": "\u0414\u0430\u043D\u0456 \u043F\u043E\u0442\u043E\u0447\u043D\u043E\u0433\u043E \u0437\u043D\u0456\u043C\u043A\u0430 \u0432\u0438\u0434\u0430\u043B\u0435\u043D\u043E",
@@ -12990,14 +12975,13 @@ var uk_default = {
   "setting.keep.desc": "\u0421\u0442\u0440\u0430\u0442\u0435\u0433\u0456\u044F \u043E\u0447\u0438\u0449\u0435\u043D\u043D\u044F \u0456\u0441\u0442\u043E\u0440\u0456\u0457 \u0440\u0435\u0432\u0456\u0437\u0456\u0439",
   "setting.keep.option.app": "\u0417\u0430\u043A\u0440\u0438\u0442\u0442\u044F \u0437\u0430\u0441\u0442\u043E\u0441\u0443\u043D\u043A\u0443",
   "setting.keep.option.file": "\u0417\u0430\u043A\u0440\u0438\u0442\u0442\u044F \u0444\u0430\u0439\u043B\u0443",
+  "setting.keep.option.persist": "\u0417\u0431\u0435\u0440\u0456\u0433\u0430\u0454\u0442\u044C\u0441\u044F \u043C\u0456\u0436 \u043F\u0435\u0440\u0435\u0437\u0430\u043F\u0443\u0441\u043A\u0430\u043C\u0438",
   "setting.ignore-new-files.name": "\u0406\u0433\u043D\u043E\u0440\u0443\u0432\u0430\u0442\u0438 \u043D\u043E\u0432\u0456 \u0444\u0430\u0439\u043B\u0438",
   "setting.ignore-new-files.desc": "\u041D\u0435 \u0432\u0456\u0434\u0441\u0442\u0435\u0436\u0443\u0432\u0430\u0442\u0438 \u0437\u043C\u0456\u043D\u0438 \u0443 \u0444\u0430\u0439\u043B\u0430\u0445, \u0441\u0442\u0432\u043E\u0440\u0435\u043D\u0438\u0445 \u043F\u0456\u0441\u043B\u044F \u043F\u043E\u0447\u0430\u0442\u043A\u0443 \u0432\u0456\u0434\u0441\u0442\u0435\u0436\u0435\u043D\u043D\u044F",
   "setting.tree-highlight.name": "\u041F\u0456\u0434\u0441\u0432\u0456\u0447\u0443\u0432\u0430\u0442\u0438 \u0437\u043C\u0456\u043D\u0438 \u0432 \u0434\u0435\u0440\u0435\u0432\u0456 \u0444\u0430\u0439\u043B\u0456\u0432 \u0456 \u0432\u043A\u043B\u0430\u0434\u043A\u0430\u0445",
   "setting.tree-highlight.desc": "\u0417\u0430\u0431\u0430\u0440\u0432\u043B\u044E\u0454 \u0444\u0430\u0439\u043B\u0438 \u0442\u0430 \u0442\u0435\u043A\u0438 \u0432 \u043D\u0430\u0442\u0438\u0432\u043D\u043E\u043C\u0443 \u043F\u0440\u043E\u0432\u0456\u0434\u043D\u0438\u043A\u0443 \u0444\u0430\u0439\u043B\u0456\u0432, \u0430 \u0442\u0430\u043A\u043E\u0436 \u0437\u0430\u0433\u043E\u043B\u043E\u0432\u043A\u0438 \u0432\u043A\u043B\u0430\u0434\u043E\u043A \u0432\u0456\u0434\u043A\u0440\u0438\u0442\u0438\u0445 \u0444\u0430\u0439\u043B\u0456\u0432 \u0437\u0430 \u0442\u0438\u043C, \u0449\u043E \u0437\u043C\u0456\u043D\u0438\u043B\u043E\u0441\u044F \u0437\u0430 \u0446\u044E \u0441\u0435\u0441\u0456\u044E (\u0431\u0443\u0440\u0448\u0442\u0438\u043D\u043E\u0432\u0438\u0439 \u0434\u043B\u044F \u0437\u043C\u0456\u043D\u0435\u043D\u0438\u0445, \u0437\u0435\u043B\u0435\u043D\u0438\u0439 \u0434\u043B\u044F \u0434\u043E\u0434\u0430\u043D\u0438\u0445).",
   "setting.properties-highlight.name": "\u041F\u0456\u0434\u0441\u0432\u0456\u0447\u0443\u0432\u0430\u0442\u0438 \u0437\u043C\u0456\u043D\u0438 \u0432 \u043F\u0430\u043D\u0435\u043B\u0456 \u0432\u043B\u0430\u0441\u0442\u0438\u0432\u043E\u0441\u0442\u0435\u0439",
   "setting.properties-highlight.desc": "\u041F\u043E\u043A\u0430\u0437\u0443\u0432\u0430\u0442\u0438 \u0434\u043E\u0434\u0430\u043D\u0456, \u0437\u043C\u0456\u043D\u0435\u043D\u0456 \u0442\u0430 \u0432\u0438\u0434\u0430\u043B\u0435\u043D\u0456 \u043A\u043B\u044E\u0447\u0456 frontmatter \u0443 \u043F\u0430\u043D\u0435\u043B\u0456 \u0432\u043B\u0430\u0441\u0442\u0438\u0432\u043E\u0441\u0442\u0435\u0439 Obsidian. \u0412\u0438\u043C\u043A\u043D\u0456\u0442\u044C, \u0449\u043E\u0431 \u043F\u0440\u0438\u0431\u0440\u0430\u0442\u0438 \u0432\u0441\u0435 \u043F\u0456\u0434\u0441\u0432\u0456\u0447\u0443\u0432\u0430\u043D\u043D\u044F \u0437\u043C\u0456\u043D \u0432\u043B\u0430\u0441\u0442\u0438\u0432\u043E\u0441\u0442\u0435\u0439.",
-  "setting.persist.name": "\u0417\u0431\u0435\u0440\u0456\u0433\u0430\u0442\u0438 \u0456\u0441\u0442\u043E\u0440\u0456\u044E \u043C\u0456\u0436 \u043F\u0435\u0440\u0435\u0437\u0430\u043F\u0443\u0441\u043A\u0430\u043C\u0438",
-  "setting.persist.desc": '\u0417\u0431\u0435\u0440\u0456\u0433\u0430\u0442\u0438 \u0456\u0441\u0442\u043E\u0440\u0456\u044E \u043D\u0430 \u0434\u0438\u0441\u043A, \u0449\u043E\u0431 \u043F\u0456\u0434\u0441\u0432\u0456\u0447\u0443\u0432\u0430\u043D\u043D\u044F \u043F\u0435\u0440\u0435\u0436\u0438\u0432\u0430\u043B\u0438 \u043F\u0435\u0440\u0435\u0437\u0430\u043F\u0443\u0441\u043A. \u041F\u043E\u0442\u0440\u0435\u0431\u0443\u0454, \u0449\u043E\u0431 \u043F\u0430\u0440\u0430\u043C\u0435\u0442\u0440 "\u0417\u0431\u0435\u0440\u0456\u0433\u0430\u0442\u0438 \u0456\u0441\u0442\u043E\u0440\u0456\u044E \u0434\u043E" \u0431\u0443\u043B\u043E \u0432\u0441\u0442\u0430\u043D\u043E\u0432\u043B\u0435\u043D\u043E \u043D\u0430 \u0437\u0430\u043A\u0440\u0438\u0442\u0442\u044F \u0437\u0430\u0441\u0442\u043E\u0441\u0443\u043D\u043A\u0443.',
   "setting.max-entries.name": "\u041C\u0430\u043A\u0441\u0438\u043C\u0443\u043C \u0437\u0431\u0435\u0440\u0435\u0436\u0435\u043D\u0438\u0445 \u0444\u0430\u0439\u043B\u0456\u0432",
   "setting.max-entries.desc": "\u041E\u0431\u043C\u0435\u0436\u0435\u043D\u043D\u044F \u043A\u0456\u043B\u044C\u043A\u043E\u0441\u0442\u0456 \u0456\u0441\u0442\u043E\u0440\u0456\u0439 \u0444\u0430\u0439\u043B\u0456\u0432, \u0449\u043E \u0437\u0431\u0435\u0440\u0456\u0433\u0430\u044E\u0442\u044C\u0441\u044F \u043D\u0430 \u0434\u0438\u0441\u043A\u0443. \u0421\u043F\u043E\u0447\u0430\u0442\u043A\u0443 \u0432\u0438\u0434\u0430\u043B\u044F\u044E\u0442\u044C\u0441\u044F \u043D\u0430\u0439\u0441\u0442\u0430\u0440\u0456\u0448\u0456. \u0412\u0441\u0442\u0430\u043D\u043E\u0432\u0456\u0442\u044C 0, \u0449\u043E\u0431 \u0432\u0438\u043C\u043A\u043D\u0443\u0442\u0438.",
   "setting.max-age-days.name": "\u041C\u0430\u043A\u0441\u0438\u043C\u0430\u043B\u044C\u043D\u0438\u0439 \u0432\u0456\u043A \u0456\u0441\u0442\u043E\u0440\u0456\u0457 (\u0434\u043D\u0456)",
@@ -13022,8 +13006,8 @@ var uk_default = {
   "setting.line-heading": "\u041B\u0456\u043D\u0456\u0439\u043D\u0438\u0439 \u0456\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440",
   "setting.line-width.name": "\u0428\u0438\u0440\u0438\u043D\u0430",
   "setting.line-width.desc": "\u0428\u0438\u0440\u0438\u043D\u0430 \u0432\u0435\u0440\u0442\u0438\u043A\u0430\u043B\u044C\u043D\u043E\u0433\u043E \u043B\u0456\u043D\u0456\u0439\u043D\u043E\u0433\u043E \u0456\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u0430 (\u0443 \u043F\u0456\u043A\u0441\u0435\u043B\u044F\u0445).",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "\u0406\u043D\u0442\u0435\u043D\u0441\u0438\u0432\u043D\u0456\u0441\u0442\u044C \u043C\u0430\u0440\u043A\u0435\u0440\u0456\u0432",
+  "setting.marker-intensity.desc": "\u0417\u0430\u0433\u0430\u043B\u044C\u043D\u0430 \u0456\u043D\u0442\u0435\u043D\u0441\u0438\u0432\u043D\u0456\u0441\u0442\u044C \u0443\u0441\u0456\u0445 \u043A\u043E\u043B\u044C\u043E\u0440\u0456\u0432 \u0437\u043C\u0456\u043D (\u043C\u0430\u0440\u043A\u0435\u0440\u0438 \u0440\u0435\u0434\u0430\u043A\u0442\u043E\u0440\u0430, \u0434\u0435\u0440\u0435\u0432\u043E, \u0432\u043A\u043B\u0430\u0434\u043A\u0438, \u0440\u0435\u0436\u0438\u043C \u0447\u0438\u0442\u0430\u043D\u043D\u044F). \u0411\u0456\u043B\u044C\u0448\u0430: \u044F\u0441\u043A\u0440\u0430\u0432\u0456\u0448\u0430, \u043C\u0435\u043D\u0448\u0430: \u0431\u043B\u0456\u0434\u0456\u0448\u0430.",
   "setting.gutter-heading.name": "\u0406\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440 \u043D\u0430 \u043F\u043E\u043B\u044F\u0445",
   "setting.gutter-heading.prefix": "\u0421\u0438\u043C\u0432\u043E\u043B\u0438 \u0456\u043D\u0434\u0438\u043A\u0430\u0442\u043E\u0440\u0430 \u0442\u0438\u043F\u0443 \u043D\u0430 \u043F\u043E\u043B\u044F\u0445 (",
   "setting.gutter-heading.suffix": ").",
@@ -13090,11 +13074,11 @@ var uk_default = {
   "view.recent-changes.menu.restore": "\u0412\u0456\u0434\u043D\u043E\u0432\u0438\u0442\u0438 \u0446\u044E \u0432\u0435\u0440\u0441\u0456\u044E",
   "view.recent-changes.menu.delete": "\u0412\u0438\u0434\u0430\u043B\u0438\u0442\u0438 \u0432\u0435\u0440\u0441\u0456\u044E",
   "view.recent-changes.menu.put-label": "\u041F\u043E\u0441\u0442\u0430\u0432\u0438\u0442\u0438 \u043C\u0456\u0442\u043A\u0443",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "\u0417\u043C\u0456\u043D\u0438 \u0441\u0445\u043E\u0432\u0438\u0449\u0430",
+  "view.vault-changes.search-placeholder": "\u0424\u0456\u043B\u044C\u0442\u0440\u0443\u0432\u0430\u0442\u0438 \u0437\u0430 \u043D\u0430\u0437\u0432\u043E\u044E \u0444\u0430\u0439\u043B\u0443",
+  "view.vault-changes.layout.tree": "\u0414\u0435\u0440\u0435\u0432\u043E",
+  "view.vault-changes.layout.flat": "\u041F\u043B\u043E\u0441\u043A\u0438\u0439 \u0441\u043F\u0438\u0441\u043E\u043A",
+  "view.vault-changes.deleted-notice": "\u0426\u0435\u0439 \u0444\u0430\u0439\u043B \u0432\u0438\u0434\u0430\u043B\u0435\u043D\u043E; \u0439\u043E\u0433\u043E \u0456\u0441\u0442\u043E\u0440\u0456\u044E \u0437\u0431\u0435\u0440\u0435\u0436\u0435\u043D\u043E.",
   "modal.label-selected": "\u041F\u043E\u0437\u043D\u0430\u0447\u0438\u0442\u0438 \u0432\u0438\u0431\u0440\u0430\u043D\u0443 \u0432\u0435\u0440\u0441\u0456\u044E",
   "modal.label-version.message": "\u041F\u043E\u0437\u043D\u0430\u0447\u0442\u0435 \u0446\u044E \u0432\u0435\u0440\u0441\u0456\u044E \u043A\u043E\u0440\u043E\u0442\u043A\u043E\u044E \u043C\u0456\u0442\u043A\u043E\u044E.",
   "notice.no-folder-history": "\u0406\u0441\u0442\u043E\u0440\u0456\u0457 \u0442\u0435\u043A\u0438 \u043F\u043E\u043A\u0438 \u043D\u0435\u043C\u0430\u0454.",
@@ -13131,7 +13115,7 @@ var uz_default = {
   "command.reset-lines-all": "Barcha qatorlar kuzatuvchisi suratlarini tiklash",
   "command.reset-lines": "Joriy hujjatning qatorlar kuzatuvchisi suratini tiklash",
   "command.show-diff": "Joriy hujjatning barcha o\u02BBzgarishlarini ko\u02BBrsatish",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "Ombor o\u02BBzgarishlari panelini ochish",
   "notice.no-changes-to-navigate": "Harakatlanish uchun o\u02BBzgarishlar yo\u02BBq",
   "notice.all-snapshots-deleted": "Barcha surat ma\u02BClumotlari o\u02BBchirildi",
   "notice.current-snapshot-deleted": "Joriy surat ma\u02BClumotlari o\u02BBchirildi",
@@ -13166,14 +13150,13 @@ var uz_default = {
   "setting.keep.desc": "Tahrirlar tarixini tozalash strategiyasi",
   "setting.keep.option.app": "Ilova yopilgunicha",
   "setting.keep.option.file": "Fayl yopilgunicha",
+  "setting.keep.option.persist": "Qayta ishga tushirilgach ham saqlanadi",
   "setting.ignore-new-files.name": "Yangi fayllarni e\u02BCtiborsiz qoldirish",
   "setting.ignore-new-files.desc": "Kuzatuv boshlangach yaratilgan fayllardagi o\u02BBzgarishlarni kuzatmaslik",
   "setting.tree-highlight.name": "Fayllar daraxti va yorliqlardagi o\u02BBzgarishlarni ajratib ko\u02BBrsatish",
   "setting.tree-highlight.desc": "Tabiiy fayl boshqaruvchisidagi fayllar va papkalarni, shuningdek ochiq fayllarning yorliq sarlavhalarini ushbu seansda nima o\u02BBzgarganiga qarab rangga bo\u02BByaydi (o\u02BBzgartirilgani uchun qahrabo, qo\u02BBshilgani uchun yashil).",
   "setting.properties-highlight.name": "Xususiyatlar panelida o\u02BBzgarishlarni ajratib ko\u02BBrsatish",
   "setting.properties-highlight.desc": "Obsidian xususiyatlar panelida qo\u02BBshilgan, o\u02BBzgartirilgan va olib tashlangan frontmatter kalitlarini ko\u02BBrsatish. Xususiyat o\u02BBzgarishlarining barcha belgilarini yashirish uchun o\u02BBchiring.",
-  "setting.persist.name": "Tarixni qayta ishga tushirishlar orasida saqlash",
-  "setting.persist.desc": 'Belgilashlar qayta ishga tushirishdan keyin ham saqlanishi uchun tarixni diskka saqlang. "Tarixni saqlash muddati" sozlamasini ilova yopilgunicha qilib qo\u02BByishni talab qiladi.',
   "setting.max-entries.name": "Saqlanadigan maksimal fayllar",
   "setting.max-entries.desc": "Diskda saqlanadigan fayl tarixlari soni chegarasi. Eng eskilari birinchi bo\u02BBlib o\u02BBchiriladi. O\u02BBchirish uchun 0 ga sozlang.",
   "setting.max-age-days.name": "Tarixning maksimal yoshi (kun)",
@@ -13198,8 +13181,8 @@ var uz_default = {
   "setting.line-heading": "Qator indikatori",
   "setting.line-width.name": "Kengligi",
   "setting.line-width.desc": "Vertikal chiziq indikatorining kengligi (piksellarda).",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "Markerlar intensivligi",
+  "setting.marker-intensity.desc": "Barcha o\u02BBzgarish ranglarining umumiy intensivligi (muharrir markerlari, daraxt, ichki oynalar, o\u02BBqish rejimi). Yuqoriroq yorqinroq, pastroq xiraroq.",
   "setting.gutter-heading.name": "Hoshiya indikatori",
   "setting.gutter-heading.prefix": "Hoshiya tur indikatorining belgilari (",
   "setting.gutter-heading.suffix": ").",
@@ -13266,11 +13249,11 @@ var uz_default = {
   "view.recent-changes.menu.restore": "Bu versiyani tiklash",
   "view.recent-changes.menu.delete": "Versiyani o\u02BBchirish",
   "view.recent-changes.menu.put-label": "Yorliq qo\u02BByish",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "Ombor o\u02BBzgarishlari",
+  "view.vault-changes.search-placeholder": "Fayl nomi bo\u02BByicha filtrlash",
+  "view.vault-changes.layout.tree": "Daraxt",
+  "view.vault-changes.layout.flat": "Tekis ro\u02BByxat",
+  "view.vault-changes.deleted-notice": "Bu fayl o\u02BBchirildi; uning tarixi saqlanadi.",
   "modal.label-selected": "Tanlangan versiyaga yorliq qo\u02BByish",
   "modal.label-version.message": "Bu versiyani qisqa yorliq bilan belgilang.",
   "notice.no-folder-history": "Hozircha papka tarixi yo\u02BBq.",
@@ -13307,7 +13290,7 @@ var vi_default = {
   "command.reset-lines-all": "\u0110\u1EB7t l\u1EA1i t\u1EA5t c\u1EA3 \u1EA3nh ch\u1EE5p c\u1EE7a tr\xECnh theo d\xF5i d\xF2ng",
   "command.reset-lines": "\u0110\u1EB7t l\u1EA1i \u1EA3nh ch\u1EE5p c\u1EE7a tr\xECnh theo d\xF5i d\xF2ng cho t\xE0i li\u1EC7u hi\u1EC7n t\u1EA1i",
   "command.show-diff": "Hi\u1EC3n th\u1ECB t\u1EA5t c\u1EA3 thay \u0111\u1ED5i c\u1EE7a t\xE0i li\u1EC7u hi\u1EC7n t\u1EA1i",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "M\u1EDF b\u1EA3ng thay \u0111\u1ED5i kho l\u01B0u tr\u1EEF",
   "notice.no-changes-to-navigate": "Kh\xF4ng c\xF3 thay \u0111\u1ED5i n\xE0o \u0111\u1EC3 di chuy\u1EC3n t\u1EDBi",
   "notice.all-snapshots-deleted": "\u0110\xE3 x\xF3a to\xE0n b\u1ED9 d\u1EEF li\u1EC7u \u1EA3nh ch\u1EE5p",
   "notice.current-snapshot-deleted": "\u0110\xE3 x\xF3a d\u1EEF li\u1EC7u \u1EA3nh ch\u1EE5p hi\u1EC7n t\u1EA1i",
@@ -13342,14 +13325,13 @@ var vi_default = {
   "setting.keep.desc": "Chi\u1EBFn l\u01B0\u1EE3c d\u1ECDn d\u1EB9p l\u1ECBch s\u1EED ch\u1EC9nh s\u1EEDa",
   "setting.keep.option.app": "\u0110\xF3ng \u1EE9ng d\u1EE5ng",
   "setting.keep.option.file": "\u0110\xF3ng t\u1EC7p",
+  "setting.keep.option.persist": "Gi\u1EEF l\u1EA1i sau khi kh\u1EDFi \u0111\u1ED9ng l\u1EA1i",
   "setting.ignore-new-files.name": "B\u1ECF qua t\u1EC7p m\u1EDBi",
   "setting.ignore-new-files.desc": "Kh\xF4ng theo d\xF5i thay \u0111\u1ED5i trong c\xE1c t\u1EC7p \u0111\u01B0\u1EE3c t\u1EA1o sau khi b\u1EAFt \u0111\u1EA7u theo d\xF5i",
   "setting.tree-highlight.name": "L\xE0m n\u1ED5i b\u1EADt thay \u0111\u1ED5i trong c\xE2y t\u1EC7p v\xE0 c\xE1c th\u1EBB",
   "setting.tree-highlight.desc": "T\xF4 m\xE0u c\xE1c t\u1EC7p v\xE0 th\u01B0 m\u1EE5c trong tr\xECnh qu\u1EA3n l\xFD t\u1EC7p g\u1ED1c, c\xF9ng ti\xEAu \u0111\u1EC1 th\u1EBB c\u1EE7a c\xE1c t\u1EC7p \u0111ang m\u1EDF, theo nh\u1EEFng g\xEC \u0111\xE3 thay \u0111\u1ED5i trong phi\xEAn n\xE0y (h\u1ED5 ph\xE1ch cho \u0111\xE3 s\u1EEDa, xanh l\xE1 cho \u0111\xE3 th\xEAm).",
   "setting.properties-highlight.name": "T\xF4 s\xE1ng thay \u0111\u1ED5i trong b\u1EA3ng thu\u1ED9c t\xEDnh",
   "setting.properties-highlight.desc": "Hi\u1EC3n th\u1ECB c\xE1c kh\xF3a frontmatter \u0111\u01B0\u1EE3c th\xEAm, s\u1EEDa \u0111\u1ED5i v\xE0 x\xF3a trong b\u1EA3ng thu\u1ED9c t\xEDnh c\u1EE7a Obsidian. T\u1EAFt \u0111\u1EC3 \u1EA9n to\xE0n b\u1ED9 \u0111\xE1nh d\u1EA5u thay \u0111\u1ED5i thu\u1ED9c t\xEDnh.",
-  "setting.persist.name": "Gi\u1EEF l\u1ECBch s\u1EED qua c\xE1c l\u1EA7n kh\u1EDFi \u0111\u1ED9ng l\u1EA1i",
-  "setting.persist.desc": 'L\u01B0u l\u1ECBch s\u1EED v\xE0o \u0111\u0129a \u0111\u1EC3 c\xE1c \u0111i\u1EC3m \u0111\xE1nh d\u1EA5u v\u1EABn c\xF2n sau khi kh\u1EDFi \u0111\u1ED9ng l\u1EA1i. Y\xEAu c\u1EA7u "Gi\u1EEF l\u1ECBch s\u1EED cho \u0111\u1EBFn khi" \u0111\u01B0\u1EE3c \u0111\u1EB7t th\xE0nh \u0111\xF3ng \u1EE9ng d\u1EE5ng.',
   "setting.max-entries.name": "S\u1ED1 t\u1EC7p l\u01B0u tr\u1EEF t\u1ED1i \u0111a",
   "setting.max-entries.desc": "Gi\u1EDBi h\u1EA1n s\u1ED1 l\u01B0\u1EE3ng l\u1ECBch s\u1EED t\u1EC7p \u0111\u01B0\u1EE3c gi\u1EEF tr\xEAn \u0111\u0129a. T\u1EC7p c\u0169 nh\u1EA5t b\u1ECB lo\u1EA1i b\u1ECF tr\u01B0\u1EDBc. \u0110\u1EB7t th\xE0nh 0 \u0111\u1EC3 t\u1EAFt.",
   "setting.max-age-days.name": "Tu\u1ED5i l\u1ECBch s\u1EED t\u1ED1i \u0111a (ng\xE0y)",
@@ -13374,8 +13356,8 @@ var vi_default = {
   "setting.line-heading": "Ch\u1EC9 b\xE1o d\xF2ng",
   "setting.line-width.name": "\u0110\u1ED9 r\u1ED9ng",
   "setting.line-width.desc": "\u0110\u1ED9 r\u1ED9ng c\u1EE7a ch\u1EC9 b\xE1o \u0111\u01B0\u1EDDng k\u1EBB d\u1ECDc (t\xEDnh b\u1EB1ng pixel).",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "C\u01B0\u1EDDng \u0111\u1ED9 \u0111i\u1EC3m \u0111\xE1nh d\u1EA5u",
+  "setting.marker-intensity.desc": "C\u01B0\u1EDDng \u0111\u1ED9 t\u1ED5ng th\u1EC3 c\u1EE7a m\u1ECDi m\xE0u thay \u0111\u1ED5i (\u0111i\u1EC3m \u0111\xE1nh d\u1EA5u tr\xECnh so\u1EA1n th\u1EA3o, c\xE2y, th\u1EBB, ch\u1EBF \u0111\u1ED9 \u0111\u1ECDc). Cao h\u01A1n th\xEC r\u1EF1c r\u1EE1 h\u01A1n, th\u1EA5p h\u01A1n th\xEC nh\u1EA1t h\u01A1n.",
   "setting.gutter-heading.name": "Ch\u1EC9 b\xE1o \u1EDF l\u1EC1",
   "setting.gutter-heading.prefix": "K\xFD t\u1EF1 c\u1EE7a ch\u1EC9 b\xE1o ki\u1EC3u \u1EDF l\u1EC1 (",
   "setting.gutter-heading.suffix": ").",
@@ -13442,11 +13424,11 @@ var vi_default = {
   "view.recent-changes.menu.restore": "Kh\xF4i ph\u1EE5c phi\xEAn b\u1EA3n n\xE0y",
   "view.recent-changes.menu.delete": "X\xF3a phi\xEAn b\u1EA3n",
   "view.recent-changes.menu.put-label": "G\u1EAFn nh\xE3n",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "Thay \u0111\u1ED5i kho l\u01B0u tr\u1EEF",
+  "view.vault-changes.search-placeholder": "L\u1ECDc theo t\xEAn t\u1EC7p",
+  "view.vault-changes.layout.tree": "C\xE2y",
+  "view.vault-changes.layout.flat": "Danh s\xE1ch ph\u1EB3ng",
+  "view.vault-changes.deleted-notice": "T\u1EC7p n\xE0y \u0111\xE3 b\u1ECB x\xF3a; l\u1ECBch s\u1EED c\u1EE7a n\xF3 \u0111\u01B0\u1EE3c gi\u1EEF l\u1EA1i.",
   "modal.label-selected": "G\u1EAFn nh\xE3n phi\xEAn b\u1EA3n \u0111\xE3 ch\u1ECDn",
   "modal.label-version.message": "\u0110\xE1nh d\u1EA5u phi\xEAn b\u1EA3n n\xE0y b\u1EB1ng m\u1ED9t nh\xE3n ng\u1EAFn.",
   "notice.no-folder-history": "Ch\u01B0a c\xF3 l\u1ECBch s\u1EED th\u01B0 m\u1EE5c.",
@@ -13483,7 +13465,7 @@ var zh_default = {
   "command.reset-lines-all": "\u91CD\u7F6E\u6240\u6709\u884C\u8FFD\u8E2A\u5FEB\u7167",
   "command.reset-lines": "\u91CD\u7F6E\u5F53\u524D\u6587\u6863\u7684\u884C\u8FFD\u8E2A\u5FEB\u7167",
   "command.show-diff": "\u663E\u793A\u5F53\u524D\u6587\u6863\u7684\u6240\u6709\u66F4\u6539",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "\u6253\u5F00\u5E93\u66F4\u6539\u9762\u677F",
   "notice.no-changes-to-navigate": "\u6CA1\u6709\u53EF\u8DF3\u8F6C\u7684\u66F4\u6539",
   "notice.all-snapshots-deleted": "\u5DF2\u5220\u9664\u6240\u6709\u5FEB\u7167\u6570\u636E",
   "notice.current-snapshot-deleted": "\u5DF2\u5220\u9664\u5F53\u524D\u5FEB\u7167\u6570\u636E",
@@ -13518,14 +13500,13 @@ var zh_default = {
   "setting.keep.desc": "\u6E05\u7406\u4FEE\u8BA2\u5386\u53F2\u7684\u7B56\u7565",
   "setting.keep.option.app": "\u5173\u95ED\u5E94\u7528\u65F6",
   "setting.keep.option.file": "\u5173\u95ED\u6587\u4EF6\u65F6",
+  "setting.keep.option.persist": "\u91CD\u542F\u540E\u4FDD\u7559",
   "setting.ignore-new-files.name": "\u5FFD\u7565\u65B0\u6587\u4EF6",
   "setting.ignore-new-files.desc": "\u4E0D\u8FFD\u8E2A\u5728\u5F00\u59CB\u8FFD\u8E2A\u540E\u521B\u5EFA\u7684\u6587\u4EF6\u4E2D\u7684\u66F4\u6539",
   "setting.tree-highlight.name": "\u5728\u6587\u4EF6\u6811\u548C\u6807\u7B7E\u9875\u4E2D\u9AD8\u4EAE\u663E\u793A\u66F4\u6539",
   "setting.tree-highlight.desc": "\u6839\u636E\u672C\u6B21\u4F1A\u8BDD\u4E2D\u7684\u66F4\u6539\uFF0C\u4E3A\u539F\u751F\u6587\u4EF6\u6D4F\u89C8\u5668\u4E2D\u7684\u6587\u4EF6\u548C\u6587\u4EF6\u5939\u4EE5\u53CA\u5DF2\u6253\u5F00\u6587\u4EF6\u7684\u6807\u7B7E\u9875\u6807\u9898\u7740\u8272\uFF08\u4FEE\u6539\u4E3A\u7425\u73C0\u8272\uFF0C\u65B0\u589E\u4E3A\u7EFF\u8272\uFF09\u3002",
   "setting.properties-highlight.name": "\u5728\u5C5E\u6027\u9762\u677F\u4E2D\u9AD8\u4EAE\u66F4\u6539",
   "setting.properties-highlight.desc": "\u5728 Obsidian \u5C5E\u6027\u9762\u677F\u4E2D\u663E\u793A\u6DFB\u52A0\u3001\u4FEE\u6539\u548C\u79FB\u9664\u7684 frontmatter \u952E\u3002\u7981\u7528\u540E\u5C06\u9690\u85CF\u6240\u6709\u5C5E\u6027\u5DEE\u5F02\u6807\u8BB0\u3002",
-  "setting.persist.name": "\u91CD\u542F\u540E\u4FDD\u7559\u5386\u53F2\u8BB0\u5F55",
-  "setting.persist.desc": "\u5C06\u5386\u53F2\u8BB0\u5F55\u4FDD\u5B58\u5230\u78C1\u76D8\uFF0C\u4F7F\u9AD8\u4EAE\u5728\u91CD\u542F\u540E\u4F9D\u7136\u4FDD\u7559\u3002\u9700\u8981\u5C06\u201C\u4FDD\u7559\u5386\u53F2\u8BB0\u5F55\u76F4\u5230\u201D\u8BBE\u7F6E\u4E3A\u5173\u95ED\u5E94\u7528\u65F6\u3002",
   "setting.max-entries.name": "\u6700\u591A\u5B58\u50A8\u7684\u6587\u4EF6\u6570",
   "setting.max-entries.desc": "\u78C1\u76D8\u4E0A\u4FDD\u7559\u7684\u6587\u4EF6\u5386\u53F2\u8BB0\u5F55\u6570\u91CF\u4E0A\u9650\u3002\u6700\u65E7\u7684\u4F1A\u88AB\u4F18\u5148\u6E05\u9664\u3002\u8BBE\u4E3A 0 \u53EF\u7981\u7528\u3002",
   "setting.max-age-days.name": "\u5386\u53F2\u8BB0\u5F55\u6700\u957F\u4FDD\u7559\u5929\u6570\uFF08\u5929\uFF09",
@@ -13550,8 +13531,8 @@ var zh_default = {
   "setting.line-heading": "\u884C\u6307\u793A\u5668",
   "setting.line-width.name": "\u5BBD\u5EA6",
   "setting.line-width.desc": "\u7AD6\u7EBF\u6307\u793A\u5668\u7684\u5BBD\u5EA6\uFF08\u4EE5\u50CF\u7D20\u4E3A\u5355\u4F4D\uFF09\u3002",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "\u6807\u8BB0\u5F3A\u5EA6",
+  "setting.marker-intensity.desc": "\u6240\u6709\u66F4\u6539\u989C\u8272\u7684\u6574\u4F53\u5F3A\u5EA6\uFF08\u7F16\u8F91\u5668\u6807\u8BB0\u3001\u6811\u3001\u6807\u7B7E\u9875\u3001\u9605\u8BFB\u6A21\u5F0F\uFF09\u3002\u8D8A\u9AD8\u8D8A\u9C9C\u660E\uFF0C\u8D8A\u4F4E\u8D8A\u6DE1\u3002",
   "setting.gutter-heading.name": "\u8FB9\u680F\u6307\u793A\u5668",
   "setting.gutter-heading.prefix": "\u8FB9\u680F\u7C7B\u578B\u6307\u793A\u5668\u7684\u5B57\u7B26\uFF08",
   "setting.gutter-heading.suffix": "\uFF09\u3002",
@@ -13618,11 +13599,11 @@ var zh_default = {
   "view.recent-changes.menu.restore": "\u6062\u590D\u6B64\u7248\u672C",
   "view.recent-changes.menu.delete": "\u5220\u9664\u7248\u672C",
   "view.recent-changes.menu.put-label": "\u6DFB\u52A0\u6807\u7B7E",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "\u5E93\u66F4\u6539",
+  "view.vault-changes.search-placeholder": "\u6309\u6587\u4EF6\u540D\u7B5B\u9009",
+  "view.vault-changes.layout.tree": "\u6811",
+  "view.vault-changes.layout.flat": "\u5E73\u94FA\u5217\u8868",
+  "view.vault-changes.deleted-notice": "\u6B64\u6587\u4EF6\u5DF2\u5220\u9664\uFF1B\u5176\u5386\u53F2\u8BB0\u5F55\u5DF2\u4FDD\u7559\u3002",
   "modal.label-selected": "\u4E3A\u6240\u9009\u7248\u672C\u6DFB\u52A0\u6807\u7B7E",
   "modal.label-version.message": "\u7528\u7B80\u77ED\u6807\u7B7E\u6807\u8BB0\u6B64\u7248\u672C\u3002",
   "notice.no-folder-history": "\u5C1A\u65E0\u6587\u4EF6\u5939\u5386\u53F2\u3002",
@@ -13659,7 +13640,7 @@ var zh_TW_default = {
   "command.reset-lines-all": "\u91CD\u8A2D\u6240\u6709\u884C\u8FFD\u8E64\u5FEB\u7167",
   "command.reset-lines": "\u91CD\u8A2D\u76EE\u524D\u6587\u4EF6\u7684\u884C\u8FFD\u8E64\u5FEB\u7167",
   "command.show-diff": "\u986F\u793A\u76EE\u524D\u6587\u4EF6\u7684\u6240\u6709\u8B8A\u66F4",
-  "command.open-vault-changes": "Open vault changes panel",
+  "command.open-vault-changes": "\u958B\u555F\u4FDD\u7BA1\u5EAB\u8B8A\u66F4\u9762\u677F",
   "notice.no-changes-to-navigate": "\u6C92\u6709\u53EF\u8DF3\u81F3\u7684\u8B8A\u66F4",
   "notice.all-snapshots-deleted": "\u5DF2\u522A\u9664\u6240\u6709\u5FEB\u7167\u8CC7\u6599",
   "notice.current-snapshot-deleted": "\u5DF2\u522A\u9664\u76EE\u524D\u5FEB\u7167\u8CC7\u6599",
@@ -13694,14 +13675,13 @@ var zh_TW_default = {
   "setting.keep.desc": "\u6E05\u7406\u4FEE\u8A02\u6B77\u53F2\u7684\u7B56\u7565",
   "setting.keep.option.app": "\u95DC\u9589\u61C9\u7528\u7A0B\u5F0F\u6642",
   "setting.keep.option.file": "\u95DC\u9589\u6A94\u6848\u6642",
+  "setting.keep.option.persist": "\u91CD\u65B0\u555F\u52D5\u5F8C\u4FDD\u7559",
   "setting.ignore-new-files.name": "\u5FFD\u7565\u65B0\u6A94\u6848",
   "setting.ignore-new-files.desc": "\u4E0D\u8FFD\u8E64\u5728\u958B\u59CB\u8FFD\u8E64\u5F8C\u5EFA\u7ACB\u7684\u6A94\u6848\u4E2D\u7684\u8B8A\u66F4",
   "setting.tree-highlight.name": "\u5728\u6A94\u6848\u6A39\u548C\u5206\u9801\u4E2D\u9192\u76EE\u986F\u793A\u8B8A\u66F4",
   "setting.tree-highlight.desc": "\u4F9D\u672C\u6B21\u5DE5\u4F5C\u968E\u6BB5\u4E2D\u7684\u8B8A\u66F4\uFF0C\u70BA\u539F\u751F\u6A94\u6848\u7E3D\u7BA1\u4E2D\u7684\u6A94\u6848\u8207\u8CC7\u6599\u593E\uFF0C\u4EE5\u53CA\u5DF2\u958B\u555F\u6A94\u6848\u7684\u5206\u9801\u6A19\u984C\u8457\u8272\uFF08\u4FEE\u6539\u70BA\u7425\u73C0\u8272\uFF0C\u65B0\u589E\u70BA\u7DA0\u8272\uFF09\u3002",
   "setting.properties-highlight.name": "\u5728\u5C6C\u6027\u9762\u677F\u4E2D\u6A19\u793A\u8B8A\u66F4",
   "setting.properties-highlight.desc": "\u5728 Obsidian \u5C6C\u6027\u9762\u677F\u4E2D\u986F\u793A\u65B0\u589E\u3001\u4FEE\u6539\u548C\u79FB\u9664\u7684 frontmatter \u9375\u3002\u505C\u7528\u5F8C\u5C07\u96B1\u85CF\u6240\u6709\u5C6C\u6027\u5DEE\u7570\u6A19\u8A18\u3002",
-  "setting.persist.name": "\u91CD\u65B0\u555F\u52D5\u5F8C\u4FDD\u7559\u6B77\u53F2\u8A18\u9304",
-  "setting.persist.desc": "\u5C07\u6B77\u53F2\u8A18\u9304\u5132\u5B58\u81F3\u78C1\u789F\uFF0C\u4F7F\u9192\u76EE\u63D0\u793A\u5728\u91CD\u65B0\u555F\u52D5\u5F8C\u4F9D\u7136\u4FDD\u7559\u3002\u9700\u8981\u5C07\u300C\u4FDD\u7559\u6B77\u53F2\u8A18\u9304\u76F4\u5230\u300D\u8A2D\u5B9A\u70BA\u95DC\u9589\u61C9\u7528\u7A0B\u5F0F\u6642\u3002",
   "setting.max-entries.name": "\u6700\u591A\u5132\u5B58\u7684\u6A94\u6848\u6578",
   "setting.max-entries.desc": "\u78C1\u789F\u4E0A\u4FDD\u7559\u7684\u6A94\u6848\u6B77\u53F2\u8A18\u9304\u6578\u91CF\u4E0A\u9650\u3002\u6700\u820A\u7684\u6703\u88AB\u512A\u5148\u6E05\u9664\u3002\u8A2D\u70BA 0 \u53EF\u505C\u7528\u3002",
   "setting.max-age-days.name": "\u6B77\u53F2\u8A18\u9304\u6700\u9577\u4FDD\u7559\u5929\u6578\uFF08\u5929\uFF09",
@@ -13726,8 +13706,8 @@ var zh_TW_default = {
   "setting.line-heading": "\u884C\u6307\u793A\u5668",
   "setting.line-width.name": "\u5BEC\u5EA6",
   "setting.line-width.desc": "\u5782\u76F4\u7DDA\u6307\u793A\u5668\u7684\u5BEC\u5EA6\uFF08\u4EE5\u50CF\u7D20\u70BA\u55AE\u4F4D\uFF09\u3002",
-  "setting.marker-intensity-heading": "Marker intensity",
-  "setting.marker-intensity.desc": "Overall intensity of every change colour (editor markers, tree, tabs, reading mode). Higher is more vivid, lower is paler.",
+  "setting.marker-intensity-heading": "\u6A19\u8A18\u5F37\u5EA6",
+  "setting.marker-intensity.desc": "\u6240\u6709\u8B8A\u66F4\u984F\u8272\u7684\u6574\u9AD4\u5F37\u5EA6\uFF08\u7DE8\u8F2F\u5668\u6A19\u8A18\u3001\u6A39\u72C0\u3001\u5206\u9801\u3001\u95B1\u8B80\u6A21\u5F0F\uFF09\u3002\u8D8A\u9AD8\u8D8A\u9BAE\u660E\uFF0C\u8D8A\u4F4E\u8D8A\u6DE1\u3002",
   "setting.gutter-heading.name": "\u908A\u6B04\u6307\u793A\u5668",
   "setting.gutter-heading.prefix": "\u908A\u6B04\u985E\u578B\u6307\u793A\u5668\u7684\u5B57\u5143\uFF08",
   "setting.gutter-heading.suffix": "\uFF09\u3002",
@@ -13794,11 +13774,11 @@ var zh_TW_default = {
   "view.recent-changes.menu.restore": "\u9084\u539F\u6B64\u7248\u672C",
   "view.recent-changes.menu.delete": "\u522A\u9664\u7248\u672C",
   "view.recent-changes.menu.put-label": "\u52A0\u4E0A\u6A19\u7C64",
-  "view.vault-changes.title": "Vault changes",
-  "view.vault-changes.search-placeholder": "Filter by file name",
-  "view.vault-changes.layout.tree": "Tree",
-  "view.vault-changes.layout.flat": "Flat list",
-  "view.vault-changes.deleted-notice": "This file was deleted; its history is kept.",
+  "view.vault-changes.title": "\u4FDD\u7BA1\u5EAB\u8B8A\u66F4",
+  "view.vault-changes.search-placeholder": "\u4F9D\u6A94\u6848\u540D\u7A31\u7BE9\u9078",
+  "view.vault-changes.layout.tree": "\u6A39\u72C0",
+  "view.vault-changes.layout.flat": "\u5E73\u9762\u6E05\u55AE",
+  "view.vault-changes.deleted-notice": "\u6B64\u6A94\u6848\u5DF2\u522A\u9664\uFF1B\u5176\u6B77\u53F2\u8A18\u9304\u5DF2\u4FDD\u7559\u3002",
   "modal.label-selected": "\u70BA\u6240\u9078\u7248\u672C\u52A0\u4E0A\u6A19\u7C64",
   "modal.label-version.message": "\u4EE5\u7C21\u77ED\u6A19\u7C64\u6A19\u8A18\u6B64\u7248\u672C\u3002",
   "notice.no-folder-history": "\u5C1A\u7121\u8CC7\u6599\u593E\u6B77\u53F2\u3002",
@@ -14080,7 +14060,7 @@ function match(versions, baselineLines, selection) {
   return matched;
 }
 function toSelectionLines(selection) {
-  return selection.split(/\r?\n/).map((line) => line.trim()).filter((line) => line.length > 0);
+  return splitLines(selection).map((line) => line.trim()).filter((line) => line.length > 0);
 }
 function collectChangedLines(previous, current) {
   const added = [];
@@ -16564,6 +16544,20 @@ var DiffViewState = class {
   }
 };
 
+// src/helpers/version-restore.helper.ts
+async function restoreWholeVersion(request) {
+  const { snapshotsService, file, baseLines, currentLines, lineBreak } = request;
+  if (baseLines.join(lineBreak) === currentLines.join(lineBreak)) {
+    return false;
+  }
+  await snapshotsService.applyContent(file, baseLines, {
+    start: 0,
+    removeCount: currentLines.length,
+    newLines: baseLines
+  });
+  return true;
+}
+
 // src/modals/folder-action-handler.ts
 var import_obsidian17 = require("obsidian");
 var FolderActionHandler = class {
@@ -16616,16 +16610,13 @@ var FolderActionHandler = class {
     if (version) {
       await this.host.versionActionsService.restoreSelected(file, version.id);
     } else {
-      const baseLines = selection.result.base;
-      const currentLines = selection.snapshot.content.getLastStateLines();
-      const lineBreak = selection.snapshot.content.lineBreak;
-      if (baseLines.join(lineBreak) !== currentLines.join(lineBreak)) {
-        await this.host.snapshotsService.applyContent(file, baseLines, {
-          start: 0,
-          removeCount: currentLines.length,
-          newLines: baseLines
-        });
-      }
+      await restoreWholeVersion({
+        snapshotsService: this.host.snapshotsService,
+        file,
+        baseLines: selection.result.base,
+        currentLines: selection.snapshot.content.getLastStateLines(),
+        lineBreak: selection.snapshot.content.lineBreak
+      });
     }
     this.host.refreshTree();
     this.host.refreshDiff();
@@ -21259,12 +21250,12 @@ var HistoryModal = class extends import_obsidian23.Modal {
     if (this.viewState.selectedBaseId !== ORIGINAL_BASE_ID) {
       await this.versionActionsService.restoreSelected(file, this.viewState.selectedBaseId);
     } else {
-      const baseLines = this.diffPresenter.getBaseContent().split(this.snapshot.content.lineBreak);
-      const currentLines = this.snapshot.content.getLastStateLines();
-      await this.snapshotsService.applyContent(file, baseLines, {
-        start: 0,
-        removeCount: currentLines.length,
-        newLines: baseLines
+      await restoreWholeVersion({
+        snapshotsService: this.snapshotsService,
+        file,
+        baseLines: this.diffPresenter.getBaseContent().split(this.snapshot.content.lineBreak),
+        currentLines: this.snapshot.content.getLastStateLines(),
+        lineBreak: this.snapshot.content.lineBreak
       });
     }
     this.viewState.activeHunkIndex = -1;
@@ -23108,15 +23099,14 @@ var PersistenceService = class {
     return forPath(JSON.stringify(snapshot));
   }
   /**
-   * Whether history should be persisted to disk right now.
-   * Requires the explicit persist toggle and a retention policy that keeps
-   * history beyond a single file close (file-scoped history is never persisted
-   * since it is meant to vanish when the file is closed).
+   * Whether history should be persisted to disk right now. True only at the most
+   * durable keep level (`persist`); the session-scoped (`app`) and
+   * file-scoped (`file`) levels are never written to disk.
    *
    * @return {boolean} True when persistence is active
    */
   isPersistEnabled() {
-    return this.settingsService.value("persist") && this.settingsService.value("keep") === "app" /* app */;
+    return this.settingsService.value("keep") === "persist" /* persist */;
   }
 };
 __decorateClass([
@@ -23582,8 +23572,8 @@ var MainSetting = class extends import_obsidian26.PluginSettingTab {
   }
   /**
    * Renders the "General" group: indicator type, tracked extensions, the
-   * new-files filter, the three highlight surfaces (file tree, properties
-   * panel, reading mode), and history persistence.
+   * new-files filter, and the three highlight surfaces (file tree, properties
+   * panel, reading mode).
    *
    * @param {HTMLElement} containerEl - The settings tab container
    */
@@ -23631,13 +23621,6 @@ var MainSetting = class extends import_obsidian26.PluginSettingTab {
       setting.setName(this.plugin.t("setting.reading-mode-indicator.name")).setDesc(this.plugin.t("setting.reading-mode-indicator.desc")).addToggle(
         (toggle) => toggle.setValue(this.settingsService.value("readingModeIndicator")).onChange((value) => {
           this.settingsService.update("readingModeIndicator", value);
-        })
-      );
-    });
-    group.addSetting((setting) => {
-      setting.setName(this.plugin.t("setting.persist.name")).setDesc(this.plugin.t("setting.persist.desc")).addToggle(
-        (toggle) => toggle.setValue(this.settingsService.value("persist")).onChange((value) => {
-          this.settingsService.update("persist", value);
         })
       );
     });
@@ -23881,7 +23864,7 @@ var MainSetting = class extends import_obsidian26.PluginSettingTab {
     const group = new import_obsidian26.SettingGroup(containerEl).setHeading(this.plugin.t("setting.cleanup-heading"));
     group.addSetting((setting) => {
       setting.setName(this.plugin.t("setting.keep.name")).setDesc(this.plugin.t("setting.keep.desc")).addDropdown(
-        (dropdown) => dropdown.addOption("app" /* app */, this.plugin.t("setting.keep.option.app")).addOption("file" /* file */, this.plugin.t("setting.keep.option.file")).setValue(this.settingsService.value("keep")).onChange((value) => {
+        (dropdown) => dropdown.addOption("file" /* file */, this.plugin.t("setting.keep.option.file")).addOption("app" /* app */, this.plugin.t("setting.keep.option.app")).addOption("persist" /* persist */, this.plugin.t("setting.keep.option.persist")).setValue(this.settingsService.value("keep")).onChange((value) => {
           this.settingsService.update("keep", value);
         })
       );
@@ -23916,7 +23899,7 @@ var MainSetting = class extends import_obsidian26.PluginSettingTab {
       setting.setName(this.plugin.t("setting.purge-excluded.name")).setDesc(this.plugin.t("setting.purge-excluded.desc")).addButton((button) => {
         this.purgeButton = button;
         this.updatePurgeButtonState();
-        return button.setButtonText(this.plugin.t("setting.purge-excluded.name")).setWarning().onClick(async () => {
+        return button.setButtonText(this.plugin.t("setting.purge-excluded.name")).setDestructive().onClick(async () => {
           const confirmed = await this.modalsService.confirm({
             title: this.plugin.t("setting.purge-excluded.name"),
             message: this.plugin.t("setting.purge-excluded.desc"),
@@ -24126,6 +24109,15 @@ var SettingsService = class _SettingsService {
   }
 };
 
+// src/helpers/origin.helper.ts
+function resolveOrigin(snapshot, keep) {
+  var _a;
+  if (keep === "persist" /* persist */) {
+    return (_a = snapshot.getOldestRetainedLines()) != null ? _a : snapshot.content.getHistoryOriginalStateLines();
+  }
+  return snapshot.content.getOriginalStateLines();
+}
+
 // src/snapshots/external-change-capture.ts
 var _ExternalChangeCapture = class _ExternalChangeCapture {
   /**
@@ -24252,7 +24244,7 @@ var _ExternalChangeCapture = class _ExternalChangeCapture {
       this.rememberLastSeen(file);
       return;
     }
-    const newLines = content.split(/\r?\n/);
+    const newLines = splitLines(content);
     const captured = snapshot.captureVersion(newLines, this.host.getCaptureOptions(), true);
     if (captured) {
       captured.external = true;
@@ -24260,6 +24252,9 @@ var _ExternalChangeCapture = class _ExternalChangeCapture {
     this.applyLineDiff(snapshot, snapshot.content.state, newLines);
     snapshot.content.updateState(newLines);
     snapshot.updateChanges();
+    if (captured) {
+      this.host.reseedOriginIfSlid(snapshot);
+    }
     this.host.forceUpdate();
     this.rememberLastSeen(file);
   }
@@ -24335,29 +24330,7 @@ var _ExternalChangeCapture = class _ExternalChangeCapture {
    * @param {string[]} next - The disk content lines to converge onto
    */
   applyLineDiff(snapshot, previous, next) {
-    const parts = diffArrays(previous, next);
-    const hunks = [];
-    let position = 0;
-    for (const part of parts) {
-      if (part.removed) {
-        hunks.push({ start: position, removeCount: part.value.length, lines: [] });
-        position += part.value.length;
-        continue;
-      }
-      if (!part.added) {
-        position += part.value.length;
-        continue;
-      }
-      const last = hunks[hunks.length - 1];
-      if (last && last.lines.length === 0 && last.start + last.removeCount === position) {
-        last.lines = part.value.slice();
-      } else {
-        hunks.push({ start: position, removeCount: 0, lines: part.value.slice() });
-      }
-    }
-    for (let index = hunks.length - 1; index >= 0; index--) {
-      snapshot.trackers.replaceBlock(hunks[index].start, hunks[index].removeCount, hunks[index].lines);
-    }
+    snapshot.trackers.reconcile(previous, next);
   }
   /**
    * Reads the file's current `stat.mtime` / `stat.size` without throwing if
@@ -24443,24 +24416,6 @@ var EditorOperations = class {
     return true;
   }
 };
-
-// src/helpers/text.helper.ts
-var idCounter = 0;
-function hash(content) {
-  let hash2 = 0;
-  for (let i = 0; i < content.length; i++) {
-    hash2 = (hash2 << 5) - hash2 + content.charCodeAt(i);
-    hash2 |= 0;
-  }
-  return Math.abs(hash2).toString();
-}
-function rndId(prefix) {
-  idCounter += 1;
-  return `${prefix != null ? prefix : ""}${idCounter.toString(36)}`;
-}
-function isWhitespaceDiff(a, b) {
-  return a !== b && a.replace(/\s+/g, "") === b.replace(/\s+/g, "");
-}
 
 // src/lines/change.line.ts
 var ChangeLine = class {
@@ -24612,11 +24567,10 @@ var SnapshotState = class {
      * convention only decides how those lines are rejoined. Defaults to '\n'.
      */
     this.lineBreak = "\n";
-    var _a;
     if (lineBreak) {
       this.lineBreak = lineBreak;
     }
-    this.lines = (_a = content == null ? void 0 : content.split(/\r?\n/)) != null ? _a : [];
+    this.lines = content === void 0 ? [] : splitLines(content);
     this.historyLines = [...this.lines];
     this.updateState(this.lines);
   }
@@ -24627,7 +24581,7 @@ var SnapshotState = class {
    * @param {string | string[]} content - The new content, as a string or lines
    */
   updateState(content) {
-    this.state = Array.isArray(content) ? [...content] : content.split(/\r?\n/);
+    this.state = Array.isArray(content) ? [...content] : splitLines(content);
     this.lastHash = hash(this.state.join(this.lineBreak));
   }
   /**
@@ -25787,6 +25741,52 @@ var TrackerEditor = class {
     this.index.invalidate();
   }
   /**
+   * Converges the tracker's CURRENT view from `previous` onto `next` as a minimal
+   * per-hunk update: untouched lines keep their trackers (and their markers), a
+   * same-count hunk edits its lines in place, and only genuinely new or destroyed
+   * lines are added or removed. The caller guarantees the tracker's current
+   * positions match `previous` (the change detector after a keystroke, the disk
+   * resync against the model's known state, or a freshly `buildFromLines(previous)`
+   * seed), so the diff coordinates line up with the live tracker.
+   *
+   * Hunks are applied bottom-up so the current-position coordinates of the earlier
+   * hunks stay valid while the later ones shift the tracker index, mirroring the
+   * reverse iteration of the change detector. An added run right after its removed
+   * run is folded into one replacement hunk so replaceBlock takes the in-place edit
+   * path (preserving matched originals) instead of a destroy-and-re-add.
+   *
+   * The caller updates the cached state and the change map afterwards
+   * (updateState then updateChanges); this method only mutates the tracker.
+   *
+   * @param {string[]} previous - The lines the tracker's current view currently holds
+   * @param {string[]} next - The lines to converge the current view onto
+   */
+  reconcile(previous, next) {
+    const parts = diffArrays(previous, next);
+    const hunks = [];
+    let position = 0;
+    for (const part of parts) {
+      if (part.removed) {
+        hunks.push({ start: position, removeCount: part.value.length, lines: [] });
+        position += part.value.length;
+        continue;
+      }
+      if (!part.added) {
+        position += part.value.length;
+        continue;
+      }
+      const last = hunks[hunks.length - 1];
+      if (last && last.lines.length === 0 && last.start + last.removeCount === position) {
+        last.lines = part.value.slice();
+      } else {
+        hunks.push({ start: position, removeCount: 0, lines: part.value.slice() });
+      }
+    }
+    for (let index = hunks.length - 1; index >= 0; index--) {
+      this.replaceBlock(hunks[index].start, hunks[index].removeCount, hunks[index].lines);
+    }
+  }
+  /**
    * Replaces a contiguous block of current lines in the tracker with new content,
    * keeping the original baseline intact. This is the model-level counterpart of
    * a single-block edit: it is used when a region of the document is rewritten
@@ -26112,6 +26112,20 @@ var VersionTimeline = class {
     return this.versions;
   }
   /**
+   * Returns a copy of the OLDEST retained version's lines, or undefined when the
+   * timeline holds no versions. The oldest survivor is the sliding origin the
+   * persist-keep resolver diffs against: because versions are stored oldest-first
+   * and eviction trims from the front, `versions[0]` is the earliest state
+   * retention still keeps. Reads through `getLines()` so the returned array is a
+   * fresh copy callers cannot use to mutate the owned timeline.
+   *
+   * @return {string[] | undefined} The oldest retained version's lines, or undefined when empty
+   */
+  getOldestRetainedLines() {
+    var _a;
+    return (_a = this.versions[0]) == null ? void 0 : _a.getLines();
+  }
+  /**
    * Finds an intermediate version by its id.
    *
    * @param {string} id - The version id to look up
@@ -26340,7 +26354,7 @@ var FileSnapshot = class {
      * restores, removals, block replacement, the position lookups, the readonly view
      * and the build/restore/reset lifecycle. Callers reach tracking through
      * `snapshot.trackers`; the façade only rewires its own composite operations
-     * (construction, serialization, marker-baseline reset, change-map refresh)
+     * (construction, serialization, marker-baseline seeding, change-map refresh)
      * through it.
      */
     this.trackers = new TrackerEditor();
@@ -26433,7 +26447,7 @@ var FileSnapshot = class {
     if (this.content.lastHash !== hash(content)) {
       return true;
     }
-    const incoming = content.split(/\r?\n/);
+    const incoming = splitLines(content);
     const current = this.content.state;
     if (incoming.length !== current.length) {
       return true;
@@ -26490,6 +26504,17 @@ var FileSnapshot = class {
       force,
       label
     );
+  }
+  /**
+   * Returns a copy of the OLDEST retained version's lines, or undefined when the
+   * timeline is empty. Delegates to the timeline so its internals stay
+   * encapsulated; the origin resolver uses this as the sliding persist origin,
+   * falling back to the history baseline only when no version survives.
+   *
+   * @return {string[] | undefined} The oldest retained version's lines, or undefined when empty
+   */
+  getOldestRetainedLines() {
+    return this.timeline.getOldestRetainedLines();
   }
   /**
    * Resolves the timestamp of the file's last update. Prefers the file's
@@ -26553,27 +26578,57 @@ var FileSnapshot = class {
     }
   }
   /**
-   * Re-establishes the session marker baseline at the current state, the eager
-   * form of the "re-established from the file content on the next open" contract
-   * that `SnapshotCodec.encode` documents for the deliberately non-persisted
-   * marker baseline.
+   * Redefines the change map to mean "changes vs the resolved origin" while keeping
+   * the tracker aligned with the live document. Adopts `origin` as the marker
+   * baseline, rebuilds the tracker from it, then reconciles the tracker's current
+   * view onto the current state via a minimal line diff, so the single cached
+   * change map carries the changes-since-origin and every marker-derived surface
+   * (gutter, tree/tab, status bar, reading-mode, properties, next/prev nav) follows
+   * from it at once.
    *
-   * `SnapshotCodec.decode` reconstructs the marker baseline from the persisted HISTORY
-   * original and restores the persisted tracker, so a restored snapshot reports
-   * its full history diff (`getChangesLinesCount() > 0`) before the file is ever
-   * opened this run. The session surfaces that read a snapshot WITHOUT opening it
-   * - the tree/tab decorator above all - would then paint a folder as changed on
-   * a fresh launch even though nothing changed this session. Calling this at
-   * restore collapses the marker baseline onto the current state so the snapshot
-   * starts session-clean (`none`), matching the gutter, which re-baselines to the
-   * editor content on open. The HISTORY baseline (`historyLines`) and the version
-   * timeline are untouched, so the history modal keeps diffing against the
-   * persisted original; only the session-scoped marker view is reset.
+   * At the persist restore path, rather than collapsing the baseline onto the
+   * current state (session-clean), it seeds the baseline from the persisted
+   * sliding origin so a restored snapshot reports its changes-vs-origin and
+   * survives a reload. The reconcile keeps every untouched
+   * line's tracker (and marker) in place and edits only genuinely changed lines, so
+   * the tracker's current positions stay mapped to the live document and an
+   * incremental edit from the change detector lands on the correct line.
+   *
+   * @param {string[]} origin - The resolved origin lines to diff the current state against
    */
-  resetMarkerBaseline() {
-    this.content.lines = [...this.content.state];
-    this.trackers.buildFromLines(this.content.lines);
+  seedTrackerFromOrigin(origin) {
+    const baseline = [...origin];
+    this.content.lines = baseline;
+    this.trackers.buildFromLines(baseline);
+    this.trackers.reconcile(baseline, this.content.state);
     this.updateChanges();
+  }
+  /**
+   * Re-seeds the change map when the resolved origin has slid off the current
+   * marker baseline, the live-session counterpart of the persist-restore
+   * seedTrackerFromOrigin. At keep=persist the marker baseline must always equal
+   * the resolved origin (the oldest retained version); a capture that evicts that
+   * version slides the origin forward, so the caller re-resolves it and hands the
+   * new origin in here.
+   *
+   * When the passed origin already equals the marker baseline nothing moved, so
+   * this is a no-op and returns false: a capture that leaves the oldest version
+   * untouched costs only a line compare and never churns the tracker. Otherwise it
+   * delegates to seedTrackerFromOrigin, which redefines the change map against the
+   * new origin while keeping the tracker aligned with the live document, and
+   * returns true. The snapshot stays settings-agnostic: the caller owns the
+   * keep-gate and the origin resolution and passes only the resolved lines.
+   *
+   * @param {string[]} origin - The freshly resolved origin lines
+   * @return {boolean} True when the baseline slid and the tracker was re-seeded
+   */
+  reseedIfOriginSlid(origin) {
+    const baseline = this.content.lines;
+    if (origin.length === baseline.length && origin.every((line, index) => line === baseline[index])) {
+      return false;
+    }
+    this.seedTrackerFromOrigin(origin);
+    return true;
   }
   /**
    * Updates the change map based on the current state of tracker lines.
@@ -26902,7 +26957,7 @@ var HistorySerializer = class {
         continue;
       }
       const restored = SnapshotCodec.decode(data, file);
-      restored.resetMarkerBaseline();
+      restored.seedTrackerFromOrigin(resolveOrigin(restored, "persist" /* persist */));
       this.registry.set(data.path, restored);
     }
     this.reconcileOpenFiles();
@@ -27792,6 +27847,25 @@ var SnapshotsService = class {
     this.externalCapture.schedule(file);
   }
   /**
+   * Re-seeds a snapshot's change map when a capture has slid its resolved origin.
+   * The single place the durability level meets the origin resolver: it is a no-op
+   * unless `keep === persist` (only the sliding-origin level moves; `file`/`app`
+   * measure against the fixed session marker baseline), then it resolves the
+   * current persist origin and asks the snapshot to re-seed only if that origin has
+   * actually moved off the marker baseline. Called by every live-session capture
+   * source after the state update, so a weeks-long `keep=persist` session keeps the
+   * one cached change map bounded by retention without waiting for a reload.
+   *
+   * @param {FileSnapshot} snapshot - The snapshot whose origin may have slid
+   * @return {boolean} True when the baseline slid and the change map was re-seeded
+   */
+  reseedOriginIfSlid(snapshot) {
+    if (this.settingsService.value("keep") !== "persist" /* persist */) {
+      return false;
+    }
+    return snapshot.reseedIfOriginSlid(resolveOrigin(snapshot, "persist" /* persist */));
+  }
+  /**
    * Removes a snapshot for a specific file.
    * If no file is provided, use the active file.
    * Forces an editor update and recaptures the file if it's the active file.
@@ -27970,6 +28044,7 @@ var SnapshotsService = class {
       isExternallyCapturable: (file) => this.isInAllowedExtensions(file) && !this.isExcludedPath(file) && !this.ignoreList.isIgnored(file),
       captureFirstSight: (file) => this.capture(file),
       getCaptureOptions: () => this.getCaptureOptions(),
+      reseedOriginIfSlid: (snapshot) => this.reseedOriginIfSlid(snapshot),
       forceUpdate: () => this.forceUpdate()
     };
   }
@@ -29472,17 +29547,14 @@ var VersionActionsService = class {
     if (!version) {
       return { applied: false };
     }
-    const baseLines = version.getLines();
-    const currentLines = snapshot.content.getLastStateLines();
-    if (baseLines.join(snapshot.content.lineBreak) === currentLines.join(snapshot.content.lineBreak)) {
-      return { applied: false };
-    }
-    await this.snapshotsService.applyContent(target2, baseLines, {
-      start: 0,
-      removeCount: currentLines.length,
-      newLines: baseLines
+    const applied = await restoreWholeVersion({
+      snapshotsService: this.snapshotsService,
+      file: target2,
+      baseLines: version.getLines(),
+      currentLines: snapshot.content.getLastStateLines(),
+      lineBreak: snapshot.content.lineBreak
     });
-    return { applied: true };
+    return { applied };
   }
   /**
    * Drops the given version from the snapshot's timeline, leaving the history
@@ -29536,6 +29608,7 @@ var VersionActionsService = class {
       trimmed
     );
     if (captured) {
+      this.snapshotsService.reseedOriginIfSlid(snapshot);
       this.snapshotsService.forceUpdate();
     }
     return captured;
@@ -29987,11 +30060,10 @@ function latestIsExternal(snapshot) {
   const versions = snapshot.timeline.getVersions();
   return versions.length > 0 && versions[0].isExternal();
 }
-function statusOf2(snapshot) {
+function statusOf2(snapshot, origin) {
   if (snapshot.isTombstone()) {
     return "deleted" /* deleted */;
   }
-  const origin = snapshot.content.getHistoryOriginalStateLines();
   const current = snapshot.content.getLastStateLines();
   if (snapshot.createdThisSession || isBlankContent(origin) && !isBlankContent(current)) {
     return "added" /* added */;
@@ -30001,7 +30073,7 @@ function statusOf2(snapshot) {
   }
   return "none" /* none */;
 }
-function collectEntries(snapshots, include) {
+function collectEntries(snapshots, resolveOrigin2, include) {
   var _a, _b;
   const entries = [];
   for (const snapshot of snapshots) {
@@ -30009,7 +30081,7 @@ function collectEntries(snapshots, include) {
     if (!path || include && !include(path)) {
       continue;
     }
-    const status = statusOf2(snapshot);
+    const status = statusOf2(snapshot, resolveOrigin2(snapshot));
     if (status === "none" /* none */) {
       continue;
     }
@@ -30218,8 +30290,10 @@ var VaultChangesView = class extends import_obsidian33.ItemView {
    */
   render() {
     const snapshots = this.snapshotsService();
+    const keep = this.settingsService().value("keep");
     const entries = collectEntries(
       snapshots.getList(),
+      (snapshot) => resolveOrigin(snapshot, keep),
       (path) => !snapshots.isPathExcluded(path)
     );
     this.tree.update({ entries, rootPath: "" });

@@ -1,8 +1,6 @@
 import { FolderDeltaStatus } from '@/consts';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 
-export { FolderDeltaStatus } from '@/consts';
-
 /**
  * Pure helper that maps a single snapshot to its CHANGE STATUS for the current
  * app session. It is the one place the native tree/tab decorator asks

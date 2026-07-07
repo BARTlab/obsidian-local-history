@@ -2,8 +2,6 @@ import { FolderTimelinePointKind } from '@/consts';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FolderTimelinePoint } from '@/types';
 
-export { FolderTimelinePointKind } from '@/consts';
-
 /**
  * Pure helper that synthesises a folder-level history timeline from the per-file
  * snapshots living under a folder root. The plugin never persists folder

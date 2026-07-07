@@ -255,53 +255,6 @@ describe('FileSnapshot marker/history baseline split', () => {
   });
 });
 
-describe('FileSnapshot.resetMarkerBaseline - eager session re-baseline at restore', () => {
-  it('clears a restored snapshot change count without touching the history baseline', () => {
-    const snapshot = new FileSnapshot('a\nb\nc');
-
-    snapshot.trackers.findCurrentLine(1)?.change('B');
-    snapshot.content.updateState(['a', 'B', 'c']);
-    snapshot.updateChanges();
-
-    const restored = SnapshotCodec.decode(SnapshotCodec.encode(snapshot));
-
-    // The restored snapshot still reports its full history diff before re-baseline.
-    expect(restored.content.getChangesLinesCount()).toBe(1);
-
-    restored.resetMarkerBaseline();
-
-    // After re-baseline the snapshot is session-clean: no marker-baseline diff,
-    // so the tree/tab decorator paints nothing for it on a fresh launch.
-    expect(restored.content.getChangesLinesCount()).toBe(0);
-    // The marker baseline now equals the current state.
-    expect(restored.content.getOriginalStateLines()).toEqual(['a', 'B', 'c']);
-    expect(restored.content.getLastStateLines()).toEqual(['a', 'B', 'c']);
-    // The HISTORY baseline (the persisted original) is untouched, so the modal
-    // still diffs against it.
-    expect(restored.content.getHistoryOriginalStateLines()).toEqual(['a', 'b', 'c']);
-  });
-
-  it('registers a subsequent session edit as a change after re-baseline', () => {
-    const snapshot = new FileSnapshot('a\nb\nc');
-
-    snapshot.trackers.findCurrentLine(1)?.change('B');
-    snapshot.content.updateState(['a', 'B', 'c']);
-    snapshot.updateChanges();
-
-    const restored = SnapshotCodec.decode(SnapshotCodec.encode(snapshot));
-
-    restored.resetMarkerBaseline();
-    expect(restored.content.getChangesLinesCount()).toBe(0);
-
-    // A genuine edit this session is measured against the re-baselined origin.
-    restored.trackers.findCurrentLine(0)?.change('A');
-    restored.content.updateState(['A', 'B', 'c']);
-    restored.updateChanges();
-
-    expect(restored.content.getChangesLinesCount()).toBe(1);
-  });
-});
-
 describe('FileSnapshot.seedTrackerFromOrigin - diff-seed the change map at the persist restore path', () => {
   it('makes the change map mean changes-vs-origin, equal to a direct diff of origin vs current', () => {
     const origin: string[] = ['a', 'b', 'c', 'd'];

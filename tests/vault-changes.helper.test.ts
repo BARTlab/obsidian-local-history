@@ -57,11 +57,10 @@ describe('VaultChangesHelper.statusOf', () => {
   });
 
   it('diffs against the supplied origin, not the marker baseline', () => {
-    // Models a restored file whose marker baseline was collapsed onto the
-    // current state (session view reads none). The panel must still see the
-    // divergence when the caller resolves an OLDER origin.
+    // A session-clean file: the marker baseline equals the current state, so the
+    // session view reads none. The panel must still see the divergence when the
+    // caller resolves an OLDER origin.
     const snapshot: FileSnapshot = makeClean();
-    snapshot.resetMarkerBaseline();
 
     expect(snapshot.content.getChangesLinesCount()).toBe(0);
     expect(VaultChangesHelper.statusOf(snapshot, ['different origin'])).toBe(FolderDeltaStatus.modified);
@@ -173,10 +172,9 @@ describe('VaultChangesHelper.collectEntries agrees with the resolved origin', ()
   });
 
   it('at keep=app shows the session-scoped set, hiding a session-clean restored file', () => {
-    // Marker baseline collapsed onto current (session-clean) but history diverges.
+    // Session-clean (marker baseline equals current) but the history baseline diverges.
     const restored: FileSnapshot = makeClean('restored.md');
     restored.adoptHistory(['different origin'], []);
-    restored.resetMarkerBaseline();
 
     const entries = VaultChangesHelper.collectEntries(
       [restored, makeModified('edited.md')],

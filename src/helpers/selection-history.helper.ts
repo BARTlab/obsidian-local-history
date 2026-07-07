@@ -1,5 +1,6 @@
 import * as HunkHelper from '@/helpers/hunk.helper';
 import type { HunkLineKind } from '@/helpers/hunk.helper';
+import * as TextHelper from '@/helpers/text.helper';
 import type { SelectableVersion } from '@/types';
 import * as Diff from 'diff';
 
@@ -85,8 +86,7 @@ export function match(versions: SelectableVersion[], baselineLines: string[], se
  * @return {string[]} The selection split into non-empty lines
  */
 function toSelectionLines(selection: string): string[] {
-  return selection
-    .split(/\r?\n/)
+  return TextHelper.splitLines(selection)
     .map((line: string): string => line.trim())
     .filter((line: string): boolean => line.length > 0);
 }

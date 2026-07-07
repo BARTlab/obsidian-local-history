@@ -181,7 +181,7 @@ export class FileSnapshot {
       return true;
     }
 
-    const incoming: string[] = content.split(/\r?\n/);
+    const incoming: string[] = TextHelper.splitLines(content);
     const current: string[] = this.content.state;
 
     if (incoming.length !== current.length) {

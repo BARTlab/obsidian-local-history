@@ -1,3 +1,4 @@
+import * as TextHelper from '@/helpers/text.helper';
 import type { ExternalChangeHost } from '@/snapshots/external-change-capture.types';
 import type { FileSnapshot } from '@/snapshots/file.snapshot';
 import type { FileVersion } from '@/snapshots/file.version';
@@ -198,7 +199,7 @@ export class ExternalChangeCapture {
     // Split on `/\r?\n/` so fresh disk content decomposes into the same lines the
     // tracker and editor hold; a mixed-ending file must not merge lines the change
     // model keeps separate, which would desync the per-line diff below.
-    const newLines: string[] = content.split(/\r?\n/);
+    const newLines: string[] = TextHelper.splitLines(content);
     const captured: FileVersion | null = snapshot.captureVersion(newLines, this.host.getCaptureOptions(), true);
 
     if (captured) {

@@ -1,4 +1,5 @@
 import { WordDiffLineType, WORD_DIFF_LENGTH_THRESHOLD, WORD_DIFF_PAIRING_THRESHOLD } from '@/consts';
+import * as TextHelper from '@/helpers/text.helper';
 import type { InlineDiffLine } from '@/types';
 import * as Diff from 'diff';
 
@@ -293,9 +294,10 @@ function wordOverlapRatio(a: string, b: string): number {
  * Splits a diff block value into its constituent lines. The diff library
  * appends a trailing newline to every block, which would otherwise yield a
  * spurious empty final line, so a single trailing newline is dropped before
- * splitting. The single line-ending normalization point for the diff surface
- *: split on `/\r?\n/` so CRLF content does not leave a stray `\r`
- * on every row.
+ * the shared {@link TextHelper.splitLines} decomposes the block. This is a
+ * diff-block adapter around that invariant, not a second copy of it: the empty
+ * guard and trailing-newline strip are specific to the diff library's blocks
+ * and must not leak into plain document decomposition.
  *
  * @param {string} value - The raw block value from the diff library
  * @return {string[]} The lines of the block
@@ -307,5 +309,5 @@ function splitLines(value: string): string[] {
 
   const normalized: string = value.replace(/\r?\n$/, '');
 
-  return normalized.split(/\r?\n/);
+  return TextHelper.splitLines(normalized);
 }

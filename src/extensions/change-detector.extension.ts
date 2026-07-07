@@ -1,5 +1,6 @@
 import { Inject } from '@/decorators/inject.decorator';
 import { isNestedEditor } from '@/helpers/nested-editor.helper';
+import * as TextHelper from '@/helpers/text.helper';
 import type { TrackerLine } from '@/lines/tracker.line';
 import type LineChangeTrackerPlugin from '@/main';
 import type { SettingsService } from '@/services/settings.service';
@@ -79,7 +80,7 @@ export class ChangeDetectorExtension implements EditorExtension {
      * trailing `\r` on every tracked line; `state.lineBreak` is a single
      * convention string that misses mixed or unexpected line endings.
      */
-    const currentLines: string[] = state.doc.toString().split(/\r?\n/);
+    const currentLines: string[] = TextHelper.splitLines(state.doc.toString());
     const snapshot: FileSnapshot | null = this.snapshotsService.getOne();
     const prev: Text = update.startState.doc;
 

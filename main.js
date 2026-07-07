@@ -23899,7 +23899,7 @@ var MainSetting = class extends import_obsidian26.PluginSettingTab {
       setting.setName(this.plugin.t("setting.purge-excluded.name")).setDesc(this.plugin.t("setting.purge-excluded.desc")).addButton((button) => {
         this.purgeButton = button;
         this.updatePurgeButtonState();
-        return button.setButtonText(this.plugin.t("setting.purge-excluded.name")).setDestructive().onClick(async () => {
+        return button.setButtonText(this.plugin.t("setting.purge-excluded.name")).setDestructive().setCta().onClick(async () => {
           const confirmed = await this.modalsService.confirm({
             title: this.plugin.t("setting.purge-excluded.name"),
             message: this.plugin.t("setting.purge-excluded.desc"),

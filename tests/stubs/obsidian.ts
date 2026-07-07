@@ -334,15 +334,60 @@ export class DropdownComponent {
 }
 
 /**
- * Stand-in for Obsidian's `Setting` builder. The naming/description setters and
- * the inert `addText` return `this` so builder chains do not throw; the
- * `addToggle`/`addDropdown`/`addSlider`/`addButton` builders fire their callback
- * with an inert component double so the tab's row bodies actually run (the purge
- * button, for one, is only assigned inside its `addButton` callback).
+ * Stand-in for Obsidian's `TextComponent`, fired by {@link Setting.addText}. It
+ * mounts a real `<input>` so the tab's `constrainNumberInput` /
+ * `constrainGutterCharInput` helpers can set native attributes on it and tag it
+ * through the shared jsdom `addClass` polyfill, and records the `onChange`
+ * handler so a suite can drive a row edit and assert the value the tab routes to
+ * the settings service (for example through `toCount`). Every constructed
+ * component is recorded on the static `instances` registry - the same capture
+ * pattern the {@link Menu} and {@link SettingGroup} doubles use - so a suite can
+ * read back the rows the tab built and assert their input constraints.
+ */
+export class TextComponent {
+  public static instances: TextComponent[] = [];
+
+  public inputEl: HTMLInputElement;
+  public changeHandler?: (value: string) => unknown;
+
+  public constructor() {
+    this.inputEl = document.createElement('input');
+    this.inputEl.type = 'text';
+
+    TextComponent.instances.push(this);
+  }
+
+  public setPlaceholder(placeholder: string): this {
+    this.inputEl.placeholder = placeholder;
+
+    return this;
+  }
+
+  public setValue(value: string): this {
+    this.inputEl.value = value;
+
+    return this;
+  }
+
+  public onChange(handler: (value: string) => unknown): this {
+    this.changeHandler = handler;
+
+    return this;
+  }
+}
+
+/**
+ * Stand-in for Obsidian's `Setting` builder. The naming/description setters
+ * return `this` so builder chains do not throw; the
+ * `addText`/`addToggle`/`addDropdown`/`addSlider`/`addButton` builders fire their
+ * callback with a component double so the tab's row bodies actually run (the
+ * purge button, for one, is only assigned inside its `addButton` callback).
  *
- * `addText` stays inert on purpose: firing it would run the tab's numeric/gutter
- * input constraints, which reach into a real `inputEl` (and its `addClass`
- * augmentation) that none of the behaviors under test need mounted.
+ * `addText` fires a {@link TextComponent} carrying a real `inputEl`, so the
+ * tab's numeric/gutter input constraints run against a live input (its
+ * `addClass` augmentation resolves through the shared jsdom polyfill) and a
+ * suite can assert the resulting `type`/`maxLength`/width-class constraints and
+ * the `toCount` parsing the change handler routes to the settings service.
  */
 export class Setting {
   public setName(_name?: unknown): this {
@@ -357,7 +402,9 @@ export class Setting {
     return this;
   }
 
-  public addText(_cb?: unknown): this {
+  public addText(cb: (text: TextComponent) => unknown): this {
+    cb(new TextComponent());
+
     return this;
   }
 

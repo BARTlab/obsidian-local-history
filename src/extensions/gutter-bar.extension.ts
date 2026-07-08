@@ -1,6 +1,7 @@
 import { GutterHoverPanel } from '@/components/gutter-hover-panel';
 import { resolveHoverPanelContent } from '@/components/gutter-hover-panel-content';
 import type {
+  GutterHoverLineInput,
   GutterHoverPanelActionLabels,
   GutterHoverPanelContent,
   GutterHoverPanelHost,
@@ -11,6 +12,7 @@ import { Inject } from '@/decorators/inject.decorator';
 import { confirmAndRevertHunk } from '@/helpers/hunk-revert.helper';
 import { isNestedEditor } from '@/helpers/nested-editor.helper';
 import type { ChangeLine } from '@/lines/change.line';
+import type { TrackerLine } from '@/lines/tracker.line';
 import type LineChangeTrackerPlugin from '@/main';
 import type { ArrayMap } from '@/maps/array.map';
 import { BarMarker } from '@/markers/bar.marker';
@@ -231,9 +233,11 @@ export class GutterBarExtension implements GutterConfig {
 
   /**
    * Resolves the hovered line against the current snapshot into the panel's
-   * display model plus the block its actions operate on, or null when no
-   * snapshot or no change block covers the line. The diff is computed against the
-   * live snapshot content, the same inputs the gutter reverts diff against.
+   * display model plus the line-scoped hunk its actions operate on, or null when
+   * no snapshot or no change covers the line. The content is sourced from the
+   * tracker (the same per-line model the markers are drawn from), so the panel
+   * always shows the hovered line's own previous version; a fresh base-vs-state
+   * line diff is a second model whose LCS alignment drifts off the markers.
    *
    * @param {number} line - The 0-based hovered line
    * @return {GutterHoverPanelResolution | null} The resolution, or null
@@ -245,19 +249,83 @@ export class GutterBarExtension implements GutterConfig {
       return null;
     }
 
-    return resolveHoverPanelContent(
-      snapshot.content.getOriginalStateLines(),
-      snapshot.content.getLastStateLines(),
-      snapshot.content.lineBreak,
-      line,
-    );
+    const input: GutterHoverLineInput | null = this.hoverLineInput(snapshot, line);
+
+    return input === null ? null : resolveHoverPanelContent(input, snapshot.content.lineBreak);
   }
 
   /**
-   * Reverts the hovered change block back to the base through the shared
+   * Assembles the tracker-sourced facts for a hovered line: the marker kind off
+   * the change map (positive kind wins over removed, mirroring {@link markers}),
+   * the line's current and baseline texts off its tracker, and, for a removed
+   * dash, the deleted baseline lines from the anchors sitting at the line.
+   *
+   * A removed anchor is clamped onto the last real line when the deleted block
+   * touched the file's end, so only a last-line anchor is ambiguous about which
+   * side of the line the gap is on; there the baseline order of the anchor
+   * against the line's own tracker decides (`removedAfter`).
+   *
+   * @param {FileSnapshot} snapshot - The active snapshot
+   * @param {number} line - The 0-based hovered line
+   * @return {GutterHoverLineInput | null} The resolver input, or null when no
+   *   enabled change sits at the line
+   */
+  protected hoverLineInput(snapshot: FileSnapshot, line: number): GutterHoverLineInput | null {
+    const enable: ChangeType[] = this.settingsService.getEnabledTypes();
+    const change: ChangeLine | undefined = snapshot.content.getChanges(enable).get(line);
+
+    if (!change) {
+      return null;
+    }
+
+    const modify: ChangeType | null = change.getModify();
+    const kind: ChangeType | null = modify ?? (change.has(ChangeType.removed) ? ChangeType.removed : null);
+
+    if (kind === null || kind === ChangeType.restored) {
+      return null;
+    }
+
+    const currentLines: string[] = snapshot.content.getLastStateLines();
+    const tracker: TrackerLine | null = snapshot.trackers.findCurrentLine(line);
+
+    if (kind === ChangeType.removed) {
+      const anchors: TrackerLine[] = snapshot.trackers.getTrackerLines()
+        .filter((item: TrackerLine): boolean => item.isStateRemovedAt(line))
+        .sort((a: TrackerLine, b: TrackerLine): number => a.originalPosition - b.originalPosition);
+
+      if (anchors.length === 0) {
+        return null;
+      }
+
+      const removedAfter: boolean = line === currentLines.length - 1 &&
+        tracker?.existedInOriginal === true &&
+        anchors[0].originalPosition > tracker.originalPosition;
+
+      return {
+        line,
+        kind,
+        current: currentLines[line] ?? '',
+        original: null,
+        removedOriginals: anchors.map((item: TrackerLine): string => item.original ?? ''),
+        removedAfter,
+      };
+    }
+
+    return {
+      line,
+      kind,
+      current: tracker?.current ?? currentLines[line] ?? '',
+      original: tracker?.original ?? null,
+      removedOriginals: [],
+      removedAfter: false,
+    };
+  }
+
+  /**
+   * Reverts the hovered line's change back to the base through the shared
    * confirm-and-revert helper the dot and removed gutters also use, resolving the
-   * hunk fresh against the live content so it is never stale. A missing snapshot
-   * or unresolved block is a safe no-op.
+   * line-scoped hunk fresh against the live content so it is never stale. A
+   * missing snapshot or unresolved line is a safe no-op.
    *
    * @param {number} line - The 0-based hovered line
    * @return {Promise<void>}
@@ -269,13 +337,7 @@ export class GutterBarExtension implements GutterConfig {
       return;
     }
 
-    const currentLines: string[] = snapshot.content.getLastStateLines();
-    const resolution: GutterHoverPanelResolution | null = resolveHoverPanelContent(
-      snapshot.content.getOriginalStateLines(),
-      currentLines,
-      snapshot.content.lineBreak,
-      line,
-    );
+    const resolution: GutterHoverPanelResolution | null = this.resolveHover(line);
 
     if (!resolution) {
       return;
@@ -286,7 +348,7 @@ export class GutterBarExtension implements GutterConfig {
       snapshotsService: this.snapshotsService,
       plugin: this.plugin,
       file: snapshot.file,
-      currentLines,
+      currentLines: snapshot.content.getLastStateLines(),
       hunk: resolution.hunk,
       cancelText: this.plugin.t('modal.confirm.cancel'),
     });

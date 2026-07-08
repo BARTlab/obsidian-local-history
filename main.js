@@ -5047,75 +5047,6 @@ function splitLines2(text) {
   return result;
 }
 
-// src/helpers/hunk.helper.ts
-function terminate(lines2, lineBreak) {
-  const list = lines2 != null ? lines2 : [];
-  return list.length ? list.join(lineBreak) + lineBreak : "";
-}
-function diff(baseLines, currentLines, lineBreak = "\n") {
-  const base = terminate(baseLines, lineBreak);
-  const current = terminate(currentLines, lineBreak);
-  if (base === current) {
-    return [];
-  }
-  return structuredPatch("", "", base, current, "", "", { context: 0 }).hunks;
-}
-function baseLinesForHunk(hunk) {
-  var _a;
-  return ((_a = hunk == null ? void 0 : hunk.lines) != null ? _a : []).filter((line) => line !== NO_NEWLINE_MARKER && (line[0] === " " || line[0] === "-")).map((line) => line.slice(1));
-}
-function hunkAtLine(hunks, line) {
-  var _a;
-  if (!Array.isArray(hunks)) {
-    return null;
-  }
-  return (_a = hunks.find((hunk) => {
-    if (!hunk || hunk.newLines <= 0) {
-      return false;
-    }
-    const start = hunk.newStart - 1;
-    return line >= start && line < start + hunk.newLines;
-  })) != null ? _a : null;
-}
-function deletionHunkAt(hunks, line, currentLength) {
-  var _a;
-  if (!Array.isArray(hunks)) {
-    return null;
-  }
-  const insertionPoint = line + 1;
-  const eofInsertionPoint = currentLength + 1;
-  const isLastLine = line === currentLength - 1;
-  return (_a = hunks.find(
-    (hunk) => hunk.newLines === 0 && (hunk.newStart === insertionPoint || isLastLine && hunk.newStart === eofInsertionPoint)
-  )) != null ? _a : null;
-}
-function revertHunk(currentLines, hunk) {
-  const lines2 = [...currentLines != null ? currentLines : []];
-  if (!hunk) {
-    return lines2;
-  }
-  const start = Math.max(0, Math.min(lines2.length, hunk.newStart - 1));
-  lines2.splice(start, Math.max(0, hunk.newLines), ...baseLinesForHunk(hunk));
-  return lines2;
-}
-function revertDescriptor(currentLines, hunk) {
-  const start = Math.max(0, Math.min((currentLines != null ? currentLines : []).length, hunk.newStart - 1));
-  return {
-    start,
-    removeCount: hunk.newLines,
-    newLines: baseLinesForHunk(hunk)
-  };
-}
-function classifyLine(line) {
-  if (line.startsWith("+")) {
-    return "added";
-  }
-  if (line.startsWith("-")) {
-    return "removed";
-  }
-  return "context";
-}
-
 // src/helpers/word-diff.helper.ts
 function segments(oldText, newText) {
   const old = oldText != null ? oldText : "";
@@ -5258,34 +5189,153 @@ function splitLines3(value) {
 }
 
 // src/components/gutter-hover-panel-content.ts
-function resolveHoverPanelContent(baseLines, currentLines, lineBreak, line) {
-  var _a;
-  const hunks = diff(baseLines, currentLines, lineBreak);
-  const hunk = (_a = hunkAtLine(hunks, line)) != null ? _a : deletionHunkAt(hunks, line, currentLines.length);
-  if (!hunk) {
+function resolveHoverPanelContent(input, lineBreak) {
+  if (input.kind === "removed" /* removed */) {
+    return resolveRemoved(input, lineBreak);
+  }
+  if (input.kind === "added" /* added */) {
+    return resolveAdded(input);
+  }
+  if ((input.kind === "changed" /* changed */ || input.kind === "whitespace" /* whitespace */) && input.original !== null) {
+    return resolveChanged(input);
+  }
+  return null;
+}
+function resolveChanged(input) {
+  const original = input.original;
+  const hunk = {
+    oldStart: input.line + 1,
+    oldLines: 1,
+    newStart: input.line + 1,
+    newLines: 1,
+    lines: [`-${original}`, `+${input.current}`]
+  };
+  return {
+    content: {
+      kind: "changed" /* changed */,
+      lines: [segments(original, input.current).map(toSegment)],
+      blank: !hasVisibleText([original, input.current])
+    },
+    hunk,
+    baseText: original
+  };
+}
+function resolveAdded(input) {
+  const hunk = {
+    oldStart: input.line + 1,
+    oldLines: 0,
+    newStart: input.line + 1,
+    newLines: 1,
+    lines: [`+${input.current}`]
+  };
+  return {
+    content: {
+      kind: "added" /* added */,
+      lines: [segments("", input.current).map(toSegment)],
+      blank: !hasVisibleText([input.current])
+    },
+    hunk,
+    baseText: ""
+  };
+}
+function resolveRemoved(input, lineBreak) {
+  if (input.removedOriginals.length === 0) {
     return null;
   }
-  const baseBlock = baseLinesForHunk(hunk);
-  const currentBlock = currentLinesForHunk(hunk);
-  const kind = baseBlock.length === 0 ? "added" /* added */ : currentBlock.length === 0 ? "removed" /* removed */ : "changed" /* changed */;
-  const lines2 = lines(baseBlock.join(lineBreak), currentBlock.join(lineBreak)).map(
-    (row) => {
-      var _a2, _b;
-      return segments((_a2 = row.oldText) != null ? _a2 : "", (_b = row.newText) != null ? _b : "").map(toSegment);
-    }
-  );
-  const blank = !hasVisibleText(baseBlock) && !hasVisibleText(currentBlock);
-  return { content: { kind, lines: lines2, blank }, hunk, baseText: baseBlock.join(lineBreak) };
-}
-function currentLinesForHunk(hunk) {
-  var _a;
-  return ((_a = hunk == null ? void 0 : hunk.lines) != null ? _a : []).filter((line) => line !== NO_NEWLINE_MARKER && (line[0] === " " || line[0] === "+")).map((line) => line.slice(1));
+  const newStart = input.line + 1 + (input.removedAfter ? 1 : 0);
+  const hunk = {
+    oldStart: newStart,
+    oldLines: input.removedOriginals.length,
+    newStart,
+    newLines: 0,
+    lines: input.removedOriginals.map((line) => `-${line}`)
+  };
+  return {
+    content: {
+      kind: "removed" /* removed */,
+      lines: input.removedOriginals.map(
+        (line) => segments(line, "").map(toSegment)
+      ),
+      blank: !hasVisibleText(input.removedOriginals)
+    },
+    hunk,
+    baseText: input.removedOriginals.join(lineBreak)
+  };
 }
 function hasVisibleText(lines2) {
   return lines2.some((line) => line.trim().length > 0);
 }
 function toSegment(change) {
   return { text: change.value, added: change.added === true, removed: change.removed === true };
+}
+
+// src/helpers/hunk.helper.ts
+function terminate(lines2, lineBreak) {
+  const list = lines2 != null ? lines2 : [];
+  return list.length ? list.join(lineBreak) + lineBreak : "";
+}
+function diff(baseLines, currentLines, lineBreak = "\n") {
+  const base = terminate(baseLines, lineBreak);
+  const current = terminate(currentLines, lineBreak);
+  if (base === current) {
+    return [];
+  }
+  return structuredPatch("", "", base, current, "", "", { context: 0 }).hunks;
+}
+function baseLinesForHunk(hunk) {
+  var _a;
+  return ((_a = hunk == null ? void 0 : hunk.lines) != null ? _a : []).filter((line) => line !== NO_NEWLINE_MARKER && (line[0] === " " || line[0] === "-")).map((line) => line.slice(1));
+}
+function hunkAtLine(hunks, line) {
+  var _a;
+  if (!Array.isArray(hunks)) {
+    return null;
+  }
+  return (_a = hunks.find((hunk) => {
+    if (!hunk || hunk.newLines <= 0) {
+      return false;
+    }
+    const start = hunk.newStart - 1;
+    return line >= start && line < start + hunk.newLines;
+  })) != null ? _a : null;
+}
+function deletionHunkAt(hunks, line, currentLength) {
+  var _a;
+  if (!Array.isArray(hunks)) {
+    return null;
+  }
+  const insertionPoint = line + 1;
+  const eofInsertionPoint = currentLength + 1;
+  const isLastLine = line === currentLength - 1;
+  return (_a = hunks.find(
+    (hunk) => hunk.newLines === 0 && (hunk.newStart === insertionPoint || isLastLine && hunk.newStart === eofInsertionPoint)
+  )) != null ? _a : null;
+}
+function revertHunk(currentLines, hunk) {
+  const lines2 = [...currentLines != null ? currentLines : []];
+  if (!hunk) {
+    return lines2;
+  }
+  const start = Math.max(0, Math.min(lines2.length, hunk.newStart - 1));
+  lines2.splice(start, Math.max(0, hunk.newLines), ...baseLinesForHunk(hunk));
+  return lines2;
+}
+function revertDescriptor(currentLines, hunk) {
+  const start = Math.max(0, Math.min((currentLines != null ? currentLines : []).length, hunk.newStart - 1));
+  return {
+    start,
+    removeCount: hunk.newLines,
+    newLines: baseLinesForHunk(hunk)
+  };
+}
+function classifyLine(line) {
+  if (line.startsWith("+")) {
+    return "added";
+  }
+  if (line.startsWith("-")) {
+    return "removed";
+  }
+  return "context";
 }
 
 // src/helpers/hunk-revert.helper.ts
@@ -5503,9 +5553,11 @@ var GutterBarExtension = class {
   }
   /**
    * Resolves the hovered line against the current snapshot into the panel's
-   * display model plus the block its actions operate on, or null when no
-   * snapshot or no change block covers the line. The diff is computed against the
-   * live snapshot content, the same inputs the gutter reverts diff against.
+   * display model plus the line-scoped hunk its actions operate on, or null when
+   * no snapshot or no change covers the line. The content is sourced from the
+   * tracker (the same per-line model the markers are drawn from), so the panel
+   * always shows the hovered line's own previous version; a fresh base-vs-state
+   * line diff is a second model whose LCS alignment drifts off the markers.
    *
    * @param {number} line - The 0-based hovered line
    * @return {GutterHoverPanelResolution | null} The resolution, or null
@@ -5515,18 +5567,71 @@ var GutterBarExtension = class {
     if (!(snapshot == null ? void 0 : snapshot.file)) {
       return null;
     }
-    return resolveHoverPanelContent(
-      snapshot.content.getOriginalStateLines(),
-      snapshot.content.getLastStateLines(),
-      snapshot.content.lineBreak,
-      line
-    );
+    const input = this.hoverLineInput(snapshot, line);
+    return input === null ? null : resolveHoverPanelContent(input, snapshot.content.lineBreak);
   }
   /**
-   * Reverts the hovered change block back to the base through the shared
+   * Assembles the tracker-sourced facts for a hovered line: the marker kind off
+   * the change map (positive kind wins over removed, mirroring {@link markers}),
+   * the line's current and baseline texts off its tracker, and, for a removed
+   * dash, the deleted baseline lines from the anchors sitting at the line.
+   *
+   * A removed anchor is clamped onto the last real line when the deleted block
+   * touched the file's end, so only a last-line anchor is ambiguous about which
+   * side of the line the gap is on; there the baseline order of the anchor
+   * against the line's own tracker decides (`removedAfter`).
+   *
+   * @param {FileSnapshot} snapshot - The active snapshot
+   * @param {number} line - The 0-based hovered line
+   * @return {GutterHoverLineInput | null} The resolver input, or null when no
+   *   enabled change sits at the line
+   */
+  hoverLineInput(snapshot, line) {
+    var _a, _b, _c, _d;
+    const enable = this.settingsService.getEnabledTypes();
+    const change = snapshot.content.getChanges(enable).get(line);
+    if (!change) {
+      return null;
+    }
+    const modify = change.getModify();
+    const kind = modify != null ? modify : change.has("removed" /* removed */) ? "removed" /* removed */ : null;
+    if (kind === null || kind === "restored" /* restored */) {
+      return null;
+    }
+    const currentLines = snapshot.content.getLastStateLines();
+    const tracker = snapshot.trackers.findCurrentLine(line);
+    if (kind === "removed" /* removed */) {
+      const anchors = snapshot.trackers.getTrackerLines().filter((item) => item.isStateRemovedAt(line)).sort((a, b) => a.originalPosition - b.originalPosition);
+      if (anchors.length === 0) {
+        return null;
+      }
+      const removedAfter = line === currentLines.length - 1 && (tracker == null ? void 0 : tracker.existedInOriginal) === true && anchors[0].originalPosition > tracker.originalPosition;
+      return {
+        line,
+        kind,
+        current: (_a = currentLines[line]) != null ? _a : "",
+        original: null,
+        removedOriginals: anchors.map((item) => {
+          var _a2;
+          return (_a2 = item.original) != null ? _a2 : "";
+        }),
+        removedAfter
+      };
+    }
+    return {
+      line,
+      kind,
+      current: (_c = (_b = tracker == null ? void 0 : tracker.current) != null ? _b : currentLines[line]) != null ? _c : "",
+      original: (_d = tracker == null ? void 0 : tracker.original) != null ? _d : null,
+      removedOriginals: [],
+      removedAfter: false
+    };
+  }
+  /**
+   * Reverts the hovered line's change back to the base through the shared
    * confirm-and-revert helper the dot and removed gutters also use, resolving the
-   * hunk fresh against the live content so it is never stale. A missing snapshot
-   * or unresolved block is a safe no-op.
+   * line-scoped hunk fresh against the live content so it is never stale. A
+   * missing snapshot or unresolved line is a safe no-op.
    *
    * @param {number} line - The 0-based hovered line
    * @return {Promise<void>}
@@ -5536,13 +5641,7 @@ var GutterBarExtension = class {
     if (!(snapshot == null ? void 0 : snapshot.file)) {
       return;
     }
-    const currentLines = snapshot.content.getLastStateLines();
-    const resolution = resolveHoverPanelContent(
-      snapshot.content.getOriginalStateLines(),
-      currentLines,
-      snapshot.content.lineBreak,
-      line
-    );
+    const resolution = this.resolveHover(line);
     if (!resolution) {
       return;
     }
@@ -5551,7 +5650,7 @@ var GutterBarExtension = class {
       snapshotsService: this.snapshotsService,
       plugin: this.plugin,
       file: snapshot.file,
-      currentLines,
+      currentLines: snapshot.content.getLastStateLines(),
       hunk: resolution.hunk,
       cancelText: this.plugin.t("modal.confirm.cancel")
     });

@@ -215,7 +215,7 @@ export class I18nService implements Service {
    * falling back to English when the active language lacks the key, and
    * interpolating any `{name}` placeholders from the supplied vars.
    *
-   * @param {string} key - The dotted translation key (e.g. `modal.restore`)
+   * @param {string} key - The dotted translation key (e.g. `modal.restore-original`)
    * @param {TranslationVars} [vars] - Values for `{name}` placeholders
    * @return {string} The localized, interpolated string
    */

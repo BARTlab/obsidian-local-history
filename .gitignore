@@ -104,3 +104,7 @@ history/
 
 # tool session droppings
 .atk_audit_session.jsonl
+
+# build output: shipped as GitHub release assets, not tracked in the repo
+main.js
+styles.css

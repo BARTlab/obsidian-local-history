@@ -2,6 +2,8 @@
 import { describe, expect, it } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
+import { PLACEHOLDER_PATTERN } from '@/consts';
+import { BUNDLED_CATALOGS } from '@/helpers/i18n.helper';
 
 /**
  * Guards the shipped translation catalogs. Every language must expose the
@@ -14,6 +16,15 @@ import * as path from 'path';
  * that must be genuinely localized, not left byte-equal to the English source.
  * Key parity alone does not catch this: a value equal to en is a valid fallback,
  * so late-added surfaces can ship in English across most catalogs unnoticed.
+ *
+ * Two more guards close the gaps data parity alone leaves open:
+ * - BUNDLED_CATALOGS must register exactly the lang/*.json files. The runtime
+ *   bundle is built from static imports in i18n.helper.ts, so a catalog dropped
+ *   into lang/ but not imported would pass every on-disk check and silently
+ *   miss the shipped plugin.
+ * - Every translation must keep the exact placeholder set of its English
+ *   source (per PLACEHOLDER_PATTERN, the same regexp interpolation uses), or
+ *   the substituted value silently disappears from that language's UI.
  *
  * Catalogs are discovered automatically via fs.readdirSync so any new lang/*.json
  * file is included without a manual test edit.
@@ -61,9 +72,26 @@ const FEATURE_KEYS: string[] = [
   'view.vault-changes.deleted-notice',
 ];
 
+/**
+ * The `{name}` placeholder tokens of a catalog string, sorted so two strings
+ * compare by set regardless of token order.
+ *
+ * @param {string} value - The catalog string to scan
+ * @return {string[]} The sorted placeholder tokens, e.g. ['{count}', '{name}']
+ */
+const placeholders = (value: string): string[] =>
+  [...value.matchAll(PLACEHOLDER_PATTERN)].map((m: RegExpMatchArray): string => m[0]).sort();
+
 describe('translation catalogs', () => {
   it('en has at least one key', () => {
     expect(Object.keys(en_catalog).length).toBeGreaterThan(0);
+  });
+
+  it('registers exactly the lang/*.json files in BUNDLED_CATALOGS', () => {
+    const onDisk: string[] = allFiles.map((f: string): string => f.replace(/\.json$/, '')).sort();
+    const bundled: string[] = Object.keys(BUNDLED_CATALOGS).sort();
+
+    expect(bundled).toEqual(onDisk);
   });
 
   it('en has no empty values', () => {
@@ -89,6 +117,16 @@ describe('translation catalogs', () => {
           .map(([key]: [string, string]): string => key);
 
         expect(empty).toEqual([]);
+      });
+
+      it('keeps the placeholder set of every English string', () => {
+        const drifted: string[] = Object.keys(en_catalog)
+          .filter((key: string): boolean =>
+            placeholders(en_catalog[key]).join(',') !== placeholders(catalog[key] ?? '').join(','))
+          .map((key: string): string =>
+            `${key}: en has [${placeholders(en_catalog[key])}], ${language} has [${placeholders(catalog[key] ?? '')}]`);
+
+        expect(drifted).toEqual([]);
       });
 
       if (language !== 'en-GB') {

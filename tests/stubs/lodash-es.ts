@@ -1,26 +1,15 @@
 /**
- * Stand-in for the handful of lodash-es predicates the engine imports. The
+ * Stand-in for the handful of lodash-es functions the engine imports. The
  * bare `lodash-es` specifier is routed here via the vitest resolve alias so the
- * real FileSnapshot, TrackerLine and ArrayMap load under test against a small,
- * deterministic implementation rather than the full lodash-es dependency chain.
+ * real SettingsService (`get`/`merge`/`set`) and DomHelper
+ * (`castArray`/`isPlainObject`) load under test against a small, deterministic
+ * implementation rather than the full lodash-es dependency chain.
  * The implementations match lodash semantics for the values used in this code.
  */
-export const isArray = (value: unknown): value is unknown[] => Array.isArray(value);
-
-export const isNumber = (value: unknown): value is number => typeof value === 'number';
-
-export const isString = (value: unknown): value is string => typeof value === 'string';
-
-export const isFunction = (value: unknown): boolean => typeof value === 'function';
-
-export const isUndefined = (value: unknown): value is undefined => value === undefined;
-
 export const isPlainObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
 export const castArray = <T>(value: T | T[]): T[] => (Array.isArray(value) ? value : [value]);
-
-export const entries = <T>(value: Record<string, T>): [string, T][] => Object.entries(value);
 
 export const get = (object: unknown, path: string): unknown => {
   let current: unknown = object;

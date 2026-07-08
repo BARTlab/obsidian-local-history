@@ -121,10 +121,15 @@ describe('ExternalBadgeHelper', () => {
 
     it('is a no-op when the container has no badge elements', () => {
       const container: HTMLDivElement = document.createElement('div');
-      container.appendChild(document.createElement('span'));
+      const stray: HTMLSpanElement = document.createElement('span');
 
-      // Must not throw.
-      expect(() => ExternalBadgeHelper.paint(container)).not.toThrow();
+      container.appendChild(stray);
+
+      ExternalBadgeHelper.paint(container);
+
+      // The stray span is not a badge icon slot, so it stays untouched.
+      expect(stray.dataset.icon).toBeUndefined();
+      expect(container.innerHTML).toBe('<span></span>');
     });
 
     it('skips a badge whose data-icon attribute is missing', () => {
@@ -154,8 +159,10 @@ describe('ExternalBadgeHelper', () => {
       // Intentionally no icon slot child.
       container.appendChild(badge);
 
-      // Must not throw.
-      expect(() => ExternalBadgeHelper.paint(container)).not.toThrow();
+      ExternalBadgeHelper.paint(container);
+
+      // With no slot to stamp, the badge gains no children.
+      expect(badge.childElementCount).toBe(0);
     });
   });
 });

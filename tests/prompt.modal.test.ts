@@ -39,7 +39,7 @@ describe('PromptModal', () => {
 
   const inertApp: App = {} as App;
 
-  it('resolves to the entered text on confirm', async () => {
+  it('resolves to the result the confirm path captured before close', async () => {
     const modal: TestablePromptModal = new TestablePromptModal(inertApp, {
       title: 'Enter label',
       placeholder: 'label',

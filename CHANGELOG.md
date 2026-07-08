@@ -31,7 +31,7 @@ First public release to the Obsidian community plugin directory. Since the last 
 - **Context submenu** on the editor, files, and folders (Show History, Show History for Selection, Put label, Recent changes, Vault changes).
 - **Gutter context toggle.** Right-click the editor gutter to show or hide all change indicators.
 - **Change navigation commands.** Go to next change and go to previous change.
-- **Path exclusion.** A case-insensitive regular expression excludes files from tracking (defaults to Templates folders and Excalidraw drawings).
+- **Path exclusion.** A list of regular-expression path patterns excludes files from tracking, matched case-insensitively unless the case-sensitivity toggle is on. The list is empty by default; the settings screen suggests Templates folders and Excalidraw drawings as examples.
 - **Localization** following Obsidian's UI language, with bundled catalogs and an English fallback for every supported language code.
 - **Retention controls.** Independent caps for live-file history (count and age), deleted-file tombstones (count and age), and per-file timeline versions (count and age). Any cap can be set to 0 to disable it.
 - **Keep history until.** One ordered setting controls how long tracked history is kept: until the file is closed, until Obsidian is closed, or kept across restarts (the default). At the kept-across-restarts level the highlighted change set is bounded by your retention caps (a sliding origin), so a file whose changes all predate the retention window drops from the vault changes panel and the file tree together, while its full history stays browsable in the history modal. Every change surface (file tree, tab headers, editor gutter, and vault changes panel) shows that same set and stays consistent across a restart.
@@ -80,6 +80,7 @@ First public release to the Obsidian community plugin directory. Since the last 
 - **Batched multi-edit actions.** Making several edits in a single action (for example inserting a line at the top of a note while deleting other lines lower down, or an undo that replays several changes at once) no longer records the wrong lines as removed or marks an untouched line as changed. Each edit in the batch is now mapped against the line positions the earlier edits in the same batch already shifted.
 - **Mixed CRLF/LF baselines.** A note that mixes Windows (CRLF) and Unix (LF) line endings no longer loses change tracking on some lines. The baseline is now split into lines the same way the editor sees them, so an edited line stays tracked and an untouched line is never marked as changed by mistake.
 - Various change-tracking correctness fixes for added, removed, and restored line detection.
+
 ## [1.0.1] - 2025-07-24
 
 ### Changed

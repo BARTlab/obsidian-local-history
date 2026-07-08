@@ -273,6 +273,9 @@ describe('PropertyDecoratorService - idempotency', () => {
     service.callDecorate(editor, rows, changes, keyOrder);
     service.callDecorate(editor, rows, changes, keyOrder);
 
+    // Countable form: exactly the one modified row carries the class, and the
+    // second pass added it nowhere else.
+    expect(editor.querySelectorAll('.lct-prop-modified')).toHaveLength(1);
     expect(rows[0].classList.contains('lct-prop-modified')).toBe(true);
   });
 

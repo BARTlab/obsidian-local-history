@@ -4,7 +4,12 @@ import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from 'vite
 import { GutterHoverPanel } from '@/components/gutter-hover-panel';
 import { resolveHoverPanelContent } from '@/components/gutter-hover-panel-content';
 import { GutterHoverPanelContentKind, GutterHoverPanelState } from '@/components/gutter-hover-panel.types';
-import type { GutterHoverPanelContent, GutterHoverPanelHost } from '@/components/gutter-hover-panel.types';
+import type {
+  GutterHoverLineInput,
+  GutterHoverPanelContent,
+  GutterHoverPanelHost,
+} from '@/components/gutter-hover-panel.types';
+import { ChangeType } from '@/consts';
 import * as HunkHelper from '@/helpers/hunk.helper';
 import type * as Diff from 'diff';
 
@@ -594,34 +599,48 @@ describe('GutterHoverPanel', () => {
 
 /**
  * Tests for {@link resolveHoverPanelContent}, the pure resolver the gutter host
- * builds the panel from. It maps a hovered line to the display model and the
- * block the actions operate on, so these assert the three marker states, that
- * the revert hunk matches what the gutter revert resolves at that line, and that
- * the copy payload is the hunk's base-side text. Pure, so it runs without jsdom.
+ * builds the panel from. It maps the tracker-sourced facts of one hovered line
+ * to the display model and the line-scoped hunk the actions operate on, so
+ * these assert the three marker states, that reverting the synthesized hunk
+ * writes back exactly the shown previous version, and that the copy payload is
+ * the base-side text. Pure, so it runs without jsdom.
  */
 describe('resolveHoverPanelContent', () => {
-  it('resolves a changed line to base-side content, removed spans, and the gutter revert hunk', (): void => {
-    const base: string[] = ['the quick brown fox'];
-    const current: string[] = ['the brown fox'];
-    const resolution = resolveHoverPanelContent(base, current, '\n', 0);
+  /** Builds a resolver input with the given overrides. */
+  const input = (overrides: Partial<GutterHoverLineInput>): GutterHoverLineInput => ({
+    line: 0,
+    kind: ChangeType.changed,
+    current: '',
+    original: null,
+    removedOriginals: [],
+    removedAfter: false,
+    ...overrides,
+  });
+
+  it('resolves a changed line to its own previous version and a one-line revert hunk', (): void => {
+    const resolution = resolveHoverPanelContent(
+      input({ line: 1, kind: ChangeType.changed, original: 'the quick brown fox', current: 'the brown fox' }),
+      '\n',
+    );
 
     expect(resolution).not.toBeNull();
     expect(resolution?.content.kind).toBe(GutterHoverPanelContentKind.changed);
     expect((resolution?.content.lines[0] ?? []).some((seg): boolean => seg.removed && seg.text.includes('quick')))
       .toBe(true);
-
-    // The action hunk is exactly the block the dot gutter revert resolves at the line.
-    const expected: Diff.StructuredPatchHunk | null = HunkHelper.hunkAtLine(HunkHelper.diff(base, current, '\n'), 0);
-
-    expect(resolution?.hunk).toEqual(expected);
-    expect(HunkHelper.revertHunk(current, resolution?.hunk as Diff.StructuredPatchHunk)).toEqual(base);
     expect(resolution?.baseText).toBe('the quick brown fox');
+
+    // Reverting the synthesized hunk replaces only the hovered line.
+    const current: string[] = ['a', 'the brown fox', 'c'];
+
+    expect(HunkHelper.revertHunk(current, resolution?.hunk as Diff.StructuredPatchHunk))
+      .toEqual(['a', 'the quick brown fox', 'c']);
   });
 
-  it('resolves an added line to the added state with no old text', (): void => {
-    const base: string[] = ['a', 'c'];
-    const current: string[] = ['a', 'b', 'c'];
-    const resolution = resolveHoverPanelContent(base, current, '\n', 1);
+  it('resolves an added line to the added state with no old text, reverting to a deletion', (): void => {
+    const resolution = resolveHoverPanelContent(
+      input({ line: 1, kind: ChangeType.added, current: 'b' }),
+      '\n',
+    );
 
     expect(resolution?.content.kind).toBe(GutterHoverPanelContentKind.added);
 
@@ -630,55 +649,58 @@ describe('resolveHoverPanelContent', () => {
     expect(segments.some((seg): boolean => seg.added && seg.text.includes('b'))).toBe(true);
     expect(segments.some((seg): boolean => seg.removed)).toBe(false);
     expect(resolution?.baseText).toBe('');
-    // Reverting removes the added line.
-    expect(HunkHelper.revertHunk(current, resolution?.hunk as Diff.StructuredPatchHunk)).toEqual(base);
+    expect(HunkHelper.revertHunk(['a', 'b', 'c'], resolution?.hunk as Diff.StructuredPatchHunk)).toEqual(['a', 'c']);
   });
 
-  it('resolves a removed dash to the deleted base line and the pure-deletion revert hunk', (): void => {
-    const base: string[] = ['a', 'b', 'c'];
-    const current: string[] = ['a', 'c'];
-    // The removed dash sits on the first current line after the gap.
-    const resolution = resolveHoverPanelContent(base, current, '\n', 1);
+  it('resolves a removed dash to the deleted baseline block, reinserted before the anchor', (): void => {
+    const resolution = resolveHoverPanelContent(
+      input({ line: 1, kind: ChangeType.removed, current: 'c', removedOriginals: ['b1', 'b2'] }),
+      '\n',
+    );
 
     expect(resolution?.content.kind).toBe(GutterHoverPanelContentKind.removed);
-    expect((resolution?.content.lines ?? []).flat().some((seg): boolean => seg.removed && seg.text.includes('b')))
-      .toBe(true);
-    expect(resolution?.baseText).toBe('b');
+    expect(resolution?.content.lines).toHaveLength(2);
+    expect((resolution?.content.lines ?? []).flat().every((seg): boolean => seg.removed)).toBe(true);
+    expect(resolution?.baseText).toBe('b1\nb2');
     expect(resolution?.hunk.newLines).toBe(0);
-    expect(HunkHelper.revertHunk(current, resolution?.hunk as Diff.StructuredPatchHunk)).toEqual(base);
+    expect(HunkHelper.revertHunk(['a', 'c'], resolution?.hunk as Diff.StructuredPatchHunk))
+      .toEqual(['a', 'b1', 'b2', 'c']);
   });
 
-  it('resolves a last-line deletion through the clamped end-of-file anchor', (): void => {
-    const base: string[] = ['a', 'b', 'c'];
-    const current: string[] = ['a', 'b'];
-    // Deleting the last line clamps the anchor onto the new last line.
-    const resolution = resolveHoverPanelContent(base, current, '\n', 1);
+  it('resolves a clamped last-line deletion to a reinsert after the anchor', (): void => {
+    const resolution = resolveHoverPanelContent(
+      input({ line: 1, kind: ChangeType.removed, current: 'b', removedOriginals: ['c'], removedAfter: true }),
+      '\n',
+    );
 
     expect(resolution?.content.kind).toBe(GutterHoverPanelContentKind.removed);
     expect(resolution?.baseText).toBe('c');
-    expect(HunkHelper.revertHunk(current, resolution?.hunk as Diff.StructuredPatchHunk)).toEqual(base);
+    expect(HunkHelper.revertHunk(['a', 'b'], resolution?.hunk as Diff.StructuredPatchHunk)).toEqual(['a', 'b', 'c']);
   });
 
-  it('returns null when no change block covers the line', (): void => {
-    expect(resolveHoverPanelContent(['a', 'b'], ['a', 'b'], '\n', 0)).toBeNull();
+  it('returns null for a restored line, a changed line without a baseline, and an anchorless removed dash', (): void => {
+    expect(resolveHoverPanelContent(input({ kind: ChangeType.restored, current: 'a' }), '\n')).toBeNull();
+    expect(resolveHoverPanelContent(input({ kind: ChangeType.changed, current: 'a', original: null }), '\n')).toBeNull();
+    expect(resolveHoverPanelContent(input({ kind: ChangeType.removed, removedOriginals: [] }), '\n')).toBeNull();
   });
 
   it('flags a blank added line as blank, and a real added line as not blank', (): void => {
-    // An inserted empty line: added state, but no visible text on either side.
-    const blankAdded = resolveHoverPanelContent(['a', 'b'], ['a', '', 'b'], '\n', 1);
+    const blankAdded = resolveHoverPanelContent(input({ kind: ChangeType.added, current: '' }), '\n');
 
     expect(blankAdded?.content.kind).toBe(GutterHoverPanelContentKind.added);
     expect(blankAdded?.content.blank).toBe(true);
 
-    // An inserted line with real text is added but not blank.
-    const realAdded = resolveHoverPanelContent(['a', 'b'], ['a', 'x', 'b'], '\n', 1);
+    const realAdded = resolveHoverPanelContent(input({ kind: ChangeType.added, current: 'x' }), '\n');
 
     expect(realAdded?.content.blank).toBe(false);
   });
 
-  it('flags a whitespace-only line as blank', (): void => {
-    // A line changed to only spaces carries no visible text: treated as blank.
-    const resolution = resolveHoverPanelContent(['a', 'b'], ['a', '   ', 'b'], '\n', 1);
+  it('flags a whitespace-only change as blank', (): void => {
+    // A blank line changed to only spaces carries no visible text on either side.
+    const resolution = resolveHoverPanelContent(
+      input({ kind: ChangeType.whitespace, original: '', current: '   ' }),
+      '\n',
+    );
 
     expect(resolution?.content.blank).toBe(true);
   });

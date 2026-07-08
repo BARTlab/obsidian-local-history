@@ -1,86 +1,149 @@
-import { NO_NEWLINE_MARKER } from '@/consts';
 import type {
+  GutterHoverLineInput,
   GutterHoverPanelResolution,
   GutterHoverPanelSegment,
 } from '@/components/gutter-hover-panel.types';
 import { GutterHoverPanelContentKind } from '@/components/gutter-hover-panel.types';
-import * as HunkHelper from '@/helpers/hunk.helper';
+import { ChangeType } from '@/consts';
 import * as WordDiffHelper from '@/helpers/word-diff.helper';
-import type { InlineDiffLine } from '@/types';
 import type * as Diff from 'diff';
 
 /**
  * Resolves a hovered gutter line to the {@link GutterHoverPanel} display model
- * plus the block its actions operate on. Pure (only the line-diff helpers, no
+ * plus the block its actions operate on. Pure (only the word-diff helper, no
  * Obsidian or CodeMirror), so both the gutter host and the tests call it
  * directly; the controller renders the result through its host port.
  *
- * The line is resolved against the same diff the gutter reverts use: a covering
- * hunk (a change or an addition that occupies the line) via
- * {@link HunkHelper.hunkAtLine}, else the pure-deletion hunk a removed dash sits
- * on, matched exactly as the removed-gutter revert matches it (the insertion
- * point is `line + 1`, or one past the end when the deletion touched the file's
- * last line). The state is read off the block shape: no base side is an
- * addition, no current side is a removal, both is a change. Every line is
- * rendered as word segments through {@link WordDiffHelper}, the same path the
- * history modal's inline diff uses, so a change shows old-vs-new spans, an
- * addition shows the new content, and a removal shows the deleted text.
+ * The input is tracker-sourced ({@link GutterHoverLineInput}): the host reads
+ * the hovered line's change kind and per-line baseline text off the same change
+ * map and tracker the gutter markers are drawn from, so the panel always shows
+ * exactly the hovered line's previous version. The earlier base-vs-state line
+ * diff was a second, independent model of "what changed": its LCS alignment
+ * merged rewritten regions into one block (every marker in the region showed the
+ * same content) and drifted off the tracker on repetitive lines (markers with an
+ * empty panel).
  *
- * @param {string[]} baseLines - The original (base) content as lines
- * @param {string[]} currentLines - The current content as lines
- * @param {string} lineBreak - The snapshot's line break
- * @param {number} line - The 0-based hovered line
+ * A changed line shows old-vs-new word spans, an added line shows the new
+ * content, and a removed dash shows the deleted baseline lines. The returned
+ * hunk is synthesized in structured-patch shape and scoped to exactly the shown
+ * change, so the revert applies precisely what the panel displays.
+ *
+ * @param {GutterHoverLineInput} input - The tracker-sourced facts for the line
+ * @param {string} lineBreak - The snapshot's line break, used to join copy text
  * @return {GutterHoverPanelResolution | null} The resolution, or null when the
- *   line maps to no change block
+ *   line maps to no revertable change (a restored or untracked line)
  */
 export function resolveHoverPanelContent(
-  baseLines: string[],
-  currentLines: string[],
+  input: GutterHoverLineInput,
   lineBreak: string,
-  line: number,
 ): GutterHoverPanelResolution | null {
-  const hunks: Diff.StructuredPatchHunk[] = HunkHelper.diff(baseLines, currentLines, lineBreak);
-  const hunk: Diff.StructuredPatchHunk | null =
-    HunkHelper.hunkAtLine(hunks, line) ?? HunkHelper.deletionHunkAt(hunks, line, currentLines.length);
-
-  if (!hunk) {
-    return null;
+  if (input.kind === ChangeType.removed) {
+    return resolveRemoved(input, lineBreak);
   }
 
-  const baseBlock: string[] = HunkHelper.baseLinesForHunk(hunk);
-  const currentBlock: string[] = currentLinesForHunk(hunk);
-  const kind: GutterHoverPanelContentKind = baseBlock.length === 0
-    ? GutterHoverPanelContentKind.added
-    : currentBlock.length === 0
-      ? GutterHoverPanelContentKind.removed
-      : GutterHoverPanelContentKind.changed;
+  if (input.kind === ChangeType.added) {
+    return resolveAdded(input);
+  }
 
-  const lines: GutterHoverPanelSegment[][] = WordDiffHelper
-    .lines(baseBlock.join(lineBreak), currentBlock.join(lineBreak))
-    .map((row: InlineDiffLine): GutterHoverPanelSegment[] =>
-      WordDiffHelper.segments(row.oldText ?? '', row.newText ?? '').map(toSegment),
-    );
+  if ((input.kind === ChangeType.changed || input.kind === ChangeType.whitespace) && input.original !== null) {
+    return resolveChanged(input);
+  }
 
-  // A change whose base and current sides both hold no visible text (a blank or
-  // whitespace-only line) renders as a muted placeholder rather than an empty
-  // tinted block; the controller also disables copy on it.
-  const blank: boolean = !hasVisibleText(baseBlock) && !hasVisibleText(currentBlock);
-
-  return { content: { kind, lines, blank }, hunk, baseText: baseBlock.join(lineBreak) };
+  return null;
 }
 
 /**
- * Extracts the current-side lines of a hunk (context and added lines), the
- * mirror of {@link HunkHelper.baseLinesForHunk}, so the word diff can compare
- * the block's base side against its current side.
+ * Resolves a changed (or whitespace-only changed) line: one row of old-vs-new
+ * word segments and a one-line replace hunk that writes the baseline text back
+ * over the hovered line.
  *
- * @param {Diff.StructuredPatchHunk} hunk - The hunk to read
- * @return {string[]} The current-side line contents
+ * @param {GutterHoverLineInput} input - The line facts; `original` is non-null here
+ * @return {GutterHoverPanelResolution} The resolution
  */
-function currentLinesForHunk(hunk: Diff.StructuredPatchHunk): string[] {
-  return (hunk?.lines ?? [])
-    .filter((line: string): boolean => line !== NO_NEWLINE_MARKER && (line[0] === ' ' || line[0] === '+'))
-    .map((line: string): string => line.slice(1));
+function resolveChanged(input: GutterHoverLineInput): GutterHoverPanelResolution {
+  const original: string = input.original as string;
+  const hunk: Diff.StructuredPatchHunk = {
+    oldStart: input.line + 1,
+    oldLines: 1,
+    newStart: input.line + 1,
+    newLines: 1,
+    lines: [`-${original}`, `+${input.current}`],
+  };
+
+  return {
+    content: {
+      kind: GutterHoverPanelContentKind.changed,
+      lines: [WordDiffHelper.segments(original, input.current).map(toSegment)],
+      blank: !hasVisibleText([original, input.current]),
+    },
+    hunk,
+    baseText: original,
+  };
+}
+
+/**
+ * Resolves an added line: one row of added word segments and a one-line
+ * deletion hunk (empty base side), so the revert removes the inserted line.
+ *
+ * @param {GutterHoverLineInput} input - The line facts
+ * @return {GutterHoverPanelResolution} The resolution
+ */
+function resolveAdded(input: GutterHoverLineInput): GutterHoverPanelResolution {
+  const hunk: Diff.StructuredPatchHunk = {
+    oldStart: input.line + 1,
+    oldLines: 0,
+    newStart: input.line + 1,
+    newLines: 1,
+    lines: [`+${input.current}`],
+  };
+
+  return {
+    content: {
+      kind: GutterHoverPanelContentKind.added,
+      lines: [WordDiffHelper.segments('', input.current).map(toSegment)],
+      blank: !hasVisibleText([input.current]),
+    },
+    hunk,
+    baseText: '',
+  };
+}
+
+/**
+ * Resolves a removed dash: one row of removed word segments per deleted
+ * baseline line and a pure-deletion hunk that reinserts the block at the
+ * anchor. The insertion point sits before the hovered line, or one past it when
+ * the anchor was clamped onto the file's last line ({@link GutterHoverLineInput#removedAfter}).
+ *
+ * @param {GutterHoverLineInput} input - The line facts
+ * @param {string} lineBreak - The snapshot's line break, used to join copy text
+ * @return {GutterHoverPanelResolution | null} The resolution, or null when no
+ *   removed anchor actually sits at the line
+ */
+function resolveRemoved(input: GutterHoverLineInput, lineBreak: string): GutterHoverPanelResolution | null {
+  if (input.removedOriginals.length === 0) {
+    return null;
+  }
+
+  const newStart: number = input.line + 1 + (input.removedAfter ? 1 : 0);
+  const hunk: Diff.StructuredPatchHunk = {
+    oldStart: newStart,
+    oldLines: input.removedOriginals.length,
+    newStart,
+    newLines: 0,
+    lines: input.removedOriginals.map((line: string): string => `-${line}`),
+  };
+
+  return {
+    content: {
+      kind: GutterHoverPanelContentKind.removed,
+      lines: input.removedOriginals.map(
+        (line: string): GutterHoverPanelSegment[] => WordDiffHelper.segments(line, '').map(toSegment),
+      ),
+      blank: !hasVisibleText(input.removedOriginals),
+    },
+    hunk,
+    baseText: input.removedOriginals.join(lineBreak),
+  };
 }
 
 /**

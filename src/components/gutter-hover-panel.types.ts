@@ -1,3 +1,4 @@
+import type { ChangeType } from '@/consts';
 import type * as Diff from 'diff';
 
 /**
@@ -49,16 +50,44 @@ export interface GutterHoverPanelContent {
 }
 
 /**
+ * The tracker-sourced facts about one hovered gutter line, assembled by the
+ * host from the snapshot's change map and tracker and consumed by the pure
+ * resolver. Sourcing the panel from the tracker (not from a fresh base-vs-state
+ * line diff) keeps the content aligned with the markers by construction: the
+ * gutter and the panel read the same per-line model, so a marker can never
+ * resolve to another block's content or to no content at all.
+ */
+export interface GutterHoverLineInput {
+  /** The 0-based hovered line. */
+  line: number;
+  /** The marker kind the gutter shows at this line (positive kind wins over removed). */
+  kind: ChangeType;
+  /** The current text of the hovered line. */
+  current: string;
+  /** The baseline text of the hovered line's tracker, null when the line is added. */
+  original: string | null;
+  /** The baseline texts of the removed anchors at this line, in baseline order. */
+  removedOriginals: string[];
+  /**
+   * True when the deletion gap sits after the hovered line: a removed anchor is
+   * clamped onto the last real line when the deleted block touched the file's
+   * end, and reverting it must reinsert after that line, not before.
+   */
+  removedAfter: boolean;
+}
+
+/**
  * The full resolution of a hovered line: the display {@link GutterHoverPanelContent},
- * the covering hunk (the revert applies exactly this block), and the hunk's
- * base-side text (the copy writes exactly this). Returned by the pure resolver
- * and consumed by the host, which owns the Obsidian-side effects; the controller
- * only ever sees the {@link GutterHoverPanelContent}.
+ * a synthesized structured-patch hunk scoped to exactly the hovered change (the
+ * revert applies precisely what the panel shows), and its base-side text (the
+ * copy writes exactly this). Returned by the pure resolver and consumed by the
+ * host, which owns the Obsidian-side effects; the controller only ever sees the
+ * {@link GutterHoverPanelContent}.
  */
 export interface GutterHoverPanelResolution {
   /** The display model. */
   content: GutterHoverPanelContent;
-  /** The resolved hunk, the same block the gutter revert resolves at that line. */
+  /** A line-scoped hunk in structured-patch shape; revertHunk applies exactly the shown change. */
   hunk: Diff.StructuredPatchHunk;
   /** The hunk's base-side text, the exact payload the copy action writes. */
   baseText: string;

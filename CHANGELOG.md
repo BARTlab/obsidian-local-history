@@ -2,6 +2,12 @@
 
 All notable user-facing changes to this plugin are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/), and the project  follows [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+
+- The gutter hover panel now always shows the previous version of the hovered line itself. It used to resolve the line against a whole change block, so after a larger editing session different markers could pop up one identical multi-line content, and on notes with repeated lines (blank lines, headings, bullets) some markers opened an empty panel. Revert and copy in the panel act on exactly the shown line.
+
 ## [2.0.0] - 2026-07-08
 
 First public release to the Obsidian community plugin directory. Since the last public release (1.0.1) the plugin grew from a live line-change highlighter into a full on-disk local-history system: a per-file version timeline, a four-view diff, restore and revert, folder history, and recovery of deleted, moved, and externally changed files.
@@ -87,6 +93,7 @@ First public release to the Obsidian community plugin directory. Since the last 
 
 - Initial release: live highlighting of changed, added, removed, and restored lines with line or gutter indicators, a built-in side-by-side and line-by-line diff modal, patch export, and configurable appearance and history settings.
 
+[unreleased]: https://github.com/bartlab/obsidian-local-history/compare/2.0.0...HEAD
 [2.0.0]: https://github.com/bartlab/obsidian-local-history/compare/1.0.1...2.0.0
 [1.0.1]: https://github.com/bartlab/obsidian-local-history/compare/1.0.0...1.0.1
 [1.0.0]: https://github.com/bartlab/obsidian-local-history/releases/tag/1.0.0

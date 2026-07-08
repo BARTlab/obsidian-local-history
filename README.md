@@ -17,6 +17,7 @@ It complements Obsidian [Sync version history](https://obsidian.md/help/sync/ver
 - On-disk timeline per file, captured on an edit-count and time interval so it records meaningful points rather than every keystroke, with independent retention caps for live files and for deleted-file tombstones. Pin any version with a label to protect it from eviction.
 - Diff modal with four views (side-by-side, line-by-line, word-level inline, and a clean zero-context patch you can copy), a searchable version rail, and next/previous difference navigation.
 - Restore a whole file to any version or to its original state, or revert a single changed block straight from the editor gutter.
+- Command-palette reset of the tracker snapshot for the current note, or for every tracked note at once, when you want the change markers to start from a clean slate.
 - Recent changes side panel listing the active file's timeline with action, date, and line deltas.
 - Vault changes side panel: a whole-vault list of every file that still differs from its history origin (modified, added under tracking, or deleted), shown as a folder tree or a flat path-annotated list and filterable by name. It docks into the right sidebar on first load; reopen it any time from the command palette.
 - Folder history: a changes-only file tree plus a timeline rail for a whole folder, with restore, delete, and label actions on the selected file.
@@ -34,7 +35,7 @@ It complements Obsidian [Sync version history](https://obsidian.md/help/sync/ver
 
 ## Installation
 
-Requires Obsidian 1.11.0 or newer (see `manifest.json`); runs on desktop and mobile.
+Requires Obsidian 1.13.0 or newer (see `manifest.json`); runs on desktop and mobile.
 
 **Community plugins (pending review):** once listed, install from Settings, then Community plugins, then Browse for "Local history".
 

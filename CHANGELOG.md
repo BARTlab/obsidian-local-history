@@ -2,6 +2,12 @@
 
 All notable user-facing changes to this plugin are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/), and the project  follows [Semantic Versioning](https://semver.org/).
 
+## [2.0.1] - 2026-07-11
+
+### Changed
+
+- **Renamed to Local Version History.** The community directory already lists a different plugin under the `local-history` id, so this plugin now ships as `local-version-history`. If you installed an earlier build manually or via BRAT, rename the plugin folder to `local-version-history` (or reinstall) to keep your settings and on-disk history.
+
 ## [2.0.0] - 2026-07-08
 
 First public release to the Obsidian community plugin directory. Since the last public release (1.0.1) the plugin grew from a live line-change highlighter into a full on-disk local-history system: a per-file version timeline, a four-view diff, restore and revert, folder history, and recovery of deleted, moved, and externally changed files.
@@ -88,6 +94,7 @@ First public release to the Obsidian community plugin directory. Since the last 
 
 - Initial release: live highlighting of changed, added, removed, and restored lines with line or gutter indicators, a built-in side-by-side and line-by-line diff modal, patch export, and configurable appearance and history settings.
 
+[2.0.1]: https://github.com/bartlab/obsidian-local-history/compare/2.0.0...2.0.1
 [2.0.0]: https://github.com/bartlab/obsidian-local-history/compare/1.0.1...2.0.0
 [1.0.1]: https://github.com/bartlab/obsidian-local-history/compare/1.0.0...1.0.1
 [1.0.0]: https://github.com/bartlab/obsidian-local-history/releases/tag/1.0.0

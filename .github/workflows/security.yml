@@ -26,19 +26,15 @@ jobs:
 
   osv-scanner:
     name: Dependency CVE scan (osv-scanner)
-    runs-on: ubuntu-latest
     permissions:
+      actions: read
       contents: read
       security-events: write
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Run osv-scanner
-        uses: google/osv-scanner-action@v1
-        with:
-          scan-args: |-
-            --recursive
-            ./
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@v2.3.8
+    with:
+      scan-args: |-
+        --recursive
+        ./
 
   scorecard:
     name: Source health (scorecard)

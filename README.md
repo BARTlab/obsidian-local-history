@@ -1,9 +1,9 @@
-# Local History
+# Local Version History
 
 [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/bartlab/obsidian-local-history?style=for-the-badge&sort=semver)](https://github.com/bartlab/obsidian-local-history/releases/latest)
 [![GitHub All Releases](https://img.shields.io/github/downloads/bartlab/obsidian-local-history/total?style=for-the-badge)](https://github.com/bartlab/obsidian-local-history/releases)
 
-Local History gives every note its own on-disk version history, JetBrains style. It highlights the lines you change as you type, captures a timeline of earlier versions that survives restarts, and lets you diff, restore, or revert any point, all fully local with no account and no network. It follows a show-but-do-not-interfere principle: useful feedback during long edits, large-note refactors, multi-author reviews, or recovery from a bad sync or git pull, without getting in the way.
+Local Version History gives every note its own on-disk version history, JetBrains style. It highlights the lines you change as you type, captures a timeline of earlier versions that survives restarts, and lets you diff, restore, or revert any point, all fully local with no account and no network. It follows a show-but-do-not-interfere principle: useful feedback during long edits, large-note refactors, multi-author reviews, or recovery from a bad sync or git pull, without getting in the way.
 
 It complements Obsidian [Sync version history](https://obsidian.md/help/sync/version-history) rather than replacing it. Sync keeps periodic server-side snapshots as a paid cloud backup; this plugin gives immediate in-editor feedback plus a free local per-file time machine that also tracks deleted and moved files. The two work together.
 
@@ -37,15 +37,15 @@ It complements Obsidian [Sync version history](https://obsidian.md/help/sync/ver
 
 Requires Obsidian 1.13.0 or newer (see `manifest.json`); runs on desktop and mobile.
 
-**Community plugins (pending review):** once listed, install from Settings, then Community plugins, then Browse for "Local history".
+**Community plugins (pending review):** once listed, install from Settings, then Community plugins, then Browse for "Local Version History".
 
 **Via [BRAT](https://github.com/TfTHacker/obsidian42-brat):** install and enable BRAT, choose "Add Beta plugin", and enter `https://github.com/bartlab/obsidian-local-history`.
 
-**Manual:** download the latest [release](https://github.com/bartlab/obsidian-local-history/releases), copy `main.js`, `manifest.json`, and `styles.css` into `VaultFolder/.obsidian/plugins/local-history/`, reload Obsidian, and enable the plugin.
+**Manual:** download the latest [release](https://github.com/bartlab/obsidian-local-history/releases), copy `main.js`, `manifest.json`, and `styles.css` into `VaultFolder/.obsidian/plugins/local-version-history/`, reload Obsidian, and enable the plugin.
 
 ## Configuration
 
-Open Settings, then Community plugins, then Local history. Most options are self-describing; the non-obvious ones:
+Open Settings, then Community plugins, then Local Version History. Most options are self-describing; the non-obvious ones:
 
 - Any retention or snapshot count/age field accepts `0` to disable that particular cap.
 - **Excluded paths** are regular-expression patterns, each matched independently against the vault-relative path; a file is excluded when any pattern matches. Patterns are case-insensitive unless "Case-sensitive path exclusion" is on.
@@ -85,11 +85,11 @@ body {
 
 ## Privacy and data storage
 
-The plugin runs entirely on your device: no network access, no telemetry, no account. History is stored as JSON shards under `.obsidian/plugins/local-history/history/` in your vault, each holding the captured file text needed to diff and restore.
+The plugin runs entirely on your device: no network access, no telemetry, no account. History is stored as JSON shards under `.obsidian/plugins/local-version-history/history/` in your vault, each holding the captured file text needed to diff and restore.
 
 If you version-control or cloud-sync your vault configuration, those shards ride along unless you exclude them:
 
-- **Git:** add `.obsidian/plugins/local-history/history/` to your `.gitignore`.
+- **Git:** add `.obsidian/plugins/local-version-history/history/` to your `.gitignore`.
 - **Cloud sync or Obsidian Sync config sync:** exclude that folder, or disable config-folder sync for the plugin.
 
 ## Localization

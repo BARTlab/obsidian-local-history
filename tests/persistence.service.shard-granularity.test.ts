@@ -44,7 +44,7 @@ class GranularityPersistenceService extends PersistenceService {
   }
 }
 
-const PLUGIN_DIR: string = '.obsidian/plugins/local-history';
+const PLUGIN_DIR: string = '.obsidian/plugins/local-version-history';
 
 const SHARD_DIR: string = `${PLUGIN_DIR}/${HISTORY_SHARD_DIR}`;
 
@@ -101,7 +101,7 @@ const makeService = (
     },
     manifest: {
       dir: PLUGIN_DIR,
-      id: 'local-history',
+      id: 'local-version-history',
     },
     forceUpdateEditor: (): void => {
       // no-op
@@ -195,7 +195,7 @@ const makeRetentionService = (
     },
     manifest: {
       dir: PLUGIN_DIR,
-      id: 'local-history',
+      id: 'local-version-history',
     },
     forceUpdateEditor: (): void => {
       // no-op
@@ -470,7 +470,7 @@ describe('PersistenceService restore does not phantom-rewrite shards', () => {
         return undefined;
       },
       app: { vault: { adapter } },
-      manifest: { dir: PLUGIN_DIR, id: 'local-history' },
+      manifest: { dir: PLUGIN_DIR, id: 'local-version-history' },
       forceUpdateEditor: (): void => {
         // no-op
       },

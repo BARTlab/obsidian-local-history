@@ -100,7 +100,7 @@ The plugin follows Obsidian's UI language, shipping a dictionary per language un
 
 If this plugin is useful to you:
 
-[![Buy Me A Coffee](https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow.svg?style=for-the-badge&logo=buy-me-a-coffee)](https://coff.ee/bartlaba)
+[![Buy Me A Coffee](https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow.svg?style=for-the-badge&logo=buy-me-a-coffee)](https://buymeacoffee.com/bartlab)
 
 ## Developing
 

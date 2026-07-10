@@ -1,7 +1,7 @@
 {
 	"id": "local-version-history",
 	"name": "Local Version History",
-	"version": "2.0.0",
+	"version": "2.0.1",
 	"minAppVersion": "1.13.0",
 	"description": "On-disk version history for your notes: highlight changed lines, capture a timeline, and diff or restore any earlier version, fully local.",
 	"author": "B@RT",

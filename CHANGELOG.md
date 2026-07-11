@@ -2,6 +2,12 @@
 
 All notable user-facing changes to this plugin are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/), and the project  follows [Semantic Versioning](https://semver.org/).
 
+## [2.0.3] - 2026-07-11
+
+### Changed
+
+- **Diff view templates are hand-written code.** The previous release shipped them as committed compiler output, which the community catalog source scan flagged with lint warnings; they are now plain typed render functions with byte-identical rendering, pinned by tests.
+
 ## [2.0.2] - 2026-07-11
 
 ### Changed

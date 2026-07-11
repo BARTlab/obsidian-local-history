@@ -1,6 +1,6 @@
 {
   "name": "obsidian-line-change-tracker",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Tracks and highlights changed lines in the editor with markers, show version diff, make local history for files changes.",
   "main": "main.js",
   "scripts": {

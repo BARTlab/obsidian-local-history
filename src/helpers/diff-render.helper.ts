@@ -9,7 +9,7 @@ import type {
   FunctionVoid,
   InlineDiffLine
 } from '@/types';
-import { DIFF2HTML_TEMPLATES_LINE, DIFF2HTML_TEMPLATES_SIDE } from '@/vendor/diff2html-templates.gen';
+import { DIFF2HTML_TEMPLATES_LINE, DIFF2HTML_TEMPLATES_SIDE } from '@/helpers/diff2html-templates.helper';
 import * as Diff from 'diff';
 import * as Diff2Html from 'diff2html';
 import { Notice, setIcon } from 'obsidian';
@@ -259,10 +259,10 @@ function renderInline(params: DiffRenderParams): void {
 
 /**
  * Renders one of the two diff2html modes (line-by-line or side-by-side) into
- * the container using the plugin's custom templates, precompiled so hogan's
- * `new Function` compiler stays out of the bundle. The mustache sources live
- * in scripts/diff2html-templates/ and render byte-for-byte identically to the
- * raw templates the modal used before the extraction.
+ * the container using the plugin's custom templates, hand-written as render
+ * functions so hogan's `new Function` compiler stays out of the bundle. They
+ * render byte-for-byte identically to the raw mustache templates the modal
+ * used before the extraction (pinned by the templates equivalence test).
  *
  * @param {DiffRenderParams} params - The render parameters
  * @param {DiffOutputFormatType} format - The diff2html output format

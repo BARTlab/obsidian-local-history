@@ -13,9 +13,6 @@ const reviewBotConfig = obsidianmd.configs.recommended.map((block) =>
   JSON.stringify(block.files ?? '').includes('package.json') ? block : { ...block, files: ['src/**/*.ts'] });
 
 export default [
-  // Generated file (see scripts/compile-diff2html-templates.mjs): hogan's
-  // compiler output does not follow the hand-written code style.
-  { ignores: ['src/vendor/diff2html-templates.gen.ts'] },
   ...reviewBotConfig,
   {
     files: ['src/**/*.ts'],

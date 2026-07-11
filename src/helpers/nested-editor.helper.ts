@@ -1,15 +1,15 @@
-import type { Editor, MarkdownFileInfo } from 'obsidian';
+import type { MarkdownFileInfo } from 'obsidian';
 import { editorInfoField } from 'obsidian';
 import type { StateField } from '@codemirror/state';
 import type { EditorView } from '@codemirror/view';
 
 /**
- * Obsidian's declaration of the field binds the StateField type from its own
- * resolution of `@codemirror/state`, which TypeScript treats as a different
- * nominal type than this project's resolution (duplicate private members).
- * Re-bind it once to the local resolution; the runtime value is identical.
+ * Local binding of Obsidian's `editorInfoField`. The explicit annotation keeps
+ * this module compiling against one `@codemirror/state` resolution: the
+ * project pins the exact versions obsidian declares as peers, so the field's
+ * type and the local `StateField` import are the same nominal type.
  */
-const infoField: StateField<MarkdownFileInfo> = editorInfoField as unknown as StateField<MarkdownFileInfo>;
+const infoField: StateField<MarkdownFileInfo> = editorInfoField;
 
 /**
  * Detects a nested sub-editor: an EditorView Obsidian mounts inside another
@@ -36,7 +36,8 @@ export function isNestedEditor(view: EditorView | null | undefined): boolean {
   }
 
   const info: MarkdownFileInfo | undefined = view.state.field(infoField, false);
-  const outer: EditorView | undefined = (info?.editor as (Editor & { cm?: EditorView }) | undefined)?.cm;
+  // Editor.cm is real at runtime but absent from the public obsidian typings.
+  const outer: EditorView | undefined = (info?.editor as { cm?: EditorView } | undefined)?.cm;
 
   if (outer) {
     return outer !== view;

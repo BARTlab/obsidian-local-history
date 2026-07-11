@@ -78,7 +78,7 @@ export class DotMarker extends GutterMarker {
    * @override
    */
   public toDOM(): Node {
-    const wrapper: HTMLSpanElement = document.createElement('span');
+    const wrapper: HTMLSpanElement = activeDocument.createElement('span');
 
     wrapper.addClass('lct-gutter-marker');
     wrapper.createSpan({ cls: 'lct-gutter-char', text: this.char[this.changes] });

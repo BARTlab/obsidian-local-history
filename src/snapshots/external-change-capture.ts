@@ -33,7 +33,7 @@ export class ExternalChangeCapture {
    * path resets the timer; only the trailing call runs the disk read and
    * capture.
    */
-  protected debounceTimers: Map<string, ReturnType<typeof setTimeout>> = new Map();
+  protected debounceTimers: Map<string, number> = new Map();
 
   /**
    * Per-path in-flight guard for `capture`. Holds the path of any file
@@ -82,13 +82,13 @@ export class ExternalChangeCapture {
     }
 
     const path: string = file.path;
-    const existing: ReturnType<typeof setTimeout> | undefined = this.debounceTimers.get(path);
+    const existing: number | undefined = this.debounceTimers.get(path);
 
     if (existing !== undefined) {
-      clearTimeout(existing);
+      window.clearTimeout(existing);
     }
 
-    const timer: ReturnType<typeof setTimeout> = setTimeout((): void => {
+    const timer: number = window.setTimeout((): void => {
       this.debounceTimers.delete(path);
       void this.runGuarded(file);
     }, ExternalChangeCapture.debounceMs);
@@ -251,10 +251,10 @@ export class ExternalChangeCapture {
    * @param {string} path - The vault-relative path to forget
    */
   public forget(path: string): void {
-    const timer: ReturnType<typeof setTimeout> | undefined = this.debounceTimers.get(path);
+    const timer: number | undefined = this.debounceTimers.get(path);
 
     if (timer !== undefined) {
-      clearTimeout(timer);
+      window.clearTimeout(timer);
       this.debounceTimers.delete(path);
     }
 
@@ -269,7 +269,7 @@ export class ExternalChangeCapture {
    */
   public clear(): void {
     for (const timer of this.debounceTimers.values()) {
-      clearTimeout(timer);
+      window.clearTimeout(timer);
     }
 
     this.debounceTimers.clear();

@@ -498,6 +498,33 @@ export function setIcon(element: HTMLElement | { dataset?: Record<string, string
 }
 
 /**
+ * The provider backing the `getLanguage` stub. Defaults to English, matching
+ * Obsidian's own default; tests steer it (or make it throw) via
+ * {@link setLanguageProvider}.
+ */
+let languageProvider: () => string = (): string => 'en';
+
+/**
+ * Replacement for Obsidian's `getLanguage`. Reports whatever the current
+ * provider returns so tests control the detected UI language.
+ *
+ * @return {string} The language code from the active provider
+ */
+export function getLanguage(): string {
+  return languageProvider();
+}
+
+/**
+ * Test-only control for what the `getLanguage` stub reports. Pass a throwing
+ * provider to simulate running outside the Obsidian runtime.
+ *
+ * @param {() => string} provider - The provider to back `getLanguage` with
+ */
+export function setLanguageProvider(provider: () => string): void {
+  languageProvider = provider;
+}
+
+/**
  * Inert replacement for Obsidian's `sanitizeHTMLToDom`. Parses the input HTML
  * into a DocumentFragment when a DOM is available (jsdom-based tests) so
  * helpers that hand raw HTML through this entry point (e.g. the diff2html

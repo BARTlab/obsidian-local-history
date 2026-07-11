@@ -10,8 +10,10 @@ import type EventEmitter from 'eventemitter3';
  * composes it, passing the emitter used to wire @On listeners and itself as the
  * host every service constructor receives, then delegates resolution and
  * lifecycle here so it holds no DI map of its own.
+ *
+ * @template H - The host type every registered service constructor receives
  */
-export class ServiceContainer implements Container {
+export class ServiceContainer<H extends object = object> implements Container {
   /** Registered services keyed by their stable token, in registration order. */
   private readonly services: Map<symbol, Service> = new Map();
 
@@ -24,7 +26,7 @@ export class ServiceContainer implements Container {
 
   public constructor(
     private readonly emitter: EventEmitter,
-    private readonly host: object,
+    private readonly host: H,
   ) {}
 
   /**
@@ -32,18 +34,20 @@ export class ServiceContainer implements Container {
    * it in the token map, and wires every @On-decorated method to the emitter.
    *
    * @template T - The service type
-   * @param {ClassConstructor<T>} provider - The service class constructor
+   * @param {ClassConstructor<T, [H]>} provider - The service class constructor
    * @param {ServiceToken<T>} token - The stable token to key the instance by
    */
-  public register<T extends {}>(provider: ClassConstructor<T>, token: ServiceToken<T>): void {
-    // eslint-disable-next-line new-cap
+  public register<T extends object>(provider: ClassConstructor<T, [H]>, token: ServiceToken<T>): void {
+    // eslint-disable-next-line new-cap -- the DI container instantiates the injected class constructor
     const inst: T = new provider(this.host);
 
     this.services.set(token, inst);
 
     for (const prop of Object.getOwnPropertyNames(Object.getPrototypeOf(inst))) {
-      const event: { name: string } | undefined = Reflect.getMetadata(META_ON_EVENT, inst, prop);
-      const inject: boolean | undefined = Reflect.getMetadata(META_INJECT, inst, prop);
+      const event: { name: string } | undefined =
+        Reflect.getMetadata(META_ON_EVENT, inst, prop) as { name: string } | undefined;
+
+      const inject: boolean | undefined = Reflect.getMetadata(META_INJECT, inst, prop) as boolean | undefined;
 
       if (!inject && event && prop in inst) {
         const method: unknown = (inst as Record<string, unknown>)[prop];
@@ -63,7 +67,7 @@ export class ServiceContainer implements Container {
    * @return {T} The service instance
    * @throws Error if no service is registered under the token
    */
-  public get<T extends {}>(token: ServiceToken<T>): T {
+  public get<T extends object>(token: ServiceToken<T>): T {
     const service: T | undefined = this.services.get(token) as T | undefined;
 
     if (!service) {

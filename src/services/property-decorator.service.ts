@@ -87,7 +87,7 @@ export class PropertyDecoratorService implements Service {
    * The pending debounce timer, or undefined when none is in flight.
    * Cleared on unload so no sweep fires after teardown.
    */
-  protected timer: ReturnType<typeof setTimeout> | undefined = undefined;
+  protected timer: number | undefined = undefined;
 
   /**
    * The MutationObserver watching `view.contentEl` for the lazy render of
@@ -173,7 +173,7 @@ export class PropertyDecoratorService implements Service {
    * @returns {HTMLElement} The ghost row element (not yet inserted into DOM)
    */
   protected static buildGhostRow(key: string): HTMLElement {
-    const ghost = document.createElement('div');
+    const ghost = activeDocument.createElement('div');
     ghost.classList.add(
       'metadata-property',
       PropertyDecoratorService.CLASS_GHOST,
@@ -182,7 +182,7 @@ export class PropertyDecoratorService implements Service {
     ghost.setAttribute('data-property-key', key);
     ghost.setAttribute('title', `property "${key}" removed`);
 
-    const keyCell = document.createElement('div');
+    const keyCell = activeDocument.createElement('div');
     keyCell.classList.add('metadata-property-key');
     keyCell.textContent = key;
     ghost.appendChild(keyCell);
@@ -218,7 +218,7 @@ export class PropertyDecoratorService implements Service {
       const parsed: unknown = parseYaml(yaml);
 
       if (parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)) {
-        return Object.keys(parsed as Record<string, unknown>);
+        return Object.keys(parsed);
       }
     } catch {
       // Malformed YAML - degrade gracefully.
@@ -275,7 +275,7 @@ export class PropertyDecoratorService implements Service {
    */
   public unload(): void {
     if (this.timer !== undefined) {
-      clearTimeout(this.timer);
+      window.clearTimeout(this.timer);
       this.timer = undefined;
     }
 
@@ -332,10 +332,10 @@ export class PropertyDecoratorService implements Service {
    */
   protected schedule(): void {
     if (this.timer !== undefined) {
-      clearTimeout(this.timer);
+      window.clearTimeout(this.timer);
     }
 
-    this.timer = setTimeout((): void => {
+    this.timer = window.setTimeout((): void => {
       this.timer = undefined;
       this.apply();
     }, PropertyDecoratorService.debounceMs);

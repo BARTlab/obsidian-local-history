@@ -109,7 +109,7 @@ export class TreeTabDecoratorService implements Service {
    * The pending debounce timer for a scheduled sweep, or undefined when none is
    * in flight. Cleared on unload so no sweep fires after teardown.
    */
-  protected timer: ReturnType<typeof setTimeout> | undefined = undefined;
+  protected timer: number | undefined = undefined;
 
   /**
    * The `MutationObserver` watching the explorer container for lazily-rendered
@@ -217,7 +217,7 @@ export class TreeTabDecoratorService implements Service {
    */
   public unload(): void {
     if (this.timer !== undefined) {
-      clearTimeout(this.timer);
+      window.clearTimeout(this.timer);
       this.timer = undefined;
     }
 
@@ -237,10 +237,10 @@ export class TreeTabDecoratorService implements Service {
    */
   protected schedule(): void {
     if (this.timer !== undefined) {
-      clearTimeout(this.timer);
+      window.clearTimeout(this.timer);
     }
 
-    this.timer = setTimeout((): void => {
+    this.timer = window.setTimeout((): void => {
       this.timer = undefined;
       this.apply();
     }, TreeTabDecoratorService.debounceMs);
@@ -593,6 +593,6 @@ export class TreeTabDecoratorService implements Service {
    */
   protected getMarkdownLeaves(): NativeWorkspaceLeaf[] {
     return this.plugin.app.workspace
-      .getLeavesOfType(TreeTabDecoratorService.markdownType) as NativeWorkspaceLeaf[];
+      .getLeavesOfType(TreeTabDecoratorService.markdownType);
   }
 }

@@ -293,7 +293,7 @@ export class HistoryShardStore {
       return false;
     }
 
-    const shard: Partial<SerializedShard> = value as Partial<SerializedShard>;
+    const shard: Partial<SerializedShard> = value;
 
     if (typeof shard.version !== 'number' || !Number.isFinite(shard.version)) {
       return false;

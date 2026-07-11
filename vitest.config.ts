@@ -23,5 +23,6 @@ export default defineConfig({
     include: ['tests/**/*.test.ts'],
     exclude: ['node_modules/**', 'tests/perf/**'],
     environment: 'node',
+    setupFiles: ['tests/setup.ts'],
   },
 });

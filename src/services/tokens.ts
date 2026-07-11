@@ -44,7 +44,7 @@ const TOKEN_NAMES: Map<symbol, string> = new Map();
  * @return {ServiceToken<T>} A typed, unique token
  */
 const token = <T>(name: string): ServiceToken<T> => {
-  const sym: ServiceToken<T> = Symbol(name) as ServiceToken<T>;
+  const sym: ServiceToken<T> = Symbol(name);
 
   TOKEN_NAMES.set(sym, name);
 

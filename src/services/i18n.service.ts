@@ -1,14 +1,15 @@
-import { FALLBACK_LANGUAGE, LANGUAGE_STORAGE_KEY, OBSIDIAN_LANGUAGES, PLACEHOLDER_PATTERN } from '@/consts';
+import { FALLBACK_LANGUAGE, OBSIDIAN_LANGUAGES, PLACEHOLDER_PATTERN } from '@/consts';
 import { BUNDLED_CATALOGS } from '@/helpers/i18n.helper';
 import type LineChangeTrackerPlugin from '@/main';
 import type { Service, TranslationCatalog, TranslationCatalogs, TranslationVars } from '@/types';
+import { getLanguage } from 'obsidian';
 
 export { OBSIDIAN_LANGUAGES } from '@/consts';
 
 /**
  * Service that provides plugin-owned localization. It resolves a user-facing
  * string for a dotted key from the catalog matching Obsidian's selected language
- * (read from localStorage) and falls back to English per key, so a partially
+ * (via the `getLanguage` API) and falls back to English per key, so a partially
  * translated language never surfaces a raw key in production. Placeholders of the
  * form `{name}` are interpolated from the supplied vars.
  *
@@ -29,7 +30,7 @@ export class I18nService implements Service {
   protected catalogs: TranslationCatalogs = {};
 
   /**
-   * The active language code, detected from Obsidian's localStorage on init and
+   * The active language code, detected via Obsidian's `getLanguage` on init and
    * defaulting to English when absent or unreadable.
    */
   protected language: string = FALLBACK_LANGUAGE;
@@ -131,39 +132,21 @@ export class I18nService implements Service {
   }
 
   /**
-   * Detects the active language. It prefers Obsidian's `language` localStorage
-   * hint, then falls back to the global moment locale (which Obsidian sets to the
-   * UI language), and finally to English. The moment fallback matters because the
-   * `language` key is only written when the language is explicitly chosen, so an
-   * OS-auto-detected language would otherwise be missed and resolve to English.
+   * Detects the active language via Obsidian's `getLanguage`, the public API
+   * for the configured UI language. Falls back to English when the API is
+   * unavailable (e.g. a bare test runner) or reports an empty value.
    *
    * @return {string} The detected language code, or `en` as a fallback
    */
   public static detectLanguage(): string {
     try {
-      const stored: string | null = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+      const language: string = getLanguage();
 
-      if (stored && stored.trim() !== '') {
-        return stored;
+      if (language && language.trim() !== '') {
+        return language;
       }
     } catch {
-      /**
-       * localStorage may be unavailable (e.g. a test runner without a window);
-       * fall through to the moment locale.
-       */
-    }
-
-    try {
-      const moment: { locale?: () => string } | undefined =
-        (globalThis as { moment?: { locale?: () => string } }).moment;
-
-      const locale: string | undefined = moment?.locale?.();
-
-      if (locale && locale.trim() !== '') {
-        return locale;
-      }
-    } catch {
-      // moment may be absent; fall through to the English default.
+      // Outside the Obsidian runtime; degrade to the English fallback.
     }
 
     return FALLBACK_LANGUAGE;
@@ -180,7 +163,7 @@ export class I18nService implements Service {
   public static isDevBuild(): boolean {
     try {
       const proc: { env?: { NODE_ENV?: string } } | undefined =
-        (globalThis as { process?: { env?: { NODE_ENV?: string } } }).process;
+        (activeWindow as { process?: { env?: { NODE_ENV?: string } } }).process;
 
       return proc?.env?.NODE_ENV !== 'production';
     } catch {

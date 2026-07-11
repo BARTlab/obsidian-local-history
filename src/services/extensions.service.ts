@@ -5,9 +5,9 @@ import { GutterBarExtension } from '@/extensions/gutter-bar.extension';
 import { GutterCommonExtension } from '@/extensions/gutter-common.extension';
 import { GutterRemovedExtension } from '@/extensions/gutter-removed.extension';
 import type LineChangeTrackerPlugin from '@/main';
-import type { ClassConstructor, EditorExtension, GutterConfig, Service } from '@/types';
+import type { ClassConstructor, EditorExtension, ExtensionCtorArgs, GutterConfig, Service } from '@/types';
 import type { Extension } from '@codemirror/state';
-import { Decoration, type DecorationSet, type EditorView, gutter, type PluginSpec, type PluginValue, ViewPlugin } from '@codemirror/view';
+import { Decoration, type DecorationSet, type EditorView, gutter, type PluginValue, ViewPlugin } from '@codemirror/view';
 
 /**
  * Service responsible for registering and managing editor extensions.
@@ -54,11 +54,12 @@ export class ExtensionsService implements Service {
    * Skip registration if an extension with the same name already exists.
    *
    * @template T - The extension type, either EditorExtension or GutterConfig
-   * @param {ClassConstructor<T>} clsConstructor - The extension class constructor
+   * @param {ClassConstructor<T, ExtensionCtorArgs<LineChangeTrackerPlugin>>} clsConstructor - The extension
+   *   class constructor
    * @param {ExtensionKind} type - The kind of extension (ExtensionKind.editor or ExtensionKind.gutter)
    */
   protected register<T extends EditorExtension | GutterConfig>(
-    clsConstructor: ClassConstructor<T>,
+    clsConstructor: ClassConstructor<T, ExtensionCtorArgs<LineChangeTrackerPlugin>>,
     type: ExtensionKind
   ): void {
     // @ts-ignore
@@ -82,7 +83,7 @@ export class ExtensionsService implements Service {
    * @returns A CodeMirror gutter extension
    */
   protected factory<T extends GutterConfig>(
-    clsConstructor: ClassConstructor<T>,
+    clsConstructor: ClassConstructor<T, ExtensionCtorArgs<LineChangeTrackerPlugin>>,
     type: ExtensionKind.gutter,
   ): Extension;
 
@@ -96,7 +97,7 @@ export class ExtensionsService implements Service {
    * @returns A CodeMirror ViewPlugin
    */
   protected factory<T extends EditorExtension>(
-    clsConstructor: ClassConstructor<T>,
+    clsConstructor: ClassConstructor<T, ExtensionCtorArgs<LineChangeTrackerPlugin>>,
     type: ExtensionKind.editor,
   ): ViewPlugin<T, unknown>;
 
@@ -105,13 +106,14 @@ export class ExtensionsService implements Service {
    * Implementation of the factory method that handles both extension types.
    *
    * @template T - The extension type, either EditorExtension or GutterConfig
-   * @param {ClassConstructor<T>} clsConstructor - The extension class constructor
+   * @param {ClassConstructor<T, ExtensionCtorArgs<LineChangeTrackerPlugin>>} clsConstructor - The extension
+   *   class constructor
    * @param {ExtensionKind} type - The kind of extension (ExtensionKind.editor or ExtensionKind.gutter)
    * @return {Extension|ViewPlugin} Either a CodeMirror Extension or ViewPlugin
    * @throws Error if the extension type is unknown
    */
   protected factory<T extends EditorExtension | GutterConfig>(
-    clsConstructor: ClassConstructor<T>,
+    clsConstructor: ClassConstructor<T, ExtensionCtorArgs<LineChangeTrackerPlugin>>,
     type: ExtensionKind
   ): Extension | ViewPlugin<T, unknown> {
     const plugin: LineChangeTrackerPlugin = this.plugin;
@@ -119,15 +121,15 @@ export class ExtensionsService implements Service {
     switch (type) {
       case ExtensionKind.editor:
         return ViewPlugin.define(
-          // eslint-disable-next-line new-cap
+          // eslint-disable-next-line new-cap -- clsConstructor is a class constructor parameter, not a plain function
           (view: EditorView, arg: unknown): T => new clsConstructor(view, plugin, arg),
           {
             decorations: (view: EditorExtension): DecorationSet => (view).decorations ?? Decoration.none
-          } as PluginSpec<T>
+          }
         );
 
       case ExtensionKind.gutter:
-        // eslint-disable-next-line new-cap
+        // eslint-disable-next-line new-cap -- clsConstructor is a class constructor parameter, not a plain function
         return gutter(new clsConstructor(null, plugin) as GutterConfig);
 
       default:

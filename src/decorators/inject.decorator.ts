@@ -43,7 +43,7 @@ interface HasPlugin {
  * }
  * ```
  */
-export const Inject = <T extends {}>(
+export const Inject = <T extends object>(
   token: ServiceToken<T>,
 ): ((target: HasPlugin, propertyKey: string | symbol) => void) => {
   return (
@@ -53,14 +53,14 @@ export const Inject = <T extends {}>(
     Reflect.defineMetadata(META_INJECT, true, target, propertyKey);
 
     Object.defineProperty(target, propertyKey, {
-      get(): Service {
-        const container: Container | undefined = this['plugin'];
+      get(this: Partial<HasPlugin>): Service {
+        const container: Container | undefined = this.plugin;
 
         if (container) {
           return container.get(token);
         }
 
-        throw new Error(`"${target}" does not have a "plugin" property defined.`);
+        throw new Error(`"${target.constructor.name}" does not have a "plugin" property defined.`);
       },
       set(_value: unknown): never {
         throw new Error('You cannot change the value of a property with a service');

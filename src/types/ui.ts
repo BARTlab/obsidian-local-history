@@ -62,15 +62,25 @@ export type RevertLine = (line: number) => void;
 
 /**
  * Type definition for concrete class constructors.
- * The argument list is intentionally `any[]`: under `strictFunctionTypes`
- * constructor parameters are checked contravariantly, so a marker type used
- * purely to identify a class (DI token resolution, registry keys) must accept
- * any concrete constructor signature regardless of its real parameters.
- * @template T - The type that the constructor creates (defaults to empty object)
+ * `A` is the argument tuple a call site may pass to `new`. The `never[]`
+ * default makes the bare form a pure marker type (registry keys, token
+ * resolution): under `strictFunctionTypes` constructor parameters are checked
+ * contravariantly, so every concrete constructor is assignable to it, while
+ * instantiation stays impossible until a site names its real tuple.
+ * @template T - The type that the constructor creates (defaults to object)
+ * @template A - The constructor argument tuple (defaults to the marker never[])
  */
-export type ClassConstructor<T = {}> = {
-  new(...args: any[]): T;
+export type ClassConstructor<T = object, A extends unknown[] = never[]> = {
+  new(...args: A): T;
 };
+
+/**
+ * Constructor argument tuple for editor and gutter extension classes: the
+ * owning view (null for gutter configs), the plugin host, and an optional
+ * extension-specific argument.
+ * @template H - The plugin host type the extension receives
+ */
+export type ExtensionCtorArgs<H = object> = [EditorView | null, H, unknown?];
 
 /**
  * Interface for CodeMirror editor extensions used in the plugin.

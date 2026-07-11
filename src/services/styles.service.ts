@@ -54,10 +54,10 @@ export class StylesService implements Service {
     const width: number = this.settingsService.value('line.width');
     const intensity: number = this.settingsService.value('markerIntensity');
 
-    document.body.style.setProperty(LINE_WIDTH_VAR, `${width}px`);
-    document.body.style.setProperty(LINE_BORDER_RADIUS_VAR, `${(width / 2).toFixed(0)}px`);
-    document.body.style.setProperty(TINT_STRENGTH_VAR, `${intensity}%`);
-    document.body.classList.toggle(
+    activeDocument.body.style.setProperty(LINE_WIDTH_VAR, `${width}px`);
+    activeDocument.body.style.setProperty(LINE_BORDER_RADIUS_VAR, `${(width / 2).toFixed(0)}px`);
+    activeDocument.body.style.setProperty(TINT_STRENGTH_VAR, `${intensity}%`);
+    activeDocument.body.classList.toggle(
       StylesService.HOVER_AFFORDANCE_CLASS,
       this.settingsService.value('gutterHoverPanel'),
     );
@@ -65,9 +65,9 @@ export class StylesService implements Service {
 
   /** Clears the custom properties and hover-affordance class this service set. */
   public unload(): void {
-    document.body.style.removeProperty(LINE_WIDTH_VAR);
-    document.body.style.removeProperty(LINE_BORDER_RADIUS_VAR);
-    document.body.style.removeProperty(TINT_STRENGTH_VAR);
-    document.body.classList.remove(StylesService.HOVER_AFFORDANCE_CLASS);
+    activeDocument.body.style.removeProperty(LINE_WIDTH_VAR);
+    activeDocument.body.style.removeProperty(LINE_BORDER_RADIUS_VAR);
+    activeDocument.body.style.removeProperty(TINT_STRENGTH_VAR);
+    activeDocument.body.classList.remove(StylesService.HOVER_AFFORDANCE_CLASS);
   }
 }

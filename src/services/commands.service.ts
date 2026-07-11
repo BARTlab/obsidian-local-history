@@ -52,9 +52,9 @@ export class CommandsService implements Service {
    * Skip registration if a command with the same name already exists.
    *
    * @template T - The command type, an Obsidian Command
-   * @param {ClassConstructor<T>} ClsCConstructor - The command class constructor
+   * @param {ClassConstructor<T, [LineChangeTrackerPlugin]>} ClsCConstructor - The command class constructor
    */
-  protected register<T extends Command>(ClsCConstructor: ClassConstructor<T>): void {
+  protected register<T extends Command>(ClsCConstructor: ClassConstructor<T, [LineChangeTrackerPlugin]>): void {
     const command: Command = this.factory<T>(ClsCConstructor);
 
     if (this.instances.has(command.id)) {
@@ -70,10 +70,10 @@ export class CommandsService implements Service {
    * Factory method that instantiates commands with the plugin instance.
    *
    * @template T - The command type, an Obsidian Command
-   * @param {ClassConstructor<T>} ClsCConstructor - The command class constructor
+   * @param {ClassConstructor<T, [LineChangeTrackerPlugin]>} ClsCConstructor - The command class constructor
    * @return {Command} A new instance of the command
    */
-  protected factory<T extends Command>(ClsCConstructor: ClassConstructor<T>): Command {
+  protected factory<T extends Command>(ClsCConstructor: ClassConstructor<T, [LineChangeTrackerPlugin]>): Command {
     return new ClsCConstructor(this.plugin);
   }
 }

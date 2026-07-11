@@ -2,7 +2,7 @@ import { ChangeType, DEFAULT_SETTINGS, PluginEvent, SHOW_CHANGE_KEYS } from '@/c
 import type LineChangeTrackerPlugin from '@/main';
 import { MainSetting } from '@/settings/main.setting';
 import type { DeepValue, LineChangeTrackerSettings, PathTo, PathValue, Service } from '@/types';
-import { get, merge, set } from 'lodash-es';
+import { get, merge, set } from '@/helpers/object.helper';
 
 /**
  * Service responsible for managing plugin settings.

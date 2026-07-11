@@ -2,6 +2,12 @@
 
 All notable user-facing changes to this plugin are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/), and the project  follows [Semantic Versioning](https://semver.org/).
 
+## [2.0.5] - 2026-07-11
+
+### Changed
+
+- **Name is Local Version History again.** The community directory flagged the 2.0.4 "Local history" name as a duplicate of an existing entry and hid the plugin, so the rename is reverted.
+
 ## [2.0.4] - 2026-07-11
 
 ### Fixed
@@ -125,6 +131,7 @@ First public release to the Obsidian community plugin directory. Since the last 
 
 - Initial release: live highlighting of changed, added, removed, and restored lines with line or gutter indicators, a built-in side-by-side and line-by-line diff modal, patch export, and configurable appearance and history settings.
 
+[2.0.5]: https://github.com/bartlab/obsidian-local-history/compare/2.0.4...2.0.5
 [2.0.4]: https://github.com/bartlab/obsidian-local-history/compare/2.0.3...2.0.4
 [2.0.3]: https://github.com/bartlab/obsidian-local-history/compare/2.0.2...2.0.3
 [2.0.2]: https://github.com/bartlab/obsidian-local-history/compare/2.0.1...2.0.2

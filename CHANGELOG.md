@@ -2,6 +2,16 @@
 
 All notable user-facing changes to this plugin are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/), and the project  follows [Semantic Versioning](https://semver.org/).
 
+## [2.0.4] - 2026-07-11
+
+### Fixed
+
+- **Settings tab crash on current Obsidian.** The purge button used a destructive-style API that only exists in the early-access Obsidian 1.13, so opening the plugin settings failed on the public 1.12.x releases and the plugin required an app version that is not generally available. The button now falls back to the classic warning style on older versions, and the minimum app version is back to 1.11.0.
+
+### Changed
+
+- **Display name shortened to Local history.** The plugin id stays `local-version-history`, so installs, settings, and on-disk history are unaffected.
+
 ## [2.0.3] - 2026-07-11
 
 ### Changed
@@ -115,6 +125,9 @@ First public release to the Obsidian community plugin directory. Since the last 
 
 - Initial release: live highlighting of changed, added, removed, and restored lines with line or gutter indicators, a built-in side-by-side and line-by-line diff modal, patch export, and configurable appearance and history settings.
 
+[2.0.4]: https://github.com/bartlab/obsidian-local-history/compare/2.0.3...2.0.4
+[2.0.3]: https://github.com/bartlab/obsidian-local-history/compare/2.0.2...2.0.3
+[2.0.2]: https://github.com/bartlab/obsidian-local-history/compare/2.0.1...2.0.2
 [2.0.1]: https://github.com/bartlab/obsidian-local-history/compare/2.0.0...2.0.1
 [2.0.0]: https://github.com/bartlab/obsidian-local-history/compare/1.0.1...2.0.0
 [1.0.1]: https://github.com/bartlab/obsidian-local-history/compare/1.0.0...1.0.1

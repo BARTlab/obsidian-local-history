@@ -7,7 +7,7 @@ import type { SettingsService } from '@/services/settings.service';
 import type { SnapshotsService } from '@/services/snapshots.service';
 import { TOKENS } from '@/services/tokens';
 import { ExcludePatternsEditor } from '@/settings/exclude-patterns-editor';
-import type { RetentionKey } from '@/settings/main.setting.types';
+import type { DestructiveCapableButton, RetentionKey } from '@/settings/main.setting.types';
 import {
   type ButtonComponent,
   type DropdownComponent,
@@ -596,9 +596,18 @@ export class MainSetting extends PluginSettingTab {
           this.purgeButton = button;
           this.updatePurgeButtonState();
 
+          // setDestructive() ships with Obsidian 1.13+; older runtimes get the
+          // warning style directly (what the deprecated setWarning() applies).
+          const compat: DestructiveCapableButton = button;
+
+          if (compat.setDestructive) {
+            compat.setDestructive();
+          } else {
+            button.buttonEl.addClass('mod-warning');
+          }
+
           return button
             .setButtonText(this.plugin.t('setting.purge-excluded.name'))
-            .setDestructive()
             .setCta()
             .onClick(async (): Promise<void> => {
               /**

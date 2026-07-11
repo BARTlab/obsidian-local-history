@@ -20,7 +20,7 @@ export class DiffScrollSync {
    * Handle of the pending deferred {@link setup} call, captured so a rapid mode
    * switch can cancel it before it attaches listeners to a replaced DOM.
    */
-  protected timer: ReturnType<typeof setTimeout> | null = null;
+  protected timer: number | null = null;
 
   /**
    * @param {DiffContainerResolver} resolveContainer - Reads the host's live diff
@@ -38,7 +38,7 @@ export class DiffScrollSync {
   public schedule(): void {
     const targetContainer: HTMLElementWithScrollSync | undefined = this.resolveContainer();
 
-    this.timer = setTimeout((): void => {
+    this.timer = window.setTimeout((): void => {
       this.timer = null;
 
       if (this.resolveContainer() !== targetContainer) {
@@ -56,7 +56,7 @@ export class DiffScrollSync {
    */
   public cleanup(): void {
     if (this.timer !== null) {
-      clearTimeout(this.timer);
+      window.clearTimeout(this.timer);
 
       this.timer = null;
     }
@@ -84,7 +84,7 @@ export class DiffScrollSync {
       return;
     }
 
-    const wrappers = container.querySelectorAll('.d2h-side-column-wrapper') as NodeListOf<HTMLElement>;
+    const wrappers = container.querySelectorAll<HTMLElement>('.d2h-side-column-wrapper');
 
     if (wrappers?.length !== 2) {
       return;
@@ -103,7 +103,7 @@ export class DiffScrollSync {
       rightWrapper.scrollTop = leftWrapper.scrollTop;
       rightWrapper.scrollLeft = leftWrapper.scrollLeft;
 
-      requestAnimationFrame((): void => {
+      window.requestAnimationFrame((): void => {
         isScrolling = false;
       });
     };
@@ -118,7 +118,7 @@ export class DiffScrollSync {
       leftWrapper.scrollTop = rightWrapper.scrollTop;
       leftWrapper.scrollLeft = rightWrapper.scrollLeft;
 
-      requestAnimationFrame((): void => {
+      window.requestAnimationFrame((): void => {
         isScrolling = false;
       });
     };

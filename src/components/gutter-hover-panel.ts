@@ -60,10 +60,10 @@ export class GutterHoverPanel {
   protected previouslyFocused: HTMLElement | null = null;
 
   /** Pending open-delay timer, or null when no open is scheduled. */
-  protected openTimer: ReturnType<typeof setTimeout> | null = null;
+  protected openTimer: number | null = null;
 
   /** Pending close-delay timer, or null when no close is scheduled. */
-  protected closeTimer: ReturnType<typeof setTimeout> | null = null;
+  protected closeTimer: number | null = null;
 
   /** Listener removers registered on mount, run once on unmount. */
   protected cleanups: FunctionVoid[] = [];
@@ -143,7 +143,7 @@ export class GutterHoverPanel {
     }
 
     this.state = GutterHoverPanelState.pending;
-    this.openTimer = setTimeout((): void => this.mount(), this.timings.openDelayMs);
+    this.openTimer = window.setTimeout((): void => this.mount(), this.timings.openDelayMs);
   }
 
   /**
@@ -161,7 +161,7 @@ export class GutterHoverPanel {
 
     if (this.state === GutterHoverPanelState.open) {
       this.state = GutterHoverPanelState.closing;
-      this.closeTimer = setTimeout((): void => this.unmount(), this.timings.closeDelayMs);
+      this.closeTimer = window.setTimeout((): void => this.unmount(), this.timings.closeDelayMs);
     }
   }
 
@@ -209,15 +209,15 @@ export class GutterHoverPanel {
       return;
     }
 
-    this.previouslyFocused = document.activeElement as HTMLElement | null;
+    this.previouslyFocused = activeDocument.activeElement as HTMLElement | null;
 
-    const panel: HTMLElement = document.createElement('div');
+    const panel: HTMLElement = activeDocument.createElement('div');
 
     panel.className = 'lct-hover-panel';
     panel.setAttribute('role', 'dialog');
     panel.setAttribute('aria-label', this.host.ariaLabel());
 
-    const content: HTMLElement = document.createElement('div');
+    const content: HTMLElement = activeDocument.createElement('div');
 
     content.className = 'lct-hover-panel-content';
     panel.appendChild(content);
@@ -272,7 +272,7 @@ export class GutterHoverPanel {
     // placeholder instead of an empty tinted block so the panel never reads as
     // unfinished (no content-kind wash is applied in this branch).
     if (model.blank) {
-      const placeholder: HTMLElement = document.createElement('div');
+      const placeholder: HTMLElement = activeDocument.createElement('div');
 
       placeholder.className = 'lct-hover-panel-empty';
       placeholder.textContent = this.host.emptyLabel();
@@ -284,12 +284,12 @@ export class GutterHoverPanel {
     slot.classList.add(`lct-hover-panel-content-${model.kind}`);
 
     for (const segments of model.lines) {
-      const row: HTMLElement = document.createElement('div');
+      const row: HTMLElement = activeDocument.createElement('div');
 
       row.className = 'lct-hover-panel-line';
 
       for (const segment of segments) {
-        const span: HTMLElement = document.createElement('span');
+        const span: HTMLElement = activeDocument.createElement('span');
 
         if (segment.added) {
           span.className = 'lct-word-added';
@@ -314,7 +314,7 @@ export class GutterHoverPanel {
    */
   protected buildActions(): HTMLElement {
     const labels = this.host.actionLabels();
-    const row: HTMLElement = document.createElement('div');
+    const row: HTMLElement = activeDocument.createElement('div');
 
     row.className = 'lct-hover-panel-actions';
 
@@ -339,7 +339,7 @@ export class GutterHoverPanel {
    * @return {HTMLButtonElement} The built button
    */
   protected buildAction(row: HTMLElement, icon: string, label: string, handler: FunctionVoid): HTMLButtonElement {
-    const button: HTMLButtonElement = document.createElement('button');
+    const button: HTMLButtonElement = activeDocument.createElement('button');
 
     button.type = 'button';
     button.className = 'lct-hover-panel-action clickable-icon';
@@ -405,12 +405,12 @@ export class GutterHoverPanel {
     panel.addEventListener('mouseenter', onPanelEnter);
     panel.addEventListener('mouseleave', onPanelLeave);
     panel.addEventListener('keydown', onPanelKeyDown);
-    document.addEventListener('keydown', onKeyDown);
+    activeDocument.addEventListener('keydown', onKeyDown);
     this.cleanups.push((): void => {
       panel.removeEventListener('mouseenter', onPanelEnter);
       panel.removeEventListener('mouseleave', onPanelLeave);
       panel.removeEventListener('keydown', onPanelKeyDown);
-      document.removeEventListener('keydown', onKeyDown);
+      activeDocument.removeEventListener('keydown', onKeyDown);
     });
 
     // Any scroll of the editor viewport dislodges the anchor, so dismiss on it.
@@ -439,7 +439,7 @@ export class GutterHoverPanel {
       return;
     }
 
-    const active: Element | null = document.activeElement;
+    const active: Element | null = activeDocument.activeElement;
     const first: HTMLButtonElement = this.actionButtons[0];
     const last: HTMLButtonElement = this.actionButtons[this.actionButtons.length - 1];
 
@@ -518,7 +518,7 @@ export class GutterHoverPanel {
    * pointer close and every host-driven dismissal.
    */
   protected unmount(): void {
-    const heldFocus: boolean = this.panel?.contains(document.activeElement) ?? false;
+    const heldFocus: boolean = this.panel?.contains(activeDocument.activeElement) ?? false;
 
     for (const cleanup of this.cleanups) {
       cleanup();
@@ -543,7 +543,7 @@ export class GutterHoverPanel {
   /** Cancels a pending open timer, if any. */
   protected clearOpenTimer(): void {
     if (this.openTimer !== null) {
-      clearTimeout(this.openTimer);
+      window.clearTimeout(this.openTimer);
       this.openTimer = null;
     }
   }
@@ -551,7 +551,7 @@ export class GutterHoverPanel {
   /** Cancels a pending close timer, if any. */
   protected clearCloseTimer(): void {
     if (this.closeTimer !== null) {
-      clearTimeout(this.closeTimer);
+      window.clearTimeout(this.closeTimer);
       this.closeTimer = null;
     }
   }

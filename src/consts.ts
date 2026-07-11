@@ -437,16 +437,9 @@ export const VERSION_KEYFRAME_INTERVAL: number = 25;
 export const FALLBACK_LANGUAGE: string = 'en';
 
 /**
- * The localStorage key Obsidian writes the selected UI language into. Reading it
- * is the documented community approach to follow Obsidian's own language without
- * a public i18n API.
- */
-export const LANGUAGE_STORAGE_KEY: string = 'language';
-
-/**
  * The full set of UI language codes Obsidian ships, taken verbatim from the
- * official obsidian-translations catalog (the values Obsidian writes into the
- * `language` localStorage key). Every code is supported by this plugin: a code
+ * official obsidian-translations catalog (the values Obsidian's `getLanguage`
+ * reports). Every code is supported by this plugin: a code
  * with its own bundled catalog resolves to that catalog, and every other code
  * resolves through the English fallback (see {@link FALLBACK_LANGUAGE}), so the
  * plugin never surfaces a raw key or an error for any Obsidian language.

@@ -21,7 +21,7 @@
  */
 export class AsyncSaveQueue {
   /** Pending debounced timer handle, or null when nothing is scheduled. */
-  protected timer: ReturnType<typeof setTimeout> | null = null;
+  protected timer: number | null = null;
 
   /** Tail of the serialized write chain; every enqueue appends to it. */
   protected chain: Promise<void> = Promise.resolve();
@@ -43,10 +43,10 @@ export class AsyncSaveQueue {
    */
   public schedule(work: () => Promise<void>): void {
     if (this.timer) {
-      clearTimeout(this.timer);
+      window.clearTimeout(this.timer);
     }
 
-    this.timer = setTimeout((): void => {
+    this.timer = window.setTimeout((): void => {
       this.timer = null;
       this.enqueue(work);
     }, this.debounceMs);
@@ -68,7 +68,7 @@ export class AsyncSaveQueue {
   /** Cancels a pending debounced run, if any, so no scheduled work fires. */
   public cancelScheduled(): void {
     if (this.timer) {
-      clearTimeout(this.timer);
+      window.clearTimeout(this.timer);
       this.timer = null;
     }
   }

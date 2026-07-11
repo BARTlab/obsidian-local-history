@@ -1,5 +1,5 @@
 import type { DomElementConfig, DomUpdateConfig, DomUpdateConfigClasses } from '@/types';
-import { castArray, isPlainObject } from 'lodash-es';
+import { castArray, isPlainObject } from '@/helpers/object.helper';
 import { sanitizeHTMLToDom } from 'obsidian';
 
 /**
@@ -13,7 +13,7 @@ import { sanitizeHTMLToDom } from 'obsidian';
 export function create<K extends keyof HTMLElementTagNameMap>(
   config: DomElementConfig & { tag: K }
 ): HTMLElementTagNameMap[K] {
-  const element: HTMLElementTagNameMap[K] = document.createElement(config.tag);
+  const element: HTMLElementTagNameMap[K] = activeDocument.createElement(config.tag);
 
   update(element, config);
 
@@ -30,7 +30,7 @@ export function create<K extends keyof HTMLElementTagNameMap>(
  * @return {DocumentFragment} The created DocumentFragment with child elements
  */
 export function createFragment(children: DomElementConfig[]): DocumentFragment {
-  const fragment: DocumentFragment = document.createDocumentFragment();
+  const fragment: DocumentFragment = activeDocument.createDocumentFragment();
 
   children.forEach((childConfig: DomElementConfig): void => {
     fragment.appendChild(create(childConfig));
@@ -84,7 +84,9 @@ export function update(element: HTMLElement, config: DomUpdateConfig): void {
 
   if (config.styles) {
     Object.entries(config.styles).forEach(([key, value]): void => {
-      if (value === undefined) {
+      // Partial<CSSStyleDeclaration> nominally admits methods and CSSRule
+      // fields; only real string values are settable styles.
+      if (typeof value !== 'string') {
         return;
       }
 
@@ -99,7 +101,7 @@ export function update(element: HTMLElement, config: DomUpdateConfig): void {
           ? key
           : key.replace(/[A-Z]/g, (match: string): string => `-${match.toLowerCase()}`);
 
-        element.style.setProperty(cssName, String(value));
+        element.style.setProperty(cssName, value);
       } catch {
         // Swallow invalid style values; the element keeps its prior state.
       }

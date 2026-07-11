@@ -295,8 +295,7 @@ export class HistoryModal extends Modal {
       new Notice(this.plugin.t('notice.file-restored'));
 
       this.close();
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_error) {
+    } catch {
       new Notice(this.plugin.t('notice.file-restore-failed'));
     }
   }

@@ -223,8 +223,7 @@ export class FolderActionHandler {
       this.host.removeFromMap(selection.path);
 
       new Notice(this.host.plugin.t('notice.file-restored'));
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_error) {
+    } catch {
       new Notice(this.host.plugin.t('notice.file-restore-failed'));
 
       return;
@@ -321,8 +320,7 @@ export class FolderActionHandler {
       snapshot.content.updateState(result.base);
       snapshot.updateChanges();
       this.host.snapshotsService.forceUpdate();
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_error) {
+    } catch {
       new Notice(this.host.plugin.t('notice.file-restore-failed'));
     }
   }

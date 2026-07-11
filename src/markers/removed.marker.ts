@@ -59,11 +59,11 @@ export class RemovedMarker extends GutterMarker {
     const char: string = this.settingsService.value('gutter.removed');
 
     if (!this.revert) {
-      return document.createTextNode(char);
+      return activeDocument.createTextNode(char);
     }
 
     const label: string = this.i18nService.t('gutter.revert');
-    const button: HTMLButtonElement = document.createElement('button');
+    const button: HTMLButtonElement = activeDocument.createElement('button');
 
     button.setAttribute('role', 'button');
     button.setAttribute('aria-label', label);

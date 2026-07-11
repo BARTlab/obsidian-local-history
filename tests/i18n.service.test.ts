@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { I18nService, OBSIDIAN_LANGUAGES } from '@/services/i18n.service';
 import type { TranslationCatalogs } from '@/types';
+import { setLanguageProvider } from './stubs/obsidian';
 
 /**
  * Tests for the localization infrastructure. They cover the pure
@@ -107,71 +108,29 @@ describe('I18nService.interpolate', () => {
 });
 
 describe('I18nService.detectLanguage', () => {
-  it('returns the stored language when localStorage has one', () => {
-    const original = (globalThis as { window?: unknown }).window;
-
-    (globalThis as { window?: unknown }).window = {
-      localStorage: { getItem: (): string => 'ru' },
-    };
-
-    try {
-      expect(I18nService.detectLanguage()).toBe('ru');
-    } finally {
-      (globalThis as { window?: unknown }).window = original;
-    }
+  afterEach(() => {
+    setLanguageProvider((): string => 'en');
   });
 
-  it('falls back to en when localStorage is empty', () => {
-    const original = (globalThis as { window?: unknown }).window;
+  it('returns the language Obsidian reports', () => {
+    setLanguageProvider((): string => 'ru');
 
-    (globalThis as { window?: unknown }).window = {
-      localStorage: { getItem: (): string | null => null },
-    };
-
-    try {
-      expect(I18nService.detectLanguage()).toBe('en');
-    } finally {
-      (globalThis as { window?: unknown }).window = original;
-    }
+    expect(I18nService.detectLanguage()).toBe('ru');
   });
 
-  it('falls back to the moment locale when localStorage is empty', () => {
-    const originalWindow = (globalThis as { window?: unknown }).window;
-    const originalMoment = (globalThis as { moment?: unknown }).moment;
+  it('falls back to en when getLanguage reports an empty value', () => {
+    setLanguageProvider((): string => '  ');
 
-    (globalThis as { window?: unknown }).window = {
-      localStorage: { getItem: (): string | null => null },
-    };
-    (globalThis as { moment?: unknown }).moment = { locale: (): string => 'ru' };
-
-    try {
-      expect(I18nService.detectLanguage()).toBe('ru');
-    } finally {
-      (globalThis as { window?: unknown }).window = originalWindow;
-      (globalThis as { moment?: unknown }).moment = originalMoment;
-    }
+    expect(I18nService.detectLanguage()).toBe('en');
   });
 
-  it('prefers the localStorage language over the moment locale', () => {
-    const originalWindow = (globalThis as { window?: unknown }).window;
-    const originalMoment = (globalThis as { moment?: unknown }).moment;
+  it('falls back to en when getLanguage throws', () => {
+    // Outside the Obsidian runtime the API is missing, so the call throws and
+    // the service degrades to English.
+    setLanguageProvider((): string => {
+      throw new Error('no obsidian runtime');
+    });
 
-    (globalThis as { window?: unknown }).window = {
-      localStorage: { getItem: (): string => 'ru' },
-    };
-    (globalThis as { moment?: unknown }).moment = { locale: (): string => 'de' };
-
-    try {
-      expect(I18nService.detectLanguage()).toBe('ru');
-    } finally {
-      (globalThis as { window?: unknown }).window = originalWindow;
-      (globalThis as { moment?: unknown }).moment = originalMoment;
-    }
-  });
-
-  it('falls back to en when no window is available', () => {
-    // Under the node test runner there is no window, so the read throws and the
-    // service degrades to English.
     expect(I18nService.detectLanguage()).toBe('en');
   });
 });

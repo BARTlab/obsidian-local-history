@@ -1,7 +1,23 @@
 import esbuild from 'esbuild';
 import process from 'process';
-import builtins from 'builtin-modules';
+import path from 'node:path';
+import { builtinModules } from 'node:module';
 import { sassPlugin } from '@shellscape/esbuild-sass-plugin';
+
+// Routes diff2html's `require('@profoundlogic/hogan')` to a render-only stub
+// so hogan's template compiler (it assembles templates via `new Function`)
+// never enters the bundle; the plugin ships precompiled templates instead
+// (src/vendor/diff2html-templates.gen.ts). The exact-match filter keeps the
+// stub's own deep import of hogan's Template runtime resolving into the real
+// package.
+const hoganStubPlugin = {
+  name: 'hogan-stub',
+  setup(build) {
+    build.onResolve({ filter: /^@profoundlogic\/hogan$/ }, () => ({
+      path: path.resolve('./src/vendor/hogan.stub.ts'),
+    }));
+  },
+};
 
 const banner =
   `/*
@@ -35,7 +51,7 @@ const context = await esbuild.context({
     '@lezer/common',
     '@lezer/highlight',
     '@lezer/lr',
-    ...builtins
+    ...builtinModules
   ],
   format: 'cjs',
   target: 'es2018',
@@ -49,7 +65,7 @@ const context = await esbuild.context({
   // (see `@Inject(TOKENS.x)` and `LineChangeTrackerPlugin.get`), never by
   // `constructor.name`. Tokens survive minification untouched, so the bundle can
   // freely rename/mangle class identifiers without breaking resolution.
-  plugins: [sassPlugin({
+  plugins: [hoganStubPlugin, sassPlugin({
     basedir: './',
     cssOutfile: './styles.css',
     type: 'css',

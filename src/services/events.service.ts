@@ -29,7 +29,7 @@ export class EventsService implements Service {
    * identity never fired because {@link factory} always returns a fresh
    * instance.
    */
-  protected instances: Map<ClassConstructor<BaseEvent>, BaseEvent> = new Map();
+  protected instances: Map<ClassConstructor<BaseEvent, [LineChangeTrackerPlugin]>, BaseEvent> = new Map();
 
   /**
    * Creates a new instance of EventsService.
@@ -88,9 +88,9 @@ export class EventsService implements Service {
    * Skip registration if the event already exists in the set.
    *
    * @template T - The event type, extending BaseEvent
-   * @param {ClassConstructor<T>} ClsCConstructor - The event class constructor
+   * @param {ClassConstructor<T, [LineChangeTrackerPlugin]>} ClsCConstructor - The event class constructor
    */
-  protected register<T extends BaseEvent>(ClsCConstructor: ClassConstructor<T>): void {
+  protected register<T extends BaseEvent>(ClsCConstructor: ClassConstructor<T, [LineChangeTrackerPlugin]>): void {
     if (this.instances.has(ClsCConstructor)) {
       return;
     }
@@ -106,10 +106,10 @@ export class EventsService implements Service {
    * Factory method that instantiates events with the plugin instance.
    *
    * @template T - The event type, extending BaseEvent
-   * @param {ClassConstructor<T>} ClsCConstructor - The event class constructor
+   * @param {ClassConstructor<T, [LineChangeTrackerPlugin]>} ClsCConstructor - The event class constructor
    * @return {BaseEvent} A new instance of the event
    */
-  protected factory<T extends BaseEvent>(ClsCConstructor: ClassConstructor<T>): BaseEvent {
+  protected factory<T extends BaseEvent>(ClsCConstructor: ClassConstructor<T, [LineChangeTrackerPlugin]>): BaseEvent {
     return new ClsCConstructor(this.plugin);
   }
 }

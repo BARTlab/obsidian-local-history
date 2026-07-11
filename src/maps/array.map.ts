@@ -30,7 +30,7 @@ export class ArrayMap<T> extends Map<number | string, T> {
         typeof key === 'function' ? key(item) : item[key] as string | number,
         item,
       ])
-    ) as ArrayMap<R>;
+    );
   }
 
   /**

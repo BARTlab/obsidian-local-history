@@ -2,6 +2,21 @@
 
 All notable user-facing changes to this plugin are documented here. The format is based on [Keep a Changelog](https://keepachangelog.com/), and the project  follows [Semantic Versioning](https://semver.org/).
 
+## [2.0.2] - 2026-07-11
+
+### Changed
+
+- **No dynamically generated code.** The diff view templates are precompiled at build time and the metadata polyfill ships as `reflect-metadata/lite`, so the plugin bundle no longer contains `eval` or `new Function` and passes full static analysis.
+- **Language detection via the public API.** The UI language now comes from Obsidian's `getLanguage()` instead of reading the app's localStorage, so the plugin no longer touches localStorage at all.
+
+### Added
+
+- **Signed release provenance.** Release assets are published with GitHub artifact attestations, so a download can be cryptographically verified as built from this repository.
+
+### Fixed
+
+- **Funding link.** The manifest funding URL pointed to an unreachable address.
+
 ## [2.0.1] - 2026-07-11
 
 ### Changed

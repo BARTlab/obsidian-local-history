@@ -9,6 +9,7 @@ import type {
   FunctionVoid,
   InlineDiffLine
 } from '@/types';
+import { DIFF2HTML_TEMPLATES_LINE, DIFF2HTML_TEMPLATES_SIDE } from '@/vendor/diff2html-templates.gen';
 import * as Diff from 'diff';
 import * as Diff2Html from 'diff2html';
 import { Notice, setIcon } from 'obsidian';
@@ -158,6 +159,8 @@ function renderPatch(params: DiffRenderParams): void {
   const handlerClick: FunctionVoid = (): void => {
     navigator.clipboard.writeText(patch).then((): void => {
       new Notice(params.plugin.t('notice.copied'));
+    }).catch((error: unknown): void => {
+      console.error('Local history: failed to copy the patch to the clipboard', error);
     });
   };
 
@@ -256,8 +259,10 @@ function renderInline(params: DiffRenderParams): void {
 
 /**
  * Renders one of the two diff2html modes (line-by-line or side-by-side) into
- * the container using the same custom templates the modal used before the
- * extraction, so the resulting DOM is byte-for-byte identical.
+ * the container using the plugin's custom templates, precompiled so hogan's
+ * `new Function` compiler stays out of the bundle. The mustache sources live
+ * in scripts/diff2html-templates/ and render byte-for-byte identically to the
+ * raw templates the modal used before the extraction.
  *
  * @param {DiffRenderParams} params - The render parameters
  * @param {DiffOutputFormatType} format - The diff2html output format
@@ -268,76 +273,15 @@ function renderDiff2Html(params: DiffRenderParams, format: DiffOutputFormatType)
     matching: 'lines',
     outputFormat: format,
     renderNothingWhenEmpty: true,
-    rawTemplates: {
-      'line-by-line-file-diff': `
-         {{{diffs}}}
-      `,
-      'side-by-side-file-diff': `
-        <div class="d2h-side-column">
-          <div class="d2h-side-column-wrapper">
-              <div class="d2h-side-column-container">
-                {{{diffs.left}}}
-            </div>
-          </div>
-        </div>
-        <div class="d2h-side-column">
-          <div class="d2h-side-column-wrapper">
-              <div class="d2h-side-column-container">
-                {{{diffs.right}}}
-            </div>
-          </div>
-        </div>
-      `,
-      'generic-wrapper': `
-        <div class="d2h-wrapper d2h-${format === DiffOutputFormatType.line ? 'line' : 'side'}">
-          <div class="d2h-container">
-              {{{content}}}
-          </div>
-        </div>
-      `,
-      'generic-block-header': `
-        <div class="d2h-code-row-wrapper d2h-code-header-wrapper {{CSSLineClass.INFO}}">
-            <div class="d2h-code-linenumber {{CSSLineClass.INFO}}"></div>
-            <div class="d2h-code-linecontent {{CSSLineClass.INFO}}">
-                <div class="d2h-code-line d2h-code-row">
-                  <span class="d2h-code-line-prefix">&nbsp;</span>
-                  <span class="d2h-code-line-ctn">
-                    {{#blockHeader}}{{{blockHeader}}}{{/blockHeader}}{{^blockHeader}}&nbsp;{{/blockHeader}}
-                  </span>
-                </div>
-            </div>
-        </div>
-      `,
-      'generic-line': `
-        <div class="d2h-code-row-wrapper {{type}}">
-          <div class="d2h-code-linenumber {{type}}">
-            {{{lineNumber}}}
-          </div>
-          <div class="d2h-code-linecontent {{type}}">
-              <div class="d2h-code-line d2h-code-row">
-                {{#prefix}}
-                    <span class="d2h-code-line-prefix">{{{prefix}}}</span>
-                {{/prefix}}
-                {{^prefix}}
-                    <span class="d2h-code-line-prefix">&nbsp;</span>
-                {{/prefix}}
-                {{#content}}
-                    <span class="d2h-code-line-ctn">{{{content}}}</span>
-                {{/content}}
-                {{^content}}
-                    <span class="d2h-code-line-ctn"><br></span>
-                {{/content}}
-              </div>
-          </div>
-      </div>
-      `,
-    },
+    compiledTemplates: format === DiffOutputFormatType.line
+      ? DIFF2HTML_TEMPLATES_LINE
+      : DIFF2HTML_TEMPLATES_SIDE,
   });
 
-  // Sanctioned HTML boundary: diff2html emits by-design markup (the raw
-  // templates above), so it is pasted through the one sanitized-HTML entry
-  // point rather than the structured DOM config. This is the only caller of
-  // setSanitizedHtml in the codebase.
+  // Sanctioned HTML boundary: diff2html emits by-design markup (the
+  // precompiled custom templates), so it is pasted through the one
+  // sanitized-HTML entry point rather than the structured DOM config. This is
+  // the only caller of setSanitizedHtml in the codebase.
   DomHelper.setSanitizedHtml(params.container, diffHtml);
 }
 

@@ -198,7 +198,7 @@ export class GutterBarExtension implements GutterConfig {
 
     const host: GutterHoverPanelHost = {
       isEnabled: (): boolean => this.settingsService.value('gutterHoverPanel'),
-      getContainer: (): HTMLElement => document.body,
+      getContainer: (): HTMLElement => activeDocument.body,
       ariaLabel: (): string => this.i18nService.t('menu.local-history'),
       resolveContent: (line: number): GutterHoverPanelContent | null => this.resolveHover(line)?.content ?? null,
       actionLabels: (): GutterHoverPanelActionLabels => ({

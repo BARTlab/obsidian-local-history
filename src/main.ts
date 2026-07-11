@@ -1,4 +1,8 @@
-import 'reflect-metadata';
+// The lite build carries the same metadata API (defineMetadata/getMetadata,
+// all the decorators need) but, unlike the full build, resolves the global
+// object without the `Function("return this")` / indirect-eval shims that
+// dynamic-code scanners flag.
+import 'reflect-metadata/lite';
 import { RECENT_CHANGES_VIEW_TYPE, VAULT_CHANGES_VIEW_TYPE } from '@/consts';
 import { refreshDecorationsEffect } from '@/extensions/refresh.effect';
 import { CommandsService } from '@/services/commands.service';
@@ -62,7 +66,8 @@ export default class LineChangeTrackerPlugin extends Plugin {
    * itself as the service-constructor host) and delegates resolution and
    * lifecycle to it, holding no DI map of its own.
    */
-  private readonly serviceContainer: ServiceContainer = new ServiceContainer(this.emitter, this);
+  private readonly serviceContainer: ServiceContainer<LineChangeTrackerPlugin> =
+    new ServiceContainer(this.emitter, this);
 
   /**
    * Creates a new instance of the LineChangeTrackerPlugin.
@@ -99,7 +104,7 @@ export default class LineChangeTrackerPlugin extends Plugin {
    * @return {T} The service instance
    * @throws Error if no service is registered under the token
    */
-  public get<T extends {}>(token: ServiceToken<T>): T {
+  public get<T extends object>(token: ServiceToken<T>): T {
     return this.serviceContainer.get(token);
   }
 
@@ -173,14 +178,16 @@ export default class LineChangeTrackerPlugin extends Plugin {
 
   /**
    * Lifecycle method called when the plugin is unloaded.
-   * Unloads all registered services.
-   *
-   * @return {Promise<void>} A promise that resolves when all services are unloaded
+   * Unloads all registered services. Obsidian does not await `onunload`, so
+   * the teardown promise is detached and only logged on failure; the save
+   * queue drains inside the persistence service's own unload step.
    */
-  public async onunload(): Promise<void> {
+  public onunload(): void {
     this.ready = false;
 
-    await this.serviceContainer.exec('unload');
+    this.serviceContainer.exec('unload').catch((error: unknown): void => {
+      console.error('Local history: failed to unload services cleanly', error);
+    });
   }
 
   /**

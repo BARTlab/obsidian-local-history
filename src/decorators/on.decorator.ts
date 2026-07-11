@@ -19,7 +19,7 @@ import { META_ON_EVENT } from '@/decorators/meta-keys';
 export const On = (
   name: string,
 ): MethodDecorator => {
-  return (target: Object, propertyKey: string | symbol): void => {
+  return (target: object, propertyKey: string | symbol): void => {
     return Reflect.defineMetadata(META_ON_EVENT, { name }, target, propertyKey);
   };
 };

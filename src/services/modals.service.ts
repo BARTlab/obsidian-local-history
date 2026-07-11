@@ -319,7 +319,7 @@ export class ModalsService implements Service {
       title: this.plugin.t('modal.put-label.title'),
       message: this.plugin.t('modal.label-version.message'),
       placeholder: this.plugin.t('modal.put-label.placeholder'),
-      initialValue: existing.isLabeled() ? (existing.label as string) : '',
+      initialValue: existing.isLabeled() ? existing.label : '',
       confirmText: this.plugin.t('modal.put-label.confirm'),
       cancelText: this.plugin.t('modal.confirm.cancel'),
       ...configOverride,

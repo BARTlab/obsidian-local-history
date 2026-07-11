@@ -21,5 +21,6 @@ export default defineConfig({
   test: {
     include: ['tests/perf/**/*.perf.ts'],
     environment: 'node',
+    setupFiles: ['tests/setup.ts'],
   },
 });

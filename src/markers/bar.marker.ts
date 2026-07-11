@@ -58,7 +58,7 @@ export class BarMarker extends GutterMarker {
    * @override
    */
   public toDOM(): Node {
-    const bar: HTMLSpanElement = document.createElement('span');
+    const bar: HTMLSpanElement = activeDocument.createElement('span');
 
     bar.addClass('lct-gutter-bar');
 

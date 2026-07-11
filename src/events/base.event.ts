@@ -28,11 +28,12 @@ export abstract class BaseEvent implements EventRef {
 
   /**
    * Event handler method to be implemented by subclasses.
-   * Called when the event is triggered.
+   * Called when the event is triggered. Async handlers may return a promise;
+   * `dispatch` attaches the rejection logging either way.
    *
    * @param args - Arguments passed by the event
    */
-  public abstract handler(...args: unknown[]): void;
+  public abstract handler(...args: unknown[]): void | Promise<void>;
 
   /**
    * Gets the appropriate trigger element (workspace or vault) based on the event type.
@@ -86,7 +87,7 @@ export abstract class BaseEvent implements EventRef {
     const { name, type } = this.getTypeName();
 
     return this.getTrigger(type).on(
-      name as string,
+      name,
       this.dispatch.bind(this),
       this,
     );
@@ -103,7 +104,7 @@ export abstract class BaseEvent implements EventRef {
    */
   protected dispatch(...args: unknown[]): void {
     try {
-      const result: unknown = (this.handler as (...a: unknown[]) => unknown).apply(this, args);
+      const result: unknown = this.handler(...args);
 
       if (result && typeof (result as { then?: unknown }).then === 'function') {
         (result as Promise<unknown>).catch((error: unknown): void => {

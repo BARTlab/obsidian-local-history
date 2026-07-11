@@ -10,6 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      # Required by attest-build-provenance: sign with the workflow's OIDC
+      # identity and store the attestation on the repository.
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@v4
 
@@ -23,6 +27,16 @@ jobs:
         run: |
           npm ci
           npm run build
+
+      # Publishes signed provenance for the release assets so users can verify
+      # they were built from this repository (gh attestation verify).
+      - name: Attest release assets
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: |
+            main.js
+            manifest.json
+            styles.css
 
       - name: Create release
         env:

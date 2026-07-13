@@ -22,5 +22,10 @@ export default defineConfig({
     include: ['tests/perf/**/*.perf.ts'],
     environment: 'node',
     setupFiles: ['tests/setup.ts'],
+    // Benches run warmup + dozens of timed iterations and shared CI runners
+    // are ~1.5x slower than a dev machine, so the default 5s timeout kills
+    // the heavier tests mid-measure. Regressions are the budget gate's job;
+    // the timeout only has to catch genuine hangs.
+    testTimeout: 120_000,
   },
 });

@@ -25,3 +25,9 @@ jobs:
 
       - name: Run perf suite
         run: npm run test:perf
+        env:
+          # Shared runners are 1.4-1.6x slower than the machine the committed
+          # baseline was recorded on and vary run to run, so the scheduled
+          # gate runs with a doubled ceiling and only trips on gross
+          # regressions. See docs/qa/perf-baseline.md.
+          PERF_CEILING_SCALE: "2"

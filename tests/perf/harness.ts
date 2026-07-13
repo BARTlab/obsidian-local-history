@@ -97,6 +97,32 @@ export function baselineMode(): BaselineMode {
   return process.env.PERF_BASELINE === 'record' ? 'record' : 'gate';
 }
 
+/**
+ * Ceiling multiplier for the gate, from the PERF_CEILING_SCALE env var
+ * (default 1). The committed baseline is recorded on a dev machine; shared CI
+ * runners are 1.4-1.6x slower and their speed varies between runs, so the
+ * full-strength ceiling flakes there. The scheduled perf workflow sets 2:
+ * CI still trips on gross (~2x+) regressions while local runs keep the
+ * strict gate.
+ *
+ * @throws if the variable is set to anything but a positive finite number.
+ */
+export function ceilingScale(): number {
+  const raw = process.env.PERF_CEILING_SCALE;
+
+  if (raw === undefined || raw === '') {
+    return 1;
+  }
+
+  const scale = Number(raw);
+
+  if (!Number.isFinite(scale) || scale <= 0) {
+    throw new Error(`PERF_CEILING_SCALE must be a positive number, got "${raw}"`);
+  }
+
+  return scale;
+}
+
 /** Provenance string for a freshly recorded entry: `node <ver> <platform>/<arch>`. */
 function currentEnv(): string {
   return `node ${process.version} ${process.platform}/${process.arch}`;
@@ -245,15 +271,17 @@ export function checkBudget(label: string, measuredMs: number, baseline: Baselin
   const expected = entry.medianMs;
   const relativeCeiling = expected * (1 + REGRESSION_BUDGET);
   const absoluteCeiling = expected + ABS_SLACK_MS;
-  const ceiling = Math.max(relativeCeiling, absoluteCeiling);
+  const scale = ceilingScale();
+  const ceiling = Math.max(relativeCeiling, absoluteCeiling) * scale;
 
   if (measuredMs > ceiling) {
     const budgetPct = (REGRESSION_BUDGET * 100).toFixed(0);
+    const scaleNote = scale === 1 ? '' : `, scaled x${scale}`;
     throw new Error(
       `[perf] regression on "${label}": measured ${measuredMs.toFixed(4)} ms exceeds ` +
         `baseline ${expected.toFixed(4)} ms past the hybrid ceiling ${ceiling.toFixed(4)} ms ` +
         `(max of +${budgetPct}% = ${relativeCeiling.toFixed(4)} ms and ` +
-        `+${ABS_SLACK_MS} ms = ${absoluteCeiling.toFixed(4)} ms).`,
+        `+${ABS_SLACK_MS} ms = ${absoluteCeiling.toFixed(4)} ms${scaleNote}).`,
     );
   }
 }

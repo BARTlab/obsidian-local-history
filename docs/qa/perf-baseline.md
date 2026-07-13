@@ -37,6 +37,8 @@ two constants and their reasoning live in `tests/perf/harness.ts`, the single
 source of truth: the relative arm keeps large labels tight, the absolute arm
 absorbs sub-millisecond jitter too small to hide a real regression.
 
+The whole ceiling is additionally multiplied by `PERF_CEILING_SCALE` (default 1). The scheduled CI workflow (`perf.yml`) sets it to 2: the baseline is recorded on a dev machine, while shared runners are 1.4-1.6x slower and vary run to run, so the full-strength gate flakes there. With the doubled ceiling CI still catches gross (~2x+) regressions; the strict gate is the local run.
+
 ## How to read a failure
 
 A gate failure prints one line per regressed label, for example:
@@ -62,8 +64,9 @@ PERF_BASELINE=record npm run test:perf
 In **record** mode the gate is disabled: each benchmark writes its measured time
 (`medianMs`), an ISO `recordedAt`, and an `env` string, and the run exits 0.
 Unmeasured labels are preserved, so a filtered run (`... -- -t snapshot`) updates
-only those. `PERF_BASELINE` is the only switch (unset/`gate` enforces, `record`
-rewrites). Commit the regenerated `baseline.json` as a reviewable diff.
+only those. `PERF_BASELINE` selects the mode (unset/`gate` enforces, `record`
+rewrites); the only other switch is `PERF_CEILING_SCALE` from the budget section
+above. Commit the regenerated `baseline.json` as a reviewable diff.
 
 Rebaseline **only** after a deliberate optimisation of a benched hot path or a
 feature change that legitimately shifts its cost. Do **not** rebaseline to silence

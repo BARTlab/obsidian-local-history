@@ -86,6 +86,28 @@ describe('perf harness', () => {
     expect(() => checkBudget('harness/over', overBudget, baseline)).toThrow(/regression on "harness\/over"/);
   });
 
+  it('PERF_CEILING_SCALE multiplies the hybrid ceiling (slow-runner mode)', () => {
+    const baseline = baselineWith('harness/scaled', 10);
+    const prev = process.env.PERF_CEILING_SCALE;
+    process.env.PERF_CEILING_SCALE = '2';
+
+    try {
+      // Hybrid ceiling = max(14, 10.8) * 2 = 28; 20 passes only thanks to the scale.
+      expect(() => checkBudget('harness/scaled', 20, baseline)).not.toThrow();
+      // Past the scaled ceiling still trips.
+      expect(() => checkBudget('harness/scaled', 29, baseline)).toThrow(/regression on "harness\/scaled"/);
+      // A junk value must fail loudly, not silently weaken or restore the gate.
+      process.env.PERF_CEILING_SCALE = 'fast';
+      expect(() => checkBudget('harness/scaled', 20, baseline)).toThrow(/PERF_CEILING_SCALE/);
+    } finally {
+      if (prev === undefined) {
+        delete process.env.PERF_CEILING_SCALE;
+      } else {
+        process.env.PERF_CEILING_SCALE = prev;
+      }
+    }
+  });
+
   it('absolute arm widens the ceiling on a tiny-baseline label', () => {
     // Baseline 0.04 ms: relative ceiling 0.056 ms, absolute ceiling 0.84 ms; the
     // hybrid max is the absolute arm, so a 0.2 ms reading (a +400% relative jump

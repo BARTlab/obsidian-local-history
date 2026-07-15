@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 
 import {
   ABS_SLACK_MS,
@@ -24,6 +24,21 @@ function baselineWith(label: string, medianMs: number): Baseline {
  * widens the ceiling on a tiny-baseline label.
  */
 describe('perf harness', () => {
+  const ambientScale = process.env.PERF_CEILING_SCALE;
+
+  // checkBudget reads PERF_CEILING_SCALE from the environment; the synthetic
+  // ceilings below assume the default scale, so pin it per test and hand the
+  // ambient value (CI sets 2) back to the real benches afterwards.
+  beforeEach(() => {
+    delete process.env.PERF_CEILING_SCALE;
+  });
+
+  afterAll(() => {
+    if (ambientScale !== undefined) {
+      process.env.PERF_CEILING_SCALE = ambientScale;
+    }
+  });
+
   it('measure returns a positive minimum over the iteration count', () => {
     const min = measure('harness/self-test', () => {
       let acc = 0;

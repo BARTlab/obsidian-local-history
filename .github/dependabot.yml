@@ -1,0 +1,21 @@
+version: 2
+updates:
+  # Keep the SHA-pinned workflow actions fresh (complements the manual pins).
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
+
+  # Build/dev deps: group minor+patch into one monthly PR, majors come solo.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 10
+    groups:
+      npm-minor-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]

@@ -1,0 +1,32 @@
+#!/bin/sh
+#
+# commit-msg: enforce single-line commit messages (subject only, no body).
+#
+# The message is normalized exactly the way git's default `strip` cleanup will
+# treat it (comment lines dropped, blank runs collapsed, edges trimmed) so the
+# hook counts what actually gets committed, not editor scaffolding. Any content
+# beyond the first line - a body, a trailer, a wrapped paragraph - is rejected.
+#
+# Activated via core.hooksPath (.githooks); the npm `prepare` script wires that
+# on install so a fresh clone picks it up.
+
+msg_file="$1"
+
+# Mirror git's default cleanup: remove `#` comments and surrounding blank lines.
+cleaned=$(git stripspace --strip-comments <"$msg_file")
+
+# Count non-empty lines. A subject-only message has exactly one; a body or any
+# trailer adds at least one more (the blank separator is not counted).
+non_empty=$(printf '%s\n' "$cleaned" | grep -c '[^[:space:]]')
+
+if [ "$non_empty" -gt 1 ]; then
+	echo "commit-msg: rejected - the message must be a single line (no body)." >&2
+	echo "" >&2
+	echo "Offending message:" >&2
+	printf '%s\n' "$cleaned" | sed 's/^/  | /' >&2
+	echo "" >&2
+	echo "Keep it to one subject line and commit again." >&2
+	exit 1
+fi
+
+exit 0

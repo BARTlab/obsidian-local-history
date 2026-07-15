@@ -9,8 +9,25 @@ import obsidianmd from 'eslint-plugin-obsidianmd';
 // `npm run lint` catches its findings before a submission does. Scoped to the
 // bot's own scope (plugin sources + package.json): its type-aware rules need
 // the project-backed parser, which only the src block configures.
-const reviewBotConfig = obsidianmd.configs.recommended.map((block) =>
-  JSON.stringify(block.files ?? '').includes('package.json') ? block : { ...block, files: ['src/**/*.ts'] });
+const reviewBotConfig = obsidianmd.configs.recommended.map((block) => {
+  if (JSON.stringify(block.files ?? '').includes('package.json')) {
+    return block;
+  }
+
+  const scoped = { ...block, files: ['src/**/*.ts'] };
+
+  // The preset ships its own @typescript-eslint plugin instance. eslint 10.7+
+  // throws "Cannot redefine plugin" when two applicable configs register the
+  // same plugin as different objects, and the src block below registers our
+  // own instance. Drop the preset's copy so ours is the single registrant; the
+  // preset's @typescript-eslint rules resolve against it (same package).
+  if (scoped.plugins?.['@typescript-eslint']) {
+    scoped.plugins = { ...scoped.plugins };
+    delete scoped.plugins['@typescript-eslint'];
+  }
+
+  return scoped;
+});
 
 export default [
   ...reviewBotConfig,

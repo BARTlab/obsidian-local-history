@@ -15,6 +15,11 @@ updates:
     schedule:
       interval: monthly
     open-pull-requests-limit: 10
+    ignore:
+      # Obsidian bundles CodeMirror and peers on exact versions, so these must
+      # track the installed Obsidian, not float to npm latest (else `npm ci`
+      # hits an ERESOLVE peer conflict). Bump them by hand alongside Obsidian.
+      - dependency-name: "@codemirror/*"
     groups:
       npm-minor-patch:
         patterns: ["*"]

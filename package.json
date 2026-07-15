@@ -29,7 +29,7 @@
     "@profoundlogic/hogan": "^3.0.4",
     "@shellscape/esbuild-sass-plugin": "^2.4.4-patch.2",
     "@stylistic/eslint-plugin": "^5.10.0",
-    "@types/node": "^25.9.1",
+    "@types/node": "^26.1.1",
     "@typescript-eslint/eslint-plugin": "^8.60.0",
     "@typescript-eslint/parser": "^8.60.0",
     "diff": "^9.0.0",

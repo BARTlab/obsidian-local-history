@@ -10,7 +10,8 @@
     "lint": "eslint src tests && node scripts/check-class-purity.mjs",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
-    "test:perf": "NODE_OPTIONS=--expose-gc vitest run --config vitest.config.perf.ts"
+    "test:perf": "NODE_OPTIONS=--expose-gc vitest run --config vitest.config.perf.ts",
+    "prepare": "git config core.hooksPath .githooks || true"
   },
   "keywords": [
     "obsidian",

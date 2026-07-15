@@ -1,0 +1,8 @@
+name: CodeQL config
+
+# The plugin ships only the bundled src/. Test code is not a runtime attack
+# surface, and its deliberately-catastrophic regex fixtures (e.g. the ReDoS
+# guard test) would otherwise raise false-positive alerts. Scope SAST to the
+# shipped source.
+paths:
+  - src

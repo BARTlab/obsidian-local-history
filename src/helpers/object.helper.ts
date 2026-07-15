@@ -46,8 +46,18 @@ export const get = (object: unknown, path: string): unknown => {
 };
 
 /**
+ * Property names that must never be traversed or written through the recursive
+ * utilities: assigning to them reaches `Object.prototype` (prototype pollution)
+ * instead of an own property. Guarded in both {@link set} and {@link merge} so a
+ * crafted payload (e.g. a `data.json` with `__proto__`) cannot tamper with the
+ * global prototype chain.
+ */
+const UNSAFE_KEYS: ReadonlySet<string> = new Set<string>(['__proto__', 'constructor', 'prototype']);
+
+/**
  * Writes a value at a dot-separated path, creating intermediate plain objects
- * as needed. Mutates and returns the target.
+ * as needed. Mutates and returns the target. A path that traverses a
+ * prototype-polluting key is refused and leaves the target untouched.
  *
  * @param {T} object - The target object to write into
  * @param {string} path - The dot-separated key path
@@ -56,6 +66,11 @@ export const get = (object: unknown, path: string): unknown => {
  */
 export const set = <T>(object: T, path: string, value: unknown): T => {
   const keys: string[] = path.split('.');
+
+  if (keys.some((key: string) => UNSAFE_KEYS.has(key))) {
+    return object;
+  }
+
   let current: Record<string, unknown> = object as Record<string, unknown>;
 
   for (let i = 0; i < keys.length - 1; i++) {
@@ -94,6 +109,10 @@ export function merge(target: Record<string, unknown>, ...sources: unknown[]): R
     }
 
     for (const key of Object.keys(source)) {
+      if (UNSAFE_KEYS.has(key)) {
+        continue;
+      }
+
       const srcValue: unknown = source[key];
 
       if (isPlainObject(srcValue)) {

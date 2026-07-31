@@ -20,6 +20,11 @@ updates:
       # track the installed Obsidian, not float to npm latest (else `npm ci`
       # hits an ERESOLVE peer conflict). Bump them by hand alongside Obsidian.
       - dependency-name: "@codemirror/*"
+      # typescript-eslint peers on typescript <6.1, and its parser reads
+      # ts.Extension, which the native TS 7 compiler no longer exports. Bump
+      # this major by hand once upstream ships TS 7 support.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
     groups:
       npm-minor-patch:
         patterns: ["*"]

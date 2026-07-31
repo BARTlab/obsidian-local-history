@@ -39,7 +39,7 @@
     "eslint-plugin-obsidianmd": "^0.4.1",
     "eventemitter3": "^5.0.4",
     "globals": "^17.7.0",
-    "jsdom": "^29.1.1",
+    "jsdom": "^30.0.0",
     "obsidian": "^1.13.1",
     "reflect-metadata": "^0.2.2",
     "tslib": "2.8.1",

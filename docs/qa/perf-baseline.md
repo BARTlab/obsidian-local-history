@@ -79,10 +79,10 @@ The baseline holds 39 labels recorded on node v24.15.0 (linux/x64). Each entry
 carries its own `recordedAt` and `env` in `baseline.json`, the record of what was
 measured when.
 
-- **2026-06-05, commit 416a270** - partial re-baseline of
+- **2026-06-05, commit 5a9004d** - partial re-baseline of
   `persistence.restore.medium`: the restore path at the time called
   `FileSnapshot.resetMarkerBaseline()` per restored snapshot
   (`src/snapshots/history-serializer.ts`), so its minimum rose past the relative
   arm (~62 ms); the other 38 labels were unchanged. That method has since been
   dropped as a dead path, so it no longer appears in `src/`.
-- **2026-06-04, commit df287d7** - initial recording of all labels.
+- **2026-06-04, commit b36108f** - initial recording of all labels.

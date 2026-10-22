@@ -51,13 +51,15 @@ export class StylesService implements Service {
    */
   @_On(PluginEvent.settingsUpdate)
   public update(): void {
+    // Settings may be active in a detached window; target the workspace document.
+    const body: HTMLElement = this.plugin.app.workspace.containerEl.ownerDocument.body;
     const width: number = this.settingsService.value('line.width');
     const intensity: number = this.settingsService.value('markerIntensity');
 
-    activeDocument.body.style.setProperty(LINE_WIDTH_VAR, `${width}px`);
-    activeDocument.body.style.setProperty(LINE_BORDER_RADIUS_VAR, `${(width / 2).toFixed(0)}px`);
-    activeDocument.body.style.setProperty(TINT_STRENGTH_VAR, `${intensity}%`);
-    activeDocument.body.classList.toggle(
+    body.style.setProperty(LINE_WIDTH_VAR, `${width}px`);
+    body.style.setProperty(LINE_BORDER_RADIUS_VAR, `${(width / 2).toFixed(0)}px`);
+    body.style.setProperty(TINT_STRENGTH_VAR, `${intensity}%`);
+    body.classList.toggle(
       StylesService.HOVER_AFFORDANCE_CLASS,
       this.settingsService.value('gutterHoverPanel'),
     );
@@ -65,9 +67,11 @@ export class StylesService implements Service {
 
   /** Clears the custom properties and hover-affordance class this service set. */
   public unload(): void {
-    activeDocument.body.style.removeProperty(LINE_WIDTH_VAR);
-    activeDocument.body.style.removeProperty(LINE_BORDER_RADIUS_VAR);
-    activeDocument.body.style.removeProperty(TINT_STRENGTH_VAR);
-    activeDocument.body.classList.remove(StylesService.HOVER_AFFORDANCE_CLASS);
+    const body: HTMLElement = this.plugin.app.workspace.containerEl.ownerDocument.body;
+
+    body.style.removeProperty(LINE_WIDTH_VAR);
+    body.style.removeProperty(LINE_BORDER_RADIUS_VAR);
+    body.style.removeProperty(TINT_STRENGTH_VAR);
+    body.classList.remove(StylesService.HOVER_AFFORDANCE_CLASS);
   }
 }

@@ -17,7 +17,7 @@
  */
 
 import 'reflect-metadata';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { StylesService } from '@/services/styles.service';
 import { TOKENS } from '@/services/tokens';
 
@@ -64,6 +64,7 @@ const makeService = (overrides: SettingOverrides = {}): StylesService => {
   ]);
 
   const plugin = {
+    app: { workspace: { containerEl: document.createElement('div') } },
     get: (key: unknown): unknown => services.get(key),
   };
 
@@ -71,6 +72,7 @@ const makeService = (overrides: SettingOverrides = {}): StylesService => {
 };
 
 afterEach((): void => {
+  vi.unstubAllGlobals();
   document.body.classList.remove(HOVER_CLASS);
   document.body.removeAttribute('style');
 });
@@ -146,5 +148,47 @@ describe('StylesService marker intensity', () => {
     service.unload();
 
     expect(document.body.style.getPropertyValue(TINT_STRENGTH_VAR)).toBe('');
+  });
+});
+
+// Detached Settings owns a different document from the workspace editor.
+describe('StylesService with a detached Settings document active', () => {
+  it('loads and updates styles on the workspace document, not Settings', () => {
+    const settingsDocument = document.implementation.createHTMLDocument('Settings');
+    vi.stubGlobal('activeDocument', settingsDocument);
+
+    const service = makeService({ lineWidth: 4, markerIntensity: 60 });
+    service.load();
+
+    expect(document.body.style.getPropertyValue('--lct-line-width')).toBe('4px');
+    expect(document.body.style.getPropertyValue('--lct-line-border-radius')).toBe('2px');
+    expect(document.body.style.getPropertyValue(TINT_STRENGTH_VAR)).toBe('60%');
+    expect(document.body.classList.contains(HOVER_CLASS)).toBe(true);
+    expect(settingsDocument.body.getAttribute('style')).toBeNull();
+    expect(settingsDocument.body.classList.contains(HOVER_CLASS)).toBe(false);
+
+    makeService({ lineWidth: 6, markerIntensity: 40, gutterHoverPanel: false }).update();
+
+    expect(document.body.style.getPropertyValue('--lct-line-width')).toBe('6px');
+    expect(document.body.style.getPropertyValue(TINT_STRENGTH_VAR)).toBe('40%');
+    expect(document.body.classList.contains(HOVER_CLASS)).toBe(false);
+  });
+
+  it('cleans up the workspace when Settings gains focus before unload', () => {
+    const service = makeService();
+    service.load();
+
+    const settingsDocument = document.implementation.createHTMLDocument('Settings');
+    settingsDocument.body.style.setProperty('--lct-line-width', '9px');
+    settingsDocument.body.classList.add(HOVER_CLASS);
+    vi.stubGlobal('activeDocument', settingsDocument);
+    service.unload();
+
+    expect(document.body.style.getPropertyValue('--lct-line-width')).toBe('');
+    expect(document.body.style.getPropertyValue('--lct-line-border-radius')).toBe('');
+    expect(document.body.style.getPropertyValue(TINT_STRENGTH_VAR)).toBe('');
+    expect(document.body.classList.contains(HOVER_CLASS)).toBe(false);
+    expect(settingsDocument.body.style.getPropertyValue('--lct-line-width')).toBe('9px');
+    expect(settingsDocument.body.classList.contains(HOVER_CLASS)).toBe(true);
   });
 });

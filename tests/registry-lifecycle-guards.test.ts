@@ -69,6 +69,7 @@ describe('Registry/lifecycle guards', (): void => {
       // The @Inject getter resolves settingsService via plugin.get(); the stub
       // returns a settings object whose value() reports the line width.
       const plugin = {
+        app: { workspace: { containerEl: document.createElement('div') } },
         get: (): { value: () => number } => ({ value: (): number => 6 }),
       } as unknown as LineChangeTrackerPlugin;
 
